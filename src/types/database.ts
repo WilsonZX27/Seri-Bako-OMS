@@ -1681,6 +1681,14 @@ export type Database = {
         Args: { permission: string };
         Returns: boolean;
       };
+      has_admin_staff_assignment: {
+        Args: Record<string, never>;
+        Returns: boolean;
+      };
+      bootstrap_first_admin: {
+        Args: Record<string, never>;
+        Returns: void;
+      };
     };
     Enums: {
       item_status: ItemStatus;

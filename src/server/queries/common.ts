@@ -15,11 +15,33 @@ export async function getCurrentProfile() {
 
   const { data: staff } = await supabase.from("staffs").select("*").eq("auth_user_id", user.id).maybeSingle();
   if (staff) {
-    return { ...staff, role: "viewer" as const, role_code: "viewer" as const };
+    const { data: staffRoles } = await supabase
+      .from("staff_roles")
+      .select("role_id, is_primary, effective_from, effective_to")
+      .eq("staff_id", staff.id);
+    const today = new Date().toISOString().slice(0, 10);
+    const activeRoles = (staffRoles ?? []).filter((row) => {
+      const role = row as { effective_from?: string; effective_to?: string | null };
+      return (!role.effective_from || role.effective_from <= today) && (!role.effective_to || role.effective_to >= today);
+    });
+    const primaryRole = activeRoles.find((row) => row.is_primary) ?? activeRoles[0];
+    let roleCode = "viewer";
+
+    if (primaryRole?.role_id) {
+      const { data: role } = await supabase
+        .from("roles")
+        .select("role_code")
+        .eq("id", primaryRole.role_id)
+        .eq("status", "active")
+        .maybeSingle();
+      roleCode = role?.role_code ?? "viewer";
+    }
+
+    return { ...staff, role: roleCode, role_code: roleCode, has_staff_role: activeRoles.length > 0 };
   }
 
   const { data } = await supabase.from("profiles").select("*").eq("id", user.id).maybeSingle();
-  return data ? { ...data, company_id: null, role_code: data.role } : null;
+  return data ? { ...data, company_id: null, role_code: data.role, has_staff_role: false } : null;
 }
 
 export async function getSuppliersForSelect() {

@@ -1,0 +1,42 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: 210 20% 98%;
+  --foreground: 222 47% 11%;
+  --card: 0 0% 100%;
+  --card-foreground: 222 47% 11%;
+  --primary: 147 48% 13%;
+  --primary-foreground: 0 0% 100%;
+  --secondary: 210 20% 94%;
+  --secondary-foreground: 222 47% 11%;
+  --muted: 210 20% 94%;
+  --muted-foreground: 215 16% 47%;
+  --accent: 24 43% 60%;
+  --accent-foreground: 147 48% 13%;
+  --destructive: 0 74% 42%;
+  --destructive-foreground: 0 0% 100%;
+  --border: 214 20% 88%;
+  --input: 214 20% 88%;
+  --ring: 24 43% 60%;
+  --radius: 0.5rem;
+}
+
+* {
+  @apply border-border;
+}
+
+body {
+  @apply bg-background text-foreground antialiased;
+}
+
+input,
+select,
+textarea {
+  font-size: 16px;
+}
+
+.erp-surface {
+  @apply border bg-card shadow-sm;
+}

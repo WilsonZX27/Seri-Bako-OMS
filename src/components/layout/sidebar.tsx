@@ -8,7 +8,7 @@ export async function Sidebar() {
   const role = profileRole?.role_code ?? profileRole?.role ?? "viewer";
 
   return (
-    <aside className="hidden w-72 shrink-0 border-r lg:block">
+    <aside className="hidden shrink-0 lg:block">
       <WorkspaceSidebar role={role} companyName={branding.company_name} companyLogoUrl={branding.logo_url} />
     </aside>
   );

@@ -3,7 +3,16 @@
 @tailwind utilities;
 
 :root {
-  --background: 210 20% 98%;
+  --sb-primary: #0F3D2E;
+  --sb-primary-dark: #0B2F23;
+  --sb-accent: #D99A2B;
+  --sb-bg: #F7F5EF;
+  --sb-surface: #FFFFFF;
+  --sb-muted: #EEF3EF;
+  --sb-danger: #B91C1C;
+  --sb-success: #15803D;
+
+  --background: 43 33% 95%;
   --foreground: 222 47% 11%;
   --card: 0 0% 100%;
   --card-foreground: 222 47% 11%;
@@ -39,4 +48,12 @@ textarea {
 
 .erp-surface {
   @apply border bg-card shadow-sm;
+}
+
+.sb-section-label {
+  @apply text-xs font-semibold uppercase tracking-normal text-muted-foreground;
+}
+
+.sb-icon-tile {
+  @apply flex h-11 w-11 shrink-0 items-center justify-center rounded-md bg-primary/10 text-primary;
 }

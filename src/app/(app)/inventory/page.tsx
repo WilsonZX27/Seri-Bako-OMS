@@ -1,8 +1,9 @@
 import Link from "next/link";
-import { ArrowDownLeft, ArrowUpRight, Boxes, PackageSearch, TriangleAlert } from "lucide-react";
+import { ArrowDownLeft, ArrowUpRight, Barcode, Boxes, ClipboardCheck, PackageSearch, ReceiptText, ScanLine, TriangleAlert } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { CategoryCardGrid } from "@/components/category-card-grid";
 import { PageHeader } from "@/components/ui/page-header";
 import { StatCard } from "@/components/ui/stat-card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -11,6 +12,17 @@ import { getInventoryDashboard } from "@/server/queries/inventory";
 
 export default async function InventoryPage() {
   const summary = await getInventoryDashboard();
+  const inventoryTools = [
+    { href: "/stock-balance", title: "Stock Balance", description: "Branch-level stock with optional location detail.", icon: PackageSearch, recommendedFor: "all operations" },
+    { href: "/stock-card", title: "Stock Card", description: "Trace item movements through the posted stock ledger.", icon: ReceiptText, recommendedFor: "managers" },
+    { href: "/stock-counts", title: "Stock Count", description: "Create and review branch-first stock counts.", icon: ClipboardCheck, recommendedFor: "kitchen" },
+    { href: "/stock-transfers", title: "Stock Transfer", description: "Move stock between branches with default locations handled automatically.", icon: ScanLine, recommendedFor: "operations" },
+    { href: "/stock-wastage", title: "Stock Wastage", description: "Record damaged, expired, missing, or claimable stock.", icon: TriangleAlert, recommendedFor: "kitchen" },
+    { href: "/stock-transactions/new", title: "Manual Stock Movement", description: "Post controlled manual movements into the ledger.", icon: ReceiptText, recommendedFor: "admin" },
+    { href: "/stock-counts/scan", title: "Barcode Lookup", description: "Use a USB scanner or manual input to find and count items.", icon: Barcode, recommendedFor: "kitchen" },
+    { href: "/imports/items", title: "Opening Stock / Import", description: "Download templates and import master data with validation.", icon: Boxes, recommendedFor: "admin" },
+  ];
+
   return (
     <>
       <PageHeader
@@ -20,6 +32,11 @@ export default async function InventoryPage() {
         secondaryAction={{ href: "/stock-card", label: "Stock Card" }}
       />
       <div className="space-y-5 p-5">
+        <div className="space-y-3">
+          <p className="sb-section-label">Inventory tools</p>
+          <CategoryCardGrid items={inventoryTools} />
+        </div>
+
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
           <StatCard label="Inventory Value" value={formatCurrency(summary.inventoryValue)} icon={Boxes} />
           <StatCard label="Active Items" value={formatNumber(summary.totalActiveItems)} icon={PackageSearch} />

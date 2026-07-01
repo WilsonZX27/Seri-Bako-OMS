@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { formatActionError, requirePermissionOrRedirect, rethrowRedirect, safeRedirectWithMessage } from "@/server/actions/error-handling";
 import { isMockMode, mockCompany, mockProfile } from "@/lib/mock-mode";
 import { createClient } from "@/lib/supabase/server";
 import { writeActivityLog } from "@/server/activity/log";
@@ -64,14 +65,20 @@ export async function addDocumentAttachment(documentId: string, formData: FormDa
 }
 
 export async function archiveDocumentAttachment(documentId: string, attachmentId: string) {
-  await requirePermission("documents.attach");
-  if (!isMockMode()) {
-    const supabase = await createClient();
-    const { error } = await supabase.from("attachments").update({ status: "archived", deleted_at: new Date().toISOString() }).eq("id", attachmentId);
-    if (error) throw new Error(error.message);
-    await writeActivityLog({ entityType: "document", entityId: documentId, activityType: "attachment_archived", message: "Attachment archived" });
+  await requirePermissionOrRedirect("documents.attach", `/documents/${documentId}`);
+  try {
+    if (!isMockMode()) {
+      const supabase = await createClient();
+      const { error } = await supabase.from("attachments").update({ status: "archived", deleted_at: new Date().toISOString() }).eq("id", attachmentId);
+      if (error) throw new Error(error.message);
+      await writeActivityLog({ entityType: "document", entityId: documentId, activityType: "attachment_archived", message: "Attachment archived" });
+    }
+  } catch (error) {
+    rethrowRedirect(error);
+    safeRedirectWithMessage(`/documents/${documentId}`, "error", formatActionError(error, "Could not archive this attachment."));
   }
   revalidatePath(`/documents/${documentId}`);
+  safeRedirectWithMessage(`/documents/${documentId}`, "success", "Attachment archived.");
 }
 
 async function createRevision(documentId: string, summary: string) {

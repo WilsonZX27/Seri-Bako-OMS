@@ -19,15 +19,28 @@ function imageFallback(label: string) {
   );
 }
 
-export default async function RecipeDetailPage({ params }: { params: Promise<{ id: string }> }) {
+export default async function RecipeDetailPage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ id: string }>;
+  searchParams: Promise<{ error?: string; success?: string }>;
+}) {
   const { id } = await params;
-  const recipe = await getRecipe(id);
+  const [messageParams, recipe] = await Promise.all([searchParams, getRecipe(id)]);
   const documentBundle = recipe.document_id ? await getDocumentBundle(recipe.document_id) : null;
 
   return (
     <>
       <PageHeader title={`${recipe.recipe_no} - Recipe Detail`} description={`${recipe.product_code} - ${recipe.product_name}`} />
       <div className="space-y-5 p-5">
+        {messageParams.error || messageParams.success ? (
+          <Card>
+            <CardContent className={`p-4 text-sm ${messageParams.error ? "text-destructive" : "text-emerald-700"}`}>
+              {messageParams.error ?? messageParams.success}
+            </CardContent>
+          </Card>
+        ) : null}
         <div className="flex flex-wrap justify-end gap-2">
           {recipe.status !== "active" && recipe.status !== "archived" ? (
             <Button asChild variant="outline"><Link href={`/recipes/${recipe.id}/edit`}>Edit recipe</Link></Button>

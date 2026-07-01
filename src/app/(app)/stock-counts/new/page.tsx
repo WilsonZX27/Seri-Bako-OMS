@@ -1,4 +1,5 @@
 import { StockCountForm } from "@/components/stock-count-form";
+import { Card, CardContent } from "@/components/ui/card";
 import { PageHeader } from "@/components/ui/page-header";
 import { createStockCount } from "@/server/actions/stock-counts";
 import { getBranchesForSelect, getLocationsForSelect } from "@/server/queries/common";
@@ -15,7 +16,8 @@ export default async function NewStockCountPage({ searchParams }: { searchParams
   return (
     <>
       <PageHeader title="New Stock Count" description="Count by branch by default, with optional location-level counting in Advanced." />
-      <div className="p-5">
+      <div className="space-y-4 p-5">
+        {filters.error ? <Card><CardContent className="p-4 text-sm text-destructive">{filters.error}</CardContent></Card> : null}
         <StockCountForm branches={branches} locations={locations} selectedBranchId={selectedBranchId} selectedLocationId={filters.location_id} seedLines={seedLines} action={createStockCount} />
       </div>
     </>

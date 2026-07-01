@@ -7,6 +7,7 @@ import { createClient } from "@/lib/supabase/server";
 import { goodsReceivingSchema } from "@/lib/validations/procurement";
 import { writeActivityLog } from "@/server/activity/log";
 import { requirePermission } from "@/server/auth/permissions";
+import { formatActionError, requirePermissionOrRedirect, rethrowRedirect, safeRedirectWithMessage } from "@/server/actions/error-handling";
 import { resolveDefaultLocation } from "@/server/inventory/locations";
 import { getCurrentProfile } from "@/server/queries/common";
 
@@ -105,54 +106,59 @@ async function ensureReceivablePo(purchaseOrderId: string) {
 }
 
 export async function createGoodsReceiving(formData: FormData) {
-  await requirePermission("goods_receiving.create");
-  const payload = extractGoodsReceiving(formData);
-  if (isMockMode()) redirect("/goods-receivings/grn-mock-partial");
-  const locationId = await resolveDefaultLocation(payload.branch_id, payload.location_id);
+  await requirePermissionOrRedirect("goods_receiving.create", "/goods-receivings/new");
+  try {
+    const payload = extractGoodsReceiving(formData);
+    if (isMockMode()) redirect("/goods-receivings/grn-mock-partial");
+    const locationId = await resolveDefaultLocation(payload.branch_id, payload.location_id);
 
-  const po = await ensureReceivablePo(payload.purchase_order_id);
-  if (po.supplier_id !== payload.supplier_id) throw new Error("GRN supplier must match selected PO supplier.");
+    const po = await ensureReceivablePo(payload.purchase_order_id);
+    if (po.supplier_id !== payload.supplier_id) throw new Error("GRN supplier must match selected PO supplier.");
 
-  const profile = await identity();
-  const supabase = await createClient();
-  const { data, error } = await supabase
-    .from("goods_receivings")
-    .insert({
-      company_id: profile?.company_id ?? null,
-      purchase_order_id: payload.purchase_order_id,
-      grn_no: payload.grn_no,
-      supplier_id: payload.supplier_id,
-      received_date: payload.received_date,
-      branch_id: payload.branch_id,
-      location_id: locationId,
-      status: "draft",
-      received_by: profile?.id ?? null,
-      remarks: payload.remarks,
-      created_by: profile?.id ?? null,
-      updated_by: profile?.id ?? null,
-    })
-    .select("id")
-    .single();
-  if (error) throw new Error(error.message);
+    const profile = await identity();
+    const supabase = await createClient();
+    const { data, error } = await supabase
+      .from("goods_receivings")
+      .insert({
+        company_id: profile?.company_id ?? null,
+        purchase_order_id: payload.purchase_order_id,
+        grn_no: payload.grn_no,
+        supplier_id: payload.supplier_id,
+        received_date: payload.received_date,
+        branch_id: payload.branch_id,
+        location_id: locationId,
+        status: "draft",
+        received_by: profile?.id ?? null,
+        remarks: payload.remarks,
+        created_by: profile?.id ?? null,
+        updated_by: profile?.id ?? null,
+      })
+      .select("id")
+      .single();
+    if (error) throw new Error(error.message);
 
-  const documentId = await createLinkedDocument({
-    documentNo: payload.grn_no,
-    documentType: "goods_receiving",
-    title: `Goods Receiving ${payload.grn_no}`,
-    relatedEntityType: "goods_receiving",
-    relatedEntityId: data.id,
-  });
+    const documentId = await createLinkedDocument({
+      documentNo: payload.grn_no,
+      documentType: "goods_receiving",
+      title: `Goods Receiving ${payload.grn_no}`,
+      relatedEntityType: "goods_receiving",
+      relatedEntityId: data.id,
+    });
 
-  const [{ error: updateError }, { error: linesError }] = await Promise.all([
-    supabase.from("goods_receivings").update({ document_id: documentId }).eq("id", data.id),
-    supabase.from("goods_receiving_lines").insert(payload.lines.map((line) => ({ ...line, expiry_date: cleanText(line.expiry_date ?? null), goods_receiving_id: data.id }))),
-  ]);
-  if (updateError) throw new Error(updateError.message);
-  if (linesError) throw new Error(linesError.message);
+    const [{ error: updateError }, { error: linesError }] = await Promise.all([
+      supabase.from("goods_receivings").update({ document_id: documentId }).eq("id", data.id),
+      supabase.from("goods_receiving_lines").insert(payload.lines.map((line) => ({ ...line, expiry_date: cleanText(line.expiry_date ?? null), goods_receiving_id: data.id }))),
+    ]);
+    if (updateError) throw new Error(updateError.message);
+    if (linesError) throw new Error(linesError.message);
 
-  await writeActivityLog({ entityType: "document", entityId: documentId, activityType: "created", message: `Goods receiving ${payload.grn_no} created` });
-  revalidatePath("/goods-receivings");
-  redirect(`/goods-receivings/${data.id}`);
+    await writeActivityLog({ entityType: "document", entityId: documentId, activityType: "created", message: `Goods receiving ${payload.grn_no} created` });
+    revalidatePath("/goods-receivings");
+    redirect(`/goods-receivings/${data.id}`);
+  } catch (error) {
+    rethrowRedirect(error);
+    safeRedirectWithMessage("/goods-receivings/new", "error", formatActionError(error, "Could not create this goods receiving."));
+  }
 }
 
 export async function postGoodsReceiving(id: string) {

@@ -1,18 +1,19 @@
 "use client";
 
 import Link from "next/link";
-import { AlertTriangle, Bell, Boxes, CalendarCheck, CheckCircle2, EyeOff, Factory, FileText, PackageCheck, RotateCcw, Truck } from "lucide-react";
+import { AlertTriangle, Bell, Boxes, CalendarCheck, CheckCircle2, ClipboardCheck, ClipboardList, EyeOff, Factory, FileText, PackageCheck, PackageSearch, RotateCcw, ScanLine, Settings, ShoppingCart, TriangleAlert, Truck, Users } from "lucide-react";
 import { useEffect, useState, type ReactNode } from "react";
+import type { LucideIcon } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { StatCard } from "@/components/ui/stat-card";
 import { formatNumber } from "@/lib/utils";
+import type { UserRole } from "@/types/database";
 
 type DashboardSummary = Awaited<ReturnType<typeof import("@/server/queries/dashboard").getDashboardSummary>>;
 
 const defaultOrder = [
-  "quick-actions",
   "low-stock",
   "pending-approvals",
   "purchase-requests",
@@ -62,7 +63,11 @@ function Widget({ id, title, description, children, onHide, onMove }: { id: stri
   );
 }
 
-export function DashboardWorkspace({ summary }: { summary: DashboardSummary }) {
+function roleAllowed(roles: UserRole[] | "all", role: UserRole) {
+  return roles === "all" || roles.includes(role);
+}
+
+export function DashboardWorkspace({ summary, role }: { summary: DashboardSummary; role: UserRole }) {
   const [layout, setLayout] = useState<LayoutState>({ order: defaultOrder, hidden: [] });
 
   useEffect(() => {
@@ -86,6 +91,24 @@ export function DashboardWorkspace({ summary }: { summary: DashboardSummary }) {
     [order[index], order[nextIndex]] = [order[nextIndex], order[index]];
     save({ ...layout, order });
   }
+
+  const roleList = (...values: UserRole[]) => values;
+  const quickTools: Array<{ href: string; title: string; description: string; icon: LucideIcon; roles: UserRole[] | "all" }> = [
+    { href: "/stock-counts/scan", title: "Stock Count", description: "Scan or type barcodes for daily counts.", icon: ClipboardCheck, roles: roleList("admin", "kitchen") },
+    { href: "/goods-receivings/scan", title: "Scan Receiving", description: "Prepare receiving lines from scanned items.", icon: PackageCheck, roles: roleList("admin", "kitchen", "purchasing") },
+    { href: "/stock-wastage/new", title: "Report Wastage", description: "Record branch wastage quickly.", icon: TriangleAlert, roles: roleList("admin", "kitchen") },
+    { href: "/stock-transfers/new", title: "Transfer Stock", description: "Move stock between branches.", icon: ScanLine, roles: roleList("admin", "kitchen") },
+    { href: "/items", title: "Find Item", description: "Search items, images, and barcodes.", icon: PackageSearch, roles: roleList("admin", "kitchen", "purchasing") },
+    { href: "/recipes", title: "Recipes", description: "Open recipe and costing records.", icon: Factory, roles: roleList("admin", "kitchen") },
+    { href: "/purchase-requests/new", title: "Create Purchase Request", description: "Request ingredients or packaging.", icon: ClipboardList, roles: roleList("admin", "kitchen", "purchasing") },
+    { href: "/purchase-requests", title: "Review PR", description: "Check requests waiting for action.", icon: CheckCircle2, roles: roleList("admin", "purchasing", "finance") },
+    { href: "/purchase-orders", title: "Purchase Orders", description: "Review supplier order status.", icon: ShoppingCart, roles: roleList("admin", "purchasing", "finance") },
+    { href: "/documents", title: "Documents", description: "Open approvals and document history.", icon: FileText, roles: "all" as const },
+    { href: "/reports", title: "Reports", description: "Stock and purchasing summaries.", icon: FileText, roles: roleList("admin", "finance", "purchasing") },
+    { href: "/staffs", title: "Staffs", description: "Invite and manage staff access.", icon: Users, roles: roleList("admin") },
+    { href: "/settings", title: "Settings", description: "Company, branches, roles, and numbering.", icon: Settings, roles: roleList("admin") },
+    { href: "/imports/items", title: "Import Data", description: "Download templates and preview imports.", icon: Boxes, roles: roleList("admin") },
+  ].filter((tool) => roleAllowed(tool.roles, role));
 
   const widgets: Record<string, ReactNode> = {
     "quick-actions": (
@@ -148,6 +171,36 @@ export function DashboardWorkspace({ summary }: { summary: DashboardSummary }) {
 
   return (
     <div className="space-y-5 p-5">
+      <section className="space-y-3">
+        <div>
+          <p className="sb-section-label">Quick tools</p>
+          <h2 className="mt-1 text-lg font-semibold">Choose what you need to do now</h2>
+        </div>
+        <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+          {quickTools.map((tool) => {
+            const Icon = tool.icon;
+            return (
+              <Link key={tool.href} href={tool.href} className="group rounded-lg border bg-card p-4 transition-colors hover:border-primary/30 hover:bg-[var(--sb-muted)]">
+                <div className="flex items-start gap-3">
+                  <div className="sb-icon-tile">
+                    <Icon className="h-5 w-5" />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="font-semibold">{tool.title}</p>
+                    <p className="mt-1 text-sm leading-5 text-muted-foreground">{tool.description}</p>
+                  </div>
+                </div>
+              </Link>
+            );
+          })}
+        </div>
+        {!quickTools.length ? (
+          <Card>
+            <CardContent className="p-5 text-sm text-muted-foreground">No quick tools are assigned to this role yet. Please contact an Admin if you need access.</CardContent>
+          </Card>
+        ) : null}
+      </section>
+
       <div className="grid gap-4 md:grid-cols-4">
         <StatCard label="Active item records" value={summary.totalItems} icon={Boxes} />
         <StatCard label="Supplier records" value={summary.totalSuppliers} icon={Truck} tone="accent" />
@@ -166,7 +219,7 @@ export function DashboardWorkspace({ summary }: { summary: DashboardSummary }) {
       </div>
 
       <div className="grid gap-5 xl:grid-cols-2">
-        {layout.order.filter((id) => !layout.hidden.includes(id)).map((id) => (
+        {layout.order.filter((id) => id !== "quick-actions" && !layout.hidden.includes(id)).map((id) => (
           <div key={id}>{widgets[id] ?? <Card><CardContent className="p-5"><FileText className="h-4 w-4" /></CardContent></Card>}</div>
         ))}
       </div>

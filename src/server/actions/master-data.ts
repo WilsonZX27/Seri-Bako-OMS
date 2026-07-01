@@ -7,6 +7,7 @@ import { createClient } from "@/lib/supabase/server";
 import { supplierItemSchema, uomConversionSchema } from "@/lib/validations/master-data";
 import { writeActivityLog } from "@/server/activity/log";
 import { requirePermission } from "@/server/auth/permissions";
+import { formatActionError, requirePermissionOrRedirect, rethrowRedirect, safeRedirectWithMessage } from "@/server/actions/error-handling";
 
 function cleanText(value: FormDataEntryValue | null) {
   const text = String(value ?? "").trim();
@@ -62,14 +63,20 @@ export async function updateSupplierItem(id: string, formData: FormData) {
 }
 
 export async function deleteSupplierItem(id: string) {
-  await requirePermission("supplier_items.update");
-  if (!isMockMode()) {
-    const supabase = await createClient();
-    const { error } = await supabase.from("supplier_items").update({ status: "archived", deleted_at: new Date().toISOString() }).eq("id", id);
-    if (error) throw new Error(error.message);
-    await writeActivityLog({ entityType: "supplier_item", entityId: id, activityType: "archived", message: "Supplier item archived" });
+  await requirePermissionOrRedirect("supplier_items.update", "/supplier-items");
+  try {
+    if (!isMockMode()) {
+      const supabase = await createClient();
+      const { error } = await supabase.from("supplier_items").update({ status: "archived", deleted_at: new Date().toISOString() }).eq("id", id);
+      if (error) throw new Error(error.message);
+      await writeActivityLog({ entityType: "supplier_item", entityId: id, activityType: "archived", message: "Supplier item archived" });
+    }
+  } catch (error) {
+    rethrowRedirect(error);
+    safeRedirectWithMessage("/supplier-items", "error", formatActionError(error, "Could not archive this supplier item."));
   }
   revalidatePath("/supplier-items");
+  safeRedirectWithMessage("/supplier-items", "success", "Supplier item archived.");
 }
 
 function uomPayload(formData: FormData) {
@@ -108,12 +115,18 @@ export async function updateUomConversion(id: string, formData: FormData) {
 }
 
 export async function deleteUomConversion(id: string) {
-  await requirePermission("uom_conversions.update");
-  if (!isMockMode()) {
-    const supabase = await createClient();
-    const { error } = await supabase.from("uom_conversions").update({ status: "archived", deleted_at: new Date().toISOString() }).eq("id", id);
-    if (error) throw new Error(error.message);
-    await writeActivityLog({ entityType: "uom_conversion", entityId: id, activityType: "archived", message: "UOM conversion archived" });
+  await requirePermissionOrRedirect("uom_conversions.update", "/uom-conversions");
+  try {
+    if (!isMockMode()) {
+      const supabase = await createClient();
+      const { error } = await supabase.from("uom_conversions").update({ status: "archived", deleted_at: new Date().toISOString() }).eq("id", id);
+      if (error) throw new Error(error.message);
+      await writeActivityLog({ entityType: "uom_conversion", entityId: id, activityType: "archived", message: "UOM conversion archived" });
+    }
+  } catch (error) {
+    rethrowRedirect(error);
+    safeRedirectWithMessage("/uom-conversions", "error", formatActionError(error, "Could not archive this UOM conversion."));
   }
   revalidatePath("/uom-conversions");
+  safeRedirectWithMessage("/uom-conversions", "success", "UOM conversion archived.");
 }

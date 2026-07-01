@@ -7,6 +7,7 @@ import { createClient } from "@/lib/supabase/server";
 import { stockCountSchema } from "@/lib/validations/stock-count";
 import { writeActivityLog } from "@/server/activity/log";
 import { requirePermission } from "@/server/auth/permissions";
+import { formatActionError, requirePermissionOrRedirect, rethrowRedirect, safeRedirectWithMessage } from "@/server/actions/error-handling";
 import { resolveDefaultLocation } from "@/server/inventory/locations";
 import { getCurrentProfile } from "@/server/queries/common";
 import type { StockCountStatus } from "@/types/database";
@@ -71,37 +72,42 @@ async function createLinkedDocument(countNo: string, countId: string) {
 }
 
 export async function createStockCount(formData: FormData) {
-  await requirePermission("stock_count.create");
-  const payload = extractStockCount(formData);
-  if (isMockMode()) redirect("/stock-counts/stock-count-draft");
-  const locationId = await resolveDefaultLocation(payload.branch_id, payload.location_id);
+  await requirePermissionOrRedirect("stock_count.create", "/stock-counts/new");
+  try {
+    const payload = extractStockCount(formData);
+    if (isMockMode()) redirect("/stock-counts/stock-count-draft");
+    const locationId = await resolveDefaultLocation(payload.branch_id, payload.location_id);
 
-  const profile = await identity();
-  const supabase = await createClient();
-  const { data, error } = await supabase.from("stock_counts").insert({
-    company_id: profile?.company_id ?? null,
-    count_no: payload.count_no,
-    count_date: payload.count_date,
-    branch_id: payload.branch_id,
-    location_id: locationId,
-    counted_by: profile?.id ?? null,
-    status: "draft",
-    tolerance_percent: payload.tolerance_percent,
-    remarks: payload.remarks,
-    created_by: profile?.id ?? null,
-    updated_by: profile?.id ?? null,
-  }).select("id").single();
-  if (error) throw new Error(error.message);
-  const documentId = await createLinkedDocument(payload.count_no, data.id);
-  const [{ error: updateError }, { error: linesError }] = await Promise.all([
-    supabase.from("stock_counts").update({ document_id: documentId }).eq("id", data.id),
-    supabase.from("stock_count_lines").insert(payload.lines.map((line) => ({ ...line, stock_count_id: data.id, barcode: cleanText(line.barcode), remarks: cleanText(line.remarks) }))),
-  ]);
-  if (updateError) throw new Error(updateError.message);
-  if (linesError) throw new Error(linesError.message);
-  await writeActivityLog({ entityType: "document", entityId: documentId, activityType: "created", message: `Stock count ${payload.count_no} created` });
-  revalidatePath("/stock-counts");
-  redirect(`/stock-counts/${data.id}`);
+    const profile = await identity();
+    const supabase = await createClient();
+    const { data, error } = await supabase.from("stock_counts").insert({
+      company_id: profile?.company_id ?? null,
+      count_no: payload.count_no,
+      count_date: payload.count_date,
+      branch_id: payload.branch_id,
+      location_id: locationId,
+      counted_by: profile?.id ?? null,
+      status: "draft",
+      tolerance_percent: payload.tolerance_percent,
+      remarks: payload.remarks,
+      created_by: profile?.id ?? null,
+      updated_by: profile?.id ?? null,
+    }).select("id").single();
+    if (error) throw new Error(error.message);
+    const documentId = await createLinkedDocument(payload.count_no, data.id);
+    const [{ error: updateError }, { error: linesError }] = await Promise.all([
+      supabase.from("stock_counts").update({ document_id: documentId }).eq("id", data.id),
+      supabase.from("stock_count_lines").insert(payload.lines.map((line) => ({ ...line, stock_count_id: data.id, barcode: cleanText(line.barcode), remarks: cleanText(line.remarks) }))),
+    ]);
+    if (updateError) throw new Error(updateError.message);
+    if (linesError) throw new Error(linesError.message);
+    await writeActivityLog({ entityType: "document", entityId: documentId, activityType: "created", message: `Stock count ${payload.count_no} created` });
+    revalidatePath("/stock-counts");
+    redirect(`/stock-counts/${data.id}`);
+  } catch (error) {
+    rethrowRedirect(error);
+    safeRedirectWithMessage("/stock-counts/new", "error", formatActionError(error, "Could not create this stock count."));
+  }
 }
 
 async function updateStockCountStatus(id: string, status: StockCountStatus, step: string, message: string) {

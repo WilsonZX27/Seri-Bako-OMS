@@ -14,9 +14,15 @@ function formatDate(value: string | null) {
   return value ? new Intl.DateTimeFormat("en-MY", { dateStyle: "medium", timeStyle: "short" }).format(new Date(value)) : "-";
 }
 
-export default async function DocumentDetailPage({ params }: { params: Promise<{ id: string }> }) {
+export default async function DocumentDetailPage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ id: string }>;
+  searchParams: Promise<{ error?: string; success?: string }>;
+}) {
   const { id } = await params;
-  const bundle = await getDocumentBundle(id);
+  const [messageParams, bundle] = await Promise.all([searchParams, getDocumentBundle(id)]);
   const document = bundle.document;
 
   return (
@@ -24,6 +30,13 @@ export default async function DocumentDetailPage({ params }: { params: Promise<{
       <PageHeader title={document.document_no} description={document.title} />
       <div className="grid gap-5 p-5 xl:grid-cols-[1fr_420px]">
         <div className="space-y-5">
+          {messageParams.error || messageParams.success ? (
+            <Card>
+              <CardContent className={`p-4 text-sm ${messageParams.error ? "text-destructive" : "text-emerald-700"}`}>
+                {messageParams.error ?? messageParams.success}
+              </CardContent>
+            </Card>
+          ) : null}
           <Card>
             <CardContent className="p-5">
               <div className="grid gap-4 md:grid-cols-3">

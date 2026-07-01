@@ -1,4 +1,6 @@
 import Link from "next/link";
+import { ClipboardCheck, FileText, Paperclip } from "lucide-react";
+import { CategoryCardGrid } from "@/components/category-card-grid";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -21,7 +23,14 @@ export default async function DocumentsPage({ searchParams }: { searchParams: Pr
   return (
     <>
       <PageHeader title="Document Center" description="Reusable document control for approvals, attachments, comments, revisions, and timelines." />
-      <div className="p-5">
+      <div className="space-y-5 p-5">
+        <CategoryCardGrid
+          items={[
+            { href: "/documents", title: "All Documents", description: "Search the complete document register.", icon: FileText },
+            { href: "/documents?approval_status=pending", title: "Pending Approvals", description: "Open documents waiting for review.", icon: ClipboardCheck },
+            { href: "/documents?status=posted", title: "Posted Documents", description: "Review completed documents and attachments.", icon: Paperclip },
+          ]}
+        />
         <div className="overflow-hidden rounded-lg border bg-card">
           <form className="grid gap-3 border-b p-4 md:grid-cols-5">
             <Input name="search" defaultValue={filters.search ?? ""} placeholder="Search document no, title, type" />

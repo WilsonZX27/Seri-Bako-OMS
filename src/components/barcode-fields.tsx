@@ -120,20 +120,26 @@ export function BarcodeFields({
       <div className="md:col-span-2">
         <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
           <div>
-            <p className="text-sm font-semibold">Barcode Capture</p>
-            <p className="text-xs text-muted-foreground">Use camera scanning, manual entry, or a USB scanner as keyboard input.</p>
+            <p className="text-sm font-semibold">USB Scanner / Manual Input</p>
+            <p className="text-xs text-muted-foreground">Use a USB barcode scanner or type the barcode manually, then press Enter where lookup is available.</p>
           </div>
           <div className="flex gap-2">
-            <Button type="button" variant="outline" size="sm" onClick={() => setScanning(true)}>
-              <Camera className="mr-2 h-4 w-4" />
-              Scan barcode
-            </Button>
             <Button type="button" variant="secondary" size="sm" onClick={() => document.getElementById("barcode-input")?.focus()}>
               <Keyboard className="mr-2 h-4 w-4" />
               Manual
             </Button>
           </div>
         </div>
+        <details className="mb-3 rounded-md border bg-card p-3">
+          <summary className="cursor-pointer text-xs font-medium text-muted-foreground">Advanced / Use camera scanner</summary>
+          <div className="mt-3 flex items-center justify-between gap-3">
+            <p className="text-xs text-muted-foreground">Camera scanning is optional. USB scanners work like keyboard input and are recommended for daily operations.</p>
+            <Button type="button" variant="outline" size="sm" onClick={() => setScanning(true)}>
+              <Camera className="mr-2 h-4 w-4" />
+              Open camera
+            </Button>
+          </div>
+        </details>
         {scanning ? (
           <div className="mb-4 overflow-hidden rounded-lg border bg-black">
             <div className="flex items-center justify-between bg-card px-3 py-2 text-sm">

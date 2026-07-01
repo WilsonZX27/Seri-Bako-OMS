@@ -1,20 +1,28 @@
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
 import { MasterDataFilters } from "@/components/master-data-filters";
 import { PageHeader } from "@/components/ui/page-header";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { deleteDocumentSequence } from "@/server/actions/foundation";
 import { getDocumentSequences } from "@/server/queries/foundation";
 
-export default async function DocumentSequencesPage({ searchParams }: { searchParams: Promise<{ search?: string; status?: string }> }) {
+export default async function DocumentSequencesPage({ searchParams }: { searchParams: Promise<{ search?: string; status?: string; error?: string; success?: string }> }) {
   const filters = await searchParams;
   const sequences = await getDocumentSequences(filters);
 
   return (
     <>
       <PageHeader title="Document Sequences" description="Document numbering rules for PO, GRN, invoice, stock count, production job, and payment schedule." action={{ href: "/document-sequences/new", label: "New sequence" }} />
-      <div className="p-5">
+      <div className="space-y-4 p-5">
+        {filters.error || filters.success ? (
+          <Card>
+            <CardContent className={`p-4 text-sm ${filters.error ? "text-destructive" : "text-emerald-700"}`}>
+              {filters.error ?? filters.success}
+            </CardContent>
+          </Card>
+        ) : null}
         <div className="overflow-hidden rounded-lg border bg-card">
           <MasterDataFilters search={filters.search} status={filters.status} placeholder="Search document type, prefix, or preview number" />
           <div className="overflow-x-auto">

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
 import { MasterDataFilters } from "@/components/master-data-filters";
 import { PageHeader } from "@/components/ui/page-header";
 import { PaginationControls, SortableHead } from "@/components/sortable-table";
@@ -18,7 +19,14 @@ export default async function SupplierItemsPage({ searchParams }: { searchParams
   return (
     <>
       <PageHeader title="Supplier Items" description="Supplier-specific item codes, costs, UOM, MOQ, and lead time." action={{ href: "/supplier-items/new", label: "New supplier item" }} />
-      <div className="p-5">
+      <div className="space-y-4 p-5">
+        {filters.error || filters.success ? (
+          <Card>
+            <CardContent className={`p-4 text-sm ${filters.error ? "text-destructive" : "text-emerald-700"}`}>
+              {filters.error ?? filters.success}
+            </CardContent>
+          </Card>
+        ) : null}
         <div className="mb-3 flex justify-end">
           <Button asChild variant="outline" size="sm"><Link href="/imports/supplier-items">Import supplier items</Link></Button>
         </div>

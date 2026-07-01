@@ -7,6 +7,7 @@ import { createClient } from "@/lib/supabase/server";
 import { recipeSchema } from "@/lib/validations/recipe";
 import { writeActivityLog } from "@/server/activity/log";
 import { requirePermission } from "@/server/auth/permissions";
+import { formatActionError, requirePermissionOrRedirect, rethrowRedirect, safeRedirectWithMessage } from "@/server/actions/error-handling";
 import { getCurrentProfile } from "@/server/queries/common";
 import { getRecipe } from "@/server/queries/recipes";
 import type { RecipeInput } from "@/lib/validations/recipe";
@@ -296,8 +297,14 @@ export async function rejectRecipe(id: string, formData: FormData) {
 }
 
 export async function archiveRecipe(id: string) {
-  await requirePermission("recipes.archive");
-  await updateRecipeStatus(id, "archived", "approved", "closed", "Archived", "Recipe archived");
+  await requirePermissionOrRedirect("recipes.archive", `/recipes/${id}`);
+  try {
+    await updateRecipeStatus(id, "archived", "approved", "closed", "Archived", "Recipe archived");
+  } catch (error) {
+    rethrowRedirect(error);
+    safeRedirectWithMessage(`/recipes/${id}`, "error", formatActionError(error, "Could not archive this recipe."));
+  }
+  safeRedirectWithMessage(`/recipes/${id}`, "success", "Recipe archived.");
 }
 
 export async function createNewRecipeVersion(id: string) {

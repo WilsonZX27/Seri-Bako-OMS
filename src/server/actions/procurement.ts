@@ -7,6 +7,7 @@ import { createClient } from "@/lib/supabase/server";
 import { purchaseOrderSchema, purchaseRequestSchema } from "@/lib/validations/procurement";
 import { writeActivityLog } from "@/server/activity/log";
 import { requirePermission } from "@/server/auth/permissions";
+import { formatActionError, requirePermissionOrRedirect, rethrowRedirect, safeRedirectWithMessage } from "@/server/actions/error-handling";
 import { resolveDefaultLocation } from "@/server/inventory/locations";
 import { getCurrentProfile } from "@/server/queries/common";
 import type { ApprovalStatus, PurchaseOrderStatus, PurchaseRequestStatus } from "@/types/database";
@@ -122,41 +123,46 @@ async function createLinkedDocument(input: {
 }
 
 export async function createPurchaseRequest(formData: FormData) {
-  await requirePermission("purchase_request.create");
-  const payload = extractPurchaseRequest(formData);
-  if (isMockMode()) redirect("/purchase-requests");
-  const locationId = await resolveDefaultLocation(payload.branch_id, payload.location_id);
-  await ensureActiveItems(payload.lines.map((line) => line.item_id));
-  const profile = await identity();
-  const supabase = await createClient();
-  const { data, error } = await supabase
-    .from("purchase_requests")
-    .insert({
-      company_id: profile?.company_id ?? null,
-      request_no: payload.request_no,
-      requested_by: profile?.id ?? null,
-      request_date: payload.request_date,
-      required_date: cleanText(formData.get("required_date")),
-      branch_id: payload.branch_id,
-      location_id: locationId,
-      status: payload.status,
-      remarks: payload.remarks,
-      created_by: profile?.id ?? null,
-      updated_by: profile?.id ?? null,
-    })
-    .select("id")
-    .single();
-  if (error) throw new Error(error.message);
-  const documentId = await createLinkedDocument({ documentNo: payload.request_no, documentType: "purchase_request", title: `Purchase Request ${payload.request_no}`, relatedEntityType: "purchase_request", relatedEntityId: data.id });
-  const [{ error: updateError }, { error: linesError }] = await Promise.all([
-    supabase.from("purchase_requests").update({ document_id: documentId }).eq("id", data.id),
-    supabase.from("purchase_request_lines").insert(payload.lines.map((line) => ({ ...line, suggested_supplier_id: line.suggested_supplier_id || null, purchase_request_id: data.id }))),
-  ]);
-  if (updateError) throw new Error(updateError.message);
-  if (linesError) throw new Error(linesError.message);
-  await writeActivityLog({ entityType: "document", entityId: documentId, activityType: "created", message: `Purchase request ${payload.request_no} created` });
-  revalidatePath("/purchase-requests");
-  redirect(`/purchase-requests/${data.id}`);
+  await requirePermissionOrRedirect("purchase_request.create", "/purchase-requests/new");
+  try {
+    const payload = extractPurchaseRequest(formData);
+    if (isMockMode()) redirect("/purchase-requests");
+    const locationId = await resolveDefaultLocation(payload.branch_id, payload.location_id);
+    await ensureActiveItems(payload.lines.map((line) => line.item_id));
+    const profile = await identity();
+    const supabase = await createClient();
+    const { data, error } = await supabase
+      .from("purchase_requests")
+      .insert({
+        company_id: profile?.company_id ?? null,
+        request_no: payload.request_no,
+        requested_by: profile?.id ?? null,
+        request_date: payload.request_date,
+        required_date: cleanText(formData.get("required_date")),
+        branch_id: payload.branch_id,
+        location_id: locationId,
+        status: payload.status,
+        remarks: payload.remarks,
+        created_by: profile?.id ?? null,
+        updated_by: profile?.id ?? null,
+      })
+      .select("id")
+      .single();
+    if (error) throw new Error(error.message);
+    const documentId = await createLinkedDocument({ documentNo: payload.request_no, documentType: "purchase_request", title: `Purchase Request ${payload.request_no}`, relatedEntityType: "purchase_request", relatedEntityId: data.id });
+    const [{ error: updateError }, { error: linesError }] = await Promise.all([
+      supabase.from("purchase_requests").update({ document_id: documentId }).eq("id", data.id),
+      supabase.from("purchase_request_lines").insert(payload.lines.map((line) => ({ ...line, suggested_supplier_id: line.suggested_supplier_id || null, purchase_request_id: data.id }))),
+    ]);
+    if (updateError) throw new Error(updateError.message);
+    if (linesError) throw new Error(linesError.message);
+    await writeActivityLog({ entityType: "document", entityId: documentId, activityType: "created", message: `Purchase request ${payload.request_no} created` });
+    revalidatePath("/purchase-requests");
+    redirect(`/purchase-requests/${data.id}`);
+  } catch (error) {
+    rethrowRedirect(error);
+    safeRedirectWithMessage("/purchase-requests/new", "error", formatActionError(error, "Could not create this purchase request."));
+  }
 }
 
 async function updatePrStatus(id: string, status: PurchaseRequestStatus, documentStatus: "draft" | "pending_approval" | "approved" | "rejected" | "cancelled", approvalStatus: ApprovalStatus, step: string, message: string) {

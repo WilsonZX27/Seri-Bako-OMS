@@ -1,5 +1,6 @@
 import { CompanyForm } from "@/components/foundation-forms";
 import { CompanyLogoForm } from "@/components/company-logo-form";
+import { Card, CardContent } from "@/components/ui/card";
 import { PageHeader } from "@/components/ui/page-header";
 import { removeCompanyLogo, updateCompany, updateCompanyLogo } from "@/server/actions/foundation";
 import { getCompany } from "@/server/queries/foundation";
@@ -7,7 +8,7 @@ import { getCompany } from "@/server/queries/foundation";
 export default async function CompanyPage({
   searchParams,
 }: {
-  searchParams: Promise<{ logoError?: string }>;
+  searchParams: Promise<{ logoError?: string; error?: string; success?: string }>;
 }) {
   const params = await searchParams;
   const company = await getCompany();
@@ -16,6 +17,13 @@ export default async function CompanyPage({
     <>
       <PageHeader title="Company" description="Legal company profile and central Seri Bako identity." />
       <div className="grid gap-5 p-5">
+        {params.error || params.success ? (
+          <Card>
+            <CardContent className={`p-4 text-sm ${params.error ? "text-destructive" : "text-emerald-700"}`}>
+              {params.error ?? params.success}
+            </CardContent>
+          </Card>
+        ) : null}
         <CompanyLogoForm
           companyId={company.id}
           logoUrl={company.logo_url}

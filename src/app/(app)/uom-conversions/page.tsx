@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
 import { MasterDataFilters } from "@/components/master-data-filters";
 import { PageHeader } from "@/components/ui/page-header";
 import { PaginationControls, SortableHead } from "@/components/sortable-table";
@@ -18,7 +19,14 @@ export default async function UomConversionsPage({ searchParams }: { searchParam
   return (
     <>
       <PageHeader title="UOM Conversions" description="Basic unit conversion factors used by recipes, supplier items, and future receiving." action={{ href: "/uom-conversions/new", label: "New conversion" }} />
-      <div className="p-5">
+      <div className="space-y-4 p-5">
+        {filters.error || filters.success ? (
+          <Card>
+            <CardContent className={`p-4 text-sm ${filters.error ? "text-destructive" : "text-emerald-700"}`}>
+              {filters.error ?? filters.success}
+            </CardContent>
+          </Card>
+        ) : null}
         <div className="overflow-hidden rounded-lg border bg-card">
           <MasterDataFilters search={filters.search} status={filters.status} placeholder="Search UOM pair" />
           <div className="overflow-x-auto">

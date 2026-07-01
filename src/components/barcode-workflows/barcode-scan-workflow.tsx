@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { Minus, Plus, ScanLine } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -41,6 +41,7 @@ export function BarcodeScanWorkflow({
   const [current, setCurrent] = useState<LookupResult | null>(null);
   const [lines, setLines] = useState<CountLine[]>([]);
   const [message, setMessage] = useState<string | null>(null);
+  const barcodeInputRef = useRef<HTMLInputElement>(null);
   const needsReason = mode === "stock_wastage";
   const receivingWarning = mode === "goods_receiving" && current?.found;
 
@@ -50,6 +51,10 @@ export function BarcodeScanWorkflow({
     if (mode === "stock_transfer") return "Save transfer line";
     return "Save wastage line";
   }, [mode]);
+
+  useEffect(() => {
+    barcodeInputRef.current?.focus();
+  }, []);
 
   async function lookup(value = barcode) {
     const code = value.trim();
@@ -107,7 +112,7 @@ export function BarcodeScanWorkflow({
             <div className="rounded-lg border bg-secondary/30 p-3">
               <BarcodeFields barcode={barcode} barcodeType="internal" />
               <div className="mt-3 flex flex-col gap-2 sm:flex-row">
-                <Input value={barcode} onChange={(event) => setBarcode(event.target.value)} onKeyDown={(event) => event.key === "Enter" ? (event.preventDefault(), lookup()) : undefined} placeholder="USB scanner or manual barcode input" />
+                <Input ref={barcodeInputRef} value={barcode} onChange={(event) => setBarcode(event.target.value)} onKeyDown={(event) => event.key === "Enter" ? (event.preventDefault(), lookup()) : undefined} placeholder="USB scanner or manual barcode input" />
                 <Button type="button" onClick={() => lookup()}>
                   <ScanLine className="mr-2 h-4 w-4" />
                   Lookup
@@ -115,7 +120,8 @@ export function BarcodeScanWorkflow({
               </div>
             </div>
 
-            {message ? <p className="text-sm text-muted-foreground">{message}</p> : null}
+            <p className="text-sm text-muted-foreground">Use a USB barcode scanner or type the barcode manually, then press Enter.</p>
+            {message ? <p className="text-sm font-medium text-primary">{message}</p> : null}
 
             {current?.found ? (
               <div className="rounded-lg border bg-card p-4">

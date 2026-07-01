@@ -1,4 +1,5 @@
 import { GoodsReceivingForm } from "@/components/goods-receiving-form";
+import { Card, CardContent } from "@/components/ui/card";
 import { PageHeader } from "@/components/ui/page-header";
 import { createGoodsReceiving } from "@/server/actions/goods-receivings";
 import { getBranchesForSelect, getLocationsForSelect } from "@/server/queries/common";
@@ -14,7 +15,8 @@ export default async function NewGoodsReceivingPage({ searchParams }: { searchPa
   return (
     <>
       <PageHeader title="New Goods Receiving" description="Create a draft GRN from an approved, sent, or partially received PO." />
-      <div className="p-5">
+      <div className="space-y-4 p-5">
+        {filters.error ? <Card><CardContent className="p-4 text-sm text-destructive">{filters.error}</CardContent></Card> : null}
         <GoodsReceivingForm
           purchaseOrders={purchaseOrders}
           selectedOrder={selectedOrder}

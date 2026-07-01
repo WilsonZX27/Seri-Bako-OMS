@@ -9,6 +9,7 @@ import { createClient } from "@/lib/supabase/server";
 import { branchSchema, companySchema, documentSequenceSchema, locationSchema, roleSchema, staffAccessSchema, staffSchema } from "@/lib/validations/foundation";
 import { writeActivityLog } from "@/server/activity/log";
 import { requirePermission } from "@/server/auth/permissions";
+import { formatActionError, requirePermissionOrRedirect, rethrowRedirect, safeRedirectWithMessage } from "@/server/actions/error-handling";
 
 function formValue(formData: FormData, key: string) {
   return formData.get(key);
@@ -55,83 +56,92 @@ function logoError(message: string): never {
 }
 
 export async function updateCompanyLogo(id: string, formData: FormData) {
-  await requirePermission("company.update");
-  const file = formData.get("logo");
+  await requirePermissionOrRedirect("company.update", "/company");
+  try {
+    const file = formData.get("logo");
 
-  if (!(file instanceof File) || file.size === 0) {
-    logoError("Choose a logo image to upload.");
-  }
-
-  if (file.size > 2 * 1024 * 1024) {
-    logoError("Logo must be 2MB or smaller.");
-  }
-
-  const extension = logoTypes[file.type];
-  if (!extension) {
-    logoError("Logo must be a PNG, JPG, JPEG, WEBP, or SVG image.");
-  }
-
-  if (!isMockMode()) {
-    const supabase = await createClient();
-    const { data: company, error: companyError } = await supabase
-      .from("companies")
-      .select("logo_path")
-      .eq("id", id)
-      .single();
-    if (companyError) logoError(companyError.message);
-
-    const path = `${id}/logo.${extension}`;
-    const { error: uploadError } = await supabase.storage
-      .from("company-assets")
-      .upload(path, file, { contentType: file.type, upsert: true });
-    if (uploadError) logoError(uploadError.message);
-
-    if (company?.logo_path && company.logo_path !== path) {
-      await supabase.storage.from("company-assets").remove([company.logo_path]);
+    if (!(file instanceof File) || file.size === 0) {
+      logoError("Choose a logo image to upload.");
     }
 
-    const { data: publicUrl } = supabase.storage.from("company-assets").getPublicUrl(path);
-    const { error: updateError } = await supabase
-      .from("companies")
-      .update({ logo_path: path, logo_url: publicUrl.publicUrl })
-      .eq("id", id);
-    if (updateError) logoError(updateError.message);
-    await writeActivityLog({ entityType: "company", entityId: id, activityType: "updated", message: "Company logo updated" });
+    if (file.size > 2 * 1024 * 1024) {
+      logoError("Logo must be 2MB or smaller.");
+    }
+
+    const extension = logoTypes[file.type];
+    if (!extension) {
+      logoError("Logo must be a PNG, JPG, JPEG, WEBP, or SVG image.");
+    }
+
+    if (!isMockMode()) {
+      const supabase = await createClient();
+      const { data: company, error: companyError } = await supabase
+        .from("companies")
+        .select("logo_path")
+        .eq("id", id)
+        .single();
+      if (companyError) throw new Error(companyError.message);
+
+      const path = `${id}/logo.${extension}`;
+      const { error: uploadError } = await supabase.storage
+        .from("company-assets")
+        .upload(path, file, { contentType: file.type, upsert: true });
+      if (uploadError) throw new Error(uploadError.message);
+
+      if (company?.logo_path && company.logo_path !== path) {
+        await supabase.storage.from("company-assets").remove([company.logo_path]);
+      }
+
+      const { data: publicUrl } = supabase.storage.from("company-assets").getPublicUrl(path);
+      const { error: updateError } = await supabase
+        .from("companies")
+        .update({ logo_path: path, logo_url: publicUrl.publicUrl })
+        .eq("id", id);
+      if (updateError) throw new Error(updateError.message);
+      await writeActivityLog({ entityType: "company", entityId: id, activityType: "updated", message: "Company logo updated" });
+    }
+  } catch (error) {
+    rethrowRedirect(error);
+    logoError(formatActionError(error, "Could not update the company logo."));
   }
 
   revalidatePath("/company");
   revalidatePath("/", "layout");
-  redirect("/company");
+  safeRedirectWithMessage("/company", "success", "Company logo updated.");
 }
 
 export async function removeCompanyLogo(id: string) {
-  await requirePermission("company.update");
+  await requirePermissionOrRedirect("company.update", "/company");
+  try {
+    if (!isMockMode()) {
+      const supabase = await createClient();
+      const { data: company, error: companyError } = await supabase
+        .from("companies")
+        .select("logo_path")
+        .eq("id", id)
+        .single();
+      if (companyError) throw new Error(companyError.message);
 
-  if (!isMockMode()) {
-    const supabase = await createClient();
-    const { data: company, error: companyError } = await supabase
-      .from("companies")
-      .select("logo_path")
-      .eq("id", id)
-      .single();
-    if (companyError) logoError(companyError.message);
+      if (company?.logo_path) {
+        const { error: removeError } = await supabase.storage.from("company-assets").remove([company.logo_path]);
+        if (removeError) throw new Error(removeError.message);
+      }
 
-    if (company?.logo_path) {
-      const { error: removeError } = await supabase.storage.from("company-assets").remove([company.logo_path]);
-      if (removeError) logoError(removeError.message);
+      const { error: updateError } = await supabase
+        .from("companies")
+        .update({ logo_path: null, logo_url: null })
+        .eq("id", id);
+      if (updateError) throw new Error(updateError.message);
+      await writeActivityLog({ entityType: "company", entityId: id, activityType: "updated", message: "Company logo removed" });
     }
-
-    const { error: updateError } = await supabase
-      .from("companies")
-      .update({ logo_path: null, logo_url: null })
-      .eq("id", id);
-    if (updateError) logoError(updateError.message);
-    await writeActivityLog({ entityType: "company", entityId: id, activityType: "updated", message: "Company logo removed" });
+  } catch (error) {
+    rethrowRedirect(error);
+    logoError(formatActionError(error, "Could not remove the company logo."));
   }
 
   revalidatePath("/company");
   revalidatePath("/", "layout");
-  redirect("/company");
+  safeRedirectWithMessage("/company", "success", "Company logo removed.");
 }
 
 function branchPayload(formData: FormData) {
@@ -178,14 +188,20 @@ export async function updateBranch(id: string, formData: FormData) {
 }
 
 export async function deleteBranch(id: string) {
-  await requirePermission("branches.update");
-  if (!isMockMode()) {
-    const supabase = await createClient();
-    const { error } = await supabase.from("branches").update({ deleted_at: new Date().toISOString(), status: "archived" }).eq("id", id);
-    if (error) throw new Error(error.message);
-    await writeActivityLog({ entityType: "branch", entityId: id, activityType: "archived", message: "Branch archived" });
+  await requirePermissionOrRedirect("branches.update", "/branches");
+  try {
+    if (!isMockMode()) {
+      const supabase = await createClient();
+      const { error } = await supabase.from("branches").update({ deleted_at: new Date().toISOString(), status: "archived" }).eq("id", id);
+      if (error) throw new Error(error.message);
+      await writeActivityLog({ entityType: "branch", entityId: id, activityType: "archived", message: "Branch archived" });
+    }
+  } catch (error) {
+    rethrowRedirect(error);
+    safeRedirectWithMessage("/branches", "error", formatActionError(error, "Could not archive this branch."));
   }
   revalidatePath("/branches");
+  safeRedirectWithMessage("/branches", "success", "Branch archived.");
 }
 
 function locationPayload(formData: FormData) {
@@ -226,14 +242,20 @@ export async function updateLocation(id: string, formData: FormData) {
 }
 
 export async function deleteLocation(id: string) {
-  await requirePermission("locations.update");
-  if (!isMockMode()) {
-    const supabase = await createClient();
-    const { error } = await supabase.from("locations").update({ deleted_at: new Date().toISOString(), status: "archived" }).eq("id", id);
-    if (error) throw new Error(error.message);
-    await writeActivityLog({ entityType: "location", entityId: id, activityType: "archived", message: "Location archived" });
+  await requirePermissionOrRedirect("locations.update", "/locations");
+  try {
+    if (!isMockMode()) {
+      const supabase = await createClient();
+      const { error } = await supabase.from("locations").update({ deleted_at: new Date().toISOString(), status: "archived" }).eq("id", id);
+      if (error) throw new Error(error.message);
+      await writeActivityLog({ entityType: "location", entityId: id, activityType: "archived", message: "Location archived" });
+    }
+  } catch (error) {
+    rethrowRedirect(error);
+    safeRedirectWithMessage("/locations", "error", formatActionError(error, "Could not archive this location."));
   }
   revalidatePath("/locations");
+  safeRedirectWithMessage("/locations", "success", "Location archived.");
 }
 
 function staffPayload(formData: FormData) {
@@ -344,109 +366,131 @@ async function inviteStaffByEmail(staffId: string, email: string) {
 }
 
 export async function createStaff(formData: FormData) {
-  await requirePermission("staffs.create");
-  const payload = staffPayload(formData);
-  const access = staffAccessPayload(formData);
-  if (!isMockMode()) {
-    const supabase = await createClient();
-    if (!access.role_id || !access.branch_id || access.location_ids.length === 0) {
-      throw new Error("Role, default branch, and at least one location are required before invite.");
-    }
-    const invitedBy = await getCurrentStaffId();
-    const { data: existing, error: existingError } = await supabase
-      .from("staffs")
-      .select("id, accepted_at")
-      .eq("company_id", payload.company_id)
-      .eq("email", payload.email)
-      .is("deleted_at", null)
-      .maybeSingle();
-    if (existingError) throw new Error(existingError.message);
-
-    const now = new Date().toISOString();
-    const staffRecord = {
-      ...payload,
-      invite_email: payload.email,
-      status: existing?.accepted_at ? payload.status : "invited",
-      invited_at: now,
-      invited_by: invitedBy,
-    };
-
-    const { data, error } = existing
-      ? await supabase.from("staffs").update(staffRecord).eq("id", existing.id).select("id").single()
-      : await supabase.from("staffs").insert(staffRecord).select("id").single();
-    if (error) throw new Error(error.message);
-    await replaceStaffAccess(data.id, formData);
-    try {
-      await inviteStaffByEmail(data.id, payload.email);
-    } catch (error) {
-      if (error instanceof Error && error.message.includes("service role key")) {
-        redirect(`/staffs/new?error=${encodeURIComponent("Supabase service role key is not configured.")}`);
+  await requirePermissionOrRedirect("staffs.create", "/staffs/new");
+  try {
+    const payload = staffPayload(formData);
+    const access = staffAccessPayload(formData);
+    if (!isMockMode()) {
+      const supabase = await createClient();
+      if (!access.role_id || !access.branch_id) {
+        throw new Error("Role and default branch are required before invite.");
       }
-      throw error;
+      const invitedBy = await getCurrentStaffId();
+      const { data: existing, error: existingError } = await supabase
+        .from("staffs")
+        .select("id, accepted_at")
+        .eq("company_id", payload.company_id)
+        .eq("email", payload.email)
+        .is("deleted_at", null)
+        .maybeSingle();
+      if (existingError) throw new Error(existingError.message);
+
+      const now = new Date().toISOString();
+      const staffRecord = {
+        ...payload,
+        invite_email: payload.email,
+        status: existing?.accepted_at ? payload.status : "invited",
+        invited_at: now,
+        invited_by: invitedBy,
+      };
+
+      const { data, error } = existing
+        ? await supabase.from("staffs").update(staffRecord).eq("id", existing.id).select("id").single()
+        : await supabase.from("staffs").insert(staffRecord).select("id").single();
+      if (error) throw new Error(error.message);
+      await replaceStaffAccess(data.id, formData);
+      await inviteStaffByEmail(data.id, payload.email);
+      await writeActivityLog({ entityType: "staff", entityId: data.id, activityType: existing ? "updated" : "created", message: `Staff ${payload.full_name} invited` });
     }
-    await writeActivityLog({ entityType: "staff", entityId: data.id, activityType: existing ? "updated" : "created", message: `Staff ${payload.full_name} invited` });
+  } catch (error) {
+    rethrowRedirect(error);
+    safeRedirectWithMessage("/staffs/new", "error", formatActionError(error, "Could not create and invite this staff member."));
   }
   revalidatePath("/staffs");
-  redirect("/staffs");
+  safeRedirectWithMessage("/staffs", "success", "Staff invitation sent.");
 }
 
 export async function updateStaff(id: string, formData: FormData) {
-  await requirePermission("staffs.update");
-  const payload = staffPayload(formData);
-  const access = staffAccessPayload(formData);
-  if (!isMockMode()) {
-    const supabase = await createClient();
-    if (!access.role_id || !access.branch_id || access.location_ids.length === 0) {
-      throw new Error("Role, default branch, and at least one location are required.");
+  await requirePermissionOrRedirect("staffs.update", `/staffs/${id}`);
+  try {
+    const payload = staffPayload(formData);
+    const access = staffAccessPayload(formData);
+    if (!isMockMode()) {
+      const supabase = await createClient();
+      if (!access.role_id || !access.branch_id) {
+        throw new Error("Role and default branch are required.");
+      }
+      const { error } = await supabase.from("staffs").update({ ...payload, invite_email: payload.email }).eq("id", id);
+      if (error) throw new Error(error.message);
+      await replaceStaffAccess(id, formData);
+      await writeActivityLog({ entityType: "staff", entityId: id, activityType: "updated", message: `Staff ${payload.full_name} updated` });
     }
-    const { error } = await supabase.from("staffs").update({ ...payload, invite_email: payload.email }).eq("id", id);
-    if (error) throw new Error(error.message);
-    await replaceStaffAccess(id, formData);
-    await writeActivityLog({ entityType: "staff", entityId: id, activityType: "updated", message: `Staff ${payload.full_name} updated` });
+  } catch (error) {
+    rethrowRedirect(error);
+    safeRedirectWithMessage(`/staffs/${id}`, "error", formatActionError(error, "Could not update this staff member."));
   }
   revalidatePath("/staffs");
-  redirect("/staffs");
+  revalidatePath(`/staffs/${id}`);
+  safeRedirectWithMessage(`/staffs/${id}`, "success", "Staff updated.");
 }
 
 export async function resendStaffInvite(id: string) {
-  await requirePermission("staffs.update");
-  if (!isMockMode()) {
-    const supabase = await createClient();
-    const { data: staff, error } = await supabase.from("staffs").select("email, invite_email, full_name").eq("id", id).single();
-    if (error) throw new Error(error.message);
-    const email = (staff.invite_email ?? staff.email ?? "").trim().toLowerCase();
-    if (!email) throw new Error("Staff email is required before sending an invite.");
-    await inviteStaffByEmail(id, email);
-    await writeActivityLog({ entityType: "staff", entityId: id, activityType: "updated", message: `Invite resent to ${staff.full_name}` });
+  await requirePermissionOrRedirect("staffs.update", `/staffs/${id}`);
+  try {
+    if (!isMockMode()) {
+      const supabase = await createClient();
+      const { data: staff, error } = await supabase.from("staffs").select("email, invite_email, full_name").eq("id", id).single();
+      if (error) throw new Error(error.message);
+      const email = (staff.invite_email ?? staff.email ?? "").trim().toLowerCase();
+      if (!email) throw new Error("Staff email is required before sending an invite.");
+      await inviteStaffByEmail(id, email);
+      await writeActivityLog({ entityType: "staff", entityId: id, activityType: "updated", message: `Invite resent to ${staff.full_name}` });
+    }
+  } catch (error) {
+    rethrowRedirect(error);
+    safeRedirectWithMessage(`/staffs/${id}`, "error", formatActionError(error, "Could not resend the invite."));
   }
   revalidatePath("/staffs");
   revalidatePath(`/staffs/${id}`);
+  safeRedirectWithMessage(`/staffs/${id}`, "success", "Invite resent.");
 }
 
 export async function disableStaff(id: string) {
-  await requirePermission("staffs.update");
-  if (!isMockMode()) {
-    const supabase = await createClient();
-    const { error } = await supabase.from("staffs").update({ status: "disabled" }).eq("id", id);
-    if (error) throw new Error(error.message);
-    await writeActivityLog({ entityType: "staff", entityId: id, activityType: "updated", message: "Staff disabled" });
+  await requirePermissionOrRedirect("staffs.update", `/staffs/${id}`);
+  try {
+    if (!isMockMode()) {
+      const supabase = await createClient();
+      const { error } = await supabase.from("staffs").update({ status: "disabled" }).eq("id", id);
+      if (error) throw new Error(error.message);
+      await writeActivityLog({ entityType: "staff", entityId: id, activityType: "updated", message: "Staff disabled" });
+    }
+  } catch (error) {
+    rethrowRedirect(error);
+    safeRedirectWithMessage(`/staffs/${id}`, "error", formatActionError(error, "Could not disable this user."));
   }
   revalidatePath("/staffs");
   revalidatePath(`/staffs/${id}`);
+  safeRedirectWithMessage(`/staffs/${id}`, "success", "User disabled.");
 }
 
 export async function enableStaff(id: string) {
-  await requirePermission("staffs.update");
-  if (!isMockMode()) {
-    const supabase = await createClient();
-    const { data: staff, error: staffError } = await supabase.from("staffs").select("accepted_at").eq("id", id).single();
-    if (staffError) throw new Error(staffError.message);
-    const { error } = await supabase.from("staffs").update({ status: staff.accepted_at ? "active" : "invited" }).eq("id", id);
-    if (error) throw new Error(error.message);
-    await writeActivityLog({ entityType: "staff", entityId: id, activityType: "updated", message: "Staff enabled" });
+  await requirePermissionOrRedirect("staffs.update", `/staffs/${id}`);
+  try {
+    if (!isMockMode()) {
+      const supabase = await createClient();
+      const { data: staff, error: staffError } = await supabase.from("staffs").select("accepted_at").eq("id", id).single();
+      if (staffError) throw new Error(staffError.message);
+      const { error } = await supabase.from("staffs").update({ status: staff.accepted_at ? "active" : "invited" }).eq("id", id);
+      if (error) throw new Error(error.message);
+      await writeActivityLog({ entityType: "staff", entityId: id, activityType: "updated", message: "Staff enabled" });
+    }
+  } catch (error) {
+    rethrowRedirect(error);
+    safeRedirectWithMessage(`/staffs/${id}`, "error", formatActionError(error, "Could not enable this user."));
   }
   revalidatePath("/staffs");
   revalidatePath(`/staffs/${id}`);
+  safeRedirectWithMessage(`/staffs/${id}`, "success", "User enabled.");
 }
 
 function rolePayload(formData: FormData) {
@@ -524,12 +568,18 @@ export async function updateDocumentSequence(id: string, formData: FormData) {
 }
 
 export async function deleteDocumentSequence(id: string) {
-  await requirePermission("document_sequences.update");
-  if (!isMockMode()) {
-    const supabase = await createClient();
-    const { error } = await supabase.from("document_sequences").update({ deleted_at: new Date().toISOString(), status: "archived" }).eq("id", id);
-    if (error) throw new Error(error.message);
-    await writeActivityLog({ entityType: "document_sequence", entityId: id, activityType: "archived", message: "Document sequence archived" });
+  await requirePermissionOrRedirect("document_sequences.update", "/document-sequences");
+  try {
+    if (!isMockMode()) {
+      const supabase = await createClient();
+      const { error } = await supabase.from("document_sequences").update({ deleted_at: new Date().toISOString(), status: "archived" }).eq("id", id);
+      if (error) throw new Error(error.message);
+      await writeActivityLog({ entityType: "document_sequence", entityId: id, activityType: "archived", message: "Document sequence archived" });
+    }
+  } catch (error) {
+    rethrowRedirect(error);
+    safeRedirectWithMessage("/document-sequences", "error", formatActionError(error, "Could not archive this document sequence."));
   }
   revalidatePath("/document-sequences");
+  safeRedirectWithMessage("/document-sequences", "success", "Document sequence archived.");
 }

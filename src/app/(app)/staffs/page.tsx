@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
 import { MasterDataFilters } from "@/components/master-data-filters";
 import { PageHeader } from "@/components/ui/page-header";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -10,13 +11,21 @@ function formatDate(value?: string | null) {
   return value ? new Date(value).toLocaleDateString("en-MY") : "-";
 }
 
-export default async function StaffsPage({ searchParams }: { searchParams: Promise<{ search?: string; status?: string }> }) {
+export default async function StaffsPage({ searchParams }: { searchParams: Promise<{ search?: string; status?: string; error?: string; success?: string }> }) {
   const filters = await searchParams;
   const staffs = await getStaffs(filters);
   return (
     <>
       <PageHeader title="Staffs" description="Staff access, default branch assignment, and account status." action={{ href: "/staffs/new", label: "New staff" }} />
-      <div className="p-5"><div className="overflow-hidden rounded-lg border bg-card">
+      <div className="space-y-4 p-5">
+        {filters.error || filters.success ? (
+          <Card>
+            <CardContent className={`p-4 text-sm ${filters.error ? "text-destructive" : "text-emerald-700"}`}>
+              {filters.error ?? filters.success}
+            </CardContent>
+          </Card>
+        ) : null}
+        <div className="overflow-hidden rounded-lg border bg-card">
         <MasterDataFilters
           search={filters.search}
           status={filters.status}

@@ -376,7 +376,14 @@ export async function createStaff(formData: FormData) {
       : await supabase.from("staffs").insert(staffRecord).select("id").single();
     if (error) throw new Error(error.message);
     await replaceStaffAccess(data.id, formData);
-    await inviteStaffByEmail(data.id, payload.email);
+    try {
+      await inviteStaffByEmail(data.id, payload.email);
+    } catch (error) {
+      if (error instanceof Error && error.message.includes("service role key")) {
+        redirect(`/staffs/new?error=${encodeURIComponent("Supabase service role key is not configured.")}`);
+      }
+      throw error;
+    }
     await writeActivityLog({ entityType: "staff", entityId: data.id, activityType: existing ? "updated" : "created", message: `Staff ${payload.full_name} invited` });
   }
   revalidatePath("/staffs");

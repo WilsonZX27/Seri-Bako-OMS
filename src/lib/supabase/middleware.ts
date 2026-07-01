@@ -35,8 +35,7 @@ export async function updateSession(request: NextRequest) {
 
   const pathname = request.nextUrl.pathname;
   const publicPrefixes = ["/login", "/auth/callback", "/set-password", "/forgot-password"];
-  const isSetup = pathname === "/setup";
-  const isPublicRoute = publicPrefixes.some((route) => pathname === route || pathname.startsWith(`${route}/`)) || isSetup;
+  const isPublicRoute = publicPrefixes.some((route) => pathname === route || pathname.startsWith(`${route}/`));
 
   if (!user) {
     if (!isPublicRoute) {

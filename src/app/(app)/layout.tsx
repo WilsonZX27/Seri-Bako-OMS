@@ -1,11 +1,36 @@
+import { redirect } from "next/navigation";
 import { Sidebar } from "@/components/layout/sidebar";
 import { TopBar } from "@/components/layout/top-bar";
 import { MobileBottomNav } from "@/components/layout/mobile-bottom-nav";
+import { isMockMode } from "@/lib/mock-mode";
+import { createClient } from "@/lib/supabase/server";
 import { getCurrentProfile } from "@/server/queries/common";
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
+  if (!isMockMode()) {
+    const supabase = await createClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    if (!user) {
+      redirect("/login");
+    }
+
+    const { data: staff } = await supabase
+      .from("staffs")
+      .select("status")
+      .eq("auth_user_id", user.id)
+      .maybeSingle();
+
+    if (staff && ["disabled", "inactive", "archived"].includes(staff.status)) {
+      await supabase.auth.signOut();
+      redirect("/login?error=disabled");
+    }
+  }
+
   const profile = await getCurrentProfile();
-  const hasStaffRole = (profile as { has_staff_role?: boolean } | null)?.has_staff_role ?? true;
+  const hasStaffRole = (profile as { has_staff_role?: boolean } | null)?.has_staff_role ?? false;
 
   return (
     <div className="min-h-screen bg-background">

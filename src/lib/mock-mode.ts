@@ -17,7 +17,7 @@ type MockProfile = {
 };
 
 export function isMockMode() {
-  return process.env.NEXT_PUBLIC_ENABLE_MOCK_MODE === "true" && !hasSupabaseEnv();
+  return process.env.NODE_ENV !== "production" && process.env.NEXT_PUBLIC_ENABLE_MOCK_MODE === "true" && !hasSupabaseEnv();
 }
 
 export const mockProfile: MockProfile = {

@@ -3,6 +3,17 @@
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 
+function getOptionalAdminClient() {
+  try {
+    return createAdminClient();
+  } catch (error) {
+    if (error instanceof Error && error.message.includes("service role key")) {
+      return null;
+    }
+    throw error;
+  }
+}
+
 export async function syncCurrentAuthUserToStaff() {
   const supabase = await createClient();
   const {
@@ -11,7 +22,8 @@ export async function syncCurrentAuthUserToStaff() {
 
   if (!user?.email) return null;
 
-  const admin = createAdminClient();
+  const admin = getOptionalAdminClient();
+  if (!admin) return null;
   const email = user.email.toLowerCase();
   const now = new Date().toISOString();
 
@@ -65,7 +77,8 @@ export async function acceptCurrentStaffInvite() {
   const staffId = await syncCurrentAuthUserToStaff();
   if (!staffId) return;
 
-  const admin = createAdminClient();
+  const admin = getOptionalAdminClient();
+  if (!admin) return;
   const now = new Date().toISOString();
   const { error } = await admin
     .from("staffs")

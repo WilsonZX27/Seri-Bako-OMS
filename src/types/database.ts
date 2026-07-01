@@ -62,6 +62,8 @@ export type Database = {
           phone: string | null;
           email: string | null;
           address: string | null;
+          logo_url: string | null;
+          logo_path: string | null;
           status: RecordStatus;
           created_at: string;
           updated_at: string;
@@ -78,6 +80,8 @@ export type Database = {
           phone?: string | null;
           email?: string | null;
           address?: string | null;
+          logo_url?: string | null;
+          logo_path?: string | null;
           status?: RecordStatus;
           created_at?: string;
           updated_at?: string;

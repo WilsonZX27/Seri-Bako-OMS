@@ -1,5 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
-import { isMockMode, mockBranches, mockItems, mockLocations, mockProfile, mockSuppliers } from "@/lib/mock-mode";
+import { isMockMode, mockBranches, mockCompany, mockItems, mockLocations, mockProfile, mockSuppliers } from "@/lib/mock-mode";
 
 export async function getCurrentProfile() {
   if (isMockMode()) {
@@ -42,6 +42,26 @@ export async function getCurrentProfile() {
 
   const { data } = await supabase.from("profiles").select("*").eq("id", user.id).maybeSingle();
   return data ? { ...data, company_id: null, role_code: data.role, has_staff_role: false } : null;
+}
+
+export async function getCompanyBranding() {
+  if (isMockMode()) {
+    return { company_name: mockCompany.company_name, logo_url: mockCompany.logo_url };
+  }
+
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("companies")
+    .select("company_name, logo_url")
+    .is("deleted_at", null)
+    .order("created_at", { ascending: true })
+    .limit(1)
+    .maybeSingle();
+
+  return {
+    company_name: data?.company_name ?? "Seri Bako",
+    logo_url: data?.logo_url ?? null,
+  };
 }
 
 export async function getSuppliersForSelect() {

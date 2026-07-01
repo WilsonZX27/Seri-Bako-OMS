@@ -3,18 +3,18 @@ import { Button } from "@/components/ui/button";
 import { Breadcrumbs } from "@/components/layout/breadcrumbs";
 import { GlobalSearch } from "@/components/search/global-search";
 import { MobileSidebar } from "@/components/layout/mobile-sidebar";
-import { getCurrentProfile } from "@/server/queries/common";
+import { getCompanyBranding, getCurrentProfile } from "@/server/queries/common";
 import type { UserRole } from "@/types/database";
 
 export async function TopBar() {
-  const profile = await getCurrentProfile();
+  const [profile, branding] = await Promise.all([getCurrentProfile(), getCompanyBranding()]);
   const profileRole = profile as { role_code?: UserRole; role?: UserRole } | null;
   const role = profileRole?.role_code ?? profileRole?.role ?? "viewer";
 
   return (
     <header className="flex h-16 items-center justify-between border-b bg-card px-5">
       <div className="flex min-w-0 items-center gap-3">
-        <MobileSidebar role={role} />
+        <MobileSidebar role={role} companyName={branding.company_name} companyLogoUrl={branding.logo_url} />
         <div className="min-w-0 space-y-1">
           <p className="truncate text-sm font-medium">Operations Workspace</p>
           <Breadcrumbs role={role} />

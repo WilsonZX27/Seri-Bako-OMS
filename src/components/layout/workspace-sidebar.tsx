@@ -11,6 +11,9 @@ import type { UserRole } from "@/types/database";
 type WorkspaceSidebarProps = {
   role: UserRole;
   mobile?: boolean;
+  companyName?: string;
+  companyLogoUrl?: string | null;
+  brandHref?: string;
   onNavigate?: () => void;
 };
 
@@ -38,7 +41,14 @@ function savePrefs(preferences: Preferences) {
   window.localStorage.setItem(prefKey, JSON.stringify(preferences));
 }
 
-export function WorkspaceSidebar({ role, mobile = false, onNavigate }: WorkspaceSidebarProps) {
+export function WorkspaceSidebar({
+  role,
+  mobile = false,
+  companyName = "Seri Bako",
+  companyLogoUrl,
+  brandHref = "/dashboard",
+  onNavigate,
+}: WorkspaceSidebarProps) {
   const pathname = usePathname();
   const [preferences, setPreferences] = useState<Preferences>({ collapsedGroups: [], favorites: [] });
   const groups = useMemo(() => getVisibleNavGroups(role), [role]);
@@ -82,15 +92,20 @@ export function WorkspaceSidebar({ role, mobile = false, onNavigate }: Workspace
 
   return (
     <div className="flex h-full flex-col bg-card">
-      <div className="flex h-16 items-center gap-3 border-b px-5">
+      <Link href={brandHref} onClick={onNavigate} className="flex h-16 items-center gap-3 border-b px-5 hover:bg-secondary/60">
         <div className="flex h-9 w-9 items-center justify-center rounded-md bg-primary text-primary-foreground">
-          <Factory className="h-5 w-5" />
+          {companyLogoUrl ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={companyLogoUrl} alt={`${companyName} logo`} className="h-full w-full object-contain p-1" />
+          ) : (
+            <Factory className="h-5 w-5" />
+          )}
         </div>
-        <div>
-          <p className="text-sm font-semibold">Seri Bako</p>
+        <div className="min-w-0">
+          <p className="truncate text-sm font-semibold">{companyName}</p>
           <p className="text-xs text-muted-foreground">ERP Workspace</p>
         </div>
-      </div>
+      </Link>
 
       <nav className="min-h-0 flex-1 overflow-y-auto p-3">
         {favorites.length ? (

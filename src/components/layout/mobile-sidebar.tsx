@@ -6,7 +6,13 @@ import { Button } from "@/components/ui/button";
 import { WorkspaceSidebar } from "@/components/layout/workspace-sidebar";
 import type { UserRole } from "@/types/database";
 
-export function MobileSidebar({ role }: { role: UserRole }) {
+type MobileSidebarProps = {
+  role: UserRole;
+  companyName?: string;
+  companyLogoUrl?: string | null;
+};
+
+export function MobileSidebar({ role, companyName, companyLogoUrl }: MobileSidebarProps) {
   const [open, setOpen] = useState(false);
 
   return (
@@ -37,7 +43,13 @@ export function MobileSidebar({ role }: { role: UserRole }) {
                 <X className="h-5 w-5" />
               </Button>
             </div>
-            <WorkspaceSidebar role={role} mobile onNavigate={() => setOpen(false)} />
+            <WorkspaceSidebar
+              role={role}
+              mobile
+              companyName={companyName}
+              companyLogoUrl={companyLogoUrl}
+              onNavigate={() => setOpen(false)}
+            />
           </aside>
         </div>
       ) : null}

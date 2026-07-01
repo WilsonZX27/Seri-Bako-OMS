@@ -16,6 +16,8 @@ type Company = {
   phone: string | null;
   email: string | null;
   address: string | null;
+  logo_url?: string | null;
+  logo_path?: string | null;
   status: RecordStatus;
 };
 

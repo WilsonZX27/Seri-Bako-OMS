@@ -33,14 +33,37 @@ export async function updateSession(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser();
 
-  const isLogin = request.nextUrl.pathname.startsWith("/login");
-  if (!user && !isLogin) {
+  const pathname = request.nextUrl.pathname;
+  const publicPrefixes = ["/login", "/auth/callback", "/set-password", "/forgot-password"];
+  const isSetup = pathname === "/setup";
+  const isPublicRoute = publicPrefixes.some((route) => pathname === route || pathname.startsWith(`${route}/`)) || isSetup;
+
+  if (!user) {
+    if (!isPublicRoute) {
+      const url = request.nextUrl.clone();
+      url.pathname = "/login";
+      url.searchParams.set("redirectedFrom", pathname);
+      return NextResponse.redirect(url);
+    }
+
+    return response;
+  }
+
+  const { data: staff } = await supabase
+    .from("staffs")
+    .select("status")
+    .eq("auth_user_id", user.id)
+    .maybeSingle();
+
+  if (staff && staff.status !== "active") {
+    await supabase.auth.signOut();
     const url = request.nextUrl.clone();
     url.pathname = "/login";
+    url.searchParams.set("error", "Your staff account is disabled. Please contact admin.");
     return NextResponse.redirect(url);
   }
 
-  if (user && isLogin) {
+  if (pathname === "/login") {
     const url = request.nextUrl.clone();
     url.pathname = "/dashboard";
     return NextResponse.redirect(url);

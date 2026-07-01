@@ -39,6 +39,8 @@ export const mockCompany: Row<"companies"> = {
   phone: null,
   email: null,
   address: null,
+  logo_url: null,
+  logo_path: null,
   status: "active" as const,
   created_at: "2026-07-01T00:00:00.000Z",
   updated_at: "2026-07-01T00:00:00.000Z",

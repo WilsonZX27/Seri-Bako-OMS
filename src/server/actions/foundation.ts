@@ -41,6 +41,97 @@ export async function updateCompany(id: string, formData: FormData) {
   redirect("/company");
 }
 
+const logoTypes: Record<string, string> = {
+  "image/png": "png",
+  "image/jpeg": "jpg",
+  "image/webp": "webp",
+  "image/svg+xml": "svg",
+};
+
+function logoError(message: string): never {
+  redirect(`/company?logoError=${encodeURIComponent(message)}`);
+}
+
+export async function updateCompanyLogo(id: string, formData: FormData) {
+  await requirePermission("company.update");
+  const file = formData.get("logo");
+
+  if (!(file instanceof File) || file.size === 0) {
+    logoError("Choose a logo image to upload.");
+  }
+
+  if (file.size > 2 * 1024 * 1024) {
+    logoError("Logo must be 2MB or smaller.");
+  }
+
+  const extension = logoTypes[file.type];
+  if (!extension) {
+    logoError("Logo must be a PNG, JPG, JPEG, WEBP, or SVG image.");
+  }
+
+  if (!isMockMode()) {
+    const supabase = await createClient();
+    const { data: company, error: companyError } = await supabase
+      .from("companies")
+      .select("logo_path")
+      .eq("id", id)
+      .single();
+    if (companyError) logoError(companyError.message);
+
+    const path = `${id}/logo.${extension}`;
+    const { error: uploadError } = await supabase.storage
+      .from("company-assets")
+      .upload(path, file, { contentType: file.type, upsert: true });
+    if (uploadError) logoError(uploadError.message);
+
+    if (company?.logo_path && company.logo_path !== path) {
+      await supabase.storage.from("company-assets").remove([company.logo_path]);
+    }
+
+    const { data: publicUrl } = supabase.storage.from("company-assets").getPublicUrl(path);
+    const { error: updateError } = await supabase
+      .from("companies")
+      .update({ logo_path: path, logo_url: publicUrl.publicUrl })
+      .eq("id", id);
+    if (updateError) logoError(updateError.message);
+    await writeActivityLog({ entityType: "company", entityId: id, activityType: "updated", message: "Company logo updated" });
+  }
+
+  revalidatePath("/company");
+  revalidatePath("/", "layout");
+  redirect("/company");
+}
+
+export async function removeCompanyLogo(id: string) {
+  await requirePermission("company.update");
+
+  if (!isMockMode()) {
+    const supabase = await createClient();
+    const { data: company, error: companyError } = await supabase
+      .from("companies")
+      .select("logo_path")
+      .eq("id", id)
+      .single();
+    if (companyError) logoError(companyError.message);
+
+    if (company?.logo_path) {
+      const { error: removeError } = await supabase.storage.from("company-assets").remove([company.logo_path]);
+      if (removeError) logoError(removeError.message);
+    }
+
+    const { error: updateError } = await supabase
+      .from("companies")
+      .update({ logo_path: null, logo_url: null })
+      .eq("id", id);
+    if (updateError) logoError(updateError.message);
+    await writeActivityLog({ entityType: "company", entityId: id, activityType: "updated", message: "Company logo removed" });
+  }
+
+  revalidatePath("/company");
+  revalidatePath("/", "layout");
+  redirect("/company");
+}
+
 function branchPayload(formData: FormData) {
   return branchSchema.parse({
     company_id: formValue(formData, "company_id"),

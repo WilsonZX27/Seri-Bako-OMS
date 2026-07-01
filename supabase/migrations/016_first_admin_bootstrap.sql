@@ -35,7 +35,7 @@ declare
   current_email text;
   company_row public.companies%rowtype;
   branch_row public.branches%rowtype;
-  location_id uuid;
+  main_location_id uuid;
   staff_row public.staffs%rowtype;
   admin_role_row public.roles%rowtype;
 begin
@@ -77,7 +77,7 @@ begin
         location_type = excluded.location_type,
         status = 'active',
         updated_at = now()
-  returning id into location_id;
+  returning public.locations.id into main_location_id;
 
   insert into public.roles (company_id, role_code, role_name, description, status)
   values (company_row.id, 'admin', 'Admin', 'Full system administration', 'active')
@@ -152,8 +152,8 @@ begin
         updated_at = now();
 
   insert into public.staff_locations (staff_id, location_id)
-  values (staff_row.id, location_id)
-  on conflict (staff_id, location_id) do nothing;
+  values (staff_row.id, main_location_id)
+  on conflict on constraint staff_locations_staff_id_location_id_key do nothing;
 
   insert into public.role_permissions (role_id, permission_id)
   select admin_role_row.id, p.id

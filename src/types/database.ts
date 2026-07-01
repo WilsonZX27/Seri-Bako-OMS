@@ -4,6 +4,7 @@ export type UserRole = "admin" | "finance" | "purchasing" | "kitchen" | "viewer"
 export type ItemStatus = "active" | "inactive";
 export type SupplierStatus = "active" | "inactive";
 export type RecordStatus = "active" | "inactive" | "archived";
+export type StaffStatus = RecordStatus | "invited" | "disabled";
 export type LocationStatus = RecordStatus;
 export type BranchType = "central_kitchen" | "outlet" | "event_booth" | "office" | "other";
 export type StaffAccessLevel = "full" | "manage" | "read_only";
@@ -99,6 +100,7 @@ export type Database = {
           branch_code: string;
           branch_name: string;
           branch_type: BranchType;
+          default_location_id: string | null;
           phone: string | null;
           email: string | null;
           address: string | null;
@@ -115,6 +117,7 @@ export type Database = {
           branch_code: string;
           branch_name: string;
           branch_type?: BranchType;
+          default_location_id?: string | null;
           phone?: string | null;
           email?: string | null;
           address?: string | null;
@@ -138,7 +141,12 @@ export type Database = {
           email: string | null;
           phone: string | null;
           default_branch_id: string | null;
-          status: RecordStatus;
+          status: StaffStatus;
+          invited_at: string | null;
+          invited_by: string | null;
+          accepted_at: string | null;
+          last_login_at: string | null;
+          invite_email: string | null;
           created_at: string;
           updated_at: string;
           created_by: string | null;
@@ -154,7 +162,12 @@ export type Database = {
           email?: string | null;
           phone?: string | null;
           default_branch_id?: string | null;
-          status?: RecordStatus;
+          status?: StaffStatus;
+          invited_at?: string | null;
+          invited_by?: string | null;
+          accepted_at?: string | null;
+          last_login_at?: string | null;
+          invite_email?: string | null;
           created_at?: string;
           updated_at?: string;
           created_by?: string | null;

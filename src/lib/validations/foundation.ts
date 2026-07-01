@@ -8,6 +8,7 @@ const optionalText = z
   .transform((value) => (value ? value : null));
 
 export const recordStatusSchema = z.enum(["active", "inactive", "archived"]);
+export const staffStatusSchema = z.enum(["invited", "active", "disabled"]);
 
 export const companySchema = z.object({
   company_code: z.string().trim().min(1, "Company code is required"),
@@ -44,10 +45,10 @@ export const staffSchema = z.object({
   company_id: z.string().trim().min(1, "Company is required"),
   staff_code: optionalText,
   full_name: z.string().trim().min(1, "Full name is required"),
-  email: z.union([z.email("Enter a valid email"), z.literal("")]).optional().nullable().transform((value) => (value ? value : null)),
+  email: z.email("Enter a valid email").trim().toLowerCase(),
   phone: optionalText,
   default_branch_id: z.string().trim().optional().nullable().transform((value) => (value ? value : null)),
-  status: recordStatusSchema,
+  status: staffStatusSchema,
 });
 
 export const roleSchema = z.object({

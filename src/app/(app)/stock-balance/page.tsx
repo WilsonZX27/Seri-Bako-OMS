@@ -15,6 +15,7 @@ function statusVariant(status: string) {
 
 export default async function StockBalancePage({ searchParams }: { searchParams: Promise<Record<string, string | undefined>> }) {
   const filters = await searchParams;
+  const isLocationView = filters.view === "location";
   const balances = await getStockBalanceDetails(filters);
   return (
     <>
@@ -23,8 +24,11 @@ export default async function StockBalancePage({ searchParams }: { searchParams:
         <div className="overflow-hidden rounded-lg border bg-card">
           <form className="flex flex-col gap-3 border-b p-4 md:flex-row">
             <Input name="search" defaultValue={filters.search ?? ""} placeholder="Search barcode, item, location, status" className="md:max-w-sm" />
+            <input type="hidden" name="view" value={filters.view ?? "branch"} />
             <Button type="submit" variant="secondary">Search</Button>
-            <Button asChild variant="ghost"><a href="?">Reset</a></Button>
+            <Button asChild variant={isLocationView ? "ghost" : "outline"}><a href="?view=branch">Branch view</a></Button>
+            <Button asChild variant={isLocationView ? "outline" : "ghost"}><a href="?view=location">Location detail</a></Button>
+            <Button asChild variant="ghost"><a href="?view=branch">Reset</a></Button>
           </form>
           <div className="overflow-x-auto">
             <Table>
@@ -35,7 +39,7 @@ export default async function StockBalancePage({ searchParams }: { searchParams:
                   <SortableHead label="Item Code" column="item_code" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
                   <SortableHead label="Item Name" column="item_name" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
                   <TableHead>Branch</TableHead>
-                  <TableHead>Location</TableHead>
+                  <TableHead>{isLocationView ? "Location" : "Scope"}</TableHead>
                   <TableHead className="text-right">Available</TableHead>
                   <TableHead className="text-right">Reserved</TableHead>
                   <TableHead className="text-right">Current</TableHead>

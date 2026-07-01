@@ -55,7 +55,7 @@ export async function updateSession(request: NextRequest) {
     .eq("auth_user_id", user.id)
     .maybeSingle();
 
-  if (staff && staff.status !== "active") {
+  if (staff && ["disabled", "inactive", "archived"].includes(staff.status)) {
     await supabase.auth.signOut();
     const url = request.nextUrl.clone();
     url.pathname = "/login";
@@ -63,9 +63,15 @@ export async function updateSession(request: NextRequest) {
     return NextResponse.redirect(url);
   }
 
+  if (staff?.status === "invited" && !isPublicRoute) {
+    const url = request.nextUrl.clone();
+    url.pathname = "/set-password";
+    return NextResponse.redirect(url);
+  }
+
   if (pathname === "/login") {
     const url = request.nextUrl.clone();
-    url.pathname = "/dashboard";
+    url.pathname = staff?.status === "invited" ? "/set-password" : "/dashboard";
     return NextResponse.redirect(url);
   }
 

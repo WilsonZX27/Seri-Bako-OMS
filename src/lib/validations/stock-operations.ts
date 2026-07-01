@@ -10,17 +10,19 @@ const transferLine = z.object({
   remarks: z.string().trim().optional().nullable(),
 });
 
+const optionalUuid = z.string().uuid().optional().nullable().or(z.literal(""));
+
 export const stockTransferSchema = z.object({
   transfer_no: z.string().trim().min(1),
   transfer_date: z.string().trim().min(1),
-  from_branch_id: z.string().uuid().optional().nullable().or(z.literal("")),
-  from_location_id: z.string().uuid("From location required"),
-  to_branch_id: z.string().uuid().optional().nullable().or(z.literal("")),
-  to_location_id: z.string().uuid("To location required"),
+  from_branch_id: z.string().uuid("From branch required"),
+  from_location_id: optionalUuid,
+  to_branch_id: z.string().uuid("To branch required"),
+  to_location_id: optionalUuid,
   status: z.enum(["draft", "submitted", "approved", "posted", "rejected", "cancelled"]),
   remarks: z.string().trim().optional().nullable(),
   lines: z.array(transferLine).min(1, "Transfer must have at least one line"),
-}).refine((value) => value.from_location_id !== value.to_location_id, { path: ["to_location_id"], message: "Source and destination cannot be the same" });
+});
 
 const wastageLine = z.object({
   item_id: z.string().uuid(),
@@ -36,8 +38,8 @@ const wastageLine = z.object({
 export const stockWastageSchema = z.object({
   wastage_no: z.string().trim().min(1),
   wastage_date: z.string().trim().min(1),
-  branch_id: z.string().uuid().optional().nullable().or(z.literal("")),
-  location_id: z.string().uuid("Location required"),
+  branch_id: z.string().uuid("Branch required"),
+  location_id: optionalUuid,
   reason: z.enum(wastageReasons),
   status: z.enum(["draft", "submitted", "approved", "posted", "rejected", "cancelled"]),
   remarks: z.string().trim().optional().nullable(),

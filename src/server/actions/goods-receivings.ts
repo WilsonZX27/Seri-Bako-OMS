@@ -7,6 +7,7 @@ import { createClient } from "@/lib/supabase/server";
 import { goodsReceivingSchema } from "@/lib/validations/procurement";
 import { writeActivityLog } from "@/server/activity/log";
 import { requirePermission } from "@/server/auth/permissions";
+import { resolveDefaultLocation } from "@/server/inventory/locations";
 import { getCurrentProfile } from "@/server/queries/common";
 
 function cleanText(value: FormDataEntryValue | null) {
@@ -107,6 +108,7 @@ export async function createGoodsReceiving(formData: FormData) {
   await requirePermission("goods_receiving.create");
   const payload = extractGoodsReceiving(formData);
   if (isMockMode()) redirect("/goods-receivings/grn-mock-partial");
+  const locationId = await resolveDefaultLocation(payload.branch_id, payload.location_id);
 
   const po = await ensureReceivablePo(payload.purchase_order_id);
   if (po.supplier_id !== payload.supplier_id) throw new Error("GRN supplier must match selected PO supplier.");
@@ -122,7 +124,7 @@ export async function createGoodsReceiving(formData: FormData) {
       supplier_id: payload.supplier_id,
       received_date: payload.received_date,
       branch_id: payload.branch_id,
-      location_id: payload.location_id,
+      location_id: locationId,
       status: "draft",
       received_by: profile?.id ?? null,
       remarks: payload.remarks,

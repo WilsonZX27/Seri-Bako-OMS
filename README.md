@@ -31,7 +31,10 @@ cp .env.example .env.local
 ```bash
 NEXT_PUBLIC_SUPABASE_URL=
 NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=
+SUPABASE_SERVICE_ROLE_KEY=
 ```
+
+`SUPABASE_SERVICE_ROLE_KEY` is server-only. Do not prefix it with `NEXT_PUBLIC_`; it is used by server actions for staff invitations and first-password setup.
 
 4. Run the database migration:
 
@@ -57,6 +60,9 @@ npm run dev
 ```text
 src/app
   (auth)/login
+  (auth)/forgot-password
+  (auth)/set-password
+  auth/callback
   (app)/dashboard
   (app)/suppliers
   (app)/items

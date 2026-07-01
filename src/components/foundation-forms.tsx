@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { SelectNative } from "@/components/ui/select-native";
 import { Textarea } from "@/components/ui/textarea";
 import { previewDocumentNumber } from "@/server/queries/foundation";
-import type { BranchType, LocationType, RecordStatus, ResetFrequency, StaffAccessLevel } from "@/types/database";
+import type { BranchType, LocationType, RecordStatus, ResetFrequency, StaffAccessLevel, StaffStatus } from "@/types/database";
 
 type Company = {
   id: string;
@@ -51,7 +51,12 @@ type Staff = {
   email: string | null;
   phone: string | null;
   default_branch_id: string | null;
-  status: RecordStatus;
+  status: StaffStatus;
+  invited_at?: string | null;
+  invited_by?: string | null;
+  accepted_at?: string | null;
+  last_login_at?: string | null;
+  invite_email?: string | null;
 };
 
 type StaffAccess = {
@@ -91,6 +96,16 @@ function StatusSelect({ value }: { value?: string }) {
       <option value="active">Active</option>
       <option value="inactive">Inactive</option>
       <option value="archived">Archived</option>
+    </SelectNative>
+  );
+}
+
+function StaffStatusSelect({ value }: { value?: string }) {
+  return (
+    <SelectNative name="status" defaultValue={value ?? "invited"}>
+      <option value="invited">Invited</option>
+      <option value="active">Active</option>
+      <option value="disabled">Disabled</option>
     </SelectNative>
   );
 }
@@ -260,7 +275,7 @@ export function StaffForm({
             <Input name="full_name" defaultValue={staff?.full_name ?? ""} required />
           </Field>
           <Field label="Email">
-            <Input name="email" type="email" defaultValue={staff?.email ?? ""} />
+            <Input name="email" type="email" defaultValue={staff?.email ?? staff?.invite_email ?? ""} required />
           </Field>
           <Field label="Phone">
             <Input name="phone" defaultValue={staff?.phone ?? ""} />
@@ -307,7 +322,7 @@ export function StaffForm({
             </SelectNative>
           </Field>
           <Field label="Status">
-            <StatusSelect value={staff?.status} />
+            <StaffStatusSelect value={staff?.status} />
           </Field>
           <div className="md:col-span-2">
             <div className="rounded-lg border bg-background p-4">
@@ -323,7 +338,7 @@ export function StaffForm({
             </div>
           </div>
           <div className="flex justify-end md:col-span-2">
-            <Button type="submit">{staff ? "Save staff" : "Create staff"}</Button>
+            <Button type="submit">{staff ? "Save staff" : "Create & Invite"}</Button>
           </div>
         </form>
       </CardContent>

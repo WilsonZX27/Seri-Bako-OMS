@@ -1,5 +1,7 @@
 import { z } from "zod";
 
+const optionalUuid = z.string().uuid().optional().nullable().or(z.literal(""));
+
 export const purchaseRequestLineSchema = z.object({
   item_id: z.string().uuid("Item is required"),
   qty: z.coerce.number().positive("Quantity must be more than 0"),
@@ -15,7 +17,7 @@ export const purchaseRequestSchema = z.object({
   request_date: z.string().trim().min(1, "Request date is required"),
   required_date: z.string().trim().optional().nullable().or(z.literal("")),
   branch_id: z.string().uuid("Branch is required"),
-  location_id: z.string().uuid("Location is required"),
+  location_id: optionalUuid,
   status: z.enum(["draft", "submitted", "admin_review", "purchasing_review", "pending_approval", "approved", "rejected", "converted", "cancelled"]),
   remarks: z.string().trim().optional().nullable(),
   lines: z.array(purchaseRequestLineSchema).min(1, "Purchase request must have at least one line"),
@@ -67,7 +69,7 @@ export const goodsReceivingSchema = z.object({
   supplier_id: z.string().uuid("Supplier is required"),
   received_date: z.string().trim().min(1, "Received date is required"),
   branch_id: z.string().uuid("Branch is required"),
-  location_id: z.string().uuid("Location is required"),
+  location_id: optionalUuid,
   status: z.enum(["draft", "posted", "cancelled"]),
   received_by: z.string().uuid().optional().nullable().or(z.literal("")),
   remarks: z.string().trim().optional().nullable(),

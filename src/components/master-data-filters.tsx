@@ -12,6 +12,7 @@ type MasterDataFiltersProps = {
   placeholder: string;
   categories?: string[];
   suppliers?: { id: string; name: string }[];
+  statuses?: { value: string; label: string }[];
   showStockFilters?: boolean;
 };
 
@@ -25,6 +26,10 @@ export function MasterDataFilters({
   placeholder,
   categories = [],
   suppliers = [],
+  statuses = [
+    { value: "active", label: "Active" },
+    { value: "inactive", label: "Inactive" },
+  ],
   showStockFilters = false,
 }: MasterDataFiltersProps) {
   return (
@@ -32,8 +37,11 @@ export function MasterDataFilters({
       <Input name="search" defaultValue={search ?? ""} placeholder={placeholder} className="md:max-w-sm" />
       <SelectNative name="status" defaultValue={status} className="md:w-40">
         <option value="all">All status</option>
-        <option value="active">Active</option>
-        <option value="inactive">Inactive</option>
+        {statuses.map((row) => (
+          <option key={row.value} value={row.value}>
+            {row.label}
+          </option>
+        ))}
       </SelectNative>
       {categories.length ? (
         <SelectNative name="category" defaultValue={category}>

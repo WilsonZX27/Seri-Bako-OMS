@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { signIn } from "@/server/actions/auth";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -7,7 +8,7 @@ import { Input } from "@/components/ui/input";
 export default async function LoginPage({
   searchParams,
 }: {
-  searchParams: Promise<{ error?: string }>;
+  searchParams: Promise<{ error?: string; message?: string }>;
 }) {
   const params = await searchParams;
 
@@ -26,8 +27,12 @@ export default async function LoginPage({
             <Field label="Password">
               <Input name="password" type="password" autoComplete="current-password" required />
             </Field>
+            {params.message ? <p className="text-sm text-muted-foreground">{params.message}</p> : null}
             {params.error ? <p className="text-sm text-destructive">{params.error}</p> : null}
             <Button className="w-full">Sign in</Button>
+            <Button asChild variant="ghost" className="w-full">
+              <Link href="/forgot-password">Forgot password?</Link>
+            </Button>
           </form>
         </CardContent>
       </Card>

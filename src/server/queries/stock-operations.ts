@@ -114,7 +114,11 @@ export async function getStockWastageDetail(id: string) {
   return { wastage: { ...wastage, location_name: loc.get(wastage.location_id) ?? null, line_count: (lines ?? []).length }, lines: ((lines ?? []) as WastageLine[]).map((line) => ({ ...line, item: itemMap.get(line.item_id) })) };
 }
 
-export async function getOperationSeedLines(locationId?: string) {
-  const balances = await getStockBalanceDetails({ page: "all" });
-  return balances.rows.filter((row) => locationId ? row.location_id === locationId : true).slice(0, 8).map((row) => ({ item_id: row.item_id, item_code: row.item_code, item_name: row.item_name, barcode: row.barcode, available_qty: row.current_qty, quantity: Math.min(Math.max(row.current_qty, 1), 5), uom: row.base_unit }));
+export async function getOperationSeedLines(locationId?: string, branchId?: string) {
+  const balances = await getStockBalanceDetails({ page: "all", view: locationId ? "location" : "branch" });
+  return balances.rows
+    .filter((row) => locationId ? row.location_id === locationId : true)
+    .filter((row) => branchId ? row.branch_id === branchId : true)
+    .slice(0, 8)
+    .map((row) => ({ item_id: row.item_id, item_code: row.item_code, item_name: row.item_name, barcode: row.barcode, available_qty: row.current_qty, quantity: Math.min(Math.max(row.current_qty, 1), 5), uom: row.base_unit }));
 }

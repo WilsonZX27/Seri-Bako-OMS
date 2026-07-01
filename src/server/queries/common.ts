@@ -101,13 +101,13 @@ export async function getLocationsForSelect() {
   if (isMockMode()) {
     return mockLocations
       .filter((location) => location.status === "active")
-      .map(({ id, location_code, location_name, status }) => ({ id, location_code, location_name, status }));
+      .map(({ id, branch_id, location_code, location_name, status }) => ({ id, branch_id, location_code, location_name, status }));
   }
 
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("locations")
-    .select("id, location_code, location_name, status")
+    .select("id, branch_id, location_code, location_name, status")
     .eq("status", "active")
     .order("location_name", { ascending: true });
 
@@ -119,13 +119,13 @@ export async function getBranchesForSelect() {
   if (isMockMode()) {
     return mockBranches
       .filter((branch) => branch.status === "active")
-      .map(({ id, branch_code, branch_name, status }) => ({ id, branch_code, branch_name, status }));
+      .map(({ id, branch_code, branch_name, default_location_id, status }) => ({ id, branch_code, branch_name, default_location_id, status }));
   }
 
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("branches")
-    .select("id, branch_code, branch_name, status")
+    .select("id, branch_code, branch_name, default_location_id, status")
     .eq("status", "active")
     .order("branch_name", { ascending: true });
 

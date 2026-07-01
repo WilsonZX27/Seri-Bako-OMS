@@ -7,6 +7,7 @@ import { createClient } from "@/lib/supabase/server";
 import { stockCountSchema } from "@/lib/validations/stock-count";
 import { writeActivityLog } from "@/server/activity/log";
 import { requirePermission } from "@/server/auth/permissions";
+import { resolveDefaultLocation } from "@/server/inventory/locations";
 import { getCurrentProfile } from "@/server/queries/common";
 import type { StockCountStatus } from "@/types/database";
 
@@ -73,6 +74,7 @@ export async function createStockCount(formData: FormData) {
   await requirePermission("stock_count.create");
   const payload = extractStockCount(formData);
   if (isMockMode()) redirect("/stock-counts/stock-count-draft");
+  const locationId = await resolveDefaultLocation(payload.branch_id, payload.location_id);
 
   const profile = await identity();
   const supabase = await createClient();
@@ -81,7 +83,7 @@ export async function createStockCount(formData: FormData) {
     count_no: payload.count_no,
     count_date: payload.count_date,
     branch_id: payload.branch_id,
-    location_id: payload.location_id,
+    location_id: locationId,
     counted_by: profile?.id ?? null,
     status: "draft",
     tolerance_percent: payload.tolerance_percent,

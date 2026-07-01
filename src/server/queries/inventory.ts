@@ -167,6 +167,7 @@ export async function getStockLedger(filters: Filters = {}) {
 }
 
 export async function getStockBalanceDetails(filters: Filters = {}) {
+  const aggregateByBranch = filters.view !== "location";
   if (isMockMode()) {
     const ledger = await getStockLedger({ sort: "transaction_date", dir: "asc" });
     const allRows = ledger.rows;
@@ -202,7 +203,8 @@ export async function getStockBalanceDetails(filters: Filters = {}) {
         status: currentQty < 0 ? "negative" : currentQty <= (item?.safety_stock ?? 0) ? "low_stock" : "ok",
       };
     });
-    const filtered = filterRows(rows, filters, ["item_code", "item_name", "barcode", "location_name", "status"], "item_name");
+    const displayRows = aggregateByBranch ? aggregateStockByBranch(rows) : rows;
+    const filtered = filterRows(displayRows, filters, ["item_code", "item_name", "barcode", "branch_name", "location_name", "status"], "item_name");
     return paginateRows(filtered, filters.page, filters.page === "all" ? Math.max(filtered.length, 1) : 15);
   }
 
@@ -217,8 +219,58 @@ export async function getStockBalanceDetails(filters: Filters = {}) {
     reserved_qty: 0,
     status: row.current_qty < 0 ? "negative" : "ok",
   }));
-  const filtered = filterRows(rows, filters, ["item_code", "item_name", "location_name", "status"], "item_name");
+  const displayRows = aggregateByBranch ? aggregateStockByBranch(rows) : rows;
+  const filtered = filterRows(displayRows, filters, ["item_code", "item_name", "branch_name", "location_name", "status"], "item_name");
   return paginateRows(filtered, filters.page, filters.page === "all" ? Math.max(filtered.length, 1) : 15);
+}
+
+function aggregateStockByBranch<T extends {
+  item_id: string;
+  item_code: string;
+  item_name: string;
+  base_unit: string;
+  barcode: string | null;
+  image_url: string | null;
+  branch_id: string | null;
+  branch_name: string | null;
+  location_id: string;
+  location_name: string;
+  available_qty: number;
+  reserved_qty: number;
+  current_qty: number;
+  average_cost: number;
+  inventory_value: number;
+  last_movement: string | null;
+  status: string;
+}>(rows: T[]) {
+  const grouped = new Map<string, T[]>();
+  rows.forEach((row) => {
+    const key = `${row.branch_id ?? "no-branch"}:${row.item_id}`;
+    grouped.set(key, [...(grouped.get(key) ?? []), row]);
+  });
+
+  return Array.from(grouped.values()).map((rowsForKey) => {
+    const first = rowsForKey[0];
+    const currentQty = rowsForKey.reduce((sum, row) => sum + Number(row.current_qty), 0);
+    const availableQty = rowsForKey.reduce((sum, row) => sum + Number(row.available_qty), 0);
+    const reservedQty = rowsForKey.reduce((sum, row) => sum + Number(row.reserved_qty), 0);
+    const inventoryValue = rowsForKey.reduce((sum, row) => sum + Number(row.inventory_value), 0);
+    const averageCost = currentQty > 0 ? inventoryValue / currentQty : first.average_cost;
+    const lastMovement = rowsForKey.map((row) => row.last_movement).filter(Boolean).sort().at(-1) ?? null;
+
+    return {
+      ...first,
+      location_id: `${first.branch_id ?? "no-branch"}:all`,
+      location_name: "All locations",
+      available_qty: availableQty,
+      reserved_qty: reservedQty,
+      current_qty: currentQty,
+      average_cost: averageCost,
+      inventory_value: inventoryValue,
+      last_movement: lastMovement,
+      status: currentQty < 0 ? "negative" : rowsForKey.some((row) => row.status === "low_stock") ? "low_stock" : "ok",
+    };
+  });
 }
 
 export async function getInventoryDashboard() {

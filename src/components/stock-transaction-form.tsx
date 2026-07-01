@@ -11,6 +11,7 @@ import { ScanLine } from "lucide-react";
 
 type Item = Pick<Database["public"]["Tables"]["items"]["Row"], "id" | "item_code" | "item_name" | "base_unit" | "status">;
 type Location = Pick<Database["public"]["Tables"]["locations"]["Row"], "id" | "location_code" | "location_name" | "status">;
+type Branch = Pick<Database["public"]["Tables"]["branches"]["Row"], "id" | "branch_code" | "branch_name" | "status">;
 
 const types: { value: StockTransactionType; label: string; direction: "in" | "out" | "flex" }[] = [
   { value: "opening_balance", label: "Opening Balance", direction: "in" },
@@ -33,11 +34,12 @@ const types: { value: StockTransactionType; label: string; direction: "in" | "ou
 
 type StockTransactionFormProps = {
   items: Item[];
+  branches: Branch[];
   locations: Location[];
   action: (formData: FormData) => Promise<void>;
 };
 
-export function StockTransactionForm({ items, locations, action }: StockTransactionFormProps) {
+export function StockTransactionForm({ items, branches, locations, action }: StockTransactionFormProps) {
   return (
     <Card>
       <CardContent className="p-5">
@@ -63,15 +65,15 @@ export function StockTransactionForm({ items, locations, action }: StockTransact
               ))}
             </SelectNative>
           </Field>
-          <Field label="Location">
-            <SelectNative name="location_id" required>
-              <option value="">Select location</option>
-              {locations.map((location) => (
-                <option key={location.id} value={location.id}>
-                  {location.location_code} - {location.location_name}
+          <Field label="Branch">
+            <SelectNative name="branch_id" defaultValue={branches[0]?.id ?? ""} required>
+              {branches.map((branch) => (
+                <option key={branch.id} value={branch.id}>
+                  {branch.branch_name}
                 </option>
               ))}
             </SelectNative>
+            <p className="mt-1 text-xs text-muted-foreground">Stock will be recorded under this branch&apos;s default location.</p>
           </Field>
           <Field label="Transaction Type">
             <SelectNative name="transaction_type" required>
@@ -94,26 +96,41 @@ export function StockTransactionForm({ items, locations, action }: StockTransact
           <Field label="Unit Cost">
             <Input name="unit_cost" type="number" step="0.0001" min="0" />
           </Field>
-          <Field label="From Location">
-            <SelectNative name="from_location_id">
-              <option value="">Not applicable</option>
-              {locations.map((location) => (
-                <option key={location.id} value={location.id}>
-                  {location.location_name}
-                </option>
-              ))}
-            </SelectNative>
-          </Field>
-          <Field label="To Location">
-            <SelectNative name="to_location_id">
-              <option value="">Not applicable</option>
-              {locations.map((location) => (
-                <option key={location.id} value={location.id}>
-                  {location.location_name}
-                </option>
-              ))}
-            </SelectNative>
-          </Field>
+          <details className="rounded-md border bg-secondary/20 p-3 md:col-span-3">
+            <summary className="cursor-pointer text-sm font-medium">Advanced locations</summary>
+            <div className="mt-3 grid gap-4 md:grid-cols-3">
+              <Field label="Specific Location">
+                <SelectNative name="location_id">
+                  <option value="">Use branch default location</option>
+                  {locations.map((location) => (
+                    <option key={location.id} value={location.id}>
+                      {location.location_code} - {location.location_name}
+                    </option>
+                  ))}
+                </SelectNative>
+              </Field>
+              <Field label="From Location">
+                <SelectNative name="from_location_id">
+                  <option value="">Not applicable</option>
+                  {locations.map((location) => (
+                    <option key={location.id} value={location.id}>
+                      {location.location_name}
+                    </option>
+                  ))}
+                </SelectNative>
+              </Field>
+              <Field label="To Location">
+                <SelectNative name="to_location_id">
+                  <option value="">Not applicable</option>
+                  {locations.map((location) => (
+                    <option key={location.id} value={location.id}>
+                      {location.location_name}
+                    </option>
+                  ))}
+                </SelectNative>
+              </Field>
+            </div>
+          </details>
           <div className="md:col-span-3">
             <Field label="Remarks">
               <Textarea name="remarks" placeholder="Reason, batch note, or manual reference." />

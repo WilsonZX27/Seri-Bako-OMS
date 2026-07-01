@@ -1,8 +1,10 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { isMockMode } from "@/lib/mock-mode";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import { branchSchema, companySchema, documentSequenceSchema, locationSchema, roleSchema, staffAccessSchema, staffSchema } from "@/lib/validations/foundation";
 import { writeActivityLog } from "@/server/activity/log";
@@ -241,8 +243,8 @@ function staffPayload(formData: FormData) {
     full_name: formValue(formData, "full_name"),
     email: formValue(formData, "email"),
     phone: formValue(formData, "phone"),
-    default_branch_id: formValue(formData, "default_branch_id"),
-    status: formValue(formData, "status") ?? "active",
+    default_branch_id: formValue(formData, "branch_id"),
+    status: formValue(formData, "status") ?? "invited",
   });
 }
 
@@ -295,15 +297,87 @@ async function replaceStaffAccess(staffId: string, formData: FormData) {
   }
 }
 
+async function getCurrentStaffId() {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return null;
+
+  const { data } = await supabase.from("staffs").select("id").eq("auth_user_id", user.id).maybeSingle();
+  return data?.id ?? null;
+}
+
+async function getSiteUrl() {
+  const headerStore = await headers();
+  const origin = headerStore.get("origin");
+  if (origin) return origin;
+  const host = headerStore.get("x-forwarded-host") ?? headerStore.get("host");
+  const proto = headerStore.get("x-forwarded-proto") ?? "https";
+  return host ? `${proto}://${host}` : "http://localhost:3000";
+}
+
+async function inviteStaffByEmail(staffId: string, email: string) {
+  const admin = createAdminClient();
+  const redirectTo = `${await getSiteUrl()}/auth/callback?next=/set-password`;
+  const { data, error } = await admin.auth.admin.inviteUserByEmail(email, { redirectTo });
+
+  let authUserId = data.user?.id ?? null;
+  if (error) {
+    const message = error.message.toLowerCase();
+    if (!message.includes("already") && !message.includes("registered")) {
+      throw new Error(error.message);
+    }
+
+    const { data: users } = await admin.auth.admin.listUsers();
+    authUserId = users.users.find((user) => user.email?.toLowerCase() === email)?.id ?? null;
+  }
+
+  const updates: { auth_user_id?: string; invite_email: string; invited_at: string } = {
+    invite_email: email,
+    invited_at: new Date().toISOString(),
+  };
+  if (authUserId) updates.auth_user_id = authUserId;
+
+  const { error: updateError } = await admin.from("staffs").update(updates).eq("id", staffId);
+  if (updateError) throw new Error(updateError.message);
+}
+
 export async function createStaff(formData: FormData) {
   await requirePermission("staffs.create");
   const payload = staffPayload(formData);
+  const access = staffAccessPayload(formData);
   if (!isMockMode()) {
     const supabase = await createClient();
-    const { data, error } = await supabase.from("staffs").insert(payload).select("id").single();
+    if (!access.role_id || !access.branch_id || access.location_ids.length === 0) {
+      throw new Error("Role, default branch, and at least one location are required before invite.");
+    }
+    const invitedBy = await getCurrentStaffId();
+    const { data: existing, error: existingError } = await supabase
+      .from("staffs")
+      .select("id, accepted_at")
+      .eq("company_id", payload.company_id)
+      .eq("email", payload.email)
+      .is("deleted_at", null)
+      .maybeSingle();
+    if (existingError) throw new Error(existingError.message);
+
+    const now = new Date().toISOString();
+    const staffRecord = {
+      ...payload,
+      invite_email: payload.email,
+      status: existing?.accepted_at ? payload.status : "invited",
+      invited_at: now,
+      invited_by: invitedBy,
+    };
+
+    const { data, error } = existing
+      ? await supabase.from("staffs").update(staffRecord).eq("id", existing.id).select("id").single()
+      : await supabase.from("staffs").insert(staffRecord).select("id").single();
     if (error) throw new Error(error.message);
     await replaceStaffAccess(data.id, formData);
-    await writeActivityLog({ entityType: "staff", entityId: data.id, activityType: "created", message: `Staff ${payload.full_name} created` });
+    await inviteStaffByEmail(data.id, payload.email);
+    await writeActivityLog({ entityType: "staff", entityId: data.id, activityType: existing ? "updated" : "created", message: `Staff ${payload.full_name} invited` });
   }
   revalidatePath("/staffs");
   redirect("/staffs");
@@ -312,15 +386,60 @@ export async function createStaff(formData: FormData) {
 export async function updateStaff(id: string, formData: FormData) {
   await requirePermission("staffs.update");
   const payload = staffPayload(formData);
+  const access = staffAccessPayload(formData);
   if (!isMockMode()) {
     const supabase = await createClient();
-    const { error } = await supabase.from("staffs").update(payload).eq("id", id);
+    if (!access.role_id || !access.branch_id || access.location_ids.length === 0) {
+      throw new Error("Role, default branch, and at least one location are required.");
+    }
+    const { error } = await supabase.from("staffs").update({ ...payload, invite_email: payload.email }).eq("id", id);
     if (error) throw new Error(error.message);
     await replaceStaffAccess(id, formData);
     await writeActivityLog({ entityType: "staff", entityId: id, activityType: "updated", message: `Staff ${payload.full_name} updated` });
   }
   revalidatePath("/staffs");
   redirect("/staffs");
+}
+
+export async function resendStaffInvite(id: string) {
+  await requirePermission("staffs.update");
+  if (!isMockMode()) {
+    const supabase = await createClient();
+    const { data: staff, error } = await supabase.from("staffs").select("email, invite_email, full_name").eq("id", id).single();
+    if (error) throw new Error(error.message);
+    const email = (staff.invite_email ?? staff.email ?? "").trim().toLowerCase();
+    if (!email) throw new Error("Staff email is required before sending an invite.");
+    await inviteStaffByEmail(id, email);
+    await writeActivityLog({ entityType: "staff", entityId: id, activityType: "updated", message: `Invite resent to ${staff.full_name}` });
+  }
+  revalidatePath("/staffs");
+  revalidatePath(`/staffs/${id}`);
+}
+
+export async function disableStaff(id: string) {
+  await requirePermission("staffs.update");
+  if (!isMockMode()) {
+    const supabase = await createClient();
+    const { error } = await supabase.from("staffs").update({ status: "disabled" }).eq("id", id);
+    if (error) throw new Error(error.message);
+    await writeActivityLog({ entityType: "staff", entityId: id, activityType: "updated", message: "Staff disabled" });
+  }
+  revalidatePath("/staffs");
+  revalidatePath(`/staffs/${id}`);
+}
+
+export async function enableStaff(id: string) {
+  await requirePermission("staffs.update");
+  if (!isMockMode()) {
+    const supabase = await createClient();
+    const { data: staff, error: staffError } = await supabase.from("staffs").select("accepted_at").eq("id", id).single();
+    if (staffError) throw new Error(staffError.message);
+    const { error } = await supabase.from("staffs").update({ status: staff.accepted_at ? "active" : "invited" }).eq("id", id);
+    if (error) throw new Error(error.message);
+    await writeActivityLog({ entityType: "staff", entityId: id, activityType: "updated", message: "Staff enabled" });
+  }
+  revalidatePath("/staffs");
+  revalidatePath(`/staffs/${id}`);
 }
 
 function rolePayload(formData: FormData) {

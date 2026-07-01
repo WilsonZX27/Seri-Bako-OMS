@@ -118,10 +118,11 @@ export async function getStockCount(id: string) {
   };
 }
 
-export async function getStockCountSeedLines(locationId?: string) {
-  const balances = await getStockBalanceDetails({ page: "all" });
+export async function getStockCountSeedLines(locationId?: string, branchId?: string) {
+  const balances = await getStockBalanceDetails({ page: "all", view: locationId ? "location" : "branch" });
   return balances.rows
     .filter((row) => (locationId ? row.location_id === locationId : true))
+    .filter((row) => (branchId ? row.branch_id === branchId : true))
     .slice(0, 12)
     .map((row) => ({
       item_id: row.item_id,

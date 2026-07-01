@@ -7,6 +7,7 @@ import { createClient } from "@/lib/supabase/server";
 import { purchaseOrderSchema, purchaseRequestSchema } from "@/lib/validations/procurement";
 import { writeActivityLog } from "@/server/activity/log";
 import { requirePermission } from "@/server/auth/permissions";
+import { resolveDefaultLocation } from "@/server/inventory/locations";
 import { getCurrentProfile } from "@/server/queries/common";
 import type { ApprovalStatus, PurchaseOrderStatus, PurchaseRequestStatus } from "@/types/database";
 
@@ -124,6 +125,7 @@ export async function createPurchaseRequest(formData: FormData) {
   await requirePermission("purchase_request.create");
   const payload = extractPurchaseRequest(formData);
   if (isMockMode()) redirect("/purchase-requests");
+  const locationId = await resolveDefaultLocation(payload.branch_id, payload.location_id);
   await ensureActiveItems(payload.lines.map((line) => line.item_id));
   const profile = await identity();
   const supabase = await createClient();
@@ -136,7 +138,7 @@ export async function createPurchaseRequest(formData: FormData) {
       request_date: payload.request_date,
       required_date: cleanText(formData.get("required_date")),
       branch_id: payload.branch_id,
-      location_id: payload.location_id,
+      location_id: locationId,
       status: payload.status,
       remarks: payload.remarks,
       created_by: profile?.id ?? null,

@@ -7,6 +7,7 @@ import { createClient } from "@/lib/supabase/server";
 import { stockTransactionSchema } from "@/lib/validations/stock-transaction";
 import { writeActivityLog } from "@/server/activity/log";
 import { requirePermission } from "@/server/auth/permissions";
+import { resolveDefaultLocation } from "@/server/inventory/locations";
 import { getCurrentProfile } from "@/server/queries/common";
 
 function cleanText(value: unknown) {
@@ -53,6 +54,7 @@ export async function createStockTransaction(formData: FormData) {
 
   const parsed = stockTransactionSchema.parse({
     item_id: formData.get("item_id"),
+    branch_id: formData.get("branch_id"),
     location_id: formData.get("location_id"),
     transaction_type: formData.get("transaction_type"),
     transaction_date: formData.get("transaction_date"),
@@ -66,17 +68,18 @@ export async function createStockTransaction(formData: FormData) {
 
   const supabase = await createClient();
   const profile = await identity();
+  const locationId = await resolveDefaultLocation(parsed.branch_id, parsed.location_id);
   const quantityIn = parsed.direction === "in" ? parsed.quantity : 0;
   const quantityOut = parsed.direction === "out" ? parsed.quantity : 0;
   const unitCost = parsed.unit_cost ?? 0;
   const transactionNo = `ST-${Date.now().toString().slice(-8)}`;
-  const { data: location } = await supabase.from("locations").select("branch_id").eq("id", parsed.location_id).maybeSingle();
+  const { data: location } = await supabase.from("locations").select("branch_id").eq("id", locationId).maybeSingle();
 
   const { data, error } = await supabase.from("stock_transactions").insert({
     transaction_no: transactionNo,
-    branch_id: location?.branch_id ?? null,
+    branch_id: parsed.branch_id ?? location?.branch_id ?? null,
     item_id: parsed.item_id,
-    location_id: parsed.location_id,
+    location_id: locationId,
     transaction_type: parsed.transaction_type,
     transaction_date: parsed.transaction_date,
     quantity_in: quantityIn,
@@ -100,8 +103,8 @@ export async function createStockTransaction(formData: FormData) {
       stock_transaction_id: data.id,
       stock_entity_type: "item",
       item_id: parsed.item_id,
-      branch_id: location?.branch_id ?? null,
-      location_id: parsed.location_id,
+      branch_id: parsed.branch_id ?? location?.branch_id ?? null,
+      location_id: locationId,
       quantity_in: quantityIn,
       quantity_out: quantityOut,
       unit_cost: unitCost,

@@ -12,6 +12,11 @@ export async function hasPermission(permission: string) {
   return Boolean(data);
 }
 
+export async function getPermissionMap(permissions: string[]) {
+  const entries = await Promise.all(permissions.map(async (permission) => [permission, await hasPermission(permission)] as const));
+  return Object.fromEntries(entries) as Record<string, boolean>;
+}
+
 export async function requirePermission(permission: string) {
   const allowed = await hasPermission(permission);
   if (!allowed) {

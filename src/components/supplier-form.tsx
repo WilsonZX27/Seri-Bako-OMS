@@ -21,7 +21,7 @@ export function SupplierForm({ supplier, action }: SupplierFormProps) {
           <Field label="Supplier Code">
             <Input name="supplier_code" defaultValue={supplier?.supplier_code ?? ""} placeholder="SUP-001" />
           </Field>
-          <Field label="Supplier Name">
+          <Field label="Supplier Name" required>
             <Input name="name" defaultValue={supplier?.name ?? ""} required />
           </Field>
           <Field label="Contact Person">

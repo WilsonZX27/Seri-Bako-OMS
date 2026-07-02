@@ -74,7 +74,7 @@ export function GoodsReceivingForm({
           <input type="hidden" name="grn_no" value={grnNo} />
           <input type="hidden" name="status" value="draft" />
           <div className="grid gap-4 lg:grid-cols-3">
-            <Field label="Purchase Order">
+            <Field label="Purchase Order" required>
               <SelectNative value={selectedOrder?.id ?? ""} onChange={(event) => selectPo(event.target.value)} required>
                 <option value="">Select approved/sent PO</option>
                 {purchaseOrders.map((order) => (
@@ -87,10 +87,10 @@ export function GoodsReceivingForm({
             <Field label="GRN No">
               <div className="rounded-md border bg-secondary/30 px-3 py-2 text-sm text-muted-foreground">Auto-generated on submit</div>
             </Field>
-            <Field label="Received Date">
+            <Field label="Received Date" required>
               <Input name="received_date" type="date" defaultValue={today()} required />
             </Field>
-            <Field label="Branch">
+            <Field label="Branch" required>
               <SelectNative name="branch_id" defaultValue={branches[0]?.id ?? ""} required>
                 {branches.map((branch) => <option key={branch.id} value={branch.id}>{branch.branch_name}</option>)}
               </SelectNative>
@@ -145,7 +145,7 @@ export function GoodsReceivingForm({
                       <Field label="Ordered"><Input name="line_ordered_qty" value={line.qty_ordered} readOnly /></Field>
                       <Field label="Prev. Received"><Input name="line_previously_received_qty" value={line.previously_received_qty} readOnly /></Field>
                       <Field label="Pending"><Input name="line_pending_qty" value={line.pending_qty} readOnly /></Field>
-                      <Field label="Received"><Input id={`received-${line.id}`} name="line_received_qty" type="number" min="0" max={line.pending_qty} step="0.0001" defaultValue={0} /></Field>
+                      <Field label="Received" required><Input id={`received-${line.id}`} name="line_received_qty" type="number" min="0" max={line.pending_qty} step="0.0001" defaultValue={0} /></Field>
                       <Field label="Rejected"><Input name="line_rejected_qty" type="number" min="0" max={line.pending_qty} step="0.0001" defaultValue={0} /></Field>
                       <Field label="Batch"><Input name="line_batch_no" placeholder="Batch no" /></Field>
                       <Field label="Expiry"><Input name="line_expiry_date" type="date" /></Field>

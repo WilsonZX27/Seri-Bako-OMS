@@ -15,6 +15,7 @@ import {
   rejectDocument,
   submitDocument,
 } from "@/server/actions/documents";
+import { hasPermission } from "@/server/auth/permissions";
 import type { Database } from "@/types/database";
 
 type Document = Database["public"]["Tables"]["documents"]["Row"];
@@ -27,12 +28,6 @@ type Activity = Pick<Database["public"]["Tables"]["activity_logs"]["Row"], "id" 
 
 function formatDate(value: string | null) {
   return value ? new Intl.DateTimeFormat("en-MY", { dateStyle: "medium", timeStyle: "short" }).format(new Date(value)) : "-";
-}
-
-function formatBytes(value: number) {
-  if (value >= 1024 * 1024) return `${(value / 1024 / 1024).toFixed(1)} MB`;
-  if (value >= 1024) return `${(value / 1024).toFixed(1)} KB`;
-  return `${value} B`;
 }
 
 function eventIcon(type: string) {
@@ -77,18 +72,23 @@ export function DocumentTimeline({ document, activities, comments, attachments }
   );
 }
 
-export function AttachmentPanel({ documentId, attachments }: { documentId: string; attachments: Attachment[] }) {
+export async function AttachmentPanel({ documentId, attachments }: { documentId: string; attachments: Attachment[] }) {
+  const canManageAttachments = await hasPermission("documents.attach");
   return (
     <Card>
       <CardContent className="space-y-4 p-5">
         <h2 className="text-sm font-semibold">Attachments</h2>
-        <form action={addDocumentAttachment.bind(null, documentId)} className="grid gap-3 md:grid-cols-4">
-          <Field label="File Name"><Input name="file_name" placeholder="invoice.pdf" required /></Field>
-          <Field label="File Type"><Input name="file_type" placeholder="application/pdf" /></Field>
-          <Field label="File Size"><Input name="file_size" type="number" min="0" defaultValue={0} /></Field>
-          <Field label="File URL"><Input name="file_url" placeholder="https://..." /></Field>
-          <div className="md:col-span-4"><Button type="submit" variant="secondary">Upload attachment</Button></div>
-        </form>
+        {canManageAttachments ? (
+          <form action={addDocumentAttachment.bind(null, documentId)} className="grid gap-3 rounded-lg border bg-secondary/20 p-4 md:grid-cols-[1fr_1fr_auto] md:items-end">
+            <Field label="Attachment label">
+              <Input name="file_name" placeholder="Delivery order, invoice, photo" />
+            </Field>
+            <Field label="Upload attachment" required>
+              <Input name="file" type="file" required />
+            </Field>
+            <Button type="submit" variant="secondary">Upload</Button>
+          </form>
+        ) : null}
         <div className="divide-y rounded-lg border">
           {attachments.map((attachment) => (
             <div key={attachment.id} className="flex flex-col gap-3 p-3 sm:flex-row sm:items-center sm:justify-between">
@@ -96,12 +96,12 @@ export function AttachmentPanel({ documentId, attachments }: { documentId: strin
                 <FileText className="mt-0.5 h-4 w-4 text-muted-foreground" />
                 <div>
                   <p className="text-sm font-medium">{attachment.file_name}</p>
-                  <p className="text-xs text-muted-foreground">{attachment.file_type ?? "file"} - {formatBytes(attachment.file_size)} - {formatDate(attachment.created_at)}</p>
+                  <p className="text-xs text-muted-foreground">Uploaded {formatDate(attachment.created_at)}</p>
                 </div>
               </div>
               <div className="flex gap-2">
-                <Button asChild variant="outline" size="sm"><a href={attachment.file_url ?? "#"}>Download</a></Button>
-                <form action={archiveDocumentAttachment.bind(null, documentId, attachment.id)}><Button variant="ghost" size="sm">Archive</Button></form>
+                {attachment.file_url ? <Button asChild variant="outline" size="sm"><a href={attachment.file_url}>View / Download</a></Button> : <Button type="button" variant="outline" size="sm" disabled>View / Download</Button>}
+                {canManageAttachments ? <form action={archiveDocumentAttachment.bind(null, documentId, attachment.id)}><Button variant="ghost" size="sm">Remove</Button></form> : null}
               </div>
             </div>
           ))}

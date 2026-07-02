@@ -26,16 +26,16 @@ export function ItemForm({ item, suppliers, currentStock, initialBarcode, action
     <Card>
       <CardContent className="p-5">
         <form action={action} className="grid gap-4 md:grid-cols-3">
-          <Field label="Item Code">
+          <Field label="Item Code" required>
             <Input name="item_code" defaultValue={item?.item_code ?? ""} required />
           </Field>
           <Field label="AutoCount Code">
             <Input name="autocount_code" defaultValue={item?.autocount_code ?? ""} />
           </Field>
-          <Field label="Item Name">
+          <Field label="Item Name" required>
             <Input name="item_name" defaultValue={item?.item_name ?? ""} required />
           </Field>
-          <Field label="Category">
+          <Field label="Category" required>
             <Input name="category" defaultValue={item?.category ?? ""} placeholder="Flour, Dairy, Packaging" required />
           </Field>
           <Field label="Supplier">
@@ -63,14 +63,14 @@ export function ItemForm({ item, suppliers, currentStock, initialBarcode, action
           <Field label="Item Image URL">
             <Input name="item_image_url" defaultValue={item?.item_image_url ?? ""} placeholder="https://..." />
           </Field>
-          <Field label="Base Unit">
+          <Field label="Base Unit" required>
             <SelectNative name="base_unit" defaultValue={normalizeUom(item?.base_unit) || "KG"} required>
               {uomOptionsWithCurrent(item?.base_unit).map((uom) => (
                 <option key={uom} value={uom}>{uom}</option>
               ))}
             </SelectNative>
           </Field>
-          <Field label="Purchase Unit">
+          <Field label="Purchase Unit" required>
             <SelectNative name="purchase_unit" defaultValue={normalizeUom(item?.purchase_unit ?? item?.base_unit) || "KG"} required>
               {uomOptionsWithCurrent(item?.purchase_unit ?? item?.base_unit).map((uom) => (
                 <option key={uom} value={uom}>{uom}</option>

@@ -61,11 +61,13 @@ export function PurchaseRequestForm({
   items,
   suppliers,
   branches,
+  canCreateItem,
   action,
 }: {
   items: ItemOption[];
   suppliers: SupplierOption[];
   branches: BranchOption[];
+  canCreateItem: boolean;
   action: (formData: FormData) => Promise<void>;
 }) {
   const [availableItems, setAvailableItems] = useState(items);
@@ -190,13 +192,13 @@ export function PurchaseRequestForm({
               <p className="mt-1 text-xs text-muted-foreground">Branch, dates, urgency, and the main request reason.</p>
             </div>
             <div className="grid gap-4 md:grid-cols-3">
-              <Field label="Request Date">
+              <Field label="Request Date" required>
                 <Input name="request_date" type="date" defaultValue={today()} required />
               </Field>
               <Field label="Needed By">
                 <Input name="needed_by_date" type="date" />
               </Field>
-              <Field label="Branch">
+              <Field label="Branch" required>
                 <SelectNative name="branch_id" defaultValue={branches[0]?.id ?? ""} required>
                   {branches.map((branch) => <option key={branch.id} value={branch.id}>{branch.branch_name}</option>)}
                 </SelectNative>
@@ -239,10 +241,10 @@ export function PurchaseRequestForm({
               </div>
             </div>
             <div className="divide-y">
-              {lines.map((line, index) => (
+              {lines.map((line) => (
                 <div key={line.key} className="grid gap-3 p-4 xl:grid-cols-[minmax(260px,2fr)_110px_90px_150px_130px_minmax(160px,1fr)_auto]">
                   <div className="space-y-2">
-                    <Field label={index === 0 ? "Item" : "Item"}>
+                    <Field label="Item" required>
                       <Input
                         list="purchase-request-items"
                         value={line.itemSearch}
@@ -255,14 +257,14 @@ export function PurchaseRequestForm({
                         {availableItems.find((item) => item.id === line.itemId)?.item_code} - {availableItems.find((item) => item.id === line.itemId)?.item_name}
                       </p>
                     ) : (
-                      <Button type="button" variant="ghost" size="sm" onClick={() => setNewItemLineKey(line.key)}>Create new item</Button>
+                      canCreateItem ? <Button type="button" variant="ghost" size="sm" onClick={() => setNewItemLineKey(line.key)}>Create new item</Button> : null
                     )}
                     <input type="hidden" name="line_item_id" value={line.itemId} />
                   </div>
-                  <Field label="Quantity">
+                  <Field label="Quantity" required>
                     <Input name="line_qty" type="number" min="0.0001" step="0.0001" value={line.qty} onChange={(event) => updateLine(line.key, { qty: event.target.value })} placeholder="Qty" />
                   </Field>
-                  <Field label="UOM">
+                  <Field label="UOM" required>
                     <SelectNative name="line_uom" value={line.uom} onChange={(event) => updateLine(line.key, { uom: event.target.value })}>
                       <option value="">Select UOM</option>
                       {uomOptionsWithCurrent(line.uom).map((uom) => (
@@ -305,7 +307,20 @@ export function PurchaseRequestForm({
         </form>
       </CardContent>
     </Card>
-    {newItemLineKey !== null ? (
+    {newItemLineKey !== null && !canCreateItem ? (
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/30 p-4 backdrop-blur-sm">
+        <Card className="w-full max-w-lg">
+          <CardContent className="space-y-4 p-5">
+            <p className="text-lg font-semibold">Permission required</p>
+            <p className="text-sm text-muted-foreground">You do not have permission to create items. Please contact admin or purchasing.</p>
+            <div className="flex justify-end">
+              <Button type="button" onClick={() => setNewItemLineKey(null)}>Close</Button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    ) : null}
+    {newItemLineKey !== null && canCreateItem ? (
       <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/30 p-4 backdrop-blur-sm">
         <Card className="w-full max-w-3xl">
           <CardContent className="space-y-4 p-5">
@@ -326,17 +341,17 @@ export function PurchaseRequestForm({
                   <p className="mt-1 text-xs text-muted-foreground">Name, code, category, and base stock unit.</p>
                 </div>
                 <div className="grid gap-4 md:grid-cols-2">
-                  <Field label="Item Name">
+                  <Field label="Item Name" required>
                     <Input name="item_name" required />
                   </Field>
                   <Field label="Item Code">
                     <Input name="item_code" placeholder="Leave blank to auto-generate" />
                     <p className="mt-1 text-xs text-muted-foreground">Blank code will be generated on save.</p>
                   </Field>
-                  <Field label="Category">
+                  <Field label="Category" required>
                     <Input name="category" required />
                   </Field>
-                  <Field label="Base UOM">
+                  <Field label="Base UOM" required>
                     <SelectNative name="base_unit" defaultValue="KG" required>
                       {defaultUoms.map((uom) => (
                         <option key={uom} value={uom}>{uom}</option>
@@ -352,7 +367,7 @@ export function PurchaseRequestForm({
                   <p className="mt-1 text-xs text-muted-foreground">Optional buying defaults for PR and supplier item setup.</p>
                 </div>
                 <div className="grid gap-4 md:grid-cols-2">
-                  <Field label="Purchase UOM">
+                  <Field label="Purchase UOM" required>
                     <SelectNative name="purchase_unit" defaultValue="KG" required>
                       {defaultUoms.map((uom) => (
                         <option key={uom} value={uom}>{uom}</option>
@@ -365,6 +380,7 @@ export function PurchaseRequestForm({
                       {suppliers.map((supplier) => <option key={supplier.id} value={supplier.id}>{supplier.name}</option>)}
                     </SelectNative>
                   </Field>
+                  {!suppliers.length ? <p className="rounded-md border bg-secondary/30 p-3 text-sm text-muted-foreground md:col-span-2">Create supplier first before assigning a default supplier to this item.</p> : null}
                   <Field label="Cost">
                     <Input name="cost" type="number" min="0" step="0.0001" defaultValue={0} />
                   </Field>
@@ -411,12 +427,12 @@ export function PurchaseOrderForm({
             <Field label="PO No">
               <div className="rounded-md border bg-secondary/30 px-3 py-2 text-sm text-muted-foreground">Auto-generated on submit</div>
             </Field>
-            <Field label="Supplier">
+            <Field label="Supplier" required>
               <SelectNative name="supplier_id" defaultValue={suppliers[0]?.id ?? ""} required>
                 {suppliers.map((supplier) => <option key={supplier.id} value={supplier.id}>{supplier.name}</option>)}
               </SelectNative>
             </Field>
-            <Field label="Order Date">
+            <Field label="Order Date" required>
               <Input name="order_date" type="date" defaultValue={today()} required />
             </Field>
             <Field label="Expected Delivery">

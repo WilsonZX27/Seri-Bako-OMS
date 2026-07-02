@@ -10,6 +10,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { WorkflowStatusPipeline } from "@/components/workflow-status-pipeline";
 import { formatCurrency, formatNumber } from "@/lib/utils";
 import { cancelGoodsReceiving, postGoodsReceiving } from "@/server/actions/goods-receivings";
+import { getPermissionMap } from "@/server/auth/permissions";
 import { getDocumentBundle } from "@/server/queries/documents";
 import { getGoodsReceiving } from "@/server/queries/goods-receivings";
 
@@ -27,7 +28,10 @@ const grnSteps = [
 
 export default async function GoodsReceivingDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const { receiving, lines } = await getGoodsReceiving(id);
+  const [{ receiving, lines }, permissions] = await Promise.all([
+    getGoodsReceiving(id),
+    getPermissionMap(["goods_receiving.post", "goods_receiving.cancel"]),
+  ]);
   const documentBundle = receiving.document_id ? await getDocumentBundle(receiving.document_id) : null;
   const totalReceivedValue = lines.reduce((sum, line) => sum + line.received_qty * line.unit_cost, 0);
   const hasRejected = lines.some((line) => line.rejected_qty > 0);
@@ -52,8 +56,8 @@ export default async function GoodsReceivingDetailPage({ params }: { params: Pro
                   <Button asChild variant="outline"><Link href={`/purchase-orders/${receiving.purchase_order_id}`}>View PO</Link></Button>
                   {receiving.status === "draft" ? (
                     <>
-                      <form action={postGoodsReceiving.bind(null, receiving.id)}><SubmitButton type="submit" pendingLabel="Posting...">Post to stock</SubmitButton></form>
-                      <form action={cancelGoodsReceiving.bind(null, receiving.id)}><SubmitButton type="submit" pendingLabel="Saving..." variant="ghost">Cancel</SubmitButton></form>
+                      {permissions["goods_receiving.post"] ? <form action={postGoodsReceiving.bind(null, receiving.id)}><SubmitButton type="submit" pendingLabel="Posting...">Post to stock</SubmitButton></form> : null}
+                      {permissions["goods_receiving.cancel"] ? <form action={cancelGoodsReceiving.bind(null, receiving.id)}><SubmitButton type="submit" pendingLabel="Saving..." variant="ghost">Cancel</SubmitButton></form> : null}
                     </>
                   ) : null}
                 </div>

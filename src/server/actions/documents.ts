@@ -40,7 +40,10 @@ export async function addDocumentComment(documentId: string, formData: FormData)
 
 export async function addDocumentAttachment(documentId: string, formData: FormData) {
   await requirePermission("documents.attach");
-  const fileName = cleanText(formData.get("file_name"));
+  const file = formData.get("file");
+  const attachmentLabel = cleanText(formData.get("file_name"));
+  const uploadedFile = file instanceof File && file.size > 0 ? file : null;
+  const fileName = attachmentLabel ?? uploadedFile?.name ?? null;
   if (!fileName) return;
   const profile = await currentIdentity();
 
@@ -51,9 +54,9 @@ export async function addDocumentAttachment(documentId: string, formData: FormDa
       entity_type: "document",
       entity_id: documentId,
       file_name: fileName,
-      file_type: cleanText(formData.get("file_type")),
-      file_size: Number(formData.get("file_size") ?? 0),
-      file_url: cleanText(formData.get("file_url")),
+      file_type: uploadedFile?.type ?? null,
+      file_size: uploadedFile?.size ?? 0,
+      file_url: null,
       uploaded_by: profile?.id ?? null,
       created_by: profile?.id ?? null,
       updated_by: profile?.id ?? null,

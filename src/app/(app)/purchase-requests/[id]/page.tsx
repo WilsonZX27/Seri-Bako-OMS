@@ -18,6 +18,7 @@ import {
   rejectPurchaseRequest,
   submitPurchaseRequest,
 } from "@/server/actions/procurement";
+import { getPermissionMap } from "@/server/auth/permissions";
 import { getBranchesForSelect, getItemsForSelect, getLocationsForSelect, getSuppliersForSelect } from "@/server/queries/common";
 import { getDocumentBundle } from "@/server/queries/documents";
 import { getPurchaseOrdersForRequest, getPurchaseRequest } from "@/server/queries/procurement";
@@ -39,13 +40,14 @@ const prSteps = [
 
 export default async function PurchaseRequestDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const [{ request, lines }, linkedPurchaseOrders, items, suppliers, branches, locations] = await Promise.all([
+  const [{ request, lines }, linkedPurchaseOrders, items, suppliers, branches, locations, permissions] = await Promise.all([
     getPurchaseRequest(id),
     getPurchaseOrdersForRequest(id),
     getItemsForSelect(),
     getSuppliersForSelect(),
     getBranchesForSelect(),
     getLocationsForSelect(),
+    getPermissionMap(["purchase_request.submit", "purchase_request.review", "purchase_request.approve", "purchase_request.convert", "purchase_request.update"]),
   ]);
   const documentBundle = request.document_id ? await getDocumentBundle(request.document_id) : null;
   const itemById = new Map(items.map((item) => [item.id, item]));
@@ -69,19 +71,19 @@ export default async function PurchaseRequestDetailPage({ params }: { params: Pr
                   <Badge className="mt-1" variant={statusVariant(request.status)}>{request.status}</Badge>
                 </div>
                 <div className="flex flex-wrap gap-2">
-                  {request.status === "draft" ? <form action={submitPurchaseRequest.bind(null, request.id)}><SubmitButton type="submit" pendingLabel="Saving..." variant="secondary">Submit to Admin</SubmitButton></form> : null}
-                  {request.status === "admin_review" ? <form action={adminReviewPurchaseRequest.bind(null, request.id)}><SubmitButton type="submit" pendingLabel="Approving..." variant="outline">Admin approve</SubmitButton></form> : null}
-                  {request.status === "purchasing_review" ? <form action={purchasingReviewPurchaseRequest.bind(null, request.id)}><SubmitButton type="submit" pendingLabel="Saving..." variant="outline">Purchasing verified</SubmitButton></form> : null}
-                  {request.status === "pending_approval" ? <form action={approvePurchaseRequest.bind(null, request.id)}><SubmitButton type="submit" pendingLabel="Approving...">Manager approve</SubmitButton></form> : null}
-                  {request.status === "approved" ? (
+                  {request.status === "draft" && permissions["purchase_request.submit"] ? <form action={submitPurchaseRequest.bind(null, request.id)}><SubmitButton type="submit" pendingLabel="Saving..." variant="secondary">Submit to Admin</SubmitButton></form> : null}
+                  {request.status === "admin_review" && permissions["purchase_request.review"] ? <form action={adminReviewPurchaseRequest.bind(null, request.id)}><SubmitButton type="submit" pendingLabel="Approving..." variant="outline">Admin approve</SubmitButton></form> : null}
+                  {request.status === "purchasing_review" && permissions["purchase_request.review"] ? <form action={purchasingReviewPurchaseRequest.bind(null, request.id)}><SubmitButton type="submit" pendingLabel="Saving..." variant="outline">Purchasing verified</SubmitButton></form> : null}
+                  {request.status === "pending_approval" && permissions["purchase_request.approve"] ? <form action={approvePurchaseRequest.bind(null, request.id)}><SubmitButton type="submit" pendingLabel="Approving...">Manager approve</SubmitButton></form> : null}
+                  {request.status === "approved" && permissions["purchase_request.convert"] ? (
                     <form action={convertPurchaseRequestToPurchaseOrder.bind(null, request.id)}><SubmitButton type="submit" pendingLabel="Converting...">Convert to Purchase Order</SubmitButton></form>
                   ) : null}
-                  {["draft", "admin_review", "purchasing_review", "pending_approval", "approved"].includes(request.status) ? (
+                  {["draft", "admin_review", "purchasing_review", "pending_approval", "approved"].includes(request.status) && permissions["purchase_request.update"] ? (
                     <form action={cancelPurchaseRequest.bind(null, request.id)}><SubmitButton type="submit" pendingLabel="Saving..." variant="ghost">Cancel</SubmitButton></form>
                   ) : null}
                 </div>
               </div>
-              {["admin_review", "pending_approval"].includes(request.status) ? (
+              {["admin_review", "pending_approval"].includes(request.status) && permissions["purchase_request.approve"] ? (
                 <form action={rejectPurchaseRequest.bind(null, request.id)} className="grid gap-2 sm:grid-cols-[1fr_auto]">
                   <Input name="remarks" placeholder="Rejection remarks required" required />
                   <SubmitButton type="submit" pendingLabel="Saving..." variant="destructive">Reject</SubmitButton>

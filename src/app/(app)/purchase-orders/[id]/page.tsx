@@ -9,6 +9,7 @@ import { SubmitButton } from "@/components/ui/submit-button";
 import { WorkflowStatusPipeline } from "@/components/workflow-status-pipeline";
 import { formatCurrency, formatNumber } from "@/lib/utils";
 import { approvePurchaseOrder, cancelPurchaseOrder, closePurchaseOrder, rejectPurchaseOrder, sendPurchaseOrder, submitPurchaseOrder } from "@/server/actions/procurement";
+import { getPermissionMap } from "@/server/auth/permissions";
 import { getItemsForSelect, getSuppliersForSelect } from "@/server/queries/common";
 import { getDocumentBundle } from "@/server/queries/documents";
 import { getPurchaseOrder, getPurchaseRequestForOrder } from "@/server/queries/procurement";
@@ -31,7 +32,12 @@ const poSteps = [
 
 export default async function PurchaseOrderDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const [{ order, lines }, items, suppliers] = await Promise.all([getPurchaseOrder(id), getItemsForSelect(), getSuppliersForSelect()]);
+  const [{ order, lines }, items, suppliers, permissions] = await Promise.all([
+    getPurchaseOrder(id),
+    getItemsForSelect(),
+    getSuppliersForSelect(),
+    getPermissionMap(["purchase_order.submit", "purchase_order.approve", "purchase_order.send", "purchase_order.cancel", "purchase_order.close", "goods_receiving.create"]),
+  ]);
   const sourceRequest = await getPurchaseRequestForOrder(order.purchase_request_id);
   const documentBundle = order.document_id ? await getDocumentBundle(order.document_id) : null;
   const itemById = new Map(items.map((item) => [item.id, item]));
@@ -53,17 +59,17 @@ export default async function PurchaseOrderDetailPage({ params }: { params: Prom
                   <Badge className="mt-1" variant={statusVariant(order.status)}>{order.status}</Badge>
                 </div>
                 <div className="flex flex-wrap gap-2">
-                  {order.status === "draft" ? <form action={submitPurchaseOrder.bind(null, order.id)}><SubmitButton type="submit" pendingLabel="Saving..." variant="secondary">Submit approval</SubmitButton></form> : null}
-                  {order.status === "pending_approval" ? (
+                  {order.status === "draft" && permissions["purchase_order.submit"] ? <form action={submitPurchaseOrder.bind(null, order.id)}><SubmitButton type="submit" pendingLabel="Saving..." variant="secondary">Submit approval</SubmitButton></form> : null}
+                  {order.status === "pending_approval" && permissions["purchase_order.approve"] ? (
                     <>
                       <form action={approvePurchaseOrder.bind(null, order.id)}><SubmitButton type="submit" pendingLabel="Approving...">Approve</SubmitButton></form>
                       <form action={rejectPurchaseOrder.bind(null, order.id)}><SubmitButton type="submit" pendingLabel="Saving..." variant="destructive">Reject</SubmitButton></form>
                     </>
                   ) : null}
-                  {order.status === "approved" ? <form action={sendPurchaseOrder.bind(null, order.id)}><SubmitButton type="submit" pendingLabel="Saving..." variant="outline">Send to supplier</SubmitButton></form> : null}
-                  {["sent", "partial_received"].includes(order.status) ? <Button asChild variant="outline"><a href={`/goods-receivings/new?po_id=${order.id}`}>Receive goods</a></Button> : null}
-                  {order.status === "partial_received" ? <form action={closePurchaseOrder.bind(null, order.id)}><SubmitButton type="submit" pendingLabel="Saving..." variant="outline">Close</SubmitButton></form> : null}
-                  {["draft", "pending_approval", "approved", "sent"].includes(order.status) ? (
+                  {order.status === "approved" && permissions["purchase_order.send"] ? <form action={sendPurchaseOrder.bind(null, order.id)}><SubmitButton type="submit" pendingLabel="Saving..." variant="outline">Send to supplier</SubmitButton></form> : null}
+                  {["sent", "partial_received"].includes(order.status) && permissions["goods_receiving.create"] ? <Button asChild variant="outline"><a href={`/goods-receivings/new?po_id=${order.id}`}>Receive goods</a></Button> : null}
+                  {order.status === "partial_received" && permissions["purchase_order.close"] ? <form action={closePurchaseOrder.bind(null, order.id)}><SubmitButton type="submit" pendingLabel="Saving..." variant="outline">Close</SubmitButton></form> : null}
+                  {["draft", "pending_approval", "approved", "sent"].includes(order.status) && permissions["purchase_order.cancel"] ? (
                     <form action={cancelPurchaseOrder.bind(null, order.id)}><SubmitButton type="submit" pendingLabel="Saving..." variant="ghost">Cancel</SubmitButton></form>
                   ) : null}
                 </div>

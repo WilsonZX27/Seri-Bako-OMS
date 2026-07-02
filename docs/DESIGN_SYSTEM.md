@@ -1,6 +1,6 @@
 # Seri Bako OMS Design System
 
-This document is the permanent UI reference for Seri Bako OMS. Use the Operations Workspace visual reference as guidance for spacing, hierarchy, grouping, card treatment, and color mood. Do not copy the screenshot exactly.
+This document is the permanent UI reference for Seri Bako OMS. Use the approved Operations Workspace and KPI-style UI reference screenshots as guidance for spacing, hierarchy, grouping, card treatment, table density, form rhythm, and dashboard composition. Do not copy either reference pixel-for-pixel.
 
 ## Design Direction
 
@@ -8,7 +8,16 @@ Seri Bako OMS should feel clean, bright, modern, and enterprise SaaS-like. The i
 
 Prefer grouped workspace layouts over flat lists. Use tables when the page is mainly a list, report, queue, or transaction log.
 
-The Procurement Workspace screenshot is the preferred visual reference for hierarchy, grouping, panel spacing, soft card treatment, and subtle color usage.
+The permanent visual direction merges:
+
+- KPI-style information hierarchy, typography scale, table density, filter placement, and dashboard composition.
+- Food Market Hub workflow simplicity for daily operations.
+- Odoo-style document workflow clarity for PR, PO, GRN, and future ERP documents.
+- Existing Seri Bako ERP business logic.
+
+The Procurement Workspace remains the closest in-app reference for module landing pages. The newer KPI-style reference is the broader reference for page density, white space, forms, dialogs, filters, tables, and dashboard hierarchy.
+
+When unsure, choose the simpler option. Avoid adding decorative UI just because space exists.
 
 ## Page Layout Rules
 
@@ -16,11 +25,14 @@ The Procurement Workspace screenshot is the preferred visual reference for hiera
 - Start with a clear page header: title, one short description, and one primary action when applicable.
 - Keep the primary action at the top right on desktop.
 - Keep the primary action button dark green or teal.
-- Group related tools into large soft background panels.
+- Group related tools into clear sections, but keep most surfaces white.
 - Use a 4-column rhythm for action cards on wide desktop when space allows.
 - Section panels can be arranged in a 2-column grid when there are multiple workflow groups.
 - Avoid dense table-first pages unless the page is mainly a list, report, approval queue, or log.
 - Keep repeated page patterns predictable across Procurement, Inventory, Reports, and Settings.
+- Maintain generous vertical spacing between major sections.
+- Place search and filters close to the table or list they control.
+- Do not hide primary navigation targets below the fold or render target content inside landing pages.
 
 ## Section Panel Rules
 
@@ -30,11 +42,12 @@ Each section panel should include:
 - Section title.
 - Short description.
 - Related action cards inside the panel.
-- Soft background tint based on the section theme.
+- Mostly white background with restrained tint only when it improves grouping.
 - Rounded corners.
 - Light border.
 - Generous internal spacing.
 - Action cards arranged inside the section rather than floating separately.
+- Subtle borders and soft shadows, not heavy colored blocks.
 
 Recommended section structure:
 
@@ -58,6 +71,8 @@ Each action card should include:
 
 Action cards should feel calm and scannable. Avoid dense copy, crowded controls, or mixed card styles inside the same section.
 
+Prefer mostly white cards. Icons, badges, status pills, and tiny tags should carry the accent color. Do not make full cards bright green, blue, yellow, or purple unless they communicate state.
+
 Action card descriptions should explain the job, not the implementation. Good examples:
 
 - "Create, review, and convert branch purchase requests."
@@ -77,7 +92,13 @@ Avoid long paragraphs or instructional text inside action cards.
 
 ## Color Theme Rules
 
-Use subtle color themes per section:
+Use Seri Bako brand colors:
+
+- Deep Green for primary actions, success, and operational confidence.
+- Warm Gold for caution, ordering, and attention states.
+- Neutral Gray for structure, borders, secondary text, and calm enterprise surfaces.
+
+Use subtle color themes per section only when they help orientation:
 
 - Requesting: green.
 - Receiving: blue.
@@ -87,7 +108,22 @@ Use subtle color themes per section:
 - Reports: neutral or blue.
 - Settings: neutral with restrained green or slate accents.
 
-Color should support grouping, not dominate the page. Prefer tinted backgrounds, soft icon badges, and small tags over heavy saturated panels.
+Color should communicate status, grouping, or priority. It should not decorate for its own sake.
+
+Prefer:
+
+- White cards.
+- Light neutral panels.
+- Accent-colored icons.
+- Muted status pills.
+- Small recommended-for tags.
+
+Avoid:
+
+- Large saturated section backgrounds.
+- Colorful dashboards that compete with the data.
+- One-off gradients or decorative color blocks.
+- Introducing new colors outside the Seri Bako palette unless a status convention already requires it.
 
 ## Button Rules
 
@@ -98,6 +134,9 @@ Color should support grouping, not dominate the page. Prefer tinted backgrounds,
 - Use icons when they improve scanning, especially for create, upload, scan, transfer, and report actions.
 - Avoid multiple competing primary buttons in one page header.
 - Place workflow submit actions consistently in the header or footer area of forms.
+- Primary buttons should be visually obvious but not oversized.
+- Secondary buttons should stay quiet and neutral.
+- Table row actions should be compact.
 
 ## Form Rules
 
@@ -110,6 +149,10 @@ Color should support grouping, not dominate the page. Prefer tinted backgrounds,
 - Auto-fill known item data where possible so staff only enter what changed.
 - Do not show internal implementation placeholders such as auto-number sentinels. Use "Auto-generated on submit".
 - Only show urgency or exception fields when relevant.
+- Keep forms in clean white cards with clear group headings.
+- Use dialogs for lightweight creation or confirmation tasks.
+- Dialogs should have a clear title, short description, grouped fields, and bottom-right primary action.
+- Avoid long dense forms inside dialogs. If a task becomes large, use a full page.
 
 ## Table Rules
 
@@ -119,6 +162,11 @@ Color should support grouping, not dominate the page. Prefer tinted backgrounds,
 - Keep table headers short and scannable.
 - Hide advanced columns by default when they are not needed for daily work.
 - Use empty states that explain what to do next.
+- Keep table density enterprise-friendly: compact enough for scanning, with enough row height for readability.
+- Use status tabs above the table when workflow status is the main filter.
+- Put search and common filters in a single bar directly above the table.
+- Keep advanced filters secondary and visually quieter.
+- Use subtle row hover, not heavy row decoration.
 
 ## Dashboard Rules
 
@@ -128,6 +176,10 @@ Color should support grouping, not dominate the page. Prefer tinted backgrounds,
 - Keep dashboard widgets visually consistent with workspace cards.
 - Avoid turning the dashboard into a report page.
 - Surface exceptions such as low stock, pending approval, and today's receiving activity with clear counts.
+- Prefer white cards with restrained icons and status colors.
+- Use whitespace to separate major areas instead of large colored backgrounds.
+- Keep recent activity, notifications, and assigned actions in Workspace Updates where possible.
+- Use KPI-style composition for hierarchy, not decoration: clear cards, compact metrics, readable tables, and predictable filters.
 
 ## Spacing Rules
 
@@ -139,6 +191,31 @@ Color should support grouping, not dominate the page. Prefer tinted backgrounds,
 - Do not let text overflow buttons, cards, or compact panels.
 - Use consistent card heights within each section.
 - Let larger section panels breathe; do not fill every blank area with extra controls.
+- Use consistent typography scale:
+  - Page title: strongest hierarchy.
+  - Section title: medium weight.
+  - Card title: compact and clear.
+  - Descriptions and metadata: muted, short, and secondary.
+- Avoid oversized headings inside compact cards, tables, dialogs, or side panels.
+
+## Sidebar Navigation Rules
+
+- Sidebar navigation should remain calm, consistent, and enterprise-like.
+- Use simple icons with text labels.
+- Active state should be clear but restrained.
+- Avoid decorative sidebar blocks.
+- Keep version text small and subtle in the footer area.
+- Brand/logo area should remain clickable and predictable.
+
+## Dialog Rules
+
+- Use dialogs for quick create, upload, confirmation, or short setup tasks.
+- Keep dialog backgrounds white.
+- Use section dividers or light grouped cards for multi-part dialogs.
+- Primary action sits bottom-right.
+- Cancel or close action must be available.
+- Show friendly validation messages inside the dialog.
+- Do not expose technical storage URLs, raw database fields, or implementation details.
 
 ## Procurement Example
 
@@ -200,3 +277,5 @@ Settings can be quieter and more neutral than operations pages. Avoid bright col
 ## Future Application Rule
 
 Do not refactor the whole app just to match this document. Apply this standard gradually when a sprint explicitly touches a page or module.
+
+Before implementing new UI, read this document first. Maintain consistency with the existing Procurement workspace and the approved visual references. If a new page feels like it is introducing a new product language, simplify it until it belongs inside Seri Bako OMS.

@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
+import { normalizeUom } from "@/lib/uom";
 import { hasPermission } from "@/server/auth/permissions";
 import type { Database } from "@/types/database";
 
@@ -13,6 +14,8 @@ const quickItemSchema = z.object({
   purchase_unit: z.string().trim().min(1, "Purchase UOM is required."),
   supplier_id: z.string().uuid().optional().nullable().or(z.literal("")),
   cost: z.coerce.number().min(0).optional().default(0),
+  moq: z.coerce.number().min(0).optional().default(0),
+  lead_time_days: z.coerce.number().int().min(0).optional().default(0),
 });
 
 function generateItemCode(itemName: string) {
@@ -42,18 +45,20 @@ export async function POST(request: Request) {
     const parsed = quickItemSchema.parse(await request.json());
     const itemCode = parsed.item_code?.trim() || generateItemCode(parsed.item_name);
     const admin = createAdminClient();
+    const baseUnit = normalizeUom(parsed.base_unit);
+    const purchaseUnit = normalizeUom(parsed.purchase_unit);
     const itemPayload: Database["public"]["Tables"]["items"]["Insert"] = {
       item_code: itemCode,
       item_name: parsed.item_name,
       category: parsed.category,
-      base_unit: parsed.base_unit,
-      purchase_unit: parsed.purchase_unit,
+      base_unit: baseUnit,
+      purchase_unit: purchaseUnit,
       conversion_to_base_unit: 1,
       supplier_id: parsed.supplier_id || null,
       cost: parsed.cost ?? 0,
       safety_stock: 0,
-      lead_time_days: 0,
-      moq: 0,
+      lead_time_days: parsed.lead_time_days ?? 0,
+      moq: parsed.moq ?? 0,
       status: "active",
     };
 
@@ -68,6 +73,32 @@ export async function POST(request: Request) {
         ? "An item with this code already exists."
         : "Could not create this item.";
       return NextResponse.json({ ok: false, message }, { status: 400 });
+    }
+
+    if (parsed.supplier_id) {
+      try {
+        const canCreateSupplierItem = await hasPermission("supplier_items.create");
+        if (canCreateSupplierItem) {
+          const supplierItemPayload: Database["public"]["Tables"]["supplier_items"]["Insert"] = {
+            supplier_id: parsed.supplier_id,
+            item_id: data.id,
+            supplier_item_code: itemCode,
+            supplier_item_name: parsed.item_name,
+            purchase_uom: purchaseUnit,
+            conversion_to_base_uom: 1,
+            unit_cost: parsed.cost ?? 0,
+            moq: parsed.moq ?? 0,
+            lead_time_days: parsed.lead_time_days ?? 0,
+            status: "active",
+          };
+          const { error: supplierItemError } = await admin.from("supplier_items").insert(supplierItemPayload);
+          if (supplierItemError) {
+            console.error("Quick item supplier setup failed", supplierItemError.message);
+          }
+        }
+      } catch (supplierError) {
+        console.error("Quick item supplier setup failed", supplierError);
+      }
     }
 
     return NextResponse.json({ ok: true, item: data });

@@ -1,3 +1,5 @@
+import { defaultUoms } from "@/lib/uom";
+
 export const importEntities = [
   "items",
   "items-stock-listing",
@@ -11,6 +13,7 @@ export const importEntities = [
 
 export type ImportEntity = (typeof importEntities)[number];
 export type ImportMode = "create" | "update" | "upsert";
+const uomNote = `Preferred UOM values: ${defaultUoms.join(", ")}.`;
 
 export type TemplateSpec = {
   label: string;
@@ -47,8 +50,8 @@ export const importTemplates: Record<ImportEntity, TemplateSpec> = {
       item_code: "CHK-001",
       item_name: "Chicken Satay Meat",
       category: "Raw Material",
-      base_uom: "kg",
-      purchase_uom: "kg",
+      base_uom: "KG",
+      purchase_uom: "KG",
       supplier_code: "SUP-001",
       supplier_name: "ABC Supplier",
       safety_stock: "20",
@@ -57,6 +60,7 @@ export const importTemplates: Record<ImportEntity, TemplateSpec> = {
     },
     notes: [
       "Download the template first to avoid column mismatch.",
+      uomNote,
       "Supplier code is preferred when available. Supplier name can be used if codes are not ready yet.",
       "Existing items are not overwritten unless update mode is selected.",
     ],
@@ -82,7 +86,7 @@ export const importTemplates: Record<ImportEntity, TemplateSpec> = {
     duplicateKey: ["Item Code"],
     sample: {
       "Item Code": "CHK-001",
-      "Base UOM": "kg",
+      "Base UOM": "KG",
       "UOM Count": "2",
       Description: "Chicken Satay Meat",
       "Costing Method": "FIFO",
@@ -94,6 +98,7 @@ export const importTemplates: Record<ImportEntity, TemplateSpec> = {
     },
     notes: [
       "Use this profile for finance stock listing exports with spaced column names.",
+      uomNote,
       "UOM Count is kept as source information only. It does not create opening stock.",
       "Main Supplier matches supplier_code when available and can be left blank.",
     ],
@@ -162,7 +167,7 @@ export const importTemplates: Record<ImportEntity, TemplateSpec> = {
       supplier_code: "SUP-001",
       supplier_name: "ABC Supplier",
       item_code: "CHK-001",
-      purchase_uom: "kg",
+      purchase_uom: "KG",
       unit_cost: "12.50",
       supplier_item_code: "ABC-CHK-001",
       supplier_item_name: "Chicken Satay Meat 1kg",
@@ -173,6 +178,7 @@ export const importTemplates: Record<ImportEntity, TemplateSpec> = {
     },
     notes: [
       "Supplier code or supplier name is required so the supplier can be matched safely.",
+      uomNote,
       "This import is important for purchase order costing.",
     ],
     modes: ["create", "update", "upsert"],
@@ -186,14 +192,15 @@ export const importTemplates: Record<ImportEntity, TemplateSpec> = {
     duplicateKey: ["item_code", "from_uom", "to_uom"],
     sample: {
       item_code: "CHK-001",
-      from_uom: "carton",
-      to_uom: "kg",
+      from_uom: "CTN",
+      to_uom: "KG",
       conversion_rate: "10",
       remarks: "1 carton = 10kg",
       active: "true",
     },
     notes: [
       "Use item-specific conversions for opening stock and supplier item pricing.",
+      uomNote,
       "Prevent duplicate conversion pairs unless update mode is selected.",
     ],
     modes: ["create", "update", "upsert"],
@@ -230,7 +237,7 @@ export const importTemplates: Record<ImportEntity, TemplateSpec> = {
       branch: "Central Kitchen",
       item_code: "CHK-001",
       quantity: "50",
-      uom: "kg",
+      uom: "KG",
       unit_cost: "12.50",
       remarks: "Initial stock count",
       batch_no: "BATCH-001",
@@ -238,6 +245,7 @@ export const importTemplates: Record<ImportEntity, TemplateSpec> = {
     },
     notes: [
       "Branch is enough for daily operation. Internal stock area is handled automatically.",
+      uomNote,
       "Opening stock is posted into the ledger and affects stock balance.",
       "The system resolves each branch's default location automatically.",
     ],

@@ -6,6 +6,7 @@ import { SelectNative } from "@/components/ui/select-native";
 import { BarcodeFields } from "@/components/barcode-fields";
 import { SubmitButton } from "@/components/ui/submit-button";
 import { Button } from "@/components/ui/button";
+import { normalizeUom, uomOptionsWithCurrent } from "@/lib/uom";
 import { formatNumber } from "@/lib/utils";
 import type { Database } from "@/types/database";
 
@@ -63,7 +64,18 @@ export function ItemForm({ item, suppliers, currentStock, initialBarcode, action
             <Input name="item_image_url" defaultValue={item?.item_image_url ?? ""} placeholder="https://..." />
           </Field>
           <Field label="Base Unit">
-            <Input name="base_unit" defaultValue={item?.base_unit ?? ""} placeholder="kg" required />
+            <SelectNative name="base_unit" defaultValue={normalizeUom(item?.base_unit) || "KG"} required>
+              {uomOptionsWithCurrent(item?.base_unit).map((uom) => (
+                <option key={uom} value={uom}>{uom}</option>
+              ))}
+            </SelectNative>
+          </Field>
+          <Field label="Purchase Unit">
+            <SelectNative name="purchase_unit" defaultValue={normalizeUom(item?.purchase_unit ?? item?.base_unit) || "KG"} required>
+              {uomOptionsWithCurrent(item?.purchase_unit ?? item?.base_unit).map((uom) => (
+                <option key={uom} value={uom}>{uom}</option>
+              ))}
+            </SelectNative>
           </Field>
           <Field label="Cost">
             <Input name="cost" type="number" step="0.0001" min="0" defaultValue={item?.cost ?? 0} />
@@ -109,7 +121,6 @@ export function ItemForm({ item, suppliers, currentStock, initialBarcode, action
               </div>
             </div>
           </div>
-          <input type="hidden" name="purchase_unit" value={item?.purchase_unit ?? ""} />
           <input type="hidden" name="conversion_to_base_unit" value={item?.conversion_to_base_unit ?? 1} />
           <input type="hidden" name="moq" value={item?.moq ?? 0} />
           <input type="hidden" name="lead_time_days" value={item?.lead_time_days ?? 0} />

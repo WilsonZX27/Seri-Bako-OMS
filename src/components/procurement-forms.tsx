@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input";
 import { SubmitButton } from "@/components/ui/submit-button";
 import { SelectNative } from "@/components/ui/select-native";
 import { Textarea } from "@/components/ui/textarea";
+import { defaultUoms, normalizeUom, uomOptionsWithCurrent } from "@/lib/uom";
 import type { Database } from "@/types/database";
 
 type ItemOption = Pick<Database["public"]["Tables"]["items"]["Row"], "id" | "item_code" | "item_name" | "base_unit" | "purchase_unit" | "supplier_id" | "cost" | "status">;
@@ -95,7 +96,7 @@ export function PurchaseRequestForm({
     updateLine(key, {
       itemId: selected.id,
       itemSearch: itemLabel(selected),
-      uom: selected.purchase_unit || selected.base_unit,
+      uom: normalizeUom(selected.purchase_unit || selected.base_unit),
       supplierId: selected.supplier_id ?? "",
       cost: String(selected.cost ?? 0),
     });
@@ -115,6 +116,8 @@ export function PurchaseRequestForm({
         purchase_unit: String(formData.get("purchase_unit") ?? ""),
         supplier_id: String(formData.get("supplier_id") ?? ""),
         cost: String(formData.get("cost") ?? "0"),
+        moq: String(formData.get("moq") ?? "0"),
+        lead_time_days: String(formData.get("lead_time_days") ?? "0"),
       };
       const response = await fetch("/api/items/quick-create", {
         method: "POST",
@@ -132,7 +135,7 @@ export function PurchaseRequestForm({
       updateLine(newItemLineKey, {
         itemId: result.item.id,
         itemSearch: itemLabel(result.item),
-        uom: result.item.purchase_unit || result.item.base_unit,
+        uom: normalizeUom(result.item.purchase_unit || result.item.base_unit),
         supplierId: result.item.supplier_id ?? "",
         cost: String(result.item.cost ?? 0),
       });
@@ -260,7 +263,12 @@ export function PurchaseRequestForm({
                     <Input name="line_qty" type="number" min="0.0001" step="0.0001" value={line.qty} onChange={(event) => updateLine(line.key, { qty: event.target.value })} placeholder="Qty" />
                   </Field>
                   <Field label="UOM">
-                    <Input name="line_uom" value={line.uom} onChange={(event) => updateLine(line.key, { uom: event.target.value })} placeholder="UOM" />
+                    <SelectNative name="line_uom" value={line.uom} onChange={(event) => updateLine(line.key, { uom: event.target.value })}>
+                      <option value="">Select UOM</option>
+                      {uomOptionsWithCurrent(line.uom).map((uom) => (
+                        <option key={uom} value={uom}>{uom}</option>
+                      ))}
+                    </SelectNative>
                   </Field>
                   <Field label="Supplier">
                     <SelectNative name="line_suggested_supplier_id" value={line.supplierId} onChange={(event) => updateLine(line.key, { supplierId: event.target.value })}>
@@ -299,44 +307,77 @@ export function PurchaseRequestForm({
     </Card>
     {newItemLineKey !== null ? (
       <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/30 p-4 backdrop-blur-sm">
-        <Card className="w-full max-w-2xl">
+        <Card className="w-full max-w-3xl">
           <CardContent className="space-y-4 p-5">
             <div className="flex items-start justify-between gap-3">
               <div>
                 <p className="text-lg font-semibold">Create new item</p>
-                <p className="mt-1 text-sm text-muted-foreground">Add the minimum item details and return to this PR line.</p>
+                <p className="mt-1 text-sm text-muted-foreground">Create the item, return to this PR line, and fill UOM, supplier, and cost automatically.</p>
               </div>
               <Button type="button" variant="ghost" size="icon" onClick={() => setNewItemLineKey(null)} aria-label="Close item dialog">
                 <X className="h-4 w-4" />
               </Button>
             </div>
             {newItemError ? <p className="rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700">{newItemError}</p> : null}
-            <form action={createInlineItem} className="grid gap-4 md:grid-cols-2">
-              <Field label="Item Name">
-                <Input name="item_name" required />
-              </Field>
-              <Field label="Item Code">
-                <Input name="item_code" placeholder="Leave blank to auto-generate" />
-              </Field>
-              <Field label="Category">
-                <Input name="category" required />
-              </Field>
-              <Field label="Base UOM">
-                <Input name="base_unit" placeholder="kg" required />
-              </Field>
-              <Field label="Purchase UOM">
-                <Input name="purchase_unit" placeholder="kg" required />
-              </Field>
-              <Field label="Default Supplier">
-                <SelectNative name="supplier_id" defaultValue="">
-                  <option value="">No default supplier</option>
-                  {suppliers.map((supplier) => <option key={supplier.id} value={supplier.id}>{supplier.name}</option>)}
-                </SelectNative>
-              </Field>
-              <Field label="Cost">
-                <Input name="cost" type="number" min="0" step="0.0001" defaultValue={0} />
-              </Field>
-              <div className="flex items-end justify-end gap-2 md:col-span-2">
+            <form action={createInlineItem} className="space-y-4">
+              <section className="rounded-lg border bg-[var(--sb-muted)] p-4">
+                <div className="mb-3">
+                  <p className="text-sm font-semibold">Basic</p>
+                  <p className="mt-1 text-xs text-muted-foreground">Name, code, category, and base stock unit.</p>
+                </div>
+                <div className="grid gap-4 md:grid-cols-2">
+                  <Field label="Item Name">
+                    <Input name="item_name" required />
+                  </Field>
+                  <Field label="Item Code">
+                    <Input name="item_code" placeholder="Leave blank to auto-generate" />
+                    <p className="mt-1 text-xs text-muted-foreground">Blank code will be generated on save.</p>
+                  </Field>
+                  <Field label="Category">
+                    <Input name="category" required />
+                  </Field>
+                  <Field label="Base UOM">
+                    <SelectNative name="base_unit" defaultValue="KG" required>
+                      {defaultUoms.map((uom) => (
+                        <option key={uom} value={uom}>{uom}</option>
+                      ))}
+                    </SelectNative>
+                  </Field>
+                </div>
+              </section>
+
+              <section className="rounded-lg border bg-card p-4">
+                <div className="mb-3">
+                  <p className="text-sm font-semibold">Purchasing</p>
+                  <p className="mt-1 text-xs text-muted-foreground">Optional buying defaults for PR and supplier item setup.</p>
+                </div>
+                <div className="grid gap-4 md:grid-cols-2">
+                  <Field label="Purchase UOM">
+                    <SelectNative name="purchase_unit" defaultValue="KG" required>
+                      {defaultUoms.map((uom) => (
+                        <option key={uom} value={uom}>{uom}</option>
+                      ))}
+                    </SelectNative>
+                  </Field>
+                  <Field label="Default Supplier">
+                    <SelectNative name="supplier_id" defaultValue="">
+                      <option value="">No default supplier</option>
+                      {suppliers.map((supplier) => <option key={supplier.id} value={supplier.id}>{supplier.name}</option>)}
+                    </SelectNative>
+                  </Field>
+                  <Field label="Cost">
+                    <Input name="cost" type="number" min="0" step="0.0001" defaultValue={0} />
+                  </Field>
+                  <Field label="MOQ">
+                    <Input name="moq" type="number" min="0" step="0.0001" defaultValue={0} />
+                  </Field>
+                  <Field label="Lead Time Days">
+                    <Input name="lead_time_days" type="number" min="0" step="1" defaultValue={0} />
+                  </Field>
+                </div>
+              </section>
+
+              <div className="flex items-end justify-end gap-2">
                 <Button type="button" variant="ghost" onClick={() => setNewItemLineKey(null)}>Cancel</Button>
                 <Button type="submit" disabled={savingNewItem}>{savingNewItem ? "Saving..." : "Save item"}</Button>
               </div>
@@ -407,7 +448,12 @@ export function PurchaseOrderForm({
                   <Input name="line_qty_ordered" type="number" min="0.0001" step="0.0001" placeholder="Ordered" required={index === 0} />
                   <Input name="line_qty_received" type="number" min="0" step="0.0001" placeholder="Received" defaultValue={0} />
                   <Input name="line_qty_cancelled" type="number" min="0" step="0.0001" placeholder="Cancelled" defaultValue={0} />
-                  <Input name="line_uom" placeholder="UOM" defaultValue={items[index]?.base_unit ?? ""} required={index === 0} />
+                  <SelectNative name="line_uom" defaultValue={normalizeUom(items[index]?.base_unit)} required={index === 0}>
+                    <option value="">Select UOM</option>
+                    {uomOptionsWithCurrent(items[index]?.base_unit).map((uom) => (
+                      <option key={uom} value={uom}>{uom}</option>
+                    ))}
+                  </SelectNative>
                   <Input name="line_unit_price" type="number" min="0" step="0.0001" placeholder="Unit price" defaultValue={0} />
                 </div>
               ))}

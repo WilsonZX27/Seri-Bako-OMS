@@ -3,6 +3,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Field } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { SelectNative } from "@/components/ui/select-native";
+import { normalizeUom, uomOptionsWithCurrent } from "@/lib/uom";
 import type { Database } from "@/types/database";
 
 type SupplierItem = Database["public"]["Tables"]["supplier_items"]["Row"];
@@ -63,7 +64,11 @@ export function SupplierItemForm({
             <Input name="supplier_item_name" defaultValue={supplierItem?.supplier_item_name ?? ""} required />
           </Field>
           <Field label="Purchase UOM">
-            <Input name="purchase_uom" defaultValue={supplierItem?.purchase_uom ?? ""} required />
+            <SelectNative name="purchase_uom" defaultValue={normalizeUom(supplierItem?.purchase_uom) || "KG"} required>
+              {uomOptionsWithCurrent(supplierItem?.purchase_uom).map((uom) => (
+                <option key={uom} value={uom}>{uom}</option>
+              ))}
+            </SelectNative>
           </Field>
           <Field label="Conversion to Base UOM">
             <Input name="conversion_to_base_uom" type="number" step="0.000001" min="0.000001" defaultValue={supplierItem?.conversion_to_base_uom ?? 1} required />
@@ -98,10 +103,18 @@ export function UomConversionForm({ conversion, action }: { conversion?: UomConv
       <CardContent className="p-5">
         <form action={action} className="grid gap-4 md:grid-cols-2">
           <Field label="From UOM">
-            <Input name="from_uom" defaultValue={conversion?.from_uom ?? ""} placeholder="kg" required />
+            <SelectNative name="from_uom" defaultValue={normalizeUom(conversion?.from_uom) || "KG"} required>
+              {uomOptionsWithCurrent(conversion?.from_uom).map((uom) => (
+                <option key={uom} value={uom}>{uom}</option>
+              ))}
+            </SelectNative>
           </Field>
           <Field label="To UOM">
-            <Input name="to_uom" defaultValue={conversion?.to_uom ?? ""} placeholder="g" required />
+            <SelectNative name="to_uom" defaultValue={normalizeUom(conversion?.to_uom) || "G"} required>
+              {uomOptionsWithCurrent(conversion?.to_uom).map((uom) => (
+                <option key={uom} value={uom}>{uom}</option>
+              ))}
+            </SelectNative>
           </Field>
           <Field label="Factor">
             <Input name="factor" type="number" min="0.00000001" step="0.00000001" defaultValue={conversion?.factor ?? 1} required />

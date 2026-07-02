@@ -161,6 +161,7 @@ export function BarcodeFields({
               <option value="qr">QR</option>
               <option value="internal">Internal</option>
               <option value="supplier">Supplier</option>
+              <option value="packaging">Packaging</option>
               <option value="other">Other</option>
             </SelectNative>
           </Field>

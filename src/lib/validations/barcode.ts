@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-export const barcodeTypeSchema = z.enum(["ean13", "upc", "qr", "internal", "supplier", "other"]);
+export const barcodeTypeSchema = z.enum(["ean13", "upc", "qr", "internal", "supplier", "packaging", "other"]);
 
 export const barcodeFieldsSchema = z.object({
   barcode: z.string().trim().optional().nullable().transform((value) => (value ? value : null)),

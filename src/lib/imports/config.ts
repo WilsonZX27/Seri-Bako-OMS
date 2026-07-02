@@ -1,0 +1,220 @@
+export const importEntities = [
+  "items",
+  "products",
+  "suppliers",
+  "supplier-items",
+  "uom-conversions",
+  "barcode-mappings",
+  "opening-stock",
+] as const;
+
+export type ImportEntity = (typeof importEntities)[number];
+export type ImportMode = "create" | "update" | "upsert";
+
+export type TemplateSpec = {
+  label: string;
+  description: string;
+  headers: string[];
+  required: string[];
+  duplicateKey: string[];
+  sample: Record<string, string>;
+  notes: string[];
+  modes: ImportMode[];
+  defaultMode: ImportMode;
+  needsPostingConfirmation?: boolean;
+};
+
+export const importTemplates: Record<ImportEntity, TemplateSpec> = {
+  items: {
+    label: "Items",
+    description: "Import raw materials, packaging items, and finished goods before stock or purchasing can be tested.",
+    headers: [
+      "item_code",
+      "item_name",
+      "category",
+      "base_uom",
+      "autocount_code",
+      "purchase_uom",
+      "barcode",
+      "internal_barcode",
+      "supplier_barcode",
+      "qr_code",
+      "supplier_name",
+      "safety_stock",
+      "cost",
+      "item_image_url",
+      "active",
+    ],
+    required: ["item_code", "item_name", "category", "base_uom"],
+    duplicateKey: ["item_code"],
+    sample: {
+      item_code: "CHK-001",
+      item_name: "Chicken Satay Meat",
+      category: "Raw Material",
+      base_uom: "kg",
+      autocount_code: "100123",
+      purchase_uom: "kg",
+      barcode: "955000000001",
+      internal_barcode: "SB-CHK-001",
+      supplier_barcode: "SUP-CHK-001",
+      qr_code: "QR-CHK-001",
+      supplier_name: "ABC Supplier",
+      safety_stock: "20",
+      cost: "12.50",
+      item_image_url: "https://example.com/chicken-satay-meat.jpg",
+      active: "true",
+    },
+    notes: [
+      "Download the template first to avoid column mismatch.",
+      "Barcode, supplier barcode, QR code, and image URL are optional.",
+      "Existing items are not overwritten unless update mode is selected.",
+    ],
+    modes: ["create", "update", "upsert"],
+    defaultMode: "create",
+  },
+  products: {
+    label: "Products",
+    description: "Import finished products or menu references used by recipes and sales setup.",
+    headers: ["product_code", "product_name", "category", "selling_unit", "active"],
+    required: ["product_code", "product_name", "category", "selling_unit"],
+    duplicateKey: ["product_code"],
+    sample: {
+      product_code: "SATAY-SET",
+      product_name: "Satay Set",
+      category: "Menu",
+      selling_unit: "pack",
+      active: "true",
+    },
+    notes: ["Products are optional for current readiness unless recipe or production workflows need them."],
+    modes: ["create", "update", "upsert"],
+    defaultMode: "create",
+  },
+  suppliers: {
+    label: "Suppliers",
+    description: "Import supplier master records before supplier item pricing and ordering work.",
+    headers: ["supplier_code", "supplier_name", "contact_person", "phone", "email", "address", "payment_terms", "active"],
+    required: ["supplier_code", "supplier_name"],
+    duplicateKey: ["supplier_code"],
+    sample: {
+      supplier_code: "SUP-001",
+      supplier_name: "ABC Supplier",
+      contact_person: "Amin",
+      phone: "0123456789",
+      email: "sales@example.com",
+      address: "Kuala Lumpur",
+      payment_terms: "30",
+      active: "true",
+    },
+    notes: [
+      "Supplier code is required for stable matching during later imports.",
+      "Duplicate supplier names are allowed but should be reviewed carefully.",
+    ],
+    modes: ["create", "update", "upsert"],
+    defaultMode: "create",
+  },
+  "supplier-items": {
+    label: "Supplier Items",
+    description: "Import supplier-specific item codes, purchase UOM, costing, and lead time.",
+    headers: [
+      "supplier_code",
+      "supplier_name",
+      "item_code",
+      "purchase_uom",
+      "unit_cost",
+      "supplier_item_code",
+      "supplier_item_name",
+      "conversion_rate",
+      "lead_time_days",
+      "moq",
+      "active",
+    ],
+    required: ["item_code", "purchase_uom", "unit_cost"],
+    duplicateKey: ["supplier_code", "item_code"],
+    sample: {
+      supplier_code: "SUP-001",
+      supplier_name: "ABC Supplier",
+      item_code: "CHK-001",
+      purchase_uom: "kg",
+      unit_cost: "12.50",
+      supplier_item_code: "ABC-CHK-001",
+      supplier_item_name: "Chicken Satay Meat 1kg",
+      conversion_rate: "1",
+      lead_time_days: "2",
+      moq: "5",
+      active: "true",
+    },
+    notes: [
+      "Supplier code or supplier name is required so the supplier can be matched safely.",
+      "This import is important for purchase order costing.",
+    ],
+    modes: ["create", "update", "upsert"],
+    defaultMode: "create",
+  },
+  "uom-conversions": {
+    label: "UOM Conversions",
+    description: "Import item-specific unit conversions before posting non-base-unit stock quantities.",
+    headers: ["item_code", "from_uom", "to_uom", "conversion_rate", "remarks", "active"],
+    required: ["item_code", "from_uom", "to_uom", "conversion_rate"],
+    duplicateKey: ["item_code", "from_uom", "to_uom"],
+    sample: {
+      item_code: "CHK-001",
+      from_uom: "carton",
+      to_uom: "kg",
+      conversion_rate: "10",
+      remarks: "1 carton = 10kg",
+      active: "true",
+    },
+    notes: [
+      "Use item-specific conversions for opening stock and supplier item pricing.",
+      "Prevent duplicate conversion pairs unless update mode is selected.",
+    ],
+    modes: ["create", "update", "upsert"],
+    defaultMode: "create",
+  },
+  "barcode-mappings": {
+    label: "Barcode Mappings",
+    description: "Import multiple barcode aliases per item for scanning, receiving, and stock count workflows.",
+    headers: ["item_code", "barcode", "barcode_type", "source", "remarks", "active"],
+    required: ["item_code", "barcode", "barcode_type"],
+    duplicateKey: ["barcode"],
+    sample: {
+      item_code: "CHK-001",
+      barcode: "955000000001",
+      barcode_type: "internal",
+      source: "Autocount",
+      remarks: "Main printed label",
+      active: "true",
+    },
+    notes: [
+      "Allowed barcode types: internal, supplier, qr, packaging, ean13, upc, other.",
+      "Multiple barcodes per item are allowed, but the same barcode cannot belong to different items.",
+    ],
+    modes: ["create", "update", "upsert"],
+    defaultMode: "create",
+  },
+  "opening-stock": {
+    label: "Opening Stock",
+    description: "Post opening stock into the stock ledger by branch. Do not manually edit current stock.",
+    headers: ["branch", "item_code", "quantity", "uom", "unit_cost", "remarks", "batch_no", "expiry_date"],
+    required: ["branch", "item_code", "quantity", "uom"],
+    duplicateKey: ["branch", "item_code"],
+    sample: {
+      branch: "Central Kitchen",
+      item_code: "CHK-001",
+      quantity: "50",
+      uom: "kg",
+      unit_cost: "12.50",
+      remarks: "Initial stock count",
+      batch_no: "BATCH-001",
+      expiry_date: "2026-07-31",
+    },
+    notes: [
+      "Branch is enough for daily operation. Internal stock area is handled automatically.",
+      "Opening stock is posted into the ledger and affects stock balance.",
+      "The system resolves each branch's default location automatically.",
+    ],
+    modes: ["create"],
+    defaultMode: "create",
+    needsPostingConfirmation: true,
+  },
+};

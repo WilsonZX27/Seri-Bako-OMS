@@ -1,120 +1,1002 @@
+import { revalidatePath } from "next/cache";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { isMockMode } from "@/lib/mock-mode";
+import { importEntities } from "@/lib/imports/config";
 import { createClient } from "@/lib/supabase/server";
 import { writeActivityLog } from "@/server/activity/log";
-import type { Database } from "@/types/database";
+import { hasPermission } from "@/server/auth/permissions";
+import { resolveDefaultLocation } from "@/server/inventory/locations";
+import { getDefaultCompanyId } from "@/server/queries/barcodes";
+import { getCurrentProfile } from "@/server/queries/common";
+import type { BarcodeType, Database, ItemStatus, RecordStatus, StockTransactionStatus } from "@/types/database";
 
 const importSchema = z.object({
-  entity: z.enum(["items", "products", "suppliers", "supplier-items"]),
-  rows: z.array(z.record(z.string(), z.string())).max(500),
+  entity: z.enum(importEntities),
+  mode: z.enum(["create", "update", "upsert"]).default("create"),
+  confirmPosting: z.boolean().optional(),
+  rows: z.array(z.record(z.string(), z.string())).min(1).max(500),
 });
 
-function mapRows(entity: string, rows: Record<string, string>[]) {
-  if (entity === "items") {
-    return rows.map((row) => ({
-      item_code: row.item_code,
-      item_name: row.item_name,
-      category: row.category,
-      purchase_unit: row.purchase_unit || row.purchase_uom || row.base_unit || row.base_uom,
-      base_unit: row.base_unit || row.base_uom,
-      conversion_to_base_unit: Number(row.conversion_to_base_unit || 1),
-      cost: Number(row.cost || 0),
-      safety_stock: Number(row.safety_stock || 0),
-      lead_time_days: Number(row.lead_time_days || 0),
-      moq: Number(row.moq || 0),
-      status: "active" as const,
-    }));
+type ImportRequest = z.infer<typeof importSchema>;
+type ImportResultRow = { rowNumber: number; values: Record<string, string>; message: string };
+type ImportSummary = {
+  imported: number;
+  updated: number;
+  skipped: number;
+  errors: number;
+  errorRows: ImportResultRow[];
+};
+
+type RouteContext = {
+  supabase: Awaited<ReturnType<typeof createClient>>;
+  profile: Awaited<ReturnType<typeof getCurrentProfile>>;
+};
+
+function normalizeText(value: unknown) {
+  const text = String(value ?? "").trim();
+  return text.length ? text : "";
+}
+
+function normalizeLower(value: unknown) {
+  return normalizeText(value).toLowerCase();
+}
+
+function parseNumber(value: unknown) {
+  const text = normalizeText(value);
+  if (!text) return null;
+  const numeric = Number(text);
+  return Number.isFinite(numeric) ? numeric : null;
+}
+
+function parseBooleanFlag(value: unknown, defaultValue = true) {
+  const normalized = normalizeLower(value);
+  if (!normalized) return defaultValue;
+  if (["1", "true", "yes", "y", "active"].includes(normalized)) return true;
+  if (["0", "false", "no", "n", "inactive"].includes(normalized)) return false;
+  return defaultValue;
+}
+
+function parseDate(value: unknown) {
+  const text = normalizeText(value);
+  if (!text) return null;
+  const parsed = new Date(text);
+  if (Number.isNaN(parsed.getTime())) return null;
+  return parsed.toISOString().slice(0, 10);
+}
+
+function createSummary(): ImportSummary {
+  return { imported: 0, updated: 0, skipped: 0, errors: 0, errorRows: [] };
+}
+
+function pushIssue(summary: ImportSummary, rowNumber: number, values: Record<string, string>, message: string, type: "error" | "skip" = "error") {
+  summary.errorRows.push({ rowNumber, values, message });
+  if (type === "skip") summary.skipped += 1;
+  else summary.errors += 1;
+}
+
+function summaryMessage(entity: ImportRequest["entity"], summary: ImportSummary) {
+  return `${entity} import finished. Imported: ${summary.imported}. Updated: ${summary.updated}. Skipped: ${summary.skipped}. Errors: ${summary.errors}.`;
+}
+
+function response(entity: ImportRequest["entity"], summary: ImportSummary, status = 200) {
+  return NextResponse.json(
+    {
+      ok: summary.errors === 0,
+      imported: summary.imported,
+      updated: summary.updated,
+      skipped: summary.skipped,
+      errors: summary.errors,
+      message: summaryMessage(entity, summary),
+      errorRows: summary.errorRows,
+    },
+    { status },
+  );
+}
+
+async function canImport(entity: ImportRequest["entity"]) {
+  if (entity === "opening-stock") {
+    return (await hasPermission("stock_transactions.create")) || (await hasPermission("company.update"));
   }
-  if (entity === "products") {
-    return rows.map((row) => ({
-      product_code: row.product_code,
-      product_name: row.product_name,
-      category: row.category,
-      selling_unit: row.selling_unit,
-      status: "active" as const,
-    }));
+
+  return (await hasPermission("imports.create")) || (await hasPermission("company.update"));
+}
+
+async function ensurePrimaryItemBarcode(
+  context: RouteContext,
+  companyId: string,
+  itemId: string,
+  barcodeValue: string,
+  existingPrimaryId?: string | null,
+) {
+  const payload = {
+    company_id: companyId,
+    stock_entity_type: "item" as const,
+    item_id: itemId,
+    barcode_value: barcodeValue,
+    barcode_type: "internal" as BarcodeType,
+    is_primary: true,
+    status: "active" as RecordStatus,
+    deleted_at: null,
+  };
+
+  if (existingPrimaryId) {
+    const { error } = await context.supabase.from("barcode_mappings").update(payload).eq("id", existingPrimaryId);
+    if (error) throw new Error(error.message);
+    return;
+  }
+
+  const { error } = await context.supabase.from("barcode_mappings").insert(payload);
+  if (error) throw new Error(error.message);
+}
+
+async function handleItemsImport(context: RouteContext, request: ImportRequest) {
+  const summary = createSummary();
+  const rows = request.rows;
+  const itemCodes = [...new Set(rows.map((row) => normalizeText(row.item_code)).filter(Boolean))];
+  const supplierNames = [...new Set(rows.map((row) => normalizeLower(row.supplier_name)).filter(Boolean))];
+  const barcodeValues = [...new Set(rows.map((row) => normalizeText(row.barcode)).filter(Boolean))];
+  const companyId = context.profile?.company_id ?? (await getDefaultCompanyId());
+
+  const [{ data: existingItems, error: itemsError }, { data: suppliers, error: suppliersError }, { data: existingBarcodes, error: barcodesError }] = await Promise.all([
+    context.supabase.from("items").select("id, item_code").in("item_code", itemCodes.length ? itemCodes : [""]),
+    context.supabase.from("suppliers").select("id, name").is("deleted_at", null),
+    context.supabase
+      .from("barcode_mappings")
+      .select("id, barcode_value, item_id, is_primary")
+      .eq("company_id", companyId)
+      .eq("stock_entity_type", "item")
+      .is("deleted_at", null)
+      .in("barcode_value", barcodeValues.length ? barcodeValues : [""]),
+  ]);
+  if (itemsError) throw new Error(itemsError.message);
+  if (suppliersError) throw new Error(suppliersError.message);
+  if (barcodesError) throw new Error(barcodesError.message);
+
+  const existingByCode = new Map((existingItems ?? []).map((row) => [normalizeLower(row.item_code), row]));
+  const supplierByName = new Map((suppliers ?? []).map((row) => [normalizeLower(row.name), row]));
+  const barcodeByValue = new Map((existingBarcodes ?? []).map((row) => [normalizeLower(row.barcode_value), row]));
+
+  for (const [index, row] of rows.entries()) {
+    const rowNumber = index + 1;
+    const itemCode = normalizeText(row.item_code);
+    const itemName = normalizeText(row.item_name);
+    const category = normalizeText(row.category);
+    const baseUom = normalizeText(row.base_uom);
+    const purchaseUom = normalizeText(row.purchase_uom) || baseUom;
+    const barcode = normalizeText(row.barcode);
+    const cost = parseNumber(row.cost);
+    const safetyStock = parseNumber(row.safety_stock);
+    const existing = existingByCode.get(normalizeLower(itemCode));
+    const supplier = normalizeText(row.supplier_name) ? supplierByName.get(normalizeLower(row.supplier_name)) : null;
+    const existingBarcode = barcode ? barcodeByValue.get(normalizeLower(barcode)) : null;
+
+    if (!itemCode || !itemName || !category || !baseUom) {
+      pushIssue(summary, rowNumber, row, "Missing required field.");
+      continue;
+    }
+    if (cost === null && normalizeText(row.cost)) {
+      pushIssue(summary, rowNumber, row, "Invalid number for cost.");
+      continue;
+    }
+    if (safetyStock === null && normalizeText(row.safety_stock)) {
+      pushIssue(summary, rowNumber, row, "Invalid number for safety_stock.");
+      continue;
+    }
+    if (supplierNames.length && normalizeText(row.supplier_name) && !supplier) {
+      pushIssue(summary, rowNumber, row, "Unknown supplier.");
+      continue;
+    }
+    if (existingBarcode && existingBarcode.item_id && (!existing || existingBarcode.item_id !== existing.id)) {
+      pushIssue(summary, rowNumber, row, "Invalid barcode. This barcode already belongs to another item.");
+      continue;
+    }
+    if (existing && request.mode === "create") {
+      pushIssue(summary, rowNumber, row, "Duplicate code. This item already exists.", "skip");
+      continue;
+    }
+    if (!existing && request.mode === "update") {
+      pushIssue(summary, rowNumber, row, "Unknown item_code. Update mode only changes existing items.", "skip");
+      continue;
+    }
+
+    const payload: Database["public"]["Tables"]["items"]["Insert"] = {
+      item_code: itemCode,
+      item_name: itemName,
+      category,
+      base_unit: baseUom,
+      purchase_unit: purchaseUom,
+      conversion_to_base_unit: 1,
+      autocount_code: normalizeText(row.autocount_code) || null,
+      supplier_id: supplier?.id ?? null,
+      safety_stock: safetyStock ?? 0,
+      cost: cost ?? 0,
+      status: (parseBooleanFlag(row.active, true) ? "active" : "inactive") as ItemStatus,
+      barcode: barcode || null,
+      internal_barcode: normalizeText(row.internal_barcode) || null,
+      supplier_barcode: normalizeText(row.supplier_barcode) || null,
+      qr_code: normalizeText(row.qr_code) || null,
+      barcode_type: "internal",
+      item_image_url: normalizeText(row.item_image_url) || null,
+    };
+
+    if (existing) {
+      const { error } = await context.supabase.from("items").update(payload).eq("id", existing.id);
+      if (error) {
+        pushIssue(summary, rowNumber, row, error.message);
+        continue;
+      }
+      if (barcode) {
+        try {
+          await ensurePrimaryItemBarcode(context, companyId, existing.id, barcode, existingBarcode?.id ?? null);
+        } catch (error) {
+          pushIssue(summary, rowNumber, row, error instanceof Error ? error.message : "Could not update barcode mapping.");
+          continue;
+        }
+      }
+      summary.updated += 1;
+    } else {
+      const { data, error } = await context.supabase.from("items").insert(payload).select("id").single();
+      if (error || !data) {
+        pushIssue(summary, rowNumber, row, error?.message ?? "Could not create this item.");
+        continue;
+      }
+      if (barcode) {
+        try {
+          await ensurePrimaryItemBarcode(context, companyId, data.id, barcode);
+        } catch (error) {
+          pushIssue(summary, rowNumber, row, error instanceof Error ? error.message : "Could not create barcode mapping.");
+          continue;
+        }
+      }
+      summary.imported += 1;
+    }
+  }
+
+  return summary;
+}
+
+async function handleProductsImport(context: RouteContext, request: ImportRequest) {
+  const summary = createSummary();
+  const rows = request.rows;
+  const productCodes = [...new Set(rows.map((row) => normalizeText(row.product_code)).filter(Boolean))];
+  const { data: existingProducts, error: existingError } = await context.supabase
+    .from("products")
+    .select("id, product_code")
+    .in("product_code", productCodes.length ? productCodes : [""]);
+  if (existingError) throw new Error(existingError.message);
+  const existingByCode = new Map((existingProducts ?? []).map((row) => [normalizeLower(row.product_code), row]));
+
+  for (const [index, row] of rows.entries()) {
+    const rowNumber = index + 1;
+    const productCode = normalizeText(row.product_code);
+    const existing = existingByCode.get(normalizeLower(productCode));
+    if (!productCode || !normalizeText(row.product_name) || !normalizeText(row.category) || !normalizeText(row.selling_unit)) {
+      pushIssue(summary, rowNumber, row, "Missing required field.");
+      continue;
+    }
+    if (existing && request.mode === "create") {
+      pushIssue(summary, rowNumber, row, "Duplicate code. This product already exists.", "skip");
+      continue;
+    }
+    if (!existing && request.mode === "update") {
+      pushIssue(summary, rowNumber, row, "Unknown product_code. Update mode only changes existing products.", "skip");
+      continue;
+    }
+
+    const payload: Database["public"]["Tables"]["products"]["Insert"] = {
+      product_code: productCode,
+      product_name: normalizeText(row.product_name),
+      category: normalizeText(row.category),
+      selling_unit: normalizeText(row.selling_unit),
+      status: (parseBooleanFlag(row.active, true) ? "active" : "inactive") as ItemStatus,
+    };
+
+    if (existing) {
+      const { error } = await context.supabase.from("products").update(payload).eq("id", existing.id);
+      if (error) {
+        pushIssue(summary, rowNumber, row, error.message);
+        continue;
+      }
+      summary.updated += 1;
+    } else {
+      const { error } = await context.supabase.from("products").insert(payload);
+      if (error) {
+        pushIssue(summary, rowNumber, row, error.message);
+        continue;
+      }
+      summary.imported += 1;
+    }
+  }
+
+  return summary;
+}
+
+async function handleSuppliersImport(context: RouteContext, request: ImportRequest) {
+  const summary = createSummary();
+  const rows = request.rows;
+  const { data: existingSuppliers, error: existingError } = await context.supabase
+    .from("suppliers")
+    .select("id, supplier_code, name")
+    .is("deleted_at", null);
+  if (existingError) throw new Error(existingError.message);
+
+  const existingByCode = new Map(
+    (existingSuppliers ?? [])
+      .filter((row) => row.supplier_code)
+      .map((row) => [normalizeLower(row.supplier_code), row]),
+  );
+  for (const [index, row] of rows.entries()) {
+    const rowNumber = index + 1;
+    const supplierCode = normalizeText(row.supplier_code);
+    const supplierName = normalizeText(row.supplier_name);
+    const existing = existingByCode.get(normalizeLower(supplierCode));
+
+    if (!supplierCode || !supplierName) {
+      pushIssue(summary, rowNumber, row, "supplier_code and supplier_name are required.");
+      continue;
+    }
+
+    if (normalizeText(row.email) && !z.string().email().safeParse(row.email).success) {
+      pushIssue(summary, rowNumber, row, "Invalid email address.");
+      continue;
+    }
+
+    if (existing && request.mode === "create") {
+      pushIssue(summary, rowNumber, row, "Duplicate code. This supplier already exists.", "skip");
+      continue;
+    }
+    if (!existing && request.mode === "update") {
+      pushIssue(summary, rowNumber, row, "Unknown supplier_code. Update mode only changes existing suppliers.", "skip");
+      continue;
+    }
+
+    const payload: Database["public"]["Tables"]["suppliers"]["Insert"] = {
+      supplier_code: supplierCode,
+      name: supplierName,
+      contact_person: normalizeText(row.contact_person) || null,
+      phone: normalizeText(row.phone) || null,
+      email: normalizeText(row.email) || null,
+      address: normalizeText(row.address) || null,
+      payment_terms_days: parseNumber(row.payment_terms) ?? 30,
+      status: (parseBooleanFlag(row.active, true) ? "active" : "inactive") as Database["public"]["Tables"]["suppliers"]["Row"]["status"],
+    };
+
+    if (existing) {
+      const { error } = await context.supabase.from("suppliers").update(payload).eq("id", existing.id);
+      if (error) {
+        pushIssue(summary, rowNumber, row, error.message);
+        continue;
+      }
+      summary.updated += 1;
+    } else {
+      const { error } = await context.supabase.from("suppliers").insert(payload);
+      if (error) {
+        pushIssue(summary, rowNumber, row, error.message);
+        continue;
+      }
+      summary.imported += 1;
+    }
+  }
+
+  return summary;
+}
+
+async function handleSupplierItemsImport(context: RouteContext, request: ImportRequest) {
+  const summary = createSummary();
+  const rows = request.rows;
+  const supplierCodes = [...new Set(rows.map((row) => normalizeText(row.supplier_code)).filter(Boolean))];
+  const supplierNames = [...new Set(rows.map((row) => normalizeText(row.supplier_name)).filter(Boolean))];
+  const itemCodes = [...new Set(rows.map((row) => normalizeText(row.item_code)).filter(Boolean))];
+
+  const [{ data: suppliers, error: suppliersError }, { data: items, error: itemsError }] = await Promise.all([
+    context.supabase.from("suppliers").select("id, supplier_code, name").is("deleted_at", null),
+    context.supabase.from("items").select("id, item_code, item_name").is("deleted_at", null),
+  ]);
+  if (suppliersError) throw new Error(suppliersError.message);
+  if (itemsError) throw new Error(itemsError.message);
+
+  const supplierByCode = new Map((suppliers ?? []).filter((row) => row.supplier_code).map((row) => [normalizeLower(row.supplier_code), row]));
+  const supplierByName = new Map((suppliers ?? []).map((row) => [normalizeLower(row.name), row]));
+  const itemByCode = new Map((items ?? []).map((row) => [normalizeLower(row.item_code), row]));
+
+  const supplierIds = [
+    ...new Set(
+      [...supplierCodes.map((code) => supplierByCode.get(normalizeLower(code))?.id), ...supplierNames.map((name) => supplierByName.get(normalizeLower(name))?.id)].filter(
+        (value): value is string => Boolean(value),
+      ),
+    ),
+  ];
+  const itemIds = [
+    ...new Set(itemCodes.map((code) => itemByCode.get(normalizeLower(code))?.id).filter((value): value is string => Boolean(value))),
+  ];
+
+  const { data: existingRows, error: existingError } = await context.supabase
+    .from("supplier_items")
+    .select("id, supplier_id, item_id, unit_cost")
+    .in("supplier_id", supplierIds.length ? supplierIds : [""])
+    .in("item_id", itemIds.length ? itemIds : [""])
+    .is("deleted_at", null);
+  if (existingError) throw new Error(existingError.message);
+  const existingByPair = new Map((existingRows ?? []).map((row) => [`${row.supplier_id}|${row.item_id}`, row]));
+
+  for (const [index, row] of rows.entries()) {
+    const rowNumber = index + 1;
+    const supplier =
+      supplierByCode.get(normalizeLower(row.supplier_code)) ??
+      supplierByName.get(normalizeLower(row.supplier_name));
+    const item = itemByCode.get(normalizeLower(row.item_code));
+    const purchaseUom = normalizeText(row.purchase_uom);
+    const unitCost = parseNumber(row.unit_cost);
+    const conversionRate = parseNumber(row.conversion_rate);
+    const leadTime = parseNumber(row.lead_time_days);
+    const moq = parseNumber(row.moq);
+
+    if ((!normalizeText(row.supplier_code) && !normalizeText(row.supplier_name)) || !item || !purchaseUom || unitCost === null) {
+      pushIssue(summary, rowNumber, row, !item ? "Unknown item." : "Missing required supplier, purchase_uom, or unit_cost.");
+      continue;
+    }
+    if (!supplier) {
+      pushIssue(summary, rowNumber, row, "Unknown supplier.");
+      continue;
+    }
+    if (conversionRate === null && normalizeText(row.conversion_rate)) {
+      pushIssue(summary, rowNumber, row, "Invalid conversion_rate.");
+      continue;
+    }
+    if (conversionRate !== null && conversionRate <= 0) {
+      pushIssue(summary, rowNumber, row, "conversion_rate must be greater than 0.");
+      continue;
+    }
+    if (leadTime === null && normalizeText(row.lead_time_days)) {
+      pushIssue(summary, rowNumber, row, "Invalid lead_time_days.");
+      continue;
+    }
+    if (moq === null && normalizeText(row.moq)) {
+      pushIssue(summary, rowNumber, row, "Invalid moq.");
+      continue;
+    }
+
+    const pairKey = `${supplier.id}|${item.id}`;
+    const existing = existingByPair.get(pairKey);
+    if (existing && request.mode === "create") {
+      pushIssue(summary, rowNumber, row, "This supplier and item already have a mapping.", "skip");
+      continue;
+    }
+    if (!existing && request.mode === "update") {
+      pushIssue(summary, rowNumber, row, "No existing supplier and item mapping was found for update mode.", "skip");
+      continue;
+    }
+
+    const payload: Database["public"]["Tables"]["supplier_items"]["Insert"] = {
+      supplier_id: supplier.id,
+      item_id: item.id,
+      supplier_item_code: normalizeText(row.supplier_item_code) || normalizeText(row.item_code),
+      supplier_item_name: normalizeText(row.supplier_item_name) || item.item_name,
+      purchase_uom: purchaseUom,
+      conversion_to_base_uom: conversionRate ?? 1,
+      unit_cost: unitCost,
+      moq: moq ?? 0,
+      lead_time_days: leadTime ?? 0,
+      status: (parseBooleanFlag(row.active, true) ? "active" : "inactive") as RecordStatus,
+    };
+
+    if (existing) {
+      const { error } = await context.supabase.from("supplier_items").update(payload).eq("id", existing.id);
+      if (error) {
+        pushIssue(summary, rowNumber, row, error.message);
+        continue;
+      }
+      summary.updated += 1;
+    } else {
+      const { error } = await context.supabase.from("supplier_items").insert(payload);
+      if (error) {
+        pushIssue(summary, rowNumber, row, error.message);
+        continue;
+      }
+      summary.imported += 1;
+    }
+  }
+
+  return summary;
+}
+
+async function handleUomConversionsImport(context: RouteContext, request: ImportRequest) {
+  const summary = createSummary();
+  const rows = request.rows;
+  const itemCodes = [...new Set(rows.map((row) => normalizeText(row.item_code)).filter(Boolean))];
+
+  const [{ data: items, error: itemsError }, { data: existingConversions, error: conversionsError }] = await Promise.all([
+    context.supabase.from("items").select("id, item_code").in("item_code", itemCodes.length ? itemCodes : [""]),
+    context.supabase.from("uom_conversions").select("id, item_id, from_uom, to_uom").is("deleted_at", null),
+  ]);
+  if (itemsError) throw new Error(itemsError.message);
+  if (conversionsError) throw new Error(conversionsError.message);
+
+  const itemByCode = new Map((items ?? []).map((row) => [normalizeLower(row.item_code), row]));
+  const existingByKey = new Map(
+    (existingConversions ?? [])
+      .filter((row) => row.item_id)
+      .map((row) => [`${row.item_id}|${normalizeLower(row.from_uom)}|${normalizeLower(row.to_uom)}`, row]),
+  );
+
+  for (const [index, row] of rows.entries()) {
+    const rowNumber = index + 1;
+    const item = itemByCode.get(normalizeLower(row.item_code));
+    const fromUom = normalizeText(row.from_uom);
+    const toUom = normalizeText(row.to_uom);
+    const factor = parseNumber(row.conversion_rate);
+
+    if (!item) {
+      pushIssue(summary, rowNumber, row, "item_code must exist.");
+      continue;
+    }
+    if (!fromUom || !toUom || factor === null) {
+      pushIssue(summary, rowNumber, row, "from_uom, to_uom, and conversion_rate are required.");
+      continue;
+    }
+    if (factor <= 0) {
+      pushIssue(summary, rowNumber, row, "conversion_rate must be greater than 0.");
+      continue;
+    }
+
+    const existing = existingByKey.get(`${item.id}|${normalizeLower(fromUom)}|${normalizeLower(toUom)}`);
+    if (existing && request.mode === "create") {
+      pushIssue(summary, rowNumber, row, "This conversion already exists for the selected item.", "skip");
+      continue;
+    }
+    if (!existing && request.mode === "update") {
+      pushIssue(summary, rowNumber, row, "No existing conversion was found for update mode.", "skip");
+      continue;
+    }
+
+    const payload: Database["public"]["Tables"]["uom_conversions"]["Insert"] = {
+      item_id: item.id,
+      from_uom: fromUom,
+      to_uom: toUom,
+      factor,
+      status: (parseBooleanFlag(row.active, true) ? "active" : "inactive") as RecordStatus,
+    };
+
+    if (existing) {
+      const { error } = await context.supabase.from("uom_conversions").update(payload).eq("id", existing.id);
+      if (error) {
+        pushIssue(summary, rowNumber, row, error.message);
+        continue;
+      }
+      summary.updated += 1;
+    } else {
+      const { error } = await context.supabase.from("uom_conversions").insert(payload);
+      if (error) {
+        pushIssue(summary, rowNumber, row, error.message);
+        continue;
+      }
+      summary.imported += 1;
+    }
+  }
+
+  return summary;
+}
+
+async function handleBarcodeMappingsImport(context: RouteContext, request: ImportRequest) {
+  const summary = createSummary();
+  const rows = request.rows;
+  const companyId = context.profile?.company_id ?? (await getDefaultCompanyId());
+  const itemCodes = [...new Set(rows.map((row) => normalizeText(row.item_code)).filter(Boolean))];
+  const barcodeValues = [...new Set(rows.map((row) => normalizeText(row.barcode)).filter(Boolean))];
+  const allowedBarcodeTypes: BarcodeType[] = ["internal", "supplier", "qr", "packaging", "ean13", "upc", "other"];
+
+  const [{ data: items, error: itemsError }, { data: mappings, error: mappingsError }] = await Promise.all([
+    context.supabase.from("items").select("id, item_code").in("item_code", itemCodes.length ? itemCodes : [""]),
+    context.supabase
+      .from("barcode_mappings")
+      .select("id, barcode_value, item_id, is_primary")
+      .eq("company_id", companyId)
+      .eq("stock_entity_type", "item")
+      .is("deleted_at", null)
+      .in("barcode_value", barcodeValues.length ? barcodeValues : [""]),
+  ]);
+  if (itemsError) throw new Error(itemsError.message);
+  if (mappingsError) throw new Error(mappingsError.message);
+
+  const itemByCode = new Map((items ?? []).map((row) => [normalizeLower(row.item_code), row]));
+  const existingByBarcode = new Map((mappings ?? []).map((row) => [normalizeLower(row.barcode_value), row]));
+
+  for (const [index, row] of rows.entries()) {
+    const rowNumber = index + 1;
+    const item = itemByCode.get(normalizeLower(row.item_code));
+    const barcode = normalizeText(row.barcode);
+    const barcodeType = normalizeLower(row.barcode_type) as BarcodeType;
+    const existing = existingByBarcode.get(normalizeLower(barcode));
+
+    if (!item) {
+      pushIssue(summary, rowNumber, row, "item_code must exist.");
+      continue;
+    }
+    if (!barcode) {
+      pushIssue(summary, rowNumber, row, "barcode is required.");
+      continue;
+    }
+    if (!allowedBarcodeTypes.includes(barcodeType)) {
+      pushIssue(summary, rowNumber, row, "Invalid barcode_type.");
+      continue;
+    }
+    if (existing && existing.item_id !== item.id) {
+      pushIssue(summary, rowNumber, row, "This barcode already belongs to another item.");
+      continue;
+    }
+    if (existing && request.mode === "create") {
+      pushIssue(summary, rowNumber, row, "This barcode already exists for the selected item.", "skip");
+      continue;
+    }
+    if (!existing && request.mode === "update") {
+      pushIssue(summary, rowNumber, row, "No existing barcode mapping was found for update mode.", "skip");
+      continue;
+    }
+
+    const payload: Database["public"]["Tables"]["barcode_mappings"]["Insert"] = {
+      company_id: companyId,
+      stock_entity_type: "item",
+      item_id: item.id,
+      barcode_value: barcode,
+      barcode_type: barcodeType,
+      is_primary: false,
+      status: (parseBooleanFlag(row.active, true) ? "active" : "inactive") as RecordStatus,
+    };
+
+    if (existing) {
+      const { error } = await context.supabase.from("barcode_mappings").update(payload).eq("id", existing.id);
+      if (error) {
+        pushIssue(summary, rowNumber, row, error.message);
+        continue;
+      }
+      summary.updated += 1;
+    } else {
+      const { error } = await context.supabase.from("barcode_mappings").insert(payload);
+      if (error) {
+        pushIssue(summary, rowNumber, row, error.message);
+        continue;
+      }
+      summary.imported += 1;
+    }
+  }
+
+  return summary;
+}
+
+async function handleOpeningStockImport(context: RouteContext, request: ImportRequest) {
+  const summary = createSummary();
+  if (!request.confirmPosting) {
+    pushIssue(summary, 0, {}, "Please confirm that opening stock will be posted into the ledger.");
+    return summary;
+  }
+
+  const rows = request.rows;
+  const { data: branches, error: branchesError } = await context.supabase
+    .from("branches")
+    .select("id, branch_code, branch_name, status")
+    .eq("status", "active")
+    .is("deleted_at", null);
+  if (branchesError) throw new Error(branchesError.message);
+
+  const itemCodes = [...new Set(rows.map((row) => normalizeText(row.item_code)).filter(Boolean))];
+  const { data: items, error: itemsError } = await context.supabase
+    .from("items")
+    .select("id, item_code, item_name, base_unit")
+    .in("item_code", itemCodes.length ? itemCodes : [""])
+    .is("deleted_at", null);
+  if (itemsError) throw new Error(itemsError.message);
+
+  const branchByNameOrCode = new Map<
+    string,
+    Pick<Database["public"]["Tables"]["branches"]["Row"], "id" | "branch_code" | "branch_name" | "status">
+  >();
+  for (const branch of branches ?? []) {
+    branchByNameOrCode.set(normalizeLower(branch.branch_name), branch);
+    branchByNameOrCode.set(normalizeLower(branch.branch_code), branch);
+  }
+  const itemByCode = new Map((items ?? []).map((row) => [normalizeLower(row.item_code), row]));
+  const itemIds = [...new Set((items ?? []).map((row) => row.id))];
+
+  const [{ data: conversions, error: conversionsError }, { data: openingRows, error: openingError }] = await Promise.all([
+    context.supabase.from("uom_conversions").select("item_id, from_uom, to_uom, factor, status").is("deleted_at", null),
+    context.supabase
+      .from("stock_transactions")
+      .select("branch_id, item_id")
+      .eq("transaction_type", "opening_balance")
+      .in("item_id", itemIds.length ? itemIds : [""]),
+  ]);
+  if (conversionsError) throw new Error(conversionsError.message);
+  if (openingError) throw new Error(openingError.message);
+
+  const openingKeySet = new Set((openingRows ?? []).map((row) => `${row.branch_id ?? ""}|${row.item_id}`));
+
+  for (const [index, row] of rows.entries()) {
+    const rowNumber = index + 1;
+    const branch = branchByNameOrCode.get(normalizeLower(row.branch));
+    const item = itemByCode.get(normalizeLower(row.item_code));
+    const quantity = parseNumber(row.quantity);
+    const unitCost = parseNumber(row.unit_cost);
+    const expiryDate = normalizeText(row.expiry_date) ? parseDate(row.expiry_date) : null;
+    const inputUom = normalizeText(row.uom);
+
+    if (!branch) {
+      pushIssue(summary, rowNumber, row, "Unknown branch.");
+      continue;
+    }
+    if (!item) {
+      pushIssue(summary, rowNumber, row, "Unknown item.");
+      continue;
+    }
+    if (quantity === null || quantity < 0) {
+      pushIssue(summary, rowNumber, row, "quantity must be a valid number greater than or equal to 0.");
+      continue;
+    }
+    if (!inputUom) {
+      pushIssue(summary, rowNumber, row, "uom is required.");
+      continue;
+    }
+    if (unitCost === null && normalizeText(row.unit_cost)) {
+      pushIssue(summary, rowNumber, row, "Invalid unit_cost.");
+      continue;
+    }
+    if (normalizeText(row.expiry_date) && !expiryDate) {
+      pushIssue(summary, rowNumber, row, "Invalid expiry_date.");
+      continue;
+    }
+
+    const conversion =
+      normalizeLower(inputUom) === normalizeLower(item.base_unit)
+        ? { factor: 1 }
+        : (conversions ?? []).find(
+            (candidate) =>
+              candidate.status === "active" &&
+              normalizeLower(candidate.from_uom) === normalizeLower(inputUom) &&
+              normalizeLower(candidate.to_uom) === normalizeLower(item.base_unit) &&
+              (candidate.item_id === item.id || candidate.item_id === null),
+          );
+
+    if (!conversion) {
+      pushIssue(summary, rowNumber, row, "Invalid UOM. No conversion found to the item's base unit.");
+      continue;
+    }
+
+    const duplicateKey = `${branch.id}|${item.id}`;
+    if (openingKeySet.has(duplicateKey)) {
+      pushIssue(summary, rowNumber, row, "Opening stock already exists for this branch and item.", "skip");
+      continue;
+    }
+
+    let locationId: string;
+    try {
+      locationId = await resolveDefaultLocation(branch.id);
+    } catch (error) {
+      pushIssue(summary, rowNumber, row, error instanceof Error ? error.message : "Could not resolve the branch default location.");
+      continue;
+    }
+
+    const factor = Number(conversion.factor);
+    const baseQuantity = quantity * factor;
+    const ledgerUnitCost = unitCost !== null && factor > 0 ? unitCost / factor : 0;
+    const now = new Date().toISOString();
+    const remarks = [
+      "Opening Stock Import",
+      normalizeText(row.remarks),
+      normalizeText(row.batch_no) ? `Batch ${normalizeText(row.batch_no)}` : "",
+      expiryDate ? `Expiry ${expiryDate}` : "",
+    ]
+      .filter(Boolean)
+      .join(" | ");
+
+    const { data: transaction, error: transactionError } = await context.supabase
+      .from("stock_transactions")
+      .insert({
+        transaction_no: `OB-${Date.now().toString().slice(-8)}-${String(rowNumber).padStart(3, "0")}`,
+        branch_id: branch.id,
+        item_id: item.id,
+        location_id: locationId,
+        transaction_type: "opening_balance",
+        transaction_date: now.slice(0, 10),
+        quantity_in: baseQuantity,
+        quantity_out: 0,
+        unit_cost: ledgerUnitCost,
+        total_cost: baseQuantity * ledgerUnitCost,
+        status: "posted" as StockTransactionStatus,
+        posted_at: now,
+        posted_by: context.profile?.id ?? null,
+        remarks,
+        reference_type: "opening_stock_import",
+        created_by: context.profile?.id ?? null,
+      })
+      .select("id")
+      .single();
+
+    if (transactionError || !transaction) {
+      pushIssue(summary, rowNumber, row, transactionError?.message ?? "Could not post this opening stock row.");
+      continue;
+    }
+
+    const { error: lineError } = await context.supabase.from("stock_transaction_lines").insert({
+      stock_transaction_id: transaction.id,
+      stock_entity_type: "item",
+      item_id: item.id,
+      branch_id: branch.id,
+      location_id: locationId,
+      quantity_in: baseQuantity,
+      quantity_out: 0,
+      unit_cost: ledgerUnitCost,
+      reference_type: "opening_stock_import",
+      reference_id: transaction.id,
+      remarks,
+      created_by: context.profile?.id ?? null,
+    });
+
+    if (lineError) {
+      pushIssue(summary, rowNumber, row, lineError.message);
+      continue;
+    }
+
+    openingKeySet.add(duplicateKey);
+    summary.imported += 1;
+  }
+
+  return summary;
+}
+
+function revalidateImportTargets(entity: ImportRequest["entity"]) {
+  revalidatePath("/data-onboarding");
+  revalidatePath("/dashboard");
+  revalidatePath("/quick-tools");
+
+  if (entity === "items") {
+    revalidatePath("/items");
+    revalidatePath("/inventory");
+    return;
   }
   if (entity === "suppliers") {
-    return rows.map((row) => ({
-      supplier_code: row.supplier_code || null,
-      name: row.name || row.supplier_name,
-      contact_person: row.contact_person || null,
-      phone: row.phone || null,
-      email: row.email || null,
-      address: row.address || null,
-      payment_terms_days: Number(row.payment_terms_days || row.payment_terms || 30),
-      status: "active" as const,
-    }));
+    revalidatePath("/suppliers");
+    revalidatePath("/procurement");
+    return;
   }
-  return rows.map((row) => ({
-    supplier_id: row.supplier_id,
-    item_id: row.item_id,
-    supplier_item_code: row.supplier_item_code,
-    supplier_item_name: row.supplier_item_name,
-    purchase_uom: row.purchase_uom,
-    conversion_to_base_uom: Number(row.conversion_to_base_uom || row.conversion_rate || 1),
-    unit_cost: Number(row.unit_cost || 0),
-    moq: Number(row.moq || 0),
-    lead_time_days: Number(row.lead_time_days || 0),
-    status: "active" as const,
-  }));
+  if (entity === "supplier-items") {
+    revalidatePath("/supplier-items");
+    revalidatePath("/procurement");
+    return;
+  }
+  if (entity === "uom-conversions") {
+    revalidatePath("/uom-conversions");
+    return;
+  }
+  if (entity === "barcode-mappings") {
+    revalidatePath("/items");
+    revalidatePath("/inventory");
+    return;
+  }
+  if (entity === "opening-stock") {
+    revalidatePath("/stock-balance");
+    revalidatePath("/stock-card");
+    revalidatePath("/inventory");
+    revalidatePath("/stock-transactions");
+    return;
+  }
+  if (entity === "products") {
+    revalidatePath("/products");
+  }
 }
 
 export async function POST(request: Request) {
-  const parsed = importSchema.safeParse(await request.json());
-  if (!parsed.success) {
-    return NextResponse.json({ imported: 0, message: "Invalid import request." }, { status: 400 });
-  }
-
-  if (isMockMode()) {
-    return NextResponse.json({ imported: parsed.data.rows.length, message: `${parsed.data.rows.length} valid rows accepted in mock mode.` });
-  }
-
-  const supabase = await createClient();
-  let inputRows = parsed.data.rows;
-  if (parsed.data.entity === "supplier-items") {
-    const supplierCodes = inputRows.map((row) => row.supplier_code).filter(Boolean);
-    const itemCodes = inputRows.map((row) => row.item_code).filter(Boolean);
-    const [{ data: suppliers, error: suppliersError }, { data: items, error: itemsError }] = await Promise.all([
-      supabase.from("suppliers").select("id,supplier_code,name").in("supplier_code", supplierCodes.length ? supplierCodes : [""]),
-      supabase.from("items").select("id,item_code").in("item_code", itemCodes.length ? itemCodes : [""]),
-    ]);
-    if (suppliersError || itemsError) {
-      return NextResponse.json({ imported: 0, message: "Could not validate supplier or item references." }, { status: 400 });
+  try {
+    const payload = importSchema.safeParse(await request.json());
+    if (!payload.success) {
+      return NextResponse.json(
+        {
+          ok: false,
+          imported: 0,
+          updated: 0,
+          skipped: 0,
+          errors: 1,
+          message: "Invalid import request.",
+          errorRows: [],
+        },
+        { status: 400 },
+      );
     }
-    const supplierIds = new Map((suppliers ?? []).map((supplier) => [String(supplier.supplier_code ?? "").toLowerCase(), supplier.id]));
-    const itemIds = new Map((items ?? []).map((item) => [String(item.item_code ?? "").toLowerCase(), item.id]));
-    const missing = inputRows.find((row) => !supplierIds.get(String(row.supplier_code ?? "").toLowerCase()) || !itemIds.get(String(row.item_code ?? "").toLowerCase()));
-    if (missing) {
-      return NextResponse.json({ imported: 0, message: "Supplier Items import has a supplier_code or item_code that does not exist yet." }, { status: 400 });
+
+    if (isMockMode()) {
+      return NextResponse.json({
+        ok: true,
+        imported: payload.data.rows.length,
+        updated: 0,
+        skipped: 0,
+        errors: 0,
+        message: `${payload.data.rows.length} rows accepted in mock mode.`,
+        errorRows: [],
+      });
     }
-    inputRows = inputRows.map((row) => ({
-      ...row,
-      supplier_id: supplierIds.get(String(row.supplier_code ?? "").toLowerCase()) ?? "",
-      item_id: itemIds.get(String(row.item_code ?? "").toLowerCase()) ?? "",
-    }));
+
+    const supabase = await createClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    if (!user) {
+      return NextResponse.json(
+        {
+          ok: false,
+          imported: 0,
+          updated: 0,
+          skipped: 0,
+          errors: 1,
+          message: "Please sign in before importing data.",
+          errorRows: [],
+        },
+        { status: 401 },
+      );
+    }
+
+    if (!(await canImport(payload.data.entity))) {
+      return NextResponse.json(
+        {
+          ok: false,
+          imported: 0,
+          updated: 0,
+          skipped: 0,
+          errors: 1,
+          message: "You do not have permission to manage this import.",
+          errorRows: [],
+        },
+        { status: 403 },
+      );
+    }
+
+    const context: RouteContext = {
+      supabase,
+      profile: await getCurrentProfile(),
+    };
+
+    const summary =
+      payload.data.entity === "items"
+        ? await handleItemsImport(context, payload.data)
+        : payload.data.entity === "products"
+          ? await handleProductsImport(context, payload.data)
+          : payload.data.entity === "suppliers"
+            ? await handleSuppliersImport(context, payload.data)
+            : payload.data.entity === "supplier-items"
+              ? await handleSupplierItemsImport(context, payload.data)
+              : payload.data.entity === "uom-conversions"
+                ? await handleUomConversionsImport(context, payload.data)
+                : payload.data.entity === "barcode-mappings"
+                  ? await handleBarcodeMappingsImport(context, payload.data)
+                  : await handleOpeningStockImport(context, payload.data);
+
+    if (summary.imported || summary.updated) {
+      try {
+        await writeActivityLog({
+          entityType: "import",
+          entityId: "00000000-0000-0000-0000-000000000000",
+          activityType: "master_data_imported",
+          message: summaryMessage(payload.data.entity, summary),
+        });
+      } catch (error) {
+        console.error(error);
+      }
+    }
+
+    revalidateImportTargets(payload.data.entity);
+    return response(payload.data.entity, summary);
+  } catch (error) {
+    console.error(error);
+    return NextResponse.json(
+      {
+        ok: false,
+        imported: 0,
+        updated: 0,
+        skipped: 0,
+        errors: 1,
+        message: "Could not complete this import right now.",
+        errorRows: [],
+      },
+      { status: 500 },
+    );
   }
-
-  const rows = mapRows(parsed.data.entity, inputRows);
-  const { error } =
-    parsed.data.entity === "items"
-      ? await supabase.from("items").insert(rows as Database["public"]["Tables"]["items"]["Insert"][])
-      : parsed.data.entity === "products"
-        ? await supabase.from("products").insert(rows as Database["public"]["Tables"]["products"]["Insert"][])
-        : parsed.data.entity === "suppliers"
-          ? await supabase.from("suppliers").insert(rows as Database["public"]["Tables"]["suppliers"]["Insert"][])
-          : await supabase.from("supplier_items").insert(rows as Database["public"]["Tables"]["supplier_items"]["Insert"][]);
-  if (error) {
-    return NextResponse.json({ imported: 0, message: error.message }, { status: 400 });
-  }
-
-  await writeActivityLog({
-    entityType: "import",
-    entityId: "00000000-0000-0000-0000-000000000000",
-    activityType: "master_data_imported",
-    message: `${parsed.data.rows.length} ${parsed.data.entity} rows imported`,
-  });
-
-  return NextResponse.json({ imported: parsed.data.rows.length });
 }

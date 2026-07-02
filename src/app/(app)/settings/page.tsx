@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Building2, FileDigit, MapPin, Settings, UserCog, Users, Warehouse } from "lucide-react";
+import { Building2, Database, FileDigit, MapPin, Settings, UserCog, Users, Warehouse } from "lucide-react";
 import { CategoryCardGrid } from "@/components/category-card-grid";
 import { Card, CardContent } from "@/components/ui/card";
 import { PageHeader } from "@/components/ui/page-header";
@@ -11,6 +11,7 @@ const settingsLinks = [
   { href: "/roles", title: "Roles & Permissions", description: "Permission catalogue, role definitions, and admin access control.", icon: UserCog },
   { href: "/document-sequences", title: "Document Sequences", description: "Prefixes, padding, current number, reset rule, and previews.", icon: FileDigit },
   { href: "/uom-conversions", title: "System Preferences", description: "UOM conversions and shared reference settings used across operations.", icon: Settings },
+  { href: "/data-onboarding", title: "Data Onboarding", description: "Templates, imports, opening stock, and readiness checks for real operating data.", icon: Database },
 ];
 
 export default function SettingsPage() {

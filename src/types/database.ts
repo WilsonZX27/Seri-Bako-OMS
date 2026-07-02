@@ -9,7 +9,7 @@ export type LocationStatus = RecordStatus;
 export type BranchType = "central_kitchen" | "outlet" | "event_booth" | "office" | "other";
 export type StaffAccessLevel = "full" | "manage" | "read_only";
 export type ResetFrequency = "never" | "yearly" | "monthly" | "daily";
-export type BarcodeType = "ean13" | "upc" | "qr" | "internal" | "supplier" | "other";
+export type BarcodeType = "ean13" | "upc" | "qr" | "internal" | "supplier" | "packaging" | "other";
 export type StockEntityType = "item" | "product";
 export type DocumentStatus = "draft" | "submitted" | "pending_approval" | "approved" | "rejected" | "posted" | "cancelled" | "closed";
 export type ApprovalStatus = "not_required" | "draft" | "pending" | "approved" | "rejected" | "cancelled";
@@ -616,11 +616,19 @@ export type Database = {
           id: string;
           company_id: string | null;
           recipient_user_id: string | null;
+          recipient_staff_id: string | null;
+          recipient_role_id: string | null;
+          branch_id: string | null;
           title: string;
           message: string;
+          action_url: string | null;
+          priority: string;
+          is_company_wide: boolean;
           entity_type: string | null;
           entity_id: string | null;
           read_at: string | null;
+          dismissed_at: string | null;
+          actor_user_id: string | null;
           created_at: string;
           created_by: string | null;
         };
@@ -628,15 +636,45 @@ export type Database = {
           id?: string;
           company_id?: string | null;
           recipient_user_id?: string | null;
+          recipient_staff_id?: string | null;
+          recipient_role_id?: string | null;
+          branch_id?: string | null;
           title: string;
           message: string;
+          action_url?: string | null;
+          priority?: string;
+          is_company_wide?: boolean;
           entity_type?: string | null;
           entity_id?: string | null;
           read_at?: string | null;
+          dismissed_at?: string | null;
+          actor_user_id?: string | null;
           created_at?: string;
           created_by?: string | null;
         };
         Update: Partial<Database["public"]["Tables"]["notifications"]["Insert"]>;
+        Relationships: [];
+      };
+      notification_recipients: {
+        Row: {
+          id: string;
+          notification_id: string;
+          recipient_user_id: string | null;
+          recipient_staff_id: string | null;
+          read_at: string | null;
+          dismissed_at: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          notification_id: string;
+          recipient_user_id?: string | null;
+          recipient_staff_id?: string | null;
+          read_at?: string | null;
+          dismissed_at?: string | null;
+          created_at?: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["notification_recipients"]["Insert"]>;
         Relationships: [];
       };
       profiles: {
@@ -868,6 +906,7 @@ export type Database = {
       uom_conversions: {
         Row: {
           id: string;
+          item_id: string | null;
           from_uom: string;
           to_uom: string;
           factor: number;
@@ -880,6 +919,7 @@ export type Database = {
         };
         Insert: {
           id?: string;
+          item_id?: string | null;
           from_uom: string;
           to_uom: string;
           factor: number;

@@ -1,45 +1,24 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { CheckCircle2, Download, Upload, XCircle } from "lucide-react";
+import { AlertTriangle, CheckCircle2, Download, FileSpreadsheet, Upload, XCircle } from "lucide-react";
+import { importTemplates, type ImportEntity, type ImportMode } from "@/lib/imports/config";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { SelectNative } from "@/components/ui/select-native";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
-type ImportEntity = "items" | "products" | "suppliers" | "supplier-items";
 type RowState = { index: number; values: Record<string, string>; errors: string[] };
-type TemplateSpec = { headers: string[]; required: string[]; duplicateKey: string[]; sample: Record<string, string>; notes: string[] };
-
-const templates: Record<ImportEntity, TemplateSpec> = {
-  items: {
-    headers: ["item_code", "item_name", "category", "base_uom", "purchase_uom", "barcode", "supplier_name", "safety_stock", "active"],
-    required: ["item_code", "item_name", "category", "base_uom", "purchase_uom"],
-    duplicateKey: ["item_code"],
-    sample: { item_code: "CHK-001", item_name: "Chicken Satay Meat", category: "Raw Meat", base_uom: "kg", purchase_uom: "kg", barcode: "955000000001", supplier_name: "ABC Supplier", safety_stock: "20", active: "yes" },
-    notes: ["supplier_name, safety_stock, barcode, and active are optional.", "active accepts yes/no or true/false."],
-  },
-  products: {
-    headers: ["product_code", "product_name", "category", "selling_unit", "active"],
-    required: ["product_code", "product_name", "category", "selling_unit"],
-    duplicateKey: ["product_code"],
-    sample: { product_code: "SATAY-SET", product_name: "Satay Set", category: "Menu", selling_unit: "pack", active: "yes" },
-    notes: ["Products are menu/finished goods references for recipes."],
-  },
-  suppliers: {
-    headers: ["supplier_code", "supplier_name", "contact_person", "phone", "email", "address", "payment_terms", "active"],
-    required: ["supplier_name"],
-    duplicateKey: ["supplier_code", "supplier_name"],
-    sample: { supplier_code: "SUP-001", supplier_name: "ABC Supplier", contact_person: "Amin", phone: "0123456789", email: "sales@example.com", address: "Kuala Lumpur", payment_terms: "30", active: "yes" },
-    notes: ["supplier_code is optional but recommended.", "payment_terms can be a number of days."],
-  },
-  "supplier-items": {
-    headers: ["supplier_name", "supplier_code", "item_code", "item_name", "supplier_item_code", "supplier_item_name", "purchase_uom", "conversion_rate", "unit_cost", "lead_time_days", "active"],
-    required: ["supplier_code", "item_code", "supplier_item_code", "supplier_item_name", "purchase_uom", "conversion_rate", "unit_cost"],
-    duplicateKey: ["supplier_code", "item_code", "supplier_item_code"],
-    sample: { supplier_name: "ABC Supplier", supplier_code: "SUP-001", item_code: "CHK-001", item_name: "Chicken Satay Meat", supplier_item_code: "ABC-CHK", supplier_item_name: "Chicken Meat 1kg", purchase_uom: "kg", conversion_rate: "1", unit_cost: "12.50", lead_time_days: "2", active: "yes" },
-    notes: ["The preview flags duplicates before confirm.", "Supplier and item references must already exist before final import."],
-  },
+type ImportErrorRow = { rowNumber: number; values: Record<string, string>; message: string };
+type ImportResult = {
+  ok: boolean;
+  imported: number;
+  updated: number;
+  skipped: number;
+  errors: number;
+  message: string;
+  errorRows: ImportErrorRow[];
 };
 
 function csvEscape(value: string) {
@@ -47,48 +26,91 @@ function csvEscape(value: string) {
 }
 
 function parseCsv(text: string) {
-  const lines = text.split(/\r?\n/).filter((line) => line.trim().length);
-  const headers = lines[0]?.split(",").map((cell) => cell.trim()) ?? [];
-  return lines.slice(1).map((line) => {
-    const values = line.split(",");
-    return Object.fromEntries(headers.map((header, index) => [header, values[index]?.trim() ?? ""]));
-  });
+  const rows: string[][] = [];
+  let current = "";
+  let row: string[] = [];
+  let inQuotes = false;
+
+  for (let i = 0; i < text.length; i += 1) {
+    const char = text[i];
+    const next = text[i + 1];
+
+    if (char === '"') {
+      if (inQuotes && next === '"') {
+        current += '"';
+        i += 1;
+      } else {
+        inQuotes = !inQuotes;
+      }
+      continue;
+    }
+
+    if (char === "," && !inQuotes) {
+      row.push(current.trim());
+      current = "";
+      continue;
+    }
+
+    if ((char === "\n" || char === "\r") && !inQuotes) {
+      if (char === "\r" && next === "\n") i += 1;
+      row.push(current.trim());
+      if (row.some((value) => value.length > 0)) rows.push(row);
+      row = [];
+      current = "";
+      continue;
+    }
+
+    current += char;
+  }
+
+  row.push(current.trim());
+  if (row.some((value) => value.length > 0)) rows.push(row);
+
+  const headers = rows[0]?.map((cell) => cell.trim()) ?? [];
+  const dataRows = rows.slice(1).map((values) =>
+    Object.fromEntries(headers.map((header, index) => [header, values[index]?.trim() ?? ""])),
+  );
+
+  return { headers, dataRows };
 }
 
-function validateRows(spec: TemplateSpec, rows: Record<string, string>[]): RowState[] {
+function validateRows(entity: ImportEntity, rows: Record<string, string>[]) {
+  const spec = importTemplates[entity];
   const seen = new Map<string, number>();
+
   return rows.map((values, index) => {
-    const errors = spec.required.filter((field) => !values[field]?.trim()).map((field) => `${field} is required`);
-    const duplicateKey = spec.duplicateKey.map((field) => values[field]?.trim().toLowerCase()).join("|");
+    const errors = spec.required
+      .filter((field) => !String(values[field] ?? "").trim())
+      .map((field) => `${field} is required`);
+
+    const duplicateKey = spec.duplicateKey.map((field) => String(values[field] ?? "").trim().toLowerCase()).join("|");
     if (duplicateKey.replaceAll("|", "")) {
       const firstRow = seen.get(duplicateKey);
       if (firstRow) errors.push(`Duplicate of row ${firstRow}`);
       else seen.set(duplicateKey, index + 1);
     }
+
     return { index: index + 1, values, errors };
   });
 }
 
-function toApiRows(entity: ImportEntity, rows: RowState[]) {
-  return rows.map((row) => {
-    if (entity === "items") {
-      return { ...row.values, base_unit: row.values.base_uom, purchase_unit: row.values.purchase_uom };
-    }
-    if (entity === "suppliers") {
-      return { ...row.values, name: row.values.supplier_name, payment_terms_days: row.values.payment_terms };
-    }
-    if (entity === "supplier-items") {
-      return { ...row.values, conversion_to_base_uom: row.values.conversion_rate };
-    }
-    return row.values;
-  });
-}
+const stepLabels = [
+  "Step 1: Download template",
+  "Step 2: Fill data",
+  "Step 3: Upload file",
+  "Step 4: Preview and validate",
+  "Step 5: Confirm import",
+];
 
 export function ImportWorkflow({ entity }: { entity: ImportEntity }) {
-  const spec = templates[entity];
+  const spec = importTemplates[entity];
   const [rows, setRows] = useState<RowState[]>([]);
   const [message, setMessage] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
+  const [fileName, setFileName] = useState<string>("");
+  const [mode, setMode] = useState<ImportMode>(spec.defaultMode);
+  const [confirmPosting, setConfirmPosting] = useState(false);
+  const [result, setResult] = useState<ImportResult | null>(null);
   const validRows = useMemo(() => rows.filter((row) => !row.errors.length), [rows]);
   const errorRows = useMemo(() => rows.filter((row) => row.errors.length), [rows]);
 
@@ -104,40 +126,78 @@ export function ImportWorkflow({ entity }: { entity: ImportEntity }) {
   }
 
   async function loadFile(file: File | undefined) {
+    setResult(null);
     if (!file) return;
+
+    setFileName(file.name);
     if (file.name.toLowerCase().endsWith(".xlsx")) {
       setRows([]);
       setMessage("Please export this template as CSV for now, then upload the CSV file.");
       return;
     }
+
     const text = await file.text();
-    const parsed = validateRows(spec, parseCsv(text));
-    setRows(parsed);
-    setMessage(`${parsed.length} rows loaded. ${parsed.filter((row) => !row.errors.length).length} valid, ${parsed.filter((row) => row.errors.length).length} with errors.`);
+    const parsed = parseCsv(text);
+    const missingColumns = spec.required.filter((header) => !parsed.headers.includes(header));
+
+    if (missingColumns.length) {
+      setRows([]);
+      setMessage(`Missing required column${missingColumns.length > 1 ? "s" : ""}: ${missingColumns.join(", ")}`);
+      return;
+    }
+
+    const preview = validateRows(entity, parsed.dataRows);
+    setRows(preview);
+    setMessage(`${preview.length} rows loaded. ${preview.filter((row) => !row.errors.length).length} valid, ${preview.filter((row) => row.errors.length).length} with errors.`);
   }
 
   async function confirmImport() {
     setIsSaving(true);
-    const response = await fetch("/api/imports/confirm", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ entity, rows: toApiRows(entity, validRows) }),
-    });
-    const result = (await response.json()) as { imported: number; message?: string };
-    setIsSaving(false);
-    setMessage(result.message ?? `${result.imported} valid rows imported.`);
+    setResult(null);
+
+    try {
+      const response = await fetch("/api/imports/confirm", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          entity,
+          mode,
+          confirmPosting,
+          rows: validRows.map((row) => row.values),
+        }),
+      });
+      const payload = (await response.json()) as ImportResult;
+      setResult(payload);
+      setMessage(payload.message);
+    } catch {
+      setMessage("Could not complete this import. Please try again.");
+    } finally {
+      setIsSaving(false);
+    }
   }
+
+  const summary = result ?? {
+    ok: true,
+    imported: validRows.length,
+    updated: 0,
+    skipped: 0,
+    errors: errorRows.length,
+    message: "",
+    errorRows: [],
+  };
 
   return (
     <div className="space-y-5">
       <Card>
-        <CardContent className="space-y-4 p-5">
+        <CardContent className="space-y-5 p-5">
           <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
             <div>
-              <p className="text-sm font-semibold">Template and validation</p>
-              <p className="mt-1 text-sm text-muted-foreground">Required columns: {spec.required.join(", ")}</p>
-              <ul className="mt-2 space-y-1 text-xs text-muted-foreground">
-                {spec.notes.map((note) => <li key={note}>{note}</li>)}
+              <p className="text-sm font-semibold">Import workflow</p>
+              <p className="mt-1 text-sm text-muted-foreground">{spec.description}</p>
+              <ul className="mt-3 space-y-1 text-xs text-muted-foreground">
+                {spec.notes.map((note) => (
+                  <li key={note}>{note}</li>
+                ))}
               </ul>
             </div>
             <Button type="button" variant="outline" onClick={downloadTemplate}>
@@ -146,27 +206,93 @@ export function ImportWorkflow({ entity }: { entity: ImportEntity }) {
             </Button>
           </div>
 
-          <div className="rounded-md border bg-[var(--sb-muted)] p-3">
-            <p className="text-xs font-semibold uppercase text-muted-foreground">Sample row</p>
-            <p className="mt-2 overflow-x-auto whitespace-nowrap font-mono text-xs">{spec.headers.map((header) => spec.sample[header] || "-").join(" | ")}</p>
+          <div className="grid gap-3 lg:grid-cols-5">
+            {stepLabels.map((step) => (
+              <div key={step} className="rounded-lg border bg-[var(--sb-muted)] p-3 text-sm text-muted-foreground">
+                {step}
+              </div>
+            ))}
           </div>
 
-          <div className="flex flex-col gap-3 sm:flex-row">
-            <Input type="file" accept=".csv,.xlsx" onChange={(event) => loadFile(event.target.files?.[0])} />
-            <Button type="button" onClick={confirmImport} disabled={!validRows.length || isSaving || Boolean(errorRows.length)}>
-              <Upload className="mr-2 h-4 w-4" />
-              Confirm import
-            </Button>
+          <div className="rounded-md border bg-[var(--sb-muted)] p-3">
+            <div className="flex items-center gap-2 text-xs font-semibold uppercase text-muted-foreground">
+              <FileSpreadsheet className="h-4 w-4" />
+              Sample row
+            </div>
+            <p className="mt-2 overflow-x-auto whitespace-nowrap font-mono text-xs">
+              {spec.headers.map((header) => spec.sample[header] || "-").join(" | ")}
+            </p>
           </div>
-          {message ? <p className="text-sm text-muted-foreground">{message}</p> : null}
-          <div className="grid gap-3 sm:grid-cols-2">
+
+          <div className="grid gap-4 lg:grid-cols-[1fr_220px]">
+            <div className="space-y-3">
+              <Input type="file" accept=".csv,.xlsx" onChange={(event) => loadFile(event.target.files?.[0])} />
+              {fileName ? <p className="text-xs text-muted-foreground">Loaded file: {fileName}</p> : null}
+            </div>
+            <div className="space-y-2">
+              <p className="text-sm font-medium">Import mode</p>
+              <SelectNative value={mode} onChange={(event) => setMode(event.target.value as ImportMode)} disabled={spec.modes.length === 1}>
+                {spec.modes.map((value) => (
+                  <option key={value} value={value}>
+                    {value === "create" ? "Create only" : value === "update" ? "Update existing" : "Create or update"}
+                  </option>
+                ))}
+              </SelectNative>
+            </div>
+          </div>
+
+          {spec.needsPostingConfirmation ? (
+            <label className="flex items-start gap-3 rounded-md border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800">
+              <input
+                type="checkbox"
+                className="mt-1"
+                checked={confirmPosting}
+                onChange={(event) => setConfirmPosting(event.target.checked)}
+              />
+              <span>I understand this will post opening stock into the stock ledger.</span>
+            </label>
+          ) : null}
+
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+            <Button
+              type="button"
+              onClick={confirmImport}
+              disabled={!validRows.length || isSaving || Boolean(errorRows.length) || Boolean(spec.needsPostingConfirmation && !confirmPosting)}
+            >
+              <Upload className="mr-2 h-4 w-4" />
+              {isSaving ? "Importing..." : "Confirm import"}
+            </Button>
+            {message ? <p className="text-sm text-muted-foreground">{message}</p> : null}
+          </div>
+
+          <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
             <div className="rounded-md border bg-secondary/30 p-3">
-              <div className="flex items-center gap-2 text-sm font-medium text-success"><CheckCircle2 className="h-4 w-4" /> Valid rows</div>
-              <p className="mt-1 text-2xl font-semibold">{validRows.length}</p>
+              <div className="flex items-center gap-2 text-sm font-medium text-success">
+                <CheckCircle2 className="h-4 w-4" />
+                Imported
+              </div>
+              <p className="mt-1 text-2xl font-semibold">{summary.imported}</p>
             </div>
             <div className="rounded-md border bg-secondary/30 p-3">
-              <div className="flex items-center gap-2 text-sm font-medium text-destructive"><XCircle className="h-4 w-4" /> Error rows</div>
-              <p className="mt-1 text-2xl font-semibold">{errorRows.length}</p>
+              <div className="flex items-center gap-2 text-sm font-medium text-primary">
+                <Upload className="h-4 w-4" />
+                Updated
+              </div>
+              <p className="mt-1 text-2xl font-semibold">{summary.updated}</p>
+            </div>
+            <div className="rounded-md border bg-secondary/30 p-3">
+              <div className="flex items-center gap-2 text-sm font-medium text-amber-700">
+                <AlertTriangle className="h-4 w-4" />
+                Skipped
+              </div>
+              <p className="mt-1 text-2xl font-semibold">{summary.skipped}</p>
+            </div>
+            <div className="rounded-md border bg-secondary/30 p-3">
+              <div className="flex items-center gap-2 text-sm font-medium text-destructive">
+                <XCircle className="h-4 w-4" />
+                Errors
+              </div>
+              <p className="mt-1 text-2xl font-semibold">{summary.errors}</p>
             </div>
           </div>
         </CardContent>
@@ -178,7 +304,9 @@ export function ImportWorkflow({ entity }: { entity: ImportEntity }) {
             <TableHeader>
               <TableRow>
                 <TableHead>Row</TableHead>
-                {spec.headers.map((header) => <TableHead key={header}>{header}</TableHead>)}
+                {spec.headers.map((header) => (
+                  <TableHead key={header}>{header}</TableHead>
+                ))}
                 <TableHead>Validation</TableHead>
               </TableRow>
             </TableHeader>
@@ -186,15 +314,64 @@ export function ImportWorkflow({ entity }: { entity: ImportEntity }) {
               {rows.map((row) => (
                 <TableRow key={row.index}>
                   <TableCell>{row.index}</TableCell>
-                  {spec.headers.map((header) => <TableCell key={header}>{row.values[header] || "-"}</TableCell>)}
-                  <TableCell className={row.errors.length ? "text-destructive" : "text-success"}>{row.errors.length ? row.errors.join("; ") : "Valid"}</TableCell>
+                  {spec.headers.map((header) => (
+                    <TableCell key={header}>{row.values[header] || "-"}</TableCell>
+                  ))}
+                  <TableCell className={row.errors.length ? "text-destructive" : "text-success"}>
+                    {row.errors.length ? row.errors.join("; ") : "Valid"}
+                  </TableCell>
                 </TableRow>
               ))}
-              {!rows.length ? <TableRow><TableCell colSpan={spec.headers.length + 2} className="text-center text-muted-foreground">Upload a CSV file to preview rows.</TableCell></TableRow> : null}
+              {!rows.length ? (
+                <TableRow>
+                  <TableCell colSpan={spec.headers.length + 2} className="text-center text-muted-foreground">
+                    Upload a CSV file to preview rows.
+                  </TableCell>
+                </TableRow>
+              ) : null}
             </TableBody>
           </Table>
         </div>
       </div>
+
+      {result?.errorRows.length ? (
+        <Card>
+          <CardContent className="space-y-4 p-5">
+            <div>
+              <p className="font-semibold">Row-level issues</p>
+              <p className="text-sm text-muted-foreground">Invalid rows were not imported. Review and correct the source file before retrying.</p>
+            </div>
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Row</TableHead>
+                    <TableHead>Values</TableHead>
+                    <TableHead>Error</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {result.errorRows.map((row) => (
+                    <TableRow key={`${row.rowNumber}-${row.message}`}>
+                      <TableCell>{row.rowNumber}</TableCell>
+                      <TableCell className="max-w-xl">
+                        <div className="space-y-1 text-xs text-muted-foreground">
+                          {Object.entries(row.values).map(([key, value]) => (
+                            <p key={key}>
+                              <span className="font-medium text-foreground">{key}</span>: {value || "-"}
+                            </p>
+                          ))}
+                        </div>
+                      </TableCell>
+                      <TableCell className="text-destructive">{row.message}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          </CardContent>
+        </Card>
+      ) : null}
     </div>
   );
 }

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import {
   Boxes,
+  Database,
   CheckCircle2,
   ClipboardCheck,
   ClipboardList,
@@ -62,6 +63,7 @@ const tools: Tool[] = [
   { href: "/documents", title: "Documents", description: "Open approvals, attachments, comments, and history.", icon: FileText, category: "Documents", roles: "all" },
   { href: "/staffs", title: "Staff", description: "Invite and manage staff access.", icon: Users, category: "Admin", roles: roleList("admin") },
   { href: "/settings", title: "Settings", description: "Company, branches, roles, and numbering.", icon: Settings, category: "Admin", roles: roleList("admin") },
+  { href: "/data-onboarding", title: "Data Onboarding", description: "Templates, imports, opening stock, and readiness checks.", icon: Database, category: "Admin", roles: roleList("admin") },
   { href: "/imports/items", title: "Import Data", description: "Download templates and preview imports.", icon: Boxes, category: "Admin", roles: roleList("admin") },
 ];
 

@@ -1,5 +1,6 @@
 import {
   Boxes,
+  Database,
   ClipboardList,
   Factory,
   FileText,
@@ -93,6 +94,13 @@ export const navGroups: NavGroup[] = [
     items: [{ href: "/reports", label: "Reports", icon: ClipboardList, roles: reportsRoles, keywords: ["summary", "approval", "purchase"] }],
   },
   {
+    id: "onboarding",
+    label: "Data Onboarding",
+    icon: Database,
+    roles: ["admin"],
+    items: [{ href: "/data-onboarding", label: "Data Onboarding", icon: Database, roles: ["admin"], keywords: ["imports", "opening stock", "templates"] }],
+  },
+  {
     id: "settings",
     label: "Settings",
     icon: Settings,
@@ -135,4 +143,5 @@ export const searchableNavItems = [
   { href: "/locations", label: "Locations", group: "Settings", keywords: ["store", "default"] },
   { href: "/staffs", label: "Staff", group: "Settings", keywords: ["invite", "roles"] },
   { href: "/roles", label: "Roles", group: "Settings", keywords: ["permission"] },
+  { href: "/data-onboarding", label: "Data Onboarding", group: "Settings", keywords: ["import", "opening stock", "readiness"] },
 ] as const;

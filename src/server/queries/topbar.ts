@@ -1,26 +1,41 @@
 import { createClient } from "@/lib/supabase/server";
 import { isMockMode, mockDocuments } from "@/lib/mock-mode";
+import { getVisibleNotificationsForCurrentUser, getTopBarNotificationScope } from "@/server/queries/notifications";
+
+type AssignedActivity = {
+  id: string;
+  message: string;
+};
 
 export async function getTopBarActivity() {
   if (isMockMode()) {
     return {
       pendingApprovals: mockDocuments.filter((document) => document.approval_status === "pending").slice(0, 5),
-      activities: [
-        { id: "activity-1", message: "PR review waiting for Purchasing", created_at: "2026-07-02T09:00:00.000Z" },
-      ],
+      assignedActivities: [] as AssignedActivity[],
       notifications: [],
+      announcements: [],
     };
   }
 
+  const scope = await getTopBarNotificationScope();
+  if (!scope) {
+    return { pendingApprovals: [], assignedActivities: [] as AssignedActivity[], notifications: [], announcements: [] };
+  }
+
   const supabase = await createClient();
-  const [pendingApprovals, activities] = await Promise.all([
-    supabase.from("documents").select("id, document_no, title").eq("approval_status", "pending").order("updated_at", { ascending: false }).limit(5),
-    supabase.from("activity_logs").select("id, message, created_at").order("created_at", { ascending: false }).limit(5),
+  const [pendingApprovals, notifications] = await Promise.all([
+    scope.roleCode === "admin" || scope.roleCode === "finance"
+      ? supabase.from("documents").select("id, document_no, title").eq("approval_status", "pending").order("updated_at", { ascending: false }).limit(5)
+      : scope.staffId
+        ? supabase.from("documents").select("id, document_no, title").eq("created_by", scope.staffId).eq("approval_status", "pending").order("updated_at", { ascending: false }).limit(5)
+        : Promise.resolve({ data: [], error: null }),
+    getVisibleNotificationsForCurrentUser(),
   ]);
 
   return {
     pendingApprovals: pendingApprovals.error ? [] : pendingApprovals.data ?? [],
-    activities: activities.error ? [] : activities.data ?? [],
-    notifications: [],
+    assignedActivities: [] as AssignedActivity[],
+    notifications: notifications.filter((row) => !row.is_company_wide && !row.read_at).slice(0, 5),
+    announcements: notifications.filter((row) => row.is_company_wide && !row.read_at).slice(0, 5),
   };
 }

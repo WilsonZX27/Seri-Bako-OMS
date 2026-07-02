@@ -9,6 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { PriorityBadge } from "@/components/priority-badge";
 import { StatCard } from "@/components/ui/stat-card";
 import { formatNumber } from "@/lib/utils";
+import type { UserRole } from "@/types/database";
 
 type DashboardSummary = Awaited<ReturnType<typeof import("@/server/queries/dashboard").getDashboardSummary>>;
 
@@ -63,7 +64,7 @@ function Widget({ id, title, description, children, onHide, onMove }: { id: stri
   );
 }
 
-export function DashboardWorkspace({ summary }: { summary: DashboardSummary; role: unknown }) {
+export function DashboardWorkspace({ summary, role }: { summary: DashboardSummary; role: UserRole }) {
   const [layout, setLayout] = useState<LayoutState>({ order: defaultOrder, hidden: [] });
 
   useEffect(() => {
@@ -170,7 +171,14 @@ export function DashboardWorkspace({ summary }: { summary: DashboardSummary; rol
           <p className="sb-section-label">Dashboard</p>
           <h2 className="mt-1 text-lg font-semibold">Today&apos;s operating picture</h2>
         </div>
-        <Button asChild variant="secondary"><Link href="/quick-tools">Open Quick Tools</Link></Button>
+        <div className="flex flex-wrap gap-2">
+          {role === "admin" ? (
+            <Button asChild variant="outline">
+              <Link href="/data-onboarding">Data Onboarding</Link>
+            </Button>
+          ) : null}
+          <Button asChild variant="secondary"><Link href="/quick-tools">Open Quick Tools</Link></Button>
+        </div>
       </div>
 
       <section className="space-y-3 rounded-xl border bg-card p-4">

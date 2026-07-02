@@ -1,26 +1,30 @@
 import { notFound } from "next/navigation";
 import { ImportWorkflow } from "@/components/imports/import-workflow";
+import { Card, CardContent } from "@/components/ui/card";
 import { PageHeader } from "@/components/ui/page-header";
-
-const labels = {
-  items: "Items",
-  products: "Products",
-  suppliers: "Suppliers",
-  "supplier-items": "Supplier Items",
-} as const;
-
-type ImportEntity = keyof typeof labels;
+import { importTemplates, type ImportEntity } from "@/lib/imports/config";
+import { hasPermission } from "@/server/auth/permissions";
 
 export default async function ImportPage({ params }: { params: Promise<{ entity: string }> }) {
   const { entity } = await params;
-  if (!(entity in labels)) notFound();
+  if (!(entity in importTemplates)) notFound();
   const typedEntity = entity as ImportEntity;
+  const allowed = (await hasPermission("imports.create")) || (await hasPermission("company.update"));
+  const label = importTemplates[typedEntity].label;
 
   return (
     <>
-      <PageHeader title={`Import ${labels[typedEntity]}`} description="Upload, preview, validate, and import only clean rows." />
+      <PageHeader title={`Import ${label}`} description="Upload, preview, validate, and import only clean rows." />
       <div className="p-5">
-        <ImportWorkflow entity={typedEntity} />
+        {allowed ? (
+          <ImportWorkflow entity={typedEntity} />
+        ) : (
+          <Card>
+            <CardContent className="p-5 text-sm text-muted-foreground">
+              You do not have permission to manage data imports.
+            </CardContent>
+          </Card>
+        )}
       </div>
     </>
   );

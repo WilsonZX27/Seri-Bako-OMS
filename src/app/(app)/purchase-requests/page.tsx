@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { BulkSelectAllCheckbox, BulkSelectionProvider, BulkSelectRowCheckbox } from "@/components/bulk-selection";
 import { DocumentNumber } from "@/components/document-number";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { Button } from "@/components/ui/button";
@@ -41,10 +42,12 @@ export default async function PurchaseRequestsPage({ searchParams }: { searchPar
             <Button type="submit" variant="secondary">Search</Button>
             <Button asChild variant="ghost"><a href="?">Reset</a></Button>
           </form>
+          <BulkSelectionProvider ids={requests.rows.map((request) => request.id)} actionLabel="Archive selected" actionHint="Open selected PRs to archive, reject, or convert them through workflow-safe actions.">
           <div className="overflow-x-auto">
             <Table>
               <TableHeader>
                 <TableRow>
+                  <TableHead className="w-10"><BulkSelectAllCheckbox /></TableHead>
                   <SortableHead label="PR No" column="request_no" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
                   <SortableHead label="Date" column="request_date" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
                   <SortableHead label="Needed By" column="needed_by_date" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
@@ -60,6 +63,7 @@ export default async function PurchaseRequestsPage({ searchParams }: { searchPar
               <TableBody>
                 {requests.rows.map((request) => (
                   <TableRow key={request.id}>
+                    <TableCell><BulkSelectRowCheckbox id={request.id} /></TableCell>
                     <TableCell><DocumentNumber value={request.request_no} size="sm" /></TableCell>
                     <TableCell>{request.request_date}</TableCell>
                     <TableCell>{request.needed_by_date ?? "-"}</TableCell>
@@ -72,10 +76,11 @@ export default async function PurchaseRequestsPage({ searchParams }: { searchPar
                     <TableCell className="text-right"><Button asChild variant="outline" size="sm"><Link href={`/purchase-requests/${request.id}`}>Open</Link></Button></TableCell>
                   </TableRow>
                 ))}
-                {!requests.rows.length ? <TableRow><TableCell colSpan={10} className="text-center text-muted-foreground">No purchase requests found.</TableCell></TableRow> : null}
+                {!requests.rows.length ? <TableRow><TableCell colSpan={11} className="text-center text-muted-foreground">No purchase requests found.</TableCell></TableRow> : null}
               </TableBody>
             </Table>
           </div>
+          </BulkSelectionProvider>
           <PaginationControls page={requests.page} totalPages={requests.totalPages} totalRows={requests.totalRows} searchParams={filters} />
         </div>
       </div>

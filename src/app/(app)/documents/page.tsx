@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { ClipboardCheck, FileText, PackageCheck, Paperclip, ShoppingCart, Warehouse, Factory } from "lucide-react";
+import { BulkSelectAllCheckbox, BulkSelectionProvider, BulkSelectRowCheckbox } from "@/components/bulk-selection";
 import { DocumentNumber } from "@/components/document-number";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { Button } from "@/components/ui/button";
@@ -130,10 +131,12 @@ export default async function DocumentsPage({ searchParams }: { searchParams: Pr
               <Button asChild variant="ghost"><a href="?">Reset</a></Button>
             </div>
           </form>
+          <BulkSelectionProvider ids={documents.rows.map((document) => document.id)} actionLabel="Archive selected" actionHint="Documents with history are not hard deleted. Open selected documents to use workflow-safe actions.">
           <div className="overflow-x-auto">
             <Table>
               <TableHeader>
                 <TableRow>
+                  <TableHead className="w-10"><BulkSelectAllCheckbox /></TableHead>
                   <SortableHead label="Doc No" column="document_no" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
                   <SortableHead label="Type" column="document_type" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
                   <SortableHead label="Title" column="title" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
@@ -150,6 +153,7 @@ export default async function DocumentsPage({ searchParams }: { searchParams: Pr
               <TableBody>
                 {documents.rows.map((document) => (
                   <TableRow key={document.id}>
+                    <TableCell><BulkSelectRowCheckbox id={document.id} /></TableCell>
                     <TableCell><DocumentNumber value={document.document_no} size="sm" /></TableCell>
                     <TableCell>{formatStatusLabel(document.document_type)}</TableCell>
                     <TableCell>{document.title}</TableCell>
@@ -163,10 +167,11 @@ export default async function DocumentsPage({ searchParams }: { searchParams: Pr
                     <TableCell className="text-right"><Button asChild variant="outline" size="sm"><Link href={`/documents/${document.id}`}>Open</Link></Button></TableCell>
                   </TableRow>
                 ))}
-                {!documents.rows.length ? <TableRow><TableCell colSpan={11} className="text-center text-muted-foreground">No documents found.</TableCell></TableRow> : null}
+                {!documents.rows.length ? <TableRow><TableCell colSpan={12} className="text-center text-muted-foreground">No documents found.</TableCell></TableRow> : null}
               </TableBody>
             </Table>
           </div>
+          </BulkSelectionProvider>
           <PaginationControls page={documents.page} totalPages={documents.totalPages} totalRows={documents.totalRows} searchParams={filters} />
         </div>
       </div>

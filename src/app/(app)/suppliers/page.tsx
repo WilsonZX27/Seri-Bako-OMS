@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { BulkSelectAllCheckbox, BulkSelectionProvider, BulkSelectRowCheckbox } from "@/components/bulk-selection";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { MasterDataFilters } from "@/components/master-data-filters";
@@ -27,10 +28,12 @@ export default async function SuppliersPage({
         </div>
         <div className="overflow-hidden rounded-lg border bg-card">
           <MasterDataFilters search={filters.search} status={filters.status} placeholder="Search supplier code, name, contact, phone, email" />
+          <BulkSelectionProvider ids={page.rows.map((supplier) => supplier.id)} actionLabel="Deactivate selected" actionHint="Deactivate suppliers only when they should no longer be used for purchasing.">
           <div className="overflow-x-auto">
           <Table>
             <TableHeader>
               <TableRow>
+                <TableHead className="w-10"><BulkSelectAllCheckbox /></TableHead>
                 <SortableHead label="Supplier Code" column="supplier_code" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
                 <SortableHead label="Supplier Name" column="name" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
                 <SortableHead label="Contact Person" column="contact_person" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
@@ -44,6 +47,7 @@ export default async function SuppliersPage({
             <TableBody>
               {page.rows.map((supplier) => (
                 <TableRow key={supplier.id}>
+                  <TableCell><BulkSelectRowCheckbox id={supplier.id} /></TableCell>
                   <TableCell>{supplier.supplier_code ?? "-"}</TableCell>
                   <TableCell className="font-medium">{supplier.name}</TableCell>
                   <TableCell>{supplier.contact_person ?? "-"}</TableCell>
@@ -64,7 +68,7 @@ export default async function SuppliersPage({
               ))}
               {!page.rows.length ? (
                 <TableRow>
-                  <TableCell colSpan={8} className="text-center text-muted-foreground">
+                  <TableCell colSpan={9} className="text-center text-muted-foreground">
                     No suppliers found.
                   </TableCell>
                 </TableRow>
@@ -72,6 +76,7 @@ export default async function SuppliersPage({
             </TableBody>
           </Table>
           </div>
+          </BulkSelectionProvider>
           <PaginationControls page={page.page} totalPages={page.totalPages} totalRows={page.totalRows} searchParams={filters} />
         </div>
       </div>

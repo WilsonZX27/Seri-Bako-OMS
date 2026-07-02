@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { BulkSelectAllCheckbox, BulkSelectionProvider, BulkSelectRowCheckbox } from "@/components/bulk-selection";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -30,10 +31,12 @@ export default async function BranchesPage({ searchParams }: { searchParams: Pro
           <div className="overflow-hidden rounded-lg border bg-card">
             <StatusTabs statuses={["active", "archived"]} activeStatus={filters.status} />
             <MasterDataFilters search={filters.search} status={filters.status} placeholder="Search branch code, name, or type" statuses={[{ value: "active", label: "Active" }, { value: "archived", label: "Archived" }]} />
+            <BulkSelectionProvider ids={branches.map((branch) => branch.id)} actionLabel="Archive selected" actionHint="Archive branches only after confirming they are no longer used by daily operations.">
             <div className="overflow-x-auto">
               <Table>
                 <TableHeader>
                   <TableRow>
+                    <TableHead className="w-10"><BulkSelectAllCheckbox /></TableHead>
                     <TableHead>Code</TableHead>
                     <TableHead>Branch Name</TableHead>
                     <TableHead>Type</TableHead>
@@ -46,6 +49,7 @@ export default async function BranchesPage({ searchParams }: { searchParams: Pro
                 <TableBody>
                   {branches.map((branch) => (
                     <TableRow key={branch.id}>
+                      <TableCell><BulkSelectRowCheckbox id={branch.id} /></TableCell>
                       <TableCell>{branch.branch_code}</TableCell>
                       <TableCell className="font-medium">{branch.branch_name}</TableCell>
                       <TableCell className="capitalize">{branch.branch_type.replaceAll("_", " ")}</TableCell>
@@ -59,10 +63,11 @@ export default async function BranchesPage({ searchParams }: { searchParams: Pro
                       </TableCell>
                     </TableRow>
                   ))}
-                  {!branches.length ? <TableRow><TableCell colSpan={7} className="text-center text-muted-foreground">No branches found.</TableCell></TableRow> : null}
+                  {!branches.length ? <TableRow><TableCell colSpan={8} className="text-center text-muted-foreground">No branches found.</TableCell></TableRow> : null}
                 </TableBody>
               </Table>
             </div>
+            </BulkSelectionProvider>
           </div>
         </div>
       </>

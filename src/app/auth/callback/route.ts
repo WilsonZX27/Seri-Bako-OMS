@@ -9,7 +9,7 @@ export async function GET(request: NextRequest) {
   const next = nextParam?.startsWith("/") ? nextParam : "/set-password";
 
   if (!code) {
-    return NextResponse.redirect(new URL("/login?error=invalid_or_expired_link", requestUrl.origin));
+    return NextResponse.redirect(new URL("/set-password?invite=expired", requestUrl.origin));
   }
 
   try {
@@ -17,12 +17,12 @@ export async function GET(request: NextRequest) {
     const { error } = await supabase.auth.exchangeCodeForSession(code);
     if (error) {
       console.error(error);
-      return NextResponse.redirect(new URL("/login?error=invalid_or_expired_link", requestUrl.origin));
+      return NextResponse.redirect(new URL("/set-password?invite=expired", requestUrl.origin));
     }
     await syncCurrentAuthUserToStaff();
     return NextResponse.redirect(new URL(next, requestUrl.origin));
   } catch (error) {
     console.error(error);
-    return NextResponse.redirect(new URL("/login?error=invalid_or_expired_link", requestUrl.origin));
+    return NextResponse.redirect(new URL("/set-password?invite=expired", requestUrl.origin));
   }
 }

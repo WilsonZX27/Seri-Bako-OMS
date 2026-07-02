@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { BulkSelectAllCheckbox, BulkSelectionProvider, BulkSelectRowCheckbox } from "@/components/bulk-selection";
 import { DocumentNumber } from "@/components/document-number";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { Button } from "@/components/ui/button";
@@ -33,10 +34,12 @@ export default async function PurchaseOrdersPage({ searchParams }: { searchParam
             <Button type="submit" variant="secondary">Search</Button>
             <Button asChild variant="ghost"><a href="?">Reset</a></Button>
           </form>
+          <BulkSelectionProvider ids={orders.rows.map((order) => order.id)} actionLabel="Archive selected" actionHint="Open selected POs to close, reject, or cancel them through workflow-safe actions.">
           <div className="overflow-x-auto">
             <Table>
               <TableHeader>
                 <TableRow>
+                  <TableHead className="w-10"><BulkSelectAllCheckbox /></TableHead>
                   <SortableHead label="PO No" column="po_no" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
                   <TableHead>Supplier</TableHead>
                   <SortableHead label="Date" column="order_date" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
@@ -51,6 +54,7 @@ export default async function PurchaseOrdersPage({ searchParams }: { searchParam
               <TableBody>
                 {orders.rows.map((order) => (
                   <TableRow key={order.id}>
+                    <TableCell><BulkSelectRowCheckbox id={order.id} /></TableCell>
                     <TableCell><DocumentNumber value={order.po_no} size="sm" /></TableCell>
                     <TableCell>{order.supplier_name ?? "-"}</TableCell>
                     <TableCell>{order.order_date}</TableCell>
@@ -62,10 +66,11 @@ export default async function PurchaseOrdersPage({ searchParams }: { searchParam
                     <TableCell className="text-right"><Button asChild variant="outline" size="sm"><Link href={`/purchase-orders/${order.id}`}>Open</Link></Button></TableCell>
                   </TableRow>
                 ))}
-                {!orders.rows.length ? <TableRow><TableCell colSpan={9} className="text-center text-muted-foreground">No purchase orders found.</TableCell></TableRow> : null}
+                {!orders.rows.length ? <TableRow><TableCell colSpan={10} className="text-center text-muted-foreground">No purchase orders found.</TableCell></TableRow> : null}
               </TableBody>
             </Table>
           </div>
+          </BulkSelectionProvider>
           <PaginationControls page={orders.page} totalPages={orders.totalPages} totalRows={orders.totalRows} searchParams={filters} />
         </div>
       </div>

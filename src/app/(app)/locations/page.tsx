@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { BulkSelectAllCheckbox, BulkSelectionProvider, BulkSelectRowCheckbox } from "@/components/bulk-selection";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
@@ -43,11 +44,13 @@ export default async function LocationsPage({ searchParams }: { searchParams: Pr
           <div className="overflow-hidden rounded-lg border bg-card">
             <StatusTabs statuses={["active", "archived"]} activeStatus={filters.status} />
             <MasterDataFilters search={filters.search} status={filters.status} placeholder="Search location, branch, or type" statuses={[{ value: "active", label: "Active" }, { value: "archived", label: "Archived" }]} />
+            <BulkSelectionProvider ids={locations.map((location) => location.id)} actionLabel="Archive selected" actionHint="Archive locations only when they are not needed for ledger history or current stock operations.">
             <div className="overflow-x-auto"><Table><TableHeader><TableRow>
-              <TableHead>Branch</TableHead><TableHead>Internal Location</TableHead><TableHead>Code</TableHead><TableHead>Type</TableHead><TableHead>Status</TableHead><TableHead className="w-28 text-right">Actions</TableHead>
+              <TableHead className="w-10"><BulkSelectAllCheckbox /></TableHead><TableHead>Branch</TableHead><TableHead>Internal Location</TableHead><TableHead>Code</TableHead><TableHead>Type</TableHead><TableHead>Status</TableHead><TableHead className="w-28 text-right">Actions</TableHead>
             </TableRow></TableHeader><TableBody>
               {locations.map((location) => (
                 <TableRow key={location.id}>
+                  <TableCell><BulkSelectRowCheckbox id={location.id} /></TableCell>
                   <TableCell className="font-medium">{location.branch_name ?? "-"}</TableCell>
                   <TableCell>
                     <div className="space-y-1">
@@ -73,8 +76,9 @@ export default async function LocationsPage({ searchParams }: { searchParams: Pr
                   </TableCell>
                 </TableRow>
               ))}
-              {!locations.length ? <TableRow><TableCell colSpan={6} className="text-center text-muted-foreground">No locations found.</TableCell></TableRow> : null}
+              {!locations.length ? <TableRow><TableCell colSpan={7} className="text-center text-muted-foreground">No locations found.</TableCell></TableRow> : null}
             </TableBody></Table></div>
+            </BulkSelectionProvider>
           </div></div>
       </>
     );

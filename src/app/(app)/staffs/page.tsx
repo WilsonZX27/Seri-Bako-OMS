@@ -1,10 +1,12 @@
 import Link from "next/link";
+import { BulkSelectAllCheckbox, BulkSelectionProvider, BulkSelectRowCheckbox } from "@/components/bulk-selection";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { MasterDataFilters } from "@/components/master-data-filters";
 import { PageHeader } from "@/components/ui/page-header";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { resendStaffInvite } from "@/server/actions/foundation";
 import { getStaffs } from "@/server/queries/foundation";
 
 function formatDate(value?: string | null) {
@@ -36,11 +38,13 @@ export default async function StaffsPage({ searchParams }: { searchParams: Promi
             { value: "disabled", label: "Disabled" },
           ]}
         />
+        <BulkSelectionProvider ids={staffs.map((staff) => staff.id)} actionLabel="Deactivate selected" actionHint="Disable staff users from their detail page to keep a clear access history.">
         <div className="overflow-x-auto"><Table><TableHeader><TableRow>
-          <TableHead>Staff Code</TableHead><TableHead>Name</TableHead><TableHead>Email</TableHead><TableHead>Default Branch</TableHead><TableHead>Role</TableHead><TableHead>Status</TableHead><TableHead>Last Login</TableHead><TableHead>Invited</TableHead><TableHead>Accepted</TableHead><TableHead className="w-24 text-right">Actions</TableHead>
+          <TableHead className="w-10"><BulkSelectAllCheckbox /></TableHead><TableHead>Staff Code</TableHead><TableHead>Name</TableHead><TableHead>Email</TableHead><TableHead>Default Branch</TableHead><TableHead>Role</TableHead><TableHead>Status</TableHead><TableHead>Last Login</TableHead><TableHead>Invited</TableHead><TableHead>Accepted</TableHead><TableHead className="w-24 text-right">Actions</TableHead>
         </TableRow></TableHeader><TableBody>
           {staffs.map((staff) => (
             <TableRow key={staff.id}>
+              <TableCell><BulkSelectRowCheckbox id={staff.id} /></TableCell>
               <TableCell>{staff.staff_code ?? "-"}</TableCell>
               <TableCell className="font-medium">{staff.full_name}</TableCell>
               <TableCell>{staff.email ?? "-"}</TableCell>
@@ -50,11 +54,21 @@ export default async function StaffsPage({ searchParams }: { searchParams: Promi
               <TableCell>{formatDate(staff.last_login_at)}</TableCell>
               <TableCell>{formatDate(staff.invited_at)}</TableCell>
               <TableCell>{formatDate(staff.accepted_at)}</TableCell>
-              <TableCell className="text-right"><Button asChild variant="outline" size="sm"><Link href={`/staffs/${staff.id}`}>Edit</Link></Button></TableCell>
+              <TableCell className="text-right">
+                <div className="flex justify-end gap-2">
+                  {staff.status === "invited" ? (
+                    <form action={resendStaffInvite.bind(null, staff.id)}>
+                      <Button type="submit" variant="outline" size="sm">Resend</Button>
+                    </form>
+                  ) : null}
+                  <Button asChild variant="outline" size="sm"><Link href={`/staffs/${staff.id}`}>Edit</Link></Button>
+                </div>
+              </TableCell>
             </TableRow>
           ))}
-          {!staffs.length ? <TableRow><TableCell colSpan={10} className="text-center text-muted-foreground">No staffs found.</TableCell></TableRow> : null}
+          {!staffs.length ? <TableRow><TableCell colSpan={11} className="text-center text-muted-foreground">No staffs found.</TableCell></TableRow> : null}
         </TableBody></Table></div>
+        </BulkSelectionProvider>
       </div></div>
     </>
   );

@@ -11,7 +11,7 @@ import { updatePassword } from "@/server/actions/auth";
 export default async function SetPasswordPage({
   searchParams,
 }: {
-  searchParams: Promise<{ error?: string; success?: string }>;
+  searchParams: Promise<{ error?: string; success?: string; invite?: string }>;
 }) {
   const params = await searchParams;
   const supabase = await createClient();
@@ -28,15 +28,18 @@ export default async function SetPasswordPage({
   }
 
   if (!user) {
+    const inviteExpired = params.invite === "expired";
     return (
-      <AuthShell title="Link expired" description="This reset or invite session is no longer available.">
+      <AuthShell title={inviteExpired ? "Invitation link expired" : "Link expired"} description={inviteExpired ? "This staff invitation link can no longer be used." : "This reset or invite session is no longer available."}>
         <div className="space-y-4">
           <p className="rounded-md border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive">
-            Your reset or invite link has expired or is invalid.
+            {inviteExpired ? "Your invitation link has expired or has already been used. Please ask an Admin to resend your staff invitation from the Staff page." : "Your reset or invite link has expired or is invalid."}
           </p>
           <div className="grid gap-3 sm:grid-cols-2">
             <Button asChild>
-              <Link href="/forgot-password">Request new reset link</Link>
+              <Link href={inviteExpired ? "/login?message=Please contact your Admin to resend your invitation." : "/forgot-password"}>
+                {inviteExpired ? "Request new invite" : "Request new reset link"}
+              </Link>
             </Button>
             <Button asChild variant="outline">
               <Link href="/login">Back to login</Link>

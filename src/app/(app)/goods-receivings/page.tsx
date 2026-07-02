@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { BulkSelectAllCheckbox, BulkSelectionProvider, BulkSelectRowCheckbox } from "@/components/bulk-selection";
 import { DocumentNumber } from "@/components/document-number";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { Button } from "@/components/ui/button";
@@ -31,10 +32,12 @@ export default async function GoodsReceivingsPage({ searchParams }: { searchPara
             <Button type="submit" variant="secondary">Search</Button>
             <Button asChild variant="ghost"><a href="?">Reset</a></Button>
           </form>
+          <BulkSelectionProvider ids={receivings.rows.map((receiving) => receiving.id)} actionLabel="Archive selected" actionHint="Open selected GRNs to post or cancel them through workflow-safe actions. Posted receiving records are never hard deleted.">
           <div className="overflow-x-auto">
             <Table>
               <TableHeader>
                 <TableRow>
+                  <TableHead className="w-10"><BulkSelectAllCheckbox /></TableHead>
                   <SortableHead label="GRN No" column="grn_no" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
                   <TableHead>PO</TableHead>
                   <TableHead>Supplier</TableHead>
@@ -49,6 +52,7 @@ export default async function GoodsReceivingsPage({ searchParams }: { searchPara
               <TableBody>
                 {receivings.rows.map((receiving) => (
                   <TableRow key={receiving.id}>
+                    <TableCell><BulkSelectRowCheckbox id={receiving.id} /></TableCell>
                     <TableCell><DocumentNumber value={receiving.grn_no} size="sm" /></TableCell>
                     <TableCell>{receiving.po_no ?? "-"}</TableCell>
                     <TableCell>{receiving.supplier_name ?? "-"}</TableCell>
@@ -60,10 +64,11 @@ export default async function GoodsReceivingsPage({ searchParams }: { searchPara
                     <TableCell className="text-right"><Button asChild variant="outline" size="sm"><Link href={`/goods-receivings/${receiving.id}`}>Open</Link></Button></TableCell>
                   </TableRow>
                 ))}
-                {!receivings.rows.length ? <TableRow><TableCell colSpan={9} className="text-center text-muted-foreground">No goods receivings found.</TableCell></TableRow> : null}
+                {!receivings.rows.length ? <TableRow><TableCell colSpan={10} className="text-center text-muted-foreground">No goods receivings found.</TableCell></TableRow> : null}
               </TableBody>
             </Table>
           </div>
+          </BulkSelectionProvider>
           <PaginationControls page={receivings.page} totalPages={receivings.totalPages} totalRows={receivings.totalRows} searchParams={filters} />
         </div>
       </div>

@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Package } from "lucide-react";
+import { BulkSelectAllCheckbox, BulkSelectionProvider, BulkSelectRowCheckbox } from "@/components/bulk-selection";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { MasterDataFilters } from "@/components/master-data-filters";
@@ -40,10 +41,12 @@ export default async function ItemsPage({
             suppliers={suppliers}
             showStockFilters
           />
+          <BulkSelectionProvider ids={itemsPage.rows.map((item) => item.id)} actionLabel="Deactivate selected" actionHint="Deactivate items only when they are no longer used in daily operations.">
           <div className="overflow-x-auto">
           <Table>
             <TableHeader>
               <TableRow>
+                <TableHead className="w-10"><BulkSelectAllCheckbox /></TableHead>
                 <TableHead>Image</TableHead>
                 <SortableHead label="Item Code" column="item_code" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
                 <SortableHead label="AutoCount" column="autocount_code" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
@@ -63,6 +66,7 @@ export default async function ItemsPage({
               {itemsPage.rows.map((item) => {
                 return (
                   <TableRow key={item.id}>
+                    <TableCell><BulkSelectRowCheckbox id={item.id} /></TableCell>
                     <TableCell>
                       {item.item_image_url ? (
                         // eslint-disable-next-line @next/next/no-img-element
@@ -98,7 +102,7 @@ export default async function ItemsPage({
               })}
               {!itemsPage.rows.length ? (
                 <TableRow>
-                  <TableCell colSpan={13} className="text-center text-muted-foreground">
+                  <TableCell colSpan={14} className="text-center text-muted-foreground">
                     No items found.
                   </TableCell>
                 </TableRow>
@@ -106,6 +110,7 @@ export default async function ItemsPage({
             </TableBody>
           </Table>
           </div>
+          </BulkSelectionProvider>
           <PaginationControls page={itemsPage.page} totalPages={itemsPage.totalPages} totalRows={itemsPage.totalRows} searchParams={filters} />
         </div>
       </div>

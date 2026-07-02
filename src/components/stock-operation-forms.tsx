@@ -17,7 +17,7 @@ type SeedLine = { item_id: string; item_code: string; item_name: string; barcode
 
 export function StockTransferForm({ branches, selectedFromBranchId, seedLines, action }: { branches: Branch[]; locations: Location[]; selectedFromLocationId?: string; selectedFromBranchId?: string; seedLines: SeedLine[]; action: (formData: FormData) => Promise<void> }) {
   const router = useRouter();
-  const no = `TRF-${Date.now().toString().slice(-6)}`;
+  const no = "TRF-AUTO";
   function selectFromBranch(id: string) { router.push(id ? `/stock-transfers/new?from_branch_id=${id}` : "/stock-transfers/new"); }
   return (
     <Card><CardContent className="p-5">
@@ -39,7 +39,7 @@ export function StockTransferForm({ branches, selectedFromBranchId, seedLines, a
 
 export function StockWastageForm({ branches, selectedBranchId, seedLines, action }: { branches: Branch[]; locations: Location[]; selectedLocationId?: string; selectedBranchId?: string; seedLines: SeedLine[]; action: (formData: FormData) => Promise<void> }) {
   const router = useRouter();
-  const no = `WST-${Date.now().toString().slice(-6)}`;
+  const no = "WST-AUTO";
   function selectBranch(id: string) { router.push(id ? `/stock-wastage/new?branch_id=${id}` : "/stock-wastage/new"); }
   return (
     <Card><CardContent className="p-5">

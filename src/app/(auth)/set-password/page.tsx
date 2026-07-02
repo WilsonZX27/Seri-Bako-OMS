@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { AuthShell } from "@/components/auth/auth-shell";
 import { SetPasswordSuccess } from "@/components/auth/set-password-success";
+import { Button } from "@/components/ui/button";
 import { Field } from "@/components/ui/field";
 import { PasswordInput } from "@/components/ui/password-input";
 import { SubmitButton } from "@/components/ui/submit-button";
@@ -28,14 +29,19 @@ export default async function SetPasswordPage({
 
   if (!user) {
     return (
-      <AuthShell title="Reset link expired" description="This reset session is no longer available.">
+      <AuthShell title="Link expired" description="This reset or invite session is no longer available.">
         <div className="space-y-4">
           <p className="rounded-md border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive">
-            Your reset link has expired or is invalid. Please request a new password reset email.
+            Your reset or invite link has expired or is invalid.
           </p>
-          <Link href="/forgot-password" className="block rounded-md bg-primary px-4 py-2 text-center text-sm font-medium text-primary-foreground">
-            Request new reset link
-          </Link>
+          <div className="grid gap-3 sm:grid-cols-2">
+            <Button asChild>
+              <Link href="/forgot-password">Request new reset link</Link>
+            </Button>
+            <Button asChild variant="outline">
+              <Link href="/login">Back to login</Link>
+            </Button>
+          </div>
         </div>
       </AuthShell>
     );

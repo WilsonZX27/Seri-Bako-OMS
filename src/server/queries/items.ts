@@ -30,6 +30,7 @@ function filterItems<
     internal_barcode?: string | null;
     supplier_barcode?: string | null;
     status: string;
+    deleted_at?: string | null;
   },
 >(items: T[], filters: ItemFilters) {
   const search = filters.search?.trim().toLowerCase();
@@ -45,7 +46,10 @@ function filterItems<
           value.toLowerCase().includes(search),
         )
       : true;
-    const matchesStatus = status ? item.status === status : true;
+    const matchesStatus =
+      status === "archived" ? Boolean(item.deleted_at) :
+      status ? item.status === status :
+      true;
     const matchesCategory = category ? item.category === category : true;
     const matchesSupplier = supplier ? item.supplier_id === supplier : true;
     const matchesStockControl =
@@ -68,7 +72,12 @@ export async function getItems(filters: ItemFilters = {}) {
 
   const supabase = await createClient();
   const [{ data: items, error: itemsError }, { data: suppliers, error: suppliersError }] = await Promise.all([
-    supabase.from("items").select("*").order("item_name", { ascending: true }),
+    (() => {
+      let query = supabase.from("items").select("*").order("item_name", { ascending: true });
+      if (filters.status === "archived") query = query.not("deleted_at", "is", null);
+      else if (filters.status !== "all") query = query.is("deleted_at", null);
+      return query;
+    })(),
     supabase.from("suppliers").select("id, name"),
   ]);
 

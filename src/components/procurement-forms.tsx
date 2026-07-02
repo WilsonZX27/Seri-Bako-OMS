@@ -39,7 +39,7 @@ export function PurchaseRequestForm({
   branches: BranchOption[];
   action: (formData: FormData) => Promise<void>;
 }) {
-  const requestNo = `PR-${Date.now().toString().slice(-6)}`;
+  const requestNo = "PR-AUTO";
   return (
     <Card>
       <CardContent className="p-5">
@@ -137,7 +137,7 @@ export function PurchaseOrderForm({
   suppliers: SupplierOption[];
   action: (formData: FormData) => Promise<void>;
 }) {
-  const poNo = `PO-${Date.now().toString().slice(-6)}`;
+  const poNo = "PO-AUTO";
   return (
     <Card>
       <CardContent className="p-5">

@@ -8,6 +8,7 @@ import { stockCountSchema } from "@/lib/validations/stock-count";
 import { writeActivityLog } from "@/server/activity/log";
 import { requirePermission } from "@/server/auth/permissions";
 import { formatActionError, requirePermissionOrRedirect, rethrowRedirect, safeRedirectWithMessage } from "@/server/actions/error-handling";
+import { resolveDocumentNumber } from "@/server/documents/sequences";
 import { resolveDefaultLocation } from "@/server/inventory/locations";
 import { getCurrentProfile } from "@/server/queries/common";
 import type { StockCountStatus } from "@/types/database";
@@ -79,10 +80,15 @@ export async function createStockCount(formData: FormData) {
     const locationId = await resolveDefaultLocation(payload.branch_id, payload.location_id);
 
     const profile = await identity();
+    const countNo = await resolveDocumentNumber({
+      companyId: profile?.company_id,
+      documentType: "stock_count",
+      enteredNumber: payload.count_no,
+    });
     const supabase = await createClient();
     const { data, error } = await supabase.from("stock_counts").insert({
       company_id: profile?.company_id ?? null,
-      count_no: payload.count_no,
+      count_no: countNo,
       count_date: payload.count_date,
       branch_id: payload.branch_id,
       location_id: locationId,
@@ -94,14 +100,14 @@ export async function createStockCount(formData: FormData) {
       updated_by: profile?.id ?? null,
     }).select("id").single();
     if (error) throw new Error(error.message);
-    const documentId = await createLinkedDocument(payload.count_no, data.id);
+    const documentId = await createLinkedDocument(countNo, data.id);
     const [{ error: updateError }, { error: linesError }] = await Promise.all([
       supabase.from("stock_counts").update({ document_id: documentId }).eq("id", data.id),
       supabase.from("stock_count_lines").insert(payload.lines.map((line) => ({ ...line, stock_count_id: data.id, barcode: cleanText(line.barcode), remarks: cleanText(line.remarks) }))),
     ]);
     if (updateError) throw new Error(updateError.message);
     if (linesError) throw new Error(linesError.message);
-    await writeActivityLog({ entityType: "document", entityId: documentId, activityType: "created", message: `Stock count ${payload.count_no} created` });
+    await writeActivityLog({ entityType: "document", entityId: documentId, activityType: "created", message: `Stock count ${countNo} created` });
     revalidatePath("/stock-counts");
     redirect(`/stock-counts/${data.id}`);
   } catch (error) {

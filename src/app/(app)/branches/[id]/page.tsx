@@ -1,8 +1,9 @@
 import { BranchForm } from "@/components/foundation-forms";
+import { Button } from "@/components/ui/button";
 import { DangerConfirmForm } from "@/components/ui/danger-confirm-form";
 import { Card, CardContent } from "@/components/ui/card";
 import { PageHeader } from "@/components/ui/page-header";
-import { deleteBranch, updateBranch } from "@/server/actions/foundation";
+import { deleteBranch, restoreBranch, updateBranch } from "@/server/actions/foundation";
 import { getBranch, getCompaniesForSelect } from "@/server/queries/foundation";
 
 export default async function EditBranchPage({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ error?: string; success?: string }> }) {
@@ -15,16 +16,30 @@ export default async function EditBranchPage({ params, searchParams }: { params:
       <div className="space-y-4 p-5">
         {messages.error || messages.success ? <Card><CardContent className={`p-4 text-sm ${messages.error ? "text-destructive" : "text-emerald-700"}`}>{messages.error ?? messages.success}</CardContent></Card> : null}
         <BranchForm branch={branch} companies={companies} action={updateBranch.bind(null, id)} />
-        <DangerConfirmForm
-          action={deleteBranch.bind(null, id)}
-          title="Deactivate this branch?"
-          description="This will hide the record from active lists. Existing documents and stock history will remain linked."
-          warning="This record may be linked to staff access, stock transactions, and operational documents."
-          checkboxLabel="I understand this does not delete history and may affect future operations."
-          confirmWord="DEACTIVATE"
-          buttonLabel="Deactivate branch"
-          pendingLabel="Deactivating..."
-        />
+        {branch.deleted_at ? (
+          <Card>
+            <CardContent className="flex items-center justify-between gap-3 p-4">
+              <div>
+                <p className="font-medium">This branch is archived.</p>
+                <p className="text-sm text-muted-foreground">Restore it to reuse the same branch code and linked history.</p>
+              </div>
+              <form action={restoreBranch.bind(null, id)}>
+                <Button type="submit">Restore branch</Button>
+              </form>
+            </CardContent>
+          </Card>
+        ) : (
+          <DangerConfirmForm
+            action={deleteBranch.bind(null, id)}
+            title="Deactivate this branch?"
+            description="This will hide the record from active lists. Existing documents and stock history will remain linked."
+            warning="This record may be linked to staff access, stock transactions, and operational documents."
+            checkboxLabel="I understand this does not delete history and may affect future operations."
+            confirmWord="DEACTIVATE"
+            buttonLabel="Deactivate branch"
+            pendingLabel="Deactivating..."
+          />
+        )}
       </div>
     </>
   );

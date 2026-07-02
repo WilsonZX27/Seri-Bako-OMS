@@ -7,6 +7,7 @@ import { createClient } from "@/lib/supabase/server";
 import { writeActivityLog } from "@/server/activity/log";
 import { hasPermission } from "@/server/auth/permissions";
 import { resolveDefaultLocation } from "@/server/inventory/locations";
+import { getNextDocumentNumber } from "@/server/documents/sequences";
 import { getDefaultCompanyId } from "@/server/queries/barcodes";
 import { getCurrentProfile } from "@/server/queries/common";
 import type { BarcodeType, Database, ItemStatus, RecordStatus, StockTransactionStatus } from "@/types/database";
@@ -788,10 +789,11 @@ async function handleOpeningStockImport(context: RouteContext, request: ImportRe
       .filter(Boolean)
       .join(" | ");
 
+    const transactionNo = await getNextDocumentNumber(context.profile?.company_id ?? (await getDefaultCompanyId()), "opening_balance");
     const { data: transaction, error: transactionError } = await context.supabase
       .from("stock_transactions")
       .insert({
-        transaction_no: `OB-${Date.now().toString().slice(-8)}-${String(rowNumber).padStart(3, "0")}`,
+        transaction_no: transactionNo,
         branch_id: branch.id,
         item_id: item.id,
         location_id: locationId,

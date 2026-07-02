@@ -10,7 +10,7 @@ type SupplierFilters = {
   dir?: string;
 };
 
-function filterSuppliers<T extends { supplier_code: string | null; name: string; contact_person: string | null; phone: string | null; email: string | null; status: string }>(
+function filterSuppliers<T extends { supplier_code: string | null; name: string; contact_person: string | null; phone: string | null; email: string | null; status: string; deleted_at?: string | null }>(
   suppliers: T[],
   filters: SupplierFilters,
 ) {
@@ -25,7 +25,10 @@ function filterSuppliers<T extends { supplier_code: string | null; name: string;
           value.toLowerCase().includes(search),
         )
       : true;
-    const matchesStatus = status ? supplier.status === status : true;
+    const matchesStatus =
+      status === "archived" ? Boolean(supplier.deleted_at) :
+      status ? supplier.status === status :
+      true;
     return matchesSearch && matchesStatus;
   }).sort((a, b) => compareTableValues(a[sort as keyof T], b[sort as keyof T], dir));
 }
@@ -41,6 +44,12 @@ export async function getSuppliers(filters: SupplierFilters = {}) {
 
   const supabase = await createClient();
   let query = supabase.from("suppliers").select("*").order("name", { ascending: true });
+
+  if (filters.status === "archived") {
+    query = query.not("deleted_at", "is", null);
+  } else if (filters.status !== "all") {
+    query = query.is("deleted_at", null);
+  }
 
   if (filters.status && isSupplierStatus(filters.status)) {
     query = query.eq("status", filters.status);

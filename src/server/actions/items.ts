@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { isMockMode } from "@/lib/mock-mode";
 import { createClient } from "@/lib/supabase/server";
 import { itemSchema } from "@/lib/validations/item";
+import { formatActionError, rethrowRedirect, safeRedirectWithMessage } from "@/server/actions/error-handling";
 import { upsertPrimaryBarcodeMapping } from "@/server/actions/barcodes";
 
 function cleanText(value: unknown) {
@@ -46,18 +47,34 @@ function payload(formData: FormData) {
 }
 
 export async function createItem(formData: FormData) {
-  if (isMockMode()) {
+  try {
+    if (isMockMode()) {
+      redirect("/items");
+    }
+
+    const supabase = await createClient();
+    const itemPayload = payload(formData);
+    const { data: archivedMatch, error: archivedError } = await supabase
+      .from("items")
+      .select("id")
+      .eq("item_code", itemPayload.item_code)
+      .not("deleted_at", "is", null)
+      .limit(1)
+      .maybeSingle();
+    if (archivedError) throw new Error(archivedError.message);
+    if (archivedMatch) {
+      safeRedirectWithMessage(`/items/${archivedMatch.id}`, "error", "An archived item with the same code already exists. Restore it instead of creating a duplicate.");
+    }
+    const { data, error } = await supabase.from("items").insert(itemPayload).select("id").single();
+    if (error) throw new Error(error.message);
+    await upsertPrimaryBarcodeMapping({ entityType: "item", entityId: data.id, barcodeValue: itemPayload.barcode, barcodeType: itemPayload.barcode_type });
+
+    revalidatePath("/items");
     redirect("/items");
+  } catch (error) {
+    rethrowRedirect(error);
+    safeRedirectWithMessage("/items/new", "error", formatActionError(error, "Could not create this item."));
   }
-
-  const supabase = await createClient();
-  const itemPayload = payload(formData);
-  const { data, error } = await supabase.from("items").insert(itemPayload).select("id").single();
-  if (error) throw new Error(error.message);
-  await upsertPrimaryBarcodeMapping({ entityType: "item", entityId: data.id, barcodeValue: itemPayload.barcode, barcodeType: itemPayload.barcode_type });
-
-  revalidatePath("/items");
-  redirect("/items");
 }
 
 export async function updateItem(id: string, formData: FormData) {
@@ -91,4 +108,20 @@ export async function deleteItem(id: string) {
 
   revalidatePath("/items");
   redirect("/items?success=Item%20deactivated.");
+}
+
+export async function restoreItem(id: string) {
+  if (isMockMode()) {
+    redirect("/items");
+  }
+
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from("items")
+    .update({ status: "active", deleted_at: null })
+    .eq("id", id);
+  if (error) throw new Error(error.message);
+
+  revalidatePath("/items");
+  redirect(`/items/${id}?success=Item%20restored.`);
 }

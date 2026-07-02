@@ -13,6 +13,22 @@ export function formatActionError(error: unknown, fallback = "Something went wro
 
   if (!message) return fallback;
   if (normalized.includes("service role key")) return "Supabase service role key is not configured.";
+  if (
+    normalized.includes("rate limit")
+    || normalized.includes("too many requests")
+    || normalized.includes("email rate limit exceeded")
+    || normalized.includes("429")
+  ) {
+    return "Too many emails were requested. Please wait a while before trying again, or contact your system admin.";
+  }
+  if (
+    normalized.includes("smtp")
+    || normalized.includes("email provider")
+    || normalized.includes("error sending")
+    || normalized.includes("mailer")
+  ) {
+    return "We could not send the email right now. Please contact admin or try again later.";
+  }
   if (normalized.includes("missing permission") || normalized.includes("permission denied") || normalized.includes("row-level security")) {
     return "You do not have permission to perform this action.";
   }

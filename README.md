@@ -31,10 +31,22 @@ cp .env.example .env.local
 ```bash
 NEXT_PUBLIC_SUPABASE_URL=
 NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=
+NEXT_PUBLIC_APP_URL=
 SUPABASE_SERVICE_ROLE_KEY=
 ```
 
 `SUPABASE_SERVICE_ROLE_KEY` is server-only. Do not prefix it with `NEXT_PUBLIC_`; it is used by server actions for staff invitations and first-password setup.
+
+`NEXT_PUBLIC_APP_URL` is recommended so invite and reset emails always generate the correct redirect target in production.
+
+## Supabase Auth Redirect URLs
+
+Add these redirect URLs in Supabase Auth:
+
+- `https://seri-bako-oms-official.vercel.app/auth/callback`
+- `https://seri-bako-oms-official.vercel.app/set-password`
+- `https://seri-bako-oms-official.vercel.app/**`
+- `http://localhost:3000/**`
 
 4. Run the database migration:
 

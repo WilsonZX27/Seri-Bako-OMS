@@ -7,6 +7,7 @@ import { createClient } from "@/lib/supabase/server";
 import { stockTransactionSchema } from "@/lib/validations/stock-transaction";
 import { writeActivityLog } from "@/server/activity/log";
 import { formatActionError, requirePermissionOrRedirect, rethrowRedirect, safeRedirectWithMessage } from "@/server/actions/error-handling";
+import { resolveDocumentNumber } from "@/server/documents/sequences";
 import { resolveDefaultLocation } from "@/server/inventory/locations";
 import { getCurrentProfile } from "@/server/queries/common";
 
@@ -73,7 +74,11 @@ export async function createStockTransaction(formData: FormData) {
     const quantityIn = parsed.direction === "in" ? parsed.quantity : 0;
     const quantityOut = parsed.direction === "out" ? parsed.quantity : 0;
     const unitCost = parsed.unit_cost ?? 0;
-    const transactionNo = `ST-${Date.now().toString().slice(-8)}`;
+    const transactionNo = await resolveDocumentNumber({
+      companyId: profile?.company_id,
+      documentType: "stock_transaction",
+      enteredNumber: null,
+    });
     const { data: location } = await supabase.from("locations").select("branch_id").eq("id", locationId).maybeSingle();
 
     const { data, error } = await supabase.from("stock_transactions").insert({

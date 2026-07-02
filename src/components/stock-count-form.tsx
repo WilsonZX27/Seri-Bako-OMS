@@ -43,7 +43,7 @@ export function StockCountForm({
 }) {
   const router = useRouter();
   const tolerance = 2;
-  const countNo = `SC-${Date.now().toString().slice(-6)}`;
+  const countNo = "SC-AUTO";
 
   function selectBranch(branchId: string) {
     router.push(branchId ? `/stock-counts/new?branch_id=${branchId}` : "/stock-counts/new");

@@ -36,7 +36,7 @@ export function GoodsReceivingForm({
   const [barcode, setBarcode] = useState("");
   const [scanMessage, setScanMessage] = useState<string | null>(null);
   const [matchedLineId, setMatchedLineId] = useState<string | null>(null);
-  const grnNo = `GRN-${Date.now().toString().slice(-6)}`;
+  const grnNo = "GRN-AUTO";
   const lineByBarcode = useMemo(() => {
     const map = new Map<string, PurchaseOrderReceivingLine>();
     lines.forEach((line) => {

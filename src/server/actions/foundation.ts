@@ -1,16 +1,16 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { isMockMode } from "@/lib/mock-mode";
+import { getAppUrl } from "@/lib/site-url";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import { branchSchema, companySchema, documentSequenceSchema, locationSchema, roleSchema, staffAccessSchema, staffSchema } from "@/lib/validations/foundation";
 import { writeActivityLog } from "@/server/activity/log";
 import { requirePermission } from "@/server/auth/permissions";
 import { formatActionError, requirePermissionOrRedirect, rethrowRedirect, safeRedirectWithMessage } from "@/server/actions/error-handling";
-import { resolveDefaultLocation } from "@/server/inventory/locations";
+import { ensureBranchDefaultLocation, resolveDefaultLocation } from "@/server/inventory/locations";
 
 function formValue(formData: FormData, key: string) {
   return formData.get(key);
@@ -159,18 +159,33 @@ function branchPayload(formData: FormData) {
 }
 
 export async function createBranch(formData: FormData) {
-  await requirePermission("branches.create");
-  const payload = branchPayload(formData);
-
-  if (!isMockMode()) {
-    const supabase = await createClient();
-    const { data, error } = await supabase.from("branches").insert(payload).select("id").single();
-    if (error) throw new Error(error.message);
-    await writeActivityLog({ entityType: "branch", entityId: data.id, activityType: "created", message: `Branch ${payload.branch_name} created` });
+  await requirePermissionOrRedirect("branches.create", "/branches/new");
+  try {
+    const payload = branchPayload(formData);
+    if (!isMockMode()) {
+      const supabase = await createClient();
+      const { data: archivedMatch, error: archivedError } = await supabase
+        .from("branches")
+        .select("id")
+        .or(`branch_code.eq.${payload.branch_code},branch_name.eq.${payload.branch_name}`)
+        .not("deleted_at", "is", null)
+        .limit(1)
+        .maybeSingle();
+      if (archivedError) throw new Error(archivedError.message);
+      if (archivedMatch) {
+        safeRedirectWithMessage(`/branches/${archivedMatch.id}`, "error", "An archived branch with the same code or name already exists. Restore it instead of creating a duplicate.");
+      }
+      const { data, error } = await supabase.from("branches").insert(payload).select("id").single();
+      if (error) throw new Error(error.message);
+      await ensureBranchDefaultLocation(data.id);
+      await writeActivityLog({ entityType: "branch", entityId: data.id, activityType: "created", message: `Branch ${payload.branch_name} created` });
+    }
+    revalidatePath("/branches");
+    redirect("/branches");
+  } catch (error) {
+    rethrowRedirect(error);
+    safeRedirectWithMessage("/branches/new", "error", formatActionError(error, "Could not create this branch."));
   }
-
-  revalidatePath("/branches");
-  redirect("/branches");
 }
 
 export async function updateBranch(id: string, formData: FormData) {
@@ -205,6 +220,25 @@ export async function deleteBranch(id: string) {
   safeRedirectWithMessage("/branches", "success", "Branch archived.");
 }
 
+export async function restoreBranch(id: string) {
+  await requirePermissionOrRedirect("branches.update", `/branches/${id}`);
+  try {
+    if (!isMockMode()) {
+      const supabase = await createClient();
+      const { error } = await supabase.from("branches").update({ deleted_at: null, status: "active" }).eq("id", id);
+      if (error) throw new Error(error.message);
+      await ensureBranchDefaultLocation(id);
+      await writeActivityLog({ entityType: "branch", entityId: id, activityType: "restored", message: "Branch restored" });
+    }
+  } catch (error) {
+    rethrowRedirect(error);
+    safeRedirectWithMessage(`/branches/${id}`, "error", formatActionError(error, "Could not restore this branch."));
+  }
+  revalidatePath("/branches");
+  revalidatePath(`/branches/${id}`);
+  safeRedirectWithMessage(`/branches/${id}`, "success", "Branch restored.");
+}
+
 function locationPayload(formData: FormData) {
   return locationSchema.parse({
     company_id: formValue(formData, "company_id"),
@@ -217,16 +251,33 @@ function locationPayload(formData: FormData) {
 }
 
 export async function createLocation(formData: FormData) {
-  await requirePermission("locations.create");
-  const payload = locationPayload(formData);
-  if (!isMockMode()) {
-    const supabase = await createClient();
-    const { data, error } = await supabase.from("locations").insert(payload).select("id").single();
-    if (error) throw new Error(error.message);
-    await writeActivityLog({ entityType: "location", entityId: data.id, activityType: "created", message: `Location ${payload.location_name} created` });
+  await requirePermissionOrRedirect("locations.create", "/locations/new");
+  try {
+    const payload = locationPayload(formData);
+    if (!isMockMode()) {
+      const supabase = await createClient();
+      const { data: archivedMatch, error: archivedError } = await supabase
+        .from("locations")
+        .select("id")
+        .eq("branch_id", payload.branch_id)
+        .or(`location_code.eq.${payload.location_code},location_name.eq.${payload.location_name}`)
+        .not("deleted_at", "is", null)
+        .limit(1)
+        .maybeSingle();
+      if (archivedError) throw new Error(archivedError.message);
+      if (archivedMatch) {
+        safeRedirectWithMessage(`/locations/${archivedMatch.id}`, "error", "An archived location with the same code or name already exists. Restore it instead of creating a duplicate.");
+      }
+      const { data, error } = await supabase.from("locations").insert(payload).select("id").single();
+      if (error) throw new Error(error.message);
+      await writeActivityLog({ entityType: "location", entityId: data.id, activityType: "created", message: `Location ${payload.location_name} created` });
+    }
+    revalidatePath("/locations");
+    redirect("/locations");
+  } catch (error) {
+    rethrowRedirect(error);
+    safeRedirectWithMessage("/locations/new", "error", formatActionError(error, "Could not create this location."));
   }
-  revalidatePath("/locations");
-  redirect("/locations");
 }
 
 export async function updateLocation(id: string, formData: FormData) {
@@ -257,6 +308,78 @@ export async function deleteLocation(id: string) {
   }
   revalidatePath("/locations");
   safeRedirectWithMessage("/locations", "success", "Location archived.");
+}
+
+export async function restoreLocation(id: string) {
+  await requirePermissionOrRedirect("locations.update", `/locations/${id}`);
+  try {
+    if (!isMockMode()) {
+      const supabase = await createClient();
+      const { error } = await supabase.from("locations").update({ deleted_at: null, status: "active" }).eq("id", id);
+      if (error) throw new Error(error.message);
+      await writeActivityLog({ entityType: "location", entityId: id, activityType: "restored", message: "Location restored" });
+    }
+  } catch (error) {
+    rethrowRedirect(error);
+    safeRedirectWithMessage(`/locations/${id}`, "error", formatActionError(error, "Could not restore this location."));
+  }
+  revalidatePath("/locations");
+  revalidatePath(`/locations/${id}`);
+  safeRedirectWithMessage(`/locations/${id}`, "success", "Location restored.");
+}
+
+export async function fixMissingDefaultLocations() {
+  await requirePermissionOrRedirect("locations.update", "/data-onboarding");
+  try {
+    if (!isMockMode()) {
+      const supabase = await createClient();
+      const { data: branches, error } = await supabase.from("branches").select("id").is("deleted_at", null);
+      if (error) throw new Error(error.message);
+      for (const branch of branches ?? []) {
+        await ensureBranchDefaultLocation(branch.id);
+      }
+      await writeActivityLog({ entityType: "location", entityId: "00000000-0000-0000-0000-000000000000", activityType: "updated", message: "Missing default stock areas fixed" });
+    }
+  } catch (error) {
+    rethrowRedirect(error);
+    safeRedirectWithMessage("/data-onboarding", "error", formatActionError(error, "Could not fix missing internal stock areas."));
+  }
+  revalidatePath("/data-onboarding");
+  revalidatePath("/locations");
+  safeRedirectWithMessage("/data-onboarding", "success", "Missing internal stock areas fixed.");
+}
+
+export async function archiveDuplicateLocation(id: string) {
+  await requirePermissionOrRedirect("locations.update", "/locations");
+  try {
+    if (!isMockMode()) {
+      const supabase = await createClient();
+      const { data: location, error: locationError } = await supabase
+        .from("locations")
+        .select("id, branch_id")
+        .eq("id", id)
+        .single();
+      if (locationError) throw new Error(locationError.message);
+      if (!location.branch_id) throw new Error("This location is not linked to a branch.");
+
+      const { data: branch, error: branchError } = await supabase
+        .from("branches")
+        .select("default_location_id")
+        .eq("id", location.branch_id)
+        .maybeSingle();
+      if (branchError) throw new Error(branchError.message);
+      if (branch?.default_location_id === id) throw new Error("This location is the current default stock area and cannot be archived.");
+
+      const { error } = await supabase.from("locations").update({ deleted_at: new Date().toISOString(), status: "archived" }).eq("id", id);
+      if (error) throw new Error(error.message);
+      await writeActivityLog({ entityType: "location", entityId: id, activityType: "archived", message: "Duplicate location archived" });
+    }
+  } catch (error) {
+    rethrowRedirect(error);
+    safeRedirectWithMessage("/locations", "error", formatActionError(error, "Could not archive this duplicate location."));
+  }
+  revalidatePath("/locations");
+  safeRedirectWithMessage("/locations", "success", "Duplicate location archived.");
 }
 
 function staffPayload(formData: FormData) {
@@ -330,18 +453,9 @@ async function getCurrentStaffId() {
   return data?.id ?? null;
 }
 
-async function getSiteUrl() {
-  const headerStore = await headers();
-  const origin = headerStore.get("origin");
-  if (origin) return origin;
-  const host = headerStore.get("x-forwarded-host") ?? headerStore.get("host");
-  const proto = headerStore.get("x-forwarded-proto") ?? "https";
-  return host ? `${proto}://${host}` : "http://localhost:3000";
-}
-
 async function inviteStaffByEmail(staffId: string, email: string) {
   const admin = createAdminClient();
-  const redirectTo = `${await getSiteUrl()}/auth/callback?next=/set-password`;
+  const redirectTo = `${await getAppUrl()}/auth/callback?next=/set-password`;
   const { data, error } = await admin.auth.admin.inviteUserByEmail(email, { redirectTo });
 
   let authUserId = data.user?.id ?? null;

@@ -1,5 +1,9 @@
 import { createClient } from "@/lib/supabase/server";
 
+export async function ensureBranchDefaultLocation(branchId: string) {
+  return resolveDefaultLocation(branchId);
+}
+
 export async function resolveDefaultLocation(branchId: string | null | undefined, locationId?: string | null) {
   const selectedLocationId = String(locationId ?? "").trim();
   if (selectedLocationId) return selectedLocationId;
@@ -45,21 +49,46 @@ export async function resolveDefaultLocation(branchId: string | null | undefined
   }
 
   const codeSeed = (branch.branch_code ?? branch.id.slice(0, 8)).replace(/[^a-z0-9]+/gi, "-").toUpperCase();
+  const fallbackCode = `DEF-${codeSeed}`;
+  const { data: archivedOrMatching, error: archivedError } = await supabase
+    .from("locations")
+    .select("id")
+    .eq("branch_id", selectedBranchId)
+    .or(`location_code.eq.${fallbackCode},location_name.eq.Default Store,location_name.eq.Main Store`)
+    .order("created_at", { ascending: true })
+    .limit(1)
+    .maybeSingle();
+  if (archivedError) throw new Error(archivedError.message);
+
+  if (archivedOrMatching?.id) {
+    const { error: restoreError } = await supabase
+      .from("locations")
+      .update({
+        status: "active",
+        deleted_at: null,
+        location_code: fallbackCode,
+        location_name: "Default Store",
+        location_type: "dry_store",
+      })
+      .eq("id", archivedOrMatching.id);
+    if (restoreError) throw new Error(`Could not restore this branch's default location: ${restoreError.message}`);
+    await supabase.from("branches").update({ default_location_id: archivedOrMatching.id }).eq("id", selectedBranchId);
+    return archivedOrMatching.id;
+  }
+
   const { data: created, error: createError } = await supabase
     .from("locations")
     .insert({
       company_id: branch.company_id,
       branch_id: selectedBranchId,
-      location_code: `DEF-${codeSeed}`,
+      location_code: fallbackCode,
       location_name: "Default Store",
       location_type: "dry_store",
       status: "active",
     })
     .select("id")
     .single();
-  if (createError) {
-    throw new Error(`Could not create this branch's default location: ${createError.message}`);
-  }
+  if (createError) throw new Error(`Could not create this branch's default location: ${createError.message}`);
 
   await supabase.from("branches").update({ default_location_id: created.id }).eq("id", selectedBranchId);
   return created.id;

@@ -12,6 +12,7 @@ export async function getDataOnboardingSummary() {
     supplierItems,
     uomConversions,
     barcodeMappings,
+    locations,
     openingStock,
     recipes,
   ] = await Promise.all([
@@ -24,12 +25,21 @@ export async function getDataOnboardingSummary() {
     supabase.from("supplier_items").select("id", { count: "exact", head: true }).is("deleted_at", null),
     supabase.from("uom_conversions").select("id", { count: "exact", head: true }).is("deleted_at", null),
     supabase.from("barcode_mappings").select("id", { count: "exact", head: true }).is("deleted_at", null),
+    supabase.from("locations").select("id, branch_id, location_name, deleted_at").order("created_at", { ascending: true }),
     supabase.from("stock_transactions").select("id", { count: "exact", head: true }).eq("transaction_type", "opening_balance"),
     supabase.from("recipes").select("id", { count: "exact", head: true }).is("deleted_at", null),
   ]);
 
   const branchRows = branches.data ?? [];
   const branchesMissingDefault = branchRows.filter((row) => !row.default_location_id).length;
+  const duplicateLocationCandidates = Object.values(
+    (locations.data ?? []).reduce<Record<string, number>>((accumulator, location) => {
+      if (location.deleted_at) return accumulator;
+      const key = `${location.branch_id ?? "global"}|${String(location.location_name ?? "").trim().toLowerCase()}`;
+      accumulator[key] = (accumulator[key] ?? 0) + 1;
+      return accumulator;
+    }, {}),
+  ).filter((count) => count > 1).length;
 
   return {
     companyCount: company.count ?? 0,
@@ -42,6 +52,8 @@ export async function getDataOnboardingSummary() {
     supplierItemCount: supplierItems.count ?? 0,
     uomCount: uomConversions.count ?? 0,
     barcodeCount: barcodeMappings.count ?? 0,
+    locationCount: (locations.data ?? []).filter((location) => !location.deleted_at).length,
+    duplicateLocationCandidates,
     openingStockCount: openingStock.count ?? 0,
     recipeCount: recipes.count ?? 0,
   };

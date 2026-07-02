@@ -4,10 +4,12 @@ export function getSupabaseEnv() {
     process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY?.trim() ??
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY?.trim() ??
     "";
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL?.trim() ?? "";
 
   return {
     url,
     publishableKey,
+    appUrl,
   };
 }
 
@@ -26,4 +28,8 @@ export function requireSupabaseEnv() {
   }
 
   return env;
+}
+
+export function getAppUrlEnv() {
+  return getSupabaseEnv().appUrl;
 }

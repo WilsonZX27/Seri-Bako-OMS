@@ -10,7 +10,7 @@ type CurrentUserScope = {
   roleCode: string;
 };
 
-async function getCurrentUserScope(): Promise<CurrentUserScope | null> {
+export async function getCurrentUserScope(): Promise<CurrentUserScope | null> {
   const supabase = await createClient();
   const {
     data: { user },

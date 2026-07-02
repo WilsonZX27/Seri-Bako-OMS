@@ -1,10 +1,11 @@
 import Link from "next/link";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { MasterDataFilters } from "@/components/master-data-filters";
 import { PageHeader } from "@/components/ui/page-header";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { archiveDuplicateLocation, fixMissingDefaultLocations } from "@/server/actions/foundation";
 import { getLocations } from "@/server/queries/foundation";
 
 export default async function LocationsPage({ searchParams }: { searchParams: Promise<{ search?: string; status?: string; error?: string; success?: string }> }) {
@@ -22,8 +23,11 @@ export default async function LocationsPage({ searchParams }: { searchParams: Pr
           </Card>
         ) : null}
         <Card className="border-primary/15 bg-[var(--sb-muted)]">
-          <CardContent className="p-4 text-sm leading-6 text-muted-foreground">
-            Locations are internal stock areas. For Seri Bako current workflow, daily operations use Branch only. Locations are kept internally for ledger accuracy and future expansion.
+          <CardContent className="flex flex-col gap-3 p-4 text-sm leading-6 text-muted-foreground lg:flex-row lg:items-center lg:justify-between">
+            <p>Locations are internal stock areas. For Seri Bako current workflow, daily operations use Branch only. Locations are kept internally for ledger accuracy and future expansion.</p>
+            <form action={fixMissingDefaultLocations}>
+              <Button type="submit" variant="outline">Fix missing stock areas</Button>
+            </form>
           </CardContent>
         </Card>
         <div className="overflow-hidden rounded-lg border bg-card">
@@ -46,7 +50,16 @@ export default async function LocationsPage({ searchParams }: { searchParams: Pr
               <TableCell>{location.location_code}</TableCell>
               <TableCell className="capitalize">{location.location_type.replaceAll("_", " ")}</TableCell>
               <TableCell><Badge variant={location.status === "active" ? "success" : "secondary"}>{location.status}</Badge></TableCell>
-              <TableCell><div className="flex justify-end gap-2"><Button asChild variant="outline" size="sm"><Link href={`/locations/${location.id}`}>Edit</Link></Button></div></TableCell>
+              <TableCell>
+                <div className="flex justify-end gap-2">
+                  {location.looks_like_branch_name && !location.is_system_default ? (
+                    <form action={archiveDuplicateLocation.bind(null, location.id)}>
+                      <Button type="submit" variant="outline" size="sm">Archive duplicate</Button>
+                    </form>
+                  ) : null}
+                  <Button asChild variant="outline" size="sm"><Link href={`/locations/${location.id}`}>Edit</Link></Button>
+                </div>
+              </TableCell>
             </TableRow>
           ))}
           {!locations.length ? <TableRow><TableCell colSpan={6} className="text-center text-muted-foreground">No locations found.</TableCell></TableRow> : null}

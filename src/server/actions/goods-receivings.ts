@@ -8,6 +8,7 @@ import { goodsReceivingSchema } from "@/lib/validations/procurement";
 import { writeActivityLog } from "@/server/activity/log";
 import { requirePermission } from "@/server/auth/permissions";
 import { formatActionError, requirePermissionOrRedirect, rethrowRedirect, safeRedirectWithMessage } from "@/server/actions/error-handling";
+import { resolveDocumentNumber } from "@/server/documents/sequences";
 import { resolveDefaultLocation } from "@/server/inventory/locations";
 import { getCurrentProfile } from "@/server/queries/common";
 
@@ -116,13 +117,18 @@ export async function createGoodsReceiving(formData: FormData) {
     if (po.supplier_id !== payload.supplier_id) throw new Error("GRN supplier must match selected PO supplier.");
 
     const profile = await identity();
+    const grnNo = await resolveDocumentNumber({
+      companyId: profile?.company_id,
+      documentType: "goods_receiving",
+      enteredNumber: payload.grn_no,
+    });
     const supabase = await createClient();
     const { data, error } = await supabase
       .from("goods_receivings")
       .insert({
         company_id: profile?.company_id ?? null,
         purchase_order_id: payload.purchase_order_id,
-        grn_no: payload.grn_no,
+        grn_no: grnNo,
         supplier_id: payload.supplier_id,
         received_date: payload.received_date,
         branch_id: payload.branch_id,
@@ -138,9 +144,9 @@ export async function createGoodsReceiving(formData: FormData) {
     if (error) throw new Error(error.message);
 
     const documentId = await createLinkedDocument({
-      documentNo: payload.grn_no,
+      documentNo: grnNo,
       documentType: "goods_receiving",
-      title: `Goods Receiving ${payload.grn_no}`,
+      title: `Goods Receiving ${grnNo}`,
       relatedEntityType: "goods_receiving",
       relatedEntityId: data.id,
     });
@@ -152,7 +158,7 @@ export async function createGoodsReceiving(formData: FormData) {
     if (updateError) throw new Error(updateError.message);
     if (linesError) throw new Error(linesError.message);
 
-    await writeActivityLog({ entityType: "document", entityId: documentId, activityType: "created", message: `Goods receiving ${payload.grn_no} created` });
+    await writeActivityLog({ entityType: "document", entityId: documentId, activityType: "created", message: `Goods receiving ${grnNo} created` });
     revalidatePath("/goods-receivings");
     redirect(`/goods-receivings/${data.id}`);
   } catch (error) {

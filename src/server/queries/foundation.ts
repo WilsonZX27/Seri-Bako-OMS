@@ -18,6 +18,14 @@ type Filters = {
   status?: string;
 };
 
+function wantsArchived(status?: string) {
+  return status === "archived";
+}
+
+function wantsAllStatuses(status?: string) {
+  return status === "all";
+}
+
 function matchesFilter(values: Array<string | null | undefined>, filters: Filters, status: string) {
   const search = filters.search?.trim().toLowerCase();
   const wantedStatus = filters.status && filters.status !== "all" ? filters.status : null;
@@ -50,7 +58,10 @@ export async function getBranches(filters: Filters = {}) {
   }
 
   const supabase = await createClient();
-  const { data, error } = await supabase.from("branches").select("*").is("deleted_at", null).order("branch_name", { ascending: true });
+  let query = supabase.from("branches").select("*").order("branch_name", { ascending: true });
+  if (wantsArchived(filters.status)) query = query.not("deleted_at", "is", null);
+  else if (!wantsAllStatuses(filters.status)) query = query.is("deleted_at", null);
+  const { data, error } = await query;
   if (error) throw new Error(error.message);
   return (data ?? []).filter((branch) => matchesFilter([branch.branch_code, branch.branch_name, branch.branch_type], filters, branch.status));
 }
@@ -86,7 +97,12 @@ export async function getLocations(filters: Filters = {}) {
 
   const supabase = await createClient();
   const [{ data: locations, error: locationsError }, { data: branches, error: branchesError }] = await Promise.all([
-    supabase.from("locations").select("*").is("deleted_at", null).order("location_name", { ascending: true }),
+    (() => {
+      let query = supabase.from("locations").select("*").order("location_name", { ascending: true });
+      if (wantsArchived(filters.status)) query = query.not("deleted_at", "is", null);
+      else if (!wantsAllStatuses(filters.status)) query = query.is("deleted_at", null);
+      return query;
+    })(),
     supabase.from("branches").select("id, branch_name, default_location_id"),
   ]);
   if (locationsError) throw new Error(locationsError.message);
@@ -246,7 +262,10 @@ export async function getDocumentSequences(filters: Filters = {}) {
   }
 
   const supabase = await createClient();
-  const { data, error } = await supabase.from("document_sequences").select("*").is("deleted_at", null).order("document_type", { ascending: true });
+  let query = supabase.from("document_sequences").select("*").order("document_type", { ascending: true });
+  if (wantsArchived(filters.status)) query = query.not("deleted_at", "is", null);
+  else if (!wantsAllStatuses(filters.status)) query = query.is("deleted_at", null);
+  const { data, error } = await query;
   if (error) throw new Error(error.message);
   return (data ?? [])
     .map((sequence) => ({ ...sequence, preview_number: previewDocumentNumber(sequence.prefix, sequence.next_number, sequence.padding) }))

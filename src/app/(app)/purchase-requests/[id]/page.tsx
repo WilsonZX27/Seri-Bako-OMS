@@ -1,4 +1,3 @@
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -6,6 +5,7 @@ import { PageHeader } from "@/components/ui/page-header";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { DocumentActionBar, DocumentActionForm } from "@/components/document-action-bar";
 import { DocumentNumber } from "@/components/document-number";
+import { StatusBadge } from "@/components/ui/status-badge";
 import { AttachmentPanel, CommentsPanel, DocumentTimeline, RevisionPanel } from "@/components/documents/document-panels";
 import { PriorityBadge } from "@/components/priority-badge";
 import { SubmitButton } from "@/components/ui/submit-button";
@@ -23,12 +23,6 @@ import { getPermissionMap } from "@/server/auth/permissions";
 import { getBranchesForSelect, getItemsForSelect, getLocationsForSelect, getSuppliersForSelect } from "@/server/queries/common";
 import { getDocumentBundle } from "@/server/queries/documents";
 import { getPurchaseOrdersForRequest, getPurchaseRequest } from "@/server/queries/procurement";
-
-function statusVariant(status: string) {
-  if (["approved", "converted"].includes(status)) return "success";
-  if (["rejected", "cancelled"].includes(status)) return "danger";
-  return "secondary";
-}
 
 const prSteps = [
   { key: "draft", label: "Draft", description: "Request is being prepared." },
@@ -72,7 +66,7 @@ export default async function PurchaseRequestDetailPage({ params }: { params: Pr
               <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <div>
                   <p className="text-xs uppercase text-muted-foreground">Current Status</p>
-                  <Badge className="mt-1" variant={statusVariant(request.status)}>{request.status}</Badge>
+                  <StatusBadge status={request.status} />
                 </div>
                 <DocumentActionBar>
                   {request.status === "draft" && permissions["pr.submit"] ? <DocumentActionForm action={submitPurchaseRequest.bind(null, request.id)} pendingLabel="Saving..." variant="secondary">Submit to Admin</DocumentActionForm> : null}
@@ -114,8 +108,8 @@ export default async function PurchaseRequestDetailPage({ params }: { params: Pr
                     <Button key={order.id} asChild variant="outline" className="h-auto justify-between p-4">
                       <a href={`/purchase-orders/${order.id}`}>
                         <span className="text-left">
-                          <span className="block font-semibold">{order.po_no}</span>
-                          <span className="block text-xs text-muted-foreground">{order.supplier_name ?? "Supplier"} - {order.status}</span>
+                          <DocumentNumber value={order.po_no} size="sm" />
+                          <span className="mt-1 block text-xs text-muted-foreground">{order.supplier_name ?? "Supplier"}</span>
                         </span>
                         <span className="text-sm font-semibold">{formatCurrency(order.order_total)}</span>
                       </a>

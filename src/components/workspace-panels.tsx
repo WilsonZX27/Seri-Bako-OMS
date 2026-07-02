@@ -42,56 +42,56 @@ export type WorkspaceInsight = {
 
 export const workspaceThemes: Record<WorkspaceThemeName, WorkspaceTheme> = {
   green: {
-    panel: "bg-emerald-50/35",
-    header: "bg-emerald-50/70",
+    panel: "bg-white",
+    header: "bg-white",
     border: "border-emerald-100",
     badge: "bg-emerald-100",
     tag: "bg-emerald-100 text-emerald-800",
     iconText: "text-emerald-700",
   },
   blue: {
-    panel: "bg-blue-50/35",
-    header: "bg-blue-50/75",
+    panel: "bg-white",
+    header: "bg-white",
     border: "border-blue-100",
     badge: "bg-blue-100",
     tag: "bg-blue-100 text-blue-800",
     iconText: "text-blue-700",
   },
   amber: {
-    panel: "bg-amber-50/35",
-    header: "bg-amber-50/75",
+    panel: "bg-white",
+    header: "bg-white",
     border: "border-amber-100",
     badge: "bg-amber-100",
     tag: "bg-amber-100 text-amber-800",
     iconText: "text-amber-700",
   },
   purple: {
-    panel: "bg-purple-50/35",
-    header: "bg-purple-50/75",
+    panel: "bg-white",
+    header: "bg-white",
     border: "border-purple-100",
     badge: "bg-purple-100",
     tag: "bg-purple-100 text-purple-800",
     iconText: "text-purple-700",
   },
   teal: {
-    panel: "bg-teal-50/35",
-    header: "bg-teal-50/75",
+    panel: "bg-white",
+    header: "bg-white",
     border: "border-teal-100",
     badge: "bg-teal-100",
     tag: "bg-teal-100 text-teal-800",
     iconText: "text-teal-700",
   },
   neutral: {
-    panel: "bg-slate-50/45",
-    header: "bg-slate-50",
+    panel: "bg-white",
+    header: "bg-white",
     border: "border-slate-200",
     badge: "bg-slate-100",
     tag: "bg-slate-100 text-slate-700",
     iconText: "text-slate-700",
   },
   red: {
-    panel: "bg-red-50/35",
-    header: "bg-red-50/75",
+    panel: "bg-white",
+    header: "bg-white",
     border: "border-red-100",
     badge: "bg-red-100",
     tag: "bg-red-100 text-red-800",
@@ -104,7 +104,7 @@ export function WorkspaceSectionPanel({ section }: { section: WorkspaceSection }
   const SectionIcon = section.icon;
 
   return (
-    <section className={cn("overflow-hidden rounded-xl border shadow-sm", theme.border, theme.panel)}>
+    <section className={cn("overflow-hidden rounded-xl border border-slate-200 shadow-sm", theme.panel)}>
       <div className={cn("border-b px-5 py-5", theme.border, theme.header)}>
         <div className="flex items-center gap-4">
           <div className={cn("flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl", theme.badge, theme.iconText)}>
@@ -128,7 +128,7 @@ export function WorkspaceSectionPanel({ section }: { section: WorkspaceSection }
 function WorkspaceActionCard({ action, theme }: { action: WorkspaceAction; theme: WorkspaceTheme }) {
   const ActionIcon = action.icon;
   const content = (
-    <Card className={cn("h-full border bg-white/90 shadow-sm transition-colors", theme.border, action.disabled ? "opacity-70" : "group-hover:border-primary/30 group-hover:bg-white")}>
+    <Card className={cn("h-full border border-slate-200 bg-white shadow-sm transition-colors", action.disabled ? "opacity-70" : "group-hover:border-primary/30 group-hover:bg-slate-50/30")}>
       <CardContent className="flex h-full flex-col gap-5 p-5">
         <div className="flex items-start gap-4">
           <div className={cn("flex h-11 w-11 shrink-0 items-center justify-center rounded-xl", theme.badge, theme.iconText)}>
@@ -168,8 +168,8 @@ export function WorkspaceQuickInsights({ insights, action }: { insights: Workspa
             const theme = workspaceThemes[insight.theme ?? "neutral"];
             const InsightIcon = insight.icon;
             return (
-              <div key={insight.label} className={cn("flex items-center gap-3 rounded-lg border p-3", theme.border, theme.panel, theme.iconText)}>
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white/70">
+              <div key={insight.label} className={cn("flex items-center gap-3 rounded-lg border border-slate-200 bg-white p-3 shadow-sm", theme.iconText)}>
+                <div className={cn("flex h-10 w-10 shrink-0 items-center justify-center rounded-xl", theme.badge)}>
                   <InsightIcon className="h-5 w-5" />
                 </div>
                 <div>

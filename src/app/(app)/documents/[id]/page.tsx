@@ -1,14 +1,10 @@
-import { Badge } from "@/components/ui/badge";
+import { DocumentNumber } from "@/components/document-number";
+import { StatusBadge } from "@/components/ui/status-badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { PageHeader } from "@/components/ui/page-header";
 import { ApprovalPanel, AttachmentPanel, CommentsPanel, DocumentTimeline, RevisionPanel } from "@/components/documents/document-panels";
+import { formatStatusLabel } from "@/lib/status-label";
 import { getDocumentBundle } from "@/server/queries/documents";
-
-function statusVariant(status: string) {
-  if (["approved", "posted", "closed"].includes(status)) return "success";
-  if (["rejected", "cancelled"].includes(status)) return "danger";
-  return "secondary";
-}
 
 function formatDate(value: string | null) {
   return value ? new Intl.DateTimeFormat("en-MY", { dateStyle: "medium", timeStyle: "short" }).format(new Date(value)) : "-";
@@ -27,7 +23,7 @@ export default async function DocumentDetailPage({
 
   return (
     <>
-      <PageHeader title={document.document_no} description={document.title} />
+      <PageHeader title={<DocumentNumber value={document.document_no} size="lg" />} description={document.title} />
       <div className="grid gap-5 p-5 xl:grid-cols-[1fr_420px]">
         <div className="space-y-5">
           {messageParams.error || messageParams.success ? (
@@ -42,19 +38,19 @@ export default async function DocumentDetailPage({
               <div className="grid gap-4 md:grid-cols-3">
                 <div>
                   <p className="text-xs uppercase text-muted-foreground">Document Type</p>
-                  <p className="mt-1 font-medium">{document.document_type.replaceAll("_", " ")}</p>
+                  <p className="mt-1 font-medium">{formatStatusLabel(document.document_type)}</p>
                 </div>
                 <div>
                   <p className="text-xs uppercase text-muted-foreground">Status</p>
-                  <Badge className="mt-1" variant={statusVariant(document.status)}>{document.status}</Badge>
+                  <StatusBadge status={document.status} />
                 </div>
                 <div>
                   <p className="text-xs uppercase text-muted-foreground">Approval Status</p>
-                  <Badge className="mt-1" variant={statusVariant(document.approval_status)}>{document.approval_status}</Badge>
+                  <StatusBadge status={document.approval_status} />
                 </div>
                 <div>
                   <p className="text-xs uppercase text-muted-foreground">Current Step</p>
-                  <p className="mt-1 font-medium">{document.current_step ?? "-"}</p>
+                  <p className="mt-1 font-medium">{document.current_step ? formatStatusLabel(document.current_step) : "-"}</p>
                 </div>
                 <div>
                   <p className="text-xs uppercase text-muted-foreground">Created</p>
@@ -70,7 +66,7 @@ export default async function DocumentDetailPage({
                 </div>
                 <div>
                   <p className="text-xs uppercase text-muted-foreground">Related Entity Type</p>
-                  <p className="mt-1 font-medium">{document.related_entity_type ?? "-"}</p>
+                  <p className="mt-1 font-medium">{document.related_entity_type ? formatStatusLabel(document.related_entity_type) : "-"}</p>
                 </div>
                 <div>
                   <p className="text-xs uppercase text-muted-foreground">Related Entity ID</p>

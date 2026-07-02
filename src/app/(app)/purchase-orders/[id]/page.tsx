@@ -1,10 +1,10 @@
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { PageHeader } from "@/components/ui/page-header";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { DocumentActionBar, DocumentActionForm, DocumentActionLink } from "@/components/document-action-bar";
 import { DocumentNumber } from "@/components/document-number";
+import { StatusBadge } from "@/components/ui/status-badge";
 import { AttachmentPanel, CommentsPanel, DocumentTimeline, RevisionPanel } from "@/components/documents/document-panels";
 import { PriorityBadge } from "@/components/priority-badge";
 import { WorkflowStatusPipeline } from "@/components/workflow-status-pipeline";
@@ -14,12 +14,6 @@ import { getPermissionMap } from "@/server/auth/permissions";
 import { getItemsForSelect, getSuppliersForSelect } from "@/server/queries/common";
 import { getDocumentBundle } from "@/server/queries/documents";
 import { getPurchaseOrder, getPurchaseRequestForOrder } from "@/server/queries/procurement";
-
-function statusVariant(status: string) {
-  if (["approved", "sent", "received", "closed"].includes(status)) return "success";
-  if (status === "cancelled") return "danger";
-  return "secondary";
-}
 
 const poSteps = [
   { key: "draft", label: "Draft", description: "Order is being prepared." },
@@ -57,7 +51,7 @@ export default async function PurchaseOrderDetailPage({ params }: { params: Prom
               <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <div>
                   <p className="text-xs uppercase text-muted-foreground">Current Status</p>
-                  <Badge className="mt-1" variant={statusVariant(order.status)}>{order.status}</Badge>
+                  <StatusBadge status={order.status} />
                 </div>
                 <DocumentActionBar>
                   {order.status === "draft" && permissions["po.submit"] ? <DocumentActionForm action={submitPurchaseOrder.bind(null, order.id)} pendingLabel="Saving..." variant="secondary">Submit approval</DocumentActionForm> : null}
@@ -76,7 +70,7 @@ export default async function PurchaseOrderDetailPage({ params }: { params: Prom
                 <div><p className="text-xs uppercase text-muted-foreground">Supplier</p><p className="font-medium">{supplier?.name ?? order.supplier_id}</p></div>
                 <div><p className="text-xs uppercase text-muted-foreground">Order Date</p><p className="font-medium">{order.order_date}</p></div>
                 <div><p className="text-xs uppercase text-muted-foreground">Expected Delivery</p><p className="font-medium">{order.expected_delivery_date ?? "-"}</p></div>
-                <div><p className="text-xs uppercase text-muted-foreground">Approval</p><Badge className="mt-1" variant={statusVariant(order.approval_status)}>{order.approval_status}</Badge></div>
+                <div><p className="text-xs uppercase text-muted-foreground">Approval</p><StatusBadge status={order.approval_status} /></div>
                 <div><p className="text-xs uppercase text-muted-foreground">Priority</p><PriorityBadge priority={order.priority} /></div>
                 <div><p className="text-xs uppercase text-muted-foreground">Needed By</p><p className="font-medium">{order.needed_by_date ?? "-"}</p></div>
                 <div><p className="text-xs uppercase text-muted-foreground">Source Document</p><p className="font-medium">{sourceRequest?.request_no ?? "-"}</p></div>
@@ -97,10 +91,10 @@ export default async function PurchaseOrderDetailPage({ params }: { params: Prom
                 <Button asChild variant="outline" className="h-auto justify-between p-4">
                   <a href={`/purchase-requests/${sourceRequest.id}`}>
                     <span className="text-left">
-                      <span className="block font-semibold">{sourceRequest.request_no}</span>
+                      <DocumentNumber value={sourceRequest.request_no} size="sm" />
                       <span className="block text-xs text-muted-foreground">Created the purchase order workflow</span>
                     </span>
-                    <Badge variant={statusVariant(sourceRequest.status)}>{sourceRequest.status}</Badge>
+                    <StatusBadge status={sourceRequest.status} />
                   </a>
                 </Button>
               ) : (

@@ -86,7 +86,7 @@ export async function AttachmentPanel({ documentId, attachments }: { documentId:
       <CardContent className="space-y-4 p-5">
         <h2 className="text-sm font-semibold">Attachments</h2>
         {canManageAttachments ? (
-          <form action={addDocumentAttachment.bind(null, documentId)} className="grid gap-3 rounded-lg border bg-secondary/20 p-4 md:grid-cols-[1fr_1fr_auto] md:items-end">
+          <form action={addDocumentAttachment.bind(null, documentId)} className="grid gap-3 rounded-lg border bg-white p-4 shadow-sm md:grid-cols-[1fr_1fr_auto] md:items-end">
             <Field label="Attachment label">
               <Input name="file_name" placeholder="Delivery order, invoice, photo" />
             </Field>

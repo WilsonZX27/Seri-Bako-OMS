@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { ClipboardCheck, FileText, PackageCheck, Paperclip, ShoppingCart, Warehouse, Factory } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
+import { DocumentNumber } from "@/components/document-number";
+import { StatusBadge } from "@/components/ui/status-badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { PageHeader } from "@/components/ui/page-header";
@@ -8,13 +9,8 @@ import { SelectNative } from "@/components/ui/select-native";
 import { PaginationControls, SortableHead } from "@/components/sortable-table";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { WorkspaceQuickInsights, WorkspaceSectionPanel, type WorkspaceInsight, type WorkspaceSection } from "@/components/workspace-panels";
+import { formatStatusLabel } from "@/lib/status-label";
 import { getDocuments } from "@/server/queries/documents";
-
-function statusVariant(status: string) {
-  if (["approved", "posted", "closed"].includes(status)) return "success";
-  if (["rejected", "cancelled"].includes(status)) return "danger";
-  return "secondary";
-}
 
 export default async function DocumentsPage({ searchParams }: { searchParams: Promise<Record<string, string | undefined>> }) {
   const filters = await searchParams;
@@ -92,12 +88,12 @@ export default async function DocumentsPage({ searchParams }: { searchParams: Pr
             </div>
           </>
         ) : null}
-        <div className="overflow-hidden rounded-lg border bg-card">
-          <div className="border-b p-4">
+        <div className="overflow-hidden rounded-xl border bg-card shadow-sm">
+          <div className="border-b bg-white p-4">
             <p className="sb-section-label">Document Register</p>
             <h2 className="mt-1 text-lg font-semibold">Filtered document list</h2>
           </div>
-          <form className="grid gap-3 border-b p-4 md:grid-cols-5">
+          <form className="grid gap-3 border-b bg-white p-4 md:grid-cols-5">
             <Input name="search" defaultValue={filters.search ?? ""} placeholder="Search document no, title, type" />
             <SelectNative name="document_type" defaultValue={filters.document_type ?? "all"}>
               <option value="all">All document types</option>
@@ -138,7 +134,7 @@ export default async function DocumentsPage({ searchParams }: { searchParams: Pr
             <Table>
               <TableHeader>
                 <TableRow>
-                  <SortableHead label="Document No" column="document_no" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
+                  <SortableHead label="Doc No" column="document_no" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
                   <SortableHead label="Type" column="document_type" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
                   <SortableHead label="Title" column="title" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
                   <SortableHead label="Status" column="status" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
@@ -148,23 +144,23 @@ export default async function DocumentsPage({ searchParams }: { searchParams: Pr
                   <SortableHead label="Updated" column="updated_at" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
                   <TableHead>Current Step</TableHead>
                   <TableHead>Related Entity</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
+                  <TableHead className="text-right">Action</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {documents.rows.map((document) => (
                   <TableRow key={document.id}>
-                    <TableCell className="font-medium">{document.document_no}</TableCell>
-                    <TableCell>{document.document_type.replaceAll("_", " ")}</TableCell>
+                    <TableCell><DocumentNumber value={document.document_no} size="sm" /></TableCell>
+                    <TableCell>{formatStatusLabel(document.document_type)}</TableCell>
                     <TableCell>{document.title}</TableCell>
-                    <TableCell><Badge variant={statusVariant(document.status)}>{document.status}</Badge></TableCell>
-                    <TableCell><Badge variant={statusVariant(document.approval_status)}>{document.approval_status}</Badge></TableCell>
+                    <TableCell><StatusBadge status={document.status} /></TableCell>
+                    <TableCell><StatusBadge status={document.approval_status} /></TableCell>
                     <TableCell>{document.created_by_name ?? document.created_by ?? "-"}</TableCell>
                     <TableCell>{new Date(document.created_at).toLocaleDateString("en-MY")}</TableCell>
                     <TableCell>{new Date(document.updated_at).toLocaleDateString("en-MY")}</TableCell>
-                    <TableCell>{document.current_step ?? "-"}</TableCell>
-                    <TableCell>{document.related_entity_type ? `${document.related_entity_type} / ${document.related_entity_id ?? "-"}` : "-"}</TableCell>
-                    <TableCell className="text-right"><Button asChild variant="outline" size="sm"><Link href={`/documents/${document.id}`}>View</Link></Button></TableCell>
+                    <TableCell>{document.current_step ? formatStatusLabel(document.current_step) : "-"}</TableCell>
+                    <TableCell>{document.related_entity_type ? formatStatusLabel(document.related_entity_type) : "-"}</TableCell>
+                    <TableCell className="text-right"><Button asChild variant="outline" size="sm"><Link href={`/documents/${document.id}`}>Open</Link></Button></TableCell>
                   </TableRow>
                 ))}
                 {!documents.rows.length ? <TableRow><TableCell colSpan={11} className="text-center text-muted-foreground">No documents found.</TableCell></TableRow> : null}

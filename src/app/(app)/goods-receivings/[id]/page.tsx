@@ -2,9 +2,9 @@ import { AlertTriangle } from "lucide-react";
 import { DocumentActionBar, DocumentActionForm, DocumentActionLink } from "@/components/document-action-bar";
 import { DocumentNumber } from "@/components/document-number";
 import { AttachmentPanel, CommentsPanel, DocumentTimeline, RevisionPanel } from "@/components/documents/document-panels";
-import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { PageHeader } from "@/components/ui/page-header";
+import { StatusBadge } from "@/components/ui/status-badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { WorkflowStatusPipeline } from "@/components/workflow-status-pipeline";
 import { formatCurrency, formatNumber } from "@/lib/utils";
@@ -12,12 +12,6 @@ import { postGoodsReceiving } from "@/server/actions/goods-receivings";
 import { getPermissionMap } from "@/server/auth/permissions";
 import { getDocumentBundle } from "@/server/queries/documents";
 import { getGoodsReceiving } from "@/server/queries/goods-receivings";
-
-function statusVariant(status: string) {
-  if (status === "posted") return "success";
-  if (status === "cancelled") return "danger";
-  return "secondary";
-}
 
 const grnSteps = [
   { key: "draft", label: "Draft", description: "Receiving is being checked." },
@@ -49,7 +43,7 @@ export default async function GoodsReceivingDetailPage({ params }: { params: Pro
               <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <div>
                   <p className="text-xs uppercase text-muted-foreground">Current Status</p>
-                  <Badge className="mt-1" variant={statusVariant(receiving.status)}>{receiving.status}</Badge>
+                  <StatusBadge status={receiving.status} />
                 </div>
                 <DocumentActionBar>
                   <DocumentActionLink href={`/purchase-orders/${receiving.purchase_order_id}`} variant="outline">View PO</DocumentActionLink>

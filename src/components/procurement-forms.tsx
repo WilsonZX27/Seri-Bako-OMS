@@ -170,7 +170,7 @@ export function PurchaseRequestForm({
             <SubmitButton type="submit" pendingLabel="Saving..." showOverlay overlayLabel="Saving changes...">Create purchase request</SubmitButton>
           </div>
 
-          <div className="grid gap-3 rounded-lg border bg-[var(--sb-muted)] p-3 md:grid-cols-4">
+          <div className="grid gap-3 rounded-lg border bg-white p-3 shadow-sm md:grid-cols-4">
             {[
               ["draft", "Draft"],
               ["pending_approval", "Pending Approval"],
@@ -325,7 +325,7 @@ export function PurchaseRequestForm({
     ) : null}
     {newItemLineKey !== null && canCreateItem ? (
       <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/30 p-4 backdrop-blur-sm">
-        <Card className="w-full max-w-3xl">
+        <Card className="w-full max-w-3xl border-slate-200 bg-white shadow-xl">
           <CardContent className="space-y-4 p-5">
             <div className="flex items-start justify-between gap-3">
               <div>
@@ -338,7 +338,7 @@ export function PurchaseRequestForm({
             </div>
             {newItemError ? <p className="rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700">{newItemError}</p> : null}
             <form action={createInlineItem} className="space-y-4">
-              <section className="rounded-lg border bg-[var(--sb-muted)] p-4">
+              <section className="rounded-lg border bg-white p-4 shadow-sm">
                 <div className="mb-3">
                   <p className="text-sm font-semibold">Basic</p>
                   <p className="mt-1 text-xs text-muted-foreground">Name, code, category, and base stock unit.</p>
@@ -364,7 +364,7 @@ export function PurchaseRequestForm({
                 </div>
               </section>
 
-              <section className="rounded-lg border bg-card p-4">
+              <section className="rounded-lg border bg-white p-4 shadow-sm">
                 <div className="mb-3">
                   <p className="text-sm font-semibold">Purchasing</p>
                   <p className="mt-1 text-xs text-muted-foreground">Optional buying defaults for PR and supplier item setup.</p>
@@ -384,8 +384,8 @@ export function PurchaseRequestForm({
                     </SelectNative>
                   </Field>
                   {!suppliers.length && canCreateSupplier ? (
-                    <div className="flex flex-col gap-2 rounded-md border bg-secondary/30 p-3 text-sm text-muted-foreground md:col-span-2 sm:flex-row sm:items-center sm:justify-between">
-                      <span>Create supplier first before assigning a default supplier to this item.</span>
+                    <div className="flex flex-col gap-2 rounded-md border bg-slate-50 p-3 text-sm text-muted-foreground md:col-span-2 sm:flex-row sm:items-center sm:justify-between">
+                      <span>No supplier is available yet for this item.</span>
                       <Button asChild type="button" variant="outline" size="sm">
                         <Link href="/suppliers/new">Create supplier first</Link>
                       </Button>

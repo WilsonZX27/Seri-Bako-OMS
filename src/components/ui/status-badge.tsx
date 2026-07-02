@@ -1,4 +1,5 @@
 import { Badge } from "@/components/ui/badge";
+import { formatStatusLabel } from "@/lib/status-label";
 
 export function StatusBadge({ status }: { status: string }) {
   const normalized = status.toLowerCase();
@@ -9,5 +10,5 @@ export function StatusBadge({ status }: { status: string }) {
       : ["pending", "pending_approval", "admin_review", "purchasing_review", "draft"].includes(normalized)
         ? "warning"
         : "secondary";
-  return <Badge variant={variant}>{status.replaceAll("_", " ")}</Badge>;
+  return <Badge variant={variant}>{formatStatusLabel(status)}</Badge>;
 }

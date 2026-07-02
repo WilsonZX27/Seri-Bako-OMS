@@ -14,7 +14,7 @@ type DashboardSummary = Awaited<ReturnType<typeof import("@/server/queries/dashb
 
 function AttentionCard({ href, title, value, description, icon: Icon, tone = "secondary" }: { href: string; title: string; value: string | number; description: string; icon: LucideIcon; tone?: "secondary" | "warning" | "danger" | "success" }) {
   return (
-    <Link href={href} className="flex min-h-28 items-center gap-3 rounded-lg border bg-card p-4 transition-colors hover:border-primary/30 hover:bg-[var(--sb-muted)]">
+    <Link href={href} className="flex min-h-28 items-center gap-3 rounded-lg border bg-white p-4 shadow-sm transition-colors hover:border-primary/30 hover:bg-slate-50/50">
       <div className="sb-icon-tile">
         <Icon className="h-5 w-5" />
       </div>
@@ -55,7 +55,7 @@ export function DashboardWorkspace({ summary, role }: { summary: DashboardSummar
         </div>
       </div>
 
-      <section className="space-y-3 rounded-xl border bg-[var(--sb-muted)] p-4">
+      <section className="space-y-3 rounded-xl border bg-card p-5 shadow-sm">
         <div>
           <p className="sb-section-label">Operation Today</p>
           <h2 className="mt-1 text-lg font-semibold">What needs handling today</h2>

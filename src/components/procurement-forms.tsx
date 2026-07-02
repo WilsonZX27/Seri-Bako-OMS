@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Plus, Search } from "lucide-react";
+import { CheckCircle2, Circle, CircleDot, Plus, Search, X } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -12,12 +12,35 @@ import { SelectNative } from "@/components/ui/select-native";
 import { Textarea } from "@/components/ui/textarea";
 import type { Database } from "@/types/database";
 
-type ItemOption = Pick<Database["public"]["Tables"]["items"]["Row"], "id" | "item_code" | "item_name" | "base_unit" | "status">;
+type ItemOption = Pick<Database["public"]["Tables"]["items"]["Row"], "id" | "item_code" | "item_name" | "base_unit" | "purchase_unit" | "supplier_id" | "cost" | "status">;
 type SupplierOption = Pick<Database["public"]["Tables"]["suppliers"]["Row"], "id" | "supplier_code" | "name" | "status">;
 type BranchOption = { id: string; branch_code: string; branch_name: string; status: string };
+type RequestLine = {
+  key: number;
+  itemId: string;
+  itemSearch: string;
+  qty: string;
+  uom: string;
+  supplierId: string;
+  cost: string;
+  remarks: string;
+};
 
 function today() {
   return new Date().toISOString().slice(0, 10);
+}
+
+function createBlankLine(key: number): RequestLine {
+  return { key, itemId: "", itemSearch: "", qty: "", uom: "", supplierId: "", cost: "0", remarks: "" };
+}
+
+function itemLabel(item: ItemOption) {
+  return `${item.item_code} - ${item.item_name}`;
+}
+
+function stageVariant(index: number) {
+  if (index === 0) return "border-primary/40 bg-primary/10 text-primary";
+  return "bg-card text-muted-foreground";
 }
 
 function ItemSelect({ items, name = "line_item_id", required = false }: { items: ItemOption[]; name?: string; required?: boolean }) {
@@ -44,12 +67,87 @@ export function PurchaseRequestForm({
   branches: BranchOption[];
   action: (formData: FormData) => Promise<void>;
 }) {
-  const [lineIndexes, setLineIndexes] = useState([0]);
+  const [availableItems, setAvailableItems] = useState(items);
+  const [lines, setLines] = useState<RequestLine[]>([createBlankLine(0)]);
   const [priority, setPriority] = useState("normal");
+  const [newItemLineKey, setNewItemLineKey] = useState<number | null>(null);
+  const [newItemError, setNewItemError] = useState<string | null>(null);
+  const [savingNewItem, setSavingNewItem] = useState(false);
   const showUrgencyReason = priority === "urgent" || priority === "critical";
+  const nextKey = lines.reduce((max, line) => Math.max(max, line.key), 0) + 1;
+
+  function updateLine(key: number, updates: Partial<RequestLine>) {
+    setLines((current) => current.map((line) => (line.key === key ? { ...line, ...updates } : line)));
+  }
+
+  function selectItem(key: number, value: string) {
+    const query = value.trim().toLowerCase();
+    const selected =
+      availableItems.find((item) => item.id === value) ??
+      availableItems.find((item) => itemLabel(item).toLowerCase() === query) ??
+      availableItems.find((item) => item.item_code.toLowerCase() === query || item.item_name.toLowerCase() === query);
+
+    if (!selected) {
+      updateLine(key, { itemSearch: value, itemId: "", uom: "", supplierId: "", cost: "0" });
+      return;
+    }
+
+    updateLine(key, {
+      itemId: selected.id,
+      itemSearch: itemLabel(selected),
+      uom: selected.purchase_unit || selected.base_unit,
+      supplierId: selected.supplier_id ?? "",
+      cost: String(selected.cost ?? 0),
+    });
+  }
+
+  async function createInlineItem(formData: FormData) {
+    if (newItemLineKey === null) return;
+    setSavingNewItem(true);
+    setNewItemError(null);
+
+    try {
+      const payload = {
+        item_name: String(formData.get("item_name") ?? ""),
+        item_code: String(formData.get("item_code") ?? ""),
+        category: String(formData.get("category") ?? ""),
+        base_unit: String(formData.get("base_unit") ?? ""),
+        purchase_unit: String(formData.get("purchase_unit") ?? ""),
+        supplier_id: String(formData.get("supplier_id") ?? ""),
+        cost: String(formData.get("cost") ?? "0"),
+      };
+      const response = await fetch("/api/items/quick-create", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      const result = (await response.json()) as { ok: boolean; message?: string; item?: ItemOption };
+
+      if (!response.ok || !result.ok || !result.item) {
+        setNewItemError(result.message ?? "Could not create this item.");
+        return;
+      }
+
+      setAvailableItems((current) => [...current, result.item as ItemOption].sort((a, b) => a.item_name.localeCompare(b.item_name)));
+      updateLine(newItemLineKey, {
+        itemId: result.item.id,
+        itemSearch: itemLabel(result.item),
+        uom: result.item.purchase_unit || result.item.base_unit,
+        supplierId: result.item.supplier_id ?? "",
+        cost: String(result.item.cost ?? 0),
+      });
+      setNewItemLineKey(null);
+    } catch {
+      setNewItemError("Could not create this item.");
+    } finally {
+      setSavingNewItem(false);
+    }
+  }
+
   return (
+    <>
     <Card>
-      <CardContent className="p-5">
+      <CardContent className="space-y-5 p-5">
         <form action={action} className="space-y-5">
           <input type="hidden" name="request_no" value="" />
           <input type="hidden" name="status" value="draft" />
@@ -64,76 +162,190 @@ export function PurchaseRequestForm({
             <SubmitButton type="submit" pendingLabel="Saving..." showOverlay overlayLabel="Saving changes...">Create purchase request</SubmitButton>
           </div>
 
-          <div className="grid gap-4 md:grid-cols-3">
-            <Field label="Request Date">
-              <Input name="request_date" type="date" defaultValue={today()} required />
-            </Field>
-            <Field label="Needed By">
-              <Input name="needed_by_date" type="date" />
-            </Field>
-            <Field label="Branch">
-              <SelectNative name="branch_id" defaultValue={branches[0]?.id ?? ""} required>
-                {branches.map((branch) => <option key={branch.id} value={branch.id}>{branch.branch_name}</option>)}
-              </SelectNative>
-              <p className="mt-1 text-xs text-muted-foreground">Select the outlet, kitchen, office, or event booth this request belongs to.</p>
-            </Field>
-            <Field label="Urgency">
-              <SelectNative name="priority" value={priority} onChange={(event) => setPriority(event.target.value)}>
-                <option value="low">Low</option>
-                <option value="normal">Normal</option>
-                <option value="urgent">Urgent</option>
-                <option value="critical">Critical</option>
-              </SelectNative>
-              <p className="mt-1 text-xs text-muted-foreground">Use Urgent or Critical only when delay may affect outlet or kitchen operations.</p>
-            </Field>
-            <div className="md:col-span-3">
-              <Field label="Remarks">
-                <Textarea name="remarks" placeholder="Reason for purchasing request" />
-              </Field>
+          <div className="grid gap-3 rounded-lg border bg-[var(--sb-muted)] p-3 md:grid-cols-4">
+            {[
+              ["draft", "Draft"],
+              ["pending_approval", "Pending Approval"],
+              ["approved", "Approved"],
+              ["converted", "Converted to PO"],
+            ].map(([key, label], index) => {
+              const Icon = index === 0 ? CircleDot : index < 0 ? CheckCircle2 : Circle;
+              return (
+                <div key={key} className={`rounded-md border p-3 ${stageVariant(index)}`}>
+                  <div className="flex items-center gap-2">
+                    <Icon className="h-4 w-4" />
+                    <p className="text-sm font-medium">{label}</p>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          <section className="rounded-lg border bg-card p-4">
+            <div className="mb-4">
+              <p className="text-sm font-semibold">Main details</p>
+              <p className="mt-1 text-xs text-muted-foreground">Branch, dates, urgency, and the main request reason.</p>
             </div>
-            {showUrgencyReason ? (
-              <div className="md:col-span-2">
-                <Field label="Urgency Reason">
-                  <Input name="urgency_reason" placeholder="Example: outlet is blocked by a missing ingredient" />
+            <div className="grid gap-4 md:grid-cols-3">
+              <Field label="Request Date">
+                <Input name="request_date" type="date" defaultValue={today()} required />
+              </Field>
+              <Field label="Needed By">
+                <Input name="needed_by_date" type="date" />
+              </Field>
+              <Field label="Branch">
+                <SelectNative name="branch_id" defaultValue={branches[0]?.id ?? ""} required>
+                  {branches.map((branch) => <option key={branch.id} value={branch.id}>{branch.branch_name}</option>)}
+                </SelectNative>
+              </Field>
+              <Field label="Urgency">
+                <SelectNative name="priority" value={priority} onChange={(event) => setPriority(event.target.value)}>
+                  <option value="low">Low</option>
+                  <option value="normal">Normal</option>
+                  <option value="urgent">Urgent</option>
+                  <option value="critical">Critical</option>
+                </SelectNative>
+              </Field>
+              {showUrgencyReason ? (
+                <div className="md:col-span-2">
+                  <Field label="Urgency Reason">
+                    <Input name="urgency_reason" placeholder="Example: outlet is blocked by a missing ingredient" />
+                  </Field>
+                </div>
+              ) : null}
+              <div className="md:col-span-3">
+                <Field label="Remarks">
+                  <Textarea name="remarks" placeholder="Main reason for this purchase request" />
                 </Field>
               </div>
-            ) : null}
-          </div>
+            </div>
+          </section>
 
           <div className="rounded-lg border">
             <div className="flex items-center justify-between border-b bg-secondary/40 px-4 py-3">
               <div>
                 <p className="text-sm font-semibold">Request Lines</p>
-                <p className="text-xs text-muted-foreground">Search by item code or item name in the item selector.</p>
+                <p className="text-xs text-muted-foreground">Search by item code or item name. UOM, supplier, and cost fill from the item master.</p>
               </div>
               <div className="flex items-center gap-2">
                 <Search className="h-4 w-4 text-muted-foreground" />
-                <Button type="button" variant="outline" size="sm" onClick={() => setLineIndexes((indexes) => [...indexes, Math.max(...indexes) + 1])}>
+                <Button type="button" variant="outline" size="sm" onClick={() => setLines((current) => [...current, createBlankLine(nextKey)])}>
                   <Plus className="h-4 w-4" />
                   Add line
                 </Button>
               </div>
             </div>
             <div className="divide-y">
-              {lineIndexes.map((index) => (
-                <div key={index} className="grid gap-3 p-4 lg:grid-cols-[2fr_100px_90px_130px_1.4fr_1fr_1fr]">
-                  <ItemSelect items={items} required={index === 0} />
-                  <Input name="line_qty" type="number" min="0.0001" step="0.0001" placeholder="Qty" required={index === 0} />
-                  <Input name="line_uom" placeholder="UOM" defaultValue={items[index]?.base_unit ?? ""} required={index === 0} />
-                  <Input name="line_estimated_unit_cost" type="number" min="0" step="0.0001" placeholder="Cost" defaultValue={0} />
-                  <SelectNative name="line_suggested_supplier_id" defaultValue="">
-                    <option value="">Supplier suggestion</option>
-                    {suppliers.map((supplier) => <option key={supplier.id} value={supplier.id}>{supplier.name}</option>)}
-                  </SelectNative>
-                  <Input name="line_reason" placeholder="Reason" defaultValue={index === 0 ? "Low stock" : ""} />
-                  <Input name="line_remarks" placeholder="Remarks" />
+              {lines.map((line, index) => (
+                <div key={line.key} className="grid gap-3 p-4 xl:grid-cols-[minmax(260px,2fr)_110px_90px_150px_130px_minmax(160px,1fr)_auto]">
+                  <div className="space-y-2">
+                    <Field label={index === 0 ? "Item" : "Item"}>
+                      <Input
+                        list="purchase-request-items"
+                        value={line.itemSearch}
+                        onChange={(event) => selectItem(line.key, event.target.value)}
+                        placeholder="Type item code or item name"
+                      />
+                    </Field>
+                    {line.itemId ? (
+                      <p className="text-xs text-muted-foreground">
+                        {availableItems.find((item) => item.id === line.itemId)?.item_code} - {availableItems.find((item) => item.id === line.itemId)?.item_name}
+                      </p>
+                    ) : (
+                      <Button type="button" variant="ghost" size="sm" onClick={() => setNewItemLineKey(line.key)}>Create new item</Button>
+                    )}
+                    <input type="hidden" name="line_item_id" value={line.itemId} />
+                  </div>
+                  <Field label="Quantity">
+                    <Input name="line_qty" type="number" min="0.0001" step="0.0001" value={line.qty} onChange={(event) => updateLine(line.key, { qty: event.target.value })} placeholder="Qty" />
+                  </Field>
+                  <Field label="UOM">
+                    <Input name="line_uom" value={line.uom} onChange={(event) => updateLine(line.key, { uom: event.target.value })} placeholder="UOM" />
+                  </Field>
+                  <Field label="Supplier">
+                    <SelectNative name="line_suggested_supplier_id" value={line.supplierId} onChange={(event) => updateLine(line.key, { supplierId: event.target.value })}>
+                      <option value="">No suggestion</option>
+                      {suppliers.map((supplier) => <option key={supplier.id} value={supplier.id}>{supplier.name}</option>)}
+                    </SelectNative>
+                  </Field>
+                  <Field label="Cost">
+                    <Input name="line_estimated_unit_cost" type="number" min="0" step="0.0001" value={line.cost} onChange={(event) => updateLine(line.key, { cost: event.target.value })} />
+                  </Field>
+                  <Field label="Line remarks">
+                    <Input name="line_remarks" value={line.remarks} onChange={(event) => updateLine(line.key, { remarks: event.target.value })} placeholder="Optional" />
+                  </Field>
+                  <div className="flex items-end">
+                    <Button type="button" variant="ghost" size="icon" aria-label="Remove line" disabled={lines.length === 1} onClick={() => setLines((current) => current.filter((row) => row.key !== line.key))}>
+                      <X className="h-4 w-4" />
+                    </Button>
+                  </div>
+                  <input type="hidden" name="line_reason" value="" />
                 </div>
               ))}
             </div>
           </div>
+
+          <datalist id="purchase-request-items">
+            {availableItems.map((item) => (
+              <option key={item.id} value={itemLabel(item)} />
+            ))}
+          </datalist>
+
+          <div className="flex justify-end border-t pt-4">
+            <SubmitButton type="submit" pendingLabel="Saving..." showOverlay overlayLabel="Saving changes...">Create purchase request</SubmitButton>
+          </div>
         </form>
       </CardContent>
     </Card>
+    {newItemLineKey !== null ? (
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/30 p-4 backdrop-blur-sm">
+        <Card className="w-full max-w-2xl">
+          <CardContent className="space-y-4 p-5">
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <p className="text-lg font-semibold">Create new item</p>
+                <p className="mt-1 text-sm text-muted-foreground">Add the minimum item details and return to this PR line.</p>
+              </div>
+              <Button type="button" variant="ghost" size="icon" onClick={() => setNewItemLineKey(null)} aria-label="Close item dialog">
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
+            {newItemError ? <p className="rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700">{newItemError}</p> : null}
+            <form action={createInlineItem} className="grid gap-4 md:grid-cols-2">
+              <Field label="Item Name">
+                <Input name="item_name" required />
+              </Field>
+              <Field label="Item Code">
+                <Input name="item_code" placeholder="Leave blank to auto-generate" />
+              </Field>
+              <Field label="Category">
+                <Input name="category" required />
+              </Field>
+              <Field label="Base UOM">
+                <Input name="base_unit" placeholder="kg" required />
+              </Field>
+              <Field label="Purchase UOM">
+                <Input name="purchase_unit" placeholder="kg" required />
+              </Field>
+              <Field label="Default Supplier">
+                <SelectNative name="supplier_id" defaultValue="">
+                  <option value="">No default supplier</option>
+                  {suppliers.map((supplier) => <option key={supplier.id} value={supplier.id}>{supplier.name}</option>)}
+                </SelectNative>
+              </Field>
+              <Field label="Cost">
+                <Input name="cost" type="number" min="0" step="0.0001" defaultValue={0} />
+              </Field>
+              <div className="flex items-end justify-end gap-2 md:col-span-2">
+                <Button type="button" variant="ghost" onClick={() => setNewItemLineKey(null)}>Cancel</Button>
+                <Button type="submit" disabled={savingNewItem}>{savingNewItem ? "Saving..." : "Save item"}</Button>
+              </div>
+            </form>
+          </CardContent>
+        </Card>
+      </div>
+    ) : null}
+    </>
   );
 }
 

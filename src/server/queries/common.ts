@@ -83,13 +83,13 @@ export async function getItemsForSelect() {
   if (isMockMode()) {
     return mockItems
       .filter((item) => item.status === "active")
-      .map(({ id, item_code, item_name, base_unit, status }) => ({ id, item_code, item_name, base_unit, status }));
+      .map(({ id, item_code, item_name, base_unit, purchase_unit, supplier_id, cost, status }) => ({ id, item_code, item_name, base_unit, purchase_unit, supplier_id, cost, status }));
   }
 
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("items")
-    .select("id, item_code, item_name, base_unit, status")
+    .select("id, item_code, item_name, base_unit, purchase_unit, supplier_id, cost, status")
     .eq("status", "active")
     .order("item_name", { ascending: true });
 

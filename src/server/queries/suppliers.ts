@@ -10,7 +10,7 @@ type SupplierFilters = {
   dir?: string;
 };
 
-function filterSuppliers<T extends { supplier_code: string | null; name: string; contact_person: string | null; phone: string | null; email: string | null; status: string; deleted_at?: string | null }>(
+function filterSuppliers<T extends { supplier_code: string | null; name: string; contact_person: string | null; phone: string | null; email: string | null; status: string }>(
   suppliers: T[],
   filters: SupplierFilters,
 ) {
@@ -25,10 +25,8 @@ function filterSuppliers<T extends { supplier_code: string | null; name: string;
           value.toLowerCase().includes(search),
         )
       : true;
-    const matchesStatus =
-      status === "archived" ? Boolean(supplier.deleted_at) :
-      status ? supplier.status === status :
-      true;
+    const effectiveStatus = status === "archived" ? "inactive" : status;
+    const matchesStatus = effectiveStatus ? supplier.status === effectiveStatus : true;
     return matchesSearch && matchesStatus;
   }).sort((a, b) => compareTableValues(a[sort as keyof T], b[sort as keyof T], dir));
 }
@@ -45,14 +43,9 @@ export async function getSuppliers(filters: SupplierFilters = {}) {
   const supabase = await createClient();
   let query = supabase.from("suppliers").select("*").order("name", { ascending: true });
 
-  if (filters.status === "archived") {
-    query = query.not("deleted_at", "is", null);
-  } else if (filters.status !== "all") {
-    query = query.is("deleted_at", null);
-  }
-
-  if (filters.status && isSupplierStatus(filters.status)) {
-    query = query.eq("status", filters.status);
+  const requestedStatus = filters.status === "archived" ? "inactive" : filters.status;
+  if (requestedStatus && isSupplierStatus(requestedStatus)) {
+    query = query.eq("status", requestedStatus);
   }
 
   if (filters.search?.trim()) {

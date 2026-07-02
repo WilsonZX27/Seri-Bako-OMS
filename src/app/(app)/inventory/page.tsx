@@ -1,5 +1,6 @@
 import Link from "next/link";
-import { ArrowDownLeft, ArrowUpRight, Boxes, ClipboardCheck, PackageSearch, ScanLine, TriangleAlert } from "lucide-react";
+import { ArrowDownLeft, ArrowUpRight, Boxes, ClipboardCheck, PackageSearch, ReceiptText, ScanLine, TriangleAlert, Upload } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -9,6 +10,22 @@ import { StatCard } from "@/components/ui/stat-card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { formatCurrency, formatNumber } from "@/lib/utils";
 import { getInventoryDashboard } from "@/server/queries/inventory";
+
+function InventoryActionCard({ href, title, description, icon: Icon, active = false }: { href: string; title: string; description: string; icon: LucideIcon; active?: boolean }) {
+  return (
+    <Link href={href} className={`block h-full rounded-lg border p-4 transition-colors ${active ? "border-primary bg-primary text-primary-foreground" : "bg-card hover:border-primary/30 hover:bg-[var(--sb-muted)]"}`}>
+      <div className="flex h-full gap-3">
+        <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-md ${active ? "bg-white/15" : "bg-[var(--sb-muted)] text-primary"}`}>
+          <Icon className="h-5 w-5" />
+        </div>
+        <div className="min-w-0">
+          <p className="text-sm font-semibold">{title}</p>
+          <p className={`mt-1 text-sm leading-5 ${active ? "text-primary-foreground/75" : "text-muted-foreground"}`}>{description}</p>
+        </div>
+      </div>
+    </Link>
+  );
+}
 
 export default async function InventoryPage() {
   const summary = await getInventoryDashboard();
@@ -23,16 +40,27 @@ export default async function InventoryPage() {
     <>
       <PageHeader title="Inventory" description="Stock ledger dashboard. Balances are calculated from posted transactions only." />
       <div className="space-y-5 p-5">
-        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-          <Button asChild><Link href="/stock-balance">Stock Balance</Link></Button>
-          <Button asChild variant="outline"><Link href="/stock-card">Stock Card</Link></Button>
-          <Button asChild variant="outline"><Link href="/stock-transactions/new">Post Movement</Link></Button>
-          <Button asChild variant="outline"><Link href="/opening-stock/import">Opening Stock Import</Link></Button>
-        </div>
-        <div className="space-y-3">
-          <p className="sb-section-label">Inventory tools</p>
-          <CategoryCardGrid items={inventoryTools} />
-        </div>
+        <section className="space-y-3 rounded-xl border bg-card p-4">
+          <div>
+            <p className="sb-section-label">Inventory actions</p>
+            <h2 className="mt-1 text-lg font-semibold">Stock workspace</h2>
+            <p className="mt-1 text-sm text-muted-foreground">Common ledger views and controlled stock posting tools.</p>
+          </div>
+          <div className="grid items-stretch gap-3 sm:grid-cols-2 xl:grid-cols-4">
+            <InventoryActionCard href="/stock-balance" title="Stock Balance" description="Branch-level stock with optional location detail." icon={PackageSearch} active />
+            <InventoryActionCard href="/stock-card" title="Stock Card" description="Trace item movements through the posted ledger." icon={ReceiptText} />
+            <InventoryActionCard href="/stock-transactions/new" title="Post Movement" description="Post controlled manual movements into stock." icon={ArrowUpRight} />
+            <InventoryActionCard href="/opening-stock/import" title="Opening Stock Import" description="Load opening balances through the ledger." icon={Upload} />
+          </div>
+        </section>
+
+        <section className="space-y-3 rounded-xl border bg-[var(--sb-muted)] p-4">
+          <div>
+            <p className="sb-section-label">Operational tools</p>
+            <h2 className="mt-1 text-lg font-semibold">Daily inventory work</h2>
+          </div>
+          <CategoryCardGrid items={inventoryTools} className="xl:grid-cols-4" />
+        </section>
 
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
           <StatCard label="Inventory Value" value={formatCurrency(summary.inventoryValue)} icon={Boxes} />

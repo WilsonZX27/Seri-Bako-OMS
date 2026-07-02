@@ -6,7 +6,6 @@ import {
   FileText,
   Gauge,
   LayoutGrid,
-  Wrench,
   Settings,
   ShoppingCart,
 } from "lucide-react";
@@ -43,13 +42,6 @@ export const navGroups: NavGroup[] = [
     icon: Gauge,
     roles: "all",
     items: [{ href: "/dashboard", label: "Dashboard", icon: Gauge, roles: "all", keywords: ["home", "alerts", "approvals"] }],
-  },
-  {
-    id: "quick-tools",
-    label: "Quick Tools",
-    icon: Wrench,
-    roles: allRoles,
-    items: [{ href: "/quick-tools", label: "Quick Tools", icon: Wrench, roles: allRoles, keywords: ["scan", "count", "receive", "shortcuts"] }],
   },
   {
     id: "daily",

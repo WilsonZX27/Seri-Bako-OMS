@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { AlertTriangle, Bell, Boxes, CalendarCheck, CheckCircle2, EyeOff, Factory, FileText, PackageCheck, RotateCcw, Truck } from "lucide-react";
+import { AlertTriangle, Bell, Boxes, CalendarCheck, CheckCircle2, ClipboardCheck, EyeOff, Factory, FileText, PackageCheck, RotateCcw, ScanLine, Truck, TriangleAlert } from "lucide-react";
 import { useEffect, useState, type ReactNode } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -10,6 +10,7 @@ import { PriorityBadge } from "@/components/priority-badge";
 import { StatCard } from "@/components/ui/stat-card";
 import { formatNumber } from "@/lib/utils";
 import type { UserRole } from "@/types/database";
+import type { LucideIcon } from "lucide-react";
 
 type DashboardSummary = Awaited<ReturnType<typeof import("@/server/queries/dashboard").getDashboardSummary>>;
 
@@ -61,6 +62,22 @@ function Widget({ id, title, description, children, onHide, onMove }: { id: stri
       </CardHeader>
       <CardContent>{children}</CardContent>
     </Card>
+  );
+}
+
+function QuickToolCard({ href, title, description, icon: Icon }: { href: string; title: string; description: string; icon: LucideIcon }) {
+  return (
+    <Link href={href} className="block h-full rounded-lg border bg-card p-4 transition-colors hover:border-primary/30 hover:bg-[var(--sb-muted)]">
+      <div className="flex h-full gap-3">
+        <div className="sb-icon-tile">
+          <Icon className="h-5 w-5" />
+        </div>
+        <div className="min-w-0">
+          <p className="text-sm font-semibold">{title}</p>
+          <p className="mt-1 text-sm leading-5 text-muted-foreground">{description}</p>
+        </div>
+      </div>
+    </Link>
   );
 }
 
@@ -169,6 +186,20 @@ export function DashboardWorkspace({ summary, role }: { summary: DashboardSummar
 
   return (
     <div className="space-y-5 p-5">
+      <section className="space-y-3 rounded-xl border bg-card p-4">
+        <div>
+          <p className="sb-section-label">Quick Tools</p>
+          <h2 className="mt-1 text-lg font-semibold">Frequent actions</h2>
+          <p className="mt-1 text-sm text-muted-foreground">Fast branch-first work for daily operations.</p>
+        </div>
+        <div className="grid items-stretch gap-3 md:grid-cols-2 xl:grid-cols-4">
+          <QuickToolCard href="/stock-counts/scan" title="Stock Count" description="Count stock by branch with search or camera scan." icon={ClipboardCheck} />
+          <QuickToolCard href="/goods-receivings/scan" title="Scan Receiving" description="Prepare receiving lines from delivered items." icon={PackageCheck} />
+          <QuickToolCard href="/stock-wastage/new" title="Report Wastage" description="Record damaged, expired, missing, or claimable stock." icon={TriangleAlert} />
+          <QuickToolCard href="/stock-transfers/new" title="Transfer Stock" description="Move stock between branches with default stores." icon={ScanLine} />
+        </div>
+      </section>
+
       <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border bg-card p-4">
         <div>
           <p className="sb-section-label">Dashboard</p>
@@ -180,7 +211,6 @@ export function DashboardWorkspace({ summary, role }: { summary: DashboardSummar
               <Link href="/data-onboarding">Data Onboarding</Link>
             </Button>
           ) : null}
-          <Button asChild variant="secondary"><Link href="/quick-tools">Open Quick Tools</Link></Button>
         </div>
       </div>
 

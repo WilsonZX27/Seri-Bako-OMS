@@ -179,7 +179,7 @@ async function handleItemsImport(context: RouteContext, request: ImportRequest) 
 
   const [{ data: existingItems, error: itemsError }, { data: suppliers, error: suppliersError }, { data: existingBarcodes, error: barcodesError }] = await Promise.all([
     context.supabase.from("items").select("id, item_code").in("item_code", itemCodes.length ? itemCodes : [""]),
-    context.supabase.from("suppliers").select("id, name, supplier_code").is("deleted_at", null),
+    context.supabase.from("suppliers").select("id, name, supplier_code").eq("status", "active"),
     context.supabase
       .from("barcode_mappings")
       .select("id, barcode_value, item_id, is_primary")
@@ -367,7 +367,7 @@ async function handleSuppliersImport(context: RouteContext, request: ImportReque
   const { data: existingSuppliers, error: existingError } = await context.supabase
     .from("suppliers")
     .select("id, supplier_code, name")
-    .is("deleted_at", null);
+    .eq("status", "active");
   if (existingError) throw new Error(existingError.message);
 
   const existingByCode = new Map(
@@ -439,7 +439,7 @@ async function handleSupplierItemsImport(context: RouteContext, request: ImportR
   const itemCodes = [...new Set(rows.map((row) => normalizeText(row.item_code)).filter(Boolean))];
 
   const [{ data: suppliers, error: suppliersError }, { data: items, error: itemsError }] = await Promise.all([
-    context.supabase.from("suppliers").select("id, supplier_code, name").is("deleted_at", null),
+    context.supabase.from("suppliers").select("id, supplier_code, name").eq("status", "active"),
     context.supabase.from("items").select("id, item_code, item_name").is("deleted_at", null),
   ]);
   if (suppliersError) throw new Error(suppliersError.message);

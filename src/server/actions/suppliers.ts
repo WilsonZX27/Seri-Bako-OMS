@@ -38,7 +38,7 @@ export async function createSupplier(formData: FormData) {
         .from("suppliers")
         .select("id")
         .eq("supplier_code", parsed.supplier_code)
-        .not("deleted_at", "is", null)
+        .eq("status", "inactive")
         .limit(1)
         .maybeSingle();
       if (archivedError) throw new Error(archivedError.message);
@@ -97,7 +97,7 @@ export async function deleteSupplier(id: string) {
     const writeSupabase = createAdminClient();
     const { error } = await writeSupabase
       .from("suppliers")
-      .update({ status: "inactive", deleted_at: new Date().toISOString() })
+      .update({ status: "inactive" })
       .eq("id", id);
     if (error) throw new Error(error.message);
 
@@ -119,7 +119,7 @@ export async function restoreSupplier(id: string) {
     const writeSupabase = createAdminClient();
     const { error } = await writeSupabase
       .from("suppliers")
-      .update({ status: "active", deleted_at: null })
+      .update({ status: "active" })
       .eq("id", id);
     if (error) throw new Error(error.message);
 

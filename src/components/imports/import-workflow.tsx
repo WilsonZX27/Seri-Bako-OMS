@@ -329,24 +329,27 @@ export function ImportWorkflow({ entity }: { entity: ImportEntity }) {
                 ))}
               </ul>
             </div>
-            <div className="flex flex-wrap gap-2">
-              <Button type="button" variant="outline" onClick={downloadTemplate}>
-                <Download className="mr-2 h-4 w-4" />
-                Download template
-              </Button>
-              <Button type="button" variant="outline" onClick={saveDraft}>
-                <Save className="mr-2 h-4 w-4" />
-                Save draft
-              </Button>
-              <Button type="button" variant="outline" onClick={loadDraft}>
-                Load draft
-              </Button>
-              {draftSavedAt ? (
-                <Button type="button" variant="ghost" onClick={clearDraft}>
-                  <Trash2 className="mr-2 h-4 w-4" />
-                  Clear saved draft
+            <div className="rounded-lg border bg-[var(--sb-muted)] p-3">
+              <p className="mb-2 text-xs font-semibold uppercase text-muted-foreground">Template and draft</p>
+              <div className="flex flex-wrap gap-2">
+                <Button type="button" variant="outline" onClick={downloadTemplate}>
+                  <Download className="mr-2 h-4 w-4" />
+                  Template
                 </Button>
-              ) : null}
+                <Button type="button" variant="outline" onClick={saveDraft}>
+                  <Save className="mr-2 h-4 w-4" />
+                  Save draft
+                </Button>
+                <Button type="button" variant="outline" onClick={loadDraft}>
+                  Load draft
+                </Button>
+                {draftSavedAt ? (
+                  <Button type="button" variant="ghost" onClick={clearDraft}>
+                    <Trash2 className="mr-2 h-4 w-4" />
+                    Clear
+                  </Button>
+                ) : null}
+              </div>
             </div>
           </div>
 
@@ -371,9 +374,12 @@ export function ImportWorkflow({ entity }: { entity: ImportEntity }) {
                 </p>
               </div>
 
-              <div className="flex flex-wrap gap-2">
-                <Button type="button" variant={entryMode === "upload" ? "default" : "outline"} onClick={() => setEntryMode("upload")}>Upload file</Button>
-                <Button type="button" variant={entryMode === "table" ? "default" : "outline"} onClick={() => setEntryMode("table")}>Edit in table</Button>
+              <div className="rounded-lg border bg-card p-3">
+                <p className="mb-2 text-xs font-semibold uppercase text-muted-foreground">Input mode</p>
+                <div className="flex flex-wrap gap-2">
+                  <Button type="button" variant={entryMode === "upload" ? "default" : "outline"} onClick={() => setEntryMode("upload")}>Upload file</Button>
+                  <Button type="button" variant={entryMode === "table" ? "default" : "outline"} onClick={() => setEntryMode("table")}>Edit in table</Button>
+                </div>
               </div>
 
               <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_220px]">
@@ -425,8 +431,9 @@ export function ImportWorkflow({ entity }: { entity: ImportEntity }) {
                   <div className="flex items-center justify-between"><span>Rows needing fixes</span><span className="font-medium text-foreground">{errorRows.length}</span></div>
                 </div>
               </div>
-              <div className="rounded-lg border p-4">
-                <p className="text-sm font-semibold">Actions</p>
+              <div className="rounded-lg border bg-card p-4">
+                <p className="text-sm font-semibold">Review actions</p>
+                <p className="mt-1 text-xs text-muted-foreground">Check the grid before proceeding. Confirm stays disabled until valid rows are ready.</p>
                 <div className="mt-3 flex flex-col gap-2">
                   <Button type="button" variant="outline" onClick={addBlankRow}>
                     <PencilLine className="mr-2 h-4 w-4" />
@@ -449,20 +456,20 @@ export function ImportWorkflow({ entity }: { entity: ImportEntity }) {
             </div>
           </div>
 
-          <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-            <div className="rounded-md border bg-secondary/30 p-3">
+          <div className="grid gap-3 rounded-xl border bg-[var(--sb-muted)] p-3 sm:grid-cols-2 xl:grid-cols-4">
+            <div className="rounded-md border bg-card p-3">
               <div className="flex items-center gap-2 text-sm font-medium text-success"><CheckCircle2 className="h-4 w-4" />Imported</div>
               <p className="mt-1 text-2xl font-semibold">{summary.imported}</p>
             </div>
-            <div className="rounded-md border bg-secondary/30 p-3">
+            <div className="rounded-md border bg-card p-3">
               <div className="flex items-center gap-2 text-sm font-medium text-primary"><Upload className="h-4 w-4" />Updated</div>
               <p className="mt-1 text-2xl font-semibold">{summary.updated}</p>
             </div>
-            <div className="rounded-md border bg-secondary/30 p-3">
+            <div className="rounded-md border bg-card p-3">
               <div className="flex items-center gap-2 text-sm font-medium text-amber-700"><AlertTriangle className="h-4 w-4" />Skipped</div>
               <p className="mt-1 text-2xl font-semibold">{summary.skipped}</p>
             </div>
-            <div className="rounded-md border bg-secondary/30 p-3">
+            <div className="rounded-md border bg-card p-3">
               <div className="flex items-center gap-2 text-sm font-medium text-destructive"><XCircle className="h-4 w-4" />Errors</div>
               <p className="mt-1 text-2xl font-semibold">{summary.errors}</p>
             </div>

@@ -17,7 +17,7 @@ export default async function EditSupplierPage({ params, searchParams }: { param
       <div className="space-y-4 p-5">
         {messages.error || messages.success ? <Card><CardContent className={`p-4 text-sm ${messages.error ? "text-destructive" : "text-emerald-700"}`}>{messages.error ?? messages.success}</CardContent></Card> : null}
         <SupplierForm supplier={supplier} action={updateSupplier.bind(null, id)} />
-        {supplier.deleted_at ? (
+        {supplier.status === "inactive" ? (
           <Card>
             <CardContent className="flex items-center justify-between gap-3 p-4">
               <div>

@@ -21,7 +21,7 @@ export async function getDataOnboardingSummary() {
     supabase.from("staffs").select("id", { count: "exact", head: true }).is("deleted_at", null),
     supabase.from("roles").select("id", { count: "exact", head: true }).is("deleted_at", null),
     supabase.from("items").select("id", { count: "exact", head: true }).is("deleted_at", null),
-    supabase.from("suppliers").select("id", { count: "exact", head: true }).is("deleted_at", null),
+    supabase.from("suppliers").select("id", { count: "exact", head: true }).eq("status", "active"),
     supabase.from("supplier_items").select("id", { count: "exact", head: true }).is("deleted_at", null),
     supabase.from("uom_conversions").select("id", { count: "exact", head: true }).is("deleted_at", null),
     supabase.from("barcode_mappings").select("id", { count: "exact", head: true }).is("deleted_at", null),

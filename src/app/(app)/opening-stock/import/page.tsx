@@ -1,6 +1,7 @@
 import { ImportWorkflow } from "@/components/imports/import-workflow";
 import { Card, CardContent } from "@/components/ui/card";
 import { PageHeader } from "@/components/ui/page-header";
+import { formatPageError } from "@/server/actions/error-handling";
 import { hasPermission } from "@/server/auth/permissions";
 
 export const dynamic = "force-dynamic";
@@ -36,7 +37,7 @@ export default async function OpeningStockImportPage() {
         <div className="p-5">
           <Card>
             <CardContent className="p-5 text-sm text-muted-foreground">
-              This import workspace is unavailable right now. Please try again shortly.
+              {formatPageError(error, "This import workspace is unavailable right now. Please try again shortly.")}
             </CardContent>
           </Card>
         </div>

@@ -150,7 +150,10 @@ export function DashboardWorkspace({ summary, role }: { summary: DashboardSummar
     ),
     "recent-activities": (
       <Widget id="recent-activities" title="Recent Activities" onHide={hide} onMove={move}>
-        <div className="space-y-2">{summary.recentActivities.map((activity) => <div key={activity.id} className="rounded-md border p-3 text-sm">{activity.message}</div>)}</div>
+        <div className="space-y-2">
+          {summary.recentActivities.map((activity) => <div key={activity.id} className="rounded-md border p-3 text-sm">{activity.message}</div>)}
+          {!summary.recentActivities.length ? <div className="rounded-md border p-4 text-sm text-muted-foreground">No recent activity for your account.</div> : null}
+        </div>
       </Widget>
     ),
     "notifications": (

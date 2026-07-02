@@ -97,7 +97,7 @@ export function PurchaseRequestForm({
             <div className="flex items-center justify-between border-b bg-secondary/40 px-4 py-3">
               <div>
                 <p className="text-sm font-semibold">Request Lines</p>
-                <p className="text-xs text-muted-foreground">Search by item image, barcode, item code, or name in the item selector.</p>
+                <p className="text-xs text-muted-foreground">Search by item code, item name, or barcode in the item selector.</p>
               </div>
               <Search className="h-4 w-4 text-muted-foreground" />
             </div>

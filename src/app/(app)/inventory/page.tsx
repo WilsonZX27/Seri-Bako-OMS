@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowDownLeft, ArrowUpRight, Barcode, Boxes, ClipboardCheck, PackageSearch, ReceiptText, ScanLine, TriangleAlert } from "lucide-react";
+import { ArrowDownLeft, ArrowUpRight, Boxes, ClipboardCheck, PackageSearch, ScanLine, TriangleAlert } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -13,25 +13,22 @@ import { getInventoryDashboard } from "@/server/queries/inventory";
 export default async function InventoryPage() {
   const summary = await getInventoryDashboard();
   const inventoryTools = [
-    { href: "/stock-balance", title: "Stock Balance", description: "Branch-level stock with optional location detail.", icon: PackageSearch, recommendedFor: "all operations" },
-    { href: "/stock-card", title: "Stock Card", description: "Trace item movements through the posted stock ledger.", icon: ReceiptText, recommendedFor: "managers" },
     { href: "/stock-counts", title: "Stock Count", description: "Create and review branch-first stock counts.", icon: ClipboardCheck, recommendedFor: "kitchen" },
     { href: "/stock-transfers", title: "Stock Transfer", description: "Move stock between branches with default locations handled automatically.", icon: ScanLine, recommendedFor: "operations" },
     { href: "/stock-wastage", title: "Stock Wastage", description: "Record damaged, expired, missing, or claimable stock.", icon: TriangleAlert, recommendedFor: "kitchen" },
-    { href: "/stock-transactions/new", title: "Manual Stock Movement", description: "Post controlled manual movements into the ledger.", icon: ReceiptText, recommendedFor: "admin" },
-    { href: "/stock-counts/scan", title: "Barcode Lookup", description: "Use a USB scanner or manual input to find and count items.", icon: Barcode, recommendedFor: "kitchen" },
-    { href: "/imports/items", title: "Opening Stock / Import", description: "Download templates and import master data with validation.", icon: Boxes, recommendedFor: "admin" },
+    { href: "/items", title: "Find Item", description: "Search item code, item name, or barcode.", icon: PackageSearch, recommendedFor: "all operations" },
   ];
 
   return (
     <>
-      <PageHeader
-        title="Inventory"
-        description="Stock ledger dashboard. Balances are calculated from posted transactions only."
-        action={{ href: "/stock-transactions/new", label: "Post movement" }}
-        secondaryAction={{ href: "/stock-card", label: "Stock Card" }}
-      />
+      <PageHeader title="Inventory" description="Stock ledger dashboard. Balances are calculated from posted transactions only." />
       <div className="space-y-5 p-5">
+        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+          <Button asChild><Link href="/stock-balance">Stock Balance</Link></Button>
+          <Button asChild variant="outline"><Link href="/stock-card">Stock Card</Link></Button>
+          <Button asChild variant="outline"><Link href="/stock-transactions/new">Post Movement</Link></Button>
+          <Button asChild variant="outline"><Link href="/opening-stock/import">Opening Stock Import</Link></Button>
+        </div>
         <div className="space-y-3">
           <p className="sb-section-label">Inventory tools</p>
           <CategoryCardGrid items={inventoryTools} />

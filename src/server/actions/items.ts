@@ -3,9 +3,10 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { isMockMode } from "@/lib/mock-mode";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import { itemSchema } from "@/lib/validations/item";
-import { formatActionError, rethrowRedirect, safeRedirectWithMessage } from "@/server/actions/error-handling";
+import { formatActionError, requirePermissionOrRedirect, rethrowRedirect, safeRedirectWithMessage } from "@/server/actions/error-handling";
 import { upsertPrimaryBarcodeMapping } from "@/server/actions/barcodes";
 
 function cleanText(value: unknown) {
@@ -48,11 +49,13 @@ function payload(formData: FormData) {
 
 export async function createItem(formData: FormData) {
   try {
+    await requirePermissionOrRedirect("items.create", "/items/new");
     if (isMockMode()) {
       redirect("/items");
     }
 
     const supabase = await createClient();
+    const writeSupabase = createAdminClient();
     const itemPayload = payload(formData);
     const { data: archivedMatch, error: archivedError } = await supabase
       .from("items")
@@ -65,7 +68,7 @@ export async function createItem(formData: FormData) {
     if (archivedMatch) {
       safeRedirectWithMessage(`/items/${archivedMatch.id}`, "error", "An archived item with the same code already exists. Restore it instead of creating a duplicate.");
     }
-    const { data, error } = await supabase.from("items").insert(itemPayload).select("id").single();
+    const { data, error } = await writeSupabase.from("items").insert(itemPayload).select("id").single();
     if (error) throw new Error(error.message);
     await upsertPrimaryBarcodeMapping({ entityType: "item", entityId: data.id, barcodeValue: itemPayload.barcode, barcodeType: itemPayload.barcode_type });
 
@@ -78,50 +81,68 @@ export async function createItem(formData: FormData) {
 }
 
 export async function updateItem(id: string, formData: FormData) {
+  await requirePermissionOrRedirect("items.update", `/items/${id}`);
   if (isMockMode()) {
     redirect("/items");
   }
 
-  const supabase = await createClient();
-  const itemPayload = payload(formData);
-  const { error } = await supabase.from("items").update(itemPayload).eq("id", id);
-  if (error) throw new Error(error.message);
-  await upsertPrimaryBarcodeMapping({ entityType: "item", entityId: id, barcodeValue: itemPayload.barcode, barcodeType: itemPayload.barcode_type });
+  try {
+    const writeSupabase = createAdminClient();
+    const itemPayload = payload(formData);
+    const { error } = await writeSupabase.from("items").update(itemPayload).eq("id", id);
+    if (error) throw new Error(error.message);
+    await upsertPrimaryBarcodeMapping({ entityType: "item", entityId: id, barcodeValue: itemPayload.barcode, barcodeType: itemPayload.barcode_type });
 
-  revalidatePath("/items");
-  revalidatePath("/stock-balances");
-  revalidatePath("/low-stock");
-  redirect("/items");
+    revalidatePath("/items");
+    revalidatePath("/stock-balances");
+    revalidatePath("/low-stock");
+    redirect("/items");
+  } catch (error) {
+    rethrowRedirect(error);
+    safeRedirectWithMessage(`/items/${id}`, "error", formatActionError(error, "Could not update this item."));
+  }
 }
 
 export async function deleteItem(id: string) {
-  if (isMockMode()) {
-    redirect("/items");
+  try {
+    await requirePermissionOrRedirect("items.update", "/items");
+    if (isMockMode()) {
+      redirect("/items");
+    }
+
+    const writeSupabase = createAdminClient();
+    const { error } = await writeSupabase
+      .from("items")
+      .update({ status: "inactive", deleted_at: new Date().toISOString() })
+      .eq("id", id);
+    if (error) throw new Error(error.message);
+
+    revalidatePath("/items");
+    redirect("/items?success=Item%20deactivated.");
+  } catch (error) {
+    rethrowRedirect(error);
+    safeRedirectWithMessage("/items", "error", formatActionError(error, "Could not deactivate this item."));
   }
-
-  const supabase = await createClient();
-  const { error } = await supabase
-    .from("items")
-    .update({ status: "inactive", deleted_at: new Date().toISOString() })
-    .eq("id", id);
-  if (error) throw new Error(error.message);
-
-  revalidatePath("/items");
-  redirect("/items?success=Item%20deactivated.");
 }
 
 export async function restoreItem(id: string) {
-  if (isMockMode()) {
-    redirect("/items");
+  try {
+    await requirePermissionOrRedirect("items.update", `/items/${id}`);
+    if (isMockMode()) {
+      redirect("/items");
+    }
+
+    const writeSupabase = createAdminClient();
+    const { error } = await writeSupabase
+      .from("items")
+      .update({ status: "active", deleted_at: null })
+      .eq("id", id);
+    if (error) throw new Error(error.message);
+
+    revalidatePath("/items");
+    redirect(`/items/${id}?success=Item%20restored.`);
+  } catch (error) {
+    rethrowRedirect(error);
+    safeRedirectWithMessage(`/items/${id}`, "error", formatActionError(error, "Could not restore this item."));
   }
-
-  const supabase = await createClient();
-  const { error } = await supabase
-    .from("items")
-    .update({ status: "active", deleted_at: null })
-    .eq("id", id);
-  if (error) throw new Error(error.message);
-
-  revalidatePath("/items");
-  redirect(`/items/${id}?success=Item%20restored.`);
 }

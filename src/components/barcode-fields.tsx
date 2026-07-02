@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Camera, Keyboard, ScanLine, X } from "lucide-react";
+import { Camera, Search, ScanLine, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Field } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
@@ -70,7 +70,7 @@ export function BarcodeFields({
     async function start() {
       const Detector = getBarcodeDetector();
       if (!Detector || !navigator.mediaDevices?.getUserMedia) {
-        setMessage("Camera scanning is not available in this browser. Use manual input or a USB scanner.");
+        setMessage("Camera scanning is not available in this browser. Search by item code, item name, or barcode instead.");
         setScanning(false);
         return;
       }
@@ -103,7 +103,7 @@ export function BarcodeFields({
     }
 
     start().catch(() => {
-      setMessage("Camera permission was denied or unavailable. Use manual input or a USB scanner.");
+      setMessage("Camera permission was denied or unavailable. Search by item code, item name, or barcode instead.");
       setScanning(false);
     });
 
@@ -120,20 +120,20 @@ export function BarcodeFields({
       <div className="md:col-span-2">
         <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
           <div>
-            <p className="text-sm font-semibold">USB Scanner / Manual Input</p>
-            <p className="text-xs text-muted-foreground">Use a USB barcode scanner or type the barcode manually, then press Enter where lookup is available.</p>
+            <p className="text-sm font-semibold">Search</p>
+            <p className="text-xs text-muted-foreground">Search item code, item name, or barcode. Type or scan into the search field, then press Enter where lookup is available.</p>
           </div>
           <div className="flex gap-2">
             <Button type="button" variant="secondary" size="sm" onClick={() => document.getElementById("barcode-input")?.focus()}>
-              <Keyboard className="mr-2 h-4 w-4" />
-              Manual
+              <Search className="mr-2 h-4 w-4" />
+              Search
             </Button>
           </div>
         </div>
         <details className="mb-3 rounded-md border bg-card p-3">
-          <summary className="cursor-pointer text-xs font-medium text-muted-foreground">Advanced / Use camera scanner</summary>
+          <summary className="cursor-pointer text-xs font-medium text-muted-foreground">Advanced / Camera</summary>
           <div className="mt-3 flex items-center justify-between gap-3">
-            <p className="text-xs text-muted-foreground">Camera scanning is optional. USB scanners work like keyboard input and are recommended for daily operations.</p>
+            <p className="text-xs text-muted-foreground">Camera scanning is optional. Search stays available even if this device does not support camera scanning.</p>
             <Button type="button" variant="outline" size="sm" onClick={() => setScanning(true)}>
               <Camera className="mr-2 h-4 w-4" />
               Open camera
@@ -152,7 +152,7 @@ export function BarcodeFields({
         {message ? <p className="mb-3 text-xs text-muted-foreground">{message}</p> : null}
         <div className="grid gap-4 md:grid-cols-2">
           <Field label="Manual Barcode">
-            <Input id="barcode-input" name="barcode" value={value} onChange={(event) => setValue(event.target.value)} placeholder="Scan or type barcode" />
+            <Input id="barcode-input" name="barcode" value={value} onChange={(event) => setValue(event.target.value)} placeholder="Type or scan barcode" />
           </Field>
           <Field label="Barcode Type">
             <SelectNative name="barcode_type" defaultValue={barcodeType ?? "internal"}>

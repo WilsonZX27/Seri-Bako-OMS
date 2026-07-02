@@ -1,9 +1,11 @@
+import Link from "next/link";
 import { Card, CardContent } from "@/components/ui/card";
 import { Field } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { SelectNative } from "@/components/ui/select-native";
 import { BarcodeFields } from "@/components/barcode-fields";
 import { SubmitButton } from "@/components/ui/submit-button";
+import { Button } from "@/components/ui/button";
 import { formatNumber } from "@/lib/utils";
 import type { Database } from "@/types/database";
 
@@ -40,10 +42,16 @@ export function ItemForm({ item, suppliers, currentStock, initialBarcode, action
               <option value="">No supplier</option>
               {suppliers.map((supplier) => (
                 <option key={supplier.id} value={supplier.id}>
-                  {supplier.name}
+                  {supplier.supplier_code ? `${supplier.supplier_code} - ` : ""}{supplier.name}
                 </option>
               ))}
             </SelectNative>
+            <div className="mt-2 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+              <span>Supplier must be created before assigning it to an item.</span>
+              <Button asChild type="button" variant="outline" size="sm">
+                <Link href="/suppliers/new">Create Supplier</Link>
+              </Button>
+            </div>
           </Field>
           <Field label="Status">
             <SelectNative name="status" defaultValue={item?.status ?? "active"}>

@@ -3,9 +3,10 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { isMockMode } from "@/lib/mock-mode";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import { supplierSchema } from "@/lib/validations/supplier";
-import { formatActionError, rethrowRedirect, safeRedirectWithMessage } from "@/server/actions/error-handling";
+import { formatActionError, requirePermissionOrRedirect, rethrowRedirect, safeRedirectWithMessage } from "@/server/actions/error-handling";
 
 function cleanText(value: unknown) {
   const text = String(value ?? "").trim();
@@ -14,6 +15,7 @@ function cleanText(value: unknown) {
 
 export async function createSupplier(formData: FormData) {
   try {
+    await requirePermissionOrRedirect("suppliers.create", "/suppliers/new");
     if (isMockMode()) {
       redirect("/suppliers");
     }
@@ -30,6 +32,7 @@ export async function createSupplier(formData: FormData) {
     });
 
     const supabase = await createClient();
+    const writeSupabase = createAdminClient();
     if (parsed.supplier_code) {
       const { data: archivedMatch, error: archivedError } = await supabase
         .from("suppliers")
@@ -43,7 +46,7 @@ export async function createSupplier(formData: FormData) {
         safeRedirectWithMessage(`/suppliers/${archivedMatch.id}`, "error", "An archived supplier with the same code already exists. Restore it instead of creating a duplicate.");
       }
     }
-    const { error } = await supabase.from("suppliers").insert(parsed);
+      const { error } = await writeSupabase.from("suppliers").insert(parsed);
     if (error) throw new Error(error.message);
 
     revalidatePath("/suppliers");
@@ -55,6 +58,7 @@ export async function createSupplier(formData: FormData) {
 }
 
 export async function updateSupplier(id: string, formData: FormData) {
+  await requirePermissionOrRedirect("suppliers.update", `/suppliers/${id}`);
   if (isMockMode()) {
     redirect("/suppliers");
   }
@@ -70,42 +74,59 @@ export async function updateSupplier(id: string, formData: FormData) {
     status: formData.get("status") ?? "active",
   });
 
-  const supabase = await createClient();
-  const { error } = await supabase.from("suppliers").update(parsed).eq("id", id);
-  if (error) throw new Error(error.message);
+  try {
+    const writeSupabase = createAdminClient();
+    const { error } = await writeSupabase.from("suppliers").update(parsed).eq("id", id);
+    if (error) throw new Error(error.message);
 
-  revalidatePath("/suppliers");
-  redirect("/suppliers");
+    revalidatePath("/suppliers");
+    redirect("/suppliers");
+  } catch (error) {
+    rethrowRedirect(error);
+    safeRedirectWithMessage(`/suppliers/${id}`, "error", formatActionError(error, "Could not update this supplier."));
+  }
 }
 
 export async function deleteSupplier(id: string) {
-  if (isMockMode()) {
-    redirect("/suppliers");
+  try {
+    await requirePermissionOrRedirect("suppliers.update", "/suppliers");
+    if (isMockMode()) {
+      redirect("/suppliers");
+    }
+
+    const writeSupabase = createAdminClient();
+    const { error } = await writeSupabase
+      .from("suppliers")
+      .update({ status: "inactive", deleted_at: new Date().toISOString() })
+      .eq("id", id);
+    if (error) throw new Error(error.message);
+
+    revalidatePath("/suppliers");
+    redirect("/suppliers?success=Supplier%20deactivated.");
+  } catch (error) {
+    rethrowRedirect(error);
+    safeRedirectWithMessage("/suppliers", "error", formatActionError(error, "Supplier could not be saved. Please contact admin."));
   }
-
-  const supabase = await createClient();
-  const { error } = await supabase
-    .from("suppliers")
-    .update({ status: "inactive", deleted_at: new Date().toISOString() })
-    .eq("id", id);
-  if (error) throw new Error(error.message);
-
-  revalidatePath("/suppliers");
-  redirect("/suppliers?success=Supplier%20deactivated.");
 }
 
 export async function restoreSupplier(id: string) {
-  if (isMockMode()) {
-    redirect("/suppliers");
+  try {
+    await requirePermissionOrRedirect("suppliers.update", `/suppliers/${id}`);
+    if (isMockMode()) {
+      redirect("/suppliers");
+    }
+
+    const writeSupabase = createAdminClient();
+    const { error } = await writeSupabase
+      .from("suppliers")
+      .update({ status: "active", deleted_at: null })
+      .eq("id", id);
+    if (error) throw new Error(error.message);
+
+    revalidatePath("/suppliers");
+    redirect(`/suppliers/${id}?success=Supplier%20restored.`);
+  } catch (error) {
+    rethrowRedirect(error);
+    safeRedirectWithMessage(`/suppliers/${id}`, "error", formatActionError(error, "Could not restore this supplier."));
   }
-
-  const supabase = await createClient();
-  const { error } = await supabase
-    .from("suppliers")
-    .update({ status: "active", deleted_at: null })
-    .eq("id", id);
-  if (error) throw new Error(error.message);
-
-  revalidatePath("/suppliers");
-  redirect(`/suppliers/${id}?success=Supplier%20restored.`);
 }

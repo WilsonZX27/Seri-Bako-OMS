@@ -36,7 +36,7 @@ export function BarcodeScanWorkflow({
   mode: "stock_count" | "goods_receiving" | "stock_transfer" | "stock_wastage";
 }) {
   const [barcode, setBarcode] = useState("");
-  const [scanMode, setScanMode] = useState<"search" | "usb" | "camera">("usb");
+  const [scanMode, setScanMode] = useState<"search" | "camera">("search");
   const [cameraStarted, setCameraStarted] = useState(false);
   const [quantity, setQuantity] = useState(1);
   const [reason, setReason] = useState("");
@@ -115,10 +115,9 @@ export function BarcodeScanWorkflow({
               <div className="mb-3 flex flex-wrap gap-2">
                 {[
                   ["search", "Search"],
-                  ["usb", "USB Scanner"],
                   ["camera", "Camera"],
                 ].map(([key, label]) => (
-                  <Button key={key} type="button" variant={scanMode === key ? "default" : "outline"} size="sm" onClick={() => setScanMode(key as "search" | "usb" | "camera")}>
+                  <Button key={key} type="button" variant={scanMode === key ? "default" : "outline"} size="sm" onClick={() => setScanMode(key as "search" | "camera")}>
                     {label}
                   </Button>
                 ))}
@@ -129,7 +128,7 @@ export function BarcodeScanWorkflow({
                   value={barcode}
                   onChange={(event) => setBarcode(event.target.value)}
                   onKeyDown={(event) => event.key === "Enter" ? (event.preventDefault(), lookup()) : undefined}
-                  placeholder={scanMode === "search" ? "Search item name, code, or scan barcode" : "USB scanner or manual barcode input"}
+                  placeholder="Search item code, item name, or barcode"
                 />
                 <Button type="button" onClick={() => lookup()}>
                   <ScanLine className="mr-2 h-4 w-4" />
@@ -145,7 +144,7 @@ export function BarcodeScanWorkflow({
                     </div>
                   ) : (
                     <div className="space-y-2">
-                      <p className="text-sm text-muted-foreground">If the browser asks for permission, allow camera access for scanning. You can still type or use USB scanner above.</p>
+                      <p className="text-sm text-muted-foreground">If the browser asks for permission, allow camera access for scanning. You can still search manually above.</p>
                       <BarcodeFields barcode={barcode} barcodeType="internal" />
                     </div>
                   )}
@@ -154,7 +153,7 @@ export function BarcodeScanWorkflow({
             </div>
 
             <p className="text-sm text-muted-foreground">
-              {scanMode === "usb" ? "USB scanners type into the focused box automatically. Scan or press Enter to look up." : "Search by item name, item code, or barcode. Camera mode is optional for devices with a camera."}
+              Search by item code, item name, or barcode. Type or scan into the search field, then press Enter. Camera mode is optional for devices with a camera.
             </p>
             {message ? <p className="text-sm font-medium text-primary">{message}</p> : null}
 

@@ -1,6 +1,7 @@
 import { DashboardWorkspace } from "@/components/dashboard-workspace";
 import { Card, CardContent } from "@/components/ui/card";
 import { PageHeader } from "@/components/ui/page-header";
+import { formatPageError } from "@/server/actions/error-handling";
 import { getDashboardSummary } from "@/server/queries/dashboard";
 import { getCurrentProfile } from "@/server/queries/common";
 import type { UserRole } from "@/types/database";
@@ -32,7 +33,7 @@ export default async function DashboardPage() {
         <div className="p-5">
           <Card>
             <CardContent className="p-5 text-sm text-muted-foreground">
-              The dashboard could not load completely right now. Please refresh in a moment or continue from the sidebar.
+              {formatPageError(error, "The dashboard could not load completely right now. Please refresh in a moment or continue from the sidebar.")}
             </CardContent>
           </Card>
         </div>

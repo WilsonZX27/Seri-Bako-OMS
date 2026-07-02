@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { isMockMode } from "@/lib/mock-mode";
-import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { supplierItemSchema, uomConversionSchema } from "@/lib/validations/master-data";
 import { writeActivityLog } from "@/server/activity/log";
 import { requirePermission } from "@/server/auth/permissions";
@@ -40,7 +40,7 @@ export async function createSupplierItem(formData: FormData) {
   await requirePermission("supplier_items.create");
   const payload = supplierItemPayload(formData);
   if (!isMockMode()) {
-    const supabase = await createClient();
+    const supabase = createAdminClient();
     const { data, error } = await supabase.from("supplier_items").insert(payload).select("id").single();
     if (error) throw new Error(error.message);
     await writeActivityLog({ entityType: "supplier_item", entityId: data.id, activityType: "created", message: `Supplier item ${payload.supplier_item_code} created` });
@@ -53,7 +53,7 @@ export async function updateSupplierItem(id: string, formData: FormData) {
   await requirePermission("supplier_items.update");
   const payload = supplierItemPayload(formData);
   if (!isMockMode()) {
-    const supabase = await createClient();
+    const supabase = createAdminClient();
     const { error } = await supabase.from("supplier_items").update(payload).eq("id", id);
     if (error) throw new Error(error.message);
     await writeActivityLog({ entityType: "supplier_item", entityId: id, activityType: "updated", message: `Supplier item ${payload.supplier_item_code} updated` });
@@ -66,7 +66,7 @@ export async function deleteSupplierItem(id: string) {
   await requirePermissionOrRedirect("supplier_items.update", "/supplier-items");
   try {
     if (!isMockMode()) {
-      const supabase = await createClient();
+      const supabase = createAdminClient();
       const { error } = await supabase.from("supplier_items").update({ status: "archived", deleted_at: new Date().toISOString() }).eq("id", id);
       if (error) throw new Error(error.message);
       await writeActivityLog({ entityType: "supplier_item", entityId: id, activityType: "archived", message: "Supplier item archived" });
@@ -92,7 +92,7 @@ export async function createUomConversion(formData: FormData) {
   await requirePermission("uom_conversions.create");
   const payload = uomPayload(formData);
   if (!isMockMode()) {
-    const supabase = await createClient();
+    const supabase = createAdminClient();
     const { data, error } = await supabase.from("uom_conversions").insert(payload).select("id").single();
     if (error) throw new Error(error.message);
     await writeActivityLog({ entityType: "uom_conversion", entityId: data.id, activityType: "created", message: `${payload.from_uom} to ${payload.to_uom} conversion created` });
@@ -105,7 +105,7 @@ export async function updateUomConversion(id: string, formData: FormData) {
   await requirePermission("uom_conversions.update");
   const payload = uomPayload(formData);
   if (!isMockMode()) {
-    const supabase = await createClient();
+    const supabase = createAdminClient();
     const { error } = await supabase.from("uom_conversions").update(payload).eq("id", id);
     if (error) throw new Error(error.message);
     await writeActivityLog({ entityType: "uom_conversion", entityId: id, activityType: "updated", message: `${payload.from_uom} to ${payload.to_uom} conversion updated` });
@@ -118,7 +118,7 @@ export async function deleteUomConversion(id: string) {
   await requirePermissionOrRedirect("uom_conversions.update", "/uom-conversions");
   try {
     if (!isMockMode()) {
-      const supabase = await createClient();
+      const supabase = createAdminClient();
       const { error } = await supabase.from("uom_conversions").update({ status: "archived", deleted_at: new Date().toISOString() }).eq("id", id);
       if (error) throw new Error(error.message);
       await writeActivityLog({ entityType: "uom_conversion", entityId: id, activityType: "archived", message: "UOM conversion archived" });

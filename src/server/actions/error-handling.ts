@@ -12,6 +12,7 @@ export function formatActionError(error: unknown, fallback = "Something went wro
   const normalized = message.toLowerCase();
 
   if (!message) return fallback;
+  if (isPendingMigrationError(error)) return "Database migration is pending. Please contact admin.";
   if (normalized.includes("service role key")) return "Supabase service role key is not configured.";
   if (
     normalized.includes("rate limit")
@@ -38,6 +39,31 @@ export function formatActionError(error: unknown, fallback = "Something went wro
   }
   if (normalized.includes("violates not-null constraint")) return "A required field is missing.";
   if (message.length <= 160 && !/(supabase|postgres|constraint|sqlstate|violates)/i.test(message)) return message;
+  return fallback;
+}
+
+export function isPendingMigrationError(error: unknown) {
+  const message = error instanceof Error ? error.message : String(error ?? "");
+  const normalized = message.toLowerCase();
+
+  return (
+    normalized.includes("next_document_number")
+    || normalized.includes("document_sequences")
+    || normalized.includes("stock_balances_view")
+    || normalized.includes("stock_ledger_view")
+    || normalized.includes("low_stock_items")
+    || normalized.includes("notification_recipients")
+    || normalized.includes("could not find the function public.next_document_number")
+    || normalized.includes("function public.next_document_number")
+    || normalized.includes("relation \"public.document_sequences\" does not exist")
+  );
+}
+
+export function formatPageError(error: unknown, fallback = "This page could not load right now. Please try again shortly.") {
+  console.error(error);
+  if (isPendingMigrationError(error)) {
+    return "Database migration is pending. Please contact admin.";
+  }
   return fallback;
 }
 

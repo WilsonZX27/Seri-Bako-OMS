@@ -54,6 +54,17 @@ Add these redirect URLs in Supabase Auth:
 supabase/migrations/001_milestone_1_inventory_foundation.sql
 ```
 
+## Deployment and Migration Safety
+
+When code changes include new Supabase migrations, apply them in this order:
+
+1. `git push`
+2. `npx supabase db push`
+3. `NOTIFY pgrst, 'reload schema';`
+4. Redeploy if environment or migration changes require it
+
+If the app shows sequence, view, or missing-table errors after deploy, the code is ahead of the database and the migration step is still pending.
+
 5. Create a Supabase Auth user, then create a matching `profiles` row.
 
 ```sql

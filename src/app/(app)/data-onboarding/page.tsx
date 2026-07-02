@@ -3,7 +3,7 @@ import { AlertTriangle, ArrowRight, BarChart3, Building2, Factory, Package, QrCo
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { PageHeader } from "@/components/ui/page-header";
-import { fixMissingDefaultLocations } from "@/server/actions/foundation";
+import { cleanDuplicateLocations, fixMissingDefaultLocations } from "@/server/actions/foundation";
 import { hasPermission } from "@/server/auth/permissions";
 import { getDataOnboardingSummary } from "@/server/queries/data-onboarding";
 
@@ -163,6 +163,14 @@ export default async function DataOnboardingPage() {
                     <div className="flex items-center justify-between rounded-lg border p-3"><span>Duplicate internal stock area groups</span><span className="font-semibold">{summary.duplicateLocationCandidates}</span></div>
                     <div className="flex items-center justify-between rounded-lg border p-3"><span>Items ready</span><span className="font-semibold">{summary.itemCount}</span></div>
                     <div className="flex items-center justify-between rounded-lg border p-3"><span>Suppliers ready</span><span className="font-semibold">{summary.supplierCount}</span></div>
+                  </div>
+                  <div className="grid gap-2">
+                    <form action={fixMissingDefaultLocations}>
+                      <Button type="submit" className="w-full">Fix missing internal stock areas</Button>
+                    </form>
+                    <form action={cleanDuplicateLocations}>
+                      <Button type="submit" variant="outline" className="w-full">Clean duplicate locations</Button>
+                    </form>
                   </div>
                 </CardContent>
               </Card>

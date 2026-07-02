@@ -3,8 +3,10 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { isMockMode } from "@/lib/mock-mode";
 import { importEntities } from "@/lib/imports/config";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import { writeActivityLog } from "@/server/activity/log";
+import { formatActionError } from "@/server/actions/error-handling";
 import { hasPermission } from "@/server/auth/permissions";
 import { resolveDefaultLocation } from "@/server/inventory/locations";
 import { getNextDocumentNumber } from "@/server/documents/sequences";
@@ -31,6 +33,7 @@ type ImportSummary = {
 
 type RouteContext = {
   supabase: Awaited<ReturnType<typeof createClient>>;
+  writeSupabase: ReturnType<typeof createAdminClient>;
   profile: Awaited<ReturnType<typeof getCurrentProfile>>;
 };
 
@@ -53,8 +56,8 @@ function parseNumber(value: unknown) {
 function parseBooleanFlag(value: unknown, defaultValue = true) {
   const normalized = normalizeLower(value);
   if (!normalized) return defaultValue;
-  if (["1", "true", "yes", "y", "active"].includes(normalized)) return true;
-  if (["0", "false", "no", "n", "inactive"].includes(normalized)) return false;
+  if (["1", "true", "yes", "y", "active", "checked"].includes(normalized)) return true;
+  if (["0", "false", "no", "n", "inactive", "unchecked"].includes(normalized)) return false;
   return defaultValue;
 }
 
@@ -122,26 +125,61 @@ async function ensurePrimaryItemBarcode(
   };
 
   if (existingPrimaryId) {
-    const { error } = await context.supabase.from("barcode_mappings").update(payload).eq("id", existingPrimaryId);
+    const { error } = await context.writeSupabase.from("barcode_mappings").update(payload).eq("id", existingPrimaryId);
     if (error) throw new Error(error.message);
     return;
   }
 
-  const { error } = await context.supabase.from("barcode_mappings").insert(payload);
+  const { error } = await context.writeSupabase.from("barcode_mappings").insert(payload);
   if (error) throw new Error(error.message);
+}
+
+function getItemImportValues(row: Record<string, string>, entity: ImportRequest["entity"]) {
+  if (entity === "items-stock-listing") {
+    return {
+      item_code: normalizeText(row["Item Code"]),
+      item_name: normalizeText(row.Description),
+      category: normalizeText(row["Item Group"]) || "Uncategorized",
+      base_uom: normalizeText(row["Base UOM"]),
+      purchase_uom: normalizeText(row["Base UOM"]),
+      barcode: "",
+      cost: null,
+      safety_stock: 0,
+      supplier_name: "",
+      supplier_code: normalizeText(row["Main Supplier"]),
+      active: normalizeText(row["Is Active"]),
+      autocount_code: "",
+    };
+  }
+
+  return {
+    item_code: normalizeText(row.item_code),
+    item_name: normalizeText(row.item_name),
+    category: normalizeText(row.category),
+    base_uom: normalizeText(row.base_uom),
+    purchase_uom: normalizeText(row.purchase_uom) || normalizeText(row.base_uom),
+    barcode: normalizeText(row.barcode),
+    cost: parseNumber(row.cost),
+    safety_stock: parseNumber(row.safety_stock),
+    supplier_name: normalizeText(row.supplier_name),
+    supplier_code: "",
+    active: normalizeText(row.active),
+    autocount_code: normalizeText(row.autocount_code),
+  };
 }
 
 async function handleItemsImport(context: RouteContext, request: ImportRequest) {
   const summary = createSummary();
   const rows = request.rows;
-  const itemCodes = [...new Set(rows.map((row) => normalizeText(row.item_code)).filter(Boolean))];
-  const supplierNames = [...new Set(rows.map((row) => normalizeLower(row.supplier_name)).filter(Boolean))];
-  const barcodeValues = [...new Set(rows.map((row) => normalizeText(row.barcode)).filter(Boolean))];
+  const itemRows = rows.map((row) => ({ source: row, values: getItemImportValues(row, request.entity) }));
+  const itemCodes = [...new Set(itemRows.map((row) => row.values.item_code).filter(Boolean))];
+  const supplierNames = [...new Set(itemRows.map((row) => normalizeLower(row.values.supplier_name)).filter(Boolean))];
+  const barcodeValues = [...new Set(itemRows.map((row) => row.values.barcode).filter(Boolean))];
   const companyId = context.profile?.company_id ?? (await getDefaultCompanyId());
 
   const [{ data: existingItems, error: itemsError }, { data: suppliers, error: suppliersError }, { data: existingBarcodes, error: barcodesError }] = await Promise.all([
     context.supabase.from("items").select("id, item_code").in("item_code", itemCodes.length ? itemCodes : [""]),
-    context.supabase.from("suppliers").select("id, name").is("deleted_at", null),
+    context.supabase.from("suppliers").select("id, name, supplier_code").is("deleted_at", null),
     context.supabase
       .from("barcode_mappings")
       .select("id, barcode_value, item_id, is_primary")
@@ -156,48 +194,58 @@ async function handleItemsImport(context: RouteContext, request: ImportRequest) 
 
   const existingByCode = new Map((existingItems ?? []).map((row) => [normalizeLower(row.item_code), row]));
   const supplierByName = new Map((suppliers ?? []).map((row) => [normalizeLower(row.name), row]));
+  const supplierByCode = new Map((suppliers ?? []).filter((row) => row.supplier_code).map((row) => [normalizeLower(row.supplier_code), row]));
   const barcodeByValue = new Map((existingBarcodes ?? []).map((row) => [normalizeLower(row.barcode_value), row]));
 
-  for (const [index, row] of rows.entries()) {
+  for (const [index, row] of itemRows.entries()) {
     const rowNumber = index + 1;
-    const itemCode = normalizeText(row.item_code);
-    const itemName = normalizeText(row.item_name);
-    const category = normalizeText(row.category);
-    const baseUom = normalizeText(row.base_uom);
-    const purchaseUom = normalizeText(row.purchase_uom) || baseUom;
-    const barcode = normalizeText(row.barcode);
-    const cost = parseNumber(row.cost);
-    const safetyStock = parseNumber(row.safety_stock);
+    const sourceRow = row.source;
+    const itemCode = row.values.item_code;
+    const itemName = row.values.item_name;
+    const category = row.values.category;
+    const baseUom = row.values.base_uom;
+    const purchaseUom = row.values.purchase_uom || baseUom;
+    const barcode = row.values.barcode;
+    const cost = row.values.cost;
+    const safetyStock = row.values.safety_stock;
     const existing = existingByCode.get(normalizeLower(itemCode));
-    const supplier = normalizeText(row.supplier_name) ? supplierByName.get(normalizeLower(row.supplier_name)) : null;
+    const supplier = row.values.supplier_code
+      ? supplierByCode.get(normalizeLower(row.values.supplier_code))
+      : row.values.supplier_name
+        ? supplierByName.get(normalizeLower(row.values.supplier_name))
+        : null;
     const existingBarcode = barcode ? barcodeByValue.get(normalizeLower(barcode)) : null;
 
     if (!itemCode || !itemName || !category || !baseUom) {
-      pushIssue(summary, rowNumber, row, "Missing required field.");
+      pushIssue(summary, rowNumber, sourceRow, "Missing required field.");
       continue;
     }
-    if (cost === null && normalizeText(row.cost)) {
-      pushIssue(summary, rowNumber, row, "Invalid number for cost.");
+    if (cost === null && request.entity !== "items-stock-listing" && normalizeText(sourceRow.cost)) {
+      pushIssue(summary, rowNumber, sourceRow, "Invalid number for cost.");
       continue;
     }
-    if (safetyStock === null && normalizeText(row.safety_stock)) {
-      pushIssue(summary, rowNumber, row, "Invalid number for safety_stock.");
+    if (safetyStock === null && request.entity !== "items-stock-listing" && normalizeText(sourceRow.safety_stock)) {
+      pushIssue(summary, rowNumber, sourceRow, "Invalid number for safety_stock.");
       continue;
     }
-    if (supplierNames.length && normalizeText(row.supplier_name) && !supplier) {
-      pushIssue(summary, rowNumber, row, "Unknown supplier.");
+    if (request.entity === "items-stock-listing" && row.values.supplier_code && !supplier) {
+      pushIssue(summary, rowNumber, sourceRow, "Supplier code not found. Import supplier first or leave supplier blank.");
+      continue;
+    }
+    if (supplierNames.length && row.values.supplier_name && !supplier) {
+      pushIssue(summary, rowNumber, sourceRow, "Unknown supplier.");
       continue;
     }
     if (existingBarcode && existingBarcode.item_id && (!existing || existingBarcode.item_id !== existing.id)) {
-      pushIssue(summary, rowNumber, row, "Invalid barcode. This barcode already belongs to another item.");
+      pushIssue(summary, rowNumber, sourceRow, "Invalid barcode. This barcode already belongs to another item.");
       continue;
     }
     if (existing && request.mode === "create") {
-      pushIssue(summary, rowNumber, row, "Duplicate code. This item already exists.", "skip");
+      pushIssue(summary, rowNumber, sourceRow, "Duplicate code. This item already exists.", "skip");
       continue;
     }
     if (!existing && request.mode === "update") {
-      pushIssue(summary, rowNumber, row, "Unknown item_code. Update mode only changes existing items.", "skip");
+      pushIssue(summary, rowNumber, sourceRow, "Unknown item_code. Update mode only changes existing items.", "skip");
       continue;
     }
 
@@ -208,45 +256,45 @@ async function handleItemsImport(context: RouteContext, request: ImportRequest) 
       base_unit: baseUom,
       purchase_unit: purchaseUom,
       conversion_to_base_unit: 1,
-      autocount_code: normalizeText(row.autocount_code) || null,
+      autocount_code: row.values.autocount_code || null,
       supplier_id: supplier?.id ?? null,
       safety_stock: safetyStock ?? 0,
       cost: cost ?? 0,
-      status: (parseBooleanFlag(row.active, true) ? "active" : "inactive") as ItemStatus,
+      status: (parseBooleanFlag(row.values.active, true) ? "active" : "inactive") as ItemStatus,
       barcode: barcode || null,
-      internal_barcode: normalizeText(row.internal_barcode) || null,
-      supplier_barcode: normalizeText(row.supplier_barcode) || null,
-      qr_code: normalizeText(row.qr_code) || null,
+      internal_barcode: normalizeText(sourceRow.internal_barcode) || null,
+      supplier_barcode: normalizeText(sourceRow.supplier_barcode) || null,
+      qr_code: normalizeText(sourceRow.qr_code) || null,
       barcode_type: "internal",
-      item_image_url: normalizeText(row.item_image_url) || null,
+      item_image_url: normalizeText(sourceRow.item_image_url) || null,
     };
 
     if (existing) {
-      const { error } = await context.supabase.from("items").update(payload).eq("id", existing.id);
+      const { error } = await context.writeSupabase.from("items").update(payload).eq("id", existing.id);
       if (error) {
-        pushIssue(summary, rowNumber, row, error.message);
+        pushIssue(summary, rowNumber, sourceRow, error.message);
         continue;
       }
       if (barcode) {
         try {
           await ensurePrimaryItemBarcode(context, companyId, existing.id, barcode, existingBarcode?.id ?? null);
         } catch (error) {
-          pushIssue(summary, rowNumber, row, error instanceof Error ? error.message : "Could not update barcode mapping.");
+          pushIssue(summary, rowNumber, sourceRow, error instanceof Error ? error.message : "Could not update barcode mapping.");
           continue;
         }
       }
       summary.updated += 1;
     } else {
-      const { data, error } = await context.supabase.from("items").insert(payload).select("id").single();
+      const { data, error } = await context.writeSupabase.from("items").insert(payload).select("id").single();
       if (error || !data) {
-        pushIssue(summary, rowNumber, row, error?.message ?? "Could not create this item.");
+        pushIssue(summary, rowNumber, sourceRow, error?.message ?? "Could not create this item.");
         continue;
       }
       if (barcode) {
         try {
           await ensurePrimaryItemBarcode(context, companyId, data.id, barcode);
         } catch (error) {
-          pushIssue(summary, rowNumber, row, error instanceof Error ? error.message : "Could not create barcode mapping.");
+          pushIssue(summary, rowNumber, sourceRow, error instanceof Error ? error.message : "Could not create barcode mapping.");
           continue;
         }
       }
@@ -294,14 +342,14 @@ async function handleProductsImport(context: RouteContext, request: ImportReques
     };
 
     if (existing) {
-      const { error } = await context.supabase.from("products").update(payload).eq("id", existing.id);
+      const { error } = await context.writeSupabase.from("products").update(payload).eq("id", existing.id);
       if (error) {
         pushIssue(summary, rowNumber, row, error.message);
         continue;
       }
       summary.updated += 1;
     } else {
-      const { error } = await context.supabase.from("products").insert(payload);
+      const { error } = await context.writeSupabase.from("products").insert(payload);
       if (error) {
         pushIssue(summary, rowNumber, row, error.message);
         continue;
@@ -364,14 +412,14 @@ async function handleSuppliersImport(context: RouteContext, request: ImportReque
     };
 
     if (existing) {
-      const { error } = await context.supabase.from("suppliers").update(payload).eq("id", existing.id);
+      const { error } = await context.writeSupabase.from("suppliers").update(payload).eq("id", existing.id);
       if (error) {
         pushIssue(summary, rowNumber, row, error.message);
         continue;
       }
       summary.updated += 1;
     } else {
-      const { error } = await context.supabase.from("suppliers").insert(payload);
+      const { error } = await context.writeSupabase.from("suppliers").insert(payload);
       if (error) {
         pushIssue(summary, rowNumber, row, error.message);
         continue;
@@ -483,14 +531,14 @@ async function handleSupplierItemsImport(context: RouteContext, request: ImportR
     };
 
     if (existing) {
-      const { error } = await context.supabase.from("supplier_items").update(payload).eq("id", existing.id);
+      const { error } = await context.writeSupabase.from("supplier_items").update(payload).eq("id", existing.id);
       if (error) {
         pushIssue(summary, rowNumber, row, error.message);
         continue;
       }
       summary.updated += 1;
     } else {
-      const { error } = await context.supabase.from("supplier_items").insert(payload);
+      const { error } = await context.writeSupabase.from("supplier_items").insert(payload);
       if (error) {
         pushIssue(summary, rowNumber, row, error.message);
         continue;
@@ -560,14 +608,14 @@ async function handleUomConversionsImport(context: RouteContext, request: Import
     };
 
     if (existing) {
-      const { error } = await context.supabase.from("uom_conversions").update(payload).eq("id", existing.id);
+      const { error } = await context.writeSupabase.from("uom_conversions").update(payload).eq("id", existing.id);
       if (error) {
         pushIssue(summary, rowNumber, row, error.message);
         continue;
       }
       summary.updated += 1;
     } else {
-      const { error } = await context.supabase.from("uom_conversions").insert(payload);
+      const { error } = await context.writeSupabase.from("uom_conversions").insert(payload);
       if (error) {
         pushIssue(summary, rowNumber, row, error.message);
         continue;
@@ -646,14 +694,14 @@ async function handleBarcodeMappingsImport(context: RouteContext, request: Impor
     };
 
     if (existing) {
-      const { error } = await context.supabase.from("barcode_mappings").update(payload).eq("id", existing.id);
+      const { error } = await context.writeSupabase.from("barcode_mappings").update(payload).eq("id", existing.id);
       if (error) {
         pushIssue(summary, rowNumber, row, error.message);
         continue;
       }
       summary.updated += 1;
     } else {
-      const { error } = await context.supabase.from("barcode_mappings").insert(payload);
+      const { error } = await context.writeSupabase.from("barcode_mappings").insert(payload);
       if (error) {
         pushIssue(summary, rowNumber, row, error.message);
         continue;
@@ -790,7 +838,7 @@ async function handleOpeningStockImport(context: RouteContext, request: ImportRe
       .join(" | ");
 
     const transactionNo = await getNextDocumentNumber(context.profile?.company_id ?? (await getDefaultCompanyId()), "opening_balance");
-    const { data: transaction, error: transactionError } = await context.supabase
+    const { data: transaction, error: transactionError } = await context.writeSupabase
       .from("stock_transactions")
       .insert({
         transaction_no: transactionNo,
@@ -818,7 +866,7 @@ async function handleOpeningStockImport(context: RouteContext, request: ImportRe
       continue;
     }
 
-    const { error: lineError } = await context.supabase.from("stock_transaction_lines").insert({
+    const { error: lineError } = await context.writeSupabase.from("stock_transaction_lines").insert({
       stock_transaction_id: transaction.id,
       stock_entity_type: "item",
       item_id: item.id,
@@ -850,7 +898,7 @@ function revalidateImportTargets(entity: ImportRequest["entity"]) {
   revalidatePath("/dashboard");
   revalidatePath("/quick-tools");
 
-  if (entity === "items") {
+  if (entity === "items" || entity === "items-stock-listing") {
     revalidatePath("/items");
     revalidatePath("/inventory");
     return;
@@ -954,10 +1002,11 @@ export async function POST(request: Request) {
     const context: RouteContext = {
       supabase,
       profile: await getCurrentProfile(),
+      writeSupabase: createAdminClient(),
     };
 
     const summary =
-      payload.data.entity === "items"
+      payload.data.entity === "items" || payload.data.entity === "items-stock-listing"
         ? await handleItemsImport(context, payload.data)
         : payload.data.entity === "products"
           ? await handleProductsImport(context, payload.data)
@@ -995,7 +1044,7 @@ export async function POST(request: Request) {
         updated: 0,
         skipped: 0,
         errors: 1,
-        message: "Could not complete this import right now.",
+          message: formatActionError(error, "Could not complete this import right now."),
         errorRows: [],
       },
       { status: 500 },

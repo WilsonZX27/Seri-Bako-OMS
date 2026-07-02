@@ -29,6 +29,17 @@ type DraftPayload = {
   savedAt: string;
 };
 
+function parseDelimitedTable(text: string, headers: string[]) {
+  const lines = text
+    .split(/\r?\n/)
+    .map((line) => line.trimEnd())
+    .filter(Boolean);
+  return lines.map((line) => {
+    const values = line.includes("\t") ? line.split("\t") : line.split(",");
+    return Object.fromEntries(headers.map((header, index) => [header, values[index]?.trim() ?? ""]));
+  });
+}
+
 function csvEscape(value: string) {
   return /[",\n]/.test(value) ? `"${value.replaceAll('"', '""')}"` : value;
 }
@@ -120,6 +131,7 @@ const steps = [
 export function ImportWorkflow({ entity }: { entity: ImportEntity }) {
   const spec = importTemplates[entity];
   const [rows, setRows] = useState<RowState[]>([]);
+  const [entryMode, setEntryMode] = useState<"upload" | "table">("upload");
   const [message, setMessage] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [fileName, setFileName] = useState("");
@@ -127,6 +139,7 @@ export function ImportWorkflow({ entity }: { entity: ImportEntity }) {
   const [confirmPosting, setConfirmPosting] = useState(false);
   const [result, setResult] = useState<ImportResult | null>(null);
   const [draftSavedAt, setDraftSavedAt] = useState<string | null>(null);
+  const [pasteText, setPasteText] = useState("");
   const validRows = useMemo(() => rows.filter((row) => !row.errors.length), [rows]);
   const errorRows = useMemo(() => rows.filter((row) => row.errors.length), [rows]);
 
@@ -216,13 +229,51 @@ export function ImportWorkflow({ entity }: { entity: ImportEntity }) {
     };
     window.localStorage.setItem(draftKey(entity), JSON.stringify(payload));
     setDraftSavedAt(payload.savedAt);
-    setMessage("Draft saved on this device.");
+    setMessage("Draft saved on this browser only.");
+  }
+
+  function loadDraft() {
+    try {
+      const saved = window.localStorage.getItem(draftKey(entity));
+      if (!saved) {
+        setMessage("No saved draft was found on this browser.");
+        return;
+      }
+      const draft = JSON.parse(saved) as DraftPayload;
+      updateRows(draft.rows);
+      setMode(draft.mode ?? spec.defaultMode);
+      setConfirmPosting(Boolean(draft.confirmPosting));
+      setFileName(draft.fileName || "Saved draft");
+      setDraftSavedAt(draft.savedAt);
+      setEntryMode("table");
+      setMessage(`Loaded saved draft with ${draft.rows.length} row(s).`);
+    } catch {
+      setMessage("Saved draft could not be read on this browser.");
+    }
   }
 
   function clearDraft() {
     window.localStorage.removeItem(draftKey(entity));
     setDraftSavedAt(null);
     setMessage("Saved draft cleared.");
+  }
+
+  function checkErrors() {
+    const nextRows = validateRows(entity, rows.map((row) => row.values));
+    setRows(nextRows);
+    setResult(null);
+    setMessage(nextRows.some((row) => row.errors.length) ? "Some rows still need fixes before import." : "All current rows look ready.");
+  }
+
+  function applyPastedTable() {
+    if (!pasteText.trim()) {
+      setMessage("Paste some rows first.");
+      return;
+    }
+    const parsedRows = parseDelimitedTable(pasteText, spec.headers);
+    updateRows(parsedRows);
+    setEntryMode("table");
+    setMessage(`${parsedRows.length} row(s) pasted into the table.`);
   }
 
   async function confirmImport() {
@@ -287,6 +338,9 @@ export function ImportWorkflow({ entity }: { entity: ImportEntity }) {
                 <Save className="mr-2 h-4 w-4" />
                 Save draft
               </Button>
+              <Button type="button" variant="outline" onClick={loadDraft}>
+                Load draft
+              </Button>
               {draftSavedAt ? (
                 <Button type="button" variant="ghost" onClick={clearDraft}>
                   <Trash2 className="mr-2 h-4 w-4" />
@@ -317,11 +371,30 @@ export function ImportWorkflow({ entity }: { entity: ImportEntity }) {
                 </p>
               </div>
 
+              <div className="flex flex-wrap gap-2">
+                <Button type="button" variant={entryMode === "upload" ? "default" : "outline"} onClick={() => setEntryMode("upload")}>Upload file</Button>
+                <Button type="button" variant={entryMode === "table" ? "default" : "outline"} onClick={() => setEntryMode("table")}>Edit in table</Button>
+              </div>
+
               <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_220px]">
                 <div className="space-y-3">
-                  <Input type="file" accept=".csv,.xlsx" onChange={(event) => loadFile(event.target.files?.[0])} />
-                  {fileName ? <p className="text-xs text-muted-foreground">Loaded source: {fileName}</p> : null}
-                  {draftSavedAt ? <p className="text-xs text-muted-foreground">Saved draft: {formatSavedAt(draftSavedAt)}</p> : null}
+                  {entryMode === "upload" ? (
+                    <>
+                      <Input type="file" accept=".csv,.xlsx" onChange={(event) => loadFile(event.target.files?.[0])} />
+                      {fileName ? <p className="text-xs text-muted-foreground">Loaded source: {fileName}</p> : null}
+                    </>
+                  ) : (
+                    <>
+                      <textarea
+                        value={pasteText}
+                        onChange={(event) => setPasteText(event.target.value)}
+                        className="min-h-32 w-full rounded-md border bg-background p-3 text-sm"
+                        placeholder="Paste rows from Excel or Google Sheets here."
+                      />
+                      <Button type="button" variant="outline" onClick={applyPastedTable}>Paste into table</Button>
+                    </>
+                  )}
+                  {draftSavedAt ? <p className="text-xs text-muted-foreground">Saved draft on this browser: {formatSavedAt(draftSavedAt)}</p> : null}
                 </div>
                 <div className="space-y-2">
                   <p className="text-sm font-medium">Import mode</p>
@@ -359,13 +432,16 @@ export function ImportWorkflow({ entity }: { entity: ImportEntity }) {
                     <PencilLine className="mr-2 h-4 w-4" />
                     Add blank row
                   </Button>
+                  <Button type="button" variant="outline" onClick={checkErrors}>
+                    Check errors
+                  </Button>
                   <Button
                     type="button"
                     onClick={confirmImport}
                     disabled={!validRows.length || isSaving || Boolean(errorRows.length) || Boolean(spec.needsPostingConfirmation && !confirmPosting)}
                   >
                     <Upload className="mr-2 h-4 w-4" />
-                    {isSaving ? "Importing..." : "Import clean rows"}
+                    {isSaving ? "Importing..." : "Proceed / Confirm Import"}
                   </Button>
                 </div>
                 {message ? <p className="mt-3 text-sm text-muted-foreground">{message}</p> : null}

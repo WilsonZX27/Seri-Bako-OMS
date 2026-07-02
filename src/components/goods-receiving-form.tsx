@@ -113,7 +113,7 @@ export function GoodsReceivingForm({
               <div className="grid gap-3 rounded-lg border bg-secondary/30 p-4 md:grid-cols-[1fr_auto]">
                 <div>
                   <p className="text-sm font-semibold">Barcode Receiving</p>
-                  <p className="text-xs text-muted-foreground">Use Search, USB scanner, or Camera mode. USB scanner is recommended for daily operation.</p>
+                  <p className="text-xs text-muted-foreground">Search item code, item name, or barcode. Type or scan into the search field, then press Enter.</p>
                 </div>
                 <div className="flex gap-2">
                   <Input value={barcode} onChange={(event) => setBarcode(event.target.value)} onKeyDown={(event) => event.key === "Enter" ? (event.preventDefault(), scanBarcode()) : undefined} placeholder="Scan barcode" />

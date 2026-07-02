@@ -35,7 +35,7 @@ export async function updateCompany(id: string, formData: FormData) {
   });
 
   if (!isMockMode()) {
-    const supabase = await createClient();
+    const supabase = createAdminClient();
     const { error } = await supabase.from("companies").update(parsed).eq("id", id);
     if (error) throw new Error(error.message);
     await writeActivityLog({ entityType: "company", entityId: id, activityType: "updated", message: "Company profile updated" });
@@ -75,7 +75,7 @@ export async function updateCompanyLogo(id: string, formData: FormData) {
     }
 
     if (!isMockMode()) {
-      const supabase = await createClient();
+      const supabase = createAdminClient();
       const { data: company, error: companyError } = await supabase
         .from("companies")
         .select("logo_path")
@@ -115,7 +115,7 @@ export async function removeCompanyLogo(id: string) {
   await requirePermissionOrRedirect("company.update", "/company");
   try {
     if (!isMockMode()) {
-      const supabase = await createClient();
+      const supabase = createAdminClient();
       const { data: company, error: companyError } = await supabase
         .from("companies")
         .select("logo_path")
@@ -163,7 +163,7 @@ export async function createBranch(formData: FormData) {
   try {
     const payload = branchPayload(formData);
     if (!isMockMode()) {
-      const supabase = await createClient();
+      const supabase = createAdminClient();
       const { data: archivedMatch, error: archivedError } = await supabase
         .from("branches")
         .select("id")
@@ -193,7 +193,7 @@ export async function updateBranch(id: string, formData: FormData) {
   const payload = branchPayload(formData);
 
   if (!isMockMode()) {
-    const supabase = await createClient();
+    const supabase = createAdminClient();
     const { error } = await supabase.from("branches").update(payload).eq("id", id);
     if (error) throw new Error(error.message);
     await writeActivityLog({ entityType: "branch", entityId: id, activityType: "updated", message: `Branch ${payload.branch_name} updated` });
@@ -207,7 +207,7 @@ export async function deleteBranch(id: string) {
   await requirePermissionOrRedirect("branches.update", "/branches");
   try {
     if (!isMockMode()) {
-      const supabase = await createClient();
+      const supabase = createAdminClient();
       const { error } = await supabase.from("branches").update({ deleted_at: new Date().toISOString(), status: "archived" }).eq("id", id);
       if (error) throw new Error(error.message);
       await writeActivityLog({ entityType: "branch", entityId: id, activityType: "archived", message: "Branch archived" });
@@ -224,7 +224,7 @@ export async function restoreBranch(id: string) {
   await requirePermissionOrRedirect("branches.update", `/branches/${id}`);
   try {
     if (!isMockMode()) {
-      const supabase = await createClient();
+      const supabase = createAdminClient();
       const { error } = await supabase.from("branches").update({ deleted_at: null, status: "active" }).eq("id", id);
       if (error) throw new Error(error.message);
       await ensureBranchDefaultLocation(id);
@@ -255,7 +255,7 @@ export async function createLocation(formData: FormData) {
   try {
     const payload = locationPayload(formData);
     if (!isMockMode()) {
-      const supabase = await createClient();
+      const supabase = createAdminClient();
       const { data: archivedMatch, error: archivedError } = await supabase
         .from("locations")
         .select("id")
@@ -284,7 +284,7 @@ export async function updateLocation(id: string, formData: FormData) {
   await requirePermission("locations.update");
   const payload = locationPayload(formData);
   if (!isMockMode()) {
-    const supabase = await createClient();
+    const supabase = createAdminClient();
     const { error } = await supabase.from("locations").update(payload).eq("id", id);
     if (error) throw new Error(error.message);
     await writeActivityLog({ entityType: "location", entityId: id, activityType: "updated", message: `Location ${payload.location_name} updated` });
@@ -297,7 +297,7 @@ export async function deleteLocation(id: string) {
   await requirePermissionOrRedirect("locations.update", "/locations");
   try {
     if (!isMockMode()) {
-      const supabase = await createClient();
+      const supabase = createAdminClient();
       const { error } = await supabase.from("locations").update({ deleted_at: new Date().toISOString(), status: "archived" }).eq("id", id);
       if (error) throw new Error(error.message);
       await writeActivityLog({ entityType: "location", entityId: id, activityType: "archived", message: "Location archived" });
@@ -314,7 +314,7 @@ export async function restoreLocation(id: string) {
   await requirePermissionOrRedirect("locations.update", `/locations/${id}`);
   try {
     if (!isMockMode()) {
-      const supabase = await createClient();
+      const supabase = createAdminClient();
       const { error } = await supabase.from("locations").update({ deleted_at: null, status: "active" }).eq("id", id);
       if (error) throw new Error(error.message);
       await writeActivityLog({ entityType: "location", entityId: id, activityType: "restored", message: "Location restored" });
@@ -332,7 +332,7 @@ export async function fixMissingDefaultLocations() {
   await requirePermissionOrRedirect("locations.update", "/data-onboarding");
   try {
     if (!isMockMode()) {
-      const supabase = await createClient();
+      const supabase = createAdminClient();
       const { data: branches, error } = await supabase.from("branches").select("id").is("deleted_at", null);
       if (error) throw new Error(error.message);
       for (const branch of branches ?? []) {
@@ -353,7 +353,7 @@ export async function archiveDuplicateLocation(id: string) {
   await requirePermissionOrRedirect("locations.update", "/locations");
   try {
     if (!isMockMode()) {
-      const supabase = await createClient();
+      const supabase = createAdminClient();
       const { data: location, error: locationError } = await supabase
         .from("locations")
         .select("id, branch_id")
@@ -370,6 +370,15 @@ export async function archiveDuplicateLocation(id: string) {
       if (branchError) throw new Error(branchError.message);
       if (branch?.default_location_id === id) throw new Error("This location is the current default stock area and cannot be archived.");
 
+      const { count: stockHistoryCount, error: stockHistoryError } = await supabase
+        .from("stock_transactions")
+        .select("id", { count: "exact", head: true })
+        .eq("location_id", id);
+      if (stockHistoryError) throw new Error(stockHistoryError.message);
+      if ((stockHistoryCount ?? 0) > 0) {
+        throw new Error("This duplicate location already has stock history. Leave it in place and review it manually.");
+      }
+
       const { error } = await supabase.from("locations").update({ deleted_at: new Date().toISOString(), status: "archived" }).eq("id", id);
       if (error) throw new Error(error.message);
       await writeActivityLog({ entityType: "location", entityId: id, activityType: "archived", message: "Duplicate location archived" });
@@ -380,6 +389,73 @@ export async function archiveDuplicateLocation(id: string) {
   }
   revalidatePath("/locations");
   safeRedirectWithMessage("/locations", "success", "Duplicate location archived.");
+}
+
+export async function cleanDuplicateLocations() {
+  await requirePermissionOrRedirect("locations.update", "/locations");
+  try {
+    if (!isMockMode()) {
+      const supabase = createAdminClient();
+      const [{ data: locations, error: locationsError }, { data: branches, error: branchesError }] = await Promise.all([
+        supabase
+          .from("locations")
+          .select("id, branch_id, location_name, deleted_at")
+          .is("deleted_at", null),
+        supabase
+          .from("branches")
+          .select("id, branch_name, default_location_id")
+          .is("deleted_at", null),
+      ]);
+      if (locationsError) throw new Error(locationsError.message);
+      if (branchesError) throw new Error(branchesError.message);
+
+      const branchById = new Map((branches ?? []).map((branch) => [branch.id, branch]));
+      const duplicateCandidates = (locations ?? []).filter((location) => {
+        const branch = location.branch_id ? branchById.get(location.branch_id) ?? null : null;
+        return Boolean(branch && branch.default_location_id !== location.id && branch.branch_name.trim().toLowerCase() === location.location_name.trim().toLowerCase());
+      });
+
+      let archivedCount = 0;
+      let skippedCount = 0;
+
+      for (const location of duplicateCandidates) {
+        const { count, error } = await supabase
+          .from("stock_transactions")
+          .select("id", { count: "exact", head: true })
+          .eq("location_id", location.id);
+        if (error) throw new Error(error.message);
+
+        if ((count ?? 0) > 0) {
+          skippedCount += 1;
+          continue;
+        }
+
+        const { error: archiveError } = await supabase
+          .from("locations")
+          .update({ deleted_at: new Date().toISOString(), status: "archived" })
+          .eq("id", location.id);
+        if (archiveError) throw new Error(archiveError.message);
+        archivedCount += 1;
+      }
+
+      await writeActivityLog({
+        entityType: "location",
+        entityId: "00000000-0000-0000-0000-000000000000",
+        activityType: "updated",
+        message: `Duplicate internal locations cleaned. Archived ${archivedCount}, skipped ${skippedCount}.`,
+      });
+
+      revalidatePath("/locations");
+      revalidatePath("/data-onboarding");
+      safeRedirectWithMessage("/locations", "success", `Cleaned duplicate internal locations. Archived ${archivedCount}, skipped ${skippedCount}.`);
+    }
+  } catch (error) {
+    rethrowRedirect(error);
+    safeRedirectWithMessage("/locations", "error", formatActionError(error, "Could not clean duplicate internal locations."));
+  }
+
+  revalidatePath("/locations");
+  safeRedirectWithMessage("/locations", "success", "Duplicate internal locations reviewed.");
 }
 
 function staffPayload(formData: FormData) {
@@ -408,7 +484,7 @@ function staffAccessPayload(formData: FormData) {
 
 async function replaceStaffAccess(staffId: string, formData: FormData) {
   const access = staffAccessPayload(formData);
-  const supabase = await createClient();
+  const supabase = createAdminClient();
 
   const [{ error: deleteRolesError }, { error: deleteBranchesError }, { error: deleteLocationsError }] = await Promise.all([
     supabase.from("staff_roles").delete().eq("staff_id", staffId),
@@ -485,7 +561,7 @@ export async function createStaff(formData: FormData) {
     const payload = staffPayload(formData);
     const access = staffAccessPayload(formData);
     if (!isMockMode()) {
-      const supabase = await createClient();
+      const supabase = createAdminClient();
       if (!access.role_id || !access.branch_id) {
         throw new Error("Role and default branch are required before invite.");
       }
@@ -530,7 +606,7 @@ export async function updateStaff(id: string, formData: FormData) {
     const payload = staffPayload(formData);
     const access = staffAccessPayload(formData);
     if (!isMockMode()) {
-      const supabase = await createClient();
+      const supabase = createAdminClient();
       if (!access.role_id || !access.branch_id) {
         throw new Error("Role and default branch are required.");
       }
@@ -552,7 +628,7 @@ export async function resendStaffInvite(id: string) {
   await requirePermissionOrRedirect("staffs.update", `/staffs/${id}`);
   try {
     if (!isMockMode()) {
-      const supabase = await createClient();
+      const supabase = createAdminClient();
       const { data: staff, error } = await supabase.from("staffs").select("email, invite_email, full_name").eq("id", id).single();
       if (error) throw new Error(error.message);
       const email = (staff.invite_email ?? staff.email ?? "").trim().toLowerCase();
@@ -573,7 +649,7 @@ export async function disableStaff(id: string) {
   await requirePermissionOrRedirect("staffs.update", `/staffs/${id}`);
   try {
     if (!isMockMode()) {
-      const supabase = await createClient();
+      const supabase = createAdminClient();
       const { error } = await supabase.from("staffs").update({ status: "disabled" }).eq("id", id);
       if (error) throw new Error(error.message);
       await writeActivityLog({ entityType: "staff", entityId: id, activityType: "updated", message: "Staff disabled" });
@@ -591,7 +667,7 @@ export async function enableStaff(id: string) {
   await requirePermissionOrRedirect("staffs.update", `/staffs/${id}`);
   try {
     if (!isMockMode()) {
-      const supabase = await createClient();
+      const supabase = createAdminClient();
       const { data: staff, error: staffError } = await supabase.from("staffs").select("accepted_at").eq("id", id).single();
       if (staffError) throw new Error(staffError.message);
       const { error } = await supabase.from("staffs").update({ status: staff.accepted_at ? "active" : "invited" }).eq("id", id);
@@ -621,7 +697,7 @@ export async function createRole(formData: FormData) {
   await requirePermission("roles.create");
   const payload = rolePayload(formData);
   if (!isMockMode()) {
-    const supabase = await createClient();
+    const supabase = createAdminClient();
     const { data, error } = await supabase.from("roles").insert(payload).select("id").single();
     if (error) throw new Error(error.message);
     await writeActivityLog({ entityType: "role", entityId: data.id, activityType: "created", message: `Role ${payload.role_name} created` });
@@ -634,7 +710,7 @@ export async function updateRole(id: string, formData: FormData) {
   await requirePermission("roles.update");
   const payload = rolePayload(formData);
   if (!isMockMode()) {
-    const supabase = await createClient();
+    const supabase = createAdminClient();
     const { error } = await supabase.from("roles").update(payload).eq("id", id);
     if (error) throw new Error(error.message);
     await writeActivityLog({ entityType: "role", entityId: id, activityType: "updated", message: `Role ${payload.role_name} updated` });
@@ -659,7 +735,7 @@ export async function createDocumentSequence(formData: FormData) {
   await requirePermission("document_sequences.create");
   const payload = documentSequencePayload(formData);
   if (!isMockMode()) {
-    const supabase = await createClient();
+    const supabase = createAdminClient();
     const { data, error } = await supabase.from("document_sequences").insert(payload).select("id").single();
     if (error) throw new Error(error.message);
     await writeActivityLog({ entityType: "document_sequence", entityId: data.id, activityType: "created", message: `Document sequence ${payload.document_type} created` });
@@ -672,7 +748,7 @@ export async function updateDocumentSequence(id: string, formData: FormData) {
   await requirePermission("document_sequences.update");
   const payload = documentSequencePayload(formData);
   if (!isMockMode()) {
-    const supabase = await createClient();
+    const supabase = createAdminClient();
     const { error } = await supabase.from("document_sequences").update(payload).eq("id", id);
     if (error) throw new Error(error.message);
     await writeActivityLog({ entityType: "document_sequence", entityId: id, activityType: "updated", message: `Document sequence ${payload.document_type} updated` });
@@ -685,7 +761,7 @@ export async function deleteDocumentSequence(id: string) {
   await requirePermissionOrRedirect("document_sequences.update", "/document-sequences");
   try {
     if (!isMockMode()) {
-      const supabase = await createClient();
+      const supabase = createAdminClient();
       const { error } = await supabase.from("document_sequences").update({ deleted_at: new Date().toISOString(), status: "archived" }).eq("id", id);
       if (error) throw new Error(error.message);
       await writeActivityLog({ entityType: "document_sequence", entityId: id, activityType: "archived", message: "Document sequence archived" });

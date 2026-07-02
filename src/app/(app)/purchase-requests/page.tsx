@@ -11,7 +11,13 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { formatCurrency } from "@/lib/utils";
 import { getPurchaseRequests } from "@/server/queries/procurement";
 
-const statuses = ["draft", "submitted", "admin_review", "purchasing_review", "pending_approval", "approved", "rejected", "converted", "cancelled"];
+const statuses = [
+  { value: "draft", label: "Draft" },
+  { value: "in_review", label: "In Review" },
+  { value: "approved", label: "Approved" },
+  { value: "converted", label: "Converted" },
+  { value: "rejected", label: "Rejected" },
+];
 
 function statusVariant(status: string) {
   if (["approved", "converted"].includes(status)) return "success";

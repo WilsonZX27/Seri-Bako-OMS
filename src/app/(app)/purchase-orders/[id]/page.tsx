@@ -3,12 +3,13 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { PageHeader } from "@/components/ui/page-header";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { DocumentActionBar, DocumentActionForm, DocumentActionLink } from "@/components/document-action-bar";
+import { DocumentNumber } from "@/components/document-number";
 import { AttachmentPanel, CommentsPanel, DocumentTimeline, RevisionPanel } from "@/components/documents/document-panels";
 import { PriorityBadge } from "@/components/priority-badge";
-import { SubmitButton } from "@/components/ui/submit-button";
 import { WorkflowStatusPipeline } from "@/components/workflow-status-pipeline";
 import { formatCurrency, formatNumber } from "@/lib/utils";
-import { approvePurchaseOrder, cancelPurchaseOrder, closePurchaseOrder, rejectPurchaseOrder, sendPurchaseOrder, submitPurchaseOrder } from "@/server/actions/procurement";
+import { approvePurchaseOrder, closePurchaseOrder, rejectPurchaseOrder, sendPurchaseOrder, submitPurchaseOrder } from "@/server/actions/procurement";
 import { getPermissionMap } from "@/server/auth/permissions";
 import { getItemsForSelect, getSuppliersForSelect } from "@/server/queries/common";
 import { getDocumentBundle } from "@/server/queries/documents";
@@ -36,7 +37,7 @@ export default async function PurchaseOrderDetailPage({ params }: { params: Prom
     getPurchaseOrder(id),
     getItemsForSelect(),
     getSuppliersForSelect(),
-    getPermissionMap(["purchase_order.submit", "purchase_order.approve", "purchase_order.send", "purchase_order.cancel", "purchase_order.close", "goods_receiving.create"]),
+    getPermissionMap(["po.submit", "po.approve", "po.send", "po.receive", "purchase_order.close"]),
   ]);
   const sourceRequest = await getPurchaseRequestForOrder(order.purchase_request_id);
   const documentBundle = order.document_id ? await getDocumentBundle(order.document_id) : null;
@@ -46,7 +47,7 @@ export default async function PurchaseOrderDetailPage({ params }: { params: Prom
 
   return (
     <>
-      <PageHeader title={order.po_no} description="Purchase Order detail and approval workflow" />
+      <PageHeader title={<DocumentNumber value={order.po_no} />} description="Purchase Order detail and approval workflow" />
       <div className="grid gap-5 p-5 xl:grid-cols-[1fr_420px]">
         <div className="space-y-5">
           <WorkflowStatusPipeline steps={poSteps} currentStatus={order.status} />
@@ -58,21 +59,18 @@ export default async function PurchaseOrderDetailPage({ params }: { params: Prom
                   <p className="text-xs uppercase text-muted-foreground">Current Status</p>
                   <Badge className="mt-1" variant={statusVariant(order.status)}>{order.status}</Badge>
                 </div>
-                <div className="flex flex-wrap gap-2">
-                  {order.status === "draft" && permissions["purchase_order.submit"] ? <form action={submitPurchaseOrder.bind(null, order.id)}><SubmitButton type="submit" pendingLabel="Saving..." variant="secondary">Submit approval</SubmitButton></form> : null}
-                  {order.status === "pending_approval" && permissions["purchase_order.approve"] ? (
+                <DocumentActionBar>
+                  {order.status === "draft" && permissions["po.submit"] ? <DocumentActionForm action={submitPurchaseOrder.bind(null, order.id)} pendingLabel="Saving..." variant="secondary">Submit approval</DocumentActionForm> : null}
+                  {order.status === "pending_approval" && permissions["po.approve"] ? (
                     <>
-                      <form action={approvePurchaseOrder.bind(null, order.id)}><SubmitButton type="submit" pendingLabel="Approving...">Approve</SubmitButton></form>
-                      <form action={rejectPurchaseOrder.bind(null, order.id)}><SubmitButton type="submit" pendingLabel="Saving..." variant="destructive">Reject</SubmitButton></form>
+                      <DocumentActionForm action={approvePurchaseOrder.bind(null, order.id)} pendingLabel="Approving...">Approve</DocumentActionForm>
+                      <DocumentActionForm action={rejectPurchaseOrder.bind(null, order.id)} pendingLabel="Saving..." variant="destructive">Reject</DocumentActionForm>
                     </>
                   ) : null}
-                  {order.status === "approved" && permissions["purchase_order.send"] ? <form action={sendPurchaseOrder.bind(null, order.id)}><SubmitButton type="submit" pendingLabel="Saving..." variant="outline">Send to supplier</SubmitButton></form> : null}
-                  {["sent", "partial_received"].includes(order.status) && permissions["goods_receiving.create"] ? <Button asChild variant="outline"><a href={`/goods-receivings/new?po_id=${order.id}`}>Receive goods</a></Button> : null}
-                  {order.status === "partial_received" && permissions["purchase_order.close"] ? <form action={closePurchaseOrder.bind(null, order.id)}><SubmitButton type="submit" pendingLabel="Saving..." variant="outline">Close</SubmitButton></form> : null}
-                  {["draft", "pending_approval", "approved", "sent"].includes(order.status) && permissions["purchase_order.cancel"] ? (
-                    <form action={cancelPurchaseOrder.bind(null, order.id)}><SubmitButton type="submit" pendingLabel="Saving..." variant="ghost">Cancel</SubmitButton></form>
-                  ) : null}
-                </div>
+                  {order.status === "approved" && permissions["po.send"] ? <DocumentActionForm action={sendPurchaseOrder.bind(null, order.id)} pendingLabel="Saving..." variant="outline">Send to supplier</DocumentActionForm> : null}
+                  {["sent", "partial_received"].includes(order.status) && permissions["po.receive"] ? <DocumentActionLink href={`/goods-receivings/new?po_id=${order.id}`} variant="outline">Receive goods</DocumentActionLink> : null}
+                  {order.status === "partial_received" && permissions["purchase_order.close"] ? <DocumentActionForm action={closePurchaseOrder.bind(null, order.id)} pendingLabel="Saving..." variant="outline">Close</DocumentActionForm> : null}
+                </DocumentActionBar>
               </div>
               <div className="grid gap-4 md:grid-cols-4">
                 <div><p className="text-xs uppercase text-muted-foreground">Supplier</p><p className="font-medium">{supplier?.name ?? order.supplier_id}</p></div>
@@ -114,7 +112,7 @@ export default async function PurchaseOrderDetailPage({ params }: { params: Prom
           <Card>
             <CardContent className="p-5">
               <div className="mb-3 flex items-center justify-between">
-                <h2 className="text-sm font-semibold">Purchase Order Lines</h2>
+                <h2 className="text-sm font-semibold">Ordered Items</h2>
                 <p className="text-sm font-semibold">{formatCurrency(total)}</p>
               </div>
               <div className="overflow-x-auto">

@@ -9,6 +9,7 @@ export type WorkflowStep = {
 
 export function WorkflowStatusPipeline({ steps, currentStatus }: { steps: WorkflowStep[]; currentStatus: string }) {
   const activeIndex = Math.max(0, steps.findIndex((step) => step.key === currentStatus));
+  const rejected = ["rejected", "cancelled"].includes(currentStatus);
 
   return (
     <div className="rounded-lg border bg-card p-4">
@@ -18,13 +19,15 @@ export function WorkflowStatusPipeline({ steps, currentStatus }: { steps: Workfl
           const done = index < activeIndex;
           const active = index === activeIndex;
           const Icon = done ? CheckCircle2 : active ? CircleDot : Circle;
+          const errorStep = rejected && active;
           return (
             <div
               key={step.key}
               className={cn(
                 "rounded-md border p-3",
                 done ? "border-emerald-200 bg-emerald-50 text-emerald-800" : "",
-                active ? "border-primary/40 bg-primary/10 text-primary" : "",
+                active && !errorStep ? "border-slate-700 bg-white text-slate-900 shadow-sm" : "",
+                errorStep ? "border-red-200 bg-red-50 text-red-800" : "",
               )}
               title={step.description}
             >

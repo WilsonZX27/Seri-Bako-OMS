@@ -47,6 +47,8 @@ function filterRows<T extends Record<string, unknown>>(rows: T[], filters: Filte
         status === "awaiting_delivery" ? ["approved", "sent"]
         : status === "receiving" ? ["partial_received"]
         : status === "completed" ? ["received", "closed"]
+        : status === "in_review" ? ["submitted", "admin_review", "purchasing_review", "pending_approval"]
+        : status === "rejected" ? ["rejected", "cancelled"]
         : status ? [status] : [];
       const matchesStatus = statusGroup.length ? statusGroup.includes(String(row.status)) : true;
       const matchesPriority = priority ? row.priority === priority : true;

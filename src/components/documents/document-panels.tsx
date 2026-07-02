@@ -38,10 +38,16 @@ function eventIcon(type: string) {
   return <Clock className="h-4 w-4 text-muted-foreground" />;
 }
 
+function isMeaningfulTimelineEvent(event: Activity) {
+  const message = event.message.trim().toLowerCase();
+  if (event.activity_type === "updated" || message === "document updated") return false;
+  if (message.includes("document updated")) return false;
+  return true;
+}
+
 export function DocumentTimeline({ document, activities, comments, attachments }: { document: Document; activities: Activity[]; comments: Comment[]; attachments: Attachment[] }) {
   const syntheticEvents = [
     { id: "created", activity_type: "created", message: "Document created", created_at: document.created_at, created_by: document.created_by },
-    ...(document.updated_at !== document.created_at ? [{ id: "updated", activity_type: "updated", message: "Document updated", created_at: document.updated_at, created_by: document.updated_by }] : []),
     ...(document.submitted_at ? [{ id: "submitted", activity_type: "submitted", message: "Document submitted", created_at: document.submitted_at, created_by: document.created_by }] : []),
     ...(document.posted_at ? [{ id: "posted", activity_type: "posted", message: "Document posted", created_at: document.posted_at, created_by: document.updated_by }] : []),
     ...(document.cancelled_at ? [{ id: "cancelled", activity_type: "cancelled", message: "Document cancelled", created_at: document.cancelled_at, created_by: document.updated_by }] : []),
@@ -49,6 +55,7 @@ export function DocumentTimeline({ document, activities, comments, attachments }
   const commentEvents = comments.map((comment) => ({ id: comment.id, activity_type: "comment_added", message: comment.comment_text, created_at: comment.created_at, created_by: comment.created_by }));
   const attachmentEvents = attachments.map((attachment) => ({ id: attachment.id, activity_type: "attachment_uploaded", message: `${attachment.file_name} uploaded`, created_at: attachment.created_at, created_by: attachment.uploaded_by }));
   const events = [...syntheticEvents, ...activities, ...commentEvents, ...attachmentEvents]
+    .filter(isMeaningfulTimelineEvent)
     .filter((event, index, rows) => rows.findIndex((row) => row.activity_type === event.activity_type && row.created_at === event.created_at && row.message === event.message) === index)
     .sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
 

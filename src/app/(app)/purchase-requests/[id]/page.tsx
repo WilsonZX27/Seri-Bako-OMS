@@ -4,6 +4,8 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { PageHeader } from "@/components/ui/page-header";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { DocumentActionBar, DocumentActionForm } from "@/components/document-action-bar";
+import { DocumentNumber } from "@/components/document-number";
 import { AttachmentPanel, CommentsPanel, DocumentTimeline, RevisionPanel } from "@/components/documents/document-panels";
 import { PriorityBadge } from "@/components/priority-badge";
 import { SubmitButton } from "@/components/ui/submit-button";
@@ -12,7 +14,6 @@ import { formatCurrency, formatNumber } from "@/lib/utils";
 import {
   adminReviewPurchaseRequest,
   approvePurchaseRequest,
-  cancelPurchaseRequest,
   convertPurchaseRequestToPurchaseOrder,
   purchasingReviewPurchaseRequest,
   rejectPurchaseRequest,
@@ -47,7 +48,7 @@ export default async function PurchaseRequestDetailPage({ params }: { params: Pr
     getSuppliersForSelect(),
     getBranchesForSelect(),
     getLocationsForSelect(),
-    getPermissionMap(["purchase_request.submit", "purchase_request.review", "purchase_request.approve", "purchase_request.convert", "purchase_request.update"]),
+    getPermissionMap(["pr.submit", "pr.admin_review", "pr.purchasing_review", "pr.manager_approve", "pr.convert_to_po"]),
   ]);
   const documentBundle = request.document_id ? await getDocumentBundle(request.document_id) : null;
   const itemById = new Map(items.map((item) => [item.id, item]));
@@ -55,10 +56,13 @@ export default async function PurchaseRequestDetailPage({ params }: { params: Pr
   const branch = branches.find((row) => row.id === request.branch_id);
   const location = locations.find((row) => row.id === request.location_id);
   const total = lines.reduce((sum, line) => sum + line.qty * line.estimated_unit_cost, 0);
+  const canReject =
+    (request.status === "admin_review" && permissions["pr.admin_review"]) ||
+    (request.status === "pending_approval" && permissions["pr.manager_approve"]);
 
   return (
     <>
-      <PageHeader title={request.request_no} description="Purchase Request detail and review workflow" />
+      <PageHeader title={<DocumentNumber value={request.request_no} />} description="Purchase Request detail and review workflow" />
       <div className="grid gap-5 p-5 xl:grid-cols-[1fr_420px]">
         <div className="space-y-5">
           <WorkflowStatusPipeline steps={prSteps} currentStatus={request.status} />
@@ -70,20 +74,17 @@ export default async function PurchaseRequestDetailPage({ params }: { params: Pr
                   <p className="text-xs uppercase text-muted-foreground">Current Status</p>
                   <Badge className="mt-1" variant={statusVariant(request.status)}>{request.status}</Badge>
                 </div>
-                <div className="flex flex-wrap gap-2">
-                  {request.status === "draft" && permissions["purchase_request.submit"] ? <form action={submitPurchaseRequest.bind(null, request.id)}><SubmitButton type="submit" pendingLabel="Saving..." variant="secondary">Submit to Admin</SubmitButton></form> : null}
-                  {request.status === "admin_review" && permissions["purchase_request.review"] ? <form action={adminReviewPurchaseRequest.bind(null, request.id)}><SubmitButton type="submit" pendingLabel="Approving..." variant="outline">Admin approve</SubmitButton></form> : null}
-                  {request.status === "purchasing_review" && permissions["purchase_request.review"] ? <form action={purchasingReviewPurchaseRequest.bind(null, request.id)}><SubmitButton type="submit" pendingLabel="Saving..." variant="outline">Purchasing verified</SubmitButton></form> : null}
-                  {request.status === "pending_approval" && permissions["purchase_request.approve"] ? <form action={approvePurchaseRequest.bind(null, request.id)}><SubmitButton type="submit" pendingLabel="Approving...">Manager approve</SubmitButton></form> : null}
-                  {request.status === "approved" && permissions["purchase_request.convert"] ? (
-                    <form action={convertPurchaseRequestToPurchaseOrder.bind(null, request.id)}><SubmitButton type="submit" pendingLabel="Converting...">Convert to Purchase Order</SubmitButton></form>
+                <DocumentActionBar>
+                  {request.status === "draft" && permissions["pr.submit"] ? <DocumentActionForm action={submitPurchaseRequest.bind(null, request.id)} pendingLabel="Saving..." variant="secondary">Submit to Admin</DocumentActionForm> : null}
+                  {request.status === "admin_review" && permissions["pr.admin_review"] ? <DocumentActionForm action={adminReviewPurchaseRequest.bind(null, request.id)} pendingLabel="Approving..." variant="outline">Admin approve</DocumentActionForm> : null}
+                  {request.status === "purchasing_review" && permissions["pr.purchasing_review"] ? <DocumentActionForm action={purchasingReviewPurchaseRequest.bind(null, request.id)} pendingLabel="Saving..." variant="outline">Purchasing verified</DocumentActionForm> : null}
+                  {request.status === "pending_approval" && permissions["pr.manager_approve"] ? <DocumentActionForm action={approvePurchaseRequest.bind(null, request.id)} pendingLabel="Approving...">Manager approve</DocumentActionForm> : null}
+                  {request.status === "approved" && permissions["pr.convert_to_po"] ? (
+                    <DocumentActionForm action={convertPurchaseRequestToPurchaseOrder.bind(null, request.id)} pendingLabel="Converting...">Convert to Purchase Order</DocumentActionForm>
                   ) : null}
-                  {["draft", "admin_review", "purchasing_review", "pending_approval", "approved"].includes(request.status) && permissions["purchase_request.update"] ? (
-                    <form action={cancelPurchaseRequest.bind(null, request.id)}><SubmitButton type="submit" pendingLabel="Saving..." variant="ghost">Cancel</SubmitButton></form>
-                  ) : null}
-                </div>
+                </DocumentActionBar>
               </div>
-              {["admin_review", "pending_approval"].includes(request.status) && permissions["purchase_request.approve"] ? (
+              {canReject ? (
                 <form action={rejectPurchaseRequest.bind(null, request.id)} className="grid gap-2 sm:grid-cols-[1fr_auto]">
                   <Input name="remarks" placeholder="Rejection remarks required" required />
                   <SubmitButton type="submit" pendingLabel="Saving..." variant="destructive">Reject</SubmitButton>
@@ -132,7 +133,7 @@ export default async function PurchaseRequestDetailPage({ params }: { params: Pr
           <Card>
             <CardContent className="p-5">
               <div className="mb-3 flex items-center justify-between">
-                <h2 className="text-sm font-semibold">Request Lines</h2>
+                <h2 className="text-sm font-semibold">Requested Items</h2>
                 <p className="text-sm font-semibold">{formatCurrency(total)}</p>
               </div>
               <div className="overflow-x-auto">

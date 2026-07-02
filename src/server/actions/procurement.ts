@@ -224,34 +224,41 @@ async function updatePrStatus(id: string, status: PurchaseRequestStatus, documen
 }
 
 export async function submitPurchaseRequest(id: string) {
-  await requirePermission("purchase_request.submit");
+  await requirePermission("pr.submit");
   if (isMockMode()) return;
   await updatePrStatus(id, "admin_review", "pending_approval", "pending", "Admin review", "Purchase request submitted to Admin Review");
 }
 
 export async function adminReviewPurchaseRequest(id: string) {
-  await requirePermission("purchase_request.review");
+  await requirePermission("pr.admin_review");
   if (isMockMode()) return;
   await updatePrStatus(id, "purchasing_review", "pending_approval", "pending", "Purchasing review", "Admin approved purchase request");
 }
 
 export async function purchasingReviewPurchaseRequest(id: string) {
-  await requirePermission("purchase_request.review");
+  await requirePermission("pr.purchasing_review");
   if (isMockMode()) return;
   await updatePrStatus(id, "pending_approval", "pending_approval", "pending", "Manager approval", "Purchasing verified supplier, MOQ, lead time, and cost");
 }
 
 export async function approvePurchaseRequest(id: string) {
-  await requirePermission("purchase_request.approve");
+  await requirePermission("pr.manager_approve");
   if (isMockMode()) return;
   await updatePrStatus(id, "approved", "approved", "approved", "Approved", "Manager approved purchase request");
 }
 
 export async function rejectPurchaseRequest(id: string, formData: FormData) {
-  await requirePermission("purchase_request.approve");
   const remarks = cleanText(formData.get("remarks"));
   if (!remarks) throw new Error("Rejection remarks are required.");
   if (isMockMode()) return;
+  const supabase = await createClient();
+  const { data: pr, error: prError } = await supabase.from("purchase_requests").select("status").eq("id", id).single();
+  if (prError) throw new Error(prError.message);
+  if (pr.status === "admin_review") {
+    await requirePermission("pr.admin_review");
+  } else {
+    await requirePermission("pr.manager_approve");
+  }
   await updatePrStatus(id, "rejected", "rejected", "rejected", "Rejected", `Purchase request rejected: ${remarks}`);
 }
 
@@ -328,25 +335,25 @@ async function updatePoStatus(id: string, status: PurchaseOrderStatus, approvalS
 }
 
 export async function submitPurchaseOrder(id: string) {
-  await requirePermission("purchase_order.submit");
+  await requirePermission("po.submit");
   if (isMockMode()) return;
   await updatePoStatus(id, "pending_approval", "pending", "Manager approval", "Purchase order submitted for approval");
 }
 
 export async function approvePurchaseOrder(id: string) {
-  await requirePermission("purchase_order.approve");
+  await requirePermission("po.approve");
   if (isMockMode()) return;
   await updatePoStatus(id, "approved", "approved", "Approved", "Purchase order approved");
 }
 
 export async function rejectPurchaseOrder(id: string) {
-  await requirePermission("purchase_order.approve");
+  await requirePermission("po.approve");
   if (isMockMode()) return;
   await updatePoStatus(id, "cancelled", "rejected", "Rejected", "Purchase order rejected");
 }
 
 export async function sendPurchaseOrder(id: string) {
-  await requirePermission("purchase_order.send");
+  await requirePermission("po.send");
   if (isMockMode()) return;
   const supabase = await createClient();
   const { data, error } = await supabase.from("purchase_orders").select("approval_status,status").eq("id", id).single();
@@ -369,7 +376,7 @@ export async function closePurchaseOrder(id: string) {
 }
 
 export async function convertPurchaseRequestToPurchaseOrder(id: string) {
-  await requirePermission("purchase_request.convert");
+  await requirePermission("pr.convert_to_po");
   try {
     if (isMockMode()) redirect("/purchase-orders/po-mock-001");
     const supabase = await createClient();

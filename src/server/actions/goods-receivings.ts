@@ -168,7 +168,7 @@ export async function createGoodsReceiving(formData: FormData) {
 }
 
 export async function postGoodsReceiving(id: string) {
-  await requirePermission("goods_receiving.post");
+  await requirePermission("grn.post");
   if (isMockMode()) return;
 
   const profile = await identity();

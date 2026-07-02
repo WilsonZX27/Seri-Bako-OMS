@@ -1,15 +1,14 @@
-import Link from "next/link";
 import { AlertTriangle } from "lucide-react";
+import { DocumentActionBar, DocumentActionForm, DocumentActionLink } from "@/components/document-action-bar";
+import { DocumentNumber } from "@/components/document-number";
 import { AttachmentPanel, CommentsPanel, DocumentTimeline, RevisionPanel } from "@/components/documents/document-panels";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { PageHeader } from "@/components/ui/page-header";
-import { SubmitButton } from "@/components/ui/submit-button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { WorkflowStatusPipeline } from "@/components/workflow-status-pipeline";
 import { formatCurrency, formatNumber } from "@/lib/utils";
-import { cancelGoodsReceiving, postGoodsReceiving } from "@/server/actions/goods-receivings";
+import { postGoodsReceiving } from "@/server/actions/goods-receivings";
 import { getPermissionMap } from "@/server/auth/permissions";
 import { getDocumentBundle } from "@/server/queries/documents";
 import { getGoodsReceiving } from "@/server/queries/goods-receivings";
@@ -30,7 +29,7 @@ export default async function GoodsReceivingDetailPage({ params }: { params: Pro
   const { id } = await params;
   const [{ receiving, lines }, permissions] = await Promise.all([
     getGoodsReceiving(id),
-    getPermissionMap(["goods_receiving.post", "goods_receiving.cancel"]),
+    getPermissionMap(["grn.post"]),
   ]);
   const documentBundle = receiving.document_id ? await getDocumentBundle(receiving.document_id) : null;
   const totalReceivedValue = lines.reduce((sum, line) => sum + line.received_qty * line.unit_cost, 0);
@@ -40,7 +39,7 @@ export default async function GoodsReceivingDetailPage({ params }: { params: Pro
 
   return (
     <>
-      <PageHeader title={receiving.grn_no} description="Goods Receiving Note detail and posting workflow" />
+      <PageHeader title={<DocumentNumber value={receiving.grn_no} />} description="Goods Receiving Note detail and posting workflow" />
       <div className="grid gap-5 p-5 xl:grid-cols-[1fr_420px]">
         <div className="space-y-5">
           <WorkflowStatusPipeline steps={grnSteps} currentStatus={receiving.status} />
@@ -52,15 +51,14 @@ export default async function GoodsReceivingDetailPage({ params }: { params: Pro
                   <p className="text-xs uppercase text-muted-foreground">Current Status</p>
                   <Badge className="mt-1" variant={statusVariant(receiving.status)}>{receiving.status}</Badge>
                 </div>
-                <div className="flex flex-wrap gap-2">
-                  <Button asChild variant="outline"><Link href={`/purchase-orders/${receiving.purchase_order_id}`}>View PO</Link></Button>
+                <DocumentActionBar>
+                  <DocumentActionLink href={`/purchase-orders/${receiving.purchase_order_id}`} variant="outline">View PO</DocumentActionLink>
                   {receiving.status === "draft" ? (
                     <>
-                      {permissions["goods_receiving.post"] ? <form action={postGoodsReceiving.bind(null, receiving.id)}><SubmitButton type="submit" pendingLabel="Posting...">Post to stock</SubmitButton></form> : null}
-                      {permissions["goods_receiving.cancel"] ? <form action={cancelGoodsReceiving.bind(null, receiving.id)}><SubmitButton type="submit" pendingLabel="Saving..." variant="ghost">Cancel</SubmitButton></form> : null}
+                      {permissions["grn.post"] ? <DocumentActionForm action={postGoodsReceiving.bind(null, receiving.id)} pendingLabel="Posting...">Post to stock</DocumentActionForm> : null}
                     </>
                   ) : null}
-                </div>
+                </DocumentActionBar>
               </div>
               <div className="grid gap-4 md:grid-cols-4">
                 <div><p className="text-xs uppercase text-muted-foreground">Supplier</p><p className="font-medium">{receivingDisplay.supplier_name ?? receiving.supplier_id}</p></div>
@@ -87,7 +85,7 @@ export default async function GoodsReceivingDetailPage({ params }: { params: Pro
           <Card>
             <CardContent className="p-5">
               <div className="mb-3 flex items-center justify-between">
-                <h2 className="text-sm font-semibold">GRN Lines</h2>
+                <h2 className="text-sm font-semibold">Received Items</h2>
                 <p className="text-sm font-semibold">{formatCurrency(totalReceivedValue)}</p>
               </div>
               <div className="overflow-x-auto">

@@ -7,13 +7,19 @@ import { getBranchesForSelect, getItemsForSelect, getSuppliersForSelect } from "
 
 export default async function NewPurchaseRequestPage({ searchParams }: { searchParams: Promise<{ error?: string }> }) {
   const params = await searchParams;
-  const [items, suppliers, branches, canCreateItem] = await Promise.all([getItemsForSelect(), getSuppliersForSelect(), getBranchesForSelect(), hasPermission("items.create")]);
+  const [items, suppliers, branches, canCreateItem, canCreateSupplier] = await Promise.all([
+    getItemsForSelect(),
+    getSuppliersForSelect(),
+    getBranchesForSelect(),
+    hasPermission("items.create"),
+    hasPermission("suppliers.create"),
+  ]);
   return (
     <>
       <PageHeader title="New Purchase Request" description="Create a request from daily stock check or low-stock review." />
       <div className="space-y-4 p-5">
         {params.error ? <Card><CardContent className="p-4 text-sm text-destructive">{params.error}</CardContent></Card> : null}
-        <PurchaseRequestForm items={items} suppliers={suppliers} branches={branches} canCreateItem={canCreateItem} action={createPurchaseRequest} />
+        <PurchaseRequestForm items={items} suppliers={suppliers} branches={branches} canCreateItem={canCreateItem} canCreateSupplier={canCreateSupplier} action={createPurchaseRequest} />
       </div>
     </>
   );

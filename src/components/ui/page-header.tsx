@@ -1,8 +1,9 @@
 import Link from "next/link";
+import type { ReactNode } from "react";
 import { Button } from "@/components/ui/button";
 
 type PageHeaderProps = {
-  title: string;
+  title: ReactNode;
   description?: string;
   action?: {
     href: string;

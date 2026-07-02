@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
 import { CheckCircle2, Circle, CircleDot, Plus, Search, X } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
@@ -62,12 +63,14 @@ export function PurchaseRequestForm({
   suppliers,
   branches,
   canCreateItem,
+  canCreateSupplier,
   action,
 }: {
   items: ItemOption[];
   suppliers: SupplierOption[];
   branches: BranchOption[];
   canCreateItem: boolean;
+  canCreateSupplier: boolean;
   action: (formData: FormData) => Promise<void>;
 }) {
   const [availableItems, setAvailableItems] = useState(items);
@@ -229,7 +232,7 @@ export function PurchaseRequestForm({
           <div className="rounded-lg border">
             <div className="flex items-center justify-between border-b bg-secondary/40 px-4 py-3">
               <div>
-                <p className="text-sm font-semibold">Request Lines</p>
+                <p className="text-sm font-semibold">Requested Items</p>
                 <p className="text-xs text-muted-foreground">Search by item code or item name. UOM, supplier, and cost fill from the item master.</p>
               </div>
               <div className="flex items-center gap-2">
@@ -380,7 +383,14 @@ export function PurchaseRequestForm({
                       {suppliers.map((supplier) => <option key={supplier.id} value={supplier.id}>{supplier.name}</option>)}
                     </SelectNative>
                   </Field>
-                  {!suppliers.length ? <p className="rounded-md border bg-secondary/30 p-3 text-sm text-muted-foreground md:col-span-2">Create supplier first before assigning a default supplier to this item.</p> : null}
+                  {!suppliers.length && canCreateSupplier ? (
+                    <div className="flex flex-col gap-2 rounded-md border bg-secondary/30 p-3 text-sm text-muted-foreground md:col-span-2 sm:flex-row sm:items-center sm:justify-between">
+                      <span>Create supplier first before assigning a default supplier to this item.</span>
+                      <Button asChild type="button" variant="outline" size="sm">
+                        <Link href="/suppliers/new">Create supplier first</Link>
+                      </Button>
+                    </div>
+                  ) : null}
                   <Field label="Cost">
                     <Input name="cost" type="number" min="0" step="0.0001" defaultValue={0} />
                   </Field>
@@ -447,7 +457,7 @@ export function PurchaseOrderForm({
 
           <div className="rounded-lg border">
             <div className="border-b bg-secondary/40 px-4 py-3">
-              <p className="text-sm font-semibold">PO Lines</p>
+              <p className="text-sm font-semibold">Ordered Items</p>
               <p className="text-xs text-muted-foreground">Pending quantity is calculated from ordered minus received and cancelled.</p>
             </div>
             <div className="divide-y">

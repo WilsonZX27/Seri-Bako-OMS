@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { PageHeader } from "@/components/ui/page-header";
 import { SelectNative } from "@/components/ui/select-native";
 import { PaginationControls, SortableHead } from "@/components/sortable-table";
+import { StatusTabs } from "@/components/status-tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { WorkspaceQuickInsights, WorkspaceSectionPanel, type WorkspaceInsight, type WorkspaceSection } from "@/components/workspace-panels";
 import { formatStatusLabel } from "@/lib/status-label";
@@ -94,6 +95,14 @@ export default async function DocumentsPage({ searchParams }: { searchParams: Pr
             <p className="sb-section-label">Document Register</p>
             <h2 className="mt-1 text-lg font-semibold">Filtered document list</h2>
           </div>
+          <StatusTabs statuses={[
+            { value: "draft", label: "Draft" },
+            { value: "pending_approval", label: "In Review" },
+            { value: "approved", label: "Approved" },
+            { value: "posted", label: "Posted" },
+            { value: "rejected", label: "Rejected" },
+            { value: "closed", label: "Completed" },
+          ]} activeStatus={filters.status} />
           <form className="grid gap-3 border-b bg-white p-4 md:grid-cols-5">
             <Input name="search" defaultValue={filters.search ?? ""} placeholder="Search document no, title, type" />
             <SelectNative name="document_type" defaultValue={filters.document_type ?? "all"}>

@@ -56,7 +56,7 @@ export default async function PurchaseRequestDetailPage({ params }: { params: Pr
 
   return (
     <>
-      <PageHeader title={<DocumentNumber value={request.request_no} />} description="Purchase Request detail and review workflow" />
+      <PageHeader title={<DocumentNumber value={request.request_no} size="lg" />} description="Workflow, linked documents, requested items, and timeline." />
       <div className="grid gap-5 p-5 xl:grid-cols-[1fr_420px]">
         <div className="space-y-5">
           <WorkflowStatusPipeline steps={prSteps} currentStatus={request.status} />

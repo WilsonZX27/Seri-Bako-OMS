@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { MasterDataFilters } from "@/components/master-data-filters";
 import { PageHeader } from "@/components/ui/page-header";
+import { StatusTabs } from "@/components/status-tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { resendStaffInvite } from "@/server/actions/foundation";
 import { getStaffs } from "@/server/queries/foundation";
@@ -28,6 +29,11 @@ export default async function StaffsPage({ searchParams }: { searchParams: Promi
           </Card>
         ) : null}
         <div className="overflow-hidden rounded-lg border bg-card">
+        <StatusTabs statuses={[
+          { value: "invited", label: "Invited" },
+          { value: "active", label: "Active" },
+          { value: "disabled", label: "Disabled" },
+        ]} activeStatus={filters.status} />
         <MasterDataFilters
           search={filters.search}
           status={filters.status}

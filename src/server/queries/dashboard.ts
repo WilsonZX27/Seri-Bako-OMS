@@ -89,6 +89,11 @@ export async function getDashboardSummary() {
         production: 4,
         deliveries: 2,
       },
+      financeForecast: {
+        upcomingPayables: 0,
+        pendingPoValue: 0,
+        receivingNotInvoiced: 0,
+      },
       recentTransactions: mockStockTransactions.slice(0, 6).map((transaction) => ({
         ...transaction,
         item: itemById.get(transaction.item_id) ?? null,
@@ -153,6 +158,11 @@ export async function getDashboardSummary() {
       stockCountDue: 0,
       production: 0,
       deliveries: 0,
+    },
+    financeForecast: {
+      upcomingPayables: 0,
+      pendingPoValue: 0,
+      receivingNotInvoiced: purchaseOrders.data?.filter((order) => ["sent", "partial_received", "received"].includes(order.status)).length ?? 0,
     },
   };
 }

@@ -2,23 +2,43 @@
 
 import Link from "next/link";
 import { Bell, ListTodo, Megaphone, ShieldAlert } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 
 type TopBarActivity = Awaited<ReturnType<typeof import("@/server/queries/topbar").getTopBarActivity>>;
+const seenKey = "seri-bako-workspace-updates-seen-v1";
 
 export function TopBarActivityMenu({ data }: { data: TopBarActivity }) {
   const [open, setOpen] = useState(false);
+  const [seen, setSeen] = useState(false);
   const pendingCount = data.pendingApprovals.length;
   const notificationCount = data.notifications.length + data.announcements.length;
   const recentCount = data.assignedActivities.length;
-  const count = pendingCount + notificationCount + recentCount;
+  const unreadCount = seen ? 0 : notificationCount + recentCount;
+  const count = pendingCount + unreadCount;
   const badgeLabel = count > 99 ? "99+" : String(count);
   const formatTime = (value: string) => new Date(value).toLocaleString("en-MY", { dateStyle: "short", timeStyle: "short" });
 
+  useEffect(() => {
+    setSeen(window.sessionStorage.getItem(seenKey) === "true");
+  }, []);
+
+  function markVisibleUpdatesSeen() {
+    setSeen(true);
+    window.sessionStorage.setItem(seenKey, "true");
+  }
+
+  function toggleOpen() {
+    setOpen((value) => {
+      const next = !value;
+      if (next) markVisibleUpdatesSeen();
+      return next;
+    });
+  }
+
   return (
     <div className="relative">
-      <Button type="button" variant="ghost" size="icon" onClick={() => setOpen((value) => !value)} aria-label={count ? `Open workspace updates, ${count} unread or pending` : "Open workspace updates"}>
+      <Button type="button" variant="ghost" size="icon" onClick={toggleOpen} aria-label={count ? `Open workspace updates, ${count} unread or pending` : "Open workspace updates"}>
         <Bell className="h-5 w-5" />
         {count ? (
           <span className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-red-600 px-1 text-[10px] font-semibold leading-none text-white shadow-sm">
@@ -29,8 +49,15 @@ export function TopBarActivityMenu({ data }: { data: TopBarActivity }) {
       {open ? (
         <div className="absolute right-0 z-40 mt-2 w-[min(24rem,calc(100vw-2rem))] overflow-hidden rounded-lg border bg-card shadow-lg">
           <div className="border-b p-3">
-            <p className="text-sm font-semibold">Workspace Updates</p>
-            <p className="text-xs text-muted-foreground">Notifications, recent activity, assigned actions, and pending actions.</p>
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <p className="text-sm font-semibold">Workspace Updates</p>
+                <p className="text-xs text-muted-foreground">Notifications, recent activity, assigned actions, and pending actions.</p>
+              </div>
+              {unreadCount > 0 ? (
+                <Button type="button" variant="outline" size="sm" onClick={markVisibleUpdatesSeen}>Mark as read</Button>
+              ) : null}
+            </div>
           </div>
           <div className="max-h-96 divide-y overflow-y-auto">
             <section className="space-y-1 p-3">

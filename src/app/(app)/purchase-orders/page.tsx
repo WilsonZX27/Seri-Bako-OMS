@@ -13,7 +13,7 @@ import { getPurchaseOrders } from "@/server/queries/procurement";
 
 const statuses = [
   { value: "draft", label: "Draft" },
-  { value: "pending_approval", label: "Pending approval" },
+  { value: "pending_approval", label: "Pending Approval" },
   { value: "awaiting_delivery", label: "Awaiting delivery" },
   { value: "receiving", label: "Receiving" },
   { value: "completed", label: "Completed" },

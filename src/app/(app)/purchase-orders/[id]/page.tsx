@@ -41,7 +41,7 @@ export default async function PurchaseOrderDetailPage({ params }: { params: Prom
 
   return (
     <>
-      <PageHeader title={<DocumentNumber value={order.po_no} />} description="Purchase Order detail and approval workflow" />
+      <PageHeader title={<DocumentNumber value={order.po_no} size="lg" />} description="Workflow, source request, ordered items, and timeline." />
       <div className="grid gap-5 p-5 xl:grid-cols-[1fr_420px]">
         <div className="space-y-5">
           <WorkflowStatusPipeline steps={poSteps} currentStatus={order.status} />

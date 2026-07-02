@@ -1,12 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import { AlertTriangle, Boxes, CalendarCheck, CheckCircle2, ClipboardCheck, Factory, PackageCheck, Truck, TriangleAlert } from "lucide-react";
+import { AlertTriangle, Boxes, CalendarCheck, CheckCircle2, ClipboardCheck, CreditCard, Factory, PackageCheck, ReceiptText, Truck, TriangleAlert } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { StatCard } from "@/components/ui/stat-card";
 import { WorkspaceQuickInsights, type WorkspaceInsight } from "@/components/workspace-panels";
-import { formatNumber } from "@/lib/utils";
+import { formatCurrency, formatNumber } from "@/lib/utils";
 import type { UserRole } from "@/types/database";
 import type { LucideIcon } from "lucide-react";
 
@@ -66,6 +66,19 @@ export function DashboardWorkspace({ summary, role }: { summary: DashboardSummar
           <StatCard label="Stock Count Due" value={summary.today.stockCountDue} icon={CalendarCheck} tone="warning" />
           <StatCard label="Today's Production" value={summary.today.production} icon={Factory} />
           <StatCard label="Today's Deliveries" value={summary.today.deliveries} icon={Truck} tone="accent" />
+        </div>
+      </section>
+
+      <section className="space-y-3 rounded-xl border bg-card p-5 shadow-sm">
+        <div>
+          <p className="sb-section-label">Finance Forecast</p>
+          <h2 className="mt-1 text-lg font-semibold">Payables foundation</h2>
+          <p className="mt-1 text-sm text-muted-foreground">Finance forecast will improve as PO, GRN, and supplier invoice data grows.</p>
+        </div>
+        <div className="grid gap-4 md:grid-cols-3">
+          <StatCard label="Upcoming Payables" value={formatCurrency(summary.financeForecast.upcomingPayables)} icon={CreditCard} tone="accent" />
+          <StatCard label="Pending PO Value" value={formatCurrency(summary.financeForecast.pendingPoValue)} icon={ReceiptText} />
+          <StatCard label="Receiving Not Invoiced" value={formatNumber(summary.financeForecast.receivingNotInvoiced)} icon={PackageCheck} tone="warning" />
         </div>
       </section>
 

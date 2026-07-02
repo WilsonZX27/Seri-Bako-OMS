@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { MasterDataFilters } from "@/components/master-data-filters";
 import { PageHeader } from "@/components/ui/page-header";
 import { PaginationControls, SortableHead } from "@/components/sortable-table";
+import { StatusTabs } from "@/components/status-tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { paginateRows } from "@/lib/table-state";
 import { getSuppliers } from "@/server/queries/suppliers";
@@ -27,6 +28,7 @@ export default async function SuppliersPage({
           <Button asChild variant="outline" size="sm"><Link href="/imports/suppliers">Import suppliers</Link></Button>
         </div>
         <div className="overflow-hidden rounded-lg border bg-card">
+          <StatusTabs statuses={[{ value: "active", label: "Active" }, { value: "inactive", label: "Inactive" }, { value: "archived", label: "Archived" }]} activeStatus={filters.status} />
           <MasterDataFilters search={filters.search} status={filters.status} placeholder="Search supplier code, name, contact, phone, email" />
           <BulkSelectionProvider ids={page.rows.map((supplier) => supplier.id)} actionLabel="Deactivate selected" actionHint="Deactivate suppliers only when they should no longer be used for purchasing.">
           <div className="overflow-x-auto">

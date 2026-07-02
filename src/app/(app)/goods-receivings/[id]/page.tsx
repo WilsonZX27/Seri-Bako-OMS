@@ -33,7 +33,7 @@ export default async function GoodsReceivingDetailPage({ params }: { params: Pro
 
   return (
     <>
-      <PageHeader title={<DocumentNumber value={receiving.grn_no} />} description="Goods Receiving Note detail and posting workflow" />
+      <PageHeader title={<DocumentNumber value={receiving.grn_no} size="lg" />} description="Workflow, received items, attachments, and posting status." />
       <div className="grid gap-5 p-5 xl:grid-cols-[1fr_420px]">
         <div className="space-y-5">
           <WorkflowStatusPipeline steps={grnSteps} currentStatus={receiving.status} />

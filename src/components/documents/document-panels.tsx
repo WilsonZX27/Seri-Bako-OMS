@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Field } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
+import { SubmitButton } from "@/components/ui/submit-button";
 import { Textarea } from "@/components/ui/textarea";
 import {
   addDocumentAttachment,
@@ -28,6 +29,10 @@ type Activity = Pick<Database["public"]["Tables"]["activity_logs"]["Row"], "id" 
 
 function formatDate(value: string | null) {
   return value ? new Intl.DateTimeFormat("en-MY", { dateStyle: "medium", timeStyle: "short" }).format(new Date(value)) : "-";
+}
+
+function actorLabel(value: string | null) {
+  return value ? `By ${value.slice(0, 8)}` : "By System";
 }
 
 function eventIcon(type: string) {
@@ -69,7 +74,7 @@ export function DocumentTimeline({ document, activities, comments, attachments }
               <div className="mt-0.5">{eventIcon(event.activity_type)}</div>
               <div>
                 <p className="text-sm font-medium">{event.message}</p>
-                <p className="text-xs text-muted-foreground">{formatDate(event.created_at)}</p>
+                <p className="text-xs text-muted-foreground">{actorLabel(event.created_by)} - {formatDate(event.created_at)}</p>
               </div>
             </div>
           ))}
@@ -93,7 +98,7 @@ export async function AttachmentPanel({ documentId, attachments }: { documentId:
             <Field label="Upload attachment" required>
               <Input name="file" type="file" required />
             </Field>
-            <Button type="submit" variant="secondary">Upload</Button>
+            <SubmitButton type="submit" variant="secondary" pendingLabel="Uploading...">Upload</SubmitButton>
           </form>
         ) : null}
         <div className="divide-y rounded-lg border">
@@ -103,12 +108,12 @@ export async function AttachmentPanel({ documentId, attachments }: { documentId:
                 <FileText className="mt-0.5 h-4 w-4 text-muted-foreground" />
                 <div>
                   <p className="text-sm font-medium">{attachment.file_name}</p>
-                  <p className="text-xs text-muted-foreground">Uploaded {formatDate(attachment.created_at)}</p>
+                  <p className="text-xs text-muted-foreground">Uploaded {actorLabel(attachment.uploaded_by).toLowerCase()} - {formatDate(attachment.created_at)}</p>
                 </div>
               </div>
               <div className="flex gap-2">
                 {attachment.file_url ? <Button asChild variant="outline" size="sm"><a href={attachment.file_url}>View / Download</a></Button> : <Button type="button" variant="outline" size="sm" disabled>View / Download</Button>}
-                {canManageAttachments ? <form action={archiveDocumentAttachment.bind(null, documentId, attachment.id)}><Button variant="ghost" size="sm">Remove</Button></form> : null}
+                {canManageAttachments ? <form action={archiveDocumentAttachment.bind(null, documentId, attachment.id)}><SubmitButton variant="ghost" size="sm" pendingLabel="Processing...">Remove</SubmitButton></form> : null}
               </div>
             </div>
           ))}
@@ -126,13 +131,13 @@ export function CommentsPanel({ documentId, comments }: { documentId: string; co
         <h2 className="text-sm font-semibold">Comments</h2>
         <form action={addDocumentComment.bind(null, documentId)} className="space-y-3">
           <Textarea name="comment_text" placeholder="Add a comment for the document history" required />
-          <Button type="submit" variant="secondary">Add comment</Button>
+          <SubmitButton type="submit" variant="secondary" pendingLabel="Saving...">Add comment</SubmitButton>
         </form>
         <div className="space-y-3">
           {comments.map((comment) => (
             <div key={comment.id} className="rounded-lg border bg-secondary/30 p-3">
               <p className="text-sm">{comment.comment_text}</p>
-              <p className="mt-1 text-xs text-muted-foreground">{formatDate(comment.created_at)}</p>
+              <p className="mt-1 text-xs text-muted-foreground">{actorLabel(comment.created_by)} - {formatDate(comment.created_at)}</p>
             </div>
           ))}
           {!comments.length ? <p className="text-sm text-muted-foreground">No comments yet.</p> : null}
@@ -154,17 +159,17 @@ export function ApprovalPanel({ document, approval, approvalSteps }: { document:
           <Badge variant={document.approval_status === "approved" ? "success" : document.approval_status === "rejected" ? "danger" : "secondary"}>{document.approval_status}</Badge>
         </div>
         <div className="flex flex-wrap gap-2">
-          <form action={submitDocument.bind(null, document.id)}><Button type="submit" variant="secondary">Submit for approval</Button></form>
-          <form action={postDocument.bind(null, document.id)}><Button type="submit" variant="outline">Post</Button></form>
-          <form action={cancelDocument.bind(null, document.id)}><Button type="submit" variant="ghost">Cancel</Button></form>
+          <form action={submitDocument.bind(null, document.id)}><SubmitButton type="submit" variant="secondary" pendingLabel="Sending...">Submit for approval</SubmitButton></form>
+          <form action={postDocument.bind(null, document.id)}><SubmitButton type="submit" variant="outline" pendingLabel="Posting...">Post</SubmitButton></form>
+          <form action={cancelDocument.bind(null, document.id)}><SubmitButton type="submit" variant="ghost" pendingLabel="Processing...">Cancel</SubmitButton></form>
         </div>
         <form action={approveDocument.bind(null, document.id)} className="grid gap-2 sm:grid-cols-[1fr_auto]">
           <Input name="remarks" placeholder="Approval remarks" />
-          <Button type="submit">Approve</Button>
+          <SubmitButton type="submit" pendingLabel="Approving...">Approve</SubmitButton>
         </form>
         <form action={rejectDocument.bind(null, document.id)} className="grid gap-2 sm:grid-cols-[1fr_auto]">
           <Input name="remarks" placeholder="Rejection remarks required" required />
-          <Button type="submit" variant="destructive">Reject</Button>
+          <SubmitButton type="submit" variant="destructive" pendingLabel="Rejecting...">Reject</SubmitButton>
         </form>
         <div className="rounded-lg border">
           {approvalSteps.map((step) => (
@@ -172,6 +177,7 @@ export function ApprovalPanel({ document, approval, approvalSteps }: { document:
               <div>
                 <p className="text-sm font-medium">Step {step.step_no}: {step.approver_role ?? "Approver"}</p>
                 <p className="text-xs text-muted-foreground">{step.remarks ?? "No remarks yet"}</p>
+                <p className="text-xs text-muted-foreground">{actorLabel(step.acted_by)} - {formatDate(step.acted_at ?? step.updated_at)}</p>
               </div>
               <Badge variant={step.status === "approved" ? "success" : step.status === "rejected" ? "danger" : "secondary"}>{step.status}</Badge>
             </div>
@@ -193,7 +199,7 @@ export function RevisionPanel({ revisions }: { revisions: Revision[] }) {
             <div key={revision.id} className="p-3">
               <p className="text-sm font-medium">Revision {revision.revision_no}</p>
               <p className="text-sm text-muted-foreground">{revision.change_summary}</p>
-              <p className="mt-1 text-xs text-muted-foreground">{formatDate(revision.changed_at)}</p>
+              <p className="mt-1 text-xs text-muted-foreground">{actorLabel(revision.changed_by)} - {formatDate(revision.changed_at)}</p>
             </div>
           ))}
           {!revisions.length ? <p className="p-4 text-center text-sm text-muted-foreground">No revisions yet.</p> : null}

@@ -158,13 +158,13 @@ function getItemImportValues(row: Record<string, string>, entity: ImportRequest[
     category: normalizeText(row.category),
     base_uom: normalizeText(row.base_uom),
     purchase_uom: normalizeText(row.purchase_uom) || normalizeText(row.base_uom),
-    barcode: normalizeText(row.barcode),
+    barcode: "",
     cost: parseNumber(row.cost),
     safety_stock: parseNumber(row.safety_stock),
     supplier_name: normalizeText(row.supplier_name),
-    supplier_code: "",
+    supplier_code: normalizeText(row.supplier_code),
     active: normalizeText(row.active),
-    autocount_code: normalizeText(row.autocount_code),
+    autocount_code: "",
   };
 }
 
@@ -228,7 +228,7 @@ async function handleItemsImport(context: RouteContext, request: ImportRequest) 
       pushIssue(summary, rowNumber, sourceRow, "Invalid number for safety_stock.");
       continue;
     }
-    if (request.entity === "items-stock-listing" && row.values.supplier_code && !supplier) {
+    if (row.values.supplier_code && !supplier) {
       pushIssue(summary, rowNumber, sourceRow, "Supplier code not found. Import supplier first or leave supplier blank.");
       continue;
     }
@@ -261,12 +261,6 @@ async function handleItemsImport(context: RouteContext, request: ImportRequest) 
       safety_stock: safetyStock ?? 0,
       cost: cost ?? 0,
       status: (parseBooleanFlag(row.values.active, true) ? "active" : "inactive") as ItemStatus,
-      barcode: barcode || null,
-      internal_barcode: normalizeText(sourceRow.internal_barcode) || null,
-      supplier_barcode: normalizeText(sourceRow.supplier_barcode) || null,
-      qr_code: normalizeText(sourceRow.qr_code) || null,
-      barcode_type: "internal",
-      item_image_url: normalizeText(sourceRow.item_image_url) || null,
     };
 
     if (existing) {

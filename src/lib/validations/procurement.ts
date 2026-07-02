@@ -14,7 +14,7 @@ export const purchaseRequestLineSchema = z.object({
 });
 
 export const purchaseRequestSchema = z.object({
-  request_no: z.string().trim().min(1, "Request number is required"),
+  request_no: z.string().trim().optional().nullable().or(z.literal("")),
   request_date: z.string().trim().min(1, "Request date is required"),
   required_date: z.string().trim().optional().nullable().or(z.literal("")),
   priority: prioritySchema.default("normal"),

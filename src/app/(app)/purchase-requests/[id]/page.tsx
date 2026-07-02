@@ -73,12 +73,10 @@ export default async function PurchaseRequestDetailPage({ params }: { params: Pr
               </form>
               <div className="grid gap-4 md:grid-cols-4">
                 <div><p className="text-xs uppercase text-muted-foreground">Request Date</p><p className="font-medium">{request.request_date}</p></div>
-                <div><p className="text-xs uppercase text-muted-foreground">Required Date</p><p className="font-medium">{request.required_date ?? "-"}</p></div>
                 <div><p className="text-xs uppercase text-muted-foreground">Priority</p><PriorityBadge priority={request.priority} /></div>
                 <div><p className="text-xs uppercase text-muted-foreground">Needed By</p><p className="font-medium">{request.needed_by_date ?? "-"}</p></div>
                 <div><p className="text-xs uppercase text-muted-foreground">Branch</p><p className="font-medium">{branch?.branch_name ?? "-"}</p></div>
                 <div><p className="text-xs uppercase text-muted-foreground">Location</p><p className="font-medium">{location?.location_name ?? "-"}</p></div>
-                <div><p className="text-xs uppercase text-muted-foreground">Production Risk</p><p className="font-medium">{request.production_risk ? "Yes" : "No"}</p></div>
               </div>
               {request.urgency_reason ? <p className="rounded-md border bg-warning/10 p-3 text-sm text-warning">{request.urgency_reason}</p> : null}
               {request.remarks ? <p className="rounded-md border bg-secondary/30 p-3 text-sm">{request.remarks}</p> : null}

@@ -16,7 +16,7 @@ export type CategoryCardItem = {
 
 export function CategoryCardGrid({ items, className }: { items: CategoryCardItem[]; className?: string }) {
   return (
-    <div className={cn("grid gap-4 md:grid-cols-2 xl:grid-cols-3", className)}>
+    <div className={cn("grid items-stretch gap-4 md:grid-cols-2 xl:grid-cols-4", className)}>
       {items.map((item) => {
         const Icon = item.icon;
         const content = (

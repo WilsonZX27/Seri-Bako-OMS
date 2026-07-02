@@ -17,13 +17,13 @@ type SeedLine = { item_id: string; item_code: string; item_name: string; barcode
 
 export function StockTransferForm({ branches, selectedFromBranchId, seedLines, action }: { branches: Branch[]; locations: Location[]; selectedFromLocationId?: string; selectedFromBranchId?: string; seedLines: SeedLine[]; action: (formData: FormData) => Promise<void> }) {
   const router = useRouter();
-  const no = "TRF-AUTO";
   function selectFromBranch(id: string) { router.push(id ? `/stock-transfers/new?from_branch_id=${id}` : "/stock-transfers/new"); }
   return (
     <Card><CardContent className="p-5">
       <form action={action} className="space-y-5">
+        <input type="hidden" name="transfer_no" value="" />
         <div className="grid gap-4 md:grid-cols-3">
-          <Field label="Transfer No"><Input name="transfer_no" defaultValue={no} required /></Field>
+          <Field label="Transfer No"><div className="rounded-md border bg-secondary/30 px-3 py-2 text-sm text-muted-foreground">Auto-generated on submit</div></Field>
           <Field label="Transfer Date"><Input name="transfer_date" type="date" defaultValue={getToday()} required /></Field>
           <Field label="Status"><SelectNative name="status" defaultValue="draft"><option value="draft">Draft</option></SelectNative></Field>
           <Field label="From Branch"><SelectNative name="from_branch_id" value={selectedFromBranchId ?? branches[0]?.id ?? ""} onChange={(e) => selectFromBranch(e.target.value)} required>{branches.map((b) => <option key={b.id} value={b.id}>{b.branch_name}</option>)}</SelectNative><p className="mt-1 text-xs text-muted-foreground">Select the outlet, kitchen, office, or event booth this record belongs to.</p></Field>

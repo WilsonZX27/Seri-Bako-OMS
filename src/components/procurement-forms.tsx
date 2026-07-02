@@ -1,4 +1,9 @@
-import { Search } from "lucide-react";
+"use client";
+
+import { useState } from "react";
+import { Plus, Search } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Field } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
@@ -39,29 +44,29 @@ export function PurchaseRequestForm({
   branches: BranchOption[];
   action: (formData: FormData) => Promise<void>;
 }) {
-  const requestNo = "PR-AUTO";
+  const [lineIndexes, setLineIndexes] = useState([0]);
+  const [priority, setPriority] = useState("normal");
+  const showUrgencyReason = priority === "urgent" || priority === "critical";
   return (
     <Card>
       <CardContent className="p-5">
         <form action={action} className="space-y-5">
+          <input type="hidden" name="request_no" value="" />
+          <input type="hidden" name="status" value="draft" />
+          <div className="flex flex-col gap-3 border-b pb-4 md:flex-row md:items-center md:justify-between">
+            <div>
+              <div className="flex flex-wrap items-center gap-2">
+                <Badge variant="secondary">Draft</Badge>
+                <h2 className="text-lg font-semibold">Create purchase request</h2>
+              </div>
+              <p className="mt-1 text-sm text-muted-foreground">Request number is auto-generated on submit.</p>
+            </div>
+            <SubmitButton type="submit" pendingLabel="Saving..." showOverlay overlayLabel="Saving changes...">Create purchase request</SubmitButton>
+          </div>
+
           <div className="grid gap-4 md:grid-cols-3">
-            <Field label="Request No">
-              <Input name="request_no" defaultValue={requestNo} required />
-            </Field>
             <Field label="Request Date">
               <Input name="request_date" type="date" defaultValue={today()} required />
-            </Field>
-            <Field label="Required Date">
-              <Input name="required_date" type="date" />
-            </Field>
-            <Field label="Priority">
-              <SelectNative name="priority" defaultValue="normal">
-                <option value="low">Low</option>
-                <option value="normal">Normal</option>
-                <option value="urgent">Urgent</option>
-                <option value="critical">Critical</option>
-              </SelectNative>
-              <p className="mt-1 text-xs text-muted-foreground">Use Urgent or Critical only when delay may affect production or outlet operation.</p>
             </Field>
             <Field label="Needed By">
               <Input name="needed_by_date" type="date" />
@@ -70,39 +75,47 @@ export function PurchaseRequestForm({
               <SelectNative name="branch_id" defaultValue={branches[0]?.id ?? ""} required>
                 {branches.map((branch) => <option key={branch.id} value={branch.id}>{branch.branch_name}</option>)}
               </SelectNative>
-              <p className="mt-1 text-xs text-muted-foreground">Select the outlet, kitchen, office, or event booth this record belongs to.</p>
+              <p className="mt-1 text-xs text-muted-foreground">Select the outlet, kitchen, office, or event booth this request belongs to.</p>
             </Field>
-            <Field label="Status">
-              <SelectNative name="status" defaultValue="draft">
-                <option value="draft">Draft</option>
+            <Field label="Urgency">
+              <SelectNative name="priority" value={priority} onChange={(event) => setPriority(event.target.value)}>
+                <option value="low">Low</option>
+                <option value="normal">Normal</option>
+                <option value="urgent">Urgent</option>
+                <option value="critical">Critical</option>
               </SelectNative>
+              <p className="mt-1 text-xs text-muted-foreground">Use Urgent or Critical only when delay may affect outlet or kitchen operations.</p>
             </Field>
             <div className="md:col-span-3">
               <Field label="Remarks">
                 <Textarea name="remarks" placeholder="Reason for purchasing request" />
               </Field>
             </div>
-            <div className="md:col-span-2">
-              <Field label="Urgency Reason">
-                <Input name="urgency_reason" placeholder="Example: production batch blocked by missing ingredient" />
-              </Field>
-            </div>
-            <label className="flex items-center gap-2 rounded-md border p-3 text-sm">
-              <input type="checkbox" name="production_risk" className="h-4 w-4" />
-              Production risk
-            </label>
+            {showUrgencyReason ? (
+              <div className="md:col-span-2">
+                <Field label="Urgency Reason">
+                  <Input name="urgency_reason" placeholder="Example: outlet is blocked by a missing ingredient" />
+                </Field>
+              </div>
+            ) : null}
           </div>
 
           <div className="rounded-lg border">
             <div className="flex items-center justify-between border-b bg-secondary/40 px-4 py-3">
               <div>
                 <p className="text-sm font-semibold">Request Lines</p>
-                <p className="text-xs text-muted-foreground">Search by item code, item name, or barcode in the item selector.</p>
+                <p className="text-xs text-muted-foreground">Search by item code or item name in the item selector.</p>
               </div>
-              <Search className="h-4 w-4 text-muted-foreground" />
+              <div className="flex items-center gap-2">
+                <Search className="h-4 w-4 text-muted-foreground" />
+                <Button type="button" variant="outline" size="sm" onClick={() => setLineIndexes((indexes) => [...indexes, Math.max(...indexes) + 1])}>
+                  <Plus className="h-4 w-4" />
+                  Add line
+                </Button>
+              </div>
             </div>
             <div className="divide-y">
-              {[0, 1, 2, 3, 4].map((index) => (
+              {lineIndexes.map((index) => (
                 <div key={index} className="grid gap-3 p-4 lg:grid-cols-[2fr_100px_90px_130px_1.4fr_1fr_1fr]">
                   <ItemSelect items={items} required={index === 0} />
                   <Input name="line_qty" type="number" min="0.0001" step="0.0001" placeholder="Qty" required={index === 0} />
@@ -117,10 +130,6 @@ export function PurchaseRequestForm({
                 </div>
               ))}
             </div>
-          </div>
-
-          <div className="flex justify-end">
-            <SubmitButton type="submit" pendingLabel="Saving..." showOverlay overlayLabel="Saving changes...">Create purchase request</SubmitButton>
           </div>
         </form>
       </CardContent>

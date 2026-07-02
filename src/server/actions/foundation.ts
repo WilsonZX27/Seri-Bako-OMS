@@ -298,7 +298,7 @@ export async function deleteLocation(id: string) {
   try {
     if (!isMockMode()) {
       const supabase = createAdminClient();
-      const { error } = await supabase.from("locations").update({ deleted_at: new Date().toISOString(), status: "archived" }).eq("id", id);
+      const { error } = await supabase.from("locations").update({ deleted_at: new Date().toISOString(), status: "inactive" }).eq("id", id);
       if (error) throw new Error(error.message);
       await writeActivityLog({ entityType: "location", entityId: id, activityType: "archived", message: "Location archived" });
     }
@@ -379,7 +379,7 @@ export async function archiveDuplicateLocation(id: string) {
         throw new Error("This duplicate location already has stock history. Leave it in place and review it manually.");
       }
 
-      const { error } = await supabase.from("locations").update({ deleted_at: new Date().toISOString(), status: "archived" }).eq("id", id);
+      const { error } = await supabase.from("locations").update({ deleted_at: new Date().toISOString(), status: "inactive" }).eq("id", id);
       if (error) throw new Error(error.message);
       await writeActivityLog({ entityType: "location", entityId: id, activityType: "archived", message: "Duplicate location archived" });
     }
@@ -432,7 +432,7 @@ export async function cleanDuplicateLocations() {
 
         const { error: archiveError } = await supabase
           .from("locations")
-          .update({ deleted_at: new Date().toISOString(), status: "archived" })
+          .update({ deleted_at: new Date().toISOString(), status: "inactive" })
           .eq("id", location.id);
         if (archiveError) throw new Error(archiveError.message);
         archivedCount += 1;

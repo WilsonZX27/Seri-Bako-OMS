@@ -46,7 +46,7 @@ export default async function PurchaseRequestsPage({ searchParams }: { searchPar
                 <TableRow>
                   <SortableHead label="Request No" column="request_no" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
                   <SortableHead label="Request Date" column="request_date" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
-                  <SortableHead label="Required Date" column="required_date" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
+                  <SortableHead label="Needed By" column="needed_by_date" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
                   <TableHead>Priority</TableHead>
                   <TableHead>Branch</TableHead>
                   <TableHead>Location</TableHead>
@@ -61,7 +61,7 @@ export default async function PurchaseRequestsPage({ searchParams }: { searchPar
                   <TableRow key={request.id}>
                     <TableCell className="font-medium">{request.request_no}</TableCell>
                     <TableCell>{request.request_date}</TableCell>
-                    <TableCell>{request.required_date ?? "-"}</TableCell>
+                    <TableCell>{request.needed_by_date ?? "-"}</TableCell>
                     <TableCell><PriorityBadge priority={request.priority} /></TableCell>
                     <TableCell>{request.branch_name ?? "-"}</TableCell>
                     <TableCell>{request.location_name ?? "-"}</TableCell>

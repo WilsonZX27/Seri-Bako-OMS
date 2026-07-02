@@ -353,9 +353,9 @@ export function ImportWorkflow({ entity }: { entity: ImportEntity }) {
             </div>
           </div>
 
-          <div className="grid gap-3 xl:grid-cols-5">
+          <div className="grid items-stretch gap-3 xl:grid-cols-5">
             {steps.map((step) => (
-              <div key={step.title} className="rounded-lg border bg-[var(--sb-muted)] p-3">
+              <div key={step.title} className="h-full rounded-lg border bg-[var(--sb-muted)] p-3">
                 <p className="text-sm font-medium">{step.title}</p>
                 <p className="mt-1 text-xs text-muted-foreground">{step.detail}</p>
               </div>
@@ -422,8 +422,8 @@ export function ImportWorkflow({ entity }: { entity: ImportEntity }) {
               ) : null}
             </div>
 
-            <div className="space-y-3">
-              <div className="rounded-lg border p-4">
+            <div className="grid content-start gap-3">
+              <div className="rounded-lg border bg-card p-4">
                 <p className="text-sm font-semibold">Current file</p>
                 <div className="mt-3 space-y-2 text-sm text-muted-foreground">
                   <div className="flex items-center justify-between"><span>Total rows</span><span className="font-medium text-foreground">{rows.length}</span></div>

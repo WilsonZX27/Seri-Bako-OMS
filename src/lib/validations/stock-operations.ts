@@ -13,7 +13,7 @@ const transferLine = z.object({
 const optionalUuid = z.string().uuid().optional().nullable().or(z.literal(""));
 
 export const stockTransferSchema = z.object({
-  transfer_no: z.string().trim().min(1),
+  transfer_no: z.string().trim().optional().nullable().or(z.literal("")),
   transfer_date: z.string().trim().min(1),
   from_branch_id: z.string().uuid("From branch required"),
   from_location_id: optionalUuid,

@@ -103,6 +103,7 @@ export async function getVisibleNotificationsForCurrentUser() {
       const personalRecipient = recipientByNotificationId.get(notification.id);
       return {
         ...notification,
+        message: notification.message ?? "",
         read_at: personalRecipient?.read_at ?? notification.read_at,
         dismissed_at: personalRecipient?.dismissed_at ?? notification.dismissed_at,
       };

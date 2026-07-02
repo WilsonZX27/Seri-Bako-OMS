@@ -127,6 +127,31 @@ async function createLinkedDocument(input: {
   return data.id;
 }
 
+async function createPurchaseOrderCreatedNotification(input: { poId: string; poNo: string; prNo: string; companyId: string | null; staffId: string | null }) {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  const { error } = await supabase.from("notifications").insert({
+    company_id: input.companyId,
+    recipient_user_id: user?.id ?? null,
+    recipient_staff_id: input.staffId,
+    title: "Purchase Order created",
+    message: `${input.poNo} created from ${input.prNo}.`,
+    action_url: `/purchase-orders/${input.poId}`,
+    priority: "normal",
+    entity_type: "purchase_order",
+    entity_id: input.poId,
+    actor_user_id: user?.id ?? null,
+    created_by: input.staffId,
+  });
+
+  if (error) {
+    console.error(error);
+  }
+}
+
 export async function createPurchaseRequest(formData: FormData) {
   await requirePermissionOrRedirect("purchase_request.create", "/purchase-requests/new");
   try {
@@ -336,67 +361,97 @@ export async function closePurchaseOrder(id: string) {
 
 export async function convertPurchaseRequestToPurchaseOrder(id: string) {
   await requirePermission("purchase_request.convert");
-  if (isMockMode()) redirect("/purchase-orders/po-mock-001");
-  const supabase = await createClient();
-  const [{ data: pr, error: prError }, { data: lines, error: linesError }, { data: suppliers, error: suppliersError }] = await Promise.all([
-    supabase.from("purchase_requests").select("*").eq("id", id).single(),
-    supabase.from("purchase_request_lines").select("*").eq("purchase_request_id", id),
-    supabase.from("suppliers").select("id").eq("status", "active").limit(1),
-  ]);
-  if (prError) throw new Error(prError.message);
-  if (linesError) throw new Error(linesError.message);
-  if (suppliersError) throw new Error(suppliersError.message);
-  if (pr.status === "rejected") throw new Error("Cannot convert rejected PR.");
-  if (pr.status !== "approved") throw new Error("Only approved PR can be converted.");
-  const firstSupplier = lines?.find((line) => line.suggested_supplier_id)?.suggested_supplier_id ?? suppliers?.[0]?.id;
-  if (!firstSupplier) throw new Error("PO supplier required.");
-  const profile = await identity();
-  const poNo = await resolveDocumentNumber({
-    companyId: profile?.company_id,
-    documentType: "purchase_order",
-    enteredNumber: null,
-  });
-  const { data: po, error: poError } = await supabase
-    .from("purchase_orders")
-    .insert({
-      company_id: pr.company_id,
-      purchase_request_id: id,
-      po_no: poNo,
-      supplier_id: firstSupplier,
-      order_date: new Date().toISOString().slice(0, 10),
-      expected_delivery_date: pr.required_date,
-      priority: pr.priority ?? "normal",
-      needed_by_date: pr.needed_by_date ?? pr.required_date,
-      urgency_reason: pr.urgency_reason,
-      production_risk: pr.production_risk ?? false,
-      status: "draft",
-      approval_status: "draft",
-      remarks: `Converted from ${pr.request_no}`,
-      created_by: profile?.id ?? null,
-      updated_by: profile?.id ?? null,
-    })
-    .select("id")
-    .single();
-  if (poError) throw new Error(poError.message);
-  const documentId = await createLinkedDocument({ documentNo: poNo, documentType: "purchase_order", title: `Purchase Order ${poNo}`, relatedEntityType: "purchase_order", relatedEntityId: po.id });
-  const [{ error: poUpdateError }, { error: poLinesError }, { error: prUpdateError }] = await Promise.all([
-    supabase.from("purchase_orders").update({ document_id: documentId }).eq("id", po.id),
-    supabase.from("purchase_order_lines").insert((lines ?? []).map((line) => ({
-      purchase_order_id: po.id,
-      item_id: line.item_id,
-      qty_ordered: line.qty,
-      qty_received: 0,
-      qty_cancelled: 0,
-      uom: line.uom,
-      unit_price: line.estimated_unit_cost,
-    }))),
-    supabase.from("purchase_requests").update({ status: "converted" }).eq("id", id),
-  ]);
-  if (poUpdateError) throw new Error(poUpdateError.message);
-  if (poLinesError) throw new Error(poLinesError.message);
-  if (prUpdateError) throw new Error(prUpdateError.message);
-  await writeActivityLog({ entityType: "document", entityId: documentId, activityType: "created", message: `Purchase order ${poNo} converted from ${pr.request_no}` });
-  revalidatePath("/purchase-requests");
-  revalidatePath("/purchase-orders");
-  redirect(`/purchase-orders/${po.id}`);
+  try {
+    if (isMockMode()) redirect("/purchase-orders/po-mock-001");
+    const supabase = await createClient();
+    const [{ data: pr, error: prError }, { data: lines, error: linesError }, { data: existingPo, error: existingPoError }] = await Promise.all([
+      supabase.from("purchase_requests").select("*").eq("id", id).single(),
+      supabase.from("purchase_request_lines").select("*").eq("purchase_request_id", id),
+      supabase.from("purchase_orders").select("id, po_no").eq("purchase_request_id", id).is("deleted_at", null).order("created_at", { ascending: true }).limit(1),
+    ]);
+    if (prError) throw new Error(prError.message);
+    if (linesError) throw new Error(linesError.message);
+    if (existingPoError) throw new Error(existingPoError.message);
+    if (existingPo?.[0]) {
+      safeRedirectWithMessage(`/purchase-orders/${existingPo[0].id}`, "success", `Purchase order ${existingPo[0].po_no} is already linked to this PR.`);
+    }
+    if (pr.status !== "approved") throw new Error("Only approved purchase requests can be converted to purchase orders.");
+    if (!lines?.length) throw new Error("Add at least one item line before converting this PR.");
+
+    const supplierIds = new Set(lines.map((line) => line.suggested_supplier_id).filter(Boolean));
+    if (supplierIds.size === 0 || lines.some((line) => !line.suggested_supplier_id)) {
+      throw new Error("Choose a supplier for every PR line before converting to PO.");
+    }
+    if (supplierIds.size > 1) {
+      throw new Error("This PR has multiple suppliers. Split the request or keep one supplier before converting.");
+    }
+    const [supplierId] = Array.from(supplierIds);
+    if (!supplierId) throw new Error("PO supplier is required.");
+
+    const profile = await identity();
+    const poNo = await resolveDocumentNumber({
+      companyId: profile?.company_id,
+      documentType: "purchase_order",
+      enteredNumber: null,
+    });
+    const { data: po, error: poError } = await supabase
+      .from("purchase_orders")
+      .insert({
+        company_id: pr.company_id,
+        purchase_request_id: id,
+        po_no: poNo,
+        supplier_id: supplierId,
+        order_date: pr.request_date,
+        expected_delivery_date: pr.needed_by_date ?? pr.required_date,
+        priority: pr.priority ?? "normal",
+        needed_by_date: pr.needed_by_date ?? pr.required_date,
+        urgency_reason: pr.urgency_reason,
+        production_risk: pr.production_risk ?? false,
+        status: "draft",
+        approval_status: "draft",
+        remarks: pr.remarks ? `Created from ${pr.request_no}. ${pr.remarks}` : `Created from ${pr.request_no}.`,
+        created_by: profile?.id ?? null,
+        updated_by: profile?.id ?? null,
+      })
+      .select("id")
+      .single();
+    if (poError) throw new Error(poError.message);
+    const documentId = await createLinkedDocument({ documentNo: poNo, documentType: "purchase_order", title: `Purchase Order ${poNo}`, relatedEntityType: "purchase_order", relatedEntityId: po.id });
+    const [{ error: poUpdateError }, { error: poLinesError }, { error: prUpdateError }, { error: prDocumentError }] = await Promise.all([
+      supabase.from("purchase_orders").update({ document_id: documentId }).eq("id", po.id),
+      supabase.from("purchase_order_lines").insert((lines ?? []).map((line) => ({
+        purchase_order_id: po.id,
+        item_id: line.item_id,
+        qty_ordered: line.qty,
+        qty_received: 0,
+        qty_cancelled: 0,
+        uom: line.uom,
+        unit_price: line.estimated_unit_cost,
+      }))),
+      supabase.from("purchase_requests").update({ status: "converted", updated_by: profile?.id ?? null }).eq("id", id),
+      pr.document_id
+        ? supabase.from("documents").update({ current_step: "Converted", updated_by: profile?.id ?? null }).eq("id", pr.document_id)
+        : Promise.resolve({ error: null }),
+    ]);
+    if (poUpdateError) throw new Error(poUpdateError.message);
+    if (poLinesError) throw new Error(poLinesError.message);
+    if (prUpdateError) throw new Error(prUpdateError.message);
+    if (prDocumentError) throw new Error(prDocumentError.message);
+
+    const activityMessage = `Purchase Order ${poNo} created from ${pr.request_no}.`;
+    try {
+      await writeActivityLog({ entityType: "document", entityId: documentId, activityType: "created", message: activityMessage });
+    } catch (error) {
+      console.error(error);
+    }
+    await createPurchaseOrderCreatedNotification({ poId: po.id, poNo, prNo: pr.request_no, companyId: pr.company_id, staffId: profile?.id ?? null });
+
+    revalidatePath("/purchase-requests");
+    revalidatePath(`/purchase-requests/${id}`);
+    revalidatePath("/purchase-orders");
+    safeRedirectWithMessage(`/purchase-orders/${po.id}`, "success", `Purchase order ${poNo} created from ${pr.request_no}.`);
+  } catch (error) {
+    rethrowRedirect(error);
+    safeRedirectWithMessage(`/purchase-requests/${id}`, "error", formatActionError(error, "Could not convert this purchase request."));
+  }
 }

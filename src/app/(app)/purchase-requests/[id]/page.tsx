@@ -19,7 +19,7 @@ import {
 } from "@/server/actions/procurement";
 import { getBranchesForSelect, getItemsForSelect, getLocationsForSelect, getSuppliersForSelect } from "@/server/queries/common";
 import { getDocumentBundle } from "@/server/queries/documents";
-import { getPurchaseRequest } from "@/server/queries/procurement";
+import { getPurchaseOrdersForRequest, getPurchaseRequest } from "@/server/queries/procurement";
 
 function statusVariant(status: string) {
   if (["approved", "converted"].includes(status)) return "success";
@@ -38,7 +38,14 @@ const prSteps = [
 
 export default async function PurchaseRequestDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const [{ request, lines }, items, suppliers, branches, locations] = await Promise.all([getPurchaseRequest(id), getItemsForSelect(), getSuppliersForSelect(), getBranchesForSelect(), getLocationsForSelect()]);
+  const [{ request, lines }, linkedPurchaseOrders, items, suppliers, branches, locations] = await Promise.all([
+    getPurchaseRequest(id),
+    getPurchaseOrdersForRequest(id),
+    getItemsForSelect(),
+    getSuppliersForSelect(),
+    getBranchesForSelect(),
+    getLocationsForSelect(),
+  ]);
   const documentBundle = request.document_id ? await getDocumentBundle(request.document_id) : null;
   const itemById = new Map(items.map((item) => [item.id, item]));
   const supplierById = new Map(suppliers.map((supplier) => [supplier.id, supplier]));
@@ -63,7 +70,9 @@ export default async function PurchaseRequestDetailPage({ params }: { params: Pr
                   <form action={adminReviewPurchaseRequest.bind(null, request.id)}><Button type="submit" variant="outline">Admin approve</Button></form>
                   <form action={purchasingReviewPurchaseRequest.bind(null, request.id)}><Button type="submit" variant="outline">Purchasing verified</Button></form>
                   <form action={approvePurchaseRequest.bind(null, request.id)}><Button type="submit">Manager approve</Button></form>
-                  <form action={convertPurchaseRequestToPurchaseOrder.bind(null, request.id)}><Button type="submit" variant="secondary">Convert to PO</Button></form>
+                  {request.status === "approved" ? (
+                    <form action={convertPurchaseRequestToPurchaseOrder.bind(null, request.id)}><Button type="submit">Convert to Purchase Order</Button></form>
+                  ) : null}
                   <form action={cancelPurchaseRequest.bind(null, request.id)}><Button type="submit" variant="ghost">Cancel</Button></form>
                 </div>
               </div>
@@ -84,6 +93,34 @@ export default async function PurchaseRequestDetailPage({ params }: { params: Pr
           </Card>
 
           <WorkflowStatusPipeline steps={prSteps} currentStatus={request.status} />
+
+          <Card>
+            <CardContent className="space-y-3 p-5">
+              <div>
+                <p className="text-xs uppercase text-muted-foreground">Linked Documents</p>
+                <h2 className="text-sm font-semibold">Purchase Orders created from this PR</h2>
+              </div>
+              {linkedPurchaseOrders.length ? (
+                <div className="grid gap-3 md:grid-cols-2">
+                  {linkedPurchaseOrders.map((order) => (
+                    <Button key={order.id} asChild variant="outline" className="h-auto justify-between p-4">
+                      <a href={`/purchase-orders/${order.id}`}>
+                        <span className="text-left">
+                          <span className="block font-semibold">{order.po_no}</span>
+                          <span className="block text-xs text-muted-foreground">{order.supplier_name ?? "Supplier"} - {order.status}</span>
+                        </span>
+                        <span className="text-sm font-semibold">{formatCurrency(order.order_total)}</span>
+                      </a>
+                    </Button>
+                  ))}
+                </div>
+              ) : (
+                <p className="rounded-md border bg-secondary/30 p-3 text-sm text-muted-foreground">
+                  {request.status === "approved" ? "No purchase order has been created yet." : "A purchase order link will appear after this PR is approved and converted."}
+                </p>
+              )}
+            </CardContent>
+          </Card>
 
           <Card>
             <CardContent className="p-5">

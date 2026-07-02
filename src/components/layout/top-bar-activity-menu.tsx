@@ -38,7 +38,7 @@ export function TopBarActivityMenu({ data }: { data: TopBarActivity }) {
                 <span>{notification.title}</span>
               </Link>
             ))}
-            {data.assignedActivities.length ? <p className="mt-2 px-2 py-1 text-xs font-semibold uppercase text-muted-foreground">Assigned Activities</p> : null}
+            {data.assignedActivities.length ? <p className="mt-2 px-2 py-1 text-xs font-semibold uppercase text-muted-foreground">Recent Activity</p> : null}
             {data.assignedActivities.map((activity) => (
               <div key={activity.id} className="rounded-md p-2 text-sm">{activity.message}</div>
             ))}

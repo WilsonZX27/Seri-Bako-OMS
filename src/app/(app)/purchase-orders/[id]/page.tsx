@@ -10,7 +10,7 @@ import { formatCurrency, formatNumber } from "@/lib/utils";
 import { approvePurchaseOrder, cancelPurchaseOrder, closePurchaseOrder, sendPurchaseOrder, submitPurchaseOrder } from "@/server/actions/procurement";
 import { getItemsForSelect, getSuppliersForSelect } from "@/server/queries/common";
 import { getDocumentBundle } from "@/server/queries/documents";
-import { getPurchaseOrder } from "@/server/queries/procurement";
+import { getPurchaseOrder, getPurchaseRequestForOrder } from "@/server/queries/procurement";
 
 function statusVariant(status: string) {
   if (["approved", "sent", "received", "closed"].includes(status)) return "success";
@@ -31,6 +31,7 @@ const poSteps = [
 export default async function PurchaseOrderDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const [{ order, lines }, items, suppliers] = await Promise.all([getPurchaseOrder(id), getItemsForSelect(), getSuppliersForSelect()]);
+  const sourceRequest = await getPurchaseRequestForOrder(order.purchase_request_id);
   const documentBundle = order.document_id ? await getDocumentBundle(order.document_id) : null;
   const itemById = new Map(items.map((item) => [item.id, item]));
   const supplier = suppliers.find((row) => row.id === order.supplier_id);
@@ -64,7 +65,7 @@ export default async function PurchaseOrderDetailPage({ params }: { params: Prom
                 <div><p className="text-xs uppercase text-muted-foreground">Approval</p><Badge className="mt-1" variant={statusVariant(order.approval_status)}>{order.approval_status}</Badge></div>
                 <div><p className="text-xs uppercase text-muted-foreground">Priority</p><PriorityBadge priority={order.priority} /></div>
                 <div><p className="text-xs uppercase text-muted-foreground">Needed By</p><p className="font-medium">{order.needed_by_date ?? "-"}</p></div>
-                <div><p className="text-xs uppercase text-muted-foreground">Linked PR</p><p className="font-medium">{order.purchase_request_id ? "Yes" : "-"}</p></div>
+                <div><p className="text-xs uppercase text-muted-foreground">Source Document</p><p className="font-medium">{sourceRequest?.request_no ?? "-"}</p></div>
                 <div><p className="text-xs uppercase text-muted-foreground">Production Risk</p><p className="font-medium">{order.production_risk ? "Yes" : "No"}</p></div>
               </div>
               {order.urgency_reason ? <p className="rounded-md border bg-warning/10 p-3 text-sm text-warning">{order.urgency_reason}</p> : null}
@@ -73,6 +74,28 @@ export default async function PurchaseOrderDetailPage({ params }: { params: Prom
           </Card>
 
           <WorkflowStatusPipeline steps={poSteps} currentStatus={order.status} />
+
+          <Card>
+            <CardContent className="space-y-3 p-5">
+              <div>
+                <p className="text-xs uppercase text-muted-foreground">Source Document</p>
+                <h2 className="text-sm font-semibold">Purchase Request link</h2>
+              </div>
+              {sourceRequest ? (
+                <Button asChild variant="outline" className="h-auto justify-between p-4">
+                  <a href={`/purchase-requests/${sourceRequest.id}`}>
+                    <span className="text-left">
+                      <span className="block font-semibold">{sourceRequest.request_no}</span>
+                      <span className="block text-xs text-muted-foreground">Created the purchase order workflow</span>
+                    </span>
+                    <Badge variant={statusVariant(sourceRequest.status)}>{sourceRequest.status}</Badge>
+                  </a>
+                </Button>
+              ) : (
+                <p className="rounded-md border bg-secondary/30 p-3 text-sm text-muted-foreground">This purchase order was created directly and has no source purchase request.</p>
+              )}
+            </CardContent>
+          </Card>
 
           <Card>
             <CardContent className="p-5">

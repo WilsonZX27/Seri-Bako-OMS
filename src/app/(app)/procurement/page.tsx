@@ -1,6 +1,7 @@
 import { AlertTriangle, ArrowRight, ClipboardList, FileDigit, PackageCheck, Plus, ShoppingCart, Truck, Upload, Users } from "lucide-react";
 import { PageHeader } from "@/components/ui/page-header";
 import { WorkspaceQuickInsights, WorkspaceSectionPanel, type WorkspaceInsight, type WorkspaceSection } from "@/components/workspace-panels";
+import { getProcurementWorkspaceInsights } from "@/server/queries/procurement";
 
 const procurementSections: WorkspaceSection[] = [
   {
@@ -44,14 +45,15 @@ const procurementSections: WorkspaceSection[] = [
   },
 ];
 
-const procurementInsights: WorkspaceInsight[] = [
-  { label: "PRs Awaiting Approval", value: 0, icon: ClipboardList, theme: "blue" },
-  { label: "POs Awaiting Delivery", value: 0, icon: ShoppingCart, theme: "amber" },
-  { label: "GRNs Today", value: 0, icon: PackageCheck, theme: "green" },
-  { label: "Low Stock Items", value: 0, icon: AlertTriangle, theme: "red" },
-];
+export default async function ProcurementPage() {
+  const insights = await getProcurementWorkspaceInsights();
+  const procurementInsights: WorkspaceInsight[] = [
+    { label: "Draft PO", value: insights.draftPo, icon: ShoppingCart, theme: "amber" },
+    { label: "Open PO", value: insights.openPo, icon: ClipboardList, theme: "blue" },
+    { label: "Receiving Today", value: insights.receivingToday, icon: PackageCheck, theme: "green" },
+    { label: "PRs Awaiting Approval", value: insights.pendingPr, icon: AlertTriangle, theme: "red" },
+  ];
 
-export default function ProcurementPage() {
   return (
     <>
       <PageHeader title="Procurement" description="Supplier, purchasing, and receiving work grouped in one place." action={{ href: "/purchase-requests/new", label: "Create PR" }} />

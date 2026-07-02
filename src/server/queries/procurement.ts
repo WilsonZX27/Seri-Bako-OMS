@@ -127,6 +127,31 @@ export async function getPurchaseRequest(id: string) {
   return { request: data as PurchaseRequest, lines: (lines ?? []) as PurchaseRequestLine[] };
 }
 
+export async function getPurchaseOrdersForRequest(id: string) {
+  if (isMockMode()) {
+    return mockPurchaseOrders.filter((order) => order.purchase_request_id === id).map((order) => hydratePo(order, mockPurchaseOrderLines));
+  }
+
+  const supabase = await createClient();
+  const [{ data, error }, { data: lines, error: linesError }, { data: suppliers }] = await Promise.all([
+    supabase.from("purchase_orders").select("*").eq("purchase_request_id", id).is("deleted_at", null).order("created_at", { ascending: true }),
+    supabase.from("purchase_order_lines").select("*"),
+    supabase.from("suppliers").select("id, name"),
+  ]);
+  if (error) throw new Error(error.message);
+  if (linesError) throw new Error(linesError.message);
+  const supplierById = new Map((suppliers ?? []).map((row) => [row.id, row.name]));
+  return ((data ?? []) as PurchaseOrder[]).map((row) => {
+    const ownLines = ((lines ?? []) as PurchaseOrderLine[]).filter((line) => line.purchase_order_id === row.id);
+    return {
+      ...row,
+      supplier_name: supplierById.get(row.supplier_id) ?? null,
+      line_count: ownLines.length,
+      order_total: ownLines.reduce((sum, line) => sum + line.qty_ordered * line.unit_price, 0),
+    };
+  });
+}
+
 export async function getPurchaseOrders(filters: Filters = {}) {
   if (isMockMode()) {
     const rows = mockPurchaseOrders.map((row) => hydratePo(row, mockPurchaseOrderLines));
@@ -174,5 +199,45 @@ export async function getPurchaseOrder(id: string) {
   return {
     order: data as PurchaseOrder,
     lines: ((lines ?? []) as PurchaseOrderLine[]).map((line) => ({ ...line, qty_pending: line.qty_ordered - line.qty_received - line.qty_cancelled })),
+  };
+}
+
+export async function getPurchaseRequestForOrder(purchaseRequestId: string | null) {
+  if (!purchaseRequestId) return null;
+  if (isMockMode()) {
+    const row = mockPurchaseRequests.find((item) => item.id === purchaseRequestId);
+    return row ? hydratePr(row, mockPurchaseRequestLines) : null;
+  }
+
+  const supabase = await createClient();
+  const { data, error } = await supabase.from("purchase_requests").select("*").eq("id", purchaseRequestId).maybeSingle();
+  if (error) throw new Error(error.message);
+  return data as PurchaseRequest | null;
+}
+
+export async function getProcurementWorkspaceInsights() {
+  if (isMockMode()) {
+    return {
+      draftPo: mockPurchaseOrders.filter((order) => order.status === "draft").length,
+      openPo: mockPurchaseOrders.filter((order) => !["received", "closed", "cancelled"].includes(order.status)).length,
+      receivingToday: 0,
+      pendingPr: mockPurchaseRequests.filter((request) => request.status === "pending_approval").length,
+    };
+  }
+
+  const supabase = await createClient();
+  const today = new Date().toISOString().slice(0, 10);
+  const [draftPo, openPo, receivingToday, pendingPr] = await Promise.all([
+    supabase.from("purchase_orders").select("id", { count: "exact", head: true }).eq("status", "draft").is("deleted_at", null),
+    supabase.from("purchase_orders").select("id", { count: "exact", head: true }).not("status", "in", "(received,closed,cancelled)").is("deleted_at", null),
+    supabase.from("goods_receivings").select("id", { count: "exact", head: true }).eq("received_date", today).is("deleted_at", null),
+    supabase.from("purchase_requests").select("id", { count: "exact", head: true }).eq("status", "pending_approval").is("deleted_at", null),
+  ]);
+
+  return {
+    draftPo: draftPo.error ? 0 : draftPo.count ?? 0,
+    openPo: openPo.error ? 0 : openPo.count ?? 0,
+    receivingToday: receivingToday.error ? 0 : receivingToday.count ?? 0,
+    pendingPr: pendingPr.error ? 0 : pendingPr.count ?? 0,
   };
 }

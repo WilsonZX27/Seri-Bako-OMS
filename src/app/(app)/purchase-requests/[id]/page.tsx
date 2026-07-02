@@ -4,8 +4,9 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { PageHeader } from "@/components/ui/page-header";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { ApprovalPanel, AttachmentPanel, CommentsPanel, DocumentTimeline, RevisionPanel } from "@/components/documents/document-panels";
+import { AttachmentPanel, CommentsPanel, DocumentTimeline, RevisionPanel } from "@/components/documents/document-panels";
 import { PriorityBadge } from "@/components/priority-badge";
+import { SubmitButton } from "@/components/ui/submit-button";
 import { WorkflowStatusPipeline } from "@/components/workflow-status-pipeline";
 import { formatCurrency, formatNumber } from "@/lib/utils";
 import {
@@ -58,6 +59,8 @@ export default async function PurchaseRequestDetailPage({ params }: { params: Pr
       <PageHeader title={request.request_no} description="Purchase Request detail and review workflow" />
       <div className="grid gap-5 p-5 xl:grid-cols-[1fr_420px]">
         <div className="space-y-5">
+          <WorkflowStatusPipeline steps={prSteps} currentStatus={request.status} />
+
           <Card>
             <CardContent className="space-y-4 p-5">
               <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -66,20 +69,24 @@ export default async function PurchaseRequestDetailPage({ params }: { params: Pr
                   <Badge className="mt-1" variant={statusVariant(request.status)}>{request.status}</Badge>
                 </div>
                 <div className="flex flex-wrap gap-2">
-                  <form action={submitPurchaseRequest.bind(null, request.id)}><Button type="submit" variant="secondary">Submit to Admin</Button></form>
-                  <form action={adminReviewPurchaseRequest.bind(null, request.id)}><Button type="submit" variant="outline">Admin approve</Button></form>
-                  <form action={purchasingReviewPurchaseRequest.bind(null, request.id)}><Button type="submit" variant="outline">Purchasing verified</Button></form>
-                  <form action={approvePurchaseRequest.bind(null, request.id)}><Button type="submit">Manager approve</Button></form>
+                  {request.status === "draft" ? <form action={submitPurchaseRequest.bind(null, request.id)}><SubmitButton type="submit" pendingLabel="Saving..." variant="secondary">Submit to Admin</SubmitButton></form> : null}
+                  {request.status === "admin_review" ? <form action={adminReviewPurchaseRequest.bind(null, request.id)}><SubmitButton type="submit" pendingLabel="Approving..." variant="outline">Admin approve</SubmitButton></form> : null}
+                  {request.status === "purchasing_review" ? <form action={purchasingReviewPurchaseRequest.bind(null, request.id)}><SubmitButton type="submit" pendingLabel="Saving..." variant="outline">Purchasing verified</SubmitButton></form> : null}
+                  {request.status === "pending_approval" ? <form action={approvePurchaseRequest.bind(null, request.id)}><SubmitButton type="submit" pendingLabel="Approving...">Manager approve</SubmitButton></form> : null}
                   {request.status === "approved" ? (
-                    <form action={convertPurchaseRequestToPurchaseOrder.bind(null, request.id)}><Button type="submit">Convert to Purchase Order</Button></form>
+                    <form action={convertPurchaseRequestToPurchaseOrder.bind(null, request.id)}><SubmitButton type="submit" pendingLabel="Converting...">Convert to Purchase Order</SubmitButton></form>
                   ) : null}
-                  <form action={cancelPurchaseRequest.bind(null, request.id)}><Button type="submit" variant="ghost">Cancel</Button></form>
+                  {["draft", "admin_review", "purchasing_review", "pending_approval", "approved"].includes(request.status) ? (
+                    <form action={cancelPurchaseRequest.bind(null, request.id)}><SubmitButton type="submit" pendingLabel="Saving..." variant="ghost">Cancel</SubmitButton></form>
+                  ) : null}
                 </div>
               </div>
-              <form action={rejectPurchaseRequest.bind(null, request.id)} className="grid gap-2 sm:grid-cols-[1fr_auto]">
-                <Input name="remarks" placeholder="Rejection remarks required" required />
-                <Button type="submit" variant="destructive">Reject</Button>
-              </form>
+              {["admin_review", "pending_approval"].includes(request.status) ? (
+                <form action={rejectPurchaseRequest.bind(null, request.id)} className="grid gap-2 sm:grid-cols-[1fr_auto]">
+                  <Input name="remarks" placeholder="Rejection remarks required" required />
+                  <SubmitButton type="submit" pendingLabel="Saving..." variant="destructive">Reject</SubmitButton>
+                </form>
+              ) : null}
               <div className="grid gap-4 md:grid-cols-4">
                 <div><p className="text-xs uppercase text-muted-foreground">Request Date</p><p className="font-medium">{request.request_date}</p></div>
                 <div><p className="text-xs uppercase text-muted-foreground">Priority</p><PriorityBadge priority={request.priority} /></div>
@@ -91,8 +98,6 @@ export default async function PurchaseRequestDetailPage({ params }: { params: Pr
               {request.remarks ? <p className="rounded-md border bg-secondary/30 p-3 text-sm">{request.remarks}</p> : null}
             </CardContent>
           </Card>
-
-          <WorkflowStatusPipeline steps={prSteps} currentStatus={request.status} />
 
           <Card>
             <CardContent className="space-y-3 p-5">
@@ -163,7 +168,6 @@ export default async function PurchaseRequestDetailPage({ params }: { params: Pr
 
           {documentBundle ? (
             <>
-              <ApprovalPanel document={documentBundle.document} approval={documentBundle.approval} approvalSteps={documentBundle.approvalSteps} />
               <AttachmentPanel documentId={documentBundle.document.id} attachments={documentBundle.attachments} />
               <CommentsPanel documentId={documentBundle.document.id} comments={documentBundle.comments} />
             </>

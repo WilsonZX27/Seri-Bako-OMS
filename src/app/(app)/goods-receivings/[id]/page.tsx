@@ -1,11 +1,13 @@
 import Link from "next/link";
 import { AlertTriangle } from "lucide-react";
-import { ApprovalPanel, AttachmentPanel, CommentsPanel, DocumentTimeline, RevisionPanel } from "@/components/documents/document-panels";
+import { AttachmentPanel, CommentsPanel, DocumentTimeline, RevisionPanel } from "@/components/documents/document-panels";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { PageHeader } from "@/components/ui/page-header";
+import { SubmitButton } from "@/components/ui/submit-button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { WorkflowStatusPipeline } from "@/components/workflow-status-pipeline";
 import { formatCurrency, formatNumber } from "@/lib/utils";
 import { cancelGoodsReceiving, postGoodsReceiving } from "@/server/actions/goods-receivings";
 import { getDocumentBundle } from "@/server/queries/documents";
@@ -16,6 +18,12 @@ function statusVariant(status: string) {
   if (status === "cancelled") return "danger";
   return "secondary";
 }
+
+const grnSteps = [
+  { key: "draft", label: "Draft", description: "Receiving is being checked." },
+  { key: "posted", label: "Posted", description: "Stock has been posted to inventory." },
+  { key: "cancelled", label: "Cancelled", description: "Receiving was cancelled before posting." },
+];
 
 export default async function GoodsReceivingDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -31,6 +39,8 @@ export default async function GoodsReceivingDetailPage({ params }: { params: Pro
       <PageHeader title={receiving.grn_no} description="Goods Receiving Note detail and posting workflow" />
       <div className="grid gap-5 p-5 xl:grid-cols-[1fr_420px]">
         <div className="space-y-5">
+          <WorkflowStatusPipeline steps={grnSteps} currentStatus={receiving.status} />
+
           <Card>
             <CardContent className="space-y-4 p-5">
               <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -42,8 +52,8 @@ export default async function GoodsReceivingDetailPage({ params }: { params: Pro
                   <Button asChild variant="outline"><Link href={`/purchase-orders/${receiving.purchase_order_id}`}>View PO</Link></Button>
                   {receiving.status === "draft" ? (
                     <>
-                      <form action={postGoodsReceiving.bind(null, receiving.id)}><Button type="submit">Post to stock</Button></form>
-                      <form action={cancelGoodsReceiving.bind(null, receiving.id)}><Button type="submit" variant="ghost">Cancel</Button></form>
+                      <form action={postGoodsReceiving.bind(null, receiving.id)}><SubmitButton type="submit" pendingLabel="Posting...">Post to stock</SubmitButton></form>
+                      <form action={cancelGoodsReceiving.bind(null, receiving.id)}><SubmitButton type="submit" pendingLabel="Saving..." variant="ghost">Cancel</SubmitButton></form>
                     </>
                   ) : null}
                 </div>
@@ -118,7 +128,6 @@ export default async function GoodsReceivingDetailPage({ params }: { params: Pro
 
           {documentBundle ? (
             <>
-              <ApprovalPanel document={documentBundle.document} approval={documentBundle.approval} approvalSteps={documentBundle.approvalSteps} />
               <AttachmentPanel documentId={documentBundle.document.id} attachments={documentBundle.attachments} />
               <CommentsPanel documentId={documentBundle.document.id} comments={documentBundle.comments} />
             </>

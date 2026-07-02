@@ -3,11 +3,12 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { PageHeader } from "@/components/ui/page-header";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { ApprovalPanel, AttachmentPanel, CommentsPanel, DocumentTimeline, RevisionPanel } from "@/components/documents/document-panels";
+import { AttachmentPanel, CommentsPanel, DocumentTimeline, RevisionPanel } from "@/components/documents/document-panels";
 import { PriorityBadge } from "@/components/priority-badge";
+import { SubmitButton } from "@/components/ui/submit-button";
 import { WorkflowStatusPipeline } from "@/components/workflow-status-pipeline";
 import { formatCurrency, formatNumber } from "@/lib/utils";
-import { approvePurchaseOrder, cancelPurchaseOrder, closePurchaseOrder, sendPurchaseOrder, submitPurchaseOrder } from "@/server/actions/procurement";
+import { approvePurchaseOrder, cancelPurchaseOrder, closePurchaseOrder, rejectPurchaseOrder, sendPurchaseOrder, submitPurchaseOrder } from "@/server/actions/procurement";
 import { getItemsForSelect, getSuppliersForSelect } from "@/server/queries/common";
 import { getDocumentBundle } from "@/server/queries/documents";
 import { getPurchaseOrder, getPurchaseRequestForOrder } from "@/server/queries/procurement";
@@ -42,6 +43,8 @@ export default async function PurchaseOrderDetailPage({ params }: { params: Prom
       <PageHeader title={order.po_no} description="Purchase Order detail and approval workflow" />
       <div className="grid gap-5 p-5 xl:grid-cols-[1fr_420px]">
         <div className="space-y-5">
+          <WorkflowStatusPipeline steps={poSteps} currentStatus={order.status} />
+
           <Card>
             <CardContent className="space-y-4 p-5">
               <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -50,12 +53,19 @@ export default async function PurchaseOrderDetailPage({ params }: { params: Prom
                   <Badge className="mt-1" variant={statusVariant(order.status)}>{order.status}</Badge>
                 </div>
                 <div className="flex flex-wrap gap-2">
-                  <form action={submitPurchaseOrder.bind(null, order.id)}><Button type="submit" variant="secondary">Submit approval</Button></form>
-                  <form action={approvePurchaseOrder.bind(null, order.id)}><Button type="submit">Approve</Button></form>
-                  <form action={sendPurchaseOrder.bind(null, order.id)}><Button type="submit" variant="outline">Send to supplier</Button></form>
-                  {["approved", "sent", "partial_received"].includes(order.status) ? <Button asChild variant="outline"><a href={`/goods-receivings/new?po_id=${order.id}`}>Receive goods</a></Button> : null}
-                  <form action={cancelPurchaseOrder.bind(null, order.id)}><Button type="submit" variant="ghost">Cancel</Button></form>
-                  <form action={closePurchaseOrder.bind(null, order.id)}><Button type="submit" variant="outline">Close</Button></form>
+                  {order.status === "draft" ? <form action={submitPurchaseOrder.bind(null, order.id)}><SubmitButton type="submit" pendingLabel="Saving..." variant="secondary">Submit approval</SubmitButton></form> : null}
+                  {order.status === "pending_approval" ? (
+                    <>
+                      <form action={approvePurchaseOrder.bind(null, order.id)}><SubmitButton type="submit" pendingLabel="Approving...">Approve</SubmitButton></form>
+                      <form action={rejectPurchaseOrder.bind(null, order.id)}><SubmitButton type="submit" pendingLabel="Saving..." variant="destructive">Reject</SubmitButton></form>
+                    </>
+                  ) : null}
+                  {order.status === "approved" ? <form action={sendPurchaseOrder.bind(null, order.id)}><SubmitButton type="submit" pendingLabel="Saving..." variant="outline">Send to supplier</SubmitButton></form> : null}
+                  {["sent", "partial_received"].includes(order.status) ? <Button asChild variant="outline"><a href={`/goods-receivings/new?po_id=${order.id}`}>Receive goods</a></Button> : null}
+                  {order.status === "partial_received" ? <form action={closePurchaseOrder.bind(null, order.id)}><SubmitButton type="submit" pendingLabel="Saving..." variant="outline">Close</SubmitButton></form> : null}
+                  {["draft", "pending_approval", "approved", "sent"].includes(order.status) ? (
+                    <form action={cancelPurchaseOrder.bind(null, order.id)}><SubmitButton type="submit" pendingLabel="Saving..." variant="ghost">Cancel</SubmitButton></form>
+                  ) : null}
                 </div>
               </div>
               <div className="grid gap-4 md:grid-cols-4">
@@ -72,8 +82,6 @@ export default async function PurchaseOrderDetailPage({ params }: { params: Prom
               {order.remarks ? <p className="rounded-md border bg-secondary/30 p-3 text-sm">{order.remarks}</p> : null}
             </CardContent>
           </Card>
-
-          <WorkflowStatusPipeline steps={poSteps} currentStatus={order.status} />
 
           <Card>
             <CardContent className="space-y-3 p-5">
@@ -142,7 +150,6 @@ export default async function PurchaseOrderDetailPage({ params }: { params: Prom
 
           {documentBundle ? (
             <>
-              <ApprovalPanel document={documentBundle.document} approval={documentBundle.approval} approvalSteps={documentBundle.approvalSteps} />
               <AttachmentPanel documentId={documentBundle.document.id} attachments={documentBundle.attachments} />
               <CommentsPanel documentId={documentBundle.document.id} comments={documentBundle.comments} />
             </>

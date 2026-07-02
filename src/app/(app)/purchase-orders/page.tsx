@@ -9,7 +9,14 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { formatCurrency } from "@/lib/utils";
 import { getPurchaseOrders } from "@/server/queries/procurement";
 
-const statuses = ["draft", "pending_approval", "approved", "sent", "partial_received", "received", "cancelled", "closed"];
+const statuses = [
+  { value: "draft", label: "Draft" },
+  { value: "pending_approval", label: "Pending approval" },
+  { value: "awaiting_delivery", label: "Awaiting delivery" },
+  { value: "receiving", label: "Receiving" },
+  { value: "completed", label: "Completed" },
+  { value: "cancelled", label: "Cancelled" },
+];
 
 function statusVariant(status: string) {
   if (["approved", "sent", "received", "closed"].includes(status)) return "success";

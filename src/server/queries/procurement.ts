@@ -43,7 +43,12 @@ function filterRows<T extends Record<string, unknown>>(rows: T[], filters: Filte
   return rows
     .filter((row) => {
       const matchesSearch = search ? keys.some((key) => String(row[key] ?? "").toLowerCase().includes(search)) : true;
-      const matchesStatus = status ? row.status === status : true;
+      const statusGroup =
+        status === "awaiting_delivery" ? ["approved", "sent"]
+        : status === "receiving" ? ["partial_received"]
+        : status === "completed" ? ["received", "closed"]
+        : status ? [status] : [];
+      const matchesStatus = statusGroup.length ? statusGroup.includes(String(row.status)) : true;
       const matchesPriority = priority ? row.priority === priority : true;
       return matchesSearch && matchesStatus && matchesPriority;
     })

@@ -5,6 +5,7 @@ import { getVisibleNotificationsForCurrentUser, getTopBarNotificationScope } fro
 type AssignedActivity = {
   id: string;
   message: string;
+  created_at: string;
 };
 
 export async function getTopBarActivity() {
@@ -30,7 +31,7 @@ export async function getTopBarActivity() {
         ? supabase.from("documents").select("id, document_no, title").eq("created_by", scope.staffId).eq("approval_status", "pending").order("updated_at", { ascending: false }).limit(5)
         : Promise.resolve({ data: [], error: null }),
     getVisibleNotificationsForCurrentUser(),
-    supabase.from("activity_logs").select("id, message").order("created_at", { ascending: false }).limit(5),
+    supabase.from("activity_logs").select("id, message, created_at").order("created_at", { ascending: false }).limit(5),
   ]);
 
   return {

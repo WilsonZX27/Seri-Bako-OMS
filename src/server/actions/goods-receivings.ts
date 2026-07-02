@@ -179,6 +179,7 @@ export async function postGoodsReceiving(id: string) {
   ]);
   if (grnError) throw new Error(grnError.message);
   if (linesError) throw new Error(linesError.message);
+  if (grn.status === "posted") return;
   if (grn.status !== "draft") throw new Error("Only draft GRN can be posted.");
   await ensureReceivablePo(grn.purchase_order_id);
 
@@ -279,6 +280,7 @@ export async function cancelGoodsReceiving(id: string) {
   const supabase = await createClient();
   const { data: grn, error: grnError } = await supabase.from("goods_receivings").select("status,document_id,grn_no").eq("id", id).single();
   if (grnError) throw new Error(grnError.message);
+  if (grn.status === "cancelled") return;
   if (grn.status === "posted") throw new Error("Posted GRN cannot be cancelled in Sprint 3.5.");
   const [{ error }, { error: documentError }] = await Promise.all([
     supabase.from("goods_receivings").update({ status: "cancelled", cancelled_at: new Date().toISOString(), updated_by: profile?.id ?? null }).eq("id", id),

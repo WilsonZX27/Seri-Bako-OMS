@@ -207,8 +207,9 @@ export async function createPurchaseRequest(formData: FormData) {
 async function updatePrStatus(id: string, status: PurchaseRequestStatus, documentStatus: "draft" | "pending_approval" | "approved" | "rejected" | "cancelled", approvalStatus: ApprovalStatus, step: string, message: string) {
   const supabase = await createClient();
   const profile = await identity();
-  const { data: pr, error: prError } = await supabase.from("purchase_requests").select("document_id").eq("id", id).single();
+  const { data: pr, error: prError } = await supabase.from("purchase_requests").select("status,document_id").eq("id", id).single();
   if (prError) throw new Error(prError.message);
+  if (pr.status === status) return;
   const [{ error }, { error: documentError }] = await Promise.all([
     supabase.from("purchase_requests").update({ status, updated_by: profile?.id ?? null }).eq("id", id),
     pr.document_id
@@ -309,8 +310,9 @@ export async function createPurchaseOrder(formData: FormData) {
 async function updatePoStatus(id: string, status: PurchaseOrderStatus, approvalStatus: ApprovalStatus, step: string, message: string) {
   const supabase = await createClient();
   const profile = await identity();
-  const { data: order, error: orderError } = await supabase.from("purchase_orders").select("document_id").eq("id", id).single();
+  const { data: order, error: orderError } = await supabase.from("purchase_orders").select("status,document_id").eq("id", id).single();
   if (orderError) throw new Error(orderError.message);
+  if (order.status === status) return;
   const documentStatus = status === "approved" || status === "sent" ? "approved" : status === "cancelled" ? "cancelled" : status === "closed" ? "closed" : "pending_approval";
   const [{ error }, { error: documentError }] = await Promise.all([
     supabase.from("purchase_orders").update({ status, approval_status: approvalStatus, updated_by: profile?.id ?? null }).eq("id", id),
@@ -337,12 +339,19 @@ export async function approvePurchaseOrder(id: string) {
   await updatePoStatus(id, "approved", "approved", "Approved", "Purchase order approved");
 }
 
+export async function rejectPurchaseOrder(id: string) {
+  await requirePermission("purchase_order.approve");
+  if (isMockMode()) return;
+  await updatePoStatus(id, "cancelled", "rejected", "Rejected", "Purchase order rejected");
+}
+
 export async function sendPurchaseOrder(id: string) {
   await requirePermission("purchase_order.send");
   if (isMockMode()) return;
   const supabase = await createClient();
-  const { data, error } = await supabase.from("purchase_orders").select("approval_status").eq("id", id).single();
+  const { data, error } = await supabase.from("purchase_orders").select("approval_status,status").eq("id", id).single();
   if (error) throw new Error(error.message);
+  if (data.status === "sent") return;
   if (data.approval_status !== "approved") throw new Error("Cannot send unapproved PO.");
   await updatePoStatus(id, "sent", "approved", "Sent to supplier", "Purchase order sent to supplier");
 }

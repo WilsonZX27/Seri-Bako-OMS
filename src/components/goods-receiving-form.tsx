@@ -71,6 +71,8 @@ export function GoodsReceivingForm({
     <Card>
       <CardContent className="p-5">
         <form action={action} className="space-y-5">
+          <input type="hidden" name="grn_no" value={grnNo} />
+          <input type="hidden" name="status" value="draft" />
           <div className="grid gap-4 lg:grid-cols-3">
             <Field label="Purchase Order">
               <SelectNative value={selectedOrder?.id ?? ""} onChange={(event) => selectPo(event.target.value)} required>
@@ -83,7 +85,7 @@ export function GoodsReceivingForm({
               </SelectNative>
             </Field>
             <Field label="GRN No">
-              <Input name="grn_no" defaultValue={grnNo} required />
+              <div className="rounded-md border bg-secondary/30 px-3 py-2 text-sm text-muted-foreground">Auto-generated on submit</div>
             </Field>
             <Field label="Received Date">
               <Input name="received_date" type="date" defaultValue={today()} required />
@@ -93,11 +95,6 @@ export function GoodsReceivingForm({
                 {branches.map((branch) => <option key={branch.id} value={branch.id}>{branch.branch_name}</option>)}
               </SelectNative>
               <p className="mt-1 text-xs text-muted-foreground">Select the outlet, kitchen, office, or event booth this record belongs to.</p>
-            </Field>
-            <Field label="Status">
-              <SelectNative name="status" defaultValue="draft">
-                <option value="draft">Draft</option>
-              </SelectNative>
             </Field>
             <div className="lg:col-span-3">
               <Field label="Remarks">

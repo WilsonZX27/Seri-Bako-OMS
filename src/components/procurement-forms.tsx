@@ -404,9 +404,12 @@ export function PurchaseOrderForm({
     <Card>
       <CardContent className="p-5">
         <form action={action} className="space-y-5">
+          <input type="hidden" name="po_no" value={poNo} />
+          <input type="hidden" name="status" value="draft" />
+          <input type="hidden" name="approval_status" value="draft" />
           <div className="grid gap-4 md:grid-cols-3">
             <Field label="PO No">
-              <Input name="po_no" defaultValue={poNo} required />
+              <div className="rounded-md border bg-secondary/30 px-3 py-2 text-sm text-muted-foreground">Auto-generated on submit</div>
             </Field>
             <Field label="Supplier">
               <SelectNative name="supplier_id" defaultValue={suppliers[0]?.id ?? ""} required>
@@ -418,16 +421,6 @@ export function PurchaseOrderForm({
             </Field>
             <Field label="Expected Delivery">
               <Input name="expected_delivery_date" type="date" />
-            </Field>
-            <Field label="Status">
-              <SelectNative name="status" defaultValue="draft">
-                <option value="draft">Draft</option>
-              </SelectNative>
-            </Field>
-            <Field label="Approval Status">
-              <SelectNative name="approval_status" defaultValue="draft">
-                <option value="draft">Draft</option>
-              </SelectNative>
             </Field>
             <div className="md:col-span-3">
               <Field label="Remarks">

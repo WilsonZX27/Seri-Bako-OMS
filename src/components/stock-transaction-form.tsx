@@ -3,6 +3,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Field } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { SelectNative } from "@/components/ui/select-native";
+import { SubmitButton } from "@/components/ui/submit-button";
 import { Textarea } from "@/components/ui/textarea";
 import { getToday } from "@/lib/utils";
 import type { Database, StockTransactionType } from "@/types/database";
@@ -39,7 +40,7 @@ type StockTransactionFormProps = {
   action: (formData: FormData) => Promise<void>;
 };
 
-export function StockTransactionForm({ items, branches, locations, action }: StockTransactionFormProps) {
+export function StockTransactionForm({ items, branches, action }: StockTransactionFormProps) {
   return (
     <Card>
       <CardContent className="p-5">
@@ -73,7 +74,7 @@ export function StockTransactionForm({ items, branches, locations, action }: Sto
                 </option>
               ))}
             </SelectNative>
-            <p className="mt-1 text-xs text-muted-foreground">Stock will be recorded under this branch&apos;s default location.</p>
+            <p className="mt-1 text-xs text-muted-foreground">Select the outlet, kitchen, office, or event booth this record belongs to.</p>
           </Field>
           <Field label="Transaction Type">
             <SelectNative name="transaction_type" required>
@@ -96,48 +97,13 @@ export function StockTransactionForm({ items, branches, locations, action }: Sto
           <Field label="Unit Cost">
             <Input name="unit_cost" type="number" step="0.0001" min="0" />
           </Field>
-          <details className="rounded-md border bg-secondary/20 p-3 md:col-span-3">
-            <summary className="cursor-pointer text-sm font-medium">Advanced locations</summary>
-            <div className="mt-3 grid gap-4 md:grid-cols-3">
-              <Field label="Specific Location">
-                <SelectNative name="location_id">
-                  <option value="">Use branch default location</option>
-                  {locations.map((location) => (
-                    <option key={location.id} value={location.id}>
-                      {location.location_code} - {location.location_name}
-                    </option>
-                  ))}
-                </SelectNative>
-              </Field>
-              <Field label="From Location">
-                <SelectNative name="from_location_id">
-                  <option value="">Not applicable</option>
-                  {locations.map((location) => (
-                    <option key={location.id} value={location.id}>
-                      {location.location_name}
-                    </option>
-                  ))}
-                </SelectNative>
-              </Field>
-              <Field label="To Location">
-                <SelectNative name="to_location_id">
-                  <option value="">Not applicable</option>
-                  {locations.map((location) => (
-                    <option key={location.id} value={location.id}>
-                      {location.location_name}
-                    </option>
-                  ))}
-                </SelectNative>
-              </Field>
-            </div>
-          </details>
           <div className="md:col-span-3">
             <Field label="Remarks">
               <Textarea name="remarks" placeholder="Reason, batch note, or manual reference." />
             </Field>
           </div>
           <div className="flex justify-end md:col-span-3">
-            <Button type="submit">Post stock transaction</Button>
+            <SubmitButton type="submit" pendingLabel="Saving..." showOverlay overlayLabel="Saving changes...">Post stock transaction</SubmitButton>
           </div>
         </form>
       </CardContent>

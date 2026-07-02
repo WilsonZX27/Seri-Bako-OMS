@@ -5,7 +5,6 @@ import { Card, CardContent } from "@/components/ui/card";
 import { MasterDataFilters } from "@/components/master-data-filters";
 import { PageHeader } from "@/components/ui/page-header";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { deleteBranch } from "@/server/actions/foundation";
 import { getBranches } from "@/server/queries/foundation";
 
 export default async function BranchesPage({ searchParams }: { searchParams: Promise<{ search?: string; status?: string; error?: string; success?: string }> }) {
@@ -50,7 +49,6 @@ export default async function BranchesPage({ searchParams }: { searchParams: Pro
                     <TableCell>
                       <div className="flex justify-end gap-2">
                         <Button asChild variant="outline" size="sm"><Link href={`/branches/${branch.id}`}>Edit</Link></Button>
-                        <form action={deleteBranch.bind(null, branch.id)}><Button variant="ghost" size="sm">Archive</Button></form>
                       </div>
                     </TableCell>
                   </TableRow>

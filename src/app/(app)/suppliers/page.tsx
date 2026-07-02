@@ -6,7 +6,6 @@ import { PageHeader } from "@/components/ui/page-header";
 import { PaginationControls, SortableHead } from "@/components/sortable-table";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { paginateRows } from "@/lib/table-state";
-import { deleteSupplier } from "@/server/actions/suppliers";
 import { getSuppliers } from "@/server/queries/suppliers";
 
 export default async function SuppliersPage({
@@ -22,6 +21,7 @@ export default async function SuppliersPage({
     <>
       <PageHeader title="Suppliers" description="Supplier master records for ingredients and packaging." action={{ href: "/suppliers/new", label: "New supplier" }} />
       <div className="p-5">
+        {filters.success ? <div className="mb-3 rounded-lg border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-800">{filters.success}</div> : null}
         <div className="mb-3 flex justify-end">
           <Button asChild variant="outline" size="sm"><Link href="/imports/suppliers">Import suppliers</Link></Button>
         </div>
@@ -58,9 +58,6 @@ export default async function SuppliersPage({
                       <Button asChild variant="outline" size="sm">
                         <Link href={`/suppliers/${supplier.id}`}>Edit</Link>
                       </Button>
-                      <form action={deleteSupplier.bind(null, supplier.id)}>
-                        <Button variant="ghost" size="sm">Delete</Button>
-                      </form>
                     </div>
                   </TableCell>
                 </TableRow>

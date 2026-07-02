@@ -1,37 +1,31 @@
 import Link from "next/link";
-import { sendPasswordReset } from "@/server/actions/auth";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { AuthShell } from "@/components/auth/auth-shell";
 import { Field } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
+import { SubmitButton } from "@/components/ui/submit-button";
+import { sendPasswordReset } from "@/server/actions/auth";
 
 export default async function ForgotPasswordPage({
   searchParams,
 }: {
-  searchParams: Promise<{ error?: string }>;
+  searchParams: Promise<{ error?: string; success?: string }>;
 }) {
   const params = await searchParams;
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-background p-6">
-      <Card className="w-full max-w-sm">
-        <CardHeader>
-          <CardTitle>Forgot Password</CardTitle>
-          <CardDescription>Enter your staff email and we will send a password reset link.</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <form action={sendPasswordReset} className="space-y-4">
-            <Field label="Email">
-              <Input name="email" type="email" autoComplete="email" required />
-            </Field>
-            {params.error ? <p className="text-sm text-destructive">{params.error}</p> : null}
-            <Button className="w-full">Send reset link</Button>
-            <Button asChild variant="ghost" className="w-full">
-              <Link href="/login">Back to login</Link>
-            </Button>
-          </form>
-        </CardContent>
-      </Card>
-    </main>
+    <AuthShell title="Reset password" description="Enter your staff email and we will send a reset link.">
+      <form action={sendPasswordReset} className="space-y-4">
+        <Field label="Email">
+          <Input name="email" type="email" autoComplete="email" required />
+        </Field>
+        <p className="text-sm text-muted-foreground">After changing your password, return to login and sign in again.</p>
+        {params.success ? <p className="rounded-md border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-800">{params.success}</p> : null}
+        {params.error ? <p className="rounded-md border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive">{params.error}</p> : null}
+        <SubmitButton className="w-full" pendingLabel="Sending reset link..." showOverlay overlayLabel="Sending reset link...">Send reset link</SubmitButton>
+        <Link href="/login" className="block text-center text-sm text-muted-foreground hover:text-foreground">
+          Back to login
+        </Link>
+      </form>
+    </AuthShell>
   );
 }

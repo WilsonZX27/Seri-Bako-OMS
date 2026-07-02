@@ -3,7 +3,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { PageHeader } from "@/components/ui/page-header";
 import { createStaff } from "@/server/actions/foundation";
 import { hasPermission } from "@/server/auth/permissions";
-import { getBranches, getCompaniesForSelect, getLocations, getRoles } from "@/server/queries/foundation";
+import { getBranches, getCompaniesForSelect, getRoles } from "@/server/queries/foundation";
 
 export default async function NewStaffPage({
   searchParams,
@@ -27,7 +27,7 @@ export default async function NewStaffPage({
     );
   }
 
-  const [companies, branches, roles, locations] = await Promise.all([getCompaniesForSelect(), getBranches(), getRoles(), getLocations()]);
+  const [companies, branches, roles] = await Promise.all([getCompaniesForSelect(), getBranches(), getRoles()]);
   return (
     <>
       <PageHeader title="New Staff" description="Create a staff record, assign access, and send an invitation email." />
@@ -37,7 +37,7 @@ export default async function NewStaffPage({
             <CardContent className="p-4 text-sm text-destructive">{params.error}</CardContent>
           </Card>
         ) : null}
-        <StaffForm companies={companies} branches={branches} roles={roles} locations={locations} action={createStaff} />
+        <StaffForm companies={companies} branches={branches} roles={roles} action={createStaff} />
       </div>
     </>
   );

@@ -2,10 +2,10 @@
 
 import { ImageIcon, Trash2, Upload } from "lucide-react";
 import { useMemo, useState } from "react";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Field } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
+import { SubmitButton } from "@/components/ui/submit-button";
 
 type CompanyLogoFormProps = {
   companyId: string;
@@ -66,18 +66,20 @@ export function CompanyLogoForm({
             />
           </Field>
           <div className="flex flex-wrap justify-end gap-2">
-            {logoUrl ? (
-              <Button type="button" variant="outline" onClick={() => removeAction()}>
-                <Trash2 className="h-4 w-4" />
-                Remove
-              </Button>
-            ) : null}
-            <Button type="submit">
+            <SubmitButton type="submit" pendingLabel="Saving..." showOverlay overlayLabel="Saving changes...">
               <Upload className="h-4 w-4" />
               Upload logo
-            </Button>
+            </SubmitButton>
           </div>
         </form>
+        {logoUrl ? (
+          <form action={removeAction} className="flex justify-end">
+            <SubmitButton type="submit" variant="outline" pendingLabel="Saving..." showOverlay overlayLabel="Saving changes...">
+              <Trash2 className="h-4 w-4" />
+              Remove
+            </SubmitButton>
+          </form>
+        ) : null}
       </CardContent>
     </Card>
   );

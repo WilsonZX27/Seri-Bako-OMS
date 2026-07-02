@@ -1,7 +1,7 @@
-import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Field } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
+import { SubmitButton } from "@/components/ui/submit-button";
 import { SelectNative } from "@/components/ui/select-native";
 import { Textarea } from "@/components/ui/textarea";
 import { previewDocumentNumber } from "@/server/queries/foundation";
@@ -87,7 +87,6 @@ type DocumentSequence = {
 
 type SelectCompany = { id: string; company_name: string };
 type SelectBranch = { id: string; branch_name: string };
-type SelectLocation = { id: string; location_name: string; location_code: string };
 type SelectRole = { id: string; role_name: string; role_code: string };
 
 function StatusSelect({ value }: { value?: string }) {
@@ -147,7 +146,7 @@ export function CompanyForm({ company, action }: { company: Company; action: (fo
             </Field>
           </div>
           <div className="flex justify-end md:col-span-2">
-            <Button type="submit">Save company</Button>
+            <SubmitButton type="submit" pendingLabel="Saving..." showOverlay overlayLabel="Saving changes...">Save company</SubmitButton>
           </div>
         </form>
       </CardContent>
@@ -175,7 +174,8 @@ export function BranchForm({ branch, companies, action }: { branch?: Branch; com
               <option value="office">Office</option>
               <option value="other">Other</option>
             </SelectNative>
-            <p className="mt-1 text-xs text-muted-foreground">Each branch uses one default store for daily stock work. If no store exists yet, operations will create or use Default Store automatically.</p>
+            <p className="mt-1 text-xs text-muted-foreground">Select the outlet, kitchen, office, or event booth this record belongs to.</p>
+            <p className="mt-1 text-xs text-muted-foreground">Stock movements for this branch are recorded to an internal default stock area automatically.</p>
           </Field>
           <Field label="Phone">
             <Input name="phone" defaultValue={branch?.phone ?? ""} />
@@ -192,7 +192,7 @@ export function BranchForm({ branch, companies, action }: { branch?: Branch; com
             </Field>
           </div>
           <div className="flex justify-end md:col-span-2">
-            <Button type="submit">{branch ? "Save branch" : "Create branch"}</Button>
+            <SubmitButton type="submit" pendingLabel="Saving..." showOverlay overlayLabel="Saving changes...">{branch ? "Save branch" : "Create branch"}</SubmitButton>
           </div>
         </form>
       </CardContent>
@@ -220,6 +220,7 @@ export function LocationForm({ location, companies, branches, action }: { locati
                 </option>
               ))}
             </SelectNative>
+            <p className="mt-1 text-xs text-muted-foreground">Locations are internal stock areas. Daily operations use Branch only, while locations remain for ledger accuracy and future expansion.</p>
           </Field>
           <Field label="Location Type">
             <SelectNative name="location_type" defaultValue={location?.location_type ?? "dry_store"}>
@@ -238,7 +239,7 @@ export function LocationForm({ location, companies, branches, action }: { locati
             <StatusSelect value={location?.status} />
           </Field>
           <div className="flex justify-end md:col-span-2">
-            <Button type="submit">{location ? "Save location" : "Create location"}</Button>
+            <SubmitButton type="submit" pendingLabel="Saving..." showOverlay overlayLabel="Saving changes...">{location ? "Save location" : "Create location"}</SubmitButton>
           </div>
         </form>
       </CardContent>
@@ -252,7 +253,6 @@ export function StaffForm({
   companies,
   branches,
   roles,
-  locations,
   action,
 }: {
   staff?: Staff;
@@ -260,10 +260,8 @@ export function StaffForm({
   companies: SelectCompany[];
   branches: SelectBranch[];
   roles: SelectRole[];
-  locations: SelectLocation[];
   action: (formData: FormData) => Promise<void>;
 }) {
-  const selectedLocationIds = new Set(access?.staffLocationIds ?? []);
   return (
     <Card>
       <CardContent className="p-5">
@@ -314,6 +312,7 @@ export function StaffForm({
                 </option>
               ))}
             </SelectNative>
+            <p className="mt-1 text-xs text-muted-foreground">Select the outlet, kitchen, office, or event booth this record belongs to.</p>
           </Field>
           <Field label="Branch Access Level">
             <SelectNative name="access_level" defaultValue={access?.staffBranch?.access_level ?? "read_only"}>
@@ -325,21 +324,8 @@ export function StaffForm({
           <Field label="Status">
             <StaffStatusSelect value={staff?.status} />
           </Field>
-          <div className="md:col-span-2">
-            <div className="rounded-lg border bg-background p-4">
-              <p className="text-sm font-medium">Location Access</p>
-              <div className="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
-                {locations.map((location) => (
-                  <label key={location.id} className="flex items-center gap-2 rounded-md border bg-card px-3 py-2 text-sm">
-                    <input name="location_ids" type="checkbox" value={location.id} defaultChecked={selectedLocationIds.has(location.id)} className="h-4 w-4" />
-                    <span>{location.location_name}</span>
-                  </label>
-                ))}
-              </div>
-            </div>
-          </div>
           <div className="flex justify-end md:col-span-2">
-            <Button type="submit">{staff ? "Save staff" : "Create & Invite"}</Button>
+            <SubmitButton type="submit" pendingLabel={staff ? "Saving..." : "Sending invite..."} showOverlay overlayLabel={staff ? "Saving changes..." : "Sending invitation..."}>{staff ? "Save staff" : "Create & Invite"}</SubmitButton>
           </div>
         </form>
       </CardContent>
@@ -394,7 +380,7 @@ export function DocumentSequenceForm({
             </div>
           </div>
           <div className="flex justify-end md:col-span-2">
-            <Button type="submit">{sequence ? "Save sequence" : "Create sequence"}</Button>
+            <SubmitButton type="submit" pendingLabel="Saving..." showOverlay overlayLabel="Saving changes...">{sequence ? "Save sequence" : "Create sequence"}</SubmitButton>
           </div>
         </form>
       </CardContent>
@@ -423,7 +409,7 @@ export function RoleForm({ role, companies, action }: { role?: Role; companies: 
             </Field>
           </div>
           <div className="flex justify-end md:col-span-2">
-            <Button type="submit">{role ? "Save role" : "Create role"}</Button>
+            <SubmitButton type="submit" pendingLabel="Saving..." showOverlay overlayLabel="Saving changes...">{role ? "Save role" : "Create role"}</SubmitButton>
           </div>
         </form>
       </CardContent>

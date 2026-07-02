@@ -29,6 +29,24 @@ type Tool = {
   roles: UserRole[] | "all";
 };
 
+const categoryDescriptions: Record<string, string> = {
+  "Daily Operations": "Fast actions for kitchen and outlet teams.",
+  Inventory: "Stock checks, barcode lookups, and movement support.",
+  Procurement: "Requests, approvals, and supplier ordering work.",
+  Production: "Recipe and kitchen planning tools.",
+  Documents: "Approvals, attachments, and activity history.",
+  Admin: "People, setup, and system maintenance.",
+};
+
+const categoryAccent: Record<string, string> = {
+  "Daily Operations": "border-l-[var(--sb-accent)]",
+  Inventory: "border-l-emerald-600",
+  Procurement: "border-l-sky-600",
+  Production: "border-l-amber-600",
+  Documents: "border-l-slate-500",
+  Admin: "border-l-[var(--sb-primary-dark)]",
+};
+
 const roleList = (...values: UserRole[]) => values;
 
 const tools: Tool[] = [
@@ -65,13 +83,14 @@ export default async function QuickToolsPage() {
           <section key={category} className="space-y-3">
             <div>
               <p className="sb-section-label">{category}</p>
-              <h2 className="mt-1 text-lg font-semibold">{category} tools</h2>
+              <h2 className="mt-1 text-lg font-semibold">{category}</h2>
+              <p className="mt-1 text-sm text-muted-foreground">{categoryDescriptions[category] ?? "Common shortcuts for this area."}</p>
             </div>
             <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
               {visibleTools.filter((tool) => tool.category === category).map((tool) => {
                 const Icon = tool.icon;
                 return (
-                  <Link key={tool.href} href={tool.href} className="rounded-lg border bg-card p-4 transition-colors hover:border-primary/30 hover:bg-[var(--sb-muted)]">
+                  <Link key={tool.href} href={tool.href} className={`rounded-lg border border-l-4 bg-card p-4 transition-colors hover:border-primary/30 hover:bg-[var(--sb-muted)] ${categoryAccent[category] ?? ""}`}>
                     <div className="flex items-start gap-3">
                       <div className="sb-icon-tile"><Icon className="h-5 w-5" /></div>
                       <div className="min-w-0">

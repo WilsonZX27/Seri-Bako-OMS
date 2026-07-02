@@ -8,12 +8,12 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Field } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { SelectNative } from "@/components/ui/select-native";
+import { SubmitButton } from "@/components/ui/submit-button";
 import { Textarea } from "@/components/ui/textarea";
 import { formatCurrency, formatNumber } from "@/lib/utils";
 import type { EligiblePurchaseOrder, PurchaseOrderReceivingLine } from "@/server/queries/goods-receivings";
 
 type BranchOption = { id: string; branch_code: string; branch_name: string; status: string };
-type LocationOption = { id: string; branch_id?: string | null; location_code: string; location_name: string; status: string };
 
 function today() {
   return new Date().toISOString().slice(0, 10);
@@ -24,14 +24,12 @@ export function GoodsReceivingForm({
   selectedOrder,
   lines,
   branches,
-  locations,
   action,
 }: {
   purchaseOrders: EligiblePurchaseOrder[];
   selectedOrder: EligiblePurchaseOrder | null;
   lines: PurchaseOrderReceivingLine[];
   branches: BranchOption[];
-  locations: LocationOption[];
   action: (formData: FormData) => Promise<void>;
 }) {
   const router = useRouter();
@@ -94,24 +92,13 @@ export function GoodsReceivingForm({
               <SelectNative name="branch_id" defaultValue={branches[0]?.id ?? ""} required>
                 {branches.map((branch) => <option key={branch.id} value={branch.id}>{branch.branch_name}</option>)}
               </SelectNative>
-              <p className="mt-1 text-xs text-muted-foreground">Stock will be recorded under this branch&apos;s default location.</p>
+              <p className="mt-1 text-xs text-muted-foreground">Select the outlet, kitchen, office, or event booth this record belongs to.</p>
             </Field>
             <Field label="Status">
               <SelectNative name="status" defaultValue="draft">
                 <option value="draft">Draft</option>
               </SelectNative>
             </Field>
-            <details className="rounded-md border bg-secondary/20 p-3 lg:col-span-3">
-              <summary className="cursor-pointer text-sm font-medium">Advanced receiving location</summary>
-              <div className="mt-3 max-w-sm">
-                <Field label="Specific Location">
-                  <SelectNative name="location_id" defaultValue="">
-                    <option value="">Use branch default location</option>
-                    {locations.map((location) => <option key={location.id} value={location.id}>{location.location_name}</option>)}
-                  </SelectNative>
-                </Field>
-              </div>
-            </details>
             <div className="lg:col-span-3">
               <Field label="Remarks">
                 <Textarea name="remarks" placeholder="Delivery notes, vehicle, temperature, or supplier remarks" />
@@ -126,7 +113,7 @@ export function GoodsReceivingForm({
               <div className="grid gap-3 rounded-lg border bg-secondary/30 p-4 md:grid-cols-[1fr_auto]">
                 <div>
                   <p className="text-sm font-semibold">Barcode Receiving</p>
-                  <p className="text-xs text-muted-foreground">Use phone scanner, USB scanner, item code, or manual barcode. Unknown items show a warning and are not added to the GRN.</p>
+                  <p className="text-xs text-muted-foreground">Use Search, USB scanner, or Camera mode. USB scanner is recommended for daily operation.</p>
                 </div>
                 <div className="flex gap-2">
                   <Input value={barcode} onChange={(event) => setBarcode(event.target.value)} onKeyDown={(event) => event.key === "Enter" ? (event.preventDefault(), scanBarcode()) : undefined} placeholder="Scan barcode" />
@@ -195,7 +182,7 @@ export function GoodsReceivingForm({
           )}
 
           <div className="flex justify-end">
-            <Button type="submit" disabled={!selectedOrder || !lines.length}>Create draft GRN</Button>
+            <SubmitButton type="submit" disabled={!selectedOrder || !lines.length} pendingLabel="Saving..." showOverlay overlayLabel="Saving changes...">Create draft GRN</SubmitButton>
           </div>
         </form>
       </CardContent>

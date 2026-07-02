@@ -72,20 +72,36 @@ export async function getLocations(filters: Filters = {}) {
   if (isMockMode()) {
     const branchById = new Map(mockBranches.map((branch) => [branch.id, branch]));
     return mockLocations
-      .map((location) => ({ ...location, branch_name: location.branch_id ? branchById.get(location.branch_id)?.branch_name ?? null : null }))
+      .map((location) => {
+        const branch = location.branch_id ? branchById.get(location.branch_id) ?? null : null;
+        return {
+          ...location,
+          branch_name: branch?.branch_name ?? null,
+          is_system_default: branch?.default_location_id === location.id,
+          looks_like_branch_name: Boolean(branch?.branch_name && branch.branch_name === location.location_name),
+        };
+      })
       .filter((location) => matchesFilter([location.location_code, location.location_name, location.location_type, location.branch_name], filters, location.status));
   }
 
   const supabase = await createClient();
   const [{ data: locations, error: locationsError }, { data: branches, error: branchesError }] = await Promise.all([
     supabase.from("locations").select("*").is("deleted_at", null).order("location_name", { ascending: true }),
-    supabase.from("branches").select("id, branch_name"),
+    supabase.from("branches").select("id, branch_name, default_location_id"),
   ]);
   if (locationsError) throw new Error(locationsError.message);
   if (branchesError) throw new Error(branchesError.message);
-    const branchById = new Map((branches ?? []).map((branch) => [branch.id, branch.branch_name]));
+    const branchById = new Map((branches ?? []).map((branch) => [branch.id, branch]));
     return (locations ?? [])
-      .map((location) => ({ ...location, branch_name: location.branch_id ? (branchById.get(location.branch_id) ?? null) : null }))
+      .map((location) => {
+        const branch = location.branch_id ? branchById.get(location.branch_id) ?? null : null;
+        return {
+          ...location,
+          branch_name: branch?.branch_name ?? null,
+          is_system_default: branch?.default_location_id === location.id,
+          looks_like_branch_name: Boolean(branch?.branch_name && branch.branch_name === location.location_name),
+        };
+      })
       .filter((location) => matchesFilter([location.location_code, location.location_name, location.location_type, location.branch_name], filters, location.status));
 }
 

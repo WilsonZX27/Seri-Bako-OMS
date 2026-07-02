@@ -173,12 +173,33 @@ export function DashboardWorkspace({ summary }: { summary: DashboardSummary; rol
         <Button asChild variant="secondary"><Link href="/quick-tools">Open Quick Tools</Link></Button>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-4">
-        <StatCard label="Active item records" value={summary.totalItems} icon={Boxes} />
-        <StatCard label="Supplier records" value={summary.totalSuppliers} icon={Truck} tone="accent" />
-        <StatCard label="Low stock alerts" value={summary.lowStockCount} icon={AlertTriangle} tone="warning" />
-        <StatCard label="Pending approvals" value={summary.pendingApprovals.length} icon={CheckCircle2} />
-      </div>
+      <section className="space-y-3 rounded-xl border bg-card p-4">
+        <div>
+          <p className="sb-section-label">Master Data</p>
+          <h2 className="mt-1 text-lg font-semibold">System readiness</h2>
+          <p className="mt-1 text-sm text-muted-foreground">Reference records that keep operations moving cleanly.</p>
+        </div>
+        <div className="grid gap-4 md:grid-cols-4">
+          <StatCard label="Active item records" value={summary.totalItems} icon={Boxes} />
+          <StatCard label="Supplier records" value={summary.totalSuppliers} icon={Truck} tone="accent" />
+          <StatCard label="Low stock alerts" value={summary.lowStockCount} icon={AlertTriangle} tone="warning" />
+          <StatCard label="Pending approvals" value={summary.pendingApprovals.length} icon={CheckCircle2} />
+        </div>
+      </section>
+
+      <section className="space-y-3 rounded-xl border bg-[var(--sb-muted)] p-4">
+        <div>
+          <p className="sb-section-label">Operation Today</p>
+          <h2 className="mt-1 text-lg font-semibold">What needs handling today</h2>
+          <p className="mt-1 text-sm text-muted-foreground">Live activity counters for receiving, counts, production, and deliveries.</p>
+        </div>
+        <div className="grid gap-4 md:grid-cols-4">
+          <StatCard label="Goods Receiving Today" value={summary.today.goodsReceiving} icon={PackageCheck} tone="accent" />
+          <StatCard label="Stock Count Due" value={summary.today.stockCountDue} icon={CalendarCheck} tone="warning" />
+          <StatCard label="Today's Production" value={summary.today.production} icon={Factory} />
+          <StatCard label="Today's Deliveries" value={summary.today.deliveries} icon={Truck} tone="accent" />
+        </div>
+      </section>
 
       <div className="flex flex-wrap items-center gap-2 rounded-lg border bg-card p-3">
         <Bell className="h-4 w-4 text-muted-foreground" />
@@ -190,11 +211,31 @@ export function DashboardWorkspace({ summary }: { summary: DashboardSummary; rol
         {layout.hidden.length ? <span className="text-xs text-muted-foreground">Hidden: {layout.hidden.join(", ")}</span> : null}
       </div>
 
-      <div className="grid gap-5 xl:grid-cols-2">
-        {layout.order.filter((id) => id !== "quick-actions" && !layout.hidden.includes(id)).map((id) => (
-          <div key={id}>{widgets[id] ?? <Card><CardContent className="p-5"><FileText className="h-4 w-4" /></CardContent></Card>}</div>
-        ))}
-      </div>
+      <section className="space-y-3 rounded-xl border bg-card p-4">
+        <div>
+          <p className="sb-section-label">Attention Needed</p>
+          <h2 className="mt-1 text-lg font-semibold">Warnings and approvals</h2>
+          <p className="mt-1 text-sm text-muted-foreground">Items that need a decision before they become an operational problem.</p>
+        </div>
+        <div className="grid gap-5 xl:grid-cols-2">
+          {["low-stock", "urgent-procurement", "pending-approvals", "purchase-requests", "purchase-orders"]
+            .filter((id) => !layout.hidden.includes(id))
+            .map((id) => <div key={id}>{widgets[id]}</div>)}
+        </div>
+      </section>
+
+      <section className="space-y-3 rounded-xl border bg-card p-4">
+        <div>
+          <p className="sb-section-label">Recent Activity</p>
+          <h2 className="mt-1 text-lg font-semibold">Latest movement</h2>
+          <p className="mt-1 text-sm text-muted-foreground">Recent documents, activity, and notifications across the workspace.</p>
+        </div>
+        <div className="grid gap-5 xl:grid-cols-2">
+          {["recent-documents", "recent-activities", "notifications"]
+            .filter((id) => !layout.hidden.includes(id))
+            .map((id) => <div key={id}>{widgets[id] ?? <Card><CardContent className="p-5"><FileText className="h-4 w-4" /></CardContent></Card>}</div>)}
+        </div>
+      </section>
     </div>
   );
 }

@@ -57,15 +57,15 @@ export async function sendPasswordReset(formData: FormData) {
   const redirectTo = `${await getSiteUrl()}/auth/callback?next=/set-password`;
   const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo });
   if (error) {
-    redirect(`/forgot-password?error=${encodeURIComponent(error.message)}`);
+    redirect(`/forgot-password?error=${encodeURIComponent("We could not send a reset email right now. Please try again.")}`);
   }
 
-  redirect(`/login?message=${encodeURIComponent("Password reset email sent. Check your inbox.")}`);
+  redirect(`/forgot-password?success=${encodeURIComponent("Reset link sent. Check your inbox for the next step.")}`);
 }
 
 export async function updatePassword(formData: FormData) {
   if (isMockMode()) {
-    redirect("/dashboard");
+    redirect("/set-password?success=1");
   }
 
   const password = String(formData.get("password") ?? "");
@@ -78,11 +78,28 @@ export async function updatePassword(formData: FormData) {
   }
 
   const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) {
+    redirect(`/set-password?error=${encodeURIComponent("Your reset link has expired or is invalid. Please request a new password reset email.")}`);
+  }
+
   const { error } = await supabase.auth.updateUser({ password });
   if (error) {
-    redirect(`/set-password?error=${encodeURIComponent(error.message)}`);
+    const message = error.message.toLowerCase();
+    if (message.includes("auth session missing")) {
+      redirect(`/set-password?error=${encodeURIComponent("Your reset link has expired or is invalid. Please request a new password reset email.")}`);
+    }
+    if (message.includes("different from the old password")) {
+      redirect(`/set-password?error=${encodeURIComponent("This password is too similar to your current password. Please choose a different password.")}`);
+    }
+    if (message.includes("password")) {
+      redirect(`/set-password?error=${encodeURIComponent("Password does not meet the required policy. Please use a stronger password and try again.")}`);
+    }
+    redirect(`/set-password?error=${encodeURIComponent("We could not update your password right now. Please try again.")}`);
   }
 
   await acceptCurrentStaffInvite();
-  redirect("/dashboard");
+  redirect("/set-password?success=1");
 }

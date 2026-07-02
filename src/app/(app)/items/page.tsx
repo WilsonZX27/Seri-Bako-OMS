@@ -7,7 +7,6 @@ import { PageHeader } from "@/components/ui/page-header";
 import { PaginationControls, SortableHead } from "@/components/sortable-table";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { formatCurrency, formatNumber } from "@/lib/utils";
-import { deleteItem } from "@/server/actions/items";
 import { getItemsWithStock, getItemsWithStockPage } from "@/server/queries/items";
 import { getSuppliersForSelect } from "@/server/queries/common";
 
@@ -24,6 +23,7 @@ export default async function ItemsPage({
     <>
       <PageHeader title="Items" description="Ingredient and packaging master data. Stock balance is calculated separately." action={{ href: "/items/new", label: "New item" }} />
       <div className="p-5">
+        {filters.success ? <div className="mb-3 rounded-lg border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-800">{filters.success}</div> : null}
         <div className="mb-3 flex justify-end">
           <Button asChild variant="outline" size="sm"><Link href="/imports/items">Import items</Link></Button>
         </div>
@@ -91,9 +91,6 @@ export default async function ItemsPage({
                         <Button asChild variant="outline" size="sm">
                           <Link href={`/items/${item.id}`}>Edit</Link>
                         </Button>
-                        <form action={deleteItem.bind(null, item.id)}>
-                          <Button variant="ghost" size="sm">Delete</Button>
-                        </form>
                       </div>
                     </TableCell>
                   </TableRow>

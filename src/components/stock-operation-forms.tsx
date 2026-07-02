@@ -2,11 +2,11 @@
 
 import { useRouter } from "next/navigation";
 import { AlertTriangle } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Field } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { SelectNative } from "@/components/ui/select-native";
+import { SubmitButton } from "@/components/ui/submit-button";
 import { Textarea } from "@/components/ui/textarea";
 import { formatNumber, getToday } from "@/lib/utils";
 import { wastageReasons } from "@/lib/validations/stock-operations";
@@ -15,10 +15,9 @@ type Branch = { id: string; branch_code: string; branch_name: string; status: st
 type Location = { id: string; branch_id?: string | null; location_code: string; location_name: string; status: string };
 type SeedLine = { item_id: string; item_code: string; item_name: string; barcode: string | null; available_qty: number; quantity: number; uom: string };
 
-export function StockTransferForm({ branches, locations, selectedFromLocationId, selectedFromBranchId, seedLines, action }: { branches: Branch[]; locations: Location[]; selectedFromLocationId?: string; selectedFromBranchId?: string; seedLines: SeedLine[]; action: (formData: FormData) => Promise<void> }) {
+export function StockTransferForm({ branches, selectedFromBranchId, seedLines, action }: { branches: Branch[]; locations: Location[]; selectedFromLocationId?: string; selectedFromBranchId?: string; seedLines: SeedLine[]; action: (formData: FormData) => Promise<void> }) {
   const router = useRouter();
   const no = `TRF-${Date.now().toString().slice(-6)}`;
-  function selectFrom(id: string) { router.push(id ? `/stock-transfers/new?from_location_id=${id}` : "/stock-transfers/new"); }
   function selectFromBranch(id: string) { router.push(id ? `/stock-transfers/new?from_branch_id=${id}` : "/stock-transfers/new"); }
   return (
     <Card><CardContent className="p-5">
@@ -27,28 +26,20 @@ export function StockTransferForm({ branches, locations, selectedFromLocationId,
           <Field label="Transfer No"><Input name="transfer_no" defaultValue={no} required /></Field>
           <Field label="Transfer Date"><Input name="transfer_date" type="date" defaultValue={getToday()} required /></Field>
           <Field label="Status"><SelectNative name="status" defaultValue="draft"><option value="draft">Draft</option></SelectNative></Field>
-          <Field label="From Branch"><SelectNative name="from_branch_id" value={selectedFromBranchId ?? branches[0]?.id ?? ""} onChange={(e) => selectFromBranch(e.target.value)} required>{branches.map((b) => <option key={b.id} value={b.id}>{b.branch_name}</option>)}</SelectNative><p className="mt-1 text-xs text-muted-foreground">Stock will move from this branch&apos;s default location.</p></Field>
-          <Field label="To Branch"><SelectNative name="to_branch_id" defaultValue={branches[1]?.id ?? branches[0]?.id ?? ""} required>{branches.map((b) => <option key={b.id} value={b.id}>{b.branch_name}</option>)}</SelectNative><p className="mt-1 text-xs text-muted-foreground">Stock will move into this branch&apos;s default location.</p></Field>
-          <details className="rounded-md border bg-secondary/20 p-3 md:col-span-3">
-            <summary className="cursor-pointer text-sm font-medium">Advanced transfer locations</summary>
-            <div className="mt-3 grid gap-4 md:grid-cols-2">
-              <Field label="From Location"><SelectNative name="from_location_id" value={selectedFromLocationId ?? ""} onChange={(e) => selectFrom(e.target.value)}><option value="">Use from branch default</option>{locations.map((l) => <option key={l.id} value={l.id}>{l.location_name}</option>)}</SelectNative></Field>
-              <Field label="To Location"><SelectNative name="to_location_id"><option value="">Use to branch default</option>{locations.filter((l) => l.id !== selectedFromLocationId).map((l) => <option key={l.id} value={l.id}>{l.location_name}</option>)}</SelectNative></Field>
-            </div>
-          </details>
+          <Field label="From Branch"><SelectNative name="from_branch_id" value={selectedFromBranchId ?? branches[0]?.id ?? ""} onChange={(e) => selectFromBranch(e.target.value)} required>{branches.map((b) => <option key={b.id} value={b.id}>{b.branch_name}</option>)}</SelectNative><p className="mt-1 text-xs text-muted-foreground">Select the outlet, kitchen, office, or event booth this record belongs to.</p></Field>
+          <Field label="To Branch"><SelectNative name="to_branch_id" defaultValue={branches[1]?.id ?? branches[0]?.id ?? ""} required>{branches.map((b) => <option key={b.id} value={b.id}>{b.branch_name}</option>)}</SelectNative><p className="mt-1 text-xs text-muted-foreground">Stock will move to the selected branch automatically.</p></Field>
           <div className="md:col-span-2"><Field label="Remarks"><Textarea name="remarks" placeholder="Transfer reason or handling note" /></Field></div>
         </div>
         <LineGrid seedLines={seedLines} mode="transfer" />
-        <div className="flex justify-end"><Button disabled={!seedLines.length}>Create transfer</Button></div>
+        <div className="flex justify-end"><SubmitButton disabled={!seedLines.length} pendingLabel="Saving..." showOverlay overlayLabel="Saving changes...">Create transfer</SubmitButton></div>
       </form>
     </CardContent></Card>
   );
 }
 
-export function StockWastageForm({ branches, locations, selectedLocationId, selectedBranchId, seedLines, action }: { branches: Branch[]; locations: Location[]; selectedLocationId?: string; selectedBranchId?: string; seedLines: SeedLine[]; action: (formData: FormData) => Promise<void> }) {
+export function StockWastageForm({ branches, selectedBranchId, seedLines, action }: { branches: Branch[]; locations: Location[]; selectedLocationId?: string; selectedBranchId?: string; seedLines: SeedLine[]; action: (formData: FormData) => Promise<void> }) {
   const router = useRouter();
   const no = `WST-${Date.now().toString().slice(-6)}`;
-  function selectLocation(id: string) { router.push(id ? `/stock-wastage/new?location_id=${id}` : "/stock-wastage/new"); }
   function selectBranch(id: string) { router.push(id ? `/stock-wastage/new?branch_id=${id}` : "/stock-wastage/new"); }
   return (
     <Card><CardContent className="p-5">
@@ -57,18 +48,12 @@ export function StockWastageForm({ branches, locations, selectedLocationId, sele
           <Field label="Wastage No"><Input name="wastage_no" defaultValue={no} required /></Field>
           <Field label="Wastage Date"><Input name="wastage_date" type="date" defaultValue={getToday()} required /></Field>
           <Field label="Main Reason"><SelectNative name="reason" defaultValue="damaged">{wastageReasons.map((r) => <option key={r} value={r}>{r.replaceAll("_", " ")}</option>)}</SelectNative></Field>
-          <Field label="Branch"><SelectNative name="branch_id" value={selectedBranchId ?? branches[0]?.id ?? ""} onChange={(e) => selectBranch(e.target.value)} required>{branches.map((b) => <option key={b.id} value={b.id}>{b.branch_name}</option>)}</SelectNative><p className="mt-1 text-xs text-muted-foreground">Stock will be recorded under this branch&apos;s default location.</p></Field>
+          <Field label="Branch"><SelectNative name="branch_id" value={selectedBranchId ?? branches[0]?.id ?? ""} onChange={(e) => selectBranch(e.target.value)} required>{branches.map((b) => <option key={b.id} value={b.id}>{b.branch_name}</option>)}</SelectNative><p className="mt-1 text-xs text-muted-foreground">Select the outlet, kitchen, office, or event booth this record belongs to.</p></Field>
           <Field label="Status"><SelectNative name="status" defaultValue="draft"><option value="draft">Draft</option></SelectNative></Field>
-          <details className="rounded-md border bg-secondary/20 p-3 md:col-span-3">
-            <summary className="cursor-pointer text-sm font-medium">Advanced wastage location</summary>
-            <div className="mt-3 max-w-sm">
-              <Field label="Specific Location"><SelectNative name="location_id" value={selectedLocationId ?? ""} onChange={(e) => selectLocation(e.target.value)}><option value="">Use branch default location</option>{locations.map((l) => <option key={l.id} value={l.id}>{l.location_name}</option>)}</SelectNative></Field>
-            </div>
-          </details>
           <div className="md:col-span-3"><Field label="Remarks"><Textarea name="remarks" placeholder="Photo required for damaged, expired, supplier claim, or abnormal wastage" /></Field></div>
         </div>
         <LineGrid seedLines={seedLines} mode="wastage" />
-        <div className="flex justify-end"><Button disabled={!seedLines.length}>Create wastage</Button></div>
+        <div className="flex justify-end"><SubmitButton disabled={!seedLines.length} pendingLabel="Saving..." showOverlay overlayLabel="Saving changes...">Create wastage</SubmitButton></div>
       </form>
     </CardContent></Card>
   );

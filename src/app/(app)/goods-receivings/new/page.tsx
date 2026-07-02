@@ -2,12 +2,12 @@ import { GoodsReceivingForm } from "@/components/goods-receiving-form";
 import { Card, CardContent } from "@/components/ui/card";
 import { PageHeader } from "@/components/ui/page-header";
 import { createGoodsReceiving } from "@/server/actions/goods-receivings";
-import { getBranchesForSelect, getLocationsForSelect } from "@/server/queries/common";
+import { getBranchesForSelect } from "@/server/queries/common";
 import { getEligiblePurchaseOrders, getPurchaseOrderForReceiving } from "@/server/queries/goods-receivings";
 
 export default async function NewGoodsReceivingPage({ searchParams }: { searchParams: Promise<Record<string, string | undefined>> }) {
   const filters = await searchParams;
-  const [purchaseOrders, branches, locations] = await Promise.all([getEligiblePurchaseOrders(), getBranchesForSelect(), getLocationsForSelect()]);
+  const [purchaseOrders, branches] = await Promise.all([getEligiblePurchaseOrders(), getBranchesForSelect()]);
   const selectedOrder = filters.po_id ? purchaseOrders.find((order) => order.id === filters.po_id) ?? null : null;
   const receivingPo = selectedOrder ? await getPurchaseOrderForReceiving(selectedOrder.id) : null;
   const lines = receivingPo?.lines.filter((line) => line.pending_qty > 0) ?? [];
@@ -22,7 +22,6 @@ export default async function NewGoodsReceivingPage({ searchParams }: { searchPa
           selectedOrder={selectedOrder}
           lines={lines}
           branches={branches}
-          locations={locations}
           action={createGoodsReceiving}
         />
       </div>

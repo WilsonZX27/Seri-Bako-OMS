@@ -79,13 +79,16 @@ export async function updateItem(id: string, formData: FormData) {
 
 export async function deleteItem(id: string) {
   if (isMockMode()) {
-    revalidatePath("/items");
-    return;
+    redirect("/items");
   }
 
   const supabase = await createClient();
-  const { error } = await supabase.from("items").delete().eq("id", id);
+  const { error } = await supabase
+    .from("items")
+    .update({ status: "inactive", deleted_at: new Date().toISOString() })
+    .eq("id", id);
   if (error) throw new Error(error.message);
 
   revalidatePath("/items");
+  redirect("/items?success=Item%20deactivated.");
 }

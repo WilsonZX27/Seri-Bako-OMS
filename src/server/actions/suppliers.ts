@@ -61,13 +61,16 @@ export async function updateSupplier(id: string, formData: FormData) {
 
 export async function deleteSupplier(id: string) {
   if (isMockMode()) {
-    revalidatePath("/suppliers");
-    return;
+    redirect("/suppliers");
   }
 
   const supabase = await createClient();
-  const { error } = await supabase.from("suppliers").delete().eq("id", id);
+  const { error } = await supabase
+    .from("suppliers")
+    .update({ status: "inactive", deleted_at: new Date().toISOString() })
+    .eq("id", id);
   if (error) throw new Error(error.message);
 
   revalidatePath("/suppliers");
+  redirect("/suppliers?success=Supplier%20deactivated.");
 }

@@ -10,6 +10,7 @@ import { branchSchema, companySchema, documentSequenceSchema, locationSchema, ro
 import { writeActivityLog } from "@/server/activity/log";
 import { requirePermission } from "@/server/auth/permissions";
 import { formatActionError, requirePermissionOrRedirect, rethrowRedirect, safeRedirectWithMessage } from "@/server/actions/error-handling";
+import { resolveDefaultLocation } from "@/server/inventory/locations";
 
 function formValue(formData: FormData, key: string) {
   return formData.get(key);
@@ -278,7 +279,7 @@ function staffAccessPayload(formData: FormData) {
     effective_to: formValue(formData, "effective_to"),
     branch_id: formValue(formData, "branch_id"),
     access_level: formValue(formData, "access_level") ?? "read_only",
-    location_ids: formData.getAll("location_ids").map(String),
+    location_ids: [],
   });
 }
 
@@ -313,10 +314,9 @@ async function replaceStaffAccess(staffId: string, formData: FormData) {
   });
   if (branchError) throw new Error(branchError.message);
 
-  if (access.location_ids.length) {
-    const { error: locationError } = await supabase.from("staff_locations").insert(access.location_ids.map((locationId) => ({ staff_id: staffId, location_id: locationId })));
-    if (locationError) throw new Error(locationError.message);
-  }
+  const defaultLocationId = await resolveDefaultLocation(access.branch_id);
+  const { error: locationError } = await supabase.from("staff_locations").insert([{ staff_id: staffId, location_id: defaultLocationId }]);
+  if (locationError) throw new Error(locationError.message);
 }
 
 async function getCurrentStaffId() {

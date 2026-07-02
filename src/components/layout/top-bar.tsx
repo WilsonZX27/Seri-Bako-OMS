@@ -19,7 +19,7 @@ export async function TopBar() {
         <MobileSidebar role={role} companyName={branding.company_name} companyLogoUrl={branding.logo_url} />
         <div className="min-w-0 space-y-1">
           <p className="truncate text-sm font-medium">Operations Workspace</p>
-          <Breadcrumbs role={role} />
+          <Breadcrumbs />
         </div>
       </div>
       <div className="flex items-center gap-3">

@@ -1,8 +1,8 @@
-import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Field } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { SelectNative } from "@/components/ui/select-native";
+import { SubmitButton } from "@/components/ui/submit-button";
 import { Textarea } from "@/components/ui/textarea";
 import type { Database } from "@/types/database";
 
@@ -48,7 +48,7 @@ export function SupplierForm({ supplier, action }: SupplierFormProps) {
             </Field>
           </div>
           <div className="flex justify-end gap-2 md:col-span-2">
-            <Button type="submit">{supplier ? "Save supplier" : "Create supplier"}</Button>
+            <SubmitButton type="submit" pendingLabel="Saving..." showOverlay overlayLabel="Saving changes...">{supplier ? "Save supplier" : "Create supplier"}</SubmitButton>
           </div>
         </form>
       </CardContent>

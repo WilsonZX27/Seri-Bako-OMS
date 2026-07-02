@@ -1,8 +1,8 @@
 import { Search } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Field } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
+import { SubmitButton } from "@/components/ui/submit-button";
 import { SelectNative } from "@/components/ui/select-native";
 import { Textarea } from "@/components/ui/textarea";
 import type { Database } from "@/types/database";
@@ -10,7 +10,6 @@ import type { Database } from "@/types/database";
 type ItemOption = Pick<Database["public"]["Tables"]["items"]["Row"], "id" | "item_code" | "item_name" | "base_unit" | "status">;
 type SupplierOption = Pick<Database["public"]["Tables"]["suppliers"]["Row"], "id" | "supplier_code" | "name" | "status">;
 type BranchOption = { id: string; branch_code: string; branch_name: string; status: string };
-type LocationOption = { id: string; branch_id?: string | null; location_code: string; location_name: string; status: string };
 
 function today() {
   return new Date().toISOString().slice(0, 10);
@@ -33,13 +32,11 @@ export function PurchaseRequestForm({
   items,
   suppliers,
   branches,
-  locations,
   action,
 }: {
   items: ItemOption[];
   suppliers: SupplierOption[];
   branches: BranchOption[];
-  locations: LocationOption[];
   action: (formData: FormData) => Promise<void>;
 }) {
   const requestNo = `PR-${Date.now().toString().slice(-6)}`;
@@ -64,7 +61,7 @@ export function PurchaseRequestForm({
                 <option value="urgent">Urgent</option>
                 <option value="critical">Critical</option>
               </SelectNative>
-              <p className="mt-1 text-xs text-muted-foreground">Use urgent or critical when production or outlet service may be affected.</p>
+              <p className="mt-1 text-xs text-muted-foreground">Use Urgent or Critical only when delay may affect production or outlet operation.</p>
             </Field>
             <Field label="Needed By">
               <Input name="needed_by_date" type="date" />
@@ -73,24 +70,13 @@ export function PurchaseRequestForm({
               <SelectNative name="branch_id" defaultValue={branches[0]?.id ?? ""} required>
                 {branches.map((branch) => <option key={branch.id} value={branch.id}>{branch.branch_name}</option>)}
               </SelectNative>
-              <p className="mt-1 text-xs text-muted-foreground">Stock will be recorded under this branch&apos;s default location.</p>
+              <p className="mt-1 text-xs text-muted-foreground">Select the outlet, kitchen, office, or event booth this record belongs to.</p>
             </Field>
             <Field label="Status">
               <SelectNative name="status" defaultValue="draft">
                 <option value="draft">Draft</option>
               </SelectNative>
             </Field>
-            <details className="rounded-md border bg-secondary/20 p-3 md:col-span-3">
-              <summary className="cursor-pointer text-sm font-medium">Advanced location</summary>
-              <div className="mt-3 max-w-sm">
-                <Field label="Specific Location">
-                  <SelectNative name="location_id" defaultValue="">
-                    <option value="">Use branch default location</option>
-                    {locations.map((location) => <option key={location.id} value={location.id}>{location.location_name}</option>)}
-                  </SelectNative>
-                </Field>
-              </div>
-            </details>
             <div className="md:col-span-3">
               <Field label="Remarks">
                 <Textarea name="remarks" placeholder="Reason for purchasing request" />
@@ -134,7 +120,7 @@ export function PurchaseRequestForm({
           </div>
 
           <div className="flex justify-end">
-            <Button type="submit">Create purchase request</Button>
+            <SubmitButton type="submit" pendingLabel="Saving..." showOverlay overlayLabel="Saving changes...">Create purchase request</SubmitButton>
           </div>
         </form>
       </CardContent>
@@ -208,7 +194,7 @@ export function PurchaseOrderForm({
           </div>
 
           <div className="flex justify-end">
-            <Button type="submit">Create purchase order</Button>
+            <SubmitButton type="submit" pendingLabel="Saving..." showOverlay overlayLabel="Saving changes...">Create purchase order</SubmitButton>
           </div>
         </form>
       </CardContent>

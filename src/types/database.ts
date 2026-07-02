@@ -670,6 +670,7 @@ export type Database = {
           status: SupplierStatus;
           created_at: string;
           updated_at: string;
+          deleted_at: string | null;
         };
         Insert: {
           id?: string;
@@ -683,6 +684,7 @@ export type Database = {
           status?: SupplierStatus;
           created_at?: string;
           updated_at?: string;
+          deleted_at?: string | null;
         };
         Update: Partial<Database["public"]["Tables"]["suppliers"]["Insert"]>;
         Relationships: [];
@@ -744,6 +746,7 @@ export type Database = {
           item_image_url: string | null;
           created_at: string;
           updated_at: string;
+          deleted_at: string | null;
         };
         Insert: {
           id?: string;
@@ -769,6 +772,7 @@ export type Database = {
           item_image_url?: string | null;
           created_at?: string;
           updated_at?: string;
+          deleted_at?: string | null;
         };
         Update: Partial<Database["public"]["Tables"]["items"]["Insert"]>;
         Relationships: [

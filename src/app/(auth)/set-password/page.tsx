@@ -1,36 +1,65 @@
-import { updatePassword } from "@/server/actions/auth";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import Link from "next/link";
+import { AuthShell } from "@/components/auth/auth-shell";
+import { SetPasswordSuccess } from "@/components/auth/set-password-success";
 import { Field } from "@/components/ui/field";
-import { Input } from "@/components/ui/input";
+import { PasswordInput } from "@/components/ui/password-input";
+import { SubmitButton } from "@/components/ui/submit-button";
+import { createClient } from "@/lib/supabase/server";
+import { updatePassword } from "@/server/actions/auth";
 
 export default async function SetPasswordPage({
   searchParams,
 }: {
-  searchParams: Promise<{ error?: string }>;
+  searchParams: Promise<{ error?: string; success?: string }>;
 }) {
   const params = await searchParams;
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (params.success) {
+    return (
+      <AuthShell title="Password updated" description="Your password has been changed.">
+        <SetPasswordSuccess />
+      </AuthShell>
+    );
+  }
+
+  if (!user) {
+    return (
+      <AuthShell title="Reset link expired" description="This reset session is no longer available.">
+        <div className="space-y-4">
+          <p className="rounded-md border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive">
+            Your reset link has expired or is invalid. Please request a new password reset email.
+          </p>
+          <Link href="/forgot-password" className="block rounded-md bg-primary px-4 py-2 text-center text-sm font-medium text-primary-foreground">
+            Request new reset link
+          </Link>
+        </div>
+      </AuthShell>
+    );
+  }
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-background p-6">
-      <Card className="w-full max-w-sm">
-        <CardHeader>
-          <CardTitle>Set Password</CardTitle>
-          <CardDescription>Create your password to finish account setup.</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <form action={updatePassword} className="space-y-4">
-            <Field label="New Password">
-              <Input name="password" type="password" autoComplete="new-password" minLength={8} required />
-            </Field>
-            <Field label="Confirm Password">
-              <Input name="confirm_password" type="password" autoComplete="new-password" minLength={8} required />
-            </Field>
-            {params.error ? <p className="text-sm text-destructive">{params.error}</p> : null}
-            <Button className="w-full">Save password</Button>
-          </form>
-        </CardContent>
-      </Card>
-    </main>
+    <AuthShell title="Set password" description="Create a new password to finish setup or complete a reset.">
+      <form action={updatePassword} className="space-y-4">
+        <Field label="New Password">
+          <PasswordInput name="password" autoComplete="new-password" minLength={8} required />
+        </Field>
+        <Field label="Confirm Password">
+          <PasswordInput name="confirm_password" autoComplete="new-password" minLength={8} required />
+        </Field>
+        <div className="rounded-md border bg-secondary/40 p-3 text-sm text-muted-foreground">
+          Minimum 8 characters. Your new password should be different from the old one if you already used this account before.
+        </div>
+        <p className="text-sm text-muted-foreground">After changing your password, return to login and sign in again.</p>
+        {params.error ? <p className="rounded-md border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive">{params.error}</p> : null}
+        <SubmitButton className="w-full" pendingLabel="Updating password..." showOverlay overlayLabel="Updating password...">Save password</SubmitButton>
+        <Link href="/forgot-password" className="block text-center text-sm text-muted-foreground hover:text-foreground">
+          Request new reset link
+        </Link>
+      </form>
+    </AuthShell>
   );
 }

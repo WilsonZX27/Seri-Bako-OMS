@@ -1,9 +1,9 @@
-import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Field } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { SelectNative } from "@/components/ui/select-native";
 import { BarcodeFields } from "@/components/barcode-fields";
+import { SubmitButton } from "@/components/ui/submit-button";
 import { formatNumber } from "@/lib/utils";
 import type { Database } from "@/types/database";
 
@@ -106,7 +106,7 @@ export function ItemForm({ item, suppliers, currentStock, initialBarcode, action
           <input type="hidden" name="moq" value={item?.moq ?? 0} />
           <input type="hidden" name="lead_time_days" value={item?.lead_time_days ?? 0} />
           <div className="flex justify-end md:col-span-3">
-            <Button type="submit">{item ? "Save item" : "Create item"}</Button>
+            <SubmitButton type="submit" pendingLabel="Saving..." showOverlay overlayLabel="Saving changes...">{item ? "Save item" : "Create item"}</SubmitButton>
           </div>
         </form>
       </CardContent>

@@ -1,9 +1,10 @@
 import { StaffForm } from "@/components/foundation-forms";
+import { DangerConfirmForm } from "@/components/ui/danger-confirm-form";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { PageHeader } from "@/components/ui/page-header";
 import { disableStaff, enableStaff, resendStaffInvite, updateStaff } from "@/server/actions/foundation";
-import { getBranches, getCompaniesForSelect, getLocations, getRoles, getStaff, getStaffAccess } from "@/server/queries/foundation";
+import { getBranches, getCompaniesForSelect, getRoles, getStaff, getStaffAccess } from "@/server/queries/foundation";
 
 export default async function EditStaffPage({
   params,
@@ -13,7 +14,7 @@ export default async function EditStaffPage({
   searchParams: Promise<{ error?: string; success?: string }>;
 }) {
   const { id } = await params;
-  const [messageParams, staff, access, companies, branches, roles, locations] = await Promise.all([searchParams, getStaff(id), getStaffAccess(id), getCompaniesForSelect(), getBranches(), getRoles(), getLocations()]);
+  const [messageParams, staff, access, companies, branches, roles] = await Promise.all([searchParams, getStaff(id), getStaffAccess(id), getCompaniesForSelect(), getBranches(), getRoles()]);
   return (
     <>
       <PageHeader title="Edit Staff" description="Update staff identity, branch assignment, and status." />
@@ -33,18 +34,33 @@ export default async function EditStaffPage({
             <form action={resendStaffInvite.bind(null, id)}>
               <Button type="submit" variant="outline">Resend invite</Button>
             </form>
-            {staff.status === "disabled" ? (
+            <div className="rounded-md border bg-secondary/30 px-3 py-2 text-sm text-muted-foreground">
+              Branch access: {access.staffBranch?.branch_id ? branches.find((branch) => branch.id === access.staffBranch?.branch_id)?.branch_name ?? "-" : "-"}
+            </div>
+          </CardContent>
+        </Card>
+        <StaffForm staff={staff} access={access} companies={companies} branches={branches} roles={roles} action={updateStaff.bind(null, id)} />
+        {staff.status === "disabled" ? (
+          <Card>
+            <CardHeader><CardTitle>Advanced actions</CardTitle></CardHeader>
+            <CardContent>
               <form action={enableStaff.bind(null, id)}>
                 <Button type="submit" variant="outline">Enable user</Button>
               </form>
-            ) : (
-              <form action={disableStaff.bind(null, id)}>
-                <Button type="submit" variant="destructive">Disable user</Button>
-              </form>
-            )}
-          </CardContent>
-        </Card>
-        <StaffForm staff={staff} access={access} companies={companies} branches={branches} roles={roles} locations={locations} action={updateStaff.bind(null, id)} />
+            </CardContent>
+          </Card>
+        ) : (
+          <DangerConfirmForm
+            action={disableStaff.bind(null, id)}
+            title="Deactivate this staff?"
+            description="This will hide the record from active lists. Existing documents and stock history will remain linked."
+            warning="This action may affect future operations and should only be done by an admin."
+            checkboxLabel="I understand this does not delete history and may affect future operations."
+            confirmWord="DEACTIVATE"
+            buttonLabel="Deactivate user"
+            pendingLabel="Deactivating..."
+          />
+        )}
       </div>
     </>
   );

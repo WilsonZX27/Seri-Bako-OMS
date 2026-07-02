@@ -92,7 +92,7 @@ export async function getDocumentBundle(id: string) {
     getDocument(id),
     supabase.from("document_comments").select("*").eq("document_id", id).is("deleted_at", null).order("created_at", { ascending: true }),
     supabase.from("document_revisions").select("*").eq("document_id", id).order("revision_no", { ascending: true }),
-    supabase.from("attachments").select("*").eq("entity_type", "document").eq("entity_id", id).is("deleted_at", null).order("uploaded_at", { ascending: false }),
+    supabase.from("attachments").select("*").eq("entity_type", "document").eq("entity_id", id).is("deleted_at", null).order("created_at", { ascending: false }),
     supabase.from("approvals").select("*").eq("entity_type", "document").eq("entity_id", id).is("deleted_at", null).order("created_at", { ascending: false }).limit(1),
     supabase.from("activity_logs").select("*").eq("entity_type", "document").eq("entity_id", id).order("created_at", { ascending: true }),
   ]);

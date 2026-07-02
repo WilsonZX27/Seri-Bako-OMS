@@ -19,6 +19,14 @@ function statusVariant(status: string) {
 export default async function DocumentsPage({ searchParams }: { searchParams: Promise<Record<string, string | undefined>> }) {
   const filters = await searchParams;
   const documents = await getDocuments(filters);
+  const hasActiveFilters = Boolean(
+    filters.search
+      || (filters.document_type && filters.document_type !== "all")
+      || (filters.status && filters.status !== "all")
+      || (filters.approval_status && filters.approval_status !== "all")
+      || filters.sort
+      || filters.page,
+  );
   const documentInsights: WorkspaceInsight[] = [
     { label: "Total Documents", value: documents.totalRows, icon: FileText, theme: "neutral" },
     { label: "Pending Approval", value: 0, icon: ClipboardCheck, theme: "amber" },
@@ -74,13 +82,21 @@ export default async function DocumentsPage({ searchParams }: { searchParams: Pr
     <>
       <PageHeader title="Document Center" description="Reusable document control for approvals, attachments, comments, revisions, and timelines." />
       <div className="space-y-5 p-5">
-        <WorkspaceQuickInsights insights={documentInsights} />
-        <div className="grid gap-5 xl:grid-cols-2">
-          {documentSections.map((section) => (
-            <WorkspaceSectionPanel key={section.title} section={section} />
-          ))}
-        </div>
+        {!hasActiveFilters ? (
+          <>
+            <WorkspaceQuickInsights insights={documentInsights} />
+            <div className="grid gap-5 xl:grid-cols-2">
+              {documentSections.map((section) => (
+                <WorkspaceSectionPanel key={section.title} section={section} />
+              ))}
+            </div>
+          </>
+        ) : null}
         <div className="overflow-hidden rounded-lg border bg-card">
+          <div className="border-b p-4">
+            <p className="sb-section-label">Document Register</p>
+            <h2 className="mt-1 text-lg font-semibold">Filtered document list</h2>
+          </div>
           <form className="grid gap-3 border-b p-4 md:grid-cols-5">
             <Input name="search" defaultValue={filters.search ?? ""} placeholder="Search document no, title, type" />
             <SelectNative name="document_type" defaultValue={filters.document_type ?? "all"}>

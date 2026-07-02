@@ -52,7 +52,7 @@ export function DocumentTimeline({ document, activities, comments, attachments }
     ...(document.cancelled_at ? [{ id: "cancelled", activity_type: "cancelled", message: "Document cancelled", created_at: document.cancelled_at, created_by: document.updated_by }] : []),
   ];
   const commentEvents = comments.map((comment) => ({ id: comment.id, activity_type: "comment_added", message: comment.comment_text, created_at: comment.created_at, created_by: comment.created_by }));
-  const attachmentEvents = attachments.map((attachment) => ({ id: attachment.id, activity_type: "attachment_uploaded", message: `${attachment.file_name} uploaded`, created_at: attachment.uploaded_at, created_by: attachment.uploaded_by }));
+  const attachmentEvents = attachments.map((attachment) => ({ id: attachment.id, activity_type: "attachment_uploaded", message: `${attachment.file_name} uploaded`, created_at: attachment.created_at, created_by: attachment.uploaded_by }));
   const events = [...syntheticEvents, ...activities, ...commentEvents, ...attachmentEvents]
     .filter((event, index, rows) => rows.findIndex((row) => row.activity_type === event.activity_type && row.created_at === event.created_at && row.message === event.message) === index)
     .sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
@@ -96,7 +96,7 @@ export function AttachmentPanel({ documentId, attachments }: { documentId: strin
                 <FileText className="mt-0.5 h-4 w-4 text-muted-foreground" />
                 <div>
                   <p className="text-sm font-medium">{attachment.file_name}</p>
-                  <p className="text-xs text-muted-foreground">{attachment.file_type ?? "file"} - {formatBytes(attachment.file_size)} - {formatDate(attachment.uploaded_at)}</p>
+                  <p className="text-xs text-muted-foreground">{attachment.file_type ?? "file"} - {formatBytes(attachment.file_size)} - {formatDate(attachment.created_at)}</p>
                 </div>
               </div>
               <div className="flex gap-2">

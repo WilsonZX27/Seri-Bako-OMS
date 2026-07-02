@@ -1,0 +1,192 @@
+import Link from "next/link";
+import { Badge } from "@/components/ui/badge";
+import { Card, CardContent } from "@/components/ui/card";
+import { cn } from "@/lib/utils";
+import type { LucideIcon } from "lucide-react";
+
+export type WorkspaceThemeName = "green" | "blue" | "amber" | "purple" | "teal" | "neutral" | "red";
+
+type WorkspaceTheme = {
+  panel: string;
+  header: string;
+  border: string;
+  badge: string;
+  tag: string;
+  iconText: string;
+};
+
+export type WorkspaceAction = {
+  href: string;
+  title: string;
+  description: string;
+  icon: LucideIcon;
+  recommendedFor?: string;
+  badge?: string;
+  disabled?: boolean;
+};
+
+export type WorkspaceSection = {
+  title: string;
+  description: string;
+  icon: LucideIcon;
+  theme: WorkspaceThemeName;
+  actions: WorkspaceAction[];
+};
+
+export type WorkspaceInsight = {
+  label: string;
+  value: string | number;
+  icon: LucideIcon;
+  theme?: WorkspaceThemeName;
+};
+
+export const workspaceThemes: Record<WorkspaceThemeName, WorkspaceTheme> = {
+  green: {
+    panel: "bg-emerald-50/35",
+    header: "bg-emerald-50/70",
+    border: "border-emerald-100",
+    badge: "bg-emerald-100",
+    tag: "bg-emerald-100 text-emerald-800",
+    iconText: "text-emerald-700",
+  },
+  blue: {
+    panel: "bg-blue-50/35",
+    header: "bg-blue-50/75",
+    border: "border-blue-100",
+    badge: "bg-blue-100",
+    tag: "bg-blue-100 text-blue-800",
+    iconText: "text-blue-700",
+  },
+  amber: {
+    panel: "bg-amber-50/35",
+    header: "bg-amber-50/75",
+    border: "border-amber-100",
+    badge: "bg-amber-100",
+    tag: "bg-amber-100 text-amber-800",
+    iconText: "text-amber-700",
+  },
+  purple: {
+    panel: "bg-purple-50/35",
+    header: "bg-purple-50/75",
+    border: "border-purple-100",
+    badge: "bg-purple-100",
+    tag: "bg-purple-100 text-purple-800",
+    iconText: "text-purple-700",
+  },
+  teal: {
+    panel: "bg-teal-50/35",
+    header: "bg-teal-50/75",
+    border: "border-teal-100",
+    badge: "bg-teal-100",
+    tag: "bg-teal-100 text-teal-800",
+    iconText: "text-teal-700",
+  },
+  neutral: {
+    panel: "bg-slate-50/45",
+    header: "bg-slate-50",
+    border: "border-slate-200",
+    badge: "bg-slate-100",
+    tag: "bg-slate-100 text-slate-700",
+    iconText: "text-slate-700",
+  },
+  red: {
+    panel: "bg-red-50/35",
+    header: "bg-red-50/75",
+    border: "border-red-100",
+    badge: "bg-red-100",
+    tag: "bg-red-100 text-red-800",
+    iconText: "text-red-700",
+  },
+};
+
+export function WorkspaceSectionPanel({ section }: { section: WorkspaceSection }) {
+  const theme = workspaceThemes[section.theme];
+  const SectionIcon = section.icon;
+
+  return (
+    <section className={cn("overflow-hidden rounded-xl border shadow-sm", theme.border, theme.panel)}>
+      <div className={cn("border-b px-5 py-5", theme.border, theme.header)}>
+        <div className="flex items-center gap-4">
+          <div className={cn("flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl", theme.badge, theme.iconText)}>
+            <SectionIcon className="h-7 w-7" />
+          </div>
+          <div className="min-w-0">
+            <h2 className="text-sm font-bold uppercase tracking-normal text-foreground">{section.title}</h2>
+            <p className="mt-1 text-sm leading-6 text-muted-foreground">{section.description}</p>
+          </div>
+        </div>
+      </div>
+      <div className="grid items-stretch gap-4 p-4 md:grid-cols-2">
+        {section.actions.map((action) => (
+          <WorkspaceActionCard key={action.href} action={action} theme={theme} />
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function WorkspaceActionCard({ action, theme }: { action: WorkspaceAction; theme: WorkspaceTheme }) {
+  const ActionIcon = action.icon;
+  const content = (
+    <Card className={cn("h-full border bg-white/90 shadow-sm transition-colors", theme.border, action.disabled ? "opacity-70" : "group-hover:border-primary/30 group-hover:bg-white")}>
+      <CardContent className="flex h-full flex-col gap-5 p-5">
+        <div className="flex items-start gap-4">
+          <div className={cn("flex h-11 w-11 shrink-0 items-center justify-center rounded-xl", theme.badge, theme.iconText)}>
+            <ActionIcon className="h-5 w-5" />
+          </div>
+          <div className="min-w-0">
+            <div className="flex flex-wrap items-center gap-2">
+              <h3 className="text-sm font-semibold text-foreground">{action.title}</h3>
+              {action.badge ? <Badge variant="secondary">{action.badge}</Badge> : null}
+            </div>
+            <p className="mt-1 text-sm leading-6 text-muted-foreground">{action.description}</p>
+          </div>
+        </div>
+        {action.recommendedFor ? (
+          <div className="mt-auto">
+            <Badge className={cn("rounded-full", theme.tag)}>Recommended for {action.recommendedFor}</Badge>
+          </div>
+        ) : null}
+      </CardContent>
+    </Card>
+  );
+
+  if (action.disabled) return <div>{content}</div>;
+  return <Link href={action.href} className="group block h-full">{content}</Link>;
+}
+
+export function WorkspaceQuickInsights({ insights, action }: { insights: WorkspaceInsight[]; action?: { href: string; label: string; icon?: LucideIcon } }) {
+  return (
+    <Card className="border bg-card shadow-sm">
+      <CardContent className="grid gap-4 p-5 xl:grid-cols-[180px_1fr_auto] xl:items-center">
+        <div>
+          <p className="text-sm font-semibold">Quick Insights</p>
+          <p className="mt-1 text-xs text-muted-foreground">Fast counters for today&apos;s workspace.</p>
+        </div>
+        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+          {insights.map((insight) => {
+            const theme = workspaceThemes[insight.theme ?? "neutral"];
+            const InsightIcon = insight.icon;
+            return (
+              <div key={insight.label} className={cn("flex items-center gap-3 rounded-lg border p-3", theme.border, theme.panel, theme.iconText)}>
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white/70">
+                  <InsightIcon className="h-5 w-5" />
+                </div>
+                <div>
+                  <p className="text-lg font-bold leading-none">{insight.value}</p>
+                  <p className="mt-1 text-xs font-medium">{insight.label}</p>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+        {action ? (
+          <Link href={action.href} className="inline-flex h-10 items-center justify-center gap-2 rounded-md border bg-background px-4 text-sm font-medium hover:bg-secondary">
+            {action.label}
+            {action.icon ? <action.icon className="h-4 w-4" /> : null}
+          </Link>
+        ) : null}
+      </CardContent>
+    </Card>
+  );
+}

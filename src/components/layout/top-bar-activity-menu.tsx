@@ -13,15 +13,15 @@ export function TopBarActivityMenu({ data }: { data: TopBarActivity }) {
 
   return (
     <div className="relative">
-      <Button type="button" variant="ghost" size="icon" onClick={() => setOpen((value) => !value)} aria-label="Open notifications">
+      <Button type="button" variant="ghost" size="icon" onClick={() => setOpen((value) => !value)} aria-label="Open workspace updates">
         <Bell className="h-5 w-5" />
         {count ? <span className="absolute right-1 top-1 h-2 w-2 rounded-full bg-danger" /> : null}
       </Button>
       {open ? (
         <div className="absolute right-0 z-40 mt-2 w-[min(24rem,calc(100vw-2rem))] overflow-hidden rounded-lg border bg-card shadow-lg">
           <div className="border-b p-3">
-            <p className="text-sm font-semibold">Workspace updates</p>
-            <p className="text-xs text-muted-foreground">Personal notifications, assigned actions, and announcements.</p>
+            <p className="text-sm font-semibold">Workspace Updates</p>
+            <p className="text-xs text-muted-foreground">Notifications, recent activity, assigned actions, and pending actions.</p>
           </div>
           <div className="max-h-96 overflow-y-auto p-2">
             <p className="px-2 py-1 text-xs font-semibold uppercase text-muted-foreground">My Pending Actions</p>

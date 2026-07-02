@@ -1,13 +1,14 @@
 "use client";
 
 import Link from "next/link";
-import { AlertTriangle, Bell, Boxes, CalendarCheck, CheckCircle2, ClipboardCheck, EyeOff, Factory, FileText, PackageCheck, RotateCcw, ScanLine, Truck, TriangleAlert } from "lucide-react";
+import { AlertTriangle, Bell, Boxes, CalendarCheck, CheckCircle2, ClipboardCheck, EyeOff, Factory, PackageCheck, RotateCcw, ScanLine, Truck, TriangleAlert } from "lucide-react";
 import { useEffect, useState, type ReactNode } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { PriorityBadge } from "@/components/priority-badge";
 import { StatCard } from "@/components/ui/stat-card";
+import { WorkspaceQuickInsights, type WorkspaceInsight } from "@/components/workspace-panels";
 import { formatNumber } from "@/lib/utils";
 import type { UserRole } from "@/types/database";
 import type { LucideIcon } from "lucide-react";
@@ -83,6 +84,12 @@ function QuickToolCard({ href, title, description, icon: Icon }: { href: string;
 
 export function DashboardWorkspace({ summary, role }: { summary: DashboardSummary; role: UserRole }) {
   const [layout, setLayout] = useState<LayoutState>({ order: defaultOrder, hidden: [] });
+  const dashboardInsights: WorkspaceInsight[] = [
+    { label: "Active Items", value: formatNumber(summary.totalItems), icon: Boxes, theme: "green" },
+    { label: "Suppliers", value: formatNumber(summary.totalSuppliers), icon: Truck, theme: "blue" },
+    { label: "Low Stock Alerts", value: formatNumber(summary.lowStockCount), icon: AlertTriangle, theme: summary.lowStockCount ? "amber" : "green" },
+    { label: "Pending Approvals", value: formatNumber(summary.pendingApprovals.length), icon: CheckCircle2, theme: "purple" },
+  ];
 
   useEffect(() => {
     setLayout(loadLayout());
@@ -186,19 +193,7 @@ export function DashboardWorkspace({ summary, role }: { summary: DashboardSummar
 
   return (
     <div className="space-y-5 p-5">
-      <section className="space-y-3 rounded-xl border bg-card p-4">
-        <div>
-          <p className="sb-section-label">Quick Tools</p>
-          <h2 className="mt-1 text-lg font-semibold">Frequent actions</h2>
-          <p className="mt-1 text-sm text-muted-foreground">Fast branch-first work for daily operations.</p>
-        </div>
-        <div className="grid items-stretch gap-3 md:grid-cols-2 xl:grid-cols-4">
-          <QuickToolCard href="/stock-counts/scan" title="Stock Count" description="Count stock by branch with search or camera scan." icon={ClipboardCheck} />
-          <QuickToolCard href="/goods-receivings/scan" title="Scan Receiving" description="Prepare receiving lines from delivered items." icon={PackageCheck} />
-          <QuickToolCard href="/stock-wastage/new" title="Report Wastage" description="Record damaged, expired, missing, or claimable stock." icon={TriangleAlert} />
-          <QuickToolCard href="/stock-transfers/new" title="Transfer Stock" description="Move stock between branches with default stores." icon={ScanLine} />
-        </div>
-      </section>
+      <WorkspaceQuickInsights insights={dashboardInsights} action={{ href: "/documents?approval_status=pending", label: "Review approvals" }} />
 
       <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border bg-card p-4">
         <div>
@@ -214,20 +209,6 @@ export function DashboardWorkspace({ summary, role }: { summary: DashboardSummar
         </div>
       </div>
 
-      <section className="space-y-3 rounded-xl border bg-card p-4">
-        <div>
-          <p className="sb-section-label">Master Data</p>
-          <h2 className="mt-1 text-lg font-semibold">System readiness</h2>
-          <p className="mt-1 text-sm text-muted-foreground">Reference records that keep operations moving cleanly.</p>
-        </div>
-        <div className="grid gap-4 md:grid-cols-4">
-          <StatCard label="Active item records" value={summary.totalItems} icon={Boxes} />
-          <StatCard label="Supplier records" value={summary.totalSuppliers} icon={Truck} tone="accent" />
-          <StatCard label="Low stock alerts" value={summary.lowStockCount} icon={AlertTriangle} tone="warning" />
-          <StatCard label="Pending approvals" value={summary.pendingApprovals.length} icon={CheckCircle2} />
-        </div>
-      </section>
-
       <section className="space-y-3 rounded-xl border bg-[var(--sb-muted)] p-4">
         <div>
           <p className="sb-section-label">Operation Today</p>
@@ -239,6 +220,20 @@ export function DashboardWorkspace({ summary, role }: { summary: DashboardSummar
           <StatCard label="Stock Count Due" value={summary.today.stockCountDue} icon={CalendarCheck} tone="warning" />
           <StatCard label="Today's Production" value={summary.today.production} icon={Factory} />
           <StatCard label="Today's Deliveries" value={summary.today.deliveries} icon={Truck} tone="accent" />
+        </div>
+      </section>
+
+      <section className="space-y-3 rounded-xl border bg-card p-4">
+        <div>
+          <p className="sb-section-label">Quick Actions</p>
+          <h2 className="mt-1 text-lg font-semibold">Frequent actions</h2>
+          <p className="mt-1 text-sm text-muted-foreground">Fast branch-first work for daily operations.</p>
+        </div>
+        <div className="grid items-stretch gap-3 md:grid-cols-2 xl:grid-cols-4">
+          <QuickToolCard href="/stock-counts/scan" title="Stock Count" description="Count stock by branch with search or camera scan." icon={ClipboardCheck} />
+          <QuickToolCard href="/goods-receivings/scan" title="Scan Receiving" description="Prepare receiving lines from delivered items." icon={PackageCheck} />
+          <QuickToolCard href="/stock-wastage/new" title="Report Wastage" description="Record damaged, expired, missing, or claimable stock." icon={TriangleAlert} />
+          <QuickToolCard href="/stock-transfers/new" title="Transfer Stock" description="Move stock between branches with default stores." icon={ScanLine} />
         </div>
       </section>
 
@@ -262,19 +257,6 @@ export function DashboardWorkspace({ summary, role }: { summary: DashboardSummar
           {["low-stock", "urgent-procurement", "pending-approvals", "purchase-requests", "purchase-orders"]
             .filter((id) => !layout.hidden.includes(id))
             .map((id) => <div key={id}>{widgets[id]}</div>)}
-        </div>
-      </section>
-
-      <section className="space-y-3 rounded-xl border bg-card p-4">
-        <div>
-          <p className="sb-section-label">Recent Activity</p>
-          <h2 className="mt-1 text-lg font-semibold">Latest movement</h2>
-          <p className="mt-1 text-sm text-muted-foreground">Recent documents, activity, and notifications across the workspace.</p>
-        </div>
-        <div className="grid gap-5 xl:grid-cols-2">
-          {["recent-documents", "recent-activities", "notifications"]
-            .filter((id) => !layout.hidden.includes(id))
-            .map((id) => <div key={id}>{widgets[id] ?? <Card><CardContent className="p-5"><FileText className="h-4 w-4" /></CardContent></Card>}</div>)}
         </div>
       </section>
     </div>

@@ -1,6 +1,5 @@
 import Link from "next/link";
-import { ClipboardCheck, FileText, Paperclip } from "lucide-react";
-import { CategoryCardGrid } from "@/components/category-card-grid";
+import { ClipboardCheck, FileText, PackageCheck, Paperclip, ShoppingCart, Warehouse, Factory } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -8,6 +7,7 @@ import { PageHeader } from "@/components/ui/page-header";
 import { SelectNative } from "@/components/ui/select-native";
 import { PaginationControls, SortableHead } from "@/components/sortable-table";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { WorkspaceQuickInsights, WorkspaceSectionPanel, type WorkspaceInsight, type WorkspaceSection } from "@/components/workspace-panels";
 import { getDocuments } from "@/server/queries/documents";
 
 function statusVariant(status: string) {
@@ -19,18 +19,67 @@ function statusVariant(status: string) {
 export default async function DocumentsPage({ searchParams }: { searchParams: Promise<Record<string, string | undefined>> }) {
   const filters = await searchParams;
   const documents = await getDocuments(filters);
+  const documentInsights: WorkspaceInsight[] = [
+    { label: "Total Documents", value: documents.totalRows, icon: FileText, theme: "neutral" },
+    { label: "Pending Approval", value: 0, icon: ClipboardCheck, theme: "amber" },
+    { label: "Posted Documents", value: 0, icon: Paperclip, theme: "green" },
+    { label: "Audit Reviews", value: 0, icon: ClipboardCheck, theme: "blue" },
+  ];
+  const documentSections: WorkspaceSection[] = [
+    {
+      title: "Purchase Documents",
+      description: "Purchase requests, purchase orders, and supplier receiving documents.",
+      icon: ShoppingCart,
+      theme: "amber",
+      actions: [
+        { href: "/documents?document_type=purchase_request", title: "Purchase Requests", description: "Review purchase request documents and approvals.", icon: ClipboardCheck, recommendedFor: "purchasing" },
+        { href: "/documents?document_type=purchase_order", title: "Purchase Orders", description: "Review supplier order documents and status.", icon: ShoppingCart, recommendedFor: "purchasing and finance" },
+        { href: "/documents?document_type=goods_receiving", title: "Goods Receiving", description: "Review posted and draft receiving documents.", icon: PackageCheck, recommendedFor: "receiving and finance" },
+      ],
+    },
+    {
+      title: "Inventory Documents",
+      description: "Stock counts, transfers, wastage, and stock movement documents.",
+      icon: Warehouse,
+      theme: "teal",
+      actions: [
+        { href: "/documents?document_type=stock_count", title: "Stock Counts", description: "Review stock count documents and approvals.", icon: ClipboardCheck, recommendedFor: "operations" },
+        { href: "/documents?document_type=stock_transfer", title: "Stock Transfers", description: "Review branch transfer documents.", icon: Warehouse, recommendedFor: "operations" },
+        { href: "/documents?document_type=stock_wastage", title: "Stock Wastage", description: "Review wastage documents and exception handling.", icon: Paperclip, recommendedFor: "managers" },
+      ],
+    },
+    {
+      title: "Production Documents",
+      description: "Production job documents will appear as Sprint 7 workflows are enabled.",
+      icon: Factory,
+      theme: "green",
+      actions: [
+        { href: "/documents?document_type=production_job", title: "Production Jobs", description: "Production document workflow is coming soon.", icon: Factory, recommendedFor: "kitchen", badge: "Coming soon", disabled: true },
+      ],
+    },
+    {
+      title: "Approvals / Audit",
+      description: "Approval queues, posted documents, and complete document register.",
+      icon: FileText,
+      theme: "blue",
+      actions: [
+        { href: "/documents?approval_status=pending", title: "Pending Approvals", description: "Open documents waiting for review.", icon: ClipboardCheck, recommendedFor: "managers" },
+        { href: "/documents?status=posted", title: "Posted Documents", description: "Review completed documents and attachments.", icon: Paperclip, recommendedFor: "finance" },
+        { href: "/documents", title: "All Documents", description: "Search the complete document register.", icon: FileText, recommendedFor: "finance and admin" },
+      ],
+    },
+  ];
 
   return (
     <>
       <PageHeader title="Document Center" description="Reusable document control for approvals, attachments, comments, revisions, and timelines." />
       <div className="space-y-5 p-5">
-        <CategoryCardGrid
-          items={[
-            { href: "/documents", title: "All Documents", description: "Search the complete document register.", icon: FileText },
-            { href: "/documents?approval_status=pending", title: "Pending Approvals", description: "Open documents waiting for review.", icon: ClipboardCheck },
-            { href: "/documents?status=posted", title: "Posted Documents", description: "Review completed documents and attachments.", icon: Paperclip },
-          ]}
-        />
+        <WorkspaceQuickInsights insights={documentInsights} />
+        <div className="grid gap-5 xl:grid-cols-2">
+          {documentSections.map((section) => (
+            <WorkspaceSectionPanel key={section.title} section={section} />
+          ))}
+        </div>
         <div className="overflow-hidden rounded-lg border bg-card">
           <form className="grid gap-3 border-b p-4 md:grid-cols-5">
             <Input name="search" defaultValue={filters.search ?? ""} placeholder="Search document no, title, type" />

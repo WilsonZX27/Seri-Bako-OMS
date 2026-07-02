@@ -5,6 +5,7 @@ import { Search, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { searchableNavItems } from "@/components/layout/nav-items";
 
 type SearchResult = {
   type: string;
@@ -38,7 +39,12 @@ export function GlobalSearch() {
       }
       const response = await fetch(`/api/search?q=${encodeURIComponent(query)}`);
       const payload = (await response.json()) as { results: SearchResult[] };
-      setResults(payload.results);
+      const term = query.trim().toLowerCase();
+      const navResults = searchableNavItems
+        .filter((item) => `${item.label} ${item.group} ${(item.keywords ?? []).join(" ")}`.toLowerCase().includes(term))
+        .slice(0, 8)
+        .map((item) => ({ type: "navigation", title: item.label, subtitle: item.group, href: item.href }));
+      setResults([...navResults, ...payload.results]);
     }, 180);
     return () => window.clearTimeout(handle);
   }, [query]);

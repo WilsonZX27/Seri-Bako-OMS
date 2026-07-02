@@ -24,6 +24,7 @@ export async function getDashboardSummary() {
       lowStockItems: getMockLowStockItems().slice(0, 5),
       pendingApprovals: mockDocuments.filter((document) => document.approval_status === "pending").slice(0, 5),
       purchaseRequests: mockPurchaseRequests.slice(0, 5),
+      urgentRequests: mockPurchaseRequests.filter((request) => ["urgent", "critical"].includes(request.priority ?? "")).slice(0, 5),
       purchaseOrders: mockPurchaseOrders.slice(0, 5),
       recentDocuments: mockDocuments.slice(0, 6),
       recentActivities: [
@@ -49,7 +50,7 @@ export async function getDashboardSummary() {
   }
 
   const supabase = await createClient();
-  const [balances, lowStock, transactions, stockItems, suppliers, items] = await Promise.all([
+  const [balances, lowStock, transactions, stockItems, suppliers, items, urgentRequests, purchaseRequests, purchaseOrders, pendingApprovals, documents, activities] = await Promise.all([
     supabase.from("stock_balances_view").select("item_id, current_stock, is_low_stock"),
     supabase.from("low_stock_items").select("*").limit(5),
     supabase
@@ -60,9 +61,21 @@ export async function getDashboardSummary() {
     supabase.from("items").select("id, item_name, base_unit"),
     supabase.from("suppliers").select("id", { count: "exact", head: true }),
     supabase.from("items").select("id", { count: "exact", head: true }),
+    supabase
+      .from("purchase_requests")
+      .select("id, request_no, status, priority, needed_by_date")
+      .in("priority", ["urgent", "critical"])
+      .is("deleted_at", null)
+      .order("needed_by_date", { ascending: true, nullsFirst: false })
+      .limit(5),
+    supabase.from("purchase_requests").select("id, request_no, status, priority").is("deleted_at", null).order("updated_at", { ascending: false }).limit(5),
+    supabase.from("purchase_orders").select("id, po_no, status, priority").is("deleted_at", null).order("updated_at", { ascending: false }).limit(5),
+    supabase.from("documents").select("id, document_no, title, approval_status").eq("approval_status", "pending").order("updated_at", { ascending: false }).limit(5),
+    supabase.from("documents").select("id, document_no, document_type").order("updated_at", { ascending: false }).limit(6),
+    supabase.from("activity_logs").select("id, message, created_at").order("created_at", { ascending: false }).limit(6),
   ]);
 
-  for (const result of [balances, lowStock, transactions, stockItems, suppliers, items]) {
+  for (const result of [balances, lowStock, transactions, stockItems, suppliers, items, urgentRequests, purchaseRequests, purchaseOrders, pendingApprovals, documents, activities]) {
     if (result.error) throw new Error(result.error.message);
   }
 
@@ -75,15 +88,16 @@ export async function getDashboardSummary() {
     totalStockValue:
       balances.data?.reduce((sum, row) => sum + Number(row.current_stock ?? 0), 0) ?? 0,
     lowStockItems: lowStock.data ?? [],
+    urgentRequests: urgentRequests.data ?? [],
     recentTransactions: (transactions.data ?? []).map((transaction) => ({
       ...transaction,
       item: itemById.get(transaction.item_id) ?? null,
     })),
-    pendingApprovals: [],
-    purchaseRequests: [],
-    purchaseOrders: [],
-    recentDocuments: [],
-    recentActivities: [],
+    pendingApprovals: pendingApprovals.data ?? [],
+    purchaseRequests: purchaseRequests.data ?? [],
+    purchaseOrders: purchaseOrders.data ?? [],
+    recentDocuments: documents.data ?? [],
+    recentActivities: activities.data ?? [],
     notifications: [],
     today: {
       goodsReceiving: 0,

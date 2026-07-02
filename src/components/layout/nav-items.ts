@@ -5,6 +5,7 @@ import {
   FileText,
   Gauge,
   LayoutGrid,
+  Wrench,
   Settings,
   ShoppingCart,
 } from "lucide-react";
@@ -40,7 +41,14 @@ export const navGroups: NavGroup[] = [
     label: "Dashboard",
     icon: Gauge,
     roles: "all",
-    items: [{ href: "/dashboard", label: "Dashboard", icon: Gauge, roles: "all", keywords: ["home", "quick tools"] }],
+    items: [{ href: "/dashboard", label: "Dashboard", icon: Gauge, roles: "all", keywords: ["home", "alerts", "approvals"] }],
+  },
+  {
+    id: "quick-tools",
+    label: "Quick Tools",
+    icon: Wrench,
+    roles: allRoles,
+    items: [{ href: "/quick-tools", label: "Quick Tools", icon: Wrench, roles: allRoles, keywords: ["scan", "count", "receive", "shortcuts"] }],
   },
   {
     id: "daily",
@@ -109,3 +117,22 @@ export function getFlatNavItems(role: UserRole) {
 }
 
 export const navItems = getFlatNavItems("admin");
+
+export const searchableNavItems = [
+  ...navItems,
+  { href: "/purchase-requests", label: "Purchase Requests", group: "Procurement", keywords: ["pr", "urgent", "priority"] },
+  { href: "/purchase-requests/new", label: "New Purchase Request", group: "Procurement", keywords: ["request", "needed by", "priority"] },
+  { href: "/purchase-orders", label: "Purchase Orders", group: "Procurement", keywords: ["po", "supplier"] },
+  { href: "/goods-receivings", label: "Goods Receiving", group: "Daily Operations", keywords: ["grn", "receive"] },
+  { href: "/stock-counts", label: "Stock Counts", group: "Daily Operations", keywords: ["count", "branch"] },
+  { href: "/stock-transfers", label: "Stock Transfers", group: "Daily Operations", keywords: ["transfer", "branch"] },
+  { href: "/stock-wastage", label: "Stock Wastage", group: "Daily Operations", keywords: ["waste", "branch"] },
+  { href: "/items", label: "Items", group: "Inventory", keywords: ["barcode", "sku"] },
+  { href: "/stock-balance", label: "Stock Balance", group: "Inventory", keywords: ["branch", "location", "ledger"] },
+  { href: "/stock-card", label: "Stock Card", group: "Inventory", keywords: ["ledger", "movement"] },
+  { href: "/company", label: "Company", group: "Settings", keywords: ["logo", "branding"] },
+  { href: "/branches", label: "Branches", group: "Settings", keywords: ["default store", "location"] },
+  { href: "/locations", label: "Locations", group: "Settings", keywords: ["store", "default"] },
+  { href: "/staffs", label: "Staff", group: "Settings", keywords: ["invite", "roles"] },
+  { href: "/roles", label: "Roles", group: "Settings", keywords: ["permission"] },
+] as const;

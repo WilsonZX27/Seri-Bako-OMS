@@ -932,6 +932,10 @@ export type Database = {
           requested_by: string | null;
           request_date: string;
           required_date: string | null;
+          priority: "low" | "normal" | "urgent" | "critical";
+          needed_by_date: string | null;
+          urgency_reason: string | null;
+          production_risk: boolean;
           branch_id: string | null;
           location_id: string | null;
           status: PurchaseRequestStatus;
@@ -950,6 +954,10 @@ export type Database = {
           requested_by?: string | null;
           request_date?: string;
           required_date?: string | null;
+          priority?: "low" | "normal" | "urgent" | "critical";
+          needed_by_date?: string | null;
+          urgency_reason?: string | null;
+          production_risk?: boolean;
           branch_id?: string | null;
           location_id?: string | null;
           status?: PurchaseRequestStatus;
@@ -1003,6 +1011,10 @@ export type Database = {
           supplier_id: string;
           order_date: string;
           expected_delivery_date: string | null;
+          priority: "low" | "normal" | "urgent" | "critical";
+          needed_by_date: string | null;
+          urgency_reason: string | null;
+          production_risk: boolean;
           status: PurchaseOrderStatus;
           approval_status: ApprovalStatus;
           remarks: string | null;
@@ -1021,6 +1033,10 @@ export type Database = {
           supplier_id: string;
           order_date?: string;
           expected_delivery_date?: string | null;
+          priority?: "low" | "normal" | "urgent" | "critical";
+          needed_by_date?: string | null;
+          urgency_reason?: string | null;
+          production_risk?: boolean;
           status?: PurchaseOrderStatus;
           approval_status?: ApprovalStatus;
           remarks?: string | null;

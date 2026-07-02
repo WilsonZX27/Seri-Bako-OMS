@@ -3,7 +3,9 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { PageHeader } from "@/components/ui/page-header";
+import { PriorityBadge } from "@/components/priority-badge";
 import { PaginationControls, SortableHead } from "@/components/sortable-table";
+import { SelectNative } from "@/components/ui/select-native";
 import { StatusTabs } from "@/components/status-tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { formatCurrency } from "@/lib/utils";
@@ -28,6 +30,13 @@ export default async function PurchaseRequestsPage({ searchParams }: { searchPar
           <StatusTabs statuses={statuses} activeStatus={filters.status} />
           <form className="flex flex-col gap-3 border-b p-4 md:flex-row">
             <Input name="search" defaultValue={filters.search ?? ""} placeholder="Search PR no, branch, location, remarks" className="md:max-w-sm" />
+            <SelectNative name="priority" defaultValue={filters.priority ?? "all"} className="md:max-w-44">
+              <option value="all">All priorities</option>
+              <option value="critical">Critical</option>
+              <option value="urgent">Urgent</option>
+              <option value="normal">Normal</option>
+              <option value="low">Low</option>
+            </SelectNative>
             <Button type="submit" variant="secondary">Search</Button>
             <Button asChild variant="ghost"><a href="?">Reset</a></Button>
           </form>
@@ -38,6 +47,7 @@ export default async function PurchaseRequestsPage({ searchParams }: { searchPar
                   <SortableHead label="Request No" column="request_no" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
                   <SortableHead label="Request Date" column="request_date" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
                   <SortableHead label="Required Date" column="required_date" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
+                  <TableHead>Priority</TableHead>
                   <TableHead>Branch</TableHead>
                   <TableHead>Location</TableHead>
                   <SortableHead label="Status" column="status" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
@@ -52,6 +62,7 @@ export default async function PurchaseRequestsPage({ searchParams }: { searchPar
                     <TableCell className="font-medium">{request.request_no}</TableCell>
                     <TableCell>{request.request_date}</TableCell>
                     <TableCell>{request.required_date ?? "-"}</TableCell>
+                    <TableCell><PriorityBadge priority={request.priority} /></TableCell>
                     <TableCell>{request.branch_name ?? "-"}</TableCell>
                     <TableCell>{request.location_name ?? "-"}</TableCell>
                     <TableCell><Badge variant={statusVariant(request.status)}>{request.status}</Badge></TableCell>
@@ -60,7 +71,7 @@ export default async function PurchaseRequestsPage({ searchParams }: { searchPar
                     <TableCell className="text-right"><Button asChild variant="outline" size="sm"><Link href={`/purchase-requests/${request.id}`}>View</Link></Button></TableCell>
                   </TableRow>
                 ))}
-                {!requests.rows.length ? <TableRow><TableCell colSpan={9} className="text-center text-muted-foreground">No purchase requests found.</TableCell></TableRow> : null}
+                {!requests.rows.length ? <TableRow><TableCell colSpan={10} className="text-center text-muted-foreground">No purchase requests found.</TableCell></TableRow> : null}
               </TableBody>
             </Table>
           </div>

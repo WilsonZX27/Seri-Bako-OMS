@@ -36,6 +36,8 @@ export function BarcodeScanWorkflow({
   mode: "stock_count" | "goods_receiving" | "stock_transfer" | "stock_wastage";
 }) {
   const [barcode, setBarcode] = useState("");
+  const [scanMode, setScanMode] = useState<"search" | "usb" | "camera">("usb");
+  const [cameraStarted, setCameraStarted] = useState(false);
   const [quantity, setQuantity] = useState(1);
   const [reason, setReason] = useState("");
   const [current, setCurrent] = useState<LookupResult | null>(null);
@@ -110,17 +112,50 @@ export function BarcodeScanWorkflow({
         <Card>
           <CardContent className="space-y-4 p-4">
             <div className="rounded-lg border bg-secondary/30 p-3">
-              <BarcodeFields barcode={barcode} barcodeType="internal" />
+              <div className="mb-3 flex flex-wrap gap-2">
+                {[
+                  ["search", "Search"],
+                  ["usb", "USB Scanner"],
+                  ["camera", "Camera"],
+                ].map(([key, label]) => (
+                  <Button key={key} type="button" variant={scanMode === key ? "default" : "outline"} size="sm" onClick={() => setScanMode(key as "search" | "usb" | "camera")}>
+                    {label}
+                  </Button>
+                ))}
+              </div>
               <div className="mt-3 flex flex-col gap-2 sm:flex-row">
-                <Input ref={barcodeInputRef} value={barcode} onChange={(event) => setBarcode(event.target.value)} onKeyDown={(event) => event.key === "Enter" ? (event.preventDefault(), lookup()) : undefined} placeholder="USB scanner or manual barcode input" />
+                <Input
+                  ref={barcodeInputRef}
+                  value={barcode}
+                  onChange={(event) => setBarcode(event.target.value)}
+                  onKeyDown={(event) => event.key === "Enter" ? (event.preventDefault(), lookup()) : undefined}
+                  placeholder={scanMode === "search" ? "Search item name, code, or scan barcode" : "USB scanner or manual barcode input"}
+                />
                 <Button type="button" onClick={() => lookup()}>
                   <ScanLine className="mr-2 h-4 w-4" />
-                  Lookup
+                  {scanMode === "search" ? "Search" : "Lookup"}
                 </Button>
               </div>
+              {scanMode === "camera" ? (
+                <div className="mt-3 rounded-md border bg-card p-3">
+                  {!cameraStarted ? (
+                    <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                      <p className="text-sm text-muted-foreground">Camera access starts only after you choose Start camera.</p>
+                      <Button type="button" variant="secondary" onClick={() => setCameraStarted(true)}>Start camera</Button>
+                    </div>
+                  ) : (
+                    <div className="space-y-2">
+                      <p className="text-sm text-muted-foreground">If the browser asks for permission, allow camera access for scanning. You can still type or use USB scanner above.</p>
+                      <BarcodeFields barcode={barcode} barcodeType="internal" />
+                    </div>
+                  )}
+                </div>
+              ) : null}
             </div>
 
-            <p className="text-sm text-muted-foreground">Use a USB barcode scanner or type the barcode manually, then press Enter.</p>
+            <p className="text-sm text-muted-foreground">
+              {scanMode === "usb" ? "USB scanners type into the focused box automatically. Scan or press Enter to look up." : "Search by item name, item code, or barcode. Camera mode is optional for devices with a camera."}
+            </p>
             {message ? <p className="text-sm font-medium text-primary">{message}</p> : null}
 
             {current?.found ? (

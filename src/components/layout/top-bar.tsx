@@ -3,11 +3,13 @@ import { Button } from "@/components/ui/button";
 import { Breadcrumbs } from "@/components/layout/breadcrumbs";
 import { GlobalSearch } from "@/components/search/global-search";
 import { MobileSidebar } from "@/components/layout/mobile-sidebar";
+import { TopBarActivityMenu } from "@/components/layout/top-bar-activity-menu";
 import { getCompanyBranding, getCurrentProfile } from "@/server/queries/common";
+import { getTopBarActivity } from "@/server/queries/topbar";
 import type { UserRole } from "@/types/database";
 
 export async function TopBar() {
-  const [profile, branding] = await Promise.all([getCurrentProfile(), getCompanyBranding()]);
+  const [profile, branding, activity] = await Promise.all([getCurrentProfile(), getCompanyBranding(), getTopBarActivity()]);
   const profileRole = profile as { role_code?: UserRole; role?: UserRole } | null;
   const role = profileRole?.role_code ?? profileRole?.role ?? "viewer";
 
@@ -22,6 +24,7 @@ export async function TopBar() {
       </div>
       <div className="flex items-center gap-3">
         <GlobalSearch />
+        <TopBarActivityMenu data={activity} />
         <div className="hidden text-right sm:block">
           <p className="text-sm font-medium">{profile?.full_name ?? "Signed in"}</p>
           <p className="text-xs capitalize text-muted-foreground">{profile?.role ?? "viewer"}</p>

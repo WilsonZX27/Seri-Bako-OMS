@@ -5,6 +5,8 @@ import { Input } from "@/components/ui/input";
 import { PageHeader } from "@/components/ui/page-header";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { ApprovalPanel, AttachmentPanel, CommentsPanel, DocumentTimeline, RevisionPanel } from "@/components/documents/document-panels";
+import { PriorityBadge } from "@/components/priority-badge";
+import { WorkflowStatusPipeline } from "@/components/workflow-status-pipeline";
 import { formatCurrency, formatNumber } from "@/lib/utils";
 import {
   adminReviewPurchaseRequest,
@@ -24,6 +26,15 @@ function statusVariant(status: string) {
   if (["rejected", "cancelled"].includes(status)) return "danger";
   return "secondary";
 }
+
+const prSteps = [
+  { key: "draft", label: "Draft", description: "Request is being prepared." },
+  { key: "admin_review", label: "Admin Review", description: "Admin checks request completeness." },
+  { key: "purchasing_review", label: "Purchasing", description: "Supplier, MOQ, lead time, and cost are checked." },
+  { key: "pending_approval", label: "Manager", description: "Manager approval before PO conversion." },
+  { key: "approved", label: "Approved", description: "Ready to convert to purchase order." },
+  { key: "converted", label: "Converted", description: "Purchase order has been created." },
+];
 
 export default async function PurchaseRequestDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -63,12 +74,18 @@ export default async function PurchaseRequestDetailPage({ params }: { params: Pr
               <div className="grid gap-4 md:grid-cols-4">
                 <div><p className="text-xs uppercase text-muted-foreground">Request Date</p><p className="font-medium">{request.request_date}</p></div>
                 <div><p className="text-xs uppercase text-muted-foreground">Required Date</p><p className="font-medium">{request.required_date ?? "-"}</p></div>
+                <div><p className="text-xs uppercase text-muted-foreground">Priority</p><PriorityBadge priority={request.priority} /></div>
+                <div><p className="text-xs uppercase text-muted-foreground">Needed By</p><p className="font-medium">{request.needed_by_date ?? "-"}</p></div>
                 <div><p className="text-xs uppercase text-muted-foreground">Branch</p><p className="font-medium">{branch?.branch_name ?? "-"}</p></div>
                 <div><p className="text-xs uppercase text-muted-foreground">Location</p><p className="font-medium">{location?.location_name ?? "-"}</p></div>
+                <div><p className="text-xs uppercase text-muted-foreground">Production Risk</p><p className="font-medium">{request.production_risk ? "Yes" : "No"}</p></div>
               </div>
+              {request.urgency_reason ? <p className="rounded-md border bg-warning/10 p-3 text-sm text-warning">{request.urgency_reason}</p> : null}
               {request.remarks ? <p className="rounded-md border bg-secondary/30 p-3 text-sm">{request.remarks}</p> : null}
             </CardContent>
           </Card>
+
+          <WorkflowStatusPipeline steps={prSteps} currentStatus={request.status} />
 
           <Card>
             <CardContent className="p-5">

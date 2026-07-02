@@ -37,13 +37,15 @@ export type PurchaseOrderRow = PurchaseOrder & {
 function filterRows<T extends Record<string, unknown>>(rows: T[], filters: Filters, keys: (keyof T)[], defaultSort: keyof T) {
   const search = filters.search?.trim().toLowerCase();
   const status = filters.status && filters.status !== "all" ? filters.status : null;
+  const priority = filters.priority && filters.priority !== "all" ? filters.priority : null;
   const sort = filters.sort ?? String(defaultSort);
   const dir = filters.dir ?? "desc";
   return rows
     .filter((row) => {
       const matchesSearch = search ? keys.some((key) => String(row[key] ?? "").toLowerCase().includes(search)) : true;
       const matchesStatus = status ? row.status === status : true;
-      return matchesSearch && matchesStatus;
+      const matchesPriority = priority ? row.priority === priority : true;
+      return matchesSearch && matchesStatus && matchesPriority;
     })
     .sort((a, b) => compareTableValues(a[sort], b[sort], dir));
 }
@@ -76,7 +78,7 @@ function hydratePo(row: PurchaseOrder, lines: PurchaseOrderLine[]): PurchaseOrde
 export async function getPurchaseRequests(filters: Filters = {}) {
   if (isMockMode()) {
     const rows = mockPurchaseRequests.map((row) => hydratePr(row, mockPurchaseRequestLines));
-    return paginateRows(filterRows(rows, filters, ["request_no", "status", "branch_name", "location_name", "remarks"], "updated_at"), filters.page, 12);
+    return paginateRows(filterRows(rows, filters, ["request_no", "status", "priority", "branch_name", "location_name", "remarks"], "updated_at"), filters.page, 12);
   }
 
   const supabase = await createClient();
@@ -101,7 +103,7 @@ export async function getPurchaseRequests(filters: Filters = {}) {
       estimated_total: ownLines.reduce((sum, line) => sum + line.qty * line.estimated_unit_cost, 0),
     };
   });
-  return paginateRows(filterRows(rows, filters, ["request_no", "status", "branch_name", "location_name", "remarks"], "updated_at"), filters.page, 12);
+  return paginateRows(filterRows(rows, filters, ["request_no", "status", "priority", "branch_name", "location_name", "remarks"], "updated_at"), filters.page, 12);
 }
 
 export async function getPurchaseRequest(id: string) {

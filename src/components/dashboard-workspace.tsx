@@ -1,20 +1,20 @@
 "use client";
 
 import Link from "next/link";
-import { AlertTriangle, Bell, Boxes, CalendarCheck, CheckCircle2, ClipboardCheck, ClipboardList, EyeOff, Factory, FileText, PackageCheck, PackageSearch, RotateCcw, ScanLine, Settings, ShoppingCart, TriangleAlert, Truck, Users } from "lucide-react";
+import { AlertTriangle, Bell, Boxes, CalendarCheck, CheckCircle2, EyeOff, Factory, FileText, PackageCheck, RotateCcw, Truck } from "lucide-react";
 import { useEffect, useState, type ReactNode } from "react";
-import type { LucideIcon } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { PriorityBadge } from "@/components/priority-badge";
 import { StatCard } from "@/components/ui/stat-card";
 import { formatNumber } from "@/lib/utils";
-import type { UserRole } from "@/types/database";
 
 type DashboardSummary = Awaited<ReturnType<typeof import("@/server/queries/dashboard").getDashboardSummary>>;
 
 const defaultOrder = [
   "low-stock",
+  "urgent-procurement",
   "pending-approvals",
   "purchase-requests",
   "purchase-orders",
@@ -63,11 +63,7 @@ function Widget({ id, title, description, children, onHide, onMove }: { id: stri
   );
 }
 
-function roleAllowed(roles: UserRole[] | "all", role: UserRole) {
-  return roles === "all" || roles.includes(role);
-}
-
-export function DashboardWorkspace({ summary, role }: { summary: DashboardSummary; role: UserRole }) {
+export function DashboardWorkspace({ summary }: { summary: DashboardSummary; role: unknown }) {
   const [layout, setLayout] = useState<LayoutState>({ order: defaultOrder, hidden: [] });
 
   useEffect(() => {
@@ -92,24 +88,6 @@ export function DashboardWorkspace({ summary, role }: { summary: DashboardSummar
     save({ ...layout, order });
   }
 
-  const roleList = (...values: UserRole[]) => values;
-  const quickTools: Array<{ href: string; title: string; description: string; icon: LucideIcon; roles: UserRole[] | "all" }> = [
-    { href: "/stock-counts/scan", title: "Stock Count", description: "Scan or type barcodes for daily counts.", icon: ClipboardCheck, roles: roleList("admin", "kitchen") },
-    { href: "/goods-receivings/scan", title: "Scan Receiving", description: "Prepare receiving lines from scanned items.", icon: PackageCheck, roles: roleList("admin", "kitchen", "purchasing") },
-    { href: "/stock-wastage/new", title: "Report Wastage", description: "Record branch wastage quickly.", icon: TriangleAlert, roles: roleList("admin", "kitchen") },
-    { href: "/stock-transfers/new", title: "Transfer Stock", description: "Move stock between branches.", icon: ScanLine, roles: roleList("admin", "kitchen") },
-    { href: "/items", title: "Find Item", description: "Search items, images, and barcodes.", icon: PackageSearch, roles: roleList("admin", "kitchen", "purchasing") },
-    { href: "/recipes", title: "Recipes", description: "Open recipe and costing records.", icon: Factory, roles: roleList("admin", "kitchen") },
-    { href: "/purchase-requests/new", title: "Create Purchase Request", description: "Request ingredients or packaging.", icon: ClipboardList, roles: roleList("admin", "kitchen", "purchasing") },
-    { href: "/purchase-requests", title: "Review PR", description: "Check requests waiting for action.", icon: CheckCircle2, roles: roleList("admin", "purchasing", "finance") },
-    { href: "/purchase-orders", title: "Purchase Orders", description: "Review supplier order status.", icon: ShoppingCart, roles: roleList("admin", "purchasing", "finance") },
-    { href: "/documents", title: "Documents", description: "Open approvals and document history.", icon: FileText, roles: "all" as const },
-    { href: "/reports", title: "Reports", description: "Stock and purchasing summaries.", icon: FileText, roles: roleList("admin", "finance", "purchasing") },
-    { href: "/staffs", title: "Staffs", description: "Invite and manage staff access.", icon: Users, roles: roleList("admin") },
-    { href: "/settings", title: "Settings", description: "Company, branches, roles, and numbering.", icon: Settings, roles: roleList("admin") },
-    { href: "/imports/items", title: "Import Data", description: "Download templates and preview imports.", icon: Boxes, roles: roleList("admin") },
-  ].filter((tool) => roleAllowed(tool.roles, role));
-
   const widgets: Record<string, ReactNode> = {
     "quick-actions": (
       <Widget id="quick-actions" title="Quick Actions" description="Common operations" onHide={hide} onMove={move}>
@@ -130,6 +108,22 @@ export function DashboardWorkspace({ summary, role }: { summary: DashboardSummar
               <Badge variant="warning">{formatNumber(item.shortage_quantity)} {item.base_unit}</Badge>
             </div>
           ))}
+        </div>
+      </Widget>
+    ),
+    "urgent-procurement": (
+      <Widget id="urgent-procurement" title="Urgent Procurement" description="Critical and urgent PRs needing attention" onHide={hide} onMove={move}>
+        <div className="space-y-2">
+          {summary.urgentRequests.map((pr) => (
+            <Link key={pr.id} href={`/purchase-requests/${pr.id}`} className="flex items-center justify-between rounded-md border p-3 text-sm hover:bg-secondary">
+              <div>
+                <p className="font-medium">{pr.request_no}</p>
+                <p className="text-xs text-muted-foreground">{pr.needed_by_date ? `Needed by ${pr.needed_by_date}` : pr.status}</p>
+              </div>
+              <PriorityBadge priority={pr.priority} />
+            </Link>
+          ))}
+          {!summary.urgentRequests.length ? <p className="rounded-md border p-4 text-sm text-muted-foreground">No urgent procurement requests right now.</p> : null}
         </div>
       </Widget>
     ),
@@ -171,35 +165,13 @@ export function DashboardWorkspace({ summary, role }: { summary: DashboardSummar
 
   return (
     <div className="space-y-5 p-5">
-      <section className="space-y-3">
+      <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border bg-card p-4">
         <div>
-          <p className="sb-section-label">Quick tools</p>
-          <h2 className="mt-1 text-lg font-semibold">Choose what you need to do now</h2>
+          <p className="sb-section-label">Dashboard</p>
+          <h2 className="mt-1 text-lg font-semibold">Today&apos;s operating picture</h2>
         </div>
-        <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
-          {quickTools.map((tool) => {
-            const Icon = tool.icon;
-            return (
-              <Link key={tool.href} href={tool.href} className="group rounded-lg border bg-card p-4 transition-colors hover:border-primary/30 hover:bg-[var(--sb-muted)]">
-                <div className="flex items-start gap-3">
-                  <div className="sb-icon-tile">
-                    <Icon className="h-5 w-5" />
-                  </div>
-                  <div className="min-w-0">
-                    <p className="font-semibold">{tool.title}</p>
-                    <p className="mt-1 text-sm leading-5 text-muted-foreground">{tool.description}</p>
-                  </div>
-                </div>
-              </Link>
-            );
-          })}
-        </div>
-        {!quickTools.length ? (
-          <Card>
-            <CardContent className="p-5 text-sm text-muted-foreground">No quick tools are assigned to this role yet. Please contact an Admin if you need access.</CardContent>
-          </Card>
-        ) : null}
-      </section>
+        <Button asChild variant="secondary"><Link href="/quick-tools">Open Quick Tools</Link></Button>
+      </div>
 
       <div className="grid gap-4 md:grid-cols-4">
         <StatCard label="Active item records" value={summary.totalItems} icon={Boxes} />

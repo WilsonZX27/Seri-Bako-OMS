@@ -175,6 +175,7 @@ export function BranchForm({ branch, companies, action }: { branch?: Branch; com
               <option value="office">Office</option>
               <option value="other">Other</option>
             </SelectNative>
+            <p className="mt-1 text-xs text-muted-foreground">Each branch uses one default store for daily stock work. If no store exists yet, operations will create or use Default Store automatically.</p>
           </Field>
           <Field label="Phone">
             <Input name="phone" defaultValue={branch?.phone ?? ""} />

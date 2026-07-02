@@ -57,6 +57,18 @@ export function PurchaseRequestForm({
             <Field label="Required Date">
               <Input name="required_date" type="date" />
             </Field>
+            <Field label="Priority">
+              <SelectNative name="priority" defaultValue="normal">
+                <option value="low">Low</option>
+                <option value="normal">Normal</option>
+                <option value="urgent">Urgent</option>
+                <option value="critical">Critical</option>
+              </SelectNative>
+              <p className="mt-1 text-xs text-muted-foreground">Use urgent or critical when production or outlet service may be affected.</p>
+            </Field>
+            <Field label="Needed By">
+              <Input name="needed_by_date" type="date" />
+            </Field>
             <Field label="Branch">
               <SelectNative name="branch_id" defaultValue={branches[0]?.id ?? ""} required>
                 {branches.map((branch) => <option key={branch.id} value={branch.id}>{branch.branch_name}</option>)}
@@ -84,6 +96,15 @@ export function PurchaseRequestForm({
                 <Textarea name="remarks" placeholder="Reason for purchasing request" />
               </Field>
             </div>
+            <div className="md:col-span-2">
+              <Field label="Urgency Reason">
+                <Input name="urgency_reason" placeholder="Example: production batch blocked by missing ingredient" />
+              </Field>
+            </div>
+            <label className="flex items-center gap-2 rounded-md border p-3 text-sm">
+              <input type="checkbox" name="production_risk" className="h-4 w-4" />
+              Production risk
+            </label>
           </div>
 
           <div className="rounded-lg border">

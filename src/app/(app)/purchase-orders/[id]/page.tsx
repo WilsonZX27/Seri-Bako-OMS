@@ -4,6 +4,8 @@ import { Card, CardContent } from "@/components/ui/card";
 import { PageHeader } from "@/components/ui/page-header";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { ApprovalPanel, AttachmentPanel, CommentsPanel, DocumentTimeline, RevisionPanel } from "@/components/documents/document-panels";
+import { PriorityBadge } from "@/components/priority-badge";
+import { WorkflowStatusPipeline } from "@/components/workflow-status-pipeline";
 import { formatCurrency, formatNumber } from "@/lib/utils";
 import { approvePurchaseOrder, cancelPurchaseOrder, closePurchaseOrder, sendPurchaseOrder, submitPurchaseOrder } from "@/server/actions/procurement";
 import { getItemsForSelect, getSuppliersForSelect } from "@/server/queries/common";
@@ -15,6 +17,16 @@ function statusVariant(status: string) {
   if (status === "cancelled") return "danger";
   return "secondary";
 }
+
+const poSteps = [
+  { key: "draft", label: "Draft", description: "Order is being prepared." },
+  { key: "pending_approval", label: "Approval", description: "Waiting for approval." },
+  { key: "approved", label: "Approved", description: "Ready to send to supplier." },
+  { key: "sent", label: "Sent", description: "Supplier has received the order." },
+  { key: "partial_received", label: "Receiving", description: "Some lines have been received." },
+  { key: "received", label: "Received", description: "All goods received." },
+  { key: "closed", label: "Closed", description: "Order is complete." },
+];
 
 export default async function PurchaseOrderDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -50,10 +62,17 @@ export default async function PurchaseOrderDetailPage({ params }: { params: Prom
                 <div><p className="text-xs uppercase text-muted-foreground">Order Date</p><p className="font-medium">{order.order_date}</p></div>
                 <div><p className="text-xs uppercase text-muted-foreground">Expected Delivery</p><p className="font-medium">{order.expected_delivery_date ?? "-"}</p></div>
                 <div><p className="text-xs uppercase text-muted-foreground">Approval</p><Badge className="mt-1" variant={statusVariant(order.approval_status)}>{order.approval_status}</Badge></div>
+                <div><p className="text-xs uppercase text-muted-foreground">Priority</p><PriorityBadge priority={order.priority} /></div>
+                <div><p className="text-xs uppercase text-muted-foreground">Needed By</p><p className="font-medium">{order.needed_by_date ?? "-"}</p></div>
+                <div><p className="text-xs uppercase text-muted-foreground">Linked PR</p><p className="font-medium">{order.purchase_request_id ? "Yes" : "-"}</p></div>
+                <div><p className="text-xs uppercase text-muted-foreground">Production Risk</p><p className="font-medium">{order.production_risk ? "Yes" : "No"}</p></div>
               </div>
+              {order.urgency_reason ? <p className="rounded-md border bg-warning/10 p-3 text-sm text-warning">{order.urgency_reason}</p> : null}
               {order.remarks ? <p className="rounded-md border bg-secondary/30 p-3 text-sm">{order.remarks}</p> : null}
             </CardContent>
           </Card>
+
+          <WorkflowStatusPipeline steps={poSteps} currentStatus={order.status} />
 
           <Card>
             <CardContent className="p-5">

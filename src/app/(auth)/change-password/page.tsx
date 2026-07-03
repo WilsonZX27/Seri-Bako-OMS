@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import { ChangePasswordSuccess } from "@/components/auth/change-password-success";
 import { AuthShell } from "@/components/auth/auth-shell";
 import { Field } from "@/components/ui/field";
 import { PasswordInput } from "@/components/ui/password-input";
@@ -9,7 +10,7 @@ import { changePassword, signOut } from "@/server/actions/auth";
 export default async function ChangePasswordPage({
   searchParams,
 }: {
-  searchParams: Promise<{ error?: string }>;
+  searchParams: Promise<{ error?: string; success?: string }>;
 }) {
   const params = await searchParams;
   const supabase = await createClient();
@@ -19,6 +20,24 @@ export default async function ChangePasswordPage({
 
   if (!user) {
     redirect("/login?error=Please sign in before changing your password.");
+  }
+
+  const { data: staff } = await supabase
+    .from("staffs")
+    .select("must_change_password")
+    .eq("auth_user_id", user.id)
+    .maybeSingle();
+
+  if (params.success) {
+    return (
+      <AuthShell title="Password updated" description="Your staff account is ready.">
+        <ChangePasswordSuccess />
+      </AuthShell>
+    );
+  }
+
+  if (!staff?.must_change_password) {
+    redirect("/dashboard");
   }
 
   return (

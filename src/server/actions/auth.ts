@@ -3,6 +3,7 @@
 import { redirect } from "next/navigation";
 import { isMockMode } from "@/lib/mock-mode";
 import { getAppUrl } from "@/lib/site-url";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import { formatActionError } from "@/server/actions/error-handling";
 import { acceptStaffInviteForUser, syncCurrentAuthUserToStaff } from "@/server/auth/staff-session";
@@ -114,7 +115,7 @@ export async function updatePassword(formData: FormData) {
 
 export async function changePassword(formData: FormData) {
   if (isMockMode()) {
-    redirect("/dashboard?success=Password changed successfully.");
+    redirect("/change-password?success=1");
   }
 
   const password = String(formData.get("password") ?? "");
@@ -136,21 +137,48 @@ export async function changePassword(formData: FormData) {
 
   const { error } = await supabase.auth.updateUser({ password });
   if (error) {
+    const normalized = error.message.toLowerCase();
+    if (normalized.includes("different from the old password") || normalized.includes("same password") || normalized.includes("should be different")) {
+      redirect(`/change-password?error=${encodeURIComponent("Please choose a password different from your temporary password.")}`);
+    }
     redirect(`/change-password?error=${encodeURIComponent(formatActionError(error, "We could not update your password right now."))}`);
   }
 
   const now = new Date().toISOString();
-  await supabase
+  let admin: ReturnType<typeof createAdminClient>;
+  try {
+    admin = createAdminClient();
+  } catch (adminError) {
+    console.error(adminError);
+    redirect(`/change-password?error=${encodeURIComponent("Password was changed, but your staff profile could not be updated. Please contact admin.")}`);
+  }
+  const { data: staff, error: staffReadError } = await admin
+    .from("staffs")
+    .select("id, status")
+    .eq("auth_user_id", user.id)
+    .maybeSingle();
+
+  if (staffReadError || !staff) {
+    console.error(staffReadError ?? new Error(`Staff profile not found for auth user ${user.id}`));
+    redirect(`/change-password?error=${encodeURIComponent("Password was changed, but your staff profile could not be updated. Please contact admin.")}`);
+  }
+
+  const { error: staffUpdateError } = await admin
     .from("staffs")
     .update({
       must_change_password: false,
       password_changed_at: now,
       accepted_at: now,
-      status: "active",
-      invitation_status: "active",
+      status: staff.status === "invited" ? "active" : staff.status,
+      invitation_status: "completed",
       last_login_at: now,
     })
-    .eq("auth_user_id", user.id);
+    .eq("id", staff.id);
 
-  redirect("/dashboard?success=Password changed successfully.");
+  if (staffUpdateError) {
+    console.error(staffUpdateError);
+    redirect(`/change-password?error=${encodeURIComponent("Password was changed, but your staff profile could not be updated. Please contact admin.")}`);
+  }
+
+  redirect("/change-password?success=1");
 }

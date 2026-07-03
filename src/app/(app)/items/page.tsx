@@ -1,8 +1,11 @@
 import Link from "next/link";
-import { Package } from "lucide-react";
+import { Eye, Package } from "lucide-react";
 import { BulkSelectAllCheckbox, BulkSelectionProvider, BulkSelectRowCheckbox } from "@/components/bulk-selection";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { DataGridHint } from "@/components/ui/data-grid-hint";
+import { DataGridRow } from "@/components/ui/data-grid-row";
+import { EmptyState } from "@/components/ui/empty-state";
 import { MasterDataFilters } from "@/components/master-data-filters";
 import { PageHeader } from "@/components/ui/page-header";
 import { PaginationControls, SortableHead } from "@/components/sortable-table";
@@ -44,11 +47,12 @@ export default async function ItemsPage({
             showStockFilters
           />
           <BulkSelectionProvider ids={itemsPage.rows.map((item) => item.id)} actionLabel="Deactivate selected" actionHint="Deactivate items only when they are no longer used in daily operations.">
+          <DataGridHint text="Pro-tip: Double-click any row to open the item." />
           <div className="overflow-x-auto">
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead className="w-10"><BulkSelectAllCheckbox /></TableHead>
+                <TableHead className="w-16"><BulkSelectAllCheckbox /></TableHead>
                 <TableHead>Image</TableHead>
                 <SortableHead label="Item Code" column="item_code" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
                 <SortableHead label="AutoCount" column="autocount_code" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
@@ -61,14 +65,20 @@ export default async function ItemsPage({
                 <SortableHead label="Safety Stock" column="safety_stock" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} className="text-right" />
                 <SortableHead label="Current Stock" column="current_stock" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} className="text-right" />
                 <SortableHead label="Status" column="status" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
-                <TableHead className="w-36 text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {itemsPage.rows.map((item) => {
                 return (
-                  <TableRow key={item.id}>
-                    <TableCell><BulkSelectRowCheckbox id={item.id} /></TableCell>
+                  <DataGridRow key={item.id} href={`/items/${item.id}`}>
+                    <TableCell>
+                      <div className="flex items-center gap-2">
+                        <BulkSelectRowCheckbox id={item.id} />
+                        <Link href={`/items/${item.id}`} aria-label={`Quick view ${item.item_name}`} className="rounded-md p-1 text-slate-400 opacity-0 hover:bg-slate-100 hover:text-primary group-hover:opacity-100">
+                          <Eye className="h-4 w-4" />
+                        </Link>
+                      </div>
+                    </TableCell>
                     <TableCell>
                       {item.item_image_url ? (
                         // eslint-disable-next-line @next/next/no-img-element
@@ -92,20 +102,13 @@ export default async function ItemsPage({
                     <TableCell>
                       <Badge variant={item.status === "active" ? "success" : "secondary"}>{item.status}</Badge>
                     </TableCell>
-                    <TableCell>
-                      <div className="flex justify-end gap-2">
-                        <Button asChild variant="outline" size="sm">
-                          <Link href={`/items/${item.id}`}>Edit</Link>
-                        </Button>
-                      </div>
-                    </TableCell>
-                  </TableRow>
+                  </DataGridRow>
                 );
               })}
               {!itemsPage.rows.length ? (
                 <TableRow>
-                  <TableCell colSpan={14} className="text-center text-muted-foreground">
-                    No items found.
+                  <TableCell colSpan={13}>
+                    <EmptyState title="No items found" description="Items will appear here after they are created or imported." action={{ href: "/items/new", label: "New item" }} />
                   </TableCell>
                 </TableRow>
               ) : null}

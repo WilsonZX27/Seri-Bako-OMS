@@ -1,8 +1,11 @@
 import Link from "next/link";
+import { Eye } from "lucide-react";
 import { BulkSelectAllCheckbox, BulkSelectionProvider, BulkSelectRowCheckbox } from "@/components/bulk-selection";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { DataGridHint } from "@/components/ui/data-grid-hint";
+import { DataGridRow } from "@/components/ui/data-grid-row";
+import { EmptyState } from "@/components/ui/empty-state";
 import { MasterDataFilters } from "@/components/master-data-filters";
 import { PageHeader } from "@/components/ui/page-header";
 import { StatusTabs } from "@/components/status-tabs";
@@ -32,38 +35,40 @@ export default async function BranchesPage({ searchParams }: { searchParams: Pro
             <StatusTabs statuses={["active", "archived"]} activeStatus={filters.status} />
             <MasterDataFilters search={filters.search} status={filters.status} placeholder="Search branch code, name, or type" statuses={[{ value: "active", label: "Active" }, { value: "archived", label: "Archived" }]} />
             <BulkSelectionProvider ids={branches.map((branch) => branch.id)} actionLabel="Archive selected" actionHint="Archive branches only after confirming they are no longer used by daily operations.">
+            <DataGridHint text="Pro-tip: Double-click any row to open the branch." />
             <div className="overflow-x-auto">
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead className="w-10"><BulkSelectAllCheckbox /></TableHead>
+                    <TableHead className="w-16"><BulkSelectAllCheckbox /></TableHead>
                     <TableHead>Code</TableHead>
                     <TableHead>Branch Name</TableHead>
                     <TableHead>Type</TableHead>
                     <TableHead>Phone</TableHead>
                     <TableHead>Email</TableHead>
                     <TableHead>Status</TableHead>
-                    <TableHead className="w-36 text-right">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {branches.map((branch) => (
-                    <TableRow key={branch.id}>
-                      <TableCell><BulkSelectRowCheckbox id={branch.id} /></TableCell>
+                    <DataGridRow key={branch.id} href={`/branches/${branch.id}`}>
+                      <TableCell>
+                        <div className="flex items-center gap-2">
+                          <BulkSelectRowCheckbox id={branch.id} />
+                          <Link href={`/branches/${branch.id}`} aria-label={`Quick view ${branch.branch_name}`} className="rounded-md p-1 text-slate-400 opacity-0 hover:bg-slate-100 hover:text-primary group-hover:opacity-100">
+                            <Eye className="h-4 w-4" />
+                          </Link>
+                        </div>
+                      </TableCell>
                       <TableCell>{branch.branch_code}</TableCell>
                       <TableCell className="font-medium">{branch.branch_name}</TableCell>
                       <TableCell className="capitalize">{branch.branch_type.replaceAll("_", " ")}</TableCell>
                       <TableCell>{branch.phone ?? "-"}</TableCell>
                       <TableCell>{branch.email ?? "-"}</TableCell>
                       <TableCell><Badge variant={branch.status === "active" ? "success" : "secondary"}>{branch.status}</Badge></TableCell>
-                      <TableCell>
-                        <div className="flex justify-end gap-2">
-                          <Button asChild variant="outline" size="sm"><Link href={`/branches/${branch.id}`}>Edit</Link></Button>
-                        </div>
-                      </TableCell>
-                    </TableRow>
+                    </DataGridRow>
                   ))}
-                  {!branches.length ? <TableRow><TableCell colSpan={8} className="text-center text-muted-foreground">No branches found.</TableCell></TableRow> : null}
+                  {!branches.length ? <TableRow><TableCell colSpan={7}><EmptyState title="No branches found" description="Branches will appear here after operating units are created." action={{ href: "/branches/new", label: "New branch" }} /></TableCell></TableRow> : null}
                 </TableBody>
               </Table>
             </div>

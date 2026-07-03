@@ -1,23 +1,20 @@
 import Link from "next/link";
-import { Badge } from "@/components/ui/badge";
+import { Eye } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { DataGridHint } from "@/components/ui/data-grid-hint";
+import { DataGridRow } from "@/components/ui/data-grid-row";
+import { EmptyState } from "@/components/ui/empty-state";
 import { Input } from "@/components/ui/input";
 import { PageHeader } from "@/components/ui/page-header";
 import { SelectNative } from "@/components/ui/select-native";
 import { PaginationControls, SortableHead } from "@/components/sortable-table";
 import { StatusTabs } from "@/components/status-tabs";
+import { StatusBadge } from "@/components/ui/status-badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { getLocationsForSelect } from "@/server/queries/common";
 import { getStockCounts } from "@/server/queries/stock-counts";
 
 const statuses = ["draft", "submitted", "reviewed", "approved", "posted", "rejected", "cancelled"];
-
-function statusVariant(status: string) {
-  if (["approved", "posted"].includes(status)) return "success";
-  if (status === "rejected" || status === "cancelled") return "danger";
-  if (status === "submitted" || status === "reviewed") return "warning";
-  return "secondary";
-}
 
 export default async function StockCountsPage({ searchParams }: { searchParams: Promise<Record<string, string | undefined>> }) {
   const filters = await searchParams;
@@ -39,32 +36,37 @@ export default async function StockCountsPage({ searchParams }: { searchParams: 
             <Button type="submit" variant="secondary">Filter</Button>
             <Button asChild variant="ghost"><Link href="/stock-counts">Reset</Link></Button>
           </form>
+          <DataGridHint text="Pro-tip: Double-click any row to open the stock count." />
           <div className="overflow-x-auto">
             <Table>
               <TableHeader>
                 <TableRow>
+                  <TableHead className="w-10"></TableHead>
                   <SortableHead label="Count No" column="count_no" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
                   <SortableHead label="Date" column="count_date" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
                   <TableHead>Location</TableHead>
                   <SortableHead label="Status" column="status" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
                   <TableHead className="text-right">Lines</TableHead>
                   <TableHead className="text-right">High Variance</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {counts.rows.map((count) => (
-                  <TableRow key={count.id}>
+                  <DataGridRow key={count.id} href={`/stock-counts/${count.id}`}>
+                    <TableCell>
+                      <Link href={`/stock-counts/${count.id}`} aria-label={`Quick view ${count.count_no}`} className="rounded-md p-1 text-slate-400 opacity-0 hover:bg-slate-100 hover:text-primary group-hover:opacity-100">
+                        <Eye className="h-4 w-4" />
+                      </Link>
+                    </TableCell>
                     <TableCell className="font-medium">{count.count_no}</TableCell>
                     <TableCell>{count.count_date}</TableCell>
                     <TableCell>{count.location_name ?? "-"}</TableCell>
-                    <TableCell><Badge variant={statusVariant(count.status)}>{count.status}</Badge></TableCell>
+                    <TableCell><StatusBadge status={count.status} /></TableCell>
                     <TableCell className="text-right">{count.line_count}</TableCell>
                     <TableCell className="text-right">{count.high_variance_count}</TableCell>
-                    <TableCell className="text-right"><Button asChild variant="outline" size="sm"><Link href={`/stock-counts/${count.id}`}>View</Link></Button></TableCell>
-                  </TableRow>
+                  </DataGridRow>
                 ))}
-                {!counts.rows.length ? <TableRow><TableCell colSpan={7} className="text-center text-muted-foreground">No stock counts found.</TableCell></TableRow> : null}
+                {!counts.rows.length ? <TableRow><TableCell colSpan={7}><EmptyState title="No stock counts found" description="Branch stock counts will appear here after kitchen users start a count." action={{ href: "/stock-counts/new", label: "New Count" }} /></TableCell></TableRow> : null}
               </TableBody>
             </Table>
           </div>

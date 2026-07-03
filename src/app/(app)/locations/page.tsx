@@ -1,13 +1,17 @@
 import Link from "next/link";
+import { Eye } from "lucide-react";
 import { BulkSelectAllCheckbox, BulkSelectionProvider, BulkSelectRowCheckbox } from "@/components/bulk-selection";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
+import { DataGridHint } from "@/components/ui/data-grid-hint";
+import { DataGridRow } from "@/components/ui/data-grid-row";
+import { EmptyState } from "@/components/ui/empty-state";
 import { MasterDataFilters } from "@/components/master-data-filters";
 import { PageHeader } from "@/components/ui/page-header";
 import { StatusTabs } from "@/components/status-tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { archiveDuplicateLocation, cleanDuplicateLocations, fixMissingDefaultLocations } from "@/server/actions/foundation";
+import { cleanDuplicateLocations, fixMissingDefaultLocations } from "@/server/actions/foundation";
 import { formatPageError } from "@/server/actions/error-handling";
 import { getLocations } from "@/server/queries/foundation";
 
@@ -45,12 +49,20 @@ export default async function LocationsPage({ searchParams }: { searchParams: Pr
             <StatusTabs statuses={["active", "archived"]} activeStatus={filters.status} />
             <MasterDataFilters search={filters.search} status={filters.status} placeholder="Search location, branch, or type" statuses={[{ value: "active", label: "Active" }, { value: "archived", label: "Archived" }]} />
             <BulkSelectionProvider ids={locations.map((location) => location.id)} actionLabel="Archive selected" actionHint="Archive locations only when they are not needed for ledger history or current stock operations.">
+            <DataGridHint text="Pro-tip: Double-click any row to open the location." />
             <div className="overflow-x-auto"><Table><TableHeader><TableRow>
-              <TableHead className="w-10"><BulkSelectAllCheckbox /></TableHead><TableHead>Branch</TableHead><TableHead>Internal Location</TableHead><TableHead>Code</TableHead><TableHead>Type</TableHead><TableHead>Status</TableHead><TableHead className="w-28 text-right">Actions</TableHead>
+              <TableHead className="w-16"><BulkSelectAllCheckbox /></TableHead><TableHead>Branch</TableHead><TableHead>Internal Location</TableHead><TableHead>Code</TableHead><TableHead>Type</TableHead><TableHead>Status</TableHead>
             </TableRow></TableHeader><TableBody>
               {locations.map((location) => (
-                <TableRow key={location.id}>
-                  <TableCell><BulkSelectRowCheckbox id={location.id} /></TableCell>
+                <DataGridRow key={location.id} href={`/locations/${location.id}`}>
+                  <TableCell>
+                    <div className="flex items-center gap-2">
+                      <BulkSelectRowCheckbox id={location.id} />
+                      <Link href={`/locations/${location.id}`} aria-label={`Quick view ${location.location_name}`} className="rounded-md p-1 text-slate-400 opacity-0 hover:bg-slate-100 hover:text-primary group-hover:opacity-100">
+                        <Eye className="h-4 w-4" />
+                      </Link>
+                    </div>
+                  </TableCell>
                   <TableCell className="font-medium">{location.branch_name ?? "-"}</TableCell>
                   <TableCell>
                     <div className="space-y-1">
@@ -64,19 +76,9 @@ export default async function LocationsPage({ searchParams }: { searchParams: Pr
                   <TableCell>{location.location_code}</TableCell>
                   <TableCell className="capitalize">{location.location_type.replaceAll("_", " ")}</TableCell>
                   <TableCell><Badge variant={location.status === "active" ? "success" : "secondary"}>{location.status}</Badge></TableCell>
-                  <TableCell>
-                    <div className="flex justify-end gap-2">
-                      {location.looks_like_branch_name && !location.is_system_default ? (
-                        <form action={archiveDuplicateLocation.bind(null, location.id)}>
-                          <Button type="submit" variant="outline" size="sm">Archive duplicate</Button>
-                        </form>
-                      ) : null}
-                      <Button asChild variant="outline" size="sm"><Link href={`/locations/${location.id}`}>Edit</Link></Button>
-                    </div>
-                  </TableCell>
-                </TableRow>
+                </DataGridRow>
               ))}
-              {!locations.length ? <TableRow><TableCell colSpan={7} className="text-center text-muted-foreground">No locations found.</TableCell></TableRow> : null}
+              {!locations.length ? <TableRow><TableCell colSpan={6}><EmptyState title="No locations found" description="Internal stock locations will appear here after they are created." action={{ href: "/locations/new", label: "New location" }} /></TableCell></TableRow> : null}
             </TableBody></Table></div>
             </BulkSelectionProvider>
           </div></div>

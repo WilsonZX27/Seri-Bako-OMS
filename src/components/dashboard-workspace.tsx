@@ -1,8 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { AlertTriangle, Boxes, CheckCircle2, PackageCheck, ReceiptText, TriangleAlert } from "lucide-react";
+import { AlertTriangle, Boxes, CheckCircle2, Clock3, PackageCheck, ReceiptText, TriangleAlert } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { EmptyState } from "@/components/ui/empty-state";
 import { WorkspaceGrid } from "@/components/layout/workspace-layout";
 import { formatCurrency, formatNumber } from "@/lib/utils";
 import type { UserRole } from "@/types/database";
@@ -48,6 +49,15 @@ function CompactPanel({ title, children, action }: { title: string; children: Re
   );
 }
 
+const futureAnalyticsWidgets = [
+  "weekly_supply_volume",
+  "predicted_weekly_purchase_spend",
+  "highest_wastage_item",
+  "most_purchased_item",
+  "supplier_payable_aging",
+  "top_unpaid_suppliers",
+] as const;
+
 export function DashboardWorkspace({ summary, role }: { summary: DashboardSummary; role: UserRole }) {
   const metrics = [
     { href: "/purchase-requests?status=in_review", label: "Pending approvals", value: formatNumber(summary.pendingApprovals.length), icon: CheckCircle2, tone: summary.pendingApprovals.length ? "amber" as const : "green" as const },
@@ -55,6 +65,14 @@ export function DashboardWorkspace({ summary, role }: { summary: DashboardSummar
     { href: "/low-stock", label: "Low stock", value: formatNumber(summary.lowStockCount), icon: AlertTriangle, tone: summary.lowStockCount ? "amber" as const : "green" as const },
     { href: "/production/jobs", label: "Production today", value: formatNumber(summary.today.production), icon: Boxes, tone: "blue" as const },
   ];
+  const pendingActions = summary.pendingApprovals.slice(0, 5);
+  const stuckRequests = summary.urgentRequests.slice(0, 4);
+  const statusItems = [
+    { href: "/goods-receivings", label: "Pending receiving", value: summary.today.goodsReceiving, icon: PackageCheck, tone: summary.today.goodsReceiving ? "amber" as const : "green" as const },
+    { href: "/production/jobs", label: "Production today", value: summary.today.production, icon: Boxes, tone: "blue" as const },
+    { href: "/low-stock", label: "Low stock issues", value: summary.lowStockCount, icon: AlertTriangle, tone: summary.lowStockCount ? "red" as const : "green" as const },
+  ];
+
   return (
     <div className="space-y-4">
       <div className="px-5 pt-5">
@@ -92,13 +110,61 @@ export function DashboardWorkspace({ summary, role }: { summary: DashboardSummar
           </>
         }
       >
-        <div className="grid gap-4 lg:grid-cols-2">
-          <CompactPanel title="Today's Operations" action={{ href: "/daily-operations", label: "Open" }}>
-            <div className="grid gap-2 sm:grid-cols-2">
-              <MetricCard href="/goods-receivings" label="Receiving today" value={formatNumber(summary.today.goodsReceiving)} icon={PackageCheck} />
-              <MetricCard href="/production/jobs" label="Production today" value={formatNumber(summary.today.production)} icon={Boxes} />
-            </div>
-          </CompactPanel>
+        <div className="space-y-4">
+          <div className="grid gap-4 lg:grid-cols-[minmax(0,1.15fr)_minmax(0,0.85fr)]">
+            <CompactPanel title="Pending Actions" action={{ href: "/documents?approval_status=pending", label: "Review" }}>
+              {pendingActions.length ? (
+                <div className="divide-y rounded-lg border bg-white">
+                  {pendingActions.map((document) => (
+                    <Link key={document.id} href="/documents" className="flex items-center justify-between gap-3 px-3 py-2.5 text-sm hover:bg-slate-50">
+                      <div className="min-w-0">
+                        <p className="truncate font-mono text-sm font-semibold">{document.document_no}</p>
+                        <p className="mt-0.5 truncate text-xs text-muted-foreground">{document.title ?? "Pending review"}</p>
+                      </div>
+                      <span className="shrink-0 rounded-full bg-amber-50 px-2 py-1 text-xs font-medium text-amber-800">In Review</span>
+                    </Link>
+                  ))}
+                </div>
+              ) : (
+                <EmptyState icon={CheckCircle2} title="No pending actions" description="Nothing needs your review right now." />
+              )}
+            </CompactPanel>
+
+            <CompactPanel title="Operational Status">
+              <div className="grid gap-2">
+                {statusItems.map((item) => (
+                  <MetricCard key={item.label} href={item.href} label={item.label} value={formatNumber(item.value)} icon={item.icon} tone={item.tone} />
+                ))}
+              </div>
+            </CompactPanel>
+          </div>
+
+          <div className="grid gap-4 lg:grid-cols-2">
+            <CompactPanel title="Stuck or Urgent PRs" action={{ href: "/purchase-requests?priority=urgent", label: "Open PRs" }}>
+              {stuckRequests.length ? (
+                <div className="divide-y rounded-lg border bg-white">
+                  {stuckRequests.map((request) => (
+                    <Link key={request.id} href={`/purchase-requests/${request.id}`} className="flex items-center justify-between gap-3 px-3 py-2.5 text-sm hover:bg-slate-50">
+                      <div className="min-w-0">
+                        <p className="truncate font-mono text-sm font-semibold">{request.request_no}</p>
+                        <p className="mt-0.5 truncate text-xs text-muted-foreground">{request.needed_by_date ? `Needed by ${request.needed_by_date}` : "Needed date not set"}</p>
+                      </div>
+                      <span className="shrink-0 rounded-full bg-red-50 px-2 py-1 text-xs font-medium text-red-800">{request.priority ?? "Urgent"}</span>
+                    </Link>
+                  ))}
+                </div>
+              ) : (
+                <EmptyState icon={Clock3} title="No stuck PRs" description="Urgent and critical PRs will appear here when they need attention." />
+              )}
+            </CompactPanel>
+
+            <CompactPanel title="Today's Flow" action={{ href: "/daily-operations", label: "Open" }}>
+              <div className="grid gap-2 sm:grid-cols-2">
+                <MetricCard href="/goods-receivings" label="Receiving today" value={formatNumber(summary.today.goodsReceiving)} icon={PackageCheck} />
+                <MetricCard href="/production/jobs" label="Production today" value={formatNumber(summary.today.production)} icon={Boxes} />
+              </div>
+            </CompactPanel>
+          </div>
 
           <CompactPanel title="Finance Forecast">
             <div className="grid gap-2 sm:grid-cols-3">
@@ -107,6 +173,7 @@ export function DashboardWorkspace({ summary, role }: { summary: DashboardSummar
               <MetricCard href="/goods-receivings" label="Not invoiced" value={formatNumber(summary.financeForecast.receivingNotInvoiced)} icon={PackageCheck} tone="amber" />
             </div>
             <p className="mt-3 text-xs text-muted-foreground">Finance forecast will improve as PO, GRN, and supplier invoice data grows.</p>
+            <span className="sr-only">Prepared future analytics widgets: {futureAnalyticsWidgets.join(", ")}</span>
           </CompactPanel>
         </div>
       </WorkspaceGrid>

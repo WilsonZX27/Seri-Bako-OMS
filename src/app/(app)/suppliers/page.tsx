@@ -1,7 +1,11 @@
 import Link from "next/link";
+import { Eye } from "lucide-react";
 import { BulkSelectAllCheckbox, BulkSelectionProvider, BulkSelectRowCheckbox } from "@/components/bulk-selection";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { DataGridHint } from "@/components/ui/data-grid-hint";
+import { DataGridRow } from "@/components/ui/data-grid-row";
+import { EmptyState } from "@/components/ui/empty-state";
 import { MasterDataFilters } from "@/components/master-data-filters";
 import { PageHeader } from "@/components/ui/page-header";
 import { PaginationControls, SortableHead } from "@/components/sortable-table";
@@ -31,11 +35,12 @@ export default async function SuppliersPage({
           <StatusTabs statuses={[{ value: "active", label: "Active" }, { value: "inactive", label: "Inactive" }, { value: "archived", label: "Archived" }]} activeStatus={filters.status} />
           <MasterDataFilters search={filters.search} status={filters.status} placeholder="Search supplier code, name, contact, phone, email" />
           <BulkSelectionProvider ids={page.rows.map((supplier) => supplier.id)} actionLabel="Deactivate selected" actionHint="Deactivate suppliers only when they should no longer be used for purchasing.">
+          <DataGridHint text="Pro-tip: Double-click any row to open the supplier." />
           <div className="overflow-x-auto">
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead className="w-10"><BulkSelectAllCheckbox /></TableHead>
+                <TableHead className="w-16"><BulkSelectAllCheckbox /></TableHead>
                 <SortableHead label="Supplier Code" column="supplier_code" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
                 <SortableHead label="Supplier Name" column="name" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
                 <SortableHead label="Contact Person" column="contact_person" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
@@ -43,13 +48,19 @@ export default async function SuppliersPage({
                 <SortableHead label="Email" column="email" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
                 <SortableHead label="Payment Terms" column="payment_terms_days" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
                 <SortableHead label="Status" column="status" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
-                <TableHead className="w-36 text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {page.rows.map((supplier) => (
-                <TableRow key={supplier.id}>
-                  <TableCell><BulkSelectRowCheckbox id={supplier.id} /></TableCell>
+                <DataGridRow key={supplier.id} href={`/suppliers/${supplier.id}`}>
+                  <TableCell>
+                    <div className="flex items-center gap-2">
+                      <BulkSelectRowCheckbox id={supplier.id} />
+                      <Link href={`/suppliers/${supplier.id}`} aria-label={`Quick view ${supplier.name}`} className="rounded-md p-1 text-slate-400 opacity-0 hover:bg-slate-100 hover:text-primary group-hover:opacity-100">
+                        <Eye className="h-4 w-4" />
+                      </Link>
+                    </div>
+                  </TableCell>
                   <TableCell>{supplier.supplier_code ?? "-"}</TableCell>
                   <TableCell className="font-medium">{supplier.name}</TableCell>
                   <TableCell>{supplier.contact_person ?? "-"}</TableCell>
@@ -59,19 +70,12 @@ export default async function SuppliersPage({
                   <TableCell>
                     <Badge variant={supplier.status === "active" ? "success" : "secondary"}>{supplier.status}</Badge>
                   </TableCell>
-                  <TableCell>
-                    <div className="flex justify-end gap-2">
-                      <Button asChild variant="outline" size="sm">
-                        <Link href={`/suppliers/${supplier.id}`}>Edit</Link>
-                      </Button>
-                    </div>
-                  </TableCell>
-                </TableRow>
+                </DataGridRow>
               ))}
               {!page.rows.length ? (
                 <TableRow>
-                  <TableCell colSpan={9} className="text-center text-muted-foreground">
-                    No suppliers found.
+                  <TableCell colSpan={8}>
+                    <EmptyState title="No suppliers found" description="Suppliers will appear here after they are created or imported." action={{ href: "/suppliers/new", label: "New supplier" }} />
                   </TableCell>
                 </TableRow>
               ) : null}

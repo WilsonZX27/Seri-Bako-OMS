@@ -7,6 +7,8 @@ import { getInventoryDashboard } from "@/server/queries/inventory";
 
 export default async function InventoryPage() {
   const summary = await getInventoryDashboard();
+  const hasPurchasedItems = summary.topPurchasedItems.length > 0;
+  const hasConsumedItems = summary.topConsumedItems.length > 0;
   const inventoryInsights: WorkspaceInsight[] = [
     { label: "Total Active Items", value: formatNumber(summary.totalActiveItems), icon: PackageSearch, theme: "green" },
     { label: "Low Stock Items", value: formatNumber(summary.lowStockItems), icon: TriangleAlert, theme: summary.lowStockItems ? "amber" : "green" },
@@ -62,7 +64,9 @@ export default async function InventoryPage() {
               <WorkspaceSectionPanel key={section.title} section={section} />
             ))}
           </div>
+          {hasPurchasedItems || hasConsumedItems ? (
           <div className="grid gap-5 lg:grid-cols-2">
+            {hasPurchasedItems ? (
             <Card>
               <CardContent className="p-4">
                 <div className="mb-3 flex items-center gap-2">
@@ -76,10 +80,11 @@ export default async function InventoryPage() {
                       <span className="font-mono text-xs font-semibold">{formatNumber(item.qty)}</span>
                     </div>
                   ))}
-                  {!summary.topPurchasedItems.length ? <p className="text-sm text-muted-foreground">No purchase movement yet.</p> : null}
                 </div>
               </CardContent>
             </Card>
+            ) : null}
+            {hasConsumedItems ? (
             <Card>
               <CardContent className="p-4">
                 <div className="mb-3 flex items-center gap-2">
@@ -93,11 +98,12 @@ export default async function InventoryPage() {
                       <span className="font-mono text-xs font-semibold">{formatNumber(item.qty)}</span>
                     </div>
                   ))}
-                  {!summary.topConsumedItems.length ? <p className="text-sm text-muted-foreground">No consumption movement yet.</p> : null}
                 </div>
               </CardContent>
             </Card>
+            ) : null}
           </div>
+          ) : null}
       </div>
     </>
   );

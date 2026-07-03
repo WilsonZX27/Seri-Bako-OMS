@@ -1,6 +1,7 @@
 import { ClipboardCheck, Eye, FileText, Paperclip } from "lucide-react";
 import { BulkSelectAllCheckbox, BulkSelectionProvider, BulkSelectRowCheckbox } from "@/components/bulk-selection";
 import { DataGridRow } from "@/components/ui/data-grid-row";
+import { DataGridHint } from "@/components/ui/data-grid-hint";
 import { DocumentNumber } from "@/components/document-number";
 import { EmptyState } from "@/components/ui/empty-state";
 import { StatusBadge } from "@/components/ui/status-badge";
@@ -82,6 +83,7 @@ export default async function DocumentsPage({ searchParams }: { searchParams: Pr
             </div>
           </form>
           <BulkSelectionProvider ids={documents.rows.map((document) => document.id)} actionLabel="Archive selected" actionHint="Documents with history are not hard deleted. Open selected documents to use workflow-safe actions.">
+          <DataGridHint text="Pro-tip: Double-click any row to open the document." />
           <div className="overflow-x-auto">
             <Table>
               <TableHeader>

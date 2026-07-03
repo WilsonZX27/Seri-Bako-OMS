@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Eye } from "lucide-react";
 import { BulkSelectionProvider, BulkSelectAllCheckbox, BulkSelectRowCheckbox } from "@/components/bulk-selection";
 import { DataGridRow } from "@/components/ui/data-grid-row";
+import { DataGridHint } from "@/components/ui/data-grid-hint";
 import { DocumentNumber } from "@/components/document-number";
 import { EmptyState } from "@/components/ui/empty-state";
 import { PageHeader } from "@/components/ui/page-header";
@@ -60,6 +61,7 @@ export default async function ProductionJobsPage({ searchParams }: { searchParam
               <Button type="submit" variant="secondary">Filter</Button>
               {selectedStatus !== "all" ? <input type="hidden" name="status" value={selectedStatus} /> : null}
             </form>
+            <DataGridHint text="Pro-tip: Double-click any row to open the production job." />
             <div className="overflow-x-auto">
               <Table>
                 <TableHeader>

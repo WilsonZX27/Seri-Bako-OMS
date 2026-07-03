@@ -3,7 +3,7 @@ const path = require("path");
 const { test, expect } = require("@playwright/test");
 const { login, logout, missingAccountVars } = require("./helpers");
 
-const screenshotDir = path.join(process.cwd(), "test-results", "ui-smoke-sprint-7-2-1");
+const screenshotDir = path.join(process.cwd(), "test-results", "ui-smoke-sprint-7-2-3");
 
 const superAdminRoutes = [
   "/dashboard",
@@ -68,14 +68,19 @@ async function assertSprint721Rules(page, route) {
     await expect(page.getByTestId("topbar-account-region")).toHaveCount(1, { timeout: 5_000 });
     const searchBox = await page.getByTestId("topbar-search-region").boundingBox();
     const accountBox = await page.getByTestId("topbar-account-region").boundingBox();
+    const headerBox = await page.locator("header").first().boundingBox();
     expect(searchBox, "topbar search must be visible on desktop").toBeTruthy();
     expect(accountBox, "topbar account region must be visible on desktop").toBeTruthy();
-    if (searchBox && accountBox) {
+    expect(headerBox, "topbar header must be visible on desktop").toBeTruthy();
+    if (searchBox && accountBox && headerBox) {
       const searchCenter = searchBox.x + searchBox.width / 2;
-      const viewportCenter = page.viewportSize().width / 2;
-      expect(Math.abs(searchCenter - viewportCenter), "topbar search should stay visually centered").toBeLessThan(60);
+      const headerCenter = headerBox.x + headerBox.width / 2;
+      expect(Math.abs(searchCenter - headerCenter), "topbar search should stay centered within the content header").toBeLessThan(60);
       expect(searchBox.x + searchBox.width, "topbar search must not overlap account area").toBeLessThanOrEqual(accountBox.x);
     }
+    await expect(page.getByRole("heading", { name: /pending actions/i })).toBeVisible();
+    await expect(page.getByRole("heading", { name: /operational status/i })).toBeVisible();
+    await expect(page.getByRole("heading", { name: /finance forecast/i })).toBeVisible();
   }
   if (route === "/settings") {
     await expect(page.getByRole("link", { name: /data onboarding/i })).toBeVisible();
@@ -94,6 +99,7 @@ async function assertSprint721Rules(page, route) {
   if (route === "/documents") {
     await expect(page.locator("table thead")).not.toContainText(/action/i);
     await expect(page.locator('table a', { hasText: /^Open$/ })).toHaveCount(0);
+    await expect(page.getByText(/double-click any row/i)).toBeVisible();
   }
   if (route === "/purchase-requests") {
     await expect(page.locator('table a[aria-label^="Quick view"]').first()).toBeAttached();
@@ -103,6 +109,11 @@ async function assertSprint721Rules(page, route) {
   }
   if (route === "/inventory") {
     await expect(page.locator("body")).not.toContainText("Recent Transactions");
+  }
+  if (route === "/daily-operations") {
+    await expect(page.getByRole("heading", { name: /today's work/i })).toBeVisible();
+    await expect(page.getByRole("heading", { name: /scan \/ count \/ receive/i })).toBeVisible();
+    await expect(page.getByRole("heading", { name: /report exception/i })).toBeVisible();
   }
   if (route === "/staffs/new") {
     await expect(page.locator('select[name="role_id"] option', { hasText: "Super Admin / Owner" })).toHaveCount(0);

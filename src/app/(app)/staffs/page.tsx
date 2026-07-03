@@ -1,13 +1,15 @@
 import Link from "next/link";
+import { Eye } from "lucide-react";
 import { BulkSelectAllCheckbox, BulkSelectionProvider, BulkSelectRowCheckbox } from "@/components/bulk-selection";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { DataGridHint } from "@/components/ui/data-grid-hint";
+import { DataGridRow } from "@/components/ui/data-grid-row";
+import { EmptyState } from "@/components/ui/empty-state";
 import { MasterDataFilters } from "@/components/master-data-filters";
 import { PageHeader } from "@/components/ui/page-header";
 import { StatusTabs } from "@/components/status-tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { resendStaffInvite } from "@/server/actions/foundation";
 import { getStaffs } from "@/server/queries/foundation";
 
 function formatDate(value?: string | null) {
@@ -45,12 +47,20 @@ export default async function StaffsPage({ searchParams }: { searchParams: Promi
           ]}
         />
         <BulkSelectionProvider ids={staffs.map((staff) => staff.id)} actionLabel="Deactivate selected" actionHint="Disable staff users from their detail page to keep a clear access history.">
+        <DataGridHint text="Pro-tip: Double-click any row to open the staff profile." />
         <div className="overflow-x-auto"><Table><TableHeader><TableRow>
-          <TableHead className="w-10"><BulkSelectAllCheckbox /></TableHead><TableHead>Staff Code</TableHead><TableHead>Name</TableHead><TableHead>Email</TableHead><TableHead>Default Branch</TableHead><TableHead>Role</TableHead><TableHead>Status</TableHead><TableHead>Last Login</TableHead><TableHead>Invited</TableHead><TableHead>Accepted</TableHead><TableHead className="w-24 text-right">Actions</TableHead>
+          <TableHead className="w-16"><BulkSelectAllCheckbox /></TableHead><TableHead>Staff Code</TableHead><TableHead>Name</TableHead><TableHead>Email</TableHead><TableHead>Default Branch</TableHead><TableHead>Role</TableHead><TableHead>Status</TableHead><TableHead>Last Login</TableHead><TableHead>Invited</TableHead><TableHead>Accepted</TableHead>
         </TableRow></TableHeader><TableBody>
           {staffs.map((staff) => (
-            <TableRow key={staff.id}>
-              <TableCell><BulkSelectRowCheckbox id={staff.id} /></TableCell>
+            <DataGridRow key={staff.id} href={`/staffs/${staff.id}`}>
+              <TableCell>
+                <div className="flex items-center gap-2">
+                  <BulkSelectRowCheckbox id={staff.id} />
+                  <Link href={`/staffs/${staff.id}`} aria-label={`Quick view ${staff.full_name}`} className="rounded-md p-1 text-slate-400 opacity-0 hover:bg-slate-100 hover:text-primary group-hover:opacity-100">
+                    <Eye className="h-4 w-4" />
+                  </Link>
+                </div>
+              </TableCell>
               <TableCell>{staff.staff_code ?? "-"}</TableCell>
               <TableCell className="font-medium">{staff.full_name}</TableCell>
               <TableCell>{staff.email ?? "-"}</TableCell>
@@ -60,19 +70,9 @@ export default async function StaffsPage({ searchParams }: { searchParams: Promi
               <TableCell>{formatDate(staff.last_login_at)}</TableCell>
               <TableCell>{formatDate(staff.invited_at)}</TableCell>
               <TableCell>{formatDate(staff.accepted_at)}</TableCell>
-              <TableCell className="text-right">
-                <div className="flex justify-end gap-2">
-                  {staff.status === "invited" ? (
-                    <form action={resendStaffInvite.bind(null, staff.id)}>
-                      <Button type="submit" variant="outline" size="sm">Resend</Button>
-                    </form>
-                  ) : null}
-                  <Button asChild variant="outline" size="sm"><Link href={`/staffs/${staff.id}`}>Edit</Link></Button>
-                </div>
-              </TableCell>
-            </TableRow>
+            </DataGridRow>
           ))}
-          {!staffs.length ? <TableRow><TableCell colSpan={11} className="text-center text-muted-foreground">No staffs found.</TableCell></TableRow> : null}
+          {!staffs.length ? <TableRow><TableCell colSpan={10}><EmptyState title="No staffs found" description="Staff accounts will appear here after they are invited or created." action={{ href: "/staffs/new", label: "New staff" }} /></TableCell></TableRow> : null}
         </TableBody></Table></div>
         </BulkSelectionProvider>
       </div></div>

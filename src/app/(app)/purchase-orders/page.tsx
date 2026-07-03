@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Eye } from "lucide-react";
 import { BulkSelectAllCheckbox, BulkSelectionProvider, BulkSelectRowCheckbox } from "@/components/bulk-selection";
 import { DataGridRow } from "@/components/ui/data-grid-row";
+import { DataGridHint } from "@/components/ui/data-grid-hint";
 import { DocumentNumber } from "@/components/document-number";
 import { EmptyState } from "@/components/ui/empty-state";
 import { StatusBadge } from "@/components/ui/status-badge";
@@ -38,6 +39,7 @@ export default async function PurchaseOrdersPage({ searchParams }: { searchParam
             <Button asChild variant="ghost"><a href="?">Reset</a></Button>
           </form>
           <BulkSelectionProvider ids={orders.rows.map((order) => order.id)} actionLabel="Archive selected" actionHint="Open selected POs to close, reject, or cancel them through workflow-safe actions.">
+          <DataGridHint text="Pro-tip: Double-click any row to open the purchase order." />
           <div className="overflow-x-auto">
             <Table>
               <TableHeader>

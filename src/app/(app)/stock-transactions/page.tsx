@@ -1,5 +1,10 @@
+import Link from "next/link";
+import { Eye } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { DataGridHint } from "@/components/ui/data-grid-hint";
+import { DataGridRow } from "@/components/ui/data-grid-row";
+import { EmptyState } from "@/components/ui/empty-state";
 import { Input } from "@/components/ui/input";
 import { PageHeader } from "@/components/ui/page-header";
 import { PaginationControls, SortableHead } from "@/components/sortable-table";
@@ -31,10 +36,12 @@ export default async function StockTransactionsPage({ searchParams }: { searchPa
             <Button type="submit" variant="secondary">Search</Button>
             <Button asChild variant="ghost"><a href="?">Reset</a></Button>
           </form>
+          <DataGridHint text="Pro-tip: Double-click any row to open the stock transaction." />
           <div className="overflow-x-auto">
           <Table>
             <TableHeader>
               <TableRow>
+                <TableHead className="w-10"></TableHead>
                 <SortableHead label="Transaction No" column="transaction_no" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
                 <SortableHead label="Date" column="transaction_date" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
                 <TableHead>Item</TableHead>
@@ -51,8 +58,13 @@ export default async function StockTransactionsPage({ searchParams }: { searchPa
             <TableBody>
               {transactions.rows.map((row) => {
                 return (
-                  <TableRow key={row.id} className="cursor-pointer">
-                    <TableCell className="font-medium"><a href={`/stock-transactions/${row.id}`}>{row.transaction_no}</a></TableCell>
+                  <DataGridRow key={row.id} href={`/stock-transactions/${row.id}`}>
+                    <TableCell>
+                      <Link href={`/stock-transactions/${row.id}`} aria-label={`Quick view ${row.transaction_no}`} className="rounded-md p-1 text-slate-400 opacity-0 hover:bg-slate-100 hover:text-primary group-hover:opacity-100">
+                        <Eye className="h-4 w-4" />
+                      </Link>
+                    </TableCell>
+                    <TableCell className="font-medium">{row.transaction_no}</TableCell>
                     <TableCell>{row.transaction_date}</TableCell>
                     <TableCell className="font-medium">
                       {row.item?.item_name ?? "Unknown"}
@@ -68,13 +80,13 @@ export default async function StockTransactionsPage({ searchParams }: { searchPa
                     <TableCell className="text-right">{row.unit_cost ? formatCurrency(row.unit_cost) : "-"}</TableCell>
                     <TableCell className="text-right">{row.total_cost ? formatCurrency(row.total_cost) : "-"}</TableCell>
                     <TableCell>{row.reference_type ?? row.remarks ?? "-"}</TableCell>
-                  </TableRow>
+                  </DataGridRow>
                 );
               })}
               {!transactions.rows.length ? (
                 <TableRow>
-                  <TableCell colSpan={10} className="text-center text-muted-foreground">
-                    No stock transactions yet.
+                  <TableCell colSpan={12}>
+                    <EmptyState title="No stock transactions yet" description="Posted receiving, transfers, counts, and adjustments will appear here as ledger movements." />
                   </TableCell>
                 </TableRow>
               ) : null}

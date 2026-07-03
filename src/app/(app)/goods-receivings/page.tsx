@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Eye } from "lucide-react";
 import { BulkSelectAllCheckbox, BulkSelectionProvider, BulkSelectRowCheckbox } from "@/components/bulk-selection";
 import { DataGridRow } from "@/components/ui/data-grid-row";
+import { DataGridHint } from "@/components/ui/data-grid-hint";
 import { DocumentNumber } from "@/components/document-number";
 import { EmptyState } from "@/components/ui/empty-state";
 import { StatusBadge } from "@/components/ui/status-badge";
@@ -36,6 +37,7 @@ export default async function GoodsReceivingsPage({ searchParams }: { searchPara
             <Button asChild variant="ghost"><a href="?">Reset</a></Button>
           </form>
           <BulkSelectionProvider ids={receivings.rows.map((receiving) => receiving.id)} actionLabel="Archive selected" actionHint="Open selected GRNs to post or cancel them through workflow-safe actions. Posted receiving records are never hard deleted.">
+          <DataGridHint text="Pro-tip: Double-click any row to open the goods receiving document." />
           <div className="overflow-x-auto">
             <Table>
               <TableHeader>

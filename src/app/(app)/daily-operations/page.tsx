@@ -1,14 +1,39 @@
-import { ClipboardCheck, ClipboardList, PackageCheck, ScanLine, Search, TriangleAlert } from "lucide-react";
-import { CategoryCardGrid } from "@/components/category-card-grid";
+import { ClipboardCheck, ClipboardList, DoorOpen, PackageCheck, ScanLine, Search, TriangleAlert } from "lucide-react";
 import { PageHeader } from "@/components/ui/page-header";
+import { WorkspaceSectionPanel, type WorkspaceSection } from "@/components/workspace-panels";
 
-const dailyTools = [
-  { href: "/purchase-requests/new", title: "Create Purchase Request", description: "Request ingredients or packaging from a quick branch-first form.", icon: ClipboardList, recommendedFor: "kitchen" },
-  { href: "/stock-counts/scan", title: "Open Stock Count", description: "Search or scan items during daily stock checks.", icon: ClipboardCheck, recommendedFor: "kitchen" },
-  { href: "/goods-receivings/scan", title: "Scan Receiving", description: "Scan delivered items and prepare receiving lines for GRN work.", icon: PackageCheck, recommendedFor: "operations" },
-  { href: "/stock-wastage/new", title: "Report Wastage", description: "Record damaged, expired, missing, or claimable stock by branch.", icon: TriangleAlert, recommendedFor: "kitchen" },
-  { href: "/stock-transfers/new", title: "Transfer Stock", description: "Move stock between branches while default locations are handled automatically.", icon: ScanLine, recommendedFor: "operations" },
-  { href: "/items", title: "Find Item", description: "Search item code, item name, category, supplier, or barcode.", icon: Search, recommendedFor: "all staff" },
+const dailySections: WorkspaceSection[] = [
+  {
+    title: "Today's Work",
+    description: "Start here for shift work and replenishment requests.",
+    icon: DoorOpen,
+    theme: "green",
+    actions: [
+      { href: "/purchase-requests/new", title: "Create Purchase Request", description: "Request ingredients or packaging from a quick branch-first form.", icon: ClipboardList, recommendedFor: "kitchen" },
+      { href: "/daily-operations", title: "Opening / Closing Checklist", description: "Checklist flow is coming soon. Use purchase requests and counts for now.", icon: DoorOpen, badge: "Coming soon", disabled: true },
+    ],
+  },
+  {
+    title: "Scan / Count / Receive",
+    description: "High-frequency actions with larger touch-friendly targets.",
+    icon: ScanLine,
+    theme: "blue",
+    actions: [
+      { href: "/stock-counts/scan", title: "Stock Count", description: "Search or scan items during daily stock checks.", icon: ClipboardCheck, recommendedFor: "kitchen" },
+      { href: "/goods-receivings/scan", title: "Scan Receiving", description: "Scan delivered items and prepare receiving lines for GRN work.", icon: PackageCheck, recommendedFor: "operations" },
+      { href: "/stock-transfers/new", title: "Transfer Stock", description: "Move stock between branches while default locations are handled automatically.", icon: ScanLine, recommendedFor: "operations" },
+      { href: "/items", title: "Find Item", description: "Search item code, item name, category, or supplier.", icon: Search, recommendedFor: "all staff" },
+    ],
+  },
+  {
+    title: "Report Exception",
+    description: "Lower-frequency exception capture for damaged, expired, missing, or claimable stock.",
+    icon: TriangleAlert,
+    theme: "amber",
+    actions: [
+      { href: "/stock-wastage/new", title: "Report Wastage", description: "Record damaged, expired, missing, or claimable stock by branch.", icon: TriangleAlert, recommendedFor: "kitchen" },
+    ],
+  },
 ];
 
 export default function DailyOperationsPage() {
@@ -16,8 +41,11 @@ export default function DailyOperationsPage() {
     <>
       <PageHeader title="Daily Operations" description="Fast tools for kitchen and operations staff. Branch-first forms keep location details automatic unless needed." />
       <div className="space-y-5 p-5">
-        <p className="sb-section-label">Quick work</p>
-        <CategoryCardGrid items={dailyTools} />
+        <div className="grid grid-cols-1 gap-6 xl:grid-cols-[minmax(0,1.1fr)_minmax(0,1.4fr)_minmax(0,0.9fr)]">
+          {dailySections.map((section) => (
+            <WorkspaceSectionPanel key={section.title} section={section} />
+          ))}
+        </div>
       </div>
     </>
   );

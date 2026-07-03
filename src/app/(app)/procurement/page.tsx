@@ -15,21 +15,21 @@ const procurementSections: WorkspaceSection[] = [
     ],
   },
   {
-    title: "Receiving",
-    description: "Record goods received against purchase orders and post stock safely.",
-    icon: PackageCheck,
-    theme: "blue",
-    actions: [
-      { href: "/goods-receivings", title: "Goods Receiving", description: "Create and post GRNs from approved or sent purchase orders.", icon: PackageCheck, recommendedFor: "receiving" },
-    ],
-  },
-  {
     title: "Ordering",
     description: "Prepare and monitor supplier orders after requests are approved.",
     icon: ShoppingCart,
     theme: "amber",
     actions: [
       { href: "/purchase-orders", title: "Purchase Orders", description: "Prepare supplier orders and follow approval status.", icon: ShoppingCart, recommendedFor: "purchasing" },
+    ],
+  },
+  {
+    title: "Receiving",
+    description: "Record goods received against purchase orders and post stock safely.",
+    icon: PackageCheck,
+    theme: "blue",
+    actions: [
+      { href: "/goods-receivings", title: "Goods Receiving", description: "Create and post GRNs from approved or sent purchase orders.", icon: PackageCheck, recommendedFor: "receiving" },
     ],
   },
   {
@@ -59,7 +59,7 @@ export default async function ProcurementPage() {
       <PageHeader title="Procurement" description="Supplier, purchasing, and receiving work grouped in one place." action={{ href: "/purchase-requests/new", label: "Create PR" }} />
       <div className="space-y-5 bg-background p-5">
         <WorkspaceQuickInsights insights={procurementInsights} action={{ href: "/reports", label: "View all reports", icon: ArrowRight }} />
-        <div className="grid gap-5 xl:grid-cols-2">
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-4">
           {procurementSections.map((section) => (
             <WorkspaceSectionPanel key={section.title} section={section} />
           ))}

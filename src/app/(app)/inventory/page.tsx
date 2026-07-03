@@ -1,8 +1,7 @@
-import { ArrowDownLeft, ArrowRight, ArrowUpRight, Boxes, ClipboardCheck, MapPin, PackageSearch, ReceiptText, ScanLine, TriangleAlert, Upload } from "lucide-react";
+import { ArrowDownLeft, ArrowUpRight, Boxes, ClipboardCheck, MapPin, PackageSearch, ReceiptText, ScanLine, TriangleAlert, Upload } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
-import { WorkspaceGrid } from "@/components/layout/workspace-layout";
 import { PageHeader } from "@/components/ui/page-header";
-import { CompactStatList, WorkspaceSectionPanel, type WorkspaceInsight, type WorkspaceSection } from "@/components/workspace-panels";
+import { WorkspaceQuickInsights, WorkspaceSectionPanel, type WorkspaceInsight, type WorkspaceSection } from "@/components/workspace-panels";
 import { formatNumber } from "@/lib/utils";
 import { getInventoryDashboard } from "@/server/queries/inventory";
 
@@ -56,10 +55,14 @@ export default async function InventoryPage() {
   return (
     <>
       <PageHeader title="Inventory" description="Stock ledger dashboard. Balances are calculated from posted transactions only." action={{ href: "/stock-transactions/new", label: "New movement" }} />
-      <WorkspaceGrid
-        rightRail={
-          <>
-            <CompactStatList insights={inventoryInsights} action={{ href: "/stock-balance", label: "Review", icon: ArrowRight }} />
+      <div className="space-y-5 p-5">
+          <WorkspaceQuickInsights insights={inventoryInsights} action={{ href: "/stock-balance", label: "Review stock balance" }} />
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
+            {inventorySections.map((section) => (
+              <WorkspaceSectionPanel key={section.title} section={section} />
+            ))}
+          </div>
+          <div className="grid gap-5 lg:grid-cols-2">
             <Card>
               <CardContent className="p-4">
                 <div className="mb-3 flex items-center gap-2">
@@ -94,15 +97,8 @@ export default async function InventoryPage() {
                 </div>
               </CardContent>
             </Card>
-          </>
-        }
-      >
-          <div className="grid gap-5 xl:grid-cols-2">
-            {inventorySections.map((section) => (
-              <WorkspaceSectionPanel key={section.title} section={section} />
-            ))}
           </div>
-      </WorkspaceGrid>
+      </div>
     </>
   );
 }

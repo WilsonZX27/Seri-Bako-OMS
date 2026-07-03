@@ -58,7 +58,7 @@ export default async function ProductionPage() {
       <PageHeader title="Production" description="Recipe-based production jobs and finished goods stock posting for Seri Bako kitchen operations." />
       <div className="space-y-5 p-5">
         <WorkspaceQuickInsights insights={productionInsights} />
-        <div className="grid gap-5 xl:grid-cols-2">
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-4">
           {productionSections.map((section) => (
             <WorkspaceSectionPanel key={section.title} section={section} />
           ))}

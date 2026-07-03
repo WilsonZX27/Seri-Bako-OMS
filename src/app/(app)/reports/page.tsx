@@ -1,10 +1,6 @@
-import Link from "next/link";
 import { BarChart3, ClipboardCheck, FileText, PackageCheck, PackageSearch, ShoppingCart, TriangleAlert } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
-import { Card, CardContent } from "@/components/ui/card";
 import { PageHeader } from "@/components/ui/page-header";
-import { WorkspaceQuickInsights, type WorkspaceInsight, type WorkspaceThemeName } from "@/components/workspace-panels";
-import { cn } from "@/lib/utils";
+import { WorkspaceQuickInsights, WorkspaceSectionPanel, type WorkspaceInsight, type WorkspaceSection, type WorkspaceThemeName } from "@/components/workspace-panels";
 import type { LucideIcon } from "lucide-react";
 
 const reportInsights: WorkspaceInsight[] = [
@@ -28,16 +24,6 @@ type ReportCategory = {
   description: string;
   theme: WorkspaceThemeName;
   reports: ReportLink[];
-};
-
-const categoryStyles: Record<WorkspaceThemeName, string> = {
-  green: "border-emerald-100 bg-emerald-50/30",
-  blue: "border-blue-100 bg-blue-50/30",
-  amber: "border-amber-100 bg-amber-50/30",
-  purple: "border-purple-100 bg-purple-50/30",
-  teal: "border-teal-100 bg-teal-50/30",
-  neutral: "border-slate-200 bg-slate-50/40",
-  red: "border-red-100 bg-red-50/30",
 };
 
 const reportCategories: ReportCategory[] = [
@@ -82,48 +68,30 @@ const reportCategories: ReportCategory[] = [
   },
 ];
 
-function ReportCategoryCard({ category }: { category: ReportCategory }) {
-  return (
-    <Card className={cn("border shadow-sm", categoryStyles[category.theme])}>
-      <CardContent className="space-y-4 p-5">
-        <div>
-          <h2 className="text-sm font-semibold">{category.title}</h2>
-          <p className="mt-1 text-sm text-muted-foreground">{category.description}</p>
-        </div>
-        <div className="grid gap-3">
-          {category.reports.map((report) => {
-            const Icon = report.icon;
-            const content = (
-              <div className={cn("flex items-start gap-3 rounded-lg border bg-white/85 p-3", report.disabled ? "opacity-70" : "transition-colors hover:border-primary/30 hover:bg-white")}>
-                <div className="sb-icon-tile">
-                  <Icon className="h-4 w-4" />
-                </div>
-                <div className="min-w-0 flex-1">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <p className="text-sm font-semibold">{report.title}</p>
-                    {report.badge ? <Badge variant="secondary">{report.badge}</Badge> : null}
-                  </div>
-                  <p className="mt-1 text-sm leading-5 text-muted-foreground">{report.description}</p>
-                </div>
-              </div>
-            );
-            return report.disabled ? <div key={report.title}>{content}</div> : <Link key={report.title} href={report.href}>{content}</Link>;
-          })}
-        </div>
-      </CardContent>
-    </Card>
-  );
-}
-
 export default function ReportsPage() {
+  const sections: WorkspaceSection[] = reportCategories.map((category) => ({
+    title: category.title,
+    description: category.description,
+    icon: category.reports[0]?.icon ?? FileText,
+    theme: category.theme,
+    actions: category.reports.map((report) => ({
+      href: report.href,
+      title: report.title,
+      description: report.description,
+      icon: report.icon,
+      badge: report.badge,
+      disabled: report.disabled,
+    })),
+  }));
+
   return (
     <>
       <PageHeader title="Reports" description="Compact report directory for operational review and audit." />
       <div className="space-y-5 p-5">
         <WorkspaceQuickInsights insights={reportInsights} />
-        <div className="grid gap-4 xl:grid-cols-2">
-          {reportCategories.map((section) => (
-            <ReportCategoryCard key={section.title} category={section} />
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-4">
+          {sections.map((section) => (
+            <WorkspaceSectionPanel key={section.title} section={section} />
           ))}
         </div>
       </div>

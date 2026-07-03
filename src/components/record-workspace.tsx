@@ -13,7 +13,7 @@ export function RecordWorkspace({ children, actionPanel, className }: RecordWork
   return (
     <div className={cn("grid gap-5 p-5 xl:grid-cols-[minmax(0,1fr)_320px]", className)}>
       <main className="min-w-0 space-y-5">{children}</main>
-      <aside className="min-w-0 space-y-4 xl:sticky xl:top-20 xl:self-start">{actionPanel}</aside>
+      <aside className="min-w-0 space-y-4 xl:sticky xl:top-6 xl:max-h-[calc(100vh-120px)] xl:self-start xl:overflow-y-auto xl:pr-1">{actionPanel}</aside>
     </div>
   );
 }

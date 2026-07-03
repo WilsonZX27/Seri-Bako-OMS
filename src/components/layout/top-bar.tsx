@@ -19,7 +19,7 @@ export async function TopBar() {
   const initials = (account?.full_name ?? account?.email ?? "U").slice(0, 2).toUpperCase();
 
   return (
-    <header className="grid h-16 grid-cols-[minmax(0,1fr)_minmax(260px,520px)_auto] items-center gap-4 border-b bg-card px-5 max-lg:grid-cols-[minmax(0,1fr)_auto]">
+    <header className="grid h-16 grid-cols-[minmax(0,1fr)_minmax(300px,520px)_minmax(0,1fr)] items-center gap-4 border-b bg-card px-5 max-lg:grid-cols-[minmax(0,1fr)_auto]">
       <div className="flex min-w-0 items-center gap-3">
         <MobileSidebar role={role} companyName={branding.company_name} companyLogoUrl={branding.logo_url} />
         <div className="min-w-0 space-y-1">
@@ -27,10 +27,10 @@ export async function TopBar() {
           <Breadcrumbs />
         </div>
       </div>
-      <div className="min-w-0 max-lg:hidden">
+      <div data-testid="topbar-search-region" className="mx-auto w-full min-w-0 max-w-[520px] max-lg:hidden">
         <GlobalSearch />
       </div>
-      <div className="flex items-center justify-end gap-3">
+      <div data-testid="topbar-account-region" className="flex items-center justify-end gap-3">
         <TopBarActivityMenu data={activity} />
         <details className="group relative">
           <summary className="flex cursor-pointer list-none items-center gap-2 rounded-full border bg-white px-2 py-1.5 text-left shadow-sm hover:bg-secondary">

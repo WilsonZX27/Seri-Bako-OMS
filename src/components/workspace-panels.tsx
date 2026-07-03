@@ -104,7 +104,7 @@ export function WorkspaceSectionPanel({ section }: { section: WorkspaceSection }
   const SectionIcon = section.icon;
 
   return (
-    <section className={cn("overflow-hidden rounded-xl border border-slate-200 shadow-sm", theme.panel)}>
+    <section className={cn("flex h-full min-h-[260px] flex-col overflow-hidden rounded-xl border border-slate-200 shadow-sm", theme.panel)}>
       <div className={cn("border-b px-4 py-3", theme.border, theme.header)}>
         <div className="flex items-center gap-3">
           <div className={cn("flex h-9 w-9 shrink-0 items-center justify-center rounded-lg", theme.badge, theme.iconText)}>
@@ -116,7 +116,7 @@ export function WorkspaceSectionPanel({ section }: { section: WorkspaceSection }
           </div>
         </div>
       </div>
-      <div className="grid items-stretch gap-3 p-4 md:grid-cols-2">
+      <div className="grid flex-1 items-stretch gap-3 p-4 md:grid-cols-2 xl:grid-cols-1">
         {section.actions.map((action) => (
           <WorkspaceActionCard key={action.href} action={action} theme={theme} />
         ))}
@@ -129,7 +129,7 @@ function WorkspaceActionCard({ action, theme }: { action: WorkspaceAction; theme
   const ActionIcon = action.icon;
   const content = (
     <Card className={cn("h-full border border-slate-200 bg-white shadow-sm transition-colors", action.disabled ? "opacity-70" : "group-hover:border-primary/30 group-hover:bg-slate-50/30")}>
-      <CardContent className="flex h-full flex-col gap-3 p-3">
+      <CardContent className="flex h-full min-h-[112px] flex-col justify-between gap-3 p-3">
         <div className="flex items-start gap-3">
           <div className={cn("flex h-8 w-8 shrink-0 items-center justify-center rounded-lg", theme.badge, theme.iconText)}>
             <ActionIcon className="h-4 w-4" />
@@ -169,7 +169,7 @@ export function WorkspaceQuickInsights({ insights, action }: { insights: Workspa
                 </div>
                 <div>
                   <p className="text-lg font-bold leading-none">{insight.value}</p>
-                  <p className="mt-1 text-xs font-medium">{insight.label}</p>
+                  <p className="mt-1 max-w-full overflow-hidden text-ellipsis whitespace-nowrap text-xs font-medium">{insight.label}</p>
                 </div>
               </div>
             );

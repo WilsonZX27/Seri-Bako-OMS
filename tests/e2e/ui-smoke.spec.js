@@ -64,13 +64,45 @@ async function assertNoObviousVisualBreaks(page) {
 async function assertSprint721Rules(page, route) {
   if (route === "/dashboard") {
     await expect(page.locator('nav a[href="/data-onboarding"]')).toHaveCount(0);
+    await expect(page.getByTestId("topbar-search-region")).toHaveCount(1, { timeout: 5_000 });
+    await expect(page.getByTestId("topbar-account-region")).toHaveCount(1, { timeout: 5_000 });
+    const searchBox = await page.getByTestId("topbar-search-region").boundingBox();
+    const accountBox = await page.getByTestId("topbar-account-region").boundingBox();
+    expect(searchBox, "topbar search must be visible on desktop").toBeTruthy();
+    expect(accountBox, "topbar account region must be visible on desktop").toBeTruthy();
+    if (searchBox && accountBox) {
+      const searchCenter = searchBox.x + searchBox.width / 2;
+      const viewportCenter = page.viewportSize().width / 2;
+      expect(Math.abs(searchCenter - viewportCenter), "topbar search should stay visually centered").toBeLessThan(60);
+      expect(searchBox.x + searchBox.width, "topbar search must not overlap account area").toBeLessThanOrEqual(accountBox.x);
+    }
   }
   if (route === "/settings") {
     await expect(page.getByRole("link", { name: /data onboarding/i })).toBeVisible();
   }
+  if (route === "/procurement") {
+    const titles = [/requesting/i, /ordering/i, /receiving/i, /supplier master data/i];
+    const boxes = [];
+    for (const title of titles) {
+      const box = await page.getByRole("heading", { name: title }).boundingBox();
+      expect(box, `${title} section heading must be visible`).toBeTruthy();
+      boxes.push(box);
+    }
+    const rows = new Set(boxes.map((box) => Math.round(box.y / 10)));
+    expect(rows.size, "procurement sections should sit in one desktop row").toBe(1);
+  }
   if (route === "/documents") {
     await expect(page.locator("table thead")).not.toContainText(/action/i);
     await expect(page.locator('table a', { hasText: /^Open$/ })).toHaveCount(0);
+  }
+  if (route === "/purchase-requests") {
+    await expect(page.locator('table a[aria-label^="Quick view"]').first()).toBeAttached();
+  }
+  if (route === "/purchase-requests/new") {
+    await assertNoObviousVisualBreaks(page);
+  }
+  if (route === "/inventory") {
+    await expect(page.locator("body")).not.toContainText("Recent Transactions");
   }
   if (route === "/staffs/new") {
     await expect(page.locator('select[name="role_id"] option', { hasText: "Super Admin / Owner" })).toHaveCount(0);

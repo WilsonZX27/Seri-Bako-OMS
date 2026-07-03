@@ -25,7 +25,7 @@ export default async function AccountPage() {
   return (
     <>
       <PageHeader title="My Profile" description="Manage your account details, profile picture, and password." />
-      <div className="grid gap-5 p-5 xl:grid-cols-[minmax(0,1fr)_340px]">
+      <div className="grid gap-5 p-5 xl:grid-cols-[minmax(0,1fr)_320px]">
         <div className="space-y-5">
           <Card id="password">
             <CardContent className="p-5">
@@ -85,7 +85,7 @@ export default async function AccountPage() {
           </Card>
         </div>
 
-        <aside className="space-y-5">
+        <aside className="min-w-0 space-y-5 xl:sticky xl:top-6 xl:max-h-[calc(100vh-120px)] xl:self-start xl:overflow-y-auto xl:pr-1">
           <Card>
             <CardContent className="p-5">
               <div className="mb-4 flex items-center gap-2">

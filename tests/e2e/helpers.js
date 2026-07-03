@@ -45,7 +45,7 @@ async function login(page, role) {
 }
 
 async function logout(page) {
-  await page.goto("/dashboard");
+  await page.goto("/dashboard", { waitUntil: "domcontentloaded", timeout: 20_000 }).catch(() => {});
   const menu = page.getByRole("button", { name: /open workspace updates/i });
   if (await menu.count()) {
     // Keep focus away from the notifications menu before opening account controls.

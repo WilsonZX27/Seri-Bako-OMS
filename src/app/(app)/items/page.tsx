@@ -23,7 +23,7 @@ export default async function ItemsPage({
 
   return (
     <>
-      <PageHeader title="Items" description="Ingredient and packaging master data. Stock balance is calculated separately." action={{ href: "/items/new", label: "New item" }} />
+      <PageHeader title="Items" description="Ingredient and packaging master data. Stock balance is calculated separately." action={{ href: "/items/new", label: "New item" }} secondaryAction={{ href: "/api/export/items", label: "Export CSV" }} />
       <div className="p-5">
         {filters.success ? <div className="mb-3 rounded-lg border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-800">{filters.success}</div> : null}
         <div className="mb-3 flex justify-end">

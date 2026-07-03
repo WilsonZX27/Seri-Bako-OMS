@@ -60,15 +60,20 @@ export default async function InventoryPage() {
   return (
     <>
       <PageHeader title="Inventory" description="Stock ledger dashboard. Balances are calculated from posted transactions only." />
-      <div className="space-y-5 p-5">
-        <WorkspaceQuickInsights insights={inventoryInsights} action={{ href: "/stock-balance", label: "Review stock", icon: ArrowRight }} />
-        <div className="grid gap-5 xl:grid-cols-2">
-          {inventorySections.map((section) => (
-            <WorkspaceSectionPanel key={section.title} section={section} />
-          ))}
-        </div>
+      <div className="grid gap-5 p-5 xl:grid-cols-[minmax(0,1fr)_340px]">
+        <div className="space-y-5">
+          <div className="flex flex-wrap gap-2">
+            <Button asChild size="sm"><Link href="/stock-transactions/new">New movement</Link></Button>
+            <Button asChild variant="outline" size="sm"><Link href="/stock-card">Stock Card</Link></Button>
+            <Button asChild variant="outline" size="sm"><Link href="/opening-stock/import">Opening Stock Import</Link></Button>
+            <Button asChild variant="outline" size="sm"><Link href="/stock-transactions">Export CSV</Link></Button>
+          </div>
+          <div className="grid gap-5 xl:grid-cols-2">
+            {inventorySections.map((section) => (
+              <WorkspaceSectionPanel key={section.title} section={section} />
+            ))}
+          </div>
 
-        <div className="grid gap-5 xl:grid-cols-[1.4fr_1fr]">
           <Card>
             <CardContent className="p-5">
               <div className="mb-3 flex items-center justify-between">
@@ -103,8 +108,10 @@ export default async function InventoryPage() {
               </div>
             </CardContent>
           </Card>
+        </div>
 
-          <div className="space-y-5">
+        <aside className="space-y-5">
+          <WorkspaceQuickInsights insights={inventoryInsights} action={{ href: "/stock-balance", label: "Review stock", icon: ArrowRight }} />
             <Card>
               <CardContent className="p-5">
                 <div className="mb-4 flex items-center gap-2">
@@ -137,8 +144,7 @@ export default async function InventoryPage() {
                 </div>
               </CardContent>
             </Card>
-          </div>
-        </div>
+        </aside>
       </div>
     </>
   );

@@ -21,7 +21,7 @@ export default async function SuppliersPage({
 
   return (
     <>
-      <PageHeader title="Suppliers" description="Supplier master records for ingredients and packaging." action={{ href: "/suppliers/new", label: "New supplier" }} />
+      <PageHeader title="Suppliers" description="Supplier master records for ingredients and packaging." action={{ href: "/suppliers/new", label: "New supplier" }} secondaryAction={{ href: "/api/export/suppliers", label: "Export CSV" }} />
       <div className="p-5">
         {filters.success ? <div className="mb-3 rounded-lg border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-800">{filters.success}</div> : null}
         <div className="mb-3 flex justify-end">

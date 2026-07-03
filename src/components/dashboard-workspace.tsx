@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { AlertTriangle, Boxes, CalendarCheck, CheckCircle2, ClipboardList, PackageCheck, ReceiptText, Truck, TriangleAlert } from "lucide-react";
+import { AlertTriangle, Boxes, CalendarCheck, CheckCircle2, PackageCheck, ReceiptText, TriangleAlert } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { formatCurrency, formatNumber } from "@/lib/utils";
@@ -95,8 +95,8 @@ export function DashboardWorkspace({ summary, role }: { summary: DashboardSummar
 
       <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_360px]">
         <div className="grid gap-4 lg:grid-cols-2">
-          <CompactPanel title="Attention Needed" action={{ href: "/purchase-requests?status=in_review", label: "Open" }}>
-            <div className="space-y-2">
+          <CompactPanel title="My Pending Actions" action={{ href: "/purchase-requests?status=in_review", label: "Open" }}>
+            <div className="grid gap-2">
               <Link href="/purchase-requests?status=in_review" className="flex items-center justify-between rounded-md border bg-white px-3 py-2 text-sm hover:bg-secondary">
                 <span>Workflow approvals</span>
                 <Badge variant={summary.pendingApprovals.length ? "warning" : "success"}>{formatNumber(summary.pendingApprovals.length)}</Badge>
@@ -105,14 +105,10 @@ export function DashboardWorkspace({ summary, role }: { summary: DashboardSummar
                 <span>Urgent procurement</span>
                 <Badge variant={summary.urgentRequests.length ? "danger" : "success"}>{formatNumber(summary.urgentRequests.length)}</Badge>
               </Link>
-              <Link href="/low-stock" className="flex items-center justify-between rounded-md border bg-white px-3 py-2 text-sm hover:bg-secondary">
-                <span>Low stock alerts</span>
-                <Badge variant={summary.lowStockCount ? "warning" : "success"}>{formatNumber(summary.lowStockCount)}</Badge>
-              </Link>
             </div>
           </CompactPanel>
 
-          <CompactPanel title="Recent Operational Movement" action={{ href: "/stock-transactions", label: "View" }}>
+          <CompactPanel title="Recent Operational Movement" action={{ href: "/activity", label: "View" }}>
             <div className="space-y-2">
               {summary.recentActivities.slice(0, 4).map((activity) => (
                 <div key={activity.id} className="rounded-md border bg-white px-3 py-2 text-sm">
@@ -124,10 +120,10 @@ export function DashboardWorkspace({ summary, role }: { summary: DashboardSummar
             </div>
           </CompactPanel>
 
-          <CompactPanel title="Procurement Snapshot" action={{ href: "/procurement", label: "Open" }}>
+          <CompactPanel title="Today's Operations Summary" action={{ href: "/daily-operations", label: "Open" }}>
             <div className="grid gap-2 sm:grid-cols-2">
-              <MetricCard href="/purchase-requests" label="Recent PR" value={formatNumber(summary.purchaseRequests.length)} icon={ClipboardList} />
-              <MetricCard href="/purchase-orders" label="Open PO" value={formatNumber(summary.purchaseOrders.length)} icon={Truck} />
+              <MetricCard href="/goods-receivings" label="Receiving today" value={formatNumber(summary.today.goodsReceiving)} icon={PackageCheck} />
+              <MetricCard href="/production/jobs" label="Production today" value={formatNumber(summary.today.production)} icon={Boxes} />
             </div>
           </CompactPanel>
 

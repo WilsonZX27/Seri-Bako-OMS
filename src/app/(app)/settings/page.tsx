@@ -1,8 +1,10 @@
 import Link from "next/link";
-import { Building2, FileDigit, MapPin, Settings, UserCog, Users, Warehouse } from "lucide-react";
+import { Archive, Building2, FileDigit, MapPin, Settings, UserCog, Users, Warehouse } from "lucide-react";
 import { CategoryCardGrid } from "@/components/category-card-grid";
 import { Card, CardContent } from "@/components/ui/card";
 import { PageHeader } from "@/components/ui/page-header";
+import { isSuperAdminRole } from "@/lib/roles";
+import { getCurrentProfile } from "@/server/queries/common";
 
 const settingsLinks = [
   { href: "/company", title: "Company", description: "Legal profile, contact details, and Seri Bako logo branding.", icon: Building2 },
@@ -13,7 +15,13 @@ const settingsLinks = [
   { href: "/uom-conversions", title: "System Preferences", description: "UOM conversions and shared reference settings used across operations.", icon: Settings },
 ];
 
-export default function SettingsPage() {
+export default async function SettingsPage() {
+  const profile = await getCurrentProfile();
+  const role = (profile as { role_code?: string; role?: string } | null)?.role_code ?? (profile as { role?: string } | null)?.role;
+  const links = isSuperAdminRole(role)
+    ? [...settingsLinks, { href: "/settings/backups", title: "System Backup", description: "Owner-only local ZIP backup export for operational data.", icon: Archive }]
+    : settingsLinks;
+
   return (
     <>
       <PageHeader title="Settings" description="Use Settings to manage system foundation, users, access, and numbering." />
@@ -26,7 +34,7 @@ export default function SettingsPage() {
             </p>
           </CardContent>
         </Card>
-        <CategoryCardGrid items={settingsLinks} />
+        <CategoryCardGrid items={links} />
         <Card>
           <CardContent className="flex items-start gap-3 p-5">
             <div className="sb-icon-tile"><Warehouse className="h-5 w-5" /></div>

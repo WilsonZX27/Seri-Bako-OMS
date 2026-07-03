@@ -1,0 +1,51 @@
+import { NextResponse } from "next/server";
+import { rowsToCsv } from "@/server/backup/export";
+import { hasPermission } from "@/server/auth/permissions";
+import { looseSupabase } from "@/lib/supabase/loose";
+import { createClient } from "@/lib/supabase/server";
+
+const exportTables: Record<string, { table: string; permission: string; order?: string }> = {
+  items: { table: "items", permission: "items.manage", order: "item_name" },
+  suppliers: { table: "suppliers", permission: "suppliers.manage", order: "name" },
+  "supplier-items": { table: "supplier_items", permission: "suppliers.manage", order: "created_at" },
+  "uom-conversions": { table: "uom_conversions", permission: "settings.manage", order: "from_uom" },
+  "barcode-mappings": { table: "barcode_mappings", permission: "items.manage", order: "created_at" },
+  branches: { table: "branches", permission: "settings.manage", order: "branch_name" },
+  staffs: { table: "staffs", permission: "staff.manage", order: "full_name" },
+  "stock-transactions": { table: "stock_transactions", permission: "documents.view", order: "created_at" },
+  "purchase-requests": { table: "purchase_requests", permission: "pr.view_branch", order: "created_at" },
+  "purchase-orders": { table: "purchase_orders", permission: "po.create", order: "created_at" },
+  "production-jobs": { table: "production_jobs", permission: "production.view", order: "created_at" },
+};
+
+export async function GET(_request: Request, { params }: { params: Promise<{ table: string }> }) {
+  const { table: key } = await params;
+  const config = exportTables[key];
+  if (!config) {
+    return NextResponse.json({ ok: false, message: "Export is not available for this page." }, { status: 404 });
+  }
+
+  const allowed = await hasPermission(config.permission);
+  if (!allowed) {
+    return NextResponse.json({ ok: false, message: "You do not have permission to export this data." }, { status: 403 });
+  }
+
+  const supabase = await createClient();
+  const db = looseSupabase(supabase);
+  let query = db.from(config.table).select("*").limit(10000);
+  if (config.order) query = query.order(config.order, { ascending: true });
+  const { data, error } = await query;
+  if (error) {
+    console.error(error);
+    return NextResponse.json({ ok: false, message: "CSV could not be exported." }, { status: 500 });
+  }
+
+  return new NextResponse(rowsToCsv((data ?? []) as Record<string, unknown>[]), {
+    status: 200,
+    headers: {
+      "content-type": "text/csv; charset=utf-8",
+      "content-disposition": `attachment; filename="${key}.csv"`,
+      "cache-control": "no-store",
+    },
+  });
+}

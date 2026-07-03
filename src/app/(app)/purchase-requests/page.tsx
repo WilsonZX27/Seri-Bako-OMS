@@ -26,7 +26,7 @@ export default async function PurchaseRequestsPage({ searchParams }: { searchPar
   const requests = await getPurchaseRequests(filters);
   return (
     <>
-      <PageHeader title="Purchase Requests" description="Daily stock check and low-stock replenishment requests before PO creation." action={{ href: "/purchase-requests/new", label: "New PR" }} />
+      <PageHeader title="Purchase Requests" description="Daily stock check and low-stock replenishment requests before PO creation." action={{ href: "/purchase-requests/new", label: "New PR" }} secondaryAction={{ href: "/api/export/purchase-requests", label: "Export CSV" }} />
       <div className="p-5">
         <div className="overflow-hidden rounded-xl border bg-card shadow-sm">
           <StatusTabs statuses={statuses} activeStatus={filters.status} />

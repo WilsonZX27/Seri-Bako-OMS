@@ -3,6 +3,7 @@ import { Sidebar } from "@/components/layout/sidebar";
 import { TopBar } from "@/components/layout/top-bar";
 import { MobileBottomNav } from "@/components/layout/mobile-bottom-nav";
 import { GlobalActionToast } from "@/components/global-action-toast";
+import { SessionTimeoutProvider } from "@/components/session-timeout-provider";
 import { isMockMode } from "@/lib/mock-mode";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentProfile } from "@/server/queries/common";
@@ -49,6 +50,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
             </div>
           ) : null}
           <GlobalActionToast />
+          <SessionTimeoutProvider />
           <main className="flex-1 pb-16 md:pb-0">{children}</main>
           <MobileBottomNav />
         </div>

@@ -30,14 +30,14 @@ const activityEntityAllowlist = {
 const adminOnlyActivityTypes = new Set(["archived", "restored"]);
 const adminOnlyEntityTypes = new Set(["branch", "company", "location", "role", "staff", "document_sequence"]);
 
-async function getVisibleRecentActivitiesForCurrentUser() {
+export async function getVisibleRecentActivitiesForCurrentUser(limit = 6) {
   const scope = await getCurrentUserScope();
   if (!scope) return [];
 
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("activity_logs")
-    .select("id, entity_type, activity_type, created_by, message, created_at")
+    .select("id, entity_type, entity_id, activity_type, created_by, message, created_at")
     .order("created_at", { ascending: false })
     .limit(80);
 
@@ -62,7 +62,7 @@ async function getVisibleRecentActivitiesForCurrentUser() {
       }
       return false;
     })
-    .slice(0, 6);
+    .slice(0, limit);
 
   const displayMap = await resolveActorDisplayMap(visibleActivities.map((activity) => activity.created_by));
   return visibleActivities.map((activity) => {

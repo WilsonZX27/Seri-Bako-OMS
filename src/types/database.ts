@@ -139,8 +139,10 @@ export type Database = {
           staff_code: string | null;
           full_name: string;
           email: string | null;
-          phone: string | null;
-          default_branch_id: string | null;
+            phone: string | null;
+            avatar_url: string | null;
+            avatar_path: string | null;
+            default_branch_id: string | null;
           status: StaffStatus;
           invited_at: string | null;
           invited_by: string | null;
@@ -165,8 +167,10 @@ export type Database = {
           staff_code?: string | null;
           full_name: string;
           email?: string | null;
-          phone?: string | null;
-          default_branch_id?: string | null;
+            phone?: string | null;
+            avatar_url?: string | null;
+            avatar_path?: string | null;
+            default_branch_id?: string | null;
           status?: StaffStatus;
           invited_at?: string | null;
           invited_by?: string | null;

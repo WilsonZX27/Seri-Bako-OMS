@@ -25,7 +25,7 @@ export default async function PurchaseOrdersPage({ searchParams }: { searchParam
   const orders = await getPurchaseOrders(filters);
   return (
     <>
-      <PageHeader title="Purchase Orders" description="Supplier purchase orders created from approved requests or manually." action={{ href: "/purchase-orders/new", label: "New PO" }} />
+      <PageHeader title="Purchase Orders" description="Supplier purchase orders created from approved requests or manually." action={{ href: "/purchase-orders/new", label: "New PO" }} secondaryAction={{ href: "/api/export/purchase-orders", label: "Export CSV" }} />
       <div className="p-5">
         <div className="overflow-hidden rounded-xl border bg-card shadow-sm">
           <StatusTabs statuses={statuses} activeStatus={filters.status} />

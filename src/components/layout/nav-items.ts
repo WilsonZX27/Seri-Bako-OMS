@@ -138,4 +138,6 @@ export const searchableNavItems = [
   { href: "/staffs", label: "Staff", group: "Settings", keywords: ["invite", "roles"] },
   { href: "/roles", label: "Roles", group: "Settings", keywords: ["permission"] },
   { href: "/data-onboarding", label: "Data Onboarding", group: "Settings", keywords: ["import", "opening stock", "readiness"] },
+  { href: "/settings/backups", label: "System Backup", group: "Settings", keywords: ["backup", "export", "owner"] },
+  { href: "/account", label: "My Profile", group: "Account", keywords: ["profile", "password", "avatar"] },
 ] as const;

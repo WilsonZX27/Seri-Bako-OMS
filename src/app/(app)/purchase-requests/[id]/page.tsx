@@ -69,9 +69,9 @@ export default async function PurchaseRequestDetailPage({ params }: { params: Pr
                   <StatusBadge status={request.status} />
                 </div>
                 <DocumentActionBar>
-                  {request.status === "draft" && permissions["pr.submit"] ? <DocumentActionForm action={submitPurchaseRequest.bind(null, request.id)} pendingLabel="Saving..." variant="secondary">Submit to Admin</DocumentActionForm> : null}
+                  {request.status === "draft" && permissions["pr.submit"] ? <DocumentActionForm action={submitPurchaseRequest.bind(null, request.id)} pendingLabel="Processing..." variant="secondary">Submit to Admin</DocumentActionForm> : null}
                   {request.status === "admin_review" && permissions["pr.admin_review"] ? <DocumentActionForm action={adminReviewPurchaseRequest.bind(null, request.id)} pendingLabel="Approving..." variant="outline">Admin approve</DocumentActionForm> : null}
-                  {request.status === "purchasing_review" && permissions["pr.purchasing_review"] ? <DocumentActionForm action={purchasingReviewPurchaseRequest.bind(null, request.id)} pendingLabel="Saving..." variant="outline">Purchasing verified</DocumentActionForm> : null}
+                  {request.status === "purchasing_review" && permissions["pr.purchasing_review"] ? <DocumentActionForm action={purchasingReviewPurchaseRequest.bind(null, request.id)} pendingLabel="Processing..." variant="outline">Purchasing verified</DocumentActionForm> : null}
                   {request.status === "pending_approval" && permissions["pr.manager_approve"] ? <DocumentActionForm action={approvePurchaseRequest.bind(null, request.id)} pendingLabel="Approving...">Manager approve</DocumentActionForm> : null}
                   {request.status === "approved" && permissions["pr.convert_to_po"] ? (
                     <DocumentActionForm action={convertPurchaseRequestToPurchaseOrder.bind(null, request.id)} pendingLabel="Converting...">Convert to Purchase Order</DocumentActionForm>
@@ -81,7 +81,7 @@ export default async function PurchaseRequestDetailPage({ params }: { params: Pr
               {canReject ? (
                 <form action={rejectPurchaseRequest.bind(null, request.id)} className="grid gap-2 sm:grid-cols-[1fr_auto]">
                   <Input name="remarks" placeholder="Rejection remarks required" required />
-                  <SubmitButton type="submit" pendingLabel="Saving..." variant="destructive">Reject</SubmitButton>
+                  <SubmitButton type="submit" pendingLabel="Rejecting..." variant="destructive">Reject</SubmitButton>
                 </form>
               ) : null}
               <div className="grid gap-4 md:grid-cols-4">

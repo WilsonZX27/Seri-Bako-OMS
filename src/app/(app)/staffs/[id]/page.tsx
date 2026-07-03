@@ -1,8 +1,8 @@
 import { StaffForm } from "@/components/foundation-forms";
 import { DangerConfirmForm } from "@/components/ui/danger-confirm-form";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { PageHeader } from "@/components/ui/page-header";
+import { SubmitButton } from "@/components/ui/submit-button";
 import { disableStaff, enableStaff, resendStaffInvite, updateStaff } from "@/server/actions/foundation";
 import { getBranches, getCompaniesForSelect, getRoles, getStaff, getStaffAccess } from "@/server/queries/foundation";
 
@@ -32,7 +32,7 @@ export default async function EditStaffPage({
           </CardHeader>
           <CardContent className="flex flex-wrap gap-2">
             <form action={resendStaffInvite.bind(null, id)}>
-              <Button type="submit" variant="outline">Resend invite</Button>
+              <SubmitButton type="submit" variant="outline" pendingLabel="Sending invite...">Resend invite</SubmitButton>
             </form>
             <div className="rounded-md border bg-secondary/30 px-3 py-2 text-sm text-muted-foreground">
               Branch access: {access.staffBranch?.branch_id ? branches.find((branch) => branch.id === access.staffBranch?.branch_id)?.branch_name ?? "-" : "-"}
@@ -45,7 +45,7 @@ export default async function EditStaffPage({
             <CardHeader><CardTitle>Advanced actions</CardTitle></CardHeader>
             <CardContent>
               <form action={enableStaff.bind(null, id)}>
-                <Button type="submit" variant="outline">Enable user</Button>
+                <SubmitButton type="submit" variant="outline" pendingLabel="Processing...">Enable user</SubmitButton>
               </form>
             </CardContent>
           </Card>

@@ -54,16 +54,16 @@ export default async function PurchaseOrderDetailPage({ params }: { params: Prom
                   <StatusBadge status={order.status} />
                 </div>
                 <DocumentActionBar>
-                  {order.status === "draft" && permissions["po.submit"] ? <DocumentActionForm action={submitPurchaseOrder.bind(null, order.id)} pendingLabel="Saving..." variant="secondary">Submit approval</DocumentActionForm> : null}
+                  {order.status === "draft" && permissions["po.submit"] ? <DocumentActionForm action={submitPurchaseOrder.bind(null, order.id)} pendingLabel="Processing..." variant="secondary">Submit approval</DocumentActionForm> : null}
                   {order.status === "pending_approval" && permissions["po.approve"] ? (
                     <>
                       <DocumentActionForm action={approvePurchaseOrder.bind(null, order.id)} pendingLabel="Approving...">Approve</DocumentActionForm>
-                      <DocumentActionForm action={rejectPurchaseOrder.bind(null, order.id)} pendingLabel="Saving..." variant="destructive">Reject</DocumentActionForm>
+                      <DocumentActionForm action={rejectPurchaseOrder.bind(null, order.id)} pendingLabel="Rejecting..." variant="destructive">Reject</DocumentActionForm>
                     </>
                   ) : null}
-                  {order.status === "approved" && permissions["po.send"] ? <DocumentActionForm action={sendPurchaseOrder.bind(null, order.id)} pendingLabel="Saving..." variant="outline">Send to supplier</DocumentActionForm> : null}
+                  {order.status === "approved" && permissions["po.send"] ? <DocumentActionForm action={sendPurchaseOrder.bind(null, order.id)} pendingLabel="Sending..." variant="outline">Send to supplier</DocumentActionForm> : null}
                   {["sent", "partial_received"].includes(order.status) && permissions["po.receive"] ? <DocumentActionLink href={`/goods-receivings/new?po_id=${order.id}`} variant="outline">Receive goods</DocumentActionLink> : null}
-                  {order.status === "partial_received" && permissions["purchase_order.close"] ? <DocumentActionForm action={closePurchaseOrder.bind(null, order.id)} pendingLabel="Saving..." variant="outline">Close</DocumentActionForm> : null}
+                  {order.status === "partial_received" && permissions["purchase_order.close"] ? <DocumentActionForm action={closePurchaseOrder.bind(null, order.id)} pendingLabel="Processing..." variant="outline">Close</DocumentActionForm> : null}
                 </DocumentActionBar>
               </div>
               <div className="grid gap-4 md:grid-cols-4">

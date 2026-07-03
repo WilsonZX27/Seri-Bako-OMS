@@ -279,6 +279,33 @@ export async function getInventoryDashboard() {
   const rows = balances.rows;
   const movements = ledger.rows;
   const today = new Date().toISOString().slice(0, 10);
+  let operationCounts = {
+    totalActiveItems: mockItems.filter((item) => item.status === "active").length,
+    todaysReceiving: movements.filter((row) => row.transaction_date === today && row.transaction_type === "purchase").length,
+    todaysTransfers: movements.filter((row) => row.transaction_date === today && ["transfer_in", "transfer_out"].includes(row.transaction_type)).length,
+    pendingAdjustments: 0,
+    stockCountDue: 0,
+  };
+  if (!isMockMode()) {
+    const supabase = await createClient();
+    const [items, receiving, transfers, pendingAdjustments, stockCountDue] = await Promise.all([
+      supabase.from("items").select("id", { count: "exact", head: true }).eq("status", "active").is("deleted_at", null),
+      supabase.from("goods_receivings").select("id", { count: "exact", head: true }).eq("received_date", today).is("deleted_at", null),
+      supabase.from("stock_transfers").select("id", { count: "exact", head: true }).eq("transfer_date", today).is("deleted_at", null),
+      supabase.from("stock_counts").select("id", { count: "exact", head: true }).in("status", ["reviewed", "approved"]).is("deleted_at", null),
+      supabase.from("stock_counts").select("id", { count: "exact", head: true }).in("status", ["draft", "submitted", "reviewed", "approved"]).is("deleted_at", null),
+    ]);
+    for (const result of [items, receiving, transfers, pendingAdjustments, stockCountDue]) {
+      if (result.error) throw new Error(result.error.message);
+    }
+    operationCounts = {
+      totalActiveItems: items.count ?? 0,
+      todaysReceiving: receiving.count ?? 0,
+      todaysTransfers: transfers.count ?? 0,
+      pendingAdjustments: pendingAdjustments.count ?? 0,
+      stockCountDue: stockCountDue.count ?? 0,
+    };
+  }
   const purchased = new Map<string, number>();
   const consumed = new Map<string, number>();
   movements.forEach((row) => {
@@ -288,10 +315,14 @@ export async function getInventoryDashboard() {
   const top = (map: Map<string, number>) => Array.from(map.entries()).map(([name, qty]) => ({ name, qty })).sort((a, b) => b.qty - a.qty).slice(0, 5);
   return {
     inventoryValue: rows.reduce((sum, row) => sum + row.inventory_value, 0),
-    totalActiveItems: mockItems.filter((item) => item.status === "active").length,
+    totalActiveItems: operationCounts.totalActiveItems,
     lowStockItems: rows.filter((row) => row.status === "low_stock").length,
     negativeStock: rows.filter((row) => row.current_qty < 0).length,
     todaysMovements: movements.filter((row) => row.transaction_date === today).length,
+    todaysReceiving: operationCounts.todaysReceiving,
+    todaysTransfers: operationCounts.todaysTransfers,
+    pendingAdjustments: operationCounts.pendingAdjustments,
+    stockCountDue: operationCounts.stockCountDue,
     recentTransactions: movements.slice(0, 8),
     topPurchasedItems: top(purchased),
     topConsumedItems: top(consumed),

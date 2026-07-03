@@ -9,6 +9,7 @@ import { writeActivityLog } from "@/server/activity/log";
 import { requirePermission } from "@/server/auth/permissions";
 import { formatActionError, requirePermissionOrRedirect, rethrowRedirect, safeRedirectWithMessage } from "@/server/actions/error-handling";
 import { resolveDocumentNumber } from "@/server/documents/sequences";
+import { createInventoryMovement } from "@/server/inventory/engine";
 import { resolveDefaultLocation } from "@/server/inventory/locations";
 import { getCurrentProfile } from "@/server/queries/common";
 import type { StockOperationStatus, StockWastageReason } from "@/types/database";
@@ -141,14 +142,24 @@ export async function postStockTransfer(id: string) {
   if (!lines?.length) throw new Error("Cannot post without lines.");
   for (const line of lines) {
     for (const side of ["out", "in"] as const) {
-      const type = side === "out" ? "transfer_out" : "transfer_in";
       const loc = side === "out" ? transfer.from_location_id : transfer.to_location_id;
-      const qtyIn = side === "in" ? line.quantity : 0;
-      const qtyOut = side === "out" ? line.quantity : 0;
-      const { data: stock, error: stockErr } = await supabase.from("stock_transactions").insert({ transaction_no: `ST-${transfer.transfer_no}-${side}-${String(line.id).slice(0, 4)}`, document_id: transfer.document_id, branch_id: side === "out" ? transfer.from_branch_id : transfer.to_branch_id, item_id: line.item_id, location_id: loc, transaction_type: type, transaction_date: transfer.transfer_date, quantity_in: qtyIn, quantity_out: qtyOut, unit_cost: 0, total_cost: 0, status: "posted", posted_at: new Date().toISOString(), posted_by: profile?.id ?? null, remarks: `Posted from ${transfer.transfer_no}`, reference_type: "stock_transfer", reference_id: transfer.id, from_location_id: transfer.from_location_id, to_location_id: transfer.to_location_id, created_by: profile?.id ?? null }).select("id").single();
-      if (stockErr) throw new Error(stockErr.message);
-      const { error: lineErr } = await supabase.from("stock_transaction_lines").insert({ stock_transaction_id: stock.id, stock_entity_type: "item", item_id: line.item_id, branch_id: side === "out" ? transfer.from_branch_id : transfer.to_branch_id, location_id: loc, quantity_in: qtyIn, quantity_out: qtyOut, unit_cost: 0, reference_type: "stock_transfer", reference_id: transfer.id, remarks: line.remarks, created_by: profile?.id ?? null });
-      if (lineErr) throw new Error(lineErr.message);
+      await createInventoryMovement({
+        movementType: side === "out" ? "TRANSFER_OUT" : "TRANSFER_IN",
+        transactionNo: `ST-${transfer.transfer_no}-${side}-${String(line.id).slice(0, 4)}`,
+        documentId: transfer.document_id,
+        branchId: side === "out" ? transfer.from_branch_id : transfer.to_branch_id,
+        itemId: line.item_id,
+        locationId: loc,
+        transactionDate: transfer.transfer_date,
+        quantity: Number(line.quantity),
+        unitCost: 0,
+        postedBy: profile?.id ?? null,
+        remarks: side === "out" ? `Transferred from ${transfer.transfer_no}` : `Transferred to ${transfer.transfer_no}`,
+        referenceType: "stock_transfer",
+        referenceId: transfer.id,
+        fromLocationId: transfer.from_location_id,
+        toLocationId: transfer.to_location_id,
+      });
     }
   }
   await setTransferStatus(id, "posted", `Stock transfer ${transfer.transfer_no} posted`);
@@ -203,10 +214,21 @@ export async function postStockWastage(id: string) {
     if (!count) throw new Error("Photo attachment required before posting this wastage.");
   }
   for (const line of lines) {
-    const txType = line.reason === "damaged" ? "damage" : line.reason === "missing" ? "missing" : "wastage";
-    const { data: stock, error: stockErr } = await supabase.from("stock_transactions").insert({ transaction_no: `ST-${wastage.wastage_no}-${String(line.id).slice(0, 4)}`, document_id: wastage.document_id, branch_id: wastage.branch_id, item_id: line.item_id, location_id: wastage.location_id, transaction_type: txType, transaction_date: wastage.wastage_date, quantity_in: 0, quantity_out: line.quantity, unit_cost: 0, total_cost: 0, status: "posted", posted_at: new Date().toISOString(), posted_by: profile?.id ?? null, remarks: `Posted from ${wastage.wastage_no}`, reference_type: "stock_wastage", reference_id: wastage.id, created_by: profile?.id ?? null }).select("id").single();
-    if (stockErr) throw new Error(stockErr.message);
-    await supabase.from("stock_transaction_lines").insert({ stock_transaction_id: stock.id, stock_entity_type: "item", item_id: line.item_id, branch_id: wastage.branch_id, location_id: wastage.location_id, quantity_in: 0, quantity_out: line.quantity, unit_cost: 0, reference_type: "stock_wastage", reference_id: wastage.id, remarks: line.remarks, created_by: profile?.id ?? null });
+    await createInventoryMovement({
+      movementType: "WASTAGE",
+      transactionNo: `ST-${wastage.wastage_no}-${String(line.id).slice(0, 4)}`,
+      documentId: wastage.document_id,
+      branchId: wastage.branch_id,
+      itemId: line.item_id,
+      locationId: wastage.location_id,
+      transactionDate: wastage.wastage_date,
+      quantity: Number(line.quantity),
+      unitCost: 0,
+      postedBy: profile?.id ?? null,
+      remarks: `Reported wastage from ${wastage.wastage_no}`,
+      referenceType: "stock_wastage",
+      referenceId: wastage.id,
+    });
   }
   await supabase.from("stock_wastage").update({ status: "posted", posted_at: new Date().toISOString(), updated_by: profile?.id ?? null }).eq("id", id);
   if (wastage.document_id) await writeActivityLog({ entityType: "document", entityId: wastage.document_id, activityType: "posted", message: `Stock wastage ${wastage.wastage_no} posted` });

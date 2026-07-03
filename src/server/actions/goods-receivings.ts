@@ -9,6 +9,7 @@ import { writeActivityLog } from "@/server/activity/log";
 import { requirePermission } from "@/server/auth/permissions";
 import { formatActionError, requirePermissionOrRedirect, rethrowRedirect, safeRedirectWithMessage } from "@/server/actions/error-handling";
 import { resolveDocumentNumber } from "@/server/documents/sequences";
+import { createInventoryMovement } from "@/server/inventory/engine";
 import { resolveDefaultLocation } from "@/server/inventory/locations";
 import { getCurrentProfile } from "@/server/queries/common";
 
@@ -208,42 +209,21 @@ export async function postGoodsReceiving(id: string) {
       .eq("id", line.purchase_order_line_id);
     if (poLineError) throw new Error(poLineError.message);
     const transactionNo = `ST-${grn.grn_no}-${String(line.id).slice(0, 4)}`;
-    const { data: stockTransaction, error: stockError } = await supabase.from("stock_transactions").insert({
-      transaction_no: transactionNo,
-      document_id: grn.document_id,
-      branch_id: grn.branch_id,
-      item_id: line.item_id,
-      location_id: grn.location_id,
-      transaction_type: "purchase",
-      transaction_date: grn.received_date,
-      quantity_in: line.received_qty,
-      quantity_out: 0,
-      unit_cost: line.unit_cost,
-      total_cost: Number(line.received_qty) * Number(line.unit_cost),
-      status: "posted",
-      posted_at: new Date().toISOString(),
-      posted_by: profile?.id ?? null,
-      remarks: `Posted from ${grn.grn_no}${line.batch_no ? ` batch ${line.batch_no}` : ""}`,
-      reference_type: "goods_receiving",
-      reference_id: grn.id,
-      created_by: profile?.id ?? null,
-    }).select("id").single();
-    if (stockError) throw new Error(stockError.message);
-    const { error: stockLineError } = await supabase.from("stock_transaction_lines").insert({
-      stock_transaction_id: stockTransaction.id,
-      stock_entity_type: "item",
-      item_id: line.item_id,
-      branch_id: grn.branch_id,
-      location_id: grn.location_id,
-      quantity_in: line.received_qty,
-      quantity_out: 0,
-      unit_cost: line.unit_cost,
-      reference_type: "goods_receiving",
-      reference_id: grn.id,
-      remarks: line.remarks,
-      created_by: profile?.id ?? null,
+    await createInventoryMovement({
+      movementType: "GOODS_RECEIPT",
+      transactionNo,
+      documentId: grn.document_id,
+      branchId: grn.branch_id,
+      itemId: line.item_id,
+      locationId: grn.location_id,
+      transactionDate: grn.received_date,
+      quantity: Number(line.received_qty),
+      unitCost: Number(line.unit_cost),
+      postedBy: profile?.id ?? null,
+      remarks: `Received from ${grn.grn_no}${line.batch_no ? ` batch ${line.batch_no}` : ""}`,
+      referenceType: "goods_receiving",
+      referenceId: grn.id,
     });
-    if (stockLineError) throw new Error(stockLineError.message);
   }
 
   const { data: poLines, error: poLinesError } = await supabase.from("purchase_order_lines").select("*").eq("purchase_order_id", grn.purchase_order_id);

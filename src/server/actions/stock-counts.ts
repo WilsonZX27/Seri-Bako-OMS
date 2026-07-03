@@ -9,6 +9,7 @@ import { writeActivityLog } from "@/server/activity/log";
 import { requirePermission } from "@/server/auth/permissions";
 import { formatActionError, requirePermissionOrRedirect, rethrowRedirect, safeRedirectWithMessage } from "@/server/actions/error-handling";
 import { resolveDocumentNumber } from "@/server/documents/sequences";
+import { createInventoryMovement } from "@/server/inventory/engine";
 import { resolveDefaultLocation } from "@/server/inventory/locations";
 import { getCurrentProfile } from "@/server/queries/common";
 import type { StockCountStatus } from "@/types/database";
@@ -198,42 +199,23 @@ export async function postStockCount(id: string) {
     const quantityIn = variance > 0 ? variance : 0;
     const quantityOut = variance < 0 ? Math.abs(variance) : 0;
     const transactionNo = `ST-${count.count_no}-${String(line.id).slice(0, 4)}`;
-    const { data: stock, error: stockError } = await supabase.from("stock_transactions").insert({
-      transaction_no: transactionNo,
-      document_id: count.document_id,
-      branch_id: count.branch_id,
-      item_id: line.item_id,
-      location_id: count.location_id,
-      transaction_type: "stock_count_adjustment",
-      transaction_date: count.count_date,
-      quantity_in: quantityIn,
-      quantity_out: quantityOut,
-      unit_cost: 0,
-      total_cost: 0,
-      status: "posted",
-      posted_at: new Date().toISOString(),
-      posted_by: profile?.id ?? null,
-      remarks: `Variance posted from ${count.count_no}`,
-      reference_type: "stock_count",
-      reference_id: count.id,
-      created_by: profile?.id ?? null,
-    }).select("id").single();
-    if (stockError) throw new Error(stockError.message);
-    const { error: lineError } = await supabase.from("stock_transaction_lines").insert({
-      stock_transaction_id: stock.id,
-      stock_entity_type: "item",
-      item_id: line.item_id,
-      branch_id: count.branch_id,
-      location_id: count.location_id,
-      quantity_in: quantityIn,
-      quantity_out: quantityOut,
-      unit_cost: 0,
-      reference_type: "stock_count",
-      reference_id: count.id,
-      remarks: line.remarks,
-      created_by: profile?.id ?? null,
+    await createInventoryMovement({
+      movementType: "STOCK_COUNT",
+      transactionNo,
+      documentId: count.document_id,
+      branchId: count.branch_id,
+      itemId: line.item_id,
+      locationId: count.location_id,
+      transactionDate: count.count_date,
+      quantity: quantityIn || quantityOut,
+      unitCost: 0,
+      postedBy: profile?.id ?? null,
+      remarks: `Adjusted after stock count ${count.count_no}`,
+      referenceType: "stock_count",
+      referenceId: count.id,
+      allowNegative: true,
+      direction: quantityIn > 0 ? "in" : "out",
     });
-    if (lineError) throw new Error(lineError.message);
   }
   await updateStockCountStatus(id, "posted", "Variance posted to ledger", `Stock count ${count.count_no} posted to ledger`);
   revalidatePath("/inventory");

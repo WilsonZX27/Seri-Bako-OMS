@@ -7,15 +7,18 @@ import { PageHeader } from "@/components/ui/page-header";
 import { WorkspaceQuickInsights, WorkspaceSectionPanel, type WorkspaceInsight, type WorkspaceSection } from "@/components/workspace-panels";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { formatCurrency, formatNumber } from "@/lib/utils";
+import { formatStatusLabel } from "@/lib/status-label";
 import { getInventoryDashboard } from "@/server/queries/inventory";
 
 export default async function InventoryPage() {
   const summary = await getInventoryDashboard();
   const inventoryInsights: WorkspaceInsight[] = [
-    { label: "Inventory Value", value: formatCurrency(summary.inventoryValue), icon: Boxes, theme: "teal" },
-    { label: "Active Items", value: formatNumber(summary.totalActiveItems), icon: PackageSearch, theme: "green" },
-    { label: "Low Stock", value: formatNumber(summary.lowStockItems), icon: TriangleAlert, theme: summary.lowStockItems ? "amber" : "green" },
-    { label: "Today's Movements", value: formatNumber(summary.todaysMovements), icon: ArrowUpRight, theme: "blue" },
+    { label: "Total Active Items", value: formatNumber(summary.totalActiveItems), icon: PackageSearch, theme: "green" },
+    { label: "Low Stock Items", value: formatNumber(summary.lowStockItems), icon: TriangleAlert, theme: summary.lowStockItems ? "amber" : "green" },
+    { label: "Today's Receiving", value: formatNumber(summary.todaysReceiving), icon: ArrowDownLeft, theme: "blue" },
+    { label: "Today's Transfers", value: formatNumber(summary.todaysTransfers), icon: ScanLine, theme: "teal" },
+    { label: "Pending Adjustments", value: formatNumber(summary.pendingAdjustments), icon: ClipboardCheck, theme: "amber" },
+    { label: "Stock Count Due", value: formatNumber(summary.stockCountDue), icon: Boxes, theme: "purple" },
   ];
   const inventorySections: WorkspaceSection[] = [
     {
@@ -76,9 +79,9 @@ export default async function InventoryPage() {
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>No</TableHead>
+                      <TableHead>Stock Movement</TableHead>
                       <TableHead>Item</TableHead>
-                      <TableHead>Type</TableHead>
+                      <TableHead>Movement</TableHead>
                       <TableHead className="text-right">In</TableHead>
                       <TableHead className="text-right">Out</TableHead>
                       <TableHead className="text-right">Value</TableHead>
@@ -89,7 +92,7 @@ export default async function InventoryPage() {
                       <TableRow key={row.stock_transaction_id}>
                         <TableCell className="font-medium">{row.transaction_no}</TableCell>
                         <TableCell>{row.item_name}</TableCell>
-                        <TableCell><Badge variant="secondary">{row.transaction_type.replaceAll("_", " ")}</Badge></TableCell>
+                        <TableCell><Badge variant="secondary">{formatStatusLabel(row.transaction_type)}</Badge></TableCell>
                         <TableCell className="text-right">{row.quantity_in ? formatNumber(row.quantity_in) : "-"}</TableCell>
                         <TableCell className="text-right">{row.quantity_out ? formatNumber(row.quantity_out) : "-"}</TableCell>
                         <TableCell className="text-right">{formatCurrency(row.total_cost)}</TableCell>

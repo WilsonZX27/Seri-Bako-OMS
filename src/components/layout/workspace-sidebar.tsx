@@ -7,6 +7,7 @@ import { useEffect, useMemo, useState } from "react";
 import { getVisibleNavGroups, searchableNavItems } from "@/components/layout/nav-items";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { APP_SPRINT, APP_VERSION } from "@/lib/app-version";
 import { cn } from "@/lib/utils";
 import type { UserRole } from "@/types/database";
 
@@ -128,8 +129,8 @@ export function WorkspaceSidebar({
           <div className="rounded-md bg-white/10 p-3 text-xs leading-relaxed text-white/70">
             Daily tools are grouped by category so staff can get to common work without sorting through every ERP page.
             <div className="mt-2 text-white/45">
-              <div>v0.1.8</div>
-              <div>Sprint 6.11.2</div>
+              <div>v{APP_VERSION}</div>
+              <div>{APP_SPRINT}</div>
             </div>
           </div>
         </div>

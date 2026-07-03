@@ -1,13 +1,12 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { PageHeader } from "@/components/ui/page-header";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { DocumentActionBar, DocumentActionForm, DocumentActionLink } from "@/components/document-action-bar";
 import { DocumentNumber } from "@/components/document-number";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { AttachmentPanel, CommentsPanel, DocumentTimeline, RevisionPanel } from "@/components/documents/document-panels";
+import { DocumentSideSection, DocumentWorkspace } from "@/components/documents/document-workspace";
 import { PriorityBadge } from "@/components/priority-badge";
-import { WorkflowStatusPipeline } from "@/components/workflow-status-pipeline";
 import { formatCurrency, formatNumber } from "@/lib/utils";
 import { approvePurchaseOrder, closePurchaseOrder, rejectPurchaseOrder, sendPurchaseOrder, submitPurchaseOrder } from "@/server/actions/procurement";
 import { getPermissionMap } from "@/server/auth/permissions";
@@ -38,34 +37,53 @@ export default async function PurchaseOrderDetailPage({ params }: { params: Prom
   const itemById = new Map(items.map((item) => [item.id, item]));
   const supplier = suppliers.find((row) => row.id === order.supplier_id);
   const total = lines.reduce((sum, line) => sum + line.qty_ordered * line.unit_price, 0);
+  const hasPrimaryAction =
+    (order.status === "draft" && permissions["po.submit"]) ||
+    (order.status === "pending_approval" && permissions["po.approve"]) ||
+    (order.status === "approved" && permissions["po.send"]) ||
+    (["sent", "partial_received"].includes(order.status) && permissions["po.receive"]) ||
+    (order.status === "partial_received" && permissions["purchase_order.close"]);
 
   return (
-    <>
-      <PageHeader title={<DocumentNumber value={order.po_no} size="lg" />} description="Workflow, source request, ordered items, and timeline." />
-      <div className="grid gap-5 p-5 xl:grid-cols-[1fr_420px]">
-        <div className="space-y-5">
-          <WorkflowStatusPipeline steps={poSteps} currentStatus={order.status} />
-
+    <DocumentWorkspace
+      breadcrumbs={[{ label: "Procurement", href: "/procurement" }, { label: "Purchase Orders", href: "/purchase-orders" }, { label: order.po_no }]}
+      documentNo={order.po_no}
+      title="Purchase Order"
+      status={order.status}
+      priority={order.priority}
+      workflowSteps={poSteps}
+      currentStatus={order.status}
+      sidePanel={
+        <>
+          <DocumentSideSection title="Primary Action" description="Only the next valid workflow action is shown.">
+            <DocumentActionBar>
+              {order.status === "draft" && permissions["po.submit"] ? <DocumentActionForm action={submitPurchaseOrder.bind(null, order.id)} pendingLabel="Submitting..." variant="secondary">Submit approval</DocumentActionForm> : null}
+              {order.status === "pending_approval" && permissions["po.approve"] ? (
+                <>
+                  <DocumentActionForm action={approvePurchaseOrder.bind(null, order.id)} pendingLabel="Approving...">Approve</DocumentActionForm>
+                  <DocumentActionForm action={rejectPurchaseOrder.bind(null, order.id)} pendingLabel="Rejecting..." variant="destructive">Reject</DocumentActionForm>
+                </>
+              ) : null}
+              {order.status === "approved" && permissions["po.send"] ? <DocumentActionForm action={sendPurchaseOrder.bind(null, order.id)} pendingLabel="Sending..." variant="outline">Send to supplier</DocumentActionForm> : null}
+              {["sent", "partial_received"].includes(order.status) && permissions["po.receive"] ? <DocumentActionLink href={`/goods-receivings/new?po_id=${order.id}`} variant="outline">Receive goods</DocumentActionLink> : null}
+              {order.status === "partial_received" && permissions["purchase_order.close"] ? <DocumentActionForm action={closePurchaseOrder.bind(null, order.id)} pendingLabel="Closing..." variant="outline">Close</DocumentActionForm> : null}
+            </DocumentActionBar>
+            {!hasPrimaryAction ? <p className="text-sm text-muted-foreground">You can view this document, but there is no workflow action available for your role or this status.</p> : null}
+          </DocumentSideSection>
+          {documentBundle ? (
+            <>
+              <CommentsPanel documentId={documentBundle.document.id} comments={documentBundle.comments} />
+              <AttachmentPanel documentId={documentBundle.document.id} attachments={documentBundle.attachments} />
+              <DocumentTimeline document={documentBundle.document} activities={documentBundle.activityLogs} comments={documentBundle.comments} attachments={documentBundle.attachments} />
+              <RevisionPanel revisions={documentBundle.revisions} />
+            </>
+          ) : null}
+        </>
+      }
+    >
           <Card>
             <CardContent className="space-y-4 p-5">
-              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                <div>
-                  <p className="text-xs uppercase text-muted-foreground">Current Status</p>
-                  <StatusBadge status={order.status} />
-                </div>
-                <DocumentActionBar>
-                  {order.status === "draft" && permissions["po.submit"] ? <DocumentActionForm action={submitPurchaseOrder.bind(null, order.id)} pendingLabel="Processing..." variant="secondary">Submit approval</DocumentActionForm> : null}
-                  {order.status === "pending_approval" && permissions["po.approve"] ? (
-                    <>
-                      <DocumentActionForm action={approvePurchaseOrder.bind(null, order.id)} pendingLabel="Approving...">Approve</DocumentActionForm>
-                      <DocumentActionForm action={rejectPurchaseOrder.bind(null, order.id)} pendingLabel="Rejecting..." variant="destructive">Reject</DocumentActionForm>
-                    </>
-                  ) : null}
-                  {order.status === "approved" && permissions["po.send"] ? <DocumentActionForm action={sendPurchaseOrder.bind(null, order.id)} pendingLabel="Sending..." variant="outline">Send to supplier</DocumentActionForm> : null}
-                  {["sent", "partial_received"].includes(order.status) && permissions["po.receive"] ? <DocumentActionLink href={`/goods-receivings/new?po_id=${order.id}`} variant="outline">Receive goods</DocumentActionLink> : null}
-                  {order.status === "partial_received" && permissions["purchase_order.close"] ? <DocumentActionForm action={closePurchaseOrder.bind(null, order.id)} pendingLabel="Processing..." variant="outline">Close</DocumentActionForm> : null}
-                </DocumentActionBar>
-              </div>
+              <h2 className="text-sm font-semibold">Order Summary</h2>
               <div className="grid gap-4 md:grid-cols-4">
                 <div><p className="text-xs uppercase text-muted-foreground">Supplier</p><p className="font-medium">{supplier?.name ?? order.supplier_id}</p></div>
                 <div><p className="text-xs uppercase text-muted-foreground">Order Date</p><p className="font-medium">{order.order_date}</p></div>
@@ -147,21 +165,8 @@ export default async function PurchaseOrderDetailPage({ params }: { params: Prom
           </Card>
 
           {documentBundle ? (
-            <>
-              <AttachmentPanel documentId={documentBundle.document.id} attachments={documentBundle.attachments} />
-              <CommentsPanel documentId={documentBundle.document.id} comments={documentBundle.comments} />
-            </>
+            <p className="rounded-md border bg-secondary/30 p-3 text-sm text-muted-foreground">Comments, attachments, timeline, and revision history are available in the right panel.</p>
           ) : null}
-        </div>
-        <div className="space-y-5">
-          {documentBundle ? (
-            <>
-              <DocumentTimeline document={documentBundle.document} activities={documentBundle.activityLogs} comments={documentBundle.comments} attachments={documentBundle.attachments} />
-              <RevisionPanel revisions={documentBundle.revisions} />
-            </>
-          ) : null}
-        </div>
-      </div>
-    </>
+    </DocumentWorkspace>
   );
 }

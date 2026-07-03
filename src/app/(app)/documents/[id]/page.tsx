@@ -1,14 +1,21 @@
-import { DocumentNumber } from "@/components/document-number";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { Card, CardContent } from "@/components/ui/card";
-import { PageHeader } from "@/components/ui/page-header";
 import { ApprovalPanel, AttachmentPanel, CommentsPanel, DocumentTimeline, RevisionPanel } from "@/components/documents/document-panels";
+import { DocumentWorkspace } from "@/components/documents/document-workspace";
 import { formatStatusLabel } from "@/lib/status-label";
 import { getDocumentBundle } from "@/server/queries/documents";
 
 function formatDate(value: string | null) {
   return value ? new Intl.DateTimeFormat("en-MY", { dateStyle: "medium", timeStyle: "short" }).format(new Date(value)) : "-";
 }
+
+const documentSteps = [
+  { key: "draft", label: "Draft", description: "Document is being prepared." },
+  { key: "pending_approval", label: "In Review", description: "Document is being reviewed." },
+  { key: "approved", label: "Approved", description: "Document has been approved." },
+  { key: "posted", label: "Posted", description: "Document has been posted." },
+  { key: "cancelled", label: "Cancelled", description: "Document was cancelled." },
+];
 
 export default async function DocumentDetailPage({
   params,
@@ -22,10 +29,23 @@ export default async function DocumentDetailPage({
   const document = bundle.document;
 
   return (
-    <>
-      <PageHeader title={<DocumentNumber value={document.document_no} size="lg" />} description={document.title} />
-      <div className="grid gap-5 p-5 xl:grid-cols-[1fr_420px]">
-        <div className="space-y-5">
+    <DocumentWorkspace
+      breadcrumbs={[{ label: "Documents", href: "/documents" }, { label: document.document_no }]}
+      documentNo={document.document_no}
+      title={document.title}
+      status={document.status}
+      workflowSteps={documentSteps}
+      currentStatus={document.status}
+      sidePanel={
+        <>
+          <ApprovalPanel document={document} approval={bundle.approval} approvalSteps={bundle.approvalSteps} />
+          <CommentsPanel documentId={document.id} comments={bundle.comments} />
+          <AttachmentPanel documentId={document.id} attachments={bundle.attachments} />
+          <DocumentTimeline document={document} activities={bundle.activityLogs} comments={bundle.comments} attachments={bundle.attachments} />
+          <RevisionPanel revisions={bundle.revisions} />
+        </>
+      }
+    >
           {messageParams.error || messageParams.success ? (
             <Card>
               <CardContent className={`p-4 text-sm ${messageParams.error ? "text-destructive" : "text-emerald-700"}`}>
@@ -68,22 +88,9 @@ export default async function DocumentDetailPage({
                   <p className="text-xs uppercase text-muted-foreground">Related Entity Type</p>
                   <p className="mt-1 font-medium">{document.related_entity_type ? formatStatusLabel(document.related_entity_type) : "-"}</p>
                 </div>
-                <div>
-                  <p className="text-xs uppercase text-muted-foreground">Related Entity ID</p>
-                  <p className="mt-1 break-all font-medium">{document.related_entity_id ?? "-"}</p>
-                </div>
               </div>
             </CardContent>
           </Card>
-          <ApprovalPanel document={document} approval={bundle.approval} approvalSteps={bundle.approvalSteps} />
-          <AttachmentPanel documentId={document.id} attachments={bundle.attachments} />
-          <CommentsPanel documentId={document.id} comments={bundle.comments} />
-        </div>
-        <div className="space-y-5">
-          <DocumentTimeline document={document} activities={bundle.activityLogs} comments={bundle.comments} attachments={bundle.attachments} />
-          <RevisionPanel revisions={bundle.revisions} />
-        </div>
-      </div>
-    </>
+    </DocumentWorkspace>
   );
 }

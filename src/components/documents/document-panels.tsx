@@ -62,7 +62,7 @@ export function DocumentTimeline({ document, activities, comments, attachments }
   const events = [...syntheticEvents, ...activities, ...commentEvents, ...attachmentEvents]
     .filter(isMeaningfulTimelineEvent)
     .filter((event, index, rows) => rows.findIndex((row) => row.activity_type === event.activity_type && row.created_at === event.created_at && row.message === event.message) === index)
-    .sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
+    .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
 
   return (
     <Card>
@@ -78,6 +78,7 @@ export function DocumentTimeline({ document, activities, comments, attachments }
               </div>
             </div>
           ))}
+          {!events.length ? <p className="text-sm text-muted-foreground">No activity yet.</p> : null}
         </div>
       </CardContent>
     </Card>

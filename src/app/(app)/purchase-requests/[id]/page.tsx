@@ -1,15 +1,13 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { PageHeader } from "@/components/ui/page-header";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { DocumentActionBar, DocumentActionForm } from "@/components/document-action-bar";
 import { DocumentNumber } from "@/components/document-number";
-import { StatusBadge } from "@/components/ui/status-badge";
 import { AttachmentPanel, CommentsPanel, DocumentTimeline, RevisionPanel } from "@/components/documents/document-panels";
+import { DocumentSideSection, DocumentWorkspace } from "@/components/documents/document-workspace";
 import { PriorityBadge } from "@/components/priority-badge";
 import { SubmitButton } from "@/components/ui/submit-button";
-import { WorkflowStatusPipeline } from "@/components/workflow-status-pipeline";
 import { formatCurrency, formatNumber } from "@/lib/utils";
 import {
   adminReviewPurchaseRequest,
@@ -20,7 +18,7 @@ import {
   submitPurchaseRequest,
 } from "@/server/actions/procurement";
 import { getPermissionMap } from "@/server/auth/permissions";
-import { getBranchesForSelect, getItemsForSelect, getLocationsForSelect, getSuppliersForSelect } from "@/server/queries/common";
+import { getBranchesForSelect, getItemsForSelect, getSuppliersForSelect } from "@/server/queries/common";
 import { getDocumentBundle } from "@/server/queries/documents";
 import { getPurchaseOrdersForRequest, getPurchaseRequest } from "@/server/queries/procurement";
 
@@ -35,61 +33,82 @@ const prSteps = [
 
 export default async function PurchaseRequestDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const [{ request, lines }, linkedPurchaseOrders, items, suppliers, branches, locations, permissions] = await Promise.all([
+  const [{ request, lines }, linkedPurchaseOrders, items, suppliers, branches, permissions] = await Promise.all([
     getPurchaseRequest(id),
     getPurchaseOrdersForRequest(id),
     getItemsForSelect(),
     getSuppliersForSelect(),
     getBranchesForSelect(),
-    getLocationsForSelect(),
     getPermissionMap(["pr.submit", "pr.admin_review", "pr.purchasing_review", "pr.manager_approve", "pr.convert_to_po"]),
   ]);
   const documentBundle = request.document_id ? await getDocumentBundle(request.document_id) : null;
   const itemById = new Map(items.map((item) => [item.id, item]));
   const supplierById = new Map(suppliers.map((supplier) => [supplier.id, supplier]));
   const branch = branches.find((row) => row.id === request.branch_id);
-  const location = locations.find((row) => row.id === request.location_id);
   const total = lines.reduce((sum, line) => sum + line.qty * line.estimated_unit_cost, 0);
   const canReject =
     (request.status === "admin_review" && permissions["pr.admin_review"]) ||
+    (request.status === "purchasing_review" && permissions["pr.purchasing_review"]) ||
     (request.status === "pending_approval" && permissions["pr.manager_approve"]);
+  const hasPrimaryAction =
+    (request.status === "draft" && permissions["pr.submit"]) ||
+    (request.status === "admin_review" && permissions["pr.admin_review"]) ||
+    (request.status === "purchasing_review" && permissions["pr.purchasing_review"]) ||
+    (request.status === "pending_approval" && permissions["pr.manager_approve"]) ||
+    (request.status === "approved" && permissions["pr.convert_to_po"]) ||
+    (request.status === "converted" && linkedPurchaseOrders.length > 0) ||
+    canReject;
 
   return (
-    <>
-      <PageHeader title={<DocumentNumber value={request.request_no} size="lg" />} description="Workflow, linked documents, requested items, and timeline." />
-      <div className="grid gap-5 p-5 xl:grid-cols-[1fr_420px]">
-        <div className="space-y-5">
-          <WorkflowStatusPipeline steps={prSteps} currentStatus={request.status} />
-
+    <DocumentWorkspace
+      breadcrumbs={[{ label: "Procurement", href: "/procurement" }, { label: "Purchase Requests", href: "/purchase-requests" }, { label: request.request_no }]}
+      documentNo={request.request_no}
+      title="Purchase Request"
+      status={request.status}
+      priority={request.priority}
+      branch={branch?.branch_name}
+      workflowSteps={prSteps}
+      currentStatus={request.status}
+      sidePanel={
+        <>
+          <DocumentSideSection title="Primary Action" description="Only the next valid workflow action is shown.">
+            <DocumentActionBar>
+              {request.status === "draft" && permissions["pr.submit"] ? <DocumentActionForm action={submitPurchaseRequest.bind(null, request.id)} pendingLabel="Submitting..." variant="secondary">Submit to Admin</DocumentActionForm> : null}
+              {request.status === "admin_review" && permissions["pr.admin_review"] ? <DocumentActionForm action={adminReviewPurchaseRequest.bind(null, request.id)} pendingLabel="Approving..." variant="outline">Admin approve</DocumentActionForm> : null}
+              {request.status === "purchasing_review" && permissions["pr.purchasing_review"] ? <DocumentActionForm action={purchasingReviewPurchaseRequest.bind(null, request.id)} pendingLabel="Approving..." variant="outline">Purchasing approve</DocumentActionForm> : null}
+              {request.status === "pending_approval" && permissions["pr.manager_approve"] ? <DocumentActionForm action={approvePurchaseRequest.bind(null, request.id)} pendingLabel="Approving...">Manager approve</DocumentActionForm> : null}
+              {request.status === "approved" && permissions["pr.convert_to_po"] ? <DocumentActionForm action={convertPurchaseRequestToPurchaseOrder.bind(null, request.id)} pendingLabel="Converting...">Convert to Purchase Order</DocumentActionForm> : null}
+              {request.status === "converted" && linkedPurchaseOrders[0] ? (
+                <Button asChild><a href={`/purchase-orders/${linkedPurchaseOrders[0].id}`}>Open PO</a></Button>
+              ) : null}
+            </DocumentActionBar>
+            {canReject ? (
+              <form action={rejectPurchaseRequest.bind(null, request.id)} className="mt-3 space-y-2">
+                <Input name="remarks" placeholder="Rejection remarks required" required />
+                <SubmitButton type="submit" pendingLabel="Rejecting..." variant="destructive">Reject</SubmitButton>
+              </form>
+            ) : null}
+            {!hasPrimaryAction ? <p className="text-sm text-muted-foreground">You can view this document, but there is no workflow action available for your role or this status.</p> : null}
+          </DocumentSideSection>
+          {documentBundle ? (
+            <>
+              <CommentsPanel documentId={documentBundle.document.id} comments={documentBundle.comments} />
+              <AttachmentPanel documentId={documentBundle.document.id} attachments={documentBundle.attachments} />
+              <DocumentTimeline document={documentBundle.document} activities={documentBundle.activityLogs} comments={documentBundle.comments} attachments={documentBundle.attachments} />
+              <RevisionPanel revisions={documentBundle.revisions} />
+            </>
+          ) : null}
+        </>
+      }
+    >
           <Card>
             <CardContent className="space-y-4 p-5">
-              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                <div>
-                  <p className="text-xs uppercase text-muted-foreground">Current Status</p>
-                  <StatusBadge status={request.status} />
-                </div>
-                <DocumentActionBar>
-                  {request.status === "draft" && permissions["pr.submit"] ? <DocumentActionForm action={submitPurchaseRequest.bind(null, request.id)} pendingLabel="Processing..." variant="secondary">Submit to Admin</DocumentActionForm> : null}
-                  {request.status === "admin_review" && permissions["pr.admin_review"] ? <DocumentActionForm action={adminReviewPurchaseRequest.bind(null, request.id)} pendingLabel="Approving..." variant="outline">Admin approve</DocumentActionForm> : null}
-                  {request.status === "purchasing_review" && permissions["pr.purchasing_review"] ? <DocumentActionForm action={purchasingReviewPurchaseRequest.bind(null, request.id)} pendingLabel="Processing..." variant="outline">Purchasing verified</DocumentActionForm> : null}
-                  {request.status === "pending_approval" && permissions["pr.manager_approve"] ? <DocumentActionForm action={approvePurchaseRequest.bind(null, request.id)} pendingLabel="Approving...">Manager approve</DocumentActionForm> : null}
-                  {request.status === "approved" && permissions["pr.convert_to_po"] ? (
-                    <DocumentActionForm action={convertPurchaseRequestToPurchaseOrder.bind(null, request.id)} pendingLabel="Converting...">Convert to Purchase Order</DocumentActionForm>
-                  ) : null}
-                </DocumentActionBar>
-              </div>
-              {canReject ? (
-                <form action={rejectPurchaseRequest.bind(null, request.id)} className="grid gap-2 sm:grid-cols-[1fr_auto]">
-                  <Input name="remarks" placeholder="Rejection remarks required" required />
-                  <SubmitButton type="submit" pendingLabel="Rejecting..." variant="destructive">Reject</SubmitButton>
-                </form>
-              ) : null}
+              <h2 className="text-sm font-semibold">Request Summary</h2>
               <div className="grid gap-4 md:grid-cols-4">
                 <div><p className="text-xs uppercase text-muted-foreground">Request Date</p><p className="font-medium">{request.request_date}</p></div>
                 <div><p className="text-xs uppercase text-muted-foreground">Priority</p><PriorityBadge priority={request.priority} /></div>
                 <div><p className="text-xs uppercase text-muted-foreground">Needed By</p><p className="font-medium">{request.needed_by_date ?? "-"}</p></div>
                 <div><p className="text-xs uppercase text-muted-foreground">Branch</p><p className="font-medium">{branch?.branch_name ?? "-"}</p></div>
-                <div><p className="text-xs uppercase text-muted-foreground">Location</p><p className="font-medium">{location?.location_name ?? "-"}</p></div>
               </div>
               {request.urgency_reason ? <p className="rounded-md border bg-warning/10 p-3 text-sm text-warning">{request.urgency_reason}</p> : null}
               {request.remarks ? <p className="rounded-md border bg-secondary/30 p-3 text-sm">{request.remarks}</p> : null}
@@ -164,21 +183,8 @@ export default async function PurchaseRequestDetailPage({ params }: { params: Pr
           </Card>
 
           {documentBundle ? (
-            <>
-              <AttachmentPanel documentId={documentBundle.document.id} attachments={documentBundle.attachments} />
-              <CommentsPanel documentId={documentBundle.document.id} comments={documentBundle.comments} />
-            </>
+            <p className="rounded-md border bg-secondary/30 p-3 text-sm text-muted-foreground">Comments, attachments, timeline, and revision history are available in the right panel.</p>
           ) : null}
-        </div>
-        <div className="space-y-5">
-          {documentBundle ? (
-            <>
-              <DocumentTimeline document={documentBundle.document} activities={documentBundle.activityLogs} comments={documentBundle.comments} attachments={documentBundle.attachments} />
-              <RevisionPanel revisions={documentBundle.revisions} />
-            </>
-          ) : null}
-        </div>
-      </div>
-    </>
+    </DocumentWorkspace>
   );
 }

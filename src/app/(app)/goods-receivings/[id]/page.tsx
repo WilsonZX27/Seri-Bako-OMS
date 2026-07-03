@@ -1,12 +1,9 @@
 import { AlertTriangle } from "lucide-react";
 import { DocumentActionBar, DocumentActionForm, DocumentActionLink } from "@/components/document-action-bar";
-import { DocumentNumber } from "@/components/document-number";
 import { AttachmentPanel, CommentsPanel, DocumentTimeline, RevisionPanel } from "@/components/documents/document-panels";
+import { DocumentSideSection, DocumentWorkspace } from "@/components/documents/document-workspace";
 import { Card, CardContent } from "@/components/ui/card";
-import { PageHeader } from "@/components/ui/page-header";
-import { StatusBadge } from "@/components/ui/status-badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { WorkflowStatusPipeline } from "@/components/workflow-status-pipeline";
 import { formatCurrency, formatNumber } from "@/lib/utils";
 import { postGoodsReceiving } from "@/server/actions/goods-receivings";
 import { getPermissionMap } from "@/server/auth/permissions";
@@ -30,42 +27,53 @@ export default async function GoodsReceivingDetailPage({ params }: { params: Pro
   const hasRejected = lines.some((line) => line.rejected_qty > 0);
   const hasDeliveryOrder = Boolean(documentBundle?.attachments.some((attachment) => attachment.status === "active"));
   const receivingDisplay = receiving as typeof receiving & { supplier_name?: string | null; location_name?: string | null };
+  const hasPrimaryAction = permissions["grn.post"] && receiving.status === "draft";
 
   return (
-    <>
-      <PageHeader title={<DocumentNumber value={receiving.grn_no} size="lg" />} description="Workflow, received items, attachments, and posting status." />
-      <div className="grid gap-5 p-5 xl:grid-cols-[1fr_420px]">
-        <div className="space-y-5">
-          <WorkflowStatusPipeline steps={grnSteps} currentStatus={receiving.status} />
-
+    <DocumentWorkspace
+      breadcrumbs={[{ label: "Procurement", href: "/procurement" }, { label: "Goods Receiving", href: "/goods-receivings" }, { label: receiving.grn_no }]}
+      documentNo={receiving.grn_no}
+      title="Goods Receiving"
+      status={receiving.status}
+      workflowSteps={grnSteps}
+      currentStatus={receiving.status}
+      sidePanel={
+        <>
+          <DocumentSideSection title="Primary Action" description="Post only after the receiving details and attachments are ready.">
+            <DocumentActionBar>
+              <DocumentActionLink href={`/purchase-orders/${receiving.purchase_order_id}`} variant="outline">View PO</DocumentActionLink>
+              {hasPrimaryAction ? <DocumentActionForm action={postGoodsReceiving.bind(null, receiving.id)} pendingLabel="Posting...">Post to stock</DocumentActionForm> : null}
+            </DocumentActionBar>
+            {!hasPrimaryAction && receiving.status === "draft" ? <p className="mt-3 text-sm text-muted-foreground">You can view this GRN, but you do not have permission to post it.</p> : null}
+          </DocumentSideSection>
+          {!hasDeliveryOrder && receiving.status === "draft" ? (
+            <DocumentSideSection title="Attachment Required">
+              <div className="flex gap-2 rounded-md bg-warning/10 p-3 text-sm text-warning">
+                <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
+                Delivery Order attachment is required before posting.
+              </div>
+            </DocumentSideSection>
+          ) : null}
+          {documentBundle ? (
+            <>
+              <CommentsPanel documentId={documentBundle.document.id} comments={documentBundle.comments} />
+              <AttachmentPanel documentId={documentBundle.document.id} attachments={documentBundle.attachments} />
+              <DocumentTimeline document={documentBundle.document} activities={documentBundle.activityLogs} comments={documentBundle.comments} attachments={documentBundle.attachments} />
+              <RevisionPanel revisions={documentBundle.revisions} />
+            </>
+          ) : null}
+        </>
+      }
+    >
           <Card>
             <CardContent className="space-y-4 p-5">
-              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                <div>
-                  <p className="text-xs uppercase text-muted-foreground">Current Status</p>
-                  <StatusBadge status={receiving.status} />
-                </div>
-                <DocumentActionBar>
-                  <DocumentActionLink href={`/purchase-orders/${receiving.purchase_order_id}`} variant="outline">View PO</DocumentActionLink>
-                  {receiving.status === "draft" ? (
-                    <>
-                      {permissions["grn.post"] ? <DocumentActionForm action={postGoodsReceiving.bind(null, receiving.id)} pendingLabel="Posting...">Post to stock</DocumentActionForm> : null}
-                    </>
-                  ) : null}
-                </DocumentActionBar>
-              </div>
+              <h2 className="text-sm font-semibold">Receiving Summary</h2>
               <div className="grid gap-4 md:grid-cols-4">
                 <div><p className="text-xs uppercase text-muted-foreground">Supplier</p><p className="font-medium">{receivingDisplay.supplier_name ?? receiving.supplier_id}</p></div>
                 <div><p className="text-xs uppercase text-muted-foreground">Received Date</p><p className="font-medium">{receiving.received_date}</p></div>
-                <div><p className="text-xs uppercase text-muted-foreground">Location</p><p className="font-medium">{receivingDisplay.location_name ?? receiving.location_id}</p></div>
+                <div><p className="text-xs uppercase text-muted-foreground">Receiving Area</p><p className="font-medium">{receivingDisplay.location_name ?? "Branch default store"}</p></div>
                 <div><p className="text-xs uppercase text-muted-foreground">Received Value</p><p className="font-medium">{formatCurrency(totalReceivedValue)}</p></div>
               </div>
-              {!hasDeliveryOrder && receiving.status === "draft" ? (
-                <div className="flex gap-2 rounded-md bg-warning/10 p-3 text-sm text-warning">
-                  <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
-                  Delivery Order attachment is required before posting.
-                </div>
-              ) : null}
               {hasRejected ? (
                 <div className="flex gap-2 rounded-md bg-destructive/10 p-3 text-sm text-destructive">
                   <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
@@ -123,21 +131,8 @@ export default async function GoodsReceivingDetailPage({ params }: { params: Pro
           </Card>
 
           {documentBundle ? (
-            <>
-              <AttachmentPanel documentId={documentBundle.document.id} attachments={documentBundle.attachments} />
-              <CommentsPanel documentId={documentBundle.document.id} comments={documentBundle.comments} />
-            </>
+            <p className="rounded-md border bg-secondary/30 p-3 text-sm text-muted-foreground">Comments, attachments, timeline, and revision history are available in the right panel.</p>
           ) : null}
-        </div>
-        <div className="space-y-5">
-          {documentBundle ? (
-            <>
-              <DocumentTimeline document={documentBundle.document} activities={documentBundle.activityLogs} comments={documentBundle.comments} attachments={documentBundle.attachments} />
-              <RevisionPanel revisions={documentBundle.revisions} />
-            </>
-          ) : null}
-        </div>
-      </div>
-    </>
+    </DocumentWorkspace>
   );
 }

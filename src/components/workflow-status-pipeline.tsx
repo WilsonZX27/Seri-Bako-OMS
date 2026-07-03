@@ -7,14 +7,14 @@ export type WorkflowStep = {
   description?: string;
 };
 
-export function WorkflowStatusPipeline({ steps, currentStatus }: { steps: WorkflowStep[]; currentStatus: string }) {
+export function WorkflowStatusPipeline({ steps, currentStatus, compact = false }: { steps: WorkflowStep[]; currentStatus: string; compact?: boolean }) {
   const activeIndex = Math.max(0, steps.findIndex((step) => step.key === currentStatus));
   const rejected = ["rejected", "cancelled"].includes(currentStatus);
 
   return (
-    <div className="rounded-lg border bg-card p-4">
-      <p className="text-sm font-semibold">Workflow</p>
-      <div className="mt-4 grid gap-3 md:grid-cols-[repeat(auto-fit,minmax(120px,1fr))]">
+    <div className={cn("rounded-lg border bg-card", compact ? "p-3" : "p-4")}>
+      {!compact ? <p className="text-sm font-semibold">Workflow</p> : null}
+      <div className={cn("grid gap-3 md:grid-cols-[repeat(auto-fit,minmax(120px,1fr))]", compact ? "" : "mt-4")}>
         {steps.map((step, index) => {
           const done = index < activeIndex;
           const active = index === activeIndex;
@@ -24,7 +24,8 @@ export function WorkflowStatusPipeline({ steps, currentStatus }: { steps: Workfl
             <div
               key={step.key}
               className={cn(
-                "rounded-md border p-3",
+                "rounded-md border",
+                compact ? "p-2" : "p-3",
                 done ? "border-emerald-200 bg-emerald-50 text-emerald-800" : "",
                 active && !errorStep ? "border-slate-700 bg-white text-slate-900 shadow-sm" : "",
                 errorStep ? "border-red-200 bg-red-50 text-red-800" : "",
@@ -35,7 +36,7 @@ export function WorkflowStatusPipeline({ steps, currentStatus }: { steps: Workfl
                 <Icon className="h-4 w-4 shrink-0" />
                 <p className="text-sm font-medium">{step.label}</p>
               </div>
-              {step.description ? <p className="mt-1 text-xs text-muted-foreground">{step.description}</p> : null}
+              {step.description && !compact ? <p className="mt-1 text-xs text-muted-foreground">{step.description}</p> : null}
             </div>
           );
         })}

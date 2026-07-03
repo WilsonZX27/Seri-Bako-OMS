@@ -19,20 +19,20 @@ import {
 import { hasPermission } from "@/server/auth/permissions";
 import type { Database } from "@/types/database";
 
-type Document = Database["public"]["Tables"]["documents"]["Row"];
-type Attachment = Database["public"]["Tables"]["attachments"]["Row"];
-type Comment = Database["public"]["Tables"]["document_comments"]["Row"];
-type Revision = Database["public"]["Tables"]["document_revisions"]["Row"];
+type Document = Database["public"]["Tables"]["documents"]["Row"] & { created_by_name?: string | null; updated_by_name?: string | null };
+type Attachment = Database["public"]["Tables"]["attachments"]["Row"] & { uploaded_by_name?: string | null; created_by_name?: string | null };
+type Comment = Database["public"]["Tables"]["document_comments"]["Row"] & { created_by_name?: string | null };
+type Revision = Database["public"]["Tables"]["document_revisions"]["Row"] & { changed_by_name?: string | null };
 type Approval = Database["public"]["Tables"]["approvals"]["Row"] | null;
-type ApprovalStep = Database["public"]["Tables"]["approval_steps"]["Row"];
-type Activity = Pick<Database["public"]["Tables"]["activity_logs"]["Row"], "id" | "activity_type" | "message" | "created_at" | "created_by">;
+type ApprovalStep = Database["public"]["Tables"]["approval_steps"]["Row"] & { acted_by_name?: string | null; approver_staff_name?: string | null };
+type Activity = Pick<Database["public"]["Tables"]["activity_logs"]["Row"], "id" | "activity_type" | "message" | "created_at" | "created_by"> & { created_by_name?: string | null };
 
 function formatDate(value: string | null) {
   return value ? new Intl.DateTimeFormat("en-MY", { dateStyle: "medium", timeStyle: "short" }).format(new Date(value)) : "-";
 }
 
-function actorLabel(value: string | null) {
-  return value ? `By ${value.slice(0, 8)}` : "By System";
+function actorLabel(name: string | null | undefined) {
+  return name?.trim() || "System";
 }
 
 function eventIcon(type: string) {
@@ -52,13 +52,13 @@ function isMeaningfulTimelineEvent(event: Activity) {
 
 export function DocumentTimeline({ document, activities, comments, attachments }: { document: Document; activities: Activity[]; comments: Comment[]; attachments: Attachment[] }) {
   const syntheticEvents = [
-    { id: "created", activity_type: "created", message: "Document created", created_at: document.created_at, created_by: document.created_by },
-    ...(document.submitted_at ? [{ id: "submitted", activity_type: "submitted", message: "Document submitted", created_at: document.submitted_at, created_by: document.created_by }] : []),
-    ...(document.posted_at ? [{ id: "posted", activity_type: "posted", message: "Document posted", created_at: document.posted_at, created_by: document.updated_by }] : []),
-    ...(document.cancelled_at ? [{ id: "cancelled", activity_type: "cancelled", message: "Document cancelled", created_at: document.cancelled_at, created_by: document.updated_by }] : []),
+    { id: "created", activity_type: "created", message: "Document created", created_at: document.created_at, created_by: document.created_by, created_by_name: document.created_by_name },
+    ...(document.submitted_at ? [{ id: "submitted", activity_type: "submitted", message: "Document submitted", created_at: document.submitted_at, created_by: document.created_by, created_by_name: document.created_by_name }] : []),
+    ...(document.posted_at ? [{ id: "posted", activity_type: "posted", message: "Document posted", created_at: document.posted_at, created_by: document.updated_by, created_by_name: document.updated_by_name }] : []),
+    ...(document.cancelled_at ? [{ id: "cancelled", activity_type: "cancelled", message: "Document cancelled", created_at: document.cancelled_at, created_by: document.updated_by, created_by_name: document.updated_by_name }] : []),
   ];
-  const commentEvents = comments.map((comment) => ({ id: comment.id, activity_type: "comment_added", message: comment.comment_text, created_at: comment.created_at, created_by: comment.created_by }));
-  const attachmentEvents = attachments.map((attachment) => ({ id: attachment.id, activity_type: "attachment_uploaded", message: `${attachment.file_name} uploaded`, created_at: attachment.created_at, created_by: attachment.uploaded_by }));
+  const commentEvents = comments.map((comment) => ({ id: comment.id, activity_type: "comment_added", message: comment.comment_text, created_at: comment.created_at, created_by: comment.created_by, created_by_name: comment.created_by_name }));
+  const attachmentEvents = attachments.map((attachment) => ({ id: attachment.id, activity_type: "attachment_uploaded", message: `${attachment.file_name} uploaded`, created_at: attachment.created_at, created_by: attachment.uploaded_by, created_by_name: attachment.uploaded_by_name }));
   const events = [...syntheticEvents, ...activities, ...commentEvents, ...attachmentEvents]
     .filter(isMeaningfulTimelineEvent)
     .filter((event, index, rows) => rows.findIndex((row) => row.activity_type === event.activity_type && row.created_at === event.created_at && row.message === event.message) === index)
@@ -74,7 +74,7 @@ export function DocumentTimeline({ document, activities, comments, attachments }
               <div className="mt-0.5">{eventIcon(event.activity_type)}</div>
               <div>
                 <p className="text-sm font-medium">{event.message}</p>
-                <p className="text-xs text-muted-foreground">{actorLabel(event.created_by)} - {formatDate(event.created_at)}</p>
+                <p className="text-xs text-muted-foreground">{actorLabel(event.created_by_name)} - {formatDate(event.created_at)}</p>
               </div>
             </div>
           ))}
@@ -108,7 +108,7 @@ export async function AttachmentPanel({ documentId, attachments }: { documentId:
                 <FileText className="mt-0.5 h-4 w-4 text-muted-foreground" />
                 <div>
                   <p className="text-sm font-medium">{attachment.file_name}</p>
-                  <p className="text-xs text-muted-foreground">Uploaded {actorLabel(attachment.uploaded_by).toLowerCase()} - {formatDate(attachment.created_at)}</p>
+                  <p className="text-xs text-muted-foreground">Uploaded by {actorLabel(attachment.uploaded_by_name)} - {formatDate(attachment.created_at)}</p>
                 </div>
               </div>
               <div className="flex gap-2">
@@ -137,7 +137,7 @@ export function CommentsPanel({ documentId, comments }: { documentId: string; co
           {comments.map((comment) => (
             <div key={comment.id} className="rounded-lg border bg-secondary/30 p-3">
               <p className="text-sm">{comment.comment_text}</p>
-              <p className="mt-1 text-xs text-muted-foreground">{actorLabel(comment.created_by)} - {formatDate(comment.created_at)}</p>
+              <p className="mt-1 text-xs text-muted-foreground">{actorLabel(comment.created_by_name)} - {formatDate(comment.created_at)}</p>
             </div>
           ))}
           {!comments.length ? <p className="text-sm text-muted-foreground">No comments yet.</p> : null}
@@ -177,7 +177,7 @@ export function ApprovalPanel({ document, approval, approvalSteps }: { document:
               <div>
                 <p className="text-sm font-medium">Step {step.step_no}: {step.approver_role ?? "Approver"}</p>
                 <p className="text-xs text-muted-foreground">{step.remarks ?? "No remarks yet"}</p>
-                <p className="text-xs text-muted-foreground">{actorLabel(step.acted_by)} - {formatDate(step.acted_at ?? step.updated_at)}</p>
+                <p className="text-xs text-muted-foreground">{actorLabel(step.acted_by_name)} - {formatDate(step.acted_at ?? step.updated_at)}</p>
               </div>
               <Badge variant={step.status === "approved" ? "success" : step.status === "rejected" ? "danger" : "secondary"}>{step.status}</Badge>
             </div>
@@ -199,7 +199,7 @@ export function RevisionPanel({ revisions }: { revisions: Revision[] }) {
             <div key={revision.id} className="p-3">
               <p className="text-sm font-medium">Revision {revision.revision_no}</p>
               <p className="text-sm text-muted-foreground">{revision.change_summary}</p>
-              <p className="mt-1 text-xs text-muted-foreground">{actorLabel(revision.changed_by)} - {formatDate(revision.changed_at)}</p>
+              <p className="mt-1 text-xs text-muted-foreground">{actorLabel(revision.changed_by_name)} - {formatDate(revision.changed_at)}</p>
             </div>
           ))}
           {!revisions.length ? <p className="p-4 text-center text-sm text-muted-foreground">No revisions yet.</p> : null}

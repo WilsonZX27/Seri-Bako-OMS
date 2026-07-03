@@ -168,7 +168,7 @@ export default async function DocumentsPage({ searchParams }: { searchParams: Pr
                     <TableCell>{document.title}</TableCell>
                     <TableCell><StatusBadge status={document.status} /></TableCell>
                     <TableCell><StatusBadge status={document.approval_status} /></TableCell>
-                    <TableCell>{document.created_by_name ?? document.created_by ?? "-"}</TableCell>
+                    <TableCell>{document.created_by_name ?? "Unknown user"}</TableCell>
                     <TableCell>{new Date(document.created_at).toLocaleDateString("en-MY")}</TableCell>
                     <TableCell>{new Date(document.updated_at).toLocaleDateString("en-MY")}</TableCell>
                     <TableCell>{document.current_step ? formatStatusLabel(document.current_step) : "-"}</TableCell>

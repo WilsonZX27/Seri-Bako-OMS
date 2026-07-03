@@ -128,8 +128,8 @@ export function WorkspaceSidebar({
           <div className="rounded-md bg-white/10 p-3 text-xs leading-relaxed text-white/70">
             Daily tools are grouped by category so staff can get to common work without sorting through every ERP page.
             <div className="mt-2 text-white/45">
-              <div>v0.1.0</div>
-              <div>Sprint 8.0</div>
+              <div>v0.1.8</div>
+              <div>Sprint 6.11.2</div>
             </div>
           </div>
         </div>

@@ -1,6 +1,7 @@
 import { isMockMode, mockItems, mockLocations, mockProfile, mockStockTransferLines, mockStockTransfers, mockStockWastage, mockStockWastageLines } from "@/lib/mock-mode";
 import { createClient } from "@/lib/supabase/server";
 import { compareTableValues, paginateRows } from "@/lib/table-state";
+import { actorDisplayName, resolveActorDisplayMap } from "@/server/actors/display";
 import { getStockBalanceDetails } from "@/server/queries/inventory";
 import type { Database } from "@/types/database";
 
@@ -51,7 +52,8 @@ export async function getStockTransfers(filters: Filters = {}) {
   ]);
   if (error) throw new Error(error.message);
   const loc = new Map((locations ?? []).map((row) => [row.id, row.location_name]));
-  const rows = ((data ?? []) as Transfer[]).map((row) => ({ ...row, from_location_name: loc.get(row.from_location_id) ?? null, to_location_name: loc.get(row.to_location_id) ?? null, created_by_name: row.created_by, line_count: (lines ?? []).filter((line) => line.stock_transfer_id === row.id).length }));
+  const displayMap = await resolveActorDisplayMap((data ?? []).map((row) => row.created_by));
+  const rows = ((data ?? []) as Transfer[]).map((row) => ({ ...row, from_location_name: loc.get(row.from_location_id) ?? null, to_location_name: loc.get(row.to_location_id) ?? null, created_by_name: actorDisplayName(displayMap, row.created_by), line_count: (lines ?? []).filter((line) => line.stock_transfer_id === row.id).length }));
   return paginateRows(filterRows(rows, filters, ["transfer_no", "status", "remarks", "from_location_name", "to_location_name"], "transfer_date"), filters.page, 12);
 }
 
@@ -89,7 +91,8 @@ export async function getStockWastage(filters: Filters = {}) {
   ]);
   if (error) throw new Error(error.message);
   const loc = new Map((locations ?? []).map((row) => [row.id, row.location_name]));
-  const rows = ((data ?? []) as Wastage[]).map((row) => ({ ...row, location_name: loc.get(row.location_id) ?? null, created_by_name: row.created_by, line_count: (lines ?? []).filter((line) => line.stock_wastage_id === row.id).length }));
+  const displayMap = await resolveActorDisplayMap((data ?? []).map((row) => row.created_by));
+  const rows = ((data ?? []) as Wastage[]).map((row) => ({ ...row, location_name: loc.get(row.location_id) ?? null, created_by_name: actorDisplayName(displayMap, row.created_by), line_count: (lines ?? []).filter((line) => line.stock_wastage_id === row.id).length }));
   return paginateRows(filterRows(rows, filters, ["wastage_no", "status", "reason", "remarks", "location_name"], "wastage_date"), filters.page, 12);
 }
 

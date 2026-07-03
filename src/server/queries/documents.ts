@@ -10,13 +10,21 @@ import {
 } from "@/lib/mock-mode";
 import { createClient } from "@/lib/supabase/server";
 import { compareTableValues, paginateRows } from "@/lib/table-state";
+import { actorDisplayName, resolveActorDisplayMap } from "@/server/actors/display";
 import type { Database } from "@/types/database";
 
 type DocumentFilters = Record<string, string | undefined>;
 
 export type DocumentRow = Database["public"]["Tables"]["documents"]["Row"] & {
   created_by_name?: string | null;
+  updated_by_name?: string | null;
 };
+
+type ActorActivity = Database["public"]["Tables"]["activity_logs"]["Row"] & { created_by_name?: string | null };
+type ActorAttachment = Database["public"]["Tables"]["attachments"]["Row"] & { uploaded_by_name?: string | null; created_by_name?: string | null };
+type ActorComment = Database["public"]["Tables"]["document_comments"]["Row"] & { created_by_name?: string | null };
+type ActorRevision = Database["public"]["Tables"]["document_revisions"]["Row"] & { changed_by_name?: string | null };
+type ActorApprovalStep = Database["public"]["Tables"]["approval_steps"]["Row"] & { acted_by_name?: string | null; approver_staff_name?: string | null };
 
 function filterDocuments(rows: DocumentRow[], filters: DocumentFilters) {
   const search = filters.search?.trim().toLowerCase();
@@ -53,7 +61,13 @@ export async function getDocuments(filters: DocumentFilters = {}) {
     .is("deleted_at", null)
     .order("updated_at", { ascending: false });
   if (error) throw new Error(error.message);
-  return paginateRows(filterDocuments((data ?? []) as DocumentRow[], filters), filters.page, 12);
+  const displayMap = await resolveActorDisplayMap((data ?? []).flatMap((document) => [document.created_by, document.updated_by]));
+  const rows = ((data ?? []) as DocumentRow[]).map((document) => ({
+    ...document,
+    created_by_name: actorDisplayName(displayMap, document.created_by),
+    updated_by_name: actorDisplayName(displayMap, document.updated_by),
+  }));
+  return paginateRows(filterDocuments(rows, filters), filters.page, 12);
 }
 
 export async function getDocument(id: string) {
@@ -65,7 +79,12 @@ export async function getDocument(id: string) {
   const supabase = await createClient();
   const { data, error } = await supabase.from("documents").select("*").eq("id", id).single();
   if (error) throw new Error(error.message);
-  return data as DocumentRow;
+  const displayMap = await resolveActorDisplayMap([data.created_by, data.updated_by]);
+  return {
+    ...(data as DocumentRow),
+    created_by_name: actorDisplayName(displayMap, data.created_by),
+    updated_by_name: actorDisplayName(displayMap, data.updated_by),
+  };
 }
 
 export async function getDocumentBundle(id: string) {
@@ -108,13 +127,40 @@ export async function getDocumentBundle(id: string) {
     if (error) throw new Error(error.message);
     approvalSteps = data ?? [];
   }
+  const actorIds = [
+    document.created_by,
+    document.updated_by,
+    ...(comments.data ?? []).map((row) => row.created_by),
+    ...(revisions.data ?? []).map((row) => row.changed_by),
+    ...(attachments.data ?? []).flatMap((row) => [row.uploaded_by, row.created_by]),
+    approval?.submitted_by,
+    approval?.created_by,
+    approval?.updated_by,
+    ...approvalSteps.flatMap((row) => [row.acted_by, row.approver_staff_id]),
+    ...(activityLogs.data ?? []).map((row) => row.created_by),
+  ];
+  const displayMap = await resolveActorDisplayMap(actorIds);
+  const withActor = (actorId: string | null | undefined) => actorDisplayName(displayMap, actorId);
+
   return {
-    document,
-    comments: comments.data ?? [],
-    revisions: revisions.data ?? [],
-    attachments: attachments.data ?? [],
+    document: {
+      ...document,
+      created_by_name: withActor(document.created_by),
+      updated_by_name: withActor(document.updated_by),
+    },
+    comments: ((comments.data ?? []) as ActorComment[]).map((row) => ({ ...row, created_by_name: withActor(row.created_by) })),
+    revisions: ((revisions.data ?? []) as ActorRevision[]).map((row) => ({ ...row, changed_by_name: withActor(row.changed_by) })),
+    attachments: ((attachments.data ?? []) as ActorAttachment[]).map((row) => ({
+      ...row,
+      uploaded_by_name: withActor(row.uploaded_by),
+      created_by_name: withActor(row.created_by),
+    })),
     approval,
-    approvalSteps,
-    activityLogs: activityLogs.data ?? [],
+    approvalSteps: (approvalSteps as ActorApprovalStep[]).map((row) => ({
+      ...row,
+      acted_by_name: withActor(row.acted_by),
+      approver_staff_name: withActor(row.approver_staff_id),
+    })),
+    activityLogs: ((activityLogs.data ?? []) as ActorActivity[]).map((row) => ({ ...row, created_by_name: withActor(row.created_by) })),
   };
 }

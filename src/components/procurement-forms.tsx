@@ -14,7 +14,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { defaultUoms, normalizeUom, uomOptionsWithCurrent } from "@/lib/uom";
 import type { Database } from "@/types/database";
 
-type ItemOption = Pick<Database["public"]["Tables"]["items"]["Row"], "id" | "item_code" | "item_name" | "base_unit" | "purchase_unit" | "supplier_id" | "cost" | "status">;
+type ItemOption = Pick<Database["public"]["Tables"]["items"]["Row"], "id" | "item_code" | "item_name" | "base_unit" | "purchase_unit" | "supplier_id" | "cost" | "status" | "barcode" | "internal_barcode" | "supplier_barcode">;
 type SupplierOption = Pick<Database["public"]["Tables"]["suppliers"]["Row"], "id" | "supplier_code" | "name" | "status">;
 type BranchOption = { id: string; branch_code: string; branch_name: string; status: string };
 type RequestLine = {
@@ -91,7 +91,11 @@ export function PurchaseRequestForm({
     const selected =
       availableItems.find((item) => item.id === value) ??
       availableItems.find((item) => itemLabel(item).toLowerCase() === query) ??
-      availableItems.find((item) => item.item_code.toLowerCase() === query || item.item_name.toLowerCase() === query);
+      availableItems.find((item) =>
+        [item.item_code, item.item_name, item.barcode, item.internal_barcode, item.supplier_barcode]
+          .filter(Boolean)
+          .some((candidate) => String(candidate).toLowerCase() === query),
+      );
 
     if (!selected) {
       updateLine(key, { itemSearch: value, itemId: "", uom: "", supplierId: "", cost: "0" });
@@ -233,7 +237,7 @@ export function PurchaseRequestForm({
             <div className="flex items-center justify-between border-b bg-secondary/40 px-4 py-3">
               <div>
                 <p className="text-sm font-semibold">Requested Items</p>
-                <p className="text-xs text-muted-foreground">Search by item code or item name. UOM, supplier, and cost fill from the item master.</p>
+                <p className="text-xs text-muted-foreground">Search by item code, item name, or barcode. UOM, supplier, and cost fill from the item master.</p>
               </div>
               <div className="flex items-center gap-2">
                 <Search className="h-4 w-4 text-muted-foreground" />
@@ -252,16 +256,10 @@ export function PurchaseRequestForm({
                         list="purchase-request-items"
                         value={line.itemSearch}
                         onChange={(event) => selectItem(line.key, event.target.value)}
-                        placeholder="Type item code or item name"
+                        placeholder="Search by item code, item name, or barcode."
                       />
                     </Field>
-                    {line.itemId ? (
-                      <p className="text-xs text-muted-foreground">
-                        {availableItems.find((item) => item.id === line.itemId)?.item_code} - {availableItems.find((item) => item.id === line.itemId)?.item_name}
-                      </p>
-                    ) : (
-                      canCreateItem ? <Button type="button" variant="ghost" size="sm" onClick={() => setNewItemLineKey(line.key)}>Create new item</Button> : null
-                    )}
+                    {!line.itemId && canCreateItem ? <Button type="button" variant="ghost" size="sm" onClick={() => setNewItemLineKey(line.key)}>Create new item</Button> : null}
                     <input type="hidden" name="line_item_id" value={line.itemId} />
                   </div>
                   <Field label="Quantity" required>

@@ -65,7 +65,7 @@ export async function POST(request: Request) {
     const { data, error } = await admin
       .from("items")
       .insert(itemPayload)
-      .select("id, item_code, item_name, base_unit, purchase_unit, supplier_id, cost, status")
+      .select("id, item_code, item_name, base_unit, purchase_unit, supplier_id, cost, status, barcode, internal_barcode, supplier_barcode")
       .single();
 
     if (error) {

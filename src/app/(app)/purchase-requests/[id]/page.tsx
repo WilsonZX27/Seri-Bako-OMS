@@ -12,6 +12,7 @@ import { formatCurrency, formatNumber } from "@/lib/utils";
 import {
   adminReviewPurchaseRequest,
   approvePurchaseRequest,
+  cancelPurchaseRequest,
   convertPurchaseRequestToPurchaseOrder,
   purchasingReviewPurchaseRequest,
   rejectPurchaseRequest,
@@ -26,36 +27,49 @@ const prSteps = [
   { key: "draft", label: "Draft", description: "Request is being prepared." },
   { key: "admin_review", label: "Admin Review", description: "Admin checks request completeness." },
   { key: "purchasing_review", label: "Purchasing", description: "Supplier, MOQ, lead time, and cost are checked." },
-  { key: "pending_approval", label: "Manager", description: "Manager approval before PO conversion." },
+  { key: "pending_approval", label: "Manager Approval", description: "Manager approval before PO conversion." },
   { key: "approved", label: "Approved", description: "Ready to convert to purchase order." },
   { key: "converted", label: "Converted", description: "Purchase order has been created." },
 ];
 
-export default async function PurchaseRequestDetailPage({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = await params;
+export default async function PurchaseRequestDetailPage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ id: string }>;
+  searchParams: Promise<{ error?: string; success?: string }>;
+}) {
+  const [{ id }, messageParams] = await Promise.all([params, searchParams]);
   const [{ request, lines }, linkedPurchaseOrders, items, suppliers, branches, permissions] = await Promise.all([
     getPurchaseRequest(id),
     getPurchaseOrdersForRequest(id),
     getItemsForSelect(),
     getSuppliersForSelect(),
     getBranchesForSelect(),
-    getPermissionMap(["pr.submit", "pr.admin_review", "pr.purchasing_review", "pr.manager_approve", "pr.convert_to_po"]),
+    getPermissionMap(["pr.submit", "pr.admin_review", "pr.purchasing_review", "pr.manager_approve", "pr.convert_to_po", "pr.reject", "pr.cancel"]),
   ]);
   const documentBundle = request.document_id ? await getDocumentBundle(request.document_id) : null;
   const itemById = new Map(items.map((item) => [item.id, item]));
   const supplierById = new Map(suppliers.map((supplier) => [supplier.id, supplier]));
   const branch = branches.find((row) => row.id === request.branch_id);
   const total = lines.reduce((sum, line) => sum + line.qty * line.estimated_unit_cost, 0);
+  const canSubmit = request.status === "draft" && permissions["pr.submit"];
+  const canCancel = request.status === "draft" && permissions["pr.cancel"];
+  const canAdminReview = request.status === "admin_review" && permissions["pr.admin_review"];
+  const canPurchasingReview = request.status === "purchasing_review" && permissions["pr.purchasing_review"];
+  const canManagerApprove = request.status === "pending_approval" && permissions["pr.manager_approve"];
+  const canConvert = request.status === "approved" && permissions["pr.convert_to_po"];
   const canReject =
-    (request.status === "admin_review" && permissions["pr.admin_review"]) ||
-    (request.status === "purchasing_review" && permissions["pr.purchasing_review"]) ||
-    (request.status === "pending_approval" && permissions["pr.manager_approve"]);
+    (request.status === "admin_review" && (permissions["pr.admin_review"] || permissions["pr.reject"])) ||
+    (request.status === "purchasing_review" && (permissions["pr.purchasing_review"] || permissions["pr.reject"])) ||
+    (request.status === "pending_approval" && (permissions["pr.manager_approve"] || permissions["pr.reject"]));
   const hasPrimaryAction =
-    (request.status === "draft" && permissions["pr.submit"]) ||
-    (request.status === "admin_review" && permissions["pr.admin_review"]) ||
-    (request.status === "purchasing_review" && permissions["pr.purchasing_review"]) ||
-    (request.status === "pending_approval" && permissions["pr.manager_approve"]) ||
-    (request.status === "approved" && permissions["pr.convert_to_po"]) ||
+    canSubmit ||
+    canCancel ||
+    canAdminReview ||
+    canPurchasingReview ||
+    canManagerApprove ||
+    canConvert ||
     (request.status === "converted" && linkedPurchaseOrders.length > 0) ||
     canReject;
 
@@ -73,11 +87,12 @@ export default async function PurchaseRequestDetailPage({ params }: { params: Pr
         <>
           <DocumentSideSection title="Primary Action" description="Only the next valid workflow action is shown.">
             <DocumentActionBar>
-              {request.status === "draft" && permissions["pr.submit"] ? <DocumentActionForm action={submitPurchaseRequest.bind(null, request.id)} pendingLabel="Submitting..." variant="secondary">Submit to Admin</DocumentActionForm> : null}
-              {request.status === "admin_review" && permissions["pr.admin_review"] ? <DocumentActionForm action={adminReviewPurchaseRequest.bind(null, request.id)} pendingLabel="Approving..." variant="outline">Admin approve</DocumentActionForm> : null}
-              {request.status === "purchasing_review" && permissions["pr.purchasing_review"] ? <DocumentActionForm action={purchasingReviewPurchaseRequest.bind(null, request.id)} pendingLabel="Approving..." variant="outline">Purchasing approve</DocumentActionForm> : null}
-              {request.status === "pending_approval" && permissions["pr.manager_approve"] ? <DocumentActionForm action={approvePurchaseRequest.bind(null, request.id)} pendingLabel="Approving...">Manager approve</DocumentActionForm> : null}
-              {request.status === "approved" && permissions["pr.convert_to_po"] ? <DocumentActionForm action={convertPurchaseRequestToPurchaseOrder.bind(null, request.id)} pendingLabel="Converting...">Convert to Purchase Order</DocumentActionForm> : null}
+              {canSubmit ? <DocumentActionForm action={submitPurchaseRequest.bind(null, request.id)} pendingLabel="Submitting..." variant="secondary">Submit to Admin</DocumentActionForm> : null}
+              {canCancel ? <DocumentActionForm action={cancelPurchaseRequest.bind(null, request.id)} pendingLabel="Cancelling..." variant="ghost">Cancel draft</DocumentActionForm> : null}
+              {canAdminReview ? <DocumentActionForm action={adminReviewPurchaseRequest.bind(null, request.id)} pendingLabel="Approving..." variant="outline">Complete Admin Review</DocumentActionForm> : null}
+              {canPurchasingReview ? <DocumentActionForm action={purchasingReviewPurchaseRequest.bind(null, request.id)} pendingLabel="Approving..." variant="outline">Complete Purchasing Review</DocumentActionForm> : null}
+              {canManagerApprove ? <DocumentActionForm action={approvePurchaseRequest.bind(null, request.id)} pendingLabel="Approving...">Manager Approve</DocumentActionForm> : null}
+              {canConvert ? <DocumentActionForm action={convertPurchaseRequestToPurchaseOrder.bind(null, request.id)} pendingLabel="Converting...">Convert to Purchase Order</DocumentActionForm> : null}
               {request.status === "converted" && linkedPurchaseOrders[0] ? (
                 <Button asChild><a href={`/purchase-orders/${linkedPurchaseOrders[0].id}`}>Open PO</a></Button>
               ) : null}
@@ -101,6 +116,14 @@ export default async function PurchaseRequestDetailPage({ params }: { params: Pr
         </>
       }
     >
+          {messageParams.error || messageParams.success ? (
+            <Card>
+              <CardContent className={`p-4 text-sm ${messageParams.error ? "text-destructive" : "text-emerald-700"}`}>
+                {messageParams.error ?? messageParams.success}
+              </CardContent>
+            </Card>
+          ) : null}
+
           <Card>
             <CardContent className="space-y-4 p-5">
               <h2 className="text-sm font-semibold">Request Summary</h2>

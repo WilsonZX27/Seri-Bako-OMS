@@ -6,12 +6,17 @@ import { isMockMode, mockCompany, mockProfile } from "@/lib/mock-mode";
 import { createClient } from "@/lib/supabase/server";
 import { purchaseOrderSchema, purchaseRequestSchema } from "@/lib/validations/procurement";
 import { writeActivityLog } from "@/server/activity/log";
-import { requirePermission } from "@/server/auth/permissions";
+import { hasPermission, requirePermission } from "@/server/auth/permissions";
 import { formatActionError, requirePermissionOrRedirect, rethrowRedirect, safeRedirectWithMessage } from "@/server/actions/error-handling";
 import { resolveDocumentNumber } from "@/server/documents/sequences";
 import { resolveDefaultLocation } from "@/server/inventory/locations";
 import { getCurrentProfile } from "@/server/queries/common";
 import type { ApprovalStatus, PurchaseOrderStatus, PurchaseRequestStatus } from "@/types/database";
+
+type PurchaseRequestStep = "draft" | "admin_review" | "purchasing_review" | "pending_approval" | "approved";
+
+const wrongPrStepMessage = "This request is no longer at this workflow step.";
+const noPermissionMessage = "You do not have permission to perform this action.";
 
 function cleanText(value: FormDataEntryValue | null) {
   const text = String(value ?? "").trim();
@@ -21,6 +26,49 @@ function cleanText(value: FormDataEntryValue | null) {
 async function identity() {
   if (isMockMode()) return { company_id: mockCompany.id, id: mockProfile.id };
   return getCurrentProfile();
+}
+
+async function requireActiveStaffProfile() {
+  const profile = await identity();
+  if (!profile?.id) throw new Error("You must be signed in with an active staff profile.");
+  if ("status" in profile && profile.status !== "active") throw new Error("Your staff account is not active.");
+  return profile;
+}
+
+async function requireBranchAccess(branchId: string | null) {
+  if (!branchId) return;
+  if (await hasPermission("pr.view_all")) return;
+
+  const profile = await requireActiveStaffProfile();
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("staff_branches")
+    .select("branch_id")
+    .eq("staff_id", profile.id)
+    .eq("branch_id", branchId)
+    .maybeSingle();
+  if (error) throw new Error(error.message);
+  if (!data) throw new Error(noPermissionMessage);
+}
+
+async function requirePrTransition(input: {
+  id: string;
+  expectedStatus: PurchaseRequestStep;
+  permission: string;
+}) {
+  await requireActiveStaffProfile();
+  if (!(await hasPermission(input.permission))) throw new Error(noPermissionMessage);
+
+  const supabase = await createClient();
+  const { data: pr, error } = await supabase
+    .from("purchase_requests")
+    .select("id, request_no, status, branch_id, document_id")
+    .eq("id", input.id)
+    .single();
+  if (error) throw new Error(error.message);
+  await requireBranchAccess(pr.branch_id);
+  if (pr.status !== input.expectedStatus) throw new Error(wrongPrStepMessage);
+  return pr;
 }
 
 function extractPurchaseRequest(formData: FormData) {
@@ -204,68 +252,188 @@ export async function createPurchaseRequest(formData: FormData) {
   }
 }
 
-async function updatePrStatus(id: string, status: PurchaseRequestStatus, documentStatus: "draft" | "pending_approval" | "approved" | "rejected" | "cancelled", approvalStatus: ApprovalStatus, step: string, message: string) {
+async function updatePrStatus(input: {
+  id: string;
+  expectedStatus: PurchaseRequestStep;
+  nextStatus: PurchaseRequestStatus;
+  permission: string;
+  documentStatus: "draft" | "pending_approval" | "approved" | "rejected" | "cancelled";
+  approvalStatus: ApprovalStatus;
+  step: string;
+  message: string;
+  activityType?: string;
+}) {
   const supabase = await createClient();
-  const profile = await identity();
-  const { data: pr, error: prError } = await supabase.from("purchase_requests").select("status,document_id").eq("id", id).single();
-  if (prError) throw new Error(prError.message);
-  if (pr.status === status) return;
-  const [{ error }, { error: documentError }] = await Promise.all([
-    supabase.from("purchase_requests").update({ status, updated_by: profile?.id ?? null }).eq("id", id),
-    pr.document_id
-      ? supabase.from("documents").update({ status: documentStatus, approval_status: approvalStatus, current_step: step, updated_by: profile?.id ?? null }).eq("id", pr.document_id)
-      : Promise.resolve({ error: null }),
-  ]);
+  const profile = await requireActiveStaffProfile();
+  const pr = await requirePrTransition({
+    id: input.id,
+    expectedStatus: input.expectedStatus,
+    permission: input.permission,
+  });
+  const { data: updatedPr, error } = await supabase
+    .from("purchase_requests")
+    .update({ status: input.nextStatus, updated_by: profile.id })
+    .eq("id", input.id)
+    .eq("status", input.expectedStatus)
+    .select("id")
+    .maybeSingle();
   if (error) throw new Error(error.message);
+  if (!updatedPr) throw new Error(wrongPrStepMessage);
+
+  const { error: documentError } = pr.document_id
+    ? await supabase
+        .from("documents")
+        .update({ status: input.documentStatus, approval_status: input.approvalStatus, current_step: input.step, updated_by: profile.id })
+        .eq("id", pr.document_id)
+    : { error: null };
   if (documentError) throw new Error(documentError.message);
-  if (pr.document_id) await writeActivityLog({ entityType: "document", entityId: pr.document_id, activityType: status, message });
+  if (pr.document_id) {
+    await writeActivityLog({
+      entityType: "document",
+      entityId: pr.document_id,
+      activityType: input.activityType ?? input.nextStatus,
+      message: input.message,
+      metadata: { workflow_step: input.expectedStatus, next_status: input.nextStatus },
+    });
+  }
   revalidatePath("/purchase-requests");
-  revalidatePath(`/purchase-requests/${id}`);
+  revalidatePath(`/purchase-requests/${input.id}`);
 }
 
 export async function submitPurchaseRequest(id: string) {
-  await requirePermission("pr.submit");
-  if (isMockMode()) return;
-  await updatePrStatus(id, "admin_review", "pending_approval", "pending", "Admin review", "Purchase request submitted to Admin Review");
+  try {
+    if (isMockMode()) return;
+    await updatePrStatus({
+      id,
+      expectedStatus: "draft",
+      nextStatus: "admin_review",
+      permission: "pr.submit",
+      documentStatus: "pending_approval",
+      approvalStatus: "pending",
+      step: "Admin Review",
+      message: "Purchase request submitted to Admin Review",
+      activityType: "submitted",
+    });
+  } catch (error) {
+    rethrowRedirect(error);
+    safeRedirectWithMessage(`/purchase-requests/${id}`, "error", formatActionError(error, "Could not submit this purchase request."));
+  }
 }
 
 export async function adminReviewPurchaseRequest(id: string) {
-  await requirePermission("pr.admin_review");
-  if (isMockMode()) return;
-  await updatePrStatus(id, "purchasing_review", "pending_approval", "pending", "Purchasing review", "Admin approved purchase request");
+  try {
+    if (isMockMode()) return;
+    await updatePrStatus({
+      id,
+      expectedStatus: "admin_review",
+      nextStatus: "purchasing_review",
+      permission: "pr.admin_review",
+      documentStatus: "pending_approval",
+      approvalStatus: "pending",
+      step: "Purchasing Review",
+      message: "Admin Review completed",
+      activityType: "admin_review_completed",
+    });
+  } catch (error) {
+    rethrowRedirect(error);
+    safeRedirectWithMessage(`/purchase-requests/${id}`, "error", formatActionError(error, "Could not complete Admin Review."));
+  }
 }
 
 export async function purchasingReviewPurchaseRequest(id: string) {
-  await requirePermission("pr.purchasing_review");
-  if (isMockMode()) return;
-  await updatePrStatus(id, "pending_approval", "pending_approval", "pending", "Manager approval", "Purchasing verified supplier, MOQ, lead time, and cost");
+  try {
+    if (isMockMode()) return;
+    await updatePrStatus({
+      id,
+      expectedStatus: "purchasing_review",
+      nextStatus: "pending_approval",
+      permission: "pr.purchasing_review",
+      documentStatus: "pending_approval",
+      approvalStatus: "pending",
+      step: "Manager Approval",
+      message: "Purchasing Review completed",
+      activityType: "purchasing_review_completed",
+    });
+  } catch (error) {
+    rethrowRedirect(error);
+    safeRedirectWithMessage(`/purchase-requests/${id}`, "error", formatActionError(error, "Could not complete Purchasing Review."));
+  }
 }
 
 export async function approvePurchaseRequest(id: string) {
-  await requirePermission("pr.manager_approve");
-  if (isMockMode()) return;
-  await updatePrStatus(id, "approved", "approved", "approved", "Approved", "Manager approved purchase request");
+  try {
+    if (isMockMode()) return;
+    await updatePrStatus({
+      id,
+      expectedStatus: "pending_approval",
+      nextStatus: "approved",
+      permission: "pr.manager_approve",
+      documentStatus: "approved",
+      approvalStatus: "approved",
+      step: "Approved",
+      message: "Manager approved purchase request",
+      activityType: "manager_approved",
+    });
+  } catch (error) {
+    rethrowRedirect(error);
+    safeRedirectWithMessage(`/purchase-requests/${id}`, "error", formatActionError(error, "Could not approve this purchase request."));
+  }
 }
 
 export async function rejectPurchaseRequest(id: string, formData: FormData) {
-  const remarks = cleanText(formData.get("remarks"));
-  if (!remarks) throw new Error("Rejection remarks are required.");
-  if (isMockMode()) return;
-  const supabase = await createClient();
-  const { data: pr, error: prError } = await supabase.from("purchase_requests").select("status").eq("id", id).single();
-  if (prError) throw new Error(prError.message);
-  if (pr.status === "admin_review") {
-    await requirePermission("pr.admin_review");
-  } else {
-    await requirePermission("pr.manager_approve");
+  try {
+    const remarks = cleanText(formData.get("remarks"));
+    if (!remarks) throw new Error("Rejection remarks are required.");
+    if (isMockMode()) return;
+    const supabase = await createClient();
+    const { data: pr, error: prError } = await supabase.from("purchase_requests").select("status").eq("id", id).single();
+    if (prError) throw new Error(prError.message);
+    const transition =
+      pr.status === "admin_review"
+        ? { expectedStatus: "admin_review" as const, permission: "pr.admin_review", step: "Admin Review" }
+        : pr.status === "purchasing_review"
+          ? { expectedStatus: "purchasing_review" as const, permission: "pr.purchasing_review", step: "Purchasing Review" }
+          : pr.status === "pending_approval"
+            ? { expectedStatus: "pending_approval" as const, permission: "pr.manager_approve", step: "Manager Approval" }
+            : null;
+    if (!transition) throw new Error("This request is not at a rejectable workflow step.");
+    const canReject = (await hasPermission("pr.reject")) || (await hasPermission(transition.permission));
+    if (!canReject) throw new Error(noPermissionMessage);
+    await updatePrStatus({
+      id,
+      expectedStatus: transition.expectedStatus,
+      nextStatus: "rejected",
+      permission: transition.permission,
+      documentStatus: "rejected",
+      approvalStatus: "rejected",
+      step: "Rejected",
+      message: `${transition.step} rejected: ${remarks}`,
+      activityType: "rejected",
+    });
+  } catch (error) {
+    rethrowRedirect(error);
+    safeRedirectWithMessage(`/purchase-requests/${id}`, "error", formatActionError(error, "Could not reject this purchase request."));
   }
-  await updatePrStatus(id, "rejected", "rejected", "rejected", "Rejected", `Purchase request rejected: ${remarks}`);
 }
 
 export async function cancelPurchaseRequest(id: string) {
-  await requirePermission("purchase_request.update");
-  if (isMockMode()) return;
-  await updatePrStatus(id, "cancelled", "cancelled", "cancelled", "Cancelled", "Purchase request cancelled");
+  try {
+    if (isMockMode()) return;
+    await updatePrStatus({
+      id,
+      expectedStatus: "draft",
+      nextStatus: "cancelled",
+      permission: "pr.cancel",
+      documentStatus: "cancelled",
+      approvalStatus: "cancelled",
+      step: "Cancelled",
+      message: "Purchase request cancelled",
+      activityType: "cancelled",
+    });
+  } catch (error) {
+    rethrowRedirect(error);
+    safeRedirectWithMessage(`/purchase-requests/${id}`, "error", formatActionError(error, "Could not cancel this purchase request."));
+  }
 }
 
 export async function createPurchaseOrder(formData: FormData) {
@@ -376,10 +544,11 @@ export async function closePurchaseOrder(id: string) {
 }
 
 export async function convertPurchaseRequestToPurchaseOrder(id: string) {
-  await requirePermission("pr.convert_to_po");
+  let reservedConversion = false;
   try {
     if (isMockMode()) redirect("/purchase-orders/po-mock-001");
     const supabase = await createClient();
+    await requirePrTransition({ id, expectedStatus: "approved", permission: "pr.convert_to_po" });
     const [{ data: pr, error: prError }, { data: lines, error: linesError }, { data: existingPo, error: existingPoError }] = await Promise.all([
       supabase.from("purchase_requests").select("*").eq("id", id).single(),
       supabase.from("purchase_request_lines").select("*").eq("purchase_request_id", id),
@@ -391,7 +560,7 @@ export async function convertPurchaseRequestToPurchaseOrder(id: string) {
     if (existingPo?.[0]) {
       safeRedirectWithMessage(`/purchase-orders/${existingPo[0].id}`, "success", `Purchase order ${existingPo[0].po_no} is already linked to this PR.`);
     }
-    if (pr.status !== "approved") throw new Error("Only approved purchase requests can be converted to purchase orders.");
+    if (pr.status !== "approved") throw new Error(wrongPrStepMessage);
     if (!lines?.length) throw new Error("Add at least one item line before converting this PR.");
 
     const supplierIds = new Set(lines.map((line) => line.suggested_supplier_id).filter(Boolean));
@@ -405,6 +574,17 @@ export async function convertPurchaseRequestToPurchaseOrder(id: string) {
     if (!supplierId) throw new Error("PO supplier is required.");
 
     const profile = await identity();
+    const { data: reservedPr, error: reserveError } = await supabase
+      .from("purchase_requests")
+      .update({ status: "converted", updated_by: profile?.id ?? null })
+      .eq("id", id)
+      .eq("status", "approved")
+      .select("id")
+      .maybeSingle();
+    if (reserveError) throw new Error(reserveError.message);
+    if (!reservedPr) throw new Error(wrongPrStepMessage);
+    reservedConversion = true;
+
     const poNo = await resolveDocumentNumber({
       companyId: profile?.company_id,
       documentType: "purchase_order",
@@ -444,9 +624,9 @@ export async function convertPurchaseRequestToPurchaseOrder(id: string) {
         uom: line.uom,
         unit_price: line.estimated_unit_cost,
       }))),
-      supabase.from("purchase_requests").update({ status: "converted", updated_by: profile?.id ?? null }).eq("id", id),
+      supabase.from("purchase_requests").update({ updated_by: profile?.id ?? null }).eq("id", id),
       pr.document_id
-        ? supabase.from("documents").update({ current_step: "Converted", updated_by: profile?.id ?? null }).eq("id", pr.document_id)
+        ? supabase.from("documents").update({ status: "approved", approval_status: "approved", current_step: "Converted", updated_by: profile?.id ?? null }).eq("id", pr.document_id)
         : Promise.resolve({ error: null }),
     ]);
     if (poUpdateError) throw new Error(poUpdateError.message);
@@ -457,6 +637,15 @@ export async function convertPurchaseRequestToPurchaseOrder(id: string) {
     const activityMessage = `Purchase Order ${poNo} created from ${pr.request_no}.`;
     try {
       await writeActivityLog({ entityType: "document", entityId: documentId, activityType: "created", message: activityMessage });
+      if (pr.document_id) {
+        await writeActivityLog({
+          entityType: "document",
+          entityId: pr.document_id,
+          activityType: "converted",
+          message: `Purchase request ${pr.request_no} converted to ${poNo}`,
+          metadata: { workflow_step: "approved", purchase_order_id: po.id },
+        });
+      }
     } catch (error) {
       console.error(error);
     }
@@ -468,6 +657,14 @@ export async function convertPurchaseRequestToPurchaseOrder(id: string) {
     safeRedirectWithMessage(`/purchase-orders/${po.id}`, "success", `Purchase order ${poNo} created from ${pr.request_no}.`);
   } catch (error) {
     rethrowRedirect(error);
+    if (reservedConversion) {
+      try {
+        const supabase = await createClient();
+        await supabase.from("purchase_requests").update({ status: "approved" }).eq("id", id).eq("status", "converted");
+      } catch (revertError) {
+        console.error(revertError);
+      }
+    }
     safeRedirectWithMessage(`/purchase-requests/${id}`, "error", formatActionError(error, "Could not convert this purchase request."));
   }
 }

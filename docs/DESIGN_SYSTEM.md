@@ -21,9 +21,13 @@ When unsure, choose the simpler option. Avoid adding decorative UI just because 
 
 ## Page Layout Rules
 
+- Use fewer cards. Prefer one clear work surface plus compact supporting context.
+- The center column is for actual work/data. Right rails are only for actions, quick insights, notifications, or secondary context.
+- Do not duplicate the same function entry point on one page.
 - Use section-based layouts for workspace, hub, and module landing pages.
 - Start with a clear page header: title, one short description, and one primary action when applicable.
 - Keep the primary action at the top right on desktop.
+- Detail and form pages should place primary actions in the right action rail when one exists.
 - Keep the primary action button dark green or teal.
 - Group related tools into clear sections, but keep most surfaces white.
 - Use a 4-column rhythm for action cards on wide desktop when space allows.
@@ -33,6 +37,7 @@ When unsure, choose the simpler option. Avoid adding decorative UI just because 
 - Maintain generous vertical spacing between major sections.
 - Place search and filters close to the table or list they control.
 - Do not hide primary navigation targets below the fold or render target content inside landing pages.
+- Avoid horizontal overflow at 1440px, 1536px, and 1920px. Right rails should be compact and never squeeze the main work surface.
 
 ## Section Panel Rules
 
@@ -171,7 +176,7 @@ Avoid:
 ## Dashboard Rules
 
 - Dashboard sections should prioritize operational scanning.
-- Group quick tools above operating picture or summary widgets.
+- Use one main action from the page header. Avoid repeating Daily Operations quick tools on the dashboard.
 - Use compact insight cards for counts and exceptions.
 - Keep dashboard widgets visually consistent with workspace cards.
 - Avoid turning the dashboard into a report page.
@@ -179,6 +184,7 @@ Avoid:
 - Prefer white cards with restrained icons and status colors.
 - Use whitespace to separate major areas instead of large colored backgrounds.
 - Keep recent activity, notifications, and assigned actions in Workspace Updates where possible.
+- Avoid repeated low-value recent activity panels on the dashboard.
 - Use KPI-style composition for hierarchy, not decoration: clear cards, compact metrics, readable tables, and predictable filters.
 
 ## Spacing Rules

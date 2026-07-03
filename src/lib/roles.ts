@@ -29,20 +29,20 @@ export function getRoleDisplayLabel(roleCode?: string | null, fallback?: string 
 
 export function normalizeRoleCode(roleCode?: string | null) {
   if (roleCode === "kitchen") return "kitchen_staff";
-  if (roleCode === "admin") return "super_admin";
+  if (roleCode === "admin") return "operations_admin";
   return roleCode ?? "viewer";
 }
 
 export function isSuperAdminRole(roleCode?: string | null) {
-  return roleCode === "super_admin" || roleCode === "admin";
+  return roleCode === "super_admin";
 }
 
 export function isAdministratorRole(roleCode?: string | null) {
-  return roleCode === "operations_admin";
+  return roleCode === "operations_admin" || roleCode === "admin";
 }
 
 export function isProtectedOwnerAssignableRole(roleCode?: string | null) {
-  return roleCode === "super_admin" || roleCode === "admin" || roleCode === "operations_admin";
+  return roleCode === "super_admin" || roleCode === "operations_admin" || roleCode === "admin";
 }
 
 export function canAssignRoleCode(currentRoleCode: string | null | undefined, targetRoleCode: string | null | undefined) {

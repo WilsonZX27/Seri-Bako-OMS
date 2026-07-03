@@ -92,12 +92,12 @@ export default async function DataOnboardingPage() {
                 <p className="font-semibold">Branch-first onboarding</p>
                 <p className="mt-1 text-sm text-muted-foreground">Keep the process light for staff. Branch is the main choice, while internal stock areas stay behind the scenes for accuracy.</p>
               </div>
-              <div className="flex flex-wrap gap-2">
-                <Button asChild variant="outline">
+              <div className="flex flex-wrap justify-end gap-2">
+                <Button asChild variant="outline" size="sm">
                   <Link href="/locations">Review internal stock areas</Link>
                 </Button>
                 <form action={fixMissingDefaultLocations}>
-                  <Button type="submit">
+                  <Button type="submit" size="sm">
                     <Wrench className="mr-2 h-4 w-4" />
                     Fix missing stock areas
                   </Button>
@@ -131,7 +131,7 @@ export default async function DataOnboardingPage() {
                               <p className="mt-1 text-sm text-muted-foreground">{step.note}</p>
                               <p className="mt-2 text-xs text-muted-foreground">Record count: {step.count}</p>
                             </div>
-                            <Button asChild variant="outline">
+                            <Button asChild variant="outline" size="sm">
                               <Link href={step.href}>
                                 {step.cta}
                                 <ArrowRight className="ml-2 h-4 w-4" />

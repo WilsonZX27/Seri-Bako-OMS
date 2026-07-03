@@ -105,18 +105,18 @@ export function WorkspaceSectionPanel({ section }: { section: WorkspaceSection }
 
   return (
     <section className={cn("overflow-hidden rounded-xl border border-slate-200 shadow-sm", theme.panel)}>
-      <div className={cn("border-b px-5 py-5", theme.border, theme.header)}>
-        <div className="flex items-center gap-4">
-          <div className={cn("flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl", theme.badge, theme.iconText)}>
-            <SectionIcon className="h-7 w-7" />
+      <div className={cn("border-b px-4 py-3", theme.border, theme.header)}>
+        <div className="flex items-center gap-3">
+          <div className={cn("flex h-9 w-9 shrink-0 items-center justify-center rounded-lg", theme.badge, theme.iconText)}>
+            <SectionIcon className="h-4 w-4" />
           </div>
           <div className="min-w-0">
             <h2 className="text-sm font-bold uppercase tracking-normal text-foreground">{section.title}</h2>
-            <p className="mt-1 text-sm leading-6 text-muted-foreground">{section.description}</p>
+            <p className="mt-1 text-xs leading-5 text-muted-foreground">{section.description}</p>
           </div>
         </div>
       </div>
-      <div className="grid items-stretch gap-4 p-4 md:grid-cols-2">
+      <div className="grid items-stretch gap-3 p-4 md:grid-cols-2">
         {section.actions.map((action) => (
           <WorkspaceActionCard key={action.href} action={action} theme={theme} />
         ))}
@@ -129,24 +129,19 @@ function WorkspaceActionCard({ action, theme }: { action: WorkspaceAction; theme
   const ActionIcon = action.icon;
   const content = (
     <Card className={cn("h-full border border-slate-200 bg-white shadow-sm transition-colors", action.disabled ? "opacity-70" : "group-hover:border-primary/30 group-hover:bg-slate-50/30")}>
-      <CardContent className="flex h-full flex-col gap-5 p-5">
-        <div className="flex items-start gap-4">
-          <div className={cn("flex h-11 w-11 shrink-0 items-center justify-center rounded-xl", theme.badge, theme.iconText)}>
-            <ActionIcon className="h-5 w-5" />
+      <CardContent className="flex h-full flex-col gap-3 p-3">
+        <div className="flex items-start gap-3">
+          <div className={cn("flex h-8 w-8 shrink-0 items-center justify-center rounded-lg", theme.badge, theme.iconText)}>
+            <ActionIcon className="h-4 w-4" />
           </div>
           <div className="min-w-0">
             <div className="flex flex-wrap items-center gap-2">
               <h3 className="text-sm font-semibold text-foreground">{action.title}</h3>
               {action.badge ? <Badge variant="secondary">{action.badge}</Badge> : null}
             </div>
-            <p className="mt-1 text-sm leading-6 text-muted-foreground">{action.description}</p>
+            <p className="mt-1 text-xs leading-5 text-muted-foreground">{action.description}</p>
           </div>
         </div>
-        {action.recommendedFor ? (
-          <div className="mt-auto">
-            <Badge className={cn("rounded-full", theme.tag)}>Recommended for {action.recommendedFor}</Badge>
-          </div>
-        ) : null}
       </CardContent>
     </Card>
   );
@@ -158,7 +153,7 @@ function WorkspaceActionCard({ action, theme }: { action: WorkspaceAction; theme
 export function WorkspaceQuickInsights({ insights, action }: { insights: WorkspaceInsight[]; action?: { href: string; label: string; icon?: LucideIcon } }) {
   return (
     <Card className="border bg-card shadow-sm">
-      <CardContent className="grid gap-4 p-5 xl:grid-cols-[180px_1fr_auto] xl:items-center">
+      <CardContent className="grid gap-4 p-4 xl:grid-cols-[160px_1fr_auto] xl:items-center">
         <div>
           <p className="text-sm font-semibold">Quick Insights</p>
           <p className="mt-1 text-xs text-muted-foreground">Fast counters for today&apos;s workspace.</p>
@@ -169,8 +164,8 @@ export function WorkspaceQuickInsights({ insights, action }: { insights: Workspa
             const InsightIcon = insight.icon;
             return (
               <div key={insight.label} className={cn("flex items-center gap-3 rounded-lg border border-slate-200 bg-white p-3 shadow-sm", theme.iconText)}>
-                <div className={cn("flex h-10 w-10 shrink-0 items-center justify-center rounded-xl", theme.badge)}>
-                  <InsightIcon className="h-5 w-5" />
+                <div className={cn("flex h-8 w-8 shrink-0 items-center justify-center rounded-lg", theme.badge)}>
+                  <InsightIcon className="h-4 w-4" />
                 </div>
                 <div>
                   <p className="text-lg font-bold leading-none">{insight.value}</p>
@@ -186,6 +181,44 @@ export function WorkspaceQuickInsights({ insights, action }: { insights: Workspa
             {action.icon ? <action.icon className="h-4 w-4" /> : null}
           </Link>
         ) : null}
+      </CardContent>
+    </Card>
+  );
+}
+
+export function CompactStatList({ insights, action }: { insights: WorkspaceInsight[]; action?: { href: string; label: string; icon?: LucideIcon } }) {
+  return (
+    <Card className="border bg-card shadow-sm">
+      <CardContent className="p-4">
+        <div className="mb-3 flex items-center justify-between gap-3">
+          <div>
+            <p className="text-sm font-semibold">Quick Insights</p>
+            <p className="mt-0.5 text-xs text-muted-foreground">Today&apos;s key counters.</p>
+          </div>
+          {action ? (
+            <Link href={action.href} className="inline-flex h-8 items-center gap-1 rounded-md border px-2.5 text-xs font-medium hover:bg-secondary">
+              {action.label}
+              {action.icon ? <action.icon className="h-3.5 w-3.5" /> : null}
+            </Link>
+          ) : null}
+        </div>
+        <div className="divide-y rounded-lg border bg-white">
+          {insights.map((insight) => {
+            const theme = workspaceThemes[insight.theme ?? "neutral"];
+            const InsightIcon = insight.icon;
+            return (
+              <div key={insight.label} className="flex items-center justify-between gap-3 px-3 py-2.5">
+                <div className="flex min-w-0 items-center gap-2">
+                  <span className={cn("flex h-7 w-7 shrink-0 items-center justify-center rounded-md", theme.badge, theme.iconText)}>
+                    <InsightIcon className="h-3.5 w-3.5" />
+                  </span>
+                  <span className="truncate text-xs font-medium text-muted-foreground">{insight.label}</span>
+                </div>
+                <span className="font-mono text-sm font-semibold">{insight.value}</span>
+              </div>
+            );
+          })}
+        </div>
       </CardContent>
     </Card>
   );

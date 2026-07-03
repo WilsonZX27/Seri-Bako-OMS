@@ -1,10 +1,10 @@
 import Link from "next/link";
 import { ArrowDownLeft, ArrowRight, ArrowUpRight, Boxes, ClipboardCheck, MapPin, PackageSearch, ReceiptText, ScanLine, TriangleAlert, Upload } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { WorkspaceGrid } from "@/components/layout/workspace-layout";
 import { PageHeader } from "@/components/ui/page-header";
-import { WorkspaceQuickInsights, WorkspaceSectionPanel, type WorkspaceInsight, type WorkspaceSection } from "@/components/workspace-panels";
+import { CompactStatList, WorkspaceSectionPanel, type WorkspaceInsight, type WorkspaceSection } from "@/components/workspace-panels";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { formatCurrency, formatNumber } from "@/lib/utils";
 import { formatStatusLabel } from "@/lib/status-label";
@@ -59,15 +59,48 @@ export default async function InventoryPage() {
 
   return (
     <>
-      <PageHeader title="Inventory" description="Stock ledger dashboard. Balances are calculated from posted transactions only." />
-      <div className="grid gap-5 p-5 xl:grid-cols-[minmax(0,1fr)_340px]">
-        <div className="space-y-5">
-          <div className="flex flex-wrap gap-2">
-            <Button asChild size="sm"><Link href="/stock-transactions/new">New movement</Link></Button>
-            <Button asChild variant="outline" size="sm"><Link href="/stock-card">Stock Card</Link></Button>
-            <Button asChild variant="outline" size="sm"><Link href="/opening-stock/import">Opening Stock Import</Link></Button>
-            <Button asChild variant="outline" size="sm"><Link href="/stock-transactions">Export CSV</Link></Button>
-          </div>
+      <PageHeader title="Inventory" description="Stock ledger dashboard. Balances are calculated from posted transactions only." action={{ href: "/stock-transactions/new", label: "New movement" }} />
+      <WorkspaceGrid
+        rightRail={
+          <>
+            <CompactStatList insights={inventoryInsights} action={{ href: "/stock-balance", label: "Review", icon: ArrowRight }} />
+            <Card>
+              <CardContent className="p-4">
+                <div className="mb-3 flex items-center gap-2">
+                  <ArrowDownLeft className="h-4 w-4 text-success" />
+                  <h2 className="text-sm font-semibold">Top Purchased Items</h2>
+                </div>
+                <div className="space-y-2">
+                  {summary.topPurchasedItems.map((item) => (
+                    <div key={item.name} className="flex items-center justify-between gap-3 text-sm">
+                      <span className="truncate">{item.name}</span>
+                      <span className="font-mono text-xs font-semibold">{formatNumber(item.qty)}</span>
+                    </div>
+                  ))}
+                  {!summary.topPurchasedItems.length ? <p className="text-sm text-muted-foreground">No purchase movement yet.</p> : null}
+                </div>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="p-4">
+                <div className="mb-3 flex items-center gap-2">
+                  <ArrowUpRight className="h-4 w-4 text-warning" />
+                  <h2 className="text-sm font-semibold">Top Consumed Items</h2>
+                </div>
+                <div className="space-y-2">
+                  {summary.topConsumedItems.map((item) => (
+                    <div key={item.name} className="flex items-center justify-between gap-3 text-sm">
+                      <span className="truncate">{item.name}</span>
+                      <span className="font-mono text-xs font-semibold">{formatNumber(item.qty)}</span>
+                    </div>
+                  ))}
+                  {!summary.topConsumedItems.length ? <p className="text-sm text-muted-foreground">No consumption movement yet.</p> : null}
+                </div>
+              </CardContent>
+            </Card>
+          </>
+        }
+      >
           <div className="grid gap-5 xl:grid-cols-2">
             {inventorySections.map((section) => (
               <WorkspaceSectionPanel key={section.title} section={section} />
@@ -97,7 +130,7 @@ export default async function InventoryPage() {
                       <TableRow key={row.stock_transaction_id}>
                         <TableCell className="font-medium">{row.transaction_no}</TableCell>
                         <TableCell>{row.item_name}</TableCell>
-                        <TableCell><Badge variant="secondary">{formatStatusLabel(row.transaction_type)}</Badge></TableCell>
+                        <TableCell>{formatStatusLabel(row.transaction_type)}</TableCell>
                         <TableCell className="text-right">{row.quantity_in ? formatNumber(row.quantity_in) : "-"}</TableCell>
                         <TableCell className="text-right">{row.quantity_out ? formatNumber(row.quantity_out) : "-"}</TableCell>
                         <TableCell className="text-right">{formatCurrency(row.total_cost)}</TableCell>
@@ -108,44 +141,7 @@ export default async function InventoryPage() {
               </div>
             </CardContent>
           </Card>
-        </div>
-
-        <aside className="space-y-5">
-          <WorkspaceQuickInsights insights={inventoryInsights} action={{ href: "/stock-balance", label: "Review stock", icon: ArrowRight }} />
-            <Card>
-              <CardContent className="p-5">
-                <div className="mb-4 flex items-center gap-2">
-                  <ArrowDownLeft className="h-4 w-4 text-success" />
-                  <h2 className="text-sm font-semibold">Top Purchased Items</h2>
-                </div>
-                <div className="space-y-3">
-                  {summary.topPurchasedItems.map((item) => (
-                    <div key={item.name} className="flex items-center justify-between text-sm">
-                      <span className="truncate">{item.name}</span>
-                      <span className="font-semibold">{formatNumber(item.qty)}</span>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className="p-5">
-                <div className="mb-4 flex items-center gap-2">
-                  <ArrowUpRight className="h-4 w-4 text-warning" />
-                  <h2 className="text-sm font-semibold">Top Consumed Items</h2>
-                </div>
-                <div className="space-y-3">
-                  {summary.topConsumedItems.map((item) => (
-                    <div key={item.name} className="flex items-center justify-between text-sm">
-                      <span className="truncate">{item.name}</span>
-                      <span className="font-semibold">{formatNumber(item.qty)}</span>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-        </aside>
-      </div>
+      </WorkspaceGrid>
     </>
   );
 }

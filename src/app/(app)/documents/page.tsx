@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ClipboardCheck, FileText, PackageCheck, Paperclip, ShoppingCart, Warehouse, Factory } from "lucide-react";
+import { ClipboardCheck, FileText, Paperclip } from "lucide-react";
 import { BulkSelectAllCheckbox, BulkSelectionProvider, BulkSelectRowCheckbox } from "@/components/bulk-selection";
 import { DocumentNumber } from "@/components/document-number";
 import { StatusBadge } from "@/components/ui/status-badge";
@@ -10,7 +10,7 @@ import { SelectNative } from "@/components/ui/select-native";
 import { PaginationControls, SortableHead } from "@/components/sortable-table";
 import { StatusTabs } from "@/components/status-tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { WorkspaceQuickInsights, WorkspaceSectionPanel, type WorkspaceInsight, type WorkspaceSection } from "@/components/workspace-panels";
+import { WorkspaceQuickInsights, type WorkspaceInsight } from "@/components/workspace-panels";
 import { getCanonicalDocumentHref } from "@/lib/document-routing";
 import { formatStatusLabel } from "@/lib/status-label";
 import { getDocuments } from "@/server/queries/documents";
@@ -18,83 +18,22 @@ import { getDocuments } from "@/server/queries/documents";
 export default async function DocumentsPage({ searchParams }: { searchParams: Promise<Record<string, string | undefined>> }) {
   const filters = await searchParams;
   const documents = await getDocuments(filters);
-  const hasActiveFilters = Boolean(
-    filters.search
-      || (filters.document_type && filters.document_type !== "all")
-      || (filters.status && filters.status !== "all")
-      || (filters.approval_status && filters.approval_status !== "all")
-      || filters.sort
-      || filters.page,
-  );
   const documentInsights: WorkspaceInsight[] = [
     { label: "Total Documents", value: documents.totalRows, icon: FileText, theme: "neutral" },
     { label: "Pending Approval", value: 0, icon: ClipboardCheck, theme: "amber" },
     { label: "Posted Documents", value: 0, icon: Paperclip, theme: "green" },
     { label: "Audit Reviews", value: 0, icon: ClipboardCheck, theme: "blue" },
   ];
-  const documentSections: WorkspaceSection[] = [
-    {
-      title: "Purchase Documents",
-      description: "Purchase requests, purchase orders, and supplier receiving documents.",
-      icon: ShoppingCart,
-      theme: "amber",
-      actions: [
-        { href: "/documents?document_type=purchase_request", title: "Purchase Requests", description: "Review purchase request documents and approvals.", icon: ClipboardCheck, recommendedFor: "purchasing" },
-        { href: "/documents?document_type=purchase_order", title: "Purchase Orders", description: "Review supplier order documents and status.", icon: ShoppingCart, recommendedFor: "purchasing and finance" },
-        { href: "/documents?document_type=goods_receiving", title: "Goods Receiving", description: "Review posted and draft receiving documents.", icon: PackageCheck, recommendedFor: "receiving and finance" },
-      ],
-    },
-    {
-      title: "Inventory Documents",
-      description: "Stock counts, transfers, wastage, and stock movement documents.",
-      icon: Warehouse,
-      theme: "teal",
-      actions: [
-        { href: "/documents?document_type=stock_count", title: "Stock Counts", description: "Review stock count documents and approvals.", icon: ClipboardCheck, recommendedFor: "operations" },
-        { href: "/documents?document_type=stock_transfer", title: "Stock Transfers", description: "Review branch transfer documents.", icon: Warehouse, recommendedFor: "operations" },
-        { href: "/documents?document_type=stock_wastage", title: "Stock Wastage", description: "Review wastage documents and exception handling.", icon: Paperclip, recommendedFor: "managers" },
-      ],
-    },
-    {
-      title: "Production Documents",
-      description: "Production jobs, recipe output, and posted production movement documents.",
-      icon: Factory,
-      theme: "green",
-      actions: [
-        { href: "/production/jobs", title: "Production Jobs", description: "Open production job documents through the canonical production workspace.", icon: Factory, recommendedFor: "kitchen" },
-      ],
-    },
-    {
-      title: "Approvals / Audit",
-      description: "Approval queues, posted documents, and complete document register.",
-      icon: FileText,
-      theme: "blue",
-      actions: [
-        { href: "/documents?approval_status=pending", title: "Pending Approvals", description: "Open documents waiting for review.", icon: ClipboardCheck, recommendedFor: "managers" },
-        { href: "/documents?status=posted", title: "Posted Documents", description: "Review completed documents and attachments.", icon: Paperclip, recommendedFor: "finance" },
-        { href: "/documents", title: "All Documents", description: "Search the complete document register.", icon: FileText, recommendedFor: "finance and admin" },
-      ],
-    },
-  ];
 
   return (
     <>
-      <PageHeader title="Document Center" description="Reusable document control for approvals, attachments, comments, revisions, and timelines." />
+      <PageHeader title="Documents Register" description="Audit-ready register for document status, approvals, attachments, revisions, and timelines." />
       <div className="space-y-5 p-5">
-        {!hasActiveFilters ? (
-          <>
-            <WorkspaceQuickInsights insights={documentInsights} />
-            <div className="grid gap-5 xl:grid-cols-2">
-              {documentSections.map((section) => (
-                <WorkspaceSectionPanel key={section.title} section={section} />
-              ))}
-            </div>
-          </>
-        ) : null}
+        <WorkspaceQuickInsights insights={documentInsights} />
         <div className="overflow-hidden rounded-xl border bg-card shadow-sm">
           <div className="border-b bg-white p-4">
             <p className="sb-section-label">Document Register</p>
-            <h2 className="mt-1 text-lg font-semibold">Filtered document list</h2>
+            <h2 className="mt-1 text-lg font-semibold">Audit and document control</h2>
           </div>
           <StatusTabs statuses={[
             { value: "draft", label: "Draft" },

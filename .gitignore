@@ -20,6 +20,8 @@ test-results/
 .env.development.local
 .env.production.local
 .env.test.local
+.env.*.local
+.env.test
 
 # Vercel
 .vercel/
@@ -29,3 +31,6 @@ test-results/
 npm-debug.log*
 yarn-debug.log*
 pnpm-debug.log*
+
+# Playwright auth/session files
+playwright/.auth/

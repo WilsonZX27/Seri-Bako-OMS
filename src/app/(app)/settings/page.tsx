@@ -24,16 +24,8 @@ export default async function SettingsPage() {
 
   return (
     <>
-      <PageHeader title="Settings" description="Use Settings to manage system foundation, users, access, and numbering." />
+      <PageHeader title="Settings" description="System foundation, users, access, numbering, and owner tools." />
       <div className="space-y-5 p-5">
-        <Card className="border-primary/15 bg-[var(--sb-muted)]">
-          <CardContent className="p-5">
-            <p className="sb-section-label">Administration hub</p>
-            <p className="mt-2 max-w-3xl text-sm leading-6 text-muted-foreground">
-              Keep daily staff focused on operations. Administrator-only setup, access, and numbering tools live here so the main sidebar stays simple.
-            </p>
-          </CardContent>
-        </Card>
         <CategoryCardGrid items={links} />
         <Card>
           <CardContent className="flex items-start gap-3 p-5">

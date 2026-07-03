@@ -2,7 +2,7 @@ const requiredAccounts = {
   admin: ["TEST_ADMIN_EMAIL", "TEST_ADMIN_PASSWORD"],
   finance: ["TEST_FINANCE_EMAIL", "TEST_FINANCE_PASSWORD"],
   kitchen: ["TEST_KITCHEN_EMAIL", "TEST_KITCHEN_PASSWORD"],
-  purchasing: ["TEST_PURCHASE_EMAIL", "TEST_PURCHASE_PASSWORD"],
+  purchasing: ["TEST_PURCHASING_EMAIL", "TEST_PURCHASING_PASSWORD"],
   manager: ["TEST_MANAGER_EMAIL", "TEST_MANAGER_PASSWORD"],
   superAdmin: ["TEST_SUPER_ADMIN_EMAIL", "TEST_SUPER_ADMIN_PASSWORD"],
 };
@@ -17,15 +17,45 @@ function account(role) {
   return { email, password };
 }
 
+function missingAccountVars(role) {
+  const keys = requiredAccounts[role];
+  if (!keys) throw new Error(`Unknown test role: ${role}`);
+  return keys.filter((key) => !process.env[key]);
+}
+
+function requireAccount(role) {
+  const missing = missingAccountVars(role);
+  if (missing.length) {
+    throw new Error(`Missing test credentials for ${role}: ${missing.join(", ")}`);
+  }
+  return account(role);
+}
+
 async function login(page, role) {
-  const creds = account(role);
-  if (!creds) return false;
-  await page.goto("/login");
-  await page.getByLabel(/email/i).fill(creds.email);
-  await page.getByLabel(/password/i).fill(creds.password);
+  const creds = requireAccount(role);
+  await page.goto("/login", { waitUntil: "domcontentloaded" });
+  await page.locator('input[name="email"]').fill(creds.email);
+  await page.locator('input[name="password"]').fill(creds.password);
   await page.getByRole("button", { name: /sign in/i }).click();
-  await page.waitForURL(/dashboard|change-password|login/, { timeout: 20_000 });
+  await Promise.race([
+    page.waitForURL(/dashboard|change-password/, { timeout: 20_000 }).catch(() => null),
+    page.locator("text=/Invalid email or password|disabled|expired|temporarily limited/i").waitFor({ timeout: 20_000 }).catch(() => null),
+  ]);
   return page.url().includes("/dashboard");
 }
 
-module.exports = { account, login };
+async function logout(page) {
+  await page.goto("/dashboard");
+  const menu = page.getByRole("button", { name: /open workspace updates/i });
+  if (await menu.count()) {
+    // Keep focus away from the notifications menu before opening account controls.
+    await page.keyboard.press("Escape").catch(() => {});
+  }
+  const signOut = page.getByRole("button", { name: /sign out/i });
+  if (await signOut.count()) {
+    await signOut.first().click();
+    await page.waitForURL(/\/login/, { timeout: 15_000 }).catch(() => {});
+  }
+}
+
+module.exports = { account, login, logout, missingAccountVars, requireAccount };

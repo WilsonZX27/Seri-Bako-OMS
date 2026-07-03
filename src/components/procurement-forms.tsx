@@ -91,11 +91,7 @@ export function PurchaseRequestForm({
     const selected =
       availableItems.find((item) => item.id === value) ??
       availableItems.find((item) => itemLabel(item).toLowerCase() === query) ??
-      availableItems.find((item) =>
-        [item.item_code, item.item_name, item.barcode, item.internal_barcode, item.supplier_barcode]
-          .filter(Boolean)
-          .some((candidate) => String(candidate).toLowerCase() === query),
-      );
+      availableItems.find((item) => [item.item_code, item.item_name].filter(Boolean).some((candidate) => String(candidate).toLowerCase() === query));
 
     if (!selected) {
       updateLine(key, { itemSearch: value, itemId: "", uom: "", supplierId: "", cost: "0" });
@@ -237,7 +233,7 @@ export function PurchaseRequestForm({
             <div className="flex items-center justify-between border-b bg-secondary/40 px-4 py-3">
               <div>
                 <p className="text-sm font-semibold">Requested Items</p>
-                <p className="text-xs text-muted-foreground">Search by item code, item name, or barcode. UOM, supplier, and cost fill from the item master.</p>
+                <p className="text-xs text-muted-foreground">Search by item code or item name. UOM, supplier, and cost fill from the item master.</p>
               </div>
               <div className="flex items-center gap-2">
                 <Search className="h-4 w-4 text-muted-foreground" />
@@ -249,22 +245,25 @@ export function PurchaseRequestForm({
             </div>
             <div className="divide-y">
               {lines.map((line) => (
-                <div key={line.key} className="grid gap-3 p-4 xl:grid-cols-[minmax(260px,2fr)_110px_90px_150px_130px_minmax(160px,1fr)_auto]">
-                  <div className="space-y-2">
+                <div key={line.key} className="grid gap-3 p-4 md:grid-cols-2 xl:grid-cols-12">
+                  <div className="space-y-2 xl:col-span-4">
                     <Field label="Item" required>
                       <Input
                         list="purchase-request-items"
                         value={line.itemSearch}
                         onChange={(event) => selectItem(line.key, event.target.value)}
-                        placeholder="Search by item code, item name, or barcode."
+                        placeholder="Search by item code or item name"
                       />
                     </Field>
                     {!line.itemId && canCreateItem ? <Button type="button" variant="ghost" size="sm" onClick={() => setNewItemLineKey(line.key)}>Create new item</Button> : null}
                     <input type="hidden" name="line_item_id" value={line.itemId} />
                   </div>
+                  <div className="xl:col-span-2">
                   <Field label="Quantity" required>
                     <Input name="line_qty" type="number" min="0.0001" step="0.0001" value={line.qty} onChange={(event) => updateLine(line.key, { qty: event.target.value })} placeholder="Qty" />
                   </Field>
+                  </div>
+                  <div className="xl:col-span-1">
                   <Field label="UOM" required>
                     <SelectNative name="line_uom" value={line.uom} onChange={(event) => updateLine(line.key, { uom: event.target.value })}>
                       <option value="">Select UOM</option>
@@ -273,19 +272,26 @@ export function PurchaseRequestForm({
                       ))}
                     </SelectNative>
                   </Field>
+                  </div>
+                  <div className="xl:col-span-2">
                   <Field label="Supplier">
                     <SelectNative name="line_suggested_supplier_id" value={line.supplierId} onChange={(event) => updateLine(line.key, { supplierId: event.target.value })}>
                       <option value="">No suggestion</option>
                       {suppliers.map((supplier) => <option key={supplier.id} value={supplier.id}>{supplier.name}</option>)}
                     </SelectNative>
                   </Field>
+                  </div>
+                  <div className="xl:col-span-1">
                   <Field label="Cost">
                     <Input name="line_estimated_unit_cost" type="number" min="0" step="0.0001" value={line.cost} onChange={(event) => updateLine(line.key, { cost: event.target.value })} />
                   </Field>
+                  </div>
+                  <div className="xl:col-span-2">
                   <Field label="Line remarks">
                     <Input name="line_remarks" value={line.remarks} onChange={(event) => updateLine(line.key, { remarks: event.target.value })} placeholder="Optional" />
                   </Field>
-                  <div className="flex items-end">
+                  </div>
+                  <div className="flex items-end md:justify-end xl:col-span-12">
                     <Button type="button" variant="ghost" size="icon" aria-label="Remove line" disabled={lines.length === 1} onClick={() => setLines((current) => current.filter((row) => row.key !== line.key))}>
                       <X className="h-4 w-4" />
                     </Button>

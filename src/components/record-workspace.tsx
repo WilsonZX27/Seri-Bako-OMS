@@ -11,9 +11,9 @@ type RecordWorkspaceProps = {
 
 export function RecordWorkspace({ children, actionPanel, className }: RecordWorkspaceProps) {
   return (
-    <div className={cn("grid gap-5 p-5 xl:grid-cols-[minmax(0,1fr)_380px]", className)}>
+    <div className={cn("grid gap-5 p-5 xl:grid-cols-[minmax(0,1fr)_320px]", className)}>
       <main className="min-w-0 space-y-5">{children}</main>
-      <aside className="space-y-4 xl:sticky xl:top-20 xl:self-start">{actionPanel}</aside>
+      <aside className="min-w-0 space-y-4 xl:sticky xl:top-20 xl:self-start">{actionPanel}</aside>
     </div>
   );
 }
@@ -25,11 +25,11 @@ export function RecordMain({ children, className }: { children: ReactNode; class
 export function RecordActionPanel({ title = "Actions", description, children }: { title?: string; description?: string; children: ReactNode }) {
   return (
     <Card className="shadow-sm">
-      <CardHeader>
+      <CardHeader className="p-4 pb-2">
         <CardTitle>{title}</CardTitle>
         {description ? <CardDescription>{description}</CardDescription> : null}
       </CardHeader>
-      <CardContent className="space-y-4">{children}</CardContent>
+      <CardContent className="space-y-3 p-4">{children}</CardContent>
     </Card>
   );
 }

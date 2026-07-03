@@ -21,17 +21,16 @@ export function CategoryCardGrid({ items, className }: { items: CategoryCardItem
         const Icon = item.icon;
         const content = (
           <Card className={cn("h-full transition-colors", item.disabled ? "opacity-60" : "hover:border-primary/30 hover:bg-[var(--sb-muted)]")}>
-            <CardContent className="flex h-full gap-4 p-5">
-              <div className="sb-icon-tile">
-                <Icon className="h-5 w-5" />
+            <CardContent className="flex h-full gap-3 p-4">
+              <div className="sb-icon-tile h-9 w-9">
+                <Icon className="h-4 w-4" />
               </div>
               <div className="min-w-0 flex-1">
                 <div className="flex flex-wrap items-center gap-2">
                   <h2 className="text-sm font-semibold">{item.title}</h2>
                   {item.badge ? <Badge variant="secondary">{item.badge}</Badge> : null}
                 </div>
-                <p className="mt-1 text-sm leading-6 text-muted-foreground">{item.description}</p>
-                {item.recommendedFor ? <p className="mt-3 text-xs font-medium text-primary">Recommended for {item.recommendedFor}</p> : null}
+                <p className="mt-1 text-xs leading-5 text-muted-foreground">{item.description}</p>
               </div>
             </CardContent>
           </Card>

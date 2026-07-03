@@ -18,9 +18,8 @@ export default async function DashboardPage() {
       <>
         <PageHeader
           title="Dashboard"
-          description="Seri Bako operational workspace for approvals, stock, purchasing, production, documents, and notifications."
+          description="Daily operating picture for approvals, stock exceptions, purchasing, and production."
           action={{ href: "/purchase-requests/new", label: "Create PR" }}
-          secondaryAction={{ href: "/stock-count/scan", label: "Stock Count" }}
         />
         <DashboardWorkspace summary={summary} role={role} />
       </>
@@ -29,7 +28,7 @@ export default async function DashboardPage() {
     console.error(error);
     return (
       <>
-        <PageHeader title="Dashboard" description="Seri Bako operational workspace for approvals, stock, purchasing, production, documents, and notifications." />
+        <PageHeader title="Dashboard" description="Daily operating picture for approvals, stock exceptions, purchasing, and production." />
         <div className="p-5">
           <Card>
             <CardContent className="p-5 text-sm text-muted-foreground">

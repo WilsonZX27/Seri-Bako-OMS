@@ -77,6 +77,14 @@ const permissionAliases: Record<string, string[]> = {
   "goods_receiving.create": ["grn.create", "po.receive"],
   "grn.post": ["goods_receiving.post"],
   "goods_receiving.post": ["grn.post"],
+  "production.view": [],
+  "production.create": [],
+  "production.submit": [],
+  "production.approve": [],
+  "production.post": [],
+  "production.cancel": [],
+  "production.reject": [],
+  "production.override_negative_stock": [],
 };
 
 export const rolePermissionMatrix = {
@@ -103,6 +111,14 @@ export const rolePermissionMatrix = {
     "imports.run",
     "documents.view",
     "reports.view",
+    "production.view",
+    "production.create",
+    "production.submit",
+    "production.approve",
+    "production.post",
+    "production.cancel",
+    "production.reject",
+    "production.override_negative_stock",
   ],
   purchasing: [
     "items.create",
@@ -121,6 +137,7 @@ export const rolePermissionMatrix = {
     "imports.run",
     "documents.view",
     "reports.view",
+    "production.view",
   ],
   manager: [
     "pr.manager_approve",
@@ -130,14 +147,19 @@ export const rolePermissionMatrix = {
     "documents.view",
     "reports.view",
     "attachments.upload",
+    "production.view",
+    "production.approve",
+    "production.reject",
   ],
   finance: [
     "documents.view",
     "reports.view",
+    "production.view",
   ],
   viewer: [
     "documents.view",
     "reports.view",
+    "production.view",
   ],
   kitchen_staff: [
     "pr.create",
@@ -148,6 +170,10 @@ export const rolePermissionMatrix = {
     "attachments.upload",
     "documents.view",
     "reports.view",
+    "production.view",
+    "production.create",
+    "production.submit",
+    "production.cancel",
   ],
   admin: ["*"],
   kitchen: [
@@ -159,6 +185,10 @@ export const rolePermissionMatrix = {
     "attachments.upload",
     "documents.view",
     "reports.view",
+    "production.view",
+    "production.create",
+    "production.submit",
+    "production.cancel",
   ],
 } as const satisfies Record<string, readonly string[]>;
 

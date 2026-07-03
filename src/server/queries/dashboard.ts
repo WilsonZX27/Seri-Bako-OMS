@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { looseSupabase } from "@/lib/supabase/loose";
 import { hasPermission } from "@/server/auth/permissions";
 import { actorDisplayName, formatActivityWithActor, resolveActorDisplayMap } from "@/server/actors/display";
 import { getCurrentUserScope, getVisibleNotificationsForCurrentUser } from "@/server/queries/notifications";
@@ -118,7 +119,8 @@ export async function getDashboardSummary() {
   }
 
   const supabase = await createClient();
-  const [canReadDocuments, balances, lowStock, transactions, stockItems, suppliers, items, urgentRequests, purchaseRequests, purchaseOrders, pendingApprovals, documents, notifications, recentActivities] = await Promise.all([
+  const db = looseSupabase(supabase);
+  const [canReadDocuments, balances, lowStock, transactions, stockItems, suppliers, items, urgentRequests, purchaseRequests, purchaseOrders, pendingApprovals, documents, notifications, recentActivities, todayProduction] = await Promise.all([
     hasPermission("documents.read"),
     supabase.from("stock_balances_view").select("item_id, current_stock, is_low_stock"),
     supabase.from("low_stock_items").select("*").limit(5),
@@ -143,9 +145,10 @@ export async function getDashboardSummary() {
     supabase.from("documents").select("id, document_no, document_type").order("updated_at", { ascending: false }).limit(6),
     getVisibleNotificationsForCurrentUser(),
     getVisibleRecentActivitiesForCurrentUser(),
+    db.from("production_jobs").select("id", { count: "exact", head: true }).eq("status", "posted").eq("production_date", new Date().toISOString().slice(0, 10)).is("deleted_at", null),
   ]);
 
-  for (const result of [balances, lowStock, transactions, stockItems, suppliers, items, urgentRequests, purchaseRequests, purchaseOrders, pendingApprovals, documents]) {
+  for (const result of [balances, lowStock, transactions, stockItems, suppliers, items, urgentRequests, purchaseRequests, purchaseOrders, pendingApprovals, documents, todayProduction]) {
     if (result.error) throw new Error(result.error.message);
   }
 
@@ -172,7 +175,7 @@ export async function getDashboardSummary() {
     today: {
       goodsReceiving: 0,
       stockCountDue: 0,
-      production: 0,
+      production: todayProduction.count ?? 0,
       deliveries: 0,
     },
     financeForecast: {

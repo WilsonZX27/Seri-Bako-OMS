@@ -1,22 +1,17 @@
 import { AlertTriangle, ClipboardList, Factory, PackageCheck, Scale } from "lucide-react";
 import { PageHeader } from "@/components/ui/page-header";
 import { WorkspaceQuickInsights, WorkspaceSectionPanel, type WorkspaceInsight, type WorkspaceSection } from "@/components/workspace-panels";
-
-const productionInsights: WorkspaceInsight[] = [
-  { label: "Production Jobs Today", value: 0, icon: Factory, theme: "teal" },
-  { label: "Active Recipes", value: 0, icon: ClipboardList, theme: "green" },
-  { label: "Yield Alerts", value: 0, icon: Scale, theme: "amber" },
-  { label: "Wastage Reviews", value: 0, icon: AlertTriangle, theme: "red" },
-];
+import { getProductionHubSummary } from "@/server/queries/production-jobs";
 
 const productionSections: WorkspaceSection[] = [
   {
-    title: "Production Actions",
-    description: "Operational production workflows for the central kitchen.",
+    title: "Production Jobs",
+    description: "Create, approve, and post recipe-based production for central kitchen work.",
     icon: Factory,
     theme: "teal",
     actions: [
-      { href: "/documents?document_type=production_job", title: "Production Jobs", description: "Production job workflow is coming in Sprint 7.", icon: Factory, recommendedFor: "kitchen", badge: "Coming soon", disabled: true },
+      { href: "/production/jobs/new", title: "New Production Job", description: "Create a draft from an active recipe. Stock changes only after posting.", icon: Factory, recommendedFor: "kitchen" },
+      { href: "/production/jobs", title: "View Production Jobs", description: "Review draft, submitted, approved, and posted production jobs.", icon: PackageCheck, recommendedFor: "managers" },
     ],
   },
   {
@@ -29,12 +24,13 @@ const productionSections: WorkspaceSection[] = [
     ],
   },
   {
-    title: "Production Orders",
-    description: "Future job planning and kitchen execution documents.",
+    title: "Approvals and Posting",
+    description: "Approve submitted jobs and post finished production into inventory.",
     icon: PackageCheck,
     theme: "blue",
     actions: [
-      { href: "/documents?document_type=production_job", title: "Production Documents", description: "Review production documents when the workflow is enabled.", icon: PackageCheck, recommendedFor: "kitchen", badge: "Coming soon", disabled: true },
+      { href: "/production/jobs?status=submitted", title: "Pending Approval", description: "Submitted production jobs waiting for Manager/Admin approval.", icon: PackageCheck, recommendedFor: "manager" },
+      { href: "/production/jobs?status=approved", title: "Ready to Post", description: "Approved production jobs ready to deduct ingredients and add output stock.", icon: Scale, recommendedFor: "admin" },
     ],
   },
   {
@@ -48,10 +44,18 @@ const productionSections: WorkspaceSection[] = [
   },
 ];
 
-export default function ProductionPage() {
+export default async function ProductionPage() {
+  const summary = await getProductionHubSummary();
+  const productionInsights: WorkspaceInsight[] = [
+    { label: "Posted Today", value: summary.todayPosted, icon: Factory, theme: "teal" },
+    { label: "Active Recipes", value: summary.activeRecipes, icon: ClipboardList, theme: "green" },
+    { label: "Pending Approval", value: summary.pendingApproval, icon: PackageCheck, theme: "amber" },
+    { label: "Shortage Warnings", value: summary.ingredientShortages, icon: AlertTriangle, theme: summary.ingredientShortages ? "red" : "green" },
+  ];
+
   return (
     <>
-      <PageHeader title="Production" description="Recipe and future production job tools for Seri Bako kitchen operations." />
+      <PageHeader title="Production" description="Recipe-based production jobs and finished goods stock posting for Seri Bako kitchen operations." />
       <div className="space-y-5 p-5">
         <WorkspaceQuickInsights insights={productionInsights} />
         <div className="grid gap-5 xl:grid-cols-2">

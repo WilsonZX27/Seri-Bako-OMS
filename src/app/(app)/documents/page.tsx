@@ -57,11 +57,11 @@ export default async function DocumentsPage({ searchParams }: { searchParams: Pr
     },
     {
       title: "Production Documents",
-      description: "Production job documents will appear as Sprint 7 workflows are enabled.",
+      description: "Production jobs, recipe output, and posted production movement documents.",
       icon: Factory,
       theme: "green",
       actions: [
-        { href: "/documents?document_type=production_job", title: "Production Jobs", description: "Production document workflow is coming soon.", icon: Factory, recommendedFor: "kitchen", badge: "Coming soon", disabled: true },
+        { href: "/production/jobs", title: "Production Jobs", description: "Open production job documents through the canonical production workspace.", icon: Factory, recommendedFor: "kitchen" },
       ],
     },
     {

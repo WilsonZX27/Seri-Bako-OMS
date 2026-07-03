@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { looseSupabase } from "@/lib/supabase/loose";
 import { getCanonicalDocumentHref, getCanonicalEntityHref } from "@/lib/document-routing";
 import { isMockMode, mockDocuments } from "@/lib/mock-mode";
 import { actorDisplayName, formatActivityWithActor, resolveActorDisplayMap } from "@/server/actors/display";
@@ -77,7 +78,8 @@ export async function getTopBarActivity() {
   }
 
   const supabase = await createClient();
-  const [documentApprovals, notifications, recentActivities, canAdminReview, canPurchasingReview, canManagerApprove, canConvertPo, canViewAll] = await Promise.all([
+  const db = looseSupabase(supabase);
+  const [documentApprovals, notifications, recentActivities, canAdminReview, canPurchasingReview, canManagerApprove, canConvertPo, canViewAll, canApproveProduction, canPostProduction] = await Promise.all([
     supabase.from("documents").select("id, document_no, title, document_type, related_entity_type, related_entity_id").eq("approval_status", "pending").order("updated_at", { ascending: false }).limit(5),
     getVisibleNotificationsForCurrentUser(),
     supabase.from("activity_logs").select("id, entity_type, activity_type, message, created_at, created_by").order("created_at", { ascending: false }).limit(40),
@@ -86,6 +88,8 @@ export async function getTopBarActivity() {
     hasPermission("pr.manager_approve"),
     hasPermission("pr.convert_to_po"),
     hasPermission("pr.view_all"),
+    hasPermission("production.approve"),
+    hasPermission("production.post"),
   ]);
 
   const prStatusFilters: Array<{ status: PurchaseRequestStatus; allowed: boolean; label: string }> = [
@@ -128,7 +132,30 @@ export async function getTopBarActivity() {
         href: getCanonicalDocumentHref(document),
       }));
 
-  const pendingApprovals = [...pendingPrResults.flat(), ...documentPendingActions]
+  const productionPendingActions: PendingAction[] = [];
+  if (canApproveProduction || canPostProduction) {
+    const productionStatuses = [
+      ...(canApproveProduction ? [{ status: "submitted", label: "Production approval required" }] : []),
+      ...(canPostProduction ? [{ status: "approved", label: "Ready to post production" }] : []),
+    ];
+    for (const filter of productionStatuses) {
+      const { data } = await db
+        .from("production_jobs")
+        .select("id, production_job_no, branch_id, updated_at")
+        .eq("status", filter.status)
+        .is("deleted_at", null)
+        .order("updated_at", { ascending: false })
+        .limit(5);
+      productionPendingActions.push(...((data ?? []) as Array<{ id: string; production_job_no: string }>).map((row) => ({
+        id: `prod-${filter.status}-${row.id}`,
+        document_no: row.production_job_no,
+        title: filter.label,
+        href: `/production/jobs/${row.id}`,
+      })));
+    }
+  }
+
+  const pendingApprovals = [...pendingPrResults.flat(), ...productionPendingActions, ...documentPendingActions]
     .filter((item, index, rows) => rows.findIndex((row) => row.href === item.href) === index)
     .slice(0, 5);
 

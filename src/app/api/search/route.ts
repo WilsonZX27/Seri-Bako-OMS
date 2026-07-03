@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { isMockMode, mockDocuments, mockGoodsReceivings, mockItems, mockLocations, mockProducts, mockPurchaseOrders, mockPurchaseRequests, mockRecipes, mockStaffs, mockStockCounts, mockSuppliers } from "@/lib/mock-mode";
 import { getCanonicalDocumentHref } from "@/lib/document-routing";
 import { createClient } from "@/lib/supabase/server";
+import { looseSupabase } from "@/lib/supabase/loose";
 
 type SearchResult = {
   type: string;
@@ -69,16 +70,18 @@ export async function GET(request: Request) {
   }
 
   const supabase = await createClient();
-  const [items, products, suppliers, documents, receivings, counts] = await Promise.all([
+  const db = looseSupabase(supabase);
+  const [items, products, suppliers, documents, receivings, counts, productionJobs] = await Promise.all([
     supabase.from("items").select("id,item_code,item_name,barcode,internal_barcode").or(`item_code.ilike.%${query}%,item_name.ilike.%${query}%,barcode.ilike.%${query}%,internal_barcode.ilike.%${query}%`).limit(8),
     supabase.from("products").select("id,product_code,product_name,barcode,internal_barcode").or(`product_code.ilike.%${query}%,product_name.ilike.%${query}%,barcode.ilike.%${query}%,internal_barcode.ilike.%${query}%`).limit(5),
     supabase.from("suppliers").select("id,supplier_code,name").or(`supplier_code.ilike.%${query}%,name.ilike.%${query}%`).limit(5),
     supabase.from("documents").select("id,document_no,title,document_type,related_entity_type,related_entity_id").or(`document_no.ilike.%${query}%,title.ilike.%${query}%,document_type.ilike.%${query}%`).limit(8),
     supabase.from("goods_receivings").select("id,grn_no,status,remarks").or(`grn_no.ilike.%${query}%,status.ilike.%${query}%,remarks.ilike.%${query}%`).limit(5),
     supabase.from("stock_counts").select("id,count_no,status,remarks").or(`count_no.ilike.%${query}%,status.ilike.%${query}%,remarks.ilike.%${query}%`).limit(5),
+    db.from("production_jobs").select("id,production_job_no,status,remarks").or(`production_job_no.ilike.%${query}%,status.ilike.%${query}%,remarks.ilike.%${query}%`).limit(5),
   ]);
 
-  for (const result of [items, products, suppliers, documents, receivings, counts]) {
+  for (const result of [items, products, suppliers, documents, receivings, counts, productionJobs]) {
     if (result.error) throw new Error(result.error.message);
   }
 
@@ -89,6 +92,7 @@ export async function GET(request: Request) {
     ...(documents.data ?? []).map((document) => ({ type: "Document", title: document.document_no, subtitle: document.title, href: getCanonicalDocumentHref(document) })),
     ...(receivings.data ?? []).map((receiving) => ({ type: "Goods Receiving", title: receiving.grn_no, subtitle: receiving.status, href: `/goods-receivings/${receiving.id}` })),
     ...(counts.data ?? []).map((count) => ({ type: "Stock Count", title: count.count_no, subtitle: count.status, href: `/stock-counts/${count.id}` })),
+    ...((productionJobs.data ?? []) as Array<{ id: string; production_job_no: string; status: string }>).map((job) => ({ type: "Production Job", title: job.production_job_no, subtitle: job.status, href: `/production/jobs/${job.id}` })),
   ];
   return NextResponse.json({ results });
 }

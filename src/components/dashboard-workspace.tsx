@@ -39,7 +39,7 @@ export function DashboardWorkspace({ summary, role }: { summary: DashboardSummar
 
   return (
     <div className="space-y-5 p-5">
-      <WorkspaceQuickInsights insights={dashboardInsights} action={{ href: "/documents?approval_status=pending", label: "Review approvals" }} />
+      <WorkspaceQuickInsights insights={dashboardInsights} action={{ href: "/purchase-requests?status=in_review", label: "Review approvals" }} />
 
       <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border bg-card p-4">
         <div>
@@ -91,7 +91,7 @@ export function DashboardWorkspace({ summary, role }: { summary: DashboardSummar
         <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
           <AttentionCard href="/low-stock" title="Low Stock" value={formatNumber(summary.lowStockCount)} description="Items below safety stock." icon={AlertTriangle} tone={summary.lowStockCount ? "warning" : "success"} />
           <AttentionCard href="/purchase-requests?priority=urgent" title="Urgent PRs" value={formatNumber(summary.urgentRequests.length)} description="Critical or urgent requests." icon={TriangleAlert} tone={summary.urgentRequests.length ? "danger" : "success"} />
-          <AttentionCard href="/documents?approval_status=pending" title="Approvals" value={formatNumber(summary.pendingApprovals.length)} description="Documents waiting for review." icon={ClipboardCheck} tone={summary.pendingApprovals.length ? "warning" : "success"} />
+          <AttentionCard href="/purchase-requests?status=in_review" title="Approvals" value={formatNumber(summary.pendingApprovals.length)} description="Documents waiting for review." icon={ClipboardCheck} tone={summary.pendingApprovals.length ? "warning" : "success"} />
           <AttentionCard href="/purchase-orders" title="Purchase Orders" value={formatNumber(summary.purchaseOrders.length)} description="Recent supplier order activity." icon={PackageCheck} tone="secondary" />
         </div>
       </section>

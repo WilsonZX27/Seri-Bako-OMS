@@ -11,6 +11,7 @@ import { PaginationControls, SortableHead } from "@/components/sortable-table";
 import { StatusTabs } from "@/components/status-tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { WorkspaceQuickInsights, WorkspaceSectionPanel, type WorkspaceInsight, type WorkspaceSection } from "@/components/workspace-panels";
+import { getCanonicalDocumentHref } from "@/lib/document-routing";
 import { formatStatusLabel } from "@/lib/status-label";
 import { getDocuments } from "@/server/queries/documents";
 
@@ -173,7 +174,7 @@ export default async function DocumentsPage({ searchParams }: { searchParams: Pr
                     <TableCell>{new Date(document.updated_at).toLocaleDateString("en-MY")}</TableCell>
                     <TableCell>{document.current_step ? formatStatusLabel(document.current_step) : "-"}</TableCell>
                     <TableCell>{document.related_entity_type ? formatStatusLabel(document.related_entity_type) : "-"}</TableCell>
-                    <TableCell className="text-right"><Button asChild variant="outline" size="sm"><Link href={`/documents/${document.id}`}>Open</Link></Button></TableCell>
+                    <TableCell className="text-right"><Button asChild variant="outline" size="sm"><Link href={getCanonicalDocumentHref(document)}>Open</Link></Button></TableCell>
                   </TableRow>
                 ))}
                 {!documents.rows.length ? <TableRow><TableCell colSpan={12} className="text-center text-muted-foreground">No documents found.</TableCell></TableRow> : null}

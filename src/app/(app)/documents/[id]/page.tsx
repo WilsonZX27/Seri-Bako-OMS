@@ -1,7 +1,9 @@
+import { redirect } from "next/navigation";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { ApprovalPanel, AttachmentPanel, CommentsPanel, DocumentTimeline, RevisionPanel } from "@/components/documents/document-panels";
 import { DocumentWorkspace } from "@/components/documents/document-workspace";
+import { getCanonicalDocumentHref } from "@/lib/document-routing";
 import { formatStatusLabel } from "@/lib/status-label";
 import { getDocumentBundle } from "@/server/queries/documents";
 
@@ -27,6 +29,12 @@ export default async function DocumentDetailPage({
   const { id } = await params;
   const [messageParams, bundle] = await Promise.all([searchParams, getDocumentBundle(id)]);
   const document = bundle.document;
+  const canonicalHref = getCanonicalDocumentHref(document);
+  if (canonicalHref !== `/documents/${document.id}`) {
+    const messageKey = messageParams.error ? "error" : messageParams.success ? "success" : null;
+    const message = messageParams.error ?? messageParams.success;
+    redirect(messageKey && message ? `${canonicalHref}?${messageKey}=${encodeURIComponent(message)}` : canonicalHref);
+  }
 
   return (
     <DocumentWorkspace

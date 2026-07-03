@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { Sidebar } from "@/components/layout/sidebar";
 import { TopBar } from "@/components/layout/top-bar";
 import { MobileBottomNav } from "@/components/layout/mobile-bottom-nav";
+import { GlobalActionToast } from "@/components/global-action-toast";
 import { isMockMode } from "@/lib/mock-mode";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentProfile } from "@/server/queries/common";
@@ -47,6 +48,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
               Your account has no staff role assigned. Please run setup or contact admin.
             </div>
           ) : null}
+          <GlobalActionToast />
           <main className="flex-1 pb-16 md:pb-0">{children}</main>
           <MobileBottomNav />
         </div>

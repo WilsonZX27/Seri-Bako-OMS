@@ -87,11 +87,11 @@ export default async function PurchaseRequestDetailPage({
         <>
           <DocumentSideSection title="Primary Action" description="Only the next valid workflow action is shown.">
             <DocumentActionBar>
-              {canSubmit ? <DocumentActionForm action={submitPurchaseRequest.bind(null, request.id)} pendingLabel="Submitting..." variant="secondary">Submit to Admin</DocumentActionForm> : null}
+              {canSubmit ? <DocumentActionForm action={submitPurchaseRequest.bind(null, request.id)} pendingLabel="Submitting..." variant="secondary">Submit to Admin Review</DocumentActionForm> : null}
               {canCancel ? <DocumentActionForm action={cancelPurchaseRequest.bind(null, request.id)} pendingLabel="Cancelling..." variant="ghost">Cancel draft</DocumentActionForm> : null}
-              {canAdminReview ? <DocumentActionForm action={adminReviewPurchaseRequest.bind(null, request.id)} pendingLabel="Approving..." variant="outline">Complete Admin Review</DocumentActionForm> : null}
-              {canPurchasingReview ? <DocumentActionForm action={purchasingReviewPurchaseRequest.bind(null, request.id)} pendingLabel="Approving..." variant="outline">Complete Purchasing Review</DocumentActionForm> : null}
-              {canManagerApprove ? <DocumentActionForm action={approvePurchaseRequest.bind(null, request.id)} pendingLabel="Approving...">Manager Approve</DocumentActionForm> : null}
+              {canAdminReview ? <DocumentActionForm action={adminReviewPurchaseRequest.bind(null, request.id)} pendingLabel="Approving..." className="bg-emerald-700 text-white hover:bg-emerald-800">Complete Admin Review</DocumentActionForm> : null}
+              {canPurchasingReview ? <DocumentActionForm action={purchasingReviewPurchaseRequest.bind(null, request.id)} pendingLabel="Approving..." className="bg-emerald-700 text-white hover:bg-emerald-800">Complete Purchasing Review</DocumentActionForm> : null}
+              {canManagerApprove ? <DocumentActionForm action={approvePurchaseRequest.bind(null, request.id)} pendingLabel="Approving..." className="bg-emerald-700 text-white hover:bg-emerald-800">Manager Approve</DocumentActionForm> : null}
               {canConvert ? <DocumentActionForm action={convertPurchaseRequestToPurchaseOrder.bind(null, request.id)} pendingLabel="Converting...">Convert to Purchase Order</DocumentActionForm> : null}
               {request.status === "converted" && linkedPurchaseOrders[0] ? (
                 <Button asChild><a href={`/purchase-orders/${linkedPurchaseOrders[0].id}`}>Open PO</a></Button>

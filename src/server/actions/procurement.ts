@@ -62,13 +62,66 @@ async function requirePrTransition(input: {
   const supabase = await createClient();
   const { data: pr, error } = await supabase
     .from("purchase_requests")
-    .select("id, request_no, status, branch_id, document_id")
+    .select("id, request_no, status, branch_id, document_id, company_id")
     .eq("id", input.id)
     .single();
   if (error) throw new Error(error.message);
   await requireBranchAccess(pr.branch_id);
   if (pr.status !== input.expectedStatus) throw new Error(wrongPrStepMessage);
   return pr;
+}
+
+async function notifyNextPrRole(input: {
+  pr: { id: string; request_no: string; branch_id: string | null; company_id: string | null };
+  nextStatus: PurchaseRequestStatus;
+}) {
+  const roleCodesByStatus: Partial<Record<PurchaseRequestStatus, string[]>> = {
+    admin_review: ["operations_admin", "admin", "super_admin"],
+    purchasing_review: ["purchasing", "admin", "super_admin"],
+    pending_approval: ["manager", "admin", "super_admin"],
+    approved: ["purchasing", "operations_admin", "admin", "super_admin"],
+  };
+  const roleCodes = roleCodesByStatus[input.nextStatus] ?? [];
+  if (!roleCodes.length) return;
+
+  const supabase = await createClient();
+  const { data: roles, error: rolesError } = await supabase
+    .from("roles")
+    .select("id, role_code")
+    .in("role_code", roleCodes)
+    .eq("status", "active");
+  if (rolesError) {
+    console.error(rolesError);
+    return;
+  }
+
+  const titleByStatus: Partial<Record<PurchaseRequestStatus, string>> = {
+    admin_review: "PR Admin Review required",
+    purchasing_review: "PR Purchasing Review required",
+    pending_approval: "PR Manager Approval required",
+    approved: "PR ready to convert to PO",
+  };
+  const messageByStatus: Partial<Record<PurchaseRequestStatus, string>> = {
+    admin_review: `${input.pr.request_no} is waiting for Admin Review.`,
+    purchasing_review: `${input.pr.request_no} is waiting for Purchasing Review.`,
+    pending_approval: `${input.pr.request_no} is waiting for Manager Approval.`,
+    approved: `${input.pr.request_no} is approved and ready to convert to PO.`,
+  };
+
+  const notifications = (roles ?? []).map((role) => ({
+    company_id: input.pr.company_id,
+    recipient_role_id: role.id,
+    branch_id: input.pr.branch_id,
+    title: titleByStatus[input.nextStatus] ?? "Purchase Request update",
+    message: messageByStatus[input.nextStatus] ?? `${input.pr.request_no} has moved to the next workflow step.`,
+    action_url: `/purchase-requests/${input.pr.id}`,
+    priority: input.nextStatus === "pending_approval" ? "high" : "normal",
+    entity_type: "purchase_request",
+    entity_id: input.pr.id,
+  }));
+  if (!notifications.length) return;
+  const { error } = await supabase.from("notifications").insert(notifications);
+  if (error) console.error(error);
 }
 
 function extractPurchaseRequest(formData: FormData) {
@@ -296,14 +349,16 @@ async function updatePrStatus(input: {
       metadata: { workflow_step: input.expectedStatus, next_status: input.nextStatus },
     });
   }
+  await notifyNextPrRole({ pr, nextStatus: input.nextStatus });
   revalidatePath("/purchase-requests");
   revalidatePath(`/purchase-requests/${input.id}`);
+  return pr;
 }
 
 export async function submitPurchaseRequest(id: string) {
   try {
     if (isMockMode()) return;
-    await updatePrStatus({
+    const pr = await updatePrStatus({
       id,
       expectedStatus: "draft",
       nextStatus: "admin_review",
@@ -314,6 +369,7 @@ export async function submitPurchaseRequest(id: string) {
       message: "Purchase request submitted to Admin Review",
       activityType: "submitted",
     });
+    safeRedirectWithMessage(`/purchase-requests/${id}`, "success", `${pr.request_no} submitted to Admin Review. Administrator has been notified.`);
   } catch (error) {
     rethrowRedirect(error);
     safeRedirectWithMessage(`/purchase-requests/${id}`, "error", formatActionError(error, "Could not submit this purchase request."));
@@ -323,7 +379,7 @@ export async function submitPurchaseRequest(id: string) {
 export async function adminReviewPurchaseRequest(id: string) {
   try {
     if (isMockMode()) return;
-    await updatePrStatus({
+    const pr = await updatePrStatus({
       id,
       expectedStatus: "admin_review",
       nextStatus: "purchasing_review",
@@ -334,6 +390,7 @@ export async function adminReviewPurchaseRequest(id: string) {
       message: "Admin Review completed",
       activityType: "admin_review_completed",
     });
+    safeRedirectWithMessage(`/purchase-requests/${id}`, "success", `${pr.request_no} Admin Review completed. Purchasing has been notified.`);
   } catch (error) {
     rethrowRedirect(error);
     safeRedirectWithMessage(`/purchase-requests/${id}`, "error", formatActionError(error, "Could not complete Admin Review."));
@@ -343,7 +400,7 @@ export async function adminReviewPurchaseRequest(id: string) {
 export async function purchasingReviewPurchaseRequest(id: string) {
   try {
     if (isMockMode()) return;
-    await updatePrStatus({
+    const pr = await updatePrStatus({
       id,
       expectedStatus: "purchasing_review",
       nextStatus: "pending_approval",
@@ -354,6 +411,7 @@ export async function purchasingReviewPurchaseRequest(id: string) {
       message: "Purchasing Review completed",
       activityType: "purchasing_review_completed",
     });
+    safeRedirectWithMessage(`/purchase-requests/${id}`, "success", `${pr.request_no} Purchasing Review completed. Manager has been notified.`);
   } catch (error) {
     rethrowRedirect(error);
     safeRedirectWithMessage(`/purchase-requests/${id}`, "error", formatActionError(error, "Could not complete Purchasing Review."));
@@ -363,7 +421,7 @@ export async function purchasingReviewPurchaseRequest(id: string) {
 export async function approvePurchaseRequest(id: string) {
   try {
     if (isMockMode()) return;
-    await updatePrStatus({
+    const pr = await updatePrStatus({
       id,
       expectedStatus: "pending_approval",
       nextStatus: "approved",
@@ -374,6 +432,7 @@ export async function approvePurchaseRequest(id: string) {
       message: "Manager approved purchase request",
       activityType: "manager_approved",
     });
+    safeRedirectWithMessage(`/purchase-requests/${id}`, "success", `${pr.request_no} Manager approved. Ready to convert to PO.`);
   } catch (error) {
     rethrowRedirect(error);
     safeRedirectWithMessage(`/purchase-requests/${id}`, "error", formatActionError(error, "Could not approve this purchase request."));
@@ -399,7 +458,7 @@ export async function rejectPurchaseRequest(id: string, formData: FormData) {
     if (!transition) throw new Error("This request is not at a rejectable workflow step.");
     const canReject = (await hasPermission("pr.reject")) || (await hasPermission(transition.permission));
     if (!canReject) throw new Error(noPermissionMessage);
-    await updatePrStatus({
+    const updated = await updatePrStatus({
       id,
       expectedStatus: transition.expectedStatus,
       nextStatus: "rejected",
@@ -410,6 +469,7 @@ export async function rejectPurchaseRequest(id: string, formData: FormData) {
       message: `${transition.step} rejected: ${remarks}`,
       activityType: "rejected",
     });
+    safeRedirectWithMessage(`/purchase-requests/${id}`, "success", `${updated.request_no} rejected.`);
   } catch (error) {
     rethrowRedirect(error);
     safeRedirectWithMessage(`/purchase-requests/${id}`, "error", formatActionError(error, "Could not reject this purchase request."));
@@ -419,7 +479,7 @@ export async function rejectPurchaseRequest(id: string, formData: FormData) {
 export async function cancelPurchaseRequest(id: string) {
   try {
     if (isMockMode()) return;
-    await updatePrStatus({
+    const pr = await updatePrStatus({
       id,
       expectedStatus: "draft",
       nextStatus: "cancelled",
@@ -430,6 +490,7 @@ export async function cancelPurchaseRequest(id: string) {
       message: "Purchase request cancelled",
       activityType: "cancelled",
     });
+    safeRedirectWithMessage(`/purchase-requests/${id}`, "success", `${pr.request_no} cancelled.`);
   } catch (error) {
     rethrowRedirect(error);
     safeRedirectWithMessage(`/purchase-requests/${id}`, "error", formatActionError(error, "Could not cancel this purchase request."));
@@ -485,9 +546,9 @@ export async function createPurchaseOrder(formData: FormData) {
 async function updatePoStatus(id: string, status: PurchaseOrderStatus, approvalStatus: ApprovalStatus, step: string, message: string) {
   const supabase = await createClient();
   const profile = await identity();
-  const { data: order, error: orderError } = await supabase.from("purchase_orders").select("status,document_id").eq("id", id).single();
+  const { data: order, error: orderError } = await supabase.from("purchase_orders").select("status,document_id,po_no").eq("id", id).single();
   if (orderError) throw new Error(orderError.message);
-  if (order.status === status) return;
+  if (order.status === status) return order;
   const documentStatus = status === "approved" || status === "sent" ? "approved" : status === "cancelled" ? "cancelled" : status === "closed" ? "closed" : "pending_approval";
   const [{ error }, { error: documentError }] = await Promise.all([
     supabase.from("purchase_orders").update({ status, approval_status: approvalStatus, updated_by: profile?.id ?? null }).eq("id", id),
@@ -500,47 +561,84 @@ async function updatePoStatus(id: string, status: PurchaseOrderStatus, approvalS
   if (order.document_id) await writeActivityLog({ entityType: "document", entityId: order.document_id, activityType: status, message });
   revalidatePath("/purchase-orders");
   revalidatePath(`/purchase-orders/${id}`);
+  return order;
 }
 
 export async function submitPurchaseOrder(id: string) {
-  await requirePermission("po.submit");
-  if (isMockMode()) return;
-  await updatePoStatus(id, "pending_approval", "pending", "Manager approval", "Purchase order submitted for approval");
+  try {
+    await requirePermission("po.submit");
+    if (isMockMode()) return;
+    const order = await updatePoStatus(id, "pending_approval", "pending", "Manager approval", "Purchase order submitted for approval");
+    safeRedirectWithMessage(`/purchase-orders/${id}`, "success", `${order.po_no} submitted for approval.`);
+  } catch (error) {
+    rethrowRedirect(error);
+    safeRedirectWithMessage(`/purchase-orders/${id}`, "error", formatActionError(error, "Could not submit this purchase order."));
+  }
 }
 
 export async function approvePurchaseOrder(id: string) {
-  await requirePermission("po.approve");
-  if (isMockMode()) return;
-  await updatePoStatus(id, "approved", "approved", "Approved", "Purchase order approved");
+  try {
+    await requirePermission("po.approve");
+    if (isMockMode()) return;
+    const order = await updatePoStatus(id, "approved", "approved", "Approved", "Purchase order approved");
+    safeRedirectWithMessage(`/purchase-orders/${id}`, "success", `${order.po_no} approved.`);
+  } catch (error) {
+    rethrowRedirect(error);
+    safeRedirectWithMessage(`/purchase-orders/${id}`, "error", formatActionError(error, "Could not approve this purchase order."));
+  }
 }
 
 export async function rejectPurchaseOrder(id: string) {
-  await requirePermission("po.approve");
-  if (isMockMode()) return;
-  await updatePoStatus(id, "cancelled", "rejected", "Rejected", "Purchase order rejected");
+  try {
+    await requirePermission("po.approve");
+    if (isMockMode()) return;
+    const order = await updatePoStatus(id, "cancelled", "rejected", "Rejected", "Purchase order rejected");
+    safeRedirectWithMessage(`/purchase-orders/${id}`, "success", `${order.po_no} rejected.`);
+  } catch (error) {
+    rethrowRedirect(error);
+    safeRedirectWithMessage(`/purchase-orders/${id}`, "error", formatActionError(error, "Could not reject this purchase order."));
+  }
 }
 
 export async function sendPurchaseOrder(id: string) {
-  await requirePermission("po.send");
-  if (isMockMode()) return;
-  const supabase = await createClient();
-  const { data, error } = await supabase.from("purchase_orders").select("approval_status,status").eq("id", id).single();
-  if (error) throw new Error(error.message);
-  if (data.status === "sent") return;
-  if (data.approval_status !== "approved") throw new Error("Cannot send unapproved PO.");
-  await updatePoStatus(id, "sent", "approved", "Sent to supplier", "Purchase order sent to supplier");
+  try {
+    await requirePermission("po.send");
+    if (isMockMode()) return;
+    const supabase = await createClient();
+    const { data, error } = await supabase.from("purchase_orders").select("approval_status,status,po_no").eq("id", id).single();
+    if (error) throw new Error(error.message);
+    if (data.status === "sent") safeRedirectWithMessage(`/purchase-orders/${id}`, "success", `${data.po_no} has already been sent.`);
+    if (data.approval_status !== "approved") throw new Error("Cannot send unapproved PO.");
+    const order = await updatePoStatus(id, "sent", "approved", "Sent to supplier", "Purchase order sent to supplier");
+    safeRedirectWithMessage(`/purchase-orders/${id}`, "success", `${order.po_no} sent to supplier.`);
+  } catch (error) {
+    rethrowRedirect(error);
+    safeRedirectWithMessage(`/purchase-orders/${id}`, "error", formatActionError(error, "Could not send this purchase order."));
+  }
 }
 
 export async function cancelPurchaseOrder(id: string) {
-  await requirePermission("purchase_order.cancel");
-  if (isMockMode()) return;
-  await updatePoStatus(id, "cancelled", "cancelled", "Cancelled", "Purchase order cancelled");
+  try {
+    await requirePermission("purchase_order.cancel");
+    if (isMockMode()) return;
+    const order = await updatePoStatus(id, "cancelled", "cancelled", "Cancelled", "Purchase order cancelled");
+    safeRedirectWithMessage(`/purchase-orders/${id}`, "success", `${order.po_no} cancelled.`);
+  } catch (error) {
+    rethrowRedirect(error);
+    safeRedirectWithMessage(`/purchase-orders/${id}`, "error", formatActionError(error, "Could not cancel this purchase order."));
+  }
 }
 
 export async function closePurchaseOrder(id: string) {
-  await requirePermission("purchase_order.close");
-  if (isMockMode()) return;
-  await updatePoStatus(id, "closed", "approved", "Closed", "Purchase order closed");
+  try {
+    await requirePermission("purchase_order.close");
+    if (isMockMode()) return;
+    const order = await updatePoStatus(id, "closed", "approved", "Closed", "Purchase order closed");
+    safeRedirectWithMessage(`/purchase-orders/${id}`, "success", `${order.po_no} closed.`);
+  } catch (error) {
+    rethrowRedirect(error);
+    safeRedirectWithMessage(`/purchase-orders/${id}`, "error", formatActionError(error, "Could not close this purchase order."));
+  }
 }
 
 export async function convertPurchaseRequestToPurchaseOrder(id: string) {
@@ -548,7 +646,6 @@ export async function convertPurchaseRequestToPurchaseOrder(id: string) {
   try {
     if (isMockMode()) redirect("/purchase-orders/po-mock-001");
     const supabase = await createClient();
-    await requirePrTransition({ id, expectedStatus: "approved", permission: "pr.convert_to_po" });
     const [{ data: pr, error: prError }, { data: lines, error: linesError }, { data: existingPo, error: existingPoError }] = await Promise.all([
       supabase.from("purchase_requests").select("*").eq("id", id).single(),
       supabase.from("purchase_request_lines").select("*").eq("purchase_request_id", id),
@@ -560,6 +657,7 @@ export async function convertPurchaseRequestToPurchaseOrder(id: string) {
     if (existingPo?.[0]) {
       safeRedirectWithMessage(`/purchase-orders/${existingPo[0].id}`, "success", `Purchase order ${existingPo[0].po_no} is already linked to this PR.`);
     }
+    await requirePrTransition({ id, expectedStatus: "approved", permission: "pr.convert_to_po" });
     if (pr.status !== "approved") throw new Error(wrongPrStepMessage);
     if (!lines?.length) throw new Error("Add at least one item line before converting this PR.");
 

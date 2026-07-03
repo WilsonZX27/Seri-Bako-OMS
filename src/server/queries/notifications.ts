@@ -62,7 +62,7 @@ export async function getVisibleNotificationsForCurrentUser() {
     supabase
       .from("notifications")
       .select(
-        "id, title, message, action_url, priority, created_at, read_at, dismissed_at, is_company_wide, recipient_user_id, recipient_staff_id, recipient_role_id, branch_id",
+        "id, title, message, action_url, priority, created_at, read_at, dismissed_at, is_company_wide, recipient_user_id, recipient_staff_id, recipient_role_id, branch_id, entity_type, entity_id",
       )
       .order("created_at", { ascending: false })
       .limit(40),

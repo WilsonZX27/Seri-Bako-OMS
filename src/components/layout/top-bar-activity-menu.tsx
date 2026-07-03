@@ -66,7 +66,7 @@ export function TopBarActivityMenu({ data }: { data: TopBarActivity }) {
                 {pendingCount ? <span className="rounded-full bg-red-50 px-2 py-0.5 text-xs font-medium text-red-700">{pendingCount}</span> : null}
               </div>
               {data.pendingApprovals.map((item) => (
-                <Link key={item.id} href={`/documents/${item.id}`} onClick={() => setOpen(false)} className="flex gap-2 rounded-md p-2 text-sm hover:bg-secondary">
+                <Link key={item.id} href={item.href} onClick={() => setOpen(false)} className="flex gap-2 rounded-md p-2 text-sm hover:bg-secondary">
                   <ListTodo className="mt-0.5 h-4 w-4 text-primary" />
                   <span>{item.document_no} - {item.title}</span>
                 </Link>

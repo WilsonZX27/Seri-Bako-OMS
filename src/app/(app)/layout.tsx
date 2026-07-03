@@ -19,13 +19,17 @@ export default async function AppLayout({ children }: { children: React.ReactNod
 
     const { data: staff } = await supabase
       .from("staffs")
-      .select("status")
+      .select("status, must_change_password")
       .eq("auth_user_id", user.id)
       .maybeSingle();
 
     if (staff && ["disabled", "inactive", "archived"].includes(staff.status)) {
       await supabase.auth.signOut();
       redirect("/login?error=disabled");
+    }
+
+    if (staff?.must_change_password) {
+      redirect("/change-password");
     }
   }
 

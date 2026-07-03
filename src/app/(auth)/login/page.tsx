@@ -6,16 +6,25 @@ import { PasswordInput } from "@/components/ui/password-input";
 import { SubmitButton } from "@/components/ui/submit-button";
 import { signIn } from "@/server/actions/auth";
 
+function friendlyLoginError(error?: string) {
+  if (!error) return null;
+  const normalized = error.toLowerCase();
+  if (normalized === "disabled" || normalized.includes("disabled")) return "Your staff account is disabled. Please contact Admin.";
+  if (normalized.includes("otp_expired")) return "This link has expired or was already used. Please sign in with your password or contact Admin.";
+  if (normalized.includes("rate limit") || normalized.includes("too many") || normalized.includes("email")) return "Email sending is temporarily limited. Please contact Admin for temporary password setup.";
+  if (normalized.includes("invitation expired")) return "Your invitation link has expired. Please contact Admin.";
+  if (normalized.includes("invalid_or_expired_link") || normalized.includes("expired") || normalized.includes("invalid link")) return "This link has expired or was already used. Please sign in with your password or contact Admin.";
+  if (normalized.includes("invalid login") || normalized.includes("invalid credentials")) return "Invalid email or password.";
+  return error;
+}
+
 export default async function LoginPage({
   searchParams,
 }: {
   searchParams: Promise<{ error?: string; message?: string }>;
 }) {
   const params = await searchParams;
-  const errorMessage =
-    params.error === "invalid_or_expired_link"
-      ? "Your link has expired or is invalid. Please request a new link."
-      : params.error;
+  const errorMessage = friendlyLoginError(params.error);
 
   return (
     <AuthShell title="Welcome back" description="Sign in with your staff account to continue.">

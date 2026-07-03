@@ -1,5 +1,6 @@
 "use server";
 
+import { randomInt } from "crypto";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { isMockMode } from "@/lib/mock-mode";
@@ -545,9 +546,11 @@ async function inviteStaffByEmail(staffId: string, email: string) {
     authUserId = users.users.find((user) => user.email?.toLowerCase() === email)?.id ?? null;
   }
 
-  const updates: { auth_user_id?: string; invite_email: string; invited_at: string } = {
+  const updates: { auth_user_id?: string; invite_email: string; invited_at: string; auth_setup_method: string; invitation_status: string } = {
     invite_email: email,
     invited_at: new Date().toISOString(),
+    auth_setup_method: "email_invitation",
+    invitation_status: "invited",
   };
   if (authUserId) updates.auth_user_id = authUserId;
 
@@ -555,11 +558,99 @@ async function inviteStaffByEmail(staffId: string, email: string) {
   if (updateError) throw new Error(updateError.message);
 }
 
+function generateTemporaryPassword() {
+  const lowercase = "abcdefghjkmnpqrstuvwxyz";
+  const uppercase = "ABCDEFGHJKLMNPQRSTUVWXYZ";
+  const digits = "23456789";
+  const symbols = "!@#$%";
+  const all = `${lowercase}${uppercase}${digits}${symbols}`;
+  const pick = (chars: string) => chars[randomInt(0, chars.length)];
+  const chars = [pick(lowercase), pick(uppercase), pick(digits), pick(symbols)];
+  while (chars.length < 14) chars.push(pick(all));
+  return chars
+    .map((char) => ({ char, sort: randomInt(0, 1000000) }))
+    .sort((a, b) => a.sort - b.sort)
+    .map((entry) => entry.char)
+    .join("");
+}
+
+async function findAuthUserIdByEmail(email: string) {
+  const admin = createAdminClient();
+  const normalized = email.trim().toLowerCase();
+  const { data, error } = await admin.auth.admin.listUsers();
+  if (error) throw new Error(error.message);
+  return data.users.find((user) => user.email?.toLowerCase() === normalized)?.id ?? null;
+}
+
+async function createOrResetStaffAuthAccount(input: {
+  staffId: string;
+  email: string;
+  fullName: string;
+  temporaryPassword?: string | null;
+  resetExisting?: boolean;
+}) {
+  const admin = createAdminClient();
+  const email = input.email.trim().toLowerCase();
+  const temporaryPassword = input.temporaryPassword?.trim() || generateTemporaryPassword();
+  const now = new Date().toISOString();
+
+  let authUserId = await findAuthUserIdByEmail(email);
+  if (!authUserId) {
+    const { data, error } = await admin.auth.admin.createUser({
+      email,
+      password: temporaryPassword,
+      email_confirm: true,
+      user_metadata: {
+        full_name: input.fullName,
+        staff_id: input.staffId,
+        force_password_change: true,
+      },
+    });
+    if (error) throw new Error(error.message);
+    authUserId = data.user?.id ?? null;
+  } else if (input.resetExisting) {
+    const { error } = await admin.auth.admin.updateUserById(authUserId, {
+      password: temporaryPassword,
+      user_metadata: {
+        full_name: input.fullName,
+        staff_id: input.staffId,
+        force_password_change: true,
+      },
+    });
+    if (error) throw new Error(error.message);
+  } else {
+    throw new Error("An auth account already exists for this email. Link or reset password instead.");
+  }
+
+  if (!authUserId) throw new Error("Could not create the auth account for this staff member.");
+
+  const { error: updateError } = await admin
+    .from("staffs")
+    .update({
+      auth_user_id: authUserId,
+      invite_email: email,
+      status: "invited",
+      auth_setup_method: "temporary_password",
+      invitation_status: "password_required",
+      must_change_password: true,
+      temp_password_issued_at: now,
+      invited_at: now,
+    })
+    .eq("id", input.staffId);
+  if (updateError) throw new Error(updateError.message);
+
+  return temporaryPassword;
+}
+
 export async function createStaff(formData: FormData) {
   await requirePermissionOrRedirect("staffs.create", "/staffs/new");
+  let createdStaffId: string | null = null;
+  let temporaryPassword: string | null = null;
   try {
     const payload = staffPayload(formData);
     const access = staffAccessPayload(formData);
+    const authSetupMethod = String(formData.get("auth_setup_method") ?? "temporary_password");
+    const enteredTemporaryPassword = cleanText(formData.get("temporary_password"));
     if (!isMockMode()) {
       const supabase = createAdminClient();
       if (!access.role_id || !access.branch_id) {
@@ -582,22 +673,45 @@ export async function createStaff(formData: FormData) {
         status: existing?.accepted_at ? payload.status : "invited",
         invited_at: now,
         invited_by: invitedBy,
+        auth_setup_method: authSetupMethod === "email_invitation" ? "email_invitation" : "temporary_password",
+        invitation_status: authSetupMethod === "email_invitation" ? "invited" : "password_required",
+        must_change_password: authSetupMethod !== "email_invitation",
+        temp_password_issued_at: authSetupMethod !== "email_invitation" ? now : null,
       };
 
       const { data, error } = existing
         ? await supabase.from("staffs").update(staffRecord).eq("id", existing.id).select("id").single()
         : await supabase.from("staffs").insert(staffRecord).select("id").single();
       if (error) throw new Error(error.message);
+      createdStaffId = data.id;
       await replaceStaffAccess(data.id, formData);
-      await inviteStaffByEmail(data.id, payload.email);
-      await writeActivityLog({ entityType: "staff", entityId: data.id, activityType: existing ? "updated" : "created", message: `Staff ${payload.full_name} invited` });
+      if (authSetupMethod === "email_invitation") {
+        await inviteStaffByEmail(data.id, payload.email);
+      } else {
+        temporaryPassword = await createOrResetStaffAuthAccount({
+          staffId: data.id,
+          email: payload.email,
+          fullName: payload.full_name,
+          temporaryPassword: enteredTemporaryPassword,
+          resetExisting: false,
+        });
+      }
+      await writeActivityLog({
+        entityType: "staff",
+        entityId: data.id,
+        activityType: existing ? "updated" : "created",
+        message: authSetupMethod === "email_invitation" ? `Staff ${payload.full_name} invited` : `Staff ${payload.full_name} auth account created`,
+      });
     }
   } catch (error) {
     rethrowRedirect(error);
-    safeRedirectWithMessage("/staffs/new", "error", formatActionError(error, "Could not create and invite this staff member."));
+    safeRedirectWithMessage("/staffs/new", "error", formatActionError(error, "Could not create this staff member."));
   }
   revalidatePath("/staffs");
-  safeRedirectWithMessage("/staffs", "success", "Staff invitation sent.");
+  if (createdStaffId && temporaryPassword) {
+    redirect(`/staffs/${createdStaffId}?success=${encodeURIComponent("Staff account created. Copy the temporary password now.")}&temp_password=${encodeURIComponent(temporaryPassword)}`);
+  }
+  safeRedirectWithMessage("/staffs", "success", "Staff created.");
 }
 
 export async function updateStaff(id: string, formData: FormData) {
@@ -643,6 +757,66 @@ export async function resendStaffInvite(id: string) {
   revalidatePath("/staffs");
   revalidatePath(`/staffs/${id}`);
   safeRedirectWithMessage(`/staffs/${id}`, "success", "Invite resent.");
+}
+
+export async function resetStaffTemporaryPassword(id: string) {
+  await requirePermissionOrRedirect("staffs.update", `/staffs/${id}`);
+  let temporaryPassword: string | null = null;
+  try {
+    if (!isMockMode()) {
+      const supabase = createAdminClient();
+      const { data: staff, error } = await supabase
+        .from("staffs")
+        .select("id, email, invite_email, full_name, auth_user_id")
+        .eq("id", id)
+        .single();
+      if (error) throw new Error(error.message);
+      const email = (staff.invite_email ?? staff.email ?? "").trim().toLowerCase();
+      if (!email) throw new Error("Staff email is required before generating a temporary password.");
+      temporaryPassword = await createOrResetStaffAuthAccount({
+        staffId: id,
+        email,
+        fullName: staff.full_name,
+        resetExisting: true,
+      });
+      await writeActivityLog({ entityType: "staff", entityId: id, activityType: "password_reset", message: "Admin reset temporary password for staff" });
+    }
+  } catch (error) {
+    rethrowRedirect(error);
+    safeRedirectWithMessage(`/staffs/${id}`, "error", formatActionError(error, "Could not reset the temporary password."));
+  }
+  revalidatePath("/staffs");
+  revalidatePath(`/staffs/${id}`);
+  if (temporaryPassword) {
+    redirect(`/staffs/${id}?success=${encodeURIComponent("Temporary password generated. Copy it now.")}&temp_password=${encodeURIComponent(temporaryPassword)}`);
+  }
+  safeRedirectWithMessage(`/staffs/${id}`, "success", "Temporary password generated.");
+}
+
+export async function forceStaffPasswordChange(id: string) {
+  await requirePermissionOrRedirect("staffs.update", `/staffs/${id}`);
+  try {
+    if (!isMockMode()) {
+      const supabase = createAdminClient();
+      const { error } = await supabase
+        .from("staffs")
+        .update({
+          must_change_password: true,
+          invitation_status: "password_required",
+          auth_setup_method: "temporary_password",
+          temp_password_issued_at: new Date().toISOString(),
+        })
+        .eq("id", id);
+      if (error) throw new Error(error.message);
+      await writeActivityLog({ entityType: "staff", entityId: id, activityType: "password_change_required", message: "Admin required staff password change" });
+    }
+  } catch (error) {
+    rethrowRedirect(error);
+    safeRedirectWithMessage(`/staffs/${id}`, "error", formatActionError(error, "Could not force password change."));
+  }
+  revalidatePath("/staffs");
+  revalidatePath(`/staffs/${id}`);
+  safeRedirectWithMessage(`/staffs/${id}`, "success", "Staff must change password at next login.");
 }
 
 export async function disableStaff(id: string) {

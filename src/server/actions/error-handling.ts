@@ -20,7 +20,7 @@ export function formatActionError(error: unknown, fallback = "Something went wro
     || normalized.includes("email rate limit exceeded")
     || normalized.includes("429")
   ) {
-    return "Too many emails were requested. Please wait a while before trying again, or contact your system admin.";
+    return "Email sending is temporarily limited. Use temporary password setup or try again later.";
   }
   if (
     normalized.includes("smtp")

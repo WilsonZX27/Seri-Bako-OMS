@@ -324,8 +324,32 @@ export function StaffForm({
           <Field label="Status">
             <StaffStatusSelect value={staff?.status} />
           </Field>
+          {!staff ? (
+            <div className="space-y-3 rounded-lg border bg-secondary/30 p-4 md:col-span-2">
+              <div>
+                <p className="text-sm font-semibold">Auth setup</p>
+                <p className="mt-1 text-xs text-muted-foreground">Temporary password is recommended for internal staff because email invite links can expire or hit rate limits.</p>
+              </div>
+              <div className="grid gap-3 md:grid-cols-2">
+                <label className="rounded-md border bg-white p-3 text-sm">
+                  <input className="mr-2" type="radio" name="auth_setup_method" value="temporary_password" defaultChecked />
+                  Create login with temporary password
+                  <span className="mt-1 block text-xs text-muted-foreground">Password is shown once after creation. Staff must change it at first login.</span>
+                </label>
+                <label className="rounded-md border bg-white p-3 text-sm">
+                  <input className="mr-2" type="radio" name="auth_setup_method" value="email_invitation" />
+                  Send email invitation
+                  <span className="mt-1 block text-xs text-muted-foreground">Optional. Depends on Supabase email rate limits and link expiry.</span>
+                </label>
+              </div>
+              <Field label="Temporary Password">
+                <Input name="temporary_password" type="text" placeholder="Leave blank to auto-generate" autoComplete="off" />
+                <p className="mt-1 text-xs text-muted-foreground">Do not reuse passwords. Share temporary passwords securely and ask staff to change immediately.</p>
+              </Field>
+            </div>
+          ) : null}
           <div className="flex justify-end md:col-span-2">
-            <SubmitButton type="submit" pendingLabel={staff ? "Saving..." : "Sending invite..."} showOverlay overlayLabel={staff ? "Saving changes..." : "Sending invitation..."}>{staff ? "Save staff" : "Create & Invite"}</SubmitButton>
+            <SubmitButton type="submit" pendingLabel={staff ? "Saving..." : "Creating account..."} showOverlay overlayLabel={staff ? "Saving changes..." : "Creating staff account..."}>{staff ? "Save staff" : "Create staff"}</SubmitButton>
           </div>
         </form>
       </CardContent>

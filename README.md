@@ -39,12 +39,31 @@ SUPABASE_SERVICE_ROLE_KEY=
 
 `NEXT_PUBLIC_APP_URL` is recommended so invite and reset emails always generate the correct redirect target in production.
 
+## Production Email and Staff Onboarding
+
+Supabase's built-in email provider is rate limited and should not be used as the only production staff onboarding path.
+Seri Bako OMS supports temporary-password staff setup so Admin can create an auth account, show the temporary password once, and force the staff member to change it on first login.
+
+For production email invite/reset reliability, configure custom SMTP in Supabase:
+
+- Authentication -> SMTP Settings
+- Authentication -> URL Configuration
+
+Suggested email providers:
+
+- Company SMTP
+- Resend
+- SendGrid
+- Mailgun
+- Amazon SES
+
 ## Supabase Auth Redirect URLs
 
 Add these redirect URLs in Supabase Auth:
 
 - `https://seri-bako-oms-official.vercel.app/auth/callback`
 - `https://seri-bako-oms-official.vercel.app/set-password`
+- `https://seri-bako-oms-official.vercel.app/change-password`
 - `https://seri-bako-oms-official.vercel.app/**`
 - `http://localhost:3000/**`
 

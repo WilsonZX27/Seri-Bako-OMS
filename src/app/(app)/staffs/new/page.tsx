@@ -15,7 +15,7 @@ export default async function NewStaffPage({
   if (!allowed) {
     return (
       <>
-        <PageHeader title="New Staff" description="Create a staff record, assign access, and send an invitation email." />
+        <PageHeader title="New Staff" description="Create a staff record, assign access, and set up login." />
         <div className="p-5">
           <Card>
             <CardContent className="p-5 text-sm text-muted-foreground">
@@ -30,7 +30,7 @@ export default async function NewStaffPage({
   const [companies, branches, roles] = await Promise.all([getCompaniesForSelect(), getBranches(), getRoles()]);
   return (
     <>
-      <PageHeader title="New Staff" description="Create a staff record, assign access, and send an invitation email." />
+      <PageHeader title="New Staff" description="Create a staff profile, assign role and branch access, then choose temporary password or email invitation." />
       <div className="space-y-4 p-5">
         {params.error ? (
           <Card>

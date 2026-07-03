@@ -28,14 +28,14 @@ export default async function SetPasswordPage({
       <AuthShell title="Invitation link expired" description="This staff invitation link can no longer be used.">
         <div className="space-y-4">
           <p className="rounded-md border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive">
-            Your invitation link has expired or has already been used. Please ask an Admin to resend your staff invitation from the Staff page.
+            Your invitation link has expired or was already used.
           </p>
           <div className="grid gap-3 sm:grid-cols-2">
             <Button asChild>
-              <Link href="/login?message=Please contact your Admin to resend your invitation.">Request new invitation</Link>
+              <Link href="/login">Back to login</Link>
             </Button>
             <Button asChild variant="outline">
-              <Link href="/login">Back to login</Link>
+              <Link href="/login?message=Please contact Admin for temporary password setup.">Contact Admin</Link>
             </Button>
           </div>
         </div>
@@ -61,14 +61,14 @@ export default async function SetPasswordPage({
       <AuthShell title="Link expired" description="This reset or invite session is no longer available.">
         <div className="space-y-4">
           <p className="rounded-md border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive">
-            Your reset or invite link has expired or is invalid.
+            This link has expired or was already used. Please sign in if you already set a password, or contact Admin for a temporary password.
           </p>
           <div className="grid gap-3 sm:grid-cols-2">
             <Button asChild>
-              <Link href="/forgot-password">Request new reset link</Link>
+              <Link href="/login">Back to login</Link>
             </Button>
             <Button asChild variant="outline">
-              <Link href="/login">Back to login</Link>
+              <Link href="/login?message=Please contact Admin for temporary password setup.">Contact Admin</Link>
             </Button>
           </div>
         </div>
@@ -82,10 +82,10 @@ export default async function SetPasswordPage({
       <AuthShell title="Link expired" description="This reset or invite session is no longer available.">
         <div className="space-y-4">
           <p className="rounded-md border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive">
-            Your invitation link has expired or is invalid. Please request a new invitation.
+            Your invitation link has expired or was already used.
           </p>
           <Button asChild className="w-full">
-            <Link href="/login?message=Please contact your Admin to resend your invitation.">Request new invitation</Link>
+            <Link href="/login?message=Please contact Admin for temporary password setup.">Contact Admin</Link>
           </Button>
         </div>
       </AuthShell>

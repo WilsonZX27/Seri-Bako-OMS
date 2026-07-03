@@ -35,7 +35,9 @@ export async function updateSession(request: NextRequest) {
 
   const pathname = request.nextUrl.pathname;
   const publicPrefixes = ["/login", "/auth/callback", "/set-password", "/forgot-password"];
+  const passwordChangePrefixes = ["/change-password", "/logout"];
   const isPublicRoute = publicPrefixes.some((route) => pathname === route || pathname.startsWith(`${route}/`));
+  const isPasswordChangeRoute = passwordChangePrefixes.some((route) => pathname === route || pathname.startsWith(`${route}/`));
 
   if (!user) {
     if (!isPublicRoute) {
@@ -50,7 +52,7 @@ export async function updateSession(request: NextRequest) {
 
   const { data: staff } = await supabase
     .from("staffs")
-    .select("status")
+    .select("status, must_change_password")
     .eq("auth_user_id", user.id)
     .maybeSingle();
 
@@ -64,13 +66,19 @@ export async function updateSession(request: NextRequest) {
 
   if (staff?.status === "invited" && !isPublicRoute) {
     const url = request.nextUrl.clone();
-    url.pathname = "/set-password";
+    url.pathname = staff.must_change_password ? "/change-password" : "/set-password";
+    return NextResponse.redirect(url);
+  }
+
+  if (staff?.must_change_password && !isPasswordChangeRoute && !isPublicRoute) {
+    const url = request.nextUrl.clone();
+    url.pathname = "/change-password";
     return NextResponse.redirect(url);
   }
 
   if (pathname === "/login") {
     const url = request.nextUrl.clone();
-    url.pathname = staff?.status === "invited" ? "/set-password" : "/dashboard";
+    url.pathname = staff?.must_change_password ? "/change-password" : staff?.status === "invited" ? "/set-password" : "/dashboard";
     return NextResponse.redirect(url);
   }
 

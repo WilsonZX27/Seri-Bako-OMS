@@ -88,7 +88,14 @@ export async function acceptStaffInviteForUser(userId: string, email: string | n
   const now = new Date().toISOString();
   const { error } = await admin
     .from("staffs")
-    .update({ accepted_at: now, last_login_at: now, status: "active" })
+    .update({
+      accepted_at: now,
+      last_login_at: now,
+      status: "active",
+      must_change_password: false,
+      password_changed_at: now,
+      invitation_status: "active",
+    })
     .eq("id", staffId);
   if (error) throw new Error(error.message);
 }

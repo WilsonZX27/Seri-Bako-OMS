@@ -22,6 +22,14 @@ export async function signIn(formData: FormData) {
   }
 
   await syncCurrentAuthUserToStaff();
+  const { data: staff } = await supabase
+    .from("staffs")
+    .select("must_change_password")
+    .eq("auth_user_id", (await supabase.auth.getUser()).data.user?.id ?? "")
+    .maybeSingle();
+  if (staff?.must_change_password) {
+    redirect("/change-password");
+  }
   redirect("/dashboard");
 }
 
@@ -102,4 +110,47 @@ export async function updatePassword(formData: FormData) {
 
   await acceptStaffInviteForUser(user.id, user.email ?? null);
   redirect("/set-password?success=1");
+}
+
+export async function changePassword(formData: FormData) {
+  if (isMockMode()) {
+    redirect("/dashboard?success=Password changed successfully.");
+  }
+
+  const password = String(formData.get("password") ?? "");
+  const confirmPassword = String(formData.get("confirm_password") ?? "");
+  if (password.length < 8) {
+    redirect("/change-password?error=Password must be at least 8 characters.");
+  }
+  if (password !== confirmPassword) {
+    redirect("/change-password?error=Passwords do not match.");
+  }
+
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) {
+    redirect("/login?error=Please sign in before changing your password.");
+  }
+
+  const { error } = await supabase.auth.updateUser({ password });
+  if (error) {
+    redirect(`/change-password?error=${encodeURIComponent(formatActionError(error, "We could not update your password right now."))}`);
+  }
+
+  const now = new Date().toISOString();
+  await supabase
+    .from("staffs")
+    .update({
+      must_change_password: false,
+      password_changed_at: now,
+      accepted_at: now,
+      status: "active",
+      invitation_status: "active",
+      last_login_at: now,
+    })
+    .eq("auth_user_id", user.id);
+
+  redirect("/dashboard?success=Password changed successfully.");
 }

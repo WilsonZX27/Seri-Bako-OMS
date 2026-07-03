@@ -147,6 +147,11 @@ export type Database = {
           accepted_at: string | null;
           last_login_at: string | null;
           invite_email: string | null;
+          must_change_password: boolean;
+          password_changed_at: string | null;
+          auth_setup_method: string | null;
+          temp_password_issued_at: string | null;
+          invitation_status: string | null;
           created_at: string;
           updated_at: string;
           created_by: string | null;
@@ -168,6 +173,11 @@ export type Database = {
           accepted_at?: string | null;
           last_login_at?: string | null;
           invite_email?: string | null;
+          must_change_password?: boolean;
+          password_changed_at?: string | null;
+          auth_setup_method?: string | null;
+          temp_password_issued_at?: string | null;
+          invitation_status?: string | null;
           created_at?: string;
           updated_at?: string;
           created_by?: string | null;

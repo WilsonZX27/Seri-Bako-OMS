@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { PageHeader } from "@/components/ui/page-header";
 import { SubmitButton } from "@/components/ui/submit-button";
 import { roleDescriptions } from "@/server/auth/permissions";
-import { disableStaff, enableStaff, resendStaffInvite, updateStaff } from "@/server/actions/foundation";
+import { disableStaff, enableStaff, forceStaffPasswordChange, resendStaffInvite, resetStaffTemporaryPassword, updateStaff } from "@/server/actions/foundation";
 import { getBranches, getCompaniesForSelect, getRoles, getStaff, getStaffAccess } from "@/server/queries/foundation";
 
 const roleSummaries = {
@@ -48,7 +48,7 @@ export default async function EditStaffPage({
   searchParams,
 }: {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ error?: string; success?: string }>;
+  searchParams: Promise<{ error?: string; success?: string; temp_password?: string }>;
 }) {
   const { id } = await params;
   const [messageParams, staff, access, companies, branches, roles] = await Promise.all([searchParams, getStaff(id), getStaffAccess(id), getCompaniesForSelect(), getBranches(), getRoles()]);
@@ -66,16 +66,63 @@ export default async function EditStaffPage({
             </CardContent>
           </Card>
         ) : null}
+        {messageParams.temp_password ? (
+          <Card className="border-amber-200 bg-amber-50">
+            <CardHeader>
+              <CardTitle>Temporary password shown once</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <p className="text-sm text-amber-900">Copy this temporary password now. It will not be shown again.</p>
+              <div className="rounded-md border bg-white p-3 font-mono text-lg font-semibold">{messageParams.temp_password}</div>
+              <p className="text-xs text-amber-900">Share it securely. The staff member must change it after first login.</p>
+            </CardContent>
+          </Card>
+        ) : null}
         <Card>
           <CardHeader>
-            <CardTitle>Invitation Controls</CardTitle>
+            <CardTitle>Auth Setup</CardTitle>
           </CardHeader>
-          <CardContent className="flex flex-wrap gap-2">
-            <form action={resendStaffInvite.bind(null, id)}>
-              <SubmitButton type="submit" variant="outline" pendingLabel="Sending invite...">Resend invite</SubmitButton>
-            </form>
-            <div className="rounded-md border bg-secondary/30 px-3 py-2 text-sm text-muted-foreground">
-              Branch access: {access.staffBranch?.branch_id ? branches.find((branch) => branch.id === access.staffBranch?.branch_id)?.branch_name ?? "-" : "-"}
+          <CardContent className="space-y-4">
+            <div className="grid gap-3 md:grid-cols-3">
+              <div className="rounded-md border bg-secondary/30 p-3 text-sm">
+                <p className="text-xs uppercase text-muted-foreground">Auth account linked</p>
+                <p className="mt-1 font-semibold">{staff.auth_user_id ? "Yes" : "No"}</p>
+              </div>
+              <div className="rounded-md border bg-secondary/30 p-3 text-sm">
+                <p className="text-xs uppercase text-muted-foreground">Setup method</p>
+                <p className="mt-1 font-semibold">{staff.auth_setup_method === "email_invitation" ? "Email invitation" : staff.auth_setup_method === "temporary_password" ? "Temporary password" : "Not configured"}</p>
+              </div>
+              <div className="rounded-md border bg-secondary/30 p-3 text-sm">
+                <p className="text-xs uppercase text-muted-foreground">Must change password</p>
+                <p className="mt-1 font-semibold">{staff.must_change_password ? "Yes" : "No"}</p>
+              </div>
+              <div className="rounded-md border bg-secondary/30 p-3 text-sm">
+                <p className="text-xs uppercase text-muted-foreground">Invitation status</p>
+                <p className="mt-1 font-semibold">{staff.invitation_status ?? staff.status}</p>
+              </div>
+              <div className="rounded-md border bg-secondary/30 p-3 text-sm">
+                <p className="text-xs uppercase text-muted-foreground">Last login</p>
+                <p className="mt-1 font-semibold">{staff.last_login_at ? new Date(staff.last_login_at).toLocaleString("en-MY") : "-"}</p>
+              </div>
+              <div className="rounded-md border bg-secondary/30 p-3 text-sm">
+                <p className="text-xs uppercase text-muted-foreground">Password changed at</p>
+                <p className="mt-1 font-semibold">{staff.password_changed_at ? new Date(staff.password_changed_at).toLocaleString("en-MY") : "-"}</p>
+              </div>
+            </div>
+            <p className="rounded-md border bg-amber-50 p-3 text-sm text-amber-900">Temporary passwords should be shared securely and changed immediately.</p>
+            <div className="flex flex-wrap gap-2">
+              <form action={resetStaffTemporaryPassword.bind(null, id)}>
+                <SubmitButton type="submit" pendingLabel="Generating...">{staff.auth_user_id ? "Reset temporary password" : "Create auth account"}</SubmitButton>
+              </form>
+              <form action={forceStaffPasswordChange.bind(null, id)}>
+                <SubmitButton type="submit" variant="outline" pendingLabel="Processing...">Force password change</SubmitButton>
+              </form>
+              <form action={resendStaffInvite.bind(null, id)}>
+                <SubmitButton type="submit" variant="outline" pendingLabel="Sending invite...">Resend email invitation</SubmitButton>
+              </form>
+              <div className="rounded-md border bg-secondary/30 px-3 py-2 text-sm text-muted-foreground">
+                Branch access: {access.staffBranch?.branch_id ? branches.find((branch) => branch.id === access.staffBranch?.branch_id)?.branch_name ?? "-" : "-"}
+              </div>
             </div>
           </CardContent>
         </Card>

@@ -14,13 +14,29 @@ export async function GET(request: NextRequest) {
 
   try {
     const supabase = await createClient();
+    const {
+      data: { user: existingUser },
+    } = await supabase.auth.getUser();
     const { error } = await supabase.auth.exchangeCodeForSession(code);
     if (error) {
       console.error(error);
       return NextResponse.redirect(new URL("/set-password?invite=expired", requestUrl.origin));
     }
+    const {
+      data: { user: invitedUser },
+    } = await supabase.auth.getUser();
     await syncCurrentAuthUserToStaff();
-    return NextResponse.redirect(new URL(next, requestUrl.origin));
+    const redirectUrl = new URL(next, requestUrl.origin);
+    if (
+      existingUser?.email
+      && invitedUser?.email
+      && existingUser.id !== invitedUser.id
+      && existingUser.email.toLowerCase() !== invitedUser.email.toLowerCase()
+    ) {
+      redirectUrl.searchParams.set("previous_email", existingUser.email);
+      redirectUrl.searchParams.set("invite_email", invitedUser.email);
+    }
+    return NextResponse.redirect(redirectUrl);
   } catch (error) {
     console.error(error);
     return NextResponse.redirect(new URL("/set-password?invite=expired", requestUrl.origin));

@@ -5,7 +5,7 @@ import { isMockMode } from "@/lib/mock-mode";
 import { getAppUrl } from "@/lib/site-url";
 import { createClient } from "@/lib/supabase/server";
 import { formatActionError } from "@/server/actions/error-handling";
-import { acceptCurrentStaffInvite, syncCurrentAuthUserToStaff } from "@/server/auth/staff-session";
+import { acceptStaffInviteForUser, syncCurrentAuthUserToStaff } from "@/server/auth/staff-session";
 
 export async function signIn(formData: FormData) {
   if (isMockMode()) {
@@ -62,6 +62,8 @@ export async function updatePassword(formData: FormData) {
 
   const password = String(formData.get("password") ?? "");
   const confirmPassword = String(formData.get("confirm_password") ?? "");
+  const expectedUserId = String(formData.get("invited_user_id") ?? "");
+  const expectedEmail = String(formData.get("invited_email") ?? "").trim().toLowerCase();
   if (password.length < 8) {
     redirect("/set-password?error=Password must be at least 8 characters.");
   }
@@ -75,6 +77,12 @@ export async function updatePassword(formData: FormData) {
   } = await supabase.auth.getUser();
   if (!user) {
     redirect(`/set-password?error=${encodeURIComponent("Your reset link has expired or is invalid. Please request a new password reset email.")}`);
+  }
+  if (!expectedUserId || !expectedEmail) {
+    redirect(`/set-password?error=${encodeURIComponent("This password setup session is missing invitation identity details. Please open the invitation link again.")}`);
+  }
+  if (user.id !== expectedUserId || (user.email ?? "").toLowerCase() !== expectedEmail) {
+    redirect(`/set-password?error=${encodeURIComponent("This invitation belongs to a different account. Please sign out and open the invitation link again.")}`);
   }
 
   const { error } = await supabase.auth.updateUser({ password });
@@ -92,6 +100,6 @@ export async function updatePassword(formData: FormData) {
     redirect(`/set-password?error=${encodeURIComponent("We could not update your password right now. Please try again later or request a new link.")}`);
   }
 
-  await acceptCurrentStaffInvite();
+  await acceptStaffInviteForUser(user.id, user.email ?? null);
   redirect("/set-password?success=1");
 }

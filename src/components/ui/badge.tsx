@@ -5,10 +5,10 @@ type BadgeVariant = "default" | "secondary" | "success" | "warning" | "danger";
 
 const variants: Record<BadgeVariant, string> = {
   default: "border-primary/15 bg-primary/10 text-primary",
-  secondary: "border-slate-200 bg-slate-50 text-slate-700",
-  success: "border-emerald-200 bg-emerald-50 text-emerald-700",
-  warning: "border-amber-200 bg-amber-50 text-amber-700",
-  danger: "border-red-200 bg-red-50 text-red-700",
+  secondary: "border-[#F3F4F6] bg-[#F3F4F6] text-[#1F2937]",
+  success: "border-[#D1FAE5] bg-[#D1FAE5] text-[#065F46]",
+  warning: "border-[#FEF3C7] bg-[#FEF3C7] text-[#92400E]",
+  danger: "border-[#FEE2E2] bg-[#FEE2E2] text-[#991B1B]",
 };
 
 export function Badge({
@@ -18,7 +18,7 @@ export function Badge({
 }: React.HTMLAttributes<HTMLSpanElement> & { variant?: BadgeVariant }) {
   return (
     <span
-      className={cn("inline-flex items-center rounded-md border px-2 py-1 text-xs font-medium", variants[variant], className)}
+      className={cn("inline-flex max-w-full items-center overflow-hidden text-ellipsis whitespace-nowrap rounded-md border px-2 py-1 text-xs font-medium", variants[variant], className)}
       {...props}
     />
   );

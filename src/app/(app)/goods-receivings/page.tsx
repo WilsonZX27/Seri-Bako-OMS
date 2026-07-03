@@ -1,6 +1,9 @@
 import Link from "next/link";
+import { Eye } from "lucide-react";
 import { BulkSelectAllCheckbox, BulkSelectionProvider, BulkSelectRowCheckbox } from "@/components/bulk-selection";
+import { DataGridRow } from "@/components/ui/data-grid-row";
 import { DocumentNumber } from "@/components/document-number";
+import { EmptyState } from "@/components/ui/empty-state";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -37,7 +40,7 @@ export default async function GoodsReceivingsPage({ searchParams }: { searchPara
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead className="w-10"><BulkSelectAllCheckbox /></TableHead>
+                  <TableHead className="w-20"><BulkSelectAllCheckbox /></TableHead>
                   <SortableHead label="GRN No" column="grn_no" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
                   <TableHead>PO</TableHead>
                   <TableHead>Supplier</TableHead>
@@ -46,13 +49,19 @@ export default async function GoodsReceivingsPage({ searchParams }: { searchPara
                   <SortableHead label="Status" column="status" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
                   <TableHead className="text-right">Received</TableHead>
                   <TableHead className="text-right">Rejected</TableHead>
-                  <TableHead className="text-right">Action</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {receivings.rows.map((receiving) => (
-                  <TableRow key={receiving.id}>
-                    <TableCell><BulkSelectRowCheckbox id={receiving.id} /></TableCell>
+                  <DataGridRow key={receiving.id} href={`/goods-receivings/${receiving.id}`}>
+                    <TableCell>
+                      <div className="flex items-center gap-2">
+                        <BulkSelectRowCheckbox id={receiving.id} />
+                        <Link href={`/goods-receivings/${receiving.id}`} aria-label={`Quick view ${receiving.grn_no}`} className="rounded-md p-1 text-slate-400 opacity-0 hover:bg-slate-100 hover:text-primary group-hover:opacity-100">
+                          <Eye className="h-4 w-4" />
+                        </Link>
+                      </div>
+                    </TableCell>
                     <TableCell><DocumentNumber value={receiving.grn_no} size="sm" /></TableCell>
                     <TableCell>{receiving.po_no ?? "-"}</TableCell>
                     <TableCell>{receiving.supplier_name ?? "-"}</TableCell>
@@ -61,10 +70,9 @@ export default async function GoodsReceivingsPage({ searchParams }: { searchPara
                     <TableCell><StatusBadge status={receiving.status} /></TableCell>
                     <TableCell className="text-right">{formatNumber(receiving.received_total)}</TableCell>
                     <TableCell className="text-right">{formatNumber(receiving.rejected_total)}</TableCell>
-                    <TableCell className="text-right"><Button asChild variant="outline" size="sm"><Link href={`/goods-receivings/${receiving.id}`}>Open</Link></Button></TableCell>
-                  </TableRow>
+                  </DataGridRow>
                 ))}
-                {!receivings.rows.length ? <TableRow><TableCell colSpan={10} className="text-center text-muted-foreground">No goods receivings found.</TableCell></TableRow> : null}
+                {!receivings.rows.length ? <TableRow><TableCell colSpan={9}><EmptyState title="No goods receivings found" description="Receiving records will appear here after supplier deliveries are recorded." action={{ href: "/goods-receivings/new", label: "New GRN" }} /></TableCell></TableRow> : null}
               </TableBody>
             </Table>
           </div>

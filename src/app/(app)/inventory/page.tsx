@@ -1,13 +1,9 @@
-import Link from "next/link";
 import { ArrowDownLeft, ArrowRight, ArrowUpRight, Boxes, ClipboardCheck, MapPin, PackageSearch, ReceiptText, ScanLine, TriangleAlert, Upload } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { WorkspaceGrid } from "@/components/layout/workspace-layout";
 import { PageHeader } from "@/components/ui/page-header";
 import { CompactStatList, WorkspaceSectionPanel, type WorkspaceInsight, type WorkspaceSection } from "@/components/workspace-panels";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { formatCurrency, formatNumber } from "@/lib/utils";
-import { formatStatusLabel } from "@/lib/status-label";
+import { formatNumber } from "@/lib/utils";
 import { getInventoryDashboard } from "@/server/queries/inventory";
 
 export default async function InventoryPage() {
@@ -106,41 +102,6 @@ export default async function InventoryPage() {
               <WorkspaceSectionPanel key={section.title} section={section} />
             ))}
           </div>
-
-          <Card>
-            <CardContent className="p-5">
-              <div className="mb-3 flex items-center justify-between">
-                <h2 className="text-sm font-semibold">Recent Transactions</h2>
-                <Button asChild variant="outline" size="sm"><Link href="/stock-transactions">View ledger</Link></Button>
-              </div>
-              <div className="overflow-x-auto">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Stock Movement</TableHead>
-                      <TableHead>Item</TableHead>
-                      <TableHead>Movement</TableHead>
-                      <TableHead className="text-right">In</TableHead>
-                      <TableHead className="text-right">Out</TableHead>
-                      <TableHead className="text-right">Value</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {summary.recentTransactions.map((row) => (
-                      <TableRow key={row.stock_transaction_id}>
-                        <TableCell className="font-medium">{row.transaction_no}</TableCell>
-                        <TableCell>{row.item_name}</TableCell>
-                        <TableCell>{formatStatusLabel(row.transaction_type)}</TableCell>
-                        <TableCell className="text-right">{row.quantity_in ? formatNumber(row.quantity_in) : "-"}</TableCell>
-                        <TableCell className="text-right">{row.quantity_out ? formatNumber(row.quantity_out) : "-"}</TableCell>
-                        <TableCell className="text-right">{formatCurrency(row.total_cost)}</TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </div>
-            </CardContent>
-          </Card>
       </WorkspaceGrid>
     </>
   );

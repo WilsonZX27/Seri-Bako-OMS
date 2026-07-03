@@ -1,6 +1,9 @@
 import Link from "next/link";
+import { Eye } from "lucide-react";
 import { BulkSelectionProvider, BulkSelectAllCheckbox, BulkSelectRowCheckbox } from "@/components/bulk-selection";
+import { DataGridRow } from "@/components/ui/data-grid-row";
 import { DocumentNumber } from "@/components/document-number";
+import { EmptyState } from "@/components/ui/empty-state";
 import { PageHeader } from "@/components/ui/page-header";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -61,7 +64,7 @@ export default async function ProductionJobsPage({ searchParams }: { searchParam
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead className="w-10"><BulkSelectAllCheckbox /></TableHead>
+                    <TableHead className="w-20"><BulkSelectAllCheckbox /></TableHead>
                     <SortableHead label="Job No" column="production_job_no" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
                     <SortableHead label="Date" column="production_date" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
                     <TableHead>Branch</TableHead>
@@ -72,13 +75,19 @@ export default async function ProductionJobsPage({ searchParams }: { searchParam
                     <SortableHead label="Status" column="status" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
                     <TableHead>Created By</TableHead>
                     <TableHead>Posted At</TableHead>
-                    <TableHead className="text-right">Action</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {jobs.rows.map((job) => (
-                    <TableRow key={job.id}>
-                      <TableCell><BulkSelectRowCheckbox id={job.id} /></TableCell>
+                    <DataGridRow key={job.id} href={`/production/jobs/${job.id}`}>
+                      <TableCell>
+                        <div className="flex items-center gap-2">
+                          <BulkSelectRowCheckbox id={job.id} />
+                          <Link href={`/production/jobs/${job.id}`} aria-label={`Quick view ${job.production_job_no}`} className="rounded-md p-1 text-slate-400 opacity-0 hover:bg-slate-100 hover:text-primary group-hover:opacity-100">
+                            <Eye className="h-4 w-4" />
+                          </Link>
+                        </div>
+                      </TableCell>
                       <TableCell><DocumentNumber value={job.production_job_no} size="sm" /></TableCell>
                       <TableCell>{job.production_date}</TableCell>
                       <TableCell>{job.branch_name ?? "-"}</TableCell>
@@ -89,13 +98,12 @@ export default async function ProductionJobsPage({ searchParams }: { searchParam
                       <TableCell><StatusBadge status={job.status} /></TableCell>
                       <TableCell>{job.created_by_name ?? "-"}</TableCell>
                       <TableCell>{job.posted_at ? new Date(job.posted_at).toLocaleString("en-MY", { dateStyle: "short", timeStyle: "short" }) : "-"}</TableCell>
-                      <TableCell className="text-right"><Button asChild variant="outline" size="sm"><Link href={`/production/jobs/${job.id}`}>Open</Link></Button></TableCell>
-                    </TableRow>
+                    </DataGridRow>
                   ))}
                   {!jobs.rows.length ? (
                     <TableRow>
-                      <TableCell colSpan={12} className="py-8 text-center text-sm text-muted-foreground">
-                        No production jobs found for {formatStatusLabel(selectedStatus)}.
+                      <TableCell colSpan={11}>
+                        <EmptyState title="No production jobs found" description={`No production jobs found for ${formatStatusLabel(selectedStatus)}.`} action={{ href: "/production/jobs/new", label: "New Production Job" }} />
                       </TableCell>
                     </TableRow>
                   ) : null}

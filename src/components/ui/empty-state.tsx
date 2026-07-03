@@ -1,28 +1,31 @@
+import type { LucideIcon } from "lucide-react";
+import { FolderOpen } from "lucide-react";
 import Link from "next/link";
-import { FilePlus2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
-export function EmptyState({
-  title,
-  description,
-  actionHref,
-  actionLabel,
-}: {
+type EmptyStateProps = {
+  icon?: LucideIcon;
   title: string;
   description: string;
-  actionHref?: string;
-  actionLabel?: string;
-}) {
+  action?: {
+    href: string;
+    label: string;
+  };
+};
+
+export function EmptyState({ icon: Icon = FolderOpen, title, description, action }: EmptyStateProps) {
   return (
-    <div className="flex flex-col items-center justify-center rounded-lg border bg-card px-6 py-12 text-center">
-      <div className="flex h-14 w-14 items-center justify-center rounded-full bg-secondary text-primary">
-        <FilePlus2 className="h-6 w-6" />
+    <div className="flex flex-col items-center justify-center gap-3 px-4 py-10 text-center">
+      <div className="flex h-11 w-11 items-center justify-center rounded-lg bg-slate-100 text-slate-500">
+        <Icon className="h-5 w-5" />
       </div>
-      <h3 className="mt-4 text-base font-semibold">{title}</h3>
-      <p className="mt-2 max-w-md text-sm text-muted-foreground">{description}</p>
-      {actionHref && actionLabel ? (
-        <Button asChild className="mt-4">
-          <Link href={actionHref}>{actionLabel}</Link>
+      <div>
+        <p className="text-sm font-semibold">{title}</p>
+        <p className="mt-1 max-w-md text-sm text-muted-foreground">{description}</p>
+      </div>
+      {action ? (
+        <Button asChild size="sm" variant="outline">
+          <Link href={action.href}>{action.label}</Link>
         </Button>
       ) : null}
     </div>

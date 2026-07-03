@@ -3,7 +3,7 @@ const path = require("path");
 const { test, expect } = require("@playwright/test");
 const { login, logout, missingAccountVars } = require("./helpers");
 
-const screenshotDir = path.join(process.cwd(), "test-results", "ui-smoke-sprint-7-2");
+const screenshotDir = path.join(process.cwd(), "test-results", "ui-smoke-sprint-7-2-1");
 
 const superAdminRoutes = [
   "/dashboard",
@@ -61,6 +61,22 @@ async function assertNoObviousVisualBreaks(page) {
   await expect(page.locator("body")).not.toContainText("Search by item image");
 }
 
+async function assertSprint721Rules(page, route) {
+  if (route === "/dashboard") {
+    await expect(page.locator('nav a[href="/data-onboarding"]')).toHaveCount(0);
+  }
+  if (route === "/settings") {
+    await expect(page.getByRole("link", { name: /data onboarding/i })).toBeVisible();
+  }
+  if (route === "/documents") {
+    await expect(page.locator("table thead")).not.toContainText(/action/i);
+    await expect(page.locator('table a', { hasText: /^Open$/ })).toHaveCount(0);
+  }
+  if (route === "/staffs/new") {
+    await expect(page.locator('select[name="role_id"] option', { hasText: "Super Admin / Owner" })).toHaveCount(0);
+  }
+}
+
 test.beforeAll(() => {
   fs.mkdirSync(screenshotDir, { recursive: true });
 });
@@ -74,6 +90,7 @@ test("super admin UI smoke screenshots", async ({ page }) => {
     await page.goto(route, { waitUntil: "domcontentloaded", timeout: 30_000 });
     await expect(page.locator("body")).not.toContainText(/404:|Application error|Unhandled Runtime Error/i);
     await assertNoObviousVisualBreaks(page);
+    await assertSprint721Rules(page, route);
     await page.screenshot({ path: path.join(screenshotDir, `${screenshotName(route)}.png`), fullPage: true });
   }
 });

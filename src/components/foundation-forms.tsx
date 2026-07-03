@@ -274,16 +274,16 @@ export function StaffForm({
           <CompanyHidden companies={companies} companyId={staff?.company_id} />
         <div className="grid gap-4 md:grid-cols-2">
           <Field label="Staff Code">
-            <Input name="staff_code" defaultValue={staff?.staff_code ?? ""} />
+            <Input name="staff_code" defaultValue={staff?.staff_code ?? ""} className="form-control-compact" />
           </Field>
           <Field label="Full Name" required>
-            <Input name="full_name" defaultValue={staff?.full_name ?? ""} required />
+            <Input name="full_name" defaultValue={staff?.full_name ?? ""} required className="form-control-compact" />
           </Field>
           <Field label="Email" required>
-            <Input name="email" type="email" defaultValue={staff?.email ?? staff?.invite_email ?? ""} required />
+            <Input name="email" type="email" defaultValue={staff?.email ?? staff?.invite_email ?? ""} required className="form-control-compact" />
           </Field>
           <Field label="Phone">
-            <Input name="phone" defaultValue={staff?.phone ?? ""} />
+            <Input name="phone" defaultValue={staff?.phone ?? ""} className="form-control-compact" />
           </Field>
           <Field label="Status">
             <StaffStatusSelect value={staff?.status} />
@@ -294,7 +294,7 @@ export function StaffForm({
       <RecordSection title="Role & Branch Access" description="Select the staff's main responsibility. Permissions are controlled by the assigned role.">
         <div className="grid gap-4 md:grid-cols-2">
           <Field label="Primary Role" required>
-            <SelectNative name="role_id" defaultValue={access?.staffRole?.role_id ?? roles[0]?.id ?? ""} required>
+            <SelectNative name="role_id" defaultValue={access?.staffRole?.role_id ?? roles[0]?.id ?? ""} required className="form-control-compact">
               {roles.map((role) => (
                 <option key={role.id} value={role.id}>
                   {getRoleDisplayLabel(role.role_code, role.role_name)}
@@ -306,7 +306,7 @@ export function StaffForm({
             ) : null}
           </Field>
           <Field label="Role Branch Scope">
-            <SelectNative name="role_branch_id" defaultValue={access?.staffRole?.branch_id ?? ""}>
+            <SelectNative name="role_branch_id" defaultValue={access?.staffRole?.branch_id ?? ""} className="form-control-compact">
               <option value="">Company-wide</option>
               {branches.map((branch) => (
                 <option key={branch.id} value={branch.id}>
@@ -316,13 +316,13 @@ export function StaffForm({
             </SelectNative>
           </Field>
           <Field label="Effective From">
-            <Input name="effective_from" type="date" defaultValue={access?.staffRole?.effective_from ?? new Date().toISOString().slice(0, 10)} required />
+            <Input name="effective_from" type="date" defaultValue={access?.staffRole?.effective_from ?? new Date().toISOString().slice(0, 10)} required className="form-control-compact" />
           </Field>
           <Field label="Effective To">
-            <Input name="effective_to" type="date" defaultValue={access?.staffRole?.effective_to ?? ""} />
+            <Input name="effective_to" type="date" defaultValue={access?.staffRole?.effective_to ?? ""} className="form-control-compact" />
           </Field>
           <Field label="Default Branch Access" required>
-            <SelectNative name="branch_id" defaultValue={access?.staffBranch?.branch_id ?? branches[0]?.id ?? ""} required>
+            <SelectNative name="branch_id" defaultValue={access?.staffBranch?.branch_id ?? branches[0]?.id ?? ""} required className="form-control-compact">
               {branches.map((branch) => (
                 <option key={branch.id} value={branch.id}>
                   {branch.branch_name}
@@ -332,7 +332,7 @@ export function StaffForm({
             <p className="mt-1 text-xs text-muted-foreground">Select the outlet, kitchen, office, or event booth this record belongs to.</p>
           </Field>
           <Field label="Branch Access Level">
-            <SelectNative name="access_level" defaultValue={access?.staffBranch?.access_level ?? "read_only"}>
+            <SelectNative name="access_level" defaultValue={access?.staffBranch?.access_level ?? "read_only"} className="form-control-compact">
               <option value="full">Full</option>
               <option value="manage">Manage</option>
               <option value="read_only">Read Only</option>
@@ -383,7 +383,7 @@ export function StaffAuthSetupFields({ formId }: { formId: string }) {
         <span className="mt-1 block text-xs text-muted-foreground">Optional. Depends on email delivery and link expiry.</span>
       </label>
       <Field label="Temporary Password">
-        <Input name="temporary_password" type="text" placeholder="Leave blank to auto-generate" autoComplete="off" form={formId} />
+        <Input name="temporary_password" type="text" placeholder="Leave blank to auto-generate" autoComplete="off" form={formId} className="form-control-compact" />
         <p className="mt-1 text-xs text-muted-foreground">Do not reuse passwords. Share temporary passwords securely and ask staff to change immediately.</p>
       </Field>
     </div>

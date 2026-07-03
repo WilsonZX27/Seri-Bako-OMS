@@ -1,6 +1,9 @@
 import Link from "next/link";
+import { Eye } from "lucide-react";
 import { BulkSelectAllCheckbox, BulkSelectionProvider, BulkSelectRowCheckbox } from "@/components/bulk-selection";
+import { DataGridRow } from "@/components/ui/data-grid-row";
 import { DocumentNumber } from "@/components/document-number";
+import { EmptyState } from "@/components/ui/empty-state";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -47,7 +50,7 @@ export default async function PurchaseRequestsPage({ searchParams }: { searchPar
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead className="w-10"><BulkSelectAllCheckbox /></TableHead>
+                  <TableHead className="w-20"><BulkSelectAllCheckbox /></TableHead>
                   <SortableHead label="PR No" column="request_no" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
                   <SortableHead label="Date" column="request_date" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
                   <SortableHead label="Needed By" column="needed_by_date" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
@@ -57,13 +60,19 @@ export default async function PurchaseRequestsPage({ searchParams }: { searchPar
                   <SortableHead label="Status" column="status" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
                   <TableHead className="text-right">Lines</TableHead>
                   <TableHead className="text-right">Estimated Total</TableHead>
-                  <TableHead className="text-right">Action</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {requests.rows.map((request) => (
-                  <TableRow key={request.id}>
-                    <TableCell><BulkSelectRowCheckbox id={request.id} /></TableCell>
+                  <DataGridRow key={request.id} href={`/purchase-requests/${request.id}`}>
+                    <TableCell>
+                      <div className="flex items-center gap-2">
+                        <BulkSelectRowCheckbox id={request.id} />
+                        <Link href={`/purchase-requests/${request.id}`} aria-label={`Quick view ${request.request_no}`} className="rounded-md p-1 text-slate-400 opacity-0 hover:bg-slate-100 hover:text-primary group-hover:opacity-100">
+                          <Eye className="h-4 w-4" />
+                        </Link>
+                      </div>
+                    </TableCell>
                     <TableCell><DocumentNumber value={request.request_no} size="sm" /></TableCell>
                     <TableCell>{request.request_date}</TableCell>
                     <TableCell>{request.needed_by_date ?? "-"}</TableCell>
@@ -73,10 +82,9 @@ export default async function PurchaseRequestsPage({ searchParams }: { searchPar
                     <TableCell><StatusBadge status={request.status} /></TableCell>
                     <TableCell className="text-right">{request.line_count}</TableCell>
                     <TableCell className="text-right">{formatCurrency(request.estimated_total)}</TableCell>
-                    <TableCell className="text-right"><Button asChild variant="outline" size="sm"><Link href={`/purchase-requests/${request.id}`}>Open</Link></Button></TableCell>
-                  </TableRow>
+                  </DataGridRow>
                 ))}
-                {!requests.rows.length ? <TableRow><TableCell colSpan={11} className="text-center text-muted-foreground">No purchase requests found.</TableCell></TableRow> : null}
+                {!requests.rows.length ? <TableRow><TableCell colSpan={10}><EmptyState title="No purchase requests found" description="New purchase requests will appear here after staff submit branch needs." action={{ href: "/purchase-requests/new", label: "New PR" }} /></TableCell></TableRow> : null}
               </TableBody>
             </Table>
           </div>

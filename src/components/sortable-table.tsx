@@ -27,9 +27,9 @@ export function SortableHead({ label, column, currentSort, currentDir, searchPar
   const Icon = active ? (currentDir === "desc" ? ArrowDown : ArrowUp) : ChevronsUpDown;
   return (
     <TableHead className={className}>
-      <Link href={buildHref(searchParams, { sort: column, dir: nextDir, page: "1" })} className="inline-flex items-center gap-1 hover:text-foreground">
+      <Link href={buildHref(searchParams, { sort: column, dir: nextDir, page: "1" })} className="inline-flex items-center whitespace-nowrap hover:text-foreground">
         {label}
-        <Icon className="h-3.5 w-3.5" />
+        <Icon className="ml-2 h-3.5 w-3.5" />
       </Link>
     </TableHead>
   );

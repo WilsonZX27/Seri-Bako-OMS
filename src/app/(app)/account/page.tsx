@@ -54,11 +54,11 @@ export default async function AccountPage() {
               <form action={updateOwnProfile} className="grid gap-4">
                 <label className="grid gap-2 text-sm font-medium">
                   Display name <span className="sr-only">required</span>
-                  <Input name="full_name" defaultValue={account?.full_name ?? ""} required />
+                  <Input name="full_name" defaultValue={account?.full_name ?? ""} required className="form-control-compact" />
                 </label>
                 <label className="grid gap-2 text-sm font-medium">
                   Phone
-                  <Input name="phone" defaultValue={account?.phone ?? ""} />
+                  <Input name="phone" defaultValue={account?.phone ?? ""} className="form-control-compact" />
                 </label>
                 <div className="flex justify-end">
                   <SubmitButton pendingLabel="Saving...">Save profile</SubmitButton>
@@ -74,9 +74,9 @@ export default async function AccountPage() {
                 <h2 className="font-semibold">Change password</h2>
               </div>
               <form action={changeOwnPassword} className="grid gap-4">
-                <Input name="current_password" type="password" placeholder="Current password" required />
-                <Input name="new_password" type="password" placeholder="New password" minLength={8} required />
-                <Input name="confirm_password" type="password" placeholder="Confirm new password" minLength={8} required />
+                <Input name="current_password" type="password" placeholder="Current password" required className="form-control-compact" />
+                <Input name="new_password" type="password" placeholder="New password" minLength={8} required className="form-control-compact" />
+                <Input name="confirm_password" type="password" placeholder="Confirm new password" minLength={8} required className="form-control-compact" />
                 <div className="flex justify-end">
                   <SubmitButton pendingLabel="Changing...">Change password</SubmitButton>
                 </div>

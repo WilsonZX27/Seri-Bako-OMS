@@ -1,6 +1,9 @@
 import Link from "next/link";
+import { Eye } from "lucide-react";
 import { BulkSelectAllCheckbox, BulkSelectionProvider, BulkSelectRowCheckbox } from "@/components/bulk-selection";
+import { DataGridRow } from "@/components/ui/data-grid-row";
 import { DocumentNumber } from "@/components/document-number";
+import { EmptyState } from "@/components/ui/empty-state";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -39,7 +42,7 @@ export default async function PurchaseOrdersPage({ searchParams }: { searchParam
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead className="w-10"><BulkSelectAllCheckbox /></TableHead>
+                  <TableHead className="w-20"><BulkSelectAllCheckbox /></TableHead>
                   <SortableHead label="PO No" column="po_no" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
                   <TableHead>Supplier</TableHead>
                   <SortableHead label="Date" column="order_date" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
@@ -48,13 +51,19 @@ export default async function PurchaseOrdersPage({ searchParams }: { searchParam
                   <SortableHead label="Approval" column="approval_status" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
                   <TableHead className="text-right">Lines</TableHead>
                   <TableHead className="text-right">Total</TableHead>
-                  <TableHead className="text-right">Action</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {orders.rows.map((order) => (
-                  <TableRow key={order.id}>
-                    <TableCell><BulkSelectRowCheckbox id={order.id} /></TableCell>
+                  <DataGridRow key={order.id} href={`/purchase-orders/${order.id}`}>
+                    <TableCell>
+                      <div className="flex items-center gap-2">
+                        <BulkSelectRowCheckbox id={order.id} />
+                        <Link href={`/purchase-orders/${order.id}`} aria-label={`Quick view ${order.po_no}`} className="rounded-md p-1 text-slate-400 opacity-0 hover:bg-slate-100 hover:text-primary group-hover:opacity-100">
+                          <Eye className="h-4 w-4" />
+                        </Link>
+                      </div>
+                    </TableCell>
                     <TableCell><DocumentNumber value={order.po_no} size="sm" /></TableCell>
                     <TableCell>{order.supplier_name ?? "-"}</TableCell>
                     <TableCell>{order.order_date}</TableCell>
@@ -63,10 +72,9 @@ export default async function PurchaseOrdersPage({ searchParams }: { searchParam
                     <TableCell><StatusBadge status={order.approval_status} /></TableCell>
                     <TableCell className="text-right">{order.line_count}</TableCell>
                     <TableCell className="text-right">{formatCurrency(order.order_total)}</TableCell>
-                    <TableCell className="text-right"><Button asChild variant="outline" size="sm"><Link href={`/purchase-orders/${order.id}`}>Open</Link></Button></TableCell>
-                  </TableRow>
+                  </DataGridRow>
                 ))}
-                {!orders.rows.length ? <TableRow><TableCell colSpan={10} className="text-center text-muted-foreground">No purchase orders found.</TableCell></TableRow> : null}
+                {!orders.rows.length ? <TableRow><TableCell colSpan={9}><EmptyState title="No purchase orders found" description="Purchase orders will appear here after approved requests are converted or a new PO is created." action={{ href: "/purchase-orders/new", label: "New PO" }} /></TableCell></TableRow> : null}
               </TableBody>
             </Table>
           </div>

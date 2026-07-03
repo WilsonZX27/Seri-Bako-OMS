@@ -1,7 +1,8 @@
-import Link from "next/link";
-import { ClipboardCheck, FileText, Paperclip } from "lucide-react";
+import { ClipboardCheck, Eye, FileText, Paperclip } from "lucide-react";
 import { BulkSelectAllCheckbox, BulkSelectionProvider, BulkSelectRowCheckbox } from "@/components/bulk-selection";
+import { DataGridRow } from "@/components/ui/data-grid-row";
 import { DocumentNumber } from "@/components/document-number";
+import { EmptyState } from "@/components/ui/empty-state";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -85,7 +86,7 @@ export default async function DocumentsPage({ searchParams }: { searchParams: Pr
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead className="w-10"><BulkSelectAllCheckbox /></TableHead>
+                  <TableHead className="w-20"><BulkSelectAllCheckbox /></TableHead>
                   <SortableHead label="Doc No" column="document_no" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
                   <SortableHead label="Type" column="document_type" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
                   <SortableHead label="Title" column="title" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
@@ -96,13 +97,21 @@ export default async function DocumentsPage({ searchParams }: { searchParams: Pr
                   <SortableHead label="Updated" column="updated_at" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
                   <TableHead>Current Step</TableHead>
                   <TableHead>Related Entity</TableHead>
-                  <TableHead className="text-right">Action</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {documents.rows.map((document) => (
-                  <TableRow key={document.id}>
-                    <TableCell><BulkSelectRowCheckbox id={document.id} /></TableCell>
+                {documents.rows.map((document) => {
+                  const href = getCanonicalDocumentHref(document);
+                  return (
+                  <DataGridRow key={document.id} href={href}>
+                    <TableCell>
+                      <div className="flex items-center gap-2">
+                        <BulkSelectRowCheckbox id={document.id} />
+                        <a href={href} aria-label={`Quick view ${document.document_no}`} className="rounded-md p-1 text-slate-400 opacity-0 hover:bg-slate-100 hover:text-primary group-hover:opacity-100">
+                          <Eye className="h-4 w-4" />
+                        </a>
+                      </div>
+                    </TableCell>
                     <TableCell><DocumentNumber value={document.document_no} size="sm" /></TableCell>
                     <TableCell>{formatStatusLabel(document.document_type)}</TableCell>
                     <TableCell>{document.title}</TableCell>
@@ -113,10 +122,10 @@ export default async function DocumentsPage({ searchParams }: { searchParams: Pr
                     <TableCell>{new Date(document.updated_at).toLocaleDateString("en-MY")}</TableCell>
                     <TableCell>{document.current_step ? formatStatusLabel(document.current_step) : "-"}</TableCell>
                     <TableCell>{document.related_entity_type ? formatStatusLabel(document.related_entity_type) : "-"}</TableCell>
-                    <TableCell className="text-right"><Button asChild variant="outline" size="sm"><Link href={getCanonicalDocumentHref(document)}>Open</Link></Button></TableCell>
-                  </TableRow>
-                ))}
-                {!documents.rows.length ? <TableRow><TableCell colSpan={12} className="text-center text-muted-foreground">No documents found.</TableCell></TableRow> : null}
+                  </DataGridRow>
+                  );
+                })}
+                {!documents.rows.length ? <TableRow><TableCell colSpan={11}><EmptyState title="No documents found" description="Documents will appear here after PR, PO, GRN, inventory, or approval activity is recorded." /></TableCell></TableRow> : null}
               </TableBody>
             </Table>
           </div>

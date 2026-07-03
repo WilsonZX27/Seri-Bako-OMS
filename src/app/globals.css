@@ -57,3 +57,8 @@ textarea {
 .sb-icon-tile {
   @apply flex h-11 w-11 shrink-0 items-center justify-center rounded-md bg-primary/10 text-primary;
 }
+
+.form-control-compact {
+  width: 100%;
+  max-width: 400px;
+}

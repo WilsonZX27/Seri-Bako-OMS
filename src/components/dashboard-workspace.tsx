@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { AlertTriangle, Boxes, CheckCircle2, PackageCheck, ReceiptText, TriangleAlert } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { WorkspaceGrid } from "@/components/layout/workspace-layout";
 import { formatCurrency, formatNumber } from "@/lib/utils";
@@ -94,23 +93,6 @@ export function DashboardWorkspace({ summary, role }: { summary: DashboardSummar
         }
       >
         <div className="grid gap-4 lg:grid-cols-2">
-          <CompactPanel title="Attention Needed" action={{ href: "/purchase-requests?status=in_review", label: "Open" }}>
-            <div className="grid gap-2">
-              <Link href="/purchase-requests?status=in_review" className="flex items-center justify-between rounded-md border bg-white px-3 py-2 text-sm hover:bg-secondary">
-                <span>Workflow approvals</span>
-                <Badge variant={summary.pendingApprovals.length ? "warning" : "success"}>{formatNumber(summary.pendingApprovals.length)}</Badge>
-              </Link>
-              <Link href="/purchase-requests?priority=urgent" className="flex items-center justify-between rounded-md border bg-white px-3 py-2 text-sm hover:bg-secondary">
-                <span>Urgent procurement</span>
-                <Badge variant={summary.urgentRequests.length ? "danger" : "success"}>{formatNumber(summary.urgentRequests.length)}</Badge>
-              </Link>
-              <Link href="/low-stock" className="flex items-center justify-between rounded-md border bg-white px-3 py-2 text-sm hover:bg-secondary">
-                <span>Low stock items</span>
-                <Badge variant={summary.lowStockCount ? "warning" : "success"}>{formatNumber(summary.lowStockCount)}</Badge>
-              </Link>
-            </div>
-          </CompactPanel>
-
           <CompactPanel title="Today's Operations" action={{ href: "/daily-operations", label: "Open" }}>
             <div className="grid gap-2 sm:grid-cols-2">
               <MetricCard href="/goods-receivings" label="Receiving today" value={formatNumber(summary.today.goodsReceiving)} icon={PackageCheck} />

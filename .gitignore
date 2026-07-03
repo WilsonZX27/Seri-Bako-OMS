@@ -8,6 +8,8 @@ out/
 # Build
 dist/
 coverage/
+playwright-report/
+test-results/
 
 # TypeScript
 *.tsbuildinfo

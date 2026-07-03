@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Factory } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { APP_SPRINT, APP_VERSION } from "@/lib/app-version";
 import { getCompanyBranding } from "@/server/queries/common";
 
 export async function AuthShell({
@@ -44,7 +45,13 @@ export async function AuthShell({
             <CardTitle>{title}</CardTitle>
             <CardDescription>{description}</CardDescription>
           </CardHeader>
-          <CardContent>{children}</CardContent>
+          <CardContent>
+            {children}
+            <div className="mt-6 border-t pt-4 text-center text-xs text-muted-foreground">
+              <div>Seri Bako OMS v{APP_VERSION}</div>
+              <div>{APP_SPRINT}</div>
+            </div>
+          </CardContent>
         </Card>
       </div>
     </main>

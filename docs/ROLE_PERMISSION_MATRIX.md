@@ -20,8 +20,17 @@ Sprint 6.12.3 clarifies the visible role model used by Staff, workflow actions, 
 - Only Super Admin / Owner can assign Administrator.
 - Administrator may assign Manager, Purchasing, Finance, Kitchen, and Viewer only when permitted.
 - Non-admin roles cannot assign roles.
+- Wilson Super Admin (`SUPER-ADMIN`, `wilson@seribako.com.my`) is protected by Sprint 6.12.4 recovery and must remain Super Admin / Owner.
 - The app must block deactivating the last Super Admin / Owner.
 - The app must block removing the only remaining Super Admin / Owner role from yourself.
+
+## Disable vs Delete Policy
+
+- Use **Disable sign-in** for real staff or any staff with business history.
+- Use **Permanent delete staff** only for safe test users with no linked PR, PO, GRN, stock, attachment, comment, or timeline history.
+- Permanent delete must delete the Supabase auth user with the server-only admin client, then remove the staff profile safely.
+- Wilson Super Admin / Owner and the last owner account can never be permanently deleted.
+- If history exists, the app must show: "This staff has historical records and cannot be permanently deleted. Disable sign-in instead."
 
 ## Permission Keys
 

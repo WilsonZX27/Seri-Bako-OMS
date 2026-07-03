@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { PageHeader } from "@/components/ui/page-header";
 import { SubmitButton } from "@/components/ui/submit-button";
 import { canAssignRoleCode, getRoleDisplayLabel, normalizeRoleCode, sortRolesForDisplay } from "@/lib/roles";
-import { disableStaff, enableStaff, forceStaffPasswordChange, resendStaffInvite, resetStaffTemporaryPassword, updateStaff } from "@/server/actions/foundation";
+import { disableStaff, enableStaff, forceStaffPasswordChange, permanentlyDeleteStaff, resendStaffInvite, resetStaffTemporaryPassword, updateStaff } from "@/server/actions/foundation";
 import { roleDescriptions } from "@/server/auth/permissions";
 import { getCurrentProfile } from "@/server/queries/common";
 import { getBranches, getCompaniesForSelect, getRoles, getStaff, getStaffAccess } from "@/server/queries/foundation";
@@ -161,15 +161,25 @@ export default async function EditStaffPage({
             ) : (
               <DangerConfirmForm
                 action={disableStaff.bind(null, id)}
-                title="Deactivate this staff?"
+                title="Disable sign-in?"
                 description="This staff will no longer be able to sign in. Existing documents and stock history will remain linked."
                 warning="This action is blocked if it would deactivate the last Super Admin / Owner."
                 checkboxLabel="I understand this staff will no longer be able to sign in."
-                confirmWord="DEACTIVATE"
-                buttonLabel="Deactivate user"
-                pendingLabel="Deactivating..."
+                confirmWord="DISABLE"
+                buttonLabel="Disable sign-in"
+                pendingLabel="Disabling..."
               />
             )}
+            <DangerConfirmForm
+              action={permanentlyDeleteStaff.bind(null, id)}
+              title="Permanent delete staff"
+              description="Only use this for test users with no linked business records. Real staff with history must use Disable sign-in instead."
+              warning="This is blocked for Wilson Super Admin / Owner, protected owner accounts, and anyone with historical records."
+              checkboxLabel="I understand this permanently deletes only safe test staff records."
+              confirmWord="DELETE"
+              buttonLabel="Permanent delete staff"
+              pendingLabel="Deleting..."
+            />
           </>
         }
       >

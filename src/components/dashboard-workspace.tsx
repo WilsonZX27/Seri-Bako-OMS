@@ -1,100 +1,181 @@
 "use client";
 
 import Link from "next/link";
-import { AlertTriangle, Boxes, CalendarCheck, CheckCircle2, ClipboardCheck, CreditCard, Factory, PackageCheck, ReceiptText, Truck, TriangleAlert } from "lucide-react";
+import { AlertTriangle, Boxes, CalendarCheck, CheckCircle2, ClipboardList, PackageCheck, ReceiptText, Truck, TriangleAlert } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { StatCard } from "@/components/ui/stat-card";
-import { WorkspaceQuickInsights, type WorkspaceInsight } from "@/components/workspace-panels";
 import { formatCurrency, formatNumber } from "@/lib/utils";
 import type { UserRole } from "@/types/database";
 import type { LucideIcon } from "lucide-react";
 
 type DashboardSummary = Awaited<ReturnType<typeof import("@/server/queries/dashboard").getDashboardSummary>>;
 
-function AttentionCard({ href, title, value, description, icon: Icon, tone = "secondary" }: { href: string; title: string; value: string | number; description: string; icon: LucideIcon; tone?: "secondary" | "warning" | "danger" | "success" }) {
+function MetricCard({ href, label, value, icon: Icon, tone = "neutral" }: { href: string; label: string; value: string | number; icon: LucideIcon; tone?: "neutral" | "green" | "amber" | "red" | "blue" }) {
+  const toneClass = {
+    neutral: "text-slate-600 bg-slate-50",
+    green: "text-emerald-700 bg-emerald-50",
+    amber: "text-amber-700 bg-amber-50",
+    red: "text-red-700 bg-red-50",
+    blue: "text-blue-700 bg-blue-50",
+  }[tone];
+
   return (
-    <Link href={href} className="flex min-h-28 items-center gap-3 rounded-lg border bg-white p-4 shadow-sm transition-colors hover:border-primary/30 hover:bg-slate-50/50">
-      <div className="sb-icon-tile">
-        <Icon className="h-5 w-5" />
+    <Link href={href} className="flex min-h-20 items-center gap-3 rounded-lg border bg-white p-3 shadow-sm transition-colors hover:border-primary/30">
+      <div className={`flex h-9 w-9 items-center justify-center rounded-md ${toneClass}`}>
+        <Icon className="h-4 w-4" />
       </div>
-      <div className="min-w-0 flex-1">
-        <div className="flex items-center justify-between gap-2">
-          <p className="text-sm font-semibold">{title}</p>
-          <Badge variant={tone}>{value}</Badge>
-        </div>
-        <p className="mt-1 text-sm leading-5 text-muted-foreground">{description}</p>
+      <div className="min-w-0">
+        <p className="text-xs text-muted-foreground">{label}</p>
+        <p className="mt-1 text-lg font-semibold leading-none">{value}</p>
       </div>
     </Link>
   );
 }
 
-export function DashboardWorkspace({ summary, role }: { summary: DashboardSummary; role: UserRole }) {
-  const dashboardInsights: WorkspaceInsight[] = [
-    { label: "Active Items", value: formatNumber(summary.totalItems), icon: Boxes, theme: "green" },
-    { label: "Suppliers", value: formatNumber(summary.totalSuppliers), icon: Truck, theme: "blue" },
-    { label: "Low Stock Alerts", value: formatNumber(summary.lowStockCount), icon: AlertTriangle, theme: summary.lowStockCount ? "amber" : "green" },
-    { label: "Pending Approvals", value: formatNumber(summary.pendingApprovals.length), icon: CheckCircle2, theme: "purple" },
+function CompactPanel({ title, children, action }: { title: string; children: React.ReactNode; action?: { href: string; label: string } }) {
+  return (
+    <section className="rounded-xl border bg-card p-4 shadow-sm">
+      <div className="mb-3 flex items-center justify-between gap-3">
+        <h2 className="text-sm font-semibold">{title}</h2>
+        {action ? (
+          <Button asChild variant="ghost" size="sm">
+            <Link href={action.href}>{action.label}</Link>
+          </Button>
+        ) : null}
+      </div>
+      {children}
+    </section>
+  );
+}
+
+function quickActionsForRole(role: UserRole) {
+  const admin = ["super_admin", "operations_admin", "admin"].includes(role);
+  if (admin) {
+    return [
+      { href: "/data-onboarding", label: "Data Onboarding" },
+      { href: "/staffs", label: "Staff" },
+      { href: "/purchase-requests?status=in_review", label: "Approvals" },
+    ];
+  }
+  if (role === "purchasing") return [
+    { href: "/purchase-requests?status=purchasing_review", label: "Review PR" },
+    { href: "/purchase-orders", label: "Open PO" },
+    { href: "/suppliers", label: "Suppliers" },
   ];
+  if (role === "manager") return [
+    { href: "/purchase-requests?status=pending_approval", label: "Manager Approval" },
+    { href: "/reports", label: "Reports" },
+  ];
+  if (role === "finance") return [
+    { href: "/reports", label: "Reports" },
+    { href: "/documents", label: "Documents" },
+  ];
+  return [
+    { href: "/purchase-requests/new", label: "Create PR" },
+    { href: "/goods-receivings", label: "Receiving" },
+    { href: "/stock-counts", label: "Stock Count" },
+  ];
+}
+
+export function DashboardWorkspace({ summary, role }: { summary: DashboardSummary; role: UserRole }) {
+  const metrics = [
+    { href: "/purchase-requests?status=in_review", label: "Pending approvals", value: formatNumber(summary.pendingApprovals.length), icon: CheckCircle2, tone: summary.pendingApprovals.length ? "amber" as const : "green" as const },
+    { href: "/purchase-requests?priority=urgent", label: "Urgent PR", value: formatNumber(summary.urgentRequests.length), icon: TriangleAlert, tone: summary.urgentRequests.length ? "red" as const : "green" as const },
+    { href: "/low-stock", label: "Low stock", value: formatNumber(summary.lowStockCount), icon: AlertTriangle, tone: summary.lowStockCount ? "amber" as const : "green" as const },
+    { href: "/goods-receivings", label: "Today receiving", value: formatNumber(summary.today.goodsReceiving), icon: PackageCheck, tone: "blue" as const },
+    { href: "/stock-counts", label: "Stock issues", value: formatNumber(summary.today.stockCountDue), icon: CalendarCheck, tone: summary.today.stockCountDue ? "amber" as const : "neutral" as const },
+  ];
+  const quickActions = quickActionsForRole(role);
 
   return (
-    <div className="space-y-5 p-5">
-      <WorkspaceQuickInsights insights={dashboardInsights} action={{ href: "/purchase-requests?status=in_review", label: "Review approvals" }} />
+    <div className="space-y-4 p-5">
+      <div className="grid gap-3 md:grid-cols-5">
+        {metrics.map((metric) => <MetricCard key={metric.label} {...metric} />)}
+      </div>
 
-      <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border bg-card p-4">
-        <div>
-          <p className="sb-section-label">Dashboard</p>
-          <h2 className="mt-1 text-lg font-semibold">Today&apos;s operating picture</h2>
+      <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_360px]">
+        <div className="grid gap-4 lg:grid-cols-2">
+          <CompactPanel title="Attention Needed" action={{ href: "/purchase-requests?status=in_review", label: "Open" }}>
+            <div className="space-y-2">
+              <Link href="/purchase-requests?status=in_review" className="flex items-center justify-between rounded-md border bg-white px-3 py-2 text-sm hover:bg-secondary">
+                <span>Workflow approvals</span>
+                <Badge variant={summary.pendingApprovals.length ? "warning" : "success"}>{formatNumber(summary.pendingApprovals.length)}</Badge>
+              </Link>
+              <Link href="/purchase-requests?priority=urgent" className="flex items-center justify-between rounded-md border bg-white px-3 py-2 text-sm hover:bg-secondary">
+                <span>Urgent procurement</span>
+                <Badge variant={summary.urgentRequests.length ? "danger" : "success"}>{formatNumber(summary.urgentRequests.length)}</Badge>
+              </Link>
+              <Link href="/low-stock" className="flex items-center justify-between rounded-md border bg-white px-3 py-2 text-sm hover:bg-secondary">
+                <span>Low stock alerts</span>
+                <Badge variant={summary.lowStockCount ? "warning" : "success"}>{formatNumber(summary.lowStockCount)}</Badge>
+              </Link>
+            </div>
+          </CompactPanel>
+
+          <CompactPanel title="Recent Operational Movement" action={{ href: "/stock-transactions", label: "View" }}>
+            <div className="space-y-2">
+              {summary.recentActivities.slice(0, 4).map((activity) => (
+                <div key={activity.id} className="rounded-md border bg-white px-3 py-2 text-sm">
+                  <p className="line-clamp-1">{activity.message}</p>
+                  <p className="mt-1 text-xs text-muted-foreground">{new Date(activity.created_at).toLocaleString("en-MY", { dateStyle: "short", timeStyle: "short" })}</p>
+                </div>
+              ))}
+              {!summary.recentActivities.length ? <p className="rounded-md border bg-white p-3 text-sm text-muted-foreground">No recent activity.</p> : null}
+            </div>
+          </CompactPanel>
+
+          <CompactPanel title="Procurement Snapshot" action={{ href: "/procurement", label: "Open" }}>
+            <div className="grid gap-2 sm:grid-cols-2">
+              <MetricCard href="/purchase-requests" label="Recent PR" value={formatNumber(summary.purchaseRequests.length)} icon={ClipboardList} />
+              <MetricCard href="/purchase-orders" label="Open PO" value={formatNumber(summary.purchaseOrders.length)} icon={Truck} />
+            </div>
+          </CompactPanel>
+
+          <CompactPanel title="Finance Foundation">
+            <div className="grid gap-2 sm:grid-cols-3">
+              <MetricCard href="/reports" label="Payables" value={formatCurrency(summary.financeForecast.upcomingPayables)} icon={ReceiptText} />
+              <MetricCard href="/purchase-orders" label="PO value" value={formatCurrency(summary.financeForecast.pendingPoValue)} icon={ReceiptText} />
+              <MetricCard href="/goods-receivings" label="Not invoiced" value={formatNumber(summary.financeForecast.receivingNotInvoiced)} icon={PackageCheck} tone="amber" />
+            </div>
+            <p className="mt-3 text-xs text-muted-foreground">Finance forecast will improve as PO, GRN, and supplier invoice data grows.</p>
+          </CompactPanel>
         </div>
-        <div className="flex flex-wrap gap-2">
+
+        <div className="space-y-4">
+          <CompactPanel title="Quick Actions">
+            <div className="grid gap-2">
+              {quickActions.map((action) => (
+                <Button key={action.href} asChild variant="outline" className="justify-start">
+                  <Link href={action.href}>{action.label}</Link>
+                </Button>
+              ))}
+            </div>
+          </CompactPanel>
+
+          <CompactPanel title="Notifications">
+            <div className="space-y-2">
+              {summary.notifications.slice(0, 4).map((notification) => (
+                <div key={notification.id} className="rounded-md border bg-white px-3 py-2 text-sm">
+                  <p className="font-medium">{notification.title}</p>
+                  <p className="mt-1 line-clamp-2 text-xs text-muted-foreground">{notification.message}</p>
+                </div>
+              ))}
+              {!summary.notifications.length ? <p className="rounded-md border bg-white p-3 text-sm text-muted-foreground">No new notifications.</p> : null}
+            </div>
+          </CompactPanel>
+
           {["super_admin", "operations_admin", "admin"].includes(role) ? (
-            <Button asChild variant="outline">
-              <Link href="/data-onboarding">Data Onboarding</Link>
-            </Button>
+            <CompactPanel title="Readiness">
+              <div className="space-y-2 text-sm">
+                <Link href="/data-onboarding" className="flex items-center gap-2 rounded-md border bg-white px-3 py-2 hover:bg-secondary">
+                  <Boxes className="h-4 w-4 text-primary" />
+                  Data onboarding and setup checks
+                </Link>
+              </div>
+            </CompactPanel>
           ) : null}
         </div>
       </div>
-
-      <section className="space-y-3 rounded-xl border bg-card p-5 shadow-sm">
-        <div>
-          <p className="sb-section-label">Operation Today</p>
-          <h2 className="mt-1 text-lg font-semibold">What needs handling today</h2>
-          <p className="mt-1 text-sm text-muted-foreground">Live activity counters for receiving, counts, production, and deliveries.</p>
-        </div>
-        <div className="grid gap-4 md:grid-cols-4">
-          <StatCard label="Goods Receiving Today" value={summary.today.goodsReceiving} icon={PackageCheck} tone="accent" />
-          <StatCard label="Stock Count Due" value={summary.today.stockCountDue} icon={CalendarCheck} tone="warning" />
-          <StatCard label="Today's Production" value={summary.today.production} icon={Factory} />
-          <StatCard label="Today's Deliveries" value={summary.today.deliveries} icon={Truck} tone="accent" />
-        </div>
-      </section>
-
-      <section className="space-y-3 rounded-xl border bg-card p-5 shadow-sm">
-        <div>
-          <p className="sb-section-label">Finance Forecast</p>
-          <h2 className="mt-1 text-lg font-semibold">Payables foundation</h2>
-          <p className="mt-1 text-sm text-muted-foreground">Finance forecast will improve as PO, GRN, and supplier invoice data grows.</p>
-        </div>
-        <div className="grid gap-4 md:grid-cols-3">
-          <StatCard label="Upcoming Payables" value={formatCurrency(summary.financeForecast.upcomingPayables)} icon={CreditCard} tone="accent" />
-          <StatCard label="Pending PO Value" value={formatCurrency(summary.financeForecast.pendingPoValue)} icon={ReceiptText} />
-          <StatCard label="Receiving Not Invoiced" value={formatNumber(summary.financeForecast.receivingNotInvoiced)} icon={PackageCheck} tone="warning" />
-        </div>
-      </section>
-
-      <section className="space-y-3 rounded-xl border bg-card p-4">
-        <div>
-          <p className="sb-section-label">Attention Needed</p>
-          <h2 className="mt-1 text-lg font-semibold">Warnings and approvals</h2>
-          <p className="mt-1 text-sm text-muted-foreground">Compact shortcuts for the decisions most likely to block daily work.</p>
-        </div>
-        <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
-          <AttentionCard href="/low-stock" title="Low Stock" value={formatNumber(summary.lowStockCount)} description="Items below safety stock." icon={AlertTriangle} tone={summary.lowStockCount ? "warning" : "success"} />
-          <AttentionCard href="/purchase-requests?priority=urgent" title="Urgent PRs" value={formatNumber(summary.urgentRequests.length)} description="Critical or urgent requests." icon={TriangleAlert} tone={summary.urgentRequests.length ? "danger" : "success"} />
-          <AttentionCard href="/purchase-requests?status=in_review" title="Approvals" value={formatNumber(summary.pendingApprovals.length)} description="Documents waiting for review." icon={ClipboardCheck} tone={summary.pendingApprovals.length ? "warning" : "success"} />
-          <AttentionCard href="/purchase-orders" title="Purchase Orders" value={formatNumber(summary.purchaseOrders.length)} description="Recent supplier order activity." icon={PackageCheck} tone="secondary" />
-        </div>
-      </section>
     </div>
   );
 }

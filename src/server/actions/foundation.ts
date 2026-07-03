@@ -623,6 +623,32 @@ async function assertCanDeactivateStaff(admin: ReturnType<typeof createAdminClie
   }
 }
 
+function isWilsonOwnerStaff(staff: { staff_code?: string | null; email?: string | null; invite_email?: string | null }) {
+  return (
+    staff.staff_code === "SUPER-ADMIN"
+    || staff.email?.toLowerCase() === "wilson@seribako.com.my"
+    || staff.invite_email?.toLowerCase() === "wilson@seribako.com.my"
+  );
+}
+
+async function countStaffHistory(admin: ReturnType<typeof createAdminClient>, staffId: string) {
+  const checks = await Promise.all([
+    admin.from("purchase_requests").select("id", { count: "exact", head: true }).or(`requested_by.eq.${staffId},created_by.eq.${staffId},updated_by.eq.${staffId}`),
+    admin.from("purchase_orders").select("id", { count: "exact", head: true }).or(`created_by.eq.${staffId},updated_by.eq.${staffId}`),
+    admin.from("goods_receivings").select("id", { count: "exact", head: true }).or(`received_by.eq.${staffId},posted_by.eq.${staffId},created_by.eq.${staffId},updated_by.eq.${staffId}`),
+    admin.from("stock_transactions").select("id", { count: "exact", head: true }).eq("created_by", staffId),
+    admin.from("document_comments").select("id", { count: "exact", head: true }).eq("created_by", staffId),
+    admin.from("attachments").select("id", { count: "exact", head: true }).or(`uploaded_by.eq.${staffId},created_by.eq.${staffId}`),
+    admin.from("activity_logs").select("id", { count: "exact", head: true }).or(`entity_id.eq.${staffId},created_by.eq.${staffId}`),
+  ]);
+
+  for (const check of checks) {
+    if (check.error) throw new Error(check.error.message);
+  }
+
+  return checks.reduce((sum, check) => sum + (check.count ?? 0), 0);
+}
+
 async function inviteStaffByEmail(staffId: string, email: string) {
   const admin = createAdminClient();
   const redirectTo = `${await getAppUrl()}/auth/callback?next=/set-password`;
@@ -920,17 +946,20 @@ export async function disableStaff(id: string) {
     if (!isMockMode()) {
       const supabase = createAdminClient();
       await assertCanDeactivateStaff(supabase, id);
+      const { data: staff, error: staffError } = await supabase.from("staffs").select("staff_code, email, invite_email").eq("id", id).single();
+      if (staffError) throw new Error(staffError.message);
+      if (isWilsonOwnerStaff(staff)) throw new Error("Wilson Super Admin / Owner cannot be disabled.");
       const { error } = await supabase.from("staffs").update({ status: "disabled" }).eq("id", id);
       if (error) throw new Error(error.message);
-      await writeActivityLog({ entityType: "staff", entityId: id, activityType: "updated", message: "Staff disabled" });
+      await writeActivityLog({ entityType: "staff", entityId: id, activityType: "updated", message: "Staff sign-in disabled" });
     }
   } catch (error) {
     rethrowRedirect(error);
-    safeRedirectWithMessage(`/staffs/${id}`, "error", formatActionError(error, "Could not disable this user."));
+    safeRedirectWithMessage(`/staffs/${id}`, "error", formatActionError(error, "Could not disable sign-in for this user."));
   }
   revalidatePath("/staffs");
   revalidatePath(`/staffs/${id}`);
-  safeRedirectWithMessage(`/staffs/${id}`, "success", "User disabled.");
+  safeRedirectWithMessage(`/staffs/${id}`, "success", "Staff sign-in disabled.");
 }
 
 export async function enableStaff(id: string) {
@@ -951,6 +980,59 @@ export async function enableStaff(id: string) {
   revalidatePath("/staffs");
   revalidatePath(`/staffs/${id}`);
   safeRedirectWithMessage(`/staffs/${id}`, "success", "User enabled.");
+}
+
+export async function permanentlyDeleteStaff(id: string) {
+  await requirePermissionOrRedirect("staffs.update", `/staffs/${id}`);
+  try {
+    if (!isMockMode()) {
+      const supabase = createAdminClient();
+      const { data: staff, error: staffError } = await supabase
+        .from("staffs")
+        .select("id, staff_code, email, invite_email, full_name, auth_user_id")
+        .eq("id", id)
+        .single();
+      if (staffError) throw new Error(staffError.message);
+      if (isWilsonOwnerStaff(staff)) throw new Error("Wilson Super Admin / Owner cannot be permanently deleted.");
+
+      const roleId = await getPrimaryStaffRoleId(supabase, id);
+      const roleCode = await getRoleCodeById(supabase, roleId);
+      if (isSuperAdminRole(roleCode)) {
+        const ownerCount = await activeSuperAdminCount(supabase);
+        if (ownerCount <= 1) throw new Error("Cannot permanently delete the last Super Admin / Owner.");
+        throw new Error("Super Admin / Owner accounts are protected. Disable sign-in or remove owner access first.");
+      }
+
+      const historyCount = await countStaffHistory(supabase, id);
+      if (historyCount > 0) {
+        throw new Error("This staff has historical records and cannot be permanently deleted. Disable sign-in instead.");
+      }
+
+      await writeActivityLog({ entityType: "staff", entityId: id, activityType: "deleted", message: `Permanent staff delete approved for ${staff.full_name}` });
+
+      if (staff.auth_user_id) {
+        const { error: authError } = await supabase.auth.admin.deleteUser(staff.auth_user_id);
+        if (authError) throw new Error(authError.message);
+      }
+
+      const [{ error: roleError }, { error: branchError }, { error: locationError }] = await Promise.all([
+        supabase.from("staff_roles").delete().eq("staff_id", id),
+        supabase.from("staff_branches").delete().eq("staff_id", id),
+        supabase.from("staff_locations").delete().eq("staff_id", id),
+      ]);
+      if (roleError) throw new Error(roleError.message);
+      if (branchError) throw new Error(branchError.message);
+      if (locationError) throw new Error(locationError.message);
+
+      const { error: deleteError } = await supabase.from("staffs").delete().eq("id", id);
+      if (deleteError) throw new Error(deleteError.message);
+    }
+  } catch (error) {
+    rethrowRedirect(error);
+    safeRedirectWithMessage(`/staffs/${id}`, "error", formatActionError(error, "Could not permanently delete this staff member."));
+  }
+  revalidatePath("/staffs");
+  safeRedirectWithMessage("/staffs", "success", "Staff permanently deleted.");
 }
 
 function rolePayload(formData: FormData) {

@@ -1,6 +1,6 @@
 export type Json = string | number | boolean | null | { [key: string]: Json | undefined } | Json[];
 
-export type UserRole = "admin" | "finance" | "purchasing" | "kitchen" | "viewer";
+export type UserRole = "super_admin" | "operations_admin" | "admin" | "manager" | "finance" | "purchasing" | "kitchen_staff" | "kitchen" | "viewer";
 export type ItemStatus = "active" | "inactive";
 export type SupplierStatus = "active" | "inactive";
 export type RecordStatus = "active" | "inactive" | "archived";

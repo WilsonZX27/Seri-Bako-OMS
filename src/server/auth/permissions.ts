@@ -1,15 +1,20 @@
 import { isMockMode, mockProfile } from "@/lib/mock-mode";
+import { getRoleDisplayLabel } from "@/lib/roles";
 import { createClient } from "@/lib/supabase/server";
 
 export const roleDescriptions = {
-  super_admin: "Full system owner with every permission.",
+  super_admin: "Protected system owner with every permission.",
   operations_admin: "Day-to-day ERP administrator for operational setup and oversight.",
   purchasing: "Purchasing user who verifies PRs, manages suppliers, and sends POs.",
   manager: "Approver for PR and PO workflow decisions.",
+  finance: "Finance user for finance review and reporting visibility.",
   kitchen_staff: "Branch operations user who creates operational requests and stock documents.",
-  admin: "Legacy full system owner role. Prefer super_admin for new assignments.",
+  viewer: "Read-only user with limited workspace visibility.",
+  admin: "Legacy administrator role. Prefer super_admin for owner accounts and operations_admin for daily administration.",
   kitchen: "Legacy kitchen role. Prefer kitchen_staff for new assignments.",
 } as const;
+
+export { getRoleDisplayLabel };
 
 const permissionAliases: Record<string, string[]> = {
   "users.manage": ["staffs.create", "staffs.update", "roles.update"],
@@ -125,6 +130,14 @@ export const rolePermissionMatrix = {
     "documents.view",
     "reports.view",
     "attachments.upload",
+  ],
+  finance: [
+    "documents.view",
+    "reports.view",
+  ],
+  viewer: [
+    "documents.view",
+    "reports.view",
   ],
   kitchen_staff: [
     "pr.create",

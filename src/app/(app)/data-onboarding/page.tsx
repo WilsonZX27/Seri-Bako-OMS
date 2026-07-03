@@ -71,7 +71,7 @@ export default async function DataOnboardingPage() {
       { label: "At least one branch exists", done: summary.branchCount > 0 },
       { label: "Each branch has a default stock area", done: summary.branchesMissingDefault === 0 },
       { label: "No duplicate internal stock areas need cleanup", done: summary.duplicateLocationCandidates === 0 },
-      { label: "Admin and staff access are ready", done: summary.staffCount > 0 && summary.roleCount > 0 },
+      { label: "Administrator and staff access are ready", done: summary.staffCount > 0 && summary.roleCount > 0 },
       { label: "Items imported", done: summary.itemCount > 0 },
       { label: "Suppliers imported", done: summary.supplierCount > 0 },
       { label: "Supplier items imported", done: summary.supplierItemCount > 0 },

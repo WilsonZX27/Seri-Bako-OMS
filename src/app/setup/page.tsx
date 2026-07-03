@@ -23,7 +23,7 @@ export default async function SetupPage({
         <Card className="w-full max-w-lg">
           <CardHeader>
             <CardTitle>Setup already completed.</CardTitle>
-            <CardDescription>An Admin staff role already exists for this workspace.</CardDescription>
+            <CardDescription>An administrator staff role already exists for this workspace.</CardDescription>
           </CardHeader>
           <CardContent>
             <Button asChild>
@@ -42,14 +42,14 @@ export default async function SetupPage({
           <div className="mb-2 flex h-10 w-10 items-center justify-center rounded-md bg-primary text-primary-foreground">
             <ShieldCheck className="h-5 w-5" />
           </div>
-          <CardTitle>First Admin Setup</CardTitle>
+          <CardTitle>First Administrator Setup</CardTitle>
           <CardDescription>
-            Create the Seri Bako workspace foundation and assign the current signed-in user as Admin.
+            Create the Seri Bako workspace foundation and assign the current signed-in user as Administrator.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="rounded-md border bg-secondary/40 p-4 text-sm text-muted-foreground">
-            This will confirm the company, Central Kitchen branch, Main Store location, Admin role, full Admin
+            This will confirm the company, Central Kitchen branch, Main Store location, Administrator role, full Administrator
             permissions, your staff profile, and default document sequences.
           </div>
           {params.error ? (

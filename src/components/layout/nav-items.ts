@@ -29,11 +29,13 @@ export type NavGroup = {
   items: NavItem[];
 };
 
-const allRoles: UserRole[] = ["admin", "finance", "purchasing", "kitchen", "viewer"];
-const opsRoles: UserRole[] = ["admin", "kitchen", "purchasing"];
-const procurementRoles: UserRole[] = ["admin", "purchasing", "finance", "kitchen"];
-const inventoryRoles: UserRole[] = ["admin", "kitchen", "purchasing", "finance"];
-const reportsRoles: UserRole[] = ["admin", "finance", "purchasing"];
+const ownerRoles: UserRole[] = ["super_admin", "admin"];
+const administratorRoles: UserRole[] = ["operations_admin", ...ownerRoles];
+const allRoles: UserRole[] = ["super_admin", "operations_admin", "admin", "manager", "finance", "purchasing", "kitchen_staff", "kitchen", "viewer"];
+const opsRoles: UserRole[] = ["super_admin", "operations_admin", "admin", "manager", "kitchen_staff", "kitchen", "purchasing"];
+const procurementRoles: UserRole[] = ["super_admin", "operations_admin", "admin", "manager", "purchasing", "finance", "kitchen_staff", "kitchen"];
+const inventoryRoles: UserRole[] = ["super_admin", "operations_admin", "admin", "manager", "kitchen_staff", "kitchen", "purchasing", "finance"];
+const reportsRoles: UserRole[] = ["super_admin", "operations_admin", "admin", "manager", "finance", "purchasing"];
 
 export const navGroups: NavGroup[] = [
   {
@@ -68,8 +70,8 @@ export const navGroups: NavGroup[] = [
     id: "production",
     label: "Production",
     icon: Factory,
-    roles: ["admin", "kitchen"],
-    items: [{ href: "/production", label: "Production", icon: Factory, roles: ["admin", "kitchen"], keywords: ["recipes", "production jobs"] }],
+    roles: ["super_admin", "operations_admin", "admin", "manager", "kitchen_staff", "kitchen"],
+    items: [{ href: "/production", label: "Production", icon: Factory, roles: ["super_admin", "operations_admin", "admin", "manager", "kitchen_staff", "kitchen"], keywords: ["recipes", "production jobs"] }],
   },
   {
     id: "documents",
@@ -89,15 +91,15 @@ export const navGroups: NavGroup[] = [
     id: "onboarding",
     label: "Data Onboarding",
     icon: Database,
-    roles: ["admin"],
-    items: [{ href: "/data-onboarding", label: "Data Onboarding", icon: Database, roles: ["admin"], keywords: ["imports", "opening stock", "templates"] }],
+    roles: administratorRoles,
+    items: [{ href: "/data-onboarding", label: "Data Onboarding", icon: Database, roles: administratorRoles, keywords: ["imports", "opening stock", "templates"] }],
   },
   {
     id: "settings",
     label: "Settings",
     icon: Settings,
-    roles: ["admin"],
-    items: [{ href: "/settings", label: "Settings", icon: Settings, roles: ["admin"], keywords: ["company", "staff", "roles"] }],
+    roles: administratorRoles,
+    items: [{ href: "/settings", label: "Settings", icon: Settings, roles: administratorRoles, keywords: ["company", "staff", "roles"] }],
   },
 ];
 

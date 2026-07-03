@@ -35,7 +35,7 @@ export function formatActionError(error: unknown, fallback = "Something went wro
   }
   if (normalized.includes("duplicate key")) return "A matching record already exists.";
   if (normalized.includes("bucket") || normalized.includes("storage")) {
-    return "File storage is not configured correctly. Please contact an Admin.";
+    return "File storage is not configured correctly. Please contact an administrator.";
   }
   if (normalized.includes("violates not-null constraint")) return "A required field is missing.";
   if (message.length <= 160 && !/(supabase|postgres|constraint|sqlstate|violates)/i.test(message)) return message;

@@ -22,7 +22,7 @@ export default function SettingsPage() {
           <CardContent className="p-5">
             <p className="sb-section-label">Administration hub</p>
             <p className="mt-2 max-w-3xl text-sm leading-6 text-muted-foreground">
-              Keep daily staff focused on operations. Admin-only setup, access, and numbering tools live here so the main sidebar stays simple.
+              Keep daily staff focused on operations. Administrator-only setup, access, and numbering tools live here so the main sidebar stays simple.
             </p>
           </CardContent>
         </Card>

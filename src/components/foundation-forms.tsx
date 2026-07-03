@@ -1,9 +1,11 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Field } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
+import { RecordSection } from "@/components/record-workspace";
 import { SubmitButton } from "@/components/ui/submit-button";
 import { SelectNative } from "@/components/ui/select-native";
 import { Textarea } from "@/components/ui/textarea";
+import { getRoleDisplayLabel } from "@/lib/roles";
 import { previewDocumentNumber } from "@/server/queries/foundation";
 import type { BranchType, LocationType, RecordStatus, ResetFrequency, StaffAccessLevel, StaffStatus } from "@/types/database";
 
@@ -254,6 +256,8 @@ export function StaffForm({
   branches,
   roles,
   action,
+  formId,
+  showSubmit = true,
 }: {
   staff?: Staff;
   access?: StaffAccess;
@@ -261,32 +265,45 @@ export function StaffForm({
   branches: SelectBranch[];
   roles: SelectRole[];
   action: (formData: FormData) => Promise<void>;
+  formId?: string;
+  showSubmit?: boolean;
 }) {
   return (
-    <Card>
-      <CardContent className="p-5">
-        <form action={action} className="grid gap-4 md:grid-cols-2">
+    <form id={formId} action={action} className="space-y-5">
+      <RecordSection title="Staff Profile" description="Core identity and contact details for this staff member.">
           <CompanyHidden companies={companies} companyId={staff?.company_id} />
+        <div className="grid gap-4 md:grid-cols-2">
           <Field label="Staff Code">
             <Input name="staff_code" defaultValue={staff?.staff_code ?? ""} />
           </Field>
-          <Field label="Full Name">
+          <Field label="Full Name" required>
             <Input name="full_name" defaultValue={staff?.full_name ?? ""} required />
           </Field>
-          <Field label="Email">
+          <Field label="Email" required>
             <Input name="email" type="email" defaultValue={staff?.email ?? staff?.invite_email ?? ""} required />
           </Field>
           <Field label="Phone">
             <Input name="phone" defaultValue={staff?.phone ?? ""} />
           </Field>
-          <Field label="Primary Role">
+          <Field label="Status">
+            <StaffStatusSelect value={staff?.status} />
+          </Field>
+        </div>
+      </RecordSection>
+
+      <RecordSection title="Role & Branch Access" description="Select the staff's main responsibility. Permissions are controlled by the assigned role.">
+        <div className="grid gap-4 md:grid-cols-2">
+          <Field label="Primary Role" required>
             <SelectNative name="role_id" defaultValue={access?.staffRole?.role_id ?? roles[0]?.id ?? ""} required>
               {roles.map((role) => (
                 <option key={role.id} value={role.id}>
-                  {role.role_name}
+                  {getRoleDisplayLabel(role.role_code, role.role_name)}
                 </option>
               ))}
             </SelectNative>
+            {roles.some((role) => role.role_code === "super_admin") ? (
+              <p className="mt-1 text-xs text-amber-700">Only system owner accounts should use Super Admin / Owner.</p>
+            ) : null}
           </Field>
           <Field label="Role Branch Scope">
             <SelectNative name="role_branch_id" defaultValue={access?.staffRole?.branch_id ?? ""}>
@@ -304,7 +321,7 @@ export function StaffForm({
           <Field label="Effective To">
             <Input name="effective_to" type="date" defaultValue={access?.staffRole?.effective_to ?? ""} />
           </Field>
-          <Field label="Default Branch Access">
+          <Field label="Default Branch Access" required>
             <SelectNative name="branch_id" defaultValue={access?.staffBranch?.branch_id ?? branches[0]?.id ?? ""} required>
               {branches.map((branch) => (
                 <option key={branch.id} value={branch.id}>
@@ -321,39 +338,55 @@ export function StaffForm({
               <option value="read_only">Read Only</option>
             </SelectNative>
           </Field>
-          <Field label="Status">
-            <StaffStatusSelect value={staff?.status} />
-          </Field>
-          {!staff ? (
-            <div className="space-y-3 rounded-lg border bg-secondary/30 p-4 md:col-span-2">
-              <div>
-                <p className="text-sm font-semibold">Auth setup</p>
-                <p className="mt-1 text-xs text-muted-foreground">Temporary password is recommended for internal staff because email invite links can expire or hit rate limits.</p>
-              </div>
-              <div className="grid gap-3 md:grid-cols-2">
-                <label className="rounded-md border bg-white p-3 text-sm">
-                  <input className="mr-2" type="radio" name="auth_setup_method" value="temporary_password" defaultChecked />
-                  Create login with temporary password
-                  <span className="mt-1 block text-xs text-muted-foreground">Password is shown once after creation. Staff must change it at first login.</span>
-                </label>
-                <label className="rounded-md border bg-white p-3 text-sm">
-                  <input className="mr-2" type="radio" name="auth_setup_method" value="email_invitation" />
-                  Send email invitation
-                  <span className="mt-1 block text-xs text-muted-foreground">Optional. Depends on Supabase email rate limits and link expiry.</span>
-                </label>
-              </div>
-              <Field label="Temporary Password">
-                <Input name="temporary_password" type="text" placeholder="Leave blank to auto-generate" autoComplete="off" />
-                <p className="mt-1 text-xs text-muted-foreground">Do not reuse passwords. Share temporary passwords securely and ask staff to change immediately.</p>
-              </Field>
-            </div>
-          ) : null}
-          <div className="flex justify-end md:col-span-2">
-            <SubmitButton type="submit" pendingLabel={staff ? "Saving..." : "Creating account..."} showOverlay overlayLabel={staff ? "Saving changes..." : "Creating staff account..."}>{staff ? "Save staff" : "Create staff"}</SubmitButton>
+        </div>
+      </RecordSection>
+
+      <RecordSection title="Notes / Internal Info" description="Operational timestamps for review.">
+        <div className="grid gap-3 md:grid-cols-3">
+          <div className="rounded-md border bg-secondary/30 p-3 text-sm">
+            <p className="text-xs uppercase text-muted-foreground">Invited date</p>
+            <p className="mt-1 font-semibold">{staff?.invited_at ? new Date(staff.invited_at).toLocaleString("en-MY") : "-"}</p>
           </div>
-        </form>
-      </CardContent>
-    </Card>
+          <div className="rounded-md border bg-secondary/30 p-3 text-sm">
+            <p className="text-xs uppercase text-muted-foreground">Accepted date</p>
+            <p className="mt-1 font-semibold">{staff?.accepted_at ? new Date(staff.accepted_at).toLocaleString("en-MY") : "-"}</p>
+          </div>
+          <div className="rounded-md border bg-secondary/30 p-3 text-sm">
+            <p className="text-xs uppercase text-muted-foreground">Last login</p>
+            <p className="mt-1 font-semibold">{staff?.last_login_at ? new Date(staff.last_login_at).toLocaleString("en-MY") : "-"}</p>
+          </div>
+        </div>
+      </RecordSection>
+
+      {showSubmit ? (
+        <Card>
+          <CardContent className="flex justify-end p-5">
+            <SubmitButton type="submit" pendingLabel={staff ? "Saving..." : "Creating account..."} showOverlay overlayLabel={staff ? "Saving changes..." : "Creating staff account..."}>{staff ? "Save staff" : "Create staff"}</SubmitButton>
+          </CardContent>
+        </Card>
+      ) : null}
+    </form>
+  );
+}
+
+export function StaffAuthSetupFields({ formId }: { formId: string }) {
+  return (
+    <div className="space-y-3">
+      <label className="block rounded-md border bg-white p-3 text-sm">
+        <input className="mr-2" type="radio" name="auth_setup_method" value="temporary_password" defaultChecked form={formId} />
+        Create login with temporary password
+        <span className="mt-1 block text-xs text-muted-foreground">Recommended for internal staff. Avoids email invite expiry and rate limits.</span>
+      </label>
+      <label className="block rounded-md border bg-white p-3 text-sm">
+        <input className="mr-2" type="radio" name="auth_setup_method" value="email_invitation" form={formId} />
+        Send email invitation
+        <span className="mt-1 block text-xs text-muted-foreground">Optional. Depends on email delivery and link expiry.</span>
+      </label>
+      <Field label="Temporary Password">
+        <Input name="temporary_password" type="text" placeholder="Leave blank to auto-generate" autoComplete="off" form={formId} />
+        <p className="mt-1 text-xs text-muted-foreground">Do not reuse passwords. Share temporary passwords securely and ask staff to change immediately.</p>
+      </Field>
+    </div>
   );
 }
 

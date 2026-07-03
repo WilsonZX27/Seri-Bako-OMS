@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { MasterDataFilters } from "@/components/master-data-filters";
 import { PageHeader } from "@/components/ui/page-header";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { getRoleDisplayLabel } from "@/lib/roles";
 import { getPermissions, getRoles } from "@/server/queries/foundation";
 
 export default async function RolesPage({ searchParams }: { searchParams: Promise<{ search?: string; status?: string }> }) {
@@ -21,7 +22,7 @@ export default async function RolesPage({ searchParams }: { searchParams: Promis
             {roles.map((role) => (
               <TableRow key={role.id}>
                 <TableCell>{role.role_code}</TableCell>
-                <TableCell className="font-medium">{role.role_name}</TableCell>
+                <TableCell className="font-medium">{getRoleDisplayLabel(role.role_code, role.role_name)}</TableCell>
                 <TableCell>{role.description ?? "-"}</TableCell>
                 <TableCell><Badge variant={role.status === "active" ? "success" : "secondary"}>{role.status}</Badge></TableCell>
                 <TableCell className="text-right"><Button asChild variant="outline" size="sm"><Link href={`/roles/${role.id}`}>Edit</Link></Button></TableCell>

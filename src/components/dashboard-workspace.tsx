@@ -47,7 +47,7 @@ export function DashboardWorkspace({ summary, role }: { summary: DashboardSummar
           <h2 className="mt-1 text-lg font-semibold">Today&apos;s operating picture</h2>
         </div>
         <div className="flex flex-wrap gap-2">
-          {role === "admin" ? (
+          {["super_admin", "operations_admin", "admin"].includes(role) ? (
             <Button asChild variant="outline">
               <Link href="/data-onboarding">Data Onboarding</Link>
             </Button>

@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { getRoleDisplayLabel } from "@/lib/roles";
 import {
   isMockMode,
   mockBranches,
@@ -156,14 +157,14 @@ export async function getStaffs(filters: Filters = {}) {
   const [{ data: staffs, error: staffsError }, { data: branches, error: branchesError }, { data: roles }, { data: staffRoles }, { data: staffBranches }] = await Promise.all([
     supabase.from("staffs").select("*").is("deleted_at", null).order("full_name", { ascending: true }),
     supabase.from("branches").select("id, branch_name"),
-    supabase.from("roles").select("id, role_name"),
+    supabase.from("roles").select("id, role_name, role_code"),
     supabase.from("staff_roles").select("staff_id, role_id"),
     supabase.from("staff_branches").select("staff_id, branch_id, access_level, is_default"),
   ]);
   if (staffsError) throw new Error(staffsError.message);
   if (branchesError) throw new Error(branchesError.message);
   const branchById = new Map((branches ?? []).map((branch) => [branch.id, branch.branch_name]));
-  const roleById = new Map((roles ?? []).map((role) => [role.id, role.role_name]));
+  const roleById = new Map((roles ?? []).map((role) => [role.id, getRoleDisplayLabel(role.role_code, role.role_name)]));
   return (staffs ?? [])
     .map((staff) => {
       const assignedRoles = (staffRoles ?? []).filter((row) => row.staff_id === staff.id).map((row) => roleById.get(row.role_id)).filter(Boolean);

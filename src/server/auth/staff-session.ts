@@ -2,6 +2,7 @@
 
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
+import { getRoleDisplayLabel } from "@/lib/roles";
 
 function getOptionalAdminClient() {
   try {
@@ -216,8 +217,8 @@ export async function getPasswordSetupContext(): Promise<PasswordSetupContext | 
 
   let roleName: string | null = null;
   if (primaryRole?.role_id) {
-    const { data: role } = await admin.from("roles").select("role_name").eq("id", primaryRole.role_id).maybeSingle();
-    roleName = role?.role_name ?? null;
+    const { data: role } = await admin.from("roles").select("role_code, role_name").eq("id", primaryRole.role_id).maybeSingle();
+    roleName = role ? getRoleDisplayLabel(role.role_code, role.role_name) : null;
   }
 
   let branchName = defaultBranch?.branch_name ?? null;

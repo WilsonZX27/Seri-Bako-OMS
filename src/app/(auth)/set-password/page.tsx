@@ -35,7 +35,7 @@ export default async function SetPasswordPage({
               <Link href="/login">Back to login</Link>
             </Button>
             <Button asChild variant="outline">
-              <Link href="/login?message=Please contact Admin for temporary password setup.">Contact Admin</Link>
+              <Link href="/login?message=Please contact an administrator for temporary password setup.">Contact administrator</Link>
             </Button>
           </div>
         </div>
@@ -61,14 +61,14 @@ export default async function SetPasswordPage({
       <AuthShell title="Link expired" description="This reset or invite session is no longer available.">
         <div className="space-y-4">
           <p className="rounded-md border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive">
-            This link has expired or was already used. Please sign in if you already set a password, or contact Admin for a temporary password.
+            This link has expired or was already used. Please sign in if you already set a password, or contact an administrator for a temporary password.
           </p>
           <div className="grid gap-3 sm:grid-cols-2">
             <Button asChild>
               <Link href="/login">Back to login</Link>
             </Button>
             <Button asChild variant="outline">
-              <Link href="/login?message=Please contact Admin for temporary password setup.">Contact Admin</Link>
+              <Link href="/login?message=Please contact an administrator for temporary password setup.">Contact administrator</Link>
             </Button>
           </div>
         </div>
@@ -85,7 +85,7 @@ export default async function SetPasswordPage({
             Your invitation link has expired or was already used.
           </p>
           <Button asChild className="w-full">
-            <Link href="/login?message=Please contact Admin for temporary password setup.">Contact Admin</Link>
+            <Link href="/login?message=Please contact an administrator for temporary password setup.">Contact administrator</Link>
           </Button>
         </div>
       </AuthShell>
@@ -130,7 +130,7 @@ export default async function SetPasswordPage({
         <dl className="mt-4 grid gap-3 text-sm sm:grid-cols-2">
           <div>
             <dt className="text-xs font-medium uppercase text-muted-foreground">Invitation sent by</dt>
-            <dd className="mt-1">{setupContext.invitedByName ?? "Admin"}</dd>
+            <dd className="mt-1">{setupContext.invitedByName ?? "Administrator"}</dd>
           </div>
           <div>
             <dt className="text-xs font-medium uppercase text-muted-foreground">Role</dt>

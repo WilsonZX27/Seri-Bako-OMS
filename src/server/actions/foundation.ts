@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { isMockMode } from "@/lib/mock-mode";
 import { getAppUrl } from "@/lib/site-url";
+import { canAssignRoleCode, isProtectedOwnerAssignableRole, isSuperAdminRole } from "@/lib/roles";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import { branchSchema, companySchema, documentSequenceSchema, locationSchema, roleSchema, staffAccessSchema, staffSchema } from "@/lib/validations/foundation";
@@ -530,6 +531,98 @@ async function getCurrentStaffId() {
   return data?.id ?? null;
 }
 
+async function getCurrentStaffRoleCodes(admin: ReturnType<typeof createAdminClient>) {
+  const staffId = await getCurrentStaffId();
+  if (!staffId) return [];
+  const { data, error } = await admin.from("staff_roles").select("roles(role_code)").eq("staff_id", staffId);
+  if (error) throw new Error(error.message);
+  return (data ?? [])
+    .map((row) => {
+      const role = row.roles as { role_code?: string | null } | { role_code?: string | null }[] | null;
+      return Array.isArray(role) ? role[0]?.role_code : role?.role_code;
+    })
+    .filter((roleCode): roleCode is string => Boolean(roleCode));
+}
+
+async function getRoleCodeById(admin: ReturnType<typeof createAdminClient>, roleId: string | null | undefined) {
+  if (!roleId) return null;
+  const { data, error } = await admin.from("roles").select("role_code").eq("id", roleId).maybeSingle();
+  if (error) throw new Error(error.message);
+  return data?.role_code ?? null;
+}
+
+async function getPrimaryStaffRoleId(admin: ReturnType<typeof createAdminClient>, staffId: string) {
+  const { data, error } = await admin
+    .from("staff_roles")
+    .select("role_id")
+    .eq("staff_id", staffId)
+    .eq("is_primary", true)
+    .maybeSingle();
+  if (error) throw new Error(error.message);
+  return data?.role_id ?? null;
+}
+
+async function activeSuperAdminCount(admin: ReturnType<typeof createAdminClient>) {
+  const { data: roles, error: rolesError } = await admin.from("roles").select("id").in("role_code", ["super_admin", "admin"]);
+  if (rolesError) throw new Error(rolesError.message);
+  const roleIds = (roles ?? []).map((role) => role.id);
+  if (!roleIds.length) return 0;
+
+  const { data: assignments, error: assignmentError } = await admin.from("staff_roles").select("staff_id").in("role_id", roleIds);
+  if (assignmentError) throw new Error(assignmentError.message);
+  const staffIds = Array.from(new Set((assignments ?? []).map((row) => row.staff_id).filter(Boolean)));
+  if (!staffIds.length) return 0;
+
+  const { data: staffs, error: staffError } = await admin.from("staffs").select("id, status, deleted_at").in("id", staffIds);
+  if (staffError) throw new Error(staffError.message);
+  return (staffs ?? []).filter((staff) => staff.status !== "disabled" && !staff.deleted_at).length;
+}
+
+async function assertCanAssignStaffRole(admin: ReturnType<typeof createAdminClient>, roleId: string, staffId?: string) {
+  const targetRoleCode = await getRoleCodeById(admin, roleId);
+  if (!targetRoleCode) throw new Error("Selected role was not found.");
+  const currentRoleCodes = await getCurrentStaffRoleCodes(admin);
+  const currentIsSuperAdmin = currentRoleCodes.some(isSuperAdminRole);
+
+  if (staffId) {
+    const existingRoleId = await getPrimaryStaffRoleId(admin, staffId);
+    const existingRoleCode = await getRoleCodeById(admin, existingRoleId);
+    if (existingRoleCode && existingRoleCode !== targetRoleCode && isProtectedOwnerAssignableRole(existingRoleCode) && !currentIsSuperAdmin) {
+      throw new Error("Only Super Admin / Owner can change protected administrator roles.");
+    }
+    if (existingRoleCode && isSuperAdminRole(existingRoleCode) && !isSuperAdminRole(targetRoleCode)) {
+      const currentStaffId = await getCurrentStaffId();
+      const ownerCount = await activeSuperAdminCount(admin);
+      if (currentStaffId === staffId && ownerCount <= 1) {
+        throw new Error("You cannot remove your own Super Admin / Owner role while you are the only owner.");
+      }
+      if (ownerCount <= 1) {
+        throw new Error("Cannot remove the last Super Admin / Owner role.");
+      }
+    }
+    if (existingRoleCode === targetRoleCode) return;
+  }
+
+  if (!currentRoleCodes.some((roleCode) => canAssignRoleCode(roleCode, targetRoleCode))) {
+    throw new Error("You do not have permission to assign this role.");
+  }
+}
+
+async function assertCanDeactivateStaff(admin: ReturnType<typeof createAdminClient>, staffId: string) {
+  const roleId = await getPrimaryStaffRoleId(admin, staffId);
+  const roleCode = await getRoleCodeById(admin, roleId);
+  if (!isSuperAdminRole(roleCode)) return;
+
+  const currentStaffId = await getCurrentStaffId();
+  const ownerCount = await activeSuperAdminCount(admin);
+  if (currentStaffId === staffId && ownerCount <= 1) {
+    throw new Error("You cannot deactivate your own Super Admin / Owner account while you are the only owner.");
+  }
+  if (ownerCount <= 1) {
+    throw new Error("Cannot deactivate the last Super Admin / Owner.");
+  }
+}
+
 async function inviteStaffByEmail(staffId: string, email: string) {
   const admin = createAdminClient();
   const redirectTo = `${await getAppUrl()}/auth/callback?next=/set-password`;
@@ -656,6 +749,7 @@ export async function createStaff(formData: FormData) {
       if (!access.role_id || !access.branch_id) {
         throw new Error("Role and default branch are required before invite.");
       }
+      await assertCanAssignStaffRole(supabase, access.role_id);
       const invitedBy = await getCurrentStaffId();
       const { data: existing, error: existingError } = await supabase
         .from("staffs")
@@ -724,6 +818,7 @@ export async function updateStaff(id: string, formData: FormData) {
       if (!access.role_id || !access.branch_id) {
         throw new Error("Role and default branch are required.");
       }
+      await assertCanAssignStaffRole(supabase, access.role_id, id);
       const { error } = await supabase.from("staffs").update({ ...payload, invite_email: payload.email }).eq("id", id);
       if (error) throw new Error(error.message);
       await replaceStaffAccess(id, formData);
@@ -824,6 +919,7 @@ export async function disableStaff(id: string) {
   try {
     if (!isMockMode()) {
       const supabase = createAdminClient();
+      await assertCanDeactivateStaff(supabase, id);
       const { error } = await supabase.from("staffs").update({ status: "disabled" }).eq("id", id);
       if (error) throw new Error(error.message);
       await writeActivityLog({ entityType: "staff", entityId: id, activityType: "updated", message: "Staff disabled" });

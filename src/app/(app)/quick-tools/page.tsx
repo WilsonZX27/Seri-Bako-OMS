@@ -63,7 +63,7 @@ export default async function QuickToolsPage() {
         </div>
         {!visibleTools.length ? (
           <Card className="mt-4">
-            <CardContent className="p-5 text-sm text-muted-foreground">No quick tools are assigned to this role yet. Please contact an Admin if you need access.</CardContent>
+            <CardContent className="p-5 text-sm text-muted-foreground">No quick tools are assigned to this role yet. Please contact an administrator if you need access.</CardContent>
           </Card>
         ) : null}
       </div>

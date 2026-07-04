@@ -31,6 +31,10 @@ const activityEntityAllowlist = {
 const adminOnlyActivityTypes = new Set(["archived", "restored"]);
 const adminOnlyEntityTypes = new Set(["branch", "company", "location", "role", "staff", "document_sequence"]);
 
+function warnOptionalQuery(name: string, error: { message?: string } | null | undefined) {
+  if (error) console.warn(`[dashboard] Optional ${name} query failed: ${error.message ?? "Unknown error"}`);
+}
+
 export async function getVisibleRecentActivitiesForCurrentUser(limit = 6) {
   const scope = await getCurrentUserScope();
   if (!scope) return [];
@@ -159,7 +163,10 @@ export async function getDashboardSummary() {
     db.from("production_jobs").select("id", { count: "exact", head: true }).eq("status", "posted").eq("production_date", new Date().toISOString().slice(0, 10)).is("deleted_at", null),
   ]);
 
-  for (const result of [balances, lowStock, transactions, stockItems, suppliers, items, urgentRequests, purchaseRequests, purchaseOrders, documents, todayProduction]) {
+  warnOptionalQuery("stock balances", balances.error);
+  warnOptionalQuery("low stock items", lowStock.error);
+
+  for (const result of [transactions, stockItems, suppliers, items, urgentRequests, purchaseRequests, purchaseOrders, documents, todayProduction]) {
     if (result.error) throw new Error(result.error.message);
   }
 
@@ -168,10 +175,10 @@ export async function getDashboardSummary() {
   return {
     totalItems: items.count ?? 0,
     totalSuppliers: suppliers.count ?? 0,
-    lowStockCount: balances.data?.filter((row) => row.is_low_stock).length ?? 0,
+    lowStockCount: balances.error ? 0 : balances.data?.filter((row) => row.is_low_stock).length ?? 0,
     totalStockValue:
-      balances.data?.reduce((sum, row) => sum + Number(row.current_stock ?? 0), 0) ?? 0,
-    lowStockItems: lowStock.data ?? [],
+      balances.error ? 0 : balances.data?.reduce((sum, row) => sum + Number(row.current_stock ?? 0), 0) ?? 0,
+    lowStockItems: lowStock.error ? [] : lowStock.data ?? [],
     urgentRequests: urgentRequests.data ?? [],
     recentTransactions: (transactions.data ?? []).map((transaction) => ({
       ...transaction,

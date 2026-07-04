@@ -1,11 +1,12 @@
 import Link from "next/link";
-import { Eye } from "lucide-react";
+import { CheckCircle2, ClipboardCheck, Eye, FileText, XCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { DataGridHint } from "@/components/ui/data-grid-hint";
 import { DataGridRow } from "@/components/ui/data-grid-row";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Input } from "@/components/ui/input";
 import { PageHeader } from "@/components/ui/page-header";
+import { KpiFilterStrip } from "@/components/ui/kpi-filter-strip";
 import { SelectNative } from "@/components/ui/select-native";
 import { PaginationControls, SortableHead } from "@/components/sortable-table";
 import { StatusTabs } from "@/components/status-tabs";
@@ -18,11 +19,22 @@ const statuses = ["draft", "submitted", "reviewed", "approved", "posted", "rejec
 
 export default async function StockCountsPage({ searchParams }: { searchParams: Promise<Record<string, string | undefined>> }) {
   const filters = await searchParams;
-  const [counts, locations] = await Promise.all([getStockCounts(filters), getLocationsForSelect()]);
+  const [counts, allCounts, locations] = await Promise.all([getStockCounts(filters), getStockCounts({ page: "all" }), getLocationsForSelect()]);
+  const rows = allCounts.rows;
+  const countByStatus = (...values: string[]) => rows.filter((row) => values.includes(row.status)).length;
+  const insights = [
+    { label: "Total", value: rows.length, href: "/stock-counts", active: !filters.status, icon: FileText },
+    { label: "Draft", value: countByStatus("draft"), href: "/stock-counts?status=draft", active: filters.status === "draft", icon: FileText },
+    { label: "In Review", value: countByStatus("submitted", "reviewed"), href: "/stock-counts?status=submitted", active: filters.status === "submitted", icon: ClipboardCheck },
+    { label: "Approved", value: countByStatus("approved"), href: "/stock-counts?status=approved", active: filters.status === "approved", icon: CheckCircle2 },
+    { label: "Posted", value: countByStatus("posted"), href: "/stock-counts?status=posted", active: filters.status === "posted", icon: CheckCircle2 },
+    { label: "Rejected/Cancelled", value: countByStatus("rejected", "cancelled"), href: "/stock-counts?status=rejected", active: filters.status === "rejected", icon: XCircle },
+  ];
   return (
     <>
       <PageHeader title="Stock Counts" description="Daily physical counts compared against theoretical stock." action={{ href: "/stock-counts/new", label: "New Count" }} secondaryAction={{ href: "/stock-counts/scan", label: "Scan Mode" }} />
-      <div className="p-5">
+      <div className="space-y-4 p-5">
+        <KpiFilterStrip items={insights} />
         <div className="overflow-hidden rounded-lg border bg-card">
           <StatusTabs statuses={statuses} activeStatus={filters.status} />
           <form className="grid gap-3 border-b p-4 md:grid-cols-[1fr_180px_180px_180px_auto_auto]">

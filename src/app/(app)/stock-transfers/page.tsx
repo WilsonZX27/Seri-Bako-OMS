@@ -1,11 +1,12 @@
 import Link from "next/link";
-import { Eye } from "lucide-react";
+import { CheckCircle2, ClipboardCheck, Eye, FileText, XCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { DataGridHint } from "@/components/ui/data-grid-hint";
 import { DataGridRow } from "@/components/ui/data-grid-row";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Input } from "@/components/ui/input";
 import { PageHeader } from "@/components/ui/page-header";
+import { KpiFilterStrip } from "@/components/ui/kpi-filter-strip";
 import { PaginationControls } from "@/components/sortable-table";
 import { StatusTabs } from "@/components/status-tabs";
 import { StatusBadge } from "@/components/ui/status-badge";
@@ -16,11 +17,21 @@ const statuses = ["draft", "submitted", "approved", "posted", "rejected", "cance
 
 export default async function StockTransfersPage({ searchParams }: { searchParams: Promise<Record<string, string | undefined>> }) {
   const filters = await searchParams;
-  const data = await getStockTransfers(filters);
+  const [data, allData] = await Promise.all([getStockTransfers(filters), getStockTransfers({ page: "all" })]);
+  const rows = allData.rows;
+  const countByStatus = (...values: string[]) => rows.filter((row) => values.includes(row.status)).length;
+  const insights = [
+    { label: "Total", value: rows.length, href: "/stock-transfers", active: !filters.status, icon: FileText },
+    { label: "Draft", value: countByStatus("draft"), href: "/stock-transfers?status=draft", active: filters.status === "draft", icon: FileText },
+    { label: "In Review", value: countByStatus("submitted"), href: "/stock-transfers?status=submitted", active: filters.status === "submitted", icon: ClipboardCheck },
+    { label: "Approved", value: countByStatus("approved"), href: "/stock-transfers?status=approved", active: filters.status === "approved", icon: CheckCircle2 },
+    { label: "Posted", value: countByStatus("posted"), href: "/stock-transfers?status=posted", active: filters.status === "posted", icon: CheckCircle2 },
+    { label: "Rejected/Cancelled", value: countByStatus("rejected", "cancelled"), href: "/stock-transfers?status=rejected", active: filters.status === "rejected", icon: XCircle },
+  ];
   return (
     <>
       <PageHeader title="Stock Transfers" description="Move stock between locations through posted transfer in/out ledger movements." action={{ href: "/stock-transfers/new", label: "New Transfer" }} secondaryAction={{ href: "/stock-transfers/scan", label: "Scan Mode" }} />
-      <div className="p-5"><div className="overflow-hidden rounded-lg border bg-card">
+      <div className="space-y-4 p-5"><KpiFilterStrip items={insights} /><div className="overflow-hidden rounded-lg border bg-card">
         <StatusTabs statuses={statuses} activeStatus={filters.status} />
         <form className="flex gap-3 border-b p-4"><Input name="search" defaultValue={filters.search ?? ""} placeholder="Search transfer no, location, remarks" className="max-w-sm" /><Button variant="secondary">Search</Button><Button asChild variant="ghost"><Link href="/stock-transfers">Reset</Link></Button></form>
         <DataGridHint text="Pro-tip: Double-click any row to open the stock transfer." />

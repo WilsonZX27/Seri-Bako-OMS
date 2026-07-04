@@ -3,7 +3,7 @@ const path = require("path");
 const { test, expect } = require("@playwright/test");
 const { login, logout, missingAccountVars } = require("./helpers");
 
-const screenshotDir = path.join(process.cwd(), "test-results", "ui-smoke-sprint-7-2-4");
+const screenshotDir = path.join(process.cwd(), "test-results", "ui-smoke-sprint-7-2-5");
 
 const superAdminRoutes = [
   "/dashboard",
@@ -100,15 +100,20 @@ async function assertSprint721Rules(page, route) {
     await expect(page.locator("table thead")).not.toContainText(/action/i);
     await expect(page.locator('table a', { hasText: /^Open$/ })).toHaveCount(0);
     await expect(page.getByText(/double-click any row/i)).toBeVisible();
+    await page.getByRole("link", { name: /rejected\/cancelled/i }).click();
+    await expect(page).toHaveURL(/status=rejected/);
   }
   if (route === "/purchase-requests") {
     await expect(page.locator('table a[aria-label^="Quick view"]').first()).toBeAttached();
+    await page.getByRole("link", { name: /manager approval/i }).click();
+    await expect(page).toHaveURL(/step=pending_approval/);
   }
   if (route === "/purchase-requests/new") {
     await assertNoObviousVisualBreaks(page);
   }
   if (route === "/inventory") {
     await expect(page.locator("body")).not.toContainText("Recent Transactions");
+    await expect(page.locator("body")).not.toContainText(/permission denied for view|42501|Application error/i);
   }
   if (route === "/daily-operations") {
     await expect(page.getByRole("heading", { name: /today's work/i })).toBeVisible();

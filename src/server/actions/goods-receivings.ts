@@ -8,6 +8,7 @@ import { goodsReceivingSchema } from "@/lib/validations/procurement";
 import { writeActivityLog } from "@/server/activity/log";
 import { requirePermission } from "@/server/auth/permissions";
 import { formatActionError, requirePermissionOrRedirect, rethrowRedirect, safeRedirectWithMessage } from "@/server/actions/error-handling";
+import { revalidateWorkspaceState } from "@/server/actions/revalidate";
 import { resolveDocumentNumber } from "@/server/documents/sequences";
 import { createInventoryMovement } from "@/server/inventory/engine";
 import { resolveDefaultLocation } from "@/server/inventory/locations";
@@ -160,7 +161,7 @@ export async function createGoodsReceiving(formData: FormData) {
     if (linesError) throw new Error(linesError.message);
 
     await writeActivityLog({ entityType: "document", entityId: documentId, activityType: "created", message: `Goods receiving ${grnNo} created` });
-    revalidatePath("/goods-receivings");
+    revalidateWorkspaceState(["/goods-receivings"]);
     redirect(`/goods-receivings/${data.id}`);
   } catch (error) {
     rethrowRedirect(error);
@@ -243,10 +244,7 @@ export async function postGoodsReceiving(id: string) {
   if (docUpdateError) throw new Error(docUpdateError.message);
 
   if (grn.document_id) await writeActivityLog({ entityType: "document", entityId: grn.document_id, activityType: "posted", message: `Goods receiving ${grn.grn_no} posted to inventory` });
-  revalidatePath("/goods-receivings");
-  revalidatePath(`/goods-receivings/${id}`);
-  revalidatePath("/purchase-orders");
-  revalidatePath(`/purchase-orders/${grn.purchase_order_id}`);
+  revalidateWorkspaceState(["/goods-receivings", `/goods-receivings/${id}`, "/purchase-orders", `/purchase-orders/${grn.purchase_order_id}`]);
   revalidatePath("/inventory");
   revalidatePath("/stock-transactions");
   revalidatePath("/stock-balance");
@@ -271,6 +269,5 @@ export async function cancelGoodsReceiving(id: string) {
   if (error) throw new Error(error.message);
   if (documentError) throw new Error(documentError.message);
   if (grn.document_id) await writeActivityLog({ entityType: "document", entityId: grn.document_id, activityType: "cancelled", message: `Goods receiving ${grn.grn_no} cancelled` });
-  revalidatePath("/goods-receivings");
-  revalidatePath(`/goods-receivings/${id}`);
+  revalidateWorkspaceState(["/goods-receivings", `/goods-receivings/${id}`]);
 }

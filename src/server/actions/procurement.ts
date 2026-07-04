@@ -1,6 +1,5 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { isMockMode, mockCompany, mockProfile } from "@/lib/mock-mode";
 import { createClient } from "@/lib/supabase/server";
@@ -8,6 +7,7 @@ import { purchaseOrderSchema, purchaseRequestSchema } from "@/lib/validations/pr
 import { writeActivityLog } from "@/server/activity/log";
 import { hasPermission, requirePermission } from "@/server/auth/permissions";
 import { formatActionError, requirePermissionOrRedirect, rethrowRedirect, safeRedirectWithMessage } from "@/server/actions/error-handling";
+import { revalidateWorkspaceState } from "@/server/actions/revalidate";
 import { resolveDocumentNumber } from "@/server/documents/sequences";
 import { resolveDefaultLocation } from "@/server/inventory/locations";
 import { getCurrentProfile } from "@/server/queries/common";
@@ -15,7 +15,7 @@ import type { ApprovalStatus, PurchaseOrderStatus, PurchaseRequestStatus } from 
 
 type PurchaseRequestStep = "draft" | "admin_review" | "purchasing_review" | "pending_approval" | "approved";
 
-const wrongPrStepMessage = "This request is no longer at this workflow step.";
+const wrongPrStepMessage = "This document has already moved to another workflow step. Refreshing...";
 const noPermissionMessage = "You do not have permission to perform this action.";
 
 function cleanText(value: FormDataEntryValue | null) {
@@ -297,7 +297,7 @@ export async function createPurchaseRequest(formData: FormData) {
     if (updateError) throw new Error(updateError.message);
     if (linesError) throw new Error(linesError.message);
     await writeActivityLog({ entityType: "document", entityId: documentId, activityType: "created", message: `Purchase request ${requestNo} created` });
-    revalidatePath("/purchase-requests");
+    revalidateWorkspaceState(["/purchase-requests"]);
     redirect(`/purchase-requests/${data.id}`);
   } catch (error) {
     rethrowRedirect(error);
@@ -350,8 +350,7 @@ async function updatePrStatus(input: {
     });
   }
   await notifyNextPrRole({ pr, nextStatus: input.nextStatus });
-  revalidatePath("/purchase-requests");
-  revalidatePath(`/purchase-requests/${input.id}`);
+  revalidateWorkspaceState([`/purchase-requests/${input.id}`]);
   return pr;
 }
 
@@ -469,7 +468,7 @@ export async function rejectPurchaseRequest(id: string, formData: FormData) {
       message: `${transition.step} rejected: ${remarks}`,
       activityType: "rejected",
     });
-    safeRedirectWithMessage(`/purchase-requests/${id}`, "success", `${updated.request_no} rejected.`);
+    safeRedirectWithMessage(`/purchase-requests/${id}`, "success", `${updated.request_no} rejected by ${transition.step.replace(" Approval", "")}. Requester has been notified.`);
   } catch (error) {
     rethrowRedirect(error);
     safeRedirectWithMessage(`/purchase-requests/${id}`, "error", formatActionError(error, "Could not reject this purchase request."));
@@ -535,7 +534,7 @@ export async function createPurchaseOrder(formData: FormData) {
     if (updateError) throw new Error(updateError.message);
     if (linesError) throw new Error(linesError.message);
     await writeActivityLog({ entityType: "document", entityId: documentId, activityType: "created", message: `Purchase order ${poNo} created` });
-    revalidatePath("/purchase-orders");
+    revalidateWorkspaceState(["/purchase-orders"]);
     redirect(`/purchase-orders/${data.id}`);
   } catch (error) {
     rethrowRedirect(error);
@@ -559,8 +558,7 @@ async function updatePoStatus(id: string, status: PurchaseOrderStatus, approvalS
   if (error) throw new Error(error.message);
   if (documentError) throw new Error(documentError.message);
   if (order.document_id) await writeActivityLog({ entityType: "document", entityId: order.document_id, activityType: status, message });
-  revalidatePath("/purchase-orders");
-  revalidatePath(`/purchase-orders/${id}`);
+  revalidateWorkspaceState([`/purchase-orders/${id}`]);
   return order;
 }
 
@@ -749,9 +747,7 @@ export async function convertPurchaseRequestToPurchaseOrder(id: string) {
     }
     await createPurchaseOrderCreatedNotification({ poId: po.id, poNo, prNo: pr.request_no, companyId: pr.company_id, staffId: profile?.id ?? null });
 
-    revalidatePath("/purchase-requests");
-    revalidatePath(`/purchase-requests/${id}`);
-    revalidatePath("/purchase-orders");
+    revalidateWorkspaceState([`/purchase-requests/${id}`, "/purchase-orders"]);
     safeRedirectWithMessage(`/purchase-orders/${po.id}`, "success", `Purchase order ${poNo} created from ${pr.request_no}.`);
   } catch (error) {
     rethrowRedirect(error);

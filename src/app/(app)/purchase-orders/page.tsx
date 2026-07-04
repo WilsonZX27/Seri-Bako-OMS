@@ -1,11 +1,12 @@
 import Link from "next/link";
-import { Eye } from "lucide-react";
+import { CheckCircle2, ClipboardCheck, Eye, FileText, Truck, XCircle } from "lucide-react";
 import { BulkSelectAllCheckbox, BulkSelectionProvider, BulkSelectRowCheckbox } from "@/components/bulk-selection";
 import { DataGridRow } from "@/components/ui/data-grid-row";
 import { DataGridHint } from "@/components/ui/data-grid-hint";
 import { DocumentNumber } from "@/components/document-number";
 import { EmptyState } from "@/components/ui/empty-state";
 import { StatusBadge } from "@/components/ui/status-badge";
+import { KpiFilterStrip } from "@/components/ui/kpi-filter-strip";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { PageHeader } from "@/components/ui/page-header";
@@ -26,11 +27,22 @@ const statuses = [
 
 export default async function PurchaseOrdersPage({ searchParams }: { searchParams: Promise<Record<string, string | undefined>> }) {
   const filters = await searchParams;
-  const orders = await getPurchaseOrders(filters);
+  const [orders, allOrders] = await Promise.all([getPurchaseOrders(filters), getPurchaseOrders({ page: "all" })]);
+  const rows = allOrders.rows;
+  const count = (...statuses: string[]) => rows.filter((order) => statuses.includes(order.status)).length;
+  const poInsights = [
+    { label: "Total", value: rows.length, href: "/purchase-orders", active: !filters.status, icon: FileText },
+    { label: "Draft", value: count("draft"), href: "/purchase-orders?status=draft", active: filters.status === "draft", icon: FileText },
+    { label: "Pending Approval", value: count("pending_approval"), href: "/purchase-orders?status=pending_approval", active: filters.status === "pending_approval", icon: ClipboardCheck },
+    { label: "Awaiting Delivery", value: count("approved", "sent"), href: "/purchase-orders?status=awaiting_delivery", active: filters.status === "awaiting_delivery", icon: Truck },
+    { label: "Completed", value: count("received", "closed"), href: "/purchase-orders?status=completed", active: filters.status === "completed", icon: CheckCircle2 },
+    { label: "Cancelled", value: count("cancelled"), href: "/purchase-orders?status=cancelled", active: filters.status === "cancelled", icon: XCircle },
+  ];
   return (
     <>
       <PageHeader title="Purchase Orders" description="Supplier purchase orders created from approved requests or manually." action={{ href: "/purchase-orders/new", label: "New PO" }} secondaryAction={{ href: "/api/export/purchase-orders", label: "Export CSV" }} />
-      <div className="p-5">
+      <div className="space-y-4 p-5">
+        <KpiFilterStrip items={poInsights} />
         <div className="overflow-hidden rounded-xl border bg-card shadow-sm">
           <StatusTabs statuses={statuses} activeStatus={filters.status} />
           <form className="flex flex-col gap-3 border-b bg-white p-4 md:flex-row md:items-center">

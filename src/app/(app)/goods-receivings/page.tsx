@@ -1,11 +1,12 @@
 import Link from "next/link";
-import { Eye } from "lucide-react";
+import { CheckCircle2, Eye, FileText, XCircle } from "lucide-react";
 import { BulkSelectAllCheckbox, BulkSelectionProvider, BulkSelectRowCheckbox } from "@/components/bulk-selection";
 import { DataGridRow } from "@/components/ui/data-grid-row";
 import { DataGridHint } from "@/components/ui/data-grid-hint";
 import { DocumentNumber } from "@/components/document-number";
 import { EmptyState } from "@/components/ui/empty-state";
 import { StatusBadge } from "@/components/ui/status-badge";
+import { KpiFilterStrip } from "@/components/ui/kpi-filter-strip";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { PageHeader } from "@/components/ui/page-header";
@@ -19,7 +20,15 @@ const statuses = ["draft", "posted", "cancelled"];
 
 export default async function GoodsReceivingsPage({ searchParams }: { searchParams: Promise<Record<string, string | undefined>> }) {
   const filters = await searchParams;
-  const receivings = await getGoodsReceivings(filters);
+  const [receivings, allReceivings] = await Promise.all([getGoodsReceivings(filters), getGoodsReceivings({ page: "all" })]);
+  const rows = allReceivings.rows;
+  const count = (...statuses: string[]) => rows.filter((receiving) => statuses.includes(receiving.status)).length;
+  const grnInsights = [
+    { label: "Total", value: rows.length, href: "/goods-receivings", active: !filters.status, icon: FileText },
+    { label: "Draft", value: count("draft"), href: "/goods-receivings?status=draft", active: filters.status === "draft", icon: FileText },
+    { label: "Posted", value: count("posted"), href: "/goods-receivings?status=posted", active: filters.status === "posted", icon: CheckCircle2 },
+    { label: "Cancelled", value: count("cancelled"), href: "/goods-receivings?status=cancelled", active: filters.status === "cancelled", icon: XCircle },
+  ];
   return (
     <>
       <PageHeader
@@ -28,7 +37,8 @@ export default async function GoodsReceivingsPage({ searchParams }: { searchPara
         action={{ href: "/goods-receivings/new", label: "New GRN" }}
         secondaryAction={{ href: "/goods-receivings/scan", label: "Scan Mode" }}
       />
-      <div className="p-5">
+      <div className="space-y-4 p-5">
+        <KpiFilterStrip items={grnInsights} className="xl:grid-cols-4" />
         <div className="overflow-hidden rounded-xl border bg-card shadow-sm">
           <StatusTabs statuses={statuses} activeStatus={filters.status} />
           <form className="flex flex-col gap-3 border-b bg-white p-4 md:flex-row md:items-center">

@@ -40,7 +40,12 @@ function filterDocuments(rows: DocumentRow[], filters: DocumentFilters) {
             value.toLowerCase().includes(search),
           )
         : true;
-      const matchesStatus = status ? document.status === status : true;
+      const statusGroup =
+        status === "rejected" ? ["rejected", "cancelled"]
+        : status === "posted" ? ["posted", "closed"]
+        : status === "pending_approval" ? ["pending_approval", "submitted"]
+        : status ? [status] : [];
+      const matchesStatus = statusGroup.length ? statusGroup.includes(document.status) : true;
       const matchesType = type ? document.document_type === type : true;
       const matchesApproval = approvalStatus ? document.approval_status === approvalStatus : true;
       return matchesSearch && matchesStatus && matchesType && matchesApproval;

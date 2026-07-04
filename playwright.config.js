@@ -24,7 +24,7 @@ module.exports = defineConfig({
   testDir: "./tests/e2e",
   timeout: 45_000,
   retries: process.env.CI ? 1 : 0,
-  outputDir: "test-results/ui-smoke-sprint-7-2-4-artifacts",
+  outputDir: "test-results/ui-smoke-sprint-7-2-5-artifacts",
   use: {
     baseURL: process.env.TEST_BASE_URL || "https://seri-bako-oms-official.vercel.app",
     trace: "retain-on-failure",

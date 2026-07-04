@@ -1,4 +1,4 @@
-import { ClipboardCheck, Eye, FileText, Paperclip } from "lucide-react";
+import { CheckCircle2, ClipboardCheck, Eye, FileText, Paperclip, XCircle } from "lucide-react";
 import { BulkSelectAllCheckbox, BulkSelectionProvider, BulkSelectRowCheckbox } from "@/components/bulk-selection";
 import { DataGridRow } from "@/components/ui/data-grid-row";
 import { DataGridHint } from "@/components/ui/data-grid-hint";
@@ -12,26 +12,30 @@ import { SelectNative } from "@/components/ui/select-native";
 import { PaginationControls, SortableHead } from "@/components/sortable-table";
 import { StatusTabs } from "@/components/status-tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { WorkspaceQuickInsights, type WorkspaceInsight } from "@/components/workspace-panels";
+import { KpiFilterStrip } from "@/components/ui/kpi-filter-strip";
 import { getCanonicalDocumentHref } from "@/lib/document-routing";
 import { formatStatusLabel } from "@/lib/status-label";
 import { getDocuments } from "@/server/queries/documents";
 
 export default async function DocumentsPage({ searchParams }: { searchParams: Promise<Record<string, string | undefined>> }) {
   const filters = await searchParams;
-  const documents = await getDocuments(filters);
-  const documentInsights: WorkspaceInsight[] = [
-    { label: "Total Documents", value: documents.totalRows, icon: FileText, theme: "neutral" },
-    { label: "Pending Approval", value: 0, icon: ClipboardCheck, theme: "amber" },
-    { label: "Posted Documents", value: 0, icon: Paperclip, theme: "green" },
-    { label: "Audit Reviews", value: 0, icon: ClipboardCheck, theme: "blue" },
+  const [documents, allDocuments] = await Promise.all([getDocuments(filters), getDocuments({ page: "all" })]);
+  const rows = allDocuments.rows;
+  const count = (...statuses: string[]) => rows.filter((document) => statuses.includes(document.status)).length;
+  const documentInsights = [
+    { label: "Total", value: rows.length, href: "/documents", active: !filters.status, icon: FileText },
+    { label: "Draft", value: count("draft"), href: "/documents?status=draft", active: filters.status === "draft", icon: FileText },
+    { label: "Pending Approval", value: count("pending_approval", "submitted"), href: "/documents?status=pending_approval", active: filters.status === "pending_approval", icon: ClipboardCheck },
+    { label: "Approved", value: count("approved"), href: "/documents?status=approved", active: filters.status === "approved", icon: CheckCircle2 },
+    { label: "Rejected/Cancelled", value: count("rejected", "cancelled"), href: "/documents?status=rejected", active: filters.status === "rejected", icon: XCircle },
+    { label: "Posted/Completed", value: count("posted", "closed"), href: "/documents?status=posted", active: filters.status === "posted", icon: Paperclip },
   ];
 
   return (
     <>
       <PageHeader title="Documents Register" description="Audit-ready register for document status, approvals, attachments, revisions, and timelines." />
       <div className="space-y-5 p-5">
-        <WorkspaceQuickInsights insights={documentInsights} />
+        <KpiFilterStrip items={documentInsights} />
         <div className="overflow-hidden rounded-xl border bg-card shadow-sm">
           <div className="border-b bg-white p-4">
             <p className="sb-section-label">Document Register</p>

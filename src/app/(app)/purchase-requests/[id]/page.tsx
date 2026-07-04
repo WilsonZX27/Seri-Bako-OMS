@@ -6,6 +6,7 @@ import { DocumentActionBar, DocumentActionForm } from "@/components/document-act
 import { DocumentNumber } from "@/components/document-number";
 import { AttachmentPanel, CommentsPanel, DocumentTimeline, RevisionPanel } from "@/components/documents/document-panels";
 import { DocumentSideSection, DocumentWorkspace } from "@/components/documents/document-workspace";
+import { StaleWorkflowRefresh } from "@/components/documents/stale-workflow-refresh";
 import { PriorityBadge } from "@/components/priority-badge";
 import { SubmitButton } from "@/components/ui/submit-button";
 import { formatCurrency, formatNumber } from "@/lib/utils";
@@ -120,6 +121,7 @@ export default async function PurchaseRequestDetailPage({
             <Card>
               <CardContent className={`p-4 text-sm ${messageParams.error ? "text-destructive" : "text-emerald-700"}`}>
                 {messageParams.error ?? messageParams.success}
+                <StaleWorkflowRefresh message={messageParams.error} />
               </CardContent>
             </Card>
           ) : null}

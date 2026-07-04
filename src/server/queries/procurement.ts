@@ -37,6 +37,7 @@ export type PurchaseOrderRow = PurchaseOrder & {
 function filterRows<T extends Record<string, unknown>>(rows: T[], filters: Filters, keys: (keyof T)[], defaultSort: keyof T) {
   const search = filters.search?.trim().toLowerCase();
   const status = filters.status && filters.status !== "all" ? filters.status : null;
+  const step = filters.step && filters.step !== "all" ? filters.step : null;
   const priority = filters.priority && filters.priority !== "all" ? filters.priority : null;
   const sort = filters.sort ?? String(defaultSort);
   const dir = filters.dir ?? "desc";
@@ -51,8 +52,9 @@ function filterRows<T extends Record<string, unknown>>(rows: T[], filters: Filte
         : status === "rejected" ? ["rejected", "cancelled"]
         : status ? [status] : [];
       const matchesStatus = statusGroup.length ? statusGroup.includes(String(row.status)) : true;
+      const matchesStep = step ? String(row.status) === step : true;
       const matchesPriority = priority ? row.priority === priority : true;
-      return matchesSearch && matchesStatus && matchesPriority;
+      return matchesSearch && matchesStatus && matchesStep && matchesPriority;
     })
     .sort((a, b) => compareTableValues(a[sort], b[sort], dir));
 }

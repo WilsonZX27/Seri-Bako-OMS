@@ -1,11 +1,12 @@
 import Link from "next/link";
-import { Eye } from "lucide-react";
+import { CheckCircle2, ClipboardCheck, Eye, FileText, RotateCcw, XCircle } from "lucide-react";
 import { BulkSelectAllCheckbox, BulkSelectionProvider, BulkSelectRowCheckbox } from "@/components/bulk-selection";
 import { DataGridRow } from "@/components/ui/data-grid-row";
 import { DataGridHint } from "@/components/ui/data-grid-hint";
 import { DocumentNumber } from "@/components/document-number";
 import { EmptyState } from "@/components/ui/empty-state";
 import { StatusBadge } from "@/components/ui/status-badge";
+import { KpiFilterStrip } from "@/components/ui/kpi-filter-strip";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { PageHeader } from "@/components/ui/page-header";
@@ -27,11 +28,24 @@ const statuses = [
 
 export default async function PurchaseRequestsPage({ searchParams }: { searchParams: Promise<Record<string, string | undefined>> }) {
   const filters = await searchParams;
-  const requests = await getPurchaseRequests(filters);
+  const [requests, allRequests] = await Promise.all([getPurchaseRequests(filters), getPurchaseRequests({ page: "all" })]);
+  const rows = allRequests.rows;
+  const count = (...statuses: string[]) => rows.filter((request) => statuses.includes(request.status)).length;
+  const prInsights = [
+    { label: "Total", value: rows.length, href: "/purchase-requests", active: !filters.status && !filters.step, icon: FileText },
+    { label: "Draft", value: count("draft"), href: "/purchase-requests?status=draft", active: filters.status === "draft", icon: FileText },
+    { label: "Admin Review", value: count("admin_review"), href: "/purchase-requests?step=admin_review", active: filters.step === "admin_review", icon: ClipboardCheck },
+    { label: "Purchasing Review", value: count("purchasing_review"), href: "/purchase-requests?step=purchasing_review", active: filters.step === "purchasing_review", icon: ClipboardCheck },
+    { label: "Manager Approval", value: count("pending_approval"), href: "/purchase-requests?step=pending_approval", active: filters.step === "pending_approval", icon: ClipboardCheck },
+    { label: "Approved", value: count("approved"), href: "/purchase-requests?status=approved", active: filters.status === "approved", icon: CheckCircle2 },
+    { label: "Rejected/Cancelled", value: count("rejected", "cancelled"), href: "/purchase-requests?status=rejected", active: filters.status === "rejected", icon: XCircle },
+    { label: "Converted", value: count("converted"), href: "/purchase-requests?status=converted", active: filters.status === "converted", icon: RotateCcw },
+  ];
   return (
     <>
       <PageHeader title="Purchase Requests" description="Daily stock check and low-stock replenishment requests before PO creation." action={{ href: "/purchase-requests/new", label: "New PR" }} secondaryAction={{ href: "/api/export/purchase-requests", label: "Export CSV" }} />
-      <div className="p-5">
+      <div className="space-y-4 p-5">
+        <KpiFilterStrip items={prInsights} className="xl:grid-cols-4 2xl:grid-cols-8" />
         <div className="overflow-hidden rounded-xl border bg-card shadow-sm">
           <StatusTabs statuses={statuses} activeStatus={filters.status} />
           <form className="flex flex-col gap-3 border-b bg-white p-4 md:flex-row md:items-center">

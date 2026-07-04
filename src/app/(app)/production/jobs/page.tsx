@@ -1,11 +1,12 @@
 import Link from "next/link";
-import { Eye } from "lucide-react";
+import { CheckCircle2, ClipboardCheck, Eye, FileText, XCircle } from "lucide-react";
 import { BulkSelectionProvider, BulkSelectAllCheckbox, BulkSelectRowCheckbox } from "@/components/bulk-selection";
 import { DataGridRow } from "@/components/ui/data-grid-row";
 import { DataGridHint } from "@/components/ui/data-grid-hint";
 import { DocumentNumber } from "@/components/document-number";
 import { EmptyState } from "@/components/ui/empty-state";
 import { PageHeader } from "@/components/ui/page-header";
+import { KpiFilterStrip } from "@/components/ui/kpi-filter-strip";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -29,8 +30,18 @@ const tabs = [
 
 export default async function ProductionJobsPage({ searchParams }: { searchParams: Promise<Record<string, string | undefined>> }) {
   const filters = await searchParams;
-  const [jobs, branches] = await Promise.all([getProductionJobs(filters), getBranchesForSelect()]);
+  const [jobs, allJobs, branches] = await Promise.all([getProductionJobs(filters), getProductionJobs({ page: "all" }), getBranchesForSelect()]);
   const selectedStatus = filters.status ?? "all";
+  const rows = allJobs.rows;
+  const countByStatus = (...values: string[]) => rows.filter((row) => values.includes(row.status)).length;
+  const insights = [
+    { label: "Total", value: rows.length, href: "/production/jobs", active: selectedStatus === "all", icon: FileText },
+    { label: "Draft", value: countByStatus("draft"), href: "/production/jobs?status=draft", active: selectedStatus === "draft", icon: FileText },
+    { label: "In Review", value: countByStatus("submitted"), href: "/production/jobs?status=submitted", active: selectedStatus === "submitted", icon: ClipboardCheck },
+    { label: "Approved", value: countByStatus("approved"), href: "/production/jobs?status=approved", active: selectedStatus === "approved", icon: CheckCircle2 },
+    { label: "Posted", value: countByStatus("posted"), href: "/production/jobs?status=posted", active: selectedStatus === "posted", icon: CheckCircle2 },
+    { label: "Cancelled", value: countByStatus("cancelled"), href: "/production/jobs?status=cancelled", active: selectedStatus === "cancelled", icon: XCircle },
+  ];
 
   return (
     <>
@@ -41,6 +52,7 @@ export default async function ProductionJobsPage({ searchParams }: { searchParam
       />
       <BulkSelectionProvider ids={jobs.rows.map((row) => row.id)} actionLabel="Archive selected" canAct={false}>
         <div className="space-y-4 p-5">
+          <KpiFilterStrip items={insights} />
           <div className="flex flex-wrap gap-2">
             {tabs.map(([value, label]) => (
               <Button key={value} asChild variant={selectedStatus === value ? "default" : "outline"} size="sm" className="rounded-full">

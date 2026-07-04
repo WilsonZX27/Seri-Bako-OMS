@@ -13,6 +13,18 @@ import type { Database } from "@/types/database";
 
 type Filters = Record<string, string | undefined>;
 type StockTransaction = Database["public"]["Tables"]["stock_transactions"]["Row"];
+type StockLedgerViewRow = Database["public"]["Views"]["stock_ledger_view"]["Row"];
+type StockBalanceDetail = Database["public"]["Views"]["stock_balances_view"]["Row"] & {
+  barcode: string | null;
+  image_url: string | null;
+  available_qty: number;
+  reserved_qty: number;
+  status: string;
+};
+
+function warnOptionalInventoryQuery(name: string, error: { message?: string } | null | undefined) {
+  if (error) console.warn(`[inventory] Optional ${name} query failed: ${error.message ?? "Unknown error"}`);
+}
 
 function filterRows<T extends Record<string, unknown>>(rows: T[], filters: Filters, keys: (keyof T)[], defaultSort: keyof T) {
   const search = filters.search?.trim().toLowerCase();
@@ -86,7 +98,10 @@ export async function getStockBalances() {
     .select("*")
     .order("item_name", { ascending: true });
 
-  if (error) throw new Error(error.message);
+  if (error) {
+    warnOptionalInventoryQuery("stock balances", error);
+    return [];
+  }
   return data;
 }
 
@@ -161,7 +176,10 @@ export async function getStockLedger(filters: Filters = {}) {
 
   const supabase = await createClient();
   const { data, error } = await supabase.from("stock_ledger_view").select("*").order("transaction_date", { ascending: false });
-  if (error) throw new Error(error.message);
+  if (error) {
+    warnOptionalInventoryQuery("stock ledger", error);
+    return paginateRows([] as StockLedgerViewRow[], filters.page, filters.page === "all" ? 1 : 15);
+  }
   const filtered = filterRows(data ?? [], filters, ["transaction_no", "transaction_type", "item_code", "item_name", "location_name", "reference_type"], "transaction_date");
   return paginateRows(filtered, filters.page, filters.page === "all" ? Math.max(filtered.length, 1) : 15);
 }
@@ -210,7 +228,10 @@ export async function getStockBalanceDetails(filters: Filters = {}) {
 
   const supabase = await createClient();
   const { data, error } = await supabase.from("stock_balances_view").select("*").order("item_name", { ascending: true });
-  if (error) throw new Error(error.message);
+  if (error) {
+    warnOptionalInventoryQuery("stock balance details", error);
+    return paginateRows([] as StockBalanceDetail[], filters.page, filters.page === "all" ? 1 : 15);
+  }
   const rows = (data ?? []).map((row) => ({
     ...row,
     barcode: null,
@@ -296,7 +317,7 @@ export async function getInventoryDashboard() {
       supabase.from("stock_counts").select("id", { count: "exact", head: true }).in("status", ["draft", "submitted", "reviewed", "approved"]).is("deleted_at", null),
     ]);
     for (const result of [items, receiving, transfers, pendingAdjustments, stockCountDue]) {
-      if (result.error) throw new Error(result.error.message);
+      if (result.error) warnOptionalInventoryQuery("dashboard counter", result.error);
     }
     operationCounts = {
       totalActiveItems: items.count ?? 0,
@@ -345,6 +366,9 @@ export async function getLowStockItems() {
 
   const supabase = await createClient();
   const { data, error } = await supabase.from("low_stock_items").select("*").order("shortage_quantity", { ascending: false });
-  if (error) throw new Error(error.message);
+  if (error) {
+    warnOptionalInventoryQuery("low stock items", error);
+    return [];
+  }
   return data;
 }

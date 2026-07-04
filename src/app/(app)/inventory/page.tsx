@@ -1,8 +1,7 @@
 import { ArrowDownLeft, ArrowUpRight, Boxes, ClipboardCheck, MapPin, PackageSearch, ReceiptText, ScanLine, TriangleAlert, Upload } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
-import { KpiFilterStrip } from "@/components/ui/kpi-filter-strip";
 import { PageHeader } from "@/components/ui/page-header";
-import { WorkspaceSectionPanel, type WorkspaceSection } from "@/components/workspace-panels";
+import { CompactStatList, WorkspaceSectionPanel, type WorkspaceInsight, type WorkspaceSection } from "@/components/workspace-panels";
 import { formatNumber } from "@/lib/utils";
 import { getInventoryDashboard } from "@/server/queries/inventory";
 
@@ -10,13 +9,13 @@ export default async function InventoryPage() {
   const summary = await getInventoryDashboard();
   const hasPurchasedItems = summary.topPurchasedItems.length > 0;
   const hasConsumedItems = summary.topConsumedItems.length > 0;
-  const inventoryInsights = [
-    { label: "Total Active Items", value: formatNumber(summary.totalActiveItems), href: "/items?status=active", icon: PackageSearch },
-    { label: "Low Stock", value: formatNumber(summary.lowStockItems), href: "/stock-balance?status=low_stock", icon: TriangleAlert },
-    { label: "Receiving Today", value: formatNumber(summary.todaysReceiving), href: "/goods-receivings", icon: ArrowDownLeft },
-    { label: "Transfers Today", value: formatNumber(summary.todaysTransfers), href: "/stock-transfers", icon: ScanLine },
-    { label: "Pending Adjustments", value: formatNumber(summary.pendingAdjustments), href: "/stock-counts?status=approved", icon: ClipboardCheck },
-    { label: "Stock Count Due", value: formatNumber(summary.stockCountDue), href: "/stock-counts?status=draft", icon: Boxes },
+  const inventoryInsights: WorkspaceInsight[] = [
+    { label: "Total Active Items", value: formatNumber(summary.totalActiveItems), icon: PackageSearch, theme: "green" },
+    { label: "Low Stock Items", value: formatNumber(summary.lowStockItems), icon: TriangleAlert, theme: summary.lowStockItems ? "amber" : "green" },
+    { label: "Today's Receiving", value: formatNumber(summary.todaysReceiving), icon: ArrowDownLeft, theme: "blue" },
+    { label: "Today's Transfers", value: formatNumber(summary.todaysTransfers), icon: ScanLine, theme: "teal" },
+    { label: "Pending Adjustments", value: formatNumber(summary.pendingAdjustments), icon: ClipboardCheck, theme: "amber" },
+    { label: "Stock Count Due", value: formatNumber(summary.stockCountDue), icon: Boxes, theme: "purple" },
   ];
   const inventorySections: WorkspaceSection[] = [
     {
@@ -59,52 +58,58 @@ export default async function InventoryPage() {
     <>
       <PageHeader title="Inventory" description="Stock ledger dashboard. Balances are calculated from posted transactions only." action={{ href: "/stock-transactions/new", label: "New movement" }} />
       <div className="space-y-5 p-5">
-          <KpiFilterStrip items={inventoryInsights} />
-          <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
-            {inventorySections.map((section) => (
-              <WorkspaceSectionPanel key={section.title} section={section} />
-            ))}
-          </div>
+        <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_300px]">
+          <div className="space-y-5">
+            <div className="grid grid-cols-1 gap-6 md:grid-cols-2 2xl:grid-cols-3">
+              {inventorySections.map((section) => (
+                <WorkspaceSectionPanel key={section.title} section={section} />
+              ))}
+            </div>
           {hasPurchasedItems || hasConsumedItems ? (
-          <div className="grid gap-5 lg:grid-cols-2">
-            {hasPurchasedItems ? (
-            <Card>
-              <CardContent className="p-4">
-                <div className="mb-3 flex items-center gap-2">
-                  <ArrowDownLeft className="h-4 w-4 text-success" />
-                  <h2 className="text-sm font-semibold">Top Purchased Items</h2>
-                </div>
-                <div className="space-y-2">
-                  {summary.topPurchasedItems.map((item) => (
-                    <div key={item.name} className="flex items-center justify-between gap-3 text-sm">
-                      <span className="truncate">{item.name}</span>
-                      <span className="font-mono text-xs font-semibold">{formatNumber(item.qty)}</span>
+            <div className="grid gap-5 lg:grid-cols-2">
+              {hasPurchasedItems ? (
+                <Card>
+                  <CardContent className="p-4">
+                    <div className="mb-3 flex items-center gap-2">
+                      <ArrowDownLeft className="h-4 w-4 text-success" />
+                      <h2 className="text-sm font-semibold">Top Purchased Items</h2>
                     </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-            ) : null}
-            {hasConsumedItems ? (
-            <Card>
-              <CardContent className="p-4">
-                <div className="mb-3 flex items-center gap-2">
-                  <ArrowUpRight className="h-4 w-4 text-warning" />
-                  <h2 className="text-sm font-semibold">Top Consumed Items</h2>
-                </div>
-                <div className="space-y-2">
-                  {summary.topConsumedItems.map((item) => (
-                    <div key={item.name} className="flex items-center justify-between gap-3 text-sm">
-                      <span className="truncate">{item.name}</span>
-                      <span className="font-mono text-xs font-semibold">{formatNumber(item.qty)}</span>
+                    <div className="space-y-2">
+                      {summary.topPurchasedItems.map((item) => (
+                        <div key={item.name} className="flex items-center justify-between gap-3 text-sm">
+                          <span className="truncate">{item.name}</span>
+                          <span className="font-mono text-xs font-semibold">{formatNumber(item.qty)}</span>
+                        </div>
+                      ))}
                     </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-            ) : null}
-          </div>
+                  </CardContent>
+                </Card>
+              ) : null}
+              {hasConsumedItems ? (
+                <Card>
+                  <CardContent className="p-4">
+                    <div className="mb-3 flex items-center gap-2">
+                      <ArrowUpRight className="h-4 w-4 text-warning" />
+                      <h2 className="text-sm font-semibold">Top Consumed Items</h2>
+                    </div>
+                    <div className="space-y-2">
+                      {summary.topConsumedItems.map((item) => (
+                        <div key={item.name} className="flex items-center justify-between gap-3 text-sm">
+                          <span className="truncate">{item.name}</span>
+                          <span className="font-mono text-xs font-semibold">{formatNumber(item.qty)}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+              ) : null}
+            </div>
           ) : null}
+          </div>
+          <aside data-testid="inventory-insights-rail" className="min-w-0 xl:sticky xl:top-6 xl:max-h-[calc(100vh-120px)] xl:overflow-y-auto">
+            <CompactStatList insights={inventoryInsights} action={{ href: "/stock-balance", label: "Review stock balance" }} />
+          </aside>
+        </div>
       </div>
     </>
   );

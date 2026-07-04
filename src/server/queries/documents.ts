@@ -42,7 +42,8 @@ function filterDocuments(rows: DocumentRow[], filters: DocumentFilters) {
         : true;
       const statusGroup =
         status === "rejected" ? ["rejected", "cancelled"]
-        : status === "posted" ? ["posted", "closed"]
+        : status === "closed" ? ["completed", "closed", "converted"]
+        : status === "posted" ? ["posted"]
         : status === "pending_approval" ? ["pending_approval", "submitted"]
         : status ? [status] : [];
       const matchesStatus = statusGroup.length ? statusGroup.includes(document.status) : true;

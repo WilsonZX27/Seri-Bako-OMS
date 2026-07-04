@@ -3,7 +3,7 @@ const path = require("path");
 const { test, expect } = require("@playwright/test");
 const { login, logout, missingAccountVars } = require("./helpers");
 
-const screenshotDir = path.join(process.cwd(), "test-results", "ui-smoke-sprint-7-2-5");
+const screenshotDir = path.join(process.cwd(), "test-results", "ui-smoke-sprint-7-2-6");
 
 const superAdminRoutes = [
   "/dashboard",
@@ -97,10 +97,17 @@ async function assertSprint721Rules(page, route) {
     expect(rows.size, "procurement sections should sit in one desktop row").toBe(1);
   }
   if (route === "/documents") {
-    await expect(page.locator("table thead")).not.toContainText(/action/i);
+    const tableHead = page.locator("table thead");
+    await expect(tableHead).not.toContainText(/title/i);
+    await expect(tableHead).not.toContainText(/related entity/i);
+    await expect(tableHead).not.toContainText(/^approval$/i);
+    await expect(tableHead).not.toContainText(/current step/i);
+    await expect(tableHead).not.toContainText(/action/i);
     await expect(page.locator('table a', { hasText: /^Open$/ })).toHaveCount(0);
+    await expect(page.locator('select[name="status"]')).toHaveCount(0);
+    await expect(page.locator('select[name="approval_status"]')).toHaveCount(0);
     await expect(page.getByText(/double-click any row/i)).toBeVisible();
-    await page.getByRole("link", { name: /rejected\/cancelled/i }).click();
+    await page.getByRole("link", { name: /^rejected$/i }).click();
     await expect(page).toHaveURL(/status=rejected/);
   }
   if (route === "/purchase-requests") {
@@ -114,6 +121,15 @@ async function assertSprint721Rules(page, route) {
   if (route === "/inventory") {
     await expect(page.locator("body")).not.toContainText("Recent Transactions");
     await expect(page.locator("body")).not.toContainText(/permission denied for view|42501|Application error/i);
+    const rail = page.getByTestId("inventory-insights-rail");
+    await expect(rail).toContainText("Quick Insights");
+    const railBox = await rail.boundingBox();
+    expect(railBox, "Inventory Quick Insights rail must be visible").toBeTruthy();
+    if (railBox) expect(railBox.x, "Inventory Quick Insights should sit in the right rail on desktop").toBeGreaterThan(700);
+  }
+  if (route === "/reports") {
+    await expect(page.locator("body")).not.toContainText("Quick Insights");
+    await expect(page.locator("body")).not.toContainText(/Inventory Reports\s+3|Procurement Reports\s+3/);
   }
   if (route === "/daily-operations") {
     await expect(page.getByRole("heading", { name: /today's work/i })).toBeVisible();

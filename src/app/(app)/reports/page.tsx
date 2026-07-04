@@ -1,14 +1,7 @@
 import { BarChart3, ClipboardCheck, FileText, PackageCheck, PackageSearch, ShoppingCart, TriangleAlert } from "lucide-react";
 import { PageHeader } from "@/components/ui/page-header";
-import { WorkspaceQuickInsights, WorkspaceSectionPanel, type WorkspaceInsight, type WorkspaceSection, type WorkspaceThemeName } from "@/components/workspace-panels";
+import { WorkspaceSectionPanel, type WorkspaceSection, type WorkspaceThemeName } from "@/components/workspace-panels";
 import type { LucideIcon } from "lucide-react";
-
-const reportInsights: WorkspaceInsight[] = [
-  { label: "Inventory Reports", value: 3, icon: PackageSearch, theme: "blue" },
-  { label: "Procurement Reports", value: 3, icon: ShoppingCart, theme: "amber" },
-  { label: "Production Reports", value: 1, icon: BarChart3, theme: "teal" },
-  { label: "Finance / Others", value: 2, icon: FileText, theme: "neutral" },
-];
 
 type ReportLink = {
   href: string;
@@ -44,7 +37,7 @@ const reportCategories: ReportCategory[] = [
     reports: [
       { href: "/purchase-orders", title: "PO Status", description: "Open, sent, received, and closed purchase orders.", icon: ShoppingCart },
       { href: "/goods-receivings", title: "Receiving Summary", description: "GRN progress and posted receiving records.", icon: PackageCheck },
-      { href: "/documents?approval_status=pending", title: "Approval Queue", description: "Documents waiting for review.", icon: ClipboardCheck },
+      { href: "/documents?status=pending_approval", title: "Approval Queue", description: "Documents waiting for review.", icon: ClipboardCheck },
     ],
   },
   {
@@ -88,7 +81,6 @@ export default function ReportsPage() {
     <>
       <PageHeader title="Reports" description="Compact report directory for operational review and audit." />
       <div className="space-y-5 p-5">
-        <WorkspaceQuickInsights insights={reportInsights} />
         <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-4">
           {sections.map((section) => (
             <WorkspaceSectionPanel key={section.title} section={section} />

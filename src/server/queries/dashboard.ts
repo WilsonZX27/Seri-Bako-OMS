@@ -1,12 +1,13 @@
 import { createClient } from "@/lib/supabase/server";
 import { looseSupabase } from "@/lib/supabase/loose";
-import { hasPermission } from "@/server/auth/permissions";
 import { actorDisplayName, formatActivityWithActor, resolveActorDisplayMap } from "@/server/actors/display";
 import { getCurrentUserScope, getVisibleNotificationsForCurrentUser } from "@/server/queries/notifications";
+import { getCurrentUserPendingActions } from "@/server/queries/pending-actions";
 import {
   getMockLowStockItems,
   getMockStockBalances,
   isMockMode,
+  mockBranches,
   mockItems,
   mockDocuments,
   mockPurchaseOrders,
@@ -86,7 +87,18 @@ export async function getDashboardSummary() {
       lowStockCount: balances.filter((row) => row.is_low_stock).length,
       totalStockValue: balances.reduce((sum, row) => sum + Number(row.current_stock ?? 0), 0),
       lowStockItems: getMockLowStockItems().slice(0, 5),
-      pendingApprovals: mockDocuments.filter((document) => document.approval_status === "pending").slice(0, 5),
+      pendingApprovals: mockPurchaseRequests
+        .filter((request) => request.status === "pending_approval")
+        .slice(0, 5)
+        .map((request) => ({
+          id: `pr-pending_approval-${request.id}`,
+          document_no: request.request_no,
+          title: "Manager Approval required",
+          href: `/purchase-requests/${request.id}`,
+          step: "Manager Approval",
+          branch_name: mockBranches.find((branch) => branch.id === request.branch_id)?.branch_name ?? null,
+          age_label: "Today",
+        })),
       purchaseRequests: mockPurchaseRequests.slice(0, 5),
       urgentRequests: mockPurchaseRequests.filter((request) => ["urgent", "critical"].includes(request.priority ?? "")).slice(0, 5),
       purchaseOrders: mockPurchaseOrders.slice(0, 5),
@@ -120,8 +132,7 @@ export async function getDashboardSummary() {
 
   const supabase = await createClient();
   const db = looseSupabase(supabase);
-  const [canReadDocuments, balances, lowStock, transactions, stockItems, suppliers, items, urgentRequests, purchaseRequests, purchaseOrders, pendingApprovals, documents, notifications, recentActivities, todayProduction] = await Promise.all([
-    hasPermission("documents.read"),
+  const [balances, lowStock, transactions, stockItems, suppliers, items, urgentRequests, purchaseRequests, purchaseOrders, pendingApprovals, documents, notifications, recentActivities, todayProduction] = await Promise.all([
     supabase.from("stock_balances_view").select("item_id, current_stock, is_low_stock"),
     supabase.from("low_stock_items").select("*").limit(5),
     supabase
@@ -141,14 +152,14 @@ export async function getDashboardSummary() {
       .limit(5),
     supabase.from("purchase_requests").select("id, request_no, status, priority").is("deleted_at", null).order("updated_at", { ascending: false }).limit(5),
     supabase.from("purchase_orders").select("id, po_no, status, priority").is("deleted_at", null).order("updated_at", { ascending: false }).limit(5),
-    supabase.from("documents").select("id, document_no, title, approval_status").eq("approval_status", "pending").order("updated_at", { ascending: false }).limit(5),
+    getCurrentUserPendingActions(5),
     supabase.from("documents").select("id, document_no, document_type").order("updated_at", { ascending: false }).limit(6),
     getVisibleNotificationsForCurrentUser(),
     getVisibleRecentActivitiesForCurrentUser(),
     db.from("production_jobs").select("id", { count: "exact", head: true }).eq("status", "posted").eq("production_date", new Date().toISOString().slice(0, 10)).is("deleted_at", null),
   ]);
 
-  for (const result of [balances, lowStock, transactions, stockItems, suppliers, items, urgentRequests, purchaseRequests, purchaseOrders, pendingApprovals, documents, todayProduction]) {
+  for (const result of [balances, lowStock, transactions, stockItems, suppliers, items, urgentRequests, purchaseRequests, purchaseOrders, documents, todayProduction]) {
     if (result.error) throw new Error(result.error.message);
   }
 
@@ -166,7 +177,7 @@ export async function getDashboardSummary() {
       ...transaction,
       item: itemById.get(transaction.item_id) ?? null,
     })),
-    pendingApprovals: canReadDocuments ? pendingApprovals.data ?? [] : [],
+    pendingApprovals,
     purchaseRequests: purchaseRequests.data ?? [],
     purchaseOrders: purchaseOrders.data ?? [],
     recentDocuments: documents.data ?? [],

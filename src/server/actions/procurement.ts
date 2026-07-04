@@ -432,7 +432,7 @@ export async function approvePurchaseRequest(id: string) {
       message: "Manager approved purchase request",
       activityType: "manager_approved",
     });
-    safeRedirectWithMessage(`/purchase-requests/${id}`, "success", `${pr.request_no} Manager approved. Ready to convert to PO.`);
+    safeRedirectWithMessage(`/purchase-requests/${id}`, "success", `${pr.request_no} Manager Approval completed. Next step has been notified.`);
   } catch (error) {
     rethrowRedirect(error);
     safeRedirectWithMessage(`/purchase-requests/${id}`, "error", formatActionError(error, "Could not approve this purchase request."));

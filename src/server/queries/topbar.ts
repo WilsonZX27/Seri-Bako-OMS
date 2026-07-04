@@ -5,7 +5,7 @@ import { isMockMode, mockDocuments } from "@/lib/mock-mode";
 import { actorDisplayName, formatActivityWithActor, resolveActorDisplayMap } from "@/server/actors/display";
 import { hasPermission } from "@/server/auth/permissions";
 import { getVisibleNotificationsForCurrentUser, getTopBarNotificationScope } from "@/server/queries/notifications";
-import type { PurchaseRequestStatus } from "@/types/database";
+import { getCurrentUserPendingActions } from "@/server/queries/pending-actions";
 
 type AssignedActivity = {
   id: string;
@@ -20,6 +20,9 @@ type PendingAction = {
   document_no: string;
   title: string;
   href: string;
+  step?: string;
+  branch_name?: string | null;
+  age_label?: string;
 };
 
 const activityEntityAllowlist = {
@@ -79,49 +82,14 @@ export async function getTopBarActivity() {
 
   const supabase = await createClient();
   const db = looseSupabase(supabase);
-  const [documentApprovals, notifications, recentActivities, canAdminReview, canPurchasingReview, canManagerApprove, canConvertPo, canViewAll, canApproveProduction, canPostProduction] = await Promise.all([
+  const [documentApprovals, notifications, recentActivities, workflowPendingActions, canApproveProduction, canPostProduction] = await Promise.all([
     supabase.from("documents").select("id, document_no, title, document_type, related_entity_type, related_entity_id").eq("approval_status", "pending").order("updated_at", { ascending: false }).limit(5),
     getVisibleNotificationsForCurrentUser(),
     supabase.from("activity_logs").select("id, entity_type, activity_type, message, created_at, created_by").order("created_at", { ascending: false }).limit(40),
-    hasPermission("pr.admin_review"),
-    hasPermission("pr.purchasing_review"),
-    hasPermission("pr.manager_approve"),
-    hasPermission("pr.convert_to_po"),
-    hasPermission("pr.view_all"),
+    getCurrentUserPendingActions(5),
     hasPermission("production.approve"),
     hasPermission("production.post"),
   ]);
-
-  const prStatusFilters: Array<{ status: PurchaseRequestStatus; allowed: boolean; label: string }> = [
-    { status: "admin_review", allowed: canAdminReview, label: "Admin Review required" },
-    { status: "purchasing_review", allowed: canPurchasingReview, label: "Purchasing Review required" },
-    { status: "pending_approval", allowed: canManagerApprove, label: "Manager Approval required" },
-    { status: "approved", allowed: canConvertPo, label: "Convert to PO" },
-  ];
-
-  const pendingPrResults = await Promise.all(
-    prStatusFilters
-      .filter((filter) => filter.allowed)
-      .map(async (filter) => {
-        let query = supabase
-          .from("purchase_requests")
-          .select("id, request_no, branch_id, updated_at")
-          .eq("status", filter.status)
-          .is("deleted_at", null)
-          .order("updated_at", { ascending: false })
-          .limit(5);
-        if (!canViewAll && scope.branchIds.length) query = query.in("branch_id", scope.branchIds);
-        if (!canViewAll && !scope.branchIds.length) return [] as PendingAction[];
-        const { data, error } = await query;
-        if (error) return [] as PendingAction[];
-        return (data ?? []).map((row) => ({
-          id: `pr-${filter.status}-${row.id}`,
-          document_no: row.request_no,
-          title: filter.label,
-          href: `/purchase-requests/${row.id}`,
-        }));
-      }),
-  );
 
   const documentPendingActions: PendingAction[] = documentApprovals.error
     ? []
@@ -155,7 +123,7 @@ export async function getTopBarActivity() {
     }
   }
 
-  const pendingApprovals = [...pendingPrResults.flat(), ...productionPendingActions, ...documentPendingActions]
+  const pendingApprovals = [...workflowPendingActions, ...productionPendingActions, ...documentPendingActions]
     .filter((item, index, rows) => rows.findIndex((row) => row.href === item.href) === index)
     .slice(0, 5);
 

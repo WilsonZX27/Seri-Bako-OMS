@@ -116,12 +116,14 @@ export function DashboardWorkspace({ summary, role }: { summary: DashboardSummar
               {pendingActions.length ? (
                 <div className="divide-y rounded-lg border bg-white">
                   {pendingActions.map((document) => (
-                    <Link key={document.id} href="/documents" className="flex items-center justify-between gap-3 px-3 py-2.5 text-sm hover:bg-slate-50">
+                    <Link key={document.id} href={document.href ?? "/documents"} className="flex items-center justify-between gap-3 px-3 py-2.5 text-sm hover:bg-slate-50">
                       <div className="min-w-0">
                         <p className="truncate font-mono text-sm font-semibold">{document.document_no}</p>
-                        <p className="mt-0.5 truncate text-xs text-muted-foreground">{document.title ?? "Pending review"}</p>
+                        <p className="mt-0.5 truncate text-xs text-muted-foreground">
+                          {[document.step ?? document.title ?? "Pending review", document.branch_name, document.age_label].filter(Boolean).join(" · ")}
+                        </p>
                       </div>
-                      <span className="shrink-0 rounded-full bg-amber-50 px-2 py-1 text-xs font-medium text-amber-800">In Review</span>
+                      <span className="shrink-0 rounded-full bg-amber-50 px-2 py-1 text-xs font-medium text-amber-800">{document.step ?? "In Review"}</span>
                     </Link>
                   ))}
                 </div>

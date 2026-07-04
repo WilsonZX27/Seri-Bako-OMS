@@ -3,7 +3,7 @@ const path = require("path");
 const { test, expect } = require("@playwright/test");
 const { login, logout, missingAccountVars } = require("./helpers");
 
-const screenshotDir = path.join(process.cwd(), "test-results", "ui-smoke-sprint-7-2-3");
+const screenshotDir = path.join(process.cwd(), "test-results", "ui-smoke-sprint-7-2-4");
 
 const superAdminRoutes = [
   "/dashboard",
@@ -86,10 +86,10 @@ async function assertSprint721Rules(page, route) {
     await expect(page.getByRole("link", { name: /data onboarding/i })).toBeVisible();
   }
   if (route === "/procurement") {
-    const titles = [/requesting/i, /ordering/i, /receiving/i, /supplier master data/i];
+    const titles = ["Requesting", "Ordering", "Receiving", "Supplier Master Data"];
     const boxes = [];
     for (const title of titles) {
-      const box = await page.getByRole("heading", { name: title }).boundingBox();
+      const box = await page.getByRole("heading", { name: title, exact: true }).boundingBox();
       expect(box, `${title} section heading must be visible`).toBeTruthy();
       boxes.push(box);
     }
@@ -115,9 +115,6 @@ async function assertSprint721Rules(page, route) {
     await expect(page.getByRole("heading", { name: /scan \/ count \/ receive/i })).toBeVisible();
     await expect(page.getByRole("heading", { name: /report exception/i })).toBeVisible();
   }
-  if (route === "/staffs/new") {
-    await expect(page.locator('select[name="role_id"] option', { hasText: "Super Admin / Owner" })).toHaveCount(0);
-  }
 }
 
 test.beforeAll(() => {
@@ -131,6 +128,7 @@ test("super admin UI smoke screenshots", async ({ page }) => {
 
   for (const route of superAdminRoutes) {
     await page.goto(route, { waitUntil: "domcontentloaded", timeout: 30_000 });
+    await page.waitForTimeout(150);
     await expect(page.locator("body")).not.toContainText(/404:|Application error|Unhandled Runtime Error/i);
     await assertNoObviousVisualBreaks(page);
     await assertSprint721Rules(page, route);

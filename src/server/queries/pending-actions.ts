@@ -1,0 +1,94 @@
+import { createClient } from "@/lib/supabase/server";
+import { hasPermission } from "@/server/auth/permissions";
+import { getCurrentUserScope } from "@/server/queries/notifications";
+import type { PurchaseRequestStatus } from "@/types/database";
+
+export type PendingAction = {
+  id: string;
+  document_no: string;
+  title: string;
+  href: string;
+  step: string;
+  branch_name: string | null;
+  age_label: string;
+};
+
+function ageLabel(updatedAt?: string | null) {
+  if (!updatedAt) return "Age unknown";
+  const days = Math.max(0, Math.floor((Date.now() - new Date(updatedAt).getTime()) / 86_400_000));
+  if (days === 0) return "Today";
+  if (days === 1) return "1 day";
+  return `${days} days`;
+}
+
+export async function getCurrentUserPendingActions(limit = 5): Promise<PendingAction[]> {
+  const scope = await getCurrentUserScope();
+  if (!scope) return [];
+
+  const [canAdminReview, canPurchasingReview, canManagerApprove, canConvertPo, canViewAll] = await Promise.all([
+    hasPermission("pr.admin_review"),
+    hasPermission("pr.purchasing_review"),
+    hasPermission("pr.manager_approve"),
+    hasPermission("pr.convert_to_po"),
+    hasPermission("pr.view_all"),
+  ]);
+
+  const prStatusFilters: Array<{ status: PurchaseRequestStatus; allowed: boolean; step: string; title: string }> = [
+    { status: "admin_review", allowed: canAdminReview, step: "Admin Review", title: "Admin Review required" },
+    { status: "purchasing_review", allowed: canPurchasingReview, step: "Purchasing Review", title: "Purchasing Review required" },
+    { status: "pending_approval", allowed: canManagerApprove, step: "Manager Approval", title: "Manager Approval required" },
+    { status: "approved", allowed: canConvertPo, step: "Approved", title: "Convert to PO" },
+  ];
+
+  const filters = prStatusFilters.filter((filter) => filter.allowed);
+  if (!filters.length) return [];
+
+  const supabase = await createClient();
+  const canSeeAllBranches = canViewAll || scope.companyWideAccess || ["admin", "super_admin", "operations_admin"].includes(scope.roleCode);
+
+  const results = await Promise.all(
+    filters.map(async (filter) => {
+      let query = supabase
+        .from("purchase_requests")
+        .select("id, request_no, branch_id, status, updated_at, branches(branch_name)")
+        .eq("status", filter.status)
+        .is("deleted_at", null)
+        .order("updated_at", { ascending: true })
+        .limit(limit);
+
+      if (!canSeeAllBranches) {
+        if (!scope.branchIds.length) return [] as PendingAction[];
+        query = query.in("branch_id", scope.branchIds);
+      }
+
+      const { data, error } = await query;
+      if (error) {
+        console.error(error);
+        return [] as PendingAction[];
+      }
+
+      return (data ?? []).map((row) => {
+        const branch = row.branches as { branch_name?: string | null } | { branch_name?: string | null }[] | null;
+        const branchName = Array.isArray(branch) ? branch[0]?.branch_name : branch?.branch_name;
+        return {
+          id: `pr-${filter.status}-${row.id}`,
+          document_no: row.request_no,
+          title: filter.title,
+          href: `/purchase-requests/${row.id}`,
+          step: filter.step,
+          branch_name: branchName ?? null,
+          age_label: ageLabel(row.updated_at),
+        };
+      });
+    }),
+  );
+
+  return results
+    .flat()
+    .sort((a, b) => {
+      const aDays = Number.parseInt(a.age_label, 10) || 0;
+      const bDays = Number.parseInt(b.age_label, 10) || 0;
+      return bDays - aDays;
+    })
+    .slice(0, limit);
+}

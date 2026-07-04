@@ -8,6 +8,16 @@ test("manager can open manager approval queue", async ({ page }) => {
   await expect(page.getByRole("heading", { name: /purchase requests/i })).toBeVisible();
 });
 
+test("manager dashboard shows and opens manager approval PR", async ({ page }) => {
+  test.skip(!process.env.TEST_MANAGER_EMAIL || !process.env.TEST_MANAGER_PASSWORD, "Missing manager test credentials.");
+  expect(await login(page, "manager")).toBe(true);
+  await expect(page.getByRole("heading", { name: /pending actions/i })).toBeVisible();
+  await expect(page.getByText("PR-00008")).toBeVisible();
+  await page.getByText("PR-00008").click();
+  await expect(page).toHaveURL(/\/purchase-requests\//);
+  await expect(page.getByRole("button", { name: /manager approve/i })).toBeVisible();
+});
+
 test("purchasing can open purchasing review queue", async ({ page }) => {
   test.skip(!process.env.TEST_PURCHASING_EMAIL || !process.env.TEST_PURCHASING_PASSWORD, "Missing purchasing test credentials.");
   expect(await login(page, "purchasing")).toBe(true);

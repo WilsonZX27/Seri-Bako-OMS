@@ -8,6 +8,7 @@ type CurrentUserScope = {
   roleIds: string[];
   branchIds: string[];
   roleCode: string;
+  companyWideAccess: boolean;
 };
 
 export async function getCurrentUserScope(): Promise<CurrentUserScope | null> {
@@ -27,11 +28,12 @@ export async function getCurrentUserScope(): Promise<CurrentUserScope | null> {
       roleIds: [],
       branchIds: [],
       roleCode: "viewer",
+      companyWideAccess: false,
     };
   }
 
   const [{ data: staffRoles }, { data: staffBranches }, { data: roles }] = await Promise.all([
-    supabase.from("staff_roles").select("role_id").eq("staff_id", staffId),
+    supabase.from("staff_roles").select("role_id, branch_id").eq("staff_id", staffId),
     supabase.from("staff_branches").select("branch_id").eq("staff_id", staffId),
     supabase.from("roles").select("id, role_code"),
   ]);
@@ -40,8 +42,9 @@ export async function getCurrentUserScope(): Promise<CurrentUserScope | null> {
   const branchIds = (staffBranches ?? []).map((row) => row.branch_id);
   const roleById = new Map((roles ?? []).map((row) => [row.id, row.role_code]));
   const roleCode = roleIds.map((id) => roleById.get(id)).find(Boolean) ?? "viewer";
+  const companyWideAccess = (staffRoles ?? []).some((row) => !row.branch_id);
 
-  return { authUserId: user.id, staffId, roleIds, branchIds, roleCode };
+  return { authUserId: user.id, staffId, roleIds, branchIds, roleCode, companyWideAccess };
 }
 
 export async function getVisibleNotificationsForCurrentUser() {

@@ -8,6 +8,7 @@ import { stockCountSchema } from "@/lib/validations/stock-count";
 import { writeActivityLog } from "@/server/activity/log";
 import { requirePermission } from "@/server/auth/permissions";
 import { formatActionError, requirePermissionOrRedirect, rethrowRedirect, safeRedirectWithMessage } from "@/server/actions/error-handling";
+import { revalidateWorkspaceState } from "@/server/actions/revalidate";
 import { resolveDocumentNumber } from "@/server/documents/sequences";
 import { createInventoryMovement } from "@/server/inventory/engine";
 import { resolveDefaultLocation } from "@/server/inventory/locations";
@@ -109,7 +110,7 @@ export async function createStockCount(formData: FormData) {
     if (updateError) throw new Error(updateError.message);
     if (linesError) throw new Error(linesError.message);
     await writeActivityLog({ entityType: "document", entityId: documentId, activityType: "created", message: `Stock count ${countNo} created` });
-    revalidatePath("/stock-counts");
+    revalidateWorkspaceState(["/stock-counts"]);
     redirect(`/stock-counts/${data.id}`);
   } catch (error) {
     rethrowRedirect(error);
@@ -146,8 +147,7 @@ async function updateStockCountStatus(id: string, status: StockCountStatus, step
   if (error) throw new Error(error.message);
   if (docError) throw new Error(docError.message);
   if (count.document_id) await writeActivityLog({ entityType: "document", entityId: count.document_id, activityType: status, message });
-  revalidatePath("/stock-counts");
-  revalidatePath(`/stock-counts/${id}`);
+  revalidateWorkspaceState(["/stock-counts", `/stock-counts/${id}`]);
 }
 
 export async function submitStockCount(id: string) {

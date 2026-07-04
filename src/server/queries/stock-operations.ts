@@ -16,6 +16,8 @@ function filterRows<T extends Record<string, unknown>>(rows: T[], filters: Filte
   const status = filters.status && filters.status !== "all" ? filters.status : null;
   const location = filters.location_id && filters.location_id !== "all" ? filters.location_id : null;
   const reason = filters.reason && filters.reason !== "all" ? filters.reason : null;
+  const today = new Date().toISOString().slice(0, 10);
+  const date = filters.date === "today" ? today : null;
   const sort = filters.sort ?? String(dateKey);
   const dir = filters.dir ?? "desc";
   return rows.filter((row) => {
@@ -25,7 +27,8 @@ function filterRows<T extends Record<string, unknown>>(rows: T[], filters: Filte
     const matchesReason = reason ? row.reason === reason : true;
     const matchesFrom = filters.from ? String(row[dateKey] ?? "") >= filters.from : true;
     const matchesTo = filters.to ? String(row[dateKey] ?? "") <= filters.to : true;
-    return matchesSearch && matchesStatus && matchesLocation && matchesReason && matchesFrom && matchesTo;
+    const matchesDate = date ? String(row[dateKey] ?? "") === date : true;
+    return matchesSearch && matchesStatus && matchesLocation && matchesReason && matchesFrom && matchesTo && matchesDate;
   }).sort((a, b) => compareTableValues(a[sort], b[sort], dir));
 }
 

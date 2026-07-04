@@ -50,13 +50,16 @@ export type PurchaseOrderReceivingLine = PurchaseOrderLine & {
 function filterRows<T extends Record<string, unknown>>(rows: T[], filters: Filters, keys: (keyof T)[], defaultSort: keyof T) {
   const search = filters.search?.trim().toLowerCase();
   const status = filters.status && filters.status !== "all" ? filters.status : null;
+  const today = new Date().toISOString().slice(0, 10);
+  const date = filters.date === "today" ? today : null;
   const sort = filters.sort ?? String(defaultSort);
   const dir = filters.dir ?? "desc";
   return rows
     .filter((row) => {
       const matchesSearch = search ? keys.some((key) => String(row[key] ?? "").toLowerCase().includes(search)) : true;
       const matchesStatus = status ? row.status === status : true;
-      return matchesSearch && matchesStatus;
+      const matchesDate = date ? row.received_date === date : true;
+      return matchesSearch && matchesStatus && matchesDate;
     })
     .sort((a, b) => compareTableValues(a[sort], b[sort], dir));
 }

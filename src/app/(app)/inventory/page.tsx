@@ -10,12 +10,12 @@ export default async function InventoryPage() {
   const hasPurchasedItems = summary.topPurchasedItems.length > 0;
   const hasConsumedItems = summary.topConsumedItems.length > 0;
   const inventoryInsights: WorkspaceInsight[] = [
-    { label: "Total Active Items", value: formatNumber(summary.totalActiveItems), icon: PackageSearch, theme: "green" },
-    { label: "Low Stock Items", value: formatNumber(summary.lowStockItems), icon: TriangleAlert, theme: summary.lowStockItems ? "amber" : "green" },
-    { label: "Today's Receiving", value: formatNumber(summary.todaysReceiving), icon: ArrowDownLeft, theme: "blue" },
-    { label: "Today's Transfers", value: formatNumber(summary.todaysTransfers), icon: ScanLine, theme: "teal" },
-    { label: "Pending Adjustments", value: formatNumber(summary.pendingAdjustments), icon: ClipboardCheck, theme: "amber" },
-    { label: "Stock Count Due", value: formatNumber(summary.stockCountDue), icon: Boxes, theme: "purple" },
+    { label: "Total Active Items", value: formatNumber(summary.totalActiveItems), icon: PackageSearch, theme: "green", href: "/items" },
+    { label: "Low Stock Items", value: formatNumber(summary.lowStockItems), icon: TriangleAlert, theme: summary.lowStockItems ? "amber" : "green", href: "/stock-balance?status=low_stock" },
+    { label: "Today's Receiving", value: formatNumber(summary.todaysReceiving), icon: ArrowDownLeft, theme: "blue", href: "/goods-receivings?date=today" },
+    { label: "Today's Transfers", value: formatNumber(summary.todaysTransfers), icon: ScanLine, theme: "teal", href: "/stock-transfers?date=today" },
+    { label: "Pending Adjustments", value: formatNumber(summary.pendingAdjustments), icon: ClipboardCheck, theme: "amber", href: "/stock-transactions?status=draft" },
+    { label: "Stock Count Due", value: formatNumber(summary.stockCountDue), icon: Boxes, theme: "purple", href: "/stock-counts?status=draft" },
   ];
   const inventorySections: WorkspaceSection[] = [
     {

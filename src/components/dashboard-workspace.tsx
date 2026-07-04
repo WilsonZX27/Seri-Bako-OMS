@@ -59,11 +59,12 @@ const futureAnalyticsWidgets = [
 ] as const;
 
 export function DashboardWorkspace({ summary, role }: { summary: DashboardSummary; role: UserRole }) {
+  const today = new Date().toISOString().slice(0, 10);
   const metrics = [
-    { href: "/purchase-requests?status=in_review", label: "Pending approvals", value: formatNumber(summary.pendingApprovals.length), icon: CheckCircle2, tone: summary.pendingApprovals.length ? "amber" as const : "green" as const },
+    { href: "/documents?status=pending_approval", label: "Pending approvals", value: formatNumber(summary.pendingApprovals.length), icon: CheckCircle2, tone: summary.pendingApprovals.length ? "amber" as const : "green" as const },
     { href: "/purchase-requests?priority=urgent", label: "Urgent PR", value: formatNumber(summary.urgentRequests.length), icon: TriangleAlert, tone: summary.urgentRequests.length ? "red" as const : "green" as const },
-    { href: "/low-stock", label: "Low stock", value: formatNumber(summary.lowStockCount), icon: AlertTriangle, tone: summary.lowStockCount ? "amber" as const : "green" as const },
-    { href: "/production/jobs", label: "Production today", value: formatNumber(summary.today.production), icon: Boxes, tone: "blue" as const },
+    { href: "/stock-balance?status=low_stock", label: "Low stock", value: formatNumber(summary.lowStockCount), icon: AlertTriangle, tone: summary.lowStockCount ? "amber" as const : "green" as const },
+    { href: `/production/jobs?from=${today}&to=${today}`, label: "Production today", value: formatNumber(summary.today.production), icon: Boxes, tone: "blue" as const },
   ];
   const pendingActions = summary.pendingApprovals.slice(0, 5);
   const stuckRequests = summary.urgentRequests.slice(0, 4);
@@ -112,7 +113,7 @@ export function DashboardWorkspace({ summary, role }: { summary: DashboardSummar
       >
         <div className="space-y-4">
           <div className="grid gap-4 lg:grid-cols-[minmax(0,1.15fr)_minmax(0,0.85fr)]">
-            <CompactPanel title="Pending Actions" action={{ href: "/documents?approval_status=pending", label: "Review" }}>
+            <CompactPanel title="Pending Actions" action={{ href: "/documents?status=pending_approval", label: "Review" }}>
               {pendingActions.length ? (
                 <div className="divide-y rounded-lg border bg-white">
                   {pendingActions.map((document) => (

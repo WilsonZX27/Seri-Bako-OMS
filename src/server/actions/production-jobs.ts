@@ -8,6 +8,7 @@ import { createClient } from "@/lib/supabase/server";
 import { productionJobSchema } from "@/lib/validations/production-job";
 import { writeActivityLog } from "@/server/activity/log";
 import { formatActionError, requirePermissionOrRedirect, rethrowRedirect, safeRedirectWithMessage } from "@/server/actions/error-handling";
+import { revalidateWorkspaceState } from "@/server/actions/revalidate";
 import { hasPermission } from "@/server/auth/permissions";
 import { resolveDocumentNumber } from "@/server/documents/sequences";
 import { resolveDefaultLocation } from "@/server/inventory/locations";
@@ -233,9 +234,7 @@ async function transitionProductionJob(id: string, input: { from: string[]; to: 
         priority: productionJob.priority ?? "normal",
       });
     }
-    revalidatePath("/production");
-    revalidatePath("/production/jobs");
-    revalidatePath(`/production/jobs/${id}`);
+    revalidateWorkspaceState(["/production", "/production/jobs", `/production/jobs/${id}`]);
     safeRedirectWithMessage(`/production/jobs/${id}`, "success", input.message(productionJob.production_job_no));
   } catch (error) {
     rethrowRedirect(error);
@@ -429,9 +428,7 @@ export async function postProductionJob(id: string) {
       jobId: id,
       branchId: job.branch_id,
     });
-    revalidatePath("/production");
-    revalidatePath("/production/jobs");
-    revalidatePath(`/production/jobs/${id}`);
+    revalidateWorkspaceState(["/production", "/production/jobs", `/production/jobs/${id}`]);
     revalidatePath("/inventory");
     revalidatePath("/stock-balance");
     revalidatePath("/stock-balances");

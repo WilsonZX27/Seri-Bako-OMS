@@ -53,7 +53,8 @@ function filterRows<T extends Record<string, unknown>>(rows: T[], filters: Filte
         : status ? [status] : [];
       const matchesStatus = statusGroup.length ? statusGroup.includes(String(row.status)) : true;
       const matchesStep = step ? String(row.status) === step : true;
-      const matchesPriority = priority ? row.priority === priority : true;
+      const priorityGroup = priority === "urgent" ? ["urgent", "critical"] : priority ? [priority] : [];
+      const matchesPriority = priorityGroup.length ? priorityGroup.includes(String(row.priority)) : true;
       return matchesSearch && matchesStatus && matchesStep && matchesPriority;
     })
     .sort((a, b) => compareTableValues(a[sort], b[sort], dir));

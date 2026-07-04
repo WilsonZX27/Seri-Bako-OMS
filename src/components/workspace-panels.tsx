@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
+import type { ReactNode } from "react";
 import type { LucideIcon } from "lucide-react";
 
 export type WorkspaceThemeName = "green" | "blue" | "amber" | "purple" | "teal" | "neutral" | "red";
@@ -38,6 +39,7 @@ export type WorkspaceInsight = {
   value: string | number;
   icon: LucideIcon;
   theme?: WorkspaceThemeName;
+  href?: string;
 };
 
 export const workspaceThemes: Record<WorkspaceThemeName, WorkspaceTheme> = {
@@ -207,7 +209,7 @@ export function CompactStatList({ insights, action }: { insights: WorkspaceInsig
             const theme = workspaceThemes[insight.theme ?? "neutral"];
             const InsightIcon = insight.icon;
             return (
-              <div key={insight.label} className="flex items-center justify-between gap-3 px-3 py-2.5">
+              <LinkOrDiv key={insight.label} href={insight.href} className="flex items-center justify-between gap-3 px-3 py-2.5 hover:bg-slate-50">
                 <div className="flex min-w-0 items-center gap-2">
                   <span className={cn("flex h-7 w-7 shrink-0 items-center justify-center rounded-md", theme.badge, theme.iconText)}>
                     <InsightIcon className="h-3.5 w-3.5" />
@@ -215,11 +217,16 @@ export function CompactStatList({ insights, action }: { insights: WorkspaceInsig
                   <span className="truncate text-xs font-medium text-muted-foreground">{insight.label}</span>
                 </div>
                 <span className="font-mono text-sm font-semibold">{insight.value}</span>
-              </div>
+              </LinkOrDiv>
             );
           })}
         </div>
       </CardContent>
     </Card>
   );
+}
+
+function LinkOrDiv({ href, className, children }: { href?: string; className?: string; children: ReactNode }) {
+  if (href) return <Link href={href} className={cn("block", className)}>{children}</Link>;
+  return <div className={className}>{children}</div>;
 }

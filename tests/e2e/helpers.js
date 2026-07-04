@@ -17,6 +17,10 @@ function account(role) {
   return { email, password };
 }
 
+function hasAccount(role) {
+  return missingAccountVars(role).length === 0;
+}
+
 function missingAccountVars(role) {
   const keys = requiredAccounts[role];
   if (!keys) throw new Error(`Unknown test role: ${role}`);
@@ -41,7 +45,16 @@ async function login(page, role) {
     page.waitForURL(/dashboard|change-password/, { timeout: 20_000 }).catch(() => null),
     page.locator("text=/Invalid email or password|disabled|expired|temporarily limited/i").waitFor({ timeout: 20_000 }).catch(() => null),
   ]);
-  return page.url().includes("/dashboard");
+  const ok = page.url().includes("/dashboard");
+  if (!ok) {
+    const visibleError = await page
+      .locator("text=/Invalid email or password|disabled|expired|temporarily limited|could not/i")
+      .first()
+      .textContent({ timeout: 1000 })
+      .catch(() => null);
+    throw new Error(`Login failed for ${role} (${creds.email}). ${visibleError ? `Message: ${visibleError}` : "No dashboard redirect was observed."}`);
+  }
+  return true;
 }
 
 async function logout(page) {
@@ -58,4 +71,4 @@ async function logout(page) {
   }
 }
 
-module.exports = { account, login, logout, missingAccountVars, requireAccount };
+module.exports = { account, hasAccount, login, logout, missingAccountVars, requireAccount };

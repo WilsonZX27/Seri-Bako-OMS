@@ -1,7 +1,7 @@
 const fs = require("fs");
 const path = require("path");
 const { test, expect } = require("@playwright/test");
-const { login, logout, missingAccountVars } = require("./helpers");
+const { hasAccount, login, logout, missingAccountVars } = require("./helpers");
 
 const screenshotDir = path.join(process.cwd(), "test-results", "ui-smoke-sprint-7-2-6");
 
@@ -144,7 +144,10 @@ test.beforeAll(() => {
 
 test("super admin UI smoke screenshots", async ({ page }) => {
   test.setTimeout(180_000);
-  ensureSmokeEnv("superAdmin");
+  test.skip(!hasAccount("superAdmin"), `Missing super admin test credentials: ${missingAccountVars("superAdmin").join(", ")}`);
+  if (!process.env.TEST_BASE_URL) {
+    throw new Error("Missing required UI smoke env variable: TEST_BASE_URL");
+  }
   expect(await login(page, "superAdmin")).toBe(true);
 
   for (const route of superAdminRoutes) {
@@ -160,7 +163,10 @@ test("super admin UI smoke screenshots", async ({ page }) => {
 for (const role of roles) {
   test(`${role} dashboard and sidebar smoke`, async ({ page }) => {
     test.setTimeout(75_000);
-    ensureSmokeEnv(role);
+    test.skip(!hasAccount(role), `Missing ${role} test credentials: ${missingAccountVars(role).join(", ")}`);
+    if (!process.env.TEST_BASE_URL) {
+      throw new Error("Missing required UI smoke env variable: TEST_BASE_URL");
+    }
     expect(await login(page, role)).toBe(true);
     await assertNoObviousVisualBreaks(page);
     await page.screenshot({ path: path.join(screenshotDir, `${role}-dashboard.png`), fullPage: true });

@@ -46,6 +46,7 @@ Use explicit permission keys in code where possible:
 - `pr.admin_review`
 - `pr.purchasing_review`
 - `pr.manager_approve`
+- `pr.finance_review`
 - `pr.convert_to_po`
 - `po.create`
 - `po.approve`
@@ -71,6 +72,7 @@ The app maps these friendly keys to older database permission names where needed
 | Purchase Request Admin Review | `pr.admin_review` | Yes | Yes | No | No | No | No | No |
 | Purchase Request Purchasing Review | `pr.purchasing_review` | Yes | No | No | Yes | No | No | No |
 | Purchase Request Manager Approval | `pr.manager_approve` | Yes | No | Yes | No | No | No | No |
+| Purchase Request Finance Review | `pr.finance_review` | Yes | Yes | No | No | Yes | No | No |
 | Convert PR to PO | `pr.convert_to_po` | Yes | No | No | No | No | No | No |
 | Purchase Order Create/Submit | `po.create`, `po.submit` | Yes | Yes | No | Yes | No | No | No |
 | Purchase Order Approval | `po.approve` | Yes | No | Yes | No | No | No | No |
@@ -91,6 +93,8 @@ The app maps these friendly keys to older database permission names where needed
 - Manager can see manager approval/rejection actions, but not purchasing verification.
 - Super Admin / Owner can see all valid workflow actions for the document's current state.
 - Staff role dropdowns must use display labels: Administrator, Manager, Purchasing, Finance, Kitchen, Viewer. Super Admin / Owner should be hidden unless the current user is an owner.
+- Staff detail should show primary role plus grouped function permissions so multi-function staff can be reviewed without assuming one role equals one responsibility forever.
+- The visible purchase request flow is Kitchen submit -> Manager Review -> Admin Review -> Finance Review -> Ready to Convert -> Converted to PO.
 
 ## Server Rules
 
@@ -102,8 +106,9 @@ The app maps these friendly keys to older database permission names where needed
 
 ## Current Audit Notes
 
-- PR Manager Approval uses `pr.manager_approve`.
+- PR Manager Review uses `pr.manager_approve`.
 - PR Admin Review uses `pr.admin_review`.
-- Purchasing Review uses `pr.purchasing_review`.
+- PR Finance Review uses `pr.finance_review`.
+- Legacy Purchasing Review permissions remain available for purchasing workflows and supplier operations.
 - Staff create/edit now filters assignable roles by the current user's role and keeps protected owner checks on the server.
 - The app-level permission helper contains a role matrix so target roles have predictable behavior while database permissions continue to normalize.

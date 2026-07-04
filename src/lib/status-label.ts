@@ -16,6 +16,20 @@ const statusLabels: Record<string, string> = {
   rejected: "Rejected",
   sent: "Sent",
   submitted: "Submitted",
+  finance_review: "Finance Review",
+  manager_review: "Manager Review",
+  ready_to_convert: "Ready to Convert",
+  sent_to_supplier: "Sent to Supplier",
+  in_production: "In Production",
+  qc_review: "QC Review",
+  dispatched: "Dispatched",
+  short: "Short",
+  available: "Available",
+  critical: "Critical",
+  need_repair: "Need Repair",
+  active: "Active",
+  inactive: "Inactive",
+  suspended: "Suspended",
 };
 
 export function formatStatusLabel(status: string | null | undefined) {

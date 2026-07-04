@@ -39,11 +39,11 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   const hasStaffRole = (profile as { has_staff_role?: boolean } | null)?.has_staff_role ?? false;
 
   return (
-    <div className="min-h-screen overflow-x-hidden bg-background">
-      <div className="flex min-h-screen min-w-0">
+    <div className="h-dvh overflow-hidden bg-background">
+      <div className="flex h-dvh min-w-0">
         <Sidebar />
-        <div className="min-w-0 flex-1 overflow-x-hidden">
-          <div className="flex min-h-screen min-w-0 flex-col">
+        <div className="min-w-0 flex-1 overflow-hidden">
+          <div className="flex h-dvh min-w-0 flex-col">
           <TopBar />
           {!hasStaffRole ? (
             <div className="border-b border-amber-200 bg-amber-50 px-5 py-3 text-sm font-medium text-amber-800">
@@ -52,7 +52,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
           ) : null}
           <GlobalActionToast />
           <SessionTimeoutProvider />
-          <main className="flex-1 pb-16 md:pb-0">{children}</main>
+          <main className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden pb-16 md:pb-0">{children}</main>
           <MobileBottomNav />
           </div>
         </div>

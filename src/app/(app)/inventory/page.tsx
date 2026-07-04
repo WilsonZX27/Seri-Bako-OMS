@@ -1,4 +1,4 @@
-import { ArrowDownLeft, ArrowUpRight, Boxes, ClipboardCheck, MapPin, PackageSearch, ReceiptText, ScanLine, TriangleAlert, Upload } from "lucide-react";
+import { ArrowDownLeft, ArrowUpRight, Boxes, ClipboardCheck, PackageSearch, ReceiptText, ScanLine, TriangleAlert, Upload } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { PageHeader } from "@/components/ui/page-header";
 import { CompactStatList, WorkspaceSectionPanel, type WorkspaceInsight, type WorkspaceSection } from "@/components/workspace-panels";
@@ -30,17 +30,6 @@ export default async function InventoryPage() {
       ],
     },
     {
-      title: "Master Data",
-      description: "Inventory reference records used by procurement, receiving, and stock posting.",
-      icon: Boxes,
-      theme: "green",
-      actions: [
-        { href: "/items", title: "Items", description: "Manage item codes, UOM, cost, supplier, and safety stock.", icon: PackageSearch, recommendedFor: "admin and operations" },
-        { href: "/locations", title: "Locations", description: "Review internal stock areas behind branch-first workflows.", icon: MapPin, recommendedFor: "admin" },
-        { href: "/uom-conversions", title: "UOM Conversions", description: "Maintain conversions for supplier and stock units.", icon: ArrowDownLeft, recommendedFor: "admin" },
-      ],
-    },
-    {
       title: "Stock Review",
       description: "Review calculated balances, stock cards, and posted ledger movement.",
       icon: ReceiptText,
@@ -50,6 +39,16 @@ export default async function InventoryPage() {
         { href: "/stock-card", title: "Stock Card", description: "Trace item movements through the posted ledger.", icon: ReceiptText, recommendedFor: "finance and operations" },
         { href: "/stock-transactions", title: "Movement Ledger", description: "Review posted stock transactions and document links.", icon: ArrowUpRight, recommendedFor: "finance" },
         { href: "/opening-stock/import", title: "Opening Stock Import", description: "Load opening balances through the ledger.", icon: Upload, recommendedFor: "admin" },
+      ],
+    },
+    {
+      title: "Inventory Control",
+      description: "Controlled imports and exception queues used by admin operations.",
+      icon: Boxes,
+      theme: "green",
+      actions: [
+        { href: "/opening-stock/import", title: "Opening Stock Import", description: "Load opening balances through the ledger.", icon: Upload, recommendedFor: "admin" },
+        { href: "/low-stock", title: "Low Stock Review", description: "Review items that need attention before ordering.", icon: TriangleAlert, recommendedFor: "operations" },
       ],
     },
   ];

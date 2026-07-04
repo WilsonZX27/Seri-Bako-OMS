@@ -36,8 +36,8 @@ export function DocumentWorkspace({
 }) {
   return (
     <>
-      <header className="sticky top-0 z-20 border-b bg-background/95 px-5 py-4 shadow-sm backdrop-blur">
-        <nav className="mb-3 flex flex-wrap items-center gap-1 text-xs text-muted-foreground">
+      <header className="sticky top-0 z-20 border-b bg-background/95 px-4 py-3 shadow-sm backdrop-blur">
+        <nav className="mb-2 flex flex-wrap items-center gap-1 text-[11px] text-muted-foreground">
           {breadcrumbs.map((crumb, index) => (
             <span key={`${crumb.label}-${index}`} className="inline-flex items-center gap-1">
               {crumb.href ? <a href={crumb.href} className="hover:text-foreground">{crumb.label}</a> : <span>{crumb.label}</span>}
@@ -52,20 +52,20 @@ export function DocumentWorkspace({
               {priority ? <PriorityBadge priority={priority} /> : null}
               <StatusBadge status={status} />
             </div>
-            <div className="mt-2 flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
+            <div className="mt-1.5 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
               {title ? <span className="font-medium text-foreground">{title}</span> : null}
               {branch ? <span>{branch}</span> : null}
             </div>
           </div>
         </div>
-        <div className="mt-4">
+        <div className="mt-3">
           <WorkflowStatusPipeline steps={workflowSteps} currentStatus={currentStatus} compact />
         </div>
       </header>
 
-      <main className="grid gap-5 p-5 xl:grid-cols-[minmax(0,1fr)_360px] 2xl:grid-cols-[minmax(0,1120px)_400px]">
-        <div className="min-w-0 space-y-5">{children}</div>
-        <aside className="min-w-0 space-y-4 xl:sticky xl:top-6 xl:max-h-[calc(100vh-120px)] xl:overflow-y-auto xl:pr-1">
+      <main className="grid gap-4 p-4 xl:grid-cols-[minmax(0,1fr)_340px] 2xl:grid-cols-[minmax(0,1120px)_360px]">
+        <div className="min-w-0 space-y-4">{children}</div>
+        <aside className="min-w-0 space-y-3 xl:sticky xl:top-4 xl:max-h-[calc(100dvh-80px)] xl:overflow-y-auto xl:pr-1">
           {sidePanel}
         </aside>
       </main>
@@ -85,9 +85,9 @@ export function DocumentSideSection({
   className?: string;
 }) {
   return (
-    <section className={cn("rounded-lg border bg-card p-4 shadow-sm", className)}>
-      <div className="mb-3">
-        <h2 className="text-sm font-semibold">{title}</h2>
+    <section className={cn("rounded-lg border bg-card p-3 shadow-sm", className)}>
+      <div className="mb-2.5">
+        <h2 className="text-[13px] font-semibold">{title}</h2>
         {description ? <p className="mt-1 text-xs text-muted-foreground">{description}</p> : null}
       </div>
       {children}

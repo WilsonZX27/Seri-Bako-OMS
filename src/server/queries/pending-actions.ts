@@ -25,19 +25,20 @@ export async function getCurrentUserPendingActions(limit = 5): Promise<PendingAc
   const scope = await getCurrentUserScope();
   if (!scope) return [];
 
-  const [canAdminReview, canPurchasingReview, canManagerApprove, canConvertPo, canViewAll] = await Promise.all([
+  const [canAdminReview, canPurchasingReview, canManagerApprove, canFinanceReview, canConvertPo, canViewAll] = await Promise.all([
     hasPermission("pr.admin_review"),
     hasPermission("pr.purchasing_review"),
     hasPermission("pr.manager_approve"),
+    hasPermission("pr.finance_review"),
     hasPermission("pr.convert_to_po"),
     hasPermission("pr.view_all"),
   ]);
 
   const prStatusFilters: Array<{ status: PurchaseRequestStatus; allowed: boolean; step: string; title: string }> = [
-    { status: "admin_review", allowed: canAdminReview, step: "Admin Review", title: "Admin Review required" },
-    { status: "purchasing_review", allowed: canPurchasingReview, step: "Purchasing Review", title: "Purchasing Review required" },
-    { status: "pending_approval", allowed: canManagerApprove, step: "Manager Approval", title: "Manager Approval required" },
-    { status: "approved", allowed: canConvertPo, step: "Approved", title: "Convert to PO" },
+    { status: "admin_review", allowed: canManagerApprove, step: "Manager Review", title: "Manager review required" },
+    { status: "purchasing_review", allowed: canAdminReview || canPurchasingReview, step: "Admin Review", title: "Admin review required" },
+    { status: "pending_approval", allowed: canFinanceReview, step: "Finance Review", title: "Finance review required" },
+    { status: "approved", allowed: canConvertPo, step: "Ready to Convert", title: "Convert to PO" },
   ];
 
   const filters = prStatusFilters.filter((filter) => filter.allowed);

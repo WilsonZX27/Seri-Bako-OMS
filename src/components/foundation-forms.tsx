@@ -4,6 +4,7 @@ import { Input } from "@/components/ui/input";
 import { RecordSection } from "@/components/record-workspace";
 import { SubmitButton } from "@/components/ui/submit-button";
 import { SelectNative } from "@/components/ui/select-native";
+import { StatusBadge } from "@/components/ui/status-badge";
 import { Textarea } from "@/components/ui/textarea";
 import { getRoleDisplayLabel } from "@/lib/roles";
 import { previewDocumentNumber } from "@/server/queries/foundation";
@@ -97,16 +98,6 @@ function StatusSelect({ value }: { value?: string }) {
       <option value="active">Active</option>
       <option value="inactive">Inactive</option>
       <option value="archived">Archived</option>
-    </SelectNative>
-  );
-}
-
-function StaffStatusSelect({ value }: { value?: string }) {
-  return (
-    <SelectNative name="status" defaultValue={value ?? "invited"}>
-      <option value="invited">Invited</option>
-      <option value="active">Active</option>
-      <option value="disabled">Disabled</option>
     </SelectNative>
   );
 }
@@ -285,8 +276,12 @@ export function StaffForm({
           <Field label="Phone">
             <Input name="phone" defaultValue={staff?.phone ?? ""} className="form-control-compact" />
           </Field>
-          <Field label="Status">
-            <StaffStatusSelect value={staff?.status} />
+          <Field label="Current Status">
+            <input type="hidden" name="status" value={staff?.status ?? "invited"} />
+            <div className="flex h-9 max-w-[400px] items-center rounded-md border bg-secondary/30 px-3">
+              <StatusBadge status={staff?.status ?? "invited"} />
+            </div>
+            <p className="mt-1 text-xs text-muted-foreground">Use the Staff Actions panel to change account status intentionally.</p>
           </Field>
         </div>
       </RecordSection>

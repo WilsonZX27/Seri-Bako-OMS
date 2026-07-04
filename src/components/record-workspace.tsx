@@ -11,9 +11,9 @@ type RecordWorkspaceProps = {
 
 export function RecordWorkspace({ children, actionPanel, className }: RecordWorkspaceProps) {
   return (
-    <div className={cn("grid gap-5 p-5 xl:grid-cols-[minmax(0,1fr)_320px]", className)}>
-      <main className="min-w-0 space-y-5">{children}</main>
-      <aside className="min-w-0 space-y-4 xl:sticky xl:top-6 xl:max-h-[calc(100vh-120px)] xl:self-start xl:overflow-y-auto xl:pr-1">{actionPanel}</aside>
+    <div className={cn("grid gap-4 p-4 xl:grid-cols-[minmax(0,1fr)_320px]", className)}>
+      <main className="min-w-0 space-y-4">{children}</main>
+      <aside className="min-w-0 space-y-3 xl:sticky xl:top-4 xl:max-h-[calc(100dvh-80px)] xl:self-start xl:overflow-y-auto xl:pr-1">{actionPanel}</aside>
     </div>
   );
 }
@@ -25,11 +25,11 @@ export function RecordMain({ children, className }: { children: ReactNode; class
 export function RecordActionPanel({ title = "Actions", description, children }: { title?: string; description?: string; children: ReactNode }) {
   return (
     <Card className="shadow-sm">
-      <CardHeader className="p-4 pb-2">
-        <CardTitle>{title}</CardTitle>
+      <CardHeader className="p-3 pb-2">
+        <CardTitle className="text-[14px]">{title}</CardTitle>
         {description ? <CardDescription>{description}</CardDescription> : null}
       </CardHeader>
-      <CardContent className="space-y-3 p-4">{children}</CardContent>
+      <CardContent className="space-y-3 p-3">{children}</CardContent>
     </Card>
   );
 }
@@ -47,11 +47,11 @@ export function RecordSection({
 }) {
   return (
     <Card className={cn("shadow-sm", className)}>
-      <CardHeader>
-        <CardTitle>{title}</CardTitle>
+      <CardHeader className="p-4 pb-2">
+        <CardTitle className="text-[15px]">{title}</CardTitle>
         {description ? <CardDescription>{description}</CardDescription> : null}
       </CardHeader>
-      <CardContent>{children}</CardContent>
+      <CardContent className="p-4 pt-2">{children}</CardContent>
     </Card>
   );
 }

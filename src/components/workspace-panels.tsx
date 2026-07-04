@@ -106,19 +106,19 @@ export function WorkspaceSectionPanel({ section }: { section: WorkspaceSection }
   const SectionIcon = section.icon;
 
   return (
-    <section className={cn("flex h-auto flex-col overflow-hidden rounded-xl border border-slate-200 shadow-sm", theme.panel)}>
-      <div className={cn("border-b px-4 py-3", theme.border, theme.header)}>
+    <section className={cn("flex h-auto flex-col overflow-hidden rounded-lg border border-slate-200 shadow-sm", theme.panel)}>
+      <div className={cn("border-b px-3 py-2.5", theme.border, theme.header)}>
         <div className="flex items-center gap-3">
-          <div className={cn("flex h-9 w-9 shrink-0 items-center justify-center rounded-lg", theme.badge, theme.iconText)}>
+          <div className={cn("flex h-8 w-8 shrink-0 items-center justify-center rounded-md", theme.badge, theme.iconText)}>
             <SectionIcon className="h-4 w-4" />
           </div>
           <div className="min-w-0">
-            <h2 className="text-sm font-bold uppercase tracking-normal text-foreground">{section.title}</h2>
-            <p className="mt-1 text-xs leading-5 text-muted-foreground">{section.description}</p>
+            <h2 className="text-[13px] font-bold uppercase tracking-normal text-foreground">{section.title}</h2>
+            <p className="mt-0.5 line-clamp-2 text-[12px] leading-4 text-muted-foreground">{section.description}</p>
           </div>
         </div>
       </div>
-      <div className="grid items-stretch gap-3 p-4 md:grid-cols-2 xl:grid-cols-1">
+      <div className="grid items-stretch gap-2.5 p-3 md:grid-cols-2 xl:grid-cols-1">
         {section.actions.map((action) => (
           <WorkspaceActionCard key={action.href} action={action} theme={theme} />
         ))}
@@ -130,18 +130,18 @@ export function WorkspaceSectionPanel({ section }: { section: WorkspaceSection }
 function WorkspaceActionCard({ action, theme }: { action: WorkspaceAction; theme: WorkspaceTheme }) {
   const ActionIcon = action.icon;
   const content = (
-    <Card className={cn("h-full border border-slate-200 bg-white shadow-sm transition-colors", action.disabled ? "opacity-70" : "group-hover:border-primary/30 group-hover:bg-slate-50/30")}>
-      <CardContent className="flex h-full min-h-[104px] flex-col justify-between gap-3 p-3">
+    <Card className={cn("h-full rounded-lg border border-slate-200 bg-white shadow-sm transition-colors", action.disabled ? "opacity-70" : "group-hover:border-primary/30 group-hover:bg-slate-50/30")}>
+      <CardContent className="flex h-full min-h-[88px] flex-col justify-between gap-2 p-3">
         <div className="flex items-start gap-3">
-          <div className={cn("flex h-8 w-8 shrink-0 items-center justify-center rounded-lg", theme.badge, theme.iconText)}>
+          <div className={cn("flex h-7 w-7 shrink-0 items-center justify-center rounded-md", theme.badge, theme.iconText)}>
             <ActionIcon className="h-4 w-4" />
           </div>
           <div className="min-w-0">
             <div className="flex flex-wrap items-center gap-2">
-              <h3 className="text-sm font-semibold text-foreground">{action.title}</h3>
+              <h3 className="text-[13px] font-semibold text-foreground">{action.title}</h3>
               {action.badge ? <Badge variant="secondary">{action.badge}</Badge> : null}
             </div>
-            <p className="mt-1 text-xs leading-5 text-muted-foreground">{action.description}</p>
+            <p className="mt-1 line-clamp-2 text-[12px] leading-4 text-muted-foreground">{action.description}</p>
           </div>
         </div>
       </CardContent>
@@ -155,9 +155,9 @@ function WorkspaceActionCard({ action, theme }: { action: WorkspaceAction; theme
 export function WorkspaceQuickInsights({ insights, action }: { insights: WorkspaceInsight[]; action?: { href: string; label: string; icon?: LucideIcon } }) {
   return (
     <Card className="border bg-card shadow-sm">
-      <CardContent className="grid gap-4 p-4 xl:grid-cols-[160px_1fr_auto] xl:items-center">
+      <CardContent className="grid gap-3 p-3 xl:grid-cols-[140px_1fr_auto] xl:items-center">
         <div>
-          <p className="text-sm font-semibold">Quick Insights</p>
+          <p className="text-[13px] font-semibold">Quick Insights</p>
           <p className="mt-1 text-xs text-muted-foreground">Fast counters for today&apos;s workspace.</p>
         </div>
         <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
@@ -165,12 +165,12 @@ export function WorkspaceQuickInsights({ insights, action }: { insights: Workspa
             const theme = workspaceThemes[insight.theme ?? "neutral"];
             const InsightIcon = insight.icon;
             return (
-              <div key={insight.label} className={cn("flex items-center gap-3 rounded-lg border border-slate-200 bg-white p-3 shadow-sm", theme.iconText)}>
-                <div className={cn("flex h-8 w-8 shrink-0 items-center justify-center rounded-lg", theme.badge)}>
+              <div key={insight.label} className={cn("flex items-center gap-2 rounded-lg border border-slate-200 bg-white p-2.5 shadow-sm", theme.iconText)}>
+                <div className={cn("flex h-7 w-7 shrink-0 items-center justify-center rounded-md", theme.badge)}>
                   <InsightIcon className="h-4 w-4" />
                 </div>
                 <div>
-                  <p className="text-lg font-bold leading-none">{insight.value}</p>
+                  <p className="text-[20px] font-bold leading-none">{insight.value}</p>
                   <p className="mt-1 max-w-full overflow-hidden text-ellipsis whitespace-nowrap text-xs font-medium">{insight.label}</p>
                 </div>
               </div>
@@ -191,10 +191,10 @@ export function WorkspaceQuickInsights({ insights, action }: { insights: Workspa
 export function CompactStatList({ insights, action }: { insights: WorkspaceInsight[]; action?: { href: string; label: string; icon?: LucideIcon } }) {
   return (
     <Card className="border bg-card shadow-sm">
-      <CardContent className="p-4">
+      <CardContent className="p-3">
         <div className="mb-3 flex items-center justify-between gap-3">
           <div>
-            <p className="text-sm font-semibold">Quick Insights</p>
+            <p className="text-[13px] font-semibold">Quick Insights</p>
             <p className="mt-0.5 text-xs text-muted-foreground">Today&apos;s key counters.</p>
           </div>
           {action ? (

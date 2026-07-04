@@ -76,9 +76,9 @@ async function notifyNextPrRole(input: {
   nextStatus: PurchaseRequestStatus;
 }) {
   const roleCodesByStatus: Partial<Record<PurchaseRequestStatus, string[]>> = {
-    admin_review: ["operations_admin", "admin", "super_admin"],
-    purchasing_review: ["purchasing", "admin", "super_admin"],
-    pending_approval: ["manager", "admin", "super_admin"],
+    admin_review: ["manager", "admin", "super_admin"],
+    purchasing_review: ["operations_admin", "admin", "super_admin"],
+    pending_approval: ["finance", "admin", "super_admin"],
     approved: ["purchasing", "operations_admin", "admin", "super_admin"],
   };
   const roleCodes = roleCodesByStatus[input.nextStatus] ?? [];
@@ -96,15 +96,15 @@ async function notifyNextPrRole(input: {
   }
 
   const titleByStatus: Partial<Record<PurchaseRequestStatus, string>> = {
-    admin_review: "PR Admin Review required",
-    purchasing_review: "PR Purchasing Review required",
-    pending_approval: "PR Manager Approval required",
+    admin_review: "PR Manager Review required",
+    purchasing_review: "PR Admin Review required",
+    pending_approval: "PR Finance Review required",
     approved: "PR ready to convert to PO",
   };
   const messageByStatus: Partial<Record<PurchaseRequestStatus, string>> = {
-    admin_review: `${input.pr.request_no} is waiting for Admin Review.`,
-    purchasing_review: `${input.pr.request_no} is waiting for Purchasing Review.`,
-    pending_approval: `${input.pr.request_no} is waiting for Manager Approval.`,
+    admin_review: `${input.pr.request_no} is waiting for Manager Review.`,
+    purchasing_review: `${input.pr.request_no} is waiting for Admin Review.`,
+    pending_approval: `${input.pr.request_no} is waiting for Finance Review.`,
     approved: `${input.pr.request_no} is approved and ready to convert to PO.`,
   };
 
@@ -364,11 +364,11 @@ export async function submitPurchaseRequest(id: string) {
       permission: "pr.submit",
       documentStatus: "pending_approval",
       approvalStatus: "pending",
-      step: "Admin Review",
-      message: "Purchase request submitted to Admin Review",
+      step: "Manager Review",
+      message: "Purchase request submitted to Manager Review",
       activityType: "submitted",
     });
-    safeRedirectWithMessage(`/purchase-requests/${id}`, "success", `${pr.request_no} submitted to Admin Review. Administrator has been notified.`);
+    safeRedirectWithMessage(`/purchase-requests/${id}`, "success", `${pr.request_no} submitted to Manager Review. Manager has been notified.`);
   } catch (error) {
     rethrowRedirect(error);
     safeRedirectWithMessage(`/purchase-requests/${id}`, "error", formatActionError(error, "Could not submit this purchase request."));
@@ -382,17 +382,17 @@ export async function adminReviewPurchaseRequest(id: string) {
       id,
       expectedStatus: "admin_review",
       nextStatus: "purchasing_review",
-      permission: "pr.admin_review",
+      permission: "pr.manager_approve",
       documentStatus: "pending_approval",
       approvalStatus: "pending",
-      step: "Purchasing Review",
-      message: "Admin Review completed",
-      activityType: "admin_review_completed",
+      step: "Admin Review",
+      message: "Manager Review completed",
+      activityType: "manager_review_completed",
     });
-    safeRedirectWithMessage(`/purchase-requests/${id}`, "success", `${pr.request_no} Admin Review completed. Purchasing has been notified.`);
+    safeRedirectWithMessage(`/purchase-requests/${id}`, "success", `${pr.request_no} Manager Review completed. Admin has been notified.`);
   } catch (error) {
     rethrowRedirect(error);
-    safeRedirectWithMessage(`/purchase-requests/${id}`, "error", formatActionError(error, "Could not complete Admin Review."));
+    safeRedirectWithMessage(`/purchase-requests/${id}`, "error", formatActionError(error, "Could not complete Manager Review."));
   }
 }
 
@@ -403,17 +403,17 @@ export async function purchasingReviewPurchaseRequest(id: string) {
       id,
       expectedStatus: "purchasing_review",
       nextStatus: "pending_approval",
-      permission: "pr.purchasing_review",
+      permission: "pr.admin_review",
       documentStatus: "pending_approval",
       approvalStatus: "pending",
-      step: "Manager Approval",
-      message: "Purchasing Review completed",
-      activityType: "purchasing_review_completed",
+      step: "Finance Review",
+      message: "Admin Review completed",
+      activityType: "admin_review_completed",
     });
-    safeRedirectWithMessage(`/purchase-requests/${id}`, "success", `${pr.request_no} Purchasing Review completed. Manager has been notified.`);
+    safeRedirectWithMessage(`/purchase-requests/${id}`, "success", `${pr.request_no} Admin Review completed. Finance has been notified.`);
   } catch (error) {
     rethrowRedirect(error);
-    safeRedirectWithMessage(`/purchase-requests/${id}`, "error", formatActionError(error, "Could not complete Purchasing Review."));
+    safeRedirectWithMessage(`/purchase-requests/${id}`, "error", formatActionError(error, "Could not complete Admin Review."));
   }
 }
 
@@ -424,14 +424,14 @@ export async function approvePurchaseRequest(id: string) {
       id,
       expectedStatus: "pending_approval",
       nextStatus: "approved",
-      permission: "pr.manager_approve",
+      permission: "pr.finance_review",
       documentStatus: "approved",
       approvalStatus: "approved",
-      step: "Approved",
-      message: "Manager approved purchase request",
-      activityType: "manager_approved",
+      step: "Ready to Convert",
+      message: "Finance Review completed",
+      activityType: "finance_review_completed",
     });
-    safeRedirectWithMessage(`/purchase-requests/${id}`, "success", `${pr.request_no} Manager Approval completed. Next step has been notified.`);
+    safeRedirectWithMessage(`/purchase-requests/${id}`, "success", `${pr.request_no} Finance Review completed. Purchase request is ready to convert.`);
   } catch (error) {
     rethrowRedirect(error);
     safeRedirectWithMessage(`/purchase-requests/${id}`, "error", formatActionError(error, "Could not approve this purchase request."));
@@ -448,11 +448,11 @@ export async function rejectPurchaseRequest(id: string, formData: FormData) {
     if (prError) throw new Error(prError.message);
     const transition =
       pr.status === "admin_review"
-        ? { expectedStatus: "admin_review" as const, permission: "pr.admin_review", step: "Admin Review" }
+        ? { expectedStatus: "admin_review" as const, permission: "pr.manager_approve", step: "Manager Review" }
         : pr.status === "purchasing_review"
-          ? { expectedStatus: "purchasing_review" as const, permission: "pr.purchasing_review", step: "Purchasing Review" }
+          ? { expectedStatus: "purchasing_review" as const, permission: "pr.admin_review", step: "Admin Review" }
           : pr.status === "pending_approval"
-            ? { expectedStatus: "pending_approval" as const, permission: "pr.manager_approve", step: "Manager Approval" }
+            ? { expectedStatus: "pending_approval" as const, permission: "pr.finance_review", step: "Finance Review" }
             : null;
     if (!transition) throw new Error("This request is not at a rejectable workflow step.");
     const canReject = (await hasPermission("pr.reject")) || (await hasPermission(transition.permission));

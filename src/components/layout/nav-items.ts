@@ -1,12 +1,29 @@
 import {
+  Activity,
   Boxes,
+  Building2,
+  CircleDollarSign,
   ClipboardList,
+  ClipboardCheck,
+  CookingPot,
+  FileDigit,
   Factory,
   FileText,
   Gauge,
+  GitPullRequest,
+  KeyRound,
   LayoutGrid,
+  MapPin,
+  PackageCheck,
+  ReceiptText,
+  Scale,
   Settings,
   ShoppingCart,
+  Truck,
+  UserCheck,
+  UserCog,
+  Users,
+  Warehouse,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import type { UserRole } from "@/types/database";
@@ -18,12 +35,14 @@ export type NavItem = {
   roles?: UserRole[] | "all";
   keywords?: string[];
   disabled?: boolean;
+  badgeKey?: string;
+  attention?: boolean;
 };
 
 export type NavGroup = {
   id: string;
   label: string;
-  icon: LucideIcon;
+  icon?: LucideIcon;
   roles?: UserRole[] | "all";
   items: NavItem[];
 };
@@ -35,63 +54,84 @@ const opsRoles: UserRole[] = ["super_admin", "operations_admin", "admin", "manag
 const procurementRoles: UserRole[] = ["super_admin", "operations_admin", "admin", "manager", "purchasing", "finance", "kitchen_staff", "kitchen"];
 const inventoryRoles: UserRole[] = ["super_admin", "operations_admin", "admin", "manager", "kitchen_staff", "kitchen", "purchasing", "finance"];
 const reportsRoles: UserRole[] = ["super_admin", "operations_admin", "admin", "manager", "finance", "purchasing"];
+const masterDataRoles: UserRole[] = ["super_admin", "operations_admin", "admin", "purchasing"];
+const productionRoles: UserRole[] = ["super_admin", "operations_admin", "admin", "manager", "kitchen_staff", "kitchen"];
 
 export const navGroups: NavGroup[] = [
   {
-    id: "dashboard",
-    label: "Dashboard",
-    icon: Gauge,
+    id: "operations",
+    label: "Operations",
     roles: "all",
-    items: [{ href: "/dashboard", label: "Dashboard", icon: Gauge, roles: "all", keywords: ["home", "alerts", "approvals"] }],
-  },
-  {
-    id: "daily",
-    label: "Daily Operations",
-    icon: LayoutGrid,
-    roles: opsRoles,
-    items: [{ href: "/daily-operations", label: "Daily Operations", icon: LayoutGrid, roles: opsRoles, keywords: ["count", "receive", "wastage", "scan"] }],
+    items: [
+      { href: "/dashboard", label: "Dashboard", icon: Gauge, roles: "all", keywords: ["home", "alerts", "approvals"] },
+      { href: "/daily-operations", label: "Daily Operations", icon: LayoutGrid, roles: opsRoles, keywords: ["count", "receive", "wastage", "scan"] },
+      { href: "/production/jobs", label: "Production Jobs", icon: Factory, roles: productionRoles, badgeKey: "productionJobs", keywords: ["production", "jobs"] },
+      { href: "/purchase-requests", label: "Outlet Requests", icon: GitPullRequest, roles: procurementRoles, badgeKey: "outletRequests", keywords: ["outlet", "requests", "pr"] },
+      { href: "/goods-receivings", label: "Dispatch Board", icon: Truck, roles: opsRoles, badgeKey: "dispatchBoard", keywords: ["dispatch", "receiving", "grn"] },
+    ],
   },
   {
     id: "procurement",
     label: "Procurement",
-    icon: ShoppingCart,
     roles: procurementRoles,
-    items: [{ href: "/procurement", label: "Procurement", icon: ShoppingCart, roles: procurementRoles, keywords: ["purchase", "supplier", "receiving"] }],
+    items: [
+      { href: "/purchase-requests", label: "Purchase Requests", icon: GitPullRequest, roles: procurementRoles, badgeKey: "purchaseRequests", attention: true, keywords: ["pr", "request"] },
+      { href: "/purchase-requests?step=manager_review", label: "Manager Approvals", icon: UserCheck, roles: ["super_admin", "admin", "manager"], badgeKey: "managerApprovals", attention: true, keywords: ["manager", "approve"] },
+      { href: "/purchase-requests?step=admin_review", label: "Admin Review", icon: ClipboardCheck, roles: administratorRoles, badgeKey: "adminReview", attention: true, keywords: ["admin", "review"] },
+      { href: "/purchase-requests?step=finance_review", label: "Finance Review", icon: CircleDollarSign, roles: ["super_admin", "admin", "operations_admin", "finance"], badgeKey: "financeReview", attention: true, keywords: ["finance", "review"] },
+      { href: "/purchase-orders", label: "Purchase Orders", icon: ShoppingCart, roles: procurementRoles, badgeKey: "purchaseOrders", keywords: ["po", "supplier"] },
+      { href: "/purchase-orders?status=approved", label: "Supplier Sending", icon: Truck, roles: ["super_admin", "admin", "operations_admin", "purchasing"], badgeKey: "supplierSending", attention: true, keywords: ["send", "supplier"] },
+      { href: "/documents?type=invoice", label: "Invoices", icon: ReceiptText, roles: ["super_admin", "admin", "operations_admin", "finance", "purchasing"], badgeKey: "invoices", keywords: ["invoice", "finance"] },
+    ],
   },
   {
     id: "inventory",
     label: "Inventory",
-    icon: Boxes,
     roles: inventoryRoles,
-    items: [{ href: "/inventory", label: "Inventory", icon: Boxes, roles: inventoryRoles, keywords: ["stock", "ledger", "barcode"] }],
+    items: [
+      { href: "/stock-balance", label: "Stock Balance", icon: Boxes, roles: inventoryRoles, badgeKey: "stockBalanceAlerts", attention: true, keywords: ["stock", "balance"] },
+      { href: "/stock-counts", label: "Stock Count", icon: ClipboardCheck, roles: inventoryRoles, badgeKey: "stockCounts", keywords: ["count"] },
+      { href: "/stock-transfers", label: "Stock Transfers", icon: Truck, roles: inventoryRoles, badgeKey: "stockTransfers", keywords: ["transfer"] },
+      { href: "/stock-wastage", label: "Stock Wastage", icon: Scale, roles: inventoryRoles, badgeKey: "stockWastage", attention: true, keywords: ["wastage"] },
+      { href: "/stock-transactions", label: "Movement Ledger", icon: Activity, roles: inventoryRoles, keywords: ["ledger", "movement"] },
+      { href: "/opening-stock/import", label: "Opening Stock Import", icon: Warehouse, roles: administratorRoles, keywords: ["opening", "import"] },
+    ],
   },
   {
-    id: "production",
-    label: "Production",
-    icon: Factory,
-    roles: ["super_admin", "operations_admin", "admin", "manager", "kitchen_staff", "kitchen"],
-    items: [{ href: "/production", label: "Production", icon: Factory, roles: ["super_admin", "operations_admin", "admin", "manager", "kitchen_staff", "kitchen"], keywords: ["recipes", "production jobs"] }],
+    id: "master-data",
+    label: "Master Data",
+    roles: masterDataRoles,
+    items: [
+      { href: "/items", label: "Items", icon: PackageCheck, roles: masterDataRoles, keywords: ["items", "sku"] },
+      { href: "/suppliers", label: "Suppliers", icon: Users, roles: masterDataRoles, keywords: ["suppliers"] },
+      { href: "/recipes", label: "Recipes / BOM", icon: CookingPot, roles: ["super_admin", "admin", "operations_admin", "purchasing", "manager"], keywords: ["recipes", "bom"] },
+      { href: "/uom-conversions", label: "UOM Conversions", icon: Scale, roles: masterDataRoles, keywords: ["uom", "conversion"] },
+      { href: "/branches", label: "Branches", icon: Building2, roles: administratorRoles, keywords: ["branches"] },
+      { href: "/locations", label: "Locations", icon: MapPin, roles: administratorRoles, keywords: ["locations"] },
+      { href: "/document-sequences", label: "Document Sequences", icon: FileDigit, roles: administratorRoles, keywords: ["numbering", "sequences"] },
+    ],
   },
   {
-    id: "documents",
-    label: "Documents",
-    icon: FileText,
+    id: "analytics",
+    label: "Analytics",
     roles: allRoles,
-    items: [{ href: "/documents", label: "Documents", icon: FileText, roles: allRoles, keywords: ["approvals", "attachments"] }],
-  },
-  {
-    id: "reports",
-    label: "Reports",
-    icon: ClipboardList,
-    roles: reportsRoles,
-    items: [{ href: "/reports", label: "Reports", icon: ClipboardList, roles: reportsRoles, keywords: ["summary", "approval", "purchase"] }],
+    items: [
+      { href: "/documents", label: "Documents", icon: FileText, roles: allRoles, keywords: ["documents", "audit"] },
+      { href: "/reports", label: "Reports", icon: ClipboardList, roles: reportsRoles, keywords: ["summary", "approval", "purchase"] },
+      { href: "/activity", label: "Activity Log", icon: Activity, roles: ["super_admin", "admin", "operations_admin", "manager", "finance", "purchasing"], keywords: ["activity", "log"] },
+    ],
   },
   {
     id: "settings",
     label: "Settings",
-    icon: Settings,
     roles: administratorRoles,
-    items: [{ href: "/settings", label: "Settings", icon: Settings, roles: administratorRoles, keywords: ["company", "staff", "roles"] }],
+    items: [
+      { href: "/company", label: "Company Settings", icon: Building2, roles: administratorRoles, keywords: ["company", "logo"] },
+      { href: "/account", label: "Account Settings", icon: KeyRound, roles: "all", keywords: ["profile", "password"] },
+      { href: "/settings", label: "System Preferences", icon: Settings, roles: administratorRoles, keywords: ["settings"] },
+      { href: "/roles", label: "Roles & Permissions", icon: UserCog, roles: administratorRoles, keywords: ["roles", "permissions"] },
+      { href: "/staffs", label: "Staff Management", icon: Users, roles: administratorRoles, badgeKey: "staffManagement", keywords: ["staff", "invite"] },
+    ],
   },
 ];
 
@@ -121,12 +161,12 @@ export const searchableNavItems = [
   { href: "/stock-counts", label: "Stock Counts", group: "Daily Operations", keywords: ["count", "branch"] },
   { href: "/stock-transfers", label: "Stock Transfers", group: "Daily Operations", keywords: ["transfer", "branch"] },
   { href: "/stock-wastage", label: "Stock Wastage", group: "Daily Operations", keywords: ["waste", "branch"] },
-  { href: "/items", label: "Items", group: "Inventory", keywords: ["barcode", "sku"] },
+  { href: "/items", label: "Items", group: "Master Data", keywords: ["barcode", "sku"] },
   { href: "/stock-balance", label: "Stock Balance", group: "Inventory", keywords: ["branch", "location", "ledger"] },
   { href: "/stock-card", label: "Stock Card", group: "Inventory", keywords: ["ledger", "movement"] },
   { href: "/company", label: "Company", group: "Settings", keywords: ["logo", "branding"] },
-  { href: "/branches", label: "Branches", group: "Settings", keywords: ["default store", "location"] },
-  { href: "/locations", label: "Locations", group: "Settings", keywords: ["store", "default"] },
+  { href: "/branches", label: "Branches", group: "Master Data", keywords: ["default store", "location"] },
+  { href: "/locations", label: "Locations", group: "Master Data", keywords: ["store", "default"] },
   { href: "/staffs", label: "Staff", group: "Settings", keywords: ["invite", "roles"] },
   { href: "/roles", label: "Roles", group: "Settings", keywords: ["permission"] },
   { href: "/settings/backups", label: "System Backup", group: "Settings", keywords: ["backup", "export", "owner"] },

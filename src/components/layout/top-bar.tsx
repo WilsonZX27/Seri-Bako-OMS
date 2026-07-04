@@ -19,11 +19,11 @@ export async function TopBar() {
   const initials = (account?.full_name ?? account?.email ?? "U").slice(0, 2).toUpperCase();
 
   return (
-    <header className="grid h-16 grid-cols-[minmax(0,1fr)_minmax(300px,520px)_minmax(0,1fr)] items-center gap-4 border-b bg-card px-5 max-lg:grid-cols-[minmax(0,1fr)_auto]">
+    <header className="grid h-12 grid-cols-[minmax(0,1fr)_minmax(300px,520px)_minmax(0,1fr)] items-center gap-3 border-b bg-card px-4 max-lg:grid-cols-[minmax(0,1fr)_auto]">
       <div className="flex min-w-0 items-center gap-3">
         <MobileSidebar role={role} companyName={branding.company_name} companyLogoUrl={branding.logo_url} />
         <div className="min-w-0 space-y-1">
-          <p className="truncate text-sm font-medium">Operations Workspace</p>
+          <p className="truncate text-[12px] font-medium">Operations Workspace</p>
           <Breadcrumbs />
         </div>
       </div>
@@ -33,16 +33,16 @@ export async function TopBar() {
       <div data-testid="topbar-account-region" className="flex items-center justify-end gap-3">
         <TopBarActivityMenu data={activity} />
         <details className="group relative">
-          <summary className="flex cursor-pointer list-none items-center gap-2 rounded-full border bg-white px-2 py-1.5 text-left shadow-sm hover:bg-secondary">
-            <span className="flex h-8 w-8 items-center justify-center overflow-hidden rounded-full bg-primary/10 text-xs font-semibold text-primary">
+          <summary className="flex cursor-pointer list-none items-center gap-2 rounded-full border bg-white px-2 py-1 text-left shadow-sm hover:bg-secondary">
+            <span className="flex h-7 w-7 items-center justify-center overflow-hidden rounded-full bg-primary/10 text-[11px] font-semibold text-primary">
               {account?.avatar_url ? (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img src={account.avatar_url} alt="" className="h-full w-full object-cover" />
               ) : initials}
             </span>
             <span className="hidden min-w-0 text-right sm:block">
-              <span className="block max-w-36 truncate text-sm font-medium">{profile?.full_name ?? "Signed in"}</span>
-              <span className="block text-xs text-muted-foreground">{getRoleDisplayLabel(role)}</span>
+              <span className="block max-w-36 truncate text-[12px] font-medium">{profile?.full_name ?? "Signed in"}</span>
+              <span className="block text-[11px] text-muted-foreground">{getRoleDisplayLabel(role)}</span>
             </span>
             <ChevronDown className="h-4 w-4 text-muted-foreground" />
           </summary>

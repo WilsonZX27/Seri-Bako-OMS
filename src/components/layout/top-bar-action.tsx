@@ -21,6 +21,21 @@ const actions = [
 
 export function TopBarAction() {
   const pathname = usePathname();
+  const actionRoutes = new Set([
+    "/dashboard",
+    "/production/jobs",
+    "/goods-receivings",
+    "/suppliers",
+    "/stock-counts",
+    "/stock-transfers",
+    "/stock-wastage",
+    "/stock-transactions",
+    "/items",
+    "/purchase-orders",
+    "/roles",
+    "/purchase-requests",
+  ]);
+  if (!actionRoutes.has(pathname)) return null;
   const action = actions.find((item) => item.match.test(pathname)) ?? actions[actions.length - 1];
 
   return (

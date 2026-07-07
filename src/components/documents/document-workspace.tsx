@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 import { ChevronRight } from "lucide-react";
 import { DocumentNumber } from "@/components/document-number";
 import { PriorityBadge } from "@/components/priority-badge";
+import { WorkspaceGrid } from "@/components/layout/workspace-layout";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { WorkflowStatusPipeline, type WorkflowStep } from "@/components/workflow-status-pipeline";
 import { cn } from "@/lib/utils";
@@ -63,12 +64,9 @@ export function DocumentWorkspace({
         </div>
       </header>
 
-      <main className="grid min-h-0 gap-3 p-3 xl:grid-cols-[minmax(0,1fr)_320px] 2xl:grid-cols-[minmax(0,1120px)_340px]">
+      <WorkspaceGrid className="p-3" rightRail={<div className="space-y-3">{sidePanel}</div>}>
         <div className="min-w-0 space-y-3">{children}</div>
-        <aside className="min-w-0 space-y-3 xl:sticky xl:top-3 xl:max-h-[calc(100dvh-92px)] xl:overflow-y-auto xl:pr-1">
-          {sidePanel}
-        </aside>
-      </main>
+      </WorkspaceGrid>
     </>
   );
 }

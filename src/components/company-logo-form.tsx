@@ -13,6 +13,9 @@ type CompanyLogoFormProps = {
   logoError?: string;
   uploadAction: (formData: FormData) => Promise<void>;
   removeAction: () => Promise<void>;
+  uploadFormId?: string;
+  removeFormId?: string;
+  showActions?: boolean;
 };
 
 export function CompanyLogoForm({
@@ -21,6 +24,9 @@ export function CompanyLogoForm({
   logoError,
   uploadAction,
   removeAction,
+  uploadFormId = "company-logo-upload-form",
+  removeFormId = "company-logo-remove-form",
+  showActions = true,
 }: CompanyLogoFormProps) {
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const visibleLogo = previewUrl ?? logoUrl ?? null;
@@ -29,11 +35,11 @@ export function CompanyLogoForm({
 
   return (
     <Card>
-      <CardHeader>
+      <CardHeader className="p-4 pb-2">
         <CardTitle>Company Logo</CardTitle>
         <CardDescription>Upload a logo for the sidebar brand area. Maximum size is 2MB.</CardDescription>
       </CardHeader>
-      <CardContent className="space-y-4">
+      <CardContent className="space-y-3 p-4 pt-2">
         <div className="flex items-center gap-4">
           <div className="flex h-20 w-20 items-center justify-center overflow-hidden rounded-md border bg-secondary">
             {visibleLogo ? (
@@ -51,7 +57,7 @@ export function CompanyLogoForm({
 
         {logoError ? <p className="rounded-md border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive">{logoError}</p> : null}
 
-        <form action={uploadAction} className="space-y-3">
+        <form id={uploadFormId} action={uploadAction} className="space-y-3">
           <input type="hidden" name="company_id" value={companyId} />
           <Field label="Logo image">
             <Input
@@ -65,19 +71,23 @@ export function CompanyLogoForm({
               }}
             />
           </Field>
-          <div className="flex flex-wrap justify-end gap-2">
-            <SubmitButton type="submit" pendingLabel="Saving..." showOverlay overlayLabel="Saving changes...">
-              <Upload className="h-4 w-4" />
-              Upload logo
-            </SubmitButton>
-          </div>
+          {showActions ? (
+            <div className="flex flex-wrap justify-end gap-2">
+              <SubmitButton type="submit" pendingLabel="Saving..." showOverlay overlayLabel="Saving changes...">
+                <Upload className="h-4 w-4" />
+                Upload logo
+              </SubmitButton>
+            </div>
+          ) : null}
         </form>
         {logoUrl ? (
-          <form action={removeAction} className="flex justify-end">
-            <SubmitButton type="submit" variant="outline" pendingLabel="Saving..." showOverlay overlayLabel="Saving changes...">
-              <Trash2 className="h-4 w-4" />
-              Remove
-            </SubmitButton>
+          <form id={removeFormId} action={removeAction} className="flex justify-end">
+            {showActions ? (
+              <SubmitButton type="submit" variant="outline" pendingLabel="Saving..." showOverlay overlayLabel="Saving changes...">
+                <Trash2 className="h-4 w-4" />
+                Remove
+              </SubmitButton>
+            ) : null}
           </form>
         ) : null}
       </CardContent>

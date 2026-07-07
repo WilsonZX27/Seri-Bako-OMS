@@ -107,11 +107,11 @@ function CompanyHidden({ companies, companyId }: { companies: SelectCompany[]; c
   return <input type="hidden" name="company_id" value={id} />;
 }
 
-export function CompanyForm({ company, action }: { company: Company; action: (formData: FormData) => Promise<void> }) {
+export function CompanyForm({ company, action, formId = "company-form", showSubmit = true }: { company: Company; action: (formData: FormData) => Promise<void>; formId?: string; showSubmit?: boolean }) {
   return (
     <Card>
       <CardContent className="p-5">
-        <form action={action} className="grid gap-4 md:grid-cols-2">
+        <form id={formId} action={action} className="grid gap-3 md:grid-cols-2">
           <Field label="Company Code">
             <Input name="company_code" defaultValue={company.company_code} required />
           </Field>
@@ -138,9 +138,11 @@ export function CompanyForm({ company, action }: { company: Company; action: (fo
               <Textarea name="address" defaultValue={company.address ?? ""} />
             </Field>
           </div>
-          <div className="flex justify-end md:col-span-2">
-            <SubmitButton type="submit" pendingLabel="Saving..." showOverlay overlayLabel="Saving changes...">Save company</SubmitButton>
-          </div>
+          {showSubmit ? (
+            <div className="flex justify-end md:col-span-2">
+              <SubmitButton type="submit" pendingLabel="Saving..." showOverlay overlayLabel="Saving changes...">Save company</SubmitButton>
+            </div>
+          ) : null}
         </form>
       </CardContent>
     </Card>

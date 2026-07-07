@@ -31,7 +31,6 @@ export default async function GoodsReceivingsPage({ searchParams }: { searchPara
         title="Goods Receiving"
         description="Receive supplier deliveries against approved purchase orders. Stock increases only after GRN posting."
         action={{ href: "/goods-receivings/new", label: "New GRN" }}
-        secondaryAction={{ href: "/goods-receivings/scan", label: "Scan Mode" }}
       />
       <WorkspaceGrid
         rightRail={
@@ -56,9 +55,6 @@ export default async function GoodsReceivingsPage({ searchParams }: { searchPara
                   <p className="text-[10px] font-semibold uppercase tracking-[0.04em] text-muted-foreground">Rejected Qty</p>
                   <p className="mt-1 text-lg font-semibold">{formatNumber(rejectedTotal)}</p>
                 </div>
-                <Button asChild variant="outline" className="w-full">
-                  <Link href="/goods-receivings/scan">Scan Mode</Link>
-                </Button>
               </div>
             </section>
           </>

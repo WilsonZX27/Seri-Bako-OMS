@@ -8,7 +8,6 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Field } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { SelectNative } from "@/components/ui/select-native";
-import { SubmitButton } from "@/components/ui/submit-button";
 import { Textarea } from "@/components/ui/textarea";
 import { formatCurrency, formatNumber } from "@/lib/utils";
 import type { EligiblePurchaseOrder, PurchaseOrderReceivingLine } from "@/server/queries/goods-receivings";
@@ -70,10 +69,10 @@ export function GoodsReceivingForm({
   return (
     <Card>
       <CardContent className="p-5">
-        <form action={action} className="space-y-5">
+        <form id="goods-receiving-form" action={action} className="space-y-3">
           <input type="hidden" name="grn_no" value={grnNo} />
           <input type="hidden" name="status" value="draft" />
-          <div className="grid gap-4 lg:grid-cols-3">
+          <div className="grid gap-3 lg:grid-cols-3">
             <Field label="Purchase Order" required>
               <SelectNative value={selectedOrder?.id ?? ""} onChange={(event) => selectPo(event.target.value)} required>
                 <option value="">Select approved/sent PO</option>
@@ -107,16 +106,16 @@ export function GoodsReceivingForm({
             <>
               <input type="hidden" name="purchase_order_id" value={selectedOrder.id} />
               <input type="hidden" name="supplier_id" value={selectedOrder.supplier_id} />
-              <div className="grid gap-3 rounded-lg border bg-secondary/30 p-4 md:grid-cols-[1fr_auto]">
+              <div className="grid gap-2 rounded-lg border bg-secondary/30 p-3 md:grid-cols-[1fr_auto]">
                 <div>
-                  <p className="text-sm font-semibold">Barcode Receiving</p>
+                  <p className="text-xs font-semibold">Barcode Receiving</p>
                   <p className="text-xs text-muted-foreground">Search item code, item name, or barcode. Type or scan into the search field, then press Enter.</p>
                 </div>
                 <div className="flex gap-2">
                   <Input value={barcode} onChange={(event) => setBarcode(event.target.value)} onKeyDown={(event) => event.key === "Enter" ? (event.preventDefault(), scanBarcode()) : undefined} placeholder="Scan barcode" />
                   <Button type="button" onClick={scanBarcode}>
                     <ScanLine className="mr-2 h-4 w-4" />
-                    Scan
+                    Match
                   </Button>
                 </div>
                 {scanMessage ? (
@@ -127,7 +126,7 @@ export function GoodsReceivingForm({
               <div className="rounded-lg border">
                 <div className="flex flex-col gap-2 border-b bg-secondary/40 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
                   <div>
-                    <p className="text-sm font-semibold">Receiving Lines</p>
+                    <p className="text-xs font-semibold">Receiving Lines</p>
                     <p className="text-xs text-muted-foreground">Draft does not affect stock. Stock increases only after posting this GRN.</p>
                   </div>
                   <div className="text-sm">
@@ -136,7 +135,7 @@ export function GoodsReceivingForm({
                 </div>
                 <div className="divide-y">
                   {lines.map((line) => (
-                    <div key={line.id} id={`line-${line.id}`} className={`grid gap-3 p-4 xl:grid-cols-[2fr_repeat(5,110px)_130px_130px_1.3fr] ${matchedLineId === line.id ? "bg-accent/10" : ""}`}>
+                    <div key={line.id} id={`line-${line.id}`} className={`grid gap-2 p-3 xl:grid-cols-[2fr_repeat(5,96px)_112px_112px_1.3fr] ${matchedLineId === line.id ? "bg-accent/10" : ""}`}>
                       <div>
                         <p className="font-medium">{line.item?.item_name ?? line.item_id}</p>
                         <p className="text-xs text-muted-foreground">{line.item?.item_code} - {line.item?.barcode ?? line.item?.internal_barcode ?? "No barcode"}</p>
@@ -177,10 +176,6 @@ export function GoodsReceivingForm({
               <p className="mt-1 text-sm text-muted-foreground">Only approved, sent, or partially received POs can be received.</p>
             </div>
           )}
-
-          <div className="flex justify-end">
-            <SubmitButton type="submit" disabled={!selectedOrder || !lines.length} pendingLabel="Saving..." showOverlay overlayLabel="Saving changes...">Create draft GRN</SubmitButton>
-          </div>
         </form>
       </CardContent>
     </Card>

@@ -8,7 +8,6 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Field } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
-import { SubmitButton } from "@/components/ui/submit-button";
 import { SelectNative } from "@/components/ui/select-native";
 import { Textarea } from "@/components/ui/textarea";
 import { defaultUoms, normalizeUom, uomOptionsWithCurrent } from "@/lib/uom";
@@ -156,21 +155,20 @@ export function PurchaseRequestForm({
     <>
     <Card>
       <CardContent className="space-y-5 p-5">
-        <form action={action} className="space-y-5">
+        <form id="purchase-request-form" action={action} className="space-y-3">
           <input type="hidden" name="request_no" value="" />
           <input type="hidden" name="status" value="draft" />
-          <div className="flex flex-col gap-3 border-b pb-4 md:flex-row md:items-center md:justify-between">
+          <div className="flex flex-col gap-2 border-b pb-3 md:flex-row md:items-center md:justify-between">
             <div>
               <div className="flex flex-wrap items-center gap-2">
                 <Badge variant="secondary">Draft</Badge>
-                <h2 className="text-lg font-semibold">Create purchase request</h2>
+                <h2 className="text-sm font-semibold">Create purchase request</h2>
               </div>
-              <p className="mt-1 text-sm text-muted-foreground">Request number is auto-generated on submit.</p>
+              <p className="mt-1 text-xs text-muted-foreground">Request number is auto-generated on submit.</p>
             </div>
-            <SubmitButton type="submit" pendingLabel="Saving..." showOverlay overlayLabel="Saving changes...">Create purchase request</SubmitButton>
           </div>
 
-          <div className="grid gap-3 rounded-lg border bg-white p-3 shadow-sm md:grid-cols-4">
+          <div className="grid gap-2 rounded-lg border bg-white p-2 md:grid-cols-4">
             {[
               ["draft", "Draft"],
               ["pending_approval", "Pending Approval"],
@@ -179,22 +177,22 @@ export function PurchaseRequestForm({
             ].map(([key, label], index) => {
               const Icon = index === 0 ? CircleDot : index < 0 ? CheckCircle2 : Circle;
               return (
-                <div key={key} className={`rounded-md border p-3 ${stageVariant(index)}`}>
+                <div key={key} className={`rounded-md border px-2 py-1.5 ${stageVariant(index)}`}>
                   <div className="flex items-center gap-2">
-                    <Icon className="h-4 w-4" />
-                    <p className="text-sm font-medium">{label}</p>
+                    <Icon className="h-3.5 w-3.5" />
+                    <p className="text-xs font-medium">{label}</p>
                   </div>
                 </div>
               );
             })}
           </div>
 
-          <section className="rounded-lg border bg-card p-4">
-            <div className="mb-4">
-              <p className="text-sm font-semibold">Main details</p>
+          <section className="rounded-lg border bg-card p-3">
+            <div className="mb-3">
+              <p className="text-xs font-semibold">Main details</p>
               <p className="mt-1 text-xs text-muted-foreground">Branch, dates, urgency, and the main request reason.</p>
             </div>
-            <div className="grid gap-4 md:grid-cols-3">
+            <div className="grid gap-3 md:grid-cols-3">
               <Field label="Request Date" required>
                 <Input name="request_date" type="date" defaultValue={today()} required />
               </Field>
@@ -230,9 +228,9 @@ export function PurchaseRequestForm({
           </section>
 
           <div className="rounded-lg border">
-            <div className="flex items-center justify-between border-b bg-secondary/40 px-4 py-3">
+            <div className="flex items-center justify-between border-b bg-secondary/40 px-3 py-2">
               <div>
-                <p className="text-sm font-semibold">Requested Items</p>
+                <p className="text-xs font-semibold">Requested Items</p>
                 <p className="text-xs text-muted-foreground">Search by item code or item name. UOM, supplier, and cost fill from the item master.</p>
               </div>
               <div className="flex items-center gap-2">
@@ -245,7 +243,8 @@ export function PurchaseRequestForm({
             </div>
             <div className="divide-y">
               {lines.map((line) => (
-                <div key={line.key} className="grid gap-3 p-4 md:grid-cols-2 xl:grid-cols-12">
+                <div key={line.key} className="grid gap-2 p-3 md:grid-cols-2 xl:grid-cols-[36px_repeat(12,minmax(0,1fr))]">
+                  <div className="hidden items-center justify-center rounded border bg-secondary/40 text-xs font-semibold text-muted-foreground xl:flex">{line.key + 1}</div>
                   <div className="space-y-2 xl:col-span-4">
                     <Field label="Item" required>
                       <Input
@@ -291,7 +290,7 @@ export function PurchaseRequestForm({
                     <Input name="line_remarks" value={line.remarks} onChange={(event) => updateLine(line.key, { remarks: event.target.value })} placeholder="Optional" />
                   </Field>
                   </div>
-                  <div className="flex items-end md:justify-end xl:col-span-12">
+                  <div className="flex items-end md:justify-end xl:col-span-13">
                     <Button type="button" variant="ghost" size="icon" aria-label="Remove line" disabled={lines.length === 1} onClick={() => setLines((current) => current.filter((row) => row.key !== line.key))}>
                       <X className="h-4 w-4" />
                     </Button>
@@ -307,10 +306,6 @@ export function PurchaseRequestForm({
               <option key={item.id} value={itemLabel(item)} />
             ))}
           </datalist>
-
-          <div className="flex justify-end border-t pt-4">
-            <SubmitButton type="submit" pendingLabel="Saving..." showOverlay overlayLabel="Saving changes...">Create purchase request</SubmitButton>
-          </div>
         </form>
       </CardContent>
     </Card>
@@ -433,11 +428,11 @@ export function PurchaseOrderForm({
   return (
     <Card>
       <CardContent className="p-5">
-        <form action={action} className="space-y-5">
+        <form id="purchase-order-form" action={action} className="space-y-3">
           <input type="hidden" name="po_no" value={poNo} />
           <input type="hidden" name="status" value="draft" />
           <input type="hidden" name="approval_status" value="draft" />
-          <div className="grid gap-4 md:grid-cols-3">
+          <div className="grid gap-3 md:grid-cols-3">
             <Field label="PO No">
               <div className="rounded-md border bg-secondary/30 px-3 py-2 text-sm text-muted-foreground">Auto-generated on submit</div>
             </Field>
@@ -460,13 +455,14 @@ export function PurchaseOrderForm({
           </div>
 
           <div className="rounded-lg border">
-            <div className="border-b bg-secondary/40 px-4 py-3">
-              <p className="text-sm font-semibold">Ordered Items</p>
+            <div className="border-b bg-secondary/40 px-3 py-2">
+              <p className="text-xs font-semibold">Ordered Items</p>
               <p className="text-xs text-muted-foreground">Pending quantity is calculated from ordered minus received and cancelled.</p>
             </div>
             <div className="divide-y">
               {[0, 1, 2, 3, 4].map((index) => (
-                <div key={index} className="grid gap-3 p-4 lg:grid-cols-[2fr_120px_120px_120px_90px_130px]">
+                <div key={index} className="grid gap-2 p-3 lg:grid-cols-[32px_2fr_100px_100px_100px_84px_112px]">
+                  <div className="hidden items-center justify-center rounded border bg-secondary/40 text-xs font-semibold text-muted-foreground lg:flex">{index + 1}</div>
                   <ItemSelect items={items} required={index === 0} />
                   <Input name="line_qty_ordered" type="number" min="0.0001" step="0.0001" placeholder="Ordered" required={index === 0} />
                   <Input name="line_qty_received" type="number" min="0" step="0.0001" placeholder="Received" defaultValue={0} />
@@ -483,9 +479,6 @@ export function PurchaseOrderForm({
             </div>
           </div>
 
-          <div className="flex justify-end">
-            <SubmitButton type="submit" pendingLabel="Saving..." showOverlay overlayLabel="Saving changes...">Create purchase order</SubmitButton>
-          </div>
         </form>
       </CardContent>
     </Card>

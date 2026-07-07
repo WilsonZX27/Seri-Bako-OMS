@@ -8,6 +8,7 @@ import { PageHeader } from "@/components/ui/page-header";
 import { SubmitButton } from "@/components/ui/submit-button";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { canAssignRoleCode, getRoleDisplayLabel, normalizeRoleCode, sortRolesForDisplay } from "@/lib/roles";
+import { formatStatusLabel } from "@/lib/status-label";
 import { disableStaff, enableStaff, forceStaffPasswordChange, permanentlyDeleteStaff, resendStaffInvite, resetStaffTemporaryPassword, updateStaff } from "@/server/actions/foundation";
 import { roleDescriptions } from "@/server/auth/permissions";
 import { getCurrentProfile } from "@/server/queries/common";
@@ -49,21 +50,6 @@ function getRoleSummary(roleCode?: string | null) {
   return roleSummaries[normalized] ?? roleSummaries.viewer;
 }
 
-const permissionGroups = [
-  {
-    title: "Procurement",
-    permissions: ["Create Purchase Request", "Submit Purchase Request", "Manager Approve PR", "Admin Key In / Review", "Finance Review", "Convert PR to PO", "Send PO to Supplier"],
-  },
-  {
-    title: "Inventory",
-    permissions: ["View Stock Balance", "Create Stock Count", "Create Stock Transfer", "Record Wastage", "View Movement Ledger", "Import Opening Stock"],
-  },
-  {
-    title: "Master Data / Admin",
-    permissions: ["Manage Items", "Manage Suppliers", "Manage UOM Conversions", "Manage Branches", "Manage Locations", "Manage Staff", "Manage Roles & Permissions"],
-  },
-];
-
 export default async function EditStaffPage({
   params,
   searchParams,
@@ -86,7 +72,6 @@ export default async function EditStaffPage({
   const roles = sortRolesForDisplay(allRoles).filter((role) => canAssignRoleCode(currentRole, role.role_code) || role.id === assignedRole?.id);
   const roleCode = normalizeRoleCode(assignedRole?.role_code);
   const roleSummary = getRoleSummary(assignedRole?.role_code);
-  const allowedSummaryItems = roleSummary.allowed as readonly string[];
   const formId = "staff-edit-form";
   const branchName = access.staffBranch?.branch_id ? branches.find((branch) => branch.id === access.staffBranch?.branch_id)?.branch_name ?? "-" : "-";
 
@@ -109,6 +94,27 @@ export default async function EditStaffPage({
                 Save Staff
               </Button>
 
+              <div className="grid gap-2">
+                {staff.status === "disabled" ? (
+                  <form action={enableStaff.bind(null, id)}>
+                    <SubmitButton type="submit" variant="outline" className="w-full" pendingLabel="Processing...">
+                      Reactivate staff
+                    </SubmitButton>
+                  </form>
+                ) : (
+                  <DangerConfirmForm
+                    action={disableStaff.bind(null, id)}
+                    title="Disable sign-in?"
+                    description="This staff will no longer be able to sign in. Existing documents and stock history will remain linked."
+                    warning="This action is blocked if it would deactivate the last Super Admin / Owner."
+                    checkboxLabel="I understand this staff will no longer be able to sign in."
+                    confirmWord="DISABLE"
+                    buttonLabel="Disable sign-in"
+                    pendingLabel="Disabling..."
+                  />
+                )}
+              </div>
+
               <div className="rounded-lg border bg-secondary/30 p-3">
                 <p className="text-sm font-semibold">Auth Setup</p>
                 <p className="mt-1 text-xs text-muted-foreground">Temporary password is recommended for internal staff. Email invitation is optional and can expire.</p>
@@ -127,7 +133,7 @@ export default async function EditStaffPage({
                   </div>
                   <div className="flex justify-between gap-3">
                     <span className="text-muted-foreground">Invitation</span>
-                    <span className="font-medium">{staff.invitation_status ?? staff.status}</span>
+                    <span className="font-medium">{formatStatusLabel(staff.invitation_status ?? staff.status)}</span>
                   </div>
                 </div>
                 <div className="mt-4 space-y-2">
@@ -153,42 +159,19 @@ export default async function EditStaffPage({
                 <p className="font-semibold">Permission Summary</p>
                 <p className="mt-1 text-muted-foreground">{getRoleDisplayLabel(assignedRole?.role_code, assignedRole?.role_name)}</p>
                 <p className="mt-2 text-xs text-muted-foreground">{roleDescriptions[roleCode as keyof typeof roleDescriptions] ?? "No role summary available."}</p>
-                <div className="mt-3 grid gap-3">
+                <div className="mt-3 grid gap-3 text-xs">
                   <div>
                     <p className="text-xs font-medium uppercase text-emerald-800">Allowed</p>
-                    <ul className="mt-1 space-y-1 text-xs text-emerald-950">
+                    <ul className="mt-1 space-y-1 text-emerald-950">
                       {roleSummary.allowed.map((item) => <li key={item}>- {item}</li>)}
                     </ul>
                   </div>
                   <div>
                     <p className="text-xs font-medium uppercase text-slate-600">Not allowed</p>
-                    <ul className="mt-1 space-y-1 text-xs text-slate-700">
+                    <ul className="mt-1 space-y-1 text-slate-700">
                       {roleSummary.denied.map((item) => <li key={item}>- {item}</li>)}
                     </ul>
                   </div>
-                </div>
-              </div>
-
-              <div className="rounded-lg border bg-white p-3">
-                <p className="text-sm font-semibold">Function Permissions</p>
-                <p className="mt-1 text-xs text-muted-foreground">Role-derived checklist. Additional responsibilities can be assigned through Roles & Permissions.</p>
-                <div className="mt-3 space-y-3">
-                  {permissionGroups.map((group) => (
-                    <div key={group.title}>
-                      <p className="text-[11px] font-semibold uppercase text-muted-foreground">{group.title}</p>
-                      <div className="mt-1 grid gap-1">
-                        {group.permissions.map((permission) => {
-                          const allowed = allowedSummaryItems.some((item) => permission.toLowerCase().includes(item.toLowerCase().split(" ")[0])) || allowedSummaryItems.includes("No standard restrictions");
-                          return (
-                            <div key={permission} className="flex items-center gap-2 text-xs">
-                              <span className={`h-2 w-2 rounded-full ${allowed ? "bg-emerald-500" : "bg-slate-300"}`} />
-                              <span className={allowed ? "text-foreground" : "text-muted-foreground"}>{permission}</span>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    </div>
-                  ))}
                 </div>
               </div>
 
@@ -216,24 +199,6 @@ export default async function EditStaffPage({
             </RecordActionPanel>
 
             <RecordActionPanel title="Danger Zone" description="Status and removal actions require confirmation.">
-              {staff.status === "disabled" ? (
-                  <form action={enableStaff.bind(null, id)}>
-                    <SubmitButton type="submit" variant="outline" pendingLabel="Processing...">
-                      Enable user
-                    </SubmitButton>
-                  </form>
-              ) : (
-                <DangerConfirmForm
-                  action={disableStaff.bind(null, id)}
-                  title="Disable sign-in?"
-                  description="This staff will no longer be able to sign in. Existing documents and stock history will remain linked."
-                  warning="This action is blocked if it would deactivate the last Super Admin / Owner."
-                  checkboxLabel="I understand this staff will no longer be able to sign in."
-                  confirmWord="DISABLE"
-                  buttonLabel="Disable sign-in"
-                  pendingLabel="Disabling..."
-                />
-              )}
               <DangerConfirmForm
                 action={permanentlyDeleteStaff.bind(null, id)}
                 title="Permanent delete staff"

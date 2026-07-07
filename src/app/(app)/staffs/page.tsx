@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { Eye } from "lucide-react";
 import { BulkSelectAllCheckbox, BulkSelectionProvider, BulkSelectRowCheckbox } from "@/components/bulk-selection";
-import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { DataGridHint } from "@/components/ui/data-grid-hint";
 import { DataGridRow } from "@/components/ui/data-grid-row";
@@ -10,6 +9,7 @@ import { MasterDataFilters } from "@/components/master-data-filters";
 import { PageHeader } from "@/components/ui/page-header";
 import { StatusTabs } from "@/components/status-tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { StatusBadge } from "@/components/ui/status-badge";
 import { getStaffs } from "@/server/queries/foundation";
 
 function formatDate(value?: string | null) {
@@ -66,7 +66,7 @@ export default async function StaffsPage({ searchParams }: { searchParams: Promi
               <TableCell>{staff.email ?? "-"}</TableCell>
               <TableCell>{staff.default_branch_name ?? "-"}</TableCell>
               <TableCell>{staff.role_name ?? "-"}</TableCell>
-              <TableCell><Badge variant={staff.status === "active" ? "success" : staff.status === "disabled" ? "danger" : "secondary"}>{staff.status}</Badge></TableCell>
+              <TableCell><StatusBadge status={staff.status} /></TableCell>
               <TableCell>{formatDate(staff.last_login_at)}</TableCell>
               <TableCell>{formatDate(staff.invited_at)}</TableCell>
               <TableCell>{formatDate(staff.accepted_at)}</TableCell>

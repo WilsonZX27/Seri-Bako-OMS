@@ -8,7 +8,6 @@ import {
   CookingPot,
   FileDigit,
   Factory,
-  FileText,
   Gauge,
   GitPullRequest,
   KeyRound,
@@ -116,7 +115,6 @@ export const navGroups: NavGroup[] = [
     label: "Analytics",
     roles: allRoles,
     items: [
-      { href: "/documents", label: "Documents", icon: FileText, roles: allRoles, keywords: ["documents", "audit"] },
       { href: "/reports", label: "Reports", icon: ClipboardList, roles: reportsRoles, keywords: ["summary", "approval", "purchase"] },
       { href: "/activity", label: "Activity Log", icon: Activity, roles: ["super_admin", "admin", "operations_admin", "manager", "finance", "purchasing"], keywords: ["activity", "log"] },
     ],

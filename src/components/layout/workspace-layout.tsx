@@ -11,7 +11,7 @@ export function WorkspaceGrid({
   className?: string;
 }) {
   return (
-    <div className={cn("grid gap-5 p-5 xl:grid-cols-[minmax(0,1fr)_320px]", className)}>
+    <div className={cn("grid gap-5 p-5 2xl:grid-cols-[minmax(0,1fr)_320px]", className)}>
       <div className="min-w-0 space-y-5">{children}</div>
       {rightRail ? <RightRail>{rightRail}</RightRail> : null}
     </div>
@@ -19,7 +19,7 @@ export function WorkspaceGrid({
 }
 
 export function RightRail({ children, className }: { children: ReactNode; className?: string }) {
-  return <aside className={cn("min-w-0 space-y-4 xl:max-w-[340px]", className)}>{children}</aside>;
+  return <aside className={cn("min-w-0 space-y-4 2xl:max-w-[340px]", className)}>{children}</aside>;
 }
 
 export function ActionPanel({ children, title = "Actions" }: { children: ReactNode; title?: string }) {

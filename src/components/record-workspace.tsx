@@ -11,9 +11,9 @@ type RecordWorkspaceProps = {
 
 export function RecordWorkspace({ children, actionPanel, className }: RecordWorkspaceProps) {
   return (
-    <div className={cn("grid gap-4 p-4 xl:grid-cols-[minmax(0,1fr)_320px]", className)}>
+    <div className={cn("grid gap-4 p-4 2xl:grid-cols-[minmax(0,1fr)_320px]", className)}>
       <main className="min-w-0 space-y-4">{children}</main>
-      <aside className="min-w-0 space-y-3 xl:sticky xl:top-4 xl:max-h-[calc(100dvh-80px)] xl:self-start xl:overflow-y-auto xl:pr-1">{actionPanel}</aside>
+      <aside className="min-w-0 space-y-3 2xl:sticky 2xl:top-4 2xl:max-h-[calc(100dvh-80px)] 2xl:self-start 2xl:overflow-y-auto 2xl:pr-1">{actionPanel}</aside>
     </div>
   );
 }

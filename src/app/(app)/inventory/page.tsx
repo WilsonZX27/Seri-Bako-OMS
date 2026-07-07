@@ -57,7 +57,7 @@ export default async function InventoryPage() {
     <>
       <PageHeader title="Inventory" description="Stock ledger dashboard. Balances are calculated from posted transactions only." action={{ href: "/stock-transactions/new", label: "New movement" }} />
       <div className="space-y-5 p-5">
-        <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_300px]">
+        <div className="grid gap-5 2xl:grid-cols-[minmax(0,1fr)_300px]">
           <div className="space-y-5">
             <div className="grid grid-cols-1 gap-6 md:grid-cols-2 2xl:grid-cols-3">
               {inventorySections.map((section) => (
@@ -105,7 +105,7 @@ export default async function InventoryPage() {
             </div>
           ) : null}
           </div>
-          <aside data-testid="inventory-insights-rail" className="min-w-0 xl:sticky xl:top-6 xl:max-h-[calc(100vh-120px)] xl:overflow-y-auto">
+          <aside data-testid="inventory-insights-rail" className="min-w-0 2xl:sticky 2xl:top-6 2xl:max-h-[calc(100vh-120px)] 2xl:overflow-y-auto">
             <CompactStatList insights={inventoryInsights} action={{ href: "/stock-balance", label: "Review stock balance" }} />
           </aside>
         </div>

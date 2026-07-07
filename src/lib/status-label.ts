@@ -23,6 +23,7 @@ const statusLabels: Record<string, string> = {
   in_production: "In Production",
   qc_review: "QC Review",
   dispatched: "Dispatched",
+  disabled: "Disabled",
   short: "Short",
   available: "Available",
   critical: "Critical",

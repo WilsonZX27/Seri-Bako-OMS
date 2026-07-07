@@ -161,10 +161,8 @@ export function WorkspaceSidebar({
               <p className="truncate text-[11px] text-white/55">{userRoleLabel}</p>
             </div>
           </div>
-          <div className="text-[11px] leading-4 text-white/45">
-            <div>Seri Bako OMS</div>
-            <div>v{APP_VERSION}</div>
-            <div>{APP_SPRINT}</div>
+          <div className="truncate text-[11px] leading-4 text-white/45">
+            v{APP_VERSION} / {APP_SPRINT}
           </div>
         </div>
       ) : null}

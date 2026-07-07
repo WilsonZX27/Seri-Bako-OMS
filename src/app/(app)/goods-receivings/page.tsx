@@ -12,6 +12,7 @@ import { PageHeader } from "@/components/ui/page-header";
 import { PaginationControls, SortableHead } from "@/components/sortable-table";
 import { StatusTabs } from "@/components/status-tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { ConsoleSection } from "@/components/layout/right-console";
 import { WorkspaceGrid } from "@/components/layout/workspace-layout";
 import { formatNumber } from "@/lib/utils";
 import { getGoodsReceivings } from "@/server/queries/goods-receivings";
@@ -35,28 +36,19 @@ export default async function GoodsReceivingsPage({ searchParams }: { searchPara
       <WorkspaceGrid
         rightRail={
           <>
-            <section className="rounded-lg border bg-card p-3 shadow-sm">
-              <h2 className="text-[13px] font-semibold">GRN Summary</h2>
-              <div className="mt-3 grid gap-2 text-xs">
+            <ConsoleSection title="GRN Summary">
+              <div className="grid gap-2 text-xs">
                 <div className="flex justify-between"><span className="text-muted-foreground">Total GRNs</span><strong>{rows.length}</strong></div>
                 <div className="flex justify-between"><span className="text-muted-foreground">Draft</span><strong>{count("draft")}</strong></div>
                 <div className="flex justify-between"><span className="text-muted-foreground">Posted</span><strong>{count("posted")}</strong></div>
                 <div className="flex justify-between"><span className="text-muted-foreground">Cancelled</span><strong>{count("cancelled")}</strong></div>
               </div>
-            </section>
-            <section className="rounded-lg border bg-card p-3 shadow-sm">
-              <h2 className="text-[13px] font-semibold">Page Metrics</h2>
-              <div className="mt-3 grid gap-2 text-xs">
-                <div className="rounded-md border bg-white p-3">
-                  <p className="text-[10px] font-semibold uppercase tracking-[0.04em] text-muted-foreground">Received Qty</p>
-                  <p className="mt-1 text-lg font-semibold">{formatNumber(receivedTotal)}</p>
-                </div>
-                <div className="rounded-md border bg-white p-3">
-                  <p className="text-[10px] font-semibold uppercase tracking-[0.04em] text-muted-foreground">Rejected Qty</p>
-                  <p className="mt-1 text-lg font-semibold">{formatNumber(rejectedTotal)}</p>
-                </div>
+              <div className="my-3 border-t" />
+              <div className="grid gap-2 text-xs">
+                <div className="flex justify-between"><span className="text-muted-foreground">Received Qty</span><strong>{formatNumber(receivedTotal)}</strong></div>
+                <div className="flex justify-between"><span className="text-muted-foreground">Rejected Qty</span><strong>{formatNumber(rejectedTotal)}</strong></div>
               </div>
-            </section>
+            </ConsoleSection>
           </>
         }
       >

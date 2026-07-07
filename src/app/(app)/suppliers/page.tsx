@@ -11,6 +11,7 @@ import { PageHeader } from "@/components/ui/page-header";
 import { PaginationControls, SortableHead } from "@/components/sortable-table";
 import { StatusTabs } from "@/components/status-tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { ConsoleSection } from "@/components/layout/right-console";
 import { WorkspaceGrid } from "@/components/layout/workspace-layout";
 import { paginateRows } from "@/lib/table-state";
 import { getSuppliers } from "@/server/queries/suppliers";
@@ -31,18 +32,16 @@ export default async function SuppliersPage({
       <WorkspaceGrid
         rightRail={
           <>
-            <section className="rounded-lg border bg-card p-3 shadow-sm">
-              <h2 className="text-[13px] font-semibold">Supplier Summary</h2>
-              <div className="mt-3 grid gap-2 text-xs">
+            <ConsoleSection title="Supplier Summary">
+              <div className="grid gap-2 text-xs">
                 <div className="flex justify-between"><span className="text-muted-foreground">Total Suppliers</span><strong>{suppliers.length}</strong></div>
                 <div className="flex justify-between"><span className="text-muted-foreground">Active</span><strong>{count("active")}</strong></div>
                 <div className="flex justify-between"><span className="text-muted-foreground">Inactive</span><strong>{count("inactive")}</strong></div>
                 <div className="flex justify-between"><span className="text-muted-foreground">Archived</span><strong>{count("archived")}</strong></div>
               </div>
-            </section>
-            <section className="rounded-lg border bg-card p-3 shadow-sm">
-              <h2 className="text-[13px] font-semibold">Actions</h2>
-              <div className="mt-3 grid gap-2">
+            </ConsoleSection>
+            <ConsoleSection title="Actions">
+              <div className="grid gap-2">
                 <Button asChild variant="outline" className="w-full">
                   <Link href="/imports/suppliers">Import suppliers</Link>
                 </Button>
@@ -50,7 +49,7 @@ export default async function SuppliersPage({
                   <Link href="/api/export/suppliers">Export CSV</Link>
                 </Button>
               </div>
-            </section>
+            </ConsoleSection>
           </>
         }
       >

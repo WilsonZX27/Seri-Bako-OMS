@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { MasterDataFilters } from "@/components/master-data-filters";
 import { PageHeader } from "@/components/ui/page-header";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { ConsoleSection } from "@/components/layout/right-console";
 import { WorkspaceGrid } from "@/components/layout/workspace-layout";
 import { getRoleDisplayLabel } from "@/lib/roles";
 import { getPermissions, getRoles } from "@/server/queries/foundation";
@@ -16,8 +17,7 @@ export default async function RolesPage({ searchParams }: { searchParams: Promis
       <PageHeader title="Roles & Permissions" description="Role definitions and the Sprint 1 permission catalogue." action={{ href: "/roles/new", label: "New role" }} />
       <WorkspaceGrid
         rightRail={
-          <section className="rounded-lg border bg-card p-4 shadow-sm">
-            <h2 className="text-sm font-semibold">Permission Catalogue</h2>
+          <ConsoleSection title="Permission Catalogue">
             <p className="mt-1 text-xs text-muted-foreground">Sprint 1 foundation permissions seeded by the migration.</p>
             <div className="mt-4 space-y-2">
               {permissions.map((permission) => (
@@ -27,7 +27,7 @@ export default async function RolesPage({ searchParams }: { searchParams: Promis
                 </div>
               ))}
             </div>
-          </section>
+          </ConsoleSection>
         }
       >
         <div className="overflow-hidden rounded-lg border bg-card">

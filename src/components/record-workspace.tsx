@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import { AlertTriangle } from "lucide-react";
+import { ConsoleSection } from "@/components/layout/right-console";
 import { WorkspaceGrid } from "@/components/layout/workspace-layout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
@@ -12,7 +13,7 @@ type RecordWorkspaceProps = {
 
 export function RecordWorkspace({ children, actionPanel, className }: RecordWorkspaceProps) {
   return (
-    <WorkspaceGrid className={cn("p-4", className)} rightRail={<div className="space-y-3">{actionPanel}</div>}>
+    <WorkspaceGrid className={cn("p-4", className)} rightRail={<div>{actionPanel}</div>}>
       <main className="min-w-0 space-y-4">{children}</main>
     </WorkspaceGrid>
   );
@@ -24,13 +25,12 @@ export function RecordMain({ children, className }: { children: ReactNode; class
 
 export function RecordActionPanel({ title = "Actions", description, children }: { title?: string; description?: string; children: ReactNode }) {
   return (
-    <Card className="shadow-sm">
-      <CardHeader className="p-3 pb-2">
-        <CardTitle className="text-[14px]">{title}</CardTitle>
-        {description ? <CardDescription>{description}</CardDescription> : null}
-      </CardHeader>
-      <CardContent className="space-y-3 p-3">{children}</CardContent>
-    </Card>
+    <ConsoleSection title={title}>
+      <div className="space-y-3">
+        {description ? <p className="text-xs text-muted-foreground">{description}</p> : null}
+        {children}
+      </div>
+    </ConsoleSection>
   );
 }
 

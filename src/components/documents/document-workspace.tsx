@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 import { ChevronRight } from "lucide-react";
 import { DocumentNumber } from "@/components/document-number";
 import { PriorityBadge } from "@/components/priority-badge";
+import { ConsoleSection } from "@/components/layout/right-console";
 import { WorkspaceGrid } from "@/components/layout/workspace-layout";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { WorkflowStatusPipeline, type WorkflowStep } from "@/components/workflow-status-pipeline";
@@ -64,7 +65,7 @@ export function DocumentWorkspace({
         </div>
       </header>
 
-      <WorkspaceGrid className="p-3" rightRail={<div className="space-y-3">{sidePanel}</div>}>
+      <WorkspaceGrid className="p-3" rightRail={<div>{sidePanel}</div>}>
         <div className="min-w-0 space-y-3">{children}</div>
       </WorkspaceGrid>
     </>
@@ -83,12 +84,11 @@ export function DocumentSideSection({
   className?: string;
 }) {
   return (
-    <section className={cn("rounded-lg border bg-card p-3 shadow-sm", className)}>
-      <div className="mb-2">
-        <h2 className="text-[13px] font-semibold">{title}</h2>
-        {description ? <p className="mt-1 text-xs text-muted-foreground">{description}</p> : null}
+    <ConsoleSection title={title}>
+      <div className={cn("space-y-2", className)}>
+        {description ? <p className="text-xs text-muted-foreground">{description}</p> : null}
+        {children}
       </div>
-      {children}
-    </section>
+    </ConsoleSection>
   );
 }

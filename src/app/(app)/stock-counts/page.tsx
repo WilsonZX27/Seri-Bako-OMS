@@ -37,12 +37,20 @@ export default async function StockCountsPage({ searchParams }: { searchParams: 
         <ConsoleSection title="Stock Count Summary">
           <div className="grid gap-2 text-xs">
             {insights.map((item) => (
-              <Link key={item.label} href={item.href} className="flex justify-between rounded-md px-2 py-1.5 hover:bg-secondary">
+              <Link key={item.label} href={item.href} className="flex min-h-7 justify-between gap-3 rounded-md px-1.5 py-1 hover:bg-secondary">
                 <span className={item.active ? "font-semibold text-foreground" : "text-muted-foreground"}>{item.label}</span>
                 <strong>{item.value}</strong>
               </Link>
             ))}
           </div>
+        </ConsoleSection>
+        <ConsoleSection title="Next Action">
+          <Button asChild size="sm" className="h-8 w-full">
+            <Link href="/stock-counts/new">New Stock Count</Link>
+          </Button>
+        </ConsoleSection>
+        <ConsoleSection title="Help">
+          <p className="text-xs text-muted-foreground">Counts compare physical stock against system balance.</p>
         </ConsoleSection>
       </RightConsoleMount>
       <div className="space-y-4 p-5">

@@ -40,7 +40,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   const hasStaffRole = (profile as { has_staff_role?: boolean } | null)?.has_staff_role ?? false;
 
   return (
-    <div className="h-dvh overflow-hidden bg-background">
+    <div data-app-shell className="h-dvh overflow-hidden bg-background">
       <div className="flex h-dvh min-w-0">
         <Sidebar />
         <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
@@ -52,7 +52,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
           ) : null}
           <div className="flex min-h-0 flex-1">
             <RightConsoleProvider>
-              <div className="min-w-0 flex-1 overflow-hidden">
+              <div data-center-workspace className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
                 <GlobalActionToast />
                 <SessionTimeoutProvider />
                 <main className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden pb-16 md:pb-0">{children}</main>

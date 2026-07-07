@@ -1,7 +1,7 @@
 import { CheckCircle2, Clock, FileText, MessageSquare, Paperclip, XCircle } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+import { ConsoleSection } from "@/components/layout/right-console";
 import { Field } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { SubmitButton } from "@/components/ui/submit-button";
@@ -65,10 +65,8 @@ export function DocumentTimeline({ document, activities, comments, attachments }
     .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
 
   return (
-    <Card>
-      <CardContent className="p-3">
-        <h2 className="text-[13px] font-semibold">Document Timeline</h2>
-        <div className="mt-3 space-y-3">
+    <ConsoleSection title="Document Timeline">
+        <div className="space-y-3">
           {events.map((event) => (
             <div key={event.id} className="flex gap-3">
               <div className="mt-0.5">{eventIcon(event.activity_type)}</div>
@@ -80,19 +78,17 @@ export function DocumentTimeline({ document, activities, comments, attachments }
           ))}
           {!events.length ? <p className="text-xs text-muted-foreground">No activity yet.</p> : null}
         </div>
-      </CardContent>
-    </Card>
+    </ConsoleSection>
   );
 }
 
 export async function AttachmentPanel({ documentId, attachments }: { documentId: string; attachments: Attachment[] }) {
   const canManageAttachments = await hasPermission("documents.attach");
   return (
-    <Card>
-      <CardContent className="space-y-3 p-3">
-        <h2 className="text-[13px] font-semibold">Attachments</h2>
+    <ConsoleSection title="Attachments">
+      <div className="space-y-3">
         {canManageAttachments ? (
-          <form action={addDocumentAttachment.bind(null, documentId)} className="grid gap-2 rounded-lg border bg-white p-3 shadow-sm md:grid-cols-[1fr_1fr_auto] md:items-end">
+          <form action={addDocumentAttachment.bind(null, documentId)} className="grid gap-2 rounded-md border bg-white/70 p-2">
             <Field label="Attachment label">
               <Input name="file_name" placeholder="Delivery order, invoice, photo" />
             </Field>
@@ -120,16 +116,15 @@ export async function AttachmentPanel({ documentId, attachments }: { documentId:
           ))}
           {!attachments.length ? <p className="p-3 text-center text-xs text-muted-foreground">No attachments yet.</p> : null}
         </div>
-      </CardContent>
-    </Card>
+      </div>
+    </ConsoleSection>
   );
 }
 
 export function CommentsPanel({ documentId, comments }: { documentId: string; comments: Comment[] }) {
   return (
-    <Card>
-      <CardContent className="space-y-3 p-3">
-        <h2 className="text-[13px] font-semibold">Comments</h2>
+    <ConsoleSection title="Comments">
+      <div className="space-y-3">
         <form action={addDocumentComment.bind(null, documentId)} className="space-y-2">
           <Textarea name="comment_text" placeholder="Add a comment for the document history" required />
           <SubmitButton type="submit" variant="secondary" pendingLabel="Saving...">Add comment</SubmitButton>
@@ -143,18 +138,17 @@ export function CommentsPanel({ documentId, comments }: { documentId: string; co
           ))}
           {!comments.length ? <p className="text-xs text-muted-foreground">No comments yet.</p> : null}
         </div>
-      </CardContent>
-    </Card>
+      </div>
+    </ConsoleSection>
   );
 }
 
 export function ApprovalPanel({ document, approval, approvalSteps }: { document: Document; approval: Approval; approvalSteps: ApprovalStep[] }) {
   return (
-    <Card>
-      <CardContent className="space-y-3 p-3">
+    <ConsoleSection title="Approval Panel">
+      <div className="space-y-3">
         <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h2 className="text-[13px] font-semibold">Approval Panel</h2>
             <p className="text-xs text-muted-foreground">Current approver: {approvalSteps.find((step) => step.status === "pending")?.approver_role ?? "Not assigned"}</p>
           </div>
           <Badge variant={document.approval_status === "approved" ? "success" : document.approval_status === "rejected" ? "danger" : "secondary"}>{document.approval_status}</Badge>
@@ -185,17 +179,15 @@ export function ApprovalPanel({ document, approval, approvalSteps }: { document:
           ))}
           {!approval && !approvalSteps.length ? <p className="p-3 text-center text-xs text-muted-foreground">No approval history yet.</p> : null}
         </div>
-      </CardContent>
-    </Card>
+      </div>
+    </ConsoleSection>
   );
 }
 
 export function RevisionPanel({ revisions }: { revisions: Revision[] }) {
   return (
-    <Card>
-      <CardContent className="p-3">
-        <h2 className="text-[13px] font-semibold">Revision History</h2>
-        <div className="mt-3 divide-y rounded-lg border">
+    <ConsoleSection title="Revision History">
+        <div className="divide-y rounded-lg border">
           {revisions.map((revision) => (
             <div key={revision.id} className="p-3">
               <p className="text-xs font-medium">Revision {revision.revision_no}</p>
@@ -205,7 +197,6 @@ export function RevisionPanel({ revisions }: { revisions: Revision[] }) {
           ))}
           {!revisions.length ? <p className="p-3 text-center text-xs text-muted-foreground">No revisions yet.</p> : null}
         </div>
-      </CardContent>
-    </Card>
+    </ConsoleSection>
   );
 }

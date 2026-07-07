@@ -6,8 +6,8 @@ import { DataGridRow } from "@/components/ui/data-grid-row";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Input } from "@/components/ui/input";
 import { PageHeader } from "@/components/ui/page-header";
-import { KpiFilterStrip } from "@/components/ui/kpi-filter-strip";
 import { PaginationControls } from "@/components/sortable-table";
+import { ConsoleSection, RightConsoleMount } from "@/components/layout/right-console";
 import { StatusTabs } from "@/components/status-tabs";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -31,7 +31,19 @@ export default async function StockTransfersPage({ searchParams }: { searchParam
   return (
     <>
       <PageHeader title="Stock Transfers" description="Move stock between locations through posted transfer in/out ledger movements." action={{ href: "/stock-transfers/new", label: "New Transfer" }} secondaryAction={{ href: "/stock-transfers/scan", label: "Scan Mode" }} />
-      <div className="space-y-4 p-5"><KpiFilterStrip items={insights} /><div className="overflow-hidden rounded-lg border bg-card">
+      <RightConsoleMount>
+        <ConsoleSection title="Transfer Summary">
+          <div className="grid gap-2 text-xs">
+            {insights.map((item) => (
+              <Link key={item.label} href={item.href} className="flex justify-between rounded-md px-2 py-1.5 hover:bg-secondary">
+                <span className={item.active ? "font-semibold text-foreground" : "text-muted-foreground"}>{item.label}</span>
+                <strong>{item.value}</strong>
+              </Link>
+            ))}
+          </div>
+        </ConsoleSection>
+      </RightConsoleMount>
+      <div className="space-y-4 p-5"><div className="overflow-hidden rounded-lg border bg-card">
         <StatusTabs statuses={statuses} activeStatus={filters.status} />
         <form className="flex gap-3 border-b p-4"><Input name="search" defaultValue={filters.search ?? ""} placeholder="Search transfer no, location, remarks" className="max-w-sm" /><Button variant="secondary">Search</Button><Button asChild variant="ghost"><Link href="/stock-transfers">Reset</Link></Button></form>
         <DataGridHint text="Pro-tip: Double-click any row to open the stock transfer." />

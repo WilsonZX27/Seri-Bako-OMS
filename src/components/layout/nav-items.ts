@@ -94,6 +94,7 @@ export const navGroups: NavGroup[] = [
     items: [
       { href: "/company", label: "Company Profile", icon: Building2, roles: administratorRoles, keywords: ["company", "logo"] },
       { href: "/roles", label: "Users & Roles", icon: UserCog, roles: administratorRoles, badgeKey: "staffManagement", keywords: ["roles", "permissions", "staff", "users"] },
+      { href: "/staffs", label: "Staff Management", icon: Users, roles: administratorRoles, badgeKey: "staffManagement", keywords: ["staff", "users", "invite"] },
     ],
   },
 ];

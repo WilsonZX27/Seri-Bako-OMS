@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { RightConsoleMount } from "@/components/layout/right-console";
 import { cn } from "@/lib/utils";
 
 export function WorkspaceGrid({
@@ -12,10 +13,12 @@ export function WorkspaceGrid({
   className?: string;
   rightRailClassName?: string;
 }) {
+  void rightRailClassName;
+
   return (
-    <div className={cn("grid min-h-0 gap-5 p-5 pb-4 xl:grid-cols-[minmax(0,1fr)_320px]", !rightRail && "xl:grid-cols-1", className)}>
+    <div className={cn("min-h-0 p-5 pb-4", className)}>
       <div className="min-w-0 space-y-5">{children}</div>
-      {rightRail ? <RightRail className={rightRailClassName}>{rightRail}</RightRail> : null}
+      {rightRail ? <RightConsoleMount>{rightRail}</RightConsoleMount> : null}
     </div>
   );
 }

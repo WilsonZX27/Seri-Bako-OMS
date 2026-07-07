@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { Sidebar } from "@/components/layout/sidebar";
 import { TopBar } from "@/components/layout/top-bar";
+import { RightConsoleProvider } from "@/components/layout/right-console";
 import { MobileBottomNav } from "@/components/layout/mobile-bottom-nav";
 import { GlobalActionToast } from "@/components/global-action-toast";
 import { SessionTimeoutProvider } from "@/components/session-timeout-provider";
@@ -42,20 +43,22 @@ export default async function AppLayout({ children }: { children: React.ReactNod
     <div className="h-dvh overflow-hidden bg-background">
       <div className="flex h-dvh min-w-0">
         <Sidebar />
-        <div className="min-w-0 flex-1 overflow-hidden">
-          <div className="flex h-dvh min-w-0 flex-col">
-            <TopBar />
-            {!hasStaffRole ? (
-              <div className="border-b border-amber-200 bg-amber-50 px-5 py-3 text-sm font-medium text-amber-800">
-                Your account has no staff role assigned. Please run setup or contact admin.
-              </div>
-            ) : null}
-            <GlobalActionToast />
-            <SessionTimeoutProvider />
-            <main className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden pb-16 md:pb-0">{children}</main>
-            <MobileBottomNav />
+        <RightConsoleProvider>
+          <div className="min-w-0 flex-1 overflow-hidden">
+            <div className="flex h-dvh min-w-0 flex-col">
+              <TopBar />
+              {!hasStaffRole ? (
+                <div className="border-b border-amber-200 bg-amber-50 px-5 py-3 text-sm font-medium text-amber-800">
+                  Your account has no staff role assigned. Please run setup or contact admin.
+                </div>
+              ) : null}
+              <GlobalActionToast />
+              <SessionTimeoutProvider />
+              <main className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden pb-16 md:pb-0">{children}</main>
+              <MobileBottomNav />
+            </div>
           </div>
-        </div>
+        </RightConsoleProvider>
       </div>
     </div>
   );

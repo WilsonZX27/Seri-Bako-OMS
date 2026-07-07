@@ -156,22 +156,23 @@ export function WorkspaceSidebar({
             <CheckCircle2 className="h-3.5 w-3.5 text-emerald-400" />
             System Stable
           </div>
-          <Link href="/account" className="flex min-w-0 items-center gap-2 rounded-md p-1.5 hover:bg-white/10">
-            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-white/12 text-[11px] font-semibold text-white">
-              <UserRound className="h-3.5 w-3.5" />
-              <span className="sr-only">{initials}</span>
-            </span>
-            <span className="min-w-0 flex-1">
-              <span className="block truncate text-[12px] font-medium text-white/90">{userName}</span>
-              <span className="block truncate text-[10px] text-white/50">{userRoleLabel}</span>
-            </span>
-          </Link>
-          <form action={signOut}>
-            <button type="submit" className="flex h-7 w-full items-center gap-2 rounded-md px-2 text-left text-[11px] text-white/65 hover:bg-white/10 hover:text-white">
-              <LogOut className="h-3.5 w-3.5" />
-              Logout
-            </button>
-          </form>
+          <div className="flex items-center gap-1.5">
+            <Link href="/account" className="flex min-w-0 flex-1 items-center gap-2 rounded-md bg-white/8 p-1.5 hover:bg-white/12">
+              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-white/12 text-[11px] font-semibold text-white">
+                <UserRound className="h-3.5 w-3.5" />
+                <span className="sr-only">{initials}</span>
+              </span>
+              <span className="min-w-0 flex-1">
+                <span className="block truncate text-[12px] font-medium text-white/90">{userName}</span>
+                <span className="block truncate text-[10px] text-white/50">{userRoleLabel}</span>
+              </span>
+            </Link>
+            <form action={signOut}>
+              <button type="submit" className="flex h-9 w-9 items-center justify-center rounded-md text-red-300 hover:bg-red-500/15 hover:text-red-200" aria-label="Logout">
+                <LogOut className="h-4 w-4" />
+              </button>
+            </form>
+          </div>
         </div>
       ) : null}
     </div>

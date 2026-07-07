@@ -6,7 +6,6 @@ import { DataGridHint } from "@/components/ui/data-grid-hint";
 import { DocumentNumber } from "@/components/document-number";
 import { EmptyState } from "@/components/ui/empty-state";
 import { PageHeader } from "@/components/ui/page-header";
-import { KpiFilterStrip } from "@/components/ui/kpi-filter-strip";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -14,6 +13,7 @@ import { SelectNative } from "@/components/ui/select-native";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { PaginationControls, SortableHead } from "@/components/sortable-table";
+import { ConsoleSection, RightConsoleMount } from "@/components/layout/right-console";
 import { getBranchesForSelect } from "@/server/queries/common";
 import { getProductionJobs } from "@/server/queries/production-jobs";
 import { formatNumber } from "@/lib/utils";
@@ -50,9 +50,20 @@ export default async function ProductionJobsPage({ searchParams }: { searchParam
         description="Create, approve, and post recipe-based production without changing stock until posting."
         action={{ href: "/production/jobs/new", label: "New Production Job" }}
       />
+      <RightConsoleMount>
+        <ConsoleSection title="Production Summary">
+          <div className="grid gap-2 text-xs">
+            {insights.map((item) => (
+              <Link key={item.label} href={item.href} className="flex justify-between rounded-md px-2 py-1.5 hover:bg-secondary">
+                <span className={item.active ? "font-semibold text-foreground" : "text-muted-foreground"}>{item.label}</span>
+                <strong>{item.value}</strong>
+              </Link>
+            ))}
+          </div>
+        </ConsoleSection>
+      </RightConsoleMount>
       <BulkSelectionProvider ids={jobs.rows.map((row) => row.id)} actionLabel="Archive selected" canAct={false}>
         <div className="space-y-4 p-5">
-          <KpiFilterStrip items={insights} />
           <div className="flex flex-wrap gap-2">
             {tabs.map(([value, label]) => (
               <Button key={value} asChild variant={selectedStatus === value ? "default" : "outline"} size="sm" className="rounded-full">

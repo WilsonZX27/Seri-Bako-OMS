@@ -6,7 +6,6 @@ import { Breadcrumbs } from "@/components/layout/breadcrumbs";
 import { GlobalSearch } from "@/components/search/global-search";
 import { MobileSidebar } from "@/components/layout/mobile-sidebar";
 import { TopBarActivityMenu } from "@/components/layout/top-bar-activity-menu";
-import { getRoleDisplayLabel } from "@/lib/roles";
 import { getCompanyBranding, getCurrentProfile } from "@/server/queries/common";
 import { getTopBarActivity } from "@/server/queries/topbar";
 import type { UserRole } from "@/types/database";
@@ -19,7 +18,7 @@ export async function TopBar() {
   const initials = (account?.full_name ?? account?.email ?? "U").slice(0, 2).toUpperCase();
 
   return (
-    <header className="grid h-12 grid-cols-[minmax(150px,220px)_minmax(260px,520px)_minmax(180px,220px)] items-center justify-between gap-3 border-b bg-card px-4 max-lg:grid-cols-[minmax(0,1fr)_auto]">
+    <header className="grid h-12 grid-cols-[minmax(150px,220px)_minmax(260px,520px)_auto] items-center justify-between gap-3 border-b bg-card px-4 max-lg:grid-cols-[minmax(0,1fr)_auto]">
       <div className="flex min-w-0 items-center gap-3">
         <MobileSidebar role={role} companyName={branding.company_name} companyLogoUrl={branding.logo_url} />
         <div className="min-w-0">
@@ -32,18 +31,14 @@ export async function TopBar() {
       <div data-testid="topbar-account-region" className="flex items-center justify-end gap-2">
         <TopBarActivityMenu data={activity} />
         <details className="group relative">
-          <summary className="flex h-9 min-w-[174px] cursor-pointer list-none items-center gap-2 rounded-lg border bg-white px-2 text-left shadow-sm hover:bg-secondary">
+          <summary aria-label="Account menu" className="flex h-9 cursor-pointer list-none items-center gap-1 rounded-lg border bg-white px-1.5 shadow-sm hover:bg-secondary">
             <span className="flex h-7 w-7 items-center justify-center overflow-hidden rounded-full bg-primary/10 text-[11px] font-semibold text-primary">
               {account?.avatar_url ? (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img src={account.avatar_url} alt="" className="h-full w-full object-cover" />
               ) : initials}
             </span>
-            <span className="hidden min-w-0 flex-1 text-right sm:block">
-              <span className="block truncate text-[12px] font-medium leading-4">{profile?.full_name ?? "Signed in"}</span>
-              <span className="block truncate text-[11px] leading-4 text-muted-foreground">{getRoleDisplayLabel(role)}</span>
-            </span>
-            <ChevronDown className="h-4 w-4 shrink-0 text-muted-foreground" />
+            <ChevronDown className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
           </summary>
           <div className="absolute right-0 z-50 mt-2 w-56 rounded-xl border bg-white p-2 shadow-lg">
             <Link href="/account" className="flex items-center gap-2 rounded-md px-3 py-2 text-sm hover:bg-secondary">

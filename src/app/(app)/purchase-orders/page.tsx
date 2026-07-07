@@ -1,18 +1,18 @@
 import Link from "next/link";
-import { CheckCircle2, ClipboardCheck, Eye, FileText, Truck, XCircle } from "lucide-react";
+import { Eye } from "lucide-react";
 import { BulkSelectAllCheckbox, BulkSelectionProvider, BulkSelectRowCheckbox } from "@/components/bulk-selection";
 import { DataGridRow } from "@/components/ui/data-grid-row";
 import { DataGridHint } from "@/components/ui/data-grid-hint";
 import { DocumentNumber } from "@/components/document-number";
 import { EmptyState } from "@/components/ui/empty-state";
 import { StatusBadge } from "@/components/ui/status-badge";
-import { KpiFilterStrip } from "@/components/ui/kpi-filter-strip";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { PageHeader } from "@/components/ui/page-header";
 import { PaginationControls, SortableHead } from "@/components/sortable-table";
 import { StatusTabs } from "@/components/status-tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { WorkspaceGrid } from "@/components/layout/workspace-layout";
 import { formatCurrency } from "@/lib/utils";
 import { getPurchaseOrders } from "@/server/queries/procurement";
 
@@ -30,20 +30,36 @@ export default async function PurchaseOrdersPage({ searchParams }: { searchParam
   const [orders, allOrders] = await Promise.all([getPurchaseOrders(filters), getPurchaseOrders({ page: "all" })]);
   const rows = allOrders.rows;
   const count = (...statuses: string[]) => rows.filter((order) => statuses.includes(order.status)).length;
-  const poInsights = [
-    { label: "Total", value: rows.length, href: "/purchase-orders", active: !filters.status, icon: FileText },
-    { label: "Ready to Send", value: count("approved"), href: "/purchase-orders?status=approved", active: filters.status === "approved", icon: Truck },
-    { label: "Sent to Supplier", value: count("sent"), href: "/purchase-orders?status=sent", active: filters.status === "sent", icon: Truck },
-    { label: "Receiving", value: count("partial_received"), href: "/purchase-orders?status=receiving", active: filters.status === "receiving", icon: ClipboardCheck },
-    { label: "Received", value: count("received"), href: "/purchase-orders?status=received", active: filters.status === "received", icon: CheckCircle2 },
-    { label: "Closed", value: count("closed"), href: "/purchase-orders?status=closed", active: filters.status === "closed", icon: CheckCircle2 },
-    { label: "Cancelled", value: count("cancelled"), href: "/purchase-orders?status=cancelled", active: filters.status === "cancelled", icon: XCircle },
-  ];
+  const totalValue = rows.reduce((sum, order) => sum + order.order_total, 0);
   return (
     <>
       <PageHeader title="Purchase Orders" description="Supplier purchase orders created from approved requests or manually." action={{ href: "/purchase-orders/new", label: "New PO" }} secondaryAction={{ href: "/api/export/purchase-orders", label: "Export CSV" }} />
-      <div className="space-y-4 p-5">
-        <KpiFilterStrip items={poInsights} />
+      <WorkspaceGrid
+        className="pt-4"
+        rightRail={
+          <>
+            <section className="rounded-lg border bg-card p-3 shadow-sm">
+              <h2 className="text-[13px] font-semibold">PO Summary</h2>
+              <div className="mt-3 grid gap-2 text-xs">
+                <div className="flex justify-between"><span className="text-muted-foreground">Total POs</span><strong>{rows.length}</strong></div>
+                <div className="flex justify-between"><span className="text-muted-foreground">Ready to Send</span><strong>{count("approved")}</strong></div>
+                <div className="flex justify-between"><span className="text-muted-foreground">Sent to Supplier</span><strong>{count("sent")}</strong></div>
+                <div className="flex justify-between"><span className="text-muted-foreground">Receiving</span><strong>{count("partial_received", "receiving")}</strong></div>
+                <div className="flex justify-between"><span className="text-muted-foreground">Received</span><strong>{count("received")}</strong></div>
+                <div className="flex justify-between"><span className="text-muted-foreground">Closed</span><strong>{count("closed")}</strong></div>
+                <div className="flex justify-between"><span className="text-muted-foreground">Cancelled</span><strong>{count("cancelled")}</strong></div>
+              </div>
+            </section>
+            <section className="rounded-lg border bg-card p-3 shadow-sm">
+              <h2 className="text-[13px] font-semibold">Page Metrics</h2>
+              <div className="mt-3 rounded-md border bg-white p-3">
+                <p className="text-[10px] font-semibold uppercase tracking-[0.04em] text-muted-foreground">Total PO Value</p>
+                <p className="mt-1 text-lg font-semibold">{formatCurrency(totalValue)}</p>
+              </div>
+            </section>
+          </>
+        }
+      >
         <div className="overflow-hidden rounded-xl border bg-card shadow-sm">
           <StatusTabs statuses={statuses} activeStatus={filters.status} />
           <form className="flex flex-col gap-3 border-b bg-white p-4 md:flex-row md:items-center">
@@ -94,7 +110,7 @@ export default async function PurchaseOrdersPage({ searchParams }: { searchParam
           </BulkSelectionProvider>
           <PaginationControls page={orders.page} totalPages={orders.totalPages} totalRows={orders.totalRows} searchParams={filters} />
         </div>
-      </div>
+      </WorkspaceGrid>
     </>
   );
 }

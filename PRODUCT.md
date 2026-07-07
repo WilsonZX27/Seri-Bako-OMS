@@ -20,16 +20,17 @@ Success means staff can record daily work quickly, managers can approve only the
 
 The product uses direct functional navigation. The sidebar should not force users through category landing pages before reaching daily work.
 
-Primary navigation groups:
+Primary navigation follows Wilson's Stitch contract: the left sidebar is function/tools navigation only, the center workspace is for work/data/document content, and the right sidebar is the contextual action console.
 
-- Operations: Dashboard, Production Jobs, Outlet Requests, Dispatch Board.
-- Procurement: Purchase Requests, Manager Approvals, Admin Review, Finance Review, Purchase Orders, Supplier Sending, Invoices.
-- Inventory: Stock Balance, Stock Count, Stock Transfers, Stock Wastage, Movement Ledger, Opening Stock Import.
-- Master Data: Items, Suppliers, Recipes / BOM, UOM Conversions, Branches, Locations, Document Sequences.
-- Analytics: Reports, Activity Log.
-- Settings: Company Settings, Account Settings, System Preferences, Roles & Permissions, Staff Management.
+Primary sidebar entries:
 
-Master Data is the single foundation-data area. Items, suppliers, recipes/BOM, UOM conversions, branches, locations, and document sequences belong there. Do not duplicate them inside Inventory or Settings. Inventory is for stock operation and review. Settings is for system, account, admin, and control surfaces.
+- Operations: Dashboard, Production Jobs, Dispatch Board.
+- Procurement: Purchase Requests, Purchase Orders, Goods Receiving, Suppliers.
+- Inventory: Stock Balance, Stock Count, Stock Transfers, Stock Wastage, Movement Ledger, Items / SKU Master, Batch & Expiry when a real route exists.
+- Analytics: Reports, BI Dashboard, Activity Log.
+- Administration: Company Profile, Users & Roles.
+
+Workflow states such as Manager Review, Admin Review, Finance Review, Ready to Convert, Converted to PO, and Supplier Sending are statuses or filters. They are not sidebar destinations.
 
 ## Core Workflows
 

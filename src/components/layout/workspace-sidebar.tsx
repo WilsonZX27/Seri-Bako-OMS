@@ -2,10 +2,9 @@
 
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
-import { ChevronDown, ChevronLeft, ChevronRight, Factory, Search } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { ChevronDown, Factory, Search } from "lucide-react";
+import { useMemo, useState } from "react";
 import { getVisibleNavGroups, searchableNavItems } from "@/components/layout/nav-items";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { APP_SPRINT, APP_VERSION } from "@/lib/app-version";
 import { cn } from "@/lib/utils";
@@ -24,8 +23,6 @@ type WorkspaceSidebarProps = {
   userRoleLabel?: string;
 };
 
-const prefKey = "seri-bako-sidebar-collapsed-v1";
-
 export function WorkspaceSidebar({
   role,
   mobile = false,
@@ -37,7 +34,6 @@ export function WorkspaceSidebar({
 }: WorkspaceSidebarProps) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const [collapsed, setCollapsed] = useState(false);
   const [closedGroups, setClosedGroups] = useState<Record<string, boolean>>({});
   const [query, setQuery] = useState("");
   const groups = useMemo(() => getVisibleNavGroups(role), [role]);
@@ -48,18 +44,7 @@ export function WorkspaceSidebar({
       .filter((item) => `${item.label} ${item.group} ${(item.keywords ?? []).join(" ")}`.toLowerCase().includes(term))
       .slice(0, 6);
   }, [query]);
-  const compact = collapsed && !mobile;
-
-  useEffect(() => {
-    if (mobile) return;
-    setCollapsed(window.localStorage.getItem(prefKey) === "true");
-  }, [mobile]);
-
-  function toggleCollapsed() {
-    const next = !collapsed;
-    setCollapsed(next);
-    window.localStorage.setItem(prefKey, String(next));
-  }
+  const compact = false;
 
   function toggleGroup(groupId: string) {
     setClosedGroups((current) => ({ ...current, [groupId]: !current[groupId] }));
@@ -90,7 +75,7 @@ export function WorkspaceSidebar({
   })();
 
   return (
-    <div className={cn("flex h-dvh flex-col border-r bg-[var(--sb-primary-dark)] text-white transition-[width] duration-200", compact ? "w-[76px]" : "w-[244px]", mobile ? "w-full" : "")}>
+    <div className={cn("flex h-dvh w-[244px] flex-col border-r bg-[var(--sb-primary-dark)] text-white", mobile ? "w-full" : "")}>
       <div className="flex h-14 items-center gap-3 border-b border-white/10 px-3">
         <Link href={brandHref} onClick={onNavigate} className={cn("flex min-w-0 flex-1 items-center gap-3 rounded-md p-1 hover:bg-white/10", compact ? "justify-center" : "")} title={compact ? companyName : undefined}>
           <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-[var(--sb-accent)] text-white">
@@ -108,11 +93,6 @@ export function WorkspaceSidebar({
             </div>
           ) : null}
         </Link>
-        {!mobile ? (
-          <Button type="button" variant="ghost" size="icon" className="hidden text-white hover:bg-white/10 hover:text-white lg:inline-flex" onClick={toggleCollapsed} aria-label={compact ? "Expand sidebar" : "Collapse sidebar"}>
-            {compact ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
-          </Button>
-        ) : null}
       </div>
 
       <nav className="min-h-0 flex-1 overflow-y-auto px-2 py-3">

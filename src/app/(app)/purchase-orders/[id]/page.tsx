@@ -24,6 +24,14 @@ const poSteps = [
   { key: "closed", label: "Closed", description: "Order is complete." },
 ];
 
+const convertedPoSteps = [
+  { key: "approved", label: "Ready to Send Supplier", description: "Approved PR has become a supplier PO." },
+  { key: "sent", label: "Sent to Supplier", description: "Supplier has received the order." },
+  { key: "partial_received", label: "Receiving", description: "Goods receiving is in progress." },
+  { key: "received", label: "Received", description: "All goods received." },
+  { key: "closed", label: "Closed", description: "Order is complete." },
+];
+
 export default async function PurchaseOrderDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const [{ order, lines }, items, suppliers, permissions] = await Promise.all([
@@ -33,13 +41,14 @@ export default async function PurchaseOrderDetailPage({ params }: { params: Prom
     getPermissionMap(["po.submit", "po.approve", "po.send", "po.receive", "purchase_order.close"]),
   ]);
   const sourceRequest = await getPurchaseRequestForOrder(order.purchase_request_id);
+  const fromApprovedPr = Boolean(sourceRequest);
   const documentBundle = order.document_id ? await getDocumentBundle(order.document_id) : null;
   const itemById = new Map(items.map((item) => [item.id, item]));
   const supplier = suppliers.find((row) => row.id === order.supplier_id);
   const total = lines.reduce((sum, line) => sum + line.qty_ordered * line.unit_price, 0);
   const hasPrimaryAction =
-    (order.status === "draft" && permissions["po.submit"]) ||
-    (order.status === "pending_approval" && permissions["po.approve"]) ||
+    (!fromApprovedPr && order.status === "draft" && permissions["po.submit"]) ||
+    (!fromApprovedPr && order.status === "pending_approval" && permissions["po.approve"]) ||
     (order.status === "approved" && permissions["po.send"]) ||
     (["sent", "partial_received"].includes(order.status) && permissions["po.receive"]) ||
     (order.status === "partial_received" && permissions["purchase_order.close"]);
@@ -51,14 +60,14 @@ export default async function PurchaseOrderDetailPage({ params }: { params: Prom
       title="Purchase Order"
       status={order.status}
       priority={order.priority}
-      workflowSteps={poSteps}
+      workflowSteps={fromApprovedPr ? convertedPoSteps : poSteps}
       currentStatus={order.status}
       sidePanel={
         <>
           <DocumentSideSection title="Primary Action" description="Only the next valid workflow action is shown.">
             <DocumentActionBar>
-              {order.status === "draft" && permissions["po.submit"] ? <DocumentActionForm action={submitPurchaseOrder.bind(null, order.id)} pendingLabel="Submitting..." variant="secondary">Submit approval</DocumentActionForm> : null}
-              {order.status === "pending_approval" && permissions["po.approve"] ? (
+              {!fromApprovedPr && order.status === "draft" && permissions["po.submit"] ? <DocumentActionForm action={submitPurchaseOrder.bind(null, order.id)} pendingLabel="Submitting..." variant="secondary">Submit approval</DocumentActionForm> : null}
+              {!fromApprovedPr && order.status === "pending_approval" && permissions["po.approve"] ? (
                 <>
                   <DocumentActionForm action={approvePurchaseOrder.bind(null, order.id)} pendingLabel="Approving...">Approve</DocumentActionForm>
                   <DocumentActionForm action={rejectPurchaseOrder.bind(null, order.id)} pendingLabel="Rejecting..." variant="destructive">Reject</DocumentActionForm>
@@ -88,7 +97,7 @@ export default async function PurchaseOrderDetailPage({ params }: { params: Prom
                 <div><p className="text-xs uppercase text-muted-foreground">Supplier</p><p className="font-medium">{supplier?.name ?? order.supplier_id}</p></div>
                 <div><p className="text-xs uppercase text-muted-foreground">Order Date</p><p className="font-medium">{order.order_date}</p></div>
                 <div><p className="text-xs uppercase text-muted-foreground">Expected Delivery</p><p className="font-medium">{order.expected_delivery_date ?? "-"}</p></div>
-                <div><p className="text-xs uppercase text-muted-foreground">Approval</p><StatusBadge status={order.approval_status} /></div>
+                {!fromApprovedPr ? <div><p className="text-xs uppercase text-muted-foreground">Approval</p><StatusBadge status={order.approval_status} /></div> : null}
                 <div><p className="text-xs uppercase text-muted-foreground">Priority</p><PriorityBadge priority={order.priority} /></div>
                 <div><p className="text-xs uppercase text-muted-foreground">Needed By</p><p className="font-medium">{order.needed_by_date ?? "-"}</p></div>
                 <div><p className="text-xs uppercase text-muted-foreground">Source Document</p><p className="font-medium">{sourceRequest?.request_no ?? "-"}</p></div>

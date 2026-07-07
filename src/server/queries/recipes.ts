@@ -8,6 +8,7 @@ type ProductRow = Database["public"]["Tables"]["products"]["Row"];
 type ItemRow = Database["public"]["Tables"]["items"]["Row"];
 type ProductPackagingRow = Database["public"]["Tables"]["product_packaging"]["Row"];
 type CostSnapshotRow = Database["public"]["Tables"]["recipe_cost_snapshots"]["Row"];
+type StockBalanceRow = Database["public"]["Views"]["stock_balances_view"]["Row"];
 
 export type RecipeLineDetail = RecipeLineRow & {
   ingredient_item_code: string;
@@ -16,6 +17,9 @@ export type RecipeLineDetail = RecipeLineRow & {
   barcode: string | null;
   line_cost_before_wastage: number;
   calculated_line_cost: number;
+  current_stock: number | null;
+  shortage_qty: number | null;
+  stock_status: "available" | "low" | "short" | "need_purchase" | "unknown";
 };
 
 export type RecipeDetail = RecipeRow & {
@@ -57,6 +61,14 @@ function calculateLineCost(line: RecipeLineRow) {
   return lineCostBeforeWastage(line) * (1 + Number(line.wastage_percent) / 100);
 }
 
+function stockStatus(required: number, current: number | null) {
+  if (current == null) return { shortage_qty: null, stock_status: "unknown" as const };
+  const shortage = Math.max(required - current, 0);
+  if (shortage > 0) return { shortage_qty: shortage, stock_status: "short" as const };
+  if (current <= required * 1.25) return { shortage_qty: 0, stock_status: "low" as const };
+  return { shortage_qty: 0, stock_status: "available" as const };
+}
+
 function buildRecipeDetail(
   recipe: RecipeRow,
   products: ProductRow[],
@@ -64,26 +76,33 @@ function buildRecipeDetail(
   items: ItemRow[],
   packagingRows: ProductPackagingRow[],
   snapshots: CostSnapshotRow[] = [],
+  stockBalances: Pick<StockBalanceRow, "item_id" | "current_stock" | "current_qty">[] = [],
 ): RecipeDetail {
   const product = products.find((row) => row.id === recipe.product_id);
   const itemById = new Map<string, ItemRow>(items.map((item) => [item.id, item]));
+  const stockByItem = new Map<string, number>();
+  stockBalances.forEach((row) => stockByItem.set(row.item_id, (stockByItem.get(row.item_id) ?? 0) + Number(row.current_stock ?? row.current_qty ?? 0)));
   const packaging = packagingRows.filter((row) => row.product_id === recipe.product_id && row.status === "active");
   const primaryPackaging = packaging[0] ?? null;
   const detailLines = lines
     .filter((line) => line.recipe_id === recipe.id)
     .map((line) => {
       const item = itemById.get(line.ingredient_item_id);
+      const baseQty = lineBaseQty(line);
+      const currentStock = stockByItem.has(line.ingredient_item_id) ? stockByItem.get(line.ingredient_item_id)! : null;
       return {
         ...line,
         recipe_uom: line.recipe_uom ?? line.unit,
         base_uom: line.base_uom ?? item?.base_unit ?? line.unit,
-        base_qty_required: lineBaseQty(line),
+        base_qty_required: baseQty,
         ingredient_item_code: item?.item_code ?? "Unknown",
         ingredient_name: item?.item_name ?? "Unknown ingredient",
         ingredient_image_url: item?.item_image_url ?? null,
         barcode: item?.barcode ?? item?.internal_barcode ?? null,
         line_cost_before_wastage: lineCostBeforeWastage(line),
         calculated_line_cost: calculateLineCost(line),
+        current_stock: currentStock,
+        ...stockStatus(baseQty, currentStock),
       };
     });
   const totalIngredientCost = detailLines.reduce((sum, line) => sum + line.line_cost_before_wastage, 0);
@@ -116,13 +135,14 @@ export async function getRecipes() {
   }
 
   const supabase = await createClient();
-  const [recipes, products, lines, items, packaging, snapshots] = await Promise.all([
+  const [recipes, products, lines, items, packaging, snapshots, stockBalances] = await Promise.all([
     supabase.from("recipes").select("*").is("deleted_at", null).order("effective_date", { ascending: false }),
     supabase.from("products").select("*").is("deleted_at", null),
     supabase.from("recipe_lines").select("*"),
     supabase.from("items").select("*").is("deleted_at", null),
     supabase.from("product_packaging").select("*").is("deleted_at", null),
     supabase.from("recipe_cost_snapshots").select("*"),
+    supabase.from("stock_balances_view").select("item_id,current_stock,current_qty"),
   ]);
 
   for (const result of [recipes, products, lines, items, packaging, snapshots]) {
@@ -130,7 +150,7 @@ export async function getRecipes() {
   }
 
   return (recipes.data ?? []).map((recipe) =>
-    buildRecipeDetail(recipe, products.data ?? [], lines.data ?? [], items.data ?? [], packaging.data ?? [], snapshots.data ?? []),
+    buildRecipeDetail(recipe, products.data ?? [], lines.data ?? [], items.data ?? [], packaging.data ?? [], snapshots.data ?? [], stockBalances.data ?? []),
   );
 }
 
@@ -142,13 +162,14 @@ export async function getRecipe(id: string) {
   }
 
   const supabase = await createClient();
-  const [recipe, products, lines, items, packaging, snapshots] = await Promise.all([
+  const [recipe, products, lines, items, packaging, snapshots, stockBalances] = await Promise.all([
     supabase.from("recipes").select("*").eq("id", id).single(),
     supabase.from("products").select("*").is("deleted_at", null),
     supabase.from("recipe_lines").select("*").eq("recipe_id", id),
     supabase.from("items").select("*").is("deleted_at", null),
     supabase.from("product_packaging").select("*").is("deleted_at", null),
     supabase.from("recipe_cost_snapshots").select("*").eq("recipe_id", id),
+    supabase.from("stock_balances_view").select("item_id,current_stock,current_qty"),
   ]);
 
   if (recipe.error) throw new Error(recipe.error.message);
@@ -156,7 +177,7 @@ export async function getRecipe(id: string) {
     if (result.error) throw new Error(result.error.message);
   }
 
-  return buildRecipeDetail(recipe.data, products.data ?? [], lines.data ?? [], items.data ?? [], packaging.data ?? [], snapshots.data ?? []);
+  return buildRecipeDetail(recipe.data, products.data ?? [], lines.data ?? [], items.data ?? [], packaging.data ?? [], snapshots.data ?? [], stockBalances.data ?? []);
 }
 
 export async function getRecipeIngredientOptions(): Promise<RecipeIngredientOption[]> {

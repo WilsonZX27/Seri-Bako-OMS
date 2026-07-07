@@ -72,7 +72,7 @@ The app maps these friendly keys to older database permission names where needed
 | Purchase Request Admin Review | `pr.admin_review` | Yes | Yes | No | No | No | No | No |
 | Purchase Request Purchasing Review | `pr.purchasing_review` | Yes | No | No | Yes | No | No | No |
 | Purchase Request Manager Approval | `pr.manager_approve` | Yes | No | Yes | No | No | No | No |
-| Purchase Request Finance Review | `pr.finance_review` | Yes | Yes | No | No | Yes | No | No |
+| Purchase Request Finance Review | `pr.finance_review` | Yes | No | No | No | Yes | No | No |
 | Convert PR to PO | `pr.convert_to_po` | Yes | No | No | No | No | No | No |
 | Purchase Order Create/Submit | `po.create`, `po.submit` | Yes | Yes | No | Yes | No | No | No |
 | Purchase Order Approval | `po.approve` | Yes | No | Yes | No | No | No | No |
@@ -88,7 +88,7 @@ The app maps these friendly keys to older database permission names where needed
 
 - Hide buttons the current role cannot perform.
 - Kitchen must not see approve, verify, convert, create item, create supplier, or role assignment actions.
-- Administrator can see admin review and setup actions, but not purchasing review or manager approval unless explicitly assigned.
+- Administrator can see admin review and setup actions, but not finance review, purchasing review, or manager approval unless explicitly assigned.
 - Purchasing can see purchasing review and supplier/item/procurement actions, but not manager approval.
 - Manager can see manager approval/rejection actions, but not purchasing verification.
 - Super Admin / Owner can see all valid workflow actions for the document's current state.

@@ -1,12 +1,12 @@
 const { test, expect } = require("@playwright/test");
 const { login } = require("./helpers");
 
-test("manager can open manager approval queue", async ({ page }) => {
+test("manager can open manager review filter", async ({ page }) => {
   test.skip(!process.env.TEST_MANAGER_EMAIL || !process.env.TEST_MANAGER_PASSWORD, "Missing manager test credentials.");
   expect(await login(page, "manager")).toBe(true);
-  await page.goto("/purchase-requests?step=pending_approval");
+  await page.goto("/purchase-requests?status=admin_review");
   await expect(page.getByRole("heading", { name: /purchase requests/i })).toBeVisible();
-  await expect(page).toHaveURL(/step=pending_approval/);
+  await expect(page).toHaveURL(/status=admin_review/);
 });
 
 test("manager dashboard shows and opens manager approval PR", async ({ page }) => {
@@ -19,10 +19,10 @@ test("manager dashboard shows and opens manager approval PR", async ({ page }) =
   await expect(page.getByRole("button", { name: /manager approve/i })).toBeVisible();
 });
 
-test("purchasing can open purchasing review queue", async ({ page }) => {
+test("purchasing can open admin review filter", async ({ page }) => {
   test.skip(!process.env.TEST_PURCHASING_EMAIL || !process.env.TEST_PURCHASING_PASSWORD, "Missing purchasing test credentials.");
   expect(await login(page, "purchasing")).toBe(true);
-  await page.goto("/purchase-requests?step=purchasing_review");
+  await page.goto("/purchase-requests?status=purchasing_review");
   await expect(page.getByRole("heading", { name: /purchase requests/i })).toBeVisible();
 });
 

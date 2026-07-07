@@ -20,10 +20,12 @@ import { getPurchaseRequests } from "@/server/queries/procurement";
 
 const statuses = [
   { value: "draft", label: "Draft" },
-  { value: "in_review", label: "In Review" },
-  { value: "approved", label: "Approved" },
-  { value: "converted", label: "Converted" },
-  { value: "rejected", label: "Rejected" },
+  { value: "admin_review", label: "Manager Review" },
+  { value: "purchasing_review", label: "Admin Review" },
+  { value: "pending_approval", label: "Finance Review" },
+  { value: "approved", label: "Ready to Convert" },
+  { value: "converted", label: "Converted to PO" },
+  { value: "rejected", label: "Rejected / Returned" },
 ];
 
 export default async function PurchaseRequestsPage({ searchParams }: { searchParams: Promise<Record<string, string | undefined>> }) {
@@ -34,16 +36,16 @@ export default async function PurchaseRequestsPage({ searchParams }: { searchPar
   const prInsights = [
     { label: "Total", value: rows.length, href: "/purchase-requests", active: !filters.status && !filters.step, icon: FileText },
     { label: "Draft", value: count("draft"), href: "/purchase-requests?status=draft", active: filters.status === "draft", icon: FileText },
-    { label: "Admin Review", value: count("admin_review"), href: "/purchase-requests?step=admin_review", active: filters.step === "admin_review", icon: ClipboardCheck },
-    { label: "Purchasing Review", value: count("purchasing_review"), href: "/purchase-requests?step=purchasing_review", active: filters.step === "purchasing_review", icon: ClipboardCheck },
-    { label: "Manager Approval", value: count("pending_approval"), href: "/purchase-requests?step=pending_approval", active: filters.step === "pending_approval", icon: ClipboardCheck },
-    { label: "Approved", value: count("approved"), href: "/purchase-requests?status=approved", active: filters.status === "approved", icon: CheckCircle2 },
-    { label: "Rejected/Cancelled", value: count("rejected", "cancelled"), href: "/purchase-requests?status=rejected", active: filters.status === "rejected", icon: XCircle },
-    { label: "Converted", value: count("converted"), href: "/purchase-requests?status=converted", active: filters.status === "converted", icon: RotateCcw },
+    { label: "Manager Review", value: count("admin_review"), href: "/purchase-requests?status=admin_review", active: filters.status === "admin_review", icon: ClipboardCheck },
+    { label: "Admin Review", value: count("purchasing_review"), href: "/purchase-requests?status=purchasing_review", active: filters.status === "purchasing_review", icon: ClipboardCheck },
+    { label: "Finance Review", value: count("pending_approval"), href: "/purchase-requests?status=pending_approval", active: filters.status === "pending_approval", icon: ClipboardCheck },
+    { label: "Ready to Convert", value: count("approved"), href: "/purchase-requests?status=approved", active: filters.status === "approved", icon: CheckCircle2 },
+    { label: "Rejected / Returned", value: count("rejected", "cancelled"), href: "/purchase-requests?status=rejected", active: filters.status === "rejected", icon: XCircle },
+    { label: "Converted to PO", value: count("converted"), href: "/purchase-requests?status=converted", active: filters.status === "converted", icon: RotateCcw },
   ];
   return (
     <>
-      <PageHeader title="Purchase Requests" description="Daily stock check and low-stock replenishment requests before PO creation." action={{ href: "/purchase-requests/new", label: "New PR" }} secondaryAction={{ href: "/api/export/purchase-requests", label: "Export CSV" }} />
+      <PageHeader title="Purchase Requests" description="Create, review, return, and convert branch requests into purchase orders." action={{ href: "/purchase-requests/new", label: "New PR" }} secondaryAction={{ href: "/api/export/purchase-requests", label: "Export CSV" }} />
       <div className="space-y-4 p-5">
         <KpiFilterStrip items={prInsights} className="xl:grid-cols-4 2xl:grid-cols-8" />
         <div className="overflow-hidden rounded-xl border bg-card shadow-sm">

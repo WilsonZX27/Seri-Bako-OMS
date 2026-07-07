@@ -17,11 +17,11 @@ import { formatCurrency } from "@/lib/utils";
 import { getPurchaseOrders } from "@/server/queries/procurement";
 
 const statuses = [
-  { value: "draft", label: "Draft" },
-  { value: "pending_approval", label: "Pending Approval" },
-  { value: "awaiting_delivery", label: "Awaiting delivery" },
+  { value: "approved", label: "Ready to Send" },
+  { value: "sent", label: "Sent to Supplier" },
   { value: "receiving", label: "Receiving" },
-  { value: "completed", label: "Completed" },
+  { value: "received", label: "Received" },
+  { value: "closed", label: "Closed" },
   { value: "cancelled", label: "Cancelled" },
 ];
 
@@ -32,10 +32,11 @@ export default async function PurchaseOrdersPage({ searchParams }: { searchParam
   const count = (...statuses: string[]) => rows.filter((order) => statuses.includes(order.status)).length;
   const poInsights = [
     { label: "Total", value: rows.length, href: "/purchase-orders", active: !filters.status, icon: FileText },
-    { label: "Draft", value: count("draft"), href: "/purchase-orders?status=draft", active: filters.status === "draft", icon: FileText },
-    { label: "Pending Approval", value: count("pending_approval"), href: "/purchase-orders?status=pending_approval", active: filters.status === "pending_approval", icon: ClipboardCheck },
-    { label: "Awaiting Delivery", value: count("approved", "sent"), href: "/purchase-orders?status=awaiting_delivery", active: filters.status === "awaiting_delivery", icon: Truck },
-    { label: "Completed", value: count("received", "closed"), href: "/purchase-orders?status=completed", active: filters.status === "completed", icon: CheckCircle2 },
+    { label: "Ready to Send", value: count("approved"), href: "/purchase-orders?status=approved", active: filters.status === "approved", icon: Truck },
+    { label: "Sent to Supplier", value: count("sent"), href: "/purchase-orders?status=sent", active: filters.status === "sent", icon: Truck },
+    { label: "Receiving", value: count("partial_received"), href: "/purchase-orders?status=receiving", active: filters.status === "receiving", icon: ClipboardCheck },
+    { label: "Received", value: count("received"), href: "/purchase-orders?status=received", active: filters.status === "received", icon: CheckCircle2 },
+    { label: "Closed", value: count("closed"), href: "/purchase-orders?status=closed", active: filters.status === "closed", icon: CheckCircle2 },
     { label: "Cancelled", value: count("cancelled"), href: "/purchase-orders?status=cancelled", active: filters.status === "cancelled", icon: XCircle },
   ];
   return (
@@ -62,7 +63,6 @@ export default async function PurchaseOrdersPage({ searchParams }: { searchParam
                   <SortableHead label="Date" column="order_date" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
                   <SortableHead label="Delivery" column="expected_delivery_date" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
                   <SortableHead label="Status" column="status" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
-                  <SortableHead label="Approval" column="approval_status" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
                   <TableHead className="text-right">Lines</TableHead>
                   <TableHead className="text-right">Total</TableHead>
                 </TableRow>
@@ -83,12 +83,11 @@ export default async function PurchaseOrdersPage({ searchParams }: { searchParam
                     <TableCell>{order.order_date}</TableCell>
                     <TableCell>{order.expected_delivery_date ?? "-"}</TableCell>
                     <TableCell><StatusBadge status={order.status} /></TableCell>
-                    <TableCell><StatusBadge status={order.approval_status} /></TableCell>
                     <TableCell className="text-right">{order.line_count}</TableCell>
                     <TableCell className="text-right">{formatCurrency(order.order_total)}</TableCell>
                   </DataGridRow>
                 ))}
-                {!orders.rows.length ? <TableRow><TableCell colSpan={9}><EmptyState title="No purchase orders found" description="Purchase orders will appear here after approved requests are converted or a new PO is created." action={{ href: "/purchase-orders/new", label: "New PO" }} /></TableCell></TableRow> : null}
+                {!orders.rows.length ? <TableRow><TableCell colSpan={8}><EmptyState title="No purchase orders found" description="Purchase orders will appear here after approved requests are converted or a new PO is created." action={{ href: "/purchase-orders/new", label: "New PO" }} /></TableCell></TableRow> : null}
               </TableBody>
             </Table>
           </div>

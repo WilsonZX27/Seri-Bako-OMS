@@ -100,11 +100,16 @@ export default async function PurchaseRequestDetailPage({
               {canManagerReview ? <DocumentActionForm action={adminReviewPurchaseRequest.bind(null, request.id)} pendingLabel="Approving..." className="bg-emerald-700 text-white hover:bg-emerald-800">Manager Approve</DocumentActionForm> : null}
               {canAdminReview ? <DocumentActionForm action={purchasingReviewPurchaseRequest.bind(null, request.id)} pendingLabel="Reviewing..." className="bg-emerald-700 text-white hover:bg-emerald-800">Complete Admin Review</DocumentActionForm> : null}
               {canFinanceReview ? <DocumentActionForm action={approvePurchaseRequest.bind(null, request.id)} pendingLabel="Reviewing..." className="bg-emerald-700 text-white hover:bg-emerald-800">Complete Finance Review</DocumentActionForm> : null}
-              {canConvert ? <DocumentActionForm action={convertPurchaseRequestToPurchaseOrder.bind(null, request.id)} pendingLabel="Converting...">Convert to Purchase Order</DocumentActionForm> : null}
               {request.status === "converted" && linkedPurchaseOrders[0] ? (
                 <Button asChild><a href={`/purchase-orders/${linkedPurchaseOrders[0].id}`}>Open PO</a></Button>
               ) : null}
             </DocumentActionBar>
+            {canConvert ? (
+              <form action={convertPurchaseRequestToPurchaseOrder.bind(null, request.id)} className="mt-3 space-y-2">
+                <Input name="autocount_po_no" placeholder="AutoCount PO Number" required />
+                <SubmitButton type="submit" pendingLabel="Converting...">Convert to Purchase Order</SubmitButton>
+              </form>
+            ) : null}
             {canReject ? (
               <form action={rejectPurchaseRequest.bind(null, request.id)} className="mt-3 space-y-2">
                 <Input name="remarks" placeholder="Rejection remarks required" required />

@@ -457,11 +457,12 @@ export async function rejectPurchaseRequest(id: string, formData: FormData) {
     if (!transition) throw new Error("This request is not at a rejectable workflow step.");
     const canReject = (await hasPermission("pr.reject")) || (await hasPermission(transition.permission));
     if (!canReject) throw new Error(noPermissionMessage);
+    const permission = (await hasPermission(transition.permission)) ? transition.permission : "pr.reject";
     const updated = await updatePrStatus({
       id,
       expectedStatus: transition.expectedStatus,
       nextStatus: "rejected",
-      permission: transition.permission,
+      permission,
       documentStatus: "rejected",
       approvalStatus: "rejected",
       step: "Rejected",
@@ -639,10 +640,12 @@ export async function closePurchaseOrder(id: string) {
   }
 }
 
-export async function convertPurchaseRequestToPurchaseOrder(id: string) {
+export async function convertPurchaseRequestToPurchaseOrder(id: string, formData: FormData) {
   let reservedConversion = false;
   try {
     if (isMockMode()) redirect("/purchase-orders/po-mock-001");
+    const autocountPoNo = cleanText(formData.get("autocount_po_no"));
+    if (!autocountPoNo) throw new Error("AutoCount PO Number is required.");
     const supabase = await createClient();
     const [{ data: pr, error: prError }, { data: lines, error: linesError }, { data: existingPo, error: existingPoError }] = await Promise.all([
       supabase.from("purchase_requests").select("*").eq("id", id).single(),
@@ -681,11 +684,15 @@ export async function convertPurchaseRequestToPurchaseOrder(id: string) {
     if (!reservedPr) throw new Error(wrongPrStepMessage);
     reservedConversion = true;
 
-    const poNo = await resolveDocumentNumber({
-      companyId: profile?.company_id,
-      documentType: "purchase_order",
-      enteredNumber: null,
-    });
+    const { data: duplicatePo, error: duplicatePoError } = await supabase
+      .from("purchase_orders")
+      .select("id")
+      .eq("po_no", autocountPoNo)
+      .is("deleted_at", null)
+      .maybeSingle();
+    if (duplicatePoError) throw new Error(duplicatePoError.message);
+    if (duplicatePo) throw new Error("This AutoCount PO Number is already used.");
+    const poNo = autocountPoNo;
     const { data: po, error: poError } = await supabase
       .from("purchase_orders")
       .insert({
@@ -699,8 +706,8 @@ export async function convertPurchaseRequestToPurchaseOrder(id: string) {
         needed_by_date: pr.needed_by_date ?? pr.required_date,
         urgency_reason: pr.urgency_reason,
         production_risk: pr.production_risk ?? false,
-        status: "draft",
-        approval_status: "draft",
+        status: "approved",
+        approval_status: "approved",
         remarks: pr.remarks ? `Created from ${pr.request_no}. ${pr.remarks}` : `Created from ${pr.request_no}.`,
         created_by: profile?.id ?? null,
         updated_by: profile?.id ?? null,
@@ -708,7 +715,7 @@ export async function convertPurchaseRequestToPurchaseOrder(id: string) {
       .select("id")
       .single();
     if (poError) throw new Error(poError.message);
-    const documentId = await createLinkedDocument({ documentNo: poNo, documentType: "purchase_order", title: `Purchase Order ${poNo}`, relatedEntityType: "purchase_order", relatedEntityId: po.id });
+    const documentId = await createLinkedDocument({ documentNo: poNo, documentType: "purchase_order", title: `Purchase Order ${poNo}`, relatedEntityType: "purchase_order", relatedEntityId: po.id, status: "approved", approvalStatus: "approved" });
     const [{ error: poUpdateError }, { error: poLinesError }, { error: prUpdateError }, { error: prDocumentError }] = await Promise.all([
       supabase.from("purchase_orders").update({ document_id: documentId }).eq("id", po.id),
       supabase.from("purchase_order_lines").insert((lines ?? []).map((line) => ({

@@ -7,11 +7,9 @@ const screenshotDir = path.join(process.cwd(), "test-results", "ui-smoke-sprint-
 
 const superAdminRoutes = [
   "/dashboard",
-  "/daily-operations",
-  "/procurement",
-  "/procurement/purchase-requests",
   "/purchase-requests",
   "/purchase-requests/new",
+  "/purchase-orders",
   "/inventory",
   "/items",
   "/items/new",
@@ -111,9 +109,19 @@ async function assertSprint721Rules(page, route) {
     await expect(page).toHaveURL(/status=rejected/);
   }
   if (route === "/purchase-requests") {
+    await expect(page.locator('nav a', { hasText: "Manager Approvals" })).toHaveCount(0);
+    await expect(page.locator('nav a', { hasText: "Admin Review" })).toHaveCount(0);
+    await expect(page.locator('nav a', { hasText: "Finance Review" })).toHaveCount(0);
+    await expect(page.locator('nav a', { hasText: "Outlet Requests" })).toHaveCount(0);
+    await expect(page.locator('nav a', { hasText: "Supplier Sending" })).toHaveCount(0);
     await expect(page.locator('table a[aria-label^="Quick view"]').first()).toBeAttached();
-    await page.getByRole("link", { name: /manager approval/i }).click();
-    await expect(page).toHaveURL(/step=pending_approval/);
+    await page.getByRole("link", { name: /manager review/i }).click();
+    await expect(page).toHaveURL(/status=admin_review/);
+  }
+  if (route === "/purchase-orders") {
+    await expect(page.getByRole("link", { name: /ready to send/i })).toBeVisible();
+    await expect(page.getByRole("link", { name: /sent to supplier/i })).toBeVisible();
+    await expect(page.locator('nav a', { hasText: "Supplier Sending" })).toHaveCount(0);
   }
   if (route === "/purchase-requests/new") {
     await assertNoObviousVisualBreaks(page);
@@ -130,11 +138,6 @@ async function assertSprint721Rules(page, route) {
   if (route === "/reports") {
     await expect(page.locator("body")).not.toContainText("Quick Insights");
     await expect(page.locator("body")).not.toContainText(/Inventory Reports\s+3|Procurement Reports\s+3/);
-  }
-  if (route === "/daily-operations") {
-    await expect(page.getByRole("heading", { name: /today's work/i })).toBeVisible();
-    await expect(page.getByRole("heading", { name: /scan \/ count \/ receive/i })).toBeVisible();
-    await expect(page.getByRole("heading", { name: /report exception/i })).toBeVisible();
   }
 }
 

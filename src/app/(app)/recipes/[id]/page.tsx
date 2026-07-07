@@ -123,17 +123,14 @@ export default async function RecipeDetailPage({
             <div className="overflow-x-auto rounded-md border">
               <Table>
                 <TableHeader>
-                  <TableRow>
-                    <TableHead>Ingredient</TableHead>
-                    <TableHead>Barcode</TableHead>
-                    <TableHead className="text-right">Recipe Qty</TableHead>
-                    <TableHead>Recipe UOM</TableHead>
-                    <TableHead className="text-right">Factor</TableHead>
-                    <TableHead className="text-right">Base Qty</TableHead>
-                    <TableHead>Base UOM</TableHead>
-                    <TableHead className="text-right">Wastage %</TableHead>
-                    <TableHead className="text-right">Cost / Base</TableHead>
-                    <TableHead className="text-right">Line Cost</TableHead>
+                    <TableRow>
+                      <TableHead>Ingredient</TableHead>
+                      <TableHead className="text-right">Required Qty</TableHead>
+                      <TableHead className="text-right">Current Stock</TableHead>
+                      <TableHead className="text-right">Shortage</TableHead>
+                      <TableHead>Stock Status</TableHead>
+                      <TableHead>Suggested Action</TableHead>
+                      <TableHead className="text-right">Line Cost</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -148,14 +145,13 @@ export default async function RecipeDetailPage({
                           </div>
                         </div>
                       </TableCell>
-                      <TableCell>{line.barcode ?? "-"}</TableCell>
-                      <TableCell className="text-right">{formatNumber(line.qty_required)}</TableCell>
-                      <TableCell>{line.recipe_uom}</TableCell>
-                      <TableCell className="text-right">{formatNumber(line.conversion_factor)}</TableCell>
-                      <TableCell className="text-right">{formatNumber(line.base_qty_required)}</TableCell>
-                      <TableCell>{line.base_uom}</TableCell>
-                      <TableCell className="text-right">{formatNumber(line.wastage_percent)}%</TableCell>
-                      <TableCell className="text-right">{formatCurrency(line.cost_per_unit)}</TableCell>
+                      <TableCell className="text-right">{formatNumber(line.base_qty_required)} {line.base_uom}</TableCell>
+                      <TableCell className="text-right">{line.current_stock == null ? "Unknown" : `${formatNumber(line.current_stock)} ${line.base_uom}`}</TableCell>
+                      <TableCell className="text-right">{line.shortage_qty == null ? "-" : `${formatNumber(line.shortage_qty)} ${line.base_uom}`}</TableCell>
+                      <TableCell>
+                        <Badge variant={line.stock_status === "available" ? "success" : line.stock_status === "short" ? "danger" : "secondary"}>{line.stock_status === "need_purchase" ? "Need Purchase" : line.stock_status}</Badge>
+                      </TableCell>
+                      <TableCell>{line.stock_status === "available" ? "Use stock" : line.stock_status === "unknown" ? "Check stock" : "Create PR"}</TableCell>
                       <TableCell className="text-right font-medium">{formatCurrency(line.calculated_line_cost)}</TableCell>
                     </TableRow>
                   ))}

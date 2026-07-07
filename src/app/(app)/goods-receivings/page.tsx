@@ -1,18 +1,18 @@
 import Link from "next/link";
-import { CheckCircle2, Eye, FileText, XCircle } from "lucide-react";
+import { Eye } from "lucide-react";
 import { BulkSelectAllCheckbox, BulkSelectionProvider, BulkSelectRowCheckbox } from "@/components/bulk-selection";
 import { DataGridRow } from "@/components/ui/data-grid-row";
 import { DataGridHint } from "@/components/ui/data-grid-hint";
 import { DocumentNumber } from "@/components/document-number";
 import { EmptyState } from "@/components/ui/empty-state";
 import { StatusBadge } from "@/components/ui/status-badge";
-import { KpiFilterStrip } from "@/components/ui/kpi-filter-strip";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { PageHeader } from "@/components/ui/page-header";
 import { PaginationControls, SortableHead } from "@/components/sortable-table";
 import { StatusTabs } from "@/components/status-tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { WorkspaceGrid } from "@/components/layout/workspace-layout";
 import { formatNumber } from "@/lib/utils";
 import { getGoodsReceivings } from "@/server/queries/goods-receivings";
 
@@ -23,12 +23,8 @@ export default async function GoodsReceivingsPage({ searchParams }: { searchPara
   const [receivings, allReceivings] = await Promise.all([getGoodsReceivings(filters), getGoodsReceivings({ page: "all" })]);
   const rows = allReceivings.rows;
   const count = (...statuses: string[]) => rows.filter((receiving) => statuses.includes(receiving.status)).length;
-  const grnInsights = [
-    { label: "Total", value: rows.length, href: "/goods-receivings", active: !filters.status, icon: FileText },
-    { label: "Draft", value: count("draft"), href: "/goods-receivings?status=draft", active: filters.status === "draft", icon: FileText },
-    { label: "Posted", value: count("posted"), href: "/goods-receivings?status=posted", active: filters.status === "posted", icon: CheckCircle2 },
-    { label: "Cancelled", value: count("cancelled"), href: "/goods-receivings?status=cancelled", active: filters.status === "cancelled", icon: XCircle },
-  ];
+  const receivedTotal = rows.reduce((sum, receiving) => sum + receiving.received_total, 0);
+  const rejectedTotal = rows.reduce((sum, receiving) => sum + receiving.rejected_total, 0);
   return (
     <>
       <PageHeader
@@ -37,8 +33,37 @@ export default async function GoodsReceivingsPage({ searchParams }: { searchPara
         action={{ href: "/goods-receivings/new", label: "New GRN" }}
         secondaryAction={{ href: "/goods-receivings/scan", label: "Scan Mode" }}
       />
-      <div className="space-y-4 p-5">
-        <KpiFilterStrip items={grnInsights} className="xl:grid-cols-4" />
+      <WorkspaceGrid
+        rightRail={
+          <>
+            <section className="rounded-lg border bg-card p-3 shadow-sm">
+              <h2 className="text-[13px] font-semibold">GRN Summary</h2>
+              <div className="mt-3 grid gap-2 text-xs">
+                <div className="flex justify-between"><span className="text-muted-foreground">Total GRNs</span><strong>{rows.length}</strong></div>
+                <div className="flex justify-between"><span className="text-muted-foreground">Draft</span><strong>{count("draft")}</strong></div>
+                <div className="flex justify-between"><span className="text-muted-foreground">Posted</span><strong>{count("posted")}</strong></div>
+                <div className="flex justify-between"><span className="text-muted-foreground">Cancelled</span><strong>{count("cancelled")}</strong></div>
+              </div>
+            </section>
+            <section className="rounded-lg border bg-card p-3 shadow-sm">
+              <h2 className="text-[13px] font-semibold">Page Metrics</h2>
+              <div className="mt-3 grid gap-2 text-xs">
+                <div className="rounded-md border bg-white p-3">
+                  <p className="text-[10px] font-semibold uppercase tracking-[0.04em] text-muted-foreground">Received Qty</p>
+                  <p className="mt-1 text-lg font-semibold">{formatNumber(receivedTotal)}</p>
+                </div>
+                <div className="rounded-md border bg-white p-3">
+                  <p className="text-[10px] font-semibold uppercase tracking-[0.04em] text-muted-foreground">Rejected Qty</p>
+                  <p className="mt-1 text-lg font-semibold">{formatNumber(rejectedTotal)}</p>
+                </div>
+                <Button asChild variant="outline" className="w-full">
+                  <Link href="/goods-receivings/scan">Scan Mode</Link>
+                </Button>
+              </div>
+            </section>
+          </>
+        }
+      >
         <div className="overflow-hidden rounded-xl border bg-card shadow-sm">
           <StatusTabs statuses={statuses} activeStatus={filters.status} />
           <form className="flex flex-col gap-3 border-b bg-white p-4 md:flex-row md:items-center">
@@ -84,14 +109,14 @@ export default async function GoodsReceivingsPage({ searchParams }: { searchPara
                     <TableCell className="text-right">{formatNumber(receiving.rejected_total)}</TableCell>
                   </DataGridRow>
                 ))}
-                {!receivings.rows.length ? <TableRow><TableCell colSpan={9}><EmptyState title="No goods receivings found" description="Receiving records will appear here after supplier deliveries are recorded." action={{ href: "/goods-receivings/new", label: "New GRN" }} /></TableCell></TableRow> : null}
+                {!receivings.rows.length ? <TableRow><TableCell colSpan={9}><EmptyState title="No goods receivings found" description="Receiving records will appear here after supplier deliveries are recorded." /></TableCell></TableRow> : null}
               </TableBody>
             </Table>
           </div>
           </BulkSelectionProvider>
           <PaginationControls page={receivings.page} totalPages={receivings.totalPages} totalRows={receivings.totalRows} searchParams={filters} />
         </div>
-      </div>
+      </WorkspaceGrid>
     </>
   );
 }

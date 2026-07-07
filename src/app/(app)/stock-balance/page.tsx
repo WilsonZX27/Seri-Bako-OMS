@@ -4,6 +4,7 @@ import { Input } from "@/components/ui/input";
 import { PageHeader } from "@/components/ui/page-header";
 import { PaginationControls, SortableHead } from "@/components/sortable-table";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { WorkspaceGrid } from "@/components/layout/workspace-layout";
 import { formatCurrency, formatNumber } from "@/lib/utils";
 import { getStockBalanceDetails } from "@/server/queries/inventory";
 
@@ -17,10 +18,34 @@ export default async function StockBalancePage({ searchParams }: { searchParams:
   const filters = await searchParams;
   const isLocationView = filters.view === "location";
   const balances = await getStockBalanceDetails(filters);
+  const totalValue = balances.rows.reduce((sum, item) => sum + item.inventory_value, 0);
+  const lowStock = balances.rows.filter((item) => item.status === "low_stock").length;
+  const negative = balances.rows.filter((item) => item.status === "negative").length;
   return (
     <>
       <PageHeader title="Stock Balance" description="Calculated from posted stock ledger transactions. No direct balance edits." />
-      <div className="p-5">
+      <WorkspaceGrid
+        rightRail={
+          <>
+            <section className="rounded-lg border bg-card p-3 shadow-sm">
+              <h2 className="text-[13px] font-semibold">Stock Summary</h2>
+              <div className="mt-3 grid gap-2 text-xs">
+                <div className="flex justify-between"><span className="text-muted-foreground">Rows Shown</span><strong>{balances.rows.length}</strong></div>
+                <div className="flex justify-between"><span className="text-muted-foreground">Low Stock</span><strong>{lowStock}</strong></div>
+                <div className="flex justify-between"><span className="text-muted-foreground">Negative</span><strong>{negative}</strong></div>
+                <div className="flex justify-between"><span className="text-muted-foreground">View</span><strong>{isLocationView ? "Location" : "Branch"}</strong></div>
+              </div>
+            </section>
+            <section className="rounded-lg border bg-card p-3 shadow-sm">
+              <h2 className="text-[13px] font-semibold">Page Metrics</h2>
+              <div className="mt-3 rounded-md border bg-white p-3">
+                <p className="text-[10px] font-semibold uppercase tracking-[0.04em] text-muted-foreground">Inventory Value</p>
+                <p className="mt-1 text-lg font-semibold">{formatCurrency(totalValue)}</p>
+              </div>
+            </section>
+          </>
+        }
+      >
         <div className="overflow-hidden rounded-lg border bg-card">
           <form className="flex flex-col gap-3 border-b p-4 md:flex-row">
             <Input name="search" defaultValue={filters.search ?? ""} placeholder="Search item, location, status" className="md:max-w-sm" />
@@ -75,7 +100,7 @@ export default async function StockBalancePage({ searchParams }: { searchParams:
           </div>
           <PaginationControls page={balances.page} totalPages={balances.totalPages} totalRows={balances.totalRows} searchParams={filters} />
         </div>
-      </div>
+      </WorkspaceGrid>
     </>
   );
 }

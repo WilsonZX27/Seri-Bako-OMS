@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { AlertTriangle, Boxes, CheckCircle2, ClipboardCheck, Clock3, PackageCheck, ReceiptText, RotateCw, Zap } from "lucide-react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
 import { WorkspaceGrid } from "@/components/layout/workspace-layout";
@@ -58,6 +59,13 @@ const futureAnalyticsWidgets = [
 ] as const;
 
 export function DashboardWorkspace({ summary }: { summary: DashboardSummary }) {
+  const [now, setNow] = useState(() => new Date());
+
+  useEffect(() => {
+    const timer = window.setInterval(() => setNow(new Date()), 1000);
+    return () => window.clearInterval(timer);
+  }, []);
+
   const today = new Date().toISOString().slice(0, 10);
   const metrics = [
     { href: "/purchase-requests?status=admin_review", label: "Pending PRs", value: formatNumber(summary.pendingApprovals.length), icon: ClipboardCheck, tone: summary.pendingApprovals.length ? ("amber" as const) : ("green" as const) },
@@ -107,6 +115,15 @@ export function DashboardWorkspace({ summary }: { summary: DashboardSummary }) {
         }
       >
         <div className="space-y-3">
+          <div className="flex flex-wrap items-end justify-between gap-2">
+            <div>
+              <h1 className="text-2xl font-semibold leading-tight">Operation ERP</h1>
+              <p className="text-xs text-muted-foreground">
+                {now.toLocaleString("en-MY", { dateStyle: "full", timeStyle: "medium" })}
+              </p>
+            </div>
+          </div>
+
           <div className="grid gap-3 md:grid-cols-3">
             {metrics.slice(0, 3).map((metric) => <MetricCard key={metric.label} {...metric} />)}
           </div>

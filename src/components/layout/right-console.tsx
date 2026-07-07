@@ -23,7 +23,7 @@ export function RightConsoleProvider({ children }: { children: ReactNode }) {
   return (
     <RightConsoleContext.Provider value={value}>
       {children}
-      <aside className="hidden h-dvh w-[300px] shrink-0 border-l bg-[#f3f2ed] xl:block">
+      <aside className="hidden h-full w-[300px] shrink-0 border-l bg-[#f3f2ed] xl:block">
         <div className="h-full overflow-y-auto px-3 py-3">{content}</div>
       </aside>
     </RightConsoleContext.Provider>

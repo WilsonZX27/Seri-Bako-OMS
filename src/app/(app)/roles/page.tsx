@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { MasterDataFilters } from "@/components/master-data-filters";
 import { PageHeader } from "@/components/ui/page-header";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { WorkspaceGrid } from "@/components/layout/workspace-layout";
 import { getRoleDisplayLabel } from "@/lib/roles";
 import { getPermissions, getRoles } from "@/server/queries/foundation";
 
@@ -13,7 +14,22 @@ export default async function RolesPage({ searchParams }: { searchParams: Promis
   return (
     <>
       <PageHeader title="Roles & Permissions" description="Role definitions and the Sprint 1 permission catalogue." action={{ href: "/roles/new", label: "New role" }} />
-      <div className="grid gap-5 p-5 xl:grid-cols-[1fr_360px]">
+      <WorkspaceGrid
+        rightRail={
+          <section className="rounded-lg border bg-card p-4 shadow-sm">
+            <h2 className="text-sm font-semibold">Permission Catalogue</h2>
+            <p className="mt-1 text-xs text-muted-foreground">Sprint 1 foundation permissions seeded by the migration.</p>
+            <div className="mt-4 space-y-2">
+              {permissions.map((permission) => (
+                <div key={permission.id} className="rounded-md border bg-background px-3 py-2 text-xs">
+                  <p className="font-medium">{permission.permission_code}</p>
+                  <p className="capitalize text-muted-foreground">{permission.module} / {permission.action}</p>
+                </div>
+              ))}
+            </div>
+          </section>
+        }
+      >
         <div className="overflow-hidden rounded-lg border bg-card">
           <MasterDataFilters search={filters.search} status={filters.status} placeholder="Search role code, name, or description" />
           <div className="overflow-x-auto"><Table><TableHeader><TableRow>
@@ -31,19 +47,7 @@ export default async function RolesPage({ searchParams }: { searchParams: Promis
             {!roles.length ? <TableRow><TableCell colSpan={5} className="text-center text-muted-foreground">No roles found.</TableCell></TableRow> : null}
           </TableBody></Table></div>
         </div>
-        <div className="rounded-lg border bg-card p-4">
-          <h2 className="text-sm font-semibold">Permission Catalogue</h2>
-          <p className="mt-1 text-xs text-muted-foreground">Sprint 1 foundation permissions seeded by the migration.</p>
-          <div className="mt-4 space-y-2">
-            {permissions.map((permission) => (
-              <div key={permission.id} className="rounded-md border bg-background px-3 py-2 text-xs">
-                <p className="font-medium">{permission.permission_code}</p>
-                <p className="capitalize text-muted-foreground">{permission.module} / {permission.action}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
+      </WorkspaceGrid>
     </>
   );
 }

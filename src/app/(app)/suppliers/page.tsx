@@ -11,6 +11,7 @@ import { PageHeader } from "@/components/ui/page-header";
 import { PaginationControls, SortableHead } from "@/components/sortable-table";
 import { StatusTabs } from "@/components/status-tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { WorkspaceGrid } from "@/components/layout/workspace-layout";
 import { paginateRows } from "@/lib/table-state";
 import { getSuppliers } from "@/server/queries/suppliers";
 
@@ -22,15 +23,38 @@ export default async function SuppliersPage({
   const filters = await searchParams;
   const suppliers = await getSuppliers(filters);
   const page = paginateRows(suppliers, filters.page);
+  const count = (status: string) => suppliers.filter((supplier) => supplier.status === status).length;
 
   return (
     <>
       <PageHeader title="Suppliers" description="Supplier master records for ingredients and packaging." action={{ href: "/suppliers/new", label: "New supplier" }} secondaryAction={{ href: "/api/export/suppliers", label: "Export CSV" }} />
-      <div className="p-5">
+      <WorkspaceGrid
+        rightRail={
+          <>
+            <section className="rounded-lg border bg-card p-3 shadow-sm">
+              <h2 className="text-[13px] font-semibold">Supplier Summary</h2>
+              <div className="mt-3 grid gap-2 text-xs">
+                <div className="flex justify-between"><span className="text-muted-foreground">Total Suppliers</span><strong>{suppliers.length}</strong></div>
+                <div className="flex justify-between"><span className="text-muted-foreground">Active</span><strong>{count("active")}</strong></div>
+                <div className="flex justify-between"><span className="text-muted-foreground">Inactive</span><strong>{count("inactive")}</strong></div>
+                <div className="flex justify-between"><span className="text-muted-foreground">Archived</span><strong>{count("archived")}</strong></div>
+              </div>
+            </section>
+            <section className="rounded-lg border bg-card p-3 shadow-sm">
+              <h2 className="text-[13px] font-semibold">Actions</h2>
+              <div className="mt-3 grid gap-2">
+                <Button asChild variant="outline" className="w-full">
+                  <Link href="/imports/suppliers">Import suppliers</Link>
+                </Button>
+                <Button asChild variant="ghost" className="w-full">
+                  <Link href="/api/export/suppliers">Export CSV</Link>
+                </Button>
+              </div>
+            </section>
+          </>
+        }
+      >
         {filters.success ? <div className="mb-3 rounded-lg border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-800">{filters.success}</div> : null}
-        <div className="mb-3 flex justify-end">
-          <Button asChild variant="outline" size="sm"><Link href="/imports/suppliers">Import suppliers</Link></Button>
-        </div>
         <div className="overflow-hidden rounded-lg border bg-card">
           <StatusTabs statuses={[{ value: "active", label: "Active" }, { value: "inactive", label: "Inactive" }, { value: "archived", label: "Archived" }]} activeStatus={filters.status} />
           <MasterDataFilters search={filters.search} status={filters.status} placeholder="Search supplier code, name, contact, phone, email" />
@@ -75,7 +99,7 @@ export default async function SuppliersPage({
               {!page.rows.length ? (
                 <TableRow>
                   <TableCell colSpan={8}>
-                    <EmptyState title="No suppliers found" description="Suppliers will appear here after they are created or imported." action={{ href: "/suppliers/new", label: "New supplier" }} />
+                    <EmptyState title="No suppliers found" description="Suppliers will appear here after they are created or imported." />
                   </TableCell>
                 </TableRow>
               ) : null}
@@ -85,7 +109,7 @@ export default async function SuppliersPage({
           </BulkSelectionProvider>
           <PaginationControls page={page.page} totalPages={page.totalPages} totalRows={page.totalRows} searchParams={filters} />
         </div>
-      </div>
+      </WorkspaceGrid>
     </>
   );
 }

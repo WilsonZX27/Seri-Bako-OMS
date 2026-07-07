@@ -43,22 +43,24 @@ export default async function AppLayout({ children }: { children: React.ReactNod
     <div className="h-dvh overflow-hidden bg-background">
       <div className="flex h-dvh min-w-0">
         <Sidebar />
-        <RightConsoleProvider>
-          <div className="min-w-0 flex-1 overflow-hidden">
-            <div className="flex h-dvh min-w-0 flex-col">
-              <TopBar />
-              {!hasStaffRole ? (
-                <div className="border-b border-amber-200 bg-amber-50 px-5 py-3 text-sm font-medium text-amber-800">
-                  Your account has no staff role assigned. Please run setup or contact admin.
-                </div>
-              ) : null}
-              <GlobalActionToast />
-              <SessionTimeoutProvider />
-              <main className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden pb-16 md:pb-0">{children}</main>
-              <MobileBottomNav />
+        <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
+          <TopBar />
+          {!hasStaffRole ? (
+            <div className="border-b border-amber-200 bg-amber-50 px-5 py-3 text-sm font-medium text-amber-800">
+              Your account has no staff role assigned. Please run setup or contact admin.
             </div>
+          ) : null}
+          <div className="flex min-h-0 flex-1">
+            <RightConsoleProvider>
+              <div className="min-w-0 flex-1 overflow-hidden">
+                <GlobalActionToast />
+                <SessionTimeoutProvider />
+                <main className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden pb-16 md:pb-0">{children}</main>
+                <MobileBottomNav />
+              </div>
+            </RightConsoleProvider>
           </div>
-        </RightConsoleProvider>
+        </div>
       </div>
     </div>
   );

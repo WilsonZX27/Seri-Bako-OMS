@@ -53,7 +53,7 @@ export function GlobalSearch() {
     <>
       <Button type="button" variant="outline" className="hidden min-w-64 justify-start text-muted-foreground md:flex" onClick={() => setOpen(true)}>
         <Search className="h-4 w-4" />
-        Search items, PO, PR, barcode
+        Search items, PO, PR
         <span className="ml-auto rounded bg-secondary px-1.5 py-0.5 text-xs">Ctrl K</span>
       </Button>
       <Button type="button" variant="ghost" size="icon" className="md:hidden" onClick={() => setOpen(true)} aria-label="Open global search">
@@ -65,7 +65,7 @@ export function GlobalSearch() {
           <div className="relative mx-auto mt-20 w-[min(42rem,92vw)] overflow-hidden rounded-lg border bg-card shadow-xl">
             <div className="flex items-center gap-3 border-b p-3">
               <Search className="h-5 w-5 text-muted-foreground" />
-              <Input autoFocus value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search barcode, item code, supplier code, document no..." className="border-0 shadow-none focus-visible:ring-0" />
+              <Input autoFocus value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search item code, supplier, document no..." className="border-0 shadow-none focus-visible:ring-0" />
               <Button type="button" variant="ghost" size="icon" onClick={() => setOpen(false)} aria-label="Close search">
                 <X className="h-5 w-5" />
               </Button>

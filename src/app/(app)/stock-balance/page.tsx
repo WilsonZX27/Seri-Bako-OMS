@@ -23,7 +23,7 @@ export default async function StockBalancePage({ searchParams }: { searchParams:
       <div className="p-5">
         <div className="overflow-hidden rounded-lg border bg-card">
           <form className="flex flex-col gap-3 border-b p-4 md:flex-row">
-            <Input name="search" defaultValue={filters.search ?? ""} placeholder="Search barcode, item, location, status" className="md:max-w-sm" />
+            <Input name="search" defaultValue={filters.search ?? ""} placeholder="Search item, location, status" className="md:max-w-sm" />
             <input type="hidden" name="view" value={filters.view ?? "branch"} />
             <Button type="submit" variant="secondary">Search</Button>
             <Button asChild variant={isLocationView ? "ghost" : "outline"}><a href="?view=branch">Branch view</a></Button>

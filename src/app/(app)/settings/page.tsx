@@ -1,4 +1,4 @@
-import { Archive, Bell, Building2, Database, KeyRound, Settings, ShieldCheck, UserCog, Users } from "lucide-react";
+import { Archive, Bell, Building2, Database, Settings, ShieldCheck, UserCog, Users } from "lucide-react";
 import { CategoryCardGrid } from "@/components/category-card-grid";
 import { PageHeader } from "@/components/ui/page-header";
 import { isSuperAdminRole } from "@/lib/roles";
@@ -6,7 +6,6 @@ import { getCurrentProfile } from "@/server/queries/common";
 
 const settingsLinks = [
   { href: "/company", title: "Company Settings", description: "Legal profile, contact details, logo, and branding.", icon: Building2 },
-  { href: "/account", title: "Account Settings", description: "Your profile, password, and account preferences.", icon: KeyRound },
   { href: "/settings", title: "System Preferences", description: "Timezone, currency, notifications, and operating preferences.", icon: Settings, disabled: true },
   { href: "/staffs", title: "Staff Management", description: "Invite staff, manage status, and assign branch access.", icon: Users },
   { href: "/roles", title: "Roles & Permissions", description: "Role definitions, permission matrix, and access control.", icon: UserCog },

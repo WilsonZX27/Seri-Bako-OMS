@@ -68,11 +68,6 @@ export function DashboardWorkspace({ summary, role }: { summary: DashboardSummar
   ];
   const pendingActions = summary.pendingApprovals.slice(0, 5);
   const stuckRequests = summary.urgentRequests.slice(0, 4);
-  const statusItems = [
-    { href: "/goods-receivings", label: "Pending receiving", value: summary.today.goodsReceiving, icon: PackageCheck, tone: summary.today.goodsReceiving ? "amber" as const : "green" as const },
-    { href: "/production/jobs", label: "Production today", value: summary.today.production, icon: Boxes, tone: "blue" as const },
-    { href: "/low-stock", label: "Low stock issues", value: summary.lowStockCount, icon: AlertTriangle, tone: summary.lowStockCount ? "red" as const : "green" as const },
-  ];
 
   return (
     <div className="space-y-4">
@@ -112,7 +107,7 @@ export function DashboardWorkspace({ summary, role }: { summary: DashboardSummar
         }
       >
         <div className="space-y-4">
-          <div className="grid gap-4 lg:grid-cols-[minmax(0,1.15fr)_minmax(0,0.85fr)]">
+          <div>
             <CompactPanel title="Pending Actions" action={{ href: "/documents?status=pending_approval", label: "Review" }}>
               {pendingActions.length ? (
                 <div className="divide-y rounded-lg border bg-white">
@@ -131,14 +126,6 @@ export function DashboardWorkspace({ summary, role }: { summary: DashboardSummar
               ) : (
                 <EmptyState icon={CheckCircle2} title="No pending actions" description="Nothing needs your review right now." />
               )}
-            </CompactPanel>
-
-            <CompactPanel title="Operational Status">
-              <div className="grid gap-2">
-                {statusItems.map((item) => (
-                  <MetricCard key={item.label} href={item.href} label={item.label} value={formatNumber(item.value)} icon={item.icon} tone={item.tone} />
-                ))}
-              </div>
             </CompactPanel>
           </div>
 

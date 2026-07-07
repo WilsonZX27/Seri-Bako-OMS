@@ -1,8 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { ChevronLeft, ChevronRight, Factory, Search } from "lucide-react";
+import { usePathname, useSearchParams } from "next/navigation";
+import { ChevronDown, ChevronLeft, ChevronRight, Factory, Search } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { getVisibleNavGroups, searchableNavItems } from "@/components/layout/nav-items";
 import { Button } from "@/components/ui/button";
@@ -34,11 +34,11 @@ export function WorkspaceSidebar({
   brandHref = "/dashboard",
   onNavigate,
   navCounts = {},
-  userName = "Signed in",
-  userRoleLabel = "User",
 }: WorkspaceSidebarProps) {
   const pathname = usePathname();
+  const searchParams = useSearchParams();
   const [collapsed, setCollapsed] = useState(false);
+  const [closedGroups, setClosedGroups] = useState<Record<string, boolean>>({});
   const [query, setQuery] = useState("");
   const groups = useMemo(() => getVisibleNavGroups(role), [role]);
   const navMatches = useMemo(() => {
@@ -60,6 +60,34 @@ export function WorkspaceSidebar({
     setCollapsed(next);
     window.localStorage.setItem(prefKey, String(next));
   }
+
+  function toggleGroup(groupId: string) {
+    setClosedGroups((current) => ({ ...current, [groupId]: !current[groupId] }));
+  }
+
+  function isActiveNavItem(href: string) {
+    const [targetPath, queryString] = href.split("?");
+    if (queryString) {
+      if (pathname !== targetPath) return false;
+      const targetParams = new URLSearchParams(queryString);
+      for (const [key, value] of targetParams.entries()) {
+        if (searchParams.get(key) !== value) return false;
+      }
+      return true;
+    }
+    if (pathname.startsWith(`${targetPath}/`)) return true;
+    if (pathname !== targetPath) return false;
+    return !searchParams.has("step") && !searchParams.has("status") && !searchParams.has("type");
+  }
+
+  const activeNavKey = (() => {
+    for (const group of groups) {
+      for (const item of group.items) {
+        if (isActiveNavItem(item.href)) return `${group.id}-${item.href}`;
+      }
+    }
+    return null;
+  })();
 
   return (
     <div className={cn("flex h-dvh flex-col border-r bg-[var(--sb-primary-dark)] text-white transition-[width] duration-200", compact ? "w-[76px]" : "w-[244px]", mobile ? "w-full" : "")}>
@@ -109,17 +137,29 @@ export function WorkspaceSidebar({
         <div className="space-y-3">
           {groups.map((group) => {
             const visibleItems = group.items;
+            const groupClosed = closedGroups[group.id] ?? false;
             return (
               <div key={group.id}>
-                {!compact ? <p className="mb-1 px-2 text-[10px] font-semibold uppercase tracking-[0.16em] text-white/38">{group.label}</p> : null}
-                <div className="space-y-0.5">
+                {!compact ? (
+                  <button
+                    type="button"
+                    className="mb-1 flex w-full items-center justify-between rounded px-2 py-1 text-left text-[10px] font-semibold uppercase tracking-[0.16em] text-white/38 hover:bg-white/8 hover:text-white/65"
+                    onClick={() => toggleGroup(group.id)}
+                    aria-expanded={!groupClosed}
+                  >
+                    <span>{group.label}</span>
+                    <ChevronDown className={cn("h-3 w-3 transition-transform", groupClosed ? "-rotate-90" : "")} />
+                  </button>
+                ) : null}
+                <div className={cn("space-y-0.5", groupClosed && !compact ? "hidden" : "")}>
                   {visibleItems.map((item) => {
                     const Icon = item.icon;
-                    const active = pathname === item.href || pathname.startsWith(`${item.href.split("?")[0]}/`) || pathname === item.href.split("?")[0];
+                    const itemKey = `${group.id}-${item.href}`;
+                    const active = activeNavKey === itemKey;
                     const count = item.badgeKey ? navCounts[item.badgeKey] : undefined;
                     return (
                       <Link
-                        key={`${group.id}-${item.href}`}
+                        key={itemKey}
                         href={item.href}
                         onClick={onNavigate}
                         title={compact ? item.label : undefined}
@@ -152,15 +192,6 @@ export function WorkspaceSidebar({
 
       {!mobile && !compact ? (
         <div className="border-t border-white/10 p-3">
-          <div className="mb-3 flex min-w-0 items-center gap-2 rounded-md bg-white/5 p-2">
-            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[var(--sb-accent)] text-[10px] font-bold text-white">
-              {userName.slice(0, 2).toUpperCase()}
-            </div>
-            <div className="min-w-0">
-              <p className="truncate text-[12px] font-semibold leading-tight">{userName}</p>
-              <p className="truncate text-[11px] text-white/55">{userRoleLabel}</p>
-            </div>
-          </div>
           <div className="truncate text-[11px] leading-4 text-white/45">
             v{APP_VERSION} / {APP_SPRINT}
           </div>

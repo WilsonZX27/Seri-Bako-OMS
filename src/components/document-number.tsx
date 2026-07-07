@@ -7,7 +7,7 @@ export function DocumentNumber({ value, className, size = "default" }: { value: 
         "inline-flex items-center rounded-md border border-slate-200 bg-white px-2 py-1 font-mono font-semibold tracking-wide text-slate-900 shadow-sm",
         size === "sm" ? "text-xs" : "",
         size === "default" ? "text-sm" : "",
-        size === "lg" ? "text-xl" : "",
+        size === "lg" ? "text-lg" : "",
         className,
       )}
     >

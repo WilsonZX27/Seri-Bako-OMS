@@ -15,6 +15,14 @@ import type { ApprovalStatus, PurchaseOrderStatus, PurchaseRequestStatus } from 
 
 type PurchaseRequestStep = "draft" | "admin_review" | "purchasing_review" | "pending_approval" | "approved";
 
+const prStatusAliases: Record<PurchaseRequestStep, string[]> = {
+  draft: ["draft", "rejected"],
+  admin_review: ["admin_review", "manager_review", "submitted"],
+  purchasing_review: ["purchasing_review"],
+  pending_approval: ["pending_approval", "finance_review"],
+  approved: ["approved"],
+};
+
 const wrongPrStepMessage = "This document has already moved to another workflow step. Refreshing...";
 const noPermissionMessage = "You do not have permission to perform this action.";
 
@@ -55,6 +63,7 @@ async function requirePrTransition(input: {
   id: string;
   expectedStatus: PurchaseRequestStep;
   permission: string;
+  nextStatus?: PurchaseRequestStatus;
 }) {
   await requireActiveStaffProfile();
   if (!(await hasPermission(input.permission))) throw new Error(noPermissionMessage);
@@ -67,7 +76,8 @@ async function requirePrTransition(input: {
     .single();
   if (error) throw new Error(error.message);
   await requireBranchAccess(pr.branch_id);
-  if (pr.status !== input.expectedStatus) throw new Error(wrongPrStepMessage);
+  if (input.nextStatus && pr.status === input.nextStatus) return { ...pr, alreadyMoved: true };
+  if (!prStatusAliases[input.expectedStatus].includes(pr.status)) throw new Error(wrongPrStepMessage);
   return pr;
 }
 
@@ -322,12 +332,17 @@ async function updatePrStatus(input: {
     id: input.id,
     expectedStatus: input.expectedStatus,
     permission: input.permission,
+    nextStatus: input.nextStatus,
   });
+  if ("alreadyMoved" in pr && pr.alreadyMoved) {
+    revalidateWorkspaceState([`/purchase-requests/${input.id}`]);
+    return pr;
+  }
   const { data: updatedPr, error } = await supabase
     .from("purchase_requests")
     .update({ status: input.nextStatus, updated_by: profile.id })
     .eq("id", input.id)
-    .eq("status", input.expectedStatus)
+    .in("status", prStatusAliases[input.expectedStatus] as PurchaseRequestStatus[])
     .select("id")
     .maybeSingle();
   if (error) throw new Error(error.message);
@@ -658,7 +673,7 @@ export async function convertPurchaseRequestToPurchaseOrder(id: string, formData
     if (existingPo?.[0]) {
       safeRedirectWithMessage(`/purchase-orders/${existingPo[0].id}`, "success", `Purchase order ${existingPo[0].po_no} is already linked to this PR.`);
     }
-    await requirePrTransition({ id, expectedStatus: "approved", permission: "pr.convert_to_po" });
+    await requirePrTransition({ id, expectedStatus: "approved", permission: "pr.convert_to_po", nextStatus: "converted" });
     if (pr.status !== "approved") throw new Error(wrongPrStepMessage);
     if (!lines?.length) throw new Error("Add at least one item line before converting this PR.");
 

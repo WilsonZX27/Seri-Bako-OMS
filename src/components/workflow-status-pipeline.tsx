@@ -12,9 +12,9 @@ export function WorkflowStatusPipeline({ steps, currentStatus, compact = false }
   const rejected = ["rejected", "cancelled"].includes(currentStatus);
 
   return (
-    <div className={cn("rounded-lg border bg-card", compact ? "p-2.5" : "p-3")}>
+    <div className={cn("rounded-lg border bg-card", compact ? "p-1.5" : "p-2.5")}>
       {!compact ? <p className="text-sm font-semibold">Workflow</p> : null}
-      <div className={cn("grid gap-2 md:grid-cols-[repeat(auto-fit,minmax(112px,1fr))]", compact ? "" : "mt-3")}>
+      <div className={cn("grid gap-1.5 md:grid-cols-[repeat(auto-fit,minmax(104px,1fr))]", compact ? "" : "mt-2")}>
         {steps.map((step, index) => {
           const done = index < activeIndex;
           const active = index === activeIndex;
@@ -25,7 +25,7 @@ export function WorkflowStatusPipeline({ steps, currentStatus, compact = false }
               key={step.key}
               className={cn(
                 "rounded-md border",
-                compact ? "p-2" : "p-2.5",
+                compact ? "p-1.5" : "p-2",
                 done ? "border-emerald-200 bg-emerald-50 text-emerald-800" : "",
                 active && !errorStep ? "border-slate-700 bg-white text-slate-900 shadow-sm" : "",
                 errorStep ? "border-red-200 bg-red-50 text-red-800" : "",
@@ -33,8 +33,8 @@ export function WorkflowStatusPipeline({ steps, currentStatus, compact = false }
               title={step.description}
             >
               <div className="flex items-center gap-2">
-                <Icon className="h-4 w-4 shrink-0" />
-                <p className="text-[12px] font-medium">{step.label}</p>
+                <Icon className="h-3.5 w-3.5 shrink-0" />
+                <p className="text-[11px] font-medium">{step.label}</p>
               </div>
               {step.description && !compact ? <p className="mt-1 text-xs text-muted-foreground">{step.description}</p> : null}
             </div>

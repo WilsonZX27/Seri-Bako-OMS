@@ -66,19 +66,19 @@ export function DocumentTimeline({ document, activities, comments, attachments }
 
   return (
     <Card>
-      <CardContent className="p-5">
-        <h2 className="text-sm font-semibold">Document Timeline</h2>
-        <div className="mt-4 space-y-4">
+      <CardContent className="p-3">
+        <h2 className="text-[13px] font-semibold">Document Timeline</h2>
+        <div className="mt-3 space-y-3">
           {events.map((event) => (
             <div key={event.id} className="flex gap-3">
               <div className="mt-0.5">{eventIcon(event.activity_type)}</div>
               <div>
-                <p className="text-sm font-medium">{event.message}</p>
+                <p className="text-xs font-medium">{event.message}</p>
                 <p className="text-xs text-muted-foreground">{actorLabel(event.created_by_name)} - {formatDate(event.created_at)}</p>
               </div>
             </div>
           ))}
-          {!events.length ? <p className="text-sm text-muted-foreground">No activity yet.</p> : null}
+          {!events.length ? <p className="text-xs text-muted-foreground">No activity yet.</p> : null}
         </div>
       </CardContent>
     </Card>
@@ -89,10 +89,10 @@ export async function AttachmentPanel({ documentId, attachments }: { documentId:
   const canManageAttachments = await hasPermission("documents.attach");
   return (
     <Card>
-      <CardContent className="space-y-4 p-5">
-        <h2 className="text-sm font-semibold">Attachments</h2>
+      <CardContent className="space-y-3 p-3">
+        <h2 className="text-[13px] font-semibold">Attachments</h2>
         {canManageAttachments ? (
-          <form action={addDocumentAttachment.bind(null, documentId)} className="grid gap-3 rounded-lg border bg-white p-4 shadow-sm md:grid-cols-[1fr_1fr_auto] md:items-end">
+          <form action={addDocumentAttachment.bind(null, documentId)} className="grid gap-2 rounded-lg border bg-white p-3 shadow-sm md:grid-cols-[1fr_1fr_auto] md:items-end">
             <Field label="Attachment label">
               <Input name="file_name" placeholder="Delivery order, invoice, photo" />
             </Field>
@@ -108,7 +108,7 @@ export async function AttachmentPanel({ documentId, attachments }: { documentId:
               <div className="flex items-start gap-3">
                 <FileText className="mt-0.5 h-4 w-4 text-muted-foreground" />
                 <div>
-                  <p className="text-sm font-medium">{attachment.file_name}</p>
+                  <p className="text-xs font-medium">{attachment.file_name}</p>
                   <p className="text-xs text-muted-foreground">Uploaded by {actorLabel(attachment.uploaded_by_name)} - {formatDate(attachment.created_at)}</p>
                 </div>
               </div>
@@ -118,7 +118,7 @@ export async function AttachmentPanel({ documentId, attachments }: { documentId:
               </div>
             </div>
           ))}
-          {!attachments.length ? <p className="p-4 text-center text-sm text-muted-foreground">No attachments yet.</p> : null}
+          {!attachments.length ? <p className="p-3 text-center text-xs text-muted-foreground">No attachments yet.</p> : null}
         </div>
       </CardContent>
     </Card>
@@ -128,20 +128,20 @@ export async function AttachmentPanel({ documentId, attachments }: { documentId:
 export function CommentsPanel({ documentId, comments }: { documentId: string; comments: Comment[] }) {
   return (
     <Card>
-      <CardContent className="space-y-4 p-5">
-        <h2 className="text-sm font-semibold">Comments</h2>
-        <form action={addDocumentComment.bind(null, documentId)} className="space-y-3">
+      <CardContent className="space-y-3 p-3">
+        <h2 className="text-[13px] font-semibold">Comments</h2>
+        <form action={addDocumentComment.bind(null, documentId)} className="space-y-2">
           <Textarea name="comment_text" placeholder="Add a comment for the document history" required />
           <SubmitButton type="submit" variant="secondary" pendingLabel="Saving...">Add comment</SubmitButton>
         </form>
         <div className="space-y-3">
           {comments.map((comment) => (
             <div key={comment.id} className="rounded-lg border bg-secondary/30 p-3">
-              <p className="text-sm">{comment.comment_text}</p>
+              <p className="text-xs">{comment.comment_text}</p>
               <p className="mt-1 text-xs text-muted-foreground">{actorLabel(comment.created_by_name)} - {formatDate(comment.created_at)}</p>
             </div>
           ))}
-          {!comments.length ? <p className="text-sm text-muted-foreground">No comments yet.</p> : null}
+          {!comments.length ? <p className="text-xs text-muted-foreground">No comments yet.</p> : null}
         </div>
       </CardContent>
     </Card>
@@ -151,10 +151,10 @@ export function CommentsPanel({ documentId, comments }: { documentId: string; co
 export function ApprovalPanel({ document, approval, approvalSteps }: { document: Document; approval: Approval; approvalSteps: ApprovalStep[] }) {
   return (
     <Card>
-      <CardContent className="space-y-4 p-5">
+      <CardContent className="space-y-3 p-3">
         <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h2 className="text-sm font-semibold">Approval Panel</h2>
+            <h2 className="text-[13px] font-semibold">Approval Panel</h2>
             <p className="text-xs text-muted-foreground">Current approver: {approvalSteps.find((step) => step.status === "pending")?.approver_role ?? "Not assigned"}</p>
           </div>
           <Badge variant={document.approval_status === "approved" ? "success" : document.approval_status === "rejected" ? "danger" : "secondary"}>{document.approval_status}</Badge>
@@ -176,14 +176,14 @@ export function ApprovalPanel({ document, approval, approvalSteps }: { document:
           {approvalSteps.map((step) => (
             <div key={step.id} className="flex flex-col gap-1 border-b p-3 last:border-b-0 sm:flex-row sm:items-center sm:justify-between">
               <div>
-                <p className="text-sm font-medium">Step {step.step_no}: {step.approver_role ?? "Approver"}</p>
+                <p className="text-xs font-medium">Step {step.step_no}: {step.approver_role ?? "Approver"}</p>
                 <p className="text-xs text-muted-foreground">{step.remarks ?? "No remarks yet"}</p>
                 <p className="text-xs text-muted-foreground">{actorLabel(step.acted_by_name)} - {formatDate(step.acted_at ?? step.updated_at)}</p>
               </div>
               <Badge variant={step.status === "approved" ? "success" : step.status === "rejected" ? "danger" : "secondary"}>{step.status}</Badge>
             </div>
           ))}
-          {!approval && !approvalSteps.length ? <p className="p-4 text-center text-sm text-muted-foreground">No approval history yet.</p> : null}
+          {!approval && !approvalSteps.length ? <p className="p-3 text-center text-xs text-muted-foreground">No approval history yet.</p> : null}
         </div>
       </CardContent>
     </Card>
@@ -193,17 +193,17 @@ export function ApprovalPanel({ document, approval, approvalSteps }: { document:
 export function RevisionPanel({ revisions }: { revisions: Revision[] }) {
   return (
     <Card>
-      <CardContent className="p-5">
-        <h2 className="text-sm font-semibold">Revision History</h2>
-        <div className="mt-4 divide-y rounded-lg border">
+      <CardContent className="p-3">
+        <h2 className="text-[13px] font-semibold">Revision History</h2>
+        <div className="mt-3 divide-y rounded-lg border">
           {revisions.map((revision) => (
             <div key={revision.id} className="p-3">
-              <p className="text-sm font-medium">Revision {revision.revision_no}</p>
-              <p className="text-sm text-muted-foreground">{revision.change_summary}</p>
+              <p className="text-xs font-medium">Revision {revision.revision_no}</p>
+              <p className="text-xs text-muted-foreground">{revision.change_summary}</p>
               <p className="mt-1 text-xs text-muted-foreground">{actorLabel(revision.changed_by_name)} - {formatDate(revision.changed_at)}</p>
             </div>
           ))}
-          {!revisions.length ? <p className="p-4 text-center text-sm text-muted-foreground">No revisions yet.</p> : null}
+          {!revisions.length ? <p className="p-3 text-center text-xs text-muted-foreground">No revisions yet.</p> : null}
         </div>
       </CardContent>
     </Card>

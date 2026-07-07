@@ -75,8 +75,8 @@ export function WorkspaceSidebar({
   })();
 
   return (
-    <div className={cn("flex h-dvh w-[244px] flex-col border-r bg-[var(--sb-primary-dark)] text-white", mobile ? "w-full" : "")}>
-      <div className="flex h-14 items-center gap-3 border-b border-white/10 px-3">
+    <div className={cn("flex h-dvh w-[216px] flex-col border-r bg-[var(--sb-primary-dark)] text-white", mobile ? "w-full" : "")}>
+      <div className="flex h-12 items-center gap-2 border-b border-white/10 px-3">
         <Link href={brandHref} onClick={onNavigate} className={cn("flex min-w-0 flex-1 items-center gap-3 rounded-md p-1 hover:bg-white/10", compact ? "justify-center" : "")} title={compact ? companyName : undefined}>
           <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-[var(--sb-accent)] text-white">
             {companyLogoUrl ? (
@@ -95,9 +95,9 @@ export function WorkspaceSidebar({
         </Link>
       </div>
 
-      <nav className="min-h-0 flex-1 overflow-y-auto px-2 py-3">
+      <nav className="min-h-0 flex-1 overflow-y-auto px-2 py-2">
         {!compact ? (
-          <div className="mb-3 px-1">
+          <div className="mb-2 px-1">
             <div className="relative">
               <Search className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-white/45" />
               <Input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search menu" className="h-8 border-white/15 bg-white/10 pl-8 text-xs text-white placeholder:text-white/45" />
@@ -114,7 +114,7 @@ export function WorkspaceSidebar({
             ) : null}
           </div>
         ) : null}
-        <div className="space-y-3">
+        <div className="space-y-2">
           {groups.map((group) => {
             const visibleItems = group.items;
             const groupClosed = closedGroups[group.id] ?? false;

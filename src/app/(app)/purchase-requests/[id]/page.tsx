@@ -41,6 +41,16 @@ function displayPrStatus(status: string) {
   return status;
 }
 
+function workflowPrStatus(status: string) {
+  if (status === "manager_review" || status === "submitted") return "admin_review";
+  if (status === "finance_review") return "pending_approval";
+  return status;
+}
+
+function isStatus(status: string, ...matches: string[]) {
+  return matches.includes(status);
+}
+
 export default async function PurchaseRequestDetailPage({
   params,
   searchParams,
@@ -62,14 +72,14 @@ export default async function PurchaseRequestDetailPage({
   const supplierById = new Map(suppliers.map((supplier) => [supplier.id, supplier]));
   const branch = branches.find((row) => row.id === request.branch_id);
   const total = lines.reduce((sum, line) => sum + line.qty * line.estimated_unit_cost, 0);
-  const canSubmit = request.status === "draft" && permissions["pr.submit"];
+  const canSubmit = isStatus(request.status, "draft", "rejected") && permissions["pr.submit"];
   const canCancel = request.status === "draft" && permissions["pr.cancel"];
-  const canManagerReview = request.status === "admin_review" && permissions["pr.manager_approve"];
+  const canManagerReview = isStatus(request.status, "admin_review", "manager_review", "submitted") && permissions["pr.manager_approve"];
   const canAdminReview = request.status === "purchasing_review" && permissions["pr.admin_review"];
-  const canFinanceReview = request.status === "pending_approval" && permissions["pr.finance_review"];
+  const canFinanceReview = isStatus(request.status, "pending_approval", "finance_review") && permissions["pr.finance_review"];
   const canConvert = request.status === "approved" && permissions["pr.convert_to_po"];
   const canReject =
-    (request.status === "admin_review" && (permissions["pr.manager_approve"] || permissions["pr.reject"])) ||
+    (isStatus(request.status, "admin_review", "manager_review", "submitted") && (permissions["pr.manager_approve"] || permissions["pr.reject"])) ||
     (request.status === "purchasing_review" && (permissions["pr.admin_review"] || permissions["pr.reject"])) ||
     (request.status === "pending_approval" && (permissions["pr.finance_review"] || permissions["pr.reject"]));
   const hasPrimaryAction =
@@ -90,7 +100,7 @@ export default async function PurchaseRequestDetailPage({
       priority={request.priority}
       branch={branch?.branch_name}
       workflowSteps={prSteps}
-      currentStatus={request.status}
+      currentStatus={workflowPrStatus(request.status)}
       sidePanel={
         <>
           <DocumentSideSection title="Primary Action" description="Only the next valid workflow action is shown.">
@@ -116,7 +126,7 @@ export default async function PurchaseRequestDetailPage({
                 <SubmitButton type="submit" pendingLabel="Rejecting..." variant="destructive">Reject</SubmitButton>
               </form>
             ) : null}
-            {!hasPrimaryAction ? <p className="text-sm text-muted-foreground">You can view this document, but there is no workflow action available for your role or this status.</p> : null}
+            {!hasPrimaryAction ? <p className="text-xs text-muted-foreground">You can view this document, but there is no workflow action available for your role or this status.</p> : null}
           </DocumentSideSection>
           {documentBundle ? (
             <>
@@ -131,7 +141,7 @@ export default async function PurchaseRequestDetailPage({
     >
           {messageParams.error || messageParams.success ? (
             <Card>
-              <CardContent className={`p-4 text-sm ${messageParams.error ? "text-destructive" : "text-emerald-700"}`}>
+              <CardContent className={`p-3 text-xs ${messageParams.error ? "text-destructive" : "text-emerald-700"}`}>
                 {messageParams.error ?? messageParams.success}
                 <StaleWorkflowRefresh message={messageParams.error} />
               </CardContent>
@@ -139,21 +149,21 @@ export default async function PurchaseRequestDetailPage({
           ) : null}
 
           <Card>
-            <CardContent className="space-y-4 p-5">
-              <h2 className="text-sm font-semibold">Request Summary</h2>
-              <div className="grid gap-4 md:grid-cols-4">
+            <CardContent className="space-y-3 p-4">
+              <h2 className="text-[14px] font-semibold">Request Summary</h2>
+              <div className="grid gap-3 md:grid-cols-4">
                 <div><p className="text-xs uppercase text-muted-foreground">Request Date</p><p className="font-medium">{request.request_date}</p></div>
                 <div><p className="text-xs uppercase text-muted-foreground">Priority</p><PriorityBadge priority={request.priority} /></div>
                 <div><p className="text-xs uppercase text-muted-foreground">Needed By</p><p className="font-medium">{request.needed_by_date ?? "-"}</p></div>
                 <div><p className="text-xs uppercase text-muted-foreground">Branch</p><p className="font-medium">{branch?.branch_name ?? "-"}</p></div>
               </div>
-              {request.urgency_reason ? <p className="rounded-md border bg-warning/10 p-3 text-sm text-warning">{request.urgency_reason}</p> : null}
-              {request.remarks ? <p className="rounded-md border bg-secondary/30 p-3 text-sm">{request.remarks}</p> : null}
+              {request.urgency_reason ? <p className="rounded-md border bg-warning/10 p-3 text-xs text-warning">{request.urgency_reason}</p> : null}
+              {request.remarks ? <p className="rounded-md border bg-secondary/30 p-3 text-xs">{request.remarks}</p> : null}
             </CardContent>
           </Card>
 
           <Card>
-            <CardContent className="space-y-3 p-5">
+            <CardContent className="space-y-3 p-4">
               <div>
                 <p className="text-xs uppercase text-muted-foreground">Linked Documents</p>
                 <h2 className="text-sm font-semibold">Purchase Orders created from this PR</h2>
@@ -173,18 +183,18 @@ export default async function PurchaseRequestDetailPage({
                   ))}
                 </div>
               ) : (
-                <p className="rounded-md border bg-secondary/30 p-3 text-sm text-muted-foreground">
-                  {request.status === "approved" ? "No purchase order has been created yet." : "A purchase order link will appear after this PR is approved and converted."}
+                <p className="rounded-md border bg-secondary/30 p-3 text-xs text-muted-foreground">
+                  {request.status === "approved" ? "No purchase order has been created yet." : "A purchase order link appears after this PR is approved and converted."}
                 </p>
               )}
             </CardContent>
           </Card>
 
           <Card>
-            <CardContent className="p-5">
-              <div className="mb-3 flex items-center justify-between">
-                <h2 className="text-sm font-semibold">Requested Items</h2>
-                <p className="text-sm font-semibold">{formatCurrency(total)}</p>
+            <CardContent className="p-4">
+              <div className="mb-2 flex items-center justify-between">
+                <h2 className="text-[14px] font-semibold">Requested Items</h2>
+                <p className="text-xs font-semibold">{formatCurrency(total)}</p>
               </div>
               <div className="overflow-x-auto">
                 <Table>
@@ -220,7 +230,7 @@ export default async function PurchaseRequestDetailPage({
           </Card>
 
           {documentBundle ? (
-            <p className="rounded-md border bg-secondary/30 p-3 text-sm text-muted-foreground">Comments, attachments, timeline, and revision history are available in the right panel.</p>
+            <p className="rounded-md border bg-secondary/30 p-3 text-xs text-muted-foreground">Comments, attachments, timeline, and revision history are available in the right panel.</p>
           ) : null}
     </DocumentWorkspace>
   );

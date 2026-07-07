@@ -74,7 +74,11 @@ export function Breadcrumbs() {
     <div className="hidden min-w-0 items-center gap-1 text-xs text-muted-foreground md:flex">
       {crumbs.map((crumb, index) => (
         <span key={`${crumb.label}-${index}`} className="flex min-w-0 items-center gap-1">
-          {crumb.href ? <Link href={crumb.href} className="truncate hover:text-foreground">{crumb.label}</Link> : <span className="truncate">{crumb.label}</span>}
+          {crumb.href ? (
+            <Link href={crumb.href} className="truncate hover:text-foreground">{crumb.label}</Link>
+          ) : (
+            <span className="truncate border-b-2 border-primary pb-1 font-semibold text-foreground">{crumb.label}</span>
+          )}
           {index < crumbs.length - 1 ? <ChevronRight className="h-3.5 w-3.5 shrink-0" /> : null}
         </span>
       ))}

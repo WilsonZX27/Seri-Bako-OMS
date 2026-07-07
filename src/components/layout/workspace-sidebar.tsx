@@ -2,10 +2,9 @@
 
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
-import { CheckCircle2, ChevronDown, Factory, LogOut, Search, UserRound } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
-import { getVisibleNavGroups, searchableNavItems } from "@/components/layout/nav-items";
-import { Input } from "@/components/ui/input";
+import { CheckCircle2, ChevronDown, Factory, LogOut, UserRound } from "lucide-react";
+import { useMemo, useState } from "react";
+import { getVisibleNavGroups } from "@/components/layout/nav-items";
 import { APP_SPRINT, APP_VERSION } from "@/lib/app-version";
 import { cn } from "@/lib/utils";
 import { signOut } from "@/server/actions/auth";
@@ -24,13 +23,6 @@ type WorkspaceSidebarProps = {
   userRoleLabel?: string;
 };
 
-type SearchResult = {
-  type: string;
-  title: string;
-  subtitle: string;
-  href: string;
-};
-
 export function WorkspaceSidebar({
   role,
   mobile = false,
@@ -45,40 +37,9 @@ export function WorkspaceSidebar({
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const [closedGroups, setClosedGroups] = useState<Record<string, boolean>>({});
-  const [query, setQuery] = useState("");
-  const [recordMatches, setRecordMatches] = useState<SearchResult[]>([]);
   const groups = useMemo(() => getVisibleNavGroups(role), [role]);
-  const navMatches = useMemo(() => {
-    const term = query.trim().toLowerCase();
-    if (!term) return [];
-    return searchableNavItems
-      .filter((item) => `${item.label} ${item.group} ${(item.keywords ?? []).join(" ")}`.toLowerCase().includes(term))
-      .slice(0, 4);
-  }, [query]);
   const compact = false;
   const initials = userName.slice(0, 2).toUpperCase();
-
-  useEffect(() => {
-    const term = query.trim();
-    if (!term) {
-      setRecordMatches([]);
-      return;
-    }
-    const controller = new AbortController();
-    const handle = window.setTimeout(async () => {
-      try {
-        const response = await fetch(`/api/search?q=${encodeURIComponent(term)}`, { signal: controller.signal });
-        const payload = (await response.json()) as { results?: SearchResult[] };
-        setRecordMatches((payload.results ?? []).slice(0, 4));
-      } catch {
-        if (!controller.signal.aborted) setRecordMatches([]);
-      }
-    }, 180);
-    return () => {
-      controller.abort();
-      window.clearTimeout(handle);
-    };
-  }, [query]);
 
   function toggleGroup(groupId: string) {
     setClosedGroups((current) => ({ ...current, [groupId]: !current[groupId] }));
@@ -108,6 +69,8 @@ export function WorkspaceSidebar({
     return null;
   })();
 
+  const activeGroupId = activeNavKey?.split("-")[0] ?? null;
+
   return (
     <div className={cn("flex h-dvh w-[236px] flex-col border-r border-white/10 bg-[var(--sb-primary-dark)] text-white", mobile ? "w-full" : "")}>
       <div className="border-b border-white/10 px-3 py-3">
@@ -131,34 +94,10 @@ export function WorkspaceSidebar({
       </div>
 
       <nav className="min-h-0 flex-1 overflow-y-auto px-2 py-2">
-        {!compact ? (
-          <div className="mb-2 px-1">
-            <div className="relative">
-              <Search className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-white/45" />
-              <Input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search records" className="h-8 border-white/15 bg-white/10 pl-8 text-xs text-white placeholder:text-white/45" />
-            </div>
-            {navMatches.length || recordMatches.length ? (
-              <div className="mt-2 space-y-1 rounded-md bg-white/10 p-1">
-                {navMatches.map((item) => (
-                  <Link key={item.href} href={item.href} onClick={onNavigate} className="block rounded px-2 py-1.5 text-xs text-white/80 hover:bg-white/10 hover:text-white">
-                    {item.label}
-                    <span className="ml-1 text-white/45">{item.group}</span>
-                  </Link>
-                ))}
-                {recordMatches.map((item) => (
-                  <Link key={`${item.type}-${item.href}`} href={item.href} onClick={onNavigate} className="block rounded px-2 py-1.5 text-xs text-white/80 hover:bg-white/10 hover:text-white">
-                    <span className="block truncate">{item.title}</span>
-                    <span className="text-white/45">{item.type}</span>
-                  </Link>
-                ))}
-              </div>
-            ) : null}
-          </div>
-        ) : null}
         <div className="space-y-1.5">
           {groups.map((group) => {
             const visibleItems = group.items;
-            const groupClosed = closedGroups[group.id] ?? false;
+            const groupClosed = closedGroups[group.id] ?? group.id !== activeGroupId;
             return (
               <div key={group.id}>
                 {!compact ? (

@@ -20,8 +20,8 @@ function MetricCard({ href, label, value, icon: Icon, tone = "neutral" }: { href
   }[tone];
 
   return (
-    <Link href={href} className="flex min-h-11 items-center gap-2 rounded-md border bg-white px-2.5 py-2 shadow-sm transition-colors hover:border-primary/30">
-      <div className={`flex h-7 w-7 items-center justify-center rounded ${toneClass}`}>
+    <Link href={href} className="flex min-h-10 items-center gap-2 rounded-md border bg-white px-2 py-1.5 shadow-sm transition-colors hover:border-primary/30">
+      <div className={`flex h-6 w-6 items-center justify-center rounded ${toneClass}`}>
         <Icon className="h-3.5 w-3.5" />
       </div>
       <div className="min-w-0">
@@ -34,7 +34,7 @@ function MetricCard({ href, label, value, icon: Icon, tone = "neutral" }: { href
 
 function CompactPanel({ title, children, action }: { title: string; children: React.ReactNode; action?: { href: string; label: string } }) {
   return (
-    <section className="rounded-lg border bg-card p-2.5 shadow-sm">
+    <section className="rounded-lg border bg-card p-2 shadow-sm">
       <div className="mb-2 flex items-center justify-between gap-2">
         <h2 className="text-xs font-semibold">{title}</h2>
         {action ? (
@@ -71,16 +71,10 @@ export function DashboardWorkspace({ summary }: { summary: DashboardSummary }) {
   return (
     <div className="min-h-0">
       <WorkspaceGrid
-        className="gap-3 p-3 pb-3 xl:grid-cols-[minmax(0,1fr)_260px]"
+        className="gap-3 p-3 pb-3 xl:grid-cols-[minmax(0,1fr)_280px]"
         rightRailClassName="space-y-2 xl:max-h-none xl:overflow-visible xl:pr-0"
         rightRail={
           <>
-            <CompactPanel title="Dashboard Summary">
-              <div className="grid gap-1.5">
-                {metrics.map((metric) => <MetricCard key={metric.label} {...metric} />)}
-              </div>
-            </CompactPanel>
-
             <CompactPanel title="Quick Actions">
               <div className="grid gap-1.5">
                 <Button asChild size="sm" className="h-7 justify-start px-2 text-[11px]">
@@ -113,27 +107,29 @@ export function DashboardWorkspace({ summary }: { summary: DashboardSummary }) {
         }
       >
         <div className="space-y-3">
-          <CompactPanel title="Today's Attention" action={{ href: "/documents?status=pending_approval", label: "Review" }}>
-            {pendingActions.length ? (
-              <div className="divide-y rounded-md border bg-white">
-                {pendingActions.map((document) => (
-                  <Link key={document.id} href={document.href ?? "/documents"} className="flex items-center justify-between gap-2 px-2.5 py-1.5 text-[11px] hover:bg-slate-50">
-                    <div className="min-w-0">
-                      <p className="truncate font-mono text-[11px] font-semibold">{document.document_no}</p>
-                      <p className="truncate text-[11px] text-muted-foreground">
-                        {[document.step ?? document.title ?? "Pending review", document.branch_name, document.age_label].filter(Boolean).join(" - ")}
-                      </p>
-                    </div>
-                    <span className="shrink-0 rounded bg-amber-50 px-1.5 py-0.5 text-[10px] font-medium text-amber-800">{document.step ?? "In Review"}</span>
-                  </Link>
-                ))}
-              </div>
-            ) : (
-              <EmptyState icon={CheckCircle2} title="No pending actions" description="Nothing needs your review right now." />
-            )}
-          </CompactPanel>
+          <div className="grid gap-3 md:grid-cols-3">
+            {metrics.slice(0, 3).map((metric) => <MetricCard key={metric.label} {...metric} />)}
+          </div>
 
-          <div className="grid gap-3 lg:grid-cols-2">
+          <div className="grid gap-3 xl:grid-cols-3">
+            <CompactPanel title="Today's Attention" action={{ href: "/documents?status=pending_approval", label: "Review" }}>
+              {pendingActions.length ? (
+                <div className="divide-y rounded-md border bg-white">
+                  {pendingActions.slice(0, 2).map((document) => (
+                    <Link key={document.id} href={document.href ?? "/documents"} className="block px-2 py-1.5 text-[11px] hover:bg-slate-50">
+                      <div className="flex items-center justify-between gap-2">
+                        <p className="truncate font-mono text-[11px] font-semibold">{document.document_no}</p>
+                        <span className="shrink-0 rounded bg-amber-50 px-1.5 py-0.5 text-[10px] font-medium text-amber-800">{document.step ?? "In Review"}</span>
+                      </div>
+                      <p className="truncate text-[11px] text-muted-foreground">{[document.branch_name, document.age_label].filter(Boolean).join(" - ")}</p>
+                    </Link>
+                  ))}
+                </div>
+              ) : (
+                <EmptyState icon={CheckCircle2} title="No pending actions" description="Nothing needs your review right now." />
+              )}
+            </CompactPanel>
+
             <CompactPanel title="Procurement Queue" action={{ href: "/purchase-requests?priority=urgent", label: "View Queue" }}>
               {stuckRequests.length ? (
                 <div className="divide-y rounded-md border bg-white">
@@ -153,7 +149,7 @@ export function DashboardWorkspace({ summary }: { summary: DashboardSummary }) {
             </CompactPanel>
 
             <CompactPanel title="Production Load" action={{ href: "/production/jobs", label: "Open" }}>
-              <div className="grid gap-2 sm:grid-cols-2">
+              <div className="grid gap-2">
                 <MetricCard href="/production/jobs" label="Jobs Today" value={formatNumber(summary.today.production)} icon={Boxes} />
                 <MetricCard href="/goods-receivings" label="Receiving Today" value={formatNumber(summary.today.goodsReceiving)} icon={PackageCheck} />
               </div>

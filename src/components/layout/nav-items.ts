@@ -8,10 +8,8 @@ import {
   Gauge,
   GitPullRequest,
   PackageCheck,
-  ReceiptText,
   Scale,
   ShoppingCart,
-  Truck,
   UserCog,
   Users,
 } from "lucide-react";
@@ -40,7 +38,6 @@ export type NavGroup = {
 const ownerRoles: UserRole[] = ["super_admin", "admin"];
 const administratorRoles: UserRole[] = ["operations_admin", ...ownerRoles];
 const allRoles: UserRole[] = ["super_admin", "operations_admin", "admin", "manager", "finance", "purchasing", "kitchen_staff", "kitchen", "viewer"];
-const opsRoles: UserRole[] = ["super_admin", "operations_admin", "admin", "manager", "kitchen_staff", "kitchen", "purchasing"];
 const procurementRoles: UserRole[] = ["super_admin", "operations_admin", "admin", "manager", "purchasing", "finance", "kitchen_staff", "kitchen"];
 const inventoryRoles: UserRole[] = ["super_admin", "operations_admin", "admin", "manager", "kitchen_staff", "kitchen", "purchasing", "finance"];
 const reportsRoles: UserRole[] = ["super_admin", "operations_admin", "admin", "manager", "finance", "purchasing"];
@@ -55,7 +52,6 @@ export const navGroups: NavGroup[] = [
     items: [
       { href: "/dashboard", label: "Dashboard", icon: Gauge, roles: "all", keywords: ["home", "alerts", "approvals"] },
       { href: "/production/jobs", label: "Production Jobs", icon: Factory, roles: productionRoles, badgeKey: "productionJobs", keywords: ["production", "jobs"] },
-      { href: "/goods-receivings", label: "Dispatch Board", icon: Truck, roles: opsRoles, badgeKey: "dispatchBoard", keywords: ["dispatch", "receiving", "grn"] },
     ],
   },
   {
@@ -76,7 +72,7 @@ export const navGroups: NavGroup[] = [
     items: [
       { href: "/stock-balance", label: "Stock Balance", icon: Boxes, roles: inventoryRoles, badgeKey: "stockBalanceAlerts", attention: true, keywords: ["stock", "balance"] },
       { href: "/stock-counts", label: "Stock Count", icon: ClipboardCheck, roles: inventoryRoles, badgeKey: "stockCounts", keywords: ["count"] },
-      { href: "/stock-transfers", label: "Stock Transfers", icon: Truck, roles: inventoryRoles, badgeKey: "stockTransfers", keywords: ["transfer"] },
+      { href: "/stock-transfers", label: "Stock Transfers", icon: PackageCheck, roles: inventoryRoles, badgeKey: "stockTransfers", keywords: ["transfer"] },
       { href: "/stock-wastage", label: "Stock Wastage", icon: Scale, roles: inventoryRoles, badgeKey: "stockWastage", attention: true, keywords: ["wastage"] },
       { href: "/stock-transactions", label: "Movement Ledger", icon: Activity, roles: inventoryRoles, keywords: ["ledger", "movement"] },
       { href: "/items", label: "Items / SKU Master", icon: PackageCheck, roles: masterDataRoles, keywords: ["items", "sku"] },
@@ -88,7 +84,6 @@ export const navGroups: NavGroup[] = [
     roles: allRoles,
     items: [
       { href: "/reports", label: "Reports", icon: ClipboardList, roles: reportsRoles, keywords: ["summary", "approval", "purchase"] },
-      { href: "/reports", label: "BI Dashboard", icon: ReceiptText, roles: reportsRoles, keywords: ["bi", "dashboard", "analytics"] },
       { href: "/activity", label: "Activity Log", icon: Activity, roles: ["super_admin", "admin", "operations_admin", "manager", "finance", "purchasing"], keywords: ["activity", "log"] },
     ],
   },

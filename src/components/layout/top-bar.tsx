@@ -1,8 +1,7 @@
-import Link from "next/link";
-import { Plus } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { Breadcrumbs } from "@/components/layout/breadcrumbs";
+import { GlobalSearch } from "@/components/search/global-search";
 import { MobileSidebar } from "@/components/layout/mobile-sidebar";
+import { TopBarAction } from "@/components/layout/top-bar-action";
 import { TopBarActivityMenu } from "@/components/layout/top-bar-activity-menu";
 import { getCompanyBranding, getCurrentProfile } from "@/server/queries/common";
 import { getTopBarActivity } from "@/server/queries/topbar";
@@ -22,10 +21,10 @@ export async function TopBar() {
         </div>
       </div>
       <div data-testid="topbar-account-region" className="flex items-center justify-end gap-2">
+        <TopBarAction />
+        <div className="h-6 w-px bg-border" />
+        <GlobalSearch />
         <TopBarActivityMenu data={activity} />
-        <Button asChild size="sm">
-          <Link href="/purchase-requests/new"><Plus className="h-3.5 w-3.5" /> Create PR</Link>
-        </Button>
       </div>
     </header>
   );

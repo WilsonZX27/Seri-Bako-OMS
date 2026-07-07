@@ -5,6 +5,7 @@ import { AlertTriangle, Boxes, CheckCircle2, ClipboardCheck, Clock3, PackageChec
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
+import { ConsoleSection } from "@/components/layout/right-console";
 import { WorkspaceGrid } from "@/components/layout/workspace-layout";
 import { formatCurrency, formatNumber } from "@/lib/utils";
 import type { LucideIcon } from "lucide-react";
@@ -21,7 +22,7 @@ function MetricCard({ href, label, value, icon: Icon, tone = "neutral" }: { href
   }[tone];
 
   return (
-    <Link href={href} className="flex min-h-10 items-center gap-2 rounded-md border bg-white px-2 py-1.5 shadow-sm transition-colors hover:border-primary/30">
+    <Link href={href} className="flex min-h-12 items-center gap-2 rounded-md border bg-white px-3 py-2 shadow-sm transition-colors hover:border-primary/30">
       <div className={`flex h-6 w-6 items-center justify-center rounded ${toneClass}`}>
         <Icon className="h-3.5 w-3.5" />
       </div>
@@ -35,8 +36,8 @@ function MetricCard({ href, label, value, icon: Icon, tone = "neutral" }: { href
 
 function CompactPanel({ title, children, action }: { title: string; children: React.ReactNode; action?: { href: string; label: string } }) {
   return (
-    <section className="rounded-lg border bg-card p-2 shadow-sm">
-      <div className="mb-2 flex items-center justify-between gap-2">
+    <section className="rounded-lg border bg-card p-3 shadow-sm">
+      <div className="mb-2.5 flex items-center justify-between gap-2">
         <h2 className="text-xs font-semibold">{title}</h2>
         {action ? (
           <Button asChild variant="ghost" size="sm" className="h-6 px-2 text-[11px]">
@@ -79,12 +80,12 @@ export function DashboardWorkspace({ summary }: { summary: DashboardSummary }) {
   return (
     <div className="min-h-0">
       <WorkspaceGrid
-        className="gap-3 p-3 pb-3 xl:grid-cols-[minmax(0,1fr)_280px]"
+        className="gap-4 p-4 pb-4 xl:grid-cols-[minmax(0,1fr)_280px]"
         rightRailClassName="space-y-2 xl:max-h-none xl:overflow-visible xl:pr-0"
         rightRail={
           <>
-            <CompactPanel title="Quick Actions">
-              <div className="grid gap-1.5">
+            <ConsoleSection title="Quick Actions">
+              <div className="grid gap-2">
                 <Button asChild size="sm" className="h-7 justify-start px-2 text-[11px]">
                   <Link href="/purchase-requests/new"><Zap className="h-3.5 w-3.5" /> Create Purchase Request</Link>
                 </Button>
@@ -95,26 +96,26 @@ export function DashboardWorkspace({ summary }: { summary: DashboardSummary }) {
                   <Link href="/production/jobs/new"><Boxes className="h-3.5 w-3.5" /> New Production Job</Link>
                 </Button>
               </div>
-            </CompactPanel>
+            </ConsoleSection>
 
-            <CompactPanel title="Recent Activity">
-              <div className="space-y-1.5">
+            <ConsoleSection title="Recent Activity">
+              <div className="space-y-2">
                 {summary.recentActivities.slice(0, 3).map((activity) => (
-                  <div key={activity.id} className="rounded-md border bg-white px-2 py-1.5 text-[11px]">
+                  <div key={activity.id} className="text-[11px]">
                     <p className="line-clamp-1 font-medium">{activity.message}</p>
                     <p className="text-[10px] text-muted-foreground">{new Date(activity.created_at).toLocaleString("en-MY", { dateStyle: "short", timeStyle: "short" })}</p>
                   </div>
                 ))}
-                {!summary.recentActivities.length ? <p className="rounded-md border bg-white p-2 text-[11px] text-muted-foreground">No recent activity.</p> : null}
+                {!summary.recentActivities.length ? <p className="text-[11px] text-muted-foreground">No recent activity.</p> : null}
                 <Button asChild variant="ghost" size="sm" className="h-6 w-full text-[11px]">
                   <Link href="/activity">Show more</Link>
                 </Button>
               </div>
-            </CompactPanel>
+            </ConsoleSection>
           </>
         }
       >
-        <div className="space-y-3">
+        <div className="space-y-4">
           <div className="flex flex-wrap items-end justify-between gap-2">
             <div>
               <h1 className="text-2xl font-semibold leading-tight">Operation ERP</h1>
@@ -124,11 +125,11 @@ export function DashboardWorkspace({ summary }: { summary: DashboardSummary }) {
             </div>
           </div>
 
-          <div className="grid gap-3 md:grid-cols-3">
+          <div className="grid gap-4 md:grid-cols-3">
             {metrics.slice(0, 3).map((metric) => <MetricCard key={metric.label} {...metric} />)}
           </div>
 
-          <div className="grid gap-3 xl:grid-cols-3">
+          <div className="grid gap-4 xl:grid-cols-3">
             <CompactPanel title="Today's Attention" action={{ href: "/documents?status=pending_approval", label: "Review" }}>
               {pendingActions.length ? (
                 <div className="divide-y rounded-md border bg-white">
@@ -174,7 +175,7 @@ export function DashboardWorkspace({ summary }: { summary: DashboardSummary }) {
           </div>
 
           <CompactPanel title="Stock Exceptions" action={{ href: "/stock-balance?status=low_stock", label: "Open Stock" }}>
-            <div className="grid gap-2 sm:grid-cols-3">
+            <div className="grid gap-3 sm:grid-cols-3">
               <MetricCard href="/stock-balance?status=low_stock" label="Low Stock" value={formatNumber(summary.lowStockCount)} icon={AlertTriangle} tone={summary.lowStockCount ? "red" : "green"} />
               <MetricCard href="/reports" label="Payables" value={formatCurrency(summary.financeForecast.upcomingPayables)} icon={ReceiptText} />
               <MetricCard href="/goods-receivings" label="Not Invoiced" value={formatNumber(summary.financeForecast.receivingNotInvoiced)} icon={RotateCw} tone="amber" />

@@ -12,6 +12,7 @@ import { PageHeader } from "@/components/ui/page-header";
 import { PaginationControls, SortableHead } from "@/components/sortable-table";
 import { StatusTabs } from "@/components/status-tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { ConsoleSection } from "@/components/layout/right-console";
 import { WorkspaceGrid } from "@/components/layout/workspace-layout";
 import { formatCurrency } from "@/lib/utils";
 import { getPurchaseOrders } from "@/server/queries/procurement";
@@ -37,10 +38,8 @@ export default async function PurchaseOrdersPage({ searchParams }: { searchParam
       <WorkspaceGrid
         className="pt-4"
         rightRail={
-          <>
-            <section className="rounded-lg border bg-card p-3 shadow-sm">
-              <h2 className="text-[13px] font-semibold">PO Summary</h2>
-              <div className="mt-3 grid gap-2 text-xs">
+          <ConsoleSection title="PO Summary">
+              <div className="grid gap-2 text-xs">
                 <div className="flex justify-between"><span className="text-muted-foreground">Total POs</span><strong>{rows.length}</strong></div>
                 <div className="flex justify-between"><span className="text-muted-foreground">Ready to Send</span><strong>{count("approved")}</strong></div>
                 <div className="flex justify-between"><span className="text-muted-foreground">Sent to Supplier</span><strong>{count("sent")}</strong></div>
@@ -49,15 +48,12 @@ export default async function PurchaseOrdersPage({ searchParams }: { searchParam
                 <div className="flex justify-between"><span className="text-muted-foreground">Closed</span><strong>{count("closed")}</strong></div>
                 <div className="flex justify-between"><span className="text-muted-foreground">Cancelled</span><strong>{count("cancelled")}</strong></div>
               </div>
-            </section>
-            <section className="rounded-lg border bg-card p-3 shadow-sm">
-              <h2 className="text-[13px] font-semibold">Page Metrics</h2>
-              <div className="mt-3 rounded-md border bg-white p-3">
+              <div className="my-3 border-t" />
+              <div className="flex items-end justify-between gap-3">
                 <p className="text-[10px] font-semibold uppercase tracking-[0.04em] text-muted-foreground">Total PO Value</p>
-                <p className="mt-1 text-lg font-semibold">{formatCurrency(totalValue)}</p>
+                <p className="text-base font-semibold">{formatCurrency(totalValue)}</p>
               </div>
-            </section>
-          </>
+            </ConsoleSection>
         }
       >
         <div className="overflow-hidden rounded-xl border bg-card shadow-sm">

@@ -10,7 +10,10 @@ import type { UserRole } from "@/types/database";
 export async function TopBar() {
   const [profile, branding, activity] = await Promise.all([getCurrentProfile(), getCompanyBranding(), getTopBarActivity()]);
   const profileRole = profile as { role_code?: UserRole; role?: UserRole } | null;
+  const account = profile as { full_name?: string | null; email?: string | null } | null;
   const role = profileRole?.role_code ?? profileRole?.role ?? "viewer";
+  const displayName = account?.full_name ?? account?.email ?? "Signed in";
+  const initials = displayName.slice(0, 2).toUpperCase();
 
   return (
     <header className="grid h-12 grid-cols-[minmax(0,1fr)_auto] items-center justify-between gap-3 border-b bg-card px-4">
@@ -25,6 +28,10 @@ export async function TopBar() {
         <div className="h-6 w-px bg-border" />
         <GlobalSearch />
         <TopBarActivityMenu data={activity} />
+        <div className="hidden max-w-[160px] items-center gap-2 rounded-md px-1.5 py-1 text-xs font-medium text-slate-700 sm:flex">
+          <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary/10 text-[10px] font-semibold text-primary">{initials}</span>
+          <span className="truncate">{displayName}</span>
+        </div>
       </div>
     </header>
   );

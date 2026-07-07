@@ -43,8 +43,8 @@ export function RightConsoleMount({ children }: { children: ReactNode }) {
 
 export function ConsoleSection({ title, children }: { title: string; children: ReactNode }) {
   return (
-    <section className="mb-3 rounded-lg border bg-white p-3 shadow-sm">
-      <h2 className="mb-2 text-xs font-semibold">{title}</h2>
+    <section className="border-b border-slate-200/80 px-1 py-3 last:border-b-0">
+      <h2 className="mb-2 text-[13px] font-semibold">{title}</h2>
       {children}
     </section>
   );

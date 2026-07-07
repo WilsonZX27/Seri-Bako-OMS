@@ -14,6 +14,7 @@ import { PaginationControls, SortableHead } from "@/components/sortable-table";
 import { SelectNative } from "@/components/ui/select-native";
 import { StatusTabs } from "@/components/status-tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { ConsoleSection } from "@/components/layout/right-console";
 import { WorkspaceGrid } from "@/components/layout/workspace-layout";
 import { formatCurrency } from "@/lib/utils";
 import { getPurchaseRequests } from "@/server/queries/procurement";
@@ -40,29 +41,24 @@ export default async function PurchaseRequestsPage({ searchParams }: { searchPar
       <WorkspaceGrid
         className="pt-4"
         rightRail={
-          <>
-            <section className="rounded-lg border bg-card p-3 shadow-sm">
-              <h2 className="text-[13px] font-semibold">PR Summary</h2>
-              <div className="mt-3 grid gap-2 text-xs">
+          <ConsoleSection title="PR Summary">
+              <div className="grid gap-2 text-xs">
                 <div className="flex justify-between"><span className="text-muted-foreground">Total PRs</span><strong>{rows.length}</strong></div>
                 <div className="flex justify-between"><span className="text-muted-foreground">Manager Review</span><strong>{count("admin_review", "manager_review", "submitted")}</strong></div>
                 <div className="flex justify-between"><span className="text-muted-foreground">Admin Review</span><strong>{count("purchasing_review")}</strong></div>
                 <div className="flex justify-between"><span className="text-muted-foreground">Finance Review</span><strong>{count("pending_approval", "finance_review")}</strong></div>
               </div>
-            </section>
-            <section className="rounded-lg border bg-card p-3 shadow-sm">
-              <h2 className="text-[13px] font-semibold">Page Metrics</h2>
-              <div className="mt-3 space-y-2">
-                <div className="rounded-md border bg-white p-3">
+              <div className="my-3 border-t" />
+              <div className="space-y-2">
+                <div className="flex items-end justify-between gap-3">
                   <p className="text-[10px] font-semibold uppercase tracking-[0.04em] text-muted-foreground">Pending Value</p>
-                  <p className="mt-1 text-lg font-semibold">{formatCurrency(estimatedTotal)}</p>
+                  <p className="text-base font-semibold">{formatCurrency(estimatedTotal)}</p>
                 </div>
                 <Button asChild variant="outline" className="w-full">
                   <Link href="/purchase-requests">Full Details</Link>
                 </Button>
               </div>
-            </section>
-          </>
+            </ConsoleSection>
         }
       >
         <div className="overflow-hidden rounded-lg border bg-card shadow-sm">

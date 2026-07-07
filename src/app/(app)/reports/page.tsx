@@ -1,6 +1,10 @@
 import { BarChart3, ClipboardCheck, FileText, PackageCheck, PackageSearch, ShoppingCart, TriangleAlert } from "lucide-react";
 import { PageHeader } from "@/components/ui/page-header";
-import { WorkspaceSectionPanel, type WorkspaceSection, type WorkspaceThemeName } from "@/components/workspace-panels";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { ConsoleSection } from "@/components/layout/right-console";
+import { WorkspaceGrid } from "@/components/layout/workspace-layout";
+import type { WorkspaceThemeName } from "@/components/workspace-panels";
 import type { LucideIcon } from "lucide-react";
 
 type ReportLink = {
@@ -62,31 +66,59 @@ const reportCategories: ReportCategory[] = [
 ];
 
 export default function ReportsPage() {
-  const sections: WorkspaceSection[] = reportCategories.map((category) => ({
-    title: category.title,
-    description: category.description,
-    icon: category.reports[0]?.icon ?? FileText,
-    theme: category.theme,
-    actions: category.reports.map((report) => ({
-      href: report.href,
-      title: report.title,
-      description: report.description,
-      icon: report.icon,
-      badge: report.badge,
-      disabled: report.disabled,
-    })),
-  }));
+  const reportCount = reportCategories.reduce((sum, category) => sum + category.reports.length, 0);
+  const activeCount = reportCategories.reduce((sum, category) => sum + category.reports.filter((report) => !report.disabled).length, 0);
 
   return (
     <>
       <PageHeader title="Reports" description="Compact report directory for operational review and audit." />
-      <div className="space-y-5 p-5">
-        <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-4">
-          {sections.map((section) => (
-            <WorkspaceSectionPanel key={section.title} section={section} />
+      <WorkspaceGrid
+        rightRail={
+          <>
+            <ConsoleSection title="Report Summary">
+              <div className="grid gap-2 text-xs">
+                <div className="flex justify-between gap-3"><span className="text-muted-foreground">Categories</span><strong>{reportCategories.length}</strong></div>
+                <div className="flex justify-between gap-3"><span className="text-muted-foreground">Available</span><strong>{activeCount}</strong></div>
+                <div className="flex justify-between gap-3"><span className="text-muted-foreground">Total Listed</span><strong>{reportCount}</strong></div>
+              </div>
+            </ConsoleSection>
+            <ConsoleSection title="Data Freshness">
+              <p className="text-xs text-muted-foreground">Reports open live operational pages. Export options appear on pages that support CSV output.</p>
+            </ConsoleSection>
+          </>
+        }
+      >
+        <div className="space-y-4">
+          {reportCategories.map((category) => (
+            <section key={category.title} className="overflow-hidden rounded-lg border bg-card">
+              <div className="border-b bg-secondary/30 px-3 py-2">
+                <h2 className="text-sm font-semibold">{category.title}</h2>
+                <p className="text-xs text-muted-foreground">{category.description}</p>
+              </div>
+              <div className="divide-y">
+                {category.reports.map((report) => {
+                  const Icon = report.icon;
+                  return (
+                    <div key={report.title} className="grid gap-3 px-3 py-2.5 md:grid-cols-[28px_minmax(140px,220px)_minmax(0,1fr)_auto] md:items-center">
+                      <div className="flex h-7 w-7 items-center justify-center rounded-md bg-primary/10 text-primary">
+                        <Icon className="h-3.5 w-3.5" />
+                      </div>
+                      <div className="min-w-0">
+                        <p className="text-sm font-medium">{report.title}</p>
+                        {report.badge ? <Badge variant="secondary" className="mt-1">{report.badge}</Badge> : null}
+                      </div>
+                      <p className="text-xs text-muted-foreground">{report.description}</p>
+                      <Button asChild={!report.disabled} disabled={report.disabled} variant="outline" size="sm">
+                        {report.disabled ? <span>Open</span> : <a href={report.href}>Open</a>}
+                      </Button>
+                    </div>
+                  );
+                })}
+              </div>
+            </section>
           ))}
         </div>
-      </div>
+      </WorkspaceGrid>
     </>
   );
 }

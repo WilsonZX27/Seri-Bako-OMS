@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { Bell, ListTodo, Megaphone, ShieldAlert } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 
 type TopBarActivity = Awaited<ReturnType<typeof import("@/server/queries/topbar").getTopBarActivity>>;
@@ -11,9 +11,14 @@ const seenKey = "seri-bako-workspace-updates-seen-v1";
 export function TopBarActivityMenu({ data }: { data: TopBarActivity }) {
   const [open, setOpen] = useState(false);
   const [seen, setSeen] = useState(false);
-  const pendingCount = data.pendingApprovals.length;
-  const notificationCount = data.notifications.length + data.announcements.length;
-  const recentCount = data.assignedActivities.length;
+  const rootRef = useRef<HTMLDivElement>(null);
+  const pendingApprovals = data.pendingApprovals ?? [];
+  const notifications = data.notifications ?? [];
+  const announcements = data.announcements ?? [];
+  const assignedActivities = data.assignedActivities ?? [];
+  const pendingCount = pendingApprovals.length;
+  const notificationCount = notifications.length + announcements.length;
+  const recentCount = assignedActivities.length;
   const unreadCount = seen ? 0 : notificationCount + recentCount;
   const count = pendingCount + unreadCount;
   const badgeLabel = count > 99 ? "99+" : String(count);
@@ -22,6 +27,22 @@ export function TopBarActivityMenu({ data }: { data: TopBarActivity }) {
   useEffect(() => {
     setSeen(window.sessionStorage.getItem(seenKey) === "true");
   }, []);
+
+  useEffect(() => {
+    if (!open) return;
+    function closeOnOutsideClick(event: MouseEvent) {
+      if (!rootRef.current?.contains(event.target as Node)) setOpen(false);
+    }
+    function closeOnEscape(event: KeyboardEvent) {
+      if (event.key === "Escape") setOpen(false);
+    }
+    document.addEventListener("mousedown", closeOnOutsideClick);
+    document.addEventListener("keydown", closeOnEscape);
+    return () => {
+      document.removeEventListener("mousedown", closeOnOutsideClick);
+      document.removeEventListener("keydown", closeOnEscape);
+    };
+  }, [open]);
 
   function markVisibleUpdatesSeen() {
     setSeen(true);
@@ -37,7 +58,7 @@ export function TopBarActivityMenu({ data }: { data: TopBarActivity }) {
   }
 
   return (
-    <div className="relative">
+    <div ref={rootRef} className="relative">
       <Button type="button" variant="ghost" size="icon" onClick={toggleOpen} aria-label={count ? `Open workspace updates, ${count} unread or pending` : "Open workspace updates"}>
         <Bell className="h-5 w-5" />
         {count ? (
@@ -47,7 +68,7 @@ export function TopBarActivityMenu({ data }: { data: TopBarActivity }) {
         ) : null}
       </Button>
       {open ? (
-        <div className="absolute right-0 z-40 mt-2 w-[min(24rem,calc(100vw-2rem))] overflow-hidden rounded-lg border bg-card shadow-lg">
+        <div className="fixed right-4 top-12 z-40 w-[min(22rem,calc(100vw-2rem))] overflow-hidden rounded-lg border bg-card shadow-lg">
           <div className="border-b p-3">
             <div className="flex items-start justify-between gap-3">
               <div>
@@ -65,27 +86,27 @@ export function TopBarActivityMenu({ data }: { data: TopBarActivity }) {
                 <p className="text-xs font-semibold uppercase text-muted-foreground">My Pending Actions</p>
                 {pendingCount ? <span className="rounded-full bg-red-50 px-2 py-0.5 text-xs font-medium text-red-700">{pendingCount}</span> : null}
               </div>
-              {data.pendingApprovals.map((item) => (
-                <Link key={item.id} href={item.href} onClick={() => setOpen(false)} className="flex gap-2 rounded-md p-2 text-sm hover:bg-secondary">
+              {pendingApprovals.map((item) => (
+                <Link key={item.id} href={item.href} onClick={() => setOpen(false)} className="flex gap-2 rounded-md p-2 text-xs hover:bg-secondary">
                   <ListTodo className="mt-0.5 h-4 w-4 text-primary" />
                   <span>{item.document_no} - {item.title}</span>
                 </Link>
               ))}
-              {!data.pendingApprovals.length ? <p className="rounded-md p-2 text-sm text-muted-foreground">No pending actions.</p> : null}
+              {!pendingApprovals.length ? <p className="rounded-md p-2 text-sm text-muted-foreground">No pending actions.</p> : null}
             </section>
             <section className="space-y-1 p-3">
               <div className="flex items-center justify-between gap-3">
                 <p className="text-xs font-semibold uppercase text-muted-foreground">My Notifications</p>
                 {notificationCount ? <span className="rounded-full bg-red-50 px-2 py-0.5 text-xs font-medium text-red-700">{notificationCount}</span> : null}
               </div>
-              {data.notifications.map((notification) => (
-                <Link key={notification.id} href={notification.action_url ?? "#"} onClick={() => setOpen(false)} className="flex gap-2 rounded-md p-2 text-sm hover:bg-secondary">
+              {notifications.map((notification) => (
+                <Link key={notification.id} href={notification.action_url ?? "#"} onClick={() => setOpen(false)} className="flex gap-2 rounded-md p-2 text-xs hover:bg-secondary">
                   <ShieldAlert className="mt-0.5 h-4 w-4 text-primary" />
                   <span><span className="block">{notification.title}</span>{notification.message ? <span className="block text-xs text-muted-foreground">{notification.message}</span> : null}</span>
                 </Link>
               ))}
-              {data.announcements.map((notification) => (
-                <div key={notification.id} className="flex gap-2 rounded-md p-2 text-sm">
+              {announcements.map((notification) => (
+                <div key={notification.id} className="flex gap-2 rounded-md p-2 text-xs">
                   <Megaphone className="mt-0.5 h-4 w-4 text-muted-foreground" />
                   <span>{notification.title}</span>
                 </div>
@@ -97,13 +118,13 @@ export function TopBarActivityMenu({ data }: { data: TopBarActivity }) {
                 <p className="text-xs font-semibold uppercase text-muted-foreground">Recent Activity</p>
                 {recentCount ? <span className="rounded-full bg-slate-50 px-2 py-0.5 text-xs font-medium text-slate-600">{recentCount}</span> : null}
               </div>
-              {data.assignedActivities.map((activity) => (
-                <div key={activity.id} className="rounded-md p-2 text-sm">
+              {assignedActivities.map((activity) => (
+                <div key={activity.id} className="rounded-md p-2 text-xs">
                   <p>{activity.message}</p>
                   <p className="mt-1 text-xs text-muted-foreground">{formatTime(activity.created_at)}</p>
                 </div>
               ))}
-              {!data.assignedActivities.length ? <p className="rounded-md p-2 text-sm text-muted-foreground">No recent activity.</p> : null}
+              {!assignedActivities.length ? <p className="rounded-md p-2 text-sm text-muted-foreground">No recent activity.</p> : null}
             </section>
           </div>
         </div>

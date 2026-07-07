@@ -44,7 +44,7 @@ export async function getVisibleRecentActivitiesForCurrentUser(limit = 6) {
     .from("activity_logs")
     .select("id, entity_type, entity_id, activity_type, created_by, message, created_at")
     .order("created_at", { ascending: false })
-    .limit(80);
+    .limit(24);
 
   if (error) throw new Error(error.message);
 

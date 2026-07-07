@@ -3,16 +3,12 @@ import { Card, CardContent } from "@/components/ui/card";
 import { PageHeader } from "@/components/ui/page-header";
 import { formatPageError } from "@/server/actions/error-handling";
 import { getDashboardSummary } from "@/server/queries/dashboard";
-import { getCurrentProfile } from "@/server/queries/common";
-import type { UserRole } from "@/types/database";
 
 export const dynamic = "force-dynamic";
 
 export default async function DashboardPage() {
   try {
-    const [summary, profile] = await Promise.all([getDashboardSummary(), getCurrentProfile()]);
-    const profileRole = profile as { role_code?: UserRole; role?: UserRole } | null;
-    const role = profileRole?.role_code ?? profileRole?.role ?? "viewer";
+    const summary = await getDashboardSummary();
 
     return (
       <>
@@ -21,7 +17,7 @@ export default async function DashboardPage() {
           description="Daily operating picture for approvals, stock exceptions, purchasing, and production."
           action={{ href: "/purchase-requests/new", label: "Create PR" }}
         />
-        <DashboardWorkspace summary={summary} role={role} />
+        <DashboardWorkspace summary={summary} />
       </>
     );
   } catch (error) {

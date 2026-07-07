@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
-import { ChevronDown, Factory, Search } from "lucide-react";
+import { CheckCircle2, ChevronDown, Factory, Search } from "lucide-react";
 import { useMemo, useState } from "react";
 import { getVisibleNavGroups, searchableNavItems } from "@/components/layout/nav-items";
 import { Input } from "@/components/ui/input";
@@ -31,6 +31,8 @@ export function WorkspaceSidebar({
   brandHref = "/dashboard",
   onNavigate,
   navCounts = {},
+  userName = "Signed in",
+  userRoleLabel = "User",
 }: WorkspaceSidebarProps) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -75,10 +77,10 @@ export function WorkspaceSidebar({
   })();
 
   return (
-    <div className={cn("flex h-dvh w-[216px] flex-col border-r bg-[var(--sb-primary-dark)] text-white", mobile ? "w-full" : "")}>
-      <div className="flex h-12 items-center gap-2 border-b border-white/10 px-3">
+    <div className={cn("flex h-dvh w-[204px] flex-col border-r border-white/10 bg-[var(--sb-primary-dark)] text-white", mobile ? "w-full" : "")}>
+      <div className="border-b border-white/10 px-3 py-3">
         <Link href={brandHref} onClick={onNavigate} className={cn("flex min-w-0 flex-1 items-center gap-3 rounded-md p-1 hover:bg-white/10", compact ? "justify-center" : "")} title={compact ? companyName : undefined}>
-          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-[var(--sb-accent)] text-white">
+          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-white/12 text-white ring-1 ring-white/10">
             {companyLogoUrl ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img src={companyLogoUrl} alt={`${companyName} logo`} className="h-full w-full object-contain p-1" />
@@ -89,10 +91,11 @@ export function WorkspaceSidebar({
           {!compact ? (
             <div className="min-w-0">
               <p className="truncate text-[12px] font-semibold leading-tight">{companyName}</p>
-              <p className="text-[10px] uppercase tracking-[0.12em] text-white/55">OMS Platform</p>
+              <p className="text-[10px] uppercase tracking-[0.08em] text-white/55">Operational ERP</p>
             </div>
           ) : null}
         </Link>
+        {!compact ? <p className="mt-2 px-1 text-[10px] text-white/45">v{APP_VERSION} / {APP_SPRINT}</p> : null}
       </div>
 
       <nav className="min-h-0 flex-1 overflow-y-auto px-2 py-2">
@@ -114,7 +117,7 @@ export function WorkspaceSidebar({
             ) : null}
           </div>
         ) : null}
-        <div className="space-y-2">
+        <div className="space-y-1.5">
           {groups.map((group) => {
             const visibleItems = group.items;
             const groupClosed = closedGroups[group.id] ?? false;
@@ -146,10 +149,10 @@ export function WorkspaceSidebar({
                         className={cn(
                           "flex h-8 items-center gap-2 rounded-md px-2 text-[12px] font-medium transition-colors",
                           compact ? "justify-center px-0" : "",
-                          active ? "bg-white/10 text-white ring-1 ring-white/10" : "text-white/72 hover:bg-white/8 hover:text-white",
+                          active ? "bg-[#f7c58f] text-[var(--sb-primary-dark)] ring-1 ring-white/10" : "text-white/72 hover:bg-white/8 hover:text-white",
                         )}
                       >
-                        <Icon className={cn("h-3.5 w-3.5 shrink-0", active ? "text-[var(--sb-accent)]" : "text-white/55")} />
+                        <Icon className={cn("h-3.5 w-3.5 shrink-0", active ? "text-[var(--sb-primary-dark)]" : "text-white/55")} />
                         {!compact ? (
                           <>
                             <span className="min-w-0 flex-1 truncate">{item.label}</span>
@@ -171,9 +174,14 @@ export function WorkspaceSidebar({
       </nav>
 
       {!mobile && !compact ? (
-        <div className="border-t border-white/10 p-3">
-          <div className="truncate text-[11px] leading-4 text-white/45">
-            v{APP_VERSION} / {APP_SPRINT}
+        <div className="space-y-2 border-t border-white/10 p-3">
+          <div className="flex items-center gap-2 text-[10px] uppercase tracking-[0.06em] text-white/55">
+            <CheckCircle2 className="h-3.5 w-3.5 text-emerald-400" />
+            System Stable
+          </div>
+          <div className="min-w-0">
+            <p className="truncate text-[12px] font-medium text-white/85">{userName}</p>
+            <p className="truncate text-[10px] text-white/45">{userRoleLabel}</p>
           </div>
         </div>
       ) : null}

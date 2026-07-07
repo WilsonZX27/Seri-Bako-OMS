@@ -85,7 +85,7 @@ export async function getTopBarActivity() {
   const [documentApprovals, notifications, recentActivities, workflowPendingActions, canApproveProduction, canPostProduction] = await Promise.all([
     supabase.from("documents").select("id, document_no, title, document_type, related_entity_type, related_entity_id").eq("approval_status", "pending").order("updated_at", { ascending: false }).limit(5),
     getVisibleNotificationsForCurrentUser(),
-    supabase.from("activity_logs").select("id, entity_type, activity_type, message, created_at, created_by").order("created_at", { ascending: false }).limit(40),
+    supabase.from("activity_logs").select("id, entity_type, activity_type, message, created_at, created_by").order("created_at", { ascending: false }).limit(16),
     getCurrentUserPendingActions(5),
     hasPermission("production.approve"),
     hasPermission("production.post"),

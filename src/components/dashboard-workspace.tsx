@@ -20,13 +20,13 @@ function MetricCard({ href, label, value, icon: Icon, tone = "neutral" }: { href
   }[tone];
 
   return (
-    <Link href={href} className="flex min-h-16 items-center gap-3 rounded-lg border bg-white p-3 shadow-sm transition-colors hover:border-primary/30">
-      <div className={`flex h-9 w-9 items-center justify-center rounded-md ${toneClass}`}>
-        <Icon className="h-4 w-4" />
+    <Link href={href} className="flex min-h-11 items-center gap-2 rounded-md border bg-white px-2.5 py-2 shadow-sm transition-colors hover:border-primary/30">
+      <div className={`flex h-7 w-7 items-center justify-center rounded ${toneClass}`}>
+        <Icon className="h-3.5 w-3.5" />
       </div>
       <div className="min-w-0">
-        <p className="text-[11px] uppercase tracking-[0.04em] text-muted-foreground">{label}</p>
-        <p className="mt-1 text-lg font-semibold leading-none">{value}</p>
+        <p className="truncate text-[10px] uppercase tracking-[0.04em] text-muted-foreground">{label}</p>
+        <p className="text-sm font-semibold leading-tight">{value}</p>
       </div>
     </Link>
   );
@@ -34,11 +34,11 @@ function MetricCard({ href, label, value, icon: Icon, tone = "neutral" }: { href
 
 function CompactPanel({ title, children, action }: { title: string; children: React.ReactNode; action?: { href: string; label: string } }) {
   return (
-    <section className="rounded-lg border bg-card p-3 shadow-sm">
-      <div className="mb-3 flex items-center justify-between gap-3">
-        <h2 className="text-[13px] font-semibold">{title}</h2>
+    <section className="rounded-lg border bg-card p-2.5 shadow-sm">
+      <div className="mb-2 flex items-center justify-between gap-2">
+        <h2 className="text-xs font-semibold">{title}</h2>
         {action ? (
-          <Button asChild variant="ghost" size="sm">
+          <Button asChild variant="ghost" size="sm" className="h-6 px-2 text-[11px]">
             <Link href={action.href}>{action.label}</Link>
           </Button>
         ) : null}
@@ -60,88 +60,90 @@ const futureAnalyticsWidgets = [
 export function DashboardWorkspace({ summary }: { summary: DashboardSummary }) {
   const today = new Date().toISOString().slice(0, 10);
   const metrics = [
-    { href: "/purchase-requests?status=admin_review", label: "Pending PRs", value: formatNumber(summary.pendingApprovals.length), icon: ClipboardCheck, tone: summary.pendingApprovals.length ? "amber" as const : "green" as const },
-    { href: "/stock-balance?status=low_stock", label: "Low Stock Items", value: formatNumber(summary.lowStockCount), icon: AlertTriangle, tone: summary.lowStockCount ? "red" as const : "green" as const },
+    { href: "/purchase-requests?status=admin_review", label: "Pending PRs", value: formatNumber(summary.pendingApprovals.length), icon: ClipboardCheck, tone: summary.pendingApprovals.length ? ("amber" as const) : ("green" as const) },
+    { href: "/stock-balance?status=low_stock", label: "Low Stock Items", value: formatNumber(summary.lowStockCount), icon: AlertTriangle, tone: summary.lowStockCount ? ("red" as const) : ("green" as const) },
     { href: `/production/jobs?from=${today}&to=${today}`, label: "Active Production", value: formatNumber(summary.today.production), icon: Boxes, tone: "blue" as const },
     { href: "/goods-receivings", label: "Goods Receiving", value: formatNumber(summary.today.goodsReceiving), icon: PackageCheck, tone: "neutral" as const },
   ];
-  const pendingActions = summary.pendingApprovals.slice(0, 5);
-  const stuckRequests = summary.urgentRequests.slice(0, 4);
+  const pendingActions = summary.pendingApprovals.slice(0, 3);
+  const stuckRequests = summary.urgentRequests.slice(0, 3);
 
   return (
-    <div className="space-y-3">
-      <div className="px-4 pt-4">
-        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-          {metrics.map((metric) => <MetricCard key={metric.label} {...metric} />)}
-        </div>
-      </div>
-
+    <div className="min-h-0">
       <WorkspaceGrid
-        className="pt-0"
+        className="gap-3 p-3 pb-3 xl:grid-cols-[minmax(0,1fr)_260px]"
+        rightRailClassName="space-y-2 xl:max-h-none xl:overflow-visible xl:pr-0"
         rightRail={
           <>
+            <CompactPanel title="Dashboard Summary">
+              <div className="grid gap-1.5">
+                {metrics.map((metric) => <MetricCard key={metric.label} {...metric} />)}
+              </div>
+            </CompactPanel>
+
             <CompactPanel title="Quick Actions">
-              <div className="grid gap-2">
-                <Button asChild className="justify-start">
+              <div className="grid gap-1.5">
+                <Button asChild size="sm" className="h-7 justify-start px-2 text-[11px]">
                   <Link href="/purchase-requests/new"><Zap className="h-3.5 w-3.5" /> Create Purchase Request</Link>
                 </Button>
-                <Button asChild variant="secondary" className="justify-start">
+                <Button asChild variant="secondary" size="sm" className="h-7 justify-start px-2 text-[11px]">
                   <Link href="/stock-wastage/new"><AlertTriangle className="h-3.5 w-3.5" /> Record Stock Wastage</Link>
                 </Button>
-                <Button asChild variant="outline" className="justify-start">
+                <Button asChild variant="outline" size="sm" className="h-7 justify-start px-2 text-[11px]">
                   <Link href="/production/jobs/new"><Boxes className="h-3.5 w-3.5" /> New Production Job</Link>
                 </Button>
               </div>
             </CompactPanel>
 
             <CompactPanel title="Recent Activity">
-              <div className="space-y-2">
-                {summary.recentActivities.slice(0, 5).map((activity) => (
-                  <div key={activity.id} className="rounded-md border bg-white px-3 py-2 text-xs">
-                    <p className="line-clamp-2 font-medium">{activity.message}</p>
-                    <p className="mt-1 text-[11px] text-muted-foreground">{new Date(activity.created_at).toLocaleString("en-MY", { dateStyle: "short", timeStyle: "short" })}</p>
+              <div className="space-y-1.5">
+                {summary.recentActivities.slice(0, 3).map((activity) => (
+                  <div key={activity.id} className="rounded-md border bg-white px-2 py-1.5 text-[11px]">
+                    <p className="line-clamp-1 font-medium">{activity.message}</p>
+                    <p className="text-[10px] text-muted-foreground">{new Date(activity.created_at).toLocaleString("en-MY", { dateStyle: "short", timeStyle: "short" })}</p>
                   </div>
                 ))}
-                {!summary.recentActivities.length ? <p className="rounded-md border bg-white p-3 text-xs text-muted-foreground">No recent activity.</p> : null}
+                {!summary.recentActivities.length ? <p className="rounded-md border bg-white p-2 text-[11px] text-muted-foreground">No recent activity.</p> : null}
+                <Button asChild variant="ghost" size="sm" className="h-6 w-full text-[11px]">
+                  <Link href="/activity">Show more</Link>
+                </Button>
               </div>
             </CompactPanel>
           </>
         }
       >
         <div className="space-y-3">
-          <div>
-            <CompactPanel title="Today's Attention" action={{ href: "/documents?status=pending_approval", label: "Review" }}>
-              {pendingActions.length ? (
-                <div className="divide-y rounded-lg border bg-white">
-                  {pendingActions.map((document) => (
-                    <Link key={document.id} href={document.href ?? "/documents"} className="flex items-center justify-between gap-3 px-3 py-2.5 text-xs hover:bg-slate-50">
-                      <div className="min-w-0">
-                        <p className="truncate font-mono text-xs font-semibold">{document.document_no}</p>
-                        <p className="mt-0.5 truncate text-xs text-muted-foreground">
-                          {[document.step ?? document.title ?? "Pending review", document.branch_name, document.age_label].filter(Boolean).join(" · ")}
-                        </p>
-                      </div>
-                      <span className="shrink-0 rounded-md bg-amber-50 px-2 py-0.5 text-[11px] font-medium text-amber-800">{document.step ?? "In Review"}</span>
-                    </Link>
-                  ))}
-                </div>
-              ) : (
-                <EmptyState icon={CheckCircle2} title="No pending actions" description="Nothing needs your review right now." />
-              )}
-            </CompactPanel>
-          </div>
+          <CompactPanel title="Today's Attention" action={{ href: "/documents?status=pending_approval", label: "Review" }}>
+            {pendingActions.length ? (
+              <div className="divide-y rounded-md border bg-white">
+                {pendingActions.map((document) => (
+                  <Link key={document.id} href={document.href ?? "/documents"} className="flex items-center justify-between gap-2 px-2.5 py-1.5 text-[11px] hover:bg-slate-50">
+                    <div className="min-w-0">
+                      <p className="truncate font-mono text-[11px] font-semibold">{document.document_no}</p>
+                      <p className="truncate text-[11px] text-muted-foreground">
+                        {[document.step ?? document.title ?? "Pending review", document.branch_name, document.age_label].filter(Boolean).join(" - ")}
+                      </p>
+                    </div>
+                    <span className="shrink-0 rounded bg-amber-50 px-1.5 py-0.5 text-[10px] font-medium text-amber-800">{document.step ?? "In Review"}</span>
+                  </Link>
+                ))}
+              </div>
+            ) : (
+              <EmptyState icon={CheckCircle2} title="No pending actions" description="Nothing needs your review right now." />
+            )}
+          </CompactPanel>
 
           <div className="grid gap-3 lg:grid-cols-2">
             <CompactPanel title="Procurement Queue" action={{ href: "/purchase-requests?priority=urgent", label: "View Queue" }}>
               {stuckRequests.length ? (
-                <div className="divide-y rounded-lg border bg-white">
+                <div className="divide-y rounded-md border bg-white">
                   {stuckRequests.map((request) => (
-                    <Link key={request.id} href={`/purchase-requests/${request.id}`} className="flex items-center justify-between gap-3 px-3 py-2.5 text-xs hover:bg-slate-50">
+                    <Link key={request.id} href={`/purchase-requests/${request.id}`} className="flex items-center justify-between gap-2 px-2.5 py-1.5 text-[11px] hover:bg-slate-50">
                       <div className="min-w-0">
-                        <p className="truncate font-mono text-xs font-semibold">{request.request_no}</p>
-                        <p className="mt-0.5 truncate text-xs text-muted-foreground">{request.needed_by_date ? `Needed by ${request.needed_by_date}` : "Needed date not set"}</p>
+                        <p className="truncate font-mono text-[11px] font-semibold">{request.request_no}</p>
+                        <p className="truncate text-[11px] text-muted-foreground">{request.needed_by_date ? `Needed by ${request.needed_by_date}` : "Needed date not set"}</p>
                       </div>
-                      <span className="shrink-0 rounded-md bg-red-50 px-2 py-0.5 text-[11px] font-medium text-red-800">{request.priority ?? "Urgent"}</span>
+                      <span className="shrink-0 rounded bg-red-50 px-1.5 py-0.5 text-[10px] font-medium text-red-800">{request.priority ?? "Urgent"}</span>
                     </Link>
                   ))}
                 </div>
@@ -164,7 +166,7 @@ export function DashboardWorkspace({ summary }: { summary: DashboardSummary }) {
               <MetricCard href="/reports" label="Payables" value={formatCurrency(summary.financeForecast.upcomingPayables)} icon={ReceiptText} />
               <MetricCard href="/goods-receivings" label="Not Invoiced" value={formatNumber(summary.financeForecast.receivingNotInvoiced)} icon={RotateCw} tone="amber" />
             </div>
-            <p className="mt-3 text-xs text-muted-foreground">Finance and stock signals improve as PO, GRN, and supplier invoice data grows.</p>
+            <p className="mt-2 text-[11px] text-muted-foreground">Finance and stock signals improve as PO, GRN, and supplier invoice data grows.</p>
             <span className="sr-only">Prepared future analytics widgets: {futureAnalyticsWidgets.join(", ")}</span>
           </CompactPanel>
         </div>

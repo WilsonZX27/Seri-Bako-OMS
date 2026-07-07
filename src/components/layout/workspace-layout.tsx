@@ -5,15 +5,17 @@ export function WorkspaceGrid({
   children,
   rightRail,
   className,
+  rightRailClassName,
 }: {
   children: ReactNode;
   rightRail?: ReactNode;
   className?: string;
+  rightRailClassName?: string;
 }) {
   return (
     <div className={cn("grid min-h-0 gap-5 p-5 pb-4 xl:grid-cols-[minmax(0,1fr)_320px]", !rightRail && "xl:grid-cols-1", className)}>
       <div className="min-w-0 space-y-5">{children}</div>
-      {rightRail ? <RightRail>{rightRail}</RightRail> : null}
+      {rightRail ? <RightRail className={rightRailClassName}>{rightRail}</RightRail> : null}
     </div>
   );
 }

@@ -1,9 +1,7 @@
-import { signOut } from "@/server/actions/auth";
 import Link from "next/link";
-import { ChevronDown, KeyRound, LogOut, UserRound } from "lucide-react";
+import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Breadcrumbs } from "@/components/layout/breadcrumbs";
-import { GlobalSearch } from "@/components/search/global-search";
 import { MobileSidebar } from "@/components/layout/mobile-sidebar";
 import { TopBarActivityMenu } from "@/components/layout/top-bar-activity-menu";
 import { getCompanyBranding, getCurrentProfile } from "@/server/queries/common";
@@ -13,50 +11,21 @@ import type { UserRole } from "@/types/database";
 export async function TopBar() {
   const [profile, branding, activity] = await Promise.all([getCurrentProfile(), getCompanyBranding(), getTopBarActivity()]);
   const profileRole = profile as { role_code?: UserRole; role?: UserRole } | null;
-  const account = profile as { full_name?: string | null; email?: string | null; avatar_url?: string | null } | null;
   const role = profileRole?.role_code ?? profileRole?.role ?? "viewer";
-  const initials = (account?.full_name ?? account?.email ?? "U").slice(0, 2).toUpperCase();
 
   return (
-    <header className="grid h-12 grid-cols-[minmax(150px,220px)_minmax(260px,520px)_auto] items-center justify-between gap-3 border-b bg-card px-4 max-lg:grid-cols-[minmax(0,1fr)_auto]">
+    <header className="grid h-12 grid-cols-[minmax(0,1fr)_auto] items-center justify-between gap-3 border-b bg-card px-4">
       <div className="flex min-w-0 items-center gap-3">
         <MobileSidebar role={role} companyName={branding.company_name} companyLogoUrl={branding.logo_url} />
         <div className="min-w-0">
           <Breadcrumbs />
         </div>
       </div>
-      <div data-testid="topbar-search-region" className="w-full min-w-0 max-w-[520px] justify-self-center max-lg:hidden">
-        <GlobalSearch />
-      </div>
       <div data-testid="topbar-account-region" className="flex items-center justify-end gap-2">
         <TopBarActivityMenu data={activity} />
-        <details className="group relative">
-          <summary aria-label="Account menu" className="flex h-9 cursor-pointer list-none items-center gap-1 rounded-lg border bg-white px-1.5 shadow-sm hover:bg-secondary">
-            <span className="flex h-7 w-7 items-center justify-center overflow-hidden rounded-full bg-primary/10 text-[11px] font-semibold text-primary">
-              {account?.avatar_url ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img src={account.avatar_url} alt="" className="h-full w-full object-cover" />
-              ) : initials}
-            </span>
-            <ChevronDown className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
-          </summary>
-          <div className="absolute right-0 z-50 mt-2 w-56 rounded-xl border bg-white p-2 shadow-lg">
-            <Link href="/account" className="flex items-center gap-2 rounded-md px-3 py-2 text-sm hover:bg-secondary">
-              <UserRound className="h-4 w-4 text-muted-foreground" />
-              My Profile
-            </Link>
-            <Link href="/account#password" className="flex items-center gap-2 rounded-md px-3 py-2 text-sm hover:bg-secondary">
-              <KeyRound className="h-4 w-4 text-muted-foreground" />
-              Change Password
-            </Link>
-            <form action={signOut}>
-              <Button variant="ghost" size="sm" className="mt-1 w-full justify-start px-3 text-sm font-normal text-red-700 hover:bg-red-50 hover:text-red-800">
-                <LogOut className="h-4 w-4" />
-                Sign out
-              </Button>
-            </form>
-          </div>
-        </details>
+        <Button asChild size="sm">
+          <Link href="/purchase-requests/new"><Plus className="h-3.5 w-3.5" /> Create PR</Link>
+        </Button>
       </div>
     </header>
   );

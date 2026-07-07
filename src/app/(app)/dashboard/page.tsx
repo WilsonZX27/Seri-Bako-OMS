@@ -1,6 +1,5 @@
 import { DashboardWorkspace } from "@/components/dashboard-workspace";
 import { Card, CardContent } from "@/components/ui/card";
-import { PageHeader } from "@/components/ui/page-header";
 import { formatPageError } from "@/server/actions/error-handling";
 import { getDashboardSummary } from "@/server/queries/dashboard";
 
@@ -10,29 +9,17 @@ export default async function DashboardPage() {
   try {
     const summary = await getDashboardSummary();
 
-    return (
-      <>
-        <PageHeader
-          title="Dashboard"
-          description="Daily operating picture for approvals, stock exceptions, purchasing, and production."
-          action={{ href: "/purchase-requests/new", label: "Create PR" }}
-        />
-        <DashboardWorkspace summary={summary} />
-      </>
-    );
+    return <DashboardWorkspace summary={summary} />;
   } catch (error) {
     console.error(error);
     return (
-      <>
-        <PageHeader title="Dashboard" description="Daily operating picture for approvals, stock exceptions, purchasing, and production." />
-        <div className="p-5">
-          <Card>
-            <CardContent className="p-5 text-sm text-muted-foreground">
-              {formatPageError(error, "The dashboard could not load completely right now. Please refresh in a moment or continue from the sidebar.")}
-            </CardContent>
-          </Card>
-        </div>
-      </>
+      <div className="p-5">
+        <Card>
+          <CardContent className="p-5 text-sm text-muted-foreground">
+            {formatPageError(error, "The dashboard could not load completely right now. Please refresh in a moment or continue from the sidebar.")}
+          </CardContent>
+        </Card>
+      </div>
     );
   }
 }

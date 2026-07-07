@@ -2,12 +2,13 @@
 
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
-import { CheckCircle2, ChevronDown, Factory, Search } from "lucide-react";
-import { useMemo, useState } from "react";
+import { CheckCircle2, ChevronDown, Factory, LogOut, Search, UserRound } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
 import { getVisibleNavGroups, searchableNavItems } from "@/components/layout/nav-items";
 import { Input } from "@/components/ui/input";
 import { APP_SPRINT, APP_VERSION } from "@/lib/app-version";
 import { cn } from "@/lib/utils";
+import { signOut } from "@/server/actions/auth";
 import type { SidebarCounts } from "@/server/queries/sidebar";
 import type { UserRole } from "@/types/database";
 
@@ -21,6 +22,13 @@ type WorkspaceSidebarProps = {
   navCounts?: SidebarCounts;
   userName?: string;
   userRoleLabel?: string;
+};
+
+type SearchResult = {
+  type: string;
+  title: string;
+  subtitle: string;
+  href: string;
 };
 
 export function WorkspaceSidebar({
@@ -38,15 +46,39 @@ export function WorkspaceSidebar({
   const searchParams = useSearchParams();
   const [closedGroups, setClosedGroups] = useState<Record<string, boolean>>({});
   const [query, setQuery] = useState("");
+  const [recordMatches, setRecordMatches] = useState<SearchResult[]>([]);
   const groups = useMemo(() => getVisibleNavGroups(role), [role]);
   const navMatches = useMemo(() => {
     const term = query.trim().toLowerCase();
     if (!term) return [];
     return searchableNavItems
       .filter((item) => `${item.label} ${item.group} ${(item.keywords ?? []).join(" ")}`.toLowerCase().includes(term))
-      .slice(0, 6);
+      .slice(0, 4);
   }, [query]);
   const compact = false;
+  const initials = userName.slice(0, 2).toUpperCase();
+
+  useEffect(() => {
+    const term = query.trim();
+    if (!term) {
+      setRecordMatches([]);
+      return;
+    }
+    const controller = new AbortController();
+    const handle = window.setTimeout(async () => {
+      try {
+        const response = await fetch(`/api/search?q=${encodeURIComponent(term)}`, { signal: controller.signal });
+        const payload = (await response.json()) as { results?: SearchResult[] };
+        setRecordMatches((payload.results ?? []).slice(0, 4));
+      } catch {
+        if (!controller.signal.aborted) setRecordMatches([]);
+      }
+    }, 180);
+    return () => {
+      controller.abort();
+      window.clearTimeout(handle);
+    };
+  }, [query]);
 
   function toggleGroup(groupId: string) {
     setClosedGroups((current) => ({ ...current, [groupId]: !current[groupId] }));
@@ -77,7 +109,7 @@ export function WorkspaceSidebar({
   })();
 
   return (
-    <div className={cn("flex h-dvh w-[204px] flex-col border-r border-white/10 bg-[var(--sb-primary-dark)] text-white", mobile ? "w-full" : "")}>
+    <div className={cn("flex h-dvh w-[236px] flex-col border-r border-white/10 bg-[var(--sb-primary-dark)] text-white", mobile ? "w-full" : "")}>
       <div className="border-b border-white/10 px-3 py-3">
         <Link href={brandHref} onClick={onNavigate} className={cn("flex min-w-0 flex-1 items-center gap-3 rounded-md p-1 hover:bg-white/10", compact ? "justify-center" : "")} title={compact ? companyName : undefined}>
           <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-white/12 text-white ring-1 ring-white/10">
@@ -90,7 +122,7 @@ export function WorkspaceSidebar({
           </div>
           {!compact ? (
             <div className="min-w-0">
-              <p className="truncate text-[12px] font-semibold leading-tight">{companyName}</p>
+              <p className="truncate text-[13px] font-semibold leading-tight">{companyName}</p>
               <p className="text-[10px] uppercase tracking-[0.08em] text-white/55">Operational ERP</p>
             </div>
           ) : null}
@@ -103,14 +135,20 @@ export function WorkspaceSidebar({
           <div className="mb-2 px-1">
             <div className="relative">
               <Search className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-white/45" />
-              <Input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search menu" className="h-8 border-white/15 bg-white/10 pl-8 text-xs text-white placeholder:text-white/45" />
+              <Input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search records" className="h-8 border-white/15 bg-white/10 pl-8 text-xs text-white placeholder:text-white/45" />
             </div>
-            {navMatches.length ? (
+            {navMatches.length || recordMatches.length ? (
               <div className="mt-2 space-y-1 rounded-md bg-white/10 p-1">
                 {navMatches.map((item) => (
                   <Link key={item.href} href={item.href} onClick={onNavigate} className="block rounded px-2 py-1.5 text-xs text-white/80 hover:bg-white/10 hover:text-white">
                     {item.label}
                     <span className="ml-1 text-white/45">{item.group}</span>
+                  </Link>
+                ))}
+                {recordMatches.map((item) => (
+                  <Link key={`${item.type}-${item.href}`} href={item.href} onClick={onNavigate} className="block rounded px-2 py-1.5 text-xs text-white/80 hover:bg-white/10 hover:text-white">
+                    <span className="block truncate">{item.title}</span>
+                    <span className="text-white/45">{item.type}</span>
                   </Link>
                 ))}
               </div>
@@ -157,7 +195,7 @@ export function WorkspaceSidebar({
                           <>
                             <span className="min-w-0 flex-1 truncate">{item.label}</span>
                             {typeof count === "number" && count > 0 ? (
-                              <span className={cn("ml-2 inline-flex min-w-5 justify-center rounded-full px-1.5 py-0.5 text-[10px] font-semibold leading-none", item.attention ? "bg-[var(--sb-accent)] text-[var(--sb-primary-dark)]" : "bg-white/12 text-white/70")}>
+                              <span className="ml-2 inline-flex min-w-5 justify-center rounded-full bg-[var(--sb-accent)] px-1.5 py-0.5 text-[10px] font-semibold leading-none text-[var(--sb-primary-dark)]">
                                 {count > 99 ? "99+" : count}
                               </span>
                             ) : null}
@@ -179,10 +217,22 @@ export function WorkspaceSidebar({
             <CheckCircle2 className="h-3.5 w-3.5 text-emerald-400" />
             System Stable
           </div>
-          <div className="min-w-0">
-            <p className="truncate text-[12px] font-medium text-white/85">{userName}</p>
-            <p className="truncate text-[10px] text-white/45">{userRoleLabel}</p>
-          </div>
+          <Link href="/account" className="flex min-w-0 items-center gap-2 rounded-md p-1.5 hover:bg-white/10">
+            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-white/12 text-[11px] font-semibold text-white">
+              <UserRound className="h-3.5 w-3.5" />
+              <span className="sr-only">{initials}</span>
+            </span>
+            <span className="min-w-0 flex-1">
+              <span className="block truncate text-[12px] font-medium text-white/90">{userName}</span>
+              <span className="block truncate text-[10px] text-white/50">{userRoleLabel}</span>
+            </span>
+          </Link>
+          <form action={signOut}>
+            <button type="submit" className="flex h-7 w-full items-center gap-2 rounded-md px-2 text-left text-[11px] text-white/65 hover:bg-white/10 hover:text-white">
+              <LogOut className="h-3.5 w-3.5" />
+              Logout
+            </button>
+          </form>
         </div>
       ) : null}
     </div>

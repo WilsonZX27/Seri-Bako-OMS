@@ -16,20 +16,20 @@ export function WorkspaceGrid({
   void rightRailClassName;
 
   return (
-    <div className={cn("min-h-0 p-5 pb-4", className)}>
-      <div className="min-w-0 space-y-5">{children}</div>
+    <div className={cn("min-h-0 p-3 pb-3", className)}>
+      <div className="min-w-0 space-y-3">{children}</div>
       {rightRail ? <RightConsoleMount>{rightRail}</RightConsoleMount> : null}
     </div>
   );
 }
 
 export function RightRail({ children, className }: { children: ReactNode; className?: string }) {
-  return <aside className={cn("min-h-0 min-w-0 space-y-4 xl:sticky xl:top-4 xl:max-h-[calc(100dvh-80px)] xl:overflow-y-auto xl:pr-1", className)}>{children}</aside>;
+  return <aside className={cn("min-h-0 min-w-0 space-y-3 xl:sticky xl:top-3 xl:max-h-[calc(100dvh-72px)] xl:overflow-y-auto xl:pr-1", className)}>{children}</aside>;
 }
 
 export function ActionPanel({ children, title = "Actions" }: { children: ReactNode; title?: string }) {
   return (
-    <section className="rounded-xl border bg-white p-4 shadow-sm">
+    <section className="rounded-lg border bg-white p-3">
       <p className="mb-3 text-sm font-semibold">{title}</p>
       <div className="grid gap-2">{children}</div>
     </section>

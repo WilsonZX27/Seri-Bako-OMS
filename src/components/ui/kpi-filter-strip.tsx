@@ -15,20 +15,23 @@ export function KpiFilterStrip({ items, className }: { items: KpiFilterItem[]; c
     <div className={cn("grid gap-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6", className)}>
       {items.map((item) => {
         const Icon = item.icon;
+        const toneClass = item.active
+          ? "border-primary/60 bg-emerald-50/70 text-emerald-950"
+          : "border-slate-200 bg-white text-slate-700 hover:border-primary/30 hover:bg-slate-50";
         const content = (
           <div
             className={cn(
-              "flex min-h-14 items-center gap-2 rounded-lg border bg-white px-3 py-2 text-left shadow-sm transition-colors",
-              item.active ? "border-primary/60 bg-emerald-50/70 text-primary" : "border-slate-200 text-slate-700 hover:border-primary/30 hover:bg-slate-50",
+              "flex min-h-14 items-center gap-2 rounded-lg border px-3 py-2 text-left shadow-sm transition-colors",
+              toneClass,
             )}
           >
             {Icon ? (
-              <span className={cn("flex h-7 w-7 shrink-0 items-center justify-center rounded-md", item.active ? "bg-primary/10" : "bg-slate-100")}>
+              <span className={cn("flex h-7 w-7 shrink-0 items-center justify-center rounded-md", item.active ? "bg-emerald-100 text-primary" : "bg-slate-100")}>
                 <Icon className="h-4 w-4" />
               </span>
             ) : null}
             <span className="min-w-0">
-              <span className={cn("block truncate text-[11px] font-medium", item.active ? "text-primary/80" : "text-muted-foreground")}>{item.label}</span>
+              <span className={cn("block truncate text-[11px] font-medium", item.active ? "text-emerald-900" : "text-muted-foreground")}>{item.label}</span>
               <span className="block font-mono text-base font-semibold leading-tight">{item.value}</span>
             </span>
           </div>

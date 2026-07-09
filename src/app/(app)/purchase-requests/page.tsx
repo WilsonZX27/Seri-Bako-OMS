@@ -21,12 +21,13 @@ import { getPurchaseRequests } from "@/server/queries/procurement";
 
 const statuses = [
   { value: "draft", label: "Draft" },
-  { value: "admin_review", label: "Manager Review" },
-  { value: "purchasing_review", label: "Admin Review" },
-  { value: "pending_approval", label: "Finance Review" },
-  { value: "approved", label: "Ready to Convert" },
-  { value: "converted", label: "Converted to PO" },
-  { value: "rejected", label: "Rejected / Returned" },
+  { value: "manager_review", label: "Manager Review" },
+  { value: "admin_review", label: "Admin Review" },
+  { value: "finance_review", label: "Finance Review" },
+  { value: "ready_to_convert", label: "Ready to Convert" },
+  { value: "converted_to_po", label: "Converted to PO" },
+  { value: "rejected", label: "Rejected" },
+  { value: "returned", label: "Returned" },
 ];
 
 export default async function PurchaseRequestsPage({ searchParams }: { searchParams: Promise<Record<string, string | undefined>> }) {
@@ -44,9 +45,9 @@ export default async function PurchaseRequestsPage({ searchParams }: { searchPar
           <ConsoleSection title="PR Summary">
               <div className="grid gap-2 text-xs">
                 <div className="flex justify-between"><span className="text-muted-foreground">Total PRs</span><strong>{rows.length}</strong></div>
-                <div className="flex justify-between"><span className="text-muted-foreground">Manager Review</span><strong>{count("admin_review", "submitted")}</strong></div>
-                <div className="flex justify-between"><span className="text-muted-foreground">Admin Review</span><strong>{count("purchasing_review")}</strong></div>
-                <div className="flex justify-between"><span className="text-muted-foreground">Finance Review</span><strong>{count("pending_approval")}</strong></div>
+                <div className="flex justify-between"><span className="text-muted-foreground">Manager Review</span><strong>{count("manager_review")}</strong></div>
+                <div className="flex justify-between"><span className="text-muted-foreground">Admin Review</span><strong>{count("admin_review")}</strong></div>
+                <div className="flex justify-between"><span className="text-muted-foreground">Finance Review</span><strong>{count("finance_review")}</strong></div>
               </div>
               <div className="my-3 border-t" />
               <div className="space-y-2">

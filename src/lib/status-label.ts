@@ -4,6 +4,7 @@ const statusLabels: Record<string, string> = {
   cancelled: "Cancelled",
   closed: "Closed",
   converted: "Converted",
+  converted_to_po: "Converted to PO",
   draft: "Draft",
   in_review: "In Review",
   not_required: "Not Required",
@@ -22,6 +23,7 @@ const statusLabels: Record<string, string> = {
   ready_to_send_supplier: "Ready to Send Supplier",
   sent_to_supplier: "Sent to Supplier",
   in_production: "In Production",
+  in_transit: "In Transit",
   qc_review: "QC Review",
   dispatched: "Dispatched",
   disabled: "Disabled",
@@ -31,6 +33,7 @@ const statusLabels: Record<string, string> = {
   need_repair: "Need Repair",
   active: "Active",
   inactive: "Inactive",
+  completed: "Completed",
   suspended: "Suspended",
 };
 

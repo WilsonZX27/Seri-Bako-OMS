@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { STOCK_OPERATION_STATUSES } from "@/lib/status-contracts";
 
 export const wastageReasons = ["expired", "damaged", "spoiled", "production_loss", "missing", "staff_meal", "sampling", "supplier_claim", "other"] as const;
 
@@ -19,7 +20,7 @@ export const stockTransferSchema = z.object({
   from_location_id: optionalUuid,
   to_branch_id: z.string().uuid("To branch required"),
   to_location_id: optionalUuid,
-  status: z.enum(["draft", "submitted", "approved", "posted", "rejected", "cancelled"]),
+  status: z.enum(STOCK_OPERATION_STATUSES),
   remarks: z.string().trim().optional().nullable(),
   lines: z.array(transferLine).min(1, "Transfer must have at least one line"),
 });
@@ -41,7 +42,7 @@ export const stockWastageSchema = z.object({
   branch_id: z.string().uuid("Branch required"),
   location_id: optionalUuid,
   reason: z.enum(wastageReasons),
-  status: z.enum(["draft", "submitted", "approved", "posted", "rejected", "cancelled"]),
+  status: z.enum(STOCK_OPERATION_STATUSES),
   remarks: z.string().trim().optional().nullable(),
   lines: z.array(wastageLine).min(1, "Wastage must have at least one line"),
 });

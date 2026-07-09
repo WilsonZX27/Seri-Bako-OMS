@@ -1,7 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { hasPermission } from "@/server/auth/permissions";
 import { getCurrentUserScope } from "@/server/queries/notifications";
-import type { PurchaseRequestStatus } from "@/types/database";
+import type { PurchaseRequestStatus } from "@/lib/status-contracts";
 
 export type PendingAction = {
   id: string;
@@ -35,10 +35,10 @@ export async function getCurrentUserPendingActions(limit = 5): Promise<PendingAc
   ]);
 
   const prStatusFilters: Array<{ status: PurchaseRequestStatus; allowed: boolean; step: string; title: string }> = [
-    { status: "admin_review", allowed: canManagerApprove, step: "Manager Review", title: "Manager review required" },
-    { status: "purchasing_review", allowed: canAdminReview || canPurchasingReview, step: "Admin Review", title: "Admin review required" },
-    { status: "pending_approval", allowed: canFinanceReview, step: "Finance Review", title: "Finance review required" },
-    { status: "approved", allowed: canConvertPo, step: "Ready to Convert", title: "Convert to PO" },
+    { status: "manager_review", allowed: canManagerApprove, step: "Manager Review", title: "Manager review required" },
+    { status: "admin_review", allowed: canAdminReview || canPurchasingReview, step: "Admin Review", title: "Admin review required" },
+    { status: "finance_review", allowed: canFinanceReview, step: "Finance Review", title: "Finance review required" },
+    { status: "ready_to_convert", allowed: canConvertPo, step: "Ready to Convert", title: "Convert to PO" },
   ];
 
   const filters = prStatusFilters.filter((filter) => filter.allowed);

@@ -3,6 +3,7 @@
 import { redirect } from "next/navigation";
 import { isMockMode, mockCompany, mockProfile } from "@/lib/mock-mode";
 import { PR_NEXT_STATUS_BY_ACTION } from "@/lib/purchase-request-status";
+import { assertPurchaseRequestStatus, type PurchaseRequestStatus } from "@/lib/status-contracts";
 import { createClient } from "@/lib/supabase/server";
 import { purchaseOrderSchema, purchaseRequestSchema } from "@/lib/validations/procurement";
 import { writeActivityLog } from "@/server/activity/log";
@@ -12,16 +13,16 @@ import { revalidateWorkspaceState } from "@/server/actions/revalidate";
 import { resolveDocumentNumber } from "@/server/documents/sequences";
 import { resolveDefaultLocation } from "@/server/inventory/locations";
 import { getCurrentProfile } from "@/server/queries/common";
-import type { ApprovalStatus, PurchaseOrderStatus, PurchaseRequestStatus } from "@/types/database";
+import type { ApprovalStatus, PurchaseOrderStatus } from "@/types/database";
 
-type PurchaseRequestStep = "draft" | "admin_review" | "purchasing_review" | "pending_approval" | "approved";
+type PurchaseRequestStep = "draft" | "manager_review" | "admin_review" | "finance_review" | "ready_to_convert";
 
 const prStatusAliases: Record<PurchaseRequestStep, string[]> = {
   draft: ["draft", "rejected"],
-  admin_review: ["admin_review", "submitted"],
-  purchasing_review: ["purchasing_review"],
-  pending_approval: ["pending_approval"],
-  approved: ["approved"],
+  manager_review: ["manager_review"],
+  admin_review: ["admin_review"],
+  finance_review: ["finance_review"],
+  ready_to_convert: ["ready_to_convert"],
 };
 
 const wrongPrStepMessage = "This document has already moved to another workflow step. Refreshing...";
@@ -66,6 +67,7 @@ async function requirePrTransition(input: {
   permission: string;
   nextStatus?: PurchaseRequestStatus;
 }) {
+  if (input.nextStatus) assertPurchaseRequestStatus(input.nextStatus);
   await requireActiveStaffProfile();
   if (!(await hasPermission(input.permission))) throw new Error(noPermissionMessage);
 
@@ -87,10 +89,10 @@ async function notifyNextPrRole(input: {
   nextStatus: PurchaseRequestStatus;
 }) {
   const roleCodesByStatus: Partial<Record<PurchaseRequestStatus, string[]>> = {
-    admin_review: ["manager", "admin", "super_admin"],
-    purchasing_review: ["operations_admin", "admin", "super_admin"],
-    pending_approval: ["finance", "admin", "super_admin"],
-    approved: ["purchasing", "operations_admin", "admin", "super_admin"],
+    manager_review: ["manager", "admin", "super_admin"],
+    admin_review: ["operations_admin", "admin", "super_admin"],
+    finance_review: ["finance", "admin", "super_admin"],
+    ready_to_convert: ["purchasing", "operations_admin", "admin", "super_admin"],
   };
   const roleCodes = roleCodesByStatus[input.nextStatus] ?? [];
   if (!roleCodes.length) return;
@@ -107,16 +109,16 @@ async function notifyNextPrRole(input: {
   }
 
   const titleByStatus: Partial<Record<PurchaseRequestStatus, string>> = {
-    admin_review: "PR Manager Review required",
-    purchasing_review: "PR Admin Review required",
-    pending_approval: "PR Finance Review required",
-    approved: "PR ready to convert to PO",
+    manager_review: "PR Manager Review required",
+    admin_review: "PR Admin Review required",
+    finance_review: "PR Finance Review required",
+    ready_to_convert: "PR ready to convert to PO",
   };
   const messageByStatus: Partial<Record<PurchaseRequestStatus, string>> = {
-    admin_review: `${input.pr.request_no} is waiting for Manager Review.`,
-    purchasing_review: `${input.pr.request_no} is waiting for Admin Review.`,
-    pending_approval: `${input.pr.request_no} is waiting for Finance Review.`,
-    approved: `${input.pr.request_no} is approved and ready to convert to PO.`,
+    manager_review: `${input.pr.request_no} is waiting for Manager Review.`,
+    admin_review: `${input.pr.request_no} is waiting for Admin Review.`,
+    finance_review: `${input.pr.request_no} is waiting for Finance Review.`,
+    ready_to_convert: `${input.pr.request_no} is approved and ready to convert to PO.`,
   };
 
   const notifications = (roles ?? []).map((role) => ({
@@ -126,7 +128,7 @@ async function notifyNextPrRole(input: {
     title: titleByStatus[input.nextStatus] ?? "Purchase Request update",
     message: messageByStatus[input.nextStatus] ?? `${input.pr.request_no} has moved to the next workflow step.`,
     action_url: `/purchase-requests/${input.pr.id}`,
-    priority: input.nextStatus === "pending_approval" ? "high" : "normal",
+    priority: input.nextStatus === "finance_review" ? "high" : "normal",
     entity_type: "purchase_request",
     entity_id: input.pr.id,
   }));
@@ -327,6 +329,7 @@ async function updatePrStatus(input: {
   message: string;
   activityType?: string;
 }) {
+  assertPurchaseRequestStatus(input.nextStatus);
   const supabase = await createClient();
   const profile = await requireActiveStaffProfile();
   const pr = await requirePrTransition({
@@ -396,7 +399,7 @@ export async function adminReviewPurchaseRequest(id: string) {
     if (isMockMode()) return;
     const pr = await updatePrStatus({
       id,
-      expectedStatus: "admin_review",
+      expectedStatus: "manager_review",
       nextStatus: PR_NEXT_STATUS_BY_ACTION.manager_approve,
       permission: "pr.manager_approve",
       documentStatus: "pending_approval",
@@ -417,7 +420,7 @@ export async function purchasingReviewPurchaseRequest(id: string) {
     if (isMockMode()) return;
     const pr = await updatePrStatus({
       id,
-      expectedStatus: "purchasing_review",
+      expectedStatus: "admin_review",
       nextStatus: PR_NEXT_STATUS_BY_ACTION.admin_approve,
       permission: "pr.admin_review",
       documentStatus: "pending_approval",
@@ -438,7 +441,7 @@ export async function approvePurchaseRequest(id: string) {
     if (isMockMode()) return;
     const pr = await updatePrStatus({
       id,
-      expectedStatus: "pending_approval",
+      expectedStatus: "finance_review",
       nextStatus: PR_NEXT_STATUS_BY_ACTION.finance_approve,
       permission: "pr.finance_review",
       documentStatus: "approved",
@@ -463,12 +466,12 @@ export async function rejectPurchaseRequest(id: string, formData: FormData) {
     const { data: pr, error: prError } = await supabase.from("purchase_requests").select("status").eq("id", id).single();
     if (prError) throw new Error(prError.message);
     const transition =
-      pr.status === "admin_review"
-        ? { expectedStatus: "admin_review" as const, permission: "pr.manager_approve", step: "Manager Review" }
-        : pr.status === "purchasing_review"
-          ? { expectedStatus: "purchasing_review" as const, permission: "pr.admin_review", step: "Admin Review" }
-          : pr.status === "pending_approval"
-            ? { expectedStatus: "pending_approval" as const, permission: "pr.finance_review", step: "Finance Review" }
+      pr.status === "manager_review"
+        ? { expectedStatus: "manager_review" as const, permission: "pr.manager_approve", step: "Manager Review" }
+        : pr.status === "admin_review"
+          ? { expectedStatus: "admin_review" as const, permission: "pr.admin_review", step: "Admin Review" }
+          : pr.status === "finance_review"
+            ? { expectedStatus: "finance_review" as const, permission: "pr.finance_review", step: "Finance Review" }
             : null;
     if (!transition) throw new Error("This request is not at a rejectable workflow step.");
     const canReject = (await hasPermission("pr.reject")) || (await hasPermission(transition.permission));
@@ -674,8 +677,8 @@ export async function convertPurchaseRequestToPurchaseOrder(id: string, formData
     if (existingPo?.[0]) {
       safeRedirectWithMessage(`/purchase-orders/${existingPo[0].id}`, "success", `Purchase order ${existingPo[0].po_no} is already linked to this PR.`);
     }
-    await requirePrTransition({ id, expectedStatus: "approved", permission: "pr.convert_to_po", nextStatus: PR_NEXT_STATUS_BY_ACTION.convert_to_po });
-    if (pr.status !== "approved") throw new Error(wrongPrStepMessage);
+    await requirePrTransition({ id, expectedStatus: "ready_to_convert", permission: "pr.convert_to_po", nextStatus: PR_NEXT_STATUS_BY_ACTION.convert_to_po });
+    if (pr.status !== "ready_to_convert") throw new Error(wrongPrStepMessage);
     if (!lines?.length) throw new Error("Add at least one item line before converting this PR.");
 
     const supplierIds = new Set(lines.map((line) => line.suggested_supplier_id).filter(Boolean));
@@ -693,7 +696,7 @@ export async function convertPurchaseRequestToPurchaseOrder(id: string, formData
       .from("purchase_requests")
       .update({ status: PR_NEXT_STATUS_BY_ACTION.convert_to_po, updated_by: profile?.id ?? null })
       .eq("id", id)
-      .eq("status", "approved")
+      .eq("status", "ready_to_convert")
       .select("id")
       .maybeSingle();
     if (reserveError) throw new Error(reserveError.message);
@@ -762,7 +765,7 @@ export async function convertPurchaseRequestToPurchaseOrder(id: string, formData
           entityId: pr.document_id,
           activityType: "converted",
           message: `Purchase request ${pr.request_no} converted to ${poNo}`,
-          metadata: { workflow_step: "approved", purchase_order_id: po.id },
+          metadata: { workflow_step: "ready_to_convert", purchase_order_id: po.id },
         });
       }
     } catch (error) {
@@ -777,7 +780,7 @@ export async function convertPurchaseRequestToPurchaseOrder(id: string, formData
     if (reservedConversion) {
       try {
         const supabase = await createClient();
-        await supabase.from("purchase_requests").update({ status: "approved" }).eq("id", id).eq("status", "converted");
+        await supabase.from("purchase_requests").update({ status: "ready_to_convert" }).eq("id", id).eq("status", "converted_to_po");
       } catch (revertError) {
         console.error(revertError);
       }

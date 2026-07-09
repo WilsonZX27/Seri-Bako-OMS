@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { PURCHASE_REQUEST_STATUSES } from "@/lib/status-contracts";
 
 const optionalUuid = z.string().uuid().optional().nullable().or(z.literal(""));
 const prioritySchema = z.enum(["low", "normal", "urgent", "critical"]);
@@ -23,7 +24,7 @@ export const purchaseRequestSchema = z.object({
   production_risk: z.coerce.boolean().optional(),
   branch_id: z.string().uuid("Branch is required"),
   location_id: optionalUuid,
-  status: z.enum(["draft", "submitted", "admin_review", "purchasing_review", "pending_approval", "approved", "rejected", "converted", "cancelled"]),
+  status: z.enum(PURCHASE_REQUEST_STATUSES),
   remarks: z.string().trim().optional().nullable(),
   lines: z.array(purchaseRequestLineSchema).min(1, "Purchase request must have at least one line"),
 });

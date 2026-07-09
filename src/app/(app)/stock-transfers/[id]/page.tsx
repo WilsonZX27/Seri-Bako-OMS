@@ -4,13 +4,14 @@ import { DocumentSideSection, DocumentWorkspace } from "@/components/documents/d
 import { Card, CardContent } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { formatNumber } from "@/lib/utils";
-import { cancelStockTransfer, postStockTransfer, rejectStockTransfer } from "@/server/actions/stock-operations";
+import { cancelStockTransfer, postStockTransfer, rejectStockTransfer, startStockTransfer } from "@/server/actions/stock-operations";
 import { getDocumentBundle } from "@/server/queries/documents";
 import { getStockTransfer } from "@/server/queries/stock-operations";
 
 const transferSteps = [
   { key: "draft", label: "Draft", description: "Transfer is being prepared." },
-  { key: "posted", label: "Posted", description: "Stock movement has been recorded." },
+  { key: "in_transit", label: "In Transit", description: "Stock is moving between locations." },
+  { key: "completed", label: "Completed", description: "Stock movement has been recorded." },
   { key: "rejected", label: "Rejected", description: "Transfer was rejected." },
   { key: "cancelled", label: "Cancelled", description: "Transfer was cancelled." },
 ];
@@ -19,7 +20,9 @@ export default async function StockTransferDetailPage({ params }: { params: Prom
   const { id } = await params;
   const { transfer, lines } = await getStockTransfer(id);
   const bundle = transfer.document_id ? await getDocumentBundle(transfer.document_id) : null;
-  const canAct = transfer.status === "draft";
+  const canStart = transfer.status === "draft";
+  const canPost = transfer.status === "in_transit";
+  const canAct = canStart || canPost;
 
   return (
     <DocumentWorkspace
@@ -34,7 +37,8 @@ export default async function StockTransferDetailPage({ params }: { params: Prom
           <DocumentSideSection title="Primary Action" description="Post only after the transfer lines are checked.">
             {canAct ? (
               <DocumentActionBar>
-                <DocumentActionForm action={postStockTransfer.bind(null, transfer.id)} pendingLabel="Posting...">Post transfer</DocumentActionForm>
+                {canStart ? <DocumentActionForm action={startStockTransfer.bind(null, transfer.id)} pendingLabel="Moving...">Move to In Transit</DocumentActionForm> : null}
+                {canPost ? <DocumentActionForm action={postStockTransfer.bind(null, transfer.id)} pendingLabel="Posting...">Complete transfer</DocumentActionForm> : null}
                 <DocumentActionForm action={rejectStockTransfer.bind(null, transfer.id)} pendingLabel="Rejecting..." variant="destructive">Reject</DocumentActionForm>
                 <DocumentActionForm action={cancelStockTransfer.bind(null, transfer.id)} pendingLabel="Cancelling..." variant="ghost">Cancel</DocumentActionForm>
               </DocumentActionBar>

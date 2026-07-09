@@ -29,7 +29,7 @@ const prSteps = PURCHASE_REQUEST_WORKFLOW_STEPS.map((step) => ({
   key: step,
   label: PR_WORKFLOW_STEP_LABELS[step],
   description:
-    step === "draft_pr"
+    step === "draft"
       ? "Kitchen prepares the request."
       : step === "manager_review"
         ? "Manager approves the purchase need."
@@ -67,23 +67,23 @@ export default async function PurchaseRequestDetailPage({
   const supplierById = new Map(suppliers.map((supplier) => [supplier.id, supplier]));
   const branch = branches.find((row) => row.id === request.branch_id);
   const total = lines.reduce((sum, line) => sum + line.qty * line.estimated_unit_cost, 0);
-  const canSubmit = isStatus(request.status, "draft", "rejected") && permissions["pr.submit"];
+  const canSubmit = isStatus(request.status, "draft", "rejected", "returned") && permissions["pr.submit"];
   const canCancel = request.status === "draft" && permissions["pr.cancel"];
-  const canManagerReview = isStatus(request.status, "admin_review", "submitted") && permissions["pr.manager_approve"];
-  const canAdminReview = request.status === "purchasing_review" && permissions["pr.admin_review"];
-  const canFinanceReview = request.status === "pending_approval" && permissions["pr.finance_review"];
-  const canConvert = request.status === "approved" && permissions["pr.convert_to_po"];
+  const canManagerReview = request.status === "manager_review" && permissions["pr.manager_approve"];
+  const canAdminReview = request.status === "admin_review" && permissions["pr.admin_review"];
+  const canFinanceReview = request.status === "finance_review" && permissions["pr.finance_review"];
+  const canConvert = request.status === "ready_to_convert" && permissions["pr.convert_to_po"];
   const canReject =
-    (isStatus(request.status, "admin_review", "submitted") && (permissions["pr.manager_approve"] || permissions["pr.reject"])) ||
-    (request.status === "purchasing_review" && (permissions["pr.admin_review"] || permissions["pr.reject"])) ||
-    (request.status === "pending_approval" && (permissions["pr.finance_review"] || permissions["pr.reject"]));
+    (request.status === "manager_review" && (permissions["pr.manager_approve"] || permissions["pr.reject"])) ||
+    (request.status === "admin_review" && (permissions["pr.admin_review"] || permissions["pr.reject"])) ||
+    (request.status === "finance_review" && (permissions["pr.finance_review"] || permissions["pr.reject"]));
   const hasPrimaryAction =
     canSubmit ||
     canCancel ||
     canAdminReview ||
     canFinanceReview ||
     canConvert ||
-    (request.status === "converted" && linkedPurchaseOrders.length > 0) ||
+    (request.status === "converted_to_po" && linkedPurchaseOrders.length > 0) ||
     canReject;
 
   return (
@@ -105,7 +105,7 @@ export default async function PurchaseRequestDetailPage({
               {canManagerReview ? <DocumentActionForm action={adminReviewPurchaseRequest.bind(null, request.id)} pendingLabel="Approving..." className="bg-emerald-700 text-white hover:bg-emerald-800">Manager Approve</DocumentActionForm> : null}
               {canAdminReview ? <DocumentActionForm action={purchasingReviewPurchaseRequest.bind(null, request.id)} pendingLabel="Reviewing..." className="bg-emerald-700 text-white hover:bg-emerald-800">Complete Admin Review</DocumentActionForm> : null}
               {canFinanceReview ? <DocumentActionForm action={approvePurchaseRequest.bind(null, request.id)} pendingLabel="Reviewing..." className="bg-emerald-700 text-white hover:bg-emerald-800">Complete Finance Review</DocumentActionForm> : null}
-              {request.status === "converted" && linkedPurchaseOrders[0] ? (
+              {request.status === "converted_to_po" && linkedPurchaseOrders[0] ? (
                 <Button asChild className="w-full justify-center"><a href={`/purchase-orders/${linkedPurchaseOrders[0].id}`}>Open PO</a></Button>
               ) : null}
             </DocumentActionBar>

@@ -92,10 +92,10 @@ export async function getDashboardSummary() {
       totalStockValue: balances.reduce((sum, row) => sum + Number(row.current_stock ?? 0), 0),
       lowStockItems: getMockLowStockItems().slice(0, 5),
       pendingApprovals: mockPurchaseRequests
-        .filter((request) => request.status === "pending_approval")
+        .filter((request) => request.status === "finance_review")
         .slice(0, 5)
         .map((request) => ({
-          id: `pr-pending_approval-${request.id}`,
+          id: `pr-finance_review-${request.id}`,
           document_no: request.request_no,
           title: "Manager Approval required",
           href: `/purchase-requests/${request.id}`,

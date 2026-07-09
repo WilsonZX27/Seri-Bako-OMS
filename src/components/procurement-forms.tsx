@@ -171,9 +171,11 @@ export function PurchaseRequestForm({
           <div className="grid gap-2 rounded-lg border bg-white p-2 md:grid-cols-4">
             {[
               ["draft", "Draft"],
-              ["pending_approval", "Pending Approval"],
-              ["approved", "Approved"],
-              ["converted", "Converted to PO"],
+              ["manager_review", "Manager Review"],
+              ["admin_review", "Admin Review"],
+              ["finance_review", "Finance Review"],
+              ["ready_to_convert", "Ready to Convert"],
+              ["converted_to_po", "Converted to PO"],
             ].map(([key, label], index) => {
               const Icon = index === 0 ? CircleDot : index < 0 ? CheckCircle2 : Circle;
               return (

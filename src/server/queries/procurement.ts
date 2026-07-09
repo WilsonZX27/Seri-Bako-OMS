@@ -48,9 +48,10 @@ function filterRows<T extends Record<string, unknown>>(rows: T[], filters: Filte
         status === "awaiting_delivery" ? ["approved", "sent"]
         : status === "receiving" ? ["partial_received"]
         : status === "completed" ? ["received", "closed"]
-        : status === "admin_review" ? ["admin_review", "submitted"]
-        : status === "pending_approval" ? ["pending_approval"]
-        : status === "in_review" ? ["submitted", "admin_review", "purchasing_review", "pending_approval"]
+        : status === "manager_review" ? ["manager_review"]
+        : status === "admin_review" ? ["admin_review"]
+        : status === "finance_review" ? ["finance_review"]
+        : status === "in_review" ? ["manager_review", "admin_review", "finance_review"]
         : status === "rejected" ? ["rejected", "cancelled"]
         : status ? [status] : [];
       const matchesStatus = statusGroup.length ? statusGroup.includes(String(row.status)) : true;
@@ -233,7 +234,7 @@ export async function getProcurementWorkspaceInsights() {
       draftPo: mockPurchaseOrders.filter((order) => order.status === "draft").length,
       openPo: mockPurchaseOrders.filter((order) => !["received", "closed", "cancelled"].includes(order.status)).length,
       receivingToday: 0,
-      pendingPr: mockPurchaseRequests.filter((request) => request.status === "pending_approval").length,
+      pendingPr: mockPurchaseRequests.filter((request) => request.status === "finance_review").length,
     };
   }
 
@@ -243,7 +244,7 @@ export async function getProcurementWorkspaceInsights() {
     supabase.from("purchase_orders").select("id", { count: "exact", head: true }).eq("status", "draft").is("deleted_at", null),
     supabase.from("purchase_orders").select("id", { count: "exact", head: true }).not("status", "in", "(received,closed,cancelled)").is("deleted_at", null),
     supabase.from("goods_receivings").select("id", { count: "exact", head: true }).eq("received_date", today).is("deleted_at", null),
-    supabase.from("purchase_requests").select("id", { count: "exact", head: true }).eq("status", "pending_approval").is("deleted_at", null),
+    supabase.from("purchase_requests").select("id", { count: "exact", head: true }).eq("status", "finance_review").is("deleted_at", null),
   ]);
 
   return {

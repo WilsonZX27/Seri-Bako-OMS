@@ -13,7 +13,7 @@ import { StatusBadge } from "@/components/ui/status-badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { getStockTransfers } from "@/server/queries/stock-operations";
 
-const statuses = ["draft", "submitted", "approved", "posted", "rejected", "cancelled"];
+const statuses = ["draft", "in_transit", "completed", "rejected", "cancelled"];
 
 export default async function StockTransfersPage({ searchParams }: { searchParams: Promise<Record<string, string | undefined>> }) {
   const filters = await searchParams;
@@ -23,9 +23,8 @@ export default async function StockTransfersPage({ searchParams }: { searchParam
   const insights = [
     { label: "Total", value: rows.length, href: "/stock-transfers", active: !filters.status, icon: FileText },
     { label: "Draft", value: countByStatus("draft"), href: "/stock-transfers?status=draft", active: filters.status === "draft", icon: FileText },
-    { label: "In Review", value: countByStatus("submitted"), href: "/stock-transfers?status=submitted", active: filters.status === "submitted", icon: ClipboardCheck },
-    { label: "Approved", value: countByStatus("approved"), href: "/stock-transfers?status=approved", active: filters.status === "approved", icon: CheckCircle2 },
-    { label: "Posted", value: countByStatus("posted"), href: "/stock-transfers?status=posted", active: filters.status === "posted", icon: CheckCircle2 },
+    { label: "In Transit", value: countByStatus("in_transit"), href: "/stock-transfers?status=in_transit", active: filters.status === "in_transit", icon: ClipboardCheck },
+    { label: "Completed", value: countByStatus("completed"), href: "/stock-transfers?status=completed", active: filters.status === "completed", icon: CheckCircle2 },
     { label: "Rejected/Cancelled", value: countByStatus("rejected", "cancelled"), href: "/stock-transfers?status=rejected", active: filters.status === "rejected", icon: XCircle },
   ];
   return (

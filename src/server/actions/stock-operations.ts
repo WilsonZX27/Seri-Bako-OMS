@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { isMockMode, mockCompany, mockProfile } from "@/lib/mock-mode";
+import { assertStockOperationStatus, type StockOperationStatus } from "@/lib/status-contracts";
 import { createClient } from "@/lib/supabase/server";
 import { stockTransferSchema, stockWastageSchema } from "@/lib/validations/stock-operations";
 import { writeActivityLog } from "@/server/activity/log";
@@ -13,7 +14,7 @@ import { resolveDocumentNumber } from "@/server/documents/sequences";
 import { createInventoryMovement } from "@/server/inventory/engine";
 import { resolveDefaultLocation } from "@/server/inventory/locations";
 import { getCurrentProfile } from "@/server/queries/common";
-import type { StockOperationStatus, StockWastageReason } from "@/types/database";
+import type { StockWastageReason } from "@/types/database";
 
 function clean(value: unknown) {
   const text = String(value ?? "").trim();
@@ -119,14 +120,15 @@ export async function createStockTransfer(formData: FormData) {
 }
 
 async function setTransferStatus(id: string, status: StockOperationStatus, message: string) {
+  assertStockOperationStatus(status);
   const profile = await identity();
   const supabase = await createClient();
   const { data: row, error } = await supabase.from("stock_transfers").select("document_id,transfer_no").eq("id", id).single();
   if (error) throw new Error(error.message);
   const now = new Date().toISOString();
-  await supabase.from("stock_transfers").update({ status, updated_by: profile?.id ?? null, ...(status === "posted" ? { posted_at: now } : {}) }).eq("id", id);
+  await supabase.from("stock_transfers").update({ status, updated_by: profile?.id ?? null, ...(status === "completed" ? { posted_at: now } : {}) }).eq("id", id);
   if (row.document_id) {
-    await supabase.from("documents").update({ status: status === "posted" ? "posted" : status === "cancelled" ? "cancelled" : status === "rejected" ? "rejected" : "approved", approval_status: status === "rejected" ? "rejected" : "approved", current_step: message, updated_by: profile?.id ?? null, ...(status === "posted" ? { posted_at: now } : {}) }).eq("id", row.document_id);
+    await supabase.from("documents").update({ status: status === "completed" ? "posted" : status === "cancelled" ? "cancelled" : status === "rejected" ? "rejected" : "approved", approval_status: status === "rejected" ? "rejected" : "approved", current_step: message, updated_by: profile?.id ?? null, ...(status === "completed" ? { posted_at: now } : {}) }).eq("id", row.document_id);
     await writeActivityLog({ entityType: "document", entityId: row.document_id, activityType: status, message });
   }
   revalidateWorkspaceState(["/stock-transfers", `/stock-transfers/${id}`]);
@@ -162,10 +164,11 @@ export async function postStockTransfer(id: string) {
       });
     }
   }
-  await setTransferStatus(id, "posted", `Stock transfer ${transfer.transfer_no} posted`);
+  await setTransferStatus(id, "completed", `Stock transfer ${transfer.transfer_no} completed`);
   revalidatePath("/inventory"); revalidatePath("/stock-balance"); revalidatePath("/stock-card"); revalidatePath("/stock-transactions");
 }
 
+export async function startStockTransfer(id: string) { await requirePermission("stock_transfer.update"); if (isMockMode()) return; await setTransferStatus(id, "in_transit", "Stock transfer in transit"); }
 export async function cancelStockTransfer(id: string) { await requirePermission("stock_transfer.cancel"); if (isMockMode()) return; await setTransferStatus(id, "cancelled", "Stock transfer cancelled"); }
 export async function rejectStockTransfer(id: string) { await requirePermission("stock_transfer.update"); if (isMockMode()) return; await setTransferStatus(id, "rejected", "Stock transfer rejected"); }
 
@@ -230,10 +233,12 @@ export async function postStockWastage(id: string) {
       referenceId: wastage.id,
     });
   }
-  await supabase.from("stock_wastage").update({ status: "posted", posted_at: new Date().toISOString(), updated_by: profile?.id ?? null }).eq("id", id);
+  const status = "posted";
+  assertStockOperationStatus(status);
+  await supabase.from("stock_wastage").update({ status, posted_at: new Date().toISOString(), updated_by: profile?.id ?? null }).eq("id", id);
   if (wastage.document_id) await writeActivityLog({ entityType: "document", entityId: wastage.document_id, activityType: "posted", message: `Stock wastage ${wastage.wastage_no} posted` });
   revalidateWorkspaceState(["/stock-wastage", `/stock-wastage/${id}`, "/inventory", "/stock-balance", "/stock-card", "/stock-transactions"]);
 }
 
-export async function cancelStockWastage(id: string) { await requirePermission("stock_wastage.cancel"); if (isMockMode()) return; const supabase = await createClient(); await supabase.from("stock_wastage").update({ status: "cancelled" }).eq("id", id); revalidateWorkspaceState(["/stock-wastage", `/stock-wastage/${id}`]); }
-export async function rejectStockWastage(id: string) { await requirePermission("stock_wastage.update"); if (isMockMode()) return; const supabase = await createClient(); await supabase.from("stock_wastage").update({ status: "rejected" }).eq("id", id); revalidateWorkspaceState(["/stock-wastage", `/stock-wastage/${id}`]); }
+export async function cancelStockWastage(id: string) { await requirePermission("stock_wastage.cancel"); if (isMockMode()) return; const status = "cancelled"; assertStockOperationStatus(status); const supabase = await createClient(); await supabase.from("stock_wastage").update({ status }).eq("id", id); revalidateWorkspaceState(["/stock-wastage", `/stock-wastage/${id}`]); }
+export async function rejectStockWastage(id: string) { await requirePermission("stock_wastage.update"); if (isMockMode()) return; const status = "rejected"; assertStockOperationStatus(status); const supabase = await createClient(); await supabase.from("stock_wastage").update({ status }).eq("id", id); revalidateWorkspaceState(["/stock-wastage", `/stock-wastage/${id}`]); }

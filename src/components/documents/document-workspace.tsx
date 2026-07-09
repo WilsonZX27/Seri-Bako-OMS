@@ -1,5 +1,4 @@
 import type { ReactNode } from "react";
-import { ChevronRight } from "lucide-react";
 import { DocumentNumber } from "@/components/document-number";
 import { PriorityBadge } from "@/components/priority-badge";
 import { ConsoleSection } from "@/components/layout/right-console";
@@ -14,7 +13,7 @@ type Crumb = {
 };
 
 export function DocumentWorkspace({
-  breadcrumbs,
+  breadcrumbs: _breadcrumbs,
   documentNo,
   title,
   status,
@@ -36,17 +35,12 @@ export function DocumentWorkspace({
   children: ReactNode;
   sidePanel: ReactNode;
 }) {
+  void _breadcrumbs;
+
   return (
     <>
-      <header className="sticky top-0 z-20 border-b bg-background/95 px-4 py-2 shadow-sm backdrop-blur">
-        <nav className="mb-1.5 flex flex-wrap items-center gap-1 text-[11px] text-muted-foreground">
-          {breadcrumbs.map((crumb, index) => (
-            <span key={`${crumb.label}-${index}`} className="inline-flex items-center gap-1">
-              {crumb.href ? <a href={crumb.href} className="hover:text-foreground">{crumb.label}</a> : <span>{crumb.label}</span>}
-              {index < breadcrumbs.length - 1 ? <ChevronRight className="h-3 w-3" /> : null}
-            </span>
-          ))}
-        </nav>
+      <span data-document-breadcrumb={documentNo} className="sr-only" aria-hidden="true" />
+      <header className="sticky top-0 z-20 border-b border-[var(--border-muted)] bg-[var(--workspace-bg)] px-4 py-3">
         <div className="flex flex-col gap-2 xl:flex-row xl:items-start xl:justify-between">
           <div className="min-w-0">
             <div className="flex flex-wrap items-center gap-2">

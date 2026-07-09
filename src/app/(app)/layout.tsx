@@ -40,7 +40,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   const hasStaffRole = (profile as { has_staff_role?: boolean } | null)?.has_staff_role ?? false;
 
   return (
-    <div data-app-shell className="h-dvh overflow-hidden bg-background">
+    <div data-app-shell className="h-dvh overflow-hidden bg-[var(--app-bg)]">
       <div className="flex h-dvh min-w-0">
         <Sidebar />
         <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
@@ -50,7 +50,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
               Your account has no staff role assigned. Please run setup or contact admin.
             </div>
           ) : null}
-          <div className="flex min-h-0 flex-1">
+          <div className="relative z-10 flex min-h-0 flex-1">
             <RightConsoleProvider>
               <div data-center-workspace className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
                 <GlobalActionToast />

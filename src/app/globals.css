@@ -11,6 +11,13 @@
   --sb-muted: #EEF3EF;
   --sb-danger: #B91C1C;
   --sb-success: #15803D;
+  --app-bg: #f5f2ec;
+  --workspace-bg: #ffffff;
+  --rail-bg: #f8f6f1;
+  --border-soft: #ded8cc;
+  --border-muted: #e7e1d6;
+  --text-main: #111827;
+  --text-muted: #64748b;
 
   --background: 43 33% 95%;
   --foreground: 222 47% 11%;
@@ -56,6 +63,20 @@ textarea {
 
 .erp-surface {
   @apply border bg-card shadow-sm;
+}
+
+[data-center-workspace] {
+  background: var(--app-bg);
+}
+
+[data-right-console] {
+  background: var(--rail-bg);
+  border-left-color: var(--border-soft);
+}
+
+.document-surface {
+  background: var(--workspace-bg);
+  border-color: var(--border-muted);
 }
 
 .sb-section-label {

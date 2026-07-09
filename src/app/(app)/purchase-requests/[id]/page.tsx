@@ -9,6 +9,7 @@ import { DocumentSideSection, DocumentWorkspace } from "@/components/documents/d
 import { StaleWorkflowRefresh } from "@/components/documents/stale-workflow-refresh";
 import { PriorityBadge } from "@/components/priority-badge";
 import { SubmitButton } from "@/components/ui/submit-button";
+import { getPrWorkflowLabel, getPrWorkflowStep, PR_WORKFLOW_STEP_LABELS, PURCHASE_REQUEST_WORKFLOW_STEPS } from "@/lib/purchase-request-status";
 import { formatCurrency, formatNumber } from "@/lib/utils";
 import {
   adminReviewPurchaseRequest,
@@ -24,28 +25,22 @@ import { getBranchesForSelect, getItemsForSelect, getSuppliersForSelect } from "
 import { getDocumentBundle } from "@/server/queries/documents";
 import { getPurchaseOrdersForRequest, getPurchaseRequest } from "@/server/queries/procurement";
 
-const prSteps = [
-  { key: "draft", label: "Draft PR", description: "Kitchen prepares the request." },
-  { key: "admin_review", label: "Manager Review", description: "Manager approves the purchase need." },
-  { key: "purchasing_review", label: "Admin Review", description: "Admin keys in and checks completeness." },
-  { key: "pending_approval", label: "Finance Review", description: "Finance checks budget and invoice readiness." },
-  { key: "approved", label: "Ready to Convert", description: "Ready to convert to purchase order." },
-  { key: "converted", label: "Converted to PO", description: "Purchase order has been created." },
-];
-
-function displayPrStatus(status: string) {
-  if (status === "admin_review") return "manager_review";
-  if (status === "purchasing_review") return "admin_review";
-  if (status === "pending_approval") return "finance_review";
-  if (status === "approved") return "ready_to_convert";
-  return status;
-}
-
-function workflowPrStatus(status: string) {
-  if (status === "manager_review" || status === "submitted") return "admin_review";
-  if (status === "finance_review") return "pending_approval";
-  return status;
-}
+const prSteps = PURCHASE_REQUEST_WORKFLOW_STEPS.map((step) => ({
+  key: step,
+  label: PR_WORKFLOW_STEP_LABELS[step],
+  description:
+    step === "draft_pr"
+      ? "Kitchen prepares the request."
+      : step === "manager_review"
+        ? "Manager approves the purchase need."
+        : step === "admin_review"
+          ? "Admin keys in and checks completeness."
+          : step === "finance_review"
+            ? "Finance checks budget and invoice readiness."
+            : step === "ready_to_convert"
+              ? "Ready to convert to purchase order."
+              : "Purchase order has been created.",
+}));
 
 function isStatus(status: string, ...matches: string[]) {
   return matches.includes(status);
@@ -74,12 +69,12 @@ export default async function PurchaseRequestDetailPage({
   const total = lines.reduce((sum, line) => sum + line.qty * line.estimated_unit_cost, 0);
   const canSubmit = isStatus(request.status, "draft", "rejected") && permissions["pr.submit"];
   const canCancel = request.status === "draft" && permissions["pr.cancel"];
-  const canManagerReview = isStatus(request.status, "admin_review", "manager_review", "submitted") && permissions["pr.manager_approve"];
+  const canManagerReview = isStatus(request.status, "admin_review", "submitted") && permissions["pr.manager_approve"];
   const canAdminReview = request.status === "purchasing_review" && permissions["pr.admin_review"];
-  const canFinanceReview = isStatus(request.status, "pending_approval", "finance_review") && permissions["pr.finance_review"];
+  const canFinanceReview = request.status === "pending_approval" && permissions["pr.finance_review"];
   const canConvert = request.status === "approved" && permissions["pr.convert_to_po"];
   const canReject =
-    (isStatus(request.status, "admin_review", "manager_review", "submitted") && (permissions["pr.manager_approve"] || permissions["pr.reject"])) ||
+    (isStatus(request.status, "admin_review", "submitted") && (permissions["pr.manager_approve"] || permissions["pr.reject"])) ||
     (request.status === "purchasing_review" && (permissions["pr.admin_review"] || permissions["pr.reject"])) ||
     (request.status === "pending_approval" && (permissions["pr.finance_review"] || permissions["pr.reject"]));
   const hasPrimaryAction =
@@ -96,11 +91,11 @@ export default async function PurchaseRequestDetailPage({
       breadcrumbs={[{ label: "Procurement", href: "/procurement" }, { label: "Purchase Requests", href: "/purchase-requests" }, { label: request.request_no }]}
       documentNo={request.request_no}
       title="Purchase Request"
-      status={displayPrStatus(request.status)}
+      status={getPrWorkflowLabel(request.status)}
       priority={request.priority}
       branch={branch?.branch_name}
       workflowSteps={prSteps}
-      currentStatus={workflowPrStatus(request.status)}
+      currentStatus={getPrWorkflowStep(request.status)}
       sidePanel={
         <>
           <DocumentSideSection title="Primary Action" description="Only the next valid workflow action is shown.">
@@ -111,19 +106,19 @@ export default async function PurchaseRequestDetailPage({
               {canAdminReview ? <DocumentActionForm action={purchasingReviewPurchaseRequest.bind(null, request.id)} pendingLabel="Reviewing..." className="bg-emerald-700 text-white hover:bg-emerald-800">Complete Admin Review</DocumentActionForm> : null}
               {canFinanceReview ? <DocumentActionForm action={approvePurchaseRequest.bind(null, request.id)} pendingLabel="Reviewing..." className="bg-emerald-700 text-white hover:bg-emerald-800">Complete Finance Review</DocumentActionForm> : null}
               {request.status === "converted" && linkedPurchaseOrders[0] ? (
-                <Button asChild><a href={`/purchase-orders/${linkedPurchaseOrders[0].id}`}>Open PO</a></Button>
+                <Button asChild className="w-full justify-center"><a href={`/purchase-orders/${linkedPurchaseOrders[0].id}`}>Open PO</a></Button>
               ) : null}
             </DocumentActionBar>
             {canConvert ? (
               <form action={convertPurchaseRequestToPurchaseOrder.bind(null, request.id)} className="mt-3 space-y-2">
                 <Input name="autocount_po_no" placeholder="AutoCount PO Number" required />
-                <SubmitButton type="submit" pendingLabel="Converting...">Convert to Purchase Order</SubmitButton>
+                <SubmitButton type="submit" pendingLabel="Converting..." className="w-full justify-center">Convert to Purchase Order</SubmitButton>
               </form>
             ) : null}
             {canReject ? (
               <form action={rejectPurchaseRequest.bind(null, request.id)} className="mt-3 space-y-2">
                 <Input name="remarks" placeholder="Rejection remarks required" required />
-                <SubmitButton type="submit" pendingLabel="Rejecting..." variant="destructive">Reject</SubmitButton>
+                <SubmitButton type="submit" pendingLabel="Rejecting..." variant="destructive" className="w-full justify-center">Reject</SubmitButton>
               </form>
             ) : null}
             {!hasPrimaryAction ? <p className="text-xs text-muted-foreground">You can view this document, but there is no workflow action available for your role or this status.</p> : null}
@@ -148,21 +143,21 @@ export default async function PurchaseRequestDetailPage({
             </Card>
           ) : null}
 
-          <Card>
+          <Card className="document-surface shadow-none">
             <CardContent className="space-y-3 p-4">
               <h2 className="text-[14px] font-semibold">Request Summary</h2>
               <div className="grid gap-3 md:grid-cols-4">
-                <div><p className="text-xs uppercase text-muted-foreground">Request Date</p><p className="font-medium">{request.request_date}</p></div>
-                <div><p className="text-xs uppercase text-muted-foreground">Priority</p><PriorityBadge priority={request.priority} /></div>
-                <div><p className="text-xs uppercase text-muted-foreground">Needed By</p><p className="font-medium">{request.needed_by_date ?? "-"}</p></div>
-                <div><p className="text-xs uppercase text-muted-foreground">Branch</p><p className="font-medium">{branch?.branch_name ?? "-"}</p></div>
+                <div><p className="text-[11px] uppercase tracking-wide text-muted-foreground">Request Date</p><p className="text-sm font-medium text-slate-900">{request.request_date}</p></div>
+                <div><p className="text-[11px] uppercase tracking-wide text-muted-foreground">Priority</p><PriorityBadge priority={request.priority} /></div>
+                <div><p className="text-[11px] uppercase tracking-wide text-muted-foreground">Needed By</p><p className="text-sm font-medium text-slate-900">{request.needed_by_date ?? "-"}</p></div>
+                <div><p className="text-[11px] uppercase tracking-wide text-muted-foreground">Branch</p><p className="text-sm font-medium text-slate-900">{branch?.branch_name ?? "-"}</p></div>
               </div>
               {request.urgency_reason ? <p className="rounded-md border bg-warning/10 p-3 text-xs text-warning">{request.urgency_reason}</p> : null}
               {request.remarks ? <p className="rounded-md border bg-secondary/30 p-3 text-xs">{request.remarks}</p> : null}
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="document-surface shadow-none">
             <CardContent className="space-y-3 p-4">
               <div>
                 <p className="text-xs uppercase text-muted-foreground">Linked Documents</p>
@@ -184,13 +179,13 @@ export default async function PurchaseRequestDetailPage({
                 </div>
               ) : (
                 <p className="rounded-md border bg-secondary/30 p-3 text-xs text-muted-foreground">
-                  {request.status === "approved" ? "No purchase order has been created yet." : "A purchase order link appears after this PR is approved and converted."}
+                  No purchase order has been created from this PR yet. The PO link will appear here after approval and conversion.
                 </p>
               )}
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="document-surface shadow-none">
             <CardContent className="p-4">
               <div className="mb-2 flex items-center justify-between">
                 <h2 className="text-[14px] font-semibold">Requested Items</h2>
@@ -214,8 +209,8 @@ export default async function PurchaseRequestDetailPage({
                       const supplier = line.suggested_supplier_id ? supplierById.get(line.suggested_supplier_id) : null;
                       return (
                         <TableRow key={line.id}>
-                          <TableCell><p className="font-medium">{item?.item_name ?? line.item_id}</p><p className="text-xs text-muted-foreground">{item?.item_code}</p></TableCell>
-                          <TableCell>{supplier?.name ?? "-"}</TableCell>
+                          <TableCell><p className="font-medium">{item?.item_name ?? line.item_id}</p><p className="text-xs text-muted-foreground">{item?.item_code ?? "No item code"}</p></TableCell>
+                          <TableCell><span className="text-muted-foreground">{supplier?.name ?? "No supplier suggested"}</span></TableCell>
                           <TableCell className="text-right">{formatNumber(line.qty)}</TableCell>
                           <TableCell>{line.uom}</TableCell>
                           <TableCell className="text-right">{formatCurrency(line.estimated_unit_cost)}</TableCell>

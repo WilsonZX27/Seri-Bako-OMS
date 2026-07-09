@@ -23,8 +23,8 @@ export function RightConsoleProvider({ children }: { children: ReactNode }) {
   return (
     <RightConsoleContext.Provider value={value}>
       {children}
-      <aside data-right-console className="hidden h-full min-h-0 w-[300px] shrink-0 overflow-hidden border-l bg-[#f3f2ed] xl:block">
-        <div className="h-full overflow-y-auto overflow-x-hidden px-3 py-2">{content}</div>
+      <aside data-right-console className="hidden h-full min-h-0 w-[340px] shrink-0 overflow-hidden border-l xl:block">
+        <div className="h-full overflow-y-auto overflow-x-hidden px-2 py-1">{content}</div>
       </aside>
     </RightConsoleContext.Provider>
   );
@@ -43,9 +43,9 @@ export function RightConsoleMount({ children }: { children: ReactNode }) {
 
 export function ConsoleSection({ title, children }: { title: string; children: ReactNode }) {
   return (
-    <section className="border-b border-slate-200/80 px-1 py-3 last:border-b-0">
-      <h2 className="mb-2 text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-500">{title}</h2>
-      {children}
+    <section className="border-b border-[var(--border-muted)] px-3 py-4 last:border-b-0">
+      <h2 className="mb-3 text-[11px] font-semibold uppercase tracking-[0.22em] text-slate-500">{title}</h2>
+      <div className="space-y-3">{children}</div>
     </section>
   );
 }

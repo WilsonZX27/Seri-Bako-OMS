@@ -48,9 +48,9 @@ function filterRows<T extends Record<string, unknown>>(rows: T[], filters: Filte
         status === "awaiting_delivery" ? ["approved", "sent"]
         : status === "receiving" ? ["partial_received"]
         : status === "completed" ? ["received", "closed"]
-        : status === "admin_review" ? ["admin_review", "manager_review", "submitted"]
-        : status === "pending_approval" ? ["pending_approval", "finance_review"]
-        : status === "in_review" ? ["submitted", "admin_review", "manager_review", "purchasing_review", "pending_approval", "finance_review"]
+        : status === "admin_review" ? ["admin_review", "submitted"]
+        : status === "pending_approval" ? ["pending_approval"]
+        : status === "in_review" ? ["submitted", "admin_review", "purchasing_review", "pending_approval"]
         : status === "rejected" ? ["rejected", "cancelled"]
         : status ? [status] : [];
       const matchesStatus = statusGroup.length ? statusGroup.includes(String(row.status)) : true;

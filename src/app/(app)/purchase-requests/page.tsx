@@ -44,9 +44,9 @@ export default async function PurchaseRequestsPage({ searchParams }: { searchPar
           <ConsoleSection title="PR Summary">
               <div className="grid gap-2 text-xs">
                 <div className="flex justify-between"><span className="text-muted-foreground">Total PRs</span><strong>{rows.length}</strong></div>
-                <div className="flex justify-between"><span className="text-muted-foreground">Manager Review</span><strong>{count("admin_review", "manager_review", "submitted")}</strong></div>
+                <div className="flex justify-between"><span className="text-muted-foreground">Manager Review</span><strong>{count("admin_review", "submitted")}</strong></div>
                 <div className="flex justify-between"><span className="text-muted-foreground">Admin Review</span><strong>{count("purchasing_review")}</strong></div>
-                <div className="flex justify-between"><span className="text-muted-foreground">Finance Review</span><strong>{count("pending_approval", "finance_review")}</strong></div>
+                <div className="flex justify-between"><span className="text-muted-foreground">Finance Review</span><strong>{count("pending_approval")}</strong></div>
               </div>
               <div className="my-3 border-t" />
               <div className="space-y-2">

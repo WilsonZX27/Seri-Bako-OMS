@@ -2,6 +2,7 @@
 
 import { redirect } from "next/navigation";
 import { isMockMode, mockCompany, mockProfile } from "@/lib/mock-mode";
+import { PR_NEXT_STATUS_BY_ACTION } from "@/lib/purchase-request-status";
 import { createClient } from "@/lib/supabase/server";
 import { purchaseOrderSchema, purchaseRequestSchema } from "@/lib/validations/procurement";
 import { writeActivityLog } from "@/server/activity/log";
@@ -17,9 +18,9 @@ type PurchaseRequestStep = "draft" | "admin_review" | "purchasing_review" | "pen
 
 const prStatusAliases: Record<PurchaseRequestStep, string[]> = {
   draft: ["draft", "rejected"],
-  admin_review: ["admin_review", "manager_review", "submitted"],
+  admin_review: ["admin_review", "submitted"],
   purchasing_review: ["purchasing_review"],
-  pending_approval: ["pending_approval", "finance_review"],
+  pending_approval: ["pending_approval"],
   approved: ["approved"],
 };
 
@@ -375,7 +376,7 @@ export async function submitPurchaseRequest(id: string) {
     const pr = await updatePrStatus({
       id,
       expectedStatus: "draft",
-      nextStatus: "admin_review",
+      nextStatus: PR_NEXT_STATUS_BY_ACTION.submit_to_manager_review,
       permission: "pr.submit",
       documentStatus: "pending_approval",
       approvalStatus: "pending",
@@ -396,7 +397,7 @@ export async function adminReviewPurchaseRequest(id: string) {
     const pr = await updatePrStatus({
       id,
       expectedStatus: "admin_review",
-      nextStatus: "purchasing_review",
+      nextStatus: PR_NEXT_STATUS_BY_ACTION.manager_approve,
       permission: "pr.manager_approve",
       documentStatus: "pending_approval",
       approvalStatus: "pending",
@@ -417,7 +418,7 @@ export async function purchasingReviewPurchaseRequest(id: string) {
     const pr = await updatePrStatus({
       id,
       expectedStatus: "purchasing_review",
-      nextStatus: "pending_approval",
+      nextStatus: PR_NEXT_STATUS_BY_ACTION.admin_approve,
       permission: "pr.admin_review",
       documentStatus: "pending_approval",
       approvalStatus: "pending",
@@ -438,7 +439,7 @@ export async function approvePurchaseRequest(id: string) {
     const pr = await updatePrStatus({
       id,
       expectedStatus: "pending_approval",
-      nextStatus: "approved",
+      nextStatus: PR_NEXT_STATUS_BY_ACTION.finance_approve,
       permission: "pr.finance_review",
       documentStatus: "approved",
       approvalStatus: "approved",
@@ -476,7 +477,7 @@ export async function rejectPurchaseRequest(id: string, formData: FormData) {
     const updated = await updatePrStatus({
       id,
       expectedStatus: transition.expectedStatus,
-      nextStatus: "rejected",
+      nextStatus: PR_NEXT_STATUS_BY_ACTION.reject,
       permission,
       documentStatus: "rejected",
       approvalStatus: "rejected",
@@ -497,7 +498,7 @@ export async function cancelPurchaseRequest(id: string) {
     const pr = await updatePrStatus({
       id,
       expectedStatus: "draft",
-      nextStatus: "cancelled",
+      nextStatus: PR_NEXT_STATUS_BY_ACTION.cancel,
       permission: "pr.cancel",
       documentStatus: "cancelled",
       approvalStatus: "cancelled",
@@ -673,7 +674,7 @@ export async function convertPurchaseRequestToPurchaseOrder(id: string, formData
     if (existingPo?.[0]) {
       safeRedirectWithMessage(`/purchase-orders/${existingPo[0].id}`, "success", `Purchase order ${existingPo[0].po_no} is already linked to this PR.`);
     }
-    await requirePrTransition({ id, expectedStatus: "approved", permission: "pr.convert_to_po", nextStatus: "converted" });
+    await requirePrTransition({ id, expectedStatus: "approved", permission: "pr.convert_to_po", nextStatus: PR_NEXT_STATUS_BY_ACTION.convert_to_po });
     if (pr.status !== "approved") throw new Error(wrongPrStepMessage);
     if (!lines?.length) throw new Error("Add at least one item line before converting this PR.");
 
@@ -690,7 +691,7 @@ export async function convertPurchaseRequestToPurchaseOrder(id: string, formData
     const profile = await identity();
     const { data: reservedPr, error: reserveError } = await supabase
       .from("purchase_requests")
-      .update({ status: "converted", updated_by: profile?.id ?? null })
+      .update({ status: PR_NEXT_STATUS_BY_ACTION.convert_to_po, updated_by: profile?.id ?? null })
       .eq("id", id)
       .eq("status", "approved")
       .select("id")

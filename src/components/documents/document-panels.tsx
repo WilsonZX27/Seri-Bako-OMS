@@ -66,11 +66,11 @@ export function DocumentTimeline({ document, activities, comments, attachments }
 
   return (
     <ConsoleSection title="Document Timeline">
-        <div className="space-y-3">
+        <div className="space-y-0">
           {events.map((event) => (
-            <div key={event.id} className="flex gap-3">
-              <div className="mt-0.5">{eventIcon(event.activity_type)}</div>
-              <div>
+            <div key={event.id} className="relative flex gap-3 border-l border-slate-200 pb-4 pl-3 last:pb-0">
+              <div className="-ml-[21px] mt-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-[var(--rail-bg)]">{eventIcon(event.activity_type)}</div>
+              <div className="min-w-0">
                 <p className="text-xs font-medium">{event.message}</p>
                 <p className="text-xs text-muted-foreground">{actorLabel(event.created_by_name)} - {formatDate(event.created_at)}</p>
               </div>
@@ -88,19 +88,19 @@ export async function AttachmentPanel({ documentId, attachments }: { documentId:
     <ConsoleSection title="Attachments">
       <div className="space-y-3">
         {canManageAttachments ? (
-          <form action={addDocumentAttachment.bind(null, documentId)} className="grid gap-2 rounded-md border bg-white/70 p-2">
+          <form action={addDocumentAttachment.bind(null, documentId)} className="grid gap-2">
             <Field label="Attachment label">
-              <Input name="file_name" placeholder="Delivery order, invoice, photo" />
+              <Input name="file_name" placeholder="Delivery order, invoice, photo" className="w-full" />
             </Field>
             <Field label="Upload attachment" required>
-              <Input name="file" type="file" required />
+              <Input name="file" type="file" required className="w-full bg-white" />
             </Field>
-            <SubmitButton type="submit" variant="secondary" pendingLabel="Uploading...">Upload</SubmitButton>
+            <SubmitButton type="submit" variant="secondary" pendingLabel="Uploading..." className="w-full justify-center">Upload</SubmitButton>
           </form>
         ) : null}
-        <div className="divide-y rounded-lg border">
+        <div className="divide-y border-t">
           {attachments.map((attachment) => (
-            <div key={attachment.id} className="flex flex-col gap-3 p-3 sm:flex-row sm:items-center sm:justify-between">
+            <div key={attachment.id} className="grid gap-2 py-3">
               <div className="flex items-start gap-3">
                 <FileText className="mt-0.5 h-4 w-4 text-muted-foreground" />
                 <div>
@@ -108,9 +108,9 @@ export async function AttachmentPanel({ documentId, attachments }: { documentId:
                   <p className="text-xs text-muted-foreground">Uploaded by {actorLabel(attachment.uploaded_by_name)} - {formatDate(attachment.created_at)}</p>
                 </div>
               </div>
-              <div className="flex gap-2">
-                {attachment.file_url ? <Button asChild variant="outline" size="sm"><a href={attachment.file_url}>View / Download</a></Button> : <Button type="button" variant="outline" size="sm" disabled>View / Download</Button>}
-                {canManageAttachments ? <form action={archiveDocumentAttachment.bind(null, documentId, attachment.id)}><SubmitButton variant="ghost" size="sm" pendingLabel="Processing...">Remove</SubmitButton></form> : null}
+              <div className="grid gap-2">
+                {attachment.file_url ? <Button asChild variant="outline" size="sm" className="w-full justify-center"><a href={attachment.file_url}>View / Download</a></Button> : <Button type="button" variant="outline" size="sm" disabled className="w-full justify-center">View / Download</Button>}
+                {canManageAttachments ? <form action={archiveDocumentAttachment.bind(null, documentId, attachment.id)}><SubmitButton variant="ghost" size="sm" pendingLabel="Processing..." className="w-full justify-center">Remove</SubmitButton></form> : null}
               </div>
             </div>
           ))}
@@ -126,8 +126,8 @@ export function CommentsPanel({ documentId, comments }: { documentId: string; co
     <ConsoleSection title="Comments">
       <div className="space-y-3">
         <form action={addDocumentComment.bind(null, documentId)} className="space-y-2">
-          <Textarea name="comment_text" placeholder="Add a comment for the document history" required />
-          <SubmitButton type="submit" variant="secondary" pendingLabel="Saving...">Add comment</SubmitButton>
+          <Textarea name="comment_text" placeholder="Add a comment for the document history" required className="min-h-[96px] w-full resize-none" />
+          <SubmitButton type="submit" variant="secondary" pendingLabel="Saving..." className="w-full justify-center">Add comment</SubmitButton>
         </form>
         <div className="space-y-3">
           {comments.map((comment) => (
@@ -153,18 +153,18 @@ export function ApprovalPanel({ document, approval, approvalSteps }: { document:
           </div>
           <Badge variant={document.approval_status === "approved" ? "success" : document.approval_status === "rejected" ? "danger" : "secondary"}>{document.approval_status}</Badge>
         </div>
-        <div className="flex flex-wrap gap-2">
-          <form action={submitDocument.bind(null, document.id)}><SubmitButton type="submit" variant="secondary" pendingLabel="Sending...">Submit for approval</SubmitButton></form>
-          <form action={postDocument.bind(null, document.id)}><SubmitButton type="submit" variant="outline" pendingLabel="Posting...">Post</SubmitButton></form>
-          <form action={cancelDocument.bind(null, document.id)}><SubmitButton type="submit" variant="ghost" pendingLabel="Processing...">Cancel</SubmitButton></form>
+        <div className="grid gap-2">
+          <form action={submitDocument.bind(null, document.id)}><SubmitButton type="submit" variant="secondary" pendingLabel="Sending..." className="w-full justify-center">Submit for approval</SubmitButton></form>
+          <form action={postDocument.bind(null, document.id)}><SubmitButton type="submit" variant="outline" pendingLabel="Posting..." className="w-full justify-center">Post</SubmitButton></form>
+          <form action={cancelDocument.bind(null, document.id)}><SubmitButton type="submit" variant="ghost" pendingLabel="Processing..." className="w-full justify-center">Cancel</SubmitButton></form>
         </div>
-        <form action={approveDocument.bind(null, document.id)} className="grid gap-2 sm:grid-cols-[1fr_auto]">
+        <form action={approveDocument.bind(null, document.id)} className="grid gap-2">
           <Input name="remarks" placeholder="Approval remarks" />
-          <SubmitButton type="submit" pendingLabel="Approving...">Approve</SubmitButton>
+          <SubmitButton type="submit" pendingLabel="Approving..." className="w-full justify-center">Approve</SubmitButton>
         </form>
-        <form action={rejectDocument.bind(null, document.id)} className="grid gap-2 sm:grid-cols-[1fr_auto]">
+        <form action={rejectDocument.bind(null, document.id)} className="grid gap-2">
           <Input name="remarks" placeholder="Rejection remarks required" required />
-          <SubmitButton type="submit" variant="destructive" pendingLabel="Rejecting...">Reject</SubmitButton>
+          <SubmitButton type="submit" variant="destructive" pendingLabel="Rejecting..." className="w-full justify-center">Reject</SubmitButton>
         </form>
         <div className="rounded-lg border">
           {approvalSteps.map((step) => (

@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { ChevronRight } from "lucide-react";
 import { usePathname } from "next/navigation";
+import { useEffect, useState } from "react";
 
 type Crumb = {
   label: string;
@@ -47,8 +48,21 @@ function isOpaqueId(segment: string) {
 
 export function Breadcrumbs() {
   const pathname = usePathname();
+  const [documentLabel, setDocumentLabel] = useState<string | null>(null);
   const segments = pathname.split("/").filter(Boolean);
   const first = segments[0];
+
+  useEffect(() => {
+    setDocumentLabel(null);
+    const readLabel = () => {
+      const label = document.querySelector<HTMLElement>("[data-document-breadcrumb]")?.dataset.documentBreadcrumb;
+      setDocumentLabel(label ?? null);
+    };
+    readLabel();
+    const observer = new MutationObserver(readLabel);
+    observer.observe(document.body, { childList: true, subtree: true });
+    return () => observer.disconnect();
+  }, [pathname]);
 
   if (!first) return null;
 
@@ -66,7 +80,7 @@ export function Breadcrumbs() {
     } else if (!isOpaqueId(segments[1])) {
       crumbs.push({ label: titleize(segments[1]) });
     } else {
-      crumbs.push({ label: "Details" });
+      crumbs.push({ label: documentLabel ?? "Details" });
     }
   }
 

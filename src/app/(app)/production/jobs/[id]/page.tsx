@@ -1,4 +1,5 @@
 import { AlertTriangle } from "lucide-react";
+import { notFound } from "next/navigation";
 import { DocumentActionBar, DocumentActionForm, DocumentActionLink } from "@/components/document-action-bar";
 import { AttachmentPanel, CommentsPanel, DocumentTimeline, RevisionPanel } from "@/components/documents/document-panels";
 import { DocumentSideSection, DocumentWorkspace } from "@/components/documents/document-workspace";
@@ -10,7 +11,7 @@ import { formatCurrency, formatNumber } from "@/lib/utils";
 import { approveProductionJob, cancelProductionJob, postProductionJob, rejectProductionJob, submitProductionJob } from "@/server/actions/production-jobs";
 import { getPermissionMap } from "@/server/auth/permissions";
 import { getDocumentBundle } from "@/server/queries/documents";
-import { getProductionJob } from "@/server/queries/production-jobs";
+import { getProductionJob, ProductionJobNotFoundError } from "@/server/queries/production-jobs";
 
 const productionSteps = [
   { key: "draft", label: "Draft", description: "Prepared with no stock impact." },
@@ -27,8 +28,12 @@ export default async function ProductionJobDetailPage({
   searchParams: Promise<{ error?: string; success?: string }>;
 }) {
   const [{ id }, messages] = await Promise.all([params, searchParams]);
+  const detail = await getProductionJob(id).catch((error: unknown) => {
+    if (error instanceof ProductionJobNotFoundError) notFound();
+    throw error;
+  });
   const [{ job, ingredientLines, outputLines }, permissions] = await Promise.all([
-    getProductionJob(id),
+    Promise.resolve(detail),
     getPermissionMap(["production.submit", "production.approve", "production.post", "production.cancel", "production.reject"]),
   ]);
   const documentBundle = job.document_id ? await getDocumentBundle(job.document_id) : null;
@@ -56,11 +61,11 @@ export default async function ProductionJobDetailPage({
         <>
           <DocumentSideSection title="Primary Action" description="Only valid next workflow actions are shown.">
             <DocumentActionBar>
-              {canSubmit ? <DocumentActionForm action={submitProductionJob.bind(null, job.id)} pendingLabel="Submitting..." variant="secondary">Submit for Approval</DocumentActionForm> : null}
+              {canSubmit ? <DocumentActionForm action={submitProductionJob.bind(null, job.id)} pendingLabel="Submitting...">Submit for Approval</DocumentActionForm> : null}
               {canApprove ? <DocumentActionForm action={approveProductionJob.bind(null, job.id)} pendingLabel="Approving..." className="bg-emerald-700 text-white hover:bg-emerald-800">Approve</DocumentActionForm> : null}
               {canPost ? <DocumentActionForm action={postProductionJob.bind(null, job.id)} pendingLabel="Posting...">Post Production</DocumentActionForm> : null}
               {job.stock_transaction_id ? <DocumentActionLink href={`/stock-transactions/${job.stock_transaction_id}`} variant="outline">View Stock Movement</DocumentActionLink> : null}
-              {canCancel ? <DocumentActionForm action={cancelProductionJob.bind(null, job.id)} pendingLabel="Cancelling..." variant="ghost">Cancel</DocumentActionForm> : null}
+              {canCancel ? <DocumentActionForm action={cancelProductionJob.bind(null, job.id)} pendingLabel="Cancelling..." variant="outline" className="text-destructive hover:text-destructive">Cancel Job</DocumentActionForm> : null}
             </DocumentActionBar>
             {canReject ? (
               <form action={rejectProductionJob.bind(null, job.id)} className="mt-3 space-y-2">
@@ -86,6 +91,14 @@ export default async function ProductionJobDetailPage({
               <RevisionPanel revisions={documentBundle.revisions} />
             </>
           ) : null}
+          <DocumentSideSection title="Metadata">
+            <dl className="grid gap-2 text-xs">
+              <div><dt className="text-muted-foreground">Created by</dt><dd className="font-medium">{job.created_by_name ?? "-"}</dd></div>
+              <div><dt className="text-muted-foreground">Created</dt><dd className="font-medium">{new Date(job.created_at).toLocaleString("en-MY", { dateStyle: "medium", timeStyle: "short" })}</dd></div>
+              <div><dt className="text-muted-foreground">Updated</dt><dd className="font-medium">{new Date(job.updated_at).toLocaleString("en-MY", { dateStyle: "medium", timeStyle: "short" })}</dd></div>
+              <div><dt className="text-muted-foreground">Location</dt><dd className="font-medium">{job.branch_name ?? "-"}</dd></div>
+            </dl>
+          </DocumentSideSection>
         </>
       }
     >
@@ -106,7 +119,8 @@ export default async function ProductionJobDetailPage({
             <div><p className="text-xs uppercase text-muted-foreground">Recipe</p><p className="font-medium">{job.recipe_no ?? "-"}</p></div>
             <div><p className="text-xs uppercase text-muted-foreground">Output</p><p className="font-medium">{job.product_name ?? outputLines[0]?.output_name ?? "-"}</p></div>
             <div><p className="text-xs uppercase text-muted-foreground">Planned Qty</p><p className="font-medium">{formatNumber(job.planned_output_qty)} {job.output_uom}</p></div>
-            <div><p className="text-xs uppercase text-muted-foreground">Actual Qty</p><p className="font-medium">{job.actual_output_qty ? formatNumber(job.actual_output_qty) : "-"}</p></div>
+            <div><p className="text-xs uppercase text-muted-foreground">Actual Qty</p><p className="font-medium">{job.actual_output_qty != null ? `${formatNumber(job.actual_output_qty)} ${job.output_uom ?? ""}` : "-"}</p></div>
+            <div><p className="text-xs uppercase text-muted-foreground">Created By</p><p className="font-medium">{job.created_by_name ?? "-"}</p></div>
             <div><p className="text-xs uppercase text-muted-foreground">Ingredient Cost</p><p className="font-medium">{formatCurrency(totalIngredientCost)}</p></div>
             <div><p className="text-xs uppercase text-muted-foreground">Cost / Output</p><p className="font-medium">{formatCurrency(outputQty > 0 ? totalIngredientCost / outputQty : 0)}</p></div>
           </div>
@@ -129,6 +143,7 @@ export default async function ProductionJobDetailPage({
                   <TableHead className="text-right">Actual</TableHead>
                   <TableHead>UOM</TableHead>
                   <TableHead className="text-right">Available</TableHead>
+                  <TableHead className="text-right">Variance</TableHead>
                   <TableHead className="text-right">Unit Cost</TableHead>
                   <TableHead className="text-right">Line Cost</TableHead>
                 </TableRow>
@@ -138,9 +153,10 @@ export default async function ProductionJobDetailPage({
                   <TableRow key={line.id}>
                     <TableCell><p className="font-medium">{line.item_name}</p><p className="text-xs text-muted-foreground">{line.item_code}</p></TableCell>
                     <TableCell className="text-right">{formatNumber(line.required_qty)}</TableCell>
-                    <TableCell className="text-right">{line.actual_qty ? formatNumber(line.actual_qty) : "-"}</TableCell>
+                    <TableCell className="text-right">{line.actual_qty != null ? formatNumber(line.actual_qty) : "-"}</TableCell>
                     <TableCell>{line.uom}</TableCell>
                     <TableCell className="text-right">{line.stock_available_qty == null ? "-" : formatNumber(line.stock_available_qty)}</TableCell>
+                    <TableCell className="text-right">{line.variance_qty == null ? "-" : formatNumber(line.variance_qty)}</TableCell>
                     <TableCell className="text-right">{formatCurrency(line.unit_cost)}</TableCell>
                     <TableCell className="text-right">{formatCurrency(line.line_cost)}</TableCell>
                   </TableRow>
@@ -174,7 +190,7 @@ export default async function ProductionJobDetailPage({
                   <TableRow key={line.id}>
                     <TableCell><p className="font-medium">{line.output_name}</p><p className="text-xs text-muted-foreground">{line.output_code}</p></TableCell>
                     <TableCell className="text-right">{formatNumber(line.planned_qty)}</TableCell>
-                    <TableCell className="text-right">{line.actual_qty ? formatNumber(line.actual_qty) : "-"}</TableCell>
+                    <TableCell className="text-right">{line.actual_qty != null ? formatNumber(line.actual_qty) : "-"}</TableCell>
                     <TableCell>{line.uom}</TableCell>
                     <TableCell className="text-right">{formatCurrency(line.unit_cost)}</TableCell>
                     <TableCell className="text-right">{formatCurrency(line.line_cost)}</TableCell>

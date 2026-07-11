@@ -44,6 +44,8 @@ export type ProductionJob = {
   created_by_name?: string | null;
 };
 
+export class ProductionJobNotFoundError extends Error {}
+
 export type ProductionIngredientLine = {
   id: string;
   production_job_id: string;
@@ -168,7 +170,7 @@ export async function getProductionJob(id: string): Promise<{ job: ProductionJob
   const supabase = await createClient();
   const db = looseSupabase(supabase);
   const [{ data, error }, { data: ingredientLines }, { data: outputLines }, { data: branches }, { data: recipes }, { data: products }] = await Promise.all([
-    db.from("production_jobs").select("*").eq("id", id).single(),
+    db.from("production_jobs").select("*").eq("id", id).maybeSingle(),
     db.from("production_job_ingredient_lines").select("*").eq("production_job_id", id).order("created_at", { ascending: true }),
     db.from("production_job_output_lines").select("*").eq("production_job_id", id).order("created_at", { ascending: true }),
     supabase.from("branches").select("id, branch_name"),
@@ -176,11 +178,13 @@ export async function getProductionJob(id: string): Promise<{ job: ProductionJob
     supabase.from("products").select("id, product_code, product_name"),
   ]);
   if (error) throw new Error(error.message);
+  if (!data) throw new ProductionJobNotFoundError("Production job not found");
 
   const job = asProductionJob(data);
   const branch = (branches ?? []).find((row) => row.id === job.branch_id);
   const recipe = (recipes ?? []).find((row) => row.id === job.recipe_id);
   const product = recipe?.product_id ? (products ?? []).find((row) => row.id === recipe.product_id) : null;
+  const displayMap = await resolveActorDisplayMap([job.created_by ?? ""]);
 
   return {
     job: {
@@ -188,6 +192,7 @@ export async function getProductionJob(id: string): Promise<{ job: ProductionJob
       branch_name: branch?.branch_name ?? null,
       recipe_no: recipe?.recipe_no ?? null,
       product_name: product?.product_name ?? null,
+      created_by_name: actorDisplayName(displayMap, job.created_by),
     },
     ingredientLines: (ingredientLines ?? []).map((line: Record<string, unknown>) => ({
       ...(line as unknown as ProductionIngredientLine),

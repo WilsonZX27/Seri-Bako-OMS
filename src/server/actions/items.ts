@@ -3,7 +3,6 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { isMockMode } from "@/lib/mock-mode";
-import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import { itemSchema } from "@/lib/validations/item";
 import { formatActionError, requirePermissionOrRedirect, rethrowRedirect, safeRedirectWithMessage } from "@/server/actions/error-handling";
@@ -55,7 +54,7 @@ export async function createItem(formData: FormData) {
     }
 
     const supabase = await createClient();
-    const writeSupabase = createAdminClient();
+    const writeSupabase = supabase;
     const itemPayload = payload(formData);
     const { data: archivedMatch, error: archivedError } = await supabase
       .from("items")
@@ -87,7 +86,7 @@ export async function updateItem(id: string, formData: FormData) {
   }
 
   try {
-    const writeSupabase = createAdminClient();
+    const writeSupabase = await createClient();
     const itemPayload = payload(formData);
     const { error } = await writeSupabase.from("items").update(itemPayload).eq("id", id);
     if (error) throw new Error(error.message);
@@ -110,7 +109,7 @@ export async function deleteItem(id: string) {
       redirect("/items");
     }
 
-    const writeSupabase = createAdminClient();
+    const writeSupabase = await createClient();
     const { error } = await writeSupabase
       .from("items")
       .update({ status: "inactive", deleted_at: new Date().toISOString() })
@@ -132,7 +131,7 @@ export async function restoreItem(id: string) {
       redirect("/items");
     }
 
-    const writeSupabase = createAdminClient();
+    const writeSupabase = await createClient();
     const { error } = await writeSupabase
       .from("items")
       .update({ status: "active", deleted_at: null })

@@ -113,7 +113,11 @@ export default async function ProductionJobsPage({ searchParams }: { searchParam
                           </Link>
                         </div>
                       </TableCell>
-                      <TableCell><DocumentNumber value={job.production_job_no} size="sm" /></TableCell>
+                      <TableCell>
+                        <Link href={`/production/jobs/${job.id}`} aria-label={`Open ${job.production_job_no}`}>
+                          <DocumentNumber value={job.production_job_no} size="sm" className="hover:border-primary hover:text-primary" />
+                        </Link>
+                      </TableCell>
                       <TableCell>{job.production_date}</TableCell>
                       <TableCell>{job.branch_name ?? "-"}</TableCell>
                       <TableCell>{job.recipe_no ?? "-"}</TableCell>

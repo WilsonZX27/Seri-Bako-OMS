@@ -213,15 +213,16 @@ async function transitionProductionJob(id: string, input: { from: string[]; to: 
     const { data: job, error } = await db.from("production_jobs").select("*").eq("id", id).single();
     if (error) throw new Error(error.message);
     const productionJob = job as { production_job_no: string; status: string; document_id: string | null; branch_id: string; priority: string | null };
-    if (productionJob.status === input.to) safeRedirectWithMessage(`/production/jobs/${id}`, "success", `${productionJob.production_job_no} is already ${input.to}.`);
+    if (productionJob.status === input.to) throw new Error(`${productionJob.production_job_no} is already ${input.to}.`);
     if (!input.from.includes(productionJob.status)) throw new Error(`This production job cannot move from ${productionJob.status} to ${input.to}.`);
 
     const now = new Date().toISOString();
     const patch: Record<string, unknown> = { status: input.to, updated_by: profile?.id ?? null, updated_at: now };
     if (input.to === "cancelled") Object.assign(patch, { cancelled_by: profile?.id ?? null, cancelled_at: now });
     if (input.to === "rejected") Object.assign(patch, { rejected_by: profile?.id ?? null, rejected_at: now });
-    const { error: updateError } = await db.from("production_jobs").update(patch).eq("id", id);
+    const { data: updatedJob, error: updateError } = await db.from("production_jobs").update(patch).eq("id", id).in("status", input.from).select("id").maybeSingle();
     if (updateError) throw new Error(updateError.message);
+    if (!updatedJob) throw new Error("This production job changed before the action completed. Refresh and try again.");
     await updateDocumentStatus(productionJob.document_id, input.document.status, input.document.approval, input.document.step);
     await writeActivityLog({ entityType: "production_job", entityId: id, activityType: input.activity, message: input.message(productionJob.production_job_no) });
     if (input.notify) {
@@ -310,7 +311,7 @@ export async function postProductionJob(id: string) {
     ]);
     const db = looseSupabase(supabase);
     const { job, ingredientLines, outputLines } = detail;
-    if (job.status === "posted") safeRedirectWithMessage(`/production/jobs/${id}`, "success", `${job.production_job_no} is already posted.`);
+    if (job.status === "posted") throw new Error(`${job.production_job_no} is already posted.`);
     if (job.status !== "approved") throw new Error("Only approved production jobs can be posted.");
     if (job.stock_transaction_id) throw new Error("This production job was already posted.");
     if (!ingredientLines.length || !outputLines.length) throw new Error("Production job has no ingredient or output lines.");

@@ -39,7 +39,7 @@ export default async function GoodsReceivingDetailPage({ params }: { params: Pro
       currentStatus={receiving.status}
       sidePanel={
         <>
-          <DocumentSideSection title="Primary Action" description="Post only after the receiving details and attachments are ready.">
+          <DocumentSideSection title="Primary Action" description="Post after receiving details are checked. Attachments can be added for audit support.">
             <DocumentActionBar>
               <DocumentActionLink href={`/purchase-orders/${receiving.purchase_order_id}`} variant="outline">View PO</DocumentActionLink>
               {hasPrimaryAction ? <DocumentActionForm action={postGoodsReceiving.bind(null, receiving.id)} pendingLabel="Posting...">Post to stock</DocumentActionForm> : null}
@@ -47,10 +47,10 @@ export default async function GoodsReceivingDetailPage({ params }: { params: Pro
             {!hasPrimaryAction && receiving.status === "draft" ? <p className="mt-3 text-sm text-muted-foreground">You can view this GRN, but you do not have permission to post it.</p> : null}
           </DocumentSideSection>
           {!hasDeliveryOrder && receiving.status === "draft" ? (
-            <DocumentSideSection title="Attachment Required">
+            <DocumentSideSection title="Attachment Recommended">
               <div className="flex gap-2 rounded-md bg-warning/10 p-3 text-sm text-warning">
                 <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
-                Delivery Order attachment is required before posting.
+                Add the Delivery Order attachment when it is available.
               </div>
             </DocumentSideSection>
           ) : null}

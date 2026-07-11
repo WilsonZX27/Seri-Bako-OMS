@@ -190,18 +190,6 @@ export async function postGoodsReceiving(id: string) {
   const overReceived = receivingLines.some((line) => Number(line.received_qty) + Number(line.rejected_qty) > Number(line.pending_qty));
   if (overReceived) throw new Error("Received plus rejected quantity cannot exceed pending quantity without manager override.");
 
-  if (grn.document_id) {
-    const { count, error: attachmentError } = await supabase
-      .from("attachments")
-      .select("id", { count: "exact", head: true })
-      .eq("entity_type", "document")
-      .eq("entity_id", grn.document_id)
-      .eq("status", "active")
-      .is("deleted_at", null);
-    if (attachmentError) throw new Error(attachmentError.message);
-    if (!count) throw new Error("Delivery Order attachment is required before posting.");
-  }
-
   for (const line of receivingLines) {
     if (Number(line.received_qty) <= 0) continue;
     const { error: poLineError } = await supabase

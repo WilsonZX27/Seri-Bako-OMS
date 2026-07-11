@@ -30,7 +30,10 @@ export function formatActionError(error: unknown, fallback = "Something went wro
   ) {
     return "We could not send the email right now. Please contact admin or try again later.";
   }
-  if (normalized.includes("missing permission") || normalized.includes("permission denied") || normalized.includes("row-level security")) {
+  if (normalized.includes("row-level security")) {
+    return "This record is blocked by database row security. Please contact admin.";
+  }
+  if (normalized.includes("missing permission") || normalized.includes("permission denied")) {
     return "You do not have permission to perform this action.";
   }
   if (normalized.includes("duplicate key")) return "A matching record already exists.";

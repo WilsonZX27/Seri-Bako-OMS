@@ -94,27 +94,16 @@ export async function getItems(filters: ItemFilters = {}) {
 export async function getItemsWithStock(filters: ItemFilters = {}) {
   const balances = await getStockBalances();
   const itemDetails = isMockMode() ? mockItems : await getItems();
-  const itemById = new Map(itemDetails.map((item) => [item.id, item]));
+  const balanceByItemId = new Map(balances.map((balance) => [balance.item_id, balance]));
   return filterItems(
-    balances.map((item) => ({
-      ...itemById.get(item.item_id),
-      id: item.item_id,
-      item_code: item.item_code,
-      autocount_code: item.autocount_code,
-      item_name: item.item_name,
-      category: item.category,
-      base_unit: item.base_unit,
-      supplier_name: item.supplier_name,
-      supplier_id: item.supplier_id,
-      cost: item.cost,
-      safety_stock: item.safety_stock,
-      current_stock: item.current_stock,
-      status: item.status,
-      barcode: itemById.get(item.item_id)?.barcode ?? null,
-      internal_barcode: itemById.get(item.item_id)?.internal_barcode ?? null,
-      supplier_barcode: itemById.get(item.item_id)?.supplier_barcode ?? null,
-      item_image_url: itemById.get(item.item_id)?.item_image_url ?? null,
-    })),
+    itemDetails.map((item) => {
+      const balance = balanceByItemId.get(item.id);
+      return {
+        ...item,
+        ...balance,
+        current_stock: balance?.current_stock ?? 0,
+      };
+    }),
     filters,
   );
 }

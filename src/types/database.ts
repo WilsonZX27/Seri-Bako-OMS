@@ -1462,7 +1462,7 @@ export type Database = {
             foreignKeyName: "stock_transactions_created_by_fkey";
             columns: ["created_by"];
             isOneToOne: false;
-            referencedRelation: "profiles";
+            referencedRelation: "staffs";
             referencedColumns: ["id"];
           },
         ];

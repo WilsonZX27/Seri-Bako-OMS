@@ -64,11 +64,11 @@ function LineGrid({ seedLines, mode }: { seedLines: SeedLine[]; mode: "transfer"
     <div className="rounded-lg border">
       <div className="border-b bg-secondary/40 px-4 py-3"><p className="text-sm font-semibold">Lines</p><p className="text-xs text-muted-foreground">Availability is calculated from the stock ledger. Posting creates ledger rows only.</p></div>
       <div className="divide-y">
-        {seedLines.map((line) => (
+        {seedLines.map((line, index) => (
           <div key={line.item_id} className="grid gap-3 p-4 xl:grid-cols-[2fr_120px_120px_90px_130px_130px_1fr]">
-            <div><p className="font-medium">{line.item_name}</p><p className="text-xs text-muted-foreground">{line.item_code} - {line.barcode ?? "No barcode"}</p></div>
+            <div><label className="flex items-center gap-2 font-medium"><input name="line_enabled" type="checkbox" value={line.item_id} defaultChecked={index === 0} />{line.item_name}</label><p className="text-xs text-muted-foreground">{line.item_code} - {line.barcode ?? "No barcode"}</p></div>
             <div className="rounded-md border bg-secondary/30 p-2 text-sm"><p className="text-xs text-muted-foreground">Available</p><p className="font-semibold">{formatNumber(line.available_qty)}</p></div>
-            <Field label="Quantity"><Input name="line_quantity" type="number" min="0.0001" step="0.0001" defaultValue={Math.min(line.quantity, line.available_qty)} /></Field>
+            <Field label="Quantity"><Input name="line_quantity" type="number" min="0.0001" max={line.available_qty} step="0.0001" defaultValue={Math.min(line.quantity, line.available_qty)} /></Field>
             <Field label="UOM"><Input name="line_uom" value={line.uom} readOnly /></Field>
             {mode === "wastage" ? <Field label="Reason"><SelectNative name="line_reason" defaultValue="damaged">{wastageReasons.map((r) => <option key={r} value={r}>{r.replaceAll("_", " ")}</option>)}</SelectNative></Field> : <input type="hidden" name="line_reason" value="other" />}
             {mode === "wastage" ? <Field label="Batch"><Input name="line_batch_no" placeholder="Batch" /></Field> : <input type="hidden" name="line_batch_no" value="" />}

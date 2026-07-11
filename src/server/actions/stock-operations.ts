@@ -31,6 +31,7 @@ function extractTransfer(formData: FormData) {
   const qtys = formData.getAll("line_quantity").map(String);
   const uoms = formData.getAll("line_uom").map(String);
   const remarks = formData.getAll("line_remarks").map(String);
+  const enabled = new Set(formData.getAll("line_enabled").map(String));
   return stockTransferSchema.parse({
     transfer_no: formData.get("transfer_no"),
     transfer_date: formData.get("transfer_date"),
@@ -40,7 +41,7 @@ function extractTransfer(formData: FormData) {
     to_location_id: formData.get("to_location_id"),
     status: formData.get("status") ?? "draft",
     remarks: formData.get("remarks"),
-    lines: itemIds.map((itemId, i) => ({ item_id: itemId, barcode: barcodes[i], quantity: qtys[i], uom: uoms[i], remarks: remarks[i] })).filter((line) => line.item_id),
+    lines: itemIds.map((itemId, i) => ({ item_id: itemId, barcode: barcodes[i], quantity: qtys[i], uom: uoms[i], remarks: remarks[i] })).filter((line) => line.item_id && enabled.has(line.item_id)),
   });
 }
 
@@ -90,6 +91,7 @@ export async function createStockTransfer(formData: FormData) {
   await requirePermissionOrRedirect("stock_transfer.create", "/stock-transfers/new");
   try {
     const payload = extractTransfer(formData);
+    if (payload.from_branch_id === payload.to_branch_id) throw new Error("Source and destination branches must be different.");
     if (isMockMode()) redirect("/stock-transfers/transfer-draft");
     const fromLocationId = await resolveDefaultLocation(payload.from_branch_id, payload.from_location_id);
     const toLocationId = await resolveDefaultLocation(payload.to_branch_id, payload.to_location_id);
@@ -141,34 +143,50 @@ export async function postStockTransfer(id: string) {
   const supabase = await createClient();
   const [{ data: transfer, error }, { data: lines }] = await Promise.all([supabase.from("stock_transfers").select("*").eq("id", id).single(), supabase.from("stock_transfer_lines").select("*").eq("stock_transfer_id", id)]);
   if (error) throw new Error(error.message);
+  if (transfer.status !== "in_transit") throw new Error("Only an in-transit stock transfer can be received.");
   if (!lines?.length) throw new Error("Cannot post without lines.");
   for (const line of lines) {
-    for (const side of ["out", "in"] as const) {
-      const loc = side === "out" ? transfer.from_location_id : transfer.to_location_id;
-      await createInventoryMovement({
-        movementType: side === "out" ? "TRANSFER_OUT" : "TRANSFER_IN",
-        transactionNo: `ST-${transfer.transfer_no}-${side}-${String(line.id).slice(0, 4)}`,
+    await createInventoryMovement({
+        movementType: "TRANSFER_IN",
+        transactionNo: `ST-${transfer.transfer_no}-in-${String(line.id).slice(0, 4)}`,
         documentId: transfer.document_id,
-        branchId: side === "out" ? transfer.from_branch_id : transfer.to_branch_id,
+        branchId: transfer.to_branch_id,
         itemId: line.item_id,
-        locationId: loc,
+        locationId: transfer.to_location_id,
         transactionDate: transfer.transfer_date,
         quantity: Number(line.quantity),
         unitCost: 0,
         postedBy: profile?.id ?? null,
-        remarks: side === "out" ? `Transferred from ${transfer.transfer_no}` : `Transferred to ${transfer.transfer_no}`,
+        remarks: `Transferred to ${transfer.transfer_no}`,
         referenceType: "stock_transfer",
         referenceId: transfer.id,
         fromLocationId: transfer.from_location_id,
         toLocationId: transfer.to_location_id,
       });
-    }
   }
   await setTransferStatus(id, "completed", `Stock transfer ${transfer.transfer_no} completed`);
   revalidatePath("/inventory"); revalidatePath("/stock-balance"); revalidatePath("/stock-card"); revalidatePath("/stock-transactions");
 }
 
-export async function startStockTransfer(id: string) { await requirePermission("stock_transfer.update"); if (isMockMode()) return; await setTransferStatus(id, "in_transit", "Stock transfer in transit"); }
+export async function startStockTransfer(id: string) {
+  await requirePermission("stock_transfer.update");
+  if (isMockMode()) return;
+  const profile = await identity();
+  const supabase = await createClient();
+  const [{ data: transfer, error }, { data: lines }] = await Promise.all([supabase.from("stock_transfers").select("*").eq("id", id).single(), supabase.from("stock_transfer_lines").select("*").eq("stock_transfer_id", id)]);
+  if (error) throw new Error(error.message);
+  if (transfer.status !== "draft") throw new Error("Only a draft stock transfer can be dispatched.");
+  if (!lines?.length) throw new Error("Cannot dispatch without lines.");
+  for (const line of lines) await createInventoryMovement({
+    movementType: "TRANSFER_OUT", transactionNo: `ST-${transfer.transfer_no}-out-${String(line.id).slice(0, 4)}`,
+    documentId: transfer.document_id, branchId: transfer.from_branch_id, itemId: line.item_id, locationId: transfer.from_location_id,
+    transactionDate: transfer.transfer_date, quantity: Number(line.quantity), unitCost: 0, postedBy: profile?.id ?? null,
+    remarks: `Transferred from ${transfer.transfer_no}`, referenceType: "stock_transfer", referenceId: transfer.id,
+    fromLocationId: transfer.from_location_id, toLocationId: transfer.to_location_id,
+  });
+  await setTransferStatus(id, "in_transit", `Stock transfer ${transfer.transfer_no} dispatched`);
+  revalidateWorkspaceState(["/inventory", "/stock-balance", "/stock-card", "/stock-transactions"]);
+}
 export async function cancelStockTransfer(id: string) { await requirePermission("stock_transfer.cancel"); if (isMockMode()) return; await setTransferStatus(id, "cancelled", "Stock transfer cancelled"); }
 export async function rejectStockTransfer(id: string) { await requirePermission("stock_transfer.update"); if (isMockMode()) return; await setTransferStatus(id, "rejected", "Stock transfer rejected"); }
 

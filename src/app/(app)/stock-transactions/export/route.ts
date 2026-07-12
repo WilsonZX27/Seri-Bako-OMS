@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { hasPermission } from "@/server/auth/permissions";
 import { getStockLedger } from "@/server/queries/inventory";
 
 const headers = [
@@ -21,6 +22,10 @@ function csv(value: unknown) {
 }
 
 export async function GET(request: Request) {
+  if (!(await hasPermission("stock_ledger.export"))) {
+    return NextResponse.json({ ok: false, message: "You do not have permission to export this data." }, { status: 403 });
+  }
+
   const params = Object.fromEntries(new URL(request.url).searchParams.entries());
   const ledger = await getStockLedger({ ...params, page: "all" });
   const rows = ledger.rows.map((row) => [

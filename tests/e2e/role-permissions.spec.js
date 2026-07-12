@@ -22,6 +22,6 @@ for (const role of ["kitchen", "purchasing", "finance"]) {
 test("administrator cannot assign owner role from staff creation", async ({ page }) => {
   test.skip(!process.env.TEST_ADMIN_EMAIL || !process.env.TEST_ADMIN_PASSWORD, "Missing admin test credentials.");
   expect(await login(page, "admin")).toBe(true);
-  await page.goto("/staffs/new");
+  await page.goto("/staffs/new", { waitUntil: "domcontentloaded" });
   await expect(page.locator('select[name="role_id"] option', { hasText: "Super Admin / Owner" })).toHaveCount(0);
 });

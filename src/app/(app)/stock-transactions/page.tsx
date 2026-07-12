@@ -14,6 +14,7 @@ import { ConsoleSection } from "@/components/layout/right-console";
 import { WorkspaceGrid } from "@/components/layout/workspace-layout";
 import { formatCurrency, formatNumber } from "@/lib/utils";
 import { getBranchesForSelect, getItemsForSelect } from "@/server/queries/common";
+import { hasPermission } from "@/server/auth/permissions";
 import { getStockBalanceDetails, getStockLedger } from "@/server/queries/inventory";
 import type { StockTransactionType } from "@/types/database";
 
@@ -47,11 +48,12 @@ function exportHref(filters: Record<string, string | undefined>) {
 
 export default async function StockTransactionsPage({ searchParams }: { searchParams: Promise<Record<string, string | undefined>> }) {
   const filters = await searchParams;
-  const [ledger, balances, branches, items] = await Promise.all([
+  const [ledger, balances, branches, items, canExport] = await Promise.all([
     getStockLedger(filters),
     getStockBalanceDetails({ ...filters, page: "all" }),
     getBranchesForSelect(),
     getItemsForSelect(),
+    hasPermission("stock_ledger.export"),
   ]);
   const value = balances.rows.reduce((sum, item) => sum + Number(item.inventory_value), 0);
   const inbound = ledger.rows.reduce((sum, row) => sum + Number(row.quantity_in), 0);
@@ -101,7 +103,7 @@ export default async function StockTransactionsPage({ searchParams }: { searchPa
             <Input name="from" type="date" defaultValue={filters.from ?? ""} />
             <Input name="to" type="date" defaultValue={filters.to ?? ""} />
             <Button type="submit" variant="secondary">Filter</Button>
-            <Button asChild variant="outline"><Link href={exportHref(filters)}><Download className="h-4 w-4" /> CSV</Link></Button>
+            {canExport ? <Button asChild variant="outline"><Link href={exportHref(filters)}><Download className="h-4 w-4" /> CSV</Link></Button> : null}
             <Button asChild variant="ghost"><a href="/stock-transactions">Reset</a></Button>
           </form>
           <DataGridHint text="Double-click any row to open the source ledger transaction." />

@@ -6,7 +6,8 @@ test("supplier invoice paid state is persisted", async ({ page }) => {
   expect(await login(page, "superAdmin")).toBe(true);
   await page.goto(`/supplier-invoices?search=${encodeURIComponent(invoiceNo)}`);
   await expect(page.getByText(invoiceNo)).toBeVisible();
-  await page.getByRole("link", { name: new RegExp(`View .*`, "i") }).first().click();
+  const href = await page.locator("tbody tr").filter({ hasText: invoiceNo }).locator("a").first().getAttribute("href");
+  await page.goto(href);
   await expect(page).toHaveURL(/\/supplier-invoices\//);
   await expect(page.locator("body")).toContainText(invoiceNo);
   await expect(page.locator("body")).toContainText("PO-00002");

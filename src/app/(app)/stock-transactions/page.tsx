@@ -104,7 +104,7 @@ export default async function StockTransactionsPage({ searchParams }: { searchPa
             <Input name="to" type="date" defaultValue={filters.to ?? ""} />
             <Button type="submit" variant="secondary">Filter</Button>
             {canExport ? <Button asChild variant="outline"><Link href={exportHref(filters)}><Download className="h-4 w-4" /> CSV</Link></Button> : null}
-            <Button asChild variant="ghost"><a href="/stock-transactions">Reset</a></Button>
+            <Button asChild variant="ghost"><Link href="/stock-transactions">Reset</Link></Button>
           </form>
           <DataGridHint text="Double-click any row to open the source ledger transaction." />
           <div className="overflow-x-auto">

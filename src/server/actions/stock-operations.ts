@@ -14,7 +14,6 @@ import { resolveDocumentNumber } from "@/server/documents/sequences";
 import { createInventoryMovement } from "@/server/inventory/engine";
 import { resolveDefaultLocation } from "@/server/inventory/locations";
 import { getCurrentProfile } from "@/server/queries/common";
-import type { StockWastageReason } from "@/types/database";
 
 function clean(value: unknown) {
   const text = String(value ?? "").trim();
@@ -228,12 +227,9 @@ export async function postStockWastage(id: string) {
   const supabase = await createClient();
   const [{ data: wastage, error }, { data: lines }] = await Promise.all([supabase.from("stock_wastage").select("*").eq("id", id).single(), supabase.from("stock_wastage_lines").select("*").eq("stock_wastage_id", id)]);
   if (error) throw new Error(error.message);
+  if (wastage.status === "posted") return;
+  if (wastage.status !== "draft") throw new Error("Only draft wastage can be posted.");
   if (!lines?.length) throw new Error("Cannot post without lines.");
-  const evidenceReasons: StockWastageReason[] = ["damaged", "expired", "supplier_claim"];
-  if (evidenceReasons.includes(wastage.reason) && wastage.document_id) {
-    const { count } = await supabase.from("attachments").select("id", { count: "exact", head: true }).eq("entity_type", "document").eq("entity_id", wastage.document_id).eq("status", "active").is("deleted_at", null);
-    if (!count) throw new Error("Photo attachment required before posting this wastage.");
-  }
   for (const line of lines) {
     await createInventoryMovement({
       movementType: "WASTAGE",
@@ -254,7 +250,10 @@ export async function postStockWastage(id: string) {
   const status = "posted";
   assertStockOperationStatus(status);
   await supabase.from("stock_wastage").update({ status, posted_at: new Date().toISOString(), updated_by: profile?.id ?? null }).eq("id", id);
-  if (wastage.document_id) await writeActivityLog({ entityType: "document", entityId: wastage.document_id, activityType: "posted", message: `Stock wastage ${wastage.wastage_no} posted` });
+  if (wastage.document_id) {
+    await supabase.from("documents").update({ status: "posted", approval_status: "approved", current_step: "Posted to inventory", posted_at: new Date().toISOString(), updated_by: profile?.id ?? null }).eq("id", wastage.document_id);
+    await writeActivityLog({ entityType: "document", entityId: wastage.document_id, activityType: "posted", message: `Stock wastage ${wastage.wastage_no} posted` });
+  }
   revalidateWorkspaceState(["/stock-wastage", `/stock-wastage/${id}`, "/inventory", "/stock-balance", "/stock-card", "/stock-transactions"]);
 }
 

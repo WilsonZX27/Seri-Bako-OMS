@@ -16,13 +16,13 @@ const wastageSteps = [
   { key: "cancelled", label: "Cancelled", description: "Wastage was cancelled." },
 ];
 
-const needsEvidence = (reason: string) => ["damaged", "expired", "supplier_claim"].includes(reason);
+const recommendsEvidence = (reason: string) => ["damaged", "expired", "supplier_claim"].includes(reason);
 
 export default async function StockWastageDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const { wastage, lines } = await getStockWastageDetail(id);
   const bundle = wastage.document_id ? await getDocumentBundle(wastage.document_id) : null;
-  const evidenceMissing = needsEvidence(wastage.reason) && !bundle?.attachments.length;
+  const evidenceMissing = recommendsEvidence(wastage.reason) && !bundle?.attachments.length;
   const canAct = wastage.status === "draft";
 
   return (
@@ -47,10 +47,10 @@ export default async function StockWastageDetailPage({ params }: { params: Promi
             )}
           </DocumentSideSection>
           {evidenceMissing ? (
-            <DocumentSideSection title="Attachment Required">
+            <DocumentSideSection title="Attachment Recommended">
               <div className="flex gap-2 rounded-md bg-warning/10 p-3 text-sm text-warning">
                 <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
-                Photo attachment required before posting this wastage reason.
+                Add a photo when available for audit support.
               </div>
             </DocumentSideSection>
           ) : null}

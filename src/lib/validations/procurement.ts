@@ -106,3 +106,22 @@ export const purchaseReturnSchema = z.object({
   remarks: z.string().trim().optional().nullable(),
   lines: z.array(purchaseReturnLineSchema).min(1, "Purchase return must have at least one return line"),
 });
+
+export const supplierInvoiceSchema = z.object({
+  supplier_invoice_no: z.string().trim().min(1, "Supplier invoice number is required"),
+  goods_receiving_id: z.string().uuid("GRN is required"),
+  invoice_date: z.string().trim().min(1, "Invoice date is required"),
+  due_date: z.string().trim().optional().nullable().or(z.literal("")),
+  subtotal: z.coerce.number().min(0),
+  tax_amount: z.coerce.number().min(0),
+  total_amount: z.coerce.number().positive("Invoice amount must be more than 0"),
+  notes: z.string().trim().optional().nullable(),
+});
+
+export const supplierInvoicePaymentSchema = z.object({
+  payment_date: z.string().trim().min(1, "Payment date is required"),
+  amount: z.coerce.number().positive("Payment must be more than 0"),
+  payment_method: z.string().trim().optional().nullable(),
+  reference_no: z.string().trim().optional().nullable(),
+  notes: z.string().trim().optional().nullable(),
+});

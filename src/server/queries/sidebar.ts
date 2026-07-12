@@ -57,7 +57,7 @@ export async function getSidebarCounts(): Promise<SidebarCounts> {
     safeCount(db.from("purchase_requests").select("id", { count: "exact", head: true }).eq("status", "finance_review").is("deleted_at", null)),
     safeCount(db.from("purchase_orders").select("id", { count: "exact", head: true }).in("status", ["draft", "pending_approval", "approved", "sent", "partial_received"]).is("deleted_at", null)),
     safeCount(db.from("purchase_orders").select("id", { count: "exact", head: true }).eq("status", "approved").is("deleted_at", null)),
-    safeCount(supabase.from("documents").select("id", { count: "exact", head: true }).ilike("document_type", "%invoice%")),
+    safeCount(db.from("supplier_invoices").select("id", { count: "exact", head: true }).in("status", ["unpaid", "partially_paid"]).is("deleted_at", null)),
     safeCount(supabase.from("low_stock_items").select("item_id", { count: "exact", head: true })),
     safeCount(db.from("stock_counts").select("id", { count: "exact", head: true }).in("status", ["draft", "submitted", "reviewed", "approved"]).is("deleted_at", null)),
     safeCount(db.from("stock_transfers").select("id", { count: "exact", head: true }).in("status", ["draft", "in_transit"]).is("deleted_at", null)),

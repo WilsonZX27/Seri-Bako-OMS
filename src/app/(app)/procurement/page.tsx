@@ -1,4 +1,4 @@
-import { AlertTriangle, ArrowRight, ClipboardList, FileDigit, PackageCheck, Plus, ShoppingCart, Truck, Upload, Users } from "lucide-react";
+import { AlertTriangle, ArrowRight, ClipboardList, FileDigit, PackageCheck, Plus, ReceiptText, ShoppingCart, Truck, Upload, Users } from "lucide-react";
 import { PageHeader } from "@/components/ui/page-header";
 import { WorkspaceQuickInsights, WorkspaceSectionPanel, type WorkspaceInsight, type WorkspaceSection } from "@/components/workspace-panels";
 import { getProcurementWorkspaceInsights } from "@/server/queries/procurement";
@@ -30,6 +30,7 @@ const procurementSections: WorkspaceSection[] = [
     theme: "blue",
     actions: [
       { href: "/goods-receivings", title: "Goods Receiving", description: "Create and post GRNs from approved or sent purchase orders.", icon: PackageCheck, recommendedFor: "receiving" },
+      { href: "/supplier-invoices", title: "Supplier Invoices", description: "Track posted GRN invoices and simple payment status.", icon: ReceiptText, recommendedFor: "finance" },
     ],
   },
   {

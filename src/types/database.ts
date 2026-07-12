@@ -17,6 +17,7 @@ export type PurchaseRequestStatus = "draft" | "manager_review" | "admin_review" 
 export type PurchaseOrderStatus = "draft" | "pending_approval" | "approved" | "sent" | "partial_received" | "received" | "cancelled" | "closed";
 export type GoodsReceivingStatus = "draft" | "posted" | "cancelled";
 export type PurchaseReturnStatus = "draft" | "posted" | "cancelled";
+export type SupplierInvoiceStatus = "unpaid" | "partially_paid" | "paid" | "cancelled";
 export type StockTransactionStatus = "draft" | "posted" | "cancelled";
 export type StockCountStatus = "draft" | "submitted" | "reviewed" | "approved" | "posted" | "rejected" | "cancelled";
 export type StockOperationStatus = "draft" | "submitted" | "approved" | "in_transit" | "posted" | "completed" | "rejected" | "cancelled";
@@ -1275,6 +1276,86 @@ export type Database = {
           deleted_at?: string | null;
         };
         Update: Partial<Database["public"]["Tables"]["purchase_returns"]["Insert"]>;
+        Relationships: [];
+      };
+      supplier_invoices: {
+        Row: {
+          id: string;
+          company_id: string | null;
+          document_id: string | null;
+          invoice_no: string;
+          supplier_invoice_no: string;
+          supplier_id: string;
+          purchase_order_id: string;
+          goods_receiving_id: string;
+          invoice_date: string;
+          due_date: string | null;
+          subtotal: number;
+          tax_amount: number;
+          total_amount: number;
+          amount_paid: number;
+          status: SupplierInvoiceStatus;
+          notes: string | null;
+          created_at: string;
+          updated_at: string;
+          created_by: string | null;
+          updated_by: string | null;
+          deleted_at: string | null;
+        };
+        Insert: {
+          id?: string;
+          company_id?: string | null;
+          document_id?: string | null;
+          invoice_no: string;
+          supplier_invoice_no: string;
+          supplier_id: string;
+          purchase_order_id: string;
+          goods_receiving_id: string;
+          invoice_date?: string;
+          due_date?: string | null;
+          subtotal?: number;
+          tax_amount?: number;
+          total_amount: number;
+          amount_paid?: number;
+          status?: SupplierInvoiceStatus;
+          notes?: string | null;
+          created_at?: string;
+          updated_at?: string;
+          created_by?: string | null;
+          updated_by?: string | null;
+          deleted_at?: string | null;
+        };
+        Update: Partial<Database["public"]["Tables"]["supplier_invoices"]["Insert"]>;
+        Relationships: [];
+      };
+      supplier_invoice_payments: {
+        Row: {
+          id: string;
+          company_id: string | null;
+          supplier_invoice_id: string;
+          payment_no: string;
+          payment_date: string;
+          amount: number;
+          payment_method: string | null;
+          reference_no: string | null;
+          notes: string | null;
+          created_at: string;
+          created_by: string | null;
+        };
+        Insert: {
+          id?: string;
+          company_id?: string | null;
+          supplier_invoice_id: string;
+          payment_no: string;
+          payment_date?: string;
+          amount: number;
+          payment_method?: string | null;
+          reference_no?: string | null;
+          notes?: string | null;
+          created_at?: string;
+          created_by?: string | null;
+        };
+        Update: Partial<Database["public"]["Tables"]["supplier_invoice_payments"]["Insert"]>;
         Relationships: [];
       };
       purchase_return_lines: {

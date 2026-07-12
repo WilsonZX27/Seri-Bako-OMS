@@ -10,7 +10,7 @@ import { PriorityBadge } from "@/components/priority-badge";
 import { formatCurrency, formatNumber } from "@/lib/utils";
 import { approvePurchaseOrder, closePurchaseOrder, rejectPurchaseOrder, sendPurchaseOrder, submitPurchaseOrder } from "@/server/actions/procurement";
 import { getPermissionMap } from "@/server/auth/permissions";
-import { getItemsForSelect, getSuppliersForSelect } from "@/server/queries/common";
+import { getBranchesForSelect, getItemsForSelect, getSuppliersForSelect } from "@/server/queries/common";
 import { getDocumentBundle } from "@/server/queries/documents";
 import { getPurchaseOrder, getPurchaseRequestForOrder } from "@/server/queries/procurement";
 
@@ -34,10 +34,11 @@ const convertedPoSteps = [
 
 export default async function PurchaseOrderDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const [{ order, lines }, items, suppliers, permissions] = await Promise.all([
+  const [{ order, lines }, items, suppliers, branches, permissions] = await Promise.all([
     getPurchaseOrder(id),
     getItemsForSelect(),
     getSuppliersForSelect(),
+    getBranchesForSelect(),
     getPermissionMap(["po.submit", "po.approve", "po.send", "po.receive", "purchase_order.close"]),
   ]);
   const sourceRequest = await getPurchaseRequestForOrder(order.purchase_request_id);
@@ -45,6 +46,7 @@ export default async function PurchaseOrderDetailPage({ params }: { params: Prom
   const documentBundle = order.document_id ? await getDocumentBundle(order.document_id) : null;
   const itemById = new Map(items.map((item) => [item.id, item]));
   const supplier = suppliers.find((row) => row.id === order.supplier_id);
+  const branch = branches.find((row) => row.id === order.branch_id);
   const total = lines.reduce((sum, line) => sum + line.qty_ordered * line.unit_price, 0);
   const hasPrimaryAction =
     (!fromApprovedPr && order.status === "draft" && permissions["po.submit"]) ||
@@ -95,6 +97,7 @@ export default async function PurchaseOrderDetailPage({ params }: { params: Prom
               <h2 className="text-sm font-semibold">Order Summary</h2>
               <div className="grid gap-4 md:grid-cols-4">
                 <div><p className="text-xs uppercase text-muted-foreground">Supplier</p><p className="font-medium">{supplier?.name ?? order.supplier_id}</p></div>
+                <div><p className="text-xs uppercase text-muted-foreground">Branch</p><p className="font-medium">{branch?.branch_name ?? "-"}</p></div>
                 <div><p className="text-xs uppercase text-muted-foreground">Order Date</p><p className="font-medium">{order.order_date}</p></div>
                 <div><p className="text-xs uppercase text-muted-foreground">Expected Delivery</p><p className="font-medium">{order.expected_delivery_date ?? "-"}</p></div>
                 {!fromApprovedPr ? <div><p className="text-xs uppercase text-muted-foreground">Approval</p><StatusBadge status={order.approval_status} /></div> : null}

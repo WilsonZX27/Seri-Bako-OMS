@@ -198,6 +198,9 @@ export function PurchaseRequestForm({
               <Field label="Request Date" required>
                 <Input name="request_date" type="date" defaultValue={today()} required />
               </Field>
+              <Field label="Required Date">
+                <Input name="required_date" type="date" />
+              </Field>
               <Field label="Needed By">
                 <Input name="needed_by_date" type="date" />
               </Field>

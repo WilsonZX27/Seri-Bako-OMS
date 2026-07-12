@@ -1064,6 +1064,7 @@ export type Database = {
           company_id: string | null;
           document_id: string | null;
           purchase_request_id: string | null;
+          branch_id: string | null;
           po_no: string;
           supplier_id: string;
           order_date: string;
@@ -1086,6 +1087,7 @@ export type Database = {
           company_id?: string | null;
           document_id?: string | null;
           purchase_request_id?: string | null;
+          branch_id?: string | null;
           po_no: string;
           supplier_id: string;
           order_date?: string;

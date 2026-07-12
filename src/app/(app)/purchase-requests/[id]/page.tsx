@@ -146,9 +146,10 @@ export default async function PurchaseRequestDetailPage({
           <Card className="document-surface shadow-none">
             <CardContent className="space-y-3 p-4">
               <h2 className="text-[14px] font-semibold">Request Summary</h2>
-              <div className="grid gap-3 md:grid-cols-4">
+              <div className="grid gap-3 md:grid-cols-5">
                 <div><p className="text-[11px] uppercase tracking-wide text-muted-foreground">Request Date</p><p className="text-sm font-medium text-slate-900">{request.request_date}</p></div>
                 <div><p className="text-[11px] uppercase tracking-wide text-muted-foreground">Priority</p><PriorityBadge priority={request.priority} /></div>
+                <div><p className="text-[11px] uppercase tracking-wide text-muted-foreground">Required Date</p><p className="text-sm font-medium text-slate-900">{request.required_date ?? "-"}</p></div>
                 <div><p className="text-[11px] uppercase tracking-wide text-muted-foreground">Needed By</p><p className="text-sm font-medium text-slate-900">{request.needed_by_date ?? "-"}</p></div>
                 <div><p className="text-[11px] uppercase tracking-wide text-muted-foreground">Branch</p><p className="text-sm font-medium text-slate-900">{branch?.branch_name ?? "-"}</p></div>
               </div>

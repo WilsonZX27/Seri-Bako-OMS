@@ -717,6 +717,7 @@ export async function convertPurchaseRequestToPurchaseOrder(id: string, formData
       .insert({
         company_id: pr.company_id,
         purchase_request_id: id,
+        branch_id: pr.branch_id,
         po_no: poNo,
         supplier_id: supplierId,
         order_date: pr.request_date,

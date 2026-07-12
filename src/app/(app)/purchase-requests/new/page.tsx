@@ -1,6 +1,7 @@
 import { PurchaseRequestForm } from "@/components/procurement-forms";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { SubmitButton } from "@/components/ui/submit-button";
 import { PageHeader } from "@/components/ui/page-header";
 import { ConsoleSection } from "@/components/layout/right-console";
 import { WorkspaceGrid } from "@/components/layout/workspace-layout";
@@ -8,7 +9,7 @@ import { createPurchaseRequest } from "@/server/actions/procurement";
 import { hasPermission } from "@/server/auth/permissions";
 import { getBranchesForSelect, getItemsForSelect, getSuppliersForSelect } from "@/server/queries/common";
 
-export default async function NewPurchaseRequestPage({ searchParams }: { searchParams: Promise<{ error?: string }> }) {
+export default async function NewPurchaseRequestPage({ searchParams }: { searchParams: Promise<Record<string, string | undefined>> }) {
   const params = await searchParams;
   const [items, suppliers, branches, canCreateItem, canCreateSupplier] = await Promise.all([
     getItemsForSelect(),
@@ -17,6 +18,16 @@ export default async function NewPurchaseRequestPage({ searchParams }: { searchP
     hasPermission("items.create"),
     hasPermission("suppliers.create"),
   ]);
+  const initialItem = params.item_id ? items.find((item) => item.id === params.item_id) : null;
+  const initialLine = initialItem ? {
+    itemId: initialItem.id,
+    itemSearch: `${initialItem.item_code} - ${initialItem.item_name}`,
+    qty: params.qty ?? "",
+    uom: params.uom ?? initialItem.purchase_unit ?? initialItem.base_unit,
+    supplierId: params.supplier_id ?? initialItem.supplier_id ?? "",
+    cost: String(initialItem.cost ?? 0),
+    remarks: params.notes ?? "",
+  } : undefined;
   return (
     <>
       <PageHeader title="New Purchase Request" description="Create a request from daily stock check or low-stock review." />
@@ -25,8 +36,8 @@ export default async function NewPurchaseRequestPage({ searchParams }: { searchP
           <div>
             <ConsoleSection title="PR Actions">
               <div className="grid gap-2">
-                <Button type="submit" form="purchase-request-form" className="w-full">Submit PR</Button>
-                <Button type="submit" form="purchase-request-form" variant="outline" className="w-full">Save Draft</Button>
+                <SubmitButton type="submit" form="purchase-request-form" pendingLabel="Creating..." className="w-full">Submit PR</SubmitButton>
+                <SubmitButton type="submit" form="purchase-request-form" pendingLabel="Saving..." variant="outline" className="w-full">Save Draft</SubmitButton>
               </div>
             </ConsoleSection>
             <ConsoleSection title="Request Summary">
@@ -40,7 +51,17 @@ export default async function NewPurchaseRequestPage({ searchParams }: { searchP
         }
       >
         {params.error ? <Card><CardContent className="p-4 text-sm text-destructive">{params.error}</CardContent></Card> : null}
-        <PurchaseRequestForm items={items} suppliers={suppliers} branches={branches} canCreateItem={canCreateItem} canCreateSupplier={canCreateSupplier} action={createPurchaseRequest} />
+        <PurchaseRequestForm
+          items={items}
+          suppliers={suppliers}
+          branches={branches}
+          initialBranchId={params.branch_id}
+          initialLine={initialLine}
+          initialRemarks={params.notes}
+          canCreateItem={canCreateItem}
+          canCreateSupplier={canCreateSupplier}
+          action={createPurchaseRequest}
+        />
       </WorkspaceGrid>
     </>
   );

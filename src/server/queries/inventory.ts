@@ -21,6 +21,10 @@ type StockBalanceDetail = Database["public"]["Views"]["stock_balances_view"]["Ro
   reserved_qty: number;
   status: string;
 };
+type LowStockRow = Database["public"]["Views"]["stock_balances_view"]["Row"] & {
+  stock_status: "out_of_stock" | "low_stock";
+  suggested_reorder_qty: number;
+};
 
 function warnOptionalInventoryQuery(name: string, error: { message?: string } | null | undefined) {
   if (error) console.warn(`[inventory] Optional ${name} query failed: ${error.message ?? "Unknown error"}`);
@@ -359,16 +363,55 @@ export async function getStockCard(filters: Filters = {}) {
   return rows.sort((a, b) => new Date(a.transaction_date).getTime() - new Date(b.transaction_date).getTime());
 }
 
-export async function getLowStockItems() {
+export async function getLowStockItems(filters: Filters = {}) {
   if (isMockMode()) {
-    return getMockLowStockItems();
+    return getMockLowStockItems().map((row) => ({
+      ...row,
+      purchase_unit: row.base_unit,
+      conversion_to_base_unit: 1,
+      status: "active" as const,
+      branch_id: null,
+      branch_name: null,
+      location_id: "mock",
+      location_name: "All locations",
+      total_quantity_in: row.current_stock,
+      total_quantity_out: 0,
+      current_qty: row.current_stock,
+      average_cost: row.cost,
+      inventory_value: row.current_stock * row.cost,
+      last_movement: null,
+      is_low_stock: true,
+      stock_status: row.current_stock <= 0 ? "out_of_stock" as const : "low_stock" as const,
+      suggested_reorder_qty: Math.max(Number(row.safety_stock) - Number(row.current_stock), Number(row.moq), 1),
+    }));
   }
 
   const supabase = await createClient();
-  const { data, error } = await supabase.from("low_stock_items").select("*").order("shortage_quantity", { ascending: false });
+  const { data, error } = await supabase.from("stock_balances_view").select("*").order("item_name", { ascending: true });
   if (error) {
     warnOptionalInventoryQuery("low stock items", error);
     return [];
   }
-  return data;
+  const search = filters.search?.trim().toLowerCase();
+  const branchId = filters.branch_id && filters.branch_id !== "all" ? filters.branch_id : null;
+  const status = filters.status && filters.status !== "all" ? filters.status : null;
+  const rows = ((data ?? []) as Database["public"]["Views"]["stock_balances_view"]["Row"][])
+    .filter((row) => row.status === "active")
+    .filter((row) => branchId ? row.branch_id === branchId : true)
+    .filter((row) => search ? [row.item_code, row.item_name, row.branch_name, row.supplier_name].some((value) => String(value ?? "").toLowerCase().includes(search)) : true)
+    .map((row) => {
+      const current = Number(row.current_qty ?? row.current_stock ?? 0);
+      const safety = Number(row.safety_stock ?? 0);
+      const shortage = safety - current;
+      const suggested = Math.max(shortage, Number(row.moq ?? 0), 1);
+      return {
+        ...row,
+        stock_status: current <= 0 ? "out_of_stock" : "low_stock",
+        suggested_reorder_qty: suggested,
+      } satisfies LowStockRow;
+    })
+    .filter((row) => Number(row.current_qty ?? row.current_stock ?? 0) <= Number(row.safety_stock ?? 0) || Number(row.current_qty ?? row.current_stock ?? 0) <= 0)
+    .filter((row) => status ? row.stock_status === status : true)
+    .sort((a, b) => (a.stock_status === b.stock_status ? b.suggested_reorder_qty - a.suggested_reorder_qty : a.stock_status === "out_of_stock" ? -1 : 1));
+  return rows;
 }

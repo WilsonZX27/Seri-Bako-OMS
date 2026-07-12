@@ -61,6 +61,9 @@ export function PurchaseRequestForm({
   items,
   suppliers,
   branches,
+  initialBranchId,
+  initialLine,
+  initialRemarks,
   canCreateItem,
   canCreateSupplier,
   action,
@@ -68,12 +71,15 @@ export function PurchaseRequestForm({
   items: ItemOption[];
   suppliers: SupplierOption[];
   branches: BranchOption[];
+  initialBranchId?: string;
+  initialLine?: Partial<RequestLine>;
+  initialRemarks?: string;
   canCreateItem: boolean;
   canCreateSupplier: boolean;
   action: (formData: FormData) => Promise<void>;
 }) {
   const [availableItems, setAvailableItems] = useState(items);
-  const [lines, setLines] = useState<RequestLine[]>([createBlankLine(0)]);
+  const [lines, setLines] = useState<RequestLine[]>([{ ...createBlankLine(0), ...initialLine, key: 0 }]);
   const [priority, setPriority] = useState("normal");
   const [newItemLineKey, setNewItemLineKey] = useState<number | null>(null);
   const [newItemError, setNewItemError] = useState<string | null>(null);
@@ -205,7 +211,7 @@ export function PurchaseRequestForm({
                 <Input name="needed_by_date" type="date" />
               </Field>
               <Field label="Branch" required>
-                <SelectNative name="branch_id" defaultValue={branches[0]?.id ?? ""} required>
+                <SelectNative name="branch_id" defaultValue={initialBranchId ?? branches[0]?.id ?? ""} required>
                   {branches.map((branch) => <option key={branch.id} value={branch.id}>{branch.branch_name}</option>)}
                 </SelectNative>
               </Field>
@@ -226,7 +232,7 @@ export function PurchaseRequestForm({
               ) : null}
               <div className="md:col-span-3">
                 <Field label="Remarks">
-                  <Textarea name="remarks" placeholder="Main reason for this purchase request" />
+                  <Textarea name="remarks" defaultValue={initialRemarks ?? ""} placeholder="Main reason for this purchase request" />
                 </Field>
               </div>
             </div>

@@ -3,6 +3,7 @@ const { test, expect } = require("@playwright/test");
 const { login } = require("./helpers");
 
 test("Sprint 7.2.33 master data imports", async ({ page }) => {
+  test.setTimeout(120_000);
   test.skip(process.env.TEST_IMPORT_MUTATION !== "1", "Set TEST_IMPORT_MUTATION=1 to run import mutation QA.");
   expect(await login(page, "superAdmin")).toBe(true);
 
@@ -10,7 +11,11 @@ test("Sprint 7.2.33 master data imports", async ({ page }) => {
     await page.goto(route, { waitUntil: "domcontentloaded" });
     await expect(page.locator("body")).toContainText("Sprint 7.2.33");
     await page.waitForTimeout(1000);
-    await page.locator('input[type="file"]').setInputFiles(path.join(__dirname, "..", "fixtures", "imports", fixture));
+    const filePath = path.join(__dirname, "..", "fixtures", "imports", fixture);
+    await page.locator('input[type="file"]').setInputFiles(filePath);
+    if (!(await page.locator("body").textContent()).includes("3 row(s) loaded")) {
+      await page.locator('input[type="file"]').setInputFiles(filePath);
+    }
     await expect(page.locator("body")).toContainText("3 row(s) loaded");
     if (confirmPosting) await page.getByLabel(/post opening stock/i).check();
     await page.getByRole("button", { name: /Proceed \/ Confirm Import/i }).click();

@@ -48,6 +48,29 @@ function filterRows<T extends Record<string, unknown>>(rows: T[], filters: Filte
     .sort((a, b) => compareTableValues(a[sort], b[sort], dir));
 }
 
+function filterLedgerRows(rows: StockLedgerViewRow[], filters: Filters) {
+  const search = filters.search?.trim().toLowerCase();
+  const source = filters.source?.trim().toLowerCase();
+  const type = filters.type && filters.type !== "all" ? filters.type : null;
+  const branch = filters.branch_id && filters.branch_id !== "all" ? filters.branch_id : null;
+  const item = filters.item_id && filters.item_id !== "all" ? filters.item_id : null;
+  const direction = filters.direction && filters.direction !== "all" ? filters.direction : null;
+  const from = filters.from;
+  const to = filters.to;
+  const sort = filters.sort ?? "transaction_date";
+  const dir = filters.dir ?? "desc";
+  return rows
+    .filter((row) => search ? [row.transaction_no, row.transaction_type, row.item_code, row.item_name, row.branch_name, row.location_name].some((value) => String(value ?? "").toLowerCase().includes(search)) : true)
+    .filter((row) => source ? [row.reference_type, row.reference_id, row.transaction_no].some((value) => String(value ?? "").toLowerCase().includes(source)) : true)
+    .filter((row) => type ? row.transaction_type === type : true)
+    .filter((row) => branch ? row.branch_id === branch : true)
+    .filter((row) => item ? row.item_id === item : true)
+    .filter((row) => direction === "inbound" ? Number(row.quantity_in) > 0 : direction === "outbound" ? Number(row.quantity_out) > 0 : true)
+    .filter((row) => from ? row.transaction_date >= from : true)
+    .filter((row) => to ? row.transaction_date <= to : true)
+    .sort((a, b) => compareTableValues(a[sort as keyof StockLedgerViewRow], b[sort as keyof StockLedgerViewRow], dir));
+}
+
 function hydrateTransaction(transaction: StockTransaction) {
   const item = mockItems.find((row) => row.id === transaction.item_id) ?? null;
   const location = mockLocations.find((row) => row.id === transaction.location_id) ?? null;
@@ -157,6 +180,7 @@ export async function getStockLedger(filters: Filters = {}) {
         reference_id: row.reference_id,
         created_by: row.created_by,
         posted_at: row.posted_at,
+        stock_transaction_line_id: null,
         item_id: row.item_id,
         item_code: row.item?.item_code ?? "",
         item_name: row.item?.item_name ?? "Unknown",
@@ -174,7 +198,7 @@ export async function getStockLedger(filters: Filters = {}) {
         running_balance: balance,
       };
     });
-    const filtered = filterRows(ledger, filters, ["transaction_no", "transaction_type", "item_code", "item_name", "location_name", "reference_type"], "transaction_date");
+    const filtered = filterLedgerRows(ledger, filters);
     return paginateRows(filtered, filters.page, filters.page === "all" ? Math.max(filtered.length, 1) : 15);
   }
 
@@ -184,7 +208,7 @@ export async function getStockLedger(filters: Filters = {}) {
     warnOptionalInventoryQuery("stock ledger", error);
     return paginateRows([] as StockLedgerViewRow[], filters.page, filters.page === "all" ? 1 : 15);
   }
-  const filtered = filterRows(data ?? [], filters, ["transaction_no", "transaction_type", "item_code", "item_name", "location_name", "reference_type"], "transaction_date");
+  const filtered = filterLedgerRows(data ?? [], filters);
   return paginateRows(filtered, filters.page, filters.page === "all" ? Math.max(filtered.length, 1) : 15);
 }
 

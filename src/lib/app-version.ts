@@ -1,3 +1,3 @@
 export const APP_VERSION = "0.2.13";
-export const APP_SPRINT = "Sprint 7.2.30";
-export const APP_RELEASE_NOTE = "Core low stock and reorder flow";
+export const APP_SPRINT = "Sprint 7.2.31";
+export const APP_RELEASE_NOTE = "Core stock ledger and valuation";

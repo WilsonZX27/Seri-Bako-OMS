@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Eye } from "lucide-react";
+import { Download, Eye } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { DataGridHint } from "@/components/ui/data-grid-hint";
@@ -7,98 +7,162 @@ import { DataGridRow } from "@/components/ui/data-grid-row";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Input } from "@/components/ui/input";
 import { PageHeader } from "@/components/ui/page-header";
+import { SelectNative } from "@/components/ui/select-native";
 import { PaginationControls, SortableHead } from "@/components/sortable-table";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { ConsoleSection } from "@/components/layout/right-console";
+import { WorkspaceGrid } from "@/components/layout/workspace-layout";
 import { formatCurrency, formatNumber } from "@/lib/utils";
-import { getStockTransactions } from "@/server/queries/inventory";
+import { getBranchesForSelect, getItemsForSelect } from "@/server/queries/common";
+import { getStockBalanceDetails, getStockLedger } from "@/server/queries/inventory";
+import type { StockTransactionType } from "@/types/database";
 
-function statusVariant(status: string) {
-  if (status === "posted") return "success";
-  if (status === "cancelled") return "danger";
-  return "secondary";
+const transactionTypes: { value: StockTransactionType; label: string }[] = [
+  { value: "opening_balance", label: "Opening balance" },
+  { value: "purchase", label: "Purchase receipt" },
+  { value: "production_usage", label: "Production usage" },
+  { value: "production_output", label: "Production output" },
+  { value: "transfer_out", label: "Transfer out" },
+  { value: "transfer_in", label: "Transfer in" },
+  { value: "stock_count_adjustment", label: "Stock count adjustment" },
+  { value: "return_to_supplier", label: "Return to supplier" },
+  { value: "return_supplier", label: "Return to supplier" },
+  { value: "wastage", label: "Wastage / write-off" },
+  { value: "damage", label: "Damage" },
+  { value: "missing", label: "Missing" },
+  { value: "correction", label: "Correction" },
+];
+
+function movementLabel(type: string) {
+  return transactionTypes.find((row) => row.value === type)?.label ?? type.replaceAll("_", " ");
+}
+
+function exportHref(filters: Record<string, string | undefined>) {
+  const params = new URLSearchParams();
+  Object.entries(filters).forEach(([key, value]) => {
+    if (value) params.set(key, value);
+  });
+  return `/stock-transactions/export?${params.toString()}`;
 }
 
 export default async function StockTransactionsPage({ searchParams }: { searchParams: Promise<Record<string, string | undefined>> }) {
   const filters = await searchParams;
-  const transactions = await getStockTransactions(filters);
+  const [ledger, balances, branches, items] = await Promise.all([
+    getStockLedger(filters),
+    getStockBalanceDetails({ ...filters, page: "all" }),
+    getBranchesForSelect(),
+    getItemsForSelect(),
+  ]);
+  const value = balances.rows.reduce((sum, item) => sum + Number(item.inventory_value), 0);
+  const inbound = ledger.rows.reduce((sum, row) => sum + Number(row.quantity_in), 0);
+  const outbound = ledger.rows.reduce((sum, row) => sum + Number(row.quantity_out), 0);
 
   return (
     <>
       <PageHeader
-        title="Stock Transactions"
-        description="Append-only inventory ledger. Corrections are posted as new movements."
+        title="Stock Ledger"
+        description="Append-only inventory movement and valuation audit by branch and item."
         action={{ href: "/stock-transactions/new", label: "New movement" }}
       />
-      <div className="p-5">
+      <WorkspaceGrid
+        rightRail={
+          <ConsoleSection title="Valuation">
+            <div className="grid gap-2 text-xs">
+              <div className="flex justify-between"><span className="text-muted-foreground">Ledger rows</span><strong>{ledger.totalRows}</strong></div>
+              <div className="flex justify-between"><span className="text-muted-foreground">Quantity in</span><strong>{formatNumber(inbound)}</strong></div>
+              <div className="flex justify-between"><span className="text-muted-foreground">Quantity out</span><strong>{formatNumber(outbound)}</strong></div>
+              <div className="flex justify-between"><span className="text-muted-foreground">Stock rows</span><strong>{balances.totalRows}</strong></div>
+              <div className="flex justify-between"><span className="text-muted-foreground">Stock value</span><strong>{formatCurrency(value)}</strong></div>
+            </div>
+          </ConsoleSection>
+        }
+      >
         <div className="overflow-hidden rounded-lg border bg-card">
-          <form className="flex flex-col gap-3 border-b p-4 md:flex-row">
-            <Input name="search" defaultValue={filters.search ?? ""} placeholder="Search transaction no, type, reference, remarks" className="md:max-w-sm" />
-            <Button type="submit" variant="secondary">Search</Button>
-            <Button asChild variant="ghost"><a href="?">Reset</a></Button>
+          <form className="grid gap-3 border-b p-4 md:grid-cols-6">
+            <Input name="search" defaultValue={filters.search ?? ""} placeholder="Item or transaction" />
+            <SelectNative name="branch_id" defaultValue={filters.branch_id ?? "all"}>
+              <option value="all">All branches</option>
+              {branches.map((branch) => <option key={branch.id} value={branch.id}>{branch.branch_name}</option>)}
+            </SelectNative>
+            <SelectNative name="item_id" defaultValue={filters.item_id ?? "all"}>
+              <option value="all">All items</option>
+              {items.map((item) => <option key={item.id} value={item.id}>{item.item_code}</option>)}
+            </SelectNative>
+            <SelectNative name="type" defaultValue={filters.type ?? "all"}>
+              <option value="all">All types</option>
+              {transactionTypes.map((type) => <option key={type.value} value={type.value}>{type.label}</option>)}
+            </SelectNative>
+            <SelectNative name="direction" defaultValue={filters.direction ?? "all"}>
+              <option value="all">In and out</option>
+              <option value="inbound">Inbound</option>
+              <option value="outbound">Outbound</option>
+            </SelectNative>
+            <Input name="source" defaultValue={filters.source ?? ""} placeholder="Source/reference" />
+            <Input name="from" type="date" defaultValue={filters.from ?? ""} />
+            <Input name="to" type="date" defaultValue={filters.to ?? ""} />
+            <Button type="submit" variant="secondary">Filter</Button>
+            <Button asChild variant="outline"><Link href={exportHref(filters)}><Download className="h-4 w-4" /> CSV</Link></Button>
+            <Button asChild variant="ghost"><a href="/stock-transactions">Reset</a></Button>
           </form>
-          <DataGridHint text="Pro-tip: Double-click any row to open the stock transaction." />
+          <DataGridHint text="Double-click any row to open the source ledger transaction." />
           <div className="overflow-x-auto">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead className="w-10"></TableHead>
-                <SortableHead label="Transaction No" column="transaction_no" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
-                <SortableHead label="Date" column="transaction_date" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
-                <TableHead>Item</TableHead>
-                <TableHead>Location</TableHead>
-                <SortableHead label="Type" column="transaction_type" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
-                <TableHead>Status</TableHead>
-                <TableHead className="text-right">In</TableHead>
-                <TableHead className="text-right">Out</TableHead>
-                <TableHead className="text-right">Unit Cost</TableHead>
-                <TableHead className="text-right">Total Cost</TableHead>
-                <TableHead>Reference</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {transactions.rows.map((row) => {
-                return (
-                  <DataGridRow key={row.id} href={`/stock-transactions/${row.id}`}>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="w-10"></TableHead>
+                  <SortableHead label="Date/time" column="transaction_date" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
+                  <SortableHead label="Transaction No" column="transaction_no" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
+                  <SortableHead label="Type" column="transaction_type" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
+                  <TableHead>Item</TableHead>
+                  <TableHead>Branch</TableHead>
+                  <TableHead className="text-right">In</TableHead>
+                  <TableHead className="text-right">Out</TableHead>
+                  <TableHead className="text-right">Net</TableHead>
+                  <TableHead>UOM</TableHead>
+                  <TableHead className="text-right">Unit Cost</TableHead>
+                  <TableHead className="text-right">Total Value</TableHead>
+                  <TableHead>Source</TableHead>
+                  <TableHead>Reference</TableHead>
+                  <TableHead>Created By</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {ledger.rows.map((row) => (
+                  <DataGridRow key={row.stock_transaction_id} href={`/stock-transactions/${row.stock_transaction_id}`}>
                     <TableCell>
-                      <Link href={`/stock-transactions/${row.id}`} aria-label={`Quick view ${row.transaction_no}`} className="rounded-md p-1 text-slate-400 opacity-0 hover:bg-slate-100 hover:text-primary group-hover:opacity-100">
+                      <Link href={`/stock-transactions/${row.stock_transaction_id}`} aria-label={`Quick view ${row.transaction_no}`} className="rounded-md p-1 text-slate-400 opacity-0 hover:bg-slate-100 hover:text-primary group-hover:opacity-100">
                         <Eye className="h-4 w-4" />
                       </Link>
                     </TableCell>
-                    <TableCell className="font-medium">{row.transaction_no}</TableCell>
                     <TableCell>{row.transaction_date}</TableCell>
-                    <TableCell className="font-medium">
-                      {row.item?.item_name ?? "Unknown"}
-                      <p className="text-xs text-muted-foreground">{row.item?.item_code}</p>
-                    </TableCell>
-                    <TableCell>{row.location?.location_name ?? "-"}</TableCell>
-                    <TableCell>
-                      <Badge variant="secondary">{row.transaction_type.replaceAll("_", " ")}</Badge>
-                    </TableCell>
-                    <TableCell><Badge variant={statusVariant(row.status)}>{row.status}</Badge></TableCell>
-                    <TableCell className="text-right">{Number(row.quantity_in) > 0 ? `${formatNumber(row.quantity_in)} ${row.item?.base_unit ?? ""}` : "-"}</TableCell>
-                    <TableCell className="text-right">{Number(row.quantity_out) > 0 ? `${formatNumber(row.quantity_out)} ${row.item?.base_unit ?? ""}` : "-"}</TableCell>
-                    <TableCell className="text-right">{row.unit_cost ? formatCurrency(row.unit_cost) : "-"}</TableCell>
-                    <TableCell className="text-right">{row.total_cost ? formatCurrency(row.total_cost) : "-"}</TableCell>
-                    <TableCell>{row.reference_type ?? row.remarks ?? "-"}</TableCell>
+                    <TableCell className="font-medium">{row.transaction_no}</TableCell>
+                    <TableCell><Badge variant="secondary">{movementLabel(row.transaction_type)}</Badge></TableCell>
+                    <TableCell className="font-medium">{row.item_code}<p className="text-xs text-muted-foreground">{row.item_name}</p></TableCell>
+                    <TableCell>{row.branch_name ?? row.location_name}</TableCell>
+                    <TableCell className="text-right">{row.quantity_in ? formatNumber(row.quantity_in) : "-"}</TableCell>
+                    <TableCell className="text-right">{row.quantity_out ? formatNumber(row.quantity_out) : "-"}</TableCell>
+                    <TableCell className="text-right">{formatNumber(Number(row.quantity_in) - Number(row.quantity_out))}</TableCell>
+                    <TableCell>{row.base_unit}</TableCell>
+                    <TableCell className="text-right">{formatCurrency(row.unit_cost)}</TableCell>
+                    <TableCell className="text-right">{formatCurrency(row.total_cost)}</TableCell>
+                    <TableCell>{row.reference_type ?? "-"}</TableCell>
+                    <TableCell className="max-w-40 truncate">{row.reference_id ?? row.document_id ?? "-"}</TableCell>
+                    <TableCell className="max-w-32 truncate">{row.created_by ?? "-"}</TableCell>
                   </DataGridRow>
-                );
-              })}
-              {!transactions.rows.length ? (
-                <TableRow>
-                  <TableCell colSpan={12}>
-                    <EmptyState title="No stock transactions yet" description="Posted receiving, transfers, counts, and adjustments will appear here as ledger movements." />
-                  </TableCell>
-                </TableRow>
-              ) : null}
-            </TableBody>
-          </Table>
+                ))}
+                {!ledger.rows.length ? (
+                  <TableRow>
+                    <TableCell colSpan={15}>
+                      <EmptyState title="No ledger movements found" description="Try a wider date range or fewer filters." />
+                    </TableCell>
+                  </TableRow>
+                ) : null}
+              </TableBody>
+            </Table>
           </div>
-          <PaginationControls page={transactions.page} totalPages={transactions.totalPages} totalRows={transactions.totalRows} searchParams={filters} />
+          <PaginationControls page={ledger.page} totalPages={ledger.totalPages} totalRows={ledger.totalRows} searchParams={filters} />
         </div>
-        <div className="mt-4 rounded-md border bg-secondary/40 p-3 text-sm text-muted-foreground">
-          Stock transaction rows are not edited or deleted. Use a correction movement if a posting is wrong.
-        </div>
-      </div>
+      </WorkspaceGrid>
     </>
   );
 }

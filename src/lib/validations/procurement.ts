@@ -82,3 +82,27 @@ export const goodsReceivingSchema = z.object({
   delivery_order_attached: z.coerce.boolean().optional(),
   lines: z.array(goodsReceivingLineSchema).min(1, "GRN must have at least one line"),
 });
+
+export const purchaseReturnLineSchema = z.object({
+  goods_receiving_line_id: z.string().uuid("GRN line is required"),
+  purchase_order_line_id: z.string().uuid("PO line is required"),
+  item_id: z.string().uuid("Item is required"),
+  received_qty: z.coerce.number().min(0),
+  previously_returned_qty: z.coerce.number().min(0),
+  return_qty: z.coerce.number().positive("Return quantity must be more than 0"),
+  uom: z.string().trim().min(1, "UOM is required"),
+  unit_cost: z.coerce.number().min(0),
+  reason: z.string().trim().optional().nullable(),
+}).refine((line) => line.return_qty <= line.received_qty - line.previously_returned_qty, {
+  message: "Return quantity cannot exceed returnable quantity",
+  path: ["return_qty"],
+});
+
+export const purchaseReturnSchema = z.object({
+  purchase_return_no: z.string().trim().min(1, "Return number is required"),
+  goods_receiving_id: z.string().uuid("GRN is required"),
+  return_date: z.string().trim().min(1, "Return date is required"),
+  reason: z.string().trim().optional().nullable(),
+  remarks: z.string().trim().optional().nullable(),
+  lines: z.array(purchaseReturnLineSchema).min(1, "Purchase return must have at least one return line"),
+});

@@ -4,6 +4,7 @@ const generatedPlaceholderPatterns: Array<{ documentType: string; pattern: RegEx
   { documentType: "purchase_request", pattern: /^PR-(AUTO|\d{6,8})$/i },
   { documentType: "purchase_order", pattern: /^PO-(AUTO|\d{6,8})$/i },
   { documentType: "goods_receiving", pattern: /^GRN-(AUTO|\d{6,8})$/i },
+  { documentType: "purchase_return", pattern: /^PRT-(AUTO|\d{6,8})$/i },
   { documentType: "stock_count", pattern: /^SC-(AUTO|\d{6,8})$/i },
   { documentType: "stock_transfer", pattern: /^TRF-(AUTO|\d{6,8})$/i },
   { documentType: "stock_wastage", pattern: /^WST-(AUTO|\d{6,8})$/i },

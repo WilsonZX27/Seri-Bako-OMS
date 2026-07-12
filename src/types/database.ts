@@ -16,6 +16,7 @@ export type ApprovalStatus = "not_required" | "draft" | "pending" | "approved" |
 export type PurchaseRequestStatus = "draft" | "manager_review" | "admin_review" | "finance_review" | "ready_to_convert" | "converted_to_po" | "rejected" | "returned" | "cancelled";
 export type PurchaseOrderStatus = "draft" | "pending_approval" | "approved" | "sent" | "partial_received" | "received" | "cancelled" | "closed";
 export type GoodsReceivingStatus = "draft" | "posted" | "cancelled";
+export type PurchaseReturnStatus = "draft" | "posted" | "cancelled";
 export type StockTransactionStatus = "draft" | "posted" | "cancelled";
 export type StockCountStatus = "draft" | "submitted" | "reviewed" | "approved" | "posted" | "rejected" | "cancelled";
 export type StockOperationStatus = "draft" | "submitted" | "approved" | "in_transit" | "posted" | "completed" | "rejected" | "cancelled";
@@ -1193,6 +1194,7 @@ export type Database = {
           pending_qty: number;
           received_qty: number;
           rejected_qty: number;
+          returned_qty: number;
           uom: string;
           unit_cost: number;
           batch_no: string | null;
@@ -1211,6 +1213,7 @@ export type Database = {
           pending_qty?: number;
           received_qty?: number;
           rejected_qty?: number;
+          returned_qty?: number;
           uom: string;
           unit_cost?: number;
           batch_no?: string | null;
@@ -1220,6 +1223,93 @@ export type Database = {
           updated_at?: string;
         };
         Update: Partial<Database["public"]["Tables"]["goods_receiving_lines"]["Insert"]>;
+        Relationships: [];
+      };
+      purchase_returns: {
+        Row: {
+          id: string;
+          company_id: string | null;
+          document_id: string | null;
+          purchase_return_no: string;
+          goods_receiving_id: string;
+          purchase_order_id: string;
+          supplier_id: string;
+          branch_id: string | null;
+          location_id: string;
+          return_date: string;
+          status: PurchaseReturnStatus;
+          reason: string | null;
+          remarks: string | null;
+          posted_at: string | null;
+          posted_by: string | null;
+          cancelled_at: string | null;
+          created_at: string;
+          updated_at: string;
+          created_by: string | null;
+          updated_by: string | null;
+          deleted_at: string | null;
+        };
+        Insert: {
+          id?: string;
+          company_id?: string | null;
+          document_id?: string | null;
+          purchase_return_no: string;
+          goods_receiving_id: string;
+          purchase_order_id: string;
+          supplier_id: string;
+          branch_id?: string | null;
+          location_id: string;
+          return_date?: string;
+          status?: PurchaseReturnStatus;
+          reason?: string | null;
+          remarks?: string | null;
+          posted_at?: string | null;
+          posted_by?: string | null;
+          cancelled_at?: string | null;
+          created_at?: string;
+          updated_at?: string;
+          created_by?: string | null;
+          updated_by?: string | null;
+          deleted_at?: string | null;
+        };
+        Update: Partial<Database["public"]["Tables"]["purchase_returns"]["Insert"]>;
+        Relationships: [];
+      };
+      purchase_return_lines: {
+        Row: {
+          id: string;
+          purchase_return_id: string;
+          goods_receiving_line_id: string;
+          purchase_order_line_id: string;
+          item_id: string;
+          received_qty: number;
+          previously_returned_qty: number;
+          return_qty: number;
+          uom: string;
+          unit_cost: number;
+          line_total: number;
+          reason: string | null;
+          stock_transaction_id: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          purchase_return_id: string;
+          goods_receiving_line_id: string;
+          purchase_order_line_id: string;
+          item_id: string;
+          received_qty?: number;
+          previously_returned_qty?: number;
+          return_qty: number;
+          uom: string;
+          unit_cost?: number;
+          reason?: string | null;
+          stock_transaction_id?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["purchase_return_lines"]["Insert"]>;
         Relationships: [];
       };
       recipes: {

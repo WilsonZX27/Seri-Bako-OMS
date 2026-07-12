@@ -1,0 +1,4 @@
+item_code,item_name,category,base_uom,safety_stock,reorder_level,default_unit_cost,status
+QA-IMP-ITEM-733,QA Import Item 7.2.33,Raw Material,KG,1,1,3.33,active
+QA-IMP-ITEM-733,Duplicate Import Item,Raw Material,KG,1,1,3.33,active
+QA-IMP-ITEM-BAD-733,Bad Import Item,Raw Material,KG,-1,1,3.33,active

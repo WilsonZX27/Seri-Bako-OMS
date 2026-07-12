@@ -1,0 +1,4 @@
+branch_code,item_code,quantity,uom,unit_cost,transaction_date,notes
+QA-IMP-BR-733,QA-IMP-ITEM-733,2,KG,3.33,2026-07-12,Opening Stock Import Sprint 7.2.33
+QA-IMP-BR-733,QA-IMP-ITEM-733,0,KG,3.33,2026-07-12,Invalid zero quantity
+QA-IMP-BR-733,UNKNOWN-ITEM-733,1,KG,3.33,2026-07-12,Unknown item

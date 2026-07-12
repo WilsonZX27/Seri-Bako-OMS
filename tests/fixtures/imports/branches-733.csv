@@ -1,0 +1,4 @@
+branch_code,branch_name,branch_type,address,status
+QA-IMP-BR-733,QA Import Branch 7.2.33,outlet,Kuala Lumpur,active
+QA-IMP-BR-733,Duplicate Branch 7.2.33,outlet,Kuala Lumpur,active
+QA-IMP-BR-BAD-733,Bad Branch,bad_type,Kuala Lumpur,active

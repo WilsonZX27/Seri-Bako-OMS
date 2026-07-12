@@ -12,7 +12,7 @@ import { resolveDefaultLocation } from "@/server/inventory/locations";
 import { getNextDocumentNumber } from "@/server/documents/sequences";
 import { getDefaultCompanyId } from "@/server/queries/barcodes";
 import { getCurrentProfile } from "@/server/queries/common";
-import type { BarcodeType, Database, ItemStatus, RecordStatus, StockTransactionStatus } from "@/types/database";
+import type { BarcodeType, BranchType, Database, ItemStatus, RecordStatus, StaffStatus, StockTransactionStatus } from "@/types/database";
 
 const importSchema = z.object({
   entity: z.enum(importEntities),
@@ -33,9 +33,18 @@ type ImportSummary = {
 
 type RouteContext = {
   supabase: Awaited<ReturnType<typeof createClient>>;
-  writeSupabase: ReturnType<typeof createAdminClient>;
+  writeSupabase: Awaited<ReturnType<typeof createClient>> | ReturnType<typeof createAdminClient>;
   profile: Awaited<ReturnType<typeof getCurrentProfile>>;
 };
+
+function getWriteClient(fallback: Awaited<ReturnType<typeof createClient>>) {
+  try {
+    return createAdminClient();
+  } catch (error) {
+    if (error instanceof Error && error.message.includes("service role key")) return fallback;
+    throw error;
+  }
+}
 
 function normalizeText(value: unknown) {
   const text = String(value ?? "").trim();
@@ -59,6 +68,22 @@ function parseBooleanFlag(value: unknown, defaultValue = true) {
   if (["1", "true", "yes", "y", "active", "checked"].includes(normalized)) return true;
   if (["0", "false", "no", "n", "inactive", "unchecked"].includes(normalized)) return false;
   return defaultValue;
+}
+
+function parseStatus(value: unknown): RecordStatus {
+  const normalized = normalizeLower(value);
+  return normalized === "inactive" || normalized === "archived" ? normalized : "active";
+}
+
+function hasDuplicateInFile(summary: ImportSummary, seen: Map<string, number>, key: string, rowNumber: number, row: Record<string, string>) {
+  if (!key) return false;
+  const first = seen.get(key);
+  if (first) {
+    pushIssue(summary, rowNumber, row, `Duplicate of row ${first}.`);
+    return true;
+  }
+  seen.set(key, rowNumber);
+  return false;
 }
 
 function parseDate(value: unknown) {
@@ -159,11 +184,11 @@ function getItemImportValues(row: Record<string, string>, entity: ImportRequest[
     base_uom: normalizeText(row.base_uom),
     purchase_uom: normalizeText(row.purchase_uom) || normalizeText(row.base_uom),
     barcode: "",
-    cost: parseNumber(row.cost),
+    cost: parseNumber(row.default_unit_cost ?? row.cost),
     safety_stock: parseNumber(row.safety_stock),
     supplier_name: normalizeText(row.supplier_name),
     supplier_code: normalizeText(row.supplier_code),
-    active: normalizeText(row.active),
+    active: normalizeText(row.status ?? row.active),
     autocount_code: "",
   };
 }
@@ -171,6 +196,7 @@ function getItemImportValues(row: Record<string, string>, entity: ImportRequest[
 async function handleItemsImport(context: RouteContext, request: ImportRequest) {
   const summary = createSummary();
   const rows = request.rows;
+  const seen = new Map<string, number>();
   const itemRows = rows.map((row) => ({ source: row, values: getItemImportValues(row, request.entity) }));
   const itemCodes = [...new Set(itemRows.map((row) => row.values.item_code).filter(Boolean))];
   const supplierNames = [...new Set(itemRows.map((row) => normalizeLower(row.values.supplier_name)).filter(Boolean))];
@@ -216,8 +242,13 @@ async function handleItemsImport(context: RouteContext, request: ImportRequest) 
         : null;
     const existingBarcode = barcode ? barcodeByValue.get(normalizeLower(barcode)) : null;
 
+    if (hasDuplicateInFile(summary, seen, normalizeLower(itemCode), rowNumber, sourceRow)) continue;
     if (!itemCode || !itemName || !category || !baseUom) {
       pushIssue(summary, rowNumber, sourceRow, "Missing required field.");
+      continue;
+    }
+    if ((cost ?? 0) < 0 || (safetyStock ?? 0) < 0) {
+      pushIssue(summary, rowNumber, sourceRow, "Numeric values cannot be negative.");
       continue;
     }
     if (cost === null && request.entity !== "items-stock-listing" && normalizeText(sourceRow.cost)) {
@@ -358,6 +389,7 @@ async function handleProductsImport(context: RouteContext, request: ImportReques
 async function handleSuppliersImport(context: RouteContext, request: ImportRequest) {
   const summary = createSummary();
   const rows = request.rows;
+  const seen = new Map<string, number>();
   const { data: existingSuppliers, error: existingError } = await context.supabase
     .from("suppliers")
     .select("id, supplier_code, name")
@@ -375,8 +407,14 @@ async function handleSuppliersImport(context: RouteContext, request: ImportReque
     const supplierName = normalizeText(row.supplier_name);
     const existing = existingByCode.get(normalizeLower(supplierCode));
 
+    if (hasDuplicateInFile(summary, seen, normalizeLower(supplierCode), rowNumber, row)) continue;
     if (!supplierCode || !supplierName) {
       pushIssue(summary, rowNumber, row, "supplier_code and supplier_name are required.");
+      continue;
+    }
+    const paymentTerms = parseNumber(row.payment_terms_days ?? row.payment_terms);
+    if (paymentTerms !== null && paymentTerms < 0) {
+      pushIssue(summary, rowNumber, row, "payment_terms_days cannot be negative.");
       continue;
     }
 
@@ -397,12 +435,12 @@ async function handleSuppliersImport(context: RouteContext, request: ImportReque
     const payload: Database["public"]["Tables"]["suppliers"]["Insert"] = {
       supplier_code: supplierCode,
       name: supplierName,
-      contact_person: normalizeText(row.contact_person) || null,
+      contact_person: normalizeText(row.contact_name ?? row.contact_person) || null,
       phone: normalizeText(row.phone) || null,
       email: normalizeText(row.email) || null,
       address: normalizeText(row.address) || null,
-      payment_terms_days: parseNumber(row.payment_terms) ?? 30,
-      status: (parseBooleanFlag(row.active, true) ? "active" : "inactive") as Database["public"]["Tables"]["suppliers"]["Row"]["status"],
+      payment_terms_days: paymentTerms ?? 30,
+      status: parseStatus(row.status ?? row.active) as Database["public"]["Tables"]["suppliers"]["Row"]["status"],
     };
 
     if (existing) {
@@ -420,6 +458,142 @@ async function handleSuppliersImport(context: RouteContext, request: ImportReque
       }
       summary.imported += 1;
     }
+  }
+
+  return summary;
+}
+
+async function handleBranchesImport(context: RouteContext, request: ImportRequest) {
+  const summary = createSummary();
+  const rows = request.rows;
+  const seen = new Map<string, number>();
+  const companyId = context.profile?.company_id ?? (await getDefaultCompanyId());
+  const allowedTypes: BranchType[] = ["central_kitchen", "outlet", "event_booth", "office", "other"];
+  const codes = [...new Set(rows.map((row) => normalizeText(row.branch_code)).filter(Boolean))];
+  const { data: existingBranches, error } = await context.supabase
+    .from("branches")
+    .select("id, branch_code")
+    .in("branch_code", codes.length ? codes : [""])
+    .is("deleted_at", null);
+  if (error) throw new Error(error.message);
+  const existingByCode = new Map((existingBranches ?? []).map((row) => [normalizeLower(row.branch_code), row]));
+
+  for (const [index, row] of rows.entries()) {
+    const rowNumber = index + 1;
+    const branchCode = normalizeText(row.branch_code);
+    const branchType = normalizeText(row.branch_type) as BranchType;
+    if (hasDuplicateInFile(summary, seen, normalizeLower(branchCode), rowNumber, row)) continue;
+    if (!branchCode || !normalizeText(row.branch_name) || !branchType) {
+      pushIssue(summary, rowNumber, row, "branch_code, branch_name, and branch_type are required.");
+      continue;
+    }
+    if (!allowedTypes.includes(branchType)) {
+      pushIssue(summary, rowNumber, row, "Invalid branch_type.");
+      continue;
+    }
+    if (!["active", "inactive", "archived", ""].includes(normalizeLower(row.status))) {
+      pushIssue(summary, rowNumber, row, "Invalid status.");
+      continue;
+    }
+    if (existingByCode.has(normalizeLower(branchCode))) {
+      pushIssue(summary, rowNumber, row, "Duplicate code. This branch already exists.", "skip");
+      continue;
+    }
+
+    const { error: insertError } = await context.writeSupabase.from("branches").insert({
+      company_id: companyId,
+      branch_code: branchCode,
+      branch_name: normalizeText(row.branch_name),
+      branch_type: branchType,
+      address: normalizeText(row.address) || null,
+      status: parseStatus(row.status),
+      created_by: context.profile?.id ?? null,
+    });
+    if (insertError) {
+      pushIssue(summary, rowNumber, row, insertError.message);
+      continue;
+    }
+    summary.imported += 1;
+  }
+
+  return summary;
+}
+
+async function handleStaffImport(context: RouteContext, request: ImportRequest) {
+  const summary = createSummary();
+  const rows = request.rows;
+  const seenCode = new Map<string, number>();
+  const seenEmail = new Map<string, number>();
+  const companyId = context.profile?.company_id ?? (await getDefaultCompanyId());
+  const [{ data: existingStaff, error: staffError }, { data: branches, error: branchError }, { data: roles, error: roleError }] = await Promise.all([
+    context.supabase.from("staffs").select("id, staff_code, email, invite_email").is("deleted_at", null),
+    context.supabase.from("branches").select("id, branch_code").is("deleted_at", null),
+    context.supabase.from("roles").select("id, role_code").is("deleted_at", null),
+  ]);
+  if (staffError) throw new Error(staffError.message);
+  if (branchError) throw new Error(branchError.message);
+  if (roleError) throw new Error(roleError.message);
+  const staffByCode = new Map((existingStaff ?? []).filter((row) => row.staff_code).map((row) => [normalizeLower(row.staff_code), row]));
+  const staffByEmail = new Map((existingStaff ?? []).flatMap((row) => [row.email, row.invite_email].filter(Boolean).map((email) => [normalizeLower(email), row] as const)));
+  const branchByCode = new Map((branches ?? []).map((row) => [normalizeLower(row.branch_code), row]));
+  const roleByCode = new Map((roles ?? []).map((row) => [normalizeLower(row.role_code), row]));
+
+  for (const [index, row] of rows.entries()) {
+    const rowNumber = index + 1;
+    const staffCode = normalizeText(row.staff_code);
+    const email = normalizeLower(row.email);
+    const branch = branchByCode.get(normalizeLower(row.branch_code));
+    const role = roleByCode.get(normalizeLower(row.role_code));
+    if (hasDuplicateInFile(summary, seenCode, normalizeLower(staffCode), rowNumber, row)) continue;
+    if (hasDuplicateInFile(summary, seenEmail, email, rowNumber, row)) continue;
+    if (!staffCode || !normalizeText(row.full_name) || !email || !normalizeText(row.branch_code) || !normalizeText(row.role_code)) {
+      pushIssue(summary, rowNumber, row, "staff_code, full_name, email, branch_code, and role_code are required.");
+      continue;
+    }
+    if (!z.string().email().safeParse(email).success) {
+      pushIssue(summary, rowNumber, row, "Invalid email address.");
+      continue;
+    }
+    if (staffByCode.has(normalizeLower(staffCode)) || staffByEmail.has(email)) {
+      pushIssue(summary, rowNumber, row, "Duplicate staff_code or email.", "skip");
+      continue;
+    }
+    if (!branch) {
+      pushIssue(summary, rowNumber, row, "Unknown branch_code.");
+      continue;
+    }
+    if (!role) {
+      pushIssue(summary, rowNumber, row, "Unknown role_code.");
+      continue;
+    }
+
+    const { data: staff, error: insertError } = await context.writeSupabase.from("staffs").insert({
+      company_id: companyId,
+      staff_code: staffCode,
+      full_name: normalizeText(row.full_name),
+      email,
+      invite_email: email,
+      phone: normalizeText(row.phone) || null,
+      default_branch_id: branch.id,
+      status: (normalizeLower(row.status) === "disabled" ? "disabled" : normalizeLower(row.status) === "invited" ? "invited" : parseStatus(row.status)) as StaffStatus,
+      invitation_status: "not_sent",
+      must_change_password: false,
+      auth_setup_method: "imported",
+      created_by: context.profile?.id ?? null,
+    }).select("id").single();
+    if (insertError || !staff) {
+      pushIssue(summary, rowNumber, row, insertError?.message ?? "Could not create staff.");
+      continue;
+    }
+    const [roleInsert, branchInsert] = await Promise.all([
+      context.writeSupabase.from("staff_roles").insert({ staff_id: staff.id, role_id: role.id, branch_id: branch.id, is_primary: true }),
+      context.writeSupabase.from("staff_branches").insert({ staff_id: staff.id, branch_id: branch.id, access_level: "full", is_default: true }),
+    ]);
+    if (roleInsert.error || branchInsert.error) {
+      pushIssue(summary, rowNumber, row, roleInsert.error?.message ?? branchInsert.error?.message ?? "Could not assign staff access.");
+      continue;
+    }
+    summary.imported += 1;
   }
 
   return summary;
@@ -735,7 +909,6 @@ async function handleOpeningStockImport(context: RouteContext, request: ImportRe
     Pick<Database["public"]["Tables"]["branches"]["Row"], "id" | "branch_code" | "branch_name" | "status">
   >();
   for (const branch of branches ?? []) {
-    branchByNameOrCode.set(normalizeLower(branch.branch_name), branch);
     branchByNameOrCode.set(normalizeLower(branch.branch_code), branch);
   }
   const itemByCode = new Map((items ?? []).map((row) => [normalizeLower(row.item_code), row]));
@@ -756,7 +929,7 @@ async function handleOpeningStockImport(context: RouteContext, request: ImportRe
 
   for (const [index, row] of rows.entries()) {
     const rowNumber = index + 1;
-    const branch = branchByNameOrCode.get(normalizeLower(row.branch));
+    const branch = branchByNameOrCode.get(normalizeLower(row.branch_code ?? row.branch));
     const item = itemByCode.get(normalizeLower(row.item_code));
     const quantity = parseNumber(row.quantity);
     const unitCost = parseNumber(row.unit_cost);
@@ -771,8 +944,8 @@ async function handleOpeningStockImport(context: RouteContext, request: ImportRe
       pushIssue(summary, rowNumber, row, "Unknown item.");
       continue;
     }
-    if (quantity === null || quantity < 0) {
-      pushIssue(summary, rowNumber, row, "quantity must be a valid number greater than or equal to 0.");
+    if (quantity === null || quantity <= 0) {
+      pushIssue(summary, rowNumber, row, "quantity must be greater than 0.");
       continue;
     }
     if (!inputUom) {
@@ -785,6 +958,10 @@ async function handleOpeningStockImport(context: RouteContext, request: ImportRe
     }
     if (normalizeText(row.expiry_date) && !expiryDate) {
       pushIssue(summary, rowNumber, row, "Invalid expiry_date.");
+      continue;
+    }
+    if (normalizeText(row.transaction_date) && !parseDate(row.transaction_date)) {
+      pushIssue(summary, rowNumber, row, "Invalid transaction_date.");
       continue;
     }
 
@@ -823,8 +1000,8 @@ async function handleOpeningStockImport(context: RouteContext, request: ImportRe
     const ledgerUnitCost = unitCost !== null && factor > 0 ? unitCost / factor : 0;
     const now = new Date().toISOString();
     const remarks = [
-      "Opening Stock Import",
-      normalizeText(row.remarks),
+      "Opening Stock Import Sprint 7.2.33",
+      normalizeText(row.notes ?? row.remarks),
       normalizeText(row.batch_no) ? `Batch ${normalizeText(row.batch_no)}` : "",
       expiryDate ? `Expiry ${expiryDate}` : "",
     ]
@@ -832,6 +1009,7 @@ async function handleOpeningStockImport(context: RouteContext, request: ImportRe
       .join(" | ");
 
     const transactionNo = await getNextDocumentNumber(context.profile?.company_id ?? (await getDefaultCompanyId()), "opening_balance");
+    const transactionDate = parseDate(row.transaction_date) ?? now.slice(0, 10);
     const { data: transaction, error: transactionError } = await context.writeSupabase
       .from("stock_transactions")
       .insert({
@@ -840,7 +1018,7 @@ async function handleOpeningStockImport(context: RouteContext, request: ImportRe
         item_id: item.id,
         location_id: locationId,
         transaction_type: "opening_balance",
-        transaction_date: now.slice(0, 10),
+        transaction_date: transactionDate,
         quantity_in: baseQuantity,
         quantity_out: 0,
         unit_cost: ledgerUnitCost,
@@ -900,6 +1078,15 @@ function revalidateImportTargets(entity: ImportRequest["entity"]) {
   if (entity === "suppliers") {
     revalidatePath("/suppliers");
     revalidatePath("/procurement");
+    return;
+  }
+  if (entity === "branches") {
+    revalidatePath("/branches");
+    return;
+  }
+  if (entity === "staff") {
+    revalidatePath("/staffs");
+    revalidatePath("/roles");
     return;
   }
   if (entity === "supplier-items") {
@@ -996,23 +1183,27 @@ export async function POST(request: Request) {
     const context: RouteContext = {
       supabase,
       profile: await getCurrentProfile(),
-      writeSupabase: createAdminClient(),
+      writeSupabase: getWriteClient(supabase),
     };
 
     const summary =
       payload.data.entity === "items" || payload.data.entity === "items-stock-listing"
         ? await handleItemsImport(context, payload.data)
-        : payload.data.entity === "products"
-          ? await handleProductsImport(context, payload.data)
-          : payload.data.entity === "suppliers"
-            ? await handleSuppliersImport(context, payload.data)
-            : payload.data.entity === "supplier-items"
-              ? await handleSupplierItemsImport(context, payload.data)
-              : payload.data.entity === "uom-conversions"
-                ? await handleUomConversionsImport(context, payload.data)
-                : payload.data.entity === "barcode-mappings"
-                  ? await handleBarcodeMappingsImport(context, payload.data)
-                  : await handleOpeningStockImport(context, payload.data);
+        : payload.data.entity === "branches"
+          ? await handleBranchesImport(context, payload.data)
+          : payload.data.entity === "staff"
+            ? await handleStaffImport(context, payload.data)
+            : payload.data.entity === "products"
+              ? await handleProductsImport(context, payload.data)
+              : payload.data.entity === "suppliers"
+                ? await handleSuppliersImport(context, payload.data)
+                : payload.data.entity === "supplier-items"
+                  ? await handleSupplierItemsImport(context, payload.data)
+                  : payload.data.entity === "uom-conversions"
+                    ? await handleUomConversionsImport(context, payload.data)
+                    : payload.data.entity === "barcode-mappings"
+                      ? await handleBarcodeMappingsImport(context, payload.data)
+                      : await handleOpeningStockImport(context, payload.data);
 
     if (summary.imported || summary.updated) {
       try {

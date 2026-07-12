@@ -1,0 +1,4 @@
+supplier_code,supplier_name,contact_name,email,phone,address,payment_terms_days,status
+QA-IMP-SUP-733,QA Import Supplier 7.2.33,QA Buyer,qa-imp-sup-733@example.com,0123456789,Kuala Lumpur,30,active
+QA-IMP-SUP-733,Duplicate Supplier,QA Buyer,dup@example.com,0123456789,Kuala Lumpur,30,active
+QA-IMP-SUP-BAD-733,Bad Supplier,QA Buyer,not-an-email,0123456789,Kuala Lumpur,30,active

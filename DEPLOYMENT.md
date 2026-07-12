@@ -1,0 +1,430 @@
+# Seri Bako OMS Deployment Guide
+
+## Purpose
+
+This document defines the production deployment, environment configuration, Supabase migration, authentication, and recovery procedures for Seri Bako OMS.
+
+Use this guide whenever a change affects:
+
+- Database schema.
+- Database views.
+- Sequences.
+- Functions.
+- Triggers.
+- Row Level Security.
+- Permissions.
+- Authentication redirect URLs.
+- SMTP.
+- Server-only environment variables.
+- Vercel production configuration.
+
+## Production Services
+
+Seri Bako OMS currently depends on:
+
+- GitHub or the approved source repository.
+- Vercel.
+- Supabase Database.
+- Supabase Auth.
+- Supabase Row Level Security.
+- A production email or SMTP provider.
+
+## Required Environment Variables
+
+Configure the following in the target environment:
+
+```bash
+NEXT_PUBLIC_SUPABASE_URL=
+NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=
+NEXT_PUBLIC_APP_URL=
+SUPABASE_SERVICE_ROLE_KEY=
+```
+
+### Security rules
+
+- `SUPABASE_SERVICE_ROLE_KEY` must remain server-only.
+- Never prefix the service-role key with `NEXT_PUBLIC_`.
+- Never commit production secrets.
+- Never expose secrets through browser bundles, logs, screenshots, or user-facing error responses.
+- Confirm Vercel environment variables are configured for the correct environment: Production, Preview, or Development.
+
+## Recommended Production URL
+
+```text
+https://seri-bako-oms-official.vercel.app
+```
+
+Set:
+
+```bash
+NEXT_PUBLIC_APP_URL=https://seri-bako-oms-official.vercel.app
+```
+
+Use the actual production domain if it changes.
+
+## Supabase Auth Redirect URLs
+
+Add the required URLs in:
+
+```text
+Supabase Dashboard
+Authentication
+URL Configuration
+```
+
+Recommended production entries:
+
+```text
+https://seri-bako-oms-official.vercel.app/auth/callback
+https://seri-bako-oms-official.vercel.app/set-password
+https://seri-bako-oms-official.vercel.app/change-password
+https://seri-bako-oms-official.vercel.app/**
+```
+
+Recommended local entry:
+
+```text
+http://localhost:3000/**
+```
+
+If a custom domain is introduced, add the equivalent callback and wildcard URLs before switching production traffic.
+
+## Production Email and SMTP
+
+Supabase's built-in email provider is rate limited.
+
+Production staff onboarding and password recovery should use custom SMTP.
+
+Configure:
+
+```text
+Supabase Dashboard
+Authentication
+SMTP Settings
+```
+
+Supported provider options may include:
+
+- Company SMTP.
+- Resend.
+- SendGrid.
+- Mailgun.
+- Amazon SES.
+
+After SMTP changes, test:
+
+- Staff invitation.
+- Password reset.
+- Set-password redirect.
+- Change-password flow.
+- Sender name.
+- Sender address.
+- Spam delivery.
+- Production callback URL.
+
+Temporary-password onboarding remains a fallback or alternative workflow where implemented.
+
+## Database Migration Source of Truth
+
+All required database changes must be represented by versioned files in:
+
+```text
+supabase/migrations/
+```
+
+Do not rely on undocumented manual production changes.
+
+A migration may include:
+
+- Tables.
+- Columns.
+- Constraints.
+- Indexes.
+- Views.
+- Materialized views.
+- Functions.
+- Triggers.
+- Sequences.
+- Grants.
+- Row Level Security policies.
+- Data backfills.
+- Permission code changes.
+
+## Standard Deployment Sequence
+
+For the current project workflow, use this order when code changes depend on new migrations:
+
+1. Review the code and migration together.
+2. Push the approved code to the remote repository.
+3. Apply Supabase migrations.
+4. Reload the PostgREST schema where required.
+5. Redeploy or refresh the Vercel deployment when required.
+6. Validate the affected production workflow.
+
+Commands:
+
+```bash
+git push
+npx supabase db push
+```
+
+Then run in the Supabase SQL Editor when schema caching requires refresh:
+
+```sql
+NOTIFY pgrst, 'reload schema';
+```
+
+The repository owner may perform the push manually according to the project workflow.
+
+## Why Deployment Order Matters
+
+The application code and database schema must remain compatible.
+
+Typical failure patterns include:
+
+### Code ahead of database
+
+Symptoms:
+
+- Missing table.
+- Missing column.
+- Missing view.
+- Missing function.
+- Missing sequence.
+- Relation does not exist.
+- API schema cache error.
+
+Cause:
+
+The code was deployed before its required migration was applied.
+
+Resolution:
+
+1. Apply the missing migration.
+2. Reload PostgREST schema.
+3. Revalidate the affected page.
+4. Redeploy only if the application environment or generated build requires it.
+
+### Database ahead of code
+
+Symptoms:
+
+- Older code fails against changed constraints.
+- Renamed fields are still referenced.
+- Old permission codes no longer match.
+- Removed views or functions are still called.
+
+Resolution:
+
+Deploy compatible application code or restore backward compatibility through a corrective migration.
+
+## Migration Safety Rules
+
+### 1. Prefer additive migrations
+
+Where possible:
+
+- Add new columns before removing old ones.
+- Add compatibility views or aliases during transition.
+- Backfill data before applying stricter constraints.
+- Introduce canonical permission codes without immediately breaking legacy aliases.
+
+### 2. Avoid destructive changes without a recovery path
+
+Before dropping or renaming:
+
+- Columns.
+- Tables.
+- Views.
+- Functions.
+- Sequences.
+- Permission codes.
+
+Confirm:
+
+- No active code references them.
+- Data has been backed up or migrated.
+- A rollback or corrective migration is possible.
+
+### 3. Never edit an already-applied production migration casually
+
+Create a new corrective migration instead.
+
+Changing the contents of an old applied migration can cause environment drift.
+
+### 4. Validate Row Level Security
+
+A successful migration does not prove that users can access the correct records.
+
+Test with representative roles and permissions.
+
+### 5. Validate service-role usage
+
+Service-role actions must remain limited to controlled server-only flows.
+
+Do not use service-role access to bypass normal authorization for routine user operations.
+
+## Pre-Deployment Checklist
+
+Before deployment:
+
+- Confirm the correct branch and commit.
+- Confirm required migrations exist.
+- Review environment variable changes.
+- Review authentication redirect changes.
+- Review SMTP changes.
+- Run lint.
+- Run build.
+- Check that new permission codes are seeded or migrated.
+- Check that new tables have RLS enabled where required.
+- Check that policies exist.
+- Check that server actions validate permissions.
+- Check that affected pages handle the new schema.
+- Check that the visible sprint or footer version is updated when required.
+
+Recommended commands:
+
+```bash
+npm run lint
+npm run build
+```
+
+## Post-Deployment Validation
+
+After deployment, validate the affected production flow.
+
+At minimum:
+
+- Login works.
+- Auth callback works.
+- Protected routes remain protected.
+- Permission-aware navigation behaves correctly.
+- A representative permitted user can perform the action.
+- A representative restricted user is blocked.
+- New tables, columns, views, and sequences are accessible.
+- PostgREST schema is current.
+- Records save correctly.
+- Downstream effects occur correctly.
+- Inventory movement is generated correctly where relevant.
+- Comments, attachments, and timelines still load where relevant.
+- No sensitive server error is exposed to the browser.
+
+## Staff Onboarding Validation
+
+Test at least one supported path:
+
+### Invite flow
+
+1. Admin creates or invites the staff user.
+2. Email is delivered.
+3. User opens the production redirect.
+4. User sets a password.
+5. User reaches the correct protected application area.
+6. The matching profile, role, and permissions are available.
+
+### Temporary-password flow
+
+1. Admin creates the staff account.
+2. Temporary password is shown only through the intended secure response.
+3. User logs in.
+4. User is forced to change the password where implemented.
+5. User receives the correct role and permissions.
+
+## Rollback and Recovery
+
+Supabase migrations are forward-oriented.
+
+Do not assume an automatic safe rollback exists.
+
+When a deployment fails:
+
+1. Identify whether the failure is application, environment, authentication, or database related.
+2. Stop additional unrelated changes.
+3. Preserve current data.
+4. Deploy a corrective application change or new migration.
+5. Restore compatibility rather than editing production manually without record.
+6. Revalidate permissions and downstream effects.
+
+For destructive migration failures, restore from the available Supabase backup or point-in-time recovery capability if enabled and appropriate.
+
+## Common Production Issues
+
+### Missing table, view, column, or sequence
+
+Likely cause:
+
+- Migration not applied.
+- Wrong Supabase project.
+- Schema cache not refreshed.
+
+Actions:
+
+```bash
+npx supabase db push
+```
+
+Then:
+
+```sql
+NOTIFY pgrst, 'reload schema';
+```
+
+### Authentication redirects to localhost
+
+Likely cause:
+
+- `NEXT_PUBLIC_APP_URL` missing or incorrect.
+- Supabase redirect URL missing.
+- Production deployment still uses old environment values.
+
+### Invite or reset email not arriving
+
+Likely cause:
+
+- Built-in email rate limit.
+- SMTP not configured.
+- Sender domain not verified.
+- Email blocked or sent to spam.
+- Redirect URL rejected.
+
+### User can see a page but cannot perform an action
+
+Likely cause:
+
+- Front-end permission and server authorization are not aligned.
+- Required permission was not assigned.
+- Legacy and canonical permission codes differ.
+- RLS blocks the underlying query.
+
+### User can perform an action they should not
+
+Treat this as a security defect.
+
+Check:
+
+- Server action permission validation.
+- Database policy.
+- Service-role usage.
+- Role-to-permission assignment.
+- Permission alias behavior.
+
+## Environment Separation
+
+Keep Production, Preview, and Development environments clearly separated.
+
+Do not point a local or preview application at the production database unless intentionally performing an approved production test.
+
+When multiple Supabase projects are used, label them clearly and verify the project URL before applying migrations.
+
+## Deployment Ownership
+
+The person performing deployment is responsible for confirming:
+
+- The correct repository state.
+- The correct Supabase project.
+- The correct Vercel project.
+- The correct environment variables.
+- The required migration order.
+- The post-deployment validation result.
+
+Deployment is not complete when Vercel reports success. It is complete only after the affected operational workflow has been validated.

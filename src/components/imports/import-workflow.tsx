@@ -90,6 +90,79 @@ function parseCsv(text: string) {
   return { headers, dataRows };
 }
 
+function columnIndex(cellRef: string) {
+  const letters = cellRef.replace(/\d+/g, "");
+  return [...letters].reduce((sum, letter) => sum * 26 + letter.charCodeAt(0) - 64, 0) - 1;
+}
+
+async function inflateRaw(bytes: Uint8Array) {
+  const copy = new Uint8Array(bytes.byteLength);
+  copy.set(bytes);
+  const stream = new Blob([copy.buffer]).stream().pipeThrough(new DecompressionStream("deflate-raw"));
+  return new Uint8Array(await new Response(stream).arrayBuffer());
+}
+
+async function unzipText(file: File) {
+  const bytes = new Uint8Array(await file.arrayBuffer());
+  const view = new DataView(bytes.buffer);
+  let eocd = -1;
+  for (let index = bytes.length - 22; index >= 0; index -= 1) {
+    if (view.getUint32(index, true) === 0x06054b50) {
+      eocd = index;
+      break;
+    }
+  }
+  if (eocd < 0) throw new Error("Invalid XLSX file.");
+  const entries = view.getUint16(eocd + 10, true);
+  let cursor = view.getUint32(eocd + 16, true);
+  const files = new Map<string, string>();
+  const decoder = new TextDecoder();
+  for (let entry = 0; entry < entries; entry += 1) {
+    if (view.getUint32(cursor, true) !== 0x02014b50) break;
+    const method = view.getUint16(cursor + 10, true);
+    const compressedSize = view.getUint32(cursor + 20, true);
+    const nameLength = view.getUint16(cursor + 28, true);
+    const extraLength = view.getUint16(cursor + 30, true);
+    const commentLength = view.getUint16(cursor + 32, true);
+    const localOffset = view.getUint32(cursor + 42, true);
+    const name = decoder.decode(bytes.slice(cursor + 46, cursor + 46 + nameLength));
+    const localNameLength = view.getUint16(localOffset + 26, true);
+    const localExtraLength = view.getUint16(localOffset + 28, true);
+    const start = localOffset + 30 + localNameLength + localExtraLength;
+    const compressed = bytes.slice(start, start + compressedSize);
+    const content = method === 0 ? compressed : method === 8 ? await inflateRaw(compressed) : null;
+    if (content) files.set(name, decoder.decode(content));
+    cursor += 46 + nameLength + extraLength + commentLength;
+  }
+  return files;
+}
+
+function textContent(xml: string) {
+  return xml.replace(/<[^>]+>/g, "").replaceAll("&amp;", "&").replaceAll("&lt;", "<").replaceAll("&gt;", ">").replaceAll("&quot;", '"').replaceAll("&apos;", "'");
+}
+
+async function parseXlsx(file: File) {
+  const files = await unzipText(file);
+  const shared = [...(files.get("xl/sharedStrings.xml") ?? "").matchAll(/<si[\s\S]*?<\/si>/g)].map((match) => textContent(match[0]));
+  const sheet = files.get("xl/worksheets/sheet1.xml");
+  if (!sheet) throw new Error("The first worksheet could not be read.");
+  const rows: string[][] = [];
+  for (const rowMatch of sheet.matchAll(/<row[^>]*>([\s\S]*?)<\/row>/g)) {
+    const row: string[] = [];
+    for (const cellMatch of rowMatch[1].matchAll(/<c[^>]*r="([A-Z]+\d+)"[^>]*(?:t="([^"]+)")?[^>]*>([\s\S]*?)<\/c>/g)) {
+      const index = columnIndex(cellMatch[1]);
+      const type = cellMatch[2];
+      const body = cellMatch[3];
+      const raw = body.match(/<v[^>]*>([\s\S]*?)<\/v>/)?.[1] ?? body.match(/<t[^>]*>([\s\S]*?)<\/t>/)?.[1] ?? "";
+      row[index] = type === "s" ? shared[Number(raw)] ?? "" : textContent(raw);
+    }
+    if (row.some(Boolean)) rows.push(row);
+  }
+  const headers = rows[0]?.map((cell) => String(cell ?? "").trim()) ?? [];
+  const dataRows = rows.slice(1).map((values) => Object.fromEntries(headers.map((header, index) => [header, String(values[index] ?? "").trim()])));
+  return { headers, dataRows };
+}
+
 function validateRows(entity: ImportEntity, rows: Record<string, string>[]) {
   const spec = importTemplates[entity];
   const seen = new Map<string, number>();
@@ -171,6 +244,21 @@ export function ImportWorkflow({ entity }: { entity: ImportEntity }) {
     URL.revokeObjectURL(url);
   }
 
+  function downloadErrorCsv() {
+    const invalid = rows.filter((row) => row.errors.length);
+    const headers = ["row_number", ...spec.headers, "errors"];
+    const csv = [
+      headers.join(","),
+      ...invalid.map((row) => [String(row.index), ...spec.headers.map((header) => row.values[header] ?? ""), row.errors.join("; ")].map(csvEscape).join(",")),
+    ].join("\r\n");
+    const url = URL.createObjectURL(new Blob([csv], { type: "text/csv;charset=utf-8" }));
+    const anchor = document.createElement("a");
+    anchor.href = url;
+    anchor.download = `${entity}-errors.csv`;
+    anchor.click();
+    URL.revokeObjectURL(url);
+  }
+
   function updateRows(nextRows: Record<string, string>[]) {
     setRows(validateRows(entity, nextRows));
   }
@@ -180,19 +268,38 @@ export function ImportWorkflow({ entity }: { entity: ImportEntity }) {
     if (!file) return;
 
     setFileName(file.name);
-    if (file.name.toLowerCase().endsWith(".xlsx")) {
+    if (file.size > 2 * 1024 * 1024) {
       setRows([]);
-      setMessage("Please export this template as CSV first, then upload the CSV file.");
+      setMessage("File is too large. Keep imports under 2 MB.");
       return;
     }
 
-    const text = await file.text();
-    const parsed = parseCsv(text);
+    const lowerName = file.name.toLowerCase();
+    if (!lowerName.endsWith(".csv") && !lowerName.endsWith(".xlsx")) {
+      setRows([]);
+      setMessage("Unsupported file type. Upload CSV or XLSX only.");
+      return;
+    }
+
+    let parsed: { headers: string[]; dataRows: Record<string, string>[] };
+    try {
+      parsed = lowerName.endsWith(".xlsx") ? await parseXlsx(file) : parseCsv(await file.text());
+    } catch {
+      setRows([]);
+      setMessage("Could not read this file. Use the fixed CSV/XLSX template.");
+      return;
+    }
     const missingColumns = spec.required.filter((header) => !parsed.headers.includes(header));
 
     if (missingColumns.length) {
       setRows([]);
       setMessage(`Missing required column${missingColumns.length > 1 ? "s" : ""}: ${missingColumns.join(", ")}`);
+      return;
+    }
+
+    if (parsed.dataRows.length > 500) {
+      setRows([]);
+      setMessage("Too many rows. Keep one import under 500 rows.");
       return;
     }
 
@@ -288,7 +395,7 @@ export function ImportWorkflow({ entity }: { entity: ImportEntity }) {
           entity,
           mode,
           confirmPosting,
-          rows: validRows.map((row) => row.values),
+          rows: rows.map((row) => row.values),
         }),
       });
       const payload = (await response.json()) as ImportResult;
@@ -334,7 +441,7 @@ export function ImportWorkflow({ entity }: { entity: ImportEntity }) {
               <div className="flex flex-wrap gap-2">
                 <Button type="button" variant="outline" onClick={downloadTemplate}>
                   <Download className="mr-2 h-4 w-4" />
-                  Template
+                  CSV template
                 </Button>
                 <Button type="button" variant="outline" onClick={saveDraft}>
                   <Save className="mr-2 h-4 w-4" />
@@ -445,10 +552,13 @@ export function ImportWorkflow({ entity }: { entity: ImportEntity }) {
                   <Button
                     type="button"
                     onClick={confirmImport}
-                    disabled={!validRows.length || isSaving || Boolean(errorRows.length) || Boolean(spec.needsPostingConfirmation && !confirmPosting)}
+                    disabled={!validRows.length || isSaving || Boolean(spec.needsPostingConfirmation && !confirmPosting)}
                   >
                     <Upload className="mr-2 h-4 w-4" />
                     {isSaving ? "Importing..." : "Proceed / Confirm Import"}
+                  </Button>
+                  <Button type="button" variant="outline" onClick={downloadErrorCsv} disabled={!errorRows.length}>
+                    Download errors
                   </Button>
                 </div>
                 {message ? <p className="mt-3 text-sm text-muted-foreground">{message}</p> : null}

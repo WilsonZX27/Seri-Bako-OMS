@@ -1,32 +1,56 @@
 # Seri Bako Operations Management System
 
-Milestone 1 implements the inventory foundation for Seri Bako:
+Seri Bako Operations Management System is an internal operations platform for procurement, inventory, goods receiving, production, approvals, staff access, and operational records.
 
-- Supplier Master
-- Item Master
-- Stock Transactions
-- Stock Balance View
-- Low Stock page and dashboard widget
-- Supabase Auth gate
-- Role-aware database policies
+For product scope and operating principles, read `PRODUCT.md`.
 
-Purchasing, production, invoices, recipe/BOM, goods receiving, and finance modules are intentionally excluded from this milestone.
+For UI and interaction standards, read `DESIGN.md`.
 
-## Setup
+## Technology Stack
 
-1. Install dependencies.
+The application is built with:
+
+- Next.js.
+- TypeScript.
+- Supabase.
+- PostgreSQL.
+- Supabase Auth.
+- Supabase Row Level Security.
+- Vercel for production deployment.
+
+Refer to `package.json` for the current framework and library versions.
+
+## Requirements
+
+Before running the project locally, prepare:
+
+- Node.js supported by the current project.
+- npm.
+- A Supabase project.
+- A local `.env.local` file.
+- Access to the required database migrations.
+
+## Local Setup
+
+### 1. Install dependencies
 
 ```bash
 npm install
 ```
 
-2. Copy environment variables.
+### 2. Copy environment variables
 
 ```bash
 cp .env.example .env.local
 ```
 
-3. Fill in:
+On Windows PowerShell:
+
+```powershell
+Copy-Item .env.example .env.local
+```
+
+### 3. Configure environment variables
 
 ```bash
 NEXT_PUBLIC_SUPABASE_URL=
@@ -35,104 +59,244 @@ NEXT_PUBLIC_APP_URL=
 SUPABASE_SERVICE_ROLE_KEY=
 ```
 
-`SUPABASE_SERVICE_ROLE_KEY` is server-only. Do not prefix it with `NEXT_PUBLIC_`; it is used by server actions for staff invitations and first-password setup.
+### Environment variable rules
 
-`NEXT_PUBLIC_APP_URL` is recommended so invite and reset emails always generate the correct redirect target in production.
+`NEXT_PUBLIC_SUPABASE_URL`
 
-## Production Email and Staff Onboarding
+- Public Supabase project URL.
+- Available to browser and server code.
 
-Supabase's built-in email provider is rate limited and should not be used as the only production staff onboarding path.
-Seri Bako OMS supports temporary-password staff setup so Admin can create an auth account, show the temporary password once, and force the staff member to change it on first login.
+`NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`
 
-For production email invite/reset reliability, configure custom SMTP in Supabase:
+- Public Supabase publishable key.
+- Available to browser and server code.
+- Database access must still be protected by Row Level Security.
 
-- Authentication -> SMTP Settings
-- Authentication -> URL Configuration
+`NEXT_PUBLIC_APP_URL`
 
-Suggested email providers:
+- Canonical application URL.
+- Recommended for production authentication redirects.
+- Example:
 
-- Company SMTP
-- Resend
-- SendGrid
-- Mailgun
-- Amazon SES
-
-## Supabase Auth Redirect URLs
-
-Add these redirect URLs in Supabase Auth:
-
-- `https://seri-bako-oms-official.vercel.app/auth/callback`
-- `https://seri-bako-oms-official.vercel.app/set-password`
-- `https://seri-bako-oms-official.vercel.app/change-password`
-- `https://seri-bako-oms-official.vercel.app/**`
-- `http://localhost:3000/**`
-
-4. Run the database migration:
-
-```text
-supabase/migrations/001_milestone_1_inventory_foundation.sql
+```bash
+NEXT_PUBLIC_APP_URL=https://seri-bako-oms-official.vercel.app
 ```
 
-## Deployment and Migration Safety
+`SUPABASE_SERVICE_ROLE_KEY`
 
-When code changes include new Supabase migrations, apply them in this order:
+- Server-only secret.
+- Never prefix it with `NEXT_PUBLIC_`.
+- Never expose it to browser code.
+- Used only for controlled administrative server actions such as staff account setup where required.
 
-1. `git push`
-2. `npx supabase db push`
-3. `NOTIFY pgrst, 'reload schema';`
-4. Redeploy if environment or migration changes require it
+### 4. Apply database migrations
 
-If the app shows sequence, view, or missing-table errors after deploy, the code is ahead of the database and the migration step is still pending.
+Follow `DEPLOYMENT.md` for the correct migration process.
 
-5. Create a Supabase Auth user, then create a matching `profiles` row.
+Do not assume the database is current only because the application code is current.
 
-```sql
-insert into public.profiles (id, full_name, role)
-values ('AUTH_USER_ID_HERE', 'Admin User', 'admin');
-```
+### 5. Configure authentication
 
-6. Start the app.
+Configure the required Supabase Auth redirect URLs and production email provider.
+
+See `DEPLOYMENT.md`.
+
+### 6. Start the application
 
 ```bash
 npm run dev
 ```
 
-## Structure
+Open:
 
 ```text
-src/app
-  (auth)/login
-  (auth)/forgot-password
-  (auth)/set-password
-  auth/callback
-  (app)/dashboard
-  (app)/suppliers
-  (app)/items
-  (app)/stock-transactions
-  (app)/stock-balances
-  (app)/low-stock
-
-src/components
-  layout
-  ui
-  supplier-form.tsx
-  item-form.tsx
-  stock-transaction-form.tsx
-
-src/server
-  actions
-  queries
-
-src/lib
-  supabase
-  validations
-
-supabase
-  migrations
+http://localhost:3000
 ```
+
+## Common Commands
+
+```bash
+npm run dev
+npm run build
+npm run lint
+```
+
+Additional commands may exist in `package.json`.
+
+Before adding new scripts, confirm that an equivalent project script does not already exist.
+
+## Repository Structure
+
+```text
+src/
+  app/              Routes, layouts, pages, and route-level composition
+  components/       Shared UI, layout, workspace, and domain components
+  server/           Server actions and server-side queries
+  lib/              Supabase clients, validation, permissions, and utilities
+
+supabase/
+  migrations/       Versioned database migrations
+
+public/              Static public assets
+```
+
+The exact route and component list changes frequently. Do not use this section as a complete module inventory.
+
+For current product modules, read `PRODUCT.md`.
+
+## Application Areas
+
+The application includes or is actively developing:
+
+- Dashboard.
+- Suppliers.
+- Items.
+- Purchase Requests.
+- Purchase Orders.
+- Goods Receiving.
+- Stock Transactions and Stock Ledger.
+- Stock Balance.
+- Low Stock.
+- Stock Counts.
+- Production Jobs.
+- Company Profile.
+- Users and staff.
+- Roles and permissions.
+- Comments, attachments, and activity history where implemented.
+
+Module availability depends on permissions and implementation status.
+
+## Authentication and Staff Onboarding
+
+Seri Bako OMS supports Supabase Auth.
+
+Production staff onboarding may use:
+
+- Email invitation.
+- Password reset.
+- Temporary-password account creation.
+- Forced password change on first login.
+
+Supabase's built-in email provider is rate limited and should not be the only production onboarding method.
+
+Configure custom SMTP for reliable production use.
+
+Suggested providers include:
+
+- Company SMTP.
+- Resend.
+- SendGrid.
+- Mailgun.
+- Amazon SES.
+
+Never send temporary passwords or service-role secrets through logs, browser-visible responses, or public error messages.
+
+## Authorization
+
+The application uses permission-based access.
+
+Roles contain permissions, but role names alone are not the final security boundary.
+
+Authorization may be enforced through:
+
+- Permission-aware navigation.
+- Route checks.
+- Server action checks.
+- Server-side queries.
+- Supabase Row Level Security.
+
+Hiding a button or navigation item does not secure an action.
+
+See `ARCHITECTURE.md`.
 
 ## Inventory Rule
 
-Current stock is calculated from `stock_transactions`.
+Stock balance must be derived from controlled stock movement records.
 
-No page updates stock balance directly. Corrections must be posted as a new stock transaction.
+Do not implement normal workflows that directly overwrite stock balance.
+
+Corrections should create a new adjustment or inventory movement record.
+
+See `PRODUCT.md` and `ARCHITECTURE.md`.
+
+## Development Rules
+
+### Follow the established design system
+
+All new pages and components must follow `DESIGN.md`.
+
+Do not invent unrelated page layouts, status systems, action placement, or color usage.
+
+### Reuse existing components
+
+Before creating a new component, check whether the project already contains a suitable:
+
+- Workspace component.
+- Record workspace.
+- Document workspace.
+- Timeline.
+- Status badge.
+- Workflow component.
+- Summary card.
+- Form control.
+- Data table.
+- Right-console panel.
+
+### Preserve permission checks
+
+Do not rely only on front-end hiding.
+
+Any sensitive server action must validate the current user's permission.
+
+### Use migrations for database changes
+
+Do not make undocumented production-only schema changes.
+
+Every required schema change should be represented by a versioned migration.
+
+### Keep changes focused
+
+Prefer one sprint or change set with:
+
+- One main objective.
+- Clear scope.
+- Clear validation.
+- Minimal unrelated refactoring.
+- Updated footer or visible sprint version where required by the project workflow.
+
+## Validation Before Handoff
+
+At minimum, run the relevant checks available in the repository:
+
+```bash
+npm run lint
+npm run build
+```
+
+Also validate the affected workflow manually when possible.
+
+For database-related work, confirm:
+
+- The migration exists.
+- The migration was applied to the intended environment.
+- PostgREST schema is refreshed where required.
+- Required permissions and RLS policies work.
+- The application does not assume unavailable tables, views, columns, or sequences.
+
+## Deployment
+
+Production deployment and migration procedures are documented in:
+
+```text
+DEPLOYMENT.md
+```
+
+Do not improvise the order of code deployment and database migration for schema-dependent changes.
+
+## Documentation Map
+
+- `PRODUCT.md` — product scope, operating principles, module maturity, and business rules.
+- `README.md` — local setup and development overview.
+- `DEPLOYMENT.md` — deployment, migrations, environment configuration, and recovery.
+- `ARCHITECTURE.md` — technical architecture, authorization, inventory ledger, and system boundaries.
+- `DESIGN.md` — UI/UX system, app shell, layouts, visual rules, and reusable components.

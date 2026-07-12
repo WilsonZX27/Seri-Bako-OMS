@@ -1,0 +1,4 @@
+staff_code,full_name,email,phone,branch_code,role_code,status
+QA-IMP-STAFF-733,QA Import Staff 7.2.33,qa-imp-staff-733@example.com,0123456789,QA-IMP-BR-733,viewer,active
+QA-IMP-STAFF-BAD-733,Bad Role Staff,qa-imp-staff-bad-733@example.com,0123456789,QA-IMP-BR-733,unknown_role,active
+QA-IMP-STAFF-DUP-733,Duplicate Email Staff,qa-imp-staff-733@example.com,0123456789,QA-IMP-BR-733,viewer,active

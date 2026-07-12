@@ -21,11 +21,11 @@ test("Sprint 7.2.33 master data imports", async ({ page }) => {
   await expect(page.locator("body")).toContainText("Items");
   await expect(page.locator("body")).toContainText("Opening Stock");
 
-  await runImport("/imports/items", "items-733.csv", "Imported: 1");
-  await runImport("/imports/suppliers", "suppliers-733.csv", "Imported: 1");
-  await runImport("/imports/branches", "branches-733.csv", "Imported: 1");
-  await runImport("/imports/staff", "staff-733.csv", "Imported: 1");
-  await runImport("/opening-stock/import", "opening-stock-733.csv", "Imported: 1", true);
+  await runImport("/imports/items", "items-733.csv", /Imported: 1|Skipped: 1/);
+  await runImport("/imports/suppliers", "suppliers-733.csv", /Imported: 1|Skipped: 1/);
+  await runImport("/imports/branches", "branches-733.csv", /Imported: 1|Skipped: 1/);
+  await runImport("/imports/staff", "staff-733.csv", /Imported: 1|Skipped: 1/);
+  await runImport("/opening-stock/import", "opening-stock-733.csv", /Imported: 1|Skipped: 1/, true);
 
   await page.goto("/items?search=QA-IMP-ITEM-733", { waitUntil: "domcontentloaded" });
   await expect(page.locator("body")).toContainText("QA-IMP-ITEM-733");

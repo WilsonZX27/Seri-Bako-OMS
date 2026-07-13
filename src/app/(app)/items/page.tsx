@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Eye } from "lucide-react";
+import { Pencil } from "lucide-react";
 import { BulkSelectAllCheckbox, BulkSelectionProvider, BulkSelectRowCheckbox } from "@/components/bulk-selection";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -43,7 +43,7 @@ export default async function ItemsPage({
             supplier={filters.supplier}
             stockControl={filters.stock_control}
             lowStock={filters.low_stock}
-            placeholder="Search item code, name, category, supplier, barcode"
+            placeholder="Search item code, name, category, supplier"
             categories={categories}
             suppliers={suppliers}
             showStockFilters
@@ -73,8 +73,8 @@ export default async function ItemsPage({
                     <TableCell>
                       <div className="flex items-center gap-2">
                         <BulkSelectRowCheckbox id={item.id} />
-                        <Link href={`/items/${item.id}`} aria-label={`Quick view ${item.item_name}`} className="p-1 text-[var(--sb-text-soft)] opacity-0 hover:bg-[var(--sb-surface-muted)] hover:text-primary group-hover:opacity-100">
-                          <Eye className="h-4 w-4" />
+                        <Link href={`/items/${item.id}`} aria-label={`Quick view ${item.item_name}`} className="p-1 text-[var(--sb-text-soft)] hover:bg-[var(--sb-surface-muted)] hover:text-primary">
+                          <Pencil className="h-4 w-4" />
                         </Link>
                       </div>
                     </TableCell>

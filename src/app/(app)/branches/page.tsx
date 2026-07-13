@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Eye } from "lucide-react";
+import { Pencil } from "lucide-react";
 import { BulkSelectAllCheckbox, BulkSelectionProvider, BulkSelectRowCheckbox } from "@/components/bulk-selection";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
@@ -60,8 +60,8 @@ export default async function BranchesPage({ searchParams }: { searchParams: Pro
                       <TableCell>
                         <div className="flex items-center gap-2">
                           <BulkSelectRowCheckbox id={branch.id} />
-                          <Link href={`/branches/${branch.id}`} aria-label={`Quick view ${branch.branch_name}`} className="p-1 text-[var(--sb-text-soft)] opacity-0 hover:bg-[var(--sb-surface-muted)] hover:text-primary group-hover:opacity-100">
-                            <Eye className="h-4 w-4" />
+                          <Link href={`/branches/${branch.id}`} aria-label={`Quick view ${branch.branch_name}`} className="p-1 text-[var(--sb-text-soft)] hover:bg-[var(--sb-surface-muted)] hover:text-primary">
+                            <Pencil className="h-4 w-4" />
                           </Link>
                         </div>
                       </TableCell>

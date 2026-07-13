@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Eye } from "lucide-react";
+import { Pencil } from "lucide-react";
 import { BulkSelectAllCheckbox, BulkSelectionProvider, BulkSelectRowCheckbox } from "@/components/bulk-selection";
 import { Card, CardContent } from "@/components/ui/card";
 import { DataGridHint } from "@/components/ui/data-grid-hint";
@@ -54,8 +54,8 @@ export default async function StaffsPage({ searchParams }: { searchParams: Promi
               <TableCell>
                 <div className="flex items-center gap-2">
                   <BulkSelectRowCheckbox id={staff.id} />
-                  <Link href={`/staffs/${staff.id}`} aria-label={`Quick view ${staff.full_name}`} className="p-1 text-[var(--sb-text-soft)] opacity-0 hover:bg-[var(--sb-surface-muted)] hover:text-primary group-hover:opacity-100">
-                    <Eye className="h-4 w-4" />
+                  <Link href={`/staffs/${staff.id}`} aria-label={`Quick view ${staff.full_name}`} className="p-1 text-[var(--sb-text-soft)] hover:bg-[var(--sb-surface-muted)] hover:text-primary">
+                    <Pencil className="h-4 w-4" />
                   </Link>
                 </div>
               </TableCell>

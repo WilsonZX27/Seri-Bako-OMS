@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Eye } from "lucide-react";
+import { Pencil } from "lucide-react";
 import { BulkSelectAllCheckbox, BulkSelectionProvider, BulkSelectRowCheckbox } from "@/components/bulk-selection";
 import { DataGridRow } from "@/components/ui/data-grid-row";
 import { DataGridHint } from "@/components/ui/data-grid-hint";
@@ -85,8 +85,8 @@ export default async function PurchaseOrdersPage({ searchParams }: { searchParam
                     <TableCell>
                       <div className="flex items-center gap-2">
                         <BulkSelectRowCheckbox id={order.id} />
-                        <Link href={`/purchase-orders/${order.id}`} aria-label={`Quick view ${order.po_no}`} className="rounded-none p-1 text-[var(--sb-text-soft)] opacity-0 hover:bg-[var(--sb-surface-muted)] hover:text-[var(--sb-amber-700)] group-hover:opacity-100">
-                          <Eye className="h-4 w-4" />
+                        <Link href={`/purchase-orders/${order.id}`} aria-label={`Quick view ${order.po_no}`} className="rounded-none p-1 text-[var(--sb-text-soft)] hover:bg-[var(--sb-surface-muted)] hover:text-[var(--sb-amber-700)]">
+                          <Pencil className="h-4 w-4" />
                         </Link>
                       </div>
                     </TableCell>

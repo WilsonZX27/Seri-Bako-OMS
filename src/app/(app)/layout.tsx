@@ -2,7 +2,6 @@ import { redirect } from "next/navigation";
 import { Sidebar } from "@/components/layout/sidebar";
 import { TopBar } from "@/components/layout/top-bar";
 import { RightConsoleProvider } from "@/components/layout/right-console";
-import { MobileBottomNav } from "@/components/layout/mobile-bottom-nav";
 import { GlobalActionToast } from "@/components/global-action-toast";
 import { SessionTimeoutProvider } from "@/components/session-timeout-provider";
 import { isMockMode } from "@/lib/mock-mode";
@@ -55,8 +54,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
               <div data-center-workspace className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
                 <GlobalActionToast />
                 <SessionTimeoutProvider />
-                <main className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden pb-16 md:pb-0">{children}</main>
-                <MobileBottomNav />
+                <main className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden">{children}</main>
               </div>
             </RightConsoleProvider>
           </div>

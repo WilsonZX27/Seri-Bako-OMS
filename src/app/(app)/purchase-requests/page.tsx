@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Eye } from "lucide-react";
+import { Pencil } from "lucide-react";
 import { BulkSelectAllCheckbox, BulkSelectionProvider, BulkSelectRowCheckbox } from "@/components/bulk-selection";
 import { DataGridRow } from "@/components/ui/data-grid-row";
 import { DataGridHint } from "@/components/ui/data-grid-hint";
@@ -38,11 +38,22 @@ export default async function PurchaseRequestsPage({ searchParams }: { searchPar
   const estimatedTotal = rows.reduce((sum, request) => sum + request.estimated_total, 0);
   return (
     <>
-      <PageHeader title="Purchase Requests" description="Create, review, return, and convert branch requests into purchase orders." action={{ href: "/purchase-requests/new", label: "New PR" }} secondaryAction={{ href: "/api/export/purchase-requests", label: "Export CSV" }} />
+      <PageHeader title="Purchase Requests" description="Create, review, return, and convert branch requests into purchase orders." />
       <WorkspaceGrid
         className="pt-4"
         rightRail={
-          <ConsoleSection title="PR Summary">
+          <>
+            <ConsoleSection title="Actions">
+              <div className="grid gap-2">
+                <Button asChild size="sm" className="w-full">
+                  <Link href="/purchase-requests/new">New PR</Link>
+                </Button>
+                <Button asChild variant="outline" size="sm" className="w-full">
+                  <Link href="/api/export/purchase-requests">Export CSV</Link>
+                </Button>
+              </div>
+            </ConsoleSection>
+            <ConsoleSection title="PR Summary">
               <div className="grid gap-2 text-xs">
                 <div className="flex justify-between"><span className="text-muted-foreground">Total PRs</span><strong>{rows.length}</strong></div>
                 <div className="flex justify-between"><span className="text-muted-foreground">Manager Review</span><strong>{count("manager_review")}</strong></div>
@@ -60,6 +71,7 @@ export default async function PurchaseRequestsPage({ searchParams }: { searchPar
                 </Button>
               </div>
             </ConsoleSection>
+          </>
         }
       >
         <div className="overflow-hidden rounded-[2px] border border-[var(--sb-border-soft)] bg-card">
@@ -100,8 +112,8 @@ export default async function PurchaseRequestsPage({ searchParams }: { searchPar
                     <TableCell>
                       <div className="flex items-center gap-2">
                         <BulkSelectRowCheckbox id={request.id} />
-                        <Link href={`/purchase-requests/${request.id}`} aria-label={`Quick view ${request.request_no}`} className="rounded-none p-1 text-[var(--sb-text-soft)] opacity-0 hover:bg-[var(--sb-surface-muted)] hover:text-[var(--sb-amber-700)] group-hover:opacity-100">
-                          <Eye className="h-4 w-4" />
+                        <Link href={`/purchase-requests/${request.id}`} aria-label={`Quick view ${request.request_no}`} className="rounded-none p-1 text-[var(--sb-text-soft)] hover:bg-[var(--sb-surface-muted)] hover:text-[var(--sb-amber-700)]">
+                          <Pencil className="h-4 w-4" />
                         </Link>
                       </div>
                     </TableCell>

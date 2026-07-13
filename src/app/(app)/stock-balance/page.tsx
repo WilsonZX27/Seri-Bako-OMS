@@ -58,7 +58,6 @@ export default async function StockBalancePage({ searchParams }: { searchParams:
               <TableHeader>
                 <TableRow>
                   <TableHead>Image</TableHead>
-                  <TableHead>Barcode</TableHead>
                   <SortableHead label="Item Code" column="item_code" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
                   <SortableHead label="Item Name" column="item_name" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
                   <TableHead>Branch</TableHead>
@@ -76,7 +75,6 @@ export default async function StockBalancePage({ searchParams }: { searchParams:
                 {balances.rows.map((item) => (
                   <TableRow key={`${item.item_id}-${item.location_id}`}>
                     <TableCell><div className="flex h-10 w-10 items-center justify-center rounded-md border bg-secondary text-[10px] text-muted-foreground">IMG</div></TableCell>
-                    <TableCell className="text-xs">{item.barcode ?? "-"}</TableCell>
                     <TableCell>{item.item_code}</TableCell>
                     <TableCell className="font-medium">{item.item_name}</TableCell>
                     <TableCell>{item.branch_name ?? "-"}</TableCell>
@@ -91,7 +89,7 @@ export default async function StockBalancePage({ searchParams }: { searchParams:
                   </TableRow>
                 ))}
                 {!balances.rows.length ? (
-                  <TableRow><TableCell colSpan={13} className="text-center text-muted-foreground">No stock balance rows found.</TableCell></TableRow>
+                  <TableRow><TableCell colSpan={12} className="text-center text-muted-foreground">No stock balance rows found.</TableCell></TableRow>
                 ) : null}
               </TableBody>
             </Table>

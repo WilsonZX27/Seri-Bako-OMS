@@ -1,4 +1,4 @@
-import { ClipboardCheck, ClipboardList, DoorOpen, PackageCheck, ScanLine, Search, TriangleAlert } from "lucide-react";
+import { ClipboardList, DoorOpen, PackageCheck, Search, TriangleAlert } from "lucide-react";
 import { PageHeader } from "@/components/ui/page-header";
 import { WorkspaceSectionPanel, type WorkspaceSection } from "@/components/workspace-panels";
 
@@ -14,14 +14,14 @@ const dailySections: WorkspaceSection[] = [
     ],
   },
   {
-    title: "Scan / Count / Receive",
+    title: "Count / Receive",
     description: "High-frequency actions with larger touch-friendly targets.",
-    icon: ScanLine,
+    icon: PackageCheck,
     theme: "blue",
     actions: [
-      { href: "/stock-counts/scan", title: "Stock Count", description: "Search or scan items during daily stock checks.", icon: ClipboardCheck, recommendedFor: "kitchen" },
-      { href: "/goods-receivings/scan", title: "Scan Receiving", description: "Scan delivered items and prepare receiving lines for GRN work.", icon: PackageCheck, recommendedFor: "operations" },
-      { href: "/stock-transfers/new", title: "Transfer Stock", description: "Move stock between branches while default locations are handled automatically.", icon: ScanLine, recommendedFor: "operations" },
+      { href: "/stock-counts/new", title: "Stock Count", description: "Create a branch stock count.", icon: PackageCheck, recommendedFor: "kitchen" },
+      { href: "/goods-receivings/new", title: "Goods Receiving", description: "Prepare receiving lines for GRN work.", icon: PackageCheck, recommendedFor: "operations" },
+      { href: "/stock-transfers/new", title: "Transfer Stock", description: "Move stock between branches while default locations are handled automatically.", icon: PackageCheck, recommendedFor: "operations" },
       { href: "/items", title: "Find Item", description: "Search item code, item name, category, or supplier.", icon: Search, recommendedFor: "all staff" },
     ],
   },

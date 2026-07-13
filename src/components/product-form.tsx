@@ -3,7 +3,6 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Field } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { SelectNative } from "@/components/ui/select-native";
-import { BarcodeFields } from "@/components/barcode-fields";
 import type { Database } from "@/types/database";
 
 type Product = Database["public"]["Tables"]["products"]["Row"];
@@ -16,7 +15,7 @@ type ProductFormProps = {
   action: (formData: FormData) => Promise<void>;
 };
 
-export function ProductForm({ product, packaging = [], initialBarcode, action }: ProductFormProps) {
+export function ProductForm({ product, packaging = [], action }: ProductFormProps) {
   const primaryPackaging = packaging[0];
   return (
     <Card>
@@ -43,13 +42,6 @@ export function ProductForm({ product, packaging = [], initialBarcode, action }:
           <Field label="Product Image URL">
             <Input name="product_image_url" defaultValue={product?.product_image_url ?? ""} placeholder="https://..." />
           </Field>
-          <BarcodeFields
-            barcode={product?.barcode ?? initialBarcode}
-            qrCode={product?.qr_code}
-            internalBarcode={product?.internal_barcode}
-            barcodeType={product?.barcode_type}
-            barcodeImageUrl={product?.barcode_image_url}
-          />
           <div className="grid gap-4 rounded-lg border bg-secondary/30 p-4 md:col-span-2 md:grid-cols-4">
             <div className="md:col-span-4">
               <p className="text-sm font-semibold">Packaging & Pricing</p>

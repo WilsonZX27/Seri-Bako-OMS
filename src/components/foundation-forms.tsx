@@ -110,7 +110,7 @@ function CompanyHidden({ companies, companyId }: { companies: SelectCompany[]; c
 export function CompanyForm({ company, action, formId = "company-form", showSubmit = true }: { company: Company; action: (formData: FormData) => Promise<void>; formId?: string; showSubmit?: boolean }) {
   return (
     <form id={formId} action={action} className="space-y-4">
-      <RecordSection title="Company Identity" description="Legal identity and operational status.">
+      <RecordSection title="Company Identity" description="Legal identity for the operating company.">
         <div className="grid gap-3 md:grid-cols-2">
           <Field label="Company Code">
             <Input name="company_code" defaultValue={company.company_code} required />
@@ -118,9 +118,7 @@ export function CompanyForm({ company, action, formId = "company-form", showSubm
           <Field label="Company Name">
             <Input name="company_name" defaultValue={company.company_name} required />
           </Field>
-          <Field label="Status">
-            <StatusSelect value={company.status} />
-          </Field>
+          <input type="hidden" name="status" value={company.status} />
         </div>
       </RecordSection>
       <RecordSection title="Registration & Contact" description="Registration and day-to-day company contact details.">
@@ -162,7 +160,7 @@ export function BranchForm({ branch, companies, action, formId, showSubmit = tru
     <form id={formId} action={action} className="space-y-4">
       <CompanyHidden companies={companies} companyId={branch?.company_id} />
       <RecordSection title="Identity" description="Branch reference, name, type, and operational status.">
-        <div className="grid gap-4 md:grid-cols-2">
+        <div className="grid gap-4 md:grid-cols-3">
           <Field label="Branch Code">
             <Input name="branch_code" defaultValue={branch?.branch_code ?? ""} required />
           </Field>
@@ -446,7 +444,7 @@ export function DocumentSequenceForm({
 export function RoleForm({ role, companies, action, formId, showSubmit = true }: { role?: Role; companies: SelectCompany[]; action: (formData: FormData) => Promise<void>; formId?: string; showSubmit?: boolean }) {
   return (
     <form id={formId} action={action} className="space-y-4">
-      <RecordSection title="Role Identity" description="Role name, stable code, status, and purpose.">
+      <RecordSection title="Role Identity" description="Role name, stable code, and purpose.">
         <div className="grid gap-4 md:grid-cols-2">
           <CompanyHidden companies={companies} companyId={role?.company_id} />
           <Field label="Role Code">
@@ -455,9 +453,7 @@ export function RoleForm({ role, companies, action, formId, showSubmit = true }:
           <Field label="Role Name">
             <Input name="role_name" defaultValue={role?.role_name ?? ""} required />
           </Field>
-          <Field label="Status">
-            <StatusSelect value={role?.status} />
-          </Field>
+          <input type="hidden" name="status" value={role?.status ?? "active"} />
           <div className="md:col-span-2">
             <Field label="Description">
               <Textarea name="description" defaultValue={role?.description ?? ""} />

@@ -2,12 +2,11 @@
 
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
-import { CheckCircle2, ChevronDown, Factory, LogOut, UserRound } from "lucide-react";
+import { ChevronDown, Factory } from "lucide-react";
 import { useMemo, useState } from "react";
 import { getVisibleNavGroups } from "@/components/layout/nav-items";
 import { APP_SPRINT, APP_VERSION } from "@/lib/app-version";
 import { cn } from "@/lib/utils";
-import { signOut } from "@/server/actions/auth";
 import type { SidebarCounts } from "@/server/queries/sidebar";
 import type { UserRole } from "@/types/database";
 
@@ -39,7 +38,6 @@ export function WorkspaceSidebar({
   const [closedGroups, setClosedGroups] = useState<Record<string, boolean>>({});
   const groups = useMemo(() => getVisibleNavGroups(role), [role]);
   const compact = false;
-  const initials = userName.slice(0, 2).toUpperCase();
 
   function toggleGroup(groupId: string) {
     setClosedGroups((current) => ({ ...current, [groupId]: !current[groupId] }));
@@ -150,31 +148,7 @@ export function WorkspaceSidebar({
         </div>
       </nav>
 
-      {!compact ? (
-        <div className="space-y-2 border-t border-white/10 p-3">
-          <div className="flex items-center gap-2 text-[10px] uppercase tracking-[0.06em] text-white/55">
-            <CheckCircle2 className="h-3.5 w-3.5 text-[var(--sb-amber-300)]" />
-            System Stable
-          </div>
-          <div className="flex items-center gap-1.5">
-            <Link href="/account" className="flex min-w-0 flex-1 items-center gap-2 rounded-[2px] bg-white/8 p-1.5 hover:bg-white/12">
-              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-white/12 text-[11px] font-semibold text-white">
-                <UserRound className="h-3.5 w-3.5" />
-                <span className="sr-only">{initials}</span>
-              </span>
-              <span className="min-w-0 flex-1">
-                <span className="block truncate text-[12px] font-medium text-white/90">{userName}</span>
-                <span className="block truncate text-[10px] text-white/50">{userRoleLabel}</span>
-              </span>
-            </Link>
-            <form action={signOut}>
-              <button type="submit" className="flex h-9 w-9 items-center justify-center rounded-[2px] text-red-300 hover:bg-red-500/15 hover:text-red-200" aria-label="Logout">
-                <LogOut className="h-4 w-4" />
-              </button>
-            </form>
-          </div>
-        </div>
-      ) : null}
+      {!compact ? <div className="border-t border-white/10 px-3 py-2 text-[10px] text-white/45">v{APP_VERSION} / {APP_SPRINT}</div> : null}
     </div>
   );
 }

@@ -53,6 +53,7 @@ export const navGroups: NavGroup[] = [
     items: [
       { href: "/dashboard", label: "Dashboard", icon: Gauge, roles: "all", keywords: ["home", "alerts", "approvals"] },
       { href: "/production/jobs", label: "Production Jobs", icon: Factory, roles: productionRoles, badgeKey: "productionJobs", keywords: ["production", "jobs"] },
+      { href: "/recipes", label: "Recipes", icon: ClipboardList, roles: productionRoles, keywords: ["recipes", "bom", "production"] },
     ],
   },
   {
@@ -131,6 +132,7 @@ export const searchableNavItems = [
   { href: "/stock-counts", label: "Stock Count", group: "Inventory", keywords: ["count", "branch"] },
   { href: "/stock-transfers", label: "Stock Transfers", group: "Inventory", keywords: ["transfer", "branch"] },
   { href: "/stock-wastage", label: "Stock Wastage", group: "Inventory", keywords: ["waste", "branch"] },
+  { href: "/recipes", label: "Recipes", group: "Operations", keywords: ["recipes", "bom", "production"] },
   { href: "/items", label: "Items / SKU Master", group: "Inventory", keywords: ["sku"] },
   { href: "/stock-balance", label: "Stock Balance", group: "Inventory", keywords: ["branch", "location", "ledger"] },
   { href: "/reports", label: "Reports", group: "Analytics", keywords: ["summary", "approval", "purchase"] },

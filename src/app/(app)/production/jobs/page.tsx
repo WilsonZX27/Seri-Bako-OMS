@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { CheckCircle2, ClipboardCheck, Eye, FileText, XCircle } from "lucide-react";
+import { CheckCircle2, ClipboardCheck, Pencil, FileText, XCircle } from "lucide-react";
 import { BulkSelectionProvider, BulkSelectAllCheckbox, BulkSelectRowCheckbox } from "@/components/bulk-selection";
 import { DataGridRow } from "@/components/ui/data-grid-row";
 import { DataGridHint } from "@/components/ui/data-grid-hint";
@@ -48,16 +48,20 @@ export default async function ProductionJobsPage({ searchParams }: { searchParam
       <PageHeader
         title="Production Jobs"
         description="Create, approve, and post recipe-based production without changing stock until posting."
-        action={{ href: "/production/jobs/new", label: "New Production Job" }}
       />
       <RightConsoleMount>
+        <ConsoleSection title="Actions">
+          <Button asChild size="sm" className="w-full">
+            <Link href="/production/jobs/new">New Production Job</Link>
+          </Button>
+        </ConsoleSection>
         <ConsoleSection title="Production Summary">
-          <div className="grid gap-2 text-xs">
+          <div className="grid gap-1.5 text-xs">
             {insights.map((item) => (
-              <Link key={item.label} href={item.href} className="flex justify-between rounded-none px-2 py-1.5 hover:bg-[var(--sb-surface-muted)]">
+              <div key={item.label} className="flex justify-between px-1 py-0.5">
                 <span className={item.active ? "font-semibold text-foreground" : "text-muted-foreground"}>{item.label}</span>
                 <strong>{item.value}</strong>
-              </Link>
+              </div>
             ))}
           </div>
         </ConsoleSection>
@@ -108,8 +112,8 @@ export default async function ProductionJobsPage({ searchParams }: { searchParam
                       <TableCell>
                         <div className="flex items-center gap-2">
                           <BulkSelectRowCheckbox id={job.id} />
-                          <Link href={`/production/jobs/${job.id}`} aria-label={`Quick view ${job.production_job_no}`} className="rounded-none p-1 text-[var(--sb-text-soft)] opacity-0 hover:bg-[var(--sb-surface-muted)] hover:text-[var(--sb-amber-700)] group-hover:opacity-100">
-                            <Eye className="h-4 w-4" />
+                          <Link href={`/production/jobs/${job.id}`} aria-label={`Quick view ${job.production_job_no}`} className="rounded-none p-1 text-[var(--sb-text-soft)] hover:bg-[var(--sb-surface-muted)] hover:text-[var(--sb-amber-700)]">
+                            <Pencil className="h-4 w-4" />
                           </Link>
                         </div>
                       </TableCell>

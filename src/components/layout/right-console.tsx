@@ -55,9 +55,9 @@ export function RightConsoleMount({ children }: { children: ReactNode }) {
 
 export function ConsoleSection({ title, children }: { title: string; children: ReactNode }) {
   return (
-    <section className="border-b border-[var(--border-muted)] px-3 py-4 last:border-b-0">
-      <h2 className="mb-3 text-[11px] font-semibold uppercase tracking-[0.22em] text-[var(--sb-text-muted)]">{title}</h2>
-      <div className="space-y-3">{children}</div>
+    <section className="border-b border-[var(--border-muted)] px-3 py-2.5 last:border-b-0">
+      <h2 className="mb-2 text-[10px] font-semibold uppercase tracking-[0.18em] text-[var(--sb-text-muted)]">{title}</h2>
+      <div className="space-y-2">{children}</div>
     </section>
   );
 }

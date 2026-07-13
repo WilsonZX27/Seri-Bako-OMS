@@ -36,7 +36,7 @@ export default async function ProductsPage({
             search={filters.search}
             status={filters.status}
             category={filters.category}
-            placeholder="Search product code, name, category, barcode"
+            placeholder="Search product code, name, category"
             categories={categories}
           />
           <div className="overflow-x-auto">
@@ -48,7 +48,6 @@ export default async function ProductsPage({
                   <SortableHead label="Product Name" column="product_name" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
                   <SortableHead label="Category" column="category" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
                   <SortableHead label="Selling Unit" column="selling_unit" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
-                  <TableHead>Barcode</TableHead>
                   <SortableHead label="Status" column="status" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
                   <TableHead className="w-36 text-right">Actions</TableHead>
                 </TableRow>
@@ -70,7 +69,6 @@ export default async function ProductsPage({
                     <TableCell className="font-medium">{product.product_name}</TableCell>
                     <TableCell>{product.category}</TableCell>
                     <TableCell>{product.selling_unit}</TableCell>
-                    <TableCell>{product.barcode ?? product.internal_barcode ?? "-"}</TableCell>
                     <TableCell>
                       <Badge variant={product.status === "active" ? "success" : "secondary"}>{product.status}</Badge>
                     </TableCell>
@@ -90,7 +88,7 @@ export default async function ProductsPage({
                 ))}
                 {!products.length ? (
                   <TableRow>
-                    <TableCell colSpan={8} className="text-center text-muted-foreground">
+                    <TableCell colSpan={7} className="text-center text-muted-foreground">
                       No products found.
                     </TableCell>
                   </TableRow>

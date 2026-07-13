@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Eye } from "lucide-react";
+import { Pencil } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -83,7 +83,7 @@ export default async function LowStockPage({ searchParams }: { searchParams: Pro
                   <TableCell>
                     <Button asChild size="sm" variant="outline">
                       <Link href={reorderHref(item)} aria-label={`Create PR for ${item.item_code}`}>
-                        <Eye className="h-3.5 w-3.5" />
+                        <Pencil className="h-3.5 w-3.5" />
                         PR
                       </Link>
                     </Button>

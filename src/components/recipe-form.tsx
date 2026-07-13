@@ -48,7 +48,7 @@ type RecipeFormProps = {
 };
 
 function buildItemSearch(item: RecipeIngredientOption) {
-  return `${item.item_code} - ${item.item_name}${item.barcode ? ` - ${item.barcode}` : ""}`;
+  return `${item.item_code} - ${item.item_name}`;
 }
 
 function createEmptyLine(): RecipeFormLine {
@@ -240,7 +240,7 @@ export function RecipeForm({ recipe, products, items, action, formId, showSubmit
         <CardHeader className="flex-row items-start justify-between gap-4">
           <div>
             <CardTitle>Ingredient Lines</CardTitle>
-            <CardDescription>Search by item code, name, or barcode. Costs are calculated in base stock UOM.</CardDescription>
+            <CardDescription>Search by item code or name. Costs are calculated in base stock UOM.</CardDescription>
           </div>
           <Button type="button" variant="outline" onClick={() => setLines((current) => [...current, createEmptyLine()])}>
             <Plus className="h-4 w-4" />
@@ -259,7 +259,6 @@ export function RecipeForm({ recipe, products, items, action, formId, showSubmit
               <TableHeader>
                 <TableRow>
                   <TableHead className="min-w-80">Ingredient</TableHead>
-                  <TableHead>Barcode</TableHead>
                   <TableHead className="min-w-28">Qty</TableHead>
                   <TableHead>Recipe UOM</TableHead>
                   <TableHead>Factor</TableHead>
@@ -280,13 +279,12 @@ export function RecipeForm({ recipe, products, items, action, formId, showSubmit
                           <Image src={line.item_image_url} alt="" width={40} height={40} className="h-10 w-10 rounded-[2px] object-cover" />
                         ) : itemFallback(line.item_code || "IT")}
                         <div className="min-w-64 space-y-1">
-                          <Input list="recipe-ingredient-items" value={line.itemSearch} placeholder="Type item code, name, or barcode" onChange={(event) => selectItem(index, event.target.value)} />
+                          <Input list="recipe-ingredient-items" value={line.itemSearch} placeholder="Type item code or name" onChange={(event) => selectItem(index, event.target.value)} />
                           {line.item_code ? <p className="text-xs text-muted-foreground">{line.item_code} - {line.item_name}</p> : null}
                           {line.ingredient_item_id && duplicateIds.includes(line.ingredient_item_id) ? <p className="text-xs text-destructive">Duplicate ingredient</p> : null}
                         </div>
                       </div>
                     </TableCell>
-                    <TableCell className="text-xs">{line.barcode ?? "-"}</TableCell>
                     <TableCell>
                       <Input type="number" step="0.0001" min="0.0001" value={line.qty_required} onChange={(event) => updateLine(index, { qty_required: Number(event.target.value) })} />
                     </TableCell>

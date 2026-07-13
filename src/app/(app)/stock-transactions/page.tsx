@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Download, Eye } from "lucide-react";
+import { Download, Pencil } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { DataGridHint } from "@/components/ui/data-grid-hint";
@@ -64,19 +64,32 @@ export default async function StockTransactionsPage({ searchParams }: { searchPa
       <PageHeader
         title="Stock Ledger"
         description="Append-only inventory movement and valuation audit by branch and item."
-        action={{ href: "/stock-transactions/new", label: "New movement" }}
       />
       <WorkspaceGrid
         rightRail={
-          <ConsoleSection title="Valuation">
-            <div className="grid gap-2 text-xs">
-              <div className="flex justify-between"><span className="text-muted-foreground">Ledger rows</span><strong>{ledger.totalRows}</strong></div>
-              <div className="flex justify-between"><span className="text-muted-foreground">Quantity in</span><strong>{formatNumber(inbound)}</strong></div>
-              <div className="flex justify-between"><span className="text-muted-foreground">Quantity out</span><strong>{formatNumber(outbound)}</strong></div>
-              <div className="flex justify-between"><span className="text-muted-foreground">Stock rows</span><strong>{balances.totalRows}</strong></div>
-              <div className="flex justify-between"><span className="text-muted-foreground">Stock value</span><strong>{formatCurrency(value)}</strong></div>
-            </div>
-          </ConsoleSection>
+          <>
+            <ConsoleSection title="Actions">
+              <div className="grid gap-2">
+                <Button asChild size="sm" className="w-full">
+                  <Link href="/stock-transactions/new">New movement</Link>
+                </Button>
+                {canExport ? (
+                  <Button asChild variant="outline" size="sm" className="w-full">
+                    <Link href={exportHref(filters)}><Download className="h-4 w-4" /> CSV</Link>
+                  </Button>
+                ) : null}
+              </div>
+            </ConsoleSection>
+            <ConsoleSection title="Valuation">
+              <div className="grid gap-2 text-xs">
+                <div className="flex justify-between"><span className="text-muted-foreground">Ledger rows</span><strong>{ledger.totalRows}</strong></div>
+                <div className="flex justify-between"><span className="text-muted-foreground">Quantity in</span><strong>{formatNumber(inbound)}</strong></div>
+                <div className="flex justify-between"><span className="text-muted-foreground">Quantity out</span><strong>{formatNumber(outbound)}</strong></div>
+                <div className="flex justify-between"><span className="text-muted-foreground">Stock rows</span><strong>{balances.totalRows}</strong></div>
+                <div className="flex justify-between"><span className="text-muted-foreground">Stock value</span><strong>{formatCurrency(value)}</strong></div>
+              </div>
+            </ConsoleSection>
+          </>
         }
       >
         <div className="overflow-hidden rounded-[2px] border border-[var(--sb-border-soft)] bg-card">
@@ -103,7 +116,6 @@ export default async function StockTransactionsPage({ searchParams }: { searchPa
             <Input name="from" type="date" defaultValue={filters.from ?? ""} />
             <Input name="to" type="date" defaultValue={filters.to ?? ""} />
             <Button type="submit" variant="secondary">Filter</Button>
-            {canExport ? <Button asChild variant="outline"><Link href={exportHref(filters)}><Download className="h-4 w-4" /> CSV</Link></Button> : null}
             <Button asChild variant="ghost"><Link href="/stock-transactions">Reset</Link></Button>
           </form>
           <DataGridHint text="Double-click any row to open the source ledger transaction." />
@@ -132,8 +144,8 @@ export default async function StockTransactionsPage({ searchParams }: { searchPa
                 {ledger.rows.map((row) => (
                   <DataGridRow key={row.stock_transaction_id} href={`/stock-transactions/${row.stock_transaction_id}`}>
                     <TableCell>
-                      <Link href={`/stock-transactions/${row.stock_transaction_id}`} aria-label={`Quick view ${row.transaction_no}`} className="rounded-none p-1 text-[var(--sb-text-soft)] opacity-0 hover:bg-[var(--sb-surface-muted)] hover:text-[var(--sb-amber-700)] group-hover:opacity-100">
-                        <Eye className="h-4 w-4" />
+                      <Link href={`/stock-transactions/${row.stock_transaction_id}`} aria-label={`Quick view ${row.transaction_no}`} className="rounded-none p-1 text-[var(--sb-text-soft)] hover:bg-[var(--sb-surface-muted)] hover:text-[var(--sb-amber-700)]">
+                        <Pencil className="h-4 w-4" />
                       </Link>
                     </TableCell>
                     <TableCell>{row.transaction_date}</TableCell>

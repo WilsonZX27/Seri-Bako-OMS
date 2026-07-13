@@ -1,11 +1,8 @@
 import Link from "next/link";
 import {
-  ClipboardCheck,
   ClipboardList,
   Database,
-  PackageCheck,
   PackageSearch,
-  ScanLine,
   TriangleAlert,
   UserPlus,
 } from "lucide-react";
@@ -24,14 +21,12 @@ type Tool = {
 };
 
 const tools: Tool[] = [
-  { href: "/stock-counts/scan", title: "Stock Count", description: "Count stock by branch with search or camera scan.", icon: ClipboardCheck, roles: ["admin", "kitchen"] },
-  { href: "/goods-receivings/scan", title: "Scan Receiving", description: "Prepare receiving lines from delivered items.", icon: PackageCheck, roles: ["admin", "kitchen", "purchasing"] },
   { href: "/stock-wastage/new", title: "Report Wastage", description: "Record branch wastage quickly.", icon: TriangleAlert, roles: ["admin", "kitchen"] },
-  { href: "/stock-transfers/new", title: "Transfer Stock", description: "Move stock between branches with defaults handled automatically.", icon: ScanLine, roles: ["admin", "kitchen"] },
+  { href: "/stock-transfers/new", title: "Transfer Stock", description: "Move stock between branches with defaults handled automatically.", icon: PackageSearch, roles: ["admin", "kitchen"] },
   { href: "/purchase-requests/new", title: "Create PR", description: "Raise a purchase request fast.", icon: ClipboardList, roles: ["admin", "kitchen", "purchasing"] },
   { href: "/purchase-requests", title: "Review PR", description: "Check urgent and pending requests.", icon: ClipboardList, roles: ["admin", "purchasing", "finance"] },
   { href: "/documents", title: "Pending Approvals", description: "Review documents waiting for action.", icon: ClipboardList, roles: ["admin", "finance", "purchasing"] },
-  { href: "/items", title: "Find Item", description: "Search item code, item name, or barcode.", icon: PackageSearch, roles: ["admin", "kitchen", "purchasing", "finance", "viewer"] },
+  { href: "/items", title: "Find Item", description: "Search item code, item name, category, or supplier.", icon: PackageSearch, roles: ["admin", "kitchen", "purchasing", "finance", "viewer"] },
   { href: "/data-onboarding", title: "Data Onboarding", description: "Templates, imports, and readiness checks.", icon: Database, roles: ["admin"] },
   { href: "/staffs/new", title: "Staff Invite", description: "Invite a new staff account.", icon: UserPlus, roles: ["admin"] },
 ];

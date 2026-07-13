@@ -4,7 +4,6 @@ import { RecordSection } from "@/components/record-workspace";
 import { Field } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { SelectNative } from "@/components/ui/select-native";
-import { BarcodeFields } from "@/components/barcode-fields";
 import { SubmitButton } from "@/components/ui/submit-button";
 import { Button } from "@/components/ui/button";
 import { normalizeUom, uomOptionsWithCurrent } from "@/lib/uom";
@@ -24,7 +23,7 @@ type ItemFormProps = {
   showSubmit?: boolean;
 };
 
-export function ItemForm({ item, suppliers, currentStock, initialBarcode, action, formId, showSubmit = true }: ItemFormProps) {
+export function ItemForm({ item, suppliers, currentStock, action, formId, showSubmit = true }: ItemFormProps) {
   return (
     <form id={formId} action={action} className="space-y-4">
       <RecordSection title="Identity" description="Item code, name, category, and operational status.">
@@ -53,7 +52,7 @@ export function ItemForm({ item, suppliers, currentStock, initialBarcode, action
         </div>
       </RecordSection>
 
-      <RecordSection title="Inventory Controls" description="Stock units, safety level, cost, and barcode references.">
+      <RecordSection title="Inventory Controls" description="Stock units, safety level, and cost.">
         <div className="grid gap-4 md:grid-cols-3">
           <Field label="Base Unit" required>
             <SelectNative name="base_unit" defaultValue={normalizeUom(item?.base_unit) || "KG"} required>
@@ -82,15 +81,6 @@ export function ItemForm({ item, suppliers, currentStock, initialBarcode, action
             </p>
             <p className="mt-1 text-xs text-muted-foreground">Calculated from stock transactions.</p>
           </div>
-          <BarcodeFields
-            barcode={item?.barcode ?? initialBarcode}
-            qrCode={item?.qr_code}
-            supplierBarcode={item?.supplier_barcode}
-            internalBarcode={item?.internal_barcode}
-            barcodeType={item?.barcode_type}
-            barcodeImageUrl={item?.barcode_image_url}
-            showSupplierBarcode
-          />
         </div>
       </RecordSection>
 

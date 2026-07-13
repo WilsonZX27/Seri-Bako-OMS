@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Eye } from "lucide-react";
+import { Pencil } from "lucide-react";
 import { BulkSelectAllCheckbox, BulkSelectionProvider, BulkSelectRowCheckbox } from "@/components/bulk-selection";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -77,8 +77,8 @@ export default async function SuppliersPage({
                   <TableCell>
                     <div className="flex items-center gap-2">
                       <BulkSelectRowCheckbox id={supplier.id} />
-                      <Link href={`/suppliers/${supplier.id}`} aria-label={`Quick view ${supplier.name}`} className="p-1 text-[var(--sb-text-soft)] opacity-0 hover:bg-[var(--sb-surface-muted)] hover:text-primary group-hover:opacity-100">
-                        <Eye className="h-4 w-4" />
+                      <Link href={`/suppliers/${supplier.id}`} aria-label={`Quick view ${supplier.name}`} className="p-1 text-[var(--sb-text-soft)] hover:bg-[var(--sb-surface-muted)] hover:text-primary">
+                        <Pencil className="h-4 w-4" />
                       </Link>
                     </div>
                   </TableCell>

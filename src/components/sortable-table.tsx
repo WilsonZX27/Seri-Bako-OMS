@@ -47,8 +47,8 @@ export function PaginationControls({
   searchParams: Record<string, string | undefined>;
 }) {
   return (
-    <div className="flex flex-col gap-3 border-t px-4 py-3 text-sm text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
-      <span>
+    <div className="flex flex-col gap-2 border-t px-3 py-1.5 text-[11px] text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
+      <span className="leading-6">
         Page {page} of {totalPages} - {totalRows} rows
       </span>
       <div className="flex gap-2">

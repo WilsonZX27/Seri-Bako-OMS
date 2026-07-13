@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Eye } from "lucide-react";
+import { Pencil } from "lucide-react";
 import { DataGridRow } from "@/components/ui/data-grid-row";
 import { DocumentNumber } from "@/components/document-number";
 import { EmptyState } from "@/components/ui/empty-state";
@@ -61,7 +61,7 @@ export default async function SupplierInvoicesPage({ searchParams }: { searchPar
               <TableBody>
                 {invoices.rows.map((row) => (
                   <DataGridRow key={row.id} href={`/supplier-invoices/${row.id}`}>
-                    <TableCell><Link href={`/supplier-invoices/${row.id}`} aria-label={`View ${row.invoice_no}`}><Eye className="h-4 w-4" /></Link></TableCell>
+                    <TableCell><Link href={`/supplier-invoices/${row.id}`} aria-label={`View ${row.invoice_no}`}><Pencil className="h-4 w-4" /></Link></TableCell>
                     <TableCell><DocumentNumber value={row.invoice_no} size="sm" /></TableCell>
                     <TableCell>{row.supplier_invoice_no}</TableCell>
                     <TableCell>{row.supplier_name ?? "-"}</TableCell>

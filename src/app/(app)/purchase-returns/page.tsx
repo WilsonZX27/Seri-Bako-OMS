@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Eye } from "lucide-react";
+import { Pencil } from "lucide-react";
 import { DataGridRow } from "@/components/ui/data-grid-row";
 import { DocumentNumber } from "@/components/document-number";
 import { EmptyState } from "@/components/ui/empty-state";
@@ -61,7 +61,7 @@ export default async function PurchaseReturnsPage({ searchParams }: { searchPara
               <TableBody>
                 {returns.rows.map((row) => (
                   <DataGridRow key={row.id} href={`/purchase-returns/${row.id}`}>
-                    <TableCell><Link href={`/purchase-returns/${row.id}`} aria-label={`View ${row.purchase_return_no}`}><Eye className="h-4 w-4" /></Link></TableCell>
+                    <TableCell><Link href={`/purchase-returns/${row.id}`} aria-label={`View ${row.purchase_return_no}`}><Pencil className="h-4 w-4" /></Link></TableCell>
                     <TableCell><DocumentNumber value={row.purchase_return_no} size="sm" /></TableCell>
                     <TableCell>{row.grn_no ?? "-"}</TableCell>
                     <TableCell>{row.po_no ?? "-"}</TableCell>

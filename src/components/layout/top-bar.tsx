@@ -3,6 +3,8 @@ import { Breadcrumbs } from "@/components/layout/breadcrumbs";
 import { GlobalSearch } from "@/components/search/global-search";
 import { MobileSidebar } from "@/components/layout/mobile-sidebar";
 import { TopBarActivityMenu } from "@/components/layout/top-bar-activity-menu";
+import { getRoleDisplayLabel } from "@/lib/roles";
+import { signOut } from "@/server/actions/auth";
 import { getCompanyBranding, getCurrentProfile } from "@/server/queries/common";
 import { getTopBarActivity } from "@/server/queries/topbar";
 import type { UserRole } from "@/types/database";
@@ -28,10 +30,23 @@ export async function TopBar() {
           <GlobalSearch />
         </div>
         <TopBarActivityMenu data={activity} />
-        <Link href="/account" aria-label={`Open account for ${displayName}`} className="pointer-events-auto hidden h-8 items-center gap-2 rounded-[2px] border border-[var(--sb-border-soft)] bg-white px-2 text-xs font-medium text-[var(--sb-text)] transition-colors hover:bg-[var(--sb-surface-muted)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--sb-amber-300)] sm:flex">
-          <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[var(--sb-amber-100)] text-[10px] font-semibold text-[var(--sb-green-950)]">{initials}</span>
-          <span className="hidden max-w-28 truncate md:inline">{displayName}</span>
-        </Link>
+        <details className="relative hidden sm:block">
+          <summary aria-label={`Open account for ${displayName}`} className="pointer-events-auto flex h-8 cursor-pointer list-none items-center gap-2 rounded-[2px] border border-[var(--sb-border-soft)] bg-white px-2 text-xs font-medium text-[var(--sb-text)] transition-colors hover:bg-[var(--sb-surface-muted)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--sb-amber-300)]">
+            <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[var(--sb-amber-100)] text-[10px] font-semibold text-[var(--sb-green-950)]">{initials}</span>
+            <span className="hidden max-w-28 truncate md:inline">{displayName}</span>
+            <span className="hidden max-w-32 truncate text-[10px] font-normal text-muted-foreground lg:inline">{getRoleDisplayLabel(role)}</span>
+          </summary>
+          <div className="absolute right-0 mt-1 w-56 border border-[var(--sb-border-soft)] bg-white p-1 text-xs shadow-sm">
+            <div className="border-b px-2 py-2">
+              <p className="truncate font-semibold">{displayName}</p>
+              <p className="truncate text-[11px] text-muted-foreground">{getRoleDisplayLabel(role)}</p>
+            </div>
+            <Link href="/account" className="block px-2 py-2 hover:bg-[var(--sb-surface-muted)]">Update Account</Link>
+            <form action={signOut}>
+              <button type="submit" className="block w-full px-2 py-2 text-left text-[var(--sb-danger)] hover:bg-[var(--sb-surface-muted)]">Logout</button>
+            </form>
+          </div>
+        </details>
       </div>
     </header>
   );

@@ -1,7 +1,7 @@
 # Seri Bako OMS Core MVP Release Candidate
 
-Sprint: 7.2.34
-Release note: Core MVP Release Candidate
+Sprint: 7.3.5
+Release note: Pilot Launch Readiness
 Migration ceiling: 050
 
 ## Completed core modules
@@ -25,6 +25,7 @@ Migration ceiling: 050
 - Low stock to purchase request.
 - Stock ledger and valuation.
 - Fixed-template master data import.
+- Error, empty, loading, not-found, and operation feedback states.
 
 ## Known deferred issues
 
@@ -32,7 +33,7 @@ Migration ceiling: 050
 - Workflow timeline does not show every event everywhere.
 - Viewer/outlet role lacks full live-account QA.
 - Advanced costing is not implemented.
-- Error and empty-state polish is deferred.
+- Pilot feedback may still uncover minor wording, timeline, or mobile polish issues.
 
 ## Deployment prerequisites
 

@@ -1,3 +1,3 @@
 export const APP_VERSION = "0.2.13";
-export const APP_SPRINT = "Sprint 7.3.4";
-export const APP_RELEASE_NOTE = "Feedback & System States";
+export const APP_SPRINT = "Sprint 7.3.5";
+export const APP_RELEASE_NOTE = "Pilot Launch Readiness";

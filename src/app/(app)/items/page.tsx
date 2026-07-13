@@ -12,6 +12,7 @@ import { PaginationControls, SortableHead } from "@/components/sortable-table";
 import { StatusTabs } from "@/components/status-tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { formatCurrency, formatNumber } from "@/lib/utils";
+import { hasActiveFilters } from "@/lib/table-state";
 import { getItemsWithStock, getItemsWithStockPage } from "@/server/queries/items";
 import { getSuppliersForSelect } from "@/server/queries/common";
 import { ConsoleSection } from "@/components/layout/right-console";
@@ -26,6 +27,7 @@ export default async function ItemsPage({
   const [itemsPage, allItems, suppliers] = await Promise.all([getItemsWithStockPage(filters), getItemsWithStock(), getSuppliersForSelect()]);
   const categories = Array.from(new Set(allItems.map((item) => item.category))).sort();
   const lowStockCount = allItems.filter((item) => Number(item.current_stock) < Number(item.safety_stock)).length;
+  const filtered = hasActiveFilters(filters);
 
   return (
     <>
@@ -93,7 +95,11 @@ export default async function ItemsPage({
               {!itemsPage.rows.length ? (
                 <TableRow>
                   <TableCell colSpan={10}>
-                    <EmptyState title="No items found" description="Items will appear here after they are created or imported." action={{ href: "/items/new", label: "New item" }} />
+                    <EmptyState
+                      title={filtered ? "No records match these filters" : "No items yet"}
+                      description={filtered ? "Clear filters or widen the search to see more items." : "Items will appear here after they are created or imported."}
+                      action={filtered ? { href: "/items", label: "Clear filters" } : { href: "/items/new", label: "New item" }}
+                    />
                   </TableCell>
                 </TableRow>
               ) : null}

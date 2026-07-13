@@ -5,6 +5,7 @@ import { ConsoleSection } from "@/components/layout/right-console";
 import { Field } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { SubmitButton } from "@/components/ui/submit-button";
+import { EmptyAttachmentState, EmptyTimelineState } from "@/components/ui/system-states";
 import { Textarea } from "@/components/ui/textarea";
 import {
   addDocumentAttachment,
@@ -76,7 +77,7 @@ export function DocumentTimeline({ document, activities, comments, attachments }
               </div>
             </div>
           ))}
-          {!events.length ? <p className="text-xs text-muted-foreground">No activity yet.</p> : null}
+          {!events.length ? <EmptyTimelineState /> : null}
         </div>
     </ConsoleSection>
   );
@@ -114,7 +115,7 @@ export async function AttachmentPanel({ documentId, attachments }: { documentId:
               </div>
             </div>
           ))}
-          {!attachments.length ? <p className="p-3 text-center text-xs text-muted-foreground">No attachments yet.</p> : null}
+          {!attachments.length ? <EmptyAttachmentState /> : null}
         </div>
       </div>
     </ConsoleSection>

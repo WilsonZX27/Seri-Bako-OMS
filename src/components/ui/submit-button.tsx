@@ -22,13 +22,13 @@ export function SubmitButton({
 
   return (
     <>
-      <Button {...props} disabled={disabled || pending}>
+      <Button {...props} disabled={disabled || pending} aria-busy={pending}>
         {pending ? <LoaderCircle className="h-4 w-4 animate-spin" /> : null}
         {pending ? pendingLabel : children}
       </Button>
       {showOverlay && pending ? (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/30 backdrop-blur-sm">
-          <div className="flex items-center gap-3 rounded-xl border bg-card px-5 py-4 shadow-lg">
+          <div className="flex items-center gap-3 rounded-[2px] border bg-card px-5 py-4 shadow-sm">
             <LoaderCircle className="h-5 w-5 animate-spin text-primary" />
             <p className="text-sm font-medium">{overlayLabel ?? pendingLabel}</p>
           </div>

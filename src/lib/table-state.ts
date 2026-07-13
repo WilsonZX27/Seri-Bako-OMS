@@ -27,3 +27,7 @@ export function paginateRows<T>(rows: T[], pageValue?: string, pageSize = 15): P
     totalPages,
   };
 }
+
+export function hasActiveFilters(params: Record<string, string | undefined>, ignored = ["page", "sort", "dir", "success", "error"]) {
+  return Object.entries(params).some(([key, value]) => Boolean(value && value !== "all" && !ignored.includes(key)));
+}

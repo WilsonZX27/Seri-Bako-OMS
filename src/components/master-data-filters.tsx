@@ -82,7 +82,7 @@ export function MasterDataFilters({
           Filter
         </Button>
         <Button asChild variant="ghost">
-          <a href="?">Reset</a>
+          <a href="?">Clear filters</a>
         </Button>
       </div>
     </form>

@@ -1,8 +1,8 @@
 "use client";
 
 import { useEffect } from "react";
-import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { ErrorState } from "@/components/ui/system-states";
 
 export default function AppError({
   error,
@@ -15,16 +15,5 @@ export default function AppError({
     console.error(error);
   }, [error]);
 
-  return (
-    <div className="p-5">
-      <Card>
-        <CardContent className="space-y-4 p-5">
-          <div className="text-sm text-muted-foreground">
-            This workspace hit a temporary problem. Please try again, or continue from another page in the sidebar.
-          </div>
-          <Button type="button" onClick={reset}>Try again</Button>
-        </CardContent>
-      </Card>
-    </div>
-  );
+  return <ErrorState title="Workspace could not load" description="Try again, or continue from another page in the sidebar." action={<Button type="button" onClick={reset}>Try again</Button>} />;
 }

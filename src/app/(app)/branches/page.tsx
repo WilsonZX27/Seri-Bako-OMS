@@ -12,6 +12,7 @@ import { StatusTabs } from "@/components/status-tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { formatPageError } from "@/server/actions/error-handling";
 import { getBranches } from "@/server/queries/foundation";
+import { hasActiveFilters } from "@/lib/table-state";
 import { ConsoleSection } from "@/components/layout/right-console";
 import { WorkspaceGrid } from "@/components/layout/workspace-layout";
 
@@ -21,6 +22,7 @@ export default async function BranchesPage({ searchParams }: { searchParams: Pro
   try {
     const filters = await searchParams;
     const branches = await getBranches(filters);
+    const filtered = hasActiveFilters(filters);
 
     return (
       <>
@@ -72,7 +74,7 @@ export default async function BranchesPage({ searchParams }: { searchParams: Pro
                       <TableCell><Badge variant={branch.status === "active" ? "success" : "secondary"}>{branch.status}</Badge></TableCell>
                     </DataGridRow>
                   ))}
-                  {!branches.length ? <TableRow><TableCell colSpan={8}><EmptyState title="No branches found" description="Branches will appear here after operating units are created." action={{ href: "/branches/new", label: "New branch" }} /></TableCell></TableRow> : null}
+                  {!branches.length ? <TableRow><TableCell colSpan={8}><EmptyState title={filtered ? "No records match these filters" : "No branches yet"} description={filtered ? "Clear filters or widen the search to see more branches." : "Branches will appear here after operating units are created."} action={filtered ? { href: "/branches", label: "Clear filters" } : { href: "/branches/new", label: "New branch" }} /></TableCell></TableRow> : null}
                 </TableBody>
               </Table>
             </div>

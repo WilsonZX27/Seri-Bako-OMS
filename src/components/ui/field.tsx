@@ -1,4 +1,5 @@
 import { Label } from "@/components/ui/label";
+import { InlineFieldError } from "@/components/ui/system-states";
 
 type FieldProps = {
   label: string;
@@ -15,7 +16,7 @@ export function Field({ label, children, error, required = false }: FieldProps) 
         {required ? <span className="ml-1 text-destructive">*</span> : null}
       </Label>
       {children}
-      {error ? <p className="text-xs text-destructive">{error}</p> : null}
+      <InlineFieldError>{error}</InlineFieldError>
     </div>
   );
 }

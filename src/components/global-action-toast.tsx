@@ -2,7 +2,7 @@
 
 import { Suspense, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
-import { X } from "lucide-react";
+import { AlertTriangle, CheckCircle2, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
@@ -13,6 +13,7 @@ function GlobalActionToastInner() {
   const [visible, setVisible] = useState(false);
   const message = error ?? success;
   const tone = error ? "error" : "success";
+  const Icon = error ? AlertTriangle : CheckCircle2;
 
   useEffect(() => {
     if (!message) {
@@ -29,12 +30,14 @@ function GlobalActionToastInner() {
   return (
     <div
       className={cn(
-        "fixed right-4 top-20 z-50 flex max-w-md items-start gap-3 rounded-lg border bg-white p-4 text-sm shadow-lg",
-        tone === "error" ? "border-red-200 text-red-900" : "border-emerald-200 text-emerald-900",
+        "fixed right-4 top-20 z-50 flex max-w-md items-start gap-3 rounded-[2px] border p-3 text-sm shadow-sm",
+        tone === "error"
+          ? "border-[var(--sb-danger)] bg-[var(--sb-danger-bg)] text-[var(--sb-danger)]"
+          : "border-[var(--sb-success)] bg-[var(--sb-success-bg)] text-[var(--sb-success)]",
       )}
-      role="status"
+      role={tone === "error" ? "alert" : "status"}
     >
-      <div className={cn("mt-1 h-2.5 w-2.5 shrink-0 rounded-full", tone === "error" ? "bg-red-600" : "bg-emerald-600")} />
+      <Icon className="mt-0.5 h-4 w-4 shrink-0" />
       <p className="min-w-0 flex-1 leading-5">{message}</p>
       <Button type="button" variant="ghost" size="icon" className="h-6 w-6 shrink-0" onClick={() => setVisible(false)} aria-label="Close message">
         <X className="h-4 w-4" />

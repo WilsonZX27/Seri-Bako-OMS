@@ -48,7 +48,7 @@ function DocumentActionSubmitButton({
 } & ButtonProps) {
   const { pending } = useFormStatus();
   return (
-    <Button type="submit" {...buttonProps} className={cn("w-full justify-center", buttonProps.className)} disabled={pending || buttonProps.disabled}>
+    <Button type="submit" {...buttonProps} className={cn("w-full justify-center", buttonProps.className)} disabled={pending || buttonProps.disabled} aria-busy={pending}>
       {pending ? <LoaderCircle className="h-4 w-4 animate-spin" /> : null}
       {pending ? pendingLabel : children}
     </Button>

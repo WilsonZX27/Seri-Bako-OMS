@@ -13,7 +13,7 @@ import { StatusTabs } from "@/components/status-tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { ConsoleSection } from "@/components/layout/right-console";
 import { WorkspaceGrid } from "@/components/layout/workspace-layout";
-import { paginateRows } from "@/lib/table-state";
+import { hasActiveFilters, paginateRows } from "@/lib/table-state";
 import { getSuppliers } from "@/server/queries/suppliers";
 
 export default async function SuppliersPage({
@@ -25,6 +25,7 @@ export default async function SuppliersPage({
   const suppliers = await getSuppliers(filters);
   const page = paginateRows(suppliers, filters.page);
   const count = (status: string) => suppliers.filter((supplier) => supplier.status === status).length;
+  const filtered = hasActiveFilters(filters);
 
   return (
     <>
@@ -95,7 +96,11 @@ export default async function SuppliersPage({
               {!page.rows.length ? (
                 <TableRow>
                   <TableCell colSpan={8}>
-                    <EmptyState title="No suppliers found" description="Suppliers will appear here after they are created or imported." />
+                    <EmptyState
+                      title={filtered ? "No records match these filters" : "No suppliers yet"}
+                      description={filtered ? "Clear filters or widen the search to see more suppliers." : "Suppliers will appear here after they are created or imported."}
+                      action={filtered ? { href: "/suppliers", label: "Clear filters" } : { href: "/suppliers/new", label: "New supplier" }}
+                    />
                   </TableCell>
                 </TableRow>
               ) : null}

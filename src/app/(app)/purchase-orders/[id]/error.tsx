@@ -1,20 +1,7 @@
 "use client";
 
-import Link from "next/link";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+import { ErrorState } from "@/components/ui/system-states";
 
 export default function PurchaseOrderDetailError() {
-  return (
-    <div className="p-5">
-      <Card>
-        <CardContent className="space-y-4 p-5">
-          <p className="text-sm font-medium">Document could not be found or you do not have permission to view it.</p>
-          <Button asChild variant="outline">
-            <Link href="/purchase-orders">Back to Purchase Orders</Link>
-          </Button>
-        </CardContent>
-      </Card>
-    </div>
-  );
+  return <ErrorState title="Purchase order not available" description="This order may not exist, or you may not have access to it." action={{ href: "/purchase-orders", label: "Back to purchase orders" }} />;
 }

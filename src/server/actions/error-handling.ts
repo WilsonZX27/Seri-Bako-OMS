@@ -2,14 +2,39 @@ import { redirect } from "next/navigation";
 import { isRedirectError } from "next/dist/client/components/redirect-error";
 import { hasPermission } from "@/server/auth/permissions";
 
+export type ActionErrorKind =
+  | "permission_denied"
+  | "validation_failed"
+  | "duplicate_record"
+  | "record_not_found"
+  | "conflict"
+  | "database_unavailable"
+  | "operation_failed"
+  | "unknown_error";
+
 export function rethrowRedirect(error: unknown) {
   if (isRedirectError(error)) throw error;
+}
+
+export function classifyActionError(error: unknown): ActionErrorKind {
+  const message = error instanceof Error ? error.message : String(error ?? "");
+  const normalized = message.toLowerCase();
+
+  if (normalized.includes("missing permission") || normalized.includes("permission denied") || normalized.includes("row-level security")) return "permission_denied";
+  if (normalized.includes("duplicate key") || normalized.includes("already exists") || normalized.includes("unique constraint")) return "duplicate_record";
+  if (normalized.includes("not found") || normalized.includes("no rows") || normalized.includes("does not exist")) return "record_not_found";
+  if (normalized.includes("already posted") || normalized.includes("already converted") || normalized.includes("already completed") || normalized.includes("insufficient stock") || normalized.includes("exceed")) return "conflict";
+  if (normalized.includes("violates not-null") || normalized.includes("check constraint") || normalized.includes("invalid") || normalized.includes("required")) return "validation_failed";
+  if (isPendingMigrationError(error) || normalized.includes("schema cache") || normalized.includes("connection") || normalized.includes("timeout")) return "database_unavailable";
+  if (!message) return "unknown_error";
+  return "operation_failed";
 }
 
 export function formatActionError(error: unknown, fallback = "Something went wrong. Please try again.") {
   console.error(error);
   const message = error instanceof Error ? error.message : String(error ?? "");
   const normalized = message.toLowerCase();
+  const kind = classifyActionError(error);
 
   if (!message) return fallback;
   if (isPendingMigrationError(error)) return "Database migration is pending. Please contact admin.";
@@ -30,17 +55,14 @@ export function formatActionError(error: unknown, fallback = "Something went wro
   ) {
     return "We could not send the email right now. Please contact admin or try again later.";
   }
-  if (normalized.includes("row-level security")) {
-    return "This record is blocked by database row security. Please contact admin.";
-  }
-  if (normalized.includes("missing permission") || normalized.includes("permission denied")) {
-    return "You do not have permission to perform this action.";
-  }
-  if (normalized.includes("duplicate key")) return "A matching record already exists.";
+  if (kind === "permission_denied") return "You do not have permission to complete this action.";
+  if (kind === "duplicate_record") return "A record with this code already exists.";
+  if (kind === "record_not_found") return "This record could not be found.";
+  if (kind === "conflict") return "This action cannot be completed in the current state.";
+  if (kind === "validation_failed") return "Review the required fields and try again.";
   if (normalized.includes("bucket") || normalized.includes("storage")) {
     return "File storage is not configured correctly. Please contact an administrator.";
   }
-  if (normalized.includes("violates not-null constraint")) return "A required field is missing.";
   if (message.length <= 160 && !/(supabase|postgres|constraint|sqlstate|violates)/i.test(message)) return message;
   return fallback;
 }

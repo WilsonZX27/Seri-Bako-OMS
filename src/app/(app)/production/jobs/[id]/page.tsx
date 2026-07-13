@@ -28,6 +28,7 @@ export default async function ProductionJobDetailPage({
   searchParams: Promise<{ error?: string; success?: string }>;
 }) {
   const [{ id }, messages] = await Promise.all([params, searchParams]);
+  if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(id)) notFound();
   const detail = await getProductionJob(id).catch((error: unknown) => {
     if (error instanceof ProductionJobNotFoundError) notFound();
     throw error;

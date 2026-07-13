@@ -9,7 +9,7 @@ test("master data imports remain duplicate-safe", async ({ page }) => {
 
   async function runImport(route, fixture, expectedMessage, confirmPosting = false) {
     await page.goto(route, { waitUntil: "domcontentloaded" });
-    await expect(page.locator("body")).toContainText("Sprint 7.3.3");
+    await expect(page.locator("body")).toContainText("Sprint 7.3.4");
     const filePath = path.join(__dirname, "..", "fixtures", "imports", fixture);
     for (let attempt = 0; attempt < 3; attempt += 1) {
       await page.waitForTimeout(1000);

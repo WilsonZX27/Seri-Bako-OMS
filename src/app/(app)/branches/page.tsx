@@ -12,6 +12,8 @@ import { StatusTabs } from "@/components/status-tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { formatPageError } from "@/server/actions/error-handling";
 import { getBranches } from "@/server/queries/foundation";
+import { ConsoleSection } from "@/components/layout/right-console";
+import { WorkspaceGrid } from "@/components/layout/workspace-layout";
 
 export const dynamic = "force-dynamic";
 
@@ -23,7 +25,7 @@ export default async function BranchesPage({ searchParams }: { searchParams: Pro
     return (
       <>
         <PageHeader title="Branches" description="Central kitchen, outlets, event booths, offices, and operating units." action={{ href: "/branches/new", label: "New branch" }} />
-        <div className="space-y-4 p-5">
+        <WorkspaceGrid rightRail={<><ConsoleSection title="Branch Summary"><dl className="grid gap-2 text-xs"><div className="flex justify-between"><dt className="text-muted-foreground">Total</dt><dd className="font-semibold">{branches.length}</dd></div><div className="flex justify-between"><dt className="text-muted-foreground">Active</dt><dd className="font-semibold">{branches.filter((branch) => branch.status === "active").length}</dd></div><div className="flex justify-between"><dt className="text-muted-foreground">Archived</dt><dd className="font-semibold">{branches.filter((branch) => branch.status === "archived").length}</dd></div></dl></ConsoleSection></>}>
           {filters.error || filters.success ? (
             <Card>
               <CardContent className={`p-4 text-sm ${filters.error ? "text-destructive" : "text-emerald-700"}`}>
@@ -31,7 +33,7 @@ export default async function BranchesPage({ searchParams }: { searchParams: Pro
               </CardContent>
             </Card>
           ) : null}
-          <div className="overflow-hidden rounded-lg border bg-card">
+          <div className="overflow-hidden rounded-[2px] border bg-card">
             <StatusTabs statuses={["active", "archived"]} activeStatus={filters.status} />
             <MasterDataFilters search={filters.search} status={filters.status} placeholder="Search branch code, name, or type" statuses={[{ value: "active", label: "Active" }, { value: "archived", label: "Archived" }]} />
             <BulkSelectionProvider ids={branches.map((branch) => branch.id)} actionLabel="Archive selected" actionHint="Archive branches only after confirming they are no longer used by daily operations.">
@@ -46,6 +48,7 @@ export default async function BranchesPage({ searchParams }: { searchParams: Pro
                     <TableHead>Type</TableHead>
                     <TableHead>Phone</TableHead>
                     <TableHead>Email</TableHead>
+                    <TableHead>Address</TableHead>
                     <TableHead>Status</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -55,7 +58,7 @@ export default async function BranchesPage({ searchParams }: { searchParams: Pro
                       <TableCell>
                         <div className="flex items-center gap-2">
                           <BulkSelectRowCheckbox id={branch.id} />
-                          <Link href={`/branches/${branch.id}`} aria-label={`Quick view ${branch.branch_name}`} className="rounded-md p-1 text-slate-400 opacity-0 hover:bg-slate-100 hover:text-primary group-hover:opacity-100">
+                          <Link href={`/branches/${branch.id}`} aria-label={`Quick view ${branch.branch_name}`} className="p-1 text-[var(--sb-text-soft)] opacity-0 hover:bg-[var(--sb-surface-muted)] hover:text-primary group-hover:opacity-100">
                             <Eye className="h-4 w-4" />
                           </Link>
                         </div>
@@ -65,16 +68,17 @@ export default async function BranchesPage({ searchParams }: { searchParams: Pro
                       <TableCell className="capitalize">{branch.branch_type.replaceAll("_", " ")}</TableCell>
                       <TableCell>{branch.phone ?? "-"}</TableCell>
                       <TableCell>{branch.email ?? "-"}</TableCell>
+                      <TableCell className="max-w-64 truncate">{branch.address ?? "-"}</TableCell>
                       <TableCell><Badge variant={branch.status === "active" ? "success" : "secondary"}>{branch.status}</Badge></TableCell>
                     </DataGridRow>
                   ))}
-                  {!branches.length ? <TableRow><TableCell colSpan={7}><EmptyState title="No branches found" description="Branches will appear here after operating units are created." action={{ href: "/branches/new", label: "New branch" }} /></TableCell></TableRow> : null}
+                  {!branches.length ? <TableRow><TableCell colSpan={8}><EmptyState title="No branches found" description="Branches will appear here after operating units are created." action={{ href: "/branches/new", label: "New branch" }} /></TableCell></TableRow> : null}
                 </TableBody>
               </Table>
             </div>
             </BulkSelectionProvider>
           </div>
-        </div>
+        </WorkspaceGrid>
       </>
     );
   } catch (error) {

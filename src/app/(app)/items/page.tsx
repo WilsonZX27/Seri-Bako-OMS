@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Eye, Package } from "lucide-react";
+import { Eye } from "lucide-react";
 import { BulkSelectAllCheckbox, BulkSelectionProvider, BulkSelectRowCheckbox } from "@/components/bulk-selection";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -14,6 +14,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { formatCurrency, formatNumber } from "@/lib/utils";
 import { getItemsWithStock, getItemsWithStockPage } from "@/server/queries/items";
 import { getSuppliersForSelect } from "@/server/queries/common";
+import { ConsoleSection } from "@/components/layout/right-console";
+import { WorkspaceGrid } from "@/components/layout/workspace-layout";
 
 export default async function ItemsPage({
   searchParams,
@@ -23,16 +25,14 @@ export default async function ItemsPage({
   const filters = await searchParams;
   const [itemsPage, allItems, suppliers] = await Promise.all([getItemsWithStockPage(filters), getItemsWithStock(), getSuppliersForSelect()]);
   const categories = Array.from(new Set(allItems.map((item) => item.category))).sort();
+  const lowStockCount = allItems.filter((item) => Number(item.current_stock) < Number(item.safety_stock)).length;
 
   return (
     <>
       <PageHeader title="Items" description="Ingredient and packaging master data. Stock balance is calculated separately." action={{ href: "/items/new", label: "New item" }} secondaryAction={{ href: "/api/export/items", label: "Export CSV" }} />
-      <div className="p-5">
-        {filters.success ? <div className="mb-3 rounded-lg border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-800">{filters.success}</div> : null}
-        <div className="mb-3 flex justify-end">
-          <Button asChild variant="outline" size="sm"><Link href="/imports/items">Import items</Link></Button>
-        </div>
-        <div className="overflow-hidden rounded-lg border bg-card">
+      <WorkspaceGrid rightRail={<><ConsoleSection title="Item Summary"><dl className="grid gap-2 text-xs"><div className="flex justify-between"><dt className="text-muted-foreground">Active</dt><dd className="font-semibold">{allItems.filter((item) => item.status === "active").length}</dd></div><div className="flex justify-between"><dt className="text-muted-foreground">Inactive</dt><dd className="font-semibold">{allItems.filter((item) => item.status === "inactive").length}</dd></div><div className="flex justify-between"><dt className="text-muted-foreground">Low stock</dt><dd className="font-semibold">{lowStockCount}</dd></div></dl></ConsoleSection><ConsoleSection title="Data Actions"><Button asChild variant="outline" className="w-full"><Link href="/imports/items">Import Items</Link></Button></ConsoleSection></>}>
+        {filters.success ? <div className="border border-[var(--sb-success)] bg-[var(--sb-success-bg)] p-3 text-sm text-[var(--sb-success)]">{filters.success}</div> : null}
+        <div className="overflow-hidden rounded-[2px] border bg-card">
           <StatusTabs statuses={[{ value: "active", label: "Active" }, { value: "inactive", label: "Inactive" }, { value: "archived", label: "Archived" }]} activeStatus={filters.status} />
           <MasterDataFilters
             search={filters.search}
@@ -53,14 +53,11 @@ export default async function ItemsPage({
             <TableHeader>
               <TableRow>
                 <TableHead className="w-16"><BulkSelectAllCheckbox /></TableHead>
-                <TableHead>Image</TableHead>
                 <SortableHead label="Item Code" column="item_code" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
-                <SortableHead label="AutoCount" column="autocount_code" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
                 <SortableHead label="Item Name" column="item_name" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
                 <SortableHead label="Category" column="category" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
                 <SortableHead label="Base Unit" column="base_unit" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
                 <SortableHead label="Supplier" column="supplier_name" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
-                <TableHead>Barcode</TableHead>
                 <SortableHead label="Cost" column="cost" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} className="text-right" />
                 <SortableHead label="Safety Stock" column="safety_stock" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} className="text-right" />
                 <SortableHead label="Current Stock" column="current_stock" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} className="text-right" />
@@ -74,28 +71,16 @@ export default async function ItemsPage({
                     <TableCell>
                       <div className="flex items-center gap-2">
                         <BulkSelectRowCheckbox id={item.id} />
-                        <Link href={`/items/${item.id}`} aria-label={`Quick view ${item.item_name}`} className="rounded-md p-1 text-slate-400 opacity-0 hover:bg-slate-100 hover:text-primary group-hover:opacity-100">
+                        <Link href={`/items/${item.id}`} aria-label={`Quick view ${item.item_name}`} className="p-1 text-[var(--sb-text-soft)] opacity-0 hover:bg-[var(--sb-surface-muted)] hover:text-primary group-hover:opacity-100">
                           <Eye className="h-4 w-4" />
                         </Link>
                       </div>
                     </TableCell>
-                    <TableCell>
-                      {item.item_image_url ? (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img src={item.item_image_url} alt={item.item_name} className="h-10 w-10 rounded-md border object-cover" />
-                      ) : (
-                        <div className="flex h-10 w-10 items-center justify-center rounded-md border bg-secondary text-muted-foreground">
-                          <Package className="h-4 w-4" />
-                        </div>
-                      )}
-                    </TableCell>
                     <TableCell>{item.item_code}</TableCell>
-                    <TableCell>{item.autocount_code ?? "-"}</TableCell>
                     <TableCell className="font-medium">{item.item_name}</TableCell>
                     <TableCell>{item.category}</TableCell>
                     <TableCell>{item.base_unit}</TableCell>
                     <TableCell>{item.supplier_name ?? "-"}</TableCell>
-                    <TableCell>{item.barcode ?? item.internal_barcode ?? "-"}</TableCell>
                     <TableCell className="text-right">{formatCurrency(item.cost)}</TableCell>
                     <TableCell className="text-right">{formatNumber(item.safety_stock)} {item.base_unit}</TableCell>
                     <TableCell className="text-right font-medium">{formatNumber(item.current_stock)} {item.base_unit}</TableCell>
@@ -107,7 +92,7 @@ export default async function ItemsPage({
               })}
               {!itemsPage.rows.length ? (
                 <TableRow>
-                  <TableCell colSpan={13}>
+                  <TableCell colSpan={10}>
                     <EmptyState title="No items found" description="Items will appear here after they are created or imported." action={{ href: "/items/new", label: "New item" }} />
                   </TableCell>
                 </TableRow>
@@ -118,7 +103,7 @@ export default async function ItemsPage({
           </BulkSelectionProvider>
           <PaginationControls page={itemsPage.page} totalPages={itemsPage.totalPages} totalRows={itemsPage.totalRows} searchParams={filters} />
         </div>
-      </div>
+      </WorkspaceGrid>
     </>
   );
 }

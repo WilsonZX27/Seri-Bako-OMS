@@ -1,5 +1,5 @@
 import { StaffForm } from "@/components/foundation-forms";
-import { RecordActionPanel, RecordSection, RecordWorkspace } from "@/components/record-workspace";
+import { RecordActionPanel, RecordWorkspace } from "@/components/record-workspace";
 import { Button } from "@/components/ui/button";
 import { CopyTextButton } from "@/components/ui/copy-text-button";
 import { DangerConfirmForm } from "@/components/ui/danger-confirm-form";
@@ -82,7 +82,7 @@ export default async function EditStaffPage({
         actionPanel={
           <>
             <RecordActionPanel title="Staff Actions" description="Save changes and manage this staff member's login setup.">
-              <div className="rounded-lg border bg-white p-3">
+              <div className="rounded-[2px] border bg-white p-3">
                 <p className="text-[11px] font-medium uppercase text-muted-foreground">Current Status</p>
                 <div className="mt-2 flex items-center justify-between gap-3">
                   <StatusBadge status={staff.status} />
@@ -115,7 +115,7 @@ export default async function EditStaffPage({
                 )}
               </div>
 
-              <div className="rounded-lg border bg-secondary/30 p-3">
+              <div className="rounded-[2px] border bg-secondary/30 p-3">
                 <p className="text-sm font-semibold">Auth Setup</p>
                 <p className="mt-1 text-xs text-muted-foreground">Temporary password is recommended for internal staff. Email invitation is optional and can expire.</p>
                 <div className="mt-3 grid gap-2 text-sm">
@@ -155,7 +155,7 @@ export default async function EditStaffPage({
                 </div>
               </div>
 
-              <div className="rounded-lg border bg-secondary/30 p-3 text-sm">
+              <div className="rounded-[2px] border bg-secondary/30 p-3 text-sm">
                 <p className="font-semibold">Permission Summary</p>
                 <p className="mt-1 text-muted-foreground">{getRoleDisplayLabel(assignedRole?.role_code, assignedRole?.role_name)}</p>
                 <p className="mt-2 text-xs text-muted-foreground">{roleDescriptions[roleCode as keyof typeof roleDescriptions] ?? "No role summary available."}</p>
@@ -167,15 +167,15 @@ export default async function EditStaffPage({
                     </ul>
                   </div>
                   <div>
-                    <p className="text-xs font-medium uppercase text-slate-600">Not allowed</p>
-                    <ul className="mt-1 space-y-1 text-slate-700">
+                    <p className="text-xs font-medium uppercase text-[var(--sb-text-muted)]">Not allowed</p>
+                    <ul className="mt-1 space-y-1 text-[var(--sb-text)]">
                       {roleSummary.denied.map((item) => <li key={item}>- {item}</li>)}
                     </ul>
                   </div>
                 </div>
               </div>
 
-              <div className="rounded-lg border bg-white p-3 text-sm">
+              <div className="rounded-[2px] border bg-white p-3 text-sm">
                 <p className="font-semibold">Branch Access Summary</p>
                 <div className="mt-2 flex justify-between gap-3 text-xs">
                   <span className="text-muted-foreground">Default branch</span>
@@ -183,7 +183,7 @@ export default async function EditStaffPage({
                 </div>
               </div>
 
-              <div className="rounded-lg border bg-white p-3 text-sm">
+              <div className="rounded-[2px] border bg-white p-3 text-sm">
                 <p className="font-semibold">Recent Account Activity</p>
                 <div className="mt-2 grid gap-2 text-xs">
                   <div className="flex justify-between gap-3">
@@ -228,7 +228,7 @@ export default async function EditStaffPage({
             </CardHeader>
             <CardContent className="space-y-3">
               <p className="text-sm text-amber-900">Copy this temporary password now. It will not be shown again.</p>
-              <div className="flex flex-wrap items-center justify-between gap-3 rounded-md border bg-white p-3">
+              <div className="flex flex-wrap items-center justify-between gap-3 rounded-[2px] border bg-white p-3">
                 <span className="font-mono text-lg font-semibold">{messageParams.temp_password}</span>
                 <CopyTextButton value={messageParams.temp_password} label="Copy temporary password" />
               </div>
@@ -239,22 +239,6 @@ export default async function EditStaffPage({
 
         <StaffForm formId={formId} staff={staff} access={access} companies={companies} branches={branches} roles={roles} action={updateStaff.bind(null, id)} showSubmit={false} />
 
-        <RecordSection title="Staff Review" description="Quick account and access details for admin review.">
-          <div className="grid gap-3 md:grid-cols-3">
-            <div className="rounded-md border bg-secondary/30 p-3 text-sm">
-              <p className="text-xs uppercase text-muted-foreground">Role</p>
-              <p className="mt-1 font-semibold">{getRoleDisplayLabel(assignedRole?.role_code, assignedRole?.role_name)}</p>
-            </div>
-            <div className="rounded-md border bg-secondary/30 p-3 text-sm">
-              <p className="text-xs uppercase text-muted-foreground">Branch access</p>
-              <p className="mt-1 font-semibold">{branchName}</p>
-            </div>
-            <div className="rounded-md border bg-secondary/30 p-3 text-sm">
-              <p className="text-xs uppercase text-muted-foreground">Password changed at</p>
-              <p className="mt-1 font-semibold">{staff.password_changed_at ? new Date(staff.password_changed_at).toLocaleString("en-MY") : "-"}</p>
-            </div>
-          </div>
-        </RecordSection>
       </RecordWorkspace>
     </>
   );

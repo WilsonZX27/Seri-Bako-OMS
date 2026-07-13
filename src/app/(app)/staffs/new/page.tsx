@@ -57,14 +57,14 @@ export default async function NewStaffPage({
       <RecordWorkspace
         actionPanel={
           <RecordActionPanel title="Staff Actions" description="Create the profile and choose how this staff member signs in.">
-            <div className="rounded-lg border bg-secondary/30 p-4">
+            <div className="rounded-[2px] border bg-secondary/30 p-4">
               <div className="mb-3">
                 <p className="text-sm font-semibold">Auth Setup</p>
                 <p className="mt-1 text-xs text-muted-foreground">Temporary password is recommended for internal staff.</p>
               </div>
               <StaffAuthSetupFields formId={formId} />
             </div>
-            <div className="rounded-lg border bg-secondary/30 p-4 text-sm text-muted-foreground">
+            <div className="rounded-[2px] border bg-secondary/30 p-4 text-sm text-muted-foreground">
               <p className="font-medium text-foreground">Role assignment</p>
               <p className="mt-1">Your current role can assign: {roles.map((role) => getRoleDisplayLabel(role.role_code, role.role_name)).join(", ")}.</p>
             </div>

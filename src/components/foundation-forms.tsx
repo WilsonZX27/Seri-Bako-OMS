@@ -109,15 +109,22 @@ function CompanyHidden({ companies, companyId }: { companies: SelectCompany[]; c
 
 export function CompanyForm({ company, action, formId = "company-form", showSubmit = true }: { company: Company; action: (formData: FormData) => Promise<void>; formId?: string; showSubmit?: boolean }) {
   return (
-    <Card>
-      <CardContent className="p-5">
-        <form id={formId} action={action} className="grid gap-3 md:grid-cols-2">
+    <form id={formId} action={action} className="space-y-4">
+      <RecordSection title="Company Identity" description="Legal identity and operational status.">
+        <div className="grid gap-3 md:grid-cols-2">
           <Field label="Company Code">
             <Input name="company_code" defaultValue={company.company_code} required />
           </Field>
           <Field label="Company Name">
             <Input name="company_name" defaultValue={company.company_name} required />
           </Field>
+          <Field label="Status">
+            <StatusSelect value={company.status} />
+          </Field>
+        </div>
+      </RecordSection>
+      <RecordSection title="Registration & Contact" description="Registration and day-to-day company contact details.">
+        <div className="grid gap-3 md:grid-cols-2">
           <Field label="Registration No.">
             <Input name="registration_no" defaultValue={company.registration_no ?? ""} />
           </Field>
@@ -130,31 +137,32 @@ export function CompanyForm({ company, action, formId = "company-form", showSubm
           <Field label="Email">
             <Input name="email" type="email" defaultValue={company.email ?? ""} />
           </Field>
-          <Field label="Status">
-            <StatusSelect value={company.status} />
-          </Field>
-          <div className="md:col-span-2">
-            <Field label="Address">
-              <Textarea name="address" defaultValue={company.address ?? ""} />
-            </Field>
-          </div>
-          {showSubmit ? (
+        </div>
+      </RecordSection>
+      <RecordSection title="Address">
+        <Field label="Address">
+          <Textarea name="address" defaultValue={company.address ?? ""} />
+        </Field>
+      </RecordSection>
+      {showSubmit ? (
+        <Card>
+          <CardContent className="p-3">
             <div className="flex justify-end md:col-span-2">
               <SubmitButton type="submit" pendingLabel="Saving..." showOverlay overlayLabel="Saving changes...">Save company</SubmitButton>
             </div>
-          ) : null}
-        </form>
-      </CardContent>
-    </Card>
+          </CardContent>
+        </Card>
+      ) : null}
+    </form>
   );
 }
 
-export function BranchForm({ branch, companies, action }: { branch?: Branch; companies: SelectCompany[]; action: (formData: FormData) => Promise<void> }) {
+export function BranchForm({ branch, companies, action, formId, showSubmit = true }: { branch?: Branch; companies: SelectCompany[]; action: (formData: FormData) => Promise<void>; formId?: string; showSubmit?: boolean }) {
   return (
-    <Card>
-      <CardContent className="p-5">
-        <form action={action} className="grid gap-4 md:grid-cols-2">
-          <CompanyHidden companies={companies} companyId={branch?.company_id} />
+    <form id={formId} action={action} className="space-y-4">
+      <CompanyHidden companies={companies} companyId={branch?.company_id} />
+      <RecordSection title="Identity" description="Branch reference, name, type, and operational status.">
+        <div className="grid gap-4 md:grid-cols-2">
           <Field label="Branch Code">
             <Input name="branch_code" defaultValue={branch?.branch_code ?? ""} required />
           </Field>
@@ -172,26 +180,36 @@ export function BranchForm({ branch, companies, action }: { branch?: Branch; com
             <p className="mt-1 text-xs text-muted-foreground">Select the outlet, kitchen, office, or event booth this record belongs to.</p>
             <p className="mt-1 text-xs text-muted-foreground">Stock movements for this branch are recorded to an internal default stock area automatically.</p>
           </Field>
+          <Field label="Status">
+            <StatusSelect value={branch?.status} />
+          </Field>
+        </div>
+      </RecordSection>
+      <RecordSection title="Contact & Address" description="Operational contact and location summary.">
+        <div className="grid gap-4 md:grid-cols-2">
           <Field label="Phone">
             <Input name="phone" defaultValue={branch?.phone ?? ""} />
           </Field>
           <Field label="Email">
             <Input name="email" type="email" defaultValue={branch?.email ?? ""} />
           </Field>
-          <Field label="Status">
-            <StatusSelect value={branch?.status} />
-          </Field>
           <div className="md:col-span-2">
             <Field label="Address">
               <Textarea name="address" defaultValue={branch?.address ?? ""} />
             </Field>
           </div>
+        </div>
+      </RecordSection>
+      {showSubmit ? (
+        <Card>
+          <CardContent className="p-3">
           <div className="flex justify-end md:col-span-2">
             <SubmitButton type="submit" pendingLabel="Saving..." showOverlay overlayLabel="Saving changes...">{branch ? "Save branch" : "Create branch"}</SubmitButton>
           </div>
-        </form>
-      </CardContent>
-    </Card>
+          </CardContent>
+        </Card>
+      ) : null}
+    </form>
   );
 }
 
@@ -280,7 +298,7 @@ export function StaffForm({
           </Field>
           <Field label="Current Status">
             <input type="hidden" name="status" value={staff?.status ?? "invited"} />
-            <div className="flex h-9 max-w-[400px] items-center rounded-md border bg-secondary/30 px-3">
+            <div className="flex h-9 max-w-[400px] items-center rounded-[2px] border bg-secondary/30 px-3">
               <StatusBadge status={staff?.status ?? "invited"} />
             </div>
             <p className="mt-1 text-xs text-muted-foreground">Use the Staff Actions panel to change account status intentionally.</p>
@@ -338,23 +356,6 @@ export function StaffForm({
         </div>
       </RecordSection>
 
-      <RecordSection title="Notes / Internal Info" description="Operational timestamps for review.">
-        <div className="grid gap-3 md:grid-cols-3">
-          <div className="rounded-md border bg-secondary/30 p-3 text-sm">
-            <p className="text-xs uppercase text-muted-foreground">Invited date</p>
-            <p className="mt-1 font-semibold">{staff?.invited_at ? new Date(staff.invited_at).toLocaleString("en-MY") : "-"}</p>
-          </div>
-          <div className="rounded-md border bg-secondary/30 p-3 text-sm">
-            <p className="text-xs uppercase text-muted-foreground">Accepted date</p>
-            <p className="mt-1 font-semibold">{staff?.accepted_at ? new Date(staff.accepted_at).toLocaleString("en-MY") : "-"}</p>
-          </div>
-          <div className="rounded-md border bg-secondary/30 p-3 text-sm">
-            <p className="text-xs uppercase text-muted-foreground">Last login</p>
-            <p className="mt-1 font-semibold">{staff?.last_login_at ? new Date(staff.last_login_at).toLocaleString("en-MY") : "-"}</p>
-          </div>
-        </div>
-      </RecordSection>
-
       {showSubmit ? (
         <Card>
           <CardContent className="flex justify-end p-5">
@@ -369,12 +370,12 @@ export function StaffForm({
 export function StaffAuthSetupFields({ formId }: { formId: string }) {
   return (
     <div className="space-y-3">
-      <label className="block rounded-md border bg-white p-3 text-sm">
+      <label className="block rounded-[2px] border bg-white p-3 text-sm">
         <input className="mr-2" type="radio" name="auth_setup_method" value="temporary_password" defaultChecked form={formId} />
         Create login with temporary password
         <span className="mt-1 block text-xs text-muted-foreground">Recommended for internal staff. Avoids email invite expiry and rate limits.</span>
       </label>
-      <label className="block rounded-md border bg-white p-3 text-sm">
+      <label className="block rounded-[2px] border bg-white p-3 text-sm">
         <input className="mr-2" type="radio" name="auth_setup_method" value="email_invitation" form={formId} />
         Send email invitation
         <span className="mt-1 block text-xs text-muted-foreground">Optional. Depends on email delivery and link expiry.</span>
@@ -442,11 +443,11 @@ export function DocumentSequenceForm({
   );
 }
 
-export function RoleForm({ role, companies, action }: { role?: Role; companies: SelectCompany[]; action: (formData: FormData) => Promise<void> }) {
+export function RoleForm({ role, companies, action, formId, showSubmit = true }: { role?: Role; companies: SelectCompany[]; action: (formData: FormData) => Promise<void>; formId?: string; showSubmit?: boolean }) {
   return (
-    <Card>
-      <CardContent className="p-5">
-        <form action={action} className="grid gap-4 md:grid-cols-2">
+    <form id={formId} action={action} className="space-y-4">
+      <RecordSection title="Role Identity" description="Role name, stable code, status, and purpose.">
+        <div className="grid gap-4 md:grid-cols-2">
           <CompanyHidden companies={companies} companyId={role?.company_id} />
           <Field label="Role Code">
             <Input name="role_code" defaultValue={role?.role_code ?? ""} required />
@@ -462,11 +463,17 @@ export function RoleForm({ role, companies, action }: { role?: Role; companies: 
               <Textarea name="description" defaultValue={role?.description ?? ""} />
             </Field>
           </div>
+        </div>
+      </RecordSection>
+      {showSubmit ? (
+        <Card>
+          <CardContent className="p-3">
           <div className="flex justify-end md:col-span-2">
             <SubmitButton type="submit" pendingLabel="Saving..." showOverlay overlayLabel="Saving changes...">{role ? "Save role" : "Create role"}</SubmitButton>
           </div>
-        </form>
-      </CardContent>
-    </Card>
+          </CardContent>
+        </Card>
+      ) : null}
+    </form>
   );
 }

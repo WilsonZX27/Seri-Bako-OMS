@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Card, CardContent } from "@/components/ui/card";
+import { RecordSection } from "@/components/record-workspace";
 import { Field } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { SelectNative } from "@/components/ui/select-native";
@@ -19,13 +20,15 @@ type ItemFormProps = {
   currentStock?: number;
   initialBarcode?: string;
   action: (formData: FormData) => Promise<void>;
+  formId?: string;
+  showSubmit?: boolean;
 };
 
-export function ItemForm({ item, suppliers, currentStock, initialBarcode, action }: ItemFormProps) {
+export function ItemForm({ item, suppliers, currentStock, initialBarcode, action, formId, showSubmit = true }: ItemFormProps) {
   return (
-    <Card>
-      <CardContent className="p-5">
-        <form action={action} className="grid gap-4 md:grid-cols-3">
+    <form id={formId} action={action} className="space-y-4">
+      <RecordSection title="Identity" description="Item code, name, category, and operational status.">
+        <div className="grid gap-4 md:grid-cols-3">
           <Field label="Item Code" required>
             <Input name="item_code" defaultValue={item?.item_code ?? ""} required />
           </Field>
@@ -38,22 +41,6 @@ export function ItemForm({ item, suppliers, currentStock, initialBarcode, action
           <Field label="Category" required>
             <Input name="category" defaultValue={item?.category ?? ""} placeholder="Flour, Dairy, Packaging" required />
           </Field>
-          <Field label="Supplier">
-            <SelectNative name="supplier_id" defaultValue={item?.supplier_id ?? ""}>
-              <option value="">No supplier</option>
-              {suppliers.map((supplier) => (
-                <option key={supplier.id} value={supplier.id}>
-                  {supplier.supplier_code ? `${supplier.supplier_code} - ` : ""}{supplier.name}
-                </option>
-              ))}
-            </SelectNative>
-            <div className="mt-2 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
-              <span>Supplier must be created before assigning it to an item.</span>
-              <Button asChild type="button" variant="outline" size="sm">
-                <Link href="/suppliers/new">Create Supplier</Link>
-              </Button>
-            </div>
-          </Field>
           <Field label="Status">
             <SelectNative name="status" defaultValue={item?.status ?? "active"}>
               <option value="active">Active</option>
@@ -63,6 +50,11 @@ export function ItemForm({ item, suppliers, currentStock, initialBarcode, action
           <Field label="Item Image URL">
             <Input name="item_image_url" defaultValue={item?.item_image_url ?? ""} placeholder="https://..." />
           </Field>
+        </div>
+      </RecordSection>
+
+      <RecordSection title="Inventory Controls" description="Stock units, safety level, cost, and barcode references.">
+        <div className="grid gap-4 md:grid-cols-3">
           <Field label="Base Unit" required>
             <SelectNative name="base_unit" defaultValue={normalizeUom(item?.base_unit) || "KG"} required>
               {uomOptionsWithCurrent(item?.base_unit).map((uom) => (
@@ -83,7 +75,7 @@ export function ItemForm({ item, suppliers, currentStock, initialBarcode, action
           <Field label="Safety Stock">
             <Input name="safety_stock" type="number" step="0.0001" min="0" defaultValue={item?.safety_stock ?? 0} />
           </Field>
-          <div className="rounded-md border bg-secondary/50 p-3">
+          <div className="rounded-[2px] border bg-secondary/50 p-3">
             <p className="text-sm font-medium">Current Stock</p>
             <p className="mt-1 text-lg font-semibold">
               {currentStock === undefined ? "-" : formatNumber(currentStock)} {item?.base_unit ?? ""}
@@ -99,36 +91,41 @@ export function ItemForm({ item, suppliers, currentStock, initialBarcode, action
             barcodeImageUrl={item?.barcode_image_url}
             showSupplierBarcode
           />
-          <div className="grid gap-4 md:col-span-3 md:grid-cols-2">
-            <div className="rounded-lg border bg-secondary/30 p-4">
-              <p className="text-sm font-semibold">Item Image</p>
-              {item?.item_image_url ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img src={item.item_image_url} alt={item.item_name} className="mt-3 aspect-video w-full rounded-md border object-cover" />
-              ) : (
-                <div className="mt-3 flex aspect-video items-center justify-center rounded-md border bg-background text-sm text-muted-foreground">
-                  No image uploaded yet
-                </div>
-              )}
-            </div>
-            <div className="rounded-lg border bg-secondary/30 p-4">
-              <div className="flex items-center justify-between gap-3">
-                <p className="text-sm font-semibold">Attachments / Certificates</p>
-                <span className="rounded-full bg-background px-2 py-1 text-xs text-muted-foreground">0 files</span>
-              </div>
-              <div className="mt-3 rounded-md border bg-background p-3 text-sm text-muted-foreground">
-                Halal certificates, supplier COA, packaging specifications, and SDS documents will appear here once shared attachments are enabled.
-              </div>
-            </div>
+        </div>
+      </RecordSection>
+
+      <RecordSection title="Supplier & Usage" description="Optional default supplier used by purchasing workflows.">
+        <div className="grid gap-4 md:grid-cols-2">
+          <Field label="Supplier">
+            <SelectNative name="supplier_id" defaultValue={item?.supplier_id ?? ""}>
+              <option value="">No supplier</option>
+              {suppliers.map((supplier) => (
+                <option key={supplier.id} value={supplier.id}>
+                  {supplier.supplier_code ? `${supplier.supplier_code} - ` : ""}{supplier.name}
+                </option>
+              ))}
+            </SelectNative>
+            <p className="mt-2 text-xs text-muted-foreground">Supplier must exist before it can be assigned.</p>
+          </Field>
+          <div className="flex items-end">
+            <Button asChild type="button" variant="outline" size="sm">
+              <Link href="/suppliers/new">Create supplier</Link>
+            </Button>
           </div>
-          <input type="hidden" name="conversion_to_base_unit" value={item?.conversion_to_base_unit ?? 1} />
-          <input type="hidden" name="moq" value={item?.moq ?? 0} />
-          <input type="hidden" name="lead_time_days" value={item?.lead_time_days ?? 0} />
-          <div className="flex justify-end md:col-span-3">
+        </div>
+      </RecordSection>
+
+      <input type="hidden" name="conversion_to_base_unit" value={item?.conversion_to_base_unit ?? 1} />
+      <input type="hidden" name="moq" value={item?.moq ?? 0} />
+      <input type="hidden" name="lead_time_days" value={item?.lead_time_days ?? 0} />
+      {showSubmit ? (
+        <Card>
+          <CardContent className="flex justify-end gap-2 p-3">
+            <Button asChild type="button" variant="outline"><Link href="/items">Cancel</Link></Button>
             <SubmitButton type="submit" pendingLabel="Saving..." showOverlay overlayLabel="Saving changes...">{item ? "Save item" : "Create item"}</SubmitButton>
-          </div>
-        </form>
-      </CardContent>
-    </Card>
+          </CardContent>
+        </Card>
+      ) : null}
+    </form>
   );
 }

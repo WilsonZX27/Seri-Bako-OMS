@@ -18,7 +18,7 @@ export default async function CompanyPage({
 
   return (
     <>
-      <PageHeader title="Company" description="Legal company profile and central Seri Bako identity." />
+      <PageHeader title="Company Profile" description="Legal identity, contact details, address, and supported brand assets." />
       <WorkspaceGrid
         rightRail={
           <div>
@@ -34,6 +34,7 @@ export default async function CompanyPage({
                 <div className="flex justify-between gap-3"><span className="text-muted-foreground">Code</span><strong>{company.company_code}</strong></div>
                 <div className="flex justify-between gap-3"><span className="text-muted-foreground">Status</span><strong>{company.status}</strong></div>
                 <div className="flex justify-between gap-3"><span className="text-muted-foreground">Logo</span><strong>{company.logo_url ? "Uploaded" : "Missing"}</strong></div>
+                <div className="flex justify-between gap-3"><span className="text-muted-foreground">Updated</span><strong>{new Date(company.updated_at).toLocaleDateString("en-MY")}</strong></div>
               </div>
             </ConsoleSection>
           </div>

@@ -11,10 +11,8 @@ import { StatusTabs } from "@/components/status-tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { getStaffs } from "@/server/queries/foundation";
-
-function formatDate(value?: string | null) {
-  return value ? new Date(value).toLocaleDateString("en-MY") : "-";
-}
+import { ConsoleSection } from "@/components/layout/right-console";
+import { WorkspaceGrid } from "@/components/layout/workspace-layout";
 
 export default async function StaffsPage({ searchParams }: { searchParams: Promise<{ search?: string; status?: string; error?: string; success?: string }> }) {
   const filters = await searchParams;
@@ -22,7 +20,7 @@ export default async function StaffsPage({ searchParams }: { searchParams: Promi
   return (
     <>
       <PageHeader title="Staffs" description="Staff access, default branch assignment, and account status." action={{ href: "/staffs/new", label: "New staff" }} />
-      <div className="space-y-4 p-5">
+      <WorkspaceGrid rightRail={<ConsoleSection title="Staff Summary"><dl className="grid gap-2 text-xs"><div className="flex justify-between"><dt className="text-muted-foreground">Total</dt><dd className="font-semibold">{staffs.length}</dd></div><div className="flex justify-between"><dt className="text-muted-foreground">Active</dt><dd className="font-semibold">{staffs.filter((staff) => staff.status === "active").length}</dd></div><div className="flex justify-between"><dt className="text-muted-foreground">Invited / pending</dt><dd className="font-semibold">{staffs.filter((staff) => ["invited", "pending"].includes(staff.invitation_status ?? staff.status)).length}</dd></div><div className="flex justify-between"><dt className="text-muted-foreground">Disabled</dt><dd className="font-semibold">{staffs.filter((staff) => staff.status === "disabled").length}</dd></div></dl></ConsoleSection>}>
         {filters.error || filters.success ? (
           <Card>
             <CardContent className={`p-4 text-sm ${filters.error ? "text-destructive" : "text-emerald-700"}`}>
@@ -30,7 +28,7 @@ export default async function StaffsPage({ searchParams }: { searchParams: Promi
             </CardContent>
           </Card>
         ) : null}
-        <div className="overflow-hidden rounded-lg border bg-card">
+        <div className="overflow-hidden rounded-[2px] border bg-card">
         <StatusTabs statuses={[
           { value: "invited", label: "Invited" },
           { value: "active", label: "Active" },
@@ -49,14 +47,14 @@ export default async function StaffsPage({ searchParams }: { searchParams: Promi
         <BulkSelectionProvider ids={staffs.map((staff) => staff.id)} actionLabel="Deactivate selected" actionHint="Disable staff users from their detail page to keep a clear access history.">
         <DataGridHint text="Pro-tip: Double-click any row to open the staff profile." />
         <div className="overflow-x-auto"><Table><TableHeader><TableRow>
-          <TableHead className="w-16"><BulkSelectAllCheckbox /></TableHead><TableHead>Staff Code</TableHead><TableHead>Name</TableHead><TableHead>Email</TableHead><TableHead>Default Branch</TableHead><TableHead>Role</TableHead><TableHead>Status</TableHead><TableHead>Last Login</TableHead><TableHead>Invited</TableHead><TableHead>Accepted</TableHead>
+          <TableHead className="w-16"><BulkSelectAllCheckbox /></TableHead><TableHead>Staff Code</TableHead><TableHead>Name</TableHead><TableHead>Email</TableHead><TableHead>Default Branch</TableHead><TableHead>Role</TableHead><TableHead>Staff Status</TableHead><TableHead>Account Status</TableHead>
         </TableRow></TableHeader><TableBody>
           {staffs.map((staff) => (
             <DataGridRow key={staff.id} href={`/staffs/${staff.id}`}>
               <TableCell>
                 <div className="flex items-center gap-2">
                   <BulkSelectRowCheckbox id={staff.id} />
-                  <Link href={`/staffs/${staff.id}`} aria-label={`Quick view ${staff.full_name}`} className="rounded-md p-1 text-slate-400 opacity-0 hover:bg-slate-100 hover:text-primary group-hover:opacity-100">
+                  <Link href={`/staffs/${staff.id}`} aria-label={`Quick view ${staff.full_name}`} className="p-1 text-[var(--sb-text-soft)] opacity-0 hover:bg-[var(--sb-surface-muted)] hover:text-primary group-hover:opacity-100">
                     <Eye className="h-4 w-4" />
                   </Link>
                 </div>
@@ -67,15 +65,13 @@ export default async function StaffsPage({ searchParams }: { searchParams: Promi
               <TableCell>{staff.default_branch_name ?? "-"}</TableCell>
               <TableCell>{staff.role_name ?? "-"}</TableCell>
               <TableCell><StatusBadge status={staff.status} /></TableCell>
-              <TableCell>{formatDate(staff.last_login_at)}</TableCell>
-              <TableCell>{formatDate(staff.invited_at)}</TableCell>
-              <TableCell>{formatDate(staff.accepted_at)}</TableCell>
+              <TableCell><StatusBadge status={staff.invitation_status ?? (staff.auth_user_id ? "active" : "pending")} /></TableCell>
             </DataGridRow>
           ))}
-          {!staffs.length ? <TableRow><TableCell colSpan={10}><EmptyState title="No staffs found" description="Staff accounts will appear here after they are invited or created." action={{ href: "/staffs/new", label: "New staff" }} /></TableCell></TableRow> : null}
+          {!staffs.length ? <TableRow><TableCell colSpan={8}><EmptyState title="No staff found" description="Staff accounts will appear here after they are invited or created." action={{ href: "/staffs/new", label: "New staff" }} /></TableCell></TableRow> : null}
         </TableBody></Table></div>
         </BulkSelectionProvider>
-      </div></div>
+      </div></WorkspaceGrid>
     </>
   );
 }

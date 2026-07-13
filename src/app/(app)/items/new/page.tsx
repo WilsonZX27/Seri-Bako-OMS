@@ -1,4 +1,7 @@
 import { ItemForm } from "@/components/item-form";
+import Link from "next/link";
+import { RecordActionPanel, RecordWorkspace } from "@/components/record-workspace";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { PageHeader } from "@/components/ui/page-header";
 import { createItem } from "@/server/actions/items";
@@ -15,9 +18,9 @@ export default async function NewItemPage({ searchParams }: { searchParams: Prom
     return (
       <>
         <PageHeader title="New Item" description="Create an ingredient or packaging item." />
-        <div className="p-5">
-          <ItemForm suppliers={suppliers} initialBarcode={params.barcode} action={createItem} />
-        </div>
+        <RecordWorkspace actionPanel={<RecordActionPanel title="Item Actions" description="Creating an item changes master data only; stock remains ledger-controlled."><Button type="submit" form="item-create-form" className="w-full">Create Item</Button><Button asChild variant="outline" className="w-full"><Link href="/items">Cancel</Link></Button></RecordActionPanel>}>
+          <ItemForm formId="item-create-form" suppliers={suppliers} initialBarcode={params.barcode} action={createItem} showSubmit={false} />
+        </RecordWorkspace>
       </>
     );
   } catch (error) {

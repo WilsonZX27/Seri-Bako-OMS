@@ -4,6 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { PageHeader } from "@/components/ui/page-header";
+import { RecordActionPanel, RecordWorkspace } from "@/components/record-workspace";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { ApprovalPanel, AttachmentPanel, CommentsPanel, DocumentTimeline, RevisionPanel } from "@/components/documents/document-panels";
 import { activateRecipe, approveRecipe, archiveRecipe, createNewRecipeVersion, rejectRecipe, submitRecipe } from "@/server/actions/recipes";
@@ -13,7 +14,7 @@ import { formatCurrency, formatNumber } from "@/lib/utils";
 
 function imageFallback(label: string) {
   return (
-    <div className="flex h-10 w-10 items-center justify-center rounded-md bg-secondary text-xs font-semibold text-muted-foreground">
+    <div className="flex h-10 w-10 items-center justify-center rounded-[2px] bg-secondary text-xs font-semibold text-muted-foreground">
       {label.slice(0, 2).toUpperCase()}
     </div>
   );
@@ -33,7 +34,40 @@ export default async function RecipeDetailPage({
   return (
     <>
       <PageHeader title={`${recipe.recipe_no} - Recipe Detail`} description={`${recipe.product_code} - ${recipe.product_name}`} />
-      <div className="space-y-5 p-5">
+      <RecordWorkspace
+        actionPanel={
+          <>
+            <RecordActionPanel title="Recipe Workflow" description="Only actions valid for the current recipe state are available.">
+              <div className="flex items-center justify-between text-xs">
+                <span className="text-muted-foreground">Current status</span>
+                <Badge variant={recipe.status === "active" ? "success" : recipe.status === "rejected" ? "danger" : "secondary"}>{recipe.status}</Badge>
+              </div>
+              {!["active", "archived"].includes(recipe.status) ? <Button asChild variant="outline" className="w-full"><Link href={`/recipes/${recipe.id}/edit`}>Edit Recipe</Link></Button> : null}
+              {recipe.status === "draft" ? <form action={submitRecipe.bind(null, recipe.id)}><Button type="submit" className="w-full">Submit</Button></form> : null}
+              {recipe.status === "pending_approval" ? (
+                <>
+                  <form action={approveRecipe.bind(null, recipe.id)}><Button type="submit" className="w-full">Approve</Button></form>
+                  <form action={rejectRecipe.bind(null, recipe.id)} className="grid gap-2">
+                    <input name="remarks" className="h-9 rounded-[2px] border bg-background px-3 text-sm" placeholder="Rejection remarks required" required />
+                    <Button type="submit" variant="destructive">Reject Recipe</Button>
+                  </form>
+                </>
+              ) : null}
+              {recipe.status === "approved" ? <form action={activateRecipe.bind(null, recipe.id)}><Button type="submit" className="w-full">Activate</Button></form> : null}
+              {recipe.status === "active" ? <form action={createNewRecipeVersion.bind(null, recipe.id)}><Button type="submit" variant="outline" className="w-full">New Version</Button></form> : null}
+              {["active", "approved"].includes(recipe.status) ? <form action={archiveRecipe.bind(null, recipe.id)}><Button type="submit" variant="ghost" className="w-full">Archive</Button></form> : null}
+            </RecordActionPanel>
+            <RecordActionPanel title="Recipe Metadata">
+              <dl className="grid gap-2 text-xs">
+                <div className="flex justify-between gap-3"><dt className="text-muted-foreground">Version</dt><dd>v{recipe.version}</dd></div>
+                <div className="flex justify-between gap-3"><dt className="text-muted-foreground">Effective</dt><dd>{recipe.effective_date}</dd></div>
+                <div className="flex justify-between gap-3"><dt className="text-muted-foreground">Yield</dt><dd>{formatNumber(recipe.yield_qty)} {recipe.yield_unit}</dd></div>
+                <div className="flex justify-between gap-3"><dt className="text-muted-foreground">Cost / unit</dt><dd>{formatCurrency(recipe.cost_per_finished_unit)}</dd></div>
+              </dl>
+            </RecordActionPanel>
+          </>
+        }
+      >
         {messageParams.error || messageParams.success ? (
           <Card>
             <CardContent className={`p-4 text-sm ${messageParams.error ? "text-destructive" : "text-emerald-700"}`}>
@@ -41,17 +75,6 @@ export default async function RecipeDetailPage({
             </CardContent>
           </Card>
         ) : null}
-        <div className="flex flex-wrap justify-end gap-2">
-          {recipe.status !== "active" && recipe.status !== "archived" ? (
-            <Button asChild variant="outline"><Link href={`/recipes/${recipe.id}/edit`}>Edit recipe</Link></Button>
-          ) : null}
-          <form action={submitRecipe.bind(null, recipe.id)}><Button type="submit" variant="secondary" disabled={recipe.status !== "draft"}>Submit</Button></form>
-          <form action={approveRecipe.bind(null, recipe.id)}><Button type="submit" variant="outline" disabled={recipe.status !== "pending_approval"}>Approve</Button></form>
-          <form action={activateRecipe.bind(null, recipe.id)}><Button type="submit" disabled={recipe.status !== "approved"}>Activate</Button></form>
-          <form action={createNewRecipeVersion.bind(null, recipe.id)}><Button type="submit" variant="outline" disabled={recipe.status !== "active"}>New version</Button></form>
-          <form action={archiveRecipe.bind(null, recipe.id)}><Button type="submit" variant="ghost" disabled={!["active", "approved"].includes(recipe.status)}>Archive</Button></form>
-        </div>
-
         <div className="grid gap-4 md:grid-cols-5">
           <Card>
             <CardHeader><CardTitle>Version</CardTitle></CardHeader>
@@ -105,22 +128,10 @@ export default async function RecipeDetailPage({
           </CardContent>
         </Card>
 
-        {recipe.status === "pending_approval" ? (
-          <Card>
-            <CardContent className="space-y-3 p-5">
-              <p className="text-sm font-semibold">Reject Recipe</p>
-              <form action={rejectRecipe.bind(null, recipe.id)} className="grid gap-2 sm:grid-cols-[1fr_auto]">
-                <input name="remarks" className="h-10 rounded-md border bg-background px-3 text-sm" placeholder="Rejection remarks required" required />
-                <Button type="submit" variant="destructive">Confirm reject</Button>
-              </form>
-            </CardContent>
-          </Card>
-        ) : null}
-
         <Card>
           <CardHeader><CardTitle>Ingredient Lines</CardTitle></CardHeader>
           <CardContent>
-            <div className="overflow-x-auto rounded-md border">
+            <div className="overflow-x-auto rounded-[2px] border">
               <Table>
                 <TableHeader>
                     <TableRow>
@@ -138,7 +149,7 @@ export default async function RecipeDetailPage({
                     <TableRow key={line.id}>
                       <TableCell>
                         <div className="flex items-center gap-3">
-                          {line.ingredient_image_url ? <Image src={line.ingredient_image_url} alt="" width={40} height={40} className="h-10 w-10 rounded-md object-cover" /> : imageFallback(line.ingredient_item_code)}
+                          {line.ingredient_image_url ? <Image src={line.ingredient_image_url} alt="" width={40} height={40} className="h-10 w-10 rounded-[2px] object-cover" /> : imageFallback(line.ingredient_item_code)}
                           <div>
                             <p className="font-medium">{line.ingredient_name}</p>
                             <p className="text-xs text-muted-foreground">{line.ingredient_item_code}</p>
@@ -174,7 +185,7 @@ export default async function RecipeDetailPage({
             </div>
           </div>
         ) : null}
-      </div>
+      </RecordWorkspace>
     </>
   );
 }

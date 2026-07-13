@@ -46,7 +46,7 @@ export function RecordSection({
   className?: string;
 }) {
   return (
-    <Card className={cn("shadow-sm", className)}>
+    <Card className={className}>
       <CardHeader className="p-3 pb-2">
         <CardTitle className="text-[14px]">{title}</CardTitle>
         {description ? <CardDescription>{description}</CardDescription> : null}
@@ -58,7 +58,7 @@ export function RecordSection({
 
 export function DangerActionSection({ title, description, children }: { title: string; description?: string; children: ReactNode }) {
   return (
-    <div className="rounded-lg border border-red-200 bg-red-50 p-4">
+    <div className="rounded-[2px] border border-red-200 bg-red-50 p-4">
       <div className="flex items-start gap-2">
         <AlertTriangle className="mt-0.5 h-4 w-4 text-red-700" />
         <div>

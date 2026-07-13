@@ -43,6 +43,8 @@ type RecipeFormProps = {
   products: ProductOption[];
   items: RecipeIngredientOption[];
   action: (formData: FormData) => Promise<void>;
+  formId?: string;
+  showSubmit?: boolean;
 };
 
 function buildItemSearch(item: RecipeIngredientOption) {
@@ -69,13 +71,13 @@ function createEmptyLine(): RecipeFormLine {
 
 function itemFallback(label: string) {
   return (
-    <div className="flex h-10 w-10 items-center justify-center rounded-md bg-secondary text-xs font-semibold text-muted-foreground">
+    <div className="flex h-10 w-10 items-center justify-center rounded-[2px] bg-secondary text-xs font-semibold text-muted-foreground">
       {label.slice(0, 2).toUpperCase()}
     </div>
   );
 }
 
-export function RecipeForm({ recipe, products, items, action }: RecipeFormProps) {
+export function RecipeForm({ recipe, products, items, action, formId, showSubmit = true }: RecipeFormProps) {
   const itemById = useMemo(() => new Map(items.map((item) => [item.id, item])), [items]);
   const itemBySearch = useMemo(() => new Map(items.map((item) => [buildItemSearch(item), item])), [items]);
   const productById = useMemo(() => new Map(products.map((product) => [product.id, product])), [products]);
@@ -147,7 +149,7 @@ export function RecipeForm({ recipe, products, items, action }: RecipeFormProps)
   }
 
   return (
-    <form action={action} className="space-y-5">
+    <form id={formId} action={action} className="space-y-5">
       <input
         type="hidden"
         name="lines_json"
@@ -252,7 +254,7 @@ export function RecipeForm({ recipe, products, items, action }: RecipeFormProps)
             ))}
           </datalist>
 
-          <div className="overflow-x-auto rounded-md border">
+          <div className="overflow-x-auto rounded-[2px] border">
             <Table>
               <TableHeader>
                 <TableRow>
@@ -275,7 +277,7 @@ export function RecipeForm({ recipe, products, items, action }: RecipeFormProps)
                     <TableCell>
                       <div className="flex items-center gap-3">
                         {line.item_image_url ? (
-                          <Image src={line.item_image_url} alt="" width={40} height={40} className="h-10 w-10 rounded-md object-cover" />
+                          <Image src={line.item_image_url} alt="" width={40} height={40} className="h-10 w-10 rounded-[2px] object-cover" />
                         ) : itemFallback(line.item_code || "IT")}
                         <div className="min-w-64 space-y-1">
                           <Input list="recipe-ingredient-items" value={line.itemSearch} placeholder="Type item code, name, or barcode" onChange={(event) => selectItem(index, event.target.value)} />
@@ -318,7 +320,7 @@ export function RecipeForm({ recipe, products, items, action }: RecipeFormProps)
 
           {hasDuplicate ? <p className="text-sm text-destructive">Duplicate ingredients are not allowed.</p> : null}
 
-          <div className="grid gap-3 rounded-md border bg-secondary/50 p-4 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="grid gap-3 rounded-[2px] border bg-secondary/50 p-4 sm:grid-cols-2 lg:grid-cols-4">
             <div>
               <p className="text-sm text-muted-foreground">Ingredient Cost</p>
               <p className="text-2xl font-semibold">{formatCurrency(totalIngredientCost)}</p>
@@ -338,12 +340,12 @@ export function RecipeForm({ recipe, products, items, action }: RecipeFormProps)
             </div>
           </div>
 
-          <div className="flex justify-end">
+          {showSubmit ? <div className="flex justify-end">
             <Button type="submit" disabled={hasDuplicate}>
               <Calculator className="h-4 w-4" />
               {recipe ? "Save recipe" : "Create recipe"}
             </Button>
-          </div>
+          </div> : null}
         </CardContent>
       </Card>
     </form>

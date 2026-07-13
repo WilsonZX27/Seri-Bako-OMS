@@ -1,3 +1,4 @@
+import { cache } from "react";
 import { createClient } from "@/lib/supabase/server";
 import { isMockMode, mockItems, mockSuppliers } from "@/lib/mock-mode";
 import { compareTableValues, paginateRows } from "@/lib/table-state";
@@ -91,21 +92,22 @@ export async function getItems(filters: ItemFilters = {}) {
   })), filters);
 }
 
-export async function getItemsWithStock(filters: ItemFilters = {}) {
+const getItemsWithStockBase = cache(async () => {
   const balances = await getStockBalances();
   const itemDetails = isMockMode() ? mockItems : await getItems();
   const balanceByItemId = new Map(balances.map((balance) => [balance.item_id, balance]));
-  return filterItems(
-    itemDetails.map((item) => {
-      const balance = balanceByItemId.get(item.id);
-      return {
-        ...item,
-        ...balance,
-        current_stock: balance?.current_stock ?? 0,
-      };
-    }),
-    filters,
-  );
+  return itemDetails.map((item) => {
+    const balance = balanceByItemId.get(item.id);
+    return {
+      ...item,
+      ...balance,
+      current_stock: balance?.current_stock ?? 0,
+    };
+  });
+});
+
+export async function getItemsWithStock(filters: ItemFilters = {}) {
+  return filterItems(await getItemsWithStockBase(), filters);
 }
 
 export async function getItemsWithStockPage(filters: ItemFilters = {}) {

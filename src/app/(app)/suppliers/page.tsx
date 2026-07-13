@@ -45,16 +45,13 @@ export default async function SuppliersPage({
                 <Button asChild variant="outline" className="w-full">
                   <Link href="/imports/suppliers">Import suppliers</Link>
                 </Button>
-                <Button asChild variant="ghost" className="w-full">
-                  <Link href="/api/export/suppliers">Export CSV</Link>
-                </Button>
               </div>
             </ConsoleSection>
           </>
         }
       >
-        {filters.success ? <div className="mb-3 rounded-lg border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-800">{filters.success}</div> : null}
-        <div className="overflow-hidden rounded-lg border bg-card">
+        {filters.success ? <div className="border border-[var(--sb-success)] bg-[var(--sb-success-bg)] p-3 text-sm text-[var(--sb-success)]">{filters.success}</div> : null}
+        <div className="overflow-hidden rounded-[2px] border bg-card">
           <StatusTabs statuses={[{ value: "active", label: "Active" }, { value: "inactive", label: "Inactive" }, { value: "archived", label: "Archived" }]} activeStatus={filters.status} />
           <MasterDataFilters search={filters.search} status={filters.status} placeholder="Search supplier code, name, contact, phone, email" />
           <BulkSelectionProvider ids={page.rows.map((supplier) => supplier.id)} actionLabel="Deactivate selected" actionHint="Deactivate suppliers only when they should no longer be used for purchasing.">
@@ -79,7 +76,7 @@ export default async function SuppliersPage({
                   <TableCell>
                     <div className="flex items-center gap-2">
                       <BulkSelectRowCheckbox id={supplier.id} />
-                      <Link href={`/suppliers/${supplier.id}`} aria-label={`Quick view ${supplier.name}`} className="rounded-md p-1 text-slate-400 opacity-0 hover:bg-slate-100 hover:text-primary group-hover:opacity-100">
+                      <Link href={`/suppliers/${supplier.id}`} aria-label={`Quick view ${supplier.name}`} className="p-1 text-[var(--sb-text-soft)] opacity-0 hover:bg-[var(--sb-surface-muted)] hover:text-primary group-hover:opacity-100">
                         <Eye className="h-4 w-4" />
                       </Link>
                     </div>

@@ -12,25 +12,26 @@ import { getPermissions, getRoles } from "@/server/queries/foundation";
 export default async function RolesPage({ searchParams }: { searchParams: Promise<{ search?: string; status?: string }> }) {
   const filters = await searchParams;
   const [roles, permissions] = await Promise.all([getRoles(filters), getPermissions()]);
+  const permissionGroups = Array.from(permissions.reduce((groups, permission) => groups.set(permission.module, [...(groups.get(permission.module) ?? []), permission]), new Map<string, typeof permissions>()));
   return (
     <>
-      <PageHeader title="Roles & Permissions" description="Role definitions and the Sprint 1 permission catalogue." action={{ href: "/roles/new", label: "New role" }} />
+      <PageHeader title="Roles & Permissions" description="Role definitions and grouped access capabilities." action={{ href: "/roles/new", label: "New role" }} />
       <WorkspaceGrid
         rightRail={
           <ConsoleSection title="Permission Catalogue">
-            <p className="mt-1 text-xs text-muted-foreground">Sprint 1 foundation permissions seeded by the migration.</p>
-            <div className="mt-4 space-y-2">
-              {permissions.map((permission) => (
-                <div key={permission.id} className="rounded-md border bg-background px-3 py-2 text-xs">
-                  <p className="font-medium">{permission.permission_code}</p>
-                  <p className="capitalize text-muted-foreground">{permission.module} / {permission.action}</p>
+            <p className="text-xs text-muted-foreground">Permissions are grouped by operational module.</p>
+            <div className="space-y-3">
+              {permissionGroups.map(([module, modulePermissions]) => (
+                <div key={module} className="border-b pb-3 last:border-b-0">
+                  <p className="text-xs font-semibold capitalize">{module.replaceAll("_", " ")}</p>
+                  <p className="mt-1 text-xs text-muted-foreground">{modulePermissions.map((permission) => permission.action).join(", ")}</p>
                 </div>
               ))}
             </div>
           </ConsoleSection>
         }
       >
-        <div className="overflow-hidden rounded-lg border bg-card">
+        <div className="overflow-hidden rounded-[2px] border bg-card">
           <MasterDataFilters search={filters.search} status={filters.status} placeholder="Search role code, name, or description" />
           <div className="overflow-x-auto"><Table><TableHeader><TableRow>
             <TableHead>Role Code</TableHead><TableHead>Role Name</TableHead><TableHead>Description</TableHead><TableHead>Status</TableHead><TableHead className="w-24 text-right">Actions</TableHead>

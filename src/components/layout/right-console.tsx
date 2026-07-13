@@ -23,6 +23,12 @@ export function RightConsoleProvider({ children }: { children: ReactNode }) {
   return (
     <RightConsoleContext.Provider value={value}>
       {children}
+      {content ? (
+        <details data-mobile-right-console className="fixed inset-x-3 bottom-16 z-40 max-h-[60dvh] overflow-y-auto border border-[var(--sb-border)] bg-white shadow-sm xl:hidden">
+          <summary className="cursor-pointer px-3 py-2 text-sm font-semibold">Page actions & context</summary>
+          <div className="border-t">{content}</div>
+        </details>
+      ) : null}
       <aside data-right-console className="hidden h-full min-h-0 w-[340px] shrink-0 overflow-hidden border-l xl:block">
         <div className="h-full overflow-y-auto overflow-x-hidden px-2 py-1">
           {content ?? (

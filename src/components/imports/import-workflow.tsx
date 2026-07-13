@@ -198,7 +198,7 @@ const steps = [
   { title: "2. Fill", detail: "Prepare the rows in CSV format." },
   { title: "3. Upload", detail: "Load the file or a saved draft." },
   { title: "4. Review", detail: "Fix errors directly in the grid if needed." },
-  { title: "5. Save or Import", detail: "Save a draft or push only clean rows." },
+  { title: "5. Import", detail: "Confirm clean rows and review the result." },
 ];
 
 export function ImportWorkflow({ entity }: { entity: ImportEntity }) {
@@ -421,6 +421,7 @@ export function ImportWorkflow({ entity }: { entity: ImportEntity }) {
     message: "",
     errorRows: [],
   };
+  const activeStep = result ? 4 : rows.length ? 3 : 2;
 
   return (
     <div className="space-y-5">
@@ -436,7 +437,7 @@ export function ImportWorkflow({ entity }: { entity: ImportEntity }) {
                 ))}
               </ul>
             </div>
-            <div className="rounded-lg border bg-[var(--sb-muted)] p-3">
+            <div className="rounded-[2px] border bg-[var(--sb-muted)] p-3">
               <p className="mb-2 text-xs font-semibold uppercase text-muted-foreground">Template and draft</p>
               <div className="flex flex-wrap gap-2">
                 <Button type="button" variant="outline" onClick={downloadTemplate}>
@@ -461,8 +462,8 @@ export function ImportWorkflow({ entity }: { entity: ImportEntity }) {
           </div>
 
           <div className="grid items-stretch gap-3 xl:grid-cols-5">
-            {steps.map((step) => (
-              <div key={step.title} className="h-full rounded-lg border bg-[var(--sb-muted)] p-3">
+            {steps.map((step, index) => (
+              <div key={step.title} aria-current={index === activeStep ? "step" : undefined} className={`h-full rounded-[2px] border p-3 ${index === activeStep ? "border-[var(--sb-amber-600)] bg-[var(--sb-amber-100)]" : index < activeStep ? "bg-[var(--sb-success-bg)]" : "bg-[var(--sb-muted)]"}`}>
                 <p className="text-sm font-medium">{step.title}</p>
                 <p className="mt-1 text-xs text-muted-foreground">{step.detail}</p>
               </div>
@@ -471,7 +472,7 @@ export function ImportWorkflow({ entity }: { entity: ImportEntity }) {
 
           <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_300px]">
             <div className="space-y-4">
-              <div className="rounded-md border bg-[var(--sb-muted)] p-3">
+              <div className="rounded-[2px] border bg-[var(--sb-muted)] p-3">
                 <div className="flex items-center gap-2 text-xs font-semibold uppercase text-muted-foreground">
                   <FileSpreadsheet className="h-4 w-4" />
                   Sample row
@@ -481,7 +482,7 @@ export function ImportWorkflow({ entity }: { entity: ImportEntity }) {
                 </p>
               </div>
 
-              <div className="rounded-lg border bg-card p-3">
+              <div className="rounded-[2px] border bg-card p-3">
                 <p className="mb-2 text-xs font-semibold uppercase text-muted-foreground">Input mode</p>
                 <div className="flex flex-wrap gap-2">
                   <Button type="button" variant={entryMode === "upload" ? "default" : "outline"} onClick={() => setEntryMode("upload")}>Upload file</Button>
@@ -501,7 +502,7 @@ export function ImportWorkflow({ entity }: { entity: ImportEntity }) {
                       <textarea
                         value={pasteText}
                         onChange={(event) => setPasteText(event.target.value)}
-                        className="min-h-32 w-full rounded-md border bg-background p-3 text-sm"
+                        className="min-h-32 w-full rounded-[2px] border bg-background p-3 text-sm"
                         placeholder="Paste rows from Excel or Google Sheets here."
                       />
                       <Button type="button" variant="outline" onClick={applyPastedTable}>Paste into table</Button>
@@ -522,7 +523,7 @@ export function ImportWorkflow({ entity }: { entity: ImportEntity }) {
               </div>
 
               {spec.needsPostingConfirmation ? (
-                <label className="flex items-start gap-3 rounded-md border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800">
+                <label className="flex items-start gap-3 rounded-[2px] border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800">
                   <input type="checkbox" className="mt-1" checked={confirmPosting} onChange={(event) => setConfirmPosting(event.target.checked)} />
                   <span>I understand this will post opening stock into the stock ledger.</span>
                 </label>
@@ -530,7 +531,7 @@ export function ImportWorkflow({ entity }: { entity: ImportEntity }) {
             </div>
 
             <div className="grid content-start gap-3">
-              <div className="rounded-lg border bg-card p-4">
+              <div className="rounded-[2px] border bg-card p-4">
                 <p className="text-sm font-semibold">Current file</p>
                 <div className="mt-3 space-y-2 text-sm text-muted-foreground">
                   <div className="flex items-center justify-between"><span>Total rows</span><span className="font-medium text-foreground">{rows.length}</span></div>
@@ -538,7 +539,7 @@ export function ImportWorkflow({ entity }: { entity: ImportEntity }) {
                   <div className="flex items-center justify-between"><span>Rows needing fixes</span><span className="font-medium text-foreground">{errorRows.length}</span></div>
                 </div>
               </div>
-              <div className="rounded-lg border bg-card p-4">
+              <div className="rounded-[2px] border bg-card p-4">
                 <p className="text-sm font-semibold">Review actions</p>
                 <p className="mt-1 text-xs text-muted-foreground">Check the grid before proceeding. Confirm stays disabled until valid rows are ready.</p>
                 <div className="mt-3 flex flex-col gap-2">
@@ -566,20 +567,20 @@ export function ImportWorkflow({ entity }: { entity: ImportEntity }) {
             </div>
           </div>
 
-          <div className="grid gap-3 rounded-xl border bg-[var(--sb-muted)] p-3 sm:grid-cols-2 xl:grid-cols-4">
-            <div className="rounded-md border bg-card p-3">
+          <div className="grid gap-3 rounded-[2px] border bg-[var(--sb-muted)] p-3 sm:grid-cols-2 xl:grid-cols-4">
+            <div className="rounded-[2px] border bg-card p-3">
               <div className="flex items-center gap-2 text-sm font-medium text-success"><CheckCircle2 className="h-4 w-4" />Imported</div>
               <p className="mt-1 text-2xl font-semibold">{summary.imported}</p>
             </div>
-            <div className="rounded-md border bg-card p-3">
+            <div className="rounded-[2px] border bg-card p-3">
               <div className="flex items-center gap-2 text-sm font-medium text-primary"><Upload className="h-4 w-4" />Updated</div>
               <p className="mt-1 text-2xl font-semibold">{summary.updated}</p>
             </div>
-            <div className="rounded-md border bg-card p-3">
+            <div className="rounded-[2px] border bg-card p-3">
               <div className="flex items-center gap-2 text-sm font-medium text-amber-700"><AlertTriangle className="h-4 w-4" />Skipped</div>
               <p className="mt-1 text-2xl font-semibold">{summary.skipped}</p>
             </div>
-            <div className="rounded-md border bg-card p-3">
+            <div className="rounded-[2px] border bg-card p-3">
               <div className="flex items-center gap-2 text-sm font-medium text-destructive"><XCircle className="h-4 w-4" />Errors</div>
               <p className="mt-1 text-2xl font-semibold">{summary.errors}</p>
             </div>
@@ -587,7 +588,7 @@ export function ImportWorkflow({ entity }: { entity: ImportEntity }) {
         </CardContent>
       </Card>
 
-      <div className="overflow-hidden rounded-lg border bg-card">
+      <div className="overflow-hidden rounded-[2px] border bg-card">
         <div className="overflow-x-auto">
           <Table>
             <TableHeader>

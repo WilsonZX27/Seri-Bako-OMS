@@ -1,5 +1,7 @@
 import Link from "next/link";
 import { RecipeForm } from "@/components/recipe-form";
+import { Calculator } from "lucide-react";
+import { RecordActionPanel, RecordWorkspace } from "@/components/record-workspace";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { PageHeader } from "@/components/ui/page-header";
@@ -34,9 +36,7 @@ export default async function EditRecipePage({ params }: { params: Promise<{ id:
   return (
     <>
       <PageHeader title="Edit Recipe" description={`${recipe.product_code} - ${recipe.product_name}`} />
-      <div className="p-5">
-        <RecipeForm recipe={recipe} products={products} items={items} action={updateRecipe.bind(null, id)} />
-      </div>
+      <RecordWorkspace actionPanel={<RecordActionPanel title="Recipe Actions" description="Save this editable recipe version without changing its workflow state."><Button type="submit" form="recipe-edit-form" className="w-full"><Calculator className="h-4 w-4" />Save Recipe</Button><Button asChild variant="outline" className="w-full"><Link href={`/recipes/${id}`}>Cancel</Link></Button></RecordActionPanel>}><RecipeForm formId="recipe-edit-form" recipe={recipe} products={products} items={items} action={updateRecipe.bind(null, id)} showSubmit={false} /></RecordWorkspace>
     </>
   );
 }

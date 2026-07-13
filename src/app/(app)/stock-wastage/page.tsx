@@ -31,15 +31,18 @@ export default async function StockWastagePage({ searchParams }: { searchParams:
     { label: "Rejected/Cancelled", value: countByStatus("rejected", "cancelled"), href: "/stock-wastage?status=rejected", active: filters.status === "rejected", icon: XCircle },
   ];
   return (
-    <><PageHeader title="Stock Wastage" description="Record expired, damaged, missing, or abnormal stock loss." action={{ href: "/stock-wastage/new", label: "New Wastage" }} />
+    <><PageHeader title="Stock Wastage" description="Record expired, damaged, missing, or abnormal stock loss." />
     <RightConsoleMount>
+      <ConsoleSection title="Actions">
+        <Button asChild size="sm" className="w-full"><Link href="/stock-wastage/new">New Wastage</Link></Button>
+      </ConsoleSection>
       <ConsoleSection title="Wastage Summary">
-        <div className="grid gap-2 text-xs">
+        <div className="grid gap-1.5 text-xs">
           {insights.map((item) => (
-            <Link key={item.label} href={item.href} className="flex justify-between rounded-none px-2 py-1.5 hover:bg-[var(--sb-surface-muted)]">
+            <div key={item.label} className="flex justify-between px-1 py-0.5">
               <span className={item.active ? "font-semibold text-foreground" : "text-muted-foreground"}>{item.label}</span>
               <strong>{item.value}</strong>
-            </Link>
+            </div>
           ))}
         </div>
       </ConsoleSection>

@@ -30,8 +30,6 @@ export function WorkspaceSidebar({
   brandHref = "/dashboard",
   onNavigate,
   navCounts = {},
-  userName = "Signed in",
-  userRoleLabel = "User",
 }: WorkspaceSidebarProps) {
   const pathname = usePathname();
   const searchParams = useSearchParams();

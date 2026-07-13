@@ -24,16 +24,21 @@ export default async function SupplierInvoicesPage({ searchParams }: { searchPar
   const count = (...items: string[]) => rows.filter((row) => items.includes(row.status)).length;
   return (
     <>
-      <PageHeader title="Supplier Invoices" description="Track posted GRN invoices and basic AP payments." action={{ href: "/supplier-invoices/new", label: "New Invoice" }} />
+      <PageHeader title="Supplier Invoices" description="Track posted GRN invoices and basic AP payments." />
       <WorkspaceGrid
         rightRail={
-          <ConsoleSection title="AP Summary">
-            <div className="grid gap-2 text-xs">
-              <div className="flex justify-between"><span className="text-muted-foreground">Open</span><strong>{count("unpaid", "partially_paid")}</strong></div>
-              <div className="flex justify-between"><span className="text-muted-foreground">Paid</span><strong>{count("paid")}</strong></div>
-              <div className="flex justify-between"><span className="text-muted-foreground">Balance</span><strong>{formatCurrency(rows.reduce((sum, row) => sum + row.balance_due, 0))}</strong></div>
-            </div>
-          </ConsoleSection>
+          <>
+            <ConsoleSection title="Actions">
+              <Button asChild size="sm" className="w-full"><Link href="/supplier-invoices/new">New Invoice</Link></Button>
+            </ConsoleSection>
+            <ConsoleSection title="AP Summary">
+              <div className="grid gap-2 text-xs">
+                <div className="flex justify-between"><span className="text-muted-foreground">Open</span><strong>{count("unpaid", "partially_paid")}</strong></div>
+                <div className="flex justify-between"><span className="text-muted-foreground">Paid</span><strong>{count("paid")}</strong></div>
+                <div className="flex justify-between"><span className="text-muted-foreground">Balance</span><strong>{formatCurrency(rows.reduce((sum, row) => sum + row.balance_due, 0))}</strong></div>
+              </div>
+            </ConsoleSection>
+          </>
         }
       >
         <div className="overflow-hidden rounded-xl border bg-card shadow-sm">

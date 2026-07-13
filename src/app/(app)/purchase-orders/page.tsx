@@ -34,11 +34,18 @@ export default async function PurchaseOrdersPage({ searchParams }: { searchParam
   const totalValue = rows.reduce((sum, order) => sum + order.order_total, 0);
   return (
     <>
-      <PageHeader title="Purchase Orders" description="Supplier purchase orders created from approved requests or manually." action={{ href: "/purchase-orders/new", label: "New PO" }} secondaryAction={{ href: "/api/export/purchase-orders", label: "Export CSV" }} />
+      <PageHeader title="Purchase Orders" description="Supplier purchase orders created from approved requests or manually." />
       <WorkspaceGrid
         className="pt-4"
         rightRail={
-          <ConsoleSection title="PO Summary">
+          <>
+            <ConsoleSection title="Actions">
+              <div className="grid gap-2">
+                <Button asChild size="sm" className="w-full"><Link href="/purchase-orders/new">New PO</Link></Button>
+                <Button asChild variant="outline" size="sm" className="w-full"><Link href="/api/export/purchase-orders">Export CSV</Link></Button>
+              </div>
+            </ConsoleSection>
+            <ConsoleSection title="PO Summary">
               <div className="grid gap-2 text-xs">
                 <div className="flex justify-between"><span className="text-muted-foreground">Total POs</span><strong>{rows.length}</strong></div>
                 <div className="flex justify-between"><span className="text-muted-foreground">Ready to Send</span><strong>{count("approved")}</strong></div>
@@ -54,6 +61,7 @@ export default async function PurchaseOrdersPage({ searchParams }: { searchParam
                 <p className="text-base font-semibold">{formatCurrency(totalValue)}</p>
               </div>
             </ConsoleSection>
+          </>
         }
       >
         <div className="overflow-hidden rounded-[2px] border border-[var(--sb-border-soft)] bg-card">

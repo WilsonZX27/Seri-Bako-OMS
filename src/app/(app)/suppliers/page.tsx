@@ -29,7 +29,7 @@ export default async function SuppliersPage({
 
   return (
     <>
-      <PageHeader title="Suppliers" description="Supplier master records for ingredients and packaging." action={{ href: "/suppliers/new", label: "New supplier" }} secondaryAction={{ href: "/api/export/suppliers", label: "Export CSV" }} />
+      <PageHeader title="Suppliers" description="Supplier master records for ingredients and packaging." />
       <WorkspaceGrid
         rightRail={
           <>
@@ -43,9 +43,9 @@ export default async function SuppliersPage({
             </ConsoleSection>
             <ConsoleSection title="Actions">
               <div className="grid gap-2">
-                <Button asChild variant="outline" className="w-full">
-                  <Link href="/imports/suppliers">Import suppliers</Link>
-                </Button>
+                <Button asChild size="sm" className="w-full"><Link href="/suppliers/new">New supplier</Link></Button>
+                <Button asChild variant="outline" size="sm" className="w-full"><Link href="/api/export/suppliers">Export CSV</Link></Button>
+                <Button asChild variant="outline" size="sm" className="w-full"><Link href="/imports/suppliers">Import suppliers</Link></Button>
               </div>
             </ConsoleSection>
           </>

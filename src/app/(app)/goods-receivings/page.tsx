@@ -31,11 +31,13 @@ export default async function GoodsReceivingsPage({ searchParams }: { searchPara
       <PageHeader
         title="Goods Receiving"
         description="Receive supplier deliveries against approved purchase orders. Stock increases only after GRN posting."
-        action={{ href: "/goods-receivings/new", label: "New GRN" }}
       />
       <WorkspaceGrid
         rightRail={
           <>
+            <ConsoleSection title="Actions">
+              <Button asChild size="sm" className="w-full"><Link href="/goods-receivings/new">New GRN</Link></Button>
+            </ConsoleSection>
             <ConsoleSection title="GRN Summary">
               <div className="grid gap-2 text-xs">
                 <div className="flex justify-between"><span className="text-muted-foreground">Total GRNs</span><strong>{rows.length}</strong></div>

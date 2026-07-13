@@ -7,27 +7,18 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { ConsoleSection } from "@/components/layout/right-console";
 import { WorkspaceGrid } from "@/components/layout/workspace-layout";
 import { getRoleDisplayLabel } from "@/lib/roles";
-import { getPermissions, getRoles } from "@/server/queries/foundation";
+import { getRoles } from "@/server/queries/foundation";
 
 export default async function RolesPage({ searchParams }: { searchParams: Promise<{ search?: string; status?: string }> }) {
   const filters = await searchParams;
-  const [roles, permissions] = await Promise.all([getRoles(filters), getPermissions()]);
-  const permissionGroups = Array.from(permissions.reduce((groups, permission) => groups.set(permission.module, [...(groups.get(permission.module) ?? []), permission]), new Map<string, typeof permissions>()));
+  const roles = await getRoles(filters);
   return (
     <>
-      <PageHeader title="Roles & Permissions" description="Role definitions and grouped access capabilities." action={{ href: "/roles/new", label: "New role" }} />
+      <PageHeader title="Roles & Permissions" description="Role definitions and grouped access capabilities." />
       <WorkspaceGrid
         rightRail={
-          <ConsoleSection title="Permission Catalogue">
-            <p className="text-xs text-muted-foreground">Permissions are grouped by operational module.</p>
-            <div className="space-y-3">
-              {permissionGroups.map(([module, modulePermissions]) => (
-                <div key={module} className="border-b pb-3 last:border-b-0">
-                  <p className="text-xs font-semibold capitalize">{module.replaceAll("_", " ")}</p>
-                  <p className="mt-1 text-xs text-muted-foreground">{modulePermissions.map((permission) => permission.action).join(", ")}</p>
-                </div>
-              ))}
-            </div>
+          <ConsoleSection title="Actions">
+            <Button asChild size="sm" className="w-full"><Link href="/roles/new">New role</Link></Button>
           </ConsoleSection>
         }
       >

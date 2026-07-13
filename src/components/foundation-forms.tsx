@@ -4,7 +4,6 @@ import { Input } from "@/components/ui/input";
 import { RecordSection } from "@/components/record-workspace";
 import { SubmitButton } from "@/components/ui/submit-button";
 import { SelectNative } from "@/components/ui/select-native";
-import { StatusBadge } from "@/components/ui/status-badge";
 import { Textarea } from "@/components/ui/textarea";
 import { getRoleDisplayLabel } from "@/lib/roles";
 import { previewDocumentNumber } from "@/server/queries/foundation";
@@ -281,7 +280,8 @@ export function StaffForm({
     <form id={formId} action={action} className="space-y-5">
       <RecordSection title="Staff Profile" description="Core identity and contact details for this staff member.">
           <CompanyHidden companies={companies} companyId={staff?.company_id} />
-        <div className="grid gap-4 md:grid-cols-2">
+          <input type="hidden" name="status" value={staff?.status ?? "invited"} />
+        <div className="grid gap-4 md:grid-cols-3">
           <Field label="Staff Code">
             <Input name="staff_code" defaultValue={staff?.staff_code ?? ""} className="form-control-compact" />
           </Field>
@@ -293,13 +293,6 @@ export function StaffForm({
           </Field>
           <Field label="Phone">
             <Input name="phone" defaultValue={staff?.phone ?? ""} className="form-control-compact" />
-          </Field>
-          <Field label="Current Status">
-            <input type="hidden" name="status" value={staff?.status ?? "invited"} />
-            <div className="flex h-9 max-w-[400px] items-center rounded-[2px] border bg-secondary/30 px-3">
-              <StatusBadge status={staff?.status ?? "invited"} />
-            </div>
-            <p className="mt-1 text-xs text-muted-foreground">Use the Staff Actions panel to change account status intentionally.</p>
           </Field>
         </div>
       </RecordSection>

@@ -3,21 +3,43 @@
 @tailwind utilities;
 
 :root {
-  --sb-primary: #0F3D2E;
-  --sb-primary-dark: #0B2F23;
-  --sb-accent: #D99A2B;
-  --sb-bg: #F7F5EF;
+  --sb-green-950: #062C1F;
+  --sb-green-900: #083B2A;
+  --sb-green-800: #0B4A35;
+  --sb-green-700: #0F5A42;
+  --sb-amber-700: #8A5A2B;
+  --sb-amber-600: #A16A32;
+  --sb-amber-300: #F2C58D;
+  --sb-amber-100: #FFE3BF;
+  --sb-primary: var(--sb-green-900);
+  --sb-primary-dark: var(--sb-green-950);
+  --sb-accent: var(--sb-amber-600);
+  --sb-bg: #F7F5F0;
   --sb-surface: #FFFFFF;
-  --sb-muted: #EEF3EF;
-  --sb-danger: #B91C1C;
-  --sb-success: #15803D;
-  --app-bg: #f5f2ec;
-  --workspace-bg: #ffffff;
-  --rail-bg: #f8f6f1;
-  --border-soft: #ded8cc;
-  --border-muted: #e7e1d6;
-  --text-main: #111827;
-  --text-muted: #64748b;
+  --sb-surface-muted: #F1EFE9;
+  --sb-border: #D8D4C8;
+  --sb-border-soft: #E7E2D8;
+  --sb-text: #102019;
+  --sb-text-muted: #66756D;
+  --sb-text-soft: #8A948E;
+  --sb-text-inverse: #FFFFFF;
+  --sb-success: #0F6B3F;
+  --sb-success-bg: #E6F4EC;
+  --sb-warning: #9A5B13;
+  --sb-warning-bg: #FFF1D9;
+  --sb-danger: #B42318;
+  --sb-danger-bg: #FDE8E8;
+  --sb-info: #245A9C;
+  --sb-info-bg: #E8F1FF;
+  --sb-neutral-bg: #EEECE6;
+  --sb-neutral-text: #5E665F;
+  --app-bg: var(--sb-bg);
+  --workspace-bg: var(--sb-surface);
+  --rail-bg: var(--sb-surface-muted);
+  --border-soft: var(--sb-border);
+  --border-muted: var(--sb-border-soft);
+  --text-main: var(--sb-text);
+  --text-muted: var(--sb-text-muted);
 
   --background: 43 33% 95%;
   --foreground: 222 47% 11%;
@@ -36,7 +58,7 @@
   --border: 214 20% 88%;
   --input: 214 20% 88%;
   --ring: 24 43% 60%;
-  --radius: 0.5rem;
+  --radius: 0.125rem;
 }
 
 * {
@@ -53,6 +75,7 @@ body {
 body {
   @apply bg-background text-foreground antialiased;
   font-size: 12px;
+  color: var(--sb-text);
 }
 
 input,
@@ -62,7 +85,8 @@ textarea {
 }
 
 .erp-surface {
-  @apply border bg-card shadow-sm;
+  @apply border bg-card;
+  border-color: var(--sb-border-soft);
 }
 
 [data-center-workspace] {

@@ -24,7 +24,13 @@ export function RightConsoleProvider({ children }: { children: ReactNode }) {
     <RightConsoleContext.Provider value={value}>
       {children}
       <aside data-right-console className="hidden h-full min-h-0 w-[340px] shrink-0 overflow-hidden border-l xl:block">
-        <div className="h-full overflow-y-auto overflow-x-hidden px-2 py-1">{content}</div>
+        <div className="h-full overflow-y-auto overflow-x-hidden px-2 py-1">
+          {content ?? (
+            <ConsoleSection title="Workspace Context">
+              <p className="text-[11px] text-[var(--sb-text-muted)]">Open a record to see actions, timeline, and metadata here.</p>
+            </ConsoleSection>
+          )}
+        </div>
       </aside>
     </RightConsoleContext.Provider>
   );
@@ -44,7 +50,7 @@ export function RightConsoleMount({ children }: { children: ReactNode }) {
 export function ConsoleSection({ title, children }: { title: string; children: ReactNode }) {
   return (
     <section className="border-b border-[var(--border-muted)] px-3 py-4 last:border-b-0">
-      <h2 className="mb-3 text-[11px] font-semibold uppercase tracking-[0.22em] text-slate-500">{title}</h2>
+      <h2 className="mb-3 text-[11px] font-semibold uppercase tracking-[0.22em] text-[var(--sb-text-muted)]">{title}</h2>
       <div className="space-y-3">{children}</div>
     </section>
   );

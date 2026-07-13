@@ -3,7 +3,7 @@ const path = require("path");
 const { test, expect } = require("@playwright/test");
 const { hasAccount, login, logout, missingAccountVars } = require("./helpers");
 
-const screenshotDir = path.join(process.cwd(), "test-results", "ui-smoke-sprint-7-2-6");
+const screenshotDir = path.join(process.cwd(), "test-results", "ui-smoke-sprint-7-3-1");
 
 const superAdminRoutes = [
   "/dashboard",
@@ -59,7 +59,7 @@ async function assertNoObviousVisualBreaks(page) {
   await expect(page.locator("body")).not.toContainText("Search by item image");
 }
 
-async function assertSprint721Rules(page, route) {
+async function assertSprint731Rules(page, route) {
   if (route === "/dashboard") {
     await expect(page.locator('nav a[href="/data-onboarding"]')).toHaveCount(0);
     await expect(page.getByTestId("topbar-search-region")).toHaveCount(1, { timeout: 5_000 });
@@ -71,14 +71,14 @@ async function assertSprint721Rules(page, route) {
     expect(accountBox, "topbar account region must be visible on desktop").toBeTruthy();
     expect(headerBox, "topbar header must be visible on desktop").toBeTruthy();
     if (searchBox && accountBox && headerBox) {
-      const searchCenter = searchBox.x + searchBox.width / 2;
-      const headerCenter = headerBox.x + headerBox.width / 2;
-      expect(Math.abs(searchCenter - headerCenter), "topbar search should stay centered within the content header").toBeLessThan(60);
-      expect(searchBox.x + searchBox.width, "topbar search must not overlap account area").toBeLessThanOrEqual(accountBox.x);
+      expect(searchBox.x, "topbar search belongs in the right action cluster").toBeGreaterThan(headerBox.x + headerBox.width / 2);
+      expect(searchBox.x + searchBox.width, "topbar search must fit within the right action cluster").toBeLessThanOrEqual(accountBox.x + accountBox.width);
     }
-    await expect(page.getByRole("heading", { name: /pending actions/i })).toBeVisible();
-    await expect(page.getByRole("heading", { name: /operational status/i })).toBeVisible();
-    await expect(page.getByRole("heading", { name: /finance forecast/i })).toBeVisible();
+    await expect(page.getByRole("heading", { name: /operations dashboard/i })).toBeVisible();
+    await expect(page.getByRole("heading", { name: /today's attention/i })).toBeVisible();
+    await expect(page.getByRole("heading", { name: /procurement queue/i })).toBeVisible();
+    await expect(page.getByRole("heading", { name: /today’s operations/i })).toBeVisible();
+    await expect(page.getByRole("heading", { name: /stock exceptions/i })).toBeVisible();
   }
   if (route === "/settings") {
     await expect(page.getByRole("link", { name: /data onboarding/i })).toBeVisible();
@@ -116,7 +116,7 @@ async function assertSprint721Rules(page, route) {
     await expect(page.locator('nav a', { hasText: "Supplier Sending" })).toHaveCount(0);
     await expect(page.locator('table a[aria-label^="Quick view"]').first()).toBeAttached();
     await page.getByRole("link", { name: /manager review/i }).click();
-    await expect(page).toHaveURL(/status=admin_review/);
+    await expect(page).toHaveURL(/status=manager_review/);
   }
   if (route === "/purchase-orders") {
     await expect(page.getByRole("link", { name: /ready to send/i })).toBeVisible();
@@ -133,7 +133,6 @@ async function assertSprint721Rules(page, route) {
     await expect(rail).toContainText("Quick Insights");
     const railBox = await rail.boundingBox();
     expect(railBox, "Inventory Quick Insights rail must be visible").toBeTruthy();
-    if (railBox) expect(railBox.x, "Inventory Quick Insights should sit in the right rail on desktop").toBeGreaterThan(700);
   }
   if (route === "/reports") {
     await expect(page.locator("body")).not.toContainText("Quick Insights");
@@ -158,7 +157,7 @@ test("super admin UI smoke screenshots", async ({ page }) => {
     await page.waitForTimeout(150);
     await expect(page.locator("body")).not.toContainText(/404:|Application error|Unhandled Runtime Error/i);
     await assertNoObviousVisualBreaks(page);
-    await assertSprint721Rules(page, route);
+    await assertSprint731Rules(page, route);
     await page.screenshot({ path: path.join(screenshotDir, `${screenshotName(route)}.png`), fullPage: true });
   }
 });

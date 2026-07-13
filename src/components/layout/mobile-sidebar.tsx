@@ -33,7 +33,7 @@ export function MobileSidebar({ role, companyName, companyLogoUrl }: MobileSideb
         <div className="fixed inset-0 z-50 lg:hidden">
           <button
             type="button"
-            className="absolute inset-0 bg-slate-950/45"
+            className="absolute inset-0 bg-[var(--sb-green-950)]/45"
             aria-label="Close navigation menu"
             onClick={() => setOpen(false)}
           />

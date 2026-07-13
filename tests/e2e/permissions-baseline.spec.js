@@ -4,7 +4,7 @@ const { login } = require("./helpers");
 test("super admin keeps core operational access and ledger export", async ({ page }) => {
   expect(await login(page, "superAdmin")).toBe(true);
   await page.goto("/stock-transactions", { waitUntil: "domcontentloaded" });
-  await expect(page.locator("body")).toContainText("Sprint 7.2.34");
+  await expect(page.locator("body")).toContainText("Sprint 7.3.1");
   await expect(page.getByRole("link", { name: /CSV/i })).toBeVisible();
   expect((await page.request.get("/stock-transactions/export?search=QA-ING-A-721A")).status()).toBe(200);
   for (const label of ["Purchase Requests", "Goods Receiving", "Supplier Invoices", "Stock Count", "Stock Wastage", "Movement Ledger", "Production Jobs", "Users & Roles"]) {

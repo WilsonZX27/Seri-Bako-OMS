@@ -95,8 +95,10 @@ export const navGroups: NavGroup[] = [
     roles: administratorRoles,
     items: [
       { href: "/company", label: "Company Profile", icon: Building2, roles: administratorRoles, keywords: ["company", "logo"] },
+      { href: "/branches", label: "Branches / Outlets", icon: Building2, roles: administratorRoles, keywords: ["branches", "outlets"] },
       { href: "/roles", label: "Users & Roles", icon: UserCog, roles: administratorRoles, badgeKey: "staffManagement", keywords: ["roles", "permissions", "staff", "users"] },
       { href: "/staffs", label: "Staff Management", icon: Users, roles: administratorRoles, badgeKey: "staffManagement", keywords: ["staff", "users", "invite"] },
+      { href: "/administration/imports", label: "Import Data", icon: ClipboardList, roles: administratorRoles, keywords: ["import", "csv", "xlsx", "setup"] },
     ],
   },
 ];
@@ -134,6 +136,8 @@ export const searchableNavItems = [
   { href: "/reports", label: "Reports", group: "Analytics", keywords: ["summary", "approval", "purchase"] },
   { href: "/activity", label: "Activity Log", group: "Analytics", keywords: ["activity", "log"] },
   { href: "/company", label: "Company Profile", group: "Administration", keywords: ["logo", "branding"] },
+  { href: "/branches", label: "Branches / Outlets", group: "Administration", keywords: ["branches", "outlets"] },
   { href: "/roles", label: "Users & Roles", group: "Administration", keywords: ["permission", "staff", "users"] },
+  { href: "/administration/imports", label: "Import Data", group: "Administration", keywords: ["import", "csv", "xlsx", "setup"] },
   { href: "/account", label: "My Profile", group: "Account", keywords: ["profile", "password", "avatar"] },
 ] as const;

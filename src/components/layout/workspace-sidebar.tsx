@@ -72,10 +72,10 @@ export function WorkspaceSidebar({
   const activeGroupId = activeNavKey?.split("-")[0] ?? null;
 
   return (
-    <div className={cn("flex h-dvh w-[236px] flex-col border-r border-white/10 bg-[var(--sb-primary-dark)] text-white", mobile ? "w-full" : "")}>
+    <div className={cn("flex h-dvh w-[236px] flex-col border-r border-white/10 bg-[var(--sb-green-950)] text-white", mobile ? "w-full" : "")}>
       <div className="border-b border-white/10 px-3 py-3">
-        <Link href={brandHref} onClick={onNavigate} className={cn("flex min-w-0 flex-1 items-center gap-3 rounded-md p-1 hover:bg-white/10", compact ? "justify-center" : "")} title={compact ? companyName : undefined}>
-          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-white/12 text-white ring-1 ring-white/10">
+        <Link href={brandHref} onClick={onNavigate} className={cn("flex min-w-0 flex-1 items-center gap-3 rounded-[2px] p-1 hover:bg-white/10", compact ? "justify-center" : "")} title={compact ? companyName : undefined}>
+          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-[2px] bg-white/12 text-white ring-1 ring-white/10">
             {companyLogoUrl ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img src={companyLogoUrl} alt={`${companyName} logo`} className="h-full w-full object-contain p-1" />
@@ -103,7 +103,7 @@ export function WorkspaceSidebar({
                 {!compact ? (
                   <button
                     type="button"
-                    className="mb-1 flex w-full items-center justify-between rounded px-2 py-1 text-left text-[10px] font-semibold uppercase tracking-[0.16em] text-white/38 hover:bg-white/8 hover:text-white/65"
+                    className="mb-1 flex w-full items-center justify-between rounded-[2px] px-2 py-1 text-left text-[10px] font-semibold uppercase tracking-[0.16em] text-white/38 hover:bg-white/8 hover:text-white/65"
                     onClick={() => toggleGroup(group.id)}
                     aria-expanded={!groupClosed}
                   >
@@ -124,17 +124,17 @@ export function WorkspaceSidebar({
                         onClick={onNavigate}
                         title={compact ? item.label : undefined}
                         className={cn(
-                          "flex h-8 items-center gap-2 rounded-md px-2 text-[12px] font-medium transition-colors",
+                          "flex h-8 items-center gap-2 rounded-[2px] px-2 text-[12px] font-medium transition-colors",
                           compact ? "justify-center px-0" : "",
-                          active ? "bg-[#f7c58f] text-[var(--sb-primary-dark)] ring-1 ring-white/10" : "text-white/72 hover:bg-white/8 hover:text-white",
+                          active ? "bg-[var(--sb-amber-100)] text-[var(--sb-green-950)] ring-1 ring-white/10" : "text-white/72 hover:bg-white/8 hover:text-white",
                         )}
                       >
-                        <Icon className={cn("h-3.5 w-3.5 shrink-0", active ? "text-[var(--sb-primary-dark)]" : "text-white/55")} />
+                        <Icon className={cn("h-3.5 w-3.5 shrink-0", active ? "text-[var(--sb-green-950)]" : "text-white/55")} />
                         {!compact ? (
                           <>
                             <span className="min-w-0 flex-1 truncate">{item.label}</span>
                             {typeof count === "number" && count > 0 ? (
-                              <span className="ml-2 inline-flex min-w-5 justify-center rounded-full bg-[var(--sb-accent)] px-1.5 py-0.5 text-[10px] font-semibold leading-none text-[var(--sb-primary-dark)]">
+                              <span className="ml-2 inline-flex min-w-5 justify-center rounded-full bg-[var(--sb-amber-300)] px-1.5 py-0.5 text-[10px] font-semibold leading-none text-[var(--sb-green-950)]">
                                 {count > 99 ? "99+" : count}
                               </span>
                             ) : null}
@@ -150,14 +150,14 @@ export function WorkspaceSidebar({
         </div>
       </nav>
 
-      {!mobile && !compact ? (
+      {!compact ? (
         <div className="space-y-2 border-t border-white/10 p-3">
           <div className="flex items-center gap-2 text-[10px] uppercase tracking-[0.06em] text-white/55">
-            <CheckCircle2 className="h-3.5 w-3.5 text-emerald-400" />
+            <CheckCircle2 className="h-3.5 w-3.5 text-[var(--sb-amber-300)]" />
             System Stable
           </div>
           <div className="flex items-center gap-1.5">
-            <Link href="/account" className="flex min-w-0 flex-1 items-center gap-2 rounded-md bg-white/8 p-1.5 hover:bg-white/12">
+            <Link href="/account" className="flex min-w-0 flex-1 items-center gap-2 rounded-[2px] bg-white/8 p-1.5 hover:bg-white/12">
               <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-white/12 text-[11px] font-semibold text-white">
                 <UserRound className="h-3.5 w-3.5" />
                 <span className="sr-only">{initials}</span>
@@ -168,7 +168,7 @@ export function WorkspaceSidebar({
               </span>
             </Link>
             <form action={signOut}>
-              <button type="submit" className="flex h-9 w-9 items-center justify-center rounded-md text-red-300 hover:bg-red-500/15 hover:text-red-200" aria-label="Logout">
+              <button type="submit" className="flex h-9 w-9 items-center justify-center rounded-[2px] text-red-300 hover:bg-red-500/15 hover:text-red-200" aria-label="Logout">
                 <LogOut className="h-4 w-4" />
               </button>
             </form>

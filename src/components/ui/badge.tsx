@@ -4,11 +4,11 @@ import { cn } from "@/lib/utils";
 type BadgeVariant = "default" | "secondary" | "success" | "warning" | "danger";
 
 const variants: Record<BadgeVariant, string> = {
-  default: "border-primary/15 bg-primary/10 text-primary",
-  secondary: "border-[#F3F4F6] bg-[#F3F4F6] text-[#1F2937]",
-  success: "border-[#D1FAE5] bg-[#D1FAE5] text-[#065F46]",
-  warning: "border-[#FEF3C7] bg-[#FEF3C7] text-[#92400E]",
-  danger: "border-[#FEE2E2] bg-[#FEE2E2] text-[#991B1B]",
+  default: "border-[var(--sb-info-bg)] bg-[var(--sb-info-bg)] text-[var(--sb-info)]",
+  secondary: "border-[var(--sb-neutral-bg)] bg-[var(--sb-neutral-bg)] text-[var(--sb-neutral-text)]",
+  success: "border-[var(--sb-success-bg)] bg-[var(--sb-success-bg)] text-[var(--sb-success)]",
+  warning: "border-[var(--sb-warning-bg)] bg-[var(--sb-warning-bg)] text-[var(--sb-warning)]",
+  danger: "border-[var(--sb-danger-bg)] bg-[var(--sb-danger-bg)] text-[var(--sb-danger)]",
 };
 
 export function Badge({
@@ -18,7 +18,7 @@ export function Badge({
 }: React.HTMLAttributes<HTMLSpanElement> & { variant?: BadgeVariant }) {
   return (
     <span
-      className={cn("inline-flex max-w-full items-center overflow-hidden text-ellipsis whitespace-nowrap rounded-md border px-2 py-0.5 text-[11px] font-medium", variants[variant], className)}
+      className={cn("inline-flex max-w-full items-center overflow-hidden text-ellipsis whitespace-nowrap rounded-full border px-2 py-0.5 text-[11px] font-medium", variants[variant], className)}
       {...props}
     />
   );

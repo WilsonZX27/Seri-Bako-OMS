@@ -14,16 +14,16 @@ type DashboardSummary = Awaited<ReturnType<typeof import("@/server/queries/dashb
 
 function MetricCard({ href, label, value, icon: Icon, tone = "neutral" }: { href: string; label: string; value: string | number; icon: LucideIcon; tone?: "neutral" | "green" | "amber" | "red" | "blue" }) {
   const toneClass = {
-    neutral: "text-slate-600 bg-slate-50",
-    green: "text-emerald-700 bg-emerald-50",
-    amber: "text-amber-700 bg-amber-50",
-    red: "text-red-700 bg-red-50",
-    blue: "text-blue-700 bg-blue-50",
+    neutral: "text-[var(--sb-neutral-text)] bg-[var(--sb-neutral-bg)]",
+    green: "text-[var(--sb-success)] bg-[var(--sb-success-bg)]",
+    amber: "text-[var(--sb-warning)] bg-[var(--sb-warning-bg)]",
+    red: "text-[var(--sb-danger)] bg-[var(--sb-danger-bg)]",
+    blue: "text-[var(--sb-info)] bg-[var(--sb-info-bg)]",
   }[tone];
 
   return (
-    <Link href={href} className="flex min-h-12 items-center gap-2 rounded-md border bg-white px-3 py-2 shadow-sm transition-colors hover:border-primary/30">
-      <div className={`flex h-6 w-6 items-center justify-center rounded ${toneClass}`}>
+    <Link href={href} className="flex min-h-12 items-center gap-2 rounded-[2px] border border-[var(--sb-border-soft)] bg-white px-3 py-2 transition-colors hover:border-[var(--sb-amber-300)]">
+      <div className={`flex h-6 w-6 items-center justify-center rounded-[2px] ${toneClass}`}>
         <Icon className="h-3.5 w-3.5" />
       </div>
       <div className="min-w-0">
@@ -36,7 +36,7 @@ function MetricCard({ href, label, value, icon: Icon, tone = "neutral" }: { href
 
 function CompactPanel({ title, children, action }: { title: string; children: React.ReactNode; action?: { href: string; label: string } }) {
   return (
-    <section className="rounded-lg border bg-card p-3 shadow-sm">
+    <section className="rounded-[2px] border border-[var(--sb-border-soft)] bg-card p-3">
       <div className="mb-2.5 flex items-center justify-between gap-2">
         <h2 className="text-xs font-semibold">{title}</h2>
         {action ? (
@@ -49,15 +49,6 @@ function CompactPanel({ title, children, action }: { title: string; children: Re
     </section>
   );
 }
-
-const futureAnalyticsWidgets = [
-  "weekly_supply_volume",
-  "predicted_weekly_purchase_spend",
-  "highest_wastage_item",
-  "most_purchased_item",
-  "supplier_payable_aging",
-  "top_unpaid_suppliers",
-] as const;
 
 export function DashboardWorkspace({ summary }: { summary: DashboardSummary }) {
   const [now, setNow] = useState(() => new Date());
@@ -118,7 +109,7 @@ export function DashboardWorkspace({ summary }: { summary: DashboardSummary }) {
         <div className="space-y-4">
           <div className="flex flex-wrap items-end justify-between gap-2">
             <div>
-              <h1 className="text-2xl font-semibold leading-tight">Operation ERP</h1>
+              <h1 className="text-2xl font-semibold leading-tight">Operations Dashboard</h1>
               <p className="text-xs text-muted-foreground">
                 {now.toLocaleString("en-MY", { dateStyle: "full", timeStyle: "medium" })}
               </p>
@@ -132,12 +123,12 @@ export function DashboardWorkspace({ summary }: { summary: DashboardSummary }) {
           <div className="grid gap-4 xl:grid-cols-3">
             <CompactPanel title="Today's Attention" action={{ href: "/documents?status=pending_approval", label: "Review" }}>
               {pendingActions.length ? (
-                <div className="divide-y rounded-md border bg-white">
+                <div className="divide-y rounded-[2px] border bg-white">
                   {pendingActions.slice(0, 2).map((document) => (
-                    <Link key={document.id} href={document.href ?? "/documents"} className="block px-2 py-1.5 text-[11px] hover:bg-slate-50">
+                    <Link key={document.id} href={document.href ?? "/documents"} className="block px-2 py-1.5 text-[11px] hover:bg-[var(--sb-surface-muted)]">
                       <div className="flex items-center justify-between gap-2">
                         <p className="truncate font-mono text-[11px] font-semibold">{document.document_no}</p>
-                        <span className="shrink-0 rounded bg-amber-50 px-1.5 py-0.5 text-[10px] font-medium text-amber-800">{document.step ?? "In Review"}</span>
+                        <span className="shrink-0 rounded-[2px] bg-[var(--sb-warning-bg)] px-1.5 py-0.5 text-[10px] font-medium text-[var(--sb-warning)]">{document.step ?? "In Review"}</span>
                       </div>
                       <p className="truncate text-[11px] text-muted-foreground">{[document.branch_name, document.age_label].filter(Boolean).join(" - ")}</p>
                     </Link>
@@ -150,14 +141,14 @@ export function DashboardWorkspace({ summary }: { summary: DashboardSummary }) {
 
             <CompactPanel title="Procurement Queue" action={{ href: "/purchase-requests?priority=urgent", label: "View Queue" }}>
               {stuckRequests.length ? (
-                <div className="divide-y rounded-md border bg-white">
+                <div className="divide-y rounded-[2px] border bg-white">
                   {stuckRequests.map((request) => (
-                    <Link key={request.id} href={`/purchase-requests/${request.id}`} className="flex items-center justify-between gap-2 px-2.5 py-1.5 text-[11px] hover:bg-slate-50">
+                    <Link key={request.id} href={`/purchase-requests/${request.id}`} className="flex items-center justify-between gap-2 px-2.5 py-1.5 text-[11px] hover:bg-[var(--sb-surface-muted)]">
                       <div className="min-w-0">
                         <p className="truncate font-mono text-[11px] font-semibold">{request.request_no}</p>
                         <p className="truncate text-[11px] text-muted-foreground">{request.needed_by_date ? `Needed by ${request.needed_by_date}` : "Needed date not set"}</p>
                       </div>
-                      <span className="shrink-0 rounded bg-red-50 px-1.5 py-0.5 text-[10px] font-medium text-red-800">{request.priority ?? "Urgent"}</span>
+                      <span className="shrink-0 rounded-[2px] bg-[var(--sb-danger-bg)] px-1.5 py-0.5 text-[10px] font-medium text-[var(--sb-danger)]">{request.priority ?? "Urgent"}</span>
                     </Link>
                   ))}
                 </div>
@@ -166,7 +157,7 @@ export function DashboardWorkspace({ summary }: { summary: DashboardSummary }) {
               )}
             </CompactPanel>
 
-            <CompactPanel title="Production Load" action={{ href: "/production/jobs", label: "Open" }}>
+            <CompactPanel title="Today’s Operations" action={{ href: "/production/jobs", label: "Open" }}>
               <div className="grid gap-2">
                 <MetricCard href="/production/jobs" label="Jobs Today" value={formatNumber(summary.today.production)} icon={Boxes} />
                 <MetricCard href="/goods-receivings" label="Receiving Today" value={formatNumber(summary.today.goodsReceiving)} icon={PackageCheck} />
@@ -181,7 +172,6 @@ export function DashboardWorkspace({ summary }: { summary: DashboardSummary }) {
               <MetricCard href="/goods-receivings" label="Not Invoiced" value={formatNumber(summary.financeForecast.receivingNotInvoiced)} icon={RotateCw} tone="amber" />
             </div>
             <p className="mt-2 text-[11px] text-muted-foreground">Finance and stock signals improve as PO, GRN, and supplier invoice data grows.</p>
-            <span className="sr-only">Prepared future analytics widgets: {futureAnalyticsWidgets.join(", ")}</span>
           </CompactPanel>
         </div>
       </WorkspaceGrid>

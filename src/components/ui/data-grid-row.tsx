@@ -17,7 +17,7 @@ export function DataGridRow({
 
   return (
     <tr
-      className={cn("group cursor-pointer border-b transition-colors hover:bg-slate-50/70", className)}
+      className={cn("group cursor-pointer border-b border-[var(--sb-border-soft)] transition-colors hover:bg-[var(--sb-surface-muted)]", className)}
       onDoubleClick={() => router.push(href)}
       title="Double-click to open"
     >

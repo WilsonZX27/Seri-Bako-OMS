@@ -37,7 +37,7 @@ export default async function StockCountsPage({ searchParams }: { searchParams: 
         <ConsoleSection title="Stock Count Summary">
           <div className="grid gap-2 text-xs">
             {insights.map((item) => (
-              <Link key={item.label} href={item.href} className="flex min-h-7 justify-between gap-3 rounded-md px-1.5 py-1 hover:bg-secondary">
+              <Link key={item.label} href={item.href} className="flex min-h-7 justify-between gap-3 rounded-none px-1.5 py-1 hover:bg-[var(--sb-surface-muted)]">
                 <span className={item.active ? "font-semibold text-foreground" : "text-muted-foreground"}>{item.label}</span>
                 <strong>{item.value}</strong>
               </Link>
@@ -54,7 +54,7 @@ export default async function StockCountsPage({ searchParams }: { searchParams: 
         </ConsoleSection>
       </RightConsoleMount>
       <div className="space-y-4 p-5">
-        <div className="overflow-hidden rounded-lg border bg-card">
+        <div className="overflow-hidden rounded-[2px] border border-[var(--sb-border-soft)] bg-card">
           <StatusTabs statuses={statuses} activeStatus={filters.status} />
           <form className="grid gap-3 border-b p-4 md:grid-cols-[1fr_180px_180px_180px_auto_auto]">
             <Input name="search" defaultValue={filters.search ?? ""} placeholder="Search count no, location, remarks" />
@@ -85,7 +85,7 @@ export default async function StockCountsPage({ searchParams }: { searchParams: 
                 {counts.rows.map((count) => (
                   <DataGridRow key={count.id} href={`/stock-counts/${count.id}`}>
                     <TableCell>
-                      <Link href={`/stock-counts/${count.id}`} aria-label={`Quick view ${count.count_no}`} className="rounded-md p-1 text-slate-400 opacity-0 hover:bg-slate-100 hover:text-primary group-hover:opacity-100">
+                      <Link href={`/stock-counts/${count.id}`} aria-label={`Quick view ${count.count_no}`} className="rounded-none p-1 text-[var(--sb-text-soft)] opacity-0 hover:bg-[var(--sb-surface-muted)] hover:text-[var(--sb-amber-700)] group-hover:opacity-100">
                         <Eye className="h-4 w-4" />
                       </Link>
                     </TableCell>

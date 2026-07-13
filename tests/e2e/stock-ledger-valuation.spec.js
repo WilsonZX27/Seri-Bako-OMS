@@ -21,8 +21,8 @@ test("stock ledger filters, export, and QA balances reconcile", async ({ page })
   await page.waitForLoadState("domcontentloaded").catch(() => {});
   await page.goto("/stock-transactions?search=QA-ING-A-721A", { waitUntil: "domcontentloaded" });
   await expect(page.locator("body")).toContainText("Transaction No");
-  await expect(page.locator("body")).toContainText("Valuation");
-  await expect(page.locator("body")).toContainText("Sprint 7.2.34");
+  await expect(page.locator("body")).toContainText("Ledger rows");
+  await expect(page.locator("body")).toContainText("Sprint 7.3.2");
   await expect(page.locator("body")).toContainText("ST-00011");
   await expect(page.locator("body")).toContainText("ST-SW-00001-eae1");
 

@@ -2,14 +2,14 @@ const path = require("path");
 const { test, expect } = require("@playwright/test");
 const { login } = require("./helpers");
 
-test("Sprint 7.2.34 master data imports", async ({ page }) => {
+test("master data imports remain duplicate-safe", async ({ page }) => {
   test.setTimeout(120_000);
   test.skip(process.env.TEST_IMPORT_MUTATION !== "1", "Set TEST_IMPORT_MUTATION=1 to run import mutation QA.");
   expect(await login(page, "superAdmin")).toBe(true);
 
   async function runImport(route, fixture, expectedMessage, confirmPosting = false) {
     await page.goto(route, { waitUntil: "domcontentloaded" });
-    await expect(page.locator("body")).toContainText("Sprint 7.2.34");
+    await expect(page.locator("body")).toContainText("Sprint 7.3.2");
     const filePath = path.join(__dirname, "..", "fixtures", "imports", fixture);
     for (let attempt = 0; attempt < 3; attempt += 1) {
       await page.waitForTimeout(1000);

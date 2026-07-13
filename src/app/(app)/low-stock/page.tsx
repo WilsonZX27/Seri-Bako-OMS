@@ -45,7 +45,7 @@ export default async function LowStockPage({ searchParams }: { searchParams: Pro
           </ConsoleSection>
         }
       >
-        <div className="overflow-hidden rounded-lg border bg-card">
+        <div className="overflow-hidden rounded-[2px] border border-[var(--sb-border-soft)] bg-card">
           <form className="flex flex-col gap-3 border-b bg-white p-4 md:flex-row md:items-center">
             <Input name="search" defaultValue={filters.search ?? ""} placeholder="Search item, branch, supplier" className="md:max-w-sm" />
             <SelectNative name="branch_id" defaultValue={filters.branch_id ?? "all"} className="md:max-w-xs">

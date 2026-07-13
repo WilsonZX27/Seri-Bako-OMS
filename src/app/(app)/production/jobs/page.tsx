@@ -54,7 +54,7 @@ export default async function ProductionJobsPage({ searchParams }: { searchParam
         <ConsoleSection title="Production Summary">
           <div className="grid gap-2 text-xs">
             {insights.map((item) => (
-              <Link key={item.label} href={item.href} className="flex justify-between rounded-md px-2 py-1.5 hover:bg-secondary">
+              <Link key={item.label} href={item.href} className="flex justify-between rounded-none px-2 py-1.5 hover:bg-[var(--sb-surface-muted)]">
                 <span className={item.active ? "font-semibold text-foreground" : "text-muted-foreground"}>{item.label}</span>
                 <strong>{item.value}</strong>
               </Link>
@@ -66,7 +66,7 @@ export default async function ProductionJobsPage({ searchParams }: { searchParam
         <div className="space-y-4 p-5">
           <div className="flex flex-wrap gap-2">
             {tabs.map(([value, label]) => (
-              <Button key={value} asChild variant={selectedStatus === value ? "default" : "outline"} size="sm" className="rounded-full">
+              <Button key={value} asChild variant={selectedStatus === value ? "default" : "outline"} size="sm">
                 <Link href={`/production/jobs${value === "all" ? "" : `?status=${value}`}`}>{label}</Link>
               </Button>
             ))}
@@ -108,7 +108,7 @@ export default async function ProductionJobsPage({ searchParams }: { searchParam
                       <TableCell>
                         <div className="flex items-center gap-2">
                           <BulkSelectRowCheckbox id={job.id} />
-                          <Link href={`/production/jobs/${job.id}`} aria-label={`Quick view ${job.production_job_no}`} className="rounded-md p-1 text-slate-400 opacity-0 hover:bg-slate-100 hover:text-primary group-hover:opacity-100">
+                          <Link href={`/production/jobs/${job.id}`} aria-label={`Quick view ${job.production_job_no}`} className="rounded-none p-1 text-[var(--sb-text-soft)] opacity-0 hover:bg-[var(--sb-surface-muted)] hover:text-[var(--sb-amber-700)] group-hover:opacity-100">
                             <Eye className="h-4 w-4" />
                           </Link>
                         </div>

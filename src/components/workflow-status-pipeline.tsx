@@ -12,7 +12,7 @@ export function WorkflowStatusPipeline({ steps, currentStatus, compact = false }
   const rejected = ["rejected", "cancelled"].includes(currentStatus);
 
   return (
-    <div className={cn("rounded-lg border bg-card", compact ? "p-1.5" : "p-2.5")}>
+    <div className={cn("rounded-[2px] border border-[var(--sb-border-soft)] bg-card", compact ? "p-1.5" : "p-2.5")}>
       {!compact ? <p className="text-sm font-semibold">Workflow</p> : null}
       <div className={cn("grid gap-1.5 md:grid-cols-[repeat(auto-fit,minmax(104px,1fr))]", compact ? "" : "mt-2")}>
         {steps.map((step, index) => {
@@ -24,11 +24,11 @@ export function WorkflowStatusPipeline({ steps, currentStatus, compact = false }
             <div
               key={step.key}
               className={cn(
-                "rounded-md border",
+                "rounded-[2px] border",
                 compact ? "p-1.5" : "p-2",
-                done ? "border-emerald-200 bg-emerald-50 text-emerald-800" : "",
-                active && !errorStep ? "border-slate-700 bg-white text-slate-900 shadow-sm" : "",
-                errorStep ? "border-red-200 bg-red-50 text-red-800" : "",
+                done ? "border-[var(--sb-success-bg)] bg-[var(--sb-success-bg)] text-[var(--sb-success)]" : "",
+                active && !errorStep ? "border-[var(--sb-amber-700)] bg-white text-[var(--sb-text)]" : "",
+                errorStep ? "border-[var(--sb-danger-bg)] bg-[var(--sb-danger-bg)] text-[var(--sb-danger)]" : "",
               )}
               title={step.description}
             >

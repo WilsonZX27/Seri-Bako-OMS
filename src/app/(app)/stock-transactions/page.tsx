@@ -79,7 +79,7 @@ export default async function StockTransactionsPage({ searchParams }: { searchPa
           </ConsoleSection>
         }
       >
-        <div className="overflow-hidden rounded-lg border bg-card">
+        <div className="overflow-hidden rounded-[2px] border border-[var(--sb-border-soft)] bg-card">
           <form className="grid gap-3 border-b p-4 md:grid-cols-6">
             <Input name="search" defaultValue={filters.search ?? ""} placeholder="Item or transaction" />
             <SelectNative name="branch_id" defaultValue={filters.branch_id ?? "all"}>
@@ -132,7 +132,7 @@ export default async function StockTransactionsPage({ searchParams }: { searchPa
                 {ledger.rows.map((row) => (
                   <DataGridRow key={row.stock_transaction_id} href={`/stock-transactions/${row.stock_transaction_id}`}>
                     <TableCell>
-                      <Link href={`/stock-transactions/${row.stock_transaction_id}`} aria-label={`Quick view ${row.transaction_no}`} className="rounded-md p-1 text-slate-400 opacity-0 hover:bg-slate-100 hover:text-primary group-hover:opacity-100">
+                      <Link href={`/stock-transactions/${row.stock_transaction_id}`} aria-label={`Quick view ${row.transaction_no}`} className="rounded-none p-1 text-[var(--sb-text-soft)] opacity-0 hover:bg-[var(--sb-surface-muted)] hover:text-[var(--sb-amber-700)] group-hover:opacity-100">
                         <Eye className="h-4 w-4" />
                       </Link>
                     </TableCell>

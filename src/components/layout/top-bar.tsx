@@ -2,7 +2,6 @@ import Link from "next/link";
 import { Breadcrumbs } from "@/components/layout/breadcrumbs";
 import { GlobalSearch } from "@/components/search/global-search";
 import { MobileSidebar } from "@/components/layout/mobile-sidebar";
-import { TopBarAction } from "@/components/layout/top-bar-action";
 import { TopBarActivityMenu } from "@/components/layout/top-bar-activity-menu";
 import { getCompanyBranding, getCurrentProfile } from "@/server/queries/common";
 import { getTopBarActivity } from "@/server/queries/topbar";
@@ -25,8 +24,6 @@ export async function TopBar() {
         </div>
       </div>
       <div data-testid="topbar-account-region" className="flex items-center justify-end gap-2">
-        <TopBarAction />
-        <div className="h-6 w-px bg-border" />
         <div data-testid="topbar-search-region">
           <GlobalSearch />
         </div>

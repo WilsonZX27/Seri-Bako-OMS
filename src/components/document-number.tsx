@@ -4,7 +4,7 @@ export function DocumentNumber({ value, className, size = "default" }: { value: 
   return (
     <span
       className={cn(
-        "inline-flex items-center rounded-md border border-slate-200 bg-white px-2 py-1 font-mono font-semibold tracking-wide text-slate-900 shadow-sm",
+        "inline-flex items-center rounded-[2px] border border-[var(--sb-border)] bg-white px-2 py-1 font-mono font-semibold tracking-wide text-[var(--sb-text)]",
         size === "sm" ? "text-xs" : "",
         size === "default" ? "text-sm" : "",
         size === "lg" ? "text-lg" : "",

@@ -52,7 +52,7 @@ export default async function GoodsReceivingsPage({ searchParams }: { searchPara
           </>
         }
       >
-        <div className="overflow-hidden rounded-xl border bg-card shadow-sm">
+        <div className="overflow-hidden rounded-[2px] border border-[var(--sb-border-soft)] bg-card">
           <StatusTabs statuses={statuses} activeStatus={filters.status} />
           <form className="flex flex-col gap-3 border-b bg-white p-4 md:flex-row md:items-center">
             <Input name="search" defaultValue={filters.search ?? ""} placeholder="Search GRN no, PO, supplier, location" className="md:max-w-sm" />
@@ -82,7 +82,7 @@ export default async function GoodsReceivingsPage({ searchParams }: { searchPara
                     <TableCell>
                       <div className="flex items-center gap-2">
                         <BulkSelectRowCheckbox id={receiving.id} />
-                        <Link href={`/goods-receivings/${receiving.id}`} aria-label={`Quick view ${receiving.grn_no}`} className="rounded-md p-1 text-slate-400 opacity-0 hover:bg-slate-100 hover:text-primary group-hover:opacity-100">
+                        <Link href={`/goods-receivings/${receiving.id}`} aria-label={`Quick view ${receiving.grn_no}`} className="rounded-none p-1 text-[var(--sb-text-soft)] opacity-0 hover:bg-[var(--sb-surface-muted)] hover:text-[var(--sb-amber-700)] group-hover:opacity-100">
                           <Eye className="h-4 w-4" />
                         </Link>
                       </div>

@@ -62,7 +62,7 @@ export default async function ProductionJobDetailPage({
           <DocumentSideSection title="Primary Action" description="Only valid next workflow actions are shown.">
             <DocumentActionBar>
               {canSubmit ? <DocumentActionForm action={submitProductionJob.bind(null, job.id)} pendingLabel="Submitting...">Submit for Approval</DocumentActionForm> : null}
-              {canApprove ? <DocumentActionForm action={approveProductionJob.bind(null, job.id)} pendingLabel="Approving..." className="bg-emerald-700 text-white hover:bg-emerald-800">Approve</DocumentActionForm> : null}
+              {canApprove ? <DocumentActionForm action={approveProductionJob.bind(null, job.id)} pendingLabel="Approving...">Approve</DocumentActionForm> : null}
               {canPost ? <DocumentActionForm action={postProductionJob.bind(null, job.id)} pendingLabel="Posting...">Post Production</DocumentActionForm> : null}
               {job.stock_transaction_id ? <DocumentActionLink href={`/stock-transactions/${job.stock_transaction_id}`} variant="outline">View Stock Movement</DocumentActionLink> : null}
               {canCancel ? <DocumentActionForm action={cancelProductionJob.bind(null, job.id)} pendingLabel="Cancelling..." variant="outline" className="text-destructive hover:text-destructive">Cancel Job</DocumentActionForm> : null}

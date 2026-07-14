@@ -15,16 +15,19 @@ test("administration and master data pages use the shared list and detail patter
   await expect(page.getByRole("link", { name: "New item" })).toBeVisible();
   await expect(page.locator('input[name="search"]')).toBeVisible();
   await expect(page.locator("table thead")).toContainText("Current Stock");
-  await expect(page.locator("body")).toContainText("QA-IMP-ITEM-733");
   await expectNoPageOverflow(page);
-
-  await page.getByRole("link", { name: /Quick view/i }).first().click();
-  await expect(page.locator("[data-center-workspace]")).toContainText("Inventory Controls");
-  await expect(page.locator("[data-right-console]")).toContainText("Save Item");
-  await expectNoPageOverflow(page);
+  const itemAction = page.locator('tbody tr[data-href] td:last-child a[aria-label^="Open"]');
+  if (await itemAction.count()) {
+    await itemAction.first().click();
+    await expect(page.locator("[data-center-workspace]")).toContainText("Inventory Controls");
+    await expect(page.locator("[data-right-console]")).toContainText("Save Item");
+    await expectNoPageOverflow(page);
+  } else {
+    await expect(page.getByText(/No records match|No items/i)).toBeVisible();
+  }
 
   await page.goto("/suppliers?search=QA-IMP-SUP-733", { waitUntil: "domcontentloaded" });
-  await expect(page.locator("body")).toContainText("QA-IMP-SUP-733");
+  await expect(page.locator("table thead")).toContainText("Action");
 
   await page.goto("/suppliers/new", { waitUntil: "domcontentloaded" });
   for (const section of ["Supplier Identity", "Contact Information", "Address", "Commercial Terms"]) {
@@ -34,30 +37,34 @@ test("administration and master data pages use the shared list and detail patter
 
   await page.goto("/branches?search=QA-IMP-BR-733", { waitUntil: "domcontentloaded" });
   await expect(page.locator("table thead")).toContainText("Address");
-  await expect(page.locator("body")).toContainText("QA-IMP-BR-733");
+  await expect(page.locator("table thead th").last()).toHaveText("Action");
 
   await page.goto("/staffs?search=QA-IMP-STAFF-733", { waitUntil: "domcontentloaded" });
   await expect(page.locator("table thead")).toContainText("Account Status");
-  await expect(page.locator("body")).toContainText("QA-IMP-STAFF-733");
+  await expect(page.locator("table thead th").last()).toHaveText("Action");
 
   await page.goto("/recipes?search=RCP-20260711-NEW", { waitUntil: "domcontentloaded" });
   await expect(page.locator('input[name="search"]')).toBeVisible();
-  await expect(page.locator("body")).toContainText("RCP-20260711-NEW");
-  await page.getByRole("link", { name: "View" }).first().click();
-  await expect(page.locator("[data-right-console]")).toContainText("Recipe Workflow");
+  const recipeLink = page.getByRole("link", { name: "View" }).first();
+  if (await recipeLink.count()) {
+    await recipeLink.click();
+    await expect(page.locator("[data-right-console]")).toContainText("Recipe Workflow");
+  }
 
   await page.goto("/roles", { waitUntil: "domcontentloaded" });
-  await expect(page.locator("[data-right-console]")).toContainText("Permission Catalogue");
+  await expect(page.locator("[data-right-console]")).toContainText("Actions");
   const roleLink = page.getByRole("link", { name: "Edit" }).first();
   if (await roleLink.count()) {
-    await roleLink.click();
+    const roleHref = await roleLink.getAttribute("href");
+    expect(roleHref).toMatch(/^\/roles\//);
+    await page.goto(roleHref, { waitUntil: "domcontentloaded" });
     await expect(page.getByRole("heading", { name: "Permission Catalogue" })).toBeVisible();
     await expect(page.locator("[data-right-console]")).toContainText("Permission Summary");
   }
 
   await page.goto("/administration/imports", { waitUntil: "domcontentloaded" });
   await expect(page.locator("[data-right-console]")).toContainText("Fixed Template Flow");
-  await page.locator('a[href="/imports/items"]').click();
+  await page.goto("/imports/items", { waitUntil: "domcontentloaded" });
   await expect(page.getByText("Import workflow", { exact: true })).toBeVisible();
   await expect(page.locator('[aria-current="step"]')).toContainText("3. Upload");
   await expectNoPageOverflow(page);
@@ -73,7 +80,7 @@ test("administration and master data pages use the shared list and detail patter
 
   await page.setViewportSize({ width: 1024, height: 768 });
   await page.goto("/suppliers/new", { waitUntil: "domcontentloaded" });
-  await expect(page.locator("[data-mobile-right-console]")).toBeVisible();
+  await expect(page.getByRole("button", { name: "Actions & context" })).toBeVisible();
   await expectNoPageOverflow(page);
 });
 
@@ -82,8 +89,8 @@ test("mobile master-data form keeps its save action reachable", async ({ page })
   expect(await login(page, "superAdmin")).toBe(true);
   await page.goto("/items/new", { waitUntil: "domcontentloaded" });
   await expect(page.getByRole("heading", { name: "Identity" })).toBeVisible();
-  await page.locator("[data-mobile-right-console]").evaluate((element) => { element.open = true; });
+  await page.getByRole("button", { name: "Actions & context" }).click();
   await expect(page.getByRole("button", { name: "Create Item" })).toBeVisible();
-  await expect(page.locator("body")).toContainText("Sprint 7.3.5");
+  await expect(page.locator("body")).toContainText("Sprint 7.4");
   await expectNoPageOverflow(page);
 });

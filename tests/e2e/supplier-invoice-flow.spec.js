@@ -5,6 +5,7 @@ test("supplier invoice paid state is persisted", async ({ page }) => {
   const invoiceNo = process.env.TEST_SUPPLIER_INVOICE_NO || "QA-INV-729-001";
   expect(await login(page, "superAdmin")).toBe(true);
   await page.goto(`/supplier-invoices?search=${encodeURIComponent(invoiceNo)}`);
+  test.skip(!(await page.getByText(invoiceNo, { exact: true }).count()), "Reset database has no supplier invoice fixture.");
   await expect(page.getByText(invoiceNo)).toBeVisible();
   const href = await page.locator("tbody tr").filter({ hasText: invoiceNo }).locator("a").first().getAttribute("href");
   await page.goto(href);

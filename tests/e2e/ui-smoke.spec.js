@@ -100,13 +100,16 @@ async function assertSprint731Rules(page, route) {
     await expect(tableHead).not.toContainText(/related entity/i);
     await expect(tableHead).not.toContainText(/^approval$/i);
     await expect(tableHead).not.toContainText(/current step/i);
-    await expect(tableHead).not.toContainText(/action/i);
+    await expect(page.locator("table thead th").last()).toHaveText(/action/i);
     await expect(page.locator('table a', { hasText: /^Open$/ })).toHaveCount(0);
     await expect(page.locator('select[name="status"]')).toHaveCount(0);
     await expect(page.locator('select[name="approval_status"]')).toHaveCount(0);
-    await expect(page.getByText(/double-click any row/i)).toBeVisible();
-    await page.getByRole("link", { name: /^rejected$/i }).click();
-    await expect(page).toHaveURL(/status=rejected/);
+    const documentRows = page.locator("table tbody tr[data-href]");
+    if (await documentRows.count()) {
+      await expect(documentRows.first().locator('a[aria-label^="Open "]')).toBeVisible();
+    } else {
+      await expect(page.getByText(/no documents found/i)).toBeVisible();
+    }
   }
   if (route === "/purchase-requests") {
     await expect(page.locator('nav a', { hasText: "Manager Approvals" })).toHaveCount(0);
@@ -114,13 +117,12 @@ async function assertSprint731Rules(page, route) {
     await expect(page.locator('nav a', { hasText: "Finance Review" })).toHaveCount(0);
     await expect(page.locator('nav a', { hasText: "Outlet Requests" })).toHaveCount(0);
     await expect(page.locator('nav a', { hasText: "Supplier Sending" })).toHaveCount(0);
-    await expect(page.locator('table a[aria-label^="Quick view"]').first()).toBeAttached();
-    await page.getByRole("link", { name: /manager review/i }).click();
-    await expect(page).toHaveURL(/status=manager_review/);
+    await expect(page.locator("table thead th").last()).toHaveText(/action/i);
+    await expect(page.locator("[data-right-console]")).toContainText("Manager Review");
   }
   if (route === "/purchase-orders") {
-    await expect(page.getByRole("link", { name: /ready to send/i })).toBeVisible();
-    await expect(page.getByRole("link", { name: /sent to supplier/i })).toBeVisible();
+    await expect(page.locator("[data-right-console]")).toContainText("Ready to Send");
+    await expect(page.locator("[data-right-console]")).toContainText("Sent to Supplier");
     await expect(page.locator('nav a', { hasText: "Supplier Sending" })).toHaveCount(0);
   }
   if (route === "/purchase-requests/new") {

@@ -5,7 +5,7 @@ test("PR list and detail remain navigable after cached reference reads", async (
   test.skip(!process.env.TEST_ADMIN_EMAIL || !process.env.TEST_ADMIN_PASSWORD, "Missing admin test credentials.");
   expect(await login(page, "admin")).toBe(true);
   await page.goto("/purchase-requests");
-  const record = page.locator("tbody tr a[href^='/purchase-requests/']").first();
+  const record = page.locator("tbody tr a[href^='/purchase-requests/']").filter({ has: page.locator("svg") }).first();
   test.skip(!(await record.count()), "No purchase request fixture is available.");
   await record.click();
   await expect(page).toHaveURL(/\/purchase-requests\/[0-9a-f-]{36}/i);

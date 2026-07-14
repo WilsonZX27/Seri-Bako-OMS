@@ -26,7 +26,6 @@ test("core error, empty, feedback, and mobile states stay usable", async ({ page
 
   await page.goto("/items/new?error=A%20record%20with%20this%20code%20already%20exists.", { waitUntil: "domcontentloaded" });
   await expect(page.getByRole("alert").filter({ hasText: "already exists" })).toBeVisible();
-  await page.locator("[data-mobile-right-console]").evaluate((element) => { element.open = true; }).catch(() => {});
   const createButton = page.getByRole("button", { name: "Create Item" });
   await expect(createButton).toBeVisible();
 
@@ -49,7 +48,7 @@ test("core error, empty, feedback, and mobile states stay usable", async ({ page
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto("/items/new?error=Review%20the%20required%20fields%20and%20try%20again.", { waitUntil: "domcontentloaded" });
   await expect(page.getByRole("alert").filter({ hasText: "Review the required fields" })).toBeVisible();
-  await page.locator("[data-mobile-right-console]").evaluate((element) => { element.open = true; });
+  await page.getByRole("button", { name: "Actions & context" }).click();
   await expect(page.getByRole("button", { name: "Create Item" })).toBeVisible();
   await expectNoPageOverflow(page);
 });

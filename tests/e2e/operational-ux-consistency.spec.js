@@ -16,14 +16,14 @@ test("core list and document pages keep the operational UX skeleton", async ({ p
 
   await page.goto("/purchase-requests", { waitUntil: "domcontentloaded" });
   await expect(page.getByRole("heading", { name: "Purchase Requests" })).toBeVisible();
-  await expect(page.getByRole("link", { name: "New PR" })).toBeVisible();
+  await expect(page.locator("[data-right-console]").getByRole("link", { name: "New PR" })).toBeVisible();
   await expect(page.locator("form").filter({ has: page.locator('input[name="search"]') })).toBeVisible();
   await expect(page.locator("table thead")).toContainText("PR No");
   await expectNoPageOverflow(page);
 
   await page.goto("/production/jobs?search=PJ-00001", { waitUntil: "domcontentloaded" });
   await expect(page.getByRole("heading", { name: "Production Jobs" })).toBeVisible();
-  await expect(page.getByRole("link", { name: "New Production Job" })).toBeVisible();
+  await expect(page.locator("[data-right-console]").getByRole("link", { name: "New Production Job" })).toBeVisible();
   await expect(page.locator("table thead")).toContainText("Job No");
   await expectNoPageOverflow(page);
 

@@ -64,7 +64,6 @@ export default async function LowStockPage({ searchParams }: { searchParams: Pro
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead className="w-16">Action</TableHead>
                 <TableHead>Code</TableHead>
                 <TableHead>Item</TableHead>
                 <TableHead>Branch</TableHead>
@@ -75,19 +74,12 @@ export default async function LowStockPage({ searchParams }: { searchParams: Pro
                 <TableHead className="text-right">Suggested</TableHead>
                 <TableHead className="text-right">MOQ</TableHead>
                 <TableHead className="text-right">Cost</TableHead>
+                <TableHead className="w-16 text-right">Action</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {items.map((item) => (
                 <TableRow key={`${item.branch_id ?? "no-branch"}-${item.item_id}`}>
-                  <TableCell>
-                    <Button asChild size="sm" variant="outline">
-                      <Link href={reorderHref(item)} aria-label={`Create PR for ${item.item_code}`}>
-                        <Pencil className="h-3.5 w-3.5" />
-                        PR
-                      </Link>
-                    </Button>
-                  </TableCell>
                   <TableCell>{item.item_code}</TableCell>
                   <TableCell className="font-medium">{item.item_name}</TableCell>
                   <TableCell>{item.branch_name ?? "-"}</TableCell>
@@ -100,11 +92,12 @@ export default async function LowStockPage({ searchParams }: { searchParams: Pro
                   </TableCell>
                   <TableCell className="text-right">{formatNumber(item.moq)} {item.base_unit}</TableCell>
                   <TableCell className="text-right">{formatCurrency(item.cost)}</TableCell>
+                  <TableCell className="text-right"><Button asChild size="sm" variant="outline"><Link href={reorderHref(item)} aria-label={`Create PR for ${item.item_code}`}><Pencil className="h-3.5 w-3.5" />PR</Link></Button></TableCell>
                 </TableRow>
               ))}
               {!items.length ? (
                 <TableRow>
-                  <TableCell colSpan={10} className="text-center text-muted-foreground">
+                  <TableCell colSpan={11} className="text-center text-muted-foreground">
                     No low stock items.
                   </TableCell>
                 </TableRow>

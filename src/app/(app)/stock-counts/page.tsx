@@ -11,7 +11,7 @@ import { PaginationControls, SortableHead } from "@/components/sortable-table";
 import { ConsoleSection, RightConsoleMount } from "@/components/layout/right-console";
 import { StatusTabs } from "@/components/status-tabs";
 import { StatusBadge } from "@/components/ui/status-badge";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Table, TableActionLink, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { getLocationsForSelect } from "@/server/queries/common";
 import { getStockCounts } from "@/server/queries/stock-counts";
 
@@ -72,29 +72,25 @@ export default async function StockCountsPage({ searchParams }: { searchParams: 
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead className="w-10"></TableHead>
                   <SortableHead label="Count No" column="count_no" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
                   <SortableHead label="Date" column="count_date" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
                   <TableHead>Location</TableHead>
                   <SortableHead label="Status" column="status" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
                   <TableHead className="text-right">Lines</TableHead>
                   <TableHead className="text-right">High Variance</TableHead>
+                  <TableHead className="w-12 text-right">Action</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {counts.rows.map((count) => (
                   <DataGridRow key={count.id} href={`/stock-counts/${count.id}`}>
-                    <TableCell>
-                      <Link href={`/stock-counts/${count.id}`} aria-label={`Quick view ${count.count_no}`} className="rounded-none p-1 text-[var(--sb-text-soft)] hover:bg-[var(--sb-surface-muted)] hover:text-[var(--sb-amber-700)]">
-                        <Pencil className="h-4 w-4" />
-                      </Link>
-                    </TableCell>
                     <TableCell className="font-medium">{count.count_no}</TableCell>
                     <TableCell>{count.count_date}</TableCell>
                     <TableCell>{count.location_name ?? "-"}</TableCell>
                     <TableCell><StatusBadge status={count.status} /></TableCell>
                     <TableCell className="text-right">{count.line_count}</TableCell>
                     <TableCell className="text-right">{count.high_variance_count}</TableCell>
+                    <TableCell className="text-right"><TableActionLink href={`/stock-counts/${count.id}`} label={`Open ${count.count_no}`}><Pencil className="h-4 w-4" /></TableActionLink></TableCell>
                   </DataGridRow>
                 ))}
                 {!counts.rows.length ? <TableRow><TableCell colSpan={7}><EmptyState title="No stock counts found" description="Branch stock counts will appear here after kitchen users start a count." action={{ href: "/stock-counts/new", label: "New Count" }} /></TableCell></TableRow> : null}

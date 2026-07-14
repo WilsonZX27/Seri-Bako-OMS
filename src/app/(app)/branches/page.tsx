@@ -10,7 +10,7 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { MasterDataFilters } from "@/components/master-data-filters";
 import { PageHeader } from "@/components/ui/page-header";
 import { StatusTabs } from "@/components/status-tabs";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Table, TableActionLink, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { formatPageError } from "@/server/actions/error-handling";
 import { getBranches } from "@/server/queries/foundation";
 import { hasActiveFilters } from "@/lib/table-state";
@@ -53,18 +53,14 @@ export default async function BranchesPage({ searchParams }: { searchParams: Pro
                     <TableHead>Email</TableHead>
                     <TableHead>Address</TableHead>
                     <TableHead>Status</TableHead>
+                    <TableHead className="w-12 text-right">Action</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {branches.map((branch) => (
                     <DataGridRow key={branch.id} href={`/branches/${branch.id}`}>
                       <TableCell>
-                        <div className="flex items-center gap-2">
-                          <BulkSelectRowCheckbox id={branch.id} />
-                          <Link href={`/branches/${branch.id}`} aria-label={`Quick view ${branch.branch_name}`} className="p-1 text-[var(--sb-text-soft)] hover:bg-[var(--sb-surface-muted)] hover:text-primary">
-                            <Pencil className="h-4 w-4" />
-                          </Link>
-                        </div>
+                        <BulkSelectRowCheckbox id={branch.id} />
                       </TableCell>
                       <TableCell>{branch.branch_code}</TableCell>
                       <TableCell className="font-medium">{branch.branch_name}</TableCell>
@@ -73,9 +69,10 @@ export default async function BranchesPage({ searchParams }: { searchParams: Pro
                       <TableCell>{branch.email ?? "-"}</TableCell>
                       <TableCell className="max-w-64 truncate">{branch.address ?? "-"}</TableCell>
                       <TableCell><Badge variant={branch.status === "active" ? "success" : "secondary"}>{branch.status}</Badge></TableCell>
+                      <TableCell className="text-right"><TableActionLink href={`/branches/${branch.id}`} label={`Open ${branch.branch_name}`}><Pencil className="h-4 w-4" /></TableActionLink></TableCell>
                     </DataGridRow>
                   ))}
-                  {!branches.length ? <TableRow><TableCell colSpan={8}><EmptyState title={filtered ? "No records match these filters" : "No branches yet"} description={filtered ? "Clear filters or widen the search to see more branches." : "Branches will appear here after operating units are created."} action={filtered ? { href: "/branches", label: "Clear filters" } : { href: "/branches/new", label: "New branch" }} /></TableCell></TableRow> : null}
+                  {!branches.length ? <TableRow><TableCell colSpan={9}><EmptyState title={filtered ? "No records match these filters" : "No branches yet"} description={filtered ? "Clear filters or widen the search to see more branches." : "Branches will appear here after operating units are created."} action={filtered ? { href: "/branches", label: "Clear filters" } : { href: "/branches/new", label: "New branch" }} /></TableCell></TableRow> : null}
                 </TableBody>
               </Table>
             </div>

@@ -10,7 +10,7 @@ import { MasterDataFilters } from "@/components/master-data-filters";
 import { PageHeader } from "@/components/ui/page-header";
 import { PaginationControls, SortableHead } from "@/components/sortable-table";
 import { StatusTabs } from "@/components/status-tabs";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Table, TableActionLink, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { formatCurrency, formatNumber } from "@/lib/utils";
 import { hasActiveFilters } from "@/lib/table-state";
 import { getItemsWithStock, getItemsWithStockPage } from "@/server/queries/items";
@@ -64,6 +64,7 @@ export default async function ItemsPage({
                 <SortableHead label="Safety Stock" column="safety_stock" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} className="text-right" />
                 <SortableHead label="Current Stock" column="current_stock" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} className="text-right" />
                 <SortableHead label="Status" column="status" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
+                <TableHead className="w-12 text-right">Action</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -71,12 +72,7 @@ export default async function ItemsPage({
                 return (
                   <DataGridRow key={item.id} href={`/items/${item.id}`}>
                     <TableCell>
-                      <div className="flex items-center gap-2">
-                        <BulkSelectRowCheckbox id={item.id} />
-                        <Link href={`/items/${item.id}`} aria-label={`Quick view ${item.item_name}`} className="p-1 text-[var(--sb-text-soft)] hover:bg-[var(--sb-surface-muted)] hover:text-primary">
-                          <Pencil className="h-4 w-4" />
-                        </Link>
-                      </div>
+                      <BulkSelectRowCheckbox id={item.id} />
                     </TableCell>
                     <TableCell>{item.item_code}</TableCell>
                     <TableCell className="font-medium">{item.item_name}</TableCell>
@@ -89,12 +85,13 @@ export default async function ItemsPage({
                     <TableCell>
                       <Badge variant={item.status === "active" ? "success" : "secondary"}>{item.status}</Badge>
                     </TableCell>
+                    <TableCell className="text-right"><TableActionLink href={`/items/${item.id}`} label={`Open ${item.item_name}`}><Pencil className="h-4 w-4" /></TableActionLink></TableCell>
                   </DataGridRow>
                 );
               })}
               {!itemsPage.rows.length ? (
                 <TableRow>
-                  <TableCell colSpan={10}>
+                  <TableCell colSpan={11}>
                     <EmptyState
                       title={filtered ? "No records match these filters" : "No items yet"}
                       description={filtered ? "Clear filters or widen the search to see more items." : "Items will appear here after they are created or imported."}

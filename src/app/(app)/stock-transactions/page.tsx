@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { PageHeader } from "@/components/ui/page-header";
 import { SelectNative } from "@/components/ui/select-native";
 import { PaginationControls, SortableHead } from "@/components/sortable-table";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Table, TableActionLink, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { ConsoleSection } from "@/components/layout/right-console";
 import { WorkspaceGrid } from "@/components/layout/workspace-layout";
 import { formatCurrency, formatNumber } from "@/lib/utils";
@@ -139,9 +139,7 @@ export default async function StockTransactionsPage({ searchParams }: { searchPa
                 {ledger.rows.map((row) => (
                   <DataGridRow key={row.stock_transaction_id} href={`/stock-transactions/${row.stock_transaction_id}`}>
                     <TableCell>{row.transaction_date}</TableCell>
-                    <TableCell className="font-medium">
-                      <Link href={`/stock-transactions/${row.stock_transaction_id}`} className="underline-offset-2 hover:underline">{row.transaction_no}</Link>
-                    </TableCell>
+                    <TableCell className="font-medium">{row.transaction_no}</TableCell>
                     <TableCell><Badge variant="secondary">{movementLabel(row.transaction_type)}</Badge></TableCell>
                     <TableCell className="font-medium">{row.item_code}<p className="text-xs text-muted-foreground">{row.item_name}</p></TableCell>
                     <TableCell>{row.branch_name ?? row.location_name}</TableCell>
@@ -152,9 +150,7 @@ export default async function StockTransactionsPage({ searchParams }: { searchPa
                     <TableCell className="text-right">{formatCurrency(row.unit_cost)}</TableCell>
                     <TableCell className="text-right">{formatCurrency(row.total_cost)}</TableCell>
                     <TableCell className="text-right">
-                      <Link href={`/stock-transactions/${row.stock_transaction_id}`} aria-label={`Open ${row.transaction_no}`} className="inline-flex rounded-none p-1 text-[var(--sb-text-soft)] hover:bg-[var(--sb-surface-muted)] hover:text-[var(--sb-amber-700)]">
-                        <Pencil className="h-4 w-4" />
-                      </Link>
+                      <TableActionLink href={`/stock-transactions/${row.stock_transaction_id}`} label={`Open ${row.transaction_no}`}><Pencil className="h-4 w-4" /></TableActionLink>
                     </TableCell>
                   </DataGridRow>
                 ))}

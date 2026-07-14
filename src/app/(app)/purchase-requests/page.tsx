@@ -13,7 +13,7 @@ import { PriorityBadge } from "@/components/priority-badge";
 import { PaginationControls, SortableHead } from "@/components/sortable-table";
 import { SelectNative } from "@/components/ui/select-native";
 import { StatusTabs } from "@/components/status-tabs";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Table, TableActionLink, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { ConsoleSection } from "@/components/layout/right-console";
 import { WorkspaceGrid } from "@/components/layout/workspace-layout";
 import { formatCurrency } from "@/lib/utils";
@@ -110,9 +110,7 @@ export default async function PurchaseRequestsPage({ searchParams }: { searchPar
                     <TableCell className="text-right">{request.line_count}</TableCell>
                     <TableCell className="text-right">{formatCurrency(request.estimated_total)}</TableCell>
                     <TableCell className="text-right">
-                      <Link href={`/purchase-requests/${request.id}`} aria-label={`Open ${request.request_no}`} className="inline-flex h-7 w-7 items-center justify-center rounded-none text-[var(--sb-text-soft)] hover:bg-[var(--sb-surface-muted)] hover:text-[var(--sb-amber-700)]">
-                        <Pencil className="h-4 w-4" />
-                      </Link>
+                      <TableActionLink href={`/purchase-requests/${request.id}`} label={`Open ${request.request_no}`}><Pencil className="h-4 w-4" /></TableActionLink>
                     </TableCell>
                   </DataGridRow>
                 ))}

@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { Pencil } from "lucide-react";
 import { BulkSelectAllCheckbox, BulkSelectionProvider, BulkSelectRowCheckbox } from "@/components/bulk-selection";
 import { Button } from "@/components/ui/button";
@@ -10,7 +9,7 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { MasterDataFilters } from "@/components/master-data-filters";
 import { PageHeader } from "@/components/ui/page-header";
 import { StatusTabs } from "@/components/status-tabs";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Table, TableActionLink, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { cleanDuplicateLocations, fixMissingDefaultLocations } from "@/server/actions/foundation";
 import { formatPageError } from "@/server/actions/error-handling";
 import { getLocations } from "@/server/queries/foundation";
@@ -51,17 +50,12 @@ export default async function LocationsPage({ searchParams }: { searchParams: Pr
             <BulkSelectionProvider ids={locations.map((location) => location.id)} actionLabel="Archive selected" actionHint="Archive locations only when they are not needed for ledger history or current stock operations.">
             <DataGridHint text="Pro-tip: Double-click any row to open the location." />
             <div className="overflow-x-auto"><Table><TableHeader><TableRow>
-              <TableHead className="w-16"><BulkSelectAllCheckbox /></TableHead><TableHead>Branch</TableHead><TableHead>Internal Location</TableHead><TableHead>Code</TableHead><TableHead>Type</TableHead><TableHead>Status</TableHead>
+              <TableHead className="w-16"><BulkSelectAllCheckbox /></TableHead><TableHead>Branch</TableHead><TableHead>Internal Location</TableHead><TableHead>Code</TableHead><TableHead>Type</TableHead><TableHead>Status</TableHead><TableHead className="w-12 text-right">Action</TableHead>
             </TableRow></TableHeader><TableBody>
               {locations.map((location) => (
                 <DataGridRow key={location.id} href={`/locations/${location.id}`}>
                   <TableCell>
-                    <div className="flex items-center gap-2">
-                      <BulkSelectRowCheckbox id={location.id} />
-                      <Link href={`/locations/${location.id}`} aria-label={`Quick view ${location.location_name}`} className="rounded-md p-1 text-slate-400 hover:bg-slate-100 hover:text-primary">
-                        <Pencil className="h-4 w-4" />
-                      </Link>
-                    </div>
+                    <BulkSelectRowCheckbox id={location.id} />
                   </TableCell>
                   <TableCell className="font-medium">{location.branch_name ?? "-"}</TableCell>
                   <TableCell>
@@ -76,9 +70,10 @@ export default async function LocationsPage({ searchParams }: { searchParams: Pr
                   <TableCell>{location.location_code}</TableCell>
                   <TableCell className="capitalize">{location.location_type.replaceAll("_", " ")}</TableCell>
                   <TableCell><Badge variant={location.status === "active" ? "success" : "secondary"}>{location.status}</Badge></TableCell>
+                  <TableCell className="text-right"><TableActionLink href={`/locations/${location.id}`} label={`Open ${location.location_name}`}><Pencil className="h-4 w-4" /></TableActionLink></TableCell>
                 </DataGridRow>
               ))}
-              {!locations.length ? <TableRow><TableCell colSpan={6}><EmptyState title="No locations found" description="Internal stock locations will appear here after they are created." action={{ href: "/locations/new", label: "New location" }} /></TableCell></TableRow> : null}
+              {!locations.length ? <TableRow><TableCell colSpan={7}><EmptyState title="No locations found" description="Internal stock locations will appear here after they are created." action={{ href: "/locations/new", label: "New location" }} /></TableCell></TableRow> : null}
             </TableBody></Table></div>
             </BulkSelectionProvider>
           </div></div>

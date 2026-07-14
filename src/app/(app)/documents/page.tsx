@@ -11,7 +11,7 @@ import { PageHeader } from "@/components/ui/page-header";
 import { SelectNative } from "@/components/ui/select-native";
 import { PaginationControls, SortableHead } from "@/components/sortable-table";
 import { StatusTabs } from "@/components/status-tabs";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Table, TableActionLink, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { getCanonicalDocumentHref } from "@/lib/document-routing";
 import { formatStatusLabel } from "@/lib/status-label";
 import type { DocumentRow } from "@/server/queries/documents";
@@ -42,7 +42,7 @@ export default async function DocumentsPage({ searchParams }: { searchParams: Pr
     <>
       <PageHeader title="Documents Register" description="Audit-ready register for document status, approvals, attachments, revisions, and timelines." />
       <div className="space-y-5 p-5">
-        <div className="overflow-hidden rounded-xl border bg-card shadow-sm">
+        <div className="overflow-hidden rounded-[2px] border bg-card">
           <div className="border-b bg-white p-4">
             <p className="sb-section-label">Document Register</p>
             <h2 className="mt-1 text-lg font-semibold">Audit and document control</h2>
@@ -87,6 +87,7 @@ export default async function DocumentsPage({ searchParams }: { searchParams: Pr
                   <TableHead>Created By</TableHead>
                   <SortableHead label="Created" column="created_at" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
                   <SortableHead label="Updated" column="updated_at" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
+                  <TableHead className="w-12 text-right">Action</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -95,12 +96,7 @@ export default async function DocumentsPage({ searchParams }: { searchParams: Pr
                   return (
                   <DataGridRow key={document.id} href={href}>
                     <TableCell>
-                      <div className="flex items-center gap-2">
-                        <BulkSelectRowCheckbox id={document.id} />
-                        <a href={href} aria-label={`Quick view ${document.document_no}`} className="rounded-md p-1 text-slate-400 hover:bg-slate-100 hover:text-primary">
-                          <Pencil className="h-4 w-4" />
-                        </a>
-                      </div>
+                      <BulkSelectRowCheckbox id={document.id} />
                     </TableCell>
                     <TableCell><DocumentNumber value={document.document_no} size="sm" /></TableCell>
                     <TableCell>{formatStatusLabel(document.document_type)}</TableCell>
@@ -108,6 +104,7 @@ export default async function DocumentsPage({ searchParams }: { searchParams: Pr
                     <TableCell>{document.created_by_name ?? "Unknown user"}</TableCell>
                     <TableCell>{new Date(document.created_at).toLocaleDateString("en-MY")}</TableCell>
                     <TableCell>{new Date(document.updated_at).toLocaleDateString("en-MY")}</TableCell>
+                    <TableCell className="text-right"><TableActionLink href={href} label={`Open ${document.document_no}`}><Pencil className="h-4 w-4" /></TableActionLink></TableCell>
                   </DataGridRow>
                   );
                 })}

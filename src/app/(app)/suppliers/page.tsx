@@ -10,7 +10,7 @@ import { MasterDataFilters } from "@/components/master-data-filters";
 import { PageHeader } from "@/components/ui/page-header";
 import { PaginationControls, SortableHead } from "@/components/sortable-table";
 import { StatusTabs } from "@/components/status-tabs";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Table, TableActionLink, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { ConsoleSection } from "@/components/layout/right-console";
 import { WorkspaceGrid } from "@/components/layout/workspace-layout";
 import { hasActiveFilters, paginateRows } from "@/lib/table-state";
@@ -69,18 +69,14 @@ export default async function SuppliersPage({
                 <SortableHead label="Email" column="email" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
                 <SortableHead label="Payment Terms" column="payment_terms_days" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
                 <SortableHead label="Status" column="status" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
+                <TableHead className="w-12 text-right">Action</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {page.rows.map((supplier) => (
                 <DataGridRow key={supplier.id} href={`/suppliers/${supplier.id}`}>
                   <TableCell>
-                    <div className="flex items-center gap-2">
-                      <BulkSelectRowCheckbox id={supplier.id} />
-                      <Link href={`/suppliers/${supplier.id}`} aria-label={`Quick view ${supplier.name}`} className="p-1 text-[var(--sb-text-soft)] hover:bg-[var(--sb-surface-muted)] hover:text-primary">
-                        <Pencil className="h-4 w-4" />
-                      </Link>
-                    </div>
+                    <BulkSelectRowCheckbox id={supplier.id} />
                   </TableCell>
                   <TableCell>{supplier.supplier_code ?? "-"}</TableCell>
                   <TableCell className="font-medium">{supplier.name}</TableCell>
@@ -91,11 +87,12 @@ export default async function SuppliersPage({
                   <TableCell>
                     <Badge variant={supplier.status === "active" ? "success" : "secondary"}>{supplier.status}</Badge>
                   </TableCell>
+                  <TableCell className="text-right"><TableActionLink href={`/suppliers/${supplier.id}`} label={`Open ${supplier.name}`}><Pencil className="h-4 w-4" /></TableActionLink></TableCell>
                 </DataGridRow>
               ))}
               {!page.rows.length ? (
                 <TableRow>
-                  <TableCell colSpan={8}>
+                  <TableCell colSpan={9}>
                     <EmptyState
                       title={filtered ? "No records match these filters" : "No suppliers yet"}
                       description={filtered ? "Clear filters or widen the search to see more suppliers." : "Suppliers will appear here after they are created or imported."}

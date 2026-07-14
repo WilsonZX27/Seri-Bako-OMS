@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { PageHeader } from "@/components/ui/page-header";
 import { PaginationControls } from "@/components/sortable-table";
 import { StatusTabs } from "@/components/status-tabs";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Table, TableActionLink, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { ConsoleSection } from "@/components/layout/right-console";
 import { WorkspaceGrid } from "@/components/layout/workspace-layout";
 import { formatCurrency } from "@/lib/utils";
@@ -41,7 +41,7 @@ export default async function SupplierInvoicesPage({ searchParams }: { searchPar
           </>
         }
       >
-        <div className="overflow-hidden rounded-xl border bg-card shadow-sm">
+        <div className="overflow-hidden rounded-[2px] border bg-card">
           <StatusTabs statuses={statuses} activeStatus={filters.status} />
           <form className="flex flex-col gap-3 border-b bg-white p-4 md:flex-row md:items-center">
             <Input name="search" defaultValue={filters.search ?? ""} placeholder="Search invoice, supplier, PO, GRN" className="md:max-w-sm" />
@@ -52,7 +52,6 @@ export default async function SupplierInvoicesPage({ searchParams }: { searchPar
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead className="w-16">View</TableHead>
                   <TableHead>Invoice</TableHead>
                   <TableHead>Supplier Inv.</TableHead>
                   <TableHead>Supplier</TableHead>
@@ -61,12 +60,12 @@ export default async function SupplierInvoicesPage({ searchParams }: { searchPar
                   <TableHead className="text-right">Total</TableHead>
                   <TableHead className="text-right">Paid</TableHead>
                   <TableHead className="text-right">Balance</TableHead>
+                  <TableHead className="w-12 text-right">Action</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {invoices.rows.map((row) => (
                   <DataGridRow key={row.id} href={`/supplier-invoices/${row.id}`}>
-                    <TableCell><Link href={`/supplier-invoices/${row.id}`} aria-label={`View ${row.invoice_no}`}><Pencil className="h-4 w-4" /></Link></TableCell>
                     <TableCell><DocumentNumber value={row.invoice_no} size="sm" /></TableCell>
                     <TableCell>{row.supplier_invoice_no}</TableCell>
                     <TableCell>{row.supplier_name ?? "-"}</TableCell>
@@ -75,6 +74,7 @@ export default async function SupplierInvoicesPage({ searchParams }: { searchPar
                     <TableCell className="text-right">{formatCurrency(row.total_amount)}</TableCell>
                     <TableCell className="text-right">{formatCurrency(row.amount_paid)}</TableCell>
                     <TableCell className="text-right">{formatCurrency(row.balance_due)}</TableCell>
+                    <TableCell className="text-right"><TableActionLink href={`/supplier-invoices/${row.id}`} label={`Open ${row.invoice_no}`}><Pencil className="h-4 w-4" /></TableActionLink></TableCell>
                   </DataGridRow>
                 ))}
                 {!invoices.rows.length ? <TableRow><TableCell colSpan={9}><EmptyState title="No supplier invoices found" description="Supplier invoices will appear here after posted GRNs are invoiced." /></TableCell></TableRow> : null}

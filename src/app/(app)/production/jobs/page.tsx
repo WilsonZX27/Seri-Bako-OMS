@@ -11,7 +11,7 @@ import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { SelectNative } from "@/components/ui/select-native";
 import { StatusBadge } from "@/components/ui/status-badge";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Table, TableActionLink, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { PaginationControls, SortableHead } from "@/components/sortable-table";
 import { ConsoleSection, RightConsoleMount } from "@/components/layout/right-console";
 import { getBranchesForSelect } from "@/server/queries/common";
@@ -104,24 +104,16 @@ export default async function ProductionJobsPage({ searchParams }: { searchParam
                     <SortableHead label="Status" column="status" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
                     <TableHead>Created By</TableHead>
                     <TableHead>Posted At</TableHead>
+                    <TableHead className="w-12 text-right">Action</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {jobs.rows.map((job) => (
                     <DataGridRow key={job.id} href={`/production/jobs/${job.id}`}>
                       <TableCell>
-                        <div className="flex items-center gap-2">
-                          <BulkSelectRowCheckbox id={job.id} />
-                          <Link href={`/production/jobs/${job.id}`} aria-label={`Quick view ${job.production_job_no}`} className="rounded-none p-1 text-[var(--sb-text-soft)] hover:bg-[var(--sb-surface-muted)] hover:text-[var(--sb-amber-700)]">
-                            <Pencil className="h-4 w-4" />
-                          </Link>
-                        </div>
+                        <BulkSelectRowCheckbox id={job.id} />
                       </TableCell>
-                      <TableCell>
-                        <Link href={`/production/jobs/${job.id}`} aria-label={`Open ${job.production_job_no}`}>
-                          <DocumentNumber value={job.production_job_no} size="sm" className="hover:border-primary hover:text-primary" />
-                        </Link>
-                      </TableCell>
+                      <TableCell><DocumentNumber value={job.production_job_no} size="sm" /></TableCell>
                       <TableCell>{job.production_date}</TableCell>
                       <TableCell>{job.branch_name ?? "-"}</TableCell>
                       <TableCell>{job.recipe_no ?? "-"}</TableCell>
@@ -131,11 +123,12 @@ export default async function ProductionJobsPage({ searchParams }: { searchParam
                       <TableCell><StatusBadge status={job.status} /></TableCell>
                       <TableCell>{job.created_by_name ?? "-"}</TableCell>
                       <TableCell>{job.posted_at ? new Date(job.posted_at).toLocaleString("en-MY", { dateStyle: "short", timeStyle: "short" }) : "-"}</TableCell>
+                      <TableCell className="text-right"><TableActionLink href={`/production/jobs/${job.id}`} label={`Open ${job.production_job_no}`}><Pencil className="h-4 w-4" /></TableActionLink></TableCell>
                     </DataGridRow>
                   ))}
                   {!jobs.rows.length ? (
                     <TableRow>
-                      <TableCell colSpan={11}>
+                      <TableCell colSpan={12}>
                         <EmptyState title="No production jobs found" description={`No production jobs found for ${formatStatusLabel(selectedStatus)}.`} action={{ href: "/production/jobs/new", label: "New Production Job" }} />
                       </TableCell>
                     </TableRow>

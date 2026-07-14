@@ -9,7 +9,7 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { MasterDataFilters } from "@/components/master-data-filters";
 import { PageHeader } from "@/components/ui/page-header";
 import { StatusTabs } from "@/components/status-tabs";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Table, TableActionLink, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { getStaffs } from "@/server/queries/foundation";
 import { ConsoleSection } from "@/components/layout/right-console";
@@ -48,17 +48,12 @@ export default async function StaffsPage({ searchParams }: { searchParams: Promi
         <BulkSelectionProvider ids={staffs.map((staff) => staff.id)} actionLabel="Deactivate selected" actionHint="Disable staff users from their detail page to keep a clear access history.">
         <DataGridHint text="Pro-tip: Double-click any row to open the staff profile." />
         <div className="overflow-x-auto"><Table><TableHeader><TableRow>
-          <TableHead className="w-16"><BulkSelectAllCheckbox /></TableHead><TableHead>Staff Code</TableHead><TableHead>Name</TableHead><TableHead>Email</TableHead><TableHead>Default Branch</TableHead><TableHead>Role</TableHead><TableHead>Staff Status</TableHead><TableHead>Account Status</TableHead>
+          <TableHead className="w-16"><BulkSelectAllCheckbox /></TableHead><TableHead>Staff Code</TableHead><TableHead>Name</TableHead><TableHead>Email</TableHead><TableHead>Default Branch</TableHead><TableHead>Role</TableHead><TableHead>Staff Status</TableHead><TableHead>Account Status</TableHead><TableHead className="w-12 text-right">Action</TableHead>
         </TableRow></TableHeader><TableBody>
           {staffs.map((staff) => (
             <DataGridRow key={staff.id} href={`/staffs/${staff.id}`}>
               <TableCell>
-                <div className="flex items-center gap-2">
-                  <BulkSelectRowCheckbox id={staff.id} />
-                  <Link href={`/staffs/${staff.id}`} aria-label={`Quick view ${staff.full_name}`} className="p-1 text-[var(--sb-text-soft)] hover:bg-[var(--sb-surface-muted)] hover:text-primary">
-                    <Pencil className="h-4 w-4" />
-                  </Link>
-                </div>
+                <BulkSelectRowCheckbox id={staff.id} />
               </TableCell>
               <TableCell>{staff.staff_code?.toUpperCase() ?? "-"}</TableCell>
               <TableCell className="font-medium">{staff.full_name}</TableCell>
@@ -67,6 +62,7 @@ export default async function StaffsPage({ searchParams }: { searchParams: Promi
               <TableCell>{staff.role_name ?? "-"}</TableCell>
               <TableCell><StatusBadge status={staff.status} /></TableCell>
               <TableCell><StatusBadge status={staff.invitation_status ?? (staff.auth_user_id ? "active" : "pending")} /></TableCell>
+              <TableCell className="text-right"><TableActionLink href={`/staffs/${staff.id}`} label={`Open ${staff.full_name}`}><Pencil className="h-4 w-4" /></TableActionLink></TableCell>
             </DataGridRow>
           ))}
           {!staffs.length ? <TableRow><TableCell colSpan={8}><EmptyState title="No staff found" description="Staff accounts will appear here after they are invited or created." action={{ href: "/staffs/new", label: "New staff" }} /></TableCell></TableRow> : null}

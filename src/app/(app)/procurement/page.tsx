@@ -1,4 +1,8 @@
+import Link from "next/link";
 import { AlertTriangle, ArrowRight, ClipboardList, FileDigit, PackageCheck, Plus, ReceiptText, ShoppingCart, Truck, Upload, Users } from "lucide-react";
+import { ConsoleSection } from "@/components/layout/right-console";
+import { WorkspaceGrid } from "@/components/layout/workspace-layout";
+import { Button } from "@/components/ui/button";
 import { PageHeader } from "@/components/ui/page-header";
 import { WorkspaceQuickInsights, WorkspaceSectionPanel, type WorkspaceInsight, type WorkspaceSection } from "@/components/workspace-panels";
 import { getProcurementWorkspaceInsights } from "@/server/queries/procurement";
@@ -57,15 +61,28 @@ export default async function ProcurementPage() {
 
   return (
     <>
-      <PageHeader title="Procurement" description="Supplier, purchasing, and receiving work grouped in one place." action={{ href: "/purchase-requests/new", label: "Create PR" }} />
-      <div className="space-y-5 bg-background p-5">
-        <WorkspaceQuickInsights insights={procurementInsights} action={{ href: "/reports", label: "View all reports", icon: ArrowRight }} />
-        <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-4">
-          {procurementSections.map((section) => (
-            <WorkspaceSectionPanel key={section.title} section={section} />
-          ))}
+      <PageHeader title="Procurement" description="Supplier, purchasing, and receiving work grouped in one place." />
+      <WorkspaceGrid
+        className="pt-4"
+        rightRail={
+          <ConsoleSection title="Actions">
+            <div className="grid gap-2">
+              <Button asChild size="sm" className="w-full">
+                <Link href="/purchase-requests/new">Create PR</Link>
+              </Button>
+            </div>
+          </ConsoleSection>
+        }
+      >
+        <div className="space-y-5">
+          <WorkspaceQuickInsights insights={procurementInsights} action={{ href: "/reports", label: "View all reports", icon: ArrowRight }} />
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-4">
+            {procurementSections.map((section) => (
+              <WorkspaceSectionPanel key={section.title} section={section} />
+            ))}
+          </div>
         </div>
-      </div>
+      </WorkspaceGrid>
     </>
   );
 }

@@ -81,7 +81,7 @@ export default async function PurchaseRequestsPage({ searchParams }: { searchPar
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead className="w-20"><BulkSelectAllCheckbox /></TableHead>
+                  <TableHead className="w-10"><BulkSelectAllCheckbox /></TableHead>
                   <SortableHead label="PR No" column="request_no" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
                   <SortableHead label="Date" column="request_date" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
                   <SortableHead label="Needed By" column="needed_by_date" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
@@ -91,18 +91,14 @@ export default async function PurchaseRequestsPage({ searchParams }: { searchPar
                   <SortableHead label="Status" column="status" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
                   <TableHead className="text-right">Lines</TableHead>
                   <TableHead className="text-right">Estimated Total</TableHead>
+                  <TableHead className="w-10 text-right">Action</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {requests.rows.map((request) => (
                   <DataGridRow key={request.id} href={`/purchase-requests/${request.id}`}>
                     <TableCell>
-                      <div className="flex items-center gap-2">
-                        <BulkSelectRowCheckbox id={request.id} />
-                        <Link href={`/purchase-requests/${request.id}`} aria-label={`Quick view ${request.request_no}`} className="rounded-none p-1 text-[var(--sb-text-soft)] hover:bg-[var(--sb-surface-muted)] hover:text-[var(--sb-amber-700)]">
-                          <Pencil className="h-4 w-4" />
-                        </Link>
-                      </div>
+                      <BulkSelectRowCheckbox id={request.id} />
                     </TableCell>
                     <TableCell><DocumentNumber value={request.request_no} size="sm" /></TableCell>
                     <TableCell>{request.request_date}</TableCell>
@@ -113,9 +109,14 @@ export default async function PurchaseRequestsPage({ searchParams }: { searchPar
                     <TableCell><StatusBadge status={request.status} /></TableCell>
                     <TableCell className="text-right">{request.line_count}</TableCell>
                     <TableCell className="text-right">{formatCurrency(request.estimated_total)}</TableCell>
+                    <TableCell className="text-right">
+                      <Link href={`/purchase-requests/${request.id}`} aria-label={`Open ${request.request_no}`} className="inline-flex h-7 w-7 items-center justify-center rounded-none text-[var(--sb-text-soft)] hover:bg-[var(--sb-surface-muted)] hover:text-[var(--sb-amber-700)]">
+                        <Pencil className="h-4 w-4" />
+                      </Link>
+                    </TableCell>
                   </DataGridRow>
                 ))}
-                {!requests.rows.length ? <TableRow><TableCell colSpan={10}><EmptyState title="No purchase requests found" description="New purchase requests will appear here after staff submit branch needs." action={{ href: "/purchase-requests/new", label: "New PR" }} /></TableCell></TableRow> : null}
+                {!requests.rows.length ? <TableRow><TableCell colSpan={11}><EmptyState title="No purchase requests found" description="New purchase requests will appear here after staff submit branch needs." action={{ href: "/purchase-requests/new", label: "New PR" }} /></TableCell></TableRow> : null}
               </TableBody>
             </Table>
           </div>

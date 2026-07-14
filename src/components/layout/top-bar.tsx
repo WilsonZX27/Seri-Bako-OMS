@@ -9,7 +9,7 @@ import { getCompanyBranding, getCurrentProfile } from "@/server/queries/common";
 import { getTopBarActivity } from "@/server/queries/topbar";
 import type { UserRole } from "@/types/database";
 
-export async function TopBar() {
+export async function TopBar({ permissionMap }: { permissionMap: Record<string, boolean> }) {
   const [profile, branding, activity] = await Promise.all([getCurrentProfile(), getCompanyBranding(), getTopBarActivity()]);
   const profileRole = profile as { role_code?: UserRole; role?: UserRole } | null;
   const account = profile as { full_name?: string | null; email?: string | null } | null;
@@ -20,14 +20,14 @@ export async function TopBar() {
   return (
     <header className="relative z-40 grid h-12 grid-cols-[minmax(0,1fr)_auto] items-center justify-between gap-3 border-b border-[var(--sb-border-soft)] bg-card px-4">
       <div className="flex min-w-0 items-center gap-3">
-        <MobileSidebar role={role} companyName={branding.company_name} companyLogoUrl={branding.logo_url} />
+        <MobileSidebar role={role} permissionMap={permissionMap} companyName={branding.company_name} companyLogoUrl={branding.logo_url} />
         <div className="min-w-0">
           <Breadcrumbs />
         </div>
       </div>
       <div data-testid="topbar-account-region" className="flex items-center justify-end gap-2">
         <div data-testid="topbar-search-region">
-          <GlobalSearch />
+          <GlobalSearch permissionMap={permissionMap} />
         </div>
         <TopBarActivityMenu data={activity} />
         <details className="relative block">

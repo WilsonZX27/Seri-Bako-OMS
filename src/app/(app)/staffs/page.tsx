@@ -48,20 +48,20 @@ export default async function StaffsPage({ searchParams }: { searchParams: Promi
         <BulkSelectionProvider ids={staffs.map((staff) => staff.id)} actionLabel="Deactivate selected" actionHint="Disable staff users from their detail page to keep a clear access history.">
         <DataGridHint text="Pro-tip: Double-click any row to open the staff profile." />
         <div className="overflow-x-auto"><Table><TableHeader><TableRow>
-          <TableHead className="w-16"><BulkSelectAllCheckbox /></TableHead><TableHead>Staff Code</TableHead><TableHead>Name</TableHead><TableHead>Email</TableHead><TableHead>Default Branch</TableHead><TableHead>Role</TableHead><TableHead>Staff Status</TableHead><TableHead>Account Status</TableHead><TableHead className="w-12 text-right">Action</TableHead>
+          <TableHead className="hidden w-16 md:table-cell"><BulkSelectAllCheckbox /></TableHead><TableHead>Staff Code</TableHead><TableHead>Name</TableHead><TableHead className="hidden lg:table-cell">Email</TableHead><TableHead className="hidden lg:table-cell">Default Branch</TableHead><TableHead>Role</TableHead><TableHead>Staff Status</TableHead><TableHead className="hidden md:table-cell">Account Status</TableHead><TableHead className="w-12 text-right">Action</TableHead>
         </TableRow></TableHeader><TableBody>
           {staffs.map((staff) => (
             <DataGridRow key={staff.id} href={`/staffs/${staff.id}`}>
-              <TableCell>
+              <TableCell className="hidden md:table-cell">
                 <BulkSelectRowCheckbox id={staff.id} />
               </TableCell>
               <TableCell>{staff.staff_code?.toUpperCase() ?? "-"}</TableCell>
               <TableCell className="font-medium">{staff.full_name}</TableCell>
-              <TableCell>{staff.email ?? "-"}</TableCell>
-              <TableCell>{staff.default_branch_name ?? "-"}</TableCell>
+              <TableCell className="hidden lg:table-cell">{staff.email ?? "-"}</TableCell>
+              <TableCell className="hidden lg:table-cell">{staff.default_branch_name ?? "-"}</TableCell>
               <TableCell>{staff.role_name ?? "-"}</TableCell>
               <TableCell><StatusBadge status={staff.status} /></TableCell>
-              <TableCell><StatusBadge status={staff.invitation_status ?? (staff.auth_user_id ? "active" : "pending")} /></TableCell>
+              <TableCell className="hidden md:table-cell"><StatusBadge status={staff.invitation_status ?? (staff.auth_user_id ? "active" : "pending")} /></TableCell>
               <TableCell className="text-right"><TableActionLink href={`/staffs/${staff.id}`} label={`Open ${staff.full_name}`}><Pencil className="h-4 w-4" /></TableActionLink></TableCell>
             </DataGridRow>
           ))}

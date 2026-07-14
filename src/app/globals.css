@@ -170,6 +170,17 @@ summary {
 .form-control-compact {
   width: 100%;
   max-width: 400px;
+  min-width: 0;
+}
+
+input[type="date"] {
+  min-width: 0;
+  max-width: 100%;
+}
+
+input[type="date"]::-webkit-date-and-time-value {
+  min-width: 0;
+  text-align: left;
 }
 
 .sb-table-region {
@@ -179,8 +190,32 @@ summary {
   scrollbar-gutter: stable;
 }
 
+.sb-list-filters {
+  display: grid;
+  grid-template-columns: minmax(12rem, 1fr) auto auto;
+  grid-template-rows: auto auto;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(8rem, max-content);
+  gap: 0.5rem;
+  overflow-x: auto;
+  padding: 0.75rem;
+  border-bottom: 1px solid var(--sb-border-soft);
+  background: var(--sb-surface);
+}
+
+.sb-list-filters > :first-child {
+  grid-row: 1;
+  grid-column: 1 / 4;
+  width: 100%;
+}
+
+.sb-list-filters > :not(:first-child) {
+  grid-row: 2;
+  width: auto;
+}
+
 .sb-table-region > table {
-  min-width: 42rem;
+  min-width: 100%;
 }
 
 .sb-table-region th:last-child,
@@ -203,15 +238,31 @@ summary {
   body {
     font-size: var(--sb-text-body);
   }
+
+  .sb-table-region > table {
+    min-width: 42rem;
+  }
+}
+
+@media (min-width: 768px) {
+  .sb-list-filters {
+    display: flex;
+    align-items: center;
+    overflow-x: visible;
+  }
+
+  .sb-list-filters > :first-child {
+    max-width: 24rem;
+  }
 }
 
 @media (max-width: 1279px) {
   [data-center-workspace] main {
-    scroll-padding-bottom: 5.5rem;
+    scroll-padding-bottom: 6.5rem;
   }
 
   [data-center-workspace] :is(a, button, input, select, textarea, summary, [tabindex]) {
-    scroll-margin-bottom: 5.5rem;
+    scroll-margin-bottom: 6.5rem;
   }
 }
 

@@ -2,6 +2,8 @@ import { type NextRequest, NextResponse } from "next/server";
 import { createServerClient } from "@supabase/ssr";
 import { isMockMode } from "@/lib/mock-mode";
 import { requireSupabaseEnv } from "@/lib/supabase/env";
+import { getRoutePermissionCodes } from "@/server/auth/route-permissions";
+import { resolveEffectivePermission } from "@/server/auth/permissions";
 import type { Database } from "@/types/database";
 
 export async function updateSession(request: NextRequest) {
@@ -74,6 +76,17 @@ export async function updateSession(request: NextRequest) {
     const url = request.nextUrl.clone();
     url.pathname = "/change-password";
     return NextResponse.redirect(url);
+  }
+
+  const permissionCodes = getRoutePermissionCodes(pathname);
+  if (permissionCodes) {
+    const allowed = await resolveEffectivePermission(supabase, permissionCodes).catch(() => false);
+    if (!allowed) {
+      const url = request.nextUrl.clone();
+      url.pathname = "/dashboard";
+      url.searchParams.set("error", "You do not have permission to open that workspace.");
+      return NextResponse.redirect(url);
+    }
   }
 
   if (pathname === "/login") {

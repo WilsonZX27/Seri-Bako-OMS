@@ -1,7 +1,7 @@
 "use client";
 
 import { PanelRight, X } from "lucide-react";
-import { createContext, useContext, useEffect, useId, useMemo, useRef, useState } from "react";
+import { Children, createContext, isValidElement, useContext, useEffect, useId, useMemo, useRef, useState } from "react";
 import type { ReactNode } from "react";
 import { Button } from "@/components/ui/button";
 
@@ -11,6 +11,16 @@ type RightConsoleContextValue = {
 };
 
 const RightConsoleContext = createContext<RightConsoleContextValue | null>(null);
+
+function findMobilePrimaryAction(node: ReactNode): ReactNode {
+  let match: ReactNode = null;
+  Children.forEach(node, (child) => {
+    if (match || !isValidElement<{ children?: ReactNode; "data-mobile-primary-action"?: boolean }>(child)) return;
+    if (child.props["data-mobile-primary-action"]) match = child;
+    else match = findMobilePrimaryAction(child.props.children);
+  });
+  return match;
+}
 
 export function RightConsoleProvider({ children }: { children: ReactNode }) {
   const [content, setContentState] = useState<ReactNode>(null);
@@ -64,6 +74,7 @@ export function RightConsoleProvider({ children }: { children: ReactNode }) {
       <p className="text-sm text-[var(--sb-text-muted)] sm:text-xs">Open a record to see actions, timeline, and metadata here.</p>
     </ConsoleSection>
   );
+  const primaryAction = findMobilePrimaryAction(consoleContent);
 
   return (
     <RightConsoleContext.Provider value={value}>
@@ -73,10 +84,13 @@ export function RightConsoleProvider({ children }: { children: ReactNode }) {
           {consoleContent}
         </div>
       </aside>
-      <Button ref={triggerRef} type="button" className="fixed bottom-[calc(env(safe-area-inset-bottom)+0.75rem)] right-3 z-40 gap-2 shadow-sm xl:hidden" onClick={() => setOpen(true)} aria-haspopup="dialog" aria-expanded={open}>
-        <PanelRight className="h-4 w-4" aria-hidden="true" />
-        Actions & context
-      </Button>
+      <div data-mobile-action-bar className="fixed inset-x-3 bottom-[calc(env(safe-area-inset-bottom)+0.5rem)] z-40 flex items-center gap-2 border border-[var(--sb-border)] bg-white p-2 shadow-sm xl:hidden">
+        {primaryAction ? <div data-mobile-primary-slot className="min-w-0 flex-1 [&>*]:w-full">{primaryAction}</div> : null}
+        <Button ref={triggerRef} type="button" variant={primaryAction ? "outline" : "default"} className={primaryAction ? "shrink-0 gap-2" : "w-full gap-2"} onClick={() => setOpen(true)} aria-label="Actions & context" aria-haspopup="dialog" aria-expanded={open}>
+          <PanelRight className="h-4 w-4" aria-hidden="true" />
+          Context
+        </Button>
+      </div>
       {open ? (
         <div className="fixed inset-0 z-50 xl:hidden">
           <button type="button" className="absolute inset-0 h-full w-full bg-[var(--sb-green-950)]/55" onClick={close} aria-label="Close actions and context" />

@@ -440,6 +440,16 @@ Seri Bako ERP must use a controlled operational color system.
 - State: use the shared success, warning, danger, info, neutral, disabled, hover, selected, and focus tokens. Focus uses a visible 2px amber ring with offset.
 - Motion: state transitions only, normally 150–250ms; reduced-motion preferences must remove non-essential animation.
 
+## Sprint 7.5 mobile interaction contract
+
+- Mobile action bar: expose at most one safe primary workflow action plus a separate Actions & context trigger. Never promote a destructive action into the persistent bar. Respect bottom safe-area insets and preserve content clearance.
+- Mobile filters: shared list filters occupy no more than two visible rows. Search owns the first row; remaining controls use a compact horizontally scrollable second row when necessary.
+- Headers: breadcrumb already supplies location context, so page headers remain compact. Descriptions may collapse on narrow screens; workflow actions remain in content or the right console.
+- Tables: prioritize identifier, operational status/quantity, and the final row action on mobile. Secondary comparison fields progressively appear at `md` and `lg`; a whole page must never overflow horizontally.
+- Forms: date fields and native controls use `min-width: 0`, stay within their grid column, and preserve touch targets at 320px.
+- Dashboard metrics: icon and label sit together on the left, with the primary number aligned strongly to the right.
+- Typography: right-console instructions, metadata, alerts, and control labels use the shared compact scale; local oversized body copy is not allowed.
+
 Do not introduce random greens, browns, reds, blues, gradients, or decorative colors.
 
 The product visual identity is:

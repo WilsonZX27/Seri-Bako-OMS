@@ -54,15 +54,15 @@ export default async function ItemsPage({
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead className="w-16"><BulkSelectAllCheckbox /></TableHead>
+                <TableHead className="hidden w-16 md:table-cell"><BulkSelectAllCheckbox /></TableHead>
                 <SortableHead label="Item Code" column="item_code" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
                 <SortableHead label="Item Name" column="item_name" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
-                <SortableHead label="Category" column="category" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
+                <SortableHead className="hidden lg:table-cell" label="Category" column="category" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
                 <SortableHead label="Base Unit" column="base_unit" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
-                <SortableHead label="Supplier" column="supplier_name" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
-                <SortableHead label="Cost" column="cost" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} className="text-right" />
-                <SortableHead label="Safety Stock" column="safety_stock" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} className="text-right" />
-                <SortableHead label="Current Stock" column="current_stock" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} className="text-right" />
+                <SortableHead label="Supplier" column="supplier_name" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} className="hidden lg:table-cell" />
+                <SortableHead label="Cost" column="cost" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} className="hidden text-right lg:table-cell" />
+                <SortableHead label="Safety Stock" column="safety_stock" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} className="hidden text-right lg:table-cell" />
+                <SortableHead label="Current Stock" column="current_stock" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} className="hidden text-right md:table-cell" />
                 <SortableHead label="Status" column="status" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
                 <TableHead className="w-12 text-right">Action</TableHead>
               </TableRow>
@@ -71,17 +71,17 @@ export default async function ItemsPage({
               {itemsPage.rows.map((item) => {
                 return (
                   <DataGridRow key={item.id} href={`/items/${item.id}`}>
-                    <TableCell>
+                    <TableCell className="hidden md:table-cell">
                       <BulkSelectRowCheckbox id={item.id} />
                     </TableCell>
                     <TableCell>{item.item_code}</TableCell>
                     <TableCell className="font-medium">{item.item_name}</TableCell>
-                    <TableCell>{item.category}</TableCell>
+                    <TableCell className="hidden lg:table-cell">{item.category}</TableCell>
                     <TableCell>{item.base_unit}</TableCell>
-                    <TableCell>{item.supplier_name ?? "-"}</TableCell>
-                    <TableCell className="text-right">{formatCurrency(item.cost)}</TableCell>
-                    <TableCell className="text-right">{formatNumber(item.safety_stock)} {item.base_unit}</TableCell>
-                    <TableCell className="text-right font-medium">{formatNumber(item.current_stock)} {item.base_unit}</TableCell>
+                    <TableCell className="hidden lg:table-cell">{item.supplier_name ?? "-"}</TableCell>
+                    <TableCell className="hidden text-right lg:table-cell">{formatCurrency(item.cost)}</TableCell>
+                    <TableCell className="hidden text-right lg:table-cell">{formatNumber(item.safety_stock)} {item.base_unit}</TableCell>
+                    <TableCell className="hidden text-right font-medium md:table-cell">{formatNumber(item.current_stock)} {item.base_unit}</TableCell>
                     <TableCell>
                       <Badge variant={item.status === "active" ? "success" : "secondary"}>{item.status}</Badge>
                     </TableCell>

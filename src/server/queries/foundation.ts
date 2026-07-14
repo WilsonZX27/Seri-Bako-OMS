@@ -251,6 +251,36 @@ export async function getPermissions() {
   return data ?? [];
 }
 
+export async function getStaffPermissionAccess(staffId: string) {
+  if (isMockMode()) {
+    return mockPermissions.map((permission) => ({ ...permission, roleDefault: false, override: null as "allow" | "deny" | null, effective: false }));
+  }
+
+  const supabase = await createClient();
+  const { data: staffRoles, error: staffRoleError } = await supabase.from("staff_roles").select("role_id, effective_from, effective_to").eq("staff_id", staffId);
+  if (staffRoleError) throw new Error(staffRoleError.message);
+  const today = new Date().toISOString().slice(0, 10);
+  const activeRoleIds = (staffRoles ?? [])
+    .filter((row) => (!row.effective_from || row.effective_from <= today) && (!row.effective_to || row.effective_to >= today))
+    .map((row) => row.role_id);
+  const [{ data: permissions, error: permissionError }, { data: rolePermissions, error: roleError }, { data: overrides, error: overrideError }] = await Promise.all([
+    supabase.from("permissions").select("id, permission_code, module, action, description").order("module").order("action"),
+    activeRoleIds.length ? supabase.from("role_permissions").select("permission_id").in("role_id", activeRoleIds) : Promise.resolve({ data: [], error: null }),
+    supabase.from("staff_permission_overrides").select("permission_id, effect").eq("staff_id", staffId),
+  ]);
+  if (permissionError) throw new Error(permissionError.message);
+  if (roleError) throw new Error(roleError.message);
+  if (overrideError) throw new Error(overrideError.message);
+
+  const rolePermissionIds = new Set((rolePermissions ?? []).map((row) => row.permission_id));
+  const overrideByPermission = new Map((overrides ?? []).map((row) => [row.permission_id, row.effect]));
+  return (permissions ?? []).map((permission) => {
+    const roleDefault = rolePermissionIds.has(permission.id);
+    const override = overrideByPermission.get(permission.id) ?? null;
+    return { ...permission, roleDefault, override, effective: override === "allow" || (override !== "deny" && roleDefault) };
+  });
+}
+
 export function previewDocumentNumber(prefix: string, nextNumber: number, padding: number) {
   return `${prefix}-${String(nextNumber).padStart(padding, "0")}`;
 }

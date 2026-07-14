@@ -8,11 +8,12 @@ import type { UserRole } from "@/types/database";
 
 type MobileSidebarProps = {
   role: UserRole;
+  permissionMap: Record<string, boolean>;
   companyName?: string;
   companyLogoUrl?: string | null;
 };
 
-export function MobileSidebar({ role, companyName, companyLogoUrl }: MobileSidebarProps) {
+export function MobileSidebar({ role, permissionMap, companyName, companyLogoUrl }: MobileSidebarProps) {
   const [open, setOpen] = useState(false);
   const dialogRef = useRef<HTMLElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
@@ -78,6 +79,7 @@ export function MobileSidebar({ role, companyName, companyLogoUrl }: MobileSideb
             </div>
             <WorkspaceSidebar
               role={role}
+              permissionMap={permissionMap}
               mobile
               companyName={companyName}
               companyLogoUrl={companyLogoUrl}

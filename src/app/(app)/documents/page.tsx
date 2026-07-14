@@ -55,7 +55,7 @@ export default async function DocumentsPage({ searchParams }: { searchParams: Pr
             { value: "rejected", label: "Rejected" },
             { value: "closed", label: "Completed" },
           ]} activeStatus={filters.status} />
-          <form className="grid gap-3 border-b bg-white p-4 md:grid-cols-[minmax(0,1fr)_220px_auto_auto]">
+          <form className="sb-list-filters">
             <Input name="search" defaultValue={filters.search ?? ""} placeholder="Search document no, title, type" />
             <SelectNative name="document_type" defaultValue={filters.document_type ?? "all"}>
               <option value="all">All document types</option>

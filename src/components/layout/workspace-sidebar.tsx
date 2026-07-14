@@ -20,6 +20,7 @@ type WorkspaceSidebarProps = {
   navCounts?: SidebarCounts;
   userName?: string;
   userRoleLabel?: string;
+  permissionMap?: Record<string, boolean>;
 };
 
 export function WorkspaceSidebar({
@@ -30,11 +31,12 @@ export function WorkspaceSidebar({
   brandHref = "/dashboard",
   onNavigate,
   navCounts = {},
+  permissionMap,
 }: WorkspaceSidebarProps) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const [closedGroups, setClosedGroups] = useState<Record<string, boolean>>({});
-  const groups = useMemo(() => getVisibleNavGroups(role), [role]);
+  const groups = useMemo(() => getVisibleNavGroups(role, permissionMap), [permissionMap, role]);
   const compact = false;
 
   function toggleGroup(groupId: string) {

@@ -20,7 +20,7 @@ export function Field({ label, children, error, required = false }: FieldProps) 
     : children;
 
   return (
-    <div className="space-y-1.5">
+    <div className="min-w-0 space-y-1.5">
       <Label htmlFor={isValidElement<{ id?: string }>(child) ? child.props.id : undefined}>
         {label}
         {required ? <span className="ml-1 text-destructive">*</span> : null}

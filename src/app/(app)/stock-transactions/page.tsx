@@ -92,7 +92,7 @@ export default async function StockTransactionsPage({ searchParams }: { searchPa
         }
       >
         <div className="overflow-hidden rounded-[2px] border border-[var(--sb-border-soft)] bg-card">
-          <form className="grid gap-3 border-b p-4 md:grid-cols-6">
+          <form className="sb-list-filters">
             <Input name="search" defaultValue={filters.search ?? ""} placeholder="Item or transaction" />
             <SelectNative name="branch_id" defaultValue={filters.branch_id ?? "all"}>
               <option value="all">All branches</option>

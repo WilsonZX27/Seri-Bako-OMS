@@ -42,7 +42,7 @@ export default async function PurchaseRequestsPage({ searchParams }: { searchPar
           <>
             <ConsoleSection title="Actions">
               <div className="grid gap-2">
-                <Button asChild size="sm" className="w-full">
+                <Button asChild size="sm" className="w-full" data-mobile-primary-action>
                   <Link href="/purchase-requests/new">New PR</Link>
                 </Button>
                 <Button asChild variant="outline" size="sm" className="w-full">
@@ -63,7 +63,7 @@ export default async function PurchaseRequestsPage({ searchParams }: { searchPar
       >
         <div className="overflow-hidden rounded-[2px] border border-[var(--sb-border-soft)] bg-card">
           <StatusTabs statuses={statuses} activeStatus={filters.status} />
-          <form className="flex flex-col gap-2 border-b bg-white p-3 md:flex-row md:items-center">
+          <form className="sb-list-filters">
             <Input name="search" defaultValue={filters.search ?? ""} placeholder="Search PR no, branch, location, remarks" className="md:max-w-sm" />
             <SelectNative name="priority" defaultValue={filters.priority ?? "all"} className="md:max-w-44">
               <option value="all">All priorities</option>
@@ -81,34 +81,34 @@ export default async function PurchaseRequestsPage({ searchParams }: { searchPar
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead className="w-10"><BulkSelectAllCheckbox /></TableHead>
+                  <TableHead className="hidden w-10 md:table-cell"><BulkSelectAllCheckbox /></TableHead>
                   <SortableHead label="PR No" column="request_no" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
-                  <SortableHead label="Date" column="request_date" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
+                  <SortableHead className="hidden md:table-cell" label="Date" column="request_date" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
                   <SortableHead label="Needed By" column="needed_by_date" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
-                  <TableHead>Priority</TableHead>
-                  <TableHead>Branch</TableHead>
-                  <TableHead>Location</TableHead>
+                  <TableHead className="hidden md:table-cell">Priority</TableHead>
+                  <TableHead className="hidden lg:table-cell">Branch</TableHead>
+                  <TableHead className="hidden lg:table-cell">Location</TableHead>
                   <SortableHead label="Status" column="status" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
-                  <TableHead className="text-right">Lines</TableHead>
-                  <TableHead className="text-right">Estimated Total</TableHead>
+                  <TableHead className="hidden text-right lg:table-cell">Lines</TableHead>
+                  <TableHead className="hidden text-right md:table-cell">Estimated Total</TableHead>
                   <TableHead className="w-10 text-right">Action</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {requests.rows.map((request) => (
                   <DataGridRow key={request.id} href={`/purchase-requests/${request.id}`}>
-                    <TableCell>
+                    <TableCell className="hidden md:table-cell">
                       <BulkSelectRowCheckbox id={request.id} />
                     </TableCell>
                     <TableCell><DocumentNumber value={request.request_no} size="sm" /></TableCell>
-                    <TableCell>{request.request_date}</TableCell>
+                    <TableCell className="hidden md:table-cell">{request.request_date}</TableCell>
                     <TableCell>{request.needed_by_date ?? "-"}</TableCell>
-                    <TableCell><PriorityBadge priority={request.priority} /></TableCell>
-                    <TableCell>{request.branch_name ?? "-"}</TableCell>
-                    <TableCell>{request.location_name ?? "-"}</TableCell>
+                    <TableCell className="hidden md:table-cell"><PriorityBadge priority={request.priority} /></TableCell>
+                    <TableCell className="hidden lg:table-cell">{request.branch_name ?? "-"}</TableCell>
+                    <TableCell className="hidden lg:table-cell">{request.location_name ?? "-"}</TableCell>
                     <TableCell><StatusBadge status={request.status} /></TableCell>
-                    <TableCell className="text-right">{request.line_count}</TableCell>
-                    <TableCell className="text-right">{formatCurrency(request.estimated_total)}</TableCell>
+                    <TableCell className="hidden text-right lg:table-cell">{request.line_count}</TableCell>
+                    <TableCell className="hidden text-right md:table-cell">{formatCurrency(request.estimated_total)}</TableCell>
                     <TableCell className="text-right">
                       <TableActionLink href={`/purchase-requests/${request.id}`} label={`Open ${request.request_no}`}><Pencil className="h-4 w-4" /></TableActionLink>
                     </TableCell>

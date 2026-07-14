@@ -7,9 +7,11 @@ import { SessionTimeoutProvider } from "@/components/session-timeout-provider";
 import { isMockMode } from "@/lib/mock-mode";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentProfile } from "@/server/queries/common";
+import { getPermissionMap } from "@/server/auth/permissions";
+import { navPermissionCodes } from "@/components/layout/nav-items";
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
-  const profile = await getCurrentProfile();
+  const [profile, permissionMap] = await Promise.all([getCurrentProfile(), getPermissionMap(navPermissionCodes)]);
 
   if (!isMockMode()) {
     if (!profile) redirect("/login");
@@ -31,9 +33,9 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   return (
     <div data-app-shell className="h-dvh overflow-hidden bg-[var(--app-bg)]">
       <div className="flex h-dvh min-w-0">
-        <Sidebar />
+        <Sidebar permissionMap={permissionMap} />
         <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
-          <TopBar />
+          <TopBar permissionMap={permissionMap} />
           {!hasStaffRole ? (
             <div className="border-b border-amber-200 bg-amber-50 px-5 py-3 text-sm font-medium text-amber-800">
               Your account has no staff role assigned. Please run setup or contact admin.

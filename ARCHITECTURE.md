@@ -637,3 +637,15 @@ Related files:
 - `README.md`
 - `DEPLOYMENT.md`
 - `DESIGN.md`
+
+## Sprint 7.5 staff permission resolution
+
+Effective access is resolved from the permission catalogue as:
+
+`active role grants + staff allow overrides - staff deny overrides`
+
+An explicit deny wins across the legacy aliases supplied for one business capability. The database functions `has_any_permission(text[])` and `has_permission(text)` are the authoritative resolver for production authorization. The application uses that resolver for navigation, direct-route checks, and server-side permission guards; RLS remains the final data boundary.
+
+Staff overrides are stored in `staff_permission_overrides` and mutated only through the atomic `set_staff_permission_overrides(uuid, jsonb)` function. The function requires `roles.update`, prevents cross-company changes and grant escalation, protects Super Admin/Owner access, and records an activity-log entry in the same transaction. Role assignments remain defaults; individual overrides do not modify the shared role definition.
+
+The request middleware enforces mapped workspace permissions for direct navigation. This supplements, and never replaces, permission checks in server actions and database policies.

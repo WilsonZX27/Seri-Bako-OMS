@@ -28,7 +28,7 @@ export default async function StockCardPage({ searchParams }: { searchParams: Pr
       <div className="space-y-5 p-5">
         <Card>
           <CardContent className="p-5">
-            <form className="grid gap-3 md:grid-cols-[1fr_220px_220px_auto_auto]">
+            <form className="sb-list-filters border-0 p-0">
               <SelectNative name="item_id" defaultValue={filters.item_id ?? ""}>
                 <option value="">All items</option>
                 {items.map((item) => <option key={item.id} value={item.id}>{item.item_code} - {item.item_name}</option>)}

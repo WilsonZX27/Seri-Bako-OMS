@@ -56,7 +56,7 @@ export default async function StockCountsPage({ searchParams }: { searchParams: 
       <div className="space-y-4 p-5">
         <div className="overflow-hidden rounded-[2px] border border-[var(--sb-border-soft)] bg-card">
           <StatusTabs statuses={statuses} activeStatus={filters.status} />
-          <form className="grid gap-3 border-b p-4 md:grid-cols-[1fr_180px_180px_180px_auto_auto]">
+          <form className="sb-list-filters">
             <Input name="search" defaultValue={filters.search ?? ""} placeholder="Search count no, location, remarks" />
             <SelectNative name="location_id" defaultValue={filters.location_id ?? "all"}>
               <option value="all">All locations</option>

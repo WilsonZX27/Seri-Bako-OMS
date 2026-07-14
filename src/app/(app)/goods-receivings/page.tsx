@@ -56,7 +56,7 @@ export default async function GoodsReceivingsPage({ searchParams }: { searchPara
       >
         <div className="overflow-hidden rounded-[2px] border border-[var(--sb-border-soft)] bg-card">
           <StatusTabs statuses={statuses} activeStatus={filters.status} />
-          <form className="flex flex-col gap-3 border-b bg-white p-4 md:flex-row md:items-center">
+          <form className="sb-list-filters">
             <Input name="search" defaultValue={filters.search ?? ""} placeholder="Search GRN no, PO, supplier, location" className="md:max-w-sm" />
             <Button type="submit" variant="secondary">Search</Button>
             <Button asChild variant="ghost"><a href="?">Reset</a></Button>

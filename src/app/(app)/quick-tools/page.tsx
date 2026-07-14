@@ -9,32 +9,30 @@ import {
 import type { LucideIcon } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { PageHeader } from "@/components/ui/page-header";
-import { getCurrentProfile } from "@/server/queries/common";
-import type { UserRole } from "@/types/database";
+import { getPermissionMap } from "@/server/auth/permissions";
 
 type Tool = {
   href: string;
   title: string;
   description: string;
   icon: LucideIcon;
-  roles: UserRole[];
+  permission: string;
 };
 
 const tools: Tool[] = [
-  { href: "/stock-wastage/new", title: "Report Wastage", description: "Record branch wastage quickly.", icon: TriangleAlert, roles: ["admin", "kitchen"] },
-  { href: "/stock-transfers/new", title: "Transfer Stock", description: "Move stock between branches with defaults handled automatically.", icon: PackageSearch, roles: ["admin", "kitchen"] },
-  { href: "/purchase-requests/new", title: "Create PR", description: "Raise a purchase request fast.", icon: ClipboardList, roles: ["admin", "kitchen", "purchasing"] },
-  { href: "/purchase-requests", title: "Review PR", description: "Check urgent and pending requests.", icon: ClipboardList, roles: ["admin", "purchasing", "finance"] },
-  { href: "/documents", title: "Pending Approvals", description: "Review documents waiting for action.", icon: ClipboardList, roles: ["admin", "finance", "purchasing"] },
-  { href: "/items", title: "Find Item", description: "Search item code, item name, category, or supplier.", icon: PackageSearch, roles: ["admin", "kitchen", "purchasing", "finance", "viewer"] },
-  { href: "/data-onboarding", title: "Data Onboarding", description: "Templates, imports, and readiness checks.", icon: Database, roles: ["admin"] },
-  { href: "/staffs/new", title: "Staff Invite", description: "Invite a new staff account.", icon: UserPlus, roles: ["admin"] },
+  { href: "/stock-wastage/new", title: "Report Wastage", description: "Record branch wastage quickly.", icon: TriangleAlert, permission: "stock_wastage.create" },
+  { href: "/stock-transfers/new", title: "Transfer Stock", description: "Move stock between branches with defaults handled automatically.", icon: PackageSearch, permission: "stock_transfer.create" },
+  { href: "/purchase-requests/new", title: "Create PR", description: "Raise a purchase request fast.", icon: ClipboardList, permission: "purchase_request.create" },
+  { href: "/purchase-requests", title: "Review PR", description: "Check urgent and pending requests.", icon: ClipboardList, permission: "purchase_request.read" },
+  { href: "/documents", title: "Pending Approvals", description: "Review documents waiting for action.", icon: ClipboardList, permission: "documents.view" },
+  { href: "/items", title: "Find Item", description: "Search item code, item name, category, or supplier.", icon: PackageSearch, permission: "items.view" },
+  { href: "/data-onboarding", title: "Data Onboarding", description: "Templates, imports, and readiness checks.", icon: Database, permission: "imports.create" },
+  { href: "/staffs/new", title: "Staff Invite", description: "Invite a new staff account.", icon: UserPlus, permission: "staffs.create" },
 ];
 
 export default async function QuickToolsPage() {
-  const profile = await getCurrentProfile();
-  const role = ((profile as { role_code?: UserRole; role?: UserRole } | null)?.role_code ?? (profile as { role?: UserRole } | null)?.role ?? "viewer") as UserRole;
-  const visibleTools = tools.filter((tool) => tool.roles.includes(role));
+  const permissionMap = await getPermissionMap(Array.from(new Set(tools.map((tool) => tool.permission))));
+  const visibleTools = tools.filter((tool) => permissionMap[tool.permission]);
 
   return (
     <>
@@ -58,7 +56,7 @@ export default async function QuickToolsPage() {
         </div>
         {!visibleTools.length ? (
           <Card className="mt-4">
-            <CardContent className="p-5 text-sm text-muted-foreground">No quick tools are assigned to this role yet. Please contact an administrator if you need access.</CardContent>
+            <CardContent className="p-5 text-sm text-muted-foreground">No quick tools are assigned to your permissions yet. Please contact an administrator if you need access.</CardContent>
           </Card>
         ) : null}
       </div>

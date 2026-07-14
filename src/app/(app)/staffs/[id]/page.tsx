@@ -5,50 +5,15 @@ import { CopyTextButton } from "@/components/ui/copy-text-button";
 import { DangerConfirmForm } from "@/components/ui/danger-confirm-form";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { PageHeader } from "@/components/ui/page-header";
+import { StaffPermissionOverrides } from "@/components/staff-permission-overrides";
 import { SubmitButton } from "@/components/ui/submit-button";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { canAssignRoleCode, getRoleDisplayLabel, normalizeRoleCode, sortRolesForDisplay } from "@/lib/roles";
 import { formatStatusLabel } from "@/lib/status-label";
-import { disableStaff, enableStaff, forceStaffPasswordChange, permanentlyDeleteStaff, resendStaffInvite, resetStaffTemporaryPassword, updateStaff } from "@/server/actions/foundation";
-import { roleDescriptions } from "@/server/auth/permissions";
+import { disableStaff, enableStaff, forceStaffPasswordChange, permanentlyDeleteStaff, resendStaffInvite, resetStaffPermissionOverrides, resetStaffTemporaryPassword, updateStaff, updateStaffPermissionOverrides } from "@/server/actions/foundation";
+import { hasPermission } from "@/server/auth/permissions";
 import { getCurrentProfile } from "@/server/queries/common";
-import { getBranches, getCompaniesForSelect, getRoles, getStaff, getStaffAccess } from "@/server/queries/foundation";
-
-const roleSummaries = {
-  super_admin: {
-    allowed: ["Own the system", "Manage users and roles", "Run all workflow actions"],
-    denied: ["No standard restrictions"],
-  },
-  operations_admin: {
-    allowed: ["Invite staff", "Manage branches and locations", "Admin review purchase requests"],
-    denied: ["Purchasing verification", "Manager approval", "Protected owner role assignment"],
-  },
-  purchasing: {
-    allowed: ["Manage suppliers and items", "Purchasing review purchase requests", "Create and send purchase orders"],
-    denied: ["Manage users", "Manager approval", "System owner settings"],
-  },
-  manager: {
-    allowed: ["Approve purchase requests", "Approve purchase orders", "View reports and workflow history"],
-    denied: ["Purchasing verification", "Manage users", "Create supplier or item master data"],
-  },
-  finance: {
-    allowed: ["View finance and report summaries", "Review documents", "Track operational records"],
-    denied: ["Approve PR workflow", "Manage users", "Post stock"],
-  },
-  kitchen_staff: {
-    allowed: ["Create PR", "View assigned branch stock", "Prepare receiving and upload attachments"],
-    denied: ["Approve PR", "Convert to PO", "Manage users"],
-  },
-  viewer: {
-    allowed: ["View assigned documents and reports"],
-    denied: ["Create, approve, post, or manage master data"],
-  },
-} as const;
-
-function getRoleSummary(roleCode?: string | null) {
-  const normalized = normalizeRoleCode(roleCode) as keyof typeof roleSummaries;
-  return roleSummaries[normalized] ?? roleSummaries.viewer;
-}
+import { getBranches, getCompaniesForSelect, getRoles, getStaff, getStaffAccess, getStaffPermissionAccess } from "@/server/queries/foundation";
 
 export default async function EditStaffPage({
   params,
@@ -71,7 +36,13 @@ export default async function EditStaffPage({
   const currentRole = (profile as { role_code?: string; role?: string } | null)?.role_code ?? (profile as { role?: string } | null)?.role ?? "viewer";
   const roles = sortRolesForDisplay(allRoles).filter((role) => canAssignRoleCode(currentRole, role.role_code) || role.id === assignedRole?.id);
   const roleCode = normalizeRoleCode(assignedRole?.role_code);
-  const roleSummary = getRoleSummary(assignedRole?.role_code);
+  const [permissionAccess, canManageOverrides] = await Promise.all([getStaffPermissionAccess(id), hasPermission("roles.update")]);
+  const protectedRole = roleCode === "super_admin" || roleCode === "admin";
+  const overrideCounts = {
+    inherited: permissionAccess.filter((permission) => !permission.override).length,
+    allowed: permissionAccess.filter((permission) => permission.override === "allow").length,
+    denied: permissionAccess.filter((permission) => permission.override === "deny").length,
+  };
   const formId = "staff-edit-form";
   const branchName = access.staffBranch?.branch_id ? branches.find((branch) => branch.id === access.staffBranch?.branch_id)?.branch_name ?? "-" : "-";
 
@@ -90,7 +61,7 @@ export default async function EditStaffPage({
                 </div>
               </div>
 
-              <Button type="submit" form={formId} className="w-full">
+              <Button type="submit" form={formId} className="w-full" data-mobile-primary-action>
                 Save Staff
               </Button>
 
@@ -115,10 +86,10 @@ export default async function EditStaffPage({
                 )}
               </div>
 
-              <div className="rounded-[2px] border bg-secondary/30 p-3">
-                <p className="text-sm font-semibold">Auth Setup</p>
+              <div className="rounded-[2px] border bg-secondary/30 p-3 text-xs">
+                <p className="font-semibold">Auth Setup</p>
                 <p className="mt-1 text-xs text-muted-foreground">Temporary password is recommended for internal staff. Email invitation is optional and can expire.</p>
-                <div className="mt-3 grid gap-2 text-sm">
+                <div className="mt-3 grid gap-2 text-xs">
                   <div className="flex justify-between gap-3">
                     <span className="text-muted-foreground">Auth linked</span>
                     <span className="font-medium">{staff.auth_user_id ? "Yes" : "No"}</span>
@@ -155,27 +126,17 @@ export default async function EditStaffPage({
                 </div>
               </div>
 
-              <div className="rounded-[2px] border bg-secondary/30 p-3 text-sm">
+              <div className="rounded-[2px] border bg-secondary/30 p-3 text-xs">
                 <p className="font-semibold">Permission Summary</p>
                 <p className="mt-1 text-muted-foreground">{getRoleDisplayLabel(assignedRole?.role_code, assignedRole?.role_name)}</p>
-                <p className="mt-2 text-xs text-muted-foreground">{roleDescriptions[roleCode as keyof typeof roleDescriptions] ?? "No role summary available."}</p>
-                <div className="mt-3 grid gap-3 text-xs">
-                  <div>
-                    <p className="text-xs font-medium uppercase text-emerald-800">Allowed</p>
-                    <ul className="mt-1 space-y-1 text-emerald-950">
-                      {roleSummary.allowed.map((item) => <li key={item}>- {item}</li>)}
-                    </ul>
-                  </div>
-                  <div>
-                    <p className="text-xs font-medium uppercase text-[var(--sb-text-muted)]">Not allowed</p>
-                    <ul className="mt-1 space-y-1 text-[var(--sb-text)]">
-                      {roleSummary.denied.map((item) => <li key={item}>- {item}</li>)}
-                    </ul>
-                  </div>
+                <div className="mt-3 grid grid-cols-3 gap-2 text-center">
+                  <div><strong className="block text-sm">{overrideCounts.inherited}</strong><span className="text-muted-foreground">Inherited</span></div>
+                  <div><strong className="block text-sm text-[var(--sb-success)]">{overrideCounts.allowed}</strong><span className="text-muted-foreground">Allowed</span></div>
+                  <div><strong className="block text-sm text-[var(--sb-danger)]">{overrideCounts.denied}</strong><span className="text-muted-foreground">Denied</span></div>
                 </div>
               </div>
 
-              <div className="rounded-[2px] border bg-white p-3 text-sm">
+              <div className="rounded-[2px] border bg-white p-3 text-xs">
                 <p className="font-semibold">Branch Access Summary</p>
                 <div className="mt-2 flex justify-between gap-3 text-xs">
                   <span className="text-muted-foreground">Default branch</span>
@@ -183,7 +144,7 @@ export default async function EditStaffPage({
                 </div>
               </div>
 
-              <div className="rounded-[2px] border bg-white p-3 text-sm">
+              <div className="rounded-[2px] border bg-white p-3 text-xs">
                 <p className="font-semibold">Recent Account Activity</p>
                 <div className="mt-2 grid gap-2 text-xs">
                   <div className="flex justify-between gap-3">
@@ -238,7 +199,13 @@ export default async function EditStaffPage({
         ) : null}
 
         <StaffForm formId={formId} staff={staff} access={access} companies={companies} branches={branches} roles={roles} action={updateStaff.bind(null, id)} showSubmit={false} />
-
+        <StaffPermissionOverrides
+          permissions={permissionAccess}
+          canManage={canManageOverrides}
+          protectedRole={protectedRole}
+          updateAction={updateStaffPermissionOverrides.bind(null, id)}
+          resetAction={resetStaffPermissionOverrides.bind(null, id)}
+        />
       </RecordWorkspace>
     </>
   );

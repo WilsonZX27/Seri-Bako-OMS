@@ -1,4 +1,5 @@
 import { Button } from "@/components/ui/button";
+import { RotateCcw } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { SelectNative } from "@/components/ui/select-native";
 
@@ -33,38 +34,29 @@ export function MasterDataFilters({
   showStockFilters = false,
 }: MasterDataFiltersProps) {
   return (
-    <form className="grid gap-3 border-b bg-card p-4 md:grid-cols-2 lg:grid-cols-6">
+    <form className="sb-list-filters">
       <Input name="search" defaultValue={search ?? ""} placeholder={placeholder} className="md:max-w-sm" />
-      <SelectNative name="status" defaultValue={status} className="md:w-40">
-        <option value="all">All status</option>
-        {statuses.map((row) => (
-          <option key={row.value} value={row.value}>
-            {row.label}
-          </option>
-        ))}
-      </SelectNative>
-      {categories.length ? (
-        <SelectNative name="category" defaultValue={category}>
-          <option value="all">All categories</option>
-          {categories.map((row) => (
-            <option key={row} value={row}>
-              {row}
-            </option>
+      <div data-filter-controls className="flex min-w-0 gap-2 overflow-x-auto pb-1 md:flex-1 md:pb-0">
+        <SelectNative name="status" defaultValue={status} className="min-w-32 md:w-40">
+          <option value="all">All status</option>
+          {statuses.map((row) => (
+            <option key={row.value} value={row.value}>{row.label}</option>
           ))}
         </SelectNative>
-      ) : null}
-      {suppliers.length ? (
-        <SelectNative name="supplier" defaultValue={supplier}>
-          <option value="all">All suppliers</option>
-          {suppliers.map((row) => (
-            <option key={row.id} value={row.id}>
-              {row.name}
-            </option>
-          ))}
-        </SelectNative>
-      ) : null}
-      {showStockFilters ? (
-        <>
+        {categories.length ? (
+          <SelectNative name="category" defaultValue={category} className="min-w-36">
+            <option value="all">All categories</option>
+            {categories.map((row) => <option key={row} value={row}>{row}</option>)}
+          </SelectNative>
+        ) : null}
+        {suppliers.length ? (
+          <SelectNative name="supplier" defaultValue={supplier} className="min-w-36">
+            <option value="all">All suppliers</option>
+            {suppliers.map((row) => <option key={row.id} value={row.id}>{row.name}</option>)}
+          </SelectNative>
+        ) : null}
+        {showStockFilters ? (
+          <>
           <SelectNative name="stock_control" defaultValue={stockControl}>
             <option value="all">All stock control</option>
             <option value="with_safety_stock">With safety stock</option>
@@ -75,14 +67,13 @@ export function MasterDataFilters({
             <option value="yes">Low stock only</option>
             <option value="no">Healthy stock only</option>
           </SelectNative>
-        </>
-      ) : null}
-      <div className="flex gap-2">
+          </>
+        ) : null}
         <Button type="submit" variant="secondary">
           Filter
         </Button>
-        <Button asChild variant="ghost">
-          <a href="?">Clear filters</a>
+        <Button asChild variant="ghost" aria-label="Clear filters">
+          <a href="?"><RotateCcw className="h-4 w-4" /><span className="hidden sm:inline">Clear</span></a>
         </Button>
       </div>
     </form>

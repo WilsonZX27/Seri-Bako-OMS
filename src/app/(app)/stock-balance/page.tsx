@@ -45,7 +45,7 @@ export default async function StockBalancePage({ searchParams }: { searchParams:
         }
       >
         <div className="overflow-hidden rounded-[2px] border border-[var(--sb-border-soft)] bg-card">
-          <form className="flex flex-col gap-3 border-b p-4 md:flex-row">
+          <form className="sb-list-filters">
             <Input name="search" defaultValue={filters.search ?? ""} placeholder="Search item, location, status" className="md:max-w-sm" />
             <input type="hidden" name="view" value={filters.view ?? "branch"} />
             <Button type="submit" variant="secondary">Search</Button>

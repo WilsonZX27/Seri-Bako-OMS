@@ -563,19 +563,20 @@ async function getPrimaryStaffRoleId(admin: ReturnType<typeof createAdminClient>
 }
 
 async function activeSuperAdminCount(admin: ReturnType<typeof createAdminClient>) {
-  const { data: roles, error: rolesError } = await admin.from("roles").select("id").in("role_code", ["super_admin", "admin"]);
+  const { data: roles, error: rolesError } = await admin.from("roles").select("id").in("role_code", ["super_admin", "admin"]).eq("status", "active").is("deleted_at", null);
   if (rolesError) throw new Error(rolesError.message);
   const roleIds = (roles ?? []).map((role) => role.id);
   if (!roleIds.length) return 0;
 
-  const { data: assignments, error: assignmentError } = await admin.from("staff_roles").select("staff_id").in("role_id", roleIds);
+  const { data: assignments, error: assignmentError } = await admin.from("staff_roles").select("staff_id, effective_from, effective_to").in("role_id", roleIds);
   if (assignmentError) throw new Error(assignmentError.message);
-  const staffIds = Array.from(new Set((assignments ?? []).map((row) => row.staff_id).filter(Boolean)));
+  const today = new Date().toISOString().slice(0, 10);
+  const staffIds = Array.from(new Set((assignments ?? []).filter((row) => (!row.effective_from || row.effective_from <= today) && (!row.effective_to || row.effective_to >= today)).map((row) => row.staff_id).filter(Boolean)));
   if (!staffIds.length) return 0;
 
   const { data: staffs, error: staffError } = await admin.from("staffs").select("id, status, deleted_at").in("id", staffIds);
   if (staffError) throw new Error(staffError.message);
-  return (staffs ?? []).filter((staff) => staff.status !== "disabled" && !staff.deleted_at).length;
+  return (staffs ?? []).filter((staff) => staff.status === "active" && !staff.deleted_at).length;
 }
 
 async function assertCanAssignStaffRole(admin: ReturnType<typeof createAdminClient>, roleId: string, staffId?: string) {
@@ -857,6 +858,35 @@ export async function updateStaff(id: string, formData: FormData) {
   revalidatePath("/staffs");
   revalidatePath(`/staffs/${id}`);
   safeRedirectWithMessage(`/staffs/${id}`, "success", "Staff updated.");
+}
+
+async function saveStaffPermissionOverrides(id: string, overrides: { permission_id: string; effect: "allow" | "deny" }[]) {
+  await requirePermissionOrRedirect("roles.update", `/staffs/${id}`);
+  try {
+    if (!isMockMode()) {
+      const supabase = await createClient();
+      const { error } = await supabase.rpc("set_staff_permission_overrides", { target_staff_id: id, overrides });
+      if (error) throw new Error(error.message);
+    }
+  } catch (error) {
+    rethrowRedirect(error);
+    safeRedirectWithMessage(`/staffs/${id}`, "error", formatActionError(error, "Could not update permission overrides."));
+  }
+  revalidatePath(`/staffs/${id}`);
+}
+
+export async function updateStaffPermissionOverrides(id: string, formData: FormData) {
+  const overrides: { permission_id: string; effect: "allow" | "deny" }[] = Array.from(formData.entries()).flatMap(([key, value]) => {
+    if (!key.startsWith("permission:") || (value !== "allow" && value !== "deny")) return [];
+    return [{ permission_id: key.slice("permission:".length), effect: value }];
+  });
+  await saveStaffPermissionOverrides(id, overrides);
+  safeRedirectWithMessage(`/staffs/${id}`, "success", "Permission overrides updated.");
+}
+
+export async function resetStaffPermissionOverrides(id: string) {
+  await saveStaffPermissionOverrides(id, []);
+  safeRedirectWithMessage(`/staffs/${id}`, "success", "Permission overrides reset to role defaults.");
 }
 
 export async function resendStaffInvite(id: string) {

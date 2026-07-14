@@ -38,7 +38,7 @@ export default async function PurchaseOrdersPage({ searchParams }: { searchParam
           <>
             <ConsoleSection title="Actions">
               <div className="grid gap-2">
-                <Button asChild size="sm" className="w-full"><Link href="/purchase-orders/new">New PO</Link></Button>
+                <Button asChild size="sm" className="w-full" data-mobile-primary-action><Link href="/purchase-orders/new">New PO</Link></Button>
                 <Button asChild variant="outline" size="sm" className="w-full"><Link href="/api/export/purchase-orders">Export CSV</Link></Button>
               </div>
             </ConsoleSection>
@@ -58,7 +58,7 @@ export default async function PurchaseOrdersPage({ searchParams }: { searchParam
       >
         <div className="overflow-hidden rounded-[2px] border border-[var(--sb-border-soft)] bg-card">
           <StatusTabs statuses={statuses} activeStatus={filters.status} />
-          <form className="flex flex-col gap-3 border-b bg-white p-4 md:flex-row md:items-center">
+          <form className="sb-list-filters">
             <Input name="search" defaultValue={filters.search ?? ""} placeholder="Search PO no, supplier, remarks" className="md:max-w-sm" />
             <Button type="submit" variant="secondary">Search</Button>
             <Button asChild variant="ghost"><a href="?">Reset</a></Button>
@@ -69,30 +69,30 @@ export default async function PurchaseOrdersPage({ searchParams }: { searchParam
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead className="w-20"><BulkSelectAllCheckbox /></TableHead>
+                  <TableHead className="hidden w-20 md:table-cell"><BulkSelectAllCheckbox /></TableHead>
                   <SortableHead label="PO No" column="po_no" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
                   <TableHead>Supplier</TableHead>
-                  <SortableHead label="Date" column="order_date" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
-                  <SortableHead label="Delivery" column="expected_delivery_date" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
+                  <SortableHead className="hidden md:table-cell" label="Date" column="order_date" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
+                  <SortableHead className="hidden lg:table-cell" label="Delivery" column="expected_delivery_date" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
                   <SortableHead label="Status" column="status" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
-                  <TableHead className="text-right">Lines</TableHead>
-                  <TableHead className="text-right">Total</TableHead>
+                  <TableHead className="hidden text-right lg:table-cell">Lines</TableHead>
+                  <TableHead className="hidden text-right md:table-cell">Total</TableHead>
                   <TableHead className="w-12 text-right">Action</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {orders.rows.map((order) => (
                   <DataGridRow key={order.id} href={`/purchase-orders/${order.id}`}>
-                    <TableCell>
+                    <TableCell className="hidden md:table-cell">
                       <BulkSelectRowCheckbox id={order.id} />
                     </TableCell>
                     <TableCell><DocumentNumber value={order.po_no} size="sm" /></TableCell>
                     <TableCell>{order.supplier_name ?? "-"}</TableCell>
-                    <TableCell>{order.order_date}</TableCell>
-                    <TableCell>{order.expected_delivery_date ?? "-"}</TableCell>
+                    <TableCell className="hidden md:table-cell">{order.order_date}</TableCell>
+                    <TableCell className="hidden lg:table-cell">{order.expected_delivery_date ?? "-"}</TableCell>
                     <TableCell><StatusBadge status={order.status} /></TableCell>
-                    <TableCell className="text-right">{order.line_count}</TableCell>
-                    <TableCell className="text-right">{formatCurrency(order.order_total)}</TableCell>
+                    <TableCell className="hidden text-right lg:table-cell">{order.line_count}</TableCell>
+                    <TableCell className="hidden text-right md:table-cell">{formatCurrency(order.order_total)}</TableCell>
                     <TableCell className="text-right"><TableActionLink href={`/purchase-orders/${order.id}`} label={`Open ${order.po_no}`}><Pencil className="h-4 w-4" /></TableActionLink></TableCell>
                   </DataGridRow>
                 ))}

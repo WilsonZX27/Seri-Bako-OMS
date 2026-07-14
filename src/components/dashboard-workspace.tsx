@@ -22,14 +22,14 @@ function MetricCard({ href, label, value, icon: Icon, tone = "neutral" }: { href
   }[tone];
 
   return (
-    <Link href={href} className="flex min-h-12 items-center gap-2 rounded-[2px] border border-[var(--sb-border-soft)] bg-white px-3 py-2 transition-colors hover:border-[var(--sb-amber-300)]">
-      <div className={`flex h-6 w-6 items-center justify-center rounded-[2px] ${toneClass}`}>
-        <Icon className="h-3.5 w-3.5" />
+    <Link href={href} className="flex min-h-12 items-center justify-between gap-3 rounded-[2px] border border-[var(--sb-border-soft)] bg-white px-3 py-2 transition-colors hover:border-[var(--sb-amber-300)]">
+      <div className="flex min-w-0 items-center gap-2">
+        <div className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-[2px] ${toneClass}`}>
+          <Icon className="h-4 w-4" />
+        </div>
+        <p className="truncate text-xs font-medium text-muted-foreground">{label}</p>
       </div>
-      <div className="min-w-0">
-        <p className="truncate text-[10px] uppercase tracking-[0.04em] text-muted-foreground">{label}</p>
-        <p className="text-sm font-semibold leading-tight">{value}</p>
-      </div>
+      <p className="shrink-0 text-right text-lg font-semibold leading-none tabular-nums text-[var(--sb-text)]">{value}</p>
     </Link>
   );
 }

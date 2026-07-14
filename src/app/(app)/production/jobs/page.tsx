@@ -77,7 +77,7 @@ export default async function ProductionJobsPage({ searchParams }: { searchParam
           </div>
 
           <Card>
-            <form className="grid gap-3 border-b p-4 md:grid-cols-[1fr_180px_180px_140px_auto]">
+            <form className="sb-list-filters">
               <Input name="search" defaultValue={filters.search ?? ""} placeholder="Search job no, recipe, output" />
               <SelectNative name="branch_id" defaultValue={filters.branch_id ?? "all"}>
                 <option value="all">All branches</option>

@@ -8,6 +8,7 @@ export type StaffStatus = RecordStatus | "invited" | "disabled";
 export type LocationStatus = RecordStatus;
 export type BranchType = "central_kitchen" | "outlet" | "event_booth" | "office" | "other";
 export type StaffAccessLevel = "full" | "manage" | "read_only";
+export type PermissionOverrideEffect = "allow" | "deny";
 export type ResetFrequency = "never" | "yearly" | "monthly" | "daily";
 export type BarcodeType = "ean13" | "upc" | "qr" | "internal" | "supplier" | "packaging" | "other";
 export type StockEntityType = "item" | "product";
@@ -241,6 +242,36 @@ export type Database = {
           created_at?: string;
         };
         Update: Partial<Database["public"]["Tables"]["permissions"]["Insert"]>;
+        Relationships: [];
+      };
+      role_permissions: {
+        Row: { id: string; role_id: string; permission_id: string; created_at: string };
+        Insert: { id?: string; role_id: string; permission_id: string; created_at?: string };
+        Update: Partial<Database["public"]["Tables"]["role_permissions"]["Insert"]>;
+        Relationships: [];
+      };
+      staff_permission_overrides: {
+        Row: {
+          id: string;
+          staff_id: string;
+          permission_id: string;
+          effect: PermissionOverrideEffect;
+          created_at: string;
+          updated_at: string;
+          created_by: string | null;
+          updated_by: string | null;
+        };
+        Insert: {
+          id?: string;
+          staff_id: string;
+          permission_id: string;
+          effect: PermissionOverrideEffect;
+          created_at?: string;
+          updated_at?: string;
+          created_by?: string | null;
+          updated_by?: string | null;
+        };
+        Update: Partial<Database["public"]["Tables"]["staff_permission_overrides"]["Insert"]>;
         Relationships: [];
       };
       staff_roles: {
@@ -1944,6 +1975,14 @@ export type Database = {
       has_permission: {
         Args: { permission: string };
         Returns: boolean;
+      };
+      has_any_permission: {
+        Args: { permission_codes: string[] };
+        Returns: boolean;
+      };
+      set_staff_permission_overrides: {
+        Args: { target_staff_id: string; overrides: Json };
+        Returns: void;
       };
       has_admin_staff_assignment: {
         Args: Record<string, never>;

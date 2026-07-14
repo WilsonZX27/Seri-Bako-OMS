@@ -43,7 +43,7 @@ export default async function SupplierInvoicesPage({ searchParams }: { searchPar
       >
         <div className="overflow-hidden rounded-[2px] border bg-card">
           <StatusTabs statuses={statuses} activeStatus={filters.status} />
-          <form className="flex flex-col gap-3 border-b bg-white p-4 md:flex-row md:items-center">
+          <form className="sb-list-filters">
             <Input name="search" defaultValue={filters.search ?? ""} placeholder="Search invoice, supplier, PO, GRN" className="md:max-w-sm" />
             <Button type="submit" variant="secondary">Search</Button>
             <Button asChild variant="ghost"><a href="?">Reset</a></Button>

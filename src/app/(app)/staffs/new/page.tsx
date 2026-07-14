@@ -68,7 +68,7 @@ export default async function NewStaffPage({
               <p className="font-medium text-foreground">Role assignment</p>
               <p className="mt-1">Your current role can assign: {roles.map((role) => getRoleDisplayLabel(role.role_code, role.role_name)).join(", ")}.</p>
             </div>
-            <Button type="submit" form={formId} className="w-full">
+            <Button type="submit" form={formId} className="w-full" data-mobile-primary-action>
               Create Staff
             </Button>
           </RecordActionPanel>

@@ -14,7 +14,7 @@ type SearchResult = {
   href: string;
 };
 
-export function GlobalSearch() {
+export function GlobalSearch({ permissionMap }: { permissionMap: Record<string, boolean> }) {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<SearchResult[]>([]);
@@ -41,18 +41,19 @@ export function GlobalSearch() {
       const payload = (await response.json()) as { results: SearchResult[] };
       const term = query.trim().toLowerCase();
       const navResults = searchableNavItems
+        .filter((item) => !("permission" in item) || !item.permission || permissionMap[item.permission])
         .filter((item) => `${item.label} ${item.group} ${(item.keywords ?? []).join(" ")}`.toLowerCase().includes(term))
         .slice(0, 8)
         .map((item) => ({ type: "navigation", title: item.label, subtitle: item.group, href: item.href }));
       setResults([...navResults, ...payload.results]);
     }, 180);
     return () => window.clearTimeout(handle);
-  }, [query]);
+  }, [permissionMap, query]);
 
   return (
     <>
       <Button type="button" variant="ghost" size="icon" onClick={() => setOpen(true)} aria-label="Open global search">
-        <Search className="h-4 w-4" />
+        <Search className="h-5 w-5" />
       </Button>
       {open ? (
         <div className="fixed inset-0 z-50">

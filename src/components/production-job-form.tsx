@@ -30,11 +30,15 @@ export function ProductionJobForm({
   recipes,
   balances,
   action,
+  formId,
+  showSubmit = true,
 }: {
   branches: BranchOption[];
   recipes: ProductionRecipeOption[];
   balances: StockBalanceOption[];
   action: (formData: FormData) => Promise<void>;
+  formId?: string;
+  showSubmit?: boolean;
 }) {
   const [branchId, setBranchId] = useState(branches[0]?.id ?? "");
   const [recipeId, setRecipeId] = useState(recipes[0]?.id ?? "");
@@ -60,7 +64,7 @@ export function ProductionJobForm({
   const hasShortage = ingredientLines.some((line) => line.shortage);
 
   return (
-    <form action={action} className="space-y-5">
+    <form id={formId} action={action} className="space-y-5">
       <Card>
         <CardHeader>
           <CardTitle>Production Details</CardTitle>
@@ -120,7 +124,7 @@ export function ProductionJobForm({
 
       {!recipes.length ? (
         <Card>
-          <CardContent className="flex gap-3 p-5 text-sm text-warning">
+          <CardContent className="flex gap-3 p-4 text-xs text-warning">
             <AlertTriangle className="h-5 w-5 shrink-0" />
             <p>No active recipe found. Activate a recipe before creating production job.</p>
           </CardContent>
@@ -197,12 +201,12 @@ export function ProductionJobForm({
         </>
       ) : null}
 
-      <div className="flex justify-end">
+      {showSubmit ? <div className="flex justify-end">
         <SubmitButton type="submit" disabled={!recipes.length || !branchId || !recipeId} pendingLabel="Creating..." showOverlay overlayLabel="Creating production job...">
           <Calculator className="h-4 w-4" />
           Create draft production job
         </SubmitButton>
-      </div>
+      </div> : null}
     </form>
   );
 }

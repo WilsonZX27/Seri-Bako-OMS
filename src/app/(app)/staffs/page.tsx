@@ -60,7 +60,7 @@ export default async function StaffsPage({ searchParams }: { searchParams: Promi
                   </Link>
                 </div>
               </TableCell>
-              <TableCell>{staff.staff_code ?? "-"}</TableCell>
+              <TableCell>{staff.staff_code?.toUpperCase() ?? "-"}</TableCell>
               <TableCell className="font-medium">{staff.full_name}</TableCell>
               <TableCell>{staff.email ?? "-"}</TableCell>
               <TableCell>{staff.default_branch_name ?? "-"}</TableCell>

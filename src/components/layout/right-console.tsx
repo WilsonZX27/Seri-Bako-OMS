@@ -24,7 +24,7 @@ export function RightConsoleProvider({ children }: { children: ReactNode }) {
     <RightConsoleContext.Provider value={value}>
       {children}
       <aside data-right-console className="hidden h-full min-h-0 w-[340px] shrink-0 overflow-hidden border-l bg-white xl:block">
-        <div className="h-full overflow-y-auto overflow-x-hidden bg-white px-2 py-1">
+        <div data-right-console-scroll className="h-full overflow-y-auto overflow-x-hidden bg-white px-2 py-1">
           {content ?? (
             <ConsoleSection title="Workspace Context">
               <p className="text-[11px] text-[var(--sb-text-muted)]">Open a record to see actions, timeline, and metadata here.</p>

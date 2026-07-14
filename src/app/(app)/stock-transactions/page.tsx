@@ -2,7 +2,6 @@ import Link from "next/link";
 import { Download, Pencil } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { DataGridHint } from "@/components/ui/data-grid-hint";
 import { DataGridRow } from "@/components/ui/data-grid-row";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Input } from "@/components/ui/input";
@@ -118,12 +117,10 @@ export default async function StockTransactionsPage({ searchParams }: { searchPa
             <Button type="submit" variant="secondary">Filter</Button>
             <Button asChild variant="ghost"><Link href="/stock-transactions">Reset</Link></Button>
           </form>
-          <DataGridHint text="Double-click any row to open the source ledger transaction." />
           <div className="overflow-x-auto">
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead className="w-10"></TableHead>
                   <SortableHead label="Date/time" column="transaction_date" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
                   <SortableHead label="Transaction No" column="transaction_no" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
                   <SortableHead label="Type" column="transaction_type" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
@@ -135,21 +132,16 @@ export default async function StockTransactionsPage({ searchParams }: { searchPa
                   <TableHead>UOM</TableHead>
                   <TableHead className="text-right">Unit Cost</TableHead>
                   <TableHead className="text-right">Total Value</TableHead>
-                  <TableHead>Source</TableHead>
-                  <TableHead>Reference</TableHead>
-                  <TableHead>Created By</TableHead>
+                  <TableHead className="w-16 text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {ledger.rows.map((row) => (
                   <DataGridRow key={row.stock_transaction_id} href={`/stock-transactions/${row.stock_transaction_id}`}>
-                    <TableCell>
-                      <Link href={`/stock-transactions/${row.stock_transaction_id}`} aria-label={`Quick view ${row.transaction_no}`} className="rounded-none p-1 text-[var(--sb-text-soft)] hover:bg-[var(--sb-surface-muted)] hover:text-[var(--sb-amber-700)]">
-                        <Pencil className="h-4 w-4" />
-                      </Link>
-                    </TableCell>
                     <TableCell>{row.transaction_date}</TableCell>
-                    <TableCell className="font-medium">{row.transaction_no}</TableCell>
+                    <TableCell className="font-medium">
+                      <Link href={`/stock-transactions/${row.stock_transaction_id}`} className="underline-offset-2 hover:underline">{row.transaction_no}</Link>
+                    </TableCell>
                     <TableCell><Badge variant="secondary">{movementLabel(row.transaction_type)}</Badge></TableCell>
                     <TableCell className="font-medium">{row.item_code}<p className="text-xs text-muted-foreground">{row.item_name}</p></TableCell>
                     <TableCell>{row.branch_name ?? row.location_name}</TableCell>
@@ -159,14 +151,16 @@ export default async function StockTransactionsPage({ searchParams }: { searchPa
                     <TableCell>{row.base_unit}</TableCell>
                     <TableCell className="text-right">{formatCurrency(row.unit_cost)}</TableCell>
                     <TableCell className="text-right">{formatCurrency(row.total_cost)}</TableCell>
-                    <TableCell>{row.reference_type ?? "-"}</TableCell>
-                    <TableCell className="max-w-40 truncate">{row.reference_id ?? row.document_id ?? "-"}</TableCell>
-                    <TableCell className="max-w-32 truncate">{row.created_by ?? "-"}</TableCell>
+                    <TableCell className="text-right">
+                      <Link href={`/stock-transactions/${row.stock_transaction_id}`} aria-label={`Open ${row.transaction_no}`} className="inline-flex rounded-none p-1 text-[var(--sb-text-soft)] hover:bg-[var(--sb-surface-muted)] hover:text-[var(--sb-amber-700)]">
+                        <Pencil className="h-4 w-4" />
+                      </Link>
+                    </TableCell>
                   </DataGridRow>
                 ))}
                 {!ledger.rows.length ? (
                   <TableRow>
-                    <TableCell colSpan={15}>
+                    <TableCell colSpan={12}>
                       <EmptyState title="No ledger movements found" description="Try a wider date range or fewer filters." />
                     </TableCell>
                   </TableRow>

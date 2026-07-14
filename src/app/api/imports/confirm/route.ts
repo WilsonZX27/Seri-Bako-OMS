@@ -540,7 +540,7 @@ async function handleStaffImport(context: RouteContext, request: ImportRequest) 
 
   for (const [index, row] of rows.entries()) {
     const rowNumber = index + 1;
-    const staffCode = normalizeText(row.staff_code);
+    const staffCode = normalizeText(row.staff_code).toUpperCase();
     const email = normalizeLower(row.email);
     const branch = branchByCode.get(normalizeLower(row.branch_code));
     const role = roleByCode.get(normalizeLower(row.role_code));

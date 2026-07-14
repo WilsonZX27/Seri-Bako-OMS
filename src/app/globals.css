@@ -35,7 +35,7 @@
   --sb-neutral-text: #5E665F;
   --app-bg: var(--sb-bg);
   --workspace-bg: var(--sb-surface);
-  --rail-bg: var(--sb-surface-muted);
+  --rail-bg: var(--sb-surface);
   --border-soft: var(--sb-border);
   --border-muted: var(--sb-border-soft);
   --text-main: var(--sb-text);
@@ -96,6 +96,17 @@ textarea {
 [data-right-console] {
   background: var(--rail-bg);
   border-left-color: var(--border-soft);
+}
+
+[data-right-console] [data-right-console-scroll],
+.scrollbar-none {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+[data-right-console] [data-right-console-scroll]::-webkit-scrollbar,
+.scrollbar-none::-webkit-scrollbar {
+  display: none;
 }
 
 .document-surface {

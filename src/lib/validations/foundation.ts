@@ -7,6 +7,13 @@ const optionalText = z
   .nullable()
   .transform((value) => (value ? value : null));
 
+const optionalUpperText = z
+  .string()
+  .trim()
+  .optional()
+  .nullable()
+  .transform((value) => (value ? value.toUpperCase() : null));
+
 export const recordStatusSchema = z.enum(["active", "inactive", "archived"]);
 export const staffStatusSchema = z.enum(["invited", "active", "disabled"]);
 
@@ -43,7 +50,7 @@ export const locationSchema = z.object({
 
 export const staffSchema = z.object({
   company_id: z.string().trim().min(1, "Company is required"),
-  staff_code: optionalText,
+  staff_code: optionalUpperText,
   full_name: z.string().trim().min(1, "Full name is required"),
   email: z.email("Enter a valid email").trim().toLowerCase(),
   phone: optionalText,

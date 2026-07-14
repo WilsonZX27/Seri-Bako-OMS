@@ -33,19 +33,19 @@ export default async function SuppliersPage({
       <WorkspaceGrid
         rightRail={
           <>
+            <ConsoleSection title="Actions">
+              <div className="grid gap-2">
+                <Button asChild size="sm" className="w-full"><Link href="/suppliers/new">New supplier</Link></Button>
+                <Button asChild variant="outline" size="sm" className="w-full"><Link href="/api/export/suppliers">Export CSV</Link></Button>
+                <Button asChild variant="outline" size="sm" className="w-full"><Link href="/imports/suppliers">Import suppliers</Link></Button>
+              </div>
+            </ConsoleSection>
             <ConsoleSection title="Supplier Summary">
               <div className="grid gap-2 text-xs">
                 <div className="flex justify-between"><span className="text-muted-foreground">Total Suppliers</span><strong>{suppliers.length}</strong></div>
                 <div className="flex justify-between"><span className="text-muted-foreground">Active</span><strong>{count("active")}</strong></div>
                 <div className="flex justify-between"><span className="text-muted-foreground">Inactive</span><strong>{count("inactive")}</strong></div>
                 <div className="flex justify-between"><span className="text-muted-foreground">Archived</span><strong>{count("archived")}</strong></div>
-              </div>
-            </ConsoleSection>
-            <ConsoleSection title="Actions">
-              <div className="grid gap-2">
-                <Button asChild size="sm" className="w-full"><Link href="/suppliers/new">New supplier</Link></Button>
-                <Button asChild variant="outline" size="sm" className="w-full"><Link href="/api/export/suppliers">Export CSV</Link></Button>
-                <Button asChild variant="outline" size="sm" className="w-full"><Link href="/imports/suppliers">Import suppliers</Link></Button>
               </div>
             </ConsoleSection>
           </>

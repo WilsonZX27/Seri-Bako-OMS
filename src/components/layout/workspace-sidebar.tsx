@@ -86,7 +86,6 @@ export function WorkspaceSidebar({
             </div>
           ) : null}
         </Link>
-        {!compact ? <p className="mt-2 px-1 text-[10px] text-white/45">v{APP_VERSION} / {APP_SPRINT}</p> : null}
       </div>
 
       <nav className="min-h-0 flex-1 overflow-y-auto px-2 py-2">

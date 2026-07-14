@@ -77,13 +77,13 @@ export function DashboardWorkspace({ summary }: { summary: DashboardSummary }) {
           <>
             <ConsoleSection title="Quick Actions">
               <div className="grid gap-2">
-                <Button asChild size="sm" className="h-7 justify-start px-2 text-[11px]">
+                <Button asChild size="sm" className="h-9 justify-start px-3 text-xs">
                   <Link href="/purchase-requests/new"><Zap className="h-3.5 w-3.5" /> Create Purchase Request</Link>
                 </Button>
-                <Button asChild variant="secondary" size="sm" className="h-7 justify-start px-2 text-[11px]">
+                <Button asChild variant="secondary" size="sm" className="h-9 justify-start px-3 text-xs">
                   <Link href="/stock-wastage/new"><AlertTriangle className="h-3.5 w-3.5" /> Record Stock Wastage</Link>
                 </Button>
-                <Button asChild variant="outline" size="sm" className="h-7 justify-start px-2 text-[11px]">
+                <Button asChild variant="outline" size="sm" className="h-9 justify-start px-3 text-xs">
                   <Link href="/production/jobs/new"><Boxes className="h-3.5 w-3.5" /> New Production Job</Link>
                 </Button>
               </div>

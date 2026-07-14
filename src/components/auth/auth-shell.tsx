@@ -23,7 +23,7 @@ export async function AuthShell({
             <div className="flex h-14 w-14 items-center justify-center overflow-hidden rounded-none border border-[var(--sb-border-soft)] bg-white text-[var(--sb-primary-dark)]">
               {branding.logo_url ? (
                 // eslint-disable-next-line @next/next/no-img-element
-                <img src={branding.logo_url} alt={`${branding.company_name} logo`} className="h-full w-full object-cover" />
+                <img src={branding.logo_url} alt={`${branding.company_name} logo`} className="h-full w-full object-contain p-1" />
               ) : (
                 <Factory className="h-6 w-6" />
               )}
@@ -35,7 +35,7 @@ export async function AuthShell({
           </Link>
           <div className="mt-8 max-w-xl">
             <p className="text-3xl font-semibold leading-tight text-[var(--sb-primary-dark)]">Sign in to manage Seri Bako operations.</p>
-            <p className="mt-3 text-sm leading-6 text-muted-foreground">
+            <p className="mt-3 max-w-lg text-xs leading-5 text-muted-foreground">
               Manage purchasing, stock, production, and approvals in one branch-ready workspace.
             </p>
           </div>

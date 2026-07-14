@@ -428,6 +428,18 @@ Do not use rounded action buttons anywhere in the app.
 
 Seri Bako ERP must use a controlled operational color system.
 
+## Sprint 7.4 UI token and component contract
+
+`src/app/globals.css` is the canonical runtime token source. Shared components in `src/components/ui` consume those tokens; pages must not create a parallel scale.
+
+- Typography: one system sans stack. Page title 18px, section/card title 14px, body/control text 14px on mobile and 13px on compact desktop, metadata/labels/table headers 12px minimum.
+- Spacing: use the 4, 8, 12, 16, 20, 24, and 32px scale. Page gutters are 12px on mobile and 16px from tablet upward. Panels use 12–16px padding.
+- Controls: 44px high on mobile and 36px from `sm` upward. Buttons remain square; cards/panels and inputs use a 0–2px radius. Icon-only controls require an accessible label.
+- Shell: 48px topbar, 236px desktop sidebar, and 340px desktop right console. Below `xl`, the same contextual console content is available through an accessible bottom drawer; it is not removed from the workflow.
+- Tables: use the shared `Table` containment region. Selection, when present, is the first column. Open/view/edit is the final column and remains reachable while a comparison table scrolls.
+- State: use the shared success, warning, danger, info, neutral, disabled, hover, selected, and focus tokens. Focus uses a visible 2px amber ring with offset.
+- Motion: state transitions only, normally 150–250ms; reduced-motion preferences must remove non-essential animation.
+
 Do not introduce random greens, browns, reds, blues, gradients, or decorative colors.
 
 The product visual identity is:

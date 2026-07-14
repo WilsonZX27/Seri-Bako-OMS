@@ -34,13 +34,8 @@ export async function getSidebarCounts(): Promise<SidebarCounts> {
   const db = looseSupabase(supabase);
   const [
     productionJobs,
-    outletRequests,
     purchaseRequests,
-    managerApprovals,
-    adminReview,
-    financeReview,
     purchaseOrders,
-    supplierSending,
     invoices,
     stockBalanceAlerts,
     stockCounts,
@@ -50,13 +45,8 @@ export async function getSidebarCounts(): Promise<SidebarCounts> {
     staffManagement,
   ] = await Promise.all([
     safeCount(db.from("production_jobs").select("id", { count: "exact", head: true }).in("status", ["submitted", "approved"]).is("deleted_at", null)),
-    safeCount(db.from("purchase_requests").select("id", { count: "exact", head: true }).in("status", ["draft", "manager_review"]).is("deleted_at", null)),
     safeCount(db.from("purchase_requests").select("id", { count: "exact", head: true }).in("status", ["manager_review", "admin_review", "finance_review", "ready_to_convert"]).is("deleted_at", null)),
-    safeCount(db.from("purchase_requests").select("id", { count: "exact", head: true }).eq("status", "manager_review").is("deleted_at", null)),
-    safeCount(db.from("purchase_requests").select("id", { count: "exact", head: true }).eq("status", "admin_review").is("deleted_at", null)),
-    safeCount(db.from("purchase_requests").select("id", { count: "exact", head: true }).eq("status", "finance_review").is("deleted_at", null)),
     safeCount(db.from("purchase_orders").select("id", { count: "exact", head: true }).in("status", ["draft", "pending_approval", "approved", "sent", "partial_received"]).is("deleted_at", null)),
-    safeCount(db.from("purchase_orders").select("id", { count: "exact", head: true }).eq("status", "approved").is("deleted_at", null)),
     safeCount(db.from("supplier_invoices").select("id", { count: "exact", head: true }).in("status", ["unpaid", "partially_paid"]).is("deleted_at", null)),
     safeCount(supabase.from("low_stock_items").select("item_id", { count: "exact", head: true })),
     safeCount(db.from("stock_counts").select("id", { count: "exact", head: true }).in("status", ["draft", "submitted", "reviewed", "approved"]).is("deleted_at", null)),
@@ -68,14 +58,9 @@ export async function getSidebarCounts(): Promise<SidebarCounts> {
 
   return {
     productionJobs,
-    outletRequests,
     dispatchBoard,
     purchaseRequests,
-    managerApprovals,
-    adminReview,
-    financeReview,
     purchaseOrders,
-    supplierSending,
     invoices,
     stockBalanceAlerts,
     stockCounts,

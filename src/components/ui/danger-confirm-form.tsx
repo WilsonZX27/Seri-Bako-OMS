@@ -37,7 +37,7 @@ export function DangerConfirmForm({
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="flex w-full items-center justify-between rounded-lg border border-red-200 bg-white px-4 py-3 text-left text-sm font-medium text-red-700 shadow-sm transition-colors hover:bg-red-50"
+        className="flex min-h-[var(--sb-control-height)] w-full items-center justify-between rounded-none border border-[var(--sb-danger)] bg-white px-4 py-3 text-left text-sm font-medium text-[var(--sb-danger)] transition-colors hover:bg-[var(--sb-danger-bg)]"
       >
         <span className="flex items-center gap-2">
           <AlertTriangle className="h-4 w-4" />

@@ -21,7 +21,7 @@ export function KpiFilterStrip({ items, className }: { items: KpiFilterItem[]; c
         const content = (
           <div
             className={cn(
-              "flex min-h-14 items-center gap-2 rounded-lg border px-3 py-2 text-left shadow-sm transition-colors",
+              "flex min-h-14 items-center gap-2 rounded-[2px] border px-3 py-2 text-left transition-colors",
               toneClass,
             )}
           >

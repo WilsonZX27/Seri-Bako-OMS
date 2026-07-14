@@ -68,7 +68,7 @@ export function WorkspaceSidebar({
   const activeGroupId = activeNavKey?.split("-")[0] ?? null;
 
   return (
-    <div className={cn("flex h-dvh w-[236px] flex-col border-r border-white/10 bg-[var(--sb-green-950)] text-white", mobile ? "w-full" : "")}>
+    <div className={cn("flex h-dvh w-[var(--sb-sidebar-width)] flex-col border-r border-white/10 bg-[var(--sb-green-950)] text-white", mobile ? "w-full" : "")}>
       <div className="border-b border-white/10 px-3 py-3">
         <Link href={brandHref} onClick={onNavigate} className={cn("flex min-w-0 flex-1 items-center gap-3 rounded-[2px] p-1 hover:bg-white/10", compact ? "justify-center" : "")} title={compact ? companyName : undefined}>
           <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-[2px] bg-white/12 text-white ring-1 ring-white/10">
@@ -98,7 +98,7 @@ export function WorkspaceSidebar({
                 {!compact ? (
                   <button
                     type="button"
-                    className="mb-1 flex w-full items-center justify-between rounded-[2px] px-2 py-1 text-left text-[10px] font-semibold uppercase tracking-[0.16em] text-white/38 hover:bg-white/8 hover:text-white/65"
+                    className="mb-1 flex min-h-11 w-full items-center justify-between rounded-[2px] px-2 py-2 text-left text-xs font-semibold text-white/60 hover:bg-white/8 hover:text-white sm:min-h-8 sm:py-1 sm:text-[10px]"
                     onClick={() => toggleGroup(group.id)}
                     aria-expanded={!groupClosed}
                   >
@@ -119,7 +119,7 @@ export function WorkspaceSidebar({
                         onClick={onNavigate}
                         title={compact ? item.label : undefined}
                         className={cn(
-                          "flex h-8 items-center gap-2 rounded-[2px] px-2 text-[12px] font-medium transition-colors",
+                          "flex min-h-11 items-center gap-2 rounded-[2px] px-2 text-sm font-medium transition-colors sm:min-h-8 sm:text-xs",
                           compact ? "justify-center px-0" : "",
                           active ? "bg-[var(--sb-amber-100)] text-[var(--sb-green-950)] ring-1 ring-white/10" : "text-white/72 hover:bg-white/8 hover:text-white",
                         )}

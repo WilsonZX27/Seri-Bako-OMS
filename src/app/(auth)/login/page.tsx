@@ -28,19 +28,23 @@ export default async function LoginPage({
 
   return (
     <AuthShell title="Welcome back" description="Sign in with your staff account to continue.">
-      <form action={signIn} className="space-y-4">
-        <Field label="Email">
-          <Input name="email" type="email" autoComplete="email" required />
+      <form action={signIn} className="space-y-4" aria-describedby="login-status">
+        <Field label="Email" required>
+          <Input name="email" type="email" inputMode="email" autoCapitalize="none" spellCheck={false} autoComplete="username" required autoFocus />
         </Field>
-        <Field label="Password">
+        <Field label="Password" required>
           <PasswordInput name="password" autoComplete="current-password" required />
         </Field>
-        {params.message ? <p className="rounded-md border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-800">{params.message}</p> : null}
-        {errorMessage ? <p className="rounded-md border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive">{errorMessage}</p> : null}
-        <SubmitButton className="w-full" pendingLabel="Signing in..." showOverlay overlayLabel="Loading data...">Sign in</SubmitButton>
-        <Link href="/forgot-password" className="block text-center text-sm text-muted-foreground hover:text-foreground">
-          Forgot password?
-        </Link>
+        <div id="login-status" className="min-h-11" aria-live="polite">
+          {params.message ? <p className="border border-[var(--sb-success)] bg-[var(--sb-success-bg)] p-3 text-sm text-[var(--sb-success)]">{params.message}</p> : null}
+          {errorMessage ? <p className="border border-[var(--sb-danger)] bg-[var(--sb-danger-bg)] p-3 text-sm text-[var(--sb-danger)]" role="alert">{errorMessage}</p> : null}
+        </div>
+        <SubmitButton className="w-full" pendingLabel="Signing in…">Sign in</SubmitButton>
+        <div className="text-center">
+          <Link href="/forgot-password" className="inline-flex min-h-11 items-center text-sm font-medium text-[var(--sb-amber-700)] underline-offset-4 hover:underline sm:min-h-9 sm:text-xs">
+            Forgot password?
+          </Link>
+        </div>
       </form>
     </AuthShell>
   );

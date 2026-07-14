@@ -106,7 +106,7 @@ export function WorkspaceSectionPanel({ section }: { section: WorkspaceSection }
   const SectionIcon = section.icon;
 
   return (
-    <section className={cn("flex h-auto flex-col overflow-hidden rounded-lg border border-slate-200 shadow-sm", theme.panel)}>
+    <section className={cn("flex h-auto flex-col overflow-hidden rounded-[2px] border border-[var(--sb-border-soft)]", theme.panel)}>
       <div className={cn("border-b px-3 py-2.5", theme.border, theme.header)}>
         <div className="flex items-center gap-3">
           <div className={cn("flex h-8 w-8 shrink-0 items-center justify-center rounded-md", theme.badge, theme.iconText)}>
@@ -130,7 +130,7 @@ export function WorkspaceSectionPanel({ section }: { section: WorkspaceSection }
 function WorkspaceActionCard({ action, theme }: { action: WorkspaceAction; theme: WorkspaceTheme }) {
   const ActionIcon = action.icon;
   const content = (
-    <Card className={cn("h-full rounded-lg border border-slate-200 bg-white shadow-sm transition-colors", action.disabled ? "opacity-70" : "group-hover:border-primary/30 group-hover:bg-slate-50/30")}>
+    <Card className={cn("h-full rounded-[2px] border border-[var(--sb-border-soft)] bg-white transition-colors", action.disabled ? "opacity-70" : "group-hover:border-[var(--sb-amber-300)] group-hover:bg-[var(--sb-surface-muted)]")}>
       <CardContent className="flex h-full min-h-[88px] flex-col justify-between gap-2 p-3">
         <div className="flex items-start gap-3">
           <div className={cn("flex h-7 w-7 shrink-0 items-center justify-center rounded-md", theme.badge, theme.iconText)}>
@@ -165,7 +165,7 @@ export function WorkspaceQuickInsights({ insights, action }: { insights: Workspa
             const theme = workspaceThemes[insight.theme ?? "neutral"];
             const InsightIcon = insight.icon;
             return (
-              <div key={insight.label} className={cn("flex items-center gap-2 rounded-lg border border-slate-200 bg-white p-2.5 shadow-sm", theme.iconText)}>
+              <div key={insight.label} className={cn("flex items-center gap-2 rounded-[2px] border border-[var(--sb-border-soft)] bg-white p-2.5", theme.iconText)}>
                 <div className={cn("flex h-7 w-7 shrink-0 items-center justify-center rounded-md", theme.badge)}>
                   <InsightIcon className="h-4 w-4" />
                 </div>

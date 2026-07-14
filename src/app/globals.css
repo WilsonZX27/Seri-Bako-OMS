@@ -33,6 +33,29 @@
   --sb-info-bg: #E8F1FF;
   --sb-neutral-bg: #EEECE6;
   --sb-neutral-text: #5E665F;
+  --sb-font-sans: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --sb-text-page: 1.125rem;
+  --sb-text-section: 0.875rem;
+  --sb-text-body: 0.8125rem;
+  --sb-text-meta: 0.75rem;
+  --sb-leading-tight: 1.35;
+  --sb-leading-body: 1.45;
+  --sb-space-1: 0.25rem;
+  --sb-space-2: 0.5rem;
+  --sb-space-3: 0.75rem;
+  --sb-space-4: 1rem;
+  --sb-space-5: 1.25rem;
+  --sb-space-6: 1.5rem;
+  --sb-control-height: 2.75rem;
+  --sb-topbar-height: 3rem;
+  --sb-sidebar-width: 14.75rem;
+  --sb-console-width: 21.25rem;
+  --sb-panel-radius: 0.125rem;
+  --sb-z-dropdown: 30;
+  --sb-z-sticky: 40;
+  --sb-z-backdrop: 50;
+  --sb-z-dialog: 60;
+  --sb-z-toast: 70;
   --app-bg: var(--sb-bg);
   --workspace-bg: var(--sb-surface);
   --rail-bg: var(--sb-surface);
@@ -42,22 +65,22 @@
   --text-muted: var(--sb-text-muted);
 
   --background: 43 33% 95%;
-  --foreground: 222 47% 11%;
+  --foreground: 147 33% 9%;
   --card: 0 0% 100%;
   --card-foreground: 222 47% 11%;
   --primary: 147 48% 13%;
   --primary-foreground: 0 0% 100%;
-  --secondary: 210 20% 94%;
-  --secondary-foreground: 222 47% 11%;
-  --muted: 210 20% 94%;
-  --muted-foreground: 215 16% 47%;
-  --accent: 24 43% 60%;
+  --secondary: 45 22% 93%;
+  --secondary-foreground: 147 33% 9%;
+  --muted: 45 22% 93%;
+  --muted-foreground: 148 7% 43%;
+  --accent: 29 52% 41%;
   --accent-foreground: 147 48% 13%;
   --destructive: 0 74% 42%;
   --destructive-foreground: 0 0% 100%;
-  --border: 214 20% 88%;
-  --input: 214 20% 88%;
-  --ring: 24 43% 60%;
+  --border: 45 13% 81%;
+  --input: 45 13% 81%;
+  --ring: 29 52% 41%;
   --radius: 0.125rem;
 }
 
@@ -74,14 +97,35 @@ body {
 
 body {
   @apply bg-background text-foreground antialiased;
-  font-size: 12px;
+  font-family: var(--sb-font-sans);
+  font-size: 14px;
+  line-height: var(--sb-leading-body);
   color: var(--sb-text);
 }
 
 input,
 select,
 textarea {
-  font-size: 12px;
+  font: inherit;
+}
+
+button,
+a,
+input,
+select,
+textarea,
+summary {
+  -webkit-tap-highlight-color: transparent;
+}
+
+:focus-visible {
+  outline: 2px solid var(--sb-amber-700);
+  outline-offset: 2px;
+}
+
+::selection {
+  background: var(--sb-amber-100);
+  color: var(--sb-green-950);
 }
 
 .erp-surface {
@@ -115,7 +159,8 @@ textarea {
 }
 
 .sb-section-label {
-  @apply text-xs font-semibold uppercase tracking-normal text-muted-foreground;
+  font-size: var(--sb-text-meta);
+  @apply font-semibold text-muted-foreground;
 }
 
 .sb-icon-tile {
@@ -125,4 +170,58 @@ textarea {
 .form-control-compact {
   width: 100%;
   max-width: 400px;
+}
+
+.sb-table-region {
+  max-width: 100%;
+  overflow-x: auto;
+  overscroll-behavior-inline: contain;
+  scrollbar-gutter: stable;
+}
+
+.sb-table-region > table {
+  min-width: 42rem;
+}
+
+.sb-table-region th:last-child,
+.sb-table-region td:last-child {
+  position: sticky;
+  right: 0;
+  background: var(--sb-surface);
+  box-shadow: -1px 0 var(--sb-border-soft);
+}
+
+.sb-table-region thead th:last-child {
+  background: var(--sb-surface-muted);
+}
+
+@media (min-width: 640px) {
+  :root {
+    --sb-control-height: 2.25rem;
+  }
+
+  body {
+    font-size: var(--sb-text-body);
+  }
+}
+
+@media (max-width: 1279px) {
+  [data-center-workspace] main {
+    scroll-padding-bottom: 5.5rem;
+  }
+
+  [data-center-workspace] :is(a, button, input, select, textarea, summary, [tabindex]) {
+    scroll-margin-bottom: 5.5rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }

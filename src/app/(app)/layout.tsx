@@ -9,23 +9,14 @@ import { createClient } from "@/lib/supabase/server";
 import { getCurrentProfile } from "@/server/queries/common";
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
+  const profile = await getCurrentProfile();
+
   if (!isMockMode()) {
-    const supabase = await createClient();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
+    if (!profile) redirect("/login");
+    const staff = profile as { status?: string; must_change_password?: boolean };
 
-    if (!user) {
-      redirect("/login");
-    }
-
-    const { data: staff } = await supabase
-      .from("staffs")
-      .select("status, must_change_password")
-      .eq("auth_user_id", user.id)
-      .maybeSingle();
-
-    if (staff && ["disabled", "inactive", "archived"].includes(staff.status)) {
+    if (staff.status && ["disabled", "inactive", "archived"].includes(staff.status)) {
+      const supabase = await createClient();
       await supabase.auth.signOut();
       redirect("/login?error=disabled");
     }
@@ -35,7 +26,6 @@ export default async function AppLayout({ children }: { children: React.ReactNod
     }
   }
 
-  const profile = await getCurrentProfile();
   const hasStaffRole = (profile as { has_staff_role?: boolean } | null)?.has_staff_role ?? false;
 
   return (
@@ -54,7 +44,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
               <div data-center-workspace className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
                 <GlobalActionToast />
                 <SessionTimeoutProvider />
-                <main className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden">{children}</main>
+                <main id="main-content" className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden pb-20 xl:pb-0">{children}</main>
               </div>
             </RightConsoleProvider>
           </div>

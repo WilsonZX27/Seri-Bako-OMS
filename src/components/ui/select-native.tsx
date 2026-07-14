@@ -5,7 +5,7 @@ export function SelectNative({ className, ...props }: React.SelectHTMLAttributes
   return (
     <select
       className={cn(
-        "flex h-8 w-full rounded-[2px] border border-[var(--sb-border)] bg-white px-2.5 py-1 text-xs text-[var(--sb-text)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--sb-amber-300)] disabled:cursor-not-allowed disabled:opacity-50",
+        "flex h-[var(--sb-control-height)] w-full rounded-[2px] border border-[var(--sb-border)] bg-white px-3 py-2 text-base text-[var(--sb-text)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--sb-amber-700)] focus-visible:ring-offset-1 disabled:cursor-not-allowed disabled:bg-[var(--sb-surface-muted)] disabled:opacity-70 sm:px-2.5 sm:py-1 sm:text-xs",
         className,
       )}
       {...props}

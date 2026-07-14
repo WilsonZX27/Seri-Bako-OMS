@@ -57,7 +57,7 @@ export function GlobalSearch() {
       {open ? (
         <div className="fixed inset-0 z-50">
           <button type="button" className="absolute inset-0 bg-slate-950/45" aria-label="Close search" onClick={() => setOpen(false)} />
-          <div className="relative mx-auto mt-20 w-[min(42rem,92vw)] overflow-hidden rounded-lg border bg-card shadow-xl">
+          <div className="relative mx-auto mt-20 w-[min(42rem,92vw)] overflow-hidden rounded-[2px] border bg-card">
             <div className="flex items-center gap-3 border-b p-3">
               <Search className="h-5 w-5 text-muted-foreground" />
               <Input autoFocus value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search item code, supplier, document no..." className="border-0 shadow-none focus-visible:ring-0" />

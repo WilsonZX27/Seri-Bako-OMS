@@ -4,7 +4,7 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/utils";
 
 const buttonVariants = cva(
-  "inline-flex h-8 max-w-full items-center justify-center gap-1.5 overflow-hidden text-ellipsis whitespace-nowrap rounded-none border border-transparent px-3 text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--sb-amber-300)] disabled:pointer-events-none disabled:opacity-50",
+  "inline-flex h-[var(--sb-control-height)] max-w-full items-center justify-center gap-1.5 overflow-hidden text-ellipsis whitespace-nowrap rounded-none border border-transparent px-3 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--sb-amber-700)] focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-55 sm:text-xs",
   {
     variants: {
       variant: {
@@ -15,10 +15,10 @@ const buttonVariants = cva(
         destructive: "bg-[var(--sb-danger)] text-white hover:bg-red-700",
       },
       size: {
-        default: "h-8 px-3",
-        sm: "h-7 px-2.5 text-xs",
-        lg: "h-9 px-4",
-        icon: "h-8 w-8 px-0",
+        default: "h-[var(--sb-control-height)] px-3",
+        sm: "h-[var(--sb-control-height)] px-2.5 text-sm sm:text-xs",
+        lg: "h-12 px-4 sm:h-10",
+        icon: "h-[var(--sb-control-height)] w-[var(--sb-control-height)] px-0",
       },
     },
     defaultVariants: {

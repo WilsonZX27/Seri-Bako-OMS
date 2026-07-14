@@ -337,7 +337,7 @@ export function PurchaseRequestForm({
     ) : null}
     {newItemLineKey !== null && canCreateItem ? (
       <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/30 p-4 backdrop-blur-sm">
-        <Card className="w-full max-w-3xl border-slate-200 bg-white shadow-xl">
+        <Card className="w-full max-w-3xl border-[var(--sb-border)] bg-white">
           <CardContent className="space-y-4 p-5">
             <div className="flex items-start justify-between gap-3">
               <div>
@@ -350,7 +350,7 @@ export function PurchaseRequestForm({
             </div>
             {newItemError ? <p className="rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700">{newItemError}</p> : null}
             <form action={createInlineItem} className="space-y-4">
-              <section className="rounded-lg border bg-white p-4 shadow-sm">
+              <section className="rounded-[2px] border bg-white p-4">
                 <div className="mb-3">
                   <p className="text-sm font-semibold">Basic</p>
                   <p className="mt-1 text-xs text-muted-foreground">Name, code, category, and base stock unit.</p>
@@ -376,7 +376,7 @@ export function PurchaseRequestForm({
                 </div>
               </section>
 
-              <section className="rounded-lg border bg-white p-4 shadow-sm">
+              <section className="rounded-[2px] border bg-white p-4">
                 <div className="mb-3">
                   <p className="text-sm font-semibold">Purchasing</p>
                   <p className="mt-1 text-xs text-muted-foreground">Optional buying defaults for PR and supplier item setup.</p>

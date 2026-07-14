@@ -19,6 +19,19 @@ type PurchaseRequest = Database["public"]["Tables"]["purchase_requests"]["Row"];
 type PurchaseRequestLine = Database["public"]["Tables"]["purchase_request_lines"]["Row"];
 type PurchaseOrder = Database["public"]["Tables"]["purchase_orders"]["Row"];
 type PurchaseOrderLine = Database["public"]["Tables"]["purchase_order_lines"]["Row"];
+const PAGE_SIZE = 12;
+
+function pageNumber(value: string | undefined) {
+  return Math.max(1, Number(value) || 1);
+}
+
+function safeSort(value: string | undefined, allowed: readonly string[], fallback: string) {
+  return allowed.includes(value ?? "") ? value! : fallback;
+}
+
+function searchFilter(value: string | undefined) {
+  return value?.trim().replace(/[(),]/g, "") || null;
+}
 
 export type PurchaseRequestRow = PurchaseRequest & {
   requested_by_name: string | null;
@@ -95,18 +108,33 @@ export async function getPurchaseRequests(filters: Filters = {}) {
   }
 
   const supabase = await createClient();
-  const [{ data, error }, { data: lines, error: linesError }, { data: branches }, { data: locations }] = await Promise.all([
-    supabase.from("purchase_requests").select("*").is("deleted_at", null).order("updated_at", { ascending: false }),
-    supabase.from("purchase_request_lines").select("*"),
-    supabase.from("branches").select("id, branch_name"),
-    supabase.from("locations").select("id, location_name"),
-  ]);
+  const page = pageNumber(filters.page);
+  const sort = safeSort(filters.sort, ["request_no", "request_date", "needed_by_date", "status", "updated_at"], "updated_at");
+  let query = supabase
+    .from("purchase_requests")
+    .select("id, requested_by, request_no, request_date, required_date, priority, needed_by_date, branch_id, location_id, status, remarks, updated_at", { count: "exact" })
+    .is("deleted_at", null);
+  const status = filters.status && filters.status !== "all" ? filters.status : null;
+  const priority = filters.priority && filters.priority !== "all" ? filters.priority : null;
+  const search = searchFilter(filters.search);
+  if (status) query = query.eq("status", status as PurchaseRequest["status"]);
+  if (priority) query = query.eq("priority", priority as PurchaseRequest["priority"]);
+  if (search) query = query.or(`request_no.ilike.%${search}%,remarks.ilike.%${search}%`);
+  const { data, error, count } = await query
+    .order(sort, { ascending: filters.dir !== "asc" })
+    .range((page - 1) * PAGE_SIZE, page * PAGE_SIZE - 1);
   if (error) throw new Error(error.message);
+  const ids = (data ?? []).map((row) => row.id);
+  const [{ data: lines, error: linesError }, { data: branches }, { data: locations }] = await Promise.all([
+    ids.length ? supabase.from("purchase_request_lines").select("purchase_request_id, qty, estimated_unit_cost").in("purchase_request_id", ids) : Promise.resolve({ data: [], error: null }),
+    supabase.from("branches").select("id, branch_name").in("id", (data ?? []).flatMap((row) => (row.branch_id ? [row.branch_id] : []))),
+    supabase.from("locations").select("id, location_name").in("id", (data ?? []).flatMap((row) => (row.location_id ? [row.location_id] : []))),
+  ]);
   if (linesError) throw new Error(linesError.message);
   const branchById = new Map((branches ?? []).map((row) => [row.id, row.branch_name]));
   const locationById = new Map((locations ?? []).map((row) => [row.id, row.location_name]));
-  const rows = ((data ?? []) as PurchaseRequest[]).map((row) => {
-    const ownLines = ((lines ?? []) as PurchaseRequestLine[]).filter((line) => line.purchase_request_id === row.id);
+  const rows = (data ?? []).map((row) => {
+    const ownLines = (lines ?? []).filter((line) => line.purchase_request_id === row.id);
     return {
       ...row,
       requested_by_name: row.requested_by,
@@ -116,7 +144,29 @@ export async function getPurchaseRequests(filters: Filters = {}) {
       estimated_total: ownLines.reduce((sum, line) => sum + line.qty * line.estimated_unit_cost, 0),
     };
   });
-  return paginateRows(filterRows(rows, filters, ["request_no", "status", "priority", "branch_name", "location_name", "remarks"], "updated_at"), filters.page, 12);
+  const totalRows = count ?? 0;
+  return { rows, page, pageSize: PAGE_SIZE, totalRows, totalPages: Math.max(Math.ceil(totalRows / PAGE_SIZE), 1) };
+}
+
+export async function getPurchaseRequestSummary() {
+  if (isMockMode()) {
+    return {
+      total: mockPurchaseRequests.length,
+      managerReview: mockPurchaseRequests.filter((row) => row.status === "manager_review").length,
+      adminReview: mockPurchaseRequests.filter((row) => row.status === "admin_review").length,
+      financeReview: mockPurchaseRequests.filter((row) => row.status === "finance_review").length,
+    };
+  }
+
+  const supabase = await createClient();
+  const count = (status?: PurchaseRequest["status"]) => {
+    let query = supabase.from("purchase_requests").select("id", { count: "exact", head: true }).is("deleted_at", null);
+    if (status) query = query.eq("status", status);
+    return query;
+  };
+  const [total, managerReview, adminReview, financeReview] = await Promise.all([count(), count("manager_review"), count("admin_review"), count("finance_review")]);
+  for (const result of [total, managerReview, adminReview, financeReview]) if (result.error) throw new Error(result.error.message);
+  return { total: total.count ?? 0, managerReview: managerReview.count ?? 0, adminReview: adminReview.count ?? 0, financeReview: financeReview.count ?? 0 };
 }
 
 export async function getPurchaseRequest(id: string) {
@@ -172,16 +222,27 @@ export async function getPurchaseOrders(filters: Filters = {}) {
   }
 
   const supabase = await createClient();
-  const [{ data, error }, { data: lines, error: linesError }, { data: suppliers }] = await Promise.all([
-    supabase.from("purchase_orders").select("*").is("deleted_at", null).order("updated_at", { ascending: false }),
-    supabase.from("purchase_order_lines").select("*"),
-    supabase.from("suppliers").select("id, name"),
-  ]);
+  const page = pageNumber(filters.page);
+  const sort = safeSort(filters.sort, ["po_no", "order_date", "expected_delivery_date", "status", "updated_at"], "updated_at");
+  let query = supabase
+    .from("purchase_orders")
+    .select("id, supplier_id, po_no, order_date, expected_delivery_date, status, approval_status, remarks, updated_at", { count: "exact" })
+    .is("deleted_at", null);
+  const status = filters.status && filters.status !== "all" ? filters.status : null;
+  const search = searchFilter(filters.search);
+  if (status) query = query.eq("status", status as PurchaseOrder["status"]);
+  if (search) query = query.or(`po_no.ilike.%${search}%,remarks.ilike.%${search}%`);
+  const { data, error, count } = await query.order(sort, { ascending: filters.dir !== "asc" }).range((page - 1) * PAGE_SIZE, page * PAGE_SIZE - 1);
   if (error) throw new Error(error.message);
+  const ids = (data ?? []).map((row) => row.id);
+  const [{ data: lines, error: linesError }, { data: suppliers }] = await Promise.all([
+    ids.length ? supabase.from("purchase_order_lines").select("purchase_order_id, qty_ordered, unit_price").in("purchase_order_id", ids) : Promise.resolve({ data: [], error: null }),
+    supabase.from("suppliers").select("id, name").in("id", (data ?? []).map((row) => row.supplier_id)),
+  ]);
   if (linesError) throw new Error(linesError.message);
   const supplierById = new Map((suppliers ?? []).map((row) => [row.id, row.name]));
-  const rows = ((data ?? []) as PurchaseOrder[]).map((row) => {
-    const ownLines = ((lines ?? []) as PurchaseOrderLine[]).filter((line) => line.purchase_order_id === row.id);
+  const rows = (data ?? []).map((row) => {
+    const ownLines = (lines ?? []).filter((line) => line.purchase_order_id === row.id);
     return {
       ...row,
       supplier_name: supplierById.get(row.supplier_id) ?? null,
@@ -189,7 +250,25 @@ export async function getPurchaseOrders(filters: Filters = {}) {
       order_total: ownLines.reduce((sum, line) => sum + line.qty_ordered * line.unit_price, 0),
     };
   });
-  return paginateRows(filterRows(rows, filters, ["po_no", "status", "approval_status", "supplier_name", "remarks"], "updated_at"), filters.page, 12);
+  const totalRows = count ?? 0;
+  return { rows, page, pageSize: PAGE_SIZE, totalRows, totalPages: Math.max(Math.ceil(totalRows / PAGE_SIZE), 1) };
+}
+
+export async function getPurchaseOrderSummary() {
+  if (isMockMode()) {
+    const count = (...statuses: PurchaseOrder["status"][]) => mockPurchaseOrders.filter((row) => statuses.includes(row.status)).length;
+    return { total: mockPurchaseOrders.length, approved: count("approved"), sent: count("sent"), receiving: count("partial_received"), received: count("received"), closed: count("closed"), cancelled: count("cancelled") };
+  }
+
+  const supabase = await createClient();
+  const count = (status?: PurchaseOrder["status"]) => {
+    let query = supabase.from("purchase_orders").select("id", { count: "exact", head: true }).is("deleted_at", null);
+    if (status) query = query.eq("status", status);
+    return query;
+  };
+  const [total, approved, sent, receiving, received, closed, cancelled] = await Promise.all([count(), count("approved"), count("sent"), count("partial_received"), count("received"), count("closed"), count("cancelled")]);
+  for (const result of [total, approved, sent, receiving, received, closed, cancelled]) if (result.error) throw new Error(result.error.message);
+  return { total: total.count ?? 0, approved: approved.count ?? 0, sent: sent.count ?? 0, receiving: receiving.count ?? 0, received: received.count ?? 0, closed: closed.count ?? 0, cancelled: cancelled.count ?? 0 };
 }
 
 export async function getPurchaseOrder(id: string) {

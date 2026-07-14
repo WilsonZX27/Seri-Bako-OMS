@@ -1,7 +1,8 @@
 import { createClient } from "@/lib/supabase/server";
 import { isMockMode, mockBranches, mockCompany, mockItems, mockLocations, mockProfile, mockSuppliers } from "@/lib/mock-mode";
+import { cache } from "react";
 
-export async function getCurrentProfile() {
+export const getCurrentProfile = cache(async function getCurrentProfile() {
   if (isMockMode()) {
     return mockProfile;
   }
@@ -42,9 +43,9 @@ export async function getCurrentProfile() {
 
   const { data } = await supabase.from("profiles").select("*").eq("id", user.id).maybeSingle();
   return data ? { ...data, company_id: null, role_code: data.role, has_staff_role: false } : null;
-}
+});
 
-export async function getCompanyBranding() {
+export const getCompanyBranding = cache(async function getCompanyBranding() {
   if (isMockMode()) {
     return { company_name: mockCompany.company_name, logo_url: mockCompany.logo_url };
   }
@@ -62,9 +63,9 @@ export async function getCompanyBranding() {
     company_name: data?.company_name ?? "Seri Bako",
     logo_url: data?.logo_url ?? null,
   };
-}
+});
 
-export async function getSuppliersForSelect() {
+export const getSuppliersForSelect = cache(async function getSuppliersForSelect() {
   if (isMockMode()) {
     return mockSuppliers.map(({ id, supplier_code, name, status }) => ({ id, supplier_code, name, status }));
   }
@@ -77,9 +78,9 @@ export async function getSuppliersForSelect() {
 
   if (error) throw new Error(error.message);
   return data;
-}
+});
 
-export async function getItemsForSelect() {
+export const getItemsForSelect = cache(async function getItemsForSelect() {
   if (isMockMode()) {
     return mockItems
       .filter((item) => item.status === "active")
@@ -95,9 +96,9 @@ export async function getItemsForSelect() {
 
   if (error) throw new Error(error.message);
   return data;
-}
+});
 
-export async function getLocationsForSelect() {
+export const getLocationsForSelect = cache(async function getLocationsForSelect() {
   if (isMockMode()) {
     return mockLocations
       .filter((location) => location.status === "active")
@@ -113,9 +114,9 @@ export async function getLocationsForSelect() {
 
   if (error) throw new Error(error.message);
   return data;
-}
+});
 
-export async function getBranchesForSelect() {
+export const getBranchesForSelect = cache(async function getBranchesForSelect() {
   if (isMockMode()) {
     return mockBranches
       .filter((branch) => branch.status === "active")
@@ -131,4 +132,4 @@ export async function getBranchesForSelect() {
 
   if (error) throw new Error(error.message);
   return data;
-}
+});

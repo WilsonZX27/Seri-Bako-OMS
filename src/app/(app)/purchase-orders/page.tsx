@@ -15,7 +15,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { ConsoleSection } from "@/components/layout/right-console";
 import { WorkspaceGrid } from "@/components/layout/workspace-layout";
 import { formatCurrency } from "@/lib/utils";
-import { getPurchaseOrders } from "@/server/queries/procurement";
+import { getPurchaseOrderSummary, getPurchaseOrders } from "@/server/queries/procurement";
 
 const statuses = [
   { value: "approved", label: "Ready to Send" },
@@ -28,10 +28,7 @@ const statuses = [
 
 export default async function PurchaseOrdersPage({ searchParams }: { searchParams: Promise<Record<string, string | undefined>> }) {
   const filters = await searchParams;
-  const [orders, allOrders] = await Promise.all([getPurchaseOrders(filters), getPurchaseOrders({ page: "all" })]);
-  const rows = allOrders.rows;
-  const count = (...statuses: string[]) => rows.filter((order) => statuses.includes(order.status)).length;
-  const totalValue = rows.reduce((sum, order) => sum + order.order_total, 0);
+  const [orders, summary] = await Promise.all([getPurchaseOrders(filters), getPurchaseOrderSummary()]);
   return (
     <>
       <PageHeader title="Purchase Orders" description="Supplier purchase orders created from approved requests or manually." />
@@ -47,18 +44,13 @@ export default async function PurchaseOrdersPage({ searchParams }: { searchParam
             </ConsoleSection>
             <ConsoleSection title="PO Summary">
               <div className="grid gap-2 text-xs">
-                <div className="flex justify-between"><span className="text-muted-foreground">Total POs</span><strong>{rows.length}</strong></div>
-                <div className="flex justify-between"><span className="text-muted-foreground">Ready to Send</span><strong>{count("approved")}</strong></div>
-                <div className="flex justify-between"><span className="text-muted-foreground">Sent to Supplier</span><strong>{count("sent")}</strong></div>
-                <div className="flex justify-between"><span className="text-muted-foreground">Receiving</span><strong>{count("partial_received", "receiving")}</strong></div>
-                <div className="flex justify-between"><span className="text-muted-foreground">Received</span><strong>{count("received")}</strong></div>
-                <div className="flex justify-between"><span className="text-muted-foreground">Closed</span><strong>{count("closed")}</strong></div>
-                <div className="flex justify-between"><span className="text-muted-foreground">Cancelled</span><strong>{count("cancelled")}</strong></div>
-              </div>
-              <div className="my-3 border-t" />
-              <div className="flex items-end justify-between gap-3">
-                <p className="text-[10px] font-semibold uppercase tracking-[0.04em] text-muted-foreground">Total PO Value</p>
-                <p className="text-base font-semibold">{formatCurrency(totalValue)}</p>
+                <div className="flex justify-between"><span className="text-muted-foreground">Total POs</span><strong>{summary.total}</strong></div>
+                <div className="flex justify-between"><span className="text-muted-foreground">Ready to Send</span><strong>{summary.approved}</strong></div>
+                <div className="flex justify-between"><span className="text-muted-foreground">Sent to Supplier</span><strong>{summary.sent}</strong></div>
+                <div className="flex justify-between"><span className="text-muted-foreground">Receiving</span><strong>{summary.receiving}</strong></div>
+                <div className="flex justify-between"><span className="text-muted-foreground">Received</span><strong>{summary.received}</strong></div>
+                <div className="flex justify-between"><span className="text-muted-foreground">Closed</span><strong>{summary.closed}</strong></div>
+                <div className="flex justify-between"><span className="text-muted-foreground">Cancelled</span><strong>{summary.cancelled}</strong></div>
               </div>
             </ConsoleSection>
           </>

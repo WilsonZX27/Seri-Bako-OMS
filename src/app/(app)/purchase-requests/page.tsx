@@ -17,7 +17,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { ConsoleSection } from "@/components/layout/right-console";
 import { WorkspaceGrid } from "@/components/layout/workspace-layout";
 import { formatCurrency } from "@/lib/utils";
-import { getPurchaseRequests } from "@/server/queries/procurement";
+import { getPurchaseRequestSummary, getPurchaseRequests } from "@/server/queries/procurement";
 
 const statuses = [
   { value: "draft", label: "Draft" },
@@ -32,10 +32,7 @@ const statuses = [
 
 export default async function PurchaseRequestsPage({ searchParams }: { searchParams: Promise<Record<string, string | undefined>> }) {
   const filters = await searchParams;
-  const [requests, allRequests] = await Promise.all([getPurchaseRequests(filters), getPurchaseRequests({ page: "all" })]);
-  const rows = allRequests.rows;
-  const count = (...statuses: string[]) => rows.filter((request) => statuses.includes(request.status)).length;
-  const estimatedTotal = rows.reduce((sum, request) => sum + request.estimated_total, 0);
+  const [requests, summary] = await Promise.all([getPurchaseRequests(filters), getPurchaseRequestSummary()]);
   return (
     <>
       <PageHeader title="Purchase Requests" description="Create, review, return, and convert branch requests into purchase orders." />
@@ -55,20 +52,10 @@ export default async function PurchaseRequestsPage({ searchParams }: { searchPar
             </ConsoleSection>
             <ConsoleSection title="PR Summary">
               <div className="grid gap-2 text-xs">
-                <div className="flex justify-between"><span className="text-muted-foreground">Total PRs</span><strong>{rows.length}</strong></div>
-                <div className="flex justify-between"><span className="text-muted-foreground">Manager Review</span><strong>{count("manager_review")}</strong></div>
-                <div className="flex justify-between"><span className="text-muted-foreground">Admin Review</span><strong>{count("admin_review")}</strong></div>
-                <div className="flex justify-between"><span className="text-muted-foreground">Finance Review</span><strong>{count("finance_review")}</strong></div>
-              </div>
-              <div className="my-3 border-t" />
-              <div className="space-y-2">
-                <div className="flex items-end justify-between gap-3">
-                  <p className="text-[10px] font-semibold uppercase tracking-[0.04em] text-muted-foreground">Pending Value</p>
-                  <p className="text-base font-semibold">{formatCurrency(estimatedTotal)}</p>
-                </div>
-                <Button asChild variant="outline" className="w-full">
-                  <Link href="/purchase-requests">Full Details</Link>
-                </Button>
+                <div className="flex justify-between"><span className="text-muted-foreground">Total PRs</span><strong>{summary.total}</strong></div>
+                <div className="flex justify-between"><span className="text-muted-foreground">Manager Review</span><strong>{summary.managerReview}</strong></div>
+                <div className="flex justify-between"><span className="text-muted-foreground">Admin Review</span><strong>{summary.adminReview}</strong></div>
+                <div className="flex justify-between"><span className="text-muted-foreground">Finance Review</span><strong>{summary.financeReview}</strong></div>
               </div>
             </ConsoleSection>
           </>

@@ -1,0 +1,14 @@
+const { test, expect } = require("@playwright/test");
+const { login } = require("./helpers");
+
+test("PR list and detail remain navigable after cached reference reads", async ({ page }) => {
+  test.skip(!process.env.TEST_ADMIN_EMAIL || !process.env.TEST_ADMIN_PASSWORD, "Missing admin test credentials.");
+  expect(await login(page, "admin")).toBe(true);
+  await page.goto("/purchase-requests");
+  const record = page.locator("tbody tr a[href^='/purchase-requests/']").first();
+  test.skip(!(await record.count()), "No purchase request fixture is available.");
+  await record.click();
+  await expect(page).toHaveURL(/\/purchase-requests\/[0-9a-f-]{36}/i);
+  await page.goBack();
+  await expect(page.getByRole("heading", { name: /purchase requests/i })).toBeVisible();
+});

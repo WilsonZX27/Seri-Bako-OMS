@@ -78,6 +78,7 @@ export function PurchaseRequestForm({
   canCreateSupplier: boolean;
   action: (formData: FormData) => Promise<void>;
 }) {
+  const [idempotencyKey] = useState(() => crypto.randomUUID());
   const [availableItems, setAvailableItems] = useState(items);
   const [lines, setLines] = useState<RequestLine[]>([{ ...createBlankLine(0), ...initialLine, key: 0 }]);
   const [priority, setPriority] = useState("normal");
@@ -164,6 +165,7 @@ export function PurchaseRequestForm({
         <form id="purchase-request-form" action={action} className="space-y-3">
           <input type="hidden" name="request_no" value="" />
           <input type="hidden" name="status" value="draft" />
+          <input type="hidden" name="idempotency_key" value={idempotencyKey} />
           <div className="flex flex-col gap-2 border-b pb-3 md:flex-row md:items-center md:justify-between">
             <div>
               <div className="flex flex-wrap items-center gap-2">

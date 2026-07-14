@@ -13,6 +13,7 @@ import { revalidateWorkspaceState } from "@/server/actions/revalidate";
 import { resolveDocumentNumber } from "@/server/documents/sequences";
 import { resolveDefaultLocation } from "@/server/inventory/locations";
 import { getCurrentProfile } from "@/server/queries/common";
+import { z } from "zod";
 import type { ApprovalStatus, PurchaseOrderStatus } from "@/types/database";
 
 type PurchaseRequestStep = "draft" | "manager_review" | "admin_review" | "finance_review" | "ready_to_convert";
@@ -269,8 +270,12 @@ async function createPurchaseOrderCreatedNotification(input: { poId: string; poN
 export async function createPurchaseRequest(formData: FormData) {
   await requirePermissionOrRedirect("purchase_request.create", "/purchase-requests/new");
   try {
-    const payload = extractPurchaseRequest(formData);
     if (isMockMode()) redirect("/purchase-requests");
+    const idempotencyKey = z.uuid().parse(cleanText(formData.get("idempotency_key")));
+    const supabase = await createClient();
+    const { data: existing } = await supabase.from("purchase_requests").select("id, request_no").eq("idempotency_key", idempotencyKey).maybeSingle();
+    if (existing) redirect(`/purchase-requests/${existing.id}`);
+    const payload = extractPurchaseRequest(formData);
     const locationId = await resolveDefaultLocation(payload.branch_id, payload.location_id);
     await ensureActiveItems(payload.lines.map((line) => line.item_id));
     const profile = await identity();
@@ -279,7 +284,6 @@ export async function createPurchaseRequest(formData: FormData) {
       documentType: "purchase_request",
       enteredNumber: payload.request_no,
     });
-    const supabase = await createClient();
     const { data, error } = await supabase
       .from("purchase_requests")
       .insert({
@@ -298,10 +302,17 @@ export async function createPurchaseRequest(formData: FormData) {
         remarks: payload.remarks,
         created_by: profile?.id ?? null,
         updated_by: profile?.id ?? null,
+        idempotency_key: idempotencyKey,
       })
       .select("id")
       .single();
-    if (error) throw new Error(error.message);
+    if (error) {
+      if (error.code === "23505") {
+        const { data: duplicate } = await supabase.from("purchase_requests").select("id").eq("idempotency_key", idempotencyKey).maybeSingle();
+        if (duplicate) redirect(`/purchase-requests/${duplicate.id}`);
+      }
+      throw new Error(error.message);
+    }
     const documentId = await createLinkedDocument({ documentNo: requestNo, documentType: "purchase_request", title: `Purchase Request ${requestNo}`, relatedEntityType: "purchase_request", relatedEntityId: data.id });
     const [{ error: updateError }, { error: linesError }] = await Promise.all([
       supabase.from("purchase_requests").update({ document_id: documentId }).eq("id", data.id),

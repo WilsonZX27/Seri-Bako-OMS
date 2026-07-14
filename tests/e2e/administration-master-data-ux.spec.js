@@ -91,6 +91,6 @@ test("mobile master-data form keeps its save action reachable", async ({ page })
   await expect(page.getByRole("heading", { name: "Identity" })).toBeVisible();
   await page.getByRole("button", { name: "Actions & context" }).click();
   await expect(page.getByRole("button", { name: "Create Item" })).toBeVisible();
-  await expect(page.locator("body")).toContainText("Sprint 7.4");
+  await expect(page.locator("body")).toContainText("Sprint 7.5");
   await expectNoPageOverflow(page);
 });

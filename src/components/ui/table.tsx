@@ -1,5 +1,4 @@
 import * as React from "react";
-import Link from "next/link";
 import { cn } from "@/lib/utils";
 
 export function Table({ className, ...props }: React.TableHTMLAttributes<HTMLTableElement>) {
@@ -32,8 +31,8 @@ export function TableCell({ className, ...props }: React.TdHTMLAttributes<HTMLTa
 
 export function TableActionLink({ href, label, children, className }: { href: string; label: string; children: React.ReactNode; className?: string }) {
   return (
-    <Link href={href} aria-label={label} className={cn("inline-flex h-11 w-11 items-center justify-center text-[var(--sb-text-muted)] hover:bg-[var(--sb-surface-muted)] hover:text-[var(--sb-amber-700)] focus-visible:outline-none sm:h-8 sm:w-8", className)}>
+    <a href={href} aria-label={label} className={cn("inline-flex h-11 w-11 items-center justify-center text-[var(--sb-text-muted)] hover:bg-[var(--sb-surface-muted)] hover:text-[var(--sb-amber-700)] focus-visible:outline-none sm:h-8 sm:w-8", className)}>
       {children}
-    </Link>
+    </a>
   );
 }

@@ -1,6 +1,6 @@
 # Sprint 7.5 Mobile UX and Staff Permission Overrides
 
-Status: released locally as `v0.2.15 / Sprint 7.5`; migration 052 and all required verification passed
+Status: released locally as `v0.2.15 / Sprint 7.5`; migrations 052–054 and RC-2 verification passed
 
 Audit date: 2026-07-15
 
@@ -67,23 +67,36 @@ Focused coverage lives in `tests/e2e/release-mobile-ux-7-5.spec.js` and checks:
 
 Final release evidence records migration status, typecheck, lint, production build, focused Sprint 7.5 tests, full Playwright regression, production smoke, and an empty `git diff --check`.
 
+## RC-2 workflow blockers
+
+- Migration `053_sprint_7_5_release_blocker_workflows.sql` adds the private `document-attachments` Storage bucket and policies, document attachment metadata, and the atomic PR-to-PO conversion RPC with one-active-PO-per-PR protection.
+- Migration `054_sprint_7_5_pr_to_po_supplier_scope_fix.sql` replaces only that RPC. It removes the invalid `suppliers.company_id` predicate and changes the related supplier validation message; the global supplier model and all other tables, policies, roles, permissions, and workflows are unchanged.
+- The RPC remains atomic and idempotent: a valid Ready-to-Convert request created one header and every expected line, recorded the PO link, and changed PR status only after success. Repeat and concurrent calls resolved to the same PO, while a forced failure left no partial header or lines.
+- Attachment transport accepts a 20 MB request envelope, while application validation and Storage remain capped at 10 MB. A valid file uploaded, rendered immediately, and supported authorized View/Download. Oversized and invalid files produced clear validation with no Storage object or metadata row; unauthenticated and cross-company access were rejected.
+- Shared table row actions use native links after the full suite proved a Next.js client-navigation abort on cached PR detail links. The server route, record, and permission path were valid; the native link preserves one-click behavior without a client-router race.
+
 ## Database verification
 
-- Linked project: `nnvdsaftiwpqkekjfrgc` (`Seri Bako Project`); migration ceiling and ledger entry are 052.
+- Linked project: `nnvdsaftiwpqkekjfrgc` (`Seri Bako Project`). The SQL Editor application record confirms migration ceiling 054 and ledger entry `054_sprint_7_5_pr_to_po_supplier_scope_fix`.
 - Live migration 052 matches the committed source statement-for-statement.
 - Objects changed by 052: `staff_permission_overrides`; unique `(staff_id, permission_id)` and `allow`/`deny` check constraints; staff lookup index; updated-at trigger; read/manage RLS policies; `has_any_permission(text[])`; replaced wrapper `has_permission(text)`; `set_staff_permission_overrides(uuid, jsonb)`; authenticated grants.
 - Role-only inheritance, explicit deny precedence, authorized explicit allow, reset/delete back to inheritance, duplicate rejection, invalid-effect rejection, company scope, RLS mutation rejection, and audit-log creation all passed.
 - Existing users without overrides retained permissions. Application compatibility defaults are consulted only after the database resolver and cannot bypass an explicit deny.
 - Wilson remains active `super_admin`. Four active owner-class accounts remain, owner overrides are rejected, and existing final-owner protections prevent reaching zero active owners.
+- Migration 054 left `suppliers` without `company_id`, retained the one-active-PO-per-PR index, and did not alter the private attachment bucket or its policies. Live transaction, concurrency, private-storage, and authorization behavior matches the committed 054/053 definitions.
 
 ## Final verification status
 
 - `npm.cmd run typecheck`: passed.
 - `npm.cmd run lint`: passed with no warnings or errors.
-- `npm.cmd run build`: passed; 79 pages generated and `ƒ Middleware` registered.
+- `npm.cmd run build`: passed; 70 pages generated and middleware registered.
 - `git diff --check`: passed.
-- Focused authenticated Sprint 7.5/permission gate: 14 passed plus the isolated live mutation/direct-route case passed after its navigation synchronization fix; zero authorization failures.
-- Full Playwright on the optimized production server with `RUN_PERMISSION_OVERRIDE_MUTATION_TESTS=true`: 43 passed, 12 intentionally skipped, 0 failed (55 discovered).
-- Production Super Admin UI smoke: 1 passed.
+- Isolated PR-to-PO mutation/idempotency/concurrency: passed, including repeat/concurrent duplicate protection, PO detail, and rollback evidence.
+- Isolated attachment upload/view/download/oversize/private-access suite: passed.
+- Isolated supplier-code import mapping and unknown-code rejection: passed.
+- Isolated effective-permission mutation/direct-route gate: 1 passed; manager deny blocked `/reports`, reset restored inherited access.
+- Focused Sprint 7.5 suites: 11 passed, 1 intentionally gated skip; the gated permission mutation passed separately.
+- Full Playwright: 48 passed, 15 intentionally gated skips, 0 failed (63 discovered) in 11.1 minutes.
+- Optimized production build and unauthenticated login/redirect smoke: passed. Authenticated full regression ran on a clean long-lived local server because sandboxed foreground production processes could not reach Supabase.
 - Permission mutation cleanup passed: the manager fixture returned to role defaults after direct-route denial verification.
 - Release metadata updated only after all required gates passed: `v0.2.15 / Sprint 7.5`.

@@ -203,6 +203,7 @@ test("staff allow and deny overrides affect direct routes without granting mutat
   const adminPage = await adminContext.newPage();
   const managerPage = await managerContext.newPage();
   let directRouteUrl = "";
+  let inheritedRouteUrl = "";
 
   async function openManagerStaff(page) {
     await page.goto(`/staffs?search=${encodeURIComponent(managerEmail)}`, { waitUntil: "domcontentloaded" });
@@ -246,11 +247,16 @@ test("staff allow and deny overrides affect direct routes without granting mutat
     const directRouteResponse = await managerPage.goto("/reports", { waitUntil: "domcontentloaded" });
     directRouteUrl = managerPage.url();
     expect(directRouteResponse?.status()).toBeLessThan(400);
+    expect(directRouteUrl).toMatch(/\/dashboard\?error=/);
+    await expect(managerPage.getByRole("heading", { name: "Reports", exact: true })).toHaveCount(0);
 
     await adminPage.getByRole("button", { name: "Reset to role defaults" }).click();
     await expect(adminPage.getByText("Permission overrides reset to role defaults.", { exact: true }).first()).toBeVisible();
     await openManagerStaff(adminPage);
     await expect(adminPage.getByRole("button", { name: "Reset to role defaults" })).toHaveCount(0);
+    await managerPage.goto("/reports", { waitUntil: "domcontentloaded" });
+    inheritedRouteUrl = managerPage.url();
+    await expect(managerPage.getByRole("heading", { name: "Reports", exact: true })).toBeVisible();
   } finally {
     if (!adminPage.isClosed()) await openManagerStaff(adminPage).catch(() => {});
     if (!adminPage.isClosed() && await adminPage.getByRole("button", { name: "Reset to role defaults" }).count().catch(() => 0)) {
@@ -262,4 +268,5 @@ test("staff allow and deny overrides affect direct routes without granting mutat
     await managerContext.close();
   }
   expect(directRouteUrl).toMatch(/\/dashboard\?error=/);
+  expect(inheritedRouteUrl).toMatch(/\/reports$/);
 });

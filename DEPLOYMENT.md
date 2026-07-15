@@ -428,3 +428,13 @@ The person performing deployment is responsible for confirming:
 - The post-deployment validation result.
 
 Deployment is not complete when Vercel reports success. It is complete only after the affected operational workflow has been validated.
+
+## v0.2.15 pilot baseline
+
+The pilot baseline is `v0.2.15 / Sprint 7.5` with migration ceiling `054`. Before pilot access, confirm the linked Supabase and Vercel projects, required environment variables, private `document-attachments` bucket and policies, effective-permission route rejection, and at least one active owner-class account.
+
+Use versioned migrations as the source of truth. If a migration must be applied through the Supabase SQL Editor, record the project ID, source filename, ledger result, and verification evidence; never edit an already-applied file. No pilot CSV should be imported until a backup/recovery path and an owner-approved rollback or correction procedure are known.
+
+If CLI migration access fails because DNS or network resolution is unavailable, do not retry blindly. Use a controlled SQL Editor application only with explicit authorization, apply the reviewed migration once, and verify the migration ledger and live objects afterward.
+
+Pilot rollback is operational rather than an automatic reverse migration: stop writes, preserve evidence, identify the last verified application and migration state, restore through the approved Supabase backup/PITR capability when necessary, and deploy only a reviewed compatible code change or corrective migration. Do not delete real records to make a failed check appear clean.

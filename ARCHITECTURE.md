@@ -649,3 +649,13 @@ An explicit deny wins across the legacy aliases supplied for one business capabi
 Staff overrides are stored in `staff_permission_overrides` and mutated only through the atomic `set_staff_permission_overrides(uuid, jsonb)` function. The function requires `roles.update`, prevents cross-company changes and grant escalation, protects Super Admin/Owner access, and records an activity-log entry in the same transaction. Role assignments remain defaults; individual overrides do not modify the shared role definition.
 
 The request middleware enforces mapped workspace permissions for direct navigation. This supplements, and never replaces, permission checks in server actions and database policies.
+
+## v0.2.15 pilot baseline architecture
+
+The pilot runs on the validated fixed-sidebar shell with a compact topbar, center workdesk, and persistent contextual right console. The same contextual actions become the mobile action bar/drawer without changing business placement.
+
+Authorization is server authoritative: route middleware, layouts, pages, actions, navigation, and RLS resolve the effective permission model. Role grants are defaults, explicit staff deny wins, and private document attachments are served only through authorized application routes and Storage policies.
+
+Procurement conversion uses the atomic PR-to-PO RPC from migrations 053–054. Its transaction creates the header and lines, links the source PR, preserves audit behavior, and relies on the one-active-PO-per-PR index for idempotency. Application code must not reimplement that transaction.
+
+Pilot imports use the catalogue in `src/lib/imports/config.ts`. They follow preview, validation, explicit confirmation, and targeted route revalidation. Opening stock posts ledger transactions at the branch default location; it never writes a balance directly. Audit and reconciliation therefore read the operational tables and ledger instead of maintaining a second pilot data store.

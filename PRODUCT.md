@@ -199,6 +199,8 @@ The system currently covers or is actively implementing the following operationa
 
 Module maturity must be understood separately from visual completion.
 
+Current pilot baseline: `v0.2.15 / Sprint 7.5`, with database migrations through `054`. This is an operational pilot baseline, not a claim that Seri Bako OMS is a full accounting ERP.
+
 A page may exist visually without its full workflow, validation, database integration, permissions, and downstream effects being complete.
 
 ### Operational
@@ -213,6 +215,12 @@ These modules are expected to support their primary working flow:
 - Purchase Requests.
 - Purchase Orders.
 - Goods Receiving.
+- Purchase Returns.
+- Supplier Invoices.
+- Stock Counts, Transfers, and Wastage.
+- Products, Recipes / BOM, and Production Jobs.
+- Company, branch, location, staff, and role administration.
+- Private document attachments and activity history.
 - Roles and permissions.
 
 ### MVP or In Progress
@@ -220,12 +228,7 @@ These modules are expected to support their primary working flow:
 These modules may have working core flows while secondary cases remain incomplete:
 
 - Dashboard.
-- Stock Count.
-- Production Jobs.
-- User administration.
-- Company Profile.
-- Attachments.
-- Comments and timeline.
+- Pilot data onboarding and reconciliation.
 - Export tools.
 - Advanced stock reconciliation.
 - Cross-module automation.
@@ -234,9 +237,6 @@ These modules may have working core flows while secondary cases remain incomplet
 
 The following areas are not considered complete unless later documentation explicitly states otherwise:
 
-- Recipe and Bill of Materials.
-- Production material planning.
-- Supplier invoices.
 - Accounts payable.
 - Finance and general ledger.
 - Full debtor and creditor management.

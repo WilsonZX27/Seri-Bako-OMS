@@ -100,3 +100,7 @@ Final release evidence records migration status, typecheck, lint, production bui
 - Optimized production build and unauthenticated login/redirect smoke: passed. Authenticated full regression ran on a clean long-lived local server because sandboxed foreground production processes could not reach Supabase.
 - Permission mutation cleanup passed: the manager fixture returned to role defaults after direct-route denial verification.
 - Release metadata updated only after all required gates passed: `v0.2.15 / Sprint 7.5`.
+
+## Pilot baseline handoff
+
+Sprint 7.5 remains the released application baseline for the v1.0 pilot preparation milestone; no new application version or migration is introduced. Pilot operators should follow `PILOT_BASELINE.md`, use only the catalogue-matched files in `import-templates/`, reconcile with the read-only checks in `DATA_RECONCILIATION.md`, and capture acceptance in `PILOT_QA_CHECKLIST.md`.

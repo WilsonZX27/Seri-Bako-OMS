@@ -1,0 +1,2 @@
+branch_code,item_code,quantity,uom,unit_cost,transaction_date,notes
+EXAMPLE-BRANCH-DELETE,EXAMPLE-ITEM-DELETE,1,KG,0,2099-01-01,PLACEHOLDER ROW - DELETE BEFORE IMPORT

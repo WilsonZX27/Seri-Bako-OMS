@@ -1,0 +1,2 @@
+item_code,item_name,category,base_uom,safety_stock,reorder_level,default_unit_cost,supplier_code,supplier_item_code,supplier_price,purchase_uom,minimum_order_qty,lead_time_days,status
+EXAMPLE-ITEM-DELETE,Placeholder Item - DELETE BEFORE IMPORT,Raw Material,KG,0,0,0,EXAMPLE-SUP-DELETE,PLACEHOLDER-SKU,0,KG,0,0,active

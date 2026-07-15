@@ -450,6 +450,10 @@ Seri Bako ERP must use a controlled operational color system.
 - Dashboard metrics: icon and label sit together on the left, with the primary number aligned strongly to the right.
 - Typography: right-console instructions, metadata, alerts, and control labels use the shared compact scale; local oversized body copy is not allowed.
 
+## v0.2.15 pilot UI authority
+
+Pilot operation keeps the validated Sprint 7.4–7.5 shell and responsive contracts. Historical mockups are mood references only: deep green, warm neutral surfaces, rectangular controls, restrained amber accents, and compact operational tone. They do not override current workflows, navigation, action placement, typography, density, right-console behavior, or mobile rules. Pilot preparation must not introduce one-off page structures or fabricated data.
+
 Do not introduce random greens, browns, reds, blues, gradients, or decorative colors.
 
 The product visual identity is:

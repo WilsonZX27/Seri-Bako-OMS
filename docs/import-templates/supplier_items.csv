@@ -1,0 +1,2 @@
+supplier_code,supplier_name,item_code,purchase_uom,unit_cost,supplier_item_code,supplier_item_name,conversion_rate,lead_time_days,moq,active
+EXAMPLE-SUP-DELETE,,EXAMPLE-ITEM-DELETE,KG,0,PLACEHOLDER-SKU,Placeholder Supplier Item - DELETE BEFORE IMPORT,1,0,0,true

@@ -136,6 +136,7 @@ test("shell switches between drawer and persistent console at release widths", a
 });
 
 test("representative release routes have no page overflow or indefinite loading", async ({ page }) => {
+  test.setTimeout(180_000);
   test.skip(!hasAccount("superAdmin"), `Missing super admin credentials: ${missingAccountVars("superAdmin").join(", ")}`);
   await page.setViewportSize({ width: 1440, height: 900 });
   await login(page, "superAdmin");

@@ -1,0 +1,2 @@
+supplier_code,supplier_name,contact_name,email,phone,address,payment_terms_days,status
+EXAMPLE-SUP-DELETE,Placeholder Supplier - DELETE BEFORE IMPORT,Placeholder Contact,placeholder@example.invalid,0000000000,Placeholder address,30,active

@@ -6,6 +6,13 @@ For product scope and operating principles, read `PRODUCT.md`.
 
 For UI and interaction standards, read `DESIGN.md`.
 
+## Current Pilot Baseline
+
+- Application release: `v0.2.15 / Sprint 7.5`.
+- Database migration ceiling: `054_sprint_7_5_pr_to_po_supplier_scope_fix`.
+- Pilot preparation is documentation and operator readiness only; it does not change the application release.
+- Start with `docs/PILOT_BASELINE.md`, use the controlled CSV files in `docs/import-templates/`, and record sign-off in `docs/PILOT_QA_CHECKLIST.md`.
+
 ## Technology Stack
 
 The application is built with:
@@ -119,6 +126,8 @@ http://localhost:3000
 npm run dev
 npm run build
 npm run lint
+npm run typecheck
+npm run test:e2e
 ```
 
 Additional commands may exist in `package.json`.
@@ -165,6 +174,23 @@ The application includes or is actively developing:
 - Comments, attachments, and activity history where implemented.
 
 Module availability depends on permissions and implementation status.
+
+## Pilot Data Onboarding
+
+Import only through the application's preview-and-confirm workflow. Use stable codes and resolve row errors before confirmation; the importer does not silently create missing suppliers, items, branches, roles, or UOM conversions.
+
+Recommended order:
+
+1. Suppliers.
+2. Items.
+3. Supplier-item purchasing records where needed.
+4. Products where recipes or production require them.
+5. Recipes through the supported application form; there is no recipe CSV importer.
+6. Opening stock last, with explicit posting confirmation.
+
+Opening stock uses `branch_code`; the application resolves that branch's default internal location. Preview each CSV and remove its placeholder example row before any pilot import.
+
+The repository does not seed or assume dummy business records for production. Suppliers, Items, Products, Recipes, supplier mappings, and opening balances must be deliberately onboarded and reconciled.
 
 ## Authentication and Staff Onboarding
 

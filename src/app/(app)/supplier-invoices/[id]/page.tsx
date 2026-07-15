@@ -6,6 +6,7 @@ import { DocumentActionBar, DocumentActionLink } from "@/components/document-act
 import { AttachmentPanel, CommentsPanel, DocumentTimeline, RevisionPanel } from "@/components/documents/document-panels";
 import { DocumentSideSection, DocumentWorkspace } from "@/components/documents/document-workspace";
 import { StatusBadge } from "@/components/ui/status-badge";
+import { BlockedDestructiveAction } from "@/components/ui/danger-confirm-form";
 import { formatCurrency } from "@/lib/utils";
 import { recordSupplierInvoicePayment } from "@/server/actions/supplier-invoices";
 import { getPermissionMap } from "@/server/auth/permissions";
@@ -41,6 +42,7 @@ export default async function SupplierInvoiceDetailPage({ params, searchParams }
             <DocumentActionBar>
               <DocumentActionLink href={`/purchase-orders/${invoice.purchase_order_id}`} variant="outline">View PO</DocumentActionLink>
               <DocumentActionLink href={`/goods-receivings/${invoice.goods_receiving_id}`} variant="outline">View GRN</DocumentActionLink>
+              <BlockedDestructiveAction buttonLabel="Delete invoice" title={`Cannot delete ${invoice.invoice_no}`} description="The invoice is linked to supplier, PO, GRN, document, and payment history." recommendation="Use the existing cancellation or correction process when available; paid history must remain auditable." />
             </DocumentActionBar>
             {canPay ? (
               <form action={recordSupplierInvoicePayment.bind(null, invoice.id)} className="mt-3 grid gap-2">

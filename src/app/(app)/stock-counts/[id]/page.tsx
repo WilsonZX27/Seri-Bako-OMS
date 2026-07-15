@@ -3,6 +3,7 @@ import { DocumentActionBar, DocumentActionForm } from "@/components/document-act
 import { AttachmentPanel, CommentsPanel, DocumentTimeline, RevisionPanel } from "@/components/documents/document-panels";
 import { DocumentSideSection, DocumentWorkspace } from "@/components/documents/document-workspace";
 import { Card, CardContent } from "@/components/ui/card";
+import { BlockedDestructiveAction } from "@/components/ui/danger-confirm-form";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { formatNumber } from "@/lib/utils";
 import { approveStockCount, cancelStockCount, postStockCount, rejectStockCount, reviewStockCount, submitStockCount } from "@/server/actions/stock-counts";
@@ -55,6 +56,7 @@ export default async function StockCountDetailPage({ params }: { params: Promise
                 {canPost ? <DocumentActionForm action={postStockCount.bind(null, count.id)} pendingLabel="Posting..." variant="outline">Post variance</DocumentActionForm> : null}
                 {canReject ? <DocumentActionForm action={rejectStockCount.bind(null, count.id)} pendingLabel="Rejecting..." variant="destructive">Reject</DocumentActionForm> : null}
                 {canCancel ? <DocumentActionForm action={cancelStockCount.bind(null, count.id)} pendingLabel="Cancelling..." variant="ghost">Cancel</DocumentActionForm> : null}
+                <BlockedDestructiveAction buttonLabel="Delete stock count" title={`Cannot delete ${count.count_no}`} description={count.status === "posted" ? "This count produced an auditable variance adjustment." : "The count preserves physical quantities and workflow review."} recommendation={count.status === "posted" ? "Post a new count or correction; physical deletion is prohibited." : "Cancel or reject the count through its current workflow."} />
               </DocumentActionBar>
             ) : (
               <p className="text-sm text-muted-foreground">You can view this count, but there is no workflow action available for your role or this status.</p>

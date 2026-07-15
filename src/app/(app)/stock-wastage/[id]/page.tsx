@@ -3,6 +3,7 @@ import { DocumentActionBar, DocumentActionForm } from "@/components/document-act
 import { AttachmentPanel, CommentsPanel, DocumentTimeline, RevisionPanel } from "@/components/documents/document-panels";
 import { DocumentSideSection, DocumentWorkspace } from "@/components/documents/document-workspace";
 import { Card, CardContent } from "@/components/ui/card";
+import { BlockedDestructiveAction } from "@/components/ui/danger-confirm-form";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { formatNumber } from "@/lib/utils";
 import { cancelStockWastage, postStockWastage, rejectStockWastage } from "@/server/actions/stock-operations";
@@ -41,9 +42,10 @@ export default async function StockWastageDetailPage({ params }: { params: Promi
                 <DocumentActionForm action={postStockWastage.bind(null, wastage.id)} pendingLabel="Posting...">Post wastage</DocumentActionForm>
                 <DocumentActionForm action={rejectStockWastage.bind(null, wastage.id)} pendingLabel="Rejecting..." variant="destructive">Reject</DocumentActionForm>
                 <DocumentActionForm action={cancelStockWastage.bind(null, wastage.id)} pendingLabel="Cancelling..." variant="ghost">Cancel</DocumentActionForm>
+                <BlockedDestructiveAction buttonLabel="Delete wastage" title={`Cannot delete ${wastage.wastage_no}`} description="Wastage records preserve evidence and stock history." recommendation="Cancel or reject the draft. Posted wastage requires a controlled stock correction." />
               </DocumentActionBar>
             ) : (
-              <p className="text-sm text-muted-foreground">No workflow action is available for this wastage status.</p>
+              <BlockedDestructiveAction buttonLabel="Delete wastage" title={`Cannot delete ${wastage.wastage_no}`} description="Posted wastage has stock-impacting ledger rows." recommendation="Use a controlled stock correction; physical deletion is prohibited." />
             )}
           </DocumentSideSection>
           {evidenceMissing ? (

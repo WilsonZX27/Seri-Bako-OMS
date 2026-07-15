@@ -42,7 +42,7 @@ export function AttachmentUploadForm({ action }: { action: (state: UploadState, 
       </Field>
       {fileError || state.error ? <p role="alert" className="text-xs text-destructive">{fileError ?? state.error}</p> : null}
       {state.success ? <p role="status" className="text-xs text-success">{state.success}</p> : null}
-      <SubmitButton type="submit" variant="secondary" pendingLabel="Uploading..." className="w-full justify-center">Upload attachment</SubmitButton>
+      <SubmitButton type="submit" pendingLabel="Uploading..." className="w-full justify-center">Upload attachment</SubmitButton>
     </form>
   );
 }

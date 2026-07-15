@@ -2,6 +2,7 @@ import { DocumentActionBar, DocumentActionForm } from "@/components/document-act
 import { AttachmentPanel, CommentsPanel, DocumentTimeline, RevisionPanel } from "@/components/documents/document-panels";
 import { DocumentSideSection, DocumentWorkspace } from "@/components/documents/document-workspace";
 import { Card, CardContent } from "@/components/ui/card";
+import { BlockedDestructiveAction } from "@/components/ui/danger-confirm-form";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { formatNumber } from "@/lib/utils";
 import { cancelStockTransfer, postStockTransfer, rejectStockTransfer, startStockTransfer } from "@/server/actions/stock-operations";
@@ -41,9 +42,10 @@ export default async function StockTransferDetailPage({ params }: { params: Prom
                 {canPost ? <DocumentActionForm action={postStockTransfer.bind(null, transfer.id)} pendingLabel="Posting...">Complete transfer</DocumentActionForm> : null}
                 <DocumentActionForm action={rejectStockTransfer.bind(null, transfer.id)} pendingLabel="Rejecting..." variant="destructive">Reject</DocumentActionForm>
                 <DocumentActionForm action={cancelStockTransfer.bind(null, transfer.id)} pendingLabel="Cancelling..." variant="ghost">Cancel</DocumentActionForm>
+                <BlockedDestructiveAction buttonLabel="Delete transfer" title={`Cannot delete ${transfer.transfer_no}`} description="Transfers remain linked to their source and destination stock movements." recommendation="Cancel or reject before completion. Completed transfers require a controlled compensating transfer or correction." />
               </DocumentActionBar>
             ) : (
-              <p className="text-sm text-muted-foreground">No workflow action is available for this transfer status.</p>
+              <BlockedDestructiveAction buttonLabel="Delete transfer" title={`Cannot delete ${transfer.transfer_no}`} description="Completed or closed transfer history preserves stock integrity." recommendation="Create a controlled compensating transfer or correction; physical deletion is prohibited." />
             )}
           </DocumentSideSection>
           {bundle ? (

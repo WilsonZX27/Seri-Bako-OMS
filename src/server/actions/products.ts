@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { isMockMode } from "@/lib/mock-mode";
 import { createClient } from "@/lib/supabase/server";
 import { productSchema } from "@/lib/validations/product";
+import { requirePermissionOrRedirect } from "@/server/actions/error-handling";
 import { uploadMasterDataImage } from "@/server/storage/master-data-image";
 
 function cleanText(value: unknown) {
@@ -85,14 +86,26 @@ export async function updateProduct(id: string, formData: FormData) {
 }
 
 export async function deleteProduct(id: string) {
+  await requirePermissionOrRedirect("production.create", `/products/${id}`);
   if (isMockMode()) {
-    revalidatePath("/products");
-    return;
+    redirect("/products");
   }
 
   const supabase = await createClient();
-  const { error } = await supabase.from("products").delete().eq("id", id);
+  const { error } = await supabase.from("products").update({ status: "inactive" }).eq("id", id);
   if (error) throw new Error(error.message);
 
   revalidatePath("/products");
+  redirect("/products?success=Product%20deactivated.");
+}
+
+export async function restoreProduct(id: string) {
+  await requirePermissionOrRedirect("production.create", `/products/${id}`);
+  if (!isMockMode()) {
+    const supabase = await createClient();
+    const { error } = await supabase.from("products").update({ status: "active" }).eq("id", id);
+    if (error) throw new Error(error.message);
+  }
+  revalidatePath("/products");
+  redirect(`/products/${id}?success=Product%20restored.`);
 }

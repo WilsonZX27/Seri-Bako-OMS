@@ -122,7 +122,7 @@ export function CommentsPanel({ documentId, comments }: { documentId: string; co
       <div className="space-y-3">
         <form action={addDocumentComment.bind(null, documentId)} className="space-y-2">
           <Textarea name="comment_text" placeholder="Add a comment for the document history" required className="min-h-[96px] w-full resize-none" />
-          <SubmitButton type="submit" variant="secondary" pendingLabel="Saving..." className="w-full justify-center">Add comment</SubmitButton>
+          <SubmitButton type="submit" pendingLabel="Saving..." className="w-full justify-center">Add comment</SubmitButton>
         </form>
         <div className="space-y-3">
           {comments.map((comment) => (
@@ -149,7 +149,7 @@ export function ApprovalPanel({ document, approval, approvalSteps }: { document:
           <Badge variant={document.approval_status === "approved" ? "success" : document.approval_status === "rejected" ? "danger" : "secondary"}>{document.approval_status}</Badge>
         </div>
         <div className="grid gap-2">
-          <form action={submitDocument.bind(null, document.id)}><SubmitButton type="submit" variant="secondary" pendingLabel="Sending..." className="w-full justify-center">Submit for approval</SubmitButton></form>
+          <form action={submitDocument.bind(null, document.id)}><SubmitButton type="submit" pendingLabel="Sending..." className="w-full justify-center">Submit for approval</SubmitButton></form>
           <form action={postDocument.bind(null, document.id)}><SubmitButton type="submit" variant="outline" pendingLabel="Posting..." className="w-full justify-center">Post</SubmitButton></form>
           <form action={cancelDocument.bind(null, document.id)}><SubmitButton type="submit" variant="ghost" pendingLabel="Processing..." className="w-full justify-center">Cancel</SubmitButton></form>
         </div>

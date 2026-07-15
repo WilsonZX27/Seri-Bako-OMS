@@ -1,5 +1,7 @@
+import Link from "next/link";
 import { PurchaseRequestForm } from "@/components/procurement-forms";
 import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { SubmitButton } from "@/components/ui/submit-button";
 import { PageHeader } from "@/components/ui/page-header";
 import { ConsoleSection } from "@/components/layout/right-console";
@@ -35,8 +37,8 @@ export default async function NewPurchaseRequestPage({ searchParams }: { searchP
           <div>
             <ConsoleSection title="PR Actions">
               <div className="grid gap-2">
-                <SubmitButton type="submit" form="purchase-request-form" pendingLabel="Creating..." className="w-full">Submit PR</SubmitButton>
-                <SubmitButton type="submit" form="purchase-request-form" pendingLabel="Saving..." variant="outline" className="w-full">Save Draft</SubmitButton>
+                <SubmitButton type="submit" form="purchase-request-form" pendingLabel="Creating..." className="w-full">Create PR</SubmitButton>
+                <Button asChild variant="ghost" className="w-full"><Link href="/purchase-requests">Cancel</Link></Button>
               </div>
             </ConsoleSection>
             <ConsoleSection title="Request Summary">

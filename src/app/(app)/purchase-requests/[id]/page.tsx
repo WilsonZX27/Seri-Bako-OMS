@@ -9,6 +9,7 @@ import { DocumentSideSection, DocumentWorkspace } from "@/components/documents/d
 import { StaleWorkflowRefresh } from "@/components/documents/stale-workflow-refresh";
 import { PriorityBadge } from "@/components/priority-badge";
 import { SubmitButton } from "@/components/ui/submit-button";
+import { BlockedDestructiveAction } from "@/components/ui/danger-confirm-form";
 import { getPrWorkflowLabel, getPrWorkflowStep, PR_WORKFLOW_STEP_LABELS, PURCHASE_REQUEST_WORKFLOW_STEPS } from "@/lib/purchase-request-status";
 import { formatCurrency, formatNumber } from "@/lib/utils";
 import {
@@ -100,7 +101,7 @@ export default async function PurchaseRequestDetailPage({
         <>
           <DocumentSideSection title="Primary Action" description="Only the next valid workflow action is shown.">
             <DocumentActionBar>
-              {canSubmit ? <DocumentActionForm action={submitPurchaseRequest.bind(null, request.id)} pendingLabel="Submitting..." variant="secondary">Submit to Manager Review</DocumentActionForm> : null}
+              {canSubmit ? <DocumentActionForm action={submitPurchaseRequest.bind(null, request.id)} pendingLabel="Submitting...">Submit to Manager Review</DocumentActionForm> : null}
               {canCancel ? <DocumentActionForm action={cancelPurchaseRequest.bind(null, request.id)} pendingLabel="Cancelling..." variant="ghost">Cancel draft</DocumentActionForm> : null}
               {canManagerReview ? <DocumentActionForm action={adminReviewPurchaseRequest.bind(null, request.id)} pendingLabel="Approving...">Manager Approve</DocumentActionForm> : null}
               {canAdminReview ? <DocumentActionForm action={purchasingReviewPurchaseRequest.bind(null, request.id)} pendingLabel="Reviewing...">Complete Admin Review</DocumentActionForm> : null}
@@ -108,6 +109,7 @@ export default async function PurchaseRequestDetailPage({
               {request.status === "converted_to_po" && linkedPurchaseOrders[0] ? (
                 <Button asChild className="w-full justify-center"><a href={`/purchase-orders/${linkedPurchaseOrders[0].id}`}>Open PO</a></Button>
               ) : null}
+              <BlockedDestructiveAction buttonLabel="Delete purchase request" title={`Cannot delete ${request.request_no}`} description="This request is linked to workflow and document audit history." recommendation={request.status === "draft" ? "Use Cancel draft to stop the request while preserving its history." : "Use Reject, Return, or the current workflow action; converted requests must remain linked to their purchase order."} />
             </DocumentActionBar>
             {canConvert ? (
               <form action={convertPurchaseRequestToPurchaseOrder.bind(null, request.id)} className="mt-3 space-y-2">

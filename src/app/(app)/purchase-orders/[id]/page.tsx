@@ -4,6 +4,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { DocumentActionBar, DocumentActionForm, DocumentActionLink } from "@/components/document-action-bar";
 import { DocumentNumber } from "@/components/document-number";
 import { StatusBadge } from "@/components/ui/status-badge";
+import { BlockedDestructiveAction } from "@/components/ui/danger-confirm-form";
 import { AttachmentPanel, CommentsPanel, DocumentTimeline, RevisionPanel } from "@/components/documents/document-panels";
 import { DocumentSideSection, DocumentWorkspace } from "@/components/documents/document-workspace";
 import { PriorityBadge } from "@/components/priority-badge";
@@ -68,16 +69,17 @@ export default async function PurchaseOrderDetailPage({ params }: { params: Prom
         <>
           <DocumentSideSection title="Primary Action" description="Only the next valid workflow action is shown.">
             <DocumentActionBar>
-              {!fromApprovedPr && order.status === "draft" && permissions["po.submit"] ? <DocumentActionForm action={submitPurchaseOrder.bind(null, order.id)} pendingLabel="Submitting..." variant="secondary">Submit approval</DocumentActionForm> : null}
+              {!fromApprovedPr && order.status === "draft" && permissions["po.submit"] ? <DocumentActionForm action={submitPurchaseOrder.bind(null, order.id)} pendingLabel="Submitting...">Submit approval</DocumentActionForm> : null}
               {!fromApprovedPr && order.status === "pending_approval" && permissions["po.approve"] ? (
                 <>
                   <DocumentActionForm action={approvePurchaseOrder.bind(null, order.id)} pendingLabel="Approving...">Approve</DocumentActionForm>
                   <DocumentActionForm action={rejectPurchaseOrder.bind(null, order.id)} pendingLabel="Rejecting..." variant="destructive">Reject</DocumentActionForm>
                 </>
               ) : null}
-              {order.status === "approved" && permissions["po.send"] ? <DocumentActionForm action={sendPurchaseOrder.bind(null, order.id)} pendingLabel="Sending..." variant="outline">Send to supplier</DocumentActionForm> : null}
+              {order.status === "approved" && permissions["po.send"] ? <DocumentActionForm action={sendPurchaseOrder.bind(null, order.id)} pendingLabel="Sending...">Send to supplier</DocumentActionForm> : null}
               {["sent", "partial_received"].includes(order.status) && permissions["po.receive"] ? <DocumentActionLink href={`/goods-receivings/new?po_id=${order.id}`} variant="outline">Receive goods</DocumentActionLink> : null}
               {order.status === "partial_received" && permissions["purchase_order.close"] ? <DocumentActionForm action={closePurchaseOrder.bind(null, order.id)} pendingLabel="Closing..." variant="outline">Close</DocumentActionForm> : null}
+              <BlockedDestructiveAction buttonLabel="Delete purchase order" title={`Cannot delete ${order.po_no}`} description="Purchase orders remain linked to approvals, suppliers, receiving, and audit history." recommendation={order.status === "draft" ? "Use the existing cancel or reject workflow when authorized." : "Close or correct the document through its existing workflow; received history cannot be deleted."} />
             </DocumentActionBar>
             {!hasPrimaryAction ? <p className="text-sm text-muted-foreground">You can view this document, but there is no workflow action available for your role or this status.</p> : null}
           </DocumentSideSection>

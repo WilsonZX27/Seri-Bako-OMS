@@ -1,7 +1,7 @@
 "use client";
 
 import { LoaderCircle } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useFormStatus } from "react-dom";
 import { Button, type ButtonProps } from "@/components/ui/button";
 
@@ -21,22 +21,34 @@ export function SubmitButton({
 }: SubmitButtonProps) {
   const { pending } = useFormStatus();
   const [submitted, setSubmitted] = useState(false);
+  const buttonRef = useRef<HTMLButtonElement>(null);
+  const sawPending = useRef(false);
   const formId = typeof props.form === "string" ? props.form : null;
 
   useEffect(() => {
-    if (!formId) return;
     const markSubmitted = (event: SubmitEvent) => {
-      if ((event.target as HTMLFormElement | null)?.id === formId) setSubmitted(true);
+      const form = event.target as HTMLFormElement | null;
+      if (formId ? form?.id === formId : form === buttonRef.current?.form) {
+        setSubmitted(event.submitter === buttonRef.current);
+      }
     };
     document.addEventListener("submit", markSubmitted, true);
     return () => document.removeEventListener("submit", markSubmitted, true);
   }, [formId]);
 
-  const isPending = pending || submitted;
+  useEffect(() => {
+    if (pending) sawPending.current = true;
+    else if (sawPending.current) {
+      sawPending.current = false;
+      setSubmitted(false);
+    }
+  }, [pending]);
+
+  const isPending = submitted && (formId ? true : pending);
 
   return (
     <>
-      <Button {...props} disabled={disabled || isPending} aria-busy={isPending}>
+      <Button ref={buttonRef} type="submit" {...props} disabled={disabled || isPending} aria-busy={isPending}>
         {isPending ? <LoaderCircle className="h-4 w-4 animate-spin" /> : null}
         {isPending ? pendingLabel : children}
       </Button>

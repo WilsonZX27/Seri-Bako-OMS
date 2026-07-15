@@ -6,6 +6,7 @@ import { DocumentSideSection, DocumentWorkspace } from "@/components/documents/d
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { SubmitButton } from "@/components/ui/submit-button";
+import { BlockedDestructiveAction } from "@/components/ui/danger-confirm-form";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { formatCurrency, formatNumber } from "@/lib/utils";
 import { approveProductionJob, cancelProductionJob, postProductionJob, rejectProductionJob, submitProductionJob } from "@/server/actions/production-jobs";
@@ -67,6 +68,7 @@ export default async function ProductionJobDetailPage({
               {canPost ? <DocumentActionForm action={postProductionJob.bind(null, job.id)} pendingLabel="Posting...">Post Production</DocumentActionForm> : null}
               {job.stock_transaction_id ? <DocumentActionLink href={`/stock-transactions/${job.stock_transaction_id}`} variant="outline">View Stock Movement</DocumentActionLink> : null}
               {canCancel ? <DocumentActionForm action={cancelProductionJob.bind(null, job.id)} pendingLabel="Cancelling..." variant="outline" className="text-destructive hover:text-destructive">Cancel Job</DocumentActionForm> : null}
+              <BlockedDestructiveAction buttonLabel="Delete production job" title={`Cannot delete ${job.production_job_no}`} description={job.status === "posted" ? "This job has posted material consumption and output movements." : "Production jobs retain their approval and material history."} recommendation={job.status === "posted" ? "Use a controlled stock correction; physical deletion is prohibited." : "Cancel or reject the job through its current workflow."} />
             </DocumentActionBar>
             {canReject ? (
               <form action={rejectProductionJob.bind(null, job.id)} className="mt-3 space-y-2">

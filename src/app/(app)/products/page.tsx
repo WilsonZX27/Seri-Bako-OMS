@@ -9,7 +9,6 @@ import { ConsoleSection } from "@/components/layout/right-console";
 import { WorkspaceGrid } from "@/components/layout/workspace-layout";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { paginateRows } from "@/lib/table-state";
-import { deleteProduct } from "@/server/actions/products";
 import { getProducts } from "@/server/queries/products";
 
 export default async function ProductsPage({
@@ -75,11 +74,6 @@ export default async function ProductsPage({
                         <Button asChild variant="outline" size="sm">
                           <Link href={`/products/${product.id}`}>Edit</Link>
                         </Button>
-                        <form action={deleteProduct.bind(null, product.id)}>
-                          <Button variant="ghost" size="sm">
-                            Delete
-                          </Button>
-                        </form>
                       </div>
                     </TableCell>
                   </TableRow>

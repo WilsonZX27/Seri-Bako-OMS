@@ -3,9 +3,10 @@ import { DocumentActionBar, DocumentActionForm, DocumentActionLink } from "@/com
 import { AttachmentPanel, CommentsPanel, DocumentTimeline, RevisionPanel } from "@/components/documents/document-panels";
 import { DocumentSideSection, DocumentWorkspace } from "@/components/documents/document-workspace";
 import { Card, CardContent } from "@/components/ui/card";
+import { BlockedDestructiveAction } from "@/components/ui/danger-confirm-form";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { formatCurrency, formatNumber } from "@/lib/utils";
-import { postGoodsReceiving } from "@/server/actions/goods-receivings";
+import { cancelGoodsReceiving, postGoodsReceiving } from "@/server/actions/goods-receivings";
 import { getPermissionMap } from "@/server/auth/permissions";
 import { getDocumentBundle } from "@/server/queries/documents";
 import { getGoodsReceiving } from "@/server/queries/goods-receivings";
@@ -20,7 +21,7 @@ export default async function GoodsReceivingDetailPage({ params }: { params: Pro
   const { id } = await params;
   const [{ receiving, lines }, permissions] = await Promise.all([
     getGoodsReceiving(id),
-    getPermissionMap(["grn.post"]),
+    getPermissionMap(["grn.post", "goods_receiving.cancel"]),
   ]);
   const documentBundle = receiving.document_id ? await getDocumentBundle(receiving.document_id) : null;
   const totalReceivedValue = lines.reduce((sum, line) => sum + line.received_qty * line.unit_cost, 0);
@@ -43,6 +44,8 @@ export default async function GoodsReceivingDetailPage({ params }: { params: Pro
             <DocumentActionBar>
               <DocumentActionLink href={`/purchase-orders/${receiving.purchase_order_id}`} variant="outline">View PO</DocumentActionLink>
               {hasPrimaryAction ? <DocumentActionForm action={postGoodsReceiving.bind(null, receiving.id)} pendingLabel="Posting...">Post to stock</DocumentActionForm> : null}
+              {receiving.status === "draft" && permissions["goods_receiving.cancel"] ? <DocumentActionForm action={cancelGoodsReceiving.bind(null, receiving.id)} pendingLabel="Cancelling..." variant="destructive">Cancel draft</DocumentActionForm> : null}
+              <BlockedDestructiveAction buttonLabel="Delete receiving" title={`Cannot delete ${receiving.grn_no}`} description={receiving.status === "posted" ? "This receiving has posted stock movements and must remain in the audit trail." : "This receiving is linked to its purchase order and document history."} recommendation={receiving.status === "posted" ? "Use a purchase return or correction workflow. Physical deletion is prohibited." : "Cancel the draft to preserve its linked history."} />
             </DocumentActionBar>
             {!hasPrimaryAction && receiving.status === "draft" ? <p className="mt-3 text-sm text-muted-foreground">You can view this GRN, but you do not have permission to post it.</p> : null}
           </DocumentSideSection>

@@ -2,6 +2,7 @@ import { DocumentActionBar, DocumentActionForm, DocumentActionLink } from "@/com
 import { AttachmentPanel, CommentsPanel, DocumentTimeline, RevisionPanel } from "@/components/documents/document-panels";
 import { DocumentSideSection, DocumentWorkspace } from "@/components/documents/document-workspace";
 import { Card, CardContent } from "@/components/ui/card";
+import { BlockedDestructiveAction } from "@/components/ui/danger-confirm-form";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { formatCurrency, formatNumber } from "@/lib/utils";
 import { cancelPurchaseReturn, postPurchaseReturn } from "@/server/actions/purchase-returns";
@@ -41,6 +42,7 @@ export default async function PurchaseReturnDetailPage({ params, searchParams }:
               <DocumentActionLink href={`/goods-receivings/${purchaseReturn.goods_receiving_id}`} variant="outline">View GRN</DocumentActionLink>
               {canPost ? <DocumentActionForm action={postPurchaseReturn.bind(null, purchaseReturn.id)} pendingLabel="Posting...">Post return</DocumentActionForm> : null}
               {canCancel ? <DocumentActionForm action={cancelPurchaseReturn.bind(null, purchaseReturn.id)} pendingLabel="Cancelling..." variant="destructive">Cancel draft</DocumentActionForm> : null}
+              <BlockedDestructiveAction buttonLabel="Delete return" title={`Cannot delete ${purchaseReturn.purchase_return_no}`} description={purchaseReturn.status === "posted" ? "This return has stock-impacting ledger rows and must remain auditable." : "This return is linked to its goods receiving record."} recommendation={purchaseReturn.status === "draft" ? "Cancel the draft to preserve its relationship history." : "Create a correction through the existing stock workflow; physical deletion is prohibited."} />
             </DocumentActionBar>
             {filters.error ? <p className="mt-3 text-sm text-destructive">{filters.error}</p> : null}
           </DocumentSideSection>

@@ -361,16 +361,11 @@ export function StaffForm({
 export function StaffAuthSetupFields({ formId }: { formId: string }) {
   return (
     <div className="space-y-3">
-      <label className="block rounded-[2px] border bg-white p-3 text-sm">
-        <input className="mr-2" type="radio" name="auth_setup_method" value="temporary_password" defaultChecked form={formId} />
-        Create login with temporary password
-        <span className="mt-1 block text-xs text-muted-foreground">Recommended for internal staff. Avoids email invite expiry and rate limits.</span>
-      </label>
-      <label className="block rounded-[2px] border bg-white p-3 text-sm">
-        <input className="mr-2" type="radio" name="auth_setup_method" value="email_invitation" form={formId} />
-        Send email invitation
-        <span className="mt-1 block text-xs text-muted-foreground">Optional. Depends on email delivery and link expiry.</span>
-      </label>
+      <input type="hidden" name="auth_setup_method" value="temporary_password" form={formId} />
+      <div className="rounded-[2px] border bg-white p-3 text-xs">
+        <p className="font-medium">Create login with temporary password</p>
+        <p className="mt-1 text-muted-foreground">Internal staff must change this password after their first sign-in.</p>
+      </div>
       <Field label="Temporary Password">
         <Input name="temporary_password" type="text" placeholder="Leave blank to auto-generate" autoComplete="off" form={formId} className="form-control-compact" />
         <p className="mt-1 text-xs text-muted-foreground">Do not reuse passwords. Share temporary passwords securely and ask staff to change immediately.</p>

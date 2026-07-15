@@ -26,7 +26,6 @@ async function identity() {
 
 function extractTransfer(formData: FormData) {
   const itemIds = formData.getAll("line_item_id").map(String);
-  const barcodes = formData.getAll("line_barcode").map(String);
   const qtys = formData.getAll("line_quantity").map(String);
   const uoms = formData.getAll("line_uom").map(String);
   const remarks = formData.getAll("line_remarks").map(String);
@@ -40,13 +39,12 @@ function extractTransfer(formData: FormData) {
     to_location_id: formData.get("to_location_id"),
     status: formData.get("status") ?? "draft",
     remarks: formData.get("remarks"),
-    lines: itemIds.map((itemId, i) => ({ item_id: itemId, barcode: barcodes[i], quantity: qtys[i], uom: uoms[i], remarks: remarks[i] })).filter((line) => line.item_id && enabled.has(line.item_id)),
+    lines: itemIds.map((itemId, i) => ({ item_id: itemId, quantity: qtys[i], uom: uoms[i], remarks: remarks[i] })).filter((line) => line.item_id && enabled.has(line.item_id)),
   });
 }
 
 function extractWastage(formData: FormData) {
   const itemIds = formData.getAll("line_item_id").map(String);
-  const barcodes = formData.getAll("line_barcode").map(String);
   const qtys = formData.getAll("line_quantity").map(String);
   const uoms = formData.getAll("line_uom").map(String);
   const reasons = formData.getAll("line_reason").map(String);
@@ -61,7 +59,7 @@ function extractWastage(formData: FormData) {
     reason: formData.get("reason"),
     status: formData.get("status") ?? "draft",
     remarks: formData.get("remarks"),
-    lines: itemIds.map((itemId, i) => ({ item_id: itemId, barcode: barcodes[i], quantity: qtys[i], uom: uoms[i], reason: reasons[i], batch_no: batches[i], expiry_date: expiries[i], remarks: remarks[i] })).filter((line) => line.item_id),
+    lines: itemIds.map((itemId, i) => ({ item_id: itemId, quantity: qtys[i], uom: uoms[i], reason: reasons[i], batch_no: batches[i], expiry_date: expiries[i], remarks: remarks[i] })).filter((line) => line.item_id),
   });
 }
 
@@ -108,7 +106,7 @@ export async function createStockTransfer(formData: FormData) {
     const docId = await createDoc(transferNo, "stock_transfer", `Stock Transfer ${transferNo}`, data.id);
     const [{ error: upErr }, { error: linesErr }] = await Promise.all([
       supabase.from("stock_transfers").update({ document_id: docId }).eq("id", data.id),
-      supabase.from("stock_transfer_lines").insert(lines.map((line) => ({ ...line, stock_transfer_id: data.id, barcode: clean(line.barcode), remarks: clean(line.remarks) }))),
+      supabase.from("stock_transfer_lines").insert(lines.map((line) => ({ ...line, stock_transfer_id: data.id, remarks: clean(line.remarks) }))),
     ]);
     if (upErr) throw new Error(upErr.message);
     if (linesErr) throw new Error(linesErr.message);
@@ -208,7 +206,7 @@ export async function createStockWastage(formData: FormData) {
     const docId = await createDoc(wastageNo, "stock_wastage", `Stock Wastage ${wastageNo}`, data.id);
     const [{ error: updateError }, { error: linesError }] = await Promise.all([
       supabase.from("stock_wastage").update({ document_id: docId }).eq("id", data.id),
-      supabase.from("stock_wastage_lines").insert(lines.map((line) => ({ ...line, stock_wastage_id: data.id, barcode: clean(line.barcode), batch_no: clean(line.batch_no), expiry_date: clean(line.expiry_date), remarks: clean(line.remarks) }))),
+      supabase.from("stock_wastage_lines").insert(lines.map((line) => ({ ...line, stock_wastage_id: data.id, batch_no: clean(line.batch_no), expiry_date: clean(line.expiry_date), remarks: clean(line.remarks) }))),
     ]);
     if (updateError) throw new Error(updateError.message);
     if (linesError) throw new Error(linesError.message);

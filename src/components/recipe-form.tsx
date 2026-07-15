@@ -28,7 +28,6 @@ type RecipeFormLine = {
   item_code: string;
   item_name: string;
   item_image_url: string | null;
-  barcode: string | null;
   qty_required: number;
   recipe_uom: string;
   base_uom: string;
@@ -58,7 +57,6 @@ function createEmptyLine(): RecipeFormLine {
     item_code: "",
     item_name: "",
     item_image_url: null,
-    barcode: null,
     qty_required: 1,
     recipe_uom: "",
     base_uom: "",
@@ -95,7 +93,6 @@ export function RecipeForm({ recipe, products, items, action, formId, showSubmit
             item_code: line.ingredient_item_code,
             item_name: line.ingredient_name,
             item_image_url: line.ingredient_image_url,
-            barcode: line.barcode,
             qty_required: Number(line.qty_required),
             recipe_uom: line.recipe_uom,
             base_uom: line.base_uom,
@@ -140,7 +137,6 @@ export function RecipeForm({ recipe, products, items, action, formId, showSubmit
       item_code: item?.item_code ?? "",
       item_name: item?.item_name ?? "",
       item_image_url: item?.item_image_url ?? null,
-      barcode: item?.barcode ?? item?.internal_barcode ?? null,
       recipe_uom: item?.base_unit ?? "",
       base_uom: item?.base_unit ?? "",
       conversion_factor: 1,

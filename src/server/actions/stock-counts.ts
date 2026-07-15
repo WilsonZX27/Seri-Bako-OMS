@@ -27,7 +27,6 @@ async function identity() {
 
 function extractStockCount(formData: FormData) {
   const itemIds = formData.getAll("line_item_id").map(String);
-  const barcodes = formData.getAll("line_barcode").map(String);
   const theoretical = formData.getAll("line_theoretical_qty").map(String);
   const physical = formData.getAll("line_physical_qty").map(String);
   const uoms = formData.getAll("line_uom").map(String);
@@ -43,7 +42,6 @@ function extractStockCount(formData: FormData) {
     lines: itemIds
       .map((itemId, index) => ({
         item_id: itemId,
-        barcode: barcodes[index],
         theoretical_qty: theoretical[index] ?? 0,
         physical_qty: physical[index] ?? 0,
         uom: uoms[index],
@@ -105,7 +103,7 @@ export async function createStockCount(formData: FormData) {
     const documentId = await createLinkedDocument(countNo, data.id);
     const [{ error: updateError }, { error: linesError }] = await Promise.all([
       supabase.from("stock_counts").update({ document_id: documentId }).eq("id", data.id),
-      supabase.from("stock_count_lines").insert(payload.lines.map((line) => ({ ...line, stock_count_id: data.id, barcode: cleanText(line.barcode), remarks: cleanText(line.remarks) }))),
+      supabase.from("stock_count_lines").insert(payload.lines.map((line) => ({ ...line, stock_count_id: data.id, remarks: cleanText(line.remarks) }))),
     ]);
     if (updateError) throw new Error(updateError.message);
     if (linesError) throw new Error(linesError.message);

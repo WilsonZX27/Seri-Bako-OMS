@@ -18,7 +18,7 @@ export default async function EditItemPage({ params, searchParams }: { params: P
   const lifecycleAction = item.deleted_at ? (
     <form action={restoreItem.bind(null, id)}><Button type="submit" className="w-full">Restore Item</Button></form>
   ) : (
-    <DangerConfirmForm action={deleteItem.bind(null, id)} title="Deactivate this item?" description="This hides the item from active lists while preserving document and stock history." warning="This record may be linked to stock transactions, barcode mappings, recipes, and purchasing history." checkboxLabel="I understand this may affect future operations." confirmWord="DEACTIVATE" buttonLabel="Deactivate item" pendingLabel="Deactivating..." />
+    <DangerConfirmForm action={deleteItem.bind(null, id)} title="Deactivate this item?" description="This hides the item from active lists while preserving document and stock history." warning="This record may be linked to stock transactions, recipes, and purchasing history." checkboxLabel="I understand this may affect future operations." confirmWord="DEACTIVATE" buttonLabel="Deactivate item" pendingLabel="Deactivating..." />
   );
 
   return (

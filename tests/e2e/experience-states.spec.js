@@ -48,7 +48,7 @@ test("core error, empty, feedback, and mobile states stay usable", async ({ page
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto("/items/new?error=Review%20the%20required%20fields%20and%20try%20again.", { waitUntil: "domcontentloaded" });
   await expect(page.getByRole("alert").filter({ hasText: "Review the required fields" })).toBeVisible();
-  await page.getByRole("button", { name: "Actions & context" }).click();
+  await page.getByRole("button", { name: "Open page actions" }).click();
   await expect(page.getByRole("button", { name: "Create Item" })).toBeVisible();
   await expectNoPageOverflow(page);
 });

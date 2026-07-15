@@ -6,7 +6,6 @@ import { isMockMode } from "@/lib/mock-mode";
 import { createClient } from "@/lib/supabase/server";
 import { itemSchema } from "@/lib/validations/item";
 import { formatActionError, requirePermissionOrRedirect, rethrowRedirect, safeRedirectWithMessage } from "@/server/actions/error-handling";
-import { upsertPrimaryBarcodeMapping } from "@/server/actions/barcodes";
 
 function cleanText(value: unknown) {
   const text = String(value ?? "").trim();
@@ -30,12 +29,6 @@ function payload(formData: FormData) {
     moq: formData.get("moq") || 0,
     status: formData.get("status") ?? "active",
     item_image_url: cleanText(formData.get("item_image_url")),
-    barcode: cleanText(formData.get("barcode")),
-    qr_code: cleanText(formData.get("qr_code")),
-    supplier_barcode: cleanText(formData.get("supplier_barcode")),
-    internal_barcode: cleanText(formData.get("internal_barcode")),
-    barcode_type: formData.get("barcode_type") || "internal",
-    barcode_image_url: cleanText(formData.get("barcode_image_url")),
   });
 
   return {
@@ -67,9 +60,8 @@ export async function createItem(formData: FormData) {
     if (archivedMatch) {
       safeRedirectWithMessage(`/items/${archivedMatch.id}`, "error", "An archived item with the same code already exists. Restore it instead of creating a duplicate.");
     }
-    const { data, error } = await writeSupabase.from("items").insert(itemPayload).select("id").single();
+    const { error } = await writeSupabase.from("items").insert(itemPayload);
     if (error) throw new Error(error.message);
-    await upsertPrimaryBarcodeMapping({ entityType: "item", entityId: data.id, barcodeValue: itemPayload.barcode, barcodeType: itemPayload.barcode_type });
 
     revalidatePath("/items");
     redirect("/items");
@@ -90,7 +82,6 @@ export async function updateItem(id: string, formData: FormData) {
     const itemPayload = payload(formData);
     const { error } = await writeSupabase.from("items").update(itemPayload).eq("id", id);
     if (error) throw new Error(error.message);
-    await upsertPrimaryBarcodeMapping({ entityType: "item", entityId: id, barcodeValue: itemPayload.barcode, barcodeType: itemPayload.barcode_type });
 
     revalidatePath("/items");
     revalidatePath("/stock-balances");

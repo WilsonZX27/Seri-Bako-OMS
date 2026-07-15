@@ -91,8 +91,8 @@ test("authenticated mobile shell keeps navigation and context reachable", async 
   await expect(page.getByRole("dialog", { name: "Application navigation" })).toBeVisible();
   await page.keyboard.press("Escape");
   await expect(page.getByRole("dialog", { name: "Application navigation" })).toHaveCount(0);
-  await page.getByRole("button", { name: "Actions & context" }).click();
-  await expect(page.getByRole("dialog", { name: "Actions & context" })).toBeVisible();
+  await page.getByRole("button", { name: "Open page actions" }).click();
+  await expect(page.getByRole("dialog", { name: "Page actions" })).toBeVisible();
   await page.keyboard.press("Escape");
   await assertNamedButtons(page);
   await assertMobileControls(page);
@@ -121,7 +121,7 @@ test("shell switches between drawer and persistent console at release widths", a
     await page.setViewportSize(viewport);
     await assertNoPageOverflow(page);
     const persistentConsole = page.locator("[data-right-console]");
-    const contextTrigger = page.getByRole("button", { name: "Actions & context" });
+    const contextTrigger = page.getByRole("button", { name: "Open page actions" });
     if (viewport.width >= 1280) {
       await expect(persistentConsole).toBeVisible();
       await expect(contextTrigger).toBeHidden();

@@ -17,7 +17,6 @@ type ItemFormProps = {
   item?: Item;
   suppliers: Supplier[];
   currentStock?: number;
-  initialBarcode?: string;
   action: (formData: FormData) => Promise<void>;
   formId?: string;
   showSubmit?: boolean;

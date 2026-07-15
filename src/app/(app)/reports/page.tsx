@@ -99,16 +99,15 @@ export default function ReportsPage() {
                 {category.reports.map((report) => {
                   const Icon = report.icon;
                   return (
-                    <div key={report.title} className="grid gap-3 px-3 py-2.5 md:grid-cols-[28px_minmax(140px,220px)_minmax(0,1fr)_auto] md:items-center">
-                      <div className="flex h-7 w-7 items-center justify-center rounded-md bg-primary/10 text-primary">
+                    <div key={report.title} className="grid grid-cols-[24px_minmax(0,1fr)_auto] items-center gap-2 px-3 py-2">
+                      <div className="flex h-6 w-6 items-center justify-center rounded-[2px] bg-primary/10 text-primary">
                         <Icon className="h-3.5 w-3.5" />
                       </div>
                       <div className="min-w-0">
-                        <p className="text-sm font-medium">{report.title}</p>
-                        {report.badge ? <Badge variant="secondary" className="mt-1">{report.badge}</Badge> : null}
+                        <div className="flex min-w-0 items-center gap-2"><p className="truncate text-xs font-medium">{report.title}</p>{report.badge ? <Badge variant="secondary">{report.badge}</Badge> : null}</div>
+                        <p className="truncate text-[11px] text-muted-foreground">{report.description}</p>
                       </div>
-                      <p className="text-xs text-muted-foreground">{report.description}</p>
-                      <Button asChild={!report.disabled} disabled={report.disabled} variant="outline" size="sm">
+                      <Button asChild={!report.disabled} disabled={report.disabled} variant="outline" size="sm" className="h-8 px-2 text-xs">
                         {report.disabled ? <span>Open</span> : <a href={report.href}>Open</a>}
                       </Button>
                     </div>

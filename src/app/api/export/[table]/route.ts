@@ -9,7 +9,6 @@ const exportTables: Record<string, { table: string; permission: string; order?: 
   suppliers: { table: "suppliers", permission: "suppliers.manage", order: "name" },
   "supplier-items": { table: "supplier_items", permission: "suppliers.manage", order: "created_at" },
   "uom-conversions": { table: "uom_conversions", permission: "settings.manage", order: "from_uom" },
-  "barcode-mappings": { table: "barcode_mappings", permission: "items.manage", order: "created_at" },
   branches: { table: "branches", permission: "settings.manage", order: "branch_name" },
   staffs: { table: "staffs", permission: "staff.manage", order: "full_name" },
   "stock-transactions": { table: "stock_transactions", permission: "documents.view", order: "created_at" },

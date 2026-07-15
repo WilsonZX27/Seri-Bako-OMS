@@ -80,7 +80,7 @@ test("administration and master data pages use the shared list and detail patter
 
   await page.setViewportSize({ width: 1024, height: 768 });
   await page.goto("/suppliers/new", { waitUntil: "domcontentloaded" });
-  await expect(page.getByRole("button", { name: "Actions & context" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Open page actions" })).toBeVisible();
   await expectNoPageOverflow(page);
 });
 
@@ -89,7 +89,7 @@ test("mobile master-data form keeps its save action reachable", async ({ page })
   expect(await login(page, "superAdmin")).toBe(true);
   await page.goto("/items/new", { waitUntil: "domcontentloaded" });
   await expect(page.getByRole("heading", { name: "Identity" })).toBeVisible();
-  await page.getByRole("button", { name: "Actions & context" }).click();
+  await page.getByRole("button", { name: "Open page actions" }).click();
   await expect(page.getByRole("button", { name: "Create Item" })).toBeVisible();
   await expect(page.locator("body")).toContainText("Sprint 7.5");
   await expectNoPageOverflow(page);

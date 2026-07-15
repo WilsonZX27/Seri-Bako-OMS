@@ -1,4 +1,3 @@
-import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Field } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
@@ -7,8 +6,6 @@ import { SubmitButton } from "@/components/ui/submit-button";
 import { Textarea } from "@/components/ui/textarea";
 import { getToday } from "@/lib/utils";
 import type { Database, StockTransactionType } from "@/types/database";
-import Link from "next/link";
-import { ScanLine } from "lucide-react";
 
 type Item = Pick<Database["public"]["Tables"]["items"]["Row"], "id" | "item_code" | "item_name" | "base_unit" | "status">;
 type Location = Pick<Database["public"]["Tables"]["locations"]["Row"], "id" | "location_code" | "location_name" | "status">;
@@ -44,14 +41,6 @@ export function StockTransactionForm({ items, branches, action }: StockTransacti
   return (
     <Card>
       <CardContent className="p-5">
-        <div className="mb-4 flex flex-wrap gap-2">
-          <Button asChild type="button" variant="outline" size="sm">
-            <Link href="/stock-transfer/scan"><ScanLine className="mr-2 h-4 w-4" /> Transfer scan</Link>
-          </Button>
-          <Button asChild type="button" variant="outline" size="sm">
-            <Link href="/stock-wastage/scan"><ScanLine className="mr-2 h-4 w-4" /> Wastage scan</Link>
-          </Button>
-        </div>
         <form action={action} className="grid gap-4 md:grid-cols-3">
           <Field label="Transaction Date">
             <Input name="transaction_date" type="date" defaultValue={getToday()} required />

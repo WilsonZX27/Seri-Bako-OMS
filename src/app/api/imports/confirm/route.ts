@@ -795,92 +795,6 @@ async function handleUomConversionsImport(context: RouteContext, request: Import
   return summary;
 }
 
-async function handleBarcodeMappingsImport(context: RouteContext, request: ImportRequest) {
-  const summary = createSummary();
-  const rows = request.rows;
-  const companyId = context.profile?.company_id ?? (await getDefaultCompanyId());
-  const itemCodes = [...new Set(rows.map((row) => normalizeText(row.item_code)).filter(Boolean))];
-  const barcodeValues = [...new Set(rows.map((row) => normalizeText(row.barcode)).filter(Boolean))];
-  const allowedBarcodeTypes: BarcodeType[] = ["internal", "supplier", "qr", "packaging", "ean13", "upc", "other"];
-
-  const [{ data: items, error: itemsError }, { data: mappings, error: mappingsError }] = await Promise.all([
-    context.supabase.from("items").select("id, item_code").in("item_code", itemCodes.length ? itemCodes : [""]),
-    context.supabase
-      .from("barcode_mappings")
-      .select("id, barcode_value, item_id, is_primary")
-      .eq("company_id", companyId)
-      .eq("stock_entity_type", "item")
-      .is("deleted_at", null)
-      .in("barcode_value", barcodeValues.length ? barcodeValues : [""]),
-  ]);
-  if (itemsError) throw new Error(itemsError.message);
-  if (mappingsError) throw new Error(mappingsError.message);
-
-  const itemByCode = new Map((items ?? []).map((row) => [normalizeLower(row.item_code), row]));
-  const existingByBarcode = new Map((mappings ?? []).map((row) => [normalizeLower(row.barcode_value), row]));
-
-  for (const [index, row] of rows.entries()) {
-    const rowNumber = index + 1;
-    const item = itemByCode.get(normalizeLower(row.item_code));
-    const barcode = normalizeText(row.barcode);
-    const barcodeType = normalizeLower(row.barcode_type) as BarcodeType;
-    const existing = existingByBarcode.get(normalizeLower(barcode));
-
-    if (!item) {
-      pushIssue(summary, rowNumber, row, "item_code must exist.");
-      continue;
-    }
-    if (!barcode) {
-      pushIssue(summary, rowNumber, row, "barcode is required.");
-      continue;
-    }
-    if (!allowedBarcodeTypes.includes(barcodeType)) {
-      pushIssue(summary, rowNumber, row, "Invalid barcode_type.");
-      continue;
-    }
-    if (existing && existing.item_id !== item.id) {
-      pushIssue(summary, rowNumber, row, "This barcode already belongs to another item.");
-      continue;
-    }
-    if (existing && request.mode === "create") {
-      pushIssue(summary, rowNumber, row, "This barcode already exists for the selected item.", "skip");
-      continue;
-    }
-    if (!existing && request.mode === "update") {
-      pushIssue(summary, rowNumber, row, "No existing barcode mapping was found for update mode.", "skip");
-      continue;
-    }
-
-    const payload: Database["public"]["Tables"]["barcode_mappings"]["Insert"] = {
-      company_id: companyId,
-      stock_entity_type: "item",
-      item_id: item.id,
-      barcode_value: barcode,
-      barcode_type: barcodeType,
-      is_primary: false,
-      status: (parseBooleanFlag(row.active, true) ? "active" : "inactive") as RecordStatus,
-    };
-
-    if (existing) {
-      const { error } = await context.writeSupabase.from("barcode_mappings").update(payload).eq("id", existing.id);
-      if (error) {
-        pushIssue(summary, rowNumber, row, error.message);
-        continue;
-      }
-      summary.updated += 1;
-    } else {
-      const { error } = await context.writeSupabase.from("barcode_mappings").insert(payload);
-      if (error) {
-        pushIssue(summary, rowNumber, row, error.message);
-        continue;
-      }
-      summary.imported += 1;
-    }
-  }
-
-  return summary;
-}
-
 async function handleOpeningStockImport(context: RouteContext, request: ImportRequest) {
   const summary = createSummary();
   if (!request.confirmPosting) {
@@ -1098,11 +1012,6 @@ function revalidateImportTargets(entity: ImportRequest["entity"]) {
     revalidatePath("/uom-conversions");
     return;
   }
-  if (entity === "barcode-mappings") {
-    revalidatePath("/items");
-    revalidatePath("/inventory");
-    return;
-  }
   if (entity === "opening-stock") {
     revalidatePath("/stock-balance");
     revalidatePath("/stock-card");
@@ -1201,9 +1110,7 @@ export async function POST(request: Request) {
                   ? await handleSupplierItemsImport(context, payload.data)
                   : payload.data.entity === "uom-conversions"
                     ? await handleUomConversionsImport(context, payload.data)
-                    : payload.data.entity === "barcode-mappings"
-                      ? await handleBarcodeMappingsImport(context, payload.data)
-                      : await handleOpeningStockImport(context, payload.data);
+                    : await handleOpeningStockImport(context, payload.data);
 
     if (summary.imported || summary.updated) {
       try {

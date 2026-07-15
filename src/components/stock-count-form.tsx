@@ -85,7 +85,7 @@ export function StockCountForm({
                   <div key={line.item_id} className="grid gap-3 p-4 lg:grid-cols-[2fr_130px_130px_130px_100px_1fr]">
                     <div>
                       <p className="font-medium">{line.item_name}</p>
-                      <p className="text-xs text-muted-foreground">{line.item_code} - {line.barcode ?? "No barcode"}</p>
+                      <p className="text-xs text-muted-foreground">{line.item_code}</p>
                     </div>
                     <Field label="Theoretical"><Input name="line_theoretical_qty" value={line.theoretical_qty} readOnly /></Field>
                     <Field label="Physical"><Input name="line_physical_qty" type="number" min="0" step="0.0001" defaultValue={line.physical_qty} /></Field>
@@ -96,7 +96,6 @@ export function StockCountForm({
                     <Field label="UOM"><Input name="line_uom" value={line.uom} readOnly /></Field>
                     <Field label="Remarks"><Input name="line_remarks" placeholder={high ? "Required" : "Optional"} /></Field>
                     <input type="hidden" name="line_item_id" value={line.item_id} />
-                    <input type="hidden" name="line_barcode" value={line.barcode ?? ""} />
                   </div>
                 );
               })}

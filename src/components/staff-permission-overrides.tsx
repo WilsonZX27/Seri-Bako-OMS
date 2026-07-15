@@ -27,12 +27,17 @@ export function StaffPermissionOverrides({
   updateAction: (formData: FormData) => Promise<void>;
   resetAction: () => Promise<void>;
 }) {
+  const visiblePermissions = permissions.filter((permission) => !permission.module.toLowerCase().includes("barcode"));
+  const normalizeModule = (module: string) => ({ purchase_order: "purchase_orders", purchase_request: "purchase_requests" })[module] ?? module;
   const groups = Array.from(
-    permissions.reduce((map, permission) => map.set(permission.module, [...(map.get(permission.module) ?? []), permission]), new Map<string, PermissionAccess[]>()),
+    visiblePermissions.reduce((map, permission) => {
+      const moduleKey = normalizeModule(permission.module);
+      return map.set(moduleKey, [...(map.get(moduleKey) ?? []), permission]);
+    }, new Map<string, PermissionAccess[]>()),
   );
-  const allowed = permissions.filter((permission) => permission.override === "allow").length;
-  const denied = permissions.filter((permission) => permission.override === "deny").length;
-  const inherited = permissions.length - allowed - denied;
+  const allowed = visiblePermissions.filter((permission) => permission.override === "allow").length;
+  const denied = visiblePermissions.filter((permission) => permission.override === "deny").length;
+  const inherited = visiblePermissions.length - allowed - denied;
   const disabled = !canManage || protectedRole;
 
   return (

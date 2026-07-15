@@ -1,5 +1,4 @@
 import { z } from "zod";
-import { barcodeFieldsSchema } from "@/lib/validations/barcode";
 
 export const itemSchema = z.object({
   item_code: z.string().trim().min(1, "Item code is required"),
@@ -16,6 +15,6 @@ export const itemSchema = z.object({
   moq: z.coerce.number().min(0),
   status: z.enum(["active", "inactive"]),
   item_image_url: z.string().trim().url().optional().nullable().or(z.literal("")),
-}).and(barcodeFieldsSchema);
+});
 
 export type ItemInput = z.infer<typeof itemSchema>;

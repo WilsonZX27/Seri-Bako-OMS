@@ -100,7 +100,6 @@ export default async function StockCountDetailPage({ params }: { params: Promise
               <TableHeader>
                 <TableRow>
                   <TableHead>Item</TableHead>
-                  <TableHead>Barcode</TableHead>
                   <TableHead className="text-right">Theoretical</TableHead>
                   <TableHead className="text-right">Physical</TableHead>
                   <TableHead className="text-right">Variance</TableHead>
@@ -115,7 +114,6 @@ export default async function StockCountDetailPage({ params }: { params: Promise
                   return (
                     <TableRow key={line.id} className={high ? "bg-warning/10" : ""}>
                       <TableCell><p className="font-medium">{line.item?.item_name ?? line.item_id}</p><p className="text-xs text-muted-foreground">{line.item?.item_code}</p></TableCell>
-                      <TableCell className="text-xs">{line.barcode ?? "-"}</TableCell>
                       <TableCell className="text-right">{formatNumber(line.theoretical_qty)}</TableCell>
                       <TableCell className="text-right font-medium">{formatNumber(line.physical_qty)}</TableCell>
                       <TableCell className="text-right">{formatNumber(line.variance_qty)}</TableCell>

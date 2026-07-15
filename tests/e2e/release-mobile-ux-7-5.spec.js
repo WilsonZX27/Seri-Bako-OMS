@@ -26,6 +26,10 @@ test("mobile shell keeps one primary action and separate context access", async 
   for (const expectation of [
     ["/purchase-requests", "New PR"],
     ["/purchase-orders", "New PO"],
+    ["/purchase-returns", "New Return"],
+    ["/products", "New product"],
+    ["/locations", "New location"],
+    ["/items", "New item"],
     ["/recipes", "New recipe"],
     ["/production/jobs/new", "Create draft production job"],
   ]) {
@@ -33,7 +37,7 @@ test("mobile shell keeps one primary action and separate context access", async 
     const bar = page.locator("[data-mobile-action-bar]");
     await expect(bar).toBeVisible();
     await expect(bar.getByRole("button", { name: expectation[1] }).or(bar.getByRole("link", { name: expectation[1] }))).toBeVisible();
-    await expect(bar.getByRole("button", { name: "Actions & context" })).toBeVisible();
+    await expect(bar.getByRole("button", { name: "Open page actions" })).toBeVisible();
     await expectNoPageOverflow(page);
   }
 });
@@ -96,6 +100,32 @@ test("reported typography and action-placement regressions stay corrected", asyn
   expect(headerHeight).toBeLessThanOrEqual(64);
 });
 
+test("latest responsive feedback keeps actions contextual and mobile UI compact", async ({ page }) => {
+  test.skip(!hasAccount("superAdmin"), `Missing super admin credentials: ${missingAccountVars("superAdmin").join(", ")}`);
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await login(page, "superAdmin");
+
+  for (const [route, actions] of [
+    ["/products", ["New product", "Import products"]],
+    ["/locations", ["New location", "Fix missing stock areas", "Clean duplicate internal locations"]],
+  ]) {
+    await page.goto(route, { waitUntil: "domcontentloaded" });
+    const console = page.locator("[data-right-console]");
+    for (const action of actions) await expect(console.getByRole("link", { name: action }).or(console.getByRole("button", { name: action }))).toBeVisible();
+    for (const action of actions) await expect(page.locator("main > header").getByText(action, { exact: true })).toHaveCount(0);
+  }
+
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto("/items", { waitUntil: "domcontentloaded" });
+  await expect(page.locator("[data-mobile-action-bar]").getByRole("link", { name: "New item" })).toBeVisible();
+  await page.goto("/products", { waitUntil: "domcontentloaded" });
+  const filter = page.locator(".sb-list-filters").first();
+  await expect(filter).toBeVisible();
+  expect((await filter.boundingBox()).height).toBeLessThanOrEqual(90);
+  await expectNoPageOverflow(page);
+
+});
+
 test("release viewports have stable shell, dates, controls, and contextual console", async ({ page }) => {
   test.skip(!hasAccount("superAdmin"), `Missing super admin credentials: ${missingAccountVars("superAdmin").join(", ")}`);
   await login(page, "superAdmin");
@@ -134,6 +164,9 @@ test("staff permission overrides are catalog-driven and owner-safe", async ({ pa
   await expect(page.getByText("Super Admin / Owner permissions are protected and cannot be overridden.")).toBeVisible();
   await expect(page.getByRole("button", { name: "Save overrides" })).toHaveCount(0);
   await expect(page.locator('select[name^="permission:"]').first().locator("option")).toHaveText(["Inherit", "Allow", "Deny"]);
+  await expect(page.getByText(/Barcodes? \(/)).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "Resend email invitation" })).toHaveCount(0);
+  await expect(page.getByText("Branch Access Summary")).toHaveCount(0);
 });
 
 test("staff allow and deny overrides affect direct routes without granting mutation authority", async ({ browser }) => {

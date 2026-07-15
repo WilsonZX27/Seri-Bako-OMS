@@ -49,9 +49,9 @@ export function CompanyLogoForm({
               <ImageIcon className="h-8 w-8 text-muted-foreground" />
             )}
           </div>
-          <div className="min-w-0 text-sm text-muted-foreground">
+          <div className="min-w-0 text-xs text-muted-foreground">
             <p className="font-medium text-foreground">{visibleLogo ? previewLabel : "No logo uploaded"}</p>
-            <p>Accepted formats: PNG, JPG, JPEG, WEBP, SVG.</p>
+            <p className="mt-0.5 text-[11px]">Accepted formats: PNG, JPG, JPEG, WEBP, SVG.</p>
           </div>
         </div>
 

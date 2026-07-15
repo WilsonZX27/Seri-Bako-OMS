@@ -32,7 +32,7 @@ export default async function ActivityPage({ searchParams }: { searchParams: Pro
             <>
               <ConsoleSection title="Selected Activity">
                 <div className="space-y-2 text-xs">
-                  <p className="text-sm font-medium">{selected.message}</p>
+                  <p className="text-xs font-medium">{selected.message}</p>
                   <div className="flex justify-between gap-3"><span className="text-muted-foreground">Actor</span><strong>{selected.created_by_name ?? "System"}</strong></div>
                   <div className="flex justify-between gap-3"><span className="text-muted-foreground">Type</span><strong>{selected.activity_type}</strong></div>
                   <div className="flex justify-between gap-3"><span className="text-muted-foreground">When</span><strong>{new Date(selected.created_at).toLocaleString("en-MY", { dateStyle: "medium", timeStyle: "short" })}</strong></div>
@@ -66,7 +66,7 @@ export default async function ActivityPage({ searchParams }: { searchParams: Pro
                       <Activity className="h-4 w-4" />
                     </div>
                     <div className="min-w-0 flex-1">
-                      <p className="truncate text-sm font-medium">{activity.message}</p>
+                      <p className="truncate text-xs font-medium">{activity.message}</p>
                       <p className="mt-0.5 text-xs text-muted-foreground">{activity.created_by_name ?? "System"}</p>
                     </div>
                     <p className="text-xs text-muted-foreground">{new Date(activity.created_at).toLocaleString("en-MY", { dateStyle: "short", timeStyle: "short" })}</p>

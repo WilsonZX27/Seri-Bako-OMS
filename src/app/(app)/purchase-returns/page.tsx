@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { Pencil } from "lucide-react";
 import { DataGridRow } from "@/components/ui/data-grid-row";
 import { DocumentNumber } from "@/components/document-number";
@@ -23,17 +24,24 @@ export default async function PurchaseReturnsPage({ searchParams }: { searchPara
   const count = (...items: string[]) => rows.filter((row) => items.includes(row.status)).length;
   return (
     <>
-      <PageHeader title="Purchase Returns" description="Return posted supplier receipts and deduct stock once posted." action={{ href: "/purchase-returns/new", label: "New Return" }} />
+      <PageHeader title="Purchase Returns" description="Return posted supplier receipts and deduct stock once posted." />
       <WorkspaceGrid
         rightRail={
-          <ConsoleSection title="Return Summary">
-            <div className="grid gap-2 text-xs">
-              <div className="flex justify-between"><span className="text-muted-foreground">Total</span><strong>{rows.length}</strong></div>
-              <div className="flex justify-between"><span className="text-muted-foreground">Draft</span><strong>{count("draft")}</strong></div>
-              <div className="flex justify-between"><span className="text-muted-foreground">Posted</span><strong>{count("posted")}</strong></div>
-              <div className="flex justify-between"><span className="text-muted-foreground">Value</span><strong>{formatCurrency(rows.reduce((sum, row) => sum + row.return_value, 0))}</strong></div>
-            </div>
-          </ConsoleSection>
+            <>
+              <ConsoleSection title="Actions">
+                <Button asChild className="w-full" data-mobile-primary-action>
+                  <Link href="/purchase-returns/new">New Return</Link>
+                </Button>
+              </ConsoleSection>
+              <ConsoleSection title="Return Summary">
+                <div className="grid gap-2 text-xs">
+                  <div className="flex justify-between"><span className="text-muted-foreground">Total</span><strong>{rows.length}</strong></div>
+                  <div className="flex justify-between"><span className="text-muted-foreground">Draft</span><strong>{count("draft")}</strong></div>
+                  <div className="flex justify-between"><span className="text-muted-foreground">Posted</span><strong>{count("posted")}</strong></div>
+                  <div className="flex justify-between"><span className="text-muted-foreground">Value</span><strong>{formatCurrency(rows.reduce((sum, row) => sum + row.return_value, 0))}</strong></div>
+                </div>
+              </ConsoleSection>
+          </>
         }
       >
         <div className="overflow-hidden rounded-[2px] border bg-card">

@@ -5,7 +5,6 @@ import { redirect } from "next/navigation";
 import { isMockMode } from "@/lib/mock-mode";
 import { createClient } from "@/lib/supabase/server";
 import { productSchema } from "@/lib/validations/product";
-import { upsertPrimaryBarcodeMapping } from "@/server/actions/barcodes";
 
 function cleanText(value: unknown) {
   const text = String(value ?? "").trim();
@@ -20,11 +19,6 @@ function payload(formData: FormData) {
     selling_unit: formData.get("selling_unit"),
     status: formData.get("status") ?? "active",
     product_image_url: cleanText(formData.get("product_image_url")),
-    barcode: cleanText(formData.get("barcode")),
-    qr_code: cleanText(formData.get("qr_code")),
-    internal_barcode: cleanText(formData.get("internal_barcode")),
-    barcode_type: formData.get("barcode_type") || "internal",
-    barcode_image_url: cleanText(formData.get("barcode_image_url")),
   });
 }
 
@@ -64,7 +58,6 @@ export async function createProduct(formData: FormData) {
   const { data, error } = await supabase.from("products").insert(productPayload).select("id").single();
   if (error) throw new Error(error.message);
   await upsertDefaultPackaging(data.id, formData);
-  await upsertPrimaryBarcodeMapping({ entityType: "product", entityId: data.id, barcodeValue: productPayload.barcode, barcodeType: productPayload.barcode_type });
 
   revalidatePath("/products");
   redirect("/products");
@@ -80,7 +73,6 @@ export async function updateProduct(id: string, formData: FormData) {
   const { error } = await supabase.from("products").update(productPayload).eq("id", id);
   if (error) throw new Error(error.message);
   await upsertDefaultPackaging(id, formData);
-  await upsertPrimaryBarcodeMapping({ entityType: "product", entityId: id, barcodeValue: productPayload.barcode, barcodeType: productPayload.barcode_type });
 
   revalidatePath("/products");
   redirect("/products");

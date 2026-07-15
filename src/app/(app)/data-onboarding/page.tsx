@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { AlertTriangle, ArrowRight, BarChart3, Building2, Factory, Package, QrCode, Scale, ShieldCheck, Store, Truck, Users, Warehouse, Wrench } from "lucide-react";
+import { AlertTriangle, ArrowRight, BarChart3, Building2, Factory, Package, Scale, ShieldCheck, Store, Truck, Users, Warehouse, Wrench } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { PageHeader } from "@/components/ui/page-header";
@@ -52,7 +52,6 @@ export default async function DataOnboardingPage() {
           { title: "Suppliers", count: summary.supplierCount, status: statusLabel(summary.supplierCount), note: "Suppliers should exist before supplier-item costing is loaded.", href: "/imports/suppliers", icon: Truck, cta: "Import suppliers" },
           { title: "Supplier Items", count: summary.supplierItemCount, status: statusLabel(summary.supplierItemCount), note: "This drives PO costing and suggested suppliers.", href: "/imports/supplier-items", icon: Store, cta: "Import supplier items" },
           { title: "UOM Conversions", count: summary.uomCount, status: statusLabel(summary.uomCount), note: "Needed before opening stock and branch operations start.", href: "/imports/uom-conversions", icon: Scale, cta: "Import UOM" },
-          { title: "Barcode Mappings", count: summary.barcodeCount, status: statusLabel(summary.barcodeCount), note: "Only needed if the team scans during receiving or stock count.", href: "/imports/barcode-mappings", icon: QrCode, cta: "Import barcodes" },
         ],
       },
       {

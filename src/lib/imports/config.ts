@@ -9,7 +9,6 @@ export const importEntities = [
   "suppliers",
   "supplier-items",
   "uom-conversions",
-  "barcode-mappings",
   "opening-stock",
 ] as const;
 
@@ -235,27 +234,6 @@ export const importTemplates: Record<ImportEntity, TemplateSpec> = {
       "Use item-specific conversions for opening stock and supplier item pricing.",
       uomNote,
       "Prevent duplicate conversion pairs unless update mode is selected.",
-    ],
-    modes: ["create", "update", "upsert"],
-    defaultMode: "create",
-  },
-  "barcode-mappings": {
-    label: "Barcode Mappings",
-    description: "Import multiple barcode aliases per item for scanning, receiving, and stock count workflows.",
-    headers: ["item_code", "barcode", "barcode_type", "source", "remarks", "active"],
-    required: ["item_code", "barcode", "barcode_type"],
-    duplicateKey: ["barcode"],
-    sample: {
-      item_code: "CHK-001",
-      barcode: "955000000001",
-      barcode_type: "internal",
-      source: "Autocount",
-      remarks: "Main printed label",
-      active: "true",
-    },
-    notes: [
-      "Allowed barcode types: internal, supplier, qr, packaging, ean13, upc, other.",
-      "Multiple barcodes per item are allowed, but the same barcode cannot belong to different items.",
     ],
     modes: ["create", "update", "upsert"],
     defaultMode: "create",

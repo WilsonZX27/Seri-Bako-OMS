@@ -37,7 +37,6 @@ export function WorkspaceSidebar({
   const searchParams = useSearchParams();
   const [closedGroups, setClosedGroups] = useState<Record<string, boolean>>({});
   const groups = useMemo(() => getVisibleNavGroups(role, permissionMap), [permissionMap, role]);
-  const compact = false;
 
   function toggleGroup(groupId: string) {
     setClosedGroups((current) => ({ ...current, [groupId]: !current[groupId] }));
@@ -72,7 +71,7 @@ export function WorkspaceSidebar({
   return (
     <div className={cn("flex h-dvh w-[var(--sb-sidebar-width)] flex-col border-r border-white/10 bg-[var(--sb-green-950)] text-white", mobile ? "w-full" : "")}>
       <div className="border-b border-white/10 px-3 py-3">
-        <Link href={brandHref} onClick={onNavigate} className={cn("flex min-w-0 flex-1 items-center gap-3 rounded-[2px] p-1 hover:bg-white/10", compact ? "justify-center" : "")} title={compact ? companyName : undefined}>
+        <Link href={brandHref} onClick={onNavigate} className="flex min-w-0 flex-1 items-center gap-3 rounded-[2px] p-1 hover:bg-white/10">
           <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-[2px] bg-white/12 text-white ring-1 ring-white/10">
             {companyLogoUrl ? (
               // eslint-disable-next-line @next/next/no-img-element
@@ -81,12 +80,10 @@ export function WorkspaceSidebar({
               <Factory className="h-4 w-4" />
             )}
           </div>
-          {!compact ? (
             <div className="min-w-0">
               <p className="truncate text-[13px] font-semibold leading-tight">{companyName}</p>
               <p className="text-[10px] uppercase tracking-[0.08em] text-white/55">Operational ERP</p>
             </div>
-          ) : null}
         </Link>
       </div>
 
@@ -97,18 +94,16 @@ export function WorkspaceSidebar({
             const groupClosed = closedGroups[group.id] ?? group.id !== activeGroupId;
             return (
               <div key={group.id}>
-                {!compact ? (
                   <button
                     type="button"
-                    className="mb-1 flex min-h-11 w-full items-center justify-between rounded-[2px] px-2 py-2 text-left text-xs font-semibold text-white/60 hover:bg-white/8 hover:text-white sm:min-h-8 sm:py-1 sm:text-[10px]"
+                    className={cn("mb-1 flex w-full items-center justify-between rounded-[2px] px-2 text-left font-semibold text-white/60 hover:bg-white/8 hover:text-white", mobile ? "min-h-9 py-1 text-[11px]" : "min-h-8 py-1 text-[10px]")}
                     onClick={() => toggleGroup(group.id)}
                     aria-expanded={!groupClosed}
                   >
                     <span>{group.label}</span>
                     <ChevronDown className={cn("h-3 w-3 transition-transform", groupClosed ? "-rotate-90" : "")} />
                   </button>
-                ) : null}
-                <div className={cn("space-y-0.5", groupClosed && !compact ? "hidden" : "")}>
+                <div className={cn("space-y-0.5", groupClosed ? "hidden" : "")}>
                   {visibleItems.map((item) => {
                     const Icon = item.icon;
                     const itemKey = `${group.id}-${item.href}`;
@@ -119,15 +114,13 @@ export function WorkspaceSidebar({
                         key={itemKey}
                         href={item.href}
                         onClick={onNavigate}
-                        title={compact ? item.label : undefined}
                         className={cn(
-                          "flex min-h-11 items-center gap-2 rounded-[2px] px-2 text-sm font-medium transition-colors sm:min-h-8 sm:text-xs",
-                          compact ? "justify-center px-0" : "",
+                          "flex items-center gap-2 rounded-[2px] px-2 font-medium transition-colors",
+                          mobile ? "min-h-10 text-xs" : "min-h-8 text-xs",
                           active ? "bg-[var(--sb-amber-100)] text-[var(--sb-green-950)] ring-1 ring-white/10" : "text-white/72 hover:bg-white/8 hover:text-white",
                         )}
                       >
                         <Icon className={cn("h-3.5 w-3.5 shrink-0", active ? "text-[var(--sb-green-950)]" : "text-white/55")} />
-                        {!compact ? (
                           <>
                             <span className="min-w-0 flex-1 truncate">{item.label}</span>
                             {typeof count === "number" && count > 0 ? (
@@ -136,7 +129,6 @@ export function WorkspaceSidebar({
                               </span>
                             ) : null}
                           </>
-                        ) : null}
                       </Link>
                     );
                   })}
@@ -147,7 +139,7 @@ export function WorkspaceSidebar({
         </div>
       </nav>
 
-      {!compact ? <div className="border-t border-white/10 px-3 py-2 text-[10px] text-white/45">v{APP_VERSION} / {APP_SPRINT}</div> : null}
+      <div className="border-t border-white/10 px-3 py-2 text-[10px] text-white/45">v{APP_VERSION} / {APP_SPRINT}</div>
     </div>
   );
 }

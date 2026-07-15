@@ -11,7 +11,6 @@ type Packaging = Database["public"]["Tables"]["product_packaging"]["Row"];
 type ProductFormProps = {
   product?: Product;
   packaging?: Packaging[];
-  initialBarcode?: string;
   action: (formData: FormData) => Promise<void>;
 };
 

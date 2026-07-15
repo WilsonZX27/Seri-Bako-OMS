@@ -66,7 +66,7 @@ function LineGrid({ seedLines, mode }: { seedLines: SeedLine[]; mode: "transfer"
       <div className="divide-y">
         {seedLines.map((line, index) => (
           <div key={line.item_id} className="grid gap-3 p-4 xl:grid-cols-[2fr_120px_120px_90px_130px_130px_1fr]">
-            <div><label className="flex items-center gap-2 font-medium"><input name="line_enabled" type="checkbox" value={line.item_id} defaultChecked={index === 0} />{line.item_name}</label><p className="text-xs text-muted-foreground">{line.item_code} - {line.barcode ?? "No barcode"}</p></div>
+            <div><label className="flex items-center gap-2 font-medium"><input name="line_enabled" type="checkbox" value={line.item_id} defaultChecked={index === 0} />{line.item_name}</label><p className="text-xs text-muted-foreground">{line.item_code}</p></div>
             <div className="rounded-md border bg-secondary/30 p-2 text-sm"><p className="text-xs text-muted-foreground">Available</p><p className="font-semibold">{formatNumber(line.available_qty)}</p></div>
             <Field label="Quantity"><Input name="line_quantity" type="number" min="0.0001" max={line.available_qty} step="0.0001" defaultValue={Math.min(line.quantity, line.available_qty)} /></Field>
             <Field label="UOM"><Input name="line_uom" value={line.uom} readOnly /></Field>
@@ -75,7 +75,6 @@ function LineGrid({ seedLines, mode }: { seedLines: SeedLine[]; mode: "transfer"
             <Field label="Remarks"><Input name="line_remarks" placeholder="Notes" /></Field>
             {mode === "wastage" ? <input type="hidden" name="line_expiry_date" value="" /> : null}
             <input type="hidden" name="line_item_id" value={line.item_id} />
-            <input type="hidden" name="line_barcode" value={line.barcode ?? ""} />
           </div>
         ))}
         {!seedLines.length ? <div className="flex items-center gap-2 p-5 text-sm text-warning"><AlertTriangle className="h-4 w-4" /> No available branch stock found.</div> : null}

@@ -5,6 +5,8 @@ import { Button } from "@/components/ui/button";
 import { MasterDataFilters } from "@/components/master-data-filters";
 import { PageHeader } from "@/components/ui/page-header";
 import { PaginationControls, SortableHead } from "@/components/sortable-table";
+import { ConsoleSection } from "@/components/layout/right-console";
+import { WorkspaceGrid } from "@/components/layout/workspace-layout";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { paginateRows } from "@/lib/table-state";
 import { deleteProduct } from "@/server/actions/products";
@@ -25,12 +27,8 @@ export default async function ProductsPage({
       <PageHeader
         title="Products"
         description="Finished goods master data for future recipe and production modules."
-        action={{ href: "/products/new", label: "New product" }}
       />
-      <div className="p-5">
-        <div className="mb-3 flex justify-end">
-          <Button asChild variant="outline" size="sm"><Link href="/imports/products">Import products</Link></Button>
-        </div>
+      <WorkspaceGrid rightRail={<ConsoleSection title="Actions"><div className="grid gap-2"><Button asChild className="w-full" data-mobile-primary-action><Link href="/products/new">New product</Link></Button><Button asChild variant="outline" className="w-full"><Link href="/imports/products">Import products</Link></Button></div></ConsoleSection>}>
         <div className="overflow-hidden rounded-lg border bg-card">
           <MasterDataFilters
             search={filters.search}
@@ -98,7 +96,7 @@ export default async function ProductsPage({
           </div>
           <PaginationControls page={productsPage.page} totalPages={productsPage.totalPages} totalRows={productsPage.totalRows} searchParams={filters} />
         </div>
-      </div>
+      </WorkspaceGrid>
     </>
   );
 }

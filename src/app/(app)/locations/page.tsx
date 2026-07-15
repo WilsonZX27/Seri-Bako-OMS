@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { Pencil } from "lucide-react";
 import { BulkSelectAllCheckbox, BulkSelectionProvider, BulkSelectRowCheckbox } from "@/components/bulk-selection";
 import { Button } from "@/components/ui/button";
@@ -8,6 +9,8 @@ import { DataGridRow } from "@/components/ui/data-grid-row";
 import { EmptyState } from "@/components/ui/empty-state";
 import { MasterDataFilters } from "@/components/master-data-filters";
 import { PageHeader } from "@/components/ui/page-header";
+import { ConsoleSection } from "@/components/layout/right-console";
+import { WorkspaceGrid } from "@/components/layout/workspace-layout";
 import { StatusTabs } from "@/components/status-tabs";
 import { Table, TableActionLink, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { cleanDuplicateLocations, fixMissingDefaultLocations } from "@/server/actions/foundation";
@@ -22,8 +25,9 @@ export default async function LocationsPage({ searchParams }: { searchParams: Pr
     const locations = await getLocations(filters);
     return (
       <>
-        <PageHeader title="Locations" description="Advanced inventory locations kept internally for ledger accuracy and future expansion." action={{ href: "/locations/new", label: "New location" }} />
-        <div className="space-y-4 p-5">
+        <PageHeader title="Locations" description="Advanced inventory locations kept internally for ledger accuracy and future expansion." />
+        <WorkspaceGrid rightRail={<><ConsoleSection title="Location Actions"><div className="grid gap-2"><Button asChild className="w-full" data-mobile-primary-action><Link href="/locations/new">New location</Link></Button><form action={fixMissingDefaultLocations}><Button type="submit" variant="outline" className="w-full">Fix missing stock areas</Button></form><form action={cleanDuplicateLocations}><Button type="submit" variant="outline" className="w-full">Clean duplicate internal locations</Button></form></div></ConsoleSection><ConsoleSection title="About Locations"><p className="text-xs leading-5 text-muted-foreground">Internal stock areas are retained for ledger accuracy. Daily operations currently use branches.</p></ConsoleSection></>}>
+        <div className="space-y-4">
           {filters.error || filters.success ? (
             <Card>
               <CardContent className={`p-4 text-sm ${filters.error ? "text-destructive" : "text-emerald-700"}`}>
@@ -31,19 +35,6 @@ export default async function LocationsPage({ searchParams }: { searchParams: Pr
               </CardContent>
             </Card>
           ) : null}
-          <Card className="border-primary/15 bg-[var(--sb-muted)]">
-            <CardContent className="flex flex-col gap-3 p-4 text-sm leading-6 text-muted-foreground lg:flex-row lg:items-center lg:justify-between">
-              <p>Locations are internal stock areas. For Seri Bako current workflow, daily operations use Branch only. Locations are kept internally for ledger accuracy and future expansion.</p>
-              <div className="flex flex-wrap gap-2">
-                <form action={fixMissingDefaultLocations}>
-                  <Button type="submit" variant="outline">Fix missing stock areas</Button>
-                </form>
-                <form action={cleanDuplicateLocations}>
-                  <Button type="submit">Clean duplicate internal locations</Button>
-                </form>
-              </div>
-            </CardContent>
-          </Card>
           <div className="overflow-hidden rounded-lg border bg-card">
             <StatusTabs statuses={["active", "archived"]} activeStatus={filters.status} />
             <MasterDataFilters search={filters.search} status={filters.status} placeholder="Search location, branch, or type" statuses={[{ value: "active", label: "Active" }, { value: "archived", label: "Archived" }]} />
@@ -77,6 +68,7 @@ export default async function LocationsPage({ searchParams }: { searchParams: Pr
             </TableBody></Table></div>
             </BulkSelectionProvider>
           </div></div>
+        </WorkspaceGrid>
       </>
     );
   } catch (error) {

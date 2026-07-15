@@ -10,7 +10,7 @@ import { SubmitButton } from "@/components/ui/submit-button";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { canAssignRoleCode, getRoleDisplayLabel, normalizeRoleCode, sortRolesForDisplay } from "@/lib/roles";
 import { formatStatusLabel } from "@/lib/status-label";
-import { disableStaff, enableStaff, forceStaffPasswordChange, permanentlyDeleteStaff, resendStaffInvite, resetStaffPermissionOverrides, resetStaffTemporaryPassword, updateStaff, updateStaffPermissionOverrides } from "@/server/actions/foundation";
+import { disableStaff, enableStaff, forceStaffPasswordChange, permanentlyDeleteStaff, resetStaffPermissionOverrides, resetStaffTemporaryPassword, updateStaff, updateStaffPermissionOverrides } from "@/server/actions/foundation";
 import { hasPermission } from "@/server/auth/permissions";
 import { getCurrentProfile } from "@/server/queries/common";
 import { getBranches, getCompaniesForSelect, getRoles, getStaff, getStaffAccess, getStaffPermissionAccess } from "@/server/queries/foundation";
@@ -59,6 +59,18 @@ export default async function EditStaffPage({
                   <StatusBadge status={staff.status} />
                   <span className="text-[11px] text-muted-foreground">Use actions below</span>
                 </div>
+                <div className="mt-3 flex justify-between gap-3 border-t pt-2 text-xs">
+                  <span className="text-muted-foreground">Default branch</span>
+                  <span className="font-medium">{branchName}</span>
+                </div>
+              </div>
+
+              <div className="rounded-[2px] border bg-white p-3 text-xs">
+                <p className="font-semibold">Recent Account Activity</p>
+                <div className="mt-2 grid gap-2">
+                  <div className="flex justify-between gap-3"><span className="text-muted-foreground">Last login</span><span className="font-medium">{staff.last_login_at ? new Date(staff.last_login_at).toLocaleString("en-MY") : "-"}</span></div>
+                  <div className="flex justify-between gap-3"><span className="text-muted-foreground">Password changed</span><span className="font-medium">{staff.password_changed_at ? new Date(staff.password_changed_at).toLocaleString("en-MY") : "-"}</span></div>
+                </div>
               </div>
 
               <Button type="submit" form={formId} className="w-full" data-mobile-primary-action>
@@ -88,7 +100,7 @@ export default async function EditStaffPage({
 
               <div className="rounded-[2px] border bg-secondary/30 p-3 text-xs">
                 <p className="font-semibold">Auth Setup</p>
-                <p className="mt-1 text-xs text-muted-foreground">Temporary password is recommended for internal staff. Email invitation is optional and can expire.</p>
+                <p className="mt-1 text-xs text-muted-foreground">Internal staff accounts use a temporary password and require a secure password change.</p>
                 <div className="mt-3 grid gap-2 text-xs">
                   <div className="flex justify-between gap-3">
                     <span className="text-muted-foreground">Auth linked</span>
@@ -118,11 +130,6 @@ export default async function EditStaffPage({
                       Force password change
                     </SubmitButton>
                   </form>
-                  <form action={resendStaffInvite.bind(null, id)}>
-                    <SubmitButton type="submit" variant="outline" className="w-full" pendingLabel="Sending invite...">
-                      Resend email invitation
-                    </SubmitButton>
-                  </form>
                 </div>
               </div>
 
@@ -136,27 +143,6 @@ export default async function EditStaffPage({
                 </div>
               </div>
 
-              <div className="rounded-[2px] border bg-white p-3 text-xs">
-                <p className="font-semibold">Branch Access Summary</p>
-                <div className="mt-2 flex justify-between gap-3 text-xs">
-                  <span className="text-muted-foreground">Default branch</span>
-                  <span className="font-medium">{branchName}</span>
-                </div>
-              </div>
-
-              <div className="rounded-[2px] border bg-white p-3 text-xs">
-                <p className="font-semibold">Recent Account Activity</p>
-                <div className="mt-2 grid gap-2 text-xs">
-                  <div className="flex justify-between gap-3">
-                    <span className="text-muted-foreground">Last login</span>
-                    <span className="font-medium">{staff.last_login_at ? new Date(staff.last_login_at).toLocaleString("en-MY") : "-"}</span>
-                  </div>
-                  <div className="flex justify-between gap-3">
-                    <span className="text-muted-foreground">Password changed</span>
-                    <span className="font-medium">{staff.password_changed_at ? new Date(staff.password_changed_at).toLocaleString("en-MY") : "-"}</span>
-                  </div>
-                </div>
-              </div>
             </RecordActionPanel>
 
             <RecordActionPanel title="Danger Zone" description="Status and removal actions require confirmation.">

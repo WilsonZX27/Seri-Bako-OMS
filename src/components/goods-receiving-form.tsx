@@ -1,9 +1,7 @@
 "use client";
 
-import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { AlertTriangle, PackageCheck, ScanLine } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { AlertTriangle, PackageCheck } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Field } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
@@ -32,38 +30,10 @@ export function GoodsReceivingForm({
   action: (formData: FormData) => Promise<void>;
 }) {
   const router = useRouter();
-  const [barcode, setBarcode] = useState("");
-  const [scanMessage, setScanMessage] = useState<string | null>(null);
-  const [matchedLineId, setMatchedLineId] = useState<string | null>(null);
   const grnNo = "GRN-AUTO";
-  const lineByBarcode = useMemo(() => {
-    const map = new Map<string, PurchaseOrderReceivingLine>();
-    lines.forEach((line) => {
-      [line.item?.barcode, line.item?.internal_barcode, line.item?.item_code].filter(Boolean).forEach((value) => map.set(String(value).toLowerCase(), line));
-    });
-    return map;
-  }, [lines]);
 
   function selectPo(poId: string) {
     router.push(poId ? `/goods-receivings/new?po_id=${poId}` : "/goods-receivings/new");
-  }
-
-  function scanBarcode() {
-    const code = barcode.trim().toLowerCase();
-    if (!code) {
-      setScanMessage("Scan or enter barcode first.");
-      return;
-    }
-    const line = lineByBarcode.get(code);
-    if (!line) {
-      setMatchedLineId(null);
-      setScanMessage("Warning: scanned item is not in this PO.");
-      return;
-    }
-    setMatchedLineId(line.id);
-    setScanMessage(`${line.item?.item_name ?? "Item"} matched. Enter received quantity.`);
-    document.getElementById(`received-${line.id}`)?.focus();
-    document.getElementById(`line-${line.id}`)?.scrollIntoView({ behavior: "smooth", block: "center" });
   }
 
   return (
@@ -106,23 +76,6 @@ export function GoodsReceivingForm({
             <>
               <input type="hidden" name="purchase_order_id" value={selectedOrder.id} />
               <input type="hidden" name="supplier_id" value={selectedOrder.supplier_id} />
-              <div className="grid gap-2 rounded-lg border bg-secondary/30 p-3 md:grid-cols-[1fr_auto]">
-                <div>
-                  <p className="text-xs font-semibold">Barcode Receiving</p>
-                  <p className="text-xs text-muted-foreground">Search item code, item name, or barcode. Type or scan into the search field, then press Enter.</p>
-                </div>
-                <div className="flex gap-2">
-                  <Input value={barcode} onChange={(event) => setBarcode(event.target.value)} onKeyDown={(event) => event.key === "Enter" ? (event.preventDefault(), scanBarcode()) : undefined} placeholder="Scan barcode" />
-                  <Button type="button" onClick={scanBarcode}>
-                    <ScanLine className="mr-2 h-4 w-4" />
-                    Match
-                  </Button>
-                </div>
-                {scanMessage ? (
-                  <p className={`text-sm ${scanMessage.startsWith("Warning") ? "text-warning" : "text-muted-foreground"}`}>{scanMessage}</p>
-                ) : null}
-              </div>
-
               <div className="rounded-lg border">
                 <div className="flex flex-col gap-2 border-b bg-secondary/40 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
                   <div>
@@ -135,10 +88,10 @@ export function GoodsReceivingForm({
                 </div>
                 <div className="divide-y">
                   {lines.map((line) => (
-                    <div key={line.id} id={`line-${line.id}`} className={`grid gap-2 p-3 xl:grid-cols-[2fr_repeat(5,96px)_112px_112px_1.3fr] ${matchedLineId === line.id ? "bg-accent/10" : ""}`}>
+                    <div key={line.id} id={`line-${line.id}`} className="grid gap-2 p-3 xl:grid-cols-[2fr_repeat(5,96px)_112px_112px_1.3fr]">
                       <div>
                         <p className="font-medium">{line.item?.item_name ?? line.item_id}</p>
-                        <p className="text-xs text-muted-foreground">{line.item?.item_code} - {line.item?.barcode ?? line.item?.internal_barcode ?? "No barcode"}</p>
+                        <p className="text-xs text-muted-foreground">{line.item?.item_code}</p>
                         <p className="mt-1 text-xs text-muted-foreground">Unit cost {formatCurrency(line.unit_price)}</p>
                       </div>
                       <Field label="Ordered"><Input name="line_ordered_qty" value={line.qty_ordered} readOnly /></Field>

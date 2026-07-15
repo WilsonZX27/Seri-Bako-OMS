@@ -47,15 +47,15 @@ export function PaginationControls({
   searchParams: Record<string, string | undefined>;
 }) {
   return (
-    <div className="flex flex-col gap-2 border-t px-3 py-1.5 text-[11px] text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
+    <div className="flex items-center justify-between gap-2 border-t px-3 py-1.5 text-[11px] text-muted-foreground">
       <span className="leading-6">
         Page {page} of {totalPages} - {totalRows} rows
       </span>
       <div className="flex gap-2">
-        <Button asChild variant="outline" size="sm" aria-disabled={page <= 1}>
+        <Button asChild variant="outline" size="sm" className="h-8 px-2 text-xs sm:h-[var(--sb-control-height)]" aria-disabled={page <= 1}>
           <Link href={buildHref(searchParams, { page: String(Math.max(page - 1, 1)) })}>Previous</Link>
         </Button>
-        <Button asChild variant="outline" size="sm" aria-disabled={page >= totalPages}>
+        <Button asChild variant="outline" size="sm" className="h-8 px-2 text-xs sm:h-[var(--sb-control-height)]" aria-disabled={page >= totalPages}>
           <Link href={buildHref(searchParams, { page: String(Math.min(page + 1, totalPages)) })}>Next</Link>
         </Button>
       </div>

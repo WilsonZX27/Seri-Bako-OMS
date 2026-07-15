@@ -19,6 +19,10 @@ type ImportResult = {
   errors: number;
   message: string;
   errorRows: ImportErrorRow[];
+  supplierMappingsCreated?: number;
+  supplierMappingsUpdated?: number;
+  supplierMappingsSkipped?: number;
+  supplierMappingErrors?: number;
 };
 
 type DraftPayload = {
@@ -201,7 +205,9 @@ const steps = [
   { title: "5. Import", detail: "Confirm clean rows and review the result." },
 ];
 
-export function ImportWorkflow({ entity }: { entity: ImportEntity }) {
+type SupplierPreview = { id: string; supplier_code: string | null; name: string };
+
+export function ImportWorkflow({ entity, suppliers = [] }: { entity: ImportEntity; suppliers?: SupplierPreview[] }) {
   const spec = importTemplates[entity];
   const [rows, setRows] = useState<RowState[]>([]);
   const [entryMode, setEntryMode] = useState<"upload" | "table">("upload");
@@ -611,7 +617,13 @@ export function ImportWorkflow({ entity }: { entity: ImportEntity }) {
                     </TableCell>
                   ))}
                   <TableCell className={row.errors.length ? "text-destructive" : "text-success"}>
-                    {row.errors.length ? row.errors.join("; ") : "Valid"}
+                    {row.errors.length ? row.errors.join("; ") : (() => {
+                      const supplierCode = row.values.supplier_code?.trim().toLowerCase();
+                      const supplier = entity === "items" && supplierCode
+                        ? suppliers.find((entry) => entry.supplier_code?.trim().toLowerCase() === supplierCode)
+                        : null;
+                      return supplierCode ? (supplier ? `Resolved: ${supplier.supplier_code} - ${supplier.name}` : "Supplier code will be verified on import") : "Valid";
+                    })()}
                   </TableCell>
                   <TableCell className="text-right">
                     <Button type="button" variant="ghost" size="sm" onClick={() => removeRow(rowIndex)}>Remove</Button>

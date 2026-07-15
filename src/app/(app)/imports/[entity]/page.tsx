@@ -5,6 +5,7 @@ import { PageHeader } from "@/components/ui/page-header";
 import { importTemplates, type ImportEntity } from "@/lib/imports/config";
 import { formatPageError } from "@/server/actions/error-handling";
 import { hasPermission } from "@/server/auth/permissions";
+import { getSuppliersForSelect } from "@/server/queries/common";
 
 export const dynamic = "force-dynamic";
 
@@ -15,13 +16,14 @@ export default async function ImportPage({ params }: { params: Promise<{ entity:
     const typedEntity = entity as ImportEntity;
     const allowed = (await hasPermission("imports.create")) || (await hasPermission("company.update"));
     const label = importTemplates[typedEntity].label;
+    const suppliers = typedEntity === "items" ? await getSuppliersForSelect() : [];
 
     return (
       <>
         <PageHeader title={`Import ${label}`} description="Upload, preview, validate, and import only clean rows." />
         <div className="p-5">
           {allowed ? (
-            <ImportWorkflow entity={typedEntity} />
+            <ImportWorkflow entity={typedEntity} suppliers={suppliers} />
           ) : (
             <Card>
               <CardContent className="p-5 text-sm text-muted-foreground">

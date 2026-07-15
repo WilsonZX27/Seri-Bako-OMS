@@ -29,6 +29,10 @@ type ImportSummary = {
   skipped: number;
   errors: number;
   errorRows: ImportResultRow[];
+  supplierMappingsCreated: number;
+  supplierMappingsUpdated: number;
+  supplierMappingsSkipped: number;
+  supplierMappingErrors: number;
 };
 
 type RouteContext = {
@@ -95,7 +99,7 @@ function parseDate(value: unknown) {
 }
 
 function createSummary(): ImportSummary {
-  return { imported: 0, updated: 0, skipped: 0, errors: 0, errorRows: [] };
+  return { imported: 0, updated: 0, skipped: 0, errors: 0, errorRows: [], supplierMappingsCreated: 0, supplierMappingsUpdated: 0, supplierMappingsSkipped: 0, supplierMappingErrors: 0 };
 }
 
 function pushIssue(summary: ImportSummary, rowNumber: number, values: Record<string, string>, message: string, type: "error" | "skip" = "error") {
@@ -105,7 +109,10 @@ function pushIssue(summary: ImportSummary, rowNumber: number, values: Record<str
 }
 
 function summaryMessage(entity: ImportRequest["entity"], summary: ImportSummary) {
-  return `${entity} import finished. Imported: ${summary.imported}. Updated: ${summary.updated}. Skipped: ${summary.skipped}. Errors: ${summary.errors}.`;
+  const mappingSummary = entity === "items"
+    ? ` Supplier mappings created: ${summary.supplierMappingsCreated}. Updated: ${summary.supplierMappingsUpdated}. Skipped: ${summary.supplierMappingsSkipped}. Errors: ${summary.supplierMappingErrors}.`
+    : "";
+  return `${entity} import finished. Imported: ${summary.imported}. Updated: ${summary.updated}. Skipped: ${summary.skipped}. Errors: ${summary.errors}.${mappingSummary}`;
 }
 
 function response(entity: ImportRequest["entity"], summary: ImportSummary, status = 200) {
@@ -118,6 +125,10 @@ function response(entity: ImportRequest["entity"], summary: ImportSummary, statu
       errors: summary.errors,
       message: summaryMessage(entity, summary),
       errorRows: summary.errorRows,
+      supplierMappingsCreated: summary.supplierMappingsCreated,
+      supplierMappingsUpdated: summary.supplierMappingsUpdated,
+      supplierMappingsSkipped: summary.supplierMappingsSkipped,
+      supplierMappingErrors: summary.supplierMappingErrors,
     },
     { status },
   );
@@ -172,6 +183,10 @@ function getItemImportValues(row: Record<string, string>, entity: ImportRequest[
       safety_stock: 0,
       supplier_name: "",
       supplier_code: normalizeText(row["Main Supplier"]),
+      supplier_item_code: "",
+      supplier_price: null,
+      minimum_order_qty: null,
+      lead_time_days: null,
       active: normalizeText(row["Is Active"]),
       autocount_code: "",
     };
@@ -188,6 +203,10 @@ function getItemImportValues(row: Record<string, string>, entity: ImportRequest[
     safety_stock: parseNumber(row.safety_stock),
     supplier_name: normalizeText(row.supplier_name),
     supplier_code: normalizeText(row.supplier_code),
+    supplier_item_code: normalizeText(row.supplier_item_code),
+    supplier_price: parseNumber(row.supplier_price),
+    minimum_order_qty: parseNumber(row.minimum_order_qty),
+    lead_time_days: parseNumber(row.lead_time_days),
     active: normalizeText(row.status ?? row.active),
     autocount_code: "",
   };
@@ -234,6 +253,9 @@ async function handleItemsImport(context: RouteContext, request: ImportRequest) 
     const barcode = row.values.barcode;
     const cost = row.values.cost;
     const safetyStock = row.values.safety_stock;
+    const supplierPrice = row.values.supplier_price;
+    const minimumOrderQty = row.values.minimum_order_qty;
+    const leadTimeDays = row.values.lead_time_days;
     const existing = existingByCode.get(normalizeLower(itemCode));
     const supplier = row.values.supplier_code
       ? supplierByCode.get(normalizeLower(row.values.supplier_code))
@@ -249,6 +271,22 @@ async function handleItemsImport(context: RouteContext, request: ImportRequest) 
     }
     if ((cost ?? 0) < 0 || (safetyStock ?? 0) < 0) {
       pushIssue(summary, rowNumber, sourceRow, "Numeric values cannot be negative.");
+      continue;
+    }
+    if ((supplierPrice ?? 0) < 0 || (minimumOrderQty ?? 0) < 0 || (leadTimeDays ?? 0) < 0) {
+      pushIssue(summary, rowNumber, sourceRow, "Supplier price, minimum order quantity, and lead time cannot be negative.");
+      continue;
+    }
+    if (normalizeText(sourceRow.supplier_price) && supplierPrice === null) {
+      pushIssue(summary, rowNumber, sourceRow, "Invalid supplier_price.");
+      continue;
+    }
+    if (normalizeText(sourceRow.minimum_order_qty) && minimumOrderQty === null) {
+      pushIssue(summary, rowNumber, sourceRow, "Invalid minimum_order_qty.");
+      continue;
+    }
+    if (normalizeText(sourceRow.lead_time_days) && (leadTimeDays === null || !Number.isInteger(leadTimeDays))) {
+      pushIssue(summary, rowNumber, sourceRow, "lead_time_days must be a whole number.");
       continue;
     }
     if (cost === null && request.entity !== "items-stock-listing" && normalizeText(sourceRow.cost)) {
@@ -294,12 +332,14 @@ async function handleItemsImport(context: RouteContext, request: ImportRequest) 
       status: (parseBooleanFlag(row.values.active, true) ? "active" : "inactive") as ItemStatus,
     };
 
+    let savedItemId: string;
     if (existing) {
       const { error } = await context.writeSupabase.from("items").update(payload).eq("id", existing.id);
       if (error) {
         pushIssue(summary, rowNumber, sourceRow, error.message);
         continue;
       }
+      savedItemId = existing.id;
       if (barcode) {
         try {
           await ensurePrimaryItemBarcode(context, companyId, existing.id, barcode, existingBarcode?.id ?? null);
@@ -323,7 +363,49 @@ async function handleItemsImport(context: RouteContext, request: ImportRequest) 
           continue;
         }
       }
+      savedItemId = data.id;
       summary.imported += 1;
+    }
+
+    if (supplier) {
+      const { data: existingMapping, error: mappingReadError } = await context.supabase
+        .from("supplier_items")
+        .select("id")
+        .eq("supplier_id", supplier.id)
+        .eq("item_id", savedItemId)
+        .is("deleted_at", null)
+        .maybeSingle();
+      if (mappingReadError) {
+        summary.supplierMappingErrors += 1;
+        pushIssue(summary, rowNumber, sourceRow, mappingReadError.message);
+        continue;
+      }
+      const mappingPayload = {
+        supplier_id: supplier.id,
+        item_id: savedItemId,
+        supplier_item_code: row.values.supplier_item_code || itemCode,
+        supplier_item_name: itemName,
+        purchase_uom: purchaseUom,
+        conversion_to_base_uom: 1,
+        unit_cost: supplierPrice ?? cost ?? 0,
+        moq: minimumOrderQty ?? 0,
+        lead_time_days: leadTimeDays ?? 0,
+        status: "active" as const,
+        updated_by: context.profile?.id ?? null,
+      };
+      const mappingResult = existingMapping
+        ? await context.writeSupabase.from("supplier_items").update(mappingPayload).eq("id", existingMapping.id)
+        : await context.writeSupabase.from("supplier_items").insert({ ...mappingPayload, created_by: context.profile?.id ?? null });
+      if (mappingResult.error) {
+        summary.supplierMappingErrors += 1;
+        pushIssue(summary, rowNumber, sourceRow, mappingResult.error.message);
+      } else if (existingMapping) {
+        summary.supplierMappingsUpdated += 1;
+      } else {
+        summary.supplierMappingsCreated += 1;
+      }
+    } else if (request.entity === "items") {
+      summary.supplierMappingsSkipped += 1;
     }
   }
 

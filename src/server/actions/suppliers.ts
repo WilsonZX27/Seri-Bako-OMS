@@ -63,7 +63,7 @@ export async function updateSupplier(id: string, formData: FormData) {
     redirect("/suppliers");
   }
 
-  const parsed = supplierSchema.parse({
+  const parsed = supplierSchema.omit({ status: true }).parse({
     supplier_code: cleanText(formData.get("supplier_code")),
     name: formData.get("name"),
     contact_person: cleanText(formData.get("contact_person")),
@@ -71,7 +71,6 @@ export async function updateSupplier(id: string, formData: FormData) {
     email: cleanText(formData.get("email")),
     address: cleanText(formData.get("address")),
     payment_terms_days: formData.get("payment_terms_days"),
-    status: formData.get("status") ?? "active",
   });
 
   try {

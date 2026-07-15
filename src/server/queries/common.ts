@@ -74,7 +74,9 @@ export const getSuppliersForSelect = cache(async function getSuppliersForSelect(
   const { data, error } = await supabase
     .from("suppliers")
     .select("id, supplier_code, name, status")
-    .order("name", { ascending: true });
+    .eq("status", "active")
+    .order("name", { ascending: true })
+    .limit(200);
 
   if (error) throw new Error(error.message);
   return data;

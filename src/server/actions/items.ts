@@ -8,6 +8,8 @@ import { itemSchema } from "@/lib/validations/item";
 import { formatActionError, requirePermissionOrRedirect, rethrowRedirect, safeRedirectWithMessage } from "@/server/actions/error-handling";
 import { uploadMasterDataImage } from "@/server/storage/master-data-image";
 
+const editableItemSchema = itemSchema.omit({ status: true });
+
 function cleanText(value: unknown) {
   const text = String(value ?? "").trim();
   return text.length ? text : null;
@@ -15,7 +17,7 @@ function cleanText(value: unknown) {
 
 function payload(formData: FormData) {
   const baseUnit = formData.get("base_unit");
-  const parsed = itemSchema.parse({
+  const parsed = editableItemSchema.parse({
     item_code: formData.get("item_code"),
     autocount_code: cleanText(formData.get("autocount_code")),
     item_name: formData.get("item_name"),
@@ -28,7 +30,6 @@ function payload(formData: FormData) {
     safety_stock: formData.get("safety_stock"),
     lead_time_days: formData.get("lead_time_days") || 0,
     moq: formData.get("moq") || 0,
-    status: formData.get("status") ?? "active",
   });
 
   return {
@@ -47,7 +48,7 @@ export async function createItem(formData: FormData) {
 
     const supabase = await createClient();
     const writeSupabase = supabase;
-    const itemPayload = payload(formData);
+    const itemPayload = { ...payload(formData), status: "active" as const };
     const { data: archivedMatch, error: archivedError } = await supabase
       .from("items")
       .select("id")

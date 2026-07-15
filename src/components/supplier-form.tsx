@@ -28,7 +28,6 @@ export function SupplierForm({ supplier, action, formId, showSubmit = true }: Su
           <Field label="Supplier Name" required>
             <Input name="name" defaultValue={supplier?.name ?? ""} required />
           </Field>
-          <input type="hidden" name="status" value={supplier?.status ?? "active"} />
         </div>
       </RecordSection>
 

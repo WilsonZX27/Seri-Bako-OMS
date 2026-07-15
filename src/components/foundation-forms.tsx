@@ -63,6 +63,7 @@ type Staff = {
 
 type StaffAccess = {
   staffRole: { role_id: string; branch_id: string | null; effective_from: string; effective_to: string | null } | null;
+  staffRoles?: Array<{ role_id: string; branch_id: string | null; effective_from: string; effective_to: string | null }>;
   staffBranch: { branch_id: string; access_level: StaffAccessLevel; is_default: boolean } | null;
   staffLocationIds: string[];
 };

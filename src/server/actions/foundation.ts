@@ -1104,6 +1104,29 @@ export async function updateRole(id: string, formData: FormData) {
   redirect("/roles");
 }
 
+export async function updateRolePermissions(id: string, formData: FormData) {
+  await requirePermissionOrRedirect("roles.update", `/roles/${id}`);
+  const permissionIds = Array.from(formData.getAll("permission_id")).map(String);
+  try {
+    if (!isMockMode()) {
+      const supabase = createAdminClient();
+      const { error: removeError } = await supabase.from("role_permissions").delete().eq("role_id", id);
+      if (removeError) throw new Error(removeError.message);
+      if (permissionIds.length) {
+        const { error: addError } = await supabase.from("role_permissions").insert(permissionIds.map((permission_id) => ({ role_id: id, permission_id })));
+        if (addError) throw new Error(addError.message);
+      }
+      await writeActivityLog({ entityType: "role", entityId: id, activityType: "permissions_updated", message: "Role default permissions updated" });
+    }
+  } catch (error) {
+    rethrowRedirect(error);
+    safeRedirectWithMessage(`/roles/${id}`, "error", formatActionError(error, "Could not update role permissions."));
+  }
+  revalidatePath("/roles");
+  revalidatePath(`/roles/${id}`);
+  safeRedirectWithMessage(`/roles/${id}`, "success", "Role permissions updated.");
+}
+
 function documentSequencePayload(formData: FormData) {
   return documentSequenceSchema.parse({
     company_id: formValue(formData, "company_id"),

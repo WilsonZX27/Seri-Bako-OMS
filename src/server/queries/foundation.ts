@@ -197,22 +197,26 @@ export async function getStaffAccess(staffId: string) {
   if (isMockMode()) {
     return {
       staffRole: mockStaffRoles.find((row) => row.staff_id === staffId && row.is_primary) ?? null,
+      staffRoles: mockStaffRoles.filter((row) => row.staff_id === staffId),
       staffBranch: mockStaffBranches.find((row) => row.staff_id === staffId && row.is_default) ?? null,
       staffLocationIds: mockStaffLocations.filter((row) => row.staff_id === staffId).map((row) => row.location_id),
     };
   }
 
   const supabase = await createClient();
-  const [{ data: staffRole, error: roleError }, { data: staffBranch, error: branchError }, { data: staffLocations, error: locationError }] = await Promise.all([
+  const [{ data: staffRole, error: roleError }, { data: staffRoles, error: rolesError }, { data: staffBranch, error: branchError }, { data: staffLocations, error: locationError }] = await Promise.all([
     supabase.from("staff_roles").select("*").eq("staff_id", staffId).eq("is_primary", true).maybeSingle(),
+    supabase.from("staff_roles").select("*").eq("staff_id", staffId),
     supabase.from("staff_branches").select("*").eq("staff_id", staffId).eq("is_default", true).maybeSingle(),
     supabase.from("staff_locations").select("location_id").eq("staff_id", staffId),
   ]);
   if (roleError) throw new Error(roleError.message);
+  if (rolesError) throw new Error(rolesError.message);
   if (branchError) throw new Error(branchError.message);
   if (locationError) throw new Error(locationError.message);
   return {
     staffRole,
+    staffRoles: staffRoles ?? [],
     staffBranch,
     staffLocationIds: (staffLocations ?? []).map((row) => row.location_id),
   };
@@ -249,6 +253,40 @@ export async function getPermissions() {
   const { data, error } = await supabase.from("permissions").select("*").order("module", { ascending: true });
   if (error) throw new Error(error.message);
   return data ?? [];
+}
+
+export async function getRolePermissionManagement(roleId: string) {
+  if (isMockMode()) {
+    const role = mockRoles.find((row) => row.id === roleId);
+    if (!role) throw new Error("Mock role not found");
+    return { role, permissions: mockPermissions, selectedPermissionIds: new Set<string>(), assignedUsers: [], assignedCount: 0 };
+  }
+
+  const supabase = await createClient();
+  const [{ data: role, error: roleError }, { data: permissions, error: permissionsError }, { data: rolePermissions, error: rolePermissionsError }, { data: assignments, error: assignmentsError }] = await Promise.all([
+    supabase.from("roles").select("*").eq("id", roleId).single(),
+    supabase.from("permissions").select("id, permission_code, module, action, description").order("module").order("action"),
+    supabase.from("role_permissions").select("permission_id").eq("role_id", roleId),
+    supabase.from("staff_roles").select("staff_id").eq("role_id", roleId).limit(26),
+  ]);
+  if (roleError) throw new Error(roleError.message);
+  if (permissionsError) throw new Error(permissionsError.message);
+  if (rolePermissionsError) throw new Error(rolePermissionsError.message);
+  if (assignmentsError) throw new Error(assignmentsError.message);
+  const staffIds = (assignments ?? []).map((row) => row.staff_id);
+  const { data: staffs, error: staffError } = staffIds.length ? await supabase.from("staffs").select("id, full_name, staff_code, status, default_branch_id").in("id", staffIds) : { data: [], error: null };
+  if (staffError) throw new Error(staffError.message);
+  const branchIds = (staffs ?? []).flatMap((staff) => staff.default_branch_id ? [staff.default_branch_id] : []);
+  const { data: branches, error: branchError } = branchIds.length ? await supabase.from("branches").select("id, branch_name").in("id", branchIds) : { data: [], error: null };
+  if (branchError) throw new Error(branchError.message);
+  const branchById = new Map((branches ?? []).map((branch) => [branch.id, branch.branch_name]));
+  return {
+    role,
+    permissions: permissions ?? [],
+    selectedPermissionIds: new Set((rolePermissions ?? []).map((row) => row.permission_id)),
+    assignedUsers: (staffs ?? []).slice(0, 25).map((staff) => ({ ...staff, branch_name: staff.default_branch_id ? branchById.get(staff.default_branch_id) ?? null : null })),
+    assignedCount: assignments?.length === 26 ? "25+" : assignments?.length ?? 0,
+  };
 }
 
 export async function getStaffPermissionAccess(staffId: string) {

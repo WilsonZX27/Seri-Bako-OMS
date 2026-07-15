@@ -33,11 +33,12 @@ export default async function EditStaffPage({
     getCurrentProfile(),
   ]);
   const assignedRole = allRoles.find((role) => role.id === access.staffRole?.role_id);
+  const additionalRoles = sortRolesForDisplay(allRoles.filter((role) => access.staffRoles?.some((assignment) => assignment.role_id === role.id && role.id !== assignedRole?.id) ?? false));
   const currentRole = (profile as { role_code?: string; role?: string } | null)?.role_code ?? (profile as { role?: string } | null)?.role ?? "viewer";
   const roles = sortRolesForDisplay(allRoles).filter((role) => canAssignRoleCode(currentRole, role.role_code) || role.id === assignedRole?.id);
   const roleCode = normalizeRoleCode(assignedRole?.role_code);
   const [permissionAccess, canManageOverrides] = await Promise.all([getStaffPermissionAccess(id), hasPermission("roles.update")]);
-  const protectedRole = roleCode === "super_admin" || roleCode === "admin";
+  const protectedRole = roleCode === "super_admin";
   const overrideCounts = {
     inherited: permissionAccess.filter((permission) => !permission.override).length,
     allowed: permissionAccess.filter((permission) => permission.override === "allow").length,
@@ -136,6 +137,7 @@ export default async function EditStaffPage({
               <div className="rounded-[2px] border bg-secondary/30 p-3 text-xs">
                 <p className="font-semibold">Permission Summary</p>
                 <p className="mt-1 text-muted-foreground">{getRoleDisplayLabel(assignedRole?.role_code, assignedRole?.role_name)}</p>
+                {additionalRoles.length ? <p className="mt-1 text-muted-foreground">Additional: {additionalRoles.map((role) => getRoleDisplayLabel(role.role_code, role.role_name)).join(", ")}</p> : null}
                 <div className="mt-3 grid grid-cols-3 gap-2 text-center">
                   <div><strong className="block text-sm">{overrideCounts.inherited}</strong><span className="text-muted-foreground">Inherited</span></div>
                   <div><strong className="block text-sm text-[var(--sb-success)]">{overrideCounts.allowed}</strong><span className="text-muted-foreground">Allowed</span></div>

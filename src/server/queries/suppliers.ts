@@ -1,6 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { isMockMode, mockSuppliers } from "@/lib/mock-mode";
-import { compareTableValues } from "@/lib/table-state";
+import { compareTableValues, paginateRows } from "@/lib/table-state";
 import type { SupplierStatus } from "@/types/database";
 
 type SupplierFilters = {
@@ -8,7 +8,10 @@ type SupplierFilters = {
   status?: string;
   sort?: string;
   dir?: string;
+  page?: string;
 };
+
+const PAGE_SIZE = 15;
 
 function filterSuppliers<T extends { supplier_code: string | null; name: string; contact_person: string | null; phone: string | null; email: string | null; status: string }>(
   suppliers: T[],
@@ -37,11 +40,14 @@ function isSupplierStatus(value: string): value is SupplierStatus {
 
 export async function getSuppliers(filters: SupplierFilters = {}) {
   if (isMockMode()) {
-    return filterSuppliers(mockSuppliers, filters);
+    return paginateRows(filterSuppliers(mockSuppliers, filters), filters.page, PAGE_SIZE);
   }
 
   const supabase = await createClient();
-  let query = supabase.from("suppliers").select("*").order("name", { ascending: true });
+  const requestedPage = Math.max(Number(filters.page) || 1, 1);
+  const allowedSorts = ["supplier_code", "name", "contact_person", "phone", "email", "payment_terms_days", "status"];
+  const sort = filters.sort && allowedSorts.includes(filters.sort) ? filters.sort : "name";
+  let query = supabase.from("suppliers").select("*", { count: "exact" });
 
   const requestedStatus = filters.status === "archived" ? "inactive" : filters.status;
   if (requestedStatus && isSupplierStatus(requestedStatus)) {
@@ -53,9 +59,18 @@ export async function getSuppliers(filters: SupplierFilters = {}) {
     query = query.or(`supplier_code.ilike.%${search}%,name.ilike.%${search}%,contact_person.ilike.%${search}%,phone.ilike.%${search}%,email.ilike.%${search}%`);
   }
 
-  const { data, error } = await query;
+  const { data, error, count } = await query
+    .order(sort, { ascending: filters.dir !== "desc" })
+    .range((requestedPage - 1) * PAGE_SIZE, requestedPage * PAGE_SIZE - 1);
   if (error) throw new Error(error.message);
-  return data;
+  const totalRows = count ?? 0;
+  return {
+    rows: data ?? [],
+    page: requestedPage,
+    pageSize: PAGE_SIZE,
+    totalRows,
+    totalPages: Math.max(Math.ceil(totalRows / PAGE_SIZE), 1),
+  };
 }
 
 export async function getSupplier(id: string) {

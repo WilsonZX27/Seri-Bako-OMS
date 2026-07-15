@@ -268,22 +268,36 @@ async function createPurchaseOrderCreatedNotification(input: { poId: string; poN
 }
 
 export async function createPurchaseRequest(formData: FormData) {
+  const startedAt = performance.now();
+  let checkpoint = startedAt;
+  const timings: Record<string, number> = {};
+  const mark = (phase: string) => {
+    const now = performance.now();
+    timings[phase] = Math.round(now - checkpoint);
+    checkpoint = now;
+  };
   await requirePermissionOrRedirect("purchase_request.create", "/purchase-requests/new");
+  mark("authorization");
   try {
     if (isMockMode()) redirect("/purchase-requests");
     const idempotencyKey = z.uuid().parse(cleanText(formData.get("idempotency_key")));
     const supabase = await createClient();
     const { data: existing } = await supabase.from("purchase_requests").select("id, request_no").eq("idempotency_key", idempotencyKey).maybeSingle();
     if (existing) redirect(`/purchase-requests/${existing.id}`);
+    mark("idempotency");
     const payload = extractPurchaseRequest(formData);
-    const locationId = await resolveDefaultLocation(payload.branch_id, payload.location_id);
-    await ensureActiveItems(payload.lines.map((line) => line.item_id));
-    const profile = await identity();
+    const [locationId, , profile] = await Promise.all([
+      resolveDefaultLocation(payload.branch_id, payload.location_id),
+      ensureActiveItems(payload.lines.map((line) => line.item_id)),
+      identity(),
+    ]);
+    mark("validation_and_references");
     const requestNo = await resolveDocumentNumber({
       companyId: profile?.company_id,
       documentType: "purchase_request",
       enteredNumber: payload.request_no,
     });
+    mark("document_number");
     const { data, error } = await supabase
       .from("purchase_requests")
       .insert({
@@ -313,15 +327,23 @@ export async function createPurchaseRequest(formData: FormData) {
       }
       throw new Error(error.message);
     }
-    const documentId = await createLinkedDocument({ documentNo: requestNo, documentType: "purchase_request", title: `Purchase Request ${requestNo}`, relatedEntityType: "purchase_request", relatedEntityId: data.id });
-    const [{ error: updateError }, { error: linesError }] = await Promise.all([
-      supabase.from("purchase_requests").update({ document_id: documentId }).eq("id", data.id),
+    mark("header_insert");
+    const [documentId, { error: linesError }] = await Promise.all([
+      createLinkedDocument({ documentNo: requestNo, documentType: "purchase_request", title: `Purchase Request ${requestNo}`, relatedEntityType: "purchase_request", relatedEntityId: data.id }),
       supabase.from("purchase_request_lines").insert(payload.lines.map((line) => ({ ...line, suggested_supplier_id: line.suggested_supplier_id || null, purchase_request_id: data.id }))),
     ]);
-    if (updateError) throw new Error(updateError.message);
     if (linesError) throw new Error(linesError.message);
-    await writeActivityLog({ entityType: "document", entityId: documentId, activityType: "created", message: `Purchase request ${requestNo} created` });
+    const [{ error: updateError }] = await Promise.all([
+      supabase.from("purchase_requests").update({ document_id: documentId }).eq("id", data.id),
+      writeActivityLog({ entityType: "document", entityId: documentId, activityType: "created", message: `Purchase request ${requestNo} created` }),
+    ]);
+    if (updateError) throw new Error(updateError.message);
+    mark("document_lines_and_audit");
     revalidateWorkspaceState(["/purchase-requests"]);
+    mark("revalidation");
+    if (process.env.SB_PERF_LOG === "true") {
+      console.info("[perf] createPurchaseRequest", { ...timings, total: Math.round(performance.now() - startedAt), id: data.id });
+    }
     redirect(`/purchase-requests/${data.id}`);
   } catch (error) {
     rethrowRedirect(error);
@@ -350,7 +372,7 @@ async function updatePrStatus(input: {
     nextStatus: input.nextStatus,
   });
   if ("alreadyMoved" in pr && pr.alreadyMoved) {
-    revalidateWorkspaceState([`/purchase-requests/${input.id}`]);
+    revalidateWorkspaceState(["/purchase-requests", `/purchase-requests/${input.id}`]);
     return pr;
   }
   const { data: updatedPr, error } = await supabase
@@ -380,7 +402,7 @@ async function updatePrStatus(input: {
     });
   }
   await notifyNextPrRole({ pr, nextStatus: input.nextStatus });
-  revalidateWorkspaceState([`/purchase-requests/${input.id}`]);
+  revalidateWorkspaceState(["/purchase-requests", `/purchase-requests/${input.id}`]);
   return pr;
 }
 
@@ -589,7 +611,7 @@ async function updatePoStatus(id: string, status: PurchaseOrderStatus, approvalS
   if (error) throw new Error(error.message);
   if (documentError) throw new Error(documentError.message);
   if (order.document_id) await writeActivityLog({ entityType: "document", entityId: order.document_id, activityType: status, message });
-  revalidateWorkspaceState([`/purchase-orders/${id}`]);
+  revalidateWorkspaceState(["/purchase-orders", `/purchase-orders/${id}`]);
   return order;
 }
 

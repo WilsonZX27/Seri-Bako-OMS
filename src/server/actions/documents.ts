@@ -38,33 +38,59 @@ export async function addDocumentComment(documentId: string, formData: FormData)
   revalidatePath(`/documents/${documentId}`);
 }
 
-export async function addDocumentAttachment(documentId: string, formData: FormData) {
-  await requirePermission("documents.attach");
-  const file = formData.get("file");
-  const attachmentLabel = cleanText(formData.get("file_name"));
-  const uploadedFile = file instanceof File && file.size > 0 ? file : null;
-  const fileName = attachmentLabel ?? uploadedFile?.name ?? null;
-  if (!fileName) return;
-  const profile = await currentIdentity();
+const allowedAttachmentTypes = new Set([
+  "application/pdf", "image/png", "image/jpeg", "image/webp", "text/plain", "text/csv",
+  "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+  "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+]);
 
-  if (!isMockMode()) {
-    const supabase = await createClient();
-    const { error } = await supabase.from("attachments").insert({
-      company_id: profile?.company_id ?? null,
-      entity_type: "document",
-      entity_id: documentId,
-      file_name: fileName,
-      file_type: uploadedFile?.type ?? null,
-      file_size: uploadedFile?.size ?? 0,
-      file_url: null,
-      uploaded_by: profile?.id ?? null,
-      created_by: profile?.id ?? null,
-      updated_by: profile?.id ?? null,
-    });
-    if (error) throw new Error(error.message);
-    await writeActivityLog({ entityType: "document", entityId: documentId, activityType: "attachment_uploaded", message: `Attachment ${fileName} uploaded` });
+export async function addDocumentAttachment(
+  documentId: string,
+  _state: { error: string | null; success: string | null },
+  formData: FormData,
+) {
+  try {
+    await requirePermission("documents.attach");
+    const file = formData.get("file");
+    const uploadedFile = file instanceof File && file.size > 0 ? file : null;
+    if (!uploadedFile) throw new Error("Choose a file to upload.");
+    if (uploadedFile.size > 10 * 1024 * 1024) throw new Error("Attachment must be 10 MB or smaller.");
+    if (!allowedAttachmentTypes.has(uploadedFile.type)) throw new Error("This file type is not supported.");
+    const profile = await currentIdentity();
+    if (!profile?.company_id || !profile.id) throw new Error("An active staff profile is required.");
+    const attachmentLabel = cleanText(formData.get("file_name"));
+    const fileName = attachmentLabel ?? uploadedFile.name;
+
+    if (!isMockMode()) {
+      const supabase = await createClient();
+      const safeName = uploadedFile.name.replace(/[^a-zA-Z0-9._-]+/g, "-").slice(-120) || "attachment";
+      const storagePath = `${profile.company_id}/${documentId}/${crypto.randomUUID()}-${safeName}`;
+      const { error: uploadError } = await supabase.storage.from("document-attachments").upload(storagePath, uploadedFile, { contentType: uploadedFile.type, upsert: false });
+      if (uploadError) throw new Error(uploadError.message);
+      const { error } = await supabase.from("attachments").insert({
+        company_id: profile.company_id,
+        entity_type: "document",
+        entity_id: documentId,
+        file_name: fileName,
+        file_type: uploadedFile.type,
+        file_size: uploadedFile.size,
+        storage_path: storagePath,
+        file_url: null,
+        uploaded_by: profile.id,
+        created_by: profile.id,
+        updated_by: profile.id,
+      });
+      if (error) {
+        await supabase.storage.from("document-attachments").remove([storagePath]);
+        throw new Error(error.message);
+      }
+      await writeActivityLog({ entityType: "document", entityId: documentId, activityType: "attachment_uploaded", message: `Attachment ${fileName} uploaded` });
+    }
+    revalidatePath("/", "layout");
+    return { error: null, success: `${fileName} uploaded.` };
+  } catch (error) {
+    return { error: formatActionError(error, "Could not upload this attachment."), success: null };
   }
-  revalidatePath(`/documents/${documentId}`);
 }
 
 export async function archiveDocumentAttachment(documentId: string, attachmentId: string) {
@@ -72,7 +98,18 @@ export async function archiveDocumentAttachment(documentId: string, attachmentId
   try {
     if (!isMockMode()) {
       const supabase = await createClient();
-      const { error } = await supabase.from("attachments").update({ status: "archived", deleted_at: new Date().toISOString() }).eq("id", attachmentId);
+      const [{ data: document, error: documentError }, { data: attachment, error: attachmentError }] = await Promise.all([
+        supabase.from("documents").select("status").eq("id", documentId).single(),
+        supabase.from("attachments").select("storage_path").eq("id", attachmentId).eq("entity_id", documentId).single(),
+      ]);
+      if (documentError) throw new Error(documentError.message);
+      if (attachmentError) throw new Error(attachmentError.message);
+      if (!new Set(["draft", "pending_approval"]).has(document.status)) throw new Error("Attachments can only be removed while the document is draft or pending approval.");
+      if (attachment.storage_path) {
+        const { error: storageError } = await supabase.storage.from("document-attachments").remove([attachment.storage_path]);
+        if (storageError) throw new Error(storageError.message);
+      }
+      const { error } = await supabase.from("attachments").update({ status: "archived", deleted_at: new Date().toISOString() }).eq("id", attachmentId).eq("entity_id", documentId);
       if (error) throw new Error(error.message);
       await writeActivityLog({ entityType: "document", entityId: documentId, activityType: "attachment_archived", message: "Attachment archived" });
     }
@@ -80,8 +117,7 @@ export async function archiveDocumentAttachment(documentId: string, attachmentId
     rethrowRedirect(error);
     safeRedirectWithMessage(`/documents/${documentId}`, "error", formatActionError(error, "Could not archive this attachment."));
   }
-  revalidatePath(`/documents/${documentId}`);
-  safeRedirectWithMessage(`/documents/${documentId}`, "success", "Attachment archived.");
+  revalidatePath("/", "layout");
 }
 
 async function createRevision(documentId: string, summary: string) {

@@ -671,132 +671,31 @@ export async function closePurchaseOrder(id: string) {
 }
 
 export async function convertPurchaseRequestToPurchaseOrder(id: string, formData: FormData) {
-  let reservedConversion = false;
   try {
     if (isMockMode()) redirect("/purchase-orders/po-mock-001");
+    await requirePermission("pr.convert_to_po");
     const autocountPoNo = cleanText(formData.get("autocount_po_no"));
     if (!autocountPoNo) throw new Error("AutoCount PO Number is required.");
     const supabase = await createClient();
-    const [{ data: pr, error: prError }, { data: lines, error: linesError }, { data: existingPo, error: existingPoError }] = await Promise.all([
-      supabase.from("purchase_requests").select("*").eq("id", id).single(),
-      supabase.from("purchase_request_lines").select("*").eq("purchase_request_id", id),
-      supabase.from("purchase_orders").select("id, po_no").eq("purchase_request_id", id).is("deleted_at", null).order("created_at", { ascending: true }).limit(1),
-    ]);
-    if (prError) throw new Error(prError.message);
-    if (linesError) throw new Error(linesError.message);
-    if (existingPoError) throw new Error(existingPoError.message);
-    if (existingPo?.[0]) {
-      safeRedirectWithMessage(`/purchase-orders/${existingPo[0].id}`, "success", `Purchase order ${existingPo[0].po_no} is already linked to this PR.`);
-    }
-    await requirePrTransition({ id, expectedStatus: "ready_to_convert", permission: "pr.convert_to_po", nextStatus: PR_NEXT_STATUS_BY_ACTION.convert_to_po });
-    if (pr.status !== "ready_to_convert") throw new Error(wrongPrStepMessage);
-    if (!lines?.length) throw new Error("Add at least one item line before converting this PR.");
-
-    const supplierIds = new Set(lines.map((line) => line.suggested_supplier_id).filter(Boolean));
-    if (supplierIds.size === 0 || lines.some((line) => !line.suggested_supplier_id)) {
-      throw new Error("Choose a supplier for every PR line before converting to PO.");
-    }
-    if (supplierIds.size > 1) {
-      throw new Error("This PR has multiple suppliers. Split the request or keep one supplier before converting.");
-    }
-    const [supplierId] = Array.from(supplierIds);
-    if (!supplierId) throw new Error("PO supplier is required.");
-
     const profile = await identity();
-    const { data: reservedPr, error: reserveError } = await supabase
-      .from("purchase_requests")
-      .update({ status: PR_NEXT_STATUS_BY_ACTION.convert_to_po, updated_by: profile?.id ?? null })
-      .eq("id", id)
-      .eq("status", "ready_to_convert")
-      .select("id")
-      .maybeSingle();
-    if (reserveError) throw new Error(reserveError.message);
-    if (!reservedPr) throw new Error(wrongPrStepMessage);
-    reservedConversion = true;
-
-    const { data: duplicatePo, error: duplicatePoError } = await supabase
-      .from("purchase_orders")
-      .select("id")
-      .eq("po_no", autocountPoNo)
-      .is("deleted_at", null)
-      .maybeSingle();
-    if (duplicatePoError) throw new Error(duplicatePoError.message);
-    if (duplicatePo) throw new Error("This AutoCount PO Number is already used.");
-    const poNo = autocountPoNo;
-    const { data: po, error: poError } = await supabase
-      .from("purchase_orders")
-      .insert({
-        company_id: pr.company_id,
-        purchase_request_id: id,
-        branch_id: pr.branch_id,
-        po_no: poNo,
-        supplier_id: supplierId,
-        order_date: pr.request_date,
-        expected_delivery_date: pr.needed_by_date ?? pr.required_date,
-        priority: pr.priority ?? "normal",
-        needed_by_date: pr.needed_by_date ?? pr.required_date,
-        urgency_reason: pr.urgency_reason,
-        production_risk: pr.production_risk ?? false,
-        status: "approved",
-        approval_status: "approved",
-        remarks: pr.remarks ? `Created from ${pr.request_no}. ${pr.remarks}` : `Created from ${pr.request_no}.`,
-        created_by: profile?.id ?? null,
-        updated_by: profile?.id ?? null,
-      })
-      .select("id")
-      .single();
-    if (poError) throw new Error(poError.message);
-    const documentId = await createLinkedDocument({ documentNo: poNo, documentType: "purchase_order", title: `Purchase Order ${poNo}`, relatedEntityType: "purchase_order", relatedEntityId: po.id, status: "approved", approvalStatus: "approved" });
-    const [{ error: poUpdateError }, { error: poLinesError }, { error: prUpdateError }, { error: prDocumentError }] = await Promise.all([
-      supabase.from("purchase_orders").update({ document_id: documentId }).eq("id", po.id),
-      supabase.from("purchase_order_lines").insert((lines ?? []).map((line) => ({
-        purchase_order_id: po.id,
-        item_id: line.item_id,
-        qty_ordered: line.qty,
-        qty_received: 0,
-        qty_cancelled: 0,
-        uom: line.uom,
-        unit_price: line.estimated_unit_cost,
-      }))),
-      supabase.from("purchase_requests").update({ updated_by: profile?.id ?? null }).eq("id", id),
-      pr.document_id
-        ? supabase.from("documents").update({ status: "approved", approval_status: "approved", current_step: "Converted", updated_by: profile?.id ?? null }).eq("id", pr.document_id)
-        : Promise.resolve({ error: null }),
-    ]);
-    if (poUpdateError) throw new Error(poUpdateError.message);
-    if (poLinesError) throw new Error(poLinesError.message);
-    if (prUpdateError) throw new Error(prUpdateError.message);
-    if (prDocumentError) throw new Error(prDocumentError.message);
-
-    const activityMessage = `Purchase Order ${poNo} created from ${pr.request_no}.`;
-    try {
-      await writeActivityLog({ entityType: "document", entityId: documentId, activityType: "created", message: activityMessage });
-      if (pr.document_id) {
-        await writeActivityLog({
-          entityType: "document",
-          entityId: pr.document_id,
-          activityType: "converted",
-          message: `Purchase request ${pr.request_no} converted to ${poNo}`,
-          metadata: { workflow_step: "ready_to_convert", purchase_order_id: po.id },
-        });
-      }
-    } catch (error) {
-      console.error(error);
+    const { data, error } = await supabase.rpc("convert_purchase_request_to_purchase_order", {
+      target_purchase_request_id: id,
+      target_po_no: autocountPoNo,
+    });
+    if (error) throw new Error(error.message);
+    const result = data?.[0];
+    if (!result) throw new Error("Purchase order conversion returned no result.");
+    if (!result.already_existed) {
+      await createPurchaseOrderCreatedNotification({ poId: result.purchase_order_id, poNo: result.purchase_order_no, prNo: result.purchase_request_no, companyId: profile?.company_id ?? null, staffId: profile?.id ?? null });
     }
-    await createPurchaseOrderCreatedNotification({ poId: po.id, poNo, prNo: pr.request_no, companyId: pr.company_id, staffId: profile?.id ?? null });
 
     revalidateWorkspaceState([`/purchase-requests/${id}`, "/purchase-orders"]);
-    safeRedirectWithMessage(`/purchase-orders/${po.id}`, "success", `Purchase order ${poNo} created from ${pr.request_no}.`);
+    const message = result.already_existed
+      ? `Purchase order ${result.purchase_order_no} is already linked to this PR.`
+      : `Purchase order ${result.purchase_order_no} created from ${result.purchase_request_no}.`;
+    safeRedirectWithMessage(`/purchase-orders/${result.purchase_order_id}`, "success", message);
   } catch (error) {
     rethrowRedirect(error);
-    if (reservedConversion) {
-      try {
-        const supabase = await createClient();
-        await supabase.from("purchase_requests").update({ status: "ready_to_convert" }).eq("id", id).eq("status", "converted_to_po");
-      } catch (revertError) {
-        console.error(revertError);
-      }
-    }
     safeRedirectWithMessage(`/purchase-requests/${id}`, "error", formatActionError(error, "Could not convert this purchase request."));
   }
 }

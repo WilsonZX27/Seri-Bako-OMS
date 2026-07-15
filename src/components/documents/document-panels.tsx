@@ -2,9 +2,9 @@ import { CheckCircle2, Clock, FileText, MessageSquare, Paperclip, XCircle } from
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ConsoleSection } from "@/components/layout/right-console";
-import { Field } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { SubmitButton } from "@/components/ui/submit-button";
+import { AttachmentUploadForm } from "@/components/documents/attachment-upload-form";
 import { EmptyAttachmentState, EmptyTimelineState } from "@/components/ui/system-states";
 import { Textarea } from "@/components/ui/textarea";
 import {
@@ -18,6 +18,7 @@ import {
   submitDocument,
 } from "@/server/actions/documents";
 import { hasPermission } from "@/server/auth/permissions";
+import { getDocument } from "@/server/queries/documents";
 import type { Database } from "@/types/database";
 
 type Document = Database["public"]["Tables"]["documents"]["Row"] & { created_by_name?: string | null; updated_by_name?: string | null };
@@ -84,20 +85,13 @@ export function DocumentTimeline({ document, activities, comments, attachments }
 }
 
 export async function AttachmentPanel({ documentId, attachments }: { documentId: string; attachments: Attachment[] }) {
-  const canManageAttachments = await hasPermission("documents.attach");
+  const [canManageAttachments, document] = await Promise.all([hasPermission("documents.attach"), getDocument(documentId)]);
+  const canRemoveAttachments = canManageAttachments && ["draft", "pending_approval"].includes(document.status);
   return (
     <ConsoleSection title="Attachments">
       <div className="space-y-3">
         {canManageAttachments ? (
-          <form action={addDocumentAttachment.bind(null, documentId)} className="grid gap-2">
-            <Field label="Attachment label">
-              <Input name="file_name" placeholder="Delivery order, invoice, photo" className="w-full" />
-            </Field>
-            <Field label="Upload attachment" required>
-              <Input name="file" type="file" required className="w-full bg-white" />
-            </Field>
-            <SubmitButton type="submit" variant="secondary" pendingLabel="Uploading..." className="w-full justify-center">Upload</SubmitButton>
-          </form>
+          <AttachmentUploadForm action={addDocumentAttachment.bind(null, documentId)} />
         ) : null}
         <div className="divide-y border-t">
           {attachments.map((attachment) => (
@@ -110,8 +104,8 @@ export async function AttachmentPanel({ documentId, attachments }: { documentId:
                 </div>
               </div>
               <div className="grid gap-2">
-                {attachment.file_url ? <Button asChild variant="outline" size="sm" className="w-full justify-center"><a href={attachment.file_url}>View / Download</a></Button> : <Button type="button" variant="outline" size="sm" disabled className="w-full justify-center">View / Download</Button>}
-                {canManageAttachments ? <form action={archiveDocumentAttachment.bind(null, documentId, attachment.id)}><SubmitButton variant="ghost" size="sm" pendingLabel="Processing..." className="w-full justify-center">Remove</SubmitButton></form> : null}
+                {attachment.storage_path || attachment.file_url ? <div className="grid grid-cols-2 gap-2"><Button asChild variant="outline" size="sm" className="w-full justify-center"><a href={`/api/attachments/${attachment.id}`} target="_blank" rel="noreferrer">View</a></Button><Button asChild variant="outline" size="sm" className="w-full justify-center"><a href={`/api/attachments/${attachment.id}?download=1`}>Download</a></Button></div> : <Button type="button" variant="outline" size="sm" disabled className="w-full justify-center">File unavailable</Button>}
+                {canRemoveAttachments ? <form action={archiveDocumentAttachment.bind(null, documentId, attachment.id)}><SubmitButton variant="ghost" size="sm" pendingLabel="Processing..." className="w-full justify-center">Remove</SubmitButton></form> : null}
               </div>
             </div>
           ))}

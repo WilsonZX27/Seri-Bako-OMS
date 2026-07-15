@@ -1984,6 +1984,15 @@ export type Database = {
         Args: { target_staff_id: string; overrides: Json };
         Returns: void;
       };
+      convert_purchase_request_to_purchase_order: {
+        Args: { target_purchase_request_id: string; target_po_no: string };
+        Returns: Array<{
+          purchase_order_id: string;
+          purchase_order_no: string;
+          purchase_request_no: string;
+          already_existed: boolean;
+        }>;
+      };
       has_admin_staff_assignment: {
         Args: Record<string, never>;
         Returns: boolean;

@@ -21,7 +21,7 @@ export function PageHeader(props: PageHeaderProps) {
       <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
         <div className="min-w-0">
           <h1 className="truncate text-sm font-semibold leading-5 text-[var(--sb-text)] sm:text-base">{props.title}</h1>
-          {props.description ? <p className="mt-0.5 hidden max-w-3xl truncate text-xs leading-4 text-[var(--sb-text-muted)] sm:block">{props.description}</p> : null}
+          {props.description ? <p className="sr-only">{props.description}</p> : null}
         </div>
         {props.action || props.secondaryAction ? (
           <div className="grid shrink-0 grid-cols-1 gap-2 sm:flex sm:flex-wrap">

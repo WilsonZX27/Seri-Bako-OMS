@@ -35,8 +35,7 @@ export function MasterDataFilters({
 }: MasterDataFiltersProps) {
   return (
     <form className="sb-list-filters">
-      <Input name="search" defaultValue={search ?? ""} placeholder={placeholder} className="md:max-w-sm" />
-      <div data-filter-controls className="flex min-w-0 gap-2 overflow-x-auto pb-1 md:flex-1 md:pb-0">
+      <Input name="search" defaultValue={search ?? ""} placeholder={placeholder} />
         <SelectNative name="status" defaultValue={status} className="min-w-32 md:w-40">
           <option value="all">All status</option>
           {statuses.map((row) => (
@@ -69,13 +68,12 @@ export function MasterDataFilters({
           </SelectNative>
           </>
         ) : null}
-        <Button type="submit" variant="secondary">
+        <Button type="submit">
           Filter
         </Button>
         <Button asChild variant="ghost" aria-label="Clear filters">
           <a href="?"><RotateCcw className="h-4 w-4" /><span className="hidden sm:inline">Clear</span></a>
         </Button>
-      </div>
     </form>
   );
 }

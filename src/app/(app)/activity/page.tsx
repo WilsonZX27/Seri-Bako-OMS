@@ -60,6 +60,8 @@ export default async function ActivityPage({ searchParams }: { searchParams: Pro
               {activities.map((activity) => {
                 const href = activityHref(activity);
                 const active = selected?.id === activity.id;
+                const actor = activity.created_by_name ?? "System";
+                const messageIncludesActor = activity.message.toLocaleLowerCase().startsWith(`${actor.toLocaleLowerCase()}:`);
                 return (
                   <Link key={activity.id} href={`/activity?selected=${activity.id}`} className={`grid gap-3 px-3 py-2.5 hover:bg-secondary/50 md:grid-cols-[32px_minmax(0,1fr)_150px_120px_auto] md:items-center ${active ? "bg-primary/5" : ""}`}>
                     <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-primary/10 text-primary">
@@ -67,7 +69,7 @@ export default async function ActivityPage({ searchParams }: { searchParams: Pro
                     </div>
                     <div className="min-w-0 flex-1">
                       <p className="truncate text-xs font-medium">{activity.message}</p>
-                      <p className="mt-0.5 text-xs text-muted-foreground">{activity.created_by_name ?? "System"}</p>
+                      {!messageIncludesActor ? <p className="mt-0.5 text-xs text-muted-foreground">{actor}</p> : null}
                     </div>
                     <p className="text-xs text-muted-foreground">{new Date(activity.created_at).toLocaleString("en-MY", { dateStyle: "short", timeStyle: "short" })}</p>
                     <p className="inline-flex items-center gap-1 text-xs text-muted-foreground"><FileText className="h-3 w-3" /> {activity.entity_type}</p>

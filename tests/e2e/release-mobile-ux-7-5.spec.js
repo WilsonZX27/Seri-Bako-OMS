@@ -126,6 +126,30 @@ test("latest responsive feedback keeps actions contextual and mobile UI compact"
 
 });
 
+test("inventory creation forms keep lifecycle and primary actions in context", async ({ page }) => {
+  test.skip(!hasAccount("superAdmin"), `Missing super admin credentials: ${missingAccountVars("superAdmin").join(", ")}`);
+  await page.setViewportSize({ width: 1355, height: 792 });
+  await login(page, "superAdmin");
+
+  await page.goto("/products/new", { waitUntil: "domcontentloaded" });
+  await expect(page.locator('input[type="file"][name="product_image"]')).toBeVisible();
+  await expect(page.getByLabel("Product Image URL")).toHaveCount(0);
+  await expect(page.getByLabel("Status")).toHaveCount(0);
+  await expect(page.locator("[data-right-console]").getByRole("button", { name: "Create product" })).toBeVisible();
+
+  for (const [route, action] of [
+    ["/stock-counts/new", "Create draft count"],
+    ["/stock-wastage/new", "Create wastage"],
+    ["/stock-transfers/new", "Create transfer"],
+    ["/stock-transactions/new", "Post stock transaction"],
+  ]) {
+    await page.goto(route, { waitUntil: "domcontentloaded" });
+    await expect(page.locator("[data-right-console]").getByRole("button", { name: action })).toBeVisible();
+    await expect(page.getByLabel("Status")).toHaveCount(0);
+    await expect(page.getByText("Select the outlet, kitchen, office, or event booth this record belongs to.")).toHaveCount(0);
+  }
+});
+
 test("release viewports have stable shell, dates, controls, and contextual console", async ({ page }) => {
   test.skip(!hasAccount("superAdmin"), `Missing super admin credentials: ${missingAccountVars("superAdmin").join(", ")}`);
   await login(page, "superAdmin");

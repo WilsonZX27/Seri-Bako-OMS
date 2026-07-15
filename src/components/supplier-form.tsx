@@ -4,7 +4,6 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Field } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
-import { SelectNative } from "@/components/ui/select-native";
 import { SubmitButton } from "@/components/ui/submit-button";
 import { Textarea } from "@/components/ui/textarea";
 import type { Database } from "@/types/database";
@@ -29,12 +28,7 @@ export function SupplierForm({ supplier, action, formId, showSubmit = true }: Su
           <Field label="Supplier Name" required>
             <Input name="name" defaultValue={supplier?.name ?? ""} required />
           </Field>
-          <Field label="Status">
-            <SelectNative name="status" defaultValue={supplier?.status ?? "active"}>
-              <option value="active">Active</option>
-              <option value="inactive">Inactive</option>
-            </SelectNative>
-          </Field>
+          <input type="hidden" name="status" value={supplier?.status ?? "active"} />
         </div>
       </RecordSection>
 

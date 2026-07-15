@@ -336,26 +336,26 @@ export function PurchaseRequestForm({
       </div>
     ) : null}
     {newItemLineKey !== null && canCreateItem ? (
-      <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/30 p-4 backdrop-blur-sm">
-        <Card className="w-full max-w-3xl border-[var(--sb-border)] bg-white">
-          <CardContent className="space-y-4 p-5">
+      <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-slate-950/30 p-2 backdrop-blur-sm sm:p-4">
+        <Card className="my-auto max-h-[calc(100dvh-1rem)] w-full max-w-3xl overflow-y-auto border-[var(--sb-border)] bg-white sm:max-h-[calc(100dvh-2rem)]">
+          <CardContent className="space-y-3 p-3 sm:p-4">
             <div className="flex items-start justify-between gap-3">
               <div>
-                <p className="text-lg font-semibold">Create new item</p>
-                <p className="mt-1 text-sm text-muted-foreground">Create the item, return to this PR line, and fill UOM, supplier, and cost automatically.</p>
+                <p className="text-sm font-semibold">Create new item</p>
+                <p className="mt-1 text-xs text-muted-foreground">Create the item, return to this PR line, and fill UOM, supplier, and cost automatically.</p>
               </div>
               <Button type="button" variant="ghost" size="icon" onClick={() => setNewItemLineKey(null)} aria-label="Close item dialog">
                 <X className="h-4 w-4" />
               </Button>
             </div>
             {newItemError ? <p className="rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700">{newItemError}</p> : null}
-            <form action={createInlineItem} className="space-y-4">
-              <section className="rounded-[2px] border bg-white p-4">
+            <form action={createInlineItem} className="space-y-3">
+              <section className="rounded-[2px] border bg-white p-3">
                 <div className="mb-3">
                   <p className="text-sm font-semibold">Basic</p>
                   <p className="mt-1 text-xs text-muted-foreground">Name, code, category, and base stock unit.</p>
                 </div>
-                <div className="grid gap-4 md:grid-cols-2">
+                <div className="grid gap-3 md:grid-cols-2">
                   <Field label="Item Name" required>
                     <Input name="item_name" required />
                   </Field>
@@ -376,12 +376,12 @@ export function PurchaseRequestForm({
                 </div>
               </section>
 
-              <section className="rounded-[2px] border bg-white p-4">
+              <section className="rounded-[2px] border bg-white p-3">
                 <div className="mb-3">
                   <p className="text-sm font-semibold">Purchasing</p>
                   <p className="mt-1 text-xs text-muted-foreground">Optional buying defaults for PR and supplier item setup.</p>
                 </div>
-                <div className="grid gap-4 md:grid-cols-2">
+                <div className="grid gap-3 md:grid-cols-2">
                   <Field label="Purchase UOM" required>
                     <SelectNative name="purchase_unit" defaultValue="KG" required>
                       {defaultUoms.map((uom) => (
@@ -415,7 +415,7 @@ export function PurchaseRequestForm({
                 </div>
               </section>
 
-              <div className="flex items-end justify-end gap-2">
+              <div className="sticky bottom-0 flex items-end justify-end gap-2 border-t bg-white py-2">
                 <Button type="button" variant="ghost" onClick={() => setNewItemLineKey(null)}>Cancel</Button>
                 <Button type="submit" disabled={savingNewItem}>{savingNewItem ? "Saving..." : "Save item"}</Button>
               </div>

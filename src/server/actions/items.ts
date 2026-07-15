@@ -6,6 +6,7 @@ import { isMockMode } from "@/lib/mock-mode";
 import { createClient } from "@/lib/supabase/server";
 import { itemSchema } from "@/lib/validations/item";
 import { formatActionError, requirePermissionOrRedirect, rethrowRedirect, safeRedirectWithMessage } from "@/server/actions/error-handling";
+import { uploadMasterDataImage } from "@/server/storage/master-data-image";
 
 function cleanText(value: unknown) {
   const text = String(value ?? "").trim();
@@ -28,14 +29,12 @@ function payload(formData: FormData) {
     lead_time_days: formData.get("lead_time_days") || 0,
     moq: formData.get("moq") || 0,
     status: formData.get("status") ?? "active",
-    item_image_url: cleanText(formData.get("item_image_url")),
   });
 
   return {
     ...parsed,
     supplier_id: parsed.supplier_id || null,
     autocount_code: parsed.autocount_code || null,
-    item_image_url: parsed.item_image_url || null,
   };
 }
 
@@ -60,8 +59,13 @@ export async function createItem(formData: FormData) {
     if (archivedMatch) {
       safeRedirectWithMessage(`/items/${archivedMatch.id}`, "error", "An archived item with the same code already exists. Restore it instead of creating a duplicate.");
     }
-    const { error } = await writeSupabase.from("items").insert(itemPayload);
+    const { data, error } = await writeSupabase.from("items").insert(itemPayload).select("id").single();
     if (error) throw new Error(error.message);
+    const imageUrl = await uploadMasterDataImage("items", data.id, formData.get("item_image"));
+    if (imageUrl) {
+      const { error: imageError } = await writeSupabase.from("items").update({ item_image_url: imageUrl }).eq("id", data.id);
+      if (imageError) throw new Error(imageError.message);
+    }
 
     revalidatePath("/items");
     redirect("/items");
@@ -80,7 +84,8 @@ export async function updateItem(id: string, formData: FormData) {
   try {
     const writeSupabase = await createClient();
     const itemPayload = payload(formData);
-    const { error } = await writeSupabase.from("items").update(itemPayload).eq("id", id);
+    const imageUrl = await uploadMasterDataImage("items", id, formData.get("item_image"));
+    const { error } = await writeSupabase.from("items").update({ ...itemPayload, ...(imageUrl ? { item_image_url: imageUrl } : {}) }).eq("id", id);
     if (error) throw new Error(error.message);
 
     revalidatePath("/items");

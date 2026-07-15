@@ -35,13 +35,15 @@ type StockTransactionFormProps = {
   branches: Branch[];
   locations: Location[];
   action: (formData: FormData) => Promise<void>;
+  formId?: string;
+  showSubmit?: boolean;
 };
 
-export function StockTransactionForm({ items, branches, action }: StockTransactionFormProps) {
+export function StockTransactionForm({ items, branches, action, formId, showSubmit = true }: StockTransactionFormProps) {
   return (
     <Card>
       <CardContent className="p-5">
-        <form action={action} className="grid gap-4 md:grid-cols-3">
+        <form id={formId} action={action} className="grid gap-4 md:grid-cols-3">
           <Field label="Transaction Date">
             <Input name="transaction_date" type="date" defaultValue={getToday()} required />
           </Field>
@@ -63,7 +65,6 @@ export function StockTransactionForm({ items, branches, action }: StockTransacti
                 </option>
               ))}
             </SelectNative>
-            <p className="mt-1 text-xs text-muted-foreground">Select the outlet, kitchen, office, or event booth this record belongs to.</p>
           </Field>
           <Field label="Transaction Type">
             <SelectNative name="transaction_type" required>
@@ -91,9 +92,9 @@ export function StockTransactionForm({ items, branches, action }: StockTransacti
               <Textarea name="remarks" placeholder="Reason, batch note, or manual reference." />
             </Field>
           </div>
-          <div className="flex justify-end md:col-span-3">
+          {showSubmit ? <div className="flex justify-end md:col-span-3">
             <SubmitButton type="submit" pendingLabel="Saving..." showOverlay overlayLabel="Saving changes...">Post stock transaction</SubmitButton>
-          </div>
+          </div> : null}
         </form>
       </CardContent>
     </Card>

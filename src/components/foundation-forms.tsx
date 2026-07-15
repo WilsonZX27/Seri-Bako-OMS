@@ -210,11 +210,12 @@ export function BranchForm({ branch, companies, action, formId, showSubmit = tru
   );
 }
 
-export function LocationForm({ location, companies, branches, action }: { location?: Location; companies: SelectCompany[]; branches: SelectBranch[]; action: (formData: FormData) => Promise<void> }) {
+export function LocationForm({ location, companies, branches, action, formId, showSubmit = true }: { location?: Location; companies: SelectCompany[]; branches: SelectBranch[]; action: (formData: FormData) => Promise<void>; formId?: string; showSubmit?: boolean }) {
   return (
     <Card>
       <CardContent className="p-5">
-        <form action={action} className="grid gap-4 md:grid-cols-2">
+        <form id={formId} action={action} className="grid gap-4 md:grid-cols-2">
+          <input type="hidden" name="status" value={location?.status ?? "active"} />
           <CompanyHidden companies={companies} companyId={location?.company_id} />
           <Field label="Location Code">
             <Input name="location_code" defaultValue={location?.location_code ?? ""} required />
@@ -245,12 +246,9 @@ export function LocationForm({ location, companies, branches, action }: { locati
               <option value="other">Other</option>
             </SelectNative>
           </Field>
-          <Field label="Status">
-            <StatusSelect value={location?.status} />
-          </Field>
-          <div className="flex justify-end md:col-span-2">
+          {showSubmit ? <div className="flex justify-end md:col-span-2">
             <SubmitButton type="submit" pendingLabel="Saving..." showOverlay overlayLabel="Saving changes...">{location ? "Save location" : "Create location"}</SubmitButton>
-          </div>
+          </div> : null}
         </form>
       </CardContent>
     </Card>

@@ -2,7 +2,6 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Field } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
-import { SelectNative } from "@/components/ui/select-native";
 import type { Database } from "@/types/database";
 
 type Product = Database["public"]["Tables"]["products"]["Row"];
@@ -12,14 +11,16 @@ type ProductFormProps = {
   product?: Product;
   packaging?: Packaging[];
   action: (formData: FormData) => Promise<void>;
+  formId?: string;
+  showSubmit?: boolean;
 };
 
-export function ProductForm({ product, packaging = [], action }: ProductFormProps) {
+export function ProductForm({ product, packaging = [], action, formId, showSubmit = true }: ProductFormProps) {
   const primaryPackaging = packaging[0];
   return (
     <Card>
       <CardContent className="p-5">
-        <form action={action} className="grid gap-4 md:grid-cols-2">
+        <form id={formId} action={action} className="grid gap-4 md:grid-cols-2">
           <Field label="Product Code">
             <Input name="product_code" defaultValue={product?.product_code ?? ""} required />
           </Field>
@@ -32,14 +33,10 @@ export function ProductForm({ product, packaging = [], action }: ProductFormProp
           <Field label="Selling Unit">
             <Input name="selling_unit" defaultValue={product?.selling_unit ?? ""} placeholder="pcs" required />
           </Field>
-          <Field label="Status">
-            <SelectNative name="status" defaultValue={product?.status ?? "active"}>
-              <option value="active">Active</option>
-              <option value="inactive">Inactive</option>
-            </SelectNative>
-          </Field>
-          <Field label="Product Image URL">
-            <Input name="product_image_url" defaultValue={product?.product_image_url ?? ""} placeholder="https://..." />
+          <input type="hidden" name="status" value={product?.status ?? "active"} />
+          <Field label="Product Image">
+            <Input name="product_image" type="file" accept="image/png,image/jpeg,image/webp" />
+            <p className="mt-1 text-xs text-muted-foreground">PNG, JPG, or WEBP, up to 2MB.</p>
           </Field>
           <div className="grid gap-4 rounded-lg border bg-secondary/30 p-4 md:col-span-2 md:grid-cols-4">
             <div className="md:col-span-4">
@@ -61,30 +58,21 @@ export function ProductForm({ product, packaging = [], action }: ProductFormProp
             <input type="hidden" name="packaging_id" value={primaryPackaging?.id ?? ""} />
           </div>
           <div className="grid gap-4 md:col-span-2 md:grid-cols-2">
-            <div className="rounded-lg border bg-secondary/30 p-4">
+            <div className="rounded-lg border bg-secondary/30 p-4 md:col-span-2">
               <p className="text-sm font-semibold">Product Image</p>
               {product?.product_image_url ? (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img src={product.product_image_url} alt={product.product_name} className="mt-3 aspect-video w-full rounded-md border object-cover" />
               ) : (
-                <div className="mt-3 flex aspect-video items-center justify-center rounded-md border bg-background text-sm text-muted-foreground">
+                <div className="mt-3 flex h-24 items-center justify-center rounded-md border bg-background text-xs text-muted-foreground">
                   No image uploaded yet
                 </div>
               )}
             </div>
-            <div className="rounded-lg border bg-secondary/30 p-4">
-              <div className="flex items-center justify-between gap-3">
-                <p className="text-sm font-semibold">Attachments</p>
-                <span className="rounded-full bg-background px-2 py-1 text-xs text-muted-foreground">0 files</span>
-              </div>
-              <div className="mt-3 rounded-md border bg-background p-3 text-sm text-muted-foreground">
-                Product photos, labels, specifications, and costing documents will appear here once shared attachments are enabled.
-              </div>
-            </div>
           </div>
-          <div className="flex justify-end md:col-span-2">
+          {showSubmit ? <div className="flex justify-end md:col-span-2">
             <Button type="submit">{product ? "Save product" : "Create product"}</Button>
-          </div>
+          </div> : null}
         </form>
       </CardContent>
     </Card>

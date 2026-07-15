@@ -314,22 +314,22 @@ export function RecipeForm({ recipe, products, items, action, formId, showSubmit
 
           {hasDuplicate ? <p className="text-sm text-destructive">Duplicate ingredients are not allowed.</p> : null}
 
-          <div className="grid gap-3 rounded-[2px] border bg-secondary/50 p-4 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="grid gap-3 rounded-[2px] border bg-secondary/50 p-3 sm:grid-cols-2 lg:grid-cols-4">
             <div>
-              <p className="text-sm text-muted-foreground">Ingredient Cost</p>
-              <p className="text-2xl font-semibold">{formatCurrency(totalIngredientCost)}</p>
+              <p className="text-xs text-muted-foreground">Ingredient Cost</p>
+              <p className="text-base font-semibold">{formatCurrency(totalIngredientCost)}</p>
             </div>
             <div>
-              <p className="text-sm text-muted-foreground">Wastage Adjusted</p>
-              <p className="text-2xl font-semibold">{formatCurrency(wastageAdjustedCost)}</p>
+              <p className="text-xs text-muted-foreground">Wastage Adjusted</p>
+              <p className="text-base font-semibold">{formatCurrency(wastageAdjustedCost)}</p>
             </div>
             <div>
-              <p className="text-sm text-muted-foreground">Cost / Finished Unit</p>
-              <p className="text-2xl font-semibold">{formatCurrency(costPerFinishedUnit)}</p>
+              <p className="text-xs text-muted-foreground">Cost / Finished Unit</p>
+              <p className="text-base font-semibold">{formatCurrency(costPerFinishedUnit)}</p>
             </div>
             <div>
-              <p className="text-sm text-muted-foreground">Cost / Pack</p>
-              <p className="text-2xl font-semibold">{costPerPack ? formatCurrency(costPerPack) : "-"}</p>
+              <p className="text-xs text-muted-foreground">Cost / Pack</p>
+              <p className="text-base font-semibold">{costPerPack ? formatCurrency(costPerPack) : "-"}</p>
               {firstPack ? <Badge variant="secondary">{firstPack.packaging_name}</Badge> : null}
             </div>
           </div>

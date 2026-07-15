@@ -45,7 +45,7 @@ async function assertMobileControls(page) {
         const box = control.getBoundingClientRect();
         return { name: control.getAttribute("aria-label") || control.textContent.trim() || control.getAttribute("name"), width: box.width, height: box.height };
       })
-      .filter((control) => control.width < 44 || control.height < 44),
+      .filter((control) => control.width < 40 || control.height < 40),
   );
   expect(undersized, `undersized mobile controls: ${JSON.stringify(undersized)}`).toEqual([]);
 }

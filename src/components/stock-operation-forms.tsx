@@ -15,45 +15,45 @@ type Branch = { id: string; branch_code: string; branch_name: string; status: st
 type Location = { id: string; branch_id?: string | null; location_code: string; location_name: string; status: string };
 type SeedLine = { item_id: string; item_code: string; item_name: string; barcode: string | null; available_qty: number; quantity: number; uom: string };
 
-export function StockTransferForm({ branches, selectedFromBranchId, seedLines, action }: { branches: Branch[]; locations: Location[]; selectedFromLocationId?: string; selectedFromBranchId?: string; seedLines: SeedLine[]; action: (formData: FormData) => Promise<void> }) {
+export function StockTransferForm({ branches, selectedFromBranchId, seedLines, action, formId, showSubmit = true }: { branches: Branch[]; locations: Location[]; selectedFromLocationId?: string; selectedFromBranchId?: string; seedLines: SeedLine[]; action: (formData: FormData) => Promise<void>; formId?: string; showSubmit?: boolean }) {
   const router = useRouter();
   function selectFromBranch(id: string) { router.push(id ? `/stock-transfers/new?from_branch_id=${id}` : "/stock-transfers/new"); }
   return (
     <Card><CardContent className="p-5">
-      <form action={action} className="space-y-5">
+      <form id={formId} action={action} className="space-y-4">
         <input type="hidden" name="transfer_no" value="" />
+        <input type="hidden" name="status" value="draft" />
         <div className="grid gap-4 md:grid-cols-3">
           <Field label="Transfer No"><div className="rounded-md border bg-secondary/30 px-3 py-2 text-sm text-muted-foreground">Auto-generated on submit</div></Field>
           <Field label="Transfer Date"><Input name="transfer_date" type="date" defaultValue={getToday()} required /></Field>
-          <Field label="Status"><SelectNative name="status" defaultValue="draft"><option value="draft">Draft</option></SelectNative></Field>
-          <Field label="From Branch"><SelectNative name="from_branch_id" value={selectedFromBranchId ?? branches[0]?.id ?? ""} onChange={(e) => selectFromBranch(e.target.value)} required>{branches.map((b) => <option key={b.id} value={b.id}>{b.branch_name}</option>)}</SelectNative><p className="mt-1 text-xs text-muted-foreground">Select the outlet, kitchen, office, or event booth this record belongs to.</p></Field>
+          <Field label="From Branch"><SelectNative name="from_branch_id" value={selectedFromBranchId ?? branches[0]?.id ?? ""} onChange={(e) => selectFromBranch(e.target.value)} required>{branches.map((b) => <option key={b.id} value={b.id}>{b.branch_name}</option>)}</SelectNative></Field>
           <Field label="To Branch"><SelectNative name="to_branch_id" defaultValue={branches[1]?.id ?? branches[0]?.id ?? ""} required>{branches.map((b) => <option key={b.id} value={b.id}>{b.branch_name}</option>)}</SelectNative><p className="mt-1 text-xs text-muted-foreground">Stock will move to the selected branch automatically.</p></Field>
           <div className="md:col-span-2"><Field label="Remarks"><Textarea name="remarks" placeholder="Transfer reason or handling note" /></Field></div>
         </div>
         <LineGrid seedLines={seedLines} mode="transfer" />
-        <div className="flex justify-end"><SubmitButton disabled={!seedLines.length} pendingLabel="Saving..." showOverlay overlayLabel="Saving changes...">Create transfer</SubmitButton></div>
+        {showSubmit ? <div className="flex justify-end"><SubmitButton disabled={!seedLines.length} pendingLabel="Saving..." showOverlay overlayLabel="Saving changes...">Create transfer</SubmitButton></div> : null}
       </form>
     </CardContent></Card>
   );
 }
 
-export function StockWastageForm({ branches, selectedBranchId, seedLines, action }: { branches: Branch[]; locations: Location[]; selectedLocationId?: string; selectedBranchId?: string; seedLines: SeedLine[]; action: (formData: FormData) => Promise<void> }) {
+export function StockWastageForm({ branches, selectedBranchId, seedLines, action, formId, showSubmit = true }: { branches: Branch[]; locations: Location[]; selectedLocationId?: string; selectedBranchId?: string; seedLines: SeedLine[]; action: (formData: FormData) => Promise<void>; formId?: string; showSubmit?: boolean }) {
   const router = useRouter();
   const no = "WST-AUTO";
   function selectBranch(id: string) { router.push(id ? `/stock-wastage/new?branch_id=${id}` : "/stock-wastage/new"); }
   return (
     <Card><CardContent className="p-5">
-      <form action={action} className="space-y-5">
+      <form id={formId} action={action} className="space-y-4">
+        <input type="hidden" name="status" value="draft" />
         <div className="grid gap-4 md:grid-cols-3">
           <Field label="Wastage No"><Input name="wastage_no" defaultValue={no} required /></Field>
           <Field label="Wastage Date"><Input name="wastage_date" type="date" defaultValue={getToday()} required /></Field>
           <Field label="Main Reason"><SelectNative name="reason" defaultValue="damaged">{wastageReasons.map((r) => <option key={r} value={r}>{r.replaceAll("_", " ")}</option>)}</SelectNative></Field>
-          <Field label="Branch"><SelectNative name="branch_id" value={selectedBranchId ?? branches[0]?.id ?? ""} onChange={(e) => selectBranch(e.target.value)} required>{branches.map((b) => <option key={b.id} value={b.id}>{b.branch_name}</option>)}</SelectNative><p className="mt-1 text-xs text-muted-foreground">Select the outlet, kitchen, office, or event booth this record belongs to.</p></Field>
-          <Field label="Status"><SelectNative name="status" defaultValue="draft"><option value="draft">Draft</option></SelectNative></Field>
+          <Field label="Branch"><SelectNative name="branch_id" value={selectedBranchId ?? branches[0]?.id ?? ""} onChange={(e) => selectBranch(e.target.value)} required>{branches.map((b) => <option key={b.id} value={b.id}>{b.branch_name}</option>)}</SelectNative></Field>
           <div className="md:col-span-3"><Field label="Remarks"><Textarea name="remarks" placeholder="Photo required for damaged, expired, supplier claim, or abnormal wastage" /></Field></div>
         </div>
         <LineGrid seedLines={seedLines} mode="wastage" />
-        <div className="flex justify-end"><SubmitButton disabled={!seedLines.length} pendingLabel="Saving..." showOverlay overlayLabel="Saving changes...">Create wastage</SubmitButton></div>
+        {showSubmit ? <div className="flex justify-end"><SubmitButton disabled={!seedLines.length} pendingLabel="Saving..." showOverlay overlayLabel="Saving changes...">Create wastage</SubmitButton></div> : null}
       </form>
     </CardContent></Card>
   );
@@ -62,7 +62,7 @@ export function StockWastageForm({ branches, selectedBranchId, seedLines, action
 function LineGrid({ seedLines, mode }: { seedLines: SeedLine[]; mode: "transfer" | "wastage" }) {
   return (
     <div className="rounded-lg border">
-      <div className="border-b bg-secondary/40 px-4 py-3"><p className="text-sm font-semibold">Lines</p><p className="text-xs text-muted-foreground">Availability is calculated from the stock ledger. Posting creates ledger rows only.</p></div>
+      <div className="border-b bg-secondary/40 px-3 py-2"><p className="text-xs font-semibold">Lines</p><p className="text-xs text-muted-foreground">Availability is calculated from the stock ledger. Posting creates ledger rows only.</p></div>
       <div className="divide-y">
         {seedLines.map((line, index) => (
           <div key={line.item_id} className="grid gap-3 p-4 xl:grid-cols-[2fr_120px_120px_90px_130px_130px_1fr]">
@@ -77,7 +77,7 @@ function LineGrid({ seedLines, mode }: { seedLines: SeedLine[]; mode: "transfer"
             <input type="hidden" name="line_item_id" value={line.item_id} />
           </div>
         ))}
-        {!seedLines.length ? <div className="flex items-center gap-2 p-5 text-sm text-warning"><AlertTriangle className="h-4 w-4" /> No available branch stock found.</div> : null}
+        {!seedLines.length ? <div className="flex items-center gap-2 px-3 py-2 text-xs text-warning"><AlertTriangle className="h-4 w-4" /> No available branch stock found.</div> : null}
       </div>
     </div>
   );

@@ -35,11 +35,15 @@ export function StockCountForm({
   selectedBranchId,
   seedLines,
   action,
+  formId,
+  showSubmit = true,
 }: {
   branches: BranchOption[];
   selectedBranchId?: string;
   seedLines: SeedLine[];
   action: (formData: FormData) => Promise<void>;
+  formId?: string;
+  showSubmit?: boolean;
 }) {
   const router = useRouter();
   const tolerance = 2;
@@ -52,7 +56,8 @@ export function StockCountForm({
   return (
     <Card>
       <CardContent className="p-5">
-        <form action={action} className="space-y-5">
+        <form id={formId} action={action} className="space-y-4">
+          <input type="hidden" name="status" value="draft" />
           <div className="grid gap-4 md:grid-cols-3">
             <Field label="Count No"><Input name="count_no" defaultValue={countNo} required /></Field>
             <Field label="Count Date"><Input name="count_date" type="date" defaultValue={today()} required /></Field>
@@ -61,10 +66,6 @@ export function StockCountForm({
               <SelectNative name="branch_id" value={selectedBranchId ?? branches[0]?.id ?? ""} onChange={(event) => selectBranch(event.target.value)} required>
                 {branches.map((branch) => <option key={branch.id} value={branch.id}>{branch.branch_name}</option>)}
               </SelectNative>
-              <p className="mt-1 text-xs text-muted-foreground">Select the outlet, kitchen, office, or event booth this record belongs to.</p>
-            </Field>
-            <Field label="Status">
-              <SelectNative name="status" defaultValue="draft"><option value="draft">Draft</option></SelectNative>
             </Field>
             <div className="md:col-span-3">
               <Field label="Remarks"><Textarea name="remarks" placeholder="Nightly count note" /></Field>
@@ -72,8 +73,8 @@ export function StockCountForm({
           </div>
 
           <div className="rounded-lg border">
-            <div className="border-b bg-secondary/40 px-4 py-3">
-              <p className="text-sm font-semibold">Count Lines</p>
+            <div className="border-b bg-secondary/40 px-3 py-2">
+              <p className="text-xs font-semibold">Count Lines</p>
               <p className="text-xs text-muted-foreground">Theoretical quantity comes from the stock ledger. Enter physical quantity only.</p>
             </div>
             <div className="divide-y">
@@ -100,7 +101,7 @@ export function StockCountForm({
                 );
               })}
               {!seedLines.length ? (
-                <div className="flex items-center gap-2 p-5 text-sm text-warning">
+                <div className="flex items-center gap-2 px-3 py-2 text-xs text-warning">
                   <AlertTriangle className="h-4 w-4" />
                   No stock balance rows found for this branch yet.
                 </div>
@@ -108,9 +109,9 @@ export function StockCountForm({
             </div>
           </div>
 
-          <div className="flex justify-end">
+          {showSubmit ? <div className="flex justify-end">
             <SubmitButton type="submit" disabled={!seedLines.length} pendingLabel="Saving..." showOverlay overlayLabel="Saving changes...">Create draft count</SubmitButton>
-          </div>
+          </div> : null}
         </form>
       </CardContent>
     </Card>

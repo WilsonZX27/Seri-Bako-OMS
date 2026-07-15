@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { isMockMode } from "@/lib/mock-mode";
 import { createClient } from "@/lib/supabase/server";
 import { productSchema } from "@/lib/validations/product";
+import { uploadMasterDataImage } from "@/server/storage/master-data-image";
 
 function cleanText(value: unknown) {
   const text = String(value ?? "").trim();
@@ -18,7 +19,6 @@ function payload(formData: FormData) {
     category: formData.get("category"),
     selling_unit: formData.get("selling_unit"),
     status: formData.get("status") ?? "active",
-    product_image_url: cleanText(formData.get("product_image_url")),
   });
 }
 
@@ -57,6 +57,11 @@ export async function createProduct(formData: FormData) {
   const productPayload = payload(formData);
   const { data, error } = await supabase.from("products").insert(productPayload).select("id").single();
   if (error) throw new Error(error.message);
+  const imageUrl = await uploadMasterDataImage("products", data.id, formData.get("product_image"));
+  if (imageUrl) {
+    const { error: imageError } = await supabase.from("products").update({ product_image_url: imageUrl }).eq("id", data.id);
+    if (imageError) throw new Error(imageError.message);
+  }
   await upsertDefaultPackaging(data.id, formData);
 
   revalidatePath("/products");
@@ -70,7 +75,8 @@ export async function updateProduct(id: string, formData: FormData) {
 
   const supabase = await createClient();
   const productPayload = payload(formData);
-  const { error } = await supabase.from("products").update(productPayload).eq("id", id);
+  const imageUrl = await uploadMasterDataImage("products", id, formData.get("product_image"));
+  const { error } = await supabase.from("products").update({ ...productPayload, ...(imageUrl ? { product_image_url: imageUrl } : {}) }).eq("id", id);
   if (error) throw new Error(error.message);
   await upsertDefaultPackaging(id, formData);
 

@@ -300,6 +300,9 @@ export async function deleteLocation(id: string) {
   try {
     if (!isMockMode()) {
       const supabase = createAdminClient();
+      const { data: defaultBranch, error: defaultBranchError } = await supabase.from("branches").select("id").eq("default_location_id", id).limit(1).maybeSingle();
+      if (defaultBranchError) throw new Error(defaultBranchError.message);
+      if (defaultBranch) safeRedirectWithMessage(`/locations/${id}`, "error", "This system-default location cannot be archived while it is assigned to a branch.");
       const { error } = await supabase.from("locations").update({ deleted_at: new Date().toISOString(), status: "inactive" }).eq("id", id);
       if (error) throw new Error(error.message);
       await writeActivityLog({ entityType: "location", entityId: id, activityType: "archived", message: "Location archived" });

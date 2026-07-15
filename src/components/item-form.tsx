@@ -7,7 +7,6 @@ import { SelectNative } from "@/components/ui/select-native";
 import { SubmitButton } from "@/components/ui/submit-button";
 import { Button } from "@/components/ui/button";
 import { normalizeUom, uomOptionsWithCurrent } from "@/lib/uom";
-import { formatNumber } from "@/lib/utils";
 import type { Database } from "@/types/database";
 
 type Item = Database["public"]["Tables"]["items"]["Row"];
@@ -16,13 +15,12 @@ type Supplier = Pick<Database["public"]["Tables"]["suppliers"]["Row"], "id" | "n
 type ItemFormProps = {
   item?: Item;
   suppliers: Supplier[];
-  currentStock?: number;
   action: (formData: FormData) => Promise<void>;
   formId?: string;
   showSubmit?: boolean;
 };
 
-export function ItemForm({ item, suppliers, currentStock, action, formId, showSubmit = true }: ItemFormProps) {
+export function ItemForm({ item, suppliers, action, formId, showSubmit = true }: ItemFormProps) {
   return (
     <form id={formId} action={action} className="space-y-4">
       <RecordSection title="Identity" description="Item code, name, category, and operational status.">
@@ -39,14 +37,10 @@ export function ItemForm({ item, suppliers, currentStock, action, formId, showSu
           <Field label="Category" required>
             <Input name="category" defaultValue={item?.category ?? ""} placeholder="Flour, Dairy, Packaging" required />
           </Field>
-          <Field label="Status">
-            <SelectNative name="status" defaultValue={item?.status ?? "active"}>
-              <option value="active">Active</option>
-              <option value="inactive">Inactive</option>
-            </SelectNative>
-          </Field>
-          <Field label="Item Image URL">
-            <Input name="item_image_url" defaultValue={item?.item_image_url ?? ""} placeholder="https://..." />
+          <input type="hidden" name="status" value={item?.status ?? "active"} />
+          <Field label="Item Image">
+            <Input name="item_image" type="file" accept="image/png,image/jpeg,image/webp" />
+            <p className="mt-1 text-xs text-muted-foreground">PNG, JPG, or WEBP. Leave empty to keep the current image.</p>
           </Field>
         </div>
       </RecordSection>
@@ -73,18 +67,11 @@ export function ItemForm({ item, suppliers, currentStock, action, formId, showSu
           <Field label="Safety Stock">
             <Input name="safety_stock" type="number" step="0.0001" min="0" defaultValue={item?.safety_stock ?? 0} />
           </Field>
-          <div className="rounded-[2px] border bg-secondary/50 p-3">
-            <p className="text-sm font-medium">Current Stock</p>
-            <p className="mt-1 text-lg font-semibold">
-              {currentStock === undefined ? "-" : formatNumber(currentStock)} {item?.base_unit ?? ""}
-            </p>
-            <p className="mt-1 text-xs text-muted-foreground">Calculated from stock transactions.</p>
-          </div>
         </div>
       </RecordSection>
 
       <RecordSection title="Supplier & Usage" description="Optional default supplier used by purchasing workflows.">
-        <div className="grid gap-4 md:grid-cols-2">
+        <div className="grid gap-3 md:grid-cols-[minmax(0,1fr)_auto] md:items-end">
           <Field label="Supplier">
             <SelectNative name="supplier_id" defaultValue={item?.supplier_id ?? ""}>
               <option value="">No supplier</option>
@@ -94,13 +81,13 @@ export function ItemForm({ item, suppliers, currentStock, action, formId, showSu
                 </option>
               ))}
             </SelectNative>
-            <p className="mt-2 text-xs text-muted-foreground">Supplier must exist before it can be assigned.</p>
           </Field>
-          <div className="flex items-end">
+          <div>
             <Button asChild type="button" variant="outline" size="sm">
               <Link href="/suppliers/new">Create supplier</Link>
             </Button>
           </div>
+          <p className="text-xs text-muted-foreground md:col-span-2">Supplier must exist before it can be assigned.</p>
         </div>
       </RecordSection>
 

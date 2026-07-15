@@ -1,6 +1,5 @@
-import { BarChart3, ClipboardCheck, FileText, PackageCheck, PackageSearch, ShoppingCart, TriangleAlert } from "lucide-react";
+import { ClipboardCheck, FileText, PackageCheck, PackageSearch, ShoppingCart, TriangleAlert } from "lucide-react";
 import { PageHeader } from "@/components/ui/page-header";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ConsoleSection } from "@/components/layout/right-console";
 import { WorkspaceGrid } from "@/components/layout/workspace-layout";
@@ -12,8 +11,6 @@ type ReportLink = {
   title: string;
   description: string;
   icon: LucideIcon;
-  badge?: string;
-  disabled?: boolean;
 };
 
 type ReportCategory = {
@@ -46,11 +43,10 @@ const reportCategories: ReportCategory[] = [
   },
   {
     title: "Production Reports",
-    description: "Production and yield reporting for future kitchen job workflows.",
+    description: "Operational production-loss review.",
     theme: "teal",
     reports: [
       { href: "/stock-wastage", title: "Wastage Review", description: "Production-loss and wastage document review.", icon: TriangleAlert },
-      { href: "/reports", title: "Yield Report", description: "Coming with production jobs.", icon: BarChart3, badge: "Coming soon", disabled: true },
     ],
   },
   {
@@ -60,14 +56,12 @@ const reportCategories: ReportCategory[] = [
     reports: [
       { href: "/documents", title: "Document Register", description: "Complete document search and history.", icon: FileText },
       { href: "/documents?status=posted", title: "Posted Documents", description: "Completed documents and attachments.", icon: ClipboardCheck },
-      { href: "/reports", title: "Finance Reports", description: "Finance outputs are not enabled yet.", icon: BarChart3, badge: "Coming soon", disabled: true },
     ],
   },
 ];
 
 export default function ReportsPage() {
   const reportCount = reportCategories.reduce((sum, category) => sum + category.reports.length, 0);
-  const activeCount = reportCategories.reduce((sum, category) => sum + category.reports.filter((report) => !report.disabled).length, 0);
 
   return (
     <>
@@ -78,7 +72,7 @@ export default function ReportsPage() {
             <ConsoleSection title="Report Summary">
               <div className="grid gap-2 text-xs">
                 <div className="flex justify-between gap-3"><span className="text-muted-foreground">Categories</span><strong>{reportCategories.length}</strong></div>
-                <div className="flex justify-between gap-3"><span className="text-muted-foreground">Available</span><strong>{activeCount}</strong></div>
+                <div className="flex justify-between gap-3"><span className="text-muted-foreground">Available</span><strong>{reportCount}</strong></div>
                 <div className="flex justify-between gap-3"><span className="text-muted-foreground">Total Listed</span><strong>{reportCount}</strong></div>
               </div>
             </ConsoleSection>
@@ -104,11 +98,11 @@ export default function ReportsPage() {
                         <Icon className="h-3.5 w-3.5" />
                       </div>
                       <div className="min-w-0">
-                        <div className="flex min-w-0 items-center gap-2"><p className="truncate text-xs font-medium">{report.title}</p>{report.badge ? <Badge variant="secondary">{report.badge}</Badge> : null}</div>
+                        <p className="truncate text-xs font-medium">{report.title}</p>
                         <p className="truncate text-[11px] text-muted-foreground">{report.description}</p>
                       </div>
-                      <Button asChild={!report.disabled} disabled={report.disabled} variant="outline" size="sm" className="h-8 px-2 text-xs">
-                        {report.disabled ? <span>Open</span> : <a href={report.href}>Open</a>}
+                      <Button asChild variant="outline" size="sm" className="h-8 px-2 text-xs">
+                        <a href={report.href}>Open</a>
                       </Button>
                     </div>
                   );

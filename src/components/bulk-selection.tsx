@@ -1,7 +1,6 @@
 "use client";
 
 import { createContext, type ReactNode, useContext, useMemo, useState } from "react";
-import { LoaderCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 type BulkSelectionContextValue = {
@@ -20,21 +19,16 @@ function useBulkSelection() {
   return context;
 }
 
-export function BulkSelectionProvider({
-  ids,
-  children,
-  actionLabel = "Archive selected",
-  actionHint = "Open selected records to archive or deactivate them safely.",
-  canAct = false,
-}: {
+export function BulkSelectionProvider(props: {
   ids: string[];
   children: ReactNode;
+  /** Retained temporarily for list callers; no action is shown until it is real. */
   actionLabel?: string;
   actionHint?: string;
   canAct?: boolean;
 }) {
+  const { ids, children, actionHint = "Open selected records to archive or deactivate them safely." } = props;
   const [selected, setSelected] = useState<Set<string>>(() => new Set());
-  const [pending, setPending] = useState(false);
   const visibleIds = useMemo(() => ids, [ids]);
 
   const value = useMemo<BulkSelectionContextValue>(() => ({
@@ -69,22 +63,7 @@ export function BulkSelectionProvider({
               <p className="text-xs text-muted-foreground">{actionHint}</p>
             </div>
             <div className="flex flex-wrap gap-2">
-              <Button type="button" variant="outline" size="sm" onClick={value.clear} disabled={pending}>Deselect all</Button>
-              <Button
-                type="button"
-                variant="destructive"
-                size="sm"
-                disabled={!canAct || pending}
-                title={canAct ? actionLabel : "Bulk archive is not enabled for this list yet."}
-                onClick={() => {
-                  if (!canAct) return;
-                  setPending(true);
-                  window.setTimeout(() => setPending(false), 900);
-                }}
-              >
-                {pending ? <LoaderCircle className="h-4 w-4 animate-spin" /> : null}
-                {pending ? "Processing..." : actionLabel}
-              </Button>
+              <Button type="button" variant="ghost" size="sm" onClick={value.clear}>Deselect all</Button>
             </div>
           </div>
         ) : null}

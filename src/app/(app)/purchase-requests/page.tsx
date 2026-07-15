@@ -72,7 +72,7 @@ export default async function PurchaseRequestsPage({ searchParams }: { searchPar
               <option value="normal">Normal</option>
               <option value="low">Low</option>
             </SelectNative>
-            <Button type="submit" variant="secondary">Search</Button>
+            <Button type="submit">Search</Button>
             <Button asChild variant="ghost"><a href="?">Reset</a></Button>
           </form>
           <BulkSelectionProvider ids={requests.rows.map((request) => request.id)} actionLabel="Archive selected" actionHint="Open selected PRs to archive, reject, or convert them through workflow-safe actions.">

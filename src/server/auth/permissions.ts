@@ -5,13 +5,13 @@ import { createClient } from "@/lib/supabase/server";
 
 export const roleDescriptions = {
   super_admin: "Protected system owner with every permission.",
-  operations_admin: "Day-to-day ERP administrator for operational setup and oversight.",
+  operations_admin: "Office administration and data-entry access. Owner controls remain restricted.",
   purchasing: "Purchasing user who verifies PRs, manages suppliers, and sends POs.",
   manager: "Approver for PR and PO workflow decisions.",
   finance: "Finance user for finance review and reporting visibility.",
   kitchen_staff: "Branch operations user who creates operational requests and stock documents.",
   viewer: "Read-only user with limited workspace visibility.",
-  admin: "Legacy administrator role. Prefer super_admin for owner accounts and operations_admin for daily administration.",
+  admin: "Office administration and data-entry access. This legacy code has no owner-level access.",
   kitchen: "Legacy kitchen role. Prefer kitchen_staff for new assignments.",
 } as const;
 
@@ -377,6 +377,9 @@ function permissionCandidates(permission: string) {
 
 function roleAllowsPermission(roleCode: string, permission: string) {
   const normalizedRole = roleAliases[roleCode] ?? roleCode;
+  // Office-admin access is data-driven. Do not let legacy client defaults turn it
+  // back into an owner-equivalent role when the database policy says otherwise.
+  if (normalizedRole === "operations_admin" || normalizedRole === "admin") return false;
   const grants = rolePermissionMatrix[normalizedRole as keyof typeof rolePermissionMatrix] as readonly string[] | undefined;
   if (!grants) return false;
   if (grants.includes("*")) return true;

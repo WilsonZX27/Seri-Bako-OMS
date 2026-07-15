@@ -42,7 +42,7 @@ export function isAdministratorRole(roleCode?: string | null) {
 }
 
 export function isProtectedOwnerAssignableRole(roleCode?: string | null) {
-  return roleCode === "super_admin" || roleCode === "operations_admin" || roleCode === "admin";
+  return roleCode === "super_admin";
 }
 
 export function canAssignRoleCode(currentRoleCode: string | null | undefined, targetRoleCode: string | null | undefined) {

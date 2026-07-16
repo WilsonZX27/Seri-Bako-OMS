@@ -18,7 +18,7 @@ Source review covered the implemented route tree, shared shell, import workspace
 | Inventory | `/inventory`, `/stock-balance`, `/stock-card`, `/stock-transactions`, `/stock-transactions/[id]`, `/stock-transfers`, `/stock-counts`, `/stock-wastage`, `/low-stock` | Review and post controlled stock movement | Partial: inventory inspected; other routes not walked |
 | Production | `/production`, `/production/jobs`, `/production/jobs/[id]`, `/production/jobs/new` | Manage production jobs | Blocked |
 | Administration | `/reports`, `/activity`, `/company`, `/branches`, `/locations`, `/roles`, `/roles/[id]`, `/staffs`, `/staffs/[id]` | Govern access and organization data | Blocked |
-| Imports | `/imports/[entity]`, `/administration/imports`, `/opening-stock/import` | Preview, validate, and confirm imports | Partial: Staff import inspected; no mutation |
+| Imports | `/imports`, `/imports/[entity]`, `/administration/imports`, `/opening-stock/import` | Preview, validate, and confirm imports | Partial: source and Staff import inspected; authenticated mutation blocked |
 
 Permissions remain server-authoritative; visual visibility is not treated as an authorization result.
 
@@ -27,6 +27,10 @@ Permissions remain server-authoritative; visual visibility is not treated as an 
 - Removed the duplicate `Opening Stock Import` card from Inventory.
 - Import routes now mount page-specific right-console context instead of the generic workspace placeholder.
 - Import result cards are shown after an import result exists, avoiding four permanent zero-state cards dominating the empty workspace.
+- Import template/draft controls, current-file counts, and review actions now live in the shared right console; the central workspace stays focused on the data grid.
+- Added `/imports` landing route with links for every configured import type.
+- Role detail puts Save Changes first; list filters remain one desktop row; Stock Transfers Search uses the primary action style.
+- Staff permission overrides keep friendly effective labels primary and move technical keys behind Technical details.
 
 ## Inventory definitions
 
@@ -59,3 +63,9 @@ Fresh authenticated read-only evidence:
 - Inventory low-stock detail rows and consumption-period verification against posted ledger taxonomy.
 - Responsive/mobile screenshots and accessibility checks.
 - Production read-only verification after Wilson provides an authenticated browser session.
+
+## Continuation verification (2026-07-16)
+
+Local source/build verification: Passed (6 contract tests, typecheck, lint, build, diff check). Local browser route verification reached the login gate at `/imports`; no local credentials were supplied, so authenticated screenshots and data-state checks remain Blocked. Production read-only tab was restored to `/stock-balance`; no records, imports, attachments, or permissions were changed.
+
+The reported PR delete blocker is still a deployment/migration state issue: Production screenshots reflect the older applied 056 behavior, while the local 057 correction remains intentionally unapplied. Attachment removal is permission-gated archive/removal through the existing `archiveDocumentAttachment` action; the detail card exposes Remove only when the current actor has the attachment-management permission.

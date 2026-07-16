@@ -62,8 +62,8 @@ export function StaffPermissionOverrides({
                 <div key={permission.id} className="grid gap-2 p-3 sm:grid-cols-[minmax(0,1fr)_9rem] sm:items-center">
                   <div className="min-w-0">
                     <p className="text-xs font-medium">{permission.description ?? permission.action.replaceAll("_", " ")}</p>
-                    <p className="truncate font-mono text-[11px] text-muted-foreground">{permission.permission_code}</p>
-                    <p className="mt-1 text-[11px] text-muted-foreground">Role: {permission.roleDefault ? "Allow" : "Deny"} · Effective: <span className={permission.effective ? "text-[var(--sb-success)]" : "text-[var(--sb-danger)]"}>{permission.effective ? "Allow" : "Deny"}</span></p>
+                    <p className="mt-1 text-[11px] text-muted-foreground">Role default: {permission.roleDefault ? "Allowed" : "Not allowed"} · Effective: <span className={permission.effective ? "text-[var(--sb-success)]" : "text-[var(--sb-danger)]"}>{permission.effective ? "Allowed" : "Not allowed"}</span></p>
+                    <details className="mt-1 text-[11px] text-muted-foreground"><summary className="cursor-pointer">Technical details</summary><code className="mt-1 block truncate">{permission.permission_code}</code></details>
                   </div>
                   <SelectNative name={`permission:${permission.id}`} defaultValue={permission.override ?? "inherit"} disabled={disabled} aria-label={`Override ${permission.permission_code}`}>
                     <option value="inherit">Inherit</option>

@@ -19,17 +19,17 @@ export default async function EditRolePage({ params }: { params: Promise<{ id: s
   return <>
     <PageHeader title={role.role_code === "super_admin" ? "Super Admin / Owner" : role.role_name} description={description} />
     <RecordWorkspace actionPanel={<>
+      <RecordActionPanel title="Save Changes">
+        <Button type="submit" form="role-permissions-form" className="w-full" data-mobile-primary-action>Save permissions</Button>
+        <Button asChild variant="ghost" className="w-full"><Link href={`/roles/${id}`}>Discard changes</Link></Button>
+        <Button asChild variant="outline" className="w-full"><Link href="/roles">Back to Roles</Link></Button>
+      </RecordActionPanel>
       <RecordActionPanel title="Role Summary">
         <div className="flex items-center justify-between text-xs"><span className="text-muted-foreground">Status</span><StatusBadge status={role.status} /></div>
         <div className="grid grid-cols-3 gap-2 text-center text-xs"><div><strong>{assignedCount}</strong><span className="block text-muted-foreground">Users</span></div><div><strong>{activeModules}</strong><span className="block text-muted-foreground">Modules</span></div><div><strong>{highRisk}</strong><span className="block text-muted-foreground">High-risk</span></div></div>
       </RecordActionPanel>
       <RecordActionPanel title="Assigned Users">
         {assignedUsers.length ? <ul className="space-y-2 text-xs">{assignedUsers.map((staff) => <li key={staff.id}><Link className="font-medium underline" href={`/staffs/${staff.id}`}>{staff.full_name}</Link><span className="block text-muted-foreground">{staff.staff_code ?? "No code"} · {staff.branch_name ?? "No branch"} · {staff.status}</span></li>)}</ul> : <p className="text-xs text-muted-foreground">No current assignments.</p>}
-      </RecordActionPanel>
-      <RecordActionPanel title="Save Changes">
-        <Button type="submit" form="role-permissions-form" className="w-full" data-mobile-primary-action>Save permissions</Button>
-        <Button asChild variant="ghost" className="w-full"><Link href={`/roles/${id}`}>Discard changes</Link></Button>
-        <Button asChild variant="outline" className="w-full"><Link href="/roles">Back to Roles</Link></Button>
       </RecordActionPanel>
     </>}>
       <RoleForm formId="role-edit-form" role={role} companies={companies} action={updateRole.bind(null, id)} showSubmit={false} />

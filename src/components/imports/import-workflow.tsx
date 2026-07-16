@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { SelectNative } from "@/components/ui/select-native";
+import { ConsoleSection, RightConsoleMount } from "@/components/layout/right-console";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
 type RowState = { index: number; values: Record<string, string>; errors: string[] };
@@ -431,9 +432,28 @@ export function ImportWorkflow({ entity, suppliers = [] }: { entity: ImportEntit
 
   return (
     <div className="space-y-5">
+      <RightConsoleMount>
+        <ConsoleSection title="Template and draft">
+          <Button type="button" variant="outline" className="w-full justify-start" onClick={downloadTemplate}><Download className="mr-2 h-4 w-4" />CSV template</Button>
+          <Button type="button" variant="outline" className="w-full justify-start" onClick={saveDraft}><Save className="mr-2 h-4 w-4" />Save draft</Button>
+          <Button type="button" variant="outline" className="w-full justify-start" onClick={loadDraft}>Load draft</Button>
+          {draftSavedAt ? <Button type="button" variant="ghost" className="w-full justify-start" onClick={clearDraft}><Trash2 className="mr-2 h-4 w-4" />Clear draft</Button> : null}
+        </ConsoleSection>
+        <ConsoleSection title="Current file">
+          <div className="space-y-2 text-xs"><div className="flex justify-between"><span className="text-muted-foreground">Total rows</span><strong>{rows.length}</strong></div><div className="flex justify-between"><span className="text-muted-foreground">Valid rows</span><strong>{validRows.length}</strong></div><div className="flex justify-between"><span className="text-muted-foreground">Needs fixes</span><strong>{errorRows.length}</strong></div></div>
+        </ConsoleSection>
+        <ConsoleSection title="Review actions">
+          <p className="text-xs text-muted-foreground">Validate the current rows before confirming. Confirmation stays disabled until valid rows are ready.</p>
+          <Button type="button" variant="outline" className="w-full" onClick={addBlankRow}><PencilLine className="mr-2 h-4 w-4" />Add blank row</Button>
+          <Button type="button" variant="outline" className="w-full" onClick={checkErrors}>Check errors</Button>
+          <Button type="button" className="w-full" onClick={confirmImport} disabled={!validRows.length || isSaving || Boolean(spec.needsPostingConfirmation && !confirmPosting)}><Upload className="mr-2 h-4 w-4" />{isSaving ? "Importing..." : "Proceed / Confirm Import"}</Button>
+          <Button type="button" variant="outline" className="w-full" onClick={downloadErrorCsv} disabled={!errorRows.length}>Download errors</Button>
+          {message ? <p className="text-xs text-muted-foreground">{message}</p> : null}
+        </ConsoleSection>
+      </RightConsoleMount>
       <Card>
         <CardContent className="space-y-5 p-5">
-          <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
+          <div>
             <div>
               <p className="text-sm font-semibold">Import workflow</p>
               <p className="mt-1 text-sm text-muted-foreground">{spec.description}</p>
@@ -442,28 +462,6 @@ export function ImportWorkflow({ entity, suppliers = [] }: { entity: ImportEntit
                   <li key={note}>{note}</li>
                 ))}
               </ul>
-            </div>
-            <div className="rounded-[2px] border bg-[var(--sb-muted)] p-3">
-              <p className="mb-2 text-xs font-semibold uppercase text-muted-foreground">Template and draft</p>
-              <div className="flex flex-wrap gap-2">
-                <Button type="button" variant="outline" onClick={downloadTemplate}>
-                  <Download className="mr-2 h-4 w-4" />
-                  CSV template
-                </Button>
-                <Button type="button" variant="outline" onClick={saveDraft}>
-                  <Save className="mr-2 h-4 w-4" />
-                  Save draft
-                </Button>
-                <Button type="button" variant="outline" onClick={loadDraft}>
-                  Load draft
-                </Button>
-                {draftSavedAt ? (
-                  <Button type="button" variant="ghost" onClick={clearDraft}>
-                    <Trash2 className="mr-2 h-4 w-4" />
-                    Clear
-                  </Button>
-                ) : null}
-              </div>
             </div>
           </div>
 
@@ -476,7 +474,7 @@ export function ImportWorkflow({ entity, suppliers = [] }: { entity: ImportEntit
             ))}
           </div>
 
-          <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_300px]">
+          <div className="grid gap-4">
             <div className="space-y-4">
               <div className="rounded-[2px] border bg-[var(--sb-muted)] p-3">
                 <div className="flex items-center gap-2 text-xs font-semibold uppercase text-muted-foreground">
@@ -536,41 +534,6 @@ export function ImportWorkflow({ entity, suppliers = [] }: { entity: ImportEntit
               ) : null}
             </div>
 
-            <div className="grid content-start gap-3">
-              <div className="rounded-[2px] border bg-card p-4">
-                <p className="text-sm font-semibold">Current file</p>
-                <div className="mt-3 space-y-2 text-sm text-muted-foreground">
-                  <div className="flex items-center justify-between"><span>Total rows</span><span className="font-medium text-foreground">{rows.length}</span></div>
-                  <div className="flex items-center justify-between"><span>Valid rows</span><span className="font-medium text-foreground">{validRows.length}</span></div>
-                  <div className="flex items-center justify-between"><span>Rows needing fixes</span><span className="font-medium text-foreground">{errorRows.length}</span></div>
-                </div>
-              </div>
-              <div className="rounded-[2px] border bg-card p-4">
-                <p className="text-sm font-semibold">Review actions</p>
-                <p className="mt-1 text-xs text-muted-foreground">Check the grid before proceeding. Confirm stays disabled until valid rows are ready.</p>
-                <div className="mt-3 flex flex-col gap-2">
-                  <Button type="button" variant="outline" onClick={addBlankRow}>
-                    <PencilLine className="mr-2 h-4 w-4" />
-                    Add blank row
-                  </Button>
-                  <Button type="button" variant="outline" onClick={checkErrors}>
-                    Check errors
-                  </Button>
-                  <Button
-                    type="button"
-                    onClick={confirmImport}
-                    disabled={!validRows.length || isSaving || Boolean(spec.needsPostingConfirmation && !confirmPosting)}
-                  >
-                    <Upload className="mr-2 h-4 w-4" />
-                    {isSaving ? "Importing..." : "Proceed / Confirm Import"}
-                  </Button>
-                  <Button type="button" variant="outline" onClick={downloadErrorCsv} disabled={!errorRows.length}>
-                    Download errors
-                  </Button>
-                </div>
-                {message ? <p className="mt-3 text-sm text-muted-foreground">{message}</p> : null}
-              </div>
-            </div>
           </div>
 
           {result ? <div className="grid gap-3 rounded-[2px] border bg-[var(--sb-muted)] p-3 sm:grid-cols-2 xl:grid-cols-4">

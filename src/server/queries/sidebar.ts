@@ -47,7 +47,7 @@ export async function getSidebarCounts(): Promise<SidebarCounts> {
     safeCount(db.from("production_jobs").select("id", { count: "exact", head: true }).in("status", ["submitted", "approved"]).is("deleted_at", null)),
     safeCount(db.from("purchase_requests").select("id", { count: "exact", head: true }).in("status", ["manager_review", "admin_review", "finance_review", "ready_to_convert"]).is("deleted_at", null)),
     safeCount(db.from("purchase_orders").select("id", { count: "exact", head: true }).in("status", ["draft", "pending_approval", "approved", "sent", "partial_received"]).is("deleted_at", null)),
-    safeCount(db.from("supplier_invoices").select("id", { count: "exact", head: true }).in("status", ["unpaid", "partially_paid"]).is("deleted_at", null)),
+    safeCount(db.from("supplier_invoices").select("id", { count: "exact", head: true }).in("status", ["open", "partially_paid"]).is("deleted_at", null)),
     safeCount(supabase.from("low_stock_items").select("item_id", { count: "exact", head: true })),
     safeCount(db.from("stock_counts").select("id", { count: "exact", head: true }).in("status", ["draft", "submitted", "reviewed", "approved"]).is("deleted_at", null)),
     safeCount(db.from("stock_transfers").select("id", { count: "exact", head: true }).in("status", ["draft", "in_transit"]).is("deleted_at", null)),

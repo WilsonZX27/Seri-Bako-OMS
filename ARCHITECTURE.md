@@ -659,3 +659,9 @@ Authorization is server authoritative: route middleware, layouts, pages, actions
 Procurement conversion uses the atomic PR-to-PO RPC from migrations 053–054. Its transaction creates the header and lines, links the source PR, preserves audit behavior, and relies on the one-active-PO-per-PR index for idempotency. Application code must not reimplement that transaction.
 
 Pilot imports use the catalogue in `src/lib/imports/config.ts`. They follow preview, validation, explicit confirmation, and targeted route revalidation. Opening stock posts ledger transactions at the branch default location; it never writes a balance directly. Audit and reconciliation therefore read the operational tables and ledger instead of maintaining a second pilot data store.
+
+## Supplier invoice and payment foundation
+
+Migration `060` adds line-level GRN matching and database-authoritative invoice workflow functions. Draft save locks receiving lines before checking uninvoiced quantity; approval recalculates and locks totals; payment locks the invoice row, rejects overpayment, and uses a company-scoped idempotency key; void requires authorization and a reason. These `SECURITY DEFINER` functions use a fixed `search_path` and resolve the active actor and company internally. They do not write inventory tables.
+
+The current purchasing model has one operating currency (MYR), so multi-GRN invoice currency compatibility is implicit. Add explicit PO/GRN currency columns before supporting another currency. AP Aging should derive from approved/open invoice due dates and outstanding balances rather than create a second payable balance.

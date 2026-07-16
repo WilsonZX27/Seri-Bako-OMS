@@ -199,7 +199,7 @@ The system currently covers or is actively implementing the following operationa
 
 Module maturity must be understood separately from visual completion.
 
-Current pilot baseline: `v0.2.15 / Sprint 7.5`, with database migrations through `054`. This is an operational pilot baseline, not a claim that Seri Bako OMS is a full accounting ERP.
+Current local baseline: `v0.2.15` with database migrations through `060`. This is an operational pilot baseline, not a claim that Seri Bako OMS is a full accounting ERP.
 
 A page may exist visually without its full workflow, validation, database integration, permissions, and downstream effects being complete.
 
@@ -237,7 +237,7 @@ These modules may have working core flows while secondary cases remain incomplet
 
 The following areas are not considered complete unless later documentation explicitly states otherwise:
 
-- Accounts payable.
+- AP Aging and advanced accounts-payable reporting.
 - Finance and general ledger.
 - Full debtor and creditor management.
 - Advanced business intelligence.
@@ -269,6 +269,18 @@ Goods receiving should:
 - Preserve discrepancies rather than silently overwrite ordered quantities.
 - Support attachments or evidence where implemented.
 - Generate controlled inventory movement only after the receiving action reaches the required valid status.
+
+### Supplier Invoice and Payment
+
+The operational payables flow is `PO -> posted GRN -> supplier invoice -> partial/full payment`.
+
+- Finance, Admin, and Owner users create draft invoices from uninvoiced quantities on same-company posted GRNs for one supplier.
+- Invoice lines preserve PO ordered quantity, received quantity, previously invoiced quantity, PO price, invoice price, and variance.
+- Draft totals are calculated server-side and lock when the invoice is approved/open.
+- Payments are atomic, idempotent, company-scoped, and move invoices through Open, Partially Paid, and Paid.
+- Voiding requires permission and a reason; invoices with payment history cannot be silently voided.
+- Invoice and payment actions never create inventory movement.
+- AP Aging, cash-flow forecasting, General Ledger, bank reconciliation, Accounts Receivable, and payment reversal remain future scope.
 
 ### Stock Count and Reconciliation
 

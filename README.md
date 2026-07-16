@@ -9,7 +9,7 @@ For UI and interaction standards, read `DESIGN.md`.
 ## Current Pilot Baseline
 
 - Application release: `v0.2.15 / Sprint 7.5`.
-- Database migration ceiling: `054_sprint_7_5_pr_to_po_supplier_scope_fix`.
+- Database migration ceiling: `060_supplier_invoice_payment_foundation`.
 - Pilot preparation is documentation and operator readiness only; it does not change the application release.
 - Start with `docs/PILOT_BASELINE.md`, use the controlled CSV files in `docs/import-templates/`, and record sign-off in `docs/PILOT_QA_CHECKLIST.md`.
 
@@ -163,6 +163,7 @@ The application includes or is actively developing:
 - Purchase Requests.
 - Purchase Orders.
 - Goods Receiving.
+- Supplier Invoices and partial/full supplier payments.
 - Stock Transactions and Stock Ledger.
 - Stock Balance.
 - Low Stock.

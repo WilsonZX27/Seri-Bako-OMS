@@ -9,20 +9,19 @@ import { getPostedGrnsForInvoice } from "@/server/queries/supplier-invoices";
 
 export default async function NewSupplierInvoicePage({ searchParams }: { searchParams: Promise<Record<string, string | undefined>> }) {
   const filters = await searchParams;
-  const grns = await getPostedGrnsForInvoice();
-  const selectedGrn = filters.grn_id ? grns.find((grn) => grn.id === filters.grn_id) ?? null : null;
+  const { grns, suppliers } = await getPostedGrnsForInvoice(filters.supplier_id);
   return (
     <>
       <PageHeader title="New Supplier Invoice" description="Create a basic AP invoice from a posted GRN." />
       <WorkspaceGrid
         rightRail={
           <ConsoleSection title="Invoice Actions">
-            <Button type="submit" form="supplier-invoice-form" disabled={!selectedGrn} className="w-full">Create Invoice</Button>
+            <Button type="submit" form="supplier-invoice-form" disabled={!filters.supplier_id || !grns.length} className="w-full">Create Draft Invoice</Button>
           </ConsoleSection>
         }
       >
         {filters.error ? <Card><CardContent className="p-4 text-sm text-destructive">{filters.error}</CardContent></Card> : null}
-        <SupplierInvoiceForm grns={grns} selectedGrn={selectedGrn} action={createSupplierInvoice} />
+        <SupplierInvoiceForm suppliers={suppliers} grns={grns} selectedSupplierId={filters.supplier_id} action={createSupplierInvoice} />
       </WorkspaceGrid>
     </>
   );

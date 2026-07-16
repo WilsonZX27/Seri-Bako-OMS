@@ -18,7 +18,7 @@ export type PurchaseRequestStatus = "draft" | "manager_review" | "admin_review" 
 export type PurchaseOrderStatus = "draft" | "pending_approval" | "approved" | "sent" | "partial_received" | "received" | "cancelled" | "closed";
 export type GoodsReceivingStatus = "draft" | "posted" | "cancelled";
 export type PurchaseReturnStatus = "draft" | "posted" | "cancelled";
-export type SupplierInvoiceStatus = "unpaid" | "partially_paid" | "paid" | "cancelled";
+export type SupplierInvoiceStatus = "draft" | "open" | "partially_paid" | "paid" | "void";
 export type StockTransactionStatus = "draft" | "posted" | "cancelled";
 export type StockCountStatus = "draft" | "submitted" | "reviewed" | "approved" | "posted" | "rejected" | "cancelled";
 export type StockOperationStatus = "draft" | "submitted" | "approved" | "in_transit" | "posted" | "completed" | "rejected" | "cancelled";
@@ -1328,6 +1328,12 @@ export type Database = {
           total_amount: number;
           amount_paid: number;
           status: SupplierInvoiceStatus;
+          payment_terms_days: number;
+          approved_at: string | null;
+          approved_by: string | null;
+          voided_at: string | null;
+          voided_by: string | null;
+          void_reason: string | null;
           notes: string | null;
           created_at: string;
           updated_at: string;
@@ -1351,6 +1357,12 @@ export type Database = {
           total_amount: number;
           amount_paid?: number;
           status?: SupplierInvoiceStatus;
+          payment_terms_days?: number;
+          approved_at?: string | null;
+          approved_by?: string | null;
+          voided_at?: string | null;
+          voided_by?: string | null;
+          void_reason?: string | null;
           notes?: string | null;
           created_at?: string;
           updated_at?: string;
@@ -1374,6 +1386,7 @@ export type Database = {
           notes: string | null;
           created_at: string;
           created_by: string | null;
+          idempotency_key: string | null;
         };
         Insert: {
           id?: string;
@@ -1387,8 +1400,50 @@ export type Database = {
           notes?: string | null;
           created_at?: string;
           created_by?: string | null;
+          idempotency_key?: string | null;
         };
         Update: Partial<Database["public"]["Tables"]["supplier_invoice_payments"]["Insert"]>;
+        Relationships: [];
+      };
+      supplier_invoice_lines: {
+        Row: {
+          id: string;
+          supplier_invoice_id: string;
+          goods_receiving_id: string;
+          goods_receiving_line_id: string;
+          purchase_order_id: string;
+          purchase_order_line_id: string;
+          item_id: string;
+          uom: string;
+          ordered_qty: number;
+          received_qty: number;
+          previously_invoiced_qty: number;
+          invoice_qty: number;
+          po_unit_price: number;
+          invoice_unit_price: number;
+          line_total: number;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          supplier_invoice_id: string;
+          goods_receiving_id: string;
+          goods_receiving_line_id: string;
+          purchase_order_id: string;
+          purchase_order_line_id: string;
+          item_id: string;
+          uom: string;
+          ordered_qty: number;
+          received_qty: number;
+          previously_invoiced_qty?: number;
+          invoice_qty: number;
+          po_unit_price: number;
+          invoice_unit_price: number;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["supplier_invoice_lines"]["Insert"]>;
         Relationships: [];
       };
       purchase_return_lines: {
@@ -1993,6 +2048,36 @@ export type Database = {
           already_existed: boolean;
         }>;
       };
+      save_supplier_invoice_draft: {
+        Args: {
+          p_invoice_id: string | null;
+          p_invoice_no: string;
+          p_supplier_invoice_no: string;
+          p_supplier_id: string;
+          p_invoice_date: string;
+          p_due_date: string | null;
+          p_payment_terms_days: number;
+          p_tax_amount: number;
+          p_notes: string | null;
+          p_lines: Json;
+        };
+        Returns: string;
+      };
+      approve_supplier_invoice: { Args: { p_invoice_id: string }; Returns: void };
+      record_supplier_invoice_payment: {
+        Args: {
+          p_invoice_id: string;
+          p_payment_no: string;
+          p_payment_date: string;
+          p_amount: number;
+          p_payment_method: string | null;
+          p_reference_no: string | null;
+          p_notes: string | null;
+          p_idempotency_key: string;
+        };
+        Returns: string;
+      };
+      void_supplier_invoice: { Args: { p_invoice_id: string; p_reason: string }; Returns: void };
       has_admin_staff_assignment: {
         Args: Record<string, never>;
         Returns: boolean;

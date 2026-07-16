@@ -109,19 +109,24 @@ export const purchaseReturnSchema = z.object({
 
 export const supplierInvoiceSchema = z.object({
   supplier_invoice_no: z.string().trim().min(1, "Supplier invoice number is required"),
-  goods_receiving_id: z.string().uuid("GRN is required"),
+  supplier_id: z.string().uuid("Supplier is required"),
   invoice_date: z.string().trim().min(1, "Invoice date is required"),
   due_date: z.string().trim().optional().nullable().or(z.literal("")),
-  subtotal: z.coerce.number().min(0),
+  payment_terms_days: z.coerce.number().int().min(0),
   tax_amount: z.coerce.number().min(0),
-  total_amount: z.coerce.number().positive("Invoice amount must be more than 0"),
   notes: z.string().trim().optional().nullable(),
+  lines: z.array(z.object({
+    goods_receiving_line_id: z.string().uuid(),
+    invoice_qty: z.coerce.number().positive("Invoice quantity must be more than 0"),
+    invoice_unit_price: z.coerce.number().min(0, "Invoice price cannot be negative"),
+  })).min(1, "Select at least one uninvoiced receiving line"),
 });
 
 export const supplierInvoicePaymentSchema = z.object({
   payment_date: z.string().trim().min(1, "Payment date is required"),
   amount: z.coerce.number().positive("Payment must be more than 0"),
-  payment_method: z.string().trim().optional().nullable(),
+  payment_method: z.string().trim().min(1, "Payment method is required"),
   reference_no: z.string().trim().optional().nullable(),
   notes: z.string().trim().optional().nullable(),
+  idempotency_key: z.string().uuid(),
 });

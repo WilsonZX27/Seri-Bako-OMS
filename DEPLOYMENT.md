@@ -431,7 +431,7 @@ Deployment is not complete when Vercel reports success. It is complete only afte
 
 ## v0.2.15 pilot baseline
 
-The pilot baseline is `v0.2.15 / Sprint 7.5` with migration ceiling `054`. Before pilot access, confirm the linked Supabase and Vercel projects, required environment variables, private `document-attachments` bucket and policies, effective-permission route rejection, and at least one active owner-class account.
+The local application baseline is `v0.2.15` with migration ceiling `060`. Before pilot access, confirm the linked Supabase and Vercel projects, required environment variables, private `document-attachments` bucket and policies, effective-permission route rejection, and at least one active owner-class account. Apply `060` only after review and before deploying the supplier-invoice foundation code; validate draft creation, approval, partial/final payment, void rejection, company isolation, and unchanged inventory afterward.
 
 Use versioned migrations as the source of truth. If a migration must be applied through the Supabase SQL Editor, record the project ID, source filename, ledger result, and verification evidence; never edit an already-applied file. No pilot CSV should be imported until a backup/recovery path and an owner-approved rollback or correction procedure are known.
 

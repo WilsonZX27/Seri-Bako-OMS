@@ -69,3 +69,11 @@ Fresh authenticated read-only evidence:
 Local source/build verification: Passed (6 contract tests, typecheck, lint, build, diff check). Local browser route verification reached the login gate at `/imports`; no local credentials were supplied, so authenticated screenshots and data-state checks remain Blocked. Production read-only tab was restored to `/stock-balance`; no records, imports, attachments, or permissions were changed.
 
 The reported PR delete blocker is still a deployment/migration state issue: Production screenshots reflect the older applied 056 behavior, while the local 057 correction remains intentionally unapplied. Attachment removal is permission-gated archive/removal through the existing `archiveDocumentAttachment` action; the detail card exposes Remove only when the current actor has the attachment-management permission.
+
+## Final authenticated production smoke (2026-07-16)
+
+Read-only checks on the authenticated Owner Production tab confirmed the deployed UI exposes `/imports` as the Import Data landing route and `/inventory` contains Low Stock Items and Highest-Consumption Ingredients (7 days, 30 days, Current month) with no duplicate Opening Stock Import card. The route loaded as the current production UI; an exact Vercel deployment ID/commit was not observable from the browser surface.
+
+Migration 057 destructive behavior was not claimed as verified: the browser automation surface became non-responsive while preparing the disposable PR form, so no `E2E-QA-*` record was created and no delete RPC was called. Consequently pristine-PR cascade-safe dependencies, tombstone creation, redirect, and deletion disappearance remain Blocked pending a successful authenticated UI run.
+
+Production import and targeted regression checks were likewise limited to the observed read-only landing/dashboard surfaces. No existing Production business record, attachment, staff record, item, document, or permission was changed. No migration was run, and no package or lockfile was modified.

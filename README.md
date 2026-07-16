@@ -8,8 +8,8 @@ For UI and interaction standards, read `DESIGN.md`.
 
 ## Current Pilot Baseline
 
-- Application release: `v0.2.15 / Sprint 7.5`.
-- Database migration ceiling: `060_supplier_invoice_payment_foundation`.
+- Application release: `v0.2.18 / Sprint 7.10`.
+- Database migration ceiling: `062_payment_due_alerts`.
 - Pilot preparation is documentation and operator readiness only; it does not change the application release.
 - Start with `docs/PILOT_BASELINE.md`, use the controlled CSV files in `docs/import-templates/`, and record sign-off in `docs/PILOT_QA_CHECKLIST.md`.
 
@@ -164,6 +164,8 @@ The application includes or is actively developing:
 - Purchase Orders.
 - Goods Receiving.
 - Supplier Invoices and partial/full supplier payments.
+- AP Aging with supplier exposure, due-date buckets, and filtered CSV export.
+- Live Payment Due Alerts on the dashboard, AP Aging, and eligible supplier invoices.
 - Stock Transactions and Stock Ledger.
 - Stock Balance.
 - Low Stock.

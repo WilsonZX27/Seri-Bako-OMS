@@ -13,6 +13,7 @@ import { formatCurrency, formatNumber } from "@/lib/utils";
 import { approveSupplierInvoice, recordSupplierInvoicePayment, updateSupplierInvoiceDraft, voidSupplierInvoice } from "@/server/actions/supplier-invoices";
 import { getPermissionMap } from "@/server/auth/permissions";
 import { getDocumentBundle } from "@/server/queries/documents";
+import { getApAgingReport } from "@/server/queries/ap-aging";
 import { getPostedGrnsForInvoice, getSupplierInvoice } from "@/server/queries/supplier-invoices";
 
 const invoiceSteps = [
@@ -30,10 +31,12 @@ export default async function SupplierInvoiceDetailPage({ params, searchParams }
     getSupplierInvoice(id),
     getPermissionMap(["supplier_invoice.create", "supplier_invoice.approve", "supplier_invoice.pay", "supplier_invoice.void"]),
   ]);
-  const [documentBundle, editSources] = await Promise.all([
+  const [documentBundle, editSources, agingReport] = await Promise.all([
     invoice.document_id ? getDocumentBundle(invoice.document_id) : null,
     invoice.status === "draft" ? getPostedGrnsForInvoice(invoice.supplier_id, invoice.id) : null,
+    ["open", "partially_paid"].includes(invoice.status) && invoice.balance_due > 0 ? getApAgingReport({ search: invoice.invoice_no }) : null,
   ]);
+  const agingRow = agingReport?.rows.find((row) => row.id === invoice.id);
   const canPay = permissions["supplier_invoice.pay"] && ["open", "partially_paid"].includes(invoice.status);
   const canVoid = permissions["supplier_invoice.void"] && invoice.status !== "void" && invoice.status !== "paid" && Number(invoice.amount_paid) === 0;
   return (
@@ -66,6 +69,15 @@ export default async function SupplierInvoiceDetailPage({ params, searchParams }
             ) : invoice.status !== "draft" ? <p className="mt-3 text-xs text-muted-foreground">No further payment action is available.</p> : null}
             {canVoid ? <form action={voidSupplierInvoice.bind(null, invoice.id)} className="mt-3 grid gap-2 border-t pt-3"><Textarea name="reason" placeholder="Required void reason" required /><SubmitButton variant="destructive" pendingLabel="Voiding..." className="w-full justify-center">Void Invoice</SubmitButton></form> : null}
           </DocumentSideSection>
+          {agingRow ? <DocumentSideSection title="Payment Attention" description="Live status from AP Aging.">
+            <div className="space-y-2 text-xs">
+              <p><strong>{agingRow.alert_label ?? "No immediate alert"}</strong></p>
+              <p className="flex justify-between gap-2"><span>Due date</span><strong>{agingRow.due_date ?? "Missing"}</strong></p>
+              <p className="flex justify-between gap-2"><span>Outstanding</span><strong>{formatCurrency(agingRow.outstanding)}</strong></p>
+              <p>{agingRow.days_overdue > 0 ? `${agingRow.days_overdue} days overdue` : agingRow.due_date ? `${agingRow.days_until_due} days until due` : "Due date requires attention"}</p>
+              <DocumentActionLink href={`/supplier-invoices/aging?search=${encodeURIComponent(invoice.invoice_no)}`} variant="outline">View in AP Aging</DocumentActionLink>
+            </div>
+          </DocumentSideSection> : null}
           {documentBundle ? <>
             <CommentsPanel documentId={documentBundle.document.id} comments={documentBundle.comments} />
             <AttachmentPanel documentId={documentBundle.document.id} attachments={documentBundle.attachments} />

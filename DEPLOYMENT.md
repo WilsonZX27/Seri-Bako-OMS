@@ -433,6 +433,14 @@ Deployment is not complete when Vercel reports success. It is complete only afte
 
 The local application baseline is `v0.2.15` with migration ceiling `060`. Before pilot access, confirm the linked Supabase and Vercel projects, required environment variables, private `document-attachments` bucket and policies, effective-permission route rejection, and at least one active owner-class account. Apply `060` only after review and before deploying the supplier-invoice foundation code; validate draft creation, approval, partial/final payment, void rejection, company isolation, and unchanged inventory afterward.
 
+## Sprint 7.9 AP Aging deployment
+
+The Sprint 7.9 application baseline is `v0.2.17 / Sprint 7.9` with migration ceiling `061`. Review and apply `061_ap_aging_report.sql` once before deploying the AP Aging application code. Then verify Finance/Admin/Owner access, cross-company rejection, aging boundaries, missing due dates, partial-payment balances, supplier totals, filtered CSV totals, and the dashboard summary. Confirm the RPC performs no invoice, payment, or inventory mutation. Production remains on the previous behavior until migration 061 and the matching deployment are both live.
+
+## Sprint 7.10 Payment Due Alerts deployment
+
+The Sprint 7.10 application baseline is `v0.2.18 / Sprint 7.10` with migration ceiling `062`. Apply `061` before `062`, then deploy the matching application code. Verify Finance/Admin/Owner visibility, restricted-role and cross-company rejection, all due-date boundaries, priority ordering, dashboard counts/amounts, AP Aging filter links, eligible invoice detail status, MYR totals, and unchanged invoice/payment/inventory records. Confirm the global notification icon remains event-based and that no scheduled notification delivery exists.
+
 Use versioned migrations as the source of truth. If a migration must be applied through the Supabase SQL Editor, record the project ID, source filename, ledger result, and verification evidence; never edit an already-applied file. No pilot CSV should be imported until a backup/recovery path and an owner-approved rollback or correction procedure are known.
 
 If CLI migration access fails because DNS or network resolution is unavailable, do not retry blindly. Use a controlled SQL Editor application only with explicit authorization, apply the reviewed migration once, and verify the migration ledger and live objects afterward.

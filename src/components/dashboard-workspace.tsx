@@ -50,6 +50,20 @@ function CompactPanel({ title, children, action }: { title: string; children: Re
   );
 }
 
+function shiftDate(value: string, days: number) {
+  const date = new Date(`${value}T00:00:00Z`);
+  date.setUTCDate(date.getUTCDate() + days);
+  return date.toISOString().slice(0, 10);
+}
+
+function alertAgingHref(row: NonNullable<DashboardSummary["payablesAttention"]>["rows"][number], reportDate: string) {
+  if (row.alert_severity === "data_quality") return "/supplier-invoices/aging?bucket=missing_due_date";
+  if (row.alert_severity === "critical") return "/supplier-invoices/aging?bucket=overdue_90_plus";
+  if (row.alert_severity === "overdue") return "/supplier-invoices/aging?overdue=1";
+  if (row.alert_severity === "due_today") return "/supplier-invoices/aging?bucket=due_today";
+  return `/supplier-invoices/aging?due_from=${shiftDate(reportDate, 1)}&due_to=${shiftDate(reportDate, 7)}`;
+}
+
 export function DashboardWorkspace({ summary }: { summary: DashboardSummary }) {
   const [now, setNow] = useState(() => new Date());
 
@@ -67,6 +81,7 @@ export function DashboardWorkspace({ summary }: { summary: DashboardSummary }) {
   ];
   const pendingActions = summary.pendingApprovals.slice(0, 3);
   const stuckRequests = summary.urgentRequests.slice(0, 3);
+  const payablesAttention = summary.payablesAttention;
 
   return (
     <div className="min-h-0">
@@ -103,6 +118,17 @@ export function DashboardWorkspace({ summary }: { summary: DashboardSummary }) {
                 </Button>
               </div>
             </ConsoleSection>
+
+            {payablesAttention ? <ConsoleSection title="Payables Attention">
+              <div className="space-y-2 text-[11px]">
+                <p><span className="text-muted-foreground">As of</span><br /><strong>{payablesAttention.report_date}</strong></p>
+                <p className="flex justify-between gap-2"><span>Attention amount</span><strong>{formatCurrency(payablesAttention.total_attention_amount)}</strong></p>
+                <p><span className="text-muted-foreground">Highest exposure</span><br /><strong>{payablesAttention.highest_exposure_supplier ?? "None"}</strong></p>
+                <p><span className="text-muted-foreground">Oldest overdue</span><br /><strong>{payablesAttention.oldest_overdue_invoice ?? "None"}</strong></p>
+                <Button asChild size="sm" className="w-full"><Link href="/supplier-invoices/aging">Open AP Aging</Link></Button>
+                <p className="text-muted-foreground">Missing due dates rank first, followed by 91+ day critical balances, overdue invoices, due today, then due within seven days.</p>
+              </div>
+            </ConsoleSection> : null}
           </>
         }
       >
@@ -166,13 +192,29 @@ export function DashboardWorkspace({ summary }: { summary: DashboardSummary }) {
           </div>
 
           <CompactPanel title="Stock Exceptions" action={{ href: "/stock-balance?status=low_stock", label: "Open Stock" }}>
-            <div className="grid gap-3 sm:grid-cols-3">
+            <div className="grid gap-3 sm:grid-cols-2">
               <MetricCard href="/stock-balance?status=low_stock" label="Low Stock" value={formatNumber(summary.lowStockCount)} icon={AlertTriangle} tone={summary.lowStockCount ? "red" : "green"} />
-              <MetricCard href="/reports" label="Payables" value={formatCurrency(summary.financeForecast.upcomingPayables)} icon={ReceiptText} />
               <MetricCard href="/goods-receivings" label="Not Invoiced" value={formatNumber(summary.financeForecast.receivingNotInvoiced)} icon={RotateCw} tone="amber" />
             </div>
             <p className="mt-2 text-[11px] text-muted-foreground">Finance and stock signals improve as PO, GRN, and supplier invoice data grows.</p>
           </CompactPanel>
+
+          {payablesAttention ? <CompactPanel title="Finance / Payables Attention" action={{ href: "/supplier-invoices/aging", label: "Open AP Aging" }}>
+            <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+              <MetricCard href="/supplier-invoices/aging?bucket=overdue_90_plus" label={`Critical · ${payablesAttention.critical_count}`} value={formatCurrency(payablesAttention.critical_amount)} icon={AlertTriangle} tone={payablesAttention.critical_count ? "red" : "green"} />
+              <MetricCard href="/supplier-invoices/aging?overdue=1" label={`Overdue · ${payablesAttention.overdue_count}`} value={formatCurrency(payablesAttention.overdue_amount)} icon={ReceiptText} tone={payablesAttention.overdue_count ? "red" : "green"} />
+              <MetricCard href="/supplier-invoices/aging?bucket=due_today" label={`Due Today · ${payablesAttention.due_today_count}`} value={formatCurrency(payablesAttention.due_today_amount)} icon={Clock3} tone="amber" />
+              <MetricCard href={`/supplier-invoices/aging?due_from=${shiftDate(payablesAttention.report_date, 1)}&due_to=${shiftDate(payablesAttention.report_date, 7)}`} label={`Due Next 7 · ${payablesAttention.due_next_7_count}`} value={formatCurrency(payablesAttention.due_next_7_amount)} icon={Clock3} tone="amber" />
+              <MetricCard href="/supplier-invoices/aging?bucket=missing_due_date" label="Missing Due Date" value={formatNumber(payablesAttention.missing_due_date_count)} icon={AlertTriangle} tone={payablesAttention.missing_due_date_count ? "amber" : "green"} />
+            </div>
+            <div className="mt-2 divide-y border bg-white">
+              {payablesAttention.rows.map((row) => <div key={row.id} className="flex items-center justify-between gap-3 px-2.5 py-2 text-[11px]">
+                <Link href={`/supplier-invoices/${row.id}`} className="min-w-0 hover:underline"><span className="block truncate font-mono font-semibold">{row.invoice_no} · {row.alert_label}</span><span className="block truncate text-muted-foreground">{row.supplier_name} · {formatCurrency(row.outstanding)}</span></Link>
+                <Link href={alertAgingHref(row, payablesAttention.report_date)} className="shrink-0 font-medium text-primary hover:underline">Aging</Link>
+              </div>)}
+              {!payablesAttention.rows.length ? <p className="p-3 text-xs text-muted-foreground">No supplier invoices need payment attention.</p> : null}
+            </div>
+          </CompactPanel> : null}
         </div>
       </WorkspaceGrid>
     </div>

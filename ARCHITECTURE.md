@@ -665,3 +665,11 @@ Pilot imports use the catalogue in `src/lib/imports/config.ts`. They follow prev
 Migration `060` adds line-level GRN matching and database-authoritative invoice workflow functions. Draft save locks receiving lines before checking uninvoiced quantity; approval recalculates and locks totals; payment locks the invoice row, rejects overpayment, and uses a company-scoped idempotency key; void requires authorization and a reason. These `SECURITY DEFINER` functions use a fixed `search_path` and resolve the active actor and company internally. They do not write inventory tables.
 
 The current purchasing model has one operating currency (MYR), so multi-GRN invoice currency compatibility is implicit. Add explicit PO/GRN currency columns before supporting another currency. AP Aging should derive from approved/open invoice due dates and outstanding balances rather than create a second payable balance.
+
+## AP Aging reporting
+
+Migration `061` adds one read-only, company-scoped `get_ap_aging_report` RPC. It aggregates payments, outstanding balances, aging buckets, supplier exposure, filters, and pagination in PostgreSQL. The function requires `supplier_invoice.view`, uses a fixed `search_path`, and performs no invoice, payment, or inventory writes. Open and Partially Paid invoices with positive balances are included; Draft, Paid, Void, zero, and negative balances are excluded. Missing due dates remain in a dedicated bucket. The current schema has no company timezone column, so the report date uses `Asia/Kuala_Lumpur`. UI and CSV export call the same RPC and filters.
+
+## Payment Due Alerts
+
+Migration `062` replaces the same `get_ap_aging_report` function definition forward-only and adds an `attention` result. This keeps one database-authoritative calculation path for balances, aging, permissions, company scope, and timezone. The dashboard consumes only the compact attention payload; AP Aging exposes filtered links and severity labels; eligible invoice details resolve their live row through the same RPC. The event-based notification tables and topbar read state are intentionally unchanged because live AP attention is not a delivered notification. No scheduled delivery or mutation is performed.

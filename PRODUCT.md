@@ -199,7 +199,7 @@ The system currently covers or is actively implementing the following operationa
 
 Module maturity must be understood separately from visual completion.
 
-Current local baseline: `v0.2.15` with database migrations through `060`. This is an operational pilot baseline, not a claim that Seri Bako OMS is a full accounting ERP.
+Current local baseline: `v0.2.18 / Sprint 7.10` with database migrations through `062`. This is an operational pilot baseline, not a claim that Seri Bako OMS is a full accounting ERP.
 
 A page may exist visually without its full workflow, validation, database integration, permissions, and downstream effects being complete.
 
@@ -237,7 +237,7 @@ These modules may have working core flows while secondary cases remain incomplet
 
 The following areas are not considered complete unless later documentation explicitly states otherwise:
 
-- AP Aging and advanced accounts-payable reporting.
+- Advanced accounts-payable forecasting and scheduled payment-alert delivery.
 - Finance and general ledger.
 - Full debtor and creditor management.
 - Advanced business intelligence.
@@ -280,7 +280,15 @@ The operational payables flow is `PO -> posted GRN -> supplier invoice -> partia
 - Payments are atomic, idempotent, company-scoped, and move invoices through Open, Partially Paid, and Paid.
 - Voiding requires permission and a reason; invoices with payment history cannot be silently voided.
 - Invoice and payment actions never create inventory movement.
-- AP Aging, cash-flow forecasting, General Ledger, bank reconciliation, Accounts Receivable, and payment reversal remain future scope.
+- AP Aging and live Payment Due Alerts report current MYR exposure from Open and Partially Paid invoices. Missing due dates remain visible; cash-flow forecasting, General Ledger, bank reconciliation, Accounts Receivable, payment reversal, and scheduled alert delivery remain future scope.
+
+### AP Aging
+
+AP Aging uses the company-scoped database report from migration `061`. Outstanding is invoice total minus recorded payments, never below zero. Buckets are Not Due, Due Today, 1–30, 31–60, 61–90, 90+ Days Overdue, and Missing Due Date. The report uses the company timezone when available; the current schema has no company timezone field, so it falls back to `Asia/Kuala_Lumpur`. Users with Supplier Invoice view permission may view and export the same filtered dataset; reporting does not mutate invoices, payments, or inventory.
+
+### Payment Due Alerts
+
+Migration `062` extends the AP Aging RPC with a live, read-only attention summary. Priority is Missing Due Date, 91+ Days Overdue, 31–90 Days Overdue, 1–30 Days Overdue, Due Today, then Due within the next seven days. Within each group, higher outstanding balance comes first, followed by earlier due date. The same `supplier_invoice.view`, company isolation, MYR, and `Asia/Kuala_Lumpur` fallback rules apply. Alerts appear on the dashboard and invoice/AP Aging views; there is no email, SMS, push, Cron, read state, snooze state, or scheduled notification delivery.
 
 ### Stock Count and Reconciliation
 

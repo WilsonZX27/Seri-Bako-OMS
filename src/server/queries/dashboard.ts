@@ -3,6 +3,8 @@ import { looseSupabase } from "@/lib/supabase/loose";
 import { actorDisplayName, formatActivityWithActor, resolveActorDisplayMap } from "@/server/actors/display";
 import { getCurrentUserScope, getVisibleNotificationsForCurrentUser } from "@/server/queries/notifications";
 import { getCurrentUserPendingActions } from "@/server/queries/pending-actions";
+import { hasPermission } from "@/server/auth/permissions";
+import { getPayablesAttention } from "@/server/queries/ap-aging";
 import {
   getMockLowStockItems,
   getMockStockBalances,
@@ -127,6 +129,7 @@ export async function getDashboardSummary() {
         pendingPoValue: 0,
         receivingNotInvoiced: 0,
       },
+      payablesAttention: null,
       recentTransactions: mockStockTransactions.slice(0, 6).map((transaction) => ({
         ...transaction,
         item: itemById.get(transaction.item_id) ?? null,
@@ -136,7 +139,7 @@ export async function getDashboardSummary() {
 
   const supabase = await createClient();
   const db = looseSupabase(supabase);
-  const [balances, lowStock, transactions, stockItems, suppliers, items, urgentRequests, purchaseRequests, purchaseOrders, pendingApprovals, documents, notifications, recentActivities, todayProduction] = await Promise.all([
+  const [balances, lowStock, transactions, stockItems, suppliers, items, urgentRequests, purchaseRequests, purchaseOrders, pendingApprovals, documents, notifications, recentActivities, todayProduction, canViewPayables] = await Promise.all([
     supabase.from("stock_balances_view").select("item_id, current_stock, is_low_stock"),
     supabase.from("low_stock_items").select("*").limit(5),
     supabase
@@ -161,6 +164,7 @@ export async function getDashboardSummary() {
     getVisibleNotificationsForCurrentUser(),
     getVisibleRecentActivitiesForCurrentUser(),
     db.from("production_jobs").select("id", { count: "exact", head: true }).eq("status", "posted").eq("production_date", new Date().toISOString().slice(0, 10)).is("deleted_at", null),
+    hasPermission("supplier_invoice.view"),
   ]);
 
   warnOptionalQuery("stock balances", balances.error);
@@ -201,5 +205,6 @@ export async function getDashboardSummary() {
       pendingPoValue: 0,
       receivingNotInvoiced: purchaseOrders.data?.filter((order) => ["sent", "partial_received", "received"].includes(order.status)).length ?? 0,
     },
+    payablesAttention: canViewPayables ? await getPayablesAttention() : null,
   };
 }

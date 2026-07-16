@@ -2078,6 +2078,20 @@ export type Database = {
         Returns: string;
       };
       void_supplier_invoice: { Args: { p_invoice_id: string; p_reason: string }; Returns: void };
+      get_ap_aging_report: {
+        Args: {
+          p_search?: string | null;
+          p_supplier_id?: string | null;
+          p_bucket?: string | null;
+          p_status?: string | null;
+          p_due_from?: string | null;
+          p_due_to?: string | null;
+          p_overdue_only?: boolean;
+          p_page?: number;
+          p_page_size?: number;
+        };
+        Returns: Json;
+      };
       has_admin_staff_assignment: {
         Args: Record<string, never>;
         Returns: boolean;

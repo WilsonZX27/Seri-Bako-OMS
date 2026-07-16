@@ -30,7 +30,7 @@ export default async function SupplierInvoicesPage({ searchParams }: { searchPar
         rightRail={
           <>
             <ConsoleSection title="Actions">
-              <Button asChild size="sm" className="w-full"><Link href="/supplier-invoices/new">New Invoice</Link></Button>
+              <div className="grid gap-2"><Button asChild size="sm" className="w-full"><Link href="/supplier-invoices/new">New Invoice</Link></Button><Button asChild variant="outline" size="sm" className="w-full"><Link href="/supplier-invoices/aging">AP Aging</Link></Button></div>
             </ConsoleSection>
             <ConsoleSection title="AP Summary">
               <div className="grid gap-2 text-xs">

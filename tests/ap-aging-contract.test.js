@@ -39,8 +39,8 @@ test("AP aging UI and CSV share URL filters and server report", () => {
   assert.match(page, /PaginationControls/);
   assert.match(page, /Missing Due Date/);
   assert.match(page, /days overdue/);
-  assert.match(csv, /getApAgingReport\(params, true\)/);
-  assert.match(csv, /agingRows\.length < report\.total_rows/);
+  assert.match(csv, /getCompleteApAgingReport\(params\)/);
+  assert.match(query, /rows\.length < report\.total_rows/);
   assert.match(csv, /ap-aging-\$\{report\.report_date\}\.csv/);
   assert.doesNotMatch(sql, /(insert|update|delete)\s+(into\s+)?public\.(stock_transactions|stock_transaction_lines|stock_balances)/i);
 });

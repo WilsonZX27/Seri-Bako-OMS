@@ -673,3 +673,9 @@ Migration `061` adds one read-only, company-scoped `get_ap_aging_report` RPC. It
 ## Payment Due Alerts
 
 Migration `062` replaces the same `get_ap_aging_report` function definition forward-only and adds an `attention` result. This keeps one database-authoritative calculation path for balances, aging, permissions, company scope, and timezone. The dashboard consumes only the compact attention payload; AP Aging exposes filtered links and severity labels; eligible invoice details resolve their live row through the same RPC. The event-based notification tables and topbar read state are intentionally unchanged because live AP attention is not a delivered notification. No scheduled delivery or mutation is performed.
+
+## Cash Flow Forecast
+
+Sprint 7.11 adds no competing payable RPC or migration. The server retrieves all pages from `get_ap_aging_report`, then groups that already-authorized result by the RPC report date into 7-day, 14-day, 30-day, and current-month horizons. Overdue and missing-due-date exposure stay separate, while supplier aggregation and invoice drill-through share the same rows. Pagination happens after server-side forecast classification, so only the current detail page is rendered to the client. The report performs no writes and inherits active-staff, `supplier_invoice.view`, company, status, payment, currency, and timezone rules from AP Aging.
+
+Migration `063` corrects the report join to match the actual supplier schema: suppliers have no `company_id`, while supplier invoices carry the authoritative company boundary. The RPC therefore joins the supplier by its referenced ID and continues to restrict invoice and payment records by the active staff company. Dashboard AP failure is isolated so unrelated operational sections still render.

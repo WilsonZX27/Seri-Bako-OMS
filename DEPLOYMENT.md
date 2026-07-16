@@ -439,7 +439,13 @@ The Sprint 7.9 application baseline is `v0.2.17 / Sprint 7.9` with migration cei
 
 ## Sprint 7.10 Payment Due Alerts deployment
 
-The Sprint 7.10 application baseline is `v0.2.18 / Sprint 7.10` with migration ceiling `062`. Apply `061` before `062`, then deploy the matching application code. Verify Finance/Admin/Owner visibility, restricted-role and cross-company rejection, all due-date boundaries, priority ordering, dashboard counts/amounts, AP Aging filter links, eligible invoice detail status, MYR totals, and unchanged invoice/payment/inventory records. Confirm the global notification icon remains event-based and that no scheduled notification delivery exists.
+The Sprint 7.10 application baseline is `v0.2.18 / Sprint 7.10` with migration ceiling `063`. Apply `061`, `062`, then `063` in order before deploying the matching application code. Verify Finance/Admin/Owner visibility, restricted-role and cross-company rejection, all due-date boundaries, priority ordering, dashboard counts/amounts, AP Aging filter links, eligible invoice detail status, MYR totals, and unchanged invoice/payment/inventory records. Confirm the global notification icon remains event-based and that no scheduled notification delivery exists.
+
+Production installations that applied `061` and `062` must also apply `063_fix_ap_aging_runtime.sql`. Migration `063` removes the invalid runtime reference to `suppliers.company_id`; it does not mutate business data. Afterward, call AP Aging as an authenticated permitted user, confirm the report returns JSON, and verify the dashboard continues rendering even if the AP panel is unavailable.
+
+## Sprint 7.11 Cash Flow Forecast deployment
+
+The Sprint 7.11 application baseline is `v0.2.19 / Sprint 7.11` with migration ceiling `063`. No migration `064` is required because the forecast reuses the complete `get_ap_aging_report` result. Deploy the application only after `061`, `062`, and `063` are present. Verify an authenticated user with `supplier_invoice.view` can open `/supplier-invoices/cash-flow`; confirm 7-day, 14-day, 30-day, and current-month amounts against AP Aging; verify overdue and missing-due-date exposure remain separate; and confirm Draft, Paid, Void, zero, and negative balances are absent. Restricted and cross-company access must remain rejected, and no invoice, payment, inventory, notification, or Production business data should change during verification.
 
 Use versioned migrations as the source of truth. If a migration must be applied through the Supabase SQL Editor, record the project ID, source filename, ledger result, and verification evidence; never edit an already-applied file. No pilot CSV should be imported until a backup/recovery path and an owner-approved rollback or correction procedure are known.
 

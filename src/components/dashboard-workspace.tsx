@@ -199,6 +199,8 @@ export function DashboardWorkspace({ summary }: { summary: DashboardSummary }) {
             <p className="mt-2 text-[11px] text-muted-foreground">Finance and stock signals improve as PO, GRN, and supplier invoice data grows.</p>
           </CompactPanel>
 
+          {summary.payablesAttentionUnavailable ? <CompactPanel title="Finance / Payables Attention" action={{ href: "/supplier-invoices/aging", label: "Retry AP Aging" }}><p className="text-xs text-muted-foreground">Payables attention is temporarily unavailable. The rest of the dashboard remains current.</p></CompactPanel> : null}
+
           {payablesAttention ? <CompactPanel title="Finance / Payables Attention" action={{ href: "/supplier-invoices/aging", label: "Open AP Aging" }}>
             <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
               <MetricCard href="/supplier-invoices/aging?bucket=overdue_90_plus" label={`Critical · ${payablesAttention.critical_count}`} value={formatCurrency(payablesAttention.critical_amount)} icon={AlertTriangle} tone={payablesAttention.critical_count ? "red" : "green"} />

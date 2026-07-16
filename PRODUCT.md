@@ -199,7 +199,7 @@ The system currently covers or is actively implementing the following operationa
 
 Module maturity must be understood separately from visual completion.
 
-Current local baseline: `v0.2.18 / Sprint 7.10` with database migrations through `062`. This is an operational pilot baseline, not a claim that Seri Bako OMS is a full accounting ERP.
+Current local baseline: `v0.2.19 / Sprint 7.11` with database migrations through `063`. This is an operational pilot baseline, not a claim that Seri Bako OMS is a full accounting ERP.
 
 A page may exist visually without its full workflow, validation, database integration, permissions, and downstream effects being complete.
 
@@ -280,7 +280,7 @@ The operational payables flow is `PO -> posted GRN -> supplier invoice -> partia
 - Payments are atomic, idempotent, company-scoped, and move invoices through Open, Partially Paid, and Paid.
 - Voiding requires permission and a reason; invoices with payment history cannot be silently voided.
 - Invoice and payment actions never create inventory movement.
-- AP Aging and live Payment Due Alerts report current MYR exposure from Open and Partially Paid invoices. Missing due dates remain visible; cash-flow forecasting, General Ledger, bank reconciliation, Accounts Receivable, payment reversal, and scheduled alert delivery remain future scope.
+- AP Aging, live Payment Due Alerts, and the Cash Flow Forecast report current MYR exposure from Open and Partially Paid invoices. Missing due dates remain visible; bank cash-flow forecasting, General Ledger, bank reconciliation, Accounts Receivable, payment reversal, and scheduled alert delivery remain future scope.
 
 ### AP Aging
 
@@ -289,6 +289,10 @@ AP Aging uses the company-scoped database report from migration `061`. Outstandi
 ### Payment Due Alerts
 
 Migration `062` extends the AP Aging RPC with a live, read-only attention summary. Priority is Missing Due Date, 91+ Days Overdue, 31–90 Days Overdue, 1–30 Days Overdue, Due Today, then Due within the next seven days. Within each group, higher outstanding balance comes first, followed by earlier due date. The same `supplier_invoice.view`, company isolation, MYR, and `Asia/Kuala_Lumpur` fallback rules apply. Alerts appear on the dashboard and invoice/AP Aging views; there is no email, SMS, push, Cron, read state, snooze state, or scheduled notification delivery.
+
+### Cash Flow Forecast
+
+The read-only Cash Flow Forecast reuses the complete AP Aging result rather than create another payable-balance calculation. It groups open positive balances into 7-day, 14-day, 30-day, and current-month views; overdue balances and missing due dates remain separate. Top-supplier totals and invoice drill-through use the same report date, payment deductions, company isolation, permission check, MYR currency, and `Asia/Kuala_Lumpur` fallback as AP Aging. It forecasts supplier payable pressure only: no bank balance, receipts, GL, payment automation, notification, or inventory mutation is implied.
 
 ### Stock Count and Reconciliation
 

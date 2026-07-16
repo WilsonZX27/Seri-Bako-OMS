@@ -130,6 +130,7 @@ export async function getDashboardSummary() {
         receivingNotInvoiced: 0,
       },
       payablesAttention: null,
+      payablesAttentionUnavailable: false,
       recentTransactions: mockStockTransactions.slice(0, 6).map((transaction) => ({
         ...transaction,
         item: itemById.get(transaction.item_id) ?? null,
@@ -175,6 +176,16 @@ export async function getDashboardSummary() {
   }
 
   const itemById = new Map((stockItems.data ?? []).map((item) => [item.id, item]));
+  let payablesAttention: Awaited<ReturnType<typeof getPayablesAttention>> | null = null;
+  let payablesAttentionUnavailable = false;
+  if (canViewPayables) {
+    try {
+      payablesAttention = await getPayablesAttention();
+    } catch {
+      payablesAttentionUnavailable = true;
+      console.error("[dashboard] AP Aging unavailable; rendering the remaining dashboard.");
+    }
+  }
 
   return {
     totalItems: items.count ?? 0,
@@ -205,6 +216,7 @@ export async function getDashboardSummary() {
       pendingPoValue: 0,
       receivingNotInvoiced: purchaseOrders.data?.filter((order) => ["sent", "partial_received", "received"].includes(order.status)).length ?? 0,
     },
-    payablesAttention: canViewPayables ? await getPayablesAttention() : null,
+    payablesAttention,
+    payablesAttentionUnavailable,
   };
 }

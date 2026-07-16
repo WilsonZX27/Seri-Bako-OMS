@@ -1,18 +1,12 @@
 import { NextResponse } from "next/server";
 import { rowsToCsv } from "@/server/backup/export";
-import { getApAgingReport } from "@/server/queries/ap-aging";
+import { getCompleteApAgingReport } from "@/server/queries/ap-aging";
 
 export async function GET(request: Request) {
   try {
     const params = Object.fromEntries(new URL(request.url).searchParams.entries());
-    const report = await getApAgingReport(params, true);
-    const agingRows = [...report.rows];
-    for (let page = 2; agingRows.length < report.total_rows; page += 1) {
-      const next = await getApAgingReport({ ...params, page: String(page) }, true);
-      if (!next.rows.length) break;
-      agingRows.push(...next.rows);
-    }
-    const rows = agingRows.map((row) => ({
+    const report = await getCompleteApAgingReport(params);
+    const rows = report.rows.map((row) => ({
       internal_invoice_number: row.invoice_no,
       supplier_invoice_reference: row.supplier_invoice_no,
       supplier: row.supplier_name,

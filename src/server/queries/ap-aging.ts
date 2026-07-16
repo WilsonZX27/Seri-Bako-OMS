@@ -68,6 +68,31 @@ export type ApAgingReport = {
   };
 };
 
+export type CashFlowForecastPeriod = "7" | "14" | "30" | "month";
+
+export type CashFlowForecastRow = ApAgingRow & {
+  forecast_state: "overdue" | "due_today" | "upcoming" | "missing_due_date";
+};
+
+export type CashFlowForecast = {
+  report_date: string;
+  period: CashFlowForecastPeriod;
+  period_end: string;
+  timezone: string;
+  currency: string;
+  total_due_in_period: number;
+  overdue_brought_forward: number;
+  due_today: number;
+  due_this_week: number;
+  due_next_week: number;
+  missing_due_date_exposure: number;
+  top_suppliers: Array<{ supplier_id: string; supplier_name: string; invoice_count: number; amount: number }>;
+  rows: CashFlowForecastRow[];
+  page: number;
+  page_size: number;
+  total_rows: number;
+};
+
 export async function getApAgingReport(filters: Record<string, string | undefined> = {}, exportAll = false) {
   const db = await createClient();
   const { data, error } = await db.rpc("get_ap_aging_report", {
@@ -81,8 +106,98 @@ export async function getApAgingReport(filters: Record<string, string | undefine
     p_page: Math.max(Number(filters.page) || 1, 1),
     p_page_size: exportAll ? 10000 : 20,
   });
-  if (error) throw new Error(error.message);
+  if (error) {
+    console.error("[ap-aging] RPC failed", { code: error.code, message: error.message });
+    throw new Error("AP Aging report is unavailable.");
+  }
   return data as unknown as ApAgingReport;
+}
+
+export async function getCompleteApAgingReport(filters: Record<string, string | undefined> = {}) {
+  const report = await getApAgingReport({ ...filters, page: "1" }, true);
+  const rows = [...report.rows];
+  for (let page = 2; rows.length < report.total_rows; page += 1) {
+    const next = await getApAgingReport({ ...filters, page: String(page) }, true);
+    if (!next.rows.length) break;
+    rows.push(...next.rows);
+  }
+  return { ...report, page: 1, rows };
+}
+
+const shiftDate = (value: string, days: number) => {
+  const date = new Date(`${value}T00:00:00Z`);
+  date.setUTCDate(date.getUTCDate() + days);
+  return date.toISOString().slice(0, 10);
+};
+
+const monthEnd = (value: string) => {
+  const [year, month] = value.split("-").map(Number);
+  return new Date(Date.UTC(year, month, 0)).toISOString().slice(0, 10);
+};
+
+const total = (rows: ApAgingRow[]) => Math.round(rows.reduce((sum, row) => sum + Number(row.outstanding), 0) * 100) / 100;
+
+export async function getCashFlowForecast(requestedPeriod?: string, requestedPage?: string): Promise<CashFlowForecast> {
+  const period: CashFlowForecastPeriod = ["7", "14", "30", "month"].includes(requestedPeriod ?? "")
+    ? requestedPeriod as CashFlowForecastPeriod
+    : "30";
+  const report = await getCompleteApAgingReport();
+  const periodEnd = period === "month" ? monthEnd(report.report_date) : shiftDate(report.report_date, Number(period));
+  const weekEnd = shiftDate(report.report_date, 7);
+  const nextWeekEnd = shiftDate(report.report_date, 14);
+  const withDueDate = report.rows.filter((row) => row.due_date);
+  const overdue = withDueDate.filter((row) => row.due_date! < report.report_date);
+  const dueInPeriod = withDueDate.filter((row) => row.due_date! >= report.report_date && row.due_date! <= periodEnd);
+  const dueToday = withDueDate.filter((row) => row.due_date === report.report_date);
+  const dueThisWeek = withDueDate.filter((row) => row.due_date! >= report.report_date && row.due_date! <= weekEnd);
+  const dueNextWeek = withDueDate.filter((row) => row.due_date! > weekEnd && row.due_date! <= nextWeekEnd);
+  const missingDueDate = report.rows.filter((row) => !row.due_date);
+
+  const supplierTotals = new Map<string, { supplier_id: string; supplier_name: string; invoice_count: number; amount: number }>();
+  for (const row of dueInPeriod) {
+    const current = supplierTotals.get(row.supplier_id) ?? { supplier_id: row.supplier_id, supplier_name: row.supplier_name, invoice_count: 0, amount: 0 };
+    current.invoice_count += 1;
+    current.amount += Number(row.outstanding);
+    supplierTotals.set(row.supplier_id, current);
+  }
+  const topSuppliers = [...supplierTotals.values()]
+    .map((row) => ({ ...row, amount: Math.round(row.amount * 100) / 100 }))
+    .sort((left, right) => right.amount - left.amount || left.supplier_name.localeCompare(right.supplier_name))
+    .slice(0, 5);
+
+  const relevantRows: CashFlowForecastRow[] = report.rows
+    .filter((row) => !row.due_date || row.due_date <= periodEnd)
+    .map((row): CashFlowForecastRow => ({
+      ...row,
+      forecast_state: !row.due_date ? "missing_due_date" : row.due_date < report.report_date ? "overdue" : row.due_date === report.report_date ? "due_today" : "upcoming",
+    }))
+    .sort((left, right) => {
+      if (!left.due_date && !right.due_date) return left.invoice_no.localeCompare(right.invoice_no);
+      if (!left.due_date) return 1;
+      if (!right.due_date) return -1;
+      return left.due_date.localeCompare(right.due_date) || right.outstanding - left.outstanding;
+    });
+  const pageSize = 20;
+  const page = Math.min(Math.max(Number(requestedPage) || 1, 1), Math.max(Math.ceil(relevantRows.length / pageSize), 1));
+
+  return {
+    report_date: report.report_date,
+    period,
+    period_end: periodEnd,
+    timezone: report.timezone,
+    currency: report.currency,
+    total_due_in_period: total(dueInPeriod),
+    overdue_brought_forward: total(overdue),
+    due_today: total(dueToday),
+    due_this_week: total(dueThisWeek),
+    due_next_week: total(dueNextWeek),
+    missing_due_date_exposure: total(missingDueDate),
+    top_suppliers: topSuppliers,
+    rows: relevantRows.slice((page - 1) * pageSize, page * pageSize),
+    page,
+    page_size: pageSize,
+    total_rows: relevantRows.length,
+  };
 }
 
 export async function getPayablesAttention() {

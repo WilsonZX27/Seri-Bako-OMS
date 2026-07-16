@@ -8,7 +8,7 @@ export default function ErrorState({ reset }: { reset: () => void }) {
   return <>
     <PageHeader title="AP Aging" description="Current payables could not be loaded." />
     <div className="border bg-card p-4 text-center">
-      <EmptyState title="AP Aging is unavailable" description="Retry the report. If the problem continues, confirm that migration 061 is applied." />
+      <EmptyState title="AP Aging is unavailable" description="Retry the report. If the problem continues, confirm that the latest AP Aging report migration is applied." />
       <Button onClick={reset} size="sm">Retry</Button>
     </div>
   </>;

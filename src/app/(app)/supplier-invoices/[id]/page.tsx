@@ -34,7 +34,7 @@ export default async function SupplierInvoiceDetailPage({ params, searchParams }
   const [documentBundle, editSources, agingReport] = await Promise.all([
     invoice.document_id ? getDocumentBundle(invoice.document_id) : null,
     invoice.status === "draft" ? getPostedGrnsForInvoice(invoice.supplier_id, invoice.id) : null,
-    ["open", "partially_paid"].includes(invoice.status) && invoice.balance_due > 0 ? getApAgingReport({ search: invoice.invoice_no }) : null,
+    ["open", "partially_paid"].includes(invoice.status) && invoice.balance_due > 0 ? getApAgingReport({ search: invoice.invoice_no }).catch(() => null) : null,
   ]);
   const agingRow = agingReport?.rows.find((row) => row.id === invoice.id);
   const canPay = permissions["supplier_invoice.pay"] && ["open", "partially_paid"].includes(invoice.status);

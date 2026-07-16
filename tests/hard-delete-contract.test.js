@@ -65,3 +65,19 @@ test("bulk review presents eligible and blocked records and keeps results visibl
   assert.match(component, /deleted.*blocked.*failed/);
   assert.match(component, /Deletion failed/);
 });
+
+test("migration 059 treats PR-owned history as cascade-safe and only downstream documents block", () => {
+  const sql = read("supabase/migrations/059_simplify_owner_pr_hard_delete.sql");
+  assert.match(sql, /preview_phase_one_hard_delete_v058/);
+  assert.match(sql, /eligible', po_count=0/);
+  assert.match(sql, /downstream_documents/);
+  assert.match(sql, /purchase_request_lines/);
+  assert.match(sql, /document_comments/);
+  assert.match(sql, /attachments/);
+  assert.match(sql, /activity_logs/);
+  assert.match(sql, /document_revisions/);
+  assert.match(sql, /delete from public\.purchase_request_lines/);
+  assert.match(sql, /delete from public\.attachments/);
+  assert.match(sql, /permanent_deletion_tombstones/);
+  assert.match(sql, /alter function public\.preview_phase_one_hard_delete\(text, uuid\) rename to preview_phase_one_hard_delete_v058/);
+});

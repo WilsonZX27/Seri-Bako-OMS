@@ -57,8 +57,8 @@ test("cash flow route has operational entry points, pagination and isolated stat
   assert.match(loadingPage, /aria-busy="true"/);
 });
 
-test("release footer matches Sprint 7.11 convention", () => {
+test("release footer follows the current sprint baseline", () => {
   const version = read("src/lib/app-version.ts");
-  assert.match(version, /APP_VERSION = "0\.2\.19"/);
-  assert.match(version, /APP_SPRINT = "Sprint 7\.11"/);
+  assert.match(version, /APP_VERSION = "0\.2\.20"/);
+  assert.match(version, /APP_SPRINT = "Sprint 7\.12"/);
 });

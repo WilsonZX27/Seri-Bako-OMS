@@ -7,6 +7,7 @@ const exactRoutePermissions: Record<string, string[]> = {
   "/items/new": ["items.create"],
   "/locations/new": ["locations.create"],
   "/opening-stock/import": ["stock_transactions.create", "company.update"],
+  "/outlet-daily-records/new": ["outlet_daily_record.create"],
   "/production/jobs/new": ["production.create"],
   "/products/new": ["production.create"],
   "/purchase-orders/new": ["purchase_order.create"],
@@ -32,6 +33,7 @@ const exactRoutePermissions: Record<string, string[]> = {
 
 const routePermissions: Array<{ prefixes: string[]; permissions: string[] }> = [
   { prefixes: ["/dashboard", "/daily-operations", "/quick-tools"], permissions: ["dashboard.view"] },
+  { prefixes: ["/outlet-daily-records"], permissions: ["outlet_daily_record.view"] },
   { prefixes: ["/production/jobs", "/production", "/products"], permissions: ["production.view"] },
   { prefixes: ["/recipes"], permissions: ["recipes.view"] },
   { prefixes: ["/procurement", "/purchase-requests"], permissions: ["purchase_request.read"] },

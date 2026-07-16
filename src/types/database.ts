@@ -23,6 +23,8 @@ export type StockTransactionStatus = "draft" | "posted" | "cancelled";
 export type StockCountStatus = "draft" | "submitted" | "reviewed" | "approved" | "posted" | "rejected" | "cancelled";
 export type StockOperationStatus = "draft" | "submitted" | "approved" | "in_transit" | "posted" | "completed" | "rejected" | "cancelled";
 export type StockWastageReason = "expired" | "damaged" | "spoiled" | "production_loss" | "missing" | "staff_meal" | "sampling" | "supplier_claim" | "other";
+export type OutletDailyRecordStatus = "draft" | "morning_recorded" | "evening_completed" | "reviewed" | "void";
+export type OutletDailyWastageReason = "unsold" | "damaged" | "expired" | "quality_issue" | "staff_meal" | "other";
 export type RecipeStatus = "draft" | "pending_approval" | "approved" | "active" | "rejected" | "archived";
 export type LocationType =
   | "dry_store"
@@ -336,6 +338,74 @@ export type Database = {
           created_at?: string;
         };
         Update: Partial<Database["public"]["Tables"]["staff_locations"]["Insert"]>;
+        Relationships: [];
+      };
+      outlet_daily_records: {
+        Row: {
+          id: string;
+          company_id: string;
+          branch_id: string;
+          record_date: string;
+          status: OutletDailyRecordStatus;
+          submitted_by: string | null;
+          reviewed_by: string | null;
+          reviewed_at: string | null;
+          void_reason: string | null;
+          voided_by: string | null;
+          voided_at: string | null;
+          notes: string | null;
+          created_by: string | null;
+          updated_by: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          company_id: string;
+          branch_id: string;
+          record_date: string;
+          status?: OutletDailyRecordStatus;
+          submitted_by?: string | null;
+          reviewed_by?: string | null;
+          reviewed_at?: string | null;
+          void_reason?: string | null;
+          voided_by?: string | null;
+          voided_at?: string | null;
+          notes?: string | null;
+          created_by?: string | null;
+          updated_by?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["outlet_daily_records"]["Insert"]>;
+        Relationships: [];
+      };
+      outlet_daily_record_lines: {
+        Row: {
+          id: string;
+          record_id: string;
+          product_id: string;
+          morning_received_qty: number;
+          evening_leftover_qty: number;
+          wastage_qty: number;
+          wastage_reason: OutletDailyWastageReason | null;
+          notes: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          record_id: string;
+          product_id: string;
+          morning_received_qty?: number;
+          evening_leftover_qty?: number;
+          wastage_qty?: number;
+          wastage_reason?: OutletDailyWastageReason | null;
+          notes?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["outlet_daily_record_lines"]["Insert"]>;
         Relationships: [];
       };
       document_sequences: {
@@ -2092,6 +2162,25 @@ export type Database = {
         };
         Returns: Json;
       };
+      can_access_outlet_daily_branch: {
+        Args: { target_branch_id: string };
+        Returns: boolean;
+      };
+      save_outlet_daily_record: {
+        Args: {
+          p_record_id: string | null;
+          p_branch_id: string;
+          p_record_date: string;
+          p_notes: string | null;
+          p_lines: Json;
+          p_target_status: string;
+        };
+        Returns: string;
+      };
+      transition_outlet_daily_record: {
+        Args: { p_record_id: string; p_action: string; p_reason?: string | null };
+        Returns: void;
+      };
       has_admin_staff_assignment: {
         Args: Record<string, never>;
         Returns: boolean;
@@ -2125,6 +2214,8 @@ export type Database = {
       stock_count_status: StockCountStatus;
       stock_operation_status: StockOperationStatus;
       stock_wastage_reason: StockWastageReason;
+      outlet_daily_record_status: OutletDailyRecordStatus;
+      outlet_daily_wastage_reason: OutletDailyWastageReason;
       recipe_status: RecipeStatus;
       document_status: DocumentStatus;
       approval_status: ApprovalStatus;

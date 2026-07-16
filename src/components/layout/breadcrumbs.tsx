@@ -33,6 +33,7 @@ const sectionMap: Record<string, { label: string; parent?: Crumb }> = {
   procurement: { label: "Procurement" },
   inventory: { label: "Inventory" },
   "daily-operations": { label: "Daily Operations" },
+  "outlet-daily-records": { label: "Outlet Daily Records", parent: { label: "Operations", href: "/daily-operations" } },
   production: { label: "Production" },
   documents: { label: "Documents" },
   reports: { label: "Reports" },

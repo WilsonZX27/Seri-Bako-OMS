@@ -57,6 +57,7 @@ export const navGroups: NavGroup[] = [
     items: [
       { href: "/dashboard", label: "Dashboard", icon: Gauge, roles: "all", permission: "dashboard.view", keywords: ["home", "alerts", "approvals"] },
       { href: "/production/jobs", label: "Production Jobs", icon: Factory, roles: productionRoles, permission: "production.view", badgeKey: "productionJobs", keywords: ["production", "jobs"] },
+      { href: "/outlet-daily-records", label: "Outlet Daily Records", icon: ClipboardList, roles: allRoles, permission: "outlet_daily_record.view", keywords: ["outlet", "receiving", "wastage", "daily"] },
     ],
   },
   {
@@ -133,5 +134,6 @@ export const navItems = getFlatNavItems("admin");
 export const searchableNavItems = [
   ...navGroups.flatMap((group) => group.items.map((item) => ({ ...item, group: group.label }))),
   { href: "/purchase-requests/new", label: "New Purchase Request", group: "Procurement", permission: "purchase_request.create", keywords: ["request", "needed by", "priority"] },
+  { href: "/outlet-daily-records/new", label: "New Outlet Daily Record", group: "Operations", permission: "outlet_daily_record.create", keywords: ["outlet", "morning", "wastage"] },
   { href: "/account", label: "My Profile", group: "Account", keywords: ["profile", "password", "avatar"] },
 ] as const;

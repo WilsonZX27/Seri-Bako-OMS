@@ -1,6 +1,7 @@
 "use server";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
+import { getDocumentAttachmentPaths, removeDocumentAttachmentPaths } from "@/server/storage/document-attachments";
 
 type Preview = { record_id: string; record_number?: string; status?: string; eligible?: boolean; reason?: string; cascade_safe?: Record<string, unknown>; dependencies?: Record<string, unknown> };
 
@@ -24,8 +25,10 @@ export async function bulkHardDeletePurchaseRequests(formData: FormData) {
     const preview = await db.rpc("preview_phase_one_hard_delete", { record_type: "purchase_request", record_id: id });
     if (preview.error || !(preview.data as { eligible?: boolean })?.eligible) { blocked++; details.push({ record_id: id, reason: preview.error?.message ?? String((preview.data as { reason?: string })?.reason ?? "Permanent deletion is blocked."), kind: "blocked" }); continue; }
     const confirmation = String((preview.data as { confirmation?: string }).confirmation ?? "");
+    const documentId = (preview.data as { snapshot?: { document_id?: string } }).snapshot?.document_id;
+    const attachmentPaths = documentId ? await getDocumentAttachmentPaths(db, documentId) : { paths: [], error: null };
     const result = await db.rpc("hard_delete_phase_one", { record_type: "purchase_request", record_id: id, confirmation });
-    if (result.error) { failed++; details.push({ record_id: id, reason: result.error.message, kind: "failed" }); } else deleted++;
+    if (result.error) { failed++; details.push({ record_id: id, reason: result.error.message, kind: "failed" }); } else { deleted++; const cleanupFailures = attachmentPaths.error ? [attachmentPaths.error] : await removeDocumentAttachmentPaths(db, attachmentPaths.paths); if (cleanupFailures.length) details.push({ record_id: id, reason: `Storage cleanup requires attention: ${cleanupFailures.join("; ")}`, kind: "failed" }); }
   }
   revalidatePath("/purchase-requests");
   return { deleted, blocked, failed, details };

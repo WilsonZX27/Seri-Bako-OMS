@@ -163,3 +163,6 @@ No post-deployment timings are reported: this sprint was explicitly not pushed o
 - Exact Supabase call counts are server-side and absent from browser traces.
 - Create-PR before/after phase milliseconds require one controlled mutation with `SB_PERF_LOG=true` and a disposable record.
 - Vercel/Supabase region, cold-start, connection, index-plan, and billing evidence require provider telemetry.
+## Permanent deletion numbering
+
+Permanent deletion never rewinds or reuses document sequences. Deleted identifiers remain consumed; number gaps are expected. `permanent_deletion_tombstones` preserves the deleted record type, identifier, and document number for auditability.

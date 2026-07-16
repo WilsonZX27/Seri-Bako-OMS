@@ -13,7 +13,7 @@ type BulkSelectionContextValue = {
 
 const BulkSelectionContext = createContext<BulkSelectionContextValue | null>(null);
 
-function useBulkSelection() {
+export function useBulkSelection() {
   const context = useContext(BulkSelectionContext);
   if (!context) throw new Error("Bulk selection components must be used inside BulkSelectionProvider.");
   return context;

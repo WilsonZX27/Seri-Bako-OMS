@@ -8,6 +8,7 @@ import { PageHeader } from "@/components/ui/page-header";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { deleteSupplier, restoreSupplier, updateSupplier } from "@/server/actions/suppliers";
 import { getSupplier } from "@/server/queries/suppliers";
+import { PhaseOneDeleteAction } from "@/components/phase-one-delete-action";
 
 export default async function EditSupplierPage({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ error?: string; success?: string }> }) {
   const { id } = await params;
@@ -16,7 +17,7 @@ export default async function EditSupplierPage({ params, searchParams }: { param
   const lifecycleAction = supplier.status === "inactive" ? (
     <form action={restoreSupplier.bind(null, id)}><Button type="submit" className="w-full">Restore Supplier</Button></form>
   ) : (
-    <DangerConfirmForm action={deleteSupplier.bind(null, id)} title="Deactivate this supplier?" description="This hides the supplier from active lists while preserving purchasing history." warning="This record may be linked to supplier items, purchase orders, and receiving history." checkboxLabel="I understand this may affect future purchasing." confirmWord="DEACTIVATE" buttonLabel="Deactivate supplier" pendingLabel="Deactivating..." />
+    <><PhaseOneDeleteAction recordType="supplier" recordId={id} label="supplier" /><DangerConfirmForm action={deleteSupplier.bind(null, id)} title="Deactivate this supplier?" description="This hides the supplier from active lists while preserving purchasing history." warning="This record may be linked to supplier items, purchase orders, and receiving history." checkboxLabel="I understand this may affect future purchasing." confirmWord="DEACTIVATE" buttonLabel="Deactivate supplier" pendingLabel="Deactivating..." /></>
   );
 
   return (

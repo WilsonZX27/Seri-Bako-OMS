@@ -322,7 +322,7 @@ function aggregateStockByBranch<T extends {
   });
 }
 
-export async function getInventoryDashboard() {
+export async function getInventoryDashboard(period: "7d" | "30d" | "month" = "30d") {
   const balances = await getStockBalanceDetails({ page: "all" });
   const ledger = await getStockLedger({ page: "all" });
   const rows = balances.rows;
@@ -355,13 +355,18 @@ export async function getInventoryDashboard() {
       stockCountDue: stockCountDue.count ?? 0,
     };
   }
+  const periodStart = new Date();
+  if (period === "7d") periodStart.setDate(periodStart.getDate() - 7);
+  else if (period === "30d") periodStart.setDate(periodStart.getDate() - 30);
+  else periodStart.setDate(1);
   const purchased = new Map<string, number>();
   const consumed = new Map<string, number>();
   movements.forEach((row) => {
-    if (row.quantity_in > 0) purchased.set(row.item_name, (purchased.get(row.item_name) ?? 0) + row.quantity_in);
-    if (row.quantity_out > 0) consumed.set(row.item_name, (consumed.get(row.item_name) ?? 0) + row.quantity_out);
+    if (row.quantity_in > 0 && row.transaction_type === "purchase") purchased.set(row.item_name, (purchased.get(row.item_name) ?? 0) + row.quantity_in);
+    if (row.quantity_out > 0 && row.transaction_type === "production_usage" && new Date(row.transaction_date) >= periodStart) consumed.set(row.item_name, (consumed.get(row.item_name) ?? 0) + row.quantity_out);
   });
   const top = (map: Map<string, number>) => Array.from(map.entries()).map(([name, qty]) => ({ name, qty })).sort((a, b) => b.qty - a.qty).slice(0, 5);
+  const lowStockRows = await getLowStockItems();
   return {
     inventoryValue: rows.reduce((sum, row) => sum + row.inventory_value, 0),
     totalActiveItems: operationCounts.totalActiveItems,
@@ -375,6 +380,8 @@ export async function getInventoryDashboard() {
     recentTransactions: movements.slice(0, 8),
     topPurchasedItems: top(purchased),
     topConsumedItems: top(consumed),
+    lowStockRows,
+    consumptionPeriod: period,
   };
 }
 

@@ -6,6 +6,7 @@ import { importTemplates, type ImportEntity } from "@/lib/imports/config";
 import { formatPageError } from "@/server/actions/error-handling";
 import { hasPermission } from "@/server/auth/permissions";
 import { getSuppliersForSelect } from "@/server/queries/common";
+import { ConsoleSection, RightConsoleMount } from "@/components/layout/right-console";
 
 export const dynamic = "force-dynamic";
 
@@ -21,6 +22,12 @@ export default async function ImportPage({ params }: { params: Promise<{ entity:
     return (
       <>
         <PageHeader title={`Import ${label}`} description="Upload, preview, validate, and import only clean rows." />
+        <RightConsoleMount>
+          <ConsoleSection title="Import context">
+            <p className="text-xs text-muted-foreground">Step through template, upload, review, and confirmation for {label}.</p>
+            <p className="text-xs text-muted-foreground">Confirm stays unavailable until the current rows pass validation.</p>
+          </ConsoleSection>
+        </RightConsoleMount>
         <div className="p-5">
           {allowed ? (
             <ImportWorkflow entity={typedEntity} suppliers={suppliers} />

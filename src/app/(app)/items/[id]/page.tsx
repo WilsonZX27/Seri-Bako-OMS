@@ -10,6 +10,7 @@ import { deleteItem, restoreItem, updateItem } from "@/server/actions/items";
 import { getSuppliersForSelect } from "@/server/queries/common";
 import { getItem, getItemsWithStock } from "@/server/queries/items";
 import { hasPermission } from "@/server/auth/permissions";
+import { PhaseOneDeleteAction } from "@/components/phase-one-delete-action";
 
 export default async function EditItemPage({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ error?: string; success?: string }> }) {
   const { id } = await params;
@@ -19,7 +20,7 @@ export default async function EditItemPage({ params, searchParams }: { params: P
   const lifecycleAction = item.deleted_at ? (
     <form action={restoreItem.bind(null, id)}><Button type="submit" className="w-full">Restore Item</Button></form>
   ) : (
-    <DangerConfirmForm action={deleteItem.bind(null, id)} title="Deactivate this item?" description="This hides the item from active lists while preserving document and stock history." warning="This record may be linked to stock transactions, recipes, and purchasing history." checkboxLabel="I understand this may affect future operations." confirmWord="DEACTIVATE" buttonLabel="Deactivate item" pendingLabel="Deactivating..." />
+    <><PhaseOneDeleteAction recordType="item" recordId={id} label="item" /><DangerConfirmForm action={deleteItem.bind(null, id)} title="Deactivate this item?" description="This hides the item from active lists while preserving document and stock history." warning="This record may be linked to stock transactions, recipes, and purchasing history." checkboxLabel="I understand this may affect future operations." confirmWord="DEACTIVATE" buttonLabel="Deactivate item" pendingLabel="Deactivating..." /></>
   );
 
   return (

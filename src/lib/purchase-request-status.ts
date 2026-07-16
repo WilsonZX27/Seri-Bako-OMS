@@ -36,5 +36,8 @@ export function getPrWorkflowStep(status: string): PurchaseRequestWorkflowStep {
 }
 
 export function getPrWorkflowLabel(status: string) {
+  if (status === "cancelled") return "Cancelled";
+  if (status === "rejected") return "Rejected";
+  if (status === "returned") return "Returned";
   return PR_WORKFLOW_STEP_LABELS[getPrWorkflowStep(status)] ?? status.replaceAll("_", " ");
 }

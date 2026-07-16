@@ -10,6 +10,7 @@ import { StaleWorkflowRefresh } from "@/components/documents/stale-workflow-refr
 import { PriorityBadge } from "@/components/priority-badge";
 import { SubmitButton } from "@/components/ui/submit-button";
 import { BlockedDestructiveAction } from "@/components/ui/danger-confirm-form";
+import { DangerConfirmForm } from "@/components/ui/danger-confirm-form";
 import { getPrWorkflowLabel, getPrWorkflowStep, PR_WORKFLOW_STEP_LABELS, PURCHASE_REQUEST_WORKFLOW_STEPS } from "@/lib/purchase-request-status";
 import { formatCurrency, formatNumber } from "@/lib/utils";
 import {
@@ -25,6 +26,8 @@ import { getPermissionMap } from "@/server/auth/permissions";
 import { getBranchesForSelect, getItemsForSelect, getSuppliersForSelect } from "@/server/queries/common";
 import { getDocumentBundle } from "@/server/queries/documents";
 import { getPurchaseOrdersForRequest, getPurchaseRequest } from "@/server/queries/procurement";
+import { getPhaseOneDeletePreview } from "@/server/queries/hard-delete";
+import { hardDeletePhaseOne } from "@/server/actions/hard-delete";
 
 const prSteps = PURCHASE_REQUEST_WORKFLOW_STEPS.map((step) => ({
   key: step,
@@ -64,6 +67,7 @@ export default async function PurchaseRequestDetailPage({
     getPermissionMap(["pr.submit", "pr.admin_review", "pr.purchasing_review", "pr.manager_approve", "pr.finance_review", "pr.convert_to_po", "pr.reject", "pr.cancel"]),
   ]);
   const documentBundle = request.document_id ? await getDocumentBundle(request.document_id) : null;
+  const deletePreview = await getPhaseOneDeletePreview("purchase_request", request.id).catch(() => null);
   const itemById = new Map(items.map((item) => [item.id, item]));
   const supplierById = new Map(suppliers.map((supplier) => [supplier.id, supplier]));
   const branch = branches.find((row) => row.id === request.branch_id);
@@ -109,7 +113,7 @@ export default async function PurchaseRequestDetailPage({
               {request.status === "converted_to_po" && linkedPurchaseOrders[0] ? (
                 <Button asChild className="w-full justify-center"><a href={`/purchase-orders/${linkedPurchaseOrders[0].id}`}>Open PO</a></Button>
               ) : null}
-              <BlockedDestructiveAction buttonLabel="Delete purchase request" title={`Cannot delete ${request.request_no}`} description="This request is linked to workflow and document audit history." recommendation={request.status === "draft" ? "Use Cancel draft to stop the request while preserving its history." : "Use Reject, Return, or the current workflow action; converted requests must remain linked to their purchase order."} />
+              {deletePreview?.eligible ? <DangerConfirmForm action={hardDeletePhaseOne.bind(null, "purchase_request", request.id)} title={`Permanently delete ${request.request_no}?`} description="This cannot be undone. Purchase request lines will be removed; the document number will remain consumed." warning="Type the exact request number to continue." checkboxLabel="I understand this permanently deletes the eligible request." confirmWord={deletePreview.confirmation} buttonLabel="Delete purchase request" pendingLabel="Deleting..." /> : <BlockedDestructiveAction buttonLabel="Delete purchase request" title={`Cannot delete ${request.request_no}`} description="Permanent deletion is blocked by the current status or linked records." recommendation={deletePreview ? Object.entries(deletePreview.dependencies).filter(([, count]) => count > 0).map(([key, count]) => `${key}: ${count}`).join("; ") : "Dependency preview unavailable."} />}
             </DocumentActionBar>
             {canConvert ? (
               <form action={convertPurchaseRequestToPurchaseOrder.bind(null, request.id)} className="mt-3 space-y-2">

@@ -73,7 +73,7 @@ export function DangerConfirmForm({
                 {confirmWord ? (
                   <div className="space-y-2">
                     <p className="text-sm text-muted-foreground">Type {confirmWord} to continue.</p>
-                    <Input value={typed} onChange={(event) => setTyped(event.target.value)} placeholder={confirmWord} />
+                    <Input name="confirmation" value={typed} onChange={(event) => setTyped(event.target.value)} placeholder={confirmWord} />
                   </div>
                 ) : null}
                 <div className="flex justify-end gap-2">

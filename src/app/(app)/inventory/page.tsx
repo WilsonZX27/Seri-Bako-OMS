@@ -1,12 +1,17 @@
+import Link from "next/link";
 import { ArrowDownLeft, ArrowUpRight, Boxes, ClipboardCheck, PackageSearch, ReceiptText, ScanLine, TriangleAlert, Upload } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { PageHeader } from "@/components/ui/page-header";
 import { CompactStatList, WorkspaceSectionPanel, type WorkspaceInsight, type WorkspaceSection } from "@/components/workspace-panels";
 import { formatNumber } from "@/lib/utils";
 import { getInventoryDashboard } from "@/server/queries/inventory";
+import { SelectNative } from "@/components/ui/select-native";
 
-export default async function InventoryPage() {
-  const summary = await getInventoryDashboard();
+export default async function InventoryPage({ searchParams }: { searchParams: Promise<{ consumption?: string }> }) {
+  const params = await searchParams;
+  const period = params.consumption === "7d" || params.consumption === "month" ? params.consumption : "30d";
+  const summary = await getInventoryDashboard(period);
   const hasPurchasedItems = summary.topPurchasedItems.length > 0;
   const hasConsumedItems = summary.topConsumedItems.length > 0;
   const inventoryInsights: WorkspaceInsight[] = [
@@ -47,7 +52,6 @@ export default async function InventoryPage() {
       icon: Boxes,
       theme: "green",
       actions: [
-        { href: "/opening-stock/import", title: "Opening Stock Import", description: "Load opening balances through the ledger.", icon: Upload, recommendedFor: "admin" },
         { href: "/low-stock", title: "Low Stock Review", description: "Review items that need attention before ordering.", icon: TriangleAlert, recommendedFor: "operations" },
       ],
     },
@@ -63,6 +67,20 @@ export default async function InventoryPage() {
               {inventorySections.map((section) => (
                 <WorkspaceSectionPanel key={section.title} section={section} />
               ))}
+            </div>
+            <div className="grid gap-5 lg:grid-cols-2">
+              <Card>
+                <CardContent className="p-4">
+                  <div className="mb-3 flex items-center justify-between gap-3"><div><h2 className="text-sm font-semibold">Low Stock Items</h2><p className="text-xs text-muted-foreground">On hand at or below safety stock.</p></div><Link className="text-xs font-medium text-primary underline" href="/low-stock">Review all</Link></div>
+                  {summary.lowStockRows.length ? <div className="space-y-2">{summary.lowStockRows.slice(0, 6).map((item) => <Link key={`${item.item_id}-${item.location_id}`} href={`/stock-card?item_id=${item.item_id}`} className="flex items-center justify-between gap-3 rounded border p-2 text-sm hover:bg-muted"><span className="min-w-0"><span className="block truncate font-medium">{item.item_code} · {item.item_name}</span><span className="block text-xs text-muted-foreground">{item.branch_name ?? "All branches"} / {item.location_name ?? "All locations"}</span></span><span className="shrink-0 text-right"><span className="block font-mono text-xs">{formatNumber(item.current_qty)} {item.base_unit}</span><span className="block text-xs text-destructive">Short {formatNumber(Math.max(Number(item.safety_stock ?? 0) - Number(item.current_qty ?? 0), 0))}</span></span></Link>)}</div> : <p className="rounded border border-dashed p-4 text-sm text-muted-foreground">No active items are currently low stock.</p>}
+                </CardContent>
+              </Card>
+              <Card>
+                <CardContent className="p-4">
+                  <div className="mb-3 flex items-start justify-between gap-3"><div><h2 className="text-sm font-semibold">Highest-Consumption Ingredients</h2><p className="text-xs text-muted-foreground">Posted production usage only; wastage is excluded.</p></div><form className="flex items-center gap-2"><SelectNative name="consumption" defaultValue={period} aria-label="Consumption period"><option value="7d">7 days</option><option value="30d">30 days</option><option value="month">Current month</option></SelectNative><Button type="submit" size="sm" variant="outline">Apply</Button></form></div>
+                  {summary.topConsumedItems.length ? <div className="space-y-2">{summary.topConsumedItems.map((item) => <div key={item.name} className="flex items-center justify-between gap-3 text-sm"><span className="truncate">{item.name}</span><span className="font-mono text-xs font-semibold">{formatNumber(item.qty)}</span></div>)}</div> : <p className="rounded border border-dashed p-4 text-sm text-muted-foreground">No posted production usage in this period.</p>}
+                </CardContent>
+              </Card>
             </div>
           {hasPurchasedItems || hasConsumedItems ? (
             <div className="grid gap-5 lg:grid-cols-2">

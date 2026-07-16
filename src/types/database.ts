@@ -2001,6 +2001,14 @@ export type Database = {
         Args: Record<string, never>;
         Returns: void;
       };
+      preview_phase_one_hard_delete: {
+        Args: { record_type: string; record_id: string };
+        Returns: Json;
+      };
+      hard_delete_phase_one: {
+        Args: { record_type: string; record_id: string; confirmation: string };
+        Returns: Json;
+      };
     };
     Enums: {
       item_status: ItemStatus;

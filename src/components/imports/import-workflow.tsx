@@ -573,7 +573,7 @@ export function ImportWorkflow({ entity, suppliers = [] }: { entity: ImportEntit
             </div>
           </div>
 
-          <div className="grid gap-3 rounded-[2px] border bg-[var(--sb-muted)] p-3 sm:grid-cols-2 xl:grid-cols-4">
+          {result ? <div className="grid gap-3 rounded-[2px] border bg-[var(--sb-muted)] p-3 sm:grid-cols-2 xl:grid-cols-4">
             <div className="rounded-[2px] border bg-card p-3">
               <div className="flex items-center gap-2 text-sm font-medium text-success"><CheckCircle2 className="h-4 w-4" />Imported</div>
               <p className="mt-1 text-2xl font-semibold">{summary.imported}</p>
@@ -590,7 +590,7 @@ export function ImportWorkflow({ entity, suppliers = [] }: { entity: ImportEntit
               <div className="flex items-center gap-2 text-sm font-medium text-destructive"><XCircle className="h-4 w-4" />Errors</div>
               <p className="mt-1 text-2xl font-semibold">{summary.errors}</p>
             </div>
-          </div>
+          </div> : null}
         </CardContent>
       </Card>
 

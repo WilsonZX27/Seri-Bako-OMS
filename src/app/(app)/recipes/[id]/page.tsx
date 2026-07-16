@@ -11,6 +11,7 @@ import { activateRecipe, approveRecipe, archiveRecipe, createNewRecipeVersion, r
 import { getDocumentBundle } from "@/server/queries/documents";
 import { getRecipe } from "@/server/queries/recipes";
 import { formatCurrency, formatNumber } from "@/lib/utils";
+import { PhaseOneDeleteAction } from "@/components/phase-one-delete-action";
 
 function imageFallback(label: string) {
   return (
@@ -56,6 +57,7 @@ export default async function RecipeDetailPage({
               {recipe.status === "approved" ? <form action={activateRecipe.bind(null, recipe.id)}><Button type="submit" className="w-full">Activate</Button></form> : null}
               {recipe.status === "active" ? <form action={createNewRecipeVersion.bind(null, recipe.id)}><Button type="submit" variant="outline" className="w-full">New Version</Button></form> : null}
               {["active", "approved"].includes(recipe.status) ? <form action={archiveRecipe.bind(null, recipe.id)}><Button type="submit" variant="ghost" className="w-full">Archive</Button></form> : null}
+              <PhaseOneDeleteAction recordType="recipe" recordId={recipe.id} label="recipe" />
             </RecordActionPanel>
             <RecordActionPanel title="Recipe Metadata">
               <dl className="grid gap-2 text-xs">

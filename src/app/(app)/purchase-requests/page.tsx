@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Pencil } from "lucide-react";
 import { BulkSelectAllCheckbox, BulkSelectionProvider, BulkSelectRowCheckbox } from "@/components/bulk-selection";
+import { BulkPhaseOneDelete } from "@/components/bulk-phase-one-delete";
 import { DataGridRow } from "@/components/ui/data-grid-row";
 import { DataGridHint } from "@/components/ui/data-grid-hint";
 import { DocumentNumber } from "@/components/document-number";
@@ -75,7 +76,8 @@ export default async function PurchaseRequestsPage({ searchParams }: { searchPar
             <Button type="submit">Search</Button>
             <Button asChild variant="ghost"><a href="?">Reset</a></Button>
           </form>
-          <BulkSelectionProvider ids={requests.rows.map((request) => request.id)} actionLabel="Archive selected" actionHint="Open selected PRs to archive, reject, or convert them through workflow-safe actions.">
+          <BulkSelectionProvider ids={requests.rows.map((request) => request.id)} actionLabel="Delete selected" actionHint="Review selected requests before permanent deletion.">
+          <BulkPhaseOneDelete />
           <DataGridHint text="Pro-tip: Double-click any row to open the purchase request." />
           <div className="overflow-x-auto">
             <Table>

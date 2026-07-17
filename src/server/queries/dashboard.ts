@@ -5,6 +5,7 @@ import { getCurrentUserScope, getVisibleNotificationsForCurrentUser } from "@/se
 import { getCurrentUserPendingActions } from "@/server/queries/pending-actions";
 import { hasPermission } from "@/server/auth/permissions";
 import { getPayablesAttention } from "@/server/queries/ap-aging";
+import { getOperationsControlCenterSummary } from "@/server/queries/outlet-daily-records";
 import {
   getMockLowStockItems,
   getMockStockBalances,
@@ -131,6 +132,7 @@ export async function getDashboardSummary() {
       },
       payablesAttention: null,
       payablesAttentionUnavailable: false,
+      operationsControl: null,
       recentTransactions: mockStockTransactions.slice(0, 6).map((transaction) => ({
         ...transaction,
         item: itemById.get(transaction.item_id) ?? null,
@@ -186,6 +188,12 @@ export async function getDashboardSummary() {
       console.error("[dashboard] AP Aging unavailable; rendering the remaining dashboard.");
     }
   }
+  let operationsControl: Awaited<ReturnType<typeof getOperationsControlCenterSummary>> | null = null;
+  try {
+    operationsControl = await getOperationsControlCenterSummary();
+  } catch {
+    console.error("[dashboard] Operations control summaries unavailable; rendering the remaining dashboard.");
+  }
 
   return {
     totalItems: items.count ?? 0,
@@ -218,5 +226,6 @@ export async function getDashboardSummary() {
     },
     payablesAttention,
     payablesAttentionUnavailable,
+    operationsControl,
   };
 }

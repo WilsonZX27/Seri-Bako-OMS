@@ -695,3 +695,7 @@ Sprint 7.14 reuses the Demand Trend query and its permission/RLS scope. It deriv
 ## Production vs Outlet Demand Variance
 
 Sprint 7.15 reuses the same read-only Demand Trend result and RLS branch scope to aggregate product/outlet rows. It classifies conservative leftover/wastage and low-leftover movement signals, while low confidence and low sample force manual review. Production Jobs are intentionally excluded because no trusted posted-output join is introduced. It adds no migration, RPC, or write path.
+
+## Operations Control Center Lite
+
+Sprint 7.16 composes the existing dashboard, outlet-record, demand, variance, planning, stock, and AP query outputs. Outlet and demand calls use independent settled results so one unavailable source leaves the other dashboard sections usable. It adds no dashboard framework, migration, or business write path.

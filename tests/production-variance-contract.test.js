@@ -28,12 +28,12 @@ test("Production variance remains read-only and avoids a production-job comparis
   assert.equal(fs.readdirSync("supabase/migrations").some((file) => file.startsWith("066_")), false);
 });
 
-test("Production variance has one protected route and the Sprint 7.15 footer", () => {
+test("Production variance has one protected route and the current footer", () => {
   const routes = read("src/server/auth/route-permissions.ts");
   const production = read("src/app/(app)/production/page.tsx");
   const version = read("src/lib/app-version.ts");
   assert.match(routes, /"\/production\/variance": \["outlet_daily_record\.view"\]/);
   assert.match(production, /\/production\/variance/);
-  assert.match(version, /APP_VERSION = "0\.2\.23"/);
-  assert.match(version, /APP_SPRINT = "Sprint 7\.15"/);
+  assert.match(version, /APP_VERSION = "0\.2\.24"/);
+  assert.match(version, /APP_SPRINT = "Sprint 7\.16"/);
 });

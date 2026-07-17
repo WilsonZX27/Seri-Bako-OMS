@@ -199,6 +199,10 @@ export async function getOutletDailyDemandTrend(filters: Filters = {}) {
 
 export async function getProductionPlanning(filters: Filters = {}) {
   const trend = await getOutletDailyDemandTrend(filters);
+  return buildProductionPlanning(trend, filters);
+}
+
+function buildProductionPlanning(trend: Awaited<ReturnType<typeof getOutletDailyDemandTrend>>, filters: Filters = {}) {
   const buffer_percent = planningNumber(filters.buffer_percent, 10, 0, 100);
   const rounding_unit = planningNumber(filters.rounding_unit, 1, 0.01, 10_000);
   const planning_date = /^\d{4}-\d{2}-\d{2}$/.test(filters.planning_date ?? "") ? filters.planning_date! : todayInKualaLumpur();
@@ -234,6 +238,10 @@ export async function getProductionPlanning(filters: Filters = {}) {
 
 export async function getProductionDemandVariance(filters: Filters = {}) {
   const trend = await getOutletDailyDemandTrend(filters);
+  return buildProductionDemandVariance(trend, filters);
+}
+
+function buildProductionDemandVariance(trend: Awaited<ReturnType<typeof getOutletDailyDemandTrend>>, filters: Filters = {}) {
   const signal = ["all", "over_supplied", "under_supplied", "review_manual"].includes(filters.signal ?? "") ? filters.signal ?? "all" : "all";
   const rows = trend.product_outlets.map((row) => {
     const leftover_percent = row.received > 0 ? (row.leftover / row.received) * 100 : 0;
@@ -259,6 +267,21 @@ export async function getProductionDemandVariance(filters: Filters = {}) {
         low_confidence: trend.coverage.confidence === "Low" ? rows.length : 0,
       },
     },
+  };
+}
+
+export async function getOperationsControlCenterSummary() {
+  const [outletResult, trendResult] = await Promise.allSettled([getOutletDailyRecords(), getOutletDailyDemandTrend({ period: "7" })]);
+  const outlet = outletResult.status === "fulfilled" ? outletResult.value.summary : null;
+  const trend = trendResult.status === "fulfilled" ? trendResult.value : null;
+  const variance = trend ? buildProductionDemandVariance(trend) : null;
+  const planning = trend ? buildProductionPlanning(trend) : null;
+  return {
+    outlet,
+    demand: trend ? { coverage: trend.coverage, top_wastage_products: trend.top_wastage_products.slice(0, 3) } : null,
+    variance: variance?.variance.summary ?? null,
+    planning: planning?.planning.summary ?? null,
+    unavailable: { outlet: !outlet, demand: !trend },
   };
 }
 

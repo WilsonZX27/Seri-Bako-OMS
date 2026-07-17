@@ -467,6 +467,10 @@ The Sprint 7.14.1 application baseline is `v0.2.22 / Sprint 7.14.1` with migrati
 
 The Sprint 7.15 application baseline is `v0.2.23 / Sprint 7.15` with migration ceiling `065`; migration `066` is not required. Verify `/production/variance` respects outlet scope, excludes incomplete records from reliable totals, shows movement, leftover, wastage, and confidence, and labels low confidence/low sample rows for manual review. The report intentionally does not compare Production Jobs without a reliable posted-output join and performs no writes.
 
+## Sprint 7.16 Operations Control Center Lite deployment
+
+The Sprint 7.16 application baseline is `v0.2.24 / Sprint 7.16` with migration ceiling `065`; migration `066` is not required. Verify `/dashboard` shows outlet record health, seven-day demand confidence, variance, planning references, existing stock/AP summaries, and Cash Flow navigation. Outlet and demand failures must show only their own unavailable state while the remaining Dashboard stays usable. The Dashboard performs no writes.
+
 Use versioned migrations as the source of truth. If a migration must be applied through the Supabase SQL Editor, record the project ID, source filename, ledger result, and verification evidence; never edit an already-applied file. No pilot CSV should be imported until a backup/recovery path and an owner-approved rollback or correction procedure are known.
 
 If CLI migration access fails because DNS or network resolution is unavailable, do not retry blindly. Use a controlled SQL Editor application only with explicit authorization, apply the reviewed migration once, and verify the migration ledger and live objects afterward.

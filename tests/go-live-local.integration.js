@@ -12,6 +12,8 @@ const accounts = {
   admin: "qa.admin@local.test",
   manager: "qa.manager@local.test",
   finance: "qa.finance@local.test",
+  kitchen: "qa.kitchen@local.test",
+  purchasing: "qa.purchasing@local.test",
   outlet: "qa.outlet@local.test",
   restricted: "qa.restricted@local.test",
   adminB: "qa.admin.b@local.test",
@@ -35,10 +37,13 @@ async function main() {
   const companyB = ok(await service.from("companies").upsert({ company_code: "QA-GL-B", company_name: "QA Go-Live Company B", status: "active" }, { onConflict: "company_code" }).select("id").single(), "company B");
   const branchA = ok(await service.from("branches").select("id").eq("company_id", companyA.id).limit(1).single(), "branch A");
   const branchB = ok(await service.from("branches").upsert({ company_id: companyB.id, branch_code: "B1", branch_name: "Company B Outlet", branch_type: "outlet", status: "active" }, { onConflict: "company_id,branch_code" }).select("id").single(), "branch B");
+  const hardDeleteSupplier = ok(await service.from("suppliers").insert({ supplier_code: "QA-HARD-DEL-SUP", name: "QA Hard Delete Supplier", status: "active" }).select("id").single(), "hard-delete supplier");
+  const hardDeleteItem = ok(await service.from("items").insert({ item_code: "QA-HARD-DEL-ITEM", item_name: "QA Hard Delete Item", category: "QA", purchase_unit: "PCS", base_unit: "PCS", supplier_id: hardDeleteSupplier.id, status: "active" }).select("id").single(), "hard-delete item");
+  const hardDeleteProduct = ok(await service.from("products").insert({ product_code: "QA-HARD-DEL-PROD", product_name: "QA Hard Delete Product", category: "QA", selling_unit: "PCS", status: "active" }).select("id").single(), "hard-delete product");
 
   const permissionRows = ok(await service.from("permissions").select("id,permission_code"), "permissions");
   const permission = Object.fromEntries(permissionRows.map((row) => [row.permission_code, row.id]));
-  const roleCodes = ["super_admin", "admin", "manager", "finance", "outlet_staff", "viewer"];
+  const roleCodes = ["super_admin", "admin", "manager", "finance", "kitchen", "purchasing", "outlet_staff", "viewer"];
   for (const company of [companyA, companyB]) {
     for (const code of roleCodes) {
       ok(await service.from("roles").upsert({ company_id: company.id, role_code: code, role_name: code === "super_admin" ? "Super Admin / Owner" : code.replaceAll("_", " "), status: "active" }, { onConflict: "company_id,role_code" }), `role ${code}`);
@@ -47,9 +52,12 @@ async function main() {
   const roles = ok(await service.from("roles").select("id,company_id,role_code").in("company_id", [companyA.id, companyB.id]), "roles");
   const role = (companyId, code) => roles.find((row) => row.company_id === companyId && row.role_code === code);
   const grants = {
+    super_admin: permissionRows.map((row) => row.permission_code),
     admin: ["dashboard.view", "documents.read", "pr.view_all", "pr.create", "pr.submit", "pr.admin_review", "pr.reject", "supplier_invoice.view"],
     manager: ["dashboard.view", "documents.read", "pr.view_branch", "pr.create", "pr.submit", "pr.manager_approve", "pr.reject"],
     finance: ["dashboard.view", "documents.read", "pr.view_all", "pr.finance_review", "supplier_invoice.view", "supplier_invoice.pay"],
+    kitchen: ["dashboard.view", "documents.read", "production.view", "purchase_request.read"],
+    purchasing: ["dashboard.view", "documents.read", "purchase_request.read", "pr.view_all", "pr.create", "pr.submit"],
     outlet_staff: ["dashboard.view", "outlet_daily_record.view", "outlet_daily_record.create", "outlet_daily_record.update"],
   };
   for (const company of [companyA, companyB]) {
@@ -68,6 +76,7 @@ async function main() {
   const staffSpecs = [
     ["owner", companyA, branchA, "super_admin"], ["admin", companyA, branchA, "admin"],
     ["manager", companyA, branchA, "manager"], ["finance", companyA, branchA, "finance"],
+    ["kitchen", companyA, branchA, "kitchen"], ["purchasing", companyA, branchA, "purchasing"],
     ["outlet", companyA, branchA, "outlet_staff"], ["restricted", companyA, branchA, "viewer"],
     ["adminB", companyB, branchB, "admin"], ["managerB", companyB, branchB, "manager"],
     ["outletB", companyB, branchB, "outlet_staff"],
@@ -108,6 +117,21 @@ async function main() {
   const events = ok(await service.from("activity_logs").select("id").eq("entity_id", document.id).eq("activity_type", "manager_review_completed"), "timeline");
   assert.equal(events.length, 1);
 
+  const itemPreview = ok(await owner.rpc("preview_phase_one_hard_delete", { record_type: "item", record_id: hardDeleteItem.id }), "item hard-delete preview");
+  const productPreview = ok(await owner.rpc("preview_phase_one_hard_delete", { record_type: "product", record_id: hardDeleteProduct.id }), "product hard-delete preview");
+  assert.equal(itemPreview.eligible, true);
+  assert.equal(productPreview.eligible, true);
+  assert.equal(itemPreview.snapshot.company_id, companyA.id);
+  assert((await admin.rpc("preview_phase_one_hard_delete", { record_type: "item", record_id: hardDeleteItem.id })).error, "non-owner hard-delete preview must fail");
+  ok(await owner.rpc("hard_delete_phase_one", { record_type: "item", record_id: hardDeleteItem.id, confirmation: "QA-HARD-DEL-ITEM" }), "delete QA item");
+  ok(await owner.rpc("hard_delete_phase_one", { record_type: "product", record_id: hardDeleteProduct.id, confirmation: "QA-HARD-DEL-PROD" }), "delete QA product");
+  const supplierPreview = ok(await owner.rpc("preview_phase_one_hard_delete", { record_type: "supplier", record_id: hardDeleteSupplier.id }), "supplier hard-delete preview");
+  assert.equal(supplierPreview.eligible, true);
+  ok(await owner.rpc("hard_delete_phase_one", { record_type: "supplier", record_id: hardDeleteSupplier.id, confirmation: "QA-HARD-DEL-SUP" }), "delete QA supplier");
+  const tombstones = ok(await service.from("permanent_deletion_tombstones").select("record_type,company_id").in("record_type", ["item", "product", "supplier"]), "hard-delete tombstones");
+  assert.equal(tombstones.length, 3);
+  assert(tombstones.every((row) => row.company_id === companyA.id));
+
   const viewerRole = role(companyA.id, "viewer");
   assert.equal(ok(await restricted.rpc("has_any_permission", { permission_codes: ["dashboard.view"] }), "restricted before"), false);
   ok(await owner.rpc("set_role_permissions", { target_role_id: viewerRole.id, permission_ids: [permission["dashboard.view"]] }), "grant viewer dashboard");
@@ -119,7 +143,7 @@ async function main() {
   assert.deepEqual(outletPermissions, grants.outlet_staff.slice().sort());
   assert.equal(roles.filter((row) => row.role_code === "outlet_staff" && row.company_id == null).length, 0);
 
-  console.log(JSON.stringify({ migration068CrossCompanyInsert: "blocked", directRlsBypass: "blocked", concurrentApprovals: { succeeded: 1, failed: 1, timelineEvents: events.length }, permissionPropagation: "grant and revoke visible on next RPC", accounts, password }, null, 2));
+  console.log(JSON.stringify({ migration068CrossCompanyInsert: "blocked", directRlsBypass: "blocked", concurrentApprovals: { succeeded: 1, failed: 1, timelineEvents: events.length }, hardDelete069: { itemSupplierProduct: "previewed and deleted", nonOwnerPreview: "blocked", tombstones: tombstones.length }, permissionPropagation: "grant and revoke visible on next RPC", accounts, password }, null, 2));
 }
 
 main().catch((error) => { console.error(error); process.exitCode = 1; });

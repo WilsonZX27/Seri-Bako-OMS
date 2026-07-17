@@ -33,7 +33,7 @@ test("core error, empty, feedback, and mobile states stay usable", async ({ page
   await expect(page.getByRole("alert").filter({ hasText: "permission" })).toBeVisible();
 
   await page.goto("/purchase-requests/new", { waitUntil: "domcontentloaded" });
-  const submit = page.getByRole("button", { name: "Submit PR" });
+  const submit = page.getByRole("button", { name: "Create PR" });
   await submit.click();
   await expect(page.getByRole("alert").filter({ hasText: "Could not create this purchase request" })).toBeVisible();
 

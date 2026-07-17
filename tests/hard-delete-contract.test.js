@@ -81,3 +81,15 @@ test("migration 059 treats PR-owned history as cascade-safe and only downstream 
   assert.match(sql, /permanent_deletion_tombstones/);
   assert.match(sql, /alter function public\.preview_phase_one_hard_delete\(text, uuid\) rename to preview_phase_one_hard_delete_v058/);
 });
+
+test("migration 069 repairs global master-data preview against the current schema", () => {
+  const sql = read("supabase/migrations/069_fix_master_data_hard_delete_preview.sql");
+  assert.match(sql, /preview_phase_one_hard_delete_v059/);
+  assert.match(sql, /record_type not in \('supplier', 'item', 'product'\)/);
+  assert.doesNotMatch(sql, /\bi\.company_id\b|\bs\.company_id\b|\bp\.company_id\b/);
+  assert.match(sql, /production_job_ingredient_lines/);
+  assert.match(sql, /production_job_output_lines/);
+  assert.match(sql, /barcode_mappings/);
+  assert.match(sql, /'company_id', actor\.company_id/);
+  assert.match(sql, /actor\.company_id, record_type, record_id/);
+});

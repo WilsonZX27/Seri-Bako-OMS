@@ -58,12 +58,13 @@ test("administration and master data pages use the shared list and detail patter
     const roleHref = await roleLink.getAttribute("href");
     expect(roleHref).toMatch(/^\/roles\//);
     await page.goto(roleHref, { waitUntil: "domcontentloaded" });
-    await expect(page.getByRole("heading", { name: "Permission Catalogue" })).toBeVisible();
-    await expect(page.locator("[data-right-console]")).toContainText("Permission Summary");
+    await expect(page.getByRole("heading", { name: "Business Permission Matrix" })).toBeVisible();
+    await expect(page.locator("[data-right-console]")).toContainText("Role Summary");
   }
 
   await page.goto("/administration/imports", { waitUntil: "domcontentloaded" });
-  await expect(page.locator("[data-right-console]")).toContainText("Fixed Template Flow");
+  await expect(page).toHaveURL(/\/imports$/);
+  await expect(page.getByRole("heading", { name: "Import Data" })).toBeVisible();
   await page.goto("/imports/items", { waitUntil: "domcontentloaded" });
   await expect(page.getByText("Import workflow", { exact: true })).toBeVisible();
   await expect(page.locator('[aria-current="step"]')).toContainText("3. Upload");
@@ -91,6 +92,6 @@ test("mobile master-data form keeps its save action reachable", async ({ page })
   await expect(page.getByRole("heading", { name: "Identity" })).toBeVisible();
   await page.getByRole("button", { name: "Open page actions" }).click();
   await expect(page.getByRole("button", { name: "Create Item" })).toBeVisible();
-  await expect(page.locator("body")).toContainText("Sprint 7.5");
+  await expect(page.locator("body")).toContainText("v0.2.30 / Sprint 7.21.2");
   await expectNoPageOverflow(page);
 });

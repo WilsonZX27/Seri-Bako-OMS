@@ -75,9 +75,9 @@ async function assertSprint731Rules(page, route) {
       expect(searchBox.x + searchBox.width, "topbar search must fit within the right action cluster").toBeLessThanOrEqual(accountBox.x + accountBox.width);
     }
     await expect(page.getByRole("heading", { name: /operations dashboard/i })).toBeVisible();
-    await expect(page.getByRole("heading", { name: /today's attention/i })).toBeVisible();
+    await expect(page.getByRole("heading", { name: /today.s attention/i })).toBeVisible();
     await expect(page.getByRole("heading", { name: /procurement queue/i })).toBeVisible();
-    await expect(page.getByRole("heading", { name: /today’s operations/i })).toBeVisible();
+    await expect(page.getByRole("heading", { name: /outlet record health/i })).toBeVisible();
     await expect(page.getByRole("heading", { name: /stock exceptions/i })).toBeVisible();
   }
   if (route === "/settings") {

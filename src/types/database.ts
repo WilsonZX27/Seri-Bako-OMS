@@ -2109,6 +2109,22 @@ export type Database = {
         Args: { target_staff_id: string; overrides: Json };
         Returns: void;
       };
+      set_role_permissions: {
+        Args: { target_role_id: string; permission_ids: string[] };
+        Returns: void;
+      };
+      can_access_purchase_request: {
+        Args: { target_company_id: string | null; target_branch_id: string | null; target_requested_by: string | null };
+        Returns: boolean;
+      };
+      link_purchase_request_document: {
+        Args: { target_purchase_request_id: string; target_document_id: string };
+        Returns: void;
+      };
+      transition_purchase_request: {
+        Args: { target_purchase_request_id: string; transition_action: string; transition_remarks?: string | null };
+        Returns: Json;
+      };
       convert_purchase_request_to_purchase_order: {
         Args: { target_purchase_request_id: string; target_po_no: string };
         Returns: Array<{

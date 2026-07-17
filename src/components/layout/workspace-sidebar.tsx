@@ -38,8 +38,8 @@ export function WorkspaceSidebar({
   const [closedGroups, setClosedGroups] = useState<Record<string, boolean>>({});
   const groups = useMemo(() => getVisibleNavGroups(role, permissionMap), [permissionMap, role]);
 
-  function toggleGroup(groupId: string) {
-    setClosedGroups((current) => ({ ...current, [groupId]: !current[groupId] }));
+  function toggleGroup(groupId: string, currentlyClosed: boolean) {
+    setClosedGroups((current) => ({ ...current, [groupId]: !currentlyClosed }));
   }
 
   function isActiveNavItem(href: string) {
@@ -97,7 +97,7 @@ export function WorkspaceSidebar({
                   <button
                     type="button"
                     className={cn("mb-1 flex w-full items-center justify-between rounded-[2px] px-2 text-left font-semibold text-white/60 hover:bg-white/8 hover:text-white", mobile ? "min-h-9 py-1 text-[11px]" : "min-h-8 py-1 text-[10px]")}
-                    onClick={() => toggleGroup(group.id)}
+                    onClick={() => toggleGroup(group.id, groupClosed)}
                     aria-expanded={!groupClosed}
                   >
                     <span>{group.label}</span>

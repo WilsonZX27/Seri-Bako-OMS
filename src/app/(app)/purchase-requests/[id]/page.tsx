@@ -14,11 +14,11 @@ import { DangerConfirmForm } from "@/components/ui/danger-confirm-form";
 import { getPrWorkflowLabel, getPrWorkflowStep, PR_WORKFLOW_STEP_LABELS, PURCHASE_REQUEST_WORKFLOW_STEPS } from "@/lib/purchase-request-status";
 import { formatCurrency, formatNumber } from "@/lib/utils";
 import {
-  adminReviewPurchaseRequest,
-  approvePurchaseRequest,
+  adminApprovePurchaseRequest,
   cancelPurchaseRequest,
   convertPurchaseRequestToPurchaseOrder,
-  purchasingReviewPurchaseRequest,
+  financeApprovePurchaseRequest,
+  managerApprovePurchaseRequest,
   rejectPurchaseRequest,
   submitPurchaseRequest,
 } from "@/server/actions/procurement";
@@ -107,9 +107,9 @@ export default async function PurchaseRequestDetailPage({
             <DocumentActionBar>
               {canSubmit ? <DocumentActionForm action={submitPurchaseRequest.bind(null, request.id)} pendingLabel="Submitting...">Submit to Manager Review</DocumentActionForm> : null}
               {canCancel ? <DocumentActionForm action={cancelPurchaseRequest.bind(null, request.id)} pendingLabel="Cancelling..." variant="ghost">Cancel draft</DocumentActionForm> : null}
-              {canManagerReview ? <DocumentActionForm action={adminReviewPurchaseRequest.bind(null, request.id)} pendingLabel="Approving...">Manager Approve</DocumentActionForm> : null}
-              {canAdminReview ? <DocumentActionForm action={purchasingReviewPurchaseRequest.bind(null, request.id)} pendingLabel="Reviewing...">Complete Admin Review</DocumentActionForm> : null}
-              {canFinanceReview ? <DocumentActionForm action={approvePurchaseRequest.bind(null, request.id)} pendingLabel="Reviewing...">Complete Finance Review</DocumentActionForm> : null}
+              {canManagerReview ? <DocumentActionForm action={managerApprovePurchaseRequest.bind(null, request.id)} pendingLabel="Approving...">Manager Approve</DocumentActionForm> : null}
+              {canAdminReview ? <DocumentActionForm action={adminApprovePurchaseRequest.bind(null, request.id)} pendingLabel="Reviewing...">Complete Admin Review</DocumentActionForm> : null}
+              {canFinanceReview ? <DocumentActionForm action={financeApprovePurchaseRequest.bind(null, request.id)} pendingLabel="Reviewing...">Complete Finance Review</DocumentActionForm> : null}
               {request.status === "converted_to_po" && linkedPurchaseOrders[0] ? (
                 <Button asChild className="w-full justify-center"><a href={`/purchase-orders/${linkedPurchaseOrders[0].id}`}>Open PO</a></Button>
               ) : null}

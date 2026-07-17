@@ -2,12 +2,11 @@
 
 import { redirect } from "next/navigation";
 import { isMockMode, mockCompany, mockProfile } from "@/lib/mock-mode";
-import { PR_NEXT_STATUS_BY_ACTION } from "@/lib/purchase-request-status";
-import { assertPurchaseRequestStatus, type PurchaseRequestStatus } from "@/lib/status-contracts";
+import type { PurchaseRequestStatus } from "@/lib/status-contracts";
 import { createClient } from "@/lib/supabase/server";
 import { purchaseOrderSchema, purchaseRequestSchema } from "@/lib/validations/procurement";
 import { writeActivityLog } from "@/server/activity/log";
-import { hasPermission, requirePermission } from "@/server/auth/permissions";
+import { requirePermission } from "@/server/auth/permissions";
 import { formatActionError, requirePermissionOrRedirect, rethrowRedirect, safeRedirectWithMessage } from "@/server/actions/error-handling";
 import { revalidateWorkspaceState } from "@/server/actions/revalidate";
 import { resolveDocumentNumber } from "@/server/documents/sequences";
@@ -15,19 +14,6 @@ import { resolveDefaultLocation } from "@/server/inventory/locations";
 import { getCurrentProfile } from "@/server/queries/common";
 import { z } from "zod";
 import type { ApprovalStatus, PurchaseOrderStatus } from "@/types/database";
-
-type PurchaseRequestStep = "draft" | "manager_review" | "admin_review" | "finance_review" | "ready_to_convert";
-
-const prStatusAliases: Record<PurchaseRequestStep, string[]> = {
-  draft: ["draft", "rejected"],
-  manager_review: ["manager_review"],
-  admin_review: ["admin_review"],
-  finance_review: ["finance_review"],
-  ready_to_convert: ["ready_to_convert"],
-};
-
-const wrongPrStepMessage = "This document has already moved to another workflow step. Refreshing...";
-const noPermissionMessage = "You do not have permission to perform this action.";
 
 function cleanText(value: FormDataEntryValue | null) {
   const text = String(value ?? "").trim();
@@ -39,60 +25,14 @@ async function identity() {
   return getCurrentProfile();
 }
 
-async function requireActiveStaffProfile() {
-  const profile = await identity();
-  if (!profile?.id) throw new Error("You must be signed in with an active staff profile.");
-  if ("status" in profile && profile.status !== "active") throw new Error("Your staff account is not active.");
-  return profile;
-}
-
-async function requireBranchAccess(branchId: string | null) {
-  if (!branchId) return;
-  if (await hasPermission("pr.view_all")) return;
-
-  const profile = await requireActiveStaffProfile();
-  const supabase = await createClient();
-  const { data, error } = await supabase
-    .from("staff_branches")
-    .select("branch_id")
-    .eq("staff_id", profile.id)
-    .eq("branch_id", branchId)
-    .maybeSingle();
-  if (error) throw new Error(error.message);
-  if (!data) throw new Error(noPermissionMessage);
-}
-
-async function requirePrTransition(input: {
-  id: string;
-  expectedStatus: PurchaseRequestStep;
-  permission: string;
-  nextStatus?: PurchaseRequestStatus;
-}) {
-  if (input.nextStatus) assertPurchaseRequestStatus(input.nextStatus);
-  await requireActiveStaffProfile();
-  if (!(await hasPermission(input.permission))) throw new Error(noPermissionMessage);
-
-  const supabase = await createClient();
-  const { data: pr, error } = await supabase
-    .from("purchase_requests")
-    .select("id, request_no, status, branch_id, document_id, company_id")
-    .eq("id", input.id)
-    .single();
-  if (error) throw new Error(error.message);
-  await requireBranchAccess(pr.branch_id);
-  if (input.nextStatus && pr.status === input.nextStatus) return { ...pr, alreadyMoved: true };
-  if (!prStatusAliases[input.expectedStatus].includes(pr.status)) throw new Error(wrongPrStepMessage);
-  return pr;
-}
-
 async function notifyNextPrRole(input: {
   pr: { id: string; request_no: string; branch_id: string | null; company_id: string | null };
   nextStatus: PurchaseRequestStatus;
 }) {
   const roleCodesByStatus: Partial<Record<PurchaseRequestStatus, string[]>> = {
-    manager_review: ["manager", "admin", "super_admin"],
+    manager_review: ["manager", "super_admin"],
     admin_review: ["operations_admin", "admin", "super_admin"],
-    finance_review: ["finance", "admin", "super_admin"],
+    finance_review: ["finance", "super_admin"],
     ready_to_convert: ["purchasing", "operations_admin", "admin", "super_admin"],
   };
   const roleCodes = roleCodesByStatus[input.nextStatus] ?? [];
@@ -334,7 +274,7 @@ export async function createPurchaseRequest(formData: FormData) {
     ]);
     if (linesError) throw new Error(linesError.message);
     const [{ error: updateError }] = await Promise.all([
-      supabase.from("purchase_requests").update({ document_id: documentId }).eq("id", data.id),
+      supabase.rpc("link_purchase_request_document", { target_purchase_request_id: data.id, target_document_id: documentId }),
       writeActivityLog({ entityType: "document", entityId: documentId, activityType: "created", message: `Purchase request ${requestNo} created` }),
     ]);
     if (updateError) throw new Error(updateError.message);
@@ -351,75 +291,35 @@ export async function createPurchaseRequest(formData: FormData) {
   }
 }
 
-async function updatePrStatus(input: {
+type PrTransitionAction = "submit" | "manager_approve" | "admin_approve" | "finance_approve" | "reject" | "cancel";
+type PrTransitionResult = {
   id: string;
-  expectedStatus: PurchaseRequestStep;
-  nextStatus: PurchaseRequestStatus;
-  permission: string;
-  documentStatus: "draft" | "pending_approval" | "approved" | "rejected" | "cancelled";
-  approvalStatus: ApprovalStatus;
-  step: string;
-  message: string;
-  activityType?: string;
-}) {
-  assertPurchaseRequestStatus(input.nextStatus);
-  const supabase = await createClient();
-  const profile = await requireActiveStaffProfile();
-  const pr = await requirePrTransition({
-    id: input.id,
-    expectedStatus: input.expectedStatus,
-    permission: input.permission,
-    nextStatus: input.nextStatus,
-  });
-  if ("alreadyMoved" in pr && pr.alreadyMoved) {
-    revalidateWorkspaceState(["/purchase-requests", `/purchase-requests/${input.id}`]);
-    return pr;
-  }
-  const { data: updatedPr, error } = await supabase
-    .from("purchase_requests")
-    .update({ status: input.nextStatus, updated_by: profile.id })
-    .eq("id", input.id)
-    .in("status", prStatusAliases[input.expectedStatus] as PurchaseRequestStatus[])
-    .select("id")
-    .maybeSingle();
-  if (error) throw new Error(error.message);
-  if (!updatedPr) throw new Error(wrongPrStepMessage);
+  request_no: string;
+  company_id: string | null;
+  branch_id: string | null;
+  status: PurchaseRequestStatus;
+  already_applied: boolean;
+};
 
-  const { error: documentError } = pr.document_id
-    ? await supabase
-        .from("documents")
-        .update({ status: input.documentStatus, approval_status: input.approvalStatus, current_step: input.step, updated_by: profile.id })
-        .eq("id", pr.document_id)
-    : { error: null };
-  if (documentError) throw new Error(documentError.message);
-  if (pr.document_id) {
-    await writeActivityLog({
-      entityType: "document",
-      entityId: pr.document_id,
-      activityType: input.activityType ?? input.nextStatus,
-      message: input.message,
-      metadata: { workflow_step: input.expectedStatus, next_status: input.nextStatus },
-    });
-  }
-  await notifyNextPrRole({ pr, nextStatus: input.nextStatus });
-  revalidateWorkspaceState(["/purchase-requests", `/purchase-requests/${input.id}`]);
-  return pr;
+async function transitionPurchaseRequest(id: string, action: PrTransitionAction, remarks?: string | null) {
+  const supabase = await createClient();
+  const { data, error } = await supabase.rpc("transition_purchase_request", {
+    target_purchase_request_id: id,
+    transition_action: action,
+    transition_remarks: remarks ?? null,
+  });
+  if (error) throw new Error(error.message);
+  const result = data as unknown as PrTransitionResult;
+  if (!result?.id || !result.request_no || !result.status) throw new Error("Purchase request transition returned an invalid result.");
+  if (!result.already_applied) await notifyNextPrRole({ pr: result, nextStatus: result.status });
+  revalidateWorkspaceState(["/purchase-requests", `/purchase-requests/${id}`]);
+  return result;
 }
 
 export async function submitPurchaseRequest(id: string) {
   try {
     if (isMockMode()) return;
-    const pr = await updatePrStatus({
-      id,
-      expectedStatus: "draft",
-      nextStatus: PR_NEXT_STATUS_BY_ACTION.submit_to_manager_review,
-      permission: "pr.submit",
-      documentStatus: "pending_approval",
-      approvalStatus: "pending",
-      step: "Manager Review",
-      message: "Purchase request submitted to Manager Review",
-      activityType: "submitted",
-    });
+    const pr = await transitionPurchaseRequest(id, "submit");
     safeRedirectWithMessage(`/purchase-requests/${id}`, "success", `${pr.request_no} submitted to Manager Review. Manager has been notified.`);
   } catch (error) {
     rethrowRedirect(error);
@@ -427,20 +327,10 @@ export async function submitPurchaseRequest(id: string) {
   }
 }
 
-export async function adminReviewPurchaseRequest(id: string) {
+export async function managerApprovePurchaseRequest(id: string) {
   try {
     if (isMockMode()) return;
-    const pr = await updatePrStatus({
-      id,
-      expectedStatus: "manager_review",
-      nextStatus: PR_NEXT_STATUS_BY_ACTION.manager_approve,
-      permission: "pr.manager_approve",
-      documentStatus: "pending_approval",
-      approvalStatus: "pending",
-      step: "Admin Review",
-      message: "Manager Review completed",
-      activityType: "manager_review_completed",
-    });
+    const pr = await transitionPurchaseRequest(id, "manager_approve");
     safeRedirectWithMessage(`/purchase-requests/${id}`, "success", `${pr.request_no} Manager Review completed. Admin has been notified.`);
   } catch (error) {
     rethrowRedirect(error);
@@ -448,20 +338,10 @@ export async function adminReviewPurchaseRequest(id: string) {
   }
 }
 
-export async function purchasingReviewPurchaseRequest(id: string) {
+export async function adminApprovePurchaseRequest(id: string) {
   try {
     if (isMockMode()) return;
-    const pr = await updatePrStatus({
-      id,
-      expectedStatus: "admin_review",
-      nextStatus: PR_NEXT_STATUS_BY_ACTION.admin_approve,
-      permission: "pr.admin_review",
-      documentStatus: "pending_approval",
-      approvalStatus: "pending",
-      step: "Finance Review",
-      message: "Admin Review completed",
-      activityType: "admin_review_completed",
-    });
+    const pr = await transitionPurchaseRequest(id, "admin_approve");
     safeRedirectWithMessage(`/purchase-requests/${id}`, "success", `${pr.request_no} Admin Review completed. Finance has been notified.`);
   } catch (error) {
     rethrowRedirect(error);
@@ -469,20 +349,10 @@ export async function purchasingReviewPurchaseRequest(id: string) {
   }
 }
 
-export async function approvePurchaseRequest(id: string) {
+export async function financeApprovePurchaseRequest(id: string) {
   try {
     if (isMockMode()) return;
-    const pr = await updatePrStatus({
-      id,
-      expectedStatus: "finance_review",
-      nextStatus: PR_NEXT_STATUS_BY_ACTION.finance_approve,
-      permission: "pr.finance_review",
-      documentStatus: "approved",
-      approvalStatus: "approved",
-      step: "Ready to Convert",
-      message: "Finance Review completed",
-      activityType: "finance_review_completed",
-    });
+    const pr = await transitionPurchaseRequest(id, "finance_approve");
     safeRedirectWithMessage(`/purchase-requests/${id}`, "success", `${pr.request_no} Finance Review completed. Purchase request is ready to convert.`);
   } catch (error) {
     rethrowRedirect(error);
@@ -495,33 +365,8 @@ export async function rejectPurchaseRequest(id: string, formData: FormData) {
     const remarks = cleanText(formData.get("remarks"));
     if (!remarks) throw new Error("Rejection remarks are required.");
     if (isMockMode()) return;
-    const supabase = await createClient();
-    const { data: pr, error: prError } = await supabase.from("purchase_requests").select("status").eq("id", id).single();
-    if (prError) throw new Error(prError.message);
-    const transition =
-      pr.status === "manager_review"
-        ? { expectedStatus: "manager_review" as const, permission: "pr.manager_approve", step: "Manager Review" }
-        : pr.status === "admin_review"
-          ? { expectedStatus: "admin_review" as const, permission: "pr.admin_review", step: "Admin Review" }
-          : pr.status === "finance_review"
-            ? { expectedStatus: "finance_review" as const, permission: "pr.finance_review", step: "Finance Review" }
-            : null;
-    if (!transition) throw new Error("This request is not at a rejectable workflow step.");
-    const canReject = (await hasPermission("pr.reject")) || (await hasPermission(transition.permission));
-    if (!canReject) throw new Error(noPermissionMessage);
-    const permission = (await hasPermission(transition.permission)) ? transition.permission : "pr.reject";
-    const updated = await updatePrStatus({
-      id,
-      expectedStatus: transition.expectedStatus,
-      nextStatus: PR_NEXT_STATUS_BY_ACTION.reject,
-      permission,
-      documentStatus: "rejected",
-      approvalStatus: "rejected",
-      step: "Rejected",
-      message: `${transition.step} rejected: ${remarks}`,
-      activityType: "rejected",
-    });
-    safeRedirectWithMessage(`/purchase-requests/${id}`, "success", `${updated.request_no} rejected by ${transition.step.replace(" Approval", "")}. Requester has been notified.`);
+    const updated = await transitionPurchaseRequest(id, "reject", remarks);
+    safeRedirectWithMessage(`/purchase-requests/${id}`, "success", `${updated.request_no} rejected. Requester has been notified.`);
   } catch (error) {
     rethrowRedirect(error);
     safeRedirectWithMessage(`/purchase-requests/${id}`, "error", formatActionError(error, "Could not reject this purchase request."));
@@ -531,17 +376,7 @@ export async function rejectPurchaseRequest(id: string, formData: FormData) {
 export async function cancelPurchaseRequest(id: string) {
   try {
     if (isMockMode()) return;
-    const pr = await updatePrStatus({
-      id,
-      expectedStatus: "draft",
-      nextStatus: PR_NEXT_STATUS_BY_ACTION.cancel,
-      permission: "pr.cancel",
-      documentStatus: "cancelled",
-      approvalStatus: "cancelled",
-      step: "Cancelled",
-      message: "Purchase request cancelled",
-      activityType: "cancelled",
-    });
+    const pr = await transitionPurchaseRequest(id, "cancel");
     safeRedirectWithMessage(`/purchase-requests/${id}`, "success", `${pr.request_no} cancelled.`);
   } catch (error) {
     rethrowRedirect(error);

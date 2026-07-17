@@ -167,7 +167,7 @@ export async function getDashboardSummary() {
     getVisibleNotificationsForCurrentUser(),
     getVisibleRecentActivitiesForCurrentUser(),
     db.from("production_jobs").select("id", { count: "exact", head: true }).eq("status", "posted").eq("production_date", new Date().toISOString().slice(0, 10)).is("deleted_at", null),
-    hasPermission("supplier_invoice.view"),
+    hasPermission("supplier_invoice.pay"),
   ]);
 
   warnOptionalQuery("stock balances", balances.error);

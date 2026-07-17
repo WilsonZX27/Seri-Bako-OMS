@@ -193,9 +193,6 @@ export const rolePermissionMatrix = {
     "purchase_return.cancel",
     "supplier_invoice.view",
     "supplier_invoice.create",
-    "supplier_invoice.pay",
-    "supplier_invoice.approve",
-    "supplier_invoice.void",
     "attachments.upload",
     "imports.run",
     "documents.view",
@@ -341,9 +338,6 @@ export const rolePermissionMatrix = {
     "purchase_return.cancel",
     "supplier_invoice.view",
     "supplier_invoice.create",
-    "supplier_invoice.pay",
-    "supplier_invoice.approve",
-    "supplier_invoice.void",
     "attachments.upload",
     "imports.run",
     "documents.view",
@@ -413,44 +407,7 @@ export async function resolveEffectivePermission(supabase: PermissionClient, per
   const candidates = Array.from(new Set(requested.flatMap(permissionCandidates)));
   const { data, error } = await supabase.rpc("has_any_permission", { permission_codes: candidates });
   if (error) throw new Error(error.message);
-  if (data) return true;
-
-  // Preserve established application role defaults that predate the database
-  // catalogue, but never allow that compatibility path to bypass an explicit deny.
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) return false;
-
-  const { data: staff } = await supabase.from("staffs").select("id").eq("auth_user_id", user.id).maybeSingle();
-  if (!staff?.id) return false;
-
-  const { data: candidatePermissions, error: permissionsError } = await supabase.from("permissions").select("id").in("permission_code", candidates);
-  if (permissionsError) throw new Error(permissionsError.message);
-  const permissionIds = (candidatePermissions ?? []).map((row) => row.id);
-  if (permissionIds.length) {
-    const { data: overrides, error: overridesError } = await supabase
-      .from("staff_permission_overrides")
-      .select("effect")
-      .eq("staff_id", staff.id)
-      .in("permission_id", permissionIds);
-    if (overridesError) throw new Error(overridesError.message);
-    if ((overrides ?? []).some((override) => override.effect === "deny")) return false;
-  }
-
-  const today = new Date().toISOString().slice(0, 10);
-  const { data: staffRoles, error: rolesError } = await supabase
-    .from("staff_roles")
-    .select("effective_from, effective_to, roles(role_code, status, deleted_at)")
-    .eq("staff_id", staff.id);
-  if (rolesError) throw new Error(rolesError.message);
-  const roleCodes = (staffRoles ?? []).flatMap((row) => {
-    if ((row.effective_from && row.effective_from > today) || (row.effective_to && row.effective_to < today)) return [];
-    const role = row.roles as { role_code?: string | null; status?: string | null; deleted_at?: string | null } | { role_code?: string | null; status?: string | null; deleted_at?: string | null }[] | null;
-    const activeRole = Array.isArray(role) ? role[0] : role;
-    return activeRole?.role_code && activeRole.status === "active" && !activeRole.deleted_at ? [activeRole.role_code] : [];
-  });
-  return roleCodes.some((roleCode) => requested.some((permission) => roleAllowsPermission(roleCode, permission)));
+  return data === true;
 }
 
 export async function hasPermission(permission: string) {

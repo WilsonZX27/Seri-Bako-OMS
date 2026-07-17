@@ -13,6 +13,7 @@ import { writeActivityLog } from "@/server/activity/log";
 import { requirePermission } from "@/server/auth/permissions";
 import { formatActionError, requirePermissionOrRedirect, rethrowRedirect, safeRedirectWithMessage } from "@/server/actions/error-handling";
 import { ensureBranchDefaultLocation, resolveDefaultLocation } from "@/server/inventory/locations";
+import { getCurrentProfile } from "@/server/queries/common";
 
 function formValue(formData: FormData, key: string) {
   return formData.get(key);
@@ -566,7 +567,7 @@ async function getPrimaryStaffRoleId(admin: ReturnType<typeof createAdminClient>
 }
 
 async function activeSuperAdminCount(admin: ReturnType<typeof createAdminClient>) {
-  const { data: roles, error: rolesError } = await admin.from("roles").select("id").in("role_code", ["super_admin", "admin"]).eq("status", "active").is("deleted_at", null);
+  const { data: roles, error: rolesError } = await admin.from("roles").select("id").eq("role_code", "super_admin").eq("status", "active").is("deleted_at", null);
   if (rolesError) throw new Error(rolesError.message);
   const roleIds = (roles ?? []).map((role) => role.id);
   if (!roleIds.length) return 0;
@@ -860,6 +861,7 @@ export async function updateStaff(id: string, formData: FormData) {
   }
   revalidatePath("/staffs");
   revalidatePath(`/staffs/${id}`);
+  revalidatePath("/", "layout");
   safeRedirectWithMessage(`/staffs/${id}`, "success", "Staff updated.");
 }
 
@@ -876,6 +878,7 @@ async function saveStaffPermissionOverrides(id: string, overrides: { permission_
     safeRedirectWithMessage(`/staffs/${id}`, "error", formatActionError(error, "Could not update permission overrides."));
   }
   revalidatePath(`/staffs/${id}`);
+  revalidatePath("/", "layout");
 }
 
 export async function updateStaffPermissionOverrides(id: string, formData: FormData) {
@@ -1082,8 +1085,11 @@ export async function createRole(formData: FormData) {
   await requirePermission("roles.create");
   const payload = rolePayload(formData);
   if (!isMockMode()) {
+    const profile = await getCurrentProfile();
+    if (!profile?.company_id) throw new Error("An active company staff profile is required.");
+    if (isProtectedOwnerAssignableRole(payload.role_code)) throw new Error("Super Admin / Owner roles cannot be created here.");
     const supabase = createAdminClient();
-    const { data, error } = await supabase.from("roles").insert(payload).select("id").single();
+    const { data, error } = await supabase.from("roles").insert({ ...payload, company_id: profile.company_id }).select("id").single();
     if (error) throw new Error(error.message);
     await writeActivityLog({ entityType: "role", entityId: data.id, activityType: "created", message: `Role ${payload.role_name} created` });
   }
@@ -1095,8 +1101,15 @@ export async function updateRole(id: string, formData: FormData) {
   await requirePermission("roles.update");
   const payload = rolePayload(formData);
   if (!isMockMode()) {
+    const profile = await getCurrentProfile();
+    if (!profile?.company_id) throw new Error("An active company staff profile is required.");
     const supabase = createAdminClient();
-    const { error } = await supabase.from("roles").update(payload).eq("id", id);
+    const { data: currentRole, error: roleError } = await supabase.from("roles").select("role_code, company_id").eq("id", id).single();
+    if (roleError) throw new Error(roleError.message);
+    if (currentRole.company_id !== profile.company_id) throw new Error("Role belongs to another company.");
+    if (isProtectedOwnerAssignableRole(currentRole.role_code) || isProtectedOwnerAssignableRole(payload.role_code)) throw new Error("Super Admin / Owner roles cannot be changed here.");
+    if (payload.role_code !== currentRole.role_code) throw new Error("Role codes cannot be changed after creation.");
+    const { error } = await supabase.from("roles").update({ ...payload, company_id: profile.company_id }).eq("id", id).eq("company_id", profile.company_id);
     if (error) throw new Error(error.message);
     await writeActivityLog({ entityType: "role", entityId: id, activityType: "updated", message: `Role ${payload.role_name} updated` });
   }
@@ -1109,14 +1122,9 @@ export async function updateRolePermissions(id: string, formData: FormData) {
   const permissionIds = Array.from(formData.getAll("permission_id")).map(String);
   try {
     if (!isMockMode()) {
-      const supabase = createAdminClient();
-      const { error: removeError } = await supabase.from("role_permissions").delete().eq("role_id", id);
-      if (removeError) throw new Error(removeError.message);
-      if (permissionIds.length) {
-        const { error: addError } = await supabase.from("role_permissions").insert(permissionIds.map((permission_id) => ({ role_id: id, permission_id })));
-        if (addError) throw new Error(addError.message);
-      }
-      await writeActivityLog({ entityType: "role", entityId: id, activityType: "permissions_updated", message: "Role default permissions updated" });
+      const supabase = await createClient();
+      const { error } = await supabase.rpc("set_role_permissions", { target_role_id: id, permission_ids: permissionIds });
+      if (error) throw new Error(error.message);
     }
   } catch (error) {
     rethrowRedirect(error);
@@ -1124,6 +1132,7 @@ export async function updateRolePermissions(id: string, formData: FormData) {
   }
   revalidatePath("/roles");
   revalidatePath(`/roles/${id}`);
+  revalidatePath("/", "layout");
   safeRedirectWithMessage(`/roles/${id}`, "success", "Role permissions updated.");
 }
 

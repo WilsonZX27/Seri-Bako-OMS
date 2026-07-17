@@ -14,13 +14,19 @@ import { Table, TableActionLink, TableBody, TableCell, TableHead, TableHeader, T
 import { ConsoleSection } from "@/components/layout/right-console";
 import { WorkspaceGrid } from "@/components/layout/workspace-layout";
 import { formatCurrency } from "@/lib/utils";
+import { getPermissionMap } from "@/server/auth/permissions";
 import { getSupplierInvoiceFilterSuppliers, getSupplierInvoices } from "@/server/queries/supplier-invoices";
 
 const statuses = ["draft", "open", "partially_paid", "paid", "void"];
 
 export default async function SupplierInvoicesPage({ searchParams }: { searchParams: Promise<Record<string, string | undefined>> }) {
   const filters = await searchParams;
-  const [invoices, allInvoices, suppliers] = await Promise.all([getSupplierInvoices(filters), getSupplierInvoices({ page: "all" }), getSupplierInvoiceFilterSuppliers()]);
+  const [invoices, allInvoices, suppliers, permissions] = await Promise.all([
+    getSupplierInvoices(filters),
+    getSupplierInvoices({ page: "all" }),
+    getSupplierInvoiceFilterSuppliers(),
+    getPermissionMap(["supplier_invoice.create", "supplier_invoice.pay"]),
+  ]);
   const rows = allInvoices.rows;
   const count = (...items: string[]) => rows.filter((row) => items.includes(row.status)).length;
   return (
@@ -30,15 +36,18 @@ export default async function SupplierInvoicesPage({ searchParams }: { searchPar
         rightRail={
           <>
             <ConsoleSection title="Actions">
-              <div className="grid gap-2"><Button asChild size="sm" className="w-full"><Link href="/supplier-invoices/new">New Invoice</Link></Button><Button asChild variant="outline" size="sm" className="w-full"><Link href="/supplier-invoices/aging">AP Aging</Link></Button><Button asChild variant="outline" size="sm" className="w-full"><Link href="/supplier-invoices/cash-flow">Cash Flow Forecast</Link></Button></div>
+              <div className="grid gap-2">
+                {permissions["supplier_invoice.create"] ? <Button asChild size="sm" className="w-full"><Link href="/supplier-invoices/new">New Invoice</Link></Button> : null}
+                {permissions["supplier_invoice.pay"] ? <><Button asChild variant="outline" size="sm" className="w-full"><Link href="/supplier-invoices/aging">AP Aging</Link></Button><Button asChild variant="outline" size="sm" className="w-full"><Link href="/supplier-invoices/cash-flow">Cash Flow Forecast</Link></Button></> : null}
+              </div>
             </ConsoleSection>
-            <ConsoleSection title="AP Summary">
+            {permissions["supplier_invoice.pay"] ? <ConsoleSection title="AP Summary">
               <div className="grid gap-2 text-xs">
                 <div className="flex justify-between"><span className="text-muted-foreground">Open</span><strong>{count("open", "partially_paid")}</strong></div>
                 <div className="flex justify-between"><span className="text-muted-foreground">Paid</span><strong>{count("paid")}</strong></div>
                 <div className="flex justify-between"><span className="text-muted-foreground">Balance</span><strong>{formatCurrency(rows.reduce((sum, row) => sum + row.balance_due, 0))}</strong></div>
               </div>
-            </ConsoleSection>
+            </ConsoleSection> : null}
           </>
         }
       >

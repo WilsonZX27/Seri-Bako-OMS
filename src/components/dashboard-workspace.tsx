@@ -156,7 +156,7 @@ export function DashboardWorkspace({ summary }: { summary: DashboardSummary }) {
           </div>
 
           <div className="grid gap-4 xl:grid-cols-[minmax(0,2fr)_minmax(18rem,1fr)]">
-            <CompactPanel title="Finance / Payables Attention" action={{ href: "/supplier-invoices/aging", label: summary.payablesAttentionUnavailable ? "Retry AP Aging" : "Open AP Aging" }}>
+            {(payablesAttention || summary.payablesAttentionUnavailable) ? <CompactPanel title="Finance / Payables Attention" action={{ href: "/supplier-invoices/aging", label: summary.payablesAttentionUnavailable ? "Retry AP Aging" : "Open AP Aging" }}>
             {summary.payablesAttentionUnavailable ? <p className="text-xs text-muted-foreground">Payables attention is temporarily unavailable. The rest of the dashboard remains current.</p> : payablesAttention ? <>
             <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
               <MetricCard href="/supplier-invoices/aging?bucket=overdue_90_plus" label={`Critical · ${payablesAttention.critical_count}`} value={formatCurrency(payablesAttention.critical_amount)} icon={AlertTriangle} tone={payablesAttention.critical_count ? "red" : "green"} />
@@ -173,7 +173,7 @@ export function DashboardWorkspace({ summary }: { summary: DashboardSummary }) {
               {!payablesAttention.rows.length ? <p className="p-3 text-xs text-muted-foreground">No supplier invoices need payment attention.</p> : null}
             </div>
             </> : <p className="text-xs text-muted-foreground">No supplier invoices need payment attention.</p>}
-            </CompactPanel>
+            </CompactPanel> : null}
 
             <div className="space-y-4">
               <CompactPanel title="Production Planning Reference" action={{ href: "/production/planning", label: "Open planning" }}>

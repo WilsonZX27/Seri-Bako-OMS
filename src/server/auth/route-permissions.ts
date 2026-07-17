@@ -3,6 +3,8 @@ const exactRoutePermissions: Record<string, string[]> = {
   "/reports/recipe-costing": ["reports.view"],
   "/reports/product-margin": ["reports.view"],
   "/reports/procurement-variance": ["reports.view"],
+  "/supplier-invoices/aging": ["supplier_invoice.pay"],
+  "/supplier-invoices/cash-flow": ["supplier_invoice.pay"],
   "/administration/master-data-cleanup": ["items.view"],
   "/reports/demand-trends": ["outlet_daily_record.view"],
   "/production/planning": ["outlet_daily_record.view"],

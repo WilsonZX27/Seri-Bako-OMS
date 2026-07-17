@@ -1,9 +1,11 @@
 import { NextResponse } from "next/server";
 import { rowsToCsv } from "@/server/backup/export";
+import { hasPermission } from "@/server/auth/permissions";
 import { getCompleteApAgingReport } from "@/server/queries/ap-aging";
 
 export async function GET(request: Request) {
   try {
+    if (!(await hasPermission("supplier_invoice.pay"))) throw new Error("Missing permission: supplier_invoice.pay");
     const params = Object.fromEntries(new URL(request.url).searchParams.entries());
     const report = await getCompleteApAgingReport(params);
     const rows = report.rows.map((row) => ({

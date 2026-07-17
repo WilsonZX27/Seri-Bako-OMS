@@ -51,7 +51,7 @@ test("Demand Trend Lite has one report route and inherits outlet-record access",
 
 test("release footer matches Sprint 7.18.1 without migration 066", () => {
   const version = read("src/lib/app-version.ts");
-  assert.match(version, /APP_VERSION = "0\.2\.26"/);
-  assert.match(version, /APP_SPRINT = "Sprint 7\.18\.1"/);
+  assert.match(version, /APP_VERSION = "0\.2\.27"/);
+  assert.match(version, /APP_SPRINT = "Sprint 7\.19"/);
   assert.equal(fs.readdirSync("supabase/migrations").some((file) => file.startsWith("066_")), false);
 });

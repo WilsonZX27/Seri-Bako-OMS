@@ -713,3 +713,7 @@ Sprint 7.17.3a keeps the existing Dashboard summaries and actions unchanged whil
 Sprint 7.18 adds a server-side, read-only report over existing items, supplier items, recipes, recipe lines, and products. It uses the existing `reports.view` boundary and current RLS-visible rows, with no new RPC, migration, or cost write path.
 
 Sprint 7.18.1 only clarifies issue severity, manual corrective actions, and all-clear copy; it does not alter the report query or calculations.
+
+## Recipe Costing Lite
+
+Sprint 7.19 adds a server-side, read-only recipe estimate over existing recipes, recipe lines, products, and items. It requires `reports.view` and uses the current RLS-visible rows. The only automatic cost source is `items.cost` in the matching item base UOM; missing costs or unclear conversion make the estimate incomplete instead of zero. It adds no RPC, migration, or write path.

@@ -487,6 +487,10 @@ The Sprint 7.18.0 application baseline is `v0.2.26 / Sprint 7.18` with migration
 
 The Sprint 7.18.1 application baseline is `v0.2.26 / Sprint 7.18.1` with migration ceiling `065`; migration `066` is not required. Verify severity guidance, concise manual actions, compact filtering, and the all-clear state. This remains a read-only report.
 
+## Sprint 7.19.0 Recipe Costing Lite deployment
+
+The Sprint 7.19.0 application baseline is `v0.2.27 / Sprint 7.19` with migration ceiling `065`; migration `066` is not required. Verify `/reports/recipe-costing` uses Item Master `cost` only when the recipe line base UOM matches the item base UOM, exposes missing-cost or output gaps rather than zero estimates, and links to the existing recipe detail. It performs no writes.
+
 Use versioned migrations as the source of truth. If a migration must be applied through the Supabase SQL Editor, record the project ID, source filename, ledger result, and verification evidence; never edit an already-applied file. No pilot CSV should be imported until a backup/recovery path and an owner-approved rollback or correction procedure are known.
 
 If CLI migration access fails because DNS or network resolution is unavailable, do not retry blindly. Use a controlled SQL Editor application only with explicit authorization, apply the reviewed migration once, and verify the migration ledger and live objects afterward.

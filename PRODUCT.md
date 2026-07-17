@@ -199,7 +199,7 @@ The system currently covers or is actively implementing the following operationa
 
 Module maturity must be understood separately from visual completion.
 
-Current local baseline: `v0.2.26 / Sprint 7.18.1` with database migrations through `065`. This is an operational pilot baseline, not a claim that Seri Bako OMS is a full accounting ERP.
+Current local baseline: `v0.2.27 / Sprint 7.19` with database migrations through `065`. This is an operational pilot baseline, not a claim that Seri Bako OMS is a full accounting ERP.
 
 A page may exist visually without its full workflow, validation, database integration, permissions, and downstream effects being complete.
 
@@ -364,6 +364,10 @@ Master Data Cleanup Lite is a read-only checklist for duplicate or variant codes
 ### Costing Readiness Lite
 
 Costing Readiness Lite is a read-only checklist for item costs, supplier prices, recipe ingredients, and product-to-recipe coverage. It identifies data gaps before any future margin or costing work; fixes remain manual and it does not recalculate or write costs.
+
+### Recipe Costing Lite
+
+Recipe Costing Lite is a read-only estimate for recipes using the normalized Item Master base-UOM `cost`. It does not substitute supplier prices or recipe-line values when conversion is unclear, and it leaves missing costs visible rather than treating them as zero. It does not write recipe, product, inventory, production, or finance records; margin remains future scope.
 
 ## Roles and Permissions
 

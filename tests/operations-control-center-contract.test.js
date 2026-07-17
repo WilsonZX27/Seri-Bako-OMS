@@ -39,6 +39,6 @@ test("Operations Control Center stays read-only and follows the Sprint 7.18.1 fo
   const implementation = `${dashboard}\n${outlet}`;
   assert.doesNotMatch(implementation, /(insert into|update|delete from) public\.(stock_transactions|stock_transaction_lines|stock_balances|production_jobs|supplier_invoices|supplier_invoice_payments)/i);
   assert.equal(fs.readdirSync("supabase/migrations").some((file) => file.startsWith("066_")), false);
-  assert.match(version, /APP_VERSION = "0\.2\.26"/);
-  assert.match(version, /APP_SPRINT = "Sprint 7\.18\.1"/);
+  assert.match(version, /APP_VERSION = "0\.2\.27"/);
+  assert.match(version, /APP_SPRINT = "Sprint 7\.19"/);
 });

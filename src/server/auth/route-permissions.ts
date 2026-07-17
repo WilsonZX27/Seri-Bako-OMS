@@ -1,5 +1,6 @@
 const exactRoutePermissions: Record<string, string[]> = {
   "/reports/costing-readiness": ["reports.view"],
+  "/reports/recipe-costing": ["reports.view"],
   "/administration/master-data-cleanup": ["items.view"],
   "/reports/demand-trends": ["outlet_daily_record.view"],
   "/production/planning": ["outlet_daily_record.view"],

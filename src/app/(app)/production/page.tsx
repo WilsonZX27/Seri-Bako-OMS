@@ -13,6 +13,7 @@ const productionSections: WorkspaceSection[] = [
       { href: "/production/jobs/new", title: "New Production Job", description: "Create a draft from an active recipe. Stock changes only after posting.", icon: Factory, recommendedFor: "kitchen" },
       { href: "/production/jobs", title: "View Production Jobs", description: "Review draft, submitted, approved, and posted production jobs.", icon: PackageCheck, recommendedFor: "managers" },
       { href: "/production/planning", title: "Production Planning", description: "Review cautious daily production quantities from reliable outlet demand.", icon: ClipboardList, recommendedFor: "HQ and managers" },
+      { href: "/production/variance", title: "Demand Variance", description: "Review outlet movement, leftovers, and wastage signals by product.", icon: Scale, recommendedFor: "HQ and managers" },
     ],
   },
   {

@@ -34,6 +34,6 @@ test("dashboard isolates AP failure and user-facing errors stay generic", () => 
 
 test("release footer follows the current sprint baseline", () => {
   const version = read("src/lib/app-version.ts");
-  assert.match(version, /APP_VERSION = "0\.2\.22"/);
-  assert.match(version, /APP_SPRINT = "Sprint 7\.14\.1"/);
+  assert.match(version, /APP_VERSION = "0\.2\.23"/);
+  assert.match(version, /APP_SPRINT = "Sprint 7\.15"/);
 });

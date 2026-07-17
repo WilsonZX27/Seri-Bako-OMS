@@ -35,12 +35,12 @@ test("Production Planning Lite has no production, stock, AP or cash-flow write p
   assert.equal(fs.readdirSync("supabase/migrations").some((file) => file.startsWith("066_")), false);
 });
 
-test("Production Planning Lite is route-protected and follows the Sprint 7.14.1 footer", () => {
+test("Production Planning Lite is route-protected and follows the current footer", () => {
   const routes = read("src/server/auth/route-permissions.ts");
   const production = read("src/app/(app)/production/page.tsx");
   const version = read("src/lib/app-version.ts");
   assert.match(routes, /"\/production\/planning": \["outlet_daily_record\.view"\]/);
   assert.match(production, /\/production\/planning/);
-  assert.match(version, /APP_VERSION = "0\.2\.22"/);
-  assert.match(version, /APP_SPRINT = "Sprint 7\.14\.1"/);
+  assert.match(version, /APP_VERSION = "0\.2\.23"/);
+  assert.match(version, /APP_SPRINT = "Sprint 7\.15"/);
 });

@@ -232,6 +232,36 @@ export async function getProductionPlanning(filters: Filters = {}) {
   };
 }
 
+export async function getProductionDemandVariance(filters: Filters = {}) {
+  const trend = await getOutletDailyDemandTrend(filters);
+  const signal = ["all", "over_supplied", "under_supplied", "review_manual"].includes(filters.signal ?? "") ? filters.signal ?? "all" : "all";
+  const rows = trend.product_outlets.map((row) => {
+    const leftover_percent = row.received > 0 ? (row.leftover / row.received) * 100 : 0;
+    const manual_review = trend.coverage.confidence === "Low" || row.low_sample;
+    const variance_signal = manual_review
+      ? "review_manual"
+      : leftover_percent >= 20 || row.wastage_percent >= 10
+        ? "over_supplied"
+        : row.movement > 0 && leftover_percent <= 5
+          ? "under_supplied"
+          : "balanced";
+    return { ...row, leftover_percent, variance_signal, manual_review };
+  }).filter((row) => signal === "all" || row.variance_signal === signal);
+  return {
+    ...trend,
+    variance: {
+      signal,
+      rows,
+      summary: {
+        over_supplied: rows.filter((row) => row.variance_signal === "over_supplied").length,
+        under_supplied: rows.filter((row) => row.variance_signal === "under_supplied").length,
+        high_wastage: rows.filter((row) => row.wastage_percent >= 10).length,
+        low_confidence: trend.coverage.confidence === "Low" ? rows.length : 0,
+      },
+    },
+  };
+}
+
 function buildDemandTrend({ records, lines, branches, products, start, end, period, status, branchId, productId }: {
   records: RecordRow[];
   lines: LineRow[];
@@ -254,6 +284,7 @@ function buildDemandTrend({ records, lines, branches, products, start, end, peri
   const productsById = new Map<string, TrendTotals>();
   const outletsById = new Map<string, TrendTotals>();
   const daysByDate = new Map<string, TrendTotals>();
+  const productOutletsByKey = new Map<string, { product_id: string; branch_id: string; totals: TrendTotals; record_ids: Set<string> }>();
   const productRecordIds = new Map<string, Set<string>>();
   const outletRecordIds = new Map<string, Set<string>>();
   for (const record of reliable) {
@@ -270,6 +301,9 @@ function buildDemandTrend({ records, lines, branches, products, start, end, peri
     ids.add(line.record_id); productRecordIds.set(line.product_id, ids);
     const outletTotals = outletsById.get(record.branch_id) ?? emptyTrendTotals();
     addTrendLine(outletTotals, line); outletsById.set(record.branch_id, outletTotals);
+    const productOutletKey = `${line.product_id}:${record.branch_id}`;
+    const productOutlet = productOutletsByKey.get(productOutletKey) ?? { product_id: line.product_id, branch_id: record.branch_id, totals: emptyTrendTotals(), record_ids: new Set<string>() };
+    addTrendLine(productOutlet.totals, line); productOutlet.record_ids.add(line.record_id); productOutletsByKey.set(productOutletKey, productOutlet);
     const dayTotals = daysByDate.get(record.record_date) ?? emptyTrendTotals();
     addTrendLine(dayTotals, line); daysByDate.set(record.record_date, dayTotals);
   }
@@ -285,6 +319,17 @@ function buildDemandTrend({ records, lines, branches, products, start, end, peri
     const completed_records = outletRecordIds.get(branch.id)?.size ?? 0;
     return { id: branch.id, name: branchNames.get(branch.id) ?? "Unknown outlet", ...outletTotals, wastage_percent: wastagePercent(outletTotals), completed_records, no_completed_records: completed_records === 0 };
   });
+  const productOutletRows = [...productOutletsByKey.values()].map((row) => ({
+    id: `${row.product_id}:${row.branch_id}`,
+    product_id: row.product_id,
+    product_name: productNames.get(row.product_id) ?? "Archived product",
+    branch_id: row.branch_id,
+    branch_name: branchNames.get(row.branch_id) ?? "Unknown outlet",
+    ...row.totals,
+    wastage_percent: wastagePercent(row.totals),
+    completed_records: row.record_ids.size,
+    low_sample: row.record_ids.size < 3,
+  }));
   const dailyRows = toRows(daysByDate, (id) => id).sort((left, right) => left.name.localeCompare(right.name));
   return {
     filters: { period, status, branch: branchId ?? "all", product: productId ?? "all", start, end },
@@ -295,6 +340,7 @@ function buildDemandTrend({ records, lines, branches, products, start, end, peri
     top_moving_products: [...productRows].sort((left, right) => right.movement - left.movement).slice(0, 10),
     top_wastage_products: [...productRows].sort((left, right) => right.wastage - left.wastage).slice(0, 10),
     outlets: outletRows.sort((left, right) => right.movement - left.movement),
+    product_outlets: productOutletRows.sort((left, right) => right.movement - left.movement),
     daily: dailyRows,
   };
 }

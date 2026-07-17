@@ -691,3 +691,7 @@ Sprint 7.13 adds a server-side report query over the existing outlet daily heade
 ## Production Planning Lite
 
 Sprint 7.14 reuses the Demand Trend query and its permission/RLS scope. It derives a rounded suggestion from reliable movement, coverage, bounded target days, buffer, and rounding unit. Low confidence and low-sample products suppress the suggested quantity in favour of manual review. Sprint 7.14.1 clarifies the output as a planning reference requiring HQ/kitchen review. It adds no migration, RPC, production-job, inventory, AP, or Cash Flow write path.
+
+## Production vs Outlet Demand Variance
+
+Sprint 7.15 reuses the same read-only Demand Trend result and RLS branch scope to aggregate product/outlet rows. It classifies conservative leftover/wastage and low-leftover movement signals, while low confidence and low sample force manual review. Production Jobs are intentionally excluded because no trusted posted-output join is introduced. It adds no migration, RPC, or write path.

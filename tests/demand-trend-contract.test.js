@@ -49,9 +49,9 @@ test("Demand Trend Lite has one report route and inherits outlet-record access",
   assert.match(query, /hasPermission\("outlet_daily_record\.view"\)/);
 });
 
-test("release footer matches Sprint 7.14.1 without migration 066", () => {
+test("release footer matches Sprint 7.15 without migration 066", () => {
   const version = read("src/lib/app-version.ts");
-  assert.match(version, /APP_VERSION = "0\.2\.22"/);
-  assert.match(version, /APP_SPRINT = "Sprint 7\.14\.1"/);
+  assert.match(version, /APP_VERSION = "0\.2\.23"/);
+  assert.match(version, /APP_SPRINT = "Sprint 7\.15"/);
   assert.equal(fs.readdirSync("supabase/migrations").some((file) => file.startsWith("066_")), false);
 });

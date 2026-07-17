@@ -207,7 +207,7 @@ input[type="date"]::-webkit-date-and-time-value {
 }
 
 .sb-list-filters > :first-child {
-  flex: 1 1 18rem;
+  flex: 1 1 14rem;
   min-width: 0;
   width: auto;
 }
@@ -227,18 +227,6 @@ input[type="date"]::-webkit-date-and-time-value {
   border-color: var(--sb-amber-700);
   background: var(--sb-amber-700);
   color: var(--sb-text-inverse);
-}
-
-.sb-list-filters > a {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.25rem;
-}
-
-.sb-list-filters > a::before {
-  content: "↻";
-  font-size: 1rem;
-  line-height: 1;
 }
 
 .sb-list-filters input,
@@ -310,12 +298,12 @@ input[type="date"]::-webkit-date-and-time-value {
 
 @media (min-width: 768px) {
   .sb-list-filters > :first-child {
-    flex: 1 1 18rem;
-    max-width: none;
+    flex: 1 1 14rem;
+    max-width: 22rem;
   }
 
   .sb-list-filters > :not(:first-child) {
-    flex: 0 1 10rem;
+    flex: 0 1 9rem;
   }
 }
 

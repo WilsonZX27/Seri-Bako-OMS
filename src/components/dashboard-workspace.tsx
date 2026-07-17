@@ -102,10 +102,6 @@ export function DashboardWorkspace({ summary }: { summary: DashboardSummary }) {
               </div>
             </ConsoleSection>
 
-            <ConsoleSection title="Control Center Notes">
-              <div className="space-y-1 text-[11px] text-muted-foreground"><p>Outlet signals use completed or reviewed records where applicable.</p><p>Low confidence means staff records are incomplete.</p><p>Planning values are references, not production orders.</p><p>AP summaries are read-only.</p></div>
-            </ConsoleSection>
-
             {payablesAttention ? <ConsoleSection title="Payables Attention">
               <div className="space-y-2 text-[11px]">
                 <p><span className="text-muted-foreground">As of</span><br /><strong>{payablesAttention.report_date}</strong></p>
@@ -117,6 +113,10 @@ export function DashboardWorkspace({ summary }: { summary: DashboardSummary }) {
                 <p className="text-muted-foreground">Missing due dates rank first, followed by 91+ day critical balances, overdue invoices, due today, then due within seven days.</p>
               </div>
             </ConsoleSection> : null}
+
+            <ConsoleSection title="Control Center Notes">
+              <div className="space-y-1 text-[11px] text-muted-foreground"><p>Outlet signals use completed or reviewed records where applicable.</p><p>Low confidence means staff records are incomplete.</p><p>Planning values are references, not production orders.</p><p>AP summaries are read-only.</p></div>
+            </ConsoleSection>
           </>
         }
       >
@@ -142,15 +142,15 @@ export function DashboardWorkspace({ summary }: { summary: DashboardSummary }) {
 
           <div className="grid gap-4 xl:grid-cols-3">
             <CompactPanel title="Outlet Record Health" action={{ href: "/outlet-daily-records", label: "Open records" }}>
-              {operationsControl?.outlet ? <div className="grid gap-2 sm:grid-cols-3"><MetricCard href="/outlet-daily-records" label="Today" value={formatNumber(operationsControl.outlet.today_records)} icon={PackageCheck} /><MetricCard href="/outlet-daily-records?status=draft" label="Missing evening" value={formatNumber(operationsControl.outlet.missing_evening)} icon={Clock3} tone={operationsControl.outlet.missing_evening ? "amber" : "green"} /><MetricCard href="/outlet-daily-records?status=evening_completed" label="Needs review" value={formatNumber(operationsControl.outlet.needs_review)} icon={ClipboardCheck} tone={operationsControl.outlet.needs_review ? "amber" : "green"} /></div> : <p className="text-xs text-muted-foreground">Outlet record health is unavailable right now.</p>}
+              {operationsControl?.outlet ? <div className="grid gap-2"><MetricCard href="/outlet-daily-records" label="Today" value={formatNumber(operationsControl.outlet.today_records)} icon={PackageCheck} /><MetricCard href="/outlet-daily-records?status=draft" label="Missing evening" value={formatNumber(operationsControl.outlet.missing_evening)} icon={Clock3} tone={operationsControl.outlet.missing_evening ? "amber" : "green"} /><MetricCard href="/outlet-daily-records?status=evening_completed" label="Needs review" value={formatNumber(operationsControl.outlet.needs_review)} icon={ClipboardCheck} tone={operationsControl.outlet.needs_review ? "amber" : "green"} /></div> : <p className="text-xs text-muted-foreground">Outlet record health is unavailable right now.</p>}
             </CompactPanel>
 
             <CompactPanel title="Demand Confidence" action={{ href: "/reports/demand-trends", label: "Open trends" }}>
-              {operationsControl?.demand ? <div className="grid gap-2 sm:grid-cols-3"><MetricCard href="/reports/demand-trends" label="7-day coverage" value={`${formatNumber(operationsControl.demand.coverage.completed)} / ${formatNumber(operationsControl.demand.coverage.expected)}`} icon={CheckCircle2} tone={operationsControl.demand.coverage.confidence === "Low" ? "red" : operationsControl.demand.coverage.confidence === "Medium" ? "amber" : "green"} /><MetricCard href="/reports/demand-trends" label="Confidence" value={operationsControl.demand.coverage.confidence} icon={AlertTriangle} tone={operationsControl.demand.coverage.confidence === "Low" ? "red" : operationsControl.demand.coverage.confidence === "Medium" ? "amber" : "green"} /><MetricCard href="/reports/demand-trends" label="Incomplete" value={formatNumber(operationsControl.demand.coverage.incomplete)} icon={Clock3} tone={operationsControl.demand.coverage.incomplete ? "amber" : "green"} /></div> : <p className="text-xs text-muted-foreground">Demand confidence is unavailable right now.</p>}
+              {operationsControl?.demand ? <div className="grid gap-2"><MetricCard href="/reports/demand-trends" label="7-day coverage" value={`${formatNumber(operationsControl.demand.coverage.completed)} / ${formatNumber(operationsControl.demand.coverage.expected)}`} icon={CheckCircle2} tone={operationsControl.demand.coverage.confidence === "Low" ? "red" : operationsControl.demand.coverage.confidence === "Medium" ? "amber" : "green"} /><MetricCard href="/reports/demand-trends" label="Confidence" value={operationsControl.demand.coverage.confidence} icon={AlertTriangle} tone={operationsControl.demand.coverage.confidence === "Low" ? "red" : operationsControl.demand.coverage.confidence === "Medium" ? "amber" : "green"} /><MetricCard href="/reports/demand-trends" label="Incomplete" value={formatNumber(operationsControl.demand.coverage.incomplete)} icon={Clock3} tone={operationsControl.demand.coverage.incomplete ? "amber" : "green"} /></div> : <p className="text-xs text-muted-foreground">Demand confidence is unavailable right now.</p>}
             </CompactPanel>
 
             <CompactPanel title="Wastage and Variance" action={{ href: "/production/variance", label: "Open variance" }}>
-              {operationsControl?.variance && operationsControl.demand ? <div className="space-y-2"><div className="grid gap-2 sm:grid-cols-3"><MetricCard href="/production/variance?signal=over_supplied" label="Over-supply" value={formatNumber(operationsControl.variance.over_supplied)} icon={AlertTriangle} tone={operationsControl.variance.over_supplied ? "amber" : "green"} /><MetricCard href="/production/variance?signal=under_supplied" label="Under-supply" value={formatNumber(operationsControl.variance.under_supplied)} icon={AlertTriangle} tone={operationsControl.variance.under_supplied ? "red" : "green"} /><MetricCard href="/production/variance" label="High wastage" value={formatNumber(operationsControl.variance.high_wastage)} icon={RotateCw} tone={operationsControl.variance.high_wastage ? "amber" : "green"} /></div><p className="text-[11px] text-muted-foreground">Top wastage: {operationsControl.demand.top_wastage_products.map((row) => row.name).join(", ") || "None"}</p></div> : <p className="text-xs text-muted-foreground">Variance signals are unavailable right now.</p>}
+              {operationsControl?.variance && operationsControl.demand ? <div className="space-y-2"><div className="grid gap-2"><MetricCard href="/production/variance?signal=over_supplied" label="Over-supply" value={formatNumber(operationsControl.variance.over_supplied)} icon={AlertTriangle} tone={operationsControl.variance.over_supplied ? "amber" : "green"} /><MetricCard href="/production/variance?signal=under_supplied" label="Under-supply" value={formatNumber(operationsControl.variance.under_supplied)} icon={AlertTriangle} tone={operationsControl.variance.under_supplied ? "red" : "green"} /><MetricCard href="/production/variance" label="High wastage" value={formatNumber(operationsControl.variance.high_wastage)} icon={RotateCw} tone={operationsControl.variance.high_wastage ? "amber" : "green"} /></div><p className="text-[11px] text-muted-foreground">Top wastage: {operationsControl.demand.top_wastage_products.map((row) => row.name).join(", ") || "None"}</p></div> : <p className="text-xs text-muted-foreground">Variance signals are unavailable right now.</p>}
             </CompactPanel>
 
           </div>

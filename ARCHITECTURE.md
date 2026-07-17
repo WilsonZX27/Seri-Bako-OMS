@@ -706,4 +706,4 @@ Sprint 7.16.1 keeps one direct sidebar path to Outlet Daily Records, a single Pr
 
 ## Master Data Cleanup Lite
 
-Sprint 7.17.3 keeps the Dashboard’s existing summaries and actions unchanged while regrouping their visual layout into priority, operations, and lower finance/planning/stock areas. It adds no query, mutation action, RPC, or migration.
+Sprint 7.17.3a keeps the existing Dashboard summaries and actions unchanged while improving metric readability and shared static-page controls. It adds no query, mutation action, RPC, or migration.

@@ -131,10 +131,9 @@ async function assertSprint731Rules(page, route) {
   if (route === "/inventory") {
     await expect(page.locator("body")).not.toContainText("Recent Transactions");
     await expect(page.locator("body")).not.toContainText(/permission denied for view|42501|Application error/i);
-    const rail = page.getByTestId("inventory-insights-rail");
-    await expect(rail).toContainText("Quick Insights");
-    const railBox = await rail.boundingBox();
-    expect(railBox, "Inventory Quick Insights rail must be visible").toBeTruthy();
+    const console = page.locator("[data-right-console]");
+    await expect(console).toContainText("Quick Insights");
+    await expect(console).toContainText("New movement");
   }
   if (route === "/reports") {
     await expect(page.locator("body")).not.toContainText("Quick Insights");

@@ -3,7 +3,9 @@ import { ArrowDownLeft, ArrowUpRight, Boxes, ClipboardCheck, PackageSearch, Rece
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { PageHeader } from "@/components/ui/page-header";
-import { CompactStatList, WorkspaceSectionPanel, type WorkspaceInsight, type WorkspaceSection } from "@/components/workspace-panels";
+import { WorkspaceSectionPanel, type WorkspaceInsight, type WorkspaceSection } from "@/components/workspace-panels";
+import { ConsoleSection } from "@/components/layout/right-console";
+import { WorkspaceGrid } from "@/components/layout/workspace-layout";
 import { formatNumber } from "@/lib/utils";
 import { getInventoryDashboard } from "@/server/queries/inventory";
 import { SelectNative } from "@/components/ui/select-native";
@@ -59,9 +61,26 @@ export default async function InventoryPage({ searchParams }: { searchParams: Pr
 
   return (
     <>
-      <PageHeader title="Inventory" description="Stock ledger dashboard. Balances are calculated from posted transactions only." action={{ href: "/stock-transactions/new", label: "New movement" }} />
-      <div className="space-y-5 p-5">
-        <div className="grid gap-5 2xl:grid-cols-[minmax(0,1fr)_300px]">
+      <PageHeader title="Inventory" description="Stock ledger dashboard. Balances are calculated from posted transactions only." />
+      <WorkspaceGrid
+        className="p-5"
+        rightRail={
+          <>
+            <ConsoleSection title="Quick Actions">
+              <Button asChild size="sm" className="w-full justify-start"><Link href="/stock-transactions/new">New movement</Link></Button>
+            </ConsoleSection>
+            <ConsoleSection title="Quick Insights">
+              <div className="divide-y rounded-[2px] border bg-white">
+                {inventoryInsights.map((insight) => {
+                  const Icon = insight.icon;
+                  return <Link key={insight.label} href={insight.href ?? "/inventory"} className="flex items-center justify-between gap-3 px-2 py-2 text-xs hover:bg-[var(--sb-surface-muted)]"><span className="flex min-w-0 items-center gap-2"><Icon className="h-3.5 w-3.5 shrink-0 text-primary" /><span className="truncate">{insight.label}</span></span><strong className="shrink-0 font-mono text-sm">{insight.value}</strong></Link>;
+                })}
+              </div>
+              <Button asChild className="mt-3 w-full" variant="outline" size="sm"><Link href="/stock-balance">Review stock balance</Link></Button>
+            </ConsoleSection>
+          </>
+        }
+      >
           <div className="space-y-5">
             <div className="grid grid-cols-1 gap-6 md:grid-cols-2 2xl:grid-cols-3">
               {inventorySections.map((section) => (
@@ -123,11 +142,7 @@ export default async function InventoryPage({ searchParams }: { searchParams: Pr
             </div>
           ) : null}
           </div>
-          <aside data-testid="inventory-insights-rail" className="min-w-0 2xl:sticky 2xl:top-6 2xl:max-h-[calc(100vh-120px)] 2xl:overflow-y-auto">
-            <CompactStatList insights={inventoryInsights} action={{ href: "/stock-balance", label: "Review stock balance" }} />
-          </aside>
-        </div>
-      </div>
+      </WorkspaceGrid>
     </>
   );
 }

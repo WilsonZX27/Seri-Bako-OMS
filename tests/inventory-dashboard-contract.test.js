@@ -14,6 +14,15 @@ test("inventory dashboard uses the implemented stock rules", () => {
   assert.match(query, /period.*month/);
 });
 
+test("inventory keeps its action and quick insights in the shared right console", () => {
+  const page = read("src/app/(app)/inventory/page.tsx");
+  assert.match(page, /WorkspaceGrid/);
+  assert.match(page, /ConsoleSection title="Quick Actions"/);
+  assert.match(page, /ConsoleSection title="Quick Insights"/);
+  assert.match(page, /href="\/stock-transactions\/new"/);
+  assert.doesNotMatch(page, /inventory-insights-rail/);
+});
+
 test("all configured imports use the shared import workspace", () => {
   const config = read("src/lib/imports/config.ts");
   const page = read("src/app/(app)/imports/[entity]/page.tsx");

@@ -475,9 +475,9 @@ The Sprint 7.16 application baseline is `v0.2.24 / Sprint 7.16` with migration c
 
 The Sprint 7.16.1 application baseline is `v0.2.24 / Sprint 7.16.1` with migration ceiling `065`; migration `066` is not required. Verify the Dashboard links to Outlet Daily Records, Demand Trends, Demand Variance, and Production Planning; the Production hub retains one card for Planning and one for Variance; and report tables remain horizontally usable on narrow screens. This polish adds no writes.
 
-## Sprint 7.17.3 Dashboard Layout Visual Polish deployment
+## Sprint 7.17.3a Small UI Fix deployment
 
-The Sprint 7.17.3 application baseline is `v0.2.25 / Sprint 7.17.3` with migration ceiling `065`; migration `066` is not required. Verify the Dashboard’s priority, operations, and lower payables/planning/stock layout. This visual regrouping does not merge, delete, import, or update data.
+The Sprint 7.17.3a application baseline is `v0.2.25 / Sprint 7.17.3a` with migration ceiling `065`; migration `066` is not required. Verify readable Dashboard metric rows, single reset/clear icons, and Inventory actions/insights in the shared right console. This visual polish does not merge, delete, import, or update data.
 
 Use versioned migrations as the source of truth. If a migration must be applied through the Supabase SQL Editor, record the project ID, source filename, ledger result, and verification evidence; never edit an already-applied file. No pilot CSV should be imported until a backup/recovery path and an owner-approved rollback or correction procedure are known.
 

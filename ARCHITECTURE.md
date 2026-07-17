@@ -707,3 +707,7 @@ Sprint 7.16.1 keeps one direct sidebar path to Outlet Daily Records, a single Pr
 ## Master Data Cleanup Lite
 
 Sprint 7.17.3a keeps the existing Dashboard summaries and actions unchanged while improving metric readability and shared static-page controls. It adds no query, mutation action, RPC, or migration.
+
+## Costing Readiness Lite
+
+Sprint 7.18 adds a server-side, read-only report over existing items, supplier items, recipes, recipe lines, and products. It uses the existing `reports.view` boundary and current RLS-visible rows, with no new RPC, migration, or cost write path.

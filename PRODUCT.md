@@ -199,7 +199,7 @@ The system currently covers or is actively implementing the following operationa
 
 Module maturity must be understood separately from visual completion.
 
-Current local baseline: `v0.2.25 / Sprint 7.17.3a` with database migrations through `065`. This is an operational pilot baseline, not a claim that Seri Bako OMS is a full accounting ERP.
+Current local baseline: `v0.2.26 / Sprint 7.18` with database migrations through `065`. This is an operational pilot baseline, not a claim that Seri Bako OMS is a full accounting ERP.
 
 A page may exist visually without its full workflow, validation, database integration, permissions, and downstream effects being complete.
 
@@ -360,6 +360,10 @@ The Dashboard composes existing outlet health, demand confidence, variance, plan
 ### Master Data Cleanup Lite
 
 Master Data Cleanup Lite is a read-only checklist for duplicate or variant codes, missing core fields, inactive referenced master records, and location branch gaps. It links to existing master pages for human review; it does not merge, delete, or modify any record.
+
+### Costing Readiness Lite
+
+Costing Readiness Lite is a read-only checklist for item costs, supplier prices, recipe ingredients, and product-to-recipe coverage. It identifies data gaps before any future margin or costing work; fixes remain manual and it does not recalculate or write costs.
 
 ## Roles and Permissions
 

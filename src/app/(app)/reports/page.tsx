@@ -57,6 +57,7 @@ const reportCategories: ReportCategory[] = [
     reports: [
       { href: "/documents", title: "Document Register", description: "Complete document search and history.", icon: FileText },
       { href: "/documents?status=posted", title: "Posted Documents", description: "Completed documents and attachments.", icon: ClipboardCheck },
+      { href: "/reports/costing-readiness", title: "Costing Readiness", description: "Master-data checks before trusting future costing.", icon: PackageSearch },
     ],
   },
 ];

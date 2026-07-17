@@ -31,6 +31,6 @@ test("UI smoke keeps the requested routes, console order, and current footer", (
   }
   assert.match(dashboard, /Quick Actions[\s\S]*Payables Attention[\s\S]*Control Center Notes/);
   assert.doesNotMatch(dashboard, /ConsoleSection title="Recent Activity"/);
-  assert.match(read("src/lib/app-version.ts"), /APP_SPRINT = "Sprint 7\.19"/);
+  assert.match(read("src/lib/app-version.ts"), /APP_SPRINT = "Sprint 7\.19\.1"/);
   assert.equal(fs.readdirSync("supabase/migrations").some((file) => file.startsWith("066_")), false);
 });

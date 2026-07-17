@@ -15,24 +15,29 @@ test("Recipe Costing is a protected read-only report", () => {
   assert.doesNotMatch(query, /\.(insert|update|delete)\(/);
 });
 
-test("Recipe Costing uses the normalized item base-UOM cost without inventing missing values", () => {
+test("Recipe Costing keeps item base-UOM cost gaps and mismatches explicit", () => {
   assert.match(query, /Number\(item.cost\) <= 0/);
   assert.match(query, /line.base_uom !== item.base_unit/);
   assert.match(query, /Number\(line.base_qty_required\) \* Number\(item.cost\)/);
   assert.match(query, /total_ingredient_cost: total/);
   assert.match(query, /cost_per_output_unit: total != null && outputQty \? total \/ outputQty : null/);
-  assert.match(page, /Supplier prices and recipe-line costs are not substituted/);
+  assert.match(query, /uom_mismatch_count: uomMismatchCount/);
+  assert.match(page, /A UOM mismatch is not estimated/);
+  assert.match(page, /Missing cost is not counted as zero/);
 });
 
-test("Recipe Costing surfaces confidence, filters, and the existing recipe detail", () => {
+test("Recipe Costing surfaces confidence, manual actions, filters, and the existing recipe detail", () => {
   assert.match(query, /const confidence = !complete \? "Low" : warning \? "Medium" : "High"/);
   assert.match(page, /name="missing_cost"/);
   assert.match(page, /Missing cost only/);
+  assert.match(page, /Low confidence/);
+  assert.match(page, /row.confidence === "Low" \? "Incomplete"/);
+  for (const action of ["Add item cost", "Align UOM", "Add recipe output", "Add recipe lines"]) assert.match(query, new RegExp(action));
   assert.match(page, /href=\{`\/recipes\/\$\{row.id\}`\}/);
 });
 
-test("Recipe Costing has the Sprint 7.19 footer and adds no migration 066", () => {
+test("Recipe Costing has the Sprint 7.19.1 footer and adds no migration 066", () => {
   assert.match(version, /APP_VERSION = "0\.2\.27"/);
-  assert.match(version, /APP_SPRINT = "Sprint 7\.19"/);
+  assert.match(version, /APP_SPRINT = "Sprint 7\.19\.1"/);
   assert.equal(fs.readdirSync("supabase/migrations").some((file) => file.startsWith("066_")), false);
 });

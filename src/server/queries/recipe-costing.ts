@@ -9,12 +9,14 @@ export type RecipeCostingRow = {
   status: string;
   ingredient_line_count: number;
   missing_cost_count: number;
+  uom_mismatch_count: number;
   total_ingredient_cost: number | null;
   output_qty: number | null;
   output_uom: string | null;
   cost_per_output_unit: number | null;
   confidence: "High" | "Medium" | "Low";
   warning: string | null;
+  action: string | null;
 };
 
 type Filters = { search?: string; status?: string; confidence?: string; missing_cost?: string };
@@ -31,11 +33,19 @@ export function buildRecipeCosting(data: Data, filters: Filters = {}) {
   const products = new Map(data.products.map((product) => [product.id, product]));
   const rows = data.recipes.filter((recipe) => !recipe.deleted_at).map((recipe) => {
     const lines = data.recipeLines.filter((line) => line.recipe_id === recipe.id);
-    const costs = lines.map((line) => lineCost(line, items.get(line.ingredient_item_id)));
-    const missingCostCount = costs.filter((cost) => cost == null).length;
+    const lineStates = lines.map((line) => {
+      const item = items.get(line.ingredient_item_id);
+      const uomMismatch = Boolean(item && line.base_uom !== item.base_unit);
+      const missingCost = !item || item.status !== "active" || Number(item.cost) <= 0 || Number(line.base_qty_required) <= 0;
+      return { cost: lineCost(line, item), missingCost, uomMismatch };
+    });
+    const costs = lineStates.map((line) => line.cost);
+    const missingCostCount = lineStates.filter((line) => line.missingCost).length;
+    const uomMismatchCount = lineStates.filter((line) => line.uomMismatch).length;
     const outputQty = Number(recipe.yield_qty) > 0 ? Number(recipe.yield_qty) : null;
-    const complete = lines.length > 0 && !missingCostCount && outputQty && recipe.yield_unit;
-    const warning = !lines.length ? "No ingredient lines." : missingCostCount ? "Missing item cost or reliable base-UOM conversion." : !outputQty || !recipe.yield_unit ? "Output quantity or UOM is missing." : recipe.approval_status !== "approved" ? "Recipe is not approved." : null;
+    const complete = lines.length > 0 && !missingCostCount && !uomMismatchCount && outputQty && recipe.yield_unit;
+    const warning = !lines.length ? "No ingredient lines." : missingCostCount ? "Missing usable item cost." : uomMismatchCount ? "Recipe line UOM does not match the item base UOM." : !outputQty || !recipe.yield_unit ? "Output quantity or UOM is missing." : recipe.approval_status !== "approved" ? "Recipe is not approved." : null;
+    const action = !lines.length ? "Add recipe lines" : missingCostCount ? "Add item cost" : uomMismatchCount ? "Align UOM" : !outputQty || !recipe.yield_unit ? "Add recipe output" : null;
     const total = complete ? costs.reduce<number>((sum, cost) => sum + Number(cost), 0) : null;
     const confidence = !complete ? "Low" : warning ? "Medium" : "High";
     return {
@@ -45,12 +55,14 @@ export function buildRecipeCosting(data: Data, filters: Filters = {}) {
       status: recipe.status,
       ingredient_line_count: lines.length,
       missing_cost_count: missingCostCount,
+      uom_mismatch_count: uomMismatchCount,
       total_ingredient_cost: total,
       output_qty: outputQty,
       output_uom: recipe.yield_unit || null,
       cost_per_output_unit: total != null && outputQty ? total / outputQty : null,
       confidence,
       warning,
+      action,
     } satisfies RecipeCostingRow;
   });
   const needle = filters.search?.trim().toLowerCase();

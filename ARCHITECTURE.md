@@ -717,3 +717,5 @@ Sprint 7.18.1 only clarifies issue severity, manual corrective actions, and all-
 ## Recipe Costing Lite
 
 Sprint 7.19 adds a server-side, read-only recipe estimate over existing recipes, recipe lines, products, and items. It requires `reports.view` and uses the current RLS-visible rows. The only automatic cost source is `items.cost` in the matching item base UOM; missing costs or unclear conversion make the estimate incomplete instead of zero. It adds no RPC, migration, or write path.
+
+Sprint 7.19.1 exposes missing-cost and UOM-mismatch counts separately, with no calculation or data-source change.

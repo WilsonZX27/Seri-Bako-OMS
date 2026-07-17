@@ -690,4 +690,4 @@ Sprint 7.13 adds a server-side report query over the existing outlet daily heade
 
 ## Production Planning Lite
 
-Sprint 7.14 reuses the Demand Trend query and its permission/RLS scope. It derives a one-day rounded suggestion from reliable movement, coverage, a bounded buffer, and a bounded rounding unit. Low confidence and low-sample products suppress the suggested quantity in favour of manual review. It adds no migration, RPC, production-job, inventory, AP, or Cash Flow write path.
+Sprint 7.14 reuses the Demand Trend query and its permission/RLS scope. It derives a rounded suggestion from reliable movement, coverage, bounded target days, buffer, and rounding unit. Low confidence and low-sample products suppress the suggested quantity in favour of manual review. Sprint 7.14.1 clarifies the output as a planning reference requiring HQ/kitchen review. It adds no migration, RPC, production-job, inventory, AP, or Cash Flow write path.

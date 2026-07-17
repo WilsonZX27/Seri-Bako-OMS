@@ -459,6 +459,10 @@ The Sprint 7.13.1 application baseline is `v0.2.21 / Sprint 7.13.1` with migrati
 
 The Sprint 7.14 application baseline is `v0.2.22 / Sprint 7.14` with migration ceiling `065`; migration `066` is not required. Verify `/production/planning` only uses accessible Outlet Daily Record data, calculates average daily movement from completed outlet-days, applies the selected buffer and rounding unit, and labels low coverage or low-sample products for manual review. It is read-only and must not create production jobs, inventory, AP, or Cash Flow writes.
 
+## Sprint 7.14.1 Production Planning Usability Polish deployment
+
+The Sprint 7.14.1 application baseline is `v0.2.22 / Sprint 7.14.1` with migration ceiling `065`; migration `066` remains unnecessary. Verify the planning date, target days (default 1), buffer (default 10%), and rounding unit (default 1) are visible. High confidence may show a suggested quantity; Medium is marked caution; Low confidence and low-sample products require manual review. The page remains read-only.
+
 Use versioned migrations as the source of truth. If a migration must be applied through the Supabase SQL Editor, record the project ID, source filename, ledger result, and verification evidence; never edit an already-applied file. No pilot CSV should be imported until a backup/recovery path and an owner-approved rollback or correction procedure are known.
 
 If CLI migration access fails because DNS or network resolution is unavailable, do not retry blindly. Use a controlled SQL Editor application only with explicit authorization, apply the reviewed migration once, and verify the migration ledger and live objects afterward.

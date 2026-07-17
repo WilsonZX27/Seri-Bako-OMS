@@ -13,13 +13,19 @@ test("Production Planning Lite reuses reliable demand movement and rounds its su
   assert.match(query, /Math\.ceil\(calculated \/ rounding_unit\) \* rounding_unit/);
   assert.match(query, /planningNumber\(filters\.buffer_percent, 10/);
   assert.match(query, /planningNumber\(filters\.rounding_unit, 1/);
+  assert.match(query, /planningNumber\(filters\.target_days, 1, 1, 30\)/);
+  assert.match(page, /Target: 1 day/);
+  assert.match(page, /Buffer %/);
+  assert.match(page, /Round to/);
 });
 
-test("Production Planning Lite makes weak data manual review", () => {
+test("Production Planning Lite makes weak data manual review and warns on medium confidence", () => {
   assert.match(query, /trend\.coverage\.confidence === "Low" \|\| product\.low_sample/);
-  assert.match(query, /"Insufficient data"/);
   assert.match(query, /"Review manually"/);
+  assert.match(query, /"Suggested — check data"/);
   assert.match(page, /Low sample/);
+  assert.match(page, /Medium · Caution/);
+  assert.match(page, /Suggestions are planning references, not production orders/);
   assert.match(page, /Open Demand Trends/);
 });
 
@@ -29,12 +35,12 @@ test("Production Planning Lite has no production, stock, AP or cash-flow write p
   assert.equal(fs.readdirSync("supabase/migrations").some((file) => file.startsWith("066_")), false);
 });
 
-test("Production Planning Lite is route-protected and follows the Sprint 7.14 footer", () => {
+test("Production Planning Lite is route-protected and follows the Sprint 7.14.1 footer", () => {
   const routes = read("src/server/auth/route-permissions.ts");
   const production = read("src/app/(app)/production/page.tsx");
   const version = read("src/lib/app-version.ts");
   assert.match(routes, /"\/production\/planning": \["outlet_daily_record\.view"\]/);
   assert.match(production, /\/production\/planning/);
   assert.match(version, /APP_VERSION = "0\.2\.22"/);
-  assert.match(version, /APP_SPRINT = "Sprint 7\.14"/);
+  assert.match(version, /APP_SPRINT = "Sprint 7\.14\.1"/);
 });

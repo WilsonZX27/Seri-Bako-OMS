@@ -202,7 +202,7 @@ export async function getProductionPlanning(filters: Filters = {}) {
   const buffer_percent = planningNumber(filters.buffer_percent, 10, 0, 100);
   const rounding_unit = planningNumber(filters.rounding_unit, 1, 0.01, 10_000);
   const planning_date = /^\d{4}-\d{2}-\d{2}$/.test(filters.planning_date ?? "") ? filters.planning_date! : todayInKualaLumpur();
-  const target_days = 1;
+  const target_days = planningNumber(filters.target_days, 1, 1, 30);
   const averageFor = (movement: number) => trend.coverage.completed ? movement / trend.coverage.completed : 0;
   const rows = trend.top_moving_products.map((product) => {
     const average_daily_movement = averageFor(product.movement);
@@ -212,7 +212,7 @@ export async function getProductionPlanning(filters: Filters = {}) {
       ...product,
       average_daily_movement,
       suggested_qty: manual_review ? null : Math.ceil(calculated / rounding_unit) * rounding_unit,
-      planning_note: trend.coverage.confidence === "Low" ? "Insufficient data" : product.low_sample ? "Review manually" : trend.coverage.confidence === "Medium" ? "Use with caution" : "Ready for review",
+      planning_note: trend.coverage.confidence === "Low" ? "Review manually" : product.low_sample ? "Review manually" : trend.coverage.confidence === "Medium" ? "Suggested — check data" : "Suggested — HQ/kitchen check",
     };
   });
   return {
@@ -226,7 +226,7 @@ export async function getProductionPlanning(filters: Filters = {}) {
       summary: {
         high: rows.filter((row) => trend.coverage.confidence === "High" && !row.low_sample).length,
         medium: rows.filter((row) => trend.coverage.confidence === "Medium" && !row.low_sample).length,
-        manual: rows.filter((row) => row.planning_note === "Insufficient data" || row.planning_note === "Review manually").length,
+        manual: rows.filter((row) => row.planning_note === "Review manually").length,
       },
     },
   };

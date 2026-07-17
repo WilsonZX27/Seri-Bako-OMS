@@ -15,7 +15,7 @@ export type ProductMarginRow = {
   gross_margin_amount: number | null;
   gross_margin_percent: number | null;
   status: "Ready" | "Cost incomplete" | "Missing price" | "Missing recipe";
-  margin_band: "low_margin" | "healthy" | "unavailable";
+  margin_band: "review" | "healthy" | "unavailable";
 };
 
 type Filters = { search?: string; status?: string; margin_band?: string; incomplete?: string };
@@ -49,7 +49,7 @@ export function buildProductMargin(data: Data, filters: Filters = {}) {
       gross_margin_amount: margin,
       gross_margin_percent: marginPercent,
       status,
-      margin_band: marginPercent == null ? "unavailable" : marginPercent <= 0 ? "low_margin" : "healthy",
+      margin_band: marginPercent == null ? "unavailable" : marginPercent <= 0 ? "review" : "healthy",
     } satisfies ProductMarginRow;
   });
   const needle = filters.search?.trim().toLowerCase();

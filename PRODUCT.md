@@ -199,7 +199,7 @@ The system currently covers or is actively implementing the following operationa
 
 Module maturity must be understood separately from visual completion.
 
-Current local baseline: `v0.2.28 / Sprint 7.20` with database migrations through `065`. This is an operational pilot baseline, not a claim that Seri Bako OMS is a full accounting ERP.
+Current local baseline: `v0.2.28 / Sprint 7.20.1` with database migrations through `065`. This is an operational pilot baseline, not a claim that Seri Bako OMS is a full accounting ERP.
 
 A page may exist visually without its full workflow, validation, database integration, permissions, and downstream effects being complete.
 
@@ -374,6 +374,8 @@ Sprint 7.19.1 makes UOM mismatches, missing costs, output gaps, and manual corre
 ### Product Cost & Margin Lite
 
 Product Cost & Margin Lite is a read-only estimate. It only uses a High-confidence active recipe cost and one unambiguous active packaging price; missing recipe, cost, UOM alignment, or price blocks margin rather than becoming zero. Pricing remains manual and no product, cost, margin, inventory, production, or finance data is written.
+
+Sprint 7.20.1 labels non-positive margin as Review, not an automated pricing decision, and makes the product and recipe review paths explicit.
 
 ## Roles and Permissions
 

@@ -23,16 +23,20 @@ test("Product Margin only uses High recipe confidence and never turns missing co
   assert.match(query, /!costReady \? "Cost incomplete"/);
 });
 
-test("Product Margin uses the selected packaging price and exposes formulas and detail links", () => {
+test("Product Margin uses neutral bands and clear manual review paths", () => {
   assert.match(query, /packs.length === 1/);
   assert.match(query, /sellingPrice - cost/);
   assert.match(query, /margin \/ sellingPrice/);
-  assert.match(page, /href=\{`\/products\/\$\{row.id\}`\}/);
+  assert.match(query, /"review" : "healthy"/);
+  assert.match(page, /Medium and Low are Cost incomplete/);
+  assert.match(page, /Missing or ambiguous pricing blocks margin/);
+  assert.match(page, /Product margins are ready for review/);
+  assert.match(page, /Review product pricing/);
   assert.match(page, /href=\{`\/recipes\/\$\{row.recipe_id\}`\}/);
 });
 
-test("Product Margin has the Sprint 7.20 footer and adds no migration 066", () => {
+test("Product Margin has the Sprint 7.20.1 footer and adds no migration 066", () => {
   assert.match(version, /APP_VERSION = "0\.2\.28"/);
-  assert.match(version, /APP_SPRINT = "Sprint 7\.20"/);
+  assert.match(version, /APP_SPRINT = "Sprint 7\.20\.1"/);
   assert.equal(fs.readdirSync("supabase/migrations").some((file) => file.startsWith("066_")), false);
 });

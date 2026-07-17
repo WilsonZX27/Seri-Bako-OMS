@@ -215,12 +215,20 @@ function buildDemandTrend({ records, lines, branches, products, start, end, peri
   const productsById = new Map<string, TrendTotals>();
   const outletsById = new Map<string, TrendTotals>();
   const daysByDate = new Map<string, TrendTotals>();
+  const productRecordIds = new Map<string, Set<string>>();
+  const outletRecordIds = new Map<string, Set<string>>();
+  for (const record of reliable) {
+    const ids = outletRecordIds.get(record.branch_id) ?? new Set<string>();
+    ids.add(record.id); outletRecordIds.set(record.branch_id, ids);
+  }
   for (const line of trendLines) {
     addTrendLine(summary, line);
     const record = recordById.get(line.record_id);
     if (!record) continue;
     const productTotals = productsById.get(line.product_id) ?? emptyTrendTotals();
     addTrendLine(productTotals, line); productsById.set(line.product_id, productTotals);
+    const ids = productRecordIds.get(line.product_id) ?? new Set<string>();
+    ids.add(line.record_id); productRecordIds.set(line.product_id, ids);
     const outletTotals = outletsById.get(record.branch_id) ?? emptyTrendTotals();
     addTrendLine(outletTotals, line); outletsById.set(record.branch_id, outletTotals);
     const dayTotals = daysByDate.get(record.record_date) ?? emptyTrendTotals();
@@ -229,16 +237,22 @@ function buildDemandTrend({ records, lines, branches, products, start, end, peri
   const expectedDays = Math.round((Date.parse(`${end}T00:00:00Z`) - Date.parse(`${start}T00:00:00Z`)) / 86_400_000 + 1) * (branchId ? 1 : branches.length);
   const completedOutletDays = new Set(reliable.map((record) => `${record.branch_id}:${record.record_date}`)).size;
   const incompleteRecords = records.filter((record) => ["draft", "morning_recorded"].includes(record.status)).length;
+  const coveragePercent = expectedDays ? (completedOutletDays / expectedDays) * 100 : 0;
+  const confidence = coveragePercent >= 80 ? "High" : coveragePercent >= 50 ? "Medium" : "Low";
   const toRows = (source: Map<string, TrendTotals>, nameFor: (id: string) => string) => [...source].map(([id, totals]) => ({ id, name: nameFor(id), ...totals, wastage_percent: wastagePercent(totals) }));
-  const productRows = toRows(productsById, (id) => productNames.get(id) ?? "Archived product");
-  const outletRows = toRows(outletsById, (id) => branchNames.get(id) ?? "Unknown outlet");
+  const productRows = toRows(productsById, (id) => productNames.get(id) ?? "Archived product").map((row) => ({ ...row, completed_records: productRecordIds.get(row.id)?.size ?? 0, low_sample: (productRecordIds.get(row.id)?.size ?? 0) < 3 }));
+  const outletRows = branches.filter((branch) => !branchId || branch.id === branchId).map((branch) => {
+    const outletTotals = outletsById.get(branch.id) ?? emptyTrendTotals();
+    const completed_records = outletRecordIds.get(branch.id)?.size ?? 0;
+    return { id: branch.id, name: branchNames.get(branch.id) ?? "Unknown outlet", ...outletTotals, wastage_percent: wastagePercent(outletTotals), completed_records, no_completed_records: completed_records === 0 };
+  });
   const dailyRows = toRows(daysByDate, (id) => id).sort((left, right) => left.name.localeCompare(right.name));
   return {
     filters: { period, status, branch: branchId ?? "all", product: productId ?? "all", start, end },
     branches,
     products,
     summary: { ...summary, wastage_percent: wastagePercent(summary) },
-    coverage: { completed: completedOutletDays, expected: expectedDays, incomplete: incompleteRecords, missing: Math.max(expectedDays - completedOutletDays, 0) },
+    coverage: { completed: completedOutletDays, expected: expectedDays, incomplete: incompleteRecords, missing: Math.max(expectedDays - completedOutletDays, 0), percent: coveragePercent, confidence },
     top_moving_products: [...productRows].sort((left, right) => right.movement - left.movement).slice(0, 10),
     top_wastage_products: [...productRows].sort((left, right) => right.wastage - left.wastage).slice(0, 10),
     outlets: outletRows.sort((left, right) => right.movement - left.movement),

@@ -6,10 +6,20 @@ const read = (file) => fs.readFileSync(file, "utf8");
 const query = read("src/server/queries/outlet-daily-records.ts");
 const page = read("src/app/(app)/reports/demand-trends/page.tsx");
 
-test("Demand Trend Lite uses only reliable outlet daily records", () => {
+test("Demand Trend Lite separates incomplete records from reliable totals", () => {
   assert.match(query, /\["evening_completed", "reviewed"\]\.includes\(record\.status\)/);
   assert.match(query, /\["draft", "morning_recorded"\]\.includes\(record\.status\)/);
   assert.match(page, /incomplete record\(s\).*missing outlet-day/s);
+  assert.match(page, /Use with caution/);
+});
+
+test("Demand Trend Lite exposes coverage confidence and reliability cues", () => {
+  assert.match(query, /coveragePercent >= 80 \? "High" : coveragePercent >= 50 \? "Medium" : "Low"/);
+  assert.match(query, /completed_records: productRecordIds\.get\(row\.id\)\?\.size/);
+  assert.match(query, /low_sample: \(productRecordIds\.get\(row\.id\)\?\.size \?\? 0\) < 3/);
+  assert.match(query, /no_completed_records: completed_records === 0/);
+  assert.match(page, /Low sample/);
+  assert.match(page, /No completed records in this range/);
 });
 
 test("Demand Trend Lite calculates movement and wastage from outlet lines only", () => {
@@ -39,9 +49,9 @@ test("Demand Trend Lite has one report route and inherits outlet-record access",
   assert.match(query, /hasPermission\("outlet_daily_record\.view"\)/);
 });
 
-test("release footer matches Sprint 7.13 without migration 066", () => {
+test("release footer matches Sprint 7.13.1 without migration 066", () => {
   const version = read("src/lib/app-version.ts");
   assert.match(version, /APP_VERSION = "0\.2\.21"/);
-  assert.match(version, /APP_SPRINT = "Sprint 7\.13"/);
+  assert.match(version, /APP_SPRINT = "Sprint 7\.13\.1"/);
   assert.equal(fs.readdirSync("supabase/migrations").some((file) => file.startsWith("066_")), false);
 });

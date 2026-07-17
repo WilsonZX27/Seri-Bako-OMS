@@ -8,7 +8,7 @@ For UI and interaction standards, read `DESIGN.md`.
 
 ## Current Pilot Baseline
 
-- Application release: `v0.2.21 / Sprint 7.13`.
+- Application release: `v0.2.21 / Sprint 7.13.1`.
 - Database migration ceiling: `065_fix_outlet_evening_completion_validation`.
 - Pilot preparation is documentation and operator readiness only; it does not change the application release.
 - Start with `docs/PILOT_BASELINE.md`, use the controlled CSV files in `docs/import-templates/`, and record sign-off in `docs/PILOT_QA_CHECKLIST.md`.
@@ -168,7 +168,7 @@ The application includes or is actively developing:
 - Live Payment Due Alerts on the dashboard, AP Aging, and eligible supplier invoices.
 - Cash Flow Forecast with 7-day, 14-day, 30-day, and current-month payable pressure from the AP Aging source.
 - Outlet Daily Records for morning receiving, evening leftovers, wastage, and review without inventory posting.
-- Demand Trend Lite from completed/reviewed Outlet Daily Records, without inventory or production writes.
+- Demand Trend Lite from completed/reviewed Outlet Daily Records, with coverage confidence and low-sample labels, without inventory or production writes.
 - Stock Transactions and Stock Ledger.
 - Stock Balance.
 - Low Stock.

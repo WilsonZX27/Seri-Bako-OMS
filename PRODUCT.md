@@ -199,7 +199,7 @@ The system currently covers or is actively implementing the following operationa
 
 Module maturity must be understood separately from visual completion.
 
-Current local baseline: `v0.2.21 / Sprint 7.13` with database migrations through `065`. This is an operational pilot baseline, not a claim that Seri Bako OMS is a full accounting ERP.
+Current local baseline: `v0.2.21 / Sprint 7.13.1` with database migrations through `065`. This is an operational pilot baseline, not a claim that Seri Bako OMS is a full accounting ERP.
 
 A page may exist visually without its full workflow, validation, database integration, permissions, and downstream effects being complete.
 
@@ -343,7 +343,7 @@ Outlet Daily Records capture morning product quantities, evening leftovers, wast
 
 ### Demand Trend Lite
 
-Demand Trend Lite reports only Outlet Daily Records in Evening Completed or Reviewed state. It estimates movement as received minus leftover and wastage, never below zero, and shows coverage separately because missing or incomplete outlet-days do not represent zero demand. It is not POS sales, a production suggestion, or a forecasting engine, and it does not write inventory or production data.
+Demand Trend Lite reports only Outlet Daily Records in Evening Completed or Reviewed state. It estimates movement as received minus leftover and wastage, never below zero, and shows coverage separately because missing or incomplete outlet-days do not represent zero demand. Sprint 7.13.1 labels coverage confidence and low-sample products without changing those totals. It is not POS sales, a production suggestion, or a forecasting engine, and it does not write inventory or production data.
 
 ## Roles and Permissions
 

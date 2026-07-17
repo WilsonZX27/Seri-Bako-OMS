@@ -30,9 +30,9 @@ test("Master Data Cleanup checks codes, core fields, and inactive references wit
   assert.doesNotMatch(query, /\.insert\(|\.update\(|\.delete\(/);
 });
 
-test("Master Data Cleanup follows the Sprint 7.18 footer without migration 066", () => {
+test("Master Data Cleanup follows the Sprint 7.18.1 footer without migration 066", () => {
   const version = read("src/lib/app-version.ts");
   assert.match(version, /APP_VERSION = "0\.2\.26"/);
-  assert.match(version, /APP_SPRINT = "Sprint 7\.18"/);
+  assert.match(version, /APP_SPRINT = "Sprint 7\.18\.1"/);
   assert.equal(fs.readdirSync("supabase/migrations").some((file) => file.startsWith("066_")), false);
 });

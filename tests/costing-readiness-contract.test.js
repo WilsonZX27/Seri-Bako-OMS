@@ -25,8 +25,16 @@ test("Costing Readiness checks item, supplier-item, recipe, and product gaps", (
   assert.match(query, /severity: "critical"/);
 });
 
-test("Costing Readiness has the Sprint 7.18 footer and adds no migration 066", () => {
+test("Costing Readiness gives clear severity and manual-action guidance", () => {
+  assert.match(page, /Critical.*blocks trustworthy costing/);
+  assert.match(page, /Warning.*should be fixed before margin review/);
+  assert.match(page, /Info.*improves data quality/);
+  assert.match(page, /Costing data is ready for review/);
+  for (const action of ["Add item cost.", "Review supplier price.", "Link active recipe.", "Add recipe lines.", "Review inactive reference."]) assert.match(query, new RegExp(action.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")));
+});
+
+test("Costing Readiness has the Sprint 7.18.1 footer and adds no migration 066", () => {
   assert.match(version, /APP_VERSION = "0\.2\.26"/);
-  assert.match(version, /APP_SPRINT = "Sprint 7\.18"/);
+  assert.match(version, /APP_SPRINT = "Sprint 7\.18\.1"/);
   assert.equal(fs.readdirSync("supabase/migrations").some((file) => file.startsWith("066_")), false);
 });

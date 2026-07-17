@@ -34,7 +34,7 @@ export function buildCostingReadiness(data: Data, filters: Filters = {}) {
 
   for (const item of data.items.filter(active)) {
     const target = record(item.item_code, item.item_name);
-    if (Number(item.cost) <= 0) issues.push({ id: `item-cost-${item.id}`, severity: "critical", module: "item", record: target, reason: "No positive item cost basis.", action: "Set a current item cost from a verified supplier or receipt.", href: `/items/${item.id}` });
+    if (Number(item.cost) <= 0) issues.push({ id: `item-cost-${item.id}`, severity: "critical", module: "item", record: target, reason: "No positive item cost basis.", action: "Add item cost.", href: `/items/${item.id}` });
     if (!item.base_unit || !item.category) issues.push({ id: `item-core-${item.id}`, severity: "warning", module: "item", record: target, reason: "Base UOM or category is missing.", action: "Complete the item master fields used by costing.", href: `/items/${item.id}` });
   }
 
@@ -42,15 +42,15 @@ export function buildCostingReadiness(data: Data, filters: Filters = {}) {
     const item = itemById.get(row.item_id);
     const supplier = supplierById.get(row.supplier_id);
     const target = record(row.supplier_item_code, row.supplier_item_name);
-    if (Number(row.unit_cost) <= 0) issues.push({ id: `supplier-price-${row.id}`, severity: "critical", module: "supplier_item", record: target, reason: "No positive supplier purchase price.", action: "Set the verified supplier unit cost.", href: `/supplier-items/${row.id}` });
+    if (Number(row.unit_cost) <= 0) issues.push({ id: `supplier-price-${row.id}`, severity: "critical", module: "supplier_item", record: target, reason: "No positive supplier purchase price.", action: "Review supplier price.", href: `/supplier-items/${row.id}` });
     if (!row.purchase_uom || Number(row.conversion_to_base_uom) <= 0) issues.push({ id: `supplier-uom-${row.id}`, severity: "warning", module: "supplier_item", record: target, reason: "Purchase UOM or conversion is missing.", action: "Complete the supplier-item UOM conversion.", href: `/supplier-items/${row.id}` });
-    if (!item || !active(item) || !supplier || !active(supplier)) issues.push({ id: `supplier-link-${row.id}`, severity: "warning", module: "supplier_item", record: target, reason: "Linked supplier or item is inactive or unavailable.", action: "Review the supplier-item link before relying on its price.", href: `/supplier-items/${row.id}` });
+    if (!item || !active(item) || !supplier || !active(supplier)) issues.push({ id: `supplier-link-${row.id}`, severity: "warning", module: "supplier_item", record: target, reason: "Linked supplier or item is inactive or unavailable.", action: "Review inactive reference.", href: `/supplier-items/${row.id}` });
   }
 
   for (const recipe of data.recipes.filter(active)) {
     const lines = data.recipeLines.filter((line) => line.recipe_id === recipe.id);
     const target = recipe.recipe_no;
-    if (!lines.length) issues.push({ id: `recipe-lines-${recipe.id}`, severity: "critical", module: "recipe", record: target, reason: "Active recipe has no ingredient lines.", action: "Add the required recipe ingredients.", href: `/recipes/${recipe.id}` });
+    if (!lines.length) issues.push({ id: `recipe-lines-${recipe.id}`, severity: "critical", module: "recipe", record: target, reason: "Active recipe has no ingredient lines.", action: "Add recipe lines.", href: `/recipes/${recipe.id}` });
     if (Number(recipe.yield_qty) <= 0 || !recipe.yield_unit) issues.push({ id: `recipe-yield-${recipe.id}`, severity: "critical", module: "recipe", record: target, reason: "Output quantity or UOM is missing.", action: "Set a valid recipe output quantity and UOM.", href: `/recipes/${recipe.id}` });
     for (const line of lines) {
       const item = itemById.get(line.ingredient_item_id);
@@ -61,7 +61,7 @@ export function buildCostingReadiness(data: Data, filters: Filters = {}) {
 
   for (const product of data.products.filter(active)) {
     const recipes = recipesByProduct.get(product.id) ?? [];
-    if (!recipes.some(active)) issues.push({ id: `product-recipe-${product.id}`, severity: "critical", module: "product", record: record(product.product_code, product.product_name), reason: "No linked active recipe/BOM.", action: "Link or activate the product recipe before relying on future costing.", href: `/products/${product.id}` });
+    if (!recipes.some(active)) issues.push({ id: `product-recipe-${product.id}`, severity: "critical", module: "product", record: record(product.product_code, product.product_name), reason: "No linked active recipe/BOM.", action: "Link active recipe.", href: `/products/${product.id}` });
   }
 
   const filtered = issues.filter((issue) => (!filters.severity || filters.severity === "all" || issue.severity === filters.severity) && (!filters.module || filters.module === "all" || issue.module === filters.module));

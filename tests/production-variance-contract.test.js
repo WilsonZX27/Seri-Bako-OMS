@@ -35,5 +35,5 @@ test("Production variance has one protected route and the current footer", () =>
   assert.match(routes, /"\/production\/variance": \["outlet_daily_record\.view"\]/);
   assert.match(production, /\/production\/variance/);
   assert.match(version, /APP_VERSION = "0\.2\.26"/);
-  assert.match(version, /APP_SPRINT = "Sprint 7\.18"/);
+  assert.match(version, /APP_SPRINT = "Sprint 7\.18\.1"/);
 });

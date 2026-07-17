@@ -711,3 +711,5 @@ Sprint 7.17.3a keeps the existing Dashboard summaries and actions unchanged whil
 ## Costing Readiness Lite
 
 Sprint 7.18 adds a server-side, read-only report over existing items, supplier items, recipes, recipe lines, and products. It uses the existing `reports.view` boundary and current RLS-visible rows, with no new RPC, migration, or cost write path.
+
+Sprint 7.18.1 only clarifies issue severity, manual corrective actions, and all-clear copy; it does not alter the report query or calculations.

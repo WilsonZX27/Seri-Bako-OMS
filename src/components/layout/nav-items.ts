@@ -43,7 +43,7 @@ export type NavGroup = {
 
 const ownerRoles: UserRole[] = ["super_admin", "admin"];
 const administratorRoles: UserRole[] = ["operations_admin", ...ownerRoles];
-const allRoles: UserRole[] = ["super_admin", "operations_admin", "admin", "manager", "finance", "purchasing", "kitchen_staff", "kitchen", "viewer"];
+const allRoles: UserRole[] = ["super_admin", "operations_admin", "admin", "manager", "finance", "purchasing", "kitchen_staff", "outlet_staff", "kitchen", "viewer"];
 const procurementRoles: UserRole[] = ["super_admin", "operations_admin", "admin", "manager", "purchasing", "finance", "kitchen_staff", "kitchen"];
 const inventoryRoles: UserRole[] = ["super_admin", "operations_admin", "admin", "manager", "kitchen_staff", "kitchen", "purchasing", "finance"];
 const reportsRoles: UserRole[] = ["super_admin", "operations_admin", "admin", "manager", "finance", "purchasing"];
@@ -58,7 +58,7 @@ export const navGroups: NavGroup[] = [
     items: [
       { href: "/dashboard", label: "Dashboard", icon: Gauge, roles: "all", permission: "dashboard.view", keywords: ["home", "alerts", "approvals"] },
       { href: "/production/jobs", label: "Production Jobs", icon: Factory, roles: productionRoles, permission: "production.view", badgeKey: "productionJobs", keywords: ["production", "jobs"] },
-      { href: "/outlet-daily-records", label: "Outlet Daily Records", icon: ClipboardList, roles: allRoles, permission: "outlet_daily_record.view", keywords: ["outlet", "receiving", "wastage", "daily"] },
+      { href: "/outlet-daily-records", label: "Outlet Daily Records", icon: ClipboardList, roles: [...allRoles, "outlet_staff"], permission: "outlet_daily_record.view", keywords: ["outlet", "receiving", "wastage", "daily"] },
     ],
   },
   {

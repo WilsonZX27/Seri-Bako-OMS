@@ -6,6 +6,7 @@ export const roleDisplayLabels: Record<string, string> = {
   purchasing: "Purchasing",
   finance: "Finance",
   kitchen_staff: "Kitchen",
+  outlet_staff: "Outlet Staff",
   kitchen: "Kitchen",
   viewer: "Viewer",
 };
@@ -18,8 +19,9 @@ export const roleSortOrder: Record<string, number> = {
   purchasing: 4,
   finance: 5,
   kitchen_staff: 6,
-  kitchen: 7,
-  viewer: 8,
+  outlet_staff: 7,
+  kitchen: 8,
+  viewer: 9,
 };
 
 export function getRoleDisplayLabel(roleCode?: string | null, fallback?: string | null) {

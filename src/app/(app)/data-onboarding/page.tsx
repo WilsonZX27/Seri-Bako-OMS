@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { AlertTriangle, ArrowRight, BarChart3, Building2, Factory, Package, Scale, ShieldCheck, Store, Truck, Users, Warehouse, Wrench } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -15,6 +16,7 @@ function statusLabel(count: number, readyWhenPositive = true) {
 }
 
 export default async function DataOnboardingPage() {
+  redirect("/imports");
   try {
     const [importAllowed, adminAllowed, summary] = await Promise.all([
       hasPermission("imports.create"),

@@ -35,8 +35,8 @@ test("Product Margin uses neutral bands and clear manual review paths", () => {
   assert.match(page, /href=\{`\/recipes\/\$\{row.recipe_id\}`\}/);
 });
 
-test("Product Margin has the Sprint 7.20.1 footer and adds no migration 066", () => {
+test("Product Margin has the current footer and scoped Outlet Staff seed", () => {
   assert.match(version, /APP_VERSION = "0\.2\.29"/);
-  assert.match(version, /APP_SPRINT = "Sprint 7\.21"/);
-  assert.equal(fs.readdirSync("supabase/migrations").some((file) => file.startsWith("066_")), false);
+  assert.match(version, /APP_SPRINT = "Sprint 7\.21\.1"/);
+  assert.match(read("supabase/migrations/066_create_outlet_staff_role.sql"), /outlet_staff/);
 });

@@ -32,7 +32,7 @@ test("Production Planning Lite makes weak data manual review and warns on medium
 test("Production Planning Lite has no production, stock, AP or cash-flow write path", () => {
   assert.doesNotMatch(query, /(insert into|update|delete from) public\.(production_jobs|stock_transactions|stock_transaction_lines|stock_balances|supplier_invoices|supplier_invoice_payments)/i);
   assert.match(page, /does not create production jobs or inventory writes/i);
-  assert.equal(fs.readdirSync("supabase/migrations").some((file) => file.startsWith("066_")), false);
+  assert.match(read("supabase/migrations/066_create_outlet_staff_role.sql"), /outlet_staff/);
 });
 
 test("Production Planning Lite is route-protected and follows the current footer", () => {
@@ -42,5 +42,5 @@ test("Production Planning Lite is route-protected and follows the current footer
   assert.match(routes, /"\/production\/planning": \["outlet_daily_record\.view"\]/);
   assert.match(production, /\/production\/planning/);
   assert.match(version, /APP_VERSION = "0\.2\.29"/);
-  assert.match(version, /APP_SPRINT = "Sprint 7\.21"/);
+  assert.match(version, /APP_SPRINT = "Sprint 7\.21\.1"/);
 });

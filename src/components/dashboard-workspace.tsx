@@ -28,7 +28,7 @@ function MetricCard({ href, label, value, icon: Icon, tone = "neutral" }: { href
         </div>
         <p className="truncate text-xs font-medium text-muted-foreground">{label}</p>
       </div>
-      <p className="shrink-0 text-right text-lg font-semibold leading-none tabular-nums text-[var(--sb-text)]">{value}</p>
+      <p className="shrink-0 text-right text-base font-semibold leading-none tabular-nums text-[var(--sb-text)]">{value}</p>
     </Link>
   );
 }

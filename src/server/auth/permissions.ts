@@ -5,11 +5,12 @@ import { createClient } from "@/lib/supabase/server";
 
 export const roleDescriptions = {
   super_admin: "Protected system owner with every permission.",
-  operations_admin: "Office administration and data-entry access. Owner controls remain restricted.",
+  operations_admin: "Office administration and data-entry access.",
   purchasing: "Purchasing user who verifies PRs, manages suppliers, and sends POs.",
   manager: "Approver for PR and PO workflow decisions.",
   finance: "Finance user for finance review and reporting visibility.",
   kitchen_staff: "Branch operations user who creates operational requests and stock documents.",
+  outlet_staff: "Outlet worker who records daily received quantities, leftovers, and wastage for assigned outlets.",
   viewer: "Read-only user with limited workspace visibility.",
   admin: "Office administration and data-entry access. This legacy code has no owner-level access.",
   kitchen: "Legacy kitchen role. Prefer kitchen_staff for new assignments.",
@@ -313,6 +314,7 @@ export const rolePermissionMatrix = {
     "production.submit",
     "production.cancel",
   ],
+  outlet_staff: ["dashboard.view", "outlet_daily_record.view", "outlet_daily_record.create", "outlet_daily_record.update"],
   admin: [
     "dashboard.view",
     "settings.manage",

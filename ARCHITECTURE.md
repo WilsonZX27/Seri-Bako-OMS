@@ -706,4 +706,4 @@ Sprint 7.16.1 keeps one direct sidebar path to Outlet Daily Records, a single Pr
 
 ## Master Data Cleanup Lite
 
-Sprint 7.17.1 keeps the authenticated server client and existing RLS-visible master/reference tables unchanged. Its UI-only cleanup keeps master-data checks read-only, imports upload-only, and permission keys behind collapsed technical details; it adds no mutation action, RPC, or migration.
+Sprint 7.17.2 keeps the authenticated server client and existing RLS-visible master/reference tables unchanged. Its UI smoke confirms existing dashboard, route, import, and permission UI links without adding a mutation action, RPC, or migration.

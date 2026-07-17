@@ -25,11 +25,11 @@ test("dashboard follows the operations decision order without recent activity", 
   assert.doesNotMatch(dashboard, /ConsoleSection title="Recent Activity"/);
 });
 
-test("Sprint 7.17.1 preserves existing responsive tables and introduces no migration 066", () => {
+test("Sprint 7.17.2 preserves existing responsive tables and introduces no migration 066", () => {
   const version = read("src/lib/app-version.ts");
   const styles = read("src/app/globals.css");
   assert.match(styles, /\.sb-table-region\s*\{[\s\S]*overflow-x: auto/);
   assert.match(version, /APP_VERSION = "0\.2\.25"/);
-  assert.match(version, /APP_SPRINT = "Sprint 7\.17\.1"/);
+  assert.match(version, /APP_SPRINT = "Sprint 7\.17\.2"/);
   assert.equal(fs.readdirSync("supabase/migrations").some((file) => file.startsWith("066_")), false);
 });

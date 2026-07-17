@@ -7,6 +7,7 @@ const imports = read("src/components/imports/import-workflow.tsx");
 const staffPermissions = read("src/components/staff-permission-overrides.tsx");
 const roleMatrix = read("src/components/role-permission-matrix.tsx");
 const styles = read("src/app/globals.css");
+const dashboard = read("src/components/dashboard-workspace.tsx");
 
 test("UI consistency keeps imports upload-only and technical permission details collapsed", () => {
   assert.doesNotMatch(imports, /Edit in table|Add blank row|Paste into table/);
@@ -21,4 +22,14 @@ test("shared filter rows use compact brown submits and reset affordances", () =>
   assert.match(styles, /\.sb-list-filters > button:is\(\[type="submit"\], :not\(\[type\]\)\)/);
   assert.match(styles, /background: var\(--sb-amber-700\)/);
   assert.match(styles, /\.sb-list-filters > a::before/);
+});
+
+test("UI smoke keeps the requested routes, console order, and current footer", () => {
+  for (const route of ["dashboard/page.tsx", "outlet-daily-records/page.tsx", "reports/demand-trends/page.tsx", "production/planning/page.tsx", "production/variance/page.tsx", "administration/master-data-cleanup/page.tsx", "imports/page.tsx", "imports/[entity]/page.tsx", "staffs/[id]/page.tsx", "roles/[id]/page.tsx"]) {
+    assert.equal(fs.existsSync(`src/app/(app)/${route}`), true);
+  }
+  assert.match(dashboard, /Quick Actions[\s\S]*Control Center Notes[\s\S]*Payables Attention/);
+  assert.doesNotMatch(dashboard, /ConsoleSection title="Recent Activity"/);
+  assert.match(read("src/lib/app-version.ts"), /APP_SPRINT = "Sprint 7\.17\.2"/);
+  assert.equal(fs.readdirSync("supabase/migrations").some((file) => file.startsWith("066_")), false);
 });

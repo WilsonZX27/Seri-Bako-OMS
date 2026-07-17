@@ -35,10 +35,14 @@ const totals = (lines: LineRow[]) => {
 };
 
 export async function getOutletDailyFormOptions() {
-  if (isMockMode()) return {
-    branches: mockBranches.filter((row) => row.status === "active"),
-    products: mockProducts.filter((row) => row.status === "active"),
-  };
+  if (isMockMode()) {
+    const branches = mockBranches.filter((row) => row.status === "active");
+    return {
+      branches,
+      products: mockProducts.filter((row) => row.status === "active"),
+      defaultBranchId: branches.length === 1 ? branches[0].id : undefined,
+    };
+  }
   const db = await createClient();
   const profile = await getCurrentProfile();
   const canViewAll = await hasPermission("outlet_daily_record.view_all");
@@ -48,12 +52,26 @@ export async function getOutletDailyFormOptions() {
   ]);
   if (branchError) throw new Error(branchError.message);
   if (productError) throw new Error(productError.message);
-  if (canViewAll) return { branches: branches ?? [], products: products ?? [] };
+  const activeBranches = branches ?? [];
+  const profileDefaultBranchId = profile && "default_branch_id" in profile ? profile.default_branch_id : null;
+  if (canViewAll) return {
+    branches: activeBranches,
+    products: products ?? [],
+    defaultBranchId: activeBranches.some((row) => row.id === profileDefaultBranchId)
+      ? profileDefaultBranchId ?? undefined
+      : activeBranches.length === 1 ? activeBranches[0].id : undefined,
+  };
   const { data: assignments, error } = await db.from("staff_branches").select("branch_id").eq("staff_id", profile?.id ?? "");
   if (error) throw new Error(error.message);
-  const defaultBranchId = profile && "default_branch_id" in profile ? profile.default_branch_id : null;
-  const allowed = new Set([defaultBranchId, ...(assignments ?? []).map((row) => row.branch_id)].filter(Boolean));
-  return { branches: (branches ?? []).filter((row) => allowed.has(row.id)), products: products ?? [] };
+  const allowed = new Set([profileDefaultBranchId, ...(assignments ?? []).map((row) => row.branch_id)].filter(Boolean));
+  const allowedBranches = activeBranches.filter((row) => allowed.has(row.id));
+  return {
+    branches: allowedBranches,
+    products: products ?? [],
+    defaultBranchId: allowedBranches.some((row) => row.id === profileDefaultBranchId)
+      ? profileDefaultBranchId ?? undefined
+      : allowedBranches.length === 1 ? allowedBranches[0].id : undefined,
+  };
 }
 
 async function loadRows() {

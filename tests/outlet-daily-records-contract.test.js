@@ -4,8 +4,10 @@ const fs = require("node:fs");
 
 const read = (file) => fs.readFileSync(file, "utf8");
 const sql = read("supabase/migrations/064_outlet_daily_receiving_wastage.sql");
+const validationFix = read("supabase/migrations/065_fix_outlet_evening_completion_validation.sql");
 const actions = read("src/server/actions/outlet-daily-records.ts");
 const query = read("src/server/queries/outlet-daily-records.ts");
+const form = read("src/components/outlet-daily-record-form.tsx");
 
 test("migration 064 creates the daily header and product lines", () => {
   assert.match(sql, /create table if not exists public\.outlet_daily_records/);
@@ -25,6 +27,24 @@ test("workflow, quantity and reviewed-lock rules are server authoritative", () =
   assert.match(sql, /Void reason is required/);
 });
 
+test("draft quantities may stay blank while evening completion requires explicit values", () => {
+  assert.match(sql, /p_target_status = 'evening_completed' and \(not \(line \? 'evening_leftover_qty'\)/);
+  assert.match(validationFix, /coalesce\(nullif\(line ->> 'evening_leftover_qty', ''\)::numeric, 0\)/);
+  assert.match(validationFix, /p_target_status = 'evening_completed'[\s\S]*nullif\(trim\(coalesce\(line ->> 'evening_leftover_qty', ''\)\), ''\) is null/);
+  assert.match(validationFix, /p_target_status = 'evening_completed'[\s\S]*nullif\(trim\(coalesce\(line ->> 'wastage_qty', ''\)\), ''\) is null/);
+  assert.match(form, /defaultValue=\{line \? line\.evening_leftover_qty : ""\}/);
+  assert.match(form, /defaultValue=\{line \? line\.wastage_qty : ""\}/);
+});
+
+test("lite polish keeps line entry searchable and outlet defaults unambiguous", () => {
+  const newPage = read("src/app/(app)/outlet-daily-records/new/page.tsx");
+  assert.match(form, /Search name, code, or category/);
+  assert.match(form, /className=\{matches \? undefined : "hidden"\}/);
+  assert.match(query, /defaultBranchId: allowedBranches\.some/);
+  assert.match(query, /allowedBranches\.length === 1/);
+  assert.match(newPage, /branchId=\{options\.defaultBranchId\}/);
+});
+
 test("active staff, permissions, company and assigned branch are checked inside RPCs", () => {
   assert.match(sql, /auth_user_id = auth\.uid\(\).*status = 'active'/s);
   assert.match(sql, /company_id = actor\.company_id/);
@@ -41,6 +61,13 @@ test("daily capture never writes stock, production, AP or cash-flow records", ()
   assert.doesNotMatch(implementation, /get_ap_aging_report|cash-flow/);
 });
 
+test("migration 065 only replaces the save RPC validation", () => {
+  assert.match(validationFix, /create or replace function public\.save_outlet_daily_record/);
+  assert.match(validationFix, /security definer[\s\S]*set search_path = public/);
+  assert.doesNotMatch(validationFix, /create table|alter table|create type/i);
+  assert.doesNotMatch(validationFix, /(insert into|update|delete from) public\.(stock_transactions|stock_transaction_lines|stock_balances|production_jobs|supplier_invoices)/i);
+});
+
 test("only the requested routes and operations navigation are wired", () => {
   const nav = read("src/components/layout/nav-items.ts");
   const routes = read("src/server/auth/route-permissions.ts");
@@ -54,8 +81,8 @@ test("only the requested routes and operations navigation are wired", () => {
   assert.match(routes, /prefixes: \["\/outlet-daily-records"\].*outlet_daily_record\.view/);
 });
 
-test("release footer matches Sprint 7.12", () => {
+test("release footer matches Sprint 7.12.1", () => {
   const version = read("src/lib/app-version.ts");
   assert.match(version, /APP_VERSION = "0\.2\.20"/);
-  assert.match(version, /APP_SPRINT = "Sprint 7\.12"/);
+  assert.match(version, /APP_SPRINT = "Sprint 7\.12\.1"/);
 });

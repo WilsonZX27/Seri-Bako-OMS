@@ -1,0 +1,40 @@
+const test = require("node:test");
+const assert = require("node:assert/strict");
+const fs = require("node:fs");
+
+const read = (file) => fs.readFileSync(file, "utf8");
+const query = read("src/server/queries/outlet-daily-records.ts");
+const page = read("src/app/(app)/production/planning/page.tsx");
+
+test("Production Planning Lite reuses reliable demand movement and rounds its suggestion", () => {
+  assert.match(query, /getProductionPlanning[\s\S]*getOutletDailyDemandTrend\(filters\)/);
+  assert.match(query, /movement \/ trend\.coverage\.completed/);
+  assert.match(query, /average_daily_movement \* target_days \* \(1 \+ buffer_percent \/ 100\)/);
+  assert.match(query, /Math\.ceil\(calculated \/ rounding_unit\) \* rounding_unit/);
+  assert.match(query, /planningNumber\(filters\.buffer_percent, 10/);
+  assert.match(query, /planningNumber\(filters\.rounding_unit, 1/);
+});
+
+test("Production Planning Lite makes weak data manual review", () => {
+  assert.match(query, /trend\.coverage\.confidence === "Low" \|\| product\.low_sample/);
+  assert.match(query, /"Insufficient data"/);
+  assert.match(query, /"Review manually"/);
+  assert.match(page, /Low sample/);
+  assert.match(page, /Open Demand Trends/);
+});
+
+test("Production Planning Lite has no production, stock, AP or cash-flow write path", () => {
+  assert.doesNotMatch(query, /(insert into|update|delete from) public\.(production_jobs|stock_transactions|stock_transaction_lines|stock_balances|supplier_invoices|supplier_invoice_payments)/i);
+  assert.match(page, /does not create production jobs or inventory writes/i);
+  assert.equal(fs.readdirSync("supabase/migrations").some((file) => file.startsWith("066_")), false);
+});
+
+test("Production Planning Lite is route-protected and follows the Sprint 7.14 footer", () => {
+  const routes = read("src/server/auth/route-permissions.ts");
+  const production = read("src/app/(app)/production/page.tsx");
+  const version = read("src/lib/app-version.ts");
+  assert.match(routes, /"\/production\/planning": \["outlet_daily_record\.view"\]/);
+  assert.match(production, /\/production\/planning/);
+  assert.match(version, /APP_VERSION = "0\.2\.22"/);
+  assert.match(version, /APP_SPRINT = "Sprint 7\.14"/);
+});

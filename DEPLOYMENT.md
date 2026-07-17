@@ -455,6 +455,10 @@ The Sprint 7.12.2 application baseline is `v0.2.20 / Sprint 7.12.2` with migrati
 
 The Sprint 7.13.1 application baseline is `v0.2.21 / Sprint 7.13.1` with migration ceiling `065`; no migration `066` is required. Deploy the application after confirming 064 and 065 are already present. Verify `/reports/demand-trends` as a company-wide report user and an assigned-outlet user, confirm only Evening Completed and Reviewed records affect totals, and confirm draft/morning records appear only in data-quality coverage. Coverage confidence is High at 80%+, Medium at 50%+, and Low below 50%; low-sample products and outlets with no completed records remain visible. Estimated movement is `max(received - leftover - wastage, 0)` and is not POS sales. The report performs no inventory, production, AP, or Cash Flow writes.
 
+## Sprint 7.14 Production Planning Lite deployment
+
+The Sprint 7.14 application baseline is `v0.2.22 / Sprint 7.14` with migration ceiling `065`; migration `066` is not required. Verify `/production/planning` only uses accessible Outlet Daily Record data, calculates average daily movement from completed outlet-days, applies the selected buffer and rounding unit, and labels low coverage or low-sample products for manual review. It is read-only and must not create production jobs, inventory, AP, or Cash Flow writes.
+
 Use versioned migrations as the source of truth. If a migration must be applied through the Supabase SQL Editor, record the project ID, source filename, ledger result, and verification evidence; never edit an already-applied file. No pilot CSV should be imported until a backup/recovery path and an owner-approved rollback or correction procedure are known.
 
 If CLI migration access fails because DNS or network resolution is unavailable, do not retry blindly. Use a controlled SQL Editor application only with explicit authorization, apply the reviewed migration once, and verify the migration ledger and live objects afterward.

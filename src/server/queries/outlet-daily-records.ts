@@ -59,6 +59,10 @@ const addTrendLine = (target: TrendTotals, line: LineRow) => {
   target.movement += Math.max(received - leftover - wastage, 0);
 };
 const wastagePercent = (totals: TrendTotals) => totals.received > 0 ? (totals.wastage / totals.received) * 100 : 0;
+const planningNumber = (value: string | undefined, fallback: number, minimum: number, maximum: number) => {
+  const parsed = Number(value);
+  return Number.isFinite(parsed) && parsed >= minimum && parsed <= maximum ? parsed : fallback;
+};
 
 export async function getOutletDailyFormOptions() {
   if (isMockMode()) {
@@ -191,6 +195,41 @@ export async function getOutletDailyDemandTrend(filters: Filters = {}) {
     : { data: [], error: null };
   if (linesError) throw new Error(linesError.message);
   return buildDemandTrend({ records: typedRecords, lines: (lines ?? []) as LineRow[], branches: options.branches, products: options.products, start, end, period, status, branchId, productId });
+}
+
+export async function getProductionPlanning(filters: Filters = {}) {
+  const trend = await getOutletDailyDemandTrend(filters);
+  const buffer_percent = planningNumber(filters.buffer_percent, 10, 0, 100);
+  const rounding_unit = planningNumber(filters.rounding_unit, 1, 0.01, 10_000);
+  const planning_date = /^\d{4}-\d{2}-\d{2}$/.test(filters.planning_date ?? "") ? filters.planning_date! : todayInKualaLumpur();
+  const target_days = 1;
+  const averageFor = (movement: number) => trend.coverage.completed ? movement / trend.coverage.completed : 0;
+  const rows = trend.top_moving_products.map((product) => {
+    const average_daily_movement = averageFor(product.movement);
+    const calculated = average_daily_movement * target_days * (1 + buffer_percent / 100);
+    const manual_review = trend.coverage.confidence === "Low" || product.low_sample;
+    return {
+      ...product,
+      average_daily_movement,
+      suggested_qty: manual_review ? null : Math.ceil(calculated / rounding_unit) * rounding_unit,
+      planning_note: trend.coverage.confidence === "Low" ? "Insufficient data" : product.low_sample ? "Review manually" : trend.coverage.confidence === "Medium" ? "Use with caution" : "Ready for review",
+    };
+  });
+  return {
+    ...trend,
+    planning: {
+      planning_date,
+      buffer_percent,
+      rounding_unit,
+      target_days,
+      rows,
+      summary: {
+        high: rows.filter((row) => trend.coverage.confidence === "High" && !row.low_sample).length,
+        medium: rows.filter((row) => trend.coverage.confidence === "Medium" && !row.low_sample).length,
+        manual: rows.filter((row) => row.planning_note === "Insufficient data" || row.planning_note === "Review manually").length,
+      },
+    },
+  };
 }
 
 function buildDemandTrend({ records, lines, branches, products, start, end, period, status, branchId, productId }: {

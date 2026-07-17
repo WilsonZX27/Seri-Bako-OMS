@@ -687,3 +687,7 @@ Migration `064` adds company- and branch-scoped outlet daily headers and product
 ## Demand Trend Lite
 
 Sprint 7.13 adds a server-side report query over the existing outlet daily headers and lines. The query uses the existing `outlet_daily_record.view` permission and RLS branch boundary, includes only Evening Completed and Reviewed records in reliable totals, and keeps draft/morning records in coverage warnings only. Sprint 7.13.1 derives compact coverage confidence, low-sample product labels, and outlets without completed records from the same read-only result. It has no RPC, migration, stock, production, AP, or Cash Flow write path.
+
+## Production Planning Lite
+
+Sprint 7.14 reuses the Demand Trend query and its permission/RLS scope. It derives a one-day rounded suggestion from reliable movement, coverage, a bounded buffer, and a bounded rounding unit. Low confidence and low-sample products suppress the suggested quantity in favour of manual review. It adds no migration, RPC, production-job, inventory, AP, or Cash Flow write path.

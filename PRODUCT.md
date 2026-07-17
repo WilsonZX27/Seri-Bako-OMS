@@ -199,7 +199,7 @@ The system currently covers or is actively implementing the following operationa
 
 Module maturity must be understood separately from visual completion.
 
-Current local baseline: `v0.2.20 / Sprint 7.12.1` with database migrations through `065`. This is an operational pilot baseline, not a claim that Seri Bako OMS is a full accounting ERP.
+Current local baseline: `v0.2.20 / Sprint 7.12.2` with database migrations through `065`. This is an operational pilot baseline, not a claim that Seri Bako OMS is a full accounting ERP.
 
 A page may exist visually without its full workflow, validation, database integration, permissions, and downstream effects being complete.
 
@@ -339,7 +339,7 @@ Calculated stock views must not become independent sources of truth.
 
 ### Outlet Daily Receiving and Wastage
 
-Outlet Daily Records capture morning product quantities, evening leftovers, wastage quantities, reasons, and notes by branch and date. Draft, Morning Recorded, Evening Completed, Reviewed, and Void states support the daily handoff. Reviewed records are locked; voiding requires permission and a reason. Outlet staff are limited to assigned/default branches, while explicitly authorized company-wide users may review all outlets. Sprint 7.12.1 adds faster product lookup, staff-friendly defaults, and clearer next-step guidance without changing the workflow. Outlet Daily Records remain data capture only: they do not post stock movements, change production jobs, forecast demand, or create BI metrics.
+Outlet Daily Records capture morning product quantities, evening leftovers, wastage quantities, reasons, and notes by branch and date. Draft, Morning Recorded, Evening Completed, Reviewed, and Void states support the daily handoff. Reviewed records are locked; voiding requires permission and a reason. Outlet staff are limited to assigned/default branches, while explicitly authorized company-wide users may review all outlets. Sprint 7.12.2 verifies the light daily flow without changing its workflow. Outlet Daily Records remain data capture only: they do not post stock movements, change production jobs, forecast demand, or create BI metrics.
 
 ## Roles and Permissions
 

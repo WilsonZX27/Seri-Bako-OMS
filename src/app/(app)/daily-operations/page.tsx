@@ -1,4 +1,4 @@
-import { ClipboardList, DoorOpen, PackageCheck, Search, TriangleAlert } from "lucide-react";
+import { ClipboardList, PackageCheck, Search, TriangleAlert } from "lucide-react";
 import { PageHeader } from "@/components/ui/page-header";
 import { WorkspaceSectionPanel, type WorkspaceSection } from "@/components/workspace-panels";
 
@@ -6,11 +6,10 @@ const dailySections: WorkspaceSection[] = [
   {
     title: "Today's Work",
     description: "Start here for shift work and replenishment requests.",
-    icon: DoorOpen,
+    icon: ClipboardList,
     theme: "green",
     actions: [
       { href: "/purchase-requests/new", title: "Create Purchase Request", description: "Request ingredients or packaging from a quick branch-first form.", icon: ClipboardList, recommendedFor: "kitchen" },
-      { href: "/daily-operations", title: "Opening / Closing Checklist", description: "Checklist flow is coming soon. Use purchase requests and counts for now.", icon: DoorOpen, badge: "Coming soon", disabled: true },
     ],
   },
   {

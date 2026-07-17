@@ -36,7 +36,7 @@ test("Product Margin uses neutral bands and clear manual review paths", () => {
 });
 
 test("Product Margin has the Sprint 7.20.1 footer and adds no migration 066", () => {
-  assert.match(version, /APP_VERSION = "0\.2\.28"/);
-  assert.match(version, /APP_SPRINT = "Sprint 7\.20\.1"/);
+  assert.match(version, /APP_VERSION = "0\.2\.29"/);
+  assert.match(version, /APP_SPRINT = "Sprint 7\.21"/);
   assert.equal(fs.readdirSync("supabase/migrations").some((file) => file.startsWith("066_")), false);
 });

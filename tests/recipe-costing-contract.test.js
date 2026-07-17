@@ -37,7 +37,7 @@ test("Recipe Costing surfaces confidence, manual actions, filters, and the exist
 });
 
 test("Recipe Costing remains compatible with the Sprint 7.20.1 footer and adds no migration 066", () => {
-  assert.match(version, /APP_VERSION = "0\.2\.28"/);
-  assert.match(version, /APP_SPRINT = "Sprint 7\.20\.1"/);
+  assert.match(version, /APP_VERSION = "0\.2\.29"/);
+  assert.match(version, /APP_SPRINT = "Sprint 7\.21"/);
   assert.equal(fs.readdirSync("supabase/migrations").some((file) => file.startsWith("066_")), false);
 });

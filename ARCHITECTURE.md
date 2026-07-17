@@ -725,3 +725,5 @@ Sprint 7.19.1 exposes missing-cost and UOM-mismatch counts separately, with no c
 Sprint 7.20 reuses the Recipe Costing calculation for active products. Only a High-confidence active recipe with matching product selling UOM and one active packaging price produces a cost and gross margin. Missing or ambiguous source data remains unavailable. It requires `reports.view` and adds no migration, RPC, or write path.
 
 Sprint 7.20.1 only changes confidence presentation and review links; it leaves the data source and margin formulas unchanged.
+
+Sprint 7.21 adds a server-side, read-only procurement variance query. It joins only existing document-line foreign keys and does not infer missing links or mutate procurement data.

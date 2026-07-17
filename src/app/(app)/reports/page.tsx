@@ -40,6 +40,7 @@ const reportCategories: ReportCategory[] = [
       { href: "/purchase-orders", title: "PO Status", description: "Open, sent, received, and closed purchase orders.", icon: ShoppingCart },
       { href: "/goods-receivings", title: "Receiving Summary", description: "GRN progress and posted receiving records.", icon: PackageCheck },
       { href: "/documents?status=pending_approval", title: "Approval Queue", description: "Documents waiting for review.", icon: ClipboardCheck },
+      { href: "/reports/procurement-variance", title: "Procurement Variance", description: "Read-only comparison of linked PO, GRN, invoice, and supplier reference prices.", icon: BarChart3 },
     ],
   },
   {

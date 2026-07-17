@@ -29,7 +29,7 @@ test("Sprint 7.18.1 preserves existing responsive tables and introduces no migra
   const version = read("src/lib/app-version.ts");
   const styles = read("src/app/globals.css");
   assert.match(styles, /\.sb-table-region\s*\{[\s\S]*overflow-x: auto/);
-  assert.match(version, /APP_VERSION = "0\.2\.28"/);
-  assert.match(version, /APP_SPRINT = "Sprint 7\.20\.1"/);
+  assert.match(version, /APP_VERSION = "0\.2\.29"/);
+  assert.match(version, /APP_SPRINT = "Sprint 7\.21"/);
   assert.equal(fs.readdirSync("supabase/migrations").some((file) => file.startsWith("066_")), false);
 });

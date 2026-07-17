@@ -10,7 +10,7 @@ type Crumb = {
   href?: string;
 };
 
-const sectionMap: Record<string, { label: string; parent?: Crumb }> = {
+const sectionMap: Record<string, { label: string; href?: string; parent?: Crumb }> = {
   dashboard: { label: "Dashboard" },
   "quick-tools": { label: "Quick Tools" },
   company: { label: "Company", parent: { label: "Settings", href: "/settings" } },
@@ -21,6 +21,8 @@ const sectionMap: Record<string, { label: string; parent?: Crumb }> = {
   settings: { label: "Settings" },
   "purchase-requests": { label: "Purchase Requests", parent: { label: "Procurement", href: "/procurement" } },
   "purchase-orders": { label: "Purchase Orders", parent: { label: "Procurement", href: "/procurement" } },
+  "purchase-returns": { label: "Purchase Returns", parent: { label: "Procurement", href: "/procurement" } },
+  "supplier-invoices": { label: "Supplier Invoices", parent: { label: "Procurement", href: "/procurement" } },
   suppliers: { label: "Suppliers", parent: { label: "Procurement", href: "/procurement" } },
   "goods-receivings": { label: "Goods Receiving", parent: { label: "Daily Operations", href: "/daily-operations" } },
   "stock-counts": { label: "Stock Count", parent: { label: "Inventory", href: "/inventory" } },
@@ -29,6 +31,8 @@ const sectionMap: Record<string, { label: string; parent?: Crumb }> = {
   "stock-transactions": { label: "Manual Stock Movement", parent: { label: "Inventory", href: "/inventory" } },
   "stock-balance": { label: "Stock Balance", parent: { label: "Inventory", href: "/inventory" } },
   "stock-card": { label: "Stock Card", parent: { label: "Inventory", href: "/inventory" } },
+  "low-stock": { label: "Low Stock", parent: { label: "Inventory", href: "/inventory" } },
+  "opening-stock": { label: "Opening Stock", href: "/opening-stock/import", parent: { label: "Inventory", href: "/inventory" } },
   items: { label: "Items", parent: { label: "Inventory", href: "/inventory" } },
   procurement: { label: "Procurement" },
   inventory: { label: "Inventory" },
@@ -71,7 +75,7 @@ export function Breadcrumbs() {
   const crumbs: Crumb[] = [];
 
   if (root?.parent) crumbs.push(root.parent);
-  crumbs.push({ label: root?.label ?? titleize(first), href: segments.length > 1 ? `/${first}` : undefined });
+  crumbs.push({ label: root?.label ?? titleize(first), href: segments.length > 1 ? root?.href ?? `/${first}` : undefined });
 
   if (segments[1]) {
     if (segments[1] === "new") {

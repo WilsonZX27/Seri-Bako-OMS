@@ -463,7 +463,7 @@ export function ImportWorkflow({ entity, suppliers = [] }: { entity: ImportEntit
                   {draftSavedAt ? <p className="text-xs text-muted-foreground">Saved draft on this browser: {formatSavedAt(draftSavedAt)}</p> : null}
                 </div>
                 <div className="space-y-2">
-                  <p className="text-sm font-medium">Import mode</p>
+                  <p className="text-xs font-medium">Import mode</p>
                   <SelectNative value={mode} onChange={(event) => setMode(event.target.value as ImportMode)} disabled={spec.modes.length === 1}>
                     {spec.modes.map((value) => (
                       <option key={value} value={value}>

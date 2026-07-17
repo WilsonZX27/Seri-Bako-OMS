@@ -199,7 +199,7 @@ The system currently covers or is actively implementing the following operationa
 
 Module maturity must be understood separately from visual completion.
 
-Current local baseline: `v0.2.27 / Sprint 7.19.1` with database migrations through `065`. This is an operational pilot baseline, not a claim that Seri Bako OMS is a full accounting ERP.
+Current local baseline: `v0.2.28 / Sprint 7.20` with database migrations through `065`. This is an operational pilot baseline, not a claim that Seri Bako OMS is a full accounting ERP.
 
 A page may exist visually without its full workflow, validation, database integration, permissions, and downstream effects being complete.
 
@@ -370,6 +370,10 @@ Costing Readiness Lite is a read-only checklist for item costs, supplier prices,
 Recipe Costing Lite is a read-only estimate for recipes using the normalized Item Master base-UOM `cost`. It does not substitute supplier prices or recipe-line values when conversion is unclear, and it leaves missing costs visible rather than treating them as zero. It does not write recipe, product, inventory, production, or finance records; margin remains future scope.
 
 Sprint 7.19.1 makes UOM mismatches, missing costs, output gaps, and manual corrective actions explicit without changing the estimate calculation.
+
+### Product Cost & Margin Lite
+
+Product Cost & Margin Lite is a read-only estimate. It only uses a High-confidence active recipe cost and one unambiguous active packaging price; missing recipe, cost, UOM alignment, or price blocks margin rather than becoming zero. Pricing remains manual and no product, cost, margin, inventory, production, or finance data is written.
 
 ## Roles and Permissions
 

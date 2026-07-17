@@ -49,6 +49,7 @@ const reportCategories: ReportCategory[] = [
     reports: [
       { href: "/stock-wastage", title: "Wastage Review", description: "Production-loss and wastage document review.", icon: TriangleAlert },
       { href: "/reports/recipe-costing", title: "Recipe Costing", description: "Read-only ingredient-cost estimates from item master costs.", icon: PackageSearch },
+      { href: "/reports/product-margin", title: "Product Margin", description: "Read-only margin estimate from high-confidence recipe costs.", icon: PackageSearch },
     ],
   },
   {

@@ -4,6 +4,7 @@ import { requirePermission } from "@/server/auth/permissions";
 
 export type RecipeCostingRow = {
   id: string;
+  product_id: string;
   recipe_no: string;
   recipe_name: string;
   status: string;
@@ -50,6 +51,7 @@ export function buildRecipeCosting(data: Data, filters: Filters = {}) {
     const confidence = !complete ? "Low" : warning ? "Medium" : "High";
     return {
       id: recipe.id,
+      product_id: recipe.product_id,
       recipe_no: recipe.recipe_no,
       recipe_name: products.get(recipe.product_id)?.product_name ?? "Unlinked product",
       status: recipe.status,

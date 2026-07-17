@@ -495,6 +495,10 @@ The Sprint 7.19.0 application baseline is `v0.2.27 / Sprint 7.19` with migration
 
 The Sprint 7.19.1 application baseline is `v0.2.27 / Sprint 7.19.1` with migration ceiling `065`; migration `066` remains unnecessary. Verify Low confidence rows show Incomplete rather than a unit-cost estimate, and that missing cost, UOM mismatch, output, and line actions remain visible. This remains read-only.
 
+## Sprint 7.20.0 Product Cost & Margin Lite deployment
+
+The Sprint 7.20.0 application baseline is `v0.2.28 / Sprint 7.20` with migration ceiling `065`; migration `066` is not required. Verify `/reports/product-margin` uses only High-confidence active recipe cost and one active packaging price, and shows Missing recipe, Cost incomplete, or Missing price rather than a zero margin. It performs no writes.
+
 Use versioned migrations as the source of truth. If a migration must be applied through the Supabase SQL Editor, record the project ID, source filename, ledger result, and verification evidence; never edit an already-applied file. No pilot CSV should be imported until a backup/recovery path and an owner-approved rollback or correction procedure are known.
 
 If CLI migration access fails because DNS or network resolution is unavailable, do not retry blindly. Use a controlled SQL Editor application only with explicit authorization, apply the reviewed migration once, and verify the migration ledger and live objects afterward.

@@ -34,7 +34,7 @@ test("Costing Readiness gives clear severity and manual-action guidance", () => 
 });
 
 test("Costing Readiness remains compatible with the Sprint 7.19 footer and adds no migration 066", () => {
-  assert.match(version, /APP_VERSION = "0\.2\.27"/);
-  assert.match(version, /APP_SPRINT = "Sprint 7\.19\.1"/);
+  assert.match(version, /APP_VERSION = "0\.2\.28"/);
+  assert.match(version, /APP_SPRINT = "Sprint 7\.20"/);
   assert.equal(fs.readdirSync("supabase/migrations").some((file) => file.startsWith("066_")), false);
 });

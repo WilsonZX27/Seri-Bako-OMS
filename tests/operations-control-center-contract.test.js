@@ -34,11 +34,11 @@ test("Operations Control Center surfaces health, confidence, variance, planning,
   assert.match(workspace, /Planning values are references, not production orders/);
 });
 
-test("Operations Control Center stays read-only and follows the Sprint 7.17.2 footer", () => {
+test("Operations Control Center stays read-only and follows the Sprint 7.17.3 footer", () => {
   const version = read("src/lib/app-version.ts");
   const implementation = `${dashboard}\n${outlet}`;
   assert.doesNotMatch(implementation, /(insert into|update|delete from) public\.(stock_transactions|stock_transaction_lines|stock_balances|production_jobs|supplier_invoices|supplier_invoice_payments)/i);
   assert.equal(fs.readdirSync("supabase/migrations").some((file) => file.startsWith("066_")), false);
   assert.match(version, /APP_VERSION = "0\.2\.25"/);
-  assert.match(version, /APP_SPRINT = "Sprint 7\.17\.2"/);
+  assert.match(version, /APP_SPRINT = "Sprint 7\.17\.3"/);
 });

@@ -1,3 +1,3 @@
 export const APP_VERSION = "0.2.25";
-export const APP_SPRINT = "Sprint 7.17.2";
-export const APP_RELEASE_NOTE = "UI smoke and route consistency";
+export const APP_SPRINT = "Sprint 7.17.3";
+export const APP_RELEASE_NOTE = "Dashboard layout visual polish";

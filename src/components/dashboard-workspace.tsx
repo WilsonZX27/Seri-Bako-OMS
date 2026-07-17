@@ -76,7 +76,6 @@ export function DashboardWorkspace({ summary }: { summary: DashboardSummary }) {
   const operationsControl = summary.operationsControl;
   const actionRequired = [
     summary.pendingApprovals.length ? { href: "/purchase-requests?status=admin_review", label: "Pending approvals", value: formatNumber(summary.pendingApprovals.length), icon: ClipboardCheck, tone: "amber" as const } : null,
-    stuckRequests.length ? { href: "/purchase-requests?priority=urgent", label: "Urgent PRs", value: formatNumber(stuckRequests.length), icon: AlertTriangle, tone: "red" as const } : null,
     operationsControl?.outlet?.missing_evening ? { href: "/outlet-daily-records?status=draft", label: "Missing evening", value: formatNumber(operationsControl.outlet.missing_evening), icon: Clock3, tone: "amber" as const } : null,
     operationsControl?.outlet?.needs_review ? { href: "/outlet-daily-records?status=evening_completed", label: "Needs review", value: formatNumber(operationsControl.outlet.needs_review), icon: ClipboardCheck, tone: "amber" as const } : null,
     payablesAttention && (payablesAttention.critical_count || payablesAttention.overdue_count) ? { href: "/supplier-invoices/aging?overdue=1", label: "Overdue payables", value: formatNumber(payablesAttention.critical_count + payablesAttention.overdue_count), icon: ReceiptText, tone: "red" as const } : null,
@@ -131,11 +130,17 @@ export function DashboardWorkspace({ summary }: { summary: DashboardSummary }) {
             </div>
           </div>
 
-          <CompactPanel title="Action Required" action={{ href: "/documents?status=pending_approval", label: "Open queue" }}>
-            {actionRequired.length ? <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-3">{actionRequired.map((item) => <MetricCard key={item.label} {...item} />)}</div> : <p className="text-xs text-muted-foreground">No action requires attention right now.</p>}
-          </CompactPanel>
-
           <div className="grid gap-4 xl:grid-cols-2">
+            <CompactPanel title="Today’s Attention" action={{ href: "/documents?status=pending_approval", label: "Open queue" }}>
+              {actionRequired.length ? <div className="grid gap-2 sm:grid-cols-2">{actionRequired.map((item) => <MetricCard key={item.label} {...item} />)}</div> : <p className="text-xs text-muted-foreground">No action requires attention right now.</p>}
+            </CompactPanel>
+
+            <CompactPanel title="Procurement Queue" action={{ href: "/purchase-requests?priority=urgent", label: "Open PRs" }}>
+              {stuckRequests.length ? <div className="divide-y rounded-[2px] border bg-white">{stuckRequests.map((request) => <Link key={request.id} href={`/purchase-requests/${request.id}`} className="flex items-center justify-between gap-2 px-2.5 py-1.5 text-[11px] hover:bg-[var(--sb-surface-muted)]"><div className="min-w-0"><p className="truncate font-mono font-semibold">{request.request_no}</p><p className="truncate text-muted-foreground">{request.needed_by_date ? `Needed by ${request.needed_by_date}` : "Needed date not set"}</p></div><span className="shrink-0 rounded-[2px] bg-[var(--sb-danger-bg)] px-1.5 py-0.5 text-[10px] font-medium text-[var(--sb-danger)]">{request.priority ?? "Urgent"}</span></Link>)}</div> : <p className="text-xs text-muted-foreground">No urgent purchase requests.</p>}
+            </CompactPanel>
+          </div>
+
+          <div className="grid gap-4 xl:grid-cols-3">
             <CompactPanel title="Outlet Record Health" action={{ href: "/outlet-daily-records", label: "Open records" }}>
               {operationsControl?.outlet ? <div className="grid gap-2 sm:grid-cols-3"><MetricCard href="/outlet-daily-records" label="Today" value={formatNumber(operationsControl.outlet.today_records)} icon={PackageCheck} /><MetricCard href="/outlet-daily-records?status=draft" label="Missing evening" value={formatNumber(operationsControl.outlet.missing_evening)} icon={Clock3} tone={operationsControl.outlet.missing_evening ? "amber" : "green"} /><MetricCard href="/outlet-daily-records?status=evening_completed" label="Needs review" value={formatNumber(operationsControl.outlet.needs_review)} icon={ClipboardCheck} tone={operationsControl.outlet.needs_review ? "amber" : "green"} /></div> : <p className="text-xs text-muted-foreground">Outlet record health is unavailable right now.</p>}
             </CompactPanel>
@@ -148,22 +153,11 @@ export function DashboardWorkspace({ summary }: { summary: DashboardSummary }) {
               {operationsControl?.variance && operationsControl.demand ? <div className="space-y-2"><div className="grid gap-2 sm:grid-cols-3"><MetricCard href="/production/variance?signal=over_supplied" label="Over-supply" value={formatNumber(operationsControl.variance.over_supplied)} icon={AlertTriangle} tone={operationsControl.variance.over_supplied ? "amber" : "green"} /><MetricCard href="/production/variance?signal=under_supplied" label="Under-supply" value={formatNumber(operationsControl.variance.under_supplied)} icon={AlertTriangle} tone={operationsControl.variance.under_supplied ? "red" : "green"} /><MetricCard href="/production/variance" label="High wastage" value={formatNumber(operationsControl.variance.high_wastage)} icon={RotateCw} tone={operationsControl.variance.high_wastage ? "amber" : "green"} /></div><p className="text-[11px] text-muted-foreground">Top wastage: {operationsControl.demand.top_wastage_products.map((row) => row.name).join(", ") || "None"}</p></div> : <p className="text-xs text-muted-foreground">Variance signals are unavailable right now.</p>}
             </CompactPanel>
 
-            <CompactPanel title="Production Planning Reference" action={{ href: "/production/planning", label: "Open planning" }}>
-              {operationsControl?.planning ? <div className="grid gap-2 sm:grid-cols-3"><MetricCard href="/production/planning" label="High confidence" value={formatNumber(operationsControl.planning.high)} icon={CheckCircle2} tone="green" /><MetricCard href="/production/planning" label="Medium confidence" value={formatNumber(operationsControl.planning.medium)} icon={AlertTriangle} tone="amber" /><MetricCard href="/production/planning" label="Manual review" value={formatNumber(operationsControl.planning.manual)} icon={Clock3} tone={operationsControl.planning.manual ? "amber" : "green"} /></div> : <p className="text-xs text-muted-foreground">Planning reference is unavailable right now.</p>}
-            </CompactPanel>
           </div>
 
-          <CompactPanel title="Stock Exceptions" action={{ href: "/stock-balance?status=low_stock", label: "Open Stock" }}>
-            <div className="grid gap-3 sm:grid-cols-2">
-              <MetricCard href="/stock-balance?status=low_stock" label="Low Stock" value={formatNumber(summary.lowStockCount)} icon={AlertTriangle} tone={summary.lowStockCount ? "red" : "green"} />
-              <MetricCard href="/goods-receivings" label="Not Invoiced" value={formatNumber(summary.financeForecast.receivingNotInvoiced)} icon={RotateCw} tone="amber" />
-            </div>
-            <p className="mt-2 text-[11px] text-muted-foreground">Finance and stock signals improve as PO, GRN, and supplier invoice data grows.</p>
-          </CompactPanel>
-
-          {summary.payablesAttentionUnavailable ? <CompactPanel title="Finance / Payables Attention" action={{ href: "/supplier-invoices/aging", label: "Retry AP Aging" }}><p className="text-xs text-muted-foreground">Payables attention is temporarily unavailable. The rest of the dashboard remains current.</p></CompactPanel> : null}
-
-          {payablesAttention ? <CompactPanel title="Finance / Payables Attention" action={{ href: "/supplier-invoices/aging", label: "Open AP Aging" }}>
+          <div className="grid gap-4 xl:grid-cols-[minmax(0,2fr)_minmax(18rem,1fr)]">
+            <CompactPanel title="Finance / Payables Attention" action={{ href: "/supplier-invoices/aging", label: summary.payablesAttentionUnavailable ? "Retry AP Aging" : "Open AP Aging" }}>
+            {summary.payablesAttentionUnavailable ? <p className="text-xs text-muted-foreground">Payables attention is temporarily unavailable. The rest of the dashboard remains current.</p> : payablesAttention ? <>
             <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
               <MetricCard href="/supplier-invoices/aging?bucket=overdue_90_plus" label={`Critical · ${payablesAttention.critical_count}`} value={formatCurrency(payablesAttention.critical_amount)} icon={AlertTriangle} tone={payablesAttention.critical_count ? "red" : "green"} />
               <MetricCard href="/supplier-invoices/aging?overdue=1" label={`Overdue · ${payablesAttention.overdue_count}`} value={formatCurrency(payablesAttention.overdue_amount)} icon={ReceiptText} tone={payablesAttention.overdue_count ? "red" : "green"} />
@@ -178,7 +172,19 @@ export function DashboardWorkspace({ summary }: { summary: DashboardSummary }) {
               </div>)}
               {!payablesAttention.rows.length ? <p className="p-3 text-xs text-muted-foreground">No supplier invoices need payment attention.</p> : null}
             </div>
-          </CompactPanel> : null}
+            </> : <p className="text-xs text-muted-foreground">No supplier invoices need payment attention.</p>}
+            </CompactPanel>
+
+            <div className="space-y-4">
+              <CompactPanel title="Production Planning Reference" action={{ href: "/production/planning", label: "Open planning" }}>
+                {operationsControl?.planning ? <div className="grid gap-2 sm:grid-cols-3 xl:grid-cols-1"><MetricCard href="/production/planning" label="High confidence" value={formatNumber(operationsControl.planning.high)} icon={CheckCircle2} tone="green" /><MetricCard href="/production/planning" label="Medium confidence" value={formatNumber(operationsControl.planning.medium)} icon={AlertTriangle} tone="amber" /><MetricCard href="/production/planning" label="Manual review" value={formatNumber(operationsControl.planning.manual)} icon={Clock3} tone={operationsControl.planning.manual ? "amber" : "green"} /></div> : <p className="text-xs text-muted-foreground">Planning reference is unavailable right now.</p>}
+              </CompactPanel>
+
+              <CompactPanel title="Stock Exceptions" action={{ href: "/stock-balance?status=low_stock", label: "Open stock" }}>
+                <div className="grid gap-2"><MetricCard href="/stock-balance?status=low_stock" label="Low Stock" value={formatNumber(summary.lowStockCount)} icon={AlertTriangle} tone={summary.lowStockCount ? "red" : "green"} /><MetricCard href="/goods-receivings" label="Not Invoiced" value={formatNumber(summary.financeForecast.receivingNotInvoiced)} icon={RotateCw} tone="amber" /></div>
+              </CompactPanel>
+            </div>
+          </div>
         </div>
       </WorkspaceGrid>
     </div>

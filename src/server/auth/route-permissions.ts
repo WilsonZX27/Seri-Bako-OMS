@@ -1,4 +1,5 @@
 const exactRoutePermissions: Record<string, string[]> = {
+  "/reports/demand-trends": ["outlet_daily_record.view"],
   "/branches/new": ["branches.create"],
   "/document-sequences/new": ["document_sequences.create"],
   "/goods-receivings/new": ["goods_receiving.create"],

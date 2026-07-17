@@ -81,8 +81,8 @@ test("only the requested routes and operations navigation are wired", () => {
   assert.match(routes, /prefixes: \["\/outlet-daily-records"\].*outlet_daily_record\.view/);
 });
 
-test("release footer matches Sprint 7.12.2", () => {
+test("release footer matches Sprint 7.13", () => {
   const version = read("src/lib/app-version.ts");
-  assert.match(version, /APP_VERSION = "0\.2\.20"/);
-  assert.match(version, /APP_SPRINT = "Sprint 7\.12\.2"/);
+  assert.match(version, /APP_VERSION = "0\.2\.21"/);
+  assert.match(version, /APP_SPRINT = "Sprint 7\.13"/);
 });

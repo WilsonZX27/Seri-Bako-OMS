@@ -8,6 +8,9 @@ import type { Database } from "@/types/database";
 type Filters = Record<string, string | undefined>;
 type RecordRow = Database["public"]["Tables"]["outlet_daily_records"]["Row"];
 type LineRow = Database["public"]["Tables"]["outlet_daily_record_lines"]["Row"];
+type TrendPeriod = "7" | "30" | "month";
+type TrendStatus = "all" | "evening_completed" | "reviewed";
+type TrendTotals = { received: number; leftover: number; wastage: number; movement: number };
 
 export type OutletDailyRecordRow = RecordRow & {
   branch_name: string;
@@ -33,6 +36,29 @@ const totals = (lines: LineRow[]) => {
     wastage_percent: totalReceived > 0 ? (totalWastage / totalReceived) * 100 : 0,
   };
 };
+
+const shiftDate = (date: string, days: number) => {
+  const value = new Date(`${date}T00:00:00Z`);
+  value.setUTCDate(value.getUTCDate() + days);
+  return value.toISOString().slice(0, 10);
+};
+
+const trendDateRange = (period: TrendPeriod) => {
+  const end = todayInKualaLumpur();
+  return { start: period === "month" ? `${end.slice(0, 8)}01` : shiftDate(end, period === "30" ? -29 : -6), end };
+};
+
+const emptyTrendTotals = (): TrendTotals => ({ received: 0, leftover: 0, wastage: 0, movement: 0 });
+const addTrendLine = (target: TrendTotals, line: LineRow) => {
+  const received = Number(line.morning_received_qty);
+  const leftover = Number(line.evening_leftover_qty);
+  const wastage = Number(line.wastage_qty);
+  target.received += received;
+  target.leftover += leftover;
+  target.wastage += wastage;
+  target.movement += Math.max(received - leftover - wastage, 0);
+};
+const wastagePercent = (totals: TrendTotals) => totals.received > 0 ? (totals.wastage / totals.received) * 100 : 0;
 
 export async function getOutletDailyFormOptions() {
   if (isMockMode()) {
@@ -138,5 +164,84 @@ export async function getOutletDailyRecord(id: string) {
       ...totals(typedLines),
     },
     lines: typedLines.map((line) => ({ ...line, product: productMap.get(line.product_id) })),
+  };
+}
+
+export async function getOutletDailyDemandTrend(filters: Filters = {}) {
+  const period = (["7", "30", "month"].includes(filters.period ?? "") ? filters.period : "7") as TrendPeriod;
+  const status = (["all", "evening_completed", "reviewed"].includes(filters.status ?? "") ? filters.status : "all") as TrendStatus;
+  const { start, end } = trendDateRange(period);
+  const options = await getOutletDailyFormOptions();
+  const branchId = filters.branch && filters.branch !== "all" ? filters.branch : undefined;
+  const productId = filters.product && filters.product !== "all" ? filters.product : undefined;
+  if (branchId && !options.branches.some((branch) => branch.id === branchId)) throw new Error("Selected outlet is not available.");
+  if (productId && !options.products.some((product) => product.id === productId)) throw new Error("Selected product is not available.");
+  if (isMockMode()) return buildDemandTrend({ records: [], lines: [], branches: options.branches, products: options.products, start, end, period, status, branchId, productId });
+
+  const db = await createClient();
+  if (!await hasPermission("outlet_daily_record.view")) throw new Error("Missing permission: outlet_daily_record.view");
+  let recordsQuery = db.from("outlet_daily_records").select("*").gte("record_date", start).lte("record_date", end).order("record_date");
+  if (branchId) recordsQuery = recordsQuery.eq("branch_id", branchId);
+  const { data: records, error } = await recordsQuery;
+  if (error) throw new Error(error.message);
+  const typedRecords = (records ?? []) as RecordRow[];
+  const recordIds = typedRecords.map((record) => record.id);
+  const { data: lines, error: linesError } = recordIds.length
+    ? await db.from("outlet_daily_record_lines").select("*").in("record_id", recordIds)
+    : { data: [], error: null };
+  if (linesError) throw new Error(linesError.message);
+  return buildDemandTrend({ records: typedRecords, lines: (lines ?? []) as LineRow[], branches: options.branches, products: options.products, start, end, period, status, branchId, productId });
+}
+
+function buildDemandTrend({ records, lines, branches, products, start, end, period, status, branchId, productId }: {
+  records: RecordRow[];
+  lines: LineRow[];
+  branches: Awaited<ReturnType<typeof getOutletDailyFormOptions>>["branches"];
+  products: Awaited<ReturnType<typeof getOutletDailyFormOptions>>["products"];
+  start: string;
+  end: string;
+  period: TrendPeriod;
+  status: TrendStatus;
+  branchId?: string;
+  productId?: string;
+}) {
+  const reliable = records.filter((record) => ["evening_completed", "reviewed"].includes(record.status) && (status === "all" || record.status === status));
+  const reliableIds = new Set(reliable.map((record) => record.id));
+  const trendLines = lines.filter((line) => reliableIds.has(line.record_id) && (!productId || line.product_id === productId));
+  const branchNames = new Map(branches.map((branch) => [branch.id, branch.branch_name]));
+  const productNames = new Map(products.map((product) => [product.id, product.product_name]));
+  const recordById = new Map(records.map((record) => [record.id, record]));
+  const summary = emptyTrendTotals();
+  const productsById = new Map<string, TrendTotals>();
+  const outletsById = new Map<string, TrendTotals>();
+  const daysByDate = new Map<string, TrendTotals>();
+  for (const line of trendLines) {
+    addTrendLine(summary, line);
+    const record = recordById.get(line.record_id);
+    if (!record) continue;
+    const productTotals = productsById.get(line.product_id) ?? emptyTrendTotals();
+    addTrendLine(productTotals, line); productsById.set(line.product_id, productTotals);
+    const outletTotals = outletsById.get(record.branch_id) ?? emptyTrendTotals();
+    addTrendLine(outletTotals, line); outletsById.set(record.branch_id, outletTotals);
+    const dayTotals = daysByDate.get(record.record_date) ?? emptyTrendTotals();
+    addTrendLine(dayTotals, line); daysByDate.set(record.record_date, dayTotals);
+  }
+  const expectedDays = Math.round((Date.parse(`${end}T00:00:00Z`) - Date.parse(`${start}T00:00:00Z`)) / 86_400_000 + 1) * (branchId ? 1 : branches.length);
+  const completedOutletDays = new Set(reliable.map((record) => `${record.branch_id}:${record.record_date}`)).size;
+  const incompleteRecords = records.filter((record) => ["draft", "morning_recorded"].includes(record.status)).length;
+  const toRows = (source: Map<string, TrendTotals>, nameFor: (id: string) => string) => [...source].map(([id, totals]) => ({ id, name: nameFor(id), ...totals, wastage_percent: wastagePercent(totals) }));
+  const productRows = toRows(productsById, (id) => productNames.get(id) ?? "Archived product");
+  const outletRows = toRows(outletsById, (id) => branchNames.get(id) ?? "Unknown outlet");
+  const dailyRows = toRows(daysByDate, (id) => id).sort((left, right) => left.name.localeCompare(right.name));
+  return {
+    filters: { period, status, branch: branchId ?? "all", product: productId ?? "all", start, end },
+    branches,
+    products,
+    summary: { ...summary, wastage_percent: wastagePercent(summary) },
+    coverage: { completed: completedOutletDays, expected: expectedDays, incomplete: incompleteRecords, missing: Math.max(expectedDays - completedOutletDays, 0) },
+    top_moving_products: [...productRows].sort((left, right) => right.movement - left.movement).slice(0, 10),
+    top_wastage_products: [...productRows].sort((left, right) => right.wastage - left.wastage).slice(0, 10),
+    outlets: outletRows.sort((left, right) => right.movement - left.movement),
+    daily: dailyRows,
   };
 }

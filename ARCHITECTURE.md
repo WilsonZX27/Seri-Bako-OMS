@@ -683,3 +683,7 @@ Migration `063` corrects the report join to match the actual supplier schema: su
 ## Outlet Daily Receiving and Wastage
 
 Migration `064` adds company- and branch-scoped outlet daily headers and product lines. Authenticated reads require the module view permission and either explicit company-wide access or a matching `staff_branches`/default-branch assignment. All writes use fixed-`search_path` RPCs that recheck the active staff member, permission, company, branch, state transition, quantities, reasons, and duplicate outlet/date rule. Reviewed and Void records are locked from normal edits. The module intentionally has no stock-ledger, stock-balance, production-job, AP Aging, or Cash Flow write path; a later approved workflow must add any inventory posting as a separate auditable operation.
+
+## Demand Trend Lite
+
+Sprint 7.13 adds a server-side report query over the existing outlet daily headers and lines. The query uses the existing `outlet_daily_record.view` permission and RLS branch boundary, includes only Evening Completed and Reviewed records in reliable totals, and keeps draft/morning records in coverage warnings only. It has no RPC, migration, stock, production, AP, or Cash Flow write path.

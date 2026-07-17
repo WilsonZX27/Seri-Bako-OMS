@@ -8,7 +8,7 @@ For UI and interaction standards, read `DESIGN.md`.
 
 ## Current Pilot Baseline
 
-- Application release: `v0.2.24 / Sprint 7.16.1`.
+- Application release: `v0.2.25 / Sprint 7.17`.
 - Database migration ceiling: `065_fix_outlet_evening_completion_validation`.
 - Pilot preparation is documentation and operator readiness only; it does not change the application release.
 - Start with `docs/PILOT_BASELINE.md`, use the controlled CSV files in `docs/import-templates/`, and record sign-off in `docs/PILOT_QA_CHECKLIST.md`.
@@ -172,6 +172,7 @@ The application includes or is actively developing:
 - Production Planning Lite for cautious one-day guidance from reliable Demand Trend movement, without production or inventory writes.
 - Production vs Outlet Demand Variance for read-only received, movement, leftover, and wastage signals.
 - Operations Control Center Lite on the existing Dashboard, composed from existing read-only operational summaries.
+- Master Data Cleanup Lite: a read-only checklist linking data-quality issues back to existing master pages.
 - Stock Transactions and Stock Ledger.
 - Stock Balance.
 - Low Stock.

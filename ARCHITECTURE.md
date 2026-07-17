@@ -703,3 +703,7 @@ Sprint 7.16 composes the existing dashboard, outlet-record, demand, variance, pl
 ## Operations Navigation & Smoke Polish
 
 Sprint 7.16.1 keeps one direct sidebar path to Outlet Daily Records, a single Production hub path to Planning and Variance, and Demand Trends in Reports. It only clarifies navigation, copy, console order, and existing responsive table behavior; it adds no migration or business write path.
+
+## Master Data Cleanup Lite
+
+Sprint 7.17 uses the authenticated server client and existing RLS-visible master/reference tables to build a read-only checklist. It requires `items.view`, normalizes codes only for duplicate detection, and exposes no mutation action or RPC.

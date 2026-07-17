@@ -1,4 +1,5 @@
 const exactRoutePermissions: Record<string, string[]> = {
+  "/administration/master-data-cleanup": ["items.view"],
   "/reports/demand-trends": ["outlet_daily_record.view"],
   "/production/planning": ["outlet_daily_record.view"],
   "/production/variance": ["outlet_daily_record.view"],

@@ -199,7 +199,7 @@ The system currently covers or is actively implementing the following operationa
 
 Module maturity must be understood separately from visual completion.
 
-Current local baseline: `v0.2.24 / Sprint 7.16.1` with database migrations through `065`. This is an operational pilot baseline, not a claim that Seri Bako OMS is a full accounting ERP.
+Current local baseline: `v0.2.25 / Sprint 7.17` with database migrations through `065`. This is an operational pilot baseline, not a claim that Seri Bako OMS is a full accounting ERP.
 
 A page may exist visually without its full workflow, validation, database integration, permissions, and downstream effects being complete.
 
@@ -356,6 +356,10 @@ Production vs Outlet Demand Variance compares received quantities, estimated mov
 ### Operations Control Center Lite
 
 The Dashboard composes existing outlet health, demand confidence, variance, planning, inventory, and payable summaries. Each outlet/demand section can be unavailable without blanking the rest of the Dashboard. It is read-only; planning values remain references rather than production orders.
+
+### Master Data Cleanup Lite
+
+Master Data Cleanup Lite is a read-only checklist for duplicate or variant codes, missing core fields, inactive referenced master records, and location branch gaps. It links to existing master pages for human review; it does not merge, delete, or modify any record.
 
 ## Roles and Permissions
 

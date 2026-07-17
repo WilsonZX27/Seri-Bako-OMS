@@ -706,4 +706,4 @@ Sprint 7.16.1 keeps one direct sidebar path to Outlet Daily Records, a single Pr
 
 ## Master Data Cleanup Lite
 
-Sprint 7.17 uses the authenticated server client and existing RLS-visible master/reference tables to build a read-only checklist. It requires `items.view`, normalizes codes only for duplicate detection, and exposes no mutation action or RPC.
+Sprint 7.17.1 keeps the authenticated server client and existing RLS-visible master/reference tables unchanged. Its UI-only cleanup keeps master-data checks read-only, imports upload-only, and permission keys behind collapsed technical details; it adds no mutation action, RPC, or migration.

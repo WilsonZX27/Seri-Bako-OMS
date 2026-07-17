@@ -223,6 +223,24 @@ input[type="date"]::-webkit-date-and-time-value {
   flex: 0 0 auto;
 }
 
+.sb-list-filters > button:is([type="submit"], :not([type])) {
+  border-color: var(--sb-amber-700);
+  background: var(--sb-amber-700);
+  color: var(--sb-text-inverse);
+}
+
+.sb-list-filters > a {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.sb-list-filters > a::before {
+  content: "↻";
+  font-size: 1rem;
+  line-height: 1;
+}
+
 .sb-list-filters input,
 .sb-list-filters select,
 .sb-list-filters button,

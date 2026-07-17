@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { AlertTriangle, CheckCircle2, Download, FileSpreadsheet, PencilLine, Save, Trash2, Upload, XCircle } from "lucide-react";
+import { AlertTriangle, CheckCircle2, Download, FileSpreadsheet, Save, Trash2, Upload, XCircle } from "lucide-react";
 import { importTemplates, type ImportEntity, type ImportMode } from "@/lib/imports/config";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -33,17 +33,6 @@ type DraftPayload = {
   rows: Record<string, string>[];
   savedAt: string;
 };
-
-function parseDelimitedTable(text: string, headers: string[]) {
-  const lines = text
-    .split(/\r?\n/)
-    .map((line) => line.trimEnd())
-    .filter(Boolean);
-  return lines.map((line) => {
-    const values = line.includes("\t") ? line.split("\t") : line.split(",");
-    return Object.fromEntries(headers.map((header, index) => [header, values[index]?.trim() ?? ""]));
-  });
-}
 
 function csvEscape(value: string) {
   return /[",\n]/.test(value) ? `"${value.replaceAll('"', '""')}"` : value;
@@ -211,7 +200,6 @@ type SupplierPreview = { id: string; supplier_code: string | null; name: string 
 export function ImportWorkflow({ entity, suppliers = [] }: { entity: ImportEntity; suppliers?: SupplierPreview[] }) {
   const spec = importTemplates[entity];
   const [rows, setRows] = useState<RowState[]>([]);
-  const [entryMode, setEntryMode] = useState<"upload" | "table">("upload");
   const [message, setMessage] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [fileName, setFileName] = useState("");
@@ -219,7 +207,6 @@ export function ImportWorkflow({ entity, suppliers = [] }: { entity: ImportEntit
   const [confirmPosting, setConfirmPosting] = useState(false);
   const [result, setResult] = useState<ImportResult | null>(null);
   const [draftSavedAt, setDraftSavedAt] = useState<string | null>(null);
-  const [pasteText, setPasteText] = useState("");
   const validRows = useMemo(() => rows.filter((row) => !row.errors.length), [rows]);
   const errorRows = useMemo(() => rows.filter((row) => row.errors.length), [rows]);
 
@@ -320,10 +307,6 @@ export function ImportWorkflow({ entity, suppliers = [] }: { entity: ImportEntit
     setResult(null);
   }
 
-  function addBlankRow() {
-    updateRows([...rows.map((row) => row.values), Object.fromEntries(spec.headers.map((header) => [header, ""]))]);
-  }
-
   function removeRow(rowIndex: number) {
     updateRows(rows.filter((_, index) => index !== rowIndex).map((row) => row.values));
   }
@@ -359,7 +342,6 @@ export function ImportWorkflow({ entity, suppliers = [] }: { entity: ImportEntit
       setConfirmPosting(Boolean(draft.confirmPosting));
       setFileName(draft.fileName || "Saved draft");
       setDraftSavedAt(draft.savedAt);
-      setEntryMode("table");
       setMessage(`Loaded saved draft with ${draft.rows.length} row(s).`);
     } catch {
       setMessage("Saved draft could not be read on this browser.");
@@ -377,17 +359,6 @@ export function ImportWorkflow({ entity, suppliers = [] }: { entity: ImportEntit
     setRows(nextRows);
     setResult(null);
     setMessage(nextRows.some((row) => row.errors.length) ? "Some rows still need fixes before import." : "All current rows look ready.");
-  }
-
-  function applyPastedTable() {
-    if (!pasteText.trim()) {
-      setMessage("Paste some rows first.");
-      return;
-    }
-    const parsedRows = parseDelimitedTable(pasteText, spec.headers);
-    updateRows(parsedRows);
-    setEntryMode("table");
-    setMessage(`${parsedRows.length} row(s) pasted into the table.`);
   }
 
   async function confirmImport() {
@@ -439,16 +410,15 @@ export function ImportWorkflow({ entity, suppliers = [] }: { entity: ImportEntit
           <Button type="button" variant="outline" className="w-full justify-start" onClick={loadDraft}>Load draft</Button>
           {draftSavedAt ? <Button type="button" variant="ghost" className="w-full justify-start" onClick={clearDraft}><Trash2 className="mr-2 h-4 w-4" />Clear draft</Button> : null}
         </ConsoleSection>
-        <ConsoleSection title="Current file">
-          <div className="space-y-2 text-xs"><div className="flex justify-between"><span className="text-muted-foreground">Total rows</span><strong>{rows.length}</strong></div><div className="flex justify-between"><span className="text-muted-foreground">Valid rows</span><strong>{validRows.length}</strong></div><div className="flex justify-between"><span className="text-muted-foreground">Needs fixes</span><strong>{errorRows.length}</strong></div></div>
-        </ConsoleSection>
         <ConsoleSection title="Review actions">
           <p className="text-xs text-muted-foreground">Validate the current rows before confirming. Confirmation stays disabled until valid rows are ready.</p>
-          <Button type="button" variant="outline" className="w-full" onClick={addBlankRow}><PencilLine className="mr-2 h-4 w-4" />Add blank row</Button>
           <Button type="button" variant="outline" className="w-full" onClick={checkErrors}>Check errors</Button>
-          <Button type="button" className="w-full" onClick={confirmImport} disabled={!validRows.length || isSaving || Boolean(spec.needsPostingConfirmation && !confirmPosting)}><Upload className="mr-2 h-4 w-4" />{isSaving ? "Importing..." : "Proceed / Confirm Import"}</Button>
+          <Button type="button" className="w-full" onClick={confirmImport} disabled={!validRows.length || isSaving || Boolean(spec.needsPostingConfirmation && !confirmPosting)}><Upload className="mr-2 h-4 w-4" />{isSaving ? "Importing..." : "Confirm import"}</Button>
           <Button type="button" variant="outline" className="w-full" onClick={downloadErrorCsv} disabled={!errorRows.length}>Download errors</Button>
           {message ? <p className="text-xs text-muted-foreground">{message}</p> : null}
+        </ConsoleSection>
+        <ConsoleSection title="Current file">
+          <div className="space-y-2 text-xs"><div className="flex justify-between"><span className="text-muted-foreground">Total rows</span><strong>{rows.length}</strong></div><div className="flex justify-between"><span className="text-muted-foreground">Valid rows</span><strong>{validRows.length}</strong></div><div className="flex justify-between"><span className="text-muted-foreground">Needs fixes</span><strong>{errorRows.length}</strong></div></div>
         </ConsoleSection>
       </RightConsoleMount>
       <Card>
@@ -486,32 +456,10 @@ export function ImportWorkflow({ entity, suppliers = [] }: { entity: ImportEntit
                 </p>
               </div>
 
-              <div className="rounded-[2px] border bg-card p-3">
-                <p className="mb-2 text-xs font-semibold uppercase text-muted-foreground">Input mode</p>
-                <div className="flex flex-wrap gap-2">
-                  <Button type="button" variant={entryMode === "upload" ? "default" : "outline"} onClick={() => setEntryMode("upload")}>Upload file</Button>
-                  <Button type="button" variant={entryMode === "table" ? "default" : "outline"} onClick={() => setEntryMode("table")}>Edit in table</Button>
-                </div>
-              </div>
-
               <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_220px]">
                 <div className="space-y-3">
-                  {entryMode === "upload" ? (
-                    <>
-                      <Input type="file" accept=".csv,.xlsx" onChange={(event) => loadFile(event.target.files?.[0])} />
-                      {fileName ? <p className="text-xs text-muted-foreground">Loaded source: {fileName}</p> : null}
-                    </>
-                  ) : (
-                    <>
-                      <textarea
-                        value={pasteText}
-                        onChange={(event) => setPasteText(event.target.value)}
-                        className="min-h-32 w-full rounded-[2px] border bg-background p-3 text-sm"
-                        placeholder="Paste rows from Excel or Google Sheets here."
-                      />
-                      <Button type="button" variant="outline" onClick={applyPastedTable}>Paste into table</Button>
-                    </>
-                  )}
+                  <label className="grid gap-1 text-xs"><span>Upload file</span><Input type="file" accept=".csv,.xlsx" onChange={(event) => loadFile(event.target.files?.[0])} /></label>
+                  {fileName ? <p className="text-xs text-muted-foreground">Loaded source: {fileName}</p> : null}
                   {draftSavedAt ? <p className="text-xs text-muted-foreground">Saved draft on this browser: {formatSavedAt(draftSavedAt)}</p> : null}
                 </div>
                 <div className="space-y-2">
@@ -596,7 +544,7 @@ export function ImportWorkflow({ entity, suppliers = [] }: { entity: ImportEntit
               {!rows.length ? (
                 <TableRow>
                   <TableCell colSpan={spec.headers.length + 3} className="text-center text-muted-foreground">
-                    Upload a CSV file or add a blank row to start reviewing data.
+                    Upload a CSV or XLSX file to start reviewing data.
                   </TableCell>
                 </TableRow>
               ) : null}

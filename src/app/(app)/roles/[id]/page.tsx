@@ -33,7 +33,7 @@ export default async function EditRolePage({ params }: { params: Promise<{ id: s
       </RecordActionPanel>
     </>}>
       <RoleForm formId="role-edit-form" role={role} companies={companies} action={updateRole.bind(null, id)} showSubmit={false} />
-      <RecordSection title="Business Permission Matrix" description="Role defaults only. Individual Allow or Deny overrides remain on the staff record."><RolePermissionMatrix permissions={permissions} selectedPermissionIds={selectedPermissionIds} action={updateRolePermissions.bind(null, id)} /></RecordSection>
+      <RecordSection title="Business Permission Matrix" description="Roles define default access. Staff overrides can allow or deny specific actions."><RolePermissionMatrix permissions={permissions} selectedPermissionIds={selectedPermissionIds} action={updateRolePermissions.bind(null, id)} /></RecordSection>
     </RecordWorkspace>
   </>;
 }

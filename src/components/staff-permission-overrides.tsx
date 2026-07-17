@@ -14,6 +14,12 @@ type PermissionAccess = {
   effective: boolean;
 };
 
+const moduleLabels: Record<string, string> = { purchase_request: "Purchase Requests", purchase_order: "Purchase Orders", goods_receiving: "Goods Receiving", supplier_invoice: "Supplier Invoices", stock_ledger: "Stock Ledger", stock_transfer: "Stock Transfers", stock_wastage: "Stock Wastage", outlet_daily_record: "Outlet Daily Records" };
+const actionLabels: Record<string, string> = { read: "view", view: "view", create: "create", update: "manage", manage: "manage", approve: "approve", delete: "manage", post: "manage", export: "view", import: "manage" };
+
+function friendlyModule(module: string) { return moduleLabels[module] ?? module.replaceAll("_", " ").replace(/\b\w/g, (letter) => letter.toUpperCase()); }
+function effectiveLabel(permission: PermissionAccess) { return permission.effective ? `Can ${actionLabels[permission.action] ?? "manage"}` : "Restricted"; }
+
 export function StaffPermissionOverrides({
   permissions,
   canManage,
@@ -53,16 +59,16 @@ export function StaffPermissionOverrides({
 
       <form action={updateAction} className="space-y-3">
         {groups.map(([module, modulePermissions]) => (
-          <details key={module} className="border border-[var(--sb-border-soft)]" open={groups.length <= 4}>
+          <details key={module} className="border border-[var(--sb-border-soft)]">
             <summary className="cursor-pointer px-3 py-2 text-sm font-semibold capitalize focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--sb-amber-700)]">
-              {module.replaceAll("_", " ")} <span className="font-normal text-muted-foreground">({modulePermissions.length})</span>
+              {friendlyModule(module)} <span className="font-normal text-muted-foreground">({modulePermissions.length})</span>
             </summary>
             <div className="divide-y border-t border-[var(--sb-border-soft)]">
               {modulePermissions.map((permission) => (
                 <div key={permission.id} className="grid gap-2 p-3 sm:grid-cols-[minmax(0,1fr)_9rem] sm:items-center">
                   <div className="min-w-0">
-                    <p className="text-xs font-medium">{permission.description ?? permission.action.replaceAll("_", " ")}</p>
-                    <p className="mt-1 text-[11px] text-muted-foreground">Role default: {permission.roleDefault ? "Allowed" : "Not allowed"} · Effective: <span className={permission.effective ? "text-[var(--sb-success)]" : "text-[var(--sb-danger)]"}>{permission.effective ? "Allowed" : "Not allowed"}</span></p>
+                    <p className="text-xs font-medium">{permission.description ?? `Can ${actionLabels[permission.action] ?? "manage"}`}</p>
+                    <p className="mt-1 text-[11px] text-muted-foreground">Role default: {permission.roleDefault ? "Can access" : "Restricted"} · Effective: <span className={permission.effective ? "text-[var(--sb-success)]" : "text-[var(--sb-danger)]"}>{effectiveLabel(permission)}</span></p>
                     <details className="mt-1 text-[11px] text-muted-foreground"><summary className="cursor-pointer">Technical details</summary><code className="mt-1 block truncate">{permission.permission_code}</code></details>
                   </div>
                   <SelectNative name={`permission:${permission.id}`} defaultValue={permission.override ?? "inherit"} disabled={disabled} aria-label={`Override ${permission.permission_code}`}>

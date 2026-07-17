@@ -4,7 +4,6 @@ import Link from "next/link";
 import { AlertTriangle, Boxes, CheckCircle2, ClipboardCheck, Clock3, PackageCheck, ReceiptText, RotateCw, Zap } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { EmptyState } from "@/components/ui/empty-state";
 import { ConsoleSection } from "@/components/layout/right-console";
 import { WorkspaceGrid } from "@/components/layout/workspace-layout";
 import { formatCurrency, formatNumber } from "@/lib/utils";
@@ -72,17 +71,16 @@ export function DashboardWorkspace({ summary }: { summary: DashboardSummary }) {
     return () => window.clearInterval(timer);
   }, []);
 
-  const today = new Date().toISOString().slice(0, 10);
-  const metrics = [
-    { href: "/purchase-requests?status=admin_review", label: "Pending PRs", value: formatNumber(summary.pendingApprovals.length), icon: ClipboardCheck, tone: summary.pendingApprovals.length ? ("amber" as const) : ("green" as const) },
-    { href: "/stock-balance?status=low_stock", label: "Low Stock Items", value: formatNumber(summary.lowStockCount), icon: AlertTriangle, tone: summary.lowStockCount ? ("red" as const) : ("green" as const) },
-    { href: `/production/jobs?from=${today}&to=${today}`, label: "Active Production", value: formatNumber(summary.today.production), icon: Boxes, tone: "blue" as const },
-    { href: "/goods-receivings", label: "Goods Receiving", value: formatNumber(summary.today.goodsReceiving), icon: PackageCheck, tone: "neutral" as const },
-  ];
-  const pendingActions = summary.pendingApprovals.slice(0, 3);
   const stuckRequests = summary.urgentRequests.slice(0, 3);
   const payablesAttention = summary.payablesAttention;
   const operationsControl = summary.operationsControl;
+  const actionRequired = [
+    summary.pendingApprovals.length ? { href: "/purchase-requests?status=admin_review", label: "Pending approvals", value: formatNumber(summary.pendingApprovals.length), icon: ClipboardCheck, tone: "amber" as const } : null,
+    stuckRequests.length ? { href: "/purchase-requests?priority=urgent", label: "Urgent PRs", value: formatNumber(stuckRequests.length), icon: AlertTriangle, tone: "red" as const } : null,
+    operationsControl?.outlet?.missing_evening ? { href: "/outlet-daily-records?status=draft", label: "Missing evening", value: formatNumber(operationsControl.outlet.missing_evening), icon: Clock3, tone: "amber" as const } : null,
+    operationsControl?.outlet?.needs_review ? { href: "/outlet-daily-records?status=evening_completed", label: "Needs review", value: formatNumber(operationsControl.outlet.needs_review), icon: ClipboardCheck, tone: "amber" as const } : null,
+    payablesAttention && (payablesAttention.critical_count || payablesAttention.overdue_count) ? { href: "/supplier-invoices/aging?overdue=1", label: "Overdue payables", value: formatNumber(payablesAttention.critical_count + payablesAttention.overdue_count), icon: ReceiptText, tone: "red" as const } : null,
+  ].filter(Boolean) as Array<{ href: string; label: string; value: string; icon: LucideIcon; tone: "amber" | "red" }>;
 
   return (
     <div className="min-h-0">
@@ -109,21 +107,6 @@ export function DashboardWorkspace({ summary }: { summary: DashboardSummary }) {
               <div className="space-y-1 text-[11px] text-muted-foreground"><p>Outlet signals use completed or reviewed records where applicable.</p><p>Low confidence means staff records are incomplete.</p><p>Planning values are references, not production orders.</p><p>AP summaries are read-only.</p></div>
             </ConsoleSection>
 
-            <ConsoleSection title="Recent Activity">
-              <div className="space-y-2">
-                {summary.recentActivities.slice(0, 3).map((activity) => (
-                  <div key={activity.id} className="text-[11px]">
-                    <p className="line-clamp-1 font-medium">{activity.message}</p>
-                    <p className="text-[10px] text-muted-foreground">{new Date(activity.created_at).toLocaleString("en-MY", { dateStyle: "short", timeStyle: "short" })}</p>
-                  </div>
-                ))}
-                {!summary.recentActivities.length ? <p className="text-[11px] text-muted-foreground">No recent activity.</p> : null}
-                <Button asChild variant="ghost" size="sm" className="h-6 w-full text-[11px]">
-                  <Link href="/activity">Show more</Link>
-                </Button>
-              </div>
-            </ConsoleSection>
-
             {payablesAttention ? <ConsoleSection title="Payables Attention">
               <div className="space-y-2 text-[11px]">
                 <p><span className="text-muted-foreground">As of</span><br /><strong>{payablesAttention.report_date}</strong></p>
@@ -148,54 +131,9 @@ export function DashboardWorkspace({ summary }: { summary: DashboardSummary }) {
             </div>
           </div>
 
-          <div className="grid gap-4 md:grid-cols-3">
-            {metrics.slice(0, 3).map((metric) => <MetricCard key={metric.label} {...metric} />)}
-          </div>
-
-          <div className="grid gap-4 xl:grid-cols-3">
-            <CompactPanel title="Today's Attention" action={{ href: "/documents?status=pending_approval", label: "Review" }}>
-              {pendingActions.length ? (
-                <div className="divide-y rounded-[2px] border bg-white">
-                  {pendingActions.slice(0, 2).map((document) => (
-                    <Link key={document.id} href={document.href ?? "/documents"} className="block px-2 py-1.5 text-[11px] hover:bg-[var(--sb-surface-muted)]">
-                      <div className="flex items-center justify-between gap-2">
-                        <p className="truncate font-mono text-[11px] font-semibold">{document.document_no}</p>
-                        <span className="shrink-0 rounded-[2px] bg-[var(--sb-warning-bg)] px-1.5 py-0.5 text-[10px] font-medium text-[var(--sb-warning)]">{document.step ?? "In Review"}</span>
-                      </div>
-                      <p className="truncate text-[11px] text-muted-foreground">{[document.branch_name, document.age_label].filter(Boolean).join(" - ")}</p>
-                    </Link>
-                  ))}
-                </div>
-              ) : (
-                <EmptyState icon={CheckCircle2} title="No pending actions" description="Nothing needs your review right now." />
-              )}
-            </CompactPanel>
-
-            <CompactPanel title="Procurement Queue" action={{ href: "/purchase-requests?priority=urgent", label: "View Queue" }}>
-              {stuckRequests.length ? (
-                <div className="divide-y rounded-[2px] border bg-white">
-                  {stuckRequests.map((request) => (
-                    <Link key={request.id} href={`/purchase-requests/${request.id}`} className="flex items-center justify-between gap-2 px-2.5 py-1.5 text-[11px] hover:bg-[var(--sb-surface-muted)]">
-                      <div className="min-w-0">
-                        <p className="truncate font-mono text-[11px] font-semibold">{request.request_no}</p>
-                        <p className="truncate text-[11px] text-muted-foreground">{request.needed_by_date ? `Needed by ${request.needed_by_date}` : "Needed date not set"}</p>
-                      </div>
-                      <span className="shrink-0 rounded-[2px] bg-[var(--sb-danger-bg)] px-1.5 py-0.5 text-[10px] font-medium text-[var(--sb-danger)]">{request.priority ?? "Urgent"}</span>
-                    </Link>
-                  ))}
-                </div>
-              ) : (
-                <EmptyState icon={Clock3} title="No stuck PRs" description="Urgent and critical PRs will appear here when they need attention." />
-              )}
-            </CompactPanel>
-
-            <CompactPanel title="Today’s Operations" action={{ href: "/production/jobs", label: "Open" }}>
-              <div className="grid gap-2">
-                <MetricCard href="/production/jobs" label="Jobs Today" value={formatNumber(summary.today.production)} icon={Boxes} />
-                <MetricCard href="/goods-receivings" label="Receiving Today" value={formatNumber(summary.today.goodsReceiving)} icon={PackageCheck} />
-              </div>
-            </CompactPanel>
-          </div>
+          <CompactPanel title="Action Required" action={{ href: "/documents?status=pending_approval", label: "Open queue" }}>
+            {actionRequired.length ? <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-3">{actionRequired.map((item) => <MetricCard key={item.label} {...item} />)}</div> : <p className="text-xs text-muted-foreground">No action requires attention right now.</p>}
+          </CompactPanel>
 
           <div className="grid gap-4 xl:grid-cols-2">
             <CompactPanel title="Outlet Record Health" action={{ href: "/outlet-daily-records", label: "Open records" }}>

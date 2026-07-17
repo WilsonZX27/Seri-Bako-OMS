@@ -699,3 +699,7 @@ Sprint 7.15 reuses the same read-only Demand Trend result and RLS branch scope t
 ## Operations Control Center Lite
 
 Sprint 7.16 composes the existing dashboard, outlet-record, demand, variance, planning, stock, and AP query outputs. Outlet and demand calls use independent settled results so one unavailable source leaves the other dashboard sections usable. It adds no dashboard framework, migration, or business write path.
+
+## Operations Navigation & Smoke Polish
+
+Sprint 7.16.1 keeps one direct sidebar path to Outlet Daily Records, a single Production hub path to Planning and Variance, and Demand Trends in Reports. It only clarifies navigation, copy, console order, and existing responsive table behavior; it adds no migration or business write path.

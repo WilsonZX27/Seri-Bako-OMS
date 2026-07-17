@@ -8,7 +8,7 @@ For UI and interaction standards, read `DESIGN.md`.
 
 ## Current Pilot Baseline
 
-- Application release: `v0.2.24 / Sprint 7.16`.
+- Application release: `v0.2.24 / Sprint 7.16.1`.
 - Database migration ceiling: `065_fix_outlet_evening_completion_validation`.
 - Pilot preparation is documentation and operator readiness only; it does not change the application release.
 - Start with `docs/PILOT_BASELINE.md`, use the controlled CSV files in `docs/import-templates/`, and record sign-off in `docs/PILOT_QA_CHECKLIST.md`.

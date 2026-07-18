@@ -24,6 +24,6 @@ test("procurement variance keeps warning calculations read-only", () => {
 test("procurement variance route explains thresholds and release", () => {
   assert.match(page, /Thresholds are warnings, not automatic claims/);
   assert.match(page, /No PO, GRN, invoice, supplier price, or stock record is changed/);
-  assert.match(version, /0\.2\.33/);
-  assert.match(version, /Sprint 7\.21\.7/);
+  assert.match(version, /0\.2\.34/);
+  assert.match(version, /Sprint 7\.22\.1/);
 });

@@ -9,6 +9,7 @@ import { DocumentSideSection, DocumentWorkspace } from "@/components/documents/d
 import { StaleWorkflowRefresh } from "@/components/documents/stale-workflow-refresh";
 import { PriorityBadge } from "@/components/priority-badge";
 import { SubmitButton } from "@/components/ui/submit-button";
+import { NotFoundState } from "@/components/ui/system-states";
 import { BlockedDestructiveAction } from "@/components/ui/danger-confirm-form";
 import { DangerConfirmForm } from "@/components/ui/danger-confirm-form";
 import { getPrWorkflowLabel, getPrWorkflowStep, PR_WORKFLOW_STEP_LABELS, PURCHASE_REQUEST_WORKFLOW_STEPS } from "@/lib/purchase-request-status";
@@ -58,15 +59,19 @@ export default async function PurchaseRequestDetailPage({
   searchParams: Promise<{ error?: string; success?: string }>;
 }) {
   const [{ id }, messageParams] = await Promise.all([params, searchParams]);
-  const [{ request, lines }, linkedPurchaseOrders, items, suppliers, branches, permissions] = await Promise.all([
-    getPurchaseRequest(id),
-    getPurchaseOrdersForRequest(id),
-    getItemsForSelect(),
-    getSuppliersForSelect(),
-    getBranchesForSelect(),
+  const purchaseRequest = await getPurchaseRequest(id);
+  if (!purchaseRequest) {
+    return <NotFoundState title="Purchase request not available" description="This request may not exist, or you may not have access to it." action={{ href: "/purchase-requests", label: "Back to purchase requests" }} />;
+  }
+  const { request, lines } = purchaseRequest;
+  const [linkedPurchaseOrders, items, suppliers, branches, permissions] = await Promise.all([
+    getPurchaseOrdersForRequest(id).catch(() => []),
+    getItemsForSelect().catch(() => []),
+    getSuppliersForSelect().catch(() => []),
+    getBranchesForSelect().catch(() => []),
     getPermissionMap(["pr.submit", "pr.admin_review", "pr.purchasing_review", "pr.manager_approve", "pr.finance_review", "pr.convert_to_po", "pr.reject", "pr.cancel"]),
   ]);
-  const documentBundle = request.document_id ? await getDocumentBundle(request.document_id) : null;
+  const documentBundle = request.document_id ? await getDocumentBundle(request.document_id).catch(() => null) : null;
   const deletePreview = await getPhaseOneDeletePreview("purchase_request", request.id).catch(() => null);
   const itemById = new Map(items.map((item) => [item.id, item]));
   const supplierById = new Map(suppliers.map((supplier) => [supplier.id, supplier]));

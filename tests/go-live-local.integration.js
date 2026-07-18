@@ -53,11 +53,11 @@ async function main() {
   const role = (companyId, code) => roles.find((row) => row.company_id === companyId && row.role_code === code);
   const grants = {
     super_admin: permissionRows.map((row) => row.permission_code),
-    admin: ["dashboard.view", "documents.read", "pr.view_all", "pr.create", "pr.submit", "pr.admin_review", "pr.reject", "supplier_invoice.view"],
+    admin: ["dashboard.view", "documents.view", "pr.view_all", "pr.create", "pr.submit", "pr.admin_review", "pr.reject", "supplier_invoice.view"],
     manager: ["dashboard.view", "documents.read", "pr.view_branch", "pr.create", "pr.submit", "pr.manager_approve", "pr.reject"],
     finance: ["dashboard.view", "documents.read", "pr.view_all", "pr.finance_review", "supplier_invoice.view", "supplier_invoice.pay"],
-    kitchen: ["dashboard.view", "documents.read", "production.view", "purchase_request.read"],
-    purchasing: ["dashboard.view", "documents.read", "purchase_request.read", "pr.view_all", "pr.create", "pr.submit"],
+    kitchen: ["dashboard.view", "documents.read", "documents.create", "documents.update", "documents.comment", "documents.attach", "production.view", "purchase_request.read", "pr.create", "pr.submit", "pr.view_branch", "pr.cancel"],
+    purchasing: ["dashboard.view", "documents.read", "purchase_request.read", "purchase_order.read", "pr.view_all", "pr.create", "pr.submit", "pr.convert_to_po", "po.view", "purchase_order.send"],
     outlet_staff: ["dashboard.view", "outlet_daily_record.view", "outlet_daily_record.create", "outlet_daily_record.update"],
   };
   for (const company of [companyA, companyB]) {
@@ -143,7 +143,7 @@ async function main() {
   assert.deepEqual(outletPermissions, grants.outlet_staff.slice().sort());
   assert.equal(roles.filter((row) => row.role_code === "outlet_staff" && row.company_id == null).length, 0);
 
-  console.log(JSON.stringify({ migration068CrossCompanyInsert: "blocked", directRlsBypass: "blocked", concurrentApprovals: { succeeded: 1, failed: 1, timelineEvents: events.length }, hardDelete069: { itemSupplierProduct: "previewed and deleted", nonOwnerPreview: "blocked", tombstones: tombstones.length }, permissionPropagation: "grant and revoke visible on next RPC", accounts, password }, null, 2));
+  console.log(JSON.stringify({ migration068CrossCompanyInsert: "blocked", migration070KitchenSubmit: "granted", directRlsBypass: "blocked", concurrentApprovals: { succeeded: 1, failed: 1, timelineEvents: events.length }, hardDelete069: { itemSupplierProduct: "previewed and deleted", nonOwnerPreview: "blocked", tombstones: tombstones.length }, permissionPropagation: "grant and revoke visible on next RPC" }, null, 2));
 }
 
 main().catch((error) => { console.error(error); process.exitCode = 1; });

@@ -172,7 +172,7 @@ export async function getPurchaseRequestSummary() {
 export async function getPurchaseRequest(id: string) {
   if (isMockMode()) {
     const row = mockPurchaseRequests.find((item) => item.id === id);
-    if (!row) throw new Error("Mock purchase request not found");
+    if (!row) return null;
     const lines = mockPurchaseRequestLines.filter((line) => line.purchase_request_id === id).map((line) => {
       const item = mockItems.find((itemRow) => itemRow.id === line.item_id);
       const supplier = mockSuppliers.find((supplierRow) => supplierRow.id === line.suggested_supplier_id);
@@ -182,11 +182,12 @@ export async function getPurchaseRequest(id: string) {
   }
   const supabase = await createClient();
   const [{ data, error }, { data: lines, error: linesError }] = await Promise.all([
-    supabase.from("purchase_requests").select("*").eq("id", id).single(),
+    supabase.from("purchase_requests").select("*").eq("id", id).maybeSingle(),
     supabase.from("purchase_request_lines").select("*").eq("purchase_request_id", id),
   ]);
   if (error) throw new Error(error.message);
   if (linesError) throw new Error(linesError.message);
+  if (!data) return null;
   return { request: data as PurchaseRequest, lines: (lines ?? []) as PurchaseRequestLine[] };
 }
 

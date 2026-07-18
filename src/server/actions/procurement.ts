@@ -80,6 +80,7 @@ async function notifyNextPrRole(input: {
 
 function extractPurchaseRequest(formData: FormData) {
   const itemIds = formData.getAll("line_item_id").map(String);
+  if (!itemIds.some(Boolean)) throw new Error("Add at least one item before creating this purchase request.");
   const qtys = formData.getAll("line_qty").map(String);
   const uoms = formData.getAll("line_uom").map(String);
   const costs = formData.getAll("line_estimated_unit_cost").map(String);

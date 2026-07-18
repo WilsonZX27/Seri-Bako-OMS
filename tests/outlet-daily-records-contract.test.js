@@ -83,6 +83,6 @@ test("only the requested routes and operations navigation are wired", () => {
 
 test("release footer matches Sprint 7.13", () => {
   const version = read("src/lib/app-version.ts");
-  assert.match(version, /APP_VERSION = "0\.2\.36"/);
-  assert.match(version, /APP_SPRINT = "Sprint 7\.23\.3"/);
+  assert.match(version, /APP_VERSION = "0\.2\.37"/);
+  assert.match(version, /APP_SPRINT = "Sprint 7\.23\.4"/);
 });

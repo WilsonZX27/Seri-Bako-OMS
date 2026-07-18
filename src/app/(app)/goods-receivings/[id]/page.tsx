@@ -3,6 +3,8 @@ import { DocumentActionBar, DocumentActionForm, DocumentActionLink } from "@/com
 import { AttachmentPanel, CommentsPanel, DocumentTimeline, RevisionPanel } from "@/components/documents/document-panels";
 import { DocumentSideSection, DocumentWorkspace } from "@/components/documents/document-workspace";
 import { Card, CardContent } from "@/components/ui/card";
+import { SubmitButton } from "@/components/ui/submit-button";
+import { Textarea } from "@/components/ui/textarea";
 import { BlockedDestructiveAction } from "@/components/ui/danger-confirm-form";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { formatCurrency, formatNumber } from "@/lib/utils";
@@ -21,7 +23,7 @@ export default async function GoodsReceivingDetailPage({ params }: { params: Pro
   const { id } = await params;
   const [{ receiving, lines }, permissions] = await Promise.all([
     getGoodsReceiving(id),
-    getPermissionMap(["grn.post", "goods_receiving.cancel"]),
+    getPermissionMap(["grn.post", "goods_receiving.cancel", "documents.attach"]),
   ]);
   const documentBundle = receiving.document_id ? await getDocumentBundle(receiving.document_id) : null;
   const totalReceivedValue = lines.reduce((sum, line) => sum + line.received_qty * line.unit_cost, 0);
@@ -43,7 +45,10 @@ export default async function GoodsReceivingDetailPage({ params }: { params: Pro
           <DocumentSideSection title="Primary Action" description="Post after receiving details are checked. Attachments can be added for audit support.">
             <DocumentActionBar>
               <DocumentActionLink href={`/purchase-orders/${receiving.purchase_order_id}`} variant="outline">View PO</DocumentActionLink>
-              {hasPrimaryAction ? <DocumentActionForm action={postGoodsReceiving.bind(null, receiving.id)} pendingLabel="Posting...">Post to stock</DocumentActionForm> : null}
+              {hasPrimaryAction ? <form action={postGoodsReceiving.bind(null, receiving.id)} className="space-y-2" data-mobile-primary-action>
+                {!hasDeliveryOrder ? <Textarea name="do_exception_reason" placeholder="If no DO is available, document the exception" required /> : null}
+                <SubmitButton pendingLabel="Posting..." className="w-full justify-center">Post Receiving to Stock</SubmitButton>
+              </form> : null}
               {receiving.status === "draft" && permissions["goods_receiving.cancel"] ? <DocumentActionForm action={cancelGoodsReceiving.bind(null, receiving.id)} pendingLabel="Cancelling..." variant="destructive">Cancel draft</DocumentActionForm> : null}
               <BlockedDestructiveAction buttonLabel="Delete receiving" title={`Cannot delete ${receiving.grn_no}`} description={receiving.status === "posted" ? "This receiving has posted stock movements and must remain in the audit trail." : "This receiving is linked to its purchase order and document history."} recommendation={receiving.status === "posted" ? "Use a purchase return or correction workflow. Physical deletion is prohibited." : "Cancel the draft to preserve its linked history."} />
             </DocumentActionBar>
@@ -60,7 +65,7 @@ export default async function GoodsReceivingDetailPage({ params }: { params: Pro
           {documentBundle ? (
             <>
               <CommentsPanel documentId={documentBundle.document.id} comments={documentBundle.comments} />
-              <AttachmentPanel documentId={documentBundle.document.id} attachments={documentBundle.attachments} />
+              <AttachmentPanel documentId={documentBundle.document.id} attachments={documentBundle.attachments} title="Delivery Order" description="Attach the supplier DO before posting. Upload a replacement before removing a mistaken draft file." defaultLabel="Delivery Order" uploadLabel="Attach Delivery Order" canManage={permissions["documents.attach"]} documentStatus={documentBundle.document.status} />
               <DocumentTimeline document={documentBundle.document} activities={documentBundle.activityLogs} comments={documentBundle.comments} attachments={documentBundle.attachments} />
               <RevisionPanel revisions={documentBundle.revisions} />
             </>
@@ -68,6 +73,7 @@ export default async function GoodsReceivingDetailPage({ params }: { params: Pro
         </>
       }
     >
+          {documentBundle ? <div className="xl:hidden"><AttachmentPanel documentId={documentBundle.document.id} attachments={documentBundle.attachments} title="Delivery Order" description="Required before posting, unless a documented exception is provided." defaultLabel="Delivery Order" uploadLabel="Attach Delivery Order" presentation="inline" canManage={permissions["documents.attach"]} documentStatus={documentBundle.document.status} /></div> : null}
           <Card>
             <CardContent className="space-y-4 p-5">
               <h2 className="text-sm font-semibold">Receiving Summary</h2>

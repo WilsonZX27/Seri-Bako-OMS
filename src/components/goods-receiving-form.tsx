@@ -59,6 +59,9 @@ export function GoodsReceivingForm({
             <Field label="Received Date" required>
               <Input name="received_date" type="date" defaultValue={today()} required />
             </Field>
+            <Field label="Delivery Order Number">
+              <Input name="delivery_order_no" placeholder="Supplier DO reference" />
+            </Field>
             <Field label="Branch" required>
               <SelectNative name="branch_id" defaultValue={branches[0]?.id ?? ""} required>
                 {branches.map((branch) => <option key={branch.id} value={branch.id}>{branch.branch_name}</option>)}
@@ -117,10 +120,9 @@ export function GoodsReceivingForm({
                 </div>
               </div>
 
-              <label className="flex items-center gap-2 rounded-lg border p-3 text-sm">
-                <input name="delivery_order_attached" type="checkbox" className="h-4 w-4" />
-                Delivery Order is available. Upload the file in the document attachment panel before posting.
-              </label>
+              <p className="rounded-lg border bg-secondary/30 p-3 text-sm text-muted-foreground">
+                Save the receiving, then attach the supplier Delivery Order before posting to stock. Mobile upload supports camera, photo library, and files.
+              </p>
             </>
           ) : (
             <div className="rounded-lg border bg-secondary/30 p-8 text-center">

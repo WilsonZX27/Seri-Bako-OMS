@@ -40,7 +40,7 @@ export default async function PurchaseOrderDetailPage({ params }: { params: Prom
     getItemsForSelect(),
     getSuppliersForSelect(),
     getBranchesForSelect(),
-    getPermissionMap(["po.submit", "po.approve", "po.send", "po.receive", "purchase_order.close"]),
+    getPermissionMap(["po.submit", "po.approve", "po.send", "po.receive", "purchase_order.close", "documents.attach"]),
   ]);
   const sourceRequest = await getPurchaseRequestForOrder(order.purchase_request_id);
   const fromApprovedPr = Boolean(sourceRequest);
@@ -76,8 +76,8 @@ export default async function PurchaseOrderDetailPage({ params }: { params: Prom
                   <DocumentActionForm action={rejectPurchaseOrder.bind(null, order.id)} pendingLabel="Rejecting..." variant="destructive">Reject</DocumentActionForm>
                 </>
               ) : null}
-              {order.status === "approved" && permissions["po.send"] ? <DocumentActionForm action={sendPurchaseOrder.bind(null, order.id)} pendingLabel="Sending...">Send to supplier</DocumentActionForm> : null}
-              {["sent", "partial_received"].includes(order.status) && permissions["po.receive"] ? <DocumentActionLink href={`/goods-receivings/new?po_id=${order.id}`} variant="outline">Receive goods</DocumentActionLink> : null}
+              {order.status === "approved" && permissions["po.send"] ? <DocumentActionForm action={sendPurchaseOrder.bind(null, order.id)} pendingLabel="Sending..." mobilePrimary>Send to supplier</DocumentActionForm> : null}
+              {["sent", "partial_received"].includes(order.status) && permissions["po.receive"] ? <div data-mobile-primary-action><DocumentActionLink href={`/goods-receivings/new?po_id=${order.id}`} variant="outline">Receive goods</DocumentActionLink></div> : null}
               {order.status === "partial_received" && permissions["purchase_order.close"] ? <DocumentActionForm action={closePurchaseOrder.bind(null, order.id)} pendingLabel="Closing..." variant="outline">Close</DocumentActionForm> : null}
               <BlockedDestructiveAction buttonLabel="Delete purchase order" title={`Cannot delete ${order.po_no}`} description="Purchase orders remain linked to approvals, suppliers, receiving, and audit history." recommendation={order.status === "draft" ? "Use the existing cancel or reject workflow when authorized." : "Close or correct the document through its existing workflow; received history cannot be deleted."} />
             </DocumentActionBar>
@@ -86,7 +86,7 @@ export default async function PurchaseOrderDetailPage({ params }: { params: Prom
           {documentBundle ? (
             <>
               <CommentsPanel documentId={documentBundle.document.id} comments={documentBundle.comments} />
-              <AttachmentPanel documentId={documentBundle.document.id} attachments={documentBundle.attachments} />
+              <AttachmentPanel documentId={documentBundle.document.id} attachments={documentBundle.attachments} title="Purchase Order Attachment" description="Attach the AutoCount or supplier-facing PO during preparation and sending." defaultLabel="Purchase Order" uploadLabel="Attach Purchase Order" canManage={permissions["documents.attach"]} documentStatus={documentBundle.document.status} />
               <DocumentTimeline document={documentBundle.document} activities={documentBundle.activityLogs} comments={documentBundle.comments} attachments={documentBundle.attachments} />
               <RevisionPanel revisions={documentBundle.revisions} />
             </>
@@ -94,10 +94,12 @@ export default async function PurchaseOrderDetailPage({ params }: { params: Prom
         </>
       }
     >
+          {documentBundle ? <div className="xl:hidden"><AttachmentPanel documentId={documentBundle.document.id} attachments={documentBundle.attachments} title="Purchase Order Attachment" description="Attach the AutoCount or supplier-facing PO." defaultLabel="Purchase Order" uploadLabel="Attach Purchase Order" presentation="inline" canManage={permissions["documents.attach"]} documentStatus={documentBundle.document.status} /></div> : null}
           <Card>
             <CardContent className="space-y-4 p-5">
               <h2 className="text-sm font-semibold">Order Summary</h2>
               <div className="grid gap-4 md:grid-cols-4">
+                <div><p className="text-xs uppercase text-muted-foreground">AutoCount PO Number</p><p className="font-medium">{order.po_no}</p></div>
                 <div><p className="text-xs uppercase text-muted-foreground">Supplier</p><p className="font-medium">{supplier?.name ?? order.supplier_id}</p></div>
                 <div><p className="text-xs uppercase text-muted-foreground">Branch</p><p className="font-medium">{branch?.branch_name ?? "-"}</p></div>
                 <div><p className="text-xs uppercase text-muted-foreground">Order Date</p><p className="font-medium">{order.order_date}</p></div>

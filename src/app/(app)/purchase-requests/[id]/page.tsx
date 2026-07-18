@@ -24,7 +24,7 @@ import {
   submitPurchaseRequest,
 } from "@/server/actions/procurement";
 import { getPermissionMap } from "@/server/auth/permissions";
-import { getBranchesForSelect, getItemsForSelect, getSuppliersForSelect } from "@/server/queries/common";
+import { getBranchesForSelect, getCurrentProfile, getItemsForSelect, getSuppliersForSelect } from "@/server/queries/common";
 import { getDocumentBundle } from "@/server/queries/documents";
 import { getPurchaseOrdersForRequest, getPurchaseRequest } from "@/server/queries/procurement";
 import { getPhaseOneDeletePreview } from "@/server/queries/hard-delete";
@@ -64,12 +64,13 @@ export default async function PurchaseRequestDetailPage({
     return <NotFoundState title="Purchase request not available" description="This request may not exist, or you may not have access to it." action={{ href: "/purchase-requests", label: "Back to purchase requests" }} />;
   }
   const { request, lines } = purchaseRequest;
-  const [linkedPurchaseOrders, items, suppliers, branches, permissions] = await Promise.all([
+  const [linkedPurchaseOrders, items, suppliers, branches, permissions, profile] = await Promise.all([
     getPurchaseOrdersForRequest(id).catch(() => []),
     getItemsForSelect().catch(() => []),
     getSuppliersForSelect().catch(() => []),
     getBranchesForSelect().catch(() => []),
-    getPermissionMap(["pr.submit", "pr.admin_review", "pr.purchasing_review", "pr.manager_approve", "pr.finance_review", "pr.convert_to_po", "pr.reject", "pr.cancel"]),
+    getPermissionMap(["pr.submit", "pr.admin_review", "pr.purchasing_review", "pr.manager_approve", "pr.finance_review", "pr.convert_to_po", "pr.reject", "pr.cancel", "pr.view_all", "documents.attach"]),
+    getCurrentProfile(),
   ]);
   const documentBundle = request.document_id ? await getDocumentBundle(request.document_id).catch(() => null) : null;
   const deletePreview = await getPhaseOneDeletePreview("purchase_request", request.id).catch(() => null);
@@ -77,6 +78,7 @@ export default async function PurchaseRequestDetailPage({
   const supplierById = new Map(suppliers.map((supplier) => [supplier.id, supplier]));
   const branch = branches.find((row) => row.id === request.branch_id);
   const total = lines.reduce((sum, line) => sum + line.qty * line.estimated_unit_cost, 0);
+  const canViewCommercial = permissions["pr.view_all"] && !["kitchen", "kitchen_staff"].includes(String(profile?.role_code ?? "").toLowerCase());
   const canSubmit = isStatus(request.status, "draft", "rejected", "returned") && permissions["pr.submit"];
   const canCancel = request.status === "draft" && permissions["pr.cancel"];
   const canManagerReview = request.status === "manager_review" && permissions["pr.manager_approve"];
@@ -110,18 +112,18 @@ export default async function PurchaseRequestDetailPage({
         <>
           <DocumentSideSection title="Primary Action" description="Only the next valid workflow action is shown.">
             <DocumentActionBar>
-              {canSubmit ? <DocumentActionForm action={submitPurchaseRequest.bind(null, request.id)} pendingLabel="Submitting...">Submit to Manager Review</DocumentActionForm> : null}
+              {canSubmit ? <DocumentActionForm action={submitPurchaseRequest.bind(null, request.id)} pendingLabel="Submitting..." mobilePrimary>Submit to Manager Review</DocumentActionForm> : null}
               {canCancel ? <DocumentActionForm action={cancelPurchaseRequest.bind(null, request.id)} pendingLabel="Cancelling..." variant="ghost">Cancel draft</DocumentActionForm> : null}
-              {canManagerReview ? <DocumentActionForm action={managerApprovePurchaseRequest.bind(null, request.id)} pendingLabel="Approving...">Manager Approve</DocumentActionForm> : null}
-              {canAdminReview ? <DocumentActionForm action={adminApprovePurchaseRequest.bind(null, request.id)} pendingLabel="Reviewing...">Complete Purchasing Review</DocumentActionForm> : null}
-              {canFinanceReview ? <DocumentActionForm action={financeApprovePurchaseRequest.bind(null, request.id)} pendingLabel="Reviewing...">Complete Finance Review</DocumentActionForm> : null}
+              {canManagerReview ? <DocumentActionForm action={managerApprovePurchaseRequest.bind(null, request.id)} pendingLabel="Approving..." mobilePrimary>Manager Approve</DocumentActionForm> : null}
+              {canAdminReview ? <DocumentActionForm action={adminApprovePurchaseRequest.bind(null, request.id)} pendingLabel="Reviewing..." mobilePrimary>Complete Purchasing Review</DocumentActionForm> : null}
+              {canFinanceReview ? <DocumentActionForm action={financeApprovePurchaseRequest.bind(null, request.id)} pendingLabel="Reviewing..." mobilePrimary>Complete Finance Review</DocumentActionForm> : null}
               {request.status === "converted_to_po" && linkedPurchaseOrders[0] ? (
                 <Button asChild className="w-full justify-center"><a href={`/purchase-orders/${linkedPurchaseOrders[0].id}`}>Open PO</a></Button>
               ) : null}
               {deletePreview?.eligible ? <DangerConfirmForm action={hardDeletePhaseOne.bind(null, "purchase_request", request.id)} title={`Permanently delete ${request.request_no}?`} description="This cannot be undone. Purchase request lines will be removed; the document number will remain consumed." warning="Type the exact request number to continue." checkboxLabel="I understand this permanently deletes the eligible request." confirmWord={deletePreview.confirmation} buttonLabel="Delete purchase request" pendingLabel="Deleting..." /> : <BlockedDestructiveAction buttonLabel="Delete purchase request" title={`Cannot delete ${request.request_no}`} description="Permanent deletion is blocked by the current status or linked records." recommendation={deletePreview ? Object.entries(deletePreview.dependencies).filter(([, count]) => count > 0).map(([key, count]) => `${key}: ${count}`).join("; ") : "Dependency preview unavailable."} />}
             </DocumentActionBar>
             {canConvert ? (
-              <form action={convertPurchaseRequestToPurchaseOrder.bind(null, request.id)} className="mt-3 space-y-2">
+              <form action={convertPurchaseRequestToPurchaseOrder.bind(null, request.id)} className="mt-3 space-y-2" data-mobile-primary-action>
                 <Input name="autocount_po_no" placeholder="AutoCount PO Number" required />
                 <SubmitButton type="submit" pendingLabel="Converting..." className="w-full justify-center">Convert to Purchase Order</SubmitButton>
               </form>
@@ -137,7 +139,7 @@ export default async function PurchaseRequestDetailPage({
           {documentBundle ? (
             <>
               <CommentsPanel documentId={documentBundle.document.id} comments={documentBundle.comments} />
-              <AttachmentPanel documentId={documentBundle.document.id} attachments={documentBundle.attachments} />
+              <AttachmentPanel documentId={documentBundle.document.id} attachments={documentBundle.attachments} title="Supporting Attachments" defaultLabel="Purchase Request Attachment" canManage={permissions["documents.attach"]} documentStatus={documentBundle.document.status} />
               <DocumentTimeline document={documentBundle.document} activities={documentBundle.activityLogs} comments={documentBundle.comments} attachments={documentBundle.attachments} />
               <RevisionPanel revisions={documentBundle.revisions} />
             </>
@@ -145,6 +147,7 @@ export default async function PurchaseRequestDetailPage({
         </>
       }
     >
+          {documentBundle ? <div className="xl:hidden"><AttachmentPanel documentId={documentBundle.document.id} attachments={documentBundle.attachments} title="Supporting Attachments" defaultLabel="Purchase Request Attachment" presentation="inline" canManage={permissions["documents.attach"]} documentStatus={documentBundle.document.status} /></div> : null}
           {messageParams.error || messageParams.success ? (
             <Card>
               <CardContent className={`p-3 text-xs ${messageParams.error ? "text-destructive" : "text-emerald-700"}`}>
@@ -201,7 +204,7 @@ export default async function PurchaseRequestDetailPage({
             <CardContent className="p-4">
               <div className="mb-2 flex items-center justify-between">
                 <h2 className="text-[14px] font-semibold">Requested Items</h2>
-                <p className="text-xs font-semibold">{formatCurrency(total)}</p>
+                {canViewCommercial ? <p className="text-xs font-semibold">{formatCurrency(total)}</p> : null}
               </div>
               <div className="overflow-x-auto">
                 <Table>
@@ -211,7 +214,7 @@ export default async function PurchaseRequestDetailPage({
                       <TableHead>Supplier Suggestion</TableHead>
                       <TableHead className="text-right">Qty</TableHead>
                       <TableHead>UOM</TableHead>
-                      <TableHead className="text-right">Est. Cost</TableHead>
+                      {canViewCommercial ? <TableHead className="text-right">Est. Cost</TableHead> : null}
                       <TableHead>Reason</TableHead>
                     </TableRow>
                   </TableHeader>
@@ -225,7 +228,7 @@ export default async function PurchaseRequestDetailPage({
                           <TableCell><span className="text-muted-foreground">{supplier?.name ?? "No supplier suggested"}</span></TableCell>
                           <TableCell className="text-right">{formatNumber(line.qty)}</TableCell>
                           <TableCell>{line.uom}</TableCell>
-                          <TableCell className="text-right">{formatCurrency(line.estimated_unit_cost)}</TableCell>
+                          {canViewCommercial ? <TableCell className="text-right">{formatCurrency(line.estimated_unit_cost)}</TableCell> : null}
                           <TableCell>{line.reason ?? "-"}</TableCell>
                         </TableRow>
                       );

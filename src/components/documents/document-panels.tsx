@@ -85,14 +85,38 @@ export function DocumentTimeline({ document, activities, comments, attachments }
   );
 }
 
-export async function AttachmentPanel({ documentId, attachments }: { documentId: string; attachments: Attachment[] }) {
-  const [canManageAttachments, document] = await Promise.all([hasPermission("documents.attach"), getDocument(documentId)]);
-  const canRemoveAttachments = canManageAttachments && ["draft", "pending_approval"].includes(document.status);
-  return (
-    <ConsoleSection title="Attachments">
+export async function AttachmentPanel({
+  documentId,
+  attachments,
+  title = "Attachments",
+  description,
+  defaultLabel,
+  uploadLabel,
+  presentation = "console",
+  canManage,
+  documentStatus,
+}: {
+  documentId: string;
+  attachments: Attachment[];
+  title?: string;
+  description?: string;
+  defaultLabel?: string;
+  uploadLabel?: string;
+  presentation?: "console" | "inline";
+  canManage?: boolean;
+  documentStatus?: string;
+}) {
+  const [resolvedCanManage, resolvedDocument] = await Promise.all([
+    canManage === undefined ? hasPermission("documents.attach") : Promise.resolve(canManage),
+    documentStatus === undefined ? getDocument(documentId) : Promise.resolve(null),
+  ]);
+  const status = documentStatus ?? resolvedDocument?.status ?? "draft";
+  const canRemoveAttachments = resolvedCanManage && ["draft", "pending_approval"].includes(status);
+  const content = (
       <div className="space-y-3">
-        {canManageAttachments ? (
-          <AttachmentUploadForm action={addDocumentAttachment.bind(null, documentId)} />
+        {description ? <p className="text-xs text-muted-foreground">{description}</p> : null}
+        {resolvedCanManage ? (
+          <AttachmentUploadForm action={addDocumentAttachment.bind(null, documentId)} defaultLabel={defaultLabel} submitLabel={uploadLabel} />
         ) : null}
         <div className="divide-y border-t">
           {attachments.map((attachment) => (
@@ -100,7 +124,8 @@ export async function AttachmentPanel({ documentId, attachments }: { documentId:
               <div className="flex items-start gap-3">
                 <FileText className="mt-0.5 h-4 w-4 text-muted-foreground" />
                 <div>
-                  <p className="text-xs font-medium">{attachment.file_name}</p>
+                  <p className="break-words text-xs font-medium">{attachment.file_name}</p>
+                  <p className="text-xs text-muted-foreground">{attachment.file_type ?? "File"}</p>
                   <p className="text-xs text-muted-foreground">Uploaded by {actorLabel(attachment.uploaded_by_name)} - {formatDate(attachment.created_at)}</p>
                 </div>
               </div>
@@ -112,14 +137,17 @@ export async function AttachmentPanel({ documentId, attachments }: { documentId:
           ))}
           {!attachments.length ? <EmptyAttachmentState /> : null}
         </div>
-        {canManageAttachments && attachments.length > 0 && !canRemoveAttachments ? (
+        {resolvedCanManage && attachments.length > 0 && !canRemoveAttachments ? (
           <p className="rounded-md border bg-secondary/40 p-2 text-xs text-muted-foreground">
             Attachments are locked after approval or posting to preserve the audit trail. Add the correct file as a new attachment instead.
           </p>
         ) : null}
       </div>
-    </ConsoleSection>
   );
+  if (presentation === "inline") {
+    return <section aria-label={title} className="rounded-lg border bg-card p-4"><h2 className="mb-2 text-sm font-semibold">{title}</h2>{content}</section>;
+  }
+  return <ConsoleSection title={title}>{content}</ConsoleSection>;
 }
 
 export function CommentsPanel({ documentId, comments }: { documentId: string; comments: Comment[] }) {

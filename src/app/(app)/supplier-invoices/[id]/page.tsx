@@ -29,7 +29,7 @@ export default async function SupplierInvoiceDetailPage({ params, searchParams }
   const [{ id }, messageParams] = await Promise.all([params, searchParams]);
   const [{ invoice, payments, lines, linkedPos, linkedGrns }, permissions] = await Promise.all([
     getSupplierInvoice(id),
-    getPermissionMap(["supplier_invoice.create", "supplier_invoice.approve", "supplier_invoice.pay", "supplier_invoice.void"]),
+    getPermissionMap(["supplier_invoice.create", "supplier_invoice.approve", "supplier_invoice.pay", "supplier_invoice.void", "documents.attach"]),
   ]);
   const [documentBundle, editSources, agingReport] = await Promise.all([
     invoice.document_id ? getDocumentBundle(invoice.document_id) : null,
@@ -39,6 +39,7 @@ export default async function SupplierInvoiceDetailPage({ params, searchParams }
       : null,
   ]);
   const agingRow = agingReport?.rows.find((row) => row.id === invoice.id);
+  const hasInvoiceAttachment = Boolean(documentBundle?.attachments.some((attachment) => attachment.status === "active"));
   const canPay = permissions["supplier_invoice.pay"] && ["open", "partially_paid"].includes(invoice.status);
   const canVoid = permissions["supplier_invoice.void"] && invoice.status !== "void" && invoice.status !== "paid" && Number(invoice.amount_paid) === 0;
   return (
@@ -56,8 +57,8 @@ export default async function SupplierInvoiceDetailPage({ params, searchParams }
               {linkedPos.map((po) => <DocumentActionLink key={po.id} href={`/purchase-orders/${po.id}`} variant="outline">View {po.no}</DocumentActionLink>)}
               {linkedGrns.map((grn) => <DocumentActionLink key={grn.id} href={`/goods-receivings/${grn.id}`} variant="outline">View {grn.no}</DocumentActionLink>)}
             </DocumentActionBar>
-            {invoice.status === "draft" && permissions["supplier_invoice.create"] ? <SubmitButton form="supplier-invoice-form" pendingLabel="Saving..." className="mt-3 w-full justify-center">Save Draft</SubmitButton> : null}
-            {invoice.status === "draft" && permissions["supplier_invoice.approve"] ? <form action={approveSupplierInvoice.bind(null, invoice.id)} className="mt-2"><SubmitButton pendingLabel="Approving..." className="w-full justify-center">Approve / Open</SubmitButton></form> : null}
+            {invoice.status === "draft" && permissions["supplier_invoice.create"] ? <div data-mobile-primary-action><SubmitButton form="supplier-invoice-form" pendingLabel="Saving..." className="mt-3 w-full justify-center">Save Draft</SubmitButton></div> : null}
+            {invoice.status === "draft" && permissions["supplier_invoice.approve"] ? <form action={approveSupplierInvoice.bind(null, invoice.id)} className="mt-2" data-mobile-primary-action={!permissions["supplier_invoice.create"] || undefined}><SubmitButton pendingLabel="Sending..." disabled={!hasInvoiceAttachment} className="w-full justify-center">Send to Finance Review</SubmitButton>{!hasInvoiceAttachment ? <p className="mt-2 text-xs text-muted-foreground">Attach the supplier invoice before Finance Review.</p> : null}</form> : null}
             {canPay ? (
               <form action={recordSupplierInvoicePayment.bind(null, invoice.id)} className="mt-3 grid gap-2 border-t pt-3">
                 <input type="hidden" name="idempotency_key" value={randomUUID()} />
@@ -82,7 +83,7 @@ export default async function SupplierInvoiceDetailPage({ params, searchParams }
           </DocumentSideSection> : null}
           {documentBundle ? <>
             <CommentsPanel documentId={documentBundle.document.id} comments={documentBundle.comments} />
-            <AttachmentPanel documentId={documentBundle.document.id} attachments={documentBundle.attachments} />
+            <AttachmentPanel documentId={documentBundle.document.id} attachments={documentBundle.attachments} title="Supplier Invoice" description="Attach the supplier-issued invoice for Finance review and audit." defaultLabel="Supplier Invoice" uploadLabel="Attach Supplier Invoice" canManage={permissions["documents.attach"]} documentStatus={documentBundle.document.status} />
             <DocumentTimeline document={documentBundle.document} activities={documentBundle.activityLogs} comments={documentBundle.comments} attachments={documentBundle.attachments} />
             <RevisionPanel revisions={documentBundle.revisions} />
           </> : null}
@@ -90,6 +91,7 @@ export default async function SupplierInvoiceDetailPage({ params, searchParams }
       }
     >
       {messageParams.error || messageParams.success ? <Card><CardContent className={`p-3 text-xs ${messageParams.error ? "text-destructive" : "text-emerald-700"}`}>{messageParams.error ?? messageParams.success}</CardContent></Card> : null}
+      {documentBundle ? <div className="xl:hidden"><AttachmentPanel documentId={documentBundle.document.id} attachments={documentBundle.attachments} title="Supplier Invoice" description="Attach the supplier-issued invoice before Finance Review." defaultLabel="Supplier Invoice" uploadLabel="Attach Supplier Invoice" presentation="inline" canManage={permissions["documents.attach"]} documentStatus={documentBundle.document.status} /></div> : null}
       {invoice.status === "draft" && editSources ? (
         <SupplierInvoiceForm
           suppliers={editSources.suppliers}

@@ -1,16 +1,14 @@
 "use client";
 
-import Link from "next/link";
 import { useState } from "react";
-import { CheckCircle2, Circle, CircleDot, Plus, Search, X } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
+import { Plus, Search, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Field } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { SelectNative } from "@/components/ui/select-native";
 import { Textarea } from "@/components/ui/textarea";
-import { defaultUoms, normalizeUom, uomOptionsWithCurrent } from "@/lib/uom";
+import { normalizeUom, uomOptionsWithCurrent } from "@/lib/uom";
 import type { Database } from "@/types/database";
 
 type ItemOption = Pick<Database["public"]["Tables"]["items"]["Row"], "id" | "item_code" | "item_name" | "base_unit" | "purchase_unit" | "supplier_id" | "cost" | "status" | "barcode" | "internal_barcode" | "supplier_barcode">;
@@ -39,11 +37,6 @@ function itemLabel(item: ItemOption) {
   return `${item.item_code} - ${item.item_name}`;
 }
 
-function stageVariant(index: number) {
-  if (index === 0) return "border-primary/40 bg-primary/10 text-primary";
-  return "bg-card text-muted-foreground";
-}
-
 function ItemSelect({ items, name = "line_item_id", required = false }: { items: ItemOption[]; name?: string; required?: boolean }) {
   return (
     <SelectNative name={name} required={required}>
@@ -64,8 +57,7 @@ export function PurchaseRequestForm({
   initialBranchId,
   initialLine,
   initialRemarks,
-  canCreateItem,
-  canCreateSupplier,
+  canViewCommercial,
   action,
 }: {
   items: ItemOption[];
@@ -74,17 +66,12 @@ export function PurchaseRequestForm({
   initialBranchId?: string;
   initialLine?: Partial<RequestLine>;
   initialRemarks?: string;
-  canCreateItem: boolean;
-  canCreateSupplier: boolean;
+  canViewCommercial: boolean;
   action: (formData: FormData) => Promise<void>;
 }) {
   const [idempotencyKey] = useState(() => crypto.randomUUID());
-  const [availableItems, setAvailableItems] = useState(items);
   const [lines, setLines] = useState<RequestLine[]>([{ ...createBlankLine(0), ...initialLine, key: 0 }]);
   const [priority, setPriority] = useState("normal");
-  const [newItemLineKey, setNewItemLineKey] = useState<number | null>(null);
-  const [newItemError, setNewItemError] = useState<string | null>(null);
-  const [savingNewItem, setSavingNewItem] = useState(false);
   const showUrgencyReason = priority === "urgent" || priority === "critical";
   const nextKey = lines.reduce((max, line) => Math.max(max, line.key), 0) + 1;
 
@@ -95,9 +82,9 @@ export function PurchaseRequestForm({
   function selectItem(key: number, value: string) {
     const query = value.trim().toLowerCase();
     const selected =
-      availableItems.find((item) => item.id === value) ??
-      availableItems.find((item) => itemLabel(item).toLowerCase() === query) ??
-      availableItems.find((item) => [item.item_code, item.item_name].filter(Boolean).some((candidate) => String(candidate).toLowerCase() === query));
+      items.find((item) => item.id === value) ??
+      items.find((item) => itemLabel(item).toLowerCase() === query) ??
+      items.find((item) => [item.item_code, item.item_name].filter(Boolean).some((candidate) => String(candidate).toLowerCase() === query));
 
     if (!selected) {
       updateLine(key, { itemSearch: value, itemId: "", uom: "", supplierId: "", cost: "0" });
@@ -113,102 +100,26 @@ export function PurchaseRequestForm({
     });
   }
 
-  async function createInlineItem(formData: FormData) {
-    if (newItemLineKey === null) return;
-    setSavingNewItem(true);
-    setNewItemError(null);
-
-    try {
-      const payload = {
-        item_name: String(formData.get("item_name") ?? ""),
-        item_code: String(formData.get("item_code") ?? ""),
-        category: String(formData.get("category") ?? ""),
-        base_unit: String(formData.get("base_unit") ?? ""),
-        purchase_unit: String(formData.get("purchase_unit") ?? ""),
-        supplier_id: String(formData.get("supplier_id") ?? ""),
-        cost: String(formData.get("cost") ?? "0"),
-        moq: String(formData.get("moq") ?? "0"),
-        lead_time_days: String(formData.get("lead_time_days") ?? "0"),
-      };
-      const response = await fetch("/api/items/quick-create", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
-      const result = (await response.json()) as { ok: boolean; message?: string; item?: ItemOption };
-
-      if (!response.ok || !result.ok || !result.item) {
-        setNewItemError(result.message ?? "Could not create this item.");
-        return;
-      }
-
-      setAvailableItems((current) => [...current, result.item as ItemOption].sort((a, b) => a.item_name.localeCompare(b.item_name)));
-      updateLine(newItemLineKey, {
-        itemId: result.item.id,
-        itemSearch: itemLabel(result.item),
-        uom: normalizeUom(result.item.purchase_unit || result.item.base_unit),
-        supplierId: result.item.supplier_id ?? "",
-        cost: String(result.item.cost ?? 0),
-      });
-      setNewItemLineKey(null);
-    } catch {
-      setNewItemError("Could not create this item.");
-    } finally {
-      setSavingNewItem(false);
-    }
-  }
-
   return (
-    <>
     <Card>
       <CardContent className="space-y-5 p-5">
         <form id="purchase-request-form" action={action} className="space-y-3">
           <input type="hidden" name="request_no" value="" />
           <input type="hidden" name="status" value="draft" />
           <input type="hidden" name="idempotency_key" value={idempotencyKey} />
-          <div className="flex flex-col gap-2 border-b pb-3 md:flex-row md:items-center md:justify-between">
-            <div>
-              <div className="flex flex-wrap items-center gap-2">
-                <Badge variant="secondary">Draft</Badge>
-                <h2 className="text-sm font-semibold">Create purchase request</h2>
-              </div>
-              <p className="mt-1 text-xs text-muted-foreground">Request number is auto-generated on submit.</p>
-            </div>
-          </div>
-
-          <div className="grid gap-2 rounded-lg border bg-white p-2 md:grid-cols-4">
-            {[
-              ["draft", "Draft"],
-              ["manager_review", "Manager Review"],
-              ["admin_review", "Purchasing Review"],
-              ["finance_review", "Finance Review"],
-              ["ready_to_convert", "Ready to Convert"],
-              ["converted_to_po", "Converted to PO"],
-            ].map(([key, label], index) => {
-              const Icon = index === 0 ? CircleDot : index < 0 ? CheckCircle2 : Circle;
-              return (
-                <div key={key} className={`rounded-md border px-2 py-1.5 ${stageVariant(index)}`}>
-                  <div className="flex items-center gap-2">
-                    <Icon className="h-3.5 w-3.5" />
-                    <p className="text-xs font-medium">{label}</p>
-                  </div>
-                </div>
-              );
-            })}
+          <input type="hidden" name="request_date" value={today()} />
+          <input type="hidden" name="required_date" value="" />
+          <div className="border-b pb-3">
+            <h2 className="text-sm font-semibold">Request details</h2>
+            <p className="mt-1 text-xs text-muted-foreground">The request number and system date are recorded when you save the draft.</p>
           </div>
 
           <section className="rounded-lg border bg-card p-3">
             <div className="mb-3">
-              <p className="text-xs font-semibold">Main details</p>
-              <p className="mt-1 text-xs text-muted-foreground">Branch, dates, urgency, and the main request reason.</p>
+              <p className="text-xs font-semibold">When and where</p>
+              <p className="mt-1 text-xs text-muted-foreground">Confirm the receiving branch and when the items are needed.</p>
             </div>
-            <div className="grid gap-3 md:grid-cols-3">
-              <Field label="Request Date" required>
-                <Input name="request_date" type="date" defaultValue={today()} required />
-              </Field>
-              <Field label="Required Date">
-                <Input name="required_date" type="date" />
-              </Field>
+            <div className="grid gap-3 md:grid-cols-2">
               <Field label="Needed By">
                 <Input name="needed_by_date" type="date" />
               </Field>
@@ -219,11 +130,12 @@ export function PurchaseRequestForm({
               </Field>
               <Field label="Urgency">
                 <SelectNative name="priority" value={priority} onChange={(event) => setPriority(event.target.value)}>
-                  <option value="low">Low</option>
                   <option value="normal">Normal</option>
+                  <option value="low">Low</option>
                   <option value="urgent">Urgent</option>
                   <option value="critical">Critical</option>
                 </SelectNative>
+                <p className="text-xs text-muted-foreground">Normal is suitable for routine requests.</p>
               </Field>
               {showUrgencyReason ? (
                 <div className="md:col-span-2">
@@ -232,11 +144,6 @@ export function PurchaseRequestForm({
                   </Field>
                 </div>
               ) : null}
-              <div className="md:col-span-3">
-                <Field label="Remarks">
-                  <Textarea name="remarks" defaultValue={initialRemarks ?? ""} placeholder="Main reason for this purchase request" />
-                </Field>
-              </div>
             </div>
           </section>
 
@@ -244,7 +151,7 @@ export function PurchaseRequestForm({
             <div className="flex items-center justify-between border-b bg-secondary/40 px-3 py-2">
               <div>
                 <p className="text-xs font-semibold">Requested Items</p>
-                <p className="text-xs text-muted-foreground">Search by item code or item name. UOM, supplier, and cost fill from the item master.</p>
+                <p className="text-xs text-muted-foreground">Choose an existing item, then enter the quantity needed.</p>
               </div>
               <div className="flex items-center gap-2">
                 <Search className="h-4 w-4 text-muted-foreground" />
@@ -256,9 +163,8 @@ export function PurchaseRequestForm({
             </div>
             <div className="divide-y">
               {lines.map((line) => (
-                <div key={line.key} className="grid gap-2 p-3 md:grid-cols-2 xl:grid-cols-[36px_repeat(12,minmax(0,1fr))]">
-                  <div className="hidden items-center justify-center rounded border bg-secondary/40 text-xs font-semibold text-muted-foreground xl:flex">{line.key + 1}</div>
-                  <div className="space-y-2 xl:col-span-4">
+                <div key={line.key} className="grid gap-3 p-3 md:grid-cols-[minmax(0,1fr)_120px_120px_40px]">
+                  <div className="space-y-2">
                     <Field label="Item" required>
                       <Input
                         list="purchase-request-items"
@@ -267,15 +173,11 @@ export function PurchaseRequestForm({
                         placeholder="Search by item code or item name"
                       />
                     </Field>
-                    {!line.itemId && canCreateItem ? <Button type="button" variant="ghost" size="sm" onClick={() => setNewItemLineKey(line.key)}>Create new item</Button> : null}
                     <input type="hidden" name="line_item_id" value={line.itemId} />
                   </div>
-                  <div className="xl:col-span-2">
                   <Field label="Quantity" required>
                     <Input name="line_qty" type="number" min="0.0001" step="0.0001" value={line.qty} onChange={(event) => updateLine(line.key, { qty: event.target.value })} placeholder="Qty" />
                   </Field>
-                  </div>
-                  <div className="xl:col-span-1">
                   <Field label="UOM" required>
                     <SelectNative name="line_uom" value={line.uom} onChange={(event) => updateLine(line.key, { uom: event.target.value })}>
                       <option value="">Select UOM</option>
@@ -284,30 +186,27 @@ export function PurchaseRequestForm({
                       ))}
                     </SelectNative>
                   </Field>
-                  </div>
-                  <div className="xl:col-span-2">
-                  <Field label="Supplier">
-                    <SelectNative name="line_suggested_supplier_id" value={line.supplierId} onChange={(event) => updateLine(line.key, { supplierId: event.target.value })}>
-                      <option value="">No suggestion</option>
-                      {suppliers.map((supplier) => <option key={supplier.id} value={supplier.id}>{supplier.name}</option>)}
-                    </SelectNative>
-                  </Field>
-                  </div>
-                  <div className="xl:col-span-1">
-                  <Field label="Cost">
-                    <Input name="line_estimated_unit_cost" type="number" min="0" step="0.0001" value={line.cost} onChange={(event) => updateLine(line.key, { cost: event.target.value })} />
-                  </Field>
-                  </div>
-                  <div className="xl:col-span-2">
-                  <Field label="Line remarks">
-                    <Input name="line_remarks" value={line.remarks} onChange={(event) => updateLine(line.key, { remarks: event.target.value })} placeholder="Optional" />
-                  </Field>
-                  </div>
-                  <div className="flex items-end md:justify-end xl:col-span-13">
+                  <div className="flex items-end justify-end">
                     <Button type="button" variant="ghost" size="icon" aria-label="Remove line" disabled={lines.length === 1} onClick={() => setLines((current) => current.filter((row) => row.key !== line.key))}>
                       <X className="h-4 w-4" />
                     </Button>
                   </div>
+                  {canViewCommercial ? (
+                    <details className="md:col-span-4 rounded-md border bg-secondary/20 p-2">
+                      <summary className="cursor-pointer text-xs font-medium">Purchasing details</summary>
+                      <div className="mt-3 grid gap-3 md:grid-cols-3">
+                        <Field label="Suggested supplier"><SelectNative name="line_suggested_supplier_id" value={line.supplierId} onChange={(event) => updateLine(line.key, { supplierId: event.target.value })}><option value="">No suggestion</option>{suppliers.map((supplier) => <option key={supplier.id} value={supplier.id}>{supplier.name}</option>)}</SelectNative></Field>
+                        <Field label="Estimated unit cost"><Input name="line_estimated_unit_cost" type="number" min="0" step="0.0001" value={line.cost} onChange={(event) => updateLine(line.key, { cost: event.target.value })} /></Field>
+                        <Field label="Line note"><Input name="line_remarks" value={line.remarks} onChange={(event) => updateLine(line.key, { remarks: event.target.value })} placeholder="Optional" /></Field>
+                      </div>
+                    </details>
+                  ) : (
+                    <>
+                      <input type="hidden" name="line_suggested_supplier_id" value={line.supplierId} />
+                      <input type="hidden" name="line_estimated_unit_cost" value={line.cost} />
+                      <input type="hidden" name="line_remarks" value={line.remarks} />
+                    </>
+                  )}
                   <input type="hidden" name="line_reason" value="" />
                 </div>
               ))}
@@ -315,116 +214,18 @@ export function PurchaseRequestForm({
           </div>
 
           <datalist id="purchase-request-items">
-            {availableItems.map((item) => (
+            {items.map((item) => (
               <option key={item.id} value={itemLabel(item)} />
             ))}
           </datalist>
+
+          <details className="rounded-lg border bg-card p-3">
+            <summary className="cursor-pointer text-xs font-semibold">Additional details</summary>
+            <div className="mt-3"><Field label="Remarks"><Textarea name="remarks" defaultValue={initialRemarks ?? ""} placeholder="Reason or instructions for this request" /></Field></div>
+          </details>
         </form>
       </CardContent>
     </Card>
-    {newItemLineKey !== null && !canCreateItem ? (
-      <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/30 p-4 backdrop-blur-sm">
-        <Card className="w-full max-w-lg">
-          <CardContent className="space-y-4 p-5">
-            <p className="text-lg font-semibold">Permission required</p>
-            <p className="text-sm text-muted-foreground">You do not have permission to create items. Please contact Purchasing or the Super Admin / Owner.</p>
-            <div className="flex justify-end">
-              <Button type="button" onClick={() => setNewItemLineKey(null)}>Close</Button>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-    ) : null}
-    {newItemLineKey !== null && canCreateItem ? (
-      <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-slate-950/30 p-2 backdrop-blur-sm sm:p-4">
-        <Card className="my-auto max-h-[calc(100dvh-1rem)] w-full max-w-3xl overflow-y-auto border-[var(--sb-border)] bg-white sm:max-h-[calc(100dvh-2rem)]">
-          <CardContent className="space-y-3 p-3 sm:p-4">
-            <div className="flex items-start justify-between gap-3">
-              <div>
-                <p className="text-sm font-semibold">Create new item</p>
-                <p className="mt-1 text-xs text-muted-foreground">Create the item, return to this PR line, and fill UOM, supplier, and cost automatically.</p>
-              </div>
-              <Button type="button" variant="ghost" size="icon" onClick={() => setNewItemLineKey(null)} aria-label="Close item dialog">
-                <X className="h-4 w-4" />
-              </Button>
-            </div>
-            {newItemError ? <p className="rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700">{newItemError}</p> : null}
-            <form action={createInlineItem} className="space-y-3">
-              <section className="rounded-[2px] border bg-white p-3">
-                <div className="mb-3">
-                  <p className="text-sm font-semibold">Basic</p>
-                  <p className="mt-1 text-xs text-muted-foreground">Name, code, category, and base stock unit.</p>
-                </div>
-                <div className="grid gap-3 md:grid-cols-2">
-                  <Field label="Item Name" required>
-                    <Input name="item_name" required />
-                  </Field>
-                  <Field label="Item Code">
-                    <Input name="item_code" placeholder="Leave blank to auto-generate" />
-                    <p className="mt-1 text-xs text-muted-foreground">Blank code will be generated on save.</p>
-                  </Field>
-                  <Field label="Category" required>
-                    <Input name="category" required />
-                  </Field>
-                  <Field label="Base UOM" required>
-                    <SelectNative name="base_unit" defaultValue="KG" required>
-                      {defaultUoms.map((uom) => (
-                        <option key={uom} value={uom}>{uom}</option>
-                      ))}
-                    </SelectNative>
-                  </Field>
-                </div>
-              </section>
-
-              <section className="rounded-[2px] border bg-white p-3">
-                <div className="mb-3">
-                  <p className="text-sm font-semibold">Purchasing</p>
-                  <p className="mt-1 text-xs text-muted-foreground">Optional buying defaults for PR and supplier item setup.</p>
-                </div>
-                <div className="grid gap-3 md:grid-cols-2">
-                  <Field label="Purchase UOM" required>
-                    <SelectNative name="purchase_unit" defaultValue="KG" required>
-                      {defaultUoms.map((uom) => (
-                        <option key={uom} value={uom}>{uom}</option>
-                      ))}
-                    </SelectNative>
-                  </Field>
-                  <Field label="Default Supplier">
-                    <SelectNative name="supplier_id" defaultValue="">
-                      <option value="">No default supplier</option>
-                      {suppliers.map((supplier) => <option key={supplier.id} value={supplier.id}>{supplier.name}</option>)}
-                    </SelectNative>
-                  </Field>
-                  {!suppliers.length && canCreateSupplier ? (
-                    <div className="flex flex-col gap-2 rounded-md border bg-slate-50 p-3 text-sm text-muted-foreground md:col-span-2 sm:flex-row sm:items-center sm:justify-between">
-                      <span>No supplier is available yet for this item.</span>
-                      <Button asChild type="button" variant="outline" size="sm">
-                        <Link href="/suppliers/new">Create supplier first</Link>
-                      </Button>
-                    </div>
-                  ) : null}
-                  <Field label="Cost">
-                    <Input name="cost" type="number" min="0" step="0.0001" defaultValue={0} />
-                  </Field>
-                  <Field label="MOQ">
-                    <Input name="moq" type="number" min="0" step="0.0001" defaultValue={0} />
-                  </Field>
-                  <Field label="Lead Time Days">
-                    <Input name="lead_time_days" type="number" min="0" step="1" defaultValue={0} />
-                  </Field>
-                </div>
-              </section>
-
-              <div className="sticky bottom-0 flex items-end justify-end gap-2 border-t bg-white py-2">
-                <Button type="button" variant="ghost" onClick={() => setNewItemLineKey(null)}>Cancel</Button>
-                <Button type="submit" disabled={savingNewItem}>{savingNewItem ? "Saving..." : "Save item"}</Button>
-              </div>
-            </form>
-          </CardContent>
-        </Card>
-      </div>
-    ) : null}
-    </>
   );
 }
 

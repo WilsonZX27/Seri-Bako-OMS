@@ -8,17 +8,18 @@ import { ConsoleSection } from "@/components/layout/right-console";
 import { WorkspaceGrid } from "@/components/layout/workspace-layout";
 import { createPurchaseRequest } from "@/server/actions/procurement";
 import { hasPermission } from "@/server/auth/permissions";
-import { getBranchesForSelect, getItemsForSelect, getSuppliersForSelect } from "@/server/queries/common";
+import { getBranchesForSelect, getCurrentProfile, getItemsForSelect, getSuppliersForSelect } from "@/server/queries/common";
 
 export default async function NewPurchaseRequestPage({ searchParams }: { searchParams: Promise<Record<string, string | undefined>> }) {
   const params = await searchParams;
-  const [items, suppliers, branches, canCreateItem, canCreateSupplier] = await Promise.all([
+  const [items, suppliers, branches, hasCommercialAccess, profile] = await Promise.all([
     getItemsForSelect(),
     getSuppliersForSelect(),
     getBranchesForSelect(),
-    hasPermission("items.create"),
-    hasPermission("suppliers.create"),
+    hasPermission("pr.view_all"),
+    getCurrentProfile(),
   ]);
+  const canViewCommercial = hasCommercialAccess && !["kitchen", "kitchen_staff"].includes(String(profile?.role_code ?? "").toLowerCase());
   const initialItem = params.item_id ? items.find((item) => item.id === params.item_id) : null;
   const initialLine = initialItem ? {
     itemId: initialItem.id,
@@ -33,11 +34,14 @@ export default async function NewPurchaseRequestPage({ searchParams }: { searchP
     <>
       <PageHeader title="New Purchase Request" description="Create a request from daily stock check or low-stock review." />
       <WorkspaceGrid
+        hideMobileConsole
+        className="pb-20 xl:pb-3"
         rightRail={
           <div>
             <ConsoleSection title="PR Actions">
               <div className="grid gap-2">
-                <SubmitButton type="submit" form="purchase-request-form" pendingLabel="Creating..." className="w-full">Create PR</SubmitButton>
+                <SubmitButton type="submit" form="purchase-request-form" name="intent" value="draft" pendingLabel="Saving..." variant="outline" className="w-full">Save Draft</SubmitButton>
+                <SubmitButton type="submit" form="purchase-request-form" name="intent" value="submit" pendingLabel="Submitting..." className="w-full">Submit PR</SubmitButton>
                 <Button asChild variant="ghost" className="w-full"><Link href="/purchase-requests">Cancel</Link></Button>
               </div>
             </ConsoleSection>
@@ -59,10 +63,13 @@ export default async function NewPurchaseRequestPage({ searchParams }: { searchP
           initialBranchId={params.branch_id}
           initialLine={initialLine}
           initialRemarks={params.notes}
-          canCreateItem={canCreateItem}
-          canCreateSupplier={canCreateSupplier}
+          canViewCommercial={canViewCommercial}
           action={createPurchaseRequest}
         />
+        <div data-inline-form-actions className="fixed inset-x-3 bottom-[calc(env(safe-area-inset-bottom)+0.5rem)] z-40 grid grid-cols-2 gap-2 border bg-background p-2 shadow-sm xl:hidden">
+          <SubmitButton type="submit" form="purchase-request-form" name="intent" value="draft" pendingLabel="Saving..." variant="outline">Save Draft</SubmitButton>
+          <SubmitButton type="submit" form="purchase-request-form" name="intent" value="submit" pendingLabel="Submitting...">Submit PR</SubmitButton>
+        </div>
       </WorkspaceGrid>
     </>
   );

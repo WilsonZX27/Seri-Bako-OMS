@@ -9,7 +9,7 @@ test("mistaken attachments can be removed before finalization without weakening 
   const removeAction = read("src/components/documents/attachment-remove-action.tsx");
   const server = read("src/server/actions/documents.ts");
 
-  assert.match(panel, /\["draft", "pending_approval"\]\.includes\(document\.status\)/);
+  assert.match(panel, /\["draft", "pending_approval"\]\.includes\(status\)/);
   assert.match(panel, /Attachments are locked after approval or posting/);
   assert.match(removeAction, /Remove this mistaken upload\?/);
   assert.match(removeAction, /Keep file/);

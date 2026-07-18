@@ -112,6 +112,7 @@ export async function createGoodsReceiving(formData: FormData) {
   await requirePermissionOrRedirect("goods_receiving.create", "/goods-receivings/new");
   try {
     const payload = extractGoodsReceiving(formData);
+    const deliveryOrderNo = cleanText(formData.get("delivery_order_no"));
     if (isMockMode()) redirect("/goods-receivings/grn-mock-partial");
     const locationId = await resolveDefaultLocation(payload.branch_id, payload.location_id);
 
@@ -137,7 +138,7 @@ export async function createGoodsReceiving(formData: FormData) {
         location_id: locationId,
         status: "draft",
         received_by: profile?.id ?? null,
-        remarks: payload.remarks,
+        remarks: [deliveryOrderNo ? `DO ${deliveryOrderNo}` : null, payload.remarks].filter(Boolean).join(" - ") || null,
         created_by: profile?.id ?? null,
         updated_by: profile?.id ?? null,
       })
@@ -169,7 +170,7 @@ export async function createGoodsReceiving(formData: FormData) {
   }
 }
 
-export async function postGoodsReceiving(id: string) {
+export async function postGoodsReceiving(id: string, formData: FormData) {
   await requirePermission("grn.post");
   if (isMockMode()) return;
 
@@ -184,6 +185,16 @@ export async function postGoodsReceiving(id: string) {
   if (grn.status === "posted") return;
   if (grn.status !== "draft") throw new Error("Only draft GRN can be posted.");
   await ensureReceivablePo(grn.purchase_order_id);
+
+  const doExceptionReason = cleanText(formData.get("do_exception_reason"));
+  const { count: attachmentCount, error: attachmentError } = grn.document_id
+    ? await supabase.from("attachments").select("id", { count: "exact", head: true }).eq("entity_type", "document").eq("entity_id", grn.document_id).eq("status", "active").is("deleted_at", null)
+    : { count: 0, error: null };
+  if (attachmentError) throw new Error(attachmentError.message);
+  if (!attachmentCount && !doExceptionReason) throw new Error("Attach the Delivery Order or document an exception before posting this receiving.");
+  if (!attachmentCount && doExceptionReason && grn.document_id) {
+    await writeActivityLog({ entityType: "document", entityId: grn.document_id, activityType: "delivery_order_exception", message: `Delivery Order exception: ${doExceptionReason}` });
+  }
 
   const receivingLines = lines ?? [];
   if (!receivingLines.some((line) => Number(line.received_qty) > 0)) throw new Error("Cannot post GRN without at least one received line.");
@@ -231,7 +242,9 @@ export async function postGoodsReceiving(id: string) {
   if (poUpdateError) throw new Error(poUpdateError.message);
   if (docUpdateError) throw new Error(docUpdateError.message);
 
-  if (grn.document_id) await writeActivityLog({ entityType: "document", entityId: grn.document_id, activityType: "posted", message: `Goods receiving ${grn.grn_no} posted to inventory` });
+  if (grn.document_id) {
+    await writeActivityLog({ entityType: "document", entityId: grn.document_id, activityType: "posted", message: `Goods receiving ${grn.grn_no} posted to inventory` });
+  }
   revalidateWorkspaceState(["/goods-receivings", `/goods-receivings/${id}`, "/purchase-orders", `/purchase-orders/${grn.purchase_order_id}`]);
   revalidatePath("/inventory");
   revalidatePath("/stock-transactions");

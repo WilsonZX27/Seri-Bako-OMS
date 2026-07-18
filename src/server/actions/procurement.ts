@@ -227,6 +227,7 @@ export async function createPurchaseRequest(formData: FormData) {
     if (existing) redirect(`/purchase-requests/${existing.id}`);
     mark("idempotency");
     const payload = extractPurchaseRequest(formData);
+    const intent = formData.get("intent") === "submit" ? "submit" : "draft";
     const [locationId, , profile] = await Promise.all([
       resolveDefaultLocation(payload.branch_id, payload.location_id),
       ensureActiveItems(payload.lines.map((line) => line.item_id)),
@@ -284,6 +285,10 @@ export async function createPurchaseRequest(formData: FormData) {
     mark("revalidation");
     if (process.env.SB_PERF_LOG === "true") {
       console.info("[perf] createPurchaseRequest", { ...timings, total: Math.round(performance.now() - startedAt), id: data.id });
+    }
+    if (intent === "submit") {
+      const submitted = await transitionPurchaseRequest(data.id, "submit");
+      safeRedirectWithMessage(`/purchase-requests/${data.id}`, "success", `${submitted.request_no} submitted to Manager Review. Manager has been notified.`);
     }
     redirect(`/purchase-requests/${data.id}`);
   } catch (error) {

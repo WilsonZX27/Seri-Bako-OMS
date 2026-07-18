@@ -19,12 +19,13 @@ export default async function NewGoodsReceivingPage({ searchParams }: { searchPa
     <>
       <PageHeader title="New Goods Receiving" description="Create a draft GRN from an approved, sent, or partially received PO." />
       <WorkspaceGrid
+        hideMobileConsole
+        className="pb-20 xl:pb-3"
         rightRail={
           <div>
             <ConsoleSection title="GRN Actions">
               <div className="grid gap-2">
-                <Button type="submit" form="goods-receiving-form" disabled={!selectedOrder || !lines.length} className="w-full">Create Draft GRN</Button>
-                <Button type="submit" form="goods-receiving-form" disabled={!selectedOrder || !lines.length} variant="outline" className="w-full">Save Draft</Button>
+                <div data-mobile-primary-action><Button type="submit" form="goods-receiving-form" disabled={!selectedOrder || !lines.length} className="w-full">Record Receiving &amp; Attach DO</Button></div>
               </div>
             </ConsoleSection>
             <ConsoleSection title="PO Summary">
@@ -45,6 +46,7 @@ export default async function NewGoodsReceivingPage({ searchParams }: { searchPa
           branches={branches}
           action={createGoodsReceiving}
         />
+        <div data-inline-form-actions className="fixed inset-x-3 bottom-[calc(env(safe-area-inset-bottom)+0.5rem)] z-40 border bg-background p-2 shadow-sm xl:hidden"><Button type="submit" form="goods-receiving-form" disabled={!selectedOrder || !lines.length} className="w-full">Record Receiving &amp; Attach DO</Button></div>
       </WorkspaceGrid>
     </>
   );

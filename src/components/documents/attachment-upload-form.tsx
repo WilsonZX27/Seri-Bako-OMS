@@ -9,7 +9,15 @@ import { cn } from "@/lib/utils";
 
 type UploadState = { error: string | null; success: string | null };
 
-export function AttachmentUploadForm({ action }: { action: (state: UploadState, formData: FormData) => Promise<UploadState> }) {
+export function AttachmentUploadForm({
+  action,
+  defaultLabel,
+  submitLabel = "Upload attachment",
+}: {
+  action: (state: UploadState, formData: FormData) => Promise<UploadState>;
+  defaultLabel?: string;
+  submitLabel?: string;
+}) {
   const [state, formAction] = useActionState(action, { error: null, success: null });
   const [fileName, setFileName] = useState("");
   const [fileError, setFileError] = useState<string | null>(null);
@@ -18,7 +26,7 @@ export function AttachmentUploadForm({ action }: { action: (state: UploadState, 
   return (
     <form action={formAction} className="grid min-w-0 gap-2">
       <Field label="Attachment label">
-        <Input name="file_name" placeholder="Delivery order, invoice, photo" className="w-full" />
+        <Input name="file_name" defaultValue={defaultLabel} placeholder="Delivery order, invoice, photo" className="w-full" />
       </Field>
       <Field label="Add attachment" required>
         <Input
@@ -42,7 +50,7 @@ export function AttachmentUploadForm({ action }: { action: (state: UploadState, 
       </Field>
       {fileError || state.error ? <p role="alert" className="text-xs text-destructive">{fileError ?? state.error}</p> : null}
       {state.success ? <p role="status" className="text-xs text-success">{state.success}</p> : null}
-      <SubmitButton type="submit" pendingLabel="Uploading..." className="w-full justify-center">Upload attachment</SubmitButton>
+      <SubmitButton type="submit" pendingLabel="Uploading..." className="w-full justify-center">{submitLabel}</SubmitButton>
     </form>
   );
 }

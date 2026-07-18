@@ -7,18 +7,20 @@ export function WorkspaceGrid({
   rightRail,
   className,
   rightRailClassName,
+  hideMobileConsole = false,
 }: {
   children: ReactNode;
   rightRail?: ReactNode;
   className?: string;
   rightRailClassName?: string;
+  hideMobileConsole?: boolean;
 }) {
   void rightRailClassName;
 
   return (
     <div className={cn("min-h-0 p-3 pb-3", className)}>
       <div className="min-w-0 space-y-3">{children}</div>
-      {rightRail ? <RightConsoleMount>{rightRail}</RightConsoleMount> : null}
+      {rightRail ? <RightConsoleMount hideMobileBar={hideMobileConsole}>{rightRail}</RightConsoleMount> : null}
     </div>
   );
 }

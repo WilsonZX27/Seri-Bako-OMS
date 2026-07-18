@@ -734,3 +734,11 @@ Sprint 7.20 reuses the Recipe Costing calculation for active products. Only a Hi
 Sprint 7.20.1 only changes confidence presentation and review links; it leaves the data source and margin formulas unchanged.
 
 Sprint 7.21 adds a server-side, read-only procurement variance query. It joins only existing document-line foreign keys and does not infer missing links or mutate procurement data.
+
+## Procurement document evidence gates
+
+Sprint 7.23.4 reuses the existing `documents` and `attachments` tables and private attachment actions; it adds no schema, RPC, RLS, role, or permission change. PR creation still saves a draft before the database-authoritative transition RPC submits it. PR-to-PO conversion remains the existing atomic conversion RPC and the supplied AutoCount PO number remains the resulting PO number.
+
+Posting a draft Goods Receiving now checks for an active document attachment before inventory movement. When a supplier DO is genuinely unavailable, the authorized poster must provide an exception reason; that reason is written to the document activity log before the posted event. Already-posted historical records are not revalidated or mutated.
+
+Supplier invoice approval now checks for an active document attachment before calling the existing approval RPC. The check changes no invoice calculation or finance permission: Purchasing can save details and manage permitted attachments, while only the existing Finance-authorized action can open the invoice. Attachment removal continues to use the document status lock, so approved and posted evidence cannot be silently replaced.

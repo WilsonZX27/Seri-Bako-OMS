@@ -15,14 +15,16 @@ export function DocumentActionForm({
   action,
   children,
   pendingLabel = "Saving...",
+  mobilePrimary = false,
   ...buttonProps
 }: {
   action: (formData: FormData) => void | Promise<void>;
   children: ReactNode;
   pendingLabel?: string;
+  mobilePrimary?: boolean;
 } & ButtonProps) {
   return (
-    <form action={action} className="w-full">
+    <form action={action} className="w-full" data-mobile-primary-action={mobilePrimary || undefined}>
       <DocumentActionSubmitButton pendingLabel={pendingLabel} {...buttonProps}>
         {children}
       </DocumentActionSubmitButton>

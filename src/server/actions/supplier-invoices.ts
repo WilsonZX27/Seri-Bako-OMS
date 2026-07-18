@@ -89,6 +89,13 @@ export async function approveSupplierInvoice(id: string) {
   await requirePermissionOrRedirect("supplier_invoice.approve", `/supplier-invoices/${id}`);
   try {
     const supabase = await createClient();
+    const { data: invoiceEvidence, error: evidenceQueryError } = await supabase.from("supplier_invoices").select("document_id").eq("id", id).single();
+    if (evidenceQueryError) throw new Error(evidenceQueryError.message);
+    const { count: attachmentCount, error: attachmentError } = invoiceEvidence.document_id
+      ? await supabase.from("attachments").select("id", { count: "exact", head: true }).eq("entity_type", "document").eq("entity_id", invoiceEvidence.document_id).eq("status", "active").is("deleted_at", null)
+      : { count: 0, error: null };
+    if (attachmentError) throw new Error(attachmentError.message);
+    if (!attachmentCount) throw new Error("Attach the supplier invoice before sending it to Finance Review.");
     const { error } = await supabase.rpc("approve_supplier_invoice", { p_invoice_id: id });
     if (error) throw new Error(error.message);
     const { data: invoice } = await supabase.from("supplier_invoices").select("invoice_no, document_id").eq("id", id).single();

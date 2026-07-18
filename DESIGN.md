@@ -467,6 +467,21 @@ High-use operational indexes use one server-rendered structure: compact `PageHea
 - Empty copy distinguishes an empty dataset from a filtered result. It offers at most one authorized next action. Pagination is absent when the result count is zero.
 - `--sb-muted` aliases the canonical muted surface token; pages must not invent a parallel muted color.
 
+## Sprint 7.23.4 procurement Document and Form Mode
+
+Procurement creation pages keep the center workspace focused on the minimum inputs needed to save a valid draft. System-generated dates and numbers are recorded without competing form controls. The PR line editor prioritizes item, quantity, and UOM; supplier and estimated cost remain secondary purchasing details and are not exposed to Kitchen users.
+
+Draft creation and workflow submission remain separate, explicit actions. A new PR shows `Save Draft`, then the saved document exposes `Submit PR` through the existing state-aware action resolver. The UI must not imply autosave or submit an unsaved record.
+
+Stage evidence uses the shared attachment repository:
+
+- PO preparation identifies the AutoCount PO number and Purchase Order attachment.
+- Receiving uses `Record Receiving & Attach DO`; the Delivery Order repository is visible in the mobile flow and the desktop Right Console.
+- Supplier invoices expose `Attach Supplier Invoice` before Finance Review.
+- Draft/pending evidence may be removed and replaced. Approved/posted evidence remains locked with correction guidance.
+
+The Right Console remains the persistent desktop action and evidence surface. At mobile and tablet widths, the current safe primary action stays in the bottom action bar, while stage-critical attachment controls also appear inline. File selection supports camera/photo-library behavior provided by the mobile browser, shows the chosen filename, rejects files above 10 MB, and communicates the pending upload state.
+
 The product visual identity is:
 
 - Deep green operational sidebar

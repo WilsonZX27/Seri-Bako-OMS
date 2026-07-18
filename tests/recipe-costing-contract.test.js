@@ -37,7 +37,7 @@ test("Recipe Costing surfaces confidence, manual actions, filters, and the exist
 });
 
 test("Recipe Costing remains compatible with the current footer and scoped Outlet Staff seed", () => {
-  assert.match(version, /APP_VERSION = "0\.2\.34"/);
-  assert.match(version, /APP_SPRINT = "Sprint 7\.22\.1"/);
+  assert.match(version, /APP_VERSION = "0\.2\.35"/);
+  assert.match(version, /APP_SPRINT = "Sprint 7\.23\.2"/);
   assert.match(read("supabase/migrations/066_create_outlet_staff_role.sql"), /outlet_staff/);
 });

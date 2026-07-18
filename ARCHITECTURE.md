@@ -699,6 +699,14 @@ Sprint 7.15 reuses the same read-only Demand Trend result and RLS branch scope t
 
 Sprint 7.16 composes the existing dashboard, outlet-record, demand, variance, planning, stock, and AP query outputs. Outlet and demand calls use independent settled results so one unavailable source leaves the other dashboard sections usable. It adds no dashboard framework, migration, or business write path.
 
+## Role-aware dashboard composition
+
+Sprint 7.23.2 makes `/dashboard` the canonical landing route for every active role. The page remains a single route and a single composition component. `getDashboardSummary` resolves the authenticated staff scope first, then starts only the independent query groups required by that role. PostgreSQL RLS remains authoritative for company, branch, and assigned-location visibility; the component receives already-scoped server data and does not fetch hidden role panels on the client.
+
+Finance is company-wide and receives the read-level operational union of Manager and Purchasing plus its existing finance capabilities. Manager remains assigned-location operational oversight; Purchasing remains company-wide procurement/master-data execution. They are sibling operational responsibilities, not an escalation chain. Migration `072` adds only the missing Finance read grants and Manager Review fallback, creates explicit item/supplier view permissions, and installs a PR status trigger that rejects requester self-approval. It does not grant owner controls or Purchasing mutations and changes no business rows.
+
+Payables queries execute only for Owner and Finance. Outlet and Kitchen workdesks rely on RLS-scoped daily-record, procurement, stock, and production queries. Optional sources degrade to useful empty/unavailable states without blanking the page.
+
 ## Operations Navigation & Smoke Polish
 
 Sprint 7.16.1 keeps one direct sidebar path to Outlet Daily Records, a single Production hub path to Planning and Variance, and Demand Trends in Reports. It only clarifies navigation, copy, console order, and existing responsive table behavior; it adds no migration or business write path.

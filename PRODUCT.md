@@ -394,6 +394,17 @@ Important operational records should preserve:
 
 Destructive changes should be avoided where an auditable status change or reversal record is more appropriate.
 
+## Role-aware Dashboard and Capability Hierarchy
+
+`/dashboard` is the default authenticated landing page for all six active roles. It is one server-composed workdesk, not six routes: each role receives only the actionable queues, metrics, alerts, and links supported by its effective permissions and RLS-visible scope.
+
+- Super Admin / Owner has company-wide business, finance, and protected system capability.
+- Finance is the second-highest company-wide role. It combines read-level Manager and Purchasing operational visibility with AP, invoice, cash-flow, and payment capability, plus Manager Review fallback. It does not receive owner controls or Purchasing mutations and cannot approve its own PR.
+- Manager and Purchasing are sibling operational roles: Manager reviews assigned-location operations; Purchasing runs company-wide procurement and master-data workflows.
+- Kitchen is limited to assigned Central Kitchen work; Outlet Staff is limited to the assigned outlet and today’s daily-record tasks.
+
+Manager, Purchasing, Kitchen, and Outlet dashboards must never expose AP Aging, Cash Flow, aggregate debt, payment controls, or company-wide information outside their scope.
+
 ## Out of Scope
 
 Unless explicitly implemented in a later sprint, Seri Bako OMS does not guarantee:

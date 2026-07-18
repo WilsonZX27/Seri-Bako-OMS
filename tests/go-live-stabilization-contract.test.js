@@ -68,7 +68,7 @@ test("office administration is separated from finance and payables", () => {
   assert.match(migration, /'supplier_invoice\.pay', 'supplier_invoice\.approve', 'supplier_invoice\.void'/);
   assert.match(migration, /has_permission\('supplier_invoice\.pay'\)/);
   assert.deepEqual(routes.match(/"\/supplier-invoices\/(aging|cash-flow)": \["supplier_invoice\.pay"\]/g)?.length, 2);
-  assert.match(dashboard, /hasPermission\("supplier_invoice\.pay"\)/);
+  assert.match(dashboard, /if \(isOwner \|\| isFinance\)/);
 });
 
 test("final owner protection counts only active Super Admin assignments", () => {

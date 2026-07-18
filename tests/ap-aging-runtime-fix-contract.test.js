@@ -26,7 +26,7 @@ test("dashboard isolates AP failure and user-facing errors stay generic", () => 
   assert.match(query, /try \{[\s\S]*getPayablesAttention\(\)[\s\S]*catch \{/);
   assert.match(query, /payablesAttentionUnavailable = true/);
   assert.match(workspace, /payablesAttentionUnavailable/);
-  assert.match(workspace, /The rest of the dashboard remains current/);
+  assert.match(workspace, /operational queues remain current/);
   assert.match(errorPage, /temporarily unavailable\. Please retry or contact the Super Admin \/ Owner/);
   assert.match(apQuery, /console\.error\("\[ap-aging\] RPC failed"/);
   assert.match(apQuery, /throw new Error\("AP Aging report is unavailable\."\)/);
@@ -34,6 +34,6 @@ test("dashboard isolates AP failure and user-facing errors stay generic", () => 
 
 test("release footer follows the current sprint baseline", () => {
   const version = read("src/lib/app-version.ts");
-  assert.match(version, /APP_VERSION = "0\.2\.34"/);
-  assert.match(version, /APP_SPRINT = "Sprint 7\.22\.1"/);
+  assert.match(version, /APP_VERSION = "0\.2\.35"/);
+  assert.match(version, /APP_SPRINT = "Sprint 7\.23\.2"/);
 });

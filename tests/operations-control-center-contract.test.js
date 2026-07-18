@@ -17,21 +17,15 @@ test("Operations Control Center reuses existing outlet and demand query sources"
 test("Operations Control Center isolates outlet and demand failures", () => {
   assert.match(outlet, /unavailable: \{ outlet: !outlet, demand: !trend \}/);
   assert.match(dashboard, /Operations control summaries unavailable; rendering the remaining dashboard/);
-  assert.match(workspace, /Outlet record health is unavailable right now/);
-  assert.match(workspace, /Demand confidence is unavailable right now/);
-  assert.match(workspace, /Variance signals are unavailable right now/);
-  assert.match(workspace, /Planning reference is unavailable right now/);
+  assert.match(workspace, /No urgent operational exceptions are visible in your scope/);
 });
 
 test("Operations Control Center surfaces health, confidence, variance, planning, stock and AP read-only summaries", () => {
-  assert.match(workspace, /Outlet Record Health/);
-  assert.match(workspace, /Demand Confidence/);
-  assert.match(workspace, /Wastage and Variance/);
-  assert.match(workspace, /Production Planning Reference/);
-  assert.match(workspace, /Stock Exceptions/);
-  assert.match(workspace, /Finance \/ Payables Attention/);
-  assert.match(workspace, /Open Cash Flow Forecast/);
-  assert.match(workspace, /Planning values are references, not production orders/);
+  assert.match(workspace, /Outlet completion issues/);
+  assert.match(workspace, /Production exceptions/);
+  assert.match(workspace, /Low stock/);
+  assert.match(workspace, /Payables and cash obligations/);
+  assert.match(workspace, /View Cash Flow/);
 });
 
 test("Operations Control Center stays read-only and follows the Sprint 7.18.1 footer", () => {
@@ -39,6 +33,6 @@ test("Operations Control Center stays read-only and follows the Sprint 7.18.1 fo
   const implementation = `${dashboard}\n${outlet}`;
   assert.doesNotMatch(implementation, /(insert into|update|delete from) public\.(stock_transactions|stock_transaction_lines|stock_balances|production_jobs|supplier_invoices|supplier_invoice_payments)/i);
   assert.match(read("supabase/migrations/066_create_outlet_staff_role.sql"), /outlet_staff/);
-  assert.match(version, /APP_VERSION = "0\.2\.34"/);
-  assert.match(version, /APP_SPRINT = "Sprint 7\.22\.1"/);
+  assert.match(version, /APP_VERSION = "0\.2\.35"/);
+  assert.match(version, /APP_SPRINT = "Sprint 7\.23\.2"/);
 });

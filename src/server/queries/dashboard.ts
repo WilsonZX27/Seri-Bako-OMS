@@ -3,9 +3,10 @@ import { looseSupabase } from "@/lib/supabase/loose";
 import { actorDisplayName, formatActivityWithActor, resolveActorDisplayMap } from "@/server/actors/display";
 import { getCurrentUserScope, getVisibleNotificationsForCurrentUser } from "@/server/queries/notifications";
 import { getCurrentUserPendingActions } from "@/server/queries/pending-actions";
-import { hasPermission } from "@/server/auth/permissions";
 import { getPayablesAttention } from "@/server/queries/ap-aging";
 import { getOperationsControlCenterSummary } from "@/server/queries/outlet-daily-records";
+import { getProductionHubSummary } from "@/server/queries/production-jobs";
+import { getRoleDisplayLabel } from "@/lib/roles";
 import {
   getMockLowStockItems,
   getMockStockBalances,
@@ -86,6 +87,9 @@ export async function getDashboardSummary() {
     const itemById = new Map<string, (typeof mockItems)[number]>(mockItems.map((item) => [item.id, item]));
 
     return {
+      role: "super_admin",
+      roleLabel: "Super Admin / Owner",
+      scopeLabel: "Company-wide",
       totalItems: mockItems.length,
       totalSuppliers: mockSuppliers.length,
       lowStockCount: balances.filter((row) => row.is_low_stock).length,
@@ -130,6 +134,8 @@ export async function getDashboardSummary() {
       payablesAttention: null,
       payablesAttentionUnavailable: false,
       operationsControl: null,
+      productionSummary: null,
+      outletToday: null,
       recentTransactions: mockStockTransactions.slice(0, 6).map((transaction) => ({
         ...transaction,
         item: itemById.get(transaction.item_id) ?? null,
@@ -137,47 +143,62 @@ export async function getDashboardSummary() {
     };
   }
 
+  const scope = await getCurrentUserScope();
+  if (!scope) throw new Error("An authenticated staff profile is required.");
+  const role = scope.roleCode;
+  const isOwner = role === "super_admin";
+  const isFinance = role === "finance";
+  const isManager = role === "manager";
+  const isPurchasing = role === "purchasing";
+  const isKitchen = role === "kitchen";
+  const isOutlet = role === "outlet_staff";
+  const needsProcurement = isOwner || isFinance || isManager || isPurchasing || isKitchen;
+  const needsInventory = isOwner || isFinance || isManager || isPurchasing || isKitchen;
+  const needsOperations = isOwner || isFinance || isManager;
+  const needsProduction = isOwner || isFinance || isManager || isPurchasing || isKitchen;
+  const today = new Date().toISOString().slice(0, 10);
   const supabase = await createClient();
   const db = looseSupabase(supabase);
-  const [balances, lowStock, transactions, stockItems, suppliers, items, urgentRequests, purchaseRequests, purchaseOrders, pendingApprovals, documents, notifications, recentActivities, todayProduction, canViewPayables] = await Promise.all([
-    supabase.from("stock_balances_view").select("item_id, current_stock, is_low_stock"),
-    supabase.from("low_stock_items").select("*").limit(5),
-    supabase
+  const empty = { data: [], error: null, count: 0 };
+  const [balances, lowStock, transactions, stockItems, suppliers, items, urgentRequests, purchaseRequests, purchaseOrders, pendingApprovals, documents, notifications, recentActivities, productionSummary, outletToday] = await Promise.all([
+    needsInventory ? supabase.from("stock_balances_view").select("item_id, current_stock, is_low_stock") : Promise.resolve(empty),
+    needsInventory ? supabase.from("low_stock_items").select("*").limit(5) : Promise.resolve(empty),
+    needsInventory ? supabase
       .from("stock_transactions")
       .select("id, item_id, transaction_date, transaction_type, quantity_in, quantity_out")
       .order("created_at", { ascending: false })
-      .limit(6),
-    supabase.from("items").select("id, item_name, base_unit"),
-    supabase.from("suppliers").select("id", { count: "exact", head: true }),
-    supabase.from("items").select("id", { count: "exact", head: true }),
-    supabase
+      .limit(6) : Promise.resolve(empty),
+    needsInventory ? supabase.from("items").select("id, item_name, base_unit") : Promise.resolve(empty),
+    (isOwner || isFinance || isPurchasing) ? supabase.from("suppliers").select("id", { count: "exact", head: true }) : Promise.resolve(empty),
+    (isOwner || isFinance || isPurchasing) ? supabase.from("items").select("id", { count: "exact", head: true }) : Promise.resolve(empty),
+    needsProcurement ? supabase
       .from("purchase_requests")
       .select("id, request_no, status, priority, needed_by_date")
       .in("priority", ["urgent", "critical"])
       .is("deleted_at", null)
       .order("needed_by_date", { ascending: true, nullsFirst: false })
-      .limit(5),
-    supabase.from("purchase_requests").select("id, request_no, status, priority").is("deleted_at", null).order("updated_at", { ascending: false }).limit(5),
-    supabase.from("purchase_orders").select("id, po_no, status, priority").is("deleted_at", null).order("updated_at", { ascending: false }).limit(5),
+      .limit(5) : Promise.resolve(empty),
+    needsProcurement ? supabase.from("purchase_requests").select("id, request_no, status, priority").is("deleted_at", null).order("updated_at", { ascending: false }).limit(5) : Promise.resolve(empty),
+    needsProcurement ? supabase.from("purchase_orders").select("id, po_no, status, priority").is("deleted_at", null).order("updated_at", { ascending: false }).limit(5) : Promise.resolve(empty),
     getCurrentUserPendingActions(5),
-    supabase.from("documents").select("id, document_no, document_type").order("updated_at", { ascending: false }).limit(6),
+    (isOwner || isFinance || isPurchasing || isKitchen) ? supabase.from("documents").select("id, document_no, document_type").order("updated_at", { ascending: false }).limit(6) : Promise.resolve(empty),
     getVisibleNotificationsForCurrentUser(),
-    getVisibleRecentActivitiesForCurrentUser(),
-    db.from("production_jobs").select("id", { count: "exact", head: true }).eq("status", "posted").eq("production_date", new Date().toISOString().slice(0, 10)).is("deleted_at", null),
-    hasPermission("supplier_invoice.pay"),
+    (isOwner || isFinance || isManager) ? getVisibleRecentActivitiesForCurrentUser() : Promise.resolve([]),
+    needsProduction ? getProductionHubSummary().catch(() => null) : Promise.resolve(null),
+    isOutlet ? db.from("outlet_daily_records").select("id, status, record_date, branch_id").eq("record_date", today).order("updated_at", { ascending: false }).limit(1).maybeSingle() : Promise.resolve({ data: null, error: null }),
   ]);
 
   warnOptionalQuery("stock balances", balances.error);
   warnOptionalQuery("low stock items", lowStock.error);
 
-  for (const result of [transactions, stockItems, suppliers, items, urgentRequests, purchaseRequests, purchaseOrders, documents, todayProduction]) {
+  for (const result of [transactions, stockItems, suppliers, items, urgentRequests, purchaseRequests, purchaseOrders, documents]) {
     if (result.error) throw new Error(result.error.message);
   }
 
   const itemById = new Map((stockItems.data ?? []).map((item) => [item.id, item]));
   let payablesAttention: Awaited<ReturnType<typeof getPayablesAttention>> | null = null;
   let payablesAttentionUnavailable = false;
-  if (canViewPayables) {
+  if (isOwner || isFinance) {
     try {
       payablesAttention = await getPayablesAttention();
     } catch {
@@ -186,13 +207,18 @@ export async function getDashboardSummary() {
     }
   }
   let operationsControl: Awaited<ReturnType<typeof getOperationsControlCenterSummary>> | null = null;
-  try {
-    operationsControl = await getOperationsControlCenterSummary();
-  } catch {
-    console.error("[dashboard] Operations control summaries unavailable; rendering the remaining dashboard.");
+  if (needsOperations) {
+    try {
+      operationsControl = await getOperationsControlCenterSummary();
+    } catch {
+      console.error("[dashboard] Operations control summaries unavailable; rendering the remaining dashboard.");
+    }
   }
 
   return {
+    role,
+    roleLabel: getRoleDisplayLabel(role),
+    scopeLabel: scope.companyWideAccess ? "Company-wide" : scope.branchIds.length ? "Assigned locations" : "Assigned workspace",
     totalItems: items.count ?? 0,
     totalSuppliers: suppliers.count ?? 0,
     lowStockCount: balances.error ? 0 : balances.data?.filter((row) => row.is_low_stock).length ?? 0,
@@ -213,7 +239,7 @@ export async function getDashboardSummary() {
     today: {
       goodsReceiving: 0,
       stockCountDue: 0,
-      production: todayProduction.count ?? 0,
+      production: productionSummary?.todayPosted ?? 0,
       deliveries: 0,
     },
     financeForecast: {
@@ -224,5 +250,7 @@ export async function getDashboardSummary() {
     payablesAttention,
     payablesAttentionUnavailable,
     operationsControl,
+    productionSummary,
+    outletToday: outletToday.data ?? null,
   };
 }

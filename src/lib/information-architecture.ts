@@ -25,25 +25,24 @@ export const iaGroupLabels: Record<IaGroupId, string> = {
   administration: "Administration",
 };
 
-const DASHBOARD: readonly UserRole[] = ["super_admin", "finance", "manager", "purchasing"];
 const ALL: readonly UserRole[] = ["super_admin", "finance", "manager", "purchasing", "kitchen", "outlet_staff"];
 const PROCUREMENT: readonly UserRole[] = ["super_admin", "finance", "manager", "purchasing", "kitchen"];
 const INVENTORY: readonly UserRole[] = ["super_admin", "finance", "manager", "purchasing", "kitchen"];
-const PRODUCTION: readonly UserRole[] = ["super_admin", "manager", "purchasing", "kitchen"];
+const PRODUCTION: readonly UserRole[] = ["super_admin", "finance", "manager", "purchasing", "kitchen"];
 const REPORTS: readonly UserRole[] = ["super_admin", "finance", "manager", "purchasing"];
-const MASTER_DATA: readonly UserRole[] = ["super_admin", "purchasing"];
+const MASTER_DATA: readonly UserRole[] = ["super_admin", "finance", "purchasing"];
 const OWNER: readonly UserRole[] = ["super_admin"];
 
 export const informationArchitecture: readonly IaItem[] = [
-  { href: "/dashboard", label: "Dashboard", group: "operations", icon: "gauge", roles: DASHBOARD, permission: "dashboard.view", defaultFor: ["super_admin", "manager"], keywords: ["home", "alerts", "approvals"] },
-  { href: "/production/jobs", label: "Production Jobs", group: "operations", icon: "factory", roles: PRODUCTION, permission: "production.view", defaultFor: ["kitchen"], badgeKey: "productionJobs" },
-  { href: "/outlet-daily-records", label: "Outlet Daily Records", group: "operations", icon: "clipboard", roles: ALL, permission: "outlet_daily_record.view", defaultFor: ["outlet_staff"] },
+  { href: "/dashboard", label: "Dashboard", group: "operations", icon: "gauge", roles: ALL, permission: "dashboard.view", defaultFor: ALL, keywords: ["home", "alerts", "approvals"] },
+  { href: "/production/jobs", label: "Production Jobs", group: "operations", icon: "factory", roles: PRODUCTION, permission: "production.view", badgeKey: "productionJobs" },
+  { href: "/outlet-daily-records", label: "Outlet Daily Records", group: "operations", icon: "clipboard", roles: ALL, permission: "outlet_daily_record.view" },
 
-  { href: "/purchase-requests", label: "Purchase Requests", group: "procurement", icon: "request", roles: PROCUREMENT, permission: "purchase_request.read", defaultFor: ["purchasing"], badgeKey: "purchaseRequests", attention: true },
+  { href: "/purchase-requests", label: "Purchase Requests", group: "procurement", icon: "request", roles: PROCUREMENT, permission: "purchase_request.read", badgeKey: "purchaseRequests", attention: true },
   { href: "/purchase-orders", label: "Purchase Orders", group: "procurement", icon: "shopping", roles: PROCUREMENT, permission: "purchase_order.read", badgeKey: "purchaseOrders" },
   { href: "/goods-receivings", label: "Goods Receiving", group: "procurement", icon: "check", roles: PROCUREMENT, permission: "goods_receiving.read", badgeKey: "dispatchBoard" },
   { href: "/purchase-returns", label: "Purchase Returns", group: "procurement", icon: "rotate", roles: PROCUREMENT, permission: "purchase_return.view" },
-  { href: "/supplier-invoices", label: "Supplier Invoices", group: "procurement", icon: "receipt", roles: ["super_admin", "finance", "purchasing"], permission: "supplier_invoice.view", defaultFor: ["finance"], badgeKey: "invoices" },
+  { href: "/supplier-invoices", label: "Supplier Invoices", group: "procurement", icon: "receipt", roles: ["super_admin", "finance", "purchasing"], permission: "supplier_invoice.view", badgeKey: "invoices" },
   { href: "/suppliers", label: "Suppliers", group: "procurement", icon: "users", roles: MASTER_DATA, permission: "suppliers.view" },
 
   { href: "/items", label: "Items / SKU Master", group: "inventory", icon: "boxes", roles: MASTER_DATA, permission: "items.view" },

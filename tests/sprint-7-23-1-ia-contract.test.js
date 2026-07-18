@@ -16,11 +16,11 @@ test("six roles have deterministic, permission-aware landing routes", () => {
   const { getDefaultLandingRoute, informationArchitecture } = loadIa();
   const grantAll = Object.fromEntries(informationArchitecture.map((item) => [item.permission, true]));
   assert.equal(getDefaultLandingRoute("super_admin", grantAll), "/dashboard");
-  assert.equal(getDefaultLandingRoute("finance", grantAll), "/supplier-invoices");
+  assert.equal(getDefaultLandingRoute("finance", grantAll), "/dashboard");
   assert.equal(getDefaultLandingRoute("manager", grantAll), "/dashboard");
-  assert.equal(getDefaultLandingRoute("purchasing", grantAll), "/purchase-requests");
-  assert.equal(getDefaultLandingRoute("kitchen", grantAll), "/production/jobs");
-  assert.equal(getDefaultLandingRoute("outlet_staff", grantAll), "/outlet-daily-records");
+  assert.equal(getDefaultLandingRoute("purchasing", grantAll), "/dashboard");
+  assert.equal(getDefaultLandingRoute("kitchen", grantAll), "/dashboard");
+  assert.equal(getDefaultLandingRoute("outlet_staff", grantAll), "/dashboard");
   assert.equal(informationArchitecture.find((item) => item.href === "/administration/backups").roles.join(), "super_admin");
 });
 

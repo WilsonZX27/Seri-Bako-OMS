@@ -13,7 +13,7 @@ import { formatStatusLabel } from "@/lib/status-label";
 import { disableStaff, enableStaff, forceStaffPasswordChange, permanentlyDeleteStaff, resetStaffPermissionOverrides, resetStaffTemporaryPassword, updateStaff, updateStaffPermissionOverrides } from "@/server/actions/foundation";
 import { hasPermission } from "@/server/auth/permissions";
 import { getCurrentProfile } from "@/server/queries/common";
-import { getBranches, getCompaniesForSelect, getRoles, getStaff, getStaffAccess, getStaffPermissionAccess } from "@/server/queries/foundation";
+import { getBranches, getCompaniesForSelect, getLocations, getRoles, getStaff, getStaffAccess, getStaffPermissionAccess } from "@/server/queries/foundation";
 
 export default async function EditStaffPage({
   params,
@@ -23,18 +23,19 @@ export default async function EditStaffPage({
   searchParams: Promise<{ error?: string; success?: string; temp_password?: string }>;
 }) {
   const { id } = await params;
-  const [messageParams, staff, access, companies, branches, allRoles, profile] = await Promise.all([
+  const [messageParams, staff, access, companies, branches, locations, allRoles, profile] = await Promise.all([
     searchParams,
     getStaff(id),
     getStaffAccess(id),
     getCompaniesForSelect(),
     getBranches(),
+    getLocations(),
     getRoles(),
     getCurrentProfile(),
   ]);
   const assignedRole = allRoles.find((role) => role.id === access.staffRole?.role_id);
   const additionalRoles = sortRolesForDisplay(allRoles.filter((role) => access.staffRoles?.some((assignment) => assignment.role_id === role.id && role.id !== assignedRole?.id) ?? false));
-  const currentRole = (profile as { role_code?: string; role?: string } | null)?.role_code ?? (profile as { role?: string } | null)?.role ?? "viewer";
+  const currentRole = (profile as { role_code?: string; role?: string } | null)?.role_code ?? (profile as { role?: string } | null)?.role ?? null;
   const roles = sortRolesForDisplay(allRoles).filter((role) => canAssignRoleCode(currentRole, role.role_code) || role.id === assignedRole?.id);
   const roleCode = normalizeRoleCode(assignedRole?.role_code);
   const [permissionAccess, canManageOverrides] = await Promise.all([getStaffPermissionAccess(id), hasPermission("roles.update")]);
@@ -151,8 +152,8 @@ export default async function EditStaffPage({
               <DangerConfirmForm
                 action={permanentlyDeleteStaff.bind(null, id)}
                 title="Permanent delete staff"
-                description="Only use this for test users with no linked business records. Real staff with history must use Disable sign-in instead."
-                warning="This is blocked for Wilson Super Admin / Owner, protected owner accounts, and anyone with historical records."
+                    description="Only use this for test users with no linked business records. Real staff with history must use Disable sign-in instead."
+                    warning="This is blocked for protected owner accounts and anyone with historical records."
                 checkboxLabel="I understand this permanently deletes only safe test staff records."
                 confirmWord="DELETE"
                 buttonLabel="Permanent delete staff"
@@ -186,7 +187,7 @@ export default async function EditStaffPage({
           </Card>
         ) : null}
 
-        <StaffForm formId={formId} staff={staff} access={access} companies={companies} branches={branches} roles={roles} action={updateStaff.bind(null, id)} showSubmit={false} />
+        <StaffForm formId={formId} staff={staff} access={access} companies={companies} locations={locations} roles={roles} action={updateStaff.bind(null, id)} showSubmit={false} />
         <StaffPermissionOverrides
           permissions={permissionAccess}
           canManage={canManageOverrides}

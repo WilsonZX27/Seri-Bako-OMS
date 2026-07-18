@@ -3,7 +3,7 @@ const { login } = require("./helpers");
 
 test("stock transfer dispatches and receives exactly once", async ({ page }) => {
   test.skip(process.env.TEST_MUTATE_WORKFLOW !== "true", "Set TEST_MUTATE_WORKFLOW=true to run the stock mutation workflow.");
-  expect(await login(page, "admin")).toBe(true);
+  expect(await login(page, "purchasing")).toBe(true);
 
   await page.goto("/stock-balance?search=QA-ING-A-721A&view=branch");
   let stockRows = page.locator("tbody tr").filter({ hasText: "QA-ING-A-721A" });

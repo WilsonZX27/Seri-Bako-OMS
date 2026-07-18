@@ -180,7 +180,7 @@ export function PurchaseRequestForm({
             {[
               ["draft", "Draft"],
               ["manager_review", "Manager Review"],
-              ["admin_review", "Admin Review"],
+              ["admin_review", "Purchasing Review"],
               ["finance_review", "Finance Review"],
               ["ready_to_convert", "Ready to Convert"],
               ["converted_to_po", "Converted to PO"],
@@ -327,7 +327,7 @@ export function PurchaseRequestForm({
         <Card className="w-full max-w-lg">
           <CardContent className="space-y-4 p-5">
             <p className="text-lg font-semibold">Permission required</p>
-            <p className="text-sm text-muted-foreground">You do not have permission to create items. Please contact admin or purchasing.</p>
+            <p className="text-sm text-muted-foreground">You do not have permission to create items. Please contact Purchasing or the Super Admin / Owner.</p>
             <div className="flex justify-end">
               <Button type="button" onClick={() => setNewItemLineKey(null)}>Close</Button>
             </div>

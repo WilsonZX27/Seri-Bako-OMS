@@ -45,12 +45,12 @@ export default async function InventoryPage({ searchParams }: { searchParams: Pr
         { href: "/stock-balance", title: "Stock Balance", description: "Branch-level stock with optional location detail.", icon: PackageSearch, recommendedFor: "all operations" },
         { href: "/stock-card", title: "Stock Card", description: "Trace item movements through the posted ledger.", icon: ReceiptText, recommendedFor: "finance and operations" },
         { href: "/stock-transactions", title: "Movement Ledger", description: "Review posted stock transactions and document links.", icon: ArrowUpRight, recommendedFor: "finance" },
-        { href: "/opening-stock/import", title: "Opening Stock Import", description: "Load opening balances through the ledger.", icon: Upload, recommendedFor: "admin" },
+        { href: "/opening-stock/import", title: "Opening Stock Import", description: "Load opening balances through the ledger.", icon: Upload, recommendedFor: "Purchasing" },
       ],
     },
     {
       title: "Inventory Control",
-      description: "Controlled imports and exception queues used by admin operations.",
+      description: "Controlled imports and exception queues used by Purchasing.",
       icon: Boxes,
       theme: "green",
       actions: [
@@ -61,7 +61,7 @@ export default async function InventoryPage({ searchParams }: { searchParams: Pr
 
   return (
     <>
-      <PageHeader title="Inventory" description="Stock ledger dashboard. Balances are calculated from posted transactions only." />
+      <PageHeader title="Inventory" description="Movement Ledger dashboard. Balances are calculated from posted transactions only." />
       <WorkspaceGrid
         className="p-5"
         rightRail={

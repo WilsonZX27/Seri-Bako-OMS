@@ -1,7 +1,7 @@
 const { test, expect } = require("@playwright/test");
 const { requireAccount } = require("./helpers");
 
-const roles = ["superAdmin", "admin", "manager", "finance", "purchasing", "kitchen", "outlet"];
+const roles = ["superAdmin", "manager", "finance", "purchasing", "kitchen", "outlet"];
 
 for (const role of roles) {
   test(`${role} login reaches one stable terminal route`, async ({ page }) => {

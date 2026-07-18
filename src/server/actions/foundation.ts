@@ -12,7 +12,7 @@ import { branchSchema, companySchema, documentSequenceSchema, locationSchema, ro
 import { writeActivityLog } from "@/server/activity/log";
 import { requirePermission } from "@/server/auth/permissions";
 import { formatActionError, requirePermissionOrRedirect, rethrowRedirect, safeRedirectWithMessage } from "@/server/actions/error-handling";
-import { ensureBranchDefaultLocation, resolveDefaultLocation } from "@/server/inventory/locations";
+import { ensureBranchDefaultLocation } from "@/server/inventory/locations";
 import { getCurrentProfile } from "@/server/queries/common";
 
 function formValue(formData: FormData, key: string) {
@@ -471,7 +471,7 @@ function staffPayload(formData: FormData) {
     full_name: formValue(formData, "full_name"),
     email: formValue(formData, "email"),
     phone: formValue(formData, "phone"),
-    default_branch_id: formValue(formData, "branch_id"),
+    default_branch_id: null,
     status: formValue(formData, "status") ?? "invited",
   });
 }
@@ -479,18 +479,37 @@ function staffPayload(formData: FormData) {
 function staffAccessPayload(formData: FormData) {
   return staffAccessSchema.parse({
     role_id: formValue(formData, "role_id"),
-    role_branch_id: formValue(formData, "role_branch_id"),
-    effective_from: formValue(formData, "effective_from") || new Date().toISOString().slice(0, 10),
-    effective_to: formValue(formData, "effective_to"),
-    branch_id: formValue(formData, "branch_id"),
-    access_level: formValue(formData, "access_level") ?? "read_only",
-    location_ids: [],
+    default_location_id: formValue(formData, "default_location_id"),
+    accessible_location_ids: formData.getAll("accessible_location_ids").map(String),
   });
 }
 
 async function replaceStaffAccess(staffId: string, formData: FormData) {
   const access = staffAccessPayload(formData);
   const supabase = createAdminClient();
+
+  const { data: role, error: roleLookupError } = await supabase.from("roles").select("role_code").eq("id", access.role_id).single();
+  if (roleLookupError) throw new Error(roleLookupError.message);
+  const companyWide = ["super_admin", "finance", "purchasing"].includes(role.role_code);
+  const { data: activeLocations, error: locationsLookupError } = await supabase
+    .from("locations")
+    .select("id, branch_id, branches(branch_type)")
+    .eq("status", "active")
+    .is("deleted_at", null);
+  if (locationsLookupError) throw new Error(locationsLookupError.message);
+  const requested = new Set([...access.accessible_location_ids, access.default_location_id]);
+  const eligibleLocations = (activeLocations ?? []).filter((location) => {
+    const branch = Array.isArray(location.branches) ? location.branches[0] : location.branches;
+    if (companyWide) return true;
+    if (!requested.has(location.id)) return false;
+    if (role.role_code === "kitchen") return branch?.branch_type === "central_kitchen";
+    if (role.role_code === "outlet_staff") return branch?.branch_type === "outlet";
+    return role.role_code === "manager";
+  });
+  const defaultLocation = eligibleLocations.find((location) => location.id === access.default_location_id);
+  if (!defaultLocation?.branch_id) throw new Error("Default location is not eligible for the selected role.");
+  if (!eligibleLocations.length) throw new Error("Select at least one eligible accessible location.");
+  const branchIds = Array.from(new Set(eligibleLocations.flatMap((location) => location.branch_id ? [location.branch_id] : [])));
 
   const [{ error: deleteRolesError }, { error: deleteBranchesError }, { error: deleteLocationsError }] = await Promise.all([
     supabase.from("staff_roles").delete().eq("staff_id", staffId),
@@ -504,24 +523,21 @@ async function replaceStaffAccess(staffId: string, formData: FormData) {
   const { error: roleError } = await supabase.from("staff_roles").insert({
     staff_id: staffId,
     role_id: access.role_id,
-    branch_id: access.role_branch_id,
+    branch_id: companyWide ? null : defaultLocation.branch_id,
     is_primary: true,
-    effective_from: access.effective_from,
-    effective_to: access.effective_to,
+    effective_from: new Date().toISOString().slice(0, 10),
+    effective_to: null,
   });
   if (roleError) throw new Error(roleError.message);
 
-  const { error: branchError } = await supabase.from("staff_branches").insert({
-    staff_id: staffId,
-    branch_id: access.branch_id,
-    access_level: access.access_level,
-    is_default: true,
-  });
+  const accessLevel = role.role_code === "super_admin" ? "full" : ["finance", "purchasing", "manager"].includes(role.role_code) ? "manage" : "read_only";
+  const { error: branchError } = await supabase.from("staff_branches").insert(branchIds.map((branchId) => ({ staff_id: staffId, branch_id: branchId, access_level: accessLevel, is_default: branchId === defaultLocation.branch_id })));
   if (branchError) throw new Error(branchError.message);
 
-  const defaultLocationId = await resolveDefaultLocation(access.branch_id);
-  const { error: locationError } = await supabase.from("staff_locations").insert([{ staff_id: staffId, location_id: defaultLocationId }]);
+  const { error: locationError } = await supabase.from("staff_locations").insert(eligibleLocations.map((location) => ({ staff_id: staffId, location_id: location.id })));
   if (locationError) throw new Error(locationError.message);
+  const { error: defaultError } = await supabase.from("staffs").update({ default_branch_id: defaultLocation.branch_id }).eq("id", staffId);
+  if (defaultError) throw new Error(defaultError.message);
 }
 
 async function getCurrentStaffId() {
@@ -593,7 +609,7 @@ async function assertCanAssignStaffRole(admin: ReturnType<typeof createAdminClie
     const existingRoleId = await getPrimaryStaffRoleId(admin, staffId);
     const existingRoleCode = await getRoleCodeById(admin, existingRoleId);
     if (existingRoleCode && existingRoleCode !== targetRoleCode && isProtectedOwnerAssignableRole(existingRoleCode) && !currentIsSuperAdmin) {
-      throw new Error("Only Super Admin / Owner can change protected administrator roles.");
+      throw new Error("Only Super Admin / Owner can change a protected owner role.");
     }
     if (existingRoleCode && isSuperAdminRole(existingRoleCode) && !isSuperAdminRole(targetRoleCode)) {
       const currentStaffId = await getCurrentStaffId();
@@ -626,14 +642,6 @@ async function assertCanDeactivateStaff(admin: ReturnType<typeof createAdminClie
   if (ownerCount <= 1) {
     throw new Error("Cannot deactivate the last Super Admin / Owner.");
   }
-}
-
-function isWilsonOwnerStaff(staff: { staff_code?: string | null; email?: string | null; invite_email?: string | null }) {
-  return (
-    staff.staff_code === "SUPER-ADMIN"
-    || staff.email?.toLowerCase() === "wilson@seribako.com.my"
-    || staff.invite_email?.toLowerCase() === "wilson@seribako.com.my"
-  );
 }
 
 async function countStaffHistory(admin: ReturnType<typeof createAdminClient>, staffId: string) {
@@ -777,8 +785,8 @@ export async function createStaff(formData: FormData) {
     const enteredTemporaryPassword = cleanText(formData.get("temporary_password"));
     if (!isMockMode()) {
       const supabase = createAdminClient();
-      if (!access.role_id || !access.branch_id) {
-        throw new Error("Role and default branch are required before invite.");
+      if (!access.role_id || !access.default_location_id) {
+        throw new Error("Role and default location are required before invite.");
       }
       await assertCanAssignStaffRole(supabase, access.role_id);
       const invitedBy = await getCurrentStaffId();
@@ -846,8 +854,8 @@ export async function updateStaff(id: string, formData: FormData) {
     const access = staffAccessPayload(formData);
     if (!isMockMode()) {
       const supabase = createAdminClient();
-      if (!access.role_id || !access.branch_id) {
-        throw new Error("Role and default branch are required.");
+      if (!access.role_id || !access.default_location_id) {
+        throw new Error("Role and default location are required.");
       }
       await assertCanAssignStaffRole(supabase, access.role_id, id);
       const { error } = await supabase.from("staffs").update({ ...payload, invite_email: payload.email }).eq("id", id);
@@ -936,7 +944,7 @@ export async function resetStaffTemporaryPassword(id: string) {
         fullName: staff.full_name,
         resetExisting: true,
       });
-      await writeActivityLog({ entityType: "staff", entityId: id, activityType: "password_reset", message: "Admin reset temporary password for staff" });
+      await writeActivityLog({ entityType: "staff", entityId: id, activityType: "password_reset", message: "Owner reset temporary password for staff" });
     }
   } catch (error) {
     rethrowRedirect(error);
@@ -965,7 +973,7 @@ export async function forceStaffPasswordChange(id: string) {
         })
         .eq("id", id);
       if (error) throw new Error(error.message);
-      await writeActivityLog({ entityType: "staff", entityId: id, activityType: "password_change_required", message: "Admin required staff password change" });
+      await writeActivityLog({ entityType: "staff", entityId: id, activityType: "password_change_required", message: "Owner required staff password change" });
     }
   } catch (error) {
     rethrowRedirect(error);
@@ -982,9 +990,6 @@ export async function disableStaff(id: string) {
     if (!isMockMode()) {
       const supabase = createAdminClient();
       await assertCanDeactivateStaff(supabase, id);
-      const { data: staff, error: staffError } = await supabase.from("staffs").select("staff_code, email, invite_email").eq("id", id).single();
-      if (staffError) throw new Error(staffError.message);
-      if (isWilsonOwnerStaff(staff)) throw new Error("Wilson Super Admin / Owner cannot be disabled.");
       const { error } = await supabase.from("staffs").update({ status: "disabled" }).eq("id", id);
       if (error) throw new Error(error.message);
       await writeActivityLog({ entityType: "staff", entityId: id, activityType: "updated", message: "Staff sign-in disabled" });
@@ -1029,8 +1034,6 @@ export async function permanentlyDeleteStaff(id: string) {
         .eq("id", id)
         .single();
       if (staffError) throw new Error(staffError.message);
-      if (isWilsonOwnerStaff(staff)) throw new Error("Wilson Super Admin / Owner cannot be permanently deleted.");
-
       const roleId = await getPrimaryStaffRoleId(supabase, id);
       const roleCode = await getRoleCodeById(supabase, roleId);
       if (isSuperAdminRole(roleCode)) {

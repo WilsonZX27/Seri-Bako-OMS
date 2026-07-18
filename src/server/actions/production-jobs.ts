@@ -372,7 +372,7 @@ export async function postProductionJob(id: string) {
     if (usageLineError) throw new Error(usageLineError.message);
 
     const outputItemId = output.item_id ?? job.output_item_id;
-    if (!outputItemId) throw new Error("Output item is missing. Please contact admin.");
+    if (!outputItemId) throw new Error("Output item is missing. Please contact the Super Admin / Owner.");
     const { data: outputTx, error: outputError } = await supabase.from("stock_transactions").insert({
       transaction_no: outputNo,
       document_id: job.document_id,

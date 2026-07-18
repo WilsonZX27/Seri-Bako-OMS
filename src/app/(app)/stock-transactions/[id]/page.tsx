@@ -46,7 +46,7 @@ export default async function StockTransactionDetailPage({ params }: { params: P
 
   return (
     <>
-      <PageHeader title={transaction.transaction_no} description="Posted stock ledger transaction. Posted movements are append-only." />
+      <PageHeader title={transaction.transaction_no} description="Posted Movement Ledger transaction. Posted movements are append-only." />
       <WorkspaceGrid
         className="p-5"
         rightRail={

@@ -73,67 +73,18 @@ Core end-to-end workflows take priority over:
 
 Known non-critical limitations should be documented briefly and deferred to focused cleanup sprints.
 
-## User Groups
+## Fixed System Roles
 
-### Administrators
+Seri Bako OMS has exactly six system-controlled roles. They are reviewed in the owner-only Roles & Permissions overview and cannot be created, renamed, or edited through normal UI.
 
-Administrators manage:
+- **Super Admin / Owner (`super_admin`)**: protected owner controls, company setup, staff assignments, system numbering, backups, and full operational authority.
+- **Finance (`finance`)**: company-wide finance review, payables, payments, and financial reporting.
+- **Manager (`manager`)**: approval and operational visibility for assigned locations, or all locations when explicitly assigned.
+- **Purchasing (`purchasing`)**: company-wide purchasing, supplier, item/master-data, import, PO, and sourcing-review duties.
+- **Kitchen (`kitchen`)**: assigned Central Kitchen workflows, including purchase-request creation/submission and production operations.
+- **Outlet Staff (`outlet_staff`)**: assigned-outlet daily records only.
 
-- Company settings.
-- Users and staff accounts.
-- Roles and permissions.
-- Master data.
-- System-wide operational visibility.
-- Sensitive or restricted administrative actions.
-
-### Managers and Approvers
-
-Managers and approvers review and act on operational documents such as:
-
-- Purchase requests.
-- Purchase orders.
-- Goods receiving records.
-- Stock adjustments.
-- Stock counts.
-- Production jobs.
-- Other approval-based records.
-
-Their available actions depend on assigned permissions.
-
-### Procurement Team
-
-The procurement team manages:
-
-- Suppliers.
-- Purchase requests.
-- Purchase orders.
-- Purchasing follow-up.
-- Supplier-related operational records.
-
-### Inventory and Store Team
-
-Inventory users manage:
-
-- Stock balances.
-- Stock ledger records.
-- Stock transactions.
-- Goods receiving.
-- Stock counts.
-- Stock transfers.
-- Adjustments, wastage, and reconciliation records where available.
-
-### Production Team
-
-Production users manage:
-
-- Production jobs.
-- Production inputs and outputs.
-- Production-related stock movement.
-- Production status and operational records.
-
-### General Staff
-
-General staff may have limited access to view or create records relevant to their assigned role, outlet, department, or location.
+Role determines allowed actions. Default Location controls initial context and autofill but is not an authorization boundary. Accessible Locations determine which location-scoped records a user may access. Super Admin, Finance, and Purchasing are company-wide; Manager, Kitchen, and Outlet Staff remain location-scoped according to the rules above.
 
 ## Current Product Scope
 
@@ -170,7 +121,7 @@ The system currently covers or is actively implementing the following operationa
 ### Inventory
 
 - Stock Transactions.
-- Stock Ledger.
+- Movement Ledger.
 - Stock Balance.
 - Low Stock monitoring.
 - Stock Count.
@@ -211,7 +162,7 @@ These modules are expected to support their primary working flow:
 - Supplier Master.
 - Item Master.
 - Stock Balance.
-- Stock Ledger / Stock Transactions.
+- Movement Ledger / Stock Transactions.
 - Purchase Requests.
 - Purchase Orders.
 - Goods Receiving.
@@ -275,7 +226,7 @@ Goods receiving should:
 
 The operational payables flow is `PO -> posted GRN -> supplier invoice -> partial/full payment`.
 
-- Finance, Admin, and Owner users create draft invoices from uninvoiced quantities on same-company posted GRNs for one supplier.
+- Finance and Owner users create draft invoices from uninvoiced quantities on same-company posted GRNs for one supplier.
 - Invoice lines preserve PO ordered quantity, received quantity, previously invoiced quantity, PO price, invoice price, and variance.
 - Draft totals are calculated server-side and lock when the invoice is approved/open.
 - Payments are atomic, idempotent, company-scoped, and move invoices through Open, Partially Paid, and Paid.

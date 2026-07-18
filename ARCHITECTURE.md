@@ -191,18 +191,9 @@ Seri Bako OMS uses permission-based authorization.
 
 ### Roles
 
-A role is a named collection of permissions.
+The role catalogue is fixed: `super_admin`, `finance`, `manager`, `purchasing`, `kitchen`, and `outlet_staff`. Migration 071 archives legacy role rows after guarded assignment conversion. Roles are system-controlled defaults, not user-created configuration.
 
-Examples may include:
-
-- Admin.
-- Manager.
-- Procurement.
-- Inventory.
-- Production.
-- Staff.
-
-Role names are organizational shortcuts, not the final security rule.
+`super_admin`, `finance`, and `purchasing` have company-wide scope. `manager`, `kitchen`, and `outlet_staff` use assigned locations; Kitchen assignments are restricted to Central Kitchen locations and Outlet Staff assignments to outlet locations. Default Location is context only. `staff_locations`, `staff_branches`, role scope, server guards, and RLS remain the authorization boundary.
 
 ### Permissions
 
@@ -649,6 +640,14 @@ An explicit deny wins across the legacy aliases supplied for one business capabi
 Staff overrides are stored in `staff_permission_overrides` and mutated only through the atomic `set_staff_permission_overrides(uuid, jsonb)` function. The function requires `roles.update`, prevents cross-company changes and grant escalation, protects Super Admin/Owner access, and records an activity-log entry in the same transaction. Role assignments remain defaults; individual overrides do not modify the shared role definition.
 
 The request middleware enforces mapped workspace permissions for direct navigation. This supplements, and never replaces, permission checks in server actions and database policies.
+
+## Sprint 7.23.1 canonical information architecture
+
+`src/lib/information-architecture.ts` is the canonical registry for role-aware navigation labels, parent groups, permissions, Administration cards, breadcrumbs, and default landing order. Desktop and mobile sidebars consume the same registry. Route permission mapping adds only dynamic/create-route and compatibility-alias exceptions.
+
+Canonical routes include `/administration`, `/administration/backups`, `/imports`, `/document-sequences`, and `/uom-conversions`. `/settings`, `/settings/backups`, `/administration/imports`, `/data-onboarding`, `/quick-tools`, `/daily-operations`, `/procurement/purchase-requests`, and `/stock-balances` are compatibility redirects. `/setup` remains an unaffiliated bootstrap-only route because the authentication bootstrap RPC is still live; it creates the first protected Owner and never appears in navigation.
+
+Procurement, Inventory, Production, and Administration hubs remain only where they provide operational summaries, queues, or permission-aware management context. Quick Tools and Daily Operations link-only hubs converge on the user's first permitted canonical route.
 
 ## v0.2.15 pilot baseline architecture
 

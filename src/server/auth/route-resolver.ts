@@ -1,19 +1,9 @@
-export const authLandingRoutes = [
-  ["/dashboard", ["dashboard.view"]],
-  ["/production/jobs", ["production.view"]],
-  ["/outlet-daily-records", ["outlet_daily_record.view"]],
-  ["/purchase-requests", ["purchase_request.read"]],
-  ["/purchase-orders", ["purchase_order.read"]],
-  ["/goods-receivings", ["goods_receiving.read"]],
-  ["/supplier-invoices", ["supplier_invoice.view"]],
-  ["/items", ["items.view"]],
-  ["/stock-balance", ["stock_balance.read"]],
-  ["/reports", ["reports.view"]],
-  ["/company", ["company.read"]],
-  ["/branches", ["branches.read"]],
-  ["/staffs", ["staffs.read"]],
-  ["/roles", ["roles.read"]],
-] as const;
+import { getLandingIaItems } from "@/lib/information-architecture";
+import type { UserRole } from "@/types/database";
+
+export function getAuthLandingRoutes(role: UserRole) {
+  return getLandingIaItems(role).map((item) => [item.href, [item.permission]] as const);
+}
 
 const publicPrefixes = ["/login", "/auth/callback", "/set-password", "/forgot-password", "/access-status"];
 const inactiveStatuses = new Set(["disabled", "inactive", "archived"]);

@@ -1064,7 +1064,7 @@ async function handleOpeningStockImport(context: RouteContext, request: ImportRe
 function revalidateImportTargets(entity: ImportRequest["entity"]) {
   revalidatePath("/data-onboarding");
   revalidatePath("/dashboard");
-  revalidatePath("/quick-tools");
+  revalidatePath("/imports");
 
   if (entity === "items" || entity === "items-stock-listing") {
     revalidatePath("/items");

@@ -1,5 +1,5 @@
 const statusLabels: Record<string, string> = {
-  admin_review: "Admin Review",
+  admin_review: "Purchasing Review",
   awaiting_delivery: "Awaiting Delivery",
   cancelled: "Cancelled",
   closed: "Closed",

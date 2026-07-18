@@ -62,7 +62,7 @@ export function StockWastageForm({ branches, selectedBranchId, seedLines, action
 function LineGrid({ seedLines, mode }: { seedLines: SeedLine[]; mode: "transfer" | "wastage" }) {
   return (
     <div className="rounded-lg border">
-      <div className="border-b bg-secondary/40 px-3 py-2"><p className="text-xs font-semibold">Lines</p><p className="text-xs text-muted-foreground">Availability is calculated from the stock ledger. Posting creates ledger rows only.</p></div>
+      <div className="border-b bg-secondary/40 px-3 py-2"><p className="text-xs font-semibold">Lines</p><p className="text-xs text-muted-foreground">Availability is calculated from the Movement Ledger. Posting creates ledger rows only.</p></div>
       <div className="divide-y">
         {seedLines.map((line, index) => (
           <div key={line.item_id} className="grid gap-3 p-4 xl:grid-cols-[2fr_120px_120px_90px_130px_130px_1fr]">

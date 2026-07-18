@@ -13,7 +13,7 @@ export async function TopBar({ permissionMap }: { permissionMap: Record<string, 
   const [profile, branding, activity] = await Promise.all([getCurrentProfile(), getCompanyBranding(), getTopBarActivity()]);
   const profileRole = profile as { role_code?: UserRole; role?: UserRole } | null;
   const account = profile as { full_name?: string | null; email?: string | null } | null;
-  const role = profileRole?.role_code ?? profileRole?.role ?? "viewer";
+  const role = profileRole?.role_code ?? profileRole?.role ?? "outlet_staff";
   const displayName = account?.full_name ?? account?.email ?? "Signed in";
   const initials = displayName.slice(0, 2).toUpperCase();
 

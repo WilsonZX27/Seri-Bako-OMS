@@ -61,7 +61,7 @@ export default async function StockTransactionsPage({ searchParams }: { searchPa
   return (
     <>
       <PageHeader
-        title="Stock Ledger"
+        title="Movement Ledger"
         description="Append-only inventory movement and valuation audit by branch and item."
       />
       <WorkspaceGrid

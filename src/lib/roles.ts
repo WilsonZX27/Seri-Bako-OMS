@@ -1,46 +1,37 @@
-export const roleDisplayLabels: Record<string, string> = {
+export const SYSTEM_ROLE_CODES = ["super_admin", "finance", "manager", "purchasing", "kitchen", "outlet_staff"] as const;
+export type SystemRoleCode = (typeof SYSTEM_ROLE_CODES)[number];
+
+export const roleDisplayLabels: Record<SystemRoleCode, string> = {
   super_admin: "Super Admin / Owner",
-  operations_admin: "Administrator",
-  admin: "Administrator",
+  finance: "Finance",
   manager: "Manager",
   purchasing: "Purchasing",
-  finance: "Finance",
-  kitchen_staff: "Kitchen",
-  outlet_staff: "Outlet Staff",
   kitchen: "Kitchen",
-  viewer: "Viewer",
+  outlet_staff: "Outlet Staff",
 };
 
 export const roleSortOrder: Record<string, number> = {
   super_admin: 0,
-  admin: 1,
-  operations_admin: 2,
-  manager: 3,
-  purchasing: 4,
-  finance: 5,
-  kitchen_staff: 6,
-  outlet_staff: 7,
-  kitchen: 8,
-  viewer: 9,
+  finance: 1,
+  manager: 2,
+  purchasing: 3,
+  kitchen: 4,
+  outlet_staff: 5,
 };
 
 export function getRoleDisplayLabel(roleCode?: string | null, fallback?: string | null) {
-  if (!roleCode) return fallback ?? "Viewer";
-  return roleDisplayLabels[roleCode] ?? fallback ?? roleCode.replaceAll("_", " ").replace(/\b\w/g, (letter) => letter.toUpperCase());
+  if (!roleCode) return fallback ?? "Unassigned";
+  return roleDisplayLabels[roleCode as SystemRoleCode] ?? fallback ?? roleCode.replaceAll("_", " ").replace(/\b\w/g, (letter) => letter.toUpperCase());
 }
 
 export function normalizeRoleCode(roleCode?: string | null) {
-  if (roleCode === "kitchen") return "kitchen_staff";
-  if (roleCode === "admin") return "operations_admin";
-  return roleCode ?? "viewer";
+  if (roleCode === "admin" || roleCode === "operations_admin") return "purchasing";
+  if (roleCode === "kitchen_staff") return "kitchen";
+  return roleCode ?? null;
 }
 
 export function isSuperAdminRole(roleCode?: string | null) {
   return roleCode === "super_admin";
-}
-
-export function isAdministratorRole(roleCode?: string | null) {
-  return roleCode === "operations_admin" || roleCode === "admin";
 }
 
 export function isProtectedOwnerAssignableRole(roleCode?: string | null) {
@@ -50,8 +41,11 @@ export function isProtectedOwnerAssignableRole(roleCode?: string | null) {
 export function canAssignRoleCode(currentRoleCode: string | null | undefined, targetRoleCode: string | null | undefined) {
   if (!targetRoleCode) return false;
   if (isSuperAdminRole(currentRoleCode)) return true;
-  if (isAdministratorRole(currentRoleCode)) return !isProtectedOwnerAssignableRole(targetRoleCode);
   return false;
+}
+
+export function isSystemRoleCode(roleCode?: string | null): roleCode is SystemRoleCode {
+  return SYSTEM_ROLE_CODES.includes(roleCode as SystemRoleCode);
 }
 
 export function sortRolesForDisplay<T extends { role_code: string; role_name?: string | null }>(roles: T[]) {

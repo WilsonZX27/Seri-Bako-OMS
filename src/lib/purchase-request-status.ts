@@ -14,7 +14,7 @@ export type PurchaseRequestWorkflowStep = (typeof PURCHASE_REQUEST_WORKFLOW_STEP
 export const PR_WORKFLOW_STEP_LABELS: Record<PurchaseRequestWorkflowStep, string> = {
   draft: "Draft PR",
   manager_review: "Manager Review",
-  admin_review: "Admin Review",
+  admin_review: "Purchasing Review",
   finance_review: "Finance Review",
   ready_to_convert: "Ready to Convert",
   converted_to_po: "Converted to PO",

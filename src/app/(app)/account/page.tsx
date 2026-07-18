@@ -19,7 +19,7 @@ export default async function AccountPage() {
     role?: string | null;
     avatar_url?: string | null;
   } | null;
-  const role = account?.role_code ?? account?.role ?? "viewer";
+  const role = account?.role_code ?? account?.role ?? null;
   const initials = (account?.full_name ?? account?.email ?? "User").slice(0, 2).toUpperCase();
 
   return (
@@ -106,7 +106,7 @@ export default async function AccountPage() {
           </Card>
           <Card>
             <CardContent className="p-5 text-sm text-muted-foreground">
-              Role and branch access are managed by an administrator from the Staff page.
+              Role and location access are managed by the Super Admin / Owner from Users & Staff.
             </CardContent>
           </Card>
         </aside>

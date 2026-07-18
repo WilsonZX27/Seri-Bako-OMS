@@ -43,6 +43,7 @@ type Location = {
   location_name: string;
   location_type: LocationType;
   status: string;
+  branch_name?: string | null;
 };
 
 type Staff = {
@@ -260,7 +261,7 @@ export function StaffForm({
   staff,
   access,
   companies,
-  branches,
+  locations,
   roles,
   action,
   formId,
@@ -269,12 +270,16 @@ export function StaffForm({
   staff?: Staff;
   access?: StaffAccess;
   companies: SelectCompany[];
-  branches: SelectBranch[];
+  locations: Location[];
   roles: SelectRole[];
   action: (formData: FormData) => Promise<void>;
   formId?: string;
   showSubmit?: boolean;
 }) {
+  const defaultLocationId = access?.staffLocationIds.find((locationId) => locations.find((location) => location.id === locationId)?.branch_id === access.staffBranch?.branch_id)
+    ?? access?.staffLocationIds[0]
+    ?? locations[0]?.id
+    ?? "";
   return (
     <form id={formId} action={action} className="space-y-5">
       <RecordSection title="Staff Profile" description="Core identity and contact details for this staff member.">
@@ -296,9 +301,9 @@ export function StaffForm({
         </div>
       </RecordSection>
 
-      <RecordSection title="Role & Branch Access" description="Select the staff's main responsibility. Permissions are controlled by the assigned role.">
+      <RecordSection title="Role & Location Access" description="Role controls actions. Default Location sets the initial working context; Accessible Locations control record scope.">
         <div className="grid gap-4 md:grid-cols-2">
-          <Field label="Primary Role" required>
+          <Field label="Role" required>
             <SelectNative name="role_id" defaultValue={access?.staffRole?.role_id ?? roles[0]?.id ?? ""} required className="form-control-compact">
               {roles.map((role) => (
                 <option key={role.id} value={role.id}>
@@ -310,39 +315,24 @@ export function StaffForm({
               <p className="mt-1 text-xs text-amber-700">Only system owner accounts should use Super Admin / Owner.</p>
             ) : null}
           </Field>
-          <Field label="Role Branch Scope">
-            <SelectNative name="role_branch_id" defaultValue={access?.staffRole?.branch_id ?? ""} className="form-control-compact">
-              <option value="">Company-wide</option>
-              {branches.map((branch) => (
-                <option key={branch.id} value={branch.id}>
-                  {branch.branch_name}
+          <Field label="Default Location" required>
+            <SelectNative name="default_location_id" defaultValue={defaultLocationId} required className="form-control-compact">
+              {locations.map((location) => (
+                <option key={location.id} value={location.id}>
+                  {location.location_name}{location.branch_name ? ` — ${location.branch_name}` : ""}
                 </option>
               ))}
             </SelectNative>
+            <p className="mt-1 text-xs text-muted-foreground">Used for initial context and autofill. It does not grant access by itself.</p>
           </Field>
-          <Field label="Effective From">
-            <Input name="effective_from" type="date" defaultValue={access?.staffRole?.effective_from ?? new Date().toISOString().slice(0, 10)} required className="form-control-compact" />
-          </Field>
-          <Field label="Effective To">
-            <Input name="effective_to" type="date" defaultValue={access?.staffRole?.effective_to ?? ""} className="form-control-compact" />
-          </Field>
-          <Field label="Default Branch Access" required>
-            <SelectNative name="branch_id" defaultValue={access?.staffBranch?.branch_id ?? branches[0]?.id ?? ""} required className="form-control-compact">
-              {branches.map((branch) => (
-                <option key={branch.id} value={branch.id}>
-                  {branch.branch_name}
-                </option>
-              ))}
-            </SelectNative>
-            <p className="mt-1 text-xs text-muted-foreground">Select the outlet, kitchen, office, or event booth this record belongs to.</p>
-          </Field>
-          <Field label="Branch Access Level">
-            <SelectNative name="access_level" defaultValue={access?.staffBranch?.access_level ?? "read_only"} className="form-control-compact">
-              <option value="full">Full</option>
-              <option value="manage">Manage</option>
-              <option value="read_only">Read Only</option>
-            </SelectNative>
-          </Field>
+          <div className="md:col-span-2">
+            <Field label="Accessible Locations" required>
+              <div className="grid gap-2 rounded-[2px] border p-3 md:grid-cols-2">
+                {locations.map((location) => <label key={location.id} className="flex min-h-10 items-center gap-2 text-sm"><input type="checkbox" name="accessible_location_ids" value={location.id} defaultChecked={!access || access.staffLocationIds.includes(location.id)} /><span>{location.location_name}{location.branch_name ? ` — ${location.branch_name}` : ""}</span></label>)}
+              </div>
+              <p className="mt-1 text-xs text-muted-foreground">Company-wide roles receive all active locations automatically. Manager, Kitchen, and Outlet Staff remain limited to eligible assigned locations.</p>
+            </Field>
+          </div>
         </div>
       </RecordSection>
 

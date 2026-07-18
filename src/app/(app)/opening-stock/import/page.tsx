@@ -14,7 +14,7 @@ export default async function OpeningStockImportPage() {
       <>
         <PageHeader
           title="Import Opening Stock"
-          description="Post branch opening balances through the stock ledger instead of editing stock directly."
+          description="Post branch opening balances through the Movement Ledger instead of editing stock directly."
         />
         <div className="p-5">
           {allowed ? (
@@ -33,7 +33,7 @@ export default async function OpeningStockImportPage() {
     console.error(error);
     return (
       <>
-        <PageHeader title="Import Opening Stock" description="Post branch opening balances through the stock ledger instead of editing stock directly." />
+        <PageHeader title="Import Opening Stock" description="Post branch opening balances through the Movement Ledger instead of editing stock directly." />
         <div className="p-5">
           <Card>
             <CardContent className="p-5 text-sm text-muted-foreground">

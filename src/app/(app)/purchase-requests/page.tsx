@@ -23,7 +23,7 @@ import { getPurchaseRequestSummary, getPurchaseRequests } from "@/server/queries
 const statuses = [
   { value: "draft", label: "Draft" },
   { value: "manager_review", label: "Manager Review" },
-  { value: "admin_review", label: "Admin Review" },
+  { value: "admin_review", label: "Purchasing Review" },
   { value: "finance_review", label: "Finance Review" },
   { value: "ready_to_convert", label: "Ready to Convert" },
   { value: "converted_to_po", label: "Converted to PO" },
@@ -55,7 +55,7 @@ export default async function PurchaseRequestsPage({ searchParams }: { searchPar
               <div className="grid gap-2 text-xs">
                 <div className="flex justify-between"><span className="text-muted-foreground">Total PRs</span><strong>{summary.total}</strong></div>
                 <div className="flex justify-between"><span className="text-muted-foreground">Manager Review</span><strong>{summary.managerReview}</strong></div>
-                <div className="flex justify-between"><span className="text-muted-foreground">Admin Review</span><strong>{summary.adminReview}</strong></div>
+                <div className="flex justify-between"><span className="text-muted-foreground">Purchasing Review</span><strong>{summary.adminReview}</strong></div>
                 <div className="flex justify-between"><span className="text-muted-foreground">Finance Review</span><strong>{summary.financeReview}</strong></div>
               </div>
             </ConsoleSection>

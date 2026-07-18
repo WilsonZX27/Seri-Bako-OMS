@@ -36,7 +36,7 @@ export async function getCurrentUserPendingActions(limit = 5): Promise<PendingAc
 
   const prStatusFilters: Array<{ status: PurchaseRequestStatus; allowed: boolean; step: string; title: string }> = [
     { status: "manager_review", allowed: canManagerApprove, step: "Manager Review", title: "Manager review required" },
-    { status: "admin_review", allowed: canAdminReview || canPurchasingReview, step: "Admin Review", title: "Admin review required" },
+    { status: "admin_review", allowed: canAdminReview || canPurchasingReview, step: "Purchasing Review", title: "Purchasing review required" },
     { status: "finance_review", allowed: canFinanceReview, step: "Finance Review", title: "Finance review required" },
     { status: "ready_to_convert", allowed: canConvertPo, step: "Ready to Convert", title: "Convert to PO" },
   ];
@@ -45,7 +45,7 @@ export async function getCurrentUserPendingActions(limit = 5): Promise<PendingAc
   if (!filters.length) return [];
 
   const supabase = await createClient();
-  const canSeeAllBranches = canViewAll || scope.companyWideAccess || ["admin", "super_admin", "operations_admin"].includes(scope.roleCode);
+  const canSeeAllBranches = canViewAll || scope.companyWideAccess || scope.roleCode === "super_admin";
 
   const results = await Promise.all(
     filters.map(async (filter) => {

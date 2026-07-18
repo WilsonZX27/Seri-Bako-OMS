@@ -105,7 +105,7 @@ export const importTemplates: Record<ImportEntity, TemplateSpec> = {
       email: "staff@example.com",
       phone: "0123456789",
       branch_code: "CK-001",
-      role_code: "viewer",
+      role_code: "outlet_staff",
       status: "active",
     },
     notes: ["role_code and branch_code must already exist. This import does not send invites or passwords."],
@@ -253,7 +253,7 @@ export const importTemplates: Record<ImportEntity, TemplateSpec> = {
   },
   "opening-stock": {
     label: "Opening Stock",
-    description: "Post opening stock into the stock ledger by branch. Do not manually edit current stock.",
+    description: "Post opening stock into the Movement Ledger by branch. Do not manually edit current stock.",
     headers: ["branch_code", "item_code", "quantity", "uom", "unit_cost", "transaction_date", "notes"],
     required: ["branch_code", "item_code", "quantity", "uom"],
     duplicateKey: ["branch_code", "item_code"],

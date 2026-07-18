@@ -26,7 +26,7 @@ export const getCurrentProfile = cache(async function getCurrentProfile() {
       return (!role.effective_from || role.effective_from <= today) && (!role.effective_to || role.effective_to >= today);
     });
     const primaryRole = activeRoles.find((row) => row.is_primary) ?? activeRoles[0];
-    let roleCode = "viewer";
+    let roleCode: string | null = null;
 
     if (primaryRole?.role_id) {
       const { data: role } = await supabase
@@ -35,7 +35,7 @@ export const getCurrentProfile = cache(async function getCurrentProfile() {
         .eq("id", primaryRole.role_id)
         .eq("status", "active")
         .maybeSingle();
-      roleCode = role?.role_code ?? "viewer";
+      roleCode = role?.role_code ?? null;
     }
 
     return { ...staff, role: roleCode, role_code: roleCode, has_staff_role: activeRoles.length > 0 };

@@ -31,9 +31,9 @@ async function notifyNextPrRole(input: {
 }) {
   const roleCodesByStatus: Partial<Record<PurchaseRequestStatus, string[]>> = {
     manager_review: ["manager", "super_admin"],
-    admin_review: ["operations_admin", "admin", "super_admin"],
+    admin_review: ["purchasing", "super_admin"],
     finance_review: ["finance", "super_admin"],
-    ready_to_convert: ["purchasing", "operations_admin", "admin", "super_admin"],
+    ready_to_convert: ["purchasing", "super_admin"],
   };
   const roleCodes = roleCodesByStatus[input.nextStatus] ?? [];
   if (!roleCodes.length) return;
@@ -51,13 +51,13 @@ async function notifyNextPrRole(input: {
 
   const titleByStatus: Partial<Record<PurchaseRequestStatus, string>> = {
     manager_review: "PR Manager Review required",
-    admin_review: "PR Admin Review required",
+    admin_review: "PR Purchasing Review required",
     finance_review: "PR Finance Review required",
     ready_to_convert: "PR ready to convert to PO",
   };
   const messageByStatus: Partial<Record<PurchaseRequestStatus, string>> = {
     manager_review: `${input.pr.request_no} is waiting for Manager Review.`,
-    admin_review: `${input.pr.request_no} is waiting for Admin Review.`,
+    admin_review: `${input.pr.request_no} is waiting for Purchasing Review.`,
     finance_review: `${input.pr.request_no} is waiting for Finance Review.`,
     ready_to_convert: `${input.pr.request_no} is approved and ready to convert to PO.`,
   };
@@ -332,7 +332,7 @@ export async function managerApprovePurchaseRequest(id: string) {
   try {
     if (isMockMode()) return;
     const pr = await transitionPurchaseRequest(id, "manager_approve");
-    safeRedirectWithMessage(`/purchase-requests/${id}`, "success", `${pr.request_no} Manager Review completed. Admin has been notified.`);
+    safeRedirectWithMessage(`/purchase-requests/${id}`, "success", `${pr.request_no} Manager Review completed. Purchasing has been notified.`);
   } catch (error) {
     rethrowRedirect(error);
     safeRedirectWithMessage(`/purchase-requests/${id}`, "error", formatActionError(error, "Could not complete Manager Review."));
@@ -343,10 +343,10 @@ export async function adminApprovePurchaseRequest(id: string) {
   try {
     if (isMockMode()) return;
     const pr = await transitionPurchaseRequest(id, "admin_approve");
-    safeRedirectWithMessage(`/purchase-requests/${id}`, "success", `${pr.request_no} Admin Review completed. Finance has been notified.`);
+    safeRedirectWithMessage(`/purchase-requests/${id}`, "success", `${pr.request_no} Purchasing Review completed. Finance has been notified.`);
   } catch (error) {
     rethrowRedirect(error);
-    safeRedirectWithMessage(`/purchase-requests/${id}`, "error", formatActionError(error, "Could not complete Admin Review."));
+    safeRedirectWithMessage(`/purchase-requests/${id}`, "error", formatActionError(error, "Could not complete Purchasing Review."));
   }
 }
 

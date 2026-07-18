@@ -3,7 +3,7 @@ const assert = require("node:assert/strict");
 const fs = require("node:fs");
 
 const read = (file) => fs.readFileSync(file, "utf8");
-const nav = read("src/components/layout/nav-items.ts");
+const nav = read("src/lib/information-architecture.ts");
 const production = read("src/app/(app)/production/page.tsx");
 const reports = read("src/app/(app)/reports/page.tsx");
 const dashboard = read("src/components/dashboard-workspace.tsx");

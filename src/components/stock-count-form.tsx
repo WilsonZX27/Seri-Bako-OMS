@@ -75,7 +75,7 @@ export function StockCountForm({
           <div className="rounded-lg border">
             <div className="border-b bg-secondary/40 px-3 py-2">
               <p className="text-xs font-semibold">Count Lines</p>
-              <p className="text-xs text-muted-foreground">Theoretical quantity comes from the stock ledger. Enter physical quantity only.</p>
+              <p className="text-xs text-muted-foreground">Theoretical quantity comes from the Movement Ledger. Enter physical quantity only.</p>
             </div>
             <div className="divide-y">
               {seedLines.map((line) => {

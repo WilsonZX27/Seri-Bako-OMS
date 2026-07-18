@@ -41,7 +41,7 @@ export function SectionLoadingState({ label = "Loading..." }: { label?: string }
 
 export function ErrorState({
   title = "This page could not load",
-  description = "Try again. If the problem continues, contact an administrator.",
+  description = "Try again. If the problem continues, contact the Super Admin / Owner.",
   action,
 }: {
   title?: string;
@@ -81,7 +81,7 @@ export function PermissionDeniedState({ action }: { action?: StateAction }) {
   return (
     <ErrorState
       title="Permission required"
-      description="You do not have access to this page or action. Return to a page you can use, or contact an administrator."
+      description="You do not have access to this page or action. Return to a page you can use, or contact the Super Admin / Owner."
       action={action ?? { href: "/dashboard", label: "Back to dashboard" }}
     />
   );

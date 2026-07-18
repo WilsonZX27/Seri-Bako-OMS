@@ -5,7 +5,7 @@ const fs = require("node:fs");
 const read = (file) => fs.readFileSync(file, "utf8");
 const query = read("src/server/queries/master-data-cleanup.ts");
 const page = read("src/app/(app)/administration/master-data-cleanup/page.tsx");
-const nav = read("src/components/layout/nav-items.ts");
+const nav = read("src/lib/information-architecture.ts");
 const routes = read("src/server/auth/route-permissions.ts");
 
 test("Master Data Cleanup is a protected read-only route with existing master record links", () => {

@@ -68,12 +68,8 @@ export const roleSchema = z.object({
 
 export const staffAccessSchema = z.object({
   role_id: z.string().trim().min(1, "Primary role is required"),
-  role_branch_id: z.string().trim().optional().nullable().transform((value) => (value ? value : null)),
-  effective_from: z.string().trim().min(1, "Effective from is required"),
-  effective_to: z.string().trim().optional().nullable().transform((value) => (value ? value : null)),
-  branch_id: z.string().trim().min(1, "Default branch access is required"),
-  access_level: z.enum(["full", "manage", "read_only"]),
-  location_ids: z.array(z.string()).default([]),
+  default_location_id: z.string().trim().min(1, "Default location is required"),
+  accessible_location_ids: z.array(z.string().trim().min(1)).min(1, "Select at least one accessible location"),
 });
 
 export const documentSequenceSchema = z.object({

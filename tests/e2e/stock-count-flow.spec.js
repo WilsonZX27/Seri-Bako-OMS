@@ -3,7 +3,7 @@ const { login } = require("./helpers");
 
 test("stock count posts one variance adjustment exactly once", async ({ page }) => {
   test.skip(process.env.TEST_MUTATE_WORKFLOW !== "true", "Set TEST_MUTATE_WORKFLOW=true to run the stock mutation workflow.");
-  expect(await login(page, "admin")).toBe(true);
+  expect(await login(page, "purchasing")).toBe(true);
 
   if (process.env.TEST_STOCK_COUNT_NO) {
     await page.goto(`/stock-counts?search=${encodeURIComponent(process.env.TEST_STOCK_COUNT_NO)}`);

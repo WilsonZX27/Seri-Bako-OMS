@@ -205,7 +205,7 @@ export async function getStockLedger(filters: Filters = {}) {
   const supabase = await createClient();
   const { data, error } = await supabase.from("stock_ledger_view").select("*").order("transaction_date", { ascending: false });
   if (error) {
-    warnOptionalInventoryQuery("stock ledger", error);
+    warnOptionalInventoryQuery("Movement Ledger", error);
     return paginateRows([] as StockLedgerViewRow[], filters.page, filters.page === "all" ? 1 : 15);
   }
   const filtered = filterLedgerRows(data ?? [], filters);

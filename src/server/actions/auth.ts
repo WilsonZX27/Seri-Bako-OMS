@@ -1,16 +1,19 @@
 "use server";
 
 import { redirect } from "next/navigation";
+import { getLandingIaItems } from "@/lib/information-architecture";
+import { isSystemRoleCode } from "@/lib/roles";
 import { isMockMode } from "@/lib/mock-mode";
 import { getAppUrl } from "@/lib/site-url";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import { formatActionError } from "@/server/actions/error-handling";
+import { resolveEffectivePermission } from "@/server/auth/permissions";
 import { acceptStaffInviteForUser, syncCurrentAuthUserToStaff } from "@/server/auth/staff-session";
 
 export async function signIn(formData: FormData) {
   if (isMockMode()) {
-    redirect("/dashboard");
+    redirect(getLandingIaItems("super_admin")[0]?.href ?? "/access-status?reason=no-permitted-route");
   }
 
   const email = String(formData.get("email") ?? "");
@@ -25,13 +28,30 @@ export async function signIn(formData: FormData) {
   await syncCurrentAuthUserToStaff();
   const { data: staff } = await supabase
     .from("staffs")
-    .select("must_change_password")
+    .select("id, must_change_password")
     .eq("auth_user_id", (await supabase.auth.getUser()).data.user?.id ?? "")
     .maybeSingle();
   if (staff?.must_change_password) {
     redirect("/change-password");
   }
-  redirect("/dashboard");
+  if (!staff?.id) redirect("/access-status?reason=missing-profile");
+  const today = new Date().toISOString().slice(0, 10);
+  const { data: assignments } = await supabase
+    .from("staff_roles")
+    .select("is_primary, roles(role_code)")
+    .eq("staff_id", staff.id)
+    .lte("effective_from", today)
+    .or(`effective_to.is.null,effective_to.gte.${today}`);
+  const assignment = assignments?.find((row) => row.is_primary) ?? assignments?.[0];
+  const assignedRole = assignment?.roles as { role_code?: string | null } | { role_code?: string | null }[] | null;
+  const roleCode = Array.isArray(assignedRole) ? assignedRole[0]?.role_code : assignedRole?.role_code;
+  if (!isSystemRoleCode(roleCode)) redirect("/access-status?reason=no-permitted-route");
+  for (const item of getLandingIaItems(roleCode)) {
+    if (await resolveEffectivePermission(supabase, [item.permission]).catch(() => false)) {
+      redirect(item.href);
+    }
+  }
+  redirect("/access-status?reason=no-permitted-route");
 }
 
 export async function signOut() {
@@ -58,7 +78,7 @@ export async function sendPasswordReset(formData: FormData) {
   const redirectTo = `${await getAppUrl()}/auth/callback?next=/set-password`;
   const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo });
   if (error) {
-    redirect(`/forgot-password?error=${encodeURIComponent(formatActionError(error, "We could not send the email right now. Please contact admin or try again later."))}`);
+    redirect(`/forgot-password?error=${encodeURIComponent(formatActionError(error, "We could not send the email right now. Please contact the Super Admin / Owner or try again later."))}`);
   }
 
   redirect(`/forgot-password?success=${encodeURIComponent("If this email exists, a reset link has been sent.")}`);
@@ -150,7 +170,7 @@ export async function changePassword(formData: FormData) {
     admin = createAdminClient();
   } catch (adminError) {
     console.error(adminError);
-    redirect(`/change-password?error=${encodeURIComponent("Password was changed, but your staff profile could not be updated. Please contact admin.")}`);
+    redirect(`/change-password?error=${encodeURIComponent("Password was changed, but your staff profile could not be updated. Please contact the Super Admin / Owner.")}`);
   }
   const { data: staff, error: staffReadError } = await admin
     .from("staffs")
@@ -160,7 +180,7 @@ export async function changePassword(formData: FormData) {
 
   if (staffReadError || !staff) {
     console.error(staffReadError ?? new Error(`Staff profile not found for auth user ${user.id}`));
-    redirect(`/change-password?error=${encodeURIComponent("Password was changed, but your staff profile could not be updated. Please contact admin.")}`);
+    redirect(`/change-password?error=${encodeURIComponent("Password was changed, but your staff profile could not be updated. Please contact the Super Admin / Owner.")}`);
   }
 
   const { error: staffUpdateError } = await admin
@@ -177,7 +197,7 @@ export async function changePassword(formData: FormData) {
 
   if (staffUpdateError) {
     console.error(staffUpdateError);
-    redirect(`/change-password?error=${encodeURIComponent("Password was changed, but your staff profile could not be updated. Please contact admin.")}`);
+    redirect(`/change-password?error=${encodeURIComponent("Password was changed, but your staff profile could not be updated. Please contact the Super Admin / Owner.")}`);
   }
 
   redirect("/change-password?success=1");

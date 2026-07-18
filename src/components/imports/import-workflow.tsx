@@ -477,7 +477,7 @@ export function ImportWorkflow({ entity, suppliers = [] }: { entity: ImportEntit
               {spec.needsPostingConfirmation ? (
                 <label className="flex items-start gap-3 rounded-[2px] border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800">
                   <input type="checkbox" className="mt-1" checked={confirmPosting} onChange={(event) => setConfirmPosting(event.target.checked)} />
-                  <span>I understand this will post opening stock into the stock ledger.</span>
+                  <span>I understand this will post opening stock into the Movement Ledger.</span>
                 </label>
               ) : null}
             </div>

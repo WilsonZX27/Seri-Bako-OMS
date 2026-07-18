@@ -24,7 +24,7 @@ export default async function StockBalancePage({ searchParams }: { searchParams:
   const negative = balances.rows.filter((item) => item.status === "negative").length;
   return (
     <>
-      <PageHeader title="Stock Balance" description="Calculated from posted stock ledger transactions. No direct balance edits." />
+      <PageHeader title="Stock Balance" description="Calculated from posted Movement Ledger transactions. No direct balance edits." />
       <WorkspaceGrid
         rightRail={
           <>

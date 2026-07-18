@@ -8,7 +8,7 @@ export async function Sidebar({ permissionMap }: { permissionMap: Record<string,
   const [profile, branding, counts] = await Promise.all([getCurrentProfile(), getCompanyBranding(), getSidebarCounts()]);
   const profileRole = profile as { role_code?: UserRole; role?: UserRole } | null;
   const account = profile as { full_name?: string | null; email?: string | null } | null;
-  const role = profileRole?.role_code ?? profileRole?.role ?? "viewer";
+  const role = profileRole?.role_code ?? profileRole?.role ?? "outlet_staff";
 
   return (
     <aside className="hidden h-dvh shrink-0 lg:block">

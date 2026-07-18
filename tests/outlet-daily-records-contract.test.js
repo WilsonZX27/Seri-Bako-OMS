@@ -69,16 +69,16 @@ test("migration 065 only replaces the save RPC validation", () => {
 });
 
 test("only the requested routes and operations navigation are wired", () => {
-  const nav = read("src/components/layout/nav-items.ts");
+  const nav = read("src/lib/information-architecture.ts");
   const routes = read("src/server/auth/route-permissions.ts");
   for (const file of [
     "src/app/(app)/outlet-daily-records/page.tsx",
     "src/app/(app)/outlet-daily-records/new/page.tsx",
     "src/app/(app)/outlet-daily-records/[id]/page.tsx",
   ]) assert.equal(fs.existsSync(file), true);
-  assert.match(nav, /id: "operations"[\s\S]*\/outlet-daily-records/);
+  assert.match(nav, /href: "\/outlet-daily-records"[\s\S]*group: "operations"/);
   assert.match(routes, /"\/outlet-daily-records\/new": \["outlet_daily_record\.create"\]/);
-  assert.match(routes, /prefixes: \["\/outlet-daily-records"\].*outlet_daily_record\.view/);
+  assert.match(routes, /\.\.\.informationArchitecture\.map/);
 });
 
 test("release footer matches Sprint 7.13", () => {

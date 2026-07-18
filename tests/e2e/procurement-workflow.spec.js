@@ -21,9 +21,9 @@ test("manager opens a manager approval PR", async ({ page }) => {
   await expect(page.getByRole("button", { name: /manager approve/i })).toBeVisible();
 });
 
-test("administrator can open admin review filter", async ({ page }) => {
-  test.skip(!process.env.TEST_ADMIN_EMAIL || !process.env.TEST_ADMIN_PASSWORD, "Missing administrator test credentials.");
-  expect(await login(page, "admin")).toBe(true);
+test("Purchasing can open purchasing review filter", async ({ page }) => {
+  test.skip(!process.env.TEST_PURCHASING_EMAIL || !process.env.TEST_PURCHASING_PASSWORD, "Missing Purchasing test credentials.");
+  expect(await login(page, "purchasing")).toBe(true);
   await page.goto("/purchase-requests?status=admin_review");
   await expect(page.getByRole("heading", { name: /purchase requests/i })).toBeVisible();
 });

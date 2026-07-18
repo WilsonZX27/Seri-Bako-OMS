@@ -46,7 +46,7 @@ export default async function PurchaseReturnDetailPage({ params, searchParams }:
             </DocumentActionBar>
             {filters.error ? <p className="mt-3 text-sm text-destructive">{filters.error}</p> : null}
           </DocumentSideSection>
-          <DocumentSideSection title="Stock Ledger">
+          <DocumentSideSection title="Movement Ledger">
             <div className="grid gap-2 text-xs">
               <div className="flex justify-between"><span className="text-muted-foreground">Ledger Rows</span><strong>{stockTransactions.filter((row) => row.reference_id === purchaseReturn.id).length}</strong></div>
               {stockTransactions.filter((row) => row.reference_id === purchaseReturn.id).map((row) => (

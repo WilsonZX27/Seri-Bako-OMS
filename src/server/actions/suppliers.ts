@@ -104,7 +104,7 @@ export async function deleteSupplier(id: string) {
     redirect("/suppliers?success=Supplier%20deactivated.");
   } catch (error) {
     rethrowRedirect(error);
-    safeRedirectWithMessage("/suppliers", "error", formatActionError(error, "Supplier could not be saved. Please contact admin."));
+    safeRedirectWithMessage("/suppliers", "error", formatActionError(error, "Supplier could not be saved. Please contact the Super Admin / Owner."));
   }
 }
 

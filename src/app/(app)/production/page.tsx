@@ -22,7 +22,7 @@ const productionSections: WorkspaceSection[] = [
     icon: ClipboardList,
     theme: "green",
     actions: [
-      { href: "/recipes", title: "Recipes", description: "Manage recipe versions, ingredient lines, costing snapshots, and approvals.", icon: ClipboardList, recommendedFor: "kitchen and admin" },
+      { href: "/recipes", title: "Recipes", description: "Manage recipe versions, ingredient lines, costing snapshots, and approvals.", icon: ClipboardList, recommendedFor: "Kitchen and Purchasing" },
     ],
   },
   {
@@ -31,8 +31,8 @@ const productionSections: WorkspaceSection[] = [
     icon: PackageCheck,
     theme: "blue",
     actions: [
-      { href: "/production/jobs?status=submitted", title: "Pending Approval", description: "Submitted production jobs waiting for Manager/Admin approval.", icon: PackageCheck, recommendedFor: "manager" },
-      { href: "/production/jobs?status=approved", title: "Ready to Post", description: "Approved production jobs ready to deduct ingredients and add output stock.", icon: Scale, recommendedFor: "admin" },
+      { href: "/production/jobs?status=submitted", title: "Pending Approval", description: "Submitted production jobs waiting for Manager or Owner approval.", icon: PackageCheck, recommendedFor: "Manager" },
+      { href: "/production/jobs?status=approved", title: "Ready to Post", description: "Approved production jobs ready to deduct ingredients and add output stock.", icon: Scale, recommendedFor: "Purchasing" },
     ],
   },
   {

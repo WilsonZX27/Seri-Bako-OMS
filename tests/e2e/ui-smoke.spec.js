@@ -31,7 +31,7 @@ const superAdminRoutes = [
   "/activity",
 ];
 
-const roles = ["kitchen", "purchasing", "manager", "finance", "admin"];
+const roles = ["kitchen", "purchasing", "manager", "finance", "outlet"];
 
 function ensureSmokeEnv(role) {
   const missing = role ? missingAccountVars(role) : [];
@@ -113,7 +113,7 @@ async function assertSprint731Rules(page, route) {
   }
   if (route === "/purchase-requests") {
     await expect(page.locator('nav a', { hasText: "Manager Approvals" })).toHaveCount(0);
-    await expect(page.locator('nav a', { hasText: "Admin Review" })).toHaveCount(0);
+    await expect(page.locator('nav a', { hasText: "Purchasing Review" })).toHaveCount(0);
     await expect(page.locator('nav a', { hasText: "Finance Review" })).toHaveCount(0);
     await expect(page.locator('nav a', { hasText: "Outlet Requests" })).toHaveCount(0);
     await expect(page.locator('nav a', { hasText: "Supplier Sending" })).toHaveCount(0);
@@ -176,9 +176,7 @@ for (const role of roles) {
     await page.locator("aside, nav").first().screenshot({ path: path.join(screenshotDir, `${role}-sidebar.png`) });
 
     await page.goto("/settings/backups", { waitUntil: "domcontentloaded" });
-    if (role !== "admin") {
-      await page.waitForURL((url) => !url.pathname.endsWith("/settings/backups"), { timeout: 10_000 });
-    }
+    await page.waitForURL((url) => !url.pathname.endsWith("/settings/backups"), { timeout: 10_000 });
 
     await logout(page);
   });

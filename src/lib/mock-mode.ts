@@ -21,11 +21,11 @@ export function isMockMode() {
 }
 
 export const mockProfile: MockProfile = {
-  id: "mock-user-admin",
+  id: "mock-user-owner",
   company_id: "mock-company",
-  full_name: "Mock Admin",
-  role: "admin" as const,
-  role_code: "admin" as const,
+  full_name: "Mock Owner",
+  role: "super_admin" as const,
+  role_code: "super_admin" as const,
   created_at: "2026-07-01T00:00:00.000Z",
   updated_at: "2026-07-01T00:00:00.000Z",
 };

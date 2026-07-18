@@ -37,7 +37,7 @@ export function formatActionError(error: unknown, fallback = "Something went wro
   const kind = classifyActionError(error);
 
   if (!message) return fallback;
-  if (isPendingMigrationError(error)) return "Database migration is pending. Please contact admin.";
+  if (isPendingMigrationError(error)) return "Database migration is pending. Please contact the Super Admin / Owner.";
   if (normalized.includes("service role key")) return "Supabase service role key is not configured.";
   if (
     normalized.includes("rate limit")
@@ -53,7 +53,7 @@ export function formatActionError(error: unknown, fallback = "Something went wro
     || normalized.includes("error sending")
     || normalized.includes("mailer")
   ) {
-    return "We could not send the email right now. Please contact admin or try again later.";
+    return "We could not send the email right now. Please contact the Super Admin / Owner or try again later.";
   }
   if (kind === "permission_denied") return "You do not have permission to complete this action.";
   if (kind === "duplicate_record") return "A record with this code already exists.";
@@ -61,7 +61,7 @@ export function formatActionError(error: unknown, fallback = "Something went wro
   if (kind === "conflict") return "This action cannot be completed in the current state.";
   if (kind === "validation_failed") return "Review the required fields and try again.";
   if (normalized.includes("bucket") || normalized.includes("storage")) {
-    return "File storage is not configured correctly. Please contact an administrator.";
+    return "File storage is not configured correctly. Please contact the Super Admin / Owner.";
   }
   if (message.length <= 160 && !/(supabase|postgres|constraint|sqlstate|violates)/i.test(message)) return message;
   return fallback;
@@ -87,7 +87,7 @@ export function isPendingMigrationError(error: unknown) {
 export function formatPageError(error: unknown, fallback = "This page could not load right now. Please try again shortly.") {
   console.error(error);
   if (isPendingMigrationError(error)) {
-    return "Database migration is pending. Please contact admin.";
+    return "Database migration is pending. Please contact the Super Admin / Owner.";
   }
   return fallback;
 }

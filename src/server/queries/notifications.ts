@@ -27,7 +27,7 @@ export async function getCurrentUserScope(): Promise<CurrentUserScope | null> {
       staffId: null,
       roleIds: [],
       branchIds: [],
-      roleCode: "viewer",
+      roleCode: "outlet_staff",
       companyWideAccess: false,
     };
   }
@@ -41,7 +41,7 @@ export async function getCurrentUserScope(): Promise<CurrentUserScope | null> {
   const roleIds = (staffRoles ?? []).map((row) => row.role_id);
   const branchIds = (staffBranches ?? []).map((row) => row.branch_id);
   const roleById = new Map((roles ?? []).map((row) => [row.id, row.role_code]));
-  const roleCode = roleIds.map((id) => roleById.get(id)).find(Boolean) ?? "viewer";
+  const roleCode = roleIds.map((id) => roleById.get(id)).find(Boolean) ?? "outlet_staff";
   const companyWideAccess = (staffRoles ?? []).some((row) => !row.branch_id);
 
   return { authUserId: user.id, staffId, roleIds, branchIds, roleCode, companyWideAccess };

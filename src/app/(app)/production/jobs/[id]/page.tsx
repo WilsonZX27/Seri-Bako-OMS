@@ -18,7 +18,7 @@ const productionSteps = [
   { key: "draft", label: "Draft", description: "Prepared with no stock impact." },
   { key: "submitted", label: "Submitted", description: "Waiting for production approval." },
   { key: "approved", label: "Approved", description: "Ready to post stock movement." },
-  { key: "posted", label: "Posted", description: "Ingredients and output are in stock ledger." },
+  { key: "posted", label: "Posted", description: "Ingredients and output are in the Movement Ledger." },
 ];
 
 export default async function ProductionJobDetailPage({

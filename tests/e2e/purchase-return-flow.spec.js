@@ -3,7 +3,7 @@ const { login } = require("./helpers");
 
 test("purchase return posts one supplier return stock movement", async ({ page }) => {
   test.skip(process.env.TEST_MUTATE_WORKFLOW !== "true", "Set TEST_MUTATE_WORKFLOW=true to run the purchase return mutation workflow.");
-  expect(await login(page, "admin")).toBe(true);
+  expect(await login(page, "purchasing")).toBe(true);
 
   if (process.env.TEST_PURCHASE_RETURN_NO) {
     await page.goto(`/purchase-returns?search=${encodeURIComponent(process.env.TEST_PURCHASE_RETURN_NO)}`);

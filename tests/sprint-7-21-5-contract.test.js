@@ -31,5 +31,5 @@ test("Administration is canonical while Settings remains a compatibility redirec
   assert.equal(fs.existsSync("src/app/(app)/administration/page.tsx"), true);
   assert.match(read("src/app/(app)/settings/page.tsx"), /redirect\("\/administration"\)/);
   assert.match(read("src/components/layout/breadcrumbs.tsx"), /label: "Administration", href: "\/administration"/);
-  assert.match(read("src/server/auth/route-permissions.ts"), /"\/administration": \["company\.read", "staffs\.read", "roles\.read"\]/);
+  assert.match(read("src/server/auth/route-permissions.ts"), /"\/administration": \["company\.read", "staffs\.read", "roles\.read", "items\.view", "imports\.create"\]/);
 });

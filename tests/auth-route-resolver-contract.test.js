@@ -4,10 +4,14 @@ const test = require("node:test");
 const ts = require("typescript");
 
 function loadResolver() {
+  const iaSource = fs.readFileSync("src/lib/information-architecture.ts", "utf8");
+  const iaCode = ts.transpileModule(iaSource, { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2020 } }).outputText;
+  const iaModule = { exports: {} };
+  new Function("exports", "module", "require", iaCode)(iaModule.exports, iaModule, require);
   const source = fs.readFileSync("src/server/auth/route-resolver.ts", "utf8");
   const code = ts.transpileModule(source, { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2020 } }).outputText;
   const module = { exports: {} };
-  new Function("exports", "module", "require", code)(module.exports, module, require);
+  new Function("exports", "module", "require", code)(module.exports, module, (id) => id === "@/lib/information-architecture" ? iaModule.exports : require(id));
   return module.exports;
 }
 
@@ -28,12 +32,11 @@ function follow(start, stateFor) {
 
 const activeRoles = {
   owner: "/dashboard",
-  admin: "/dashboard",
   manager: "/dashboard",
-  finance: "/supplier-invoices",
-  purchasing: "/purchase-requests",
+  finance: "/dashboard",
+  purchasing: "/dashboard",
   kitchen: "/production/jobs",
-  outlet: "/outlet-daily-records",
+  outlet_staff: "/outlet-daily-records",
 };
 
 for (const [role, terminal] of Object.entries(activeRoles)) {

@@ -20,15 +20,12 @@ import {
 } from "@/lib/mock-mode";
 
 const activityEntityAllowlist = {
-  admin: ["document", "stock_transaction", "supplier", "supplier_item", "import", "item"],
   super_admin: ["document", "stock_transaction", "supplier", "supplier_item", "import", "item", "branch", "company", "location", "role", "staff", "document_sequence"],
-  operations_admin: ["document", "stock_transaction", "supplier", "supplier_item", "import", "item", "branch", "company", "location", "staff"],
   manager: ["document", "stock_transaction", "supplier", "supplier_item", "import", "item"],
   finance: ["document", "stock_transaction", "supplier", "supplier_item", "import"],
   purchasing: ["document", "supplier", "supplier_item", "item", "import"],
   kitchen: ["document", "stock_transaction", "item"],
-  kitchen_staff: ["document", "stock_transaction", "item"],
-  viewer: [],
+  outlet_staff: ["document"],
 } satisfies Record<string, string[]>;
 
 const adminOnlyActivityTypes = new Set(["archived", "restored"]);
@@ -51,15 +48,15 @@ export async function getVisibleRecentActivitiesForCurrentUser(limit = 6) {
 
   if (error) throw new Error(error.message);
 
-  const isAdmin = ["admin", "super_admin", "operations_admin"].includes(scope.roleCode);
+  const isOwner = scope.roleCode === "super_admin";
   const allowedEntityTypes = new Set(activityEntityAllowlist[scope.roleCode as keyof typeof activityEntityAllowlist] ?? []);
 
   const visibleActivities = (data ?? [])
     .filter((activity) => {
-      if (isAdmin) return true;
+      if (isOwner) return true;
       if (activity.created_by && scope.staffId && activity.created_by === scope.staffId) return true;
       if (adminOnlyEntityTypes.has(activity.entity_type) || adminOnlyActivityTypes.has(activity.activity_type)) return false;
-      if (["kitchen", "kitchen_staff"].includes(scope.roleCode)) {
+      if (scope.roleCode === "kitchen") {
         return allowedEntityTypes.has(activity.entity_type) && ["created", "submitted", "approved", "posted", "cancelled", "rejected", "barcode_scanned", "unknown_barcode_scanned", "item_counted_via_barcode", "barcode_workflow_line_saved"].includes(activity.activity_type);
       }
       if (scope.roleCode === "purchasing") {

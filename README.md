@@ -173,7 +173,7 @@ The application includes or is actively developing:
 - Production vs Outlet Demand Variance for read-only received, movement, leftover, and wastage signals.
 - Operations Control Center Lite on the existing Dashboard, composed from existing read-only operational summaries.
 - Master Data Cleanup Lite: a read-only checklist linking data-quality issues back to existing master pages.
-- Stock Transactions and Stock Ledger.
+- Movement Ledger and Stock Balance.
 - Stock Balance.
 - Low Stock.
 - Stock Counts.

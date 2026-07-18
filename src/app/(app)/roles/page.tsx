@@ -1,45 +1,29 @@
-import Link from "next/link";
+import { redirect } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { MasterDataFilters } from "@/components/master-data-filters";
+import { Card, CardContent } from "@/components/ui/card";
 import { PageHeader } from "@/components/ui/page-header";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { ConsoleSection } from "@/components/layout/right-console";
-import { WorkspaceGrid } from "@/components/layout/workspace-layout";
-import { getRoleDisplayLabel } from "@/lib/roles";
-import { getRoles } from "@/server/queries/foundation";
+import { getRoleDisplayLabel, isSuperAdminRole } from "@/lib/roles";
+import { getCurrentProfile } from "@/server/queries/common";
+import { getRolePermissionManagement, getRoles } from "@/server/queries/foundation";
 
-export default async function RolesPage({ searchParams }: { searchParams: Promise<{ search?: string; status?: string }> }) {
-  const filters = await searchParams;
-  const roles = await getRoles(filters);
-  return (
-    <>
-      <PageHeader title="Roles & Permissions" description="Role definitions and grouped access capabilities." />
-      <WorkspaceGrid
-        rightRail={
-          <ConsoleSection title="Actions">
-            <Button asChild size="sm" className="w-full"><Link href="/roles/new">New role</Link></Button>
-          </ConsoleSection>
-        }
-      >
-        <div className="overflow-hidden rounded-[2px] border bg-card">
-          <MasterDataFilters search={filters.search} status={filters.status} placeholder="Search role code, name, or description" />
-          <div className="overflow-x-auto"><Table><TableHeader><TableRow>
-            <TableHead>Role Code</TableHead><TableHead>Role Name</TableHead><TableHead>Description</TableHead><TableHead>Status</TableHead><TableHead className="w-24 text-right">Actions</TableHead>
-          </TableRow></TableHeader><TableBody>
-            {roles.map((role) => (
-              <TableRow key={role.id}>
-                <TableCell>{role.role_code}</TableCell>
-                <TableCell className="font-medium">{getRoleDisplayLabel(role.role_code, role.role_name)}</TableCell>
-                <TableCell>{role.description ?? "-"}</TableCell>
-                <TableCell><Badge variant={role.status === "active" ? "success" : "secondary"}>{role.status}</Badge></TableCell>
-                <TableCell className="text-right"><Button asChild variant="outline" size="sm"><Link href={`/roles/${role.id}`}>Edit</Link></Button></TableCell>
-              </TableRow>
-            ))}
-            {!roles.length ? <TableRow><TableCell colSpan={5} className="text-center text-muted-foreground">No roles found.</TableCell></TableRow> : null}
-          </TableBody></Table></div>
-        </div>
-      </WorkspaceGrid>
-    </>
-  );
+export default async function RolesPage() {
+  const profile = await getCurrentProfile();
+  const roleCode = (profile as { role_code?: string; role?: string } | null)?.role_code ?? (profile as { role?: string } | null)?.role;
+  if (!isSuperAdminRole(roleCode)) redirect("/access-status?reason=no-permitted-route");
+  const roles = await getRoles();
+  const summaries = await Promise.all(roles.map(async (role) => {
+    const management = await getRolePermissionManagement(role.id);
+    const enabled = management.permissions.filter((permission) => management.selectedPermissionIds.has(permission.id));
+    return { ...role, permissionCount: enabled.length, moduleCount: new Set(enabled.map((permission) => permission.module)).size };
+  }));
+  return <>
+    <PageHeader title="Roles & Permissions" description="Read-only overview of the six system-controlled roles." />
+    <div className="space-y-4 p-5">
+      <Card><CardContent className="p-4 text-sm text-muted-foreground">Role names and permissions are controlled by reviewed migrations. Assign a role from Users & Staff; custom roles cannot be created or edited here.</CardContent></Card>
+      <div className="overflow-x-auto rounded-[2px] border bg-card"><Table><TableHeader><TableRow><TableHead>Role</TableHead><TableHead>Purpose</TableHead><TableHead className="text-right">Modules</TableHead><TableHead className="text-right">Permissions</TableHead><TableHead>Status</TableHead></TableRow></TableHeader><TableBody>
+        {summaries.map((role) => <TableRow key={role.id}><TableCell className="font-medium">{getRoleDisplayLabel(role.role_code, role.role_name)}</TableCell><TableCell>{role.description ?? "System-controlled access role."}</TableCell><TableCell className="text-right">{role.moduleCount}</TableCell><TableCell className="text-right">{role.permissionCount}</TableCell><TableCell><Badge variant={role.status === "active" ? "success" : "secondary"}>{role.status}</Badge></TableCell></TableRow>)}
+      </TableBody></Table></div>
+    </div>
+  </>;
 }

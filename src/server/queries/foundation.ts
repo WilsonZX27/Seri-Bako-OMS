@@ -1,5 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
-import { getRoleDisplayLabel } from "@/lib/roles";
+import { getRoleDisplayLabel, SYSTEM_ROLE_CODES } from "@/lib/roles";
 import {
   isMockMode,
   mockBranches,
@@ -89,6 +89,7 @@ export async function getLocations(filters: Filters = {}) {
         return {
           ...location,
           branch_name: branch?.branch_name ?? null,
+          branch_type: branch?.branch_type ?? null,
           is_system_default: branch?.default_location_id === location.id,
           looks_like_branch_name: Boolean(branch?.branch_name && branch.branch_name === location.location_name),
         };
@@ -104,7 +105,7 @@ export async function getLocations(filters: Filters = {}) {
       else if (!wantsAllStatuses(filters.status)) query = query.is("deleted_at", null);
       return query;
     })(),
-    supabase.from("branches").select("id, branch_name, default_location_id"),
+    supabase.from("branches").select("id, branch_name, branch_type, default_location_id"),
   ]);
   if (locationsError) throw new Error(locationsError.message);
   if (branchesError) throw new Error(branchesError.message);
@@ -115,6 +116,7 @@ export async function getLocations(filters: Filters = {}) {
         return {
           ...location,
           branch_name: branch?.branch_name ?? null,
+          branch_type: branch?.branch_type ?? null,
           is_system_default: branch?.default_location_id === location.id,
           looks_like_branch_name: Boolean(branch?.branch_name && branch.branch_name === location.location_name),
         };
@@ -224,11 +226,11 @@ export async function getStaffAccess(staffId: string) {
 
 export async function getRoles(filters: Filters = {}) {
   if (isMockMode()) {
-    return mockRoles.filter((role) => matchesFilter([role.role_code, role.role_name, role.description], filters, role.status));
+    return mockRoles.filter((role) => SYSTEM_ROLE_CODES.includes(role.role_code as (typeof SYSTEM_ROLE_CODES)[number]) && matchesFilter([role.role_code, role.role_name, role.description], filters, role.status));
   }
 
   const supabase = await createClient();
-  const { data, error } = await supabase.from("roles").select("*").is("deleted_at", null).order("role_name", { ascending: true });
+  const { data, error } = await supabase.from("roles").select("*").in("role_code", [...SYSTEM_ROLE_CODES]).is("deleted_at", null).order("role_name", { ascending: true });
   if (error) throw new Error(error.message);
   return (data ?? []).filter((role) => matchesFilter([role.role_code, role.role_name, role.description], filters, role.status));
 }

@@ -45,7 +45,7 @@ const procurementSections: WorkspaceSection[] = [
     actions: [
       { href: "/suppliers", title: "Suppliers", description: "Maintain supplier records, contacts, and terms.", icon: Truck, recommendedFor: "purchasing" },
       { href: "/supplier-items", title: "Supplier Items", description: "Supplier-specific item codes, costs, UOM, MOQ, and lead times.", icon: FileDigit, recommendedFor: "purchasing" },
-      { href: "/imports/supplier-items", title: "Import Supplier Items", description: "Upload supplier pricing and item references with preview validation.", icon: Upload, recommendedFor: "admin and purchasing" },
+      { href: "/imports/supplier-items", title: "Import Supplier Items", description: "Upload supplier pricing and item references with preview validation.", icon: Upload, recommendedFor: "Purchasing" },
     ],
   },
 ];

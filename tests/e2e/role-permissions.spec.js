@@ -19,16 +19,16 @@ for (const role of ["kitchen", "purchasing", "finance"]) {
   });
 }
 
-test("administrator cannot assign owner role from staff creation", async ({ page }) => {
-  test.skip(!process.env.TEST_ADMIN_EMAIL || !process.env.TEST_ADMIN_PASSWORD, "Missing admin test credentials.");
-  expect(await login(page, "admin")).toBe(true);
+test("Purchasing cannot assign owner role from staff creation", async ({ page }) => {
+  test.skip(!process.env.TEST_PURCHASING_EMAIL || !process.env.TEST_PURCHASING_PASSWORD, "Missing Purchasing test credentials.");
+  expect(await login(page, "purchasing")).toBe(true);
   await page.goto("/staffs/new", { waitUntil: "domcontentloaded" });
   await expect(page.locator('select[name="role_id"] option', { hasText: "Super Admin / Owner" })).toHaveCount(0);
 });
 
-test("administrator can read operational PRs but cannot open finance payables", async ({ page }) => {
-  test.skip(!process.env.TEST_ADMIN_EMAIL || !process.env.TEST_ADMIN_PASSWORD, "Missing admin test credentials.");
-  expect(await login(page, "admin")).toBe(true);
+test("Purchasing can read operational PRs but cannot open finance payables", async ({ page }) => {
+  test.skip(!process.env.TEST_PURCHASING_EMAIL || !process.env.TEST_PURCHASING_PASSWORD, "Missing Purchasing test credentials.");
+  expect(await login(page, "purchasing")).toBe(true);
   await page.goto("/purchase-requests");
   await expect(page.getByRole("heading", { name: /purchase requests/i })).toBeVisible();
   const firstRecord = page.locator("tbody tr").filter({ has: page.locator('a[href^="/purchase-requests/"]') }).first();

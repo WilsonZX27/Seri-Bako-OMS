@@ -1,6 +1,8 @@
+import { informationArchitecture } from "@/lib/information-architecture";
+
 const exactRoutePermissions: Record<string, string[]> = {
-  "/administration": ["company.read", "staffs.read", "roles.read"],
-  "/settings": ["company.read", "staffs.read", "roles.read"],
+  "/administration": ["company.read", "staffs.read", "roles.read", "items.view", "imports.create"],
+  "/settings": ["company.read", "staffs.read", "roles.read", "items.view", "imports.create"],
   "/reports/costing-readiness": ["reports.view"],
   "/reports/recipe-costing": ["reports.view"],
   "/reports/product-margin": ["reports.view"],
@@ -12,7 +14,7 @@ const exactRoutePermissions: Record<string, string[]> = {
   "/production/planning": ["outlet_daily_record.view"],
   "/production/variance": ["outlet_daily_record.view"],
   "/branches/new": ["branches.create"],
-  "/document-sequences/new": ["document_sequences.create"],
+  "/document-sequences/new": ["settings.manage"],
   "/goods-receivings/new": ["goods_receiving.create"],
   "/goods-receivings/scan": ["goods_receiving.create"],
   "/goods-receiving/scan": ["goods_receiving.create"],
@@ -26,7 +28,7 @@ const exactRoutePermissions: Record<string, string[]> = {
   "/purchase-requests/new": ["purchase_request.create"],
   "/purchase-returns/new": ["purchase_return.create"],
   "/recipes/new": ["recipes.create"],
-  "/roles/new": ["roles.create"],
+  "/roles/new": ["roles.read"],
   "/staffs/new": ["staffs.create"],
   "/stock-counts/new": ["stock_count.create"],
   "/stock-counts/scan": ["stock_count.create"],
@@ -44,7 +46,8 @@ const exactRoutePermissions: Record<string, string[]> = {
 };
 
 const routePermissions: Array<{ prefixes: string[]; permissions: string[] }> = [
-  { prefixes: ["/dashboard", "/daily-operations", "/quick-tools"], permissions: ["dashboard.view"] },
+  ...informationArchitecture.map((item) => ({ prefixes: [item.href], permissions: [item.permission] })),
+  { prefixes: ["/daily-operations"], permissions: ["dashboard.view"] },
   { prefixes: ["/outlet-daily-records"], permissions: ["outlet_daily_record.view"] },
   { prefixes: ["/production/jobs", "/production", "/products"], permissions: ["production.view"] },
   { prefixes: ["/recipes"], permissions: ["recipes.view"] },
@@ -85,4 +88,10 @@ export function getRoutePermissionCodes(pathname: string) {
   return exactRoutePermissions[pathname]
     ?? routePermissions.find((entry) => entry.prefixes.some((prefix) => matchesPrefix(pathname, prefix)))?.permissions
     ?? null;
+}
+
+export function getRouteAllowedRoles(pathname: string) {
+  if (pathname === "/administration" || pathname === "/settings") return ["super_admin", "purchasing"] as const;
+  const item = informationArchitecture.find((entry) => pathname === entry.href || pathname.startsWith(`${entry.href}/`));
+  return item?.roles ?? null;
 }

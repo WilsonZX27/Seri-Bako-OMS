@@ -5,9 +5,9 @@ import { createClient } from "@/lib/supabase/server";
 import { signOut } from "@/server/actions/auth";
 
 const messages: Record<string, string> = {
-  inactive: "Your staff account is inactive. Ask an administrator to restore access.",
-  "missing-profile": "Your login is not linked to a staff profile. Ask an administrator to check the account assignment.",
-  "no-permitted-route": "Your staff account has no permitted workspace. Ask an administrator to review its role and permissions.",
+  inactive: "Your staff account is inactive. Ask the Super Admin / Owner to restore access.",
+  "missing-profile": "Your login is not linked to a staff profile. Ask the Super Admin / Owner to check the account assignment.",
+  "no-permitted-route": "Your staff account has no permitted workspace. Ask the Super Admin / Owner to review its role and permissions.",
 };
 
 export default async function AccessStatusPage({ searchParams }: { searchParams: Promise<{ reason?: string }> }) {

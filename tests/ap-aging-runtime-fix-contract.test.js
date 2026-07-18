@@ -27,7 +27,7 @@ test("dashboard isolates AP failure and user-facing errors stay generic", () => 
   assert.match(query, /payablesAttentionUnavailable = true/);
   assert.match(workspace, /payablesAttentionUnavailable/);
   assert.match(workspace, /The rest of the dashboard remains current/);
-  assert.match(errorPage, /temporarily unavailable\. Please retry or contact an administrator/);
+  assert.match(errorPage, /temporarily unavailable\. Please retry or contact the Super Admin \/ Owner/);
   assert.match(apQuery, /console\.error\("\[ap-aging\] RPC failed"/);
   assert.match(apQuery, /throw new Error\("AP Aging report is unavailable\."\)/);
 });

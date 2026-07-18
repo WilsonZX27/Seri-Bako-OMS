@@ -14,7 +14,7 @@ type PermissionAccess = {
   effective: boolean;
 };
 
-const moduleLabels: Record<string, string> = { purchase_request: "Purchase Requests", purchase_order: "Purchase Orders", goods_receiving: "Goods Receiving", supplier_invoice: "Supplier Invoices", stock_ledger: "Stock Ledger", stock_transfer: "Stock Transfers", stock_wastage: "Stock Wastage", outlet_daily_record: "Outlet Daily Records" };
+const moduleLabels: Record<string, string> = { purchase_request: "Purchase Requests", purchase_order: "Purchase Orders", goods_receiving: "Goods Receiving", supplier_invoice: "Supplier Invoices", stock_ledger: "Movement Ledger", stock_transfer: "Stock Transfers", stock_wastage: "Stock Wastage", outlet_daily_record: "Outlet Daily Records" };
 const actionLabels: Record<string, string> = { read: "view", view: "view", create: "create", update: "manage", manage: "manage", approve: "approve", delete: "manage", post: "manage", export: "view", import: "manage" };
 
 function friendlyModule(module: string) { return moduleLabels[module] ?? module.replaceAll("_", " ").replace(/\b\w/g, (letter) => letter.toUpperCase()); }

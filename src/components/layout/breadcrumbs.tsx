@@ -4,6 +4,7 @@ import Link from "next/link";
 import { ChevronRight } from "lucide-react";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
+import { getIaItemForPath, iaGroupLabels } from "@/lib/information-architecture";
 
 type Crumb = {
   label: string;
@@ -12,7 +13,6 @@ type Crumb = {
 
 const sectionMap: Record<string, { label: string; href?: string; parent?: Crumb }> = {
   dashboard: { label: "Dashboard" },
-  "quick-tools": { label: "Quick Tools" },
   administration: { label: "Administration" },
   company: { label: "Company", parent: { label: "Administration", href: "/administration" } },
   branches: { label: "Branches", parent: { label: "Administration", href: "/administration" } },
@@ -25,11 +25,11 @@ const sectionMap: Record<string, { label: string; href?: string; parent?: Crumb 
   "purchase-returns": { label: "Purchase Returns", parent: { label: "Procurement", href: "/procurement" } },
   "supplier-invoices": { label: "Supplier Invoices", parent: { label: "Procurement", href: "/procurement" } },
   suppliers: { label: "Suppliers", parent: { label: "Procurement", href: "/procurement" } },
-  "goods-receivings": { label: "Goods Receiving", parent: { label: "Daily Operations", href: "/daily-operations" } },
+  "goods-receivings": { label: "Goods Receiving", parent: { label: "Procurement", href: "/procurement" } },
   "stock-counts": { label: "Stock Count", parent: { label: "Inventory", href: "/inventory" } },
   "stock-transfers": { label: "Stock Transfer", parent: { label: "Inventory", href: "/inventory" } },
   "stock-wastage": { label: "Stock Wastage", parent: { label: "Inventory", href: "/inventory" } },
-  "stock-transactions": { label: "Manual Stock Movement", parent: { label: "Inventory", href: "/inventory" } },
+  "stock-transactions": { label: "Movement Ledger", parent: { label: "Inventory", href: "/inventory" } },
   "stock-balance": { label: "Stock Balance", parent: { label: "Inventory", href: "/inventory" } },
   "stock-card": { label: "Stock Card", parent: { label: "Inventory", href: "/inventory" } },
   "low-stock": { label: "Low Stock", parent: { label: "Inventory", href: "/inventory" } },
@@ -39,8 +39,7 @@ const sectionMap: Record<string, { label: string; href?: string; parent?: Crumb 
   recipes: { label: "Recipes", parent: { label: "Inventory", href: "/inventory" } },
   procurement: { label: "Procurement" },
   inventory: { label: "Inventory" },
-  "daily-operations": { label: "Daily Operations" },
-  "outlet-daily-records": { label: "Outlet Daily Records", parent: { label: "Operations", href: "/daily-operations" } },
+  "outlet-daily-records": { label: "Outlet Daily Records" },
   production: { label: "Production" },
   documents: { label: "Documents" },
   reports: { label: "Reports" },
@@ -74,7 +73,9 @@ export function Breadcrumbs() {
 
   if (!first) return null;
 
-  const root = sectionMap[first];
+  const iaItem = getIaItemForPath(pathname);
+  const iaParent = iaItem ? { label: iaGroupLabels[iaItem.group], href: iaItem.group === "administration" ? "/administration" : `/${iaItem.group}` } : undefined;
+  const root = iaItem ? { label: iaItem.label, parent: iaParent } : sectionMap[first];
   const crumbs: Crumb[] = [];
 
   if (root?.parent) crumbs.push(root.parent);

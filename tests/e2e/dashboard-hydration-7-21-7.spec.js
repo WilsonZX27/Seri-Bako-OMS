@@ -3,19 +3,18 @@ const { requireAccount } = require("./helpers");
 
 const terminalRoutes = {
   superAdmin: "/dashboard",
-  admin: "/dashboard",
   manager: "/dashboard",
-  finance: "/production/jobs",
-  purchasing: "/production/jobs",
+  finance: "/supplier-invoices",
+  purchasing: "/purchase-requests",
   kitchen: "/production/jobs",
-  outlet: "/change-password",
+  outlet: "/outlet-daily-records",
 };
 
 for (const [role, terminalRoute] of Object.entries(terminalRoutes)) {
   test(`${role} has a stable hydrated landing page`, async ({ page }) => {
     const credentials = requireAccount(role);
     const criticalErrors = [];
-    if (["superAdmin", "admin", "manager"].includes(role)) {
+    if (["superAdmin", "manager"].includes(role)) {
       await page.route("**/_next/static/chunks/**", async (route) => {
         await new Promise((resolve) => setTimeout(resolve, 1_200));
         await route.continue();
@@ -32,7 +31,7 @@ for (const [role, terminalRoute] of Object.entries(terminalRoutes)) {
     await page.getByRole("button", { name: /sign in/i }).click();
     await page.waitForURL((url) => !["/", "/login"].includes(url.pathname), { timeout: 20_000 });
 
-    if (["finance", "purchasing", "kitchen"].includes(role)) {
+    if (["finance", "purchasing", "kitchen", "outlet"].includes(role)) {
       await page.goto("/dashboard", { waitUntil: "domcontentloaded" });
       await page.waitForURL((url) => url.pathname === terminalRoute, { timeout: 20_000 });
     }

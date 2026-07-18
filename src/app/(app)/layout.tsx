@@ -38,7 +38,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
           <TopBar permissionMap={permissionMap} />
           {!hasStaffRole ? (
             <div className="border-b border-amber-200 bg-amber-50 px-5 py-3 text-sm font-medium text-amber-800">
-              Your account has no staff role assigned. Please run setup or contact admin.
+              Your account has no staff role assigned. Please contact the Super Admin / Owner.
             </div>
           ) : null}
           <div className="relative z-10 flex min-h-0 flex-1">

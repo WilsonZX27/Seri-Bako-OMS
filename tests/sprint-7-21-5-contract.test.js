@@ -23,7 +23,8 @@ test("password profile lookup failures stop safely instead of redirecting in a l
   assert.match(page, /staffError \|\| !staff/);
   assert.match(page, /Account check unavailable/);
   assert.match(page, /Sign out safely/);
-  assert.match(middleware, /staff\?\.status === "invited" && !isPublicRoute && !isPasswordChangeRoute/);
+  assert.match(middleware, /resolveAuthRoute/);
+  assert.match(read("src/server/auth/route-resolver.ts"), /staffStatus === "invited"/);
 });
 
 test("Administration is canonical while Settings remains a compatibility redirect", () => {

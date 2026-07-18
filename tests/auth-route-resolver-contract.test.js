@@ -1,0 +1,74 @@
+const assert = require("node:assert/strict");
+const fs = require("node:fs");
+const test = require("node:test");
+const ts = require("typescript");
+
+function loadResolver() {
+  const source = fs.readFileSync("src/server/auth/route-resolver.ts", "utf8");
+  const code = ts.transpileModule(source, { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2020 } }).outputText;
+  const module = { exports: {} };
+  new Function("exports", "module", "require", code)(module.exports, module, require);
+  return module.exports;
+}
+
+const { resolveAuthRoute } = loadResolver();
+
+function follow(start, stateFor) {
+  const chain = [start];
+  for (let index = 0; index < 8; index += 1) {
+    const current = chain.at(-1);
+    const decision = resolveAuthRoute({ pathname: current, ...stateFor(current) });
+    if (!decision) return chain;
+    const destination = new URL(decision.destination, "http://local.test").pathname;
+    assert.notEqual(destination, current, `${current} must not redirect to itself`);
+    chain.push(destination);
+  }
+  assert.fail(`redirect chain did not terminate: ${chain.join(" -> ")}`);
+}
+
+const activeRoles = {
+  owner: "/dashboard",
+  admin: "/dashboard",
+  manager: "/dashboard",
+  finance: "/supplier-invoices",
+  purchasing: "/purchase-requests",
+  kitchen: "/production/jobs",
+  outlet: "/outlet-daily-records",
+};
+
+for (const [role, terminal] of Object.entries(activeRoles)) {
+  test(`${role} reaches one finite terminal route`, () => {
+    const chain = follow("/login", (pathname) => ({
+      authenticated: true,
+      staffStatus: "active",
+      mustChangePassword: false,
+      routeProtected: pathname !== "/login",
+      routeAllowed: pathname === terminal,
+      firstPermittedRoute: terminal,
+    }));
+    assert.deepEqual(chain, ["/login", terminal]);
+  });
+}
+
+test("invited and password-change-required users terminate on their setup route", () => {
+  assert.deepEqual(follow("/dashboard", () => ({ authenticated: true, staffStatus: "invited", mustChangePassword: false, routeProtected: true, routeAllowed: false, firstPermittedRoute: null })), ["/dashboard", "/set-password"]);
+  assert.deepEqual(follow("/dashboard", () => ({ authenticated: true, staffStatus: "invited", mustChangePassword: true, routeProtected: true, routeAllowed: false, firstPermittedRoute: null })), ["/dashboard", "/change-password"]);
+});
+
+test("inactive, missing, unassigned, denied-dashboard, signed-out, and stale-cookie states converge", () => {
+  assert.deepEqual(follow("/dashboard", () => ({ authenticated: true, staffStatus: "disabled", mustChangePassword: false, routeProtected: true, routeAllowed: false, firstPermittedRoute: null })), ["/dashboard", "/access-status"]);
+  assert.deepEqual(follow("/dashboard", () => ({ authenticated: true, staffStatus: null, mustChangePassword: false, routeProtected: true, routeAllowed: false, firstPermittedRoute: null })), ["/dashboard", "/access-status"]);
+  assert.deepEqual(follow("/dashboard", () => ({ authenticated: true, staffStatus: "active", mustChangePassword: false, routeProtected: true, routeAllowed: false, firstPermittedRoute: null })), ["/dashboard", "/access-status"]);
+  assert.deepEqual(follow("/dashboard", (pathname) => ({ authenticated: true, staffStatus: "active", mustChangePassword: false, routeProtected: true, routeAllowed: pathname === "/purchase-requests", firstPermittedRoute: "/purchase-requests" })), ["/dashboard", "/purchase-requests"]);
+  assert.deepEqual(follow("/dashboard", () => ({ authenticated: false, staffStatus: null, mustChangePassword: false, routeProtected: true, routeAllowed: false, firstPermittedRoute: null })), ["/dashboard", "/login"]);
+});
+
+test("completed password setup cannot return an active user to change-password", () => {
+  assert.deepEqual(follow("/change-password", (pathname) => ({ authenticated: true, staffStatus: "active", mustChangePassword: false, routeProtected: false, routeAllowed: true, firstPermittedRoute: "/dashboard" })), ["/change-password", "/dashboard"]);
+});
+
+test("middleware preserves refreshed cookies and guards identical-path redirects", () => {
+  const middleware = fs.readFileSync("src/lib/supabase/middleware.ts", "utf8");
+  assert.match(middleware, /url\.pathname === request\.nextUrl\.pathname/);
+  assert.match(middleware, /response\.cookies\.getAll\(\)/);
+});

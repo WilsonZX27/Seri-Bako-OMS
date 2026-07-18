@@ -43,10 +43,11 @@ async function login(page, role) {
   await page.locator('input[name="password"]').fill(creds.password);
   await page.getByRole("button", { name: /sign in/i }).click();
   await Promise.race([
-    page.waitForURL(/dashboard|change-password/, { timeout: 20_000 }).catch(() => null),
+    page.waitForURL((url) => !["/login", "/"].includes(url.pathname), { timeout: 20_000 }).catch(() => null),
     page.locator("text=/Invalid email or password|disabled|expired|temporarily limited/i").waitFor({ timeout: 20_000 }).catch(() => null),
   ]);
-  const ok = page.url().includes("/dashboard");
+  const pathname = new URL(page.url()).pathname;
+  const ok = !["/login", "/change-password", "/set-password", "/access-status", "/"].includes(pathname);
   if (!ok) {
     const visibleError = await page
       .locator("text=/Invalid email or password|disabled|expired|temporarily limited|could not/i")

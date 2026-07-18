@@ -1,0 +1,344 @@
+{
+  "metadata": {
+    "sprint": "7.23.0",
+    "auditDate": "2026-07-18",
+    "baselineCommit": "f60921c7cc89aa3be305f20e459456b9d94322a2",
+    "mode": "read-only",
+    "productionDataMutated": false,
+    "credentialsIncluded": false,
+    "consoleCriticalErrors": 0,
+    "viewports": {
+      "desktop": 1440,
+      "tablet": 1024,
+      "mobile": 390
+    },
+    "screenshotDirectory": "test-results/sprint-7-23-0/screenshots",
+    "screenshotCount": 69
+  },
+  "resultLegend": {
+    "allowedStable": "Route rendered a stable page or intended explanatory state.",
+    "redirectedStable": "Route converged to a permitted destination without a cycle.",
+    "deniedStable": "Record-level or owner-only authorization denied without a blank page or runtime crash."
+  },
+  "roles": [
+    {
+      "role": "Owner / Super Admin",
+      "checked": 34,
+      "allowedStable": 32,
+      "redirectedStable": 0,
+      "deniedStable": 0,
+      "explanatoryStates": 2,
+      "expectedPrimaryTasks": [
+        "Full administration",
+        "Procurement review and conversion",
+        "Inventory and receiving oversight",
+        "Reporting and audit"
+      ],
+      "visibleNavigation": [
+        "/dashboard",
+        "/production/jobs",
+        "/outlet-daily-records",
+        "/purchase-requests",
+        "/purchase-orders",
+        "/goods-receivings",
+        "/purchase-returns",
+        "/supplier-invoices",
+        "/suppliers",
+        "/items",
+        "/products",
+        "/recipes",
+        "/stock-balance",
+        "/stock-transactions",
+        "/stock-transfers",
+        "/stock-counts",
+        "/stock-wastage",
+        "/low-stock",
+        "/reports",
+        "/activity",
+        "/company",
+        "/branches",
+        "/locations",
+        "/administration/master-data-cleanup",
+        "/staffs",
+        "/roles",
+        "/administration/imports",
+        "/settings/backups"
+      ],
+      "deniedEvidence": [],
+      "result": "pass"
+    },
+    {
+      "role": "Admin",
+      "checked": 32,
+      "allowedStable": 28,
+      "redirectedStable": 4,
+      "deniedStable": 0,
+      "explanatoryStates": 0,
+      "expectedPrimaryTasks": [
+        "Operational administration",
+        "PR/PO review",
+        "Supplier and item maintenance",
+        "Staff and branch administration"
+      ],
+      "visibleNavigation": [
+        "/dashboard",
+        "/outlet-daily-records",
+        "/purchase-requests",
+        "/purchase-orders",
+        "/purchase-returns",
+        "/supplier-invoices",
+        "/suppliers",
+        "/items",
+        "/stock-transactions",
+        "/stock-transfers",
+        "/stock-counts",
+        "/stock-wastage",
+        "/low-stock",
+        "/reports",
+        "/activity",
+        "/branches",
+        "/locations",
+        "/administration/master-data-cleanup",
+        "/staffs",
+        "/settings/backups"
+      ],
+      "deniedEvidence": [
+        {
+          "requested": "/settings/backups",
+          "behavior": "stable owner-only redirect/denial",
+          "finding": "link is visible although server requires Owner/Super Admin"
+        }
+      ],
+      "result": "pass-with-navigation-defect"
+    },
+    {
+      "role": "Manager",
+      "checked": 29,
+      "allowedStable": 24,
+      "redirectedStable": 4,
+      "deniedStable": 1,
+      "explanatoryStates": 0,
+      "expectedPrimaryTasks": [
+        "Branch-scoped PR review",
+        "Operational monitoring",
+        "Stock and report review"
+      ],
+      "visibleNavigation": [
+        "/dashboard",
+        "/production/jobs",
+        "/outlet-daily-records",
+        "/purchase-requests",
+        "/purchase-orders",
+        "/goods-receivings",
+        "/purchase-returns",
+        "/supplier-invoices",
+        "/products",
+        "/recipes",
+        "/stock-balance",
+        "/stock-transfers",
+        "/stock-counts",
+        "/stock-wastage",
+        "/low-stock",
+        "/reports",
+        "/activity"
+      ],
+      "deniedEvidence": [
+        {
+          "resource": "out-of-branch purchase request",
+          "behavior": "stable record-level denial",
+          "boundaryPreserved": true
+        }
+      ],
+      "result": "pass"
+    },
+    {
+      "role": "Finance",
+      "checked": 29,
+      "allowedStable": 22,
+      "redirectedStable": 7,
+      "deniedStable": 0,
+      "explanatoryStates": 0,
+      "expectedPrimaryTasks": [
+        "Finance review",
+        "Supplier invoices/AP",
+        "Procurement and inventory reporting"
+      ],
+      "visibleNavigation": [
+        "/production/jobs",
+        "/purchase-requests",
+        "/purchase-orders",
+        "/goods-receivings",
+        "/purchase-returns",
+        "/supplier-invoices",
+        "/products",
+        "/recipes",
+        "/stock-balance",
+        "/stock-transactions",
+        "/stock-transfers",
+        "/stock-counts",
+        "/stock-wastage",
+        "/low-stock",
+        "/reports",
+        "/activity"
+      ],
+      "deniedEvidence": [
+        {
+          "requested": "/dashboard",
+          "behavior": "stable redirect to first permitted route"
+        }
+      ],
+      "result": "pass"
+    },
+    {
+      "role": "Purchasing",
+      "checked": 33,
+      "allowedStable": 26,
+      "redirectedStable": 7,
+      "deniedStable": 0,
+      "explanatoryStates": 0,
+      "expectedPrimaryTasks": [
+        "PR-to-PO conversion",
+        "Supplier/item maintenance",
+        "Imports and procurement operations"
+      ],
+      "visibleNavigation": [
+        "/production/jobs",
+        "/purchase-requests",
+        "/purchase-orders",
+        "/goods-receivings",
+        "/purchase-returns",
+        "/supplier-invoices",
+        "/suppliers",
+        "/items",
+        "/products",
+        "/recipes",
+        "/stock-balance",
+        "/stock-transactions",
+        "/stock-transfers",
+        "/stock-counts",
+        "/stock-wastage",
+        "/low-stock",
+        "/reports",
+        "/activity",
+        "/administration/master-data-cleanup",
+        "/administration/imports"
+      ],
+      "deniedEvidence": [
+        {
+          "requested": "/dashboard",
+          "behavior": "stable redirect to first permitted route"
+        }
+      ],
+      "result": "pass"
+    },
+    {
+      "role": "Kitchen",
+      "checked": 29,
+      "allowedStable": 23,
+      "redirectedStable": 6,
+      "deniedStable": 0,
+      "explanatoryStates": 0,
+      "expectedPrimaryTasks": [
+        "Create and submit PR",
+        "Production operations",
+        "Relevant stock visibility"
+      ],
+      "visibleNavigation": [
+        "/production/jobs",
+        "/outlet-daily-records",
+        "/purchase-requests",
+        "/goods-receivings",
+        "/purchase-returns",
+        "/supplier-invoices",
+        "/products",
+        "/recipes",
+        "/stock-balance",
+        "/stock-transactions",
+        "/stock-transfers",
+        "/stock-counts",
+        "/stock-wastage",
+        "/low-stock",
+        "/reports",
+        "/activity"
+      ],
+      "deniedEvidence": [
+        {
+          "requested": "/dashboard",
+          "behavior": "stable redirect to first permitted route"
+        }
+      ],
+      "result": "pass"
+    },
+    {
+      "role": "Outlet Staff",
+      "checked": 15,
+      "allowedStable": 5,
+      "redirectedStable": 10,
+      "deniedStable": 0,
+      "explanatoryStates": 0,
+      "expectedPrimaryTasks": [
+        "Outlet daily record entry",
+        "Narrow dashboard/outlet workflow"
+      ],
+      "visibleNavigation": [
+        "/dashboard",
+        "/outlet-daily-records"
+      ],
+      "deniedEvidence": [
+        {
+          "requested": "role-restricted administration/procurement pages",
+          "behavior": "stable redirect to permitted route"
+        }
+      ],
+      "result": "pass"
+    }
+  ],
+  "responsiveSamples": {
+    "desktop": [
+      "Dashboard",
+      "Purchase Requests",
+      "Purchase Orders",
+      "Goods Receiving",
+      "Items",
+      "Products",
+      "Recipes",
+      "Stock Balance",
+      "Movement Ledger",
+      "Production",
+      "Finance/AP",
+      "Reports",
+      "Activity",
+      "Administration",
+      "Auth/access/not-found"
+    ],
+    "tablet": [
+      "Dashboard",
+      "PR list/detail",
+      "PO list",
+      "GRN detail",
+      "Items",
+      "Stock Balance",
+      "Production",
+      "Reports",
+      "Administration"
+    ],
+    "mobile": [
+      "Dashboard",
+      "PR create/list/detail",
+      "PO list/detail",
+      "GRN detail",
+      "Items",
+      "Stock Balance",
+      "Production",
+      "Outlet records",
+      "Administration",
+      "Company",
+      "Not found"
+    ]
+  },
+  "mutationBoundary": {
+    "writesExecuted": false,
+    "workflowTransitionsExecuted": false,
+    "productionBusinessRecordsChanged": false
+  }
+}

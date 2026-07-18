@@ -27,8 +27,8 @@ for (const role of roles) {
     expect(redirects.every(([source, destination]) => source !== destination)).toBe(true);
     expect(redirects.length).toBeLessThan(8);
     expect(["/login", "/"].includes(terminal)).toBe(false);
-    await expect(page.locator("body")).toContainText("v0.2.32");
-    await expect(page.locator("body")).toContainText("Sprint 7.21.6");
+    await expect(page.locator("body")).toContainText("v0.2.33");
+    await expect(page.locator("body")).toContainText("Sprint 7.21.7");
   });
 }
 

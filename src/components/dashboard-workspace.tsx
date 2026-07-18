@@ -63,8 +63,8 @@ function alertAgingHref(row: NonNullable<DashboardSummary["payablesAttention"]>[
   return `/supplier-invoices/aging?due_from=${shiftDate(reportDate, 1)}&due_to=${shiftDate(reportDate, 7)}`;
 }
 
-export function DashboardWorkspace({ summary }: { summary: DashboardSummary }) {
-  const [now, setNow] = useState(() => new Date());
+export function DashboardWorkspace({ summary, renderedAt }: { summary: DashboardSummary; renderedAt: string }) {
+  const [now, setNow] = useState(() => new Date(renderedAt));
 
   useEffect(() => {
     const timer = window.setInterval(() => setNow(new Date()), 1000);
@@ -125,7 +125,7 @@ export function DashboardWorkspace({ summary }: { summary: DashboardSummary }) {
             <div>
               <h1 className="text-2xl font-semibold leading-tight">Operations Dashboard</h1>
               <p className="text-xs text-muted-foreground">
-                {now.toLocaleString("en-MY", { dateStyle: "full", timeStyle: "medium" })}
+                {now.toLocaleString("en-MY", { dateStyle: "full", timeStyle: "medium", timeZone: "Asia/Kuala_Lumpur" })}
               </p>
             </div>
           </div>

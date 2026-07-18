@@ -9,13 +9,16 @@ import { StatusBadge } from "@/components/ui/status-badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { PageHeader } from "@/components/ui/page-header";
+import { FilterBar } from "@/components/ui/filter-bar";
 import { PaginationControls, SortableHead } from "@/components/sortable-table";
 import { StatusTabs } from "@/components/status-tabs";
-import { Table, TableActionLink, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { OperationalList, OperationalListRow, Table, TableActionLink, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { ConsoleSection } from "@/components/layout/right-console";
 import { WorkspaceGrid } from "@/components/layout/workspace-layout";
 import { formatCurrency } from "@/lib/utils";
+import { hasActiveFilters } from "@/lib/table-state";
 import { getPurchaseOrderSummary, getPurchaseOrders } from "@/server/queries/procurement";
+import { getPermissionMap } from "@/server/auth/permissions";
 
 const statuses = [
   { value: "approved", label: "Ready to Send" },
@@ -28,7 +31,8 @@ const statuses = [
 
 export default async function PurchaseOrdersPage({ searchParams }: { searchParams: Promise<Record<string, string | undefined>> }) {
   const filters = await searchParams;
-  const [orders, summary] = await Promise.all([getPurchaseOrders(filters), getPurchaseOrderSummary()]);
+  const [orders, summary, permissions] = await Promise.all([getPurchaseOrders(filters), getPurchaseOrderSummary(), getPermissionMap(["po.create"])]);
+  const filtered = hasActiveFilters(filters);
   return (
     <>
       <PageHeader title="Purchase Orders" description="Supplier purchase orders created from approved requests or manually." />
@@ -36,12 +40,11 @@ export default async function PurchaseOrdersPage({ searchParams }: { searchParam
         className="pt-4"
         rightRail={
           <>
-            <ConsoleSection title="Actions">
+            {permissions["po.create"] ? <ConsoleSection title="Actions">
               <div className="grid gap-2">
-                <Button asChild size="sm" className="w-full" data-mobile-primary-action><Link href="/purchase-orders/new">New PO</Link></Button>
-                <Button asChild variant="outline" size="sm" className="w-full"><Link href="/api/export/purchase-orders">Export CSV</Link></Button>
+                {permissions["po.create"] ? <><Button asChild size="sm" className="w-full" data-mobile-primary-action><Link href="/purchase-orders/new">New PO</Link></Button><Button asChild variant="outline" size="sm" className="w-full"><Link href="/api/export/purchase-orders">Export CSV</Link></Button></> : null}
               </div>
-            </ConsoleSection>
+            </ConsoleSection> : null}
             <ConsoleSection title="PO Summary">
               <div className="grid gap-2 text-xs">
                 <div className="flex justify-between"><span className="text-muted-foreground">Total POs</span><strong>{summary.total}</strong></div>
@@ -58,15 +61,14 @@ export default async function PurchaseOrdersPage({ searchParams }: { searchParam
       >
         <div className="overflow-hidden rounded-[2px] border border-[var(--sb-border-soft)] bg-card">
           <StatusTabs statuses={statuses} activeStatus={filters.status} />
-          <form className="sb-list-filters">
+          <FilterBar resultCount={orders.totalRows} resetHref="/purchase-orders" filtered={filtered}>
             <Input name="search" defaultValue={filters.search ?? ""} placeholder="Search PO no, supplier, remarks" className="md:max-w-sm" />
+            {filters.status ? <input type="hidden" name="status" value={filters.status} /> : null}
             <Button type="submit" variant="secondary">Search</Button>
-            <Button asChild variant="ghost"><a href="?">Reset</a></Button>
-          </form>
+          </FilterBar>
           <BulkSelectionProvider ids={orders.rows.map((order) => order.id)} actionLabel="Archive selected" actionHint="Open selected POs to close, reject, or cancel them through workflow-safe actions.">
           <DataGridHint text="Pro-tip: Double-click any row to open the purchase order." />
-          <div className="overflow-x-auto">
-            <Table>
+            <Table mobileHidden aria-label="Purchase orders">
               <TableHeader>
                 <TableRow>
                   <TableHead className="hidden w-20 md:table-cell"><BulkSelectAllCheckbox /></TableHead>
@@ -96,10 +98,13 @@ export default async function PurchaseOrdersPage({ searchParams }: { searchParam
                     <TableCell className="text-right"><TableActionLink href={`/purchase-orders/${order.id}`} label={`Open ${order.po_no}`}><Pencil className="h-4 w-4" /></TableActionLink></TableCell>
                   </DataGridRow>
                 ))}
-                {!orders.rows.length ? <TableRow><TableCell colSpan={8}><EmptyState title="No purchase orders found" description="Purchase orders will appear here after approved requests are converted or a new PO is created." action={{ href: "/purchase-orders/new", label: "New PO" }} /></TableCell></TableRow> : null}
+                {!orders.rows.length ? <TableRow><TableCell colSpan={8}><EmptyState title={filtered ? "No orders match these filters" : "No purchase orders yet"} description={filtered ? "Reset the filters or widen the search." : "Approved requests and new orders will appear here."} action={filtered ? { href: "/purchase-orders", label: "Reset filters" } : undefined} /></TableCell></TableRow> : null}
               </TableBody>
             </Table>
-          </div>
+            <OperationalList ariaLabel="Purchase orders">
+              {orders.rows.map((order) => <OperationalListRow key={order.id} href={`/purchase-orders/${order.id}`} label={`Open ${order.po_no}`} primary={<DocumentNumber value={order.po_no} size="sm" />} status={<StatusBadge status={order.status} />} secondary={`${order.supplier_name ?? "No supplier"} · ${order.order_date}`} meta={`${order.line_count} items · ${formatCurrency(order.order_total)}`} />)}
+              {!orders.rows.length ? <EmptyState title={filtered ? "No orders match these filters" : "No purchase orders yet"} description={filtered ? "Reset the filters or widen the search." : "Approved requests and new orders will appear here."} action={filtered ? { href: "/purchase-orders", label: "Reset filters" } : undefined} /> : null}
+            </OperationalList>
           </BulkSelectionProvider>
           <PaginationControls page={orders.page} totalPages={orders.totalPages} totalRows={orders.totalRows} searchParams={filters} />
         </div>

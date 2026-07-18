@@ -59,6 +59,6 @@ test("cash flow route has operational entry points, pagination and isolated stat
 
 test("release footer follows the current sprint baseline", () => {
   const version = read("src/lib/app-version.ts");
-  assert.match(version, /APP_VERSION = "0\.2\.35"/);
-  assert.match(version, /APP_SPRINT = "Sprint 7\.23\.2"/);
+  assert.match(version, /APP_VERSION = "0\.2\.36"/);
+  assert.match(version, /APP_SPRINT = "Sprint 7\.23\.3"/);
 });

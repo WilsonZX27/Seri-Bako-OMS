@@ -456,6 +456,17 @@ Pilot operation keeps the validated Sprint 7.4–7.5 shell and responsive contra
 
 Do not introduce random greens, browns, reds, blues, gradients, or decorative colors.
 
+## Sprint 7.23.3 canonical List Mode
+
+High-use operational indexes use one server-rendered structure: compact `PageHeader`, `FilterBar`, result count, semantic desktop `Table`, mobile `OperationalList`, shared `EmptyState`, pagination, and a permission-aware Right Console.
+
+- Filters keep search first, then the most useful status and branch/supplier controls. Less-used inputs live under `FilterBarMore`. Reset is visible only when a query filter is active, and submitting a status-tab view preserves that status.
+- At `xl` and above, the 236px sidebar and persistent Right Console form the desktop shell. At 1024px the sidebar becomes the existing accessible drawer so operational columns are not compressed.
+- From `md` upward, dense semantic tables remain the comparison surface. Identifiers and badges do not wrap; numeric values stay right-aligned; lower-priority columns progressively hide.
+- Below `md`, migrated routes use compact two-tier rows from the same server-loaded, paginated dataset. Each row exposes its identifier, status, decisive metadata, and a full-row link without horizontal scrolling.
+- Empty copy distinguishes an empty dataset from a filtered result. It offers at most one authorized next action. Pagination is absent when the result count is zero.
+- `--sb-muted` aliases the canonical muted surface token; pages must not invent a parallel muted color.
+
 The product visual identity is:
 
 - Deep green operational sidebar

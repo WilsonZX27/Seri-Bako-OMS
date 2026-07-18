@@ -8,12 +8,14 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { SelectNative } from "@/components/ui/select-native";
 import { PageHeader } from "@/components/ui/page-header";
+import { FilterBar, FilterBarMore } from "@/components/ui/filter-bar";
 import { PaginationControls } from "@/components/sortable-table";
 import { StatusTabs } from "@/components/status-tabs";
-import { Table, TableActionLink, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { OperationalList, OperationalListRow, Table, TableActionLink, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { ConsoleSection } from "@/components/layout/right-console";
 import { WorkspaceGrid } from "@/components/layout/workspace-layout";
 import { formatCurrency } from "@/lib/utils";
+import { hasActiveFilters } from "@/lib/table-state";
 import { getPermissionMap } from "@/server/auth/permissions";
 import { getSupplierInvoiceFilterSuppliers, getSupplierInvoices } from "@/server/queries/supplier-invoices";
 
@@ -29,18 +31,19 @@ export default async function SupplierInvoicesPage({ searchParams }: { searchPar
   ]);
   const rows = allInvoices.rows;
   const count = (...items: string[]) => rows.filter((row) => items.includes(row.status)).length;
+  const filtered = hasActiveFilters(filters);
   return (
     <>
       <PageHeader title="Supplier Invoices" description="Track posted GRN invoices and basic AP payments." />
       <WorkspaceGrid
         rightRail={
           <>
-            <ConsoleSection title="Actions">
+            {permissions["supplier_invoice.create"] || permissions["supplier_invoice.pay"] ? <ConsoleSection title="Actions">
               <div className="grid gap-2">
-                {permissions["supplier_invoice.create"] ? <Button asChild size="sm" className="w-full"><Link href="/supplier-invoices/new">New Invoice</Link></Button> : null}
-                {permissions["supplier_invoice.pay"] ? <><Button asChild variant="outline" size="sm" className="w-full"><Link href="/supplier-invoices/aging">AP Aging</Link></Button><Button asChild variant="outline" size="sm" className="w-full"><Link href="/supplier-invoices/cash-flow">Cash Flow Forecast</Link></Button></> : null}
+                {permissions["supplier_invoice.create"] ? <Button asChild size="sm" className="w-full" data-mobile-primary-action><Link href="/supplier-invoices/new">New Invoice</Link></Button> : null}
+                {permissions["supplier_invoice.pay"] ? <><Button asChild variant="outline" size="sm" className="w-full" data-mobile-primary-action={!permissions["supplier_invoice.create"] || undefined}><Link href="/supplier-invoices/aging">AP Aging</Link></Button><Button asChild variant="outline" size="sm" className="w-full"><Link href="/supplier-invoices/cash-flow">Cash Flow Forecast</Link></Button></> : null}
               </div>
-            </ConsoleSection>
+            </ConsoleSection> : null}
             {permissions["supplier_invoice.pay"] ? <ConsoleSection title="AP Summary">
               <div className="grid gap-2 text-xs">
                 <div className="flex justify-between"><span className="text-muted-foreground">Open</span><strong>{count("open", "partially_paid")}</strong></div>
@@ -53,16 +56,14 @@ export default async function SupplierInvoicesPage({ searchParams }: { searchPar
       >
         <div className="overflow-hidden rounded-[2px] border bg-card">
           <StatusTabs statuses={statuses} activeStatus={filters.status} />
-          <form className="sb-list-filters">
+          <FilterBar resultCount={invoices.totalRows} resetHref="/supplier-invoices" filtered={filtered}>
             <Input name="search" defaultValue={filters.search ?? ""} placeholder="Search invoice or supplier" className="md:max-w-sm" />
             <SelectNative name="status" defaultValue={filters.status ?? "all"}><option value="all">All statuses</option>{statuses.map((status) => <option key={status} value={status}>{status.replaceAll("_", " ")}</option>)}</SelectNative>
             <SelectNative name="supplier" defaultValue={filters.supplier ?? "all"}><option value="all">All suppliers</option>{suppliers.map((supplier) => <option key={supplier.id} value={supplier.id}>{supplier.name}</option>)}</SelectNative>
-            <SelectNative name="due" defaultValue={filters.due ?? "all"}><option value="all">All due states</option><option value="overdue">Overdue</option><option value="due_7">Due in 7 days</option><option value="no_due">No due date</option></SelectNative>
+            <FilterBarMore><SelectNative name="due" defaultValue={filters.due ?? "all"}><option value="all">All due states</option><option value="overdue">Overdue</option><option value="due_7">Due in 7 days</option><option value="no_due">No due date</option></SelectNative></FilterBarMore>
             <Button type="submit" variant="secondary">Search</Button>
-            <Button asChild variant="ghost"><a href="?">Reset</a></Button>
-          </form>
-          <div className="overflow-x-auto">
-            <Table>
+          </FilterBar>
+            <Table mobileHidden aria-label="Supplier invoices">
               <TableHeader>
                 <TableRow>
                   <TableHead>Invoice</TableHead>
@@ -94,10 +95,13 @@ export default async function SupplierInvoicesPage({ searchParams }: { searchPar
                     <TableCell className="text-right"><TableActionLink href={`/supplier-invoices/${row.id}`} label={`Open ${row.invoice_no}`}><Pencil className="h-4 w-4" /></TableActionLink></TableCell>
                   </DataGridRow>
                 ))}
-                {!invoices.rows.length ? <TableRow><TableCell colSpan={11}><EmptyState title="No supplier invoices found" description="Supplier invoices will appear here after posted GRNs are invoiced." /></TableCell></TableRow> : null}
+                {!invoices.rows.length ? <TableRow><TableCell colSpan={11}><EmptyState title={filtered ? "No invoices match these filters" : "No invoices require review"} description={filtered ? "Reset the filters or widen the search." : "All current supplier invoices are up to date."} action={filtered ? { href: "/supplier-invoices", label: "Reset filters" } : undefined} /></TableCell></TableRow> : null}
               </TableBody>
             </Table>
-          </div>
+            <OperationalList ariaLabel="Supplier invoices">
+              {invoices.rows.map((row) => <OperationalListRow key={row.id} href={`/supplier-invoices/${row.id}`} label={`Open ${row.invoice_no}`} primary={<DocumentNumber value={row.invoice_no} size="sm" />} status={<StatusBadge status={row.status} />} secondary={`${row.supplier_name ?? "No supplier"} · Due ${row.due_date ?? "—"}`} meta={formatCurrency(row.balance_due)} />)}
+              {!invoices.rows.length ? <EmptyState title={filtered ? "No invoices match these filters" : "No invoices require review"} description={filtered ? "Reset the filters or widen the search." : "All current supplier invoices are up to date."} action={filtered ? { href: "/supplier-invoices", label: "Reset filters" } : undefined} /> : null}
+            </OperationalList>
           <PaginationControls page={invoices.page} totalPages={invoices.totalPages} totalRows={invoices.totalRows} searchParams={filters} />
         </div>
       </WorkspaceGrid>

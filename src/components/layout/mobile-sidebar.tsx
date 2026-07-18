@@ -55,7 +55,7 @@ export function MobileSidebar({ role, permissionMap, companyName, companyLogoUrl
         type="button"
         variant="ghost"
         size="icon"
-        className="mr-2 lg:hidden"
+        className="mr-2 xl:hidden"
         aria-label="Open navigation menu"
         aria-expanded={open}
         onClick={() => setOpen(true)}
@@ -64,7 +64,7 @@ export function MobileSidebar({ role, permissionMap, companyName, companyLogoUrl
       </Button>
 
       {open ? (
-        <div className="fixed inset-0 z-50 lg:hidden">
+        <div className="fixed inset-0 z-50 xl:hidden">
           <button
             type="button"
             className="absolute inset-0 bg-[var(--sb-green-950)]/45"

@@ -46,6 +46,7 @@ export function PaginationControls({
   totalRows: number;
   searchParams: Record<string, string | undefined>;
 }) {
+  if (totalRows === 0) return null;
   return (
     <div className="flex items-center justify-between gap-2 border-t px-3 py-1.5 text-[11px] text-muted-foreground">
       <span className="leading-6">

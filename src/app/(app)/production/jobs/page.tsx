@@ -5,19 +5,22 @@ import { DataGridRow } from "@/components/ui/data-grid-row";
 import { DataGridHint } from "@/components/ui/data-grid-hint";
 import { DocumentNumber } from "@/components/document-number";
 import { EmptyState } from "@/components/ui/empty-state";
+import { FilterBar, FilterBarMore } from "@/components/ui/filter-bar";
 import { PageHeader } from "@/components/ui/page-header";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { SelectNative } from "@/components/ui/select-native";
 import { StatusBadge } from "@/components/ui/status-badge";
-import { Table, TableActionLink, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { OperationalList, OperationalListRow, Table, TableActionLink, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { PaginationControls, SortableHead } from "@/components/sortable-table";
 import { ConsoleSection, RightConsoleMount } from "@/components/layout/right-console";
 import { getBranchesForSelect } from "@/server/queries/common";
 import { getProductionJobs } from "@/server/queries/production-jobs";
+import { hasPermission } from "@/server/auth/permissions";
 import { formatNumber } from "@/lib/utils";
 import { formatStatusLabel } from "@/lib/status-label";
+import { hasActiveFilters } from "@/lib/table-state";
 
 const tabs = [
   ["all", "All"],
@@ -30,7 +33,7 @@ const tabs = [
 
 export default async function ProductionJobsPage({ searchParams }: { searchParams: Promise<Record<string, string | undefined>> }) {
   const filters = await searchParams;
-  const [jobs, allJobs, branches] = await Promise.all([getProductionJobs(filters), getProductionJobs({ page: "all" }), getBranchesForSelect()]);
+  const [jobs, allJobs, branches, canCreate] = await Promise.all([getProductionJobs(filters), getProductionJobs({ page: "all" }), getBranchesForSelect(), hasPermission("production.create")]);
   const selectedStatus = filters.status ?? "all";
   const rows = allJobs.rows;
   const countByStatus = (...values: string[]) => rows.filter((row) => values.includes(row.status)).length;
@@ -42,6 +45,7 @@ export default async function ProductionJobsPage({ searchParams }: { searchParam
     { label: "Posted", value: countByStatus("posted"), href: "/production/jobs?status=posted", active: selectedStatus === "posted", icon: CheckCircle2 },
     { label: "Cancelled", value: countByStatus("cancelled"), href: "/production/jobs?status=cancelled", active: selectedStatus === "cancelled", icon: XCircle },
   ];
+  const filtered = hasActiveFilters(filters);
 
   return (
     <>
@@ -50,11 +54,11 @@ export default async function ProductionJobsPage({ searchParams }: { searchParam
         description="Create, approve, and post recipe-based production without changing stock until posting."
       />
       <RightConsoleMount>
-        <ConsoleSection title="Actions">
-          <Button asChild size="sm" className="w-full">
+        {canCreate ? <ConsoleSection title="Actions">
+          <Button asChild size="sm" className="w-full" data-mobile-primary-action>
             <Link href="/production/jobs/new">New Production Job</Link>
           </Button>
-        </ConsoleSection>
+        </ConsoleSection> : null}
         <ConsoleSection title="Production Summary">
           <div className="grid gap-1.5 text-xs">
             {insights.map((item) => (
@@ -77,20 +81,18 @@ export default async function ProductionJobsPage({ searchParams }: { searchParam
           </div>
 
           <Card>
-            <form className="sb-list-filters">
+            <FilterBar resultCount={jobs.totalRows} resetHref="/production/jobs" filtered={filtered}>
               <Input name="search" defaultValue={filters.search ?? ""} placeholder="Search job no, recipe, output" />
               <SelectNative name="branch_id" defaultValue={filters.branch_id ?? "all"}>
                 <option value="all">All branches</option>
                 {branches.map((branch) => <option key={branch.id} value={branch.id}>{branch.branch_name}</option>)}
               </SelectNative>
-              <Input name="from" type="date" defaultValue={filters.from ?? ""} />
-              <Input name="to" type="date" defaultValue={filters.to ?? ""} />
+              <FilterBarMore><Input name="from" type="date" defaultValue={filters.from ?? ""} /><Input name="to" type="date" defaultValue={filters.to ?? ""} /></FilterBarMore>
               <Button type="submit" variant="secondary">Filter</Button>
               {selectedStatus !== "all" ? <input type="hidden" name="status" value={selectedStatus} /> : null}
-            </form>
+            </FilterBar>
             <DataGridHint text="Pro-tip: Double-click any row to open the production job." />
-            <div className="overflow-x-auto">
-              <Table>
+              <Table mobileHidden aria-label="Production jobs">
                 <TableHeader>
                   <TableRow>
                     <TableHead className="w-20"><BulkSelectAllCheckbox /></TableHead>
@@ -129,13 +131,16 @@ export default async function ProductionJobsPage({ searchParams }: { searchParam
                   {!jobs.rows.length ? (
                     <TableRow>
                       <TableCell colSpan={12}>
-                        <EmptyState title="No production jobs found" description={`No production jobs found for ${formatStatusLabel(selectedStatus)}.`} action={{ href: "/production/jobs/new", label: "New Production Job" }} />
+                        <EmptyState title={filtered ? "No jobs match these filters" : "No production jobs yet"} description={filtered ? `No production jobs match ${formatStatusLabel(selectedStatus)} and the current filters.` : "Production jobs appear after they are created."} action={filtered ? { href: "/production/jobs", label: "Reset filters" } : undefined} />
                       </TableCell>
                     </TableRow>
                   ) : null}
                 </TableBody>
               </Table>
-            </div>
+              <OperationalList ariaLabel="Production jobs">
+                {jobs.rows.map((job) => <OperationalListRow key={job.id} href={`/production/jobs/${job.id}`} label={`Open ${job.production_job_no}`} primary={<DocumentNumber value={job.production_job_no} size="sm" />} status={<StatusBadge status={job.status} />} secondary={`${job.product_name ?? job.recipe_no ?? "No output"} · ${job.production_date}`} meta={`${formatNumber(job.planned_output_qty)} ${job.output_uom}`} />)}
+                {!jobs.rows.length ? <EmptyState title={filtered ? "No jobs match these filters" : "No production jobs yet"} description={filtered ? "Reset the filters or widen the date range." : "Production jobs appear after they are created."} action={filtered ? { href: "/production/jobs", label: "Reset filters" } : undefined} /> : null}
+              </OperationalList>
             <PaginationControls page={jobs.page} totalPages={jobs.totalPages} totalRows={jobs.totalRows} searchParams={filters} />
           </Card>
         </div>

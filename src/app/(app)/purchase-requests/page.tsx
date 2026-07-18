@@ -10,15 +10,18 @@ import { StatusBadge } from "@/components/ui/status-badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { PageHeader } from "@/components/ui/page-header";
+import { FilterBar } from "@/components/ui/filter-bar";
 import { PriorityBadge } from "@/components/priority-badge";
 import { PaginationControls, SortableHead } from "@/components/sortable-table";
 import { SelectNative } from "@/components/ui/select-native";
 import { StatusTabs } from "@/components/status-tabs";
-import { Table, TableActionLink, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { OperationalList, OperationalListRow, Table, TableActionLink, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { ConsoleSection } from "@/components/layout/right-console";
 import { WorkspaceGrid } from "@/components/layout/workspace-layout";
 import { formatCurrency } from "@/lib/utils";
+import { hasActiveFilters } from "@/lib/table-state";
 import { getPurchaseRequestSummary, getPurchaseRequests } from "@/server/queries/procurement";
+import { getPermissionMap } from "@/server/auth/permissions";
 
 const statuses = [
   { value: "draft", label: "Draft" },
@@ -33,7 +36,8 @@ const statuses = [
 
 export default async function PurchaseRequestsPage({ searchParams }: { searchParams: Promise<Record<string, string | undefined>> }) {
   const filters = await searchParams;
-  const [requests, summary] = await Promise.all([getPurchaseRequests(filters), getPurchaseRequestSummary()]);
+  const [requests, summary, permissions] = await Promise.all([getPurchaseRequests(filters), getPurchaseRequestSummary(), getPermissionMap(["pr.create", "pr.view_branch"])]);
+  const filtered = hasActiveFilters(filters);
   return (
     <>
       <PageHeader title="Purchase Requests" description="Create, review, return, and convert branch requests into purchase orders." />
@@ -41,16 +45,12 @@ export default async function PurchaseRequestsPage({ searchParams }: { searchPar
         className="pt-4"
         rightRail={
           <>
-            <ConsoleSection title="Actions">
+            {permissions["pr.create"] || permissions["pr.view_branch"] ? <ConsoleSection title="Actions">
               <div className="grid gap-2">
-                <Button asChild size="sm" className="w-full" data-mobile-primary-action>
-                  <Link href="/purchase-requests/new">New PR</Link>
-                </Button>
-                <Button asChild variant="outline" size="sm" className="w-full">
-                  <Link href="/api/export/purchase-requests">Export CSV</Link>
-                </Button>
+                {permissions["pr.create"] ? <Button asChild size="sm" className="w-full" data-mobile-primary-action><Link href="/purchase-requests/new">New PR</Link></Button> : null}
+                {permissions["pr.view_branch"] ? <Button asChild variant="outline" size="sm" className="w-full" data-mobile-primary-action={!permissions["pr.create"] || undefined}><Link href="/api/export/purchase-requests">Export CSV</Link></Button> : null}
               </div>
-            </ConsoleSection>
+            </ConsoleSection> : null}
             <ConsoleSection title="PR Summary">
               <div className="grid gap-2 text-xs">
                 <div className="flex justify-between"><span className="text-muted-foreground">Total PRs</span><strong>{summary.total}</strong></div>
@@ -64,7 +64,7 @@ export default async function PurchaseRequestsPage({ searchParams }: { searchPar
       >
         <div className="overflow-hidden rounded-[2px] border border-[var(--sb-border-soft)] bg-card">
           <StatusTabs statuses={statuses} activeStatus={filters.status} />
-          <form className="sb-list-filters">
+          <FilterBar resultCount={requests.totalRows} resetHref="/purchase-requests" filtered={filtered}>
             <Input name="search" defaultValue={filters.search ?? ""} placeholder="Search PR no, branch, location, remarks" className="md:max-w-sm" />
             <SelectNative name="priority" defaultValue={filters.priority ?? "all"} className="md:max-w-44">
               <option value="all">All priorities</option>
@@ -73,14 +73,13 @@ export default async function PurchaseRequestsPage({ searchParams }: { searchPar
               <option value="normal">Normal</option>
               <option value="low">Low</option>
             </SelectNative>
+            {filters.status ? <input type="hidden" name="status" value={filters.status} /> : null}
             <Button type="submit">Search</Button>
-            <Button asChild variant="ghost"><a href="?">Reset</a></Button>
-          </form>
+          </FilterBar>
           <BulkSelectionProvider ids={requests.rows.map((request) => request.id)} actionLabel="Delete selected" actionHint="Review selected requests before permanent deletion.">
           <BulkPhaseOneDelete />
           <DataGridHint text="Pro-tip: Double-click any row to open the purchase request." />
-          <div className="overflow-x-auto">
-            <Table>
+            <Table mobileHidden aria-label="Purchase requests">
               <TableHeader>
                 <TableRow>
                   <TableHead className="hidden w-10 md:table-cell"><BulkSelectAllCheckbox /></TableHead>
@@ -116,10 +115,13 @@ export default async function PurchaseRequestsPage({ searchParams }: { searchPar
                     </TableCell>
                   </DataGridRow>
                 ))}
-                {!requests.rows.length ? <TableRow><TableCell colSpan={11}><EmptyState title="No purchase requests found" description="New purchase requests will appear here after staff submit branch needs." action={{ href: "/purchase-requests/new", label: "New PR" }} /></TableCell></TableRow> : null}
+                {!requests.rows.length ? <TableRow><TableCell colSpan={11}><EmptyState title={filtered ? "No requests match these filters" : "No purchase requests yet"} description={filtered ? "Reset the filters or widen the search." : "Purchase requests appear here after branch needs are created."} action={filtered ? { href: "/purchase-requests", label: "Reset filters" } : undefined} /></TableCell></TableRow> : null}
               </TableBody>
             </Table>
-          </div>
+            <OperationalList ariaLabel="Purchase requests">
+              {requests.rows.map((request) => <OperationalListRow key={request.id} href={`/purchase-requests/${request.id}`} label={`Open ${request.request_no}`} primary={<DocumentNumber value={request.request_no} size="sm" />} status={<StatusBadge status={request.status} />} secondary={`${request.branch_name ?? "Unassigned branch"} · ${request.request_date}`} meta={`${request.line_count} items · Needed ${request.needed_by_date ?? "—"}`} />)}
+              {!requests.rows.length ? <EmptyState title={filtered ? "No requests match these filters" : "No purchase requests yet"} description={filtered ? "Reset the filters or widen the search." : "Purchase requests appear here after branch needs are created."} action={filtered ? { href: "/purchase-requests", label: "Reset filters" } : undefined} /> : null}
+            </OperationalList>
           </BulkSelectionProvider>
           <PaginationControls page={requests.page} totalPages={requests.totalPages} totalRows={requests.totalRows} searchParams={filters} />
         </div>

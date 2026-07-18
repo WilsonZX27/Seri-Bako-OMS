@@ -9,23 +9,27 @@ import { StatusBadge } from "@/components/ui/status-badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { PageHeader } from "@/components/ui/page-header";
+import { FilterBar } from "@/components/ui/filter-bar";
 import { PaginationControls, SortableHead } from "@/components/sortable-table";
 import { StatusTabs } from "@/components/status-tabs";
-import { Table, TableActionLink, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { OperationalList, OperationalListRow, Table, TableActionLink, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { ConsoleSection } from "@/components/layout/right-console";
 import { WorkspaceGrid } from "@/components/layout/workspace-layout";
 import { formatNumber } from "@/lib/utils";
+import { hasActiveFilters } from "@/lib/table-state";
 import { getGoodsReceivings } from "@/server/queries/goods-receivings";
+import { hasPermission } from "@/server/auth/permissions";
 
 const statuses = ["draft", "posted", "cancelled"];
 
 export default async function GoodsReceivingsPage({ searchParams }: { searchParams: Promise<Record<string, string | undefined>> }) {
   const filters = await searchParams;
-  const [receivings, allReceivings] = await Promise.all([getGoodsReceivings(filters), getGoodsReceivings({ page: "all" })]);
+  const [receivings, allReceivings, canCreate] = await Promise.all([getGoodsReceivings(filters), getGoodsReceivings({ page: "all" }), hasPermission("grn.create")]);
   const rows = allReceivings.rows;
   const count = (...statuses: string[]) => rows.filter((receiving) => statuses.includes(receiving.status)).length;
   const receivedTotal = rows.reduce((sum, receiving) => sum + receiving.received_total, 0);
   const rejectedTotal = rows.reduce((sum, receiving) => sum + receiving.rejected_total, 0);
+  const filtered = hasActiveFilters(filters);
   return (
     <>
       <PageHeader
@@ -36,7 +40,7 @@ export default async function GoodsReceivingsPage({ searchParams }: { searchPara
         rightRail={
           <>
             <ConsoleSection title="Actions">
-              <Button asChild size="sm" className="w-full"><Link href="/goods-receivings/new">New GRN</Link></Button>
+              {canCreate ? <Button asChild size="sm" className="w-full" data-mobile-primary-action><Link href="/goods-receivings/new">New GRN</Link></Button> : <p className="text-xs text-muted-foreground">Your role has read-only access.</p>}
             </ConsoleSection>
             <ConsoleSection title="GRN Summary">
               <div className="grid gap-2 text-xs">
@@ -56,15 +60,14 @@ export default async function GoodsReceivingsPage({ searchParams }: { searchPara
       >
         <div className="overflow-hidden rounded-[2px] border border-[var(--sb-border-soft)] bg-card">
           <StatusTabs statuses={statuses} activeStatus={filters.status} />
-          <form className="sb-list-filters">
+          <FilterBar resultCount={receivings.totalRows} resetHref="/goods-receivings" filtered={filtered}>
             <Input name="search" defaultValue={filters.search ?? ""} placeholder="Search GRN no, PO, supplier, location" className="md:max-w-sm" />
+            {filters.status ? <input type="hidden" name="status" value={filters.status} /> : null}
             <Button type="submit" variant="secondary">Search</Button>
-            <Button asChild variant="ghost"><a href="?">Reset</a></Button>
-          </form>
+          </FilterBar>
           <BulkSelectionProvider ids={receivings.rows.map((receiving) => receiving.id)} actionLabel="Archive selected" actionHint="Open selected GRNs to post or cancel them through workflow-safe actions. Posted receiving records are never hard deleted.">
           <DataGridHint text="Pro-tip: Double-click any row to open the goods receiving document." />
-          <div className="overflow-x-auto">
-            <Table>
+            <Table mobileHidden aria-label="Goods receiving records">
               <TableHeader>
                 <TableRow>
                   <TableHead className="w-20"><BulkSelectAllCheckbox /></TableHead>
@@ -96,10 +99,13 @@ export default async function GoodsReceivingsPage({ searchParams }: { searchPara
                     <TableCell className="text-right"><TableActionLink href={`/goods-receivings/${receiving.id}`} label={`Open ${receiving.grn_no}`}><Pencil className="h-4 w-4" /></TableActionLink></TableCell>
                   </DataGridRow>
                 ))}
-                {!receivings.rows.length ? <TableRow><TableCell colSpan={9}><EmptyState title="No goods receivings found" description="Receiving records will appear here after supplier deliveries are recorded." /></TableCell></TableRow> : null}
+                {!receivings.rows.length ? <TableRow><TableCell colSpan={9}><EmptyState title={filtered ? "No receivings match these filters" : "No goods receivings yet"} description={filtered ? "Reset the filters or widen the search." : "Supplier deliveries will appear after they are recorded."} action={filtered ? { href: "/goods-receivings", label: "Reset filters" } : undefined} /></TableCell></TableRow> : null}
               </TableBody>
             </Table>
-          </div>
+            <OperationalList ariaLabel="Goods receiving records">
+              {receivings.rows.map((receiving) => <OperationalListRow key={receiving.id} href={`/goods-receivings/${receiving.id}`} label={`Open ${receiving.grn_no}`} primary={<DocumentNumber value={receiving.grn_no} size="sm" />} status={<StatusBadge status={receiving.status} />} secondary={`${receiving.supplier_name ?? "No supplier"} · ${receiving.received_date}`} meta={`${formatNumber(receiving.received_total)} received`} />)}
+              {!receivings.rows.length ? <EmptyState title={filtered ? "No receivings match these filters" : "No goods receivings yet"} description={filtered ? "Reset the filters or widen the search." : "Supplier deliveries will appear after they are recorded."} action={filtered ? { href: "/goods-receivings", label: "Reset filters" } : undefined} /> : null}
+            </OperationalList>
           </BulkSelectionProvider>
           <PaginationControls page={receivings.page} totalPages={receivings.totalPages} totalRows={receivings.totalRows} searchParams={filters} />
         </div>

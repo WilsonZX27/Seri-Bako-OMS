@@ -4,14 +4,16 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { DataGridRow } from "@/components/ui/data-grid-row";
 import { EmptyState } from "@/components/ui/empty-state";
+import { FilterBar, FilterBarMore } from "@/components/ui/filter-bar";
 import { Input } from "@/components/ui/input";
 import { PageHeader } from "@/components/ui/page-header";
 import { SelectNative } from "@/components/ui/select-native";
 import { PaginationControls, SortableHead } from "@/components/sortable-table";
-import { Table, TableActionLink, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { OperationalList, OperationalListRow, Table, TableActionLink, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { ConsoleSection } from "@/components/layout/right-console";
 import { WorkspaceGrid } from "@/components/layout/workspace-layout";
 import { formatCurrency, formatNumber } from "@/lib/utils";
+import { hasActiveFilters } from "@/lib/table-state";
 import { getBranchesForSelect, getItemsForSelect } from "@/server/queries/common";
 import { hasPermission } from "@/server/auth/permissions";
 import { getStockBalanceDetails, getStockLedger } from "@/server/queries/inventory";
@@ -47,16 +49,18 @@ function exportHref(filters: Record<string, string | undefined>) {
 
 export default async function StockTransactionsPage({ searchParams }: { searchParams: Promise<Record<string, string | undefined>> }) {
   const filters = await searchParams;
-  const [ledger, balances, branches, items, canExport] = await Promise.all([
+  const [ledger, balances, branches, items, canExport, canCreate] = await Promise.all([
     getStockLedger(filters),
     getStockBalanceDetails({ ...filters, page: "all" }),
     getBranchesForSelect(),
     getItemsForSelect(),
     hasPermission("stock_ledger.export"),
+    hasPermission("stock_transactions.create"),
   ]);
   const value = balances.rows.reduce((sum, item) => sum + Number(item.inventory_value), 0);
   const inbound = ledger.rows.reduce((sum, row) => sum + Number(row.quantity_in), 0);
   const outbound = ledger.rows.reduce((sum, row) => sum + Number(row.quantity_out), 0);
+  const filtered = hasActiveFilters(filters);
 
   return (
     <>
@@ -67,18 +71,18 @@ export default async function StockTransactionsPage({ searchParams }: { searchPa
       <WorkspaceGrid
         rightRail={
           <>
-            <ConsoleSection title="Actions">
+            {canCreate || canExport ? <ConsoleSection title="Actions">
               <div className="grid gap-2">
-                <Button asChild size="sm" className="w-full">
+                {canCreate ? <Button asChild size="sm" className="w-full" data-mobile-primary-action>
                   <Link href="/stock-transactions/new">New movement</Link>
-                </Button>
+                </Button> : null}
                 {canExport ? (
-                  <Button asChild variant="outline" size="sm" className="w-full">
+                  <Button asChild variant="outline" size="sm" className="w-full" data-mobile-primary-action={!canCreate || undefined}>
                     <Link href={exportHref(filters)}><Download className="h-4 w-4" /> CSV</Link>
                   </Button>
                 ) : null}
               </div>
-            </ConsoleSection>
+            </ConsoleSection> : null}
             <ConsoleSection title="Valuation">
               <div className="grid gap-2 text-xs">
                 <div className="flex justify-between"><span className="text-muted-foreground">Ledger rows</span><strong>{ledger.totalRows}</strong></div>
@@ -92,13 +96,13 @@ export default async function StockTransactionsPage({ searchParams }: { searchPa
         }
       >
         <div className="overflow-hidden rounded-[2px] border border-[var(--sb-border-soft)] bg-card">
-          <form className="sb-list-filters">
+          <FilterBar resultCount={ledger.totalRows} resetHref="/stock-transactions" filtered={filtered}>
             <Input name="search" defaultValue={filters.search ?? ""} placeholder="Item or transaction" />
             <SelectNative name="branch_id" defaultValue={filters.branch_id ?? "all"}>
               <option value="all">All branches</option>
               {branches.map((branch) => <option key={branch.id} value={branch.id}>{branch.branch_name}</option>)}
             </SelectNative>
-            <SelectNative name="item_id" defaultValue={filters.item_id ?? "all"}>
+            <FilterBarMore><SelectNative name="item_id" defaultValue={filters.item_id ?? "all"}>
               <option value="all">All items</option>
               {items.map((item) => <option key={item.id} value={item.id}>{item.item_code}</option>)}
             </SelectNative>
@@ -114,11 +118,10 @@ export default async function StockTransactionsPage({ searchParams }: { searchPa
             <Input name="source" defaultValue={filters.source ?? ""} placeholder="Source/reference" />
             <Input name="from" type="date" defaultValue={filters.from ?? ""} />
             <Input name="to" type="date" defaultValue={filters.to ?? ""} />
+            </FilterBarMore>
             <Button type="submit" variant="secondary">Filter</Button>
-            <Button asChild variant="ghost"><Link href="/stock-transactions">Reset</Link></Button>
-          </form>
-          <div className="overflow-x-auto">
-            <Table>
+          </FilterBar>
+            <Table mobileHidden aria-label="Stock movement ledger">
               <TableHeader>
                 <TableRow>
                   <SortableHead label="Date/time" column="transaction_date" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
@@ -157,13 +160,16 @@ export default async function StockTransactionsPage({ searchParams }: { searchPa
                 {!ledger.rows.length ? (
                   <TableRow>
                     <TableCell colSpan={12}>
-                      <EmptyState title="No ledger movements found" description="Try a wider date range or fewer filters." />
+                      <EmptyState title={filtered ? "No movements match these filters" : "No ledger movements yet"} description={filtered ? "Reset the filters or widen the date range." : "Posted inventory movements will appear here."} action={filtered ? { href: "/stock-transactions", label: "Reset filters" } : undefined} />
                     </TableCell>
                   </TableRow>
                 ) : null}
               </TableBody>
             </Table>
-          </div>
+            <OperationalList ariaLabel="Stock movement ledger">
+              {ledger.rows.map((row) => <OperationalListRow key={row.stock_transaction_id} href={`/stock-transactions/${row.stock_transaction_id}`} label={`Open ${row.transaction_no}`} primary={row.item_name} status={<Badge variant="secondary">{movementLabel(row.transaction_type)}</Badge>} secondary={`${row.item_code} · ${row.transaction_no}`} meta={`${row.quantity_in ? "+" : "−"}${formatNumber(row.quantity_in || row.quantity_out)} ${row.base_unit}`} />)}
+              {!ledger.rows.length ? <EmptyState title={filtered ? "No movements match these filters" : "No ledger movements yet"} description={filtered ? "Reset the filters or widen the date range." : "Posted inventory movements will appear here."} action={filtered ? { href: "/stock-transactions", label: "Reset filters" } : undefined} /> : null}
+            </OperationalList>
           <PaginationControls page={ledger.page} totalPages={ledger.totalPages} totalRows={ledger.totalRows} searchParams={filters} />
         </div>
       </WorkspaceGrid>

@@ -1,12 +1,16 @@
+import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { PageHeader } from "@/components/ui/page-header";
+import { FilterBar, FilterBarMore } from "@/components/ui/filter-bar";
+import { EmptyState } from "@/components/ui/empty-state";
 import { PaginationControls, SortableHead } from "@/components/sortable-table";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { OperationalList, OperationalListRow, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { ConsoleSection } from "@/components/layout/right-console";
 import { WorkspaceGrid } from "@/components/layout/workspace-layout";
 import { formatCurrency, formatNumber } from "@/lib/utils";
+import { hasActiveFilters } from "@/lib/table-state";
 import { getStockBalanceDetails } from "@/server/queries/inventory";
 
 function statusVariant(status: string) {
@@ -22,12 +26,14 @@ export default async function StockBalancePage({ searchParams }: { searchParams:
   const totalValue = balances.rows.reduce((sum, item) => sum + item.inventory_value, 0);
   const lowStock = balances.rows.filter((item) => item.status === "low_stock").length;
   const negative = balances.rows.filter((item) => item.status === "negative").length;
+  const filtered = hasActiveFilters(filters);
   return (
     <>
       <PageHeader title="Stock Balance" description="Calculated from posted Movement Ledger transactions. No direct balance edits." />
       <WorkspaceGrid
         rightRail={
           <>
+            <ConsoleSection title="Actions"><Button asChild size="sm" className="w-full" data-mobile-primary-action><Link href="/stock-transactions">Open Movement Ledger</Link></Button></ConsoleSection>
             <ConsoleSection title="Stock Summary">
               <div className="grid gap-2 text-xs">
                 <div className="flex justify-between"><span className="text-muted-foreground">Rows Shown</span><strong>{balances.rows.length}</strong></div>
@@ -45,16 +51,13 @@ export default async function StockBalancePage({ searchParams }: { searchParams:
         }
       >
         <div className="overflow-hidden rounded-[2px] border border-[var(--sb-border-soft)] bg-card">
-          <form className="sb-list-filters">
+          <FilterBar resultCount={balances.totalRows} resetHref="/stock-balance" filtered={filtered}>
             <Input name="search" defaultValue={filters.search ?? ""} placeholder="Search item, location, status" className="md:max-w-sm" />
             <input type="hidden" name="view" value={filters.view ?? "branch"} />
             <Button type="submit" variant="secondary">Search</Button>
-            <Button asChild variant={isLocationView ? "ghost" : "outline"}><a href="?view=branch">Branch view</a></Button>
-            <Button asChild variant={isLocationView ? "outline" : "ghost"}><a href="?view=location">Location detail</a></Button>
-            <Button asChild variant="ghost"><a href="?view=branch">Reset</a></Button>
-          </form>
-          <div className="overflow-x-auto">
-            <Table>
+            <FilterBarMore label="View"><Button asChild variant={isLocationView ? "ghost" : "outline"}><a href="?view=branch">Branch view</a></Button><Button asChild variant={isLocationView ? "outline" : "ghost"}><a href="?view=location">Location detail</a></Button></FilterBarMore>
+          </FilterBar>
+            <Table mobileHidden aria-label="Stock balances">
               <TableHeader>
                 <TableRow>
                   <TableHead>Image</TableHead>
@@ -89,11 +92,14 @@ export default async function StockBalancePage({ searchParams }: { searchParams:
                   </TableRow>
                 ))}
                 {!balances.rows.length ? (
-                  <TableRow><TableCell colSpan={12} className="text-center text-muted-foreground">No stock balance rows found.</TableCell></TableRow>
+                  <TableRow><TableCell colSpan={12}><EmptyState title={filtered ? "No balances match these filters" : "No stock balances yet"} description={filtered ? "Reset the filters or widen the search." : "Balances appear after posted stock movements."} /></TableCell></TableRow>
                 ) : null}
               </TableBody>
             </Table>
-          </div>
+            <OperationalList ariaLabel="Stock balances">
+              {balances.rows.map((item) => <OperationalListRow key={`${item.item_id}-${item.location_id}`} href={`/stock-transactions?item_id=${item.item_id}`} label={`Open ledger for ${item.item_name}`} primary={item.item_name} status={<Badge variant={statusVariant(item.status)}>{item.status.replaceAll("_", " ")}</Badge>} secondary={`${item.item_code} · ${item.location_name}`} meta={`${formatNumber(item.current_qty)} ${item.base_unit}`} />)}
+              {!balances.rows.length ? <EmptyState title={filtered ? "No balances match these filters" : "No stock balances yet"} description={filtered ? "Reset the filters or widen the search." : "Balances appear after posted stock movements."} action={filtered ? { href: "/stock-balance", label: "Reset filters" } : undefined} /> : null}
+            </OperationalList>
           <PaginationControls page={balances.page} totalPages={balances.totalPages} totalRows={balances.totalRows} searchParams={filters} />
         </div>
       </WorkspaceGrid>

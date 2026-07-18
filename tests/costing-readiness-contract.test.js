@@ -34,7 +34,7 @@ test("Costing Readiness gives clear severity and manual-action guidance", () => 
 });
 
 test("Costing Readiness remains compatible with the current footer and the scoped Outlet Staff seed", () => {
-  assert.match(version, /APP_VERSION = "0\.2\.30"/);
-  assert.match(version, /APP_SPRINT = "Sprint 7\.21\.2"/);
+  assert.match(version, /APP_VERSION = "0\.2\.31"/);
+  assert.match(version, /APP_SPRINT = "Sprint 7\.21\.5"/);
   assert.match(read("supabase/migrations/066_create_outlet_staff_role.sql"), /outlet_staff/);
 });

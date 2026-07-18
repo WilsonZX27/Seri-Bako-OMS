@@ -66,7 +66,7 @@ export async function updateSession(request: NextRequest) {
     return NextResponse.redirect(url);
   }
 
-  if (staff?.status === "invited" && !isPublicRoute) {
+  if (staff?.status === "invited" && !isPublicRoute && !isPasswordChangeRoute) {
     const url = request.nextUrl.clone();
     url.pathname = staff.must_change_password ? "/change-password" : "/set-password";
     return NextResponse.redirect(url);

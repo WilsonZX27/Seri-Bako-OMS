@@ -22,9 +22,9 @@ export default async function ChangePasswordPage({
     redirect("/login?error=Please sign in before changing your password.");
   }
 
-  const { data: staff } = await supabase
+  const { data: staff, error: staffError } = await supabase
     .from("staffs")
-    .select("must_change_password")
+    .select("must_change_password, status")
     .eq("auth_user_id", user.id)
     .maybeSingle();
 
@@ -36,7 +36,20 @@ export default async function ChangePasswordPage({
     );
   }
 
-  if (!staff?.must_change_password) {
+  if (staffError || !staff) {
+    return (
+      <AuthShell title="Account check unavailable" description="We could not verify your staff profile, so no account changes were made.">
+        <p className="rounded-md border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive">
+          Sign out and try again. If this continues, ask an administrator to check that your login is linked to an active staff profile.
+        </p>
+        <form action={signOut} className="mt-3">
+          <SubmitButton type="submit" variant="outline" className="w-full" pendingLabel="Signing out...">Sign out safely</SubmitButton>
+        </form>
+      </AuthShell>
+    );
+  }
+
+  if (!staff.must_change_password) {
     redirect("/dashboard");
   }
 

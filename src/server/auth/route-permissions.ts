@@ -1,4 +1,6 @@
 const exactRoutePermissions: Record<string, string[]> = {
+  "/administration": ["company.read", "staffs.read", "roles.read"],
+  "/settings": ["company.read", "staffs.read", "roles.read"],
   "/reports/costing-readiness": ["reports.view"],
   "/reports/recipe-costing": ["reports.view"],
   "/reports/product-margin": ["reports.view"],

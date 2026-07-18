@@ -5,6 +5,7 @@ import { ConsoleSection } from "@/components/layout/right-console";
 import { Input } from "@/components/ui/input";
 import { SubmitButton } from "@/components/ui/submit-button";
 import { AttachmentUploadForm } from "@/components/documents/attachment-upload-form";
+import { AttachmentRemoveAction } from "@/components/documents/attachment-remove-action";
 import { EmptyAttachmentState, EmptyTimelineState } from "@/components/ui/system-states";
 import { Textarea } from "@/components/ui/textarea";
 import {
@@ -105,12 +106,17 @@ export async function AttachmentPanel({ documentId, attachments }: { documentId:
               </div>
               <div className="grid gap-2">
                 {attachment.storage_path || attachment.file_url ? <div className="grid grid-cols-2 gap-2"><Button asChild variant="outline" size="sm" className="w-full justify-center"><a href={`/api/attachments/${attachment.id}`} target="_blank" rel="noreferrer">View</a></Button><Button asChild variant="outline" size="sm" className="w-full justify-center"><a href={`/api/attachments/${attachment.id}?download=1`}>Download</a></Button></div> : <Button type="button" variant="outline" size="sm" disabled className="w-full justify-center">File unavailable</Button>}
-                {canRemoveAttachments ? <form action={archiveDocumentAttachment.bind(null, documentId, attachment.id)}><SubmitButton variant="ghost" size="sm" pendingLabel="Processing..." className="w-full justify-center">Remove</SubmitButton></form> : null}
+                {canRemoveAttachments ? <AttachmentRemoveAction action={archiveDocumentAttachment.bind(null, documentId, attachment.id)} fileName={attachment.file_name} /> : null}
               </div>
             </div>
           ))}
           {!attachments.length ? <EmptyAttachmentState /> : null}
         </div>
+        {canManageAttachments && attachments.length > 0 && !canRemoveAttachments ? (
+          <p className="rounded-md border bg-secondary/40 p-2 text-xs text-muted-foreground">
+            Attachments are locked after approval or posting to preserve the audit trail. Add the correct file as a new attachment instead.
+          </p>
+        ) : null}
       </div>
     </ConsoleSection>
   );

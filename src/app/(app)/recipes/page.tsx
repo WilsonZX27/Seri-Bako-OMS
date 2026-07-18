@@ -3,6 +3,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { MasterDataFilters } from "@/components/master-data-filters";
 import { PageHeader } from "@/components/ui/page-header";
+import { EmptyState } from "@/components/ui/empty-state";
 import { StatusTabs } from "@/components/status-tabs";
 import { ConsoleSection } from "@/components/layout/right-console";
 import { WorkspaceGrid } from "@/components/layout/workspace-layout";
@@ -73,9 +74,7 @@ export default async function RecipesPage({ searchParams }: { searchParams: Prom
                 ))}
                 {!visibleRecipes.length ? (
                   <TableRow>
-                    <TableCell colSpan={11} className="text-center text-muted-foreground">
-                      No recipes yet.
-                    </TableCell>
+                    <TableCell colSpan={11}><EmptyState title="No matching recipes" description="Clear the filters or create a recipe for an existing finished product." /></TableCell>
                   </TableRow>
                 ) : null}
               </TableBody>

@@ -4,6 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { MasterDataFilters } from "@/components/master-data-filters";
 import { PageHeader } from "@/components/ui/page-header";
+import { EmptyState } from "@/components/ui/empty-state";
 import { PaginationControls, SortableHead } from "@/components/sortable-table";
 import { ConsoleSection } from "@/components/layout/right-console";
 import { WorkspaceGrid } from "@/components/layout/workspace-layout";
@@ -80,9 +81,7 @@ export default async function ProductsPage({
                 ))}
                 {!products.length ? (
                   <TableRow>
-                    <TableCell colSpan={7} className="text-center text-muted-foreground">
-                      No products found.
-                    </TableCell>
+                    <TableCell colSpan={7}><EmptyState title="No matching products" description="Clear the filters or create a finished product to link with recipes and production." /></TableCell>
                   </TableRow>
                 ) : null}
               </TableBody>

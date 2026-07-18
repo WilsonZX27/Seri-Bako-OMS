@@ -1,4 +1,4 @@
-# Static Route Inventory — Sprint 7.21.2
+# Static Route Inventory — Sprint 7.21.5
 
 Inventory date: 2026-07-18. All routes below are discovered from `src/app/(app)`.
 
@@ -13,22 +13,22 @@ Inventory date: 2026-07-18. All routes below are discovered from `src/app/(app)`
 | `/company`, `/branches/**`, `/locations/**`, `/staffs/**`, `/roles/**`, `/document-sequences/**` | Administration | yes | yes | yes | Keep |
 | `/imports`, `/imports/[entity]`, `/administration/imports` | Imports | yes | yes | yes | `/administration/imports` redirects to `/imports` |
 | `/data-onboarding` | Legacy onboarding | mixed / mutating | no | yes | Hide; redirect to `/imports`; retain route for old links only |
-| `/settings`, `/settings/backups` | Settings / backup | mixed | no | yes | Improve; keep only live Company, Staff, Roles, and owner Backup links |
+| `/administration`, `/settings`, `/settings/backups` | Administration / compatibility / backup | yes | yes | yes | `/settings` redirects to the canonical `/administration` hub; backup remains owner-only |
 | `/documents/**` | Documents | yes | indirect | yes | Keep |
 
 Dynamic `/**` entries cover list, new, edit, scan, and detail pages found under the matching route directories. No route was deleted in this sprint.
 
 ## Detailed Routes Needing Review
 
-| Route | Reason for review | Classification in Sprint 7.21.2 | Proposed next action after pilot |
+| Route | Reason for review | Classification in Sprint 7.21.5 | Proposed next action after pilot |
 |---|---|---|---|
 | `/daily-operations` | Static link hub overlaps Dashboard and the Operations sidebar. | Keep | Review usage after pilot; consolidate only if it proves redundant. |
 | `/data-onboarding` | Earlier setup/readiness page included maintenance actions and duplicated the Import workspace. | Hide | Keep the compatibility redirect to `/imports`; remove later only after old links are no longer used. |
 | `/administration/imports` | Duplicate import entry point. | Hide | Keep the compatibility redirect to `/imports`; remove later only after navigation and bookmarks are clean. |
-| `/settings` | Legacy hub previously displayed disabled placeholder cards. | Improve | Retain live Company, Staff, Roles, and owner Backup links; measure whether a dedicated settings hub is still useful. |
+| `/settings` | Legacy hub duplicated the Administration information architecture. | Redirect | Redirect to `/administration`; retain the URL for bookmarks and compatibility. |
 | `/settings/backups` | Owner-only operational export, not a general settings feature. | Improve | Keep owner-only; validate backup retention and restore procedures before commercial go-live. |
 | `/quick-tools` | Older convenience hub may overlap sidebar navigation. | Improve | Measure use during pilot before consolidating it. |
 | `/procurement/purchase-requests` | Compatibility route alongside `/purchase-requests`. | Hide | Keep the redirect for compatibility; remove later after confirming no external links use it. |
 | `/stock-balances` | Compatibility route alongside `/stock-balance`. | Hide | Keep the redirect for compatibility; remove later after confirming no external links use it. |
 
-No route was deleted in Sprint 7.21.2. No unfinished route is exposed in primary navigation. `/data-onboarding` and `/administration/imports` redirect to `/imports`; compatibility routes remain hidden until they can be removed safely.
+No route was deleted in Sprint 7.21.5. No unfinished route is exposed in primary navigation. `/settings` redirects to `/administration`; `/data-onboarding` and `/administration/imports` redirect to `/imports`; compatibility routes remain available until bookmarks can be retired safely.

@@ -1,6 +1,7 @@
 import {
   Activity,
   AlertTriangle,
+  Archive,
   Boxes,
   Building2,
   ClipboardList,
@@ -108,9 +109,10 @@ export const navGroups: NavGroup[] = [
       { href: "/branches", label: "Branches / Outlets", icon: Building2, roles: administratorRoles, permission: "branches.read", keywords: ["branches", "outlets"] },
       { href: "/locations", label: "Locations", icon: MapPin, roles: administratorRoles, permission: "locations.read", keywords: ["storage", "locations"] },
       { href: "/administration/master-data-cleanup", label: "Master Data Cleanup", icon: ListChecks, roles: [...administratorRoles, "manager"], permission: "items.view", keywords: ["master data", "cleanup", "duplicates", "data quality"] },
-      { href: "/roles", label: "Users & Roles", icon: UserCog, roles: administratorRoles, permission: "roles.read", badgeKey: "staffManagement", keywords: ["roles", "permissions", "staff", "users"] },
-      { href: "/staffs", label: "Staff Management", icon: Users, roles: administratorRoles, permission: "staffs.read", badgeKey: "staffManagement", keywords: ["staff", "users", "invite"] },
+      { href: "/staffs", label: "Users & Staff", icon: Users, roles: administratorRoles, permission: "staffs.read", badgeKey: "staffManagement", keywords: ["staff", "users", "invite"] },
+      { href: "/roles", label: "Roles & Permissions", icon: UserCog, roles: administratorRoles, permission: "roles.read", badgeKey: "staffManagement", keywords: ["roles", "permissions", "staff", "users"] },
       { href: "/administration/imports", label: "Import Data", icon: ClipboardList, roles: administratorRoles, permission: "imports.create", keywords: ["import", "csv", "xlsx", "setup"] },
+      { href: "/settings/backups", label: "System Backup", icon: Archive, roles: ["super_admin"], permission: "settings.manage", keywords: ["backup", "export", "restore"] },
     ],
   },
 ];

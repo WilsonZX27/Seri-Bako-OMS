@@ -73,7 +73,14 @@ export function Breadcrumbs() {
   if (!first) return null;
 
   const iaItem = getIaItemForPath(pathname);
-  const iaParent = iaItem ? { label: iaGroupLabels[iaItem.group], href: iaItem.group === "administration" ? "/administration" : `/${iaItem.group}` } : undefined;
+  const canonicalGroupHrefs = {
+    procurement: "/procurement",
+    inventory: "/inventory",
+    administration: "/administration",
+  } as const;
+  const iaParent = iaItem && iaItem.group in canonicalGroupHrefs
+    ? { label: iaGroupLabels[iaItem.group], href: canonicalGroupHrefs[iaItem.group as keyof typeof canonicalGroupHrefs] }
+    : undefined;
   const root = iaItem ? { label: iaItem.label, parent: iaParent } : sectionMap[first];
   const crumbs: Crumb[] = [];
 

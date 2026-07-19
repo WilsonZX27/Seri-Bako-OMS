@@ -9,7 +9,7 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { FilterBar } from "@/components/ui/filter-bar";
 import { Input } from "@/components/ui/input";
 import { PageHeader } from "@/components/ui/page-header";
-import { SelectNative } from "@/components/ui/select-native";
+import { SelectControl } from "@/components/ui/select-control";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { OperationalList, OperationalListRow, Table, TableActionLink, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { formatNumber } from "@/lib/utils";
@@ -35,8 +35,8 @@ export default async function OutletDailyRecordsPage({ searchParams }: { searchP
       <div className="overflow-hidden border bg-card">
         <FilterBar resultCount={data.totalRows} resetHref="/outlet-daily-records" filtered={filtered}>
           <Input name="date" type="date" defaultValue={filters.date ?? ""} aria-label="Record date" />
-          <SelectNative name="branch" defaultValue={filters.branch ?? "all"}><option value="all">All outlets / branches</option>{options.branches.map((branch) => <option key={branch.id} value={branch.id}>{branch.branch_name}</option>)}</SelectNative>
-          <SelectNative name="status" defaultValue={filters.status ?? "all"}><option value="all">All statuses</option>{statuses.map((status) => <option key={status} value={status}>{status.replaceAll("_", " ")}</option>)}</SelectNative>
+          <SelectControl name="branch" defaultValue={filters.branch ?? "all"} ariaLabel="Branch" options={[{ value: "all", label: "All branches" }, ...options.branches.map((branch) => ({ value: branch.id, label: branch.branch_name }))]} />
+          <SelectControl name="status" defaultValue={filters.status ?? "all"} ariaLabel="Status" options={[{ value: "all", label: "All statuses" }, ...statuses.map((status) => ({ value: status, label: status.replaceAll("_", " ") }))]} />
           <Button type="submit" variant="secondary">Search</Button>
         </FilterBar>
         <Table mobileHidden aria-label="Outlet daily records"><TableHeader><TableRow><TableHead>Date</TableHead><TableHead>Outlet</TableHead><TableHead>Status</TableHead><TableHead className="text-right">Received</TableHead><TableHead className="text-right">Wastage</TableHead><TableHead className="text-right">Wastage %</TableHead><TableHead>Submitted By</TableHead><TableHead>Updated</TableHead><TableHead className="w-12 text-right">Action</TableHead></TableRow></TableHeader><TableBody>

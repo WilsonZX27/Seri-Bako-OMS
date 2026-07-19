@@ -54,7 +54,7 @@ export default async function SupplierInvoicesPage({ searchParams }: { searchPar
           </>
         }
       >
-        <div className="overflow-hidden rounded-[2px] border bg-card">
+        <div className="rounded-[2px] border bg-card">
           <StatusTabs statuses={statuses} activeStatus={filters.status} />
           <FilterBar resultCount={invoices.totalRows} resetHref="/supplier-invoices" filtered={filtered}>
             <Input name="search" defaultValue={filters.search ?? ""} placeholder="Search invoice or supplier" className="md:max-w-sm" />

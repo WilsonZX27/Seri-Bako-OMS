@@ -10,11 +10,12 @@ import { MasterDataFilters } from "@/components/master-data-filters";
 import { PageHeader } from "@/components/ui/page-header";
 import { PaginationControls, SortableHead } from "@/components/sortable-table";
 import { StatusTabs } from "@/components/status-tabs";
-import { Table, TableActionLink, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { OperationalList, OperationalListRow, Table, TableActionLink, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { ConsoleSection } from "@/components/layout/right-console";
 import { WorkspaceGrid } from "@/components/layout/workspace-layout";
 import { hasActiveFilters } from "@/lib/table-state";
 import { getSuppliers } from "@/server/queries/suppliers";
+import { getPermissionMap } from "@/server/auth/permissions";
 
 export default async function SuppliersPage({
   searchParams,
@@ -22,22 +23,24 @@ export default async function SuppliersPage({
   searchParams: Promise<Record<string, string | undefined>>;
 }) {
   const filters = await searchParams;
-  const page = await getSuppliers(filters);
+  const [page, permissions] = await Promise.all([getSuppliers(filters), getPermissionMap(["suppliers.create", "suppliers.manage", "imports.run"])]);
   const filtered = hasActiveFilters(filters);
+  const canCreate = permissions["suppliers.create"];
+  const emptyAction = filtered ? { href: "/suppliers", label: "Reset filters" } : canCreate ? { href: "/suppliers/new", label: "New supplier" } : undefined;
 
   return (
     <>
-      <PageHeader title="Suppliers" />
+      <PageHeader title="Suppliers" description="Supplier identity, contacts, terms, and purchasing availability." />
       <WorkspaceGrid
         rightRail={
           <>
-            <ConsoleSection title="Actions">
+            {canCreate || permissions["suppliers.manage"] || permissions["imports.run"] ? <ConsoleSection title="Actions">
               <div className="grid gap-2">
-                <Button asChild size="sm" className="w-full"><Link href="/suppliers/new">New supplier</Link></Button>
-                <Button asChild variant="outline" size="sm" className="w-full"><Link href="/api/export/suppliers">Export CSV</Link></Button>
-                <Button asChild variant="outline" size="sm" className="w-full"><Link href="/imports/suppliers">Import suppliers</Link></Button>
+                {canCreate ? <Button asChild size="sm" className="w-full" data-mobile-primary-action><Link href="/suppliers/new">New supplier</Link></Button> : null}
+                {permissions["suppliers.manage"] ? <Button asChild variant="outline" size="sm" className="w-full"><Link href="/api/export/suppliers">Export CSV</Link></Button> : null}
+                {permissions["imports.run"] ? <Button asChild variant="outline" size="sm" className="w-full"><Link href="/imports/suppliers">Import suppliers</Link></Button> : null}
               </div>
-            </ConsoleSection>
+            </ConsoleSection> : null}
             <ConsoleSection title="Supplier Summary">
               <div className="grid gap-2 text-xs">
                 <div className="flex justify-between"><span className="text-muted-foreground">Matching Suppliers</span><strong>{page.totalRows}</strong></div>
@@ -49,10 +52,10 @@ export default async function SuppliersPage({
         {filters.success ? <div className="border border-[var(--sb-success)] bg-[var(--sb-success-bg)] p-3 text-sm text-[var(--sb-success)]">{filters.success}</div> : null}
         <div className="overflow-hidden rounded-[2px] border bg-card">
           <StatusTabs statuses={[{ value: "active", label: "Active" }, { value: "inactive", label: "Inactive" }]} activeStatus={filters.status} />
-          <MasterDataFilters search={filters.search} status={filters.status} placeholder="Search supplier code, name, contact, phone, email" />
+          <MasterDataFilters search={filters.search} status={filters.status} placeholder="Search supplier code, name, contact, phone, email" resultCount={page.totalRows} filtered={filtered} resetHref="/suppliers" />
           <BulkSelectionProvider ids={page.rows.map((supplier) => supplier.id)} actionLabel="Deactivate selected" actionHint="Deactivate suppliers only when they should no longer be used for purchasing.">
           <DataGridHint text="Pro-tip: Double-click any row to open the supplier." />
-          <Table>
+          <Table mobileHidden aria-label="Suppliers">
             <TableHeader>
               <TableRow>
                 <TableHead className="w-16"><BulkSelectAllCheckbox /></TableHead>
@@ -90,13 +93,17 @@ export default async function SuppliersPage({
                     <EmptyState
                       title={filtered ? "No records match these filters" : "No suppliers yet"}
                       description={filtered ? "Clear filters or widen the search to see more suppliers." : "Suppliers will appear here after they are created or imported."}
-                      action={filtered ? { href: "/suppliers", label: "Clear filters" } : { href: "/suppliers/new", label: "New supplier" }}
+                      action={emptyAction}
                     />
                   </TableCell>
                 </TableRow>
               ) : null}
             </TableBody>
           </Table>
+          <OperationalList ariaLabel="Suppliers">
+            {page.rows.map((supplier) => <OperationalListRow key={supplier.id} href={`/suppliers/${supplier.id}`} label={`Open ${supplier.name}`} primary={supplier.name} status={<Badge variant={supplier.status === "active" ? "success" : "secondary"}>{supplier.status}</Badge>} secondary={`${supplier.supplier_code ?? "No code"} · ${supplier.contact_person ?? "No contact"}`} meta={supplier.payment_terms_days ? `${supplier.payment_terms_days} days` : undefined} />)}
+            {!page.rows.length ? <EmptyState title={filtered ? "No suppliers match these filters" : "No suppliers yet"} description={filtered ? "Reset the filters or widen the search." : "Suppliers appear after they are created or imported."} action={emptyAction} /> : null}
+          </OperationalList>
           </BulkSelectionProvider>
           <PaginationControls page={page.page} totalPages={page.totalPages} totalRows={page.totalRows} searchParams={filters} />
         </div>

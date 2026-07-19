@@ -1,6 +1,7 @@
 import { isMockMode, mockItems, mockProductPackaging, mockProducts, mockRecipeCostSnapshots, mockRecipeLines, mockRecipes } from "@/lib/mock-mode";
 import { createClient } from "@/lib/supabase/server";
 import { requirePermission } from "@/server/auth/permissions";
+import { sortProductsForDisplay } from "@/lib/product-order";
 import type { Database } from "@/types/database";
 
 type RecipeRow = Database["public"]["Tables"]["recipes"]["Row"];
@@ -25,6 +26,7 @@ export type RecipeLineDetail = RecipeLineRow & {
 export type RecipeDetail = RecipeRow & {
   product_code: string;
   product_name: string;
+  display_order: number | null;
   product_image_url: string | null;
   selling_unit: string;
   packaging: ProductPackagingRow[];
@@ -112,6 +114,7 @@ function buildRecipeDetail(
     remarks: recipe.remarks ?? recipe.remark,
     product_code: product?.product_code ?? "Unknown",
     product_name: product?.product_name ?? "Unknown product",
+    display_order: product?.display_order ?? null,
     product_image_url: product?.product_image_url ?? null,
     selling_unit: product?.selling_unit ?? recipe.yield_unit,
     packaging,
@@ -129,7 +132,7 @@ function buildRecipeDetail(
 export async function getRecipes() {
   await requirePermission("recipes.view");
   if (isMockMode()) {
-    return mockRecipes.map((recipe) => buildRecipeDetail(recipe, mockProducts, mockRecipeLines, mockItems, mockProductPackaging, mockRecipeCostSnapshots));
+    return sortProductsForDisplay(mockRecipes.map((recipe) => buildRecipeDetail(recipe, mockProducts, mockRecipeLines, mockItems, mockProductPackaging, mockRecipeCostSnapshots)));
   }
 
   const supabase = await createClient();
@@ -147,9 +150,9 @@ export async function getRecipes() {
     if (result.error) throw new Error(result.error.message);
   }
 
-  return (recipes.data ?? []).map((recipe) =>
+  return sortProductsForDisplay((recipes.data ?? []).map((recipe) =>
     buildRecipeDetail(recipe, products.data ?? [], lines.data ?? [], items.data ?? [], packaging.data ?? [], snapshots.data ?? [], stockBalances.data ?? []),
-  );
+  ));
 }
 
 export async function getRecipe(id: string) {

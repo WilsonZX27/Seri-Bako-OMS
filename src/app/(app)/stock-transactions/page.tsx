@@ -7,7 +7,7 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { FilterBar, FilterBarMore } from "@/components/ui/filter-bar";
 import { Input } from "@/components/ui/input";
 import { PageHeader } from "@/components/ui/page-header";
-import { SelectNative } from "@/components/ui/select-native";
+import { SelectControl } from "@/components/ui/select-control";
 import { PaginationControls, SortableHead } from "@/components/sortable-table";
 import { OperationalList, OperationalListRow, Table, TableActionLink, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { ConsoleSection } from "@/components/layout/right-console";
@@ -95,26 +95,13 @@ export default async function StockTransactionsPage({ searchParams }: { searchPa
           </>
         }
       >
-        <div className="overflow-hidden rounded-[2px] border border-[var(--sb-border-soft)] bg-card">
+        <div className="rounded-[2px] border border-[var(--sb-border-soft)] bg-card">
           <FilterBar resultCount={ledger.totalRows} resetHref="/stock-transactions" filtered={filtered}>
             <Input name="search" defaultValue={filters.search ?? ""} placeholder="Item or transaction" />
-            <SelectNative name="branch_id" defaultValue={filters.branch_id ?? "all"}>
-              <option value="all">All branches</option>
-              {branches.map((branch) => <option key={branch.id} value={branch.id}>{branch.branch_name}</option>)}
-            </SelectNative>
-            <FilterBarMore activeCount={[filters.item_id && filters.item_id !== "all", filters.type && filters.type !== "all", filters.direction && filters.direction !== "all", filters.source, filters.from, filters.to].filter(Boolean).length} resetHref="/stock-transactions"><SelectNative name="item_id" defaultValue={filters.item_id ?? "all"}>
-              <option value="all">All items</option>
-              {items.map((item) => <option key={item.id} value={item.id}>{item.item_code}</option>)}
-            </SelectNative>
-            <SelectNative name="type" defaultValue={filters.type ?? "all"}>
-              <option value="all">All types</option>
-              {transactionTypes.map((type) => <option key={type.value} value={type.value}>{type.label}</option>)}
-            </SelectNative>
-            <SelectNative name="direction" defaultValue={filters.direction ?? "all"}>
-              <option value="all">In and out</option>
-              <option value="inbound">Inbound</option>
-              <option value="outbound">Outbound</option>
-            </SelectNative>
+            <SelectControl name="branch_id" defaultValue={filters.branch_id ?? "all"} ariaLabel="Branch" options={[{ value: "all", label: "All branches" }, ...branches.map((branch) => ({ value: branch.id, label: branch.branch_name }))]} />
+            <FilterBarMore activeCount={[filters.item_id && filters.item_id !== "all", filters.type && filters.type !== "all", filters.direction && filters.direction !== "all", filters.source, filters.from, filters.to].filter(Boolean).length} resetHref="/stock-transactions"><SelectControl name="item_id" defaultValue={filters.item_id ?? "all"} ariaLabel="Item" options={[{ value: "all", label: "All items" }, ...items.map((item) => ({ value: item.id, label: item.item_code }))]} />
+            <SelectControl name="type" defaultValue={filters.type ?? "all"} ariaLabel="Movement type" options={[{ value: "all", label: "All types" }, ...transactionTypes]} />
+            <SelectControl name="direction" defaultValue={filters.direction ?? "all"} ariaLabel="Movement direction" options={[{ value: "all", label: "In and out" }, { value: "inbound", label: "Inbound" }, { value: "outbound", label: "Outbound" }]} />
             <Input name="source" defaultValue={filters.source ?? ""} placeholder="Source/reference" />
             <Input name="from" type="date" defaultValue={filters.from ?? ""} />
             <Input name="to" type="date" defaultValue={filters.to ?? ""} />
@@ -124,8 +111,8 @@ export default async function StockTransactionsPage({ searchParams }: { searchPa
             <Table mobileHidden aria-label="Stock movement ledger">
               <TableHeader>
                 <TableRow>
-                  <SortableHead label="Date/time" column="transaction_date" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
                   <SortableHead label="Transaction No" column="transaction_no" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
+                  <SortableHead label="Date/time" column="transaction_date" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
                   <SortableHead label="Type" column="transaction_type" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
                   <TableHead>Item</TableHead>
                   <TableHead>Branch</TableHead>
@@ -141,8 +128,8 @@ export default async function StockTransactionsPage({ searchParams }: { searchPa
               <TableBody>
                 {ledger.rows.map((row) => (
                   <DataGridRow key={row.stock_transaction_id} href={`/stock-transactions/${row.stock_transaction_id}`}>
-                    <TableCell>{row.transaction_date}</TableCell>
                     <TableCell className="font-medium">{row.transaction_no}</TableCell>
+                    <TableCell>{row.transaction_date}</TableCell>
                     <TableCell><Badge variant="secondary">{movementLabel(row.transaction_type)}</Badge></TableCell>
                     <TableCell className="font-medium">{row.item_code}<p className="text-xs text-muted-foreground">{row.item_name}</p></TableCell>
                     <TableCell>{row.branch_name ?? "-"}</TableCell>

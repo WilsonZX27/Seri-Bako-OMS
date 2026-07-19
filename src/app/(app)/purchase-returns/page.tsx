@@ -7,21 +7,26 @@ import { StatusBadge } from "@/components/ui/status-badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { PageHeader } from "@/components/ui/page-header";
+import { FilterBar } from "@/components/ui/filter-bar";
 import { PaginationControls } from "@/components/sortable-table";
 import { StatusTabs } from "@/components/status-tabs";
-import { Table, TableActionLink, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { OperationalList, OperationalListRow, Table, TableActionLink, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { ConsoleSection } from "@/components/layout/right-console";
 import { WorkspaceGrid } from "@/components/layout/workspace-layout";
 import { formatCurrency, formatNumber } from "@/lib/utils";
+import { hasActiveFilters } from "@/lib/table-state";
 import { getPurchaseReturns } from "@/server/queries/purchase-returns";
+import { hasPermission } from "@/server/auth/permissions";
 
 const statuses = ["draft", "posted", "cancelled"];
 
 export default async function PurchaseReturnsPage({ searchParams }: { searchParams: Promise<Record<string, string | undefined>> }) {
   const filters = await searchParams;
-  const [returns, allReturns] = await Promise.all([getPurchaseReturns(filters), getPurchaseReturns({ page: "all" })]);
+  const [returns, allReturns, canCreate] = await Promise.all([getPurchaseReturns(filters), getPurchaseReturns({ page: "all" }), hasPermission("purchase_return.create")]);
   const rows = allReturns.rows;
   const count = (...items: string[]) => rows.filter((row) => items.includes(row.status)).length;
+  const filtered = hasActiveFilters(filters);
+  const emptyAction = filtered ? { href: "/purchase-returns", label: "Reset filters" } : canCreate ? { href: "/purchase-returns/new", label: "New Return" } : undefined;
   return (
     <>
       <PageHeader title="Purchase Returns" description="Return posted supplier receipts and deduct stock once posted." />
@@ -29,9 +34,9 @@ export default async function PurchaseReturnsPage({ searchParams }: { searchPara
         rightRail={
             <>
               <ConsoleSection title="Actions">
-                <Button asChild className="w-full" data-mobile-primary-action>
+                {canCreate ? <Button asChild className="w-full" data-mobile-primary-action>
                   <Link href="/purchase-returns/new">New Return</Link>
-                </Button>
+                </Button> : <p className="text-xs text-muted-foreground">Your role has read-only access.</p>}
               </ConsoleSection>
               <ConsoleSection title="Return Summary">
                 <div className="grid gap-2 text-xs">
@@ -46,13 +51,12 @@ export default async function PurchaseReturnsPage({ searchParams }: { searchPara
       >
         <div className="overflow-hidden rounded-[2px] border bg-card">
           <StatusTabs statuses={statuses} activeStatus={filters.status} />
-          <form className="sb-list-filters">
+          <FilterBar resultCount={returns.totalRows} resetHref="/purchase-returns" filtered={filtered}>
             <Input name="search" defaultValue={filters.search ?? ""} placeholder="Search return, GRN, PO, supplier" className="md:max-w-sm" />
-            <Button type="submit" variant="secondary">Search</Button>
-            <Button asChild variant="ghost"><a href="?">Reset</a></Button>
-          </form>
-          <div className="overflow-x-auto">
-            <Table>
+            {filters.status ? <input type="hidden" name="status" value={filters.status} /> : null}
+            <Button type="submit">Search</Button>
+          </FilterBar>
+            <Table mobileHidden aria-label="Purchase returns">
               <TableHeader>
                 <TableRow>
                   <TableHead>Return No</TableHead>
@@ -78,10 +82,13 @@ export default async function PurchaseReturnsPage({ searchParams }: { searchPara
                     <TableCell className="text-right"><TableActionLink href={`/purchase-returns/${row.id}`} label={`Open ${row.purchase_return_no}`}><Pencil className="h-4 w-4" /></TableActionLink></TableCell>
                   </DataGridRow>
                 ))}
-                {!returns.rows.length ? <TableRow><TableCell colSpan={8}><EmptyState title="No purchase returns found" description="Supplier returns will appear here after posted GRNs are returned." /></TableCell></TableRow> : null}
+                {!returns.rows.length ? <TableRow><TableCell colSpan={8}><EmptyState title={filtered ? "No returns match these filters" : "No purchase returns yet"} description={filtered ? "Reset the filters or widen the search." : "Supplier returns appear after a posted receiving is returned."} action={emptyAction} /></TableCell></TableRow> : null}
               </TableBody>
             </Table>
-          </div>
+          <OperationalList ariaLabel="Purchase returns">
+            {returns.rows.map((row) => <OperationalListRow key={row.id} href={`/purchase-returns/${row.id}`} label={`Open ${row.purchase_return_no}`} primary={<DocumentNumber value={row.purchase_return_no} size="sm" />} status={<StatusBadge status={row.status} />} secondary={`${row.supplier_name ?? "No supplier"} · ${row.grn_no ?? "No GRN"}`} meta={`${formatNumber(row.return_total)} returned`} />)}
+            {!returns.rows.length ? <EmptyState title={filtered ? "No returns match these filters" : "No purchase returns yet"} description={filtered ? "Reset the filters or widen the search." : "Supplier returns appear after a posted receiving is returned."} action={emptyAction} /> : null}
+          </OperationalList>
           <PaginationControls page={returns.page} totalPages={returns.totalPages} totalRows={returns.totalRows} searchParams={filters} />
         </div>
       </WorkspaceGrid>

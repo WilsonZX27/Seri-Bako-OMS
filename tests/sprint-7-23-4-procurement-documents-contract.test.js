@@ -53,6 +53,6 @@ test("PO preparation and shared attachments expose stage-specific evidence", () 
 
 test("release identifies Sprint 7.23.5", () => {
   const version = source("src/lib/app-version.ts");
-  assert.match(version, /APP_VERSION = "7\.23\.5\.3"/);
-  assert.match(version, /APP_SPRINT = "v7\.23\.5\.3"/);
+  assert.match(version, /APP_VERSION = "7\.23\.5\.4"/);
+  assert.match(version, /APP_SPRINT = "v7\.23\.5\.4"/);
 });

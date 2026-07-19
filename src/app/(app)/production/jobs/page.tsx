@@ -10,7 +10,7 @@ import { PageHeader } from "@/components/ui/page-header";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { SelectNative } from "@/components/ui/select-native";
+import { SelectControl } from "@/components/ui/select-control";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { OperationalList, OperationalListRow, Table, TableActionLink, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { PaginationControls, SortableHead } from "@/components/sortable-table";
@@ -83,10 +83,7 @@ export default async function ProductionJobsPage({ searchParams }: { searchParam
           <Card>
             <FilterBar resultCount={jobs.totalRows} resetHref="/production/jobs" filtered={filtered}>
               <Input name="search" defaultValue={filters.search ?? ""} placeholder="Search job no, recipe, output" />
-              <SelectNative name="branch_id" defaultValue={filters.branch_id ?? "all"}>
-                <option value="all">All branches</option>
-                {branches.map((branch) => <option key={branch.id} value={branch.id}>{branch.branch_name}</option>)}
-              </SelectNative>
+              <SelectControl name="branch_id" defaultValue={filters.branch_id ?? "all"} ariaLabel="Branch" options={[{ value: "all", label: "All branches" }, ...branches.map((branch) => ({ value: branch.id, label: branch.branch_name }))]} />
               <FilterBarMore activeCount={Number(Boolean(filters.from)) + Number(Boolean(filters.to))} resetHref="/production/jobs"><Input name="from" type="date" defaultValue={filters.from ?? ""} /><Input name="to" type="date" defaultValue={filters.to ?? ""} /></FilterBarMore>
               <Button type="submit" variant="secondary">Filter</Button>
               {selectedStatus !== "all" ? <input type="hidden" name="status" value={selectedStatus} /> : null}

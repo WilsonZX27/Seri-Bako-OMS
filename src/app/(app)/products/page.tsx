@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Package } from "lucide-react";
+import { Pencil } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { MasterDataFilters } from "@/components/master-data-filters";
@@ -8,9 +8,10 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { PaginationControls, SortableHead } from "@/components/sortable-table";
 import { ConsoleSection } from "@/components/layout/right-console";
 import { WorkspaceGrid } from "@/components/layout/workspace-layout";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { paginateRows } from "@/lib/table-state";
+import { OperationalList, OperationalListRow, Table, TableActionLink, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { hasActiveFilters, paginateRows } from "@/lib/table-state";
 import { getProducts } from "@/server/queries/products";
+import { getPermissionMap } from "@/server/auth/permissions";
 
 export default async function ProductsPage({
   searchParams,
@@ -18,9 +19,12 @@ export default async function ProductsPage({
   searchParams: Promise<Record<string, string | undefined>>;
 }) {
   const filters = await searchParams;
-  const [products, allProducts] = await Promise.all([getProducts(filters), getProducts()]);
+  const [products, allProducts, permissions] = await Promise.all([getProducts(filters), getProducts(), getPermissionMap(["production.create", "imports.run"])]);
   const productsPage = paginateRows(products, filters.page);
   const categories = Array.from(new Set(allProducts.map((product) => product.category))).sort();
+  const filtered = hasActiveFilters(filters);
+  const canCreate = permissions["production.create"];
+  const emptyAction = filtered ? { href: "/products", label: "Reset filters" } : canCreate ? { href: "/products/new", label: "New product" } : undefined;
 
   return (
     <>
@@ -28,41 +32,32 @@ export default async function ProductsPage({
         title="Products"
         description="Finished goods master data for future recipe and production modules."
       />
-      <WorkspaceGrid rightRail={<ConsoleSection title="Actions"><div className="grid gap-2"><Button asChild className="w-full" data-mobile-primary-action><Link href="/products/new">New product</Link></Button><Button asChild variant="outline" className="w-full"><Link href="/imports/products">Import products</Link></Button></div></ConsoleSection>}>
-        <div className="overflow-hidden rounded-lg border bg-card">
+      <WorkspaceGrid rightRail={<>{canCreate || permissions["imports.run"] ? <ConsoleSection title="Actions"><div className="grid gap-2">{canCreate ? <Button asChild className="w-full" data-mobile-primary-action><Link href="/products/new">New product</Link></Button> : null}{permissions["imports.run"] ? <Button asChild variant="outline" className="w-full"><Link href="/imports/products">Import products</Link></Button> : null}</div></ConsoleSection> : null}<ConsoleSection title="Product Summary"><dl className="grid gap-2 text-xs"><div className="flex justify-between"><dt className="text-muted-foreground">Matching</dt><dd className="font-semibold">{productsPage.totalRows}</dd></div><div className="flex justify-between"><dt className="text-muted-foreground">Active</dt><dd className="font-semibold">{allProducts.filter((product) => product.status === "active").length}</dd></div></dl></ConsoleSection></>}>
+        <div className="overflow-hidden rounded-[2px] border bg-card">
           <MasterDataFilters
             search={filters.search}
             status={filters.status}
             category={filters.category}
             placeholder="Search product code, name, category"
             categories={categories}
+            resultCount={productsPage.totalRows}
+            filtered={filtered}
+            resetHref="/products"
           />
-          <div className="overflow-x-auto">
-            <Table>
+            <Table mobileHidden aria-label="Products">
               <TableHeader>
                 <TableRow>
-                  <TableHead>Image</TableHead>
                   <SortableHead label="Product Code" column="product_code" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
                   <SortableHead label="Product Name" column="product_name" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
                   <SortableHead label="Category" column="category" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
                   <SortableHead label="Selling Unit" column="selling_unit" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
                   <SortableHead label="Status" column="status" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
-                  <TableHead className="w-36 text-right">Actions</TableHead>
+                  <TableHead className="w-12 text-right">Action</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {productsPage.rows.map((product) => (
                   <TableRow key={product.id}>
-                    <TableCell>
-                      {product.product_image_url ? (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img src={product.product_image_url} alt={product.product_name} className="h-10 w-10 rounded-md border object-cover" />
-                      ) : (
-                        <div className="flex h-10 w-10 items-center justify-center rounded-md border bg-secondary text-muted-foreground">
-                          <Package className="h-4 w-4" />
-                        </div>
-                      )}
-                    </TableCell>
                     <TableCell>{product.product_code}</TableCell>
                     <TableCell className="font-medium">{product.product_name}</TableCell>
                     <TableCell>{product.category}</TableCell>
@@ -70,23 +65,20 @@ export default async function ProductsPage({
                     <TableCell>
                       <Badge variant={product.status === "active" ? "success" : "secondary"}>{product.status}</Badge>
                     </TableCell>
-                    <TableCell>
-                      <div className="flex justify-end gap-2">
-                        <Button asChild variant="outline" size="sm">
-                          <Link href={`/products/${product.id}`}>Edit</Link>
-                        </Button>
-                      </div>
-                    </TableCell>
+                    <TableCell className="text-right"><TableActionLink href={`/products/${product.id}`} label={`Open ${product.product_name}`}><Pencil className="h-4 w-4" /></TableActionLink></TableCell>
                   </TableRow>
                 ))}
-                {!products.length ? (
+                {!productsPage.rows.length ? (
                   <TableRow>
-                    <TableCell colSpan={7}><EmptyState title="No matching products" description="Clear the filters or create a finished product to link with recipes and production." /></TableCell>
+                    <TableCell colSpan={6}><EmptyState title={filtered ? "No products match these filters" : "No products yet"} description={filtered ? "Reset the filters or widen the search." : "Products appear after finished goods are created or imported."} action={emptyAction} /></TableCell>
                   </TableRow>
                 ) : null}
               </TableBody>
             </Table>
-          </div>
+          <OperationalList ariaLabel="Products">
+            {productsPage.rows.map((product) => <OperationalListRow key={product.id} href={`/products/${product.id}`} label={`Open ${product.product_name}`} primary={product.product_name} status={<Badge variant={product.status === "active" ? "success" : "secondary"}>{product.status}</Badge>} secondary={`${product.product_code} · ${product.category}`} meta={product.selling_unit} />)}
+            {!productsPage.rows.length ? <EmptyState title={filtered ? "No products match these filters" : "No products yet"} description={filtered ? "Reset the filters or widen the search." : "Products appear after finished goods are created or imported."} action={emptyAction} /> : null}
+          </OperationalList>
           <PaginationControls page={productsPage.page} totalPages={productsPage.totalPages} totalRows={productsPage.totalRows} searchParams={filters} />
         </div>
       </WorkspaceGrid>

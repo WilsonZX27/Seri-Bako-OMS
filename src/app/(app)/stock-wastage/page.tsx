@@ -1,57 +1,48 @@
 import Link from "next/link";
-import { CheckCircle2, ClipboardCheck, Pencil, FileText, XCircle } from "lucide-react";
+import { Pencil } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { DataGridHint } from "@/components/ui/data-grid-hint";
 import { DataGridRow } from "@/components/ui/data-grid-row";
 import { EmptyState } from "@/components/ui/empty-state";
+import { FilterBar } from "@/components/ui/filter-bar";
 import { Input } from "@/components/ui/input";
 import { PageHeader } from "@/components/ui/page-header";
-import { SelectNative } from "@/components/ui/select-native";
+import { SelectControl } from "@/components/ui/select-control";
 import { PaginationControls } from "@/components/sortable-table";
-import { ConsoleSection, RightConsoleMount } from "@/components/layout/right-console";
+import { ConsoleSection } from "@/components/layout/right-console";
+import { WorkspaceGrid } from "@/components/layout/workspace-layout";
 import { StatusTabs } from "@/components/status-tabs";
 import { StatusBadge } from "@/components/ui/status-badge";
-import { Table, TableActionLink, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { OperationalList, OperationalListRow, Table, TableActionLink, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { hasActiveFilters } from "@/lib/table-state";
 import { wastageReasons } from "@/lib/validations/stock-operations";
+import { hasPermission } from "@/server/auth/permissions";
 import { getStockWastage } from "@/server/queries/stock-operations";
 
 const statuses = ["draft", "submitted", "approved", "posted", "rejected", "cancelled"];
 
 export default async function StockWastagePage({ searchParams }: { searchParams: Promise<Record<string, string | undefined>> }) {
   const filters = await searchParams;
-  const [data, allData] = await Promise.all([getStockWastage(filters), getStockWastage({ page: "all" })]);
+  const [data, allData, canCreate] = await Promise.all([getStockWastage(filters), getStockWastage({ page: "all" }), hasPermission("stock_wastage.create")]);
   const rows = allData.rows;
-  const countByStatus = (...values: string[]) => rows.filter((row) => values.includes(row.status)).length;
-  const insights = [
-    { label: "Total", value: rows.length, href: "/stock-wastage", active: !filters.status, icon: FileText },
-    { label: "Draft", value: countByStatus("draft"), href: "/stock-wastage?status=draft", active: filters.status === "draft", icon: FileText },
-    { label: "In Review", value: countByStatus("submitted"), href: "/stock-wastage?status=submitted", active: filters.status === "submitted", icon: ClipboardCheck },
-    { label: "Approved", value: countByStatus("approved"), href: "/stock-wastage?status=approved", active: filters.status === "approved", icon: CheckCircle2 },
-    { label: "Posted", value: countByStatus("posted"), href: "/stock-wastage?status=posted", active: filters.status === "posted", icon: CheckCircle2 },
-    { label: "Rejected/Cancelled", value: countByStatus("rejected", "cancelled"), href: "/stock-wastage?status=rejected", active: filters.status === "rejected", icon: XCircle },
-  ];
-  return (
-    <><PageHeader title="Stock Wastage" description="Record expired, damaged, missing, or abnormal stock loss." />
-    <RightConsoleMount>
-      <ConsoleSection title="Actions">
-        <Button asChild size="sm" className="w-full"><Link href="/stock-wastage/new">New Wastage</Link></Button>
-      </ConsoleSection>
-      <ConsoleSection title="Wastage Summary">
-        <div className="grid gap-1.5 text-xs">
-          {insights.map((item) => (
-            <div key={item.label} className="flex justify-between px-1 py-0.5">
-              <span className={item.active ? "font-semibold text-foreground" : "text-muted-foreground"}>{item.label}</span>
-              <strong>{item.value}</strong>
-            </div>
-          ))}
-        </div>
-      </ConsoleSection>
-    </RightConsoleMount>
-    <div className="space-y-4 p-5"><div className="overflow-hidden rounded-[2px] border border-[var(--sb-border-soft)] bg-card"><StatusTabs statuses={statuses} activeStatus={filters.status} />
-      <form className="sb-list-filters"><Input name="search" defaultValue={filters.search ?? ""} placeholder="Search wastage no, reason, branch" /><SelectNative name="reason" defaultValue={filters.reason ?? "all"}><option value="all">All reasons</option>{wastageReasons.map((r) => <option key={r} value={r}>{r.replaceAll("_", " ")}</option>)}</SelectNative><Button variant="secondary">Filter</Button><Button asChild variant="ghost"><Link href="/stock-wastage">Reset</Link></Button></form>
-      <DataGridHint text="Pro-tip: Double-click any row to open the wastage document." />
-      <Table><TableHeader><TableRow><TableHead>No</TableHead><TableHead>Date</TableHead><TableHead>Branch</TableHead><TableHead>Reason</TableHead><TableHead>Status</TableHead><TableHead className="text-right">Lines</TableHead><TableHead className="w-12 text-right">Action</TableHead></TableRow></TableHeader><TableBody>{data.rows.map((row) => <DataGridRow key={row.id} href={`/stock-wastage/${row.id}`}><TableCell className="font-medium">{row.wastage_no}</TableCell><TableCell>{row.wastage_date}</TableCell><TableCell>{row.branch_name ?? "-"}</TableCell><TableCell>{row.reason.replaceAll("_", " ")}</TableCell><TableCell><StatusBadge status={row.status} /></TableCell><TableCell className="text-right">{row.line_count}</TableCell><TableCell className="text-right"><TableActionLink href={`/stock-wastage/${row.id}`} label={`Open ${row.wastage_no}`}><Pencil className="h-4 w-4" /></TableActionLink></TableCell></DataGridRow>)}{!data.rows.length ? <TableRow><TableCell colSpan={7}><EmptyState title="No wastage found" description="Wastage documents will appear here after damaged, expired, missing, or claimable stock is reported." action={{ href: "/stock-wastage/new", label: "New Wastage" }} /></TableCell></TableRow> : null}</TableBody></Table>
-      <PaginationControls page={data.page} totalPages={data.totalPages} totalRows={data.totalRows} searchParams={filters} />
-    </div></div></>
-  );
+  const count = (...values: string[]) => rows.filter((row) => values.includes(row.status)).length;
+  const filtered = hasActiveFilters(filters);
+  const emptyAction = filtered ? { href: "/stock-wastage", label: "Reset filters" } : canCreate ? { href: "/stock-wastage/new", label: "New Wastage" } : undefined;
+
+  return <>
+    <PageHeader title="Stock Wastage" description="Record expired, damaged, missing, or abnormal stock loss." />
+    <WorkspaceGrid rightRail={<>
+      <ConsoleSection title="Actions">{canCreate ? <Button asChild className="w-full" data-mobile-primary-action><Link href="/stock-wastage/new">New Wastage</Link></Button> : <p className="text-xs text-muted-foreground">Your role has read-only access.</p>}</ConsoleSection>
+      <ConsoleSection title="Wastage Summary"><dl className="grid gap-2 text-xs"><div className="flex justify-between"><dt className="text-muted-foreground">Total</dt><dd className="font-semibold">{rows.length}</dd></div><div className="flex justify-between"><dt className="text-muted-foreground">In review</dt><dd className="font-semibold">{count("submitted", "approved")}</dd></div><div className="flex justify-between"><dt className="text-muted-foreground">Posted</dt><dd className="font-semibold">{count("posted")}</dd></div></dl></ConsoleSection>
+    </>}>
+      <div className="overflow-hidden rounded-[2px] border bg-card">
+        <StatusTabs statuses={statuses} activeStatus={filters.status} />
+        <FilterBar resultCount={data.totalRows} resetHref="/stock-wastage" filtered={filtered}><Input name="search" defaultValue={filters.search ?? ""} placeholder="Search wastage no, reason, branch" /><SelectControl name="reason" defaultValue={filters.reason ?? "all"} ariaLabel="Reason" options={[{ value: "all", label: "All reasons" }, ...wastageReasons.map((reason) => ({ value: reason, label: reason.replaceAll("_", " ") }))]} />{filters.status ? <input type="hidden" name="status" value={filters.status} /> : null}<Button type="submit">Search</Button></FilterBar>
+        <DataGridHint text="Pro-tip: Double-click any row to open the wastage document." />
+        <Table mobileHidden aria-label="Stock wastage"><TableHeader><TableRow><TableHead>No</TableHead><TableHead>Date</TableHead><TableHead>Branch</TableHead><TableHead>Reason</TableHead><TableHead>Status</TableHead><TableHead className="text-right">Lines</TableHead><TableHead className="w-12 text-right">Action</TableHead></TableRow></TableHeader><TableBody>{data.rows.map((row) => <DataGridRow key={row.id} href={`/stock-wastage/${row.id}`}><TableCell className="font-medium">{row.wastage_no}</TableCell><TableCell>{row.wastage_date}</TableCell><TableCell>{row.branch_name ?? "-"}</TableCell><TableCell>{row.reason.replaceAll("_", " ")}</TableCell><TableCell><StatusBadge status={row.status} /></TableCell><TableCell className="text-right">{row.line_count}</TableCell><TableCell className="text-right"><TableActionLink href={`/stock-wastage/${row.id}`} label={`Open ${row.wastage_no}`}><Pencil className="h-4 w-4" /></TableActionLink></TableCell></DataGridRow>)}{!data.rows.length ? <TableRow><TableCell colSpan={7}><EmptyState title={filtered ? "No wastage matches these filters" : "No stock wastage yet"} description={filtered ? "Reset the filters or widen the search." : "Wastage appears after a permitted user records an operational loss."} action={emptyAction} /></TableCell></TableRow> : null}</TableBody></Table>
+        <OperationalList ariaLabel="Stock wastage">{data.rows.map((row) => <OperationalListRow key={row.id} href={`/stock-wastage/${row.id}`} label={`Open ${row.wastage_no}`} primary={row.wastage_no} status={<StatusBadge status={row.status} />} secondary={`${row.branch_name ?? "Unknown branch"} · ${row.reason.replaceAll("_", " ")}`} meta={row.wastage_date} />)}{!data.rows.length ? <EmptyState title={filtered ? "No wastage matches these filters" : "No stock wastage yet"} description={filtered ? "Reset the filters or widen the search." : "Wastage appears after a permitted user records an operational loss."} action={emptyAction} /> : null}</OperationalList>
+        <PaginationControls page={data.page} totalPages={data.totalPages} totalRows={data.totalRows} searchParams={filters} />
+      </div>
+    </WorkspaceGrid>
+  </>;
 }

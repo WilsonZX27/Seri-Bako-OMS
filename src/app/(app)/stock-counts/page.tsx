@@ -1,17 +1,21 @@
 import Link from "next/link";
-import { CheckCircle2, ClipboardCheck, Pencil, FileText, XCircle } from "lucide-react";
+import { Pencil } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { DataGridHint } from "@/components/ui/data-grid-hint";
 import { DataGridRow } from "@/components/ui/data-grid-row";
 import { EmptyState } from "@/components/ui/empty-state";
+import { FilterBar, FilterBarMore } from "@/components/ui/filter-bar";
 import { Input } from "@/components/ui/input";
 import { PageHeader } from "@/components/ui/page-header";
-import { SelectNative } from "@/components/ui/select-native";
+import { SelectControl } from "@/components/ui/select-control";
 import { PaginationControls, SortableHead } from "@/components/sortable-table";
-import { ConsoleSection, RightConsoleMount } from "@/components/layout/right-console";
+import { ConsoleSection } from "@/components/layout/right-console";
+import { WorkspaceGrid } from "@/components/layout/workspace-layout";
 import { StatusTabs } from "@/components/status-tabs";
 import { StatusBadge } from "@/components/ui/status-badge";
-import { Table, TableActionLink, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { OperationalList, OperationalListRow, Table, TableActionLink, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { hasActiveFilters } from "@/lib/table-state";
+import { hasPermission } from "@/server/auth/permissions";
 import { getBranchesForSelect } from "@/server/queries/common";
 import { getStockCounts } from "@/server/queries/stock-counts";
 
@@ -19,87 +23,32 @@ const statuses = ["draft", "submitted", "reviewed", "approved", "posted", "rejec
 
 export default async function StockCountsPage({ searchParams }: { searchParams: Promise<Record<string, string | undefined>> }) {
   const filters = await searchParams;
-  const [counts, allCounts, branches] = await Promise.all([getStockCounts(filters), getStockCounts({ page: "all" }), getBranchesForSelect()]);
+  const [counts, allCounts, branches, canCreate] = await Promise.all([getStockCounts(filters), getStockCounts({ page: "all" }), getBranchesForSelect(), hasPermission("stock_count.create")]);
   const rows = allCounts.rows;
-  const countByStatus = (...values: string[]) => rows.filter((row) => values.includes(row.status)).length;
-  const insights = [
-    { label: "Total", value: rows.length, href: "/stock-counts", active: !filters.status, icon: FileText },
-    { label: "Draft", value: countByStatus("draft"), href: "/stock-counts?status=draft", active: filters.status === "draft", icon: FileText },
-    { label: "In Review", value: countByStatus("submitted", "reviewed"), href: "/stock-counts?status=submitted", active: filters.status === "submitted", icon: ClipboardCheck },
-    { label: "Approved", value: countByStatus("approved"), href: "/stock-counts?status=approved", active: filters.status === "approved", icon: CheckCircle2 },
-    { label: "Posted", value: countByStatus("posted"), href: "/stock-counts?status=posted", active: filters.status === "posted", icon: CheckCircle2 },
-    { label: "Rejected/Cancelled", value: countByStatus("rejected", "cancelled"), href: "/stock-counts?status=rejected", active: filters.status === "rejected", icon: XCircle },
-  ];
-  return (
-    <>
-      <PageHeader title="Stock Counts" description="Daily physical counts compared against theoretical stock." />
-      <RightConsoleMount>
-        <ConsoleSection title="Actions">
-          <Button asChild size="sm" className="w-full">
-            <Link href="/stock-counts/new">New Stock Count</Link>
-          </Button>
-        </ConsoleSection>
-        <ConsoleSection title="Stock Count Summary">
-          <div className="grid gap-1.5 text-xs">
-            {insights.map((item) => (
-              <div key={item.label} className="flex justify-between gap-3 px-1 py-0.5">
-                <span className={item.active ? "font-semibold text-foreground" : "text-muted-foreground"}>{item.label}</span>
-                <strong>{item.value}</strong>
-              </div>
-            ))}
-          </div>
-        </ConsoleSection>
-        <ConsoleSection title="Help">
-          <p className="text-xs text-muted-foreground">Counts compare physical stock against system balance.</p>
-        </ConsoleSection>
-      </RightConsoleMount>
-      <div className="space-y-4 p-5">
-        <div className="overflow-hidden rounded-[2px] border border-[var(--sb-border-soft)] bg-card">
-          <StatusTabs statuses={statuses} activeStatus={filters.status} />
-          <form className="sb-list-filters">
-            <Input name="search" defaultValue={filters.search ?? ""} placeholder="Search count no, branch, remarks" />
-            <SelectNative name="branch_id" defaultValue={filters.branch_id ?? "all"}>
-              <option value="all">All branches</option>
-              {branches.map((branch) => <option key={branch.id} value={branch.id}>{branch.branch_name}</option>)}
-            </SelectNative>
-            <Input name="from" type="date" defaultValue={filters.from ?? ""} />
-            <Input name="to" type="date" defaultValue={filters.to ?? ""} />
-            <Button type="submit" variant="secondary">Filter</Button>
-            <Button asChild variant="ghost"><Link href="/stock-counts">Reset</Link></Button>
-          </form>
-          <DataGridHint text="Pro-tip: Double-click any row to open the stock count." />
-          <div className="overflow-x-auto">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <SortableHead label="Count No" column="count_no" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
-                  <SortableHead label="Date" column="count_date" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
-                  <TableHead>Branch</TableHead>
-                  <SortableHead label="Status" column="status" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
-                  <TableHead className="text-right">Lines</TableHead>
-                  <TableHead className="text-right">High Variance</TableHead>
-                  <TableHead className="w-12 text-right">Action</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {counts.rows.map((count) => (
-                  <DataGridRow key={count.id} href={`/stock-counts/${count.id}`}>
-                    <TableCell className="font-medium">{count.count_no}</TableCell>
-                    <TableCell>{count.count_date}</TableCell>
-                    <TableCell>{count.branch_name ?? "-"}</TableCell>
-                    <TableCell><StatusBadge status={count.status} /></TableCell>
-                    <TableCell className="text-right">{count.line_count}</TableCell>
-                    <TableCell className="text-right">{count.high_variance_count}</TableCell>
-                    <TableCell className="text-right"><TableActionLink href={`/stock-counts/${count.id}`} label={`Open ${count.count_no}`}><Pencil className="h-4 w-4" /></TableActionLink></TableCell>
-                  </DataGridRow>
-                ))}
-                {!counts.rows.length ? <TableRow><TableCell colSpan={7}><EmptyState title="No stock counts found" description="Branch stock counts will appear here after kitchen users start a count." action={{ href: "/stock-counts/new", label: "New Count" }} /></TableCell></TableRow> : null}
-              </TableBody>
-            </Table>
-          </div>
-          <PaginationControls page={counts.page} totalPages={counts.totalPages} totalRows={counts.totalRows} searchParams={filters} />
-        </div>
+  const count = (...values: string[]) => rows.filter((row) => values.includes(row.status)).length;
+  const filtered = hasActiveFilters(filters);
+  const emptyAction = filtered ? { href: "/stock-counts", label: "Reset filters" } : canCreate ? { href: "/stock-counts/new", label: "New Count" } : undefined;
+
+  return <>
+    <PageHeader title="Stock Counts" description="Physical counts compared against calculated branch stock." />
+    <WorkspaceGrid rightRail={<>
+      <ConsoleSection title="Actions">{canCreate ? <Button asChild className="w-full" data-mobile-primary-action><Link href="/stock-counts/new">New Stock Count</Link></Button> : <p className="text-xs text-muted-foreground">Your role has read-only access.</p>}</ConsoleSection>
+      <ConsoleSection title="Stock Count Summary"><dl className="grid gap-2 text-xs"><div className="flex justify-between"><dt className="text-muted-foreground">Total</dt><dd className="font-semibold">{rows.length}</dd></div><div className="flex justify-between"><dt className="text-muted-foreground">In review</dt><dd className="font-semibold">{count("submitted", "reviewed")}</dd></div><div className="flex justify-between"><dt className="text-muted-foreground">Posted</dt><dd className="font-semibold">{count("posted")}</dd></div></dl></ConsoleSection>
+    </>}>
+      <div className="rounded-[2px] border bg-card">
+        <StatusTabs statuses={statuses} activeStatus={filters.status} />
+        <FilterBar resultCount={counts.totalRows} resetHref="/stock-counts" filtered={filtered}>
+          <Input name="search" defaultValue={filters.search ?? ""} placeholder="Search count no, branch, remarks" />
+          <SelectControl name="branch_id" defaultValue={filters.branch_id ?? "all"} ariaLabel="Branch" options={[{ value: "all", label: "All branches" }, ...branches.map((branch) => ({ value: branch.id, label: branch.branch_name }))]} />
+          <FilterBarMore activeCount={Number(Boolean(filters.from)) + Number(Boolean(filters.to))} resetHref="/stock-counts"><Input name="from" type="date" defaultValue={filters.from ?? ""} aria-label="From date" /><Input name="to" type="date" defaultValue={filters.to ?? ""} aria-label="To date" /></FilterBarMore>
+          {filters.status ? <input type="hidden" name="status" value={filters.status} /> : null}<Button type="submit">Search</Button>
+        </FilterBar>
+        <DataGridHint text="Pro-tip: Double-click any row to open the stock count." />
+        <Table mobileHidden aria-label="Stock counts"><TableHeader><TableRow><SortableHead label="Count No" column="count_no" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} /><SortableHead label="Date" column="count_date" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} /><TableHead>Branch</TableHead><SortableHead label="Status" column="status" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} /><TableHead className="text-right">Lines</TableHead><TableHead className="text-right">High Variance</TableHead><TableHead className="w-12 text-right">Action</TableHead></TableRow></TableHeader>
+          <TableBody>{counts.rows.map((row) => <DataGridRow key={row.id} href={`/stock-counts/${row.id}`}><TableCell className="font-medium">{row.count_no}</TableCell><TableCell>{row.count_date}</TableCell><TableCell>{row.branch_name ?? "-"}</TableCell><TableCell><StatusBadge status={row.status} /></TableCell><TableCell className="text-right">{row.line_count}</TableCell><TableCell className="text-right">{row.high_variance_count}</TableCell><TableCell className="text-right"><TableActionLink href={`/stock-counts/${row.id}`} label={`Open ${row.count_no}`}><Pencil className="h-4 w-4" /></TableActionLink></TableCell></DataGridRow>)}{!counts.rows.length ? <TableRow><TableCell colSpan={7}><EmptyState title={filtered ? "No counts match these filters" : "No stock counts yet"} description={filtered ? "Reset the filters or widen the date range." : "Counts appear after a permitted user starts a branch stock count."} action={emptyAction} /></TableCell></TableRow> : null}</TableBody></Table>
+        <OperationalList ariaLabel="Stock counts">{counts.rows.map((row) => <OperationalListRow key={row.id} href={`/stock-counts/${row.id}`} label={`Open ${row.count_no}`} primary={row.count_no} status={<StatusBadge status={row.status} />} secondary={`${row.branch_name ?? "Unknown branch"} · ${row.count_date}`} meta={`${row.line_count} lines`} />)}{!counts.rows.length ? <EmptyState title={filtered ? "No counts match these filters" : "No stock counts yet"} description={filtered ? "Reset the filters or widen the date range." : "Counts appear after a permitted user starts a branch stock count."} action={emptyAction} /> : null}</OperationalList>
+        <PaginationControls page={counts.page} totalPages={counts.totalPages} totalRows={counts.totalRows} searchParams={filters} />
       </div>
-    </>
-  );
+    </WorkspaceGrid>
+  </>;
 }

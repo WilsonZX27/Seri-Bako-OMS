@@ -54,9 +54,10 @@ export function MasterDataFilters({
             {suppliers.map((row) => <option key={row.id} value={row.id}>{row.name}</option>)}
           </SelectNative>
         ) : null}
-        {categories.length || showStockFilters ? <FilterBarMore>
+        {categories.length && !showStockFilters ? <SelectNative name="category" defaultValue={category}><option value="all">All categories</option>{categories.map((row) => <option key={row} value={row}>{row}</option>)}</SelectNative> : null}
+        {showStockFilters ? <FilterBarMore activeCount={[categories.length && category !== "all", stockControl !== "all", lowStock !== "all"].filter(Boolean).length} resetHref={resetHref}>
           {categories.length ? <SelectNative name="category" defaultValue={category}><option value="all">All categories</option>{categories.map((row) => <option key={row} value={row}>{row}</option>)}</SelectNative> : null}
-          {showStockFilters ? <>
+          <>
           <SelectNative name="stock_control" defaultValue={stockControl}>
             <option value="all">All stock control</option>
             <option value="with_safety_stock">With safety stock</option>
@@ -67,7 +68,7 @@ export function MasterDataFilters({
             <option value="yes">Low stock only</option>
             <option value="no">Healthy stock only</option>
           </SelectNative>
-          </> : null}
+          </>
         </FilterBarMore> : null}
         <Button type="submit">
           Search

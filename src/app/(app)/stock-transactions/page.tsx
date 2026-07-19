@@ -102,7 +102,7 @@ export default async function StockTransactionsPage({ searchParams }: { searchPa
               <option value="all">All branches</option>
               {branches.map((branch) => <option key={branch.id} value={branch.id}>{branch.branch_name}</option>)}
             </SelectNative>
-            <FilterBarMore><SelectNative name="item_id" defaultValue={filters.item_id ?? "all"}>
+            <FilterBarMore activeCount={[filters.item_id && filters.item_id !== "all", filters.type && filters.type !== "all", filters.direction && filters.direction !== "all", filters.source, filters.from, filters.to].filter(Boolean).length} resetHref="/stock-transactions"><SelectNative name="item_id" defaultValue={filters.item_id ?? "all"}>
               <option value="all">All items</option>
               {items.map((item) => <option key={item.id} value={item.id}>{item.item_code}</option>)}
             </SelectNative>

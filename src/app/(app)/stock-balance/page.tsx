@@ -3,7 +3,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { PageHeader } from "@/components/ui/page-header";
-import { FilterBar, FilterBarMore } from "@/components/ui/filter-bar";
+import { FilterBar } from "@/components/ui/filter-bar";
 import { EmptyState } from "@/components/ui/empty-state";
 import { PaginationControls, SortableHead } from "@/components/sortable-table";
 import { OperationalList, OperationalListRow, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -55,7 +55,7 @@ export default async function StockBalancePage({ searchParams }: { searchParams:
             <Input name="search" defaultValue={filters.search ?? ""} placeholder="Search item, location, status" className="md:max-w-sm" />
             <input type="hidden" name="view" value={filters.view ?? "branch"} />
             <Button type="submit" variant="secondary">Search</Button>
-            <FilterBarMore label="View"><Button asChild variant={isLocationView ? "ghost" : "outline"}><a href="?view=branch">Branch view</a></Button><Button asChild variant={isLocationView ? "outline" : "ghost"}><a href="?view=location">Location detail</a></Button></FilterBarMore>
+            <Button asChild variant={isLocationView ? "ghost" : "outline"}><a href="?view=branch">Branch view</a></Button><Button asChild variant={isLocationView ? "outline" : "ghost"}><a href="?view=location">Location detail</a></Button>
           </FilterBar>
             <Table mobileHidden aria-label="Stock balances">
               <TableHeader>

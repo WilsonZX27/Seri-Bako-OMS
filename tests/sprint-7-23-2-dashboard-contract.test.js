@@ -16,10 +16,10 @@ test("dashboard composition is all-role, task-first, and finance-gated", () => {
   assert.doesNotMatch(view, /Backup|role management|document sequence/i);
 });
 
-test("migration 072 grants Finance read union without owner or purchasing mutations", () => {
+test("migration 072 grants Finance read union without Manager Review or purchasing mutations", () => {
   const sql = read("supabase/migrations/072_finance_operational_visibility.sql");
   assert.match(sql, /r\.role_code = 'finance'/);
-  assert.match(sql, /'pr\.manager_approve'/);
+  assert.doesNotMatch(sql, /'pr\.manager_approve'/);
   assert.match(sql, /permission_code = 'dashboard\.view'[\s\S]*'super_admin', 'finance', 'manager', 'purchasing', 'kitchen', 'outlet_staff'/);
   assert.match(sql, /purchase_request_self_approval_guard/);
   assert.doesNotMatch(sql, /'po\.create'|'po\.send'|'items\.create'|'suppliers\.manage'|'settings\.manage'|'roles\.update'/);
@@ -29,7 +29,7 @@ test("migration 072 grants Finance read union without owner or purchasing mutati
 test("fallback permission matrix mirrors the database capability hierarchy", () => {
   const permissions = read("src/server/auth/permissions.ts");
   const finance = permissions.match(/finance: \[([^\]]+)\]/s)?.[1] ?? "";
-  assert.match(finance, /"pr\.manager_approve"/);
+  assert.doesNotMatch(finance, /"pr\.manager_approve"/);
   assert.match(finance, /"production\.view"/);
   assert.match(finance, /"supplier_invoice\.pay"/);
   assert.doesNotMatch(finance, /"settings\.manage"|"po\.create"|"items\.create"/);

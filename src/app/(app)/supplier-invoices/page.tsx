@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { SelectNative } from "@/components/ui/select-native";
 import { PageHeader } from "@/components/ui/page-header";
-import { FilterBar, FilterBarMore } from "@/components/ui/filter-bar";
+import { FilterBar } from "@/components/ui/filter-bar";
 import { PaginationControls } from "@/components/sortable-table";
 import { StatusTabs } from "@/components/status-tabs";
 import { OperationalList, OperationalListRow, Table, TableActionLink, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -60,7 +60,7 @@ export default async function SupplierInvoicesPage({ searchParams }: { searchPar
             <Input name="search" defaultValue={filters.search ?? ""} placeholder="Search invoice or supplier" className="md:max-w-sm" />
             <SelectNative name="status" defaultValue={filters.status ?? "all"}><option value="all">All statuses</option>{statuses.map((status) => <option key={status} value={status}>{status.replaceAll("_", " ")}</option>)}</SelectNative>
             <SelectNative name="supplier" defaultValue={filters.supplier ?? "all"}><option value="all">All suppliers</option>{suppliers.map((supplier) => <option key={supplier.id} value={supplier.id}>{supplier.name}</option>)}</SelectNative>
-            <FilterBarMore><SelectNative name="due" defaultValue={filters.due ?? "all"}><option value="all">All due states</option><option value="overdue">Overdue</option><option value="due_7">Due in 7 days</option><option value="no_due">No due date</option></SelectNative></FilterBarMore>
+            <SelectNative name="due" defaultValue={filters.due ?? "all"}><option value="all">All due states</option><option value="overdue">Overdue</option><option value="due_7">Due in 7 days</option><option value="no_due">No due date</option></SelectNative>
             <Button type="submit" variant="secondary">Search</Button>
           </FilterBar>
             <Table mobileHidden aria-label="Supplier invoices">

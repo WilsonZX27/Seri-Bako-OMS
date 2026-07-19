@@ -6,6 +6,7 @@ import { DocumentActionBar, DocumentActionForm } from "@/components/document-act
 import { DocumentNumber } from "@/components/document-number";
 import { AttachmentPanel, CommentsPanel, DocumentTimeline, RevisionPanel } from "@/components/documents/document-panels";
 import { DocumentSideSection, DocumentWorkspace } from "@/components/documents/document-workspace";
+import { DocumentMoreOptions, MobileTaskSheet } from "@/components/documents/mobile-document-surfaces";
 import { StaleWorkflowRefresh } from "@/components/documents/stale-workflow-refresh";
 import { PriorityBadge } from "@/components/priority-badge";
 import { SubmitButton } from "@/components/ui/submit-button";
@@ -79,14 +80,17 @@ export default async function PurchaseRequestDetailPage({
   const branch = branches.find((row) => row.id === request.branch_id);
   const total = lines.reduce((sum, line) => sum + line.qty * line.estimated_unit_cost, 0);
   const canViewCommercial = permissions["pr.view_all"] && !["kitchen", "kitchen_staff"].includes(String(profile?.role_code ?? "").toLowerCase());
+  const roleCode = String(profile?.role_code ?? "").toLowerCase();
+  const isFinance = roleCode === "finance";
+  const canManageDeletion = roleCode === "super_admin";
   const canSubmit = isStatus(request.status, "draft", "rejected", "returned") && permissions["pr.submit"];
   const canCancel = request.status === "draft" && permissions["pr.cancel"];
-  const canManagerReview = request.status === "manager_review" && permissions["pr.manager_approve"];
+  const canManagerReview = request.status === "manager_review" && permissions["pr.manager_approve"] && !isFinance;
   const canAdminReview = request.status === "admin_review" && permissions["pr.admin_review"];
   const canFinanceReview = request.status === "finance_review" && permissions["pr.finance_review"];
   const canConvert = request.status === "ready_to_convert" && permissions["pr.convert_to_po"];
   const canReject =
-    (request.status === "manager_review" && (permissions["pr.manager_approve"] || permissions["pr.reject"])) ||
+    (request.status === "manager_review" && !isFinance && (permissions["pr.manager_approve"] || permissions["pr.reject"])) ||
     (request.status === "admin_review" && (permissions["pr.admin_review"] || permissions["pr.reject"])) ||
     (request.status === "finance_review" && (permissions["pr.finance_review"] || permissions["pr.reject"]));
   const hasPrimaryAction =
@@ -95,8 +99,19 @@ export default async function PurchaseRequestDetailPage({
     canAdminReview ||
     canFinanceReview ||
     canConvert ||
-    (request.status === "converted_to_po" && linkedPurchaseOrders.length > 0) ||
     canReject;
+  const deleteControl = canManageDeletion ? (deletePreview?.eligible ? <DangerConfirmForm action={hardDeletePhaseOne.bind(null, "purchase_request", request.id)} title={`Permanently delete ${request.request_no}?`} description="This cannot be undone. Purchase request lines will be removed; the document number will remain consumed." warning="Type the exact request number to continue." checkboxLabel="I understand this permanently deletes the eligible request." confirmWord={deletePreview.confirmation} buttonLabel="Delete purchase request" pendingLabel="Deleting..." /> : <BlockedDestructiveAction buttonLabel="Delete purchase request" title={`Cannot delete ${request.request_no}`} description="Permanent deletion is blocked by the current status or linked records." recommendation={deletePreview ? Object.entries(deletePreview.dependencies).filter(([, count]) => count > 0).map(([key, count]) => `${key}: ${count}`).join("; ") : "Dependency preview unavailable."} />) : null;
+  const mobilePrimaryAction = canSubmit
+    ? <DocumentActionForm action={submitPurchaseRequest.bind(null, request.id)} pendingLabel="Submitting...">Submit PR</DocumentActionForm>
+    : canManagerReview
+      ? <DocumentActionForm action={managerApprovePurchaseRequest.bind(null, request.id)} pendingLabel="Approving...">Review PR</DocumentActionForm>
+      : canAdminReview
+        ? <DocumentActionForm action={adminApprovePurchaseRequest.bind(null, request.id)} pendingLabel="Reviewing...">Review PR</DocumentActionForm>
+        : canFinanceReview
+          ? <DocumentActionForm action={financeApprovePurchaseRequest.bind(null, request.id)} pendingLabel="Reviewing...">Review PR</DocumentActionForm>
+          : canConvert
+            ? <MobileTaskSheet label="Prepare Purchase Order"><form action={convertPurchaseRequestToPurchaseOrder.bind(null, request.id)} className="space-y-2"><Input name="autocount_po_no" placeholder="AutoCount PO Number" required /><SubmitButton type="submit" pendingLabel="Converting..." className="w-full justify-center">Prepare Purchase Order</SubmitButton></form></MobileTaskSheet>
+            : null;
 
   return (
     <DocumentWorkspace
@@ -108,6 +123,9 @@ export default async function PurchaseRequestDetailPage({
       branch={branch?.branch_name}
       workflowSteps={prSteps}
       currentStatus={getPrWorkflowStep(request.status)}
+      mobilePrimaryAction={mobilePrimaryAction}
+      mobileActivity={documentBundle ? <><CommentsPanel documentId={documentBundle.document.id} comments={documentBundle.comments} /><AttachmentPanel documentId={documentBundle.document.id} attachments={documentBundle.attachments} title="Supporting Attachments" defaultLabel="Purchase Request Attachment" canManage={permissions["documents.attach"]} documentStatus={documentBundle.document.status} /><DocumentTimeline document={documentBundle.document} activities={documentBundle.activityLogs} comments={documentBundle.comments} attachments={documentBundle.attachments} /></> : null}
+      mobileMoreOptions={deleteControl ? <DocumentMoreOptions>{deleteControl}</DocumentMoreOptions> : null}
       sidePanel={
         <>
           <DocumentSideSection title="Primary Action" description="Only the next valid workflow action is shown.">
@@ -120,7 +138,6 @@ export default async function PurchaseRequestDetailPage({
               {request.status === "converted_to_po" && linkedPurchaseOrders[0] ? (
                 <Button asChild className="w-full justify-center"><a href={`/purchase-orders/${linkedPurchaseOrders[0].id}`}>Open PO</a></Button>
               ) : null}
-              {deletePreview?.eligible ? <DangerConfirmForm action={hardDeletePhaseOne.bind(null, "purchase_request", request.id)} title={`Permanently delete ${request.request_no}?`} description="This cannot be undone. Purchase request lines will be removed; the document number will remain consumed." warning="Type the exact request number to continue." checkboxLabel="I understand this permanently deletes the eligible request." confirmWord={deletePreview.confirmation} buttonLabel="Delete purchase request" pendingLabel="Deleting..." /> : <BlockedDestructiveAction buttonLabel="Delete purchase request" title={`Cannot delete ${request.request_no}`} description="Permanent deletion is blocked by the current status or linked records." recommendation={deletePreview ? Object.entries(deletePreview.dependencies).filter(([, count]) => count > 0).map(([key, count]) => `${key}: ${count}`).join("; ") : "Dependency preview unavailable."} />}
             </DocumentActionBar>
             {canConvert ? (
               <form action={convertPurchaseRequestToPurchaseOrder.bind(null, request.id)} className="mt-3 space-y-2" data-mobile-primary-action>
@@ -136,6 +153,7 @@ export default async function PurchaseRequestDetailPage({
             ) : null}
             {!hasPrimaryAction ? <p className="text-xs text-muted-foreground">You can view this document, but there is no workflow action available for your role or this status.</p> : null}
           </DocumentSideSection>
+          {deleteControl ? <DocumentSideSection title="Document options"><DocumentMoreOptions>{deleteControl}</DocumentMoreOptions></DocumentSideSection> : null}
           {documentBundle ? (
             <>
               <CommentsPanel documentId={documentBundle.document.id} comments={documentBundle.comments} />
@@ -147,7 +165,6 @@ export default async function PurchaseRequestDetailPage({
         </>
       }
     >
-          {documentBundle ? <div className="xl:hidden"><AttachmentPanel documentId={documentBundle.document.id} attachments={documentBundle.attachments} title="Supporting Attachments" defaultLabel="Purchase Request Attachment" presentation="inline" canManage={permissions["documents.attach"]} documentStatus={documentBundle.document.status} /></div> : null}
           {messageParams.error || messageParams.success ? (
             <Card>
               <CardContent className={`p-3 text-xs ${messageParams.error ? "text-destructive" : "text-emerald-700"}`}>
@@ -160,43 +177,15 @@ export default async function PurchaseRequestDetailPage({
           <Card className="document-surface shadow-none">
             <CardContent className="space-y-3 p-4">
               <h2 className="text-[14px] font-semibold">Request Summary</h2>
-              <div className="grid gap-3 md:grid-cols-5">
+              <div className="grid grid-cols-2 gap-x-4 gap-y-3 md:grid-cols-5">
                 <div><p className="text-[11px] uppercase tracking-wide text-muted-foreground">Request Date</p><p className="text-sm font-medium text-slate-900">{request.request_date}</p></div>
                 <div><p className="text-[11px] uppercase tracking-wide text-muted-foreground">Priority</p><PriorityBadge priority={request.priority} /></div>
-                <div><p className="text-[11px] uppercase tracking-wide text-muted-foreground">Required Date</p><p className="text-sm font-medium text-slate-900">{request.required_date ?? "-"}</p></div>
-                <div><p className="text-[11px] uppercase tracking-wide text-muted-foreground">Needed By</p><p className="text-sm font-medium text-slate-900">{request.needed_by_date ?? "-"}</p></div>
-                <div><p className="text-[11px] uppercase tracking-wide text-muted-foreground">Branch</p><p className="text-sm font-medium text-slate-900">{branch?.branch_name ?? "-"}</p></div>
+                {request.required_date ? <div><p className="text-[11px] uppercase tracking-wide text-muted-foreground">Required Date</p><p className="text-sm font-medium text-slate-900">{request.required_date}</p></div> : null}
+                {request.needed_by_date ? <div><p className="text-[11px] uppercase tracking-wide text-muted-foreground">Needed By</p><p className="text-sm font-medium text-slate-900">{request.needed_by_date}</p></div> : null}
+                {branch?.branch_name ? <div><p className="text-[11px] uppercase tracking-wide text-muted-foreground">Branch</p><p className="text-sm font-medium text-slate-900">{branch.branch_name}</p></div> : null}
               </div>
-              {request.urgency_reason ? <p className="rounded-md border bg-warning/10 p-3 text-xs text-warning">{request.urgency_reason}</p> : null}
-              {request.remarks ? <p className="rounded-md border bg-secondary/30 p-3 text-xs">{request.remarks}</p> : null}
-            </CardContent>
-          </Card>
-
-          <Card className="document-surface shadow-none">
-            <CardContent className="space-y-3 p-4">
-              <div>
-                <p className="text-xs uppercase text-muted-foreground">Linked Documents</p>
-                <h2 className="text-sm font-semibold">Purchase Orders created from this PR</h2>
-              </div>
-              {linkedPurchaseOrders.length ? (
-                <div className="grid gap-3 md:grid-cols-2">
-                  {linkedPurchaseOrders.map((order) => (
-                    <Button key={order.id} asChild variant="outline" className="h-auto justify-between p-4">
-                      <a href={`/purchase-orders/${order.id}`}>
-                        <span className="text-left">
-                          <DocumentNumber value={order.po_no} size="sm" />
-                          <span className="mt-1 block text-xs text-muted-foreground">{order.supplier_name ?? "Supplier"}</span>
-                        </span>
-                        <span className="text-sm font-semibold">{formatCurrency(order.order_total)}</span>
-                      </a>
-                    </Button>
-                  ))}
-                </div>
-              ) : (
-                <p className="rounded-md border bg-secondary/30 p-3 text-xs text-muted-foreground">
-                  No purchase order has been created from this PR yet. The PO link will appear here after approval and conversion.
-                </p>
-              )}
+              {request.urgency_reason ? <section aria-label="Urgency reason" className="border-t border-[var(--sb-border-soft)] pt-3"><h3 className="text-[11px] font-medium uppercase tracking-wide text-warning">Urgency reason</h3><p className="mt-1 whitespace-pre-wrap text-[13px] text-warning">{request.urgency_reason}</p></section> : null}
+              {request.remarks ? <section aria-label="Remarks" className="border-t border-[var(--sb-border-soft)] pt-3"><h3 className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">Remarks</h3><p className="mt-1 whitespace-pre-wrap text-[13px] leading-5 text-slate-900">{request.remarks}</p></section> : null}
             </CardContent>
           </Card>
 
@@ -206,8 +195,7 @@ export default async function PurchaseRequestDetailPage({
                 <h2 className="text-[14px] font-semibold">Requested Items</h2>
                 {canViewCommercial ? <p className="text-xs font-semibold">{formatCurrency(total)}</p> : null}
               </div>
-              <div className="overflow-x-auto">
-                <Table>
+              <Table mobileHidden aria-label="Requested items">
                   <TableHeader>
                     <TableRow>
                       <TableHead>Item</TableHead>
@@ -234,14 +222,45 @@ export default async function PurchaseRequestDetailPage({
                       );
                     })}
                   </TableBody>
-                </Table>
+              </Table>
+              <div className="divide-y divide-[var(--sb-border-soft)] md:hidden" role="list" aria-label="Requested items">
+                {lines.map((line) => {
+                  const item = itemById.get(line.item_id);
+                  const supplier = line.suggested_supplier_id ? supplierById.get(line.suggested_supplier_id) : null;
+                  return <div key={line.id} role="listitem" className="min-w-0 py-3 text-[13px]"><div className="flex min-w-0 items-start justify-between gap-3"><div className="min-w-0"><p className="break-words font-semibold">{item?.item_name ?? line.item_id}</p><p className="text-[12px] text-muted-foreground">{item?.item_code ?? "No item code"}</p></div><p className="shrink-0 font-semibold">{formatNumber(line.qty)} {line.uom}</p></div>{supplier ? <p className="mt-1 break-words text-[12px] text-muted-foreground">Supplier: {supplier.name}</p> : null}{line.reason ? <p className="mt-1 break-words text-[12px] text-muted-foreground">{line.reason}</p> : null}{canViewCommercial ? <p className="mt-1 text-right text-[12px] font-medium">{formatCurrency(line.estimated_unit_cost)} / {line.uom}</p> : null}</div>;
+                })}
               </div>
             </CardContent>
           </Card>
 
-          {documentBundle ? (
-            <p className="rounded-md border bg-secondary/30 p-3 text-xs text-muted-foreground">Comments, attachments, timeline, and revision history are available in the right panel.</p>
-          ) : null}
+          <Card className="document-surface shadow-none">
+            <CardContent className="space-y-3 p-4">
+              <div>
+                <p className="text-[12px] text-muted-foreground">Linked documents</p>
+                <h2 className="text-[14px] font-semibold">Purchase Orders created from this PR</h2>
+              </div>
+              {linkedPurchaseOrders.length ? (
+                <div className="grid min-w-0 gap-3 md:grid-cols-2">
+                  {linkedPurchaseOrders.map((order) => (
+                    <Button key={order.id} asChild variant="outline" className="h-auto min-w-0 justify-between gap-2 p-3">
+                      <a href={`/purchase-orders/${order.id}`}>
+                        <span className="min-w-0 text-left">
+                          <DocumentNumber value={order.po_no} size="sm" className="max-w-full break-all" />
+                          <span className="mt-1 block truncate text-[12px] text-muted-foreground">{order.supplier_name ?? "Supplier"}</span>
+                        </span>
+                        <span className="shrink-0 text-[13px] font-semibold">{formatCurrency(order.order_total)}</span>
+                      </a>
+                    </Button>
+                  ))}
+                </div>
+              ) : (
+                <p className="bg-secondary/30 p-3 text-[12px] text-muted-foreground">
+                  No purchase order has been created from this PR yet. The PO link will appear here after approval and conversion.
+                </p>
+              )}
+            </CardContent>
+          </Card>
+
     </DocumentWorkspace>
   );
 }

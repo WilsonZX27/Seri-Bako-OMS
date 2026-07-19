@@ -480,7 +480,7 @@ Stage evidence uses the shared attachment repository:
 - Supplier invoices expose `Attach Supplier Invoice` before Finance Review.
 - Draft/pending evidence may be removed and replaced. Approved/posted evidence remains locked with correction guidance.
 
-The Right Console remains the persistent desktop action and evidence surface. At mobile and tablet widths, the current safe primary action stays in the bottom action bar, while stage-critical attachment controls also appear inline. File selection supports camera/photo-library behavior provided by the mobile browser, shows the chosen filename, rejects files above 10 MB, and communicates the pending upload state.
+The Right Console remains the persistent desktop action and evidence surface. On mobile procurement documents, a compact bottom action appears only for one real current workflow task; workflow progress and Activity & files use focused disclosures, and destructive actions stay under More options. Tablet keeps a horizontal Workdesk and Inspector split. Stage-critical attachment controls remain inside their actual stage flow. File selection supports camera/photo-library behavior provided by the mobile browser, shows the chosen filename, rejects files above 10 MB, and communicates the pending upload state.
 
 The product visual identity is:
 

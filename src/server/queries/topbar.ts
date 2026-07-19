@@ -96,6 +96,8 @@ export async function getTopBarActivity() {
         title: document.title,
         href: getCanonicalDocumentHref(document),
       }));
+  const workflowPrHrefs = new Set(workflowPendingActions.filter((item) => item.href.startsWith("/purchase-requests/")).map((item) => item.href));
+  const scopedDocumentPendingActions = documentPendingActions.filter((item) => !item.href.startsWith("/purchase-requests/") || workflowPrHrefs.has(item.href));
 
   const productionPendingActions: PendingAction[] = [];
   if (canApproveProduction || canPostProduction) {
@@ -120,7 +122,7 @@ export async function getTopBarActivity() {
     }
   }
 
-  const pendingApprovals = [...workflowPendingActions, ...productionPendingActions, ...documentPendingActions]
+  const pendingApprovals = [...workflowPendingActions, ...productionPendingActions, ...scopedDocumentPendingActions]
     .filter((item, index, rows) => rows.findIndex((row) => row.href === item.href) === index)
     .slice(0, 5);
 

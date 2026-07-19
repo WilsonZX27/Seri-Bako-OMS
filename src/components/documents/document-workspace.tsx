@@ -5,6 +5,7 @@ import { ConsoleSection } from "@/components/layout/right-console";
 import { WorkspaceGrid } from "@/components/layout/workspace-layout";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { WorkflowStatusPipeline, type WorkflowStep } from "@/components/workflow-status-pipeline";
+import { MobileActivityAndFiles, MobileWorkflowStatus } from "@/components/documents/mobile-document-surfaces";
 import { cn } from "@/lib/utils";
 
 type Crumb = {
@@ -23,6 +24,9 @@ export function DocumentWorkspace({
   currentStatus,
   children,
   sidePanel,
+  mobilePrimaryAction,
+  mobileActivity,
+  mobileMoreOptions,
 }: {
   breadcrumbs: Crumb[];
   documentNo: string;
@@ -34,17 +38,20 @@ export function DocumentWorkspace({
   currentStatus: string;
   children: ReactNode;
   sidePanel: ReactNode;
+  mobilePrimaryAction?: ReactNode;
+  mobileActivity?: ReactNode;
+  mobileMoreOptions?: ReactNode;
 }) {
   void _breadcrumbs;
 
   return (
     <>
       <span data-document-breadcrumb={documentNo} className="sr-only" aria-hidden="true" />
-      <header className="sticky top-0 z-20 border-b border-[var(--border-muted)] bg-[var(--workspace-bg)] px-4 py-3">
+      <header className="sticky top-0 z-20 min-w-0 border-b border-[var(--border-muted)] bg-[var(--workspace-bg)] px-3 py-3 sm:px-4">
         <div className="flex flex-col gap-2 xl:flex-row xl:items-start xl:justify-between">
           <div className="min-w-0">
             <div className="flex flex-wrap items-center gap-2">
-              <DocumentNumber value={documentNo} size="lg" />
+              <DocumentNumber value={documentNo} size="lg" className="max-w-full break-all text-[16px] sm:text-lg" />
               {priority ? <PriorityBadge priority={priority} /> : null}
               <StatusBadge status={status} />
             </div>
@@ -54,14 +61,23 @@ export function DocumentWorkspace({
             </div>
           </div>
         </div>
-        <div className="mt-2">
-          <WorkflowStatusPipeline steps={workflowSteps} currentStatus={currentStatus} compact />
+        <div className="mt-2 min-w-0">
+          <MobileWorkflowStatus steps={workflowSteps} currentStatus={currentStatus} />
+          <div className="hidden md:block"><WorkflowStatusPipeline steps={workflowSteps} currentStatus={currentStatus} compact /></div>
         </div>
       </header>
 
-      <WorkspaceGrid className="p-3" rightRail={<div>{sidePanel}</div>}>
-        <div className="min-w-0 space-y-3">{children}</div>
+      <WorkspaceGrid className={cn("min-w-0 p-3", mobilePrimaryAction && "pb-20 md:pb-3")} rightRail={<div>{sidePanel}</div>} hideMobileConsole>
+        <div className="grid min-w-0 gap-3 md:grid-cols-[minmax(0,7fr)_minmax(14rem,3fr)] xl:block">
+          <div className="min-w-0 space-y-3">
+            {children}
+            {mobileActivity ? <MobileActivityAndFiles>{mobileActivity}</MobileActivityAndFiles> : null}
+            {mobileMoreOptions ? <div className="md:hidden">{mobileMoreOptions}</div> : null}
+          </div>
+          <aside data-tablet-document-inspector className="hidden min-w-0 border-l border-[var(--sb-border-soft)] bg-white md:block md:pl-2 xl:hidden">{sidePanel}</aside>
+        </div>
       </WorkspaceGrid>
+      {mobilePrimaryAction ? <div data-mobile-document-action className="fixed inset-x-3 bottom-[calc(env(safe-area-inset-bottom)+0.5rem)] z-[var(--sb-z-sticky)] min-w-0 border border-[var(--sb-border)] bg-white p-2 shadow-sm md:hidden [&>*]:w-full">{mobilePrimaryAction}</div> : null}
     </>
   );
 }

@@ -68,7 +68,7 @@ export function TopBarActivityMenu({ data }: { data: TopBarActivity }) {
         ) : null}
       </Button>
       {open ? (
-        <div className="fixed right-4 top-12 z-40 w-[min(22rem,calc(100vw-2rem))] overflow-hidden rounded-[2px] border bg-card shadow-sm">
+        <div data-topbar-activity-menu className="fixed right-4 top-12 z-40 w-[min(22rem,calc(100vw-2rem))] overflow-hidden rounded-[2px] border bg-card shadow-sm">
           <div className="border-b p-3">
             <div className="flex items-start justify-between gap-3">
               <div>

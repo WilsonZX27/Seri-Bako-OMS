@@ -4,9 +4,9 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { DocumentActionBar, DocumentActionForm, DocumentActionLink } from "@/components/document-action-bar";
 import { DocumentNumber } from "@/components/document-number";
 import { StatusBadge } from "@/components/ui/status-badge";
-import { BlockedDestructiveAction } from "@/components/ui/danger-confirm-form";
 import { AttachmentPanel, CommentsPanel, DocumentTimeline, RevisionPanel } from "@/components/documents/document-panels";
 import { DocumentSideSection, DocumentWorkspace } from "@/components/documents/document-workspace";
+import { MobileTaskSheet } from "@/components/documents/mobile-document-surfaces";
 import { PriorityBadge } from "@/components/priority-badge";
 import { formatCurrency, formatNumber } from "@/lib/utils";
 import { approvePurchaseOrder, closePurchaseOrder, rejectPurchaseOrder, sendPurchaseOrder, submitPurchaseOrder } from "@/server/actions/procurement";
@@ -55,6 +55,15 @@ export default async function PurchaseOrderDetailPage({ params }: { params: Prom
     (order.status === "approved" && permissions["po.send"]) ||
     (["sent", "partial_received"].includes(order.status) && permissions["po.receive"]) ||
     (order.status === "partial_received" && permissions["purchase_order.close"]);
+  const mobilePrimaryAction = !fromApprovedPr && order.status === "draft" && permissions["po.submit"]
+    ? <DocumentActionForm action={submitPurchaseOrder.bind(null, order.id)} pendingLabel="Submitting...">Submit Purchase Order</DocumentActionForm>
+    : !fromApprovedPr && order.status === "pending_approval" && permissions["po.approve"]
+      ? <DocumentActionForm action={approvePurchaseOrder.bind(null, order.id)} pendingLabel="Approving...">Review Purchase Order</DocumentActionForm>
+      : order.status === "approved" && permissions["po.send"]
+        ? <MobileTaskSheet label="Send to Supplier"><div className="space-y-3">{documentBundle ? <AttachmentPanel documentId={documentBundle.document.id} attachments={documentBundle.attachments} title="Purchase Order file" description="Attach the AutoCount or supplier-facing PO before sending." defaultLabel="Purchase Order" uploadLabel="Attach Purchase Order" canManage={permissions["documents.attach"]} documentStatus={documentBundle.document.status} /> : null}<DocumentActionForm action={sendPurchaseOrder.bind(null, order.id)} pendingLabel="Sending...">Send to Supplier</DocumentActionForm></div></MobileTaskSheet>
+        : ["sent", "partial_received"].includes(order.status) && permissions["po.receive"]
+          ? <DocumentActionLink href={`/goods-receivings/new?po_id=${order.id}`}>Record Receiving &amp; Attach DO</DocumentActionLink>
+          : null;
 
   return (
     <DocumentWorkspace
@@ -65,6 +74,8 @@ export default async function PurchaseOrderDetailPage({ params }: { params: Prom
       priority={order.priority}
       workflowSteps={fromApprovedPr ? convertedPoSteps : poSteps}
       currentStatus={order.status}
+      mobilePrimaryAction={mobilePrimaryAction}
+      mobileActivity={documentBundle ? <><CommentsPanel documentId={documentBundle.document.id} comments={documentBundle.comments} /><AttachmentPanel documentId={documentBundle.document.id} attachments={documentBundle.attachments} title="Purchase Order files" canManage={false} documentStatus={documentBundle.document.status} /><DocumentTimeline document={documentBundle.document} activities={documentBundle.activityLogs} comments={documentBundle.comments} attachments={documentBundle.attachments} /></> : null}
       sidePanel={
         <>
           <DocumentSideSection title="Primary Action" description="Only the next valid workflow action is shown.">
@@ -79,7 +90,6 @@ export default async function PurchaseOrderDetailPage({ params }: { params: Prom
               {order.status === "approved" && permissions["po.send"] ? <DocumentActionForm action={sendPurchaseOrder.bind(null, order.id)} pendingLabel="Sending..." mobilePrimary>Send to supplier</DocumentActionForm> : null}
               {["sent", "partial_received"].includes(order.status) && permissions["po.receive"] ? <div data-mobile-primary-action><DocumentActionLink href={`/goods-receivings/new?po_id=${order.id}`} variant="outline">Receive goods</DocumentActionLink></div> : null}
               {order.status === "partial_received" && permissions["purchase_order.close"] ? <DocumentActionForm action={closePurchaseOrder.bind(null, order.id)} pendingLabel="Closing..." variant="outline">Close</DocumentActionForm> : null}
-              <BlockedDestructiveAction buttonLabel="Delete purchase order" title={`Cannot delete ${order.po_no}`} description="Purchase orders remain linked to approvals, suppliers, receiving, and audit history." recommendation={order.status === "draft" ? "Use the existing cancel or reject workflow when authorized." : "Close or correct the document through its existing workflow; received history cannot be deleted."} />
             </DocumentActionBar>
             {!hasPrimaryAction ? <p className="text-sm text-muted-foreground">You can view this document, but there is no workflow action available for your role or this status.</p> : null}
           </DocumentSideSection>
@@ -94,7 +104,6 @@ export default async function PurchaseOrderDetailPage({ params }: { params: Prom
         </>
       }
     >
-          {documentBundle ? <div className="xl:hidden"><AttachmentPanel documentId={documentBundle.document.id} attachments={documentBundle.attachments} title="Purchase Order Attachment" description="Attach the AutoCount or supplier-facing PO." defaultLabel="Purchase Order" uploadLabel="Attach Purchase Order" presentation="inline" canManage={permissions["documents.attach"]} documentStatus={documentBundle.document.status} /></div> : null}
           <Card>
             <CardContent className="space-y-4 p-5">
               <h2 className="text-sm font-semibold">Order Summary</h2>
@@ -116,35 +125,12 @@ export default async function PurchaseOrderDetailPage({ params }: { params: Prom
           </Card>
 
           <Card>
-            <CardContent className="space-y-3 p-5">
-              <div>
-                <p className="text-xs uppercase text-muted-foreground">Source Document</p>
-                <h2 className="text-sm font-semibold">Purchase Request link</h2>
-              </div>
-              {sourceRequest ? (
-                <Button asChild variant="outline" className="h-auto justify-between p-4">
-                  <a href={`/purchase-requests/${sourceRequest.id}`}>
-                    <span className="text-left">
-                      <DocumentNumber value={sourceRequest.request_no} size="sm" />
-                      <span className="block text-xs text-muted-foreground">Created the purchase order workflow</span>
-                    </span>
-                    <StatusBadge status={sourceRequest.status} />
-                  </a>
-                </Button>
-              ) : (
-                <p className="rounded-md border bg-secondary/30 p-3 text-sm text-muted-foreground">This purchase order was created directly and has no source purchase request.</p>
-              )}
-            </CardContent>
-          </Card>
-
-          <Card>
             <CardContent className="p-5">
               <div className="mb-3 flex items-center justify-between">
                 <h2 className="text-sm font-semibold">Ordered Items</h2>
                 <p className="text-sm font-semibold">{formatCurrency(total)}</p>
               </div>
-              <div className="overflow-x-auto">
-                <Table>
+              <Table mobileHidden aria-label="Ordered items">
                   <TableHeader>
                     <TableRow>
                       <TableHead>Item</TableHead>
@@ -175,14 +161,39 @@ export default async function PurchaseOrderDetailPage({ params }: { params: Prom
                       );
                     })}
                   </TableBody>
-                </Table>
+              </Table>
+              <div className="divide-y divide-[var(--sb-border-soft)] md:hidden" role="list" aria-label="Ordered items">
+                {lines.map((line) => {
+                  const item = itemById.get(line.item_id);
+                  const pending = line.qty_ordered - line.qty_received - line.qty_cancelled;
+                  return <div key={line.id} role="listitem" className="min-w-0 py-3 text-[13px]"><div className="flex min-w-0 items-start justify-between gap-3"><div className="min-w-0"><p className="break-words font-semibold">{item?.item_name ?? line.item_id}</p><p className="text-[12px] text-muted-foreground">{item?.item_code ?? "No item code"}</p></div><p className="shrink-0 font-semibold">{formatNumber(line.qty_ordered)} {line.uom}</p></div><div className="mt-1 flex flex-wrap gap-x-3 gap-y-1 text-[12px] text-muted-foreground"><span>Received {formatNumber(line.qty_received)}</span><span>Pending {formatNumber(pending)}</span><span>{formatCurrency(line.unit_price)} / {line.uom}</span></div></div>;
+                })}
               </div>
             </CardContent>
           </Card>
 
-          {documentBundle ? (
-            <p className="rounded-md border bg-secondary/30 p-3 text-sm text-muted-foreground">Comments, attachments, timeline, and revision history are available in the right panel.</p>
-          ) : null}
+          <Card>
+            <CardContent className="space-y-3 p-4 sm:p-5">
+              <div>
+                <p className="text-[12px] text-muted-foreground">Linked document</p>
+                <h2 className="text-[14px] font-semibold">Purchase Request</h2>
+              </div>
+              {sourceRequest ? (
+                <Button asChild variant="outline" className="h-auto min-w-0 justify-between gap-2 p-3">
+                  <a href={`/purchase-requests/${sourceRequest.id}`}>
+                    <span className="min-w-0 text-left">
+                      <DocumentNumber value={sourceRequest.request_no} size="sm" className="max-w-full break-all" />
+                      <span className="block truncate text-[12px] text-muted-foreground">Created the purchase order workflow</span>
+                    </span>
+                    <StatusBadge status={sourceRequest.status} />
+                  </a>
+                </Button>
+              ) : (
+                <p className="bg-secondary/30 p-3 text-[12px] text-muted-foreground">This purchase order was created directly and has no source purchase request.</p>
+              )}
+            </CardContent>
+          </Card>
+
     </DocumentWorkspace>
   );
 }

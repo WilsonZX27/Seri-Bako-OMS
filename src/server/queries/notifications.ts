@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { isMockMode } from "@/lib/mock-mode";
 import type { Database } from "@/types/database";
+import type { PurchaseRequestStatus } from "@/lib/status-contracts";
 
 type CurrentUserScope = {
   authUserId: string;
@@ -89,11 +90,12 @@ export async function getVisibleNotificationsForCurrentUser() {
     }
   }
 
-  return (notificationsResult.data ?? [])
+  const visibleNotifications = (notificationsResult.data ?? [])
     .filter((notification) => {
       const personalRecipient = recipientByNotificationId.get(notification.id);
       const effectiveDismissedAt = personalRecipient?.dismissed_at ?? notification.dismissed_at;
       if (effectiveDismissedAt) return false;
+      if (notification.branch_id && !scope.companyWideAccess && !scope.branchIds.includes(notification.branch_id)) return false;
       if (personalRecipient) return true;
       if (notification.recipient_user_id && notification.recipient_user_id === scope.authUserId) return true;
       if (notification.recipient_staff_id && scope.staffId && notification.recipient_staff_id === scope.staffId) return true;
@@ -111,6 +113,21 @@ export async function getVisibleNotificationsForCurrentUser() {
         dismissed_at: personalRecipient?.dismissed_at ?? notification.dismissed_at,
       };
     });
+
+  const pendingPrStatusesByRole: Record<string, PurchaseRequestStatus[]> = {
+    super_admin: ["manager_review", "admin_review", "finance_review", "ready_to_convert"],
+    manager: ["manager_review"],
+    purchasing: ["admin_review", "ready_to_convert"],
+    finance: ["finance_review"],
+  };
+  const allowedPrStatuses = pendingPrStatusesByRole[scope.roleCode];
+  const prIds = visibleNotifications.flatMap((row) => row.entity_type === "purchase_request" && row.entity_id ? [row.entity_id] : []);
+  if (!allowedPrStatuses || !prIds.length) return visibleNotifications;
+
+  const { data: pendingRequests, error: pendingError } = await supabase.from("purchase_requests").select("id, status").in("id", prIds).in("status", allowedPrStatuses);
+  if (pendingError) return visibleNotifications.filter((row) => row.entity_type !== "purchase_request");
+  const pendingIds = new Set((pendingRequests ?? []).map((row) => row.id));
+  return visibleNotifications.filter((row) => row.entity_type !== "purchase_request" || (row.entity_id && pendingIds.has(row.entity_id)));
 }
 
 export async function getTopBarNotificationScope() {

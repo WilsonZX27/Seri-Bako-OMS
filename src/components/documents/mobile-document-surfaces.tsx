@@ -1,0 +1,115 @@
+"use client";
+
+import { CheckCircle2, ChevronRight, Circle, CircleDot, X } from "lucide-react";
+import { useEffect, useId, useRef, useState } from "react";
+import type { ReactNode } from "react";
+import { Button } from "@/components/ui/button";
+import type { WorkflowStep } from "@/components/workflow-status-pipeline";
+import { cn } from "@/lib/utils";
+
+function MobileSheet({ label, title, children, danger = false, triggerClassName }: { label: string; title: string; children: ReactNode; danger?: boolean; triggerClassName?: string }) {
+  const [open, setOpen] = useState(false);
+  const triggerRef = useRef<HTMLButtonElement>(null);
+  const dialogRef = useRef<HTMLDivElement>(null);
+  const titleId = useId();
+
+  useEffect(() => {
+    if (!open) return;
+    const previousOverflow = document.body.style.overflow;
+    const trigger = triggerRef.current;
+    document.body.style.overflow = "hidden";
+    document.documentElement.dataset.mobileSheetOpen = "true";
+    const dialog = dialogRef.current;
+    const focusable = () => Array.from(dialog?.querySelectorAll<HTMLElement>("button, a, input, select, textarea, [tabindex]:not([tabindex='-1'])") ?? []).filter((element) => !element.hasAttribute("disabled"));
+    focusable()[0]?.focus();
+
+    function onKeyDown(event: KeyboardEvent) {
+      if (event.key === "Escape") {
+        setOpen(false);
+        return;
+      }
+      if (event.key !== "Tab") return;
+      const elements = focusable();
+      if (!elements.length) return;
+      const first = elements[0];
+      const last = elements[elements.length - 1];
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
+      }
+    }
+
+    document.addEventListener("keydown", onKeyDown);
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      delete document.documentElement.dataset.mobileSheetOpen;
+      document.removeEventListener("keydown", onKeyDown);
+      requestAnimationFrame(() => trigger?.focus());
+    };
+  }, [open]);
+
+  return (
+    <>
+      <Button ref={triggerRef} type="button" variant="outline" className={cn("w-full justify-between text-[13px]", danger && "text-[var(--sb-danger)]", triggerClassName)} onClick={() => setOpen(true)} aria-haspopup="dialog" aria-expanded={open}>
+        {label}<ChevronRight className="h-4 w-4" aria-hidden="true" />
+      </Button>
+      {open ? (
+        <div className="fixed inset-0 z-[var(--sb-z-dialog)] md:hidden">
+          <button type="button" className="absolute inset-0 h-full w-full bg-[var(--sb-green-950)]/60 backdrop-blur-sm" onClick={() => setOpen(false)} aria-label={`Close ${title}`} />
+          <div ref={dialogRef} role="dialog" aria-modal="true" aria-labelledby={titleId} className="absolute inset-x-0 bottom-0 max-h-[88dvh] overflow-hidden border-t border-[var(--sb-border)] bg-white pb-[env(safe-area-inset-bottom)] shadow-sm">
+            <header className="flex min-h-12 items-center justify-between border-b px-3">
+              <h2 id={titleId} className="text-[14px] font-semibold">{title}</h2>
+              <Button type="button" variant="ghost" size="icon" onClick={() => setOpen(false)} aria-label={`Close ${title}`}><X className="h-5 w-5" /></Button>
+            </header>
+            <div className="max-h-[calc(88dvh-3rem-env(safe-area-inset-bottom))] min-w-0 overflow-y-auto overscroll-contain px-3 py-3 text-[13px]">{children}</div>
+          </div>
+        </div>
+      ) : null}
+    </>
+  );
+}
+
+export function MobileWorkflowStatus({ steps, currentStatus }: { steps: WorkflowStep[]; currentStatus: string }) {
+  const foundIndex = steps.findIndex((step) => step.key === currentStatus);
+  const activeIndex = foundIndex < 0 ? 0 : foundIndex;
+  const active = steps[activeIndex];
+
+  return (
+    <div data-mobile-workflow-summary className="flex min-w-0 items-center justify-between gap-2 border-y border-[var(--sb-border-soft)] py-2 md:hidden">
+      <p className="min-w-0 truncate text-[12px] font-medium">Step {activeIndex + 1} of {steps.length} · {active?.label ?? currentStatus}</p>
+      <MobileSheet label="View workflow" title="Workflow progress" triggerClassName="h-8 w-auto shrink-0 px-2 text-[12px]">
+        <ol className="space-y-1" aria-label="Document workflow">
+          {steps.map((step, index) => {
+            const done = index < activeIndex;
+            const current = index === activeIndex;
+            const Icon = done ? CheckCircle2 : current ? CircleDot : Circle;
+            return <li key={step.key} className={cn("flex gap-3 border-b border-[var(--sb-border-soft)] py-3 last:border-0", done && "text-[var(--sb-success)]", current && "font-semibold")}><Icon className="mt-0.5 h-4 w-4 shrink-0" /><div className="min-w-0"><p className="text-[13px]">{step.label}</p>{step.description ? <p className="mt-0.5 text-[12px] font-normal text-[var(--sb-text-muted)]">{step.description}</p> : null}</div></li>;
+          })}
+        </ol>
+      </MobileSheet>
+    </div>
+  );
+}
+
+export function MobileActivityAndFiles({ children }: { children: ReactNode }) {
+  return <div data-mobile-activity-files className="md:hidden"><MobileSheet label="Activity & files" title="Activity & files">{children}</MobileSheet></div>;
+}
+
+export function MobileTaskSheet({ label, children }: { label: string; children: ReactNode }) {
+  return <MobileSheet label={label} title={label}>{children}</MobileSheet>;
+}
+
+export function DocumentMoreOptions({ children }: { children: ReactNode }) {
+  return (
+    <>
+      <div className="md:hidden"><MobileSheet label="More options" title="More options" danger>{children}</MobileSheet></div>
+      <details className="hidden border-t border-[var(--sb-border-soft)] pt-2 md:block">
+        <summary className="cursor-pointer text-[12px] font-medium text-[var(--sb-text-muted)]">More options</summary>
+        <div className="mt-2">{children}</div>
+      </details>
+    </>
+  );
+}

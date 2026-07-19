@@ -1,5 +1,5 @@
--- Sprint 7.23.2: Finance receives the read-level Manager + Purchasing visibility union
--- and Manager Review fallback. No business rows or owner controls are changed.
+-- Sprint 7.23.2: Finance receives the read-level Manager + Purchasing visibility union.
+-- Review authority remains stage-specific: Finance Review only.
 
 insert into public.permissions (permission_code, module, action, description)
 values
@@ -19,7 +19,7 @@ insert into public.role_permissions (role_id, permission_id)
 select r.id, p.id
 from public.roles r
 join public.permissions p on p.permission_code in (
-  'pr.manager_approve', 'purchase_order.read', 'goods_receiving.read',
+  'purchase_order.read', 'goods_receiving.read',
   'inventory.read', 'stock_count.read', 'stock_transfer.read', 'stock_wastage.read',
   'po.view', 'grn.view', 'purchase_return.view', 'items.view', 'suppliers.view',
   'production.view', 'outlet_daily_record.view', 'outlet_daily_record.view_all'

@@ -4,7 +4,6 @@ import { createClient } from "@/lib/supabase/server";
 import { compareTableValues, paginateRows, type PaginationResult } from "@/lib/table-state";
 import { actorDisplayName, resolveActorDisplayMap } from "@/server/actors/display";
 import { getStockBalanceDetails } from "@/server/queries/inventory";
-import { getRecipe } from "@/server/queries/recipes";
 
 type Filters = Record<string, string | undefined>;
 
@@ -131,31 +130,27 @@ export async function getProductionJobs(filters: Filters = {}): Promise<Paginati
 
   const supabase = await createClient();
   const db = looseSupabase(supabase);
-  const [{ data, error }, { data: branches }, { data: recipes }, { data: products }] = await Promise.all([
+  const [{ data, error }, { data: branches }, { data: products }] = await Promise.all([
     db.from("production_jobs").select("*").is("deleted_at", null),
     supabase.from("branches").select("id, branch_name"),
-    supabase.from("recipes").select("id, recipe_no, product_id"),
     supabase.from("products").select("id, product_code, product_name"),
   ]);
   if (error) throw new Error(error.message);
 
   const branchRows = (branches ?? []) as Array<{ id: string; branch_name: string }>;
-  const recipeRows = (recipes ?? []) as Array<{ id: string; recipe_no: string; product_id: string }>;
   const productRows = (products ?? []) as Array<{ id: string; product_name: string }>;
   const productionRows = (data ?? []) as Array<Record<string, unknown>>;
   const branchById = new Map(branchRows.map((row) => [row.id, row.branch_name]));
-  const recipeById = new Map(recipeRows.map((row) => [row.id, row]));
   const productById = new Map(productRows.map((row) => [row.id, row]));
   const displayMap = await resolveActorDisplayMap(productionRows.map((row) => String(row.created_by ?? "")));
 
   const rows: ProductionJob[] = productionRows.map((row) => {
     const job = asProductionJob(row);
-    const recipe = recipeById.get(job.recipe_id);
-    const product = recipe?.product_id ? productById.get(recipe.product_id) : null;
+    const product = job.product_id ? productById.get(job.product_id) : null;
     return {
       ...job,
       branch_name: branchById.get(job.branch_id) ?? null,
-      recipe_no: recipe?.recipe_no ?? null,
+      recipe_no: null,
       product_name: product?.product_name ?? null,
       created_by_name: actorDisplayName(displayMap, job.created_by),
     };
@@ -169,12 +164,11 @@ export async function getProductionJob(id: string): Promise<{ job: ProductionJob
 
   const supabase = await createClient();
   const db = looseSupabase(supabase);
-  const [{ data, error }, { data: ingredientLines }, { data: outputLines }, { data: branches }, { data: recipes }, { data: products }] = await Promise.all([
+  const [{ data, error }, { data: ingredientLines }, { data: outputLines }, { data: branches }, { data: products }] = await Promise.all([
     db.from("production_jobs").select("*").eq("id", id).maybeSingle(),
     db.from("production_job_ingredient_lines").select("*").eq("production_job_id", id).order("created_at", { ascending: true }),
     db.from("production_job_output_lines").select("*").eq("production_job_id", id).order("created_at", { ascending: true }),
     supabase.from("branches").select("id, branch_name"),
-    supabase.from("recipes").select("id, recipe_no, product_id, yield_qty, yield_unit"),
     supabase.from("products").select("id, product_code, product_name"),
   ]);
   if (error) throw new Error(error.message);
@@ -182,15 +176,14 @@ export async function getProductionJob(id: string): Promise<{ job: ProductionJob
 
   const job = asProductionJob(data);
   const branch = (branches ?? []).find((row) => row.id === job.branch_id);
-  const recipe = (recipes ?? []).find((row) => row.id === job.recipe_id);
-  const product = recipe?.product_id ? (products ?? []).find((row) => row.id === recipe.product_id) : null;
+  const product = job.product_id ? (products ?? []).find((row) => row.id === job.product_id) : null;
   const displayMap = await resolveActorDisplayMap([job.created_by ?? ""]);
 
   return {
     job: {
       ...job,
       branch_name: branch?.branch_name ?? null,
-      recipe_no: recipe?.recipe_no ?? null,
+      recipe_no: null,
       product_name: product?.product_name ?? null,
       created_by_name: actorDisplayName(displayMap, job.created_by),
     },
@@ -237,30 +230,17 @@ export async function getProductionJobFormOptions() {
 export async function getActiveProductionRecipes(): Promise<ProductionRecipeOption[]> {
   if (isMockMode()) return [];
   const supabase = await createClient();
-  const { data, error } = await supabase
-    .from("recipes")
-    .select("id")
-    .eq("status", "active")
-    .order("effective_date", { ascending: false });
+  const rpcClient = supabase as unknown as { rpc: (name: "get_production_recipe_options") => PromiseLike<{ data: unknown; error: { message: string } | null }> };
+  const { data, error } = await rpcClient.rpc("get_production_recipe_options");
   if (error) throw new Error(error.message);
-
-  const details = await Promise.all((data ?? []).map((row) => getRecipe(row.id)));
-  return details.map((recipe) => ({
-    id: recipe.id,
-    recipe_no: recipe.recipe_no,
-    product_id: recipe.product_id,
-    product_code: recipe.product_code,
-    product_name: recipe.product_name,
-    yield_qty: Number(recipe.yield_qty),
-    yield_unit: recipe.yield_unit,
+  return ((data ?? []) as Array<Record<string, unknown>>).map((recipe) => ({
+    id: String(recipe.id), recipe_no: String(recipe.recipe_no), product_id: String(recipe.product_id),
+    product_code: String(recipe.product_code), product_name: String(recipe.product_name),
+    yield_qty: Number(recipe.yield_qty), yield_unit: String(recipe.yield_unit),
     cost_per_finished_unit: Number(recipe.cost_per_finished_unit ?? 0),
-    lines: recipe.lines.map((line) => ({
-      item_id: line.ingredient_item_id,
-      item_code: line.ingredient_item_code,
-      item_name: line.ingredient_name,
-      qty_per_yield: Number(line.base_qty_required ?? line.qty_required),
-      uom: line.base_uom ?? line.recipe_uom,
-      unit_cost: Number(line.cost_per_unit ?? 0),
+    lines: ((recipe.lines ?? []) as Array<Record<string, unknown>>).map((line) => ({
+      item_id: String(line.item_id), item_code: String(line.item_code), item_name: String(line.item_name),
+      qty_per_yield: Number(line.qty_per_yield), uom: String(line.uom), unit_cost: Number(line.unit_cost ?? 0),
     })),
   }));
 }
@@ -275,16 +255,16 @@ export async function getProductionHubSummary() {
   const [posted, pending, recipes, approvedJobs] = await Promise.all([
     db.from("production_jobs").select("id", { count: "exact", head: true }).eq("status", "posted").eq("production_date", today).is("deleted_at", null),
     db.from("production_jobs").select("id", { count: "exact", head: true }).eq("status", "submitted").is("deleted_at", null),
-    supabase.from("recipes").select("id", { count: "exact", head: true }).eq("status", "active"),
+    getActiveProductionRecipes(),
     db.from("production_job_ingredient_lines").select("id", { count: "exact", head: true }).lt("stock_available_qty", 0),
   ]);
-  for (const result of [posted, pending, recipes, approvedJobs]) {
+  for (const result of [posted, pending, approvedJobs]) {
     if (result.error) throw new Error(result.error.message);
   }
   return {
     todayPosted: posted.count ?? 0,
     pendingApproval: pending.count ?? 0,
-    activeRecipes: recipes.count ?? 0,
+    activeRecipes: recipes.length,
     ingredientShortages: approvedJobs.count ?? 0,
   };
 }

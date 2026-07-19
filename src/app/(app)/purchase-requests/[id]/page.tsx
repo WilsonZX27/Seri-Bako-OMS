@@ -3,6 +3,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { DocumentActionBar, DocumentActionForm } from "@/components/document-action-bar";
+import { ConfirmActionForm } from "@/components/ui/confirm-action-form";
 import { DocumentNumber } from "@/components/document-number";
 import { AttachmentPanel, CommentsPanel, DocumentTimeline, RevisionPanel } from "@/components/documents/document-panels";
 import { DocumentSideSection, DocumentWorkspace } from "@/components/documents/document-workspace";
@@ -96,6 +97,7 @@ export default async function PurchaseRequestDetailPage({
   const hasPrimaryAction =
     canSubmit ||
     canCancel ||
+    canManagerReview ||
     canAdminReview ||
     canFinanceReview ||
     canConvert ||
@@ -104,11 +106,11 @@ export default async function PurchaseRequestDetailPage({
   const mobilePrimaryAction = canSubmit
     ? <DocumentActionForm action={submitPurchaseRequest.bind(null, request.id)} pendingLabel="Submitting...">Submit PR</DocumentActionForm>
     : canManagerReview
-      ? <DocumentActionForm action={managerApprovePurchaseRequest.bind(null, request.id)} pendingLabel="Approving...">Review PR</DocumentActionForm>
+      ? <ConfirmActionForm action={managerApprovePurchaseRequest.bind(null, request.id)} label="Approve as Manager" title="Approve this PR as Manager?" description="This moves the request to Purchasing Review." pendingLabel="Approving..." mobilePrimary />
       : canAdminReview
-        ? <DocumentActionForm action={adminApprovePurchaseRequest.bind(null, request.id)} pendingLabel="Reviewing...">Review PR</DocumentActionForm>
+        ? <ConfirmActionForm action={adminApprovePurchaseRequest.bind(null, request.id)} label="Approve as Purchasing" title="Approve this PR as Purchasing?" description="This moves the request to Finance Review." pendingLabel="Approving..." mobilePrimary />
         : canFinanceReview
-          ? <DocumentActionForm action={financeApprovePurchaseRequest.bind(null, request.id)} pendingLabel="Reviewing...">Review PR</DocumentActionForm>
+          ? <ConfirmActionForm action={financeApprovePurchaseRequest.bind(null, request.id)} label="Approve as Finance" title="Approve this PR as Finance?" description="This marks the request ready for PO conversion." pendingLabel="Approving..." mobilePrimary />
           : canConvert
             ? <MobileTaskSheet label="Prepare Purchase Order"><form action={convertPurchaseRequestToPurchaseOrder.bind(null, request.id)} className="space-y-2"><Input name="autocount_po_no" placeholder="AutoCount PO Number" required /><SubmitButton type="submit" pendingLabel="Converting..." className="w-full justify-center">Prepare Purchase Order</SubmitButton></form></MobileTaskSheet>
             : null;
@@ -132,9 +134,9 @@ export default async function PurchaseRequestDetailPage({
             <DocumentActionBar>
               {canSubmit ? <DocumentActionForm action={submitPurchaseRequest.bind(null, request.id)} pendingLabel="Submitting..." mobilePrimary>Submit to Manager Review</DocumentActionForm> : null}
               {canCancel ? <DocumentActionForm action={cancelPurchaseRequest.bind(null, request.id)} pendingLabel="Cancelling..." variant="ghost">Cancel draft</DocumentActionForm> : null}
-              {canManagerReview ? <DocumentActionForm action={managerApprovePurchaseRequest.bind(null, request.id)} pendingLabel="Approving..." mobilePrimary>Manager Approve</DocumentActionForm> : null}
-              {canAdminReview ? <DocumentActionForm action={adminApprovePurchaseRequest.bind(null, request.id)} pendingLabel="Reviewing..." mobilePrimary>Complete Purchasing Review</DocumentActionForm> : null}
-              {canFinanceReview ? <DocumentActionForm action={financeApprovePurchaseRequest.bind(null, request.id)} pendingLabel="Reviewing..." mobilePrimary>Complete Finance Review</DocumentActionForm> : null}
+              {canManagerReview ? <ConfirmActionForm action={managerApprovePurchaseRequest.bind(null, request.id)} label="Approve as Manager" title="Approve this PR as Manager?" description="This moves the request to Purchasing Review." pendingLabel="Approving..." mobilePrimary /> : null}
+              {canAdminReview ? <ConfirmActionForm action={adminApprovePurchaseRequest.bind(null, request.id)} label="Approve as Purchasing" title="Approve this PR as Purchasing?" description="This moves the request to Finance Review." pendingLabel="Approving..." mobilePrimary /> : null}
+              {canFinanceReview ? <ConfirmActionForm action={financeApprovePurchaseRequest.bind(null, request.id)} label="Approve as Finance" title="Approve this PR as Finance?" description="This marks the request ready for PO conversion." pendingLabel="Approving..." mobilePrimary /> : null}
               {request.status === "converted_to_po" && linkedPurchaseOrders[0] ? (
                 <Button asChild className="w-full justify-center"><a href={`/purchase-orders/${linkedPurchaseOrders[0].id}`}>Open PO</a></Button>
               ) : null}

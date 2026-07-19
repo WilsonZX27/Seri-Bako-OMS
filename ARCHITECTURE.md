@@ -695,6 +695,8 @@ Sprint 7.14 reuses the Demand Trend query and its permission/RLS scope. It deriv
 
 Sprint 7.15 reuses the same read-only Demand Trend result and RLS branch scope to aggregate product/outlet rows. It classifies conservative leftover/wastage and low-leftover movement signals, while low confidence and low sample force manual review. Production Jobs are intentionally excluded because no trusted posted-output join is introduced. It adds no migration, RPC, or write path.
 
+Sprint 7.23.5.1 adds migration 074 as a local-only forward migration. It introduces canonical `products.display_order`, seeds the approved product-code ranges, and adds `outlet_daily_record_lines.qty_sent`. The Daily Record save RPC enforces field ownership: Kitchen may change Qty Sent for assigned branches, while Outlet Staff may change Received, Wastage, reason, and remarks. Existing workflow statuses and reviewed/void locks remain unchanged. Recipe/BOM table RLS is reduced to Owner and read-only Finance. Production roles no longer read recipe tables directly; `get_production_recipe_options()` exposes only the active snapshot required to create a production job. Purchase Request list, detail, pending actions, dashboard, and notifications continue to converge through PR RLS plus the same assigned `staff_branches` scope.
+
 ## Operations Control Center Lite
 
 Sprint 7.16 composes the existing dashboard, outlet-record, demand, variance, planning, stock, and AP query outputs. Outlet and demand calls use independent settled results so one unavailable source leaves the other dashboard sections usable. It adds no dashboard framework, migration, or business write path.

@@ -20,7 +20,7 @@ test("procurement documents use focused mobile workflow and exact primary action
   assert.match(mobile, /backdrop-blur-sm/);
   assert.match(mobile, /View workflow/);
   assert.match(pr, />Submit PR</);
-  assert.match(pr, />Review PR</);
+  for (const label of ["Approve as Manager", "Approve as Purchasing", "Approve as Finance"]) assert.match(pr, new RegExp(label));
   assert.match(pr, /Prepare Purchase Order/);
   assert.match(po, /Send to Supplier/);
   assert.match(po, /Record Receiving &amp; Attach DO/);
@@ -67,7 +67,8 @@ test("single secondary filters stay inline and empty PR metadata is omitted", ()
   const invoiceList = read("src/app/(app)/supplier-invoices/page.tsx");
   const prDetail = read("src/app/(app)/purchase-requests/[id]/page.tsx");
   assert.doesNotMatch(prList, /FilterBarMore/);
-  assert.match(prList, /<label[^>]*>Priority<SelectNative/);
+  assert.doesNotMatch(prList, /<label[^>]*>Priority/);
+  assert.match(prList, /aria-label="Priority"/);
   assert.doesNotMatch(invoiceList, /FilterBarMore/);
   assert.match(prDetail, /request\.required_date \? <div>/);
   assert.match(prDetail, /request\.needed_by_date \? <div>/);

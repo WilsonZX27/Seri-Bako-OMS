@@ -13,8 +13,7 @@ import { hasPermission } from "@/server/auth/permissions";
 import { resolveDocumentNumber } from "@/server/documents/sequences";
 import { resolveDefaultLocation } from "@/server/inventory/locations";
 import { getCurrentProfile } from "@/server/queries/common";
-import { getRecipe } from "@/server/queries/recipes";
-import { getProductionJob } from "@/server/queries/production-jobs";
+import { getActiveProductionRecipes, getProductionJob } from "@/server/queries/production-jobs";
 
 function cleanText(value: unknown) {
   const text = String(value ?? "").trim();
@@ -122,13 +121,14 @@ export async function createProductionJob(formData: FormData) {
       priority: formData.get("priority") || "normal",
       remarks: cleanText(formData.get("remarks")),
     });
-    const [supabase, profile, recipe] = await Promise.all([createClient(), getCurrentProfile(), getRecipe(parsed.recipe_id)]);
+    const [supabase, profile, recipes] = await Promise.all([createClient(), getCurrentProfile(), getActiveProductionRecipes()]);
+    const recipe = recipes.find((row) => row.id === parsed.recipe_id);
+    if (!recipe) throw new Error("No active recipe found. Activate a recipe before creating production job.");
     const db = looseSupabase(supabase);
-    if (recipe.status !== "active") throw new Error("No active recipe found. Activate a recipe before creating production job.");
     const locationId = await resolveDefaultLocation(parsed.branch_id);
     const jobNo = await resolveDocumentNumber({ companyId: profile?.company_id, documentType: "production_job", enteredNumber: null });
     const factor = parsed.planned_output_qty / Number(recipe.yield_qty || 1);
-    const totalIngredientCost = recipe.lines.reduce((sum, line) => sum + Number(line.base_qty_required) * factor * Number(line.cost_per_unit), 0);
+    const totalIngredientCost = recipe.lines.reduce((sum, line) => sum + Number(line.qty_per_yield) * factor * Number(line.unit_cost), 0);
     const unitCost = totalIngredientCost / parsed.planned_output_qty;
 
     const { data: job, error } = await db
@@ -161,21 +161,21 @@ export async function createProductionJob(formData: FormData) {
     const [{ error: updateError }, { error: ingredientError }, { error: outputError }] = await Promise.all([
       db.from("production_jobs").update({ document_id: documentId, output_item_id: outputItemId }).eq("id", createdJob.id),
       db.from("production_job_ingredient_lines").insert(recipe.lines.map((line) => {
-        const requiredQty = Number(line.base_qty_required) * factor;
-        const lineCost = requiredQty * Number(line.cost_per_unit);
+        const requiredQty = Number(line.qty_per_yield) * factor;
+        const lineCost = requiredQty * Number(line.unit_cost);
         return {
           production_job_id: createdJob.id,
-          item_id: line.ingredient_item_id,
-          item_code: line.ingredient_item_code,
-          item_name: line.ingredient_name,
+          item_id: line.item_id,
+          item_code: line.item_code,
+          item_name: line.item_name,
           required_qty: requiredQty,
           actual_qty: requiredQty,
-          uom: line.base_uom ?? line.recipe_uom,
-          unit_cost: Number(line.cost_per_unit),
+          uom: line.uom,
+          unit_cost: Number(line.unit_cost),
           line_cost: lineCost,
-          stock_available_qty: availableByItem.get(line.ingredient_item_id) ?? 0,
-          variance_qty: (availableByItem.get(line.ingredient_item_id) ?? 0) - requiredQty,
-          remarks: line.remarks ?? null,
+          stock_available_qty: availableByItem.get(line.item_id) ?? 0,
+          variance_qty: (availableByItem.get(line.item_id) ?? 0) - requiredQty,
+          remarks: null,
         };
       })),
       db.from("production_job_output_lines").insert({

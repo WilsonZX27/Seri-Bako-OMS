@@ -12,6 +12,7 @@ const buttonVariants = cva(
         secondary: "border-[var(--sb-border)] bg-white text-[var(--sb-text)] hover:bg-[var(--sb-surface-muted)]",
         outline: "border-[var(--sb-border)] bg-white text-[var(--sb-text)] hover:bg-[var(--sb-surface-muted)]",
         ghost: "hover:bg-[var(--sb-surface-muted)]",
+        success: "border-[var(--sb-success)] bg-[var(--sb-success)] text-white hover:bg-[var(--sb-green-700)]",
         destructive: "border-[var(--sb-danger)] bg-white text-[var(--sb-danger)] hover:bg-[var(--sb-danger-bg)]",
       },
       size: {

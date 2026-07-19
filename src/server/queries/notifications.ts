@@ -43,7 +43,7 @@ export async function getCurrentUserScope(): Promise<CurrentUserScope | null> {
   const branchIds = (staffBranches ?? []).map((row) => row.branch_id);
   const roleById = new Map((roles ?? []).map((row) => [row.id, row.role_code]));
   const roleCode = roleIds.map((id) => roleById.get(id)).find(Boolean) ?? "outlet_staff";
-  const companyWideAccess = (staffRoles ?? []).some((row) => !row.branch_id);
+  const companyWideAccess = ["super_admin", "finance", "purchasing"].includes(roleCode);
 
   return { authUserId: user.id, staffId, roleIds, branchIds, roleCode, companyWideAccess };
 }

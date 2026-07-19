@@ -29,6 +29,6 @@ test("current sprint preserves existing responsive tables with a scoped Outlet S
   const styles = read("src/app/globals.css");
   assert.match(styles, /\.sb-table-region\s*\{[\s\S]*overflow-x: auto/);
   assert.match(version, /APP_VERSION = "0\.2\.37"/);
-  assert.match(version, /APP_SPRINT = "Sprint 7\.23\.5"/);
+  assert.match(version, /APP_SPRINT = "Sprint 7\.23\.5\.1"/);
   assert.match(read("supabase/migrations/066_create_outlet_staff_role.sql"), /outlet_staff/);
 });

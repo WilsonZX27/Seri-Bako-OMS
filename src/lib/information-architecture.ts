@@ -50,7 +50,7 @@ export const informationArchitecture: readonly IaItem[] = [
   { href: "/items", label: "Items / SKU Master", group: "inventory", icon: "boxes", roles: MASTER_DATA, permission: "items.view" },
   { href: "/uom-conversions", label: "UOM Conversions", group: "inventory", icon: "scale", roles: MASTER_DATA, permission: "uom_conversions.read" },
   { href: "/products", label: "Products", group: "inventory", icon: "boxes", roles: PRODUCTION, permission: "production.view" },
-  { href: "/recipes", label: "Recipes", group: "inventory", icon: "clipboard", roles: PRODUCTION, permission: "recipes.view" },
+  { href: "/recipes", label: "Recipes", group: "inventory", icon: "clipboard", roles: ["super_admin", "finance"], permission: "recipes.view" },
   { href: "/stock-balance", label: "Stock Balance", group: "inventory", icon: "boxes", roles: INVENTORY, permission: "stock_balance.read", badgeKey: "stockBalanceAlerts", attention: true },
   { href: "/stock-transactions", label: "Movement Ledger", group: "inventory", icon: "activity", roles: INVENTORY, permission: "stock_transactions.read" },
   { href: "/stock-transfers", label: "Stock Transfers", group: "inventory", icon: "boxes", roles: INVENTORY, permission: "stock_transfer.read", badgeKey: "stockTransfers" },

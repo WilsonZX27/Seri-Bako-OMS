@@ -43,7 +43,7 @@ export function DashboardWorkspace({ summary, renderedAt }: { summary: Dashboard
   const showOperations = isOwner || isFinance || isManager;
   const outletStatus = summary.outletToday?.status ?? null;
   const outletComplete = outletStatus === "reviewed" || outletStatus === "evening_completed";
-  const outletAction = !outletStatus ? "Start morning receive" : outletComplete ? "Review today’s record" : "Complete evening record";
+  const outletAction = !outletStatus ? "Start daily record" : outletComplete ? "Review today’s record" : "Complete daily record";
 
   const quickActions = isOutlet
     ? [{ href: summary.outletToday?.id ? `/outlet-daily-records/${summary.outletToday.id}` : "/outlet-daily-records/new", label: outletAction }]

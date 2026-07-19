@@ -66,13 +66,13 @@ export default async function PurchaseRequestsPage({ searchParams }: { searchPar
           <StatusTabs statuses={statuses} activeStatus={filters.status} />
           <FilterBar resultCount={requests.totalRows} resetHref="/purchase-requests" filtered={filtered}>
             <Input name="search" defaultValue={filters.search ?? ""} placeholder="Search PR no, branch, remarks" className="md:max-w-sm" />
-            <label className="grid gap-1 text-xs font-medium">Priority<SelectNative name="priority" defaultValue={filters.priority ?? "all"}>
+            <SelectNative name="priority" defaultValue={filters.priority ?? "all"} aria-label="Priority">
                 <option value="all">All priorities</option>
                 <option value="critical">Critical</option>
                 <option value="urgent">Urgent</option>
                 <option value="normal">Normal</option>
                 <option value="low">Low</option>
-              </SelectNative></label>
+            </SelectNative>
             {filters.status ? <input type="hidden" name="status" value={filters.status} /> : null}
             <Button type="submit">Search</Button>
           </FilterBar>

@@ -91,7 +91,7 @@ export function RightConsoleProvider({ children }: { children: ReactNode }) {
           {consoleContent}
         </div>
       </aside>
-      {!mobileBarHidden ? <div data-mobile-action-bar className="fixed inset-x-3 bottom-[calc(env(safe-area-inset-bottom)+0.5rem)] z-40 flex items-center gap-2 border border-[var(--sb-border)] bg-white p-2 shadow-sm xl:hidden">
+      {!mobileBarHidden ? <div data-mobile-action-bar className="fixed inset-x-3 bottom-[calc(env(safe-area-inset-bottom)+0.5rem)] z-40 flex items-center gap-2 border border-t-2 border-[var(--sb-border)] border-t-[var(--sb-green-900)] bg-gradient-to-t from-white to-[var(--sb-surface-muted)] p-2 shadow-[0_-8px_24px_rgba(6,44,31,0.14)] xl:hidden">
         {primaryAction ? <div data-mobile-primary-slot className="min-w-0 flex-1 [&>*]:w-full">{primaryAction}</div> : null}
         <Button ref={triggerRef} type="button" variant={primaryAction ? "outline" : "default"} className={primaryAction ? "shrink-0 gap-2" : "w-full gap-2"} onClick={() => setOpen(true)} aria-label="Open page actions" aria-haspopup="dialog" aria-expanded={open}>
           <PanelRight className="h-4 w-4" aria-hidden="true" />

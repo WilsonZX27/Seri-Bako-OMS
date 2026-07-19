@@ -10,10 +10,11 @@ import { WorkspaceGrid } from "@/components/layout/workspace-layout";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { formatCurrency, formatNumber } from "@/lib/utils";
 import { getRecipes } from "@/server/queries/recipes";
+import { hasPermission } from "@/server/auth/permissions";
 
 export default async function RecipesPage({ searchParams }: { searchParams: Promise<{ search?: string; status?: string }> }) {
   const filters = await searchParams;
-  const recipes = await getRecipes();
+  const [recipes, canCreate] = await Promise.all([getRecipes(), hasPermission("recipes.create")]);
   const search = filters.search?.trim().toLowerCase();
   const visibleRecipes = recipes.filter((recipe) => (!search || [recipe.recipe_no, recipe.product_code, recipe.product_name].some((value) => value.toLowerCase().includes(search))) && (!filters.status || filters.status === "all" || recipe.status === filters.status));
 
@@ -23,7 +24,7 @@ export default async function RecipesPage({ searchParams }: { searchParams: Prom
         title="Recipe / BOM"
         description="Finished product recipes linked to Item Master ingredients."
       />
-      <WorkspaceGrid rightRail={<><ConsoleSection title="Actions"><Button asChild className="w-full" data-mobile-primary-action><Link href="/recipes/new">New recipe</Link></Button></ConsoleSection><ConsoleSection title="Recipe Summary"><dl className="grid gap-2 text-xs"><div className="flex justify-between"><dt className="text-muted-foreground">Total</dt><dd className="font-semibold">{recipes.length}</dd></div><div className="flex justify-between"><dt className="text-muted-foreground">Active</dt><dd className="font-semibold">{recipes.filter((recipe) => recipe.status === "active").length}</dd></div><div className="flex justify-between"><dt className="text-muted-foreground">Pending approval</dt><dd className="font-semibold">{recipes.filter((recipe) => recipe.status === "pending_approval").length}</dd></div></dl></ConsoleSection></>}>
+      <WorkspaceGrid hideMobileConsole={!canCreate} rightRail={<><ConsoleSection title="Actions">{canCreate ? <Button asChild className="w-full" data-mobile-primary-action><Link href="/recipes/new">New recipe</Link></Button> : <p className="text-xs text-muted-foreground">Recipe master data is read-only for Finance.</p>}</ConsoleSection><ConsoleSection title="Recipe Summary"><dl className="grid gap-2 text-xs"><div className="flex justify-between"><dt className="text-muted-foreground">Total</dt><dd className="font-semibold">{recipes.length}</dd></div><div className="flex justify-between"><dt className="text-muted-foreground">Active</dt><dd className="font-semibold">{recipes.filter((recipe) => recipe.status === "active").length}</dd></div><div className="flex justify-between"><dt className="text-muted-foreground">Pending approval</dt><dd className="font-semibold">{recipes.filter((recipe) => recipe.status === "pending_approval").length}</dd></div></dl></ConsoleSection></>}>
         <div className="overflow-hidden rounded-[2px] border bg-card">
           <StatusTabs statuses={[{ value: "active", label: "Active" }, { value: "draft", label: "Draft" }, { value: "pending_approval", label: "Pending Approval" }, { value: "archived", label: "Archived" }]} activeStatus={filters.status} />
           <MasterDataFilters search={filters.search} status={filters.status} placeholder="Search recipe number, product code, or product" statuses={[{ value: "active", label: "Active" }, { value: "draft", label: "Draft" }, { value: "pending_approval", label: "Pending Approval" }, { value: "approved", label: "Approved" }, { value: "rejected", label: "Rejected" }, { value: "archived", label: "Archived" }]} />

@@ -12,6 +12,7 @@ import { getDocumentBundle } from "@/server/queries/documents";
 import { getRecipe } from "@/server/queries/recipes";
 import { formatCurrency, formatNumber } from "@/lib/utils";
 import { PhaseOneDeleteAction } from "@/components/phase-one-delete-action";
+import { getPermissionMap } from "@/server/auth/permissions";
 
 function imageFallback(label: string) {
   return (
@@ -29,7 +30,7 @@ export default async function RecipeDetailPage({
   searchParams: Promise<{ error?: string; success?: string }>;
 }) {
   const { id } = await params;
-  const [messageParams, recipe] = await Promise.all([searchParams, getRecipe(id)]);
+  const [messageParams, recipe, permissions] = await Promise.all([searchParams, getRecipe(id), getPermissionMap(["recipes.create", "recipes.update", "recipes.submit", "recipes.approve", "recipes.archive"])]);
   const documentBundle = recipe.document_id ? await getDocumentBundle(recipe.document_id) : null;
 
   return (
@@ -43,9 +44,9 @@ export default async function RecipeDetailPage({
                 <span className="text-muted-foreground">Current status</span>
                 <Badge variant={recipe.status === "active" ? "success" : recipe.status === "rejected" ? "danger" : "secondary"}>{recipe.status}</Badge>
               </div>
-              {!["active", "archived"].includes(recipe.status) ? <Button asChild variant="outline" className="w-full"><Link href={`/recipes/${recipe.id}/edit`}>Edit Recipe</Link></Button> : null}
-              {recipe.status === "draft" ? <form action={submitRecipe.bind(null, recipe.id)}><Button type="submit" className="w-full">Submit</Button></form> : null}
-              {recipe.status === "pending_approval" ? (
+              {permissions["recipes.update"] && !["active", "archived"].includes(recipe.status) ? <Button asChild variant="outline" className="w-full"><Link href={`/recipes/${recipe.id}/edit`}>Edit Recipe</Link></Button> : null}
+              {permissions["recipes.submit"] && recipe.status === "draft" ? <form action={submitRecipe.bind(null, recipe.id)}><Button type="submit" className="w-full">Submit</Button></form> : null}
+              {permissions["recipes.approve"] && recipe.status === "pending_approval" ? (
                 <>
                   <form action={approveRecipe.bind(null, recipe.id)}><Button type="submit" className="w-full">Approve</Button></form>
                   <form action={rejectRecipe.bind(null, recipe.id)} className="grid gap-2">
@@ -54,10 +55,10 @@ export default async function RecipeDetailPage({
                   </form>
                 </>
               ) : null}
-              {recipe.status === "approved" ? <form action={activateRecipe.bind(null, recipe.id)}><Button type="submit" className="w-full">Activate</Button></form> : null}
-              {recipe.status === "active" ? <form action={createNewRecipeVersion.bind(null, recipe.id)}><Button type="submit" variant="outline" className="w-full">New Version</Button></form> : null}
-              {["active", "approved"].includes(recipe.status) ? <form action={archiveRecipe.bind(null, recipe.id)}><Button type="submit" variant="ghost" className="w-full">Archive</Button></form> : null}
-              <PhaseOneDeleteAction recordType="recipe" recordId={recipe.id} label="recipe" />
+              {permissions["recipes.approve"] && recipe.status === "approved" ? <form action={activateRecipe.bind(null, recipe.id)}><Button type="submit" className="w-full">Activate</Button></form> : null}
+              {permissions["recipes.create"] && recipe.status === "active" ? <form action={createNewRecipeVersion.bind(null, recipe.id)}><Button type="submit" variant="outline" className="w-full">New Version</Button></form> : null}
+              {permissions["recipes.archive"] && ["active", "approved"].includes(recipe.status) ? <form action={archiveRecipe.bind(null, recipe.id)}><Button type="submit" variant="ghost" className="w-full">Archive</Button></form> : null}
+              {permissions["recipes.archive"] ? <PhaseOneDeleteAction recordType="recipe" recordId={recipe.id} label="recipe" /> : null}
             </RecordActionPanel>
             <RecordActionPanel title="Recipe Metadata">
               <dl className="grid gap-2 text-xs">

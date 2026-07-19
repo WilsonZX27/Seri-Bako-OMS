@@ -5,6 +5,7 @@ const fs = require("node:fs");
 const read = (file) => fs.readFileSync(file, "utf8");
 const sql = read("supabase/migrations/064_outlet_daily_receiving_wastage.sql");
 const validationFix = read("supabase/migrations/065_fix_outlet_evening_completion_validation.sql");
+const hotfix = read("supabase/migrations/074_daily_record_recipe_access_product_order.sql");
 const actions = read("src/server/actions/outlet-daily-records.ts");
 const query = read("src/server/queries/outlet-daily-records.ts");
 const form = read("src/components/outlet-daily-record-form.tsx");
@@ -27,19 +28,20 @@ test("workflow, quantity and reviewed-lock rules are server authoritative", () =
   assert.match(sql, /Void reason is required/);
 });
 
-test("draft quantities may stay blank while evening completion requires explicit values", () => {
+test("the current form uses sent, received, wastage, reason and remarks without leftover", () => {
   assert.match(sql, /p_target_status = 'evening_completed' and \(not \(line \? 'evening_leftover_qty'\)/);
   assert.match(validationFix, /coalesce\(nullif\(line ->> 'evening_leftover_qty', ''\)::numeric, 0\)/);
   assert.match(validationFix, /p_target_status = 'evening_completed'[\s\S]*nullif\(trim\(coalesce\(line ->> 'evening_leftover_qty', ''\)\), ''\) is null/);
   assert.match(validationFix, /p_target_status = 'evening_completed'[\s\S]*nullif\(trim\(coalesce\(line ->> 'wastage_qty', ''\)\), ''\) is null/);
-  assert.match(form, /defaultValue=\{line \? line\.evening_leftover_qty : ""\}/);
-  assert.match(form, /defaultValue=\{line \? line\.wastage_qty : ""\}/);
+  assert.doesNotMatch(form, /Leftover|evening_leftover_qty/);
+  for (const field of ["qty_sent", "morning_received_qty", "wastage_qty", "wastage_reason", "line_notes"]) assert.match(form, new RegExp(`name="${field}"`));
+  assert.match(hotfix, /qty_sent numeric\(18,4\)/);
 });
 
 test("lite polish keeps line entry searchable and outlet defaults unambiguous", () => {
   const newPage = read("src/app/(app)/outlet-daily-records/new/page.tsx");
   assert.match(form, /Search name, code, or category/);
-  assert.match(form, /className=\{matches \? undefined : "hidden"\}/);
+  assert.match(form, /matches \? "" : "hidden"/);
   assert.match(query, /defaultBranchId: allowedBranches\.some/);
   assert.match(query, /allowedBranches\.length === 1/);
   assert.match(newPage, /branchId=\{options\.defaultBranchId\}/);
@@ -84,5 +86,5 @@ test("only the requested routes and operations navigation are wired", () => {
 test("release footer matches Sprint 7.13", () => {
   const version = read("src/lib/app-version.ts");
   assert.match(version, /APP_VERSION = "0\.2\.37"/);
-  assert.match(version, /APP_SPRINT = "Sprint 7\.23\.5"/);
+  assert.match(version, /APP_SPRINT = "Sprint 7\.23\.5\.1"/);
 });

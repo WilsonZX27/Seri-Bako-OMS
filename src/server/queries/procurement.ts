@@ -117,7 +117,13 @@ export async function getPurchaseRequests(filters: Filters = {}) {
   const status = filters.status && filters.status !== "all" ? filters.status : null;
   const priority = filters.priority && filters.priority !== "all" ? filters.priority : null;
   const search = searchFilter(filters.search);
-  if (status) query = query.eq("status", status as PurchaseRequest["status"]);
+  const statusGroup = status === "in_review"
+    ? ["manager_review", "admin_review", "finance_review"]
+    : status === "rejected"
+      ? ["rejected", "cancelled"]
+      : status ? [status] : [];
+  if (statusGroup.length === 1) query = query.eq("status", statusGroup[0] as PurchaseRequest["status"]);
+  if (statusGroup.length > 1) query = query.in("status", statusGroup as PurchaseRequest["status"][]);
   if (priority) query = query.eq("priority", priority as PurchaseRequest["priority"]);
   if (search) query = query.or(`request_no.ilike.%${search}%,remarks.ilike.%${search}%`);
   const { data, error, count } = await query

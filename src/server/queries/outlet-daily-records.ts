@@ -4,6 +4,7 @@ import { paginateRows } from "@/lib/table-state";
 import { hasPermission } from "@/server/auth/permissions";
 import { getCurrentProfile } from "@/server/queries/common";
 import type { Database } from "@/types/database";
+import { compareProductDisplayOrder, sortProductsForDisplay } from "@/lib/product-order";
 
 type Filters = Record<string, string | undefined>;
 type RecordRow = Database["public"]["Tables"]["outlet_daily_records"]["Row"];
@@ -15,6 +16,7 @@ type TrendTotals = { received: number; leftover: number; wastage: number; moveme
 export type OutletDailyRecordRow = RecordRow & {
   branch_name: string;
   submitted_by_name: string | null;
+  total_sent: number;
   total_received: number;
   total_leftover: number;
   total_wastage: number;
@@ -26,10 +28,12 @@ const todayInKualaLumpur = () => new Intl.DateTimeFormat("en-CA", {
 }).format(new Date());
 
 const totals = (lines: LineRow[]) => {
+  const totalSent = lines.reduce((sum, line) => sum + Number(line.qty_sent), 0);
   const totalReceived = lines.reduce((sum, line) => sum + Number(line.morning_received_qty), 0);
   const totalLeftover = lines.reduce((sum, line) => sum + Number(line.evening_leftover_qty), 0);
   const totalWastage = lines.reduce((sum, line) => sum + Number(line.wastage_qty), 0);
   return {
+    total_sent: totalSent,
     total_received: totalReceived,
     total_leftover: totalLeftover,
     total_wastage: totalWastage,
@@ -69,7 +73,7 @@ export async function getOutletDailyFormOptions() {
     const branches = mockBranches.filter((row) => row.status === "active");
     return {
       branches,
-      products: mockProducts.filter((row) => row.status === "active"),
+      products: sortProductsForDisplay(mockProducts.filter((row) => row.status === "active")),
       defaultBranchId: branches.length === 1 ? branches[0].id : undefined,
     };
   }
@@ -78,7 +82,7 @@ export async function getOutletDailyFormOptions() {
   const canViewAll = await hasPermission("outlet_daily_record.view_all");
   const [{ data: branches, error: branchError }, { data: products, error: productError }] = await Promise.all([
     db.from("branches").select("id,branch_code,branch_name,branch_type,status,default_location_id").eq("status", "active").is("deleted_at", null).order("branch_name"),
-    db.from("products").select("id,product_code,product_name,category,selling_unit,status").eq("status", "active").order("product_name"),
+    db.from("products").select("id,product_code,product_name,category,selling_unit,status,display_order").eq("status", "active"),
   ]);
   if (branchError) throw new Error(branchError.message);
   if (productError) throw new Error(productError.message);
@@ -86,7 +90,7 @@ export async function getOutletDailyFormOptions() {
   const profileDefaultBranchId = profile && "default_branch_id" in profile ? profile.default_branch_id : null;
   if (canViewAll) return {
     branches: activeBranches,
-    products: products ?? [],
+    products: sortProductsForDisplay(products ?? []),
     defaultBranchId: activeBranches.some((row) => row.id === profileDefaultBranchId)
       ? profileDefaultBranchId ?? undefined
       : activeBranches.length === 1 ? activeBranches[0].id : undefined,
@@ -97,7 +101,7 @@ export async function getOutletDailyFormOptions() {
   const allowedBranches = activeBranches.filter((row) => allowed.has(row.id));
   return {
     branches: allowedBranches,
-    products: products ?? [],
+    products: sortProductsForDisplay(products ?? []),
     defaultBranchId: allowedBranches.some((row) => row.id === profileDefaultBranchId)
       ? profileDefaultBranchId ?? undefined
       : allowedBranches.length === 1 ? allowedBranches[0].id : undefined,
@@ -137,6 +141,7 @@ export async function getOutletDailyRecords(filters: Filters = {}) {
     summary: {
       today,
       today_records: todayRows.length,
+      today_sent: todayRows.reduce((sum, row) => sum + row.total_sent, 0),
       today_received: todayRows.reduce((sum, row) => sum + row.total_received, 0),
       missing_evening: todayRows.filter((row) => ["draft", "morning_recorded"].includes(row.status)).length,
       needs_review: allRows.filter((row) => row.status === "evening_completed").length,
@@ -151,7 +156,7 @@ export async function getOutletDailyRecord(id: string) {
     db.from("outlet_daily_records").select("*").eq("id", id).single(),
     db.from("outlet_daily_record_lines").select("*").eq("record_id", id),
     db.from("branches").select("id,branch_name"),
-    db.from("products").select("id,product_code,product_name,category,selling_unit,status"),
+    db.from("products").select("id,product_code,product_name,category,selling_unit,status,display_order"),
     db.from("staffs").select("id,full_name"),
   ]);
   if (error) throw new Error(error.message);
@@ -167,7 +172,13 @@ export async function getOutletDailyRecord(id: string) {
       reviewed_by_name: staffs?.find((staff) => staff.id === typedRecord.reviewed_by)?.full_name ?? null,
       ...totals(typedLines),
     },
-    lines: typedLines.map((line) => ({ ...line, product: productMap.get(line.product_id) })),
+    lines: typedLines
+      .map((line) => ({ ...line, product: productMap.get(line.product_id) }))
+      .sort((a, b) => {
+        if (!a.product) return 1;
+        if (!b.product) return -1;
+        return compareProductDisplayOrder(a.product, b.product);
+      }),
   };
 }
 

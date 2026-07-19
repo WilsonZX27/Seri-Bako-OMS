@@ -30,6 +30,9 @@ export function ProductForm({ product, packaging = [], action, formId, showSubmi
           <Field label="Category">
             <Input name="category" defaultValue={product?.category ?? ""} placeholder="Frozen Pastry" required />
           </Field>
+          <Field label="Display Order">
+            <Input name="display_order" type="number" min="1" step="1" defaultValue={product?.display_order ?? 9999} required />
+          </Field>
           <Field label="Selling Unit">
             <Input name="selling_unit" defaultValue={product?.selling_unit ?? ""} placeholder="pcs" required />
           </Field>

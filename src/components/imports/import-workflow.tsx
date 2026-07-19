@@ -403,7 +403,7 @@ export function ImportWorkflow({ entity, suppliers = [] }: { entity: ImportEntit
 
   return (
     <div className="space-y-5">
-      <RightConsoleMount>
+      <RightConsoleMount hideMobileBar>
         <ConsoleSection title="Template and draft">
           <Button type="button" variant="outline" className="w-full justify-start" onClick={downloadTemplate}><Download className="mr-2 h-4 w-4" />CSV template</Button>
           <Button type="button" variant="outline" className="w-full justify-start" onClick={saveDraft}><Save className="mr-2 h-4 w-4" />Save draft</Button>

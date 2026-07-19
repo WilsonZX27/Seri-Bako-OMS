@@ -1,5 +1,6 @@
 import { isMockMode, mockItems, mockProductPackaging, mockProducts, mockRecipeCostSnapshots, mockRecipeLines, mockRecipes } from "@/lib/mock-mode";
 import { createClient } from "@/lib/supabase/server";
+import { requirePermission } from "@/server/auth/permissions";
 import type { Database } from "@/types/database";
 
 type RecipeRow = Database["public"]["Tables"]["recipes"]["Row"];
@@ -126,6 +127,7 @@ function buildRecipeDetail(
 }
 
 export async function getRecipes() {
+  await requirePermission("recipes.view");
   if (isMockMode()) {
     return mockRecipes.map((recipe) => buildRecipeDetail(recipe, mockProducts, mockRecipeLines, mockItems, mockProductPackaging, mockRecipeCostSnapshots));
   }
@@ -151,6 +153,7 @@ export async function getRecipes() {
 }
 
 export async function getRecipe(id: string) {
+  await requirePermission("recipes.view");
   if (isMockMode()) {
     const recipe = mockRecipes.find((row) => row.id === id);
     if (!recipe) throw new Error("Mock recipe not found");
@@ -177,6 +180,7 @@ export async function getRecipe(id: string) {
 }
 
 export async function getRecipeIngredientOptions(): Promise<RecipeIngredientOption[]> {
+  await requirePermission("recipes.view");
   if (isMockMode()) {
     return mockItems
       .filter((item) => item.status === "active")

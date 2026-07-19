@@ -1,6 +1,7 @@
 import { isMockMode, mockProductPackaging, mockProducts } from "@/lib/mock-mode";
 import { createClient } from "@/lib/supabase/server";
 import type { ItemStatus } from "@/types/database";
+import { sortProductsForDisplay } from "@/lib/product-order";
 
 type ProductFilters = {
   search?: string;
@@ -25,17 +26,18 @@ function filterProducts<T extends { product_code: string; product_name: string; 
   const search = filters.search?.trim().toLowerCase();
   const status = filters.status && filters.status !== "all" ? filters.status : null;
   const category = filters.category && filters.category !== "all" ? filters.category : null;
-  const sort = filters.sort ?? "product_name";
+  const sort = filters.sort;
   const dir = filters.dir === "desc" ? "desc" : "asc";
 
-  return products.filter((product) => {
+  const filtered = products.filter((product) => {
     const matchesSearch = search
       ? [product.product_code, product.product_name, product.category].some((value) => value.toLowerCase().includes(search))
       : true;
     const matchesStatus = status ? product.status === status : true;
     const matchesCategory = category ? product.category === category : true;
     return matchesSearch && matchesStatus && matchesCategory;
-  }).sort((a, b) => compareValues(a[sort as keyof T], b[sort as keyof T], dir));
+  });
+  return sort ? filtered.sort((a, b) => compareValues(a[sort as keyof T], b[sort as keyof T], dir)) : sortProductsForDisplay(filtered);
 }
 
 function isItemStatus(value: string): value is ItemStatus {
@@ -48,7 +50,7 @@ export async function getProducts(filters: ProductFilters = {}) {
   }
 
   const supabase = await createClient();
-  let query = supabase.from("products").select("*").order("product_name", { ascending: true });
+  let query = supabase.from("products").select("*");
 
   if (filters.status && isItemStatus(filters.status)) {
     query = query.eq("status", filters.status);

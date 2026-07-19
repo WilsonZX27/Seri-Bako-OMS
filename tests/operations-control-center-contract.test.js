@@ -34,5 +34,5 @@ test("Operations Control Center stays read-only and follows the Sprint 7.18.1 fo
   assert.doesNotMatch(implementation, /(insert into|update|delete from) public\.(stock_transactions|stock_transaction_lines|stock_balances|production_jobs|supplier_invoices|supplier_invoice_payments)/i);
   assert.match(read("supabase/migrations/066_create_outlet_staff_role.sql"), /outlet_staff/);
   assert.match(version, /APP_VERSION = "0\.2\.37"/);
-  assert.match(version, /APP_SPRINT = "Sprint 7\.23\.5"/);
+  assert.match(version, /APP_SPRINT = "Sprint 7\.23\.5\.1"/);
 });

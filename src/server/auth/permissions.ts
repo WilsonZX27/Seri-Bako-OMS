@@ -9,7 +9,7 @@ export const roleDescriptions = {
   manager: "Branch-scoped approver for operational workflow decisions and branch maintenance.",
   purchasing: "Company-wide purchasing and master-data operator.",
   kitchen: "Central Kitchen operator for assigned branches.",
-  outlet_staff: "Outlet worker who records daily received quantities, leftovers, and wastage for assigned outlets.",
+  outlet_staff: "Outlet worker who confirms received quantities and records wastage for assigned outlets.",
 } as const;
 
 export { getRoleDisplayLabel };
@@ -141,14 +141,15 @@ const permissionAliases: Record<string, string[]> = {
   "supplier_invoices.payment": ["supplier_invoice.pay"],
   "supplier_invoice.approve": [],
   "supplier_invoice.void": [],
-  "recipes.view": ["production.view"],
-  "recipes.approve": ["production.approve"],
-  "production.view": ["production_jobs.view", "recipes.view"],
+  "recipes.view": ["recipes.read"],
+  "recipes.read": ["recipes.view"],
+  "recipes.approve": [],
+  "production.view": ["production_jobs.view"],
   "production_jobs.view": ["production.view"],
   "production.create": ["production_jobs.create"],
   "production_jobs.create": ["production.create"],
   "production.submit": [],
-  "production.approve": ["production_jobs.approve", "recipes.approve"],
+  "production.approve": ["production_jobs.approve"],
   "production_jobs.approve": ["production.approve"],
   "production.post": ["production_jobs.post"],
   "production_jobs.post": ["production.post"],
@@ -163,7 +164,7 @@ const permissionAliases: Record<string, string[]> = {
 export const rolePermissionMatrix = {
   super_admin: ["*"],
   finance: ["dashboard.view", "pr.finance_review", "pr.reject", "pr.view_all", "purchase_request.read", "purchase_order.read", "goods_receiving.read", "inventory.read", "stock_count.read", "stock_transfer.read", "stock_wastage.read", "po.view", "grn.view", "purchase_return.view", "items.view", "suppliers.view", "production.view", "recipes.view", "outlet_daily_record.view", "outlet_daily_record.view_all", "supplier_invoice.view", "supplier_invoice.create", "supplier_invoice.pay", "supplier_invoice.approve", "supplier_invoice.void", "documents.view", "reports.view", "stock.view", "stock_transactions.read", "staffs.read", "staffs.create", "staffs.update", "document_sequences.read", "document_sequences.create", "document_sequences.update", "imports.create", "imports.run", "branches.read", "branches.create", "branches.update"],
-  manager: ["dashboard.view", "purchase_request.read", "purchase_order.read", "goods_receiving.read", "inventory.read", "stock_count.read", "stock_transfer.read", "stock_wastage.read", "pr.manager_approve", "pr.reject", "pr.view_branch", "po.view", "po.approve", "grn.view", "purchase_return.view", "documents.view", "reports.view", "stock.view", "stock_transactions.read", "attachments.upload", "production.view", "production.approve", "production.reject", "branches.read", "branches.create", "branches.update"],
+  manager: ["dashboard.view", "purchase_request.read", "purchase_order.read", "goods_receiving.read", "inventory.read", "stock_count.read", "stock_transfer.read", "stock_wastage.read", "pr.manager_approve", "pr.reject", "pr.view_branch", "po.view", "po.approve", "grn.view", "purchase_return.view", "documents.view", "reports.view", "stock.view", "stock_transactions.read", "attachments.upload", "production.view", "production.approve", "production.reject", "outlet_daily_record.view", "outlet_daily_record.review", "outlet_daily_record.void", "branches.read", "branches.create", "branches.update"],
   purchasing: [
     "dashboard.view",
     "items.create",
@@ -210,6 +211,9 @@ export const rolePermissionMatrix = {
     "production.create",
     "production.submit",
     "production.cancel",
+    "outlet_daily_record.view",
+    "outlet_daily_record.create",
+    "outlet_daily_record.qty_sent",
   ],
 } as const satisfies Record<string, readonly string[]>;
 

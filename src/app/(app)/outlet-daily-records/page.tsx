@@ -27,9 +27,9 @@ export default async function OutletDailyRecordsPage({ searchParams }: { searchP
   const filtered = hasActiveFilters(filters);
   return <>
     <PageHeader title="Outlet Daily Records" description="Morning receiving and evening wastage capture by outlet." />
-    <WorkspaceGrid rightRail={<>
+    <WorkspaceGrid hideMobileConsole={!canCreate} rightRail={<>
       <ConsoleSection title="Actions">{canCreate ? <Button asChild size="sm" className="w-full" data-mobile-primary-action><Link href="/outlet-daily-records/new">New Daily Record</Link></Button> : <p className="text-xs text-muted-foreground">Your role has read-only access.</p>}</ConsoleSection>
-      <ConsoleSection title="Today"><div className="space-y-2 text-xs"><p className="flex justify-between"><span>Records</span><strong>{data.summary.today_records}</strong></p><p className="flex justify-between"><span>Total received</span><strong>{formatNumber(data.summary.today_received)}</strong></p><p className="flex justify-between"><span>Missing evening</span><strong>{data.summary.missing_evening}</strong></p></div></ConsoleSection>
+      <ConsoleSection title="Today"><div className="space-y-2 text-xs"><p className="flex justify-between"><span>Records</span><strong>{data.summary.today_records}</strong></p><p className="flex justify-between"><span>Qty sent</span><strong>{formatNumber(data.summary.today_sent)}</strong></p><p className="flex justify-between"><span>Total received</span><strong>{formatNumber(data.summary.today_received)}</strong></p><p className="flex justify-between"><span>Incomplete</span><strong>{data.summary.missing_evening}</strong></p></div></ConsoleSection>
       <ConsoleSection title="Review Queue"><p className="text-xs"><span className="text-muted-foreground">Records needing review</span><br /><strong>{data.summary.needs_review}</strong></p></ConsoleSection>
     </>}>
       <div className="overflow-hidden border bg-card">

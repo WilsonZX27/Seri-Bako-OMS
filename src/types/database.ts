@@ -386,6 +386,7 @@ export type Database = {
           record_id: string;
           product_id: string;
           morning_received_qty: number;
+          qty_sent: number;
           evening_leftover_qty: number;
           wastage_qty: number;
           wastage_reason: OutletDailyWastageReason | null;
@@ -398,6 +399,7 @@ export type Database = {
           record_id: string;
           product_id: string;
           morning_received_qty?: number;
+          qty_sent?: number;
           evening_leftover_qty?: number;
           wastage_qty?: number;
           wastage_reason?: OutletDailyWastageReason | null;
@@ -944,6 +946,7 @@ export type Database = {
           product_code: string;
           product_name: string;
           category: string;
+          display_order: number;
           selling_unit: string;
           status: ItemStatus;
           barcode: string | null;
@@ -960,6 +963,7 @@ export type Database = {
           product_code: string;
           product_name: string;
           category: string;
+          display_order?: number;
           selling_unit: string;
           status?: ItemStatus;
           barcode?: string | null;

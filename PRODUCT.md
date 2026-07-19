@@ -169,7 +169,7 @@ These modules are expected to support their primary working flow:
 - Purchase Returns.
 - Supplier Invoices.
 - Stock Counts, Transfers, and Wastage.
-- Outlet Daily Records for morning receiving, evening leftovers, wastage, and manager review.
+- Outlet Daily Records for Central Kitchen quantities sent, Outlet Staff quantities received, wastage, and manager review.
 - Products, Recipes / BOM, and Production Jobs.
 - Company, Branch / Outlet, staff, and role administration.
 - Private document attachments and activity history.
@@ -290,7 +290,7 @@ Calculated stock views must not become independent sources of truth.
 
 ### Outlet Daily Receiving and Wastage
 
-Outlet Daily Records capture morning product quantities, evening leftovers, wastage quantities, reasons, and notes by branch and date. Draft, Morning Recorded, Evening Completed, Reviewed, and Void states support the daily handoff. Reviewed records are locked; voiding requires permission and a reason. Outlet staff are limited to assigned/default branches, while explicitly authorized company-wide users may review all outlets. Sprint 7.12.2 verifies the light daily flow without changing its workflow. Outlet Daily Records remain data capture only: they do not post stock movements, change production jobs, forecast demand, or create BI metrics.
+Outlet Daily Records capture product Qty Sent, Received, Wastage, Wastage Reason, and Remarks by branch and date. Central Kitchen controls Qty Sent; Outlet Staff confirms Received and records Wastage; neither role can overwrite the other role's fields. The established Draft, Morning Recorded, Evening Completed, Reviewed, and Void database states remain compatible while the interface uses concise daily language. Reviewed records are locked; voiding requires permission and a reason. Assigned-branch scope remains authoritative. Outlet Daily Records remain data capture only: they do not post stock movements, change production jobs, forecast demand, or create BI metrics.
 
 ### Demand Trend Lite
 

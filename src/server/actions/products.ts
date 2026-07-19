@@ -18,6 +18,7 @@ function payload(formData: FormData) {
     product_code: formData.get("product_code"),
     product_name: formData.get("product_name"),
     category: formData.get("category"),
+    display_order: formData.get("display_order") || 9999,
     selling_unit: formData.get("selling_unit"),
     status: formData.get("status") ?? "active",
   });

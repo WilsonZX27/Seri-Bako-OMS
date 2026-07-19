@@ -15,7 +15,6 @@ type SeedLine = {
   item_id: string;
   item_code: string;
   item_name: string;
-  barcode: string | null;
   theoretical_qty: number;
   physical_qty: number;
   uom: string;

@@ -18,7 +18,7 @@ function compareValues(a: unknown, b: unknown, direction: string) {
   return direction === "desc" ? -result : result;
 }
 
-function filterProducts<T extends { product_code: string; product_name: string; category: string; status: string; barcode?: string | null; internal_barcode?: string | null }>(
+function filterProducts<T extends { product_code: string; product_name: string; category: string; status: string }>(
   products: T[],
   filters: ProductFilters,
 ) {
@@ -30,7 +30,7 @@ function filterProducts<T extends { product_code: string; product_name: string; 
 
   return products.filter((product) => {
     const matchesSearch = search
-      ? [product.product_code, product.product_name, product.category, product.barcode ?? "", product.internal_barcode ?? ""].some((value) => value.toLowerCase().includes(search))
+      ? [product.product_code, product.product_name, product.category].some((value) => value.toLowerCase().includes(search))
       : true;
     const matchesStatus = status ? product.status === status : true;
     const matchesCategory = category ? product.category === category : true;
@@ -56,7 +56,7 @@ export async function getProducts(filters: ProductFilters = {}) {
 
   if (filters.search?.trim()) {
     const search = filters.search.trim();
-    query = query.or(`product_code.ilike.%${search}%,product_name.ilike.%${search}%,category.ilike.%${search}%,barcode.ilike.%${search}%,internal_barcode.ilike.%${search}%`);
+    query = query.or(`product_code.ilike.%${search}%,product_name.ilike.%${search}%,category.ilike.%${search}%`);
   }
 
   const { data, error } = await query;

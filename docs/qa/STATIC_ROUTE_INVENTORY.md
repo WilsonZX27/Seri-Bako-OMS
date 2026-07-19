@@ -10,13 +10,13 @@ Inventory date: 2026-07-18. All routes below are discovered from `src/app/(app)`
 | `/inventory`, `/items/**`, `/products/**`, `/recipes/**`, `/stock-*`, `/low-stock`, `/opening-stock/import` | Inventory / production master data | yes | yes | yes | Keep |
 | `/outlet-daily-records/**`, `/production/**` | Outlet / production | yes | yes | yes | Keep |
 | `/reports`, `/reports/demand-trends`, `/reports/costing-readiness`, `/reports/recipe-costing`, `/reports/product-margin`, `/reports/procurement-variance` | Reports | yes | yes | yes | Keep |
-| `/company`, `/branches/**`, `/locations/**`, `/staffs/**`, `/roles/**`, `/document-sequences/**` | Administration | yes | yes | yes | Keep |
+| `/company`, `/branches/**`, `/staffs/**`, `/roles/**`, `/document-sequences/**` | Administration | yes | yes | yes | Keep |
 | `/imports`, `/imports/[entity]`, `/administration/imports` | Imports | yes | yes | yes | `/administration/imports` redirects to `/imports` |
 | `/data-onboarding` | Legacy onboarding | mixed / mutating | no | yes | Hide; redirect to `/imports`; retain route for old links only |
 | `/administration`, `/settings`, `/settings/backups` | Administration / compatibility / backup | yes | yes | yes | `/settings` redirects to the canonical `/administration` hub; backup remains owner-only |
 | `/documents/**` | Documents | yes | indirect | yes | Keep |
 
-Dynamic `/**` entries cover list, new, edit, scan, and detail pages found under the matching route directories. No route was deleted in this sprint.
+Dynamic `/**` entries cover list, new, edit, and detail pages found under the matching route directories. No route was deleted in this sprint.
 
 ## Detailed Routes Needing Review
 

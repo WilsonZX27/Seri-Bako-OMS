@@ -12,10 +12,9 @@ import { formatNumber, getToday } from "@/lib/utils";
 import { wastageReasons } from "@/lib/validations/stock-operations";
 
 type Branch = { id: string; branch_code: string; branch_name: string; status: string };
-type Location = { id: string; branch_id?: string | null; location_code: string; location_name: string; status: string };
-type SeedLine = { item_id: string; item_code: string; item_name: string; barcode: string | null; available_qty: number; quantity: number; uom: string };
+type SeedLine = { item_id: string; item_code: string; item_name: string; available_qty: number; quantity: number; uom: string };
 
-export function StockTransferForm({ branches, selectedFromBranchId, seedLines, action, formId, showSubmit = true }: { branches: Branch[]; locations: Location[]; selectedFromLocationId?: string; selectedFromBranchId?: string; seedLines: SeedLine[]; action: (formData: FormData) => Promise<void>; formId?: string; showSubmit?: boolean }) {
+export function StockTransferForm({ branches, selectedFromBranchId, seedLines, action, formId, showSubmit = true }: { branches: Branch[]; selectedFromBranchId?: string; seedLines: SeedLine[]; action: (formData: FormData) => Promise<void>; formId?: string; showSubmit?: boolean }) {
   const router = useRouter();
   function selectFromBranch(id: string) { router.push(id ? `/stock-transfers/new?from_branch_id=${id}` : "/stock-transfers/new"); }
   return (
@@ -37,7 +36,7 @@ export function StockTransferForm({ branches, selectedFromBranchId, seedLines, a
   );
 }
 
-export function StockWastageForm({ branches, selectedBranchId, seedLines, action, formId, showSubmit = true }: { branches: Branch[]; locations: Location[]; selectedLocationId?: string; selectedBranchId?: string; seedLines: SeedLine[]; action: (formData: FormData) => Promise<void>; formId?: string; showSubmit?: boolean }) {
+export function StockWastageForm({ branches, selectedBranchId, seedLines, action, formId, showSubmit = true }: { branches: Branch[]; selectedBranchId?: string; seedLines: SeedLine[]; action: (formData: FormData) => Promise<void>; formId?: string; showSubmit?: boolean }) {
   const router = useRouter();
   const no = "WST-AUTO";
   function selectBranch(id: string) { router.push(id ? `/stock-wastage/new?branch_id=${id}` : "/stock-wastage/new"); }

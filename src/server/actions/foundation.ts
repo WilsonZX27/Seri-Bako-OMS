@@ -507,8 +507,8 @@ async function replaceStaffAccess(staffId: string, formData: FormData) {
     return role.role_code === "manager";
   });
   const defaultLocation = eligibleLocations.find((location) => location.id === access.default_location_id);
-  if (!defaultLocation?.branch_id) throw new Error("Default location is not eligible for the selected role.");
-  if (!eligibleLocations.length) throw new Error("Select at least one eligible accessible location.");
+  if (!defaultLocation?.branch_id) throw new Error("Default branch / outlet is not eligible for the selected role.");
+  if (!eligibleLocations.length) throw new Error("Select at least one eligible branch / outlet.");
   const branchIds = Array.from(new Set(eligibleLocations.flatMap((location) => location.branch_id ? [location.branch_id] : [])));
 
   const [{ error: deleteRolesError }, { error: deleteBranchesError }, { error: deleteLocationsError }] = await Promise.all([
@@ -626,6 +626,16 @@ async function assertCanAssignStaffRole(admin: ReturnType<typeof createAdminClie
 
   if (!currentRoleCodes.some((roleCode) => canAssignRoleCode(roleCode, targetRoleCode))) {
     throw new Error("You do not have permission to assign this role.");
+  }
+}
+
+async function assertCanManageStaffAccount(admin: ReturnType<typeof createAdminClient>, staffId: string) {
+  const targetRoleId = await getPrimaryStaffRoleId(admin, staffId);
+  const targetRoleCode = await getRoleCodeById(admin, targetRoleId);
+  if (!isSuperAdminRole(targetRoleCode)) return;
+  const currentRoleCodes = await getCurrentStaffRoleCodes(admin);
+  if (!currentRoleCodes.some(isSuperAdminRole)) {
+    throw new Error("Super Admin / Owner accounts are protected and can only be managed by another owner.");
   }
 }
 
@@ -786,7 +796,7 @@ export async function createStaff(formData: FormData) {
     if (!isMockMode()) {
       const supabase = createAdminClient();
       if (!access.role_id || !access.default_location_id) {
-        throw new Error("Role and default location are required before invite.");
+        throw new Error("Role and default branch / outlet are required before invite.");
       }
       await assertCanAssignStaffRole(supabase, access.role_id);
       const invitedBy = await getCurrentStaffId();
@@ -855,8 +865,9 @@ export async function updateStaff(id: string, formData: FormData) {
     if (!isMockMode()) {
       const supabase = createAdminClient();
       if (!access.role_id || !access.default_location_id) {
-        throw new Error("Role and default location are required.");
+        throw new Error("Role and default branch / outlet are required.");
       }
+      await assertCanManageStaffAccount(supabase, id);
       await assertCanAssignStaffRole(supabase, access.role_id, id);
       const { error } = await supabase.from("staffs").update({ ...payload, invite_email: payload.email }).eq("id", id);
       if (error) throw new Error(error.message);
@@ -908,6 +919,7 @@ export async function resendStaffInvite(id: string) {
   try {
     if (!isMockMode()) {
       const supabase = createAdminClient();
+      await assertCanManageStaffAccount(supabase, id);
       const { data: staff, error } = await supabase.from("staffs").select("email, invite_email, full_name").eq("id", id).single();
       if (error) throw new Error(error.message);
       const email = (staff.invite_email ?? staff.email ?? "").trim().toLowerCase();
@@ -930,6 +942,7 @@ export async function resetStaffTemporaryPassword(id: string) {
   try {
     if (!isMockMode()) {
       const supabase = createAdminClient();
+      await assertCanManageStaffAccount(supabase, id);
       const { data: staff, error } = await supabase
         .from("staffs")
         .select("id, email, invite_email, full_name, auth_user_id")
@@ -963,6 +976,7 @@ export async function forceStaffPasswordChange(id: string) {
   try {
     if (!isMockMode()) {
       const supabase = createAdminClient();
+      await assertCanManageStaffAccount(supabase, id);
       const { error } = await supabase
         .from("staffs")
         .update({
@@ -989,6 +1003,7 @@ export async function disableStaff(id: string) {
   try {
     if (!isMockMode()) {
       const supabase = createAdminClient();
+      await assertCanManageStaffAccount(supabase, id);
       await assertCanDeactivateStaff(supabase, id);
       const { error } = await supabase.from("staffs").update({ status: "disabled" }).eq("id", id);
       if (error) throw new Error(error.message);
@@ -1008,6 +1023,7 @@ export async function enableStaff(id: string) {
   try {
     if (!isMockMode()) {
       const supabase = createAdminClient();
+      await assertCanManageStaffAccount(supabase, id);
       const { data: staff, error: staffError } = await supabase.from("staffs").select("accepted_at").eq("id", id).single();
       if (staffError) throw new Error(staffError.message);
       const { error } = await supabase.from("staffs").update({ status: staff.accepted_at ? "active" : "invited" }).eq("id", id);
@@ -1028,6 +1044,7 @@ export async function permanentlyDeleteStaff(id: string) {
   try {
     if (!isMockMode()) {
       const supabase = createAdminClient();
+      await assertCanManageStaffAccount(supabase, id);
       const { data: staff, error: staffError } = await supabase
         .from("staffs")
         .select("id, staff_code, email, invite_email, full_name, auth_user_id")

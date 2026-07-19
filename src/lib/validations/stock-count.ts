@@ -4,7 +4,6 @@ const optionalUuid = z.string().uuid().optional().nullable().or(z.literal(""));
 
 export const stockCountLineSchema = z.object({
   item_id: z.string().uuid("Item is required"),
-  barcode: z.string().trim().optional().nullable(),
   theoretical_qty: z.coerce.number().min(0),
   physical_qty: z.coerce.number().min(0, "Physical quantity cannot be negative"),
   uom: z.string().trim().min(1, "UOM is required"),

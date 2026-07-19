@@ -6,7 +6,7 @@ Seri Bako ERP is a compact restaurant operations cockpit for procurement, invent
 
 Wilson's Stitch screenshots in `docs/` are the UI source of truth and override older assistant-generated design direction.
 
-The product must feel like a commercial internal ERP: fast, compact, structured, operational, and easy for restaurant managers, kitchen teams, warehouse users, and admin staff to use daily.
+The product must feel like a commercial internal ERP: fast, compact, structured, operational, and easy for restaurant managers, kitchen teams, outlet users, and admin staff to use daily.
 
 Do not redesign freely. Improve by consolidating, reusing, and aligning with the existing Stitch visual direction.
 
@@ -444,7 +444,7 @@ Seri Bako ERP must use a controlled operational color system.
 
 - Mobile action bar: expose at most one safe primary workflow action plus a separate Actions & context trigger. Never promote a destructive action into the persistent bar. Respect bottom safe-area insets and preserve content clearance.
 - Mobile filters: shared list filters occupy no more than two visible rows. Search owns the first row; remaining controls use a compact horizontally scrollable second row when necessary.
-- Headers: breadcrumb already supplies location context, so page headers remain compact. Descriptions may collapse on narrow screens; workflow actions remain in content or the right console.
+- Headers: breadcrumbs already supply route context, so page headers remain compact. Descriptions may collapse on narrow screens; workflow actions remain in content or the right console.
 - Tables: prioritize identifier, operational status/quantity, and the final row action on mobile. Secondary comparison fields progressively appear at `md` and `lg`; a whole page must never overflow horizontally.
 - Forms: date fields and native controls use `min-width: 0`, stay within their grid column, and preserve touch targets at 320px.
 - Dashboard metrics: icon and label sit together on the left, with the primary number aligned strongly to the right.

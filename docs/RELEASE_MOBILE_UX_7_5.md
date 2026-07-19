@@ -14,7 +14,7 @@ The permission root cause was structural: production authorization used a hard-c
 
 - Added a shared bottom action bar below `xl` with one contextual primary action and a separate Actions & context trigger. The bar respects safe areas and content bottom padding; destructive actions stay inside guarded context panels.
 - Reworked shared list filters into a two-row mobile pattern: search first, compact horizontally scrollable controls second.
-- Reduced page-header height because breadcrumb and active navigation already establish location.
+- Reduced page-header height because breadcrumb and active navigation already establish route context.
 - Prioritized essential mobile table columns for Items, Purchase Requests, Purchase Orders, Staff, and Recipes while keeping row actions last.
 - Hardened date/input/select containment with `min-width: 0` and native-date overflow rules.
 - Standardized topbar icon/badge sizing and right-console typography.

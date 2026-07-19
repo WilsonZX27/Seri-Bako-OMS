@@ -13,7 +13,7 @@ These CSVs mirror the supported headers in `src/lib/imports/config.ts`. Every fi
 
 Download/preview through Import Data, resolve every error, and confirm only the intended mode. Stable `supplier_code`, `item_code`, `product_code`, and `branch_code` values are the cross-file identifiers. Missing referenced suppliers, items, branches, or UOM conversions are errors; the importer does not silently create them. Never put several suppliers in one field or use database UUIDs as substitutes for business codes.
 
-Items support a supplier link through `supplier_code`. The current CSV contract does not expose a barcode column, so do not add one. Opening stock uses `branch_code`; its internal location is the branch default resolved by the application. Posting requires explicit confirmation and writes ledger transactions, not direct balances.
+Items support a supplier link through `supplier_code`. Opening stock uses `branch_code`. Posting requires explicit confirmation and writes ledger transactions, not direct balances.
 
 Products are optional. Recipes must be created in the application by selecting the finished product, version/yield/effective information, and ingredient item lines with quantities/UOMs; use only fields shown by the current form.
 
@@ -23,7 +23,7 @@ Unique key: `supplier_code`. Required: `supplier_code`, `supplier_name`. Optiona
 
 ## Items
 
-Unique key: `item_code`. Required: `item_code`, `item_name`, `category`, `base_uom`. Optional numeric fields are `safety_stock`, `reorder_level`, `default_unit_cost`, `supplier_price`, `minimum_order_qty`, and `lead_time_days`; they must not be negative. Optional purchasing fields are `supplier_code`, `supplier_item_code`, and `purchase_uom`; the supplier code must resolve to an active Supplier and the UOM must use a supported value. Status is `active` or `inactive`. When a supplier is supplied, the importer creates or updates one supplier-item purchasing record. The current CSV contract does not support barcode input.
+Unique key: `item_code`. Required: `item_code`, `item_name`, `category`, `base_uom`. Optional numeric fields are `safety_stock`, `reorder_level`, `default_unit_cost`, `supplier_price`, `minimum_order_qty`, and `lead_time_days`; they must not be negative. Optional purchasing fields are `supplier_code`, `supplier_item_code`, and `purchase_uom`; the supplier code must resolve to an active Supplier and the UOM must use a supported value. Status is `active` or `inactive`. When a supplier is supplied, the importer creates or updates one supplier-item purchasing record.
 
 ## Supplier items
 
@@ -35,4 +35,4 @@ Unique key: `product_code`. Required: `product_code`, `product_name`, `category`
 
 ## Opening stock
 
-Unique posting guard: `branch_code` + `item_code`; create mode only. Required: existing active `branch_code`, existing `item_code`, positive `quantity`, and `uom`. Optional: non-negative `unit_cost`, ISO `transaction_date`, and `notes`. The input UOM must equal the item's base UOM or have an active conversion. The application resolves the branch default internal location, so no location column is accepted. An existing opening balance for the branch/item is skipped. Confirmation posts one ledger transaction/line; it never edits current stock directly.
+Unique posting guard: `branch_code` + `item_code`; create mode only. Required: existing active `branch_code`, existing `item_code`, positive `quantity`, and `uom`. Optional: non-negative `unit_cost`, ISO `transaction_date`, and `notes`. The input UOM must equal the item's base UOM or have an active conversion. An existing opening balance for the branch/item is skipped. Confirmation posts one ledger transaction/line; it never edits current stock directly.

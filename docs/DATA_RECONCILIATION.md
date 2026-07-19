@@ -39,7 +39,6 @@ order by row_count desc, normalized_name;
 - Item codes are present and unique; required names, categories, and base/purchase UOMs are correct.
 - Supplier-item rows point to the intended active supplier and item.
 - Unit cost, conversion, MOQ, and lead time match the approved source.
-- Barcode reconciliation is handled in the application because barcode is not part of the current pilot CSV contract.
 - Compare categories and UOMs to the approved catalogue; review negative thresholds/costs and missing supplier resolution.
 
 ```sql
@@ -71,13 +70,6 @@ where deleted_at is null
   and (safety_stock < 0 or cost < 0 or lead_time_days < 0 or moq < 0)
 order by item_code;
 
-select bm.barcode_value, count(*) as row_count
-from public.barcode_mappings bm
-where bm.deleted_at is null
-group by bm.barcode_value
-having count(*) > 1
-order by bm.barcode_value;
-
 select si.id, s.supplier_code, i.item_code
 from public.supplier_items si
 left join public.suppliers s on s.id = si.supplier_id and s.deleted_at is null
@@ -88,24 +80,23 @@ where si.deleted_at is null and (s.id is null or i.id is null);
 ## Opening-stock checks
 
 - Every opening import is a posted `opening_balance` transaction with `reference_type = 'opening_stock_import'`.
-- Branch, item, and resolved location match the expected pilot list.
+- Branch and item match the expected pilot list.
 - Header and line quantities/costs agree; there is at most one opening transaction per branch/item.
 - Current balances are explained by all posted ledger movement, not only the opening rows.
-- Compare imported row count, branch/location quantity, and inventory value to the approved opening-stock source.
+- Compare imported row count, branch quantity, and inventory value to the approved opening-stock source.
 - Review negative stock, positive stock with zero cost, and missing UOM conversions as explicit exceptions.
 
 ```sql
-select b.branch_code, i.item_code, l.location_code,
+select b.branch_code, i.item_code,
        count(*) as opening_rows,
        sum(st.quantity_in - st.quantity_out) as header_quantity,
        sum(coalesce(st.total_cost, 0)) as header_cost
 from public.stock_transactions st
 join public.branches b on b.id = st.branch_id
 join public.items i on i.id = st.item_id
-join public.locations l on l.id = st.location_id
 where st.transaction_type = 'opening_balance'
   and st.reference_type = 'opening_stock_import'
-group by b.branch_code, i.item_code, l.location_code
+group by b.branch_code, i.item_code
 order by b.branch_code, i.item_code;
 
 select st.transaction_no,
@@ -120,22 +111,21 @@ having st.quantity_in - st.quantity_out <>
        coalesce(sum(stl.quantity_in - stl.quantity_out), 0)
 order by st.transaction_no;
 
-select sb.branch_name, sb.location_name, sb.item_code,
+select sb.branch_name, sb.item_code,
        sb.current_stock, sb.average_cost, sb.inventory_value
 from public.stock_balances_view sb
 where sb.current_stock < 0
    or (sb.current_stock > 0 and sb.average_cost = 0)
-order by sb.branch_name, sb.location_name, sb.item_code;
+order by sb.branch_name, sb.item_code;
 
-select sb.branch_id, sb.location_id, sb.item_id, sb.current_stock,
+select sb.branch_id, sb.item_id, sum(sb.current_stock) as current_stock,
        coalesce(sum(sl.quantity_in - sl.quantity_out), 0) as ledger_quantity
 from public.stock_balances_view sb
 left join public.stock_ledger_view sl
   on sl.item_id = sb.item_id
  and sl.branch_id is not distinct from sb.branch_id
- and sl.location_id = sb.location_id
-group by sb.branch_id, sb.location_id, sb.item_id, sb.current_stock
-having sb.current_stock <>
+group by sb.branch_id, sb.item_id
+having sum(sb.current_stock) <>
        coalesce(sum(sl.quantity_in - sl.quantity_out), 0);
 
 select uc.item_id, uc.from_uom, uc.to_uom, uc.factor, uc.status

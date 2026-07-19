@@ -16,19 +16,21 @@ import { getBranches } from "@/server/queries/foundation";
 import { hasActiveFilters } from "@/lib/table-state";
 import { ConsoleSection } from "@/components/layout/right-console";
 import { WorkspaceGrid } from "@/components/layout/workspace-layout";
+import { hasPermission } from "@/server/auth/permissions";
 
 export const dynamic = "force-dynamic";
 
 export default async function BranchesPage({ searchParams }: { searchParams: Promise<{ search?: string; status?: string; error?: string; success?: string }> }) {
   try {
     const filters = await searchParams;
-    const branches = await getBranches(filters);
+    const [branches, canCreate, canUpdate] = await Promise.all([getBranches(filters), hasPermission("branches.create"), hasPermission("branches.update")]);
+    const canManage = canCreate || canUpdate;
     const filtered = hasActiveFilters(filters);
 
     return (
       <>
         <PageHeader title="Branches" description="Central kitchen, outlets, event booths, offices, and operating units." />
-        <WorkspaceGrid rightRail={<><ConsoleSection title="Actions"><Button asChild size="sm" className="w-full"><Link href="/branches/new">New branch</Link></Button></ConsoleSection><ConsoleSection title="Branch Summary"><dl className="grid gap-2 text-xs"><div className="flex justify-between"><dt className="text-muted-foreground">Total</dt><dd className="font-semibold">{branches.length}</dd></div><div className="flex justify-between"><dt className="text-muted-foreground">Active</dt><dd className="font-semibold">{branches.filter((branch) => branch.status === "active").length}</dd></div><div className="flex justify-between"><dt className="text-muted-foreground">Archived</dt><dd className="font-semibold">{branches.filter((branch) => branch.status === "archived").length}</dd></div></dl></ConsoleSection></>}>
+        <WorkspaceGrid rightRail={<>{canCreate ? <ConsoleSection title="Actions"><Button asChild size="sm" className="w-full"><Link href="/branches/new">New branch</Link></Button></ConsoleSection> : null}<ConsoleSection title="Branch Summary"><dl className="grid gap-2 text-xs"><div className="flex justify-between"><dt className="text-muted-foreground">Total</dt><dd className="font-semibold">{branches.length}</dd></div><div className="flex justify-between"><dt className="text-muted-foreground">Active</dt><dd className="font-semibold">{branches.filter((branch) => branch.status === "active").length}</dd></div><div className="flex justify-between"><dt className="text-muted-foreground">Archived</dt><dd className="font-semibold">{branches.filter((branch) => branch.status === "archived").length}</dd></div></dl></ConsoleSection></>}>
           {filters.error || filters.success ? (
             <Card>
               <CardContent className={`p-4 text-sm ${filters.error ? "text-destructive" : "text-emerald-700"}`}>
@@ -45,7 +47,7 @@ export default async function BranchesPage({ searchParams }: { searchParams: Pro
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead className="w-16"><BulkSelectAllCheckbox /></TableHead>
+                    {canManage ? <TableHead className="w-16"><BulkSelectAllCheckbox /></TableHead> : null}
                     <TableHead>Code</TableHead>
                     <TableHead>Branch Name</TableHead>
                     <TableHead>Type</TableHead>
@@ -53,15 +55,15 @@ export default async function BranchesPage({ searchParams }: { searchParams: Pro
                     <TableHead>Email</TableHead>
                     <TableHead>Address</TableHead>
                     <TableHead>Status</TableHead>
-                    <TableHead className="w-12 text-right">Action</TableHead>
+                    {canUpdate ? <TableHead className="w-12 text-right">Action</TableHead> : null}
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {branches.map((branch) => (
-                    <DataGridRow key={branch.id} href={`/branches/${branch.id}`}>
-                      <TableCell>
+                    <DataGridRow key={branch.id} href={canUpdate ? `/branches/${branch.id}` : "/branches"}>
+                      {canManage ? <TableCell>
                         <BulkSelectRowCheckbox id={branch.id} />
-                      </TableCell>
+                      </TableCell> : null}
                       <TableCell>{branch.branch_code}</TableCell>
                       <TableCell className="font-medium">{branch.branch_name}</TableCell>
                       <TableCell className="capitalize">{branch.branch_type.replaceAll("_", " ")}</TableCell>
@@ -69,10 +71,10 @@ export default async function BranchesPage({ searchParams }: { searchParams: Pro
                       <TableCell>{branch.email ?? "-"}</TableCell>
                       <TableCell className="max-w-64 truncate">{branch.address ?? "-"}</TableCell>
                       <TableCell><Badge variant={branch.status === "active" ? "success" : "secondary"}>{branch.status}</Badge></TableCell>
-                      <TableCell className="text-right"><TableActionLink href={`/branches/${branch.id}`} label={`Open ${branch.branch_name}`}><Pencil className="h-4 w-4" /></TableActionLink></TableCell>
+                      {canUpdate ? <TableCell className="text-right"><TableActionLink href={`/branches/${branch.id}`} label={`Open ${branch.branch_name}`}><Pencil className="h-4 w-4" /></TableActionLink></TableCell> : null}
                     </DataGridRow>
                   ))}
-                  {!branches.length ? <TableRow><TableCell colSpan={9}><EmptyState title={filtered ? "No records match these filters" : "No branches yet"} description={filtered ? "Clear filters or widen the search to see more branches." : "Branches will appear here after operating units are created."} action={filtered ? { href: "/branches", label: "Clear filters" } : { href: "/branches/new", label: "New branch" }} /></TableCell></TableRow> : null}
+                  {!branches.length ? <TableRow><TableCell colSpan={canManage ? 9 : 7}><EmptyState title={filtered ? "No records match these filters" : "No branches yet"} description={filtered ? "Clear filters or widen the search to see more branches." : "Branches will appear here after operating units are created."} action={filtered ? { href: "/branches", label: "Clear filters" } : canCreate ? { href: "/branches/new", label: "New branch" } : undefined} /></TableCell></TableRow> : null}
                 </TableBody>
               </Table>
             </div>

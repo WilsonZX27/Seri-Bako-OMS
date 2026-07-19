@@ -1,23 +1,20 @@
-import { redirect } from "next/navigation";
+import { Pencil } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { MasterDataFilters } from "@/components/master-data-filters";
 import { PageHeader } from "@/components/ui/page-header";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { isSuperAdminRole } from "@/lib/roles";
-import { getCurrentProfile } from "@/server/queries/common";
+import { TableActionLink } from "@/components/ui/table";
+import { hasPermission } from "@/server/auth/permissions";
 import { getDocumentSequences } from "@/server/queries/foundation";
 
 export default async function DocumentSequencesPage({ searchParams }: { searchParams: Promise<{ search?: string; status?: string; error?: string; success?: string }> }) {
   const filters = await searchParams;
-  const profile = await getCurrentProfile();
-  const roleCode = (profile as { role_code?: string; role?: string } | null)?.role_code ?? (profile as { role?: string } | null)?.role;
-  if (!isSuperAdminRole(roleCode)) redirect("/access-status?reason=no-permitted-route");
-  const sequences = await getDocumentSequences(filters);
+  const [sequences, canCreate, canUpdate] = await Promise.all([getDocumentSequences(filters), hasPermission("document_sequences.create"), hasPermission("document_sequences.update")]);
 
   return (
     <>
-      <PageHeader title="Document Sequences" description="Read-only system numbering for operational documents." />
+      <PageHeader title="Document Sequences" description="Controlled numbering for operational documents." action={canCreate ? { href: "/document-sequences/new", label: "New sequence" } : undefined} />
       <div className="space-y-4 p-5">
         {filters.error || filters.success ? (
           <Card>
@@ -39,6 +36,7 @@ export default async function DocumentSequencesPage({ searchParams }: { searchPa
                   <TableHead>Reset Rule</TableHead>
                   <TableHead>Preview Number</TableHead>
                   <TableHead>Status</TableHead>
+                  {canUpdate ? <TableHead className="w-12 text-right">Action</TableHead> : null}
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -51,9 +49,10 @@ export default async function DocumentSequencesPage({ searchParams }: { searchPa
                     <TableCell className="capitalize">{sequence.reset_frequency}</TableCell>
                     <TableCell className="font-mono">{sequence.preview_number}</TableCell>
                     <TableCell><Badge variant={sequence.status === "active" ? "success" : "secondary"}>{sequence.status}</Badge></TableCell>
+                    {canUpdate ? <TableCell className="text-right"><TableActionLink href={`/document-sequences/${sequence.id}`} label={`Edit ${sequence.document_type}`}><Pencil className="h-4 w-4" /></TableActionLink></TableCell> : null}
                   </TableRow>
                 ))}
-                {!sequences.length ? <TableRow><TableCell colSpan={7} className="text-center text-muted-foreground">No document sequences found.</TableCell></TableRow> : null}
+                {!sequences.length ? <TableRow><TableCell colSpan={canUpdate ? 8 : 7} className="text-center text-muted-foreground">No document sequences found.</TableCell></TableRow> : null}
               </TableBody>
             </Table>
           </div>

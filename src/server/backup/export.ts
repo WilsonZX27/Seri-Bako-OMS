@@ -9,7 +9,6 @@ import { getCurrentProfile, getCompanyBranding } from "@/server/queries/common";
 const BACKUP_TABLES = [
   "companies",
   "branches",
-  "locations",
   "staffs",
   "roles",
   "permissions",
@@ -21,7 +20,6 @@ const BACKUP_TABLES = [
   "suppliers",
   "supplier_items",
   "uom_conversions",
-  "barcode_mappings",
   "recipes",
   "recipe_lines",
   "recipe_ingredients",

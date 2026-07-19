@@ -1,6 +1,6 @@
 import {
   Activity, AlertTriangle, Archive, Boxes, Building2, ClipboardCheck, ClipboardList,
-  Factory, Gauge, GitPullRequest, MapPin, ReceiptText, RotateCcw, Scale, ShoppingCart,
+  Factory, Gauge, GitPullRequest, ReceiptText, RotateCcw, Scale, ShoppingCart,
   Upload, UserCog, Users,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
@@ -9,18 +9,18 @@ import type { UserRole } from "@/types/database";
 
 const icons: Record<IaIcon, LucideIcon> = {
   activity: Activity, alert: AlertTriangle, archive: Archive, boxes: Boxes, building: Building2,
-  check: ClipboardCheck, clipboard: ClipboardList, factory: Factory, gauge: Gauge, map: MapPin,
+  check: ClipboardCheck, clipboard: ClipboardList, factory: Factory, gauge: Gauge,
   receipt: ReceiptText, request: GitPullRequest, rotate: RotateCcw, scale: Scale, shopping: ShoppingCart,
   upload: Upload, userCog: UserCog, users: Users,
 };
 
 export type NavItem = Omit<(typeof informationArchitecture)[number], "icon" | "roles"> & { icon: LucideIcon };
-export type NavGroup = { id: string; label: string; items: NavItem[] };
+export type NavGroup = { id: string; label: string; href?: string; items: NavItem[] };
 
 export function getVisibleNavGroups(role: UserRole, permissionMap?: Record<string, boolean>): NavGroup[] {
   const visible = getVisibleIaItems(role, permissionMap);
   return Object.entries(iaGroupLabels)
-    .map(([id, label]) => ({ id, label, items: visible.filter((item) => item.group === id).map(({ icon, roles, ...item }) => {
+    .map(([id, label]) => ({ id, label, href: id === "procurement" || id === "inventory" ? `/${id}` : undefined, items: visible.filter((item) => item.group === id).map(({ icon, roles, ...item }) => {
       void roles;
       return { ...item, icon: icons[icon] };
     }) }))

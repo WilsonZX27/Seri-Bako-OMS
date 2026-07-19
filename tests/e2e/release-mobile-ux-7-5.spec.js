@@ -188,7 +188,6 @@ test("staff permission overrides are catalog-driven and owner-safe", async ({ pa
   await expect(page.getByText("Super Admin / Owner permissions are protected and cannot be overridden.")).toBeVisible();
   await expect(page.getByRole("button", { name: "Save overrides" })).toHaveCount(0);
   await expect(page.locator('select[name^="permission:"]').first().locator("option")).toHaveText(["Inherit", "Allow", "Deny"]);
-  await expect(page.getByText(/Barcodes? \(/)).toHaveCount(0);
   await expect(page.getByRole("button", { name: "Resend email invitation" })).toHaveCount(0);
   await expect(page.getByText("Branch Access Summary")).toHaveCount(0);
 });

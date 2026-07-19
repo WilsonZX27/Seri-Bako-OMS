@@ -12,7 +12,8 @@ test("Master Data Cleanup is a protected read-only route with existing master re
   assert.equal(fs.existsSync("src/app/(app)/administration/master-data-cleanup/page.tsx"), true);
   assert.match(nav, /\/administration\/master-data-cleanup/);
   assert.match(routes, /"\/administration\/master-data-cleanup": \["items\.view"\]/);
-  for (const href of ["`/items/${row.id}`", "`/products/${row.id}`", "`/suppliers/${row.id}`", "`/locations/${row.id}`"]) assert.equal(query.includes(href), true);
+  for (const href of ["`/items/${row.id}`", "`/products/${row.id}`", "`/suppliers/${row.id}`"]) assert.equal(query.includes(href), true);
+  assert.doesNotMatch(page, /Location|Barcode/i);
   assert.match(page, /This report is read-only/);
   assert.match(page, /No records are merged or deleted here/);
 });
@@ -26,13 +27,12 @@ test("Master Data Cleanup checks codes, core fields, and inactive references wit
   assert.match(query, /Inactive but referenced/);
   assert.match(query, /severity: "critical"/);
   assert.match(query, /severity: "warning"/);
-  assert.match(query, /severity: "info"/);
   assert.doesNotMatch(query, /\.insert\(|\.update\(|\.delete\(/);
 });
 
 test("Master Data Cleanup follows the current footer with the scoped Outlet Staff seed", () => {
   const version = read("src/lib/app-version.ts");
   assert.match(version, /APP_VERSION = "0\.2\.37"/);
-  assert.match(version, /APP_SPRINT = "Sprint 7\.23\.4"/);
+  assert.match(version, /APP_SPRINT = "Sprint 7\.23\.5"/);
   assert.match(read("supabase/migrations/066_create_outlet_staff_role.sql"), /outlet_staff/);
 });

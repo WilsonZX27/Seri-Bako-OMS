@@ -26,7 +26,7 @@ export function SessionTimeoutProvider() {
       const supabase = createClient();
       await supabase.auth.signOut();
     } finally {
-      router.replace("/login?error=session_expired");
+      router.replace("/access-status?reason=idle-timeout");
     }
   }, [clearTimers, router]);
 

@@ -8,9 +8,12 @@ import { PageHeader } from "@/components/ui/page-header";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { deleteBranch, restoreBranch, updateBranch } from "@/server/actions/foundation";
 import { getBranch, getCompaniesForSelect } from "@/server/queries/foundation";
+import { hasPermission } from "@/server/auth/permissions";
+import { redirect } from "next/navigation";
 
 export default async function EditBranchPage({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ error?: string; success?: string }> }) {
   const { id } = await params;
+  if (!(await hasPermission("branches.update"))) redirect("/branches");
   const messages = await searchParams;
   const [branch, companies] = await Promise.all([getBranch(id), getCompaniesForSelect()]);
   const lifecycleAction = branch.deleted_at ? (

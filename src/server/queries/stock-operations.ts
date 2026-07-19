@@ -1,4 +1,4 @@
-import { isMockMode, mockItems, mockLocations, mockProfile, mockStockTransferLines, mockStockTransfers, mockStockWastage, mockStockWastageLines } from "@/lib/mock-mode";
+import { isMockMode, mockBranches, mockItems, mockLocations, mockProfile, mockStockTransferLines, mockStockTransfers, mockStockWastage, mockStockWastageLines } from "@/lib/mock-mode";
 import { createClient } from "@/lib/supabase/server";
 import { compareTableValues, paginateRows } from "@/lib/table-state";
 import { actorDisplayName, resolveActorDisplayMap } from "@/server/actors/display";
@@ -42,21 +42,25 @@ export async function getStockTransfers(filters: Filters = {}) {
       ...row,
       from_location_name: locName(row.from_location_id),
       to_location_name: locName(row.to_location_id),
+      from_branch_name: mockBranches.find((branch) => branch.id === row.from_branch_id)?.branch_name ?? null,
+      to_branch_name: mockBranches.find((branch) => branch.id === row.to_branch_id)?.branch_name ?? null,
       created_by_name: row.created_by ? mockProfile.full_name : null,
       line_count: mockStockTransferLines.filter((line) => line.stock_transfer_id === row.id).length,
     }));
     return paginateRows(filterRows(rows, filters, ["transfer_no", "status", "remarks", "from_location_name", "to_location_name"], "transfer_date"), filters.page, 12);
   }
   const supabase = await createClient();
-  const [{ data, error }, { data: lines }, { data: locations }] = await Promise.all([
+  const [{ data, error }, { data: lines }, { data: locations }, { data: branches }] = await Promise.all([
     supabase.from("stock_transfers").select("*").is("deleted_at", null),
     supabase.from("stock_transfer_lines").select("*"),
     supabase.from("locations").select("id, location_name"),
+    supabase.from("branches").select("id, branch_name"),
   ]);
   if (error) throw new Error(error.message);
   const loc = new Map((locations ?? []).map((row) => [row.id, row.location_name]));
+  const branch = new Map((branches ?? []).map((row) => [row.id, row.branch_name]));
   const displayMap = await resolveActorDisplayMap((data ?? []).map((row) => row.created_by));
-  const rows = ((data ?? []) as Transfer[]).map((row) => ({ ...row, from_location_name: loc.get(row.from_location_id) ?? null, to_location_name: loc.get(row.to_location_id) ?? null, created_by_name: actorDisplayName(displayMap, row.created_by), line_count: (lines ?? []).filter((line) => line.stock_transfer_id === row.id).length }));
+  const rows = ((data ?? []) as Transfer[]).map((row) => ({ ...row, from_location_name: row.from_location_id ? loc.get(row.from_location_id) ?? null : null, to_location_name: row.to_location_id ? loc.get(row.to_location_id) ?? null : null, from_branch_name: row.from_branch_id ? branch.get(row.from_branch_id) ?? null : null, to_branch_name: row.to_branch_id ? branch.get(row.to_branch_id) ?? null : null, created_by_name: actorDisplayName(displayMap, row.created_by), line_count: (lines ?? []).filter((line) => line.stock_transfer_id === row.id).length }));
   return paginateRows(filterRows(rows, filters, ["transfer_no", "status", "remarks", "from_location_name", "to_location_name"], "transfer_date"), filters.page, 12);
 }
 
@@ -65,37 +69,41 @@ export async function getStockTransfer(id: string) {
     const transfer = mockStockTransfers.find((row) => row.id === id);
     if (!transfer) throw new Error("Mock transfer not found");
     const lines = mockStockTransferLines.filter((line) => line.stock_transfer_id === id).map((line) => ({ ...line, item: mockItems.find((item) => item.id === line.item_id) }));
-    return { transfer: { ...transfer, from_location_name: locName(transfer.from_location_id), to_location_name: locName(transfer.to_location_id), line_count: lines.length }, lines };
+    return { transfer: { ...transfer, from_location_name: locName(transfer.from_location_id), to_location_name: locName(transfer.to_location_id), from_branch_name: mockBranches.find((branch) => branch.id === transfer.from_branch_id)?.branch_name ?? null, to_branch_name: mockBranches.find((branch) => branch.id === transfer.to_branch_id)?.branch_name ?? null, line_count: lines.length }, lines };
   }
   const supabase = await createClient();
-  const [{ data, error }, { data: lines }, { data: items }, { data: locations }] = await Promise.all([
+  const [{ data, error }, { data: lines }, { data: items }, { data: locations }, { data: branches }] = await Promise.all([
     supabase.from("stock_transfers").select("*").eq("id", id).single(),
     supabase.from("stock_transfer_lines").select("*").eq("stock_transfer_id", id),
-    supabase.from("items").select("id,item_code,item_name,base_unit,barcode,internal_barcode,item_image_url"),
+    supabase.from("items").select("id,item_code,item_name,base_unit,item_image_url"),
     supabase.from("locations").select("id, location_name"),
+    supabase.from("branches").select("id, branch_name"),
   ]);
   if (error) throw new Error(error.message);
   const itemMap = new Map((items ?? []).map((row) => [row.id, row]));
   const loc = new Map((locations ?? []).map((row) => [row.id, row.location_name]));
+  const branch = new Map((branches ?? []).map((row) => [row.id, row.branch_name]));
   const transfer = data as Transfer;
-  return { transfer: { ...transfer, from_location_name: loc.get(transfer.from_location_id) ?? null, to_location_name: loc.get(transfer.to_location_id) ?? null, line_count: (lines ?? []).length }, lines: ((lines ?? []) as TransferLine[]).map((line) => ({ ...line, item: itemMap.get(line.item_id) })) };
+  return { transfer: { ...transfer, from_location_name: transfer.from_location_id ? loc.get(transfer.from_location_id) ?? null : null, to_location_name: transfer.to_location_id ? loc.get(transfer.to_location_id) ?? null : null, from_branch_name: transfer.from_branch_id ? branch.get(transfer.from_branch_id) ?? null : null, to_branch_name: transfer.to_branch_id ? branch.get(transfer.to_branch_id) ?? null : null, line_count: (lines ?? []).length }, lines: ((lines ?? []) as TransferLine[]).map((line) => ({ ...line, item: itemMap.get(line.item_id) })) };
 }
 
 export async function getStockWastage(filters: Filters = {}) {
   if (isMockMode()) {
-    const rows = mockStockWastage.map((row) => ({ ...row, location_name: locName(row.location_id), created_by_name: row.created_by ? mockProfile.full_name : null, line_count: mockStockWastageLines.filter((line) => line.stock_wastage_id === row.id).length }));
+    const rows = mockStockWastage.map((row) => ({ ...row, location_name: locName(row.location_id), branch_name: mockBranches.find((branch) => branch.id === row.branch_id)?.branch_name ?? null, created_by_name: row.created_by ? mockProfile.full_name : null, line_count: mockStockWastageLines.filter((line) => line.stock_wastage_id === row.id).length }));
     return paginateRows(filterRows(rows, filters, ["wastage_no", "status", "reason", "remarks", "location_name"], "wastage_date"), filters.page, 12);
   }
   const supabase = await createClient();
-  const [{ data, error }, { data: lines }, { data: locations }] = await Promise.all([
+  const [{ data, error }, { data: lines }, { data: locations }, { data: branches }] = await Promise.all([
     supabase.from("stock_wastage").select("*").is("deleted_at", null),
     supabase.from("stock_wastage_lines").select("*"),
     supabase.from("locations").select("id, location_name"),
+    supabase.from("branches").select("id, branch_name"),
   ]);
   if (error) throw new Error(error.message);
   const loc = new Map((locations ?? []).map((row) => [row.id, row.location_name]));
+  const branch = new Map((branches ?? []).map((row) => [row.id, row.branch_name]));
   const displayMap = await resolveActorDisplayMap((data ?? []).map((row) => row.created_by));
-  const rows = ((data ?? []) as Wastage[]).map((row) => ({ ...row, location_name: loc.get(row.location_id) ?? null, created_by_name: actorDisplayName(displayMap, row.created_by), line_count: (lines ?? []).filter((line) => line.stock_wastage_id === row.id).length }));
+  const rows = ((data ?? []) as Wastage[]).map((row) => ({ ...row, location_name: loc.get(row.location_id) ?? null, branch_name: row.branch_id ? branch.get(row.branch_id) ?? null : null, created_by_name: actorDisplayName(displayMap, row.created_by), line_count: (lines ?? []).filter((line) => line.stock_wastage_id === row.id).length }));
   return paginateRows(filterRows(rows, filters, ["wastage_no", "status", "reason", "remarks", "location_name"], "wastage_date"), filters.page, 12);
 }
 
@@ -104,20 +112,22 @@ export async function getStockWastageDetail(id: string) {
     const wastage = mockStockWastage.find((row) => row.id === id);
     if (!wastage) throw new Error("Mock wastage not found");
     const lines = mockStockWastageLines.filter((line) => line.stock_wastage_id === id).map((line) => ({ ...line, item: mockItems.find((item) => item.id === line.item_id) }));
-    return { wastage: { ...wastage, location_name: locName(wastage.location_id), line_count: lines.length }, lines };
+    return { wastage: { ...wastage, location_name: locName(wastage.location_id), branch_name: mockBranches.find((branch) => branch.id === wastage.branch_id)?.branch_name ?? null, line_count: lines.length }, lines };
   }
   const supabase = await createClient();
-  const [{ data, error }, { data: lines }, { data: items }, { data: locations }] = await Promise.all([
+  const [{ data, error }, { data: lines }, { data: items }, { data: locations }, { data: branches }] = await Promise.all([
     supabase.from("stock_wastage").select("*").eq("id", id).single(),
     supabase.from("stock_wastage_lines").select("*").eq("stock_wastage_id", id),
-    supabase.from("items").select("id,item_code,item_name,base_unit,barcode,internal_barcode,item_image_url"),
+    supabase.from("items").select("id,item_code,item_name,base_unit,item_image_url"),
     supabase.from("locations").select("id, location_name"),
+    supabase.from("branches").select("id, branch_name"),
   ]);
   if (error) throw new Error(error.message);
   const itemMap = new Map((items ?? []).map((row) => [row.id, row]));
   const loc = new Map((locations ?? []).map((row) => [row.id, row.location_name]));
+  const branch = new Map((branches ?? []).map((row) => [row.id, row.branch_name]));
   const wastage = data as Wastage;
-  return { wastage: { ...wastage, location_name: loc.get(wastage.location_id) ?? null, line_count: (lines ?? []).length }, lines: ((lines ?? []) as WastageLine[]).map((line) => ({ ...line, item: itemMap.get(line.item_id) })) };
+  return { wastage: { ...wastage, location_name: loc.get(wastage.location_id) ?? null, branch_name: wastage.branch_id ? branch.get(wastage.branch_id) ?? null : null, line_count: (lines ?? []).length }, lines: ((lines ?? []) as WastageLine[]).map((line) => ({ ...line, item: itemMap.get(line.item_id) })) };
 }
 
 export async function getOperationSeedLines(locationId?: string, branchId?: string) {
@@ -126,5 +136,5 @@ export async function getOperationSeedLines(locationId?: string, branchId?: stri
     .filter((row) => locationId ? row.location_id === locationId : true)
     .filter((row) => branchId ? row.branch_id === branchId : true)
     .slice(0, 8)
-    .map((row) => ({ item_id: row.item_id, item_code: row.item_code, item_name: row.item_name, barcode: row.barcode, available_qty: row.current_qty, quantity: Math.min(Math.max(row.current_qty, 1), 5), uom: row.base_unit }));
+    .map((row) => ({ item_id: row.item_id, item_code: row.item_code, item_name: row.item_name, available_qty: row.current_qty, quantity: Math.min(Math.max(row.current_qty, 1), 5), uom: row.base_unit }));
 }

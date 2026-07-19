@@ -8,10 +8,12 @@ import { Field } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { SelectNative } from "@/components/ui/select-native";
 import { Textarea } from "@/components/ui/textarea";
+import { UrgencySelect } from "@/components/urgency-select";
+import type { ProcurementPriority } from "@/components/priority-badge";
 import { normalizeUom, uomOptionsWithCurrent } from "@/lib/uom";
 import type { Database } from "@/types/database";
 
-type ItemOption = Pick<Database["public"]["Tables"]["items"]["Row"], "id" | "item_code" | "item_name" | "base_unit" | "purchase_unit" | "supplier_id" | "cost" | "status" | "barcode" | "internal_barcode" | "supplier_barcode">;
+type ItemOption = Pick<Database["public"]["Tables"]["items"]["Row"], "id" | "item_code" | "item_name" | "base_unit" | "purchase_unit" | "supplier_id" | "cost" | "status">;
 type SupplierOption = Pick<Database["public"]["Tables"]["suppliers"]["Row"], "id" | "supplier_code" | "name" | "status">;
 type BranchOption = { id: string; branch_code: string; branch_name: string; status: string };
 type RequestLine = {
@@ -71,8 +73,7 @@ export function PurchaseRequestForm({
 }) {
   const [idempotencyKey] = useState(() => crypto.randomUUID());
   const [lines, setLines] = useState<RequestLine[]>([{ ...createBlankLine(0), ...initialLine, key: 0 }]);
-  const [priority, setPriority] = useState("normal");
-  const showUrgencyReason = priority === "urgent" || priority === "critical";
+  const [priority, setPriority] = useState<ProcurementPriority>("normal");
   const nextKey = lines.reduce((max, line) => Math.max(max, line.key), 0) + 1;
 
   function updateLine(key: number, updates: Partial<RequestLine>) {
@@ -102,56 +103,38 @@ export function PurchaseRequestForm({
 
   return (
     <Card>
-      <CardContent className="space-y-5 p-5">
+      <CardContent className="p-4 sm:p-5">
         <form id="purchase-request-form" action={action} className="space-y-3">
           <input type="hidden" name="request_no" value="" />
           <input type="hidden" name="status" value="draft" />
           <input type="hidden" name="idempotency_key" value={idempotencyKey} />
           <input type="hidden" name="request_date" value={today()} />
           <input type="hidden" name="required_date" value="" />
-          <div className="border-b pb-3">
+          <div className="border-b pb-2">
             <h2 className="text-sm font-semibold">Request details</h2>
-            <p className="mt-1 text-xs text-muted-foreground">The request number and system date are recorded when you save the draft.</p>
           </div>
 
-          <section className="rounded-lg border bg-card p-3">
-            <div className="mb-3">
-              <p className="text-xs font-semibold">When and where</p>
-              <p className="mt-1 text-xs text-muted-foreground">Confirm the receiving branch and when the items are needed.</p>
-            </div>
-            <div className="grid gap-3 md:grid-cols-2">
-              <Field label="Needed By">
+          <section className="space-y-3">
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-[minmax(0,1fr)_minmax(0,1.4fr)_minmax(0,1fr)]">
+              <div className="order-1"><Field label="Needed By">
                 <Input name="needed_by_date" type="date" />
-              </Field>
-              <Field label="Branch" required>
+              </Field></div>
+              <div className="order-3 col-span-2 sm:order-2 sm:col-span-1"><Field label="Branch" required>
                 <SelectNative name="branch_id" defaultValue={initialBranchId ?? branches[0]?.id ?? ""} required>
                   {branches.map((branch) => <option key={branch.id} value={branch.id}>{branch.branch_name}</option>)}
                 </SelectNative>
-              </Field>
-              <Field label="Urgency">
-                <SelectNative name="priority" value={priority} onChange={(event) => setPriority(event.target.value)}>
-                  <option value="normal">Normal</option>
-                  <option value="low">Low</option>
-                  <option value="urgent">Urgent</option>
-                  <option value="critical">Critical</option>
-                </SelectNative>
-                <p className="text-xs text-muted-foreground">Normal is suitable for routine requests.</p>
-              </Field>
-              {showUrgencyReason ? (
-                <div className="md:col-span-2">
-                  <Field label="Urgency Reason">
-                    <Input name="urgency_reason" placeholder="Example: outlet is blocked by a missing ingredient" />
-                  </Field>
-                </div>
-              ) : null}
+              </Field></div>
+              <div className="order-2 sm:order-3"><Field label="Urgency"><UrgencySelect value={priority} onValueChange={setPriority} /></Field></div>
             </div>
+            <Field label="Remarks">
+              <Textarea className="min-h-[3.75rem] resize-y" rows={2} name="remarks" defaultValue={initialRemarks ?? ""} placeholder="Reason or instructions for this request" />
+            </Field>
           </section>
 
           <div className="rounded-lg border">
             <div className="flex items-center justify-between border-b bg-secondary/40 px-3 py-2">
               <div>
                 <p className="text-xs font-semibold">Requested Items</p>
-                <p className="text-xs text-muted-foreground">Choose an existing item, then enter the quantity needed.</p>
               </div>
               <div className="flex items-center gap-2">
                 <Search className="h-4 w-4 text-muted-foreground" />
@@ -218,11 +201,6 @@ export function PurchaseRequestForm({
               <option key={item.id} value={itemLabel(item)} />
             ))}
           </datalist>
-
-          <details className="rounded-lg border bg-card p-3">
-            <summary className="cursor-pointer text-xs font-semibold">Additional details</summary>
-            <div className="mt-3"><Field label="Remarks"><Textarea name="remarks" defaultValue={initialRemarks ?? ""} placeholder="Reason or instructions for this request" /></Field></div>
-          </details>
         </form>
       </CardContent>
     </Card>

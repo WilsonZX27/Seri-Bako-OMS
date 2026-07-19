@@ -52,6 +52,6 @@ test("Demand Trend Lite has one report route and inherits outlet-record access",
 test("release footer matches the current sprint with the scoped Outlet Staff seed", () => {
   const version = read("src/lib/app-version.ts");
   assert.match(version, /APP_VERSION = "0\.2\.37"/);
-  assert.match(version, /APP_SPRINT = "Sprint 7\.23\.4"/);
+  assert.match(version, /APP_SPRINT = "Sprint 7\.23\.5"/);
   assert.match(read("supabase/migrations/066_create_outlet_staff_role.sql"), /outlet_staff/);
 });

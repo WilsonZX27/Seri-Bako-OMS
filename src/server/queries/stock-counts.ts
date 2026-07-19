@@ -17,23 +17,23 @@ export type StockCountRow = StockCount & {
 };
 
 export type StockCountLineRow = StockCountLine & {
-  item?: Pick<Database["public"]["Tables"]["items"]["Row"], "id" | "item_code" | "item_name" | "base_unit" | "barcode" | "internal_barcode" | "item_image_url">;
+  item?: Pick<Database["public"]["Tables"]["items"]["Row"], "id" | "item_code" | "item_name" | "base_unit" | "item_image_url">;
 };
 
 function filterRows<T extends Record<string, unknown>>(rows: T[], filters: Filters, keys: (keyof T)[], defaultSort: keyof T) {
   const search = filters.search?.trim().toLowerCase();
   const status = filters.status && filters.status !== "all" ? filters.status : null;
-  const location = filters.location_id && filters.location_id !== "all" ? filters.location_id : null;
+  const branch = filters.branch_id && filters.branch_id !== "all" ? filters.branch_id : null;
   const sort = filters.sort ?? String(defaultSort);
   const dir = filters.dir ?? "desc";
   return rows
     .filter((row) => {
       const matchesSearch = search ? keys.some((key) => String(row[key] ?? "").toLowerCase().includes(search)) : true;
       const matchesStatus = status ? row.status === status : true;
-      const matchesLocation = location ? row.location_id === location : true;
+      const matchesBranch = branch ? row.branch_id === branch : true;
       const matchesFrom = filters.from ? String(row.count_date ?? "") >= filters.from : true;
       const matchesTo = filters.to ? String(row.count_date ?? "") <= filters.to : true;
-      return matchesSearch && matchesStatus && matchesLocation && matchesFrom && matchesTo;
+      return matchesSearch && matchesStatus && matchesBranch && matchesFrom && matchesTo;
     })
     .sort((a, b) => compareTableValues(a[sort], b[sort], dir));
 }
@@ -55,7 +55,7 @@ function hydrateCount(row: StockCount, lines: StockCountLine[]): StockCountRow {
 export async function getStockCounts(filters: Filters = {}) {
   if (isMockMode()) {
     const rows = mockStockCounts.map((row) => hydrateCount(row as StockCount, mockStockCountLines as StockCountLine[]));
-    return paginateRows(filterRows(rows, filters, ["count_no", "status", "location_name", "remarks"], "updated_at"), filters.page, 12);
+    return paginateRows(filterRows(rows, filters, ["count_no", "status", "branch_name", "remarks"], "updated_at"), filters.page, 12);
   }
   const supabase = await createClient();
   const [{ data, error }, { data: lines }, { data: branches }, { data: locations }] = await Promise.all([
@@ -78,7 +78,7 @@ export async function getStockCounts(filters: Filters = {}) {
       high_variance_count: ownLines.filter((line) => Math.abs(line.variance_percent) > row.tolerance_percent).length,
     };
   });
-  return paginateRows(filterRows(rows, filters, ["count_no", "status", "location_name", "remarks"], "updated_at"), filters.page, 12);
+  return paginateRows(filterRows(rows, filters, ["count_no", "status", "branch_name", "remarks"], "updated_at"), filters.page, 12);
 }
 
 export async function getStockCount(id: string) {
@@ -94,7 +94,7 @@ export async function getStockCount(id: string) {
   const [{ data, error }, { data: lines, error: linesError }, { data: items }, { data: branches }, { data: locations }] = await Promise.all([
     supabase.from("stock_counts").select("*").eq("id", id).single(),
     supabase.from("stock_count_lines").select("*").eq("stock_count_id", id),
-    supabase.from("items").select("id, item_code, item_name, base_unit, barcode, internal_barcode, item_image_url"),
+    supabase.from("items").select("id, item_code, item_name, base_unit, item_image_url"),
     supabase.from("branches").select("id, branch_name"),
     supabase.from("locations").select("id, location_name"),
   ]);
@@ -128,7 +128,6 @@ export async function getStockCountSeedLines(locationId?: string, branchId?: str
       item_id: row.item_id,
       item_code: row.item_code,
       item_name: row.item_name,
-      barcode: row.barcode,
       theoretical_qty: row.current_qty,
       physical_qty: row.current_qty,
       uom: row.base_unit,

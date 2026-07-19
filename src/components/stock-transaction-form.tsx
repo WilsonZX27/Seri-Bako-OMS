@@ -8,7 +8,6 @@ import { getToday } from "@/lib/utils";
 import type { Database, StockTransactionType } from "@/types/database";
 
 type Item = Pick<Database["public"]["Tables"]["items"]["Row"], "id" | "item_code" | "item_name" | "base_unit" | "status">;
-type Location = Pick<Database["public"]["Tables"]["locations"]["Row"], "id" | "location_code" | "location_name" | "status">;
 type Branch = Pick<Database["public"]["Tables"]["branches"]["Row"], "id" | "branch_code" | "branch_name" | "status">;
 
 const types: { value: StockTransactionType; label: string; direction: "in" | "out" | "flex" }[] = [
@@ -33,7 +32,6 @@ const types: { value: StockTransactionType; label: string; direction: "in" | "ou
 type StockTransactionFormProps = {
   items: Item[];
   branches: Branch[];
-  locations: Location[];
   action: (formData: FormData) => Promise<void>;
   formId?: string;
   showSubmit?: boolean;

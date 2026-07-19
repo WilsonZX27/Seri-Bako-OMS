@@ -12,14 +12,14 @@ import { ConsoleSection, RightConsoleMount } from "@/components/layout/right-con
 import { StatusTabs } from "@/components/status-tabs";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { Table, TableActionLink, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { getLocationsForSelect } from "@/server/queries/common";
+import { getBranchesForSelect } from "@/server/queries/common";
 import { getStockCounts } from "@/server/queries/stock-counts";
 
 const statuses = ["draft", "submitted", "reviewed", "approved", "posted", "rejected", "cancelled"];
 
 export default async function StockCountsPage({ searchParams }: { searchParams: Promise<Record<string, string | undefined>> }) {
   const filters = await searchParams;
-  const [counts, allCounts, locations] = await Promise.all([getStockCounts(filters), getStockCounts({ page: "all" }), getLocationsForSelect()]);
+  const [counts, allCounts, branches] = await Promise.all([getStockCounts(filters), getStockCounts({ page: "all" }), getBranchesForSelect()]);
   const rows = allCounts.rows;
   const countByStatus = (...values: string[]) => rows.filter((row) => values.includes(row.status)).length;
   const insights = [
@@ -57,10 +57,10 @@ export default async function StockCountsPage({ searchParams }: { searchParams: 
         <div className="overflow-hidden rounded-[2px] border border-[var(--sb-border-soft)] bg-card">
           <StatusTabs statuses={statuses} activeStatus={filters.status} />
           <form className="sb-list-filters">
-            <Input name="search" defaultValue={filters.search ?? ""} placeholder="Search count no, location, remarks" />
-            <SelectNative name="location_id" defaultValue={filters.location_id ?? "all"}>
-              <option value="all">All locations</option>
-              {locations.map((location) => <option key={location.id} value={location.id}>{location.location_name}</option>)}
+            <Input name="search" defaultValue={filters.search ?? ""} placeholder="Search count no, branch, remarks" />
+            <SelectNative name="branch_id" defaultValue={filters.branch_id ?? "all"}>
+              <option value="all">All branches</option>
+              {branches.map((branch) => <option key={branch.id} value={branch.id}>{branch.branch_name}</option>)}
             </SelectNative>
             <Input name="from" type="date" defaultValue={filters.from ?? ""} />
             <Input name="to" type="date" defaultValue={filters.to ?? ""} />
@@ -74,7 +74,7 @@ export default async function StockCountsPage({ searchParams }: { searchParams: 
                 <TableRow>
                   <SortableHead label="Count No" column="count_no" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
                   <SortableHead label="Date" column="count_date" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
-                  <TableHead>Location</TableHead>
+                  <TableHead>Branch</TableHead>
                   <SortableHead label="Status" column="status" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
                   <TableHead className="text-right">Lines</TableHead>
                   <TableHead className="text-right">High Variance</TableHead>
@@ -86,7 +86,7 @@ export default async function StockCountsPage({ searchParams }: { searchParams: 
                   <DataGridRow key={count.id} href={`/stock-counts/${count.id}`}>
                     <TableCell className="font-medium">{count.count_no}</TableCell>
                     <TableCell>{count.count_date}</TableCell>
-                    <TableCell>{count.location_name ?? "-"}</TableCell>
+                    <TableCell>{count.branch_name ?? "-"}</TableCell>
                     <TableCell><StatusBadge status={count.status} /></TableCell>
                     <TableCell className="text-right">{count.line_count}</TableCell>
                     <TableCell className="text-right">{count.high_variance_count}</TableCell>

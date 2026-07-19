@@ -5,7 +5,6 @@ export const wastageReasons = ["expired", "damaged", "spoiled", "production_loss
 
 const transferLine = z.object({
   item_id: z.string().uuid(),
-  barcode: z.string().trim().optional().nullable(),
   quantity: z.coerce.number().positive("Quantity must be positive"),
   uom: z.string().trim().min(1),
   remarks: z.string().trim().optional().nullable(),
@@ -27,7 +26,6 @@ export const stockTransferSchema = z.object({
 
 const wastageLine = z.object({
   item_id: z.string().uuid(),
-  barcode: z.string().trim().optional().nullable(),
   quantity: z.coerce.number().positive("Quantity must be positive"),
   uom: z.string().trim().min(1),
   reason: z.enum(wastageReasons),

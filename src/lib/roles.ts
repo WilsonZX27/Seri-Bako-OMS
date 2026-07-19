@@ -41,6 +41,7 @@ export function isProtectedOwnerAssignableRole(roleCode?: string | null) {
 export function canAssignRoleCode(currentRoleCode: string | null | undefined, targetRoleCode: string | null | undefined) {
   if (!targetRoleCode) return false;
   if (isSuperAdminRole(currentRoleCode)) return true;
+  if (currentRoleCode === "finance") return !isProtectedOwnerAssignableRole(targetRoleCode);
   return false;
 }
 

@@ -10,7 +10,11 @@ test("PR creation keeps the operational inputs compact and role-aware", () => {
   const form = source("src/components/procurement-forms.tsx");
   const page = source("src/app/(app)/purchase-requests/new/page.tsx");
   assert.match(form, /type="hidden" name="request_date"/);
-  assert.match(form, /Additional details/);
+  assert.match(form, /Request details/);
+  assert.match(form, /Needed By/);
+  assert.match(form, /UrgencySelect/);
+  assert.match(form, /rows=\{2\}/);
+  assert.doesNotMatch(form, /Additional details|When and where/);
   assert.match(form, /canViewCommercial/);
   assert.doesNotMatch(form, /quick-create|Create new item/);
   assert.match(page, />Save Draft</);
@@ -47,8 +51,8 @@ test("PO preparation and shared attachments expose stage-specific evidence", () 
   assert.match(attachment, /locked after approval or posting/);
 });
 
-test("release identifies Sprint 7.23.4", () => {
+test("release identifies Sprint 7.23.5", () => {
   const version = source("src/lib/app-version.ts");
   assert.match(version, /APP_VERSION = "0\.2\.37"/);
-  assert.match(version, /APP_SPRINT = "Sprint 7\.23\.4"/);
+  assert.match(version, /APP_SPRINT = "Sprint 7\.23\.5"/);
 });

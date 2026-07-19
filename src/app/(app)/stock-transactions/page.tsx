@@ -145,7 +145,7 @@ export default async function StockTransactionsPage({ searchParams }: { searchPa
                     <TableCell className="font-medium">{row.transaction_no}</TableCell>
                     <TableCell><Badge variant="secondary">{movementLabel(row.transaction_type)}</Badge></TableCell>
                     <TableCell className="font-medium">{row.item_code}<p className="text-xs text-muted-foreground">{row.item_name}</p></TableCell>
-                    <TableCell>{row.branch_name ?? row.location_name}</TableCell>
+                    <TableCell>{row.branch_name ?? "-"}</TableCell>
                     <TableCell className="text-right">{row.quantity_in ? formatNumber(row.quantity_in) : "-"}</TableCell>
                     <TableCell className="text-right">{row.quantity_out ? formatNumber(row.quantity_out) : "-"}</TableCell>
                     <TableCell className="text-right">{formatNumber(Number(row.quantity_in) - Number(row.quantity_out))}</TableCell>

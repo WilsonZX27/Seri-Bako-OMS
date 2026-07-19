@@ -106,7 +106,7 @@ export default async function AccountPage() {
           </Card>
           <Card>
             <CardContent className="p-5 text-sm text-muted-foreground">
-              Role and location access are managed by the Super Admin / Owner from Users & Staff.
+              Role and branch access are managed by an authorized administrator from Users & Staff.
             </CardContent>
           </Card>
         </aside>

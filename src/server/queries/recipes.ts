@@ -14,7 +14,6 @@ export type RecipeLineDetail = RecipeLineRow & {
   ingredient_item_code: string;
   ingredient_name: string;
   ingredient_image_url: string | null;
-  barcode: string | null;
   line_cost_before_wastage: number;
   calculated_line_cost: number;
   current_stock: number | null;
@@ -44,8 +43,6 @@ export type RecipeIngredientOption = {
   item_name: string;
   base_unit: string;
   cost: number;
-  barcode: string | null;
-  internal_barcode: string | null;
   item_image_url: string | null;
 };
 
@@ -98,7 +95,6 @@ function buildRecipeDetail(
         ingredient_item_code: item?.item_code ?? "Unknown",
         ingredient_name: item?.item_name ?? "Unknown ingredient",
         ingredient_image_url: item?.item_image_url ?? null,
-        barcode: item?.barcode ?? item?.internal_barcode ?? null,
         line_cost_before_wastage: lineCostBeforeWastage(line),
         calculated_line_cost: calculateLineCost(line),
         current_stock: currentStock,
@@ -190,8 +186,6 @@ export async function getRecipeIngredientOptions(): Promise<RecipeIngredientOpti
         item_name: item.item_name,
         base_unit: item.base_unit,
         cost: Number(item.cost),
-        barcode: item.barcode ?? null,
-        internal_barcode: item.internal_barcode ?? null,
         item_image_url: item.item_image_url ?? null,
       }));
   }
@@ -199,7 +193,7 @@ export async function getRecipeIngredientOptions(): Promise<RecipeIngredientOpti
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("items")
-    .select("id,item_code,item_name,base_unit,cost,barcode,internal_barcode,item_image_url")
+    .select("id,item_code,item_name,base_unit,cost,item_image_url")
     .eq("status", "active")
     .is("deleted_at", null)
     .order("item_code", { ascending: true });

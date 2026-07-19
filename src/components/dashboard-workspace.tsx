@@ -22,7 +22,7 @@ function Panel({ title, empty, children, action }: { title: string; empty?: stri
 const roleCopy: Record<string, { title: string; description: string }> = {
   super_admin: { title: "Owner Workdesk", description: "Company-wide approvals, operational exceptions, and near-term obligations." },
   finance: { title: "Finance Workdesk", description: "Company-wide finance reviews, payables, and operational follow-up." },
-  manager: { title: "Manager Workdesk", description: "Assigned-location reviews, receiving, production, and stock exceptions." },
+  manager: { title: "Manager Workdesk", description: "Assigned-branch reviews, receiving, production, and stock exceptions." },
   purchasing: { title: "Purchasing Workdesk", description: "Company-wide purchasing actions, supplier follow-up, and document readiness." },
   kitchen: { title: "Kitchen Workdesk", description: "Central Kitchen requests, expected receiving, raw-material stock, and production tasks." },
   outlet_staff: { title: "Outlet Today", description: "Complete today’s receiving, wastage, and remaining-stock record." },

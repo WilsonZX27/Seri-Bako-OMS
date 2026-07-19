@@ -49,7 +49,7 @@ export default async function SetupPage({
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="rounded-md border bg-secondary/40 p-4 text-sm text-muted-foreground">
-            This confirms the company, Central Kitchen branch, Main Store location, protected owner role,
+            This confirms the company, Central Kitchen branch, protected owner role,
             your staff profile, and default document sequences.
           </div>
           {params.error ? (

@@ -89,7 +89,6 @@ test("migration 069 repairs global master-data preview against the current schem
   assert.doesNotMatch(sql, /\bi\.company_id\b|\bs\.company_id\b|\bp\.company_id\b/);
   assert.match(sql, /production_job_ingredient_lines/);
   assert.match(sql, /production_job_output_lines/);
-  assert.match(sql, /barcode_mappings/);
   assert.match(sql, /'company_id', actor\.company_id/);
   assert.match(sql, /actor\.company_id, record_type, record_id/);
 });

@@ -27,9 +27,6 @@ function filterItems<
     supplier_name?: string | null;
     safety_stock?: number;
     current_stock?: number;
-    barcode?: string | null;
-    internal_barcode?: string | null;
-    supplier_barcode?: string | null;
     status: string;
     deleted_at?: string | null;
   },
@@ -43,7 +40,7 @@ function filterItems<
 
   return items.filter((item) => {
     const matchesSearch = search
-      ? [item.item_code, item.autocount_code ?? "", item.item_name, item.category, item.supplier_name ?? "", item.barcode ?? "", item.internal_barcode ?? "", item.supplier_barcode ?? ""].some((value) =>
+      ? [item.item_code, item.autocount_code ?? "", item.item_name, item.category, item.supplier_name ?? ""].some((value) =>
           value.toLowerCase().includes(search),
         )
       : true;

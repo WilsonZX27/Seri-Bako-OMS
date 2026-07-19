@@ -11,7 +11,7 @@ import { getStockTransfer } from "@/server/queries/stock-operations";
 
 const transferSteps = [
   { key: "draft", label: "Draft", description: "Transfer is being prepared." },
-  { key: "in_transit", label: "In Transit", description: "Stock is moving between locations." },
+  { key: "in_transit", label: "In Transit", description: "Stock is moving between branches." },
   { key: "completed", label: "Completed", description: "Stock movement has been recorded." },
   { key: "rejected", label: "Rejected", description: "Transfer was rejected." },
   { key: "cancelled", label: "Cancelled", description: "Transfer was cancelled." },
@@ -64,8 +64,8 @@ export default async function StockTransferDetailPage({ params }: { params: Prom
           <h2 className="text-sm font-semibold">Transfer Summary</h2>
           <div className="grid gap-4 md:grid-cols-3">
             <div><p className="text-xs uppercase text-muted-foreground">Date</p><p className="font-medium">{transfer.transfer_date}</p></div>
-            <div><p className="text-xs uppercase text-muted-foreground">From</p><p className="font-medium">{transfer.from_location_name}</p></div>
-            <div><p className="text-xs uppercase text-muted-foreground">To</p><p className="font-medium">{transfer.to_location_name}</p></div>
+            <div><p className="text-xs uppercase text-muted-foreground">From</p><p className="font-medium">{transfer.from_branch_name}</p></div>
+            <div><p className="text-xs uppercase text-muted-foreground">To</p><p className="font-medium">{transfer.to_branch_name}</p></div>
           </div>
           {transfer.remarks ? <p className="rounded-md border bg-secondary/30 p-3 text-sm">{transfer.remarks}</p> : null}
         </CardContent>

@@ -105,7 +105,7 @@ Status after: PASSED.
 - Added compact right-rail `CompactStatList`.
 - Compact repaired Inventory and Dashboard layouts.
 - Added app-shell overflow guard for wide forms.
-- Confirmed bad wording search for `USB Scanner` and `Search by item image` returns no app matches.
+- Confirmed obsolete item-identification wording returns no app matches.
 
 ## Remaining Issues
 

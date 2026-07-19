@@ -61,7 +61,7 @@ export default async function GoodsReceivingsPage({ searchParams }: { searchPara
         <div className="overflow-hidden rounded-[2px] border border-[var(--sb-border-soft)] bg-card">
           <StatusTabs statuses={statuses} activeStatus={filters.status} />
           <FilterBar resultCount={receivings.totalRows} resetHref="/goods-receivings" filtered={filtered}>
-            <Input name="search" defaultValue={filters.search ?? ""} placeholder="Search GRN no, PO, supplier, location" className="md:max-w-sm" />
+            <Input name="search" defaultValue={filters.search ?? ""} placeholder="Search GRN no, PO, supplier, branch" className="md:max-w-sm" />
             {filters.status ? <input type="hidden" name="status" value={filters.status} /> : null}
             <Button type="submit" variant="secondary">Search</Button>
           </FilterBar>
@@ -75,7 +75,7 @@ export default async function GoodsReceivingsPage({ searchParams }: { searchPara
                   <TableHead>PO</TableHead>
                   <TableHead>Supplier</TableHead>
                   <SortableHead label="Received" column="received_date" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
-                  <TableHead>Location</TableHead>
+                  <TableHead>Branch</TableHead>
                   <SortableHead label="Status" column="status" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
                   <TableHead className="text-right">Received</TableHead>
                   <TableHead className="text-right">Rejected</TableHead>
@@ -92,7 +92,7 @@ export default async function GoodsReceivingsPage({ searchParams }: { searchPara
                     <TableCell>{receiving.po_no ?? "-"}</TableCell>
                     <TableCell>{receiving.supplier_name ?? "-"}</TableCell>
                     <TableCell>{receiving.received_date}</TableCell>
-                    <TableCell>{receiving.location_name ?? "-"}</TableCell>
+                    <TableCell>{receiving.branch_name ?? "-"}</TableCell>
                     <TableCell><StatusBadge status={receiving.status} /></TableCell>
                     <TableCell className="text-right">{formatNumber(receiving.received_total)}</TableCell>
                     <TableCell className="text-right">{formatNumber(receiving.rejected_total)}</TableCell>

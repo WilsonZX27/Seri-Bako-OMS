@@ -47,13 +47,13 @@ Historical images in `docs/stitch-*.png` and `docs/Seri Bako OMS Design System.p
 
 ### B — List mode
 
-`/activity`, `/administration/imports`, `/branches`, `/documents`, `/document-sequences`, `/goods-receivings`, `/items`, `/locations`, `/low-stock`, `/procurement/purchase-requests`, `/production/jobs`, `/products`, `/purchase-orders`, `/purchase-requests`, `/purchase-returns`, `/recipes`, `/roles`, `/settings/backups`, `/staffs`, `/stock-balance`, `/stock-card`, `/stock-counts`, `/stock-transactions`, `/stock-transfers`, `/stock-wastage`, `/supplier-invoices`, `/supplier-items`, `/suppliers`, `/uom-conversions`
+`/activity`, `/administration/imports`, `/branches`, `/documents`, `/document-sequences`, `/goods-receivings`, `/items`, `/low-stock`, `/procurement/purchase-requests`, `/production/jobs`, `/products`, `/purchase-orders`, `/purchase-requests`, `/purchase-returns`, `/recipes`, `/roles`, `/settings/backups`, `/staffs`, `/stock-balance`, `/stock-card`, `/stock-counts`, `/stock-transactions`, `/stock-transfers`, `/stock-wastage`, `/supplier-invoices`, `/supplier-items`, `/suppliers`, `/uom-conversions`
 
 Compatibility/system list routes: `/`, `/imports/[entity]`, `/stock-balances`.
 
 ### C — Document/form mode
 
-`/account`, `/company`, `/branches/[id]`, `/branches/new`, `/documents/[id]`, `/document-sequences/[id]`, `/document-sequences/new`, `/goods-receiving/scan`, `/goods-receivings/[id]`, `/goods-receivings/new`, `/goods-receivings/scan`, `/items/[id]`, `/items/new`, `/locations/[id]`, `/locations/new`, `/opening-stock/import`, `/production/jobs/[id]`, `/production/jobs/new`, `/products/[id]`, `/products/new`, `/purchase-orders/[id]`, `/purchase-orders/new`, `/purchase-requests/[id]`, `/purchase-requests/new`, `/purchase-returns/[id]`, `/purchase-returns/new`, `/recipes/[id]`, `/recipes/[id]/edit`, `/recipes/new`, `/roles/[id]`, `/roles/new`, `/staffs/[id]`, `/staffs/new`, `/stock-count/scan`, `/stock-counts/[id]`, `/stock-counts/new`, `/stock-counts/scan`, `/stock-transactions/[id]`, `/stock-transactions/new`, `/stock-transfer/scan`, `/stock-transfers/[id]`, `/stock-transfers/new`, `/stock-transfers/scan`, `/stock-wastage/[id]`, `/stock-wastage/new`, `/stock-wastage/scan`, `/supplier-invoices/[id]`, `/supplier-invoices/new`, `/supplier-items/[id]`, `/supplier-items/new`, `/suppliers/[id]`, `/suppliers/new`, `/uom-conversions/[id]`, `/uom-conversions/new`.
+`/account`, `/company`, `/branches/[id]`, `/branches/new`, `/documents/[id]`, `/document-sequences/[id]`, `/document-sequences/new`, `/goods-receivings/[id]`, `/goods-receivings/new`, `/items/[id]`, `/items/new`, `/opening-stock/import`, `/production/jobs/[id]`, `/production/jobs/new`, `/products/[id]`, `/products/new`, `/purchase-orders/[id]`, `/purchase-orders/new`, `/purchase-requests/[id]`, `/purchase-requests/new`, `/purchase-returns/[id]`, `/purchase-returns/new`, `/recipes/[id]`, `/recipes/[id]/edit`, `/recipes/new`, `/roles/[id]`, `/roles/new`, `/staffs/[id]`, `/staffs/new`, `/stock-counts/[id]`, `/stock-counts/new`, `/stock-transactions/[id]`, `/stock-transactions/new`, `/stock-transfers/[id]`, `/stock-transfers/new`, `/stock-wastage/[id]`, `/stock-wastage/new`, `/supplier-invoices/[id]`, `/supplier-invoices/new`, `/supplier-items/[id]`, `/supplier-items/new`, `/suppliers/[id]`, `/suppliers/new`, `/uom-conversions/[id]`, `/uom-conversions/new`.
 
 ### D — Authentication/system state
 
@@ -120,7 +120,7 @@ The canonical implementation lives in `src/app/globals.css` and `src/components/
 | Master list (`/items`) | Table/actions | Table/actions | Smoke | Smoke | Layout | Layout | Full | Full | Smoke |
 | Procurement list/detail/create | Required | Required | Required | Required | Required | Required | Required | Required | Smoke |
 | Inventory (`/stock-balance`) | Table/actions | Table/actions | Smoke | Smoke | Layout | Layout | Full | Full | Smoke |
-| Admin (`/staffs`, `/roles`, `/company`, branches/locations) | Core paths | Core paths | Smoke | Smoke | Required | Required | Required | Required | Smoke |
+| Admin (`/staffs`, `/roles`, `/company`, Branches / Outlets) | Core paths | Core paths | Smoke | Smoke | Required | Required | Required | Required | Smoke |
 
 Reusable automated assertions:
 
@@ -172,7 +172,7 @@ Reusable automated assertions:
 - No database migrations or reset SQL changes are planned; no database blocker has been found.
 - No fake records or decorative dashboard data will be added for screenshots.
 
-### Evidence locations
+### Evidence paths
 
 - Historical visual mood references only: `docs/stitch-*.png` and `docs/Seri Bako OMS Design System.png`.
 - Sprint 7.4 screenshots, viewport findings, and local timing JSON: `test-results/release-ui-7-4/`.

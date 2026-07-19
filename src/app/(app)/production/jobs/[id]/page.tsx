@@ -99,7 +99,7 @@ export default async function ProductionJobDetailPage({
               <div><dt className="text-muted-foreground">Created by</dt><dd className="font-medium">{job.created_by_name ?? "-"}</dd></div>
               <div><dt className="text-muted-foreground">Created</dt><dd className="font-medium">{new Date(job.created_at).toLocaleString("en-MY", { dateStyle: "medium", timeStyle: "short" })}</dd></div>
               <div><dt className="text-muted-foreground">Updated</dt><dd className="font-medium">{new Date(job.updated_at).toLocaleString("en-MY", { dateStyle: "medium", timeStyle: "short" })}</dd></div>
-              <div><dt className="text-muted-foreground">Location</dt><dd className="font-medium">{job.branch_name ?? "-"}</dd></div>
+              <div><dt className="text-muted-foreground">Branch</dt><dd className="font-medium">{job.branch_name ?? "-"}</dd></div>
             </dl>
           </DocumentSideSection>
         </>

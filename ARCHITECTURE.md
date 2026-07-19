@@ -57,7 +57,7 @@ Next.js application
 
 ### Route and page layer
 
-Location:
+Path:
 
 ```text
 src/app/
@@ -76,7 +76,7 @@ Pages should not duplicate domain logic that belongs in server actions, queries,
 
 ### Component layer
 
-Location:
+Path:
 
 ```text
 src/components/
@@ -101,7 +101,7 @@ Components must follow `DESIGN.md`.
 
 ### Server layer
 
-Location:
+Path:
 
 ```text
 src/server/
@@ -122,7 +122,7 @@ Sensitive business actions must not rely on browser-side permission checks.
 
 ### Library layer
 
-Location:
+Path:
 
 ```text
 src/lib/
@@ -142,7 +142,7 @@ Responsibilities may include:
 
 ### Database layer
 
-Location:
+Path:
 
 ```text
 supabase/migrations/
@@ -193,7 +193,7 @@ Seri Bako OMS uses permission-based authorization.
 
 The role catalogue is fixed: `super_admin`, `finance`, `manager`, `purchasing`, `kitchen`, and `outlet_staff`. Migration 071 archives legacy role rows after guarded assignment conversion. Roles are system-controlled defaults, not user-created configuration.
 
-`super_admin`, `finance`, and `purchasing` have company-wide scope. `manager`, `kitchen`, and `outlet_staff` use assigned locations; Kitchen assignments are restricted to Central Kitchen locations and Outlet Staff assignments to outlet locations. Default Location is context only. `staff_locations`, `staff_branches`, role scope, server guards, and RLS remain the authorization boundary.
+`super_admin`, `finance`, and `purchasing` have company-wide scope. `manager`, `kitchen`, and `outlet_staff` use assigned Branches / Outlets; Kitchen assignments are restricted to Central Kitchen branches and Outlet Staff assignments to outlets. The default Branch / Outlet is context only. `staff_branches`, the temporary compatibility scope mapping described in the Sprint 7.23.5 legacy ledger, server guards, and RLS remain the authorization boundary.
 
 ### Permissions
 
@@ -387,7 +387,7 @@ A production job may include:
 - Input material usage.
 - Output items.
 - Start and completion state.
-- Assigned location.
+- Assigned Branch / Outlet.
 - Responsible user.
 - Notes and attachments.
 - Inventory effects.
@@ -564,7 +564,7 @@ Metrics must define:
 - Source records.
 - Date basis.
 - Status filters.
-- Location scope.
+- Branch / Outlet scope.
 - Currency or unit.
 - Refresh behavior.
 - Permission scope.
@@ -657,7 +657,7 @@ Authorization is server authoritative: route middleware, layouts, pages, actions
 
 Procurement conversion uses the atomic PR-to-PO RPC from migrations 053–054. Its transaction creates the header and lines, links the source PR, preserves audit behavior, and relies on the one-active-PO-per-PR index for idempotency. Application code must not reimplement that transaction.
 
-Pilot imports use the catalogue in `src/lib/imports/config.ts`. They follow preview, validation, explicit confirmation, and targeted route revalidation. Opening stock posts ledger transactions at the branch default location; it never writes a balance directly. Audit and reconciliation therefore read the operational tables and ledger instead of maintaining a second pilot data store.
+Pilot imports use the catalogue in `src/lib/imports/config.ts`. They follow preview, validation, explicit confirmation, and targeted route revalidation. Opening stock posts ledger transactions for the selected branch; it never writes a balance directly. Audit and reconciliation therefore read the operational tables and ledger instead of maintaining a second pilot data store.
 
 ## Supplier invoice and payment foundation
 
@@ -701,9 +701,9 @@ Sprint 7.16 composes the existing dashboard, outlet-record, demand, variance, pl
 
 ## Role-aware dashboard composition
 
-Sprint 7.23.2 makes `/dashboard` the canonical landing route for every active role. The page remains a single route and a single composition component. `getDashboardSummary` resolves the authenticated staff scope first, then starts only the independent query groups required by that role. PostgreSQL RLS remains authoritative for company, branch, and assigned-location visibility; the component receives already-scoped server data and does not fetch hidden role panels on the client.
+Sprint 7.23.2 makes `/dashboard` the canonical landing route for every active role. The page remains a single route and a single composition component. `getDashboardSummary` resolves the authenticated staff scope first, then starts only the independent query groups required by that role. PostgreSQL RLS remains authoritative for company and assigned-branch visibility; the component receives already-scoped server data and does not fetch hidden role panels on the client.
 
-Finance is company-wide and receives the read-level operational union of Manager and Purchasing plus its existing finance capabilities. Manager remains assigned-location operational oversight; Purchasing remains company-wide procurement/master-data execution. They are sibling operational responsibilities, not an escalation chain. Migration `072` adds only the missing Finance read grants and Manager Review fallback, creates explicit item/supplier view permissions, and installs a PR status trigger that rejects requester self-approval. It does not grant owner controls or Purchasing mutations and changes no business rows.
+Finance is company-wide and receives the read-level operational union of Manager and Purchasing plus its existing finance capabilities. Manager remains assigned-branch operational oversight; Purchasing remains company-wide procurement/master-data execution. They are sibling operational responsibilities, not an escalation chain. Migration `072` adds only the missing Finance read grants and Manager Review fallback, creates explicit item/supplier view permissions, and installs a PR status trigger that rejects requester self-approval. It does not grant owner controls or Purchasing mutations and changes no business rows. Migration `073` adds the Sprint 7.23.5 governance grants and company-scoped RLS for staff, Branch / Outlet, and document-sequence administration without changing business rows.
 
 Payables queries execute only for Owner and Finance. Outlet and Kitchen workdesks rely on RLS-scoped daily-record, procurement, stock, and production queries. Optional sources degrade to useful empty/unavailable states without blanking the page.
 

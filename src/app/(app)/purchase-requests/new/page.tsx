@@ -32,7 +32,7 @@ export default async function NewPurchaseRequestPage({ searchParams }: { searchP
   } : undefined;
   return (
     <>
-      <PageHeader title="New Purchase Request" description="Create a request from daily stock check or low-stock review." />
+      <PageHeader title="New Purchase Request" />
       <WorkspaceGrid
         hideMobileConsole
         className="pb-20 xl:pb-3"

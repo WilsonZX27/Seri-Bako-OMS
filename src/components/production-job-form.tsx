@@ -68,7 +68,7 @@ export function ProductionJobForm({
       <Card>
         <CardHeader>
           <CardTitle>Production Details</CardTitle>
-          <CardDescription>Branch-first production setup. Stock will post to the branch default location after approval.</CardDescription>
+          <CardDescription>Branch-first production setup. Stock posts to the selected branch after approval.</CardDescription>
         </CardHeader>
         <CardContent className="grid gap-4 md:grid-cols-3">
           <Field label="Production Date" required>

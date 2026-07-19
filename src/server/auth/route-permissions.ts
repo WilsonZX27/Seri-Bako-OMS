@@ -3,6 +3,8 @@ import { informationArchitecture } from "@/lib/information-architecture";
 const exactRoutePermissions: Record<string, string[]> = {
   "/administration": ["company.read", "staffs.read", "roles.read", "items.view", "imports.create"],
   "/settings": ["company.read", "staffs.read", "roles.read", "items.view", "imports.create"],
+  "/procurement": ["purchase_request.read", "purchase_order.read", "goods_receiving.read", "purchase_return.view", "supplier_invoice.view", "suppliers.view"],
+  "/inventory": ["items.view", "production.view", "recipes.view", "stock_balance.read", "stock_transactions.read", "stock_transfer.read", "stock_count.read", "stock_wastage.read", "low_stock.view"],
   "/reports/costing-readiness": ["reports.view"],
   "/reports/recipe-costing": ["reports.view"],
   "/reports/product-margin": ["reports.view"],
@@ -14,12 +16,10 @@ const exactRoutePermissions: Record<string, string[]> = {
   "/production/planning": ["outlet_daily_record.view"],
   "/production/variance": ["outlet_daily_record.view"],
   "/branches/new": ["branches.create"],
-  "/document-sequences/new": ["settings.manage"],
+  "/document-sequences/new": ["document_sequences.create"],
   "/goods-receivings/new": ["goods_receiving.create"],
-  "/goods-receivings/scan": ["goods_receiving.create"],
-  "/goods-receiving/scan": ["goods_receiving.create"],
   "/items/new": ["items.create"],
-  "/locations/new": ["locations.create"],
+  "/locations/new": ["branches.read"],
   "/opening-stock/import": ["stock_transactions.create", "company.update"],
   "/outlet-daily-records/new": ["outlet_daily_record.create"],
   "/production/jobs/new": ["production.create"],
@@ -31,14 +31,9 @@ const exactRoutePermissions: Record<string, string[]> = {
   "/roles/new": ["roles.read"],
   "/staffs/new": ["staffs.create"],
   "/stock-counts/new": ["stock_count.create"],
-  "/stock-counts/scan": ["stock_count.create"],
-  "/stock-count/scan": ["stock_count.create"],
   "/stock-transactions/new": ["stock_transactions.create"],
   "/stock-transfers/new": ["stock_transfer.create"],
-  "/stock-transfers/scan": ["stock_transfer.create"],
-  "/stock-transfer/scan": ["stock_transfer.create"],
   "/stock-wastage/new": ["stock_wastage.create"],
-  "/stock-wastage/scan": ["stock_wastage.create"],
   "/supplier-invoices/new": ["supplier_invoice.create"],
   "/supplier-items/new": ["supplier_items.create"],
   "/suppliers/new": ["suppliers.create"],
@@ -51,7 +46,7 @@ const routePermissions: Array<{ prefixes: string[]; permissions: string[] }> = [
   { prefixes: ["/outlet-daily-records"], permissions: ["outlet_daily_record.view"] },
   { prefixes: ["/production/jobs", "/production", "/products"], permissions: ["production.view"] },
   { prefixes: ["/recipes"], permissions: ["recipes.view"] },
-  { prefixes: ["/procurement", "/purchase-requests"], permissions: ["purchase_request.read"] },
+  { prefixes: ["/purchase-requests"], permissions: ["purchase_request.read"] },
   { prefixes: ["/purchase-orders"], permissions: ["purchase_order.read"] },
   { prefixes: ["/goods-receivings", "/goods-receiving"], permissions: ["goods_receiving.read"] },
   { prefixes: ["/purchase-returns"], permissions: ["purchase_return.view"] },
@@ -60,7 +55,6 @@ const routePermissions: Array<{ prefixes: string[]; permissions: string[] }> = [
   { prefixes: ["/supplier-items"], permissions: ["supplier_items.read"] },
   { prefixes: ["/uom-conversions"], permissions: ["uom_conversions.read"] },
   { prefixes: ["/items"], permissions: ["items.view"] },
-  { prefixes: ["/inventory"], permissions: ["inventory.read"] },
   { prefixes: ["/stock-balance", "/stock-balances"], permissions: ["stock_balance.read"] },
   { prefixes: ["/stock-card"], permissions: ["stock_card.read"] },
   { prefixes: ["/stock-transactions"], permissions: ["stock_transactions.read"] },
@@ -72,10 +66,11 @@ const routePermissions: Array<{ prefixes: string[]; permissions: string[] }> = [
   { prefixes: ["/documents"], permissions: ["documents.view"] },
   { prefixes: ["/company"], permissions: ["company.read"] },
   { prefixes: ["/branches"], permissions: ["branches.read"] },
-  { prefixes: ["/locations"], permissions: ["locations.read"] },
+  { prefixes: ["/locations"], permissions: ["branches.read"] },
   { prefixes: ["/roles"], permissions: ["roles.read"] },
   { prefixes: ["/staffs"], permissions: ["staffs.read"] },
-  { prefixes: ["/settings", "/document-sequences"], permissions: ["settings.manage"] },
+  { prefixes: ["/settings"], permissions: ["company.read", "staffs.read", "roles.read", "items.view", "imports.create"] },
+  { prefixes: ["/document-sequences"], permissions: ["document_sequences.read"] },
   { prefixes: ["/administration/imports", "/imports", "/data-onboarding"], permissions: ["imports.create", "company.update"] },
 ];
 
@@ -91,7 +86,7 @@ export function getRoutePermissionCodes(pathname: string) {
 }
 
 export function getRouteAllowedRoles(pathname: string) {
-  if (pathname === "/administration" || pathname === "/settings") return ["super_admin", "purchasing"] as const;
+  if (pathname === "/administration" || pathname === "/settings") return ["super_admin", "finance", "manager", "purchasing"] as const;
   const item = informationArchitecture.find((entry) => pathname === entry.href || pathname.startsWith(`${entry.href}/`));
   return item?.roles ?? null;
 }

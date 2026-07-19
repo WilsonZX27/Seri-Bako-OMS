@@ -16,7 +16,6 @@ const sectionMap: Record<string, { label: string; href?: string; parent?: Crumb 
   administration: { label: "Administration" },
   company: { label: "Company", parent: { label: "Administration", href: "/administration" } },
   branches: { label: "Branches", parent: { label: "Administration", href: "/administration" } },
-  locations: { label: "Locations", parent: { label: "Administration", href: "/administration" } },
   staffs: { label: "Users & Staff", parent: { label: "Administration", href: "/administration" } },
   roles: { label: "Roles & Permissions", parent: { label: "Administration", href: "/administration" } },
   settings: { label: "Administration", href: "/administration" },
@@ -84,8 +83,6 @@ export function Breadcrumbs() {
   if (segments[1]) {
     if (segments[1] === "new") {
       crumbs.push({ label: `New ${root?.label ?? titleize(first)}` });
-    } else if (segments[1] === "scan") {
-      crumbs.push({ label: "Scan" });
     } else if (!isOpaqueId(segments[1])) {
       crumbs.push({ label: titleize(segments[1]) });
     } else {

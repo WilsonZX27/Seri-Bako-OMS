@@ -315,16 +315,18 @@ export async function getProcurementWorkspaceInsights() {
       openPo: mockPurchaseOrders.filter((order) => !["received", "closed", "cancelled"].includes(order.status)).length,
       receivingToday: 0,
       pendingPr: mockPurchaseRequests.filter((request) => request.status === "finance_review").length,
+      invoiceFollowup: 0,
     };
   }
 
   const supabase = await createClient();
   const today = new Date().toISOString().slice(0, 10);
-  const [draftPo, openPo, receivingToday, pendingPr] = await Promise.all([
+  const [draftPo, openPo, receivingToday, pendingPr, invoiceFollowup] = await Promise.all([
     supabase.from("purchase_orders").select("id", { count: "exact", head: true }).eq("status", "draft").is("deleted_at", null),
     supabase.from("purchase_orders").select("id", { count: "exact", head: true }).not("status", "in", "(received,closed,cancelled)").is("deleted_at", null),
     supabase.from("goods_receivings").select("id", { count: "exact", head: true }).eq("received_date", today).is("deleted_at", null),
     supabase.from("purchase_requests").select("id", { count: "exact", head: true }).eq("status", "finance_review").is("deleted_at", null),
+    supabase.from("supplier_invoices").select("id", { count: "exact", head: true }).in("status", ["open", "partially_paid"]).is("deleted_at", null),
   ]);
 
   return {
@@ -332,5 +334,6 @@ export async function getProcurementWorkspaceInsights() {
     openPo: openPo.error ? 0 : openPo.count ?? 0,
     receivingToday: receivingToday.error ? 0 : receivingToday.count ?? 0,
     pendingPr: pendingPr.error ? 0 : pendingPr.count ?? 0,
+    invoiceFollowup: invoiceFollowup.error ? 0 : invoiceFollowup.count ?? 0,
   };
 }

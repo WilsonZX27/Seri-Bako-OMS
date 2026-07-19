@@ -21,7 +21,7 @@ import {
 } from "@/lib/mock-mode";
 
 const activityEntityAllowlist = {
-  super_admin: ["document", "stock_transaction", "supplier", "supplier_item", "import", "item", "branch", "company", "location", "role", "staff", "document_sequence"],
+  super_admin: ["document", "stock_transaction", "supplier", "supplier_item", "import", "item", "branch", "company", "role", "staff", "document_sequence"],
   manager: ["document", "stock_transaction", "supplier", "supplier_item", "import", "item"],
   finance: ["document", "stock_transaction", "supplier", "supplier_item", "import"],
   purchasing: ["document", "supplier", "supplier_item", "item", "import"],
@@ -30,7 +30,7 @@ const activityEntityAllowlist = {
 } satisfies Record<string, string[]>;
 
 const adminOnlyActivityTypes = new Set(["archived", "restored"]);
-const adminOnlyEntityTypes = new Set(["branch", "company", "location", "role", "staff", "document_sequence"]);
+const adminOnlyEntityTypes = new Set(["branch", "company", "role", "staff", "document_sequence"]);
 
 function warnOptionalQuery(name: string, error: { message?: string } | null | undefined) {
   if (error) console.warn(`[dashboard] Optional ${name} query failed: ${error.message ?? "Unknown error"}`);
@@ -58,7 +58,7 @@ export async function getVisibleRecentActivitiesForCurrentUser(limit = 6) {
       if (activity.created_by && scope.staffId && activity.created_by === scope.staffId) return true;
       if (adminOnlyEntityTypes.has(activity.entity_type) || adminOnlyActivityTypes.has(activity.activity_type)) return false;
       if (scope.roleCode === "kitchen") {
-        return allowedEntityTypes.has(activity.entity_type) && ["created", "submitted", "approved", "posted", "cancelled", "rejected", "barcode_scanned", "unknown_barcode_scanned", "item_counted_via_barcode", "barcode_workflow_line_saved"].includes(activity.activity_type);
+        return allowedEntityTypes.has(activity.entity_type) && ["created", "submitted", "approved", "posted", "cancelled", "rejected"].includes(activity.activity_type);
       }
       if (scope.roleCode === "purchasing") {
         return allowedEntityTypes.has(activity.entity_type) && !["invite_resent", "staff_updated", "staff_invited"].includes(activity.activity_type);
@@ -218,7 +218,7 @@ export async function getDashboardSummary() {
   return {
     role,
     roleLabel: getRoleDisplayLabel(role),
-    scopeLabel: scope.companyWideAccess ? "Company-wide" : scope.branchIds.length ? "Assigned locations" : "Assigned workspace",
+    scopeLabel: scope.companyWideAccess ? "Company-wide" : scope.branchIds.length ? "Assigned branches" : "Assigned workspace",
     totalItems: items.count ?? 0,
     totalSuppliers: suppliers.count ?? 0,
     lowStockCount: balances.error ? 0 : balances.data?.filter((row) => row.is_low_stock).length ?? 0,

@@ -33,12 +33,12 @@ test("migration 071 is guarded and converges without deleting staff or business 
   assert.doesNotMatch(sql, /delete from public\.staffs|delete from public\.(purchase_requests|purchase_orders|goods_receivings|stock_transactions)/);
 });
 
-test("fixed roles and system numbering expose read-only compatibility surfaces", () => {
+test("fixed roles stay read-only while permitted users can manage system numbering", () => {
   assert.match(read("src/app/(app)/roles/new/page.tsx"), /redirect\("\/roles"\)/);
   assert.match(read("src/app/(app)/roles/[id]/page.tsx"), /redirect\("\/roles"\)/);
   assert.doesNotMatch(read("src/app/(app)/roles/page.tsx"), /New role|>Edit</);
-  assert.match(read("src/app/(app)/document-sequences/new/page.tsx"), /redirect\("\/document-sequences"\)/);
-  assert.doesNotMatch(read("src/app/(app)/document-sequences/page.tsx"), /New sequence|>Edit<|>Archive</);
+  assert.match(read("src/app/(app)/document-sequences/new/page.tsx"), /DocumentSequenceForm/);
+  assert.match(read("src/app/(app)/document-sequences/page.tsx"), /New sequence|>Edit</);
 });
 
 test("legacy hubs and backup aliases converge on canonical destinations", () => {
@@ -54,10 +54,11 @@ test("sign-in resolves a terminal route from the canonical IA instead of hardcod
   assert.doesNotMatch(auth.slice(auth.indexOf("export async function signIn"), auth.indexOf("export async function signOut")), /redirect\("\/dashboard"\)/);
 });
 
-test("staff assignment UI exposes only role and location concepts", () => {
+test("staff assignment UI exposes role and Branch / Outlet concepts", () => {
   const form = read("src/components/foundation-forms.tsx");
   assert.match(form, /label="Role"/);
-  assert.match(form, /label="Default Location"/);
-  assert.match(form, /label="Accessible Locations"/);
+  assert.match(form, /label="Default Branch \/ Outlet"/);
+  assert.match(form, /label="Accessible Branches \/ Outlets"/);
+  assert.doesNotMatch(form, /label="Default Location"|label="Accessible Locations"/);
   assert.doesNotMatch(form, /Role Branch Scope|Default Branch Access|Branch Access Level/);
 });

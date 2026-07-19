@@ -26,7 +26,7 @@ const reportCategories: ReportCategory[] = [
     description: "Stock balances, stock cards, wastage, and ledger movement review.",
     theme: "blue",
     reports: [
-      { href: "/stock-balance", title: "Stock Balance", description: "Branch-level stock with optional location detail.", icon: PackageSearch },
+      { href: "/stock-balance", title: "Stock Balance", description: "Branch-level stock calculated from posted movements.", icon: PackageSearch },
       { href: "/stock-card", title: "Stock Card", description: "Item movement trace from the posted ledger.", icon: FileText },
       { href: "/low-stock", title: "Low Stock", description: "Items below safety stock threshold.", icon: TriangleAlert },
       { href: "/reports/demand-trends", title: "Demand Trend Lite", description: "Outlet-record movement, wastage, and data coverage.", icon: BarChart3 },

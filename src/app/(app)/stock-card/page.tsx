@@ -77,7 +77,7 @@ export default async function StockCardPage({ searchParams }: { searchParams: Pr
                     <TableHead>Transaction No</TableHead>
                     <TableHead>Type</TableHead>
                     <TableHead>Item</TableHead>
-                    <TableHead>Location</TableHead>
+                    <TableHead>Branch</TableHead>
                     <TableHead className="text-right">In</TableHead>
                     <TableHead className="text-right">Out</TableHead>
                     <TableHead className="text-right">Running</TableHead>
@@ -93,7 +93,7 @@ export default async function StockCardPage({ searchParams }: { searchParams: Pr
                       <TableCell className="font-medium">{row.transaction_no}</TableCell>
                       <TableCell>{row.transaction_type.replaceAll("_", " ")}</TableCell>
                       <TableCell>{row.item_name}</TableCell>
-                      <TableCell>{row.location_name}</TableCell>
+                      <TableCell>{row.branch_name ?? "-"}</TableCell>
                       <TableCell className="text-right">{row.quantity_in ? formatNumber(row.quantity_in) : "-"}</TableCell>
                       <TableCell className="text-right">{row.quantity_out ? formatNumber(row.quantity_out) : "-"}</TableCell>
                       <TableCell className="text-right font-medium">{formatNumber(row.running_balance)}</TableCell>

@@ -55,7 +55,6 @@ async function assertNoObviousVisualBreaks(page) {
     url: window.location.pathname,
   }));
   expect(overflow.ok, `${overflow.url} must not have horizontal overflow (${overflow.scrollWidth}px > ${overflow.width}px)`).toBe(true);
-  await expect(page.locator("body")).not.toContainText("USB Scanner");
   await expect(page.locator("body")).not.toContainText("Search by item image");
 }
 

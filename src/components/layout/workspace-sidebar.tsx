@@ -5,7 +5,7 @@ import { usePathname, useSearchParams } from "next/navigation";
 import { ChevronDown, Factory } from "lucide-react";
 import { useMemo, useState } from "react";
 import { getVisibleNavGroups } from "@/components/layout/nav-items";
-import { APP_SPRINT, APP_VERSION } from "@/lib/app-version";
+import { APP_SPRINT } from "@/lib/app-version";
 import { cn } from "@/lib/utils";
 import type { SidebarCounts } from "@/server/queries/sidebar";
 import type { UserRole } from "@/types/database";
@@ -66,7 +66,7 @@ export function WorkspaceSidebar({
     return null;
   })();
 
-  const activeGroupId = activeNavKey?.split("-")[0] ?? null;
+  const activeGroupId = groups.find((group) => group.href === pathname)?.id ?? activeNavKey?.split("-")[0] ?? null;
 
   return (
     <div className={cn("flex h-dvh w-[var(--sb-sidebar-width)] flex-col border-r border-white/10 bg-[var(--sb-green-950)] text-white", mobile ? "w-full" : "")}>
@@ -94,15 +94,20 @@ export function WorkspaceSidebar({
             const groupClosed = closedGroups[group.id] ?? group.id !== activeGroupId;
             return (
               <div key={group.id}>
-                  <button
-                    type="button"
-                    className={cn("mb-1 flex w-full items-center justify-between rounded-[2px] px-2 text-left font-semibold text-white/60 hover:bg-white/8 hover:text-white", mobile ? "min-h-9 py-1 text-[11px]" : "min-h-8 py-1 text-[10px]")}
-                    onClick={() => toggleGroup(group.id, groupClosed)}
-                    aria-expanded={!groupClosed}
-                  >
-                    <span>{group.label}</span>
-                    <ChevronDown className={cn("h-3 w-3 transition-transform", groupClosed ? "-rotate-90" : "")} />
-                  </button>
+                  <div className={cn("mb-1 flex w-full items-center rounded-[2px] font-semibold text-white/60 hover:bg-white/8 hover:text-white", activeGroupId === group.id && group.href ? "bg-white/8 text-white" : "", mobile ? "min-h-9 text-[11px]" : "min-h-8 text-[10px]")}>
+                    {group.href ? (
+                      <Link href={group.href} onClick={onNavigate} className="flex min-h-[inherit] min-w-0 flex-1 items-center px-2">
+                        <span>{group.label}</span>
+                      </Link>
+                    ) : (
+                      <button type="button" className="flex min-h-[inherit] min-w-0 flex-1 items-center px-2 text-left" onClick={() => toggleGroup(group.id, groupClosed)} aria-expanded={!groupClosed}>
+                        <span>{group.label}</span>
+                      </button>
+                    )}
+                    <button type="button" className="flex min-h-8 min-w-8 items-center justify-center rounded-[2px] hover:bg-white/10" onClick={() => toggleGroup(group.id, groupClosed)} aria-expanded={!groupClosed} aria-label={`${groupClosed ? "Expand" : "Collapse"} ${group.label}`}>
+                      <ChevronDown className={cn("h-3 w-3 transition-transform", groupClosed ? "-rotate-90" : "")} />
+                    </button>
+                  </div>
                 <div className={cn("space-y-0.5", groupClosed ? "hidden" : "")}>
                   {visibleItems.map((item) => {
                     const Icon = item.icon;
@@ -139,7 +144,7 @@ export function WorkspaceSidebar({
         </div>
       </nav>
 
-      <div className="border-t border-white/10 px-3 py-2 text-[10px] text-white/45">v{APP_VERSION} / {APP_SPRINT}</div>
+      <div className="border-t border-white/10 px-3 py-2 text-[10px] text-white/45">{APP_SPRINT}</div>
     </div>
   );
 }

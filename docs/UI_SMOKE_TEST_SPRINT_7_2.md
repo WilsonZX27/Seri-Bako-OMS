@@ -17,7 +17,7 @@ Version shown by the app should be:
 - Documents behaved like another operational hub instead of an audit/register page.
 - Sidebar footer carried explanatory copy instead of just version tracking.
 - Hub cards and recommended tags added unnecessary visual height.
-- Purchase Request item line used a very wide fixed column grid and still referenced barcode wording.
+- Purchase Request item line used a very wide fixed column grid and unnecessary identifier wording.
 - Staff role assignment allowed administrator-level users to see the owner role option.
 
 ## After Changes

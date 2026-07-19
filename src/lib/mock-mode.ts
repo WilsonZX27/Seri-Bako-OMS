@@ -78,7 +78,6 @@ export const mockProducts: Row<"products">[] = [];
 export const mockProductPackaging: Row<"product_packaging">[] = [];
 export const mockUomConversions: Row<"uom_conversions">[] = [];
 export const mockSupplierItems: Row<"supplier_items">[] = [];
-export const mockBarcodeMappings: Row<"barcode_mappings">[] = [];
 export const mockRecipes: Row<"recipes">[] = [];
 export const mockRecipeLines: Row<"recipe_lines">[] = [];
 export const mockRecipeCostSnapshots: Row<"recipe_cost_snapshots">[] = [];

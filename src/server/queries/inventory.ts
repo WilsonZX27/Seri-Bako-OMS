@@ -15,7 +15,6 @@ type Filters = Record<string, string | undefined>;
 type StockTransaction = Database["public"]["Tables"]["stock_transactions"]["Row"];
 type StockLedgerViewRow = Database["public"]["Views"]["stock_ledger_view"]["Row"];
 type StockBalanceDetail = Database["public"]["Views"]["stock_balances_view"]["Row"] & {
-  barcode: string | null;
   image_url: string | null;
   available_qty: number;
   reserved_qty: number;
@@ -142,7 +141,7 @@ export async function getStockTransaction(id: string) {
   const supabase = await createClient();
   const [{ data, error }, { data: items }, { data: locations }, { data: branches }] = await Promise.all([
     supabase.from("stock_transactions").select("*").eq("id", id).single(),
-    supabase.from("items").select("id, item_code, item_name, base_unit, barcode, internal_barcode, item_image_url"),
+    supabase.from("items").select("id, item_code, item_name, base_unit, item_image_url"),
     supabase.from("locations").select("id, location_code, location_name, branch_id"),
     supabase.from("branches").select("id, branch_name"),
   ]);
@@ -185,7 +184,6 @@ export async function getStockLedger(filters: Filters = {}) {
         item_code: row.item?.item_code ?? "",
         item_name: row.item?.item_name ?? "Unknown",
         base_unit: row.item?.base_unit ?? "",
-        barcode: row.item?.barcode ?? row.item?.internal_barcode ?? null,
         image_url: row.item?.item_image_url ?? null,
         branch_id: row.branch?.id ?? null,
         branch_name: row.branch?.branch_name ?? null,
@@ -234,7 +232,6 @@ export async function getStockBalanceDetails(filters: Filters = {}) {
         item_code: latest.item_code,
         item_name: latest.item_name,
         base_unit: latest.base_unit,
-        barcode: item?.barcode ?? item?.internal_barcode ?? null,
         image_url: item?.item_image_url ?? null,
         branch_id: latest.branch_id,
         branch_name: latest.branch_name,
@@ -250,7 +247,7 @@ export async function getStockBalanceDetails(filters: Filters = {}) {
       };
     });
     const displayRows = aggregateByBranch ? aggregateStockByBranch(rows) : rows;
-    const filtered = filterRows(displayRows, filters, ["item_code", "item_name", "barcode", "branch_name", "location_name", "status"], "item_name");
+    const filtered = filterRows(displayRows, filters, ["item_code", "item_name", "branch_name", "location_name", "status"], "item_name");
     return paginateRows(filtered, filters.page, filters.page === "all" ? Math.max(filtered.length, 1) : 15);
   }
 
@@ -262,7 +259,6 @@ export async function getStockBalanceDetails(filters: Filters = {}) {
   }
   const rows = (data ?? []).map((row) => ({
     ...row,
-    barcode: null,
     image_url: null,
     available_qty: row.current_qty,
     reserved_qty: 0,
@@ -278,7 +274,6 @@ function aggregateStockByBranch<T extends {
   item_code: string;
   item_name: string;
   base_unit: string;
-  barcode: string | null;
   image_url: string | null;
   branch_id: string | null;
   branch_name: string | null;

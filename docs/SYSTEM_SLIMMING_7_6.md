@@ -51,7 +51,7 @@ Classification: A core workflow, B supporting/admin, E internal/system, F redire
 | `/documents`, `/documents/[id]` | B | Reports/search/module links | Document bundle/actions | Document view/workflow | Generic register; operational types redirect canonically | 116–119 kB | Yes |
 | `/document-sequences`, `/document-sequences/new`, `/document-sequences/[id]` | B | Settings links | Sequence queries/actions | Settings/sequence manage | Numbering support | 106–117 kB | Yes |
 | `/branches`, `/branches/new`, `/branches/[id]` | B | Sidebar/onboarding | Foundation queries/actions | Branch read/create/update | Organization master | 118 kB | Yes |
-| `/locations`, `/locations/new`, `/locations/[id]` | B | Sidebar/onboarding | Foundation queries/actions | Location read/create/update | Ledger location master | 117–118 kB | Yes |
+| Legacy Branch / Outlet aliases | B | Compatibility only | Redirects | Branch read | Historical ledger storage | Minimal | Yes |
 | `/company` | B | Sidebar/settings | Company query/actions | Company read/update | Company master | 120 kB | Yes |
 | `/roles`, `/roles/new`, `/roles/[id]` | B | Sidebar | Permission queries/actions | Role read/create/update | Authorization administration | 117 kB | Yes |
 | `/staffs`, `/staffs/new`, `/staffs/[id]` | B | Sidebar | Staff/permission queries/actions | Staff read/create/update | Staff administration | 118–119 kB | Yes |
@@ -77,7 +77,7 @@ Route handlers retained: `/auth/callback`, `/api/attachments/[id]`, `/api/backup
 | Record | Contract |
 |---|---|
 | Supplier, Item, Product | Visible outlined danger action; confirmation names the record and consequence; deactivate preserves references; restore remains available |
-| Branch, Location | Archive/deactivate with confirmation; system-default location is explicitly protected |
+| Branch / Outlet | Archive/deactivate with confirmation; the system-default stock area is protected internally |
 | Staff | Deactivate with final-owner protection; permanent delete remains restricted to safe test-only records |
 | Recipe | Archive status; no stock history deletion |
 | PR, PO | Draft/workflow cancellation or rejection; linked/converted records retained |
@@ -122,7 +122,7 @@ Post-response visual completion was generally tens to a few hundred milliseconds
 Code-side reductions:
 
 - Supplier list: unbounded full table -> one bounded 15-row query.
-- PR creation: location validation, item validation, and identity resolution run in parallel; line insert runs alongside linked-document creation; audit write runs alongside linkage update.
+- PR creation: branch validation, item validation, and identity resolution run in parallel; line insert runs alongside linked-document creation; audit write runs alongside linkage update.
 - Revalidation: five unconditional paths per mutation -> only caller-supplied affected paths.
 - PR destination: route loading state added.
 

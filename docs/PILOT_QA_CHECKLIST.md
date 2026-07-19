@@ -10,7 +10,7 @@ Record tester, date/time, environment, branch, role, and evidence for each appli
 - [ ] Unauthenticated protected URLs redirect to login.
 - [ ] Role defaults, staff explicit allow, and staff explicit deny each produce the expected effective access.
 - [ ] Navigation, direct URL, server action, and data access agree; direct-route denial exposes no content.
-- [ ] Branch/location/company scope is enforced; final Super Admin safety and owner-class access remain available.
+- [ ] Branch / Outlet and company scope is enforced; final Super Admin safety and owner-class access remain available.
 
 ## Procurement
 
@@ -22,7 +22,7 @@ Record tester, date/time, environment, branch, role, and evidence for each appli
 
 ## Inventory
 
-- [ ] Opening stock preview/posting uses the correct branch default location.
+- [ ] Opening stock preview/posting uses the correct Branch / Outlet.
 - [ ] Stock balance and ledger agree for sampled items.
 - [ ] Receiving, transfer, count/reconciliation, wastage, and manual transaction flows post once.
 - [ ] Low-stock view and UOM conversion behavior are correct.

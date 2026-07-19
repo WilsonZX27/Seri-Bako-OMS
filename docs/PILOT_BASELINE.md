@@ -9,7 +9,7 @@ Run a controlled Seri Bako operational pilot on the verified release without add
 
 Out of scope: accounting/general ledger replacement, automated finance reconciliation, unreviewed bulk cleanup, schema changes, and workflow redesign.
 
-## Pilot roles, branches, and locations
+## Pilot roles and Branches / Outlets
 
 - Super Admin / Owner: recovery access, staff/role oversight, and final incident decisions. Keep more than one active owner-class account.
 - Operations Admin: company and master-data setup within granted effective permissions.
@@ -19,14 +19,14 @@ Out of scope: accounting/general ledger replacement, automated finance reconcili
 - Production Staff: recipes and production jobs within granted scope.
 - Viewer: read-only validation where granted.
 
-Use only role codes already present in the application catalogue. Assign every pilot staff member a default branch and the minimum required branch/location scope. Verify explicit staff overrides separately from role defaults.
+Use only role codes already present in the application catalogue. Assign every pilot staff member a default Branch / Outlet and the minimum required branch scope. Verify explicit staff overrides separately from role defaults.
 
-Before onboarding, Wilson records the exact participating branch codes, branch names, default location codes, responsible manager, and pilot start date in the pilot evidence log. A branch/location is excluded until its scope and default location are confirmed in the application.
+Before onboarding, Wilson records the exact participating branch codes, branch names, responsible manager, and pilot start date in the pilot evidence log. A Branch / Outlet is excluded until its scope is confirmed in the application.
 
 ## Onboarding order
 
 1. Confirm Company Profile.
-2. Confirm participating Branches and their default Locations.
+2. Confirm participating Branches / Outlets.
 3. Confirm Staff.
 4. Confirm Roles and Staff permission overrides.
 5. Import Suppliers.

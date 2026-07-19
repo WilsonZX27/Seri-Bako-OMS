@@ -14,12 +14,12 @@ test("inventory dashboard uses the implemented stock rules", () => {
   assert.match(query, /period.*month/);
 });
 
-test("inventory keeps its action and quick insights in the shared right console", () => {
+test("inventory keeps compact review actions and control context in the shared right console", () => {
   const page = read("src/app/(app)/inventory/page.tsx");
   assert.match(page, /WorkspaceGrid/);
-  assert.match(page, /ConsoleSection title="Quick Actions"/);
-  assert.match(page, /ConsoleSection title="Quick Insights"/);
-  assert.match(page, /href="\/stock-transactions\/new"/);
+  assert.match(page, /ConsoleSection title="Review now"/);
+  assert.match(page, /ConsoleSection title="Control basis"/);
+  assert.match(page, /href="\/low-stock"/);
   assert.doesNotMatch(page, /inventory-insights-rail/);
 });
 

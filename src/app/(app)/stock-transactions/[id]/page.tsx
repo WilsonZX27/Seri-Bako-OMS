@@ -108,7 +108,6 @@ export default async function StockTransactionDetailPage({ params }: { params: P
                     <TableRow>
                       <TableHead>Item</TableHead>
                       <TableHead>Branch</TableHead>
-                      <TableHead>Location</TableHead>
                       <TableHead className="text-right">Qty In</TableHead>
                       <TableHead className="text-right">Qty Out</TableHead>
                       <TableHead className="text-right">Unit Cost</TableHead>
@@ -119,7 +118,6 @@ export default async function StockTransactionDetailPage({ params }: { params: P
                     <TableRow>
                       <TableCell><p className="font-medium">{transaction.item?.item_name ?? transaction.item_id}</p><p className="text-xs text-muted-foreground">{transaction.item?.item_code}</p></TableCell>
                       <TableCell>{transaction.branch?.branch_name ?? "-"}</TableCell>
-                      <TableCell>{transaction.location?.location_name ?? "-"}</TableCell>
                       <TableCell className="text-right">{transaction.quantity_in > 0 ? `${formatNumber(transaction.quantity_in)} ${transaction.item?.base_unit ?? ""}` : "-"}</TableCell>
                       <TableCell className="text-right">{transaction.quantity_out > 0 ? `${formatNumber(transaction.quantity_out)} ${transaction.item?.base_unit ?? ""}` : "-"}</TableCell>
                       <TableCell className="text-right">{formatCurrency(transaction.unit_cost ?? 0)}</TableCell>

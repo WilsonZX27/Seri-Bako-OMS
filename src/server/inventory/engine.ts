@@ -83,7 +83,7 @@ export async function createInventoryMovement(input: CreateMovementInput) {
   if (direction === "out" && !input.allowNegative) {
     const currentBalance = await getCurrentBalance(input.itemId, input.locationId);
     if (currentBalance < quantity) {
-      throw new Error("This stock movement would make current stock negative. Please check the quantity or stock location.");
+      throw new Error("This stock movement would make current stock negative. Please check the quantity and branch stock.");
     }
   }
 

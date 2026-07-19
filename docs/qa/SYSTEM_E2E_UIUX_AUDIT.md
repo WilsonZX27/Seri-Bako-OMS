@@ -17,7 +17,7 @@ Source review covered the implemented route tree, shared shell, import workspace
 | Master data | `/suppliers`, `/suppliers/[id]`, `/items`, `/items/[id]`, `/products`, `/products/[id]`, `/recipes`, `/recipes/[id]` | Maintain operational masters | Blocked |
 | Inventory | `/inventory`, `/stock-balance`, `/stock-card`, `/stock-transactions`, `/stock-transactions/[id]`, `/stock-transfers`, `/stock-counts`, `/stock-wastage`, `/low-stock` | Review and post controlled stock movement | Partial: inventory inspected; other routes not walked |
 | Production | `/production`, `/production/jobs`, `/production/jobs/[id]`, `/production/jobs/new` | Manage production jobs | Blocked |
-| Administration | `/reports`, `/activity`, `/company`, `/branches`, `/locations`, `/roles`, `/roles/[id]`, `/staffs`, `/staffs/[id]` | Govern access and organization data | Blocked |
+| Administration | `/reports`, `/activity`, `/company`, `/branches`, `/roles`, `/roles/[id]`, `/staffs`, `/staffs/[id]` | Govern access and organization data | Blocked |
 | Imports | `/imports`, `/imports/[entity]`, `/administration/imports`, `/opening-stock/import` | Preview, validate, and confirm imports | Partial: source and Staff import inspected; authenticated mutation blocked |
 
 Permissions remain server-authoritative; visual visibility is not treated as an authorization result.
@@ -34,7 +34,7 @@ Permissions remain server-authoritative; visual visibility is not treated as an 
 
 ## Inventory definitions
 
-Low Stock uses the existing `stock_balances_view` rule: active items where `current_qty <= safety_stock`, including zero stock. Rows show item, branch/location, on-hand, base UOM, safety stock, shortage, and a Stock Card link. Archived/inactive items are excluded.
+Low Stock uses the existing `stock_balances_view` rule: active items where `current_qty <= safety_stock`, including zero stock. Rows show item, Branch / Outlet, on-hand, base UOM, safety stock, shortage, and a Stock Card link. Archived/inactive items are excluded.
 
 Highest-Consumption Ingredients uses posted `production_usage` stock transactions only. Opening stock, purchases/receipts, transfers, counts, adjustments, returns, and wastage are excluded. The dashboard supports 7 days, 30 days, and current month. Quantities remain in the item's base UOM; no incompatible-unit ranking or synthetic cost value is produced.
 

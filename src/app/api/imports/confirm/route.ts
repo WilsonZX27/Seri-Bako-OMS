@@ -10,9 +10,8 @@ import { formatActionError } from "@/server/actions/error-handling";
 import { hasPermission } from "@/server/auth/permissions";
 import { resolveDefaultLocation } from "@/server/inventory/locations";
 import { getNextDocumentNumber } from "@/server/documents/sequences";
-import { getDefaultCompanyId } from "@/server/queries/barcodes";
-import { getCurrentProfile } from "@/server/queries/common";
-import type { BarcodeType, BranchType, Database, ItemStatus, RecordStatus, StaffStatus, StockTransactionStatus } from "@/types/database";
+import { getCurrentProfile, getDefaultCompanyId } from "@/server/queries/common";
+import type { BranchType, Database, ItemStatus, RecordStatus, StaffStatus, StockTransactionStatus } from "@/types/database";
 
 const importSchema = z.object({
   entity: z.enum(importEntities),
@@ -142,34 +141,6 @@ async function canImport(entity: ImportRequest["entity"]) {
   return (await hasPermission("imports.create")) || (await hasPermission("company.update"));
 }
 
-async function ensurePrimaryItemBarcode(
-  context: RouteContext,
-  companyId: string,
-  itemId: string,
-  barcodeValue: string,
-  existingPrimaryId?: string | null,
-) {
-  const payload = {
-    company_id: companyId,
-    stock_entity_type: "item" as const,
-    item_id: itemId,
-    barcode_value: barcodeValue,
-    barcode_type: "internal" as BarcodeType,
-    is_primary: true,
-    status: "active" as RecordStatus,
-    deleted_at: null,
-  };
-
-  if (existingPrimaryId) {
-    const { error } = await context.writeSupabase.from("barcode_mappings").update(payload).eq("id", existingPrimaryId);
-    if (error) throw new Error(error.message);
-    return;
-  }
-
-  const { error } = await context.writeSupabase.from("barcode_mappings").insert(payload);
-  if (error) throw new Error(error.message);
-}
-
 function getItemImportValues(row: Record<string, string>, entity: ImportRequest["entity"]) {
   if (entity === "items-stock-listing") {
     return {
@@ -178,7 +149,6 @@ function getItemImportValues(row: Record<string, string>, entity: ImportRequest[
       category: normalizeText(row["Item Group"]) || "Uncategorized",
       base_uom: normalizeText(row["Base UOM"]),
       purchase_uom: normalizeText(row["Base UOM"]),
-      barcode: "",
       cost: null,
       safety_stock: 0,
       supplier_name: "",
@@ -198,7 +168,6 @@ function getItemImportValues(row: Record<string, string>, entity: ImportRequest[
     category: normalizeText(row.category),
     base_uom: normalizeText(row.base_uom),
     purchase_uom: normalizeText(row.purchase_uom) || normalizeText(row.base_uom),
-    barcode: "",
     cost: parseNumber(row.default_unit_cost ?? row.cost),
     safety_stock: parseNumber(row.safety_stock),
     supplier_name: normalizeText(row.supplier_name),
@@ -219,28 +188,16 @@ async function handleItemsImport(context: RouteContext, request: ImportRequest) 
   const itemRows = rows.map((row) => ({ source: row, values: getItemImportValues(row, request.entity) }));
   const itemCodes = [...new Set(itemRows.map((row) => row.values.item_code).filter(Boolean))];
   const supplierNames = [...new Set(itemRows.map((row) => normalizeLower(row.values.supplier_name)).filter(Boolean))];
-  const barcodeValues = [...new Set(itemRows.map((row) => row.values.barcode).filter(Boolean))];
-  const companyId = context.profile?.company_id ?? (await getDefaultCompanyId());
-
-  const [{ data: existingItems, error: itemsError }, { data: suppliers, error: suppliersError }, { data: existingBarcodes, error: barcodesError }] = await Promise.all([
+  const [{ data: existingItems, error: itemsError }, { data: suppliers, error: suppliersError }] = await Promise.all([
     context.supabase.from("items").select("id, item_code").in("item_code", itemCodes.length ? itemCodes : [""]),
     context.supabase.from("suppliers").select("id, name, supplier_code").eq("status", "active"),
-    context.supabase
-      .from("barcode_mappings")
-      .select("id, barcode_value, item_id, is_primary")
-      .eq("company_id", companyId)
-      .eq("stock_entity_type", "item")
-      .is("deleted_at", null)
-      .in("barcode_value", barcodeValues.length ? barcodeValues : [""]),
   ]);
   if (itemsError) throw new Error(itemsError.message);
   if (suppliersError) throw new Error(suppliersError.message);
-  if (barcodesError) throw new Error(barcodesError.message);
 
   const existingByCode = new Map((existingItems ?? []).map((row) => [normalizeLower(row.item_code), row]));
   const supplierByName = new Map((suppliers ?? []).map((row) => [normalizeLower(row.name), row]));
   const supplierByCode = new Map((suppliers ?? []).filter((row) => row.supplier_code).map((row) => [normalizeLower(row.supplier_code), row]));
-  const barcodeByValue = new Map((existingBarcodes ?? []).map((row) => [normalizeLower(row.barcode_value), row]));
 
   for (const [index, row] of itemRows.entries()) {
     const rowNumber = index + 1;
@@ -250,7 +207,6 @@ async function handleItemsImport(context: RouteContext, request: ImportRequest) 
     const category = row.values.category;
     const baseUom = row.values.base_uom;
     const purchaseUom = row.values.purchase_uom || baseUom;
-    const barcode = row.values.barcode;
     const cost = row.values.cost;
     const safetyStock = row.values.safety_stock;
     const supplierPrice = row.values.supplier_price;
@@ -262,7 +218,6 @@ async function handleItemsImport(context: RouteContext, request: ImportRequest) 
       : row.values.supplier_name
         ? supplierByName.get(normalizeLower(row.values.supplier_name))
         : null;
-    const existingBarcode = barcode ? barcodeByValue.get(normalizeLower(barcode)) : null;
 
     if (hasDuplicateInFile(summary, seen, normalizeLower(itemCode), rowNumber, sourceRow)) continue;
     if (!itemCode || !itemName || !category || !baseUom) {
@@ -305,10 +260,6 @@ async function handleItemsImport(context: RouteContext, request: ImportRequest) 
       pushIssue(summary, rowNumber, sourceRow, "Unknown supplier.");
       continue;
     }
-    if (existingBarcode && existingBarcode.item_id && (!existing || existingBarcode.item_id !== existing.id)) {
-      pushIssue(summary, rowNumber, sourceRow, "Invalid barcode. This barcode already belongs to another item.");
-      continue;
-    }
     if (existing && request.mode === "create") {
       pushIssue(summary, rowNumber, sourceRow, "Duplicate code. This item already exists.", "skip");
       continue;
@@ -340,28 +291,12 @@ async function handleItemsImport(context: RouteContext, request: ImportRequest) 
         continue;
       }
       savedItemId = existing.id;
-      if (barcode) {
-        try {
-          await ensurePrimaryItemBarcode(context, companyId, existing.id, barcode, existingBarcode?.id ?? null);
-        } catch (error) {
-          pushIssue(summary, rowNumber, sourceRow, error instanceof Error ? error.message : "Could not update barcode mapping.");
-          continue;
-        }
-      }
       summary.updated += 1;
     } else {
       const { data, error } = await context.writeSupabase.from("items").insert(payload).select("id").single();
       if (error || !data) {
         pushIssue(summary, rowNumber, sourceRow, error?.message ?? "Could not create this item.");
         continue;
-      }
-      if (barcode) {
-        try {
-          await ensurePrimaryItemBarcode(context, companyId, data.id, barcode);
-        } catch (error) {
-          pushIssue(summary, rowNumber, sourceRow, error instanceof Error ? error.message : "Could not create barcode mapping.");
-          continue;
-        }
       }
       savedItemId = data.id;
       summary.imported += 1;

@@ -12,7 +12,7 @@ Production mutation: none
 | --- | --- | --- | --- | --- | --- |
 | Super Admin / Owner | `/dashboard` | Company-wide | approvals, operational exceptions, payables and cash obligations | owner controls retained | Pass |
 | Finance | `/dashboard` | Company-wide | Finance/Manager reviews, operational pipeline, AP and cash obligations | owner backup denied | Pass |
-| Manager | `/dashboard` | Assigned locations | Manager Review, receiving, production, outlet and stock exceptions | AP Aging and owner backup denied | Pass |
+| Manager | `/dashboard` | Assigned branches | Manager Review, receiving, production, outlet and stock exceptions | AP Aging and owner backup denied | Pass |
 | Purchasing | `/dashboard` | Company-wide permitted data | purchasing queue, PO/supplier/document readiness | AP Aging and owner backup denied | Pass |
 | Kitchen | `/dashboard` | Assigned Central Kitchen | PR progress, receiving, raw-material and production tasks | AP Aging and owner backup denied | Pass |
 | Outlet Staff | `/dashboard` | Assigned outlet | one next daily-record task and completion state | AP Aging and owner backup denied | Pass |

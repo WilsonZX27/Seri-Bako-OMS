@@ -29,7 +29,7 @@ export default async function GoodsReceivingDetailPage({ params }: { params: Pro
   const totalReceivedValue = lines.reduce((sum, line) => sum + line.received_qty * line.unit_cost, 0);
   const hasRejected = lines.some((line) => line.rejected_qty > 0);
   const hasDeliveryOrder = Boolean(documentBundle?.attachments.some((attachment) => attachment.status === "active"));
-  const receivingDisplay = receiving as typeof receiving & { supplier_name?: string | null; location_name?: string | null };
+  const receivingDisplay = receiving as typeof receiving & { supplier_name?: string | null; branch_name?: string | null };
   const hasPrimaryAction = permissions["grn.post"] && receiving.status === "draft";
 
   return (
@@ -80,7 +80,7 @@ export default async function GoodsReceivingDetailPage({ params }: { params: Pro
               <div className="grid gap-4 md:grid-cols-4">
                 <div><p className="text-xs uppercase text-muted-foreground">Supplier</p><p className="font-medium">{receivingDisplay.supplier_name ?? receiving.supplier_id}</p></div>
                 <div><p className="text-xs uppercase text-muted-foreground">Received Date</p><p className="font-medium">{receiving.received_date}</p></div>
-                <div><p className="text-xs uppercase text-muted-foreground">Receiving Area</p><p className="font-medium">{receivingDisplay.location_name ?? "Branch default store"}</p></div>
+                <div><p className="text-xs uppercase text-muted-foreground">Branch</p><p className="font-medium">{receivingDisplay.branch_name ?? "-"}</p></div>
                 <div><p className="text-xs uppercase text-muted-foreground">Received Value</p><p className="font-medium">{formatCurrency(totalReceivedValue)}</p></div>
               </div>
               {hasRejected ? (

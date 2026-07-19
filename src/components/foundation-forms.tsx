@@ -7,7 +7,7 @@ import { SelectNative } from "@/components/ui/select-native";
 import { Textarea } from "@/components/ui/textarea";
 import { getRoleDisplayLabel } from "@/lib/roles";
 import { previewDocumentNumber } from "@/server/queries/foundation";
-import type { BranchType, LocationType, RecordStatus, ResetFrequency, StaffAccessLevel, StaffStatus } from "@/types/database";
+import type { BranchType, RecordStatus, ResetFrequency, StaffAccessLevel, StaffStatus } from "@/types/database";
 
 type Company = {
   id: string;
@@ -35,13 +35,12 @@ type Branch = {
   status: RecordStatus;
 };
 
-type Location = {
+type StaffBranchOption = {
   id: string;
   company_id: string | null;
   branch_id: string | null;
   location_code: string;
   location_name: string;
-  location_type: LocationType;
   status: string;
   branch_name?: string | null;
 };
@@ -90,7 +89,6 @@ type DocumentSequence = {
 };
 
 type SelectCompany = { id: string; company_name: string };
-type SelectBranch = { id: string; branch_name: string };
 type SelectRole = { id: string; role_name: string; role_code: string };
 
 function StatusSelect({ value }: { value?: string }) {
@@ -184,7 +182,7 @@ export function BranchForm({ branch, companies, action, formId, showSubmit = tru
           </Field>
         </div>
       </RecordSection>
-      <RecordSection title="Contact & Address" description="Operational contact and location summary.">
+      <RecordSection title="Contact & Address" description="Operational contact and branch / outlet address.">
         <div className="grid gap-4 md:grid-cols-2">
           <Field label="Phone">
             <Input name="phone" defaultValue={branch?.phone ?? ""} />
@@ -212,51 +210,6 @@ export function BranchForm({ branch, companies, action, formId, showSubmit = tru
   );
 }
 
-export function LocationForm({ location, companies, branches, action, formId, showSubmit = true }: { location?: Location; companies: SelectCompany[]; branches: SelectBranch[]; action: (formData: FormData) => Promise<void>; formId?: string; showSubmit?: boolean }) {
-  return (
-    <Card>
-      <CardContent className="p-5">
-        <form id={formId} action={action} className="grid gap-4 md:grid-cols-2">
-          <input type="hidden" name="status" value={location?.status ?? "active"} />
-          <CompanyHidden companies={companies} companyId={location?.company_id} />
-          <Field label="Location Code">
-            <Input name="location_code" defaultValue={location?.location_code ?? ""} required />
-          </Field>
-          <Field label="Location Name">
-            <Input name="location_name" defaultValue={location?.location_name ?? ""} required />
-          </Field>
-          <Field label="Branch">
-            <SelectNative name="branch_id" defaultValue={location?.branch_id ?? branches[0]?.id ?? ""} required>
-              {branches.map((branch) => (
-                <option key={branch.id} value={branch.id}>
-                  {branch.branch_name}
-                </option>
-              ))}
-            </SelectNative>
-            <p className="mt-1 text-xs text-muted-foreground">Locations are internal stock areas. Daily operations use Branch only, while locations remain for ledger accuracy and future expansion.</p>
-          </Field>
-          <Field label="Location Type">
-            <SelectNative name="location_type" defaultValue={location?.location_type ?? "dry_store"}>
-              <option value="dry_store">Dry Store</option>
-              <option value="chiller">Chiller</option>
-              <option value="freezer">Freezer</option>
-              <option value="packaging_area">Packaging Area</option>
-              <option value="production_floor">Production Floor</option>
-              <option value="dispatch_area">Dispatch Area</option>
-              <option value="receiving_area">Receiving Area</option>
-              <option value="finished_goods_store">Finished Goods Store</option>
-              <option value="other">Other</option>
-            </SelectNative>
-          </Field>
-          {showSubmit ? <div className="flex justify-end md:col-span-2">
-            <SubmitButton type="submit" pendingLabel="Saving..." showOverlay overlayLabel="Saving changes...">{location ? "Save location" : "Create location"}</SubmitButton>
-          </div> : null}
-        </form>
-      </CardContent>
-    </Card>
-  );
-}
-
 export function StaffForm({
   staff,
   access,
@@ -270,15 +223,15 @@ export function StaffForm({
   staff?: Staff;
   access?: StaffAccess;
   companies: SelectCompany[];
-  locations: Location[];
+  locations: StaffBranchOption[];
   roles: SelectRole[];
   action: (formData: FormData) => Promise<void>;
   formId?: string;
   showSubmit?: boolean;
 }) {
-  const defaultLocationId = access?.staffLocationIds.find((locationId) => locations.find((location) => location.id === locationId)?.branch_id === access.staffBranch?.branch_id)
-    ?? access?.staffLocationIds[0]
-    ?? locations[0]?.id
+  const branchOptions = Array.from(new Map(locations.filter((location) => location.branch_id).map((location) => [location.branch_id, location])).values());
+  const defaultLocationId = branchOptions.find((location) => location.branch_id === access?.staffBranch?.branch_id)?.id
+    ?? branchOptions[0]?.id
     ?? "";
   return (
     <form id={formId} action={action} className="space-y-5">
@@ -301,7 +254,7 @@ export function StaffForm({
         </div>
       </RecordSection>
 
-      <RecordSection title="Role & Location Access" description="Role controls actions. Default Location sets the initial working context; Accessible Locations control record scope.">
+      <RecordSection title="Role & Branch / Outlet Access" description="Role controls actions. Branch assignments control record scope.">
         <div className="grid gap-4 md:grid-cols-2">
           <Field label="Role" required>
             <SelectNative name="role_id" defaultValue={access?.staffRole?.role_id ?? roles[0]?.id ?? ""} required className="form-control-compact">
@@ -315,22 +268,22 @@ export function StaffForm({
               <p className="mt-1 text-xs text-amber-700">Only system owner accounts should use Super Admin / Owner.</p>
             ) : null}
           </Field>
-          <Field label="Default Location" required>
+          <Field label="Default Branch / Outlet" required>
             <SelectNative name="default_location_id" defaultValue={defaultLocationId} required className="form-control-compact">
-              {locations.map((location) => (
+              {branchOptions.map((location) => (
                 <option key={location.id} value={location.id}>
-                  {location.location_name}{location.branch_name ? ` — ${location.branch_name}` : ""}
+                  {location.branch_name}
                 </option>
               ))}
             </SelectNative>
-            <p className="mt-1 text-xs text-muted-foreground">Used for initial context and autofill. It does not grant access by itself.</p>
+            <p className="mt-1 text-xs text-muted-foreground">Used for initial context and autofill.</p>
           </Field>
           <div className="md:col-span-2">
-            <Field label="Accessible Locations" required>
+            <Field label="Accessible Branches / Outlets" required>
               <div className="grid gap-2 rounded-[2px] border p-3 md:grid-cols-2">
-                {locations.map((location) => <label key={location.id} className="flex min-h-10 items-center gap-2 text-sm"><input type="checkbox" name="accessible_location_ids" value={location.id} defaultChecked={!access || access.staffLocationIds.includes(location.id)} /><span>{location.location_name}{location.branch_name ? ` — ${location.branch_name}` : ""}</span></label>)}
+                {branchOptions.map((location) => <label key={location.id} className="flex min-h-10 items-center gap-2 text-sm"><input type="checkbox" name="accessible_location_ids" value={location.id} defaultChecked={!access || access.staffLocationIds.some((id) => locations.find((item) => item.id === id)?.branch_id === location.branch_id)} /><span>{location.branch_name}</span></label>)}
               </div>
-              <p className="mt-1 text-xs text-muted-foreground">Company-wide roles receive all active locations automatically. Manager, Kitchen, and Outlet Staff remain limited to eligible assigned locations.</p>
+              <p className="mt-1 text-xs text-muted-foreground">Company-wide roles receive all active branches automatically. Manager, Kitchen, and Outlet Staff remain limited to eligible assigned branches.</p>
             </Field>
           </div>
         </div>

@@ -33,7 +33,7 @@ export function StaffPermissionOverrides({
   updateAction: (formData: FormData) => Promise<void>;
   resetAction: () => Promise<void>;
 }) {
-  const visiblePermissions = permissions.filter((permission) => !permission.module.toLowerCase().includes("barcode"));
+  const visiblePermissions = permissions;
   const normalizeModule = (module: string) => ({ purchase_order: "purchase_orders", purchase_request: "purchase_requests" })[module] ?? module;
   const groups = Array.from(
     visiblePermissions.reduce((map, permission) => {

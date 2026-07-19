@@ -15,7 +15,7 @@ Seri Bako OMS should:
 - Reduce repeated manual data entry.
 - Reduce dependency on spreadsheets, paper records, and WhatsApp follow-ups.
 - Make document ownership, status, and next actions visible.
-- Improve inventory accuracy across outlets, stores, warehouses, and production locations.
+- Improve inventory accuracy across branches, outlets, stores, and production operations.
 - Standardize procurement, receiving, stock, and production workflows.
 - Provide clear audit history for operational records.
 - Keep frontline and administrative workflows simple and fast.
@@ -78,13 +78,13 @@ Known non-critical limitations should be documented briefly and deferred to focu
 Seri Bako OMS has exactly six system-controlled roles. They are reviewed in the owner-only Roles & Permissions overview and cannot be created, renamed, or edited through normal UI.
 
 - **Super Admin / Owner (`super_admin`)**: protected owner controls, company setup, staff assignments, system numbering, backups, and full operational authority.
-- **Finance (`finance`)**: company-wide finance review, payables, payments, and financial reporting.
-- **Manager (`manager`)**: approval and operational visibility for assigned locations, or all locations when explicitly assigned.
+- **Finance (`finance`)**: company-wide finance review plus staff, numbering, imports, and branch administration; protected Owner and backup controls remain unavailable.
+- **Manager (`manager`)**: approval and operational visibility for assigned branches / outlets, plus branch maintenance.
 - **Purchasing (`purchasing`)**: company-wide purchasing, supplier, item/master-data, import, PO, and sourcing-review duties.
 - **Kitchen (`kitchen`)**: assigned Central Kitchen workflows, including purchase-request creation/submission and production operations.
 - **Outlet Staff (`outlet_staff`)**: assigned-outlet daily records only.
 
-Role determines allowed actions. Default Location controls initial context and autofill but is not an authorization boundary. Accessible Locations determine which location-scoped records a user may access. Super Admin, Finance, and Purchasing are company-wide; Manager, Kitchen, and Outlet Staff remain location-scoped according to the rules above.
+Role determines allowed actions. The default Branch / Outlet controls initial context and autofill but is not an authorization boundary. Assigned Branches / Outlets determine which scoped records a user may access. Super Admin, Finance, and Purchasing are company-wide; Manager, Kitchen, and Outlet Staff remain branch-scoped according to the rules above.
 
 ## Current Product Scope
 
@@ -171,7 +171,7 @@ These modules are expected to support their primary working flow:
 - Stock Counts, Transfers, and Wastage.
 - Outlet Daily Records for morning receiving, evening leftovers, wastage, and manager review.
 - Products, Recipes / BOM, and Production Jobs.
-- Company, branch, location, staff, and role administration.
+- Company, Branch / Outlet, staff, and role administration.
 - Private document attachments and activity history.
 - Roles and permissions.
 
@@ -191,7 +191,7 @@ The following areas are not considered complete unless later documentation expli
 
 - Advanced accounts-payable forecasting and scheduled payment-alert delivery.
 - Finance and general ledger.
-- Full debtor and creditor management.
+- Full general-ledger accounting.
 - Advanced business intelligence.
 - Predictive demand and cash-flow forecasting.
 - Automated replenishment.
@@ -310,7 +310,7 @@ The Dashboard composes existing outlet health, demand confidence, variance, plan
 
 ### Master Data Cleanup Lite
 
-Master Data Cleanup Lite is a read-only checklist for duplicate or variant codes, missing core fields, inactive referenced master records, and location branch gaps. It links to existing master pages for human review; it does not merge, delete, or modify any record.
+Master Data Cleanup Lite is a read-only checklist for duplicate or variant codes, missing core fields, and inactive referenced master records. It links to existing master pages for human review; it does not merge, delete, or modify any record.
 
 ### Costing Readiness Lite
 
@@ -345,7 +345,7 @@ Access control may include:
 - Cancellation or rejection.
 - Export access.
 - Administrative actions.
-- Location or organizational restrictions where implemented.
+- Branch / Outlet or organizational restrictions where implemented.
 
 Front-end visibility is not a security boundary.
 
@@ -400,7 +400,7 @@ Destructive changes should be avoided where an auditable status change or revers
 
 - Super Admin / Owner has company-wide business, finance, and protected system capability.
 - Finance is the second-highest company-wide role. It combines read-level Manager and Purchasing operational visibility with AP, invoice, cash-flow, and payment capability. Its PR authority begins at Finance Review; it does not receive Manager Review, owner controls, or Purchasing mutations and cannot approve its own PR.
-- Manager and Purchasing are sibling operational roles: Manager reviews assigned-location operations; Purchasing runs company-wide procurement and master-data workflows.
+- Manager and Purchasing are sibling operational roles: Manager reviews assigned-branch operations; Purchasing runs company-wide procurement and master-data workflows.
 - Kitchen is limited to assigned Central Kitchen work; Outlet Staff is limited to the assigned outlet and today’s daily-record tasks.
 
 Manager, Purchasing, Kitchen, and Outlet dashboards must never expose AP Aging, Cash Flow, aggregate debt, payment controls, or company-wide information outside their scope.

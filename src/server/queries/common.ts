@@ -86,19 +86,27 @@ export const getItemsForSelect = cache(async function getItemsForSelect() {
   if (isMockMode()) {
     return mockItems
       .filter((item) => item.status === "active")
-      .map(({ id, item_code, item_name, base_unit, purchase_unit, supplier_id, cost, status, barcode, internal_barcode, supplier_barcode }) => ({ id, item_code, item_name, base_unit, purchase_unit, supplier_id, cost, status, barcode, internal_barcode, supplier_barcode }));
+      .map(({ id, item_code, item_name, base_unit, purchase_unit, supplier_id, cost, status }) => ({ id, item_code, item_name, base_unit, purchase_unit, supplier_id, cost, status }));
   }
 
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("items")
-    .select("id, item_code, item_name, base_unit, purchase_unit, supplier_id, cost, status, barcode, internal_barcode, supplier_barcode")
+    .select("id, item_code, item_name, base_unit, purchase_unit, supplier_id, cost, status")
     .eq("status", "active")
     .order("item_name", { ascending: true });
 
   if (error) throw new Error(error.message);
   return data;
 });
+
+export async function getDefaultCompanyId() {
+  if (isMockMode()) return "company-seri-bako";
+  const supabase = await createClient();
+  const { data, error } = await supabase.from("companies").select("id").is("deleted_at", null).order("created_at", { ascending: true }).limit(1).single();
+  if (error) throw new Error(error.message);
+  return data.id;
+}
 
 export const getLocationsForSelect = cache(async function getLocationsForSelect() {
   if (isMockMode()) {

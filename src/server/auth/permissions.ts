@@ -5,10 +5,10 @@ import { createClient } from "@/lib/supabase/server";
 
 export const roleDescriptions = {
   super_admin: "Protected system owner with every permission.",
-  finance: "Finance user for finance review and reporting visibility.",
-  manager: "Location-scoped approver for operational workflow decisions.",
+  finance: "Finance reviewer who also manages staff, numbering, imports, and branches without Owner controls.",
+  manager: "Branch-scoped approver for operational workflow decisions and branch maintenance.",
   purchasing: "Company-wide purchasing and master-data operator.",
-  kitchen: "Central Kitchen operator for assigned locations.",
+  kitchen: "Central Kitchen operator for assigned branches.",
   outlet_staff: "Outlet worker who records daily received quantities, leftovers, and wastage for assigned outlets.",
 } as const;
 
@@ -20,15 +20,13 @@ const permissionAliases: Record<string, string[]> = {
   "staffs.update": ["staff.manage", "users.manage"],
   "roles.create": ["users.manage"],
   "roles.update": ["users.manage"],
-  "settings.manage": ["company.update", "branches.update", "locations.update", "document_sequences.update"],
+  "settings.manage": ["company.update"],
   "dashboard.view": [],
   "company.update": ["settings.manage"],
-  "branches.create": ["settings.manage"],
-  "branches.update": ["settings.manage"],
-  "locations.create": ["settings.manage"],
-  "locations.update": ["settings.manage"],
-  "document_sequences.create": ["settings.manage"],
-  "document_sequences.update": ["settings.manage"],
+  "branches.create": [],
+  "branches.update": [],
+  "document_sequences.create": [],
+  "document_sequences.update": [],
   "staff.invite": ["staffs.create", "staffs.update"],
   "staff.manage": ["staffs.create", "staffs.update"],
   "items.create": [],
@@ -164,8 +162,8 @@ const permissionAliases: Record<string, string[]> = {
 
 export const rolePermissionMatrix = {
   super_admin: ["*"],
-  finance: ["dashboard.view", "pr.finance_review", "pr.reject", "pr.view_all", "purchase_request.read", "purchase_order.read", "goods_receiving.read", "inventory.read", "stock_count.read", "stock_transfer.read", "stock_wastage.read", "po.view", "grn.view", "purchase_return.view", "items.view", "suppliers.view", "production.view", "recipes.view", "outlet_daily_record.view", "outlet_daily_record.view_all", "supplier_invoice.view", "supplier_invoice.create", "supplier_invoice.pay", "supplier_invoice.approve", "supplier_invoice.void", "documents.view", "reports.view", "stock.view", "stock_transactions.read"],
-  manager: ["dashboard.view", "purchase_request.read", "purchase_order.read", "goods_receiving.read", "inventory.read", "stock_count.read", "stock_transfer.read", "stock_wastage.read", "pr.manager_approve", "pr.reject", "pr.view_branch", "po.view", "po.approve", "grn.view", "purchase_return.view", "documents.view", "reports.view", "stock.view", "stock_transactions.read", "attachments.upload", "production.view", "production.approve", "production.reject"],
+  finance: ["dashboard.view", "pr.finance_review", "pr.reject", "pr.view_all", "purchase_request.read", "purchase_order.read", "goods_receiving.read", "inventory.read", "stock_count.read", "stock_transfer.read", "stock_wastage.read", "po.view", "grn.view", "purchase_return.view", "items.view", "suppliers.view", "production.view", "recipes.view", "outlet_daily_record.view", "outlet_daily_record.view_all", "supplier_invoice.view", "supplier_invoice.create", "supplier_invoice.pay", "supplier_invoice.approve", "supplier_invoice.void", "documents.view", "reports.view", "stock.view", "stock_transactions.read", "staffs.read", "staffs.create", "staffs.update", "document_sequences.read", "document_sequences.create", "document_sequences.update", "imports.create", "imports.run", "branches.read", "branches.create", "branches.update"],
+  manager: ["dashboard.view", "purchase_request.read", "purchase_order.read", "goods_receiving.read", "inventory.read", "stock_count.read", "stock_transfer.read", "stock_wastage.read", "pr.manager_approve", "pr.reject", "pr.view_branch", "po.view", "po.approve", "grn.view", "purchase_return.view", "documents.view", "reports.view", "stock.view", "stock_transactions.read", "attachments.upload", "production.view", "production.approve", "production.reject", "branches.read", "branches.create", "branches.update"],
   purchasing: [
     "dashboard.view",
     "items.create",
@@ -194,6 +192,7 @@ export const rolePermissionMatrix = {
     "stock_transactions.read",
     "stock_ledger.export",
     "production.view",
+    "branches.read",
   ],
   outlet_staff: ["dashboard.view", "outlet_daily_record.view", "outlet_daily_record.create", "outlet_daily_record.update"],
   kitchen: [

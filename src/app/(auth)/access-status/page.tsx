@@ -1,5 +1,7 @@
 import { redirect } from "next/navigation";
+import Link from "next/link";
 import { AuthShell } from "@/components/auth/auth-shell";
+import { Button } from "@/components/ui/button";
 import { SubmitButton } from "@/components/ui/submit-button";
 import { createClient } from "@/lib/supabase/server";
 import { signOut } from "@/server/actions/auth";
@@ -11,11 +13,17 @@ const messages: Record<string, string> = {
 };
 
 export default async function AccessStatusPage({ searchParams }: { searchParams: Promise<{ reason?: string }> }) {
+  const { reason } = await searchParams;
+  if (reason === "idle-timeout") {
+    return (
+      <AuthShell title="Session ended" description="Your session ended due to inactivity. Please sign in again.">
+        <Button asChild className="w-full"><Link href="/login">Sign in again</Link></Button>
+      </AuthShell>
+    );
+  }
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect("/login");
-  const { reason } = await searchParams;
-
   return (
     <AuthShell title="Workspace access unavailable" description="Your authentication succeeded, but this account cannot open an operational workspace.">
       <p className="rounded-md border border-amber-300 bg-amber-50 p-3 text-sm text-amber-950">

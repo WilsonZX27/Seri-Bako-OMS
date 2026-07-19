@@ -31,5 +31,5 @@ test("empty PRs receive an actionable validation message and release is updated"
   assert.match(read("src/server/actions/procurement.ts"), /Add at least one item before creating this purchase request\./);
   const version = read("src/lib/app-version.ts");
   assert.match(version, /0\.2\.37/);
-  assert.match(version, /Sprint 7\.23\.4/);
+  assert.match(version, /Sprint 7\.23\.5/);
 });

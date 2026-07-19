@@ -32,7 +32,7 @@ export type GoodsReceivingRow = GoodsReceiving & {
 };
 
 export type GoodsReceivingLineRow = GoodsReceivingLine & {
-  item?: Pick<Database["public"]["Tables"]["items"]["Row"], "id" | "item_code" | "item_name" | "base_unit" | "barcode" | "internal_barcode">;
+  item?: Pick<Database["public"]["Tables"]["items"]["Row"], "id" | "item_code" | "item_name" | "base_unit">;
 };
 
 export type EligiblePurchaseOrder = PurchaseOrder & {
@@ -42,7 +42,7 @@ export type EligiblePurchaseOrder = PurchaseOrder & {
 };
 
 export type PurchaseOrderReceivingLine = PurchaseOrderLine & {
-  item?: Pick<Database["public"]["Tables"]["items"]["Row"], "id" | "item_code" | "item_name" | "base_unit" | "barcode" | "internal_barcode" | "item_image_url">;
+  item?: Pick<Database["public"]["Tables"]["items"]["Row"], "id" | "item_code" | "item_name" | "base_unit" | "item_image_url">;
   previously_received_qty: number;
   pending_qty: number;
 };
@@ -144,7 +144,7 @@ export async function getGoodsReceiving(id: string) {
   const [{ data, error }, { data: lines, error: linesError }, { data: items }, { data: pos }, { data: suppliers }, { data: branches }, { data: locations }] = await Promise.all([
     supabase.from("goods_receivings").select("*").eq("id", id).single(),
     supabase.from("goods_receiving_lines").select("*").eq("goods_receiving_id", id),
-    supabase.from("items").select("id, item_code, item_name, base_unit, barcode, internal_barcode"),
+    supabase.from("items").select("id, item_code, item_name, base_unit"),
     supabase.from("purchase_orders").select("id, po_no"),
     supabase.from("suppliers").select("id, name"),
     supabase.from("branches").select("id, branch_name"),
@@ -223,7 +223,7 @@ export async function getPurchaseOrderForReceiving(id: string) {
   const [{ data: order, error }, { data: lines, error: linesError }, { data: items }] = await Promise.all([
     supabase.from("purchase_orders").select("*").eq("id", id).single(),
     supabase.from("purchase_order_lines").select("*").eq("purchase_order_id", id),
-    supabase.from("items").select("id, item_code, item_name, base_unit, barcode, internal_barcode, item_image_url"),
+    supabase.from("items").select("id, item_code, item_name, base_unit, item_image_url"),
   ]);
   if (error) throw new Error(error.message);
   if (linesError) throw new Error(linesError.message);

@@ -10,6 +10,7 @@ dist/
 coverage/
 playwright-report/
 test-results/
+playwright/.cache/
 
 # TypeScript
 *.tsbuildinfo
@@ -34,3 +35,12 @@ pnpm-debug.log*
 
 # Playwright auth/session files
 playwright/.auth/
+
+# Local QA and generated exports
+*.tmp
+*.temp
+*-screenshot.png
+screenshots/
+qa-artifacts/
+exports/
+*.pdf

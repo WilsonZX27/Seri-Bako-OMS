@@ -125,6 +125,7 @@ export function TopBarActivityMenu({ data }: { data: TopBarActivity }) {
                 </div>
               ))}
               {!assignedActivities.length ? <p className="rounded-md p-2 text-sm text-muted-foreground">No recent activity.</p> : null}
+              <Link href="/activity" onClick={() => setOpen(false)} className="inline-flex min-h-8 items-center text-xs font-semibold text-primary underline underline-offset-2">Show more</Link>
             </section>
           </div>
         </div>

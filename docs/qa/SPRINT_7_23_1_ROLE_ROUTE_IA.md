@@ -24,12 +24,12 @@ The production build still lists redirect and parameterized routes. These are co
 | --- | --- | --- | --- | --- |
 | Super Admin / Owner | `/dashboard` | Company-wide | All owner controls, including backup, roles, and sequences | Fixed-role create/edit aliases return to read-only lists. |
 | Finance | `/supplier-invoices` | Company-wide | No Administration navigation or backup | Backup probe converges to Supplier Invoices. |
-| Manager | `/dashboard` | Assigned locations | None | Cash Flow probe converges to Dashboard. |
+| Manager | `/dashboard` | Assigned branches | None | Cash Flow probe converges to Dashboard. |
 | Purchasing | `/purchase-requests` | Company-wide | Master Data Cleanup and Imports only | Backup probe converges to Purchase Requests. |
-| Kitchen | `/production/jobs` | Assigned Central Kitchen locations | None | Administration probe converges to Production Jobs. |
-| Outlet Staff | `/outlet-daily-records` | Assigned outlet locations | None | Administration probe converges to Outlet Daily Records. |
+| Kitchen | `/production/jobs` | Assigned Central Kitchen branch | None | Administration probe converges to Production Jobs. |
+| Outlet Staff | `/outlet-daily-records` | Assigned outlet | None | Administration probe converges to Outlet Daily Records. |
 
-Disposable-local scope evidence confirmed company-wide role assignments for Owner, Finance, and Purchasing; one Central Kitchen scope for Kitchen; one outlet scope for Outlet Staff; and an assigned-location scope for Manager. Default Location remained context only. No business document was created or changed during browser verification.
+Disposable-local scope evidence confirmed company-wide role assignments for Owner, Finance, and Purchasing; one Central Kitchen scope for Kitchen; one outlet scope for Outlet Staff; and an assigned-branch scope for Manager. The default Branch / Outlet remained context only. No business document was created or changed during browser verification.
 
 ## Migration 071 safety
 

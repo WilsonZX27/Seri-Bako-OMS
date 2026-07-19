@@ -65,7 +65,7 @@ export default async function PurchaseRequestsPage({ searchParams }: { searchPar
         <div className="overflow-hidden rounded-[2px] border border-[var(--sb-border-soft)] bg-card">
           <StatusTabs statuses={statuses} activeStatus={filters.status} />
           <FilterBar resultCount={requests.totalRows} resetHref="/purchase-requests" filtered={filtered}>
-            <Input name="search" defaultValue={filters.search ?? ""} placeholder="Search PR no, branch, location, remarks" className="md:max-w-sm" />
+            <Input name="search" defaultValue={filters.search ?? ""} placeholder="Search PR no, branch, remarks" className="md:max-w-sm" />
             <label className="grid gap-1 text-xs font-medium">Priority<SelectNative name="priority" defaultValue={filters.priority ?? "all"}>
                 <option value="all">All priorities</option>
                 <option value="critical">Critical</option>
@@ -88,7 +88,6 @@ export default async function PurchaseRequestsPage({ searchParams }: { searchPar
                   <SortableHead label="Needed By" column="needed_by_date" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
                   <TableHead className="hidden md:table-cell">Priority</TableHead>
                   <TableHead className="hidden lg:table-cell">Branch</TableHead>
-                  <TableHead className="hidden lg:table-cell">Location</TableHead>
                   <SortableHead label="Status" column="status" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
                   <TableHead className="hidden text-right lg:table-cell">Lines</TableHead>
                   <TableHead className="hidden text-right md:table-cell">Estimated Total</TableHead>
@@ -106,7 +105,6 @@ export default async function PurchaseRequestsPage({ searchParams }: { searchPar
                     <TableCell>{request.needed_by_date ?? "-"}</TableCell>
                     <TableCell className="hidden md:table-cell"><PriorityBadge priority={request.priority} /></TableCell>
                     <TableCell className="hidden lg:table-cell">{request.branch_name ?? "-"}</TableCell>
-                    <TableCell className="hidden lg:table-cell">{request.location_name ?? "-"}</TableCell>
                     <TableCell><StatusBadge status={request.status} /></TableCell>
                     <TableCell className="hidden text-right lg:table-cell">{request.line_count}</TableCell>
                     <TableCell className="hidden text-right md:table-cell">{formatCurrency(request.estimated_total)}</TableCell>

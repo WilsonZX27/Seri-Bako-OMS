@@ -72,7 +72,7 @@ export default async function StockWastageDetailPage({ params }: { params: Promi
           <h2 className="text-sm font-semibold">Wastage Summary</h2>
           <div className="grid gap-4 md:grid-cols-3">
             <div><p className="text-xs uppercase text-muted-foreground">Date</p><p className="font-medium">{wastage.wastage_date}</p></div>
-            <div><p className="text-xs uppercase text-muted-foreground">Branch Store</p><p className="font-medium">{wastage.location_name}</p></div>
+            <div><p className="text-xs uppercase text-muted-foreground">Branch</p><p className="font-medium">{wastage.branch_name ?? "-"}</p></div>
             <div><p className="text-xs uppercase text-muted-foreground">Reason</p><p className="font-medium capitalize">{wastage.reason.replaceAll("_", " ")}</p></div>
           </div>
           {wastage.remarks ? <p className="rounded-md border bg-secondary/30 p-3 text-sm">{wastage.remarks}</p> : null}

@@ -1,27 +1,40 @@
-# Fixed role and location-access matrix
+# Fixed role, route, and Branch / Outlet matrix
 
-Sprint 7.23.1 establishes six system-controlled roles. The database remains authoritative; this document is a sanitized product-level summary.
+Sprint 7.23.5 keeps six system-controlled roles. The database is authoritative; this is the sanitized product-level operating matrix.
 
-| Role | Scope | Core responsibility | Owner controls | Finance/AP | Purchasing/master data | Assigned operations |
-|---|---|---|---:|---:|---:|---:|
-| Super Admin / Owner | Company-wide | Protected system ownership and full operational authority | Yes | Yes | Yes | Yes |
-| Finance | Company-wide | Finance review, payables, payments, financial reporting | No | Yes | No | Read where granted |
-| Manager | Assigned locations or explicitly all locations | Operational approval and oversight | No | No | No | Yes |
-| Purchasing | Company-wide | Purchasing review, suppliers, items, imports, PO and receiving preparation | No | No | Yes | Read where granted |
-| Kitchen | Assigned Central Kitchen locations | PR creation/submission and kitchen/production work | No | No | No | Yes |
-| Outlet Staff | Assigned outlet locations | Outlet Daily Records | No | No | No | Outlet only |
+| Role | Scope | Staff / Users | Document Sequences | Imports | Branches / Outlets | Protected system controls |
+|---|---|---:|---:|---:|---:|---:|
+| Super Admin / Owner | Company-wide | Manage all | Manage | Run | Manage | Yes |
+| Finance | Company-wide | Manage non-Owner accounts | Manage | Run | Manage | No |
+| Manager | Assigned branches, or explicitly all | No | No | No | Manage within scope | No |
+| Purchasing | Company-wide procurement | No | No | Run | View/select | No |
+| Kitchen | Assigned Central Kitchen branch | No | No | No | No management | No |
+| Outlet Staff | Assigned outlet | No | No | No | No management | No |
 
-## Assignment rules
+## Canonical routes
 
-- Only an active Super Admin / Owner may assign roles.
-- The last active Super Admin / Owner cannot be removed, demoted, disabled, or permanently deleted.
+| Capability | Canonical route | Owner | Finance | Manager | Purchasing | Kitchen | Outlet Staff |
+|---|---|---:|---:|---:|---:|---:|---:|
+| Procurement workspace | `/procurement` | Allowed | Allowed | Allowed | Allowed | Allowed when a child module is permitted | Denied |
+| Inventory workspace | `/inventory` | Allowed | Allowed | Allowed | Allowed when a child module is permitted | Allowed when a child module is permitted | Denied unless a child module is permitted |
+| Branches / Outlets | `/branches` | Manage | Manage | Manage within scope | Read | Denied | Denied |
+| Staff / Users | `/staffs` | Manage | Manage non-Owner | Denied | Denied | Denied | Denied |
+| Document Sequences | `/document-sequences` | Manage | Manage | Denied | Denied | Denied | Denied |
+| Imports | `/imports` | Run | Run | Denied | Run | Denied | Denied |
+| Backup | `/administration/backups` | Allowed | Denied | Denied | Denied | Denied | Denied |
+
+## Assignment and protection rules
+
+- Only an active Owner can assign or alter an Owner role.
+- Finance may invite, update, enable, disable, reset, and remove non-Owner test/staff accounts but cannot mutate an Owner account or role.
+- The last active Owner cannot be removed, demoted, disabled, or permanently deleted.
 - Fixed roles cannot be created, renamed, edited, or deleted through normal UI.
-- Role controls actions. Default Location controls initial context only. Accessible Locations control record visibility.
-- Company-wide roles receive all active locations automatically. Manager may be assigned eligible locations or all locations. Kitchen accepts Central Kitchen locations only. Outlet Staff accepts outlet locations only.
-- Staff-specific permission overrides remain available only through protected owner controls and never alter the shared role definition.
+- Role controls actions. Assigned Branches / Outlets control record visibility; a default Branch / Outlet is context only.
+- Purchasing can view and select branches needed for procurement but cannot create or edit them.
+- Kitchen and Outlet Staff retain only their intended operational scope.
 
 ## Purchase Request sequence
 
 Kitchen Submit → Manager Review → Purchasing Review → Finance Review → Ready to Convert → Purchase Order.
 
-The stored `admin_review` state and `pr.admin_review` permission remain database compatibility identifiers so the verified transition function is unchanged. All user-facing vocabulary calls this step Purchasing Review, and the permission is granted to Purchasing by migration 071.
+The stored `admin_review` state and `pr.admin_review` permission remain database compatibility identifiers so the verified transition function is unchanged. User-facing vocabulary calls this Purchasing Review.

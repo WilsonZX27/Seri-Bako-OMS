@@ -1,4 +1,5 @@
 import { StaffForm } from "@/components/foundation-forms";
+import { redirect } from "next/navigation";
 import { RecordActionPanel, RecordWorkspace } from "@/components/record-workspace";
 import { Button } from "@/components/ui/button";
 import { CopyTextButton } from "@/components/ui/copy-text-button";
@@ -40,6 +41,7 @@ export default async function EditStaffPage({
   const roleCode = normalizeRoleCode(assignedRole?.role_code);
   const [permissionAccess, canManageOverrides] = await Promise.all([getStaffPermissionAccess(id), hasPermission("roles.update")]);
   const protectedRole = roleCode === "super_admin";
+  if (protectedRole && currentRole !== "super_admin") redirect("/access-status?reason=no-permitted-route");
   const overrideCounts = {
     inherited: permissionAccess.filter((permission) => !permission.override).length,
     allowed: permissionAccess.filter((permission) => permission.override === "allow").length,

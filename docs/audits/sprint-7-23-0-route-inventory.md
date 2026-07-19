@@ -65,9 +65,7 @@ There are 25 parameterized business pages and 24 create/edit/import pages. “Dy
 | `/items` | role-restricted active |
 | `/items/[id]` | dynamic business route |
 | `/items/new` | role-restricted active |
-| `/locations` | role-restricted active |
-| `/locations/[id]` | dynamic business route |
-| `/locations/new` | role-restricted active |
+| Legacy Branch / Outlet compatibility aliases | redirect aliases retired in Sprint 7.23.5 |
 | `/low-stock` | role-restricted active |
 | `/opening-stock/import` | role-restricted active |
 | `/outlet-daily-records` | role-restricted active |

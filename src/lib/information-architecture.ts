@@ -1,7 +1,7 @@
 import type { UserRole } from "@/types/database";
 
 export type IaGroupId = "operations" | "procurement" | "inventory" | "analytics" | "administration";
-export type IaIcon = "activity" | "alert" | "archive" | "boxes" | "building" | "check" | "clipboard" | "factory" | "gauge" | "map" | "receipt" | "request" | "rotate" | "scale" | "shopping" | "users" | "userCog" | "upload";
+export type IaIcon = "activity" | "alert" | "archive" | "boxes" | "building" | "check" | "clipboard" | "factory" | "gauge" | "receipt" | "request" | "rotate" | "scale" | "shopping" | "users" | "userCog" | "upload";
 
 export type IaItem = {
   href: string;
@@ -32,6 +32,8 @@ const PRODUCTION: readonly UserRole[] = ["super_admin", "finance", "manager", "p
 const REPORTS: readonly UserRole[] = ["super_admin", "finance", "manager", "purchasing"];
 const MASTER_DATA: readonly UserRole[] = ["super_admin", "finance", "purchasing"];
 const OWNER: readonly UserRole[] = ["super_admin"];
+const BRANCH_READERS: readonly UserRole[] = ["super_admin", "finance", "manager", "purchasing"];
+const STAFF_MANAGERS: readonly UserRole[] = ["super_admin", "finance"];
 
 export const informationArchitecture: readonly IaItem[] = [
   { href: "/dashboard", label: "Dashboard", group: "operations", icon: "gauge", roles: ALL, permission: "dashboard.view", defaultFor: ALL, keywords: ["home", "alerts", "approvals"] },
@@ -60,11 +62,10 @@ export const informationArchitecture: readonly IaItem[] = [
   { href: "/activity", label: "Activity Log", group: "analytics", icon: "activity", roles: REPORTS, permission: "reports.view" },
 
   { href: "/company", label: "Company Profile", group: "administration", icon: "building", roles: OWNER, permission: "company.read", administrationCard: "Maintain legal identity, contact details, logo, and branding." },
-  { href: "/branches", label: "Branches / Outlets", group: "administration", icon: "building", roles: OWNER, permission: "branches.read", administrationCard: "Maintain operating branches and outlet structure." },
-  { href: "/locations", label: "Locations", group: "administration", icon: "map", roles: OWNER, permission: "locations.read", administrationCard: "Maintain working and inventory locations." },
-  { href: "/staffs", label: "Users & Staff", group: "administration", icon: "users", roles: OWNER, permission: "staffs.read", badgeKey: "staffManagement", administrationCard: "Manage staff status, role, default location, and accessible locations." },
+  { href: "/branches", label: "Branches / Outlets", group: "administration", icon: "building", roles: BRANCH_READERS, permission: "branches.read", administrationCard: "Review operating branches and outlet structure." },
+  { href: "/staffs", label: "Users & Staff", group: "administration", icon: "users", roles: STAFF_MANAGERS, permission: "staffs.read", badgeKey: "staffManagement", administrationCard: "Manage staff status, role, default branch, and branch access." },
   { href: "/roles", label: "Roles & Permissions", group: "administration", icon: "userCog", roles: OWNER, permission: "roles.read", administrationCard: "Review the six fixed system roles and their permissions." },
-  { href: "/document-sequences", label: "Document Sequences", group: "administration", icon: "receipt", roles: OWNER, permission: "settings.manage", administrationCard: "Review system-controlled document numbering." },
+  { href: "/document-sequences", label: "Document Sequences", group: "administration", icon: "receipt", roles: STAFF_MANAGERS, permission: "document_sequences.read", administrationCard: "Manage controlled document numbering." },
   { href: "/administration/master-data-cleanup", label: "Master Data Cleanup", group: "administration", icon: "check", roles: MASTER_DATA, permission: "items.view", administrationCard: "Review master-data quality issues." },
   { href: "/imports", label: "Imports", group: "administration", icon: "upload", roles: MASTER_DATA, permission: "imports.create", administrationCard: "Import approved master-data templates with validation." },
   { href: "/administration/backups", label: "System Backup", group: "administration", icon: "archive", roles: OWNER, permission: "settings.manage", administrationCard: "Download an owner-only local ZIP export." },

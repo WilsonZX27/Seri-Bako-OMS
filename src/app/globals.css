@@ -106,8 +106,42 @@ body {
 
 input,
 select,
-textarea {
-  font: inherit;
+textarea,
+button,
+input::file-selector-button {
+  font-family: var(--sb-font-sans);
+  font-size: 0.875rem;
+  font-weight: 400;
+  line-height: 1.25rem;
+}
+
+button,
+input::file-selector-button {
+  font-weight: 500;
+}
+
+input[type="file"] {
+  padding: 0;
+  color: var(--sb-text-muted);
+  border-color: var(--sb-border);
+  border-radius: var(--sb-radius-control);
+  background: white;
+}
+
+input::file-selector-button {
+  height: 100%;
+  margin-right: 0.75rem;
+  padding-inline: 0.75rem;
+  border: 0;
+  border-right: 1px solid var(--sb-border);
+  border-radius: calc(var(--sb-radius-control) - 1px) 0 0 calc(var(--sb-radius-control) - 1px);
+  background: var(--sb-surface-muted);
+  color: var(--sb-text);
+  cursor: pointer;
+}
+
+input::file-selector-button:hover {
+  background: var(--sb-amber-100);
 }
 
 button,

@@ -33,7 +33,7 @@ Goal: improve perceived speed before real data import without weakening RLS or o
 ## Inventory
 
 - Current state: stock balance and ledger views are the right source of truth.
-- Risk: views must keep `security_invoker = true` and rely on underlying table RLS. Add indexes on stock transaction item/location/date if response time degrades.
+- Risk: views must keep `security_invoker = true` and rely on underlying table RLS. Add indexes on stock transaction item/branch/date if response time degrades.
 
 ## Data Onboarding
 

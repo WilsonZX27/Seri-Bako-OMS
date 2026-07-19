@@ -79,7 +79,7 @@ export function MobileWorkflowStatus({ steps, currentStatus }: { steps: Workflow
 
   return (
     <div data-mobile-workflow-summary className="flex min-w-0 items-center justify-between gap-2 border-y border-[var(--sb-border-soft)] py-2 md:hidden">
-      <p className="min-w-0 truncate text-[12px] font-medium">Step {activeIndex + 1} of {steps.length} · {active?.label ?? currentStatus}</p>
+      <p className="min-w-0 truncate text-[12px] font-medium">Step {activeIndex + 1} of {steps.length}: {active?.label ?? currentStatus}</p>
       <MobileSheet label="View workflow" title="Workflow progress" triggerClassName="h-8 w-auto shrink-0 px-2 text-[12px]">
         <ol className="space-y-1" aria-label="Document workflow">
           {steps.map((step, index) => {

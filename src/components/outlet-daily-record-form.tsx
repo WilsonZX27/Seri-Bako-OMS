@@ -35,7 +35,7 @@ export function OutletDailyRecordForm({ formId, action, branches, products, line
 
   return <form id={formId} action={action} className="space-y-4">
     <Card><CardContent className="grid gap-4 p-4 md:grid-cols-2">
-      <Field label="Outlet / Branch">{!canEditHeader && branchId ? <input type="hidden" name="branch_id" value={branchId} /> : null}<SelectNative name="branch_id" defaultValue={branchId ?? (branches.length === 1 ? branches[0].id : "")} required disabled={locked || !canEditHeader}>{branches.length > 1 && !branchId ? <option value="">Select outlet / branch</option> : null}{branches.map((branch) => <option key={branch.id} value={branch.id}>{branch.branch_name} ({branch.branch_code})</option>)}</SelectNative></Field>
+      <Field label="Branch">{!canEditHeader && branchId ? <input type="hidden" name="branch_id" value={branchId} /> : null}<SelectNative name="branch_id" defaultValue={branchId ?? (branches.length === 1 ? branches[0].id : "")} required disabled={locked || !canEditHeader}>{branches.length > 1 && !branchId ? <option value="">Select branch</option> : null}{branches.map((branch) => <option key={branch.id} value={branch.id}>{branch.branch_name} ({branch.branch_code})</option>)}</SelectNative></Field>
       <Field label="Record Date">{!canEditHeader ? <input type="hidden" name="record_date" value={recordDate} /> : null}<Input name="record_date" type="date" defaultValue={recordDate} required disabled={locked || !canEditHeader} /></Field>
       <div className="md:col-span-2"><Field label="Record Remarks"><Textarea name="notes" rows={2} defaultValue={notes ?? ""} placeholder="Optional outlet-level remarks" disabled={locked || !canEditOutletValues} /></Field></div>
     </CardContent></Card>

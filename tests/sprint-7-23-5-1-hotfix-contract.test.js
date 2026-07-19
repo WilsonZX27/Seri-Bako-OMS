@@ -51,7 +51,9 @@ test("Daily Record field ownership and mobile surfaces match the hotfix", () => 
   for (const label of ["Qty Sent", "Received", "Wastage", "Wastage Reason", "Remarks"]) assert.match(form, new RegExp(label));
   assert.match(form, /canEditQtySent/);
   assert.match(form, /canEditOutletValues/);
-  assert.match(detail, /hideMobileConsole=\{!hasPrimaryAction\}/);
+  assert.match(detail, /DocumentWorkspace/);
+  assert.match(detail, /mobilePrimaryAction=\{primaryAction\}/);
+  assert.match(detail, /Approve as Manager/);
   assert.match(importFlow, /RightConsoleMount hideMobileBar/);
   assert.match(migration, /qty_sent = case when can_edit_sent/);
   assert.match(migration, /morning_received_qty = case when can_edit_outlet/);

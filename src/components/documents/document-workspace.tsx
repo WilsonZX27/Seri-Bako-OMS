@@ -77,7 +77,7 @@ export function DocumentWorkspace({
           <aside data-tablet-document-inspector className="hidden min-w-0 border-l border-[var(--sb-border-soft)] bg-white md:block md:pl-2 xl:hidden">{sidePanel}</aside>
         </div>
       </WorkspaceGrid>
-      {mobilePrimaryAction ? <div data-mobile-document-action className="fixed inset-x-3 bottom-[calc(env(safe-area-inset-bottom)+0.5rem)] z-[var(--sb-z-sticky)] min-w-0 border border-[var(--sb-border)] bg-white p-2 shadow-sm md:hidden [&>*]:w-full">{mobilePrimaryAction}</div> : null}
+      {mobilePrimaryAction ? <div data-mobile-document-action className="sb-mobile-action-bar fixed inset-x-3 bottom-[calc(env(safe-area-inset-bottom)+0.5rem)] z-[var(--sb-z-sticky)] min-w-0 p-2 md:hidden [&>*]:w-full">{mobilePrimaryAction}</div> : null}
     </>
   );
 }

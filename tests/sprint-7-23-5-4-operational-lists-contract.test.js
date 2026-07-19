@@ -48,7 +48,7 @@ test("breadcrumbs prefetch only canonical group workspaces", () => {
   assert.doesNotMatch(breadcrumbs, /`\/\$\{iaItem\.group\}`/);
 });
 
-test("product-driven lists keep canonical ordering and the v7.23.5.4 footer", () => {
+test("product-driven lists keep canonical ordering and the current footer", () => {
   const products = read("src/server/queries/products.ts");
   const recipes = read("src/server/queries/recipes.ts");
   const daily = read("src/server/queries/outlet-daily-records.ts");
@@ -60,5 +60,5 @@ test("product-driven lists keep canonical ordering and the v7.23.5.4 footer", ()
   assert.match(daily, /sortProductsForDisplay/);
   assert.match(order, /display_order/);
   assert.match(order, /natural\.compare/);
-  assert.match(version, /APP_SPRINT = "v7\.23\.5\.4"/);
+  assert.match(version, /APP_SPRINT = "v7\.23\.5\.5"/);
 });

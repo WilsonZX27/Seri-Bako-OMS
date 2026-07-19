@@ -1,6 +1,7 @@
 import { DocumentActionBar, DocumentActionForm } from "@/components/document-action-bar";
 import { AttachmentPanel, CommentsPanel, DocumentTimeline, RevisionPanel } from "@/components/documents/document-panels";
 import { DocumentSideSection, DocumentWorkspace } from "@/components/documents/document-workspace";
+import { DocumentMoreOptions } from "@/components/documents/mobile-document-surfaces";
 import { Card, CardContent } from "@/components/ui/card";
 import { BlockedDestructiveAction } from "@/components/ui/danger-confirm-form";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -8,6 +9,7 @@ import { formatNumber } from "@/lib/utils";
 import { cancelStockTransfer, postStockTransfer, rejectStockTransfer, startStockTransfer } from "@/server/actions/stock-operations";
 import { getDocumentBundle } from "@/server/queries/documents";
 import { getStockTransfer } from "@/server/queries/stock-operations";
+import { getPermissionMap } from "@/server/auth/permissions";
 
 const transferSteps = [
   { key: "draft", label: "Draft", description: "Transfer is being prepared." },
@@ -19,11 +21,15 @@ const transferSteps = [
 
 export default async function StockTransferDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const { transfer, lines } = await getStockTransfer(id);
+  const [{ transfer, lines }, permissions] = await Promise.all([getStockTransfer(id), getPermissionMap(["stock_transfer.update", "stock_transfer.post", "stock_transfer.cancel"])]);
   const bundle = transfer.document_id ? await getDocumentBundle(transfer.document_id) : null;
-  const canStart = transfer.status === "draft";
-  const canPost = transfer.status === "in_transit";
+  const canStart = transfer.status === "draft" && permissions["stock_transfer.update"];
+  const canPost = transfer.status === "in_transit" && permissions["stock_transfer.post"];
+  const canReject = ["draft", "in_transit"].includes(transfer.status) && permissions["stock_transfer.update"];
+  const canCancel = ["draft", "in_transit"].includes(transfer.status) && permissions["stock_transfer.cancel"];
   const canAct = canStart || canPost;
+  const deleteControl = <BlockedDestructiveAction buttonLabel="Delete transfer" title={`Cannot delete ${transfer.transfer_no}`} description={canAct ? "Transfers remain linked to their source and destination stock movements." : "Completed or closed transfer history preserves stock integrity."} recommendation={canAct ? "Cancel or reject before completion." : "Create a controlled compensating transfer or correction; physical deletion is prohibited."} />;
+  const secondaryActions = canReject || canCancel ? <div className="space-y-2">{canReject ? <DocumentActionForm action={rejectStockTransfer.bind(null, transfer.id)} pendingLabel="Rejecting..." variant="destructive">Reject transfer</DocumentActionForm> : null}{canCancel ? <DocumentActionForm action={cancelStockTransfer.bind(null, transfer.id)} pendingLabel="Cancelling..." variant="ghost">Cancel transfer</DocumentActionForm> : null}{deleteControl}</div> : deleteControl;
 
   return (
     <DocumentWorkspace
@@ -33,6 +39,9 @@ export default async function StockTransferDetailPage({ params }: { params: Prom
       status={transfer.status}
       workflowSteps={transferSteps}
       currentStatus={transfer.status}
+      mobilePrimaryAction={canStart ? <DocumentActionForm action={startStockTransfer.bind(null, transfer.id)} pendingLabel="Moving...">Move to In Transit</DocumentActionForm> : canPost ? <DocumentActionForm action={postStockTransfer.bind(null, transfer.id)} pendingLabel="Posting...">Complete Transfer</DocumentActionForm> : null}
+      mobileActivity={bundle ? <><AttachmentPanel documentId={bundle.document.id} attachments={bundle.attachments} /><CommentsPanel documentId={bundle.document.id} comments={bundle.comments} /><DocumentTimeline document={bundle.document} activities={bundle.activityLogs} comments={bundle.comments} attachments={bundle.attachments} /></> : null}
+      mobileMoreOptions={<DocumentMoreOptions>{secondaryActions}</DocumentMoreOptions>}
       sidePanel={
         <>
           <DocumentSideSection title="Primary Action" description="Post only after the transfer lines are checked.">
@@ -40,18 +49,17 @@ export default async function StockTransferDetailPage({ params }: { params: Prom
               <DocumentActionBar>
                 {canStart ? <DocumentActionForm action={startStockTransfer.bind(null, transfer.id)} pendingLabel="Moving...">Move to In Transit</DocumentActionForm> : null}
                 {canPost ? <DocumentActionForm action={postStockTransfer.bind(null, transfer.id)} pendingLabel="Posting...">Complete transfer</DocumentActionForm> : null}
-                <DocumentActionForm action={rejectStockTransfer.bind(null, transfer.id)} pendingLabel="Rejecting..." variant="destructive">Reject</DocumentActionForm>
-                <DocumentActionForm action={cancelStockTransfer.bind(null, transfer.id)} pendingLabel="Cancelling..." variant="ghost">Cancel</DocumentActionForm>
-                <BlockedDestructiveAction buttonLabel="Delete transfer" title={`Cannot delete ${transfer.transfer_no}`} description="Transfers remain linked to their source and destination stock movements." recommendation="Cancel or reject before completion. Completed transfers require a controlled compensating transfer or correction." />
               </DocumentActionBar>
             ) : (
-              <BlockedDestructiveAction buttonLabel="Delete transfer" title={`Cannot delete ${transfer.transfer_no}`} description="Completed or closed transfer history preserves stock integrity." recommendation="Create a controlled compensating transfer or correction; physical deletion is prohibited." />
+              <p className="text-xs text-muted-foreground">This transfer is read-only in its current state.</p>
             )}
           </DocumentSideSection>
+          <DocumentSideSection title="Validation / Next Step"><p className="text-xs text-muted-foreground">{transfer.status === "draft" ? "Check both branches and every transfer quantity before moving stock in transit." : transfer.status === "in_transit" ? "Confirm the destination received every line before completing the transfer." : "Finalized transfer movements remain read-only."}</p></DocumentSideSection>
+          <DocumentSideSection title="More Options"><DocumentMoreOptions>{secondaryActions}</DocumentMoreOptions></DocumentSideSection>
           {bundle ? (
             <>
-              <CommentsPanel documentId={bundle.document.id} comments={bundle.comments} />
               <AttachmentPanel documentId={bundle.document.id} attachments={bundle.attachments} />
+              <CommentsPanel documentId={bundle.document.id} comments={bundle.comments} />
               <DocumentTimeline document={bundle.document} activities={bundle.activityLogs} comments={bundle.comments} attachments={bundle.attachments} />
               <RevisionPanel revisions={bundle.revisions} />
             </>
@@ -74,8 +82,7 @@ export default async function StockTransferDetailPage({ params }: { params: Prom
       <Card>
         <CardContent className="p-5">
           <h2 className="mb-3 text-sm font-semibold">Transfer Lines</h2>
-          <div className="overflow-x-auto">
-            <Table>
+          <Table>
               <TableHeader>
                 <TableRow>
                   <TableHead>Item</TableHead>
@@ -94,8 +101,7 @@ export default async function StockTransferDetailPage({ params }: { params: Prom
                   </TableRow>
                 ))}
               </TableBody>
-            </Table>
-          </div>
+          </Table>
         </CardContent>
       </Card>
     </DocumentWorkspace>

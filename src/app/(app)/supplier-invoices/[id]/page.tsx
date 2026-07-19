@@ -7,6 +7,9 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { DocumentActionBar, DocumentActionLink } from "@/components/document-action-bar";
 import { AttachmentPanel, CommentsPanel, DocumentTimeline, RevisionPanel } from "@/components/documents/document-panels";
 import { DocumentSideSection, DocumentWorkspace } from "@/components/documents/document-workspace";
+import { DocumentMoreOptions, MobileTaskSheet } from "@/components/documents/mobile-document-surfaces";
+import { ConfirmActionForm } from "@/components/ui/confirm-action-form";
+import { Button } from "@/components/ui/button";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { SupplierInvoiceForm } from "@/components/supplier-invoice-form";
 import { formatCurrency, formatNumber } from "@/lib/utils";
@@ -25,6 +28,18 @@ const invoiceSteps = [
 
 function today() { return new Date().toISOString().slice(0, 10); }
 
+function PaymentForm({ invoiceId, balance, idempotencyKey }: { invoiceId: string; balance: number; idempotencyKey: string }) {
+  return <form action={recordSupplierInvoicePayment.bind(null, invoiceId)} className="grid gap-2">
+    <input type="hidden" name="idempotency_key" value={idempotencyKey} />
+    <Input name="payment_date" type="date" defaultValue={today()} required />
+    <Input name="amount" type="number" min="0.01" max={balance} step="0.01" placeholder={`Outstanding ${formatCurrency(balance)}`} required />
+    <Input name="payment_method" placeholder="Payment method" required />
+    <Input name="reference_no" placeholder="Reference" />
+    <Textarea name="notes" placeholder="Payment notes" />
+    <SubmitButton pendingLabel="Recording..." className="w-full justify-center">Record Payment</SubmitButton>
+  </form>;
+}
+
 export default async function SupplierInvoiceDetailPage({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ error?: string; success?: string }> }) {
   const [{ id }, messageParams] = await Promise.all([params, searchParams]);
   const [{ invoice, payments, lines, linkedPos, linkedGrns }, permissions] = await Promise.all([
@@ -42,6 +57,14 @@ export default async function SupplierInvoiceDetailPage({ params, searchParams }
   const hasInvoiceAttachment = Boolean(documentBundle?.attachments.some((attachment) => attachment.status === "active"));
   const canPay = permissions["supplier_invoice.pay"] && ["open", "partially_paid"].includes(invoice.status);
   const canVoid = permissions["supplier_invoice.void"] && invoice.status !== "void" && invoice.status !== "paid" && Number(invoice.amount_paid) === 0;
+  const canApprove = invoice.status === "draft" && permissions["supplier_invoice.approve"];
+  const canSave = invoice.status === "draft" && permissions["supplier_invoice.create"];
+  const paymentKey = randomUUID();
+  const approvalAction = hasInvoiceAttachment
+    ? <ConfirmActionForm action={approveSupplierInvoice.bind(null, invoice.id)} label="Approve as Finance" title="Approve this supplier invoice as Finance?" description="This locks the invoice totals and opens it for payment." pendingLabel="Approving..." mobilePrimary />
+    : <div><Button type="button" disabled className="w-full">Approve as Finance</Button><p className="mt-2 text-xs text-muted-foreground">Attach the supplier invoice before Finance approval.</p></div>;
+  const mobilePrimaryAction = canApprove ? approvalAction : canSave ? <SubmitButton form="supplier-invoice-form" pendingLabel="Saving..." className="w-full justify-center">Save Draft</SubmitButton> : canPay ? <MobileTaskSheet label="Record Payment"><PaymentForm invoiceId={invoice.id} balance={invoice.balance_due} idempotencyKey={paymentKey} /></MobileTaskSheet> : null;
+  const secondaryActions = (canSave && canApprove) || canVoid ? <div className="space-y-2">{canSave && canApprove ? <SubmitButton form="supplier-invoice-form" pendingLabel="Saving..." variant="outline" className="w-full justify-center">Save Draft</SubmitButton> : null}{canVoid ? <form action={voidSupplierInvoice.bind(null, invoice.id)} className="grid gap-2"><Textarea name="reason" placeholder="Required void reason" required /><SubmitButton variant="destructive" pendingLabel="Voiding..." className="w-full justify-center">Void Invoice</SubmitButton></form> : null}</div> : null;
   return (
     <DocumentWorkspace
       breadcrumbs={[{ label: "Procurement", href: "/procurement" }, { label: "Supplier Invoices", href: "/supplier-invoices" }, { label: invoice.invoice_no }]}
@@ -50,28 +73,16 @@ export default async function SupplierInvoiceDetailPage({ params, searchParams }
       status={invoice.status}
       workflowSteps={invoiceSteps}
       currentStatus={invoice.status}
+      mobilePrimaryAction={mobilePrimaryAction}
+      mobileActivity={documentBundle ? <><AttachmentPanel documentId={documentBundle.document.id} attachments={documentBundle.attachments} title="Supplier Invoice" canManage={false} documentStatus={documentBundle.document.status} /><CommentsPanel documentId={documentBundle.document.id} comments={documentBundle.comments} /><DocumentTimeline document={documentBundle.document} activities={documentBundle.activityLogs} comments={documentBundle.comments} attachments={documentBundle.attachments} /></> : null}
+      mobileMoreOptions={secondaryActions ? <DocumentMoreOptions>{secondaryActions}</DocumentMoreOptions> : null}
       sidePanel={
         <>
-          <DocumentSideSection title="Invoice Actions" description="Status-aware finance actions for this invoice.">
-            <DocumentActionBar>
-              {linkedPos.map((po) => <DocumentActionLink key={po.id} href={`/purchase-orders/${po.id}`} variant="outline">View {po.no}</DocumentActionLink>)}
-              {linkedGrns.map((grn) => <DocumentActionLink key={grn.id} href={`/goods-receivings/${grn.id}`} variant="outline">View {grn.no}</DocumentActionLink>)}
-            </DocumentActionBar>
-            {invoice.status === "draft" && permissions["supplier_invoice.create"] ? <div data-mobile-primary-action><SubmitButton form="supplier-invoice-form" pendingLabel="Saving..." className="mt-3 w-full justify-center">Save Draft</SubmitButton></div> : null}
-            {invoice.status === "draft" && permissions["supplier_invoice.approve"] ? <form action={approveSupplierInvoice.bind(null, invoice.id)} className="mt-2" data-mobile-primary-action={!permissions["supplier_invoice.create"] || undefined}><SubmitButton pendingLabel="Sending..." disabled={!hasInvoiceAttachment} className="w-full justify-center">Send to Finance Review</SubmitButton>{!hasInvoiceAttachment ? <p className="mt-2 text-xs text-muted-foreground">Attach the supplier invoice before Finance Review.</p> : null}</form> : null}
-            {canPay ? (
-              <form action={recordSupplierInvoicePayment.bind(null, invoice.id)} className="mt-3 grid gap-2 border-t pt-3">
-                <input type="hidden" name="idempotency_key" value={randomUUID()} />
-                <Input name="payment_date" type="date" defaultValue={today()} required />
-                <Input name="amount" type="number" min="0.01" max={invoice.balance_due} step="0.01" placeholder={`Outstanding ${formatCurrency(invoice.balance_due)}`} required />
-                <Input name="payment_method" placeholder="Payment method" required />
-                <Input name="reference_no" placeholder="Reference" />
-                <Textarea name="notes" placeholder="Payment notes" />
-                <SubmitButton pendingLabel="Recording..." className="w-full justify-center">Record Payment</SubmitButton>
-              </form>
-            ) : invoice.status !== "draft" ? <p className="mt-3 text-xs text-muted-foreground">No further payment action is available.</p> : null}
-            {canVoid ? <form action={voidSupplierInvoice.bind(null, invoice.id)} className="mt-3 grid gap-2 border-t pt-3"><Textarea name="reason" placeholder="Required void reason" required /><SubmitButton variant="destructive" pendingLabel="Voiding..." className="w-full justify-center">Void Invoice</SubmitButton></form> : null}
+          <DocumentSideSection title="Primary Action" description="Only the next permitted finance action is shown.">
+            {canApprove ? approvalAction : canSave ? <div data-mobile-primary-action><SubmitButton form="supplier-invoice-form" pendingLabel="Saving..." className="w-full justify-center">Save Draft</SubmitButton></div> : canPay ? <PaymentForm invoiceId={invoice.id} balance={invoice.balance_due} idempotencyKey={paymentKey} /> : <p className="text-xs text-muted-foreground">This invoice is read-only in its current state.</p>}
           </DocumentSideSection>
+          <DocumentSideSection title="Validation / Next Step"><DocumentActionBar>{linkedPos.map((po) => <DocumentActionLink key={po.id} href={`/purchase-orders/${po.id}`} variant="outline">View {po.no}</DocumentActionLink>)}{linkedGrns.map((grn) => <DocumentActionLink key={grn.id} href={`/goods-receivings/${grn.id}`} variant="outline">View {grn.no}</DocumentActionLink>)}</DocumentActionBar><p className="text-xs text-muted-foreground">{invoice.status === "draft" ? "Save matching details and attach the supplier invoice before Finance approval." : canPay ? "Record the next verified payment against the outstanding balance." : "No further payment action is available."}</p></DocumentSideSection>
+          {secondaryActions ? <DocumentSideSection title="More Options"><DocumentMoreOptions>{secondaryActions}</DocumentMoreOptions></DocumentSideSection> : null}
           {agingRow ? <DocumentSideSection title="Payment Attention" description="Live status from AP Aging.">
             <div className="space-y-2 text-xs">
               <p><strong>{agingRow.alert_label ?? "No immediate alert"}</strong></p>
@@ -82,8 +93,8 @@ export default async function SupplierInvoiceDetailPage({ params, searchParams }
             </div>
           </DocumentSideSection> : null}
           {documentBundle ? <>
-            <CommentsPanel documentId={documentBundle.document.id} comments={documentBundle.comments} />
             <AttachmentPanel documentId={documentBundle.document.id} attachments={documentBundle.attachments} title="Supplier Invoice" description="Attach the supplier-issued invoice for Finance review and audit." defaultLabel="Supplier Invoice" uploadLabel="Attach Supplier Invoice" canManage={permissions["documents.attach"]} documentStatus={documentBundle.document.status} />
+            <CommentsPanel documentId={documentBundle.document.id} comments={documentBundle.comments} />
             <DocumentTimeline document={documentBundle.document} activities={documentBundle.activityLogs} comments={documentBundle.comments} attachments={documentBundle.attachments} />
             <RevisionPanel revisions={documentBundle.revisions} />
           </> : null}
@@ -91,7 +102,7 @@ export default async function SupplierInvoiceDetailPage({ params, searchParams }
       }
     >
       {messageParams.error || messageParams.success ? <Card><CardContent className={`p-3 text-xs ${messageParams.error ? "text-destructive" : "text-emerald-700"}`}>{messageParams.error ?? messageParams.success}</CardContent></Card> : null}
-      {documentBundle ? <div className="xl:hidden"><AttachmentPanel documentId={documentBundle.document.id} attachments={documentBundle.attachments} title="Supplier Invoice" description="Attach the supplier-issued invoice before Finance Review." defaultLabel="Supplier Invoice" uploadLabel="Attach Supplier Invoice" presentation="inline" canManage={permissions["documents.attach"]} documentStatus={documentBundle.document.status} /></div> : null}
+      {documentBundle ? <div className="md:hidden"><AttachmentPanel documentId={documentBundle.document.id} attachments={documentBundle.attachments} title="Supplier Invoice" description="Attach the supplier-issued invoice before Finance approval." defaultLabel="Supplier Invoice" uploadLabel="Attach Supplier Invoice" presentation="inline" canManage={permissions["documents.attach"]} documentStatus={documentBundle.document.status} /></div> : null}
       {invoice.status === "draft" && editSources ? (
         <SupplierInvoiceForm
           suppliers={editSources.suppliers}
@@ -127,7 +138,7 @@ export default async function SupplierInvoiceDetailPage({ params, searchParams }
         </CardContent></Card>
         <Card><CardContent className="p-5">
           <div className="mb-3 flex items-center justify-between"><h2 className="text-sm font-semibold">Invoice Matching</h2><strong>{formatCurrency(invoice.total_amount)}</strong></div>
-          <div className="overflow-x-auto"><Table>
+          <Table>
             <TableHeader><TableRow><TableHead>PO / GRN</TableHead><TableHead>Item</TableHead><TableHead className="text-right">PO Ordered</TableHead><TableHead className="text-right">Received</TableHead><TableHead className="text-right">Previously Invoiced</TableHead><TableHead className="text-right">Invoice Qty</TableHead><TableHead className="text-right">PO Price</TableHead><TableHead className="text-right">Invoice Price</TableHead><TableHead className="text-right">Qty / Price Variance</TableHead><TableHead className="text-right">Line Total</TableHead></TableRow></TableHeader>
             <TableBody>{lines.map((line) => <TableRow key={line.id}>
               <TableCell>{line.po_no}<br /><span className="text-xs text-muted-foreground">{line.grn_no}</span></TableCell>
@@ -135,17 +146,17 @@ export default async function SupplierInvoiceDetailPage({ params, searchParams }
               <TableCell className="text-right">{formatNumber(line.ordered_qty)}</TableCell><TableCell className="text-right">{formatNumber(line.received_qty)}</TableCell><TableCell className="text-right">{formatNumber(line.previously_invoiced_qty)}</TableCell><TableCell className="text-right">{formatNumber(line.invoice_qty)}</TableCell>
               <TableCell className="text-right">{formatCurrency(line.po_unit_price)}</TableCell><TableCell className="text-right">{formatCurrency(line.invoice_unit_price)}</TableCell><TableCell className="text-right text-xs">{formatNumber(Number(line.invoice_qty) - (Number(line.received_qty) - Number(line.previously_invoiced_qty)))} / {formatCurrency(Number(line.invoice_unit_price) - Number(line.po_unit_price))}</TableCell><TableCell className="text-right">{formatCurrency(line.line_total)}</TableCell>
             </TableRow>)}</TableBody>
-          </Table></div>
+          </Table>
           <div className="mt-3 flex justify-end gap-6 text-sm"><span>Subtotal <strong>{formatCurrency(invoice.subtotal)}</strong></span><span>Tax <strong>{formatCurrency(invoice.tax_amount)}</strong></span><span>Total <strong>{formatCurrency(invoice.total_amount)}</strong></span></div>
         </CardContent></Card>
       </>}
       <Card><CardContent className="p-5">
         <div className="mb-3 flex items-center justify-between"><h2 className="text-sm font-semibold">Payment History</h2><span className="text-xs text-muted-foreground">{payments.length} payment(s)</span></div>
-        <div className="overflow-x-auto"><Table>
+        <Table>
           <TableHeader><TableRow><TableHead>Payment No</TableHead><TableHead>Date</TableHead><TableHead>Method</TableHead><TableHead>Reference</TableHead><TableHead>Notes</TableHead><TableHead className="text-right">Amount</TableHead></TableRow></TableHeader>
           <TableBody>{payments.map((payment) => <TableRow key={payment.id}><TableCell>{payment.payment_no}</TableCell><TableCell>{payment.payment_date}</TableCell><TableCell>{payment.payment_method ?? "-"}</TableCell><TableCell>{payment.reference_no ?? "-"}</TableCell><TableCell>{payment.notes ?? "-"}</TableCell><TableCell className="text-right">{formatCurrency(payment.amount)}</TableCell></TableRow>)}
           {!payments.length ? <TableRow><TableCell colSpan={6} className="text-sm text-muted-foreground">No payments recorded.</TableCell></TableRow> : null}</TableBody>
-        </Table></div>
+        </Table>
       </CardContent></Card></DocumentWorkspace>
   );
 }

@@ -3,6 +3,8 @@ import { notFound } from "next/navigation";
 import { DocumentActionBar, DocumentActionForm, DocumentActionLink } from "@/components/document-action-bar";
 import { AttachmentPanel, CommentsPanel, DocumentTimeline, RevisionPanel } from "@/components/documents/document-panels";
 import { DocumentSideSection, DocumentWorkspace } from "@/components/documents/document-workspace";
+import { DocumentMoreOptions } from "@/components/documents/mobile-document-surfaces";
+import { ConfirmActionForm } from "@/components/ui/confirm-action-form";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { SubmitButton } from "@/components/ui/submit-button";
@@ -47,7 +49,10 @@ export default async function ProductionJobDetailPage({
   const canPost = job.status === "approved" && permissions["production.post"];
   const canCancel = ["draft", "submitted", "approved"].includes(job.status) && permissions["production.cancel"];
   const canReject = ["submitted", "approved"].includes(job.status) && permissions["production.reject"];
-  const hasPrimaryAction = canSubmit || canApprove || canPost || canCancel || canReject;
+  const hasPrimaryAction = canSubmit || canApprove || canPost;
+  const deleteControl = <BlockedDestructiveAction buttonLabel="Delete production job" title={`Cannot delete ${job.production_job_no}`} description={job.status === "posted" ? "This job has posted material consumption and output movements." : "Production jobs retain their approval and material history."} recommendation={job.status === "posted" ? "Use a controlled stock correction; physical deletion is prohibited." : "Cancel or reject the job through its current workflow."} />;
+  const secondaryActions = canReject || canCancel ? <div className="space-y-2">{canReject ? <form action={rejectProductionJob.bind(null, job.id)} className="space-y-2"><Input name="remarks" placeholder="Rejection remarks required" required /><SubmitButton type="submit" pendingLabel="Rejecting..." variant="destructive" className="w-full">Reject Production Job</SubmitButton></form> : null}{canCancel ? <DocumentActionForm action={cancelProductionJob.bind(null, job.id)} pendingLabel="Cancelling..." variant="outline" className="text-destructive hover:text-destructive">Cancel Production Job</DocumentActionForm> : null}{deleteControl}</div> : deleteControl;
+  const mobilePrimaryAction = canSubmit ? <DocumentActionForm action={submitProductionJob.bind(null, job.id)} pendingLabel="Submitting...">Submit Production Job</DocumentActionForm> : canApprove ? <ConfirmActionForm action={approveProductionJob.bind(null, job.id)} label="Approve as Manager" title="Approve this production job as Manager?" description="This makes the production job ready to post to stock." pendingLabel="Approving..." mobilePrimary /> : canPost ? <DocumentActionForm action={postProductionJob.bind(null, job.id)} pendingLabel="Posting...">Post Production to Stock</DocumentActionForm> : null;
 
   return (
     <DocumentWorkspace
@@ -59,25 +64,21 @@ export default async function ProductionJobDetailPage({
       branch={job.branch_name}
       workflowSteps={productionSteps}
       currentStatus={job.status}
+      mobilePrimaryAction={mobilePrimaryAction}
+      mobileActivity={documentBundle ? <><AttachmentPanel documentId={documentBundle.document.id} attachments={documentBundle.attachments} /><CommentsPanel documentId={documentBundle.document.id} comments={documentBundle.comments} /><DocumentTimeline document={documentBundle.document} activities={documentBundle.activityLogs} comments={documentBundle.comments} attachments={documentBundle.attachments} /></> : null}
+      mobileMoreOptions={<DocumentMoreOptions>{secondaryActions}</DocumentMoreOptions>}
       sidePanel={
         <>
           <DocumentSideSection title="Primary Action" description="Only valid next workflow actions are shown.">
             <DocumentActionBar>
-              {canSubmit ? <DocumentActionForm action={submitProductionJob.bind(null, job.id)} pendingLabel="Submitting...">Submit for Approval</DocumentActionForm> : null}
-              {canApprove ? <DocumentActionForm action={approveProductionJob.bind(null, job.id)} pendingLabel="Approving...">Approve</DocumentActionForm> : null}
-              {canPost ? <DocumentActionForm action={postProductionJob.bind(null, job.id)} pendingLabel="Posting...">Post Production</DocumentActionForm> : null}
-              {job.stock_transaction_id ? <DocumentActionLink href={`/stock-transactions/${job.stock_transaction_id}`} variant="outline">View Stock Movement</DocumentActionLink> : null}
-              {canCancel ? <DocumentActionForm action={cancelProductionJob.bind(null, job.id)} pendingLabel="Cancelling..." variant="outline" className="text-destructive hover:text-destructive">Cancel Job</DocumentActionForm> : null}
-              <BlockedDestructiveAction buttonLabel="Delete production job" title={`Cannot delete ${job.production_job_no}`} description={job.status === "posted" ? "This job has posted material consumption and output movements." : "Production jobs retain their approval and material history."} recommendation={job.status === "posted" ? "Use a controlled stock correction; physical deletion is prohibited." : "Cancel or reject the job through its current workflow."} />
+              {canSubmit ? <DocumentActionForm action={submitProductionJob.bind(null, job.id)} pendingLabel="Submitting...">Submit Production Job</DocumentActionForm> : null}
+              {canApprove ? <ConfirmActionForm action={approveProductionJob.bind(null, job.id)} label="Approve as Manager" title="Approve this production job as Manager?" description="This makes the production job ready to post to stock." pendingLabel="Approving..." mobilePrimary /> : null}
+              {canPost ? <DocumentActionForm action={postProductionJob.bind(null, job.id)} pendingLabel="Posting...">Post Production to Stock</DocumentActionForm> : null}
             </DocumentActionBar>
-            {canReject ? (
-              <form action={rejectProductionJob.bind(null, job.id)} className="mt-3 space-y-2">
-                <Input name="remarks" placeholder="Rejection remarks required" required />
-                <SubmitButton type="submit" pendingLabel="Rejecting..." variant="destructive">Reject</SubmitButton>
-              </form>
-            ) : null}
             {!hasPrimaryAction ? <p className="text-sm text-muted-foreground">You can view this production job, but there is no workflow action available for your role or this status.</p> : null}
           </DocumentSideSection>
+          <DocumentSideSection title="Validation / Next Step">{job.stock_transaction_id ? <DocumentActionLink href={`/stock-transactions/${job.stock_transaction_id}`} variant="outline">View Stock Movement</DocumentActionLink> : null}<p className="text-xs text-muted-foreground">{job.status === "draft" ? "Check recipe, output, and ingredient quantities before submission." : job.status === "submitted" ? "Manager approval is required before stock posting." : job.status === "approved" ? "Posting rechecks stock and creates the audited movement." : "Posted production is read-only."}</p></DocumentSideSection>
+          <DocumentSideSection title="More Options"><DocumentMoreOptions>{secondaryActions}</DocumentMoreOptions></DocumentSideSection>
           {hasShortage && job.status !== "posted" ? (
             <DocumentSideSection title="Ingredient Warning">
               <div className="flex gap-2 rounded-md bg-warning/10 p-3 text-sm text-warning">
@@ -88,8 +89,8 @@ export default async function ProductionJobDetailPage({
           ) : null}
           {documentBundle ? (
             <>
-              <CommentsPanel documentId={documentBundle.document.id} comments={documentBundle.comments} />
               <AttachmentPanel documentId={documentBundle.document.id} attachments={documentBundle.attachments} />
+              <CommentsPanel documentId={documentBundle.document.id} comments={documentBundle.comments} />
               <DocumentTimeline document={documentBundle.document} activities={documentBundle.activityLogs} comments={documentBundle.comments} attachments={documentBundle.attachments} />
               <RevisionPanel revisions={documentBundle.revisions} />
             </>
@@ -137,8 +138,7 @@ export default async function ProductionJobDetailPage({
             <h2 className="text-sm font-semibold">Ingredient Consumption</h2>
             <p className="text-sm font-semibold">{formatCurrency(totalIngredientCost)}</p>
           </div>
-          <div className="overflow-x-auto">
-            <Table>
+          <Table>
               <TableHeader>
                 <TableRow>
                   <TableHead>Ingredient</TableHead>
@@ -165,8 +165,7 @@ export default async function ProductionJobDetailPage({
                   </TableRow>
                 ))}
               </TableBody>
-            </Table>
-          </div>
+          </Table>
         </CardContent>
       </Card>
 
@@ -176,8 +175,7 @@ export default async function ProductionJobDetailPage({
             <h2 className="text-sm font-semibold">Output Lines</h2>
             <p className="text-sm font-semibold">{formatCurrency(outputLines.reduce((sum, line) => sum + line.line_cost, 0))}</p>
           </div>
-          <div className="overflow-x-auto">
-            <Table>
+          <Table>
               <TableHeader>
                 <TableRow>
                   <TableHead>Output</TableHead>
@@ -200,14 +198,10 @@ export default async function ProductionJobDetailPage({
                   </TableRow>
                 ))}
               </TableBody>
-            </Table>
-          </div>
+          </Table>
         </CardContent>
       </Card>
 
-      {documentBundle ? (
-        <p className="rounded-md border bg-secondary/30 p-3 text-sm text-muted-foreground">Comments, attachments, timeline, and revision history are available in the right panel.</p>
-      ) : null}
     </DocumentWorkspace>
   );
 }

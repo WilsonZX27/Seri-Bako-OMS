@@ -2,6 +2,8 @@ import { AlertTriangle } from "lucide-react";
 import { DocumentActionBar, DocumentActionForm } from "@/components/document-action-bar";
 import { AttachmentPanel, CommentsPanel, DocumentTimeline, RevisionPanel } from "@/components/documents/document-panels";
 import { DocumentSideSection, DocumentWorkspace } from "@/components/documents/document-workspace";
+import { DocumentMoreOptions } from "@/components/documents/mobile-document-surfaces";
+import { ConfirmActionForm } from "@/components/ui/confirm-action-form";
 import { Card, CardContent } from "@/components/ui/card";
 import { BlockedDestructiveAction } from "@/components/ui/danger-confirm-form";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -34,7 +36,10 @@ export default async function StockCountDetailPage({ params }: { params: Promise
   const canPost = ["approved", "reviewed"].includes(count.status) && permissions["stock_count.post"];
   const canCancel = ["draft", "submitted", "reviewed"].includes(count.status) && permissions["stock_count.cancel"];
   const canReject = ["submitted", "reviewed"].includes(count.status) && permissions["stock_count.approve"];
-  const hasPrimaryAction = canSubmit || canReview || canApprove || canPost || canCancel || canReject;
+  const hasPrimaryAction = canSubmit || canReview || canApprove || canPost;
+  const deleteControl = <BlockedDestructiveAction buttonLabel="Delete stock count" title={`Cannot delete ${count.count_no}`} description={count.status === "posted" ? "This count produced an auditable variance adjustment." : "The count preserves physical quantities and workflow review."} recommendation={count.status === "posted" ? "Post a new count or correction; physical deletion is prohibited." : "Cancel or reject the count through its current workflow."} />;
+  const secondaryActions = canReject || canCancel ? <div className="space-y-2">{canReject ? <DocumentActionForm action={rejectStockCount.bind(null, count.id)} pendingLabel="Rejecting..." variant="destructive">Reject stock count</DocumentActionForm> : null}{canCancel ? <DocumentActionForm action={cancelStockCount.bind(null, count.id)} pendingLabel="Cancelling..." variant="ghost">Cancel stock count</DocumentActionForm> : null}{deleteControl}</div> : deleteControl;
+  const mobilePrimaryAction = canSubmit ? <DocumentActionForm action={submitStockCount.bind(null, count.id)} pendingLabel="Submitting...">Submit Stock Count</DocumentActionForm> : canReview ? <DocumentActionForm action={reviewStockCount.bind(null, count.id)} pendingLabel="Reviewing...">Review Stock Count</DocumentActionForm> : canApprove ? <ConfirmActionForm action={approveStockCount.bind(null, count.id)} label="Approve Stock Count" title="Approve this stock count?" description="This makes the verified variance ready for posting." pendingLabel="Approving..." mobilePrimary /> : canPost ? <DocumentActionForm action={postStockCount.bind(null, count.id)} pendingLabel="Posting...">Post Stock Variance</DocumentActionForm> : null;
 
   return (
     <DocumentWorkspace
@@ -45,23 +50,25 @@ export default async function StockCountDetailPage({ params }: { params: Promise
       branch={count.branch_name}
       workflowSteps={stockCountSteps}
       currentStatus={count.status}
+      mobilePrimaryAction={mobilePrimaryAction}
+      mobileActivity={documentBundle ? <><AttachmentPanel documentId={documentBundle.document.id} attachments={documentBundle.attachments} /><CommentsPanel documentId={documentBundle.document.id} comments={documentBundle.comments} /><DocumentTimeline document={documentBundle.document} activities={documentBundle.activityLogs} comments={documentBundle.comments} attachments={documentBundle.attachments} /></> : null}
+      mobileMoreOptions={<DocumentMoreOptions>{secondaryActions}</DocumentMoreOptions>}
       sidePanel={
         <>
           <DocumentSideSection title="Primary Action" description="Only valid stock count actions are shown.">
             {hasPrimaryAction ? (
               <DocumentActionBar>
-                {canSubmit ? <DocumentActionForm action={submitStockCount.bind(null, count.id)} pendingLabel="Submitting..." variant="secondary">Submit</DocumentActionForm> : null}
-                {canReview ? <DocumentActionForm action={reviewStockCount.bind(null, count.id)} pendingLabel="Reviewing..." variant="outline">Review</DocumentActionForm> : null}
-                {canApprove ? <DocumentActionForm action={approveStockCount.bind(null, count.id)} pendingLabel="Approving...">Approve</DocumentActionForm> : null}
-                {canPost ? <DocumentActionForm action={postStockCount.bind(null, count.id)} pendingLabel="Posting..." variant="outline">Post variance</DocumentActionForm> : null}
-                {canReject ? <DocumentActionForm action={rejectStockCount.bind(null, count.id)} pendingLabel="Rejecting..." variant="destructive">Reject</DocumentActionForm> : null}
-                {canCancel ? <DocumentActionForm action={cancelStockCount.bind(null, count.id)} pendingLabel="Cancelling..." variant="ghost">Cancel</DocumentActionForm> : null}
-                <BlockedDestructiveAction buttonLabel="Delete stock count" title={`Cannot delete ${count.count_no}`} description={count.status === "posted" ? "This count produced an auditable variance adjustment." : "The count preserves physical quantities and workflow review."} recommendation={count.status === "posted" ? "Post a new count or correction; physical deletion is prohibited." : "Cancel or reject the count through its current workflow."} />
+                {canSubmit ? <DocumentActionForm action={submitStockCount.bind(null, count.id)} pendingLabel="Submitting...">Submit Stock Count</DocumentActionForm> : null}
+                {canReview ? <DocumentActionForm action={reviewStockCount.bind(null, count.id)} pendingLabel="Reviewing...">Review Stock Count</DocumentActionForm> : null}
+                {canApprove ? <ConfirmActionForm action={approveStockCount.bind(null, count.id)} label="Approve Stock Count" title="Approve this stock count?" description="This makes the verified variance ready for posting." pendingLabel="Approving..." mobilePrimary /> : null}
+                {canPost ? <DocumentActionForm action={postStockCount.bind(null, count.id)} pendingLabel="Posting...">Post Stock Variance</DocumentActionForm> : null}
               </DocumentActionBar>
             ) : (
               <p className="text-sm text-muted-foreground">You can view this count, but there is no workflow action available for your role or this status.</p>
             )}
           </DocumentSideSection>
+          <DocumentSideSection title="Validation / Next Step"><p className="text-xs text-muted-foreground">{count.status === "draft" ? "Enter physical quantities and submit the completed count for review." : count.status === "submitted" ? "Review the count and resolve high-variance evidence before approval." : count.status === "approved" ? "Post the verified variance to stock." : "Posted counts remain read-only."}</p></DocumentSideSection>
+          <DocumentSideSection title="More Options"><DocumentMoreOptions>{secondaryActions}</DocumentMoreOptions></DocumentSideSection>
           {highVarianceLines.length && !hasHighVarianceAttachment ? (
             <DocumentSideSection title="Attachment Required">
               <div className="flex gap-2 rounded-md bg-warning/10 p-3 text-sm text-warning">
@@ -72,8 +79,8 @@ export default async function StockCountDetailPage({ params }: { params: Promise
           ) : null}
           {documentBundle ? (
             <>
-              <CommentsPanel documentId={documentBundle.document.id} comments={documentBundle.comments} />
               <AttachmentPanel documentId={documentBundle.document.id} attachments={documentBundle.attachments} />
+              <CommentsPanel documentId={documentBundle.document.id} comments={documentBundle.comments} />
               <DocumentTimeline document={documentBundle.document} activities={documentBundle.activityLogs} comments={documentBundle.comments} attachments={documentBundle.attachments} />
               <RevisionPanel revisions={documentBundle.revisions} />
             </>
@@ -81,6 +88,7 @@ export default async function StockCountDetailPage({ params }: { params: Promise
         </>
       }
     >
+      {highVarianceLines.length && !hasHighVarianceAttachment && documentBundle ? <div className="md:hidden"><AttachmentPanel documentId={documentBundle.document.id} attachments={documentBundle.attachments} title="Count Evidence Required" description="Attach a count sheet photo or supporting proof before final approval." presentation="inline" documentStatus={documentBundle.document.status} /></div> : null}
       <Card>
         <CardContent className="space-y-4 p-5">
           <h2 className="text-sm font-semibold">Count Summary</h2>
@@ -97,8 +105,7 @@ export default async function StockCountDetailPage({ params }: { params: Promise
       <Card>
         <CardContent className="p-5">
           <h2 className="mb-3 text-sm font-semibold">Count Lines</h2>
-          <div className="overflow-x-auto">
-            <Table>
+          <Table>
               <TableHeader>
                 <TableRow>
                   <TableHead>Item</TableHead>
@@ -126,8 +133,7 @@ export default async function StockCountDetailPage({ params }: { params: Promise
                   );
                 })}
               </TableBody>
-            </Table>
-          </div>
+          </Table>
         </CardContent>
       </Card>
     </DocumentWorkspace>

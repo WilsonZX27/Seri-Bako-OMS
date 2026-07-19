@@ -1,6 +1,7 @@
 import { DocumentActionBar, DocumentActionForm, DocumentActionLink } from "@/components/document-action-bar";
 import { AttachmentPanel, CommentsPanel, DocumentTimeline, RevisionPanel } from "@/components/documents/document-panels";
 import { DocumentSideSection, DocumentWorkspace } from "@/components/documents/document-workspace";
+import { DocumentMoreOptions } from "@/components/documents/mobile-document-surfaces";
 import { Card, CardContent } from "@/components/ui/card";
 import { BlockedDestructiveAction } from "@/components/ui/danger-confirm-form";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -26,6 +27,8 @@ export default async function PurchaseReturnDetailPage({ params, searchParams }:
   const totalValue = lines.reduce((sum, line) => sum + Number(line.return_qty) * Number(line.unit_cost), 0);
   const canPost = permissions["purchase_return.post"] && purchaseReturn.status === "draft";
   const canCancel = permissions["purchase_return.cancel"] && purchaseReturn.status === "draft";
+  const deleteControl = <BlockedDestructiveAction buttonLabel="Delete return" title={`Cannot delete ${purchaseReturn.purchase_return_no}`} description={purchaseReturn.status === "posted" ? "This return has stock-impacting ledger rows and must remain auditable." : "This return is linked to its goods receiving record."} recommendation={purchaseReturn.status === "draft" ? "Cancel the draft to preserve its relationship history." : "Create a correction through the existing stock workflow; physical deletion is prohibited."} />;
+  const secondaryActions = canCancel ? <div className="space-y-2"><DocumentActionForm action={cancelPurchaseReturn.bind(null, purchaseReturn.id)} pendingLabel="Cancelling..." variant="destructive">Cancel draft</DocumentActionForm>{deleteControl}</div> : deleteControl;
 
   return (
     <DocumentWorkspace
@@ -35,17 +38,19 @@ export default async function PurchaseReturnDetailPage({ params, searchParams }:
       status={purchaseReturn.status}
       workflowSteps={steps}
       currentStatus={purchaseReturn.status}
+      mobilePrimaryAction={canPost ? <DocumentActionForm action={postPurchaseReturn.bind(null, purchaseReturn.id)} pendingLabel="Posting...">Post Return to Stock</DocumentActionForm> : null}
+      mobileActivity={documentBundle ? <><AttachmentPanel documentId={documentBundle.document.id} attachments={documentBundle.attachments} /><CommentsPanel documentId={documentBundle.document.id} comments={documentBundle.comments} /><DocumentTimeline document={documentBundle.document} activities={documentBundle.activityLogs} comments={documentBundle.comments} attachments={documentBundle.attachments} /></> : null}
+      mobileMoreOptions={<DocumentMoreOptions>{secondaryActions}</DocumentMoreOptions>}
       sidePanel={
         <>
           <DocumentSideSection title="Primary Action" description="Post after supplier return quantity is checked. Posting deducts stock once.">
             <DocumentActionBar>
-              <DocumentActionLink href={`/goods-receivings/${purchaseReturn.goods_receiving_id}`} variant="outline">View GRN</DocumentActionLink>
               {canPost ? <DocumentActionForm action={postPurchaseReturn.bind(null, purchaseReturn.id)} pendingLabel="Posting...">Post return</DocumentActionForm> : null}
-              {canCancel ? <DocumentActionForm action={cancelPurchaseReturn.bind(null, purchaseReturn.id)} pendingLabel="Cancelling..." variant="destructive">Cancel draft</DocumentActionForm> : null}
-              <BlockedDestructiveAction buttonLabel="Delete return" title={`Cannot delete ${purchaseReturn.purchase_return_no}`} description={purchaseReturn.status === "posted" ? "This return has stock-impacting ledger rows and must remain auditable." : "This return is linked to its goods receiving record."} recommendation={purchaseReturn.status === "draft" ? "Cancel the draft to preserve its relationship history." : "Create a correction through the existing stock workflow; physical deletion is prohibited."} />
             </DocumentActionBar>
             {filters.error ? <p className="mt-3 text-sm text-destructive">{filters.error}</p> : null}
           </DocumentSideSection>
+          <DocumentSideSection title="Validation / Next Step"><DocumentActionLink href={`/goods-receivings/${purchaseReturn.goods_receiving_id}`} variant="outline">View Goods Receiving</DocumentActionLink><p className="text-xs text-muted-foreground">{purchaseReturn.status === "draft" ? "Check supplier, item, and return quantities before posting." : "Posted returns remain in the stock audit trail."}</p></DocumentSideSection>
+          <DocumentSideSection title="More Options"><DocumentMoreOptions>{secondaryActions}</DocumentMoreOptions></DocumentSideSection>
           <DocumentSideSection title="Movement Ledger">
             <div className="grid gap-2 text-xs">
               <div className="flex justify-between"><span className="text-muted-foreground">Ledger Rows</span><strong>{stockTransactions.filter((row) => row.reference_id === purchaseReturn.id).length}</strong></div>
@@ -59,8 +64,8 @@ export default async function PurchaseReturnDetailPage({ params, searchParams }:
           </DocumentSideSection>
           {documentBundle ? (
             <>
-              <CommentsPanel documentId={documentBundle.document.id} comments={documentBundle.comments} />
               <AttachmentPanel documentId={documentBundle.document.id} attachments={documentBundle.attachments} />
+              <CommentsPanel documentId={documentBundle.document.id} comments={documentBundle.comments} />
               <DocumentTimeline document={documentBundle.document} activities={documentBundle.activityLogs} comments={documentBundle.comments} attachments={documentBundle.attachments} />
               <RevisionPanel revisions={documentBundle.revisions} />
             </>
@@ -86,8 +91,7 @@ export default async function PurchaseReturnDetailPage({ params, searchParams }:
             <h2 className="text-sm font-semibold">Returned Items</h2>
             <p className="text-sm font-semibold">{formatCurrency(totalValue)}</p>
           </div>
-          <div className="overflow-x-auto">
-            <Table>
+          <Table>
               <TableHeader>
                 <TableRow>
                   <TableHead>Item</TableHead>
@@ -112,8 +116,7 @@ export default async function PurchaseReturnDetailPage({ params, searchParams }:
                   </TableRow>
                 ))}
               </TableBody>
-            </Table>
-          </div>
+          </Table>
         </CardContent>
       </Card>
     </DocumentWorkspace>

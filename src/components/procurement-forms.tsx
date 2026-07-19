@@ -180,7 +180,7 @@ export function PurchaseRequestForm({
                       <div className="mt-3 grid gap-3 md:grid-cols-3">
                         <Field label="Suggested supplier"><SelectNative name="line_suggested_supplier_id" value={line.supplierId} onChange={(event) => updateLine(line.key, { supplierId: event.target.value })}><option value="">No suggestion</option>{suppliers.map((supplier) => <option key={supplier.id} value={supplier.id}>{supplier.name}</option>)}</SelectNative></Field>
                         <Field label="Estimated unit cost"><Input name="line_estimated_unit_cost" type="number" min="0" step="0.0001" value={line.cost} onChange={(event) => updateLine(line.key, { cost: event.target.value })} /></Field>
-                        <Field label="Line note"><Input name="line_remarks" value={line.remarks} onChange={(event) => updateLine(line.key, { remarks: event.target.value })} placeholder="Optional" /></Field>
+                        <Field label="Remarks"><Input name="line_remarks" value={line.remarks} onChange={(event) => updateLine(line.key, { remarks: event.target.value })} placeholder="Optional" /></Field>
                       </div>
                     </details>
                   ) : (

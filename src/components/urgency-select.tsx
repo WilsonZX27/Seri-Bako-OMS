@@ -8,7 +8,7 @@ import { cn } from "@/lib/utils";
 export function UrgencySelect({ value, onValueChange, name = "priority" }: { value: ProcurementPriority; onValueChange: (value: ProcurementPriority) => void; name?: string }) {
   return (
     <Select.Root name={name} value={value} onValueChange={(next) => onValueChange(next as ProcurementPriority)}>
-      <Select.Trigger className="flex h-9 w-full items-center justify-between rounded-[var(--sb-radius-control)] border border-input bg-background px-3 text-sm focus:outline-none focus:ring-2 focus:ring-ring" aria-label="Urgency">
+      <Select.Trigger className="flex h-[var(--sb-control-height)] w-full items-center justify-between rounded-[var(--sb-radius-control)] border border-input bg-background px-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-ring" aria-label="Urgency">
         <Select.Value>
           <span className={cn("inline-flex rounded-full border px-2 py-0.5 text-xs font-semibold", priorityClassName(value))}>
             {priorityOptions.find((option) => option.value === value)?.label}
@@ -17,10 +17,10 @@ export function UrgencySelect({ value, onValueChange, name = "priority" }: { val
         <Select.Icon><ChevronDown className="h-4 w-4 text-muted-foreground" /></Select.Icon>
       </Select.Trigger>
       <Select.Portal>
-        <Select.Content position="popper" sideOffset={4} className="z-[80] min-w-[var(--radix-select-trigger-width)] overflow-hidden rounded-md border bg-popover p-1 text-popover-foreground shadow-md">
+        <Select.Content position="popper" sideOffset={4} collisionPadding={8} className="z-[var(--sb-z-dropdown)] min-w-[var(--radix-select-trigger-width)] overflow-hidden rounded-[2px] border border-[var(--sb-border-soft)] bg-white p-1 text-foreground shadow-[0_6px_18px_rgb(6_44_31_/_0.12)]">
           <Select.Viewport>
             {priorityOptions.map((option) => (
-              <Select.Item key={option.value} value={option.value} className="relative flex cursor-default select-none items-center rounded-sm px-8 py-2 text-sm outline-none focus:bg-accent data-[disabled]:pointer-events-none data-[disabled]:opacity-50">
+              <Select.Item key={option.value} value={option.value} className="relative flex min-h-8 cursor-default select-none items-center rounded-[2px] px-8 py-1.5 text-sm outline-none focus:bg-[var(--sb-amber-100)] data-[disabled]:pointer-events-none data-[disabled]:opacity-50">
                 <Select.ItemIndicator className="absolute left-2"><Check className="h-4 w-4" /></Select.ItemIndicator>
                 <Select.ItemText>
                   <span className={cn("inline-flex rounded-full border px-2 py-0.5 text-xs font-semibold", priorityClassName(option.value))}>{option.label}</span>

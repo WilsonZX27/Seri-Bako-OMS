@@ -3,9 +3,8 @@ import { PurchaseRequestForm } from "@/components/procurement-forms";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { SubmitButton } from "@/components/ui/submit-button";
-import { PageHeader } from "@/components/ui/page-header";
-import { ConsoleSection } from "@/components/layout/right-console";
-import { WorkspaceGrid } from "@/components/layout/workspace-layout";
+import { DocumentMoreOptions } from "@/components/documents/mobile-document-surfaces";
+import { DocumentSideSection, DocumentWorkspace } from "@/components/documents/document-workspace";
 import { createPurchaseRequest } from "@/server/actions/procurement";
 import { hasPermission } from "@/server/auth/permissions";
 import { getBranchesForSelect, getCurrentProfile, getItemsForSelect, getSuppliersForSelect } from "@/server/queries/common";
@@ -30,30 +29,38 @@ export default async function NewPurchaseRequestPage({ searchParams }: { searchP
     cost: String(initialItem.cost ?? 0),
     remarks: params.notes ?? "",
   } : undefined;
+  const primaryAction = <SubmitButton type="submit" form="purchase-request-form" name="intent" value="submit" pendingLabel="Submitting..." className="w-full">Submit PR</SubmitButton>;
+  const secondaryActions = <div className="grid gap-2"><SubmitButton type="submit" form="purchase-request-form" name="intent" value="draft" pendingLabel="Saving..." variant="outline" className="w-full">Save Draft</SubmitButton><Button asChild variant="ghost" className="w-full"><Link href="/purchase-requests">Cancel</Link></Button></div>;
+  const workflowSteps = [
+    { key: "draft", label: "Draft", description: "Request details and items can be edited." },
+    { key: "manager_review", label: "Manager", description: "Manager reviews the operational need." },
+    { key: "purchasing_review", label: "Purchasing", description: "Purchasing checks sourcing." },
+    { key: "finance_review", label: "Finance", description: "Finance reviews the commitment." },
+    { key: "ready_to_convert", label: "Ready", description: "The approved request can become a PO." },
+  ];
   return (
-    <>
-      <PageHeader title="New Purchase Request" />
-      <WorkspaceGrid
-        hideMobileConsole
-        className="pb-20 xl:pb-3"
-        rightRail={
-          <div>
-            <ConsoleSection title="PR Actions">
-              <div className="grid gap-2">
-                <SubmitButton type="submit" form="purchase-request-form" name="intent" value="draft" pendingLabel="Saving..." variant="outline" className="w-full">Save Draft</SubmitButton>
-                <SubmitButton type="submit" form="purchase-request-form" name="intent" value="submit" pendingLabel="Submitting..." className="w-full">Submit PR</SubmitButton>
-                <Button asChild variant="ghost" className="w-full"><Link href="/purchase-requests">Cancel</Link></Button>
-              </div>
-            </ConsoleSection>
-            <ConsoleSection title="Request Summary">
+      <DocumentWorkspace
+        breadcrumbs={[{ label: "Purchase Requests", href: "/purchase-requests" }, { label: "New" }]}
+        documentNo="New Purchase Request"
+        title="Purchase Request"
+        status="draft"
+        branch={branches.find((branch) => branch.id === params.branch_id)?.branch_name}
+        workflowSteps={workflowSteps}
+        currentStatus="draft"
+        mobilePrimaryAction={primaryAction}
+        mobileMoreOptions={<DocumentMoreOptions>{secondaryActions}</DocumentMoreOptions>}
+        sidePanel={<>
+            <DocumentSideSection title="Primary Action">{primaryAction}</DocumentSideSection>
+            <DocumentSideSection title="Validation / Next Step"><p className="text-xs text-muted-foreground">Add at least one item before submitting this purchase request.</p></DocumentSideSection>
+            <DocumentSideSection title="Request Summary">
               <div className="grid gap-2 text-xs">
                 <div className="flex justify-between gap-3"><span className="text-muted-foreground">Status</span><strong>Draft</strong></div>
                 <div className="flex justify-between gap-3"><span className="text-muted-foreground">Number</span><strong>Auto</strong></div>
                 <div className="flex justify-between gap-3"><span className="text-muted-foreground">Lines</span><strong>Review before submit</strong></div>
               </div>
-            </ConsoleSection>
-          </div>
-        }
+            </DocumentSideSection>
+            <DocumentSideSection title="More Options"><DocumentMoreOptions>{secondaryActions}</DocumentMoreOptions></DocumentSideSection>
+          </>}
       >
         {params.error ? <Card><CardContent className="p-4 text-sm text-destructive">{params.error}</CardContent></Card> : null}
         <PurchaseRequestForm
@@ -66,11 +73,6 @@ export default async function NewPurchaseRequestPage({ searchParams }: { searchP
           canViewCommercial={canViewCommercial}
           action={createPurchaseRequest}
         />
-        <div data-inline-form-actions className="fixed inset-x-3 bottom-[calc(env(safe-area-inset-bottom)+0.5rem)] z-40 grid grid-cols-2 gap-2 border bg-background p-2 shadow-sm xl:hidden">
-          <SubmitButton type="submit" form="purchase-request-form" name="intent" value="draft" pendingLabel="Saving..." variant="outline">Save Draft</SubmitButton>
-          <SubmitButton type="submit" form="purchase-request-form" name="intent" value="submit" pendingLabel="Submitting...">Submit PR</SubmitButton>
-        </div>
-      </WorkspaceGrid>
-    </>
+      </DocumentWorkspace>
   );
 }

@@ -18,7 +18,7 @@ export default async function NewItemPage() {
     return (
       <>
         <PageHeader title="New Item" description="Create an ingredient or packaging item." />
-        <RecordWorkspace actionPanel={<RecordActionPanel title="Item Actions" description="Creating an item changes master data only; stock remains ledger-controlled."><Button type="submit" form="item-create-form" className="w-full">Create Item</Button><Button asChild variant="outline" className="w-full"><Link href="/items">Cancel</Link></Button></RecordActionPanel>}>
+        <RecordWorkspace actionPanel={<RecordActionPanel title="Primary Action" description="Creating an item changes master data only; stock remains ledger-controlled."><Button type="submit" form="item-create-form" className="w-full" data-mobile-primary-action>Create Item</Button><Button asChild variant="outline" className="w-full"><Link href="/items">Cancel</Link></Button></RecordActionPanel>}>
           <ItemForm formId="item-create-form" suppliers={suppliers} action={createItem} showSubmit={false} canCreateSupplier={canCreateSupplier} />
         </RecordWorkspace>
       </>

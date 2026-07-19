@@ -39,7 +39,8 @@ test("supplier invoice evidence is required for Finance Review", () => {
   const detail = source("src/app/(app)/supplier-invoices/[id]/page.tsx");
   assert.match(action, /Attach the supplier invoice before sending it to Finance Review/);
   assert.match(detail, /Attach Supplier Invoice/);
-  assert.match(detail, /Send to Finance Review/);
+  assert.match(detail, /Approve as Finance/);
+  assert.match(detail, /ConfirmActionForm/);
 });
 
 test("PO preparation and shared attachments expose stage-specific evidence", () => {
@@ -53,6 +54,6 @@ test("PO preparation and shared attachments expose stage-specific evidence", () 
 
 test("release identifies Sprint 7.23.5", () => {
   const version = source("src/lib/app-version.ts");
-  assert.match(version, /APP_VERSION = "7\.23\.5\.4"/);
-  assert.match(version, /APP_SPRINT = "v7\.23\.5\.4"/);
+  assert.match(version, /APP_VERSION = "7\.23\.5\.5"/);
+  assert.match(version, /APP_SPRINT = "v7\.23\.5\.5"/);
 });

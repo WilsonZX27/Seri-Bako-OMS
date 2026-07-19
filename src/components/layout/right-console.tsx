@@ -4,9 +4,10 @@ import { PanelRight, X } from "lucide-react";
 import { Children, createContext, isValidElement, useContext, useEffect, useId, useMemo, useRef, useState } from "react";
 import type { ReactNode } from "react";
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 
 type RightConsoleContextValue = {
-  setContent: (content: ReactNode, hideMobileBar?: boolean) => void;
+  setContent: (content: ReactNode, hideMobileBar?: boolean, mobileOnlyBar?: boolean) => void;
   clearContent: () => void;
 };
 
@@ -25,19 +26,22 @@ function findMobilePrimaryAction(node: ReactNode): ReactNode {
 export function RightConsoleProvider({ children }: { children: ReactNode }) {
   const [content, setContentState] = useState<ReactNode>(null);
   const [mobileBarHidden, setMobileBarHidden] = useState(false);
+  const [mobileOnlyBar, setMobileOnlyBar] = useState(false);
   const [open, setOpen] = useState(false);
   const dialogRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
   const titleId = useId();
   const value = useMemo(
     () => ({
-      setContent: (nextContent: ReactNode, hideMobileBar = false) => {
+      setContent: (nextContent: ReactNode, hideMobileBar = false, nextMobileOnlyBar = false) => {
         setContentState(nextContent);
         setMobileBarHidden(hideMobileBar);
+        setMobileOnlyBar(nextMobileOnlyBar);
       },
       clearContent: () => {
         setContentState(null);
         setMobileBarHidden(false);
+        setMobileOnlyBar(false);
       },
     }),
     [],
@@ -91,7 +95,7 @@ export function RightConsoleProvider({ children }: { children: ReactNode }) {
           {consoleContent}
         </div>
       </aside>
-      {!mobileBarHidden ? <div data-mobile-action-bar className="fixed inset-x-3 bottom-[calc(env(safe-area-inset-bottom)+0.5rem)] z-40 flex items-center gap-2 border border-t-2 border-[var(--sb-border)] border-t-[var(--sb-green-900)] bg-gradient-to-t from-white to-[var(--sb-surface-muted)] p-2 shadow-[0_-8px_24px_rgba(6,44,31,0.14)] xl:hidden">
+      {!mobileBarHidden ? <div data-mobile-action-bar className={cn("sb-mobile-action-bar fixed inset-x-3 bottom-[calc(env(safe-area-inset-bottom)+0.5rem)] z-[var(--sb-z-sticky)] flex items-center gap-2 p-2", mobileOnlyBar ? "md:hidden" : "xl:hidden")}>
         {primaryAction ? <div data-mobile-primary-slot className="min-w-0 flex-1 [&>*]:w-full">{primaryAction}</div> : null}
         <Button ref={triggerRef} type="button" variant={primaryAction ? "outline" : "default"} className={primaryAction ? "shrink-0 gap-2" : "w-full gap-2"} onClick={() => setOpen(true)} aria-label="Open page actions" aria-haspopup="dialog" aria-expanded={open}>
           <PanelRight className="h-4 w-4" aria-hidden="true" />
@@ -99,7 +103,7 @@ export function RightConsoleProvider({ children }: { children: ReactNode }) {
         </Button>
       </div> : null}
       {open && !mobileBarHidden ? (
-        <div className="fixed inset-0 z-50 xl:hidden">
+        <div className={cn("fixed inset-0 z-[var(--sb-z-dialog)]", mobileOnlyBar ? "md:hidden" : "xl:hidden")}>
           <button type="button" className="absolute inset-0 h-full w-full bg-[var(--sb-green-950)]/55" onClick={close} aria-label="Close page actions" />
           <div ref={dialogRef} role="dialog" aria-modal="true" aria-labelledby={titleId} className="absolute inset-x-0 bottom-0 max-h-[82dvh] overflow-hidden border-t border-[var(--sb-border)] bg-white pb-[env(safe-area-inset-bottom)]">
             <header className="flex h-12 items-center justify-between border-b px-3">
@@ -114,13 +118,13 @@ export function RightConsoleProvider({ children }: { children: ReactNode }) {
   );
 }
 
-export function RightConsoleMount({ children, hideMobileBar = false }: { children: ReactNode; hideMobileBar?: boolean }) {
+export function RightConsoleMount({ children, hideMobileBar = false, mobileOnlyBar = false }: { children: ReactNode; hideMobileBar?: boolean; mobileOnlyBar?: boolean }) {
   const context = useContext(RightConsoleContext);
 
   useEffect(() => {
-    context?.setContent(children, hideMobileBar);
+    context?.setContent(children, hideMobileBar, mobileOnlyBar);
     return () => context?.clearContent();
-  }, [children, context, hideMobileBar]);
+  }, [children, context, hideMobileBar, mobileOnlyBar]);
 
   return null;
 }

@@ -7,6 +7,8 @@ import { StatusBadge } from "@/components/ui/status-badge";
 import { AttachmentPanel, CommentsPanel, DocumentTimeline, RevisionPanel } from "@/components/documents/document-panels";
 import { DocumentSideSection, DocumentWorkspace } from "@/components/documents/document-workspace";
 import { MobileTaskSheet } from "@/components/documents/mobile-document-surfaces";
+import { DocumentMoreOptions } from "@/components/documents/mobile-document-surfaces";
+import { ConfirmActionForm } from "@/components/ui/confirm-action-form";
 import { PriorityBadge } from "@/components/priority-badge";
 import { formatCurrency, formatNumber } from "@/lib/utils";
 import { approvePurchaseOrder, closePurchaseOrder, rejectPurchaseOrder, sendPurchaseOrder, submitPurchaseOrder } from "@/server/actions/procurement";
@@ -53,12 +55,15 @@ export default async function PurchaseOrderDetailPage({ params }: { params: Prom
     (!fromApprovedPr && order.status === "draft" && permissions["po.submit"]) ||
     (!fromApprovedPr && order.status === "pending_approval" && permissions["po.approve"]) ||
     (order.status === "approved" && permissions["po.send"]) ||
-    (["sent", "partial_received"].includes(order.status) && permissions["po.receive"]) ||
-    (order.status === "partial_received" && permissions["purchase_order.close"]);
+    (["sent", "partial_received"].includes(order.status) && permissions["po.receive"]);
+  const canReject = !fromApprovedPr && order.status === "pending_approval" && permissions["po.approve"];
+  const canClose = order.status === "partial_received" && permissions["purchase_order.close"];
+  const secondaryActions = canReject || canClose ? <div className="space-y-2">{canReject ? <DocumentActionForm action={rejectPurchaseOrder.bind(null, order.id)} pendingLabel="Rejecting..." variant="destructive">Reject purchase order</DocumentActionForm> : null}{canClose ? <DocumentActionForm action={closePurchaseOrder.bind(null, order.id)} pendingLabel="Closing..." variant="outline">Close purchase order</DocumentActionForm> : null}</div> : null;
+  const nextStep = (fromApprovedPr ? convertedPoSteps : poSteps).find((step) => step.key === order.status)?.description;
   const mobilePrimaryAction = !fromApprovedPr && order.status === "draft" && permissions["po.submit"]
     ? <DocumentActionForm action={submitPurchaseOrder.bind(null, order.id)} pendingLabel="Submitting...">Submit Purchase Order</DocumentActionForm>
     : !fromApprovedPr && order.status === "pending_approval" && permissions["po.approve"]
-      ? <DocumentActionForm action={approvePurchaseOrder.bind(null, order.id)} pendingLabel="Approving...">Review Purchase Order</DocumentActionForm>
+      ? <ConfirmActionForm action={approvePurchaseOrder.bind(null, order.id)} label="Approve as Manager" title="Approve this purchase order as Manager?" description="This makes the purchase order ready to send to the supplier." pendingLabel="Approving..." mobilePrimary />
       : order.status === "approved" && permissions["po.send"]
         ? <MobileTaskSheet label="Send to Supplier"><div className="space-y-3">{documentBundle ? <AttachmentPanel documentId={documentBundle.document.id} attachments={documentBundle.attachments} title="Purchase Order file" description="Attach the AutoCount or supplier-facing PO before sending." defaultLabel="Purchase Order" uploadLabel="Attach Purchase Order" canManage={permissions["documents.attach"]} documentStatus={documentBundle.document.status} /> : null}<DocumentActionForm action={sendPurchaseOrder.bind(null, order.id)} pendingLabel="Sending...">Send to Supplier</DocumentActionForm></div></MobileTaskSheet>
         : ["sent", "partial_received"].includes(order.status) && permissions["po.receive"]
@@ -75,28 +80,27 @@ export default async function PurchaseOrderDetailPage({ params }: { params: Prom
       workflowSteps={fromApprovedPr ? convertedPoSteps : poSteps}
       currentStatus={order.status}
       mobilePrimaryAction={mobilePrimaryAction}
-      mobileActivity={documentBundle ? <><CommentsPanel documentId={documentBundle.document.id} comments={documentBundle.comments} /><AttachmentPanel documentId={documentBundle.document.id} attachments={documentBundle.attachments} title="Purchase Order files" canManage={false} documentStatus={documentBundle.document.status} /><DocumentTimeline document={documentBundle.document} activities={documentBundle.activityLogs} comments={documentBundle.comments} attachments={documentBundle.attachments} /></> : null}
+      mobileActivity={documentBundle ? <><AttachmentPanel documentId={documentBundle.document.id} attachments={documentBundle.attachments} title="Purchase Order files" canManage={false} documentStatus={documentBundle.document.status} /><CommentsPanel documentId={documentBundle.document.id} comments={documentBundle.comments} /><DocumentTimeline document={documentBundle.document} activities={documentBundle.activityLogs} comments={documentBundle.comments} attachments={documentBundle.attachments} /></> : null}
+      mobileMoreOptions={secondaryActions ? <DocumentMoreOptions>{secondaryActions}</DocumentMoreOptions> : null}
       sidePanel={
         <>
           <DocumentSideSection title="Primary Action" description="Only the next valid workflow action is shown.">
             <DocumentActionBar>
               {!fromApprovedPr && order.status === "draft" && permissions["po.submit"] ? <DocumentActionForm action={submitPurchaseOrder.bind(null, order.id)} pendingLabel="Submitting...">Submit approval</DocumentActionForm> : null}
               {!fromApprovedPr && order.status === "pending_approval" && permissions["po.approve"] ? (
-                <>
-                  <DocumentActionForm action={approvePurchaseOrder.bind(null, order.id)} pendingLabel="Approving...">Approve</DocumentActionForm>
-                  <DocumentActionForm action={rejectPurchaseOrder.bind(null, order.id)} pendingLabel="Rejecting..." variant="destructive">Reject</DocumentActionForm>
-                </>
+                <ConfirmActionForm action={approvePurchaseOrder.bind(null, order.id)} label="Approve as Manager" title="Approve this purchase order as Manager?" description="This makes the purchase order ready to send to the supplier." pendingLabel="Approving..." mobilePrimary />
               ) : null}
               {order.status === "approved" && permissions["po.send"] ? <DocumentActionForm action={sendPurchaseOrder.bind(null, order.id)} pendingLabel="Sending..." mobilePrimary>Send to supplier</DocumentActionForm> : null}
               {["sent", "partial_received"].includes(order.status) && permissions["po.receive"] ? <div data-mobile-primary-action><DocumentActionLink href={`/goods-receivings/new?po_id=${order.id}`} variant="outline">Receive goods</DocumentActionLink></div> : null}
-              {order.status === "partial_received" && permissions["purchase_order.close"] ? <DocumentActionForm action={closePurchaseOrder.bind(null, order.id)} pendingLabel="Closing..." variant="outline">Close</DocumentActionForm> : null}
             </DocumentActionBar>
             {!hasPrimaryAction ? <p className="text-sm text-muted-foreground">You can view this document, but there is no workflow action available for your role or this status.</p> : null}
           </DocumentSideSection>
+          <DocumentSideSection title="Validation / Next Step"><p className="text-xs text-muted-foreground">{nextStep ?? "No further workflow step is available."}</p></DocumentSideSection>
+          {secondaryActions ? <DocumentSideSection title="More Options"><DocumentMoreOptions>{secondaryActions}</DocumentMoreOptions></DocumentSideSection> : null}
           {documentBundle ? (
             <>
-              <CommentsPanel documentId={documentBundle.document.id} comments={documentBundle.comments} />
               <AttachmentPanel documentId={documentBundle.document.id} attachments={documentBundle.attachments} title="Purchase Order Attachment" description="Attach the AutoCount or supplier-facing PO during preparation and sending." defaultLabel="Purchase Order" uploadLabel="Attach Purchase Order" canManage={permissions["documents.attach"]} documentStatus={documentBundle.document.status} />
+              <CommentsPanel documentId={documentBundle.document.id} comments={documentBundle.comments} />
               <DocumentTimeline document={documentBundle.document} activities={documentBundle.activityLogs} comments={documentBundle.comments} attachments={documentBundle.attachments} />
               <RevisionPanel revisions={documentBundle.revisions} />
             </>

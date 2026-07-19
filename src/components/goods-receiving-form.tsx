@@ -66,7 +66,7 @@ export function GoodsReceivingForm({
               <SelectNative name="branch_id" defaultValue={branches[0]?.id ?? ""} required>
                 {branches.map((branch) => <option key={branch.id} value={branch.id}>{branch.branch_name}</option>)}
               </SelectNative>
-              <p className="mt-1 text-xs text-muted-foreground">Select the outlet, kitchen, office, or event booth this record belongs to.</p>
+              <p className="mt-1 text-xs text-muted-foreground">Select the branch receiving this delivery.</p>
             </Field>
             <div className="lg:col-span-3">
               <Field label="Remarks">

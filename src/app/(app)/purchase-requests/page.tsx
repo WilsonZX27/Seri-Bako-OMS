@@ -13,7 +13,7 @@ import { PageHeader } from "@/components/ui/page-header";
 import { FilterBar } from "@/components/ui/filter-bar";
 import { PriorityBadge } from "@/components/priority-badge";
 import { PaginationControls, SortableHead } from "@/components/sortable-table";
-import { SelectNative } from "@/components/ui/select-native";
+import { SelectControl } from "@/components/ui/select-control";
 import { StatusTabs } from "@/components/status-tabs";
 import { OperationalList, OperationalListRow, Table, TableActionLink, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { ConsoleSection } from "@/components/layout/right-console";
@@ -66,13 +66,7 @@ export default async function PurchaseRequestsPage({ searchParams }: { searchPar
           <StatusTabs statuses={statuses} activeStatus={filters.status} />
           <FilterBar resultCount={requests.totalRows} resetHref="/purchase-requests" filtered={filtered}>
             <Input name="search" defaultValue={filters.search ?? ""} placeholder="Search PR no, branch, remarks" className="md:max-w-sm" />
-            <SelectNative name="priority" defaultValue={filters.priority ?? "all"} aria-label="Priority">
-                <option value="all">All priorities</option>
-                <option value="critical">Critical</option>
-                <option value="urgent">Urgent</option>
-                <option value="normal">Normal</option>
-                <option value="low">Low</option>
-            </SelectNative>
+            <SelectControl name="priority" defaultValue={filters.priority ?? "all"} ariaLabel="Priority" options={[{ value: "all", label: "All priorities" }, { value: "critical", label: "Critical" }, { value: "urgent", label: "Urgent" }, { value: "normal", label: "Normal" }, { value: "low", label: "Low" }]} />
             {filters.status ? <input type="hidden" name="status" value={filters.status} /> : null}
             <Button type="submit">Search</Button>
           </FilterBar>

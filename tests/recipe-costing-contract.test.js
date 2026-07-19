@@ -10,7 +10,7 @@ const version = read("src/lib/app-version.ts");
 
 test("Recipe Costing is a protected read-only report", () => {
   assert.equal(fs.existsSync("src/app/(app)/reports/recipe-costing/page.tsx"), true);
-  assert.match(query, /requirePermission\("reports.view"\)/);
+  assert.match(query, /requirePermission\("recipes.view"\)/);
   assert.match(reports, /href: "\/reports\/recipe-costing"/);
   assert.doesNotMatch(query, /\.(insert|update|delete)\(/);
 });
@@ -37,7 +37,7 @@ test("Recipe Costing surfaces confidence, manual actions, filters, and the exist
 });
 
 test("Recipe Costing remains compatible with the current footer and scoped Outlet Staff seed", () => {
-  assert.match(version, /APP_VERSION = "0\.2\.37"/);
-  assert.match(version, /APP_SPRINT = "Sprint 7\.23\.5\.1"/);
+  assert.match(version, /APP_VERSION = "7\.23\.5\.3"/);
+  assert.match(version, /APP_SPRINT = "v7\.23\.5\.3"/);
   assert.match(read("supabase/migrations/066_create_outlet_staff_role.sql"), /outlet_staff/);
 });

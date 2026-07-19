@@ -15,13 +15,15 @@ test("PR review filters and actions are deterministic and role explicit", () => 
   assert.match(page, /ConfirmActionForm/);
   assert.doesNotMatch(page, />Review PR</);
   assert.doesNotMatch(list, /<label[^>]*>Priority/);
-  assert.match(list, /aria-label="Priority"/);
+  assert.match(list, /ariaLabel="Priority"/);
 });
 
-test("Manager queue and notifications use assigned branches without company-wide promotion", () => {
+test("Manager queue and notifications use company-wide operational scope", () => {
+  const roles = read("src/lib/roles.ts");
   const scope = read("src/server/queries/notifications.ts");
   const pending = read("src/server/queries/pending-actions.ts");
-  assert.match(scope, /\["super_admin", "finance", "purchasing"\]\.includes\(roleCode\)/);
+  assert.match(roles, /COMPANY_WIDE_OPERATIONAL_ROLES[^\n]*"manager"/);
+  assert.match(scope, /hasCompanyWideOperationalScope\(roleCode\)/);
   assert.doesNotMatch(scope, /staffRoles[^\n]*some\([^\n]*branch_id == null/);
   assert.match(pending, /query = query\.in\("branch_id", scope\.branchIds\)/);
   assert.match(scope, /manager: \["manager_review"\]/);

@@ -79,7 +79,7 @@ test("Finance has no Manager Review action or sticky footer", async ({ browser }
   await page.close();
 });
 
-test("Manager list, dashboard queue, and visible PR notifications stay in branch scope", async ({ browser }) => {
+test("Manager list, dashboard queue, and visible PR notifications share company scope", async ({ browser }) => {
   test.setTimeout(120_000);
   const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
   await login(page, "manager");
@@ -90,7 +90,7 @@ test("Manager list, dashboard queue, and visible PR notifications stay in branch
   await expect(page.getByRole("heading", { name: "Actions awaiting you" })).toBeVisible();
   await expect(page.locator(".animate-pulse")).toHaveCount(0);
   const queueIds = await page.locator('a[href^="/purchase-requests/"]').evaluateAll((links) => [...new Set(links.map((link) => link.getAttribute("href")))]);
-  for (const href of queueIds) expect(listIds.has(href), `${href} is in the Manager queue but not the scoped Manager Review list`).toBe(true);
+  for (const href of queueIds) expect(listIds.has(href), `${href} is in the Manager queue but not the company-wide Manager Review list`).toBe(true);
   const updates = page.getByRole("button", { name: /open workspace updates/i });
   if (await updates.count()) {
     await updates.click();

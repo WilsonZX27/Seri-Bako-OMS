@@ -6,9 +6,9 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { SelectNative } from "@/components/ui/select-native";
+import { SelectControl } from "@/components/ui/select-control";
+import { FilterBar, FilterBarMore } from "@/components/ui/filter-bar";
 import { PageHeader } from "@/components/ui/page-header";
-import { FilterBar } from "@/components/ui/filter-bar";
 import { PaginationControls } from "@/components/sortable-table";
 import { StatusTabs } from "@/components/status-tabs";
 import { OperationalList, OperationalListRow, Table, TableActionLink, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -58,9 +58,11 @@ export default async function SupplierInvoicesPage({ searchParams }: { searchPar
           <StatusTabs statuses={statuses} activeStatus={filters.status} />
           <FilterBar resultCount={invoices.totalRows} resetHref="/supplier-invoices" filtered={filtered}>
             <Input name="search" defaultValue={filters.search ?? ""} placeholder="Search invoice or supplier" className="md:max-w-sm" />
-            <SelectNative name="status" defaultValue={filters.status ?? "all"}><option value="all">All statuses</option>{statuses.map((status) => <option key={status} value={status}>{status.replaceAll("_", " ")}</option>)}</SelectNative>
-            <SelectNative name="supplier" defaultValue={filters.supplier ?? "all"}><option value="all">All suppliers</option>{suppliers.map((supplier) => <option key={supplier.id} value={supplier.id}>{supplier.name}</option>)}</SelectNative>
-            <SelectNative name="due" defaultValue={filters.due ?? "all"}><option value="all">All due states</option><option value="overdue">Overdue</option><option value="due_7">Due in 7 days</option><option value="no_due">No due date</option></SelectNative>
+            <SelectControl name="status" defaultValue={filters.status ?? "all"} ariaLabel="Status" options={[{ value: "all", label: "All statuses" }, ...statuses.map((status) => ({ value: status, label: status.replaceAll("_", " ") }))]} />
+            <FilterBarMore activeCount={[filters.supplier && filters.supplier !== "all", filters.due && filters.due !== "all"].filter(Boolean).length} resetHref="/supplier-invoices">
+              <SelectControl name="supplier" defaultValue={filters.supplier ?? "all"} ariaLabel="Supplier" options={[{ value: "all", label: "All suppliers" }, ...suppliers.map((supplier) => ({ value: supplier.id, label: supplier.name }))]} />
+              <SelectControl name="due" defaultValue={filters.due ?? "all"} ariaLabel="Due state" options={[{ value: "all", label: "All due states" }, { value: "overdue", label: "Overdue" }, { value: "due_7", label: "Due in 7 days" }, { value: "no_due", label: "No due date" }]} />
+            </FilterBarMore>
             <Button type="submit" variant="secondary">Search</Button>
           </FilterBar>
             <Table mobileHidden aria-label="Supplier invoices">

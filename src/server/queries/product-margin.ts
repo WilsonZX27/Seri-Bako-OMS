@@ -62,7 +62,7 @@ export function buildProductMargin(data: Data, filters: Filters = {}) {
 }
 
 export async function getProductMargin(filters: Filters = {}) {
-  await requirePermission("reports.view");
+  await requirePermission("recipes.view");
   if (isMockMode()) return buildProductMargin({ items: mockItems, products: mockProducts, packaging: mockProductPackaging, recipes: mockRecipes, recipeLines: mockRecipeLines }, filters);
   const supabase = await createClient();
   const [items, products, packaging, recipes, recipeLines] = await Promise.all([

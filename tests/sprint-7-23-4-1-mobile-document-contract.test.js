@@ -38,9 +38,12 @@ test("danger, activity, and mobile line information stay separated", () => {
   assert.match(po, /role="list" aria-label="Ordered items"/);
 });
 
-test("Manager notification visibility intersects role recipients with branch scope", () => {
+test("Manager notification visibility uses company scope and current-stage recipients", () => {
+  const roles = read("src/lib/roles.ts");
   const notifications = read("src/server/queries/notifications.ts");
   const topbar = read("src/server/queries/topbar.ts");
+  assert.match(roles, /COMPANY_WIDE_OPERATIONAL_ROLES[^\n]*"manager"/);
+  assert.match(notifications, /hasCompanyWideOperationalScope\(roleCode\)/);
   assert.match(notifications, /notification\.branch_id && !scope\.companyWideAccess && !scope\.branchIds\.includes\(notification\.branch_id\)/);
   assert.match(notifications, /manager: \["manager_review"\]/);
   assert.match(notifications, /pendingIds\.has\(row\.entity_id\)/);
@@ -68,8 +71,8 @@ test("single secondary filters stay inline and empty PR metadata is omitted", ()
   const prDetail = read("src/app/(app)/purchase-requests/[id]/page.tsx");
   assert.doesNotMatch(prList, /FilterBarMore/);
   assert.doesNotMatch(prList, /<label[^>]*>Priority/);
-  assert.match(prList, /aria-label="Priority"/);
-  assert.doesNotMatch(invoiceList, /FilterBarMore/);
+  assert.match(prList, /ariaLabel="Priority"/);
+  assert.match(invoiceList, /FilterBarMore/);
   assert.match(prDetail, /request\.required_date \? <div>/);
   assert.match(prDetail, /request\.needed_by_date \? <div>/);
   assert.match(prDetail, /<section aria-label="Remarks"/);

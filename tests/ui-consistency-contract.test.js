@@ -19,7 +19,7 @@ test("UI consistency keeps imports upload-only and technical permission details 
 });
 
 test("shared filter rows use compact brown submits without adding duplicate link icons", () => {
-  assert.match(styles, /\.sb-list-filters > button:is\(\[type="submit"\], :not\(\[type\]\)\)/);
+  assert.match(styles, /\.sb-list-filters > button:not\(\[data-select-control\]\):is\(\[type="submit"\], :not\(\[type\]\)\)/);
   assert.match(styles, /background: var\(--sb-amber-700\)/);
   assert.doesNotMatch(styles, /\.sb-list-filters > a::before/);
   assert.match(styles, /max-width: 22rem/);
@@ -31,6 +31,6 @@ test("UI smoke keeps the requested routes, console order, and current footer", (
   }
   assert.match(dashboard, /Direct Actions[\s\S]*Today[\s\S]*Alerts/);
   assert.doesNotMatch(dashboard, /ConsoleSection title="Recent Activity"/);
-  assert.match(read("src/lib/app-version.ts"), /APP_SPRINT = "Sprint 7\.23\.5\.1"/);
+  assert.match(read("src/lib/app-version.ts"), /APP_SPRINT = "v7\.23\.5\.3"/);
   assert.match(read("supabase/migrations/066_create_outlet_staff_role.sql"), /outlet_staff/);
 });

@@ -71,7 +71,7 @@ export function MobileSidebar({ role, permissionMap, companyName, companyLogoUrl
             aria-label="Close navigation menu"
             onClick={close}
           />
-          <aside ref={dialogRef} role="dialog" aria-modal="true" aria-label="Application navigation" className="relative flex h-full w-[min(22rem,88vw)] flex-col border-r bg-[var(--sb-green-950)]">
+          <aside ref={dialogRef} role="dialog" aria-modal="true" aria-label="Application navigation" className="relative flex h-full w-[min(var(--sb-sidebar-width),88vw)] flex-col border-r bg-[var(--sb-green-950)]">
             <div className="absolute right-3 top-3 z-10">
               <Button type="button" variant="ghost" size="icon" className="text-white hover:bg-white/10" aria-label="Close navigation menu" onClick={close}>
                 <X className="h-5 w-5" />

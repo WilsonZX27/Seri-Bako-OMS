@@ -10,7 +10,7 @@ const version = read("src/lib/app-version.ts");
 
 test("Product Margin is a protected read-only report", () => {
   assert.equal(fs.existsSync("src/app/(app)/reports/product-margin/page.tsx"), true);
-  assert.match(query, /requirePermission\("reports.view"\)/);
+  assert.match(query, /requirePermission\("recipes.view"\)/);
   assert.match(reports, /href: "\/reports\/product-margin"/);
   assert.doesNotMatch(query, /\.(insert|update|delete)\(/);
 });
@@ -36,7 +36,7 @@ test("Product Margin uses neutral bands and clear manual review paths", () => {
 });
 
 test("Product Margin has the current footer and scoped Outlet Staff seed", () => {
-  assert.match(version, /APP_VERSION = "0\.2\.37"/);
-  assert.match(version, /APP_SPRINT = "Sprint 7\.23\.5\.1"/);
+  assert.match(version, /APP_VERSION = "7\.23\.5\.3"/);
+  assert.match(version, /APP_SPRINT = "v7\.23\.5\.3"/);
   assert.match(read("supabase/migrations/066_create_outlet_staff_role.sql"), /outlet_staff/);
 });

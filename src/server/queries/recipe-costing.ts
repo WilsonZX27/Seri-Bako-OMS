@@ -77,7 +77,7 @@ export function buildRecipeCosting(data: Data, filters: Filters = {}) {
 }
 
 export async function getRecipeCosting(filters: Filters = {}) {
-  await requirePermission("reports.view");
+  await requirePermission("recipes.view");
   if (isMockMode()) return buildRecipeCosting({ items: mockItems, products: mockProducts, recipes: mockRecipes, recipeLines: mockRecipeLines }, filters);
   const supabase = await createClient();
   const [items, products, recipes, recipeLines] = await Promise.all([

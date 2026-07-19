@@ -3,6 +3,7 @@ import { Field } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { RecordSection } from "@/components/record-workspace";
 import { SubmitButton } from "@/components/ui/submit-button";
+import { SelectControl } from "@/components/ui/select-control";
 import { SelectNative } from "@/components/ui/select-native";
 import { Textarea } from "@/components/ui/textarea";
 import { getRoleDisplayLabel } from "@/lib/roles";
@@ -35,16 +36,6 @@ type Branch = {
   status: RecordStatus;
 };
 
-type StaffBranchOption = {
-  id: string;
-  company_id: string | null;
-  branch_id: string | null;
-  location_code: string;
-  location_name: string;
-  status: string;
-  branch_name?: string | null;
-};
-
 type Staff = {
   id: string;
   company_id: string;
@@ -65,7 +56,7 @@ type StaffAccess = {
   staffRole: { role_id: string; branch_id: string | null; effective_from: string; effective_to: string | null } | null;
   staffRoles?: Array<{ role_id: string; branch_id: string | null; effective_from: string; effective_to: string | null }>;
   staffBranch: { branch_id: string; access_level: StaffAccessLevel; is_default: boolean } | null;
-  staffLocationIds: string[];
+  staffBranchIds: string[];
 };
 
 type Role = {
@@ -214,7 +205,7 @@ export function StaffForm({
   staff,
   access,
   companies,
-  locations,
+  branches,
   roles,
   action,
   formId,
@@ -223,14 +214,14 @@ export function StaffForm({
   staff?: Staff;
   access?: StaffAccess;
   companies: SelectCompany[];
-  locations: StaffBranchOption[];
+  branches: Branch[];
   roles: SelectRole[];
   action: (formData: FormData) => Promise<void>;
   formId?: string;
   showSubmit?: boolean;
 }) {
-  const branchOptions = Array.from(new Map(locations.filter((location) => location.branch_id).map((location) => [location.branch_id, location])).values());
-  const defaultLocationId = branchOptions.find((location) => location.branch_id === access?.staffBranch?.branch_id)?.id
+  const branchOptions = branches.filter((branch) => branch.status === "active");
+  const defaultBranchId = branchOptions.find((branch) => branch.id === access?.staffBranch?.branch_id)?.id
     ?? branchOptions[0]?.id
     ?? "";
   return (
@@ -254,36 +245,33 @@ export function StaffForm({
         </div>
       </RecordSection>
 
-      <RecordSection title="Role & Branch / Outlet Access" description="Role controls actions. Branch assignments control record scope.">
+      <RecordSection title="Access">
         <div className="grid gap-4 md:grid-cols-2">
           <Field label="Role" required>
-            <SelectNative name="role_id" defaultValue={access?.staffRole?.role_id ?? roles[0]?.id ?? ""} required className="form-control-compact">
-              {roles.map((role) => (
-                <option key={role.id} value={role.id}>
-                  {getRoleDisplayLabel(role.role_code, role.role_name)}
-                </option>
-              ))}
-            </SelectNative>
-            {roles.some((role) => role.role_code === "super_admin") ? (
-              <p className="mt-1 text-xs text-amber-700">Only system owner accounts should use Super Admin / Owner.</p>
-            ) : null}
+            <SelectControl
+              name="role_id"
+              defaultValue={access?.staffRole?.role_id ?? roles[0]?.id ?? ""}
+              options={roles.map((role) => ({ value: role.id, label: getRoleDisplayLabel(role.role_code, role.role_name) }))}
+              ariaLabel="Role"
+              required
+              className="form-control-compact"
+            />
           </Field>
-          <Field label="Default Branch / Outlet" required>
-            <SelectNative name="default_location_id" defaultValue={defaultLocationId} required className="form-control-compact">
-              {branchOptions.map((location) => (
-                <option key={location.id} value={location.id}>
-                  {location.branch_name}
-                </option>
-              ))}
-            </SelectNative>
-            <p className="mt-1 text-xs text-muted-foreground">Used for initial context and autofill.</p>
+          <Field label="Default Branch" required>
+            <SelectControl
+              name="default_branch_id"
+              defaultValue={defaultBranchId}
+              options={branchOptions.map((branch) => ({ value: branch.id, label: branch.branch_name }))}
+              ariaLabel="Default Branch"
+              required
+              className="form-control-compact"
+            />
           </Field>
           <div className="md:col-span-2">
-            <Field label="Accessible Branches / Outlets" required>
+            <Field label="Accessible Branches" required>
               <div className="grid gap-2 rounded-[2px] border p-3 md:grid-cols-2">
-                {branchOptions.map((location) => <label key={location.id} className="flex min-h-10 items-center gap-2 text-sm"><input type="checkbox" name="accessible_location_ids" value={location.id} defaultChecked={!access || access.staffLocationIds.some((id) => locations.find((item) => item.id === id)?.branch_id === location.branch_id)} /><span>{location.branch_name}</span></label>)}
+                {branchOptions.map((branch) => <label key={branch.id} className="flex min-h-10 items-center gap-2 text-sm"><input type="checkbox" name="accessible_branch_ids" value={branch.id} defaultChecked={access ? access.staffBranchIds.includes(branch.id) : branch.id === defaultBranchId} /><span>{branch.branch_name}</span></label>)}
               </div>
-              <p className="mt-1 text-xs text-muted-foreground">Company-wide roles receive all active branches automatically. Manager, Kitchen, and Outlet Staff remain limited to eligible assigned branches.</p>
             </Field>
           </div>
         </div>

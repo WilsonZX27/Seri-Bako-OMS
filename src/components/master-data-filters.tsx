@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { SelectNative } from "@/components/ui/select-native";
+import { SelectControl } from "@/components/ui/select-control";
 import { FilterBar, FilterBarMore } from "@/components/ui/filter-bar";
 
 type MasterDataFiltersProps = {
@@ -42,33 +42,15 @@ export function MasterDataFilters({
   return (
     <FilterBar resultCount={resultCount} resetHref={resetHref} filtered={filtered}>
       <Input name="search" defaultValue={search ?? ""} placeholder={placeholder} />
-        <SelectNative name="status" defaultValue={status} className="min-w-32 md:w-40">
-          <option value="all">All status</option>
-          {statuses.map((row) => (
-            <option key={row.value} value={row.value}>{row.label}</option>
-          ))}
-        </SelectNative>
+        <SelectControl name="status" defaultValue={status} options={[{ value: "all", label: "All status" }, ...statuses]} ariaLabel="Status" className="min-w-32 md:w-40" />
         {suppliers.length ? (
-          <SelectNative name="supplier" defaultValue={supplier} className="min-w-36">
-            <option value="all">All suppliers</option>
-            {suppliers.map((row) => <option key={row.id} value={row.id}>{row.name}</option>)}
-          </SelectNative>
+          <SelectControl name="supplier" defaultValue={supplier} options={[{ value: "all", label: "All suppliers" }, ...suppliers.map((row) => ({ value: row.id, label: row.name }))]} ariaLabel="Supplier" className="min-w-36" />
         ) : null}
-        {categories.length && !showStockFilters ? <SelectNative name="category" defaultValue={category}><option value="all">All categories</option>{categories.map((row) => <option key={row} value={row}>{row}</option>)}</SelectNative> : null}
+        {categories.length && !showStockFilters ? <SelectControl name="category" defaultValue={category} options={[{ value: "all", label: "All categories" }, ...categories.map((row) => ({ value: row, label: row }))]} ariaLabel="Category" /> : null}
         {showStockFilters ? <FilterBarMore activeCount={[categories.length && category !== "all", stockControl !== "all", lowStock !== "all"].filter(Boolean).length} resetHref={resetHref}>
-          {categories.length ? <SelectNative name="category" defaultValue={category}><option value="all">All categories</option>{categories.map((row) => <option key={row} value={row}>{row}</option>)}</SelectNative> : null}
-          <>
-          <SelectNative name="stock_control" defaultValue={stockControl}>
-            <option value="all">All stock control</option>
-            <option value="with_safety_stock">With safety stock</option>
-            <option value="without_safety_stock">Without safety stock</option>
-          </SelectNative>
-          <SelectNative name="low_stock" defaultValue={lowStock}>
-            <option value="all">All stock levels</option>
-            <option value="yes">Low stock only</option>
-            <option value="no">Healthy stock only</option>
-          </SelectNative>
-          </>
+          {categories.length ? <SelectControl name="category" defaultValue={category} options={[{ value: "all", label: "All categories" }, ...categories.map((row) => ({ value: row, label: row }))]} ariaLabel="Category" /> : null}
+          <SelectControl name="stock_control" defaultValue={stockControl} options={[{ value: "all", label: "All stock control" }, { value: "with_safety_stock", label: "With safety stock" }, { value: "without_safety_stock", label: "Without safety stock" }]} ariaLabel="Stock control" />
+          <SelectControl name="low_stock" defaultValue={lowStock} options={[{ value: "all", label: "All stock levels" }, { value: "yes", label: "Low stock only" }, { value: "no", label: "Healthy stock only" }]} ariaLabel="Stock level" />
         </FilterBarMore> : null}
         <Button type="submit">
           Search

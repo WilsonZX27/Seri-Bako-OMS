@@ -2,6 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import { isMockMode } from "@/lib/mock-mode";
 import type { Database } from "@/types/database";
 import type { PurchaseRequestStatus } from "@/lib/status-contracts";
+import { hasCompanyWideOperationalScope } from "@/lib/roles";
 
 type CurrentUserScope = {
   authUserId: string;
@@ -43,7 +44,7 @@ export async function getCurrentUserScope(): Promise<CurrentUserScope | null> {
   const branchIds = (staffBranches ?? []).map((row) => row.branch_id);
   const roleById = new Map((roles ?? []).map((row) => [row.id, row.role_code]));
   const roleCode = roleIds.map((id) => roleById.get(id)).find(Boolean) ?? "outlet_staff";
-  const companyWideAccess = ["super_admin", "finance", "purchasing"].includes(roleCode);
+  const companyWideAccess = hasCompanyWideOperationalScope(roleCode);
 
   return { authUserId: user.id, staffId, roleIds, branchIds, roleCode, companyWideAccess };
 }

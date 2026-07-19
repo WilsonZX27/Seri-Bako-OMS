@@ -41,13 +41,15 @@ export function FilterBarMore({
   resetHref: string;
 }) {
   const detailsRef = useRef<HTMLDetailsElement>(null);
+  const summaryRef = useRef<HTMLElement>(null);
   const close = () => {
     if (detailsRef.current) detailsRef.current.open = false;
+    summaryRef.current?.focus();
   };
 
   useEffect(() => {
     function onKeyDown(event: KeyboardEvent) {
-      if (event.key === "Escape" && detailsRef.current?.open) detailsRef.current.open = false;
+      if (event.key === "Escape" && detailsRef.current?.open) close();
     }
     document.addEventListener("keydown", onKeyDown);
     return () => document.removeEventListener("keydown", onKeyDown);
@@ -55,8 +57,8 @@ export function FilterBarMore({
 
   return (
     <details ref={detailsRef} className="sb-filter-more">
-      <summary><SlidersHorizontal className="h-3.5 w-3.5" />More filters{activeCount ? <span className="sb-filter-more-count" aria-label={`${activeCount} active filters`}>{activeCount}</span> : null}</summary>
-      <button type="button" className="sb-filter-more-backdrop" onClick={close} aria-label="Close filters" />
+      <summary ref={summaryRef}><SlidersHorizontal className="h-3.5 w-3.5" />More filters{activeCount ? <span className="sb-filter-more-count" aria-label={`${activeCount} active filters`}>{activeCount}</span> : null}</summary>
+      <button type="button" className="sb-filter-more-backdrop" onClick={close} aria-label="Dismiss filters" />
       <div className="sb-filter-more-panel">
         <div className="sb-filter-more-header">
           <div><h2>Filters</h2>{activeCount ? <p>{activeCount} active</p> : null}</div>

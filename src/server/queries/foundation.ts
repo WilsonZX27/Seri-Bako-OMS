@@ -1,5 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
-import { getRoleDisplayLabel, SYSTEM_ROLE_CODES } from "@/lib/roles";
+import { getRoleDisplayLabel, sortRolesForDisplay, SYSTEM_ROLE_CODES } from "@/lib/roles";
 import {
   isMockMode,
   mockBranches,
@@ -9,7 +9,6 @@ import {
   mockPermissions,
   mockRoles,
   mockStaffBranches,
-  mockStaffLocations,
   mockStaffRoles,
   mockStaffs,
 } from "@/lib/mock-mode";
@@ -201,38 +200,37 @@ export async function getStaffAccess(staffId: string) {
       staffRole: mockStaffRoles.find((row) => row.staff_id === staffId && row.is_primary) ?? null,
       staffRoles: mockStaffRoles.filter((row) => row.staff_id === staffId),
       staffBranch: mockStaffBranches.find((row) => row.staff_id === staffId && row.is_default) ?? null,
-      staffLocationIds: mockStaffLocations.filter((row) => row.staff_id === staffId).map((row) => row.location_id),
+      staffBranchIds: mockStaffBranches.filter((row) => row.staff_id === staffId).map((row) => row.branch_id),
     };
   }
 
   const supabase = await createClient();
-  const [{ data: staffRole, error: roleError }, { data: staffRoles, error: rolesError }, { data: staffBranch, error: branchError }, { data: staffLocations, error: locationError }] = await Promise.all([
+  const [{ data: staffRole, error: roleError }, { data: staffRoles, error: rolesError }, { data: staffBranches, error: branchError }] = await Promise.all([
     supabase.from("staff_roles").select("*").eq("staff_id", staffId).eq("is_primary", true).maybeSingle(),
     supabase.from("staff_roles").select("*").eq("staff_id", staffId),
-    supabase.from("staff_branches").select("*").eq("staff_id", staffId).eq("is_default", true).maybeSingle(),
-    supabase.from("staff_locations").select("location_id").eq("staff_id", staffId),
+    supabase.from("staff_branches").select("*").eq("staff_id", staffId),
   ]);
   if (roleError) throw new Error(roleError.message);
   if (rolesError) throw new Error(rolesError.message);
   if (branchError) throw new Error(branchError.message);
-  if (locationError) throw new Error(locationError.message);
+  const staffBranch = (staffBranches ?? []).find((row) => row.is_default) ?? null;
   return {
     staffRole,
     staffRoles: staffRoles ?? [],
     staffBranch,
-    staffLocationIds: (staffLocations ?? []).map((row) => row.location_id),
+    staffBranchIds: (staffBranches ?? []).map((row) => row.branch_id),
   };
 }
 
 export async function getRoles(filters: Filters = {}) {
   if (isMockMode()) {
-    return mockRoles.filter((role) => SYSTEM_ROLE_CODES.includes(role.role_code as (typeof SYSTEM_ROLE_CODES)[number]) && matchesFilter([role.role_code, role.role_name, role.description], filters, role.status));
+    return sortRolesForDisplay(mockRoles.filter((role) => SYSTEM_ROLE_CODES.includes(role.role_code as (typeof SYSTEM_ROLE_CODES)[number]) && matchesFilter([role.role_code, role.role_name, role.description], filters, role.status)));
   }
 
   const supabase = await createClient();
   const { data, error } = await supabase.from("roles").select("*").in("role_code", [...SYSTEM_ROLE_CODES]).is("deleted_at", null).order("role_name", { ascending: true });
   if (error) throw new Error(error.message);
-  return (data ?? []).filter((role) => matchesFilter([role.role_code, role.role_name, role.description], filters, role.status));
+  return sortRolesForDisplay((data ?? []).filter((role) => matchesFilter([role.role_code, role.role_name, role.description], filters, role.status)));
 }
 
 export async function getRole(id: string) {

@@ -1,6 +1,8 @@
 export const SYSTEM_ROLE_CODES = ["super_admin", "finance", "manager", "purchasing", "kitchen", "outlet_staff"] as const;
 export type SystemRoleCode = (typeof SYSTEM_ROLE_CODES)[number];
 
+const COMPANY_WIDE_OPERATIONAL_ROLES: readonly SystemRoleCode[] = ["super_admin", "finance", "manager", "purchasing"];
+
 export const roleDisplayLabels: Record<SystemRoleCode, string> = {
   super_admin: "Super Admin / Owner",
   finance: "Finance",
@@ -49,8 +51,16 @@ export function isSystemRoleCode(roleCode?: string | null): roleCode is SystemRo
   return SYSTEM_ROLE_CODES.includes(roleCode as SystemRoleCode);
 }
 
+export function hasCompanyWideOperationalScope(roleCode?: string | null) {
+  return COMPANY_WIDE_OPERATIONAL_ROLES.includes(roleCode as SystemRoleCode);
+}
+
 export function sortRolesForDisplay<T extends { role_code: string; role_name?: string | null }>(roles: T[]) {
-  return [...roles].sort((a, b) => {
+  const canonical = new Map<SystemRoleCode, T>();
+  for (const role of roles) {
+    if (isSystemRoleCode(role.role_code) && !canonical.has(role.role_code)) canonical.set(role.role_code, role);
+  }
+  return [...canonical.values()].sort((a, b) => {
     const order = (roleSortOrder[a.role_code] ?? 99) - (roleSortOrder[b.role_code] ?? 99);
     if (order !== 0) return order;
     return getRoleDisplayLabel(a.role_code, a.role_name).localeCompare(getRoleDisplayLabel(b.role_code, b.role_name));

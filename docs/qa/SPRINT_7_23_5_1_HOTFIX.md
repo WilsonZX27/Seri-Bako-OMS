@@ -7,7 +7,7 @@ Production mutation: none
 ## Outcomes
 
 - `/purchase-requests?status=in_review` maps the synthetic filter to `manager_review`, `admin_review`, and `finance_review` before querying the status enum.
-- Manager PR visibility remains assigned-branch only across list/detail RLS, pending actions, dashboard queues, and PR notifications.
+- Superseded by the authoritative Manager correction: Manager PR visibility is now same-company across list/detail RLS, pending actions, dashboard queues, and PR notifications. Manager branch assignments remain default context only.
 - Recipe/BOM master data is Owner and read-only Finance only. Kitchen production uses a narrow active-recipe snapshot RPC and cannot query recipe tables directly.
 - Manager, Purchasing, and Finance approval actions use role-explicit green labels and a confirmation dialog. Finance is explicitly excluded from Manager approval.
 - The PR filter row has no visible Priority label and keeps Search, priority select, and Search button in the compact filter surface.
@@ -17,13 +17,14 @@ Production mutation: none
 
 ## Database verification
 
-- Disposable reset: migrations 001 through 074 passed.
+- Disposable reset: migrations 001 through 075 passed after the authoritative Manager correction.
 - Migration 074 recorded once locally.
 - SHA-256: `9988E7FA7A241B955A1DA1E797AF7B78FDF4C6843958F7753B58EBEC971ECB51`.
 - Active recipe grants after reset: Finance has `recipes.read`; non-Owner Manager, Purchasing, Kitchen, and Outlet Staff have no recipe permission.
 - Kitchen Daily Record grants: view, create, and Qty Sent only; generic update was removed.
 - Rollback-only fixture verified:
-  - Manager saw one assigned-branch Manager Review PR and could not see the out-of-branch PR.
+  - An Office-only Manager saw PR-00008 at CK-PJS10 and PR-00011 at CK-ALMA, completed only Manager Review, and received no Finance, recipe-costing, or Owner capability.
+  - Kitchen and Outlet Staff could not see the out-of-branch PR; Finance and Owner retained company-wide PR visibility.
   - Manager and Kitchen direct recipe reads returned zero rows.
   - Finance direct recipe read returned the fixture recipe.
   - Kitchen received one minimal active production recipe snapshot.

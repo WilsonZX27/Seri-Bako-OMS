@@ -70,7 +70,7 @@ export function buildCostingReadiness(data: Data, filters: Filters = {}) {
 }
 
 export async function getCostingReadiness(filters: Filters = {}) {
-  await requirePermission("reports.view");
+  await requirePermission("recipes.view");
   if (isMockMode()) return buildCostingReadiness({ items: mockItems, suppliers: mockSuppliers, supplierItems: mockSupplierItems, products: mockProducts, recipes: mockRecipes, recipeLines: mockRecipeLines }, filters);
 
   const supabase = await createClient();

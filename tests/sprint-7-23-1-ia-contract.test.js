@@ -54,11 +54,11 @@ test("sign-in resolves a terminal route from the canonical IA instead of hardcod
   assert.doesNotMatch(auth.slice(auth.indexOf("export async function signIn"), auth.indexOf("export async function signOut")), /redirect\("\/dashboard"\)/);
 });
 
-test("staff assignment UI exposes role and Branch / Outlet concepts", () => {
+test("staff assignment UI exposes the canonical role and Branch concepts", () => {
   const form = read("src/components/foundation-forms.tsx");
   assert.match(form, /label="Role"/);
-  assert.match(form, /label="Default Branch \/ Outlet"/);
-  assert.match(form, /label="Accessible Branches \/ Outlets"/);
+  assert.match(form, /label="Default Branch"/);
+  assert.match(form, /label="Accessible Branches"/);
   assert.doesNotMatch(form, /label="Default Location"|label="Accessible Locations"/);
-  assert.doesNotMatch(form, /Role Branch Scope|Default Branch Access|Branch Access Level/);
+  assert.doesNotMatch(form.slice(form.indexOf("export function StaffForm"), form.indexOf("export function StaffAuthSetupFields")), /Outlet|Location|Role Branch Scope|Default Branch Access|Branch Access Level/);
 });

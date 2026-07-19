@@ -479,8 +479,8 @@ function staffPayload(formData: FormData) {
 function staffAccessPayload(formData: FormData) {
   return staffAccessSchema.parse({
     role_id: formValue(formData, "role_id"),
-    default_location_id: formValue(formData, "default_location_id"),
-    accessible_location_ids: formData.getAll("accessible_location_ids").map(String),
+    default_branch_id: formValue(formData, "default_branch_id"),
+    accessible_branch_ids: formData.getAll("accessible_branch_ids").map(String),
   });
 }
 
@@ -491,25 +491,24 @@ async function replaceStaffAccess(staffId: string, formData: FormData) {
   const { data: role, error: roleLookupError } = await supabase.from("roles").select("role_code").eq("id", access.role_id).single();
   if (roleLookupError) throw new Error(roleLookupError.message);
   const companyWide = ["super_admin", "finance", "purchasing"].includes(role.role_code);
-  const { data: activeLocations, error: locationsLookupError } = await supabase
-    .from("locations")
-    .select("id, branch_id, branches(branch_type)")
+  const { data: activeBranches, error: branchesLookupError } = await supabase
+    .from("branches")
+    .select("id, branch_type, default_location_id")
     .eq("status", "active")
     .is("deleted_at", null);
-  if (locationsLookupError) throw new Error(locationsLookupError.message);
-  const requested = new Set([...access.accessible_location_ids, access.default_location_id]);
-  const eligibleLocations = (activeLocations ?? []).filter((location) => {
-    const branch = Array.isArray(location.branches) ? location.branches[0] : location.branches;
+  if (branchesLookupError) throw new Error(branchesLookupError.message);
+  const requested = new Set([...access.accessible_branch_ids, access.default_branch_id]);
+  const eligibleBranches = (activeBranches ?? []).filter((branch) => {
     if (companyWide) return true;
-    if (!requested.has(location.id)) return false;
-    if (role.role_code === "kitchen") return branch?.branch_type === "central_kitchen";
-    if (role.role_code === "outlet_staff") return branch?.branch_type === "outlet";
+    if (!requested.has(branch.id)) return false;
+    if (role.role_code === "kitchen") return branch.branch_type === "central_kitchen";
+    if (role.role_code === "outlet_staff") return branch.branch_type === "outlet";
     return role.role_code === "manager";
   });
-  const defaultLocation = eligibleLocations.find((location) => location.id === access.default_location_id);
-  if (!defaultLocation?.branch_id) throw new Error("Default branch / outlet is not eligible for the selected role.");
-  if (!eligibleLocations.length) throw new Error("Select at least one eligible branch / outlet.");
-  const branchIds = Array.from(new Set(eligibleLocations.flatMap((location) => location.branch_id ? [location.branch_id] : [])));
+  const defaultBranch = eligibleBranches.find((branch) => branch.id === access.default_branch_id);
+  if (!defaultBranch) throw new Error("Default branch is not eligible for the selected role.");
+  if (!eligibleBranches.length) throw new Error("Select at least one eligible branch.");
+  const branchIds = eligibleBranches.map((branch) => branch.id);
 
   const [{ error: deleteRolesError }, { error: deleteBranchesError }, { error: deleteLocationsError }] = await Promise.all([
     supabase.from("staff_roles").delete().eq("staff_id", staffId),
@@ -523,7 +522,7 @@ async function replaceStaffAccess(staffId: string, formData: FormData) {
   const { error: roleError } = await supabase.from("staff_roles").insert({
     staff_id: staffId,
     role_id: access.role_id,
-    branch_id: companyWide ? null : defaultLocation.branch_id,
+    branch_id: companyWide ? null : defaultBranch.id,
     is_primary: true,
     effective_from: new Date().toISOString().slice(0, 10),
     effective_to: null,
@@ -531,12 +530,15 @@ async function replaceStaffAccess(staffId: string, formData: FormData) {
   if (roleError) throw new Error(roleError.message);
 
   const accessLevel = role.role_code === "super_admin" ? "full" : ["finance", "purchasing", "manager"].includes(role.role_code) ? "manage" : "read_only";
-  const { error: branchError } = await supabase.from("staff_branches").insert(branchIds.map((branchId) => ({ staff_id: staffId, branch_id: branchId, access_level: accessLevel, is_default: branchId === defaultLocation.branch_id })));
+  const { error: branchError } = await supabase.from("staff_branches").insert(branchIds.map((branchId) => ({ staff_id: staffId, branch_id: branchId, access_level: accessLevel, is_default: branchId === defaultBranch.id })));
   if (branchError) throw new Error(branchError.message);
 
-  const { error: locationError } = await supabase.from("staff_locations").insert(eligibleLocations.map((location) => ({ staff_id: staffId, location_id: location.id })));
-  if (locationError) throw new Error(locationError.message);
-  const { error: defaultError } = await supabase.from("staffs").update({ default_branch_id: defaultLocation.branch_id }).eq("id", staffId);
+  const compatibilityLocations = eligibleBranches.flatMap((branch) => branch.default_location_id ? [{ staff_id: staffId, location_id: branch.default_location_id }] : []);
+  if (compatibilityLocations.length) {
+    const { error: locationError } = await supabase.from("staff_locations").insert(compatibilityLocations);
+    if (locationError) throw new Error(locationError.message);
+  }
+  const { error: defaultError } = await supabase.from("staffs").update({ default_branch_id: defaultBranch.id }).eq("id", staffId);
   if (defaultError) throw new Error(defaultError.message);
 }
 
@@ -795,8 +797,8 @@ export async function createStaff(formData: FormData) {
     const enteredTemporaryPassword = cleanText(formData.get("temporary_password"));
     if (!isMockMode()) {
       const supabase = createAdminClient();
-      if (!access.role_id || !access.default_location_id) {
-        throw new Error("Role and default branch / outlet are required before invite.");
+      if (!access.role_id || !access.default_branch_id) {
+        throw new Error("Role and default branch are required before invite.");
       }
       await assertCanAssignStaffRole(supabase, access.role_id);
       const invitedBy = await getCurrentStaffId();
@@ -864,8 +866,8 @@ export async function updateStaff(id: string, formData: FormData) {
     const access = staffAccessPayload(formData);
     if (!isMockMode()) {
       const supabase = createAdminClient();
-      if (!access.role_id || !access.default_location_id) {
-        throw new Error("Role and default branch / outlet are required.");
+      if (!access.role_id || !access.default_branch_id) {
+        throw new Error("Role and default branch are required.");
       }
       await assertCanManageStaffAccount(supabase, id);
       await assertCanAssignStaffRole(supabase, access.role_id, id);

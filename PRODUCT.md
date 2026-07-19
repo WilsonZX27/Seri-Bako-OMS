@@ -79,12 +79,12 @@ Seri Bako OMS has exactly six system-controlled roles. They are reviewed in the 
 
 - **Super Admin / Owner (`super_admin`)**: protected owner controls, company setup, staff assignments, system numbering, backups, and full operational authority.
 - **Finance (`finance`)**: company-wide finance review plus staff, numbering, imports, and branch administration; protected Owner and backup controls remain unavailable.
-- **Manager (`manager`)**: approval and operational visibility for assigned branches / outlets, plus branch maintenance.
+- **Manager (`manager`)**: company-wide operational visibility and Manager Review across all Outlets and Central Kitchens, plus branch maintenance. Branch assignment supplies default context and autofill only.
 - **Purchasing (`purchasing`)**: company-wide purchasing, supplier, item/master-data, import, PO, and sourcing-review duties.
 - **Kitchen (`kitchen`)**: assigned Central Kitchen workflows, including purchase-request creation/submission and production operations.
 - **Outlet Staff (`outlet_staff`)**: assigned-outlet daily records only.
 
-Role determines allowed actions. The default Branch / Outlet controls initial context and autofill but is not an authorization boundary. Assigned Branches / Outlets determine which scoped records a user may access. Super Admin, Finance, and Purchasing are company-wide; Manager, Kitchen, and Outlet Staff remain branch-scoped according to the rules above.
+Role determines allowed actions. The default Branch / Outlet controls initial context and autofill but is not an authorization boundary. Super Admin, Finance, Manager, and Purchasing have company-wide operational visibility. Kitchen and Outlet Staff remain strictly limited to assigned branches.
 
 ## Current Product Scope
 
@@ -400,10 +400,10 @@ Destructive changes should be avoided where an auditable status change or revers
 
 - Super Admin / Owner has company-wide business, finance, and protected system capability.
 - Finance is the second-highest company-wide role. It combines read-level Manager and Purchasing operational visibility with AP, invoice, cash-flow, and payment capability. Its PR authority begins at Finance Review; it does not receive Manager Review, owner controls, or Purchasing mutations and cannot approve its own PR.
-- Manager and Purchasing are sibling operational roles: Manager reviews assigned-branch operations; Purchasing runs company-wide procurement and master-data workflows.
+- Manager and Purchasing are sibling company-wide operational roles: Manager performs Manager Review across the company; Purchasing runs procurement and master-data workflows.
 - Kitchen is limited to assigned Central Kitchen work; Outlet Staff is limited to the assigned outlet and today’s daily-record tasks.
 
-Manager, Purchasing, Kitchen, and Outlet dashboards must never expose AP Aging, Cash Flow, aggregate debt, payment controls, or company-wide information outside their scope.
+Manager, Purchasing, Kitchen, and Outlet dashboards must never expose AP Aging, Cash Flow, aggregate debt, payment controls, Finance-only recipe costing, or Owner controls. Kitchen and Outlet dashboards must not expose operational information outside assigned branches.
 
 ## Out of Scope
 

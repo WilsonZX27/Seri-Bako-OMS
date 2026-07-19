@@ -7,7 +7,7 @@ import { canAssignRoleCode, getRoleDisplayLabel, sortRolesForDisplay } from "@/l
 import { createStaff } from "@/server/actions/foundation";
 import { hasPermission } from "@/server/auth/permissions";
 import { getCurrentProfile } from "@/server/queries/common";
-import { getCompaniesForSelect, getLocations, getRoles } from "@/server/queries/foundation";
+import { getBranches, getCompaniesForSelect, getRoles } from "@/server/queries/foundation";
 
 export default async function NewStaffPage({
   searchParams,
@@ -31,7 +31,7 @@ export default async function NewStaffPage({
     );
   }
 
-  const [companies, locations, allRoles, profile] = await Promise.all([getCompaniesForSelect(), getLocations(), getRoles(), getCurrentProfile()]);
+  const [companies, branches, allRoles, profile] = await Promise.all([getCompaniesForSelect(), getBranches({ status: "active" }), getRoles(), getCurrentProfile()]);
   const currentRole = (profile as { role_code?: string; role?: string } | null)?.role_code ?? (profile as { role?: string } | null)?.role ?? null;
   const roles = sortRolesForDisplay(allRoles).filter((role) => canAssignRoleCode(currentRole, role.role_code));
   const formId = "staff-create-form";
@@ -79,7 +79,7 @@ export default async function NewStaffPage({
             <CardContent className="p-4 text-sm text-destructive">{params.error}</CardContent>
           </Card>
         ) : null}
-        <StaffForm formId={formId} companies={companies} locations={locations} roles={roles} action={createStaff} showSubmit={false} />
+        <StaffForm formId={formId} companies={companies} branches={branches} roles={roles} action={createStaff} showSubmit={false} />
       </RecordWorkspace>
     </>
   );

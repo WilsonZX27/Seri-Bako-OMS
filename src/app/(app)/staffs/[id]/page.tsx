@@ -14,7 +14,7 @@ import { formatStatusLabel } from "@/lib/status-label";
 import { disableStaff, enableStaff, forceStaffPasswordChange, permanentlyDeleteStaff, resetStaffPermissionOverrides, resetStaffTemporaryPassword, updateStaff, updateStaffPermissionOverrides } from "@/server/actions/foundation";
 import { hasPermission } from "@/server/auth/permissions";
 import { getCurrentProfile } from "@/server/queries/common";
-import { getBranches, getCompaniesForSelect, getLocations, getRoles, getStaff, getStaffAccess, getStaffPermissionAccess } from "@/server/queries/foundation";
+import { getBranches, getCompaniesForSelect, getRoles, getStaff, getStaffAccess, getStaffPermissionAccess } from "@/server/queries/foundation";
 
 export default async function EditStaffPage({
   params,
@@ -24,13 +24,12 @@ export default async function EditStaffPage({
   searchParams: Promise<{ error?: string; success?: string; temp_password?: string }>;
 }) {
   const { id } = await params;
-  const [messageParams, staff, access, companies, branches, locations, allRoles, profile] = await Promise.all([
+  const [messageParams, staff, access, companies, branches, allRoles, profile] = await Promise.all([
     searchParams,
     getStaff(id),
     getStaffAccess(id),
     getCompaniesForSelect(),
-    getBranches(),
-    getLocations(),
+    getBranches({ status: "active" }),
     getRoles(),
     getCurrentProfile(),
   ]);
@@ -189,7 +188,7 @@ export default async function EditStaffPage({
           </Card>
         ) : null}
 
-        <StaffForm formId={formId} staff={staff} access={access} companies={companies} locations={locations} roles={roles} action={updateStaff.bind(null, id)} showSubmit={false} />
+        <StaffForm formId={formId} staff={staff} access={access} companies={companies} branches={branches} roles={roles} action={updateStaff.bind(null, id)} showSubmit={false} />
         <StaffPermissionOverrides
           permissions={permissionAccess}
           canManage={canManageOverrides}

@@ -29,8 +29,9 @@ test("UI smoke keeps the requested routes, console order, and current footer", (
   for (const route of ["dashboard/page.tsx", "outlet-daily-records/page.tsx", "reports/demand-trends/page.tsx", "production/planning/page.tsx", "production/variance/page.tsx", "administration/master-data-cleanup/page.tsx", "imports/page.tsx", "imports/[entity]/page.tsx", "staffs/[id]/page.tsx", "roles/[id]/page.tsx"]) {
     assert.equal(fs.existsSync(`src/app/(app)/${route}`), true);
   }
-  assert.match(dashboard, /Direct Actions[\s\S]*Today[\s\S]*Alerts/);
+  assert.match(dashboard, /ConsoleSection title="Today"[\s\S]*ConsoleSection title="Alerts"/);
+  assert.match(dashboard, /<header[\s\S]*primaryAction\.href/);
   assert.doesNotMatch(dashboard, /ConsoleSection title="Recent Activity"/);
-  assert.match(read("src/lib/app-version.ts"), /APP_SPRINT = "v7\.23\.5\.5"/);
+  assert.match(read("src/lib/app-version.ts"), /APP_SPRINT = "v7\.23\.5\.6"/);
   assert.match(read("supabase/migrations/066_create_outlet_staff_role.sql"), /outlet_staff/);
 });

@@ -59,12 +59,12 @@ test("canonical select and FilterBar preserve keyboard behavior without nested r
   assert.match(invoices, /FilterBarMore/);
 });
 
-test("the visible footer is exactly v7.23.5.5 and the Production correction stays a rollback runbook", () => {
+test("the visible footer is exactly v7.23.5.6 and the Production correction stays a rollback runbook", () => {
   const sidebar = read("src/components/layout/workspace-sidebar.tsx");
   const version = read("src/lib/app-version.ts");
   const runbook = read("docs/qa/SPRINT_7_23_5_3_STAFF_ROLE_CORRECTION_RUNBOOK.md");
 
-  assert.match(version, /APP_SPRINT = "v7\.23\.5\.5"/);
+  assert.match(version, /APP_SPRINT = "v7\.23\.5\.6"/);
   assert.match(sidebar, />\{APP_SPRINT\}<\/div>/);
   assert.doesNotMatch(sidebar, /APP_VERSION/);
   assert.match(read("src/components/layout/mobile-sidebar.tsx"), /w-\[min\(var\(--sb-sidebar-width\),88vw\)\]/);

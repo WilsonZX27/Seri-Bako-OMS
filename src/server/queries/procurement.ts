@@ -13,6 +13,7 @@ import {
 import { createClient } from "@/lib/supabase/server";
 import { compareTableValues, paginateRows } from "@/lib/table-state";
 import type { Database } from "@/types/database";
+import { getCurrentUserScope } from "@/server/queries/notifications";
 
 type Filters = Record<string, string | undefined>;
 type PurchaseRequest = Database["public"]["Tables"]["purchase_requests"]["Row"];
@@ -317,29 +318,54 @@ export async function getPurchaseRequestForOrder(purchaseRequestId: string | nul
 export async function getProcurementWorkspaceInsights() {
   if (isMockMode()) {
     return {
+      role: "super_admin",
+      draftPr: mockPurchaseRequests.filter((request) => request.status === "draft").length,
+      submittedPr: mockPurchaseRequests.filter((request) => request.status === "manager_review").length,
+      managerReview: mockPurchaseRequests.filter((request) => request.status === "manager_review").length,
+      purchasingReview: mockPurchaseRequests.filter((request) => request.status === "admin_review").length,
+      financeReview: mockPurchaseRequests.filter((request) => request.status === "finance_review").length,
+      readyToConvert: mockPurchaseRequests.filter((request) => request.status === "ready_to_convert").length,
       draftPo: mockPurchaseOrders.filter((order) => order.status === "draft").length,
-      openPo: mockPurchaseOrders.filter((order) => !["received", "closed", "cancelled"].includes(order.status)).length,
+      pendingPoApproval: mockPurchaseOrders.filter((order) => order.status === "pending_approval").length,
+      sentPo: mockPurchaseOrders.filter((order) => order.status === "sent").length,
       receivingToday: 0,
-      pendingPr: mockPurchaseRequests.filter((request) => request.status === "finance_review").length,
       invoiceFollowup: 0,
     };
   }
 
   const supabase = await createClient();
+  const scope = await getCurrentUserScope();
+  const canSeeFinance = scope?.roleCode === "super_admin" || scope?.roleCode === "finance";
   const today = new Date().toISOString().slice(0, 10);
-  const [draftPo, openPo, receivingToday, pendingPr, invoiceFollowup] = await Promise.all([
-    supabase.from("purchase_orders").select("id", { count: "exact", head: true }).eq("status", "draft").is("deleted_at", null),
-    supabase.from("purchase_orders").select("id", { count: "exact", head: true }).not("status", "in", "(received,closed,cancelled)").is("deleted_at", null),
+  const countPr = (status: PurchaseRequest["status"]) => supabase.from("purchase_requests").select("id", { count: "exact", head: true }).eq("status", status).is("deleted_at", null);
+  const countPo = (status: PurchaseOrder["status"]) => supabase.from("purchase_orders").select("id", { count: "exact", head: true }).eq("status", status).is("deleted_at", null);
+  const [draftPr, submittedPr, managerReview, purchasingReview, financeReview, readyToConvert, draftPo, pendingPoApproval, sentPo, receivingToday, invoiceFollowup] = await Promise.all([
+    countPr("draft"),
+    countPr("manager_review"),
+    countPr("manager_review"),
+    countPr("admin_review"),
+    countPr("finance_review"),
+    countPr("ready_to_convert"),
+    countPo("draft"),
+    countPo("pending_approval"),
+    countPo("sent"),
     supabase.from("goods_receivings").select("id", { count: "exact", head: true }).eq("received_date", today).is("deleted_at", null),
-    supabase.from("purchase_requests").select("id", { count: "exact", head: true }).eq("status", "finance_review").is("deleted_at", null),
-    supabase.from("supplier_invoices").select("id", { count: "exact", head: true }).in("status", ["open", "partially_paid"]).is("deleted_at", null),
+    canSeeFinance ? supabase.from("supplier_invoices").select("id", { count: "exact", head: true }).in("status", ["open", "partially_paid"]).is("deleted_at", null) : Promise.resolve({ count: 0, error: null }),
   ]);
 
+  const value = (result: { count: number | null; error: unknown }) => result.error ? 0 : result.count ?? 0;
   return {
-    draftPo: draftPo.error ? 0 : draftPo.count ?? 0,
-    openPo: openPo.error ? 0 : openPo.count ?? 0,
-    receivingToday: receivingToday.error ? 0 : receivingToday.count ?? 0,
-    pendingPr: pendingPr.error ? 0 : pendingPr.count ?? 0,
-    invoiceFollowup: invoiceFollowup.error ? 0 : invoiceFollowup.count ?? 0,
+    role: scope?.roleCode ?? "outlet_staff",
+    draftPr: value(draftPr),
+    submittedPr: value(submittedPr),
+    managerReview: value(managerReview),
+    purchasingReview: value(purchasingReview),
+    financeReview: value(financeReview),
+    readyToConvert: value(readyToConvert),
+    draftPo: value(draftPo),
+    pendingPoApproval: value(pendingPoApproval),
+    sentPo: value(sentPo),
+    receivingToday: value(receivingToday),
+    invoiceFollowup: value(invoiceFollowup),
   };
 }

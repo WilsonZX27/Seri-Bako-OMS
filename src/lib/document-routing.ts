@@ -14,6 +14,13 @@ const entityRoutes: Record<string, string> = {
   stock_wastage: "/stock-wastage",
   recipe: "/recipes",
   production_job: "/production/jobs",
+  outlet_daily_record: "/outlet-daily-records",
+  purchase_return: "/purchase-returns",
+  supplier_invoice: "/supplier-invoices",
+  supplier: "/suppliers",
+  item: "/items",
+  staff: "/staffs",
+  branch: "/branches",
 };
 
 export function getCanonicalDocumentHref(document: RoutableDocument) {

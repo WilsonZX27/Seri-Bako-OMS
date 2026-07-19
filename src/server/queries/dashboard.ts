@@ -1,7 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { looseSupabase } from "@/lib/supabase/loose";
-import { actorDisplayName, formatActivityWithActor, resolveActorDisplayMap } from "@/server/actors/display";
-import { getCurrentUserScope, getVisibleNotificationsForCurrentUser } from "@/server/queries/notifications";
+import { getCurrentUserScope, getVisibleNotificationsForCurrentUser, getVisibleRecentActivitiesForCurrentUser } from "@/server/queries/notifications";
 import { getCurrentUserPendingActions } from "@/server/queries/pending-actions";
 import { getPayablesAttention } from "@/server/queries/ap-aging";
 import { getOperationsControlCenterSummary } from "@/server/queries/outlet-daily-records";
@@ -20,65 +19,8 @@ import {
   mockSuppliers,
 } from "@/lib/mock-mode";
 
-const activityEntityAllowlist = {
-  super_admin: ["document", "stock_transaction", "supplier", "supplier_item", "import", "item", "branch", "company", "role", "staff", "document_sequence"],
-  manager: ["document", "stock_transaction", "supplier", "supplier_item", "import", "item"],
-  finance: ["document", "stock_transaction", "supplier", "supplier_item", "import"],
-  purchasing: ["document", "supplier", "supplier_item", "item", "import"],
-  kitchen: ["document", "stock_transaction", "item"],
-  outlet_staff: ["document"],
-} satisfies Record<string, string[]>;
-
-const adminOnlyActivityTypes = new Set(["archived", "restored"]);
-const adminOnlyEntityTypes = new Set(["branch", "company", "role", "staff", "document_sequence"]);
-
 function warnOptionalQuery(name: string, error: { message?: string } | null | undefined) {
   if (error) console.warn(`[dashboard] Optional ${name} query failed: ${error.message ?? "Unknown error"}`);
-}
-
-export async function getVisibleRecentActivitiesForCurrentUser(limit = 6) {
-  const scope = await getCurrentUserScope();
-  if (!scope) return [];
-
-  const supabase = await createClient();
-  const { data, error } = await supabase
-    .from("activity_logs")
-    .select("id, entity_type, entity_id, activity_type, created_by, message, created_at")
-    .order("created_at", { ascending: false })
-    .limit(24);
-
-  if (error) throw new Error(error.message);
-
-  const isOwner = scope.roleCode === "super_admin";
-  const allowedEntityTypes = new Set(activityEntityAllowlist[scope.roleCode as keyof typeof activityEntityAllowlist] ?? []);
-
-  const visibleActivities = (data ?? [])
-    .filter((activity) => {
-      if (isOwner) return true;
-      if (activity.created_by && scope.staffId && activity.created_by === scope.staffId) return true;
-      if (adminOnlyEntityTypes.has(activity.entity_type) || adminOnlyActivityTypes.has(activity.activity_type)) return false;
-      if (scope.roleCode === "kitchen") {
-        return allowedEntityTypes.has(activity.entity_type) && ["created", "submitted", "approved", "posted", "cancelled", "rejected"].includes(activity.activity_type);
-      }
-      if (scope.roleCode === "purchasing") {
-        return allowedEntityTypes.has(activity.entity_type) && !["invite_resent", "staff_updated", "staff_invited"].includes(activity.activity_type);
-      }
-      if (scope.roleCode === "finance") {
-        return allowedEntityTypes.has(activity.entity_type);
-      }
-      return false;
-    })
-    .slice(0, limit);
-
-  const displayMap = await resolveActorDisplayMap(visibleActivities.map((activity) => activity.created_by));
-  return visibleActivities.map((activity) => {
-    const createdByName = actorDisplayName(displayMap, activity.created_by);
-    return {
-      ...activity,
-      created_by_name: createdByName,
-      message: formatActivityWithActor(activity.message, createdByName),
-    };
-  });
 }
 
 export async function getDashboardSummary() {
@@ -117,8 +59,8 @@ export async function getDashboardSummary() {
         { id: "act-3", message: "GRN-00009 posted to inventory", created_at: "2026-06-28T16:10:00.000Z" },
       ],
       notifications: [
-        { id: "note-1", title: "Stock count due tonight", message: "Dry Store and Freezer counts are due before closing." },
-        { id: "note-2", title: "Invoice pending matching", message: "INV-00031 is waiting for receiving confirmation." },
+        { id: "note-1", title: "Stock count due tonight", message: "Dry Store and Freezer counts are due before closing.", action_url: "/stock-counts" },
+        { id: "note-2", title: "Invoice pending matching", message: "INV-00031 is waiting for receiving confirmation.", action_url: "/supplier-invoices" },
       ],
       today: {
         goodsReceiving: 2,
@@ -126,6 +68,7 @@ export async function getDashboardSummary() {
         production: 4,
         deliveries: 2,
       },
+      wastageAttention: 0,
       financeForecast: {
         upcomingPayables: 0,
         pendingPoValue: 0,
@@ -160,7 +103,7 @@ export async function getDashboardSummary() {
   const supabase = await createClient();
   const db = looseSupabase(supabase);
   const empty = { data: [], error: null, count: 0 };
-  const [balances, lowStock, transactions, stockItems, suppliers, items, urgentRequests, purchaseRequests, purchaseOrders, pendingApprovals, documents, notifications, recentActivities, productionSummary, outletToday] = await Promise.all([
+  const [balances, lowStock, transactions, stockItems, suppliers, items, urgentRequests, purchaseRequests, purchaseOrders, pendingApprovals, documents, notifications, recentActivities, productionSummary, outletToday, todayReceiving, stockCountDue, wastageAttention, receivingFollowup] = await Promise.all([
     needsInventory ? supabase.from("stock_balances_view").select("item_id, current_stock, is_low_stock") : Promise.resolve(empty),
     needsInventory ? supabase.from("low_stock_items").select("*").limit(5) : Promise.resolve(empty),
     needsInventory ? supabase
@@ -186,10 +129,18 @@ export async function getDashboardSummary() {
     (isOwner || isFinance || isManager) ? getVisibleRecentActivitiesForCurrentUser() : Promise.resolve([]),
     needsProduction ? getProductionHubSummary().catch(() => null) : Promise.resolve(null),
     isOutlet ? db.from("outlet_daily_records").select("id, status, record_date, branch_id").eq("record_date", today).order("updated_at", { ascending: false }).limit(1).maybeSingle() : Promise.resolve({ data: null, error: null }),
+    needsProcurement ? db.from("goods_receivings").select("id", { count: "exact", head: true }).eq("received_date", today).is("deleted_at", null) : Promise.resolve(empty),
+    needsInventory ? db.from("stock_counts").select("id", { count: "exact", head: true }).in("status", ["draft", "submitted", "reviewed", "approved"]).is("deleted_at", null) : Promise.resolve(empty),
+    needsInventory ? db.from("stock_wastage").select("id", { count: "exact", head: true }).in("status", ["draft", "submitted"]).is("deleted_at", null) : Promise.resolve(empty),
+    needsProcurement ? db.from("purchase_orders").select("id", { count: "exact", head: true }).in("status", ["sent", "partial_received"]).is("deleted_at", null) : Promise.resolve(empty),
   ]);
 
   warnOptionalQuery("stock balances", balances.error);
   warnOptionalQuery("low stock items", lowStock.error);
+  warnOptionalQuery("today receiving", todayReceiving.error);
+  warnOptionalQuery("stock counts due", stockCountDue.error);
+  warnOptionalQuery("wastage attention", wastageAttention.error);
+  warnOptionalQuery("receiving follow-up", receivingFollowup.error);
 
   for (const result of [transactions, stockItems, suppliers, items, urgentRequests, purchaseRequests, purchaseOrders, documents]) {
     if (result.error) throw new Error(result.error.message);
@@ -237,15 +188,16 @@ export async function getDashboardSummary() {
     recentActivities,
     notifications: notifications.slice(0, 6),
     today: {
-      goodsReceiving: 0,
-      stockCountDue: 0,
+      goodsReceiving: todayReceiving.error ? 0 : todayReceiving.count ?? 0,
+      stockCountDue: stockCountDue.error ? 0 : stockCountDue.count ?? 0,
       production: productionSummary?.todayPosted ?? 0,
       deliveries: 0,
     },
+    wastageAttention: wastageAttention.error ? 0 : wastageAttention.count ?? 0,
     financeForecast: {
       upcomingPayables: 0,
       pendingPoValue: 0,
-      receivingNotInvoiced: purchaseOrders.data?.filter((order) => ["sent", "partial_received", "received"].includes(order.status)).length ?? 0,
+      receivingNotInvoiced: receivingFollowup.error ? 0 : receivingFollowup.count ?? 0,
     },
     payablesAttention,
     payablesAttentionUnavailable,

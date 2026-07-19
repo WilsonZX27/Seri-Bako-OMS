@@ -184,7 +184,6 @@ export const rolePermissionMatrix = {
     "purchase_return.create",
     "purchase_return.post",
     "purchase_return.cancel",
-    "supplier_invoice.view",
     "attachments.upload",
     "imports.run",
     "documents.view",

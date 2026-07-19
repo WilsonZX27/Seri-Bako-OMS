@@ -44,7 +44,7 @@ export const informationArchitecture: readonly IaItem[] = [
   { href: "/purchase-orders", label: "Purchase Orders", group: "procurement", icon: "shopping", roles: PROCUREMENT, permission: "purchase_order.read", badgeKey: "purchaseOrders" },
   { href: "/goods-receivings", label: "Goods Receiving", group: "procurement", icon: "check", roles: PROCUREMENT, permission: "goods_receiving.read", badgeKey: "dispatchBoard" },
   { href: "/purchase-returns", label: "Purchase Returns", group: "procurement", icon: "rotate", roles: PROCUREMENT, permission: "purchase_return.view" },
-  { href: "/supplier-invoices", label: "Supplier Invoices", group: "procurement", icon: "receipt", roles: ["super_admin", "finance", "purchasing"], permission: "supplier_invoice.view", badgeKey: "invoices" },
+  { href: "/supplier-invoices", label: "Supplier Invoices", group: "procurement", icon: "receipt", roles: ["super_admin", "finance"], permission: "supplier_invoice.view", badgeKey: "invoices" },
   { href: "/suppliers", label: "Suppliers", group: "procurement", icon: "users", roles: MASTER_DATA, permission: "suppliers.view" },
 
   { href: "/items", label: "Items / SKU Master", group: "inventory", icon: "boxes", roles: MASTER_DATA, permission: "items.view" },
@@ -59,7 +59,7 @@ export const informationArchitecture: readonly IaItem[] = [
   { href: "/low-stock", label: "Low Stock", group: "inventory", icon: "alert", roles: INVENTORY, permission: "low_stock.view" },
 
   { href: "/reports", label: "Reports", group: "analytics", icon: "clipboard", roles: REPORTS, permission: "reports.view" },
-  { href: "/activity", label: "Activity Log", group: "analytics", icon: "activity", roles: REPORTS, permission: "reports.view" },
+  { href: "/activity", label: "Activity Log", group: "analytics", icon: "activity", roles: ALL, permission: "dashboard.view" },
 
   { href: "/company", label: "Company Profile", group: "administration", icon: "building", roles: OWNER, permission: "company.read", administrationCard: "Maintain legal identity, contact details, logo, and branding." },
   { href: "/branches", label: "Branches / Outlets", group: "administration", icon: "building", roles: BRANCH_READERS, permission: "branches.read", administrationCard: "Review operating branches and outlet structure." },

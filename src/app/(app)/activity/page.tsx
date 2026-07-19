@@ -4,24 +4,15 @@ import { Button } from "@/components/ui/button";
 import { ConsoleSection } from "@/components/layout/right-console";
 import { PageHeader } from "@/components/ui/page-header";
 import { WorkspaceGrid } from "@/components/layout/workspace-layout";
-import { getVisibleRecentActivitiesForCurrentUser } from "@/server/queries/dashboard";
+import { getVisibleRecentActivitiesForCurrentUser } from "@/server/queries/notifications";
 
 export const dynamic = "force-dynamic";
-
-function activityHref(activity: { entity_type: string; entity_id: string }) {
-  if (activity.entity_type === "document") return `/documents/${activity.entity_id}`;
-  if (activity.entity_type === "stock_transaction") return "/stock-transactions";
-  if (activity.entity_type === "supplier") return `/suppliers/${activity.entity_id}`;
-  if (activity.entity_type === "item") return `/items/${activity.entity_id}`;
-  if (activity.entity_type === "staff") return `/staffs/${activity.entity_id}`;
-  return null;
-}
 
 export default async function ActivityPage({ searchParams }: { searchParams: Promise<{ selected?: string }> }) {
   const params = await searchParams;
   const activities = await getVisibleRecentActivitiesForCurrentUser(50);
   const selected = activities.find((activity) => activity.id === params.selected) ?? activities[0] ?? null;
-  const selectedHref = selected ? activityHref(selected) : null;
+  const selectedHref = selected?.href || null;
 
   return (
     <>
@@ -58,7 +49,7 @@ export default async function ActivityPage({ searchParams }: { searchParams: Pro
         <div className="overflow-hidden rounded-lg border bg-card">
             <div className="divide-y">
               {activities.map((activity) => {
-                const href = activityHref(activity);
+                const href = activity.href || null;
                 const active = selected?.id === activity.id;
                 const actor = activity.created_by_name ?? "System";
                 const messageIncludesActor = activity.message.toLocaleLowerCase().startsWith(`${actor.toLocaleLowerCase()}:`);

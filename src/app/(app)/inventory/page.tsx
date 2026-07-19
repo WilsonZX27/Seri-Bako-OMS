@@ -23,19 +23,19 @@ const modules = [
 export default async function InventoryPage({ searchParams }: { searchParams: Promise<{ consumption?: string }> }) {
   const params = await searchParams;
   const period = params.consumption === "7d" || params.consumption === "month" ? params.consumption : "30d";
-  const [summary, permissions] = await Promise.all([getInventoryDashboard(period), getPermissionMap(modules.map((module) => module.permission))]);
+  const [summary, permissions] = await Promise.all([getInventoryDashboard(period), getPermissionMap([...modules.map((module) => module.permission), "goods_receiving.read"])]);
   const visibleModules = modules.filter((module) => permissions[module.permission]);
   const counters = [
-    { label: "Low stock", value: summary.lowStockItems, href: "/low-stock" },
-    { label: "Counts due", value: summary.stockCountDue, href: "/stock-counts?status=draft" },
-    { label: "Transfers today", value: summary.todaysTransfers, href: "/stock-transfers?date=today" },
-    { label: "Receiving today", value: summary.todaysReceiving, href: "/goods-receivings?date=today" },
-  ];
+    { label: "Low stock", value: summary.lowStockItems, href: "/low-stock", permission: "low_stock.view" },
+    { label: "Counts due", value: summary.stockCountDue, href: "/stock-counts?status=draft", permission: "stock_count.read" },
+    { label: "Transfers today", value: summary.todaysTransfers, href: "/stock-transfers?date=today", permission: "stock_transfer.read" },
+    { label: "Receiving today", value: summary.todaysReceiving, href: "/goods-receivings?date=today", permission: "goods_receiving.read" },
+  ].filter((counter) => permissions[counter.permission]);
 
   return (
     <>
       <PageHeader title="Inventory Workspace" description="Review branch stock, movement, and operational exceptions." />
-      <WorkspaceGrid className="p-5" rightRail={<><ConsoleSection title="Review now"><div className="space-y-2"><Button asChild size="sm" className="w-full"><Link href="/low-stock">Review low stock</Link></Button><Button asChild size="sm" variant="outline" className="w-full"><Link href="/stock-balance">Open stock balance</Link></Button></div></ConsoleSection><ConsoleSection title="Control basis"><p className="text-xs leading-5 text-muted-foreground">Balances come from posted Movement Ledger entries and follow branch access.</p></ConsoleSection></>}>
+      <WorkspaceGrid className="p-5" rightRail={<><ConsoleSection title="Attention summary"><div className="space-y-2 text-xs">{permissions["low_stock.view"] ? <p className="flex justify-between gap-3"><span className="text-muted-foreground">Low stock</span><strong>{formatNumber(summary.lowStockItems)}</strong></p> : null}{permissions["stock_count.read"] ? <p className="flex justify-between gap-3"><span className="text-muted-foreground">Counts due</span><strong>{formatNumber(summary.stockCountDue)}</strong></p> : null}</div></ConsoleSection><ConsoleSection title="Control basis"><p className="text-xs leading-5 text-muted-foreground">Balances come from posted Movement Ledger entries and follow branch access.</p></ConsoleSection></>}>
         <div className="space-y-4">
           <section className="overflow-hidden rounded-[2px] border bg-card" aria-labelledby="inventory-overview">
             <div className="border-b px-4 py-3"><h2 id="inventory-overview" className="text-sm font-semibold">Operational overview</h2></div>

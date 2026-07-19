@@ -60,5 +60,5 @@ test("product-driven lists keep canonical ordering and the current footer", () =
   assert.match(daily, /sortProductsForDisplay/);
   assert.match(order, /display_order/);
   assert.match(order, /natural\.compare/);
-  assert.match(version, /APP_SPRINT = "v7\.23\.5\.5"/);
+  assert.match(version, /APP_SPRINT = "v7\.23\.5\.6"/);
 });

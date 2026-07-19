@@ -5,6 +5,9 @@ import { ConsoleSection } from "@/components/layout/right-console";
 import { WorkspaceGrid } from "@/components/layout/workspace-layout";
 import type { WorkspaceThemeName } from "@/components/workspace-panels";
 import type { LucideIcon } from "lucide-react";
+import { getPermissionMap } from "@/server/auth/permissions";
+import { getRouteAllowedRoles, getRoutePermissionCodes } from "@/server/auth/route-permissions";
+import { getCurrentProfile } from "@/server/queries/common";
 
 type ReportLink = {
   href: string;
@@ -65,8 +68,20 @@ const reportCategories: ReportCategory[] = [
   },
 ];
 
-export default function ReportsPage() {
-  const reportCount = reportCategories.reduce((sum, category) => sum + category.reports.length, 0);
+export default async function ReportsPage() {
+  const permissionCodes = reportCategories.flatMap((category) => category.reports.flatMap((report) => getRoutePermissionCodes(report.href.split("?")[0]) ?? []));
+  const [permissions, profile] = await Promise.all([getPermissionMap(permissionCodes), getCurrentProfile()]);
+  const role = (profile as { role_code?: string; role?: string } | null)?.role_code ?? (profile as { role?: string } | null)?.role ?? "outlet_staff";
+  const visibleCategories = reportCategories.map((category) => ({
+    ...category,
+    reports: category.reports.filter((report) => {
+      const pathname = report.href.split("?")[0];
+      const required = getRoutePermissionCodes(pathname) ?? [];
+      const roles = getRouteAllowedRoles(pathname);
+      return required.some((permission) => permissions[permission]) && (!roles || roles.includes(role as never));
+    }),
+  })).filter((category) => category.reports.length);
+  const reportCount = visibleCategories.reduce((sum, category) => sum + category.reports.length, 0);
 
   return (
     <>
@@ -76,7 +91,7 @@ export default function ReportsPage() {
           <>
             <ConsoleSection title="Report Summary">
               <div className="grid gap-2 text-xs">
-                <div className="flex justify-between gap-3"><span className="text-muted-foreground">Categories</span><strong>{reportCategories.length}</strong></div>
+                <div className="flex justify-between gap-3"><span className="text-muted-foreground">Categories</span><strong>{visibleCategories.length}</strong></div>
                 <div className="flex justify-between gap-3"><span className="text-muted-foreground">Available</span><strong>{reportCount}</strong></div>
                 <div className="flex justify-between gap-3"><span className="text-muted-foreground">Total Listed</span><strong>{reportCount}</strong></div>
               </div>
@@ -88,7 +103,7 @@ export default function ReportsPage() {
         }
       >
         <div className="space-y-4">
-          {reportCategories.map((category) => (
+          {visibleCategories.map((category) => (
             <section key={category.title} className="overflow-hidden rounded-lg border bg-card">
               <div className="border-b bg-secondary/30 px-3 py-2">
                 <h2 className="text-sm font-semibold">{category.title}</h2>

@@ -19,7 +19,7 @@ for (const role of roles) {
   test(`${role} reaches a stable authenticated page`, async ({ page }) => {
     test.skip(!hasAccount(role), `Missing ${role} credentials: ${missingAccountVars(role).join(", ")}`);
     await signInAllowingStableAccessState(page, role);
-    await expect(page.locator("body")).toContainText("v7.23.5.5");
+    await expect(page.locator("body")).toContainText("v7.23.5.6");
   });
 }
 

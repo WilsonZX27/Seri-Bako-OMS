@@ -2,9 +2,8 @@ import { createClient } from "@/lib/supabase/server";
 import { looseSupabase } from "@/lib/supabase/loose";
 import { getCanonicalDocumentHref, getCanonicalEntityHref } from "@/lib/document-routing";
 import { isMockMode, mockDocuments } from "@/lib/mock-mode";
-import { actorDisplayName, formatActivityWithActor, resolveActorDisplayMap } from "@/server/actors/display";
 import { hasPermission } from "@/server/auth/permissions";
-import { getVisibleNotificationsForCurrentUser, getTopBarNotificationScope } from "@/server/queries/notifications";
+import { getVisibleNotificationsForCurrentUser, getVisibleRecentActivitiesForCurrentUser } from "@/server/queries/notifications";
 import { getCurrentUserPendingActions } from "@/server/queries/pending-actions";
 
 type AssignedActivity = {
@@ -25,36 +24,6 @@ type PendingAction = {
   age_label?: string;
 };
 
-const activityEntityAllowlist = {
-  super_admin: ["document", "stock_transaction", "supplier", "supplier_item", "import", "item", "branch", "company", "role", "staff", "document_sequence"],
-  manager: ["document", "stock_transaction", "supplier", "supplier_item", "import", "item"],
-  finance: ["document", "stock_transaction", "supplier", "supplier_item", "import", "branch", "staff", "document_sequence"],
-  purchasing: ["document", "supplier", "supplier_item", "item", "import"],
-  kitchen: ["document", "stock_transaction", "item"],
-  outlet_staff: ["document"],
-} satisfies Record<string, string[]>;
-
-const adminOnlyActivityTypes = new Set(["archived", "restored", "invite_resent", "staff_updated", "staff_invited"]);
-const ownerOnlyEntityTypes = new Set(["company", "role"]);
-
-function canSeeActivity(
-  scope: NonNullable<Awaited<ReturnType<typeof getTopBarNotificationScope>>>,
-  activity: { entity_type: string; activity_type: string; created_by: string | null },
-) {
-  if (scope.roleCode === "super_admin") return true;
-  if (activity.created_by && scope.staffId && activity.created_by === scope.staffId) return true;
-  if (ownerOnlyEntityTypes.has(activity.entity_type)) return false;
-  if (adminOnlyActivityTypes.has(activity.activity_type) && scope.roleCode !== "finance") return false;
-  const allowedEntityTypes = new Set(activityEntityAllowlist[scope.roleCode as keyof typeof activityEntityAllowlist] ?? []);
-  if (scope.roleCode === "kitchen") {
-    return allowedEntityTypes.has(activity.entity_type) && ["created", "submitted", "approved", "posted", "cancelled", "rejected"].includes(activity.activity_type);
-  }
-  if (scope.roleCode === "purchasing") return allowedEntityTypes.has(activity.entity_type);
-  if (scope.roleCode === "finance") return allowedEntityTypes.has(activity.entity_type);
-  if (scope.roleCode === "manager") return allowedEntityTypes.has(activity.entity_type);
-  return false;
-}
-
 export async function getTopBarActivity() {
   if (isMockMode()) {
     return {
@@ -73,17 +42,12 @@ export async function getTopBarActivity() {
     };
   }
 
-  const scope = await getTopBarNotificationScope();
-  if (!scope) {
-    return { pendingApprovals: [], assignedActivities: [] as AssignedActivity[], notifications: [], announcements: [] };
-  }
-
   const supabase = await createClient();
   const db = looseSupabase(supabase);
-  const [documentApprovals, notifications, recentActivities, workflowPendingActions, canApproveProduction, canPostProduction] = await Promise.all([
+  const [documentApprovals, notifications, assignedActivities, workflowPendingActions, canApproveProduction, canPostProduction] = await Promise.all([
     supabase.from("documents").select("id, document_no, title, document_type, related_entity_type, related_entity_id").eq("approval_status", "pending").order("updated_at", { ascending: false }).limit(5),
     getVisibleNotificationsForCurrentUser(),
-    supabase.from("activity_logs").select("id, entity_type, activity_type, message, created_at, created_by").order("created_at", { ascending: false }).limit(16),
+    getVisibleRecentActivitiesForCurrentUser(5),
     getCurrentUserPendingActions(5),
     hasPermission("production.approve"),
     hasPermission("production.post"),
@@ -126,17 +90,6 @@ export async function getTopBarActivity() {
   const pendingApprovals = [...workflowPendingActions, ...productionPendingActions, ...scopedDocumentPendingActions]
     .filter((item, index, rows) => rows.findIndex((row) => row.href === item.href) === index)
     .slice(0, 5);
-
-  const activityRows = recentActivities.error ? [] : (recentActivities.data ?? []).filter((activity) => canSeeActivity(scope, activity)).slice(0, 5);
-  const displayMap = await resolveActorDisplayMap(activityRows.map((row) => row.created_by));
-  const assignedActivities = activityRows.map((row) => {
-    const createdByName = actorDisplayName(displayMap, row.created_by);
-    return {
-      ...row,
-      created_by_name: createdByName,
-      message: formatActivityWithActor(row.message, createdByName),
-    };
-  });
 
   return {
     pendingApprovals,

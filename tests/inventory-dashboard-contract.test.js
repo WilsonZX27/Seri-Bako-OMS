@@ -14,12 +14,13 @@ test("inventory dashboard uses the implemented stock rules", () => {
   assert.match(query, /period.*month/);
 });
 
-test("inventory keeps compact review actions and control context in the shared right console", () => {
+test("inventory keeps a role-aware attention summary and control context in the shared right console", () => {
   const page = read("src/app/(app)/inventory/page.tsx");
   assert.match(page, /WorkspaceGrid/);
-  assert.match(page, /ConsoleSection title="Review now"/);
+  assert.match(page, /ConsoleSection title="Attention summary"/);
   assert.match(page, /ConsoleSection title="Control basis"/);
   assert.match(page, /href="\/low-stock"/);
+  assert.match(page, /permissions\[counter\.permission\]/);
   assert.doesNotMatch(page, /inventory-insights-rail/);
 });
 

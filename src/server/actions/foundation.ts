@@ -1230,8 +1230,8 @@ function documentSequencePayload(formData: FormData) {
     document_type: formValue(formData, "document_type"),
     prefix: formValue(formData, "prefix"),
     next_number: formValue(formData, "next_number") ?? 1,
-    padding: formValue(formData, "padding") ?? 5,
-    reset_frequency: formValue(formData, "reset_frequency") ?? "yearly",
+    padding: 3,
+    reset_frequency: "monthly",
     status: formValue(formData, "status") ?? "active",
   });
 }

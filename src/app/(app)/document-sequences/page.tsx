@@ -11,6 +11,7 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { ConsoleSection } from "@/components/layout/right-console";
 import { WorkspaceGrid } from "@/components/layout/workspace-layout";
+import { documentTypeLabel } from "@/lib/document-types";
 
 export default async function DocumentSequencesPage({ searchParams }: { searchParams: Promise<{ search?: string; status?: string; error?: string; success?: string }> }) {
   const filters = await searchParams;
@@ -35,10 +36,10 @@ export default async function DocumentSequencesPage({ searchParams }: { searchPa
                 <TableRow>
                   <TableHead>Document Type</TableHead>
                   <TableHead>Prefix</TableHead>
-                  <TableHead className="text-right">Padding</TableHead>
-                  <TableHead className="text-right">Current Number</TableHead>
-                  <TableHead>Reset Rule</TableHead>
-                  <TableHead>Preview Number</TableHead>
+                  <TableHead>Format Preview</TableHead>
+                  <TableHead>Reset Monthly</TableHead>
+                  <TableHead>Current Period</TableHead>
+                  <TableHead className="text-right">This Month's Next Number</TableHead>
                   <TableHead>Status</TableHead>
                   {canUpdate ? <TableHead className="w-12 text-right">Action</TableHead> : null}
                 </TableRow>
@@ -46,12 +47,12 @@ export default async function DocumentSequencesPage({ searchParams }: { searchPa
               <TableBody>
                 {sequences.map((sequence) => (
                   <TableRow key={sequence.id}>
-                    <TableCell className="font-medium">{sequence.document_type}</TableCell>
+                    <TableCell className="font-medium">{documentTypeLabel(sequence.document_type)}</TableCell>
                     <TableCell>{sequence.prefix}</TableCell>
-                    <TableCell className="text-right">{sequence.padding}</TableCell>
-                    <TableCell className="text-right">{sequence.next_number}</TableCell>
-                    <TableCell className="capitalize">{sequence.reset_frequency}</TableCell>
                     <TableCell className="font-mono">{sequence.preview_number}</TableCell>
+                    <TableCell>{sequence.reset_frequency === "monthly" ? "Yes" : "No"}</TableCell>
+                    <TableCell>{new Intl.DateTimeFormat("en-US", { month: "short", year: "numeric", timeZone: "Asia/Kuala_Lumpur" }).format(new Date())}</TableCell>
+                    <TableCell className="text-right">{sequence.next_number}</TableCell>
                     <TableCell><Badge variant={sequence.status === "active" ? "success" : "secondary"}>{sequence.status}</Badge></TableCell>
                     {canUpdate ? <TableCell className="text-right"><TableActionLink href={`/document-sequences/${sequence.id}`} label={`Edit ${sequence.document_type}`}><Pencil className="h-4 w-4" /></TableActionLink></TableCell> : null}
                   </TableRow>

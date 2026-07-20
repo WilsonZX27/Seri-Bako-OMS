@@ -446,6 +446,28 @@ export type Database = {
         Update: Partial<Database["public"]["Tables"]["document_sequences"]["Insert"]>;
         Relationships: [];
       };
+      document_sequence_periods: {
+        Row: {
+          id: string;
+          company_id: string;
+          document_type: string;
+          period_start: string;
+          next_number: number;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          company_id: string;
+          document_type: string;
+          period_start: string;
+          next_number?: number;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["document_sequence_periods"]["Insert"]>;
+        Relationships: [];
+      };
       barcode_mappings: {
         Row: {
           id: string;

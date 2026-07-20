@@ -323,8 +323,10 @@ export async function getStaffPermissionAccess(staffId: string) {
   });
 }
 
-export function previewDocumentNumber(prefix: string, nextNumber: number, padding: number) {
-  return `${prefix}-${String(nextNumber).padStart(padding, "0")}`;
+export function previewDocumentNumber(prefix: string, nextNumber: number, padding: number, date = new Date()) {
+  const month = new Intl.DateTimeFormat("en-US", { month: "short", timeZone: "Asia/Kuala_Lumpur" }).format(date).toUpperCase();
+  const year = new Intl.DateTimeFormat("en-US", { year: "2-digit", timeZone: "Asia/Kuala_Lumpur" }).format(date);
+  return `${prefix}/${month}${year}/${String(nextNumber).padStart(Math.max(padding, 3), "0")}`;
 }
 
 export async function getDocumentSequences(filters: Filters = {}) {
@@ -340,8 +342,20 @@ export async function getDocumentSequences(filters: Filters = {}) {
   else if (!wantsAllStatuses(filters.status)) query = query.is("deleted_at", null);
   const { data, error } = await query;
   if (error) throw new Error(error.message);
-  return (data ?? [])
-    .map((sequence) => ({ ...sequence, preview_number: previewDocumentNumber(sequence.prefix, sequence.next_number, sequence.padding) }))
+  const sequences = data ?? [];
+  const dateParts = new Intl.DateTimeFormat("en-US", { timeZone: "Asia/Kuala_Lumpur", year: "numeric", month: "2-digit" }).formatToParts(new Date());
+  const currentPeriod = `${dateParts.find((part) => part.type === "year")?.value}-${dateParts.find((part) => part.type === "month")?.value}-01`;
+  const { data: periods, error: periodsError } = await supabase
+    .from("document_sequence_periods")
+    .select("company_id, document_type, next_number")
+    .eq("period_start", currentPeriod);
+  if (periodsError) throw new Error(periodsError.message);
+  const nextBySequence = new Map((periods ?? []).map((period) => [`${period.company_id}:${period.document_type}`, period.next_number]));
+  return sequences
+    .map((sequence) => {
+      const nextNumber = nextBySequence.get(`${sequence.company_id}:${sequence.document_type}`) ?? 1;
+      return { ...sequence, next_number: nextNumber, preview_number: previewDocumentNumber(sequence.prefix, nextNumber, sequence.padding) };
+    })
     .filter((sequence) => matchesFilter([sequence.document_type, sequence.prefix, sequence.preview_number], filters, sequence.status));
 }
 
@@ -355,5 +369,15 @@ export async function getDocumentSequence(id: string) {
   const supabase = await createClient();
   const { data, error } = await supabase.from("document_sequences").select("*").eq("id", id).single();
   if (error) throw new Error(error.message);
-  return data;
+  const dateParts = new Intl.DateTimeFormat("en-US", { timeZone: "Asia/Kuala_Lumpur", year: "numeric", month: "2-digit" }).formatToParts(new Date());
+  const currentPeriod = `${dateParts.find((part) => part.type === "year")?.value}-${dateParts.find((part) => part.type === "month")?.value}-01`;
+  const { data: period, error: periodError } = await supabase
+    .from("document_sequence_periods")
+    .select("next_number")
+    .eq("company_id", data.company_id)
+    .eq("document_type", data.document_type)
+    .eq("period_start", currentPeriod)
+    .maybeSingle();
+  if (periodError) throw new Error(periodError.message);
+  return { ...data, next_number: period?.next_number ?? 1 };
 }

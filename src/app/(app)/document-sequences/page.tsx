@@ -39,7 +39,7 @@ export default async function DocumentSequencesPage({ searchParams }: { searchPa
                   <TableHead>Format Preview</TableHead>
                   <TableHead>Reset Monthly</TableHead>
                   <TableHead>Current Period</TableHead>
-                  <TableHead className="text-right">This Month's Next Number</TableHead>
+                  <TableHead className="text-right">This Month&apos;s Next Number</TableHead>
                   <TableHead>Status</TableHead>
                   {canUpdate ? <TableHead className="w-12 text-right">Action</TableHead> : null}
                 </TableRow>

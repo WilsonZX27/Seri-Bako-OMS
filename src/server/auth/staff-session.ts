@@ -15,59 +15,6 @@ function getOptionalAdminClient() {
   }
 }
 
-export async function syncCurrentAuthUserToStaff() {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user?.email) return null;
-
-  const admin = getOptionalAdminClient();
-  if (!admin) return null;
-  const email = user.email.toLowerCase();
-  const now = new Date().toISOString();
-
-  const { data: linked, error: linkedError } = await admin
-    .from("staffs")
-    .select("id")
-    .eq("auth_user_id", user.id)
-    .is("deleted_at", null)
-    .maybeSingle();
-  if (linkedError) throw new Error(linkedError.message);
-
-  if (linked) {
-    await admin.from("staffs").update({ last_login_at: now }).eq("id", linked.id);
-    return linked.id;
-  }
-
-  const { data: matches, error: matchError } = await admin
-    .from("staffs")
-    .select("id")
-    .in("email", [email])
-    .is("deleted_at", null);
-  if (matchError) throw new Error(matchError.message);
-  const directMatches = matches ?? [];
-
-  const { data: inviteMatches, error: inviteMatchError } = await admin
-    .from("staffs")
-    .select("id")
-    .in("invite_email", [email])
-    .is("deleted_at", null);
-  if (inviteMatchError) throw new Error(inviteMatchError.message);
-
-  const uniqueIds = Array.from(new Set([...directMatches, ...(inviteMatches ?? [])].map((row) => row.id)));
-  if (uniqueIds.length !== 1) return null;
-
-  const staffId = uniqueIds[0];
-  const { error: updateError } = await admin
-    .from("staffs")
-    .update({ auth_user_id: user.id, last_login_at: now })
-    .eq("id", staffId);
-  if (updateError) throw new Error(updateError.message);
-  return staffId;
-}
-
 export async function acceptCurrentStaffInvite() {
   const supabase = await createClient();
   const {
@@ -79,13 +26,8 @@ export async function acceptCurrentStaffInvite() {
 }
 
 export async function acceptStaffInviteForUser(userId: string, email: string | null) {
-  if (!email) throw new Error("A valid invitation email is required.");
-
-  const staffId = await syncAuthUserToStaff(userId, email);
-  if (!staffId) return;
-
-  const admin = getOptionalAdminClient();
-  if (!admin) return;
+  const staff = await requireLinkedStaffForAuthUser(userId, email);
+  const admin = createAdminClient();
   const now = new Date().toISOString();
   const { error } = await admin
     .from("staffs")
@@ -97,53 +39,28 @@ export async function acceptStaffInviteForUser(userId: string, email: string | n
       password_changed_at: now,
       invitation_status: "active",
     })
-    .eq("id", staffId);
+    .eq("id", staff.id);
   if (error) throw new Error(error.message);
 }
 
-async function syncAuthUserToStaff(userId: string, userEmail: string) {
-  const admin = getOptionalAdminClient();
-  if (!admin) return null;
-  const email = userEmail.toLowerCase();
-  const now = new Date().toISOString();
-
-  const { data: linked, error: linkedError } = await admin
+export async function requireLinkedStaffForAuthUser(userId: string, userEmail: string | null) {
+  if (!userEmail) throw new Error("A valid staff sign-in email is required.");
+  const admin = createAdminClient();
+  const { data: linked, error } = await admin
     .from("staffs")
-    .select("id")
+    .select("id, email, invite_email, status")
     .eq("auth_user_id", userId)
     .is("deleted_at", null)
     .maybeSingle();
-  if (linkedError) throw new Error(linkedError.message);
-
-  if (linked) {
-    await admin.from("staffs").update({ last_login_at: now }).eq("id", linked.id);
-    return linked.id;
+  if (error) throw new Error(error.message);
+  if (!linked) throw new Error("This sign-in is not linked to a staff profile. Ask the Super Admin / Owner to repair the sign-in link.");
+  if (linked.status === "disabled") throw new Error("This staff account is disabled.");
+  const normalized = userEmail.trim().toLowerCase();
+  const staffEmails = [linked.email, linked.invite_email].filter(Boolean).map((value) => value!.trim().toLowerCase());
+  if (!staffEmails.length || staffEmails.some((value) => value !== normalized)) {
+    throw new Error("The staff profile email does not match this sign-in account. Ask the Super Admin / Owner to review it.");
   }
-
-  const { data: emailMatches, error: emailError } = await admin
-    .from("staffs")
-    .select("id")
-    .in("email", [email])
-    .is("deleted_at", null);
-  if (emailError) throw new Error(emailError.message);
-
-  const { data: inviteMatches, error: inviteError } = await admin
-    .from("staffs")
-    .select("id")
-    .in("invite_email", [email])
-    .is("deleted_at", null);
-  if (inviteError) throw new Error(inviteError.message);
-
-  const uniqueIds = Array.from(new Set([...(emailMatches ?? []), ...(inviteMatches ?? [])].map((row) => row.id)));
-  if (uniqueIds.length !== 1) return null;
-
-  const staffId = uniqueIds[0];
-  const { error: updateError } = await admin
-    .from("staffs")
-    .update({ auth_user_id: userId, last_login_at: now })
-    .eq("id", staffId);
-  if (updateError) throw new Error(updateError.message);
-  return staffId;
+  return linked;
 }
 
 export type PasswordSetupContext = {
@@ -168,22 +85,7 @@ export async function getPasswordSetupContext(): Promise<PasswordSetupContext | 
   if (!user?.email) return null;
 
   const admin = getOptionalAdminClient();
-  const fallback = {
-    userId: user.id,
-    email: user.email,
-    staffName: null,
-    staffStatus: null,
-    companyName: "Seri Bako OMS",
-    companyLogoUrl: null,
-    invitedByName: null,
-    roleName: null,
-    branchName: null,
-    invitedAt: null,
-    expiryLabel: "Based on the Supabase invitation email policy.",
-  };
-  if (!admin) return fallback;
-
-  const email = user.email.toLowerCase();
+  if (!admin) return null;
   const { data: linkedStaff, error: linkedError } = await admin
     .from("staffs")
     .select("*")
@@ -192,17 +94,11 @@ export async function getPasswordSetupContext(): Promise<PasswordSetupContext | 
     .maybeSingle();
   if (linkedError) throw new Error(linkedError.message);
 
-  let staff = linkedStaff;
-  if (!staff) {
-    const { data: matches, error: matchError } = await admin
-      .from("staffs")
-      .select("*")
-      .in("invite_email", [email])
-      .is("deleted_at", null);
-    if (matchError) throw new Error(matchError.message);
-    if ((matches ?? []).length === 1) staff = matches?.[0] ?? null;
-  }
-  if (!staff) return fallback;
+  const staff = linkedStaff;
+  if (!staff) return null;
+  const normalized = user.email.trim().toLowerCase();
+  const staffEmails = [staff.email, staff.invite_email].filter(Boolean).map((value) => value!.trim().toLowerCase());
+  if (!staffEmails.length || staffEmails.some((value) => value !== normalized)) return null;
 
   const [{ data: company }, { data: primaryRole }, { data: defaultBranch }, { data: inviter }] = await Promise.all([
     admin.from("companies").select("company_name, logo_url").eq("id", staff.company_id).maybeSingle(),
@@ -240,7 +136,7 @@ export async function getPasswordSetupContext(): Promise<PasswordSetupContext | 
     email: staff.invite_email ?? staff.email ?? user.email,
     staffName: staff.full_name,
     staffStatus: staff.status,
-    companyName: company?.company_name ?? fallback.companyName,
+    companyName: company?.company_name ?? "Seri Bako OMS",
     companyLogoUrl: company?.logo_url ?? null,
     invitedByName: inviter?.full_name ?? null,
     roleName,
@@ -248,6 +144,6 @@ export async function getPasswordSetupContext(): Promise<PasswordSetupContext | 
     invitedAt: staff.invited_at,
     expiryLabel: staff.invited_at
       ? "Based on the Supabase invitation email policy from the invited time."
-      : fallback.expiryLabel,
+      : "Based on the Supabase invitation email policy.",
   };
 }

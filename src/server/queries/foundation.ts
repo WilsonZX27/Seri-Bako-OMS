@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { hasUniqueValidAuthLink, listAuthUserSummaries } from "@/server/auth/admin-users";
 import { getRoleDisplayLabel, sortRolesForDisplay, SYSTEM_ROLE_CODES } from "@/lib/roles";
 import {
   isMockMode,
@@ -164,6 +165,7 @@ export async function getStaffs(filters: Filters = {}) {
   ]);
   if (staffsError) throw new Error(staffsError.message);
   if (branchesError) throw new Error(branchesError.message);
+  const authUsers = await listAuthUserSummaries();
   const branchById = new Map((branches ?? []).map((branch) => [branch.id, branch.branch_name]));
   const roleById = new Map((roles ?? []).map((role) => [role.id, getRoleDisplayLabel(role.role_code, role.role_name)]));
   return (staffs ?? [])
@@ -176,6 +178,7 @@ export async function getStaffs(filters: Filters = {}) {
         branch_access_level: defaultBranch?.access_level ?? null,
         role_name: assignedRoles.join(", ") || null,
         role_code: null,
+        auth_link_valid: hasUniqueValidAuthLink(staff, authUsers),
       };
     })
     .filter((staff) => matchesFilter([staff.staff_code, staff.full_name, staff.email, staff.default_branch_name], filters, staff.status));
@@ -191,7 +194,8 @@ export async function getStaff(id: string) {
   const supabase = await createClient();
   const { data, error } = await supabase.from("staffs").select("*").eq("id", id).single();
   if (error) throw new Error(error.message);
-  return data;
+  const authUsers = await listAuthUserSummaries();
+  return { ...data, auth_link_valid: hasUniqueValidAuthLink(data, authUsers) };
 }
 
 export async function getStaffAccess(staffId: string) {

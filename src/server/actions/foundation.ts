@@ -14,6 +14,7 @@ import { requirePermission } from "@/server/auth/permissions";
 import { formatActionError, requirePermissionOrRedirect, rethrowRedirect, safeRedirectWithMessage } from "@/server/actions/error-handling";
 import { ensureBranchDefaultLocation } from "@/server/inventory/locations";
 import { getCurrentProfile } from "@/server/queries/common";
+import { findAuthUsersByEmail } from "@/server/auth/admin-users";
 
 function formValue(formData: FormData, key: string) {
   return formData.get(key);
@@ -676,22 +677,30 @@ async function countStaffHistory(admin: ReturnType<typeof createAdminClient>, st
 
 async function inviteStaffByEmail(staffId: string, email: string) {
   const admin = createAdminClient();
+  const normalized = email.trim().toLowerCase();
+  const { data: staff, error: staffError } = await admin.from("staffs").select("auth_user_id").eq("id", staffId).single();
+  if (staffError) throw new Error(staffError.message);
   const redirectTo = `${await getAppUrl()}/auth/callback?next=/set-password`;
-  const { data, error } = await admin.auth.admin.inviteUserByEmail(email, { redirectTo });
+  const { data, error } = await admin.auth.admin.inviteUserByEmail(normalized, { redirectTo });
 
   let authUserId = data.user?.id ?? null;
+  let createdAuthUser = Boolean(authUserId);
   if (error) {
     const message = error.message.toLowerCase();
     if (!message.includes("already") && !message.includes("registered")) {
       throw new Error(error.message);
     }
 
-    const { data: users } = await admin.auth.admin.listUsers();
-    authUserId = users.users.find((user) => user.email?.toLowerCase() === email)?.id ?? null;
+    createdAuthUser = false;
+    const users = await findAuthUsersByEmail(normalized);
+    if (users.length !== 1) throw new Error(users.length ? "Multiple Auth accounts match this email. The sign-in link cannot be repaired automatically." : "The existing Auth account could not be matched exactly.");
+    authUserId = users[0].id;
+    if (!staff.auth_user_id) throw new Error("An Auth account already exists for this email. Use Repair sign-in link after exact-match validation.");
+    if (staff.auth_user_id !== authUserId) throw new Error("This staff profile is linked to a different Auth account.");
   }
 
   const updates: { auth_user_id?: string; invite_email: string; invited_at: string; auth_setup_method: string; invitation_status: string } = {
-    invite_email: email,
+    invite_email: normalized,
     invited_at: new Date().toISOString(),
     auth_setup_method: "email_invitation",
     invitation_status: "invited",
@@ -699,7 +708,10 @@ async function inviteStaffByEmail(staffId: string, email: string) {
   if (authUserId) updates.auth_user_id = authUserId;
 
   const { error: updateError } = await admin.from("staffs").update(updates).eq("id", staffId);
-  if (updateError) throw new Error(updateError.message);
+  if (updateError) {
+    if (createdAuthUser && authUserId) await admin.auth.admin.deleteUser(authUserId).catch(console.error);
+    throw new Error(updateError.message);
+  }
 }
 
 function generateTemporaryPassword() {
@@ -718,14 +730,6 @@ function generateTemporaryPassword() {
     .join("");
 }
 
-async function findAuthUserIdByEmail(email: string) {
-  const admin = createAdminClient();
-  const normalized = email.trim().toLowerCase();
-  const { data, error } = await admin.auth.admin.listUsers();
-  if (error) throw new Error(error.message);
-  return data.users.find((user) => user.email?.toLowerCase() === normalized)?.id ?? null;
-}
-
 async function createOrResetStaffAuthAccount(input: {
   staffId: string;
   email: string;
@@ -737,9 +741,15 @@ async function createOrResetStaffAuthAccount(input: {
   const email = input.email.trim().toLowerCase();
   const temporaryPassword = input.temporaryPassword?.trim() || generateTemporaryPassword();
   const now = new Date().toISOString();
+  const { data: staff, error: staffError } = await admin.from("staffs").select("auth_user_id").eq("id", input.staffId).single();
+  if (staffError) throw new Error(staffError.message);
 
-  let authUserId = await findAuthUserIdByEmail(email);
+  let authUserId = staff.auth_user_id;
+  let createdAuthUser = false;
   if (!authUserId) {
+    const matches = await findAuthUsersByEmail(email);
+    if (matches.length > 1) throw new Error("Multiple Auth accounts match this email. The sign-in link cannot be repaired automatically.");
+    if (matches.length === 1) throw new Error("An Auth account already exists for this email. Use Repair sign-in link after exact-match validation.");
     const { data, error } = await admin.auth.admin.createUser({
       email,
       password: temporaryPassword,
@@ -752,7 +762,11 @@ async function createOrResetStaffAuthAccount(input: {
     });
     if (error) throw new Error(error.message);
     authUserId = data.user?.id ?? null;
+    createdAuthUser = Boolean(authUserId);
   } else if (input.resetExisting) {
+    const { data: linkedUser, error: linkedUserError } = await admin.auth.admin.getUserById(authUserId);
+    if (linkedUserError) throw new Error(linkedUserError.message);
+    if (linkedUser.user.email?.trim().toLowerCase() !== email) throw new Error("The linked Auth account email does not match this staff profile.");
     const { error } = await admin.auth.admin.updateUserById(authUserId, {
       password: temporaryPassword,
       user_metadata: {
@@ -781,7 +795,10 @@ async function createOrResetStaffAuthAccount(input: {
       invited_at: now,
     })
     .eq("id", input.staffId);
-  if (updateError) throw new Error(updateError.message);
+  if (updateError) {
+    if (createdAuthUser) await admin.auth.admin.deleteUser(authUserId).catch(console.error);
+    throw new Error(updateError.message);
+  }
 
   return temporaryPassword;
 }
@@ -804,18 +821,19 @@ export async function createStaff(formData: FormData) {
       const invitedBy = await getCurrentStaffId();
       const { data: existing, error: existingError } = await supabase
         .from("staffs")
-        .select("id, accepted_at")
+        .select("id")
         .eq("company_id", payload.company_id)
-        .eq("email", payload.email)
+        .ilike("email", payload.email)
         .is("deleted_at", null)
         .maybeSingle();
       if (existingError) throw new Error(existingError.message);
+      if (existing) throw new Error("An active staff profile already uses this email. Open that staff profile instead of creating a duplicate.");
 
       const now = new Date().toISOString();
       const staffRecord = {
         ...payload,
         invite_email: payload.email,
-        status: existing?.accepted_at ? payload.status : "invited",
+        status: "invited" as const,
         invited_at: now,
         invited_by: invitedBy,
         auth_setup_method: authSetupMethod === "email_invitation" ? "email_invitation" : "temporary_password",
@@ -824,9 +842,7 @@ export async function createStaff(formData: FormData) {
         temp_password_issued_at: authSetupMethod !== "email_invitation" ? now : null,
       };
 
-      const { data, error } = existing
-        ? await supabase.from("staffs").update(staffRecord).eq("id", existing.id).select("id").single()
-        : await supabase.from("staffs").insert(staffRecord).select("id").single();
+      const { data, error } = await supabase.from("staffs").insert(staffRecord).select("id").single();
       if (error) throw new Error(error.message);
       createdStaffId = data.id;
       await replaceStaffAccess(data.id, formData);
@@ -844,12 +860,19 @@ export async function createStaff(formData: FormData) {
       await writeActivityLog({
         entityType: "staff",
         entityId: data.id,
-        activityType: existing ? "updated" : "created",
+        activityType: "created",
         message: authSetupMethod === "email_invitation" ? `Staff ${payload.full_name} invited` : `Staff ${payload.full_name} auth account created`,
       });
     }
   } catch (error) {
     rethrowRedirect(error);
+    if (createdStaffId && !isMockMode()) {
+      const admin = createAdminClient();
+      const { data: createdStaff } = await admin.from("staffs").select("auth_user_id").eq("id", createdStaffId).maybeSingle();
+      await admin.from("staffs").delete().eq("id", createdStaffId);
+      if (createdStaff?.auth_user_id) await admin.auth.admin.deleteUser(createdStaff.auth_user_id).catch(console.error);
+      createdStaffId = null;
+    }
     safeRedirectWithMessage("/staffs/new", "error", formatActionError(error, "Could not create this staff member."));
   }
   revalidatePath("/staffs");
@@ -971,6 +994,49 @@ export async function resetStaffTemporaryPassword(id: string) {
     redirect(`/staffs/${id}?success=${encodeURIComponent("Temporary password generated. Copy it now.")}&temp_password=${encodeURIComponent(temporaryPassword)}`);
   }
   safeRedirectWithMessage(`/staffs/${id}`, "success", "Temporary password generated.");
+}
+
+export async function repairStaffSignInLink(id: string) {
+  await requirePermissionOrRedirect("staffs.update", `/staffs/${id}`);
+  try {
+    if (!isMockMode()) {
+      const admin = createAdminClient();
+      const roleCodes = await getCurrentStaffRoleCodes(admin);
+      if (!roleCodes.some(isSuperAdminRole)) throw new Error("Only the Super Admin / Owner can repair a staff sign-in link.");
+
+      const { data: staff, error } = await admin
+        .from("staffs")
+        .select("email, invite_email, auth_user_id, status")
+        .eq("id", id)
+        .is("deleted_at", null)
+        .single();
+      if (error) throw new Error(error.message);
+      if (!["active", "invited"].includes(staff.status)) throw new Error("Only an active or invited staff profile can be repaired.");
+      const email = staff.email?.trim().toLowerCase() ?? "";
+      if (!email || (staff.invite_email && staff.invite_email.trim().toLowerCase() !== email)) {
+        throw new Error("The staff profile email details do not match exactly.");
+      }
+
+      const authMatches = await findAuthUsersByEmail(email);
+      if (authMatches.length !== 1) {
+        throw new Error(authMatches.length ? "Multiple Auth accounts match this email. No link was changed." : "No Auth account matches this staff email. No link was changed.");
+      }
+      const supabase = await createClient();
+      const { data: outcome, error: repairError } = await supabase.rpc("repair_staff_auth_link", {
+        target_staff_id: id,
+        target_auth_user_id: authMatches[0].id,
+        normalized_email: email,
+      });
+      if (repairError) throw new Error(repairError.message);
+      revalidatePath("/staffs");
+      revalidatePath(`/staffs/${id}`);
+      safeRedirectWithMessage(`/staffs/${id}`, "success", outcome === "setup_pending" ? "Sign-in link repaired. Staff setup is pending." : "Sign-in link repaired. Auth is linked.");
+    }
+  } catch (error) {
+    rethrowRedirect(error);
+    safeRedirectWithMessage(`/staffs/${id}`, "error", formatActionError(error, "Could not repair the sign-in link."));
+  }
+  safeRedirectWithMessage(`/staffs/${id}`, "success", "Sign-in link repaired.");
 }
 
 export async function forceStaffPasswordChange(id: string) {

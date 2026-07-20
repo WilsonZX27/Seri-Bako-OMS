@@ -14,6 +14,7 @@ import { StatusBadge } from "@/components/ui/status-badge";
 import { getStaffs } from "@/server/queries/foundation";
 import { ConsoleSection } from "@/components/layout/right-console";
 import { WorkspaceGrid } from "@/components/layout/workspace-layout";
+import { getStaffAuthState, staffAuthStateLabels } from "@/lib/staff-auth-state";
 
 export default async function StaffsPage({ searchParams }: { searchParams: Promise<{ search?: string; status?: string; error?: string; success?: string }> }) {
   const filters = await searchParams;
@@ -61,7 +62,7 @@ export default async function StaffsPage({ searchParams }: { searchParams: Promi
               <TableCell className="hidden lg:table-cell">{staff.default_branch_name ?? "-"}</TableCell>
               <TableCell>{staff.role_name ?? "-"}</TableCell>
               <TableCell><StatusBadge status={staff.status} /></TableCell>
-              <TableCell className="hidden md:table-cell"><StatusBadge status={staff.invitation_status ?? (staff.auth_user_id ? "active" : "pending")} /></TableCell>
+              <TableCell className="hidden md:table-cell text-xs font-medium">{staffAuthStateLabels[getStaffAuthState(staff)]}</TableCell>
               <TableCell className="text-right"><TableActionLink href={`/staffs/${staff.id}`} label={`Open ${staff.full_name}`}><Pencil className="h-4 w-4" /></TableActionLink></TableCell>
             </DataGridRow>
           ))}

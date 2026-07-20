@@ -9,7 +9,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import { formatActionError } from "@/server/actions/error-handling";
 import { resolveEffectivePermission } from "@/server/auth/permissions";
-import { acceptStaffInviteForUser, syncCurrentAuthUserToStaff } from "@/server/auth/staff-session";
+import { acceptStaffInviteForUser, requireLinkedStaffForAuthUser } from "@/server/auth/staff-session";
 
 export async function signIn(formData: FormData) {
   if (isMockMode()) {
@@ -25,7 +25,6 @@ export async function signIn(formData: FormData) {
     redirect(`/login?error=${encodeURIComponent(error.message)}`);
   }
 
-  await syncCurrentAuthUserToStaff();
   const { data: staff } = await supabase
     .from("staffs")
     .select("id, must_change_password")
@@ -114,6 +113,12 @@ export async function updatePassword(formData: FormData) {
     redirect(`/set-password?error=${encodeURIComponent("This invitation belongs to a different account. Please sign out and open the invitation link again.")}`);
   }
 
+  try {
+    await requireLinkedStaffForAuthUser(user.id, user.email ?? null);
+  } catch (error) {
+    redirect(`/set-password?error=${encodeURIComponent(formatActionError(error, "This sign-in is not linked to a staff profile. Ask the Super Admin / Owner to repair the sign-in link."))}`);
+  }
+
   const { error } = await supabase.auth.updateUser({ password });
   if (error) {
     const message = error.message.toLowerCase();
@@ -135,7 +140,7 @@ export async function updatePassword(formData: FormData) {
 
 export async function changePassword(formData: FormData) {
   if (isMockMode()) {
-    redirect("/change-password?success=1");
+    redirect("/dashboard");
   }
 
   const password = String(formData.get("password") ?? "");
@@ -155,6 +160,13 @@ export async function changePassword(formData: FormData) {
     redirect("/login?error=Please sign in before changing your password.");
   }
 
+  let staff: Awaited<ReturnType<typeof requireLinkedStaffForAuthUser>>;
+  try {
+    staff = await requireLinkedStaffForAuthUser(user.id, user.email ?? null);
+  } catch (error) {
+    redirect(`/change-password?error=${encodeURIComponent(formatActionError(error, "This sign-in is not linked to a staff profile. Ask the Super Admin / Owner to repair the sign-in link."))}`);
+  }
+
   const { error } = await supabase.auth.updateUser({ password });
   if (error) {
     const normalized = error.message.toLowerCase();
@@ -172,17 +184,6 @@ export async function changePassword(formData: FormData) {
     console.error(adminError);
     redirect(`/change-password?error=${encodeURIComponent("Password was changed, but your staff profile could not be updated. Please contact the Super Admin / Owner.")}`);
   }
-  const { data: staff, error: staffReadError } = await admin
-    .from("staffs")
-    .select("id, status")
-    .eq("auth_user_id", user.id)
-    .maybeSingle();
-
-  if (staffReadError || !staff) {
-    console.error(staffReadError ?? new Error(`Staff profile not found for auth user ${user.id}`));
-    redirect(`/change-password?error=${encodeURIComponent("Password was changed, but your staff profile could not be updated. Please contact the Super Admin / Owner.")}`);
-  }
-
   const { error: staffUpdateError } = await admin
     .from("staffs")
     .update({
@@ -200,5 +201,5 @@ export async function changePassword(formData: FormData) {
     redirect(`/change-password?error=${encodeURIComponent("Password was changed, but your staff profile could not be updated. Please contact the Super Admin / Owner.")}`);
   }
 
-  redirect("/change-password?success=1");
+  redirect("/dashboard");
 }

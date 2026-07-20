@@ -2109,9 +2109,17 @@ export type Database = {
         Args: { permission_codes: string[] };
         Returns: boolean;
       };
+      get_allowed_permissions: {
+        Args: { permission_codes: string[] };
+        Returns: string[];
+      };
       set_staff_permission_overrides: {
         Args: { target_staff_id: string; overrides: Json };
         Returns: void;
+      };
+      repair_staff_auth_link: {
+        Args: { target_staff_id: string; target_auth_user_id: string; normalized_email: string };
+        Returns: string;
       };
       set_role_permissions: {
         Args: { target_role_id: string; permission_ids: string[] };

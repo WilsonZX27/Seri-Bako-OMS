@@ -1,5 +1,6 @@
 import { createClient } from "@supabase/supabase-js";
 import { requireSupabaseEnv } from "@/lib/supabase/env";
+import { limitedServerFetch } from "@/lib/supabase/server-fetch";
 import type { Database } from "@/types/database";
 
 export function requireSupabaseServiceRoleKey() {
@@ -13,6 +14,7 @@ export function requireSupabaseServiceRoleKey() {
 export function createAdminClient() {
   const { url } = requireSupabaseEnv();
   return createClient<Database>(url, requireSupabaseServiceRoleKey(), {
+    global: { fetch: limitedServerFetch },
     auth: {
       autoRefreshToken: false,
       persistSession: false,

@@ -2,6 +2,7 @@ import { cookies } from "next/headers";
 import { createServerClient } from "@supabase/ssr";
 import { isMockMode } from "@/lib/mock-mode";
 import { requireSupabaseEnv } from "@/lib/supabase/env";
+import { limitedServerFetch } from "@/lib/supabase/server-fetch";
 import type { Database } from "@/types/database";
 
 export async function createClient() {
@@ -16,6 +17,7 @@ export async function createClient() {
     url,
     publishableKey,
     {
+      global: { fetch: limitedServerFetch },
       cookies: {
         getAll() {
           return cookieStore.getAll();

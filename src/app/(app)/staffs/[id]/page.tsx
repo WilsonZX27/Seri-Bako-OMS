@@ -11,7 +11,8 @@ import { SubmitButton } from "@/components/ui/submit-button";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { canAssignRoleCode, getRoleDisplayLabel, normalizeRoleCode, sortRolesForDisplay } from "@/lib/roles";
 import { formatStatusLabel } from "@/lib/status-label";
-import { disableStaff, enableStaff, forceStaffPasswordChange, permanentlyDeleteStaff, resetStaffPermissionOverrides, resetStaffTemporaryPassword, updateStaff, updateStaffPermissionOverrides } from "@/server/actions/foundation";
+import { getStaffAuthState, staffAuthStateLabels } from "@/lib/staff-auth-state";
+import { disableStaff, enableStaff, forceStaffPasswordChange, permanentlyDeleteStaff, repairStaffSignInLink, resetStaffPermissionOverrides, resetStaffTemporaryPassword, updateStaff, updateStaffPermissionOverrides } from "@/server/actions/foundation";
 import { hasPermission } from "@/server/auth/permissions";
 import { getCurrentProfile } from "@/server/queries/common";
 import { getBranches, getCompaniesForSelect, getRoles, getStaff, getStaffAccess, getStaffPermissionAccess } from "@/server/queries/foundation";
@@ -48,6 +49,8 @@ export default async function EditStaffPage({
   };
   const formId = "staff-edit-form";
   const branchName = access.staffBranch?.branch_id ? branches.find((branch) => branch.id === access.staffBranch?.branch_id)?.branch_name ?? "-" : "-";
+  const authState = getStaffAuthState(staff);
+  const isOwner = currentRole === "super_admin";
 
   return (
     <>
@@ -106,8 +109,8 @@ export default async function EditStaffPage({
                 <p className="mt-1 text-xs text-muted-foreground">Internal staff accounts use a temporary password and require a secure password change.</p>
                 <div className="mt-3 grid gap-2 text-xs">
                   <div className="flex justify-between gap-3">
-                    <span className="text-muted-foreground">Auth linked</span>
-                    <span className="font-medium">{staff.auth_user_id ? "Yes" : "No"}</span>
+                    <span className="text-muted-foreground">Account state</span>
+                    <span className="font-medium">{staffAuthStateLabels[authState]}</span>
                   </div>
                   <div className="flex justify-between gap-3">
                     <span className="text-muted-foreground">Setup method</span>
@@ -123,16 +126,25 @@ export default async function EditStaffPage({
                   </div>
                 </div>
                 <div className="mt-4 space-y-2">
+                  {isOwner && authState === "link_needs_repair" ? (
+                    <form action={repairStaffSignInLink.bind(null, id)}>
+                      <SubmitButton type="submit" variant="outline" className="w-full" pendingLabel="Checking exact match...">
+                        Repair sign-in link
+                      </SubmitButton>
+                    </form>
+                  ) : null}
                   <form action={resetStaffTemporaryPassword.bind(null, id)}>
                     <SubmitButton type="submit" className="w-full" pendingLabel="Generating...">
                       {staff.auth_user_id ? "Reset temporary password" : "Create auth account"}
                     </SubmitButton>
                   </form>
-                  <form action={forceStaffPasswordChange.bind(null, id)}>
-                    <SubmitButton type="submit" variant="outline" className="w-full" pendingLabel="Processing...">
-                      Force password change
-                    </SubmitButton>
-                  </form>
+                  {staff.auth_user_id ? (
+                    <form action={forceStaffPasswordChange.bind(null, id)}>
+                      <SubmitButton type="submit" variant="outline" className="w-full" pendingLabel="Processing...">
+                        Force password change
+                      </SubmitButton>
+                    </form>
+                  ) : null}
                 </div>
               </div>
 

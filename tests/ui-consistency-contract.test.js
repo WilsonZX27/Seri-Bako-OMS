@@ -32,6 +32,6 @@ test("UI smoke keeps the requested routes, console order, and current footer", (
   assert.match(dashboard, /ConsoleSection title="Today"[\s\S]*ConsoleSection title="Alerts"/);
   assert.match(dashboard, /<header[\s\S]*primaryAction\.href/);
   assert.doesNotMatch(dashboard, /ConsoleSection title="Recent Activity"/);
-  assert.match(read("src/lib/app-version.ts"), /APP_SPRINT = "v7\.23\.5\.7"/);
+  assert.match(read("src/lib/app-version.ts"), /APP_SPRINT = "v7\.23\.5\.8"/);
   assert.match(read("supabase/migrations/066_create_outlet_staff_role.sql"), /outlet_staff/);
 });

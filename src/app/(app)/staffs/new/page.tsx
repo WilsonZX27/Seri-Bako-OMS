@@ -1,4 +1,4 @@
-import { StaffAuthSetupFields, StaffForm } from "@/components/foundation-forms";
+import { StaffForm } from "@/components/foundation-forms";
 import { RecordActionPanel, RecordWorkspace } from "@/components/record-workspace";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -57,12 +57,8 @@ export default async function NewStaffPage({
       <RecordWorkspace
         actionPanel={
           <RecordActionPanel title="Staff Actions" description="Create the profile and choose how this staff member signs in.">
-            <div className="rounded-[2px] border bg-secondary/30 p-4">
-              <div className="mb-3">
-                <p className="text-sm font-semibold">Auth Setup</p>
-                <p className="mt-1 text-xs text-muted-foreground">Temporary password is recommended for internal staff.</p>
-              </div>
-              <StaffAuthSetupFields formId={formId} />
+            <div className="rounded-[2px] border bg-secondary/30 p-4 text-sm text-muted-foreground">
+              The temporary password is entered in the Sign-in setup section and must be changed at first login.
             </div>
             <div className="rounded-[2px] border bg-secondary/30 p-4 text-sm text-muted-foreground">
               <p className="font-medium text-foreground">Role assignment</p>
@@ -79,7 +75,7 @@ export default async function NewStaffPage({
             <CardContent className="p-4 text-sm text-destructive">{params.error}</CardContent>
           </Card>
         ) : null}
-        <StaffForm formId={formId} companies={companies} branches={branches} roles={roles} action={createStaff} showSubmit={false} />
+        <StaffForm formId={formId} companies={companies} branches={branches} roles={roles} action={createStaff} showSubmit={false} includeAuthSetup />
       </RecordWorkspace>
     </>
   );

@@ -1,6 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { createClient } from "@/lib/supabase/server";
-import { syncCurrentAuthUserToStaff } from "@/server/auth/staff-session";
 
 export async function GET(request: NextRequest) {
   const requestUrl = new URL(request.url);
@@ -25,7 +24,6 @@ export async function GET(request: NextRequest) {
     const {
       data: { user: invitedUser },
     } = await supabase.auth.getUser();
-    await syncCurrentAuthUserToStaff();
     const redirectUrl = new URL(next, requestUrl.origin);
     if (
       existingUser?.email

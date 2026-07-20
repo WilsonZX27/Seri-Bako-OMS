@@ -164,7 +164,7 @@ const permissionAliases: Record<string, string[]> = {
 export const rolePermissionMatrix = {
   super_admin: ["*"],
   finance: ["dashboard.view", "pr.finance_review", "pr.reject", "pr.view_all", "purchase_request.read", "purchase_order.read", "goods_receiving.read", "inventory.read", "stock_count.read", "stock_transfer.read", "stock_wastage.read", "po.view", "grn.view", "purchase_return.view", "items.view", "suppliers.view", "production.view", "recipes.view", "outlet_daily_record.view", "outlet_daily_record.view_all", "supplier_invoice.view", "supplier_invoice.create", "supplier_invoice.pay", "supplier_invoice.approve", "supplier_invoice.void", "documents.view", "reports.view", "stock.view", "stock_transactions.read", "staffs.read", "staffs.create", "staffs.update", "document_sequences.read", "document_sequences.create", "document_sequences.update", "imports.create", "imports.run", "branches.read", "branches.create", "branches.update"],
-  manager: ["dashboard.view", "purchase_request.read", "purchase_order.read", "goods_receiving.read", "inventory.read", "stock_count.read", "stock_transfer.read", "stock_wastage.read", "pr.manager_approve", "pr.reject", "pr.view_all", "po.view", "po.approve", "grn.view", "purchase_return.view", "documents.view", "reports.view", "stock.view", "stock_transactions.read", "attachments.upload", "production.view", "production.approve", "production.reject", "outlet_daily_record.view", "outlet_daily_record.review", "outlet_daily_record.void", "branches.read", "branches.create", "branches.update"],
+  manager: ["dashboard.view", "purchase_request.read", "purchase_order.read", "goods_receiving.read", "inventory.read", "stock_count.read", "stock_transfer.read", "stock_wastage.read", "pr.manager_approve", "pr.reject", "pr.view_all", "po.view", "po.approve", "grn.view", "purchase_return.view", "documents.view", "documents.comment", "reports.view", "stock.view", "stock_transactions.read", "attachments.upload", "production.view", "production.approve", "production.reject", "outlet_daily_record.view", "outlet_daily_record.review", "outlet_daily_record.void", "branches.read", "branches.create", "branches.update"],
   purchasing: [
     "dashboard.view",
     "items.create",
@@ -251,8 +251,16 @@ export async function hasPermission(permission: string) {
 }
 
 export async function getPermissionMap(permissions: string[]) {
-  const entries = await Promise.all(permissions.map(async (permission) => [permission, await hasPermission(permission)] as const));
-  return Object.fromEntries(entries) as Record<string, boolean>;
+  if (isMockMode()) {
+    return Object.fromEntries(permissions.map((permission) => [permission, roleAllowsPermission(mockProfile.role, permission) || permission.endsWith(".read")])) as Record<string, boolean>;
+  }
+  const supabase = await createClient();
+  const candidateMap = new Map(permissions.map((permission) => [permission, permissionCandidates(permission)]));
+  const candidates = Array.from(new Set([...candidateMap.values()].flat()));
+  const { data, error } = await supabase.rpc("get_allowed_permissions", { permission_codes: candidates });
+  if (error) throw new Error(error.message);
+  const allowed = new Set(data ?? []);
+  return Object.fromEntries(permissions.map((permission) => [permission, candidateMap.get(permission)?.some((candidate) => allowed.has(candidate)) ?? false])) as Record<string, boolean>;
 }
 
 export async function requirePermission(permission: string) {

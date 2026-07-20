@@ -36,7 +36,7 @@ test("Product Margin uses neutral bands and clear manual review paths", () => {
 });
 
 test("Product Margin has the current footer and scoped Outlet Staff seed", () => {
-  assert.match(version, /APP_VERSION = "7\.23\.5\.7"/);
-  assert.match(version, /APP_SPRINT = "v7\.23\.5\.7"/);
+  assert.match(version, /APP_VERSION = "7\.23\.5\.8"/);
+  assert.match(version, /APP_SPRINT = "v7\.23\.5\.8"/);
   assert.match(read("supabase/migrations/066_create_outlet_staff_role.sql"), /outlet_staff/);
 });

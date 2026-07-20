@@ -210,6 +210,7 @@ export function StaffForm({
   action,
   formId,
   showSubmit = true,
+  includeAuthSetup = false,
 }: {
   staff?: Staff;
   access?: StaffAccess;
@@ -219,6 +220,7 @@ export function StaffForm({
   action: (formData: FormData) => Promise<void>;
   formId?: string;
   showSubmit?: boolean;
+  includeAuthSetup?: boolean;
 }) {
   const branchOptions = branches.filter((branch) => branch.status === "active");
   const defaultBranchId = branchOptions.find((branch) => branch.id === access?.staffBranch?.branch_id)?.id
@@ -277,6 +279,12 @@ export function StaffForm({
         </div>
       </RecordSection>
 
+      {includeAuthSetup ? (
+        <RecordSection title="Auth Setup" description="Create the staff login with a temporary password that must be changed at first sign-in.">
+          <StaffAuthSetupFields />
+        </RecordSection>
+      ) : null}
+
       {showSubmit ? (
         <Card>
           <CardContent className="flex justify-end p-5">
@@ -288,7 +296,7 @@ export function StaffForm({
   );
 }
 
-export function StaffAuthSetupFields({ formId }: { formId: string }) {
+export function StaffAuthSetupFields({ formId }: { formId?: string }) {
   return (
     <div className="space-y-3">
       <input type="hidden" name="auth_setup_method" value="temporary_password" form={formId} />

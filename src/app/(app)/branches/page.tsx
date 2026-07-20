@@ -10,7 +10,7 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { MasterDataFilters } from "@/components/master-data-filters";
 import { PageHeader } from "@/components/ui/page-header";
 import { StatusTabs } from "@/components/status-tabs";
-import { Table, TableActionLink, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Table, TableActionLink, TableBody, TableCell, TableHead, TableHeader, TableRow, TableSelectionCell, TableSelectionHead } from "@/components/ui/table";
 import { formatPageError } from "@/server/actions/error-handling";
 import { getBranches } from "@/server/queries/foundation";
 import { hasActiveFilters } from "@/lib/table-state";
@@ -47,7 +47,7 @@ export default async function BranchesPage({ searchParams }: { searchParams: Pro
               <Table>
                 <TableHeader>
                   <TableRow>
-                    {canManage ? <TableHead className="w-16"><BulkSelectAllCheckbox /></TableHead> : null}
+                    {canManage ? <TableSelectionHead><BulkSelectAllCheckbox /></TableSelectionHead> : null}
                     <TableHead>Code</TableHead>
                     <TableHead>Branch Name</TableHead>
                     <TableHead>Type</TableHead>
@@ -61,9 +61,9 @@ export default async function BranchesPage({ searchParams }: { searchParams: Pro
                 <TableBody>
                   {branches.map((branch) => (
                     <DataGridRow key={branch.id} href={canUpdate ? `/branches/${branch.id}` : "/branches"}>
-                      {canManage ? <TableCell>
-                        <BulkSelectRowCheckbox id={branch.id} />
-                      </TableCell> : null}
+                        {canManage ? <TableSelectionCell>
+                         <BulkSelectRowCheckbox id={branch.id} />
+                        </TableSelectionCell> : null}
                       <TableCell>{branch.branch_code}</TableCell>
                       <TableCell className="font-medium">{branch.branch_name}</TableCell>
                       <TableCell className="capitalize">{branch.branch_type.replaceAll("_", " ")}</TableCell>

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Plus, Search, X } from "lucide-react";
+import { Plus, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Field } from "@/components/ui/field";
@@ -137,7 +137,6 @@ export function PurchaseRequestForm({
                 <p className="text-xs font-semibold">Requested Items</p>
               </div>
               <div className="flex items-center gap-2">
-                <Search className="h-4 w-4 text-muted-foreground" />
                 <Button type="button" variant="outline" size="sm" onClick={() => setLines((current) => [...current, createBlankLine(nextKey)])}>
                   <Plus className="h-4 w-4" />
                   Add line

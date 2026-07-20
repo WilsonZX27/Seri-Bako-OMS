@@ -1,10 +1,10 @@
 "use client";
 
 import { AlertTriangle } from "lucide-react";
-import { useEffect, useId, useRef, useState } from "react";
+import { useId, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { ModalShell } from "@/components/ui/modal-shell";
 import { SubmitButton } from "@/components/ui/submit-button";
 
 type DangerConfirmFormProps = {
@@ -31,17 +31,15 @@ export function DangerConfirmForm({
   const [open, setOpen] = useState(false);
   const [checked, setChecked] = useState(false);
   const [typed, setTyped] = useState("");
+  const triggerRef = useRef<HTMLButtonElement>(null);
   const cancelRef = useRef<HTMLButtonElement>(null);
   const titleId = useId();
   const matches = !confirmWord || typed.trim().toUpperCase() === confirmWord;
 
-  useEffect(() => {
-    if (open) cancelRef.current?.focus();
-  }, [open]);
-
   return (
     <>
       <Button
+        ref={triggerRef}
         type="button"
         variant="destructive"
         onClick={() => setOpen(true)}
@@ -53,19 +51,16 @@ export function DangerConfirmForm({
         </span>
         <span className="text-xs text-red-500">Confirm</span>
       </Button>
-      {open ? (
-        <div role="dialog" aria-modal="true" aria-labelledby={titleId} onKeyDown={(event) => { if (event.key === "Escape") setOpen(false); }} className="fixed inset-0 z-[var(--sb-z-dialog)] flex items-center justify-center bg-slate-950/30 p-4 backdrop-blur-sm">
-          <Card className="w-full max-w-lg border-red-200">
-            <CardHeader>
-              <CardTitle id={titleId} className="flex items-center gap-2 text-red-700">
+      <ModalShell open={open} onClose={() => setOpen(false)} titleId={titleId} triggerRef={triggerRef} initialFocusRef={cancelRef}>
+            <header className="mb-4">
+              <h2 id={titleId} className="flex items-center gap-2 text-base font-semibold text-[var(--sb-danger)]">
                 <AlertTriangle className="h-4 w-4" />
                 {title}
-              </CardTitle>
-              <CardDescription>{description}</CardDescription>
-            </CardHeader>
-            <CardContent>
+              </h2>
+              <p className="mt-1 text-sm text-muted-foreground">{description}</p>
+            </header>
               <form action={action} className="space-y-4">
-                <label className="flex items-start gap-2 rounded-md border border-red-200 bg-red-50 px-3 py-3 text-sm text-red-800">
+                <label className="flex items-start gap-2 border border-[var(--sb-danger)] bg-[var(--sb-danger-bg)] px-3 py-3 text-sm text-[var(--sb-danger)]">
                   <input type="checkbox" className="mt-0.5 h-4 w-4" checked={checked} onChange={(event) => setChecked(event.target.checked)} />
                   <span>{checkboxLabel}</span>
                 </label>
@@ -93,10 +88,7 @@ export function DangerConfirmForm({
                   </SubmitButton>
                 </div>
               </form>
-            </CardContent>
-          </Card>
-        </div>
-      ) : null}
+      </ModalShell>
     </>
   );
 }
@@ -113,30 +105,23 @@ export function BlockedDestructiveAction({
   recommendation: string;
 }) {
   const [open, setOpen] = useState(false);
+  const triggerRef = useRef<HTMLButtonElement>(null);
   const closeRef = useRef<HTMLButtonElement>(null);
   const titleId = useId();
 
-  useEffect(() => {
-    if (open) closeRef.current?.focus();
-  }, [open]);
-
   return (
     <>
-      <Button type="button" variant="destructive" className="w-full" onClick={() => setOpen(true)}>{buttonLabel}</Button>
-      {open ? (
-        <div role="dialog" aria-modal="true" aria-labelledby={titleId} onKeyDown={(event) => { if (event.key === "Escape") setOpen(false); }} className="fixed inset-0 z-[var(--sb-z-dialog)] flex items-center justify-center bg-slate-950/30 p-4 backdrop-blur-sm">
-          <Card className="w-full max-w-lg border-red-200">
-            <CardHeader>
-              <CardTitle id={titleId} className="flex items-center gap-2 text-red-700"><AlertTriangle className="h-4 w-4" />{title}</CardTitle>
-              <CardDescription>{description}</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
+      <Button ref={triggerRef} type="button" variant="destructive" className="w-full" onClick={() => setOpen(true)}>{buttonLabel}</Button>
+      <ModalShell open={open} onClose={() => setOpen(false)} titleId={titleId} triggerRef={triggerRef} initialFocusRef={closeRef}>
+            <header className="mb-4">
+              <h2 id={titleId} className="flex items-center gap-2 text-base font-semibold text-[var(--sb-danger)]"><AlertTriangle className="h-4 w-4" />{title}</h2>
+              <p className="mt-1 text-sm text-muted-foreground">{description}</p>
+            </header>
+            <div className="space-y-4">
               <p className="border border-[var(--sb-info)] bg-[var(--sb-info-bg)] p-3 text-sm text-[var(--sb-info)]">{recommendation}</p>
               <div className="flex justify-end"><Button ref={closeRef} type="button" variant="ghost" onClick={() => setOpen(false)}>Close</Button></div>
-            </CardContent>
-          </Card>
-        </div>
-      ) : null}
+            </div>
+      </ModalShell>
     </>
   );
 }

@@ -94,14 +94,14 @@ export function WorkspaceSidebar({
             const groupClosed = closedGroups[group.id] ?? group.id !== activeGroupId;
             return (
               <div key={group.id}>
-                  <div className={cn("mb-1 flex w-full items-center rounded-[2px] font-semibold text-white/60 hover:bg-white/8 hover:text-white", activeGroupId === group.id && group.href ? "bg-white/8 text-white" : "", mobile ? "min-h-9 text-[11px]" : "min-h-8 text-[10px]")}>
+                  <div className={cn("mb-1 flex w-full items-center rounded-[2px] font-medium leading-none text-white/60 hover:bg-white/8 hover:text-white", activeGroupId === group.id && group.href ? "bg-white/8 text-white" : "", mobile ? "min-h-9 text-[11px]" : "min-h-8 text-[10px]")}>
                     {group.href ? (
                       <Link href={group.href} onClick={onNavigate} className="flex min-h-[inherit] min-w-0 flex-1 items-center px-2">
-                        <span>{group.label}</span>
+                        <span className={mobile ? "text-[11px]" : "text-[10px]"}>{group.label}</span>
                       </Link>
                     ) : (
                       <button type="button" className="flex min-h-[inherit] min-w-0 flex-1 items-center px-2 text-left" onClick={() => toggleGroup(group.id, groupClosed)} aria-expanded={!groupClosed}>
-                        <span>{group.label}</span>
+                        <span className={mobile ? "text-[11px]" : "text-[10px]"}>{group.label}</span>
                       </button>
                     )}
                     <button type="button" className="flex min-h-8 min-w-8 items-center justify-center rounded-[2px] hover:bg-white/10" onClick={() => toggleGroup(group.id, groupClosed)} aria-expanded={!groupClosed} aria-label={`${groupClosed ? "Expand" : "Collapse"} ${group.label}`}>

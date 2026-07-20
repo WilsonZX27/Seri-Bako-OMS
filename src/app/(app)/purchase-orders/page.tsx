@@ -12,7 +12,7 @@ import { PageHeader } from "@/components/ui/page-header";
 import { FilterBar } from "@/components/ui/filter-bar";
 import { PaginationControls, SortableHead } from "@/components/sortable-table";
 import { StatusTabs } from "@/components/status-tabs";
-import { OperationalList, OperationalListRow, Table, TableActionLink, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { OperationalList, OperationalListRow, Table, TableActionLink, TableBody, TableCell, TableHead, TableHeader, TableRow, TableSelectionCell, TableSelectionHead } from "@/components/ui/table";
 import { ConsoleSection } from "@/components/layout/right-console";
 import { WorkspaceGrid } from "@/components/layout/workspace-layout";
 import { formatCurrency } from "@/lib/utils";
@@ -71,7 +71,7 @@ export default async function PurchaseOrdersPage({ searchParams }: { searchParam
             <Table mobileHidden aria-label="Purchase orders">
               <TableHeader>
                 <TableRow>
-                  <TableHead className="hidden w-20 md:table-cell"><BulkSelectAllCheckbox /></TableHead>
+                  <TableSelectionHead className="hidden md:table-cell"><BulkSelectAllCheckbox /></TableSelectionHead>
                   <SortableHead label="PO No" column="po_no" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
                   <TableHead>Supplier</TableHead>
                   <SortableHead className="hidden md:table-cell" label="Date" column="order_date" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
@@ -85,9 +85,9 @@ export default async function PurchaseOrdersPage({ searchParams }: { searchParam
               <TableBody>
                 {orders.rows.map((order) => (
                   <DataGridRow key={order.id} href={`/purchase-orders/${order.id}`}>
-                    <TableCell className="hidden md:table-cell">
-                      <BulkSelectRowCheckbox id={order.id} />
-                    </TableCell>
+                      <TableSelectionCell className="hidden md:table-cell">
+                       <BulkSelectRowCheckbox id={order.id} />
+                      </TableSelectionCell>
                     <TableCell><DocumentNumber value={order.po_no} size="sm" /></TableCell>
                     <TableCell>{order.supplier_name ?? "-"}</TableCell>
                     <TableCell className="hidden md:table-cell">{order.order_date}</TableCell>

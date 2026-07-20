@@ -12,7 +12,7 @@ import { PageHeader } from "@/components/ui/page-header";
 import { FilterBar } from "@/components/ui/filter-bar";
 import { PaginationControls, SortableHead } from "@/components/sortable-table";
 import { StatusTabs } from "@/components/status-tabs";
-import { OperationalList, OperationalListRow, Table, TableActionLink, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { OperationalList, OperationalListRow, Table, TableActionLink, TableBody, TableCell, TableHead, TableHeader, TableRow, TableSelectionCell, TableSelectionHead } from "@/components/ui/table";
 import { ConsoleSection } from "@/components/layout/right-console";
 import { WorkspaceGrid } from "@/components/layout/workspace-layout";
 import { formatNumber } from "@/lib/utils";
@@ -70,7 +70,7 @@ export default async function GoodsReceivingsPage({ searchParams }: { searchPara
             <Table mobileHidden aria-label="Goods receiving records">
               <TableHeader>
                 <TableRow>
-                  <TableHead className="w-20"><BulkSelectAllCheckbox /></TableHead>
+                  <TableSelectionHead><BulkSelectAllCheckbox /></TableSelectionHead>
                   <SortableHead label="GRN No" column="grn_no" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
                   <TableHead>PO</TableHead>
                   <TableHead>Supplier</TableHead>
@@ -85,9 +85,9 @@ export default async function GoodsReceivingsPage({ searchParams }: { searchPara
               <TableBody>
                 {receivings.rows.map((receiving) => (
                   <DataGridRow key={receiving.id} href={`/goods-receivings/${receiving.id}`}>
-                    <TableCell>
-                      <BulkSelectRowCheckbox id={receiving.id} />
-                    </TableCell>
+                      <TableSelectionCell>
+                        <BulkSelectRowCheckbox id={receiving.id} />
+                      </TableSelectionCell>
                     <TableCell><DocumentNumber value={receiving.grn_no} size="sm" /></TableCell>
                     <TableCell>{receiving.po_no ?? "-"}</TableCell>
                     <TableCell>{receiving.supplier_name ?? "-"}</TableCell>

@@ -2,9 +2,10 @@
 
 import Link from "next/link";
 import { Search, X } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { ModalShell } from "@/components/ui/modal-shell";
 import { searchableNavItems } from "@/components/layout/nav-items";
 
 type SearchResult = {
@@ -18,6 +19,9 @@ export function GlobalSearch({ permissionMap }: { permissionMap: Record<string, 
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<SearchResult[]>([]);
+  const triggerRef = useRef<HTMLButtonElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const titleId = useId();
 
   useEffect(() => {
     function onKeyDown(event: KeyboardEvent) {
@@ -52,36 +56,32 @@ export function GlobalSearch({ permissionMap }: { permissionMap: Record<string, 
 
   return (
     <>
-      <Button type="button" variant="ghost" size="icon" onClick={() => setOpen(true)} aria-label="Open global search">
+      <Button ref={triggerRef} type="button" variant="ghost" size="icon" onClick={() => setOpen(true)} aria-label="Open global search">
         <Search className="h-5 w-5" />
       </Button>
-      {open ? (
-        <div className="fixed inset-0 z-50">
-          <button type="button" className="absolute inset-0 bg-slate-950/45" aria-label="Close search" onClick={() => setOpen(false)} />
-          <div className="relative mx-auto mt-20 w-[min(42rem,92vw)] overflow-hidden rounded-[2px] border bg-card">
+      <ModalShell open={open} onClose={() => setOpen(false)} titleId={titleId} triggerRef={triggerRef} initialFocusRef={inputRef} className="max-w-2xl overflow-hidden p-0">
+            <h2 id={titleId} className="sr-only">Global search</h2>
             <div className="flex items-center gap-3 border-b p-3">
               <Search className="h-5 w-5 text-muted-foreground" />
-              <Input autoFocus value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search item code, supplier, document no..." className="border-0 shadow-none focus-visible:ring-0" />
+              <Input ref={inputRef} value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search item code, supplier, document no..." className="border-0 shadow-none focus-visible:ring-0" />
               <Button type="button" variant="ghost" size="icon" onClick={() => setOpen(false)} aria-label="Close search">
                 <X className="h-5 w-5" />
               </Button>
             </div>
             <div className="max-h-[60vh] overflow-y-auto p-2">
               {results.map((result) => (
-                <Link key={`${result.type}-${result.href}`} href={result.href} onClick={() => setOpen(false)} className="flex items-center justify-between rounded-md px-3 py-2 hover:bg-secondary">
+                <Link key={`${result.type}-${result.href}`} href={result.href} onClick={() => setOpen(false)} className="flex items-center justify-between rounded-[2px] px-3 py-2 hover:bg-secondary">
                   <div>
                     <p className="text-sm font-medium">{result.title}</p>
                     <p className="text-xs text-muted-foreground">{result.subtitle}</p>
                   </div>
-                  <span className="rounded-md bg-secondary px-2 py-1 text-xs text-muted-foreground">{result.type}</span>
+                  <span className="rounded-[2px] bg-secondary px-2 py-1 text-xs text-muted-foreground">{result.type}</span>
                 </Link>
               ))}
               {query && !results.length ? <p className="p-6 text-center text-sm text-muted-foreground">No results found.</p> : null}
               {!query ? <p className="p-6 text-center text-sm text-muted-foreground">Type to search across Seri Bako OMS.</p> : null}
             </div>
-          </div>
-        </div>
-      ) : null}
+      </ModalShell>
     </>
   );
 }

@@ -5,7 +5,7 @@ import { ConsoleSection } from "@/components/layout/right-console";
 import { WorkspaceGrid } from "@/components/layout/workspace-layout";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { WorkflowStatusPipeline, type WorkflowStep } from "@/components/workflow-status-pipeline";
-import { MobileActivityAndFiles, MobileWorkflowStatus } from "@/components/documents/mobile-document-surfaces";
+import { DocumentMoreOptions, MobileActivityAndFiles, MobileWorkflowStatus } from "@/components/documents/mobile-document-surfaces";
 import { cn } from "@/lib/utils";
 
 type Crumb = {
@@ -100,5 +100,14 @@ export function DocumentSideSection({
         {children}
       </div>
     </ConsoleSection>
+  );
+}
+
+export function DocumentActionSection({ description, children, moreOptions }: { description?: string; children: ReactNode; moreOptions?: ReactNode }) {
+  return (
+    <DocumentSideSection title="Primary Action" description={description}>
+      {children}
+      {moreOptions ? <DocumentMoreOptions>{moreOptions}</DocumentMoreOptions> : null}
+    </DocumentSideSection>
   );
 }

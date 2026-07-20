@@ -62,7 +62,7 @@ export function SelectControl({
           position="popper"
           sideOffset={4}
           collisionPadding={8}
-          className="z-[var(--sb-z-dropdown)] max-h-[min(18rem,var(--radix-select-content-available-height))] min-w-[var(--radix-select-trigger-width)] overflow-hidden rounded-[2px] border border-[var(--sb-border-soft)] bg-white text-foreground shadow-[0_6px_18px_rgb(6_44_31_/_0.12)]"
+          className="sb-popover-surface z-[var(--sb-z-dropdown)] max-h-[min(18rem,var(--radix-select-content-available-height))] min-w-[var(--radix-select-trigger-width)] overflow-hidden rounded-[2px] text-foreground"
         >
           <Select.Viewport className="p-1">
             {options.map((option) => (

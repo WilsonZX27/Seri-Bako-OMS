@@ -1,6 +1,6 @@
 import { DocumentActionBar, DocumentActionForm } from "@/components/document-action-bar";
 import { AttachmentPanel, CommentsPanel, DocumentTimeline, RevisionPanel } from "@/components/documents/document-panels";
-import { DocumentSideSection, DocumentWorkspace } from "@/components/documents/document-workspace";
+import { DocumentActionSection, DocumentSideSection, DocumentWorkspace } from "@/components/documents/document-workspace";
 import { DocumentMoreOptions } from "@/components/documents/mobile-document-surfaces";
 import { Card, CardContent } from "@/components/ui/card";
 import { BlockedDestructiveAction } from "@/components/ui/danger-confirm-form";
@@ -44,7 +44,7 @@ export default async function StockTransferDetailPage({ params }: { params: Prom
       mobileMoreOptions={<DocumentMoreOptions>{secondaryActions}</DocumentMoreOptions>}
       sidePanel={
         <>
-          <DocumentSideSection title="Primary Action" description="Post only after the transfer lines are checked.">
+          <DocumentActionSection description="Post only after the transfer lines are checked." moreOptions={secondaryActions}>
             {canAct ? (
               <DocumentActionBar>
                 {canStart ? <DocumentActionForm action={startStockTransfer.bind(null, transfer.id)} pendingLabel="Moving...">Move to In Transit</DocumentActionForm> : null}
@@ -53,9 +53,8 @@ export default async function StockTransferDetailPage({ params }: { params: Prom
             ) : (
               <p className="text-xs text-muted-foreground">This transfer is read-only in its current state.</p>
             )}
-          </DocumentSideSection>
+          </DocumentActionSection>
           <DocumentSideSection title="Validation / Next Step"><p className="text-xs text-muted-foreground">{transfer.status === "draft" ? "Check both branches and every transfer quantity before moving stock in transit." : transfer.status === "in_transit" ? "Confirm the destination received every line before completing the transfer." : "Finalized transfer movements remain read-only."}</p></DocumentSideSection>
-          <DocumentSideSection title="More Options"><DocumentMoreOptions>{secondaryActions}</DocumentMoreOptions></DocumentSideSection>
           {bundle ? (
             <>
               <AttachmentPanel documentId={bundle.document.id} attachments={bundle.attachments} />

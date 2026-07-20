@@ -1,5 +1,5 @@
 import { DocumentMoreOptions } from "@/components/documents/mobile-document-surfaces";
-import { DocumentSideSection, DocumentWorkspace } from "@/components/documents/document-workspace";
+import { DocumentActionSection, DocumentSideSection, DocumentWorkspace } from "@/components/documents/document-workspace";
 import { OutletDailyRecordForm } from "@/components/outlet-daily-record-form";
 import { Card, CardContent } from "@/components/ui/card";
 import { ConfirmActionForm } from "@/components/ui/confirm-action-form";
@@ -68,9 +68,8 @@ export default async function OutletDailyRecordDetailPage({ params, searchParams
   const hasSecondaryActions = Boolean(canVoid || canEditOutletValues && ["draft", "morning_recorded"].includes(record.status));
 
   const sidePanel = <>
-    {primaryAction ? <DocumentSideSection title="Primary Action">{primaryAction}</DocumentSideSection> : null}
+    {primaryAction || hasSecondaryActions ? <DocumentActionSection moreOptions={hasSecondaryActions ? <div className="grid gap-2">{secondaryActions}</div> : undefined}>{primaryAction ?? <p className="text-xs text-muted-foreground">No primary action is available for this status.</p>}</DocumentActionSection> : null}
     <DocumentSideSection title="Validation / Next Step"><p className="text-xs text-muted-foreground">{nextStep}</p><p className="text-xs text-muted-foreground">Wastage needs a reason. Quantity exceptions require a remark.</p></DocumentSideSection>
-    {hasSecondaryActions ? <DocumentSideSection title="More Options"><div className="grid gap-2">{secondaryActions}</div></DocumentSideSection> : null}
   </>;
 
   return <DocumentWorkspace

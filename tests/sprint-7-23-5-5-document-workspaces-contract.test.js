@@ -30,6 +30,7 @@ test("the shared shell owns tablet ratio, mobile workflow, sticky action and acc
   const workspace = read("src/components/documents/document-workspace.tsx");
   const sheets = read("src/components/documents/mobile-document-surfaces.tsx");
   const confirm = read("src/components/ui/confirm-action-form.tsx");
+  const modal = read("src/components/ui/modal-shell.tsx");
   const styles = read("src/app/globals.css");
 
   assert.match(workspace, /md:grid-cols-\[minmax\(0,7fr\)_minmax\(14rem,3fr\)\]/);
@@ -39,12 +40,13 @@ test("the shared shell owns tablet ratio, mobile workflow, sticky action and acc
   assert.match(sheets, /document\.body\.style\.overflow = "hidden"/);
   assert.match(sheets, /event\.key === "Escape"/);
   assert.match(sheets, /requestAnimationFrame\(\(\) => trigger\?\.focus\(\)\)/);
-  assert.match(confirm, /role="dialog"/);
-  assert.match(confirm, /event\.key !== "Tab"/);
+  assert.match(confirm, /ModalShell/);
+  assert.match(modal, /role="dialog"/);
+  assert.match(modal, /event\.key !== "Tab"/);
   assert.match(styles, /\.sb-mobile-action-bar[\s\S]*border-top:[\s\S]*linear-gradient/);
 });
 
-test("workflow actions are explicit, confirmed, permission-derived and secondary actions are separated", () => {
+test("workflow actions are explicit, confirmed, permission-derived and secondary actions stay with the primary action", () => {
   const pr = app("purchase-requests/[id]");
   const po = app("purchase-orders/[id]");
   const invoice = app("supplier-invoices/[id]");
@@ -59,9 +61,10 @@ test("workflow actions are explicit, confirmed, permission-derived and secondary
   for (const source of [pr, po, invoice, production, daily]) assert.match(source, /ConfirmActionForm/);
   for (const route of detailRoutes) {
     const source = app(route);
-    const primary = source.indexOf('title="Primary Action"');
+    const primary = source.indexOf("DocumentActionSection");
     const validation = source.indexOf('title="Validation / Next Step"');
     assert.ok(primary >= 0 && validation > primary, `${route}: primary precedes validation`);
+    assert.doesNotMatch(source, /DocumentSideSection title="More Options"/, `${route}: secondary actions are not detached`);
   }
 });
 
@@ -81,7 +84,7 @@ test("required files remain visible on mobile and support follows the canonical 
   }
 });
 
-test("document terminology and footer match v7.23.5.6", () => {
+test("document terminology and footer match v7.23.5.7", () => {
   const sources = [
     ...detailRoutes.map(app), ...createRoutes.map(app),
     read("src/components/procurement-forms.tsx"), read("src/components/outlet-daily-record-form.tsx"),
@@ -90,5 +93,5 @@ test("document terminology and footer match v7.23.5.6", () => {
   assert.match(sources, /Qty Sent/);
   assert.match(sources, /Wastage Reason/);
   assert.match(sources, /Remarks/);
-  assert.match(read("src/lib/app-version.ts"), /APP_SPRINT = "v7\.23\.5\.6"/);
+  assert.match(read("src/lib/app-version.ts"), /APP_SPRINT = "v7\.23\.5\.7"/);
 });

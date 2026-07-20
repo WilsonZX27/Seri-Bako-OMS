@@ -104,8 +104,8 @@ export function RightConsoleProvider({ children }: { children: ReactNode }) {
       </div> : null}
       {open && !mobileBarHidden ? (
         <div className={cn("fixed inset-0 z-[var(--sb-z-dialog)]", mobileOnlyBar ? "md:hidden" : "xl:hidden")}>
-          <button type="button" className="absolute inset-0 h-full w-full bg-[var(--sb-green-950)]/55" onClick={close} aria-label="Close page actions" />
-          <div ref={dialogRef} role="dialog" aria-modal="true" aria-labelledby={titleId} className="absolute inset-x-0 bottom-0 max-h-[82dvh] overflow-hidden border-t border-[var(--sb-border)] bg-white pb-[env(safe-area-inset-bottom)]">
+          <button type="button" className="sb-dialog-backdrop absolute inset-0 h-full w-full" onClick={close} aria-label="Close page actions" />
+          <div ref={dialogRef} role="dialog" aria-modal="true" aria-labelledby={titleId} className="sb-popover-surface absolute inset-x-0 bottom-0 max-h-[82dvh] overflow-hidden pb-[env(safe-area-inset-bottom)]">
             <header className="flex h-12 items-center justify-between border-b px-3">
               <h2 id={titleId} className="text-sm font-semibold">Page actions</h2>
               <Button type="button" variant="ghost" size="icon" onClick={close} aria-label="Close page actions"><X className="h-5 w-5" /></Button>
@@ -133,7 +133,7 @@ export function ConsoleSection({ title, children }: { title: string; children: R
   return (
     <section className="border-b border-[var(--border-muted)] px-3 py-3 last:border-b-0">
       <h2 className="mb-2 text-xs font-semibold text-[var(--sb-text-muted)]">{title}</h2>
-      <div className="space-y-2">{children}</div>
+      <div className="space-y-2 text-xs [&_.inline-flex]:text-xs">{children}</div>
     </section>
   );
 }

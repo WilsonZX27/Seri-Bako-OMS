@@ -1,7 +1,7 @@
 import { AlertTriangle } from "lucide-react";
 import { DocumentActionBar, DocumentActionForm, DocumentActionLink } from "@/components/document-action-bar";
 import { AttachmentPanel, CommentsPanel, DocumentTimeline, RevisionPanel } from "@/components/documents/document-panels";
-import { DocumentSideSection, DocumentWorkspace } from "@/components/documents/document-workspace";
+import { DocumentActionSection, DocumentSideSection, DocumentWorkspace } from "@/components/documents/document-workspace";
 import { DocumentMoreOptions, MobileTaskSheet } from "@/components/documents/mobile-document-surfaces";
 import { Card, CardContent } from "@/components/ui/card";
 import { SubmitButton } from "@/components/ui/submit-button";
@@ -50,7 +50,7 @@ export default async function GoodsReceivingDetailPage({ params }: { params: Pro
       mobileMoreOptions={secondaryActions ? <DocumentMoreOptions>{secondaryActions}</DocumentMoreOptions> : null}
       sidePanel={
         <>
-          <DocumentSideSection title="Primary Action" description="Post after receiving details are checked. Attachments can be added for audit support.">
+          <DocumentActionSection description="Post after receiving details are checked. Attachments can be added for audit support." moreOptions={secondaryActions}>
             <DocumentActionBar>
               {hasPrimaryAction ? <form action={postGoodsReceiving.bind(null, receiving.id)} className="space-y-2" data-mobile-primary-action>
                 {!hasDeliveryOrder ? <Textarea name="do_exception_reason" placeholder="If no DO is available, document the exception" required /> : null}
@@ -58,9 +58,8 @@ export default async function GoodsReceivingDetailPage({ params }: { params: Pro
               </form> : null}
             </DocumentActionBar>
             {!hasPrimaryAction && receiving.status === "draft" ? <p className="mt-3 text-sm text-muted-foreground">You can view this GRN, but you do not have permission to post it.</p> : null}
-          </DocumentSideSection>
+          </DocumentActionSection>
           <DocumentSideSection title="Validation / Next Step"><DocumentActionLink href={`/purchase-orders/${receiving.purchase_order_id}`} variant="outline">View Purchase Order</DocumentActionLink><p className="text-xs text-muted-foreground">{receiving.status === "draft" ? "Attach the Delivery Order or document an exception before posting." : "This receiving is finalized and read-only."}</p></DocumentSideSection>
-          {secondaryActions ? <DocumentSideSection title="More Options"><DocumentMoreOptions>{secondaryActions}</DocumentMoreOptions></DocumentSideSection> : null}
           {!hasDeliveryOrder && receiving.status === "draft" ? (
             <DocumentSideSection title="Attachment Recommended">
               <div className="flex gap-2 rounded-md bg-warning/10 p-3 text-sm text-warning">

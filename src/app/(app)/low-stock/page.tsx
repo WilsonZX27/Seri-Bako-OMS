@@ -7,7 +7,7 @@ import { PageHeader } from "@/components/ui/page-header";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { ConsoleSection } from "@/components/layout/right-console";
 import { WorkspaceGrid } from "@/components/layout/workspace-layout";
-import { SelectNative } from "@/components/ui/select-native";
+import { SelectControl } from "@/components/ui/select-control";
 import { formatCurrency, formatNumber } from "@/lib/utils";
 import { getBranchesForSelect } from "@/server/queries/common";
 import { getLowStockItems } from "@/server/queries/inventory";
@@ -48,15 +48,8 @@ export default async function LowStockPage({ searchParams }: { searchParams: Pro
         <div className="overflow-hidden rounded-[2px] border border-[var(--sb-border-soft)] bg-card">
           <form className="sb-list-filters">
             <Input name="search" defaultValue={filters.search ?? ""} placeholder="Search item, branch, supplier" className="md:max-w-sm" />
-            <SelectNative name="branch_id" defaultValue={filters.branch_id ?? "all"} className="md:max-w-xs">
-              <option value="all">All branches</option>
-              {branches.map((branch) => <option key={branch.id} value={branch.id}>{branch.branch_name}</option>)}
-            </SelectNative>
-            <SelectNative name="status" defaultValue={filters.status ?? "all"} className="md:max-w-44">
-              <option value="all">All statuses</option>
-              <option value="low_stock">Low Stock</option>
-              <option value="out_of_stock">Out of Stock</option>
-            </SelectNative>
+            <SelectControl name="branch_id" defaultValue={filters.branch_id ?? "all"} ariaLabel="Branch" className="md:max-w-xs" options={[{ value: "all", label: "All branches" }, ...branches.map((branch) => ({ value: branch.id, label: branch.branch_name }))]} />
+            <SelectControl name="status" defaultValue={filters.status ?? "all"} ariaLabel="Stock status" className="md:max-w-44" options={[{ value: "all", label: "All statuses" }, { value: "low_stock", label: "Low Stock" }, { value: "out_of_stock", label: "Out of Stock" }]} />
             <Button type="submit" variant="secondary">Filter</Button>
             <Button asChild variant="ghost"><a href="?">Reset</a></Button>
           </form>

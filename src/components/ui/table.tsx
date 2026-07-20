@@ -50,8 +50,16 @@ export function TableHead({ className, ...props }: React.ThHTMLAttributes<HTMLTa
   return <th className={cn("h-9 min-w-24 overflow-hidden px-3 text-left align-middle text-xs font-semibold text-[var(--sb-text-muted)]", className)} {...props} />;
 }
 
+export function TableSelectionHead({ className, ...props }: React.ThHTMLAttributes<HTMLTableCellElement>) {
+  return <th className={cn("h-9 w-10 min-w-10 max-w-10 overflow-hidden px-2 text-center align-middle", className)} {...props} />;
+}
+
 export function TableCell({ className, ...props }: React.TdHTMLAttributes<HTMLTableCellElement>) {
   return <td className={cn("px-3 py-2.5 align-middle", className)} {...props} />;
+}
+
+export function TableSelectionCell({ className, ...props }: React.TdHTMLAttributes<HTMLTableCellElement>) {
+  return <td className={cn("w-10 min-w-10 max-w-10 px-2 py-2.5 text-center align-middle", className)} {...props} />;
 }
 
 export function TableActionLink({ href, label, children, className }: { href: string; label: string; children: React.ReactNode; className?: string }) {

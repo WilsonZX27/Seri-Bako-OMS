@@ -1,5 +1,5 @@
 import { DocumentMoreOptions } from "@/components/documents/mobile-document-surfaces";
-import { DocumentSideSection, DocumentWorkspace } from "@/components/documents/document-workspace";
+import { DocumentActionSection, DocumentSideSection, DocumentWorkspace } from "@/components/documents/document-workspace";
 import { OutletDailyRecordForm } from "@/components/outlet-daily-record-form";
 import { Card, CardContent } from "@/components/ui/card";
 import { SubmitButton } from "@/components/ui/submit-button";
@@ -26,9 +26,8 @@ export default async function NewOutletDailyRecordPage({ searchParams }: { searc
     : <SubmitButton form={formId} name="target_status" value="draft" disabled={disabled}>Save Qty Sent</SubmitButton>;
   const secondaryActions = canUpdate ? <><SubmitButton form={formId} name="target_status" value="draft" variant="outline" disabled={disabled}>Save Draft</SubmitButton><SubmitButton form={formId} name="target_status" value="evening_completed" variant="outline" disabled={disabled}>Complete Daily Record</SubmitButton></> : null;
   const sidePanel = <>
-    <DocumentSideSection title="Primary Action">{primaryAction}</DocumentSideSection>
+    <DocumentActionSection moreOptions={secondaryActions ? <div className="grid gap-2">{secondaryActions}</div> : undefined}>{primaryAction}</DocumentActionSection>
     <DocumentSideSection title="Validation / Next Step"><p className="text-xs text-muted-foreground">Central Kitchen records Qty Sent. Outlet Staff confirms Received and records Wastage.</p><p className="text-xs text-muted-foreground">Wastage needs a reason. Quantity exceptions require a remark.</p></DocumentSideSection>
-    {secondaryActions ? <DocumentSideSection title="More Options"><div className="grid gap-2">{secondaryActions}</div></DocumentSideSection> : null}
   </>;
 
   return <DocumentWorkspace

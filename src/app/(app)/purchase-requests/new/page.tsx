@@ -4,7 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { SubmitButton } from "@/components/ui/submit-button";
 import { DocumentMoreOptions } from "@/components/documents/mobile-document-surfaces";
-import { DocumentSideSection, DocumentWorkspace } from "@/components/documents/document-workspace";
+import { DocumentActionSection, DocumentSideSection, DocumentWorkspace } from "@/components/documents/document-workspace";
 import { createPurchaseRequest } from "@/server/actions/procurement";
 import { hasPermission } from "@/server/auth/permissions";
 import { getBranchesForSelect, getCurrentProfile, getItemsForSelect, getSuppliersForSelect } from "@/server/queries/common";
@@ -50,7 +50,7 @@ export default async function NewPurchaseRequestPage({ searchParams }: { searchP
         mobilePrimaryAction={primaryAction}
         mobileMoreOptions={<DocumentMoreOptions>{secondaryActions}</DocumentMoreOptions>}
         sidePanel={<>
-            <DocumentSideSection title="Primary Action">{primaryAction}</DocumentSideSection>
+            <DocumentActionSection moreOptions={secondaryActions}>{primaryAction}</DocumentActionSection>
             <DocumentSideSection title="Validation / Next Step"><p className="text-xs text-muted-foreground">Add at least one item before submitting this purchase request.</p></DocumentSideSection>
             <DocumentSideSection title="Request Summary">
               <div className="grid gap-2 text-xs">
@@ -59,7 +59,6 @@ export default async function NewPurchaseRequestPage({ searchParams }: { searchP
                 <div className="flex justify-between gap-3"><span className="text-muted-foreground">Lines</span><strong>Review before submit</strong></div>
               </div>
             </DocumentSideSection>
-            <DocumentSideSection title="More Options"><DocumentMoreOptions>{secondaryActions}</DocumentMoreOptions></DocumentSideSection>
           </>}
       >
         {params.error ? <Card><CardContent className="p-4 text-sm text-destructive">{params.error}</CardContent></Card> : null}

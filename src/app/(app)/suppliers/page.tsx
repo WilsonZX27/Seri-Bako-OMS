@@ -10,7 +10,7 @@ import { MasterDataFilters } from "@/components/master-data-filters";
 import { PageHeader } from "@/components/ui/page-header";
 import { PaginationControls, SortableHead } from "@/components/sortable-table";
 import { StatusTabs } from "@/components/status-tabs";
-import { OperationalList, OperationalListRow, Table, TableActionLink, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { OperationalList, OperationalListRow, Table, TableActionLink, TableBody, TableCell, TableHead, TableHeader, TableRow, TableSelectionCell, TableSelectionHead } from "@/components/ui/table";
 import { ConsoleSection } from "@/components/layout/right-console";
 import { WorkspaceGrid } from "@/components/layout/workspace-layout";
 import { hasActiveFilters } from "@/lib/table-state";
@@ -58,7 +58,7 @@ export default async function SuppliersPage({
           <Table mobileHidden aria-label="Suppliers">
             <TableHeader>
               <TableRow>
-                <TableHead className="w-16"><BulkSelectAllCheckbox /></TableHead>
+                <TableSelectionHead><BulkSelectAllCheckbox /></TableSelectionHead>
                 <SortableHead label="Supplier Code" column="supplier_code" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
                 <SortableHead label="Supplier Name" column="name" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
                 <SortableHead className="hidden lg:table-cell" label="Contact Person" column="contact_person" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
@@ -72,9 +72,9 @@ export default async function SuppliersPage({
             <TableBody>
               {page.rows.map((supplier) => (
                 <DataGridRow key={supplier.id} href={`/suppliers/${supplier.id}`}>
-                  <TableCell>
-                    <BulkSelectRowCheckbox id={supplier.id} />
-                  </TableCell>
+                    <TableSelectionCell>
+                     <BulkSelectRowCheckbox id={supplier.id} />
+                    </TableSelectionCell>
                   <TableCell>{supplier.supplier_code ?? "-"}</TableCell>
                   <TableCell className="font-medium">{supplier.name}</TableCell>
                   <TableCell className="hidden lg:table-cell">{supplier.contact_person ?? "-"}</TableCell>

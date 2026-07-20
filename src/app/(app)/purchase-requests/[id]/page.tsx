@@ -6,7 +6,7 @@ import { DocumentActionBar, DocumentActionForm } from "@/components/document-act
 import { ConfirmActionForm } from "@/components/ui/confirm-action-form";
 import { DocumentNumber } from "@/components/document-number";
 import { AttachmentPanel, CommentsPanel, DocumentTimeline, RevisionPanel } from "@/components/documents/document-panels";
-import { DocumentSideSection, DocumentWorkspace } from "@/components/documents/document-workspace";
+import { DocumentActionSection, DocumentSideSection, DocumentWorkspace } from "@/components/documents/document-workspace";
 import { DocumentMoreOptions, MobileTaskSheet } from "@/components/documents/mobile-document-surfaces";
 import { StaleWorkflowRefresh } from "@/components/documents/stale-workflow-refresh";
 import { PriorityBadge } from "@/components/priority-badge";
@@ -129,7 +129,7 @@ export default async function PurchaseRequestDetailPage({
       mobileMoreOptions={secondaryActions ? <DocumentMoreOptions>{secondaryActions}</DocumentMoreOptions> : null}
       sidePanel={
         <>
-          <DocumentSideSection title="Primary Action" description="Only the next valid workflow action is shown.">
+          <DocumentActionSection description="Only the next valid workflow action is shown." moreOptions={secondaryActions}>
             <DocumentActionBar>
               {canSubmit ? <DocumentActionForm action={submitPurchaseRequest.bind(null, request.id)} pendingLabel="Submitting..." mobilePrimary>Submit to Manager Review</DocumentActionForm> : null}
               {canManagerReview ? <ConfirmActionForm action={managerApprovePurchaseRequest.bind(null, request.id)} label="Approve as Manager" title="Approve this PR as Manager?" description="This moves the request to Purchasing Review." pendingLabel="Approving..." mobilePrimary /> : null}
@@ -146,9 +146,8 @@ export default async function PurchaseRequestDetailPage({
               </form>
             ) : null}
             {!hasPrimaryAction ? <p className="text-xs text-muted-foreground">You can view this document, but there is no workflow action available for your role or this status.</p> : null}
-          </DocumentSideSection>
+          </DocumentActionSection>
           <DocumentSideSection title="Validation / Next Step"><p className="text-xs text-muted-foreground">{nextStep ?? "No further workflow step is available."}</p></DocumentSideSection>
-          {secondaryActions ? <DocumentSideSection title="More Options"><DocumentMoreOptions>{secondaryActions}</DocumentMoreOptions></DocumentSideSection> : null}
           {documentBundle ? (
             <>
               <AttachmentPanel documentId={documentBundle.document.id} attachments={documentBundle.attachments} title="Supporting Attachments" defaultLabel="Purchase Request Attachment" canManage={permissions["documents.attach"]} documentStatus={documentBundle.document.status} />

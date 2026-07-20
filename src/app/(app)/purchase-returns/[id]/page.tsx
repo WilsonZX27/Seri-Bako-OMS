@@ -1,6 +1,6 @@
 import { DocumentActionBar, DocumentActionForm, DocumentActionLink } from "@/components/document-action-bar";
 import { AttachmentPanel, CommentsPanel, DocumentTimeline, RevisionPanel } from "@/components/documents/document-panels";
-import { DocumentSideSection, DocumentWorkspace } from "@/components/documents/document-workspace";
+import { DocumentActionSection, DocumentSideSection, DocumentWorkspace } from "@/components/documents/document-workspace";
 import { DocumentMoreOptions } from "@/components/documents/mobile-document-surfaces";
 import { Card, CardContent } from "@/components/ui/card";
 import { BlockedDestructiveAction } from "@/components/ui/danger-confirm-form";
@@ -43,14 +43,13 @@ export default async function PurchaseReturnDetailPage({ params, searchParams }:
       mobileMoreOptions={<DocumentMoreOptions>{secondaryActions}</DocumentMoreOptions>}
       sidePanel={
         <>
-          <DocumentSideSection title="Primary Action" description="Post after supplier return quantity is checked. Posting deducts stock once.">
+          <DocumentActionSection description="Post after supplier return quantity is checked. Posting deducts stock once." moreOptions={secondaryActions}>
             <DocumentActionBar>
               {canPost ? <DocumentActionForm action={postPurchaseReturn.bind(null, purchaseReturn.id)} pendingLabel="Posting...">Post return</DocumentActionForm> : null}
             </DocumentActionBar>
             {filters.error ? <p className="mt-3 text-sm text-destructive">{filters.error}</p> : null}
-          </DocumentSideSection>
+          </DocumentActionSection>
           <DocumentSideSection title="Validation / Next Step"><DocumentActionLink href={`/goods-receivings/${purchaseReturn.goods_receiving_id}`} variant="outline">View Goods Receiving</DocumentActionLink><p className="text-xs text-muted-foreground">{purchaseReturn.status === "draft" ? "Check supplier, item, and return quantities before posting." : "Posted returns remain in the stock audit trail."}</p></DocumentSideSection>
-          <DocumentSideSection title="More Options"><DocumentMoreOptions>{secondaryActions}</DocumentMoreOptions></DocumentSideSection>
           <DocumentSideSection title="Movement Ledger">
             <div className="grid gap-2 text-xs">
               <div className="flex justify-between"><span className="text-muted-foreground">Ledger Rows</span><strong>{stockTransactions.filter((row) => row.reference_id === purchaseReturn.id).length}</strong></div>

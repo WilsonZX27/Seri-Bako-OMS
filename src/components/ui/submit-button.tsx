@@ -53,8 +53,8 @@ export function SubmitButton({
         {isPending ? pendingLabel : children}
       </Button>
       {showOverlay && isPending ? (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/30 backdrop-blur-sm">
-          <div className="flex items-center gap-3 rounded-[2px] border bg-card px-5 py-4 shadow-sm">
+        <div className="sb-dialog-backdrop fixed inset-0 z-50 flex items-center justify-center">
+          <div className="sb-popover-surface flex items-center gap-3 px-5 py-4">
             <LoaderCircle className="h-5 w-5 animate-spin text-primary" />
             <p className="text-sm font-medium">{overlayLabel ?? pendingLabel}</p>
           </div>

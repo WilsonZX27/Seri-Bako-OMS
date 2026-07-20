@@ -7,6 +7,10 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { TableActionLink } from "@/components/ui/table";
 import { hasPermission } from "@/server/auth/permissions";
 import { getDocumentSequences } from "@/server/queries/foundation";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import { ConsoleSection } from "@/components/layout/right-console";
+import { WorkspaceGrid } from "@/components/layout/workspace-layout";
 
 export default async function DocumentSequencesPage({ searchParams }: { searchParams: Promise<{ search?: string; status?: string; error?: string; success?: string }> }) {
   const filters = await searchParams;
@@ -14,8 +18,8 @@ export default async function DocumentSequencesPage({ searchParams }: { searchPa
 
   return (
     <>
-      <PageHeader title="Document Sequences" description="Controlled numbering for operational documents." action={canCreate ? { href: "/document-sequences/new", label: "New sequence" } : undefined} />
-      <div className="space-y-4 p-5">
+      <PageHeader title="Document Sequences" description="Controlled numbering for operational documents." />
+      <WorkspaceGrid rightRail={<>{canCreate ? <ConsoleSection title="Actions"><Button asChild size="sm" className="w-full" data-mobile-primary-action><Link href="/document-sequences/new">New sequence</Link></Button></ConsoleSection> : null}<ConsoleSection title="Sequence Summary"><p className="text-xs text-muted-foreground">{sequences.length} numbering {sequences.length === 1 ? "sequence" : "sequences"} in the current view.</p></ConsoleSection></>}>
         {filters.error || filters.success ? (
           <Card>
             <CardContent className={`p-4 text-sm ${filters.error ? "text-destructive" : "text-emerald-700"}`}>
@@ -57,7 +61,7 @@ export default async function DocumentSequencesPage({ searchParams }: { searchPa
             </Table>
           </div>
         </div>
-      </div>
+      </WorkspaceGrid>
     </>
   );
 }

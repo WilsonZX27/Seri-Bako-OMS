@@ -15,7 +15,7 @@ import { PriorityBadge } from "@/components/priority-badge";
 import { PaginationControls, SortableHead } from "@/components/sortable-table";
 import { SelectControl } from "@/components/ui/select-control";
 import { StatusTabs } from "@/components/status-tabs";
-import { OperationalList, OperationalListRow, Table, TableActionLink, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { OperationalList, OperationalListRow, Table, TableActionLink, TableBody, TableCell, TableHead, TableHeader, TableRow, TableSelectionCell, TableSelectionHead } from "@/components/ui/table";
 import { ConsoleSection } from "@/components/layout/right-console";
 import { WorkspaceGrid } from "@/components/layout/workspace-layout";
 import { formatCurrency } from "@/lib/utils";
@@ -76,7 +76,7 @@ export default async function PurchaseRequestsPage({ searchParams }: { searchPar
             <Table mobileHidden aria-label="Purchase requests">
               <TableHeader>
                 <TableRow>
-                  <TableHead className="hidden w-10 md:table-cell"><BulkSelectAllCheckbox /></TableHead>
+                  <TableSelectionHead className="hidden md:table-cell"><BulkSelectAllCheckbox /></TableSelectionHead>
                   <SortableHead label="PR No" column="request_no" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
                   <SortableHead className="hidden md:table-cell" label="Date" column="request_date" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
                   <SortableHead label="Needed By" column="needed_by_date" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
@@ -91,9 +91,9 @@ export default async function PurchaseRequestsPage({ searchParams }: { searchPar
               <TableBody>
                 {requests.rows.map((request) => (
                   <DataGridRow key={request.id} href={`/purchase-requests/${request.id}`}>
-                    <TableCell className="hidden md:table-cell">
-                      <BulkSelectRowCheckbox id={request.id} />
-                    </TableCell>
+                      <TableSelectionCell className="hidden md:table-cell">
+                       <BulkSelectRowCheckbox id={request.id} />
+                      </TableSelectionCell>
                     <TableCell><DocumentNumber value={request.request_no} size="sm" /></TableCell>
                     <TableCell className="hidden md:table-cell">{request.request_date}</TableCell>
                     <TableCell>{request.needed_by_date ?? "-"}</TableCell>

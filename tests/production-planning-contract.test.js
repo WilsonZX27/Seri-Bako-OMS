@@ -41,6 +41,6 @@ test("Production Planning Lite is route-protected and follows the current footer
   const version = read("src/lib/app-version.ts");
   assert.match(routes, /"\/production\/planning": \["outlet_daily_record\.view"\]/);
   assert.match(production, /\/production\/planning/);
-  assert.match(version, /APP_VERSION = "7\.23\.5\.6"/);
-  assert.match(version, /APP_SPRINT = "v7\.23\.5\.6"/);
+  assert.match(version, /APP_VERSION = "7\.23\.5\.7"/);
+  assert.match(version, /APP_SPRINT = "v7\.23\.5\.7"/);
 });

@@ -11,7 +11,7 @@ import { PageHeader } from "@/components/ui/page-header";
 import { SelectNative } from "@/components/ui/select-native";
 import { PaginationControls, SortableHead } from "@/components/sortable-table";
 import { StatusTabs } from "@/components/status-tabs";
-import { Table, TableActionLink, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Table, TableActionLink, TableBody, TableCell, TableHead, TableHeader, TableRow, TableSelectionCell, TableSelectionHead } from "@/components/ui/table";
 import { getCanonicalDocumentHref } from "@/lib/document-routing";
 import { formatStatusLabel } from "@/lib/status-label";
 import type { DocumentRow } from "@/server/queries/documents";
@@ -80,7 +80,7 @@ export default async function DocumentsPage({ searchParams }: { searchParams: Pr
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead className="w-20"><BulkSelectAllCheckbox /></TableHead>
+                  <TableSelectionHead><BulkSelectAllCheckbox /></TableSelectionHead>
                   <SortableHead label="Doc No" column="document_no" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
                   <SortableHead label="Type" column="document_type" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
                   <TableHead>Stage</TableHead>
@@ -95,9 +95,9 @@ export default async function DocumentsPage({ searchParams }: { searchParams: Pr
                   const href = getCanonicalDocumentHref(document);
                   return (
                   <DataGridRow key={document.id} href={href}>
-                    <TableCell>
-                      <BulkSelectRowCheckbox id={document.id} />
-                    </TableCell>
+                      <TableSelectionCell>
+                        <BulkSelectRowCheckbox id={document.id} />
+                      </TableSelectionCell>
                     <TableCell><DocumentNumber value={document.document_no} size="sm" /></TableCell>
                     <TableCell>{formatStatusLabel(document.document_type)}</TableCell>
                     <TableCell><StatusBadge status={getDocumentStageLabel(document)} /></TableCell>

@@ -1,8 +1,9 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useId, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
+import { ModalShell } from "@/components/ui/modal-shell";
 import { createClient } from "@/lib/supabase/client";
 
 const warningAfterMs = 25 * 60 * 1000;
@@ -14,6 +15,8 @@ export function SessionTimeoutProvider() {
   const [showWarning, setShowWarning] = useState(false);
   const warningTimer = useRef<number | null>(null);
   const logoutTimer = useRef<number | null>(null);
+  const stayRef = useRef<HTMLButtonElement>(null);
+  const titleId = useId();
 
   const clearTimers = useCallback(() => {
     if (warningTimer.current) window.clearTimeout(warningTimer.current);
@@ -53,19 +56,17 @@ export function SessionTimeoutProvider() {
   if (!showWarning) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/30 p-4 backdrop-blur-sm">
-      <div className="w-full max-w-sm rounded-[2px] border bg-white p-5">
-        <p className="text-lg font-semibold">Are you still there?</p>
+    <ModalShell open={showWarning} onClose={resetTimers} titleId={titleId} initialFocusRef={stayRef} className="max-w-sm p-5">
+        <h2 id={titleId} className="text-lg font-semibold">Are you still there?</h2>
         <p className="mt-2 text-sm leading-6 text-muted-foreground">Your session will expire soon for security.</p>
         <div className="mt-5 flex justify-end gap-2">
           <Button type="button" variant="outline" onClick={() => void signOutExpired()}>
             Sign out now
           </Button>
-          <Button type="button" onClick={resetTimers}>
+          <Button ref={stayRef} type="button" onClick={resetTimers}>
             Stay signed in
           </Button>
         </div>
-      </div>
-    </div>
+    </ModalShell>
   );
 }

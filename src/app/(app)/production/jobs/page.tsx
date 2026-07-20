@@ -12,7 +12,7 @@ import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { SelectControl } from "@/components/ui/select-control";
 import { StatusBadge } from "@/components/ui/status-badge";
-import { OperationalList, OperationalListRow, Table, TableActionLink, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { OperationalList, OperationalListRow, Table, TableActionLink, TableBody, TableCell, TableHead, TableHeader, TableRow, TableSelectionCell, TableSelectionHead } from "@/components/ui/table";
 import { PaginationControls, SortableHead } from "@/components/sortable-table";
 import { ConsoleSection, RightConsoleMount } from "@/components/layout/right-console";
 import { getBranchesForSelect } from "@/server/queries/common";
@@ -92,7 +92,7 @@ export default async function ProductionJobsPage({ searchParams }: { searchParam
               <Table mobileHidden aria-label="Production jobs">
                 <TableHeader>
                   <TableRow>
-                    <TableHead className="w-20"><BulkSelectAllCheckbox /></TableHead>
+                    <TableSelectionHead><BulkSelectAllCheckbox /></TableSelectionHead>
                     <SortableHead label="Job No" column="production_job_no" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
                     <SortableHead label="Date" column="production_date" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
                     <TableHead>Branch</TableHead>
@@ -109,9 +109,9 @@ export default async function ProductionJobsPage({ searchParams }: { searchParam
                 <TableBody>
                   {jobs.rows.map((job) => (
                     <DataGridRow key={job.id} href={`/production/jobs/${job.id}`}>
-                      <TableCell>
-                        <BulkSelectRowCheckbox id={job.id} />
-                      </TableCell>
+                        <TableSelectionCell>
+                         <BulkSelectRowCheckbox id={job.id} />
+                        </TableSelectionCell>
                       <TableCell><DocumentNumber value={job.production_job_no} size="sm" /></TableCell>
                       <TableCell>{job.production_date}</TableCell>
                       <TableCell>{job.branch_name ?? "-"}</TableCell>

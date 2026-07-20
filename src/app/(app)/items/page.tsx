@@ -10,7 +10,7 @@ import { MasterDataFilters } from "@/components/master-data-filters";
 import { PageHeader } from "@/components/ui/page-header";
 import { PaginationControls, SortableHead } from "@/components/sortable-table";
 import { StatusTabs } from "@/components/status-tabs";
-import { OperationalList, OperationalListRow, Table, TableActionLink, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { OperationalList, OperationalListRow, Table, TableActionLink, TableBody, TableCell, TableHead, TableHeader, TableRow, TableSelectionCell, TableSelectionHead } from "@/components/ui/table";
 import { formatCurrency, formatNumber } from "@/lib/utils";
 import { hasActiveFilters } from "@/lib/table-state";
 import { getItemsWithStock, getItemsWithStockPage } from "@/server/queries/items";
@@ -57,15 +57,15 @@ export default async function ItemsPage({
           <Table mobileHidden aria-label="Items">
             <TableHeader>
               <TableRow>
-                <TableHead className="hidden w-16 md:table-cell"><BulkSelectAllCheckbox /></TableHead>
-                <SortableHead label="Item Code" column="item_code" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
-                <SortableHead label="Item Name" column="item_name" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
+                <TableSelectionHead className="hidden md:table-cell"><BulkSelectAllCheckbox /></TableSelectionHead>
+                <SortableHead wrap className="min-w-20" label="Item Code" column="item_code" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
+                <SortableHead wrap className="min-w-20" label="Item Name" column="item_name" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
                 <SortableHead className="hidden lg:table-cell" label="Category" column="category" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
-                <SortableHead label="Base Unit" column="base_unit" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
+                <SortableHead wrap className="min-w-20" label="Base Unit" column="base_unit" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
                 <SortableHead label="Supplier" column="supplier_name" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} className="hidden lg:table-cell" />
                 <SortableHead label="Cost" column="cost" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} className="hidden text-right lg:table-cell" />
-                <SortableHead label="Safety Stock" column="safety_stock" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} className="hidden text-right lg:table-cell" />
-                <SortableHead label="Current Stock" column="current_stock" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} className="hidden text-right md:table-cell" />
+                <SortableHead wrap label="Safety Stock" column="safety_stock" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} className="hidden min-w-20 text-right lg:table-cell" />
+                <SortableHead wrap label="Current Stock" column="current_stock" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} className="hidden min-w-20 text-right md:table-cell" />
                 <SortableHead label="Status" column="status" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
                 <TableHead className="w-12 text-right">Action</TableHead>
               </TableRow>
@@ -74,9 +74,9 @@ export default async function ItemsPage({
               {itemsPage.rows.map((item) => {
                 return (
                   <DataGridRow key={item.id} href={`/items/${item.id}`}>
-                    <TableCell className="hidden md:table-cell">
+                    <TableSelectionCell className="hidden md:table-cell">
                       <BulkSelectRowCheckbox id={item.id} />
-                    </TableCell>
+                    </TableSelectionCell>
                     <TableCell>{item.item_code}</TableCell>
                     <TableCell className="font-medium">{item.item_name}</TableCell>
                     <TableCell className="hidden lg:table-cell">{item.category}</TableCell>

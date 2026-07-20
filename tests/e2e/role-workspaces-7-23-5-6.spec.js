@@ -12,7 +12,7 @@ const roles = {
   outlet: "Outlet Today",
 };
 const widths = [1440, 1024, 768, 430, 390, 360];
-const evidence = path.join(process.cwd(), "test-results", "sprint-7-23-5-6");
+const evidence = path.join(process.cwd(), "test-results", "sprint-7-23-5-7");
 
 test.beforeAll(() => fs.mkdirSync(evidence, { recursive: true }));
 

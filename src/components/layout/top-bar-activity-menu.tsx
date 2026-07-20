@@ -12,6 +12,8 @@ export function TopBarActivityMenu({ data }: { data: TopBarActivity }) {
   const [open, setOpen] = useState(false);
   const [seen, setSeen] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
+  const triggerRef = useRef<HTMLButtonElement>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
   const pendingApprovals = data.pendingApprovals ?? [];
   const notifications = data.notifications ?? [];
   const announcements = data.announcements ?? [];
@@ -30,11 +32,16 @@ export function TopBarActivityMenu({ data }: { data: TopBarActivity }) {
 
   useEffect(() => {
     if (!open) return;
+    menuRef.current?.querySelector<HTMLElement>("button, a")?.focus();
+    function close() {
+      setOpen(false);
+      requestAnimationFrame(() => triggerRef.current?.focus());
+    }
     function closeOnOutsideClick(event: MouseEvent) {
-      if (!rootRef.current?.contains(event.target as Node)) setOpen(false);
+      if (!rootRef.current?.contains(event.target as Node)) close();
     }
     function closeOnEscape(event: KeyboardEvent) {
-      if (event.key === "Escape") setOpen(false);
+      if (event.key === "Escape") close();
     }
     document.addEventListener("mousedown", closeOnOutsideClick);
     document.addEventListener("keydown", closeOnEscape);
@@ -59,7 +66,7 @@ export function TopBarActivityMenu({ data }: { data: TopBarActivity }) {
 
   return (
     <div ref={rootRef} className="relative">
-      <Button type="button" variant="ghost" size="icon" onClick={toggleOpen} aria-label={count ? `Open workspace updates, ${count} unread or pending` : "Open workspace updates"}>
+      <Button ref={triggerRef} type="button" variant="ghost" size="icon" onClick={toggleOpen} aria-label={count ? `Open workspace updates, ${count} unread or pending` : "Open workspace updates"} aria-haspopup="dialog" aria-expanded={open}>
         <Bell className="h-5 w-5" />
         {count ? (
           <span className="absolute right-0 top-0 flex h-4 min-w-4 items-center justify-center rounded-full bg-red-600 px-1 text-[9px] font-semibold leading-none text-white">
@@ -68,7 +75,7 @@ export function TopBarActivityMenu({ data }: { data: TopBarActivity }) {
         ) : null}
       </Button>
       {open ? (
-        <div data-topbar-activity-menu className="fixed right-4 top-12 z-40 w-[min(22rem,calc(100vw-2rem))] overflow-hidden rounded-[2px] border bg-card shadow-sm">
+        <div ref={menuRef} data-topbar-activity-menu role="dialog" aria-label="Workspace Updates" className="sb-popover-surface fixed right-4 top-12 z-40 w-[min(22rem,calc(100vw-2rem))] overflow-hidden rounded-[2px]">
           <div className="border-b p-3">
             <div className="flex items-start justify-between gap-3">
               <div>
@@ -100,7 +107,7 @@ export function TopBarActivityMenu({ data }: { data: TopBarActivity }) {
                 {notificationCount ? <span className="rounded-full bg-red-50 px-2 py-0.5 text-xs font-medium text-red-700">{notificationCount}</span> : null}
               </div>
               {notifications.map((notification) => (
-                <Link key={notification.id} href={notification.action_url ?? "#"} onClick={() => setOpen(false)} className="flex gap-2 rounded-md p-2 text-xs hover:bg-secondary">
+                <Link key={notification.id} href={notification.action_url ?? "/activity"} onClick={() => setOpen(false)} className="flex gap-2 rounded-[2px] p-2 text-xs hover:bg-secondary">
                   <ShieldAlert className="mt-0.5 h-4 w-4 text-primary" />
                   <span><span className="block">{notification.title}</span>{notification.message ? <span className="block text-xs text-muted-foreground">{notification.message}</span> : null}</span>
                 </Link>

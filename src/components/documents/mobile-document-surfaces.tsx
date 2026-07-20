@@ -9,9 +9,12 @@ import { cn } from "@/lib/utils";
 
 function MobileSheet({ label, title, children, danger = false, triggerClassName }: { label: string; title: string; children: ReactNode; danger?: boolean; triggerClassName?: string }) {
   const [open, setOpen] = useState(false);
+  const [hydrated, setHydrated] = useState(false);
   const triggerRef = useRef<HTMLButtonElement>(null);
   const dialogRef = useRef<HTMLDivElement>(null);
   const titleId = useId();
+
+  useEffect(() => setHydrated(true), []);
 
   useEffect(() => {
     if (!open) return;
@@ -53,13 +56,13 @@ function MobileSheet({ label, title, children, danger = false, triggerClassName 
 
   return (
     <>
-      <Button ref={triggerRef} type="button" variant="outline" className={cn("w-full justify-between text-[13px]", danger && "text-[var(--sb-danger)]", triggerClassName)} onClick={() => setOpen(true)} aria-haspopup="dialog" aria-expanded={open}>
+      <Button ref={triggerRef} type="button" variant="outline" className={cn("w-full justify-between text-[13px]", danger && "text-[var(--sb-danger)]", triggerClassName)} disabled={!hydrated} onClick={() => setOpen(true)} aria-haspopup="dialog" aria-expanded={open}>
         {label}<ChevronRight className="h-4 w-4" aria-hidden="true" />
       </Button>
       {open ? (
         <div className="fixed inset-0 z-[var(--sb-z-dialog)] md:hidden">
-          <button type="button" className="absolute inset-0 h-full w-full bg-[var(--sb-green-950)]/60 backdrop-blur-sm" onClick={() => setOpen(false)} aria-label={`Close ${title}`} />
-          <div ref={dialogRef} role="dialog" aria-modal="true" aria-labelledby={titleId} className="absolute inset-x-0 bottom-0 max-h-[88dvh] overflow-hidden border-t border-[var(--sb-border)] bg-white pb-[env(safe-area-inset-bottom)] shadow-sm">
+          <button type="button" className="sb-dialog-backdrop absolute inset-0 h-full w-full" onClick={() => setOpen(false)} aria-label={`Close ${title}`} />
+          <div ref={dialogRef} role="dialog" aria-modal="true" aria-labelledby={titleId} className="sb-popover-surface absolute inset-x-0 bottom-0 max-h-[88dvh] overflow-hidden pb-[env(safe-area-inset-bottom)]">
             <header className="flex min-h-12 items-center justify-between border-b px-3">
               <h2 id={titleId} className="text-[14px] font-semibold">{title}</h2>
               <Button type="button" variant="ghost" size="icon" onClick={() => setOpen(false)} aria-label={`Close ${title}`}><X className="h-5 w-5" /></Button>

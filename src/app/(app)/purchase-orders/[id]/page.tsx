@@ -5,7 +5,7 @@ import { DocumentActionBar, DocumentActionForm, DocumentActionLink } from "@/com
 import { DocumentNumber } from "@/components/document-number";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { AttachmentPanel, CommentsPanel, DocumentTimeline, RevisionPanel } from "@/components/documents/document-panels";
-import { DocumentSideSection, DocumentWorkspace } from "@/components/documents/document-workspace";
+import { DocumentActionSection, DocumentSideSection, DocumentWorkspace } from "@/components/documents/document-workspace";
 import { MobileTaskSheet } from "@/components/documents/mobile-document-surfaces";
 import { DocumentMoreOptions } from "@/components/documents/mobile-document-surfaces";
 import { ConfirmActionForm } from "@/components/ui/confirm-action-form";
@@ -84,7 +84,7 @@ export default async function PurchaseOrderDetailPage({ params }: { params: Prom
       mobileMoreOptions={secondaryActions ? <DocumentMoreOptions>{secondaryActions}</DocumentMoreOptions> : null}
       sidePanel={
         <>
-          <DocumentSideSection title="Primary Action" description="Only the next valid workflow action is shown.">
+          <DocumentActionSection description="Only the next valid workflow action is shown." moreOptions={secondaryActions}>
             <DocumentActionBar>
               {!fromApprovedPr && order.status === "draft" && permissions["po.submit"] ? <DocumentActionForm action={submitPurchaseOrder.bind(null, order.id)} pendingLabel="Submitting...">Submit approval</DocumentActionForm> : null}
               {!fromApprovedPr && order.status === "pending_approval" && permissions["po.approve"] ? (
@@ -94,9 +94,8 @@ export default async function PurchaseOrderDetailPage({ params }: { params: Prom
               {["sent", "partial_received"].includes(order.status) && permissions["po.receive"] ? <div data-mobile-primary-action><DocumentActionLink href={`/goods-receivings/new?po_id=${order.id}`} variant="outline">Receive goods</DocumentActionLink></div> : null}
             </DocumentActionBar>
             {!hasPrimaryAction ? <p className="text-sm text-muted-foreground">You can view this document, but there is no workflow action available for your role or this status.</p> : null}
-          </DocumentSideSection>
+          </DocumentActionSection>
           <DocumentSideSection title="Validation / Next Step"><p className="text-xs text-muted-foreground">{nextStep ?? "No further workflow step is available."}</p></DocumentSideSection>
-          {secondaryActions ? <DocumentSideSection title="More Options"><DocumentMoreOptions>{secondaryActions}</DocumentMoreOptions></DocumentSideSection> : null}
           {documentBundle ? (
             <>
               <AttachmentPanel documentId={documentBundle.document.id} attachments={documentBundle.attachments} title="Purchase Order Attachment" description="Attach the AutoCount or supplier-facing PO during preparation and sending." defaultLabel="Purchase Order" uploadLabel="Attach Purchase Order" canManage={permissions["documents.attach"]} documentStatus={documentBundle.document.status} />

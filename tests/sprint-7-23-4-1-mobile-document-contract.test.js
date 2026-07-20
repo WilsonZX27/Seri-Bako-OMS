@@ -7,6 +7,7 @@ const read = (file) => fs.readFileSync(file, "utf8");
 test("procurement documents use focused mobile workflow and exact primary actions", () => {
   const workspace = read("src/components/documents/document-workspace.tsx");
   const mobile = read("src/components/documents/mobile-document-surfaces.tsx");
+  const css = read("src/app/globals.css");
   const pr = read("src/app/(app)/purchase-requests/[id]/page.tsx");
   const po = read("src/app/(app)/purchase-orders/[id]/page.tsx");
 
@@ -17,7 +18,8 @@ test("procurement documents use focused mobile workflow and exact primary action
   assert.match(mobile, /aria-modal="true"/);
   assert.match(mobile, /document\.body\.style\.overflow = "hidden"/);
   assert.match(mobile, /mobileSheetOpen/);
-  assert.match(mobile, /backdrop-blur-sm/);
+  assert.match(mobile, /sb-dialog-backdrop/);
+  assert.match(css, /\.sb-dialog-backdrop[\s\S]*backdrop-filter: blur/);
   assert.match(mobile, /View workflow/);
   assert.match(pr, />Submit PR</);
   for (const label of ["Approve as Manager", "Approve as Purchasing", "Approve as Finance"]) assert.match(pr, new RegExp(label));

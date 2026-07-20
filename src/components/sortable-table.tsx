@@ -10,6 +10,7 @@ type SortableHeadProps = {
   currentDir?: string;
   searchParams: Record<string, string | undefined>;
   className?: string;
+  wrap?: boolean;
 };
 
 function buildHref(params: Record<string, string | undefined>, next: Record<string, string | undefined>) {
@@ -21,15 +22,15 @@ function buildHref(params: Record<string, string | undefined>, next: Record<stri
   return query ? `?${query}` : "?";
 }
 
-export function SortableHead({ label, column, currentSort, currentDir, searchParams, className }: SortableHeadProps) {
+export function SortableHead({ label, column, currentSort, currentDir, searchParams, className, wrap = false }: SortableHeadProps) {
   const active = currentSort === column;
   const nextDir = active && currentDir !== "desc" ? "desc" : "asc";
   const Icon = active ? (currentDir === "desc" ? ArrowDown : ArrowUp) : ChevronsUpDown;
   return (
     <TableHead className={className}>
-      <Link href={buildHref(searchParams, { sort: column, dir: nextDir, page: "1" })} className="inline-flex items-center whitespace-nowrap hover:text-foreground">
-        {label}
-        <Icon className="ml-2 h-3.5 w-3.5" />
+      <Link href={buildHref(searchParams, { sort: column, dir: nextDir, page: "1" })} className="inline-flex items-center hover:text-foreground">
+        <span className={wrap ? "max-w-16 whitespace-normal leading-tight" : "whitespace-nowrap"}>{label}</span>
+        <Icon className="ml-1 h-3.5 w-3.5 shrink-0" />
       </Link>
     </TableHead>
   );

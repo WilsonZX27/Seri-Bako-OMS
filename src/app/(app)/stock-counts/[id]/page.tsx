@@ -1,7 +1,7 @@
 import { AlertTriangle } from "lucide-react";
 import { DocumentActionBar, DocumentActionForm } from "@/components/document-action-bar";
 import { AttachmentPanel, CommentsPanel, DocumentTimeline, RevisionPanel } from "@/components/documents/document-panels";
-import { DocumentSideSection, DocumentWorkspace } from "@/components/documents/document-workspace";
+import { DocumentActionSection, DocumentSideSection, DocumentWorkspace } from "@/components/documents/document-workspace";
 import { DocumentMoreOptions } from "@/components/documents/mobile-document-surfaces";
 import { ConfirmActionForm } from "@/components/ui/confirm-action-form";
 import { Card, CardContent } from "@/components/ui/card";
@@ -55,7 +55,7 @@ export default async function StockCountDetailPage({ params }: { params: Promise
       mobileMoreOptions={<DocumentMoreOptions>{secondaryActions}</DocumentMoreOptions>}
       sidePanel={
         <>
-          <DocumentSideSection title="Primary Action" description="Only valid stock count actions are shown.">
+          <DocumentActionSection description="Only valid stock count actions are shown." moreOptions={secondaryActions}>
             {hasPrimaryAction ? (
               <DocumentActionBar>
                 {canSubmit ? <DocumentActionForm action={submitStockCount.bind(null, count.id)} pendingLabel="Submitting...">Submit Stock Count</DocumentActionForm> : null}
@@ -66,9 +66,8 @@ export default async function StockCountDetailPage({ params }: { params: Promise
             ) : (
               <p className="text-sm text-muted-foreground">You can view this count, but there is no workflow action available for your role or this status.</p>
             )}
-          </DocumentSideSection>
+          </DocumentActionSection>
           <DocumentSideSection title="Validation / Next Step"><p className="text-xs text-muted-foreground">{count.status === "draft" ? "Enter physical quantities and submit the completed count for review." : count.status === "submitted" ? "Review the count and resolve high-variance evidence before approval." : count.status === "approved" ? "Post the verified variance to stock." : "Posted counts remain read-only."}</p></DocumentSideSection>
-          <DocumentSideSection title="More Options"><DocumentMoreOptions>{secondaryActions}</DocumentMoreOptions></DocumentSideSection>
           {highVarianceLines.length && !hasHighVarianceAttachment ? (
             <DocumentSideSection title="Attachment Required">
               <div className="flex gap-2 rounded-md bg-warning/10 p-3 text-sm text-warning">

@@ -6,7 +6,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { DocumentActionBar, DocumentActionLink } from "@/components/document-action-bar";
 import { AttachmentPanel, CommentsPanel, DocumentTimeline, RevisionPanel } from "@/components/documents/document-panels";
-import { DocumentSideSection, DocumentWorkspace } from "@/components/documents/document-workspace";
+import { DocumentActionSection, DocumentSideSection, DocumentWorkspace } from "@/components/documents/document-workspace";
 import { DocumentMoreOptions, MobileTaskSheet } from "@/components/documents/mobile-document-surfaces";
 import { ConfirmActionForm } from "@/components/ui/confirm-action-form";
 import { Button } from "@/components/ui/button";
@@ -78,11 +78,10 @@ export default async function SupplierInvoiceDetailPage({ params, searchParams }
       mobileMoreOptions={secondaryActions ? <DocumentMoreOptions>{secondaryActions}</DocumentMoreOptions> : null}
       sidePanel={
         <>
-          <DocumentSideSection title="Primary Action" description="Only the next permitted finance action is shown.">
+          <DocumentActionSection description="Only the next permitted finance action is shown." moreOptions={secondaryActions}>
             {canApprove ? approvalAction : canSave ? <div data-mobile-primary-action><SubmitButton form="supplier-invoice-form" pendingLabel="Saving..." className="w-full justify-center">Save Draft</SubmitButton></div> : canPay ? <PaymentForm invoiceId={invoice.id} balance={invoice.balance_due} idempotencyKey={paymentKey} /> : <p className="text-xs text-muted-foreground">This invoice is read-only in its current state.</p>}
-          </DocumentSideSection>
+          </DocumentActionSection>
           <DocumentSideSection title="Validation / Next Step"><DocumentActionBar>{linkedPos.map((po) => <DocumentActionLink key={po.id} href={`/purchase-orders/${po.id}`} variant="outline">View {po.no}</DocumentActionLink>)}{linkedGrns.map((grn) => <DocumentActionLink key={grn.id} href={`/goods-receivings/${grn.id}`} variant="outline">View {grn.no}</DocumentActionLink>)}</DocumentActionBar><p className="text-xs text-muted-foreground">{invoice.status === "draft" ? "Save matching details and attach the supplier invoice before Finance approval." : canPay ? "Record the next verified payment against the outstanding balance." : "No further payment action is available."}</p></DocumentSideSection>
-          {secondaryActions ? <DocumentSideSection title="More Options"><DocumentMoreOptions>{secondaryActions}</DocumentMoreOptions></DocumentSideSection> : null}
           {agingRow ? <DocumentSideSection title="Payment Attention" description="Live status from AP Aging.">
             <div className="space-y-2 text-xs">
               <p><strong>{agingRow.alert_label ?? "No immediate alert"}</strong></p>

@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Download, Pencil } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { DataGridRow } from "@/components/ui/data-grid-row";
 import { EmptyState } from "@/components/ui/empty-state";
 import { FilterBar, FilterBarMore } from "@/components/ui/filter-bar";
@@ -9,7 +10,7 @@ import { Input } from "@/components/ui/input";
 import { PageHeader } from "@/components/ui/page-header";
 import { SelectControl } from "@/components/ui/select-control";
 import { PaginationControls, SortableHead } from "@/components/sortable-table";
-import { OperationalList, OperationalListRow, Table, TableActionLink, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { OperationalList, OperationalListRow, Table, TableActionLink, TableBody } from "@/components/ui/table";
 import { ConsoleSection } from "@/components/layout/right-console";
 import { WorkspaceGrid } from "@/components/layout/workspace-layout";
 import { formatCurrency, formatNumber } from "@/lib/utils";
@@ -39,6 +40,19 @@ function movementLabel(type: string) {
   return transactionTypes.find((row) => row.value === type)?.label ?? type.replaceAll("_", " ");
 }
 
+function filterLabelForStatus(filters: Record<string, string | undefined>, itemsById: Map<string, string>) {
+  const labels: string[] = [];
+  if (filters.search?.trim()) labels.push(`Search: ${filters.search}`);
+  if (filters.item_id && filters.item_id !== "all") labels.push(`Item: ${itemsById.get(filters.item_id) ?? filters.item_id}`);
+  if (filters.branch_id && filters.branch_id !== "all") labels.push(`Branch: ${filters.branch_id}`);
+  if (filters.type && filters.type !== "all") labels.push(`Type: ${filters.type}`);
+  if (filters.direction && filters.direction !== "all") labels.push(`Direction: ${filters.direction}`);
+  if (filters.source?.trim()) labels.push(`Source: ${filters.source}`);
+  if (filters.from?.trim()) labels.push(`From: ${filters.from}`);
+  if (filters.to?.trim()) labels.push(`To: ${filters.to}`);
+  return labels;
+}
+
 function exportHref(filters: Record<string, string | undefined>) {
   const params = new URLSearchParams();
   Object.entries(filters).forEach(([key, value]) => {
@@ -61,6 +75,8 @@ export default async function StockTransactionsPage({ searchParams }: { searchPa
   const inbound = ledger.rows.reduce((sum, row) => sum + Number(row.quantity_in), 0);
   const outbound = ledger.rows.reduce((sum, row) => sum + Number(row.quantity_out), 0);
   const filtered = hasActiveFilters(filters);
+  const itemNameById = new Map(items.map((item) => [item.id, item.item_code]));
+  const activeFilterChips = filterLabelForStatus(filters, itemNameById);
 
   return (
     <>
@@ -96,6 +112,9 @@ export default async function StockTransactionsPage({ searchParams }: { searchPa
         }
       >
         <div className="rounded-[2px] border border-[var(--sb-border-soft)] bg-card">
+          {activeFilterChips.length ? <div className="sb-filter-summary" aria-label="Active filters">
+            {activeFilterChips.map((chip) => <span key={chip}>{chip}</span>)}
+          </div> : null}
           <FilterBar resultCount={ledger.totalRows} resetHref="/stock-transactions" filtered={filtered}>
             <Input name="search" defaultValue={filters.search ?? ""} placeholder="Item or transaction" />
             <SelectControl name="branch_id" defaultValue={filters.branch_id ?? "all"} ariaLabel="Branch" options={[{ value: "all", label: "All branches" }, ...branches.map((branch) => ({ value: branch.id, label: branch.branch_name }))]} />

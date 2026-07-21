@@ -44,7 +44,6 @@ function extractGoodsReceiving(formData: FormData) {
     received_date: formData.get("received_date"),
     branch_id: formData.get("branch_id"),
     location_id: formData.get("location_id"),
-    status: formData.get("status") ?? "draft",
     received_by: formData.get("received_by") || null,
     remarks: formData.get("remarks"),
     delivery_order_attached: formData.get("delivery_order_attached") === "on",

@@ -57,7 +57,7 @@ export function PurchaseRequestForm({
   suppliers,
   branches,
   initialBranchId,
-  initialLine,
+  initialLines,
   initialRemarks,
   canViewCommercial,
   action,
@@ -66,13 +66,16 @@ export function PurchaseRequestForm({
   suppliers: SupplierOption[];
   branches: BranchOption[];
   initialBranchId?: string;
-  initialLine?: Partial<RequestLine>;
+  initialLines?: Partial<RequestLine>[];
   initialRemarks?: string;
   canViewCommercial: boolean;
   action: (formData: FormData) => Promise<void>;
 }) {
   const [idempotencyKey] = useState(() => crypto.randomUUID());
-  const [lines, setLines] = useState<RequestLine[]>([{ ...createBlankLine(0), ...initialLine, key: 0 }]);
+  const initialRows = initialLines?.length
+    ? initialLines.map((line, index) => ({ ...createBlankLine(index), ...line, key: index }))
+    : [];
+  const [lines, setLines] = useState<RequestLine[]>(initialRows.length ? initialRows : [{ ...createBlankLine(0) }]);
   const [priority, setPriority] = useState<ProcurementPriority>("normal");
   const nextKey = lines.reduce((max, line) => Math.max(max, line.key), 0) + 1;
 
@@ -106,10 +109,10 @@ export function PurchaseRequestForm({
       <CardContent className="p-4 sm:p-5">
         <form id="purchase-request-form" action={action} className="space-y-3">
           <input type="hidden" name="request_no" value="" />
-          <input type="hidden" name="status" value="draft" />
           <input type="hidden" name="idempotency_key" value={idempotencyKey} />
           <input type="hidden" name="request_date" value={today()} />
           <input type="hidden" name="required_date" value="" />
+          <input type="hidden" name="priority" value={priority} />
           <div className="border-b pb-2">
             <h2 className="text-sm font-semibold">Request details</h2>
           </div>

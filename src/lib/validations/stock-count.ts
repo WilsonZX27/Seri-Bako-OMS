@@ -11,11 +11,11 @@ export const stockCountLineSchema = z.object({
 });
 
 export const stockCountSchema = z.object({
-  count_no: z.string().trim().min(1, "Count number is required"),
+  count_no: z.string().trim().optional().nullable().or(z.literal("")),
   count_date: z.string().trim().min(1, "Count date is required"),
   branch_id: z.string().uuid("Branch is required"),
   location_id: optionalUuid,
-  status: z.enum(["draft", "submitted", "reviewed", "approved", "posted", "rejected", "cancelled"]),
+  status: z.literal("draft").optional(),
   tolerance_percent: z.coerce.number().min(0).default(2),
   remarks: z.string().trim().optional().nullable(),
   lines: z.array(stockCountLineSchema).min(1, "Stock count must have at least one line"),

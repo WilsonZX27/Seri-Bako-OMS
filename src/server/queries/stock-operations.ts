@@ -135,6 +135,5 @@ export async function getOperationSeedLines(locationId?: string, branchId?: stri
   return balances.rows
     .filter((row) => locationId ? row.location_id === locationId : true)
     .filter((row) => branchId ? row.branch_id === branchId : true)
-    .slice(0, 8)
     .map((row) => ({ item_id: row.item_id, item_code: row.item_code, item_name: row.item_name, available_qty: row.current_qty, quantity: Math.min(Math.max(row.current_qty, 1), 5), uom: row.base_unit }));
 }

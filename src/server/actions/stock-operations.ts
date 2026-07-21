@@ -37,7 +37,6 @@ function extractTransfer(formData: FormData) {
     from_location_id: formData.get("from_location_id"),
     to_branch_id: formData.get("to_branch_id") || null,
     to_location_id: formData.get("to_location_id"),
-    status: formData.get("status") ?? "draft",
     remarks: formData.get("remarks"),
     lines: itemIds.map((itemId, i) => ({ item_id: itemId, quantity: qtys[i], uom: uoms[i], remarks: remarks[i] })).filter((line) => line.item_id && enabled.has(line.item_id)),
   });
@@ -57,7 +56,6 @@ function extractWastage(formData: FormData) {
     branch_id: formData.get("branch_id") || null,
     location_id: formData.get("location_id"),
     reason: formData.get("reason"),
-    status: formData.get("status") ?? "draft",
     remarks: formData.get("remarks"),
     lines: itemIds.map((itemId, i) => ({ item_id: itemId, quantity: qtys[i], uom: uoms[i], reason: reasons[i], batch_no: batches[i], expiry_date: expiries[i], remarks: remarks[i] })).filter((line) => line.item_id),
   });

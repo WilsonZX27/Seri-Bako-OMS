@@ -44,3 +44,5 @@ screenshots/
 qa-artifacts/
 exports/
 *.pdf
+outputs/
+tmp-*.js

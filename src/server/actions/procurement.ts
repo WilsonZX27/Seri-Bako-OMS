@@ -97,7 +97,6 @@ function extractPurchaseRequest(formData: FormData) {
     production_risk: formData.get("production_risk") === "on",
     branch_id: formData.get("branch_id"),
     location_id: formData.get("location_id"),
-    status: formData.get("status") ?? "draft",
     remarks: formData.get("remarks"),
     lines: itemIds
       .map((itemId, index) => ({
@@ -125,8 +124,6 @@ function extractPurchaseOrder(formData: FormData) {
     supplier_id: formData.get("supplier_id"),
     order_date: formData.get("order_date"),
     expected_delivery_date: formData.get("expected_delivery_date"),
-    status: formData.get("status") ?? "draft",
-    approval_status: formData.get("approval_status") ?? "draft",
     remarks: formData.get("remarks"),
     lines: itemIds
       .map((itemId, index) => ({
@@ -254,7 +251,7 @@ export async function createPurchaseRequest(formData: FormData) {
         production_risk: Boolean(payload.production_risk),
         branch_id: payload.branch_id,
         location_id: locationId,
-        status: payload.status,
+        status: "draft",
         remarks: payload.remarks,
         created_by: profile?.id ?? null,
         updated_by: profile?.id ?? null,
@@ -403,7 +400,7 @@ export async function createPurchaseOrder(formData: FormData) {
       enteredNumber: payload.po_no,
     });
     const supabase = await createClient();
-    const { data, error } = await supabase
+  const { data, error } = await supabase
       .from("purchase_orders")
       .insert({
         company_id: profile?.company_id ?? null,
@@ -411,8 +408,8 @@ export async function createPurchaseOrder(formData: FormData) {
         supplier_id: payload.supplier_id,
         order_date: payload.order_date,
         expected_delivery_date: cleanText(formData.get("expected_delivery_date")),
-        status: payload.status,
-        approval_status: payload.approval_status,
+        status: "draft",
+        approval_status: "draft",
         remarks: payload.remarks,
         created_by: profile?.id ?? null,
         updated_by: profile?.id ?? null,

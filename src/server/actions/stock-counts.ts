@@ -36,7 +36,6 @@ function extractStockCount(formData: FormData) {
     count_date: formData.get("count_date"),
     branch_id: formData.get("branch_id"),
     location_id: formData.get("location_id"),
-    status: formData.get("status") ?? "draft",
     tolerance_percent: formData.get("tolerance_percent") ?? 2,
     remarks: formData.get("remarks"),
     lines: itemIds

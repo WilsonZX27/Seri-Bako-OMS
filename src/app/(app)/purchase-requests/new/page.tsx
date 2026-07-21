@@ -67,7 +67,7 @@ export default async function NewPurchaseRequestPage({ searchParams }: { searchP
           suppliers={suppliers}
           branches={branches}
           initialBranchId={params.branch_id}
-          initialLine={initialLine}
+          initialLines={initialLine ? [initialLine] : undefined}
           initialRemarks={params.notes}
           canViewCommercial={canViewCommercial}
           action={createPurchaseRequest}

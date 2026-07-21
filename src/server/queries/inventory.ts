@@ -262,7 +262,11 @@ export async function getStockBalanceDetails(filters: Filters = {}) {
     image_url: null,
     available_qty: row.current_qty,
     reserved_qty: 0,
-    status: row.current_qty < 0 ? "negative" : "ok",
+    status: Number(row.current_qty) < 0
+      ? "negative"
+      : Number(row.current_qty) <= Number(row.safety_stock ?? 0) && Number(row.current_qty) > 0
+        ? "low_stock"
+        : "ok",
   }));
   const displayRows = aggregateByBranch ? aggregateStockByBranch(rows) : rows;
   const filtered = filterRows(displayRows, filters, ["item_code", "item_name", "branch_name", "location_name", "status"], "item_name");

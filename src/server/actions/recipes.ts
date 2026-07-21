@@ -33,8 +33,6 @@ function parseRecipeForm(formData: FormData) {
     version: formData.get("version"),
     yield_qty: formData.get("yield_qty"),
     yield_unit: formData.get("yield_unit"),
-    status: formData.get("status") ?? "draft",
-    approval_status: formData.get("approval_status") ?? "draft",
     effective_date: formData.get("effective_date"),
     remarks: formData.get("remarks"),
     lines,

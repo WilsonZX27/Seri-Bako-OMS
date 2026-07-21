@@ -20,8 +20,6 @@ export function StockTransferForm({ branches, selectedFromBranchId, seedLines, a
   return (
     <Card><CardContent className="p-5">
       <form id={formId} action={action} className="space-y-4">
-        <input type="hidden" name="transfer_no" value="" />
-        <input type="hidden" name="status" value="draft" />
         <div className="grid gap-4 md:grid-cols-3">
           <Field label="Transfer No"><div className="rounded-md border bg-secondary/30 px-3 py-2 text-sm text-muted-foreground">Auto-generated on submit</div></Field>
           <Field label="Transfer Date"><Input name="transfer_date" type="date" defaultValue={getToday()} required /></Field>
@@ -38,14 +36,12 @@ export function StockTransferForm({ branches, selectedFromBranchId, seedLines, a
 
 export function StockWastageForm({ branches, selectedBranchId, seedLines, action, formId, showSubmit = true }: { branches: Branch[]; selectedBranchId?: string; seedLines: SeedLine[]; action: (formData: FormData) => Promise<void>; formId?: string; showSubmit?: boolean }) {
   const router = useRouter();
-  const no = "WST-AUTO";
   function selectBranch(id: string) { router.push(id ? `/stock-wastage/new?branch_id=${id}` : "/stock-wastage/new"); }
   return (
     <Card><CardContent className="p-5">
       <form id={formId} action={action} className="space-y-4">
-        <input type="hidden" name="status" value="draft" />
         <div className="grid gap-4 md:grid-cols-3">
-          <Field label="Wastage No"><Input name="wastage_no" defaultValue={no} required /></Field>
+          <Field label="Wastage No"><div className="rounded-md border bg-secondary/30 px-3 py-2 text-sm text-muted-foreground">Auto-generated on submit</div></Field>
           <Field label="Wastage Date"><Input name="wastage_date" type="date" defaultValue={getToday()} required /></Field>
           <Field label="Main Reason"><SelectNative name="reason" defaultValue="damaged">{wastageReasons.map((r) => <option key={r} value={r}>{r.replaceAll("_", " ")}</option>)}</SelectNative></Field>
           <Field label="Branch"><SelectNative name="branch_id" value={selectedBranchId ?? branches[0]?.id ?? ""} onChange={(e) => selectBranch(e.target.value)} required>{branches.map((b) => <option key={b.id} value={b.id}>{b.branch_name}</option>)}</SelectNative></Field>

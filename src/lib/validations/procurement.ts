@@ -1,5 +1,4 @@
 import { z } from "zod";
-import { PURCHASE_REQUEST_STATUSES } from "@/lib/status-contracts";
 
 const optionalUuid = z.string().uuid().optional().nullable().or(z.literal(""));
 const prioritySchema = z.enum(["low", "normal", "urgent", "critical"]);
@@ -24,7 +23,7 @@ export const purchaseRequestSchema = z.object({
   production_risk: z.coerce.boolean().optional(),
   branch_id: z.string().uuid("Branch is required"),
   location_id: optionalUuid,
-  status: z.enum(PURCHASE_REQUEST_STATUSES),
+  status: z.literal("draft").optional(),
   remarks: z.string().trim().optional().nullable(),
   lines: z.array(purchaseRequestLineSchema).min(1, "Purchase request must have at least one line"),
 });
@@ -39,12 +38,12 @@ export const purchaseOrderLineSchema = z.object({
 });
 
 export const purchaseOrderSchema = z.object({
-  po_no: z.string().trim().min(1, "PO number is required"),
+  po_no: z.string().trim().optional().nullable().or(z.literal("")),
   supplier_id: z.string().uuid("Supplier is required"),
   order_date: z.string().trim().min(1, "Order date is required"),
   expected_delivery_date: z.string().trim().optional().nullable().or(z.literal("")),
-  status: z.enum(["draft", "pending_approval", "approved", "sent", "partial_received", "received", "cancelled", "closed"]),
-  approval_status: z.enum(["not_required", "draft", "pending", "approved", "rejected", "cancelled"]),
+  status: z.literal("draft").optional(),
+  approval_status: z.literal("draft").optional(),
   remarks: z.string().trim().optional().nullable(),
   lines: z.array(purchaseOrderLineSchema).min(1, "Purchase order must have at least one line"),
 });
@@ -70,13 +69,13 @@ export const goodsReceivingLineSchema = z
   });
 
 export const goodsReceivingSchema = z.object({
-  grn_no: z.string().trim().min(1, "GRN number is required"),
+  grn_no: z.string().trim().optional().nullable().or(z.literal("")),
   purchase_order_id: z.string().uuid("Purchase order is required"),
   supplier_id: z.string().uuid("Supplier is required"),
   received_date: z.string().trim().min(1, "Received date is required"),
   branch_id: z.string().uuid("Branch is required"),
   location_id: optionalUuid,
-  status: z.enum(["draft", "posted", "cancelled"]),
+  status: z.literal("draft").optional(),
   received_by: z.string().uuid().optional().nullable().or(z.literal("")),
   remarks: z.string().trim().optional().nullable(),
   delivery_order_attached: z.coerce.boolean().optional(),
@@ -99,7 +98,7 @@ export const purchaseReturnLineSchema = z.object({
 });
 
 export const purchaseReturnSchema = z.object({
-  purchase_return_no: z.string().trim().min(1, "Return number is required"),
+  purchase_return_no: z.string().trim().optional().nullable().or(z.literal("")),
   goods_receiving_id: z.string().uuid("GRN is required"),
   return_date: z.string().trim().min(1, "Return date is required"),
   reason: z.string().trim().optional().nullable(),

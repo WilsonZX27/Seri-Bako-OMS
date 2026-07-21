@@ -11,6 +11,7 @@ import { Input } from "@/components/ui/input";
 import { SelectNative } from "@/components/ui/select-native";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Textarea } from "@/components/ui/textarea";
+import { StatusBadge } from "@/components/ui/status-badge";
 import { formatCurrency, formatNumber, getToday } from "@/lib/utils";
 import type { RecipeDetail, RecipeIngredientOption } from "@/server/queries/recipes";
 
@@ -171,7 +172,7 @@ export function RecipeForm({ recipe, products, items, action, formId, showSubmit
         </CardHeader>
         <CardContent className="grid gap-4 md:grid-cols-4">
           <Field label="Recipe No">
-            <Input name="recipe_no" defaultValue={recipe?.recipe_no ?? `RCP-${getToday().replaceAll("-", "")}-NEW`} required />
+            <Input name="recipe_no" defaultValue={recipe?.recipe_no ?? `RCP-${getToday().replaceAll("-", "")}-NEW`} readOnly required />
           </Field>
           <Field label="Product">
             <SelectNative
@@ -204,22 +205,14 @@ export function RecipeForm({ recipe, products, items, action, formId, showSubmit
             <Input name="yield_unit" value={yieldUnit} onChange={(event) => setYieldUnit(event.target.value)} required />
           </Field>
           <Field label="Status">
-            <SelectNative name="status" defaultValue={recipe?.status ?? "draft"}>
-              <option value="draft">Draft</option>
-              <option value="pending_approval">Pending Approval</option>
-              <option value="approved">Approved</option>
-              <option value="active">Active</option>
-              <option value="rejected">Rejected</option>
-              <option value="archived">Archived</option>
-            </SelectNative>
+            <div className="rounded-md border bg-secondary/30 px-2 py-2 text-sm">
+              <StatusBadge status={recipe?.status ?? "draft"} />
+            </div>
           </Field>
           <Field label="Approval">
-            <SelectNative name="approval_status" defaultValue={recipe?.approval_status ?? "draft"}>
-              <option value="draft">Draft</option>
-              <option value="pending">Pending</option>
-              <option value="approved">Approved</option>
-              <option value="rejected">Rejected</option>
-            </SelectNative>
+            <div className="rounded-md border bg-secondary/30 px-2 py-2 text-sm">
+              <StatusBadge status={recipe?.approval_status ?? "draft"} />
+            </div>
           </Field>
           <Field label="Effective Date">
             <Input name="effective_date" type="date" defaultValue={recipe?.effective_date ?? getToday()} required />

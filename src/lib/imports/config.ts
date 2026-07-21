@@ -8,6 +8,7 @@ export const importEntities = [
   "products",
   "suppliers",
   "supplier-items",
+  "branch-supplier-items",
   "uom-conversions",
   "opening-stock",
 ] as const;
@@ -228,6 +229,27 @@ export const importTemplates: Record<ImportEntity, TemplateSpec> = {
     ],
     modes: ["create", "update", "upsert"],
     defaultMode: "create",
+  },
+  "branch-supplier-items": {
+    label: "Branch Supplier Mappings",
+    description: "Assign existing supplier-item relationships to authorized branches without duplicating the canonical item.",
+    headers: ["branch_code", "item_code", "supplier_code", "preferred", "active"],
+    required: ["branch_code", "item_code", "supplier_code"],
+    duplicateKey: ["branch_code", "item_code", "supplier_code"],
+    sample: {
+      branch_code: "ALMA",
+      item_code: "PANDAN-001",
+      supplier_code: "SUP-001",
+      preferred: "true",
+      active: "true",
+    },
+    notes: [
+      "Branch, item, and supplier codes must already exist and be active.",
+      "The supplier-item commercial relationship must be created before assigning it to a branch.",
+      "Only one active preferred supplier is allowed for each branch and item.",
+    ],
+    modes: ["create", "update", "upsert"],
+    defaultMode: "upsert",
   },
   "uom-conversions": {
     label: "UOM Conversions",

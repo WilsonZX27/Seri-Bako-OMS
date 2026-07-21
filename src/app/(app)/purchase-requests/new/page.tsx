@@ -7,26 +7,28 @@ import { DocumentMoreOptions } from "@/components/documents/mobile-document-surf
 import { DocumentActionSection, DocumentSideSection, DocumentWorkspace } from "@/components/documents/document-workspace";
 import { createPurchaseRequest } from "@/server/actions/procurement";
 import { hasPermission } from "@/server/auth/permissions";
-import { getBranchesForSelect, getCurrentProfile, getItemsForSelect, getSuppliersForSelect } from "@/server/queries/common";
+import { getBranchesForSelect, getBranchSupplierMappingsForSelect, getCurrentProfile, getItemsForSelect } from "@/server/queries/common";
 
 export default async function NewPurchaseRequestPage({ searchParams }: { searchParams: Promise<Record<string, string | undefined>> }) {
   const params = await searchParams;
-  const [items, suppliers, branches, hasCommercialAccess, profile] = await Promise.all([
+  const [items, supplierMappings, branches, hasCommercialAccess, profile] = await Promise.all([
     getItemsForSelect(),
-    getSuppliersForSelect(),
+    getBranchSupplierMappingsForSelect(),
     getBranchesForSelect(),
     hasPermission("pr.view_all"),
     getCurrentProfile(),
   ]);
   const canViewCommercial = hasCommercialAccess && !["kitchen", "kitchen_staff"].includes(String(profile?.role_code ?? "").toLowerCase());
   const initialItem = params.item_id ? items.find((item) => item.id === params.item_id) : null;
+  const initialMappings = initialItem && params.branch_id ? supplierMappings.filter((mapping) => mapping.item_id === initialItem.id && mapping.branch_id === params.branch_id) : [];
+  const initialMapping = initialMappings.find((mapping) => mapping.is_preferred) ?? (initialMappings.length === 1 ? initialMappings[0] : null);
   const initialLine = initialItem ? {
     itemId: initialItem.id,
     itemSearch: `${initialItem.item_code} - ${initialItem.item_name}`,
     qty: params.qty ?? "",
     uom: params.uom ?? initialItem.purchase_unit ?? initialItem.base_unit,
-    supplierId: params.supplier_id ?? initialItem.supplier_id ?? "",
-    cost: String(initialItem.cost ?? 0),
+    supplierId: initialMappings.some((mapping) => mapping.supplier_id === params.supplier_id) ? params.supplier_id ?? "" : initialMapping?.supplier_id ?? "",
+    cost: String(initialMapping?.unit_cost ?? initialItem.cost ?? 0),
     remarks: params.notes ?? "",
   } : undefined;
   const primaryAction = <SubmitButton type="submit" form="purchase-request-form" name="intent" value="submit" pendingLabel="Submitting..." className="w-full">Submit PR</SubmitButton>;
@@ -64,7 +66,7 @@ export default async function NewPurchaseRequestPage({ searchParams }: { searchP
         {params.error ? <Card><CardContent className="p-4 text-sm text-destructive">{params.error}</CardContent></Card> : null}
         <PurchaseRequestForm
           items={items}
-          suppliers={suppliers}
+          supplierMappings={supplierMappings}
           branches={branches}
           initialBranchId={params.branch_id}
           initialLines={initialLine ? [initialLine] : undefined}

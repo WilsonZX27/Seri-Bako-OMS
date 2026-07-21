@@ -70,7 +70,7 @@ test("unlinked Auth users remain outside operational workspaces", () => {
   assert.match(resolver, /missing-profile/);
 });
 
-test("v7.23.5.8 release blockers keep onboarding input singular and collapse permission fan-out", () => {
+test("v7.23.5.9 release blockers keep onboarding input singular and collapse permission fan-out", () => {
   const newStaff = read("src/app/(app)/staffs/new/page.tsx");
   const forms = read("src/components/foundation-forms.tsx");
   const auth = read("src/server/actions/auth.ts");

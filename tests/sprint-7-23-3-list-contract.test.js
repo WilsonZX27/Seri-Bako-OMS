@@ -16,7 +16,10 @@ const routes = [
 
 test("migrated operational lists share responsive, zero-safe contracts", () => {
   for (const route of routes) {
-    const source = fs.readFileSync(`src/app/(app)/${route}/page.tsx`, "utf8");
+    const page = fs.readFileSync(`src/app/(app)/${route}/page.tsx`, "utf8");
+    const source = route === "stock-balance"
+      ? `${page}\n${fs.readFileSync("src/components/stock-balance-workspace.tsx", "utf8")}`
+      : page;
     assert.match(source, /<FilterBar|<MasterDataFilters/, `${route} uses the canonical filter`);
     assert.match(source, /<Table mobileHidden/, `${route} hides its semantic table on mobile`);
     assert.match(source, /<OperationalList/, `${route} provides a mobile operational list`);

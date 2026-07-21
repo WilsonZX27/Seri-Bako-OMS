@@ -39,6 +39,7 @@ export const purchaseOrderLineSchema = z.object({
 
 export const purchaseOrderSchema = z.object({
   po_no: z.string().trim().optional().nullable().or(z.literal("")),
+  branch_id: z.string().uuid("Branch is required"),
   supplier_id: z.string().uuid("Supplier is required"),
   order_date: z.string().trim().min(1, "Order date is required"),
   expected_delivery_date: z.string().trim().optional().nullable().or(z.literal("")),

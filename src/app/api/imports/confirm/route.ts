@@ -11,7 +11,7 @@ import { hasPermission } from "@/server/auth/permissions";
 import { resolveDefaultLocation } from "@/server/inventory/locations";
 import { getNextDocumentNumber } from "@/server/documents/sequences";
 import { getCurrentProfile, getDefaultCompanyId } from "@/server/queries/common";
-import type { BranchType, Database, ItemStatus, RecordStatus, StaffStatus, StockTransactionStatus } from "@/types/database";
+import type { BranchType, Database, ItemStatus, RecordStatus, StaffStatus } from "@/types/database";
 
 const importSchema = z.object({
   entity: z.enum(importEntities),
@@ -735,6 +735,70 @@ async function handleSupplierItemsImport(context: RouteContext, request: ImportR
   return summary;
 }
 
+async function handleBranchSupplierItemsImport(context: RouteContext, request: ImportRequest) {
+  const summary = createSummary();
+  const rows = request.rows;
+  const branchCodes = [...new Set(rows.map((row) => normalizeText(row.branch_code)).filter(Boolean))];
+  const itemCodes = [...new Set(rows.map((row) => normalizeText(row.item_code)).filter(Boolean))];
+  const supplierCodes = [...new Set(rows.map((row) => normalizeText(row.supplier_code)).filter(Boolean))];
+  const [{ data: branches, error: branchesError }, { data: items, error: itemsError }, { data: suppliers, error: suppliersError }] = await Promise.all([
+    context.supabase.from("branches").select("id, branch_code").in("branch_code", branchCodes.length ? branchCodes : [""]).eq("status", "active").is("deleted_at", null),
+    context.supabase.from("items").select("id, item_code").in("item_code", itemCodes.length ? itemCodes : [""]).eq("status", "active").is("deleted_at", null),
+    context.supabase.from("suppliers").select("id, supplier_code").in("supplier_code", supplierCodes.length ? supplierCodes : [""]).eq("status", "active").is("deleted_at", null),
+  ]);
+  if (branchesError) throw new Error(branchesError.message);
+  if (itemsError) throw new Error(itemsError.message);
+  if (suppliersError) throw new Error(suppliersError.message);
+  const branchByCode = new Map((branches ?? []).map((row) => [normalizeLower(row.branch_code), row]));
+  const itemByCode = new Map((items ?? []).map((row) => [normalizeLower(row.item_code), row]));
+  const supplierByCode = new Map((suppliers ?? []).map((row) => [normalizeLower(row.supplier_code), row]));
+  const supplierIds = (suppliers ?? []).map((row) => row.id);
+  const itemIds = (items ?? []).map((row) => row.id);
+  const { data: relationships, error: relationshipsError } = await context.supabase
+    .from("supplier_items")
+    .select("id, supplier_id, item_id")
+    .in("supplier_id", supplierIds.length ? supplierIds : [""])
+    .in("item_id", itemIds.length ? itemIds : [""])
+    .eq("status", "active")
+    .is("deleted_at", null);
+  if (relationshipsError) throw new Error(relationshipsError.message);
+  const relationshipByPair = new Map((relationships ?? []).map((row) => [`${row.supplier_id}|${row.item_id}`, row]));
+  const candidates: Array<{ branch_id: string; supplier_item_id: string; item_id: string; is_preferred: boolean; status: RecordStatus }> = [];
+  const seen = new Map<string, number>();
+  const preferredByBranchItem = new Map<string, number>();
+
+  for (const [index, row] of rows.entries()) {
+    const rowNumber = index + 1;
+    const branch = branchByCode.get(normalizeLower(row.branch_code));
+    const item = itemByCode.get(normalizeLower(row.item_code));
+    const supplier = supplierByCode.get(normalizeLower(row.supplier_code));
+    if (!branch) { pushIssue(summary, rowNumber, row, "Unknown or unauthorized branch_code."); continue; }
+    if (!item) { pushIssue(summary, rowNumber, row, "Unknown or inactive item_code."); continue; }
+    if (!supplier) { pushIssue(summary, rowNumber, row, "Unknown or inactive supplier_code."); continue; }
+    const relationship = relationshipByPair.get(`${supplier.id}|${item.id}`);
+    if (!relationship) { pushIssue(summary, rowNumber, row, "No active supplier-item relationship exists for this item and supplier."); continue; }
+    const duplicateKey = `${branch.id}|${relationship.id}`;
+    if (hasDuplicateInFile(summary, seen, duplicateKey, rowNumber, row)) continue;
+    const isPreferred = parseBooleanFlag(row.preferred, false);
+    const status = (parseBooleanFlag(row.active, true) ? "active" : "inactive") as RecordStatus;
+    const preferredKey = `${branch.id}|${item.id}`;
+    if (isPreferred && status === "active") {
+      const firstPreferred = preferredByBranchItem.get(preferredKey);
+      if (firstPreferred) { pushIssue(summary, rowNumber, row, `Conflicting preferred supplier; row ${firstPreferred} is already preferred for this branch and item.`); continue; }
+      preferredByBranchItem.set(preferredKey, rowNumber);
+    }
+    candidates.push({ branch_id: branch.id, supplier_item_id: relationship.id, item_id: item.id, is_preferred: isPreferred, status });
+  }
+
+  if (summary.errors > 0 || candidates.length === 0) return summary;
+  const { data, error } = await context.supabase.rpc("save_branch_supplier_item_mappings", { p_rows: candidates, p_mode: request.mode });
+  if (error) { pushIssue(summary, 0, {}, `No branch supplier mappings were saved. ${error.message}`); return summary; }
+  const result = data as { imported?: number; updated?: number } | null;
+  summary.imported = Number(result?.imported ?? 0);
+  summary.updated = Number(result?.updated ?? 0);
+  return summary;
+}
+
 async function handleUomConversionsImport(context: RouteContext, request: ImportRequest) {
   const summary = createSummary();
   const rows = request.rows;
@@ -814,6 +878,16 @@ async function handleUomConversionsImport(context: RouteContext, request: Import
 
 async function handleOpeningStockImport(context: RouteContext, request: ImportRequest) {
   const summary = createSummary();
+  const candidates: Array<{
+    transaction_no: string;
+    branch_id: string;
+    item_id: string;
+    location_id: string;
+    transaction_date: string;
+    quantity: number;
+    unit_cost: number;
+    remarks: string;
+  }> = [];
   if (!request.confirmPosting) {
     pushIssue(summary, 0, {}, "Please confirm that opening stock will be posted into the ledger.");
     return summary;
@@ -941,57 +1015,26 @@ async function handleOpeningStockImport(context: RouteContext, request: ImportRe
 
     const transactionNo = await getNextDocumentNumber(context.profile?.company_id ?? (await getDefaultCompanyId()), "opening_balance");
     const transactionDate = parseDate(row.transaction_date) ?? now.slice(0, 10);
-    const { data: transaction, error: transactionError } = await context.writeSupabase
-      .from("stock_transactions")
-      .insert({
-        transaction_no: transactionNo,
-        branch_id: branch.id,
-        item_id: item.id,
-        location_id: locationId,
-        transaction_type: "opening_balance",
-        transaction_date: transactionDate,
-        quantity_in: baseQuantity,
-        quantity_out: 0,
-        unit_cost: ledgerUnitCost,
-        total_cost: baseQuantity * ledgerUnitCost,
-        status: "posted" as StockTransactionStatus,
-        posted_at: now,
-        posted_by: context.profile?.id ?? null,
-        remarks,
-        reference_type: "opening_stock_import",
-        created_by: context.profile?.id ?? null,
-      })
-      .select("id")
-      .single();
-
-    if (transactionError || !transaction) {
-      pushIssue(summary, rowNumber, row, transactionError?.message ?? "Could not post this opening stock row.");
-      continue;
-    }
-
-    const { error: lineError } = await context.writeSupabase.from("stock_transaction_lines").insert({
-      stock_transaction_id: transaction.id,
-      stock_entity_type: "item",
-      item_id: item.id,
+    candidates.push({
+      transaction_no: transactionNo,
       branch_id: branch.id,
+      item_id: item.id,
       location_id: locationId,
-      quantity_in: baseQuantity,
-      quantity_out: 0,
+      transaction_date: transactionDate,
+      quantity: baseQuantity,
       unit_cost: ledgerUnitCost,
-      reference_type: "opening_stock_import",
-      reference_id: transaction.id,
       remarks,
-      created_by: context.profile?.id ?? null,
     });
-
-    if (lineError) {
-      pushIssue(summary, rowNumber, row, lineError.message);
-      continue;
-    }
-
     openingKeySet.add(duplicateKey);
-    summary.imported += 1;
   }
+
+  if (summary.errors > 0 || candidates.length === 0) return summary;
+  const { data: postedCount, error: postingError } = await context.supabase.rpc("post_opening_stock_batch", { p_rows: candidates });
+  if (postingError) {
+    pushIssue(summary, 0, {}, `No opening stock was posted. ${postingError.message}`);
+    return summary;
+  }
+  summary.imported = Number(postedCount ?? 0);
 
   return summary;
 }
@@ -1023,6 +1066,12 @@ function revalidateImportTargets(entity: ImportRequest["entity"]) {
   if (entity === "supplier-items") {
     revalidatePath("/supplier-items");
     revalidatePath("/procurement");
+    return;
+  }
+  if (entity === "branch-supplier-items") {
+    revalidatePath("/supplier-items");
+    revalidatePath("/purchase-requests");
+    revalidatePath("/purchase-orders");
     return;
   }
   if (entity === "uom-conversions") {
@@ -1125,6 +1174,8 @@ export async function POST(request: Request) {
                 ? await handleSuppliersImport(context, payload.data)
                 : payload.data.entity === "supplier-items"
                   ? await handleSupplierItemsImport(context, payload.data)
+                  : payload.data.entity === "branch-supplier-items"
+                    ? await handleBranchSupplierItemsImport(context, payload.data)
                   : payload.data.entity === "uom-conversions"
                     ? await handleUomConversionsImport(context, payload.data)
                     : await handleOpeningStockImport(context, payload.data);

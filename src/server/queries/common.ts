@@ -82,6 +82,46 @@ export const getSuppliersForSelect = cache(async function getSuppliersForSelect(
   return data;
 });
 
+export const getBranchSupplierMappingsForSelect = cache(async function getBranchSupplierMappingsForSelect() {
+  if (isMockMode()) return [];
+  const supabase = await createClient();
+  const { data: mappings, error: mappingsError } = await supabase
+    .from("branch_supplier_items")
+    .select("id, branch_id, supplier_item_id, item_id, is_preferred, status")
+    .eq("status", "active")
+    .is("deleted_at", null);
+  if (mappingsError) throw new Error(mappingsError.message);
+  const relationshipIds = [...new Set((mappings ?? []).map((row) => row.supplier_item_id))];
+  const { data: relationships, error: relationshipsError } = relationshipIds.length
+    ? await supabase.from("supplier_items").select("id, supplier_id, item_id, unit_cost, purchase_uom, status").in("id", relationshipIds).eq("status", "active").is("deleted_at", null)
+    : { data: [], error: null };
+  if (relationshipsError) throw new Error(relationshipsError.message);
+  const supplierIds = [...new Set((relationships ?? []).map((row) => row.supplier_id))];
+  const { data: suppliers, error: suppliersError } = supplierIds.length
+    ? await supabase.from("suppliers").select("id, supplier_code, name, status").in("id", supplierIds).eq("status", "active").is("deleted_at", null)
+    : { data: [], error: null };
+  if (suppliersError) throw new Error(suppliersError.message);
+  const relationshipById = new Map((relationships ?? []).map((row) => [row.id, row]));
+  const supplierById = new Map((suppliers ?? []).map((row) => [row.id, row]));
+  return (mappings ?? []).flatMap((mapping) => {
+    const relationship = relationshipById.get(mapping.supplier_item_id);
+    const supplier = relationship ? supplierById.get(relationship.supplier_id) : null;
+    if (!relationship || !supplier || relationship.item_id !== mapping.item_id) return [];
+    return [{
+      id: mapping.id,
+      branch_id: mapping.branch_id,
+      item_id: mapping.item_id,
+      supplier_item_id: mapping.supplier_item_id,
+      supplier_id: supplier.id,
+      supplier_code: supplier.supplier_code,
+      supplier_name: supplier.name,
+      unit_cost: relationship.unit_cost,
+      purchase_uom: relationship.purchase_uom,
+      is_preferred: mapping.is_preferred,
+    }];
+  });
+});
+
 export const getItemsForSelect = cache(async function getItemsForSelect() {
   if (isMockMode()) {
     return mockItems

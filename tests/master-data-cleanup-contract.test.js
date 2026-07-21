@@ -32,7 +32,7 @@ test("Master Data Cleanup checks codes, core fields, and inactive references wit
 
 test("Master Data Cleanup follows the current footer with the scoped Outlet Staff seed", () => {
   const version = read("src/lib/app-version.ts");
-  assert.match(version, /APP_VERSION = "7\.23\.5\.8"/);
-  assert.match(version, /APP_SPRINT = "v7\.23\.5\.8"/);
+  assert.match(version, /APP_VERSION = "7\.23\.5\.9"/);
+  assert.match(version, /APP_SPRINT = "v7\.23\.5\.9"/);
   assert.match(read("supabase/migrations/066_create_outlet_staff_role.sql"), /outlet_staff/);
 });

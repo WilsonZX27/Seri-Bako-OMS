@@ -1044,6 +1044,36 @@ export type Database = {
         Update: Partial<Database["public"]["Tables"]["supplier_items"]["Insert"]>;
         Relationships: [];
       };
+      branch_supplier_items: {
+        Row: {
+          id: string;
+          branch_id: string;
+          supplier_item_id: string;
+          item_id: string;
+          is_preferred: boolean;
+          status: RecordStatus;
+          created_at: string;
+          updated_at: string;
+          created_by: string | null;
+          updated_by: string | null;
+          deleted_at: string | null;
+        };
+        Insert: {
+          id?: string;
+          branch_id: string;
+          supplier_item_id: string;
+          item_id: string;
+          is_preferred?: boolean;
+          status?: RecordStatus;
+          created_at?: string;
+          updated_at?: string;
+          created_by?: string | null;
+          updated_by?: string | null;
+          deleted_at?: string | null;
+        };
+        Update: Partial<Database["public"]["Tables"]["branch_supplier_items"]["Insert"]>;
+        Relationships: [];
+      };
       uom_conversions: {
         Row: {
           id: string;
@@ -2173,6 +2203,47 @@ export type Database = {
           remarks_value: string | null;
           lines_value: Json;
         };
+        Returns: Json;
+      };
+      can_access_inventory_branch: {
+        Args: { target_company_id: string; target_branch_id: string };
+        Returns: boolean;
+      };
+      post_opening_stock: {
+        Args: {
+          p_transaction_no: string;
+          p_branch_id: string;
+          p_item_id: string;
+          p_location_id: string;
+          p_transaction_date: string;
+          p_quantity: number;
+          p_unit_cost: number;
+          p_remarks: string;
+        };
+        Returns: string;
+      };
+      post_opening_stock_batch: {
+        Args: { p_rows: Json };
+        Returns: number;
+      };
+      post_goods_receiving_atomic: {
+        Args: { p_goods_receiving_id: string; p_do_exception_reason?: string | null };
+        Returns: Json;
+      };
+      post_purchase_return_atomic: {
+        Args: { p_purchase_return_id: string };
+        Returns: Json;
+      };
+      approve_stock_count_atomic: {
+        Args: { p_stock_count_id: string };
+        Returns: Json;
+      };
+      post_stock_count_atomic: {
+        Args: { p_stock_count_id: string };
+        Returns: Json;
+      };
+      save_branch_supplier_item_mappings: {
+        Args: { p_rows: Json; p_mode?: "create" | "update" | "upsert" };
         Returns: Json;
       };
       convert_purchase_request_to_purchase_order: {

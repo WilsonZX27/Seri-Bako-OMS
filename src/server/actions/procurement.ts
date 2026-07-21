@@ -127,6 +127,7 @@ function extractPurchaseOrder(formData: FormData) {
   const prices = formData.getAll("line_unit_price").map(String);
   return purchaseOrderSchema.parse({
     po_no: formData.get("po_no"),
+    branch_id: formData.get("branch_id"),
     supplier_id: formData.get("supplier_id"),
     order_date: formData.get("order_date"),
     expected_delivery_date: formData.get("expected_delivery_date"),
@@ -142,6 +143,36 @@ function extractPurchaseOrder(formData: FormData) {
       }))
       .filter((line) => line.item_id),
   });
+}
+
+async function ensureBranchSupplierSelections(
+  branchId: string,
+  lines: Array<{ item_id: string; suggested_supplier_id?: string | null }>,
+  requireAll: boolean,
+) {
+  const missing = lines.filter((line) => !line.suggested_supplier_id);
+  if (requireAll && missing.length) throw new Error("Every item needs a supplier mapped to this branch before the request can continue.");
+  const selected = lines.filter((line): line is { item_id: string; suggested_supplier_id: string } => Boolean(line.suggested_supplier_id));
+  if (!selected.length) return;
+  const supabase = await createClient();
+  const itemIds = [...new Set(selected.map((line) => line.item_id))];
+  const { data: mappings, error: mappingsError } = await supabase
+    .from("branch_supplier_items")
+    .select("supplier_item_id, item_id")
+    .eq("branch_id", branchId)
+    .in("item_id", itemIds)
+    .eq("status", "active")
+    .is("deleted_at", null);
+  if (mappingsError) throw new Error(mappingsError.message);
+  const relationshipIds = [...new Set((mappings ?? []).map((row) => row.supplier_item_id))];
+  const { data: relationships, error: relationshipsError } = relationshipIds.length
+    ? await supabase.from("supplier_items").select("id, item_id, supplier_id").in("id", relationshipIds).eq("status", "active").is("deleted_at", null)
+    : { data: [], error: null };
+  if (relationshipsError) throw new Error(relationshipsError.message);
+  const valid = new Set((relationships ?? []).map((row) => `${row.item_id}|${row.supplier_id}`));
+  if (selected.some((line) => !valid.has(`${line.item_id}|${line.suggested_supplier_id}`))) {
+    throw new Error("A selected supplier is not mapped to this branch and item.");
+  }
 }
 
 async function ensureActiveItems(itemIds: string[], branchId?: string | null, lineBranchIds?: string[]) {
@@ -250,6 +281,7 @@ export async function createPurchaseRequest(formData: FormData) {
       ensureActiveItems(payload.lines.map((line) => line.item_id), payload.branch_id, payload.lineBranchIds),
       identity(),
     ]);
+    await ensureBranchSupplierSelections(payload.branch_id, payload.lines, intent === "submit");
     mark("validation_and_references");
     const requestNo = await resolveDocumentNumber({
       companyId: profile?.company_id,
@@ -333,6 +365,7 @@ export async function updateDraftPurchaseRequest(id: string, formData: FormData)
     if (request.status !== "draft") throw new Error("Only draft purchase requests can be edited.");
     if (!request.branch_id || payload.branch_id !== request.branch_id) throw new Error("The purchase request branch cannot be changed while editing a draft.");
     await ensureActiveItems(payload.lines.map((line) => line.item_id), request.branch_id, payload.lineBranchIds);
+    await ensureBranchSupplierSelections(request.branch_id, payload.lines, false);
 
     const { error: updateError } = await supabase.rpc("update_draft_purchase_request", {
       target_purchase_request_id: id,
@@ -460,6 +493,7 @@ export async function createPurchaseOrder(formData: FormData) {
     const payload = extractPurchaseOrder(formData);
     if (isMockMode()) redirect("/purchase-orders");
     await ensureActiveItems(payload.lines.map((line) => line.item_id));
+    await ensureBranchSupplierSelections(payload.branch_id, payload.lines.map((line) => ({ item_id: line.item_id, suggested_supplier_id: payload.supplier_id })), true);
     const profile = await identity();
     const poNo = await resolveDocumentNumber({
       companyId: profile?.company_id,
@@ -471,6 +505,7 @@ export async function createPurchaseOrder(formData: FormData) {
       .from("purchase_orders")
       .insert({
         company_id: profile?.company_id ?? null,
+        branch_id: payload.branch_id,
         po_no: poNo,
         supplier_id: payload.supplier_id,
         order_date: payload.order_date,

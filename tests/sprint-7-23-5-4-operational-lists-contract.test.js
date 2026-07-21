@@ -11,7 +11,8 @@ const routes = [
 
 test("every operational list uses the canonical desktop, tablet, and mobile surfaces", () => {
   for (const route of routes) {
-    const source = read(`src/app/(app)/${route}/page.tsx`);
+    const page = read(`src/app/(app)/${route}/page.tsx`);
+    const source = route === "stock-balance" ? `${page}\n${read("src/components/stock-balance-workspace.tsx")}` : page;
     assert.match(source, /PageHeader/, `${route}: PageHeader`);
     assert.match(source, /FilterBar|MasterDataFilters/, `${route}: FilterBar`);
     assert.match(source, /<Table mobileHidden aria-label=/, `${route}: responsive Table`);
@@ -19,7 +20,7 @@ test("every operational list uses the canonical desktop, tablet, and mobile surf
     assert.match(source, /EmptyState/, `${route}: EmptyState`);
     assert.match(source, /PaginationControls/, `${route}: Pagination`);
     assert.match(source, /WorkspaceGrid|RightConsoleMount/, `${route}: Right Console`);
-    assert.doesNotMatch(source, /overflow-x-auto|SelectNative|Page actions/i, `${route}: legacy list wrapper/control`);
+    assert.doesNotMatch(route === "stock-balance" ? page : source, /overflow-x-auto|SelectNative|Page actions/i, `${route}: legacy list wrapper/control`);
   }
 });
 
@@ -60,5 +61,5 @@ test("product-driven lists keep canonical ordering and the current footer", () =
   assert.match(daily, /sortProductsForDisplay/);
   assert.match(order, /display_order/);
   assert.match(order, /natural\.compare/);
-  assert.match(version, /APP_SPRINT = "v7\.23\.5\.8"/);
+  assert.match(version, /APP_SPRINT = "v7\.23\.5\.9"/);
 });

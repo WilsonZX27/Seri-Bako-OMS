@@ -14,8 +14,19 @@ import { normalizeUom, uomOptionsWithCurrent } from "@/lib/uom";
 import type { Database } from "@/types/database";
 
 type ItemOption = Pick<Database["public"]["Tables"]["items"]["Row"], "id" | "item_code" | "item_name" | "base_unit" | "purchase_unit" | "supplier_id" | "cost" | "status">;
-type SupplierOption = Pick<Database["public"]["Tables"]["suppliers"]["Row"], "id" | "supplier_code" | "name" | "status">;
 type BranchOption = { id: string; branch_code: string; branch_name: string; status: string };
+export type BranchSupplierMappingOption = {
+  id: string;
+  branch_id: string;
+  item_id: string;
+  supplier_item_id: string;
+  supplier_id: string;
+  supplier_code: string | null;
+  supplier_name: string;
+  unit_cost: number;
+  purchase_uom: string;
+  is_preferred: boolean;
+};
 type RequestLine = {
   key: number;
   itemId: string;
@@ -40,22 +51,9 @@ function itemLabel(item: ItemOption) {
   return `${item.item_code} - ${item.item_name}`;
 }
 
-function ItemSelect({ items, name = "line_item_id", required = false }: { items: ItemOption[]; name?: string; required?: boolean }) {
-  return (
-    <SelectNative name={name} required={required}>
-      <option value="">Select item</option>
-      {items.map((item) => (
-        <option key={item.id} value={item.id}>
-          {item.item_code} - {item.item_name} - {item.base_unit}
-        </option>
-      ))}
-    </SelectNative>
-  );
-}
-
 export function PurchaseRequestForm({
   items,
-  suppliers,
+  supplierMappings,
   branches,
   initialBranchId,
   initialLines,
@@ -72,7 +70,7 @@ export function PurchaseRequestForm({
   action,
 }: {
   items: ItemOption[];
-  suppliers: SupplierOption[];
+  supplierMappings: BranchSupplierMappingOption[];
   branches: BranchOption[];
   initialBranchId?: string;
   initialLines?: Partial<RequestLine>[];
@@ -89,12 +87,17 @@ export function PurchaseRequestForm({
   action: (formData: FormData) => Promise<void>;
 }) {
   const [idempotencyKey] = useState(() => crypto.randomUUID());
+  const resolvedInitialBranchId = initialBranchId ?? branches[0]?.id ?? "";
   const initialRows = initialLines?.length
-    ? initialLines.map((line, index) => ({ ...createBlankLine(index), ...line, key: index }))
+    ? initialLines.map((line, index) => {
+        const row = { ...createBlankLine(index), ...line, key: index };
+        const supplierStillValid = supplierMappings.some((mapping) => mapping.branch_id === resolvedInitialBranchId && mapping.item_id === row.itemId && mapping.supplier_id === row.supplierId);
+        return supplierStillValid ? row : { ...row, supplierId: "" };
+      })
     : [];
   const [lines, setLines] = useState<RequestLine[]>(initialRows.length ? initialRows : [{ ...createBlankLine(0) }]);
   const [priority, setPriority] = useState<ProcurementPriority>(initialPriority ?? "normal");
-  const [branchId, setBranchId] = useState(initialBranchId ?? branches[0]?.id ?? "");
+  const [branchId, setBranchId] = useState(resolvedInitialBranchId);
   const nextKey = lines.reduce((max, line) => Math.max(max, line.key), 0) + 1;
 
   function updateLine(key: number, updates: Partial<RequestLine>) {
@@ -113,13 +116,20 @@ export function PurchaseRequestForm({
       return;
     }
 
+    const validMappings = supplierMappings.filter((mapping) => mapping.branch_id === branchId && mapping.item_id === selected.id);
+    const automaticMapping = validMappings.find((mapping) => mapping.is_preferred) ?? (validMappings.length === 1 ? validMappings[0] : null);
     updateLine(key, {
       itemId: selected.id,
       itemSearch: itemLabel(selected),
-      uom: normalizeUom(selected.purchase_unit || selected.base_unit),
-      supplierId: selected.supplier_id ?? "",
-      cost: String(selected.cost ?? 0),
+      uom: normalizeUom(automaticMapping?.purchase_uom || selected.purchase_unit || selected.base_unit),
+      supplierId: automaticMapping?.supplier_id ?? "",
+      cost: String(automaticMapping?.unit_cost ?? selected.cost ?? 0),
     });
+  }
+
+  function changeBranch(nextBranchId: string) {
+    setBranchId(nextBranchId);
+    setLines((current) => current.map((line) => ({ ...line, supplierId: "" })));
   }
 
   return (
@@ -144,7 +154,7 @@ export function PurchaseRequestForm({
                 <Input name="needed_by_date" type="date" defaultValue={initialNeededByDate ?? ""} />
               </Field></div>
               <div className="order-3 col-span-2 sm:order-2 sm:col-span-1"><Field label="Branch" required>
-                <SelectNative name="branch_id" value={branchId} onChange={(event) => setBranchId(event.target.value)} required disabled={lockBranch}>
+                <SelectNative name="branch_id" value={branchId} onChange={(event) => changeBranch(event.target.value)} required disabled={lockBranch}>
                   {branches.map((branch) => <option key={branch.id} value={branch.id}>{branch.branch_name}</option>)}
                 </SelectNative>
                 {lockBranch ? <input type="hidden" name="branch_id" value={branchId} /> : null}
@@ -203,7 +213,10 @@ export function PurchaseRequestForm({
                     <details className="md:col-span-4 rounded-md border bg-secondary/20 p-2">
                       <summary className="cursor-pointer text-xs font-medium">Purchasing details</summary>
                       <div className="mt-3 grid gap-3 md:grid-cols-3">
-                        <Field label="Suggested supplier"><SelectNative name="line_suggested_supplier_id" value={line.supplierId} onChange={(event) => updateLine(line.key, { supplierId: event.target.value })}><option value="">No suggestion</option>{suppliers.map((supplier) => <option key={supplier.id} value={supplier.id}>{supplier.name}</option>)}</SelectNative></Field>
+                        <Field label="Suggested supplier"><SelectNative name="line_suggested_supplier_id" value={line.supplierId} onChange={(event) => {
+                          const mapping = supplierMappings.find((candidate) => candidate.branch_id === branchId && candidate.item_id === line.itemId && candidate.supplier_id === event.target.value);
+                          updateLine(line.key, { supplierId: event.target.value, ...(mapping ? { cost: String(mapping.unit_cost), uom: normalizeUom(mapping.purchase_uom) } : {}) });
+                        }}><option value="">{line.itemId ? "Select mapped supplier" : "Select an item first"}</option>{supplierMappings.filter((mapping) => mapping.branch_id === branchId && mapping.item_id === line.itemId).map((mapping) => <option key={mapping.id} value={mapping.supplier_id}>{mapping.supplier_name}{mapping.is_preferred ? " (Preferred)" : ""}</option>)}</SelectNative></Field>
                         <Field label="Estimated unit cost"><Input name="line_estimated_unit_cost" type="number" min="0" step="0.0001" value={line.cost} onChange={(event) => updateLine(line.key, { cost: event.target.value })} /></Field>
                         <Field label="Remarks"><Input name="line_remarks" value={line.remarks} onChange={(event) => updateLine(line.key, { remarks: event.target.value })} placeholder="Optional" /></Field>
                       </div>
@@ -215,6 +228,8 @@ export function PurchaseRequestForm({
                       <input type="hidden" name="line_remarks" value={line.remarks} />
                     </>
                   )}
+                  {line.itemId && !supplierMappings.some((mapping) => mapping.branch_id === branchId && mapping.item_id === line.itemId) ? <p className="md:col-span-4 text-xs font-medium text-destructive">No supplier is mapped to this item for the selected branch. Add a Branch Supplier Mapping before submitting.</p> : null}
+                  {line.itemId && supplierMappings.some((mapping) => mapping.branch_id === branchId && mapping.item_id === line.itemId) && !line.supplierId ? <p className="md:col-span-4 text-xs text-muted-foreground">Choose one of the suppliers authorized for this branch and item before submitting.</p> : null}
                   <input type="hidden" name="line_reason" value={line.reason} />
                 </div>
               ))}
@@ -234,14 +249,22 @@ export function PurchaseRequestForm({
 
 export function PurchaseOrderForm({
   items,
-  suppliers,
+  branches,
+  supplierMappings,
   action,
 }: {
   items: ItemOption[];
-  suppliers: SupplierOption[];
+  branches: BranchOption[];
+  supplierMappings: BranchSupplierMappingOption[];
   action: (formData: FormData) => Promise<void>;
 }) {
   const poNo = "PO-AUTO";
+  const [branchId, setBranchId] = useState(branches[0]?.id ?? "");
+  const [selectedItemIds, setSelectedItemIds] = useState<string[]>(["", "", "", "", ""]);
+  const [supplierId, setSupplierId] = useState("");
+  const selectedItems = selectedItemIds.filter(Boolean);
+  const eligibleSupplierIds = [...new Set(supplierMappings.filter((mapping) => mapping.branch_id === branchId && selectedItems.every((itemId) => supplierMappings.some((candidate) => candidate.branch_id === branchId && candidate.item_id === itemId && candidate.supplier_id === mapping.supplier_id))).map((mapping) => mapping.supplier_id))];
+  const eligibleSuppliers = eligibleSupplierIds.map((id) => supplierMappings.find((mapping) => mapping.branch_id === branchId && mapping.supplier_id === id)).filter((mapping): mapping is BranchSupplierMappingOption => Boolean(mapping));
   return (
     <Card>
       <CardContent className="p-5">
@@ -253,9 +276,15 @@ export function PurchaseOrderForm({
             <Field label="PO No">
               <div className="rounded-md border bg-secondary/30 px-3 py-2 text-sm text-muted-foreground">Auto-generated on submit</div>
             </Field>
+            <Field label="Branch" required>
+              <SelectNative name="branch_id" value={branchId} onChange={(event) => { setBranchId(event.target.value); setSupplierId(""); }} required>
+                {branches.map((branch) => <option key={branch.id} value={branch.id}>{branch.branch_name}</option>)}
+              </SelectNative>
+            </Field>
             <Field label="Supplier" required>
-              <SelectNative name="supplier_id" defaultValue={suppliers[0]?.id ?? ""} required>
-                {suppliers.map((supplier) => <option key={supplier.id} value={supplier.id}>{supplier.name}</option>)}
+              <SelectNative name="supplier_id" value={supplierId} onChange={(event) => setSupplierId(event.target.value)} required>
+                <option value="">{selectedItems.length ? "Select supplier valid for all items" : "Select items first"}</option>
+                {eligibleSuppliers.map((supplier) => <option key={supplier.supplier_id} value={supplier.supplier_id}>{supplier.supplier_name}</option>)}
               </SelectNative>
             </Field>
             <Field label="Order Date" required>
@@ -280,7 +309,10 @@ export function PurchaseOrderForm({
               {[0, 1, 2, 3, 4].map((index) => (
                 <div key={index} className="grid gap-2 p-3 lg:grid-cols-[32px_2fr_100px_100px_100px_84px_112px]">
                   <div className="hidden items-center justify-center rounded border bg-secondary/40 text-xs font-semibold text-muted-foreground lg:flex">{index + 1}</div>
-                  <ItemSelect items={items} required={index === 0} />
+                  <SelectNative name="line_item_id" value={selectedItemIds[index]} onChange={(event) => { const next = [...selectedItemIds]; next[index] = event.target.value; setSelectedItemIds(next); setSupplierId(""); }} required={index === 0}>
+                    <option value="">Select item</option>
+                    {items.map((item) => <option key={item.id} value={item.id}>{item.item_code} - {item.item_name} - {item.base_unit}</option>)}
+                  </SelectNative>
                   <Input name="line_qty_ordered" type="number" min="0.0001" step="0.0001" placeholder="Ordered" required={index === 0} />
                   <Input name="line_qty_received" type="number" min="0" step="0.0001" placeholder="Received" defaultValue={0} />
                   <Input name="line_qty_cancelled" type="number" min="0" step="0.0001" placeholder="Cancelled" defaultValue={0} />
@@ -295,6 +327,8 @@ export function PurchaseOrderForm({
               ))}
             </div>
           </div>
+
+          {selectedItems.length > 0 && eligibleSuppliers.length === 0 ? <p className="text-sm font-medium text-destructive">No single supplier is mapped to every selected item for this branch. Adjust the lines or create the required branch mappings.</p> : null}
 
         </form>
       </CardContent>

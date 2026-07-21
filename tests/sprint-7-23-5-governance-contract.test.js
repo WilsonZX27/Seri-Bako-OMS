@@ -45,7 +45,7 @@ test("PR creation is dense and uses the accessible urgency select", () => {
   assert.doesNotMatch(form, /When and where|Additional details/);
   assert.match(select, /@radix-ui\/react-select/);
   for (const value of ["critical", "urgent", "normal", "low"]) assert.match(badges, new RegExp(`value: "${value}"`));
-  assert.match(form, /useState<ProcurementPriority>\("normal"\)/);
+  assert.match(form, /useState<ProcurementPriority>\(initialPriority \?\? "normal"\)/);
 });
 
 test("Procurement and Inventory are canonical navigable workspaces", () => {

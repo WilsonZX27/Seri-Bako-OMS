@@ -27,7 +27,7 @@ import {
   submitPurchaseRequest,
 } from "@/server/actions/procurement";
 import { getPermissionMap } from "@/server/auth/permissions";
-import { getBranchesForSelect, getCurrentProfile, getItemsForSelect, getSuppliersForSelect } from "@/server/queries/common";
+import { getBranchesForSelect, getBranchSupplierMappingsForSelect, getCurrentProfile, getItemsForSelect, getSuppliersForSelect } from "@/server/queries/common";
 import { getDocumentBundle } from "@/server/queries/documents";
 import { getPurchaseOrdersForRequest, getPurchaseRequest } from "@/server/queries/procurement";
 import { getPhaseOneDeletePreview } from "@/server/queries/hard-delete";
@@ -68,10 +68,11 @@ export default async function PurchaseRequestDetailPage({
     return <NotFoundState title="Purchase request not available" description="This request may not exist, or you may not have access to it." action={{ href: "/purchase-requests", label: "Back to purchase requests" }} />;
   }
   const { request, lines } = purchaseRequest;
-  const [linkedPurchaseOrders, items, suppliers, branches, permissions, profile] = await Promise.all([
+  const [linkedPurchaseOrders, items, suppliers, supplierMappings, branches, permissions, profile] = await Promise.all([
     getPurchaseOrdersForRequest(id).catch(() => []),
     getItemsForSelect().catch(() => []),
     getSuppliersForSelect().catch(() => []),
+    getBranchSupplierMappingsForSelect().catch(() => []),
     getBranchesForSelect().catch(() => []),
     getPermissionMap([
       "purchase_request.create",
@@ -208,7 +209,7 @@ export default async function PurchaseRequestDetailPage({
                 <>
                   <PurchaseRequestForm
                     items={items}
-                    suppliers={suppliers}
+                    supplierMappings={supplierMappings}
                     branches={branches}
                     action={updateDraftPurchaseRequest.bind(null, request.id)}
                     initialBranchId={request.branch_id ?? ""}

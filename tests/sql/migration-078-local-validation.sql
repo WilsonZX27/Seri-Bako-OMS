@@ -27,6 +27,17 @@ values
   ('87000000-0000-0000-0000-000000000001', 'M078-A1', 'Branch A Item One', 'Validation', 'KG', 'KG', 3.25, 'active'),
   ('87000000-0000-0000-0000-000000000002', 'M078-A2', 'Branch A Item Two', 'Validation', 'PCS', 'PCS', 4.50, 'active'),
   ('87000000-0000-0000-0000-000000000003', 'M078-B1', 'Branch B Only Item', 'Validation', 'KG', 'KG', 5.75, 'active');
+insert into public.supplier_items (
+  id, supplier_id, item_id, supplier_item_code, supplier_item_name, purchase_uom, unit_cost
+) values (
+  '86500000-0000-0000-0000-000000000001', '86000000-0000-0000-0000-000000000001',
+  '87000000-0000-0000-0000-000000000001', 'M078-SUP-A1', 'Migration 078 Item One', 'KG', 3.25
+);
+insert into public.branch_supplier_items (branch_id, supplier_item_id, item_id, is_preferred)
+values (
+  '82000000-0000-0000-0000-000000000001', '86500000-0000-0000-0000-000000000001',
+  '87000000-0000-0000-0000-000000000001', true
+);
 insert into public.stock_transactions (
   id, item_id, location_id, branch_id, transaction_type, transaction_no, transaction_date,
   quantity_in, quantity_out, unit_cost, total_cost, status, posted_at

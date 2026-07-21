@@ -10,7 +10,6 @@ import { requirePermission } from "@/server/auth/permissions";
 import { formatActionError, requirePermissionOrRedirect, rethrowRedirect, safeRedirectWithMessage } from "@/server/actions/error-handling";
 import { revalidateWorkspaceState } from "@/server/actions/revalidate";
 import { resolveDocumentNumber } from "@/server/documents/sequences";
-import { createInventoryMovement } from "@/server/inventory/engine";
 import { resolveDefaultLocation } from "@/server/inventory/locations";
 import { getCurrentProfile } from "@/server/queries/common";
 import type { StockCountStatus } from "@/types/database";
@@ -168,30 +167,11 @@ export async function approveStockCount(id: string) {
   await requirePermission("stock_count.approve");
   if (isMockMode()) return;
   const supabase = await createClient();
-  const [{ data: count, error: countError }, { data: lines, error: linesError }] = await Promise.all([
-    supabase.from("stock_counts").select("id,document_id,tolerance_percent,status").eq("id", id).single(),
-    supabase.from("stock_count_lines").select("variance_percent").eq("stock_count_id", id),
-  ]);
-  if (countError) throw new Error(countError.message);
-  if (linesError) throw new Error(linesError.message);
-  if (count?.status !== "reviewed") throw new Error("Only reviewed stock counts can be approved.");
-  const requiresHighVarianceAttachment = (lines ?? []).some((line) => Math.abs(Number(line.variance_percent ?? 0)) > Number(count?.tolerance_percent ?? 0));
-  if (requiresHighVarianceAttachment && count?.document_id) {
-    const documentId = count.document_id;
-    if (!documentId) throw new Error("Attach the stock count variance report before approving this stock count.");
-    const { count: attachmentCount, error: attachmentError } = await supabase
-      .from("attachments")
-      .select("id", { count: "exact", head: true })
-      .eq("entity_type", "document")
-      .eq("entity_id", documentId)
-      .eq("status", "active")
-      .is("deleted_at", null);
-    if (attachmentError) throw new Error(attachmentError.message);
-    if (!attachmentCount) throw new Error("Attach the stock count variance report before approving this stock count.");
-  } else if (requiresHighVarianceAttachment && !count?.document_id) {
-    throw new Error("Attach the stock count variance report before approving this stock count.");
-  }
-  await updateStockCountStatus(id, "approved", "Ready to post", "Stock count approved", ["reviewed"]);
+  const { data, error } = await supabase.rpc("approve_stock_count_atomic", { p_stock_count_id: id });
+  if (error) throw new Error(error.message);
+  const result = data as { document_id?: string | null; count_no?: string } | null;
+  if (result?.document_id) await writeActivityLog({ entityType: "document", entityId: result.document_id, activityType: "approved", message: `Stock count ${result.count_no ?? id} approved` });
+  revalidateWorkspaceState(["/stock-counts", `/stock-counts/${id}`]);
 }
 
 export async function rejectStockCount(id: string) {
@@ -209,55 +189,12 @@ export async function cancelStockCount(id: string) {
 export async function postStockCount(id: string) {
   await requirePermission("stock_count.post");
   if (isMockMode()) return;
-  const profile = await identity();
   const supabase = await createClient();
-  const [{ data: count, error: countError }, { data: lines, error: linesError }] = await Promise.all([
-    supabase.from("stock_counts").select("*").eq("id", id).single(),
-    supabase.from("stock_count_lines").select("*").eq("stock_count_id", id),
-  ]);
-  if (countError) throw new Error(countError.message);
-  if (linesError) throw new Error(linesError.message);
-  if (!["approved", "reviewed"].includes(count.status)) throw new Error("Only approved or reviewed counts can be posted.");
-  const requiresHighVarianceAttachment = (lines ?? []).some((line) => Math.abs(Number(line.variance_percent ?? 0)) > Number(count.tolerance_percent ?? 0));
-  if (requiresHighVarianceAttachment) {
-    const documentId = count.document_id;
-    if (!documentId) throw new Error("Attach the stock count variance report before posting this stock count.");
-    const { count: attachmentCount, error: attachmentError } = await supabase
-      .from("attachments")
-      .select("id", { count: "exact", head: true })
-      .eq("entity_type", "document")
-      .eq("entity_id", documentId)
-      .eq("status", "active")
-      .is("deleted_at", null);
-    if (attachmentError) throw new Error(attachmentError.message);
-    if (!attachmentCount) throw new Error("Attach the stock count variance report before posting this stock count.");
-  }
-
-  for (const line of lines ?? []) {
-    const variance = Number(line.physical_qty) - Number(line.theoretical_qty);
-    if (variance === 0) continue;
-    const quantityIn = variance > 0 ? variance : 0;
-    const quantityOut = variance < 0 ? Math.abs(variance) : 0;
-    const transactionNo = `ST-${count.count_no}-${String(line.id).slice(0, 4)}`;
-    await createInventoryMovement({
-      movementType: "STOCK_COUNT",
-      transactionNo,
-      documentId: count.document_id,
-      branchId: count.branch_id,
-      itemId: line.item_id,
-      locationId: count.location_id,
-      transactionDate: count.count_date,
-      quantity: quantityIn || quantityOut,
-      unitCost: 0,
-      postedBy: profile?.id ?? null,
-      remarks: `Adjusted after stock count ${count.count_no}`,
-      referenceType: "stock_count",
-      referenceId: count.id,
-      allowNegative: true,
-      direction: quantityIn > 0 ? "in" : "out",
-    });
-  }
-  await updateStockCountStatus(id, "posted", "Variance posted to ledger", `Stock count ${count.count_no} posted to ledger`, ["approved", "reviewed"]);
+  const { data, error } = await supabase.rpc("post_stock_count_atomic", { p_stock_count_id: id });
+  if (error) throw new Error(error.message);
+  const result = data as { document_id?: string | null; count_no?: string; already_posted?: boolean } | null;
+  if (result?.document_id && !result.already_posted) await writeActivityLog({ entityType: "document", entityId: result.document_id, activityType: "posted", message: `Stock count ${result.count_no ?? id} posted to ledger` });
+  revalidateWorkspaceState(["/stock-counts", `/stock-counts/${id}`]);
   revalidatePath("/inventory");
   revalidatePath("/stock-balance");
   revalidatePath("/stock-card");

@@ -84,7 +84,7 @@ test("required files remain visible on mobile and support follows the canonical 
   }
 });
 
-test("document terminology and footer match v7.23.5.8", () => {
+test("document terminology and footer match v7.23.5.9", () => {
   const sources = [
     ...detailRoutes.map(app), ...createRoutes.map(app),
     read("src/components/procurement-forms.tsx"), read("src/components/outlet-daily-record-form.tsx"),
@@ -93,5 +93,5 @@ test("document terminology and footer match v7.23.5.8", () => {
   assert.match(sources, /Qty Sent/);
   assert.match(sources, /Wastage Reason/);
   assert.match(sources, /Remarks/);
-  assert.match(read("src/lib/app-version.ts"), /APP_SPRINT = "v7\.23\.5\.8"/);
+  assert.match(read("src/lib/app-version.ts"), /APP_SPRINT = "v7\.23\.5\.9"/);
 });

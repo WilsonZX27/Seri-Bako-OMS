@@ -10,7 +10,6 @@ import { requirePermission } from "@/server/auth/permissions";
 import { formatActionError, requirePermissionOrRedirect, rethrowRedirect, safeRedirectWithMessage } from "@/server/actions/error-handling";
 import { revalidateWorkspaceState } from "@/server/actions/revalidate";
 import { resolveDocumentNumber } from "@/server/documents/sequences";
-import { createInventoryMovement } from "@/server/inventory/engine";
 import { resolveDefaultLocation } from "@/server/inventory/locations";
 import { getCurrentProfile } from "@/server/queries/common";
 
@@ -173,78 +172,19 @@ export async function postGoodsReceiving(id: string, formData: FormData) {
   await requirePermission("grn.post");
   if (isMockMode()) return;
 
-  const profile = await identity();
   const supabase = await createClient();
-  const [{ data: grn, error: grnError }, { data: lines, error: linesError }] = await Promise.all([
-    supabase.from("goods_receivings").select("*").eq("id", id).single(),
-    supabase.from("goods_receiving_lines").select("*").eq("goods_receiving_id", id),
-  ]);
-  if (grnError) throw new Error(grnError.message);
-  if (linesError) throw new Error(linesError.message);
-  if (grn.status === "posted") return;
-  if (grn.status !== "draft") throw new Error("Only draft GRN can be posted.");
-  await ensureReceivablePo(grn.purchase_order_id);
-
   const doExceptionReason = cleanText(formData.get("do_exception_reason"));
-  const { count: attachmentCount, error: attachmentError } = grn.document_id
-    ? await supabase.from("attachments").select("id", { count: "exact", head: true }).eq("entity_type", "document").eq("entity_id", grn.document_id).eq("status", "active").is("deleted_at", null)
-    : { count: 0, error: null };
-  if (attachmentError) throw new Error(attachmentError.message);
-  if (!attachmentCount && !doExceptionReason) throw new Error("Attach the Delivery Order or document an exception before posting this receiving.");
-  if (!attachmentCount && doExceptionReason && grn.document_id) {
-    await writeActivityLog({ entityType: "document", entityId: grn.document_id, activityType: "delivery_order_exception", message: `Delivery Order exception: ${doExceptionReason}` });
+  const { data, error } = await supabase.rpc("post_goods_receiving_atomic", {
+    p_goods_receiving_id: id,
+    p_do_exception_reason: doExceptionReason,
+  });
+  if (error) throw new Error(error.message);
+  const result = data as { document_id?: string | null; grn_no?: string; purchase_order_id?: string; already_posted?: boolean } | null;
+  if (result?.document_id && !result.already_posted) {
+    if (doExceptionReason) await writeActivityLog({ entityType: "document", entityId: result.document_id, activityType: "delivery_order_exception", message: `Delivery Order exception: ${doExceptionReason}` });
+    await writeActivityLog({ entityType: "document", entityId: result.document_id, activityType: "posted", message: `Goods receiving ${result.grn_no ?? id} posted to inventory` });
   }
-
-  const receivingLines = lines ?? [];
-  if (!receivingLines.some((line) => Number(line.received_qty) > 0)) throw new Error("Cannot post GRN without at least one received line.");
-  const overReceived = receivingLines.some((line) => Number(line.received_qty) + Number(line.rejected_qty) > Number(line.pending_qty));
-  if (overReceived) throw new Error("Received plus rejected quantity cannot exceed pending quantity without manager override.");
-
-  for (const line of receivingLines) {
-    if (Number(line.received_qty) <= 0) continue;
-    const { error: poLineError } = await supabase
-      .from("purchase_order_lines")
-      .update({ qty_received: Number(line.previously_received_qty) + Number(line.received_qty) })
-      .eq("id", line.purchase_order_line_id);
-    if (poLineError) throw new Error(poLineError.message);
-    const transactionNo = `ST-${grn.grn_no}-${String(line.id).slice(0, 4)}`;
-    await createInventoryMovement({
-      movementType: "GOODS_RECEIPT",
-      transactionNo,
-      documentId: grn.document_id,
-      branchId: grn.branch_id,
-      itemId: line.item_id,
-      locationId: grn.location_id,
-      transactionDate: grn.received_date,
-      quantity: Number(line.received_qty),
-      unitCost: Number(line.unit_cost),
-      postedBy: profile?.id ?? null,
-      remarks: `Received from ${grn.grn_no}${line.batch_no ? ` batch ${line.batch_no}` : ""}`,
-      referenceType: "goods_receiving",
-      referenceId: grn.id,
-    });
-  }
-
-  const { data: poLines, error: poLinesError } = await supabase.from("purchase_order_lines").select("*").eq("purchase_order_id", grn.purchase_order_id);
-  if (poLinesError) throw new Error(poLinesError.message);
-  const isFullyReceived = (poLines ?? []).every((line) => Number(line.qty_ordered) - Number(line.qty_received) - Number(line.qty_cancelled) <= 0);
-  const poStatus = isFullyReceived ? "received" : "partial_received";
-
-  const [{ error: grnUpdateError }, { error: poUpdateError }, { error: docUpdateError }] = await Promise.all([
-    supabase.from("goods_receivings").update({ status: "posted", posted_at: new Date().toISOString(), posted_by: profile?.id ?? null, updated_by: profile?.id ?? null }).eq("id", id),
-    supabase.from("purchase_orders").update({ status: poStatus, updated_by: profile?.id ?? null }).eq("id", grn.purchase_order_id),
-    grn.document_id
-      ? supabase.from("documents").update({ status: "posted", current_step: "Posted to inventory", posted_at: new Date().toISOString(), updated_by: profile?.id ?? null }).eq("id", grn.document_id)
-      : Promise.resolve({ error: null }),
-  ]);
-  if (grnUpdateError) throw new Error(grnUpdateError.message);
-  if (poUpdateError) throw new Error(poUpdateError.message);
-  if (docUpdateError) throw new Error(docUpdateError.message);
-
-  if (grn.document_id) {
-    await writeActivityLog({ entityType: "document", entityId: grn.document_id, activityType: "posted", message: `Goods receiving ${grn.grn_no} posted to inventory` });
-  }
-  revalidateWorkspaceState(["/goods-receivings", `/goods-receivings/${id}`, "/purchase-orders", `/purchase-orders/${grn.purchase_order_id}`]);
+  revalidateWorkspaceState(["/goods-receivings", `/goods-receivings/${id}`, "/purchase-orders", ...(result?.purchase_order_id ? [`/purchase-orders/${result.purchase_order_id}`] : [])]);
   revalidatePath("/inventory");
   revalidatePath("/stock-transactions");
   revalidatePath("/stock-balance");

@@ -4,10 +4,10 @@ import { PageHeader } from "@/components/ui/page-header";
 import { ConsoleSection } from "@/components/layout/right-console";
 import { WorkspaceGrid } from "@/components/layout/workspace-layout";
 import { createPurchaseOrder } from "@/server/actions/procurement";
-import { getItemsForSelect, getSuppliersForSelect } from "@/server/queries/common";
+import { getBranchesForSelect, getBranchSupplierMappingsForSelect, getItemsForSelect } from "@/server/queries/common";
 
 export default async function NewPurchaseOrderPage() {
-  const [items, suppliers] = await Promise.all([getItemsForSelect(), getSuppliersForSelect()]);
+  const [items, branches, supplierMappings] = await Promise.all([getItemsForSelect(), getBranchesForSelect(), getBranchSupplierMappingsForSelect()]);
   return (
     <>
       <PageHeader title="New Purchase Order" description="Create a supplier purchase order. Receiving is intentionally not part of Sprint 3." />
@@ -23,14 +23,14 @@ export default async function NewPurchaseOrderPage() {
             <ConsoleSection title="PO Summary">
               <div className="grid gap-2 text-xs">
                 <div className="flex justify-between gap-3"><span className="text-muted-foreground">PO Number</span><strong>Auto</strong></div>
-                <div className="flex justify-between gap-3"><span className="text-muted-foreground">Supplier</span><strong>{suppliers.length ? "Required" : "Missing"}</strong></div>
+                <div className="flex justify-between gap-3"><span className="text-muted-foreground">Supplier mappings</span><strong>{supplierMappings.length ? "Available" : "Missing"}</strong></div>
                 <div className="flex justify-between gap-3"><span className="text-muted-foreground">Items</span><strong>{items.length}</strong></div>
               </div>
             </ConsoleSection>
           </div>
         }
       >
-        <PurchaseOrderForm items={items} suppliers={suppliers} action={createPurchaseOrder} />
+        <PurchaseOrderForm items={items} branches={branches} supplierMappings={supplierMappings} action={createPurchaseOrder} />
       </WorkspaceGrid>
     </>
   );

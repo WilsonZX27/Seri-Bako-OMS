@@ -9,7 +9,6 @@ import { writeActivityLog } from "@/server/activity/log";
 import { formatActionError, requirePermissionOrRedirect, rethrowRedirect, safeRedirectWithMessage } from "@/server/actions/error-handling";
 import { revalidateWorkspaceState } from "@/server/actions/revalidate";
 import { resolveDocumentNumber } from "@/server/documents/sequences";
-import { createInventoryMovement } from "@/server/inventory/engine";
 import { getCurrentProfile } from "@/server/queries/common";
 
 function cleanText(value: FormDataEntryValue | null) {
@@ -140,62 +139,12 @@ export async function createPurchaseReturn(formData: FormData) {
 export async function postPurchaseReturn(id: string) {
   await requirePermissionOrRedirect("purchase_return.post", `/purchase-returns/${id}`);
   try {
-    const profile = await identity();
     const supabase = await createClient();
-    const [{ data: row, error }, { data: lines, error: linesError }] = await Promise.all([
-      supabase.from("purchase_returns").select("*").eq("id", id).single(),
-      supabase.from("purchase_return_lines").select("*").eq("purchase_return_id", id),
-    ]);
+    const { data, error } = await supabase.rpc("post_purchase_return_atomic", { p_purchase_return_id: id });
     if (error) throw new Error(error.message);
-    if (linesError) throw new Error(linesError.message);
-    if (row.status === "posted") return;
-    if (row.status !== "draft") throw new Error("Only draft purchase returns can be posted.");
-    if (!(lines ?? []).length) throw new Error("Cannot post an empty purchase return.");
-
-    const { data: currentLines, error: currentError } = await supabase.from("goods_receiving_lines").select("*").eq("goods_receiving_id", row.goods_receiving_id);
-    if (currentError) throw new Error(currentError.message);
-    const currentById = new Map((currentLines ?? []).map((line) => [line.id, line]));
-
-    for (const line of lines ?? []) {
-      const current = currentById.get(line.goods_receiving_line_id);
-      const currentReturned = Number(current?.returned_qty ?? 0);
-      const returnable = Number(current?.received_qty ?? 0) - currentReturned;
-      if (!current || Number(line.return_qty) > returnable) throw new Error("Return quantity cannot exceed received minus previously returned quantity.");
-      const transactionNo = `ST-${row.purchase_return_no}-${String(line.id).slice(0, 4)}`;
-      const movement = await createInventoryMovement({
-        movementType: "RETURN_TO_SUPPLIER",
-        transactionNo,
-        documentId: row.document_id,
-        branchId: row.branch_id,
-        itemId: line.item_id,
-        locationId: row.location_id,
-        transactionDate: row.return_date,
-        quantity: Number(line.return_qty),
-        unitCost: Number(line.unit_cost),
-        postedBy: profile?.id ?? null,
-        remarks: `Returned to supplier from ${row.purchase_return_no}`,
-        referenceType: "purchase_return",
-        referenceId: row.id,
-      });
-      const [{ error: grnLineError }, { error: returnLineError }] = await Promise.all([
-        supabase.from("goods_receiving_lines").update({ returned_qty: currentReturned + Number(line.return_qty) }).eq("id", line.goods_receiving_line_id),
-        supabase.from("purchase_return_lines").update({ stock_transaction_id: movement.id }).eq("id", line.id),
-      ]);
-      if (grnLineError) throw new Error(grnLineError.message);
-      if (returnLineError) throw new Error(returnLineError.message);
-    }
-
-    const now = new Date().toISOString();
-    const [{ error: updateError }, { error: docError }] = await Promise.all([
-      supabase.from("purchase_returns").update({ status: "posted", posted_at: now, posted_by: profile?.id ?? null, updated_by: profile?.id ?? null }).eq("id", id),
-      row.document_id
-        ? supabase.from("documents").update({ status: "posted", current_step: "Posted to inventory", posted_at: now, updated_by: profile?.id ?? null }).eq("id", row.document_id)
-        : Promise.resolve({ error: null }),
-    ]);
-    if (updateError) throw new Error(updateError.message);
-    if (docError) throw new Error(docError.message);
-    if (row.document_id) await writeActivityLog({ entityType: "document", entityId: row.document_id, activityType: "posted", message: `Purchase return ${row.purchase_return_no} posted to inventory` });
-    revalidateWorkspaceState(["/purchase-returns", `/purchase-returns/${id}`, "/goods-receivings", `/goods-receivings/${row.goods_receiving_id}`]);
+    const result = data as { document_id?: string | null; purchase_return_no?: string; goods_receiving_id?: string; already_posted?: boolean } | null;
+    if (result?.document_id && !result.already_posted) await writeActivityLog({ entityType: "document", entityId: result.document_id, activityType: "posted", message: `Purchase return ${result.purchase_return_no ?? id} posted to inventory` });
+    revalidateWorkspaceState(["/purchase-returns", `/purchase-returns/${id}`, "/goods-receivings", ...(result?.goods_receiving_id ? [`/goods-receivings/${result.goods_receiving_id}`] : [])]);
     revalidatePath("/stock-transactions");
     revalidatePath("/stock-balance");
     revalidatePath("/stock-balances");

@@ -25,11 +25,14 @@ test("PR creation keeps the operational inputs compact and role-aware", () => {
 
 test("receiving requires delivery evidence or a documented exception before stock posting", () => {
   const action = source("src/server/actions/goods-receivings.ts");
+  const inventoryHardening = source("supabase/migrations/079_inventory_go_live_hardening.sql");
   const createPage = source("src/app/(app)/goods-receivings/new/page.tsx");
   const detail = source("src/app/(app)/goods-receivings/[id]/page.tsx");
   assert.match(createPage, /Record Receiving &amp; Attach DO/);
   assert.match(action, /do_exception_reason/);
-  assert.match(action, /Attach the Delivery Order or document an exception/);
+  assert.match(action, /post_goods_receiving_atomic/);
+  assert.match(inventoryHardening, /status = 'active' and deleted_at is null/);
+  assert.match(inventoryHardening, /Attach the Delivery Order or document an exception/);
   assert.match(action, /delivery_order_exception/);
   assert.match(detail, /Attach Delivery Order/);
 });
@@ -54,6 +57,6 @@ test("PO preparation and shared attachments expose stage-specific evidence", () 
 
 test("release identifies Sprint 7.23.5", () => {
   const version = source("src/lib/app-version.ts");
-  assert.match(version, /APP_VERSION = "7\.23\.5\.8"/);
-  assert.match(version, /APP_SPRINT = "v7\.23\.5\.8"/);
+  assert.match(version, /APP_VERSION = "7\.23\.5\.9"/);
+  assert.match(version, /APP_SPRINT = "v7\.23\.5\.9"/);
 });

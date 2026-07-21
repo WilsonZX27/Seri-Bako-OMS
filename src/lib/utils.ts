@@ -20,6 +20,20 @@ export function formatCurrency(value: number | string | null | undefined) {
   }).format(numeric);
 }
 
+export function formatQuantity(value: number | string | null | undefined) {
+  const numeric = Number(value ?? 0);
+  return new Intl.NumberFormat("en-MY", {
+    maximumFractionDigits: 2,
+  }).format(numeric);
+}
+
+export function formatQuantityInput(value: number | string | null | undefined) {
+  const numeric = Number(value ?? 0);
+  if (!Number.isFinite(numeric)) return "";
+  const rounded = Math.round(numeric * 100) / 100;
+  return String(rounded);
+}
+
 export function getToday() {
   return new Date().toISOString().slice(0, 10);
 }

@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { SelectNative } from "@/components/ui/select-native";
 import { SubmitButton } from "@/components/ui/submit-button";
 import { Textarea } from "@/components/ui/textarea";
-import { formatNumber } from "@/lib/utils";
+import { formatQuantity, formatQuantityInput } from "@/lib/utils";
 
 type BranchOption = { id: string; branch_code: string; branch_name: string; status: string };
 type SeedLine = {
@@ -39,12 +39,12 @@ function toNumber(value: string | number) {
 
 function formatVarianceDisplay(variance: number, uom: string) {
   if (variance === 0) return `0 ${uom}`;
-  return `${variance > 0 ? "+" : ""}${formatNumber(variance)} ${uom}`;
+  return `${variance > 0 ? "+" : ""}${formatQuantity(variance)} ${uom}`;
 }
 
 function formatVariancePercent(percent: number | null) {
   if (percent === null || Number.isNaN(percent)) return "0%";
-  return `${percent > 0 ? "+" : ""}${formatNumber(percent)}%`;
+  return `${percent > 0 ? "+" : ""}${formatQuantity(percent)}%`;
 }
 
 function varianceToneClass(percent: number | null, high: boolean) {
@@ -71,7 +71,7 @@ export function StockCountForm({
   const router = useRouter();
   const tolerance = 2;
   const [lines, setLines] = useState<SeedLineInput[]>(() =>
-    seedLines.map((line) => ({ ...line, physicalQty: String(line.physical_qty) })),
+    seedLines.map((line) => ({ ...line, physicalQty: formatQuantityInput(line.physical_qty) })),
   );
 
   function selectBranch(branchId: string) {
@@ -82,14 +82,18 @@ export function StockCountForm({
     setLines((current) => current.map((line) => (line.item_id === itemId ? { ...line, physicalQty: nextPhysicalQty } : line)));
   }
 
+  function normalizePhysicalQty(itemId: string) {
+    setLines((current) => current.map((line) => {
+      if (line.item_id !== itemId) return line;
+      return { ...line, physicalQty: formatQuantityInput(line.physicalQty) };
+    }));
+  }
+
   return (
     <Card>
       <CardContent className="p-5">
         <form id={formId} action={action} className="space-y-4">
           <div className="grid gap-4 md:grid-cols-3">
-            <Field label="Count No">
-              <div className="rounded-md border bg-secondary/30 px-3 py-2 text-sm text-muted-foreground">Auto-generated on submit</div>
-            </Field>
             <Field label="Count Date"><Input name="count_date" type="date" defaultValue={today()} required /></Field>
             <Field label="Tolerance %"><Input name="tolerance_percent" type="number" min="0" step="0.01" defaultValue={tolerance} required /></Field>
             <Field label="Branch">
@@ -103,7 +107,7 @@ export function StockCountForm({
           </div>
 
           <div className="rounded-lg border">
-            <div className="hidden border-b bg-secondary/40 px-3 py-2 md:grid md:grid-cols-[minmax(0,1fr)_120px_120px_150px_1fr] md:gap-3">
+            <div className="hidden border-b bg-secondary/40 px-3 py-2 md:grid md:grid-cols-[minmax(0,1fr)_130px_130px_150px_1fr] md:gap-3">
               <p className="text-xs font-semibold">Item</p>
               <p className="text-xs text-right font-semibold">Theoretical</p>
               <p className="text-xs text-right font-semibold">Physical</p>
@@ -121,22 +125,20 @@ export function StockCountForm({
                 return (
                   <div
                     key={line.item_id}
-                    className="grid gap-2 px-3 py-3 md:grid-cols-[minmax(0,1fr)_120px_120px_150px_1fr] md:gap-3 md:items-start"
+                    className="grid grid-cols-3 gap-2 px-3 py-3 md:grid-cols-[minmax(0,1fr)_130px_130px_150px_1fr] md:gap-3 md:items-start"
                   >
-                    <div className="min-w-0">
-                      <p className="truncate font-medium leading-tight">{line.item_name}</p>
+                    <div className="min-w-0 order-1 col-span-2 md:col-span-1 md:order-1">
+                      <p className="truncate text-sm font-medium leading-tight">{line.item_name}</p>
                       <p className="text-xs text-muted-foreground">{line.item_code}</p>
                     </div>
 
-                    <div className="space-y-1 md:text-right">
-                      <p className="text-[11px] uppercase tracking-wide text-muted-foreground">Theoretical</p>
-                      <p className="text-sm font-medium">
-                        {formatVarianceDisplay(line.theoretical_qty, line.uom)}
-                      </p>
+                    <div className="order-3 space-y-1 md:text-right md:order-2">
+                      <p className="text-[11px] uppercase tracking-wide text-muted-foreground md:hidden">Theoretical</p>
+                      <p className="text-sm font-medium">{formatVarianceDisplay(line.theoretical_qty, line.uom)}</p>
                     </div>
 
-                    <div className="space-y-1">
-                      <label className="text-[11px] uppercase tracking-wide text-muted-foreground" htmlFor={`physical-${line.item_id}`}>
+                    <div className="order-2 space-y-1 md:order-3">
+                      <label className="text-[11px] uppercase tracking-wide text-muted-foreground md:hidden" htmlFor={`physical-${line.item_id}`}>
                         Physical
                       </label>
                       <div className="flex items-center gap-2">
@@ -145,24 +147,26 @@ export function StockCountForm({
                           name="line_physical_qty"
                           type="number"
                           min="0"
-                          step="0.0001"
+                          step="0.01"
                           value={line.physicalQty}
                           onChange={(event) => updatePhysicalQty(line.item_id, event.target.value)}
+                          onBlur={() => normalizePhysicalQty(line.item_id)}
                           required
+                          className="h-9 md:h-8"
                         />
                         <span className="text-xs text-muted-foreground">{line.uom}</span>
                       </div>
                     </div>
 
-                    <div className="space-y-1 md:text-right">
-                      <p className="text-[11px] uppercase tracking-wide text-muted-foreground">Variance</p>
+                    <div className="order-4 space-y-1 md:text-right md:order-4">
+                      <p className="text-[11px] uppercase tracking-wide text-muted-foreground md:hidden">Variance</p>
                       <p className={`text-sm font-semibold ${high ? toneClass : "text-foreground"}`}>
                         {formatVarianceDisplay(variance, line.uom)} <span className="font-normal">({formatVariancePercent(percent)})</span>
                       </p>
                     </div>
 
-                    <div className="space-y-1">
-                      <label className="text-[11px] uppercase tracking-wide text-muted-foreground" htmlFor={`remarks-${line.item_id}`}>
+                    <div className="order-5 min-w-0 space-y-1 md:order-5 md:max-w-[14rem]">
+                      <label className="text-[11px] uppercase tracking-wide text-muted-foreground md:hidden" htmlFor={`remarks-${line.item_id}`}>
                         Remarks
                       </label>
                       <Input id={`remarks-${line.item_id}`} name="line_remarks" placeholder="Optional" />

@@ -1,0 +1,14 @@
+import assert from "node:assert/strict";
+import { existsSync, mkdtempSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+import test from "node:test";
+import { acquireLock, detectProhibitedOperation, generateReport, hasNoProgress, parseJsonl, redactSecrets, validateIterationLimit } from "./core.ts";
+test("parses JSONL fields and completion", () => { const r = parseJsonl([JSON.stringify({ type: "thread.started", thread_id: "abc" }), JSON.stringify({ type: "item.completed", item: { type: "command_execution", text: "ok" } }), JSON.stringify({ type: "file_change" }), JSON.stringify({ type: "agent_message", message: "done" }), JSON.stringify({ type: "turn.completed" }), "bad"].join("\n")); assert.equal(r.sessionId, "abc"); assert.equal(r.finalMessage, "done"); assert.equal(r.completed, true); assert.equal(r.failed, false); assert.equal(r.parseErrors, 1); assert.equal(r.commandResults.length, 1); assert.equal(r.fileChanges.length, 1); });
+test("detects failed turns", () => assert.equal(parseJsonl('{"type":"turn.failed"}').failed, true));
+test("redacts credentials", () => { const safe = redactSecrets("Authorization: bearer-token password=hunter2 postgres://me:secret@host/db sk-proj-abcdefghijklmnop"); assert.doesNotMatch(safe, /bearer-token|hunter2|:secret@|sk-proj-/); });
+test("detects prohibited operations", () => { assert.deepEqual(detectProhibitedOperation("run git push origin main"), ["Git push"]); assert.ok(detectProhibitedOperation("supabase db push").includes("remote Supabase migration")); assert.equal(detectProhibitedOperation("run npm test").length, 0); });
+test("enforces iteration bounds", () => { assert.equal(validateIterationLimit(4), 4); assert.throws(() => validateIterationLimit(0)); assert.throws(() => validateIterationLimit(9)); });
+test("detects no progress", () => { assert.equal(hasNoProgress(["a", "a", "a"]), true); assert.equal(hasNoProgress(["a", "b", "b"]), false); });
+test("lock is exclusive and releases", () => { const path = join(mkdtempSync(join(tmpdir(), "orch-")), "lock"); const release = acquireLock(path); assert.ok(existsSync(path)); assert.throws(() => acquireLock(path)); release(); assert.equal(existsSync(path), false); });
+test("generates report", () => { const r = generateReport({ objective: "Fix", state: "COMPLETED", baseline: ["old.ts"], current: ["old.ts", "new.ts"], produced: ["new.ts"], checks: [{ name: "test", command: "npm test", exitCode: 0 }], acceptance: "Satisfied", blockers: [], nextAction: "Review" }); assert.match(r, /Codex Orchestrator Report/); assert.match(r, /new\.ts/); assert.match(r, /exit 0/); });

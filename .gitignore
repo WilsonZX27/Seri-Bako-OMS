@@ -46,3 +46,6 @@ exports/
 *.pdf
 outputs/
 tmp-*.js
+
+# Local Codex orchestrator state (reports, redacted JSONL logs, and lock)
+.codex-orchestrator/

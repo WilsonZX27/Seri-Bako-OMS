@@ -8,7 +8,9 @@
     "start": "node --use-system-ca node_modules/next/dist/bin/next start",
     "lint": "next lint",
     "typecheck": "tsc --noEmit",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test",
+    "codex:orchestrate": "node tools/codex-orchestrator/cli.ts",
+    "codex:orchestrator:test": "node --test tools/codex-orchestrator/*.test.ts"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.1",

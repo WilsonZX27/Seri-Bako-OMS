@@ -115,7 +115,7 @@ export async function createStockCount(formData: FormData) {
   }
 }
 
-async function updateStockCountStatus(id: string, status: StockCountStatus, step: string, message: string) {
+async function updateStockCountStatus(id: string, status: StockCountStatus, step: string, message: string, expectedStatuses: StockCountStatus[]) {
   const profile = await identity();
   const supabase = await createClient();
   const stamp: Record<string, string> = {
@@ -131,17 +131,22 @@ async function updateStockCountStatus(id: string, status: StockCountStatus, step
   const now = new Date().toISOString();
   const patch = { status, updated_by: profile?.id ?? null, ...(stamp[status] ? { [stamp[status]]: now } : {}) };
   const documentStatus = status === "posted" ? "posted" : status === "approved" ? "approved" : status === "rejected" ? "rejected" : status === "cancelled" ? "cancelled" : "pending_approval";
-  const [{ error }, { error: docError }] = await Promise.all([
-    supabase.from("stock_counts").update(patch).eq("id", id),
-    count.document_id ? supabase.from("documents").update({
+  const { data: updatedCount, error } = await supabase
+    .from("stock_counts")
+    .update(patch)
+    .eq("id", id)
+    .in("status", expectedStatuses)
+    .select("id")
+    .maybeSingle();
+  if (error) throw new Error(error.message);
+  if (!updatedCount) throw new Error("This stock count changed state. Refresh before trying again.");
+  const { error: docError } = count.document_id ? await supabase.from("documents").update({
       status: documentStatus,
       approval_status: status === "approved" || status === "posted" ? "approved" : status === "rejected" ? "rejected" : "pending",
       current_step: step,
       updated_by: profile?.id ?? null,
       ...(status === "posted" ? { posted_at: now } : {}),
-    }).eq("id", count.document_id) : Promise.resolve({ error: null }),
-  ]);
-  if (error) throw new Error(error.message);
+    }).eq("id", count.document_id) : { error: null };
   if (docError) throw new Error(docError.message);
   if (count.document_id) await writeActivityLog({ entityType: "document", entityId: count.document_id, activityType: status, message });
   revalidateWorkspaceState(["/stock-counts", `/stock-counts/${id}`]);
@@ -150,31 +155,55 @@ async function updateStockCountStatus(id: string, status: StockCountStatus, step
 export async function submitStockCount(id: string) {
   await requirePermission("stock_count.submit");
   if (isMockMode()) return;
-  await updateStockCountStatus(id, "submitted", "Manager review", "Stock count submitted for review");
+  await updateStockCountStatus(id, "submitted", "Manager review", "Stock count submitted for review", ["draft"]);
 }
 
 export async function reviewStockCount(id: string) {
   await requirePermission("stock_count.review");
   if (isMockMode()) return;
-  await updateStockCountStatus(id, "reviewed", "Approval", "Stock count reviewed");
+  await updateStockCountStatus(id, "reviewed", "Approval", "Stock count reviewed", ["submitted"]);
 }
 
 export async function approveStockCount(id: string) {
   await requirePermission("stock_count.approve");
   if (isMockMode()) return;
-  await updateStockCountStatus(id, "approved", "Ready to post", "Stock count approved");
+  const supabase = await createClient();
+  const [{ data: count, error: countError }, { data: lines, error: linesError }] = await Promise.all([
+    supabase.from("stock_counts").select("id,document_id,tolerance_percent,status").eq("id", id).single(),
+    supabase.from("stock_count_lines").select("variance_percent").eq("stock_count_id", id),
+  ]);
+  if (countError) throw new Error(countError.message);
+  if (linesError) throw new Error(linesError.message);
+  if (count?.status !== "reviewed") throw new Error("Only reviewed stock counts can be approved.");
+  const requiresHighVarianceAttachment = (lines ?? []).some((line) => Math.abs(Number(line.variance_percent ?? 0)) > Number(count?.tolerance_percent ?? 0));
+  if (requiresHighVarianceAttachment && count?.document_id) {
+    const documentId = count.document_id;
+    if (!documentId) throw new Error("Attach the stock count variance report before approving this stock count.");
+    const { count: attachmentCount, error: attachmentError } = await supabase
+      .from("attachments")
+      .select("id", { count: "exact", head: true })
+      .eq("entity_type", "document")
+      .eq("entity_id", documentId)
+      .eq("status", "active")
+      .is("deleted_at", null);
+    if (attachmentError) throw new Error(attachmentError.message);
+    if (!attachmentCount) throw new Error("Attach the stock count variance report before approving this stock count.");
+  } else if (requiresHighVarianceAttachment && !count?.document_id) {
+    throw new Error("Attach the stock count variance report before approving this stock count.");
+  }
+  await updateStockCountStatus(id, "approved", "Ready to post", "Stock count approved", ["reviewed"]);
 }
 
 export async function rejectStockCount(id: string) {
   await requirePermission("stock_count.approve");
   if (isMockMode()) return;
-  await updateStockCountStatus(id, "rejected", "Rejected", "Stock count rejected");
+  await updateStockCountStatus(id, "rejected", "Rejected", "Stock count rejected", ["submitted", "reviewed"]);
 }
 
 export async function cancelStockCount(id: string) {
   await requirePermission("stock_count.cancel");
   if (isMockMode()) return;
-  await updateStockCountStatus(id, "cancelled", "Cancelled", "Stock count cancelled");
+  await updateStockCountStatus(id, "cancelled", "Cancelled", "Stock count cancelled", ["draft", "submitted", "reviewed"]);
 }
 
 export async function postStockCount(id: string) {
@@ -189,6 +218,20 @@ export async function postStockCount(id: string) {
   if (countError) throw new Error(countError.message);
   if (linesError) throw new Error(linesError.message);
   if (!["approved", "reviewed"].includes(count.status)) throw new Error("Only approved or reviewed counts can be posted.");
+  const requiresHighVarianceAttachment = (lines ?? []).some((line) => Math.abs(Number(line.variance_percent ?? 0)) > Number(count.tolerance_percent ?? 0));
+  if (requiresHighVarianceAttachment) {
+    const documentId = count.document_id;
+    if (!documentId) throw new Error("Attach the stock count variance report before posting this stock count.");
+    const { count: attachmentCount, error: attachmentError } = await supabase
+      .from("attachments")
+      .select("id", { count: "exact", head: true })
+      .eq("entity_type", "document")
+      .eq("entity_id", documentId)
+      .eq("status", "active")
+      .is("deleted_at", null);
+    if (attachmentError) throw new Error(attachmentError.message);
+    if (!attachmentCount) throw new Error("Attach the stock count variance report before posting this stock count.");
+  }
 
   for (const line of lines ?? []) {
     const variance = Number(line.physical_qty) - Number(line.theoretical_qty);
@@ -214,7 +257,7 @@ export async function postStockCount(id: string) {
       direction: quantityIn > 0 ? "in" : "out",
     });
   }
-  await updateStockCountStatus(id, "posted", "Variance posted to ledger", `Stock count ${count.count_no} posted to ledger`);
+  await updateStockCountStatus(id, "posted", "Variance posted to ledger", `Stock count ${count.count_no} posted to ledger`, ["approved", "reviewed"]);
   revalidatePath("/inventory");
   revalidatePath("/stock-balance");
   revalidatePath("/stock-card");

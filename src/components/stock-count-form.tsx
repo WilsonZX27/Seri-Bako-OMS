@@ -125,19 +125,14 @@ export function StockCountForm({
                 return (
                   <div
                     key={line.item_id}
-                    className="grid grid-cols-3 gap-2 px-3 py-3 md:grid-cols-[minmax(0,1fr)_130px_130px_150px_1fr] md:gap-3 md:items-start"
+                    className="grid grid-cols-[minmax(0,1fr)_110px] gap-2 px-3 py-3 md:grid-cols-[minmax(0,1fr)_120px_120px_130px_1fr] md:gap-3 md:items-start"
                   >
-                    <div className="min-w-0 order-1 col-span-2 md:col-span-1 md:order-1">
+                    <div className="min-w-0 order-1 md:col-span-1 md:order-1">
                       <p className="truncate text-sm font-medium leading-tight">{line.item_name}</p>
                       <p className="text-xs text-muted-foreground">{line.item_code}</p>
                     </div>
 
-                    <div className="order-3 space-y-1 md:text-right md:order-2">
-                      <p className="text-[11px] uppercase tracking-wide text-muted-foreground md:hidden">Theoretical</p>
-                      <p className="text-sm font-medium">{formatVarianceDisplay(line.theoretical_qty, line.uom)}</p>
-                    </div>
-
-                    <div className="order-2 space-y-1 md:order-3">
+                    <div className="order-2 grid grid-cols-[1fr_auto] items-end gap-2 md:col-span-1 md:order-3 md:grid-cols-1">
                       <label className="text-[11px] uppercase tracking-wide text-muted-foreground md:hidden" htmlFor={`physical-${line.item_id}`}>
                         Physical
                       </label>
@@ -158,14 +153,19 @@ export function StockCountForm({
                       </div>
                     </div>
 
-                    <div className="order-4 space-y-1 md:text-right md:order-4">
+                    <div className="order-3 col-span-2 space-y-1 md:col-span-1 md:text-right md:order-2">
+                      <p className="text-[11px] uppercase tracking-wide text-muted-foreground md:hidden">Theoretical</p>
+                      <p className="text-sm font-medium">{formatVarianceDisplay(line.theoretical_qty, line.uom)}</p>
+                    </div>
+
+                    <div className="order-4 col-span-2 space-y-1 md:col-span-1 md:text-right md:order-4">
                       <p className="text-[11px] uppercase tracking-wide text-muted-foreground md:hidden">Variance</p>
                       <p className={`text-sm font-semibold ${high ? toneClass : "text-foreground"}`}>
                         {formatVarianceDisplay(variance, line.uom)} <span className="font-normal">({formatVariancePercent(percent)})</span>
                       </p>
                     </div>
 
-                    <div className="order-5 min-w-0 space-y-1 md:order-5 md:max-w-[14rem]">
+                    <div className="order-5 col-span-2 min-w-0 space-y-1 md:col-span-1 md:order-5 md:max-w-[14rem]">
                       <label className="text-[11px] uppercase tracking-wide text-muted-foreground md:hidden" htmlFor={`remarks-${line.item_id}`}>
                         Remarks
                       </label>

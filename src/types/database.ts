@@ -2159,6 +2159,22 @@ export type Database = {
         Args: { target_purchase_request_id: string; transition_action: string; transition_remarks?: string | null };
         Returns: Json;
       };
+      update_draft_purchase_request: {
+        Args: {
+          target_purchase_request_id: string;
+          expected_updated_at: string;
+          submitted_branch_id: string;
+          request_date_value: string;
+          required_date_value: string | null;
+          priority_value: string;
+          needed_by_date_value: string | null;
+          urgency_reason_value: string | null;
+          production_risk_value: boolean;
+          remarks_value: string | null;
+          lines_value: Json;
+        };
+        Returns: Json;
+      };
       convert_purchase_request_to_purchase_order: {
         Args: { target_purchase_request_id: string; target_po_no: string };
         Returns: Array<{

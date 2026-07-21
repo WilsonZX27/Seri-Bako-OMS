@@ -19,6 +19,7 @@ import { formatCurrency, formatNumber } from "@/lib/utils";
 import {
   adminApprovePurchaseRequest,
   cancelPurchaseRequest,
+  updateDraftPurchaseRequest,
   convertPurchaseRequestToPurchaseOrder,
   financeApprovePurchaseRequest,
   managerApprovePurchaseRequest,
@@ -31,6 +32,7 @@ import { getDocumentBundle } from "@/server/queries/documents";
 import { getPurchaseOrdersForRequest, getPurchaseRequest } from "@/server/queries/procurement";
 import { getPhaseOneDeletePreview } from "@/server/queries/hard-delete";
 import { hardDeletePhaseOne } from "@/server/actions/hard-delete";
+import { PurchaseRequestForm } from "@/components/procurement-forms";
 
 const prSteps = PURCHASE_REQUEST_WORKFLOW_STEPS.map((step) => ({
   key: step,
@@ -71,7 +73,19 @@ export default async function PurchaseRequestDetailPage({
     getItemsForSelect().catch(() => []),
     getSuppliersForSelect().catch(() => []),
     getBranchesForSelect().catch(() => []),
-    getPermissionMap(["pr.submit", "pr.admin_review", "pr.purchasing_review", "pr.manager_approve", "pr.finance_review", "pr.convert_to_po", "pr.reject", "pr.cancel", "pr.view_all", "documents.attach"]),
+    getPermissionMap([
+      "purchase_request.create",
+      "pr.submit",
+      "pr.admin_review",
+      "pr.purchasing_review",
+      "pr.manager_approve",
+      "pr.finance_review",
+      "pr.convert_to_po",
+      "pr.reject",
+      "pr.cancel",
+      "pr.view_all",
+      "documents.attach",
+    ]),
     getCurrentProfile(),
   ]);
   const documentBundle = request.document_id ? await getDocumentBundle(request.document_id).catch(() => null) : null;
@@ -86,6 +100,7 @@ export default async function PurchaseRequestDetailPage({
   const canManageDeletion = roleCode === "super_admin";
   const canSubmit = isStatus(request.status, "draft", "rejected", "returned") && permissions["pr.submit"];
   const canCancel = request.status === "draft" && permissions["pr.cancel"];
+  const canEditDraft = request.status === "draft" && permissions["purchase_request.create"];
   const canManagerReview = request.status === "manager_review" && permissions["pr.manager_approve"] && !isFinance;
   const canAdminReview = request.status === "admin_review" && permissions["pr.admin_review"];
   const canFinanceReview = request.status === "finance_review" && permissions["pr.finance_review"];
@@ -168,7 +183,7 @@ export default async function PurchaseRequestDetailPage({
             </Card>
           ) : null}
 
-          <Card className="document-surface shadow-none">
+      <Card className="document-surface shadow-none">
             <CardContent className="space-y-3 p-4">
               <h2 className="text-[14px] font-semibold">Request Summary</h2>
               <div className="grid grid-cols-2 gap-x-4 gap-y-3 md:grid-cols-5">
@@ -189,41 +204,81 @@ export default async function PurchaseRequestDetailPage({
                 <h2 className="text-[14px] font-semibold">Requested Items</h2>
                 {canViewCommercial ? <p className="text-xs font-semibold">{formatCurrency(total)}</p> : null}
               </div>
-              <Table mobileHidden aria-label="Requested items">
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Item</TableHead>
-                      <TableHead>Supplier Suggestion</TableHead>
-                      <TableHead className="text-right">Qty</TableHead>
-                      <TableHead>UOM</TableHead>
-                      {canViewCommercial ? <TableHead className="text-right">Est. Cost</TableHead> : null}
-                      <TableHead>Reason</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
+              {canEditDraft ? (
+                <>
+                  <PurchaseRequestForm
+                    items={items}
+                    suppliers={suppliers}
+                    branches={branches}
+                    action={updateDraftPurchaseRequest.bind(null, request.id)}
+                    initialBranchId={request.branch_id ?? ""}
+                    initialRemarks={request.remarks ?? ""}
+                    initialRequestDate={request.request_date}
+                    initialRequiredDate={request.required_date ?? ""}
+                    initialPriority={request.priority}
+                    initialNeededByDate={request.needed_by_date ?? ""}
+                    initialUrgencyReason={request.urgency_reason ?? ""}
+                    initialProductionRisk={request.production_risk}
+                    initialUpdatedAt={request.updated_at}
+                    lockBranch
+                    initialLines={lines.map((line, index) => ({
+                      key: index,
+                      itemId: line.item_id,
+                      itemSearch: `${itemById.get(line.item_id)?.item_code ?? ""} - ${itemById.get(line.item_id)?.item_name ?? line.item_id}`,
+                      qty: String(line.qty),
+                      uom: line.uom,
+                      supplierId: line.suggested_supplier_id ?? "",
+                      cost: String(line.estimated_unit_cost),
+                      remarks: line.remarks ?? "",
+                      reason: line.reason ?? "",
+                    }))}
+                    canViewCommercial={canViewCommercial}
+                  />
+                  <div className="mt-4">
+                    <SubmitButton form="purchase-request-form" type="submit" className="w-full">
+                      Save draft changes
+                    </SubmitButton>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <Table mobileHidden aria-label="Requested items">
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Item</TableHead>
+                          <TableHead>Supplier Suggestion</TableHead>
+                          <TableHead className="text-right">Qty</TableHead>
+                          <TableHead>UOM</TableHead>
+                          {canViewCommercial ? <TableHead className="text-right">Est. Cost</TableHead> : null}
+                          <TableHead>Reason</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {lines.map((line) => {
+                          const item = itemById.get(line.item_id);
+                          const supplier = line.suggested_supplier_id ? supplierById.get(line.suggested_supplier_id) : null;
+                          return (
+                            <TableRow key={line.id}>
+                              <TableCell><p className="font-medium">{item?.item_name ?? line.item_id}</p><p className="text-xs text-muted-foreground">{item?.item_code ?? "No item code"}</p></TableCell>
+                              <TableCell><span className="text-muted-foreground">{supplier?.name ?? "No supplier suggested"}</span></TableCell>
+                              <TableCell className="text-right">{formatNumber(line.qty)}</TableCell>
+                              <TableCell>{line.uom}</TableCell>
+                              {canViewCommercial ? <TableCell className="text-right">{formatCurrency(line.estimated_unit_cost)}</TableCell> : null}
+                              <TableCell>{line.reason ?? "-"}</TableCell>
+                            </TableRow>
+                          );
+                        })}
+                      </TableBody>
+                  </Table>
+                  <div className="divide-y divide-[var(--sb-border-soft)] md:hidden" role="list" aria-label="Requested items">
                     {lines.map((line) => {
                       const item = itemById.get(line.item_id);
                       const supplier = line.suggested_supplier_id ? supplierById.get(line.suggested_supplier_id) : null;
-                      return (
-                        <TableRow key={line.id}>
-                          <TableCell><p className="font-medium">{item?.item_name ?? line.item_id}</p><p className="text-xs text-muted-foreground">{item?.item_code ?? "No item code"}</p></TableCell>
-                          <TableCell><span className="text-muted-foreground">{supplier?.name ?? "No supplier suggested"}</span></TableCell>
-                          <TableCell className="text-right">{formatNumber(line.qty)}</TableCell>
-                          <TableCell>{line.uom}</TableCell>
-                          {canViewCommercial ? <TableCell className="text-right">{formatCurrency(line.estimated_unit_cost)}</TableCell> : null}
-                          <TableCell>{line.reason ?? "-"}</TableCell>
-                        </TableRow>
-                      );
+                      return <div key={line.id} role="listitem" className="min-w-0 py-3 text-[13px]"><div className="flex min-w-0 items-start justify-between gap-3"><div className="min-w-0"><p className="break-words font-semibold">{item?.item_name ?? line.item_id}</p><p className="text-[12px] text-muted-foreground">{item?.item_code ?? "No item code"}</p></div><p className="shrink-0 font-semibold">{formatNumber(line.qty)} {line.uom}</p></div>{supplier ? <p className="mt-1 break-words text-[12px] text-muted-foreground">Supplier: {supplier.name}</p> : null}{line.reason ? <p className="mt-1 break-words text-[12px] text-muted-foreground">{line.reason}</p> : null}{canViewCommercial ? <p className="mt-1 text-right text-[12px] font-medium">{formatCurrency(line.estimated_unit_cost)} / {line.uom}</p> : null}</div>;
                     })}
-                  </TableBody>
-              </Table>
-              <div className="divide-y divide-[var(--sb-border-soft)] md:hidden" role="list" aria-label="Requested items">
-                {lines.map((line) => {
-                  const item = itemById.get(line.item_id);
-                  const supplier = line.suggested_supplier_id ? supplierById.get(line.suggested_supplier_id) : null;
-                  return <div key={line.id} role="listitem" className="min-w-0 py-3 text-[13px]"><div className="flex min-w-0 items-start justify-between gap-3"><div className="min-w-0"><p className="break-words font-semibold">{item?.item_name ?? line.item_id}</p><p className="text-[12px] text-muted-foreground">{item?.item_code ?? "No item code"}</p></div><p className="shrink-0 font-semibold">{formatNumber(line.qty)} {line.uom}</p></div>{supplier ? <p className="mt-1 break-words text-[12px] text-muted-foreground">Supplier: {supplier.name}</p> : null}{line.reason ? <p className="mt-1 break-words text-[12px] text-muted-foreground">{line.reason}</p> : null}{canViewCommercial ? <p className="mt-1 text-right text-[12px] font-medium">{formatCurrency(line.estimated_unit_cost)} / {line.uom}</p> : null}</div>;
-                })}
-              </div>
+                  </div>
+                </>
+              )}
             </CardContent>
           </Card>
 

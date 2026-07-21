@@ -87,7 +87,22 @@ function extractPurchaseRequest(formData: FormData) {
   const suppliers = formData.getAll("line_suggested_supplier_id").map(String);
   const reasons = formData.getAll("line_reason").map(String);
   const remarks = formData.getAll("line_remarks").map(String);
-  return purchaseRequestSchema.parse({
+  const submittedBranches = formData.getAll("line_branch_id").map(String);
+  const lines = itemIds
+    .map((itemId, index) => ({
+      item_id: itemId,
+      qty: qtys[index],
+      uom: uoms[index],
+      estimated_unit_cost: costs[index] ?? 0,
+      suggested_supplier_id: suppliers[index] || null,
+      reason: reasons[index],
+      remarks: remarks[index],
+      branch_id: submittedBranches[index],
+    }))
+    .filter((line) => line.item_id && String(line.qty ?? "").trim().length > 0);
+  const duplicateItemIds = lines.filter((line, index) => lines.findIndex((candidate) => candidate.item_id === line.item_id) !== index);
+  if (duplicateItemIds.length) throw new Error("Each item can appear only once in a purchase request.");
+  const parsed = purchaseRequestSchema.parse({
     request_no: formData.get("request_no"),
     request_date: formData.get("request_date"),
     required_date: formData.get("required_date"),
@@ -98,18 +113,9 @@ function extractPurchaseRequest(formData: FormData) {
     branch_id: formData.get("branch_id"),
     location_id: formData.get("location_id"),
     remarks: formData.get("remarks"),
-    lines: itemIds
-      .map((itemId, index) => ({
-        item_id: itemId,
-        qty: qtys[index],
-        uom: uoms[index],
-        estimated_unit_cost: costs[index] ?? 0,
-        suggested_supplier_id: suppliers[index] || null,
-        reason: reasons[index],
-        remarks: remarks[index],
-      }))
-      .filter((line) => line.item_id),
+    lines,
   });
+  return { ...parsed, lineBranchIds: lines.map((line) => line.branch_id) };
 }
 
 function extractPurchaseOrder(formData: FormData) {
@@ -138,13 +144,27 @@ function extractPurchaseOrder(formData: FormData) {
   });
 }
 
-async function ensureActiveItems(itemIds: string[]) {
+async function ensureActiveItems(itemIds: string[], branchId?: string | null, lineBranchIds?: string[]) {
   const supabase = await createClient();
   const { data, error } = await supabase.from("items").select("id,status").in("id", itemIds);
   if (error) throw new Error(error.message);
   const active = new Set((data ?? []).filter((item) => item.status === "active").map((item) => item.id));
   const inactive = itemIds.filter((id) => !active.has(id));
   if (inactive.length) throw new Error("All selected items must be active.");
+  if (!branchId) return;
+  if (!lineBranchIds || lineBranchIds.length !== itemIds.length || lineBranchIds.some((lineBranchId) => lineBranchId !== branchId)) {
+    throw new Error("All purchase request lines must belong to the selected branch.");
+  }
+  const { data: branchItems, error: branchItemsError } = await supabase
+    .from("stock_balances_view")
+    .select("item_id")
+    .eq("branch_id", branchId)
+    .in("item_id", itemIds);
+  if (branchItemsError) throw new Error(branchItemsError.message);
+  const permitted = new Set((branchItems ?? []).map((row) => row.item_id));
+  if (itemIds.some((itemId) => !permitted.has(itemId))) {
+    throw new Error("All selected items must be available to the purchase request branch.");
+  }
 }
 
 async function createLinkedDocument(input: {
@@ -227,7 +247,7 @@ export async function createPurchaseRequest(formData: FormData) {
     const intent = formData.get("intent") === "submit" ? "submit" : "draft";
     const [locationId, , profile] = await Promise.all([
       resolveDefaultLocation(payload.branch_id, payload.location_id),
-      ensureActiveItems(payload.lines.map((line) => line.item_id)),
+      ensureActiveItems(payload.lines.map((line) => line.item_id), payload.branch_id, payload.lineBranchIds),
       identity(),
     ]);
     mark("validation_and_references");
@@ -291,6 +311,53 @@ export async function createPurchaseRequest(formData: FormData) {
   } catch (error) {
     rethrowRedirect(error);
     safeRedirectWithMessage("/purchase-requests/new", "error", formatActionError(error, "Could not create this purchase request."));
+  }
+}
+
+export async function updateDraftPurchaseRequest(id: string, formData: FormData) {
+  try {
+    if (isMockMode()) {
+      redirect(`/purchase-requests/${id}`);
+    }
+    await requirePermission("purchase_request.create");
+
+    const payload = extractPurchaseRequest(formData);
+    const supabase = await createClient();
+    const { data: request, error: requestError } = await supabase
+      .from("purchase_requests")
+      .select("id, status, request_no, branch_id")
+      .eq("id", id)
+      .single();
+    if (requestError) throw new Error(requestError.message);
+    if (!request) throw new Error("Purchase request not found.");
+    if (request.status !== "draft") throw new Error("Only draft purchase requests can be edited.");
+    if (!request.branch_id || payload.branch_id !== request.branch_id) throw new Error("The purchase request branch cannot be changed while editing a draft.");
+    await ensureActiveItems(payload.lines.map((line) => line.item_id), request.branch_id, payload.lineBranchIds);
+
+    const { error: updateError } = await supabase.rpc("update_draft_purchase_request", {
+      target_purchase_request_id: id,
+      expected_updated_at: String(formData.get("expected_updated_at") ?? ""),
+      submitted_branch_id: payload.branch_id,
+      request_date_value: payload.request_date,
+      required_date_value: cleanText(formData.get("required_date")),
+      priority_value: payload.priority,
+      needed_by_date_value: cleanText(formData.get("needed_by_date")),
+      urgency_reason_value: payload.urgency_reason ?? null,
+      production_risk_value: Boolean(payload.production_risk),
+      remarks_value: payload.remarks ?? null,
+      lines_value: payload.lines.map((line, index) => ({ ...line, branch_id: payload.lineBranchIds[index] })),
+    });
+    if (updateError) throw new Error(updateError.message);
+
+    const requestNo = request.request_no;
+    const message = `${requestNo} draft updated`;
+
+    revalidateWorkspaceState(["/purchase-requests", `/purchase-requests/${id}`]);
+    safeRedirectWithMessage(`/purchase-requests/${id}`, "success", message);
+  } catch (error) {
+    revalidateWorkspaceState([`/purchase-requests/${id}`]);
+    rethrowRedirect(error);
+    safeRedirectWithMessage(`/purchase-requests/${id}`, "error", formatActionError(error, "Could not update this draft purchase request."));
   }
 }
 

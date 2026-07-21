@@ -246,7 +246,9 @@ export async function getStockBalanceDetails(filters: Filters = {}) {
         status: currentQty < 0 ? "negative" : currentQty <= (item?.safety_stock ?? 0) ? "low_stock" : "ok",
       };
     });
-    const displayRows = aggregateByBranch ? aggregateStockByBranch(rows) : rows;
+    const branchId = filters.branch_id && filters.branch_id !== "all" ? filters.branch_id : null;
+    const scopeRows = branchId ? rows.filter((row) => row.branch_id === branchId) : rows;
+    const displayRows = aggregateByBranch ? aggregateStockByBranch(scopeRows) : scopeRows;
     const filtered = filterRows(displayRows, filters, ["item_code", "item_name", "branch_name", "location_name", "status"], "item_name");
     return paginateRows(filtered, filters.page, filters.page === "all" ? Math.max(filtered.length, 1) : 15);
   }
@@ -257,6 +259,7 @@ export async function getStockBalanceDetails(filters: Filters = {}) {
     warnOptionalInventoryQuery("stock balance details", error);
     return paginateRows([] as StockBalanceDetail[], filters.page, filters.page === "all" ? 1 : 15);
   }
+  const branchId = filters.branch_id && filters.branch_id !== "all" ? filters.branch_id : null;
   const rows = (data ?? []).map((row) => ({
     ...row,
     image_url: null,
@@ -268,7 +271,8 @@ export async function getStockBalanceDetails(filters: Filters = {}) {
         ? "low_stock"
         : "ok",
   }));
-  const displayRows = aggregateByBranch ? aggregateStockByBranch(rows) : rows;
+  const scopedRows = branchId ? rows.filter((row) => row.branch_id === branchId) : rows;
+  const displayRows = aggregateByBranch ? aggregateStockByBranch(scopedRows) : scopedRows;
   const filtered = filterRows(displayRows, filters, ["item_code", "item_name", "branch_name", "location_name", "status"], "item_name");
   return paginateRows(filtered, filters.page, filters.page === "all" ? Math.max(filtered.length, 1) : 15);
 }

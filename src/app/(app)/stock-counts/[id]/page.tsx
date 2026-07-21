@@ -7,7 +7,7 @@ import { ConfirmActionForm } from "@/components/ui/confirm-action-form";
 import { Card, CardContent } from "@/components/ui/card";
 import { BlockedDestructiveAction } from "@/components/ui/danger-confirm-form";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { formatNumber } from "@/lib/utils";
+import { formatQuantity } from "@/lib/utils";
 import { approveStockCount, cancelStockCount, postStockCount, rejectStockCount, reviewStockCount, submitStockCount } from "@/server/actions/stock-counts";
 import { getPermissionMap } from "@/server/auth/permissions";
 import { getDocumentBundle } from "@/server/queries/documents";
@@ -32,8 +32,9 @@ export default async function StockCountDetailPage({ params }: { params: Promise
   const hasHighVarianceAttachment = Boolean(documentBundle?.attachments.length);
   const canSubmit = count.status === "draft" && permissions["stock_count.submit"];
   const canReview = count.status === "submitted" && permissions["stock_count.review"];
-  const canApprove = count.status === "reviewed" && permissions["stock_count.approve"];
-  const canPost = ["approved", "reviewed"].includes(count.status) && permissions["stock_count.post"];
+  const requiresHighVarianceAttachment = highVarianceLines.length > 0 && !hasHighVarianceAttachment;
+  const canApprove = count.status === "reviewed" && permissions["stock_count.approve"] && !requiresHighVarianceAttachment;
+  const canPost = ["approved", "reviewed"].includes(count.status) && permissions["stock_count.post"] && !requiresHighVarianceAttachment;
   const canCancel = ["draft", "submitted", "reviewed"].includes(count.status) && permissions["stock_count.cancel"];
   const canReject = ["submitted", "reviewed"].includes(count.status) && permissions["stock_count.approve"];
   const hasPrimaryAction = canSubmit || canReview || canApprove || canPost;
@@ -91,10 +92,10 @@ export default async function StockCountDetailPage({ params }: { params: Promise
       <Card>
         <CardContent className="space-y-4 p-5">
           <h2 className="text-sm font-semibold">Count Summary</h2>
-          <div className="grid gap-4 md:grid-cols-4">
+            <div className="grid gap-4 md:grid-cols-4">
             <div><p className="text-xs uppercase text-muted-foreground">Date</p><p className="font-medium">{count.count_date}</p></div>
             <div><p className="text-xs uppercase text-muted-foreground">Branch</p><p className="font-medium">{count.branch_name ?? "-"}</p></div>
-            <div><p className="text-xs uppercase text-muted-foreground">Tolerance</p><p className="font-medium">{formatNumber(count.tolerance_percent)}%</p></div>
+            <div><p className="text-xs uppercase text-muted-foreground">Tolerance</p><p className="font-medium">{formatQuantity(count.tolerance_percent)}%</p></div>
             <div><p className="text-xs uppercase text-muted-foreground">High Variance</p><p className="font-medium">{highVarianceLines.length}</p></div>
           </div>
           {count.remarks ? <p className="rounded-md border bg-secondary/30 p-3 text-sm">{count.remarks}</p> : null}
@@ -122,10 +123,10 @@ export default async function StockCountDetailPage({ params }: { params: Promise
                   return (
                     <TableRow key={line.id} className={high ? "bg-warning/10" : ""}>
                       <TableCell><p className="font-medium">{line.item?.item_name ?? line.item_id}</p><p className="text-xs text-muted-foreground">{line.item?.item_code}</p></TableCell>
-                      <TableCell className="text-right">{formatNumber(line.theoretical_qty)}</TableCell>
-                      <TableCell className="text-right font-medium">{formatNumber(line.physical_qty)}</TableCell>
-                      <TableCell className="text-right">{formatNumber(line.variance_qty)}</TableCell>
-                      <TableCell className={`text-right ${high ? "font-semibold text-warning" : ""}`}>{formatNumber(line.variance_percent)}%</TableCell>
+                      <TableCell className="text-right">{formatQuantity(line.theoretical_qty)}</TableCell>
+                      <TableCell className="text-right font-medium">{formatQuantity(line.physical_qty)}</TableCell>
+                      <TableCell className="text-right">{formatQuantity(line.variance_qty)}</TableCell>
+                      <TableCell className={`text-right ${high ? "font-semibold text-warning" : ""}`}>{formatQuantity(line.variance_percent)}%</TableCell>
                       <TableCell>{line.uom}</TableCell>
                       <TableCell>{line.remarks ?? (high ? "Remarks required" : "-")}</TableCell>
                     </TableRow>

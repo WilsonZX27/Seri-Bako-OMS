@@ -25,6 +25,7 @@ type RequestLine = {
   supplierId: string;
   cost: string;
   remarks: string;
+  reason: string;
 };
 
 function today() {
@@ -32,7 +33,7 @@ function today() {
 }
 
 function createBlankLine(key: number): RequestLine {
-  return { key, itemId: "", itemSearch: "", qty: "", uom: "", supplierId: "", cost: "0", remarks: "" };
+  return { key, itemId: "", itemSearch: "", qty: "", uom: "", supplierId: "", cost: "0", remarks: "", reason: "" };
 }
 
 function itemLabel(item: ItemOption) {
@@ -59,6 +60,14 @@ export function PurchaseRequestForm({
   initialBranchId,
   initialLines,
   initialRemarks,
+  initialRequestDate,
+  initialRequiredDate,
+  initialPriority,
+  initialNeededByDate,
+  initialUrgencyReason,
+  initialProductionRisk,
+  initialUpdatedAt,
+  lockBranch = false,
   canViewCommercial,
   action,
 }: {
@@ -68,6 +77,14 @@ export function PurchaseRequestForm({
   initialBranchId?: string;
   initialLines?: Partial<RequestLine>[];
   initialRemarks?: string;
+  initialRequestDate?: string;
+  initialRequiredDate?: string;
+  initialPriority?: ProcurementPriority;
+  initialNeededByDate?: string;
+  initialUrgencyReason?: string;
+  initialProductionRisk?: boolean;
+  initialUpdatedAt?: string;
+  lockBranch?: boolean;
   canViewCommercial: boolean;
   action: (formData: FormData) => Promise<void>;
 }) {
@@ -76,7 +93,8 @@ export function PurchaseRequestForm({
     ? initialLines.map((line, index) => ({ ...createBlankLine(index), ...line, key: index }))
     : [];
   const [lines, setLines] = useState<RequestLine[]>(initialRows.length ? initialRows : [{ ...createBlankLine(0) }]);
-  const [priority, setPriority] = useState<ProcurementPriority>("normal");
+  const [priority, setPriority] = useState<ProcurementPriority>(initialPriority ?? "normal");
+  const [branchId, setBranchId] = useState(initialBranchId ?? branches[0]?.id ?? "");
   const nextKey = lines.reduce((max, line) => Math.max(max, line.key), 0) + 1;
 
   function updateLine(key: number, updates: Partial<RequestLine>) {
@@ -110,9 +128,12 @@ export function PurchaseRequestForm({
         <form id="purchase-request-form" action={action} className="space-y-3">
           <input type="hidden" name="request_no" value="" />
           <input type="hidden" name="idempotency_key" value={idempotencyKey} />
-          <input type="hidden" name="request_date" value={today()} />
-          <input type="hidden" name="required_date" value="" />
+          <input type="hidden" name="request_date" value={initialRequestDate ?? today()} />
+          <input type="hidden" name="required_date" value={initialRequiredDate ?? ""} />
           <input type="hidden" name="priority" value={priority} />
+          <input type="hidden" name="urgency_reason" value={initialUrgencyReason ?? ""} />
+          <input type="hidden" name="production_risk" value={initialProductionRisk ? "on" : ""} />
+          <input type="hidden" name="expected_updated_at" value={initialUpdatedAt ?? ""} />
           <div className="border-b pb-2">
             <h2 className="text-sm font-semibold">Request details</h2>
           </div>
@@ -120,12 +141,13 @@ export function PurchaseRequestForm({
           <section className="space-y-3">
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-[minmax(0,1fr)_minmax(0,1.4fr)_minmax(0,1fr)]">
               <div className="order-1"><Field label="Needed By">
-                <Input name="needed_by_date" type="date" />
+                <Input name="needed_by_date" type="date" defaultValue={initialNeededByDate ?? ""} />
               </Field></div>
               <div className="order-3 col-span-2 sm:order-2 sm:col-span-1"><Field label="Branch" required>
-                <SelectNative name="branch_id" defaultValue={initialBranchId ?? branches[0]?.id ?? ""} required>
+                <SelectNative name="branch_id" value={branchId} onChange={(event) => setBranchId(event.target.value)} required disabled={lockBranch}>
                   {branches.map((branch) => <option key={branch.id} value={branch.id}>{branch.branch_name}</option>)}
                 </SelectNative>
+                {lockBranch ? <input type="hidden" name="branch_id" value={branchId} /> : null}
               </Field></div>
               <div className="order-2 sm:order-3"><Field label="Urgency"><UrgencySelect value={priority} onValueChange={setPriority} /></Field></div>
             </div>
@@ -159,6 +181,7 @@ export function PurchaseRequestForm({
                       />
                     </Field>
                     <input type="hidden" name="line_item_id" value={line.itemId} />
+                    <input type="hidden" name="line_branch_id" value={branchId} />
                   </div>
                   <Field label="Quantity" required>
                     <Input name="line_qty" type="number" min="0.0001" step="0.0001" value={line.qty} onChange={(event) => updateLine(line.key, { qty: event.target.value })} placeholder="Qty" />
@@ -192,7 +215,7 @@ export function PurchaseRequestForm({
                       <input type="hidden" name="line_remarks" value={line.remarks} />
                     </>
                   )}
-                  <input type="hidden" name="line_reason" value="" />
+                  <input type="hidden" name="line_reason" value={line.reason} />
                 </div>
               ))}
             </div>

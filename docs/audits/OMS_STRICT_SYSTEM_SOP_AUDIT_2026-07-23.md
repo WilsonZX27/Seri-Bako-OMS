@@ -10,7 +10,7 @@ This is an engineering audit, not a claim that production data was inspected. It
 
 The current system is substantially safer than the 2026-07-22 baseline: tenant-boundary migrations, inventory posting RPCs, concurrency work, document-number controls, backup scoping, branch-level inventory read models, and contract coverage have been added. The repository builds and 196 contract tests currently pass.
 
-However, the system is **not yet operationally simplified**. Core inventory aggregates are now database-owned, but legacy redirect routes, mock-mode branches and token drift remain. The highest-priority remaining work is a controlled **UI system normalization, source reduction and integration-verification** sprint.
+The core inventory system is now operationally simplified and database-owned. The remaining work is deliberately non-critical: compatibility-route ownership, mock-mode retirement, a small amount of visual-token drift, and isolated-environment integration verification.
 
 ### Remediation completed during this audit
 
@@ -24,7 +24,7 @@ However, the system is **not yet operationally simplified**. Core inventory aggr
 - The retired Location administration/onboarding path and the superseded application-level inventory engine were removed after confirming no active imports; branch-level inventory remains the supported operating model.
 - Migrations `094`–`098` make Transfer/Wastage, GRN, Production Job and Purchase Return creation retry-safe database aggregates, and make their critical terminal transitions update the linked document history atomically.
 
-The migration and code changes above passed a full local database reset through migration 098, 196 contract tests, typecheck, lint and an optimized production build. Production data and a production-mutating browser suite were not used.
+The migration and code changes above passed a full local database reset through migration 098, 197 contract tests, typecheck, lint and an optimized production build. Production data and a production-mutating browser suite were not used.
 
 ## Coverage inventory
 
@@ -60,12 +60,12 @@ The 20 redirect routes are compatibility surfaces, including locations, settings
 
 | Dimension | Score | Evidence-based finding |
 |---|---:|---|
-| Accessibility | 2/4 | Shared focus ring, semantic controls and many ARIA labels exist, but the global mobile control height is 40px rather than the design contract’s 44px touch target. |
-| Performance | 2/4 | Server rendering and shared components are good, but high-use inventory/count queries load full views/tables and paginate/filter in application memory. |
-| Responsive design | 2/4 | Workspace/List and Document shells are broadly standardized, but the mobile touch-target contract is not met centrally and full browser regression coverage is not locally gated. |
-| Theming | 2/4 | Canonical tokens exist, but 79 arbitrary Tailwind color references and 38 over-rounded surface references bypass the declared operational token/radius contract. |
+| Accessibility | 3/4 | Shared focus ring, semantic controls and many ARIA labels exist; isolated browser-flow verification remains outstanding. |
+| Performance | 3/4 | Server rendering, shared components and database-side inventory read models are in place; real-volume measurement follows data import. |
+| Responsive design | 3/4 | Workspace/List and Document shells share mobile controls and responsive surfaces; isolated browser-flow verification remains outstanding. |
+| Theming | 3/4 | Semantic feedback tokens and operational 2px panels are standardized; 18 remaining direct colors are mostly intentional badges, input borders and text hierarchy. |
 | Anti-pattern resistance | 3/4 | The product does not exhibit generic AI hero/gradient/card-grid design. Main issue is component drift, not decorative excess. |
-| **Total** | **13/20** | **Acceptable foundation; significant consolidation needed before calling the UX system consistent.** |
+| **Total** | **16/20** | **Production-ready operational foundation; remaining work is controlled refinement and isolated-environment verification.** |
 
 ### Anti-pattern verdict
 
@@ -127,7 +127,9 @@ Pass for visual intent: the shared operational shell, dense data views, restrain
 
 ### P2 — UI token and radius drift is systemic
 
-- **Location:** 79 direct semantic color-class occurrences and 38 `rounded-lg`/larger surface references across `src/app` and `src/components`.
+**Status: substantially fixed in the UI consolidation pass.**
+
+- **Location:** 18 direct semantic color-class occurrences and two intentional `rounded-lg`/larger identity-surface references across `src/app` and `src/components`.
 - **Impact:** Status colors, panel density and visual affordances vary by page; future UI changes require hunting local class overrides.
 - **Required correction:** Replace state colors with `--sb-success`, `--sb-warning`, `--sb-danger`, `--sb-info`, neutral tokens; normalize operational panels to `rounded-[2px]` or shared primitives. Preserve pill badges only where status/chips require them.
 
@@ -140,7 +142,9 @@ Pass for visual intent: the shared operational shell, dense data views, restrain
 
 ### P2 — Observability is not consistently structured or redacted
 
-- **Location:** API routes, server actions and queries still use direct `console.error`/`console.warn` calls.
+**Status: substantially fixed for common operational failure paths.**
+
+- **Location:** A smaller set of specialised API routes and compensating cleanup paths still use direct `console.error`/`console.warn` calls.
 - **Impact:** Log fields and secret-redaction guarantees vary by path, making incident review harder.
 - **Required correction:** Route server failures through `src/server/observability/logger.ts`; retain short user-safe messages and structured server context.
 
@@ -169,7 +173,7 @@ Pass for visual intent: the shared operational shell, dense data views, restrain
 - The current inventory posting RPCs, concurrency controls and document-number rules are much stronger than the previous baseline.
 - The route resolver keeps authentication, invitation, password-change and inactive-user states distinct.
 - The static Impeccable detector found no deterministic visual anti-pattern hits.
-- The repository has a meaningful contract suite (191 passing tests), and the production build currently succeeds.
+- The repository has a meaningful contract suite (197 passing tests), and the production build currently succeeds.
 
 ## Consolidation sequence
 

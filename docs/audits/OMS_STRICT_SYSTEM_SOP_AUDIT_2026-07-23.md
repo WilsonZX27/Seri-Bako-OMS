@@ -18,7 +18,7 @@ The core inventory system is now operationally simplified and database-owned. Th
 - Migration `092_stock_operation_terminal_transition_atomicity.sql` makes unposted transfer and wastage cancellation/rejection locked, permission-gated, branch-scoped and atomic with the linked document, revision and activity log. It forbids terminal relabelling once posting has occurred.
 - Mutation-capable Playwright runs are fail-closed without an explicit isolated target; a remote target additionally requires `ALLOW_REMOTE_E2E=1`.
 - The mobile shared control token is now 44px and keeps the 36px compact desktop/tablet token from `sm` upward.
-- Release/reset documentation now uses migration ceiling 092. The four unused direct dependencies were removed after a build check.
+- Release/reset documentation now uses migration ceiling 098. The four unused direct dependencies were removed after a build check.
 - Migration `093_branch_level_inventory_read_models.sql` moves ledger, balance, valuation, low-stock, and stock-count list filtering/paging to branch-level database read models.
 - Shared UI feedback now uses semantic success, warning, danger, info, and neutral tokens across authentication, priority, workspace, destructive-action, and KPI entry points. Commit `6a8004f` is deployed to production.
 - The retired Location administration/onboarding path and the superseded application-level inventory engine were removed after confirming no active imports; branch-level inventory remains the supported operating model.

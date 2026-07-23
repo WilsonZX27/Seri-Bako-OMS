@@ -158,9 +158,9 @@ where document_type in (
 order by document_type;
 
 select
-  'migration_ceiling_093' as check_name,
+  'migration_ceiling_098' as check_name,
   version,
-  version = '093' as passed
+  version = '098' as passed
 from supabase_migrations.schema_migrations
 order by version desc
 limit 1;

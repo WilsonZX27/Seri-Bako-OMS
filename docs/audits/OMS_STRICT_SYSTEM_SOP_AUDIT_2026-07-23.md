@@ -24,7 +24,7 @@ The core inventory system is now operationally simplified and database-owned. Th
 - The retired Location administration/onboarding path and the superseded application-level inventory engine were removed after confirming no active imports; branch-level inventory remains the supported operating model.
 - Migrations `094`–`098` make Transfer/Wastage, GRN, Production Job and Purchase Return creation retry-safe database aggregates, and make their critical terminal transitions update the linked document history atomically.
 
-The migration and code changes above passed a full local database reset through migration 098, 197 contract tests, typecheck, lint and an optimized production build. Production data and a production-mutating browser suite were not used.
+The migration and code changes above passed a full local database reset through migration 098, 197 contract tests, typecheck, lint and an optimized production build. The isolated local tenant-backup browser suite also passed: forged company parameters cannot change an Owner backup's scope, and Manager or disabled-Owner accounts cannot download it. Production data and a production-mutating browser suite were not used.
 
 ## Coverage inventory
 
@@ -187,4 +187,4 @@ Pass for visual intent: the shared operational shell, dense data views, restrain
 
 ## Verification boundary
 
-Not performed in this audit: production data inspection, a production-mutating E2E run, or an external security scan. Those are separate activities and must not be conflated with the code evidence above.
+Not performed in this audit: production data inspection, a production-mutating E2E run, or an external security scan. A local disposable tenant-backup E2E suite was completed; those separate activities must not be conflated with the code evidence above.

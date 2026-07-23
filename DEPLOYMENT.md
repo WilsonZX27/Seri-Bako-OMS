@@ -511,6 +511,32 @@ The Sprint 7.21 application baseline is `v0.2.29 / Sprint 7.21` with migration c
 
 Use versioned migrations as the source of truth. If a migration must be applied through the Supabase SQL Editor, record the project ID, source filename, ledger result, and verification evidence; never edit an already-applied file. No pilot CSV should be imported until a backup/recovery path and an owner-approved rollback or correction procedure are known.
 
+## Sprint 7.23.7.0 P0 Owner access-control closure
+
+The application baseline is `v7.23.7.0` with additive migration
+`082_owner_access_control_closure.sql` after migration 081. First-Owner
+provisioning is an operator-controlled path: the deployment owner sets the
+server-only `SUPABASE_BOOTSTRAP_TOKEN`, signs in the intended first Owner, and
+submits the token on `/setup`. The server action compares the token without
+exposing it and invokes the service-role-only `bootstrap_first_admin()` RPC.
+The database RPC requires the service-role claim, takes a transaction advisory
+lock, and rejects the request once an active Owner exists. Do not grant the RPC
+to `authenticated`, and do not place the token in client bundles or logs.
+
+Owner/Auth identity relinking is permitted only through the existing
+Owner-authenticated `repair_staff_auth_link` RPC with exact email matching. A
+database trigger rejects direct updates, service-role imports, and other paths
+that change `auth_user_id` on an Owner row without the RPC's transaction-local
+capability. Verify the migration ledger entry and SHA-256 checksum before any
+controlled application of migration 082; no production data or deployment is
+changed by this sprint.
+
+Local migration checksums (SHA-256):
+- `081_tenant_boundary_closure.sql`: `dfbcec7a20b3f12a7eef07a306d7f48a129d3048a3296689117e115df6f2ca0f`
+- `082_owner_access_control_closure.sql`: `6e9f745ac16effce8ceb36e10f30700e2f10dec93131c1958cf6a3d240bb71dc`
+Record the applied filename, checksum, migration-ledger row, and verification
+timestamp together; never rewrite migration 082 after it is applied.
+
 If CLI migration access fails because DNS or network resolution is unavailable, do not retry blindly. Use a controlled SQL Editor application only with explicit authorization, apply the reviewed migration once, and verify the migration ledger and live objects afterward.
 
 Pilot rollback is operational rather than an automatic reverse migration: stop writes, preserve evidence, identify the last verified application and migration state, restore through the approved Supabase backup/PITR capability when necessary, and deploy only a reviewed compatible code change or corrective migration. Do not delete real records to make a failed check appear clean.

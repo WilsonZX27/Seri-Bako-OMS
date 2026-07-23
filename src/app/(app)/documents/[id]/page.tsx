@@ -56,7 +56,7 @@ export default async function DocumentDetailPage({
     >
           {messageParams.error || messageParams.success ? (
             <Card>
-              <CardContent className={`p-4 text-sm ${messageParams.error ? "text-destructive" : "text-emerald-700"}`}>
+              <CardContent className={`p-4 text-sm ${messageParams.error ? "text-destructive" : "text-[var(--sb-success)]"}`}>
                 {messageParams.error ?? messageParams.success}
               </CardContent>
             </Card>

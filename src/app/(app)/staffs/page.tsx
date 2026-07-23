@@ -25,7 +25,7 @@ export default async function StaffsPage({ searchParams }: { searchParams: Promi
       <WorkspaceGrid rightRail={<><ConsoleSection title="Actions"><Button asChild size="sm" className="w-full"><Link href="/staffs/new">New staff</Link></Button></ConsoleSection><ConsoleSection title="Staff Summary"><dl className="grid gap-2 text-xs"><div className="flex justify-between"><dt className="text-muted-foreground">Total</dt><dd className="font-semibold">{staffs.length}</dd></div><div className="flex justify-between"><dt className="text-muted-foreground">Active</dt><dd className="font-semibold">{staffs.filter((staff) => staff.status === "active").length}</dd></div><div className="flex justify-between"><dt className="text-muted-foreground">Invited / pending</dt><dd className="font-semibold">{staffs.filter((staff) => ["invited", "pending"].includes(staff.invitation_status ?? staff.status)).length}</dd></div><div className="flex justify-between"><dt className="text-muted-foreground">Disabled</dt><dd className="font-semibold">{staffs.filter((staff) => staff.status === "disabled").length}</dd></div></dl></ConsoleSection></>}>
         {filters.error || filters.success ? (
           <Card>
-            <CardContent className={`p-4 text-sm ${filters.error ? "text-destructive" : "text-emerald-700"}`}>
+            <CardContent className={`p-4 text-sm ${filters.error ? "text-destructive" : "text-[var(--sb-success)]"}`}>
               {filters.error ?? filters.success}
             </CardContent>
           </Card>

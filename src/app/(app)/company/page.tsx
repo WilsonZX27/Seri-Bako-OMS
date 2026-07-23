@@ -42,7 +42,7 @@ export default async function CompanyPage({
       >
         {params.error || params.success ? (
           <Card>
-            <CardContent className={`p-4 text-sm ${params.error ? "text-destructive" : "text-emerald-700"}`}>
+            <CardContent className={`p-4 text-sm ${params.error ? "text-destructive" : "text-[var(--sb-success)]"}`}>
               {params.error ?? params.success}
             </CardContent>
           </Card>

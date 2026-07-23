@@ -100,7 +100,7 @@ export default async function SupplierInvoiceDetailPage({ params, searchParams }
         </>
       }
     >
-      {messageParams.error || messageParams.success ? <Card><CardContent className={`p-3 text-xs ${messageParams.error ? "text-destructive" : "text-emerald-700"}`}>{messageParams.error ?? messageParams.success}</CardContent></Card> : null}
+      {messageParams.error || messageParams.success ? <Card><CardContent className={`p-3 text-xs ${messageParams.error ? "text-destructive" : "text-[var(--sb-success)]"}`}>{messageParams.error ?? messageParams.success}</CardContent></Card> : null}
       {documentBundle ? <div className="md:hidden"><AttachmentPanel documentId={documentBundle.document.id} attachments={documentBundle.attachments} title="Supplier Invoice" description="Attach the supplier-issued invoice before Finance approval." defaultLabel="Supplier Invoice" uploadLabel="Attach Supplier Invoice" presentation="inline" canManage={permissions["documents.attach"]} documentStatus={documentBundle.document.status} /></div> : null}
       {invoice.status === "draft" && editSources ? (
         <SupplierInvoiceForm

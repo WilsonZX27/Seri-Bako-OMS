@@ -107,7 +107,7 @@ export default async function ProductionJobDetailPage({
     >
       {messages.error || messages.success ? (
         <Card>
-          <CardContent className={`p-4 text-sm ${messages.error ? "text-destructive" : "text-emerald-700"}`}>
+          <CardContent className={`p-4 text-sm ${messages.error ? "text-destructive" : "text-[var(--sb-success)]"}`}>
             {messages.error ?? messages.success}
           </CardContent>
         </Card>

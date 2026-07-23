@@ -24,7 +24,7 @@ export default async function UomConversionsPage({ searchParams }: { searchParam
       <WorkspaceGrid rightRail={<ConsoleSection title="Actions"><Button asChild size="sm" className="w-full" data-mobile-primary-action><Link href="/uom-conversions/new">New conversion</Link></Button></ConsoleSection>}>
         {filters.error || filters.success ? (
           <Card>
-            <CardContent className={`p-4 text-sm ${filters.error ? "text-destructive" : "text-emerald-700"}`}>
+            <CardContent className={`p-4 text-sm ${filters.error ? "text-destructive" : "text-[var(--sb-success)]"}`}>
               {filters.error ?? filters.success}
             </CardContent>
           </Card>

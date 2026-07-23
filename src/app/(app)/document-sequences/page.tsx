@@ -23,7 +23,7 @@ export default async function DocumentSequencesPage({ searchParams }: { searchPa
       <WorkspaceGrid rightRail={<>{canCreate ? <ConsoleSection title="Actions"><Button asChild size="sm" className="w-full" data-mobile-primary-action><Link href="/document-sequences/new">New sequence</Link></Button></ConsoleSection> : null}<ConsoleSection title="Sequence Summary"><p className="text-xs text-muted-foreground">{sequences.length} numbering {sequences.length === 1 ? "sequence" : "sequences"} in the current view.</p></ConsoleSection></>}>
         {filters.error || filters.success ? (
           <Card>
-            <CardContent className={`p-4 text-sm ${filters.error ? "text-destructive" : "text-emerald-700"}`}>
+            <CardContent className={`p-4 text-sm ${filters.error ? "text-destructive" : "text-[var(--sb-success)]"}`}>
               {filters.error ?? filters.success}
             </CardContent>
           </Card>

@@ -177,7 +177,7 @@ export default async function PurchaseRequestDetailPage({
     >
           {messageParams.error || messageParams.success ? (
             <Card>
-              <CardContent className={`p-3 text-xs ${messageParams.error ? "text-destructive" : "text-emerald-700"}`}>
+              <CardContent className={`p-3 text-xs ${messageParams.error ? "text-destructive" : "text-[var(--sb-success)]"}`}>
                 {messageParams.error ?? messageParams.success}
                 <StaleWorkflowRefresh message={messageParams.error} />
               </CardContent>

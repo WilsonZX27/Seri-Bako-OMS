@@ -11,7 +11,10 @@ try {
     if (match && !match[1].startsWith("NEXT_PUBLIC_")) localEnv[match[1]] = match[2].replace(/^['"]|['"]$/g, "");
   }
 } catch {}
-const child = spawn(process.execPath, ["--use-system-ca", nextBin, "start", "-p", "3000"], {
+// `next start` serves the existing production bundle, whose NEXT_PUBLIC_* values
+// were fixed when that bundle was built. Local browser tests must compile against
+// `.env.test.local` instead of accidentally using a previously built remote target.
+const child = spawn(process.execPath, ["--use-system-ca", nextBin, "dev", "-p", "3000"], {
   cwd: process.cwd(),
   env: {
     ...process.env,

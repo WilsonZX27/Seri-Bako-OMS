@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { logServerWarning } from "@/server/observability/logger";
 import {
   getMockLowStockItems,
   getMockStockBalances,
@@ -30,7 +31,7 @@ const LEDGER_SORT_COLUMNS = new Set(["transaction_no", "transaction_date", "tran
 const BALANCE_SORT_COLUMNS = new Set(["item_code", "item_name", "branch_name", "current_qty", "average_cost", "inventory_value", "last_movement"]);
 
 function warnOptionalInventoryQuery(name: string, error: { message?: string } | null | undefined) {
-  if (error) console.warn(`[inventory] Optional ${name} query failed: ${error.message ?? "Unknown error"}`);
+  if (error) logServerWarning(error, { source: `inventory.optional.${name}` });
 }
 
 function requestedPage(pageValue?: string) {

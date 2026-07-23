@@ -12,3 +12,7 @@ function redact(value: unknown): unknown {
 export function logServerError(error: unknown, context: LogContext = {}) {
   console.error(JSON.stringify({ level: "error", timestamp: new Date().toISOString(), ...context, error: redact(error) }));
 }
+
+export function logServerWarning(error: unknown, context: LogContext = {}) {
+  console.warn(JSON.stringify({ level: "warn", timestamp: new Date().toISOString(), ...context, error: redact(error) }));
+}

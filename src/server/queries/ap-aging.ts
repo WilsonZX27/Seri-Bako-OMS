@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { logServerError } from "@/server/observability/logger";
 
 export type ApAgingRow = {
   id: string;
@@ -107,7 +108,7 @@ export async function getApAgingReport(filters: Record<string, string | undefine
     p_page_size: exportAll ? 10000 : 20,
   });
   if (error) {
-    console.error("[ap-aging] RPC failed", { code: error.code, message: error.message });
+    logServerError(error, { source: "ap-aging.getApAgingReport" });
     throw new Error("AP Aging report is unavailable.");
   }
   return data as unknown as ApAgingReport;

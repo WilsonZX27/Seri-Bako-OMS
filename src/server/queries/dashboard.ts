@@ -6,6 +6,7 @@ import { getPayablesAttention } from "@/server/queries/ap-aging";
 import { getOperationsControlCenterSummary } from "@/server/queries/outlet-daily-records";
 import { getProductionHubSummary } from "@/server/queries/production-jobs";
 import { getRoleDisplayLabel } from "@/lib/roles";
+import { logServerError, logServerWarning } from "@/server/observability/logger";
 import {
   getMockLowStockItems,
   getMockStockBalances,
@@ -20,7 +21,7 @@ import {
 } from "@/lib/mock-mode";
 
 function warnOptionalQuery(name: string, error: { message?: string } | null | undefined) {
-  if (error) console.warn(`[dashboard] Optional ${name} query failed: ${error.message ?? "Unknown error"}`);
+  if (error) logServerWarning(error, { source: `dashboard.optional.${name}` });
 }
 
 export async function getDashboardSummary() {
@@ -154,7 +155,7 @@ export async function getDashboardSummary() {
       payablesAttention = await getPayablesAttention();
     } catch {
       payablesAttentionUnavailable = true;
-      console.error("[dashboard] AP Aging unavailable; rendering the remaining dashboard.");
+      logServerError("AP Aging unavailable; rendering the remaining dashboard.", { source: "dashboard.payablesAttention" });
     }
   }
   let operationsControl: Awaited<ReturnType<typeof getOperationsControlCenterSummary>> | null = null;
@@ -162,7 +163,7 @@ export async function getDashboardSummary() {
     try {
       operationsControl = await getOperationsControlCenterSummary();
     } catch {
-      console.error("[dashboard] Operations control summaries unavailable; rendering the remaining dashboard.");
+      logServerError("Operations control summaries unavailable; rendering the remaining dashboard.", { source: "dashboard.operationsControl" });
     }
   }
 

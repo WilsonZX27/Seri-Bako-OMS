@@ -5,18 +5,14 @@ import { redirect } from "next/navigation";
 import { isMockMode, mockCompany, mockProfile } from "@/lib/mock-mode";
 import { createClient } from "@/lib/supabase/server";
 import { stockTransferSchema, stockWastageSchema } from "@/lib/validations/stock-operations";
-import { writeActivityLog } from "@/server/activity/log";
 import { requirePermission } from "@/server/auth/permissions";
 import { formatActionError, requirePermissionOrRedirect, rethrowRedirect, safeRedirectWithMessage } from "@/server/actions/error-handling";
 import { revalidateWorkspaceState } from "@/server/actions/revalidate";
 import { resolveDocumentNumber } from "@/server/documents/sequences";
 import { resolveDefaultLocation } from "@/server/inventory/locations";
 import { getCurrentProfile } from "@/server/queries/common";
+import { z } from "zod";
 
-function clean(value: unknown) {
-  const text = String(value ?? "").trim();
-  return text.length ? text : null;
-}
 async function identity() {
   if (isMockMode()) return { company_id: mockCompany.id, id: mockProfile.id };
   return getCurrentProfile();
@@ -59,27 +55,6 @@ function extractWastage(formData: FormData) {
   });
 }
 
-async function createDoc(no: string, type: string, title: string, relatedId: string) {
-  const profile = await identity();
-  const supabase = await createClient();
-  const { data, error } = await supabase.from("documents").insert({
-    company_id: profile?.company_id ?? null,
-    document_no: no,
-    document_type: type,
-    title,
-    status: "draft",
-    approval_status: "draft",
-    current_step: "Draft",
-    related_entity_type: type,
-    related_entity_id: relatedId,
-    created_by: profile?.id ?? null,
-    updated_by: profile?.id ?? null,
-  }).select("id").single();
-  if (error) throw new Error(error.message);
-  await supabase.from("document_revisions").insert({ document_id: data.id, revision_no: 1, change_summary: "Initial document created.", changed_by: profile?.id ?? null });
-  return data.id;
-}
-
 export async function createStockTransfer(formData: FormData) {
   await requirePermissionOrRedirect("stock_transfer.create", "/stock-transfers/new");
   try {
@@ -90,24 +65,17 @@ export async function createStockTransfer(formData: FormData) {
     const toLocationId = await resolveDefaultLocation(payload.to_branch_id, payload.to_location_id);
     if (fromLocationId === toLocationId) throw new Error("Source and destination cannot be the same location.");
     const profile = await identity();
+    const idempotencyKey = z.uuid().parse(String(formData.get("idempotency_key") ?? ""));
     const transferNo = await resolveDocumentNumber({
       companyId: profile?.company_id,
       documentType: "stock_transfer",
       enteredNumber: payload.transfer_no,
     });
     const supabase = await createClient();
-    const { lines, ...header } = payload;
-    const { data, error } = await supabase.from("stock_transfers").insert({ company_id: profile?.company_id ?? null, ...header, transfer_no: transferNo, from_location_id: fromLocationId, to_location_id: toLocationId, created_by: profile?.id ?? null, updated_by: profile?.id ?? null }).select("id").single();
+    const { data, error } = await supabase.rpc("create_stock_transfer_atomic", { p_payload: { ...payload, transfer_no: transferNo, from_location_id: fromLocationId, to_location_id: toLocationId, idempotency_key: idempotencyKey } });
     if (error) throw new Error(error.message);
-    const docId = await createDoc(transferNo, "stock_transfer", `Stock Transfer ${transferNo}`, data.id);
-    const [{ error: upErr }, { error: linesErr }] = await Promise.all([
-      supabase.from("stock_transfers").update({ document_id: docId }).eq("id", data.id),
-      supabase.from("stock_transfer_lines").insert(lines.map((line) => ({ ...line, stock_transfer_id: data.id, remarks: clean(line.remarks) }))),
-    ]);
-    if (upErr) throw new Error(upErr.message);
-    if (linesErr) throw new Error(linesErr.message);
-    await writeActivityLog({ entityType: "document", entityId: docId, activityType: "created", message: `Stock transfer ${transferNo} created` });
-    redirect(`/stock-transfers/${data.id}`);
+    const created = data as { id: string };
+    redirect(`/stock-transfers/${created.id}`);
   } catch (error) {
     rethrowRedirect(error);
     safeRedirectWithMessage("/stock-transfers/new", "error", formatActionError(error, "Could not create this stock transfer."));
@@ -151,24 +119,17 @@ export async function createStockWastage(formData: FormData) {
     if (isMockMode()) redirect("/stock-wastage/wastage-damaged");
     const locationId = await resolveDefaultLocation(payload.branch_id, payload.location_id);
     const profile = await identity();
+    const idempotencyKey = z.uuid().parse(String(formData.get("idempotency_key") ?? ""));
     const wastageNo = await resolveDocumentNumber({
       companyId: profile?.company_id,
       documentType: "stock_wastage",
       enteredNumber: payload.wastage_no,
     });
     const supabase = await createClient();
-    const { lines, ...header } = payload;
-    const { data, error } = await supabase.from("stock_wastage").insert({ company_id: profile?.company_id ?? null, ...header, wastage_no: wastageNo, location_id: locationId, created_by: profile?.id ?? null, updated_by: profile?.id ?? null }).select("id").single();
+    const { data, error } = await supabase.rpc("create_stock_wastage_atomic", { p_payload: { ...payload, wastage_no: wastageNo, location_id: locationId, idempotency_key: idempotencyKey } });
     if (error) throw new Error(error.message);
-    const docId = await createDoc(wastageNo, "stock_wastage", `Stock Wastage ${wastageNo}`, data.id);
-    const [{ error: updateError }, { error: linesError }] = await Promise.all([
-      supabase.from("stock_wastage").update({ document_id: docId }).eq("id", data.id),
-      supabase.from("stock_wastage_lines").insert(lines.map((line) => ({ ...line, stock_wastage_id: data.id, batch_no: clean(line.batch_no), expiry_date: clean(line.expiry_date), remarks: clean(line.remarks) }))),
-    ]);
-    if (updateError) throw new Error(updateError.message);
-    if (linesError) throw new Error(linesError.message);
-    await writeActivityLog({ entityType: "document", entityId: docId, activityType: "created", message: `Stock wastage ${wastageNo} created` });
-    redirect(`/stock-wastage/${data.id}`);
+    const created = data as { id: string };
+    redirect(`/stock-wastage/${created.id}`);
   } catch (error) {
     rethrowRedirect(error);
     safeRedirectWithMessage("/stock-wastage/new", "error", formatActionError(error, "Could not create this stock wastage."));

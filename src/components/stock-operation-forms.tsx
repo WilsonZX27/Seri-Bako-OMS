@@ -1,6 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import { useState } from "react";
 import { AlertTriangle } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Field } from "@/components/ui/field";
@@ -16,10 +17,12 @@ type SeedLine = { item_id: string; item_code: string; item_name: string; availab
 
 export function StockTransferForm({ branches, selectedFromBranchId, seedLines, action, formId, showSubmit = true }: { branches: Branch[]; selectedFromBranchId?: string; seedLines: SeedLine[]; action: (formData: FormData) => Promise<void>; formId?: string; showSubmit?: boolean }) {
   const router = useRouter();
+  const [idempotencyKey] = useState(() => crypto.randomUUID());
   function selectFromBranch(id: string) { router.push(id ? `/stock-transfers/new?from_branch_id=${id}` : "/stock-transfers/new"); }
   return (
     <Card><CardContent className="p-5">
       <form id={formId} action={action} className="space-y-4">
+        <input type="hidden" name="idempotency_key" value={idempotencyKey} />
         <div className="grid gap-4 md:grid-cols-3">
           <Field label="Transfer No"><div className="rounded-md border bg-secondary/30 px-3 py-2 text-sm text-muted-foreground">Auto-generated on submit</div></Field>
           <Field label="Transfer Date"><Input name="transfer_date" type="date" defaultValue={getToday()} required /></Field>
@@ -36,10 +39,12 @@ export function StockTransferForm({ branches, selectedFromBranchId, seedLines, a
 
 export function StockWastageForm({ branches, selectedBranchId, seedLines, action, formId, showSubmit = true }: { branches: Branch[]; selectedBranchId?: string; seedLines: SeedLine[]; action: (formData: FormData) => Promise<void>; formId?: string; showSubmit?: boolean }) {
   const router = useRouter();
+  const [idempotencyKey] = useState(() => crypto.randomUUID());
   function selectBranch(id: string) { router.push(id ? `/stock-wastage/new?branch_id=${id}` : "/stock-wastage/new"); }
   return (
     <Card><CardContent className="p-5">
       <form id={formId} action={action} className="space-y-4">
+        <input type="hidden" name="idempotency_key" value={idempotencyKey} />
         <div className="grid gap-4 md:grid-cols-3">
           <Field label="Wastage No"><div className="rounded-md border bg-secondary/30 px-3 py-2 text-sm text-muted-foreground">Auto-generated on submit</div></Field>
           <Field label="Wastage Date"><Input name="wastage_date" type="date" defaultValue={getToday()} required /></Field>

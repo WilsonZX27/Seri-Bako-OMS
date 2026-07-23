@@ -3,10 +3,10 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { isMockMode } from "@/lib/mock-mode";
-import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import { supplierSchema } from "@/lib/validations/supplier";
 import { formatActionError, requirePermissionOrRedirect, rethrowRedirect, safeRedirectWithMessage } from "@/server/actions/error-handling";
+import { requireActiveTenantActor } from "@/server/auth/tenant-actor";
 
 function cleanText(value: unknown) {
   const text = String(value ?? "").trim();
@@ -32,7 +32,8 @@ export async function createSupplier(formData: FormData) {
     });
 
     const supabase = await createClient();
-    const writeSupabase = createAdminClient();
+    const actor = await requireActiveTenantActor();
+    const writeSupabase = supabase;
     if (parsed.supplier_code) {
       const { data: archivedMatch, error: archivedError } = await supabase
         .from("suppliers")
@@ -46,7 +47,7 @@ export async function createSupplier(formData: FormData) {
         safeRedirectWithMessage(`/suppliers/${archivedMatch.id}`, "error", "An archived supplier with the same code already exists. Restore it instead of creating a duplicate.");
       }
     }
-      const { error } = await writeSupabase.from("suppliers").insert(parsed);
+    const { error } = await writeSupabase.from("suppliers").insert({ ...parsed, company_id: actor.companyId });
     if (error) throw new Error(error.message);
 
     revalidatePath("/suppliers");
@@ -74,7 +75,7 @@ export async function updateSupplier(id: string, formData: FormData) {
   });
 
   try {
-    const writeSupabase = createAdminClient();
+    const writeSupabase = await createClient();
     const { error } = await writeSupabase.from("suppliers").update(parsed).eq("id", id);
     if (error) throw new Error(error.message);
 
@@ -93,7 +94,7 @@ export async function deleteSupplier(id: string) {
       redirect("/suppliers");
     }
 
-    const writeSupabase = createAdminClient();
+    const writeSupabase = await createClient();
     const { error } = await writeSupabase
       .from("suppliers")
       .update({ status: "inactive" })
@@ -115,7 +116,7 @@ export async function restoreSupplier(id: string) {
       redirect("/suppliers");
     }
 
-    const writeSupabase = createAdminClient();
+    const writeSupabase = await createClient();
     const { error } = await writeSupabase
       .from("suppliers")
       .update({ status: "active" })

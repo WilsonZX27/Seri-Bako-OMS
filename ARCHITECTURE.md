@@ -189,6 +189,8 @@ Authentication proves identity. It does not automatically grant permission to ev
 
 Seri Bako OMS uses permission-based authorization.
 
+Current authoritative scope baseline (v7.23.7.0 / migration 090): Super Admin, Finance, Manager, and Purchasing have company-wide operational scope; Kitchen and Outlet Staff are assigned-branch scoped. PostgreSQL RLS and server guards are the authorization boundary. Older sprint notes below are historical.
+
 ### Roles
 
 The role catalogue is fixed: `super_admin`, `finance`, `manager`, `purchasing`, `kitchen`, and `outlet_staff`. Migration 071 archives legacy role rows after guarded assignment conversion. Roles are system-controlled defaults, not user-created configuration.

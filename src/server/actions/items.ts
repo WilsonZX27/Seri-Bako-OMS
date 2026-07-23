@@ -6,6 +6,7 @@ import { isMockMode } from "@/lib/mock-mode";
 import { createClient } from "@/lib/supabase/server";
 import { itemSchema } from "@/lib/validations/item";
 import { formatActionError, requirePermissionOrRedirect, rethrowRedirect, safeRedirectWithMessage } from "@/server/actions/error-handling";
+import { requireActiveTenantActor } from "@/server/auth/tenant-actor";
 import { uploadMasterDataImage } from "@/server/storage/master-data-image";
 
 const editableItemSchema = itemSchema.omit({ status: true });
@@ -47,8 +48,9 @@ export async function createItem(formData: FormData) {
     }
 
     const supabase = await createClient();
+    const actor = await requireActiveTenantActor();
     const writeSupabase = supabase;
-    const itemPayload = { ...payload(formData), status: "active" as const };
+    const itemPayload = { ...payload(formData), company_id: actor.companyId, status: "active" as const };
     const { data: archivedMatch, error: archivedError } = await supabase
       .from("items")
       .select("id")

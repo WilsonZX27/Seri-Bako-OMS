@@ -179,6 +179,7 @@ begin
       and s.company_id = (select company_id from public.staffs where id = new.staff_id)
   );
   if not actor_is_owner
+     and coalesce(current_setting('request.jwt.claim.role', true), (nullif(current_setting('request.jwt.claims', true), '')::jsonb ->> 'role'), '') <> 'service_role'
      and coalesce(current_setting('seri_bako.bootstrap_owner_assignment', true), '') <> 'authorized'
      and not (
        current_user in ('postgres', 'supabase_admin')

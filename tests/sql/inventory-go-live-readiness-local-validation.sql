@@ -19,25 +19,31 @@ insert into public.staffs (id, company_id, auth_user_id, staff_code, full_name, 
 values
   ('95000000-0000-0000-0000-000000000001', '91000000-0000-0000-0000-000000000001', '94000000-0000-0000-0000-000000000001', 'INV-OWNER-T', 'Inventory Owner Test', 'inventory.owner@example.invalid', '92000000-0000-0000-0000-000000000001'),
   ('95000000-0000-0000-0000-000000000002', '91000000-0000-0000-0000-000000000001', '94000000-0000-0000-0000-000000000002', 'INV-KITCHEN-T', 'Inventory Kitchen Test', 'inventory.kitchen@example.invalid', '92000000-0000-0000-0000-000000000001');
+insert into public.roles(company_id,role_code,role_name) values
+ ('91000000-0000-0000-0000-000000000001','super_admin','Super Admin / Owner'),
+ ('91000000-0000-0000-0000-000000000001','kitchen','Kitchen');
+insert into public.role_permissions(role_id,permission_id)
+select distinct target.id,rp.permission_id from public.roles target join public.roles template on template.role_code=target.role_code and template.company_id is distinct from target.company_id join public.role_permissions rp on rp.role_id=template.id
+where target.company_id='91000000-0000-0000-0000-000000000001' on conflict do nothing;
 insert into public.staff_roles (staff_id, role_id, branch_id, is_primary)
-select '95000000-0000-0000-0000-000000000001', id, null, true from public.roles where role_code = 'super_admin';
+select '95000000-0000-0000-0000-000000000001', id, null, true from public.roles where role_code = 'super_admin' and company_id='91000000-0000-0000-0000-000000000001';
 insert into public.staff_roles (staff_id, role_id, branch_id, is_primary)
-select '95000000-0000-0000-0000-000000000002', id, '92000000-0000-0000-0000-000000000001', true from public.roles where role_code = 'kitchen';
+select '95000000-0000-0000-0000-000000000002', id, '92000000-0000-0000-0000-000000000001', true from public.roles where role_code = 'kitchen' and company_id='91000000-0000-0000-0000-000000000001';
 insert into public.staff_branches (staff_id, branch_id, access_level, is_default)
 values
   ('95000000-0000-0000-0000-000000000001', '92000000-0000-0000-0000-000000000001', 'full', true),
   ('95000000-0000-0000-0000-000000000002', '92000000-0000-0000-0000-000000000001', 'full', true);
 
-insert into public.suppliers (id, supplier_code, name, status)
-values ('96000000-0000-0000-0000-000000000001', 'INV-SUP-T', 'Inventory Supplier Test', 'active');
-insert into public.items (id, item_code, item_name, category, purchase_unit, base_unit, cost, status)
+insert into public.suppliers (id, company_id, supplier_code, name, status)
+values ('96000000-0000-0000-0000-000000000001', '91000000-0000-0000-0000-000000000001', 'INV-SUP-T', 'Inventory Supplier Test', 'active');
+insert into public.items (id, company_id, item_code, item_name, category, purchase_unit, base_unit, cost, status)
 values
-  ('97000000-0000-0000-0000-000000000001', 'INV-ITEM-1', 'Canonical Inventory Item', 'Validation', 'KG', 'KG', 4, 'active'),
-  ('97000000-0000-0000-0000-000000000002', 'INV-ITEM-2', 'Canonical Inventory Item Two', 'Validation', 'PCS', 'PCS', 2, 'active');
+  ('97000000-0000-0000-0000-000000000001', '91000000-0000-0000-0000-000000000001', 'INV-ITEM-1', 'Canonical Inventory Item', 'Validation', 'KG', 'KG', 4, 'active'),
+  ('97000000-0000-0000-0000-000000000002', '91000000-0000-0000-0000-000000000001', 'INV-ITEM-2', 'Canonical Inventory Item Two', 'Validation', 'PCS', 'PCS', 2, 'active');
 insert into public.supplier_items (
-  id, supplier_id, item_id, supplier_item_code, supplier_item_name, purchase_uom, unit_cost
+  id, company_id, supplier_id, item_id, supplier_item_code, supplier_item_name, purchase_uom, unit_cost
 ) values (
-  '96500000-0000-0000-0000-000000000001', '96000000-0000-0000-0000-000000000001',
+  '96500000-0000-0000-0000-000000000001', '91000000-0000-0000-0000-000000000001', '96000000-0000-0000-0000-000000000001',
   '97000000-0000-0000-0000-000000000001', 'INV-SUP-ITEM-1', 'Inventory Supplier Item One', 'KG', 4
 );
 insert into public.branch_supplier_items (branch_id, supplier_item_id, item_id, is_preferred)

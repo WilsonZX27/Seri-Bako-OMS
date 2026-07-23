@@ -6,11 +6,11 @@ For product scope and operating principles, read `PRODUCT.md`.
 
 For UI and interaction standards, read `DESIGN.md`.
 
-## Current Pilot Baseline
+## Current Release Baseline
 
-- Application release: `v0.2.29 / Sprint 7.21`.
-- Database migration ceiling: `065_fix_outlet_evening_completion_validation`.
-- Pilot preparation is documentation and operator readiness only; it does not change the application release.
+- Application release: `v7.23.7.0`.
+- Database migration ceiling: `090_permission_alias_and_identity_hardening`.
+- Tenant isolation, inventory posting atomicity, procurement/document transitions, concurrency controls, and credential handoff are database-authoritative.
 - Start with `docs/PILOT_BASELINE.md`, use the controlled CSV files in `docs/import-templates/`, and record sign-off in `docs/PILOT_QA_CHECKLIST.md`.
 
 ## Technology Stack
@@ -64,6 +64,7 @@ NEXT_PUBLIC_SUPABASE_URL=
 NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=
 NEXT_PUBLIC_APP_URL=
 SUPABASE_SERVICE_ROLE_KEY=
+SUPABASE_BOOTSTRAP_TOKEN=
 ```
 
 ### Environment variable rules
@@ -95,6 +96,15 @@ NEXT_PUBLIC_APP_URL=https://seri-bako-oms-official.vercel.app
 - Never prefix it with `NEXT_PUBLIC_`.
 - Never expose it to browser code.
 - Used only for controlled administrative server actions such as staff account setup where required.
+
+`SUPABASE_BOOTSTRAP_TOKEN`
+
+- Server-only, one-time operator secret for first-Owner provisioning.
+- The `/setup` action requires this token and then calls the service-role-only
+  database bootstrap RPC; it must never be exposed to the browser, logs, or
+  client-side configuration.
+- After the first Owner is provisioned, the bootstrap RPC is permanently closed
+  by the active Owner assignment and concurrent attempts are serialized.
 
 ### 4. Apply database migrations
 

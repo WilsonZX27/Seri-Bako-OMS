@@ -25,6 +25,17 @@ module.exports = defineConfig({
   timeout: 45_000,
   retries: process.env.CI ? 1 : 0,
   outputDir: "test-results/ui-smoke-sprint-7-2-6-artifacts",
+  webServer: process.env.RUN_TENANT_BOUNDARY_E2E === "1" && process.env.PW_MANUAL_SERVER !== "1" ? {
+    command: "node scripts/playwright-local-server.mjs",
+    url: "http://127.0.0.1:3000/login",
+    reuseExistingServer: true,
+    timeout: 120_000,
+    env: {
+      ...process.env,
+      NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL,
+      NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY,
+    },
+  } : undefined,
   use: {
     baseURL: process.env.TEST_BASE_URL || "https://seri-bako-oms-official.vercel.app",
     trace: "retain-on-failure",

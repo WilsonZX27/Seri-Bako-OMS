@@ -28,15 +28,19 @@ function writeUInt16(value: number) {
   return buffer;
 }
 
-export function createZip(files: { name: string; content: string | Buffer }[]) {
+export function createZip(files: { name: string; content: string | Buffer }[], limits?: { maxMemberBytes?: number; maxArchiveBytes?: number; maxOutputBytes?: number }) {
   const localParts: Buffer[] = [];
   const centralParts: Buffer[] = [];
   let offset = 0;
+  let uncompressedBytes = 0;
   const { time, day } = dosDateTime();
 
   for (const file of files) {
     const name = Buffer.from(file.name.replace(/\\/g, "/"));
     const content = Buffer.isBuffer(file.content) ? file.content : Buffer.from(file.content, "utf8");
+    if (limits?.maxMemberBytes && content.length > limits.maxMemberBytes) throw new Error("Backup ZIP member exceeds the server safety limit.");
+    uncompressedBytes += content.length;
+    if (limits?.maxArchiveBytes && uncompressedBytes > limits.maxArchiveBytes) throw new Error("Backup ZIP uncompressed archive exceeds the server safety limit.");
     const crc = crc32Buffer(content);
 
     const localHeader = Buffer.concat([
@@ -92,5 +96,7 @@ export function createZip(files: { name: string; content: string | Buffer }[]) {
     writeUInt16(0),
   ]);
 
-  return Buffer.concat([...localParts, centralDirectory, end]);
+  const archive = Buffer.concat([...localParts, centralDirectory, end]);
+  if (limits?.maxOutputBytes && archive.length > limits.maxOutputBytes) throw new Error("Backup ZIP output exceeds the server safety limit.");
+  return archive;
 }

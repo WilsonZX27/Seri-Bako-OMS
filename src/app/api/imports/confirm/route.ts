@@ -270,6 +270,7 @@ async function handleItemsImport(context: RouteContext, request: ImportRequest) 
     }
 
     const payload: Database["public"]["Tables"]["items"]["Insert"] = {
+      company_id: String(context.profile?.company_id ?? ""),
       item_code: itemCode,
       item_name: itemName,
       category,
@@ -316,6 +317,7 @@ async function handleItemsImport(context: RouteContext, request: ImportRequest) 
         continue;
       }
       const mappingPayload = {
+        company_id: String(context.profile?.company_id ?? ""),
         supplier_id: supplier.id,
         item_id: savedItemId,
         supplier_item_code: row.values.supplier_item_code || itemCode,
@@ -376,6 +378,7 @@ async function handleProductsImport(context: RouteContext, request: ImportReques
     }
 
     const payload: Database["public"]["Tables"]["products"]["Insert"] = {
+      company_id: String(context.profile?.company_id ?? ""),
       product_code: productCode,
       product_name: normalizeText(row.product_name),
       category: normalizeText(row.category),
@@ -450,6 +453,7 @@ async function handleSuppliersImport(context: RouteContext, request: ImportReque
     }
 
     const payload: Database["public"]["Tables"]["suppliers"]["Insert"] = {
+      company_id: String(context.profile?.company_id ?? ""),
       supplier_code: supplierCode,
       name: supplierName,
       contact_person: normalizeText(row.contact_name ?? row.contact_person) || null,
@@ -583,6 +587,10 @@ async function handleStaffImport(context: RouteContext, request: ImportRequest) 
       pushIssue(summary, rowNumber, row, "Unknown role_code.");
       continue;
     }
+    if (normalizeLower(role.role_code) === "super_admin" && context.profile?.role_code !== "super_admin") {
+      pushIssue(summary, rowNumber, row, "Only an existing Super Admin / Owner can assign the protected Owner role through import.");
+      continue;
+    }
 
     const { data: staff, error: insertError } = await context.writeSupabase.from("staffs").insert({
       company_id: companyId,
@@ -703,6 +711,7 @@ async function handleSupplierItemsImport(context: RouteContext, request: ImportR
     }
 
     const payload: Database["public"]["Tables"]["supplier_items"]["Insert"] = {
+      company_id: String(context.profile?.company_id ?? ""),
       supplier_id: supplier.id,
       item_id: item.id,
       supplier_item_code: normalizeText(row.supplier_item_code) || normalizeText(row.item_code),
@@ -849,6 +858,7 @@ async function handleUomConversionsImport(context: RouteContext, request: Import
     }
 
     const payload: Database["public"]["Tables"]["uom_conversions"]["Insert"] = {
+      company_id: String(context.profile?.company_id ?? ""),
       item_id: item.id,
       from_uom: fromUom,
       to_uom: toUom,
@@ -1155,9 +1165,14 @@ export async function POST(request: Request) {
       );
     }
 
+    const profile = await getCurrentProfile();
+    const activeProfile = profile as (typeof profile & { status?: string; deleted_at?: string | null }) | null;
+    if (!activeProfile?.company_id || activeProfile.status !== "active" || activeProfile.deleted_at) {
+      return NextResponse.json({ ok: false, imported: 0, updated: 0, skipped: 0, errors: 1, message: "An active staff account is required.", errorRows: [] }, { status: 403 });
+    }
     const context: RouteContext = {
       supabase,
-      profile: await getCurrentProfile(),
+      profile,
       writeSupabase: getWriteClient(supabase),
     };
 

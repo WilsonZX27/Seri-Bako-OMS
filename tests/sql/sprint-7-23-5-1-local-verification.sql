@@ -23,6 +23,20 @@ values
   ('40000000-0000-0000-0000-000000000003', '10000000-0000-0000-0000-000000000001', '30000000-0000-0000-0000-000000000003', 'E2E-KIT', 'E2E Kitchen', 'kitchen.local@example.invalid', '20000000-0000-0000-0000-000000000001'),
   ('40000000-0000-0000-0000-000000000004', '10000000-0000-0000-0000-000000000001', '30000000-0000-0000-0000-000000000004', 'E2E-OUT', 'E2E Outlet', 'outlet.local@example.invalid', '20000000-0000-0000-0000-000000000001'),
   ('40000000-0000-0000-0000-000000000005', '10000000-0000-0000-0000-000000000001', '30000000-0000-0000-0000-000000000005', 'E2E-OWN', 'E2E Owner', 'owner.local@example.invalid', '20000000-0000-0000-0000-000000000001');
+insert into public.roles(company_id, role_code, role_name)
+values
+ ('10000000-0000-0000-0000-000000000001','manager','Manager'),
+ ('10000000-0000-0000-0000-000000000001','finance','Finance'),
+ ('10000000-0000-0000-0000-000000000001','kitchen','Kitchen'),
+ ('10000000-0000-0000-0000-000000000001','outlet_staff','Outlet Staff'),
+ ('10000000-0000-0000-0000-000000000001','super_admin','Super Admin / Owner');
+insert into public.role_permissions(role_id, permission_id)
+select distinct target.id, rp.permission_id
+from public.roles target
+join public.roles template on template.role_code=target.role_code and template.company_id is distinct from target.company_id
+join public.role_permissions rp on rp.role_id=template.id
+where target.company_id='10000000-0000-0000-0000-000000000001'
+on conflict do nothing;
 insert into public.staff_roles (staff_id, role_id, branch_id, is_primary)
 select staff_id, r.id, branch_id, true
 from (values
@@ -31,7 +45,7 @@ from (values
   ('40000000-0000-0000-0000-000000000003'::uuid, 'kitchen', '20000000-0000-0000-0000-000000000001'::uuid),
   ('40000000-0000-0000-0000-000000000004'::uuid, 'outlet_staff', '20000000-0000-0000-0000-000000000001'::uuid),
   ('40000000-0000-0000-0000-000000000005'::uuid, 'super_admin', null::uuid)
-) v(staff_id, role_code, branch_id) join public.roles r using (role_code);
+) v(staff_id, role_code, branch_id) join public.roles r on r.role_code=v.role_code and r.company_id='10000000-0000-0000-0000-000000000001';
 insert into public.staff_branches (staff_id, branch_id, access_level, is_default)
 values
   ('40000000-0000-0000-0000-000000000001', '20000000-0000-0000-0000-000000000001', 'manage', true),
@@ -44,10 +58,10 @@ insert into public.purchase_requests (id, company_id, request_no, requested_by, 
 values
   ('50000000-0000-0000-0000-000000000001', '10000000-0000-0000-0000-000000000001', 'PR-00008', '40000000-0000-0000-0000-000000000003', '20000000-0000-0000-0000-000000000002', 'manager_review'),
   ('50000000-0000-0000-0000-000000000002', '10000000-0000-0000-0000-000000000001', 'PR-00011', '40000000-0000-0000-0000-000000000003', '20000000-0000-0000-0000-000000000003', 'manager_review');
-insert into public.products (id, product_code, product_name, category, display_order, selling_unit)
-values ('60000000-0000-0000-0000-000000000001', 'SC01', 'E2E Product', 'E2E Category', 1, 'PCS');
-insert into public.items (id, item_code, item_name, category, purchase_unit, base_unit, conversion_to_base_unit, cost)
-values ('70000000-0000-0000-0000-000000000001', 'E2E-ITEM', 'E2E Ingredient', 'E2E', 'KG', 'KG', 1, 2);
+insert into public.products (id, company_id, product_code, product_name, category, display_order, selling_unit)
+values ('60000000-0000-0000-0000-000000000001', '10000000-0000-0000-0000-000000000001', 'SC01', 'E2E Product', 'E2E Category', 1, 'PCS');
+insert into public.items (id, company_id, item_code, item_name, category, purchase_unit, base_unit, conversion_to_base_unit, cost)
+values ('70000000-0000-0000-0000-000000000001', '10000000-0000-0000-0000-000000000001', 'E2E-ITEM', 'E2E Ingredient', 'E2E', 'KG', 'KG', 1, 2);
 insert into public.recipes (id, company_id, product_id, recipe_no, yield_qty, yield_unit, status, approval_status)
 values ('80000000-0000-0000-0000-000000000001', '10000000-0000-0000-0000-000000000001', '60000000-0000-0000-0000-000000000001', 'E2E-REC', 10, 'PCS', 'active', 'approved');
 insert into public.recipe_lines (recipe_id, ingredient_item_id, qty_required, unit, cost_per_unit, wastage_percent, recipe_uom, base_uom, conversion_factor, base_qty_required)

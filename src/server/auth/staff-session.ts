@@ -22,10 +22,17 @@ export async function acceptCurrentStaffInvite() {
   } = await supabase.auth.getUser();
   if (!user) throw new Error("You must be signed in to set a password.");
 
-  await acceptStaffInviteForUser(user.id, user.email ?? null);
+  await acceptStaffInviteForCurrentUser(user.id, user.email ?? null);
 }
 
-export async function acceptStaffInviteForUser(userId: string, email: string | null) {
+export async function requireCurrentLinkedStaff() {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error("You must be signed in.");
+  return requireLinkedStaffForAuthUser(user.id, user.email ?? null);
+}
+
+async function acceptStaffInviteForCurrentUser(userId: string, email: string | null) {
   const staff = await requireLinkedStaffForAuthUser(userId, email);
   const admin = createAdminClient();
   const now = new Date().toISOString();
@@ -43,7 +50,7 @@ export async function acceptStaffInviteForUser(userId: string, email: string | n
   if (error) throw new Error(error.message);
 }
 
-export async function requireLinkedStaffForAuthUser(userId: string, userEmail: string | null) {
+async function requireLinkedStaffForAuthUser(userId: string, userEmail: string | null) {
   if (!userEmail) throw new Error("A valid staff sign-in email is required.");
   const admin = createAdminClient();
   const { data: linked, error } = await admin
@@ -57,7 +64,7 @@ export async function requireLinkedStaffForAuthUser(userId: string, userEmail: s
   if (linked.status === "disabled") throw new Error("This staff account is disabled.");
   const normalized = userEmail.trim().toLowerCase();
   const staffEmails = [linked.email, linked.invite_email].filter(Boolean).map((value) => value!.trim().toLowerCase());
-  if (!staffEmails.length || staffEmails.some((value) => value !== normalized)) {
+  if (!staffEmails.length || !staffEmails.some((value) => value === normalized)) {
     throw new Error("The staff profile email does not match this sign-in account. Ask the Super Admin / Owner to review it.");
   }
   return linked;
@@ -98,7 +105,7 @@ export async function getPasswordSetupContext(): Promise<PasswordSetupContext | 
   if (!staff) return null;
   const normalized = user.email.trim().toLowerCase();
   const staffEmails = [staff.email, staff.invite_email].filter(Boolean).map((value) => value!.trim().toLowerCase());
-  if (!staffEmails.length || staffEmails.some((value) => value !== normalized)) return null;
+  if (!staffEmails.length || !staffEmails.some((value) => value === normalized)) return null;
 
   const [{ data: company }, { data: primaryRole }, { data: defaultBranch }, { data: inviter }] = await Promise.all([
     admin.from("companies").select("company_name, logo_url").eq("id", staff.company_id).maybeSingle(),

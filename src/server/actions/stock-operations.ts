@@ -11,7 +11,6 @@ import { requirePermission } from "@/server/auth/permissions";
 import { formatActionError, requirePermissionOrRedirect, rethrowRedirect, safeRedirectWithMessage } from "@/server/actions/error-handling";
 import { revalidateWorkspaceState } from "@/server/actions/revalidate";
 import { resolveDocumentNumber } from "@/server/documents/sequences";
-import { createInventoryMovement } from "@/server/inventory/engine";
 import { resolveDefaultLocation } from "@/server/inventory/locations";
 import { getCurrentProfile } from "@/server/queries/common";
 
@@ -134,52 +133,18 @@ async function setTransferStatus(id: string, status: StockOperationStatus, messa
 export async function postStockTransfer(id: string) {
   await requirePermission("stock_transfer.post");
   if (isMockMode()) return;
-  const profile = await identity();
   const supabase = await createClient();
-  const [{ data: transfer, error }, { data: lines }] = await Promise.all([supabase.from("stock_transfers").select("*").eq("id", id).single(), supabase.from("stock_transfer_lines").select("*").eq("stock_transfer_id", id)]);
+  const { error } = await supabase.rpc("post_stock_transfer_atomic", { p_transfer_id: id });
   if (error) throw new Error(error.message);
-  if (transfer.status !== "in_transit") throw new Error("Only an in-transit stock transfer can be received.");
-  if (!lines?.length) throw new Error("Cannot post without lines.");
-  for (const line of lines) {
-    await createInventoryMovement({
-        movementType: "TRANSFER_IN",
-        transactionNo: `ST-${transfer.transfer_no}-in-${String(line.id).slice(0, 4)}`,
-        documentId: transfer.document_id,
-        branchId: transfer.to_branch_id,
-        itemId: line.item_id,
-        locationId: transfer.to_location_id,
-        transactionDate: transfer.transfer_date,
-        quantity: Number(line.quantity),
-        unitCost: 0,
-        postedBy: profile?.id ?? null,
-        remarks: `Transferred to ${transfer.transfer_no}`,
-        referenceType: "stock_transfer",
-        referenceId: transfer.id,
-        fromLocationId: transfer.from_location_id,
-        toLocationId: transfer.to_location_id,
-      });
-  }
-  await setTransferStatus(id, "completed", `Stock transfer ${transfer.transfer_no} completed`);
   revalidatePath("/inventory"); revalidatePath("/stock-balance"); revalidatePath("/stock-card"); revalidatePath("/stock-transactions");
 }
 
 export async function startStockTransfer(id: string) {
   await requirePermission("stock_transfer.update");
   if (isMockMode()) return;
-  const profile = await identity();
   const supabase = await createClient();
-  const [{ data: transfer, error }, { data: lines }] = await Promise.all([supabase.from("stock_transfers").select("*").eq("id", id).single(), supabase.from("stock_transfer_lines").select("*").eq("stock_transfer_id", id)]);
+  const { error } = await supabase.rpc("dispatch_stock_transfer_atomic", { p_transfer_id: id });
   if (error) throw new Error(error.message);
-  if (transfer.status !== "draft") throw new Error("Only a draft stock transfer can be dispatched.");
-  if (!lines?.length) throw new Error("Cannot dispatch without lines.");
-  for (const line of lines) await createInventoryMovement({
-    movementType: "TRANSFER_OUT", transactionNo: `ST-${transfer.transfer_no}-out-${String(line.id).slice(0, 4)}`,
-    documentId: transfer.document_id, branchId: transfer.from_branch_id, itemId: line.item_id, locationId: transfer.from_location_id,
-    transactionDate: transfer.transfer_date, quantity: Number(line.quantity), unitCost: 0, postedBy: profile?.id ?? null,
-    remarks: `Transferred from ${transfer.transfer_no}`, referenceType: "stock_transfer", referenceId: transfer.id,
-    fromLocationId: transfer.from_location_id, toLocationId: transfer.to_location_id,
-  });
-  await setTransferStatus(id, "in_transit", `Stock transfer ${transfer.transfer_no} dispatched`);
   revalidateWorkspaceState(["/inventory", "/stock-balance", "/stock-card", "/stock-transactions"]);
 }
 export async function cancelStockTransfer(id: string) { await requirePermission("stock_transfer.cancel"); if (isMockMode()) return; await setTransferStatus(id, "cancelled", "Stock transfer cancelled"); }
@@ -219,37 +184,9 @@ export async function createStockWastage(formData: FormData) {
 export async function postStockWastage(id: string) {
   await requirePermission("stock_wastage.post");
   if (isMockMode()) return;
-  const profile = await identity();
   const supabase = await createClient();
-  const [{ data: wastage, error }, { data: lines }] = await Promise.all([supabase.from("stock_wastage").select("*").eq("id", id).single(), supabase.from("stock_wastage_lines").select("*").eq("stock_wastage_id", id)]);
+  const { error } = await supabase.rpc("post_stock_wastage_atomic", { p_wastage_id: id });
   if (error) throw new Error(error.message);
-  if (wastage.status === "posted") return;
-  if (wastage.status !== "draft") throw new Error("Only draft wastage can be posted.");
-  if (!lines?.length) throw new Error("Cannot post without lines.");
-  for (const line of lines) {
-    await createInventoryMovement({
-      movementType: "WASTAGE",
-      transactionNo: `ST-${wastage.wastage_no}-${String(line.id).slice(0, 4)}`,
-      documentId: wastage.document_id,
-      branchId: wastage.branch_id,
-      itemId: line.item_id,
-      locationId: wastage.location_id,
-      transactionDate: wastage.wastage_date,
-      quantity: Number(line.quantity),
-      unitCost: 0,
-      postedBy: profile?.id ?? null,
-      remarks: `Reported wastage from ${wastage.wastage_no}`,
-      referenceType: "stock_wastage",
-      referenceId: wastage.id,
-    });
-  }
-  const status = "posted";
-  assertStockOperationStatus(status);
-  await supabase.from("stock_wastage").update({ status, posted_at: new Date().toISOString(), updated_by: profile?.id ?? null }).eq("id", id);
-  if (wastage.document_id) {
-    await supabase.from("documents").update({ status: "posted", approval_status: "approved", current_step: "Posted to inventory", posted_at: new Date().toISOString(), updated_by: profile?.id ?? null }).eq("id", wastage.document_id);
-    await writeActivityLog({ entityType: "document", entityId: wastage.document_id, activityType: "posted", message: `Stock wastage ${wastage.wastage_no} posted` });
-  }
   revalidateWorkspaceState(["/stock-wastage", `/stock-wastage/${id}`, "/inventory", "/stock-balance", "/stock-card", "/stock-transactions"]);
 }
 

@@ -50,8 +50,8 @@ begin
   order by version desc
   limit 1;
 
-  if v_migration_ceiling is distinct from '051' then
-    raise exception 'Reset blocked: expected migration ceiling 051, found %.', v_migration_ceiling;
+  if v_migration_ceiling is distinct from '090' then
+    raise exception 'Reset blocked: expected migration ceiling 090, found %.', v_migration_ceiling;
   end if;
 end $$;
 
@@ -108,7 +108,7 @@ delete from public.recipe_cost_snapshots;
 delete from public.recipe_lines;
 delete from public.recipes;
 delete from public.product_packaging;
-delete from public.barcode_mappings;
+delete from public.branch_supplier_items;
 delete from public.supplier_items;
 delete from public.products;
 delete from public.items;

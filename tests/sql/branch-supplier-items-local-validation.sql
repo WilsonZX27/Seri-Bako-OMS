@@ -15,21 +15,27 @@ insert into auth.users (id, aud, role, email, created_at, updated_at) values
 insert into public.staffs (id, company_id, auth_user_id, staff_code, full_name, email, default_branch_id) values
   ('a5000000-0000-0000-0000-000000000001', 'a1000000-0000-0000-0000-000000000001', 'a4000000-0000-0000-0000-000000000001', 'BSI-OWNER', 'BSI Owner', 'bsi.owner@example.invalid', 'a2000000-0000-0000-0000-000000000001'),
   ('a5000000-0000-0000-0000-000000000002', 'a1000000-0000-0000-0000-000000000001', 'a4000000-0000-0000-0000-000000000002', 'BSI-KITCHEN', 'BSI Kitchen', 'bsi.kitchen@example.invalid', 'a2000000-0000-0000-0000-000000000002');
+insert into public.roles(company_id,role_code,role_name) values
+ ('a1000000-0000-0000-0000-000000000001','super_admin','Super Admin / Owner'),
+ ('a1000000-0000-0000-0000-000000000001','kitchen','Kitchen');
+insert into public.role_permissions(role_id,permission_id)
+select distinct target.id,rp.permission_id from public.roles target join public.roles template on template.role_code=target.role_code and template.company_id is distinct from target.company_id join public.role_permissions rp on rp.role_id=template.id
+where target.company_id='a1000000-0000-0000-0000-000000000001' on conflict do nothing;
 insert into public.staff_roles (staff_id, role_id, branch_id, is_primary)
-select 'a5000000-0000-0000-0000-000000000001', id, null, true from public.roles where role_code = 'super_admin';
+select 'a5000000-0000-0000-0000-000000000001', id, null, true from public.roles where role_code = 'super_admin' and company_id='a1000000-0000-0000-0000-000000000001';
 insert into public.staff_roles (staff_id, role_id, branch_id, is_primary)
-select 'a5000000-0000-0000-0000-000000000002', id, 'a2000000-0000-0000-0000-000000000002', true from public.roles where role_code = 'kitchen';
+select 'a5000000-0000-0000-0000-000000000002', id, 'a2000000-0000-0000-0000-000000000002', true from public.roles where role_code = 'kitchen' and company_id='a1000000-0000-0000-0000-000000000001';
 insert into public.staff_branches (staff_id, branch_id, access_level, is_default) values
   ('a5000000-0000-0000-0000-000000000001', 'a2000000-0000-0000-0000-000000000001', 'full', true),
   ('a5000000-0000-0000-0000-000000000002', 'a2000000-0000-0000-0000-000000000002', 'full', true);
-insert into public.suppliers (id, supplier_code, name) values
-  ('a6000000-0000-0000-0000-000000000001', 'BSI-SUP-A', 'Supplier A'),
-  ('a6000000-0000-0000-0000-000000000002', 'BSI-SUP-B', 'Supplier B');
-insert into public.items (id, item_code, item_name, category, purchase_unit, base_unit, cost) values
-  ('a7000000-0000-0000-0000-000000000001', 'BSI-ITEM', 'Shared Item', 'Validation', 'KG', 'KG', 2);
-insert into public.supplier_items (id, supplier_id, item_id, supplier_item_code, supplier_item_name, purchase_uom, unit_cost) values
-  ('a8000000-0000-0000-0000-000000000001', 'a6000000-0000-0000-0000-000000000001', 'a7000000-0000-0000-0000-000000000001', 'BSI-A', 'Shared Item A', 'KG', 2),
-  ('a8000000-0000-0000-0000-000000000002', 'a6000000-0000-0000-0000-000000000002', 'a7000000-0000-0000-0000-000000000001', 'BSI-B', 'Shared Item B', 'KG', 3);
+insert into public.suppliers (id, company_id, supplier_code, name) values
+  ('a6000000-0000-0000-0000-000000000001', 'a1000000-0000-0000-0000-000000000001', 'BSI-SUP-A', 'Supplier A'),
+  ('a6000000-0000-0000-0000-000000000002', 'a1000000-0000-0000-0000-000000000001', 'BSI-SUP-B', 'Supplier B');
+insert into public.items (id, company_id, item_code, item_name, category, purchase_unit, base_unit, cost) values
+  ('a7000000-0000-0000-0000-000000000001', 'a1000000-0000-0000-0000-000000000001', 'BSI-ITEM', 'Shared Item', 'Validation', 'KG', 'KG', 2);
+insert into public.supplier_items (id, company_id, supplier_id, item_id, supplier_item_code, supplier_item_name, purchase_uom, unit_cost) values
+  ('a8000000-0000-0000-0000-000000000001', 'a1000000-0000-0000-0000-000000000001', 'a6000000-0000-0000-0000-000000000001', 'a7000000-0000-0000-0000-000000000001', 'BSI-A', 'Shared Item A', 'KG', 2),
+  ('a8000000-0000-0000-0000-000000000002', 'a1000000-0000-0000-0000-000000000001', 'a6000000-0000-0000-0000-000000000002', 'a7000000-0000-0000-0000-000000000001', 'BSI-B', 'Shared Item B', 'KG', 3);
 
 do $$ declare n integer; begin
   select count(*) into n from public.supplier_items where item_id = 'a7000000-0000-0000-0000-000000000001';

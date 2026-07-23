@@ -1,6 +1,6 @@
 {
   "name": "seri-bako-ops",
-  "version": "0.2.15",
+  "version": "7.23.7",
   "private": true,
   "scripts": {
     "dev": "node --use-system-ca node_modules/next/dist/bin/next dev",
@@ -8,7 +8,11 @@
     "start": "node --use-system-ca node_modules/next/dist/bin/next start",
     "lint": "next lint",
     "typecheck": "tsc --noEmit",
+    "test": "node --test tests/*.test.js",
+    "test:contract": "node --test tests/*.test.js",
     "test:e2e": "playwright test",
+    "test:e2e:tenant-backup-local": "node --env-file=.env.test.local node_modules/@playwright/test/cli.js test tests/e2e/tenant-backup-isolation-local.spec.js --reporter=line",
+    "test:gate2-owner-concurrency": "node scripts/gate2-owner-concurrency.mjs",
     "codex:orchestrate": "node tools/codex-orchestrator/cli.ts",
     "codex:orchestrator:test": "node --test tools/codex-orchestrator/*.test.ts"
   },
@@ -39,7 +43,7 @@
     "eslint": "^9.17.0",
     "eslint-config-next": "15.5.4",
     "postcss": "^8.4.49",
-    "supabase": "^2.109.0",
+    "supabase": "^2.109.1",
     "tailwindcss": "^3.4.17",
     "typescript": "^5.7.2"
   }

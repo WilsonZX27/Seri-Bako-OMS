@@ -15,6 +15,7 @@ import { getStaffAuthState, staffAuthStateLabels } from "@/lib/staff-auth-state"
 import { disableStaff, enableStaff, forceStaffPasswordChange, permanentlyDeleteStaff, repairStaffSignInLink, resetStaffPermissionOverrides, resetStaffTemporaryPassword, updateStaff, updateStaffPermissionOverrides } from "@/server/actions/foundation";
 import { hasPermission } from "@/server/auth/permissions";
 import { getCurrentProfile } from "@/server/queries/common";
+import { readTemporaryPasswordHandoff } from "@/server/auth/temporary-password-handoff";
 import { getBranches, getCompaniesForSelect, getRoles, getStaff, getStaffAccess, getStaffPermissionAccess } from "@/server/queries/foundation";
 
 export default async function EditStaffPage({
@@ -25,7 +26,7 @@ export default async function EditStaffPage({
   searchParams: Promise<{ error?: string; success?: string; temp_password?: string }>;
 }) {
   const { id } = await params;
-  const [messageParams, staff, access, companies, branches, allRoles, profile] = await Promise.all([
+  const [messageParams, staff, access, companies, branches, allRoles, profile, temporaryPassword] = await Promise.all([
     searchParams,
     getStaff(id),
     getStaffAccess(id),
@@ -33,6 +34,7 @@ export default async function EditStaffPage({
     getBranches({ status: "active" }),
     getRoles(),
     getCurrentProfile(),
+    readTemporaryPasswordHandoff(id),
   ]);
   const assignedRole = allRoles.find((role) => role.id === access.staffRole?.role_id);
   const additionalRoles = sortRolesForDisplay(allRoles.filter((role) => access.staffRoles?.some((assignment) => assignment.role_id === role.id && role.id !== assignedRole?.id) ?? false));
@@ -184,7 +186,7 @@ export default async function EditStaffPage({
           </Card>
         ) : null}
 
-        {messageParams.temp_password ? (
+        {temporaryPassword ? (
           <Card className="border-amber-200 bg-amber-50">
             <CardHeader>
               <CardTitle>Temporary password shown once</CardTitle>
@@ -192,8 +194,8 @@ export default async function EditStaffPage({
             <CardContent className="space-y-3">
               <p className="text-sm text-amber-900">Copy this temporary password now. It will not be shown again.</p>
               <div className="flex flex-wrap items-center justify-between gap-3 rounded-[2px] border bg-white p-3">
-                <span className="font-mono text-lg font-semibold">{messageParams.temp_password}</span>
-                <CopyTextButton value={messageParams.temp_password} label="Copy temporary password" />
+                <span className="font-mono text-lg font-semibold">{temporaryPassword}</span>
+                <CopyTextButton value={temporaryPassword} label="Copy temporary password" />
               </div>
               <p className="text-xs text-amber-900">Share it securely. The staff member must change it after first login.</p>
             </CardContent>

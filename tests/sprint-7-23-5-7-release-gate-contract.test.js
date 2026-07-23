@@ -48,5 +48,7 @@ test("the sanitized release package is complete", () => {
   ]) {
     assert.equal(fs.existsSync(file), true, `${file} should exist`);
   }
-  assert.match(read("src/lib/app-version.ts"), /APP_SPRINT = "v7\.23\.5\.9"/);
+  assert.match(read("src/lib/app-version.ts"), /APP_SPRINT = "v7\.23\.7\.0"/);
 });
+
+

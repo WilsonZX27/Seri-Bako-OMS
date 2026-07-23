@@ -13,7 +13,7 @@ The SQL preflight stops if that list is not exactly seven rows, any code is ambi
 2. Invoice/payment, return, production, stock, receiving, PO, PR, and outlet-record children then headers.
 3. Recipe snapshots/lines/recipes, then documents.
 4. Activity/audit/tombstone rows.
-5. Product packaging, barcode/UOM conversion, supplier-item, product, item, supplier rows.
+5. Product packaging, UOM conversion, supplier-item, product, item, supplier rows.
 6. Non-retained staff assignments, Staff rows, and their Auth identities.
 7. Monthly counter rows; retain sequence configuration with `next_number = 1`, padding `3`, monthly reset.
 

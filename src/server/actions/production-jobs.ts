@@ -9,11 +9,10 @@ import { productionJobSchema } from "@/lib/validations/production-job";
 import { writeActivityLog } from "@/server/activity/log";
 import { formatActionError, requirePermissionOrRedirect, rethrowRedirect, safeRedirectWithMessage } from "@/server/actions/error-handling";
 import { revalidateWorkspaceState } from "@/server/actions/revalidate";
-import { hasPermission } from "@/server/auth/permissions";
 import { resolveDocumentNumber } from "@/server/documents/sequences";
 import { resolveDefaultLocation } from "@/server/inventory/locations";
 import { getCurrentProfile } from "@/server/queries/common";
-import { getActiveProductionRecipes, getProductionJob } from "@/server/queries/production-jobs";
+import { getActiveProductionRecipes } from "@/server/queries/production-jobs";
 
 function cleanText(value: unknown) {
   const text = String(value ?? "").trim();
@@ -80,7 +79,7 @@ async function updateDocumentStatus(documentId: string | null, status: string, a
   await supabase.from("documents").update({ status: status as never, approval_status: approvalStatus as never, current_step: step, updated_at: new Date().toISOString() }).eq("id", documentId);
 }
 
-async function ensureOutputItem(product: { product_code: string; product_name: string; category?: string | null; selling_unit?: string | null }, unitCost: number) {
+async function ensureOutputItem(product: { product_code: string; product_name: string; category?: string | null; selling_unit?: string | null }, unitCost: number, companyId: string) {
   const supabase = await createClient();
   const { data: existing, error: existingError } = await supabase
     .from("items")
@@ -93,6 +92,7 @@ async function ensureOutputItem(product: { product_code: string; product_name: s
   const { data, error } = await supabase
     .from("items")
     .insert({
+      company_id: companyId,
       item_code: product.product_code,
       item_name: product.product_name,
       category: product.category ?? "Finished Goods",
@@ -154,7 +154,8 @@ export async function createProductionJob(formData: FormData) {
     const createdJob = job as { id: string };
 
     const documentId = await createProductionDocument(createdJob.id, jobNo, `Production Job ${jobNo} - ${recipe.product_name}`);
-    const outputItemId = await ensureOutputItem({ product_code: recipe.product_code, product_name: recipe.product_name, category: "Finished Goods", selling_unit: parsed.output_uom }, unitCost);
+    if (!profile?.company_id) throw new Error("An active company staff profile is required.");
+    const outputItemId = await ensureOutputItem({ product_code: recipe.product_code, product_name: recipe.product_name, category: "Finished Goods", selling_unit: parsed.output_uom }, unitCost, profile.company_id);
     const balances = await import("@/server/queries/inventory").then((module) => module.getStockBalanceDetails({ page: "all", view: "branch" }));
     const availableByItem = new Map(balances.rows.filter((row) => row.branch_id === parsed.branch_id).map((row) => [row.item_id, Number(row.current_qty ?? 0)]));
 
@@ -303,139 +304,14 @@ export async function postProductionJob(id: string) {
   await requirePermissionOrRedirect("production.post", `/production/jobs/${id}`);
   try {
     if (isMockMode()) redirect(`/production/jobs/${id}`);
-    const [supabase, profile, detail, canOverride] = await Promise.all([
-      createClient(),
-      getCurrentProfile(),
-      getProductionJob(id),
-      hasPermission("production.override_negative_stock"),
-    ]);
-    const db = looseSupabase(supabase);
-    const { job, ingredientLines, outputLines } = detail;
-    if (job.status === "posted") throw new Error(`${job.production_job_no} is already posted.`);
-    if (job.status !== "approved") throw new Error("Only approved production jobs can be posted.");
-    if (job.stock_transaction_id) throw new Error("This production job was already posted.");
-    if (!ingredientLines.length || !outputLines.length) throw new Error("Production job has no ingredient or output lines.");
-
-    const locationId = await resolveDefaultLocation(job.branch_id, job.location_id);
-    const balances = await import("@/server/queries/inventory").then((module) => module.getStockBalanceDetails({ page: "all", view: "branch" }));
-    const availableByItem = new Map(balances.rows.filter((row) => row.branch_id === job.branch_id).map((row) => [row.item_id, Number(row.current_qty ?? 0)]));
-    const shortages = ingredientLines.filter((line) => (availableByItem.get(line.item_id) ?? 0) < Number(line.actual_qty ?? line.required_qty));
-    if (shortages.length && !canOverride) {
-      throw new Error(`Insufficient stock for ${shortages.map((line) => line.item_name ?? line.item_code).join(", ")}.`);
-    }
-
-    const now = new Date().toISOString();
-    const usageQty = ingredientLines.reduce((sum, line) => sum + Number(line.actual_qty ?? line.required_qty), 0);
-    const usageCost = ingredientLines.reduce((sum, line) => sum + Number(line.actual_qty ?? line.required_qty) * Number(line.unit_cost), 0);
-    const output = outputLines[0];
-    const outputQty = Number(output.actual_qty ?? output.planned_qty);
-    const outputCost = outputQty > 0 ? usageCost / outputQty : 0;
-    const usageNo = await resolveDocumentNumber({ companyId: profile?.company_id, documentType: "stock_transaction", enteredNumber: null });
-    const outputNo = await resolveDocumentNumber({ companyId: profile?.company_id, documentType: "stock_transaction", enteredNumber: null });
-
-    const { data: usageTx, error: usageError } = await supabase.from("stock_transactions").insert({
-      transaction_no: usageNo,
-      document_id: job.document_id,
-      branch_id: job.branch_id,
-      item_id: ingredientLines[0].item_id,
-      location_id: locationId,
-      transaction_type: "production_usage",
-      transaction_date: job.production_date,
-      quantity_in: 0,
-      quantity_out: usageQty,
-      unit_cost: usageQty > 0 ? usageCost / usageQty : 0,
-      total_cost: usageCost,
-      status: "posted",
-      posted_at: now,
-      posted_by: profile?.id ?? null,
-      remarks: `Ingredients consumed by ${job.production_job_no}`,
-      reference_type: "production_job",
-      reference_id: job.id,
-      created_by: profile?.id ?? null,
-    }).select("id").single();
-    if (usageError) throw new Error(usageError.message);
-
-    const { error: usageLineError } = await supabase.from("stock_transaction_lines").insert(ingredientLines.map((line) => ({
-      stock_transaction_id: usageTx.id,
-      stock_entity_type: "item",
-      item_id: line.item_id,
-      branch_id: job.branch_id,
-      location_id: locationId,
-      quantity_in: 0,
-      quantity_out: Number(line.actual_qty ?? line.required_qty),
-      unit_cost: Number(line.unit_cost ?? 0),
-      reference_type: "production_job",
-      reference_id: job.id,
-      remarks: `Consumed by ${job.production_job_no}`,
-      created_by: profile?.id ?? null,
-    })));
-    if (usageLineError) throw new Error(usageLineError.message);
-
-    const outputItemId = output.item_id ?? job.output_item_id;
-    if (!outputItemId) throw new Error("Output item is missing. Please contact the Super Admin / Owner.");
-    const { data: outputTx, error: outputError } = await supabase.from("stock_transactions").insert({
-      transaction_no: outputNo,
-      document_id: job.document_id,
-      branch_id: job.branch_id,
-      item_id: outputItemId,
-      location_id: locationId,
-      transaction_type: "production_output",
-      transaction_date: job.production_date,
-      quantity_in: outputQty,
-      quantity_out: 0,
-      unit_cost: outputCost,
-      total_cost: outputQty * outputCost,
-      status: "posted",
-      posted_at: now,
-      posted_by: profile?.id ?? null,
-      remarks: `Finished goods produced by ${job.production_job_no}`,
-      reference_type: "production_job",
-      reference_id: job.id,
-      created_by: profile?.id ?? null,
-    }).select("id").single();
-    if (outputError) throw new Error(outputError.message);
-
-    const { error: outputLineError } = await supabase.from("stock_transaction_lines").insert({
-      stock_transaction_id: outputTx.id,
-      stock_entity_type: "item",
-      item_id: outputItemId,
-      branch_id: job.branch_id,
-      location_id: locationId,
-      quantity_in: outputQty,
-      quantity_out: 0,
-      unit_cost: outputCost,
-      reference_type: "production_job",
-      reference_id: job.id,
-      remarks: `Produced by ${job.production_job_no}`,
-      created_by: profile?.id ?? null,
-    });
-    if (outputLineError) throw new Error(outputLineError.message);
-
-    const { error: jobError } = await db.from("production_jobs").update({
-      status: "posted",
-      actual_output_qty: outputQty,
-      stock_transaction_id: outputTx.id,
-      posted_by: profile?.id ?? null,
-      posted_at: now,
-      updated_by: profile?.id ?? null,
-    }).eq("id", id);
-    if (jobError) throw new Error(jobError.message);
-    await updateDocumentStatus(job.document_id, "posted", "approved", "Posted to stock");
-    await writeActivityLog({ entityType: "production_job", entityId: id, activityType: "posted", message: `${job.production_job_no} posted. Ingredients deducted and output stock added.` });
-    await notifyProduction({
-      title: "Production posted",
-      message: `${job.production_job_no} posted. Ingredients deducted and finished goods added.`,
-      permission: "production.view",
-      jobId: id,
-      branchId: job.branch_id,
-    });
+    const supabase = await createClient();
+    const { error } = await supabase.rpc("post_production_job_atomic", { p_job_id: id });
+    if (error) throw new Error(error.message);
     revalidateWorkspaceState(["/production", "/production/jobs", `/production/jobs/${id}`]);
     revalidatePath("/inventory");
     revalidatePath("/stock-balance");
-    revalidatePath("/stock-balances");
     revalidatePath("/stock-card");
-    revalidatePath("/dashboard");
-    safeRedirectWithMessage(`/production/jobs/${id}`, "success", `${job.production_job_no} posted. Ingredients deducted and finished goods added.`);
+    safeRedirectWithMessage(`/production/jobs/${id}`, "success", "Production job posted atomically.");
   } catch (error) {
     rethrowRedirect(error);
     safeRedirectWithMessage(`/production/jobs/${id}`, "error", formatActionError(error, "Could not post this production job."));

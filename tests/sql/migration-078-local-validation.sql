@@ -15,22 +15,26 @@ insert into auth.users (id, aud, role, email, created_at, updated_at)
 values ('84000000-0000-0000-0000-000000000001', 'authenticated', 'authenticated', 'migration078.local@example.invalid', now(), now());
 insert into public.staffs (id, company_id, auth_user_id, staff_code, full_name, email, default_branch_id)
 values ('85000000-0000-0000-0000-000000000001', '81000000-0000-0000-0000-000000000001', '84000000-0000-0000-0000-000000000001', 'M078-OWNER', 'Migration 078 Owner', 'migration078.local@example.invalid', '82000000-0000-0000-0000-000000000001');
+insert into public.roles(company_id,role_code,role_name) values ('81000000-0000-0000-0000-000000000001','super_admin','Super Admin / Owner');
+insert into public.role_permissions(role_id,permission_id)
+select distinct target.id,rp.permission_id from public.roles target join public.roles template on template.role_code=target.role_code and template.company_id is distinct from target.company_id join public.role_permissions rp on rp.role_id=template.id
+where target.company_id='81000000-0000-0000-0000-000000000001' on conflict do nothing;
 insert into public.staff_roles (staff_id, role_id, branch_id, is_primary)
-select '85000000-0000-0000-0000-000000000001', id, null, true from public.roles where role_code = 'super_admin';
+select '85000000-0000-0000-0000-000000000001', id, null, true from public.roles where role_code = 'super_admin' and company_id='81000000-0000-0000-0000-000000000001';
 insert into public.staff_branches (staff_id, branch_id, access_level, is_default)
 values ('85000000-0000-0000-0000-000000000001', '82000000-0000-0000-0000-000000000001', 'full', true);
 
-insert into public.suppliers (id, supplier_code, name, status)
-values ('86000000-0000-0000-0000-000000000001', 'M078-SUP', 'Migration 078 Supplier', 'active');
-insert into public.items (id, item_code, item_name, category, purchase_unit, base_unit, cost, status)
+insert into public.suppliers (id, company_id, supplier_code, name, status)
+values ('86000000-0000-0000-0000-000000000001', '81000000-0000-0000-0000-000000000001', 'M078-SUP', 'Migration 078 Supplier', 'active');
+insert into public.items (id, company_id, item_code, item_name, category, purchase_unit, base_unit, cost, status)
 values
-  ('87000000-0000-0000-0000-000000000001', 'M078-A1', 'Branch A Item One', 'Validation', 'KG', 'KG', 3.25, 'active'),
-  ('87000000-0000-0000-0000-000000000002', 'M078-A2', 'Branch A Item Two', 'Validation', 'PCS', 'PCS', 4.50, 'active'),
-  ('87000000-0000-0000-0000-000000000003', 'M078-B1', 'Branch B Only Item', 'Validation', 'KG', 'KG', 5.75, 'active');
+  ('87000000-0000-0000-0000-000000000001', '81000000-0000-0000-0000-000000000001', 'M078-A1', 'Branch A Item One', 'Validation', 'KG', 'KG', 3.25, 'active'),
+  ('87000000-0000-0000-0000-000000000002', '81000000-0000-0000-0000-000000000001', 'M078-A2', 'Branch A Item Two', 'Validation', 'PCS', 'PCS', 4.50, 'active'),
+  ('87000000-0000-0000-0000-000000000003', '81000000-0000-0000-0000-000000000001', 'M078-B1', 'Branch B Only Item', 'Validation', 'KG', 'KG', 5.75, 'active');
 insert into public.supplier_items (
-  id, supplier_id, item_id, supplier_item_code, supplier_item_name, purchase_uom, unit_cost
+  id, company_id, supplier_id, item_id, supplier_item_code, supplier_item_name, purchase_uom, unit_cost
 ) values (
-  '86500000-0000-0000-0000-000000000001', '86000000-0000-0000-0000-000000000001',
+  '86500000-0000-0000-0000-000000000001', '81000000-0000-0000-0000-000000000001', '86000000-0000-0000-0000-000000000001',
   '87000000-0000-0000-0000-000000000001', 'M078-SUP-A1', 'Migration 078 Item One', 'KG', 3.25
 );
 insert into public.branch_supplier_items (branch_id, supplier_item_id, item_id, is_preferred)

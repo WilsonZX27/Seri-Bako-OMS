@@ -3,14 +3,13 @@ export type Json = string | number | boolean | null | { [key: string]: Json | un
 export type UserRole = "super_admin" | "finance" | "manager" | "purchasing" | "kitchen" | "outlet_staff";
 export type ItemStatus = "active" | "inactive";
 export type SupplierStatus = "active" | "inactive";
-export type RecordStatus = "active" | "inactive" | "archived";
+export type RecordStatus = "active" | "inactive" | "archived" | "invited" | "disabled";
 export type StaffStatus = RecordStatus | "invited" | "disabled";
 export type LocationStatus = RecordStatus;
 export type BranchType = "central_kitchen" | "outlet" | "event_booth" | "office" | "other";
 export type StaffAccessLevel = "full" | "manage" | "read_only";
 export type PermissionOverrideEffect = "allow" | "deny";
 export type ResetFrequency = "never" | "yearly" | "monthly" | "daily";
-export type BarcodeType = "ean13" | "upc" | "qr" | "internal" | "supplier" | "packaging" | "other";
 export type StockEntityType = "item" | "product";
 export type DocumentStatus = "draft" | "submitted" | "pending_approval" | "approved" | "rejected" | "posted" | "cancelled" | "closed";
 export type ApprovalStatus = "not_required" | "draft" | "pending" | "approved" | "rejected" | "cancelled";
@@ -468,42 +467,6 @@ export type Database = {
         Update: Partial<Database["public"]["Tables"]["document_sequence_periods"]["Insert"]>;
         Relationships: [];
       };
-      barcode_mappings: {
-        Row: {
-          id: string;
-          company_id: string;
-          stock_entity_type: StockEntityType;
-          item_id: string | null;
-          product_id: string | null;
-          barcode_value: string;
-          barcode_type: BarcodeType;
-          is_primary: boolean;
-          status: RecordStatus;
-          created_at: string;
-          updated_at: string;
-          created_by: string | null;
-          updated_by: string | null;
-          deleted_at: string | null;
-        };
-        Insert: {
-          id?: string;
-          company_id: string;
-          stock_entity_type: StockEntityType;
-          item_id?: string | null;
-          product_id?: string | null;
-          barcode_value: string;
-          barcode_type?: BarcodeType;
-          is_primary?: boolean;
-          status?: RecordStatus;
-          created_at?: string;
-          updated_at?: string;
-          created_by?: string | null;
-          updated_by?: string | null;
-          deleted_at?: string | null;
-        };
-        Update: Partial<Database["public"]["Tables"]["barcode_mappings"]["Insert"]>;
-        Relationships: [];
-      };
       activity_logs: {
         Row: {
           id: string;
@@ -837,6 +800,7 @@ export type Database = {
       suppliers: {
         Row: {
           id: string;
+          company_id: string;
           supplier_code: string | null;
           name: string;
           contact_person: string | null;
@@ -851,6 +815,7 @@ export type Database = {
         };
         Insert: {
           id?: string;
+          company_id: string;
           supplier_code?: string | null;
           name: string;
           contact_person?: string | null;
@@ -901,6 +866,7 @@ export type Database = {
       items: {
         Row: {
           id: string;
+          company_id: string;
           item_code: string;
           autocount_code: string | null;
           item_name: string;
@@ -914,12 +880,6 @@ export type Database = {
           lead_time_days: number;
           moq: number;
           status: ItemStatus;
-          barcode: string | null;
-          qr_code: string | null;
-          supplier_barcode: string | null;
-          internal_barcode: string | null;
-          barcode_type: BarcodeType | null;
-          barcode_image_url: string | null;
           item_image_url: string | null;
           created_at: string;
           updated_at: string;
@@ -927,6 +887,7 @@ export type Database = {
         };
         Insert: {
           id?: string;
+          company_id: string;
           item_code: string;
           autocount_code?: string | null;
           item_name: string;
@@ -940,12 +901,6 @@ export type Database = {
           lead_time_days?: number;
           moq?: number;
           status?: ItemStatus;
-          barcode?: string | null;
-          qr_code?: string | null;
-          supplier_barcode?: string | null;
-          internal_barcode?: string | null;
-          barcode_type?: BarcodeType | null;
-          barcode_image_url?: string | null;
           item_image_url?: string | null;
           created_at?: string;
           updated_at?: string;
@@ -954,48 +909,42 @@ export type Database = {
         Update: Partial<Database["public"]["Tables"]["items"]["Insert"]>;
         Relationships: [
           {
-            foreignKeyName: "items_supplier_id_fkey";
-            columns: ["supplier_id"];
+            foreignKeyName: "items_supplier_company_fkey";
+            columns: ["supplier_id", "company_id"];
             isOneToOne: false;
             referencedRelation: "suppliers";
-            referencedColumns: ["id"];
+            referencedColumns: ["id", "company_id"];
           },
         ];
       };
       products: {
         Row: {
           id: string;
+          company_id: string;
           product_code: string;
           product_name: string;
           category: string;
           display_order: number;
           selling_unit: string;
           status: ItemStatus;
-          barcode: string | null;
-          qr_code: string | null;
-          internal_barcode: string | null;
-          barcode_type: BarcodeType | null;
-          barcode_image_url: string | null;
           product_image_url: string | null;
           created_at: string;
           updated_at: string;
+          deleted_at: string | null;
         };
         Insert: {
           id?: string;
+          company_id: string;
           product_code: string;
           product_name: string;
           category: string;
           display_order?: number;
           selling_unit: string;
           status?: ItemStatus;
-          barcode?: string | null;
-          qr_code?: string | null;
-          internal_barcode?: string | null;
-          barcode_type?: BarcodeType | null;
-          barcode_image_url?: string | null;
           product_image_url?: string | null;
           created_at?: string;
           updated_at?: string;
+          deleted_at?: string | null;
         };
         Update: Partial<Database["public"]["Tables"]["products"]["Insert"]>;
         Relationships: [];
@@ -1003,6 +952,7 @@ export type Database = {
       supplier_items: {
         Row: {
           id: string;
+          company_id: string;
           supplier_id: string;
           item_id: string;
           supplier_item_code: string;
@@ -1023,6 +973,7 @@ export type Database = {
         };
         Insert: {
           id?: string;
+          company_id: string;
           supplier_id: string;
           item_id: string;
           supplier_item_code: string;
@@ -1077,6 +1028,7 @@ export type Database = {
       uom_conversions: {
         Row: {
           id: string;
+          company_id: string;
           item_id: string | null;
           from_uom: string;
           to_uom: string;
@@ -1090,6 +1042,7 @@ export type Database = {
         };
         Insert: {
           id?: string;
+          company_id: string;
           item_id?: string | null;
           from_uom: string;
           to_uom: string;
@@ -1952,7 +1905,6 @@ export type Database = {
           id: string;
           stock_count_id: string;
           item_id: string;
-          barcode: string | null;
           theoretical_qty: number;
           physical_qty: number;
           variance_qty: number;
@@ -1966,7 +1918,6 @@ export type Database = {
           id?: string;
           stock_count_id: string;
           item_id: string;
-          barcode?: string | null;
           theoretical_qty?: number;
           physical_qty?: number;
           uom: string;
@@ -1990,7 +1941,7 @@ export type Database = {
       };
       stock_transfer_lines: {
         Row: {
-          id: string; stock_transfer_id: string; item_id: string; barcode: string | null; quantity: number; uom: string; remarks: string | null; created_at: string; updated_at: string;
+          id: string; stock_transfer_id: string; item_id: string; quantity: number; uom: string; remarks: string | null; created_at: string; updated_at: string;
         };
         Insert: Partial<Database["public"]["Tables"]["stock_transfer_lines"]["Row"]> & { stock_transfer_id: string; item_id: string; quantity: number; uom: string };
         Update: Partial<Database["public"]["Tables"]["stock_transfer_lines"]["Insert"]>;
@@ -2008,7 +1959,7 @@ export type Database = {
       };
       stock_wastage_lines: {
         Row: {
-          id: string; stock_wastage_id: string; item_id: string; barcode: string | null; quantity: number; uom: string; reason: StockWastageReason;
+          id: string; stock_wastage_id: string; item_id: string; quantity: number; uom: string; reason: StockWastageReason;
           batch_no: string | null; expiry_date: string | null; remarks: string | null; created_at: string; updated_at: string;
         };
         Insert: Partial<Database["public"]["Tables"]["stock_wastage_lines"]["Row"]> & { stock_wastage_id: string; item_id: string; quantity: number; uom: string; reason: StockWastageReason };
@@ -2169,6 +2120,11 @@ export type Database = {
         Args: { target_staff_id: string; overrides: Json };
         Returns: void;
       };
+      replace_staff_access_atomic: {
+        Args: { p_staff_id: string; p_role_id: string; p_default_branch_id: string; p_accessible_branch_ids?: string[]; p_status?: Database["public"]["Enums"]["record_status"] | null; p_staff_code?: string | null; p_full_name?: string | null; p_email?: string | null; p_phone?: string | null };
+        Returns: Json;
+      };
+      set_staff_status_atomic: { Args: { p_staff_id: string; p_status: Database["public"]["Enums"]["record_status"] }; Returns: void; };
       repair_staff_auth_link: {
         Args: { target_staff_id: string; target_auth_user_id: string; normalized_email: string };
         Returns: string;
@@ -2187,6 +2143,22 @@ export type Database = {
       };
       transition_purchase_request: {
         Args: { target_purchase_request_id: string; transition_action: string; transition_remarks?: string | null };
+        Returns: Json;
+      };
+      transition_purchase_order_atomic: {
+        Args: { p_purchase_order_id: string; p_action: string };
+        Returns: Json;
+      };
+      create_purchase_request_atomic: {
+        Args: { p_payload: Json };
+        Returns: Json;
+      };
+      create_purchase_order_atomic: {
+        Args: { p_payload: Json };
+        Returns: Json;
+      };
+      transition_document_atomic: {
+        Args: { p_document_id: string; p_action: string; p_remarks?: string | null };
         Returns: Json;
       };
       update_draft_purchase_request: {
@@ -2242,6 +2214,27 @@ export type Database = {
         Args: { p_stock_count_id: string };
         Returns: Json;
       };
+      post_manual_inventory_movement: {
+        Args: {
+          p_transaction_no: string;
+          p_branch_id: string;
+          p_item_id: string;
+          p_location_id: string;
+          p_transaction_type: StockTransactionType;
+          p_transaction_date: string;
+          p_quantity_in: number;
+          p_quantity_out: number;
+          p_unit_cost: number;
+          p_remarks: string | null;
+          p_from_location_id?: string | null;
+          p_to_location_id?: string | null;
+        };
+        Returns: string;
+      };
+      dispatch_stock_transfer_atomic: { Args: { p_transfer_id: string }; Returns: void };
+      post_stock_transfer_atomic: { Args: { p_transfer_id: string }; Returns: Json };
+      post_stock_wastage_atomic: { Args: { p_wastage_id: string }; Returns: Json };
+      post_production_job_atomic: { Args: { p_job_id: string }; Returns: Json };
       save_branch_supplier_item_mappings: {
         Args: { p_rows: Json; p_mode?: "create" | "update" | "upsert" };
         Returns: Json;
@@ -2323,7 +2316,7 @@ export type Database = {
         Returns: boolean;
       };
       bootstrap_first_admin: {
-        Args: Record<string, never>;
+        Args: { p_first_owner_user_id: string };
         Returns: void;
       };
       preview_phase_one_hard_delete: {
@@ -2343,7 +2336,6 @@ export type Database = {
       branch_type: BranchType;
       staff_access_level: StaffAccessLevel;
       reset_frequency: ResetFrequency;
-      barcode_type: BarcodeType;
       stock_entity_type: StockEntityType;
       record_status: RecordStatus;
       stock_transaction_type: StockTransactionType;

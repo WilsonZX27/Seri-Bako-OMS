@@ -30,7 +30,7 @@ function slug(value) {
 
 async function assertStableReadOnlyPage(page) {
   await expect(page.locator("body")).not.toContainText(/Application error|Unhandled Runtime Error|Internal Server Error/i);
-  await expect(page.locator("body")).toContainText("v7.23.5.9");
+  await expect(page.locator("body")).toContainText("v7.23.7.0");
   const overflow = await page.evaluate(() => ({ viewport: innerWidth, content: document.documentElement.scrollWidth }));
   expect(overflow.content, `page width ${overflow.content} exceeds viewport ${overflow.viewport}`).toBeLessThanOrEqual(overflow.viewport + 5);
 }
@@ -90,3 +90,5 @@ for (const viewport of viewports) {
     });
   }
 }
+
+

@@ -6,6 +6,7 @@ import { isMockMode } from "@/lib/mock-mode";
 import { createClient } from "@/lib/supabase/server";
 import { productSchema } from "@/lib/validations/product";
 import { requirePermissionOrRedirect } from "@/server/actions/error-handling";
+import { requireActiveTenantActor } from "@/server/auth/tenant-actor";
 import { uploadMasterDataImage } from "@/server/storage/master-data-image";
 
 function cleanText(value: unknown) {
@@ -56,8 +57,9 @@ export async function createProduct(formData: FormData) {
   }
 
   const supabase = await createClient();
+  const actor = await requireActiveTenantActor();
   const productPayload = payload(formData);
-  const { data, error } = await supabase.from("products").insert(productPayload).select("id").single();
+  const { data, error } = await supabase.from("products").insert({ ...productPayload, company_id: actor.companyId }).select("id").single();
   if (error) throw new Error(error.message);
   const imageUrl = await uploadMasterDataImage("products", data.id, formData.get("product_image"));
   if (imageUrl) {

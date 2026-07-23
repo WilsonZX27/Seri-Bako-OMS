@@ -50,7 +50,9 @@ export default async function SetupPage({
         <CardContent className="space-y-4">
           <div className="rounded-md border bg-secondary/40 p-4 text-sm text-muted-foreground">
             This confirms the company, Central Kitchen branch, protected owner role,
-            your staff profile, and default document sequences.
+            your staff profile, and default document sequences. Only the deployment
+            owner may provide the one-time bootstrap token; ordinary authenticated
+            users cannot claim Owner access.
           </div>
           {params.error ? (
             <div className="flex gap-2 rounded-md border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive">
@@ -58,7 +60,11 @@ export default async function SetupPage({
               <p>{params.error}</p>
             </div>
           ) : null}
-          <form action={runFirstAdminSetup}>
+          <form action={runFirstAdminSetup} className="space-y-3">
+            <label className="grid gap-1 text-sm font-medium" htmlFor="bootstrap-token">
+              Operator bootstrap token
+              <input id="bootstrap-token" name="bootstrap_token" type="password" autoComplete="off" required className="h-10 rounded-md border bg-background px-3" />
+            </label>
             <Button type="submit" className="w-full">
               Run setup
             </Button>

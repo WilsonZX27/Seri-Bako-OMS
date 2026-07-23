@@ -15,7 +15,7 @@ export const getCurrentProfile = cache(async function getCurrentProfile() {
   if (!user) return null;
 
   const { data: staff } = await supabase.from("staffs").select("*").eq("auth_user_id", user.id).maybeSingle();
-  if (staff) {
+  if (staff && staff.status === "active" && !staff.deleted_at) {
     const { data: staffRoles } = await supabase
       .from("staff_roles")
       .select("role_id, is_primary, effective_from, effective_to")
@@ -25,7 +25,10 @@ export const getCurrentProfile = cache(async function getCurrentProfile() {
       const role = row as { effective_from?: string; effective_to?: string | null };
       return (!role.effective_from || role.effective_from <= today) && (!role.effective_to || role.effective_to >= today);
     });
-    const primaryRole = activeRoles.find((row) => row.is_primary) ?? activeRoles[0];
+    // Access is an authorization boundary: never let returned row order choose a
+    // membership. Exactly one active primary role is the only valid normal state.
+    const primaryRoles = activeRoles.filter((row) => row.is_primary);
+    const primaryRole = primaryRoles.length === 1 ? primaryRoles[0] : null;
     let roleCode: string | null = null;
 
     if (primaryRole?.role_id) {
@@ -33,12 +36,14 @@ export const getCurrentProfile = cache(async function getCurrentProfile() {
         .from("roles")
         .select("role_code")
         .eq("id", primaryRole.role_id)
+        .eq("company_id", staff.company_id)
         .eq("status", "active")
+        .is("deleted_at", null)
         .maybeSingle();
       roleCode = role?.role_code ?? null;
     }
 
-    return { ...staff, role: roleCode, role_code: roleCode, has_staff_role: activeRoles.length > 0 };
+    return { ...staff, role: roleCode, role_code: roleCode, has_staff_role: Boolean(roleCode) };
   }
 
   const { data } = await supabase.from("profiles").select("*").eq("id", user.id).maybeSingle();

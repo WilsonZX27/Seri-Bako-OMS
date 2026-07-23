@@ -12,7 +12,7 @@ test("Staff access uses branches directly and avoids ambiguous location embeds",
   const create = read("src/app/(app)/staffs/new/page.tsx");
 
   assert.doesNotMatch(actions, /branches\(branch_type\)/);
-  assert.match(actions, /from\("branches"\)[\s\S]*select\("id, branch_type, default_location_id"\)/);
+  assert.match(actions, /rpc\("replace_staff_access_atomic"/);
   assert.match(actions, /accessible_branch_ids/);
   assert.doesNotMatch(actions, /accessible_location_ids/);
   assert.match(queries, /staffBranchIds/);
@@ -59,12 +59,12 @@ test("canonical select and FilterBar preserve keyboard behavior without nested r
   assert.match(invoices, /FilterBarMore/);
 });
 
-test("the visible footer is exactly v7.23.5.9 and the Production correction stays a rollback runbook", () => {
+test("the visible footer is exactly v7.23.7.0 and the Production correction stays a rollback runbook", () => {
   const sidebar = read("src/components/layout/workspace-sidebar.tsx");
   const version = read("src/lib/app-version.ts");
   const runbook = read("docs/qa/SPRINT_7_23_5_3_STAFF_ROLE_CORRECTION_RUNBOOK.md");
 
-  assert.match(version, /APP_SPRINT = "v7\.23\.5\.9"/);
+  assert.match(version, /APP_SPRINT = "v7\.23\.7\.0"/);
   assert.match(sidebar, />\{APP_SPRINT\}<\/div>/);
   assert.doesNotMatch(sidebar, /APP_VERSION/);
   assert.match(read("src/components/layout/mobile-sidebar.tsx"), /w-\[min\(var\(--sb-sidebar-width\),88vw\)\]/);
@@ -72,3 +72,7 @@ test("the visible footer is exactly v7.23.5.9 and the Production correction stay
   assert.match(runbook, /rollback;/);
   assert.doesNotMatch(runbook, /^commit;/im);
 });
+
+
+
+

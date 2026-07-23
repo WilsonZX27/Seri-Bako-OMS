@@ -1,9 +1,9 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import { normalizeUom } from "@/lib/uom";
 import { hasPermission } from "@/server/auth/permissions";
+import { requireActiveTenantActor } from "@/server/auth/tenant-actor";
 import type { Database } from "@/types/database";
 
 const quickItemSchema = z.object({
@@ -44,10 +44,11 @@ export async function POST(request: Request) {
   try {
     const parsed = quickItemSchema.parse(await request.json());
     const itemCode = parsed.item_code?.trim() || generateItemCode(parsed.item_name);
-    const admin = createAdminClient();
+    const actor = await requireActiveTenantActor();
     const baseUnit = normalizeUom(parsed.base_unit);
     const purchaseUnit = normalizeUom(parsed.purchase_unit);
     const itemPayload: Database["public"]["Tables"]["items"]["Insert"] = {
+      company_id: actor.companyId,
       item_code: itemCode,
       item_name: parsed.item_name,
       category: parsed.category,
@@ -62,7 +63,7 @@ export async function POST(request: Request) {
       status: "active",
     };
 
-    const { data, error } = await admin
+    const { data, error } = await supabase
       .from("items")
       .insert(itemPayload)
       .select("id, item_code, item_name, base_unit, purchase_unit, supplier_id, cost, status")
@@ -80,6 +81,7 @@ export async function POST(request: Request) {
         const canCreateSupplierItem = await hasPermission("supplier_items.create");
         if (canCreateSupplierItem) {
           const supplierItemPayload: Database["public"]["Tables"]["supplier_items"]["Insert"] = {
+            company_id: actor.companyId,
             supplier_id: parsed.supplier_id,
             item_id: data.id,
             supplier_item_code: itemCode,
@@ -91,7 +93,7 @@ export async function POST(request: Request) {
             lead_time_days: parsed.lead_time_days ?? 0,
             status: "active",
           };
-          const { error: supplierItemError } = await admin.from("supplier_items").insert(supplierItemPayload);
+          const { error: supplierItemError } = await supabase.from("supplier_items").insert(supplierItemPayload);
           if (supplierItemError) {
             console.error("Quick item supplier setup failed", supplierItemError.message);
           }

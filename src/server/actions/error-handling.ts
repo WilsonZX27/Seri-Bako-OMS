@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { isRedirectError } from "next/dist/client/components/redirect-error";
 import { hasPermission } from "@/server/auth/permissions";
+import { logServerError } from "@/server/observability/logger";
 
 export type ActionErrorKind =
   | "permission_denied"
@@ -31,7 +32,7 @@ export function classifyActionError(error: unknown): ActionErrorKind {
 }
 
 export function formatActionError(error: unknown, fallback = "Something went wrong. Please try again.") {
-  console.error(error);
+  logServerError(error, { source: "action.error" });
   const message = error instanceof Error ? error.message : String(error ?? "");
   const normalized = message.toLowerCase();
   const kind = classifyActionError(error);
@@ -85,7 +86,7 @@ export function isPendingMigrationError(error: unknown) {
 }
 
 export function formatPageError(error: unknown, fallback = "This page could not load right now. Please try again shortly.") {
-  console.error(error);
+  logServerError(error, { source: "page.error" });
   if (isPendingMigrationError(error)) {
     return "Database migration is pending. Please contact the Super Admin / Owner.";
   }

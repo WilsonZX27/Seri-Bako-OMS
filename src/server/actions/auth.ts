@@ -9,7 +9,13 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import { formatActionError } from "@/server/actions/error-handling";
 import { resolveEffectivePermission } from "@/server/auth/permissions";
-import { acceptStaffInviteForUser, requireLinkedStaffForAuthUser } from "@/server/auth/staff-session";
+import { acceptCurrentStaffInvite, requireCurrentLinkedStaff } from "@/server/auth/staff-session";
+
+async function requireLinkedStaffForAuthUser(_userId: string, _email: string | null) {
+  void _userId;
+  void _email;
+  return requireCurrentLinkedStaff();
+}
 
 export async function signIn(formData: FormData) {
   if (isMockMode()) {
@@ -134,7 +140,7 @@ export async function updatePassword(formData: FormData) {
     redirect(`/set-password?error=${encodeURIComponent("We could not update your password right now. Please try again later or request a new link.")}`);
   }
 
-  await acceptStaffInviteForUser(user.id, user.email ?? null);
+  await acceptCurrentStaffInvite();
   redirect("/set-password?success=1");
 }
 

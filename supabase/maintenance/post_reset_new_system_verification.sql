@@ -55,7 +55,6 @@ with expected_zero(table_name, row_count) as (
     ('supplier_items', (select count(*) from public.supplier_items)),
     ('products', (select count(*) from public.products)),
     ('product_packaging', (select count(*) from public.product_packaging)),
-    ('barcode_mappings', (select count(*) from public.barcode_mappings)),
     ('stock_transactions', (select count(*) from public.stock_transactions)),
     ('stock_transaction_lines', (select count(*) from public.stock_transaction_lines)),
     ('purchase_requests', (select count(*) from public.purchase_requests)),
@@ -159,9 +158,9 @@ where document_type in (
 order by document_type;
 
 select
-  'migration_ceiling_051' as check_name,
+  'migration_ceiling_090' as check_name,
   version,
-  version = '051' as passed
+  version = '090' as passed
 from supabase_migrations.schema_migrations
 order by version desc
 limit 1;

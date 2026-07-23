@@ -7,14 +7,15 @@ import { isMockMode } from "@/lib/mock-mode";
 import { getAppUrl } from "@/lib/site-url";
 import { canAssignRoleCode, isProtectedOwnerAssignableRole, isSuperAdminRole } from "@/lib/roles";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { setTemporaryPasswordHandoff } from "@/server/auth/temporary-password-handoff";
 import { createClient } from "@/lib/supabase/server";
 import { branchSchema, companySchema, documentSequenceSchema, locationSchema, roleSchema, staffAccessSchema, staffSchema } from "@/lib/validations/foundation";
 import { writeActivityLog } from "@/server/activity/log";
 import { requirePermission } from "@/server/auth/permissions";
 import { formatActionError, requirePermissionOrRedirect, rethrowRedirect, safeRedirectWithMessage } from "@/server/actions/error-handling";
 import { ensureBranchDefaultLocation } from "@/server/inventory/locations";
-import { getCurrentProfile } from "@/server/queries/common";
 import { findAuthUsersByEmail } from "@/server/auth/admin-users";
+import { requireActiveTenantActor } from "@/server/auth/tenant-actor";
 
 function formValue(formData: FormData, key: string) {
   return formData.get(key);
@@ -27,6 +28,7 @@ function cleanText(value: FormDataEntryValue | null) {
 
 export async function updateCompany(id: string, formData: FormData) {
   await requirePermission("company.update");
+  const actor = await requireActiveTenantActor();
   const parsed = companySchema.parse({
     company_code: formValue(formData, "company_code"),
     company_name: formValue(formData, "company_name"),
@@ -40,9 +42,9 @@ export async function updateCompany(id: string, formData: FormData) {
 
   if (!isMockMode()) {
     const supabase = createAdminClient();
-    const { error } = await supabase.from("companies").update(parsed).eq("id", id);
+    const { error } = await supabase.from("companies").update(parsed).eq("id", actor.companyId);
     if (error) throw new Error(error.message);
-    await writeActivityLog({ entityType: "company", entityId: id, activityType: "updated", message: "Company profile updated" });
+    await writeActivityLog({ entityType: "company", entityId: actor.companyId, activityType: "updated", message: "Company profile updated" });
   }
 
   revalidatePath("/company");
@@ -63,6 +65,7 @@ function logoError(message: string): never {
 export async function updateCompanyLogo(id: string, formData: FormData) {
   await requirePermissionOrRedirect("company.update", "/company");
   try {
+    const actor = await requireActiveTenantActor();
     const file = formData.get("logo");
 
     if (!(file instanceof File) || file.size === 0) {
@@ -83,11 +86,11 @@ export async function updateCompanyLogo(id: string, formData: FormData) {
       const { data: company, error: companyError } = await supabase
         .from("companies")
         .select("logo_path")
-        .eq("id", id)
+        .eq("id", actor.companyId)
         .single();
       if (companyError) throw new Error(companyError.message);
 
-      const path = `${id}/logo.${extension}`;
+      const path = `${actor.companyId}/logo.${extension}`;
       const { error: uploadError } = await supabase.storage
         .from("company-assets")
         .upload(path, file, { contentType: file.type, upsert: true });
@@ -101,9 +104,9 @@ export async function updateCompanyLogo(id: string, formData: FormData) {
       const { error: updateError } = await supabase
         .from("companies")
         .update({ logo_path: path, logo_url: publicUrl.publicUrl })
-        .eq("id", id);
+        .eq("id", actor.companyId);
       if (updateError) throw new Error(updateError.message);
-      await writeActivityLog({ entityType: "company", entityId: id, activityType: "updated", message: "Company logo updated" });
+      await writeActivityLog({ entityType: "company", entityId: actor.companyId, activityType: "updated", message: "Company logo updated" });
     }
   } catch (error) {
     rethrowRedirect(error);
@@ -116,14 +119,16 @@ export async function updateCompanyLogo(id: string, formData: FormData) {
 }
 
 export async function removeCompanyLogo(id: string) {
+  void id; // The target is always derived from the authenticated actor.
   await requirePermissionOrRedirect("company.update", "/company");
   try {
+    const actor = await requireActiveTenantActor();
     if (!isMockMode()) {
       const supabase = createAdminClient();
       const { data: company, error: companyError } = await supabase
         .from("companies")
         .select("logo_path")
-        .eq("id", id)
+        .eq("id", actor.companyId)
         .single();
       if (companyError) throw new Error(companyError.message);
 
@@ -135,9 +140,9 @@ export async function removeCompanyLogo(id: string) {
       const { error: updateError } = await supabase
         .from("companies")
         .update({ logo_path: null, logo_url: null })
-        .eq("id", id);
+        .eq("id", actor.companyId);
       if (updateError) throw new Error(updateError.message);
-      await writeActivityLog({ entityType: "company", entityId: id, activityType: "updated", message: "Company logo removed" });
+      await writeActivityLog({ entityType: "company", entityId: actor.companyId, activityType: "updated", message: "Company logo removed" });
     }
   } catch (error) {
     rethrowRedirect(error);
@@ -149,9 +154,9 @@ export async function removeCompanyLogo(id: string) {
   safeRedirectWithMessage("/company", "success", "Company logo removed.");
 }
 
-function branchPayload(formData: FormData) {
+function branchPayload(formData: FormData, companyId: string) {
   return branchSchema.parse({
-    company_id: formValue(formData, "company_id"),
+    company_id: companyId,
     branch_code: formValue(formData, "branch_code"),
     branch_name: formValue(formData, "branch_name"),
     branch_type: formValue(formData, "branch_type") ?? "outlet",
@@ -165,12 +170,14 @@ function branchPayload(formData: FormData) {
 export async function createBranch(formData: FormData) {
   await requirePermissionOrRedirect("branches.create", "/branches/new");
   try {
-    const payload = branchPayload(formData);
+    const actor = await requireActiveTenantActor();
+    const payload = branchPayload(formData, actor.companyId);
     if (!isMockMode()) {
       const supabase = createAdminClient();
       const { data: archivedMatch, error: archivedError } = await supabase
         .from("branches")
         .select("id")
+        .eq("company_id", actor.companyId)
         .or(`branch_code.eq.${payload.branch_code},branch_name.eq.${payload.branch_name}`)
         .not("deleted_at", "is", null)
         .limit(1)
@@ -194,11 +201,12 @@ export async function createBranch(formData: FormData) {
 
 export async function updateBranch(id: string, formData: FormData) {
   await requirePermission("branches.update");
-  const payload = branchPayload(formData);
+  const actor = await requireActiveTenantActor();
+  const payload = branchPayload(formData, actor.companyId);
 
   if (!isMockMode()) {
     const supabase = createAdminClient();
-    const { error } = await supabase.from("branches").update(payload).eq("id", id);
+    const { error } = await supabase.from("branches").update(payload).eq("id", id).eq("company_id", actor.companyId);
     if (error) throw new Error(error.message);
     await writeActivityLog({ entityType: "branch", entityId: id, activityType: "updated", message: `Branch ${payload.branch_name} updated` });
   }
@@ -210,9 +218,10 @@ export async function updateBranch(id: string, formData: FormData) {
 export async function deleteBranch(id: string) {
   await requirePermissionOrRedirect("branches.update", "/branches");
   try {
+    const actor = await requireActiveTenantActor();
     if (!isMockMode()) {
       const supabase = createAdminClient();
-      const { error } = await supabase.from("branches").update({ deleted_at: new Date().toISOString(), status: "archived" }).eq("id", id);
+      const { error } = await supabase.from("branches").update({ deleted_at: new Date().toISOString(), status: "archived" }).eq("id", id).eq("company_id", actor.companyId);
       if (error) throw new Error(error.message);
       await writeActivityLog({ entityType: "branch", entityId: id, activityType: "archived", message: "Branch archived" });
     }
@@ -227,9 +236,10 @@ export async function deleteBranch(id: string) {
 export async function restoreBranch(id: string) {
   await requirePermissionOrRedirect("branches.update", `/branches/${id}`);
   try {
+    const actor = await requireActiveTenantActor();
     if (!isMockMode()) {
       const supabase = createAdminClient();
-      const { error } = await supabase.from("branches").update({ deleted_at: null, status: "active" }).eq("id", id);
+      const { error } = await supabase.from("branches").update({ deleted_at: null, status: "active" }).eq("id", id).eq("company_id", actor.companyId);
       if (error) throw new Error(error.message);
       await ensureBranchDefaultLocation(id);
       await writeActivityLog({ entityType: "branch", entityId: id, activityType: "restored", message: "Branch restored" });
@@ -243,9 +253,9 @@ export async function restoreBranch(id: string) {
   safeRedirectWithMessage(`/branches/${id}`, "success", "Branch restored.");
 }
 
-function locationPayload(formData: FormData) {
+function locationPayload(formData: FormData, companyId: string) {
   return locationSchema.parse({
-    company_id: formValue(formData, "company_id"),
+    company_id: companyId,
     branch_id: formValue(formData, "branch_id"),
     location_code: formValue(formData, "location_code"),
     location_name: formValue(formData, "location_name"),
@@ -257,9 +267,13 @@ function locationPayload(formData: FormData) {
 export async function createLocation(formData: FormData) {
   await requirePermissionOrRedirect("locations.create", "/locations/new");
   try {
-    const payload = locationPayload(formData);
+    const actor = await requireActiveTenantActor();
+    const payload = locationPayload(formData, actor.companyId);
     if (!isMockMode()) {
       const supabase = createAdminClient();
+      const { data: branch, error: branchError } = await supabase.from("branches").select("id").eq("id", payload.branch_id).eq("company_id", actor.companyId).is("deleted_at", null).maybeSingle();
+      if (branchError) throw new Error(branchError.message);
+      if (!branch) throw new Error("Selected branch was not found in your company.");
       const { data: archivedMatch, error: archivedError } = await supabase
         .from("locations")
         .select("id")
@@ -286,10 +300,14 @@ export async function createLocation(formData: FormData) {
 
 export async function updateLocation(id: string, formData: FormData) {
   await requirePermission("locations.update");
-  const payload = locationPayload(formData);
+  const actor = await requireActiveTenantActor();
+  const payload = locationPayload(formData, actor.companyId);
   if (!isMockMode()) {
     const supabase = createAdminClient();
-    const { error } = await supabase.from("locations").update(payload).eq("id", id);
+    const { data: branch, error: branchError } = await supabase.from("branches").select("id").eq("id", payload.branch_id).eq("company_id", actor.companyId).is("deleted_at", null).maybeSingle();
+    if (branchError) throw new Error(branchError.message);
+    if (!branch) throw new Error("Selected branch was not found in your company.");
+    const { error } = await supabase.from("locations").update(payload).eq("id", id).eq("company_id", actor.companyId);
     if (error) throw new Error(error.message);
     await writeActivityLog({ entityType: "location", entityId: id, activityType: "updated", message: `Location ${payload.location_name} updated` });
   }
@@ -300,12 +318,19 @@ export async function updateLocation(id: string, formData: FormData) {
 export async function deleteLocation(id: string) {
   await requirePermissionOrRedirect("locations.update", "/locations");
   try {
+    const actor = await requireActiveTenantActor();
     if (!isMockMode()) {
       const supabase = createAdminClient();
-      const { data: defaultBranch, error: defaultBranchError } = await supabase.from("branches").select("id").eq("default_location_id", id).limit(1).maybeSingle();
+      const { data: defaultBranch, error: defaultBranchError } = await supabase
+        .from("branches")
+        .select("id")
+        .eq("default_location_id", id)
+        .eq("company_id", actor.companyId)
+        .limit(1)
+        .maybeSingle();
       if (defaultBranchError) throw new Error(defaultBranchError.message);
       if (defaultBranch) safeRedirectWithMessage(`/locations/${id}`, "error", "This system-default location cannot be archived while it is assigned to a branch.");
-      const { error } = await supabase.from("locations").update({ deleted_at: new Date().toISOString(), status: "inactive" }).eq("id", id);
+      const { error } = await supabase.from("locations").update({ deleted_at: new Date().toISOString(), status: "inactive" }).eq("id", id).eq("company_id", actor.companyId);
       if (error) throw new Error(error.message);
       await writeActivityLog({ entityType: "location", entityId: id, activityType: "archived", message: "Location archived" });
     }
@@ -320,9 +345,10 @@ export async function deleteLocation(id: string) {
 export async function restoreLocation(id: string) {
   await requirePermissionOrRedirect("locations.update", `/locations/${id}`);
   try {
+    const actor = await requireActiveTenantActor();
     if (!isMockMode()) {
       const supabase = createAdminClient();
-      const { error } = await supabase.from("locations").update({ deleted_at: null, status: "active" }).eq("id", id);
+      const { error } = await supabase.from("locations").update({ deleted_at: null, status: "active" }).eq("id", id).eq("company_id", actor.companyId);
       if (error) throw new Error(error.message);
       await writeActivityLog({ entityType: "location", entityId: id, activityType: "restored", message: "Location restored" });
     }
@@ -338,9 +364,10 @@ export async function restoreLocation(id: string) {
 export async function fixMissingDefaultLocations() {
   await requirePermissionOrRedirect("locations.update", "/data-onboarding");
   try {
+    const actor = await requireActiveTenantActor();
     if (!isMockMode()) {
       const supabase = createAdminClient();
-      const { data: branches, error } = await supabase.from("branches").select("id").is("deleted_at", null);
+      const { data: branches, error } = await supabase.from("branches").select("id").eq("company_id", actor.companyId).is("deleted_at", null);
       if (error) throw new Error(error.message);
       for (const branch of branches ?? []) {
         await ensureBranchDefaultLocation(branch.id);
@@ -359,12 +386,14 @@ export async function fixMissingDefaultLocations() {
 export async function archiveDuplicateLocation(id: string) {
   await requirePermissionOrRedirect("locations.update", "/locations");
   try {
+    const actor = await requireActiveTenantActor();
     if (!isMockMode()) {
       const supabase = createAdminClient();
       const { data: location, error: locationError } = await supabase
         .from("locations")
         .select("id, branch_id")
         .eq("id", id)
+        .eq("company_id", actor.companyId)
         .single();
       if (locationError) throw new Error(locationError.message);
       if (!location.branch_id) throw new Error("This location is not linked to a branch.");
@@ -373,6 +402,7 @@ export async function archiveDuplicateLocation(id: string) {
         .from("branches")
         .select("default_location_id")
         .eq("id", location.branch_id)
+        .eq("company_id", actor.companyId)
         .maybeSingle();
       if (branchError) throw new Error(branchError.message);
       if (branch?.default_location_id === id) throw new Error("This location is the current default stock area and cannot be archived.");
@@ -386,7 +416,7 @@ export async function archiveDuplicateLocation(id: string) {
         throw new Error("This duplicate location already has stock history. Leave it in place and review it manually.");
       }
 
-      const { error } = await supabase.from("locations").update({ deleted_at: new Date().toISOString(), status: "inactive" }).eq("id", id);
+      const { error } = await supabase.from("locations").update({ deleted_at: new Date().toISOString(), status: "inactive" }).eq("id", id).eq("company_id", actor.companyId);
       if (error) throw new Error(error.message);
       await writeActivityLog({ entityType: "location", entityId: id, activityType: "archived", message: "Duplicate location archived" });
     }
@@ -401,16 +431,19 @@ export async function archiveDuplicateLocation(id: string) {
 export async function cleanDuplicateLocations() {
   await requirePermissionOrRedirect("locations.update", "/locations");
   try {
+    const actor = await requireActiveTenantActor();
     if (!isMockMode()) {
       const supabase = createAdminClient();
       const [{ data: locations, error: locationsError }, { data: branches, error: branchesError }] = await Promise.all([
         supabase
           .from("locations")
           .select("id, branch_id, location_name, deleted_at")
+          .eq("company_id", actor.companyId)
           .is("deleted_at", null),
         supabase
           .from("branches")
           .select("id, branch_name, default_location_id")
+          .eq("company_id", actor.companyId)
           .is("deleted_at", null),
       ]);
       if (locationsError) throw new Error(locationsError.message);
@@ -440,7 +473,8 @@ export async function cleanDuplicateLocations() {
         const { error: archiveError } = await supabase
           .from("locations")
           .update({ deleted_at: new Date().toISOString(), status: "inactive" })
-          .eq("id", location.id);
+          .eq("id", location.id)
+          .eq("company_id", actor.companyId);
         if (archiveError) throw new Error(archiveError.message);
         archivedCount += 1;
       }
@@ -465,9 +499,9 @@ export async function cleanDuplicateLocations() {
   safeRedirectWithMessage("/locations", "success", "Duplicate internal locations reviewed.");
 }
 
-function staffPayload(formData: FormData) {
+function staffPayload(formData: FormData, companyId: string) {
   return staffSchema.parse({
-    company_id: formValue(formData, "company_id"),
+    company_id: companyId,
     staff_code: formValue(formData, "staff_code"),
     full_name: formValue(formData, "full_name"),
     email: formValue(formData, "email"),
@@ -485,62 +519,21 @@ function staffAccessPayload(formData: FormData) {
   });
 }
 
-async function replaceStaffAccess(staffId: string, formData: FormData) {
+async function replaceStaffAccess(staffId: string, formData: FormData, payload?: ReturnType<typeof staffPayload>) {
   const access = staffAccessPayload(formData);
-  const supabase = createAdminClient();
-
-  const { data: role, error: roleLookupError } = await supabase.from("roles").select("role_code").eq("id", access.role_id).single();
-  if (roleLookupError) throw new Error(roleLookupError.message);
-  const companyWide = ["super_admin", "finance", "purchasing"].includes(role.role_code);
-  const { data: activeBranches, error: branchesLookupError } = await supabase
-    .from("branches")
-    .select("id, branch_type, default_location_id")
-    .eq("status", "active")
-    .is("deleted_at", null);
-  if (branchesLookupError) throw new Error(branchesLookupError.message);
-  const requested = new Set([...access.accessible_branch_ids, access.default_branch_id]);
-  const eligibleBranches = (activeBranches ?? []).filter((branch) => {
-    if (companyWide) return true;
-    if (!requested.has(branch.id)) return false;
-    if (role.role_code === "kitchen") return branch.branch_type === "central_kitchen";
-    if (role.role_code === "outlet_staff") return branch.branch_type === "outlet";
-    return role.role_code === "manager";
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("replace_staff_access_atomic", {
+    p_staff_id: staffId,
+    p_role_id: access.role_id,
+    p_default_branch_id: access.default_branch_id,
+    p_accessible_branch_ids: access.accessible_branch_ids,
+    p_status: payload?.status,
+    p_staff_code: payload?.staff_code,
+    p_full_name: payload?.full_name,
+    p_email: payload?.email,
+    p_phone: payload?.phone,
   });
-  const defaultBranch = eligibleBranches.find((branch) => branch.id === access.default_branch_id);
-  if (!defaultBranch) throw new Error("Default branch is not eligible for the selected role.");
-  if (!eligibleBranches.length) throw new Error("Select at least one eligible branch.");
-  const branchIds = eligibleBranches.map((branch) => branch.id);
-
-  const [{ error: deleteRolesError }, { error: deleteBranchesError }, { error: deleteLocationsError }] = await Promise.all([
-    supabase.from("staff_roles").delete().eq("staff_id", staffId),
-    supabase.from("staff_branches").delete().eq("staff_id", staffId),
-    supabase.from("staff_locations").delete().eq("staff_id", staffId),
-  ]);
-  if (deleteRolesError) throw new Error(deleteRolesError.message);
-  if (deleteBranchesError) throw new Error(deleteBranchesError.message);
-  if (deleteLocationsError) throw new Error(deleteLocationsError.message);
-
-  const { error: roleError } = await supabase.from("staff_roles").insert({
-    staff_id: staffId,
-    role_id: access.role_id,
-    branch_id: companyWide ? null : defaultBranch.id,
-    is_primary: true,
-    effective_from: new Date().toISOString().slice(0, 10),
-    effective_to: null,
-  });
-  if (roleError) throw new Error(roleError.message);
-
-  const accessLevel = role.role_code === "super_admin" ? "full" : ["finance", "purchasing", "manager"].includes(role.role_code) ? "manage" : "read_only";
-  const { error: branchError } = await supabase.from("staff_branches").insert(branchIds.map((branchId) => ({ staff_id: staffId, branch_id: branchId, access_level: accessLevel, is_default: branchId === defaultBranch.id })));
-  if (branchError) throw new Error(branchError.message);
-
-  const compatibilityLocations = eligibleBranches.flatMap((branch) => branch.default_location_id ? [{ staff_id: staffId, location_id: branch.default_location_id }] : []);
-  if (compatibilityLocations.length) {
-    const { error: locationError } = await supabase.from("staff_locations").insert(compatibilityLocations);
-    if (locationError) throw new Error(locationError.message);
-  }
-  const { error: defaultError } = await supabase.from("staffs").update({ default_branch_id: defaultBranch.id }).eq("id", staffId);
-  if (defaultError) throw new Error(defaultError.message);
+  if (error) throw new Error(error.message);
 }
 
 async function getCurrentStaffId() {
@@ -569,12 +562,17 @@ async function getCurrentStaffRoleCodes(admin: ReturnType<typeof createAdminClie
 
 async function getRoleCodeById(admin: ReturnType<typeof createAdminClient>, roleId: string | null | undefined) {
   if (!roleId) return null;
-  const { data, error } = await admin.from("roles").select("role_code").eq("id", roleId).maybeSingle();
+  const actor = await requireActiveTenantActor();
+  const { data, error } = await admin.from("roles").select("role_code").eq("id", roleId).eq("company_id", actor.companyId).maybeSingle();
   if (error) throw new Error(error.message);
   return data?.role_code ?? null;
 }
 
 async function getPrimaryStaffRoleId(admin: ReturnType<typeof createAdminClient>, staffId: string) {
+  const actor = await requireActiveTenantActor();
+  const { data: target, error: targetError } = await admin.from("staffs").select("id").eq("id", staffId).eq("company_id", actor.companyId).maybeSingle();
+  if (targetError) throw new Error(targetError.message);
+  if (!target) throw new Error("Target staff was not found in your company.");
   const { data, error } = await admin
     .from("staff_roles")
     .select("role_id")
@@ -586,7 +584,8 @@ async function getPrimaryStaffRoleId(admin: ReturnType<typeof createAdminClient>
 }
 
 async function activeSuperAdminCount(admin: ReturnType<typeof createAdminClient>) {
-  const { data: roles, error: rolesError } = await admin.from("roles").select("id").eq("role_code", "super_admin").eq("status", "active").is("deleted_at", null);
+  const actor = await requireActiveTenantActor();
+  const { data: roles, error: rolesError } = await admin.from("roles").select("id").eq("company_id", actor.companyId).eq("role_code", "super_admin").eq("status", "active").is("deleted_at", null);
   if (rolesError) throw new Error(rolesError.message);
   const roleIds = (roles ?? []).map((role) => role.id);
   if (!roleIds.length) return 0;
@@ -597,7 +596,7 @@ async function activeSuperAdminCount(admin: ReturnType<typeof createAdminClient>
   const staffIds = Array.from(new Set((assignments ?? []).filter((row) => (!row.effective_from || row.effective_from <= today) && (!row.effective_to || row.effective_to >= today)).map((row) => row.staff_id).filter(Boolean)));
   if (!staffIds.length) return 0;
 
-  const { data: staffs, error: staffError } = await admin.from("staffs").select("id, status, deleted_at").in("id", staffIds);
+  const { data: staffs, error: staffError } = await admin.from("staffs").select("id, status, deleted_at").eq("company_id", actor.companyId).in("id", staffIds);
   if (staffError) throw new Error(staffError.message);
   return (staffs ?? []).filter((staff) => staff.status === "active" && !staff.deleted_at).length;
 }
@@ -633,27 +632,16 @@ async function assertCanAssignStaffRole(admin: ReturnType<typeof createAdminClie
 }
 
 async function assertCanManageStaffAccount(admin: ReturnType<typeof createAdminClient>, staffId: string) {
+  const actor = await requireActiveTenantActor();
+  const { data: target, error } = await admin.from("staffs").select("id").eq("id", staffId).eq("company_id", actor.companyId).is("deleted_at", null).maybeSingle();
+  if (error) throw new Error(error.message);
+  if (!target) throw new Error("Target staff was not found in your company.");
   const targetRoleId = await getPrimaryStaffRoleId(admin, staffId);
   const targetRoleCode = await getRoleCodeById(admin, targetRoleId);
   if (!isSuperAdminRole(targetRoleCode)) return;
   const currentRoleCodes = await getCurrentStaffRoleCodes(admin);
   if (!currentRoleCodes.some(isSuperAdminRole)) {
     throw new Error("Super Admin / Owner accounts are protected and can only be managed by another owner.");
-  }
-}
-
-async function assertCanDeactivateStaff(admin: ReturnType<typeof createAdminClient>, staffId: string) {
-  const roleId = await getPrimaryStaffRoleId(admin, staffId);
-  const roleCode = await getRoleCodeById(admin, roleId);
-  if (!isSuperAdminRole(roleCode)) return;
-
-  const currentStaffId = await getCurrentStaffId();
-  const ownerCount = await activeSuperAdminCount(admin);
-  if (currentStaffId === staffId && ownerCount <= 1) {
-    throw new Error("You cannot deactivate your own Super Admin / Owner account while you are the only owner.");
-  }
-  if (ownerCount <= 1) {
-    throw new Error("Cannot deactivate the last Super Admin / Owner.");
   }
 }
 
@@ -677,8 +665,9 @@ async function countStaffHistory(admin: ReturnType<typeof createAdminClient>, st
 
 async function inviteStaffByEmail(staffId: string, email: string) {
   const admin = createAdminClient();
+  const actor = await requireActiveTenantActor();
   const normalized = email.trim().toLowerCase();
-  const { data: staff, error: staffError } = await admin.from("staffs").select("auth_user_id").eq("id", staffId).single();
+  const { data: staff, error: staffError } = await admin.from("staffs").select("auth_user_id").eq("id", staffId).eq("company_id", actor.companyId).single();
   if (staffError) throw new Error(staffError.message);
   const redirectTo = `${await getAppUrl()}/auth/callback?next=/set-password`;
   const { data, error } = await admin.auth.admin.inviteUserByEmail(normalized, { redirectTo });
@@ -707,7 +696,7 @@ async function inviteStaffByEmail(staffId: string, email: string) {
   };
   if (authUserId) updates.auth_user_id = authUserId;
 
-  const { error: updateError } = await admin.from("staffs").update(updates).eq("id", staffId);
+  const { error: updateError } = await admin.from("staffs").update(updates).eq("id", staffId).eq("company_id", actor.companyId);
   if (updateError) {
     if (createdAuthUser && authUserId) await admin.auth.admin.deleteUser(authUserId).catch(console.error);
     throw new Error(updateError.message);
@@ -738,10 +727,11 @@ async function createOrResetStaffAuthAccount(input: {
   resetExisting?: boolean;
 }) {
   const admin = createAdminClient();
+  const actor = await requireActiveTenantActor();
   const email = input.email.trim().toLowerCase();
   const temporaryPassword = input.temporaryPassword?.trim() || generateTemporaryPassword();
   const now = new Date().toISOString();
-  const { data: staff, error: staffError } = await admin.from("staffs").select("auth_user_id").eq("id", input.staffId).single();
+  const { data: staff, error: staffError } = await admin.from("staffs").select("auth_user_id").eq("id", input.staffId).eq("company_id", actor.companyId).single();
   if (staffError) throw new Error(staffError.message);
 
   let authUserId = staff.auth_user_id;
@@ -794,7 +784,8 @@ async function createOrResetStaffAuthAccount(input: {
       temp_password_issued_at: now,
       invited_at: now,
     })
-    .eq("id", input.staffId);
+    .eq("id", input.staffId)
+    .eq("company_id", actor.companyId);
   if (updateError) {
     if (createdAuthUser) await admin.auth.admin.deleteUser(authUserId).catch(console.error);
     throw new Error(updateError.message);
@@ -808,7 +799,8 @@ export async function createStaff(formData: FormData) {
   let createdStaffId: string | null = null;
   let temporaryPassword: string | null = null;
   try {
-    const payload = staffPayload(formData);
+    const actor = await requireActiveTenantActor();
+    const payload = staffPayload(formData, actor.companyId);
     const access = staffAccessPayload(formData);
     const authSetupMethod = String(formData.get("auth_setup_method") ?? "temporary_password");
     const enteredTemporaryPassword = cleanText(formData.get("temporary_password"));
@@ -818,7 +810,7 @@ export async function createStaff(formData: FormData) {
         throw new Error("Role and default branch are required before invite.");
       }
       await assertCanAssignStaffRole(supabase, access.role_id);
-      const invitedBy = await getCurrentStaffId();
+      const invitedBy = actor.staffId;
       const { data: existing, error: existingError } = await supabase
         .from("staffs")
         .select("id")
@@ -867,9 +859,10 @@ export async function createStaff(formData: FormData) {
   } catch (error) {
     rethrowRedirect(error);
     if (createdStaffId && !isMockMode()) {
+      const actor = await requireActiveTenantActor();
       const admin = createAdminClient();
-      const { data: createdStaff } = await admin.from("staffs").select("auth_user_id").eq("id", createdStaffId).maybeSingle();
-      await admin.from("staffs").delete().eq("id", createdStaffId);
+      const { data: createdStaff } = await admin.from("staffs").select("auth_user_id").eq("id", createdStaffId).eq("company_id", actor.companyId).maybeSingle();
+      await admin.from("staffs").delete().eq("id", createdStaffId).eq("company_id", actor.companyId);
       if (createdStaff?.auth_user_id) await admin.auth.admin.deleteUser(createdStaff.auth_user_id).catch(console.error);
       createdStaffId = null;
     }
@@ -877,7 +870,8 @@ export async function createStaff(formData: FormData) {
   }
   revalidatePath("/staffs");
   if (createdStaffId && temporaryPassword) {
-    redirect(`/staffs/${createdStaffId}?success=${encodeURIComponent("Staff account created. Copy the temporary password now.")}&temp_password=${encodeURIComponent(temporaryPassword)}`);
+    await setTemporaryPasswordHandoff(createdStaffId, temporaryPassword);
+    redirect(`/staffs/${createdStaffId}?success=${encodeURIComponent("Staff account created. Copy the temporary password now.")}`);
   }
   safeRedirectWithMessage("/staffs", "success", "Staff created.");
 }
@@ -885,7 +879,8 @@ export async function createStaff(formData: FormData) {
 export async function updateStaff(id: string, formData: FormData) {
   await requirePermissionOrRedirect("staffs.update", `/staffs/${id}`);
   try {
-    const payload = staffPayload(formData);
+    const actor = await requireActiveTenantActor();
+    const payload = staffPayload(formData, actor.companyId);
     const access = staffAccessPayload(formData);
     if (!isMockMode()) {
       const supabase = createAdminClient();
@@ -894,9 +889,7 @@ export async function updateStaff(id: string, formData: FormData) {
       }
       await assertCanManageStaffAccount(supabase, id);
       await assertCanAssignStaffRole(supabase, access.role_id, id);
-      const { error } = await supabase.from("staffs").update({ ...payload, invite_email: payload.email }).eq("id", id);
-      if (error) throw new Error(error.message);
-      await replaceStaffAccess(id, formData);
+      await replaceStaffAccess(id, formData, payload);
       await writeActivityLog({ entityType: "staff", entityId: id, activityType: "updated", message: `Staff ${payload.full_name} updated` });
     }
   } catch (error) {
@@ -912,6 +905,7 @@ export async function updateStaff(id: string, formData: FormData) {
 async function saveStaffPermissionOverrides(id: string, overrides: { permission_id: string; effect: "allow" | "deny" }[]) {
   await requirePermissionOrRedirect("roles.update", `/staffs/${id}`);
   try {
+    await requireActiveTenantActor();
     if (!isMockMode()) {
       const supabase = await createClient();
       const { error } = await supabase.rpc("set_staff_permission_overrides", { target_staff_id: id, overrides });
@@ -942,10 +936,11 @@ export async function resetStaffPermissionOverrides(id: string) {
 export async function resendStaffInvite(id: string) {
   await requirePermissionOrRedirect("staffs.update", `/staffs/${id}`);
   try {
+    const actor = await requireActiveTenantActor();
     if (!isMockMode()) {
       const supabase = createAdminClient();
       await assertCanManageStaffAccount(supabase, id);
-      const { data: staff, error } = await supabase.from("staffs").select("email, invite_email, full_name").eq("id", id).single();
+      const { data: staff, error } = await supabase.from("staffs").select("email, invite_email, full_name").eq("id", id).eq("company_id", actor.companyId).single();
       if (error) throw new Error(error.message);
       const email = (staff.invite_email ?? staff.email ?? "").trim().toLowerCase();
       if (!email) throw new Error("Staff email is required before sending an invite.");
@@ -965,6 +960,7 @@ export async function resetStaffTemporaryPassword(id: string) {
   await requirePermissionOrRedirect("staffs.update", `/staffs/${id}`);
   let temporaryPassword: string | null = null;
   try {
+    const actor = await requireActiveTenantActor();
     if (!isMockMode()) {
       const supabase = createAdminClient();
       await assertCanManageStaffAccount(supabase, id);
@@ -972,6 +968,7 @@ export async function resetStaffTemporaryPassword(id: string) {
         .from("staffs")
         .select("id, email, invite_email, full_name, auth_user_id")
         .eq("id", id)
+        .eq("company_id", actor.companyId)
         .single();
       if (error) throw new Error(error.message);
       const email = (staff.invite_email ?? staff.email ?? "").trim().toLowerCase();
@@ -991,7 +988,8 @@ export async function resetStaffTemporaryPassword(id: string) {
   revalidatePath("/staffs");
   revalidatePath(`/staffs/${id}`);
   if (temporaryPassword) {
-    redirect(`/staffs/${id}?success=${encodeURIComponent("Temporary password generated. Copy it now.")}&temp_password=${encodeURIComponent(temporaryPassword)}`);
+    await setTemporaryPasswordHandoff(id, temporaryPassword);
+    redirect(`/staffs/${id}?success=${encodeURIComponent("Temporary password generated. Copy it now.")}`);
   }
   safeRedirectWithMessage(`/staffs/${id}`, "success", "Temporary password generated.");
 }
@@ -999,6 +997,7 @@ export async function resetStaffTemporaryPassword(id: string) {
 export async function repairStaffSignInLink(id: string) {
   await requirePermissionOrRedirect("staffs.update", `/staffs/${id}`);
   try {
+    const actor = await requireActiveTenantActor();
     if (!isMockMode()) {
       const admin = createAdminClient();
       const roleCodes = await getCurrentStaffRoleCodes(admin);
@@ -1008,6 +1007,7 @@ export async function repairStaffSignInLink(id: string) {
         .from("staffs")
         .select("email, invite_email, auth_user_id, status")
         .eq("id", id)
+        .eq("company_id", actor.companyId)
         .is("deleted_at", null)
         .single();
       if (error) throw new Error(error.message);
@@ -1042,6 +1042,7 @@ export async function repairStaffSignInLink(id: string) {
 export async function forceStaffPasswordChange(id: string) {
   await requirePermissionOrRedirect("staffs.update", `/staffs/${id}`);
   try {
+    const actor = await requireActiveTenantActor();
     if (!isMockMode()) {
       const supabase = createAdminClient();
       await assertCanManageStaffAccount(supabase, id);
@@ -1053,7 +1054,8 @@ export async function forceStaffPasswordChange(id: string) {
           auth_setup_method: "temporary_password",
           temp_password_issued_at: new Date().toISOString(),
         })
-        .eq("id", id);
+        .eq("id", id)
+        .eq("company_id", actor.companyId);
       if (error) throw new Error(error.message);
       await writeActivityLog({ entityType: "staff", entityId: id, activityType: "password_change_required", message: "Owner required staff password change" });
     }
@@ -1069,11 +1071,11 @@ export async function forceStaffPasswordChange(id: string) {
 export async function disableStaff(id: string) {
   await requirePermissionOrRedirect("staffs.update", `/staffs/${id}`);
   try {
+    await requireActiveTenantActor();
     if (!isMockMode()) {
       const supabase = createAdminClient();
       await assertCanManageStaffAccount(supabase, id);
-      await assertCanDeactivateStaff(supabase, id);
-      const { error } = await supabase.from("staffs").update({ status: "disabled" }).eq("id", id);
+      const { error } = await (await createClient()).rpc("set_staff_status_atomic", { p_staff_id: id, p_status: "disabled" });
       if (error) throw new Error(error.message);
       await writeActivityLog({ entityType: "staff", entityId: id, activityType: "updated", message: "Staff sign-in disabled" });
     }
@@ -1089,12 +1091,13 @@ export async function disableStaff(id: string) {
 export async function enableStaff(id: string) {
   await requirePermissionOrRedirect("staffs.update", `/staffs/${id}`);
   try {
+    const actor = await requireActiveTenantActor();
     if (!isMockMode()) {
       const supabase = createAdminClient();
       await assertCanManageStaffAccount(supabase, id);
-      const { data: staff, error: staffError } = await supabase.from("staffs").select("accepted_at").eq("id", id).single();
+      const { data: staff, error: staffError } = await supabase.from("staffs").select("accepted_at").eq("id", id).eq("company_id", actor.companyId).single();
       if (staffError) throw new Error(staffError.message);
-      const { error } = await supabase.from("staffs").update({ status: staff.accepted_at ? "active" : "invited" }).eq("id", id);
+      const { error } = await supabase.from("staffs").update({ status: staff.accepted_at ? "active" : "invited" }).eq("id", id).eq("company_id", actor.companyId);
       if (error) throw new Error(error.message);
       await writeActivityLog({ entityType: "staff", entityId: id, activityType: "updated", message: "Staff enabled" });
     }
@@ -1110,6 +1113,7 @@ export async function enableStaff(id: string) {
 export async function permanentlyDeleteStaff(id: string) {
   await requirePermissionOrRedirect("staffs.update", `/staffs/${id}`);
   try {
+    const actor = await requireActiveTenantActor();
     if (!isMockMode()) {
       const supabase = createAdminClient();
       await assertCanManageStaffAccount(supabase, id);
@@ -1117,6 +1121,7 @@ export async function permanentlyDeleteStaff(id: string) {
         .from("staffs")
         .select("id, staff_code, email, invite_email, full_name, auth_user_id")
         .eq("id", id)
+        .eq("company_id", actor.companyId)
         .single();
       if (staffError) throw new Error(staffError.message);
       const roleId = await getPrimaryStaffRoleId(supabase, id);
@@ -1148,7 +1153,7 @@ export async function permanentlyDeleteStaff(id: string) {
       if (branchError) throw new Error(branchError.message);
       if (locationError) throw new Error(locationError.message);
 
-      const { error: deleteError } = await supabase.from("staffs").delete().eq("id", id);
+      const { error: deleteError } = await supabase.from("staffs").delete().eq("id", id).eq("company_id", actor.companyId);
       if (deleteError) throw new Error(deleteError.message);
     }
   } catch (error) {
@@ -1159,9 +1164,9 @@ export async function permanentlyDeleteStaff(id: string) {
   safeRedirectWithMessage("/staffs", "success", "Staff permanently deleted.");
 }
 
-function rolePayload(formData: FormData) {
+function rolePayload(formData: FormData, companyId: string) {
   return roleSchema.parse({
-    company_id: formValue(formData, "company_id"),
+    company_id: companyId,
     role_code: formValue(formData, "role_code"),
     role_name: formValue(formData, "role_name"),
     description: cleanText(formValue(formData, "description")),
@@ -1171,13 +1176,12 @@ function rolePayload(formData: FormData) {
 
 export async function createRole(formData: FormData) {
   await requirePermission("roles.create");
-  const payload = rolePayload(formData);
+  const actor = await requireActiveTenantActor();
+  const payload = rolePayload(formData, actor.companyId);
   if (!isMockMode()) {
-    const profile = await getCurrentProfile();
-    if (!profile?.company_id) throw new Error("An active company staff profile is required.");
     if (isProtectedOwnerAssignableRole(payload.role_code)) throw new Error("Super Admin / Owner roles cannot be created here.");
     const supabase = createAdminClient();
-    const { data, error } = await supabase.from("roles").insert({ ...payload, company_id: profile.company_id }).select("id").single();
+    const { data, error } = await supabase.from("roles").insert(payload).select("id").single();
     if (error) throw new Error(error.message);
     await writeActivityLog({ entityType: "role", entityId: data.id, activityType: "created", message: `Role ${payload.role_name} created` });
   }
@@ -1187,17 +1191,15 @@ export async function createRole(formData: FormData) {
 
 export async function updateRole(id: string, formData: FormData) {
   await requirePermission("roles.update");
-  const payload = rolePayload(formData);
+  const actor = await requireActiveTenantActor();
+  const payload = rolePayload(formData, actor.companyId);
   if (!isMockMode()) {
-    const profile = await getCurrentProfile();
-    if (!profile?.company_id) throw new Error("An active company staff profile is required.");
     const supabase = createAdminClient();
-    const { data: currentRole, error: roleError } = await supabase.from("roles").select("role_code, company_id").eq("id", id).single();
+    const { data: currentRole, error: roleError } = await supabase.from("roles").select("role_code, company_id").eq("id", id).eq("company_id", actor.companyId).single();
     if (roleError) throw new Error(roleError.message);
-    if (currentRole.company_id !== profile.company_id) throw new Error("Role belongs to another company.");
     if (isProtectedOwnerAssignableRole(currentRole.role_code) || isProtectedOwnerAssignableRole(payload.role_code)) throw new Error("Super Admin / Owner roles cannot be changed here.");
     if (payload.role_code !== currentRole.role_code) throw new Error("Role codes cannot be changed after creation.");
-    const { error } = await supabase.from("roles").update({ ...payload, company_id: profile.company_id }).eq("id", id).eq("company_id", profile.company_id);
+    const { error } = await supabase.from("roles").update(payload).eq("id", id).eq("company_id", actor.companyId);
     if (error) throw new Error(error.message);
     await writeActivityLog({ entityType: "role", entityId: id, activityType: "updated", message: `Role ${payload.role_name} updated` });
   }
@@ -1224,9 +1226,9 @@ export async function updateRolePermissions(id: string, formData: FormData) {
   safeRedirectWithMessage(`/roles/${id}`, "success", "Role permissions updated.");
 }
 
-function documentSequencePayload(formData: FormData) {
+function documentSequencePayload(formData: FormData, companyId: string) {
   return documentSequenceSchema.parse({
-    company_id: formValue(formData, "company_id"),
+    company_id: companyId,
     document_type: formValue(formData, "document_type"),
     prefix: formValue(formData, "prefix"),
     next_number: formValue(formData, "next_number") ?? 1,
@@ -1238,7 +1240,8 @@ function documentSequencePayload(formData: FormData) {
 
 export async function createDocumentSequence(formData: FormData) {
   await requirePermission("document_sequences.create");
-  const payload = documentSequencePayload(formData);
+  const actor = await requireActiveTenantActor();
+  const payload = documentSequencePayload(formData, actor.companyId);
   if (!isMockMode()) {
     const supabase = createAdminClient();
     const { data, error } = await supabase.from("document_sequences").insert(payload).select("id").single();
@@ -1251,10 +1254,11 @@ export async function createDocumentSequence(formData: FormData) {
 
 export async function updateDocumentSequence(id: string, formData: FormData) {
   await requirePermission("document_sequences.update");
-  const payload = documentSequencePayload(formData);
+  const actor = await requireActiveTenantActor();
+  const payload = documentSequencePayload(formData, actor.companyId);
   if (!isMockMode()) {
     const supabase = createAdminClient();
-    const { error } = await supabase.from("document_sequences").update(payload).eq("id", id);
+    const { error } = await supabase.from("document_sequences").update(payload).eq("id", id).eq("company_id", actor.companyId);
     if (error) throw new Error(error.message);
     await writeActivityLog({ entityType: "document_sequence", entityId: id, activityType: "updated", message: `Document sequence ${payload.document_type} updated` });
   }
@@ -1265,9 +1269,10 @@ export async function updateDocumentSequence(id: string, formData: FormData) {
 export async function deleteDocumentSequence(id: string) {
   await requirePermissionOrRedirect("document_sequences.update", "/document-sequences");
   try {
+    const actor = await requireActiveTenantActor();
     if (!isMockMode()) {
       const supabase = createAdminClient();
-      const { error } = await supabase.from("document_sequences").update({ deleted_at: new Date().toISOString(), status: "archived" }).eq("id", id);
+      const { error } = await supabase.from("document_sequences").update({ deleted_at: new Date().toISOString(), status: "archived" }).eq("id", id).eq("company_id", actor.companyId);
       if (error) throw new Error(error.message);
       await writeActivityLog({ entityType: "document_sequence", entityId: id, activityType: "archived", message: "Document sequence archived" });
     }

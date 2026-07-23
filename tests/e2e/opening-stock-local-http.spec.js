@@ -7,6 +7,7 @@ const ids = {
   location: "b3000000-0000-0000-0000-000000000001",
   staff: "b4000000-0000-0000-0000-000000000001",
   item: "b5000000-0000-0000-0000-000000000001",
+  role: "b6000000-0000-0000-0000-000000000001",
 };
 const email = "opening-stock-http@example.test";
 const password = "LocalOpening!2358";
@@ -39,10 +40,10 @@ test.beforeAll(async () => {
   await must(admin.from("companies").upsert({ id: ids.company, company_code: "OPEN-HTTP", company_name: "Opening HTTP Validation" }), "company");
   await must(admin.from("branches").upsert({ id: ids.branch, company_id: ids.company, branch_code: "OPEN-HTTP-BR", branch_name: "Opening HTTP Branch", branch_type: "central_kitchen" }), "branch");
   await must(admin.from("locations").upsert({ id: ids.location, company_id: ids.company, branch_id: ids.branch, location_code: "OPEN-HTTP-STORE", location_name: "Opening HTTP Store", location_type: "dry_store" }), "location");
-  await must(admin.from("items").upsert({ id: ids.item, item_code: "OPEN-HTTP-ITEM", item_name: "Opening HTTP Item", category: "Validation", purchase_unit: "KG", base_unit: "KG", cost: 5 }), "item");
+  await must(admin.from("items").upsert({ id: ids.item, company_id: ids.company, item_code: "OPEN-HTTP-ITEM", item_name: "Opening HTTP Item", category: "Validation", purchase_unit: "KG", base_unit: "KG", cost: 5 }), "item");
   await must(admin.from("staffs").upsert({ id: ids.staff, company_id: ids.company, auth_user_id: created.user.id, staff_code: "OPEN-HTTP-OWNER", full_name: "Opening HTTP Owner", email, default_branch_id: ids.branch, invitation_status: "completed", must_change_password: false }), "staff");
-  const role = await must(admin.from("roles").select("id").eq("role_code", "super_admin").limit(1).single(), "super admin role");
-  await must(admin.from("staff_roles").upsert({ staff_id: ids.staff, role_id: role.id, branch_id: ids.branch, is_primary: true }), "staff role");
+  await must(admin.from("roles").upsert({ id: ids.role, company_id: ids.company, role_code: "super_admin", role_name: "Super Admin / Owner", status: "active" }), "super admin role");
+  await must(admin.from("staff_roles").upsert({ staff_id: ids.staff, role_id: ids.role, branch_id: ids.branch, is_primary: true }), "staff role");
   await must(admin.from("staff_branches").upsert({ staff_id: ids.staff, branch_id: ids.branch, access_level: "full", is_default: true }), "staff branch");
 });
 

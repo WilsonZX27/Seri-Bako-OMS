@@ -1,4 +1,4 @@
--- Production Go-Live full operational reset — current schema through migration 077.
+-- Production Go-Live full operational reset — current schema through migration 090.
 -- PREPARED ONLY. Do not run until Wilson gives a separate Production GO.
 -- Does not use reset_new_system_data.sql, TRUNCATE, schema/RLS/role changes, or RPC hard deletes.
 -- Storage bytes are deleted separately from the attachment inventory captured by the preflight.
@@ -113,8 +113,8 @@ delete from public.audit_logs;
 delete from public.permanent_deletion_tombstones;
 
 delete from public.product_packaging;
-delete from public.barcode_mappings;
 delete from public.uom_conversions;
+delete from public.branch_supplier_items;
 delete from public.supplier_items;
 delete from public.products;
 delete from public.items;

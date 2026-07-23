@@ -21,6 +21,13 @@ export async function updateSession(request: NextRequest) {
     return NextResponse.next({ request });
   }
 
+  // Public auth pages must remain renderable even when the local Auth service
+  // is still starting. Session refresh and protected-route checks apply after
+  // a user has entered the application.
+  if (["/login", "/forgot-password", "/auth/callback"].includes(request.nextUrl.pathname)) {
+    return NextResponse.next({ request });
+  }
+
   const { url, publishableKey } = requireSupabaseEnv();
   let response = NextResponse.next({ request });
 

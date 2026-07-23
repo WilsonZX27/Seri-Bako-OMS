@@ -19,6 +19,7 @@
   --sb-surface-muted: #F1EFE9;
   --sb-muted: var(--sb-surface-muted);
   --sb-border: #D8D4C8;
+  --sb-radius-control: 2px;
   --sb-border-soft: #E7E2D8;
   --sb-text: #102019;
   --sb-text-muted: #66756D;

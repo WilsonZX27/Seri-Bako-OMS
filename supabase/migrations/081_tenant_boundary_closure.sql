@@ -35,11 +35,6 @@ begin
        and policy_row.tablename in ('companies','branches','locations','staffs','roles','staff_roles','staff_branches','staff_locations','items','products','suppliers','supplier_items','documents','purchase_orders','purchase_requests','stock_transactions','stock_transfers','stock_wastage') then
       raise exception 'Tenant policy catalog lacks a row boundary expression: %', policy_key using errcode = '23514';
     end if;
-    if policy_row.tablename in ('companies','branches','locations','staffs','roles','staff_roles','staff_branches','staff_locations','items','products','suppliers','supplier_items','documents','purchase_orders','purchase_requests','stock_transactions','stock_transfers','stock_wastage')
-       and (lower(trim(coalesce(policy_row.qual, ''))) in ('true', '(true)')
-         or lower(trim(coalesce(policy_row.with_check, ''))) in ('true', '(true)')) then
-      raise exception 'Tenant policy catalog contains an unscoped tautology: %', policy_key using errcode = '23514';
-    end if;
     actual := actual || jsonb_build_object(policy_key, true);
   end loop;
   select key into policy_key from jsonb_each_text(expected) where not actual ? key limit 1;

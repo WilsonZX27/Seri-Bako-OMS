@@ -111,9 +111,6 @@ export function StockBalanceTableRows({
                   event.stopPropagation();
                   onToggleBasket(item);
                 }}
-                onPointerDown={(event) => {
-                  event.preventDefault();
-                }}
                 aria-label={selected ? `Remove ${item.item_code} from PR preparation` : `Add ${item.item_code} to PR preparation`}
               >
                 {selected ? <Trash2 className="h-4 w-4" /> : <ShoppingCart className="h-4 w-4" />}
@@ -157,9 +154,6 @@ export function StockBalanceOperationalRows({
                   event.preventDefault();
                   event.stopPropagation();
                   onToggleBasket(item);
-                }}
-                onPointerDown={(event) => {
-                  event.preventDefault();
                 }}
                 aria-label={selected ? `Remove ${item.item_code} from PR preparation` : `Add ${item.item_code} to PR preparation`}
               >

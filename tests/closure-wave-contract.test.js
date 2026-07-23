@@ -27,3 +27,13 @@ test("default contract test gate and operational recovery boundaries exist", () 
   assert.match(read("src/server/observability/logger.ts"), /REDACTED/);
   assert.match(read("src/app/globals.css"), /--sb-radius-control/);
 });
+
+test("stock count branch switching and PR basket preserve branch context", () => {
+  const countForm = read("src/components/stock-count-form.tsx");
+  const balance = read("src/components/stock-balance-workspace.tsx");
+  const basketButtons = read("src/components/stock-balance-table.tsx");
+  assert.match(countForm, /setLines\(seedLines\.map/);
+  assert.match(countForm, /\[selectedBranchId, seedLines\]/);
+  assert.match(balance, /name="line_branch_id" value=\{line\.branch_id \?\? ""\}/);
+  assert.doesNotMatch(basketButtons, /onPointerDown=\{\(event\) => \{\s*event\.preventDefault\(\);/);
+});

@@ -208,6 +208,7 @@ export function StockBalanceWorkspace({
                                       </div>
                                       <div className="grid gap-2 text-xs">
                                         <input type="hidden" name="line_item_id" value={line.item_id} />
+                                        <input type="hidden" name="line_branch_id" value={line.branch_id ?? ""} />
                                         <input type="hidden" name="line_uom" value={line.base_unit} />
                                         <input type="hidden" name="line_estimated_unit_cost" value="0" />
                                         <input type="hidden" name="line_suggested_supplier_id" value="" />

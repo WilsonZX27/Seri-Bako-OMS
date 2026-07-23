@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { AlertTriangle } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Field } from "@/components/ui/field";
@@ -73,6 +73,13 @@ export function StockCountForm({
   const [lines, setLines] = useState<SeedLineInput[]>(() =>
     seedLines.map((line) => ({ ...line, physicalQty: formatQuantityInput(line.physical_qty) })),
   );
+
+  // Next can preserve this client component while the branch query changes.
+  // Reset the editable rows only when the selected branch changes so PJS10 and
+  // ALMA never show each other's count lines.
+  useEffect(() => {
+    setLines(seedLines.map((line) => ({ ...line, physicalQty: formatQuantityInput(line.physical_qty) })));
+  }, [selectedBranchId, seedLines]);
 
   function selectBranch(branchId: string) {
     router.push(branchId ? `/stock-counts/new?branch_id=${branchId}` : "/stock-counts/new");

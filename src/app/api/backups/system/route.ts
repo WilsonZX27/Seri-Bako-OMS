@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { generateSystemBackupZip } from "@/server/backup/export";
+import { logServerError } from "@/server/observability/logger";
 
 export async function GET(request: Request) {
   try {
@@ -17,7 +18,7 @@ export async function GET(request: Request) {
       },
     });
   } catch (error) {
-    console.error(error);
+    logServerError(error, { source: "api.backups.system" });
     return NextResponse.json(
       { ok: false, message: "Backup could not be generated. Please try again." },
       { status: 403 },

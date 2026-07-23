@@ -3,6 +3,7 @@ import { rowsToCsv } from "@/server/backup/export";
 import { hasPermission } from "@/server/auth/permissions";
 import { looseSupabase } from "@/lib/supabase/loose";
 import { createClient } from "@/lib/supabase/server";
+import { logServerError } from "@/server/observability/logger";
 
 const exportTables: Record<string, { table: string; permission: string; order?: string }> = {
   items: { table: "items", permission: "items.manage", order: "item_name" },
@@ -35,7 +36,7 @@ export async function GET(_request: Request, { params }: { params: Promise<{ tab
   if (config.order) query = query.order(config.order, { ascending: true });
   const { data, error } = await query;
   if (error) {
-    console.error(error);
+    logServerError(error, { source: "api.export.table", });
     return NextResponse.json({ ok: false, message: "CSV could not be exported." }, { status: 500 });
   }
 

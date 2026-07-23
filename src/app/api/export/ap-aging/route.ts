@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { rowsToCsv } from "@/server/backup/export";
 import { hasPermission } from "@/server/auth/permissions";
 import { getCompleteApAgingReport } from "@/server/queries/ap-aging";
+import { logServerError } from "@/server/observability/logger";
 
 export async function GET(request: Request) {
   try {
@@ -28,7 +29,7 @@ export async function GET(request: Request) {
       "cache-control": "no-store",
     } });
   } catch (error) {
-    console.error(error);
+    logServerError(error, { source: "api.export.apAging" });
     return NextResponse.json({ ok: false, message: "AP Aging CSV could not be exported." }, { status: 403 });
   }
 }

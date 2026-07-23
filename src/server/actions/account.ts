@@ -6,6 +6,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import { looseSupabase } from "@/lib/supabase/loose";
 import { formatActionError, rethrowRedirect, safeRedirectWithMessage } from "@/server/actions/error-handling";
+import { logServerError } from "@/server/observability/logger";
 
 const avatarTypes: Record<string, string> = {
   "image/png": "png",
@@ -47,7 +48,7 @@ export async function updateOwnProfile(formData: FormData) {
     safeRedirectWithMessage("/account", "success", "Staff profile updated.");
   } catch (error) {
     rethrowRedirect(error);
-    console.error(error);
+    logServerError(error, { source: "account.updateOwnProfile" });
     safeRedirectWithMessage("/account", "error", formatActionError(error, "Profile could not be updated."));
   }
 }
@@ -84,7 +85,7 @@ export async function uploadOwnAvatar(formData: FormData) {
     safeRedirectWithMessage("/account", "success", "Profile picture updated.");
   } catch (error) {
     rethrowRedirect(error);
-    console.error(error);
+    logServerError(error, { source: "account.uploadOwnAvatar" });
     safeRedirectWithMessage("/account", "error", formatActionError(error, "Profile picture could not be uploaded."));
   }
 }
@@ -102,7 +103,7 @@ export async function removeOwnAvatar() {
     safeRedirectWithMessage("/account", "success", "Profile picture removed.");
   } catch (error) {
     rethrowRedirect(error);
-    console.error(error);
+    logServerError(error, { source: "account.removeOwnAvatar" });
     safeRedirectWithMessage("/account", "error", formatActionError(error, "Profile picture could not be removed."));
   }
 }
@@ -129,7 +130,7 @@ export async function changeOwnPassword(formData: FormData) {
     safeRedirectWithMessage("/account", "success", "Password changed successfully.");
   } catch (error) {
     rethrowRedirect(error);
-    console.error(error);
+    logServerError(error, { source: "account.changeOwnPassword" });
     const message = error instanceof Error && error.message.toLowerCase().includes("different")
       ? "Please choose a password different from your current password."
       : formatActionError(error, "Password could not be changed.");

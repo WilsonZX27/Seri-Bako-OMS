@@ -28,6 +28,19 @@ test("default contract test gate and operational recovery boundaries exist", () 
   assert.match(read("src/app/globals.css"), /--sb-radius-control/);
 });
 
+test("selected account, export, and workspace query failures use the redacting server logger", () => {
+  for (const path of [
+    "src/server/actions/account.ts",
+    "src/app/api/backups/system/route.ts",
+    "src/app/api/export/[table]/route.ts",
+    "src/app/api/export/ap-aging/route.ts",
+    "src/server/queries/pending-actions.ts",
+  ]) {
+    assert.match(read(path), /logServer(?:Error|Warning)\(/);
+    assert.doesNotMatch(read(path), /console\.error\(/);
+  }
+});
+
 test("stock count branch switching and PR basket preserve branch context", () => {
   const countForm = read("src/components/stock-count-form.tsx");
   const balance = read("src/components/stock-balance-workspace.tsx");

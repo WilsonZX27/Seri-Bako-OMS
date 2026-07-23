@@ -2,6 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import { hasPermission } from "@/server/auth/permissions";
 import { getCurrentUserScope } from "@/server/queries/notifications";
 import type { PurchaseRequestStatus } from "@/lib/status-contracts";
+import { logServerWarning } from "@/server/observability/logger";
 
 export type PendingAction = {
   id: string;
@@ -64,7 +65,7 @@ export async function getCurrentUserPendingActions(limit = 5): Promise<PendingAc
 
       const { data, error } = await query;
       if (error) {
-        console.error(error);
+        logServerWarning(error, { source: "pending-actions.getCurrentUserPendingActions", });
         return [] as PendingAction[];
       }
 

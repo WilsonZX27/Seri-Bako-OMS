@@ -8,9 +8,9 @@ This is an engineering audit, not a claim that production data was inspected. It
 
 ## Executive verdict
 
-The current system is substantially safer than the 2026-07-22 baseline: tenant-boundary migrations, inventory posting RPCs, concurrency work, document-number controls, backup scoping, branch-level inventory read models, and contract coverage have been added. The repository builds and 191 contract tests currently pass.
+The current system is substantially safer than the 2026-07-22 baseline: tenant-boundary migrations, inventory posting RPCs, concurrency work, document-number controls, backup scoping, branch-level inventory read models, and contract coverage have been added. The repository builds and 196 contract tests currently pass.
 
-However, the system is **not yet operationally simplified**. It retains parallel lifecycle implementations, legacy redirect routes, mock-mode branches and token drift. The highest-priority remaining work is not another feature sprint: it is a controlled **workflow consolidation and UI system normalization** sprint.
+However, the system is **not yet operationally simplified**. Core inventory aggregates are now database-owned, but legacy redirect routes, mock-mode branches and token drift remain. The highest-priority remaining work is a controlled **UI system normalization, source reduction and integration-verification** sprint.
 
 ### Remediation completed during this audit
 
@@ -22,8 +22,9 @@ However, the system is **not yet operationally simplified**. It retains parallel
 - Migration `093_branch_level_inventory_read_models.sql` moves ledger, balance, valuation, low-stock, and stock-count list filtering/paging to branch-level database read models.
 - Shared UI feedback now uses semantic success, warning, danger, info, and neutral tokens across authentication, priority, workspace, destructive-action, and KPI entry points. Commit `6a8004f` is deployed to production.
 - The retired Location administration/onboarding path and the superseded application-level inventory engine were removed after confirming no active imports; branch-level inventory remains the supported operating model.
+- Migrations `094`–`098` make Transfer/Wastage, GRN, Production Job and Purchase Return creation retry-safe database aggregates, and make their critical terminal transitions update the linked document history atomically.
 
-The migration and code changes above passed a full local database reset through migration 093, 191 contract tests, typecheck, lint and an optimized production build. Production data and a production-mutating browser suite were not used.
+The migration and code changes above passed a full local database reset through migration 098, 196 contract tests, typecheck, lint and an optimized production build. Production data and a production-mutating browser suite were not used.
 
 ## Coverage inventory
 
@@ -47,10 +48,10 @@ The 20 redirect routes are compatibility surfaces, including locations, settings
 | Staff onboarding and identity | Active staff link before operational access; setup/change-password is terminal | Current route resolver and temporary-password handoff are materially improved; service-role paths derive an active actor before company writes | Pass with regression coverage required |
 | Master data | Company-owned, soft-archived, auditable | Server actions generally derive actor company before service-role writes | Pass, but duplicated admin action code remains |
 | PR → PO → GRN | State-specific authority and atomic create/post behavior | PR/PO creation and key transitions have dedicated atomic RPCs; UI and route gates are consistent in the main path | Pass for core path |
-| Purchase return / supplier invoice | Posted GRN lineage; no inventory mutation from invoicing | Atomic posting/payment paths exist and are contract-tested | Pass for stated scope |
+| Purchase return / supplier invoice | Posted GRN lineage; no inventory mutation from invoicing | Return creation, cancellation and posting are database-owned; invoicing remains non-inventory | Pass for stated scope |
 | Stock count | Branch seed → physical count → review → approve → atomic post | Posting uses dedicated RPCs; branch-switch client state issue was fixed in commit `cec0cdc` | Pass for posting path |
 | Transfer / wastage | Draft lifecycle; posted movement must never be relabelled cancelled/rejected | Migration 092 provides locked terminal-transition RPCs; parent, document, revision and activity update in the same transaction | Pass |
-| Production | Approved job → atomic input/output posting | Posting is hardened; creation/document lifecycle remains application-composed | P2 consolidation required |
+| Production | Approved job → atomic input/output posting | Creation plus submit/approve/reject/cancel and posting are database-owned, locked operations | Pass for stated scope |
 | Manual stock movement / opening stock | Explicit source, ledger traceability, no partial records | Inventory RPCs are stronger than baseline; remaining manual/document composition needs fault-injection verification | P2 verification required |
 | Backup / export | Owner-only, same-company content, no source-workspace artifact retention | Company-scoped export and retention policy are present; production historical impact was not queried | Pass code path; operational verification deferred |
 | Imports | Validation before controlled write; no duplicate/partial import | Shared import workflow exists; local safe integration test gate should be made explicit | P2 release-process gap |
@@ -116,6 +117,8 @@ Pass for visual intent: the shared operational shell, dense data views, restrain
 - **Required correction:** Push branch/search/status filters, order and range/count into SQL/Supabase; aggregate count metadata in a query/RPC instead of loading every child line.
 
 ### P2 — Document lifecycle implementation is duplicated and partially non-atomic
+
+**Status: core inventory aggregates fixed through migrations 094–098; remaining work is non-inventory cleanup.**
 
 - **Location:** `src/server/actions/stock-operations.ts`, `stock-counts.ts`, `goods-receivings.ts`, `purchase-returns.ts`, `production-jobs.ts`, `recipes.ts`.
 - **Evidence:** Multiple module-local `createDoc`/`createLinkedDocument`/document status helpers compose parent, document, lines and activity through sequential requests.

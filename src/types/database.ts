@@ -2184,6 +2184,10 @@ export type Database = {
         Args: { p_payload: Json };
         Returns: Json;
       };
+      create_production_job_atomic: {
+        Args: { p_payload: Json };
+        Returns: Json;
+      };
       transition_document_atomic: {
         Args: { p_document_id: string; p_action: string; p_remarks?: string | null };
         Returns: Json;

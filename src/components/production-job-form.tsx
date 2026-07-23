@@ -40,6 +40,7 @@ export function ProductionJobForm({
   formId?: string;
   showSubmit?: boolean;
 }) {
+  const [idempotencyKey] = useState(() => crypto.randomUUID());
   const [branchId, setBranchId] = useState(branches[0]?.id ?? "");
   const [recipeId, setRecipeId] = useState(recipes[0]?.id ?? "");
   const selectedRecipe = recipes.find((recipe) => recipe.id === recipeId) ?? null;
@@ -65,6 +66,7 @@ export function ProductionJobForm({
 
   return (
     <form id={formId} action={action} className="space-y-5">
+      <input type="hidden" name="idempotency_key" value={idempotencyKey} />
       <Card>
         <CardHeader>
           <CardTitle>Production Details</CardTitle>

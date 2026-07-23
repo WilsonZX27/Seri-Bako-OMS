@@ -12,7 +12,7 @@ import { revalidateWorkspaceState } from "@/server/actions/revalidate";
 import { resolveDocumentNumber } from "@/server/documents/sequences";
 import { resolveDefaultLocation } from "@/server/inventory/locations";
 import { getCurrentProfile } from "@/server/queries/common";
-import { getActiveProductionRecipes } from "@/server/queries/production-jobs";
+import { z } from "zod";
 
 function cleanText(value: unknown) {
   const text = String(value ?? "").trim();
@@ -49,63 +49,10 @@ async function notifyProduction(input: { title: string; message: string; permiss
   if (error) console.error(error);
 }
 
-async function createProductionDocument(jobId: string, jobNo: string, title: string) {
-  const [supabase, profile] = await Promise.all([createClient(), getCurrentProfile()]);
-  const { data, error } = await supabase
-    .from("documents")
-    .insert({
-      company_id: profile?.company_id ?? null,
-      document_no: jobNo,
-      document_type: "production_job",
-      title,
-      status: "draft",
-      approval_status: "draft",
-      current_step: "Draft production job",
-      related_entity_type: "production_job",
-      related_entity_id: jobId,
-      created_by: profile?.id ?? null,
-      updated_by: profile?.id ?? null,
-    })
-    .select("id")
-    .single();
-  if (error) throw new Error(error.message);
-  await supabase.from("document_revisions").insert({ document_id: data.id, revision_no: 1, change_summary: "Initial production job created.", changed_by: profile?.id ?? null });
-  return data.id;
-}
-
 async function updateDocumentStatus(documentId: string | null, status: string, approvalStatus: string, step: string) {
   if (!documentId) return;
   const supabase = await createClient();
   await supabase.from("documents").update({ status: status as never, approval_status: approvalStatus as never, current_step: step, updated_at: new Date().toISOString() }).eq("id", documentId);
-}
-
-async function ensureOutputItem(product: { product_code: string; product_name: string; category?: string | null; selling_unit?: string | null }, unitCost: number, companyId: string) {
-  const supabase = await createClient();
-  const { data: existing, error: existingError } = await supabase
-    .from("items")
-    .select("id")
-    .eq("item_code", product.product_code)
-    .maybeSingle();
-  if (existingError) throw new Error(existingError.message);
-  if (existing?.id) return existing.id;
-
-  const { data, error } = await supabase
-    .from("items")
-    .insert({
-      company_id: companyId,
-      item_code: product.product_code,
-      item_name: product.product_name,
-      category: product.category ?? "Finished Goods",
-      purchase_unit: product.selling_unit ?? "PCS",
-      base_unit: product.selling_unit ?? "PCS",
-      conversion_to_base_unit: 1,
-      cost: unitCost,
-      status: "active",
-    })
-    .select("id")
-    .single();
-  if (error) throw new Error(error.message);
-  return data.id;
 }
 
 export async function createProductionJob(formData: FormData) {
@@ -121,82 +68,15 @@ export async function createProductionJob(formData: FormData) {
       priority: formData.get("priority") || "normal",
       remarks: cleanText(formData.get("remarks")),
     });
-    const [supabase, profile, recipes] = await Promise.all([createClient(), getCurrentProfile(), getActiveProductionRecipes()]);
-    const recipe = recipes.find((row) => row.id === parsed.recipe_id);
-    if (!recipe) throw new Error("No active recipe found. Activate a recipe before creating production job.");
-    const db = looseSupabase(supabase);
+    const [supabase, profile] = await Promise.all([createClient(), getCurrentProfile()]);
+    const idempotencyKey = z.uuid().parse(String(formData.get("idempotency_key") ?? ""));
     const locationId = await resolveDefaultLocation(parsed.branch_id);
     const jobNo = await resolveDocumentNumber({ companyId: profile?.company_id, documentType: "production_job", enteredNumber: null });
-    const factor = parsed.planned_output_qty / Number(recipe.yield_qty || 1);
-    const totalIngredientCost = recipe.lines.reduce((sum, line) => sum + Number(line.qty_per_yield) * factor * Number(line.unit_cost), 0);
-    const unitCost = totalIngredientCost / parsed.planned_output_qty;
-
-    const { data: job, error } = await db
-      .from("production_jobs")
-      .insert({
-        company_id: profile?.company_id ?? null,
-        branch_id: parsed.branch_id,
-        location_id: locationId,
-        production_job_no: jobNo,
-        production_date: parsed.production_date,
-        recipe_id: recipe.id,
-        product_id: recipe.product_id,
-        planned_output_qty: parsed.planned_output_qty,
-        output_uom: parsed.output_uom,
-        priority: parsed.priority,
-        remarks: parsed.remarks ?? null,
-        created_by: profile?.id ?? null,
-        updated_by: profile?.id ?? null,
-      })
-      .select("id")
-      .single();
+    const { data, error } = await supabase.rpc("create_production_job_atomic", {
+      p_payload: { ...parsed, production_job_no: jobNo, location_id: locationId, idempotency_key: idempotencyKey },
+    });
     if (error) throw new Error(error.message);
-    const createdJob = job as { id: string };
-
-    const documentId = await createProductionDocument(createdJob.id, jobNo, `Production Job ${jobNo} - ${recipe.product_name}`);
-    if (!profile?.company_id) throw new Error("An active company staff profile is required.");
-    const outputItemId = await ensureOutputItem({ product_code: recipe.product_code, product_name: recipe.product_name, category: "Finished Goods", selling_unit: parsed.output_uom }, unitCost, profile.company_id);
-    const balances = await import("@/server/queries/inventory").then((module) => module.getStockBalanceDetails({ page: "all", view: "branch" }));
-    const availableByItem = new Map(balances.rows.filter((row) => row.branch_id === parsed.branch_id).map((row) => [row.item_id, Number(row.current_qty ?? 0)]));
-
-    const [{ error: updateError }, { error: ingredientError }, { error: outputError }] = await Promise.all([
-      db.from("production_jobs").update({ document_id: documentId, output_item_id: outputItemId }).eq("id", createdJob.id),
-      db.from("production_job_ingredient_lines").insert(recipe.lines.map((line) => {
-        const requiredQty = Number(line.qty_per_yield) * factor;
-        const lineCost = requiredQty * Number(line.unit_cost);
-        return {
-          production_job_id: createdJob.id,
-          item_id: line.item_id,
-          item_code: line.item_code,
-          item_name: line.item_name,
-          required_qty: requiredQty,
-          actual_qty: requiredQty,
-          uom: line.uom,
-          unit_cost: Number(line.unit_cost),
-          line_cost: lineCost,
-          stock_available_qty: availableByItem.get(line.item_id) ?? 0,
-          variance_qty: (availableByItem.get(line.item_id) ?? 0) - requiredQty,
-          remarks: null,
-        };
-      })),
-      db.from("production_job_output_lines").insert({
-        production_job_id: createdJob.id,
-        product_id: recipe.product_id,
-        item_id: outputItemId,
-        output_code: recipe.product_code,
-        output_name: recipe.product_name,
-        planned_qty: parsed.planned_output_qty,
-        actual_qty: parsed.planned_output_qty,
-        uom: parsed.output_uom,
-        unit_cost: unitCost,
-        line_cost: totalIngredientCost,
-      }),
-    ]);
-    if (updateError) throw new Error(updateError.message);
-    if (ingredientError) throw new Error(ingredientError.message);
-    if (outputError) throw new Error(outputError.message);
-
-    await writeActivityLog({ entityType: "production_job", entityId: createdJob.id, activityType: "created", message: `Production Job ${jobNo} created from ${recipe.recipe_no}` });
+    const createdJob = data as { id: string };
     revalidatePath("/production");
     revalidatePath("/production/jobs");
     safeRedirectWithMessage(`/production/jobs/${createdJob.id}`, "success", `${jobNo} created. Draft has no stock impact.`);

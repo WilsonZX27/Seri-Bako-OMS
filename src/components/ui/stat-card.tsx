@@ -2,7 +2,7 @@ import type { LucideIcon } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 
 export function StatCard({ label, value, icon: Icon, tone = "primary" }: { label: string; value: string | number; icon: LucideIcon; tone?: "primary" | "accent" | "warning" }) {
-  const color = tone === "accent" ? "text-accent" : tone === "warning" ? "text-amber-600" : "text-primary";
+  const color = tone === "accent" ? "text-accent" : tone === "warning" ? "text-[var(--sb-warning)]" : "text-primary";
   return (
     <Card>
       <CardContent className="flex items-center justify-between p-5">

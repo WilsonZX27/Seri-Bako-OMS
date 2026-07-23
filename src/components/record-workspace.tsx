@@ -1,8 +1,8 @@
 import type { ReactNode } from "react";
-import { AlertTriangle } from "lucide-react";
 import { ConsoleSection } from "@/components/layout/right-console";
 import { WorkspaceGrid } from "@/components/layout/workspace-layout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Notice } from "@/components/ui/system-states";
 import { cn } from "@/lib/utils";
 
 type RecordWorkspaceProps = {
@@ -58,15 +58,9 @@ export function RecordSection({
 
 export function DangerActionSection({ title, description, children }: { title: string; description?: string; children: ReactNode }) {
   return (
-    <div className="rounded-[2px] border border-red-200 bg-red-50 p-4">
-      <div className="flex items-start gap-2">
-        <AlertTriangle className="mt-0.5 h-4 w-4 text-red-700" />
-        <div>
-          <p className="font-semibold text-red-800">{title}</p>
-          {description ? <p className="mt-1 text-sm text-red-700">{description}</p> : null}
-        </div>
-      </div>
+    <Notice tone="error" title={title}>
+      {description ? <p className="text-sm">{description}</p> : null}
       <div className="mt-4">{children}</div>
-    </div>
+    </Notice>
   );
 }

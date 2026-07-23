@@ -6,6 +6,7 @@ import { Field } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { PasswordInput } from "@/components/ui/password-input";
 import { SubmitButton } from "@/components/ui/submit-button";
+import { Notice } from "@/components/ui/system-states";
 import { signOut } from "@/server/actions/auth";
 import { createClient } from "@/lib/supabase/server";
 import { updatePassword } from "@/server/actions/auth";
@@ -27,9 +28,7 @@ export default async function SetPasswordPage({
     return (
       <AuthShell title="Invitation link expired" description="This staff invitation link can no longer be used.">
         <div className="space-y-4">
-          <p className="rounded-md border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive">
-            Your invitation link has expired or was already used.
-          </p>
+          <Notice tone="error">Your invitation link has expired or was already used.</Notice>
           <div className="grid gap-3 sm:grid-cols-2">
             <Button asChild>
               <Link href="/login">Back to login</Link>
@@ -60,9 +59,7 @@ export default async function SetPasswordPage({
     return (
       <AuthShell title="Link expired" description="This reset or invite session is no longer available.">
         <div className="space-y-4">
-          <p className="rounded-md border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive">
-            This link has expired or was already used. Please sign in if you already set a password, or contact the Super Admin / Owner for a temporary password.
-          </p>
+          <Notice tone="error">This link has expired or was already used. Please sign in if you already set a password, or contact the Super Admin / Owner for a temporary password.</Notice>
           <div className="grid gap-3 sm:grid-cols-2">
             <Button asChild>
               <Link href="/login">Back to login</Link>
@@ -81,9 +78,7 @@ export default async function SetPasswordPage({
     return (
       <AuthShell title="Link expired" description="This reset or invite session is no longer available.">
         <div className="space-y-4">
-          <p className="rounded-md border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive">
-            Your invitation link has expired or was already used.
-          </p>
+          <Notice tone="error">Your invitation link has expired or was already used.</Notice>
           <Button asChild className="w-full">
             <Link href="/login?message=Please contact the Super Admin / Owner for temporary password setup.">Contact owner</Link>
           </Button>
@@ -98,7 +93,7 @@ export default async function SetPasswordPage({
   return (
     <AuthShell title={isInvitation ? "Create your account" : "Set password"} description={isInvitation ? "Confirm your invitation details and create your own password." : "Create a new password to complete your reset."}>
       {hasAccountMismatch ? (
-        <div className="mb-4 space-y-3 rounded-lg border border-amber-300 bg-amber-50 p-4 text-sm text-amber-950">
+        <Notice tone="warning" title="This invitation belongs to a different account" className="mb-4">
           <p>
             You are currently signed in as <span className="font-semibold">{params.previous_email}</span>, but this invitation belongs to <span className="font-semibold">{params.invite_email}</span>.
           </p>
@@ -110,7 +105,7 @@ export default async function SetPasswordPage({
               <Link href="/set-password">Continue with invitation</Link>
             </Button>
           </div>
-        </div>
+        </Notice>
       ) : null}
       <div className="mb-5 rounded-[2px] border bg-white p-4">
         <div className="flex items-center gap-3">
@@ -166,7 +161,7 @@ export default async function SetPasswordPage({
           Minimum 8 characters. Your new password should be different from the old one if you already used this account before.
         </div>
         <p className="text-sm text-muted-foreground">This password will be applied only to the invited account shown above.</p>
-        {params.error ? <p className="rounded-md border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive">{params.error}</p> : null}
+        {params.error ? <Notice tone="error">{params.error}</Notice> : null}
         <SubmitButton className="w-full" pendingLabel="Creating account..." showOverlay overlayLabel="Creating account...">{isInvitation ? "Create Account" : "Save password"}</SubmitButton>
         <Link href="/forgot-password" className="block text-center text-sm text-muted-foreground hover:text-foreground">
           Request new reset link

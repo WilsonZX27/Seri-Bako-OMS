@@ -8,6 +8,9 @@ const staffPermissions = read("src/components/staff-permission-overrides.tsx");
 const roleMatrix = read("src/components/role-permission-matrix.tsx");
 const styles = read("src/app/globals.css");
 const dashboard = read("src/components/dashboard-workspace.tsx");
+const priorityBadge = read("src/components/priority-badge.tsx");
+const workspacePanels = read("src/components/workspace-panels.tsx");
+const authSetPassword = read("src/app/(auth)/set-password/page.tsx");
 
 test("UI consistency keeps imports upload-only and technical permission details collapsed", () => {
   assert.doesNotMatch(imports, /Edit in table|Add blank row|Paste into table/);
@@ -36,4 +39,13 @@ test("UI smoke keeps the requested routes, console order, and current footer", (
   assert.match(read("supabase/migrations/066_create_outlet_staff_role.sql"), /outlet_staff/);
 });
 
-
+test("shared operational feedback uses semantic state tokens instead of one-off palettes", () => {
+  assert.match(priorityBadge, /--sb-danger-bg/);
+  assert.match(priorityBadge, /--sb-warning-bg/);
+  assert.doesNotMatch(priorityBadge, /(?:border|bg|text)-(?:red|pink|emerald|amber)-\d/);
+  assert.match(workspacePanels, /--sb-success-bg/);
+  assert.match(workspacePanels, /--sb-info-bg/);
+  assert.doesNotMatch(workspacePanels, /(?:border|bg|text)-(?:emerald|blue|amber|purple|teal|slate|red)-\d/);
+  assert.match(authSetPassword, /<Notice tone="error">/);
+  assert.match(authSetPassword, /<Notice tone="warning"/);
+});

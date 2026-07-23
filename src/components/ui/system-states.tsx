@@ -97,7 +97,7 @@ export function NoResultsState({ action }: { action?: StateAction }) {
   );
 }
 
-export function Notice({ tone = "info", title, children }: { tone?: "success" | "warning" | "error" | "info"; title?: string; children: ReactNode }) {
+export function Notice({ tone = "info", title, children, className }: { tone?: "success" | "warning" | "error" | "info"; title?: string; children: ReactNode; className?: string }) {
   const tones = {
     success: "border-[var(--sb-success)] bg-[var(--sb-success-bg)] text-[var(--sb-success)]",
     warning: "border-[var(--sb-warning)] bg-[var(--sb-warning-bg)] text-[var(--sb-warning)]",
@@ -106,7 +106,7 @@ export function Notice({ tone = "info", title, children }: { tone?: "success" | 
   };
   const Icon = tone === "success" ? CheckCircle2 : tone === "error" ? Ban : tone === "warning" ? ShieldAlert : AlertTriangle;
   return (
-    <div className={cn("flex items-start gap-2 rounded-[2px] border p-3 text-sm", tones[tone])} role={tone === "error" ? "alert" : "status"}>
+    <div className={cn("flex items-start gap-2 rounded-[2px] border p-3 text-sm", tones[tone], className)} role={tone === "error" ? "alert" : "status"}>
       <Icon className="mt-0.5 h-4 w-4 shrink-0" />
       <div>
         {title ? <p className="font-semibold">{title}</p> : null}

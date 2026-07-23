@@ -46,58 +46,58 @@ export const workspaceThemes: Record<WorkspaceThemeName, WorkspaceTheme> = {
   green: {
     panel: "bg-white",
     header: "bg-white",
-    border: "border-emerald-100",
-    badge: "bg-emerald-100",
-    tag: "bg-emerald-100 text-emerald-800",
-    iconText: "text-emerald-700",
+    border: "border-[var(--sb-success-bg)]",
+    badge: "bg-[var(--sb-success-bg)]",
+    tag: "bg-[var(--sb-success-bg)] text-[var(--sb-success)]",
+    iconText: "text-[var(--sb-success)]",
   },
   blue: {
     panel: "bg-white",
     header: "bg-white",
-    border: "border-blue-100",
-    badge: "bg-blue-100",
-    tag: "bg-blue-100 text-blue-800",
-    iconText: "text-blue-700",
+    border: "border-[var(--sb-info-bg)]",
+    badge: "bg-[var(--sb-info-bg)]",
+    tag: "bg-[var(--sb-info-bg)] text-[var(--sb-info)]",
+    iconText: "text-[var(--sb-info)]",
   },
   amber: {
     panel: "bg-white",
     header: "bg-white",
-    border: "border-amber-100",
-    badge: "bg-amber-100",
-    tag: "bg-amber-100 text-amber-800",
-    iconText: "text-amber-700",
+    border: "border-[var(--sb-warning-bg)]",
+    badge: "bg-[var(--sb-warning-bg)]",
+    tag: "bg-[var(--sb-warning-bg)] text-[var(--sb-warning)]",
+    iconText: "text-[var(--sb-warning)]",
   },
   purple: {
     panel: "bg-white",
     header: "bg-white",
-    border: "border-purple-100",
-    badge: "bg-purple-100",
-    tag: "bg-purple-100 text-purple-800",
-    iconText: "text-purple-700",
+    border: "border-[var(--sb-info-bg)]",
+    badge: "bg-[var(--sb-info-bg)]",
+    tag: "bg-[var(--sb-info-bg)] text-[var(--sb-info)]",
+    iconText: "text-[var(--sb-info)]",
   },
   teal: {
     panel: "bg-white",
     header: "bg-white",
-    border: "border-teal-100",
-    badge: "bg-teal-100",
-    tag: "bg-teal-100 text-teal-800",
-    iconText: "text-teal-700",
+    border: "border-[var(--sb-success-bg)]",
+    badge: "bg-[var(--sb-success-bg)]",
+    tag: "bg-[var(--sb-success-bg)] text-[var(--sb-success)]",
+    iconText: "text-[var(--sb-success)]",
   },
   neutral: {
     panel: "bg-white",
     header: "bg-white",
-    border: "border-slate-200",
-    badge: "bg-slate-100",
-    tag: "bg-slate-100 text-slate-700",
-    iconText: "text-slate-700",
+    border: "border-[var(--sb-border-soft)]",
+    badge: "bg-[var(--sb-neutral-bg)]",
+    tag: "bg-[var(--sb-neutral-bg)] text-[var(--sb-neutral-text)]",
+    iconText: "text-[var(--sb-neutral-text)]",
   },
   red: {
     panel: "bg-white",
     header: "bg-white",
-    border: "border-red-100",
-    badge: "bg-red-100",
-    tag: "bg-red-100 text-red-800",
-    iconText: "text-red-700",
+    border: "border-[var(--sb-danger-bg)]",
+    badge: "bg-[var(--sb-danger-bg)]",
+    tag: "bg-[var(--sb-danger-bg)] text-[var(--sb-danger)]",
+    iconText: "text-[var(--sb-danger)]",
   },
 };
 
@@ -178,7 +178,7 @@ export function WorkspaceQuickInsights({ insights, action }: { insights: Workspa
           })}
         </div>
         {action ? (
-          <Link href={action.href} className="inline-flex h-10 items-center justify-center gap-2 rounded-md border bg-background px-4 text-sm font-medium hover:bg-secondary">
+          <Link href={action.href} className="inline-flex h-[var(--sb-control-height)] items-center justify-center gap-2 rounded-[var(--sb-radius-control)] border bg-background px-4 text-sm font-medium hover:bg-secondary">
             {action.label}
             {action.icon ? <action.icon className="h-4 w-4" /> : null}
           </Link>
@@ -198,18 +198,18 @@ export function CompactStatList({ insights, action }: { insights: WorkspaceInsig
             <p className="mt-0.5 text-xs text-muted-foreground">Today&apos;s key counters.</p>
           </div>
           {action ? (
-            <Link href={action.href} className="inline-flex h-8 items-center gap-1 rounded-md border px-2.5 text-xs font-medium hover:bg-secondary">
+            <Link href={action.href} className="inline-flex h-[var(--sb-control-height)] items-center gap-1 rounded-[var(--sb-radius-control)] border px-2.5 text-xs font-medium hover:bg-secondary">
               {action.label}
               {action.icon ? <action.icon className="h-3.5 w-3.5" /> : null}
             </Link>
           ) : null}
         </div>
-        <div className="divide-y rounded-lg border bg-white">
+        <div className="divide-y rounded-[var(--sb-radius-control)] border bg-white">
           {insights.map((insight) => {
             const theme = workspaceThemes[insight.theme ?? "neutral"];
             const InsightIcon = insight.icon;
             return (
-              <LinkOrDiv key={insight.label} href={insight.href} className="flex items-center justify-between gap-3 px-3 py-2.5 hover:bg-slate-50">
+              <LinkOrDiv key={insight.label} href={insight.href} className="flex items-center justify-between gap-3 px-3 py-2.5 hover:bg-[var(--sb-surface-muted)]">
                 <div className="flex min-w-0 items-center gap-2">
                   <span className={cn("flex h-7 w-7 shrink-0 items-center justify-center rounded-md", theme.badge, theme.iconText)}>
                     <InsightIcon className="h-3.5 w-3.5" />

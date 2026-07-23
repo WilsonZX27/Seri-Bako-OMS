@@ -3,6 +3,7 @@ import { AuthShell } from "@/components/auth/auth-shell";
 import { Field } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { SubmitButton } from "@/components/ui/submit-button";
+import { Notice } from "@/components/ui/system-states";
 import { sendPasswordReset } from "@/server/actions/auth";
 
 export default async function ForgotPasswordPage({
@@ -19,8 +20,8 @@ export default async function ForgotPasswordPage({
           <Input name="email" type="email" autoComplete="email" required />
         </Field>
         <p className="text-sm text-muted-foreground">After changing your password, return to login and sign in again.</p>
-        {params.success ? <p className="rounded-md border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-800">{params.success}</p> : null}
-        {params.error ? <p className="rounded-md border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive">{params.error}</p> : null}
+        {params.success ? <Notice tone="success">{params.success}</Notice> : null}
+        {params.error ? <Notice tone="error">{params.error}</Notice> : null}
         <SubmitButton className="w-full" pendingLabel="Sending reset link..." showOverlay overlayLabel="Sending reset link...">Send reset link</SubmitButton>
         <Link href="/login" className="block text-center text-sm text-muted-foreground hover:text-foreground">
           Back to login

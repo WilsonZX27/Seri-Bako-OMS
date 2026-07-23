@@ -49,7 +49,7 @@ export function DangerConfirmForm({
           <AlertTriangle className="h-4 w-4" />
           {buttonLabel}
         </span>
-        <span className="text-xs text-red-500">Confirm</span>
+        <span className="text-xs text-[var(--sb-danger)]">Confirm</span>
       </Button>
       <ModalShell open={open} onClose={() => setOpen(false)} titleId={titleId} triggerRef={triggerRef} initialFocusRef={cancelRef}>
             <header className="mb-4">
@@ -82,7 +82,7 @@ export function DangerConfirmForm({
                     showOverlay
                     overlayLabel={pendingLabel}
                     disabled={!checked || !matches}
-                    className="border-[var(--sb-danger)] bg-[var(--sb-danger)] text-white hover:bg-red-700"
+                    className="border-[var(--sb-danger)] bg-[var(--sb-danger)] text-white hover:opacity-90"
                   >
                     {buttonLabel}
                   </SubmitButton>

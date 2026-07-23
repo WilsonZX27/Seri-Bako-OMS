@@ -11,16 +11,16 @@ export const priorityOptions: { value: ProcurementPriority; label: string }[] = 
 ];
 
 export function priorityClassName(priority?: string | null) {
-  if (priority === "critical") return "border-red-200 bg-red-50 text-red-800";
-  if (priority === "urgent") return "border-pink-200 bg-pink-50 text-pink-800";
-  if (priority === "low") return "border-emerald-200 bg-emerald-50 text-emerald-800";
-  return "border-amber-200 bg-amber-50 text-amber-800";
+  if (priority === "critical") return "border-[var(--sb-danger-bg)] bg-[var(--sb-danger-bg)] text-[var(--sb-danger)]";
+  if (priority === "urgent") return "border-[var(--sb-warning-bg)] bg-[var(--sb-warning-bg)] text-[var(--sb-warning)]";
+  if (priority === "low") return "border-[var(--sb-success-bg)] bg-[var(--sb-success-bg)] text-[var(--sb-success)]";
+  return "border-[var(--sb-info-bg)] bg-[var(--sb-info-bg)] text-[var(--sb-info)]";
 }
 
 export function priorityVariant(priority?: string | null) {
   if (priority === "critical") return "danger";
   if (priority === "urgent") return "warning";
-  if (priority === "low") return "secondary";
+  if (priority === "low") return "success";
   return "default";
 }
 

@@ -9,9 +9,9 @@ const form = fs.readFileSync("src/components/stock-operation-forms.tsx", "utf8")
 test("transfer and wastage drafts are database-owned aggregate transactions", () => {
   for (const rpc of ["create_stock_transfer_atomic", "create_stock_wastage_atomic"]) {
     assert.match(migration, new RegExp(`create or replace function public\\.${rpc}\\(p_payload jsonb\\)`));
-    assert.match(migration, new RegExp(`grant execute on function public\\.${rpc}\\(jsonb\\) to authenticated`));
     assert.match(actions, new RegExp(`rpc\\("${rpc}"`));
   }
+  assert.match(migration, /create_stock_transfer_atomic\(jsonb\), public\.create_stock_wastage_atomic\(jsonb\) to authenticated/);
   assert.match(migration, /insert into public\.documents/);
   assert.match(migration, /insert into public\.document_revisions/);
   assert.match(migration, /insert into public\.activity_logs/);

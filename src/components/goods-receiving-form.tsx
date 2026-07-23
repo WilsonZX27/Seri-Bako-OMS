@@ -1,6 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import { useState } from "react";
 import { AlertTriangle, PackageCheck } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Field } from "@/components/ui/field";
@@ -30,6 +31,7 @@ export function GoodsReceivingForm({
   action: (formData: FormData) => Promise<void>;
 }) {
   const router = useRouter();
+  const [idempotencyKey] = useState(() => crypto.randomUUID());
   const grnNo = "GRN-AUTO";
 
   function selectPo(poId: string) {
@@ -40,6 +42,7 @@ export function GoodsReceivingForm({
     <Card>
       <CardContent className="p-5">
         <form id="goods-receiving-form" action={action} className="space-y-3">
+          <input type="hidden" name="idempotency_key" value={idempotencyKey} />
           <input type="hidden" name="grn_no" value={grnNo} />
           <input type="hidden" name="status" value="draft" />
           <div className="grid gap-3 lg:grid-cols-3">

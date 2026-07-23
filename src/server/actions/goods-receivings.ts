@@ -12,6 +12,7 @@ import { revalidateWorkspaceState } from "@/server/actions/revalidate";
 import { resolveDocumentNumber } from "@/server/documents/sequences";
 import { resolveDefaultLocation } from "@/server/inventory/locations";
 import { getCurrentProfile } from "@/server/queries/common";
+import { z } from "zod";
 
 function cleanText(value: FormDataEntryValue | null) {
   const text = String(value ?? "").trim();
@@ -65,37 +66,6 @@ function extractGoodsReceiving(formData: FormData) {
   });
 }
 
-async function createLinkedDocument(input: {
-  documentNo: string;
-  documentType: string;
-  title: string;
-  relatedEntityType: string;
-  relatedEntityId: string;
-}) {
-  const profile = await identity();
-  const supabase = await createClient();
-  const { data, error } = await supabase
-    .from("documents")
-    .insert({
-      company_id: profile?.company_id ?? null,
-      document_no: input.documentNo,
-      document_type: input.documentType,
-      title: input.title,
-      status: "draft",
-      approval_status: "not_required",
-      current_step: "Draft receiving",
-      related_entity_type: input.relatedEntityType,
-      related_entity_id: input.relatedEntityId,
-      created_by: profile?.id ?? null,
-      updated_by: profile?.id ?? null,
-    })
-    .select("id")
-    .single();
-  if (error) throw new Error(error.message);
-  await supabase.from("document_revisions").insert({ document_id: data.id, revision_no: 1, change_summary: "Initial goods receiving created.", changed_by: profile?.id ?? null });
-  return data.id;
-}
-
 async function ensureReceivablePo(purchaseOrderId: string) {
   const supabase = await createClient();
   const { data, error } = await supabase.from("purchase_orders").select("id,status,supplier_id").eq("id", purchaseOrderId).single();
@@ -118,50 +88,26 @@ export async function createGoodsReceiving(formData: FormData) {
     if (po.supplier_id !== payload.supplier_id) throw new Error("GRN supplier must match selected PO supplier.");
 
     const profile = await identity();
+    const idempotencyKey = z.uuid().parse(String(formData.get("idempotency_key") ?? ""));
     const grnNo = await resolveDocumentNumber({
       companyId: profile?.company_id,
       documentType: "goods_receiving",
       enteredNumber: payload.grn_no,
     });
     const supabase = await createClient();
-    const { data, error } = await supabase
-      .from("goods_receivings")
-      .insert({
-        company_id: profile?.company_id ?? null,
-        purchase_order_id: payload.purchase_order_id,
+    const { data, error } = await supabase.rpc("create_goods_receiving_atomic", {
+      p_payload: {
+        ...payload,
         grn_no: grnNo,
-        supplier_id: payload.supplier_id,
-        received_date: payload.received_date,
-        branch_id: payload.branch_id,
         location_id: locationId,
-        status: "draft",
-        received_by: profile?.id ?? null,
+        idempotency_key: idempotencyKey,
         remarks: [deliveryOrderNo ? `DO ${deliveryOrderNo}` : null, payload.remarks].filter(Boolean).join(" - ") || null,
-        created_by: profile?.id ?? null,
-        updated_by: profile?.id ?? null,
-      })
-      .select("id")
-      .single();
-    if (error) throw new Error(error.message);
-
-    const documentId = await createLinkedDocument({
-      documentNo: grnNo,
-      documentType: "goods_receiving",
-      title: `Goods Receiving ${grnNo}`,
-      relatedEntityType: "goods_receiving",
-      relatedEntityId: data.id,
+      },
     });
-
-    const [{ error: updateError }, { error: linesError }] = await Promise.all([
-      supabase.from("goods_receivings").update({ document_id: documentId }).eq("id", data.id),
-      supabase.from("goods_receiving_lines").insert(payload.lines.map((line) => ({ ...line, expiry_date: cleanText(line.expiry_date ?? null), goods_receiving_id: data.id }))),
-    ]);
-    if (updateError) throw new Error(updateError.message);
-    if (linesError) throw new Error(linesError.message);
-
-    await writeActivityLog({ entityType: "document", entityId: documentId, activityType: "created", message: `Goods receiving ${grnNo} created` });
+    if (error) throw new Error(error.message);
+    const created = data as { id: string };
     revalidateWorkspaceState(["/goods-receivings"]);
-    redirect(`/goods-receivings/${data.id}`);
+    redirect(`/goods-receivings/${created.id}`);
   } catch (error) {
     rethrowRedirect(error);
     safeRedirectWithMessage("/goods-receivings/new", "error", formatActionError(error, "Could not create this goods receiving."));

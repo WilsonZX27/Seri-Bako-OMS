@@ -8,7 +8,7 @@ This is an engineering audit, not a claim that production data was inspected. It
 
 ## Executive verdict
 
-The current system is substantially safer than the 2026-07-22 baseline: tenant-boundary migrations, inventory posting RPCs, concurrency work, document-number controls, backup scoping, and contract coverage have been added. The repository builds and 187 contract tests currently pass.
+The current system is substantially safer than the 2026-07-22 baseline: tenant-boundary migrations, inventory posting RPCs, concurrency work, document-number controls, backup scoping, branch-level inventory read models, and contract coverage have been added. The repository builds and 191 contract tests currently pass.
 
 However, the system is **not yet operationally simplified**. It retains parallel lifecycle implementations, legacy redirect routes, mock-mode branches and token drift. The highest-priority remaining work is not another feature sprint: it is a controlled **workflow consolidation and UI system normalization** sprint.
 
@@ -19,9 +19,11 @@ However, the system is **not yet operationally simplified**. It retains parallel
 - Mutation-capable Playwright runs are fail-closed without an explicit isolated target; a remote target additionally requires `ALLOW_REMOTE_E2E=1`.
 - The mobile shared control token is now 44px and keeps the 36px compact desktop/tablet token from `sm` upward.
 - Release/reset documentation now uses migration ceiling 092. The four unused direct dependencies were removed after a build check.
+- Migration `093_branch_level_inventory_read_models.sql` moves ledger, balance, valuation, low-stock, and stock-count list filtering/paging to branch-level database read models.
+- Shared UI feedback now uses semantic success, warning, danger, info, and neutral tokens across authentication, priority, workspace, destructive-action, and KPI entry points. Commit `6a8004f` is deployed to production.
 - The retired Location administration/onboarding path and the superseded application-level inventory engine were removed after confirming no active imports; branch-level inventory remains the supported operating model.
 
-The migration and code changes above passed a full local database reset through migration 092, 187 contract tests, typecheck, lint and an optimized production build. Production data and a production-mutating browser suite were not used.
+The migration and code changes above passed a full local database reset through migration 093, 191 contract tests, typecheck, lint and an optimized production build. Production data and a production-mutating browser suite were not used.
 
 ## Coverage inventory
 
@@ -141,12 +143,12 @@ Pass for visual intent: the shared operational shell, dense data views, restrain
 
 ### P2 — Migration and release ceiling documentation is stale
 
-**Status: fixed in this audit; the published reset ceiling is 092, matching the deployed schema.**
+**Status: fixed in this audit; the published reset ceiling is 093, matching the deployed schema.**
 
 - **Location:** `README.md`, `PRODUCT.md`, `ARCHITECTURE.md`.
 - **Evidence:** These previously claimed migration 090 while newer migrations were checked in and deployed.
 - **Impact:** Reset/runbook decisions can be made against the wrong schema baseline.
-- **Required correction:** Update all authoritative release-baseline references to 092 and add a contract assertion for the documented ceiling.
+- **Required correction:** Update all authoritative release-baseline references to 093 and add a contract assertion for the documented ceiling.
 
 ### P3 — Unused direct dependencies
 
@@ -164,7 +166,7 @@ Pass for visual intent: the shared operational shell, dense data views, restrain
 - The current inventory posting RPCs, concurrency controls and document-number rules are much stronger than the previous baseline.
 - The route resolver keeps authentication, invitation, password-change and inactive-user states distinct.
 - The static Impeccable detector found no deterministic visual anti-pattern hits.
-- The repository has a meaningful contract suite (184 passing tests), and the production build currently succeeds.
+- The repository has a meaningful contract suite (191 passing tests), and the production build currently succeeds.
 
 ## Consolidation sequence
 

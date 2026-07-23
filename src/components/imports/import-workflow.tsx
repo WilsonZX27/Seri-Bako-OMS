@@ -475,7 +475,7 @@ export function ImportWorkflow({ entity, suppliers = [] }: { entity: ImportEntit
               </div>
 
               {spec.needsPostingConfirmation ? (
-                <label className="flex items-start gap-3 rounded-[2px] border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800">
+                <label className="flex items-start gap-3 rounded-[2px] border border-[var(--sb-warning)] bg-[var(--sb-warning-bg)] p-3 text-sm text-[var(--sb-warning)]">
                   <input type="checkbox" className="mt-1" checked={confirmPosting} onChange={(event) => setConfirmPosting(event.target.checked)} />
                   <span>I understand this will post opening stock into the Movement Ledger.</span>
                 </label>
@@ -494,7 +494,7 @@ export function ImportWorkflow({ entity, suppliers = [] }: { entity: ImportEntit
               <p className="mt-1 text-2xl font-semibold">{summary.updated}</p>
             </div>
             <div className="rounded-[2px] border bg-card p-3">
-              <div className="flex items-center gap-2 text-sm font-medium text-amber-700"><AlertTriangle className="h-4 w-4" />Skipped</div>
+              <div className="flex items-center gap-2 text-sm font-medium text-[var(--sb-warning)]"><AlertTriangle className="h-4 w-4" />Skipped</div>
               <p className="mt-1 text-2xl font-semibold">{summary.skipped}</p>
             </div>
             <div className="rounded-[2px] border bg-card p-3">

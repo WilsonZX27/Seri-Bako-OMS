@@ -1,7 +1,5 @@
 import { z } from "zod";
 
-const optionalUuid = z.string().uuid().optional().nullable().or(z.literal(""));
-
 export const stockCountLineSchema = z.object({
   item_id: z.string().uuid("Item is required"),
   theoretical_qty: z.coerce.number().min(0),
@@ -14,7 +12,6 @@ export const stockCountSchema = z.object({
   count_no: z.string().trim().optional().nullable().or(z.literal("")),
   count_date: z.string().trim().min(1, "Count date is required"),
   branch_id: z.string().uuid("Branch is required"),
-  location_id: optionalUuid,
   status: z.literal("draft").optional(),
   tolerance_percent: z.coerce.number().min(0).default(2),
   remarks: z.string().trim().optional().nullable(),

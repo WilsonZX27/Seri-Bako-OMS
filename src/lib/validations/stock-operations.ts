@@ -8,15 +8,11 @@ const transferLine = z.object({
   remarks: z.string().trim().optional().nullable(),
 });
 
-const optionalUuid = z.string().uuid().optional().nullable().or(z.literal(""));
-
 export const stockTransferSchema = z.object({
   transfer_no: z.string().trim().optional().nullable().or(z.literal("")),
   transfer_date: z.string().trim().min(1),
   from_branch_id: z.string().uuid("From branch required"),
-  from_location_id: optionalUuid,
   to_branch_id: z.string().uuid("To branch required"),
-  to_location_id: optionalUuid,
   status: z.literal("draft").optional(),
   remarks: z.string().trim().optional().nullable(),
   lines: z.array(transferLine).min(1, "Transfer must have at least one line"),
@@ -36,7 +32,6 @@ export const stockWastageSchema = z.object({
   wastage_no: z.string().trim().min(1),
   wastage_date: z.string().trim().min(1),
   branch_id: z.string().uuid("Branch required"),
-  location_id: optionalUuid,
   reason: z.enum(wastageReasons),
   status: z.literal("draft").optional(),
   remarks: z.string().trim().optional().nullable(),

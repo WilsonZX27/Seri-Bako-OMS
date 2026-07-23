@@ -10,7 +10,7 @@ export default async function NewStockCountPage({ searchParams }: { searchParams
   const filters = await searchParams;
   const branches = await getBranchesForSelect();
   const selectedBranchId = filters.branch_id ?? branches[0]?.id;
-  const seedLines = await getStockCountSeedLines(undefined, selectedBranchId);
+  const seedLines = await getStockCountSeedLines(selectedBranchId);
   const formId = "stock-count-create-form";
   const primaryAction = <SubmitButton form={formId} type="submit" disabled={!seedLines.length} className="w-full">Create Draft Count</SubmitButton>;
   const steps = [

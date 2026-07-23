@@ -73,14 +73,14 @@ async function assertSprint731Rules(page, route) {
       expect(searchBox.x, "topbar search belongs in the right action cluster").toBeGreaterThan(headerBox.x + headerBox.width / 2);
       expect(searchBox.x + searchBox.width, "topbar search must fit within the right action cluster").toBeLessThanOrEqual(accountBox.x + accountBox.width);
     }
-    await expect(page.getByRole("heading", { name: /operations dashboard/i })).toBeVisible();
-    await expect(page.getByRole("heading", { name: /today.s attention/i })).toBeVisible();
-    await expect(page.getByRole("heading", { name: /procurement queue/i })).toBeVisible();
-    await expect(page.getByRole("heading", { name: /outlet record health/i })).toBeVisible();
-    await expect(page.getByRole("heading", { name: /stock exceptions/i })).toBeVisible();
+    await expect(page.getByRole("heading", { name: /owner workdesk/i })).toBeVisible();
+    await expect(page.getByRole("heading", { name: /actions awaiting you/i })).toBeVisible();
+    await expect(page.getByRole("heading", { name: /operational pipeline/i })).toBeVisible();
+    await expect(page.getByRole("heading", { name: /exceptions requiring follow-up/i })).toBeVisible();
+    await expect(page.getByRole("heading", { name: /payables and cash obligations/i })).toBeVisible();
   }
   if (route === "/settings") {
-    await expect(page.getByRole("link", { name: /data onboarding/i })).toBeVisible();
+    await expect(page.getByRole("heading", { name: /administration/i })).toBeVisible();
   }
   if (route === "/procurement") {
     const titles = ["Requesting", "Ordering", "Receiving", "Supplier Master Data"];
@@ -131,8 +131,8 @@ async function assertSprint731Rules(page, route) {
     await expect(page.locator("body")).not.toContainText("Recent Transactions");
     await expect(page.locator("body")).not.toContainText(/permission denied for view|42501|Application error/i);
     const console = page.locator("[data-right-console]");
-    await expect(console).toContainText("Quick Insights");
-    await expect(console).toContainText("New movement");
+    await expect(console).toContainText("Attention summary");
+    await expect(console).toContainText("Control basis");
   }
   if (route === "/reports") {
     await expect(page.locator("body")).not.toContainText("Quick Insights");
@@ -172,7 +172,7 @@ for (const role of roles) {
     expect(await login(page, role)).toBe(true);
     await assertNoObviousVisualBreaks(page);
     await page.screenshot({ path: path.join(screenshotDir, `${role}-dashboard.png`), fullPage: true });
-    await page.locator("aside, nav").first().screenshot({ path: path.join(screenshotDir, `${role}-sidebar.png`) });
+    await page.locator("aside:visible").first().screenshot({ path: path.join(screenshotDir, `${role}-sidebar.png`) });
 
     await page.goto("/settings/backups", { waitUntil: "domcontentloaded" });
     await page.waitForURL((url) => !url.pathname.endsWith("/settings/backups"), { timeout: 10_000 });

@@ -10,7 +10,6 @@ import { requirePermission } from "@/server/auth/permissions";
 import { formatActionError, requirePermissionOrRedirect, rethrowRedirect, safeRedirectWithMessage } from "@/server/actions/error-handling";
 import { revalidateWorkspaceState } from "@/server/actions/revalidate";
 import { resolveDocumentNumber } from "@/server/documents/sequences";
-import { resolveDefaultLocation } from "@/server/inventory/locations";
 import { getCurrentProfile } from "@/server/queries/common";
 import { z } from "zod";
 
@@ -43,7 +42,6 @@ function extractGoodsReceiving(formData: FormData) {
     supplier_id: formData.get("supplier_id"),
     received_date: formData.get("received_date"),
     branch_id: formData.get("branch_id"),
-    location_id: formData.get("location_id"),
     received_by: formData.get("received_by") || null,
     remarks: formData.get("remarks"),
     delivery_order_attached: formData.get("delivery_order_attached") === "on",
@@ -82,7 +80,6 @@ export async function createGoodsReceiving(formData: FormData) {
     const payload = extractGoodsReceiving(formData);
     const deliveryOrderNo = cleanText(formData.get("delivery_order_no"));
     if (isMockMode()) redirect("/goods-receivings/grn-mock-partial");
-    const locationId = await resolveDefaultLocation(payload.branch_id, payload.location_id);
 
     const po = await ensureReceivablePo(payload.purchase_order_id);
     if (po.supplier_id !== payload.supplier_id) throw new Error("GRN supplier must match selected PO supplier.");
@@ -99,7 +96,6 @@ export async function createGoodsReceiving(formData: FormData) {
       p_payload: {
         ...payload,
         grn_no: grnNo,
-        location_id: locationId,
         idempotency_key: idempotencyKey,
         remarks: [deliveryOrderNo ? `DO ${deliveryOrderNo}` : null, payload.remarks].filter(Boolean).join(" - ") || null,
       },

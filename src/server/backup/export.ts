@@ -26,7 +26,6 @@ type BackupDataset = {
 export const BACKUP_DATASETS: readonly BackupDataset[] = [
   { table: "companies", classification: "company_id filtered", column: "id" },
   { table: "branches", classification: "company_id filtered", column: "company_id" },
-  { table: "locations", classification: "company_id filtered", column: "company_id" },
   { table: "staffs", classification: "company_id filtered", column: "company_id" },
   { table: "profiles", classification: "excluded", reason: "Auth-profile identity metadata is not tenant business content; staff records are the authoritative company-scoped identity export." },
   { table: "roles", classification: "company_id filtered", column: "company_id" },
@@ -34,7 +33,6 @@ export const BACKUP_DATASETS: readonly BackupDataset[] = [
   { table: "role_permissions", classification: "parent-company filtered", column: "role_id", parent: "roles" },
   { table: "staff_roles", classification: "parent-company filtered", column: "staff_id", parent: "staffs" },
   { table: "staff_branches", classification: "parent-company filtered", column: "staff_id", parent: "staffs" },
-  { table: "staff_locations", classification: "parent-company filtered", column: "staff_id", parent: "staffs" },
   { table: "staff_permission_overrides", classification: "parent-company filtered", column: "staff_id", parent: "staffs" },
   { table: "items", classification: "company_id filtered", column: "company_id" },
   { table: "products", classification: "company_id filtered", column: "company_id" },

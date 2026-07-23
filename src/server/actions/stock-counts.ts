@@ -10,7 +10,6 @@ import { requirePermission } from "@/server/auth/permissions";
 import { formatActionError, requirePermissionOrRedirect, rethrowRedirect, safeRedirectWithMessage } from "@/server/actions/error-handling";
 import { revalidateWorkspaceState } from "@/server/actions/revalidate";
 import { resolveDocumentNumber } from "@/server/documents/sequences";
-import { resolveDefaultLocation } from "@/server/inventory/locations";
 import { getCurrentProfile } from "@/server/queries/common";
 import type { StockCountStatus } from "@/types/database";
 
@@ -34,7 +33,6 @@ function extractStockCount(formData: FormData) {
     count_no: formData.get("count_no"),
     count_date: formData.get("count_date"),
     branch_id: formData.get("branch_id"),
-    location_id: formData.get("location_id"),
     tolerance_percent: formData.get("tolerance_percent") ?? 2,
     remarks: formData.get("remarks"),
     lines: itemIds
@@ -75,8 +73,6 @@ export async function createStockCount(formData: FormData) {
   try {
     const payload = extractStockCount(formData);
     if (isMockMode()) redirect("/stock-counts/stock-count-draft");
-    const locationId = await resolveDefaultLocation(payload.branch_id, payload.location_id);
-
     const profile = await identity();
     const countNo = await resolveDocumentNumber({
       companyId: profile?.company_id,
@@ -89,7 +85,6 @@ export async function createStockCount(formData: FormData) {
       count_no: countNo,
       count_date: payload.count_date,
       branch_id: payload.branch_id,
-      location_id: locationId,
       counted_by: profile?.id ?? null,
       status: "draft",
       tolerance_percent: payload.tolerance_percent,

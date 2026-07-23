@@ -87,7 +87,6 @@ export async function postPurchaseReturn(id: string) {
     revalidateWorkspaceState(["/purchase-returns", `/purchase-returns/${id}`, "/goods-receivings", ...(result?.goods_receiving_id ? [`/goods-receivings/${result.goods_receiving_id}`] : [])]);
     revalidatePath("/stock-transactions");
     revalidatePath("/stock-balance");
-    revalidatePath("/stock-balances");
     revalidatePath("/stock-card");
   } catch (error) {
     safeRedirectWithMessage(`/purchase-returns/${id}`, "error", formatActionError(error, "Could not post this purchase return."));

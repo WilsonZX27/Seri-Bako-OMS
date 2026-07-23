@@ -13,7 +13,6 @@ export type ProductionJob = {
   id: string;
   company_id: string | null;
   branch_id: string;
-  location_id: string | null;
   production_job_no: string;
   production_date: string;
   recipe_id: string;
@@ -211,7 +210,7 @@ export async function getProductionJobFormOptions() {
   const recipes = await getActiveProductionRecipes();
   const { data: branches, error } = await supabase
     .from("branches")
-    .select("id, branch_code, branch_name, default_location_id, status")
+    .select("id, branch_code, branch_name, status")
     .eq("status", "active")
     .order("branch_name", { ascending: true });
   if (error) throw new Error(error.message);

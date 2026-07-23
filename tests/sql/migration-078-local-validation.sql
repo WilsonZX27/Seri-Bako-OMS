@@ -1,16 +1,14 @@
 \set ON_ERROR_STOP on
 begin;
 
+select set_config('request.jwt.claim.role','service_role',true);
+
 insert into public.companies (id, company_code, company_name)
 values ('81000000-0000-0000-0000-000000000001', 'M078-LOCAL', 'Migration 078 Local Validation');
 insert into public.branches (id, company_id, branch_code, branch_name, branch_type)
 values
   ('82000000-0000-0000-0000-000000000001', '81000000-0000-0000-0000-000000000001', 'M078-A', 'Migration 078 Branch A', 'central_kitchen'),
   ('82000000-0000-0000-0000-000000000002', '81000000-0000-0000-0000-000000000001', 'M078-B', 'Migration 078 Branch B', 'outlet');
-insert into public.locations (id, company_id, branch_id, location_code, location_name, location_type)
-values
-  ('83000000-0000-0000-0000-000000000001', '81000000-0000-0000-0000-000000000001', '82000000-0000-0000-0000-000000000001', 'M078-A-STORE', 'Branch A Store', 'dry_store'),
-  ('83000000-0000-0000-0000-000000000002', '81000000-0000-0000-0000-000000000001', '82000000-0000-0000-0000-000000000002', 'M078-B-STORE', 'Branch B Store', 'dry_store');
 insert into auth.users (id, aud, role, email, created_at, updated_at)
 values ('84000000-0000-0000-0000-000000000001', 'authenticated', 'authenticated', 'migration078.local@example.invalid', now(), now());
 insert into public.staffs (id, company_id, auth_user_id, staff_code, full_name, email, default_branch_id)
@@ -43,22 +41,22 @@ values (
   '87000000-0000-0000-0000-000000000001', true
 );
 insert into public.stock_transactions (
-  id, item_id, location_id, branch_id, transaction_type, transaction_no, transaction_date,
+  id, item_id, branch_id, transaction_type, transaction_no, transaction_date,
   quantity_in, quantity_out, unit_cost, total_cost, status, posted_at
 )
 values
-  ('88000000-0000-0000-0000-000000000001', '87000000-0000-0000-0000-000000000001', '83000000-0000-0000-0000-000000000001', '82000000-0000-0000-0000-000000000001', 'opening_balance', 'M078-ST-A1', current_date, 10, 0, 3.25, 32.50, 'posted', now()),
-  ('88000000-0000-0000-0000-000000000002', '87000000-0000-0000-0000-000000000002', '83000000-0000-0000-0000-000000000001', '82000000-0000-0000-0000-000000000001', 'opening_balance', 'M078-ST-A2', current_date, 10, 0, 4.50, 45.00, 'posted', now()),
-  ('88000000-0000-0000-0000-000000000003', '87000000-0000-0000-0000-000000000003', '83000000-0000-0000-0000-000000000002', '82000000-0000-0000-0000-000000000002', 'opening_balance', 'M078-ST-B1', current_date, 10, 0, 5.75, 57.50, 'posted', now());
+  ('88000000-0000-0000-0000-000000000001', '87000000-0000-0000-0000-000000000001', '82000000-0000-0000-0000-000000000001', 'opening_balance', 'M078-ST-A1', current_date, 10, 0, 3.25, 32.50, 'posted', now()),
+  ('88000000-0000-0000-0000-000000000002', '87000000-0000-0000-0000-000000000002', '82000000-0000-0000-0000-000000000001', 'opening_balance', 'M078-ST-A2', current_date, 10, 0, 4.50, 45.00, 'posted', now()),
+  ('88000000-0000-0000-0000-000000000003', '87000000-0000-0000-0000-000000000003', '82000000-0000-0000-0000-000000000002', 'opening_balance', 'M078-ST-B1', current_date, 10, 0, 5.75, 57.50, 'posted', now());
 
 insert into public.purchase_requests (
   id, company_id, request_no, requested_by, request_date, required_date, priority, needed_by_date,
-  urgency_reason, production_risk, branch_id, location_id, status, remarks, updated_at
+  urgency_reason, production_risk, branch_id, status, remarks, updated_at
 )
 values (
   '89000000-0000-0000-0000-000000000001', '81000000-0000-0000-0000-000000000001', 'M078-PR-1',
   '85000000-0000-0000-0000-000000000001', '2026-07-01', '2026-07-08', 'urgent', '2026-07-07',
-  'Original urgency', true, '82000000-0000-0000-0000-000000000001', '83000000-0000-0000-0000-000000000001',
+  'Original urgency', true, '82000000-0000-0000-0000-000000000001',
   'draft', 'Original remarks', '2026-07-01 01:02:03+00'
 );
 insert into public.purchase_request_lines (
@@ -92,7 +90,6 @@ begin
       and request_date = '2026-07-01' and required_date = '2026-07-08' and priority = 'urgent'
       and needed_by_date = '2026-07-07' and urgency_reason = 'Original urgency' and production_risk
       and remarks = 'Original remarks' and branch_id = '82000000-0000-0000-0000-000000000001'
-      and location_id = '83000000-0000-0000-0000-000000000001'
   ) then raise exception 'Successful edit did not preserve all draft header fields'; end if;
   if not exists (
     select 1 from public.purchase_request_lines
@@ -165,11 +162,11 @@ end
 $$;
 
 reset role;
-insert into public.stock_counts (id, company_id, count_no, count_date, branch_id, location_id, counted_by, status)
+insert into public.stock_counts (id, company_id, count_no, count_date, branch_id, counted_by, status)
 values
-  ('8b000000-0000-0000-0000-000000000001', '81000000-0000-0000-0000-000000000001', 'M078-SC-REVIEWED', current_date, '82000000-0000-0000-0000-000000000001', '83000000-0000-0000-0000-000000000001', '85000000-0000-0000-0000-000000000001', 'reviewed'),
-  ('8b000000-0000-0000-0000-000000000002', '81000000-0000-0000-0000-000000000001', 'M078-SC-DRAFT', current_date, '82000000-0000-0000-0000-000000000001', '83000000-0000-0000-0000-000000000001', '85000000-0000-0000-0000-000000000001', 'draft'),
-  ('8b000000-0000-0000-0000-000000000003', '81000000-0000-0000-0000-000000000001', 'M078-SC-RACE', current_date, '82000000-0000-0000-0000-000000000001', '83000000-0000-0000-0000-000000000001', '85000000-0000-0000-0000-000000000001', 'reviewed');
+  ('8b000000-0000-0000-0000-000000000001', '81000000-0000-0000-0000-000000000001', 'M078-SC-REVIEWED', current_date, '82000000-0000-0000-0000-000000000001', '85000000-0000-0000-0000-000000000001', 'reviewed'),
+  ('8b000000-0000-0000-0000-000000000002', '81000000-0000-0000-0000-000000000001', 'M078-SC-DRAFT', current_date, '82000000-0000-0000-0000-000000000001', '85000000-0000-0000-0000-000000000001', 'draft'),
+  ('8b000000-0000-0000-0000-000000000003', '81000000-0000-0000-0000-000000000001', 'M078-SC-RACE', current_date, '82000000-0000-0000-0000-000000000001', '85000000-0000-0000-0000-000000000001', 'reviewed');
 set local role authenticated;
 select set_config('request.jwt.claim.sub', '84000000-0000-0000-0000-000000000001', true);
 do $$

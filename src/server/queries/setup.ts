@@ -1,11 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
-import { isMockMode } from "@/lib/mock-mode";
 
 export async function getSetupStatus() {
-  if (isMockMode()) {
-    return { hasAdmin: true, user: { id: "mock-user-admin", email: "mock@example.com" } };
-  }
-
   const supabase = await createClient();
   const [{ data: userResult }, { data: hasAdmin, error }] = await Promise.all([
     supabase.auth.getUser(),

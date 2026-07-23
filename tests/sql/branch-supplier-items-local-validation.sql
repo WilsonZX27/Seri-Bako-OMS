@@ -1,14 +1,13 @@
 \set ON_ERROR_STOP on
 begin;
 
+select set_config('request.jwt.claim.role','service_role',true);
+
 insert into public.companies (id, company_code, company_name)
 values ('a1000000-0000-0000-0000-000000000001', 'BSI-LOCAL', 'Branch Supplier Validation');
 insert into public.branches (id, company_id, branch_code, branch_name, branch_type) values
   ('a2000000-0000-0000-0000-000000000001', 'a1000000-0000-0000-0000-000000000001', 'BSI-ALMA', 'ALMA', 'central_kitchen'),
   ('a2000000-0000-0000-0000-000000000002', 'a1000000-0000-0000-0000-000000000001', 'BSI-PJS', 'PJS10', 'outlet');
-insert into public.locations (id, company_id, branch_id, location_code, location_name, location_type) values
-  ('a3000000-0000-0000-0000-000000000001', 'a1000000-0000-0000-0000-000000000001', 'a2000000-0000-0000-0000-000000000001', 'BSI-ALMA-S', 'ALMA Store', 'dry_store'),
-  ('a3000000-0000-0000-0000-000000000002', 'a1000000-0000-0000-0000-000000000001', 'a2000000-0000-0000-0000-000000000002', 'BSI-PJS-S', 'PJS Store', 'dry_store');
 insert into auth.users (id, aud, role, email, created_at, updated_at) values
   ('a4000000-0000-0000-0000-000000000001', 'authenticated', 'authenticated', 'bsi.owner@example.invalid', now(), now()),
   ('a4000000-0000-0000-0000-000000000002', 'authenticated', 'authenticated', 'bsi.kitchen@example.invalid', now(), now());
@@ -57,8 +56,8 @@ do $$ begin
 end $$;
 
 reset role;
-insert into public.purchase_requests (id, company_id, request_no, requested_by, branch_id, location_id, status)
-values ('a9000000-0000-0000-0000-000000000001', 'a1000000-0000-0000-0000-000000000001', 'BSI-PR', 'a5000000-0000-0000-0000-000000000001', 'a2000000-0000-0000-0000-000000000001', 'a3000000-0000-0000-0000-000000000001', 'draft');
+insert into public.purchase_requests (id, company_id, request_no, requested_by, branch_id, status)
+values ('a9000000-0000-0000-0000-000000000001', 'a1000000-0000-0000-0000-000000000001', 'BSI-PR', 'a5000000-0000-0000-0000-000000000001', 'a2000000-0000-0000-0000-000000000001', 'draft');
 insert into public.purchase_request_lines (purchase_request_id, item_id, qty, uom, suggested_supplier_id)
 values ('a9000000-0000-0000-0000-000000000001', 'a7000000-0000-0000-0000-000000000001', 1, 'KG', 'a6000000-0000-0000-0000-000000000001');
 do $$ begin

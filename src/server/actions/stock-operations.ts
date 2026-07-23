@@ -9,7 +9,6 @@ import { requirePermission } from "@/server/auth/permissions";
 import { formatActionError, requirePermissionOrRedirect, rethrowRedirect, safeRedirectWithMessage } from "@/server/actions/error-handling";
 import { revalidateWorkspaceState } from "@/server/actions/revalidate";
 import { resolveDocumentNumber } from "@/server/documents/sequences";
-import { resolveDefaultLocation } from "@/server/inventory/locations";
 import { getCurrentProfile } from "@/server/queries/common";
 import { z } from "zod";
 
@@ -28,9 +27,7 @@ function extractTransfer(formData: FormData) {
     transfer_no: formData.get("transfer_no"),
     transfer_date: formData.get("transfer_date"),
     from_branch_id: formData.get("from_branch_id") || null,
-    from_location_id: formData.get("from_location_id"),
     to_branch_id: formData.get("to_branch_id") || null,
-    to_location_id: formData.get("to_location_id"),
     remarks: formData.get("remarks"),
     lines: itemIds.map((itemId, i) => ({ item_id: itemId, quantity: qtys[i], uom: uoms[i], remarks: remarks[i] })).filter((line) => line.item_id && enabled.has(line.item_id)),
   });
@@ -48,7 +45,6 @@ function extractWastage(formData: FormData) {
     wastage_no: formData.get("wastage_no"),
     wastage_date: formData.get("wastage_date"),
     branch_id: formData.get("branch_id") || null,
-    location_id: formData.get("location_id"),
     reason: formData.get("reason"),
     remarks: formData.get("remarks"),
     lines: itemIds.map((itemId, i) => ({ item_id: itemId, quantity: qtys[i], uom: uoms[i], reason: reasons[i], batch_no: batches[i], expiry_date: expiries[i], remarks: remarks[i] })).filter((line) => line.item_id),
@@ -61,9 +57,6 @@ export async function createStockTransfer(formData: FormData) {
     const payload = extractTransfer(formData);
     if (payload.from_branch_id === payload.to_branch_id) throw new Error("Source and destination branches must be different.");
     if (isMockMode()) redirect("/stock-transfers/transfer-draft");
-    const fromLocationId = await resolveDefaultLocation(payload.from_branch_id, payload.from_location_id);
-    const toLocationId = await resolveDefaultLocation(payload.to_branch_id, payload.to_location_id);
-    if (fromLocationId === toLocationId) throw new Error("Source and destination cannot be the same location.");
     const profile = await identity();
     const idempotencyKey = z.uuid().parse(String(formData.get("idempotency_key") ?? ""));
     const transferNo = await resolveDocumentNumber({
@@ -72,7 +65,7 @@ export async function createStockTransfer(formData: FormData) {
       enteredNumber: payload.transfer_no,
     });
     const supabase = await createClient();
-    const { data, error } = await supabase.rpc("create_stock_transfer_atomic", { p_payload: { ...payload, transfer_no: transferNo, from_location_id: fromLocationId, to_location_id: toLocationId, idempotency_key: idempotencyKey } });
+    const { data, error } = await supabase.rpc("create_stock_transfer_atomic", { p_payload: { ...payload, transfer_no: transferNo, idempotency_key: idempotencyKey } });
     if (error) throw new Error(error.message);
     const created = data as { id: string };
     redirect(`/stock-transfers/${created.id}`);
@@ -117,7 +110,6 @@ export async function createStockWastage(formData: FormData) {
   try {
     const payload = extractWastage(formData);
     if (isMockMode()) redirect("/stock-wastage/wastage-damaged");
-    const locationId = await resolveDefaultLocation(payload.branch_id, payload.location_id);
     const profile = await identity();
     const idempotencyKey = z.uuid().parse(String(formData.get("idempotency_key") ?? ""));
     const wastageNo = await resolveDocumentNumber({
@@ -126,7 +118,7 @@ export async function createStockWastage(formData: FormData) {
       enteredNumber: payload.wastage_no,
     });
     const supabase = await createClient();
-    const { data, error } = await supabase.rpc("create_stock_wastage_atomic", { p_payload: { ...payload, wastage_no: wastageNo, location_id: locationId, idempotency_key: idempotencyKey } });
+    const { data, error } = await supabase.rpc("create_stock_wastage_atomic", { p_payload: { ...payload, wastage_no: wastageNo, idempotency_key: idempotencyKey } });
     if (error) throw new Error(error.message);
     const created = data as { id: string };
     redirect(`/stock-wastage/${created.id}`);

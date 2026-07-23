@@ -9,7 +9,6 @@ import { productionJobSchema } from "@/lib/validations/production-job";
 import { formatActionError, requirePermissionOrRedirect, rethrowRedirect, safeRedirectWithMessage } from "@/server/actions/error-handling";
 import { revalidateWorkspaceState } from "@/server/actions/revalidate";
 import { resolveDocumentNumber } from "@/server/documents/sequences";
-import { resolveDefaultLocation } from "@/server/inventory/locations";
 import { getCurrentProfile } from "@/server/queries/common";
 import { logServerError } from "@/server/observability/logger";
 import { z } from "zod";
@@ -64,10 +63,9 @@ export async function createProductionJob(formData: FormData) {
     });
     const [supabase, profile] = await Promise.all([createClient(), getCurrentProfile()]);
     const idempotencyKey = z.uuid().parse(String(formData.get("idempotency_key") ?? ""));
-    const locationId = await resolveDefaultLocation(parsed.branch_id);
     const jobNo = await resolveDocumentNumber({ companyId: profile?.company_id, documentType: "production_job", enteredNumber: null });
     const { data, error } = await supabase.rpc("create_production_job_atomic", {
-      p_payload: { ...parsed, production_job_no: jobNo, location_id: locationId, idempotency_key: idempotencyKey },
+      p_payload: { ...parsed, production_job_no: jobNo, idempotency_key: idempotencyKey },
     });
     if (error) throw new Error(error.message);
     const createdJob = data as { id: string };

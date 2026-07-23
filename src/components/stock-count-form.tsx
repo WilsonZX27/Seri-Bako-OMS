@@ -98,9 +98,9 @@ export function StockCountForm({
 
   return (
     <Card>
-      <CardContent className="p-5">
-        <form id={formId} action={action} className="space-y-4">
-          <div className="grid gap-4 md:grid-cols-3">
+      <CardContent className="p-3 sm:p-4">
+        <form id={formId} action={action} className="space-y-3">
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             <Field label="Count Date"><Input name="count_date" type="date" defaultValue={today()} required /></Field>
             <Field label="Tolerance %"><Input name="tolerance_percent" type="number" min="0" step="0.01" defaultValue={tolerance} required /></Field>
             <Field label="Branch">
@@ -108,8 +108,11 @@ export function StockCountForm({
                 {branches.map((branch) => <option key={branch.id} value={branch.id}>{branch.branch_name}</option>)}
               </SelectNative>
             </Field>
-            <div className="md:col-span-3">
-              <Field label="Remarks"><Textarea name="remarks" placeholder="Nightly count note" /></Field>
+            <div className="sm:col-span-2 lg:col-span-3">
+              <details className="group rounded-[2px] border border-dashed border-[var(--sb-border)] bg-[var(--sb-surface-muted)] px-3 py-2">
+                <summary className="cursor-pointer text-sm font-medium marker:text-[var(--sb-text-muted)]">Add count note <span className="font-normal text-muted-foreground">(optional)</span></summary>
+                <div className="mt-2"><Textarea name="remarks" className="min-h-16" placeholder="Nightly count note" /></div>
+              </details>
             </div>
           </div>
 
@@ -132,18 +135,18 @@ export function StockCountForm({
                 return (
                   <div
                     key={line.item_id}
-                    className="grid grid-cols-[minmax(0,1fr)_110px] gap-2 px-3 py-3 md:grid-cols-[minmax(0,1fr)_120px_120px_130px_1fr] md:gap-3 md:items-start"
+                    className="grid grid-cols-[minmax(0,1fr)_minmax(11rem,11.25rem)] gap-x-3 gap-y-2 px-3 py-3 md:grid-cols-[minmax(0,1fr)_120px_150px_140px_1fr] md:gap-3 md:items-start"
                   >
                     <div className="min-w-0 order-1 md:col-span-1 md:order-1">
                       <p className="truncate text-sm font-medium leading-tight">{line.item_name}</p>
                       <p className="text-xs text-muted-foreground">{line.item_code}</p>
                     </div>
 
-                    <div className="order-2 grid grid-cols-[1fr_auto] items-end gap-2 md:col-span-1 md:order-3 md:grid-cols-1">
+                    <div className="order-2 min-w-0 md:col-span-1 md:order-3">
                       <label className="text-[11px] uppercase tracking-wide text-muted-foreground md:hidden" htmlFor={`physical-${line.item_id}`}>
                         Physical
                       </label>
-                      <div className="flex items-center gap-2">
+                      <div className="mt-1 flex items-center gap-2 md:mt-0">
                         <Input
                           id={`physical-${line.item_id}`}
                           name="line_physical_qty"
@@ -154,29 +157,30 @@ export function StockCountForm({
                           onChange={(event) => updatePhysicalQty(line.item_id, event.target.value)}
                           onBlur={() => normalizePhysicalQty(line.item_id)}
                           required
-                          className="h-9 md:h-8"
+                          className="h-11 min-w-[9rem] text-base font-semibold tabular-nums md:h-9 md:min-w-0 md:text-sm"
                         />
                         <span className="text-xs text-muted-foreground">{line.uom}</span>
                       </div>
                     </div>
 
-                    <div className="order-3 col-span-2 space-y-1 md:col-span-1 md:text-right md:order-2">
-                      <p className="text-[11px] uppercase tracking-wide text-muted-foreground md:hidden">Theoretical</p>
-                      <p className="text-sm font-medium">{formatVarianceDisplay(line.theoretical_qty, line.uom)}</p>
+                    <div className="order-3 col-span-2 grid grid-cols-2 gap-3 md:contents">
+                      <div className="space-y-0.5 md:col-span-1 md:text-right md:order-2">
+                        <p className="text-[11px] uppercase tracking-wide text-muted-foreground md:hidden">Theoretical</p>
+                        <p className="text-sm font-medium">{formatVarianceDisplay(line.theoretical_qty, line.uom)}</p>
+                      </div>
+                      <div className="space-y-0.5 md:col-span-1 md:text-right md:order-4">
+                        <p className="text-[11px] uppercase tracking-wide text-muted-foreground md:hidden">Variance</p>
+                        <p className={`text-sm font-semibold ${high ? toneClass : "text-foreground"}`}>
+                          {formatVarianceDisplay(variance, line.uom)} <span className="font-normal">({formatVariancePercent(percent)})</span>
+                        </p>
+                      </div>
                     </div>
 
-                    <div className="order-4 col-span-2 space-y-1 md:col-span-1 md:text-right md:order-4">
-                      <p className="text-[11px] uppercase tracking-wide text-muted-foreground md:hidden">Variance</p>
-                      <p className={`text-sm font-semibold ${high ? toneClass : "text-foreground"}`}>
-                        {formatVarianceDisplay(variance, line.uom)} <span className="font-normal">({formatVariancePercent(percent)})</span>
-                      </p>
-                    </div>
-
-                    <div className="order-5 col-span-2 min-w-0 space-y-1 md:col-span-1 md:order-5 md:max-w-[14rem]">
-                      <label className="text-[11px] uppercase tracking-wide text-muted-foreground md:hidden" htmlFor={`remarks-${line.item_id}`}>
-                        Remarks
-                      </label>
-                      <Input id={`remarks-${line.item_id}`} name="line_remarks" placeholder="Optional" />
+                    <div className="order-4 col-span-2 min-w-0 md:col-span-1 md:order-5 md:max-w-[14rem]">
+                      <details className="md:contents">
+                        <summary className="cursor-pointer text-xs font-medium text-muted-foreground md:hidden">Add line note</summary>
+                        <Input id={`remarks-${line.item_id}`} name="line_remarks" className="mt-2 md:mt-0" placeholder="Optional" />
+                      </details>
                     </div>
 
                     <input type="hidden" name="line_item_id" value={line.item_id} />

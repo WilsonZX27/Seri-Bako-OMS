@@ -8,7 +8,6 @@ import { createClient } from "@/lib/supabase/server";
 import { writeActivityLog } from "@/server/activity/log";
 import { formatActionError } from "@/server/actions/error-handling";
 import { hasPermission } from "@/server/auth/permissions";
-import { resolveDefaultLocation } from "@/server/inventory/locations";
 import { getNextDocumentNumber } from "@/server/documents/sequences";
 import { getCurrentProfile, getDefaultCompanyId } from "@/server/queries/common";
 import type { BranchType, Database, ItemStatus, RecordStatus, StaffStatus } from "@/types/database";
@@ -892,7 +891,6 @@ async function handleOpeningStockImport(context: RouteContext, request: ImportRe
     transaction_no: string;
     branch_id: string;
     item_id: string;
-    location_id: string;
     transaction_date: string;
     quantity: number;
     unit_cost: number;
@@ -1002,14 +1000,6 @@ async function handleOpeningStockImport(context: RouteContext, request: ImportRe
       continue;
     }
 
-    let locationId: string;
-    try {
-      locationId = await resolveDefaultLocation(branch.id);
-    } catch (error) {
-      pushIssue(summary, rowNumber, row, error instanceof Error ? error.message : "Could not resolve the branch default location.");
-      continue;
-    }
-
     const factor = Number(conversion.factor);
     const baseQuantity = quantity * factor;
     const ledgerUnitCost = unitCost !== null && factor > 0 ? unitCost / factor : 0;
@@ -1029,7 +1019,6 @@ async function handleOpeningStockImport(context: RouteContext, request: ImportRe
       transaction_no: transactionNo,
       branch_id: branch.id,
       item_id: item.id,
-      location_id: locationId,
       transaction_date: transactionDate,
       quantity: baseQuantity,
       unit_cost: ledgerUnitCost,
@@ -1050,7 +1039,6 @@ async function handleOpeningStockImport(context: RouteContext, request: ImportRe
 }
 
 function revalidateImportTargets(entity: ImportRequest["entity"]) {
-  revalidatePath("/data-onboarding");
   revalidatePath("/dashboard");
   revalidatePath("/imports");
 

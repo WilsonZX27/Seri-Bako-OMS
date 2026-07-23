@@ -9,7 +9,6 @@ import { requirePermission } from "@/server/auth/permissions";
 import { formatActionError, requirePermissionOrRedirect, rethrowRedirect, safeRedirectWithMessage } from "@/server/actions/error-handling";
 import { revalidateWorkspaceState } from "@/server/actions/revalidate";
 import { resolveDocumentNumber } from "@/server/documents/sequences";
-import { resolveDefaultLocation } from "@/server/inventory/locations";
 import { getCurrentProfile } from "@/server/queries/common";
 import { logServerError } from "@/server/observability/logger";
 import { z } from "zod";
@@ -111,7 +110,6 @@ function extractPurchaseRequest(formData: FormData) {
     urgency_reason: formData.get("urgency_reason"),
     production_risk: formData.get("production_risk") === "on",
     branch_id: formData.get("branch_id"),
-    location_id: formData.get("location_id"),
     remarks: formData.get("remarks"),
     lines,
   });
@@ -242,8 +240,7 @@ export async function createPurchaseRequest(formData: FormData) {
     mark("idempotency");
     const payload = extractPurchaseRequest(formData);
     const intent = formData.get("intent") === "submit" ? "submit" : "draft";
-    const [locationId, , profile] = await Promise.all([
-      resolveDefaultLocation(payload.branch_id, payload.location_id),
+    const [, profile] = await Promise.all([
       ensureActiveItems(payload.lines.map((line) => line.item_id), payload.branch_id, payload.lineBranchIds),
       identity(),
     ]);
@@ -259,7 +256,6 @@ export async function createPurchaseRequest(formData: FormData) {
       p_payload: {
         ...payload,
         request_no: requestNo,
-        location_id: locationId,
         idempotency_key: idempotencyKey,
       },
     });

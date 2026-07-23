@@ -88,7 +88,7 @@ export default async function StockCardPage({ searchParams }: { searchParams: Pr
                 </TableHeader>
                 <TableBody>
                   {rows.map((row) => (
-                    <TableRow key={`${row.stock_transaction_id}-${row.location_id}`}>
+                    <TableRow key={row.stock_transaction_id}>
                       <TableCell>{row.transaction_date}</TableCell>
                       <TableCell className="font-medium">{row.transaction_no}</TableCell>
                       <TableCell>{row.transaction_type.replaceAll("_", " ")}</TableCell>

@@ -9,7 +9,7 @@ For UI and interaction standards, read `DESIGN.md`.
 ## Current Release Baseline
 
 - Application release: `v7.23.7.0`.
-- Database migration ceiling: `098_inventory_document_terminal_atomicity`.
+- Database migration ceiling: `099_remove_locations_and_make_inventory_branch_owned`.
 - Tenant isolation, inventory posting atomicity, procurement/document transitions, concurrency controls, and credential handoff are database-authoritative.
 - Start with `docs/PILOT_BASELINE.md`, use the controlled CSV files in `docs/import-templates/`, and record sign-off in `docs/PILOT_QA_CHECKLIST.md`.
 
@@ -208,7 +208,7 @@ Recommended order:
 5. Recipes through the supported application form; there is no recipe CSV importer.
 6. Opening stock last, with explicit posting confirmation.
 
-Opening stock uses `branch_code`; the application resolves that branch's default internal location. Preview each CSV and remove its placeholder example row before any pilot import.
+Opening stock uses `branch_code` and is posted directly to that Branch/Outlet. Preview each CSV and remove its placeholder example row before any pilot import.
 
 The repository does not seed or assume dummy business records for production. Suppliers, Items, Products, Recipes, supplier mappings, and opening balances must be deliberately onboarded and reconciled.
 

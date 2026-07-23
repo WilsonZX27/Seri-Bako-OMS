@@ -1,16 +1,14 @@
 \set ON_ERROR_STOP on
 begin;
 
+select set_config('request.jwt.claim.role','service_role',true);
+
 insert into public.companies (id, company_code, company_name)
 values ('91000000-0000-0000-0000-000000000001', 'INV-GO-LIVE', 'Inventory Go-Live Validation');
 insert into public.branches (id, company_id, branch_code, branch_name, branch_type)
 values
   ('92000000-0000-0000-0000-000000000001', '91000000-0000-0000-0000-000000000001', 'ALMA-T', 'ALMA Test', 'central_kitchen'),
   ('92000000-0000-0000-0000-000000000002', '91000000-0000-0000-0000-000000000001', 'PJS10-T', 'PJS10 Test', 'outlet');
-insert into public.locations (id, company_id, branch_id, location_code, location_name, location_type)
-values
-  ('93000000-0000-0000-0000-000000000001', '91000000-0000-0000-0000-000000000001', '92000000-0000-0000-0000-000000000001', 'ALMA-STORE-T', 'ALMA Store Test', 'dry_store'),
-  ('93000000-0000-0000-0000-000000000002', '91000000-0000-0000-0000-000000000001', '92000000-0000-0000-0000-000000000002', 'PJS10-STORE-T', 'PJS10 Store Test', 'dry_store');
 insert into auth.users (id, aud, role, email, created_at, updated_at)
 values
   ('94000000-0000-0000-0000-000000000001', 'authenticated', 'authenticated', 'inventory.owner@example.invalid', now(), now()),
@@ -55,8 +53,8 @@ values (
 set local role authenticated;
 select set_config('request.jwt.claim.sub', '94000000-0000-0000-0000-000000000001', true);
 
-select public.post_opening_stock('INV-OPEN-A', '92000000-0000-0000-0000-000000000001', '97000000-0000-0000-0000-000000000001', '93000000-0000-0000-0000-000000000001', current_date, 20, 4, 'ALMA opening');
-select public.post_opening_stock('INV-OPEN-B', '92000000-0000-0000-0000-000000000002', '97000000-0000-0000-0000-000000000001', '93000000-0000-0000-0000-000000000002', current_date, 7, 5, 'PJS10 opening');
+select public.post_opening_stock('INV-OPEN-A', '92000000-0000-0000-0000-000000000001', '97000000-0000-0000-0000-000000000001', current_date, 20, 4, 'ALMA opening');
+select public.post_opening_stock('INV-OPEN-B', '92000000-0000-0000-0000-000000000002', '97000000-0000-0000-0000-000000000001', current_date, 7, 5, 'PJS10 opening');
 
 do $$
 declare a_qty numeric; b_qty numeric; before_count integer;
@@ -66,18 +64,18 @@ begin
   if a_qty <> 20 or b_qty <> 7 then raise exception 'Branch balances were not isolated'; end if;
   select count(*) into before_count from public.stock_transactions;
   begin
-    perform public.post_opening_stock('INV-OPEN-DUP', '92000000-0000-0000-0000-000000000001', '97000000-0000-0000-0000-000000000001', '93000000-0000-0000-0000-000000000001', current_date, 1, 4, 'duplicate');
+    perform public.post_opening_stock('INV-OPEN-DUP', '92000000-0000-0000-0000-000000000001', '97000000-0000-0000-0000-000000000001', current_date, 1, 4, 'duplicate');
     raise exception 'DUPLICATE_OPENING_ACCEPTED';
   exception when others then if sqlerrm = 'DUPLICATE_OPENING_ACCEPTED' then raise; end if; end;
   begin
-    perform public.post_opening_stock('INV-OPEN-FORGED', '92000000-0000-0000-0000-000000000001', '97000000-0000-0000-0000-000000000002', '93000000-0000-0000-0000-000000000002', current_date, 1, 2, 'forged location');
-    raise exception 'FORGED_LOCATION_ACCEPTED';
-  exception when others then if sqlerrm = 'FORGED_LOCATION_ACCEPTED' then raise; end if; end;
+    perform public.post_opening_stock('INV-OPEN-FORGED', '92000000-0000-0000-0000-000000000003', '97000000-0000-0000-0000-000000000002', current_date, 1, 2, 'unknown branch');
+    raise exception 'FORGED_BRANCH_ACCEPTED';
+  exception when others then if sqlerrm = 'FORGED_BRANCH_ACCEPTED' then raise; end if; end;
   if (select count(*) from public.stock_transactions) <> before_count then raise exception 'Failed opening-stock call changed the ledger'; end if;
   begin
     perform public.post_opening_stock_batch(jsonb_build_array(
-      jsonb_build_object('transaction_no','INV-BATCH-VALID','branch_id','92000000-0000-0000-0000-000000000001','item_id','97000000-0000-0000-0000-000000000002','location_id','93000000-0000-0000-0000-000000000001','transaction_date',current_date,'quantity',3,'unit_cost',2,'remarks','valid row'),
-      jsonb_build_object('transaction_no','INV-BATCH-BAD','branch_id','92000000-0000-0000-0000-000000000001','item_id','97000000-0000-0000-0000-000000000002','location_id','93000000-0000-0000-0000-000000000002','transaction_date',current_date,'quantity',3,'unit_cost',2,'remarks','invalid branch location')
+      jsonb_build_object('transaction_no','INV-BATCH-VALID','branch_id','92000000-0000-0000-0000-000000000001','item_id','97000000-0000-0000-0000-000000000002','transaction_date',current_date,'quantity',3,'unit_cost',2,'remarks','valid row'),
+      jsonb_build_object('transaction_no','INV-BATCH-BAD','branch_id','92000000-0000-0000-0000-000000000003','item_id','97000000-0000-0000-0000-000000000002','transaction_date',current_date,'quantity',3,'unit_cost',2,'remarks','unknown branch')
     ));
     raise exception 'PARTIAL_BATCH_ACCEPTED';
   exception when others then if sqlerrm = 'PARTIAL_BATCH_ACCEPTED' then raise; end if; end;
@@ -94,8 +92,8 @@ values
   ('98200000-0000-0000-0000-000000000001', '91000000-0000-0000-0000-000000000001', 'INV-GRN-1', 'goods_receiving', 'GRN Test', 'draft', 'not_required', 'Draft', 'goods_receiving', '98300000-0000-0000-0000-000000000001'),
   ('98200000-0000-0000-0000-000000000002', '91000000-0000-0000-0000-000000000001', 'INV-RET-1', 'purchase_return', 'Return Test', 'draft', 'not_required', 'Draft', 'purchase_return', '98500000-0000-0000-0000-000000000001'),
   ('98200000-0000-0000-0000-000000000003', '91000000-0000-0000-0000-000000000001', 'INV-COUNT-1', 'stock_count', 'Count Test', 'pending_approval', 'pending', 'Review', 'stock_count', '98700000-0000-0000-0000-000000000001');
-insert into public.goods_receivings (id, company_id, document_id, purchase_order_id, grn_no, supplier_id, received_date, branch_id, location_id, status)
-values ('98300000-0000-0000-0000-000000000001', '91000000-0000-0000-0000-000000000001', '98200000-0000-0000-0000-000000000001', '98000000-0000-0000-0000-000000000001', 'INV-GRN-1', '96000000-0000-0000-0000-000000000001', current_date, '92000000-0000-0000-0000-000000000001', '93000000-0000-0000-0000-000000000001', 'draft');
+insert into public.goods_receivings (id, company_id, document_id, purchase_order_id, grn_no, supplier_id, received_date, branch_id, status)
+values ('98300000-0000-0000-0000-000000000001', '91000000-0000-0000-0000-000000000001', '98200000-0000-0000-0000-000000000001', '98000000-0000-0000-0000-000000000001', 'INV-GRN-1', '96000000-0000-0000-0000-000000000001', current_date, '92000000-0000-0000-0000-000000000001', 'draft');
 insert into public.goods_receiving_lines (id, goods_receiving_id, purchase_order_line_id, item_id, ordered_qty, pending_qty, received_qty, rejected_qty, uom, unit_cost)
 values ('98400000-0000-0000-0000-000000000001', '98300000-0000-0000-0000-000000000001', '98100000-0000-0000-0000-000000000001', '97000000-0000-0000-0000-000000000001', 10, 10, 5, 0, 'KG', 4);
 
@@ -113,12 +111,12 @@ do $$ begin
 end $$;
 
 reset role;
-insert into public.purchase_returns (id, company_id, document_id, purchase_return_no, goods_receiving_id, purchase_order_id, supplier_id, branch_id, location_id, return_date, status)
-values ('98500000-0000-0000-0000-000000000001', '91000000-0000-0000-0000-000000000001', '98200000-0000-0000-0000-000000000002', 'INV-RET-1', '98300000-0000-0000-0000-000000000001', '98000000-0000-0000-0000-000000000001', '96000000-0000-0000-0000-000000000001', '92000000-0000-0000-0000-000000000001', '93000000-0000-0000-0000-000000000001', current_date, 'draft');
+insert into public.purchase_returns (id, company_id, document_id, purchase_return_no, goods_receiving_id, purchase_order_id, supplier_id, branch_id, return_date, status)
+values ('98500000-0000-0000-0000-000000000001', '91000000-0000-0000-0000-000000000001', '98200000-0000-0000-0000-000000000002', 'INV-RET-1', '98300000-0000-0000-0000-000000000001', '98000000-0000-0000-0000-000000000001', '96000000-0000-0000-0000-000000000001', '92000000-0000-0000-0000-000000000001', current_date, 'draft');
 insert into public.purchase_return_lines (id, purchase_return_id, goods_receiving_line_id, purchase_order_line_id, item_id, received_qty, previously_returned_qty, return_qty, uom, unit_cost)
 values ('98600000-0000-0000-0000-000000000001', '98500000-0000-0000-0000-000000000001', '98400000-0000-0000-0000-000000000001', '98100000-0000-0000-0000-000000000001', '97000000-0000-0000-0000-000000000001', 5, 0, 2, 'KG', 4);
-insert into public.stock_counts (id, company_id, document_id, count_no, count_date, branch_id, location_id, status, tolerance_percent)
-values ('98700000-0000-0000-0000-000000000001', '91000000-0000-0000-0000-000000000001', '98200000-0000-0000-0000-000000000003', 'INV-COUNT-1', current_date, '92000000-0000-0000-0000-000000000001', '93000000-0000-0000-0000-000000000001', 'reviewed', 2);
+insert into public.stock_counts (id, company_id, document_id, count_no, count_date, branch_id, status, tolerance_percent)
+values ('98700000-0000-0000-0000-000000000001', '91000000-0000-0000-0000-000000000001', '98200000-0000-0000-0000-000000000003', 'INV-COUNT-1', current_date, '92000000-0000-0000-0000-000000000001', 'reviewed', 2);
 insert into public.stock_count_lines (id, stock_count_id, item_id, theoretical_qty, physical_qty, uom)
 values ('98800000-0000-0000-0000-000000000001', '98700000-0000-0000-0000-000000000001', '97000000-0000-0000-0000-000000000001', 25, 20, 'KG');
 

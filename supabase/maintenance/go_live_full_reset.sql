@@ -37,9 +37,9 @@ begin
     select jsonb_agg(jsonb_build_object('staff_id', s.id, 'staff_code', s.staff_code, 'full_name', s.full_name, 'auth_user_id', s.auth_user_id) order by s.staff_code)
     from public.staffs s where s.staff_code = any(retained_codes)
   );
-  raise notice 'PRESERVE configuration counts company/branch/location/role/permission: %/%/%/%/%',
+  raise notice 'PRESERVE configuration counts company/branch/role/permission: %/%/%/%',
     (select count(*) from public.companies), (select count(*) from public.branches),
-    (select count(*) from public.locations), (select count(*) from public.roles), (select count(*) from public.permissions);
+    (select count(*) from public.roles), (select count(*) from public.permissions);
   raise notice 'STORAGE INVENTORY (delete bytes separately): %', (
     select coalesce(jsonb_agg(jsonb_build_object('attachment_id', id, 'path', coalesce(storage_path, file_path), 'status', status) order by id), '[]'::jsonb)
     from public.attachments
@@ -126,7 +126,6 @@ select distinct auth_user_id from public.staffs
 where (staff_code is null or staff_code <> all(array['SUPER-ADMIN','ROCKY','JACK','ASHLEY','FAYADH','FIZA','AIDEN']))
   and auth_user_id is not null;
 delete from public.staff_permission_overrides where staff_id not in (select id from public.staffs where staff_code = any(array['SUPER-ADMIN','ROCKY','JACK','ASHLEY','FAYADH','FIZA','AIDEN']));
-delete from public.staff_locations where staff_id not in (select id from public.staffs where staff_code = any(array['SUPER-ADMIN','ROCKY','JACK','ASHLEY','FAYADH','FIZA','AIDEN']));
 delete from public.staff_roles where staff_id not in (select id from public.staffs where staff_code = any(array['SUPER-ADMIN','ROCKY','JACK','ASHLEY','FAYADH','FIZA','AIDEN']));
 delete from public.staff_branches where staff_id not in (select id from public.staffs where staff_code = any(array['SUPER-ADMIN','ROCKY','JACK','ASHLEY','FAYADH','FIZA','AIDEN']));
 delete from public.staffs where staff_code is null or staff_code <> all(array['SUPER-ADMIN','ROCKY','JACK','ASHLEY','FAYADH','FIZA','AIDEN']);

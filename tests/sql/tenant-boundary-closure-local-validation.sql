@@ -12,11 +12,14 @@ grant authenticated to rls_test_authenticated;
 grant select, update, delete on public.companies, public.items, public.document_comments,
   public.purchase_order_lines, public.stock_transfer_lines, public.branches,
   public.staff_roles, public.staff_branches, public.documents, public.staffs,
-  public.roles, public.permissions, public.locations, public.purchase_orders,
+  public.roles, public.permissions, public.purchase_orders,
   public.stock_transfers to rls_test_authenticated;
 grant execute on function public.replace_staff_access_atomic(uuid,uuid,uuid,uuid[],public.record_status,text,text,text,text) to rls_test_authenticated;
 grant execute on function public.has_permission(text), public.current_staff_role_codes(), public.has_role(text[]), public.current_user_role() to rls_test_authenticated;
 select set_config('seri_bako.allow_protected_role_seed','on',true);
+-- Fixture-only bootstrap capability; later assertions still switch to the
+-- restricted test role and set a concrete authenticated subject.
+select set_config('request.jwt.claim.role','service_role',true);
 
 -- Disposable two-company identity and branch matrix.
 insert into public.companies(id,company_code,company_name) values
@@ -28,19 +31,6 @@ insert into public.branches(id,company_id,branch_code,branch_name,branch_type) v
  ('a2000000-0000-0000-0000-000000000003','a1000000-0000-0000-0000-000000000001','TBC-A-CK2','A Unassigned Kitchen','central_kitchen'),
  ('b2000000-0000-0000-0000-000000000001','b1000000-0000-0000-0000-000000000001','TBC-B-CK','B Central Kitchen','central_kitchen'),
  ('b2000000-0000-0000-0000-000000000002','b1000000-0000-0000-0000-000000000001','TBC-B-OUT','B Outlet','outlet');
-insert into public.locations(id,company_id,branch_id,location_code,location_name,location_type) values
- ('a3000000-0000-0000-0000-000000000001','a1000000-0000-0000-0000-000000000001','a2000000-0000-0000-0000-000000000001','TBC-A-CK-S','A CK Store','dry_store'),
- ('a3000000-0000-0000-0000-000000000002','a1000000-0000-0000-0000-000000000001','a2000000-0000-0000-0000-000000000002','TBC-A-OUT-S','A Outlet Store','dry_store'),
- ('a3000000-0000-0000-0000-000000000003','a1000000-0000-0000-0000-000000000001','a2000000-0000-0000-0000-000000000003','TBC-A-CK2-S','A CK2 Store','dry_store'),
- ('b3000000-0000-0000-0000-000000000001','b1000000-0000-0000-0000-000000000001','b2000000-0000-0000-0000-000000000001','TBC-B-CK-S','B CK Store','dry_store'),
- ('b3000000-0000-0000-0000-000000000002','b1000000-0000-0000-0000-000000000001','b2000000-0000-0000-0000-000000000002','TBC-B-OUT-S','B Outlet Store','dry_store');
-update public.branches set default_location_id = case id
- when 'a2000000-0000-0000-0000-000000000001' then 'a3000000-0000-0000-0000-000000000001'::uuid
- when 'a2000000-0000-0000-0000-000000000002' then 'a3000000-0000-0000-0000-000000000002'::uuid
- when 'a2000000-0000-0000-0000-000000000003' then 'a3000000-0000-0000-0000-000000000003'::uuid
- when 'b2000000-0000-0000-0000-000000000001' then 'b3000000-0000-0000-0000-000000000001'::uuid
- else 'b3000000-0000-0000-0000-000000000002'::uuid end
-where id::text like '_2000000-0000-0000-0000-00000000000_';
 
 insert into public.roles(id,company_id,role_code,role_name) values
  ('a4000000-0000-0000-0000-000000000001','a1000000-0000-0000-0000-000000000001','super_admin','A Owner'),
@@ -152,21 +142,21 @@ insert into public.purchase_orders(id,company_id,po_no,supplier_id,branch_id) va
 insert into public.purchase_order_lines(id,purchase_order_id,item_id,qty_ordered,uom) values
  ('a7910000-0000-0000-0000-000000000001','a7900000-0000-0000-0000-000000000001','a7100000-0000-0000-0000-000000000001',1,'KG'),
  ('b7910000-0000-0000-0000-000000000001','b7900000-0000-0000-0000-000000000001','b7100000-0000-0000-0000-000000000001',1,'KG');
-insert into public.stock_transfers(id,company_id,transfer_no,from_branch_id,from_location_id,to_branch_id,to_location_id) values
- ('a7920000-0000-0000-0000-000000000001','a1000000-0000-0000-0000-000000000001','TBC-A-TR','a2000000-0000-0000-0000-000000000001','a3000000-0000-0000-0000-000000000001','a2000000-0000-0000-0000-000000000002','a3000000-0000-0000-0000-000000000002'),
- ('b7920000-0000-0000-0000-000000000001','b1000000-0000-0000-0000-000000000001','TBC-B-TR','b2000000-0000-0000-0000-000000000001','b3000000-0000-0000-0000-000000000001','b2000000-0000-0000-0000-000000000002','b3000000-0000-0000-0000-000000000002');
+insert into public.stock_transfers(id,company_id,transfer_no,from_branch_id,to_branch_id) values
+ ('a7920000-0000-0000-0000-000000000001','a1000000-0000-0000-0000-000000000001','TBC-A-TR','a2000000-0000-0000-0000-000000000001','a2000000-0000-0000-0000-000000000002'),
+ ('b7920000-0000-0000-0000-000000000001','b1000000-0000-0000-0000-000000000001','TBC-B-TR','b2000000-0000-0000-0000-000000000001','b2000000-0000-0000-0000-000000000002');
 insert into public.stock_transfer_lines(id,stock_transfer_id,item_id,quantity,uom) values
  ('a7930000-0000-0000-0000-000000000001','a7920000-0000-0000-0000-000000000001','a7100000-0000-0000-0000-000000000001',1,'KG'),
  ('b7930000-0000-0000-0000-000000000001','b7920000-0000-0000-0000-000000000001','b7100000-0000-0000-0000-000000000001',1,'KG');
-insert into public.stock_wastage(id,company_id,wastage_no,branch_id,location_id,reason) values
- ('a7940000-0000-0000-0000-000000000001','a1000000-0000-0000-0000-000000000001','TBC-A-W','a2000000-0000-0000-0000-000000000001','a3000000-0000-0000-0000-000000000001','other'),
- ('b7940000-0000-0000-0000-000000000001','b1000000-0000-0000-0000-000000000001','TBC-B-W','b2000000-0000-0000-0000-000000000001','b3000000-0000-0000-0000-000000000001','other');
+insert into public.stock_wastage(id,company_id,wastage_no,branch_id,reason) values
+ ('a7940000-0000-0000-0000-000000000001','a1000000-0000-0000-0000-000000000001','TBC-A-W','a2000000-0000-0000-0000-000000000001','other'),
+ ('b7940000-0000-0000-0000-000000000001','b1000000-0000-0000-0000-000000000001','TBC-B-W','b2000000-0000-0000-0000-000000000001','other');
 insert into public.stock_wastage_lines(id,stock_wastage_id,item_id,quantity,uom,reason) values
  ('a7950000-0000-0000-0000-000000000001','a7940000-0000-0000-0000-000000000001','a7100000-0000-0000-0000-000000000001',1,'KG','other'),
  ('b7950000-0000-0000-0000-000000000001','b7940000-0000-0000-0000-000000000001','b7100000-0000-0000-0000-000000000001',1,'KG','other');
-insert into public.production_jobs(id,company_id,branch_id,location_id,production_job_no,production_date,recipe_id,product_id,planned_output_qty,output_uom) values
- ('a7960000-0000-0000-0000-000000000001','a1000000-0000-0000-0000-000000000001','a2000000-0000-0000-0000-000000000001','a3000000-0000-0000-0000-000000000001','TBC-A-PJ',current_date,'a7700000-0000-0000-0000-000000000001','a7200000-0000-0000-0000-000000000001',1,'PCS'),
- ('b7960000-0000-0000-0000-000000000001','b1000000-0000-0000-0000-000000000001','b2000000-0000-0000-0000-000000000001','b3000000-0000-0000-0000-000000000001','TBC-B-PJ',current_date,'b7700000-0000-0000-0000-000000000001','b7200000-0000-0000-0000-000000000001',1,'PCS');
+insert into public.production_jobs(id,company_id,branch_id,production_job_no,production_date,recipe_id,product_id,planned_output_qty,output_uom) values
+ ('a7960000-0000-0000-0000-000000000001','a1000000-0000-0000-0000-000000000001','a2000000-0000-0000-0000-000000000001','TBC-A-PJ',current_date,'a7700000-0000-0000-0000-000000000001','a7200000-0000-0000-0000-000000000001',1,'PCS'),
+ ('b7960000-0000-0000-0000-000000000001','b1000000-0000-0000-0000-000000000001','b2000000-0000-0000-0000-000000000001','TBC-B-PJ',current_date,'b7700000-0000-0000-0000-000000000001','b7200000-0000-0000-0000-000000000001',1,'PCS');
 insert into public.production_job_ingredient_lines(id,production_job_id,item_id,required_qty) values
  ('a7970000-0000-0000-0000-000000000001','a7960000-0000-0000-0000-000000000001','a7100000-0000-0000-0000-000000000001',1),
  ('b7970000-0000-0000-0000-000000000001','b7960000-0000-0000-0000-000000000001','b7100000-0000-0000-0000-000000000001',1);

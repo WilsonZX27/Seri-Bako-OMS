@@ -32,7 +32,7 @@ export async function GET(request: Request) {
     row.transaction_no,
     row.transaction_date,
     `${row.item_code} - ${row.item_name}`,
-    row.branch_name ?? row.location_name,
+    row.branch_name,
     row.transaction_type,
     row.quantity_in,
     row.quantity_out,

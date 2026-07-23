@@ -92,7 +92,6 @@ export async function updateItem(id: string, formData: FormData) {
     if (error) throw new Error(error.message);
 
     revalidatePath("/items");
-    revalidatePath("/stock-balances");
     revalidatePath("/low-stock");
     redirect("/items");
   } catch (error) {

@@ -43,7 +43,7 @@ test("the shared shell owns tablet ratio, mobile workflow, sticky action and acc
   assert.match(confirm, /ModalShell/);
   assert.match(modal, /role="dialog"/);
   assert.match(modal, /event\.key !== "Tab"/);
-  assert.match(styles, /\.sb-mobile-action-bar[\s\S]*border-top:[\s\S]*linear-gradient/);
+  assert.match(styles, /\.sb-mobile-action-bar[\s\S]*border: 1px solid var\(--sb-border\);[\s\S]*background: white;[\s\S]*box-shadow: 0 -2px 6px/);
 });
 
 test("workflow actions are explicit, confirmed, permission-derived and secondary actions stay with the primary action", () => {
@@ -95,7 +95,6 @@ test("document terminology and footer match v7.23.7.0", () => {
   assert.match(sources, /Remarks/);
   assert.match(read("src/lib/app-version.ts"), /APP_SPRINT = "v7\.23\.7\.0"/);
 });
-
 
 
 

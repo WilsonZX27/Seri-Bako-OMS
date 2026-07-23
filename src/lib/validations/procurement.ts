@@ -1,6 +1,5 @@
 import { z } from "zod";
 
-const optionalUuid = z.string().uuid().optional().nullable().or(z.literal(""));
 const prioritySchema = z.enum(["low", "normal", "urgent", "critical"]);
 
 export const purchaseRequestLineSchema = z.object({
@@ -22,7 +21,6 @@ export const purchaseRequestSchema = z.object({
   urgency_reason: z.string().trim().optional().nullable(),
   production_risk: z.coerce.boolean().optional(),
   branch_id: z.string().uuid("Branch is required"),
-  location_id: optionalUuid,
   status: z.literal("draft").optional(),
   remarks: z.string().trim().optional().nullable(),
   lines: z.array(purchaseRequestLineSchema).min(1, "Purchase request must have at least one line"),
@@ -75,7 +73,6 @@ export const goodsReceivingSchema = z.object({
   supplier_id: z.string().uuid("Supplier is required"),
   received_date: z.string().trim().min(1, "Received date is required"),
   branch_id: z.string().uuid("Branch is required"),
-  location_id: optionalUuid,
   status: z.literal("draft").optional(),
   received_by: z.string().uuid().optional().nullable().or(z.literal("")),
   remarks: z.string().trim().optional().nullable(),

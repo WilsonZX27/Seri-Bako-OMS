@@ -1,4 +1,4 @@
-import { isMockMode, mockBranches, mockItems, mockLocations, mockProfile, mockStockCountLines, mockStockCounts } from "@/lib/mock-mode";
+import { isMockMode, mockBranches, mockItems, mockProfile, mockStockCountLines, mockStockCounts } from "@/lib/mock-mode";
 import { createClient } from "@/lib/supabase/server";
 import { compareTableValues, paginateRows } from "@/lib/table-state";
 import { getStockBalanceDetails } from "@/server/queries/inventory";
@@ -12,7 +12,6 @@ const STOCK_COUNT_SORT_COLUMNS = new Set(["count_no", "count_date", "status", "u
 
 export type StockCountRow = StockCount & {
   branch_name: string | null;
-  location_name: string | null;
   counted_by_name: string | null;
   line_count: number;
   high_variance_count: number;
@@ -61,12 +60,10 @@ function countSearchExpression(value?: string) {
 
 function hydrateCount(row: StockCount, lines: StockCountLine[]): StockCountRow {
   const branch = mockBranches.find((item) => item.id === row.branch_id);
-  const location = mockLocations.find((item) => item.id === row.location_id);
   const ownLines = lines.filter((line) => line.stock_count_id === row.id);
   return {
     ...row,
     branch_name: branch?.branch_name ?? null,
-    location_name: location?.location_name ?? null,
     counted_by_name: row.counted_by ? mockProfile.full_name : null,
     line_count: ownLines.length,
     high_variance_count: ownLines.filter((line) => Math.abs(line.variance_percent) > row.tolerance_percent).length,
@@ -110,25 +107,22 @@ export async function getStockCount(id: string) {
     return { count: hydrateCount(count as StockCount, mockStockCountLines as StockCountLine[]), lines };
   }
   const supabase = await createClient();
-  const [{ data, error }, { data: lines, error: linesError }, { data: items }, { data: branches }, { data: locations }] = await Promise.all([
+  const [{ data, error }, { data: lines, error: linesError }, { data: items }, { data: branches }] = await Promise.all([
     supabase.from("stock_counts").select("*").eq("id", id).single(),
     supabase.from("stock_count_lines").select("*").eq("stock_count_id", id),
     supabase.from("items").select("id, item_code, item_name, base_unit, item_image_url"),
     supabase.from("branches").select("id, branch_name"),
-    supabase.from("locations").select("id, location_name"),
   ]);
   if (error) throw new Error(error.message);
   if (linesError) throw new Error(linesError.message);
   const itemById = new Map((items ?? []).map((row) => [row.id, row]));
   const branchById = new Map((branches ?? []).map((row) => [row.id, row.branch_name]));
-  const locationById = new Map((locations ?? []).map((row) => [row.id, row.location_name]));
   const count = data as StockCount;
   const ownLines = (lines ?? []) as StockCountLine[];
   return {
     count: {
       ...count,
       branch_name: count.branch_id ? branchById.get(count.branch_id) ?? null : null,
-      location_name: locationById.get(count.location_id) ?? null,
       counted_by_name: count.counted_by,
       line_count: ownLines.length,
       high_variance_count: ownLines.filter((line) => Math.abs(line.variance_percent) > count.tolerance_percent).length,
@@ -137,10 +131,9 @@ export async function getStockCount(id: string) {
   };
 }
 
-export async function getStockCountSeedLines(locationId?: string, branchId?: string) {
-  const balances = await getStockBalanceDetails({ page: "all", view: locationId ? "location" : "branch" });
+export async function getStockCountSeedLines(branchId?: string) {
+  const balances = await getStockBalanceDetails({ page: "all", view: "branch" });
   return balances.rows
-    .filter((row) => (locationId ? row.location_id === locationId : true))
     .filter((row) => (branchId ? row.branch_id === branchId : true))
     .map((row) => ({
       item_id: row.item_id,

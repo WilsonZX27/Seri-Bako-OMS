@@ -423,9 +423,8 @@ input[type="date"]::-webkit-date-and-time-value {
 
 .sb-mobile-action-bar {
   border: 1px solid var(--sb-border);
-  border-top: 2px solid var(--sb-green-900);
-  background: linear-gradient(to top, white, var(--sb-surface-muted));
-  box-shadow: 0 -8px 24px rgb(6 44 31 / 0.14);
+  background: white;
+  box-shadow: 0 -2px 6px rgb(6 44 31 / 0.12);
 }
 
 @media (min-width: 768px) and (max-width: 1279px) {

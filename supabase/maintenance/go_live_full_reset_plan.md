@@ -2,7 +2,7 @@
 
 ## Preserve exactly
 
-- Company, branches/outlets, locations, configuration, roles, permissions, RLS policies, and document-sequence configuration.
+- Company, branches/outlets, configuration, roles, permissions, RLS policies, and document-sequence configuration.
 - Staff/Auth by staff code: `SUPER-ADMIN` (Wilson), `ROCKY`, `JACK`, `ASHLEY`, `FAYADH`, `FIZA`, `AIDEN`.
 
 The SQL preflight stops if that list is not exactly seven rows, any code is ambiguous, or Wilson lacks an active Super Admin Staff/Auth link.
@@ -21,7 +21,7 @@ Storage objects are not database-transactional. The SQL preflight prints every a
 
 ## Local proof
 
-- Current migrations through `077_monthly_document_numbering.sql` applied on the disposable local database.
+- Current migrations through `100_remove_location_staff_access_residue.sql` applied on the disposable local database.
 - Reset committed with zero operational/master rows, zero attachment metadata, zero monthly counter rows, and seven retained Staff/Auth rows.
 - Retained Owner login succeeded after reset.
 - A new supplier, item, product, and recipe were created after reset.

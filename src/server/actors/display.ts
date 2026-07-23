@@ -3,6 +3,7 @@
 import { createAdminClient } from "@/lib/supabase/admin";
 import { isMockMode, mockProfile } from "@/lib/mock-mode";
 import { createClient } from "@/lib/supabase/server";
+import { logServerWarning } from "@/server/observability/logger";
 
 const SYSTEM_ACTOR = "System";
 const UNKNOWN_ACTOR = "Unknown user";
@@ -75,7 +76,7 @@ export async function resolveActorDisplayMap(actorIds: Array<string | null | und
 
   for (const id of ids) {
     if (!displayMap.has(id)) {
-      console.warn(`Unable to resolve actor display for ${id.slice(0, 8)}.`);
+      logServerWarning("Unable to resolve actor display.", { source: "actors.resolveActorDisplayMap", actorId: id });
       displayMap.set(id, UNKNOWN_ACTOR);
     }
   }

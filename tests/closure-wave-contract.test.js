@@ -35,6 +35,9 @@ test("selected account, export, and workspace query failures use the redacting s
     "src/app/api/export/[table]/route.ts",
     "src/app/api/export/ap-aging/route.ts",
     "src/server/queries/pending-actions.ts",
+    "src/server/actors/display.ts",
+    "src/server/actions/procurement.ts",
+    "src/server/actions/production-jobs.ts",
   ]) {
     assert.match(read(path), /logServer(?:Error|Warning)\(/);
     assert.doesNotMatch(read(path), /console\.error\(/);

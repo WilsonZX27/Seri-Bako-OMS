@@ -11,6 +11,7 @@ import { revalidateWorkspaceState } from "@/server/actions/revalidate";
 import { resolveDocumentNumber } from "@/server/documents/sequences";
 import { resolveDefaultLocation } from "@/server/inventory/locations";
 import { getCurrentProfile } from "@/server/queries/common";
+import { logServerError } from "@/server/observability/logger";
 import { z } from "zod";
 
 function cleanText(value: unknown) {
@@ -45,7 +46,7 @@ async function notifyProduction(input: { title: string; message: string; permiss
       created_by: profile?.id ?? null,
     })),
   );
-  if (error) console.error(error);
+  if (error) logServerError(error, { source: "productionJobs.notifyProduction" });
 }
 
 export async function createProductionJob(formData: FormData) {

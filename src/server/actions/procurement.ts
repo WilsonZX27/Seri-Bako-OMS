@@ -11,6 +11,7 @@ import { revalidateWorkspaceState } from "@/server/actions/revalidate";
 import { resolveDocumentNumber } from "@/server/documents/sequences";
 import { resolveDefaultLocation } from "@/server/inventory/locations";
 import { getCurrentProfile } from "@/server/queries/common";
+import { logServerError } from "@/server/observability/logger";
 import { z } from "zod";
 import type { ApprovalStatus, PurchaseOrderStatus } from "@/types/database";
 
@@ -44,7 +45,7 @@ async function notifyNextPrRole(input: {
     .in("role_code", roleCodes)
     .eq("status", "active");
   if (rolesError) {
-    console.error(rolesError);
+    logServerError(rolesError, { source: "procurement.notifyNextPrRole.roles" });
     return;
   }
 
@@ -74,7 +75,7 @@ async function notifyNextPrRole(input: {
   }));
   if (!notifications.length) return;
   const { error } = await supabase.from("notifications").insert(notifications);
-  if (error) console.error(error);
+  if (error) logServerError(error, { source: "procurement.notifyNextPrRole.insert" });
 }
 
 function extractPurchaseRequest(formData: FormData) {
@@ -219,7 +220,7 @@ async function createPurchaseOrderCreatedNotification(input: { poId: string; poN
   });
 
   if (error) {
-    console.error(error);
+    logServerError(error, { source: "procurement.createPurchaseOrderNotification" });
   }
 }
 

@@ -10,6 +10,7 @@ import { formatActionError, requirePermissionOrRedirect, rethrowRedirect, safeRe
 import { revalidateWorkspaceState } from "@/server/actions/revalidate";
 import { resolveDocumentNumber } from "@/server/documents/sequences";
 import { getCurrentProfile } from "@/server/queries/common";
+import { z } from "zod";
 
 function cleanText(value: FormDataEntryValue | null) {
   const text = String(value ?? "").trim();
@@ -53,31 +54,6 @@ function extractPurchaseReturn(formData: FormData) {
   });
 }
 
-async function createLinkedDocument(input: { documentNo: string; relatedEntityId: string }) {
-  const profile = await identity();
-  const supabase = await createClient();
-  const { data, error } = await supabase
-    .from("documents")
-    .insert({
-      company_id: profile?.company_id ?? null,
-      document_no: input.documentNo,
-      document_type: "purchase_return",
-      title: `Purchase Return ${input.documentNo}`,
-      status: "draft",
-      approval_status: "not_required",
-      current_step: "Draft return",
-      related_entity_type: "purchase_return",
-      related_entity_id: input.relatedEntityId,
-      created_by: profile?.id ?? null,
-      updated_by: profile?.id ?? null,
-    })
-    .select("id")
-    .single();
-  if (error) throw new Error(error.message);
-  await supabase.from("document_revisions").insert({ document_id: data.id, revision_no: 1, change_summary: "Initial purchase return created.", changed_by: profile?.id ?? null });
-  return data.id;
-}
-
 export async function createPurchaseReturn(formData: FormData) {
   await requirePermissionOrRedirect("purchase_return.create", "/purchase-returns/new");
   try {
@@ -85,51 +61,15 @@ export async function createPurchaseReturn(formData: FormData) {
     const payload = extractPurchaseReturn(formData);
     const profile = await identity();
     const supabase = await createClient();
-    const { data: grn, error: grnError } = await supabase.from("goods_receivings").select("*").eq("id", payload.goods_receiving_id).single();
-    if (grnError) throw new Error(grnError.message);
-    if (grn.status !== "posted") throw new Error("Only posted GRNs can be returned.");
-
-    const { data: currentLines, error: lineReadError } = await supabase.from("goods_receiving_lines").select("*").eq("goods_receiving_id", grn.id);
-    if (lineReadError) throw new Error(lineReadError.message);
-    const currentById = new Map((currentLines ?? []).map((line) => [line.id, line]));
-    for (const line of payload.lines) {
-      const current = currentById.get(line.goods_receiving_line_id);
-      const returnable = Number(current?.received_qty ?? 0) - Number(current?.returned_qty ?? 0);
-      if (!current || line.item_id !== current.item_id || line.return_qty > returnable) throw new Error("Return quantity cannot exceed received minus previously returned quantity.");
-    }
-
+    const idempotencyKey = z.uuid().parse(String(formData.get("idempotency_key") ?? ""));
     const returnNo = await resolveDocumentNumber({ companyId: profile?.company_id, documentType: "purchase_return", enteredNumber: payload.purchase_return_no });
-    const { data, error } = await supabase
-      .from("purchase_returns")
-      .insert({
-        company_id: profile?.company_id ?? null,
-        purchase_return_no: returnNo,
-        goods_receiving_id: grn.id,
-        purchase_order_id: grn.purchase_order_id,
-        supplier_id: grn.supplier_id,
-        branch_id: grn.branch_id,
-        location_id: grn.location_id,
-        return_date: payload.return_date,
-        status: "draft",
-        reason: payload.reason,
-        remarks: payload.remarks,
-        created_by: profile?.id ?? null,
-        updated_by: profile?.id ?? null,
-      })
-      .select("id")
-      .single();
+    const { data, error } = await supabase.rpc("create_purchase_return_atomic", {
+      p_payload: { ...payload, purchase_return_no: returnNo, idempotency_key: idempotencyKey },
+    });
     if (error) throw new Error(error.message);
-
-    const documentId = await createLinkedDocument({ documentNo: returnNo, relatedEntityId: data.id });
-    const [{ error: updateError }, { error: linesError }] = await Promise.all([
-      supabase.from("purchase_returns").update({ document_id: documentId }).eq("id", data.id),
-      supabase.from("purchase_return_lines").insert(payload.lines.map((line) => ({ ...line, purchase_return_id: data.id, reason: cleanText(line.reason ?? null) }))),
-    ]);
-    if (updateError) throw new Error(updateError.message);
-    if (linesError) throw new Error(linesError.message);
-    await writeActivityLog({ entityType: "document", entityId: documentId, activityType: "created", message: `Purchase return ${returnNo} created` });
+    const created = data as { id: string };
     revalidateWorkspaceState(["/purchase-returns", "/goods-receivings"]);
-    redirect(`/purchase-returns/${data.id}`);
+    redirect(`/purchase-returns/${created.id}`);
   } catch (error) {
     rethrowRedirect(error);
     safeRedirectWithMessage("/purchase-returns/new", "error", formatActionError(error, "Could not create this purchase return."));

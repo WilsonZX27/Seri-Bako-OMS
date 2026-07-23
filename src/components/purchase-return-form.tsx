@@ -1,6 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import { useState } from "react";
 import { PackageX } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Field } from "@/components/ui/field";
@@ -26,10 +27,12 @@ export function PurchaseReturnForm({
   action: (formData: FormData) => Promise<void>;
 }) {
   const router = useRouter();
+  const [idempotencyKey] = useState(() => crypto.randomUUID());
   return (
     <Card>
       <CardContent className="p-5">
         <form id="purchase-return-form" action={action} className="space-y-3">
+          <input type="hidden" name="idempotency_key" value={idempotencyKey} />
           <input type="hidden" name="purchase_return_no" value="PRT-AUTO" />
           <div className="grid gap-3 lg:grid-cols-3">
             <Field label="Posted GRN" required>

@@ -104,7 +104,7 @@ export default async function ReportsPage() {
       >
         <div className="space-y-4">
           {visibleCategories.map((category) => (
-            <section key={category.title} className="overflow-hidden rounded-lg border bg-card">
+            <section key={category.title} className="overflow-hidden rounded-[2px] border bg-card">
               <div className="border-b bg-secondary/30 px-3 py-2">
                 <h2 className="text-sm font-semibold">{category.title}</h2>
                 <p className="text-xs text-muted-foreground">{category.description}</p>

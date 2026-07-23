@@ -20,7 +20,7 @@ export function CategoryCardGrid({ items, className }: { items: CategoryCardItem
       {items.map((item) => {
         const Icon = item.icon;
         const content = (
-          <Card className={cn("h-full rounded-lg transition-colors", item.disabled ? "opacity-60" : "hover:border-primary/30 hover:bg-[var(--sb-muted)]")}>
+          <Card className={cn("h-full rounded-[2px] transition-colors", item.disabled ? "opacity-60" : "hover:border-primary/30 hover:bg-[var(--sb-muted)]")}>
             <CardContent className="flex h-full min-h-[88px] gap-3 p-3">
               <div className="sb-icon-tile h-9 w-9">
                 <Icon className="h-4 w-4" />

@@ -28,7 +28,7 @@ export default async function DocumentSequencesPage({ searchParams }: { searchPa
             </CardContent>
           </Card>
         ) : null}
-        <div className="overflow-hidden rounded-lg border bg-card">
+        <div className="overflow-hidden rounded-[2px] border bg-card">
           <MasterDataFilters search={filters.search} status={filters.status} placeholder="Search document type, prefix, or preview number" />
           <div className="overflow-x-auto">
             <Table>

@@ -51,7 +51,7 @@ export function DocumentSequenceForm({ sequence, companies, action }: {
           <Field label="Reset Monthly">
             <Input value="Yes — a separate counter is used for each month" readOnly />
           </Field>
-          <div className="md:col-span-2 rounded-lg border bg-secondary p-4">
+          <div className="md:col-span-2 rounded-[2px] border bg-secondary p-4">
             <p className="text-xs font-medium uppercase text-muted-foreground">Format Preview</p>
             <p className="mt-1 font-mono text-lg font-semibold">{monthlyPreview(prefix, nextNumber)}</p>
             <p className="mt-1 text-xs text-muted-foreground">{`{PREFIX}/{MON}{YY}/{SEQ:3}`}</p>

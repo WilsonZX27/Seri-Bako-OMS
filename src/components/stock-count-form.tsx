@@ -113,7 +113,7 @@ export function StockCountForm({
             </div>
           </div>
 
-          <div className="rounded-lg border">
+          <div className="rounded-[2px] border">
             <div className="hidden border-b bg-secondary/40 px-3 py-2 md:grid md:grid-cols-[minmax(0,1fr)_130px_130px_150px_1fr] md:gap-3">
               <p className="text-xs font-semibold">Item</p>
               <p className="text-xs text-right font-semibold">Theoretical</p>

@@ -41,7 +41,7 @@ export function ProductForm({ product, packaging = [], action, formId, showSubmi
             <Input name="product_image" type="file" accept="image/png,image/jpeg,image/webp" />
             <p className="mt-1 text-xs text-muted-foreground">PNG, JPG, or WEBP, up to 2MB.</p>
           </Field>
-          <div className="grid gap-4 rounded-lg border bg-secondary/30 p-4 md:col-span-2 md:grid-cols-4">
+          <div className="grid gap-4 rounded-[2px] border bg-secondary/30 p-4 md:col-span-2 md:grid-cols-4">
             <div className="md:col-span-4">
               <p className="text-sm font-semibold">Packaging & Pricing</p>
               <p className="mt-1 text-xs text-muted-foreground">Default selling pack used for catalogue and future order pricing.</p>
@@ -61,7 +61,7 @@ export function ProductForm({ product, packaging = [], action, formId, showSubmi
             <input type="hidden" name="packaging_id" value={primaryPackaging?.id ?? ""} />
           </div>
           <div className="grid gap-4 md:col-span-2 md:grid-cols-2">
-            <div className="rounded-lg border bg-secondary/30 p-4 md:col-span-2">
+            <div className="rounded-[2px] border bg-secondary/30 p-4 md:col-span-2">
               <p className="text-sm font-semibold">Product Image</p>
               {product?.product_image_url ? (
                 // eslint-disable-next-line @next/next/no-img-element

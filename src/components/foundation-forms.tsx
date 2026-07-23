@@ -353,7 +353,7 @@ export function DocumentSequenceForm({
             <StatusSelect value={sequence?.status} />
           </Field>
           <div className="md:col-span-2">
-            <div className="rounded-lg border bg-secondary p-4">
+            <div className="rounded-[2px] border bg-secondary p-4">
               <p className="text-xs font-medium uppercase text-muted-foreground">Preview Number</p>
               <p className="mt-1 font-mono text-lg font-semibold">{previewDocumentNumber(prefix, nextNumber, padding)}</p>
             </div>

@@ -82,7 +82,7 @@ export function GoodsReceivingForm({
             <>
               <input type="hidden" name="purchase_order_id" value={selectedOrder.id} />
               <input type="hidden" name="supplier_id" value={selectedOrder.supplier_id} />
-              <div className="rounded-lg border">
+              <div className="rounded-[2px] border">
                 <div className="flex flex-col gap-2 border-b bg-secondary/40 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
                   <div>
                     <p className="text-xs font-semibold">Receiving Lines</p>
@@ -123,12 +123,12 @@ export function GoodsReceivingForm({
                 </div>
               </div>
 
-              <p className="rounded-lg border bg-secondary/30 p-3 text-sm text-muted-foreground">
+              <p className="rounded-[2px] border bg-secondary/30 p-3 text-sm text-muted-foreground">
                 Save the receiving, then attach the supplier Delivery Order before posting to stock. Mobile upload supports camera, photo library, and files.
               </p>
             </>
           ) : (
-            <div className="rounded-lg border bg-secondary/30 p-8 text-center">
+            <div className="rounded-[2px] border bg-secondary/30 p-8 text-center">
               <PackageCheck className="mx-auto h-10 w-10 text-muted-foreground" />
               <p className="mt-3 font-semibold">Select a purchase order to begin receiving</p>
               <p className="mt-1 text-sm text-muted-foreground">Only approved, sent, or partially received POs can be received.</p>

@@ -166,7 +166,7 @@ export function PurchaseRequestForm({
             </Field>
           </section>
 
-          <div className="rounded-lg border">
+          <div className="rounded-[2px] border">
             <div className="flex items-center justify-between border-b bg-secondary/40 px-3 py-2">
               <div>
                 <p className="text-xs font-semibold">Requested Items</p>
@@ -300,7 +300,7 @@ export function PurchaseOrderForm({
             </div>
           </div>
 
-          <div className="rounded-lg border">
+          <div className="rounded-[2px] border">
             <div className="border-b bg-secondary/40 px-3 py-2">
               <p className="text-xs font-semibold">Ordered Items</p>
               <p className="text-xs text-muted-foreground">Pending quantity is calculated from ordered minus received and cancelled.</p>

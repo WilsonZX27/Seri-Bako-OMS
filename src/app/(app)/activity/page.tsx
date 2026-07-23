@@ -46,7 +46,7 @@ export default async function ActivityPage({ searchParams }: { searchParams: Pro
           )
         }
       >
-        <div className="overflow-hidden rounded-lg border bg-card">
+        <div className="overflow-hidden rounded-[2px] border bg-card">
             <div className="divide-y">
               {activities.map((activity) => {
                 const href = activity.href || null;

@@ -145,7 +145,7 @@ export async function AttachmentPanel({
       </div>
   );
   if (presentation === "inline") {
-    return <section aria-label={title} className="rounded-lg border bg-card p-4"><h2 className="mb-2 text-sm font-semibold">{title}</h2>{content}</section>;
+    return <section aria-label={title} className="rounded-[2px] border bg-card p-4"><h2 className="mb-2 text-sm font-semibold">{title}</h2>{content}</section>;
   }
   return <ConsoleSection title={title}>{content}</ConsoleSection>;
 }
@@ -160,7 +160,7 @@ export function CommentsPanel({ documentId, comments }: { documentId: string; co
         </form>
         <div className="space-y-3">
           {comments.map((comment) => (
-            <div key={comment.id} className="rounded-lg border bg-secondary/30 p-3">
+            <div key={comment.id} className="rounded-[2px] border bg-secondary/30 p-3">
               <p className="text-xs">{comment.comment_text}</p>
               <p className="mt-1 text-xs text-muted-foreground">{actorLabel(comment.created_by_name)} - {formatDate(comment.created_at)}</p>
             </div>
@@ -195,7 +195,7 @@ export function ApprovalPanel({ document, approval, approvalSteps }: { document:
           <Input name="remarks" placeholder="Rejection remarks required" required />
           <SubmitButton type="submit" variant="destructive" pendingLabel="Rejecting..." className="w-full justify-center">Reject</SubmitButton>
         </form>
-        <div className="rounded-lg border">
+        <div className="rounded-[2px] border">
           {approvalSteps.map((step) => (
             <div key={step.id} className="flex flex-col gap-1 border-b p-3 last:border-b-0 sm:flex-row sm:items-center sm:justify-between">
               <div>
@@ -216,7 +216,7 @@ export function ApprovalPanel({ document, approval, approvalSteps }: { document:
 export function RevisionPanel({ revisions }: { revisions: Revision[] }) {
   return (
     <ConsoleSection title="Revision History">
-        <div className="divide-y rounded-lg border">
+        <div className="divide-y rounded-[2px] border">
           {revisions.map((revision) => (
             <div key={revision.id} className="p-3">
               <p className="text-xs font-medium">Revision {revision.revision_no}</p>

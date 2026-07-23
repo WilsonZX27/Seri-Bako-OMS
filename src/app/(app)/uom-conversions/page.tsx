@@ -29,7 +29,7 @@ export default async function UomConversionsPage({ searchParams }: { searchParam
             </CardContent>
           </Card>
         ) : null}
-        <div className="overflow-hidden rounded-lg border bg-card">
+        <div className="overflow-hidden rounded-[2px] border bg-card">
           <MasterDataFilters search={filters.search} status={filters.status} placeholder="Search UOM pair" />
           <div className="overflow-x-auto">
             <Table>

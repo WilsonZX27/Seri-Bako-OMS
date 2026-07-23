@@ -140,20 +140,8 @@ export async function postGoodsReceiving(id: string, formData: FormData) {
 export async function cancelGoodsReceiving(id: string) {
   await requirePermission("goods_receiving.cancel");
   if (isMockMode()) return;
-  const profile = await identity();
   const supabase = await createClient();
-  const { data: grn, error: grnError } = await supabase.from("goods_receivings").select("status,document_id,grn_no").eq("id", id).single();
-  if (grnError) throw new Error(grnError.message);
-  if (grn.status === "cancelled") return;
-  if (grn.status === "posted") throw new Error("Posted GRN cannot be cancelled in Sprint 3.5.");
-  const [{ error }, { error: documentError }] = await Promise.all([
-    supabase.from("goods_receivings").update({ status: "cancelled", cancelled_at: new Date().toISOString(), updated_by: profile?.id ?? null }).eq("id", id),
-    grn.document_id
-      ? supabase.from("documents").update({ status: "cancelled", current_step: "Cancelled", cancelled_at: new Date().toISOString(), updated_by: profile?.id ?? null }).eq("id", grn.document_id)
-      : Promise.resolve({ error: null }),
-  ]);
+  const { error } = await supabase.rpc("cancel_goods_receiving_atomic", { p_goods_receiving_id: id });
   if (error) throw new Error(error.message);
-  if (documentError) throw new Error(documentError.message);
-  if (grn.document_id) await writeActivityLog({ entityType: "document", entityId: grn.document_id, activityType: "cancelled", message: `Goods receiving ${grn.grn_no} cancelled` });
   revalidateWorkspaceState(["/goods-receivings", `/goods-receivings/${id}`]);
 }

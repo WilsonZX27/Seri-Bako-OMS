@@ -2192,6 +2192,18 @@ export type Database = {
         Args: { p_payload: Json };
         Returns: Json;
       };
+      cancel_goods_receiving_atomic: {
+        Args: { p_goods_receiving_id: string };
+        Returns: Json;
+      };
+      cancel_purchase_return_atomic: {
+        Args: { p_purchase_return_id: string };
+        Returns: Json;
+      };
+      transition_production_job_atomic: {
+        Args: { p_job_id: string; p_action: string; p_remarks?: string | null };
+        Returns: Json;
+      };
       transition_document_atomic: {
         Args: { p_document_id: string; p_action: string; p_remarks?: string | null };
         Returns: Json;

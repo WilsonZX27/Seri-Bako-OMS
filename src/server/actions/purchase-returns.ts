@@ -96,21 +96,7 @@ export async function postPurchaseReturn(id: string) {
 
 export async function cancelPurchaseReturn(id: string) {
   await requirePermissionOrRedirect("purchase_return.cancel", `/purchase-returns/${id}`);
-  const profile = await identity();
-  const supabase = await createClient();
-  const { data: row, error } = await supabase.from("purchase_returns").select("status,document_id,purchase_return_no").eq("id", id).single();
+  const { error } = await (await createClient()).rpc("cancel_purchase_return_atomic", { p_purchase_return_id: id });
   if (error) throw new Error(error.message);
-  if (row.status === "posted") throw new Error("Posted purchase returns cannot be cancelled.");
-  if (row.status === "cancelled") return;
-  const now = new Date().toISOString();
-  const [{ error: updateError }, { error: docError }] = await Promise.all([
-    supabase.from("purchase_returns").update({ status: "cancelled", cancelled_at: now, updated_by: profile?.id ?? null }).eq("id", id),
-    row.document_id
-      ? supabase.from("documents").update({ status: "cancelled", current_step: "Cancelled", cancelled_at: now, updated_by: profile?.id ?? null }).eq("id", row.document_id)
-      : Promise.resolve({ error: null }),
-  ]);
-  if (updateError) throw new Error(updateError.message);
-  if (docError) throw new Error(docError.message);
-  if (row.document_id) await writeActivityLog({ entityType: "document", entityId: row.document_id, activityType: "cancelled", message: `Purchase return ${row.purchase_return_no} cancelled` });
   revalidateWorkspaceState(["/purchase-returns", `/purchase-returns/${id}`]);
 }

@@ -2235,6 +2235,14 @@ export type Database = {
       post_stock_transfer_atomic: { Args: { p_transfer_id: string }; Returns: Json };
       post_stock_wastage_atomic: { Args: { p_wastage_id: string }; Returns: Json };
       post_production_job_atomic: { Args: { p_job_id: string }; Returns: Json };
+      transition_stock_transfer_terminal_atomic: {
+        Args: { p_transfer_id: string; p_action: string };
+        Returns: Json;
+      };
+      transition_stock_wastage_terminal_atomic: {
+        Args: { p_wastage_id: string; p_action: string };
+        Returns: Json;
+      };
       save_branch_supplier_item_mappings: {
         Args: { p_rows: Json; p_mode?: "create" | "update" | "upsert" };
         Returns: Json;

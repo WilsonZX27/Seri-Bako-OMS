@@ -7,9 +7,9 @@ const read = (p) => fs.readFileSync(p, "utf8");
 test("closure wave has current reset ceiling and FK-safe deletion order", () => {
   const reset = read("supabase/maintenance/reset_new_system_data.sql");
   const verify = read("supabase/maintenance/post_reset_new_system_verification.sql");
-  assert.match(reset, /migration ceiling 090/);
+  assert.match(reset, /migration ceiling 092/);
   assert.ok(reset.indexOf("delete from public.branch_supplier_items") < reset.indexOf("delete from public.supplier_items"));
-  assert.match(verify, /migration_ceiling_090/);
+  assert.match(verify, /migration_ceiling_092/);
 });
 
 test("permission aliases and stale identity aliases are evaluated independently", () => {

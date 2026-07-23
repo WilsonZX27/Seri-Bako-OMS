@@ -9,11 +9,10 @@ import { canAssignRoleCode, isProtectedOwnerAssignableRole, isSuperAdminRole } f
 import { createAdminClient } from "@/lib/supabase/admin";
 import { setTemporaryPasswordHandoff } from "@/server/auth/temporary-password-handoff";
 import { createClient } from "@/lib/supabase/server";
-import { branchSchema, companySchema, documentSequenceSchema, locationSchema, roleSchema, staffAccessSchema, staffSchema } from "@/lib/validations/foundation";
+import { branchSchema, companySchema, documentSequenceSchema, roleSchema, staffAccessSchema, staffSchema } from "@/lib/validations/foundation";
 import { writeActivityLog } from "@/server/activity/log";
 import { requirePermission } from "@/server/auth/permissions";
 import { formatActionError, requirePermissionOrRedirect, rethrowRedirect, safeRedirectWithMessage } from "@/server/actions/error-handling";
-import { ensureBranchDefaultLocation } from "@/server/inventory/locations";
 import { findAuthUsersByEmail } from "@/server/auth/admin-users";
 import { requireActiveTenantActor } from "@/server/auth/tenant-actor";
 
@@ -188,7 +187,6 @@ export async function createBranch(formData: FormData) {
       }
       const { data, error } = await supabase.from("branches").insert(payload).select("id").single();
       if (error) throw new Error(error.message);
-      await ensureBranchDefaultLocation(data.id);
       await writeActivityLog({ entityType: "branch", entityId: data.id, activityType: "created", message: `Branch ${payload.branch_name} created` });
     }
     revalidatePath("/branches");
@@ -241,7 +239,6 @@ export async function restoreBranch(id: string) {
       const supabase = createAdminClient();
       const { error } = await supabase.from("branches").update({ deleted_at: null, status: "active" }).eq("id", id).eq("company_id", actor.companyId);
       if (error) throw new Error(error.message);
-      await ensureBranchDefaultLocation(id);
       await writeActivityLog({ entityType: "branch", entityId: id, activityType: "restored", message: "Branch restored" });
     }
   } catch (error) {
@@ -251,252 +248,6 @@ export async function restoreBranch(id: string) {
   revalidatePath("/branches");
   revalidatePath(`/branches/${id}`);
   safeRedirectWithMessage(`/branches/${id}`, "success", "Branch restored.");
-}
-
-function locationPayload(formData: FormData, companyId: string) {
-  return locationSchema.parse({
-    company_id: companyId,
-    branch_id: formValue(formData, "branch_id"),
-    location_code: formValue(formData, "location_code"),
-    location_name: formValue(formData, "location_name"),
-    location_type: formValue(formData, "location_type") ?? "dry_store",
-    status: formValue(formData, "status") ?? "active",
-  });
-}
-
-export async function createLocation(formData: FormData) {
-  await requirePermissionOrRedirect("locations.create", "/locations/new");
-  try {
-    const actor = await requireActiveTenantActor();
-    const payload = locationPayload(formData, actor.companyId);
-    if (!isMockMode()) {
-      const supabase = createAdminClient();
-      const { data: branch, error: branchError } = await supabase.from("branches").select("id").eq("id", payload.branch_id).eq("company_id", actor.companyId).is("deleted_at", null).maybeSingle();
-      if (branchError) throw new Error(branchError.message);
-      if (!branch) throw new Error("Selected branch was not found in your company.");
-      const { data: archivedMatch, error: archivedError } = await supabase
-        .from("locations")
-        .select("id")
-        .eq("branch_id", payload.branch_id)
-        .or(`location_code.eq.${payload.location_code},location_name.eq.${payload.location_name}`)
-        .not("deleted_at", "is", null)
-        .limit(1)
-        .maybeSingle();
-      if (archivedError) throw new Error(archivedError.message);
-      if (archivedMatch) {
-        safeRedirectWithMessage(`/locations/${archivedMatch.id}`, "error", "An archived location with the same code or name already exists. Restore it instead of creating a duplicate.");
-      }
-      const { data, error } = await supabase.from("locations").insert(payload).select("id").single();
-      if (error) throw new Error(error.message);
-      await writeActivityLog({ entityType: "location", entityId: data.id, activityType: "created", message: `Location ${payload.location_name} created` });
-    }
-    revalidatePath("/locations");
-    redirect("/locations");
-  } catch (error) {
-    rethrowRedirect(error);
-    safeRedirectWithMessage("/locations/new", "error", formatActionError(error, "Could not create this location."));
-  }
-}
-
-export async function updateLocation(id: string, formData: FormData) {
-  await requirePermission("locations.update");
-  const actor = await requireActiveTenantActor();
-  const payload = locationPayload(formData, actor.companyId);
-  if (!isMockMode()) {
-    const supabase = createAdminClient();
-    const { data: branch, error: branchError } = await supabase.from("branches").select("id").eq("id", payload.branch_id).eq("company_id", actor.companyId).is("deleted_at", null).maybeSingle();
-    if (branchError) throw new Error(branchError.message);
-    if (!branch) throw new Error("Selected branch was not found in your company.");
-    const { error } = await supabase.from("locations").update(payload).eq("id", id).eq("company_id", actor.companyId);
-    if (error) throw new Error(error.message);
-    await writeActivityLog({ entityType: "location", entityId: id, activityType: "updated", message: `Location ${payload.location_name} updated` });
-  }
-  revalidatePath("/locations");
-  redirect("/locations");
-}
-
-export async function deleteLocation(id: string) {
-  await requirePermissionOrRedirect("locations.update", "/locations");
-  try {
-    const actor = await requireActiveTenantActor();
-    if (!isMockMode()) {
-      const supabase = createAdminClient();
-      const { data: defaultBranch, error: defaultBranchError } = await supabase
-        .from("branches")
-        .select("id")
-        .eq("default_location_id", id)
-        .eq("company_id", actor.companyId)
-        .limit(1)
-        .maybeSingle();
-      if (defaultBranchError) throw new Error(defaultBranchError.message);
-      if (defaultBranch) safeRedirectWithMessage(`/locations/${id}`, "error", "This system-default location cannot be archived while it is assigned to a branch.");
-      const { error } = await supabase.from("locations").update({ deleted_at: new Date().toISOString(), status: "inactive" }).eq("id", id).eq("company_id", actor.companyId);
-      if (error) throw new Error(error.message);
-      await writeActivityLog({ entityType: "location", entityId: id, activityType: "archived", message: "Location archived" });
-    }
-  } catch (error) {
-    rethrowRedirect(error);
-    safeRedirectWithMessage("/locations", "error", formatActionError(error, "Could not archive this location."));
-  }
-  revalidatePath("/locations");
-  safeRedirectWithMessage("/locations", "success", "Location archived.");
-}
-
-export async function restoreLocation(id: string) {
-  await requirePermissionOrRedirect("locations.update", `/locations/${id}`);
-  try {
-    const actor = await requireActiveTenantActor();
-    if (!isMockMode()) {
-      const supabase = createAdminClient();
-      const { error } = await supabase.from("locations").update({ deleted_at: null, status: "active" }).eq("id", id).eq("company_id", actor.companyId);
-      if (error) throw new Error(error.message);
-      await writeActivityLog({ entityType: "location", entityId: id, activityType: "restored", message: "Location restored" });
-    }
-  } catch (error) {
-    rethrowRedirect(error);
-    safeRedirectWithMessage(`/locations/${id}`, "error", formatActionError(error, "Could not restore this location."));
-  }
-  revalidatePath("/locations");
-  revalidatePath(`/locations/${id}`);
-  safeRedirectWithMessage(`/locations/${id}`, "success", "Location restored.");
-}
-
-export async function fixMissingDefaultLocations() {
-  await requirePermissionOrRedirect("locations.update", "/data-onboarding");
-  try {
-    const actor = await requireActiveTenantActor();
-    if (!isMockMode()) {
-      const supabase = createAdminClient();
-      const { data: branches, error } = await supabase.from("branches").select("id").eq("company_id", actor.companyId).is("deleted_at", null);
-      if (error) throw new Error(error.message);
-      for (const branch of branches ?? []) {
-        await ensureBranchDefaultLocation(branch.id);
-      }
-      await writeActivityLog({ entityType: "location", entityId: "00000000-0000-0000-0000-000000000000", activityType: "updated", message: "Missing default stock areas fixed" });
-    }
-  } catch (error) {
-    rethrowRedirect(error);
-    safeRedirectWithMessage("/data-onboarding", "error", formatActionError(error, "Could not fix missing internal stock areas."));
-  }
-  revalidatePath("/data-onboarding");
-  revalidatePath("/locations");
-  safeRedirectWithMessage("/data-onboarding", "success", "Missing internal stock areas fixed.");
-}
-
-export async function archiveDuplicateLocation(id: string) {
-  await requirePermissionOrRedirect("locations.update", "/locations");
-  try {
-    const actor = await requireActiveTenantActor();
-    if (!isMockMode()) {
-      const supabase = createAdminClient();
-      const { data: location, error: locationError } = await supabase
-        .from("locations")
-        .select("id, branch_id")
-        .eq("id", id)
-        .eq("company_id", actor.companyId)
-        .single();
-      if (locationError) throw new Error(locationError.message);
-      if (!location.branch_id) throw new Error("This location is not linked to a branch.");
-
-      const { data: branch, error: branchError } = await supabase
-        .from("branches")
-        .select("default_location_id")
-        .eq("id", location.branch_id)
-        .eq("company_id", actor.companyId)
-        .maybeSingle();
-      if (branchError) throw new Error(branchError.message);
-      if (branch?.default_location_id === id) throw new Error("This location is the current default stock area and cannot be archived.");
-
-      const { count: stockHistoryCount, error: stockHistoryError } = await supabase
-        .from("stock_transactions")
-        .select("id", { count: "exact", head: true })
-        .eq("location_id", id);
-      if (stockHistoryError) throw new Error(stockHistoryError.message);
-      if ((stockHistoryCount ?? 0) > 0) {
-        throw new Error("This duplicate location already has stock history. Leave it in place and review it manually.");
-      }
-
-      const { error } = await supabase.from("locations").update({ deleted_at: new Date().toISOString(), status: "inactive" }).eq("id", id).eq("company_id", actor.companyId);
-      if (error) throw new Error(error.message);
-      await writeActivityLog({ entityType: "location", entityId: id, activityType: "archived", message: "Duplicate location archived" });
-    }
-  } catch (error) {
-    rethrowRedirect(error);
-    safeRedirectWithMessage("/locations", "error", formatActionError(error, "Could not archive this duplicate location."));
-  }
-  revalidatePath("/locations");
-  safeRedirectWithMessage("/locations", "success", "Duplicate location archived.");
-}
-
-export async function cleanDuplicateLocations() {
-  await requirePermissionOrRedirect("locations.update", "/locations");
-  try {
-    const actor = await requireActiveTenantActor();
-    if (!isMockMode()) {
-      const supabase = createAdminClient();
-      const [{ data: locations, error: locationsError }, { data: branches, error: branchesError }] = await Promise.all([
-        supabase
-          .from("locations")
-          .select("id, branch_id, location_name, deleted_at")
-          .eq("company_id", actor.companyId)
-          .is("deleted_at", null),
-        supabase
-          .from("branches")
-          .select("id, branch_name, default_location_id")
-          .eq("company_id", actor.companyId)
-          .is("deleted_at", null),
-      ]);
-      if (locationsError) throw new Error(locationsError.message);
-      if (branchesError) throw new Error(branchesError.message);
-
-      const branchById = new Map((branches ?? []).map((branch) => [branch.id, branch]));
-      const duplicateCandidates = (locations ?? []).filter((location) => {
-        const branch = location.branch_id ? branchById.get(location.branch_id) ?? null : null;
-        return Boolean(branch && branch.default_location_id !== location.id && branch.branch_name.trim().toLowerCase() === location.location_name.trim().toLowerCase());
-      });
-
-      let archivedCount = 0;
-      let skippedCount = 0;
-
-      for (const location of duplicateCandidates) {
-        const { count, error } = await supabase
-          .from("stock_transactions")
-          .select("id", { count: "exact", head: true })
-          .eq("location_id", location.id);
-        if (error) throw new Error(error.message);
-
-        if ((count ?? 0) > 0) {
-          skippedCount += 1;
-          continue;
-        }
-
-        const { error: archiveError } = await supabase
-          .from("locations")
-          .update({ deleted_at: new Date().toISOString(), status: "inactive" })
-          .eq("id", location.id)
-          .eq("company_id", actor.companyId);
-        if (archiveError) throw new Error(archiveError.message);
-        archivedCount += 1;
-      }
-
-      await writeActivityLog({
-        entityType: "location",
-        entityId: "00000000-0000-0000-0000-000000000000",
-        activityType: "updated",
-        message: `Duplicate internal locations cleaned. Archived ${archivedCount}, skipped ${skippedCount}.`,
-      });
-
-      revalidatePath("/locations");
-      revalidatePath("/data-onboarding");
-      safeRedirectWithMessage("/locations", "success", `Cleaned duplicate internal locations. Archived ${archivedCount}, skipped ${skippedCount}.`);
-    }
-  } catch (error) {
-    rethrowRedirect(error);
-    safeRedirectWithMessage("/locations", "error", formatActionError(error, "Could not clean duplicate internal locations."));
-  }
-
-  revalidatePath("/locations");
-  safeRedirectWithMessage("/locations", "success", "Duplicate internal locations reviewed.");
 }
 
 function staffPayload(formData: FormData, companyId: string) {
@@ -1144,14 +895,12 @@ export async function permanentlyDeleteStaff(id: string) {
         if (authError) throw new Error(authError.message);
       }
 
-      const [{ error: roleError }, { error: branchError }, { error: locationError }] = await Promise.all([
+      const [{ error: roleError }, { error: branchError }] = await Promise.all([
         supabase.from("staff_roles").delete().eq("staff_id", id),
         supabase.from("staff_branches").delete().eq("staff_id", id),
-        supabase.from("staff_locations").delete().eq("staff_id", id),
       ]);
       if (roleError) throw new Error(roleError.message);
       if (branchError) throw new Error(branchError.message);
-      if (locationError) throw new Error(locationError.message);
 
       const { error: deleteError } = await supabase.from("staffs").delete().eq("id", id).eq("company_id", actor.companyId);
       if (deleteError) throw new Error(deleteError.message);

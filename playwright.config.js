@@ -20,12 +20,25 @@ function loadEnvFile(filePath) {
 
 loadEnvFile(path.join(__dirname, ".env.test.local"));
 
+const localBaseUrl = "http://127.0.0.1:3000";
+const startsLocalServer = process.env.RUN_TENANT_BOUNDARY_E2E === "1" && process.env.PW_MANUAL_SERVER !== "1";
+const baseURL = process.env.TEST_BASE_URL || (startsLocalServer ? localBaseUrl : "");
+
+if (!baseURL) {
+  throw new Error("E2E is fail-closed: set TEST_BASE_URL to an isolated target, or set RUN_TENANT_BOUNDARY_E2E=1 for the local test server.");
+}
+
+const target = new URL(baseURL);
+if (!["127.0.0.1", "localhost"].includes(target.hostname) && process.env.ALLOW_REMOTE_E2E !== "1") {
+  throw new Error("Remote E2E is blocked by default. Set ALLOW_REMOTE_E2E=1 only for an explicitly approved non-production target.");
+}
+
 module.exports = defineConfig({
   testDir: "./tests/e2e",
   timeout: 45_000,
   retries: process.env.CI ? 1 : 0,
   outputDir: "test-results/ui-smoke-sprint-7-2-6-artifacts",
-  webServer: process.env.RUN_TENANT_BOUNDARY_E2E === "1" && process.env.PW_MANUAL_SERVER !== "1" ? {
+  webServer: startsLocalServer ? {
     command: "node scripts/playwright-local-server.mjs",
     url: "http://127.0.0.1:3000/login",
     reuseExistingServer: true,
@@ -37,7 +50,7 @@ module.exports = defineConfig({
     },
   } : undefined,
   use: {
-    baseURL: process.env.TEST_BASE_URL || "https://seri-bako-oms-official.vercel.app",
+    baseURL,
     trace: "retain-on-failure",
     screenshot: "only-on-failure",
   },

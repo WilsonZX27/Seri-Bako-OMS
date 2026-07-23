@@ -1,6 +1,7 @@
 import { informationArchitecture } from "@/lib/information-architecture";
 
 const exactRoutePermissions: Record<string, string[]> = {
+  "/activity": ["dashboard.view"],
   "/administration": ["company.read", "staffs.read", "roles.read", "items.view", "imports.create"],
   "/settings": ["company.read", "staffs.read", "roles.read", "items.view", "imports.create"],
   "/procurement": ["purchase_request.read", "purchase_order.read", "goods_receiving.read", "purchase_return.view", "supplier_invoice.view", "suppliers.view"],
@@ -19,7 +20,6 @@ const exactRoutePermissions: Record<string, string[]> = {
   "/document-sequences/new": ["document_sequences.create"],
   "/goods-receivings/new": ["goods_receiving.create"],
   "/items/new": ["items.create"],
-  "/locations/new": ["branches.read"],
   "/opening-stock/import": ["stock_transactions.create", "company.update"],
   "/outlet-daily-records/new": ["outlet_daily_record.create"],
   "/production/jobs/new": ["production.create"],
@@ -66,7 +66,6 @@ const routePermissions: Array<{ prefixes: string[]; permissions: string[] }> = [
   { prefixes: ["/documents"], permissions: ["documents.view"] },
   { prefixes: ["/company"], permissions: ["company.read"] },
   { prefixes: ["/branches"], permissions: ["branches.read"] },
-  { prefixes: ["/locations"], permissions: ["branches.read"] },
   { prefixes: ["/roles"], permissions: ["roles.read"] },
   { prefixes: ["/staffs"], permissions: ["staffs.read"] },
   { prefixes: ["/settings"], permissions: ["company.read", "staffs.read", "roles.read", "items.view", "imports.create"] },

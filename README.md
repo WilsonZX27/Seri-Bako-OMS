@@ -9,7 +9,7 @@ For UI and interaction standards, read `DESIGN.md`.
 ## Current Release Baseline
 
 - Application release: `v7.23.7.0`.
-- Database migration ceiling: `090_permission_alias_and_identity_hardening`.
+- Database migration ceiling: `092_stock_operation_terminal_transition_atomicity`.
 - Tenant isolation, inventory posting atomicity, procurement/document transitions, concurrency controls, and credential handoff are database-authoritative.
 - Start with `docs/PILOT_BASELINE.md`, use the controlled CSV files in `docs/import-templates/`, and record sign-off in `docs/PILOT_QA_CHECKLIST.md`.
 

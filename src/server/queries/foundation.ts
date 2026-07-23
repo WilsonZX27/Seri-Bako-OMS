@@ -6,7 +6,6 @@ import {
   mockBranches,
   mockCompany,
   mockDocumentSequences,
-  mockLocations,
   mockPermissions,
   mockRoles,
   mockStaffBranches,
@@ -76,63 +75,6 @@ export async function getBranch(id: string) {
 
   const supabase = await createClient();
   const { data, error } = await supabase.from("branches").select("*").eq("id", id).single();
-  if (error) throw new Error(error.message);
-  return data;
-}
-
-export async function getLocations(filters: Filters = {}) {
-  if (isMockMode()) {
-    const branchById = new Map(mockBranches.map((branch) => [branch.id, branch]));
-    return mockLocations
-      .map((location) => {
-        const branch = location.branch_id ? branchById.get(location.branch_id) ?? null : null;
-        return {
-          ...location,
-          branch_name: branch?.branch_name ?? null,
-          branch_type: branch?.branch_type ?? null,
-          is_system_default: branch?.default_location_id === location.id,
-          looks_like_branch_name: Boolean(branch?.branch_name && branch.branch_name === location.location_name),
-        };
-      })
-      .filter((location) => matchesFilter([location.location_code, location.location_name, location.location_type, location.branch_name], filters, location.status));
-  }
-
-  const supabase = await createClient();
-  const [{ data: locations, error: locationsError }, { data: branches, error: branchesError }] = await Promise.all([
-    (() => {
-      let query = supabase.from("locations").select("*").order("location_name", { ascending: true });
-      if (wantsArchived(filters.status)) query = query.not("deleted_at", "is", null);
-      else if (!wantsAllStatuses(filters.status)) query = query.is("deleted_at", null);
-      return query;
-    })(),
-    supabase.from("branches").select("id, branch_name, branch_type, default_location_id"),
-  ]);
-  if (locationsError) throw new Error(locationsError.message);
-  if (branchesError) throw new Error(branchesError.message);
-    const branchById = new Map((branches ?? []).map((branch) => [branch.id, branch]));
-    return (locations ?? [])
-      .map((location) => {
-        const branch = location.branch_id ? branchById.get(location.branch_id) ?? null : null;
-        return {
-          ...location,
-          branch_name: branch?.branch_name ?? null,
-          branch_type: branch?.branch_type ?? null,
-          is_system_default: branch?.default_location_id === location.id,
-          looks_like_branch_name: Boolean(branch?.branch_name && branch.branch_name === location.location_name),
-        };
-      })
-      .filter((location) => matchesFilter([location.location_code, location.location_name, location.location_type, location.branch_name], filters, location.status));
-}
-
-export async function getLocation(id: string) {
-  if (isMockMode()) {
-    const location = mockLocations.find((row) => row.id === id);
-    if (!location) throw new Error("Mock location not found");
-    return location;
-  }
-
-  const supabase = await createClient();
-  const { data, error } = await supabase.from("locations").select("*").eq("id", id).single();
   if (error) throw new Error(error.message);
   return data;
 }

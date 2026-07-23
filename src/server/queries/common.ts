@@ -1,5 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
-import { isMockMode, mockBranches, mockCompany, mockItems, mockLocations, mockProfile, mockSuppliers } from "@/lib/mock-mode";
+import { isMockMode, mockBranches, mockCompany, mockItems, mockProfile, mockSuppliers } from "@/lib/mock-mode";
 import { cache } from "react";
 
 export const getCurrentProfile = cache(async function getCurrentProfile() {
@@ -153,35 +153,17 @@ export async function getDefaultCompanyId() {
   return data.id;
 }
 
-export const getLocationsForSelect = cache(async function getLocationsForSelect() {
-  if (isMockMode()) {
-    return mockLocations
-      .filter((location) => location.status === "active")
-      .map(({ id, branch_id, location_code, location_name, status }) => ({ id, branch_id, location_code, location_name, status }));
-  }
-
-  const supabase = await createClient();
-  const { data, error } = await supabase
-    .from("locations")
-    .select("id, branch_id, location_code, location_name, status")
-    .eq("status", "active")
-    .order("location_name", { ascending: true });
-
-  if (error) throw new Error(error.message);
-  return data;
-});
-
 export const getBranchesForSelect = cache(async function getBranchesForSelect() {
   if (isMockMode()) {
     return mockBranches
       .filter((branch) => branch.status === "active")
-      .map(({ id, branch_code, branch_name, default_location_id, status }) => ({ id, branch_code, branch_name, default_location_id, status }));
+      .map(({ id, branch_code, branch_name, status }) => ({ id, branch_code, branch_name, status }));
   }
 
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("branches")
-    .select("id, branch_code, branch_name, default_location_id, status")
+    .select("id, branch_code, branch_name, status")
     .eq("status", "active")
     .order("branch_name", { ascending: true });
 

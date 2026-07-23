@@ -39,15 +39,6 @@ export const branchSchema = z.object({
   status: recordStatusSchema,
 });
 
-export const locationSchema = z.object({
-  company_id: z.string().trim().min(1, "Company is required"),
-  branch_id: z.string().trim().min(1, "Branch is required"),
-  location_code: z.string().trim().min(1, "Location code is required"),
-  location_name: z.string().trim().min(1, "Location name is required"),
-  location_type: z.enum(["dry_store", "chiller", "freezer", "packaging_area", "production_floor", "dispatch_area", "receiving_area", "finished_goods_store", "other"]),
-  status: recordStatusSchema,
-});
-
 export const staffSchema = z.object({
   company_id: z.string().trim().min(1, "Company is required"),
   staff_code: optionalUpperText,

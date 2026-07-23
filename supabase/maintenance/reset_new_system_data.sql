@@ -50,8 +50,8 @@ begin
   order by version desc
   limit 1;
 
-  if v_migration_ceiling is distinct from '090' then
-    raise exception 'Reset blocked: expected migration ceiling 090, found %.', v_migration_ceiling;
+  if v_migration_ceiling is distinct from '092' then
+    raise exception 'Reset blocked: expected migration ceiling 092, found %.', v_migration_ceiling;
   end if;
 end $$;
 

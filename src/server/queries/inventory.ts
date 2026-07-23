@@ -25,8 +25,39 @@ type LowStockRow = Database["public"]["Views"]["stock_balances_view"]["Row"] & {
   suggested_reorder_qty: number;
 };
 
+const INVENTORY_PAGE_SIZE = 15;
+const LEDGER_SORT_COLUMNS = new Set(["transaction_no", "transaction_date", "transaction_type", "item_code", "item_name", "branch_name", "quantity_in", "quantity_out", "running_balance"]);
+const BALANCE_SORT_COLUMNS = new Set(["item_code", "item_name", "branch_name", "current_qty", "average_cost", "inventory_value", "last_movement"]);
+
 function warnOptionalInventoryQuery(name: string, error: { message?: string } | null | undefined) {
   if (error) console.warn(`[inventory] Optional ${name} query failed: ${error.message ?? "Unknown error"}`);
+}
+
+function requestedPage(pageValue?: string) {
+  const parsed = Number(pageValue ?? "1");
+  return Number.isFinite(parsed) ? Math.max(Math.trunc(parsed), 1) : 1;
+}
+
+function databasePagination<T>(rows: T[], totalRows: number | null, pageValue: string | undefined, pageSize = INVENTORY_PAGE_SIZE) {
+  const total = totalRows ?? rows.length;
+  const totalPages = Math.max(Math.ceil(total / pageSize), 1);
+  const page = pageValue === "all" ? 1 : Math.min(requestedPage(pageValue), totalPages);
+  return { rows, totalRows: total, page, pageSize, totalPages };
+}
+
+function pageRange(pageValue: string | undefined, pageSize = INVENTORY_PAGE_SIZE) {
+  if (pageValue === "all") return null;
+  const page = requestedPage(pageValue);
+  return { from: (page - 1) * pageSize, to: page * pageSize - 1 };
+}
+
+function searchExpression(columns: string[], value: string | undefined) {
+  const search = value?.trim();
+  if (!search) return null;
+  // PostgREST's `or` syntax uses commas and parentheses as control characters.
+  // Remove those delimiters and escape LIKE wildcards before embedding a value.
+  const term = search.replace(/[(),]/g, " ").replace(/[\\%_]/g, "\\$&");
+  return columns.map((column) => `${column}.ilike.%${term}%`).join(",");
 }
 
 function filterRows<T extends Record<string, unknown>>(rows: T[], filters: Filters, keys: (keyof T)[], defaultSort: keyof T) {
@@ -201,17 +232,36 @@ export async function getStockLedger(filters: Filters = {}) {
   }
 
   const supabase = await createClient();
-  const { data, error } = await supabase.from("stock_ledger_view").select("*").order("transaction_date", { ascending: false });
+  const sort = LEDGER_SORT_COLUMNS.has(filters.sort ?? "") ? filters.sort! : "transaction_date";
+  const ascending = filters.dir === "asc";
+  const branchId = filters.branch_id && filters.branch_id !== "all" ? filters.branch_id : null;
+  const itemId = filters.item_id && filters.item_id !== "all" ? filters.item_id : null;
+  const type = filters.type && filters.type !== "all" ? filters.type : null;
+  const direction = filters.direction && filters.direction !== "all" ? filters.direction : null;
+  let query = supabase.from("stock_ledger_view").select("*", { count: "exact" });
+  if (branchId) query = query.eq("branch_id", branchId);
+  if (itemId) query = query.eq("item_id", itemId);
+  if (type) query = query.eq("transaction_type", type as StockTransaction["transaction_type"]);
+  if (filters.from) query = query.gte("transaction_date", filters.from);
+  if (filters.to) query = query.lte("transaction_date", filters.to);
+  if (direction === "inbound") query = query.gt("quantity_in", 0);
+  if (direction === "outbound") query = query.gt("quantity_out", 0);
+  const search = searchExpression(["transaction_no", "transaction_type", "item_code", "item_name", "branch_name"], filters.search);
+  if (search) query = query.or(search);
+  const source = searchExpression(["reference_type", "reference_id", "transaction_no"], filters.source);
+  if (source) query = query.or(source);
+  query = query.order(sort, { ascending }).order("stock_transaction_id", { ascending: false });
+  const range = pageRange(filters.page);
+  if (range) query = query.range(range.from, range.to);
+  const { data, error, count } = await query;
   if (error) {
     warnOptionalInventoryQuery("Movement Ledger", error);
-    return paginateRows([] as StockLedgerViewRow[], filters.page, filters.page === "all" ? 1 : 15);
+    return databasePagination([] as StockLedgerViewRow[], 0, filters.page);
   }
-  const filtered = filterLedgerRows(data ?? [], filters);
-  return paginateRows(filtered, filters.page, filters.page === "all" ? Math.max(filtered.length, 1) : 15);
+  return databasePagination(data ?? [], count, filters.page);
 }
 
 export async function getStockBalanceDetails(filters: Filters = {}) {
-  const aggregateByBranch = filters.view !== "location";
   if (isMockMode()) {
     const ledger = await getStockLedger({ sort: "transaction_date", dir: "asc" });
     const allRows = ledger.rows;
@@ -248,18 +298,31 @@ export async function getStockBalanceDetails(filters: Filters = {}) {
     });
     const branchId = filters.branch_id && filters.branch_id !== "all" ? filters.branch_id : null;
     const scopeRows = branchId ? rows.filter((row) => row.branch_id === branchId) : rows;
-    const displayRows = aggregateByBranch ? aggregateStockByBranch(scopeRows) : scopeRows;
+    const displayRows = filters.view !== "location" ? aggregateStockByBranch(scopeRows) : scopeRows;
     const filtered = filterRows(displayRows, filters, ["item_code", "item_name", "branch_name", "location_name", "status"], "item_name");
     return paginateRows(filtered, filters.page, filters.page === "all" ? Math.max(filtered.length, 1) : 15);
   }
 
   const supabase = await createClient();
-  const { data, error } = await supabase.from("stock_balances_view").select("*").order("item_name", { ascending: true });
+  const sort = BALANCE_SORT_COLUMNS.has(filters.sort ?? "") ? filters.sort! : "item_name";
+  const ascending = filters.dir === "desc" ? false : true;
+  const branchId = filters.branch_id && filters.branch_id !== "all" ? filters.branch_id : null;
+  const status = filters.status && filters.status !== "all" ? filters.status : null;
+  let query = supabase.from("stock_balances_view").select("*", { count: "exact" });
+  if (branchId) query = query.eq("branch_id", branchId);
+  if (status === "negative") query = query.lt("current_qty", 0);
+  if (status === "low_stock") query = query.gt("current_qty", 0).eq("is_low_stock", true);
+  if (status === "ok") query = query.gte("current_qty", 0).or("is_low_stock.eq.false,current_qty.eq.0");
+  const search = searchExpression(["item_code", "item_name", "branch_name"], filters.search);
+  if (search) query = query.or(search);
+  query = query.order(sort, { ascending }).order("item_id", { ascending: true });
+  const range = pageRange(filters.page);
+  if (range) query = query.range(range.from, range.to);
+  const { data, error, count } = await query;
   if (error) {
     warnOptionalInventoryQuery("stock balance details", error);
-    return paginateRows([] as StockBalanceDetail[], filters.page, filters.page === "all" ? 1 : 15);
+    return databasePagination([] as StockBalanceDetail[], 0, filters.page);
   }
-  const branchId = filters.branch_id && filters.branch_id !== "all" ? filters.branch_id : null;
   const rows = (data ?? []).map((row) => ({
     ...row,
     image_url: null,
@@ -271,10 +334,7 @@ export async function getStockBalanceDetails(filters: Filters = {}) {
         ? "low_stock"
         : "ok",
   }));
-  const scopedRows = branchId ? rows.filter((row) => row.branch_id === branchId) : rows;
-  const displayRows = aggregateByBranch ? aggregateStockByBranch(scopedRows) : scopedRows;
-  const filtered = filterRows(displayRows, filters, ["item_code", "item_name", "branch_name", "location_name", "status"], "item_name");
-  return paginateRows(filtered, filters.page, filters.page === "all" ? Math.max(filtered.length, 1) : 15);
+  return databasePagination(rows, count, filters.page);
 }
 
 function aggregateStockByBranch<T extends {
@@ -285,8 +345,8 @@ function aggregateStockByBranch<T extends {
   image_url: string | null;
   branch_id: string | null;
   branch_name: string | null;
-  location_id: string;
-  location_name: string;
+  location_id: string | null;
+  location_name: string | null;
   available_qty: number;
   reserved_qty: number;
   current_qty: number;

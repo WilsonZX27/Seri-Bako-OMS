@@ -1987,8 +1987,8 @@ export type Database = {
           status: ItemStatus;
           branch_id: string | null;
           branch_name: string | null;
-          location_id: string;
-          location_name: string;
+          location_id: string | null;
+          location_name: string | null;
           total_quantity_in: number;
           total_quantity_out: number;
           current_stock: number;
@@ -1998,25 +1998,6 @@ export type Database = {
           last_movement: string | null;
           is_low_stock: boolean;
           shortage_quantity: number;
-        };
-        Insert: never;
-        Update: never;
-        Relationships: [];
-      };
-      item_location_stock_balances: {
-        Row: {
-          item_id: string;
-          item_code: string;
-          item_name: string;
-          category: string;
-          base_unit: string;
-          location_id: string;
-          location_code: string;
-          location_name: string;
-          location_type: LocationType;
-          total_quantity_in: number;
-          total_quantity_out: number;
-          current_stock: number;
         };
         Insert: never;
         Update: never;
@@ -2042,6 +2023,40 @@ export type Database = {
         Update: never;
         Relationships: [];
       };
+      stock_counts_list_view: {
+        Row: {
+          id: string;
+          company_id: string | null;
+          document_id: string | null;
+          count_no: string;
+          count_date: string;
+          branch_id: string | null;
+          location_id: string;
+          counted_by: string | null;
+          status: StockCountStatus;
+          tolerance_percent: number;
+          remarks: string | null;
+          submitted_at: string | null;
+          reviewed_at: string | null;
+          approved_at: string | null;
+          posted_at: string | null;
+          rejected_at: string | null;
+          cancelled_at: string | null;
+          created_at: string;
+          updated_at: string;
+          created_by: string | null;
+          updated_by: string | null;
+          deleted_at: string | null;
+          branch_name: string | null;
+          location_name: string | null;
+          counted_by_name: string | null;
+          line_count: number;
+          high_variance_count: number;
+        };
+        Insert: never;
+        Update: never;
+        Relationships: [];
+      };
       stock_ledger_view: {
         Row: {
           stock_transaction_id: string;
@@ -2061,8 +2076,8 @@ export type Database = {
           base_unit: string;
           branch_id: string | null;
           branch_name: string | null;
-          location_id: string;
-          location_name: string;
+          location_id: string | null;
+          location_name: string | null;
           quantity_in: number;
           quantity_out: number;
           unit_cost: number;
@@ -2081,8 +2096,8 @@ export type Database = {
           base_unit: string;
           branch_id: string | null;
           branch_name: string | null;
-          location_id: string;
-          location_name: string;
+          location_id: string | null;
+          location_name: string | null;
           total_quantity_in: number;
           total_quantity_out: number;
           current_qty: number;

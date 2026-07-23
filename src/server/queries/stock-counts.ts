@@ -7,6 +7,8 @@ import type { Database } from "@/types/database";
 type Filters = Record<string, string | undefined>;
 type StockCount = Database["public"]["Tables"]["stock_counts"]["Row"];
 type StockCountLine = Database["public"]["Tables"]["stock_count_lines"]["Row"];
+const STOCK_COUNT_PAGE_SIZE = 12;
+const STOCK_COUNT_SORT_COLUMNS = new Set(["count_no", "count_date", "status", "updated_at", "branch_name"]);
 
 export type StockCountRow = StockCount & {
   branch_name: string | null;
@@ -38,6 +40,25 @@ function filterRows<T extends Record<string, unknown>>(rows: T[], filters: Filte
     .sort((a, b) => compareTableValues(a[sort], b[sort], dir));
 }
 
+function requestedPage(pageValue?: string) {
+  const parsed = Number(pageValue ?? "1");
+  return Number.isFinite(parsed) ? Math.max(Math.trunc(parsed), 1) : 1;
+}
+
+function databasePagination<T>(rows: T[], totalRows: number | null, pageValue?: string) {
+  const total = totalRows ?? rows.length;
+  const totalPages = Math.max(Math.ceil(total / STOCK_COUNT_PAGE_SIZE), 1);
+  const page = pageValue === "all" ? 1 : Math.min(requestedPage(pageValue), totalPages);
+  return { rows, totalRows: total, page, pageSize: STOCK_COUNT_PAGE_SIZE, totalPages };
+}
+
+function countSearchExpression(value?: string) {
+  const search = value?.trim();
+  if (!search) return null;
+  const term = search.replace(/[(),]/g, " ").replace(/[\\%_]/g, "\\$&");
+  return ["count_no", "status", "branch_name", "remarks"].map((column) => `${column}.ilike.%${term}%`).join(",");
+}
+
 function hydrateCount(row: StockCount, lines: StockCountLine[]): StockCountRow {
   const branch = mockBranches.find((item) => item.id === row.branch_id);
   const location = mockLocations.find((item) => item.id === row.location_id);
@@ -58,27 +79,25 @@ export async function getStockCounts(filters: Filters = {}) {
     return paginateRows(filterRows(rows, filters, ["count_no", "status", "branch_name", "remarks"], "updated_at"), filters.page, 12);
   }
   const supabase = await createClient();
-  const [{ data, error }, { data: lines }, { data: branches }, { data: locations }] = await Promise.all([
-    supabase.from("stock_counts").select("*").is("deleted_at", null).order("updated_at", { ascending: false }),
-    supabase.from("stock_count_lines").select("*"),
-    supabase.from("branches").select("id, branch_name"),
-    supabase.from("locations").select("id, location_name"),
-  ]);
+  const sort = STOCK_COUNT_SORT_COLUMNS.has(filters.sort ?? "") ? filters.sort! : "updated_at";
+  const ascending = filters.dir === "asc";
+  const branchId = filters.branch_id && filters.branch_id !== "all" ? filters.branch_id : null;
+  const status = filters.status && filters.status !== "all" ? filters.status : null;
+  let query = supabase.from("stock_counts_list_view").select("*", { count: "exact" });
+  if (branchId) query = query.eq("branch_id", branchId);
+  if (status) query = query.eq("status", status as StockCount["status"]);
+  if (filters.from) query = query.gte("count_date", filters.from);
+  if (filters.to) query = query.lte("count_date", filters.to);
+  const search = countSearchExpression(filters.search);
+  if (search) query = query.or(search);
+  query = query.order(sort, { ascending }).order("id", { ascending: false });
+  if (filters.page !== "all") {
+    const page = requestedPage(filters.page);
+    query = query.range((page - 1) * STOCK_COUNT_PAGE_SIZE, page * STOCK_COUNT_PAGE_SIZE - 1);
+  }
+  const { data, error, count } = await query;
   if (error) throw new Error(error.message);
-  const branchById = new Map((branches ?? []).map((row) => [row.id, row.branch_name]));
-  const locationById = new Map((locations ?? []).map((row) => [row.id, row.location_name]));
-  const rows = ((data ?? []) as StockCount[]).map((row) => {
-    const ownLines = ((lines ?? []) as StockCountLine[]).filter((line) => line.stock_count_id === row.id);
-    return {
-      ...row,
-      branch_name: row.branch_id ? branchById.get(row.branch_id) ?? null : null,
-      location_name: locationById.get(row.location_id) ?? null,
-      counted_by_name: row.counted_by,
-      line_count: ownLines.length,
-      high_variance_count: ownLines.filter((line) => Math.abs(line.variance_percent) > row.tolerance_percent).length,
-    };
-  });
-  return paginateRows(filterRows(rows, filters, ["count_no", "status", "branch_name", "remarks"], "updated_at"), filters.page, 12);
+  return databasePagination((data ?? []) as StockCountRow[], count, filters.page);
 }
 
 export async function getStockCount(id: string) {

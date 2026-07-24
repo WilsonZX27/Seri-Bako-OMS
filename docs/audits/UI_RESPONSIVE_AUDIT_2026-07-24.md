@@ -26,6 +26,7 @@
 | Transfer/Wastage/Production responsive workflow audit | **1/1 pass** | `tests/e2e/dynamic-workflow-responsive-local.spec.js`; all three new-form routes at 390/768/1440px, visible title, parsed styles, no page overflow, and in-bounds controls |
 | Auth/setup responsive audit | **3/3 pass** | `tests/e2e/auth-layout-audit.spec.js`; login, password, access-status, and setup surfaces at 390/768/1440px |
 | Populated dynamic-detail responsive audit | **3/3 pass** | `tests/e2e/dynamic-detail-layout-audit.spec.js`; six populated detail surfaces covered at each of 390/768/1440px, with no page overflow or out-of-bounds controls |
+| Dynamic route/not-found surface audit | **3/3 pass** | `tests/e2e/dynamic-route-surface-audit.spec.js`; all 24 dynamic route patterns at 390/768/1440px remain styled, bounded, and free of application-error surfaces |
 | Procurement closure dynamic Playwright | **2/3 pass** | PR creation/submission and Manager/Purchasing/Finance review gates passed; final payment/close scenario stopped at local Auth throttling after repeated role switches |
 
 ## Responsive conformance

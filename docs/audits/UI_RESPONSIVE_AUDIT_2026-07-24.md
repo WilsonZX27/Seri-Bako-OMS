@@ -16,7 +16,7 @@
 
 | Check | Result | Evidence |
 |---|---:|---|
-| Static workspace layout audit | **608/608 pass** | `tests/e2e/static-workspace-layout-audit.spec.js` and `test-results/static-workspace-layout-audit/` |
+| Static workspace layout audit | **608/608 pass** | `tests/e2e/static-workspace-layout-audit.spec.js` and `test-results/static-workspace-layout-audit/`; each route now checks page overflow plus visible interactive controls staying inside the viewport, excluding intentional contained table scrolling |
 | Stock Count mobile visual review | **Pass** | `test-results/static-workspace-layout-audit/stock-counts--new.png` |
 | Contract/unit tests | **200/200 pass** | `npm.cmd test` |
 | TypeScript | **Pass** | `npm.cmd run typecheck` |

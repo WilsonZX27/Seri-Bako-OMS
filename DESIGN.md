@@ -21,6 +21,7 @@ Do not introduce a page-specific breakpoint. These thresholds serve distinct ope
 - Tables must sit inside `.sb-table-region` or a local `overflow-x-auto` container. The document itself must never become horizontally scrollable.
 - A mobile primary action is fixed above the safe area, with enough document bottom padding that the last editable control remains reachable. Its border is neutral; it must not visually imply a completed workflow state.
 - Full-width forms use `w-full min-w-0 max-w-full`. A form control may have a minimum touch target (for example quantity entry) but the surrounding layout must still shrink safely.
+- Form sections that contain file inputs, long sample values, or native selects must also set `min-w-0` on the containing grid/flex items; native file controls must never widen their parent on narrow screens.
 
 ## Typography and spacing
 
@@ -49,8 +50,9 @@ A UI change is not complete until:
 
 1. every affected route loads with the global stylesheet parsed;
 2. no page-level horizontal overflow occurs at 320, 390, 640, 768, 1024, 1280, 1440, or 2560px;
-3. keyboard focus, errors, empty states, loading states, and primary actions remain visible and usable;
-4. the related workflow Playwright test passes using isolated local data; and
-5. static route layout audit and typecheck/lint/build remain green.
+3. every visible link, button, input, select, textarea, and summary remains inside the viewport unless it is inside an explicitly contained scrolling table region;
+4. keyboard focus, errors, empty states, loading states, and primary actions remain visible and usable;
+5. the related workflow Playwright test passes using isolated local data; and
+6. static route layout audit and typecheck/lint/build remain green.
 
 The Playwright route-layout audit is the baseline guard for all static workspaces. Workflow specs provide the mutation/role coverage; neither replaces the other.

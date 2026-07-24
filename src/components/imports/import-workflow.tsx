@@ -444,25 +444,25 @@ export function ImportWorkflow({ entity, suppliers = [] }: { entity: ImportEntit
             ))}
           </div>
 
-          <div className="grid gap-4">
-            <div className="space-y-4">
-              <div className="rounded-[2px] border bg-[var(--sb-muted)] p-3">
+          <div className="grid min-w-0 gap-4">
+            <div className="min-w-0 space-y-4">
+              <div className="min-w-0 rounded-[2px] border bg-[var(--sb-muted)] p-3">
                 <div className="flex items-center gap-2 text-xs font-semibold uppercase text-muted-foreground">
                   <FileSpreadsheet className="h-4 w-4" />
                   Sample row
                 </div>
-                <p className="mt-2 overflow-x-auto whitespace-nowrap font-mono text-xs">
+                <p className="mt-2 max-w-full overflow-x-auto whitespace-nowrap font-mono text-xs">
                   {spec.headers.map((header) => spec.sample[header] || "-").join(" | ")}
                 </p>
               </div>
 
-              <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_220px]">
-                <div className="space-y-3">
-                  <label className="grid gap-1 text-xs"><span>Upload file</span><Input type="file" accept=".csv,.xlsx" onChange={(event) => loadFile(event.target.files?.[0])} /></label>
+              <div className="grid min-w-0 gap-4 lg:grid-cols-[minmax(0,1fr)_220px]">
+                <div className="min-w-0 space-y-3">
+                  <label className="grid min-w-0 gap-1 text-xs"><span>Upload file</span><Input type="file" accept=".csv,.xlsx" onChange={(event) => loadFile(event.target.files?.[0])} /></label>
                   {fileName ? <p className="text-xs text-muted-foreground">Loaded source: {fileName}</p> : null}
                   {draftSavedAt ? <p className="text-xs text-muted-foreground">Saved draft on this browser: {formatSavedAt(draftSavedAt)}</p> : null}
                 </div>
-                <div className="space-y-2">
+                <div className="min-w-0 space-y-2">
                   <p className="text-xs font-medium">Import mode</p>
                   <SelectNative value={mode} onChange={(event) => setMode(event.target.value as ImportMode)} disabled={spec.modes.length === 1}>
                     {spec.modes.map((value) => (

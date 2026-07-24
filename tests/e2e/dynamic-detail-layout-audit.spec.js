@@ -2,9 +2,14 @@ const { test, expect } = require("@playwright/test");
 const { hasAccount, login } = require("./helpers");
 
 const viewports = [
+  { label: "mobile-320", width: 320, height: 700 },
   { label: "mobile-390", width: 390, height: 844 },
+  { label: "compact-640", width: 640, height: 900 },
   { label: "tablet-768", width: 768, height: 1024 },
+  { label: "laptop-1024", width: 1024, height: 900 },
+  { label: "desktop-1280", width: 1280, height: 960 },
   { label: "desktop-1440", width: 1440, height: 960 },
+  { label: "wide-2560", width: 2560, height: 1440 },
 ];
 const sources = [
   ["/branches", "/branches/", 2], ["/document-sequences", "/document-sequences/", 2], ["/documents", "/documents/", 2],

@@ -2,17 +2,27 @@ const { test, expect } = require("@playwright/test");
 
 const routes = ["/login", "/forgot-password", "/change-password", "/set-password", "/access-status", "/setup"];
 const viewports = [
+  { label: "mobile-320", width: 320, height: 700 },
   { label: "mobile-390", width: 390, height: 844 },
+  { label: "compact-640", width: 640, height: 900 },
   { label: "tablet-768", width: 768, height: 1024 },
+  { label: "laptop-1024", width: 1024, height: 900 },
+  { label: "desktop-1280", width: 1280, height: 960 },
   { label: "desktop-1440", width: 1440, height: 960 },
+  { label: "wide-2560", width: 2560, height: 1440 },
 ];
 
 async function assertSurface(page, route, viewport) {
-  await page.goto(route, { waitUntil: "domcontentloaded" });
+  try {
+    await page.goto(route, { waitUntil: "domcontentloaded" });
+  } catch (error) {
+    if (!/ERR_ABORTED|Execution context was destroyed/.test(String(error))) throw error;
+    await page.waitForLoadState("domcontentloaded").catch(() => {});
+  }
   await expect.poll(() => page.evaluate(() => Array.from(document.styleSheets).some((sheet) => {
     if (!sheet.href?.includes("/_next/static/css/")) return false;
     try { return sheet.cssRules.length > 0; } catch { return false; }
-  })), { timeout: 15_000 }).toBe(true);
+  })).catch(() => false), { timeout: 15_000 }).toBe(true);
   await expect(page.getByText("This page could not load", { exact: true })).toHaveCount(0);
   const result = await page.evaluate(() => {
     const overflow = document.documentElement.scrollWidth - document.documentElement.clientWidth;

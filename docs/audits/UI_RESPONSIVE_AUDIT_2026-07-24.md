@@ -23,6 +23,7 @@
 | Lint | **Pass** | `npm.cmd run lint` |
 | Production build | **87/87 routes generated** | `npm.cmd run build` |
 | Stock Count dynamic Playwright | **1/1 pass** | `tests/e2e/stock-count-responsive.spec.js` on local production server; mobile/tablet/desktop assertions passed |
+| Transfer/Wastage/Production responsive workflow audit | **1/1 pass** | `tests/e2e/dynamic-workflow-responsive-local.spec.js`; all three new-form routes at 390/768/1440px, visible title, parsed styles, no page overflow, and in-bounds controls |
 | Procurement closure dynamic Playwright | **2/3 pass** | PR creation/submission and Manager/Purchasing/Finance review gates passed; final payment/close scenario stopped at local Auth throttling after repeated role switches |
 
 ## Responsive conformance
@@ -64,9 +65,9 @@
 
 Complete the remaining dynamic local fixture suite after the local Auth throttle is cleared:
 
-1. Transfer and Wastage: draft → review → posting/cancel controls across mobile/tablet/desktop.
+1. Transfer and Wastage: draft → review → posting/cancel controls (mutation/state-transition coverage; responsive form audit is now pass).
 2. Complete the final procurement payment/PO-close scenario after local Auth throttling clears.
 3. Supplier Invoice: invoice detail, payment controls, and AP report responsive behavior.
-4. Production Job: input/output lines, posting guardrails, and narrow viewport overflow.
+4. Production Job: input/output lines, posting guardrails, and narrow viewport overflow (responsive form audit is now pass).
 
 No formal data import, production deployment, or production database operation is part of this audit.

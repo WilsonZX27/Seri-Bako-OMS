@@ -12,7 +12,7 @@ const viewports = [
 
 test.beforeAll(() => fs.mkdirSync(evidence, { recursive: true }));
 
-test("stock count preserves a practical physical input and a neutral mobile action bar", async ({ page }) => {
+test("stock count preserves practical entry, visible remarks, progress and a full-width tablet workspace", async ({ page }) => {
   test.setTimeout(120_000);
   test.skip(!hasAccount("superAdmin"), "Missing local-only Super Admin credentials.");
   await login(page, "superAdmin");
@@ -33,15 +33,21 @@ test("stock count preserves a practical physical input and a neutral mobile acti
     await expect(page.locator("#main-content").getByText("New Stock Count", { exact: true })).toBeVisible();
     const input = page.locator('input[name="line_physical_qty"]').first();
     await expect(input).toBeVisible();
+    await expect(input).toHaveValue("");
+    await expect(page.getByText("Not counted").first()).toBeVisible();
+    await expect(page.getByText("Reason required")).toHaveCount(0);
     const inputBox = await input.boundingBox();
     expect(inputBox, `${label} physical quantity field must render`).toBeTruthy();
     expect(inputBox.width, `${label} physical quantity field must remain touchable`).toBeGreaterThanOrEqual(width < 768 ? 144 : 120);
     const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
     expect(overflow, `${label} stock count must not horizontally overflow`).toBeLessThanOrEqual(5);
-    if (width < 768) {
-      const mobileAction = page.locator("[data-mobile-document-action]");
+    const firstRemarks = page.locator('input[name="line_remarks"]').first();
+    if (width >= 1024) await expect(firstRemarks).toBeVisible();
+    if (width === 768) await expect(page.locator("[data-tablet-document-inspector]")).toHaveCount(0);
+    if (width < 1280) {
+      const mobileAction = page.locator(".sb-mobile-action-bar").filter({ hasText: /counted/i });
       await expect(mobileAction).toBeVisible();
-      await expect(mobileAction).toContainText(/create draft count/i);
+      await expect(mobileAction).toContainText(/0\/\d+ counted/i);
     }
     await page.screenshot({ path: path.join(evidence, `${label}.png`), fullPage: true });
   }

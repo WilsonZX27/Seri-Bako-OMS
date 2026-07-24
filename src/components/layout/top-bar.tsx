@@ -3,6 +3,7 @@ import { AccountMenu } from "@/components/layout/account-menu";
 import { GlobalSearch } from "@/components/search/global-search";
 import { MobileSidebar } from "@/components/layout/mobile-sidebar";
 import { TopBarActivityMenu } from "@/components/layout/top-bar-activity-menu";
+import { QuickAccessMenu } from "@/components/layout/quick-access-menu";
 import { getRoleDisplayLabel } from "@/lib/roles";
 import { getCompanyBranding, getCurrentProfile } from "@/server/queries/common";
 import { getTopBarActivity } from "@/server/queries/topbar";
@@ -28,6 +29,7 @@ export async function TopBar({ permissionMap }: { permissionMap: Record<string, 
         <div data-testid="topbar-search-region">
           <GlobalSearch permissionMap={permissionMap} />
         </div>
+        <QuickAccessMenu permissionMap={permissionMap} />
         <TopBarActivityMenu data={activity} />
         <AccountMenu displayName={displayName} roleLabel={getRoleDisplayLabel(role)} initials={initials} />
       </div>

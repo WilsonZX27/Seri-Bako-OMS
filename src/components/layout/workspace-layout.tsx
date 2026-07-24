@@ -22,9 +22,8 @@ export function WorkspaceGrid({
   return (
     <div className={cn("min-h-0 p-3 pb-3", className)}>
       {documentMode && rightRail ? (
-        <div className="min-w-0 md:grid md:grid-cols-[minmax(0,7fr)_minmax(14rem,3fr)] md:gap-3 xl:block">
+        <div className="min-w-0">
           <div className="min-w-0 space-y-3">{children}</div>
-          <aside data-tablet-document-inspector className="hidden min-w-0 border-l border-[var(--sb-border-soft)] bg-white pl-2 md:block xl:hidden">{rightRail}</aside>
         </div>
       ) : <div className="min-w-0 space-y-3">{children}</div>}
       {rightRail ? <RightConsoleMount hideMobileBar={hideMobileConsole} mobileOnlyBar={documentMode}>{rightRail}</RightConsoleMount> : null}

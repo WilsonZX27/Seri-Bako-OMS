@@ -83,30 +83,43 @@ async function assertNoApplicationError(page, route) {
 }
 
 async function assertInteractiveBounds(page, route, viewport) {
-  const outOfBounds = await page.evaluate(() => Array.from(document.querySelectorAll("a,button,input,select,textarea,summary,[role='button'],[role='link']"))
-    .filter((node) => {
-      const rect = node.getBoundingClientRect();
-      if (rect.width <= 0 || rect.height <= 0) return false;
-      const style = getComputedStyle(node);
-      if (style.visibility === "hidden" || style.display === "none") return false;
-      // A dense table is allowed to scroll inside its own contained region; it
-      // must not make the document viewport scroll horizontally.
-      let parent = node.parentElement;
-      while (parent) {
-        const parentStyle = getComputedStyle(parent);
-        if ((parent.classList.contains("sb-table-region") || parent.classList.contains("overflow-x-auto")) && /(auto|scroll)/.test(parentStyle.overflowX)) return false;
-        parent = parent.parentElement;
-      }
-      return rect.left < -1 || rect.right > window.innerWidth + 1;
-    })
-    .map((node) => ({ tag: node.tagName, text: node.textContent?.trim().slice(0, 80), left: node.getBoundingClientRect().left, right: node.getBoundingClientRect().right })));
-  expect(outOfBounds, `${viewport.label} ${route} interactive controls must remain inside the viewport`).toEqual([]);
+  for (let attempt = 0; attempt < 3; attempt += 1) {
+    try {
+      const outOfBounds = await page.evaluate(() => Array.from(document.querySelectorAll("a,button,input,select,textarea,summary,[role='button'],[role='link']"))
+        .filter((node) => {
+          const rect = node.getBoundingClientRect();
+          if (rect.width <= 0 || rect.height <= 0) return false;
+          const style = getComputedStyle(node);
+          if (style.visibility === "hidden" || style.display === "none") return false;
+          // A dense table is allowed to scroll inside its own contained region; it
+          // must not make the document viewport scroll horizontally.
+          let parent = node.parentElement;
+          while (parent) {
+            const parentStyle = getComputedStyle(parent);
+            if ((parent.classList.contains("sb-table-region") || parent.classList.contains("overflow-x-auto")) && /(auto|scroll)/.test(parentStyle.overflowX)) return false;
+            parent = parent.parentElement;
+          }
+          return rect.left < -1 || rect.right > window.innerWidth + 1;
+        })
+        .map((node) => ({ tag: node.tagName, text: node.textContent?.trim().slice(0, 80), left: node.getBoundingClientRect().left, right: node.getBoundingClientRect().right })));
+      expect(outOfBounds, `${viewport.label} ${route} interactive controls must remain inside the viewport`).toEqual([]);
+      return;
+    } catch (error) {
+      if (!/Execution context was destroyed/.test(String(error)) || attempt === 2) throw error;
+      await page.waitForLoadState("domcontentloaded");
+      await page.waitForTimeout(150);
+    }
+  }
 }
 
 fs.mkdirSync(evidence, { recursive: true });
 
 test.describe("static workspace layout audit", () => {
-  test.describe.configure({ mode: "parallel" });
+  // The audit intentionally walks one authenticated session through every
+  // workspace. Running all eight viewport sessions in parallel overwhelms
+  // the local Next/Supabase fixture and produces navigation errors unrelated
+  // to the page under review, so keep the evidence run deterministic.
+  test.describe.configure({ mode: "serial" });
 
   for (const viewport of viewports) {
     test(`${viewport.label}: canonical static workspaces load styled and without viewport overflow`, async ({ page }) => {

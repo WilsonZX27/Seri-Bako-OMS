@@ -26,16 +26,17 @@ test("document details and creation forms use one responsive operational shell",
   }
 });
 
-test("the shared shell owns tablet ratio, mobile workflow, sticky action and accessible sheets", () => {
+test("the shared shell keeps tablet workspaces full-width and owns workflow, sticky action and accessible sheets", () => {
   const workspace = read("src/components/documents/document-workspace.tsx");
   const sheets = read("src/components/documents/mobile-document-surfaces.tsx");
   const confirm = read("src/components/ui/confirm-action-form.tsx");
   const modal = read("src/components/ui/modal-shell.tsx");
   const styles = read("src/app/globals.css");
 
-  assert.match(workspace, /md:grid-cols-\[minmax\(0,7fr\)_minmax\(14rem,3fr\)\]/);
+  assert.doesNotMatch(workspace, /data-tablet-document-inspector|md:grid-cols-\[minmax\(0,7fr\)_minmax\(14rem,3fr\)\]/);
   assert.match(workspace, /data-mobile-document-action/);
   assert.match(workspace, /mobilePrimaryAction \?/);
+  assert.match(workspace, /xl:hidden/);
   assert.match(sheets, /View workflow/);
   assert.match(sheets, /document\.body\.style\.overflow = "hidden"/);
   assert.match(sheets, /event\.key === "Escape"/);
@@ -95,5 +96,4 @@ test("document terminology and footer match v7.23.7.2", () => {
   assert.match(sources, /Remarks/);
   assert.match(read("src/lib/app-version.ts"), /APP_SPRINT = "v7\.23\.7\.2"/);
 });
-
 

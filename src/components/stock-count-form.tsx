@@ -2,14 +2,14 @@
 
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { AlertTriangle } from "lucide-react";
+import { AlertTriangle, CheckCircle2, Search } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Field } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { SelectNative } from "@/components/ui/select-native";
 import { SubmitButton } from "@/components/ui/submit-button";
 import { Textarea } from "@/components/ui/textarea";
-import { formatQuantity, formatQuantityInput } from "@/lib/utils";
+import { cn, formatQuantity, formatQuantityInput } from "@/lib/utils";
 
 type BranchOption = { id: string; branch_code: string; branch_name: string; status: string };
 type SeedLine = {
@@ -71,14 +71,20 @@ export function StockCountForm({
   const router = useRouter();
   const tolerance = 2;
   const [lines, setLines] = useState<SeedLineInput[]>(() =>
-    seedLines.map((line) => ({ ...line, physicalQty: formatQuantityInput(line.physical_qty) })),
+    seedLines.map((line) => ({ ...line, physicalQty: "" })),
   );
+  const [search, setSearch] = useState("");
+  const [showRemainingOnly, setShowRemainingOnly] = useState(false);
+  const [openNoteIds, setOpenNoteIds] = useState<Set<string>>(() => new Set());
 
   // Next can preserve this client component while the branch query changes.
   // Reset the editable rows only when the selected branch changes so PJS10 and
   // ALMA never show each other's count lines.
   useEffect(() => {
-    setLines(seedLines.map((line) => ({ ...line, physicalQty: formatQuantityInput(line.physical_qty) })));
+    setLines(seedLines.map((line) => ({ ...line, physicalQty: "" })));
+    setSearch("");
+    setShowRemainingOnly(false);
+    setOpenNoteIds(new Set());
   }, [selectedBranchId, seedLines]);
 
   function selectBranch(branchId: string) {
@@ -92,23 +98,40 @@ export function StockCountForm({
   function normalizePhysicalQty(itemId: string) {
     setLines((current) => current.map((line) => {
       if (line.item_id !== itemId) return line;
+      if (!line.physicalQty.trim()) return line;
       return { ...line, physicalQty: formatQuantityInput(line.physicalQty) };
     }));
+  }
+
+  const completedCount = lines.filter((line) => line.physicalQty.trim() !== "").length;
+  const remainingCount = lines.length - completedCount;
+  const normalizedSearch = search.trim().toLowerCase();
+  const visibleLines = lines.filter((line) => {
+    if (showRemainingOnly && line.physicalQty.trim() !== "") return false;
+    if (!normalizedSearch) return true;
+    return `${line.item_name} ${line.item_code}`.toLowerCase().includes(normalizedSearch);
+  });
+  const countComplete = lines.length > 0 && completedCount === lines.length;
+
+  function showLineNote(itemId: string) {
+    setOpenNoteIds((current) => new Set(current).add(itemId));
   }
 
   return (
     <Card>
       <CardContent className="p-3 sm:p-4">
-        <form id={formId} action={action} className="space-y-3">
-          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        <form id={formId} action={action} className={showSubmit ? "space-y-3 pb-20 xl:pb-0" : "space-y-3"}>
+          <div className="grid grid-cols-[minmax(0,1.5fr)_minmax(6.5rem,0.7fr)] gap-3 lg:grid-cols-3">
             <Field label="Count Date"><Input name="count_date" type="date" defaultValue={today()} required /></Field>
             <Field label="Tolerance %"><Input name="tolerance_percent" type="number" min="0" step="0.01" defaultValue={tolerance} required /></Field>
-            <Field label="Branch">
-              <SelectNative name="branch_id" value={selectedBranchId ?? branches[0]?.id ?? ""} onChange={(event) => selectBranch(event.target.value)} required>
-                {branches.map((branch) => <option key={branch.id} value={branch.id}>{branch.branch_name}</option>)}
-              </SelectNative>
-            </Field>
-            <div className="sm:col-span-2 lg:col-span-3">
+            <div className="col-span-2 lg:col-span-1">
+              <Field label="Branch">
+                <SelectNative name="branch_id" value={selectedBranchId ?? branches[0]?.id ?? ""} onChange={(event) => selectBranch(event.target.value)} required>
+                  {branches.map((branch) => <option key={branch.id} value={branch.id}>{branch.branch_name}</option>)}
+                </SelectNative>
+              </Field>
+            </div>
+            <div className="col-span-2 lg:col-span-3">
               <details className="group rounded-[2px] border border-dashed border-[var(--sb-border)] bg-[var(--sb-surface-muted)] px-3 py-2">
                 <summary className="cursor-pointer text-sm font-medium marker:text-[var(--sb-text-muted)]">Add count note <span className="font-normal text-muted-foreground">(optional)</span></summary>
                 <div className="mt-2"><Textarea name="remarks" className="min-h-16" placeholder="Nightly count note" /></div>
@@ -116,8 +139,44 @@ export function StockCountForm({
             </div>
           </div>
 
+          <section aria-label="Count progress" className="grid gap-2 border border-[var(--sb-border)] bg-[var(--sb-surface-muted)] p-3 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center">
+            <div className="min-w-0">
+              <div className="flex items-center justify-between gap-3 text-sm">
+                <p className="font-semibold">{countComplete ? "Count complete" : `${remainingCount} item${remainingCount === 1 ? "" : "s"} remaining`}</p>
+                <p className="shrink-0 tabular-nums text-muted-foreground">{completedCount} / {lines.length}</p>
+              </div>
+              <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-white" aria-hidden="true">
+                <div className="h-full bg-[var(--sb-green-700)] transition-[width]" style={{ width: `${lines.length ? (completedCount / lines.length) * 100 : 0}%` }} />
+              </div>
+              <p className="mt-2 text-xs text-muted-foreground">
+                Enter the quantity you physically see. Theoretical stock is shown only as a reference.
+              </p>
+            </div>
+            {showSubmit ? (
+              <SubmitButton type="submit" disabled={!countComplete} className="hidden xl:inline-flex" pendingLabel="Saving..." showOverlay overlayLabel="Saving changes...">
+                Create draft count
+              </SubmitButton>
+            ) : countComplete ? <CheckCircle2 className="hidden h-5 w-5 text-[var(--sb-success)] sm:block" aria-hidden="true" /> : null}
+          </section>
+
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+            <label className="relative min-w-0 flex-1">
+              <span className="sr-only">Find an item</span>
+              <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" aria-hidden="true" />
+              <Input value={search} onChange={(event) => setSearch(event.target.value)} className="pl-9" placeholder="Find item name or code" />
+            </label>
+            <button
+              type="button"
+              className="h-[var(--sb-control-height)] shrink-0 border border-[var(--sb-border)] bg-white px-3 text-sm font-medium hover:bg-[var(--sb-surface-muted)]"
+              aria-pressed={showRemainingOnly}
+              onClick={() => setShowRemainingOnly((current) => !current)}
+            >
+              {showRemainingOnly ? "Show all items" : `Show remaining (${remainingCount})`}
+            </button>
+          </div>
+
           <div className="rounded-[2px] border">
-            <div className="hidden border-b bg-secondary/40 px-3 py-2 md:grid md:grid-cols-[minmax(0,1fr)_130px_130px_150px_1fr] md:gap-3">
+            <div className="hidden border-b bg-secondary/40 px-3 py-2 lg:grid lg:grid-cols-[minmax(12rem,1.4fr)_minmax(7rem,0.65fr)_minmax(10rem,0.8fr)_minmax(9rem,0.7fr)_minmax(10rem,1fr)] lg:gap-3">
               <p className="text-xs font-semibold">Item</p>
               <p className="text-xs text-right font-semibold">Theoretical</p>
               <p className="text-xs text-right font-semibold">Physical</p>
@@ -125,28 +184,29 @@ export function StockCountForm({
               <p className="text-xs font-semibold">Remarks</p>
             </div>
             <div className="divide-y">
-              {lines.map((line) => {
-                const physical = toNumber(line.physicalQty);
+              {visibleLines.map((line) => {
+                const hasPhysical = line.physicalQty.trim() !== "";
+                const physical = hasPhysical ? toNumber(line.physicalQty) : 0;
                 const variance = physical - line.theoretical_qty;
                 const percent = variancePercent(line.theoretical_qty, physical);
                 const absolutePercent = percent === null ? 0 : Math.abs(percent);
-                const high = percent !== null && absolutePercent > tolerance;
+                const high = hasPhysical && percent !== null && absolutePercent > tolerance;
                 const toneClass = high ? varianceToneClass(percent, high) : "";
                 return (
                   <div
                     key={line.item_id}
-                    className="grid grid-cols-[minmax(0,1fr)_minmax(11rem,11.25rem)] gap-x-3 gap-y-2 px-3 py-3 md:grid-cols-[minmax(0,1fr)_120px_150px_140px_1fr] md:gap-3 md:items-start"
+                    className="grid grid-cols-[minmax(0,1fr)_minmax(10rem,11.25rem)] gap-x-3 gap-y-2 px-3 py-3 lg:grid-cols-[minmax(12rem,1.4fr)_minmax(7rem,0.65fr)_minmax(10rem,0.8fr)_minmax(9rem,0.7fr)_minmax(10rem,1fr)] lg:items-start lg:gap-3"
                   >
-                    <div className="min-w-0 order-1 md:col-span-1 md:order-1">
-                      <p className="truncate text-sm font-medium leading-tight">{line.item_name}</p>
+                    <div className="min-w-0 order-1 lg:col-span-1 lg:order-1">
+                      <p className="break-words text-sm font-medium leading-tight">{line.item_name}</p>
                       <p className="text-xs text-muted-foreground">{line.item_code}</p>
                     </div>
 
-                    <div className="order-2 min-w-0 md:col-span-1 md:order-3">
-                      <label className="text-[11px] uppercase tracking-wide text-muted-foreground md:hidden" htmlFor={`physical-${line.item_id}`}>
+                    <div className="order-2 min-w-0 lg:col-span-1 lg:order-3">
+                      <label className="text-[11px] uppercase tracking-wide text-muted-foreground lg:hidden" htmlFor={`physical-${line.item_id}`}>
                         Physical
                       </label>
-                      <div className="mt-1 flex items-center gap-2 md:mt-0">
+                      <div className="mt-1 flex items-center gap-2 lg:mt-0">
                         <Input
                           id={`physical-${line.item_id}`}
                           name="line_physical_qty"
@@ -157,30 +217,42 @@ export function StockCountForm({
                           onChange={(event) => updatePhysicalQty(line.item_id, event.target.value)}
                           onBlur={() => normalizePhysicalQty(line.item_id)}
                           required
-                          className="h-11 min-w-[9rem] text-base font-semibold tabular-nums md:h-9 md:min-w-0 md:text-sm"
+                          aria-label={`Physical quantity for ${line.item_name}`}
+                          placeholder="0.00"
+                          className="h-11 min-w-[8.5rem] text-base font-semibold tabular-nums lg:h-9 lg:min-w-0 lg:text-sm"
                         />
                         <span className="text-xs text-muted-foreground">{line.uom}</span>
                       </div>
                     </div>
 
-                    <div className="order-3 col-span-2 grid grid-cols-2 gap-3 md:contents">
-                      <div className="space-y-0.5 md:col-span-1 md:text-right md:order-2">
-                        <p className="text-[11px] uppercase tracking-wide text-muted-foreground md:hidden">Theoretical</p>
+                    <div className="order-3 col-span-2 grid grid-cols-2 gap-3 lg:contents">
+                      <div className="space-y-0.5 lg:col-span-1 lg:text-right lg:order-2">
+                        <p className="text-[11px] uppercase tracking-wide text-muted-foreground lg:hidden">Theoretical</p>
                         <p className="text-sm font-medium">{formatVarianceDisplay(line.theoretical_qty, line.uom)}</p>
                       </div>
-                      <div className="space-y-0.5 md:col-span-1 md:text-right md:order-4">
-                        <p className="text-[11px] uppercase tracking-wide text-muted-foreground md:hidden">Variance</p>
+                      <div className="space-y-0.5 lg:col-span-1 lg:text-right lg:order-4">
+                        <p className="text-[11px] uppercase tracking-wide text-muted-foreground lg:hidden">Variance</p>
                         <p className={`text-sm font-semibold ${high ? toneClass : "text-foreground"}`}>
-                          {formatVarianceDisplay(variance, line.uom)} <span className="font-normal">({formatVariancePercent(percent)})</span>
+                          {hasPhysical ? <>{formatVarianceDisplay(variance, line.uom)} <span className="font-normal">({formatVariancePercent(percent)})</span></> : <span className="font-normal text-muted-foreground">Not counted</span>}
                         </p>
                       </div>
                     </div>
 
-                    <div className="order-4 col-span-2 min-w-0 md:col-span-1 md:order-5 md:max-w-[14rem]">
-                      <details className="md:contents">
-                        <summary className="cursor-pointer text-xs font-medium text-muted-foreground md:hidden">Add line note</summary>
-                        <Input id={`remarks-${line.item_id}`} name="line_remarks" className="mt-2 md:mt-0" placeholder="Optional" />
-                      </details>
+                    <div className="order-4 col-span-2 min-w-0 lg:col-span-1 lg:order-5">
+                      {!high && !openNoteIds.has(line.item_id) ? (
+                        <button type="button" className="py-1 text-xs font-medium text-muted-foreground lg:hidden" onClick={() => showLineNote(line.item_id)}>
+                          Add line note
+                        </button>
+                      ) : null}
+                      {high ? <label className="mb-1 block text-xs font-medium text-destructive lg:hidden" htmlFor={`remarks-${line.item_id}`}>Reason required</label> : null}
+                      <Input
+                        id={`remarks-${line.item_id}`}
+                        name="line_remarks"
+                        aria-label={`Remarks for ${line.item_name}`}
+                        className={cn(!high && !openNoteIds.has(line.item_id) && "hidden lg:flex")}
+                        placeholder={high ? "Explain this variance" : "Add note"}
+                        required={high}
+                      />
                     </div>
 
                     <input type="hidden" name="line_item_id" value={line.item_id} />
@@ -194,13 +266,20 @@ export function StockCountForm({
                   <AlertTriangle className="h-4 w-4" />
                   No stock balance rows found for this branch yet.
                 </div>
+              ) : !visibleLines.length ? (
+                <div className="px-3 py-6 text-center text-sm text-muted-foreground">
+                  No items match this view.
+                </div>
               ) : null}
             </div>
           </div>
 
-          {showSubmit ? <div className="flex justify-end">
-            <SubmitButton type="submit" disabled={!lines.length} pendingLabel="Saving..." showOverlay overlayLabel="Saving changes...">Create draft count</SubmitButton>
-          </div> : null}
+          {showSubmit ? (
+            <div className="sb-mobile-action-bar fixed inset-x-3 bottom-[calc(env(safe-area-inset-bottom)+0.5rem)] z-[var(--sb-z-sticky)] flex min-w-0 items-center gap-3 p-2 xl:hidden">
+              <p className="min-w-0 flex-1 truncate text-xs font-medium">{countComplete ? "Ready to create draft" : `${completedCount}/${lines.length} counted`}</p>
+              <SubmitButton type="submit" disabled={!countComplete} className="shrink-0" pendingLabel="Saving..." showOverlay overlayLabel="Saving changes...">Create draft</SubmitButton>
+            </div>
+          ) : null}
         </form>
       </CardContent>
     </Card>

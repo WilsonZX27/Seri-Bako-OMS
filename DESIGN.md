@@ -7,8 +7,8 @@ This document is the implementation contract for every customer-facing route, fo
 Design mobile first. The base class or CSS rule must be the 320px–639px experience. Enhancement uses the shared Tailwind thresholds only:
 
 - `640px`: large phone / compact tablet; remains a single-column, touch-first experience.
-- `768px`: tablet; a secondary panel or two-column content may appear when it improves the task.
-- `1024px`: laptop desktop; workspace layouts may expand.
+- `768px`: tablet; the active task keeps the full workspace width. Supporting context opens on demand instead of permanently narrowing forms or item names.
+- `1024px`: laptop desktop; dense line-entry layouts may expand, but a persistent inspection rail still remains hidden.
 - `1280px`: full desktop; left navigation, main workspace, and optional right inspection rail may coexist.
 
 Do not introduce a page-specific breakpoint. These thresholds serve distinct operational contexts, so a 1024px laptop is not forced into a cramped tablet layout and a full three-rail workspace is not shown prematurely. Test representative widths at 320, 390, 640, 768, 1024, 1280, 1440, and 2560px.
@@ -41,6 +41,8 @@ Do not introduce a page-specific breakpoint. These thresholds serve distinct ope
 - The current status and the next permitted action appear before secondary metadata.
 - A form starts with only the fields needed to begin. Notes, advanced filters, and audit detail use progressive disclosure.
 - Line-entry documents place the editable value and unit together, keep theoretical/variance feedback visible, and avoid card height that makes a count feel endless.
+- Long repeated tasks show completion progress and provide an in-list find/remaining-items view. A physical count must require an explicit physical value instead of silently copying the theoretical balance.
+- Per-line remarks remain directly visible in dense desktop layouts. On touch layouts they may collapse until requested, but must open automatically when a variance makes the reason mandatory.
 - Destructive, posting, approval, cancel, and backup actions must state their consequence and remain distinct from save/draft actions.
 - Role restrictions must result in an explanatory read-only state, not a missing or broken-looking page.
 

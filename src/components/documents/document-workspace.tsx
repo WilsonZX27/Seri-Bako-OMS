@@ -67,17 +67,16 @@ export function DocumentWorkspace({
         </div>
       </header>
 
-      <WorkspaceGrid className={cn("min-w-0 p-3", mobilePrimaryAction && "pb-20 md:pb-3")} rightRail={<div>{sidePanel}</div>} hideMobileConsole>
-        <div className="grid min-w-0 gap-3 md:grid-cols-[minmax(0,7fr)_minmax(14rem,3fr)] xl:block">
+      <WorkspaceGrid className={cn("min-w-0 p-3", mobilePrimaryAction && "pb-20 xl:pb-3")} rightRail={<div>{sidePanel}</div>} hideMobileConsole>
+        <div className="min-w-0">
           <div className="min-w-0 space-y-3">
             {children}
             {mobileActivity ? <MobileActivityAndFiles>{mobileActivity}</MobileActivityAndFiles> : null}
             {mobileMoreOptions ? <div className="md:hidden">{mobileMoreOptions}</div> : null}
           </div>
-          <aside data-tablet-document-inspector className="hidden min-w-0 border-l border-[var(--sb-border-soft)] bg-white md:block md:pl-2 xl:hidden">{sidePanel}</aside>
         </div>
       </WorkspaceGrid>
-      {mobilePrimaryAction ? <div data-mobile-document-action className="sb-mobile-action-bar fixed inset-x-3 bottom-[calc(env(safe-area-inset-bottom)+0.5rem)] z-[var(--sb-z-sticky)] min-w-0 p-2 md:hidden [&>*]:w-full">{mobilePrimaryAction}</div> : null}
+      {mobilePrimaryAction ? <div data-mobile-document-action className="sb-mobile-action-bar fixed inset-x-3 bottom-[calc(env(safe-area-inset-bottom)+0.5rem)] z-[var(--sb-z-sticky)] min-w-0 p-2 xl:hidden [&>*]:w-full">{mobilePrimaryAction}</div> : null}
     </>
   );
 }

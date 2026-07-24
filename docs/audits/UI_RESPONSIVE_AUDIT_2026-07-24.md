@@ -24,6 +24,8 @@
 | Production build | **87/87 routes generated** | `npm.cmd run build` |
 | Stock Count dynamic Playwright | **1/1 pass** | `tests/e2e/stock-count-responsive.spec.js` on local production server; mobile/tablet/desktop assertions passed |
 | Transfer/Wastage/Production responsive workflow audit | **1/1 pass** | `tests/e2e/dynamic-workflow-responsive-local.spec.js`; all three new-form routes at 390/768/1440px, visible title, parsed styles, no page overflow, and in-bounds controls |
+| Auth/setup responsive audit | **3/3 pass** | `tests/e2e/auth-layout-audit.spec.js`; login, password, access-status, and setup surfaces at 390/768/1440px |
+| Populated dynamic-detail responsive audit | **3/3 pass** | `tests/e2e/dynamic-detail-layout-audit.spec.js`; six populated detail surfaces covered at each of 390/768/1440px, with no page overflow or out-of-bounds controls |
 | Procurement closure dynamic Playwright | **2/3 pass** | PR creation/submission and Manager/Purchasing/Finance review gates passed; final payment/close scenario stopped at local Auth throttling after repeated role switches |
 
 ## Responsive conformance

@@ -8,7 +8,7 @@ const routes = [
   "/stock-transfers", "/stock-counts", "/stock-wastage", "/production/jobs", "/outlet-daily-records", "/recipes",
 ];
 
-test.describe.serial("v7.23.7.1 authenticated release blockers", () => {
+test.describe.serial("v7.23.7.2 authenticated release blockers", () => {
   test.beforeAll(async () => {
     await seedLocalReleaseFixture({ managerCanComment: process.env.EXPECT_MANAGER_COMMENT_DENIED !== "1" });
   });

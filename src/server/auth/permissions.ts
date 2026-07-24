@@ -179,6 +179,7 @@ export const rolePermissionMatrix = {
     "po.create",
     "po.submit",
     "po.send",
+    "purchase_order.close",
     "grn.create",
     "purchase_return.view",
     "purchase_return.create",

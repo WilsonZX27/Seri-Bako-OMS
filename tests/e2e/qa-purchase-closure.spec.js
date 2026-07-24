@@ -307,6 +307,14 @@ test.describe("QA- procurement payment closure", () => {
     const closePage = await closeContext.newPage();
     await login(closePage, "purchasing");
     await closePage.goto(created.poUrl, { waitUntil: "commit", timeout: 30_000 });
+    const moreOptions = closePage.getByText("More options", { exact: true });
+    for (let index = 0; index < await moreOptions.count(); index += 1) {
+      const candidate = moreOptions.nth(index);
+      if (await candidate.isVisible()) {
+        await candidate.click();
+        break;
+      }
+    }
     await expect(closePage.getByRole("button", { name: /Close purchase order/i }).first()).toBeVisible({ timeout: 30_000 });
     await closePage.getByRole("button", { name: /Close purchase order/i }).first().click();
     await closePage.waitForLoadState("domcontentloaded");

@@ -137,7 +137,7 @@ test("Owner backup ignores a forged company override and contains no Company B c
   expect(files.size).toBeGreaterThan(1);
   const manifest = JSON.parse(files.get("manifest.json"));
   expect(manifest.company_id).toBe(ids.companyA);
-  expect(manifest.sprint).toBe("v7.23.7.1");
+  expect(manifest.sprint).toBe("v7.23.7.2");
   expect(manifest.datasets.some((entry) => entry.classification === "excluded")).toBe(true);
   expect(manifest.datasets.filter((entry) => entry.included).every((entry) => !entry.warning)).toBe(true);
   expect(files.get("csv/companies.csv")).toContain(ids.companyA);

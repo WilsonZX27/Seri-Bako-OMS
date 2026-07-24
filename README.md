@@ -9,7 +9,7 @@ For UI and interaction standards, read `DESIGN.md`.
 ## Current Release Baseline
 
 - Application release: `v7.23.7.0`.
-- Database migration ceiling: `099_remove_locations_and_make_inventory_branch_owned`.
+- Database migration ceiling: `103_kitchen_purchase_order_read`.
 - Tenant isolation, inventory posting atomicity, procurement/document transitions, concurrency controls, and credential handoff are database-authoritative.
 - Start with `docs/PILOT_BASELINE.md`, use the controlled CSV files in `docs/import-templates/`, and record sign-off in `docs/PILOT_QA_CHECKLIST.md`.
 

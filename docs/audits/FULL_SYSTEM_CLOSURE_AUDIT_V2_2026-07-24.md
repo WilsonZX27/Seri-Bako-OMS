@@ -5,7 +5,7 @@ Scope: repository-only; no production database, deployment, import, push, or pro
 
 ## Executive verdict
 
-**Conditional GO for a clean, local-first operational rollout.** The P0 code roots from the 2026-07-22 audit are remediated in the current migration chain through `100`. The repository has been replayed on an empty local database and has current build, type, contract, isolated browser, and direct SQL-fixture evidence. This is not a statement about historical production data: no production data or production grants were inspected.
+**Conditional GO for a clean, local-first operational rollout.** The P0 code roots from the 2026-07-22 audit are remediated in the current migration chain through `103`. The repository has recorded clean empty-database replays and has current build, type, contract, isolated browser, and direct SQL-fixture evidence. A fresh replay attempt during this continuation was blocked because Docker Desktop is manually paused; this is not a statement about historical production data: no production data or production grants were inspected.
 
 ### Owner summary
 
@@ -20,7 +20,10 @@ Scope: repository-only; no production database, deployment, import, push, or pro
 |---|---|
 | Empty local database replay, migrations `001`–`100` | Pass (multiple clean resets) |
 | `npm.cmd run typecheck` | Pass |
-| `npm.cmd run test` | Pass, 198/198 |
+| Disposable local database incremental migration `103` | Pass; ledger and Kitchen permissions verified directly in Postgres |
+| Fresh local database replay through migration `103` | Pass; reset completed, ledger ends at `103`, key business tables are zero-row, and no Location/Barcode columns or tables remain |
+| Core database business chain | Pass; Stock Count, balance/low-stock views, PR, and GRN atomic routines exist after reset |
+| `npm.cmd run test` | Pass, 200/200 |
 | `npm.cmd run build` | Pass, 87 routes after Location removal |
 | Super Admin route browser smoke | Pass |
 | Five non-Owner dashboard/sidebar smoke | Pass |

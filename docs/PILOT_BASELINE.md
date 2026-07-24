@@ -1,11 +1,11 @@
 # v1.0 Pilot Baseline
 
-- Application baseline: `v0.2.15 / Sprint 7.5`
-- Database ceiling: `054_sprint_7_5_pr_to_po_supplier_scope_fix`
+- Application baseline: `v7.23.7.0 / Branch-only MVP`
+- Database ceiling: `103_kitchen_purchase_order_read`
 
 ## Objective and scope
 
-Run a controlled Seri Bako operational pilot on the verified release without adding features, migrations, or fabricated business data. The pilot covers authenticated daily work across procurement, inventory, production, documents, and administration using real permissions and branch scope.
+Run a controlled Seri Bako operational pilot on the verified release without adding features, migrations, or fabricated business data. The pilot covers authenticated daily work across procurement, Branch Stock Count, purchase receiving, documents, and administration using real permissions and branch scope. Daily Branch Stock Count is the inventory truth; Recipe and Production are optional and must not block stock or purchase-request operations.
 
 Out of scope: accounting/general ledger replacement, automated finance reconciliation, unreviewed bulk cleanup, schema changes, and workflow redesign.
 

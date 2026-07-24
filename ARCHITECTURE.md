@@ -189,13 +189,13 @@ Authentication proves identity. It does not automatically grant permission to ev
 
 Seri Bako OMS uses permission-based authorization.
 
-Current authoritative scope baseline (v7.23.7.0 / migration 099): Super Admin, Finance, Manager, and Purchasing have company-wide operational scope; Kitchen and Outlet Staff are assigned-branch scoped. Inventory is owned by Branch/Outlet rather than a secondary Location dimension. PostgreSQL RLS and server guards are the authorization boundary. Older sprint notes below are historical.
+Current authoritative scope baseline (v7.23.7.0 / migration 103): Super Admin, Finance, Manager, and Purchasing have company-wide operational scope; Kitchen and Outlet Staff are assigned-branch scoped. Inventory is owned by Branch/Outlet rather than a secondary Location dimension. PostgreSQL RLS and server guards are the authorization boundary. Older sprint notes below are historical.
 
 ### Roles
 
 The role catalogue is fixed: `super_admin`, `finance`, `manager`, `purchasing`, `kitchen`, and `outlet_staff`. Migration 071 archives legacy role rows after guarded assignment conversion. Roles are system-controlled defaults, not user-created configuration.
 
-`super_admin`, `finance`, and `purchasing` have company-wide scope. `manager`, `kitchen`, and `outlet_staff` use assigned Branches / Outlets; Kitchen assignments are restricted to Central Kitchen branches and Outlet Staff assignments to outlets. The default Branch / Outlet is context only. `staff_branches`, the temporary compatibility scope mapping described in the Sprint 7.23.5 legacy ledger, server guards, and RLS remain the authorization boundary.
+`super_admin`, `finance`, `manager`, and `purchasing` have company-wide scope. `kitchen` and `outlet_staff` use assigned Branches / Outlets; Kitchen assignments are restricted to Central Kitchen branches and Outlet Staff assignments to outlets. The default Branch / Outlet is context only. `staff_branches`, the temporary compatibility scope mapping described in the Sprint 7.23.5 legacy ledger, server guards, and RLS remain the authorization boundary.
 
 ### Permissions
 
@@ -380,7 +380,7 @@ Discrepancies should remain visible.
 
 ## Production Architecture
 
-Production Jobs represent controlled production activity.
+Production Jobs represent optional controlled production activity. The MVP does not require the Central Kitchen to enter a production job every day. Daily Branch stock count and reconciliation remain sufficient to keep operational inventory and procurement working.
 
 A production job may include:
 
@@ -394,9 +394,11 @@ A production job may include:
 - Notes and attachments.
 - Inventory effects.
 
-Recipe and BOM architecture should not be assumed complete until explicitly implemented.
+Recipe and BOM architecture should not be assumed complete until explicitly implemented. Missing recipes must not block stock count, goods receiving, wastage, transfers, or purchase requests.
 
 Production inventory movements must follow the same ledger rules as other stock operations.
+
+The normal operating cadence is nightly Branch stock count, low-stock review, and a weekly Sunday purchase-request consolidation. Purchase requests remain available on any day for urgent or exceptional replenishment; Sunday is a planning cadence, not a permission or validation rule.
 
 ## Workflow Architecture
 

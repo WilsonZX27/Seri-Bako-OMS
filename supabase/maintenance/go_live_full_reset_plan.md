@@ -1,4 +1,4 @@
-# Go-Live full reset plan — current schema 077
+# Go-Live full reset plan — current schema 103
 
 ## Preserve exactly
 
@@ -21,7 +21,7 @@ Storage objects are not database-transactional. The SQL preflight prints every a
 
 ## Local proof
 
-- Current migrations through `100_remove_location_staff_access_residue.sql` applied on the disposable local database.
+- Current migrations through `103_kitchen_purchase_order_read.sql` applied on the disposable local database.
 - Reset committed with zero operational/master rows, zero attachment metadata, zero monthly counter rows, and seven retained Staff/Auth rows.
 - Retained Owner login succeeded after reset.
 - A new supplier, item, product, and recipe were created after reset.

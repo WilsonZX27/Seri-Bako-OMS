@@ -96,11 +96,21 @@ export async function approveSupplierInvoice(id: string) {
       : { count: 0, error: null };
     if (attachmentError) throw new Error(attachmentError.message);
     if (!attachmentCount) throw new Error("Attach the supplier invoice before sending it to Finance Review.");
+    const { data: auditLines, error: auditLinesError } = await supabase
+      .from("supplier_invoice_lines")
+      .select("invoice_qty,received_qty,previously_invoiced_qty,po_unit_price,invoice_unit_price")
+      .eq("supplier_invoice_id", id);
+    if (auditLinesError) throw new Error(auditLinesError.message);
+    const discrepancy = (auditLines ?? []).find((line) =>
+      Number(line.invoice_qty) !== Number(line.received_qty) - Number(line.previously_invoiced_qty)
+      || Math.abs(Number(line.invoice_unit_price) - Number(line.po_unit_price)) > 0.01,
+    );
+    if (discrepancy) throw new Error("Audit discrepancy: invoice quantity or price does not match the received PO line.");
     const { error } = await supabase.rpc("approve_supplier_invoice", { p_invoice_id: id });
     if (error) throw new Error(error.message);
     const { data: invoice } = await supabase.from("supplier_invoices").select("invoice_no, document_id").eq("id", id).single();
     if (invoice?.document_id) {
-      await supabase.from("documents").update({ status: "posted", approval_status: "approved", current_step: "Payment" }).eq("id", invoice.document_id);
+      await supabase.from("documents").update({ status: "posted", approval_status: "approved", current_step: "Audit Passed" }).eq("id", invoice.document_id);
       await writeActivityLog({ entityType: "document", entityId: invoice.document_id, activityType: "approved", message: `Supplier invoice ${invoice.invoice_no} approved and opened` });
     }
     revalidateWorkspaceState(["/supplier-invoices", `/supplier-invoices/${id}`]);
@@ -124,6 +134,20 @@ export async function recordSupplierInvoicePayment(id: string, formData: FormDat
     });
     const profile = await identity();
     const supabase = await createClient();
+    const { data: invoiceEvidence, error: invoiceEvidenceError } = await supabase.from("supplier_invoices").select("document_id").eq("id", id).single();
+    if (invoiceEvidenceError) throw new Error(invoiceEvidenceError.message);
+    if (!invoiceEvidence.document_id) throw new Error("A payment document is required before recording payment.");
+    const { data: paymentSlips, error: paymentSlipError } = await supabase
+      .from("attachments")
+      .select("id")
+      .eq("entity_type", "document")
+      .eq("entity_id", invoiceEvidence.document_id)
+      .ilike("file_name", "%Payment Slip%")
+      .eq("status", "active")
+      .is("deleted_at", null)
+      .limit(1);
+    if (paymentSlipError) throw new Error(paymentSlipError.message);
+    if (!paymentSlips?.length) throw new Error("Attach the Payment Slip before recording payment.");
     const paymentNo = await resolveDocumentNumber({ companyId: profile?.company_id, documentType: "payment_schedule", enteredNumber: null });
     const { data: recordedNo, error } = await supabase.rpc("record_supplier_invoice_payment", {
       p_invoice_id: id,

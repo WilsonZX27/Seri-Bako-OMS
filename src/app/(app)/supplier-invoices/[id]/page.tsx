@@ -93,6 +93,7 @@ export default async function SupplierInvoiceDetailPage({ params, searchParams }
           </DocumentSideSection> : null}
           {documentBundle ? <>
             <AttachmentPanel documentId={documentBundle.document.id} attachments={documentBundle.attachments} title="Supplier Invoice" description="Attach the supplier-issued invoice for Finance review and audit." defaultLabel="Supplier Invoice" uploadLabel="Attach Supplier Invoice" canManage={permissions["documents.attach"]} documentStatus={documentBundle.document.status} />
+            {canPay ? <AttachmentPanel documentId={documentBundle.document.id} attachments={documentBundle.attachments} title="Payment Slip" description="Attach the payment slip before recording payment." defaultLabel="Payment Slip" uploadLabel="Attach Payment Slip" canManage={permissions["documents.attach"]} documentStatus={documentBundle.document.status} /> : null}
             <CommentsPanel documentId={documentBundle.document.id} comments={documentBundle.comments} />
             <DocumentTimeline document={documentBundle.document} activities={documentBundle.activityLogs} comments={documentBundle.comments} attachments={documentBundle.attachments} />
             <RevisionPanel revisions={documentBundle.revisions} />
@@ -101,7 +102,7 @@ export default async function SupplierInvoiceDetailPage({ params, searchParams }
       }
     >
       {messageParams.error || messageParams.success ? <Card><CardContent className={`p-3 text-xs ${messageParams.error ? "text-destructive" : "text-[var(--sb-success)]"}`}>{messageParams.error ?? messageParams.success}</CardContent></Card> : null}
-      {documentBundle ? <div className="md:hidden"><AttachmentPanel documentId={documentBundle.document.id} attachments={documentBundle.attachments} title="Supplier Invoice" description="Attach the supplier-issued invoice before Finance approval." defaultLabel="Supplier Invoice" uploadLabel="Attach Supplier Invoice" presentation="inline" canManage={permissions["documents.attach"]} documentStatus={documentBundle.document.status} /></div> : null}
+      {documentBundle ? <div className="md:hidden"><AttachmentPanel documentId={documentBundle.document.id} attachments={documentBundle.attachments} title="Supplier Invoice" description="Attach the supplier-issued invoice before Finance approval." defaultLabel="Supplier Invoice" uploadLabel="Attach Supplier Invoice" presentation="inline" canManage={permissions["documents.attach"]} documentStatus={documentBundle.document.status} />{canPay ? <AttachmentPanel documentId={documentBundle.document.id} attachments={documentBundle.attachments} title="Payment Slip" description="Attach the payment slip before recording payment." defaultLabel="Payment Slip" uploadLabel="Attach Payment Slip" presentation="inline" canManage={permissions["documents.attach"]} documentStatus={documentBundle.document.status} /> : null}</div> : null}
       {invoice.status === "draft" && editSources ? (
         <SupplierInvoiceForm
           suppliers={editSources.suppliers}

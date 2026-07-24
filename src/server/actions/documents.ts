@@ -64,7 +64,11 @@ export async function addDocumentAttachment(
       const supabase = await createClient();
       const safeName = uploadedFile.name.replace(/[^a-zA-Z0-9._-]+/g, "-").slice(-120) || "attachment";
       const storagePath = `${profile.company_id}/${documentId}/${crypto.randomUUID()}-${safeName}`;
-      const { error: uploadError } = await supabase.storage.from("document-attachments").upload(storagePath, uploadedFile, { contentType: uploadedFile.type, upsert: false });
+      // Materialize the Web File before passing it to the storage client. In
+      // Node's server-action runtime, forwarding File's stream directly can
+      // trigger `transformAlgorithm is not a function` and abort the request.
+      const uploadBody = Buffer.from(await uploadedFile.arrayBuffer());
+      const { error: uploadError } = await supabase.storage.from("document-attachments").upload(storagePath, uploadBody, { contentType: uploadedFile.type, upsert: false });
       if (uploadError) throw new Error(uploadError.message);
       const { error } = await supabase.from("attachments").insert({
         company_id: profile.company_id,

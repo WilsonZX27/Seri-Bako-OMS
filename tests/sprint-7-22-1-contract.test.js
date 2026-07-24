@@ -30,8 +30,7 @@ test("Purchasing conversion is state and database-permission driven", () => {
 test("empty PRs receive an actionable validation message and release is updated", () => {
   assert.match(read("src/server/actions/procurement.ts"), /Add at least one item before creating this purchase request\./);
   const version = read("src/lib/app-version.ts");
-  assert.match(version, /7\.23\.7\.0/);
-  assert.match(version, /v7\.23\.7\.0/);
+  assert.match(version, /7\.23\.7\.1/);
+  assert.match(version, /v7\.23\.7\.1/);
 });
-
 

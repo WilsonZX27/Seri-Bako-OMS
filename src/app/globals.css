@@ -105,6 +105,17 @@ body {
   color: var(--sb-text);
 }
 
+/* Media must remain inside every responsive workspace, including imported content. */
+img,
+video,
+iframe,
+canvas,
+object,
+embed {
+  max-width: 100%;
+  height: auto;
+}
+
 input,
 select,
 textarea,

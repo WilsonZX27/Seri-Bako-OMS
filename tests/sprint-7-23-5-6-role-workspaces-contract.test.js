@@ -46,8 +46,7 @@ test("Finance, Purchasing, activity, and release boundaries are explicit", () =>
   assert.match(ia, /href: "\/supplier-invoices"[\s\S]*roles: \["super_admin", "finance"\]/);
   assert.match(ia, /href: "\/activity"[\s\S]*roles: ALL[\s\S]*permission: "dashboard\.view"/);
   assert.doesNotMatch(purchasingFallback, /supplier_invoice\.view/);
-  assert.match(version, /APP_VERSION = "7\.23\.7\.0"/);
-  assert.match(version, /APP_SPRINT = "v7\.23\.7\.0"/);
+  assert.match(version, /APP_VERSION = "7\.23\.7\.1"/);
+  assert.match(version, /APP_SPRINT = "v7\.23\.7\.1"/);
 });
-
 

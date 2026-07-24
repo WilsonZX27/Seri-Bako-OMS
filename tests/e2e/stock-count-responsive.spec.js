@@ -20,6 +20,16 @@ test("stock count preserves a practical physical input and a neutral mobile acti
   for (const [width, height, label] of viewports) {
     await page.setViewportSize({ width, height });
     await page.goto("/stock-counts/new", { waitUntil: "domcontentloaded" });
+    // A geometric assertion can accidentally pass against browser-default HTML.
+    // Wait for the app's global design tokens before assessing a responsive layout.
+    await expect.poll(async () => page.evaluate(() => Array.from(document.styleSheets).some((sheet) => {
+      if (!sheet.href?.includes("/_next/static/css/")) return false;
+      try {
+        return sheet.cssRules.length > 0;
+      } catch {
+        return false;
+      }
+    })), { timeout: 15_000 }).toBe(true);
     await expect(page.locator("#main-content").getByText("New Stock Count", { exact: true })).toBeVisible();
     const input = page.locator('input[name="line_physical_qty"]').first();
     await expect(input).toBeVisible();

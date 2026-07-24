@@ -70,7 +70,7 @@ test("unlinked Auth users remain outside operational workspaces", () => {
   assert.match(resolver, /missing-profile/);
 });
 
-test("v7.23.7.0 release blockers keep onboarding input singular and collapse permission fan-out", () => {
+test("v7.23.7.1 release blockers keep onboarding input singular and collapse permission fan-out", () => {
   const newStaff = read("src/app/(app)/staffs/new/page.tsx");
   const forms = read("src/components/foundation-forms.tsx");
   const auth = read("src/server/actions/auth.ts");
@@ -86,5 +86,4 @@ test("v7.23.7.0 release blockers keep onboarding input singular and collapse per
   assert.match(permissionSource, /rpc\("get_allowed_permissions"/);
   assert.doesNotMatch(permissionSource, /Promise\.all\(permissions\.map/);
 });
-
 

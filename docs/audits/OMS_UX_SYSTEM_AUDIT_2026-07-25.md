@@ -33,6 +33,8 @@ The product is used by kitchen and outlet staff under time pressure, usually on 
 2. Typography needs a deliberate hierarchy: page title, section title, primary value, supporting metadata and helper text should not all look like body copy.
 3. Mobile sheets and dialogs need a shared “task first” pattern with a short title, one-sentence explanation, and one primary action.
 
+The shared form label now uses a compact 12px hierarchy while controls retain a 44px touch target and readable value text. This is a global remediation, not a page-specific exception.
+
 ## Classification
 
 - **Current authority:** `src/app`, `src/components`, `src/lib/information-architecture.ts`, `src/app/globals.css`, current migrations, current tests and `DESIGN.md`.

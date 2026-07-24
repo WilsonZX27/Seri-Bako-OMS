@@ -46,8 +46,10 @@ The shared form label now uses a compact 12px hierarchy while controls retain a 
 
 - `npm run typecheck`: pass.
 - `npm run lint`: pass.
+- `npm test -- --runInBand`: 200/200 pass.
+- `npm run build`: pass; 87/87 routes generated.
 - Stock Count responsive Playwright (390/768/1440): pass (1 test).
-- Role workdesk capture produced all 36 screenshots for Owner, Finance, Manager, Purchasing, Kitchen and Outlet Staff across 1440/1024/768/430/390/360px. The run reached the final route assertions before the local command wall-clock timeout; screenshots are valid current-run visual evidence, while the final assertion set remains to be rerun in smaller batches.
+- Role workdesk capture produced all 36 screenshots for Owner, Finance, Manager, Purchasing, Kitchen and Outlet Staff across 1440/1024/768/430/390/360px. The deterministic manual-server rerun passed all 6 role tests, including activity destinations, denied routes and overflow checks.
 - Full static 390px capture: all 76 screenshots were produced in a deterministic single-session run; the runner exceeded its command wall-clock timeout after capture, so this is evidence capture, not a green full-suite result yet. The audit runner was changed from parallel to serial to remove local Next/Supabase resource contention and navigation-race noise.
 
 ## Next remediation waves

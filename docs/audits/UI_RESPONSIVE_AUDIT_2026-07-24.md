@@ -22,7 +22,8 @@
 | TypeScript | **Pass** | `npm.cmd run typecheck` |
 | Lint | **Pass** | `npm.cmd run lint` |
 | Production build | **87/87 routes generated** | `npm.cmd run build` |
-| Dynamic Playwright rerun | **Environment-blocked** | Local webServer handshake did not expose port 3000; no page assertion failure was produced |
+| Stock Count dynamic Playwright | **1/1 pass** | `tests/e2e/stock-count-responsive.spec.js` on local production server; mobile/tablet/desktop assertions passed |
+| Procurement closure dynamic Playwright | **2/3 pass** | PR creation/submission and Manager/Purchasing/Finance review gates passed; final payment/close scenario stopped at local Auth throttling after repeated role switches |
 
 ## Responsive conformance
 
@@ -61,12 +62,11 @@
 
 ## Remaining release gate
 
-Run the dynamic local fixture suite once the local webServer can be started reliably:
+Complete the remaining dynamic local fixture suite after the local Auth throttle is cleared:
 
-1. Stock Count: branch switch, physical quantity entry, draft creation, and mobile action bar.
-2. Transfer and Wastage: draft → review → posting/cancel controls across mobile/tablet/desktop.
-3. Purchase Request → Purchase Order → Receiving: detail layout, action visibility, and evidence panels.
-4. Supplier Invoice: invoice detail, payment controls, and AP report responsive behavior.
-5. Production Job: input/output lines, posting guardrails, and narrow viewport overflow.
+1. Transfer and Wastage: draft → review → posting/cancel controls across mobile/tablet/desktop.
+2. Complete the final procurement payment/PO-close scenario after local Auth throttling clears.
+3. Supplier Invoice: invoice detail, payment controls, and AP report responsive behavior.
+4. Production Job: input/output lines, posting guardrails, and narrow viewport overflow.
 
 No formal data import, production deployment, or production database operation is part of this audit.

@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { ClipboardCheck, ClipboardList, Gauge, LayoutGrid, PackageCheck, X } from "lucide-react";
+import { ClipboardCheck, ClipboardList, Gauge, LayoutGrid, PackageCheck, ScrollText, X } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -13,6 +13,7 @@ const actions = [
   { href: "/stock-counts/new", label: "Count stock", hint: "Start a stock count", icon: ClipboardCheck, permission: "stock_count.read" },
   { href: "/purchase-requests/new", label: "Request items", hint: "Create a purchase request", icon: ClipboardList, permission: "purchase_request.read" },
   { href: "/goods-receivings", label: "Receive delivery", hint: "Continue receiving", icon: PackageCheck, permission: "goods_receiving.read" },
+  { href: "/outlet-daily-records/new", label: "Record today", hint: "Enter outlet quantities", icon: ScrollText, permission: "outlet_daily_record.view" },
 ] as const;
 
 export function QuickAccessMenu({ permissionMap }: QuickAccessMenuProps) {

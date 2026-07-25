@@ -59,12 +59,12 @@ export default async function ProcurementPage() {
   return (
     <>
       <PageHeader title="Procurement Workspace" description="Review purchasing work from request through invoice follow-up." />
-      <WorkspaceGrid className="pt-4" rightRail={<><ConsoleSection title="Next actions">{canCreatePr ? <Button asChild size="sm" className="w-full"><Link href="/purchase-requests/new">Create purchase request</Link></Button> : <p className="text-xs text-muted-foreground">Open a queue to continue permitted procurement work.</p>}</ConsoleSection><ConsoleSection title="Workspace scope"><p className="text-xs leading-5 text-muted-foreground">Counts and queues follow your company, branch, role, and document permissions.</p></ConsoleSection></>}>
+      <WorkspaceGrid className="p-3 pt-3 sm:p-5 sm:pt-4" rightRail={<><ConsoleSection title="Next actions">{canCreatePr ? <Button asChild size="sm" className="w-full"><Link href="/purchase-requests/new">Create purchase request</Link></Button> : <p className="text-xs text-muted-foreground">Open a queue to continue permitted procurement work.</p>}</ConsoleSection><ConsoleSection title="Workspace scope"><p className="text-xs leading-5 text-muted-foreground">Counts and queues follow your company, branch, role, and document permissions.</p></ConsoleSection></>}>
         <div className="space-y-4">
           <section aria-labelledby="procurement-overview" className="overflow-hidden rounded-[2px] border bg-card">
             <div className="border-b px-4 py-3"><h2 id="procurement-overview" className="text-sm font-semibold">Purchasing pipeline</h2></div>
             <div className="grid divide-y sm:grid-cols-2 sm:divide-x sm:divide-y-0 xl:grid-cols-4">
-              {counters.map((counter) => <Link key={counter.label} href={counter.href} className="flex min-h-20 items-center justify-between gap-3 px-4 py-3 hover:bg-secondary/40"><span className="text-xs text-muted-foreground">{counter.label}</span><strong className="font-mono text-xl">{counter.value}</strong></Link>)}
+              {counters.map((counter) => <Link key={counter.label} href={counter.href} className="flex min-h-16 items-center justify-between gap-3 px-3 py-2.5 hover:bg-secondary/40 sm:min-h-20 sm:px-4 sm:py-3"><span className="text-xs text-muted-foreground">{counter.label}</span><strong className="font-mono text-lg sm:text-xl">{counter.value}</strong></Link>)}
             </div>
           </section>
           <section aria-labelledby="procurement-queue" className="overflow-hidden rounded-[2px] border bg-card">

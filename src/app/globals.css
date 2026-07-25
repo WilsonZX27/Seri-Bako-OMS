@@ -395,9 +395,10 @@ input[type="date"]::-webkit-date-and-time-value {
   }
 
   .sb-filter-summary {
-    flex: 1 0 100% !important;
-    width: 100% !important;
-    justify-content: space-between;
+    flex: 0 0 auto !important;
+    width: auto !important;
+    justify-content: flex-end;
+    margin-left: auto;
   }
 
 }

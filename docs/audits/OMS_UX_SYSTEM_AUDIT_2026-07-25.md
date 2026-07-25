@@ -39,6 +39,8 @@ The shared empty state now uses a tighter mobile rhythm, and mobile record actio
 
 The Inventory Workspace overview now uses a compact mobile metric rhythm and the same 12px page gutter as other workspaces; desktop retains the wider dashboard spacing.
 
+The mobile FilterBar result summary now shares the second control row instead of forcing a third row; the approved compact-filter regression and Stock Count responsive regression both pass.
+
 ## Classification
 
 - **Current authority:** `src/app`, `src/components`, `src/lib/information-architecture.ts`, `src/app/globals.css`, current migrations, current tests and `DESIGN.md`.

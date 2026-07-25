@@ -32,7 +32,10 @@ test("dynamic workflow forms remain usable across phone, tablet, and desktop", a
     await page.setViewportSize(viewport);
     for (const workflow of workflows) {
       await page.goto(workflow.route, { waitUntil: "domcontentloaded" });
-      await expect.poll(() => hasParsedStyles(page), { timeout: 15_000 }).toBe(true);
+      // Next dev may compile the first workflow route lazily. Give the local
+      // audit a bounded cold-start window, then keep all layout/overflow
+      // assertions strict once styles are present.
+      await expect.poll(() => hasParsedStyles(page), { timeout: 45_000, intervals: [250, 500, 1_000, 2_000] }).toBe(true);
       // Some operational headers are rendered by the shared shell with a compact
       // semantic heading, while others may be represented as an exact title node
       // after a server transition. Verify the user-visible title without coupling

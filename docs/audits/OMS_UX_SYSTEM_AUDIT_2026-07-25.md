@@ -41,6 +41,8 @@ The Inventory Workspace overview now uses a compact mobile metric rhythm and the
 
 The mobile FilterBar result summary now shares the second control row instead of forcing a third row; the approved compact-filter regression and Stock Count responsive regression both pass.
 
+The dynamic Transfer/Wastage/Production workflow audit now passes across phone, tablet, and desktop after giving the local Next dev server a bounded 45-second first-route compile window; layout and overflow assertions remain unchanged.
+
 ## Classification
 
 - **Current authority:** `src/app`, `src/components`, `src/lib/information-architecture.ts`, `src/app/globals.css`, current migrations, current tests and `DESIGN.md`.

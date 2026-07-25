@@ -15,13 +15,13 @@ type EmptyStateProps = {
 
 export function EmptyState({ icon: Icon = FolderOpen, title, description, action }: EmptyStateProps) {
   return (
-    <div className="flex flex-col items-center justify-center gap-3 px-4 py-10 text-center">
-      <div className="flex h-11 w-11 items-center justify-center rounded-[2px] bg-[var(--sb-neutral-bg)] text-[var(--sb-neutral-text)]">
+    <div className="flex flex-col items-center justify-center gap-2.5 px-4 py-8 text-center sm:gap-3 sm:py-10">
+      <div className="flex h-10 w-10 items-center justify-center rounded-[2px] bg-[var(--sb-neutral-bg)] text-[var(--sb-neutral-text)] sm:h-11 sm:w-11">
         <Icon className="h-5 w-5" />
       </div>
       <div>
         <p className="text-sm font-semibold">{title}</p>
-        <p className="mt-1 max-w-md text-sm text-muted-foreground">{description}</p>
+        <p className="mt-1 max-w-md text-xs leading-4 text-muted-foreground sm:text-sm">{description}</p>
       </div>
       {action ? (
         <Button asChild size="sm" variant="outline">

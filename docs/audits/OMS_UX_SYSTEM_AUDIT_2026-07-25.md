@@ -35,6 +35,8 @@ The product is used by kitchen and outlet staff under time pressure, usually on 
 
 The shared form label now uses a compact 12px hierarchy while controls retain a 44px touch target and readable value text. This is a global remediation, not a page-specific exception.
 
+The shared empty state now uses a tighter mobile rhythm, and mobile record actions are labelled “More actions” so the bottom sheet describes what the user will actually open.
+
 ## Classification
 
 - **Current authority:** `src/app`, `src/components`, `src/lib/information-architecture.ts`, `src/app/globals.css`, current migrations, current tests and `DESIGN.md`.

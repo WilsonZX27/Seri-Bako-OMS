@@ -37,6 +37,8 @@ The shared form label now uses a compact 12px hierarchy while controls retain a 
 
 The shared empty state now uses a tighter mobile rhythm, and mobile record actions are labelled “More actions” so the bottom sheet describes what the user will actually open.
 
+The Inventory Workspace overview now uses a compact mobile metric rhythm and the same 12px page gutter as other workspaces; desktop retains the wider dashboard spacing.
+
 ## Classification
 
 - **Current authority:** `src/app`, `src/components`, `src/lib/information-architecture.ts`, `src/app/globals.css`, current migrations, current tests and `DESIGN.md`.

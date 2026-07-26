@@ -94,3 +94,17 @@ test("outlet daily entry uses a stable phone line grid without nested card bound
   assert.match(source, /grid grid-cols-2 gap-3 p-3/);
   assert.match(source, /label className="col-span-2 grid gap-1 text-xs"/);
 });
+
+test("recipe BOM editing replaces the phone table with input-first continuous ingredient lines", () => {
+  const source = read("src/components/recipe-form.tsx");
+
+  assert.match(source, /data-recipe-setup/);
+  assert.match(source, /sb-table-region hidden overflow-x-auto rounded-\[2px\] border md:block/);
+  assert.match(source, /data-recipe-ingredient-list/);
+  assert.match(source, /placeholder="Ingredient code or name"/);
+  assert.match(source, /label="Qty required"/);
+  assert.match(source, /label="Conversion factor"/);
+  assert.match(source, /label="Base UOM"/);
+  assert.match(source, /label="Cost \/ base"/);
+  assert.match(source, /grid grid-cols-2 gap-x-4 gap-y-2 bg-secondary\/30 p-3 text-xs/);
+});

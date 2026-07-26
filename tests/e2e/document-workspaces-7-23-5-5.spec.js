@@ -29,7 +29,8 @@ async function assertStableDocument(page, route, width, navigate = true) {
     await expect(page.getByRole("button", { name: "View workflow" })).toBeVisible();
     await expect(page.locator("[data-tablet-document-inspector]")).toBeHidden();
   } else if (width < 1280) {
-    await expect(page.locator("[data-tablet-document-inspector]")).toBeVisible();
+    // Tablet workspaces stay full-width; the document inspector is desktop-only.
+    await expect(page.locator("[data-tablet-document-inspector]")).toBeHidden();
   } else {
     await expect(page.locator("[data-tablet-document-inspector]")).toBeHidden();
   }
@@ -101,7 +102,9 @@ test("mobile workflow and approval sheets trap focus, lock scroll and return foc
   await page.setViewportSize({ width: 390, height: 844 });
   await login(page, "manager");
   await page.goto("/purchase-requests?status=manager_review", { waitUntil: "domcontentloaded" });
-  const href = await page.locator('a[href^="/purchase-requests/"]').first().getAttribute("href");
+  const emptyState = page.getByText(/No (purchase requests found|requests match these filters)/i).first();
+  test.skip(await emptyState.isVisible().catch(() => false), "No Manager Review PR fixture is available");
+  const href = await page.locator('tbody a[href^="/purchase-requests/"]').first().getAttribute("href");
   test.skip(!href, "No Manager Review PR fixture is available");
   await page.goto(href, { waitUntil: "domcontentloaded" });
 

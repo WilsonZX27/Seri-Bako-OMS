@@ -47,6 +47,8 @@ The receiving form's mobile primary action now says “Save receiving draft”. 
 
 The third UX review wave rechecked the remaining high-frequency mobile surfaces: purchase request/order creation, stock transfer, stock wastage, manual stock movement, production job creation, system backup, imports, and administration. At 390px these surfaces keep a single-column task flow, 44px-class controls, visible section context, and an actionable sticky primary where the workflow has one. No additional code change was justified by the evidence; tablet right-rail behavior remains delegated to the shared `xl` breakpoint contract.
 
+The pre-release Playwright pass confirmed Stock Count responsive behavior and dynamic Transfer/Wastage/Production layouts, plus the inventory posting smoke flows. The procurement workflow suite now recognizes the canonical empty-state copy (`No requests match these filters`) and skips correctly when no live review fixture exists. The shared document-workspace contract now asserts the current tablet rule (right inspector hidden below `xl`) and scopes live approval links to table rows. Local E2E still requires the isolated test credentials and a stable local Supabase/Next process; missing live fixtures are reported as skips rather than product failures.
+
 ## Classification
 
 - **Current authority:** `src/app`, `src/components`, `src/lib/information-architecture.ts`, `src/app/globals.css`, current migrations, current tests and `DESIGN.md`.

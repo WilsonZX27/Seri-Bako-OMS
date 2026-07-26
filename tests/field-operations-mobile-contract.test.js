@@ -147,3 +147,11 @@ test("stock adjustments use a flat phone setup and keep quantity before cost and
   assert.match(source, /label="Unit Cost" className="order-3"/);
   assert.match(source, /className="order-4 md:col-span-3"/);
 });
+
+test("costing readiness reports use severity-first phone issue rows", () => {
+  const source = read("src/app/(app)/reports/costing-readiness/page.tsx");
+
+  assert.match(source, /<Table mobileHidden aria-label="Costing readiness issues"/);
+  assert.match(source, /data-costing-readiness-list/);
+  assert.match(source, /Open record/);
+});

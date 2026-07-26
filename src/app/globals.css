@@ -401,6 +401,10 @@ input[type="date"]::-webkit-date-and-time-value {
     border-left: 0;
   }
 
+  [data-mobile-create-fab] {
+    bottom: calc(var(--sb-mobile-nav-height) + env(safe-area-inset-bottom) + 1rem);
+  }
+
   html[data-mobile-sheet-open="true"] [data-mobile-app-nav] {
     visibility: hidden;
     pointer-events: none;

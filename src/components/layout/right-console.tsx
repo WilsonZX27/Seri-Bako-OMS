@@ -1,6 +1,7 @@
 "use client";
 
-import { PanelRight, X } from "lucide-react";
+import Link from "next/link";
+import { PanelRight, Plus, X } from "lucide-react";
 import { Children, createContext, isValidElement, useContext, useEffect, useId, useMemo, useRef, useState } from "react";
 import type { ReactNode } from "react";
 import { Button } from "@/components/ui/button";
@@ -21,6 +22,26 @@ function findMobilePrimaryAction(node: ReactNode): ReactNode {
     else match = findMobilePrimaryAction(child.props.children);
   });
   return match;
+}
+
+function findActionHref(node: ReactNode): string | null {
+  let href: string | null = null;
+  Children.forEach(node, (child) => {
+    if (href || !isValidElement<{ children?: ReactNode; href?: string }>(child)) return;
+    if (typeof child.props.href === "string") href = child.props.href;
+    else href = findActionHref(child.props.children);
+  });
+  return href;
+}
+
+function actionText(node: ReactNode): string {
+  if (typeof node === "string" || typeof node === "number") return String(node);
+  let text = "";
+  Children.forEach(node, (child) => {
+    if (typeof child === "string" || typeof child === "number") text += `${child} `;
+    else if (isValidElement<{ children?: ReactNode }>(child)) text += actionText(child.props.children);
+  });
+  return text.trim();
 }
 
 export function RightConsoleProvider({ children }: { children: ReactNode }) {
@@ -86,6 +107,9 @@ export function RightConsoleProvider({ children }: { children: ReactNode }) {
     </ConsoleSection>
   );
   const primaryAction = findMobilePrimaryAction(consoleContent);
+  const primaryHref = findActionHref(primaryAction);
+  const primaryLabel = actionText(primaryAction);
+  const hasCreateFab = Boolean(primaryHref?.includes("/new") && /^(new|create)\b/i.test(primaryLabel));
 
   return (
     <RightConsoleContext.Provider value={value}>
@@ -95,7 +119,18 @@ export function RightConsoleProvider({ children }: { children: ReactNode }) {
           {consoleContent}
         </div>
       </aside>
-      {content && !mobileBarHidden ? <div data-mobile-action-bar className={cn("sb-mobile-action-bar fixed inset-x-3 bottom-[calc(env(safe-area-inset-bottom)+0.5rem)] z-[var(--sb-z-sticky)] flex items-center gap-2 p-2", mobileOnlyBar ? "md:hidden" : "xl:hidden")}>
+      {content && !mobileBarHidden && hasCreateFab && primaryHref ? (
+        <Link
+          href={primaryHref}
+          data-mobile-create-fab
+          className="fixed right-4 z-[var(--sb-z-sticky)] inline-flex h-14 w-14 items-center justify-center rounded-full border border-[var(--sb-green-800)] bg-[var(--sb-green-900)] text-white shadow-[0_6px_18px_rgb(6_44_31_/_0.24)] transition-transform active:scale-95 md:hidden"
+          aria-label={primaryLabel}
+          title={primaryLabel}
+        >
+          <Plus className="h-6 w-6" aria-hidden="true" />
+        </Link>
+      ) : null}
+      {content && !mobileBarHidden ? <div data-mobile-action-bar className={cn("sb-mobile-action-bar fixed inset-x-3 bottom-[calc(env(safe-area-inset-bottom)+0.5rem)] z-[var(--sb-z-sticky)] items-center gap-2 p-2", hasCreateFab ? "hidden md:flex" : "flex", mobileOnlyBar ? "md:hidden" : "xl:hidden")}>
         {primaryAction ? <div data-mobile-primary-slot className="min-w-0 flex-1 [&>*]:w-full">{primaryAction}</div> : null}
         <Button ref={triggerRef} type="button" variant={primaryAction ? "outline" : "default"} className={primaryAction ? "shrink-0 gap-2" : "w-full gap-2"} onClick={() => setOpen(true)} aria-label="Open more actions" aria-haspopup="dialog" aria-expanded={open}>
           <PanelRight className="h-4 w-4" aria-hidden="true" />
@@ -103,7 +138,7 @@ export function RightConsoleProvider({ children }: { children: ReactNode }) {
         </Button>
       </div> : null}
       {open && content && !mobileBarHidden ? (
-        <div className={cn("fixed inset-0 z-[var(--sb-z-dialog)]", mobileOnlyBar ? "md:hidden" : "xl:hidden")}>
+        <div className={cn("fixed inset-0 z-[var(--sb-z-dialog)]", hasCreateFab && "hidden md:block", mobileOnlyBar ? "md:hidden" : "xl:hidden")}>
           <button type="button" className="sb-dialog-backdrop absolute inset-0 h-full w-full" onClick={close} aria-label="Close more actions" />
           <div ref={dialogRef} role="dialog" aria-modal="true" aria-labelledby={titleId} className="sb-popover-surface absolute inset-x-0 bottom-0 max-h-[82dvh] overflow-hidden pb-[env(safe-area-inset-bottom)]">
             <header className="flex h-12 items-center justify-between border-b px-3">

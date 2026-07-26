@@ -20,7 +20,7 @@ export function WorkspaceGrid({
   void rightRailClassName;
 
   return (
-    <div className={cn("min-h-0 p-3 pb-3", className)}>
+    <div className={cn("min-h-0 p-3 pb-3", rightRail && !hideMobileConsole && "pb-32 md:pb-3", className)}>
       {documentMode && rightRail ? (
         <div className="min-w-0">
           <div className="min-w-0 space-y-3">{children}</div>

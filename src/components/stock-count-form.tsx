@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { AlertTriangle, CheckCircle2, Search } from "lucide-react";
+import { AlertTriangle, CheckCircle2, ListFilter, Search } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Field } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
@@ -21,7 +21,7 @@ type SeedLine = {
   uom: string;
 };
 
-type SeedLineInput = SeedLine & { physicalQty: string };
+type SeedLineInput = SeedLine & { physicalQty: string; remarks: string };
 
 function today() {
   return new Date().toISOString().slice(0, 10);
@@ -71,7 +71,7 @@ export function StockCountForm({
   const router = useRouter();
   const tolerance = 2;
   const [lines, setLines] = useState<SeedLineInput[]>(() =>
-    seedLines.map((line) => ({ ...line, physicalQty: "" })),
+    seedLines.map((line) => ({ ...line, physicalQty: "", remarks: "" })),
   );
   const [search, setSearch] = useState("");
   const [showRemainingOnly, setShowRemainingOnly] = useState(false);
@@ -81,7 +81,7 @@ export function StockCountForm({
   // Reset the editable rows only when the selected branch changes so PJS10 and
   // ALMA never show each other's count lines.
   useEffect(() => {
-    setLines(seedLines.map((line) => ({ ...line, physicalQty: "" })));
+    setLines(seedLines.map((line) => ({ ...line, physicalQty: "", remarks: "" })));
     setSearch("");
     setShowRemainingOnly(false);
     setOpenNoteIds(new Set());
@@ -103,6 +103,10 @@ export function StockCountForm({
     }));
   }
 
+  function updateRemarks(itemId: string, remarks: string) {
+    setLines((current) => current.map((line) => (line.item_id === itemId ? { ...line, remarks } : line)));
+  }
+
   const completedCount = lines.filter((line) => line.physicalQty.trim() !== "").length;
   const remainingCount = lines.length - completedCount;
   const normalizedSearch = search.trim().toLowerCase();
@@ -118,10 +122,10 @@ export function StockCountForm({
   }
 
   return (
-    <Card>
-      <CardContent className="p-3 sm:p-4">
+    <Card className="border-0 bg-transparent shadow-none md:border md:bg-white">
+      <CardContent className="p-0 md:p-4">
         <form id={formId} action={action} className={showSubmit ? "space-y-3 pb-20 xl:pb-0" : "space-y-3"}>
-          <div className="grid grid-cols-[minmax(0,1.5fr)_minmax(6.5rem,0.7fr)] gap-3 lg:grid-cols-3">
+          <div className="grid grid-cols-[minmax(0,1fr)_6.5rem] gap-2 lg:grid-cols-3 lg:gap-3">
             <Field label="Count Date"><Input name="count_date" type="date" defaultValue={today()} required /></Field>
             <Field label="Tolerance %"><Input name="tolerance_percent" type="number" min="0" step="0.01" defaultValue={tolerance} required /></Field>
             <div className="col-span-2 lg:col-span-1">
@@ -159,7 +163,7 @@ export function StockCountForm({
             ) : countComplete ? <CheckCircle2 className="hidden h-5 w-5 text-[var(--sb-success)] sm:block" aria-hidden="true" /> : null}
           </section>
 
-          <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+          <div className="flex items-center gap-2">
             <label className="relative min-w-0 flex-1">
               <span className="sr-only">Find an item</span>
               <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" aria-hidden="true" />
@@ -167,12 +171,26 @@ export function StockCountForm({
             </label>
             <button
               type="button"
-              className="h-[var(--sb-control-height)] shrink-0 border border-[var(--sb-border)] bg-white px-3 text-sm font-medium hover:bg-[var(--sb-surface-muted)]"
+              className="inline-flex h-[var(--sb-control-height)] min-w-11 shrink-0 items-center justify-center gap-1.5 border border-[var(--sb-border)] bg-white px-2.5 text-sm font-medium hover:bg-[var(--sb-surface-muted)]"
               aria-pressed={showRemainingOnly}
               onClick={() => setShowRemainingOnly((current) => !current)}
             >
-              {showRemainingOnly ? "Show all items" : `Show remaining (${remainingCount})`}
+              <ListFilter className="h-4 w-4" aria-hidden="true" />
+              <span className="hidden sm:inline">{showRemainingOnly ? "Show all items" : `Show remaining (${remainingCount})`}</span>
+              <span className="text-xs tabular-nums sm:hidden">{showRemainingOnly ? "All" : remainingCount}</span>
             </button>
+          </div>
+
+          <div className="hidden" aria-hidden="true">
+            {lines.filter((line) => !visibleLines.some((visible) => visible.item_id === line.item_id)).map((line) => (
+              <div key={`hidden-${line.item_id}`}>
+                <input name="line_item_id" value={line.item_id} readOnly />
+                <input name="line_theoretical_qty" value={line.theoretical_qty} readOnly />
+                <input name="line_physical_qty" value={line.physicalQty} readOnly />
+                <input name="line_uom" value={line.uom} readOnly />
+                <input name="line_remarks" value={line.remarks} readOnly />
+              </div>
+            ))}
           </div>
 
           <div className="rounded-[2px] border">
@@ -252,6 +270,8 @@ export function StockCountForm({
                         className={cn(!high && !openNoteIds.has(line.item_id) && "hidden lg:flex")}
                         placeholder={high ? "Explain this variance" : "Add note"}
                         required={high}
+                        value={line.remarks}
+                        onChange={(event) => updateRemarks(line.item_id, event.target.value)}
                       />
                     </div>
 

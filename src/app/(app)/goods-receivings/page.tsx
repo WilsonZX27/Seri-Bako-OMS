@@ -61,9 +61,11 @@ export default async function GoodsReceivingsPage({ searchParams }: { searchPara
         <div className="overflow-hidden rounded-[2px] border border-[var(--sb-border-soft)] bg-card">
           <StatusTabs statuses={statuses} activeStatus={filters.status} />
           <FilterBar resultCount={receivings.totalRows} resetHref="/goods-receivings" filtered={filtered}>
-            <Input name="search" defaultValue={filters.search ?? ""} placeholder="Search GRN no, PO, supplier, branch" className="md:max-w-sm" />
+            <div className="flex min-w-0 flex-1 gap-2 md:contents">
+              <Input name="search" defaultValue={filters.search ?? ""} placeholder="Search GRN, PO or supplier" className="min-w-0 flex-1 md:max-w-sm" />
+              <Button type="submit" variant="secondary" className="shrink-0">Search</Button>
+            </div>
             {filters.status ? <input type="hidden" name="status" value={filters.status} /> : null}
-            <Button type="submit" variant="secondary">Search</Button>
           </FilterBar>
           <BulkSelectionProvider ids={receivings.rows.map((receiving) => receiving.id)} actionLabel="Archive selected" actionHint="Open selected GRNs to post or cancel them through workflow-safe actions. Posted receiving records are never hard deleted.">
           <DataGridHint text="Pro-tip: Double-click any row to open the goods receiving document." />

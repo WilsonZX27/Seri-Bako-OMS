@@ -30,7 +30,12 @@ test("stock count preserves practical entry, visible remarks, progress and a ful
         return false;
       }
     })), { timeout: 15_000 }).toBe(true);
-    await expect(page.locator("#main-content").getByText("New Stock Count", { exact: true })).toBeVisible();
+    if (width < 768) {
+      await expect(page.locator("[data-mobile-page-title]")).toHaveText("Stock Count");
+      await expect(page.locator("#main-content").getByText("New Stock Count", { exact: true })).toHaveCount(0);
+    } else {
+      await expect(page.locator("#main-content").getByText("New Stock Count", { exact: true })).toBeVisible();
+    }
     const input = page.locator('input[name="line_physical_qty"]').first();
     await expect(input).toBeVisible();
     await expect(input).toHaveValue("");

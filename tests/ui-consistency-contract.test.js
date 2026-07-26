@@ -21,9 +21,9 @@ test("UI consistency keeps imports upload-only and technical permission details 
   assert.match(roleMatrix, /<details key=\{module\}/);
 });
 
-test("shared filter rows use compact brown submits without adding duplicate link icons", () => {
+test("shared filter rows use compact operational-green submits without adding duplicate link icons", () => {
   assert.match(styles, /\.sb-list-filters > button:not\(\[data-select-control\]\):is\(\[type="submit"\], :not\(\[type\]\)\)/);
-  assert.match(styles, /background: var\(--sb-amber-700\)/);
+  assert.match(styles, /background: var\(--sb-green-900\)/);
   assert.doesNotMatch(styles, /\.sb-list-filters > a::before/);
   assert.match(styles, /max-width: 22rem/);
 });

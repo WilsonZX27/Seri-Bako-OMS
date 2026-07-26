@@ -7,6 +7,8 @@
   --sb-green-900: #083B2A;
   --sb-green-800: #0B4A35;
   --sb-green-700: #0F5A42;
+  --sb-green-300: #A9C7B9;
+  --sb-green-100: #E8F1ED;
   --sb-amber-700: #8A5A2B;
   --sb-amber-600: #A16A32;
   --sb-amber-300: #F2C58D;
@@ -83,7 +85,7 @@
   --destructive-foreground: 0 0% 100%;
   --border: 45 13% 81%;
   --input: 45 13% 81%;
-  --ring: 29 52% 41%;
+  --ring: 155 63% 20%;
   --radius: 0.125rem;
 }
 
@@ -154,7 +156,7 @@ input::file-selector-button {
 }
 
 input::file-selector-button:hover {
-  background: var(--sb-amber-100);
+  background: var(--sb-green-100);
 }
 
 button,
@@ -167,12 +169,12 @@ summary {
 }
 
 :focus-visible {
-  outline: 2px solid var(--sb-amber-700);
+  outline: 2px solid var(--sb-green-700);
   outline-offset: 2px;
 }
 
 ::selection {
-  background: var(--sb-amber-100);
+  background: var(--sb-green-100);
   color: var(--sb-green-950);
 }
 
@@ -363,8 +365,8 @@ input[type="date"]::-webkit-date-and-time-value {
 }
 
 .sb-list-filters > button:not([data-select-control]):is([type="submit"], :not([type])) {
-  border-color: var(--sb-amber-700);
-  background: var(--sb-amber-700);
+  border-color: var(--sb-green-900);
+  background: var(--sb-green-900);
   color: var(--sb-text-inverse);
 }
 
@@ -379,6 +381,11 @@ input[type="date"]::-webkit-date-and-time-value {
 }
 
 @media (max-width: 767px) {
+  :root {
+    --sb-radius-control: 0.625rem;
+    --sb-panel-radius: 0.75rem;
+  }
+
   [data-app-topbar] {
     height: calc(var(--sb-topbar-height) + env(safe-area-inset-top));
     padding-top: env(safe-area-inset-top);
@@ -387,7 +394,11 @@ input[type="date"]::-webkit-date-and-time-value {
   [data-mobile-action-bar],
   [data-mobile-document-action],
   .sb-mobile-action-bar {
+    right: 0 !important;
+    left: 0 !important;
     bottom: calc(var(--sb-mobile-nav-height) + env(safe-area-inset-bottom) + 0.5rem) !important;
+    border-right: 0;
+    border-left: 0;
   }
 
   html[data-mobile-sheet-open="true"] [data-mobile-app-nav] {
@@ -398,24 +409,76 @@ input[type="date"]::-webkit-date-and-time-value {
   .sb-list-filters {
     display: flex;
     flex-wrap: wrap;
+    gap: 0.5rem;
     overflow: visible;
+    padding: 0.625rem;
   }
 
   .sb-list-filters > :first-child {
-    flex: 1 0 100%;
-    width: 100%;
+    order: 1;
+    flex: 1 1 calc(100% - 5.5rem);
+    width: auto;
   }
 
   .sb-list-filters > :not(:first-child) {
+    order: 3;
     flex: 1 1 7rem;
     width: auto;
   }
 
+  .sb-list-filters > button:is([type="submit"], :not([type])) {
+    order: 2;
+    flex: 0 0 auto;
+  }
+
+  .sb-list-filters button:is([type="submit"], :not([type])) {
+    border-color: var(--sb-green-900);
+    background: var(--sb-green-900);
+    color: var(--sb-text-inverse);
+  }
+
+  .sb-list-filters > input[type="hidden"] {
+    display: none;
+  }
+
   .sb-filter-summary {
+    order: 4;
     flex: 0 0 auto !important;
     width: auto !important;
     justify-content: flex-end;
     margin-left: auto;
+  }
+
+  input[type="date"] {
+    min-height: var(--sb-control-height);
+    padding-right: 0.5rem;
+    color: var(--sb-text);
+    font-variant-numeric: tabular-nums;
+  }
+
+  input[type="date"]::-webkit-calendar-picker-indicator {
+    margin: 0;
+    padding: 0.25rem;
+    opacity: 0.72;
+  }
+
+  .erp-surface {
+    border-radius: var(--sb-panel-radius);
+  }
+
+  /* Normalize legacy desktop geometry into one phone-only shape language. */
+  .rounded-\[2px\],
+  .rounded-md,
+  .rounded-none {
+    border-radius: var(--sb-radius-control);
+  }
+
+  .sb-filter-more > summary {
+    border-radius: var(--sb-radius-control);
+  }
+
+  .sb-filter-more > .sb-filter-more-panel {
+    border-radius: var(--sb-panel-radius) var(--sb-panel-radius) 0 0;
   }
 
 }

@@ -1,7 +1,48 @@
+"use client";
+
+import Link from "next/link";
+import { usePathname, useSearchParams } from "next/navigation";
+import { cn } from "@/lib/utils";
+
 type StatusTab = string | { value: string; label: string };
 
 export function StatusTabs({ statuses, activeStatus }: { statuses: StatusTab[]; activeStatus?: string }) {
-  void statuses;
-  void activeStatus;
-  return null;
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const tabs = [{ value: "all", label: "All" }, ...statuses.map((status) => typeof status === "string"
+    ? { value: status, label: status.replaceAll("_", " ") }
+    : status)];
+  const selected = activeStatus || "all";
+
+  function hrefFor(value: string) {
+    const params = new URLSearchParams(searchParams.toString());
+    params.delete("page");
+    if (value === "all") params.delete("status");
+    else params.set("status", value);
+    const query = params.toString();
+    return query ? `${pathname}?${query}` : pathname;
+  }
+
+  return (
+    <nav aria-label="Filter by status" className="scrollbar-none flex min-h-11 gap-1 overflow-x-auto border-b border-[var(--sb-border-soft)] bg-white px-2 py-1.5">
+      {tabs.map((tab) => {
+        const active = selected === tab.value;
+        return (
+          <Link
+            key={tab.value}
+            href={hrefFor(tab.value)}
+            aria-current={active ? "page" : undefined}
+            className={cn(
+              "inline-flex min-h-8 shrink-0 items-center justify-center rounded-[var(--sb-radius-control)] px-3 text-xs font-medium capitalize transition-colors",
+              active
+                ? "bg-[var(--sb-green-900)] text-white"
+                : "text-[var(--sb-text-muted)] hover:bg-[var(--sb-surface-muted)] hover:text-[var(--sb-text)]",
+            )}
+          >
+            {tab.label}
+          </Link>
+        );
+      })}
+    </nav>
+  );
 }

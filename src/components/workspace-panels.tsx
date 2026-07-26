@@ -130,7 +130,7 @@ export function WorkspaceSectionPanel({ section }: { section: WorkspaceSection }
 function WorkspaceActionCard({ action, theme }: { action: WorkspaceAction; theme: WorkspaceTheme }) {
   const ActionIcon = action.icon;
   const content = (
-    <Card className={cn("h-full rounded-none border-0 bg-white transition-colors md:rounded-[2px] md:border md:border-[var(--sb-border-soft)]", action.disabled ? "opacity-70" : "active:bg-[var(--sb-surface-muted)] md:group-hover:border-[var(--sb-amber-300)] md:group-hover:bg-[var(--sb-surface-muted)]")}>
+    <Card className={cn("h-full rounded-none border-0 bg-white transition-colors md:rounded-[2px] md:border md:border-[var(--sb-border-soft)]", action.disabled ? "opacity-70" : "active:bg-[var(--sb-surface-muted)] md:group-hover:border-[var(--sb-green-300)] md:group-hover:bg-[var(--sb-surface-muted)]")}>
       <CardContent className="flex h-full min-h-16 flex-col justify-between gap-2 p-3 md:min-h-[88px]">
         <div className="flex items-start gap-3">
           <div className={cn("flex h-7 w-7 shrink-0 items-center justify-center rounded-md", theme.badge, theme.iconText)}>

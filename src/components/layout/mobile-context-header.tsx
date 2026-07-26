@@ -5,19 +5,58 @@ import { ChevronLeft } from "lucide-react";
 import { usePathname } from "next/navigation";
 import { getIaItemForPath } from "@/lib/information-architecture";
 
-export function MobileContextHeader({ companyName }: { companyName: string }) {
-  const pathname = usePathname();
-  const item = getIaItemForPath(pathname);
-  const isRoot = !item || pathname === item.href;
+const routeTitles: Record<string, string> = {
+  "/account": "My Account",
+  "/administration": "Administration",
+  "/daily-operations": "Daily Operations",
+  "/data-onboarding": "Data Onboarding",
+  "/documents": "Documents",
+  "/inventory": "Inventory",
+  "/opening-stock": "Opening Stock",
+  "/procurement": "Procurement",
+  "/production": "Production",
+  "/quick-tools": "Quick Tools",
+  "/reports": "Reports",
+  "/settings": "Settings",
+};
 
-  if (isRoot) {
-    return <p className="truncate text-sm font-semibold text-[var(--sb-green-950)]">{companyName}</p>;
+function pageContext(pathname: string) {
+  const item = getIaItemForPath(pathname);
+  if (item) {
+    return {
+      title: item.label,
+      backHref: pathname === item.href ? null : item.href,
+    };
   }
 
+  const matchedRoot = Object.keys(routeTitles)
+    .sort((a, b) => b.length - a.length)
+    .find((route) => pathname === route || pathname.startsWith(`${route}/`));
+  const root = matchedRoot ?? "/dashboard";
+  return {
+    title: routeTitles[root] ?? "Dashboard",
+    backHref: pathname === root || pathname === "/dashboard" ? null : root,
+  };
+}
+
+export function MobileContextBack() {
+  const pathname = usePathname();
+  const context = pageContext(pathname);
+
+  if (!context.backHref) return <span className="block h-11 w-11" aria-hidden="true" />;
+
   return (
-    <Link href={item.href} className="-ml-1 flex min-h-11 min-w-0 items-center gap-0.5 pr-2 text-sm font-semibold text-[var(--sb-green-950)]" aria-label={`Back to ${item.label}`}>
-      <ChevronLeft className="h-5 w-5 shrink-0" aria-hidden="true" />
-      <span className="truncate">{item.label}</span>
+    <Link
+      href={context.backHref}
+      className="flex h-11 w-11 items-center justify-start text-[var(--sb-green-950)]"
+      aria-label={`Back to ${context.title}`}
+    >
+      <ChevronLeft className="h-6 w-6" strokeWidth={1.8} aria-hidden="true" />
     </Link>
   );
+}
+
+export function MobileContextTitle() {
+  const pathname = usePathname();
+  return <p data-mobile-page-title className="truncate text-center text-[15px] font-semibold text-[var(--sb-green-950)]">{pageContext(pathname).title}</p>;
 }

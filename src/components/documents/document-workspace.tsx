@@ -43,20 +43,21 @@ export function DocumentWorkspace({
   mobileMoreOptions?: ReactNode;
 }) {
   void _breadcrumbs;
+  const isNewDocument = documentNo.toLowerCase().startsWith("new ");
 
   return (
     <>
       <span data-document-breadcrumb={documentNo} className="sr-only" aria-hidden="true" />
-      <header className="sticky top-0 z-20 min-w-0 border-b border-[var(--border-muted)] bg-[var(--workspace-bg)] px-3 py-3 sm:px-4">
+      <header className="sticky top-0 z-20 min-w-0 border-b border-[var(--border-muted)] bg-[var(--workspace-bg)] px-3 py-2.5 sm:px-4 sm:py-3">
         <div className="flex flex-col gap-2 xl:flex-row xl:items-start xl:justify-between">
           <div className="min-w-0">
             <div className="flex flex-wrap items-center gap-2">
-              <DocumentNumber value={documentNo} size="lg" className="max-w-full break-all text-[16px] sm:text-lg" />
+              <DocumentNumber value={documentNo} size="lg" className={cn("max-w-full break-all text-[16px] sm:text-lg", isNewDocument && "hidden md:inline-flex")} />
               {priority ? <PriorityBadge priority={priority} /> : null}
               <StatusBadge status={status} />
             </div>
-            <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
-              {title ? <span className="font-medium text-foreground">{title}</span> : null}
+            <div className={cn("flex flex-wrap items-center gap-2 text-xs text-muted-foreground", isNewDocument ? "mt-0 md:mt-1" : "mt-1")}>
+              {title ? <span className="hidden font-medium text-foreground md:inline">{title}</span> : null}
               {branch ? <span>{branch}</span> : null}
             </div>
           </div>

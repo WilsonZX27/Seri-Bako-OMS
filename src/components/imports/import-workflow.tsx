@@ -437,7 +437,7 @@ export function ImportWorkflow({ entity, suppliers = [] }: { entity: ImportEntit
 
           <div className="grid items-stretch gap-3 xl:grid-cols-5">
             {steps.map((step, index) => (
-              <div key={step.title} aria-current={index === activeStep ? "step" : undefined} className={`h-full rounded-[2px] border p-3 ${index === activeStep ? "border-[var(--sb-amber-600)] bg-[var(--sb-amber-100)]" : index < activeStep ? "bg-[var(--sb-success-bg)]" : "bg-[var(--sb-muted)]"}`}>
+              <div key={step.title} aria-current={index === activeStep ? "step" : undefined} className={`h-full rounded-[2px] border p-3 ${index === activeStep ? "border-[var(--sb-green-700)] bg-[var(--sb-green-100)]" : index < activeStep ? "bg-[var(--sb-success-bg)]" : "bg-[var(--sb-muted)]"}`}>
                 <p className="text-sm font-medium">{step.title}</p>
                 <p className="mt-1 text-xs text-muted-foreground">{step.detail}</p>
               </div>

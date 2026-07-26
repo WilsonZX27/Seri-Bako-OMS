@@ -38,6 +38,8 @@ test("mobile shell respects safe areas, action stacking, and standalone web inst
   assert.match(manifest, /start_url: "\/dashboard"/);
   assert.match(contextHeader, /Back to/);
   assert.match(contextHeader, /ChevronLeft/);
+  assert.match(contextHeader, /text-center/);
+  assert.match(contextHeader, /MobileContextTitle/);
 });
 
 test("dashboard exposes direct mobile actions and field forms keep touch-first grouping", () => {

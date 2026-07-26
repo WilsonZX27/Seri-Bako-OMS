@@ -30,8 +30,11 @@ The authenticated phone experience is an application-style mobile Web layout, no
 - Below `768px`, the primary navigation is a five-slot bottom bar: up to four permission-aware role shortcuts plus `More`.
 - `More` opens the complete navigation allowed by the current role and effective permission map. It must never expose an unauthorized route.
 - Shortcut destinations are role-aware. Owner and Manager emphasize requests, receiving, and stock count; Finance emphasizes requests, invoices, and stock; Purchasing emphasizes requests, orders, and receiving; Kitchen emphasizes production and assigned operational work; Outlet Staff emphasizes the daily record.
+- Every role receives four permission-safe task destinations plus `More` when its effective permissions allow four destinations. Missing permissions fall back only to another authorized destination; navigation never duplicates a shortcut.
 - The desktop sidebar remains the authoritative desktop navigation and is unchanged at `1280px` and above.
-- Root workspaces show the company identity in the phone top bar. New, edit, and detail routes show a contextual back link to their parent workspace.
+- The phone top bar uses a fixed three-slot structure: contextual back control on the left, a single centered page title, and workspace notifications on the right. Root workspaces reserve the left slot so the title remains optically centered.
+- Company identity, profile, subtitles, and duplicate document labels do not appear in the phone top bar. Profile remains available through `More`; new, edit, and detail routes link back to their parent workspace.
+- A phone page must not repeat the same workspace name in the top bar, page header, and document header. New documents show status, branch, workflow position, and the next permitted action beneath the top bar instead of repeating “New [document]” and the module title.
 - The bottom bar observes `env(safe-area-inset-bottom)`. The top bar observes `env(safe-area-inset-top)`, and the root viewport uses `viewport-fit=cover`.
 - A page-level fixed primary action sits above the bottom navigation. It must not cover the final field, the navigation, or the home indicator.
 - Pages without contextual actions must not render an empty or generic secondary action bar.
@@ -45,7 +48,15 @@ The mobile shell may reorganize navigation, information density, filters, and ac
 - Use `rem`, `em`, design tokens, or `clamp()` for type and spacing. Do not use screen-specific pixel font sizes or page-level pixel padding.
 - Keep labels, status, and instructions concise. On small screens, progressive disclosure is preferred to a long uninterrupted form.
 - Use the shared control-height token. Touch controls are at least 44px on mobile; denser desktop controls may use the tablet/desktop token only when their role remains clear.
+- Phone controls use the shared 10px control radius and 12px panel radius for an iOS-like touch surface. Tablet and desktop retain the compact 2px enterprise radius.
 - Quantity, currency, and date fields must be large enough to enter and review without zooming. Numeric values use tabular figures and retain a visible unit.
+
+## Mobile color and shape language
+
+- Deep operational green is the only normal primary-action, selected-navigation, active-workflow, and keyboard-focus color.
+- Warm orange is reserved for warning, urgency, attention, and compact notification cues. It must not compete with green as a second ordinary button color.
+- Phone inputs, selects, text areas, buttons, filter triggers, popovers, and legacy 2px surfaces normalize to the shared phone radii. Status and notification badges may remain fully pill-shaped; ordinary cards must not.
+- A single phone surface must not mix square legacy fields, rounded mobile fields, green primary buttons, and brown primary buttons.
 
 ## Media and content safety
 
@@ -56,6 +67,9 @@ The mobile shell may reorganize navigation, information density, filters, and ac
 ## Operational workflow UX
 
 - The current status and the next permitted action appear before secondary metadata.
+- Module landing pages use the operational hub hierarchy: one current-day summary, one primary task, one attention queue, and one compact tool list. They do not use repeated icon-card directories or duplicate explanatory copy.
+- The operational hub keeps the same information order on phone and desktop. Responsive behavior changes column placement and density, not terminology, color roles, or task priority.
+- Summary values share one flat data strip. Semantic orange or red appears only when the corresponding value requires attention; zero and normal states remain operational green.
 - A form starts with only the fields needed to begin. Notes, advanced filters, and audit detail use progressive disclosure.
 - Line-entry documents place the editable value and unit together, keep theoretical/variance feedback visible, and avoid card height that makes a count feel endless.
 - Long repeated tasks show completion progress and provide an in-list find/remaining-items view. A physical count must require an explicit physical value instead of silently copying the theoretical balance.

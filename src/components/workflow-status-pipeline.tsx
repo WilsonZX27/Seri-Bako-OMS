@@ -27,7 +27,7 @@ export function WorkflowStatusPipeline({ steps, currentStatus, compact = false }
                 "min-w-0 rounded-[2px] border",
                 compact ? "p-1.5" : "p-2",
                 done ? "border-[var(--sb-success-bg)] bg-[var(--sb-success-bg)] text-[var(--sb-success)]" : "",
-                active && !errorStep ? "border-[var(--sb-amber-700)] bg-white text-[var(--sb-text)]" : "",
+                active && !errorStep ? "border-[var(--sb-green-700)] bg-white text-[var(--sb-text)]" : "",
                 errorStep ? "border-[var(--sb-danger-bg)] bg-[var(--sb-danger-bg)] text-[var(--sb-danger)]" : "",
               )}
               title={step.description}

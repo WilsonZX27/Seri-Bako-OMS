@@ -41,7 +41,7 @@ export default async function LoginPage({
         </div>
         <SubmitButton className="w-full" pendingLabel="Signing in…">Sign in</SubmitButton>
         <div className="text-center">
-          <Link href="/forgot-password" className="inline-flex min-h-11 items-center text-sm font-medium text-[var(--sb-amber-700)] underline-offset-4 hover:underline sm:min-h-9 sm:text-xs">
+          <Link href="/forgot-password" className="inline-flex min-h-11 items-center text-sm font-medium text-[var(--sb-green-700)] underline-offset-4 hover:underline sm:min-h-9 sm:text-xs">
             Forgot password?
           </Link>
         </div>

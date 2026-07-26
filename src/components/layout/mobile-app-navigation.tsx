@@ -40,12 +40,15 @@ function roleTabs(role: UserRole, permissionMap: Record<string, boolean>): Mobil
   const tabs: MobileTab[] = [{ href: "/dashboard", label: "Home", icon: Home, permission: "dashboard.view" }];
 
   if (role === "outlet_staff") {
+    const canCreateDailyRecord = has(permissionMap, "outlet_daily_record.create");
     tabs.push(
       { href: "/outlet-daily-records", label: "Daily", icon: ClipboardList, permission: "outlet_daily_record.view" },
-      has(permissionMap, "outlet_daily_record.create")
+      canCreateDailyRecord
         ? { href: "/outlet-daily-records/new", label: "New record", icon: ClipboardCheck }
         : { href: "/activity", label: "Activity", icon: Activity, permission: "dashboard.view" },
-      { href: "/account", label: "Profile", icon: UserRound },
+      canCreateDailyRecord
+        ? { href: "/activity", label: "Activity", icon: Activity, permission: "dashboard.view" }
+        : { href: "/account", label: "Profile", icon: UserRound },
     );
     return tabs;
   }
@@ -173,10 +176,9 @@ export function MobileAppNavigation({
                 className={cn(
                   "relative flex min-w-0 flex-col items-center justify-center gap-0.5 px-1 py-1.5 text-[10px] font-medium text-[var(--sb-text-muted)]",
                   "active:bg-[var(--sb-surface-muted)]",
-                  active && "text-[var(--sb-green-900)]",
+                  active && "bg-[var(--sb-green-100)] text-[var(--sb-green-900)]",
                 )}
               >
-                {active ? <span className="absolute inset-x-3 top-0 h-0.5 bg-[var(--sb-amber-600)]" aria-hidden="true" /> : null}
                 <Icon className="h-5 w-5" strokeWidth={active ? 2.25 : 1.8} aria-hidden="true" />
                 <span className="max-w-full truncate">{tab.label}</span>
               </Link>

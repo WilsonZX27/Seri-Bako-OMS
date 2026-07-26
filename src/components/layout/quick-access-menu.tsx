@@ -52,7 +52,7 @@ export function QuickAccessMenu({ permissionMap }: QuickAccessMenuProps) {
                 </Link>
               ))}
             </div>
-            <Link href="/dashboard" onClick={() => setOpen(false)} className="mt-1 flex min-h-10 items-center justify-center border-t border-[var(--sb-border-soft)] px-2 pt-2 text-xs font-semibold text-[var(--sb-amber-700)]">Open dashboard</Link>
+            <Link href="/dashboard" onClick={() => setOpen(false)} className="mt-1 flex min-h-10 items-center justify-center border-t border-[var(--sb-border-soft)] px-2 pt-2 text-xs font-semibold text-[var(--sb-green-700)]">Open dashboard</Link>
           </div>
         </>
       ) : null}

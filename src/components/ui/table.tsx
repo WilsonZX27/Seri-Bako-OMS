@@ -25,7 +25,7 @@ export function OperationalListRow({ href, label, primary, status, secondary, me
   trailing?: React.ReactNode;
 }) {
   return (
-    <Link href={href} aria-label={label} role="listitem" className="grid min-h-16 grid-cols-[minmax(0,1fr)_auto] gap-x-3 gap-y-1 px-3 py-2.5 hover:bg-[var(--sb-surface-muted)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[var(--sb-amber-700)]">
+    <Link href={href} aria-label={label} role="listitem" className="grid min-h-16 grid-cols-[minmax(0,1fr)_auto] gap-x-3 gap-y-1 px-3 py-2.5 hover:bg-[var(--sb-surface-muted)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[var(--sb-green-700)]">
       <div className="min-w-0 text-[13px] font-semibold leading-5">{primary}</div>
       <div className="flex items-start gap-1 whitespace-nowrap">{status}{trailing ?? <ChevronRight className="mt-1 h-4 w-4 text-[var(--sb-text-soft)]" />}</div>
       {secondary ? <div className="min-w-0 truncate text-xs text-[var(--sb-text-muted)]">{secondary}</div> : <span />}
@@ -64,7 +64,7 @@ export function TableSelectionCell({ className, ...props }: React.TdHTMLAttribut
 
 export function TableActionLink({ href, label, children, className }: { href: string; label: string; children: React.ReactNode; className?: string }) {
   return (
-    <a href={href} aria-label={label} className={cn("inline-flex h-11 w-11 items-center justify-center text-[var(--sb-text-muted)] hover:bg-[var(--sb-surface-muted)] hover:text-[var(--sb-amber-700)] focus-visible:outline-none sm:h-8 sm:w-8", className)}>
+    <a href={href} aria-label={label} className={cn("inline-flex h-11 w-11 items-center justify-center text-[var(--sb-text-muted)] hover:bg-[var(--sb-surface-muted)] hover:text-[var(--sb-green-700)] focus-visible:outline-none sm:h-8 sm:w-8", className)}>
       {children}
     </a>
   );

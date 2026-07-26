@@ -77,6 +77,13 @@ The mobile shell may reorganize navigation, information density, filters, and ac
 - Destructive, posting, approval, cancel, and backup actions must state their consequence and remain distinct from save/draft actions.
 - Role restrictions must result in an explanatory read-only state, not a missing or broken-looking page.
 
+## Mobile operational surfaces
+
+- A phone workflow uses one boundary per operational unit. Do not place a bordered or shadowed card inside another card merely to group ordinary fields, progress, search, or line items.
+- Use a separate setup panel only when the user must establish context before beginning work (for example, date, branch, and tolerance). The repeatable work itself belongs in one continuous operational surface.
+- Within a continuous operational surface, use flat section backgrounds and 1px dividers for progress, filters, and rows. Do not wrap those sections in additional cards.
+- Preserve the same content hierarchy on desktop, but mobile may split setup from the active work surface to improve scanning and prevent nested-card visual noise.
+
 ## Verification gate
 
 A UI change is not complete until:

@@ -3,7 +3,6 @@
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { AlertTriangle, CheckCircle2, ListFilter, Search } from "lucide-react";
-import { Card, CardContent } from "@/components/ui/card";
 import { Field } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { SelectNative } from "@/components/ui/select-native";
@@ -122,9 +121,10 @@ export function StockCountForm({
   }
 
   return (
-    <Card className="border-0 bg-transparent shadow-none md:border md:bg-white">
-      <CardContent className="p-0 md:p-4">
+    <div className="md:rounded-[var(--sb-panel-radius)] md:border md:bg-white">
+      <div className="md:p-4">
         <form id={formId} action={action} className={showSubmit ? "space-y-3 pb-20 xl:pb-0" : "space-y-3"}>
+          <section data-stock-count-setup className="erp-surface p-3 md:rounded-none md:border-0 md:bg-transparent md:p-0">
           <div className="grid grid-cols-[minmax(0,1fr)_6.5rem] gap-2 lg:grid-cols-3 lg:gap-3">
             <Field label="Count Date"><Input name="count_date" type="date" defaultValue={today()} required /></Field>
             <Field label="Tolerance %"><Input name="tolerance_percent" type="number" min="0" step="0.01" defaultValue={tolerance} required /></Field>
@@ -142,8 +142,10 @@ export function StockCountForm({
               </details>
             </div>
           </div>
+          </section>
 
-          <section aria-label="Count progress" className="grid gap-2 border border-[var(--sb-border)] bg-[var(--sb-surface-muted)] p-3 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center">
+          <section data-stock-count-workspace className="erp-surface overflow-hidden md:rounded-none md:border-0 md:bg-transparent">
+          <section aria-label="Count progress" className="grid gap-2 border-b border-[var(--sb-border-soft)] bg-[var(--sb-surface-muted)] p-3 md:border md:border-[var(--sb-border)] sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center">
             <div className="min-w-0">
               <div className="flex items-center justify-between gap-3 text-sm">
                 <p className="font-semibold">{countComplete ? "Count complete" : `${remainingCount} item${remainingCount === 1 ? "" : "s"} remaining`}</p>
@@ -163,7 +165,7 @@ export function StockCountForm({
             ) : countComplete ? <CheckCircle2 className="hidden h-5 w-5 text-[var(--sb-success)] sm:block" aria-hidden="true" /> : null}
           </section>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 border-b border-[var(--sb-border-soft)] bg-white p-3 md:border-0 md:bg-transparent md:px-0 md:pt-3">
             <label className="relative min-w-0 flex-1">
               <span className="sr-only">Find an item</span>
               <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" aria-hidden="true" />
@@ -193,7 +195,7 @@ export function StockCountForm({
             ))}
           </div>
 
-          <div className="rounded-[2px] border">
+          <div data-stock-count-line-list className="md:rounded-[2px] md:border">
             <div className="hidden border-b bg-secondary/40 px-3 py-2 lg:grid lg:grid-cols-[minmax(12rem,1.4fr)_minmax(7rem,0.65fr)_minmax(10rem,0.8fr)_minmax(9rem,0.7fr)_minmax(10rem,1fr)] lg:gap-3">
               <p className="text-xs font-semibold">Item</p>
               <p className="text-xs text-right font-semibold">Theoretical</p>
@@ -293,6 +295,7 @@ export function StockCountForm({
               ) : null}
             </div>
           </div>
+          </section>
 
           {showSubmit ? (
             <div className="sb-mobile-action-bar fixed inset-x-3 bottom-[calc(env(safe-area-inset-bottom)+0.5rem)] z-[var(--sb-z-sticky)] flex min-w-0 items-center gap-3 p-2 xl:hidden">
@@ -301,7 +304,7 @@ export function StockCountForm({
             </div>
           ) : null}
         </form>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 }

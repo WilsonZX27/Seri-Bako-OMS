@@ -22,3 +22,15 @@ test("production jobs use the shared mobile status rail and reserve FAB clearanc
   assert.match(source, /hidden flex-wrap gap-2 md:flex/);
   assert.match(source, /canCreate \? "pb-32" : "pb-4"/);
 });
+
+test("stock count keeps setup separate from one continuous phone work surface", () => {
+  const source = read("src/components/stock-count-form.tsx");
+  const design = read("DESIGN.md");
+
+  assert.match(source, /data-stock-count-setup/);
+  assert.match(source, /data-stock-count-workspace/);
+  assert.match(source, /data-stock-count-line-list/);
+  assert.match(source, /border-b border-\[var\(--sb-border-soft\)\]/);
+  assert.match(design, /A phone workflow uses one boundary per operational unit/);
+  assert.match(design, /Do not place a bordered or shadowed card inside another card/);
+});

@@ -34,3 +34,15 @@ test("stock count keeps setup separate from one continuous phone work surface", 
   assert.match(design, /A phone workflow uses one boundary per operational unit/);
   assert.match(design, /Do not place a bordered or shadowed card inside another card/);
 });
+
+test("goods receiving prioritizes physical receipt before reference quantities on phones", () => {
+  const source = read("src/components/goods-receiving-form.tsx");
+
+  assert.match(source, /data-goods-receiving-setup/);
+  assert.match(source, /data-goods-receiving-workspace/);
+  assert.match(source, /label="Received" required className="order-2/);
+  assert.match(source, /label="Rejected" className="order-2/);
+  assert.match(source, /label="Ordered" className="order-3/);
+  assert.match(source, /label="Prev\. Received" className="order-3/);
+  assert.match(source, /label="Pending" className="order-4/);
+});

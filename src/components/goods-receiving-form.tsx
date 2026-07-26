@@ -39,13 +39,13 @@ export function GoodsReceivingForm({
   }
 
   return (
-    <Card>
-      <CardContent className="p-3 sm:p-5">
+    <Card className="border-0 bg-transparent shadow-none md:border md:bg-white">
+      <CardContent className="p-0 md:p-5">
         <form id="goods-receiving-form" action={action} className="space-y-3">
           <input type="hidden" name="idempotency_key" value={idempotencyKey} />
           <input type="hidden" name="grn_no" value={grnNo} />
           <input type="hidden" name="status" value="draft" />
-          <div className="grid gap-3 lg:grid-cols-3">
+          <section data-goods-receiving-setup className="erp-surface grid gap-3 p-3 md:rounded-none md:border-0 md:bg-transparent md:p-0 lg:grid-cols-3">
             <Field label="Purchase Order" required>
               <SelectNative value={selectedOrder?.id ?? ""} onChange={(event) => selectPo(event.target.value)} required>
                 <option value="">Select approved/sent PO</option>
@@ -76,13 +76,13 @@ export function GoodsReceivingForm({
                 <Textarea name="remarks" placeholder="Delivery notes, vehicle, temperature, or supplier remarks" />
               </Field>
             </div>
-          </div>
+          </section>
 
           {selectedOrder ? (
             <>
               <input type="hidden" name="purchase_order_id" value={selectedOrder.id} />
               <input type="hidden" name="supplier_id" value={selectedOrder.supplier_id} />
-              <div className="rounded-[2px] border border-[var(--sb-border-soft)]">
+              <section data-goods-receiving-workspace className="erp-surface overflow-hidden md:rounded-[2px]">
                 <div className="flex flex-col gap-2 border-b bg-secondary/40 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
                   <div>
                     <p className="text-xs font-semibold">Receiving Lines</p>
@@ -95,19 +95,19 @@ export function GoodsReceivingForm({
                 <div className="divide-y">
                   {lines.map((line) => (
                     <div key={line.id} id={`line-${line.id}`} className="grid grid-cols-2 gap-3 p-3 sm:grid-cols-3 xl:grid-cols-[2fr_repeat(5,96px)_112px_112px_1.3fr] xl:gap-2">
-                      <div className="col-span-2 border-b border-[var(--sb-border-soft)] pb-2 sm:col-span-3 xl:col-span-1 xl:border-b-0 xl:pb-0">
+                      <div className="order-1 col-span-2 border-b border-[var(--sb-border-soft)] pb-2 sm:col-span-3 xl:order-none xl:col-span-1 xl:border-b-0 xl:pb-0">
                         <p className="font-medium">{line.item?.item_name ?? line.item_id}</p>
                         <p className="text-xs text-muted-foreground">{line.item?.item_code} · {line.uom}</p>
                         <p className="mt-1 text-xs text-muted-foreground">Unit cost {formatCurrency(line.unit_price)}</p>
                       </div>
-                      <Field label="Ordered"><Input name="line_ordered_qty" value={line.qty_ordered} readOnly /></Field>
-                      <Field label="Prev. Received"><Input name="line_previously_received_qty" value={line.previously_received_qty} readOnly /></Field>
-                      <Field label="Pending"><Input name="line_pending_qty" value={line.pending_qty} readOnly /></Field>
-                      <Field label="Received" required className="sm:col-start-1 xl:col-start-auto"><Input id={`received-${line.id}`} name="line_received_qty" type="number" inputMode="decimal" min="0" max={line.pending_qty} step="0.0001" defaultValue={0} className="font-semibold tabular-nums" /></Field>
-                      <Field label="Rejected"><Input name="line_rejected_qty" type="number" inputMode="decimal" min="0" max={line.pending_qty} step="0.0001" defaultValue={0} className="font-semibold tabular-nums" /></Field>
-                      <Field label="Batch"><Input name="line_batch_no" placeholder="Batch no" /></Field>
-                      <Field label="Expiry"><Input name="line_expiry_date" type="date" /></Field>
-                      <Field label="Remarks" className="col-span-2 sm:col-span-3 xl:col-span-1"><Input name="line_remarks" placeholder="Damage/reject notes" /></Field>
+                      <Field label="Received" required className="order-2 xl:order-none xl:col-start-auto"><Input id={`received-${line.id}`} name="line_received_qty" type="number" inputMode="decimal" min="0" max={line.pending_qty} step="0.0001" defaultValue={0} className="font-semibold tabular-nums" /></Field>
+                      <Field label="Rejected" className="order-2 xl:order-none"><Input name="line_rejected_qty" type="number" inputMode="decimal" min="0" max={line.pending_qty} step="0.0001" defaultValue={0} className="font-semibold tabular-nums" /></Field>
+                      <Field label="Ordered" className="order-3 xl:order-none"><Input name="line_ordered_qty" value={line.qty_ordered} readOnly /></Field>
+                      <Field label="Prev. Received" className="order-3 xl:order-none"><Input name="line_previously_received_qty" value={line.previously_received_qty} readOnly /></Field>
+                      <Field label="Pending" className="order-4 xl:order-none"><Input name="line_pending_qty" value={line.pending_qty} readOnly /></Field>
+                      <Field label="Batch" className="order-4 xl:order-none"><Input name="line_batch_no" placeholder="Batch no" /></Field>
+                      <Field label="Expiry" className="order-5 xl:order-none"><Input name="line_expiry_date" type="date" /></Field>
+                      <Field label="Remarks" className="order-5 col-span-2 sm:col-span-3 xl:order-none xl:col-span-1"><Input name="line_remarks" placeholder="Damage/reject notes" /></Field>
                       <input type="hidden" name="line_purchase_order_line_id" value={line.id} />
                       <input type="hidden" name="line_item_id" value={line.item_id} />
                       <input type="hidden" name="line_uom" value={line.uom} />
@@ -121,18 +121,18 @@ export function GoodsReceivingForm({
                     </div>
                   ) : null}
                 </div>
-              </div>
+              </section>
 
               <p className="rounded-[2px] border bg-secondary/30 p-3 text-sm text-muted-foreground">
                 Save the receiving, then attach the supplier Delivery Order before posting to stock. Mobile upload supports camera, photo library, and files.
               </p>
             </>
           ) : (
-            <div className="rounded-[2px] border bg-secondary/30 p-8 text-center">
+            <section data-goods-receiving-empty className="erp-surface p-8 text-center">
               <PackageCheck className="mx-auto h-10 w-10 text-muted-foreground" />
               <p className="mt-3 font-semibold">Select a purchase order to begin receiving</p>
               <p className="mt-1 text-sm text-muted-foreground">Only approved, sent, or partially received POs can be received.</p>
-            </div>
+            </section>
           )}
         </form>
       </CardContent>

@@ -147,7 +147,7 @@ export function ProductionJobForm({
                   Some ingredients are below required stock. Draft can be created, but posting will be blocked unless an authorized user overrides negative stock.
                 </div>
               ) : null}
-              <div className="overflow-x-auto rounded-md border">
+              <div className="sb-table-region hidden rounded-[2px] border md:block">
                 <Table>
                   <TableHeader>
                     <TableRow>
@@ -176,11 +176,29 @@ export function ProductionJobForm({
                   </TableBody>
                 </Table>
               </div>
+              <div data-production-ingredient-list className="divide-y divide-[var(--sb-border-soft)] md:hidden">
+                {ingredientLines.map((line) => (
+                  <article key={line.item_id} className="min-w-0 py-3 first:pt-0 last:pb-0">
+                    <div className="flex min-w-0 items-start justify-between gap-3">
+                      <div className="min-w-0">
+                        <p className="break-words text-sm font-semibold">{line.item_name}</p>
+                        <p className="text-xs text-muted-foreground">{line.item_code}</p>
+                      </div>
+                      {line.shortage ? <Badge variant="warning">Short</Badge> : <Badge variant="success">OK</Badge>}
+                    </div>
+                    <dl className="mt-3 grid grid-cols-2 gap-x-4 gap-y-2 text-xs">
+                      <div><dt className="text-muted-foreground">Required</dt><dd className="mt-0.5 font-semibold tabular-nums">{formatNumber(line.requiredQty)} {line.uom}</dd></div>
+                      <div><dt className="text-muted-foreground">Branch stock</dt><dd className="mt-0.5 font-semibold tabular-nums">{formatNumber(line.availableQty)} {line.uom}</dd></div>
+                      <div className="col-span-2 flex items-baseline justify-between gap-3 border-t border-[var(--sb-border-soft)] pt-2"><dt className="text-muted-foreground">Estimated cost</dt><dd className="font-semibold tabular-nums">{formatCurrency(line.lineCost)}</dd></div>
+                    </dl>
+                  </article>
+                ))}
+              </div>
             </CardContent>
           </Card>
 
           <Card>
-            <CardContent className="grid gap-4 p-5 md:grid-cols-4">
+            <CardContent className="grid grid-cols-2 gap-4 p-4 md:grid-cols-4 md:p-5">
               <div>
                 <p className="text-xs uppercase text-muted-foreground">Output</p>
                 <p className="font-medium">{selectedRecipe.product_name}</p>

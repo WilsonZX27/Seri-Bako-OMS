@@ -173,3 +173,10 @@ test("product master editing avoids nested card boundaries on phones", () => {
   assert.match(source, /border-y bg-secondary\/30 py-4 md:col-span-2/);
   assert.match(source, /border-y py-4 md:col-span-2/);
 });
+
+test("supplier master uses a flat phone submit boundary", () => {
+  const source = read("src/components/supplier-form.tsx");
+
+  assert.match(source, /border-0 bg-transparent shadow-none md:border/);
+  assert.match(source, /border-t px-0 py-3 md:border-0 md:p-3/);
+});

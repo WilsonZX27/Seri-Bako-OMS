@@ -15,6 +15,7 @@ import { StatusBadge } from "@/components/ui/status-badge";
 import { OperationalList, OperationalListRow, Table, TableActionLink, TableBody, TableCell, TableHead, TableHeader, TableRow, TableSelectionCell, TableSelectionHead } from "@/components/ui/table";
 import { PaginationControls, SortableHead } from "@/components/sortable-table";
 import { ConsoleSection, RightConsoleMount } from "@/components/layout/right-console";
+import { StatusTabs } from "@/components/status-tabs";
 import { getBranchesForSelect } from "@/server/queries/common";
 import { getProductionJobs } from "@/server/queries/production-jobs";
 import { hasPermission } from "@/server/auth/permissions";
@@ -71,8 +72,11 @@ export default async function ProductionJobsPage({ searchParams }: { searchParam
         </ConsoleSection>
       </RightConsoleMount>
       <BulkSelectionProvider ids={jobs.rows.map((row) => row.id)} actionLabel="Archive selected" canAct={false}>
-        <div className="space-y-4 p-5">
-          <div className="flex flex-wrap gap-2">
+        <div className={`space-y-3 p-3 ${canCreate ? "pb-32" : "pb-4"} md:space-y-4 md:p-5`}>
+          <div className="md:hidden">
+            <StatusTabs statuses={tabs.filter(([value]) => value !== "all").map(([value, label]) => ({ value, label }))} activeStatus={filters.status} />
+          </div>
+          <div className="hidden flex-wrap gap-2 md:flex">
             {tabs.map(([value, label]) => (
               <Button key={value} asChild variant={selectedStatus === value ? "default" : "outline"} size="sm">
                 <Link href={`/production/jobs${value === "all" ? "" : `?status=${value}`}`}>{label}</Link>

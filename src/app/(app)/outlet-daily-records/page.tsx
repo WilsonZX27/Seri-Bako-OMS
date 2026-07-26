@@ -44,7 +44,15 @@ export default async function OutletDailyRecordsPage({ searchParams }: { searchP
           {!data.rows.length ? <TableRow><TableCell colSpan={9}><EmptyState title={filtered ? "No daily records match these filters" : "No outlet daily records yet"} description={filtered ? "Reset the filters or widen the search." : "Daily receiving and wastage records will appear here."} action={filtered ? { href: "/outlet-daily-records", label: "Reset filters" } : undefined} /></TableCell></TableRow> : null}
         </TableBody></Table>
         <OperationalList ariaLabel="Outlet daily records">
-          {data.rows.map((row) => <OperationalListRow key={row.id} href={`/outlet-daily-records/${row.id}`} label={`Open ${row.branch_name} daily record`} primary={row.branch_name} status={<StatusBadge status={row.status} />} secondary={`${row.record_date}${row.record_date === data.summary.today ? " · Today" : ""}`} meta={`${formatNumber(row.total_received)} received`} />)}
+          {data.rows.map((row) => <OperationalListRow
+            key={row.id}
+            href={`/outlet-daily-records/${row.id}`}
+            label={`Open ${row.branch_name} daily record`}
+            primary={<div><span>{row.branch_name}</span><p className="text-[11px] font-normal text-[var(--sb-text-muted)]">{statusGuidance(row.status)}</p></div>}
+            status={<StatusBadge status={row.status} />}
+            secondary={`${row.record_date}${row.record_date === data.summary.today ? " · Today" : ""}${row.total_wastage > 0 ? ` · ${formatNumber(row.total_wastage)} waste` : ""}`}
+            meta={`${formatNumber(row.total_received)} received`}
+          />)}
           {!data.rows.length ? <EmptyState title={filtered ? "No daily records match these filters" : "No outlet daily records yet"} description={filtered ? "Reset the filters or widen the search." : "Daily receiving and wastage records will appear here."} action={filtered ? { href: "/outlet-daily-records", label: "Reset filters" } : undefined} /> : null}
         </OperationalList>
         <PaginationControls page={data.page} totalPages={data.totalPages} totalRows={data.totalRows} searchParams={filters} />

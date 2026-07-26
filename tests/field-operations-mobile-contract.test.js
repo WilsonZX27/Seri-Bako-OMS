@@ -130,3 +130,11 @@ test("purchase returns lead with the return quantity before read-only stock refe
   assert.match(source, /label="Received" className="order-3 xl:order-none"/);
   assert.match(source, /label="Reason" className="col-span-2 order-4/);
 });
+
+test("production variance retains a compact signal list on phones", () => {
+  const source = read("src/app/(app)/production/variance/page.tsx");
+
+  assert.match(source, /<Table mobileHidden aria-label="Production versus outlet demand variance"/);
+  assert.match(source, /data-production-variance-list/);
+  assert.match(source, /grid grid-cols-2 gap-x-4 gap-y-2 text-xs/);
+});

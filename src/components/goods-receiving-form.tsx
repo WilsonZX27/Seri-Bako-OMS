@@ -40,7 +40,7 @@ export function GoodsReceivingForm({
 
   return (
     <Card>
-      <CardContent className="p-5">
+      <CardContent className="p-3 sm:p-5">
         <form id="goods-receiving-form" action={action} className="space-y-3">
           <input type="hidden" name="idempotency_key" value={idempotencyKey} />
           <input type="hidden" name="grn_no" value={grnNo} />
@@ -82,7 +82,7 @@ export function GoodsReceivingForm({
             <>
               <input type="hidden" name="purchase_order_id" value={selectedOrder.id} />
               <input type="hidden" name="supplier_id" value={selectedOrder.supplier_id} />
-              <div className="rounded-[2px] border">
+              <div className="rounded-[2px] border border-[var(--sb-border-soft)]">
                 <div className="flex flex-col gap-2 border-b bg-secondary/40 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
                   <div>
                     <p className="text-xs font-semibold">Receiving Lines</p>
@@ -94,20 +94,20 @@ export function GoodsReceivingForm({
                 </div>
                 <div className="divide-y">
                   {lines.map((line) => (
-                    <div key={line.id} id={`line-${line.id}`} className="grid gap-2 p-3 xl:grid-cols-[2fr_repeat(5,96px)_112px_112px_1.3fr]">
-                      <div>
+                    <div key={line.id} id={`line-${line.id}`} className="grid grid-cols-2 gap-3 p-3 sm:grid-cols-3 xl:grid-cols-[2fr_repeat(5,96px)_112px_112px_1.3fr] xl:gap-2">
+                      <div className="col-span-2 border-b border-[var(--sb-border-soft)] pb-2 sm:col-span-3 xl:col-span-1 xl:border-b-0 xl:pb-0">
                         <p className="font-medium">{line.item?.item_name ?? line.item_id}</p>
-                        <p className="text-xs text-muted-foreground">{line.item?.item_code}</p>
+                        <p className="text-xs text-muted-foreground">{line.item?.item_code} · {line.uom}</p>
                         <p className="mt-1 text-xs text-muted-foreground">Unit cost {formatCurrency(line.unit_price)}</p>
                       </div>
                       <Field label="Ordered"><Input name="line_ordered_qty" value={line.qty_ordered} readOnly /></Field>
                       <Field label="Prev. Received"><Input name="line_previously_received_qty" value={line.previously_received_qty} readOnly /></Field>
                       <Field label="Pending"><Input name="line_pending_qty" value={line.pending_qty} readOnly /></Field>
-                      <Field label="Received" required><Input id={`received-${line.id}`} name="line_received_qty" type="number" min="0" max={line.pending_qty} step="0.0001" defaultValue={0} /></Field>
-                      <Field label="Rejected"><Input name="line_rejected_qty" type="number" min="0" max={line.pending_qty} step="0.0001" defaultValue={0} /></Field>
+                      <Field label="Received" required className="sm:col-start-1 xl:col-start-auto"><Input id={`received-${line.id}`} name="line_received_qty" type="number" inputMode="decimal" min="0" max={line.pending_qty} step="0.0001" defaultValue={0} className="font-semibold tabular-nums" /></Field>
+                      <Field label="Rejected"><Input name="line_rejected_qty" type="number" inputMode="decimal" min="0" max={line.pending_qty} step="0.0001" defaultValue={0} className="font-semibold tabular-nums" /></Field>
                       <Field label="Batch"><Input name="line_batch_no" placeholder="Batch no" /></Field>
                       <Field label="Expiry"><Input name="line_expiry_date" type="date" /></Field>
-                      <Field label="Remarks"><Input name="line_remarks" placeholder="Damage/reject notes" /></Field>
+                      <Field label="Remarks" className="col-span-2 sm:col-span-3 xl:col-span-1"><Input name="line_remarks" placeholder="Damage/reject notes" /></Field>
                       <input type="hidden" name="line_purchase_order_line_id" value={line.id} />
                       <input type="hidden" name="line_item_id" value={line.item_id} />
                       <input type="hidden" name="line_uom" value={line.uom} />

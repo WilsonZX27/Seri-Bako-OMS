@@ -58,7 +58,7 @@ export default async function ProductionPage() {
   return (
     <>
       <PageHeader title="Production" description="Recipe-based production jobs and finished goods stock posting for Seri Bako kitchen operations." />
-      <div className="space-y-5 p-5">
+      <div className="space-y-4 p-3 sm:space-y-5 sm:p-5">
         <WorkspaceQuickInsights insights={productionInsights} />
         <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-4">
           {productionSections.map((section) => (

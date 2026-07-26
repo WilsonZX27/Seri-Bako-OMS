@@ -50,6 +50,7 @@
   --sb-space-6: 1.5rem;
   --sb-control-height: 2.75rem;
   --sb-topbar-height: 3rem;
+  --sb-mobile-nav-height: 4rem;
   --sb-sidebar-width: 14.75rem;
   --sb-console-width: 21.25rem;
   --sb-panel-radius: 0.125rem;
@@ -378,6 +379,22 @@ input[type="date"]::-webkit-date-and-time-value {
 }
 
 @media (max-width: 767px) {
+  [data-app-topbar] {
+    height: calc(var(--sb-topbar-height) + env(safe-area-inset-top));
+    padding-top: env(safe-area-inset-top);
+  }
+
+  [data-mobile-action-bar],
+  [data-mobile-document-action],
+  .sb-mobile-action-bar {
+    bottom: calc(var(--sb-mobile-nav-height) + env(safe-area-inset-bottom) + 0.5rem) !important;
+  }
+
+  html[data-mobile-sheet-open="true"] [data-mobile-app-nav] {
+    visibility: hidden;
+    pointer-events: none;
+  }
+
   .sb-list-filters {
     display: flex;
     flex-wrap: wrap;

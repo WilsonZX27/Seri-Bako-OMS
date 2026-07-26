@@ -19,7 +19,7 @@ export default async function AdministrationPage() {
   return (
     <>
       <PageHeader title="Administration" description="Owner controls and authorized master-data tools in one permission-aware workspace." />
-      <div className="space-y-5 p-5"><CategoryCardGrid items={links} /></div>
+      <div className="space-y-4 p-3 sm:space-y-5 sm:p-5"><CategoryCardGrid items={links} /></div>
     </>
   );
 }

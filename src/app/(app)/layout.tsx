@@ -9,9 +9,14 @@ import { createClient } from "@/lib/supabase/server";
 import { getCurrentProfile } from "@/server/queries/common";
 import { getPermissionMap } from "@/server/auth/permissions";
 import { navPermissionCodes } from "@/components/layout/nav-items";
+import { MobileAppNavigation } from "@/components/layout/mobile-app-navigation";
+import { getCompanyBranding } from "@/server/queries/common";
+import type { UserRole } from "@/types/database";
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
-  const [profile, permissionMap] = await Promise.all([getCurrentProfile(), getPermissionMap(navPermissionCodes)]);
+  const mobileNavigationPermissionCodes = ["outlet_daily_record.create", "goods_receiving.create", "stock_count.create"];
+  const permissionCodes = Array.from(new Set([...navPermissionCodes, ...mobileNavigationPermissionCodes]));
+  const [profile, permissionMap, branding] = await Promise.all([getCurrentProfile(), getPermissionMap(permissionCodes), getCompanyBranding()]);
 
   if (!isMockMode()) {
     if (!profile) redirect("/login");
@@ -29,6 +34,8 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   }
 
   const hasStaffRole = (profile as { has_staff_role?: boolean } | null)?.has_staff_role ?? false;
+  const roleProfile = profile as { role_code?: UserRole; role?: UserRole } | null;
+  const role = roleProfile?.role_code ?? roleProfile?.role ?? "outlet_staff";
 
   return (
     <div data-app-shell className="h-dvh overflow-hidden bg-[var(--app-bg)]">
@@ -46,12 +53,13 @@ export default async function AppLayout({ children }: { children: React.ReactNod
               <div data-center-workspace className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
                 <GlobalActionToast />
                 <SessionTimeoutProvider />
-                <main id="main-content" className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden pb-20 xl:pb-0">{children}</main>
+                <main id="main-content" className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden pb-[calc(var(--sb-mobile-nav-height)+env(safe-area-inset-bottom)+1rem)] md:pb-20 xl:pb-0">{children}</main>
               </div>
             </RightConsoleProvider>
           </div>
         </div>
       </div>
+      <MobileAppNavigation role={role} permissionMap={permissionMap} companyName={branding.company_name} />
     </div>
   );
 }

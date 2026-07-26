@@ -23,6 +23,23 @@ Do not introduce a page-specific breakpoint. These thresholds serve distinct ope
 - Full-width forms use `w-full min-w-0 max-w-full`. A form control may have a minimum touch target (for example quantity entry) but the surrounding layout must still shrink safely.
 - Form sections that contain file inputs, long sample values, or native selects must also set `min-w-0` on the containing grid/flex items; native file controls must never widen their parent on narrow screens.
 
+## Mobile Web App shell
+
+The authenticated phone experience is an application-style mobile Web layout, not a scaled desktop sidebar.
+
+- Below `768px`, the primary navigation is a five-slot bottom bar: up to four permission-aware role shortcuts plus `More`.
+- `More` opens the complete navigation allowed by the current role and effective permission map. It must never expose an unauthorized route.
+- Shortcut destinations are role-aware. Owner and Manager emphasize requests, receiving, and stock count; Finance emphasizes requests, invoices, and stock; Purchasing emphasizes requests, orders, and receiving; Kitchen emphasizes production and assigned operational work; Outlet Staff emphasizes the daily record.
+- The desktop sidebar remains the authoritative desktop navigation and is unchanged at `1280px` and above.
+- Root workspaces show the company identity in the phone top bar. New, edit, and detail routes show a contextual back link to their parent workspace.
+- The bottom bar observes `env(safe-area-inset-bottom)`. The top bar observes `env(safe-area-inset-top)`, and the root viewport uses `viewport-fit=cover`.
+- A page-level fixed primary action sits above the bottom navigation. It must not cover the final field, the navigation, or the home indicator.
+- Pages without contextual actions must not render an empty or generic secondary action bar.
+- Mobile sheets lock background scroll, support Escape dismissal, preserve focus, and sit above both navigation and page actions.
+- The web manifest uses `display: standalone` so supported browsers may add the OMS to the home screen without creating a separate native application.
+
+The mobile shell may reorganize navigation, information density, filters, and action placement, but it must reuse the same colors, terminology, permissions, route authorization, document states, and server actions as desktop.
+
 ## Typography and spacing
 
 - Use `rem`, `em`, design tokens, or `clamp()` for type and spacing. Do not use screen-specific pixel font sizes or page-level pixel padding.

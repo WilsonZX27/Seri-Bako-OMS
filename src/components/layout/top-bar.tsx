@@ -4,6 +4,7 @@ import { GlobalSearch } from "@/components/search/global-search";
 import { MobileSidebar } from "@/components/layout/mobile-sidebar";
 import { TopBarActivityMenu } from "@/components/layout/top-bar-activity-menu";
 import { QuickAccessMenu } from "@/components/layout/quick-access-menu";
+import { MobileContextHeader } from "@/components/layout/mobile-context-header";
 import { getRoleDisplayLabel } from "@/lib/roles";
 import { getCompanyBranding, getCurrentProfile } from "@/server/queries/common";
 import { getTopBarActivity } from "@/server/queries/topbar";
@@ -18,18 +19,19 @@ export async function TopBar({ permissionMap }: { permissionMap: Record<string, 
   const initials = displayName.slice(0, 2).toUpperCase();
 
   return (
-    <header className="relative z-40 grid h-12 grid-cols-[minmax(0,1fr)_auto] items-center justify-between gap-3 border-b border-[var(--sb-border-soft)] bg-card px-4">
+    <header data-app-topbar className="relative z-40 grid h-12 grid-cols-[minmax(0,1fr)_auto] items-center justify-between gap-3 border-b border-[var(--sb-border-soft)] bg-card px-3 sm:px-4">
       <div className="flex min-w-0 items-center gap-3">
         <MobileSidebar role={role} permissionMap={permissionMap} companyName={branding.company_name} companyLogoUrl={branding.logo_url} />
-        <div className="min-w-0">
+        <div className="min-w-0 md:hidden"><MobileContextHeader companyName={branding.company_name} /></div>
+        <div className="hidden min-w-0 md:block">
           <Breadcrumbs />
         </div>
       </div>
       <div data-testid="topbar-account-region" className="flex items-center justify-end gap-2">
-        <div data-testid="topbar-search-region">
+        <div data-testid="topbar-search-region" className="hidden sm:block">
           <GlobalSearch permissionMap={permissionMap} />
         </div>
-        <QuickAccessMenu permissionMap={permissionMap} />
+        <div className="hidden sm:block"><QuickAccessMenu permissionMap={permissionMap} /></div>
         <TopBarActivityMenu data={activity} />
         <AccountMenu displayName={displayName} roleLabel={getRoleDisplayLabel(role)} initials={initials} />
       </div>

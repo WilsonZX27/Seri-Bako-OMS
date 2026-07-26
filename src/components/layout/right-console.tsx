@@ -95,14 +95,14 @@ export function RightConsoleProvider({ children }: { children: ReactNode }) {
           {consoleContent}
         </div>
       </aside>
-      {!mobileBarHidden ? <div data-mobile-action-bar className={cn("sb-mobile-action-bar fixed inset-x-3 bottom-[calc(env(safe-area-inset-bottom)+0.5rem)] z-[var(--sb-z-sticky)] flex items-center gap-2 p-2", mobileOnlyBar ? "md:hidden" : "xl:hidden")}>
+      {content && !mobileBarHidden ? <div data-mobile-action-bar className={cn("sb-mobile-action-bar fixed inset-x-3 bottom-[calc(env(safe-area-inset-bottom)+0.5rem)] z-[var(--sb-z-sticky)] flex items-center gap-2 p-2", mobileOnlyBar ? "md:hidden" : "xl:hidden")}>
         {primaryAction ? <div data-mobile-primary-slot className="min-w-0 flex-1 [&>*]:w-full">{primaryAction}</div> : null}
         <Button ref={triggerRef} type="button" variant={primaryAction ? "outline" : "default"} className={primaryAction ? "shrink-0 gap-2" : "w-full gap-2"} onClick={() => setOpen(true)} aria-label="Open more actions" aria-haspopup="dialog" aria-expanded={open}>
           <PanelRight className="h-4 w-4" aria-hidden="true" />
           {primaryAction ? "More" : "More actions"}
         </Button>
       </div> : null}
-      {open && !mobileBarHidden ? (
+      {open && content && !mobileBarHidden ? (
         <div className={cn("fixed inset-0 z-[var(--sb-z-dialog)]", mobileOnlyBar ? "md:hidden" : "xl:hidden")}>
           <button type="button" className="sb-dialog-backdrop absolute inset-0 h-full w-full" onClick={close} aria-label="Close more actions" />
           <div ref={dialogRef} role="dialog" aria-modal="true" aria-labelledby={titleId} className="sb-popover-surface absolute inset-x-0 bottom-0 max-h-[82dvh] overflow-hidden pb-[env(safe-area-inset-bottom)]">

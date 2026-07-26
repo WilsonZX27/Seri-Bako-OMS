@@ -118,7 +118,7 @@ export function WorkspaceSectionPanel({ section }: { section: WorkspaceSection }
           </div>
         </div>
       </div>
-      <div className="grid items-stretch gap-2.5 p-3 md:grid-cols-2 xl:grid-cols-1">
+      <div className="grid items-stretch divide-y divide-[var(--sb-border-soft)] md:grid-cols-2 md:gap-2.5 md:divide-y-0 md:p-3 xl:grid-cols-1">
         {section.actions.map((action) => (
           <WorkspaceActionCard key={action.href} action={action} theme={theme} />
         ))}
@@ -130,8 +130,8 @@ export function WorkspaceSectionPanel({ section }: { section: WorkspaceSection }
 function WorkspaceActionCard({ action, theme }: { action: WorkspaceAction; theme: WorkspaceTheme }) {
   const ActionIcon = action.icon;
   const content = (
-    <Card className={cn("h-full rounded-[2px] border border-[var(--sb-border-soft)] bg-white transition-colors", action.disabled ? "opacity-70" : "group-hover:border-[var(--sb-amber-300)] group-hover:bg-[var(--sb-surface-muted)]")}>
-      <CardContent className="flex h-full min-h-[88px] flex-col justify-between gap-2 p-3">
+    <Card className={cn("h-full rounded-none border-0 bg-white transition-colors md:rounded-[2px] md:border md:border-[var(--sb-border-soft)]", action.disabled ? "opacity-70" : "active:bg-[var(--sb-surface-muted)] md:group-hover:border-[var(--sb-amber-300)] md:group-hover:bg-[var(--sb-surface-muted)]")}>
+      <CardContent className="flex h-full min-h-16 flex-col justify-between gap-2 p-3 md:min-h-[88px]">
         <div className="flex items-start gap-3">
           <div className={cn("flex h-7 w-7 shrink-0 items-center justify-center rounded-md", theme.badge, theme.iconText)}>
             <ActionIcon className="h-4 w-4" />
@@ -154,18 +154,18 @@ function WorkspaceActionCard({ action, theme }: { action: WorkspaceAction; theme
 
 export function WorkspaceQuickInsights({ insights, action }: { insights: WorkspaceInsight[]; action?: { href: string; label: string; icon?: LucideIcon } }) {
   return (
-    <Card className="border bg-card shadow-sm">
+    <Card className="rounded-[2px] border bg-card shadow-none">
       <CardContent className="grid gap-3 p-3 xl:grid-cols-[140px_1fr_auto] xl:items-center">
         <div>
           <p className="text-[13px] font-semibold">Quick Insights</p>
           <p className="mt-1 text-xs text-muted-foreground">Fast counters for today&apos;s workspace.</p>
         </div>
-        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+        <div className="grid grid-cols-2 gap-px overflow-hidden border border-[var(--sb-border-soft)] bg-[var(--sb-border-soft)] sm:grid-cols-2 sm:gap-3 sm:overflow-visible sm:border-0 sm:bg-transparent xl:grid-cols-4">
           {insights.map((insight) => {
             const theme = workspaceThemes[insight.theme ?? "neutral"];
             const InsightIcon = insight.icon;
             return (
-              <div key={insight.label} className={cn("flex items-center gap-2 rounded-[2px] border border-[var(--sb-border-soft)] bg-white p-2.5", theme.iconText)}>
+              <div key={insight.label} className={cn("flex min-w-0 items-center gap-2 bg-white p-2.5 sm:rounded-[2px] sm:border sm:border-[var(--sb-border-soft)]", theme.iconText)}>
                 <div className={cn("flex h-7 w-7 shrink-0 items-center justify-center rounded-md", theme.badge)}>
                   <InsightIcon className="h-4 w-4" />
                 </div>

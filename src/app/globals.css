@@ -405,6 +405,10 @@ input[type="date"]::-webkit-date-and-time-value {
     bottom: calc(var(--sb-mobile-nav-height) + env(safe-area-inset-bottom) + 1rem);
   }
 
+  html[data-mobile-task-page="true"] :is([data-mobile-action-bar], [data-mobile-document-action], .sb-mobile-action-bar) {
+    bottom: calc(env(safe-area-inset-bottom) + 0.5rem) !important;
+  }
+
   html[data-mobile-sheet-open="true"] [data-mobile-app-nav] {
     visibility: hidden;
     pointer-events: none;

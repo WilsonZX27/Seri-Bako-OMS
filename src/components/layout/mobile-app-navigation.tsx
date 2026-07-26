@@ -103,6 +103,7 @@ export function MobileAppNavigation({
   companyName: string;
 }) {
   const pathname = usePathname();
+  const isFocusedTask = /\/(?:new|edit)$/.test(pathname);
   const [moreOpen, setMoreOpen] = useState(false);
   const triggerRef = useRef<HTMLButtonElement>(null);
   const dialogRef = useRef<HTMLDivElement>(null);
@@ -121,6 +122,15 @@ export function MobileAppNavigation({
   }, [groups, permissionMap, role]);
 
   useEffect(() => setMoreOpen(false), [pathname]);
+
+  useEffect(() => {
+    const root = document.documentElement;
+    if (isFocusedTask) root.dataset.mobileTaskPage = "true";
+    else delete root.dataset.mobileTaskPage;
+    return () => {
+      delete root.dataset.mobileTaskPage;
+    };
+  }, [isFocusedTask]);
 
   useEffect(() => {
     if (!moreOpen) return;
@@ -156,6 +166,8 @@ export function MobileAppNavigation({
       requestAnimationFrame(() => trigger?.focus());
     };
   }, [moreOpen]);
+
+  if (isFocusedTask) return null;
 
   return (
     <>

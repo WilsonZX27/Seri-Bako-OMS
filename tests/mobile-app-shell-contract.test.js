@@ -20,6 +20,9 @@ test("mobile web uses a permission-aware app shell without replacing desktop nav
   assert.match(navigation, /role === "purchasing"/);
   assert.match(navigation, /role === "finance"/);
   assert.match(navigation, /href: "\/stock-counts"/);
+  assert.match(navigation, /isFocusedTask/);
+  assert.match(navigation, /\/\(\?:new\|edit\)\$/);
+  assert.match(navigation, /if \(isFocusedTask\) return null/);
   assert.match(sidebar, /xl:block/);
 });
 
@@ -32,6 +35,8 @@ test("mobile shell respects safe areas, action stacking, and standalone web inst
   assert.match(css, /--sb-mobile-nav-height/);
   assert.match(css, /env\(safe-area-inset-bottom\)/);
   assert.match(css, /\[data-mobile-document-action\]/);
+  assert.match(css, /data-mobile-task-page="true"/);
+  assert.match(css, /bottom: calc\(env\(safe-area-inset-bottom\) \+ 0\.5rem\)/);
   assert.match(rootLayout, /viewportFit: "cover"/);
   assert.match(rootLayout, /appleWebApp/);
   assert.match(manifest, /display: "standalone"/);

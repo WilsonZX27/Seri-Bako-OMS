@@ -45,6 +45,8 @@ The dynamic Transfer/Wastage/Production workflow audit now passes across phone, 
 
 The receiving form's mobile primary action now says “Save receiving draft”. The previous “Record Receiving & Attach DO” label implied that the delivery-order attachment happened in this form, while the actual flow saves the GRN first and attaches the DO on the saved record before posting. The label now matches the server action and the side-panel next-step guidance.
 
+The third UX review wave rechecked the remaining high-frequency mobile surfaces: purchase request/order creation, stock transfer, stock wastage, manual stock movement, production job creation, system backup, imports, and administration. At 390px these surfaces keep a single-column task flow, 44px-class controls, visible section context, and an actionable sticky primary where the workflow has one. No additional code change was justified by the evidence; tablet right-rail behavior remains delegated to the shared `xl` breakpoint contract.
+
 ## Classification
 
 - **Current authority:** `src/app`, `src/components`, `src/lib/information-architecture.ts`, `src/app/globals.css`, current migrations, current tests and `DESIGN.md`.

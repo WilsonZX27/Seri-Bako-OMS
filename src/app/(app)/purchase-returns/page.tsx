@@ -84,9 +84,17 @@ export default async function PurchaseReturnsPage({ searchParams }: { searchPara
                 ))}
                 {!returns.rows.length ? <TableRow><TableCell colSpan={8}><EmptyState title={filtered ? "No returns match these filters" : "No purchase returns yet"} description={filtered ? "Reset the filters or widen the search." : "Supplier returns appear after a posted receiving is returned."} action={emptyAction} /></TableCell></TableRow> : null}
               </TableBody>
-            </Table>
+          </Table>
           <OperationalList ariaLabel="Purchase returns">
-            {returns.rows.map((row) => <OperationalListRow key={row.id} href={`/purchase-returns/${row.id}`} label={`Open ${row.purchase_return_no}`} primary={<DocumentNumber value={row.purchase_return_no} size="sm" />} status={<StatusBadge status={row.status} />} secondary={`${row.supplier_name ?? "No supplier"} · ${row.grn_no ?? "No GRN"}`} meta={`${formatNumber(row.return_total)} returned`} />)}
+            {returns.rows.map((row) => <OperationalListRow
+              key={row.id}
+              href={`/purchase-returns/${row.id}`}
+              label={`Open ${row.purchase_return_no}`}
+              primary={<div><DocumentNumber value={row.purchase_return_no} size="sm" /><p className="text-[11px] font-normal text-[var(--sb-text-muted)]">PO {row.po_no ?? "not linked"} · {formatNumber(row.return_total)} returned</p></div>}
+              status={<StatusBadge status={row.status} />}
+              secondary={`${row.supplier_name ?? "No supplier"} · ${row.grn_no ?? "No GRN"}`}
+              meta={formatCurrency(row.return_value)}
+            />)}
             {!returns.rows.length ? <EmptyState title={filtered ? "No returns match these filters" : "No purchase returns yet"} description={filtered ? "Reset the filters or widen the search." : "Supplier returns appear after a posted receiving is returned."} action={emptyAction} /> : null}
           </OperationalList>
           <PaginationControls page={returns.page} totalPages={returns.totalPages} totalRows={returns.totalRows} searchParams={filters} />

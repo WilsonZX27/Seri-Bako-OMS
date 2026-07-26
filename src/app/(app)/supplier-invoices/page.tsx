@@ -101,7 +101,15 @@ export default async function SupplierInvoicesPage({ searchParams }: { searchPar
               </TableBody>
             </Table>
             <OperationalList ariaLabel="Supplier invoices">
-              {invoices.rows.map((row) => <OperationalListRow key={row.id} href={`/supplier-invoices/${row.id}`} label={`Open ${row.invoice_no}`} primary={<DocumentNumber value={row.invoice_no} size="sm" />} status={<StatusBadge status={row.status} />} secondary={`${row.supplier_name ?? "No supplier"} · Due ${row.due_date ?? "—"}`} meta={formatCurrency(row.balance_due)} />)}
+              {invoices.rows.map((row) => <OperationalListRow
+                key={row.id}
+                href={`/supplier-invoices/${row.id}`}
+                label={`Open ${row.invoice_no}`}
+                primary={<div><DocumentNumber value={row.invoice_no} size="sm" /><p className={row.is_overdue ? "text-[11px] font-medium text-[var(--sb-danger)]" : "text-[11px] font-normal text-[var(--sb-text-muted)]"}>{row.is_overdue ? "Overdue — action required" : `GRN ${row.grn_no ?? row.po_no ?? "not linked"}`}</p></div>}
+                status={<StatusBadge status={row.status} />}
+                secondary={`${row.supplier_name ?? "No supplier"} · Due ${row.due_date ?? "—"}`}
+                meta={formatCurrency(row.balance_due)}
+              />)}
               {!invoices.rows.length ? <EmptyState title={filtered ? "No invoices match these filters" : "No invoices require review"} description={filtered ? "Reset the filters or widen the search." : "All current supplier invoices are up to date."} action={filtered ? { href: "/supplier-invoices", label: "Reset filters" } : undefined} /> : null}
             </OperationalList>
           <PaginationControls page={invoices.page} totalPages={invoices.totalPages} totalRows={invoices.totalRows} searchParams={filters} />

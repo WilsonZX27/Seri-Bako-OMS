@@ -164,3 +164,12 @@ test("role permissions use touch-friendly phone capability rows instead of a scr
   assert.match(source, /min-h-14 items-start gap-3 p-3/);
   assert.match(source, /break-all text-\[11px\]/);
 });
+
+test("product master editing avoids nested card boundaries on phones", () => {
+  const source = read("src/components/product-form.tsx");
+
+  assert.match(source, /data-product-setup/);
+  assert.match(source, /border-0 bg-transparent shadow-none md:border/);
+  assert.match(source, /border-y bg-secondary\/30 py-4 md:col-span-2/);
+  assert.match(source, /border-y py-4 md:col-span-2/);
+});

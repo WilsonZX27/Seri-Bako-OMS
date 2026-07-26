@@ -108,3 +108,13 @@ test("recipe BOM editing replaces the phone table with input-first continuous in
   assert.match(source, /label="Cost \/ base"/);
   assert.match(source, /grid grid-cols-2 gap-x-4 gap-y-2 bg-secondary\/30 p-3 text-xs/);
 });
+
+test("low-stock PR creation uses selectable phone rows instead of a five-column table", () => {
+  const source = read("src/components/low-stock-pr-form.tsx");
+
+  assert.match(source, /data-low-stock-pr-setup/);
+  assert.match(source, /hidden overflow-x-auto rounded-\[2px\] border md:block/);
+  assert.match(source, /data-low-stock-pr-lines/);
+  assert.match(source, /label="Qty for PR" className="col-span-2"/);
+  assert.match(source, /Suggested <strong/);
+});

@@ -112,8 +112,8 @@ export default async function StockTransactionsPage({ searchParams }: { searchPa
         }
       >
         <div className="rounded-[2px] border border-[var(--sb-border-soft)] bg-card">
-          {activeFilterChips.length ? <div className="sb-filter-summary" aria-label="Active filters">
-            {activeFilterChips.map((chip) => <span key={chip}>{chip}</span>)}
+          {activeFilterChips.length ? <div className="sb-filter-summary flex-wrap px-3 py-2" aria-label="Active filters">
+            {activeFilterChips.map((chip) => <span key={chip} className="max-w-full truncate">{chip}</span>)}
           </div> : null}
           <FilterBar resultCount={ledger.totalRows} resetHref="/stock-transactions" filtered={filtered}>
             <Input name="search" defaultValue={filters.search ?? ""} placeholder="Item or transaction" />
@@ -173,7 +173,20 @@ export default async function StockTransactionsPage({ searchParams }: { searchPa
               </TableBody>
             </Table>
             <OperationalList ariaLabel="Stock movement ledger">
-              {ledger.rows.map((row) => <OperationalListRow key={row.stock_transaction_id} href={`/stock-transactions/${row.stock_transaction_id}`} label={`Open ${row.transaction_no}`} primary={row.item_name} status={<Badge variant="secondary">{movementLabel(row.transaction_type)}</Badge>} secondary={`${row.item_code} · ${row.transaction_no}`} meta={`${row.quantity_in ? "+" : "−"}${formatNumber(row.quantity_in || row.quantity_out)} ${row.base_unit}`} />)}
+              {ledger.rows.map((row) => {
+                const quantityIn = Number(row.quantity_in);
+                const quantityOut = Number(row.quantity_out);
+                const direction = quantityIn > 0 ? "in" : quantityOut > 0 ? "out" : "none";
+                return <OperationalListRow
+                  key={row.stock_transaction_id}
+                  href={`/stock-transactions/${row.stock_transaction_id}`}
+                  label={`Open ${row.transaction_no}`}
+                  primary={<div><span>{row.item_name}</span><p className="text-[11px] font-normal text-[var(--sb-text-muted)]">{row.transaction_no} · {row.transaction_date}</p></div>}
+                  status={<Badge variant="secondary">{movementLabel(row.transaction_type)}</Badge>}
+                  secondary={`${row.item_code} · ${row.branch_name ?? "Unknown branch"}`}
+                  meta={<span className={direction === "in" ? "font-semibold text-[var(--sb-success)]" : direction === "out" ? "font-semibold text-[var(--sb-danger)]" : undefined}>{direction === "in" ? "+" : direction === "out" ? "−" : ""}{formatNumber(quantityIn || quantityOut)} {row.base_unit}</span>}
+                />;
+              })}
               {!ledger.rows.length ? <EmptyState title={filtered ? "No movements match these filters" : "No ledger movements yet"} description={filtered ? "Reset the filters or widen the date range." : "Posted inventory movements will appear here."} action={filtered ? { href: "/stock-transactions", label: "Reset filters" } : undefined} /> : null}
             </OperationalList>
           <PaginationControls page={ledger.page} totalPages={ledger.totalPages} totalRows={ledger.totalRows} searchParams={filters} />

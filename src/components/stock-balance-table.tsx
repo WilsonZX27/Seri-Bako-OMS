@@ -149,7 +149,7 @@ export function StockBalanceOperationalRows({
             trailing={
               <button
                 type="button"
-                className="inline-flex h-11 w-11 items-center justify-center rounded-[2px] border border-[var(--sb-border)] active:bg-[var(--sb-surface-muted)]"
+                className="inline-flex h-11 w-11 items-center justify-center rounded-[var(--sb-radius-control)] border border-[var(--sb-border)] active:bg-[var(--sb-surface-muted)]"
                 onClick={(event) => {
                   event.preventDefault();
                   event.stopPropagation();

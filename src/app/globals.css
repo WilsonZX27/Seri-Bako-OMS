@@ -527,6 +527,40 @@ input[type="date"]::-webkit-date-and-time-value {
     max-height: min(38dvh, 18rem);
     overflow-y: auto;
   }
+
+  table[aria-label="Product cost and margin estimates"] thead {
+    display: none;
+  }
+
+  table[aria-label="Product cost and margin estimates"] tbody,
+  table[aria-label="Product cost and margin estimates"] tr,
+  table[aria-label="Product cost and margin estimates"] td {
+    display: block;
+    width: 100%;
+  }
+
+  table[aria-label="Product cost and margin estimates"] tr {
+    border-bottom: 1px solid var(--sb-border-soft);
+    padding: 0.75rem;
+  }
+
+  table[aria-label="Product cost and margin estimates"] td {
+    padding: 0.2rem 0;
+    text-align: left;
+  }
+
+  table[aria-label="Product cost and margin estimates"] td:nth-child(4)::before,
+  table[aria-label="Product cost and margin estimates"] td:nth-child(5)::before,
+  table[aria-label="Product cost and margin estimates"] td:nth-child(6)::before,
+  table[aria-label="Product cost and margin estimates"] td:nth-child(7)::before {
+    color: var(--sb-text-muted);
+    font-size: 0.75rem;
+    margin-right: 0.5rem;
+  }
+  table[aria-label="Product cost and margin estimates"] td:nth-child(4)::before { content: "Selling price"; }
+  table[aria-label="Product cost and margin estimates"] td:nth-child(5)::before { content: "Product cost"; }
+  table[aria-label="Product cost and margin estimates"] td:nth-child(6)::before { content: "Margin"; }
+  table[aria-label="Product cost and margin estimates"] td:nth-child(7)::before { content: "Margin %"; }
 }
 
 .sb-mobile-action-bar {

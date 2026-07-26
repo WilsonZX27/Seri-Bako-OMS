@@ -55,3 +55,13 @@ test("purchase requests use a flat phone setup and line-entry hierarchy", () => 
   assert.match(source, /details className="md:col-span-4 border-t/);
   assert.match(source, /md:rounded-md md:border md:bg-secondary\/20/);
 });
+
+test("stock transfer and wastage use a flat mobile line surface with quantity before availability", () => {
+  const source = read("src/components/stock-operation-forms.tsx");
+
+  assert.match(source, /data-stock-transfer-setup/);
+  assert.match(source, /data-stock-wastage-setup/);
+  assert.match(source, /data-stock-operation-lines/);
+  assert.match(source, /Field label="Quantity" className="order-2/);
+  assert.match(source, /className="order-3 bg-\[var\(--sb-surface-muted\)\]/);
+});

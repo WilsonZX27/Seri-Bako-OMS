@@ -155,3 +155,12 @@ test("costing readiness reports use severity-first phone issue rows", () => {
   assert.match(source, /data-costing-readiness-list/);
   assert.match(source, /Open record/);
 });
+
+test("role permissions use touch-friendly phone capability rows instead of a scrolling table", () => {
+  const source = read("src/components/role-permission-matrix.tsx");
+
+  assert.match(source, /hidden overflow-x-auto border-t md:block/);
+  assert.match(source, /data-role-permission-list/);
+  assert.match(source, /min-h-14 items-start gap-3 p-3/);
+  assert.match(source, /break-all text-\[11px\]/);
+});

@@ -105,7 +105,15 @@ export default async function GoodsReceivingsPage({ searchParams }: { searchPara
               </TableBody>
             </Table>
             <OperationalList ariaLabel="Goods receiving records">
-              {receivings.rows.map((receiving) => <OperationalListRow key={receiving.id} href={`/goods-receivings/${receiving.id}`} label={`Open ${receiving.grn_no}`} primary={<DocumentNumber value={receiving.grn_no} size="sm" />} status={<StatusBadge status={receiving.status} />} secondary={`${receiving.supplier_name ?? "No supplier"} · ${receiving.received_date}`} meta={`${formatNumber(receiving.received_total)} received`} />)}
+              {receivings.rows.map((receiving) => <OperationalListRow
+                key={receiving.id}
+                href={`/goods-receivings/${receiving.id}`}
+                label={`Open ${receiving.grn_no}`}
+                primary={<div><DocumentNumber value={receiving.grn_no} size="sm" /><p className="text-[11px] font-normal text-[var(--sb-text-muted)]">PO {receiving.po_no ?? "not linked"} · {receiving.received_date}</p></div>}
+                status={<StatusBadge status={receiving.status} />}
+                secondary={`${receiving.supplier_name ?? "No supplier"} · ${receiving.branch_name ?? "No branch"}`}
+                meta={`${formatNumber(receiving.received_total)} in · ${formatNumber(receiving.rejected_total)} rejected`}
+              />)}
               {!receivings.rows.length ? <EmptyState title={filtered ? "No receivings match these filters" : "No goods receivings yet"} description={filtered ? "Reset the filters or widen the search." : "Supplier deliveries will appear after they are recorded."} action={filtered ? { href: "/goods-receivings", label: "Reset filters" } : undefined} /> : null}
             </OperationalList>
           </BulkSelectionProvider>

@@ -28,7 +28,7 @@ test("receiving requires delivery evidence or a documented exception before stoc
   const inventoryHardening = source("supabase/migrations/079_inventory_go_live_hardening.sql");
   const createPage = source("src/app/(app)/goods-receivings/new/page.tsx");
   const detail = source("src/app/(app)/goods-receivings/[id]/page.tsx");
-  assert.match(createPage, /Record Receiving &amp; Attach DO/);
+  assert.match(createPage, /Save receiving draft/);
   assert.match(action, /do_exception_reason/);
   assert.match(action, /post_goods_receiving_atomic/);
   assert.match(inventoryHardening, /status = 'active' and deleted_at is null/);
@@ -60,4 +60,3 @@ test("release identifies Sprint 7.23.5", () => {
   assert.match(version, /APP_VERSION = "7\.23\.7\.2"/);
   assert.match(version, /APP_SPRINT = "v7\.23\.7\.2"/);
 });
-

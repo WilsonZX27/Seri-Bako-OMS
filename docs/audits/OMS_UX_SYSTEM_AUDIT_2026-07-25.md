@@ -43,6 +43,8 @@ The mobile FilterBar result summary now shares the second control row instead of
 
 The dynamic Transfer/Wastage/Production workflow audit now passes across phone, tablet, and desktop after giving the local Next dev server a bounded 45-second first-route compile window; layout and overflow assertions remain unchanged.
 
+The receiving form's mobile primary action now says “Save receiving draft”. The previous “Record Receiving & Attach DO” label implied that the delivery-order attachment happened in this form, while the actual flow saves the GRN first and attaches the DO on the saved record before posting. The label now matches the server action and the side-panel next-step guidance.
+
 ## Classification
 
 - **Current authority:** `src/app`, `src/components`, `src/lib/information-architecture.ts`, `src/app/globals.css`, current migrations, current tests and `DESIGN.md`.

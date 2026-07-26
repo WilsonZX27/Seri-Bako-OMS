@@ -85,3 +85,12 @@ test("supplier invoice matching uses editable phone lines instead of a nine-colu
   assert.match(source, /Field label="Invoice Qty"/);
   assert.match(source, /grid grid-cols-2 gap-3 bg-secondary\/30 p-3 text-sm/);
 });
+
+test("outlet daily entry uses a stable phone line grid without nested card boundaries", () => {
+  const source = read("src/components/outlet-daily-record-form.tsx");
+
+  assert.match(source, /data-outlet-daily-setup/);
+  assert.match(source, /data-outlet-daily-lines/);
+  assert.match(source, /grid grid-cols-2 gap-3 p-3/);
+  assert.match(source, /label className="col-span-2 grid gap-1 text-xs"/);
+});

@@ -44,7 +44,7 @@ export function StatusTabs({ statuses, activeStatus }: { statuses: StatusTab[]; 
             href={hrefFor(tab.value)}
             aria-current={active ? "page" : undefined}
             className={cn(
-              "inline-flex min-h-8 shrink-0 items-center justify-center rounded-[var(--sb-radius-control)] px-3 text-xs font-medium capitalize transition-colors",
+              "inline-flex min-h-[var(--sb-control-height)] shrink-0 items-center justify-center rounded-[var(--sb-radius-control)] px-3 text-xs font-medium capitalize transition-colors",
               active
                 ? "bg-[var(--sb-green-900)] text-white"
                 : "text-[var(--sb-text-muted)] hover:bg-[var(--sb-surface-muted)] hover:text-[var(--sb-text)]",

@@ -414,6 +414,14 @@ input[type="date"]::-webkit-date-and-time-value {
     padding: 0.625rem;
   }
 
+  .sb-list-filters input,
+  .sb-list-filters select,
+  .sb-list-filters button,
+  .sb-list-filters a {
+    height: var(--sb-control-height);
+    min-height: var(--sb-control-height);
+  }
+
   .sb-list-filters > :first-child {
     order: 1;
     flex: 1 1 calc(100% - 5.5rem);

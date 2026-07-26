@@ -49,6 +49,8 @@ The third UX review wave rechecked the remaining high-frequency mobile surfaces:
 
 The pre-release Playwright pass confirmed Stock Count responsive behavior and dynamic Transfer/Wastage/Production layouts, plus the inventory posting smoke flows. The procurement workflow suite now recognizes the canonical empty-state copy (`No requests match these filters`) and skips correctly when no live review fixture exists. The shared document-workspace contract now asserts the current tablet rule (right inspector hidden below `xl`) and scopes live approval links to table rows. Local E2E still requires the isolated test credentials and a stable local Supabase/Next process; missing live fixtures are reported as skips rather than product failures.
 
+The disposable local release fixture was then refreshed with the Manager approval capability required by the focus-trap scenario, and the focused representative document-width plus mobile approval-sheet tests passed 2/2. Purchase Order creation is now treated as a form-shell fallback rather than incorrectly requiring document-workspace metadata.
+
 ## Classification
 
 - **Current authority:** `src/app`, `src/components`, `src/lib/information-architecture.ts`, `src/app/globals.css`, current migrations, current tests and `DESIGN.md`.

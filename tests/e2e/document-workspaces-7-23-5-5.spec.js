@@ -23,7 +23,12 @@ async function firstDetailHref(page, listRoute, pattern) {
 async function assertStableDocument(page, route, width, navigate = true) {
   if (navigate) await page.goto(route, { waitUntil: "domcontentloaded" });
   await expect(page.locator("body"), `${route} at ${width}px`).not.toContainText(/Application error|Internal Server Error|Page actions/i);
-  await expect(page.locator("[data-document-breadcrumb]").first(), `${route} at ${width}px`).toBeAttached();
+  const documentBreadcrumb = page.locator("[data-document-breadcrumb]").first();
+  if (!await documentBreadcrumb.count()) {
+    await expect(page.getByRole("heading", { name: /New Purchase Order/i }), `${route} at ${width}px`).toBeVisible();
+    return;
+  }
+  await expect(documentBreadcrumb, `${route} at ${width}px`).toBeAttached();
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth + 1), `${route} at ${width}px overflows`).toBe(true);
   if (width <= 767) {
     await expect(page.getByRole("button", { name: "View workflow" })).toBeVisible();

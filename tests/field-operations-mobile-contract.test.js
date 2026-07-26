@@ -74,3 +74,14 @@ test("production ingredient snapshots replace the phone table with a scannable l
   assert.match(source, /grid grid-cols-2 gap-x-4 gap-y-2 text-xs/);
   assert.match(source, /CardContent className="grid grid-cols-2 gap-4 p-4 md:grid-cols-4/);
 });
+
+test("supplier invoice matching uses editable phone lines instead of a nine-column table", () => {
+  const source = read("src/components/supplier-invoice-form.tsx");
+
+  assert.match(source, /data-supplier-invoice-setup/);
+  assert.match(source, /data-supplier-invoice-grn/);
+  assert.match(source, /sb-table-region hidden md:block/);
+  assert.match(source, /data-supplier-invoice-line-list/);
+  assert.match(source, /Field label="Invoice Qty"/);
+  assert.match(source, /grid grid-cols-2 gap-3 bg-secondary\/30 p-3 text-sm/);
+});

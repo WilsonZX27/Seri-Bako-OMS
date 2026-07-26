@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
+import { useEffect, useRef } from "react";
 import { cn } from "@/lib/utils";
 
 type StatusTab = string | { value: string; label: string };
@@ -9,10 +10,19 @@ type StatusTab = string | { value: string; label: string };
 export function StatusTabs({ statuses, activeStatus }: { statuses: StatusTab[]; activeStatus?: string }) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
+  const activeTabRef = useRef<HTMLAnchorElement>(null);
   const tabs = [{ value: "all", label: "All" }, ...statuses.map((status) => typeof status === "string"
     ? { value: status, label: status.replaceAll("_", " ") }
     : status)];
   const selected = activeStatus || "all";
+
+  useEffect(() => {
+    if (!window.matchMedia("(max-width: 767px)").matches) return;
+    const frame = window.requestAnimationFrame(() => {
+      activeTabRef.current?.scrollIntoView({ block: "nearest", inline: "center" });
+    });
+    return () => window.cancelAnimationFrame(frame);
+  }, [selected]);
 
   function hrefFor(value: string) {
     const params = new URLSearchParams(searchParams.toString());
@@ -29,6 +39,7 @@ export function StatusTabs({ statuses, activeStatus }: { statuses: StatusTab[]; 
         const active = selected === tab.value;
         return (
           <Link
+            ref={active ? activeTabRef : undefined}
             key={tab.value}
             href={hrefFor(tab.value)}
             aria-current={active ? "page" : undefined}

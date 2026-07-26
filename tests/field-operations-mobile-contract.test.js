@@ -33,6 +33,8 @@ test("stock count keeps setup separate from one continuous phone work surface", 
   assert.match(source, /border-b border-\[var\(--sb-border-soft\)\]/);
   assert.match(design, /A phone workflow uses one boundary per operational unit/);
   assert.match(design, /Do not place a bordered or shadowed card inside another card/);
+  assert.match(design, /multi-column editable desktop table must not be the primary phone input/);
+  assert.match(design, /Do not use a horizontally scrolling table as a substitute for a phone line-entry layout/);
 });
 
 test("goods receiving prioritizes physical receipt before reference quantities on phones", () => {

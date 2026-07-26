@@ -120,3 +120,13 @@ test("low-stock PR creation uses selectable phone rows instead of a five-column 
   assert.match(source, /label="Qty for PR" className="col-span-2"/);
   assert.match(source, /Suggested <strong/);
 });
+
+test("purchase returns lead with the return quantity before read-only stock references on phones", () => {
+  const source = read("src/components/purchase-return-form.tsx");
+
+  assert.match(source, /data-purchase-return-lines/);
+  assert.match(source, /label="Return Qty" required className="order-2 xl:order-none"/);
+  assert.match(source, /label="Returnable" className="order-3 xl:order-none"/);
+  assert.match(source, /label="Received" className="order-3 xl:order-none"/);
+  assert.match(source, /label="Reason" className="col-span-2 order-4/);
+});

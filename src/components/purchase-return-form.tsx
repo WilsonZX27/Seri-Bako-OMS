@@ -29,8 +29,8 @@ export function PurchaseReturnForm({
   const router = useRouter();
   const [idempotencyKey] = useState(() => crypto.randomUUID());
   return (
-    <Card>
-      <CardContent className="p-5">
+    <Card className="border-0 bg-transparent shadow-none md:border md:bg-card md:shadow-sm">
+      <CardContent className="p-0 md:p-5">
         <form id="purchase-return-form" action={action} className="space-y-3">
           <input type="hidden" name="idempotency_key" value={idempotencyKey} />
           <input type="hidden" name="purchase_return_no" value="PRT-AUTO" />
@@ -64,7 +64,7 @@ export function PurchaseReturnForm({
           {selectedReceiving ? (
             <>
               <input type="hidden" name="goods_receiving_id" value={selectedReceiving.id} />
-              <div className="rounded-[2px] border">
+              <div className="border-y md:rounded-[2px] md:border" data-purchase-return-lines>
                 <div className="flex flex-col gap-1 border-b bg-secondary/40 px-4 py-3">
                   <p className="text-xs font-semibold">Return Lines</p>
                   <p className="text-xs text-muted-foreground">
@@ -73,17 +73,17 @@ export function PurchaseReturnForm({
                 </div>
                 <div className="divide-y">
                   {lines.map((line) => (
-                    <div key={line.id} className="grid gap-2 p-3 xl:grid-cols-[2fr_repeat(5,112px)_1.4fr]">
-                      <div>
+                    <div key={line.id} className="grid grid-cols-2 gap-3 p-3 xl:grid-cols-[2fr_repeat(5,112px)_1.4fr]">
+                      <div className="col-span-2 xl:col-span-1">
                         <p className="font-medium">{line.item?.item_name ?? line.item_id}</p>
                         <p className="text-xs text-muted-foreground">{line.item?.item_code ?? "-"} · Unit cost {formatCurrency(line.unit_cost)}</p>
                       </div>
-                      <Field label="Received"><Input name="line_received_qty" value={line.received_qty} readOnly /></Field>
-                      <Field label="Returned"><Input name="line_previously_returned_qty" value={line.returned_qty} readOnly /></Field>
-                      <Field label="Returnable"><Input value={line.returnable_qty} readOnly /></Field>
-                      <Field label="Return Qty" required><Input name="line_return_qty" type="number" min="0" max={line.returnable_qty} step="0.0001" defaultValue={line.returnable_qty} /></Field>
-                      <Field label="UOM"><Input name="line_uom" value={line.uom} readOnly /></Field>
-                      <Field label="Reason"><Input name="line_reason" placeholder="Optional line reason" /></Field>
+                      <Field label="Return Qty" required className="order-2 xl:order-none"><Input name="line_return_qty" type="number" min="0" max={line.returnable_qty} step="0.0001" defaultValue={line.returnable_qty} /></Field>
+                      <Field label="UOM" className="order-2 xl:order-none"><Input name="line_uom" value={line.uom} readOnly /></Field>
+                      <Field label="Returnable" className="order-3 xl:order-none"><Input value={line.returnable_qty} readOnly /></Field>
+                      <Field label="Received" className="order-3 xl:order-none"><Input name="line_received_qty" value={line.received_qty} readOnly /></Field>
+                      <Field label="Returned" className="order-3 xl:order-none"><Input name="line_previously_returned_qty" value={line.returned_qty} readOnly /></Field>
+                      <Field label="Reason" className="col-span-2 order-4 xl:col-span-1 xl:order-none"><Input name="line_reason" placeholder="Optional line reason" /></Field>
                       <input type="hidden" name="line_goods_receiving_line_id" value={line.id} />
                       <input type="hidden" name="line_purchase_order_line_id" value={line.purchase_order_line_id} />
                       <input type="hidden" name="line_item_id" value={line.item_id} />

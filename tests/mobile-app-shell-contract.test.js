@@ -29,6 +29,8 @@ test("mobile web uses a permission-aware app shell without replacing desktop nav
 test("mobile shell respects safe areas, action stacking, and standalone web installation", () => {
   const css = read("src/app/globals.css");
   const rootLayout = read("src/app/layout.tsx");
+  const appLayout = read("src/app/(app)/layout.tsx");
+  const workspace = read("src/components/layout/workspace-layout.tsx");
   const manifest = read("src/app/manifest.ts");
   const contextHeader = read("src/components/layout/mobile-context-header.tsx");
 
@@ -37,6 +39,8 @@ test("mobile shell respects safe areas, action stacking, and standalone web inst
   assert.match(css, /\[data-mobile-document-action\]/);
   assert.match(css, /data-mobile-task-page="true"/);
   assert.match(css, /bottom: calc\(env\(safe-area-inset-bottom\) \+ 0\.5rem\)/);
+  assert.match(appLayout, /pb-\[calc\(var\(--sb-mobile-nav-height\)\+env\(safe-area-inset-bottom\)\+1rem\)\]/);
+  assert.match(workspace, /rightRail && !hideMobileConsole && "pb-32 md:pb-3"/);
   assert.match(rootLayout, /viewportFit: "cover"/);
   assert.match(rootLayout, /appleWebApp/);
   assert.match(manifest, /display: "standalone"/);
@@ -45,6 +49,19 @@ test("mobile shell respects safe areas, action stacking, and standalone web inst
   assert.match(contextHeader, /ChevronLeft/);
   assert.match(contextHeader, /text-center/);
   assert.match(contextHeader, /MobileContextTitle/);
+});
+
+test("phone top context is a stable three-slot bar with centered titles", () => {
+  const contextHeader = read("src/components/layout/mobile-context-header.tsx");
+  const topBar = read("src/components/layout/top-bar.tsx");
+
+  assert.match(contextHeader, /h-11 w-11/);
+  assert.match(contextHeader, /aria-label=\{`Back to \$\{context\.title\}`\}/);
+  assert.match(contextHeader, /data-mobile-page-title/);
+  assert.match(contextHeader, /text-center/);
+  assert.match(topBar, /MobileContextBack/);
+  assert.match(topBar, /MobileContextTitle/);
+  assert.match(topBar, /TopBarActivityMenu/);
 });
 
 test("More retains search, profile, and logout after the phone top bar is simplified", () => {

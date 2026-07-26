@@ -246,24 +246,26 @@ export async function getActiveProductionRecipes(): Promise<ProductionRecipeOpti
 
 export async function getProductionHubSummary() {
   if (isMockMode()) {
-    return { todayPosted: 0, pendingApproval: 0, activeRecipes: 0, ingredientShortages: 0 };
+    return { todayPosted: 0, pendingApproval: 0, readyToPost: 0, activeRecipes: 0, ingredientShortages: 0 };
   }
   const supabase = await createClient();
   const db = looseSupabase(supabase);
   const today = new Date().toISOString().slice(0, 10);
-  const [posted, pending, recipes, approvedJobs] = await Promise.all([
+  const [posted, pending, readyToPost, recipes, shortageLines] = await Promise.all([
     db.from("production_jobs").select("id", { count: "exact", head: true }).eq("status", "posted").eq("production_date", today).is("deleted_at", null),
     db.from("production_jobs").select("id", { count: "exact", head: true }).eq("status", "submitted").is("deleted_at", null),
+    db.from("production_jobs").select("id", { count: "exact", head: true }).eq("status", "approved").is("deleted_at", null),
     getActiveProductionRecipes(),
     db.from("production_job_ingredient_lines").select("id", { count: "exact", head: true }).lt("stock_available_qty", 0),
   ]);
-  for (const result of [posted, pending, approvedJobs]) {
+  for (const result of [posted, pending, readyToPost, shortageLines]) {
     if (result.error) throw new Error(result.error.message);
   }
   return {
     todayPosted: posted.count ?? 0,
     pendingApproval: pending.count ?? 0,
+    readyToPost: readyToPost.count ?? 0,
     activeRecipes: recipes.length,
-    ingredientShortages: approvedJobs.count ?? 0,
+    ingredientShortages: shortageLines.count ?? 0,
   };
 }

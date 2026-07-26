@@ -38,6 +38,16 @@ test("production hub keeps one task hierarchy across phone and desktop", async (
     expect(geometry.documentOverflow, `${viewport.name} must not overflow horizontally`).toBeLessThanOrEqual(1);
     if (viewport.name === "phone") {
       expect(geometry.smallestTarget, "phone controls must retain a practical touch target").toBeGreaterThanOrEqual(40);
+      await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight));
+      await page.waitForTimeout(150);
+      const lastTool = await page.getByRole("link", { name: /Wastage review/ }).boundingBox();
+      const mobileNav = await page.locator("[data-mobile-app-nav]").boundingBox();
+      expect(lastTool, "last production tool must remain visible").not.toBeNull();
+      expect(mobileNav, "mobile tab bar must remain visible").not.toBeNull();
+      expect(lastTool.y + lastTool.height, "last production tool must sit above the mobile tab bar").toBeLessThanOrEqual(mobileNav.y - 8);
+      await page.screenshot({
+        path: path.join(evidence, "phone-bottom.png"),
+      });
     }
 
     await page.screenshot({

@@ -9,7 +9,7 @@ export default async function ProductionPage() {
   return (
     <>
       <PageHeader title="Production" description="Recipe-based production jobs and finished goods stock posting for Seri Bako kitchen operations." />
-      <div className="p-3 sm:p-5">
+      <div className="p-3 pb-24 sm:p-5 sm:pb-24 md:pb-5">
         <OperationalHub
           eyebrow="Today’s production"
           summary="Create from an active recipe, complete the kitchen run, then post stock when quantities are confirmed."
@@ -35,6 +35,7 @@ export default async function ProductionPage() {
               href: "/production/jobs?status=approved",
               title: "Ready to post",
               description: "Approved jobs ready for inventory posting",
+              value: summary.readyToPost,
               icon: Factory,
             },
             {

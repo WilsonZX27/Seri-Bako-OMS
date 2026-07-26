@@ -95,8 +95,8 @@ export function OperationalHub({
                   index > 0 && "md:border-l md:border-[var(--sb-border-soft)]",
                 )}
               >
-                <dt className="truncate text-xs text-[var(--sb-text-muted)]">{metric.label}</dt>
-                <dd className={cn("mt-1 font-mono text-lg font-semibold leading-none tabular-nums", tone.value)}>
+                <dt className="truncate text-[13px] font-medium text-[var(--sb-text)]">{metric.label}</dt>
+                <dd className={cn("mt-1.5 font-mono text-[1.375rem] font-bold leading-none tabular-nums", tone.value)}>
                   {metric.value}
                 </dd>
               </div>

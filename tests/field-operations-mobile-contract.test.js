@@ -138,3 +138,12 @@ test("production variance retains a compact signal list on phones", () => {
   assert.match(source, /data-production-variance-list/);
   assert.match(source, /grid grid-cols-2 gap-x-4 gap-y-2 text-xs/);
 });
+
+test("stock adjustments use a flat phone setup and keep quantity before cost and notes", () => {
+  const source = read("src/components/stock-transaction-form.tsx");
+
+  assert.match(source, /data-stock-transaction-setup/);
+  assert.match(source, /label="Quantity in Base Unit" className="order-2"/);
+  assert.match(source, /label="Unit Cost" className="order-3"/);
+  assert.match(source, /className="order-4 md:col-span-3"/);
+});

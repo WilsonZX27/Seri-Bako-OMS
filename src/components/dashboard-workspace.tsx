@@ -26,12 +26,12 @@ function MobileQuickActions({ actions }: { actions: { href: string; label: strin
         <h2 id="mobile-quick-actions-title" className="text-xs font-semibold">Quick actions</h2>
         <span className="text-[11px] text-[var(--sb-text-muted)]">Based on your role</span>
       </div>
-      <div className="grid grid-cols-3 divide-x divide-[var(--sb-border-soft)] border-y border-[var(--sb-border-soft)] bg-white">
+      <div className="grid grid-cols-3 divide-x divide-[var(--sb-border-soft)] overflow-hidden rounded-[var(--sb-radius-panel)] border border-[var(--sb-border-soft)] bg-white">
         {actions.slice(0, 3).map((action) => {
           const Icon = action.icon;
           return (
             <Link key={action.href} href={action.href} className="flex min-h-[4.75rem] min-w-0 flex-col items-center justify-center gap-1.5 px-2 py-2 text-center text-[11px] font-semibold text-[var(--sb-green-950)] active:bg-[var(--sb-surface-muted)]">
-              <span className="grid h-8 w-8 place-items-center bg-[var(--sb-green-100)] text-[var(--sb-green-900)]">
+              <span className="grid h-8 w-8 place-items-center rounded-[var(--sb-radius-control)] bg-[var(--sb-green-100)] text-[var(--sb-green-900)]">
                 <Icon className="h-4 w-4" aria-hidden="true" />
               </span>
               <span className="line-clamp-2 leading-4">{action.label}</span>
@@ -106,12 +106,17 @@ export function DashboardWorkspace({ summary, renderedAt }: { summary: Dashboard
               ];
   const primaryAction = quickActions[0];
 
-  return <WorkspaceGrid hideMobileConsole className="gap-4 p-3 sm:p-4 xl:grid-cols-[minmax(0,1fr)_280px]" rightRailClassName="space-y-2" rightRail={<>
+  return <WorkspaceGrid hideMobileConsole className="gap-4 p-3 pb-24 sm:p-4 sm:pb-24 md:pb-4 xl:grid-cols-[minmax(0,1fr)_280px]" rightRailClassName="space-y-2" rightRail={<>
     <ConsoleSection title="Actions"><div className="grid gap-2">{quickActions.map((action, index) => <Button key={action.href} asChild size="sm" variant={index === 0 ? "default" : "outline"} className="w-full"><Link href={action.href}>{action.label}</Link></Button>)}</div></ConsoleSection>
     <ConsoleSection title="Today"><div className="space-y-2 text-[11px]"><p><span className="text-muted-foreground">Role</span><br /><strong>{summary.roleLabel}</strong></p><p><span className="text-muted-foreground">Data scope</span><br /><strong>{summary.scopeLabel}</strong></p><p><span className="text-muted-foreground">Updated</span><br /><strong>{now.toLocaleString("en-MY", { dateStyle: "medium", timeStyle: "short", timeZone: "Asia/Kuala_Lumpur" })}</strong></p></div></ConsoleSection>
     {summary.notifications.length ? <ConsoleSection title="Alerts"><div className="space-y-2">{summary.notifications.slice(0, 3).map((note) => <Link key={note.id} href={note.action_url ?? "/activity"} className="block text-[11px] hover:underline"><strong className="block">{note.title}</strong><span className="text-muted-foreground">{note.message}</span></Link>)}</div></ConsoleSection> : null}
   </>}>
-    <div className="space-y-4"><header className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between"><div><div className="flex flex-wrap items-center gap-2"><h1 className="text-lg font-semibold sm:text-xl">{copy.title}</h1><span className="rounded-[2px] bg-[var(--sb-neutral-bg)] px-2 py-1 text-[10px] font-medium text-muted-foreground">{summary.scopeLabel}</span></div><p className="mt-1 text-xs text-muted-foreground">{copy.description}</p></div><Button asChild size="sm" className="hidden w-full shrink-0 sm:inline-flex sm:w-auto xl:hidden"><Link href={primaryAction.href}>{primaryAction.label}</Link></Button></header>
+    <div className="space-y-4"><header className="hidden flex-col gap-3 md:flex md:flex-row md:items-start md:justify-between"><div><div className="flex flex-wrap items-center gap-2"><h1 className="text-lg font-semibold sm:text-xl">{copy.title}</h1><span className="rounded-[2px] bg-[var(--sb-neutral-bg)] px-2 py-1 text-[10px] font-medium text-muted-foreground">{summary.scopeLabel}</span></div><p className="mt-1 text-xs text-muted-foreground">{copy.description}</p></div><Button asChild size="sm" className="hidden w-full shrink-0 sm:inline-flex sm:w-auto xl:hidden"><Link href={primaryAction.href}>{primaryAction.label}</Link></Button></header>
+
+      <div className="flex min-h-9 items-center justify-between gap-3 border-b border-[var(--sb-border-soft)] pb-2 md:hidden">
+        <span className="truncate text-[13px] font-semibold text-[var(--sb-text)]">{summary.roleLabel}</span>
+        <span className="shrink-0 text-xs text-[var(--sb-text-muted)]">{summary.scopeLabel}</span>
+      </div>
 
       <MobileQuickActions actions={quickActions} />
 

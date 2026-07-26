@@ -21,6 +21,9 @@ const routeTitles: Record<string, string> = {
 };
 
 function pageContext(pathname: string) {
+  if (pathname === "/dashboard") {
+    return { title: "Today", backHref: null };
+  }
   const item = getIaItemForPath(pathname);
   if (item) {
     return {

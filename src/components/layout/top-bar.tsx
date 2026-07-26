@@ -25,10 +25,10 @@ export async function TopBar({ permissionMap }: { permissionMap: Record<string, 
           <Breadcrumbs />
       </div>
       <div data-testid="topbar-account-region" className="flex min-w-0 items-center justify-end gap-2">
-        <div data-testid="topbar-search-region" className="hidden sm:block">
+        <div data-testid="topbar-search-region" className="hidden md:block">
           <GlobalSearch permissionMap={permissionMap} />
         </div>
-        <div className="hidden sm:block"><QuickAccessMenu permissionMap={permissionMap} /></div>
+        <div className="hidden md:block"><QuickAccessMenu permissionMap={permissionMap} /></div>
         <TopBarActivityMenu data={activity} />
         <div className="hidden md:block"><AccountMenu displayName={displayName} roleLabel={getRoleDisplayLabel(role)} initials={initials} /></div>
       </div>

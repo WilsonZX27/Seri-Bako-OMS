@@ -14,7 +14,9 @@ import {
   Menu,
   PackageCheck,
   ReceiptText,
+  Search,
   ShoppingCart,
+  LogOut,
   UserRound,
   X,
 } from "lucide-react";
@@ -22,7 +24,9 @@ import { useEffect, useId, useMemo, useRef, useState } from "react";
 import type { LucideIcon } from "lucide-react";
 import { getVisibleNavGroups } from "@/components/layout/nav-items";
 import { Button } from "@/components/ui/button";
+import { GlobalSearch } from "@/components/search/global-search";
 import { cn } from "@/lib/utils";
+import { signOut } from "@/server/actions/auth";
 import type { UserRole } from "@/types/database";
 
 type MobileTab = {
@@ -105,6 +109,7 @@ export function MobileAppNavigation({
   const pathname = usePathname();
   const isFocusedTask = /\/(?:new|edit)$/.test(pathname);
   const [moreOpen, setMoreOpen] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
   const triggerRef = useRef<HTMLButtonElement>(null);
   const dialogRef = useRef<HTMLDivElement>(null);
   const titleId = useId();
@@ -230,6 +235,24 @@ export function MobileAppNavigation({
               </Button>
             </header>
             <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-3 py-3">
+              <section className="mb-4 space-y-2">
+                <Button type="button" variant="outline" className="w-full justify-start gap-3" onClick={() => { setMoreOpen(false); setSearchOpen(true); }}>
+                  <Search className="h-5 w-5" aria-hidden="true" />
+                  Search OMS
+                </Button>
+                <div className="divide-y divide-[var(--sb-border-soft)] border-y border-[var(--sb-border-soft)]">
+                  <Link href="/account" className="flex min-h-12 items-center gap-3 px-2 text-[13px] font-medium text-[var(--sb-text)] active:bg-[var(--sb-surface-muted)]">
+                    <UserRound className="h-4.5 w-4.5 shrink-0" aria-hidden="true" />
+                    <span className="min-w-0 flex-1">My Profile</span>
+                  </Link>
+                  <form action={signOut}>
+                    <button type="submit" className="flex min-h-12 w-full items-center gap-3 px-2 text-left text-[13px] font-medium text-[var(--sb-danger)] active:bg-[var(--sb-surface-muted)]">
+                      <LogOut className="h-4.5 w-4.5 shrink-0" aria-hidden="true" />
+                      <span>Logout</span>
+                    </button>
+                  </form>
+                </div>
+              </section>
               {groups.map((group) => (
                 <section key={group.id} className="mb-4 last:mb-0">
                   <h3 className="px-2 pb-1.5 text-[11px] font-semibold text-[var(--sb-text-muted)]">{group.label}</h3>
@@ -255,14 +278,11 @@ export function MobileAppNavigation({
                   </div>
                 </section>
               ))}
-              <Link href="/account" className="mt-2 flex min-h-12 items-center gap-3 border-y border-[var(--sb-border-soft)] px-2 text-[13px] font-medium">
-                <UserRound className="h-4.5 w-4.5" aria-hidden="true" />
-                My Profile
-              </Link>
             </div>
           </div>
         </div>
       ) : null}
+      <GlobalSearch permissionMap={permissionMap} mobile open={searchOpen} onOpenChange={setSearchOpen} hideTrigger />
     </>
   );
 }

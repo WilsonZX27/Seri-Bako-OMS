@@ -47,6 +47,20 @@ test("mobile shell respects safe areas, action stacking, and standalone web inst
   assert.match(contextHeader, /MobileContextTitle/);
 });
 
+test("More retains search, profile, and logout after the phone top bar is simplified", () => {
+  const navigation = read("src/components/layout/mobile-app-navigation.tsx");
+  const topBar = read("src/components/layout/top-bar.tsx");
+  const search = read("src/components/search/global-search.tsx");
+
+  assert.match(navigation, /Search OMS/);
+  assert.match(navigation, /href="\/account"/);
+  assert.match(navigation, /action=\{signOut\}/);
+  assert.match(navigation, /<GlobalSearch permissionMap=\{permissionMap\} mobile open=\{searchOpen\}/);
+  assert.match(topBar, /topbar-search-region" className="hidden md:block"/);
+  assert.match(search, /hideTrigger/);
+  assert.match(search, /mobile \? "\(max-width: 767px\)" : "\(min-width: 768px\)"/);
+});
+
 test("dashboard exposes direct mobile actions and field forms keep touch-first grouping", () => {
   const dashboard = read("src/components/dashboard-workspace.tsx");
   const receiving = read("src/components/goods-receiving-form.tsx");

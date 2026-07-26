@@ -133,8 +133,8 @@ export function PurchaseRequestForm({
   }
 
   return (
-    <Card>
-      <CardContent className="p-4 sm:p-5">
+    <Card className="border-0 bg-transparent shadow-none md:border md:bg-white">
+      <CardContent className="p-0 md:p-5">
         <form id="purchase-request-form" action={action} className="space-y-3">
           <input type="hidden" name="request_no" value="" />
           <input type="hidden" name="idempotency_key" value={idempotencyKey} />
@@ -144,11 +144,10 @@ export function PurchaseRequestForm({
           <input type="hidden" name="urgency_reason" value={initialUrgencyReason ?? ""} />
           <input type="hidden" name="production_risk" value={initialProductionRisk ? "on" : ""} />
           <input type="hidden" name="expected_updated_at" value={initialUpdatedAt ?? ""} />
-          <div className="border-b pb-2">
-            <h2 className="text-sm font-semibold">Request details</h2>
-          </div>
-
-          <section className="space-y-3">
+          <section data-purchase-request-setup className="erp-surface space-y-3 p-3 md:rounded-none md:border-0 md:bg-transparent md:p-0">
+            <div className="border-b border-[var(--sb-border-soft)] pb-2">
+              <h2 className="text-sm font-semibold">Request details</h2>
+            </div>
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-[minmax(0,1fr)_minmax(0,1.4fr)_minmax(0,1fr)]">
               <div className="order-1"><Field label="Needed By">
                 <Input name="needed_by_date" type="date" defaultValue={initialNeededByDate ?? ""} />
@@ -166,7 +165,7 @@ export function PurchaseRequestForm({
             </Field>
           </section>
 
-          <div className="rounded-[2px] border">
+          <section data-purchase-request-workspace className="erp-surface overflow-hidden md:rounded-[2px]">
             <div className="flex items-center justify-between border-b bg-secondary/40 px-3 py-2">
               <div>
                 <p className="text-xs font-semibold">Requested Items</p>
@@ -210,7 +209,7 @@ export function PurchaseRequestForm({
                     </Button>
                   </div>
                   {canViewCommercial ? (
-                    <details className="md:col-span-4 rounded-md border bg-secondary/20 p-2">
+                    <details className="md:col-span-4 border-t border-[var(--sb-border-soft)] pt-2 md:rounded-md md:border md:bg-secondary/20 md:p-2">
                       <summary className="cursor-pointer text-xs font-medium">Purchasing details</summary>
                       <div className="mt-3 grid gap-3 md:grid-cols-3">
                         <Field label="Suggested supplier"><SelectNative name="line_suggested_supplier_id" value={line.supplierId} onChange={(event) => {
@@ -234,7 +233,7 @@ export function PurchaseRequestForm({
                 </div>
               ))}
             </div>
-          </div>
+          </section>
 
           <datalist id="purchase-request-items">
             {items.map((item) => (

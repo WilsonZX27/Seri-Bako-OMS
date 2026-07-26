@@ -46,3 +46,12 @@ test("goods receiving prioritizes physical receipt before reference quantities o
   assert.match(source, /label="Prev\. Received" className="order-3/);
   assert.match(source, /label="Pending" className="order-4/);
 });
+
+test("purchase requests use a flat phone setup and line-entry hierarchy", () => {
+  const source = read("src/components/procurement-forms.tsx");
+
+  assert.match(source, /data-purchase-request-setup/);
+  assert.match(source, /data-purchase-request-workspace/);
+  assert.match(source, /details className="md:col-span-4 border-t/);
+  assert.match(source, /md:rounded-md md:border md:bg-secondary\/20/);
+});

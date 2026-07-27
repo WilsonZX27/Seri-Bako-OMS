@@ -30,8 +30,7 @@ export default async function DocumentSequencesPage({ searchParams }: { searchPa
         ) : null}
         <div className="overflow-hidden rounded-[2px] border bg-card">
           <MasterDataFilters search={filters.search} status={filters.status} placeholder="Search document type, prefix, or preview number" />
-          <div className="overflow-x-auto">
-            <Table>
+            <Table aria-label="Document sequences">
               <TableHeader>
                 <TableRow>
                   <TableHead>Document Type</TableHead>
@@ -39,7 +38,7 @@ export default async function DocumentSequencesPage({ searchParams }: { searchPa
                   <TableHead>Next Format</TableHead>
                   <TableHead>Reset Monthly</TableHead>
                   <TableHead>Current Period</TableHead>
-                  <TableHead className="text-right">Sequence Cursor</TableHead>
+                  <TableHead className="text-right">Next Number</TableHead>
                   <TableHead>Status</TableHead>
                   {canUpdate ? <TableHead className="w-12 text-right">Action</TableHead> : null}
                 </TableRow>
@@ -60,7 +59,6 @@ export default async function DocumentSequencesPage({ searchParams }: { searchPa
                 {!sequences.length ? <TableRow><TableCell colSpan={canUpdate ? 8 : 7} className="text-center text-muted-foreground">No document sequences found.</TableCell></TableRow> : null}
               </TableBody>
             </Table>
-          </div>
         </div>
       </WorkspaceGrid>
     </>

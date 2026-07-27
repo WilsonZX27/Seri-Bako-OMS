@@ -41,6 +41,7 @@ export default async function StaffsPage({ searchParams }: { searchParams: Promi
         <MasterDataFilters
           search={filters.search}
           status={filters.status}
+          showStatus={false}
           placeholder="Search staff, email, branch, or role"
           resultCount={staffs.length}
           filtered={filtered}

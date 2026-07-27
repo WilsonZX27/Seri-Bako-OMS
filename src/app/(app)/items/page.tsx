@@ -47,6 +47,7 @@ export default async function ItemsPage({
             placeholder="Search item code, name, category, supplier"
             categories={categories}
             suppliers={suppliers}
+            showStatus={false}
             showStockFilters
             resultCount={itemsPage.totalRows}
             filtered={filtered}

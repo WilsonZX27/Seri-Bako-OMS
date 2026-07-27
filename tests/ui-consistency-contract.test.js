@@ -26,6 +26,20 @@ test("shared filter rows use compact operational-green submits without adding du
   assert.match(styles, /max-width: 22rem/);
 });
 
+test("a visible status tab strip remains the only primary status filter", () => {
+  for (const page of [
+    "src/app/(app)/branches/page.tsx",
+    "src/app/(app)/items/page.tsx",
+    "src/app/(app)/recipes/page.tsx",
+    "src/app/(app)/staffs/page.tsx",
+    "src/app/(app)/suppliers/page.tsx",
+  ]) {
+    const source = read(page);
+    assert.match(source, /StatusTabs/, `${page}: status tabs are present`);
+    assert.match(source, /MasterDataFilters[\s\S]*showStatus=\{false\}/, `${page}: no duplicate status select`);
+  }
+});
+
 test("UI smoke keeps the requested routes, console order, current footer, and one tablet action entry", () => {
   for (const route of ["dashboard/page.tsx", "outlet-daily-records/page.tsx", "reports/demand-trends/page.tsx", "production/planning/page.tsx", "production/variance/page.tsx", "administration/master-data-cleanup/page.tsx", "imports/page.tsx", "imports/[entity]/page.tsx", "staffs/[id]/page.tsx", "roles/[id]/page.tsx"]) {
     assert.equal(fs.existsSync(`src/app/(app)/${route}`), true);

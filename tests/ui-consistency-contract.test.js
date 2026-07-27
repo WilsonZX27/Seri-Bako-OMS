@@ -44,6 +44,15 @@ test("a visible status tab strip remains the only primary status filter", () => 
   assert.match(invoices, /filters\.status \? <input type="hidden" name="status"/);
 });
 
+test("production jobs composes the shared workspace shell instead of maintaining a private console and desktop-only tabs", () => {
+  const source = read("src/app/(app)/production/jobs/page.tsx");
+  assert.match(source, /<WorkspaceGrid/);
+  assert.match(source, /rightRail=\{<>/);
+  assert.match(source, /<StatusTabs/);
+  assert.doesNotMatch(source, /<RightConsoleMount/);
+  assert.doesNotMatch(source, /hidden flex-wrap gap-2 md:flex/);
+});
+
 test("UI smoke keeps the requested routes, console order, current footer, and one tablet action entry", () => {
   for (const route of ["dashboard/page.tsx", "outlet-daily-records/page.tsx", "reports/demand-trends/page.tsx", "production/planning/page.tsx", "production/variance/page.tsx", "administration/master-data-cleanup/page.tsx", "imports/page.tsx", "imports/[entity]/page.tsx", "staffs/[id]/page.tsx", "roles/[id]/page.tsx"]) {
     assert.equal(fs.existsSync(`src/app/(app)/${route}`), true);

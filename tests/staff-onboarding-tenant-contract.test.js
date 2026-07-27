@@ -14,6 +14,13 @@ test("staff onboarding scopes selectable identities to the active company", () =
   }
 });
 
+test("the shared branch query is tenant-scoped before staff pages consume it", () => {
+  const query = read("src/server/queries/foundation.ts");
+  assert.match(query, /Promise\.all\(\[createClient\(\), getCurrentProfile\(\)\]\)/);
+  assert.match(query, /if \(!profile\?\.company_id\) return \[\];/);
+  assert.match(query, /query = query\.eq\("company_id", profile\.company_id\);/);
+});
+
 test("staff access choices stay role-compatible before submission", () => {
   const fields = read("src/components/staff-access-fields.tsx");
   assert.match(fields, /roleCode === "kitchen"[\s\S]*branch_type === "central_kitchen"/);

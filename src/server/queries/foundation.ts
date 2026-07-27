@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { getCurrentProfile } from "@/server/queries/common";
 import { hasUniqueValidAuthLink, listAuthUserSummaries } from "@/server/auth/admin-users";
 import { getRoleDisplayLabel, sortRolesForDisplay, SYSTEM_ROLE_CODES } from "@/lib/roles";
 import {
@@ -57,8 +58,10 @@ export async function getBranches(filters: Filters = {}) {
     return mockBranches.filter((branch) => matchesFilter([branch.branch_code, branch.branch_name, branch.branch_type], filters, branch.status));
   }
 
-  const supabase = await createClient();
+  const [supabase, profile] = await Promise.all([createClient(), getCurrentProfile()]);
+  if (!profile?.company_id) return [];
   let query = supabase.from("branches").select("*").order("branch_name", { ascending: true });
+  query = query.eq("company_id", profile.company_id);
   if (wantsArchived(filters.status)) query = query.not("deleted_at", "is", null);
   else if (!wantsAllStatuses(filters.status)) query = query.is("deleted_at", null);
   const { data, error } = await query;

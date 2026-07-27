@@ -78,28 +78,16 @@ export default async function RecipeDetailPage({
             </CardContent>
           </Card>
         ) : null}
-        <div className="grid gap-4 md:grid-cols-5">
-          <Card>
-            <CardHeader><CardTitle>Version</CardTitle></CardHeader>
-            <CardContent className="text-2xl font-semibold">v{recipe.version}</CardContent>
-          </Card>
-          <Card>
-            <CardHeader><CardTitle>Yield</CardTitle></CardHeader>
-            <CardContent className="text-2xl font-semibold">{formatNumber(recipe.yield_qty)} {recipe.yield_unit}</CardContent>
-          </Card>
-          <Card>
-            <CardHeader><CardTitle>Ingredient Cost</CardTitle></CardHeader>
-            <CardContent className="text-2xl font-semibold">{formatCurrency(recipe.total_ingredient_cost)}</CardContent>
-          </Card>
-          <Card>
-            <CardHeader><CardTitle>Adjusted Cost</CardTitle></CardHeader>
-            <CardContent className="text-2xl font-semibold">{formatCurrency(recipe.wastage_adjusted_cost)}</CardContent>
-          </Card>
-          <Card>
-            <CardHeader><CardTitle>Cost / Unit</CardTitle></CardHeader>
-            <CardContent className="text-2xl font-semibold">{formatCurrency(recipe.cost_per_finished_unit)}</CardContent>
-          </Card>
-        </div>
+        <section aria-labelledby="recipe-summary" className="overflow-hidden rounded-[2px] border bg-card">
+          <div className="border-b px-4 py-3"><h2 id="recipe-summary" className="text-sm font-semibold">Recipe Summary</h2></div>
+          <dl className="grid divide-y sm:grid-cols-2 sm:divide-x sm:divide-y-0 xl:grid-cols-5">
+            <div className="min-w-0 px-4 py-3"><dt className="text-xs text-muted-foreground">Version</dt><dd className="mt-1 font-mono text-sm font-semibold">v{recipe.version}</dd></div>
+            <div className="min-w-0 px-4 py-3"><dt className="text-xs text-muted-foreground">Yield</dt><dd className="mt-1 truncate font-mono text-sm font-semibold">{formatNumber(recipe.yield_qty)} {recipe.yield_unit}</dd></div>
+            <div className="min-w-0 px-4 py-3"><dt className="text-xs text-muted-foreground">Ingredient Cost</dt><dd className="mt-1 truncate font-mono text-sm font-semibold">{formatCurrency(recipe.total_ingredient_cost)}</dd></div>
+            <div className="min-w-0 px-4 py-3"><dt className="text-xs text-muted-foreground">Adjusted Cost</dt><dd className="mt-1 truncate font-mono text-sm font-semibold">{formatCurrency(recipe.wastage_adjusted_cost)}</dd></div>
+            <div className="min-w-0 px-4 py-3"><dt className="text-xs text-muted-foreground">Cost / Unit</dt><dd className="mt-1 truncate font-mono text-sm font-semibold">{formatCurrency(recipe.cost_per_finished_unit)}</dd></div>
+          </dl>
+        </section>
 
         <Card>
           <CardHeader><CardTitle>Header</CardTitle></CardHeader>

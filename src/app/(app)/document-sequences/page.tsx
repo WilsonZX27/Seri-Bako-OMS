@@ -20,7 +20,7 @@ export default async function DocumentSequencesPage({ searchParams }: { searchPa
   return (
     <>
       <PageHeader title="Document Sequences" description="Controlled numbering for operational documents." />
-      <WorkspaceGrid rightRail={<>{canCreate ? <ConsoleSection title="Actions"><Button asChild size="sm" className="w-full" data-mobile-primary-action><Link href="/document-sequences/new">New sequence</Link></Button></ConsoleSection> : null}<ConsoleSection title="Sequence Summary"><p className="text-xs text-muted-foreground">{sequences.length} numbering {sequences.length === 1 ? "sequence" : "sequences"} in the current view.</p></ConsoleSection></>}>
+      <WorkspaceGrid rightRail={<>{canCreate ? <ConsoleSection title="Actions"><Button asChild size="sm" className="w-full" data-mobile-primary-action><Link href="/document-sequences/new">New sequence</Link></Button></ConsoleSection> : null}<ConsoleSection title="Sequence Summary"><p className="text-xs text-muted-foreground">{sequences.length} numbering {sequences.length === 1 ? "sequence" : "sequences"} in the current view.</p><p className="mt-3 border-t pt-3 text-xs leading-5 text-muted-foreground"><span className="font-medium text-foreground">Opening Balance:</span> the cursor is not a stock-record count. Posting skips every existing Ledger and document number automatically.</p></ConsoleSection></>}>
         {filters.error || filters.success ? (
           <Card>
             <CardContent className={`p-4 text-sm ${filters.error ? "text-destructive" : "text-[var(--sb-success)]"}`}>
@@ -36,10 +36,10 @@ export default async function DocumentSequencesPage({ searchParams }: { searchPa
                 <TableRow>
                   <TableHead>Document Type</TableHead>
                   <TableHead>Prefix</TableHead>
-                  <TableHead>Format Preview</TableHead>
+                  <TableHead>Next Format</TableHead>
                   <TableHead>Reset Monthly</TableHead>
                   <TableHead>Current Period</TableHead>
-                  <TableHead className="text-right">This Month&apos;s Next Number</TableHead>
+                  <TableHead className="text-right">Sequence Cursor</TableHead>
                   <TableHead>Status</TableHead>
                   {canUpdate ? <TableHead className="w-12 text-right">Action</TableHead> : null}
                 </TableRow>

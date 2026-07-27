@@ -198,20 +198,20 @@ export function StockBalanceWorkspace({
                     {selectableBranchIds.length > 1 && !createBranchId ? (
                       <p className="rounded-md border border-dashed px-2 py-1 text-xs text-muted-foreground">Select a branch above to include rows in this PR.</p>
                     ) : null}
-                    <div className="max-h-80 space-y-2 overflow-auto rounded border p-2">
+                    <div className="max-h-80 divide-y divide-[var(--sb-border-soft)] overflow-y-auto border-y border-[var(--sb-border-soft)]">
                       {Array.from(basketByBranch.entries()).map(([branchId, lines]) => {
                         const branchName = branchId === "unassigned" ? "Unassigned branch" : branchNameById.get(branchId) ?? "Unknown branch";
                         const isCreateBranch = branchId === createBranchId;
                         return (
-                          <div key={branchId} className="space-y-2 rounded bg-[var(--sb-surface-muted)] p-2">
+                          <div key={branchId} className="space-y-2 py-2.5 first:pt-0 last:pb-0">
                             <p className="text-xs font-semibold text-[var(--sb-text-muted)]">{branchName}</p>
                             {(isCreateBranch ? groupBySupplier(lines) : [["preview", lines]] as const).map(([supplierId, supplierLines]) => (
-                              <div key={`${branchId}-${supplierId}`} className="space-y-1">
-                                {isCreateBranch ? <p className="border-b px-1 pb-1 text-xs font-semibold">{supplierLines[0]?.supplier_name ?? "Unassigned supplier"}</p> : null}
+                              <div key={`${branchId}-${supplierId}`} className="space-y-1.5">
+                                {isCreateBranch ? <p className="border-b border-[var(--sb-border-soft)] pb-1 text-xs font-semibold">{supplierLines[0]?.supplier_name ?? "Unassigned supplier"}</p> : null}
                                 {supplierLines.map((line) => {
                               const key = rowKey(line);
                               return (
-                                <div key={key} className="space-y-1 rounded bg-background p-2">
+                                <div key={key} className="space-y-1 py-1.5">
                                   <p className="font-medium">{line.item_name}</p>
                                   <p className="text-xs text-muted-foreground">{line.item_code}</p>
                                   {isCreateBranch ? (

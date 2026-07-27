@@ -14,7 +14,7 @@ export default async function NewRecipePage() {
   return (
     <>
       <PageHeader title="New Recipe" description="Create a recipe header and ingredient BOM lines." />
-      <RecordWorkspace actionPanel={<RecordActionPanel title="Recipe Actions" description="Build the ingredient lines, then create the draft recipe."><Button type="submit" form="recipe-create-form" className="w-full"><Calculator className="h-4 w-4" />Create Recipe</Button><Button asChild variant="outline" className="w-full"><Link href="/recipes">Cancel</Link></Button></RecordActionPanel>}><RecipeForm formId="recipe-create-form" products={products} items={items} action={createRecipe} showSubmit={false} /></RecordWorkspace>
+      <RecordWorkspace actionPanel={<RecordActionPanel title="Recipe Actions" description="Build the ingredient lines, then create the draft recipe."><Button type="submit" form="recipe-create-form" className="w-full" data-mobile-primary-action><Calculator className="h-4 w-4" />Create Recipe</Button><Button asChild variant="outline" className="w-full"><Link href="/recipes">Cancel</Link></Button></RecordActionPanel>}><RecipeForm formId="recipe-create-form" products={products} items={items} action={createRecipe} showSubmit={false} /></RecordWorkspace>
     </>
   );
 }

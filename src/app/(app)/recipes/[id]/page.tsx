@@ -44,18 +44,18 @@ export default async function RecipeDetailPage({
                 <span className="text-muted-foreground">Current status</span>
                 <Badge variant={recipe.status === "active" ? "success" : recipe.status === "rejected" ? "danger" : "secondary"}>{recipe.status}</Badge>
               </div>
-              {permissions["recipes.update"] && !["active", "archived"].includes(recipe.status) ? <Button asChild variant="outline" className="w-full"><Link href={`/recipes/${recipe.id}/edit`}>Edit Recipe</Link></Button> : null}
-              {permissions["recipes.submit"] && recipe.status === "draft" ? <form action={submitRecipe.bind(null, recipe.id)}><Button type="submit" className="w-full">Submit</Button></form> : null}
+              {permissions["recipes.update"] && !["active", "archived"].includes(recipe.status) ? <Button asChild variant="outline" className="w-full" data-mobile-primary-action><Link href={`/recipes/${recipe.id}/edit`}>Edit Recipe</Link></Button> : null}
+              {permissions["recipes.submit"] && recipe.status === "draft" ? <form action={submitRecipe.bind(null, recipe.id)}><Button type="submit" className="w-full" data-mobile-primary-action>Submit</Button></form> : null}
               {permissions["recipes.approve"] && recipe.status === "pending_approval" ? (
                 <>
-                  <form action={approveRecipe.bind(null, recipe.id)}><Button type="submit" className="w-full">Approve</Button></form>
+                  <form action={approveRecipe.bind(null, recipe.id)}><Button type="submit" className="w-full" data-mobile-primary-action>Approve</Button></form>
                   <form action={rejectRecipe.bind(null, recipe.id)} className="grid gap-2">
                     <input name="remarks" className="h-9 rounded-[2px] border bg-background px-3 text-sm" placeholder="Rejection remarks required" required />
                     <Button type="submit" variant="destructive">Reject Recipe</Button>
                   </form>
                 </>
               ) : null}
-              {permissions["recipes.approve"] && recipe.status === "approved" ? <form action={activateRecipe.bind(null, recipe.id)}><Button type="submit" className="w-full">Activate</Button></form> : null}
+              {permissions["recipes.approve"] && recipe.status === "approved" ? <form action={activateRecipe.bind(null, recipe.id)}><Button type="submit" className="w-full" data-mobile-primary-action>Activate</Button></form> : null}
               {permissions["recipes.create"] && recipe.status === "active" ? <form action={createNewRecipeVersion.bind(null, recipe.id)}><Button type="submit" variant="outline" className="w-full">New Version</Button></form> : null}
               {permissions["recipes.archive"] && ["active", "approved"].includes(recipe.status) ? <form action={archiveRecipe.bind(null, recipe.id)}><Button type="submit" variant="ghost" className="w-full">Archive</Button></form> : null}
               {permissions["recipes.archive"] ? <PhaseOneDeleteAction recordType="recipe" recordId={recipe.id} label="recipe" /> : null}

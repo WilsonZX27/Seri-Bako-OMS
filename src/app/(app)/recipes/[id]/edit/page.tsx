@@ -38,7 +38,7 @@ export default async function EditRecipePage({ params }: { params: Promise<{ id:
   return (
     <>
       <PageHeader title="Edit Recipe" description={`${recipe.product_code} - ${recipe.product_name}`} />
-      <RecordWorkspace actionPanel={<RecordActionPanel title="Recipe Actions" description="Save this editable recipe version without changing its workflow state."><Button type="submit" form="recipe-edit-form" className="w-full"><Calculator className="h-4 w-4" />Save Recipe</Button><Button asChild variant="outline" className="w-full"><Link href={`/recipes/${id}`}>Cancel</Link></Button></RecordActionPanel>}><RecipeForm formId="recipe-edit-form" recipe={recipe} products={products} items={items} action={updateRecipe.bind(null, id)} showSubmit={false} /></RecordWorkspace>
+      <RecordWorkspace actionPanel={<RecordActionPanel title="Recipe Actions" description="Save this editable recipe version without changing its workflow state."><Button type="submit" form="recipe-edit-form" className="w-full" data-mobile-primary-action><Calculator className="h-4 w-4" />Save Recipe</Button><Button asChild variant="outline" className="w-full"><Link href={`/recipes/${id}`}>Cancel</Link></Button></RecordActionPanel>}><RecipeForm formId="recipe-edit-form" recipe={recipe} products={products} items={items} action={updateRecipe.bind(null, id)} showSubmit={false} /></RecordWorkspace>
     </>
   );
 }

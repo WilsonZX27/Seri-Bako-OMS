@@ -10,7 +10,7 @@ const mobileHeader = fs.readFileSync(path.join(root, "src", "components", "layou
 test("dashboard phone top bar uses one centered Today title", () => {
   assert.match(mobileHeader, /pathname === "\/dashboard"[\s\S]*?title: "Today", backHref: null/);
   assert.match(dashboard, /<header className="hidden[\s\S]*?md:flex/);
-  assert.match(dashboard, /const workspaceContext = <>Welcome \{summary\.userName\}/);
+  assert.match(dashboard, /Welcome, \{summary\.userName\}/);
   assert.match(dashboard, /summary\.roleLabel[\s\S]*?summary\.branchLabel/);
 });
 

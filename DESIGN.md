@@ -67,9 +67,9 @@ The mobile shell may reorganize navigation, information density, filters, and ac
 ## Operational workflow UX
 
 - The current status and the next permitted action appear before secondary metadata.
-- Dashboard workspaces show the signed-in operational context consistently at every breakpoint: `Welcome [staff name] | [role] | [actual branch scope]`. This replaces generic labels such as “Assigned branches”. Company-wide roles show `Company-wide`; assigned roles show the readable names of their assigned branches.
+- Dashboard workspaces show the signed-in operational context consistently at every breakpoint: a muted `Welcome, [staff name]` line followed by `[role] · [actual branch scope]`. This replaces generic labels such as “Assigned branches”. Company-wide roles show `Company-wide`; assigned roles show the readable names of their assigned branches.
 - The contextual welcome line is a dashboard identity and scope cue, not a second top-bar title. Phone top bars continue to use only the centered page title; tablet and desktop place the same contextual line in the workspace header.
-- Role-specific Dashboard quick actions are creation or immediate-execution actions. Do not duplicate those destinations in a role's mobile navigation merely because they appear in the quick-action rail; retain the role's established, permission-safe primary shortcuts.
+- Role-specific Dashboard quick actions are creation or immediate-execution actions. Mobile navigation instead carries the role's most frequent workspaces. For Kitchen this deliberately separates `Purchase Request`, `New Production`, and `Receive` in Quick actions from `Stock Count`, `Stock Balance`, and `Stock Wastage` in the bottom bar.
 - Module landing pages use the operational hub hierarchy: one current-day summary, one primary task, one attention queue, and one compact tool list. They do not use repeated icon-card directories or duplicate explanatory copy.
 - The operational hub keeps the same information order on phone and desktop. Responsive behavior changes column placement and density, not terminology, color roles, or task priority.
 - Summary values share one flat data strip. Semantic orange or red appears only when the corresponding value requires attention; zero and normal states remain operational green.

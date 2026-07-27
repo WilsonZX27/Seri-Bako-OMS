@@ -106,17 +106,24 @@ export function DashboardWorkspace({ summary, renderedAt }: { summary: Dashboard
               ];
   const primaryAction = quickActions[0];
 
-  const workspaceContext = <>Welcome {summary.userName}<span aria-hidden="true"> | </span>{summary.roleLabel}<span aria-hidden="true"> | </span>{summary.branchLabel}</>;
+  const workspaceContext = <>
+    <p className="text-xs text-[var(--sb-text-muted)]">Welcome, {summary.userName}</p>
+    <div className="mt-1 flex min-w-0 flex-wrap items-baseline gap-x-2 gap-y-0.5">
+      <span className="text-base font-semibold text-[var(--sb-text)] sm:text-lg">{summary.roleLabel}</span>
+      <span aria-hidden="true" className="text-[var(--sb-text-muted)]">·</span>
+      <span className="min-w-0 text-sm text-[var(--sb-text-muted)]">{summary.branchLabel}</span>
+    </div>
+  </>;
 
   return <WorkspaceGrid hideMobileConsole className="gap-4 p-3 pb-24 sm:p-4 sm:pb-24 md:pb-4 xl:grid-cols-[minmax(0,1fr)_280px]" rightRailClassName="space-y-2" rightRail={<>
     <ConsoleSection title="Actions"><div className="grid gap-2">{quickActions.map((action, index) => <Button key={action.href} asChild size="sm" variant={index === 0 ? "default" : "outline"} className="w-full"><Link href={action.href}>{action.label}</Link></Button>)}</div></ConsoleSection>
     <ConsoleSection title="Today"><div className="space-y-2 text-[11px]"><p><span className="text-muted-foreground">Role</span><br /><strong>{summary.roleLabel}</strong></p><p><span className="text-muted-foreground">Data scope</span><br /><strong>{summary.scopeLabel}</strong></p><p><span className="text-muted-foreground">Updated</span><br /><strong>{now.toLocaleString("en-MY", { dateStyle: "medium", timeStyle: "short", timeZone: "Asia/Kuala_Lumpur" })}</strong></p></div></ConsoleSection>
     {summary.notifications.length ? <ConsoleSection title="Alerts"><div className="space-y-2">{summary.notifications.slice(0, 3).map((note) => <Link key={note.id} href={note.action_url ?? "/activity"} className="block text-[11px] hover:underline"><strong className="block">{note.title}</strong><span className="text-muted-foreground">{note.message}</span></Link>)}</div></ConsoleSection> : null}
   </>}>
-    <div className="space-y-4"><header className="hidden flex-col gap-3 md:flex md:flex-row md:items-start md:justify-between"><div><h1 className="text-lg font-semibold sm:text-xl">{workspaceContext}</h1><p className="mt-1 text-xs text-muted-foreground">{copy.description}</p></div><Button asChild size="sm" className="hidden w-full shrink-0 sm:inline-flex sm:w-auto xl:hidden"><Link href={primaryAction.href}>{primaryAction.label}</Link></Button></header>
+    <div className="space-y-4"><header className="hidden flex-col gap-3 md:flex md:flex-row md:items-start md:justify-between"><div>{workspaceContext}<p className="mt-2 text-xs text-muted-foreground">{copy.description}</p></div><Button asChild size="sm" className="hidden w-full shrink-0 sm:inline-flex sm:w-auto xl:hidden"><Link href={primaryAction.href}>{primaryAction.label}</Link></Button></header>
 
-      <div className="min-h-9 border-b border-[var(--sb-border-soft)] pb-2 md:hidden">
-        <p className="truncate text-[13px] text-[var(--sb-text-muted)]"><span className="font-semibold text-[var(--sb-text)]">{workspaceContext}</span></p>
+      <div className="border-b border-[var(--sb-border-soft)] pb-3 md:hidden">
+        {workspaceContext}
       </div>
 
       <MobileQuickActions actions={quickActions} />

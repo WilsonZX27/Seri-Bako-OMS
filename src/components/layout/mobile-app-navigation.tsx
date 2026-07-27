@@ -8,7 +8,6 @@ import {
   CheckCircle2,
   ClipboardCheck,
   ClipboardList,
-  Factory,
   FileText,
   Home,
   Menu,
@@ -16,6 +15,7 @@ import {
   ReceiptText,
   Search,
   ShoppingCart,
+  TriangleAlert,
   LogOut,
   UserRound,
   X,
@@ -59,9 +59,9 @@ function roleTabs(role: UserRole, permissionMap: Record<string, boolean>): Mobil
 
   if (role === "kitchen") {
     tabs.push(
-      { href: "/production/jobs", label: "Production", icon: Factory, permission: "production.view" },
-      { href: "/purchase-requests", label: "Requests", icon: FileText, permission: "purchase_request.read" },
-      { href: "/goods-receivings", label: "Receive", icon: PackageCheck, permission: "goods_receiving.read" },
+      { href: "/stock-counts", label: "Count", icon: CheckCircle2, permission: "stock_count.read" },
+      { href: "/stock-balance", label: "Stock", icon: Boxes, permission: "stock_balance.read" },
+      { href: "/stock-wastage", label: "Wastage", icon: TriangleAlert, permission: "stock_wastage.read" },
     );
     return tabs;
   }

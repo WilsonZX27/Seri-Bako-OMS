@@ -66,7 +66,7 @@ export default async function SupplierItemsPage({ searchParams }: { searchParams
         </Table>
         <OperationalList ariaLabel="Supplier items">
           {page.rows.map((row) => <OperationalListRow key={row.id} href={`/supplier-items/${row.id}`} label={`Open ${row.supplier_item_code}`} primary={row.item_name} status={<Badge variant={row.status === "active" ? "success" : "secondary"}>{row.status}</Badge>} secondary={`${row.supplier_name} · ${row.supplier_item_code}`} meta={formatCurrency(row.unit_cost)} />)}
-          {!page.rows.length ? <EmptyState title={filtered ? "No supplier items match these filters" : "No supplier items yet"} description={filtered ? "Reset the filters or widen the search." : "Supplier item terms appear after a supplier is linked to an item."} action={emptyAction} /> : null}
+          {!page.rows.length ? <EmptyState title={filtered ? "No supplier items match these filters" : "No supplier items yet"} description={filtered ? "Reset the filters or widen the search." : "Supplier item terms appear after a supplier is linked to an item."} action={filtered ? emptyAction : undefined} /> : null}
         </OperationalList>
         <PaginationControls page={page.page} totalPages={page.totalPages} totalRows={page.totalRows} searchParams={filters} />
       </div>

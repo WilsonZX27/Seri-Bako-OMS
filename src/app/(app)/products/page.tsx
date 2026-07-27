@@ -77,7 +77,7 @@ export default async function ProductsPage({
             </Table>
           <OperationalList ariaLabel="Products">
             {productsPage.rows.map((product) => <OperationalListRow key={product.id} href={`/products/${product.id}`} label={`Open ${product.product_name}`} primary={product.product_name} status={<Badge variant={product.status === "active" ? "success" : "secondary"}>{product.status}</Badge>} secondary={`${product.product_code} · ${product.category}`} meta={product.selling_unit} />)}
-            {!productsPage.rows.length ? <EmptyState title={filtered ? "No products match these filters" : "No products yet"} description={filtered ? "Reset the filters or widen the search." : "Products appear after finished goods are created or imported."} action={emptyAction} /> : null}
+            {!productsPage.rows.length ? <EmptyState title={filtered ? "No products match these filters" : "No products yet"} description={filtered ? "Reset the filters or widen the search." : "Products appear after finished goods are created or imported."} action={filtered ? emptyAction : undefined} /> : null}
           </OperationalList>
           <PaginationControls page={productsPage.page} totalPages={productsPage.totalPages} totalRows={productsPage.totalRows} searchParams={filters} />
         </div>

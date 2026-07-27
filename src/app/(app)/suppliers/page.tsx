@@ -103,7 +103,7 @@ export default async function SuppliersPage({
           </Table>
           <OperationalList ariaLabel="Suppliers">
             {page.rows.map((supplier) => <OperationalListRow key={supplier.id} href={`/suppliers/${supplier.id}`} label={`Open ${supplier.name}`} primary={supplier.name} status={<Badge variant={supplier.status === "active" ? "success" : "secondary"}>{supplier.status}</Badge>} secondary={`${supplier.supplier_code ?? "No code"} · ${supplier.contact_person ?? "No contact"}`} meta={supplier.payment_terms_days ? `${supplier.payment_terms_days} days` : undefined} />)}
-            {!page.rows.length ? <EmptyState title={filtered ? "No suppliers match these filters" : "No suppliers yet"} description={filtered ? "Reset the filters or widen the search." : "Suppliers appear after they are created or imported."} action={emptyAction} /> : null}
+            {!page.rows.length ? <EmptyState title={filtered ? "No suppliers match these filters" : "No suppliers yet"} description={filtered ? "Reset the filters or widen the search." : "Suppliers appear after they are created or imported."} action={filtered ? emptyAction : undefined} /> : null}
           </OperationalList>
           </BulkSelectionProvider>
           <PaginationControls page={page.page} totalPages={page.totalPages} totalRows={page.totalRows} searchParams={filters} />

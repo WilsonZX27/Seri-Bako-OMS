@@ -95,7 +95,7 @@ export default async function PurchaseReturnsPage({ searchParams }: { searchPara
               secondary={`${row.supplier_name ?? "No supplier"} · ${row.grn_no ?? "No GRN"}`}
               meta={formatCurrency(row.return_value)}
             />)}
-            {!returns.rows.length ? <EmptyState title={filtered ? "No returns match these filters" : "No purchase returns yet"} description={filtered ? "Reset the filters or widen the search." : "Supplier returns appear after a posted receiving is returned."} action={emptyAction} /> : null}
+            {!returns.rows.length ? <EmptyState title={filtered ? "No returns match these filters" : "No purchase returns yet"} description={filtered ? "Reset the filters or widen the search." : "Supplier returns appear after a posted receiving is returned."} action={filtered ? emptyAction : undefined} /> : null}
           </OperationalList>
           <PaginationControls page={returns.page} totalPages={returns.totalPages} totalRows={returns.totalRows} searchParams={filters} />
         </div>

@@ -81,7 +81,7 @@ export default async function RecipesPage({ searchParams }: { searchParams: Prom
             </Table>
           <OperationalList ariaLabel="Recipes">
             {page.rows.map((recipe) => <OperationalListRow key={recipe.id} href={`/recipes/${recipe.id}`} label={`Open ${recipe.recipe_no}`} primary={recipe.product_name} status={<Badge variant={recipe.status === "active" ? "success" : recipe.status === "rejected" ? "danger" : "secondary"}>{recipe.status}</Badge>} secondary={`${recipe.recipe_no} · ${recipe.product_code}`} meta={`${formatNumber(recipe.yield_qty)} ${recipe.yield_unit}`} />)}
-            {!page.rows.length ? <EmptyState title={filtered ? "No recipes match these filters" : "No recipes yet"} description={filtered ? "Reset the filters or widen the search." : "Recipes appear after a finished product receives a BOM."} action={emptyAction} /> : null}
+            {!page.rows.length ? <EmptyState title={filtered ? "No recipes match these filters" : "No recipes yet"} description={filtered ? "Reset the filters or widen the search." : "Recipes appear after a finished product receives a BOM."} action={filtered ? emptyAction : undefined} /> : null}
           </OperationalList>
           <PaginationControls page={page.page} totalPages={page.totalPages} totalRows={page.totalRows} searchParams={filters} />
         </div>

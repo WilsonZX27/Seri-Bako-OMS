@@ -380,6 +380,13 @@ input[type="date"]::-webkit-date-and-time-value {
   font-size: 0.75rem;
 }
 
+/* Legacy Tailwind radii resolve through the OMS shape contract on every viewport. */
+.rounded-\[2px\],
+.rounded-md,
+.rounded-none {
+  border-radius: var(--sb-radius-control);
+}
+
 @media (max-width: 767px) {
   :root {
     --sb-radius-control: 0.625rem;
@@ -480,13 +487,6 @@ input[type="date"]::-webkit-date-and-time-value {
 
   .erp-surface {
     border-radius: var(--sb-panel-radius);
-  }
-
-  /* Normalize legacy desktop geometry into one phone-only shape language. */
-  .rounded-\[2px\],
-  .rounded-md,
-  .rounded-none {
-    border-radius: var(--sb-radius-control);
   }
 
   .sb-filter-more > summary {

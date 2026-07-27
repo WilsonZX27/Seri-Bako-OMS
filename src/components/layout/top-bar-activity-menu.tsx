@@ -69,7 +69,7 @@ export function TopBarActivityMenu({ data }: { data: TopBarActivity }) {
       <Button ref={triggerRef} type="button" variant="ghost" size="icon" onClick={toggleOpen} aria-label={count ? `Open workspace updates, ${count} unread or pending` : "Open workspace updates"} aria-haspopup="dialog" aria-expanded={open}>
         <Bell className="h-5 w-5" />
         {count ? (
-          <span className="absolute right-0 top-0 flex h-4 min-w-4 items-center justify-center rounded-full bg-red-600 px-1 text-[9px] font-semibold leading-none text-white">
+          <span className="absolute right-0 top-0 flex h-4 min-w-4 items-center justify-center rounded-full bg-[var(--sb-warning)] px-1 text-[9px] font-semibold leading-none text-white">
             {badgeLabel}
           </span>
         ) : null}
@@ -91,7 +91,7 @@ export function TopBarActivityMenu({ data }: { data: TopBarActivity }) {
             <section className="space-y-1 p-3">
               <div className="flex items-center justify-between gap-3">
                 <p className="text-xs font-semibold uppercase text-muted-foreground">My Pending Actions</p>
-                {pendingCount ? <span className="rounded-full bg-red-50 px-2 py-0.5 text-xs font-medium text-red-700">{pendingCount}</span> : null}
+                {pendingCount ? <span className="rounded-full bg-[var(--sb-warning-bg)] px-2 py-0.5 text-xs font-medium text-[var(--sb-warning)]">{pendingCount}</span> : null}
               </div>
               {pendingApprovals.map((item) => (
                 <Link key={item.id} href={item.href} onClick={() => setOpen(false)} className="flex gap-2 rounded-md p-2 text-xs hover:bg-secondary">
@@ -104,7 +104,7 @@ export function TopBarActivityMenu({ data }: { data: TopBarActivity }) {
             <section className="space-y-1 p-3">
               <div className="flex items-center justify-between gap-3">
                 <p className="text-xs font-semibold uppercase text-muted-foreground">My Notifications</p>
-                {notificationCount ? <span className="rounded-full bg-red-50 px-2 py-0.5 text-xs font-medium text-red-700">{notificationCount}</span> : null}
+                {notificationCount ? <span className="rounded-full bg-[var(--sb-warning-bg)] px-2 py-0.5 text-xs font-medium text-[var(--sb-warning)]">{notificationCount}</span> : null}
               </div>
               {notifications.map((notification) => (
                 <Link key={notification.id} href={notification.action_url ?? "/activity"} onClick={() => setOpen(false)} className="flex gap-2 rounded-[2px] p-2 text-xs hover:bg-secondary">
@@ -123,7 +123,7 @@ export function TopBarActivityMenu({ data }: { data: TopBarActivity }) {
             <section className="space-y-1 p-3">
               <div className="flex items-center justify-between gap-3">
                 <p className="text-xs font-semibold uppercase text-muted-foreground">Recent Activity</p>
-                {recentCount ? <span className="rounded-full bg-slate-50 px-2 py-0.5 text-xs font-medium text-slate-600">{recentCount}</span> : null}
+                {recentCount ? <span className="rounded-full bg-[var(--sb-neutral-bg)] px-2 py-0.5 text-xs font-medium text-[var(--sb-neutral-text)]">{recentCount}</span> : null}
               </div>
               {assignedActivities.map((activity) => (
                 <div key={activity.id} className="rounded-md p-2 text-xs">

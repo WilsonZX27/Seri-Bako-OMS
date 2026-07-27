@@ -109,7 +109,7 @@ export default async function SetPasswordPage({
       ) : null}
       <div className="mb-5 rounded-[2px] border bg-white p-4">
         <div className="flex items-center gap-3">
-          <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10 text-sm font-semibold text-primary">
+          <div className="flex h-12 w-12 items-center justify-center rounded-[var(--sb-radius-control)] bg-primary/10 text-sm font-semibold text-primary">
             {setupContext.companyLogoUrl ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img src={setupContext.companyLogoUrl} alt={`${setupContext.companyName} logo`} className="h-full w-full object-contain p-2" />

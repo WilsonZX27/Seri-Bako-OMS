@@ -32,11 +32,24 @@ test("tablet keeps workspace actions in context instead of a phone action bar", 
 test("desktop and tablet shared geometry remains token based", () => {
   const tailwind = read("tailwind.config.ts");
   const design = read("DESIGN.md");
+  const globals = read("src", "app", "globals.css");
 
   assert.match(tailwind, /md: "var\(--sb-radius-control\)"/);
   assert.match(tailwind, /sm: "var\(--sb-radius-control\)"/);
   assert.match(design, /Tablet \(`768px-1279px`\)/);
   assert.match(design, /Desktop \(`>=1280px`\)/);
+  assert.match(globals, /\.rounded-\\\[2px\\\],[\s\S]*\.rounded-md,[\s\S]*\.rounded-none[\s\S]*border-radius: var\(--sb-radius-control\)/);
+});
+
+test("shared activity and identity surfaces use OMS semantic tokens", () => {
+  const activityMenu = read("src", "components", "layout", "top-bar-activity-menu.tsx");
+  const account = read("src", "app", "(app)", "account", "page.tsx");
+
+  assert.match(activityMenu, /bg-\[var\(--sb-warning\)\]/);
+  assert.match(activityMenu, /bg-\[var\(--sb-warning-bg\)\]/);
+  assert.match(activityMenu, /bg-\[var\(--sb-neutral-bg\)\]/);
+  assert.doesNotMatch(activityMenu, /(?:bg|text)-red-|(?:bg|text)-slate-/);
+  assert.match(account, /h-16 w-16[\s\S]*rounded-full/);
 });
 
 test("document workspaces preserve supplied desktop and tablet navigation context", () => {

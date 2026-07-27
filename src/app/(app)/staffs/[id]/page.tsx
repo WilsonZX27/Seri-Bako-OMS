@@ -191,17 +191,17 @@ export default async function EditStaffPage({
         ) : null}
 
         {temporaryPassword ? (
-          <Card className="border-amber-200 bg-amber-50">
+          <Card className="border-[var(--sb-warning)] bg-[var(--sb-warning-bg)]">
             <CardHeader>
               <CardTitle>Temporary password shown once</CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
-              <p className="text-sm text-amber-900">Copy this temporary password now. It will not be shown again.</p>
+              <p className="text-sm text-[var(--sb-warning)]">Copy this temporary password now. It will not be shown again.</p>
               <div className="flex flex-wrap items-center justify-between gap-3 rounded-[2px] border bg-white p-3">
                 <span className="font-mono text-lg font-semibold">{temporaryPassword}</span>
                 <CopyTextButton value={temporaryPassword} label="Copy temporary password" />
               </div>
-              <p className="text-xs text-amber-900">Share it securely. The staff member must change it after first login.</p>
+              <p className="text-xs text-[var(--sb-warning)]">Share it securely. The staff member must change it after first login.</p>
             </CardContent>
           </Card>
         ) : null}

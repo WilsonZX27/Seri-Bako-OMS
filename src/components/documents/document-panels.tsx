@@ -71,7 +71,7 @@ export function DocumentTimeline({ document, activities, comments, attachments }
     <ConsoleSection title="Document Timeline">
         <div className="space-y-0">
           {events.map((event) => (
-            <div key={event.id} className="relative flex gap-3 border-l border-slate-200 pb-4 pl-3 last:pb-0">
+            <div key={event.id} className="relative flex gap-3 border-l border-[var(--sb-border-soft)] pb-4 pl-3 last:pb-0">
               <div className="-ml-[21px] mt-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-[var(--rail-bg)]">{eventIcon(event.activity_type)}</div>
               <div className="min-w-0">
                 <p className="text-xs font-medium">{event.message}</p>

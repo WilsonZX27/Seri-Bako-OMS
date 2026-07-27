@@ -30,7 +30,7 @@ export default async function AccountPage() {
           <Card id="password">
             <CardContent className="p-5">
               <div className="flex items-start gap-4">
-                <div className="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-primary/10 text-lg font-semibold text-primary">
+                <div className="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-full bg-primary/10 text-lg font-semibold text-primary">
                   {account?.avatar_url ? (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img src={account.avatar_url} alt="Profile picture" className="h-full w-full object-cover" />

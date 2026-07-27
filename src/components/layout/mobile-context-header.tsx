@@ -5,24 +5,59 @@ import { ChevronLeft } from "lucide-react";
 import { usePathname } from "next/navigation";
 import { getIaItemForPath } from "@/lib/information-architecture";
 
-const routeTitles: Record<string, string> = {
-  "/account": "My Account",
-  "/administration": "Administration",
-  "/daily-operations": "Daily Operations",
-  "/data-onboarding": "Data Onboarding",
-  "/documents": "Documents",
-  "/inventory": "Inventory",
-  "/opening-stock": "Opening Stock",
-  "/procurement": "Procurement",
-  "/production": "Production",
-  "/quick-tools": "Quick Tools",
-  "/reports": "Reports",
-  "/settings": "Settings",
+type RouteTitle = { title: string; backHref?: string | null };
+
+const routeTitles: Record<string, RouteTitle> = {
+  "/account": { title: "My Account" },
+  "/activity": { title: "Activity Log" },
+  "/administration": { title: "Administration" },
+  "/administration/backups": { title: "System Backup", backHref: "/administration" },
+  "/administration/imports": { title: "Imports", backHref: "/administration" },
+  "/administration/master-data-cleanup": { title: "Master Data Cleanup", backHref: "/administration" },
+  "/branches": { title: "Branches / Outlets" },
+  "/company": { title: "Company Profile" },
+  "/daily-operations": { title: "Daily Operations" },
+  "/data-onboarding": { title: "Data Onboarding" },
+  "/document-sequences": { title: "Document Sequences", backHref: "/administration" },
+  "/documents": { title: "Documents" },
+  "/inventory": { title: "Inventory" },
+  "/opening-stock": { title: "Opening Stock" },
+  "/opening-stock/import": { title: "Import Opening Stock", backHref: "/opening-stock" },
+  "/procurement": { title: "Procurement" },
+  "/production": { title: "Production" },
+  "/production/planning": { title: "Production Planning", backHref: "/production/jobs" },
+  "/production/variance": { title: "Demand Variance", backHref: "/production/jobs" },
+  "/quick-tools": { title: "Quick Tools" },
+  "/reports": { title: "Reports" },
+  "/reports/costing-readiness": { title: "Costing Readiness", backHref: "/reports" },
+  "/reports/demand-trends": { title: "Demand Trends", backHref: "/reports" },
+  "/reports/procurement-variance": { title: "Procurement Variance", backHref: "/reports" },
+  "/reports/product-margin": { title: "Product Margin", backHref: "/reports" },
+  "/reports/recipe-costing": { title: "Recipe Costing", backHref: "/reports" },
+  "/settings": { title: "Settings" },
+  "/stock-card": { title: "Stock Card" },
+  "/stock-count": { title: "Stock Count" },
+  "/stock-transfer": { title: "Stock Transfer" },
+  "/stock-wastage": { title: "Stock Wastage" },
+  "/supplier-invoices/aging": { title: "AP Aging", backHref: "/supplier-invoices" },
+  "/supplier-invoices/cash-flow": { title: "Cash Flow Forecast", backHref: "/supplier-invoices" },
+  "/supplier-items": { title: "Supplier Items" },
+  "/uom-conversions": { title: "UOM Conversions" },
 };
 
 function pageContext(pathname: string) {
   if (pathname === "/dashboard") {
     return { title: "Today", backHref: null };
+  }
+  const matchedRoute = Object.keys(routeTitles)
+    .sort((a, b) => b.length - a.length)
+    .find((route) => pathname === route || pathname.startsWith(`${route}/`));
+  if (matchedRoute) {
+    const route = routeTitles[matchedRoute];
+    return {
+      title: route.title,
+      backHref: pathname === matchedRoute ? route.backHref ?? null : matchedRoute,
+    };
   }
   const item = getIaItemForPath(pathname);
   if (item) {
@@ -32,13 +67,9 @@ function pageContext(pathname: string) {
     };
   }
 
-  const matchedRoot = Object.keys(routeTitles)
-    .sort((a, b) => b.length - a.length)
-    .find((route) => pathname === route || pathname.startsWith(`${route}/`));
-  const root = matchedRoot ?? "/dashboard";
   return {
-    title: routeTitles[root] ?? "Dashboard",
-    backHref: pathname === root || pathname === "/dashboard" ? null : root,
+    title: "Dashboard",
+    backHref: null,
   };
 }
 

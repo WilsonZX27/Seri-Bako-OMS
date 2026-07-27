@@ -10,6 +10,9 @@ const dashboard = read("src/components/dashboard-workspace.tsx");
 const priorityBadge = read("src/components/priority-badge.tsx");
 const systemStates = read("src/components/ui/system-states.tsx");
 const authSetPassword = read("src/app/(auth)/set-password/page.tsx");
+const administration = read("src/app/(app)/administration/page.tsx");
+const importsIndex = read("src/app/(app)/imports/page.tsx");
+const operationalToolList = read("src/components/operational-tool-list.tsx");
 
 test("UI consistency keeps imports upload-only and technical permission details collapsed", () => {
   assert.doesNotMatch(imports, /Edit in table|Add blank row|Paste into table/);
@@ -83,4 +86,14 @@ test("shared operational feedback uses semantic state tokens instead of one-off 
   assert.doesNotMatch(systemStates, /(?:border|bg|text)-(?:emerald|blue|amber|purple|teal|slate|red)-\d/);
   assert.match(authSetPassword, /<Notice tone="error">/);
   assert.match(authSetPassword, /<Notice tone="warning"/);
+});
+
+test("administration and import directories use the shared flat operational tool list", () => {
+  assert.equal(fs.existsSync("src/components/category-card-grid.tsx"), false);
+  assert.match(administration, /<WorkspaceGrid tabletCanvas="contained">/);
+  assert.match(importsIndex, /<WorkspaceGrid tabletCanvas="contained">/);
+  assert.match(administration, /<OperationalToolList items=\{links\}/);
+  assert.match(importsIndex, /<OperationalToolList items=\{items\}/);
+  assert.match(operationalToolList, /divide-y divide-\[var\(--sb-border-soft\)\]/);
+  assert.doesNotMatch(operationalToolList, /CardContent|md:grid/);
 });

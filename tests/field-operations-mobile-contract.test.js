@@ -14,13 +14,14 @@ test("outlet daily rows retain the next operational step and wastage signal on p
   assert.match(source, /formatNumber\(row\.total_received\)\} received/);
 });
 
-test("production jobs use the shared mobile status rail and reserve FAB clearance", () => {
+test("production jobs use the shared workspace status rail and reserve shared FAB clearance", () => {
   const source = read("src/app/(app)/production/jobs/page.tsx");
 
   assert.match(source, /<StatusTabs/);
-  assert.match(source, /className="md:hidden"/);
-  assert.match(source, /hidden flex-wrap gap-2 md:flex/);
-  assert.match(source, /canCreate \? "pb-32" : "pb-4"/);
+  assert.match(source, /<WorkspaceGrid/);
+  assert.match(source, /hideMobileConsole=\{!canCreate\}/);
+  assert.doesNotMatch(source, /hidden flex-wrap gap-2 md:flex/);
+  assert.doesNotMatch(source, /RightConsoleMount/);
 });
 
 test("stock count keeps setup separate from one continuous phone work surface", () => {

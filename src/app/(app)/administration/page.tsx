@@ -1,5 +1,6 @@
-import { CategoryCardGrid } from "@/components/category-card-grid";
+import { WorkspaceGrid } from "@/components/layout/workspace-layout";
 import { getVisibleNavGroups, navPermissionCodes } from "@/components/layout/nav-items";
+import { OperationalToolList } from "@/components/operational-tool-list";
 import { PageHeader } from "@/components/ui/page-header";
 import { isSystemRoleCode, normalizeRoleCode } from "@/lib/roles";
 import { getPermissionMap } from "@/server/auth/permissions";
@@ -19,7 +20,7 @@ export default async function AdministrationPage() {
   return (
     <>
       <PageHeader title="Administration" description="Owner controls and authorized master-data tools in one permission-aware workspace." />
-      <div className="space-y-4 p-3 sm:space-y-5 sm:p-5"><CategoryCardGrid items={links} /></div>
+      <WorkspaceGrid tabletCanvas="contained"><OperationalToolList items={links} /></WorkspaceGrid>
     </>
   );
 }

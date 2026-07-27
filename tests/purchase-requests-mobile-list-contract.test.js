@@ -8,8 +8,8 @@ const page = fs.readFileSync(path.join(root, "src", "app", "(app)", "purchase-re
 const tabs = fs.readFileSync(path.join(root, "src", "components", "status-tabs.tsx"), "utf8");
 const workspace = fs.readFileSync(path.join(root, "src", "components", "layout", "workspace-layout.tsx"), "utf8");
 
-test("purchase-request list uses device-appropriate list surfaces", () => {
-  assert.match(page, /<Table mobileHidden aria-label="Purchase requests">/);
+test("purchase-request list uses device-appropriate list surfaces and anchors the request identity", () => {
+  assert.match(page, /<Table mobileHidden aria-label="Purchase requests" stickyColumn="second">/);
   assert.match(page, /<OperationalList ariaLabel="Purchase requests">/);
   assert.match(page, /<FilterBar resultCount=/);
 });

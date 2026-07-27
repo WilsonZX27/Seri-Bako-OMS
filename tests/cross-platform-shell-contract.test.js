@@ -97,13 +97,17 @@ test("workspace right-rail styling is applied consistently at tablet and desktop
   assert.doesNotMatch(workspaceGrid, /void rightRailClassName/);
 });
 
-test("administration collection pages reuse the shared category presentation", () => {
+test("administration collection pages reuse the contained operational tool-list presentation", () => {
   const imports = read("src", "app", "(app)", "imports", "page.tsx");
-  const backups = read("src", "app", "(app)", "settings", "backups", "backup-page.tsx");
+  const administration = read("src", "app", "(app)", "administration", "page.tsx");
+  const toolList = read("src", "components", "operational-tool-list.tsx");
 
-  assert.match(imports, /CategoryCardGrid/);
-  assert.match(imports, /sm:p-5/);
-  assert.match(backups, /rounded-\[var\(--sb-radius-control\)\]/);
+  assert.match(imports, /<WorkspaceGrid tabletCanvas="contained">/);
+  assert.match(administration, /<WorkspaceGrid tabletCanvas="contained">/);
+  assert.match(imports, /OperationalToolList/);
+  assert.match(administration, /OperationalToolList/);
+  assert.match(toolList, /divide-y divide-\[var\(--sb-border-soft\)\]/);
+  assert.equal(fs.existsSync(path.join(root, "src", "components", "category-card-grid.tsx")), false);
 });
 
 test("dashboard identity context uses the canonical role and branch delimiter", () => {

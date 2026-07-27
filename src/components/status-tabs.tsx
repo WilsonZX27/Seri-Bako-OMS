@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
-import { useEffect, useRef } from "react";
+import { useLayoutEffect, useRef } from "react";
 import { cn } from "@/lib/utils";
 
 type StatusTab = string | { value: string; label: string };
@@ -17,19 +17,26 @@ export function StatusTabs({ statuses, activeStatus }: { statuses: StatusTab[]; 
     : status)];
   const selected = activeStatus || "all";
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (!window.matchMedia("(max-width: 767px)").matches) return;
-    const frame = window.requestAnimationFrame(() => {
-      // Browsers may restore a horizontal scroll offset after returning to a
-      // filtered list. The default "All" state must always expose its first
-      // tab completely, instead of leaving the active control clipped.
+    const keepActiveTabVisible = () => {
+      // Safari can restore a horizontal scroll offset after hydration or when
+      // a page is revisited. Reset the default state before paint, then once
+      // more after restoration so the first control never has a clipped corner.
       if (selected === "all") {
         tabsRef.current?.scrollTo({ left: 0, behavior: "auto" });
         return;
       }
       activeTabRef.current?.scrollIntoView({ block: "nearest", inline: "center" });
-    });
-    return () => window.cancelAnimationFrame(frame);
+    };
+
+    keepActiveTabVisible();
+    const restorationTimer = window.setTimeout(keepActiveTabVisible, 120);
+    window.addEventListener("pageshow", keepActiveTabVisible);
+    return () => {
+      window.clearTimeout(restorationTimer);
+      window.removeEventListener("pageshow", keepActiveTabVisible);
+    };
   }, [selected]);
 
   function hrefFor(value: string) {
@@ -42,7 +49,7 @@ export function StatusTabs({ statuses, activeStatus }: { statuses: StatusTab[]; 
   }
 
   return (
-    <nav ref={tabsRef} aria-label="Filter by status" className="scrollbar-none flex min-h-11 gap-1 overflow-x-auto border-b border-[var(--sb-border-soft)] bg-white px-2 py-1.5 [scroll-padding-inline:0.5rem]">
+    <nav ref={tabsRef} aria-label="Filter by status" className="scrollbar-none flex min-h-11 gap-1 overflow-x-auto border-b border-[var(--sb-border-soft)] bg-white px-3 py-1.5 [scroll-padding-inline:0.75rem]">
       {tabs.map((tab) => {
         const active = selected === tab.value;
         return (

@@ -15,10 +15,13 @@ test("mobile ledger rows expose source context and semantic direction", () => {
   assert.match(source, /direction === "out".*var\(--sb-danger\)/s);
 });
 
-test("ledger filter summary wraps and stock balance action uses mobile radius token", () => {
+test("ledger filter summary wraps and inventory utilities avoid an empty phone action bar", () => {
   const ledger = read("src/app/(app)/stock-transactions/page.tsx");
   const balanceRows = read("src/components/stock-balance-table.tsx");
+  const balanceWorkspace = read("src/components/stock-balance-workspace.tsx");
 
   assert.match(ledger, /sb-filter-summary flex-wrap px-3 py-2/);
+  assert.match(ledger, /hideMobileConsole=\{!canCreate\}/);
   assert.match(balanceRows, /rounded-\[var\(--sb-radius-control\)\]/);
+  assert.match(balanceWorkspace, /<WorkspaceGrid\s+hideMobileConsole\s+rightRail=/);
 });

@@ -85,6 +85,7 @@ export default async function StockTransactionsPage({ searchParams }: { searchPa
         description="Append-only inventory movement and valuation audit by branch and item."
       />
       <WorkspaceGrid
+        hideMobileConsole={!canCreate}
         rightRail={
           <>
             {canCreate || canExport ? <ConsoleSection title="Actions">

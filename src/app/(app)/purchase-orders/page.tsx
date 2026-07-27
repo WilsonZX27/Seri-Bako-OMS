@@ -38,6 +38,7 @@ export default async function PurchaseOrdersPage({ searchParams }: { searchParam
       <PageHeader title="Purchase Orders" description="Supplier purchase orders created from approved requests or manually." />
       <WorkspaceGrid
         className="pt-4"
+        hideMobileConsole={!permissions["po.create"]}
         rightRail={
           <>
             {permissions["po.create"] ? <ConsoleSection title="Actions">

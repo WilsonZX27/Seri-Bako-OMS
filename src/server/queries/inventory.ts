@@ -392,7 +392,7 @@ export async function getInventoryDashboard(period: "7d" | "30d" | "month" = "30
 
 export async function getStockCard(filters: Filters = {}) {
   const ledger = await getStockLedger({ ...filters, page: "all" });
-  const itemId = filters.item_id;
+  const itemId = filters.item_id && filters.item_id !== "all" ? filters.item_id : null;
   const rows = (itemId ? ledger.rows.filter((row) => row.item_id === itemId) : ledger.rows)
     .filter((row) => filters.from ? row.transaction_date >= filters.from : true)
     .filter((row) => filters.to ? row.transaction_date <= filters.to : true);

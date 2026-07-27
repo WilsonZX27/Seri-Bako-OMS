@@ -20,6 +20,10 @@ test("inventory phone layout remains permission-aware and bottom-nav safe", () =
   assert.match(source, /pb-24 md:pb-0/);
 });
 
+test("inventory does not duplicate the global More navigation with an empty action bar", () => {
+  assert.match(source, /<WorkspaceGrid className="p-3 sm:p-5" hideMobileConsole rightRail=/);
+});
+
 test("inventory analysis remains available below the mobile hub", () => {
   assert.match(source, /<h2 className="text-sm font-semibold">Low Stock<\/h2>/);
   assert.match(source, /<h2 className="text-sm font-semibold">Consumption<\/h2>/);

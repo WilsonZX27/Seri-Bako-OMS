@@ -10,6 +10,7 @@ type StatusTab = string | { value: string; label: string };
 export function StatusTabs({ statuses, activeStatus }: { statuses: StatusTab[]; activeStatus?: string }) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
+  const tabsRef = useRef<HTMLElement>(null);
   const activeTabRef = useRef<HTMLAnchorElement>(null);
   const tabs = [{ value: "all", label: "All" }, ...statuses.map((status) => typeof status === "string"
     ? { value: status, label: status.replaceAll("_", " ") }
@@ -18,8 +19,14 @@ export function StatusTabs({ statuses, activeStatus }: { statuses: StatusTab[]; 
 
   useEffect(() => {
     if (!window.matchMedia("(max-width: 767px)").matches) return;
-    if (selected === "all") return;
     const frame = window.requestAnimationFrame(() => {
+      // Browsers may restore a horizontal scroll offset after returning to a
+      // filtered list. The default "All" state must always expose its first
+      // tab completely, instead of leaving the active control clipped.
+      if (selected === "all") {
+        tabsRef.current?.scrollTo({ left: 0, behavior: "auto" });
+        return;
+      }
       activeTabRef.current?.scrollIntoView({ block: "nearest", inline: "center" });
     });
     return () => window.cancelAnimationFrame(frame);
@@ -35,7 +42,7 @@ export function StatusTabs({ statuses, activeStatus }: { statuses: StatusTab[]; 
   }
 
   return (
-    <nav aria-label="Filter by status" className="scrollbar-none flex min-h-11 gap-1 overflow-x-auto border-b border-[var(--sb-border-soft)] bg-white px-2 py-1.5 [scroll-padding-inline:0.5rem]">
+    <nav ref={tabsRef} aria-label="Filter by status" className="scrollbar-none flex min-h-11 gap-1 overflow-x-auto border-b border-[var(--sb-border-soft)] bg-white px-2 py-1.5 [scroll-padding-inline:0.5rem]">
       {tabs.map((tab) => {
         const active = selected === tab.value;
         return (

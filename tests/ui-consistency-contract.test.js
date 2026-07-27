@@ -13,6 +13,7 @@ const authSetPassword = read("src/app/(auth)/set-password/page.tsx");
 const administration = read("src/app/(app)/administration/page.tsx");
 const importsIndex = read("src/app/(app)/imports/page.tsx");
 const operationalToolList = read("src/components/operational-tool-list.tsx");
+const accountPage = read("src/app/(app)/account/page.tsx");
 
 test("UI consistency keeps imports upload-only and technical permission details collapsed", () => {
   assert.doesNotMatch(imports, /Edit in table|Add blank row|Paste into table/);
@@ -96,4 +97,11 @@ test("administration and import directories use the shared flat operational tool
   assert.match(importsIndex, /<OperationalToolList items=\{items\}/);
   assert.match(operationalToolList, /divide-y divide-\[var\(--sb-border-soft\)\]/);
   assert.doesNotMatch(operationalToolList, /CardContent|md:grid/);
+});
+
+test("account settings use the contained workspace and shared contextual action rail", () => {
+  assert.match(accountPage, /<WorkspaceGrid tabletCanvas="contained" rightRail=\{accountContext\}>/);
+  assert.match(accountPage, /data-account-identity/);
+  assert.match(accountPage, /ConsoleSection title="Profile picture"/);
+  assert.doesNotMatch(accountPage, /<Card|CardContent/);
 });

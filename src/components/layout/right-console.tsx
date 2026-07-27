@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
 type RightConsoleContextValue = {
-  setContent: (content: ReactNode, hideMobileBar?: boolean, mobileOnlyBar?: boolean) => void;
+  setContent: (content: ReactNode, hideMobileBar?: boolean) => void;
   clearContent: () => void;
 };
 
@@ -47,22 +47,19 @@ function actionText(node: ReactNode): string {
 export function RightConsoleProvider({ children }: { children: ReactNode }) {
   const [content, setContentState] = useState<ReactNode>(null);
   const [mobileBarHidden, setMobileBarHidden] = useState(false);
-  const [mobileOnlyBar, setMobileOnlyBar] = useState(false);
   const [open, setOpen] = useState(false);
   const dialogRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
   const titleId = useId();
   const value = useMemo(
     () => ({
-      setContent: (nextContent: ReactNode, hideMobileBar = false, nextMobileOnlyBar = false) => {
+      setContent: (nextContent: ReactNode, hideMobileBar = false) => {
         setContentState(nextContent);
         setMobileBarHidden(hideMobileBar);
-        setMobileOnlyBar(nextMobileOnlyBar);
       },
       clearContent: () => {
         setContentState(null);
         setMobileBarHidden(false);
-        setMobileOnlyBar(false);
       },
     }),
     [],
@@ -130,7 +127,7 @@ export function RightConsoleProvider({ children }: { children: ReactNode }) {
           <Plus className="h-6 w-6" aria-hidden="true" />
         </Link>
       ) : null}
-      {content && !mobileBarHidden ? <div data-mobile-action-bar className={cn("sb-mobile-action-bar fixed inset-x-3 bottom-[calc(env(safe-area-inset-bottom)+0.5rem)] z-[var(--sb-z-sticky)] items-center gap-2 p-2", hasCreateFab ? "hidden md:flex" : "flex", mobileOnlyBar ? "md:hidden" : "xl:hidden")}>
+      {content && !mobileBarHidden ? <div data-mobile-action-bar className={cn("sb-mobile-action-bar fixed inset-x-3 bottom-[calc(env(safe-area-inset-bottom)+0.5rem)] z-[var(--sb-z-sticky)] items-center gap-2 p-2", hasCreateFab ? "hidden" : "flex", "md:hidden")}>
         {primaryAction ? <div data-mobile-primary-slot className="min-w-0 flex-1 [&>*]:w-full">{primaryAction}</div> : null}
         <Button ref={triggerRef} type="button" variant={primaryAction ? "outline" : "default"} className={primaryAction ? "shrink-0 gap-2" : "w-full gap-2"} onClick={() => setOpen(true)} aria-label="Open more actions" aria-haspopup="dialog" aria-expanded={open}>
           <PanelRight className="h-4 w-4" aria-hidden="true" />
@@ -138,7 +135,7 @@ export function RightConsoleProvider({ children }: { children: ReactNode }) {
         </Button>
       </div> : null}
       {open && content && !mobileBarHidden ? (
-        <div className={cn("fixed inset-0 z-[var(--sb-z-dialog)]", hasCreateFab && "hidden md:block", mobileOnlyBar ? "md:hidden" : "xl:hidden")}>
+        <div className={cn("fixed inset-0 z-[var(--sb-z-dialog)] md:hidden", hasCreateFab && "hidden")}>
           <button type="button" className="sb-dialog-backdrop absolute inset-0 h-full w-full" onClick={close} aria-label="Close more actions" />
           <div ref={dialogRef} role="dialog" aria-modal="true" aria-labelledby={titleId} className="sb-popover-surface absolute inset-x-0 bottom-0 max-h-[82dvh] overflow-hidden pb-[env(safe-area-inset-bottom)]">
             <header className="flex h-12 items-center justify-between border-b px-3">
@@ -153,13 +150,13 @@ export function RightConsoleProvider({ children }: { children: ReactNode }) {
   );
 }
 
-export function RightConsoleMount({ children, hideMobileBar = false, mobileOnlyBar = false }: { children: ReactNode; hideMobileBar?: boolean; mobileOnlyBar?: boolean }) {
+export function RightConsoleMount({ children, hideMobileBar = false }: { children: ReactNode; hideMobileBar?: boolean }) {
   const context = useContext(RightConsoleContext);
 
   useEffect(() => {
-    context?.setContent(children, hideMobileBar, mobileOnlyBar);
+    context?.setContent(children, hideMobileBar);
     return () => context?.clearContent();
-  }, [children, context, hideMobileBar, mobileOnlyBar]);
+  }, [children, context, hideMobileBar]);
 
   return null;
 }

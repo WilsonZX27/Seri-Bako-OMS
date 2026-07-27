@@ -68,7 +68,7 @@ export function DocumentWorkspace({
         </div>
       </header>
 
-      <WorkspaceGrid className={cn("min-w-0 p-3", mobilePrimaryAction && "pb-20 xl:pb-3")} rightRail={<div>{sidePanel}</div>} hideMobileConsole>
+      <WorkspaceGrid className={cn("min-w-0 p-3", mobilePrimaryAction && "pb-20 md:pb-3")} rightRail={<div>{sidePanel}</div>} hideMobileConsole>
         <div className="min-w-0">
           <div className="min-w-0 space-y-3">
             {children}
@@ -77,7 +77,7 @@ export function DocumentWorkspace({
           </div>
         </div>
       </WorkspaceGrid>
-      {mobilePrimaryAction ? <div data-mobile-document-action className="sb-mobile-action-bar fixed inset-x-3 bottom-[calc(env(safe-area-inset-bottom)+0.5rem)] z-[var(--sb-z-sticky)] min-w-0 p-2 xl:hidden [&>*]:w-full">{mobilePrimaryAction}</div> : null}
+      {mobilePrimaryAction ? <div data-mobile-document-action className="sb-mobile-action-bar fixed inset-x-3 bottom-[calc(env(safe-area-inset-bottom)+0.5rem)] z-[var(--sb-z-sticky)] min-w-0 p-2 md:hidden [&>*]:w-full">{mobilePrimaryAction}</div> : null}
     </>
   );
 }

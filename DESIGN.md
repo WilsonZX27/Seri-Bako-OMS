@@ -23,6 +23,26 @@ Do not introduce a page-specific breakpoint. These thresholds serve distinct ope
 - Full-width forms use `w-full min-w-0 max-w-full`. A form control may have a minimum touch target (for example quantity entry) but the surrounding layout must still shrink safely.
 - Form sections that contain file inputs, long sample values, or native selects must also set `min-w-0` on the containing grid/flex items; native file controls must never widen their parent on narrow screens.
 
+## Cross-platform workspace system
+
+The OMS is one operational product, not three independently designed sites. Phone may reorganize a workflow for reachability, but tablet and desktop must retain the same data hierarchy, state language, components, and action priority.
+
+- **Phone (`<768px`)** is a focused single-task canvas with a role-aware bottom bar and mobile-only 10px control / 12px panel radii.
+- **Tablet (`768px–1279px`)** is a full-width operational workspace: no persistent side navigation or inspection rail, no phone bottom navigation, and no generic fixed action bar. Page actions belong in a compact header/action row; secondary context opens through the existing controlled sheet or popover.
+- **Desktop (`>=1280px`)** is a three-region operational shell: persistent navigation, a flexible central workspace, and an optional 340px inspection/action rail. A record page uses its central width for the data form or ledger; the rail is for next actions, state, audit, and related context, never a duplicate copy of the main form.
+- Tablet and desktop use the compact 2px enterprise radius for panels, controls, menus, table containers, action rows, and icon tiles. Pills are reserved for statuses, counts, and compact semantic badges.
+- The shared shell owns navigation, page spacing, rails, filter placement, and viewport behavior. Feature pages must compose those primitives rather than recreate their own page chrome.
+- A desktop or tablet action must never be duplicated in the page header, empty state, fixed bar, and inspection rail. One primary action is visible at a time; contextual alternatives remain secondary.
+
+## Color and component discipline
+
+- Deep operational green is the only ordinary primary, active, selected, and focus color across every viewport.
+- Warm orange is semantic only: warning, urgency, attention, or a compact notification cue. It is never a default button, navigation color, neutral icon tile, or decorative panel theme.
+- Success, danger, information, and neutral states use their semantic tokens only when the data carries that meaning. Do not create blue, purple, teal, or amber workspace themes merely to decorate a directory or dashboard.
+- White surfaces, the glare-free neutral canvas, 1px borders, and tabular data carry enterprise density. Shadows are reserved for temporary overlays; persistent cards and panels use borders rather than decorative elevation.
+- Buttons, inputs, selects, action rows, popovers, menus, empty states, and tables use the shared token vocabulary. A new component must not introduce a one-off radius, brown accent, color family, or spacing scale.
+- Every interactive component must have visible default, hover, keyboard-focus, disabled, loading, error, and empty/read-only states appropriate to its task.
+
 ## Mobile Web App shell
 
 The authenticated phone experience is an application-style mobile Web layout, not a scaled desktop sidebar.

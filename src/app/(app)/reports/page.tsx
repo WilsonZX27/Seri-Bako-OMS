@@ -3,7 +3,6 @@ import { PageHeader } from "@/components/ui/page-header";
 import { Button } from "@/components/ui/button";
 import { ConsoleSection } from "@/components/layout/right-console";
 import { WorkspaceGrid } from "@/components/layout/workspace-layout";
-import type { WorkspaceThemeName } from "@/components/workspace-panels";
 import type { LucideIcon } from "lucide-react";
 import { getPermissionMap } from "@/server/auth/permissions";
 import { getRouteAllowedRoles, getRoutePermissionCodes } from "@/server/auth/route-permissions";
@@ -19,7 +18,6 @@ type ReportLink = {
 type ReportCategory = {
   title: string;
   description: string;
-  theme: WorkspaceThemeName;
   reports: ReportLink[];
 };
 
@@ -27,7 +25,6 @@ const reportCategories: ReportCategory[] = [
   {
     title: "Inventory Reports",
     description: "Stock balances, stock cards, wastage, and ledger movement review.",
-    theme: "blue",
     reports: [
       { href: "/stock-balance", title: "Stock Balance", description: "Branch-level stock calculated from posted movements.", icon: PackageSearch },
       { href: "/stock-card", title: "Stock Card", description: "Item movement trace from the posted ledger.", icon: FileText },
@@ -38,7 +35,6 @@ const reportCategories: ReportCategory[] = [
   {
     title: "Procurement Reports",
     description: "Supplier orders, receiving progress, and approval queues.",
-    theme: "amber",
     reports: [
       { href: "/purchase-orders", title: "PO Status", description: "Open, sent, received, and closed purchase orders.", icon: ShoppingCart },
       { href: "/goods-receivings", title: "Receiving Summary", description: "GRN progress and posted receiving records.", icon: PackageCheck },
@@ -49,7 +45,6 @@ const reportCategories: ReportCategory[] = [
   {
     title: "Production Reports",
     description: "Operational production-loss review.",
-    theme: "teal",
     reports: [
       { href: "/stock-wastage", title: "Wastage Review", description: "Production-loss and wastage document review.", icon: TriangleAlert },
       { href: "/reports/recipe-costing", title: "Recipe Costing", description: "Read-only ingredient-cost estimates from item master costs.", icon: PackageSearch },
@@ -59,7 +54,6 @@ const reportCategories: ReportCategory[] = [
   {
     title: "Finance / Others",
     description: "Document register and audit-friendly operational history.",
-    theme: "neutral",
     reports: [
       { href: "/documents", title: "Document Register", description: "Complete document search and history.", icon: FileText },
       { href: "/documents?status=posted", title: "Posted Documents", description: "Completed documents and attachments.", icon: ClipboardCheck },

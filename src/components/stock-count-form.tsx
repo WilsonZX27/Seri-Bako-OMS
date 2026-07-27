@@ -123,7 +123,7 @@ export function StockCountForm({
   return (
     <div className="md:rounded-[var(--sb-panel-radius)] md:border md:bg-white">
       <div className="md:p-4">
-        <form id={formId} action={action} className={showSubmit ? "space-y-3 pb-20 xl:pb-0" : "space-y-3"}>
+        <form id={formId} action={action} className={showSubmit ? "space-y-3 pb-20 md:pb-0" : "space-y-3"}>
           <section data-stock-count-setup className="erp-surface p-3 md:rounded-none md:border-0 md:bg-transparent md:p-0">
           <div className="grid grid-cols-[minmax(0,1fr)_6.5rem] gap-2 lg:grid-cols-3 lg:gap-3">
             <Field label="Count Date"><Input name="count_date" type="date" defaultValue={today()} required /></Field>
@@ -159,7 +159,7 @@ export function StockCountForm({
               </p>
             </div>
             {showSubmit ? (
-              <SubmitButton type="submit" disabled={!countComplete} className="hidden xl:inline-flex" pendingLabel="Saving..." showOverlay overlayLabel="Saving changes...">
+              <SubmitButton type="submit" disabled={!countComplete} className="hidden md:inline-flex" pendingLabel="Saving..." showOverlay overlayLabel="Saving changes...">
                 Create draft count
               </SubmitButton>
             ) : countComplete ? <CheckCircle2 className="hidden h-5 w-5 text-[var(--sb-success)] sm:block" aria-hidden="true" /> : null}
@@ -298,7 +298,7 @@ export function StockCountForm({
           </section>
 
           {showSubmit ? (
-            <div className="sb-mobile-action-bar fixed inset-x-3 bottom-[calc(env(safe-area-inset-bottom)+0.5rem)] z-[var(--sb-z-sticky)] flex min-w-0 items-center gap-3 p-2 xl:hidden">
+            <div className="sb-mobile-action-bar fixed inset-x-3 bottom-[calc(env(safe-area-inset-bottom)+0.5rem)] z-[var(--sb-z-sticky)] flex min-w-0 items-center gap-3 p-2 md:hidden">
               <p className="min-w-0 flex-1 truncate text-xs font-medium">{countComplete ? "Ready to create draft" : `${completedCount}/${lines.length} counted`}</p>
               <SubmitButton type="submit" disabled={!countComplete} className="shrink-0" pendingLabel="Saving..." showOverlay overlayLabel="Saving changes...">Create draft</SubmitButton>
             </div>

@@ -15,7 +15,7 @@
   --sb-amber-100: #FFE3BF;
   --sb-primary: var(--sb-green-900);
   --sb-primary-dark: var(--sb-green-950);
-  --sb-accent: var(--sb-amber-600);
+  --sb-accent: var(--sb-green-700);
   --sb-bg: #F7F5F0;
   --sb-surface: #FFFFFF;
   --sb-surface-muted: #F1EFE9;
@@ -79,7 +79,7 @@
   --secondary-foreground: 147 33% 9%;
   --muted: 45 22% 93%;
   --muted-foreground: 148 7% 43%;
-  --accent: 29 52% 41%;
+  --accent: 147 48% 13%;
   --accent-foreground: 147 48% 13%;
   --destructive: 0 74% 42%;
   --destructive-foreground: 0 0% 100%;
@@ -620,13 +620,28 @@ input[type="date"]::-webkit-date-and-time-value {
   }
 }
 
-@media (max-width: 1279px) {
+@media (max-width: 767px) {
   [data-center-workspace] main {
     scroll-padding-bottom: 6.5rem;
   }
 
   [data-center-workspace] :is(a, button, input, select, textarea, summary, [tabindex]) {
     scroll-margin-bottom: 6.5rem;
+  }
+}
+
+@media (min-width: 768px) and (max-width: 1279px) {
+  [data-tablet-context] {
+    border-radius: var(--sb-panel-radius);
+  }
+
+  [data-tablet-context] > summary::-webkit-details-marker {
+    display: none;
+  }
+
+  [data-tablet-context][open] > summary {
+    border-bottom: 1px solid var(--sb-border-soft);
+    background: var(--sb-surface-muted);
   }
 }
 

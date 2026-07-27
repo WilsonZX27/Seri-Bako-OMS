@@ -21,12 +21,21 @@ export function WorkspaceGrid({
 
   return (
     <div className={cn("min-h-0 p-3 pb-3", rightRail && !hideMobileConsole && "pb-32 md:pb-3", className)}>
+      {rightRail ? (
+        <details data-tablet-context className="mb-3 hidden border border-[var(--sb-border-soft)] bg-white md:block xl:hidden">
+          <summary className="flex min-h-[var(--sb-control-height)] cursor-pointer list-none items-center justify-between gap-3 px-3 text-sm font-semibold marker:hidden">
+            <span>Actions &amp; context</span>
+            <span className="text-xs font-normal text-[var(--sb-text-muted)]">Show workspace controls</span>
+          </summary>
+          <div className="border-t border-[var(--sb-border-soft)]">{rightRail}</div>
+        </details>
+      ) : null}
       {documentMode && rightRail ? (
         <div className="min-w-0">
           <div className="min-w-0 space-y-3">{children}</div>
         </div>
       ) : <div className="min-w-0 space-y-3">{children}</div>}
-      {rightRail ? <RightConsoleMount hideMobileBar={hideMobileConsole} mobileOnlyBar={documentMode}>{rightRail}</RightConsoleMount> : null}
+      {rightRail ? <RightConsoleMount hideMobileBar={hideMobileConsole}>{rightRail}</RightConsoleMount> : null}
     </div>
   );
 }

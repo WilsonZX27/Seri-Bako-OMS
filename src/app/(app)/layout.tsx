@@ -53,7 +53,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
               <div data-center-workspace className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
                 <GlobalActionToast />
                 <SessionTimeoutProvider />
-                <main id="main-content" className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden pb-[calc(var(--sb-mobile-nav-height)+env(safe-area-inset-bottom)+1rem)] md:pb-20 xl:pb-0">{children}</main>
+                <main id="main-content" className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden pb-[calc(var(--sb-mobile-nav-height)+env(safe-area-inset-bottom)+1rem)] md:pb-4 xl:pb-0">{children}</main>
               </div>
             </RightConsoleProvider>
           </div>

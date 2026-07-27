@@ -1,3 +1,4 @@
-export const APP_VERSION = "7.23.7.2";
-export const APP_SPRINT = "v7.23.7.2";
-export const APP_RELEASE_NOTE = "Sprint 7.23.7.2 — Procurement close permission gate";
+export const APP_VERSION = "7.24.0";
+export const APP_SPRINT = `v${APP_VERSION}`;
+export const APP_RELEASE_TITLE = "Mobile Command UI";
+export const APP_RELEASE_NOTE = `${APP_SPRINT} — ${APP_RELEASE_TITLE}`;

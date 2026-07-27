@@ -18,7 +18,7 @@ export default async function DemandTrendsPage({ searchParams }: { searchParams:
   const lowConfidence = report.coverage.confidence === "Low";
   return <>
     <PageHeader title="Demand Trend Lite" description="Outlet-record movement and wastage trends for operational review." />
-    <WorkspaceGrid rightRail={<>
+    <WorkspaceGrid hideMobileConsole rightRail={<>
       <ConsoleSection title="Data Quality"><div className="space-y-2 text-xs text-muted-foreground"><p>Based on Outlet Daily Records only.</p><p>Estimated movement is not POS sales.</p><p>Low-sample products remain visible but need caution.</p><p>No inventory or production writes are made.</p></div></ConsoleSection>
       <ConsoleSection title="Coverage"><div className="space-y-1 text-xs"><p className="flex justify-between gap-3"><span>Confidence</span><strong>{report.coverage.confidence}</strong></p><p className="flex justify-between gap-3"><span>Completed outlet-days</span><strong>{report.coverage.completed} / {report.coverage.expected} ({formatNumber(report.coverage.percent)}%)</strong></p><p className="flex justify-between gap-3"><span>Incomplete records</span><strong>{report.coverage.incomplete}</strong></p><p className="flex justify-between gap-3"><span>Missing outlet-days</span><strong>{report.coverage.missing}</strong></p></div></ConsoleSection>
     </>}>

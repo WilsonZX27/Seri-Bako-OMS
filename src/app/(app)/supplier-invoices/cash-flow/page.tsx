@@ -25,7 +25,7 @@ export default async function CashFlowForecastPage({ searchParams }: { searchPar
 
   return <>
     <PageHeader title="Cash Flow Forecast" description={`Upcoming supplier payables as of ${date(forecast.report_date)}.`} />
-    <WorkspaceGrid rightRail={<>
+    <WorkspaceGrid hideMobileConsole rightRail={<>
       <ConsoleSection title="Actions"><div className="grid gap-2"><Button asChild size="sm"><Link href="/supplier-invoices/aging">Open AP Aging</Link></Button><Button asChild variant="outline" size="sm"><Link href="/supplier-invoices">Supplier Invoices</Link></Button></div></ConsoleSection>
       <ConsoleSection title="Forecast Assumptions"><div className="space-y-2 text-xs text-muted-foreground"><p>Based on approved Open and Partially Paid supplier invoices with a positive outstanding balance.</p><p>Draft, Void and Paid invoices are excluded. Missing due dates are shown separately.</p><p>Amounts are MYR only under the current schema. This is a payables forecast, not a bank or cash-in forecast.</p></div></ConsoleSection>
       <ConsoleSection title="Period"><div className="text-xs"><p className="flex justify-between"><span className="text-muted-foreground">Selected</span><strong>{periodLabels[forecast.period]}</strong></p><p className="mt-2 flex justify-between"><span className="text-muted-foreground">Through</span><strong>{date(forecast.period_end)}</strong></p><p className="mt-2 text-muted-foreground">This week covers today through seven days ahead; next week covers days eight through fourteen.</p></div></ConsoleSection>

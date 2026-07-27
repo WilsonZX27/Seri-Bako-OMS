@@ -17,7 +17,7 @@ export default async function CostingReadinessPage({ searchParams }: { searchPar
   const report = await getCostingReadiness(filters).catch(() => null);
   return <>
     <PageHeader title="Costing Readiness" description="Read-only checks for the data needed before trusting future recipe or product costing." />
-    <WorkspaceGrid rightRail={<>
+    <WorkspaceGrid hideMobileConsole rightRail={<>
       <ConsoleSection title="Costing assumptions"><div className="space-y-2 text-xs text-muted-foreground"><p>This is readiness only, not product margin.</p><p><strong className="text-foreground">Critical</strong> blocks trustworthy costing. <strong className="text-foreground">Warning</strong> should be fixed before margin review. <strong className="text-foreground">Info</strong> improves data quality.</p><p>Costs are only as reliable as item, supplier, and recipe data.</p><p>No records are changed here; fixes are manual through the linked master pages.</p></div></ConsoleSection>
       <ConsoleSection title="Scope"><p className="text-xs text-muted-foreground">Checks current master data and recipe lines only. It does not recalculate costs, prices, stock, production, or finance records.</p></ConsoleSection>
     </>}>

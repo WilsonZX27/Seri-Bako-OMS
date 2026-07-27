@@ -18,7 +18,7 @@ export default async function ProductionVariancePage({ searchParams }: { searchP
   const report = await getProductionDemandVariance(await searchParams);
   return <>
     <PageHeader title="Production vs Outlet Demand Variance" description="Outlet demand signals only; production job output is not compared because no reliable posted-output join is used." />
-    <WorkspaceGrid rightRail={<>
+    <WorkspaceGrid hideMobileConsole rightRail={<>
       <ConsoleSection title="Assumptions"><div className="space-y-2 text-xs text-muted-foreground"><p>Based on Outlet Daily Records only.</p><p>Estimated movement is not POS sales.</p><p>Incomplete records reduce confidence.</p><p>No stock, production, or planning records are changed.</p><p>Production job comparison is not included without a reliable posted-output join.</p></div></ConsoleSection>
       <ConsoleSection title="Coverage"><div className="space-y-1 text-xs"><p className="flex justify-between gap-3"><span>Confidence</span><strong>{report.coverage.confidence}</strong></p><p className="flex justify-between gap-3"><span>Completed outlet-days</span><strong>{report.coverage.completed} / {report.coverage.expected}</strong></p><p className="flex justify-between gap-3"><span>Incomplete records</span><strong>{report.coverage.incomplete}</strong></p><p className="flex justify-between gap-3"><span>Missing outlet-days</span><strong>{report.coverage.missing}</strong></p></div><Button asChild className="mt-3 w-full" variant="outline" size="sm"><Link href="/reports/demand-trends">Open Demand Trends</Link></Button></ConsoleSection>
     </>}>

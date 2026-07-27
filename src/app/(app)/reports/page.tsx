@@ -87,6 +87,7 @@ export default async function ReportsPage() {
     <>
       <PageHeader title="Reports" description="Compact report directory for operational review and audit." />
       <WorkspaceGrid
+        hideMobileConsole
         rightRail={
           <>
             <ConsoleSection title="Report Summary">

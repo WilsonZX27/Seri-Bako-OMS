@@ -31,12 +31,16 @@ export default async function ApAgingPage({ searchParams }: { searchParams: Prom
   const metric = (label: string, value: number | string, href?: string) => <Link href={href ?? "#aging-table"} className="border bg-white px-3 py-2 hover:border-[var(--sb-amber-300)]"><span className="block text-[11px] text-muted-foreground">{label}</span><strong className="tabular-nums">{typeof value === "number" ? formatCurrency(value) : value}</strong></Link>;
   return <>
     <PageHeader title="AP Aging" description={`Open supplier payables as of ${dates(report.report_date)}.`} />
-    <WorkspaceGrid rightRail={<>
+    <WorkspaceGrid hideMobileConsole rightRail={<>
       <ConsoleSection title="Payables Context"><div className="space-y-2 text-xs"><p><span className="text-muted-foreground">As of</span><br /><strong>{dates(report.report_date)}</strong></p><p className="flex justify-between"><span>Total outstanding</span><strong>{formatCurrency(report.summary.total_outstanding)}</strong></p><p className="flex justify-between"><span>Total overdue</span><strong>{formatCurrency(report.summary.total_overdue)}</strong></p><p className="flex justify-between"><span>Due next 7 days</span><strong>{formatCurrency(report.summary.due_next_7_days)}</strong></p><p><span className="text-muted-foreground">Oldest overdue</span><br /><strong>{report.summary.oldest_overdue_invoice ?? "None"}</strong></p><p><span className="text-muted-foreground">Highest exposure</span><br /><strong>{report.summary.highest_exposure_supplier ?? "None"}</strong></p></div></ConsoleSection>
       <ConsoleSection title="Actions"><div className="grid gap-2"><Button asChild size="sm"><a href={`/api/export/ap-aging${exportQuery ? `?${exportQuery}` : ""}`}>Export CSV</a></Button><Button asChild variant="outline" size="sm"><Link href="/supplier-invoices/cash-flow">Cash Flow Forecast</Link></Button><Button asChild variant="outline" size="sm"><Link href="/supplier-invoices">Supplier Invoices</Link></Button></div></ConsoleSection>
       <ConsoleSection title="Aging Definitions"><p className="text-xs text-muted-foreground">Days overdue begin the day after the due date. Missing due dates rank first for attention, followed by 91+ day critical balances, overdue invoices, due today, then due within seven days. Only Open and Partially Paid invoices with a positive MYR balance are included.</p></ConsoleSection>
     </>}>
       <div className="space-y-4 py-4">
+        <div className="flex gap-2 md:hidden" aria-label="AP aging actions">
+          <Button asChild size="sm" className="flex-1"><a href={`/api/export/ap-aging${exportQuery ? `?${exportQuery}` : ""}`}>Export CSV</a></Button>
+          <Button asChild size="sm" variant="outline" className="flex-1"><Link href="/supplier-invoices/cash-flow">Cash flow</Link></Button>
+        </div>
         <section className="grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
           {metric("Total Outstanding", report.summary.total_outstanding)}
           {metric("Total Overdue", report.summary.total_overdue, "?overdue=1")}

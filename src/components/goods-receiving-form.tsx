@@ -66,7 +66,7 @@ export function GoodsReceivingForm({
               <Input name="delivery_order_no" placeholder="Supplier DO reference" />
             </Field>
             <Field label="Branch" required>
-              <SelectNative name="branch_id" defaultValue={branches[0]?.id ?? ""} required>
+              <SelectNative name="branch_id" defaultValue={selectedOrder?.branch_id ?? branches[0]?.id ?? ""} required>
                 {branches.map((branch) => <option key={branch.id} value={branch.id}>{branch.branch_name}</option>)}
               </SelectNative>
               <p className="mt-1 text-xs text-muted-foreground">Select the branch receiving this delivery.</p>

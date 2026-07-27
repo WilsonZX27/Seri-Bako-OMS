@@ -25,7 +25,8 @@ try {
 // `next start` serves the existing production bundle, whose NEXT_PUBLIC_* values
 // were fixed when that bundle was built. Local browser tests must compile against
 // `.env.test.local` instead of accidentally using a previously built remote target.
-const child = spawn(process.execPath, ["--use-system-ca", nextBin, "dev", "-p", "3000"], {
+const localPort = process.env.PLAYWRIGHT_LOCAL_PORT || "3000";
+const child = spawn(process.execPath, ["--use-system-ca", nextBin, "dev", "-p", localPort], {
   cwd: process.cwd(),
   env: {
     ...process.env,

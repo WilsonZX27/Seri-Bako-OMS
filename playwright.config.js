@@ -20,7 +20,8 @@ function loadEnvFile(filePath) {
 
 loadEnvFile(path.join(__dirname, ".env.test.local"));
 
-const localBaseUrl = "http://127.0.0.1:3000";
+const localPort = process.env.PLAYWRIGHT_LOCAL_PORT || "3000";
+const localBaseUrl = `http://127.0.0.1:${localPort}`;
 const startsLocalServer = process.env.RUN_TENANT_BOUNDARY_E2E === "1" && process.env.PW_MANUAL_SERVER !== "1";
 const baseURL = process.env.TEST_BASE_URL || (startsLocalServer ? localBaseUrl : "");
 
@@ -40,7 +41,7 @@ module.exports = defineConfig({
   outputDir: "test-results/ui-smoke-sprint-7-2-6-artifacts",
   webServer: startsLocalServer ? {
     command: "node scripts/playwright-local-server.mjs",
-    url: "http://127.0.0.1:3000/login",
+    url: `${localBaseUrl}/login`,
     reuseExistingServer: true,
     timeout: 120_000,
     env: {

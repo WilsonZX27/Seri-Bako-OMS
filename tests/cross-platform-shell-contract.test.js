@@ -56,11 +56,16 @@ test("master-data forms use the shared responsive action rail without duplicate 
     read("src", "app", "(app)", "supplier-items", "[id]", "page.tsx"),
     read("src", "app", "(app)", "uom-conversions", "new", "page.tsx"),
     read("src", "app", "(app)", "uom-conversions", "[id]", "page.tsx"),
+    read("src", "app", "(app)", "document-sequences", "new", "page.tsx"),
+    read("src", "app", "(app)", "document-sequences", "[id]", "page.tsx"),
   ];
 
   assert.match(masterForms, /formId\?: string/);
   assert.match(masterForms, /showSubmit = true/);
   assert.match(masterForms, /rounded-\[var\(--sb-radius-control\)\]/);
+  const sequenceForm = read("src", "components", "document-sequence-form.tsx");
+  assert.match(sequenceForm, /formId\?: string/);
+  assert.match(sequenceForm, /showSubmit = true/);
   for (const route of routes) {
     assert.match(route, /RecordWorkspace/);
     assert.match(route, /showSubmit=\{false\}/);
@@ -74,6 +79,15 @@ test("workspace right-rail styling is applied consistently at tablet and desktop
   assert.match(workspaceGrid, /const contextualRail = rightRailClassName/);
   assert.match(workspaceGrid, /\{contextualRail\}/);
   assert.doesNotMatch(workspaceGrid, /void rightRailClassName/);
+});
+
+test("administration collection pages reuse the shared category presentation", () => {
+  const imports = read("src", "app", "(app)", "imports", "page.tsx");
+  const backups = read("src", "app", "(app)", "settings", "backups", "backup-page.tsx");
+
+  assert.match(imports, /CategoryCardGrid/);
+  assert.match(imports, /sm:p-5/);
+  assert.match(backups, /rounded-\[var\(--sb-radius-control\)\]/);
 });
 
 test("retired multi-theme display components stay removed", () => {

@@ -50,6 +50,7 @@ The mobile shell may reorganize navigation, information density, filters, and ac
 - Use the shared control-height token. Touch controls are at least 44px on mobile; denser desktop controls may use the tablet/desktop token only when their role remains clear.
 - Phone controls use the shared 10px control radius and 12px panel radius for an iOS-like touch surface. Tablet and desktop retain the compact 2px enterprise radius.
 - Quantity, currency, and date fields must be large enough to enter and review without zooming. Numeric values use tabular figures and retain a visible unit.
+- Date fields use the shared `Input` control (or an equivalent token-based wrapper); do not introduce bare native date inputs that bypass the mobile control height, radius, border, and focus treatment.
 
 ## Mobile color and shape language
 

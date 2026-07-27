@@ -12,6 +12,8 @@ test("tablet keeps workspace actions in context instead of a phone action bar", 
   const appLayout = read("src", "app", "(app)", "layout.tsx");
   const documentWorkspace = read("src", "components", "documents", "document-workspace.tsx");
   const stockCountForm = read("src", "components", "stock-count-form.tsx");
+  const topBar = read("src", "components", "layout", "top-bar.tsx");
+  const tabletSidebar = read("src", "components", "layout", "mobile-sidebar.tsx");
 
   assert.match(workspaceGrid, /data-tablet-context/);
   assert.match(workspaceGrid, /md:block xl:hidden/);
@@ -22,6 +24,9 @@ test("tablet keeps workspace actions in context instead of a phone action bar", 
   assert.match(documentWorkspace, /md:hidden \[&>\*\]:w-full/);
   assert.match(stockCountForm, /pb-20 md:pb-0/);
   assert.match(stockCountForm, /hidden md:inline-flex/);
+  assert.match(topBar, /<MobileSidebar/);
+  assert.match(tabletSidebar, /hidden md:inline-flex xl:hidden/);
+  assert.match(tabletSidebar, /fixed inset-0 z-50 hidden md:block xl:hidden/);
 });
 
 test("desktop and tablet shared geometry remains token based", () => {

@@ -53,6 +53,16 @@ test("production jobs composes the shared workspace shell instead of maintaining
   assert.doesNotMatch(source, /hidden flex-wrap gap-2 md:flex/);
 });
 
+test("the read-only role matrix uses the shared contained workspace and a non-scrolling phone summary", () => {
+  const source = read("src/app/(app)/roles/page.tsx");
+  assert.match(source, /<WorkspaceGrid[\s\S]*tabletCanvas="contained"/);
+  assert.match(source, /hideMobileConsole/);
+  assert.match(source, /<Notice tone="info"/);
+  assert.match(source, /<Table mobileHidden aria-label="Roles and permissions"/);
+  assert.match(source, /aria-label="Roles and permissions"/);
+  assert.doesNotMatch(source, /overflow-x-auto/);
+});
+
 test("UI smoke keeps the requested routes, console order, current footer, and one tablet action entry", () => {
   for (const route of ["dashboard/page.tsx", "outlet-daily-records/page.tsx", "reports/demand-trends/page.tsx", "production/planning/page.tsx", "production/variance/page.tsx", "administration/master-data-cleanup/page.tsx", "imports/page.tsx", "imports/[entity]/page.tsx", "staffs/[id]/page.tsx", "roles/[id]/page.tsx"]) {
     assert.equal(fs.existsSync(`src/app/(app)/${route}`), true);

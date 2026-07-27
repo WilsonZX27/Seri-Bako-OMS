@@ -58,11 +58,11 @@ export default async function SupplierInvoicesPage({ searchParams }: { searchPar
           <StatusTabs statuses={statuses} activeStatus={filters.status} />
           <FilterBar resultCount={invoices.totalRows} resetHref="/supplier-invoices" filtered={filtered}>
             <Input name="search" defaultValue={filters.search ?? ""} placeholder="Search invoice or supplier" className="md:max-w-sm" />
-            <SelectControl name="status" defaultValue={filters.status ?? "all"} ariaLabel="Status" options={[{ value: "all", label: "All statuses" }, ...statuses.map((status) => ({ value: status, label: status.replaceAll("_", " ") }))]} />
             <FilterBarMore activeCount={[filters.supplier && filters.supplier !== "all", filters.due && filters.due !== "all"].filter(Boolean).length} resetHref="/supplier-invoices">
               <SelectControl name="supplier" defaultValue={filters.supplier ?? "all"} ariaLabel="Supplier" options={[{ value: "all", label: "All suppliers" }, ...suppliers.map((supplier) => ({ value: supplier.id, label: supplier.name }))]} />
               <SelectControl name="due" defaultValue={filters.due ?? "all"} ariaLabel="Due state" options={[{ value: "all", label: "All due states" }, { value: "overdue", label: "Overdue" }, { value: "due_7", label: "Due in 7 days" }, { value: "no_due", label: "No due date" }]} />
             </FilterBarMore>
+            {filters.status ? <input type="hidden" name="status" value={filters.status} /> : null}
             <Button type="submit" variant="secondary">Search</Button>
           </FilterBar>
             <Table mobileHidden aria-label="Supplier invoices">

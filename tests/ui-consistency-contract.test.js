@@ -38,6 +38,10 @@ test("a visible status tab strip remains the only primary status filter", () => 
     assert.match(source, /StatusTabs/, `${page}: status tabs are present`);
     assert.match(source, /MasterDataFilters[\s\S]*showStatus=\{false\}/, `${page}: no duplicate status select`);
   }
+  const invoices = read("src/app/(app)/supplier-invoices/page.tsx");
+  assert.match(invoices, /<StatusTabs/);
+  assert.doesNotMatch(invoices, /<SelectControl\s+name="status"/);
+  assert.match(invoices, /filters\.status \? <input type="hidden" name="status"/);
 });
 
 test("UI smoke keeps the requested routes, console order, current footer, and one tablet action entry", () => {

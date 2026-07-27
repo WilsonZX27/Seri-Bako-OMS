@@ -35,7 +35,7 @@ test("desktop and tablet shared geometry remains token based", () => {
 
   assert.match(tailwind, /md: "var\(--sb-radius-control\)"/);
   assert.match(tailwind, /sm: "var\(--sb-radius-control\)"/);
-  assert.match(design, /Tablet \(`768px–1279px`\)/);
+  assert.match(design, /Tablet \(`768px-1279px`\)/);
   assert.match(design, /Desktop \(`>=1280px`\)/);
 });
 
@@ -88,6 +88,15 @@ test("administration collection pages reuse the shared category presentation", (
   assert.match(imports, /CategoryCardGrid/);
   assert.match(imports, /sm:p-5/);
   assert.match(backups, /rounded-\[var\(--sb-radius-control\)\]/);
+});
+
+test("dashboard identity context uses the canonical role and branch delimiter", () => {
+  const dashboard = read("src", "components", "dashboard-workspace.tsx");
+  const design = read("DESIGN.md");
+
+  assert.match(dashboard, /Welcome, \{summary\.userName\}/);
+  assert.match(dashboard, />\|<\/span>/);
+  assert.match(design, /Welcome, \[staff name\] \| \[role\] \| \[actual branch scope\]/);
 });
 
 test("retired multi-theme display components stay removed", () => {

@@ -110,7 +110,7 @@ export function DashboardWorkspace({ summary, renderedAt }: { summary: Dashboard
     <p className="text-xs text-[var(--sb-text-muted)]">Welcome, {summary.userName}</p>
     <div className="mt-1 flex min-w-0 flex-wrap items-baseline gap-x-2 gap-y-0.5">
       <span className="text-base font-semibold text-[var(--sb-text)] sm:text-lg">{summary.roleLabel}</span>
-      <span aria-hidden="true" className="text-[var(--sb-text-muted)]">·</span>
+      <span aria-hidden="true" className="text-[var(--sb-text-muted)]">|</span>
       <span className="min-w-0 text-sm text-[var(--sb-text-muted)]">{summary.branchLabel}</span>
     </div>
   </>;
@@ -118,9 +118,9 @@ export function DashboardWorkspace({ summary, renderedAt }: { summary: Dashboard
   const desktopWorkspaceContext = (
     <p className="flex min-w-0 flex-wrap items-baseline gap-x-1.5 gap-y-0.5 text-xs text-[var(--sb-text-muted)]">
       <span>Welcome, {summary.userName}</span>
-      <span aria-hidden="true">·</span>
+      <span aria-hidden="true">|</span>
       <span>{summary.roleLabel}</span>
-      <span aria-hidden="true">·</span>
+      <span aria-hidden="true">|</span>
       <span className="min-w-0 font-medium text-[var(--sb-text)]">{summary.branchLabel}</span>
     </p>
   );

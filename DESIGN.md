@@ -4,7 +4,7 @@ This document is the implementation contract for every customer-facing route, fo
 
 ## Viewport contract
 
-Design mobile first. The base class or CSS rule must be the 320px–639px experience. Enhancement uses the shared Tailwind thresholds only:
+Design mobile first. The base class or CSS rule must be the 320px-639px experience. Enhancement uses the shared Tailwind thresholds only:
 
 - `640px`: large phone / compact tablet; remains a single-column, touch-first experience.
 - `768px`: tablet; the active task keeps the full workspace width. Supporting context opens on demand instead of permanently narrowing forms or item names.
@@ -28,11 +28,13 @@ Do not introduce a page-specific breakpoint. These thresholds serve distinct ope
 The OMS is one operational product, not three independently designed sites. Phone may reorganize a workflow for reachability, but tablet and desktop must retain the same data hierarchy, state language, components, and action priority.
 
 - **Phone (`<768px`)** is a focused single-task canvas with a role-aware bottom bar and mobile-only 10px control / 12px panel radii.
-- **Tablet (`768px–1279px`)** is a full-width operational workspace: no persistent side navigation or inspection rail, no phone bottom navigation, and no generic fixed action bar. Page actions belong in a compact header/action row; secondary context opens through the existing controlled sheet or popover.
+- **Tablet (`768px-1279px`)** is a full-width operational workspace: no persistent side navigation or inspection rail, no phone bottom navigation, and no generic fixed action bar. The top bar exposes a contextual navigation drawer before breadcrumbs; page actions live in the shared on-demand context panel rather than a phone action bar.
 - **Desktop (`>=1280px`)** is a three-region operational shell: persistent navigation, a flexible central workspace, and an optional 340px inspection/action rail. A record page uses its central width for the data form or ledger; the rail is for next actions, state, audit, and related context, never a duplicate copy of the main form.
 - Tablet and desktop use the compact 2px enterprise radius for panels, controls, menus, table containers, action rows, and icon tiles. Pills are reserved for statuses, counts, and compact semantic badges.
 - The shared shell owns navigation, page spacing, rails, filter placement, and viewport behavior. Feature pages must compose those primitives rather than recreate their own page chrome.
 - A desktop or tablet action must never be duplicated in the page header, empty state, fixed bar, and inspection rail. One primary action is visible at a time; contextual alternatives remain secondary.
+- `DocumentWorkspace` renders supplied breadcrumb navigation at `md` and above. Document routes must provide a parent workspace link and must not recreate an incompatible local back/header pattern.
+- A record form uses one submit source: the shared desktop inspection rail, tablet context disclosure, and phone safe-area action may reference the same form via `form`; it must not retain an additional page-local submit bar.
 
 ## Color and component discipline
 
@@ -88,7 +90,7 @@ The mobile shell may reorganize navigation, information density, filters, and ac
 ## Operational workflow UX
 
 - The current status and the next permitted action appear before secondary metadata.
-- Dashboard workspaces show the signed-in operational context consistently at every breakpoint: a muted `Welcome, [staff name]` line followed by `[role] · [actual branch scope]`. This replaces generic labels such as “Assigned branches”. Company-wide roles show `Company-wide`; assigned roles show the readable names of their assigned branches.
+- Dashboard workspaces show the signed-in operational context consistently at every breakpoint: `Welcome, [staff name] | [role] | [actual branch scope]`. This replaces generic labels such as "Assigned branches". Company-wide roles show `Company-wide`; assigned roles show the readable names of their assigned branches.
 - The contextual welcome line is a dashboard identity and scope cue, not a second top-bar title. Phone top bars continue to use only the centered page title; tablet and desktop place the same contextual line in the workspace header.
 - Role-specific Dashboard quick actions are creation or immediate-execution actions. Mobile navigation instead carries the role's most frequent workspaces. For Kitchen this deliberately separates `Purchase Request`, `New Production`, and `Receive` in Quick actions from `Stock Count`, `Stock Balance`, and `Stock Wastage` in the bottom bar.
 - Module landing pages use the operational hub hierarchy: one current-day summary, one primary task, one attention queue, and one compact tool list. They do not use repeated icon-card directories or duplicate explanatory copy.

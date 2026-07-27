@@ -121,6 +121,7 @@ export function StockBalanceWorkspace({
     <>
       <PageHeader title="Stock Balance" description="Calculated from posted Movement Ledger transactions. No direct balance edits." />
       <WorkspaceGrid
+        hideMobileConsole
         rightRail={
           <>
             <ConsoleSection title="Actions">

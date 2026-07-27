@@ -8,7 +8,6 @@ import { createClient } from "@/lib/supabase/server";
 import { writeActivityLog } from "@/server/activity/log";
 import { formatActionError } from "@/server/actions/error-handling";
 import { hasPermission } from "@/server/auth/permissions";
-import { getNextDocumentNumber } from "@/server/documents/sequences";
 import { getCurrentProfile, getDefaultCompanyId } from "@/server/queries/common";
 import type { BranchType, Database, ItemStatus, RecordStatus, StaffStatus } from "@/types/database";
 
@@ -888,7 +887,6 @@ async function handleUomConversionsImport(context: RouteContext, request: Import
 async function handleOpeningStockImport(context: RouteContext, request: ImportRequest) {
   const summary = createSummary();
   const candidates: Array<{
-    transaction_no: string;
     branch_id: string;
     item_id: string;
     transaction_date: string;
@@ -1013,10 +1011,8 @@ async function handleOpeningStockImport(context: RouteContext, request: ImportRe
       .filter(Boolean)
       .join(" | ");
 
-    const transactionNo = await getNextDocumentNumber(context.profile?.company_id ?? (await getDefaultCompanyId()), "opening_balance");
     const transactionDate = parseDate(row.transaction_date) ?? now.slice(0, 10);
     candidates.push({
-      transaction_no: transactionNo,
       branch_id: branch.id,
       item_id: item.id,
       transaction_date: transactionDate,

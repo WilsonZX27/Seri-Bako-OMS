@@ -68,7 +68,7 @@ export function OperationalHub({
 }: OperationalHubProps) {
   return (
     <div data-operational-hub className="space-y-3 sm:space-y-4">
-      <section className="overflow-hidden rounded-[var(--sb-radius-panel)] border border-[var(--sb-border-soft)] bg-white">
+      <section className="overflow-hidden rounded-[var(--sb-panel-radius)] border border-[var(--sb-border-soft)] bg-white">
         <div className="flex flex-col gap-3 p-3.5 sm:flex-row sm:items-center sm:justify-between sm:p-4">
           <div className="min-w-0">
             <p className="text-sm font-semibold text-[var(--sb-text)]">{eyebrow}</p>
@@ -106,7 +106,7 @@ export function OperationalHub({
       </section>
 
       <div className="grid min-w-0 gap-3 lg:grid-cols-[minmax(0,1.7fr)_minmax(17rem,1fr)] lg:gap-4">
-        <section className="min-w-0 overflow-hidden rounded-[var(--sb-radius-panel)] border border-[var(--sb-border-soft)] bg-white">
+        <section className="min-w-0 overflow-hidden rounded-[var(--sb-panel-radius)] border border-[var(--sb-border-soft)] bg-white">
           <div className="border-b border-[var(--sb-border-soft)] px-3.5 py-3 sm:px-4">
             <h2 className="text-sm font-semibold text-[var(--sb-text)]">{queueTitle}</h2>
             <p className="mt-0.5 text-xs leading-5 text-[var(--sb-text-muted)]">{queueDescription}</p>
@@ -138,7 +138,7 @@ export function OperationalHub({
           </div>
         </section>
 
-        <section className="min-w-0 overflow-hidden rounded-[var(--sb-radius-panel)] border border-[var(--sb-border-soft)] bg-white">
+        <section className="min-w-0 overflow-hidden rounded-[var(--sb-panel-radius)] border border-[var(--sb-border-soft)] bg-white">
           <div className="border-b border-[var(--sb-border-soft)] px-3.5 py-3 sm:px-4">
             <h2 className="text-sm font-semibold text-[var(--sb-text)]">{toolsTitle}</h2>
           </div>

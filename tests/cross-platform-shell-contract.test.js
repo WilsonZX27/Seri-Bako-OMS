@@ -33,12 +33,16 @@ test("desktop and tablet shared geometry remains token based", () => {
   const tailwind = read("tailwind.config.ts");
   const design = read("DESIGN.md");
   const globals = read("src", "app", "globals.css");
+  const dashboard = read("src", "components", "dashboard-workspace.tsx");
+  const operationalHub = read("src", "components", "operational-hub.tsx");
 
   assert.match(tailwind, /md: "var\(--sb-radius-control\)"/);
   assert.match(tailwind, /sm: "var\(--sb-radius-control\)"/);
   assert.match(design, /Tablet \(`768px-1279px`\)/);
   assert.match(design, /Desktop \(`>=1280px`\)/);
   assert.match(globals, /\.rounded-\\\[2px\\\],[\s\S]*\.rounded-md,[\s\S]*\.rounded-none[\s\S]*border-radius: var\(--sb-radius-control\)/);
+  assert.match(globals, /--sb-panel-radius:/);
+  assert.doesNotMatch(`${dashboard}\n${operationalHub}`, /--sb-radius-panel/);
 });
 
 test("shared activity and identity surfaces use OMS semantic tokens", () => {

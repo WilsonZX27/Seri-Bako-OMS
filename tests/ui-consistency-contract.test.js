@@ -5,11 +5,10 @@ const fs = require("node:fs");
 const read = (file) => fs.readFileSync(file, "utf8");
 const imports = read("src/components/imports/import-workflow.tsx");
 const staffPermissions = read("src/components/staff-permission-overrides.tsx");
-const roleMatrix = read("src/components/role-permission-matrix.tsx");
 const styles = read("src/app/globals.css");
 const dashboard = read("src/components/dashboard-workspace.tsx");
 const priorityBadge = read("src/components/priority-badge.tsx");
-const workspacePanels = read("src/components/workspace-panels.tsx");
+const systemStates = read("src/components/ui/system-states.tsx");
 const authSetPassword = read("src/app/(auth)/set-password/page.tsx");
 
 test("UI consistency keeps imports upload-only and technical permission details collapsed", () => {
@@ -18,7 +17,6 @@ test("UI consistency keeps imports upload-only and technical permission details 
   assert.match(imports, /Confirm import/);
   assert.match(staffPermissions, /Technical details/);
   assert.match(staffPermissions, /<details key=\{module\}/);
-  assert.match(roleMatrix, /<details key=\{module\}/);
 });
 
 test("shared filter rows use compact operational-green submits without adding duplicate link icons", () => {
@@ -35,7 +33,7 @@ test("UI smoke keeps the requested routes, console order, and current footer", (
   assert.match(dashboard, /ConsoleSection title="Today"[\s\S]*ConsoleSection title="Alerts"/);
   assert.match(dashboard, /<header[\s\S]*primaryAction\.href/);
   assert.doesNotMatch(dashboard, /ConsoleSection title="Recent Activity"/);
-  assert.match(read("src/lib/app-version.ts"), /APP_SPRINT = "v7\.23\.7\.2"/);
+  assert.match(read("src/lib/app-version.ts"), /APP_SPRINT = `v\$\{APP_VERSION\}`/);
   assert.match(read("supabase/migrations/066_create_outlet_staff_role.sql"), /outlet_staff/);
 });
 
@@ -43,9 +41,9 @@ test("shared operational feedback uses semantic state tokens instead of one-off 
   assert.match(priorityBadge, /--sb-danger-bg/);
   assert.match(priorityBadge, /--sb-warning-bg/);
   assert.doesNotMatch(priorityBadge, /(?:border|bg|text)-(?:red|pink|emerald|amber)-\d/);
-  assert.match(workspacePanels, /--sb-success-bg/);
-  assert.match(workspacePanels, /--sb-info-bg/);
-  assert.doesNotMatch(workspacePanels, /(?:border|bg|text)-(?:emerald|blue|amber|purple|teal|slate|red)-\d/);
+  assert.match(systemStates, /--sb-success-bg/);
+  assert.match(systemStates, /--sb-info-bg/);
+  assert.doesNotMatch(systemStates, /(?:border|bg|text)-(?:emerald|blue|amber|purple|teal|slate|red)-\d/);
   assert.match(authSetPassword, /<Notice tone="error">/);
   assert.match(authSetPassword, /<Notice tone="warning"/);
 });

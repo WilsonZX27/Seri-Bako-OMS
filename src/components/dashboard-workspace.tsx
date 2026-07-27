@@ -26,7 +26,7 @@ function MobileQuickActions({ actions }: { actions: { href: string; label: strin
         <h2 id="mobile-quick-actions-title" className="text-xs font-semibold">Quick actions</h2>
         <span className="text-[11px] text-[var(--sb-text-muted)]">Based on your role</span>
       </div>
-      <div className="grid grid-cols-3 divide-x divide-[var(--sb-border-soft)] overflow-hidden rounded-[var(--sb-radius-panel)] border border-[var(--sb-border-soft)] bg-white">
+      <div className="grid grid-cols-3 divide-x divide-[var(--sb-border-soft)] overflow-hidden rounded-[var(--sb-panel-radius)] border border-[var(--sb-border-soft)] bg-white">
         {actions.slice(0, 3).map((action) => {
           const Icon = action.icon;
           return (

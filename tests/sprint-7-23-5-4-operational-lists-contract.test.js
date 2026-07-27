@@ -5,7 +5,7 @@ const test = require("node:test");
 const read = (file) => fs.readFileSync(file, "utf8");
 const routes = [
   "purchase-requests", "purchase-orders", "goods-receivings", "supplier-invoices", "purchase-returns",
-  "items", "products", "suppliers", "supplier-items", "stock-balance", "stock-transactions",
+  "documents", "items", "products", "suppliers", "supplier-items", "stock-balance", "stock-transactions",
   "stock-transfers", "stock-counts", "stock-wastage", "production/jobs", "outlet-daily-records", "recipes",
 ];
 
@@ -61,6 +61,5 @@ test("product-driven lists keep canonical ordering and the current footer", () =
   assert.match(daily, /sortProductsForDisplay/);
   assert.match(order, /display_order/);
   assert.match(order, /natural\.compare/);
-  assert.match(version, /APP_SPRINT = "v7\.23\.7\.2"/);
+  assert.match(version, /APP_SPRINT = `v\$\{APP_VERSION\}`/);
 });
-

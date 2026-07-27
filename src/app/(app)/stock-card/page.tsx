@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input";
 import { WorkspaceGrid } from "@/components/layout/workspace-layout";
 import { PageHeader } from "@/components/ui/page-header";
 import { SelectControl } from "@/components/ui/select-control";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { OperationalList, OperationalListRow, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { formatCurrency, formatNumber } from "@/lib/utils";
 import { hasActiveFilters } from "@/lib/table-state";
 import { getItemsForSelect } from "@/server/queries/common";
@@ -66,13 +66,13 @@ export default async function StockCardPage({ searchParams }: { searchParams: Pr
               <h2 className="text-sm font-semibold">{selectedItem ? `${selectedItem.item_code} — ${selectedItem.item_name}` : "Stock Movement History"}</h2>
               <p className="mt-0.5 text-xs text-muted-foreground">Current balance: {formatNumber(current)} {selectedItem?.base_unit ?? ""}</p>
             </div>
-              <Table aria-label="Stock movement history">
+              <Table mobileHidden stickyColumn="first" aria-label="Stock movement history">
                 <TableHeader>
                   <TableRow>
+                    <TableHead>Item</TableHead>
                     <TableHead>Date</TableHead>
                     <TableHead>Transaction No</TableHead>
                     <TableHead>Type</TableHead>
-                    <TableHead>Item</TableHead>
                     <TableHead>Branch</TableHead>
                     <TableHead className="text-right">In</TableHead>
                     <TableHead className="text-right">Out</TableHead>
@@ -85,10 +85,10 @@ export default async function StockCardPage({ searchParams }: { searchParams: Pr
                 <TableBody>
                   {rows.map((row) => (
                     <TableRow key={row.stock_transaction_id}>
+                      <TableCell className="font-medium">{row.item_name}</TableCell>
                       <TableCell>{row.transaction_date}</TableCell>
                       <TableCell className="font-medium">{row.transaction_no}</TableCell>
                       <TableCell>{row.transaction_type.replaceAll("_", " ")}</TableCell>
-                      <TableCell>{row.item_name}</TableCell>
                       <TableCell>{row.branch_name ?? "-"}</TableCell>
                       <TableCell className="text-right">{row.quantity_in ? formatNumber(row.quantity_in) : "-"}</TableCell>
                       <TableCell className="text-right">{row.quantity_out ? formatNumber(row.quantity_out) : "-"}</TableCell>
@@ -101,6 +101,10 @@ export default async function StockCardPage({ searchParams }: { searchParams: Pr
                   {!rows.length ? <TableRow><TableCell colSpan={11} className="text-center text-muted-foreground">No stock movements found.</TableCell></TableRow> : null}
                 </TableBody>
               </Table>
+              <OperationalList ariaLabel="Stock movement history">
+                {rows.map((row) => <OperationalListRow key={row.stock_transaction_id} href={`/stock-transactions/${row.stock_transaction_id}`} label={`Open ${row.transaction_no}`} primary={row.item_name} secondary={`${row.transaction_date} · ${row.transaction_no} · ${row.transaction_type.replaceAll("_", " ")}`} meta={`${formatNumber(row.quantity_in - row.quantity_out)} ${row.base_unit}`} />)}
+                {!rows.length ? <p className="px-3 py-8 text-center text-sm text-muted-foreground">No stock movements found.</p> : null}
+              </OperationalList>
           </section>
         </div>
       </WorkspaceGrid>

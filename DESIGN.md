@@ -19,6 +19,8 @@ Do not introduce a page-specific breakpoint. These thresholds serve distinct ope
 - Use grid fractions, `minmax(0, 1fr)`, flex growth, percentages, or viewport-constrained `min()`/`max()` values for page structure. Do not give a page, panel, or content column a fixed pixel width.
 - A dense desktop grid must collapse to one column by default; add the second/third column only at the semantic breakpoints.
 - Tables must sit inside `.sb-table-region` or a local `overflow-x-auto` container. The document itself must never become horizontally scrollable.
+- Table columns are not globally sticky. When a technical table needs an anchor, explicitly pin the first semantic identity column (item, product, document title, or record name). A trailing action column remains scrollable unless that specific task demonstrably requires it.
+- A status tab is itself the status filter. A page that renders `StatusTabs` must not repeat the same status choice in the adjacent filter bar.
 - A mobile primary action is fixed above the safe area, with enough document bottom padding that the last editable control remains reachable. Its border is neutral; it must not visually imply a completed workflow state.
 - Full-width forms use `w-full min-w-0 max-w-full`. A form control may have a minimum touch target (for example quantity entry) but the surrounding layout must still shrink safely.
 - Form sections that contain file inputs, long sample values, or native selects must also set `min-w-0` on the containing grid/flex items; native file controls must never widen their parent on narrow screens.

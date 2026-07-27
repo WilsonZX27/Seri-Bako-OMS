@@ -3,9 +3,9 @@ import Link from "next/link";
 import { ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-export function Table({ className, mobileHidden = false, ...props }: React.TableHTMLAttributes<HTMLTableElement> & { mobileHidden?: boolean }) {
+export function Table({ className, mobileHidden = false, stickyColumn = "none", ...props }: React.TableHTMLAttributes<HTMLTableElement> & { mobileHidden?: boolean; stickyColumn?: "none" | "first" | "last" }) {
   return (
-    <div className={cn("sb-table-region", mobileHidden && "hidden md:block")} role="region" aria-label={props["aria-label"] ?? "Data table"} tabIndex={0}>
+    <div className={cn("sb-table-region", mobileHidden && "hidden md:block")} data-sticky-column={stickyColumn} role="region" aria-label={props["aria-label"] ?? "Data table"} tabIndex={0}>
       <table className={cn("w-full caption-bottom text-xs", className)} {...props} />
     </div>
   );

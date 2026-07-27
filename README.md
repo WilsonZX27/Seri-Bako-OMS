@@ -8,7 +8,7 @@ For UI and interaction standards, read `DESIGN.md`.
 
 ## Current Release Baseline
 
-- Application release: `v7.24.0 — Mobile Command UI`.
+- Application release: `v7.24.1 — Staff Onboarding Integrity`.
 - Database migration ceiling: `103_kitchen_purchase_order_read`.
 - Tenant isolation, inventory posting atomicity, procurement/document transitions, concurrency controls, and credential handoff are database-authoritative.
 - Start with `docs/PILOT_BASELINE.md`, use the controlled CSV files in `docs/import-templates/`, and record sign-off in `docs/PILOT_QA_CHECKLIST.md`.

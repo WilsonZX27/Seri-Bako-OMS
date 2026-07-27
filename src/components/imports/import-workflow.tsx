@@ -7,7 +7,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { SelectNative } from "@/components/ui/select-native";
-import { ConsoleSection, RightConsoleMount } from "@/components/layout/right-console";
+import { ConsoleSection } from "@/components/layout/right-console";
+import { WorkspaceGrid } from "@/components/layout/workspace-layout";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
 type RowState = { index: number; values: Record<string, string>; errors: string[] };
@@ -400,27 +401,28 @@ export function ImportWorkflow({ entity, suppliers = [] }: { entity: ImportEntit
     errorRows: [],
   };
   const activeStep = result ? 4 : rows.length ? 3 : 2;
+  const importConsole = <>
+    <ConsoleSection title="Template and draft">
+      <Button type="button" variant="outline" className="w-full justify-start" onClick={downloadTemplate}><Download className="mr-2 h-4 w-4" />CSV template</Button>
+      <Button type="button" variant="outline" className="w-full justify-start" onClick={saveDraft}><Save className="mr-2 h-4 w-4" />Save draft</Button>
+      <Button type="button" variant="outline" className="w-full justify-start" onClick={loadDraft}>Load draft</Button>
+      {draftSavedAt ? <Button type="button" variant="ghost" className="w-full justify-start" onClick={clearDraft}><Trash2 className="mr-2 h-4 w-4" />Clear draft</Button> : null}
+    </ConsoleSection>
+    <ConsoleSection title="Review actions">
+      <p className="text-xs text-muted-foreground">Validate the current rows before confirming. Confirmation stays disabled until valid rows are ready.</p>
+      <Button type="button" variant="outline" className="w-full" onClick={checkErrors}>Check errors</Button>
+      <Button type="button" className="w-full" onClick={confirmImport} disabled={!validRows.length || isSaving || Boolean(spec.needsPostingConfirmation && !confirmPosting)}><Upload className="mr-2 h-4 w-4" />{isSaving ? "Importing..." : "Confirm import"}</Button>
+      <Button type="button" variant="outline" className="w-full" onClick={downloadErrorCsv} disabled={!errorRows.length}>Download errors</Button>
+      {message ? <p className="text-xs text-muted-foreground">{message}</p> : null}
+    </ConsoleSection>
+    <ConsoleSection title="Current file">
+      <div className="space-y-2 text-xs"><div className="flex justify-between"><span className="text-muted-foreground">Total rows</span><strong>{rows.length}</strong></div><div className="flex justify-between"><span className="text-muted-foreground">Valid rows</span><strong>{validRows.length}</strong></div><div className="flex justify-between"><span className="text-muted-foreground">Needs fixes</span><strong>{errorRows.length}</strong></div></div>
+    </ConsoleSection>
+  </>;
 
   return (
-    <div className="space-y-5">
-      <RightConsoleMount hideMobileBar>
-        <ConsoleSection title="Template and draft">
-          <Button type="button" variant="outline" className="w-full justify-start" onClick={downloadTemplate}><Download className="mr-2 h-4 w-4" />CSV template</Button>
-          <Button type="button" variant="outline" className="w-full justify-start" onClick={saveDraft}><Save className="mr-2 h-4 w-4" />Save draft</Button>
-          <Button type="button" variant="outline" className="w-full justify-start" onClick={loadDraft}>Load draft</Button>
-          {draftSavedAt ? <Button type="button" variant="ghost" className="w-full justify-start" onClick={clearDraft}><Trash2 className="mr-2 h-4 w-4" />Clear draft</Button> : null}
-        </ConsoleSection>
-        <ConsoleSection title="Review actions">
-          <p className="text-xs text-muted-foreground">Validate the current rows before confirming. Confirmation stays disabled until valid rows are ready.</p>
-          <Button type="button" variant="outline" className="w-full" onClick={checkErrors}>Check errors</Button>
-          <Button type="button" className="w-full" onClick={confirmImport} disabled={!validRows.length || isSaving || Boolean(spec.needsPostingConfirmation && !confirmPosting)}><Upload className="mr-2 h-4 w-4" />{isSaving ? "Importing..." : "Confirm import"}</Button>
-          <Button type="button" variant="outline" className="w-full" onClick={downloadErrorCsv} disabled={!errorRows.length}>Download errors</Button>
-          {message ? <p className="text-xs text-muted-foreground">{message}</p> : null}
-        </ConsoleSection>
-        <ConsoleSection title="Current file">
-          <div className="space-y-2 text-xs"><div className="flex justify-between"><span className="text-muted-foreground">Total rows</span><strong>{rows.length}</strong></div><div className="flex justify-between"><span className="text-muted-foreground">Valid rows</span><strong>{validRows.length}</strong></div><div className="flex justify-between"><span className="text-muted-foreground">Needs fixes</span><strong>{errorRows.length}</strong></div></div>
-        </ConsoleSection>
-      </RightConsoleMount>
+    <WorkspaceGrid tabletCanvas="wide" rightRail={importConsole}>
+      <div className="space-y-5">
       <Card>
         <CardContent className="space-y-5 p-5">
           <div>
@@ -591,6 +593,7 @@ export function ImportWorkflow({ entity, suppliers = [] }: { entity: ImportEntit
           </CardContent>
         </Card>
       ) : null}
-    </div>
+      </div>
+    </WorkspaceGrid>
   );
 }

@@ -1,7 +1,8 @@
 import { notFound } from "next/navigation";
 import { ImportWorkflow } from "@/components/imports/import-workflow";
-import { Card, CardContent } from "@/components/ui/card";
+import { WorkspaceGrid } from "@/components/layout/workspace-layout";
 import { PageHeader } from "@/components/ui/page-header";
+import { Notice } from "@/components/ui/system-states";
 import { importTemplates, type ImportEntity } from "@/lib/imports/config";
 import { formatPageError } from "@/server/actions/error-handling";
 import { hasPermission } from "@/server/auth/permissions";
@@ -21,17 +22,7 @@ export default async function ImportPage({ params }: { params: Promise<{ entity:
     return (
       <>
         <PageHeader title={`Import ${label}`} description="Upload, preview, validate, and import only clean rows." />
-        <div className="p-5">
-          {allowed ? (
-            <ImportWorkflow entity={typedEntity} suppliers={suppliers} />
-          ) : (
-            <Card>
-              <CardContent className="p-5 text-sm text-muted-foreground">
-                You do not have permission to manage data imports.
-              </CardContent>
-            </Card>
-          )}
-        </div>
+        {allowed ? <ImportWorkflow entity={typedEntity} suppliers={suppliers} /> : <WorkspaceGrid tabletCanvas="contained"><Notice tone="error" title="Permission required">You do not have permission to manage data imports.</Notice></WorkspaceGrid>}
       </>
     );
   } catch (error) {
@@ -39,13 +30,7 @@ export default async function ImportPage({ params }: { params: Promise<{ entity:
     return (
       <>
         <PageHeader title="Import Data" description="Upload, preview, validate, and import only clean rows." />
-        <div className="p-5">
-          <Card>
-            <CardContent className="p-5 text-sm text-muted-foreground">
-              {formatPageError(error, "This import workspace is unavailable right now. Please try again shortly.")}
-            </CardContent>
-          </Card>
-        </div>
+        <WorkspaceGrid tabletCanvas="contained"><Notice tone="error" title="Import unavailable">{formatPageError(error, "This import workspace is unavailable right now. Please try again shortly.")}</Notice></WorkspaceGrid>
       </>
     );
   }

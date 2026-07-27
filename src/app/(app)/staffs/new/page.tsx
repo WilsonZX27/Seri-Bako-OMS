@@ -32,8 +32,12 @@ export default async function NewStaffPage({
   }
 
   const [companies, branches, allRoles, profile] = await Promise.all([getCompaniesForSelect(), getBranches({ status: "active" }), getRoles(), getCurrentProfile()]);
+  const companyId = profile?.company_id ?? "";
+  const tenantCompanies = companies.filter((company) => company.id === companyId);
+  const tenantBranches = branches.filter((branch) => branch.company_id === companyId);
+  const tenantRoles = allRoles.filter((role) => role.company_id === companyId);
   const currentRole = (profile as { role_code?: string; role?: string } | null)?.role_code ?? (profile as { role?: string } | null)?.role ?? null;
-  const roles = sortRolesForDisplay(allRoles).filter((role) => canAssignRoleCode(currentRole, role.role_code));
+  const roles = sortRolesForDisplay(tenantRoles).filter((role) => canAssignRoleCode(currentRole, role.role_code));
   const formId = "staff-create-form";
 
   if (!roles.length) {
@@ -75,7 +79,7 @@ export default async function NewStaffPage({
             <CardContent className="p-4 text-sm text-destructive">{params.error}</CardContent>
           </Card>
         ) : null}
-        <StaffForm formId={formId} companies={companies} branches={branches} roles={roles} action={createStaff} showSubmit={false} includeAuthSetup />
+        <StaffForm formId={formId} companies={tenantCompanies} branches={tenantBranches} roles={roles} action={createStaff} showSubmit={false} includeAuthSetup />
       </RecordWorkspace>
     </>
   );

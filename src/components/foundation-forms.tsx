@@ -2,11 +2,10 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Field } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { RecordSection } from "@/components/record-workspace";
+import { StaffAccessFields } from "@/components/staff-access-fields";
 import { SubmitButton } from "@/components/ui/submit-button";
-import { SelectControl } from "@/components/ui/select-control";
 import { SelectNative } from "@/components/ui/select-native";
 import { Textarea } from "@/components/ui/textarea";
-import { getRoleDisplayLabel } from "@/lib/roles";
 import { previewDocumentNumber } from "@/server/queries/foundation";
 import type { BranchType, RecordStatus, ResetFrequency, StaffAccessLevel, StaffStatus } from "@/types/database";
 
@@ -223,9 +222,6 @@ export function StaffForm({
   includeAuthSetup?: boolean;
 }) {
   const branchOptions = branches.filter((branch) => branch.status === "active");
-  const defaultBranchId = branchOptions.find((branch) => branch.id === access?.staffBranch?.branch_id)?.id
-    ?? branchOptions[0]?.id
-    ?? "";
   return (
     <form id={formId} action={action} className="space-y-5">
       <RecordSection title="Staff Profile" description="Core identity and contact details for this staff member.">
@@ -248,35 +244,15 @@ export function StaffForm({
       </RecordSection>
 
       <RecordSection title="Access">
-        <div className="grid gap-4 md:grid-cols-2">
-          <Field label="Role" required>
-            <SelectControl
-              name="role_id"
-              defaultValue={access?.staffRole?.role_id ?? roles[0]?.id ?? ""}
-              options={roles.map((role) => ({ value: role.id, label: getRoleDisplayLabel(role.role_code, role.role_name) }))}
-              ariaLabel="Role"
-              required
-              className="form-control-compact"
-            />
-          </Field>
-          <Field label="Default Branch" required>
-            <SelectControl
-              name="default_branch_id"
-              defaultValue={defaultBranchId}
-              options={branchOptions.map((branch) => ({ value: branch.id, label: branch.branch_name }))}
-              ariaLabel="Default Branch"
-              required
-              className="form-control-compact"
-            />
-          </Field>
-          <div className="md:col-span-2">
-            <Field label="Accessible Branches" required>
-              <div className="grid gap-2 rounded-[2px] border p-3 md:grid-cols-2">
-                {branchOptions.map((branch) => <label key={branch.id} className="flex min-h-10 items-center gap-2 text-sm"><input type="checkbox" name="accessible_branch_ids" value={branch.id} defaultChecked={access ? access.staffBranchIds.includes(branch.id) : branch.id === defaultBranchId} /><span>{branch.branch_name}</span></label>)}
-              </div>
-            </Field>
-          </div>
-        </div>
+        <StaffAccessFields
+          branches={branchOptions}
+          roles={roles}
+          access={{
+            roleId: access?.staffRole?.role_id,
+            defaultBranchId: access?.staffBranch?.branch_id,
+            branchIds: access?.staffBranchIds,
+          }}
+        />
       </RecordSection>
 
       {includeAuthSetup ? (

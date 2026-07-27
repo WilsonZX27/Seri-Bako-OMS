@@ -270,6 +270,28 @@ function staffAccessPayload(formData: FormData) {
   });
 }
 
+async function assertStaffAccessIsEligible(
+  admin: ReturnType<typeof createAdminClient>,
+  companyId: string,
+  access: ReturnType<typeof staffAccessPayload>,
+) {
+  const requestedBranchIds = [...new Set([...access.accessible_branch_ids, access.default_branch_id])];
+  const [{ data: role, error: roleError }, { data: branches, error: branchError }] = await Promise.all([
+    admin.from("roles").select("role_code").eq("id", access.role_id).eq("company_id", companyId).eq("status", "active").is("deleted_at", null).maybeSingle(),
+    admin.from("branches").select("id, branch_type").in("id", requestedBranchIds).eq("company_id", companyId).eq("status", "active").is("deleted_at", null),
+  ]);
+  if (roleError) throw new Error(roleError.message);
+  if (branchError) throw new Error(branchError.message);
+  if (!role) throw new Error("Selected role was not found in your company.");
+  if ((branches ?? []).length !== requestedBranchIds.length) throw new Error("Select only active branches in your company.");
+  const typeMismatch = role.role_code === "kitchen"
+    ? (branches ?? []).some((branch) => branch.branch_type !== "central_kitchen")
+    : role.role_code === "outlet_staff"
+      ? (branches ?? []).some((branch) => branch.branch_type !== "outlet")
+      : false;
+  if (typeMismatch) throw new Error(role.role_code === "kitchen" ? "Kitchen staff require a Central Kitchen branch." : "Outlet staff require an Outlet branch.");
+}
+
 async function replaceStaffAccess(staffId: string, formData: FormData, payload?: ReturnType<typeof staffPayload>) {
   const access = staffAccessPayload(formData);
   const supabase = await createClient();
@@ -561,6 +583,7 @@ export async function createStaff(formData: FormData) {
         throw new Error("Role and default branch are required before invite.");
       }
       await assertCanAssignStaffRole(supabase, access.role_id);
+      await assertStaffAccessIsEligible(supabase, actor.companyId, access);
       const invitedBy = actor.staffId;
       const { data: existing, error: existingError } = await supabase
         .from("staffs")

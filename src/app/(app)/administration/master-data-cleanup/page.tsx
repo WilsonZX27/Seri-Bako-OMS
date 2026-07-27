@@ -20,7 +20,7 @@ export default async function MasterDataCleanupPage({ searchParams }: { searchPa
   const filtered = hasActiveFilters(filters);
   return <>
     <PageHeader title="Master Data Cleanup" description="Read-only checks for codes, core fields, references, and branch assignments." />
-    <WorkspaceGrid rightRail={<>
+    <WorkspaceGrid hideMobileConsole rightRail={<>
       <ConsoleSection title="Cleanup guidance"><div className="space-y-2 text-xs text-muted-foreground"><p>This report is read-only.</p><p>Fixes are manual through the linked master record pages.</p><p>No records are merged or deleted here.</p><p>Review suspicious duplicate codes before changing them.</p></div></ConsoleSection>
       <ConsoleSection title="Scope"><p className="text-xs text-muted-foreground">Checks visible items, products, and suppliers only. It never changes stock, production, or finance records.</p></ConsoleSection>
     </>}>

@@ -20,11 +20,12 @@ export default async function CompanyPage({
     <>
       <PageHeader title="Company Profile" description="Legal identity, contact details, address, and supported brand assets." />
       <WorkspaceGrid
+        documentMode
         rightRail={
           <div>
             <ConsoleSection title="Company Actions">
               <div className="grid gap-2">
-                <Button type="submit" form="company-form" className="w-full">Save Company</Button>
+                <Button type="submit" form="company-form" className="w-full" data-mobile-primary-action>Save Company</Button>
                 <Button type="submit" form="company-logo-upload-form" variant="outline" className="w-full">Upload Logo</Button>
                 {company.logo_url ? <Button type="submit" form="company-logo-remove-form" variant="ghost" className="w-full">Remove Logo</Button> : null}
               </div>

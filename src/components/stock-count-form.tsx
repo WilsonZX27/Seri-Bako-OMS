@@ -153,17 +153,17 @@ export function StockCountForm({
       <div className="md:p-4">
         <form id={formId} action={action} className={showSubmit ? "space-y-3 pb-20 md:pb-0" : "space-y-3"}>
           <section data-stock-count-setup className="erp-surface p-3 md:rounded-none md:border-0 md:bg-transparent md:p-0">
-          <div className="grid grid-cols-[minmax(0,1fr)_6.5rem] gap-2 lg:grid-cols-3 lg:gap-3">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-[minmax(0,1fr)_6.5rem] sm:gap-2 lg:grid-cols-3 lg:gap-3">
             <Field label="Count Date"><Input name="count_date" type="date" defaultValue={today()} required /></Field>
             <Field label="Tolerance %"><Input name="tolerance_percent" type="number" min="0" step="0.01" defaultValue={tolerance} required /></Field>
-            <div className="col-span-2 lg:col-span-1">
+            <div className="sm:col-span-2 lg:col-span-1">
               <Field label="Branch">
                 <SelectNative name="branch_id" value={selectedBranchId ?? branches[0]?.id ?? ""} onChange={(event) => selectBranch(event.target.value)} required>
                   {branches.map((branch) => <option key={branch.id} value={branch.id}>{branch.branch_name}</option>)}
                 </SelectNative>
               </Field>
             </div>
-            <div className="col-span-2 lg:col-span-3">
+            <div className="sm:col-span-2 lg:col-span-3">
               <details className="group rounded-[2px] border border-dashed border-[var(--sb-border)] bg-[var(--sb-surface-muted)] px-3 py-2">
                 <summary className="cursor-pointer text-sm font-medium marker:text-[var(--sb-text-muted)]">Add count note <span className="font-normal text-muted-foreground">(optional)</span></summary>
                 <div className="mt-2"><Textarea name="remarks" className="min-h-16" placeholder="Nightly count note" /></div>

@@ -18,6 +18,7 @@ export function StatusTabs({ statuses, activeStatus }: { statuses: StatusTab[]; 
 
   useEffect(() => {
     if (!window.matchMedia("(max-width: 767px)").matches) return;
+    if (selected === "all") return;
     const frame = window.requestAnimationFrame(() => {
       activeTabRef.current?.scrollIntoView({ block: "nearest", inline: "center" });
     });
@@ -34,7 +35,7 @@ export function StatusTabs({ statuses, activeStatus }: { statuses: StatusTab[]; 
   }
 
   return (
-    <nav aria-label="Filter by status" className="scrollbar-none flex min-h-11 gap-1 overflow-x-auto border-b border-[var(--sb-border-soft)] bg-white px-2 py-1.5">
+    <nav aria-label="Filter by status" className="scrollbar-none flex min-h-11 gap-1 overflow-x-auto border-b border-[var(--sb-border-soft)] bg-white px-2 py-1.5 [scroll-padding-inline:0.5rem]">
       {tabs.map((tab) => {
         const active = selected === tab.value;
         return (

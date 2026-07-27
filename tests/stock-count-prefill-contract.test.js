@@ -16,6 +16,7 @@ test("stock count starts from a visible historical or ledger prefill instead of 
   assert.match(query, /last_posted_count/);
   assert.match(form, /seedLines\.map\(makeEditableLine\)/);
   assert.match(form, /Review prefilled values/);
+  assert.match(form, /grid-cols-1 gap-3 sm:grid-cols-\[minmax\(0,1fr\)_6\.5rem\]/);
   assert.match(design, /latest posted physical result/);
 });
 

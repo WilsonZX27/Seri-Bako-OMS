@@ -26,6 +26,17 @@ test("mobile web uses a permission-aware app shell without replacing desktop nav
   assert.match(sidebar, /xl:block/);
 });
 
+test("kitchen mobile navigation keeps its production, request, and receiving workspaces", () => {
+  const navigation = read("src/components/layout/mobile-app-navigation.tsx");
+  const kitchenStart = navigation.indexOf('if (role === "kitchen")');
+  const kitchenEnd = navigation.indexOf('if (role === "purchasing")');
+  const kitchenTabs = navigation.slice(kitchenStart, kitchenEnd);
+
+  assert.match(kitchenTabs, /href: "\/production\/jobs"[\s\S]*?label: "Production"/);
+  assert.match(kitchenTabs, /href: "\/purchase-requests"[\s\S]*?label: "Requests"/);
+  assert.match(kitchenTabs, /href: "\/goods-receivings"[\s\S]*?label: "Receive"/);
+});
+
 test("mobile shell respects safe areas, action stacking, and standalone web installation", () => {
   const css = read("src/app/globals.css");
   const rootLayout = read("src/app/layout.tsx");

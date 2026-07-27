@@ -10,7 +10,17 @@ const mobileHeader = fs.readFileSync(path.join(root, "src", "components", "layou
 test("dashboard phone top bar uses one centered Today title", () => {
   assert.match(mobileHeader, /pathname === "\/dashboard"[\s\S]*?title: "Today", backHref: null/);
   assert.match(dashboard, /<header className="hidden[\s\S]*?md:flex/);
-  assert.match(dashboard, /summary\.roleLabel[\s\S]*?summary\.scopeLabel[\s\S]*?md:hidden/);
+  assert.match(dashboard, /const workspaceContext = <>Welcome \{summary\.userName\}/);
+  assert.match(dashboard, /summary\.roleLabel[\s\S]*?summary\.branchLabel/);
+});
+
+test("dashboard identifies every signed-in worker and their actual branch scope", () => {
+  const dashboardQuery = fs.readFileSync(path.join(root, "src", "server", "queries", "dashboard.ts"), "utf8");
+
+  assert.match(dashboard, /workspaceContext/);
+  assert.match(dashboardQuery, /select\("full_name"\)/);
+  assert.match(dashboardQuery, /from\("branches"\)\.select\("branch_name"\)/);
+  assert.match(dashboardQuery, /branchLabel:/);
 });
 
 test("dashboard role quick actions retain role-specific destinations", () => {

@@ -56,7 +56,7 @@ export default async function SuppliersPage({
           <MasterDataFilters search={filters.search} status={filters.status} placeholder="Search supplier code, name, contact, phone, email" resultCount={page.totalRows} filtered={filtered} resetHref="/suppliers" />
           <BulkSelectionProvider ids={page.rows.map((supplier) => supplier.id)} actionLabel="Deactivate selected" actionHint="Deactivate suppliers only when they should no longer be used for purchasing.">
           <DataGridHint text="Pro-tip: Double-click any row to open the supplier." />
-          <Table mobileHidden aria-label="Suppliers">
+          <Table mobileHidden aria-label="Suppliers" stickyColumn="second">
             <TableHeader>
               <TableRow>
                 <TableSelectionHead><BulkSelectAllCheckbox /></TableSelectionHead>

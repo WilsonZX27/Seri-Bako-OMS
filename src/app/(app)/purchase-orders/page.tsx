@@ -71,7 +71,7 @@ export default async function PurchaseOrdersPage({ searchParams }: { searchParam
           </FilterBar>
           <BulkSelectionProvider ids={orders.rows.map((order) => order.id)} actionLabel="Archive selected" actionHint="Open selected POs to close, reject, or cancel them through workflow-safe actions.">
           <DataGridHint text="Pro-tip: Double-click any row to open the purchase order." />
-            <Table mobileHidden aria-label="Purchase orders">
+          <Table mobileHidden aria-label="Purchase orders" stickyColumn="second">
               <TableHeader>
                 <TableRow>
                   <TableSelectionHead className="hidden md:table-cell"><BulkSelectAllCheckbox /></TableSelectionHead>

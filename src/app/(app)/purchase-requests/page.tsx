@@ -74,7 +74,7 @@ export default async function PurchaseRequestsPage({ searchParams }: { searchPar
           <BulkSelectionProvider ids={requests.rows.map((request) => request.id)} actionLabel="Delete selected" actionHint="Review selected requests before permanent deletion.">
           <BulkPhaseOneDelete />
           <DataGridHint text="Pro-tip: Double-click any row to open the purchase request." />
-            <Table mobileHidden aria-label="Purchase requests">
+          <Table mobileHidden aria-label="Purchase requests" stickyColumn="second">
               <TableHeader>
                 <TableRow>
                   <TableSelectionHead className="hidden md:table-cell"><BulkSelectAllCheckbox /></TableSelectionHead>

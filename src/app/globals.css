@@ -587,11 +587,32 @@ input[type="date"]::-webkit-date-and-time-value {
 .sb-table-region[data-sticky-column="first"] td:first-child {
   position: sticky;
   left: 0;
+  z-index: 1;
   background: var(--sb-surface);
   box-shadow: 1px 0 var(--sb-border-soft);
 }
 
 .sb-table-region[data-sticky-column="first"] thead th:first-child {
+  z-index: 2;
+  background: var(--sb-surface-muted);
+}
+
+.sb-table-region[data-sticky-column="second"] th:nth-child(2),
+.sb-table-region[data-sticky-column="second"] td:nth-child(2) {
+  position: sticky;
+  left: 2.5rem;
+  z-index: 1;
+  background: var(--sb-surface);
+  box-shadow: 1px 0 var(--sb-border-soft);
+}
+
+.sb-table-region[data-sticky-column="second"] thead th:nth-child(2) {
+  z-index: 2;
+  background: var(--sb-surface-muted);
+}
+
+.sb-table-region[data-sticky-column="first"] tbody tr:hover > :first-child,
+.sb-table-region[data-sticky-column="second"] tbody tr:hover > :nth-child(2) {
   background: var(--sb-surface-muted);
 }
 

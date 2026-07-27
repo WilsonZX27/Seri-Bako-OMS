@@ -54,7 +54,7 @@ export default async function ItemsPage({
           />
           <BulkSelectionProvider ids={itemsPage.rows.map((item) => item.id)} actionLabel="Deactivate selected" actionHint="Deactivate items only when they are no longer used in daily operations.">
           <DataGridHint text="Pro-tip: Double-click any row to open the item." />
-          <Table mobileHidden aria-label="Items">
+          <Table mobileHidden aria-label="Items" stickyColumn="second">
             <TableHeader>
               <TableRow>
                 <TableSelectionHead className="hidden md:table-cell"><BulkSelectAllCheckbox /></TableSelectionHead>

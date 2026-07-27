@@ -73,7 +73,7 @@ export default async function DocumentsPage({ searchParams }: { searchParams: Pr
           </FilterBar>
           <BulkSelectionProvider ids={documents.rows.map((document) => document.id)} actionLabel="Archive selected" actionHint="Documents with history are not hard deleted. Open selected documents to use workflow-safe actions.">
           <DataGridHint text="Pro-tip: Double-click any row to open the document." />
-            <Table mobileHidden aria-label="Documents register">
+            <Table mobileHidden aria-label="Documents register" stickyColumn="second">
               <TableHeader>
                 <TableRow>
                   <TableSelectionHead><BulkSelectAllCheckbox /></TableSelectionHead>

@@ -43,7 +43,7 @@ export default async function BranchesPage({ searchParams }: { searchParams: Pro
             <MasterDataFilters search={filters.search} status={filters.status} placeholder="Search branch code, name, or type" statuses={[{ value: "active", label: "Active" }, { value: "archived", label: "Archived" }]} resultCount={branches.length} filtered={filtered} resetHref="/branches" />
             <BulkSelectionProvider ids={branches.map((branch) => branch.id)} actionLabel="Archive selected" actionHint="Archive branches only after confirming they are no longer used by daily operations.">
             <DataGridHint text="Pro-tip: Double-click any row to open the branch." />
-              <Table aria-label="Branches">
+              <Table aria-label="Branches" stickyColumn={canManage ? "second" : "first"}>
                 <TableHeader>
                   <TableRow>
                     {canManage ? <TableSelectionHead><BulkSelectAllCheckbox /></TableSelectionHead> : null}

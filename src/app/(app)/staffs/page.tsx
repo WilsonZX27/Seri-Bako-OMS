@@ -53,7 +53,7 @@ export default async function StaffsPage({ searchParams }: { searchParams: Promi
         />
         <BulkSelectionProvider ids={staffs.map((staff) => staff.id)} actionLabel="Deactivate selected" actionHint="Disable staff users from their detail page to keep a clear access history.">
         <DataGridHint text="Pro-tip: Double-click any row to open the staff profile." />
-        <Table aria-label="Staff members"><TableHeader><TableRow>
+          <Table aria-label="Staff members" stickyColumn="second"><TableHeader><TableRow>
           <TableSelectionHead className="hidden md:table-cell"><BulkSelectAllCheckbox /></TableSelectionHead><TableHead>Staff Code</TableHead><TableHead>Name</TableHead><TableHead className="hidden lg:table-cell">Email</TableHead><TableHead className="hidden lg:table-cell">Default Branch</TableHead><TableHead>Role</TableHead><TableHead>Staff Status</TableHead><TableHead className="hidden md:table-cell">Account Status</TableHead><TableHead className="w-12 text-right">Action</TableHead>
         </TableRow></TableHeader><TableBody>
           {staffs.map((staff) => (

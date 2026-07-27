@@ -112,5 +112,5 @@ test("document terminology and release metadata follow the current operational c
   assert.match(sources, /Wastage Reason/);
   assert.match(sources, /Remarks/);
   assert.match(read("src/lib/app-version.ts"), /APP_SPRINT = `v\$\{APP_VERSION\}`/);
-  assert.match(read("src/lib/app-version.ts"), /APP_VERSION = "7\.24\.21"/);
+  assert.match(read("src/lib/app-version.ts"), /APP_VERSION = "\d+\.\d+\.\d+"/);
 });

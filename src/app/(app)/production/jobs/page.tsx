@@ -93,7 +93,7 @@ export default async function ProductionJobsPage({ searchParams }: { searchParam
               {selectedStatus !== "all" ? <input type="hidden" name="status" value={selectedStatus} /> : null}
             </FilterBar>
             <DataGridHint text="Pro-tip: Double-click any row to open the production job." />
-              <Table mobileHidden aria-label="Production jobs">
+            <Table mobileHidden aria-label="Production jobs" stickyColumn="second">
                 <TableHeader>
                   <TableRow>
                     <TableSelectionHead><BulkSelectAllCheckbox /></TableSelectionHead>

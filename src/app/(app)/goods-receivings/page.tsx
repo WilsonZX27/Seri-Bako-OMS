@@ -69,7 +69,7 @@ export default async function GoodsReceivingsPage({ searchParams }: { searchPara
           </FilterBar>
           <BulkSelectionProvider ids={receivings.rows.map((receiving) => receiving.id)} actionLabel="Archive selected" actionHint="Open selected GRNs to post or cancel them through workflow-safe actions. Posted receiving records are never hard deleted.">
           <DataGridHint text="Pro-tip: Double-click any row to open the goods receiving document." />
-            <Table mobileHidden aria-label="Goods receiving records">
+          <Table mobileHidden aria-label="Goods receiving records" stickyColumn="second">
               <TableHeader>
                 <TableRow>
                   <TableSelectionHead><BulkSelectAllCheckbox /></TableSelectionHead>

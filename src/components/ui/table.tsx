@@ -3,7 +3,11 @@ import Link from "next/link";
 import { ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-export function Table({ className, mobileHidden = false, stickyColumn = "none", ...props }: React.TableHTMLAttributes<HTMLTableElement> & { mobileHidden?: boolean; stickyColumn?: "none" | "first" | "last" }) {
+/**
+ * Technical tables keep their primary business identity visible while horizontally scrolling.
+ * A leading checkbox is not an identity, so bulk-select tables opt into `second` explicitly.
+ */
+export function Table({ className, mobileHidden = false, stickyColumn = "first", ...props }: React.TableHTMLAttributes<HTMLTableElement> & { mobileHidden?: boolean; stickyColumn?: "none" | "first" | "second" | "last" }) {
   return (
     <div className={cn("sb-table-region", mobileHidden && "hidden md:block")} data-sticky-column={stickyColumn} role="region" aria-label={props["aria-label"] ?? "Data table"} tabIndex={0}>
       <table className={cn("w-full caption-bottom text-xs", className)} {...props} />

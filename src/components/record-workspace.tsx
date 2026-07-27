@@ -19,10 +19,6 @@ export function RecordWorkspace({ children, actionPanel, className }: RecordWork
   );
 }
 
-export function RecordMain({ children, className }: { children: ReactNode; className?: string }) {
-  return <div className={cn("space-y-5", className)}>{children}</div>;
-}
-
 export function RecordActionPanel({ title = "Actions", description, children }: { title?: string; description?: string; children: ReactNode }) {
   return (
     <ConsoleSection title={title}>

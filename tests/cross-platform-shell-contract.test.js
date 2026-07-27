@@ -34,6 +34,43 @@ test("desktop and tablet shared geometry remains token based", () => {
   assert.match(design, /Desktop \(`>=1280px`\)/);
 });
 
+test("document workspaces preserve supplied desktop and tablet navigation context", () => {
+  const documentWorkspace = read("src", "components", "documents", "document-workspace.tsx");
+
+  assert.match(documentWorkspace, /import Link from "next\/link"/);
+  assert.match(documentWorkspace, /breadcrumbs\.length/);
+  assert.match(documentWorkspace, /aria-label="Breadcrumb"/);
+  assert.match(documentWorkspace, /hidden min-w-0 items-center[\s\S]*md:flex/);
+  assert.doesNotMatch(documentWorkspace, /void _breadcrumbs/);
+});
+
+test("master-data forms use the shared responsive action rail without duplicate submit bars", () => {
+  const masterForms = read("src", "components", "master-data-forms.tsx");
+  const routes = [
+    read("src", "app", "(app)", "supplier-items", "new", "page.tsx"),
+    read("src", "app", "(app)", "supplier-items", "[id]", "page.tsx"),
+    read("src", "app", "(app)", "uom-conversions", "new", "page.tsx"),
+    read("src", "app", "(app)", "uom-conversions", "[id]", "page.tsx"),
+  ];
+
+  assert.match(masterForms, /formId\?: string/);
+  assert.match(masterForms, /showSubmit = true/);
+  assert.match(masterForms, /rounded-\[var\(--sb-radius-control\)\]/);
+  for (const route of routes) {
+    assert.match(route, /RecordWorkspace/);
+    assert.match(route, /showSubmit=\{false\}/);
+    assert.match(route, /data-mobile-primary-action/);
+  }
+});
+
+test("workspace right-rail styling is applied consistently at tablet and desktop breakpoints", () => {
+  const workspaceGrid = read("src", "components", "layout", "workspace-layout.tsx");
+
+  assert.match(workspaceGrid, /const contextualRail = rightRailClassName/);
+  assert.match(workspaceGrid, /\{contextualRail\}/);
+  assert.doesNotMatch(workspaceGrid, /void rightRailClassName/);
+});
+
 test("retired multi-theme display components stay removed", () => {
   assert.equal(fs.existsSync(path.join(root, "src", "components", "workspace-panels.tsx")), false);
   assert.equal(fs.existsSync(path.join(root, "src", "components", "ui", "stat-card.tsx")), false);

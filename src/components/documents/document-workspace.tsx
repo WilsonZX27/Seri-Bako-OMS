@@ -1,4 +1,6 @@
 import type { ReactNode } from "react";
+import Link from "next/link";
+import { ChevronRight } from "lucide-react";
 import { DocumentNumber } from "@/components/document-number";
 import { PriorityBadge } from "@/components/priority-badge";
 import { ConsoleSection } from "@/components/layout/right-console";
@@ -14,7 +16,7 @@ type Crumb = {
 };
 
 export function DocumentWorkspace({
-  breadcrumbs: _breadcrumbs,
+  breadcrumbs,
   documentNo,
   title,
   status,
@@ -42,7 +44,6 @@ export function DocumentWorkspace({
   mobileActivity?: ReactNode;
   mobileMoreOptions?: ReactNode;
 }) {
-  void _breadcrumbs;
   const isNewDocument = documentNo.toLowerCase().startsWith("new ");
 
   return (
@@ -51,6 +52,20 @@ export function DocumentWorkspace({
       <header className="sticky top-0 z-20 min-w-0 border-b border-[var(--border-muted)] bg-[var(--workspace-bg)] px-3 py-2.5 sm:px-4 sm:py-3">
         <div className="flex flex-col gap-2 xl:flex-row xl:items-start xl:justify-between">
           <div className="min-w-0">
+            {breadcrumbs.length ? (
+              <nav aria-label="Breadcrumb" className="mb-1 hidden min-w-0 items-center gap-1 overflow-hidden text-xs text-[var(--sb-text-muted)] md:flex">
+                {breadcrumbs.map((crumb, index) => (
+                  <span key={`${crumb.label}-${index}`} className="flex min-w-0 items-center gap-1">
+                    {index ? <ChevronRight className="h-3 w-3 shrink-0" aria-hidden="true" /> : null}
+                    {crumb.href ? (
+                      <Link href={crumb.href} className="truncate hover:text-[var(--sb-green-900)] hover:underline underline-offset-2">
+                        {crumb.label}
+                      </Link>
+                    ) : <span className="truncate text-[var(--sb-text)]">{crumb.label}</span>}
+                  </span>
+                ))}
+              </nav>
+            ) : null}
             <div className="flex flex-wrap items-center gap-2">
               <DocumentNumber value={documentNo} size="lg" className={cn("max-w-full break-all text-[16px] sm:text-lg", isNewDocument && "hidden md:inline-flex")} />
               {priority ? <PriorityBadge priority={priority} /> : null}

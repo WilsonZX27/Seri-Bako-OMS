@@ -17,7 +17,7 @@ export function WorkspaceGrid({
   hideMobileConsole?: boolean;
   documentMode?: boolean;
 }) {
-  void rightRailClassName;
+  const contextualRail = rightRailClassName ? <div className={rightRailClassName}>{rightRail}</div> : rightRail;
 
   return (
     <div className={cn("min-h-0 p-3 pb-3", rightRail && !hideMobileConsole && "pb-32 md:pb-3", className)}>
@@ -27,7 +27,7 @@ export function WorkspaceGrid({
             <span>Actions &amp; context</span>
             <span className="text-xs font-normal text-[var(--sb-text-muted)]">Show workspace controls</span>
           </summary>
-          <div className="border-t border-[var(--sb-border-soft)]">{rightRail}</div>
+          <div className="border-t border-[var(--sb-border-soft)]">{contextualRail}</div>
         </details>
       ) : null}
       {documentMode && rightRail ? (
@@ -35,7 +35,7 @@ export function WorkspaceGrid({
           <div className="min-w-0 space-y-3">{children}</div>
         </div>
       ) : <div className="min-w-0 space-y-3">{children}</div>}
-      {rightRail ? <RightConsoleMount hideMobileBar={hideMobileConsole}>{rightRail}</RightConsoleMount> : null}
+      {rightRail ? <RightConsoleMount hideMobileBar={hideMobileConsole}>{contextualRail}</RightConsoleMount> : null}
     </div>
   );
 }

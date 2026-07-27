@@ -22,12 +22,12 @@ export function WorkspaceGrid({
   return (
     <div className={cn("min-h-0 p-3 pb-3", rightRail && !hideMobileConsole && "pb-32 md:pb-3", className)}>
       {rightRail ? (
-        <details data-tablet-context className="mb-3 hidden border border-[var(--sb-border-soft)] bg-white md:block xl:hidden">
-          <summary className="flex min-h-[var(--sb-control-height)] cursor-pointer list-none items-center justify-between gap-3 px-3 text-sm font-semibold marker:hidden">
+        <details data-tablet-context className="relative mb-3 hidden md:ml-auto md:block md:w-fit xl:hidden">
+          <summary className="flex min-h-[var(--sb-control-height)] cursor-pointer list-none items-center gap-2 border border-[var(--sb-border-soft)] bg-white px-3 text-xs font-semibold marker:hidden hover:bg-[var(--sb-surface-muted)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--sb-green-700)] focus-visible:ring-offset-2">
             <span>Actions &amp; context</span>
-            <span className="text-xs font-normal text-[var(--sb-text-muted)]">Show workspace controls</span>
+            <span className="text-[11px] font-normal text-[var(--sb-text-muted)]">Open</span>
           </summary>
-          <div className="border-t border-[var(--sb-border-soft)]">{contextualRail}</div>
+          <div className="absolute right-0 z-[var(--sb-z-dropdown)] mt-2 max-h-[calc(100dvh-8rem)] w-[min(22rem,calc(100vw-2rem))] overflow-y-auto border border-[var(--sb-border-soft)] bg-white shadow-[0_8px_24px_rgb(6_44_31_/_0.12)]">{contextualRail}</div>
         </details>
       ) : null}
       {documentMode && rightRail ? (

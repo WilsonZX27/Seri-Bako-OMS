@@ -28,6 +28,7 @@ test("document details and creation forms use one responsive operational shell",
 
 test("the shared shell gives iPad a contained canvas and an explicit operational split without reviving desktop rails", () => {
   const workspace = read("src/components/documents/document-workspace.tsx");
+  const recordWorkspace = read("src/components/record-workspace.tsx");
   const workspaceGrid = read("src/components/layout/workspace-layout.tsx");
   const grn = app("goods-receivings/new");
   const pr = app("purchase-requests/new");
@@ -43,6 +44,7 @@ test("the shared shell gives iPad a contained canvas and an explicit operational
   assert.match(workspaceGrid, /lg:grid-cols-\[minmax\(0,1fr\)_18rem\]/);
   assert.match(grn, /tabletRailMode="split"/);
   assert.match(pr, /tabletRailMode="split"/);
+  assert.match(recordWorkspace, /tabletRailMode="split"/);
   assert.match(workspace, /data-mobile-document-action/);
   assert.match(workspace, /mobilePrimaryAction \?/);
   assert.match(workspace, /md:hidden/);

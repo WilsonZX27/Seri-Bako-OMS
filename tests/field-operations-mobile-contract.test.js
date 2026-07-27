@@ -54,8 +54,10 @@ test("purchase requests use a flat phone setup and line-entry hierarchy", () => 
 
   assert.match(source, /data-purchase-request-setup/);
   assert.match(source, /data-purchase-request-workspace/);
-  assert.match(source, /details className="md:col-span-4 border-t/);
-  assert.match(source, /md:rounded-md md:border md:bg-secondary\/20/);
+  assert.match(source, /border-y border-\[var\(--sb-border\)\] bg-white/);
+  assert.match(source, /adjustLineQuantity/);
+  assert.match(source, /Add request line/);
+  assert.doesNotMatch(source, /md:rounded-md md:border md:bg-secondary\/20/);
 });
 
 test("stock transfer and wastage use a flat mobile line surface with quantity before availability", () => {
@@ -156,13 +158,13 @@ test("costing readiness reports use severity-first phone issue rows", () => {
   assert.match(source, /Open record/);
 });
 
-test("role permissions use touch-friendly phone capability rows instead of a scrolling table", () => {
-  const source = read("src/components/role-permission-matrix.tsx");
+test("staff permission overrides use touch-friendly capability rows instead of a scrolling table", () => {
+  const source = read("src/components/staff-permission-overrides.tsx");
 
-  assert.match(source, /hidden overflow-x-auto border-t md:block/);
-  assert.match(source, /data-role-permission-list/);
-  assert.match(source, /min-h-14 items-start gap-3 p-3/);
-  assert.match(source, /break-all text-\[11px\]/);
+  assert.match(source, /<details key=\{module\}/);
+  assert.match(source, /grid gap-2 p-3 sm:grid-cols/);
+  assert.match(source, /Technical details/);
+  assert.match(source, /text-\[11px\]/);
 });
 
 test("product master editing avoids nested card boundaries on phones", () => {

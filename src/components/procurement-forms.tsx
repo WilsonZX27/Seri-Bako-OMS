@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Plus, X } from "lucide-react";
+import { Minus, Plus, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Field } from "@/components/ui/field";
@@ -49,6 +49,14 @@ function createBlankLine(key: number): RequestLine {
 
 function itemLabel(item: ItemOption) {
   return `${item.item_code} - ${item.item_name}`;
+}
+
+function requestQuantityStep(uom: string) {
+  return ["kg", "g", "l", "ml", "ltr", "liter", "litre"].includes(uom.trim().toLowerCase()) ? 0.01 : 1;
+}
+
+function formatRequestQuantity(value: number, uom: string) {
+  return requestQuantityStep(uom) === 1 ? String(Math.max(0, Math.round(value))) : String(Math.max(0, Math.round(value * 100) / 100));
 }
 
 export function PurchaseRequestForm({
@@ -132,10 +140,19 @@ export function PurchaseRequestForm({
     setLines((current) => current.map((line) => ({ ...line, supplierId: "" })));
   }
 
+  function addLine() {
+    setLines((current) => [...current, createBlankLine(nextKey)]);
+  }
+
+  function adjustLineQuantity(line: RequestLine, direction: -1 | 1) {
+    const currentQuantity = Number(line.qty);
+    const base = Number.isFinite(currentQuantity) ? currentQuantity : 0;
+    updateLine(line.key, { qty: formatRequestQuantity(base + (requestQuantityStep(line.uom) * direction), line.uom) });
+  }
+
   return (
-    <Card className="border-0 bg-transparent shadow-none md:border md:bg-white">
-      <CardContent className="p-0 md:p-5">
-        <form id="purchase-request-form" action={action} className="space-y-3">
+    <div className="md:rounded-[2px] md:border md:bg-white md:p-5">
+        <form id="purchase-request-form" action={action} className="space-y-3 pb-20 md:pb-0">
           <input type="hidden" name="request_no" value="" />
           <input type="hidden" name="idempotency_key" value={idempotencyKey} />
           <input type="hidden" name="request_date" value={initialRequestDate ?? today()} />
@@ -144,7 +161,7 @@ export function PurchaseRequestForm({
           <input type="hidden" name="urgency_reason" value={initialUrgencyReason ?? ""} />
           <input type="hidden" name="production_risk" value={initialProductionRisk ? "on" : ""} />
           <input type="hidden" name="expected_updated_at" value={initialUpdatedAt ?? ""} />
-          <section data-purchase-request-setup className="erp-surface space-y-3 p-3 md:rounded-none md:border-0 md:bg-transparent md:p-0">
+          <section data-purchase-request-setup className="space-y-3 border-y border-[var(--sb-border)] bg-white p-3 md:border-0 md:bg-transparent md:p-0">
             <div className="border-b border-[var(--sb-border-soft)] pb-2">
               <h2 className="text-sm font-semibold">Request details</h2>
             </div>
@@ -165,13 +182,13 @@ export function PurchaseRequestForm({
             </Field>
           </section>
 
-          <section data-purchase-request-workspace className="erp-surface overflow-hidden md:rounded-[2px]">
+          <section data-purchase-request-workspace className="overflow-hidden border-y border-[var(--sb-border)] bg-white md:rounded-[2px] md:border">
             <div className="flex items-center justify-between border-b bg-secondary/40 px-3 py-2">
               <div>
                 <p className="text-xs font-semibold">Requested Items</p>
               </div>
-              <div className="flex items-center gap-2">
-                <Button type="button" variant="outline" size="sm" onClick={() => setLines((current) => [...current, createBlankLine(nextKey)])}>
+              <div className="hidden items-center gap-2 md:flex">
+                <Button type="button" variant="outline" size="sm" onClick={addLine}>
                   <Plus className="h-4 w-4" />
                   Add line
                 </Button>
@@ -179,8 +196,8 @@ export function PurchaseRequestForm({
             </div>
             <div className="divide-y">
               {lines.map((line) => (
-                <div key={line.key} className="grid gap-3 p-3 md:grid-cols-[minmax(0,1fr)_120px_120px_40px]">
-                  <div className="space-y-2">
+                <div key={line.key} className="relative grid grid-cols-[minmax(0,1fr)_11rem] gap-2 p-3 md:grid-cols-[minmax(0,1fr)_120px_120px_40px] md:gap-3">
+                  <div className="min-w-0 pr-9 md:pr-0">
                     <Field label="Item" required>
                       <Input
                         list="purchase-request-items"
@@ -192,34 +209,35 @@ export function PurchaseRequestForm({
                     <input type="hidden" name="line_item_id" value={line.itemId} />
                     <input type="hidden" name="line_branch_id" value={branchId} />
                   </div>
-                  <Field label="Quantity" required>
-                    <Input name="line_qty" type="number" min="0.0001" step="0.0001" value={line.qty} onChange={(event) => updateLine(line.key, { qty: event.target.value })} placeholder="Qty" />
-                  </Field>
-                  <Field label="UOM" required>
-                    <SelectNative name="line_uom" value={line.uom} onChange={(event) => updateLine(line.key, { uom: event.target.value })}>
+                    <Field label="Quantity" required className="md:col-start-2">
+                      <div className="flex overflow-hidden rounded-[var(--sb-radius-control)] border border-[var(--sb-border)] bg-white md:rounded-[2px]">
+                        <button type="button" className="flex h-[var(--sb-control-height)] w-10 shrink-0 items-center justify-center border-r border-[var(--sb-border)] text-[var(--sb-green-900)] hover:bg-[var(--sb-surface-muted)] active:bg-[var(--sb-green-100)]" onClick={() => adjustLineQuantity(line, -1)} aria-label={`Decrease quantity for ${line.itemSearch || "request line"}`}><Minus className="h-4 w-4" /></button>
+                        <Input name="line_qty" type="number" min="0" step={requestQuantityStep(line.uom)} value={line.qty} onChange={(event) => updateLine(line.key, { qty: event.target.value })} placeholder="Qty" className="min-w-0 rounded-none border-0 px-2 text-center font-semibold tabular-nums shadow-none focus-visible:ring-inset" />
+                        <button type="button" className="flex h-[var(--sb-control-height)] w-10 shrink-0 items-center justify-center border-l border-[var(--sb-border)] text-[var(--sb-green-900)] hover:bg-[var(--sb-surface-muted)] active:bg-[var(--sb-green-100)]" onClick={() => adjustLineQuantity(line, 1)} aria-label={`Increase quantity for ${line.itemSearch || "request line"}`}><Plus className="h-4 w-4" /></button>
+                      </div>
+                    </Field>
+                    <Field label="UOM" required className="col-span-2 md:col-start-3">
+                      <SelectNative name="line_uom" value={line.uom} onChange={(event) => updateLine(line.key, { uom: event.target.value })}>
                       <option value="">Select UOM</option>
                       {uomOptionsWithCurrent(line.uom).map((uom) => (
                         <option key={uom} value={uom}>{uom}</option>
                       ))}
-                    </SelectNative>
-                  </Field>
-                  <div className="flex items-end justify-end">
-                    <Button type="button" variant="ghost" size="icon" aria-label="Remove line" disabled={lines.length === 1} onClick={() => setLines((current) => current.filter((row) => row.key !== line.key))}>
+                      </SelectNative>
+                    </Field>
+                  <div className="absolute right-2 top-2 md:static md:col-start-4 md:flex md:items-end md:justify-end">
+                    <Button type="button" variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground md:h-[var(--sb-control-height)] md:w-[var(--sb-control-height)]" aria-label="Remove line" disabled={lines.length === 1} onClick={() => setLines((current) => current.filter((row) => row.key !== line.key))}>
                       <X className="h-4 w-4" />
                     </Button>
                   </div>
                   {canViewCommercial ? (
-                    <details className="md:col-span-4 border-t border-[var(--sb-border-soft)] pt-2 md:rounded-md md:border md:bg-secondary/20 md:p-2">
-                      <summary className="cursor-pointer text-xs font-medium">Purchasing details</summary>
-                      <div className="mt-3 grid gap-3 md:grid-cols-3">
-                        <Field label="Suggested supplier"><SelectNative name="line_suggested_supplier_id" value={line.supplierId} onChange={(event) => {
+                    <div className="col-span-2 grid grid-cols-[minmax(0,1.35fr)_minmax(0,0.8fr)] gap-2 border-t border-[var(--sb-border-soft)] pt-2 text-xs md:col-span-4 md:grid-cols-3">
+                        <Field label="Suggested supplier" className="[&>label]:text-[11px]"><SelectNative className="text-xs" name="line_suggested_supplier_id" value={line.supplierId} onChange={(event) => {
                           const mapping = supplierMappings.find((candidate) => candidate.branch_id === branchId && candidate.item_id === line.itemId && candidate.supplier_id === event.target.value);
                           updateLine(line.key, { supplierId: event.target.value, ...(mapping ? { cost: String(mapping.unit_cost), uom: normalizeUom(mapping.purchase_uom) } : {}) });
                         }}><option value="">{line.itemId ? "Select mapped supplier" : "Select an item first"}</option>{supplierMappings.filter((mapping) => mapping.branch_id === branchId && mapping.item_id === line.itemId).map((mapping) => <option key={mapping.id} value={mapping.supplier_id}>{mapping.supplier_name}{mapping.is_preferred ? " (Preferred)" : ""}</option>)}</SelectNative></Field>
-                        <Field label="Estimated unit cost"><Input name="line_estimated_unit_cost" type="number" min="0" step="0.0001" value={line.cost} onChange={(event) => updateLine(line.key, { cost: event.target.value })} /></Field>
-                        <Field label="Remarks"><Input name="line_remarks" value={line.remarks} onChange={(event) => updateLine(line.key, { remarks: event.target.value })} placeholder="Optional" /></Field>
-                      </div>
-                    </details>
+                        <Field label="Est. cost" className="[&>label]:text-[11px]"><Input className="text-xs" name="line_estimated_unit_cost" type="number" min="0" step="0.0001" value={line.cost} onChange={(event) => updateLine(line.key, { cost: event.target.value })} /></Field>
+                        <Field label="Line note" className="col-span-2 [&>label]:text-[11px] md:col-span-1"><Input className="text-xs" name="line_remarks" value={line.remarks} onChange={(event) => updateLine(line.key, { remarks: event.target.value })} placeholder="Optional" /></Field>
+                    </div>
                   ) : (
                     <>
                       <input type="hidden" name="line_suggested_supplier_id" value={line.supplierId} />
@@ -235,14 +253,17 @@ export function PurchaseRequestForm({
             </div>
           </section>
 
+          <Button type="button" size="icon" className="fixed bottom-[calc(var(--sb-mobile-nav-height)+env(safe-area-inset-bottom)+1rem)] right-4 z-[var(--sb-z-sticky)] h-12 w-12 rounded-full border-[var(--sb-green-800)] shadow-[0_6px_18px_rgb(6_44_31_/_0.24)] md:hidden" onClick={addLine} aria-label="Add request line" title="Add request line">
+            <Plus className="h-5 w-5" />
+          </Button>
+
           <datalist id="purchase-request-items">
             {items.map((item) => (
               <option key={item.id} value={itemLabel(item)} />
             ))}
           </datalist>
         </form>
-      </CardContent>
-    </Card>
+    </div>
   );
 }
 
@@ -258,6 +279,7 @@ export function PurchaseOrderForm({
   action: (formData: FormData) => Promise<void>;
 }) {
   const poNo = "PO-AUTO";
+  const [idempotencyKey] = useState(() => crypto.randomUUID());
   const [branchId, setBranchId] = useState(branches[0]?.id ?? "");
   const [selectedItemIds, setSelectedItemIds] = useState<string[]>(["", "", "", "", ""]);
   const [supplierId, setSupplierId] = useState("");
@@ -269,6 +291,7 @@ export function PurchaseOrderForm({
       <CardContent className="p-5">
         <form id="purchase-order-form" action={action} className="space-y-3">
           <input type="hidden" name="po_no" value={poNo} />
+          <input type="hidden" name="idempotency_key" value={idempotencyKey} />
           <input type="hidden" name="status" value="draft" />
           <input type="hidden" name="approval_status" value="draft" />
           <div className="grid gap-3 md:grid-cols-3">

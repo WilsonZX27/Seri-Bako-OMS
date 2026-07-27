@@ -14,7 +14,7 @@ import { SelectControl } from "@/components/ui/select-control";
 import { PaginationControls, SortableHead } from "@/components/sortable-table";
 import { OperationalList, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { formatCurrency, formatQuantityInput, getToday } from "@/lib/utils";
-import { createPurchaseRequest } from "@/server/actions/procurement";
+import { createPurchaseRequestsFromBasket } from "@/server/actions/procurement";
 import { StockBalanceOperationalRows, StockBalanceTableRows, type StockBalanceRow } from "@/components/stock-balance-table";
 
 type BranchOption = { id: string; branch_name: string };
@@ -37,6 +37,15 @@ function groupBasketRows(rows: BasketLine[]) {
     map.set(key, list);
   });
   return map;
+}
+
+function groupBySupplier(rows: BasketLine[]) {
+  const map = new Map<string, BasketLine[]>();
+  rows.forEach((line) => {
+    const key = line.supplier_id ?? "unassigned";
+    map.set(key, [...(map.get(key) ?? []), line]);
+  });
+  return Array.from(map.entries()).sort(([, a], [, b]) => (a[0]?.supplier_name ?? "Unassigned").localeCompare(b[0]?.supplier_name ?? "Unassigned"));
 }
 
 export function StockBalanceWorkspace({
@@ -76,7 +85,12 @@ export function StockBalanceWorkspace({
     return "";
   }, [requestedBranchId, basketByBranch]);
   const createRows = useMemo(() => (createBranchId ? basketByBranch.get(createBranchId) ?? [] : []), [createBranchId, basketByBranch]);
-  const canCreatePr = hasCreatePr && createRows.length > 0;
+  const supplierGroups = useMemo(() => groupBySupplier(createRows), [createRows]);
+  const basketPayload = useMemo(() => supplierGroups.filter(([supplierId]) => supplierId !== "unassigned").map(([supplierId, lines]) => ({
+    supplier_id: supplierId,
+    lines: lines.map((line) => ({ item_id: line.item_id, qty: line.qty, uom: line.base_unit, estimated_unit_cost: line.average_cost })),
+  })), [supplierGroups]);
+  const canCreatePr = hasCreatePr && createRows.length > 0 && createRows.every((line) => Boolean(line.supplier_id));
 
   const inBasket = useMemo(() => new Set(Object.keys(basket)), [basket]);
   const selectableBranchSet = useMemo(() => new Set(selectableBranchIds), [selectableBranchIds]);
@@ -143,19 +157,24 @@ export function StockBalanceWorkspace({
               </div>
             </ConsoleSection>
             <ConsoleSection title="PR Preparation">
-              <form action={createPurchaseRequest} className="space-y-3">
+              <form action={createPurchaseRequestsFromBasket} className="space-y-3">
                 <input type="hidden" name="idempotency_key" value={idempotencyKey} />
                 <input type="hidden" name="request_no" value="" />
                 <input type="hidden" name="request_date" value={getToday()} />
                 <input type="hidden" name="required_date" value="" />
                 <input type="hidden" name="priority" value="normal" />
                 <input type="hidden" name="branch_id" value={createBranchId} />
+                <input type="hidden" name="supplier_groups" value={JSON.stringify(basketPayload)} />
 
                 {hasCreatePr ? (
                   <>
                     <div>
                       <p className="text-xs font-semibold text-[var(--sb-text-muted)]">Selected items</p>
                       <p className="text-sm">{basketRows.length} item{basketRows.length === 1 ? "" : "s"} in basket</p>
+                      {createRows.length > 0 && createRows.some((line) => !line.supplier_id) ? (
+                        <p className="mt-1 text-xs text-destructive">Some selected items have no supplier mapping. Map them before creating PRs.</p>
+                      ) : null}
+                      {supplierGroups.length > 1 ? <p className="mt-1 text-xs text-muted-foreground">Different suppliers will be split into {supplierGroups.length} separate PRs.</p> : null}
                     </div>
                     {selectableBranchIds.length > 1 ? (
                       <div>
@@ -186,7 +205,10 @@ export function StockBalanceWorkspace({
                         return (
                           <div key={branchId} className="space-y-2 rounded bg-[var(--sb-surface-muted)] p-2">
                             <p className="text-xs font-semibold text-[var(--sb-text-muted)]">{branchName}</p>
-                            {lines.map((line) => {
+                            {(isCreateBranch ? groupBySupplier(lines) : [["preview", lines]] as const).map(([supplierId, supplierLines]) => (
+                              <div key={`${branchId}-${supplierId}`} className="space-y-1">
+                                {isCreateBranch ? <p className="border-b px-1 pb-1 text-xs font-semibold">{supplierLines[0]?.supplier_name ?? "Unassigned supplier"}</p> : null}
+                                {supplierLines.map((line) => {
                               const key = rowKey(line);
                               return (
                                 <div key={key} className="space-y-1 rounded bg-background p-2">
@@ -224,7 +246,9 @@ export function StockBalanceWorkspace({
                                   )}
                                 </div>
                               );
-                            })}
+                                })}
+                              </div>
+                            ))}
                           </div>
                         );
                       })}

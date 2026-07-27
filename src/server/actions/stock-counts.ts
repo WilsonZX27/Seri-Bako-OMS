@@ -11,6 +11,7 @@ import { formatActionError, requirePermissionOrRedirect, rethrowRedirect, safeRe
 import { revalidateWorkspaceState } from "@/server/actions/revalidate";
 import { resolveDocumentNumber } from "@/server/documents/sequences";
 import { getCurrentProfile } from "@/server/queries/common";
+import { getStockCountSeedLines } from "@/server/queries/stock-counts";
 import type { StockCountStatus } from "@/types/database";
 
 function cleanText(value: unknown) {
@@ -73,6 +74,12 @@ export async function createStockCount(formData: FormData) {
   try {
     const payload = extractStockCount(formData);
     if (isMockMode()) redirect("/stock-counts/stock-count-draft");
+    const expectedLines = await getStockCountSeedLines(payload.branch_id);
+    const expectedIds = new Set(expectedLines.map((line) => line.item_id));
+    const submittedIds = new Set(payload.lines.map((line) => line.item_id));
+    if (expectedIds.size !== submittedIds.size || [...expectedIds].some((itemId) => !submittedIds.has(itemId))) {
+      throw new Error("All items for the selected branch must be included in the stock count.");
+    }
     const profile = await identity();
     const countNo = await resolveDocumentNumber({
       companyId: profile?.company_id,

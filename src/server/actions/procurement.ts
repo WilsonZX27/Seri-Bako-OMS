@@ -177,6 +177,41 @@ async function ensureBranchSupplierSelections(
   }
 }
 
+function ensureSinglePurchaseRequestSupplier(
+  lines: Array<{ suggested_supplier_id?: string | null }>,
+) {
+  const supplierIds = new Set(lines.map((line) => line.suggested_supplier_id).filter(Boolean));
+  if (supplierIds.size > 1) {
+    throw new Error("A purchase request can contain items from only one supplier. Split the request into separate PRs.");
+  }
+}
+
+type PurchaseRequestPayload = ReturnType<typeof purchaseRequestSchema.parse> & { lineBranchIds?: string[] };
+
+async function createPurchaseRequestAggregate(
+  payload: PurchaseRequestPayload,
+  profile: { company_id: string | null; id: string | null } | null,
+  idempotencyKey: string,
+  intent: "draft" | "submit",
+) {
+  const supabase = await createClient();
+  const requestNo = await resolveDocumentNumber({
+    companyId: profile?.company_id,
+    documentType: "purchase_request",
+    enteredNumber: payload.request_no,
+  });
+  const { data: created, error } = await supabase.rpc("create_purchase_request_atomic", {
+    p_payload: { ...payload, request_no: requestNo, idempotency_key: idempotencyKey },
+  });
+  if (error) throw new Error(error.message);
+  const data = created as { id: string; request_no: string; document_id: string };
+  if (intent === "submit") {
+    const submitted = await transitionPurchaseRequest(data.id, "submit");
+    return { ...data, submitted: true, request_no: submitted.request_no };
+  }
+  return { ...data, submitted: false };
+}
+
 async function ensureActiveItems(itemIds: string[], branchId?: string | null, lineBranchIds?: string[]) {
   const supabase = await createClient();
   const { data, error } = await supabase.from("items").select("id,status").in("id", itemIds);
@@ -239,7 +274,6 @@ export async function createPurchaseRequest(formData: FormData) {
   try {
     if (isMockMode()) redirect("/purchase-requests");
     const idempotencyKey = z.uuid().parse(cleanText(formData.get("idempotency_key")));
-    const supabase = await createClient();
     mark("idempotency");
     const payload = extractPurchaseRequest(formData);
     const intent = formData.get("intent") === "submit" ? "submit" : "draft";
@@ -248,22 +282,9 @@ export async function createPurchaseRequest(formData: FormData) {
       identity(),
     ]);
     await ensureBranchSupplierSelections(payload.branch_id, payload.lines, intent === "submit");
+    if (intent === "submit") ensureSinglePurchaseRequestSupplier(payload.lines);
     mark("validation_and_references");
-    const requestNo = await resolveDocumentNumber({
-      companyId: profile?.company_id,
-      documentType: "purchase_request",
-      enteredNumber: payload.request_no,
-    });
-    mark("document_number");
-    const { data: created, error } = await supabase.rpc("create_purchase_request_atomic", {
-      p_payload: {
-        ...payload,
-        request_no: requestNo,
-        idempotency_key: idempotencyKey,
-      },
-    });
-    if (error) throw new Error(error.message);
-    const data = created as { id: string; request_no: string; document_id: string };
+    const data = await createPurchaseRequestAggregate(payload, profile, idempotencyKey, intent);
     mark("header_insert");
     mark("document_lines_and_audit");
     revalidateWorkspaceState(["/purchase-requests"]);
@@ -271,14 +292,65 @@ export async function createPurchaseRequest(formData: FormData) {
     if (process.env.SB_PERF_LOG === "true") {
       console.info("[perf] createPurchaseRequest", { ...timings, total: Math.round(performance.now() - startedAt), id: data.id });
     }
-    if (intent === "submit") {
-      const submitted = await transitionPurchaseRequest(data.id, "submit");
-      safeRedirectWithMessage(`/purchase-requests/${data.id}`, "success", `${submitted.request_no} submitted to Manager Review. Manager has been notified.`);
-    }
+    if (intent === "submit") safeRedirectWithMessage(`/purchase-requests/${data.id}`, "success", `${data.request_no} submitted to Manager Review. Manager has been notified.`);
     redirect(`/purchase-requests/${data.id}`);
   } catch (error) {
     rethrowRedirect(error);
     safeRedirectWithMessage("/purchase-requests/new", "error", formatActionError(error, "Could not create this purchase request."));
+  }
+}
+
+export async function createPurchaseRequestsFromBasket(formData: FormData) {
+  await requirePermissionOrRedirect("purchase_request.create", "/stock-balance");
+  try {
+    if (isMockMode()) redirect("/purchase-requests");
+    const branchId = z.uuid().parse(cleanText(formData.get("branch_id")));
+    const groups = JSON.parse(String(formData.get("supplier_groups") ?? "[]")) as Array<{
+      supplier_id: string;
+      lines: Array<{ item_id: string; qty: string; uom: string; estimated_unit_cost?: number }>;
+    }>;
+    if (!Array.isArray(groups) || !groups.length) throw new Error("Select at least one item for the purchase request.");
+    const allLines = groups.flatMap((group) => group.lines.map((line) => ({ ...line, suggested_supplier_id: group.supplier_id, branch_id: branchId })));
+    if (groups.some((group) => !z.string().uuid().safeParse(group.supplier_id).success) || allLines.some((line) => !z.string().uuid().safeParse(line.item_id).success)) {
+      throw new Error("The selected item or supplier is invalid.");
+    }
+    const [, profile] = await Promise.all([
+      ensureActiveItems(allLines.map((line) => line.item_id), branchId, allLines.map(() => branchId)),
+      identity(),
+    ]);
+    const created: Array<{ id: string; request_no: string }> = [];
+    for (const group of groups) {
+      const lines = group.lines.map((line) => ({
+        item_id: line.item_id,
+        qty: line.qty,
+        uom: line.uom,
+        estimated_unit_cost: line.estimated_unit_cost ?? 0,
+        suggested_supplier_id: group.supplier_id,
+        reason: "",
+        remarks: "",
+        branch_id: branchId,
+      }));
+      await ensureBranchSupplierSelections(branchId, lines, true);
+      const payload = purchaseRequestSchema.parse({
+        request_no: "",
+        request_date: new Date().toISOString().slice(0, 10),
+        required_date: "",
+        priority: "normal",
+        needed_by_date: "",
+        urgency_reason: "",
+        production_risk: false,
+        branch_id: branchId,
+        remarks: `Created from stock basket for ${group.supplier_id}.`,
+        lines,
+      });
+      const result = await createPurchaseRequestAggregate(payload, profile, crypto.randomUUID(), "draft");
+      created.push({ id: result.id, request_no: result.request_no });
+    }
+    revalidateWorkspaceState(["/purchase-requests", "/stock-balance"]);
+    safeRedirectWithMessage("/purchase-requests", "success", `Created ${created.length} supplier-grouped draft PR${created.length === 1 ? "" : "s"}.`);
+  } catch (error) {
+    rethrowRedirect(error);
+    safeRedirectWithMessage("/stock-balance", "error", formatActionError(error, "Could not create supplier-grouped purchase requests."));
   }
 }
 
@@ -437,9 +509,9 @@ export async function createPurchaseOrder(formData: FormData) {
       enteredNumber: payload.po_no,
     });
     const supabase = await createClient();
-    const idempotencyKey = cleanText(formData.get("idempotency_key"));
+    const idempotencyKey = z.uuid().parse(cleanText(formData.get("idempotency_key")));
     const { data: created, error } = await supabase.rpc("create_purchase_order_atomic", {
-      p_payload: { ...payload, po_no: poNo, idempotency_key: idempotencyKey || null },
+      p_payload: { ...payload, po_no: poNo, idempotency_key: idempotencyKey },
     });
     if (error) throw new Error(error.message);
     const data = created as { id: string; po_no: string; document_id: string };

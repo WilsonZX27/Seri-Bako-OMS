@@ -57,6 +57,7 @@ The authenticated phone experience is an application-style mobile Web layout, no
 - The phone top bar uses a fixed three-slot structure: contextual back control on the left, a single centered page title, and workspace notifications on the right. Root workspaces reserve the left slot so the title remains optically centered.
 - Company identity, profile, subtitles, and duplicate document labels do not appear in the phone top bar. Profile remains available through `More`; new, edit, and detail routes link back to their parent workspace.
 - A phone page must not repeat the same workspace name in the top bar, page header, and document header. New documents show status, branch, workflow position, and the next permitted action beneath the top bar instead of repeating “New [document]” and the module title.
+- On a phone document header, place status and branch scope on one compact context row; show workflow position in one small disclosure row beneath it. Do not spend a separate full-height row on the status, branch, and workflow label when the same context can be scanned together.
 - The bottom bar observes `env(safe-area-inset-bottom)`. The top bar observes `env(safe-area-inset-top)`, and the root viewport uses `viewport-fit=cover`.
 - A page-level fixed primary action sits above the bottom navigation. It must not cover the final field, the navigation, or the home indicator.
 - Pages without contextual actions must not render an empty or generic secondary action bar.
@@ -98,8 +99,9 @@ The mobile shell may reorganize navigation, information density, filters, and ac
 - Summary values share one flat data strip. Semantic orange or red appears only when the corresponding value requires attention; zero and normal states remain operational green.
 - A form starts with only the fields needed to begin. Notes, advanced filters, and audit detail use progressive disclosure.
 - Line-entry documents place the editable value and unit together, keep theoretical/variance feedback visible, and avoid card height that makes a count feel endless.
-- Long repeated tasks show completion progress and provide an in-list find/remaining-items view. A physical count must require an explicit physical value instead of silently copying the theoretical balance.
-- Per-line remarks remain directly visible in dense desktop layouts. On touch layouts they may collapse until requested, but must open automatically when a variance makes the reason mandatory.
+- Long repeated tasks show useful review progress and provide an in-list find/adjusted-items view. A repeated physical count may prefill each line from its latest posted physical result; when no posted result exists, it may use the current ledger balance as an explicitly labelled starting estimate. Prefill is never hidden, is immediately editable, and the UI must distinguish values ready for review from values the user has adjusted.
+- Quantity controls pair a direct numeric field with decrement/increment controls when rapid adjustment is the primary task. Mass and volume units (`KG`, `G`, `L`, `ML` and their documented variants) allow fractional entry; discrete count units such as `CAN`, `ROLL`, `PACK`, and `BTL` accept whole numbers only in both the client and server validation.
+- Per-line remarks remain directly visible in dense desktop layouts. On touch layouts they may collapse until requested. A variance may recommend a note, but creating a draft must not force one; high-variance review and approval controls remain auditable and separate from draft entry.
 - Destructive, posting, approval, cancel, and backup actions must state their consequence and remain distinct from save/draft actions.
 - Role restrictions must result in an explanatory read-only state, not a missing or broken-looking page.
 

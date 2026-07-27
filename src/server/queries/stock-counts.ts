@@ -133,6 +133,44 @@ export async function getStockCount(id: string) {
 
 export async function getStockCountSeedLines(branchId?: string) {
   const balances = await getStockBalanceDetails({ page: "all", view: "branch" });
+  const lastPostedPhysicalByItem = new Map<string, number>();
+
+  // A repeated count starts from the last verified physical result, not from an
+  // empty sheet. This keeps the work focused on changes while leaving every
+  // quantity immediately editable. When an item has never been posted in a
+  // stock count, the current ledger balance remains an explicitly labelled
+  // starting estimate in the form.
+  if (!isMockMode() && branchId) {
+    const supabase = await createClient();
+    const { data: postedCounts, error: postedCountsError } = await supabase
+      .from("stock_counts")
+      .select("id,count_date,posted_at,created_at")
+      .eq("branch_id", branchId)
+      .eq("status", "posted")
+      .is("deleted_at", null)
+      .order("count_date", { ascending: false })
+      .order("posted_at", { ascending: false });
+    if (postedCountsError) throw new Error(postedCountsError.message);
+
+    const countIds = (postedCounts ?? []).map((count) => count.id);
+    if (countIds.length) {
+      const { data: postedLines, error: postedLinesError } = await supabase
+        .from("stock_count_lines")
+        .select("stock_count_id,item_id,physical_qty")
+        .in("stock_count_id", countIds);
+      if (postedLinesError) throw new Error(postedLinesError.message);
+
+      const linesByCount = new Map((postedLines ?? []).map((line) => [`${line.stock_count_id}:${line.item_id}`, line.physical_qty]));
+      for (const count of postedCounts ?? []) {
+        for (const balance of balances.rows) {
+          if (branchId !== balance.branch_id || lastPostedPhysicalByItem.has(balance.item_id)) continue;
+          const physicalQty = linesByCount.get(`${count.id}:${balance.item_id}`);
+          if (physicalQty !== undefined) lastPostedPhysicalByItem.set(balance.item_id, physicalQty);
+        }
+      }
+    }
+  }
+
   return balances.rows
     .filter((row) => (branchId ? row.branch_id === branchId : true))
     .map((row) => ({
@@ -140,7 +178,8 @@ export async function getStockCountSeedLines(branchId?: string) {
       item_code: row.item_code,
       item_name: row.item_name,
       theoretical_qty: row.current_qty,
-      physical_qty: row.current_qty,
+      physical_qty: lastPostedPhysicalByItem.get(row.item_id) ?? row.current_qty,
+      prefill_source: lastPostedPhysicalByItem.has(row.item_id) ? ("last_posted_count" as const) : ("ledger_balance" as const),
       uom: row.base_unit,
     }));
 }

@@ -70,8 +70,9 @@ export function DocumentWorkspace({
               <DocumentNumber value={documentNo} size="lg" className={cn("max-w-full break-all text-[16px] sm:text-lg", isNewDocument && "hidden md:inline-flex")} />
               {priority ? <PriorityBadge priority={priority} /> : null}
               <StatusBadge status={status} />
+              {branch ? <span className="truncate text-xs text-muted-foreground md:hidden">· {branch}</span> : null}
             </div>
-            <div className={cn("flex flex-wrap items-center gap-2 text-xs text-muted-foreground", isNewDocument ? "mt-0 md:mt-1" : "mt-1")}>
+            <div className={cn("hidden flex-wrap items-center gap-2 text-xs text-muted-foreground md:flex", isNewDocument ? "mt-0 md:mt-1" : "mt-1")}>
               {title ? <span className="hidden font-medium text-foreground md:inline">{title}</span> : null}
               {branch ? <span>{branch}</span> : null}
             </div>

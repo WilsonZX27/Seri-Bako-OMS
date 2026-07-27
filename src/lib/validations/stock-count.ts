@@ -1,5 +1,11 @@
 import { z } from "zod";
 
+const FRACTIONAL_UOMS = new Set(["kg", "g", "l", "ml", "ltr", "liter", "litre"]);
+
+export function stockCountAllowsFraction(uom: string) {
+  return FRACTIONAL_UOMS.has(uom.trim().toLowerCase());
+}
+
 export const stockCountLineSchema = z.object({
   item_id: z.string().uuid("Item is required"),
   theoretical_qty: z.coerce.number().min(0),
@@ -18,10 +24,8 @@ export const stockCountSchema = z.object({
   lines: z.array(stockCountLineSchema).min(1, "Stock count must have at least one line"),
 }).superRefine((value, context) => {
   value.lines.forEach((line, index) => {
-    const variance = line.physical_qty - line.theoretical_qty;
-    const percent = line.theoretical_qty === 0 ? (line.physical_qty === 0 ? 0 : 100) : Math.abs((variance / line.theoretical_qty) * 100);
-    if (percent > value.tolerance_percent && !line.remarks?.trim()) {
-      context.addIssue({ code: "custom", path: ["lines", index, "remarks"], message: "Remarks required for variance above tolerance" });
+    if (!stockCountAllowsFraction(line.uom) && !Number.isInteger(line.physical_qty)) {
+      context.addIssue({ code: "custom", path: ["lines", index, "physical_qty"], message: `${line.uom} quantities must be whole numbers` });
     }
   });
 });

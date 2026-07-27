@@ -272,6 +272,8 @@ export async function getStockBalanceDetails(filters: Filters = {}) {
         item_id: latest.item_id,
         item_code: latest.item_code,
         item_name: latest.item_name,
+        supplier_id: null,
+        supplier_name: null,
         base_unit: latest.base_unit,
         image_url: item?.item_image_url ?? null,
         branch_id: latest.branch_id,

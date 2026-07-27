@@ -26,7 +26,7 @@ export default async function NewStockCountPage({ searchParams }: { searchParams
         branch={branches.find((branch) => branch.id === selectedBranchId)?.branch_name}
         workflowSteps={steps}
         currentStatus="draft"
-        sidePanel={<DocumentSideSection title="Count guidance"><p className="text-xs text-muted-foreground">Enter every physical quantity. Variances above tolerance require a line reason before the draft can be created.</p></DocumentSideSection>}
+        sidePanel={<DocumentSideSection title="Count guidance"><p className="text-xs text-muted-foreground">Start from the latest posted physical count where available, then use ± or direct entry to record what changed. Variance notes are optional in draft and remain visible for review.</p></DocumentSideSection>}
       >
         {filters.error ? <Card><CardContent className="p-4 text-sm text-destructive">{filters.error}</CardContent></Card> : null}
         <StockCountForm formId={formId} branches={branches} selectedBranchId={selectedBranchId} seedLines={seedLines} action={createStockCount} />

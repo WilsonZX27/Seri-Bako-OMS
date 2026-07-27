@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { AlertTriangle, CheckCircle2, ListFilter, Search } from "lucide-react";
+import { AlertTriangle, CheckCircle2, ListFilter, Minus, Plus, Search } from "lucide-react";
 import { Field } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { SelectNative } from "@/components/ui/select-native";
@@ -17,10 +17,11 @@ type SeedLine = {
   item_name: string;
   theoretical_qty: number;
   physical_qty: number;
+  prefill_source: "last_posted_count" | "ledger_balance";
   uom: string;
 };
 
-type SeedLineInput = SeedLine & { physicalQty: string; remarks: string };
+type SeedLineInput = SeedLine & { physicalQty: string; remarks: string; initialPhysicalQty: string; adjusted: boolean };
 
 function today() {
   return new Date().toISOString().slice(0, 10);
@@ -34,6 +35,23 @@ function variancePercent(theoretical: number, physical: number) {
 function toNumber(value: string | number) {
   const parsed = Number(value);
   return Number.isFinite(parsed) ? parsed : 0;
+}
+
+function allowsFraction(uom: string) {
+  return new Set(["kg", "g", "l", "ml", "ltr", "liter", "litre"]).has(uom.trim().toLowerCase());
+}
+
+function quantityStep(uom: string) {
+  return allowsFraction(uom) ? 0.01 : 1;
+}
+
+function quantityInputValue(value: number, uom: string) {
+  return allowsFraction(uom) ? formatQuantityInput(value) : String(Math.round(value));
+}
+
+function makeEditableLine(line: SeedLine): SeedLineInput {
+  const physicalQty = quantityInputValue(line.physical_qty, line.uom);
+  return { ...line, physicalQty, initialPhysicalQty: physicalQty, remarks: "", adjusted: false };
 }
 
 function formatVarianceDisplay(variance: number, uom: string) {
@@ -70,19 +88,19 @@ export function StockCountForm({
   const router = useRouter();
   const tolerance = 2;
   const [lines, setLines] = useState<SeedLineInput[]>(() =>
-    seedLines.map((line) => ({ ...line, physicalQty: "", remarks: "" })),
+    seedLines.map(makeEditableLine),
   );
   const [search, setSearch] = useState("");
-  const [showRemainingOnly, setShowRemainingOnly] = useState(false);
+  const [showAdjustedOnly, setShowAdjustedOnly] = useState(false);
   const [openNoteIds, setOpenNoteIds] = useState<Set<string>>(() => new Set());
 
   // Next can preserve this client component while the branch query changes.
   // Reset the editable rows only when the selected branch changes so PJS10 and
   // ALMA never show each other's count lines.
   useEffect(() => {
-    setLines(seedLines.map((line) => ({ ...line, physicalQty: "", remarks: "" })));
+    setLines(seedLines.map(makeEditableLine));
     setSearch("");
-    setShowRemainingOnly(false);
+    setShowAdjustedOnly(false);
     setOpenNoteIds(new Set());
   }, [selectedBranchId, seedLines]);
 
@@ -91,14 +109,24 @@ export function StockCountForm({
   }
 
   function updatePhysicalQty(itemId: string, nextPhysicalQty: string) {
-    setLines((current) => current.map((line) => (line.item_id === itemId ? { ...line, physicalQty: nextPhysicalQty } : line)));
+    setLines((current) => current.map((line) => (line.item_id === itemId ? { ...line, physicalQty: nextPhysicalQty, adjusted: nextPhysicalQty !== line.initialPhysicalQty } : line)));
   }
 
   function normalizePhysicalQty(itemId: string) {
     setLines((current) => current.map((line) => {
       if (line.item_id !== itemId) return line;
       if (!line.physicalQty.trim()) return line;
-      return { ...line, physicalQty: formatQuantityInput(line.physicalQty) };
+      const normalized = quantityInputValue(toNumber(line.physicalQty), line.uom);
+      return { ...line, physicalQty: normalized, adjusted: normalized !== line.initialPhysicalQty };
+    }));
+  }
+
+  function adjustPhysicalQty(itemId: string, direction: -1 | 1) {
+    setLines((current) => current.map((line) => {
+      if (line.item_id !== itemId) return line;
+      const next = Math.max(0, toNumber(line.physicalQty) + (quantityStep(line.uom) * direction));
+      const physicalQty = quantityInputValue(next, line.uom);
+      return { ...line, physicalQty, adjusted: physicalQty !== line.initialPhysicalQty };
     }));
   }
 
@@ -106,15 +134,15 @@ export function StockCountForm({
     setLines((current) => current.map((line) => (line.item_id === itemId ? { ...line, remarks } : line)));
   }
 
-  const completedCount = lines.filter((line) => line.physicalQty.trim() !== "").length;
-  const remainingCount = lines.length - completedCount;
+  const adjustedCount = lines.filter((line) => line.adjusted).length;
+  const lastPostedCount = lines.filter((line) => line.prefill_source === "last_posted_count").length;
   const normalizedSearch = search.trim().toLowerCase();
   const visibleLines = lines.filter((line) => {
-    if (showRemainingOnly && line.physicalQty.trim() !== "") return false;
+    if (showAdjustedOnly && !line.adjusted) return false;
     if (!normalizedSearch) return true;
     return `${line.item_name} ${line.item_code}`.toLowerCase().includes(normalizedSearch);
   });
-  const countComplete = lines.length > 0 && completedCount === lines.length;
+  const countComplete = lines.length > 0 && lines.every((line) => line.physicalQty.trim() !== "");
 
   function showLineNote(itemId: string) {
     setOpenNoteIds((current) => new Set(current).add(itemId));
@@ -148,14 +176,14 @@ export function StockCountForm({
           <section aria-label="Count progress" className="grid gap-2 border-b border-[var(--sb-border-soft)] bg-[var(--sb-surface-muted)] p-3 md:border md:border-[var(--sb-border)] sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center">
             <div className="min-w-0">
               <div className="flex items-center justify-between gap-3 text-sm">
-                <p className="font-semibold">{countComplete ? "Count complete" : `${remainingCount} item${remainingCount === 1 ? "" : "s"} remaining`}</p>
-                <p className="shrink-0 tabular-nums text-muted-foreground">{completedCount} / {lines.length}</p>
+                <p className="font-semibold">{lines.length} values ready</p>
+                <p className="shrink-0 tabular-nums text-muted-foreground">{adjustedCount} adjusted</p>
               </div>
               <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-white" aria-hidden="true">
-                <div className="h-full bg-[var(--sb-green-700)] transition-[width]" style={{ width: `${lines.length ? (completedCount / lines.length) * 100 : 0}%` }} />
+                <div className="h-full bg-[var(--sb-green-700)] transition-[width]" style={{ width: `${lines.length ? (adjustedCount / lines.length) * 100 : 0}%` }} />
               </div>
               <p className="mt-2 text-xs text-muted-foreground">
-                Enter the quantity you physically see. Theoretical stock is shown only as a reference.
+                {lastPostedCount ? `${lastPostedCount} from the last posted count; the rest use the current ledger balance.` : "Values start from the current ledger balance. Verify and adjust what you physically see."}
               </p>
             </div>
             {showSubmit ? (
@@ -174,12 +202,12 @@ export function StockCountForm({
             <button
               type="button"
               className="inline-flex h-[var(--sb-control-height)] min-w-11 shrink-0 items-center justify-center gap-1.5 border border-[var(--sb-border)] bg-white px-2.5 text-sm font-medium hover:bg-[var(--sb-surface-muted)]"
-              aria-pressed={showRemainingOnly}
-              onClick={() => setShowRemainingOnly((current) => !current)}
+              aria-pressed={showAdjustedOnly}
+              onClick={() => setShowAdjustedOnly((current) => !current)}
             >
               <ListFilter className="h-4 w-4" aria-hidden="true" />
-              <span className="hidden sm:inline">{showRemainingOnly ? "Show all items" : `Show remaining (${remainingCount})`}</span>
-              <span className="text-xs tabular-nums sm:hidden">{showRemainingOnly ? "All" : remainingCount}</span>
+              <span className="hidden sm:inline">{showAdjustedOnly ? "Show all items" : `Show adjusted (${adjustedCount})`}</span>
+              <span className="text-xs tabular-nums sm:hidden">{showAdjustedOnly ? "All" : adjustedCount}</span>
             </button>
           </div>
 
@@ -215,7 +243,7 @@ export function StockCountForm({
                 return (
                   <div
                     key={line.item_id}
-                    className="grid grid-cols-[minmax(0,1fr)_minmax(10rem,11.25rem)] gap-x-3 gap-y-2 px-3 py-3 lg:grid-cols-[minmax(12rem,1.4fr)_minmax(7rem,0.65fr)_minmax(10rem,0.8fr)_minmax(9rem,0.7fr)_minmax(10rem,1fr)] lg:items-start lg:gap-3"
+                    className="grid grid-cols-[minmax(0,1fr)_minmax(11rem,12rem)] gap-x-3 gap-y-2 px-3 py-3 lg:grid-cols-[minmax(12rem,1.4fr)_minmax(7rem,0.65fr)_minmax(12rem,0.9fr)_minmax(9rem,0.7fr)_minmax(10rem,1fr)] lg:items-start lg:gap-3"
                   >
                     <div className="min-w-0 order-1 lg:col-span-1 lg:order-1">
                       <p className="break-words text-sm font-medium leading-tight">{line.item_name}</p>
@@ -227,20 +255,24 @@ export function StockCountForm({
                         Physical
                       </label>
                       <div className="mt-1 flex items-center gap-2 lg:mt-0">
+                        <div className="flex min-w-0 flex-1 overflow-hidden rounded-[var(--sb-control-radius)] border border-[var(--sb-border)] bg-white lg:rounded-[2px]">
+                          <button type="button" className="flex h-11 w-11 shrink-0 items-center justify-center border-r border-[var(--sb-border)] text-[var(--sb-green-900)] hover:bg-[var(--sb-surface-muted)] active:bg-[var(--sb-green-100)] lg:h-9 lg:w-9" onClick={() => adjustPhysicalQty(line.item_id, -1)} aria-label={`Decrease physical quantity for ${line.item_name}`}><Minus className="h-4 w-4" /></button>
                         <Input
                           id={`physical-${line.item_id}`}
                           name="line_physical_qty"
                           type="number"
                           min="0"
-                          step="0.01"
+                          step={quantityStep(line.uom)}
                           value={line.physicalQty}
                           onChange={(event) => updatePhysicalQty(line.item_id, event.target.value)}
                           onBlur={() => normalizePhysicalQty(line.item_id)}
                           required
                           aria-label={`Physical quantity for ${line.item_name}`}
                           placeholder="0.00"
-                          className="h-11 min-w-[8.5rem] text-base font-semibold tabular-nums lg:h-9 lg:min-w-0 lg:text-sm"
+                          className="h-11 min-w-0 rounded-none border-0 px-2 text-center text-base font-semibold tabular-nums shadow-none focus-visible:ring-inset lg:h-9 lg:text-sm"
                         />
+                          <button type="button" className="flex h-11 w-11 shrink-0 items-center justify-center border-l border-[var(--sb-border)] text-[var(--sb-green-900)] hover:bg-[var(--sb-surface-muted)] active:bg-[var(--sb-green-100)] lg:h-9 lg:w-9" onClick={() => adjustPhysicalQty(line.item_id, 1)} aria-label={`Increase physical quantity for ${line.item_name}`}><Plus className="h-4 w-4" /></button>
+                        </div>
                         <span className="text-xs text-muted-foreground">{line.uom}</span>
                       </div>
                     </div>
@@ -264,14 +296,13 @@ export function StockCountForm({
                           Add line note
                         </button>
                       ) : null}
-                      {high ? <label className="mb-1 block text-xs font-medium text-destructive lg:hidden" htmlFor={`remarks-${line.item_id}`}>Reason required</label> : null}
+                      {high ? <label className="mb-1 block text-xs font-medium text-warning lg:hidden" htmlFor={`remarks-${line.item_id}`}>Variance note <span className="font-normal text-muted-foreground">(optional)</span></label> : null}
                       <Input
                         id={`remarks-${line.item_id}`}
                         name="line_remarks"
                         aria-label={`Remarks for ${line.item_name}`}
                         className={cn(!high && !openNoteIds.has(line.item_id) && "hidden lg:flex")}
-                        placeholder={high ? "Explain this variance" : "Add note"}
-                        required={high}
+                        placeholder={high ? "Add context for this variance" : "Add note"}
                         value={line.remarks}
                         onChange={(event) => updateRemarks(line.item_id, event.target.value)}
                       />
@@ -299,7 +330,7 @@ export function StockCountForm({
 
           {showSubmit ? (
             <div className="sb-mobile-action-bar fixed inset-x-3 bottom-[calc(env(safe-area-inset-bottom)+0.5rem)] z-[var(--sb-z-sticky)] flex min-w-0 items-center gap-3 p-2 md:hidden">
-              <p className="min-w-0 flex-1 truncate text-xs font-medium">{countComplete ? "Ready to create draft" : `${completedCount}/${lines.length} counted`}</p>
+              <p className="min-w-0 flex-1 truncate text-xs font-medium">{adjustedCount ? `${adjustedCount} adjusted` : "Review prefilled values"}</p>
               <SubmitButton type="submit" disabled={!countComplete} className="shrink-0" pendingLabel="Saving..." showOverlay overlayLabel="Saving changes...">Create draft</SubmitButton>
             </div>
           ) : null}

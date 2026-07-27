@@ -12,7 +12,7 @@ const viewports = [
 
 test.beforeAll(() => fs.mkdirSync(evidence, { recursive: true }));
 
-test("stock count preserves practical entry, visible remarks, progress and a full-width tablet workspace", async ({ page }) => {
+test("stock count preserves prefilled adjustment controls, optional variance context, and a full-width tablet workspace", async ({ page }) => {
   test.setTimeout(120_000);
   test.skip(!hasAccount("superAdmin"), "Missing local-only Super Admin credentials.");
   await login(page, "superAdmin");
@@ -38,8 +38,9 @@ test("stock count preserves practical entry, visible remarks, progress and a ful
     }
     const input = page.locator('input[name="line_physical_qty"]').first();
     await expect(input).toBeVisible();
-    await expect(input).toHaveValue("");
-    await expect(page.getByText("Not counted").first()).toBeVisible();
+    await expect(input).not.toHaveValue("");
+    await expect(page.getByRole("button", { name: /decrease physical quantity/i }).first()).toBeVisible();
+    await expect(page.getByRole("button", { name: /increase physical quantity/i }).first()).toBeVisible();
     await expect(page.getByText("Reason required")).toHaveCount(0);
     const inputBox = await input.boundingBox();
     expect(inputBox, `${label} physical quantity field must render`).toBeTruthy();
@@ -49,10 +50,10 @@ test("stock count preserves practical entry, visible remarks, progress and a ful
     const firstRemarks = page.locator('input[name="line_remarks"]').first();
     if (width >= 1024) await expect(firstRemarks).toBeVisible();
     if (width === 768) await expect(page.locator("[data-tablet-document-inspector]")).toHaveCount(0);
-    if (width < 1280) {
-      const mobileAction = page.locator(".sb-mobile-action-bar").filter({ hasText: /counted/i });
+    if (width < 768) {
+      const mobileAction = page.locator(".sb-mobile-action-bar").filter({ hasText: /review prefilled values|adjusted/i });
       await expect(mobileAction).toBeVisible();
-      await expect(mobileAction).toContainText(/0\/\d+ counted/i);
+      await expect(mobileAction).toContainText(/review prefilled values|\d+ adjusted/i);
     }
     await page.screenshot({ path: path.join(evidence, `${label}.png`), fullPage: true });
   }

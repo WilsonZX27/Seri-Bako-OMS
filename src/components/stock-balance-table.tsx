@@ -12,6 +12,8 @@ export type StockBalanceRow = {
   item_id: string;
   item_code: string;
   item_name: string;
+  supplier_id: string | null;
+  supplier_name: string | null;
   branch_id: string | null;
   branch_name: string | null;
   available_qty: number;

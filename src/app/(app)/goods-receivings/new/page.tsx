@@ -27,6 +27,7 @@ export default async function NewGoodsReceivingPage({ searchParams }: { searchPa
         branch={branches.find((branch) => branch.id === selectedOrder?.branch_id)?.branch_name}
         workflowSteps={steps}
         currentStatus="draft"
+        tabletRailMode="split"
         mobilePrimaryAction={primaryAction}
         sidePanel={<>
             <DocumentSideSection title="Primary Action">{primaryAction}</DocumentSideSection>

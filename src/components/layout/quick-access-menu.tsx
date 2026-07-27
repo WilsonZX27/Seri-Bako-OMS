@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { ClipboardCheck, ClipboardList, Gauge, LayoutGrid, PackageCheck, ScrollText, X } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
@@ -18,11 +18,29 @@ const actions = [
 
 export function QuickAccessMenu({ permissionMap }: QuickAccessMenuProps) {
   const [open, setOpen] = useState(false);
+  const triggerRef = useRef<HTMLButtonElement>(null);
+  const dialogRef = useRef<HTMLDivElement>(null);
   const visibleActions = actions.filter((action) => permissionMap[action.permission] === true || action.href === "/dashboard");
+
+  function close() {
+    setOpen(false);
+    requestAnimationFrame(() => triggerRef.current?.focus());
+  }
+
+  useEffect(() => {
+    if (!open) return;
+    dialogRef.current?.querySelector<HTMLElement>("a, button")?.focus();
+    function onKeyDown(event: KeyboardEvent) {
+      if (event.key === "Escape") close();
+    }
+    document.addEventListener("keydown", onKeyDown);
+    return () => document.removeEventListener("keydown", onKeyDown);
+  }, [open]);
 
   return (
     <div className="relative xl:hidden">
       <Button
+        ref={triggerRef}
         type="button"
         variant="ghost"
         size="icon"
@@ -35,14 +53,14 @@ export function QuickAccessMenu({ permissionMap }: QuickAccessMenuProps) {
       </Button>
       {open ? (
         <>
-          <button type="button" className="fixed inset-0 z-[var(--sb-z-backdrop)] cursor-default" aria-label="Close quick access" onClick={() => setOpen(false)} />
-          <div role="dialog" aria-label="Quick access" className="sb-popover-surface absolute right-0 top-[calc(100%+0.5rem)] z-[var(--sb-z-dialog)] w-[min(21rem,calc(100vw-1.5rem))] p-2 shadow-lg">
+          <button type="button" className="fixed inset-0 z-[var(--sb-z-backdrop)] cursor-default" aria-label="Close quick access" onClick={close} />
+          <div ref={dialogRef} role="dialog" aria-label="Quick access" className="sb-popover-surface absolute right-0 top-[calc(100%+0.5rem)] z-[var(--sb-z-dialog)] w-[min(21rem,calc(100vw-1.5rem))] p-2 shadow-lg">
             <div className="flex items-center justify-between border-b border-[var(--sb-border-soft)] px-2 pb-2">
               <div>
                 <p className="text-sm font-semibold">Quick access</p>
                 <p className="text-xs text-[var(--sb-text-muted)]">Common tasks for this role</p>
               </div>
-              <Button type="button" variant="ghost" size="icon" aria-label="Close quick access" onClick={() => setOpen(false)}><X className="h-4 w-4" /></Button>
+              <Button type="button" variant="ghost" size="icon" aria-label="Close quick access" onClick={close}><X className="h-4 w-4" /></Button>
             </div>
             <div className="grid gap-1 pt-2">
               {visibleActions.map(({ href, label, hint, icon: Icon }) => (

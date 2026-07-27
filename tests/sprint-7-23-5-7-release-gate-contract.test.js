@@ -8,7 +8,7 @@ test("shared overlays and menus use the canonical release surfaces", () => {
   const css = read("src/app/globals.css");
   const modal = read("src/components/ui/modal-shell.tsx");
   const account = read("src/components/layout/account-menu.tsx");
-  const actionDropdown = read("src/components/ui/action-dropdown.tsx");
+  const actionDropdown = read("src/components/layout/quick-access-menu.tsx");
 
   assert.match(css, /\.sb-popover-surface/);
   assert.match(css, /\.sb-dialog-backdrop/);
@@ -48,6 +48,5 @@ test("the sanitized release package is complete", () => {
   ]) {
     assert.equal(fs.existsSync(file), true, `${file} should exist`);
   }
-  assert.match(read("src/lib/app-version.ts"), /APP_SPRINT = "v7\.23\.7\.2"/);
+  assert.match(read("src/lib/app-version.ts"), /APP_SPRINT = `v\$\{APP_VERSION\}`/);
 });
-

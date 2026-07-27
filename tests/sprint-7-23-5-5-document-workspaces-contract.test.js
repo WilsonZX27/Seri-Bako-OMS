@@ -26,14 +26,23 @@ test("document details and creation forms use one responsive operational shell",
   }
 });
 
-test("the shared shell keeps tablet workspaces full-width and owns workflow, sticky action and accessible sheets", () => {
+test("the shared shell gives iPad a contained canvas and an explicit operational split without reviving desktop rails", () => {
   const workspace = read("src/components/documents/document-workspace.tsx");
+  const workspaceGrid = read("src/components/layout/workspace-layout.tsx");
+  const grn = app("goods-receivings/new");
+  const pr = app("purchase-requests/new");
   const sheets = read("src/components/documents/mobile-document-surfaces.tsx");
   const confirm = read("src/components/ui/confirm-action-form.tsx");
   const modal = read("src/components/ui/modal-shell.tsx");
   const styles = read("src/app/globals.css");
 
-  assert.doesNotMatch(workspace, /data-tablet-document-inspector|md:grid-cols-\[minmax\(0,7fr\)_minmax\(14rem,3fr\)\]/);
+  assert.match(workspace, /data-tablet-document-header/);
+  assert.match(workspaceGrid, /data-tablet-canvas/);
+  assert.match(workspaceGrid, /tabletRailMode = "context"/);
+  assert.match(workspaceGrid, /data-tablet-document-split/);
+  assert.match(workspaceGrid, /lg:grid-cols-\[minmax\(0,1fr\)_18rem\]/);
+  assert.match(grn, /tabletRailMode="split"/);
+  assert.match(pr, /tabletRailMode="split"/);
   assert.match(workspace, /data-mobile-document-action/);
   assert.match(workspace, /mobilePrimaryAction \?/);
   assert.match(workspace, /md:hidden/);
@@ -103,5 +112,5 @@ test("document terminology and release metadata follow the current operational c
   assert.match(sources, /Wastage Reason/);
   assert.match(sources, /Remarks/);
   assert.match(read("src/lib/app-version.ts"), /APP_SPRINT = `v\$\{APP_VERSION\}`/);
-  assert.match(read("src/lib/app-version.ts"), /APP_VERSION = "7\.24\.19"/);
+  assert.match(read("src/lib/app-version.ts"), /APP_VERSION = "7\.24\.21"/);
 });

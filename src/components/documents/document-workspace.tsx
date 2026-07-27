@@ -27,6 +27,7 @@ export function DocumentWorkspace({
   mobilePrimaryAction,
   mobileActivity,
   mobileMoreOptions,
+  tabletRailMode = "context",
 }: {
   breadcrumbs: Crumb[];
   documentNo: string;
@@ -41,6 +42,7 @@ export function DocumentWorkspace({
   mobilePrimaryAction?: ReactNode;
   mobileActivity?: ReactNode;
   mobileMoreOptions?: ReactNode;
+  tabletRailMode?: "context" | "split";
 }) {
   const isNewDocument = documentNo.toLowerCase().startsWith("new ");
 
@@ -48,12 +50,12 @@ export function DocumentWorkspace({
     <>
       <span data-document-breadcrumb={breadcrumbs.map((crumb) => crumb.label).join("/") || documentNo} className="sr-only" aria-hidden="true" />
       <header className="sticky top-0 z-20 min-w-0 border-b border-[var(--border-muted)] bg-[var(--workspace-bg)] px-3 py-2.5 sm:px-4 sm:py-3">
-        <div className="flex flex-col gap-2 xl:flex-row xl:items-start xl:justify-between">
+        <div data-tablet-document-header className="flex flex-col gap-2 xl:flex-row xl:items-start xl:justify-between">
           <div className="min-w-0">
             <div className="flex flex-wrap items-center gap-2">
               <DocumentNumber value={documentNo} size="lg" className={cn("max-w-full break-all text-[16px] sm:text-lg", isNewDocument && "hidden")} />
               {priority ? <PriorityBadge priority={priority} /> : null}
-              <StatusBadge status={status} />
+              <StatusBadge status={status} className="md:hidden" />
               {branch ? <span className="truncate text-xs text-muted-foreground md:hidden">· {branch}</span> : null}
             </div>
             <div className={cn("hidden flex-wrap items-center gap-2 text-xs text-muted-foreground md:flex", isNewDocument ? "mt-0 md:mt-1" : "mt-1")}>
@@ -68,7 +70,7 @@ export function DocumentWorkspace({
         </div>
       </header>
 
-      <WorkspaceGrid className={cn("min-w-0 p-3", mobilePrimaryAction && "pb-20 md:pb-3")} rightRail={<div>{sidePanel}</div>} hideMobileConsole>
+      <WorkspaceGrid documentMode tabletRailMode={tabletRailMode} className={cn("min-w-0 p-3", mobilePrimaryAction && "pb-20 md:pb-3")} rightRail={<div>{sidePanel}</div>} hideMobileConsole>
         <div className="min-w-0">
           <div className="min-w-0 space-y-3">
             {children}

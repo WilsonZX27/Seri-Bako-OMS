@@ -31,7 +31,7 @@ test("dashboard role quick actions retain role-specific destinations", () => {
 });
 
 test("dashboard quick actions use the shared phone shape and safe area", () => {
-  assert.match(dashboard, /rounded-\[var\(--sb-radius-panel\)\]/);
+  assert.match(dashboard, /rounded-\[var\(--sb-panel-radius\)\]/);
   assert.match(dashboard, /rounded-\[var\(--sb-radius-control\)\]/);
   assert.match(dashboard, /pb-24[\s\S]*?md:pb-4/);
 });

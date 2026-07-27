@@ -16,7 +16,7 @@ test("tablet keeps workspace actions in context instead of a phone action bar", 
   const tabletSidebar = read("src", "components", "layout", "mobile-sidebar.tsx");
 
   assert.match(workspaceGrid, /data-tablet-context/);
-  assert.match(workspaceGrid, /md:block xl:hidden/);
+  assert.match(workspaceGrid, /md:ml-auto md:block md:w-fit xl:hidden/);
   assert.match(rightConsole, /"md:hidden"/);
   assert.doesNotMatch(rightConsole, /mobileOnlyBar/);
   assert.match(appLayout, /md:pb-4 xl:pb-0/);
@@ -56,13 +56,12 @@ test("shared activity and identity surfaces use OMS semantic tokens", () => {
   assert.match(account, /h-16 w-16[\s\S]*rounded-full/);
 });
 
-test("document workspaces preserve supplied desktop and tablet navigation context", () => {
+test("document workspaces retain route context without repeating the shared top-bar breadcrumb", () => {
   const documentWorkspace = read("src", "components", "documents", "document-workspace.tsx");
 
-  assert.match(documentWorkspace, /import Link from "next\/link"/);
-  assert.match(documentWorkspace, /breadcrumbs\.length/);
-  assert.match(documentWorkspace, /aria-label="Breadcrumb"/);
-  assert.match(documentWorkspace, /hidden min-w-0 items-center[\s\S]*md:flex/);
+  assert.match(documentWorkspace, /breadcrumbs\.map\(\(crumb\) => crumb\.label\)/);
+  assert.match(documentWorkspace, /data-document-breadcrumb/);
+  assert.doesNotMatch(documentWorkspace, /aria-label="Breadcrumb"/);
   assert.doesNotMatch(documentWorkspace, /void _breadcrumbs/);
 });
 

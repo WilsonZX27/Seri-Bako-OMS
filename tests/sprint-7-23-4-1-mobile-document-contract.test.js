@@ -20,7 +20,7 @@ test("procurement documents use focused mobile workflow and exact primary action
   assert.match(mobile, /mobileSheetOpen/);
   assert.match(mobile, /sb-dialog-backdrop/);
   assert.match(css, /\.sb-dialog-backdrop[\s\S]*backdrop-filter: blur/);
-  assert.match(mobile, /View workflow/);
+  assert.match(mobile, /label="Workflow"/);
   assert.match(pr, />Submit PR</);
   for (const label of ["Approve as Manager", "Approve as Purchasing", "Approve as Finance"]) assert.match(pr, new RegExp(label));
   assert.match(pr, /Prepare Purchase Order/);

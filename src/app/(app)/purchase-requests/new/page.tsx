@@ -50,6 +50,7 @@ export default async function NewPurchaseRequestPage({ searchParams }: { searchP
         branch={branches.find((branch) => branch.id === selectedBranchId)?.branch_name}
         workflowSteps={workflowSteps}
         currentStatus="draft"
+        tabletRailMode="split"
         mobileMoreOptions={<DocumentMoreOptions>{secondaryActions}</DocumentMoreOptions>}
         sidePanel={<>
             <DocumentActionSection moreOptions={secondaryActions}>{primaryAction}</DocumentActionSection>

@@ -32,6 +32,7 @@ export default async function SuppliersPage({
     <>
       <PageHeader title="Suppliers" description="Supplier identity, contacts, terms, and purchasing availability." />
       <WorkspaceGrid
+        hideMobileConsole={!canCreate}
         rightRail={
           <>
             {canCreate || permissions["suppliers.manage"] || permissions["imports.run"] ? <ConsoleSection title="Actions">

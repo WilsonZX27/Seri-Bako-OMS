@@ -35,7 +35,7 @@ export function SupplierItemForm({
   return (
     <Card>
       <CardContent className="p-5">
-        <form action={action} className="grid gap-4 md:grid-cols-3">
+        <form action={action} className="grid gap-4 pb-20 md:grid-cols-3 md:pb-0">
           <Field label="Supplier">
             <SelectNative name="supplier_id" defaultValue={supplierItem?.supplier_id ?? suppliers[0]?.id ?? ""} required>
               {suppliers.map((supplier) => (
@@ -88,8 +88,8 @@ export function SupplierItemForm({
           <Field label="Valid To">
             <Input name="valid_to" type="date" defaultValue={supplierItem?.valid_to ?? ""} />
           </Field>
-          <div className="flex justify-end md:col-span-3">
-            <Button type="submit">{supplierItem ? "Save supplier item" : "Create supplier item"}</Button>
+          <div className="sb-mobile-action-bar fixed inset-x-3 bottom-[calc(env(safe-area-inset-bottom)+0.5rem)] z-[var(--sb-z-sticky)] p-2 md:static md:flex md:justify-end md:bg-transparent md:p-0 md:shadow-none md:col-span-3">
+            <Button type="submit" className="w-full md:w-auto">{supplierItem ? "Save supplier item" : "Create supplier item"}</Button>
           </div>
         </form>
       </CardContent>
@@ -101,7 +101,7 @@ export function UomConversionForm({ conversion, action }: { conversion?: UomConv
   return (
     <Card>
       <CardContent className="p-5">
-        <form action={action} className="grid gap-4 md:grid-cols-2">
+        <form action={action} className="grid gap-4 pb-20 md:grid-cols-2 md:pb-0">
           <Field label="From UOM">
             <SelectNative name="from_uom" defaultValue={normalizeUom(conversion?.from_uom) || "KG"} required>
               {uomOptionsWithCurrent(conversion?.from_uom).map((uom) => (
@@ -126,8 +126,8 @@ export function UomConversionForm({ conversion, action }: { conversion?: UomConv
             <p className="text-sm font-medium">Preview</p>
             <p className="mt-1 text-sm text-muted-foreground">1 {conversion?.from_uom ?? "from UOM"} = {conversion?.factor ?? 1} {conversion?.to_uom ?? "to UOM"}</p>
           </div>
-          <div className="flex justify-end md:col-span-2">
-            <Button type="submit">{conversion ? "Save conversion" : "Create conversion"}</Button>
+          <div className="sb-mobile-action-bar fixed inset-x-3 bottom-[calc(env(safe-area-inset-bottom)+0.5rem)] z-[var(--sb-z-sticky)] p-2 md:static md:flex md:justify-end md:bg-transparent md:p-0 md:shadow-none md:col-span-2">
+            <Button type="submit" className="w-full md:w-auto">{conversion ? "Save conversion" : "Create conversion"}</Button>
           </div>
         </form>
       </CardContent>

@@ -30,6 +30,19 @@ const viewports = [
   { label: "wide-2560", width: 2560, height: 1440 },
 ];
 
+function selectedValues(value) {
+  return new Set(String(value ?? "").split(",").map((entry) => entry.trim()).filter(Boolean));
+}
+
+const routeSelection = selectedValues(process.env.STATIC_WORKSPACE_ROUTES);
+const viewportSelection = selectedValues(process.env.STATIC_WORKSPACE_VIEWPORTS);
+const captureScreenshots = process.env.STATIC_WORKSPACE_SCREENSHOTS === "1";
+const auditedWorkspaces = routeSelection.size ? workspaces.filter((route) => routeSelection.has(route)) : workspaces;
+const auditedViewports = viewportSelection.size ? viewports.filter((viewport) => viewportSelection.has(viewport.label)) : viewports;
+
+if (routeSelection.size && !auditedWorkspaces.length) throw new Error("STATIC_WORKSPACE_ROUTES did not match a canonical workspace.");
+if (viewportSelection.size && !auditedViewports.length) throw new Error("STATIC_WORKSPACE_VIEWPORTS did not match a configured viewport.");
+
 async function hasGlobalStyles(page) {
   try {
     return await page.evaluate(() => Array.from(document.styleSheets).some((sheet) => {
@@ -121,22 +134,22 @@ test.describe("static workspace layout audit", () => {
   // to the page under review, so keep the evidence run deterministic.
   test.describe.configure({ mode: "serial" });
 
-  for (const viewport of viewports) {
+  for (const viewport of auditedViewports) {
     test(`${viewport.label}: canonical static workspaces load styled and without viewport overflow`, async ({ page }) => {
       test.setTimeout(10 * 60_000);
       test.skip(!hasAccount("superAdmin"), "Missing local-only Super Admin credentials.");
       await login(page, "superAdmin");
     await page.setViewportSize(viewport);
-    for (const route of workspaces) {
+    for (const route of auditedWorkspaces) {
       await navigateToWorkspace(page, route);
       await expect.poll(() => hasGlobalStyles(page), { timeout: 15_000 }).toBe(true);
       await assertNoApplicationError(page, route);
       const overflow = await pageOverflow(page);
       expect(overflow, `${viewport.label} ${route} must not cause page-level horizontal overflow`).toBeLessThanOrEqual(5);
       await assertInteractiveBounds(page, route, viewport);
-      if (viewport.label === "mobile-390") {
+      if (captureScreenshots || viewport.label === "mobile-390") {
         const safeName = route === "/" ? "root" : route.slice(1).replaceAll("/", "--");
-        await page.screenshot({ path: path.join(evidence, `${safeName}.png`), fullPage: true });
+        await page.screenshot({ path: path.join(evidence, `${viewport.label}--${safeName}.png`), fullPage: true });
       }
       console.log(`[${viewport.label}] ${route}`);
     }

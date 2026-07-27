@@ -10,4 +10,5 @@ test("dashboard metrics remain panel content instead of nested cards", () => {
   assert.match(metric, /min-h-11/);
   assert.match(metric, /hover:bg-\[var\(--sb-surface-muted\)\]/);
   assert.doesNotMatch(metric, /rounded-\[2px\] border border-\[var\(--sb-border-soft\)\] bg-white/);
+  assert.doesNotMatch(source, /xl:hidden"><Link href=\{primaryAction\.href\}/);
 });

@@ -104,8 +104,6 @@ export function DashboardWorkspace({ summary, renderedAt }: { summary: Dashboard
                 { href: "/supplier-invoices/aging", label: "AP aging", icon: ReceiptText },
                 { href: "/stock-counts", label: "Stock count", icon: CheckCircle2 },
               ];
-  const primaryAction = quickActions[0];
-
   const workspaceContext = <>
     <p className="text-xs text-[var(--sb-text-muted)]">Welcome, {summary.userName}</p>
     <div className="mt-1 flex min-w-0 flex-wrap items-baseline gap-x-2 gap-y-0.5">
@@ -130,7 +128,7 @@ export function DashboardWorkspace({ summary, renderedAt }: { summary: Dashboard
     <ConsoleSection title="Today"><div className="space-y-2 text-[11px]"><p><span className="text-muted-foreground">Role</span><br /><strong>{summary.roleLabel}</strong></p><p><span className="text-muted-foreground">Data scope</span><br /><strong>{summary.scopeLabel}</strong></p><p><span className="text-muted-foreground">Updated</span><br /><strong>{now.toLocaleString("en-MY", { dateStyle: "medium", timeStyle: "short", timeZone: "Asia/Kuala_Lumpur" })}</strong></p></div></ConsoleSection>
     {summary.notifications.length ? <ConsoleSection title="Alerts"><div className="space-y-2">{summary.notifications.slice(0, 3).map((note) => <Link key={note.id} href={note.action_url ?? "/activity"} className="block text-[11px] hover:underline"><strong className="block">{note.title}</strong><span className="text-muted-foreground">{note.message}</span></Link>)}</div></ConsoleSection> : null}
   </>}>
-    <div className="space-y-4"><header className="hidden flex-col gap-3 md:flex md:flex-row md:items-start md:justify-between"><div className="min-w-0"><h1 className="text-lg font-semibold tracking-[-0.01em] text-[var(--sb-text)]">{copy.title}</h1><div className="mt-1">{desktopWorkspaceContext}</div><p className="mt-2 text-xs text-muted-foreground">{copy.description}</p></div><Button asChild size="sm" className="hidden w-full shrink-0 sm:inline-flex sm:w-auto xl:hidden"><Link href={primaryAction.href}>{primaryAction.label}</Link></Button></header>
+    <div className="space-y-4"><header className="hidden flex-col gap-3 md:flex md:flex-row md:items-start md:justify-between"><div className="min-w-0"><h1 className="text-lg font-semibold tracking-[-0.01em] text-[var(--sb-text)]">{copy.title}</h1><div className="mt-1">{desktopWorkspaceContext}</div><p className="mt-2 text-xs text-muted-foreground">{copy.description}</p></div></header>
 
       <div className="border-b border-[var(--sb-border-soft)] pb-3 md:hidden">
         {workspaceContext}

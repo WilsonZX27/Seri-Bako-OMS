@@ -26,12 +26,12 @@ test("shared filter rows use compact operational-green submits without adding du
   assert.match(styles, /max-width: 22rem/);
 });
 
-test("UI smoke keeps the requested routes, console order, and current footer", () => {
+test("UI smoke keeps the requested routes, console order, current footer, and one tablet action entry", () => {
   for (const route of ["dashboard/page.tsx", "outlet-daily-records/page.tsx", "reports/demand-trends/page.tsx", "production/planning/page.tsx", "production/variance/page.tsx", "administration/master-data-cleanup/page.tsx", "imports/page.tsx", "imports/[entity]/page.tsx", "staffs/[id]/page.tsx", "roles/[id]/page.tsx"]) {
     assert.equal(fs.existsSync(`src/app/(app)/${route}`), true);
   }
   assert.match(dashboard, /ConsoleSection title="Today"[\s\S]*ConsoleSection title="Alerts"/);
-  assert.match(dashboard, /<header[\s\S]*primaryAction\.href/);
+  assert.doesNotMatch(dashboard, /<header[\s\S]*primaryAction\.href/);
   assert.doesNotMatch(dashboard, /ConsoleSection title="Recent Activity"/);
   assert.match(read("src/lib/app-version.ts"), /APP_SPRINT = `v\$\{APP_VERSION\}`/);
   assert.match(read("supabase/migrations/066_create_outlet_staff_role.sql"), /outlet_staff/);

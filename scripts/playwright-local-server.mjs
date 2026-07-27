@@ -1,4 +1,4 @@
-import { execFileSync, spawn } from "node:child_process";
+import { spawn } from "node:child_process";
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 
@@ -11,20 +11,11 @@ try {
     if (match) localEnv[match[1]] = match[2].replace(/^['"]|['"]$/g, "");
   }
 } catch {}
-const stackEnv = {};
-try {
-  for (const line of execFileSync("cmd.exe", ["/d", "/s", "/c", "npx.cmd supabase status -o env"], {
-    cwd: process.cwd(),
-    encoding: "utf8",
-    env: { ...process.env, SUPABASE_TELEMETRY_DISABLED: "true" },
-  }).split(/\r?\n/)) {
-    const match = line.match(/^([A-Z0-9_]+)=(.*)$/);
-    if (match) stackEnv[match[1]] = match[2].replace(/^['"]|['"]$/g, "");
-  }
-} catch {}
 // `next start` serves the existing production bundle, whose NEXT_PUBLIC_* values
 // were fixed when that bundle was built. Local browser tests must compile against
 // `.env.test.local` instead of accidentally using a previously built remote target.
+// Do not shell out to `supabase status`: the test fixture is already explicit in
+// that file, while the CLI can fail to close on locked telemetry files in Windows.
 const localPort = process.env.PLAYWRIGHT_LOCAL_PORT || "3000";
 const child = spawn(process.execPath, ["--use-system-ca", nextBin, "dev", "-p", localPort], {
   cwd: process.cwd(),
@@ -33,10 +24,10 @@ const child = spawn(process.execPath, ["--use-system-ca", nextBin, "dev", "-p", 
     ...localEnv,
     // Browser audits must never inherit a workstation's `.env.local` target.
     // The local fixture is the single authority for both public Supabase values.
-    NEXT_PUBLIC_SUPABASE_URL: stackEnv.API_URL || localEnv.NEXT_PUBLIC_SUPABASE_URL || "http://127.0.0.1:54321",
-    NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: stackEnv.PUBLISHABLE_KEY || localEnv.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || localEnv.NEXT_PUBLIC_SUPABASE_ANON_KEY,
-    SUPABASE_URL: stackEnv.API_URL || "http://127.0.0.1:54321",
-    SUPABASE_PUBLISHABLE_KEY: stackEnv.PUBLISHABLE_KEY,
+    NEXT_PUBLIC_SUPABASE_URL: localEnv.NEXT_PUBLIC_SUPABASE_URL || "http://127.0.0.1:54321",
+    NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: localEnv.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || localEnv.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+    SUPABASE_URL: localEnv.NEXT_PUBLIC_SUPABASE_URL || "http://127.0.0.1:54321",
+    SUPABASE_PUBLISHABLE_KEY: localEnv.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || localEnv.NEXT_PUBLIC_SUPABASE_ANON_KEY,
   },
   stdio: "inherit",
   windowsHide: true,

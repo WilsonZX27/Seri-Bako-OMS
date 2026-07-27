@@ -25,4 +25,5 @@ test("phone list clears fixed actions and keeps the active status visible", () =
   assert.match(tabs, /matchMedia\("\(max-width: 767px\)"\)/);
   assert.match(tabs, /scrollIntoView\(\{ block: "nearest", inline: "center" \}\)/);
   assert.match(tabs, /ref=\{active \? activeTabRef : undefined\}/);
+  assert.match(page, /hideMobileConsole=\{!permissions\["pr\.create"\]\}/);
 });

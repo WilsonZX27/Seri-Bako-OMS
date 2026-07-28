@@ -81,12 +81,12 @@ export function MobileContextBack() {
   const pathname = usePathname();
   const context = pageContext(pathname);
 
-  if (!context.backHref) return <span className="block h-11 w-11" aria-hidden="true" />;
+  if (!context.backHref) return <span className="block h-12 w-12" aria-hidden="true" />;
 
   return (
     <Link
       href={context.backHref}
-      className="flex h-11 w-11 items-center justify-start text-[var(--sb-green-950)]"
+      className="flex h-12 w-12 items-center justify-start text-[var(--sb-green-950)]"
       aria-label={`Back to ${context.title}`}
     >
       <ChevronLeft className="h-6 w-6" strokeWidth={1.8} aria-hidden="true" />

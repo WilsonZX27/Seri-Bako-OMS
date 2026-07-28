@@ -70,7 +70,7 @@ export function SelectControl({
                 key={option.value}
                 value={option.value}
                 disabled={option.disabled}
-                className="relative flex min-h-8 cursor-default select-none items-center rounded-[2px] py-1.5 pl-7 pr-2 text-sm outline-none focus:bg-[var(--sb-green-100)] data-[disabled]:pointer-events-none data-[disabled]:opacity-50 data-[state=checked]:font-medium"
+                className="relative flex min-h-[var(--sb-control-height)] cursor-default select-none items-center rounded-[2px] py-1.5 pl-7 pr-2 text-sm outline-none focus:bg-[var(--sb-green-100)] data-[disabled]:pointer-events-none data-[disabled]:opacity-50 data-[state=checked]:font-medium"
               >
                 <Select.ItemIndicator className="absolute left-2"><Check className="h-3.5 w-3.5" /></Select.ItemIndicator>
                 <Select.ItemText>{option.label}</Select.ItemText>

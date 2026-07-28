@@ -2,6 +2,7 @@ import { isMockMode, mockProfile } from "@/lib/mock-mode";
 import { cache } from "react";
 import { getRoleDisplayLabel } from "@/lib/roles";
 import { createClient } from "@/lib/supabase/server";
+import { requireActiveTenantActor } from "@/server/auth/tenant-actor";
 
 export const roleDescriptions = {
   super_admin: "Protected system owner with every permission.",
@@ -230,6 +231,11 @@ function roleAllowsPermission(roleCode: string, permission: string) {
 }
 
 const checkPermission = cache(async (permission: string) => {
+  // Permission rows alone are not an authorization boundary. A suspended,
+  // deleted, or unlinked staff profile must never be able to exercise a
+  // still-cached permission through a direct Server Action invocation.
+  await requireActiveTenantActor();
+
   if (isMockMode()) {
     return roleAllowsPermission(mockProfile.role, permission) || permission.endsWith(".read");
   }
@@ -253,6 +259,8 @@ export async function hasPermission(permission: string) {
 }
 
 export async function getPermissionMap(permissions: string[]) {
+  await requireActiveTenantActor();
+
   if (isMockMode()) {
     return Object.fromEntries(permissions.map((permission) => [permission, roleAllowsPermission(mockProfile.role, permission) || permission.endsWith(".read")])) as Record<string, boolean>;
   }

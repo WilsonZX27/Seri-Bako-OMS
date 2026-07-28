@@ -1,6 +1,7 @@
 "use server";
 
 import { redirect } from "next/navigation";
+import { z } from "zod";
 import { isMockMode, mockCompany, mockProfile } from "@/lib/mock-mode";
 import { createClient } from "@/lib/supabase/server";
 import { supplierInvoicePaymentSchema, supplierInvoiceSchema } from "@/lib/validations/procurement";
@@ -9,10 +10,15 @@ import { formatActionError, requirePermissionOrRedirect, rethrowRedirect, safeRe
 import { revalidateWorkspaceState } from "@/server/actions/revalidate";
 import { resolveDocumentNumber } from "@/server/documents/sequences";
 import { getCurrentProfile } from "@/server/queries/common";
+import { parseBoundedJson } from "@/server/validation/json-input";
 
 function cleanText(value: FormDataEntryValue | null) {
   const text = String(value ?? "").trim();
   return text.length ? text : null;
+}
+
+function parseSupplierInvoiceId(id: string) {
+  return z.string().uuid("The supplier invoice identifier is invalid.").parse(id);
 }
 
 async function identity() {
@@ -29,7 +35,7 @@ function parseInvoice(formData: FormData) {
     payment_terms_days: formData.get("payment_terms_days"),
     tax_amount: formData.get("tax_amount") || 0,
     notes: cleanText(formData.get("notes")),
-    lines: JSON.parse(String(formData.get("lines") ?? "[]")),
+    lines: parseBoundedJson(formData.get("lines"), "invoice lines"),
   });
 }
 
@@ -76,9 +82,10 @@ export async function createSupplierInvoice(formData: FormData) {
 export async function updateSupplierInvoiceDraft(id: string, formData: FormData) {
   await requirePermissionOrRedirect("supplier_invoice.create", `/supplier-invoices/${id}`);
   try {
-    await saveDraft(id, formData);
-    revalidateWorkspaceState(["/supplier-invoices", `/supplier-invoices/${id}`]);
-    safeRedirectWithMessage(`/supplier-invoices/${id}`, "success", "Draft invoice updated.");
+    const invoiceId = parseSupplierInvoiceId(id);
+    await saveDraft(invoiceId, formData);
+    revalidateWorkspaceState(["/supplier-invoices", `/supplier-invoices/${invoiceId}`]);
+    safeRedirectWithMessage(`/supplier-invoices/${invoiceId}`, "success", "Draft invoice updated.");
   } catch (error) {
     rethrowRedirect(error);
     safeRedirectWithMessage(`/supplier-invoices/${id}`, "error", formatActionError(error, "Could not update this invoice draft."));
@@ -88,8 +95,9 @@ export async function updateSupplierInvoiceDraft(id: string, formData: FormData)
 export async function approveSupplierInvoice(id: string) {
   await requirePermissionOrRedirect("supplier_invoice.approve", `/supplier-invoices/${id}`);
   try {
+    const invoiceId = parseSupplierInvoiceId(id);
     const supabase = await createClient();
-    const { data: invoiceEvidence, error: evidenceQueryError } = await supabase.from("supplier_invoices").select("document_id").eq("id", id).single();
+    const { data: invoiceEvidence, error: evidenceQueryError } = await supabase.from("supplier_invoices").select("document_id").eq("id", invoiceId).single();
     if (evidenceQueryError) throw new Error(evidenceQueryError.message);
     const { count: attachmentCount, error: attachmentError } = invoiceEvidence.document_id
       ? await supabase.from("attachments").select("id", { count: "exact", head: true }).eq("entity_type", "document").eq("entity_id", invoiceEvidence.document_id).eq("status", "active").is("deleted_at", null)
@@ -99,22 +107,22 @@ export async function approveSupplierInvoice(id: string) {
     const { data: auditLines, error: auditLinesError } = await supabase
       .from("supplier_invoice_lines")
       .select("invoice_qty,received_qty,previously_invoiced_qty,po_unit_price,invoice_unit_price")
-      .eq("supplier_invoice_id", id);
+      .eq("supplier_invoice_id", invoiceId);
     if (auditLinesError) throw new Error(auditLinesError.message);
     const discrepancy = (auditLines ?? []).find((line) =>
       Number(line.invoice_qty) !== Number(line.received_qty) - Number(line.previously_invoiced_qty)
       || Math.abs(Number(line.invoice_unit_price) - Number(line.po_unit_price)) > 0.01,
     );
     if (discrepancy) throw new Error("Audit discrepancy: invoice quantity or price does not match the received PO line.");
-    const { error } = await supabase.rpc("approve_supplier_invoice", { p_invoice_id: id });
+    const { error } = await supabase.rpc("approve_supplier_invoice", { p_invoice_id: invoiceId });
     if (error) throw new Error(error.message);
-    const { data: invoice } = await supabase.from("supplier_invoices").select("invoice_no, document_id").eq("id", id).single();
+    const { data: invoice } = await supabase.from("supplier_invoices").select("invoice_no, document_id").eq("id", invoiceId).single();
     if (invoice?.document_id) {
       await supabase.from("documents").update({ status: "posted", approval_status: "approved", current_step: "Audit Passed" }).eq("id", invoice.document_id);
       await writeActivityLog({ entityType: "document", entityId: invoice.document_id, activityType: "approved", message: `Supplier invoice ${invoice.invoice_no} approved and opened` });
     }
-    revalidateWorkspaceState(["/supplier-invoices", `/supplier-invoices/${id}`]);
-    safeRedirectWithMessage(`/supplier-invoices/${id}`, "success", "Invoice approved and open for payment.");
+    revalidateWorkspaceState(["/supplier-invoices", `/supplier-invoices/${invoiceId}`]);
+    safeRedirectWithMessage(`/supplier-invoices/${invoiceId}`, "success", "Invoice approved and open for payment.");
   } catch (error) {
     rethrowRedirect(error);
     safeRedirectWithMessage(`/supplier-invoices/${id}`, "error", formatActionError(error, "Could not approve this invoice."));
@@ -124,6 +132,7 @@ export async function approveSupplierInvoice(id: string) {
 export async function recordSupplierInvoicePayment(id: string, formData: FormData) {
   await requirePermissionOrRedirect("supplier_invoice.pay", `/supplier-invoices/${id}`);
   try {
+    const invoiceId = parseSupplierInvoiceId(id);
     const payload = supplierInvoicePaymentSchema.parse({
       payment_date: formData.get("payment_date"),
       amount: formData.get("amount"),
@@ -134,7 +143,7 @@ export async function recordSupplierInvoicePayment(id: string, formData: FormDat
     });
     const profile = await identity();
     const supabase = await createClient();
-    const { data: invoiceEvidence, error: invoiceEvidenceError } = await supabase.from("supplier_invoices").select("document_id").eq("id", id).single();
+    const { data: invoiceEvidence, error: invoiceEvidenceError } = await supabase.from("supplier_invoices").select("document_id").eq("id", invoiceId).single();
     if (invoiceEvidenceError) throw new Error(invoiceEvidenceError.message);
     if (!invoiceEvidence.document_id) throw new Error("A payment document is required before recording payment.");
     const { data: paymentSlips, error: paymentSlipError } = await supabase
@@ -150,7 +159,7 @@ export async function recordSupplierInvoicePayment(id: string, formData: FormDat
     if (!paymentSlips?.length) throw new Error("Attach the Payment Slip before recording payment.");
     const paymentNo = await resolveDocumentNumber({ companyId: profile?.company_id, documentType: "payment_schedule", enteredNumber: null });
     const { data: recordedNo, error } = await supabase.rpc("record_supplier_invoice_payment", {
-      p_invoice_id: id,
+      p_invoice_id: invoiceId,
       p_payment_no: paymentNo,
       p_payment_date: payload.payment_date,
       p_amount: payload.amount,
@@ -160,10 +169,10 @@ export async function recordSupplierInvoicePayment(id: string, formData: FormDat
       p_idempotency_key: payload.idempotency_key,
     });
     if (error) throw new Error(error.message);
-    const { data: invoice } = await supabase.from("supplier_invoices").select("invoice_no, document_id").eq("id", id).single();
+    const { data: invoice } = await supabase.from("supplier_invoices").select("invoice_no, document_id").eq("id", invoiceId).single();
     if (invoice?.document_id) await writeActivityLog({ entityType: "document", entityId: invoice.document_id, activityType: "payment_recorded", message: `Payment ${recordedNo} recorded for ${invoice.invoice_no}` });
-    revalidateWorkspaceState(["/supplier-invoices", `/supplier-invoices/${id}`]);
-    safeRedirectWithMessage(`/supplier-invoices/${id}`, "success", `Payment ${recordedNo} recorded.`);
+    revalidateWorkspaceState(["/supplier-invoices", `/supplier-invoices/${invoiceId}`]);
+    safeRedirectWithMessage(`/supplier-invoices/${invoiceId}`, "success", `Payment ${recordedNo} recorded.`);
   } catch (error) {
     rethrowRedirect(error);
     safeRedirectWithMessage(`/supplier-invoices/${id}`, "error", formatActionError(error, "Could not record this payment."));
@@ -173,18 +182,18 @@ export async function recordSupplierInvoicePayment(id: string, formData: FormDat
 export async function voidSupplierInvoice(id: string, formData: FormData) {
   await requirePermissionOrRedirect("supplier_invoice.void", `/supplier-invoices/${id}`);
   try {
-    const reason = cleanText(formData.get("reason"));
-    if (!reason) throw new Error("A void reason is required.");
+    const invoiceId = parseSupplierInvoiceId(id);
+    const reason = z.string().trim().min(1, "A void reason is required.").max(1_000, "Void reason is too long.").parse(formData.get("reason"));
     const supabase = await createClient();
-    const { error } = await supabase.rpc("void_supplier_invoice", { p_invoice_id: id, p_reason: reason });
+    const { error } = await supabase.rpc("void_supplier_invoice", { p_invoice_id: invoiceId, p_reason: reason });
     if (error) throw new Error(error.message);
-    const { data: invoice } = await supabase.from("supplier_invoices").select("invoice_no, document_id").eq("id", id).single();
+    const { data: invoice } = await supabase.from("supplier_invoices").select("invoice_no, document_id").eq("id", invoiceId).single();
     if (invoice?.document_id) {
       await supabase.from("documents").update({ status: "cancelled", approval_status: "cancelled", current_step: "Void" }).eq("id", invoice.document_id);
       await writeActivityLog({ entityType: "document", entityId: invoice.document_id, activityType: "voided", message: `Supplier invoice ${invoice.invoice_no} voided: ${reason}` });
     }
-    revalidateWorkspaceState(["/supplier-invoices", `/supplier-invoices/${id}`]);
-    safeRedirectWithMessage(`/supplier-invoices/${id}`, "success", "Invoice voided.");
+    revalidateWorkspaceState(["/supplier-invoices", `/supplier-invoices/${invoiceId}`]);
+    safeRedirectWithMessage(`/supplier-invoices/${invoiceId}`, "success", "Invoice voided.");
   } catch (error) {
     rethrowRedirect(error);
     safeRedirectWithMessage(`/supplier-invoices/${id}`, "error", formatActionError(error, "Could not void this invoice."));

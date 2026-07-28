@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { Pencil } from "lucide-react";
 import { BulkSelectAllCheckbox, BulkSelectionProvider, BulkSelectRowCheckbox } from "@/components/bulk-selection";
 import { DataGridRow } from "@/components/ui/data-grid-row";
@@ -35,13 +34,12 @@ export default async function GoodsReceivingsPage({ searchParams }: { searchPara
       <PageHeader
         title="Goods Receiving"
         description="Receive supplier deliveries against approved purchase orders. Stock increases only after GRN posting."
+        action={canCreate ? { href: "/goods-receivings/new", label: "New GRN" } : undefined}
       />
       <WorkspaceGrid
+        hideMobileConsole
         rightRail={
           <>
-            <ConsoleSection title="Actions">
-              {canCreate ? <Button asChild size="sm" className="w-full" data-mobile-primary-action><Link href="/goods-receivings/new">New GRN</Link></Button> : <p className="text-xs text-muted-foreground">Your role has read-only access.</p>}
-            </ConsoleSection>
             <ConsoleSection title="GRN Summary">
               <div className="grid gap-2 text-xs">
                 <div className="flex justify-between"><span className="text-muted-foreground">Total GRNs</span><strong>{rows.length}</strong></div>

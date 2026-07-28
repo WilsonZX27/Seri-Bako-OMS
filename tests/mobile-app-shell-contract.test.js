@@ -13,7 +13,7 @@ test("mobile web uses a permission-aware app shell without replacing desktop nav
   assert.match(appLayout, /mobileNavigationPermissionCodes/);
   assert.match(navigation, /data-mobile-app-nav/);
   assert.match(navigation, /grid-cols-5/);
-  assert.match(navigation, /md:hidden/);
+  assert.match(navigation, /xl:hidden/);
   assert.match(navigation, /getVisibleNavGroups\(role, permissionMap\)/);
   assert.match(navigation, /role === "outlet_staff"/);
   assert.match(navigation, /role === "kitchen"/);
@@ -22,7 +22,7 @@ test("mobile web uses a permission-aware app shell without replacing desktop nav
   assert.match(navigation, /href: "\/stock-counts"/);
   assert.match(navigation, /isFocusedTask/);
   assert.match(navigation, /\/\(\?:new\|edit\)\$/);
-  assert.match(navigation, /if \(isFocusedTask\) return null/);
+  assert.doesNotMatch(navigation, /if \(isFocusedTask\) return null/);
   assert.match(sidebar, /xl:block/);
 });
 
@@ -51,7 +51,7 @@ test("mobile shell respects safe areas, action stacking, and standalone web inst
   assert.match(css, /data-mobile-task-page="true"/);
   assert.match(css, /bottom: calc\(env\(safe-area-inset-bottom\) \+ 0\.5rem\)/);
   assert.match(appLayout, /pb-\[calc\(var\(--sb-mobile-nav-height\)\+env\(safe-area-inset-bottom\)\+1rem\)\]/);
-  assert.match(workspace, /rightRail && !hideMobileConsole && "pb-32 md:pb-3"/);
+  assert.match(workspace, /rightRail && !hideMobileConsole && "pb-32 xl:pb-3"/);
   assert.match(rootLayout, /viewportFit: "cover"/);
   assert.match(rootLayout, /appleWebApp/);
   assert.match(manifest, /display: "standalone"/);
@@ -66,13 +66,33 @@ test("phone top context is a stable three-slot bar with centered titles", () => 
   const contextHeader = read("src/components/layout/mobile-context-header.tsx");
   const topBar = read("src/components/layout/top-bar.tsx");
 
-  assert.match(contextHeader, /h-11 w-11/);
+  // Field users operate this navigation with the same wet-hand 48px target
+  // standard as document controls.
+  assert.match(contextHeader, /h-12 w-12/);
   assert.match(contextHeader, /aria-label=\{`Back to \$\{context\.title\}`\}/);
   assert.match(contextHeader, /data-mobile-page-title/);
   assert.match(contextHeader, /text-center/);
   assert.match(topBar, /MobileContextBack/);
   assert.match(topBar, /MobileContextTitle/);
   assert.match(topBar, /TopBarActivityMenu/);
+});
+
+test("shared dialogs contain their content within the dynamic mobile viewport and preserve keyboard safety", () => {
+  const modal = read("src/components/ui/modal-shell.tsx");
+
+  assert.match(modal, /max-h-\[calc\(100dvh-2rem\)\]/);
+  assert.match(modal, /overflow-y-auto/);
+  assert.match(modal, /document\.body\.style\.overflow = "hidden"/);
+  assert.match(modal, /event\.key === "Escape"/);
+  assert.match(modal, /event\.key !== "Tab"/);
+});
+
+test("top-bar updates stay within the dynamic viewport rather than relying on a fixed popover height", () => {
+  const activityMenu = read("src/components/layout/top-bar-activity-menu.tsx");
+
+  assert.match(activityMenu, /max-h-\[calc\(100dvh-3\.5rem\)\]/);
+  assert.match(activityMenu, /overflow-y-auto/);
+  assert.doesNotMatch(activityMenu, /max-h-96/);
 });
 
 test("More retains search, profile, and logout after the phone top bar is simplified", () => {
@@ -99,5 +119,5 @@ test("dashboard exposes direct mobile actions and field forms keep touch-first g
   assert.match(dashboard, /Stock count/);
   assert.match(receiving, /grid-cols-2/);
   assert.match(receiving, /inputMode="decimal"/);
-  assert.match(stock, /h-11 w-11/);
+  assert.match(stock, /h-12 w-12/);
 });

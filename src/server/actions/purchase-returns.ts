@@ -17,6 +17,10 @@ function cleanText(value: FormDataEntryValue | null) {
   return text.length ? text : null;
 }
 
+function parsePurchaseReturnId(id: string) {
+  return z.uuid().parse(id);
+}
+
 async function identity() {
   if (isMockMode()) return { company_id: mockCompany.id, id: mockProfile.id };
   return getCurrentProfile();
@@ -79,8 +83,9 @@ export async function createPurchaseReturn(formData: FormData) {
 export async function postPurchaseReturn(id: string) {
   await requirePermissionOrRedirect("purchase_return.post", `/purchase-returns/${id}`);
   try {
+    const purchaseReturnId = parsePurchaseReturnId(id);
     const supabase = await createClient();
-    const { data, error } = await supabase.rpc("post_purchase_return_atomic", { p_purchase_return_id: id });
+    const { data, error } = await supabase.rpc("post_purchase_return_atomic", { p_purchase_return_id: purchaseReturnId });
     if (error) throw new Error(error.message);
     const result = data as { document_id?: string | null; purchase_return_no?: string; goods_receiving_id?: string; already_posted?: boolean } | null;
     if (result?.document_id && !result.already_posted) await writeActivityLog({ entityType: "document", entityId: result.document_id, activityType: "posted", message: `Purchase return ${result.purchase_return_no ?? id} posted to inventory` });
@@ -95,7 +100,8 @@ export async function postPurchaseReturn(id: string) {
 
 export async function cancelPurchaseReturn(id: string) {
   await requirePermissionOrRedirect("purchase_return.cancel", `/purchase-returns/${id}`);
-  const { error } = await (await createClient()).rpc("cancel_purchase_return_atomic", { p_purchase_return_id: id });
+  const purchaseReturnId = parsePurchaseReturnId(id);
+  const { error } = await (await createClient()).rpc("cancel_purchase_return_atomic", { p_purchase_return_id: purchaseReturnId });
   if (error) throw new Error(error.message);
   revalidateWorkspaceState(["/purchase-returns", `/purchase-returns/${id}`]);
 }

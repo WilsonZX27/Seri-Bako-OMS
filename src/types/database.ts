@@ -2070,6 +2070,10 @@ export type Database = {
         Args: { p_payload: Json };
         Returns: Json;
       };
+      create_stock_count_atomic: {
+        Args: { p_payload: Json };
+        Returns: Json;
+      };
       create_stock_wastage_atomic: {
         Args: { p_payload: Json };
         Returns: Json;

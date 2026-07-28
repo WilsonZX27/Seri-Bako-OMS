@@ -26,7 +26,6 @@ export default async function ImportPage({ params }: { params: Promise<{ entity:
       </>
     );
   } catch (error) {
-    console.error(error);
     return (
       <>
         <PageHeader title="Import Data" description="Upload, preview, validate, and import only clean rows." />

@@ -29,12 +29,38 @@ export function QuickAccessMenu({ permissionMap }: QuickAccessMenuProps) {
 
   useEffect(() => {
     if (!open) return;
-    dialogRef.current?.querySelector<HTMLElement>("a, button")?.focus();
+    const dialog = dialogRef.current;
+    const previousOverflow = document.body.style.overflow;
+    const trigger = triggerRef.current;
+    document.body.style.overflow = "hidden";
+    dialog?.querySelector<HTMLElement>("a, button")?.focus();
+
     function onKeyDown(event: KeyboardEvent) {
-      if (event.key === "Escape") close();
+      if (event.key === "Escape") {
+        event.preventDefault();
+        close();
+        return;
+      }
+      if (event.key !== "Tab" || !dialog) return;
+      const focusable = Array.from(dialog.querySelectorAll<HTMLElement>("a, button, input, select, textarea, [tabindex]:not([tabindex='-1'])"))
+        .filter((element) => !element.hasAttribute("disabled"));
+      if (!focusable.length) return;
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
+      }
     }
     document.addEventListener("keydown", onKeyDown);
-    return () => document.removeEventListener("keydown", onKeyDown);
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      document.removeEventListener("keydown", onKeyDown);
+      requestAnimationFrame(() => trigger?.focus());
+    };
   }, [open]);
 
   return (
@@ -54,7 +80,7 @@ export function QuickAccessMenu({ permissionMap }: QuickAccessMenuProps) {
       {open ? (
         <>
           <button type="button" className="fixed inset-0 z-[var(--sb-z-backdrop)] cursor-default" aria-label="Close quick access" onClick={close} />
-          <div ref={dialogRef} role="dialog" aria-label="Quick access" className="sb-popover-surface absolute right-0 top-[calc(100%+0.5rem)] z-[var(--sb-z-dialog)] w-[min(21rem,calc(100vw-1.5rem))] p-2 shadow-lg">
+          <div ref={dialogRef} role="dialog" aria-modal="true" aria-label="Quick access" className="sb-popover-surface fixed right-3 top-[calc(var(--sb-topbar-height)+0.5rem)] z-[var(--sb-z-dialog)] max-h-[calc(100dvh-var(--sb-topbar-height)-1rem)] w-[min(21rem,calc(100vw-1.5rem))] overflow-y-auto p-2 shadow-lg">
             <div className="flex items-center justify-between border-b border-[var(--sb-border-soft)] px-2 pb-2">
               <div>
                 <p className="text-sm font-semibold">Quick access</p>
@@ -70,7 +96,7 @@ export function QuickAccessMenu({ permissionMap }: QuickAccessMenuProps) {
                 </Link>
               ))}
             </div>
-            <Link href="/dashboard" onClick={() => setOpen(false)} className="mt-1 flex min-h-10 items-center justify-center border-t border-[var(--sb-border-soft)] px-2 pt-2 text-xs font-semibold text-[var(--sb-green-700)]">Open dashboard</Link>
+            <Link href="/dashboard" onClick={() => setOpen(false)} className="mt-1 flex min-h-[var(--sb-control-height)] items-center justify-center border-t border-[var(--sb-border-soft)] px-2 pt-2 text-xs font-semibold text-[var(--sb-green-700)]">Open dashboard</Link>
           </div>
         </>
       ) : null}

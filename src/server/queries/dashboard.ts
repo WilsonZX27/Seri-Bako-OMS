@@ -151,8 +151,20 @@ export async function getDashboardSummary() {
   warnOptionalQuery("current staff", currentStaff.error);
   warnOptionalQuery("assigned branches", assignedBranches.error);
 
-  for (const result of [transactions, stockItems, suppliers, items, urgentRequests, purchaseRequests, purchaseOrders, documents]) {
-    if (result.error) throw new Error(result.error.message);
+  // A dashboard is a situational overview, not a transaction form. A degraded
+  // optional read must not strand a signed-in operator behind a generic error
+  // page when the rest of their permitted workspace is still usable.
+  for (const [name, result] of [
+    ["recent transactions", transactions],
+    ["stock items", stockItems],
+    ["suppliers", suppliers],
+    ["items", items],
+    ["urgent requests", urgentRequests],
+    ["purchase requests", purchaseRequests],
+    ["purchase orders", purchaseOrders],
+    ["recent documents", documents],
+  ] as const) {
+    warnOptionalQuery(name, result.error);
   }
 
   const itemById = new Map((stockItems.data ?? []).map((item) => [item.id, item]));

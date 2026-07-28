@@ -23,6 +23,7 @@ loadEnvFile(path.join(__dirname, ".env.test.local"));
 const localPort = process.env.PLAYWRIGHT_LOCAL_PORT || "3000";
 const localBaseUrl = `http://127.0.0.1:${localPort}`;
 const startsLocalServer = process.env.RUN_TENANT_BOUNDARY_E2E === "1" && process.env.PW_MANUAL_SERVER !== "1";
+const usesLocalRoleFixture = process.env.RUN_TENANT_BOUNDARY_E2E === "1";
 const baseURL = process.env.TEST_BASE_URL || (startsLocalServer ? localBaseUrl : "");
 
 if (!baseURL) {
@@ -36,6 +37,10 @@ if (!["127.0.0.1", "localhost"].includes(target.hostname) && process.env.ALLOW_R
 
 module.exports = defineConfig({
   testDir: "./tests/e2e",
+  // The six test identities are disposable and are seeded only for the explicitly
+  // local suite. This removes hidden dependence on a developer manually running
+  // a setup command while keeping remote and production targets untouched.
+  globalSetup: usesLocalRoleFixture ? "./tests/e2e/local-role-fixture-global-setup.cjs" : undefined,
   timeout: 45_000,
   retries: process.env.CI ? 1 : 0,
   outputDir: "test-results/ui-smoke-sprint-7-2-6-artifacts",

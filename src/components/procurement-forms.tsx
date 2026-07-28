@@ -1,12 +1,13 @@
 "use client";
 
 import { useState } from "react";
-import { Minus, Plus, X } from "lucide-react";
+import { Minus, Plus, Send, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Field } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { SelectNative } from "@/components/ui/select-native";
+import { SubmitButton } from "@/components/ui/submit-button";
 import { Textarea } from "@/components/ui/textarea";
 import { UrgencySelect } from "@/components/urgency-select";
 import type { ProcurementPriority } from "@/components/priority-badge";
@@ -152,7 +153,7 @@ export function PurchaseRequestForm({
 
   return (
     <div className="md:rounded-[2px] md:border md:bg-white md:p-5">
-        <form id="purchase-request-form" action={action} className="space-y-3 pb-20 md:pb-0">
+        <form id="purchase-request-form" action={action} className="space-y-3 pb-36 md:pb-0">
           <input type="hidden" name="request_no" value="" />
           <input type="hidden" name="idempotency_key" value={idempotencyKey} />
           <input type="hidden" name="request_date" value={initialRequestDate ?? today()} />
@@ -192,6 +193,9 @@ export function PurchaseRequestForm({
                   <Plus className="h-4 w-4" />
                   Add line
                 </Button>
+                <SubmitButton type="submit" name="intent" value="submit" pendingLabel="Submitting..." className="hidden xl:hidden md:inline-flex">
+                  Submit PR
+                </SubmitButton>
               </div>
             </div>
             <div className="divide-y">
@@ -216,33 +220,34 @@ export function PurchaseRequestForm({
                         <button type="button" className="flex h-[var(--sb-control-height)] w-10 shrink-0 items-center justify-center border-l border-[var(--sb-border)] text-[var(--sb-green-900)] hover:bg-[var(--sb-surface-muted)] active:bg-[var(--sb-green-100)]" onClick={() => adjustLineQuantity(line, 1)} aria-label={`Increase quantity for ${line.itemSearch || "request line"}`}><Plus className="h-4 w-4" /></button>
                       </div>
                     </Field>
-                    <Field label="UOM" required className="col-span-2 md:col-start-3">
-                      <SelectNative name="line_uom" value={line.uom} onChange={(event) => updateLine(line.key, { uom: event.target.value })}>
-                      <option value="">Select UOM</option>
-                      {uomOptionsWithCurrent(line.uom).map((uom) => (
-                        <option key={uom} value={uom}>{uom}</option>
-                      ))}
-                      </SelectNative>
-                    </Field>
-                  <div className="absolute right-2 top-2 md:static md:col-start-4 md:flex md:items-end md:justify-end">
-                    <Button type="button" variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground md:h-[var(--sb-control-height)] md:w-[var(--sb-control-height)]" aria-label="Remove line" disabled={lines.length === 1} onClick={() => setLines((current) => current.filter((row) => row.key !== line.key))}>
-                      <X className="h-4 w-4" />
-                    </Button>
-                  </div>
+                  {!canViewCommercial ? <Field label="UOM" required className="col-span-2 md:col-start-3">
+                    <SelectNative name="line_uom" value={line.uom} onChange={(event) => updateLine(line.key, { uom: event.target.value })}>
+                    <option value="">Select UOM</option>
+                    {uomOptionsWithCurrent(line.uom).map((uom) => (
+                      <option key={uom} value={uom}>{uom}</option>
+                    ))}
+                    </SelectNative>
+                  </Field> : null}
                   {canViewCommercial ? (
-                    <div className="col-span-2 grid grid-cols-[minmax(0,1.35fr)_minmax(0,0.8fr)] gap-2 border-t border-[var(--sb-border-soft)] pt-2 text-xs md:col-span-4 md:grid-cols-3">
+                    <div className="col-span-2 grid grid-cols-[minmax(0,1.35fr)_minmax(0,0.8fr)_minmax(4.75rem,0.7fr)_2.75rem] gap-2 border-t border-[var(--sb-border-soft)] pt-2 text-xs md:col-span-4 md:grid-cols-[minmax(0,1.35fr)_minmax(0,0.8fr)_minmax(6rem,0.7fr)_var(--sb-control-height)]">
                         <Field label="Suggested supplier" className="[&>label]:text-[11px]"><SelectNative className="text-xs" name="line_suggested_supplier_id" value={line.supplierId} onChange={(event) => {
                           const mapping = supplierMappings.find((candidate) => candidate.branch_id === branchId && candidate.item_id === line.itemId && candidate.supplier_id === event.target.value);
                           updateLine(line.key, { supplierId: event.target.value, ...(mapping ? { cost: String(mapping.unit_cost), uom: normalizeUom(mapping.purchase_uom) } : {}) });
                         }}><option value="">{line.itemId ? "Select mapped supplier" : "Select an item first"}</option>{supplierMappings.filter((mapping) => mapping.branch_id === branchId && mapping.item_id === line.itemId).map((mapping) => <option key={mapping.id} value={mapping.supplier_id}>{mapping.supplier_name}{mapping.is_preferred ? " (Preferred)" : ""}</option>)}</SelectNative></Field>
                         <Field label="Est. cost" className="[&>label]:text-[11px]"><Input className="text-xs" name="line_estimated_unit_cost" type="number" min="0" step="0.0001" value={line.cost} onChange={(event) => updateLine(line.key, { cost: event.target.value })} /></Field>
-                        <Field label="Line note" className="col-span-2 [&>label]:text-[11px] md:col-span-1"><Input className="text-xs" name="line_remarks" value={line.remarks} onChange={(event) => updateLine(line.key, { remarks: event.target.value })} placeholder="Optional" /></Field>
+                        <Field label="UOM" required className="[&>label]:text-[11px]"><SelectNative className="text-xs" name="line_uom" value={line.uom} onChange={(event) => updateLine(line.key, { uom: event.target.value })}><option value="">Select UOM</option>{uomOptionsWithCurrent(line.uom).map((uom) => <option key={uom} value={uom}>{uom}</option>)}</SelectNative></Field>
+                        {lines.length > 1 ? <Button type="button" variant="ghost" size="icon" className="mt-[1.125rem] h-[var(--sb-control-height)] w-[var(--sb-control-height)] text-muted-foreground" aria-label="Remove line" onClick={() => setLines((current) => current.filter((row) => row.key !== line.key))}><X className="h-4 w-4" /></Button> : <span aria-hidden="true" />}
+                        <details className="col-span-4 border-t border-[var(--sb-border-soft)] pt-2">
+                          <summary className="cursor-pointer text-[11px] font-medium text-muted-foreground">Line note <span className="font-normal">(optional)</span></summary>
+                          <Input className="mt-2 text-xs" name="line_remarks" value={line.remarks} onChange={(event) => updateLine(line.key, { remarks: event.target.value })} placeholder="Add delivery or handling context" />
+                        </details>
                     </div>
                   ) : (
                     <>
                       <input type="hidden" name="line_suggested_supplier_id" value={line.supplierId} />
                       <input type="hidden" name="line_estimated_unit_cost" value={line.cost} />
                       <input type="hidden" name="line_remarks" value={line.remarks} />
+                      {lines.length > 1 ? <div className="col-span-2 flex justify-end"><Button type="button" variant="ghost" size="icon" className="h-[var(--sb-control-height)] w-[var(--sb-control-height)] text-muted-foreground" aria-label="Remove line" onClick={() => setLines((current) => current.filter((row) => row.key !== line.key))}><X className="h-4 w-4" /></Button></div> : null}
                     </>
                   )}
                   {line.itemId && !supplierMappings.some((mapping) => mapping.branch_id === branchId && mapping.item_id === line.itemId) ? <p className="md:col-span-4 text-xs font-medium text-destructive">No supplier is mapped to this item for the selected branch. Add a Branch Supplier Mapping before submitting.</p> : null}
@@ -253,6 +258,9 @@ export function PurchaseRequestForm({
             </div>
           </section>
 
+          <SubmitButton type="submit" name="intent" value="submit" pendingLabel="Submitting..." className="fixed bottom-[calc(var(--sb-mobile-nav-height)+env(safe-area-inset-bottom)+4.5rem)] right-4 z-[var(--sb-z-sticky)] h-12 w-12 rounded-full border-[var(--sb-green-800)] p-0 shadow-[0_6px_18px_rgb(6_44_31_/_0.24)] md:hidden" aria-label="Submit PR" title="Submit PR">
+            <Send className="h-5 w-5" aria-hidden="true" />
+          </SubmitButton>
           <Button type="button" size="icon" className="fixed bottom-[calc(var(--sb-mobile-nav-height)+env(safe-area-inset-bottom)+1rem)] right-4 z-[var(--sb-z-sticky)] h-12 w-12 rounded-full border-[var(--sb-green-800)] shadow-[0_6px_18px_rgb(6_44_31_/_0.24)] md:hidden" onClick={addLine} aria-label="Add request line" title="Add request line">
             <Plus className="h-5 w-5" />
           </Button>

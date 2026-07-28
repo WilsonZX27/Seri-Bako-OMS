@@ -107,7 +107,6 @@ export function MobileAppNavigation({
   companyName: string;
 }) {
   const pathname = usePathname();
-  const isFocusedTask = /\/(?:new|edit)$/.test(pathname);
   const [moreOpen, setMoreOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const triggerRef = useRef<HTMLButtonElement>(null);
@@ -130,12 +129,13 @@ export function MobileAppNavigation({
 
   useEffect(() => {
     const root = document.documentElement;
+    const isFocusedTask = /\/(?:new|edit)$/.test(pathname);
     if (isFocusedTask) root.dataset.mobileTaskPage = "true";
     else delete root.dataset.mobileTaskPage;
     return () => {
       delete root.dataset.mobileTaskPage;
     };
-  }, [isFocusedTask]);
+  }, [pathname]);
 
   useEffect(() => {
     if (!moreOpen) return;
@@ -172,16 +172,14 @@ export function MobileAppNavigation({
     };
   }, [moreOpen]);
 
-  if (isFocusedTask) return null;
-
   return (
     <>
       <nav
         data-mobile-app-nav
         aria-label="Primary mobile navigation"
-        className="fixed inset-x-0 bottom-0 z-[var(--sb-z-sticky)] border-t border-[var(--sb-border)] bg-[var(--sb-surface)] pb-[env(safe-area-inset-bottom)] md:hidden"
+        className="fixed inset-x-0 bottom-0 z-[var(--sb-z-sticky)] border-t border-[var(--sb-border)] bg-[var(--sb-surface)] pb-[env(safe-area-inset-bottom)] xl:hidden"
       >
-        <div className="grid min-h-[var(--sb-mobile-nav-height)] grid-cols-5">
+        <div className="mx-auto grid min-h-[var(--sb-mobile-nav-height)] max-w-3xl grid-cols-5">
           {tabs.map((tab) => {
             const active = isCurrentPath(pathname, tab.href);
             const Icon = tab.icon;
@@ -216,7 +214,7 @@ export function MobileAppNavigation({
       </nav>
 
       {moreOpen ? (
-        <div className="fixed inset-0 z-[var(--sb-z-dialog)] md:hidden">
+        <div className="fixed inset-0 z-[var(--sb-z-dialog)] xl:hidden">
           <button type="button" className="sb-dialog-backdrop absolute inset-0 h-full w-full" aria-label="Close navigation" onClick={() => setMoreOpen(false)} />
           <div
             ref={dialogRef}

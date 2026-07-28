@@ -20,6 +20,10 @@ test("shared overlays and menus use the canonical release surfaces", () => {
     assert.match(source, /event\.key === "Escape"/);
     assert.match(source, /\.focus\(\)/);
   }
+  assert.match(actionDropdown, /document\.body\.style\.overflow = "hidden"/);
+  assert.match(actionDropdown, /aria-modal="true"/);
+  assert.match(actionDropdown, /event\.key !== "Tab"/);
+  assert.match(actionDropdown, /fixed right-3 top-\[calc\(var\(--sb-topbar-height\)\+0\.5rem\)\]/);
 });
 
 test("annotated actions and compact tables are implemented through shared structures", () => {

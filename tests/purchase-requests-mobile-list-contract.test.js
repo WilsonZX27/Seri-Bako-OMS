@@ -16,14 +16,14 @@ test("purchase-request list uses device-appropriate list surfaces and anchors th
 
 test("purchase-request creation remains permission guarded", () => {
   assert.match(page, /permissions\["pr\.create"\]/);
-  assert.match(page, /data-mobile-primary-action/);
-  assert.match(page, /href="\/purchase-requests\/new"/);
+  assert.ok(page.includes('action={permissions["pr.create"] ? { href: "/purchase-requests/new", label: "New PR" } : undefined}'));
+  assert.ok(page.includes('href: "/purchase-requests/new"'));
 });
 
 test("phone list clears fixed actions and keeps the active status visible", () => {
-  assert.match(workspace, /rightRail && !hideMobileConsole && "pb-32 md:pb-3"/);
+  assert.match(workspace, /rightRail && !hideMobileConsole && "pb-32 xl:pb-3"/);
   assert.match(tabs, /matchMedia\("\(max-width: 767px\)"\)/);
   assert.match(tabs, /scrollIntoView\(\{ block: "nearest", inline: "center" \}\)/);
   assert.match(tabs, /ref=\{active \? activeTabRef : undefined\}/);
-  assert.match(page, /hideMobileConsole=\{!permissions\["pr\.create"\]\}/);
+  assert.match(page, /hideMobileConsole/);
 });

@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { Pencil } from "lucide-react";
 import { BulkSelectAllCheckbox, BulkSelectionProvider, BulkSelectRowCheckbox } from "@/components/bulk-selection";
 import { BulkPhaseOneDelete } from "@/components/bulk-phase-one-delete";
@@ -40,18 +39,17 @@ export default async function PurchaseRequestsPage({ searchParams }: { searchPar
   const filtered = hasActiveFilters(filters);
   return (
     <>
-      <PageHeader title="Purchase Requests" description="Create, review, return, and convert branch requests into purchase orders." />
+      <PageHeader
+        title="Purchase Requests"
+        description="Create, review, return, and convert branch requests into purchase orders."
+        action={permissions["pr.create"] ? { href: "/purchase-requests/new", label: "New PR" } : undefined}
+        secondaryAction={permissions["pr.view_branch"] ? { href: "/api/export/purchase-requests", label: "Export CSV" } : undefined}
+      />
       <WorkspaceGrid
         className="pt-4"
-        hideMobileConsole={!permissions["pr.create"]}
+        hideMobileConsole
         rightRail={
           <>
-            {permissions["pr.create"] || permissions["pr.view_branch"] ? <ConsoleSection title="Actions">
-              <div className="grid gap-2">
-                {permissions["pr.create"] ? <Button asChild size="sm" className="w-full" data-mobile-primary-action><Link href="/purchase-requests/new">New PR</Link></Button> : null}
-                {permissions["pr.view_branch"] ? <Button asChild variant="outline" size="sm" className="w-full" data-mobile-primary-action={!permissions["pr.create"] || undefined}><Link href="/api/export/purchase-requests">Export CSV</Link></Button> : null}
-              </div>
-            </ConsoleSection> : null}
             <ConsoleSection title="PR Summary">
               <div className="grid gap-2 text-xs">
                 <div className="flex justify-between"><span className="text-muted-foreground">Total PRs</span><strong>{summary.total}</strong></div>

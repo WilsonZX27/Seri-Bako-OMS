@@ -4,6 +4,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import { looseSupabase } from "@/lib/supabase/loose";
 import { requireActiveTenantActor } from "@/server/auth/tenant-actor";
+import { logServerError } from "@/server/observability/logger";
 import { getCompanyBranding } from "@/server/queries/common";
 
 type BackupClassification =
@@ -106,7 +107,11 @@ export const MAX_ZIP_OUTPUT_BYTES = serverLimit("BACKUP_MAX_ZIP_OUTPUT_BYTES", 7
 function csvEscape(value: unknown) {
   if (value === null || value === undefined) return "";
   const text = typeof value === "object" ? JSON.stringify(value) : String(value);
-  return /[",\r\n]/.test(text) ? `"${text.replaceAll('"', '""')}"` : text;
+  // Spreadsheet applications evaluate cells that begin with these characters
+  // as formulas. Imported names, remarks, and references are user-controlled,
+  // so neutralise the formula marker before building any CSV export or backup.
+  const safeText = /^[=+\-@]/.test(text) ? `'${text}` : text;
+  return /[",\r\n]/.test(safeText) ? `"${safeText.replaceAll('"', '""')}"` : safeText;
 }
 
 export function rowsToCsv(rows: Record<string, unknown>[]) {
@@ -264,7 +269,7 @@ export async function generateSystemBackupZip(options: { includeLogs?: boolean; 
       created_by: access.actor.staffId,
     });
   } catch (error) {
-    console.error("Backup audit log failed", { correlationId, actorStaffId: access.actor.staffId, actorCompanyId: access.actor.companyId, error });
+    logServerError(error, { source: "backup.audit-log", requestId: correlationId, actorId: access.actor.staffId, companyId: access.actor.companyId });
   }
 
   let buffer: Buffer;

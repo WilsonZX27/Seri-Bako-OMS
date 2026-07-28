@@ -21,7 +21,6 @@ export default async function OpeningStockImportPage() {
       </>
     );
   } catch (error) {
-    console.error(error);
     return (
       <>
         <PageHeader title="Import Opening Stock" description="Post branch opening balances through the Movement Ledger instead of editing stock directly." />

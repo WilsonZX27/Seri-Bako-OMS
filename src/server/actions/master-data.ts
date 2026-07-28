@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { z } from "zod";
 import { isMockMode } from "@/lib/mock-mode";
 import { createClient } from "@/lib/supabase/server";
 import { supplierItemSchema, uomConversionSchema } from "@/lib/validations/master-data";
@@ -13,6 +14,10 @@ import { requireActiveTenantActor } from "@/server/auth/tenant-actor";
 function cleanText(value: FormDataEntryValue | null) {
   const text = String(value ?? "").trim();
   return text.length ? text : null;
+}
+
+function parseRecordId(id: string) {
+  return z.uuid().parse(id);
 }
 
 function supplierItemPayload(formData: FormData) {
@@ -52,11 +57,13 @@ export async function createSupplierItem(formData: FormData) {
 
 export async function updateSupplierItem(id: string, formData: FormData) {
   await requirePermission("supplier_items.update");
+  const supplierItemId = parseRecordId(id);
   const payload = supplierItemPayload(formData);
   if (!isMockMode()) {
-    const supabase = await createClient();
-    const { error } = await supabase.from("supplier_items").update(payload).eq("id", id);
+    const [supabase, actor] = [await createClient(), await requireActiveTenantActor()];
+    const { data, error } = await supabase.from("supplier_items").update(payload).eq("id", supplierItemId).eq("company_id", actor.companyId).select("id").maybeSingle();
     if (error) throw new Error(error.message);
+    if (!data) throw new Error("Supplier item was not found or is outside your workspace.");
     await writeActivityLog({ entityType: "supplier_item", entityId: id, activityType: "updated", message: `Supplier item ${payload.supplier_item_code} updated` });
   }
   revalidatePath("/supplier-items");
@@ -66,10 +73,12 @@ export async function updateSupplierItem(id: string, formData: FormData) {
 export async function deleteSupplierItem(id: string) {
   await requirePermissionOrRedirect("supplier_items.update", "/supplier-items");
   try {
+    const supplierItemId = parseRecordId(id);
     if (!isMockMode()) {
-      const supabase = await createClient();
-      const { error } = await supabase.from("supplier_items").update({ status: "archived", deleted_at: new Date().toISOString() }).eq("id", id);
+      const [supabase, actor] = [await createClient(), await requireActiveTenantActor()];
+      const { data, error } = await supabase.from("supplier_items").update({ status: "archived", deleted_at: new Date().toISOString() }).eq("id", supplierItemId).eq("company_id", actor.companyId).select("id").maybeSingle();
       if (error) throw new Error(error.message);
+      if (!data) throw new Error("Supplier item was not found or is outside your workspace.");
       await writeActivityLog({ entityType: "supplier_item", entityId: id, activityType: "archived", message: "Supplier item archived" });
     }
   } catch (error) {
@@ -104,11 +113,13 @@ export async function createUomConversion(formData: FormData) {
 
 export async function updateUomConversion(id: string, formData: FormData) {
   await requirePermission("uom_conversions.update");
+  const conversionId = parseRecordId(id);
   const payload = uomPayload(formData);
   if (!isMockMode()) {
-    const supabase = await createClient();
-    const { error } = await supabase.from("uom_conversions").update(payload).eq("id", id);
+    const [supabase, actor] = [await createClient(), await requireActiveTenantActor()];
+    const { data, error } = await supabase.from("uom_conversions").update(payload).eq("id", conversionId).eq("company_id", actor.companyId).select("id").maybeSingle();
     if (error) throw new Error(error.message);
+    if (!data) throw new Error("UOM conversion was not found or is outside your workspace.");
     await writeActivityLog({ entityType: "uom_conversion", entityId: id, activityType: "updated", message: `${payload.from_uom} to ${payload.to_uom} conversion updated` });
   }
   revalidatePath("/uom-conversions");
@@ -118,10 +129,12 @@ export async function updateUomConversion(id: string, formData: FormData) {
 export async function deleteUomConversion(id: string) {
   await requirePermissionOrRedirect("uom_conversions.update", "/uom-conversions");
   try {
+    const conversionId = parseRecordId(id);
     if (!isMockMode()) {
-      const supabase = await createClient();
-      const { error } = await supabase.from("uom_conversions").update({ status: "archived", deleted_at: new Date().toISOString() }).eq("id", id);
+      const [supabase, actor] = [await createClient(), await requireActiveTenantActor()];
+      const { data, error } = await supabase.from("uom_conversions").update({ status: "archived", deleted_at: new Date().toISOString() }).eq("id", conversionId).eq("company_id", actor.companyId).select("id").maybeSingle();
       if (error) throw new Error(error.message);
+      if (!data) throw new Error("UOM conversion was not found or is outside your workspace.");
       await writeActivityLog({ entityType: "uom_conversion", entityId: id, activityType: "archived", message: "UOM conversion archived" });
     }
   } catch (error) {

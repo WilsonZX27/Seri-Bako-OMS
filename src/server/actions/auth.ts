@@ -8,8 +8,10 @@ import { getAppUrl } from "@/lib/site-url";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import { formatActionError } from "@/server/actions/error-handling";
+import { readEmailInput, readPasswordChangeInput, readSignInInput } from "@/server/auth/auth-input";
 import { resolveEffectivePermission } from "@/server/auth/permissions";
 import { acceptCurrentStaffInvite, requireCurrentLinkedStaff } from "@/server/auth/staff-session";
+import { logServerError } from "@/server/observability/logger";
 
 async function requireLinkedStaffForAuthUser(_userId: string, _email: string | null) {
   void _userId;
@@ -22,20 +24,38 @@ export async function signIn(formData: FormData) {
     redirect(getLandingIaItems("super_admin")[0]?.href ?? "/access-status?reason=no-permitted-route");
   }
 
-  const email = String(formData.get("email") ?? "");
-  const password = String(formData.get("password") ?? "");
+  const parsed = readSignInInput(formData);
+  if (!parsed.success) {
+    redirect(`/login?error=${encodeURIComponent(parsed.error.issues[0]?.message ?? "Enter a valid email and password.")}`);
+  }
+  const { email, password } = parsed.data;
   const supabase = await createClient();
 
   const { error } = await supabase.auth.signInWithPassword({ email, password });
   if (error) {
-    redirect(`/login?error=${encodeURIComponent(error.message)}`);
+    logServerError(error, { source: "auth.sign-in" });
+    redirect(`/login?error=${encodeURIComponent("Invalid email or password.")}`);
   }
 
-  const { data: staff } = await supabase
+  const {
+    data: { user },
+    error: userError,
+  } = await supabase.auth.getUser();
+  if (userError || !user) {
+    logServerError(userError ?? "Signed-in user was unavailable after authentication.", { source: "auth.sign-in.current-user" });
+    await supabase.auth.signOut();
+    redirect(`/login?error=${encodeURIComponent("We could not complete your sign-in. Please try again.")}`);
+  }
+
+  const { data: staff, error: staffError } = await supabase
     .from("staffs")
     .select("id, must_change_password")
-    .eq("auth_user_id", (await supabase.auth.getUser()).data.user?.id ?? "")
+    .eq("auth_user_id", user.id)
     .maybeSingle();
+  if (staffError) {
+    logServerError(staffError, { source: "auth.sign-in.staff-lookup", actorId: user.id });
+    redirect("/access-status?reason=workspace-unavailable");
+  }
   if (staff?.must_change_password) {
     redirect("/change-password");
   }
@@ -74,10 +94,11 @@ export async function sendPasswordReset(formData: FormData) {
     redirect(`/login?message=${encodeURIComponent("Password reset email sent.")}`);
   }
 
-  const email = String(formData.get("email") ?? "").trim().toLowerCase();
-  if (!email) {
-    redirect("/forgot-password?error=Email is required.");
+  const parsed = readEmailInput(formData.get("email"));
+  if (!parsed.success) {
+    redirect(`/forgot-password?error=${encodeURIComponent(parsed.error.issues[0]?.message ?? "Enter a valid work email address.")}`);
   }
+  const email = parsed.data;
 
   const supabase = await createClient();
   const redirectTo = `${await getAppUrl()}/auth/callback?next=/set-password`;
@@ -94,16 +115,13 @@ export async function updatePassword(formData: FormData) {
     redirect("/set-password?success=1");
   }
 
-  const password = String(formData.get("password") ?? "");
-  const confirmPassword = String(formData.get("confirm_password") ?? "");
+  const parsed = readPasswordChangeInput(formData);
+  if (!parsed.success) {
+    redirect(`/set-password?error=${encodeURIComponent(parsed.error.issues[0]?.message ?? "Review the password fields and try again.")}`);
+  }
+  const { password } = parsed.data;
   const expectedUserId = String(formData.get("invited_user_id") ?? "");
   const expectedEmail = String(formData.get("invited_email") ?? "").trim().toLowerCase();
-  if (password.length < 8) {
-    redirect("/set-password?error=Password must be at least 8 characters.");
-  }
-  if (password !== confirmPassword) {
-    redirect("/set-password?error=Passwords do not match.");
-  }
 
   const supabase = await createClient();
   const {
@@ -149,14 +167,11 @@ export async function changePassword(formData: FormData) {
     redirect("/dashboard");
   }
 
-  const password = String(formData.get("password") ?? "");
-  const confirmPassword = String(formData.get("confirm_password") ?? "");
-  if (password.length < 8) {
-    redirect("/change-password?error=Password must be at least 8 characters.");
+  const parsed = readPasswordChangeInput(formData);
+  if (!parsed.success) {
+    redirect(`/change-password?error=${encodeURIComponent(parsed.error.issues[0]?.message ?? "Review the password fields and try again.")}`);
   }
-  if (password !== confirmPassword) {
-    redirect("/change-password?error=Passwords do not match.");
-  }
+  const { password } = parsed.data;
 
   const supabase = await createClient();
   const {
@@ -187,7 +202,7 @@ export async function changePassword(formData: FormData) {
   try {
     admin = createAdminClient();
   } catch (adminError) {
-    console.error(adminError);
+    logServerError(adminError, { source: "auth.change-password.admin-client" });
     redirect(`/change-password?error=${encodeURIComponent("Password was changed, but your staff profile could not be updated. Please contact the Super Admin / Owner.")}`);
   }
   const { error: staffUpdateError } = await admin
@@ -203,7 +218,7 @@ export async function changePassword(formData: FormData) {
     .eq("id", staff.id);
 
   if (staffUpdateError) {
-    console.error(staffUpdateError);
+    logServerError(staffUpdateError, { source: "auth.change-password.staff-update", actorId: user.id });
     redirect(`/change-password?error=${encodeURIComponent("Password was changed, but your staff profile could not be updated. Please contact the Super Admin / Owner.")}`);
   }
 

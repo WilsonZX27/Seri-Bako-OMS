@@ -6,7 +6,7 @@ const test = require("node:test");
 const root = path.join(__dirname, "..");
 const read = (...parts) => fs.readFileSync(path.join(root, ...parts), "utf8");
 
-test("tablet keeps workspace actions in context instead of a phone action bar", () => {
+test("tablet keeps role navigation sticky while primary actions stay visible", () => {
   const workspaceGrid = read("src", "components", "layout", "workspace-layout.tsx");
   const rightConsole = read("src", "components", "layout", "right-console.tsx");
   const appLayout = read("src", "app", "(app)", "layout.tsx");
@@ -15,15 +15,18 @@ test("tablet keeps workspace actions in context instead of a phone action bar", 
   const topBar = read("src", "components", "layout", "top-bar.tsx");
   const tabletSidebar = read("src", "components", "layout", "mobile-sidebar.tsx");
 
-  assert.match(workspaceGrid, /data-tablet-context/);
-  assert.match(workspaceGrid, /md:ml-auto md:block md:w-fit xl:hidden/);
-  assert.match(rightConsole, /"md:hidden"/);
+  assert.doesNotMatch(workspaceGrid, /data-tablet-context/);
+  assert.doesNotMatch(workspaceGrid, /absolute right-0 z-\[var\(--sb-z-dropdown\)\]/);
+  assert.match(rightConsole, /"xl:hidden"/);
   assert.doesNotMatch(rightConsole, /mobileOnlyBar/);
-  assert.match(appLayout, /md:pb-4 xl:pb-0/);
-  assert.match(documentWorkspace, /mobilePrimaryAction && "pb-20 md:pb-3"/);
-  assert.match(documentWorkspace, /md:hidden \[&>\*\]:w-full/);
-  assert.match(stockCountForm, /pb-20 md:pb-0/);
-  assert.match(stockCountForm, /hidden md:inline-flex/);
+  assert.match(appLayout, /pb-\[calc\(var\(--sb-mobile-nav-height\)\+env\(safe-area-inset-bottom\)\+1rem\)\] xl:pb-0/);
+  assert.doesNotMatch(appLayout, /lg:pb-4/);
+  assert.match(documentWorkspace, /mobilePrimaryAction && "pb-20 xl:pb-3"/);
+  assert.match(documentWorkspace, /xl:hidden \[&>\*\]:w-full/);
+  assert.match(stockCountForm, /pb-20 xl:pb-0/);
+  // Tablet's visible primary action is the shared sticky task action; the
+  // duplicate in-surface button begins only at the desktop shell breakpoint.
+  assert.match(stockCountForm, /hidden xl:inline-flex/);
   assert.match(topBar, /<MobileSidebar/);
   assert.match(tabletSidebar, /hidden md:inline-flex xl:hidden/);
   assert.match(tabletSidebar, /fixed inset-0 z-50 hidden md:block xl:hidden/);

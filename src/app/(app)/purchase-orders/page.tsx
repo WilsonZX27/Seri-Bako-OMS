@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { Pencil } from "lucide-react";
 import { BulkSelectAllCheckbox, BulkSelectionProvider, BulkSelectRowCheckbox } from "@/components/bulk-selection";
 import { DataGridRow } from "@/components/ui/data-grid-row";
@@ -35,17 +34,17 @@ export default async function PurchaseOrdersPage({ searchParams }: { searchParam
   const filtered = hasActiveFilters(filters);
   return (
     <>
-      <PageHeader title="Purchase Orders" description="Supplier purchase orders created from approved requests or manually." />
+      <PageHeader
+        title="Purchase Orders"
+        description="Supplier purchase orders created from approved requests or manually."
+        action={permissions["po.create"] ? { href: "/purchase-orders/new", label: "New PO" } : undefined}
+        secondaryAction={permissions["po.create"] ? { href: "/api/export/purchase-orders", label: "Export CSV" } : undefined}
+      />
       <WorkspaceGrid
         className="pt-4"
-        hideMobileConsole={!permissions["po.create"]}
+        hideMobileConsole
         rightRail={
           <>
-            {permissions["po.create"] ? <ConsoleSection title="Actions">
-              <div className="grid gap-2">
-                {permissions["po.create"] ? <><Button asChild size="sm" className="w-full" data-mobile-primary-action><Link href="/purchase-orders/new">New PO</Link></Button><Button asChild variant="outline" size="sm" className="w-full"><Link href="/api/export/purchase-orders">Export CSV</Link></Button></> : null}
-              </div>
-            </ConsoleSection> : null}
             <ConsoleSection title="PO Summary">
               <div className="grid gap-2 text-xs">
                 <div className="flex justify-between"><span className="text-muted-foreground">Total POs</span><strong>{summary.total}</strong></div>

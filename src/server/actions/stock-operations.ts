@@ -1,6 +1,5 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { isMockMode, mockCompany, mockProfile } from "@/lib/mock-mode";
 import { createClient } from "@/lib/supabase/server";
@@ -15,6 +14,10 @@ import { z } from "zod";
 async function identity() {
   if (isMockMode()) return { company_id: mockCompany.id, id: mockProfile.id };
   return getCurrentProfile();
+}
+
+function parseOperationalRecordId(id: string, label: string) {
+  return z.string().uuid(`The ${label} identifier is invalid.`).parse(id);
 }
 
 function extractTransfer(formData: FormData) {
@@ -78,28 +81,31 @@ export async function createStockTransfer(formData: FormData) {
 export async function postStockTransfer(id: string) {
   await requirePermission("stock_transfer.post");
   if (isMockMode()) return;
+  const transferId = parseOperationalRecordId(id, "stock transfer");
   const supabase = await createClient();
-  const { error } = await supabase.rpc("post_stock_transfer_atomic", { p_transfer_id: id });
+  const { error } = await supabase.rpc("post_stock_transfer_atomic", { p_transfer_id: transferId });
   if (error) throw new Error(error.message);
-  revalidatePath("/inventory"); revalidatePath("/stock-balance"); revalidatePath("/stock-card"); revalidatePath("/stock-transactions");
+  revalidateWorkspaceState(["/stock-transfers", `/stock-transfers/${transferId}`, "/inventory", "/stock-balance", "/stock-card", "/stock-transactions"]);
 }
 
 export async function startStockTransfer(id: string) {
   await requirePermission("stock_transfer.update");
   if (isMockMode()) return;
+  const transferId = parseOperationalRecordId(id, "stock transfer");
   const supabase = await createClient();
-  const { error } = await supabase.rpc("dispatch_stock_transfer_atomic", { p_transfer_id: id });
+  const { error } = await supabase.rpc("dispatch_stock_transfer_atomic", { p_transfer_id: transferId });
   if (error) throw new Error(error.message);
-  revalidateWorkspaceState(["/inventory", "/stock-balance", "/stock-card", "/stock-transactions"]);
+  revalidateWorkspaceState(["/stock-transfers", `/stock-transfers/${transferId}`, "/inventory", "/stock-balance", "/stock-card", "/stock-transactions"]);
 }
 async function transitionStockTransferTerminal(id: string, action: "cancel" | "reject") {
   if (action === "cancel") await requirePermission("stock_transfer.cancel");
   else await requirePermission("stock_transfer.update");
   if (isMockMode()) return;
+  const transferId = parseOperationalRecordId(id, "stock transfer");
   const supabase = await createClient();
-  const { error } = await supabase.rpc("transition_stock_transfer_terminal_atomic", { p_transfer_id: id, p_action: action });
+  const { error } = await supabase.rpc("transition_stock_transfer_terminal_atomic", { p_transfer_id: transferId, p_action: action });
   if (error) throw new Error(error.message);
-  revalidateWorkspaceState(["/stock-transfers", `/stock-transfers/${id}`]);
+  revalidateWorkspaceState(["/stock-transfers", `/stock-transfers/${transferId}`]);
 }
 
 export async function cancelStockTransfer(id: string) { await transitionStockTransferTerminal(id, "cancel"); }
@@ -131,20 +137,22 @@ export async function createStockWastage(formData: FormData) {
 export async function postStockWastage(id: string) {
   await requirePermission("stock_wastage.post");
   if (isMockMode()) return;
+  const wastageId = parseOperationalRecordId(id, "stock wastage");
   const supabase = await createClient();
-  const { error } = await supabase.rpc("post_stock_wastage_atomic", { p_wastage_id: id });
+  const { error } = await supabase.rpc("post_stock_wastage_atomic", { p_wastage_id: wastageId });
   if (error) throw new Error(error.message);
-  revalidateWorkspaceState(["/stock-wastage", `/stock-wastage/${id}`, "/inventory", "/stock-balance", "/stock-card", "/stock-transactions"]);
+  revalidateWorkspaceState(["/stock-wastage", `/stock-wastage/${wastageId}`, "/inventory", "/stock-balance", "/stock-card", "/stock-transactions"]);
 }
 
 async function transitionStockWastageTerminal(id: string, action: "cancel" | "reject") {
   if (action === "cancel") await requirePermission("stock_wastage.cancel");
   else await requirePermission("stock_wastage.update");
   if (isMockMode()) return;
+  const wastageId = parseOperationalRecordId(id, "stock wastage");
   const supabase = await createClient();
-  const { error } = await supabase.rpc("transition_stock_wastage_terminal_atomic", { p_wastage_id: id, p_action: action });
+  const { error } = await supabase.rpc("transition_stock_wastage_terminal_atomic", { p_wastage_id: wastageId, p_action: action });
   if (error) throw new Error(error.message);
-  revalidateWorkspaceState(["/stock-wastage", `/stock-wastage/${id}`]);
+  revalidateWorkspaceState(["/stock-wastage", `/stock-wastage/${wastageId}`]);
 }
 
 export async function cancelStockWastage(id: string) { await transitionStockWastageTerminal(id, "cancel"); }

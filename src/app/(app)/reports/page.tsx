@@ -116,7 +116,7 @@ export default async function ReportsPage() {
                         <p className="truncate text-xs font-medium">{report.title}</p>
                         <p className="truncate text-[11px] text-muted-foreground">{report.description}</p>
                       </div>
-                      <Button asChild variant="outline" size="sm" className="h-8 px-2 text-xs">
+                      <Button asChild variant="outline" size="sm" className="px-2 text-xs">
                         <a href={report.href}>Open</a>
                       </Button>
                     </div>

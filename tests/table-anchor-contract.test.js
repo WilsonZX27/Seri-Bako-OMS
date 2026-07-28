@@ -12,7 +12,9 @@ test("technical tables pin the first semantic identity by default and skip bulk-
   const design = read("DESIGN.md");
 
   assert.match(table, /stickyColumn = "first"/);
-  assert.match(table, /stickyColumn\?: "none" \| "first" \| "second" \| "last"/);
+  assert.match(table, /stickyColumn\?: "none" \| "first" \| "second"/);
+  assert.doesNotMatch(table, /"last"/);
+  assert.match(table, /h-12 w-12[\s\S]*md:h-11 md:w-11[\s\S]*xl:h-8 xl:w-8/);
   assert.match(styles, /data-sticky-column="first"/);
   assert.match(styles, /data-sticky-column="second"/);
   assert.doesNotMatch(styles, /\.sb-table-region th:last-child,/);

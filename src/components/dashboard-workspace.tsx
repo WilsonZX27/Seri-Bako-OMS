@@ -12,16 +12,16 @@ import type { LucideIcon } from "lucide-react";
 type DashboardSummary = Awaited<ReturnType<typeof import("@/server/queries/dashboard").getDashboardSummary>>;
 
 function Metric({ href, label, value, icon: Icon, alert = false }: { href: string; label: string; value: string | number; icon: LucideIcon; alert?: boolean }) {
-  return <Link href={href} className="flex min-h-11 items-center justify-between gap-3 px-1 py-2 hover:bg-[var(--sb-surface-muted)]"><span className="flex min-w-0 items-center gap-2 text-xs font-medium text-muted-foreground"><span className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-[2px] ${alert ? "bg-[var(--sb-warning-bg)] text-[var(--sb-warning)]" : "bg-[var(--sb-neutral-bg)] text-[var(--sb-neutral-text)]"}`}><Icon className="h-4 w-4" /></span><span className="truncate">{label}</span></span><strong className="tabular-nums">{value}</strong></Link>;
+  return <Link href={href} className="flex min-h-[var(--sb-control-height)] items-center justify-between gap-3 px-1 py-2 hover:bg-[var(--sb-surface-muted)]"><span className="flex min-w-0 items-center gap-2 text-xs font-medium text-muted-foreground"><span className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-[2px] ${alert ? "bg-[var(--sb-warning-bg)] text-[var(--sb-warning)]" : "bg-[var(--sb-neutral-bg)] text-[var(--sb-neutral-text)]"}`}><Icon className="h-4 w-4" /></span><span className="truncate">{label}</span></span><strong className="tabular-nums">{value}</strong></Link>;
 }
 
 function Panel({ title, empty, children, action }: { title: string; empty?: string; children?: React.ReactNode; action?: { href: string; label: string } }) {
-  return <section className="rounded-[2px] border border-[var(--sb-border-soft)] bg-card p-3"><div className="mb-2.5 flex items-center justify-between gap-2"><h2 className="text-xs font-semibold">{title}</h2>{action ? <Button asChild variant="ghost" size="sm" className="h-7 px-2 text-[11px]"><Link href={action.href}>{action.label}</Link></Button> : null}</div>{children ?? <p className="text-xs text-muted-foreground">{empty}</p>}</section>;
+  return <section className="rounded-[2px] border border-[var(--sb-border-soft)] bg-card p-3"><div className="mb-2.5 flex items-center justify-between gap-2"><h2 className="text-xs font-semibold">{title}</h2>{action ? <Button asChild variant="ghost" size="sm" className="px-2 text-[11px]"><Link href={action.href}>{action.label}</Link></Button> : null}</div>{children ?? <p className="text-xs text-muted-foreground">{empty}</p>}</section>;
 }
 
 function MobileQuickActions({ actions }: { actions: { href: string; label: string; icon: LucideIcon }[] }) {
   return (
-    <section className="md:hidden" aria-labelledby="mobile-quick-actions-title">
+    <section className="xl:hidden" aria-labelledby="mobile-quick-actions-title">
       <div className="mb-2 flex items-center justify-between">
         <h2 id="mobile-quick-actions-title" className="text-xs font-semibold">Quick actions</h2>
         <span className="text-[11px] text-[var(--sb-text-muted)]">Based on your role</span>
@@ -123,7 +123,7 @@ export function DashboardWorkspace({ summary, renderedAt }: { summary: Dashboard
     </p>
   );
 
-  return <WorkspaceGrid hideMobileConsole className="gap-4 p-3 pb-24 sm:p-4 sm:pb-24 md:pb-4 xl:grid-cols-[minmax(0,1fr)_280px]" rightRailClassName="space-y-2" rightRail={<>
+  return <WorkspaceGrid hideMobileConsole className="gap-4 p-3 pb-24 sm:p-4 sm:pb-24 xl:pb-4 xl:grid-cols-[minmax(0,1fr)_280px]" rightRailClassName="space-y-2" rightRail={<>
     <ConsoleSection title="Actions"><div className="grid gap-2">{quickActions.map((action, index) => <Button key={action.href} asChild size="sm" variant={index === 0 ? "default" : "outline"} className="w-full"><Link href={action.href}>{action.label}</Link></Button>)}</div></ConsoleSection>
     <ConsoleSection title="Today"><div className="space-y-2 text-[11px]"><p><span className="text-muted-foreground">Role</span><br /><strong>{summary.roleLabel}</strong></p><p><span className="text-muted-foreground">Data scope</span><br /><strong>{summary.scopeLabel}</strong></p><p><span className="text-muted-foreground">Updated</span><br /><strong>{now.toLocaleString("en-MY", { dateStyle: "medium", timeStyle: "short", timeZone: "Asia/Kuala_Lumpur" })}</strong></p></div></ConsoleSection>
     {summary.notifications.length ? <ConsoleSection title="Alerts"><div className="space-y-2">{summary.notifications.slice(0, 3).map((note) => <Link key={note.id} href={note.action_url ?? "/activity"} className="block text-[11px] hover:underline"><strong className="block">{note.title}</strong><span className="text-muted-foreground">{note.message}</span></Link>)}</div></ConsoleSection> : null}

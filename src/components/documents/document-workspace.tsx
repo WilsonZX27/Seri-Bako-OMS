@@ -50,6 +50,7 @@ export function DocumentWorkspace({
     <>
       <span data-document-breadcrumb={breadcrumbs.map((crumb) => crumb.label).join("/") || documentNo} className="sr-only" aria-hidden="true" />
       <header className="sticky top-0 z-20 min-w-0 border-b border-[var(--border-muted)] bg-[var(--workspace-bg)] px-3 py-2.5 sm:px-4 sm:py-3">
+        <h1 className="sr-only">{title ?? documentNo}</h1>
         <div data-tablet-document-header className="flex flex-col gap-2 xl:flex-row xl:items-start xl:justify-between">
           <div className="min-w-0">
             <div className="flex flex-wrap items-center gap-2">
@@ -70,7 +71,7 @@ export function DocumentWorkspace({
         </div>
       </header>
 
-      <WorkspaceGrid documentMode tabletRailMode={tabletRailMode} className={cn("min-w-0 p-3", mobilePrimaryAction && "pb-20 md:pb-3")} rightRail={<div>{sidePanel}</div>} hideMobileConsole>
+      <WorkspaceGrid documentMode tabletRailMode={tabletRailMode} className={cn("min-w-0 p-3", mobilePrimaryAction && "pb-20 xl:pb-3")} rightRail={<div>{sidePanel}</div>} hideMobileConsole>
         <div className="min-w-0">
           <div className="min-w-0 space-y-3">
             {children}
@@ -79,7 +80,7 @@ export function DocumentWorkspace({
           </div>
         </div>
       </WorkspaceGrid>
-      {mobilePrimaryAction ? <div data-mobile-document-action className="sb-mobile-action-bar fixed inset-x-3 bottom-[calc(env(safe-area-inset-bottom)+0.5rem)] z-[var(--sb-z-sticky)] min-w-0 p-2 md:hidden [&>*]:w-full">{mobilePrimaryAction}</div> : null}
+      {mobilePrimaryAction ? <div data-mobile-document-action className="sb-mobile-action-bar fixed inset-x-3 bottom-[calc(var(--sb-mobile-nav-height)+env(safe-area-inset-bottom)+0.5rem)] z-[var(--sb-z-sticky)] min-w-0 p-2 xl:hidden [&>*]:w-full">{mobilePrimaryAction}</div> : null}
     </>
   );
 }

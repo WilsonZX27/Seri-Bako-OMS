@@ -7,7 +7,7 @@ This document is the implementation contract for every customer-facing route, fo
 Design mobile first. The base class or CSS rule must be the 320px-639px experience. Enhancement uses the shared Tailwind thresholds only:
 
 - `640px`: large phone / compact tablet; remains a single-column, touch-first experience.
-- `768px`: tablet; the active task keeps the full workspace width. Supporting context opens on demand instead of permanently narrowing forms or item names.
+- `768px`: tablet; the active task keeps the full workspace width. Tablet portrait and landscape use the same components as phone and desktop, with layout density and column placement changing only at this shared breakpoint.
 - `1024px`: laptop desktop; dense line-entry layouts may expand, but a persistent inspection rail still remains hidden.
 - `1280px`: full desktop; left navigation, main workspace, and optional right inspection rail may coexist.
 
@@ -30,9 +30,10 @@ Do not introduce a page-specific breakpoint. These thresholds serve distinct ope
 The OMS is one operational product, not three independently designed sites. Phone may reorganize a workflow for reachability, but tablet and desktop must retain the same data hierarchy, state language, components, and action priority.
 
 - **Phone (`<768px`)** is a focused single-task canvas with a role-aware bottom bar and mobile-only 10px control / 12px panel radii.
-- **Tablet (`768px-1279px`)** is an iPad operational workspace: no persistent side navigation or phone bottom navigation. The shared canvas is either `contained` (touch-focused forms and dashboards, max 64rem) or `wide` (technical registers and ledgers, max 76rem), always with 1rem outer breathing room. The top bar exposes a contextual navigation drawer before breadcrumbs; page actions live in the shared on-demand context panel rather than a phone action bar.
-- On tablet, the shared context panel is a compact, right-aligned trigger above the workspace. It must not reserve a full-width action row while closed; its action and audit content opens as a contained panel.
-- At `1024px-1279px`, a document may opt into the shared tablet split: the editable or review surface remains primary, while a compact 18rem action/context rail remains visible on the right. Below 1024px it returns to the on-demand context panel; at desktop the existing full inspection rail takes over. This is for operational documents with active line entry or receiving, not generic dashboard cards.
+- **Tablet (`768px-1279px`)** is an iPad operational workspace. It uses the same role-aware bottom navigation component as phone, with four or five centered shortcuts and `More`; it does not use a persistent desktop side rail. The bar remains sticky in portrait and landscape, and every page reserves safe bottom space for it.
+- Tablet primary actions are visible in the page action row or in the sticky task action area. They must not be hidden behind `Actions & context`. Context panels are secondary metadata, audit, and low-frequency actions only.
+- `Actions & context` on tablet is a true drawer or sheet with an explicit backdrop and focus/scroll handling. It must never be an absolutely positioned child that overlaps table rows, status cells, or pagination.
+- At `1024px-1279px`, a document may opt into the shared tablet split: the editable or review surface remains primary, while a compact 18rem secondary context rail remains visible on the right. Below 1024px, secondary context uses the shared drawer/sheet opened from `More`; common actions remain in the page action row or sticky task action. This is for operational documents with active line entry or receiving, not generic dashboard cards.
 - **Desktop (`>=1280px`)** is a three-region operational shell: persistent navigation, a flexible central workspace, and an optional 340px inspection/action rail. A record page uses its central width for the data form or ledger; the rail is for next actions, state, audit, and related context, never a duplicate copy of the main form.
 - Context rails use flat divider groups for branch, supplier, and item drill-down. Do not nest rounded cards inside a rail section; hierarchy comes from section labels, spacing, and 1px separators.
 - Tablet and desktop use the compact 2px enterprise radius for panels, controls, menus, table containers, action rows, and icon tiles. Pills are reserved for statuses, counts, and compact semantic badges.
@@ -41,6 +42,21 @@ The OMS is one operational product, not three independently designed sites. Phon
 - The shared Top Bar owns the single canonical breadcrumb trail on tablet and desktop. `DocumentWorkspace` retains supplied breadcrumb metadata for route semantics, but does not render a second in-content breadcrumb trail. New documents show status, branch scope, and workflow only; they never repeat “New [document]” or the parent workspace title.
 - On tablet and desktop, the compact workflow pipeline itself is the canonical visible document status. Do not add a second standalone status badge above it; keep that compact badge for the phone context row only.
 - A record form uses one submit source: the shared desktop inspection rail, tablet context disclosure, and phone safe-area action may reference the same form via `form`; it must not retain an additional page-local submit bar.
+
+### Shared component assembly
+
+Every route is assembled from the same primitives. Responsive work may rearrange a primitive, but may not invent a device-specific replacement.
+
+- **Shell:** Top Bar, role-aware navigation, page title/context, and safe-area handling.
+- **Workspace:** one of `contained`, `wide`, or `full`; the content hierarchy remains the same at every viewport.
+- **Actions:** one visible primary action, followed by secondary inline actions; context drawers are never the only route to a common task.
+- **Records:** status tabs, filter bar, summary strip, semantic table/list, and pagination are shared components with responsive presentations.
+- **Forms:** shared field/control tokens, progressive disclosure for notes and advanced options, and one canonical submit source.
+- **States:** status, warning, error, loading, empty, and read-only states use the same semantic vocabulary across devices.
+
+### Pagination contract
+
+All paginated list, ledger, register, and history views must expose direct page navigation whenever more than one page exists: `Previous`, numbered pages, an ellipsis where needed, and `Next`. Previous/Next-only pagination is permitted only for a genuinely sequential stepper, not for a data list. The current page must be visibly selected, disabled edges must be announced, and page changes must preserve active filters and the semantic identity column.
 
 ## Color and component discipline
 
@@ -55,7 +71,7 @@ The OMS is one operational product, not three independently designed sites. Phon
 
 The authenticated phone experience is an application-style mobile Web layout, not a scaled desktop sidebar.
 
-- Below `768px`, the primary navigation is a five-slot bottom bar: up to four permission-aware role shortcuts plus `More`.
+- Below `1280px`, the primary navigation is a five-slot bottom bar: up to four permission-aware role shortcuts plus `More`. Phone and tablet share the component; tablet uses the same bar with wider centered shortcuts and never falls back to a persistent desktop rail.
 - `More` opens the complete navigation allowed by the current role and effective permission map. It must never expose an unauthorized route.
 - Shortcut destinations are role-aware. Owner and Manager emphasize requests, receiving, and stock count; Finance emphasizes requests, invoices, and stock; Purchasing emphasizes requests, orders, and receiving; Kitchen emphasizes production and assigned operational work; Outlet Staff emphasizes the daily record.
 - Every role receives four permission-safe task destinations plus `More` when its effective permissions allow four destinations. Missing permissions fall back only to another authorized destination; navigation never duplicates a shortcut.
@@ -76,10 +92,11 @@ The mobile shell may reorganize navigation, information density, filters, and ac
 
 - Use `rem`, `em`, design tokens, or `clamp()` for type and spacing. Do not use screen-specific pixel font sizes or page-level pixel padding.
 - Keep labels, status, and instructions concise. On small screens, progressive disclosure is preferred to a long uninterrupted form.
-- Use the shared control-height token. Touch controls are at least 44px on mobile; denser desktop controls may use the tablet/desktop token only when their role remains clear.
+- Use the shared control-height token. Phone controls are 48px; tablet controls are 44px to remain iPad touch-safe; desktop regains 36px compact density at `1280px` and above. Do not let the 640px compact breakpoint reduce a phone control below 48px.
 - Phone controls use the shared 10px control radius and 12px panel radius for an iOS-like touch surface. Tablet and desktop retain the compact 2px enterprise radius.
 - Quantity, currency, and date fields must be large enough to enter and review without zooming. Numeric values use tabular figures and retain a visible unit.
 - Date fields use the shared `Input` control (or an equivalent token-based wrapper); do not introduce bare native date inputs that bypass the mobile control height, radius, border, and focus treatment.
+- Date values render as an invariant `YYYY-MM-DD` label across browser and device locales. The native picker remains available as the input mechanism, but its locale-specific visual value must not be the only visible representation.
 
 ## Mobile color and shape language
 
@@ -108,6 +125,7 @@ The mobile shell may reorganize navigation, information density, filters, and ac
 - Long repeated tasks show useful review progress and provide an in-list find/adjusted-items view. A repeated physical count may prefill each line from its latest posted physical result; when no posted result exists, it may use the current ledger balance as an explicitly labelled starting estimate. Prefill is never hidden, is immediately editable, and the UI must distinguish values ready for review from values the user has adjusted.
 - Quantity controls pair a direct numeric field with decrement/increment controls when rapid adjustment is the primary task. Mass and volume units (`KG`, `G`, `L`, `ML` and their documented variants) allow fractional entry; discrete count units such as `CAN`, `ROLL`, `PACK`, and `BTL` accept whole numbers only in both the client and server validation.
 - Per-line remarks remain directly visible in dense desktop layouts. On touch layouts they may collapse until requested. A variance may recommend a note, but creating a draft must not force one; high-variance review and approval controls remain auditable and separate from draft entry.
+- Repeated line-entry work uses three density modes from the same row component: phone is a divided input-first row; tablet portrait uses a four-column ledger (`identity`, `reference`, `editable value`, `variance`) with notes on demand; laptop and desktop add a persistent fifth remarks column. Do not delay all table structure until desktop-sized breakpoints.
 - Destructive, posting, approval, cancel, and backup actions must state their consequence and remain distinct from save/draft actions.
 - Role restrictions must result in an explanatory read-only state, not a missing or broken-looking page.
 

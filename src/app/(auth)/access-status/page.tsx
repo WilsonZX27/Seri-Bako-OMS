@@ -10,6 +10,7 @@ const messages: Record<string, string> = {
   inactive: "Your staff account is inactive. Ask the Super Admin / Owner to restore access.",
   "missing-profile": "Your login is not linked to a staff profile. Ask the Super Admin / Owner to check the account assignment.",
   "no-permitted-route": "Your staff account has no permitted workspace. Ask the Super Admin / Owner to review its role and permissions.",
+  "workspace-unavailable": "We could not read your workspace assignment right now. Your account has not been changed; please try again shortly.",
 };
 
 export default async function AccessStatusPage({ searchParams }: { searchParams: Promise<{ reason?: string }> }) {

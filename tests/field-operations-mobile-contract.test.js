@@ -58,6 +58,12 @@ test("purchase requests use a flat phone setup and line-entry hierarchy", () => 
   assert.match(source, /border-y border-\[var\(--sb-border\)\] bg-white/);
   assert.match(source, /adjustLineQuantity/);
   assert.match(source, /Add request line/);
+  assert.match(source, /grid-cols-\[minmax\(0,1\.35fr\)_minmax\(0,0\.8fr\)_minmax\(4\.75rem,0\.7fr\)_2\.75rem\]/);
+  assert.match(source, /Line note <span className="font-normal">\(optional\)<\/span>/);
+  assert.match(source, /lines\.length > 1 \? <Button/);
+  assert.match(source, /aria-label="Submit PR"/);
+  assert.match(source, /bottom-\[calc\(var\(--sb-mobile-nav-height\)\+env\(safe-area-inset-bottom\)\+4\.5rem\)\]/);
+  assert.match(source, /hidden xl:hidden md:inline-flex/);
   assert.doesNotMatch(source, /md:rounded-md md:border md:bg-secondary\/20/);
 });
 

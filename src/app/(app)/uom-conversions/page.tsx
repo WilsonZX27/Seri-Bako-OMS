@@ -10,7 +10,6 @@ import { paginateRows } from "@/lib/table-state";
 import { formatNumber } from "@/lib/utils";
 import { deleteUomConversion } from "@/server/actions/master-data";
 import { getUomConversions } from "@/server/queries/master-data";
-import { ConsoleSection } from "@/components/layout/right-console";
 import { WorkspaceGrid } from "@/components/layout/workspace-layout";
 
 export default async function UomConversionsPage({ searchParams }: { searchParams: Promise<Record<string, string | undefined>> }) {
@@ -20,8 +19,8 @@ export default async function UomConversionsPage({ searchParams }: { searchParam
 
   return (
     <>
-      <PageHeader title="UOM Conversions" description="Basic unit conversion factors used by recipes, supplier items, and future receiving." />
-      <WorkspaceGrid rightRail={<ConsoleSection title="Actions"><Button asChild size="sm" className="w-full" data-mobile-primary-action><Link href="/uom-conversions/new">New conversion</Link></Button></ConsoleSection>}>
+      <PageHeader title="UOM Conversions" description="Basic unit conversion factors used by recipes, supplier items, and future receiving." action={{ href: "/uom-conversions/new", label: "New conversion" }} />
+      <WorkspaceGrid hideMobileConsole>
         {filters.error || filters.success ? (
           <Card>
             <CardContent className={`p-4 text-sm ${filters.error ? "text-destructive" : "text-[var(--sb-success)]"}`}>

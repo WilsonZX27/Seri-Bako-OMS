@@ -7,5 +7,6 @@ const source = fs.readFileSync(path.join(__dirname, "..", "src", "app", "(app)",
 
 test("stock count phone empty state does not duplicate the create FAB", () => {
   assert.match(source, /action=\{filtered \? emptyAction : undefined\}/);
-  assert.match(source, /data-mobile-primary-action/);
+  assert.match(source, /action=\{canCreate \? \{ href: "\/stock-counts\/new", label: "New Stock Count" \} : undefined\}/);
+  assert.doesNotMatch(source, /data-mobile-primary-action/);
 });

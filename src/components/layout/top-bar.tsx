@@ -19,7 +19,7 @@ export async function TopBar({ permissionMap }: { permissionMap: Record<string, 
   const initials = displayName.slice(0, 2).toUpperCase();
 
   return (
-    <header data-app-topbar className="relative z-40 grid h-12 grid-cols-[2.75rem_minmax(0,1fr)_2.75rem] items-center border-b border-[var(--sb-border-soft)] bg-card px-3 md:grid-cols-[minmax(0,1fr)_auto] md:gap-3 md:px-4">
+    <header data-app-topbar className="relative z-40 grid h-12 grid-cols-[3rem_minmax(0,1fr)_3rem] items-center border-b border-[var(--sb-border-soft)] bg-card px-3 md:grid-cols-[minmax(0,1fr)_auto] md:gap-3 md:px-4">
       <div className="md:hidden"><MobileContextBack /></div>
       <div className="min-w-0 md:hidden"><MobileContextTitle /></div>
       <div className="hidden min-w-0 items-center md:flex">

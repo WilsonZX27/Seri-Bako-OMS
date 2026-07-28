@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { Pencil } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { DataGridHint } from "@/components/ui/data-grid-hint";
@@ -30,9 +29,8 @@ export default async function StockCountsPage({ searchParams }: { searchParams: 
   const emptyAction = filtered ? { href: "/stock-counts", label: "Reset filters" } : canCreate ? { href: "/stock-counts/new", label: "New Count" } : undefined;
 
   return <>
-    <PageHeader title="Stock Counts" description="Physical counts compared against calculated branch stock." />
-    <WorkspaceGrid rightRail={<>
-      <ConsoleSection title="Actions">{canCreate ? <Button asChild className="w-full" data-mobile-primary-action><Link href="/stock-counts/new">New Stock Count</Link></Button> : <p className="text-xs text-muted-foreground">Your role has read-only access.</p>}</ConsoleSection>
+    <PageHeader title="Stock Counts" description="Physical counts compared against calculated branch stock." action={canCreate ? { href: "/stock-counts/new", label: "New Stock Count" } : undefined} />
+    <WorkspaceGrid hideMobileConsole rightRail={<>
       <ConsoleSection title="Stock Count Summary"><dl className="grid gap-2 text-xs"><div className="flex justify-between"><dt className="text-muted-foreground">Total</dt><dd className="font-semibold">{rows.length}</dd></div><div className="flex justify-between"><dt className="text-muted-foreground">In review</dt><dd className="font-semibold">{count("submitted", "reviewed")}</dd></div><div className="flex justify-between"><dt className="text-muted-foreground">Posted</dt><dd className="font-semibold">{count("posted")}</dd></div></dl></ConsoleSection>
     </>}>
       <div className="rounded-[2px] border bg-card">

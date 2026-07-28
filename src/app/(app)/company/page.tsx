@@ -52,11 +52,11 @@ export default async function CompanyPage({
           companyId={company.id}
           logoUrl={company.logo_url}
           logoError={params.logoError}
-          uploadAction={updateCompanyLogo.bind(null, company.id)}
-          removeAction={removeCompanyLogo.bind(null, company.id)}
+          uploadAction={updateCompanyLogo}
+          removeAction={removeCompanyLogo}
           showActions={false}
         />
-        <CompanyForm company={company} action={updateCompany.bind(null, company.id)} showSubmit={false} />
+        <CompanyForm company={company} action={updateCompany} showSubmit={false} />
       </WorkspaceGrid>
     </>
   );

@@ -61,22 +61,36 @@ export function GlobalSearch({
   }, [mobile, setSearchOpen]);
 
   useEffect(() => {
+    const controller = new AbortController();
+    let active = true;
     const handle = window.setTimeout(async () => {
       if (!query.trim()) {
-        setResults([]);
+        if (active) setResults([]);
         return;
       }
-      const response = await fetch(`/api/search?q=${encodeURIComponent(query)}`);
-      const payload = (await response.json()) as { results: SearchResult[] };
       const term = query.trim().toLowerCase();
       const navResults = searchableNavItems
         .filter((item) => !("permission" in item) || !item.permission || permissionMap[item.permission])
         .filter((item) => `${item.label} ${item.group} ${(item.keywords ?? []).join(" ")}`.toLowerCase().includes(term))
         .slice(0, 8)
         .map((item) => ({ type: "navigation", title: item.label, subtitle: item.group, href: item.href }));
-      setResults([...navResults, ...payload.results]);
+      try {
+        const response = await fetch(`/api/search?q=${encodeURIComponent(query)}`, { signal: controller.signal });
+        if (!response.ok) throw new Error("Search request failed.");
+        const payload = (await response.json()) as { results?: SearchResult[] };
+        if (active) setResults([...navResults, ...(payload.results ?? [])]);
+      } catch (error) {
+        // A cancelled request is expected while the user is typing. For any
+        // transient API failure, preserve permission-filtered navigation so
+        // global search never becomes a dead end or emits an unhandled error.
+        if (active && !(error instanceof DOMException && error.name === "AbortError")) setResults(navResults);
+      }
     }, 180);
-    return () => window.clearTimeout(handle);
+    return () => {
+      active = false;
+      controller.abort();
+      window.clearTimeout(handle);
+    };
   }, [permissionMap, query]);
 
   return (

@@ -87,7 +87,7 @@ export function TopBarActivityMenu({ data }: { data: TopBarActivity }) {
               ) : null}
             </div>
           </div>
-          <div className="max-h-96 divide-y overflow-y-auto">
+          <div className="max-h-[calc(100dvh-3.5rem)] divide-y overflow-y-auto">
             <section className="space-y-1 p-3">
               <div className="flex items-center justify-between gap-3">
                 <p className="text-xs font-semibold uppercase text-muted-foreground">My Pending Actions</p>
@@ -132,7 +132,7 @@ export function TopBarActivityMenu({ data }: { data: TopBarActivity }) {
                 </div>
               ))}
               {!assignedActivities.length ? <p className="rounded-md p-2 text-sm text-muted-foreground">No recent activity.</p> : null}
-              <Link href="/activity" onClick={() => setOpen(false)} className="inline-flex min-h-8 items-center text-xs font-semibold text-primary underline underline-offset-2">Show more</Link>
+              <Link href="/activity" onClick={() => setOpen(false)} className="inline-flex min-h-[var(--sb-control-height)] items-center text-xs font-semibold text-primary underline underline-offset-2">Show more</Link>
             </section>
           </div>
         </div>

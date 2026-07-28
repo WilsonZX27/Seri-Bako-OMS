@@ -320,7 +320,7 @@ input[type="date"]::-webkit-date-and-time-value {
 .sb-popover-surface {
   border: 1px solid var(--sb-border-soft);
   background: var(--sb-surface);
-  box-shadow: 0 8px 24px rgb(6 44 31 / 0.12);
+  box-shadow: 0 3px 8px rgb(6 44 31 / 0.14);
 }
 
 .sb-dialog-backdrop {
@@ -391,6 +391,8 @@ input[type="date"]::-webkit-date-and-time-value {
   :root {
     --sb-radius-control: 0.625rem;
     --sb-panel-radius: 0.75rem;
+    /* Phone controls meet the 48px minimum target for gloved or wet hands. */
+    --sb-control-height: 3rem;
   }
 
   [data-app-topbar] {
@@ -616,10 +618,6 @@ input[type="date"]::-webkit-date-and-time-value {
   background: var(--sb-surface-muted);
 }
 
-.sb-table-region[data-sticky-column="last"] th:last-child,
-.sb-table-region[data-sticky-column="last"] td:last-child { position: sticky; right: 0; background: var(--sb-surface); box-shadow: -1px 0 var(--sb-border-soft); }
-.sb-table-region[data-sticky-column="last"] thead th:last-child { background: var(--sb-surface-muted); }
-
 @media (min-width: 640px) {
   :root {
     --sb-control-height: 2.25rem;
@@ -635,6 +633,11 @@ input[type="date"]::-webkit-date-and-time-value {
 }
 
 @media (min-width: 768px) {
+  :root {
+    /* Tablet remains a touch-first operational surface, not a scaled desktop. */
+    --sb-control-height: 2.75rem;
+  }
+
   .sb-list-filters > :first-child {
     flex: 1 1 14rem;
     max-width: 22rem;
@@ -645,7 +648,19 @@ input[type="date"]::-webkit-date-and-time-value {
   }
 }
 
+@media (min-width: 1280px) {
+  :root {
+    /* Desktop regains compact enterprise density once pointer precision is primary. */
+    --sb-control-height: 2.25rem;
+  }
+}
+
 @media (max-width: 767px) {
+  :root {
+    /* This comes after the compact 640px rule so 640–767px phones remain touch-safe. */
+    --sb-control-height: 3rem;
+  }
+
   [data-center-workspace] main {
     scroll-padding-bottom: 6.5rem;
   }

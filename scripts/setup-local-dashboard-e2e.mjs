@@ -1,18 +1,23 @@
 import fs from "node:fs";
-import { execFileSync } from "node:child_process";
 import { createClient } from "@supabase/supabase-js";
 
 const env = Object.fromEntries(fs.readFileSync(".env.test.local", "utf8").split(/\r?\n/).filter((line) => line && !line.startsWith("#") && line.includes("=")).map((line) => {
   const index = line.indexOf("=");
   return [line.slice(0, index).trim(), line.slice(index + 1).trim().replace(/^['"]|['"]$/g, "")];
 }));
-const local = Object.fromEntries(execFileSync("cmd.exe", ["/d", "/s", "/c", "npx.cmd supabase status -o env"], { encoding: "utf8" }).split(/\r?\n/).filter((line) => line.includes("=")).map((line) => {
-  const index = line.indexOf("=");
-  return [line.slice(0, index), line.slice(index + 1).replace(/^"|"$/g, "")];
-}));
-const admin = createClient(local.API_URL, local.SERVICE_ROLE_KEY, { auth: { persistSession: false } });
-const authCheck = createClient(local.API_URL, local.PUBLISHABLE_KEY, { auth: { persistSession: false } });
-const includeStockCountFixture = process.argv.includes("--stock-count-fixture");
+// This fixture deliberately avoids `supabase status`: recent Windows CLI builds
+// may try to write a global telemetry file, making a deterministic local test
+// suite fail before it touches the application. `.env.test.local` is the sole,
+// explicit authority for this disposable local target.
+const localUrl = env.NEXT_PUBLIC_SUPABASE_URL;
+const serviceRoleKey = env.SUPABASE_SERVICE_ROLE_KEY;
+const publishableKey = env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
+if (!localUrl || !serviceRoleKey || !publishableKey) {
+  throw new Error("Local E2E fixture requires NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY, and SUPABASE_SERVICE_ROLE_KEY in .env.test.local.");
+}
+const admin = createClient(localUrl, serviceRoleKey, { auth: { persistSession: false } });
+const authCheck = createClient(localUrl, publishableKey, { auth: { persistSession: false } });
+const includeStockCountFixture = process.argv.includes("--stock-count-fixture") || process.env.E2E_STOCK_COUNT_FIXTURE === "1";
 const accounts = [
   ["super_admin", "TEST_SUPER_ADMIN_EMAIL", "TEST_SUPER_ADMIN_PASSWORD"],
   ["finance", "TEST_FINANCE_EMAIL", "TEST_FINANCE_PASSWORD"],

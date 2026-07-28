@@ -68,6 +68,8 @@ export function RightConsoleProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (!open) return;
     const dialog = dialogRef.current;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
     dialog?.querySelector<HTMLElement>("button, a, input, select, textarea, [tabindex]:not([tabindex='-1'])")?.focus();
 
     function onKeyDown(event: KeyboardEvent) {
@@ -90,7 +92,10 @@ export function RightConsoleProvider({ children }: { children: ReactNode }) {
     }
 
     document.addEventListener("keydown", onKeyDown);
-    return () => document.removeEventListener("keydown", onKeyDown);
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      document.removeEventListener("keydown", onKeyDown);
+    };
   }, [open]);
 
   function close() {
@@ -120,14 +125,14 @@ export function RightConsoleProvider({ children }: { children: ReactNode }) {
         <Link
           href={primaryHref}
           data-mobile-create-fab
-          className="fixed right-4 z-[var(--sb-z-sticky)] inline-flex h-14 w-14 items-center justify-center rounded-full border border-[var(--sb-green-800)] bg-[var(--sb-green-900)] text-white shadow-[0_6px_18px_rgb(6_44_31_/_0.24)] transition-transform active:scale-95 md:hidden"
+          className="fixed right-4 z-[var(--sb-z-sticky)] inline-flex h-14 w-14 items-center justify-center rounded-full bg-[var(--sb-green-900)] text-white shadow-[0_3px_8px_rgb(6_44_31_/_0.22)] transition-transform active:scale-95 xl:hidden"
           aria-label={primaryLabel}
           title={primaryLabel}
         >
           <Plus className="h-6 w-6" aria-hidden="true" />
         </Link>
       ) : null}
-      {content && !mobileBarHidden ? <div data-mobile-action-bar className={cn("sb-mobile-action-bar fixed inset-x-3 bottom-[calc(env(safe-area-inset-bottom)+0.5rem)] z-[var(--sb-z-sticky)] items-center gap-2 p-2", hasCreateFab ? "hidden" : "flex", "md:hidden")}>
+      {content && !mobileBarHidden ? <div data-mobile-action-bar className={cn("sb-mobile-action-bar fixed inset-x-3 bottom-[calc(var(--sb-mobile-nav-height)+env(safe-area-inset-bottom)+0.5rem)] z-[var(--sb-z-sticky)] items-center gap-2 p-2", hasCreateFab ? "hidden" : "flex", "xl:hidden")}>
         {primaryAction ? <div data-mobile-primary-slot className="min-w-0 flex-1 [&>*]:w-full">{primaryAction}</div> : null}
         <Button ref={triggerRef} type="button" variant={primaryAction ? "outline" : "default"} className={primaryAction ? "shrink-0 gap-2" : "w-full gap-2"} onClick={() => setOpen(true)} aria-label="Open more actions" aria-haspopup="dialog" aria-expanded={open}>
           <PanelRight className="h-4 w-4" aria-hidden="true" />
@@ -135,7 +140,7 @@ export function RightConsoleProvider({ children }: { children: ReactNode }) {
         </Button>
       </div> : null}
       {open && content && !mobileBarHidden ? (
-        <div className={cn("fixed inset-0 z-[var(--sb-z-dialog)] md:hidden", hasCreateFab && "hidden")}>
+        <div className={cn("fixed inset-0 z-[var(--sb-z-dialog)] xl:hidden", hasCreateFab && "hidden")}>
           <button type="button" className="sb-dialog-backdrop absolute inset-0 h-full w-full" onClick={close} aria-label="Close more actions" />
           <div ref={dialogRef} role="dialog" aria-modal="true" aria-labelledby={titleId} className="sb-popover-surface absolute inset-x-0 bottom-0 max-h-[82dvh] overflow-hidden pb-[env(safe-area-inset-bottom)]">
             <header className="flex h-12 items-center justify-between border-b px-3">

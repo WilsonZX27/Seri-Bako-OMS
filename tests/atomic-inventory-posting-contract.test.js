@@ -32,3 +32,14 @@ test("inventory posting actions do not perform per-line ledger writes", () => {
   assert.doesNotMatch(manual, /from\("stock_transactions"\)\.insert/);
   assert.doesNotMatch(production, /from\("stock_transactions"\)\.insert/);
 });
+
+test("stock transfer and wastage transitions validate route IDs and refresh the affected workspace", () => {
+  const operations = read("src/server/actions/stock-operations.ts");
+
+  assert.match(operations, /function parseOperationalRecordId/);
+  assert.match(operations, /z\.string\(\)\.uuid\(`The \$\{label\} identifier is invalid\.`\)/);
+  assert.match(operations, /parseOperationalRecordId\(id, "stock transfer"\)/);
+  assert.match(operations, /parseOperationalRecordId\(id, "stock wastage"\)/);
+  assert.match(operations, /\["\/stock-transfers", `\/stock-transfers\/\$\{transferId\}`/);
+  assert.match(operations, /\["\/stock-wastage", `\/stock-wastage\/\$\{wastageId\}`/);
+});

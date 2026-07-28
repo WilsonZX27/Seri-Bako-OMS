@@ -11,11 +11,16 @@ import { formatActionError, requirePermissionOrRedirect, rethrowRedirect, safeRe
 import { revalidateWorkspaceState } from "@/server/actions/revalidate";
 import { resolveDocumentNumber } from "@/server/documents/sequences";
 import { getCurrentProfile } from "@/server/queries/common";
+import { requireActiveTenantActor } from "@/server/auth/tenant-actor";
 import { z } from "zod";
 
 function cleanText(value: FormDataEntryValue | null) {
   const text = String(value ?? "").trim();
   return text.length ? text : null;
+}
+
+function parseGoodsReceivingId(id: string) {
+  return z.uuid().parse(id);
 }
 
 async function identity() {
@@ -65,8 +70,8 @@ function extractGoodsReceiving(formData: FormData) {
 }
 
 async function ensureReceivablePo(purchaseOrderId: string) {
-  const supabase = await createClient();
-  const { data, error } = await supabase.from("purchase_orders").select("id,status,supplier_id").eq("id", purchaseOrderId).single();
+  const [supabase, actor] = await Promise.all([createClient(), requireActiveTenantActor()]);
+  const { data, error } = await supabase.from("purchase_orders").select("id,status,supplier_id").eq("id", purchaseOrderId).eq("company_id", actor.companyId).single();
   if (error) throw new Error(error.message);
   if (!["approved", "sent", "partial_received"].includes(data.status)) {
     throw new Error("Cannot receive against cancelled, closed, draft, or unapproved PO.");
@@ -114,10 +119,11 @@ export async function postGoodsReceiving(id: string, formData: FormData) {
   await requirePermission("grn.post");
   if (isMockMode()) return;
 
+  const goodsReceivingId = parseGoodsReceivingId(id);
   const supabase = await createClient();
-  const doExceptionReason = cleanText(formData.get("do_exception_reason"));
+  const doExceptionReason = z.string().trim().max(1_000).nullable().parse(cleanText(formData.get("do_exception_reason")));
   const { data, error } = await supabase.rpc("post_goods_receiving_atomic", {
-    p_goods_receiving_id: id,
+    p_goods_receiving_id: goodsReceivingId,
     p_do_exception_reason: doExceptionReason,
   });
   if (error) throw new Error(error.message);
@@ -136,8 +142,9 @@ export async function postGoodsReceiving(id: string, formData: FormData) {
 export async function cancelGoodsReceiving(id: string) {
   await requirePermission("goods_receiving.cancel");
   if (isMockMode()) return;
+  const goodsReceivingId = parseGoodsReceivingId(id);
   const supabase = await createClient();
-  const { error } = await supabase.rpc("cancel_goods_receiving_atomic", { p_goods_receiving_id: id });
+  const { error } = await supabase.rpc("cancel_goods_receiving_atomic", { p_goods_receiving_id: goodsReceivingId });
   if (error) throw new Error(error.message);
   revalidateWorkspaceState(["/goods-receivings", `/goods-receivings/${id}`]);
 }

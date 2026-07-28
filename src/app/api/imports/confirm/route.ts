@@ -8,14 +8,18 @@ import { createClient } from "@/lib/supabase/server";
 import { writeActivityLog } from "@/server/activity/log";
 import { formatActionError } from "@/server/actions/error-handling";
 import { hasPermission } from "@/server/auth/permissions";
-import { getCurrentProfile, getDefaultCompanyId } from "@/server/queries/common";
+import { rejectCrossSiteMutation } from "@/server/http/request-security";
+import { getCurrentProfile } from "@/server/queries/common";
+import { logServerError } from "@/server/observability/logger";
 import type { BranchType, Database, ItemStatus, RecordStatus, StaffStatus } from "@/types/database";
+
+const importCellSchema = z.string().max(2_000, "An import cell exceeds the 2,000 character limit.");
 
 const importSchema = z.object({
   entity: z.enum(importEntities),
   mode: z.enum(["create", "update", "upsert"]).default("create"),
   confirmPosting: z.boolean().optional(),
-  rows: z.array(z.record(z.string(), z.string())).min(1).max(500),
+  rows: z.array(z.record(z.string().max(100), importCellSchema)).min(1).max(500),
 });
 
 type ImportRequest = z.infer<typeof importSchema>;
@@ -36,6 +40,7 @@ type RouteContext = {
   supabase: Awaited<ReturnType<typeof createClient>>;
   writeSupabase: Awaited<ReturnType<typeof createClient>> | ReturnType<typeof createAdminClient>;
   profile: Awaited<ReturnType<typeof getCurrentProfile>>;
+  companyId: string;
 };
 
 function getWriteClient(fallback: Awaited<ReturnType<typeof createClient>>) {
@@ -268,7 +273,7 @@ async function handleItemsImport(context: RouteContext, request: ImportRequest) 
     }
 
     const payload: Database["public"]["Tables"]["items"]["Insert"] = {
-      company_id: String(context.profile?.company_id ?? ""),
+      company_id: context.companyId,
       item_code: itemCode,
       item_name: itemName,
       category,
@@ -284,7 +289,7 @@ async function handleItemsImport(context: RouteContext, request: ImportRequest) 
 
     let savedItemId: string;
     if (existing) {
-      const { error } = await context.writeSupabase.from("items").update(payload).eq("id", existing.id);
+      const { error } = await context.writeSupabase.from("items").update(payload).eq("id", existing.id).eq("company_id", context.companyId);
       if (error) {
         pushIssue(summary, rowNumber, sourceRow, error.message);
         continue;
@@ -315,7 +320,7 @@ async function handleItemsImport(context: RouteContext, request: ImportRequest) 
         continue;
       }
       const mappingPayload = {
-        company_id: String(context.profile?.company_id ?? ""),
+        company_id: context.companyId,
         supplier_id: supplier.id,
         item_id: savedItemId,
         supplier_item_code: row.values.supplier_item_code || itemCode,
@@ -329,7 +334,7 @@ async function handleItemsImport(context: RouteContext, request: ImportRequest) 
         updated_by: context.profile?.id ?? null,
       };
       const mappingResult = existingMapping
-        ? await context.writeSupabase.from("supplier_items").update(mappingPayload).eq("id", existingMapping.id)
+        ? await context.writeSupabase.from("supplier_items").update(mappingPayload).eq("id", existingMapping.id).eq("company_id", context.companyId)
         : await context.writeSupabase.from("supplier_items").insert({ ...mappingPayload, created_by: context.profile?.id ?? null });
       if (mappingResult.error) {
         summary.supplierMappingErrors += 1;
@@ -376,7 +381,7 @@ async function handleProductsImport(context: RouteContext, request: ImportReques
     }
 
     const payload: Database["public"]["Tables"]["products"]["Insert"] = {
-      company_id: String(context.profile?.company_id ?? ""),
+      company_id: context.companyId,
       product_code: productCode,
       product_name: normalizeText(row.product_name),
       category: normalizeText(row.category),
@@ -385,7 +390,7 @@ async function handleProductsImport(context: RouteContext, request: ImportReques
     };
 
     if (existing) {
-      const { error } = await context.writeSupabase.from("products").update(payload).eq("id", existing.id);
+      const { error } = await context.writeSupabase.from("products").update(payload).eq("id", existing.id).eq("company_id", context.companyId);
       if (error) {
         pushIssue(summary, rowNumber, row, error.message);
         continue;
@@ -451,7 +456,7 @@ async function handleSuppliersImport(context: RouteContext, request: ImportReque
     }
 
     const payload: Database["public"]["Tables"]["suppliers"]["Insert"] = {
-      company_id: String(context.profile?.company_id ?? ""),
+      company_id: context.companyId,
       supplier_code: supplierCode,
       name: supplierName,
       contact_person: normalizeText(row.contact_name ?? row.contact_person) || null,
@@ -463,7 +468,7 @@ async function handleSuppliersImport(context: RouteContext, request: ImportReque
     };
 
     if (existing) {
-      const { error } = await context.writeSupabase.from("suppliers").update(payload).eq("id", existing.id);
+      const { error } = await context.writeSupabase.from("suppliers").update(payload).eq("id", existing.id).eq("company_id", context.companyId);
       if (error) {
         pushIssue(summary, rowNumber, row, error.message);
         continue;
@@ -486,7 +491,7 @@ async function handleBranchesImport(context: RouteContext, request: ImportReques
   const summary = createSummary();
   const rows = request.rows;
   const seen = new Map<string, number>();
-  const companyId = context.profile?.company_id ?? (await getDefaultCompanyId());
+  const companyId = context.companyId;
   const allowedTypes: BranchType[] = ["central_kitchen", "outlet", "event_booth", "office", "other"];
   const codes = [...new Set(rows.map((row) => normalizeText(row.branch_code)).filter(Boolean))];
   const { data: existingBranches, error } = await context.supabase
@@ -543,7 +548,7 @@ async function handleStaffImport(context: RouteContext, request: ImportRequest) 
   const rows = request.rows;
   const seenCode = new Map<string, number>();
   const seenEmail = new Map<string, number>();
-  const companyId = context.profile?.company_id ?? (await getDefaultCompanyId());
+  const companyId = context.companyId;
   const [{ data: existingStaff, error: staffError }, { data: branches, error: branchError }, { data: roles, error: roleError }] = await Promise.all([
     context.supabase.from("staffs").select("id, staff_code, email, invite_email").is("deleted_at", null),
     context.supabase.from("branches").select("id, branch_code").is("deleted_at", null),
@@ -709,7 +714,7 @@ async function handleSupplierItemsImport(context: RouteContext, request: ImportR
     }
 
     const payload: Database["public"]["Tables"]["supplier_items"]["Insert"] = {
-      company_id: String(context.profile?.company_id ?? ""),
+      company_id: context.companyId,
       supplier_id: supplier.id,
       item_id: item.id,
       supplier_item_code: normalizeText(row.supplier_item_code) || normalizeText(row.item_code),
@@ -723,7 +728,7 @@ async function handleSupplierItemsImport(context: RouteContext, request: ImportR
     };
 
     if (existing) {
-      const { error } = await context.writeSupabase.from("supplier_items").update(payload).eq("id", existing.id);
+      const { error } = await context.writeSupabase.from("supplier_items").update(payload).eq("id", existing.id).eq("company_id", context.companyId);
       if (error) {
         pushIssue(summary, rowNumber, row, error.message);
         continue;
@@ -856,7 +861,7 @@ async function handleUomConversionsImport(context: RouteContext, request: Import
     }
 
     const payload: Database["public"]["Tables"]["uom_conversions"]["Insert"] = {
-      company_id: String(context.profile?.company_id ?? ""),
+      company_id: context.companyId,
       item_id: item.id,
       from_uom: fromUom,
       to_uom: toUom,
@@ -865,7 +870,7 @@ async function handleUomConversionsImport(context: RouteContext, request: Import
     };
 
     if (existing) {
-      const { error } = await context.writeSupabase.from("uom_conversions").update(payload).eq("id", existing.id);
+      const { error } = await context.writeSupabase.from("uom_conversions").update(payload).eq("id", existing.id).eq("company_id", context.companyId);
       if (error) {
         pushIssue(summary, rowNumber, row, error.message);
         continue;
@@ -1086,6 +1091,9 @@ function revalidateImportTargets(entity: ImportRequest["entity"]) {
 
 export async function POST(request: Request) {
   try {
+    const crossSiteResponse = rejectCrossSiteMutation(request);
+    if (crossSiteResponse) return crossSiteResponse;
+
     const payload = importSchema.safeParse(await request.json());
     if (!payload.success) {
       return NextResponse.json(
@@ -1157,6 +1165,7 @@ export async function POST(request: Request) {
     const context: RouteContext = {
       supabase,
       profile,
+      companyId: activeProfile.company_id,
       writeSupabase: getWriteClient(supabase),
     };
 
@@ -1188,14 +1197,14 @@ export async function POST(request: Request) {
           message: summaryMessage(payload.data.entity, summary),
         });
       } catch (error) {
-        console.error(error);
+        logServerError(error, { source: "api.imports.activity-log" });
       }
     }
 
     revalidateImportTargets(payload.data.entity);
     return response(payload.data.entity, summary);
   } catch (error) {
-    console.error(error);
+    logServerError(error, { source: "api.imports.confirm" });
     return NextResponse.json(
       {
         ok: false,

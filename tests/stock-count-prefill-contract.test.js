@@ -32,6 +32,14 @@ test("stock count uses direct plus/minus adjustments and protects discrete quant
   assert.match(validation, /quantities must be whole numbers/);
 });
 
+test("tablet portrait uses its width for a four-column count ledger before desktop adds persistent remarks", () => {
+  const form = read("src", "components", "stock-count-form.tsx");
+
+  assert.match(form, /md:grid-cols-\[minmax\(10rem,1\.4fr\)_minmax\(6rem,0\.65fr\)_minmax\(10rem,0\.8fr\)_minmax\(7\.5rem,0\.7fr\)\]/);
+  assert.match(form, /md:col-span-4 md:order-5 lg:col-span-1/);
+  assert.match(form, /lg:grid-cols-\[minmax\(12rem,1\.4fr\)_minmax\(7rem,0\.65fr\)_minmax\(10rem,0\.8fr\)_minmax\(9rem,0\.7fr\)_minmax\(10rem,1fr\)\]/);
+});
+
 test("variance context stays optional while high-variance approval remains separately controlled", () => {
   const form = read("src", "components", "stock-count-form.tsx");
   const validation = read("src", "lib", "validations", "stock-count.ts");

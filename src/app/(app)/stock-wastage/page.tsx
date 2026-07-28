@@ -30,8 +30,8 @@ export default async function StockWastagePage({ searchParams }: { searchParams:
   const emptyAction = filtered ? { href: "/stock-wastage", label: "Reset filters" } : canCreate ? { href: "/stock-wastage/new", label: "New Wastage" } : undefined;
 
   return <>
-    <PageHeader title="Stock Wastage" description="Record expired, damaged, missing, or abnormal stock loss." />
-    <WorkspaceGrid rightRail={<>
+    <PageHeader title="Stock Wastage" description="Record expired, damaged, missing, or abnormal stock loss." action={canCreate ? { href: "/stock-wastage/new", label: "New wastage" } : undefined} />
+    <WorkspaceGrid hideMobileConsole rightRail={<>
       <ConsoleSection title="Actions">{canCreate ? <Button asChild className="w-full" data-mobile-primary-action><Link href="/stock-wastage/new">New Wastage</Link></Button> : <p className="text-xs text-muted-foreground">Your role has read-only access.</p>}</ConsoleSection>
       <ConsoleSection title="Wastage Summary"><dl className="grid gap-2 text-xs"><div className="flex justify-between"><dt className="text-muted-foreground">Total</dt><dd className="font-semibold">{rows.length}</dd></div><div className="flex justify-between"><dt className="text-muted-foreground">In review</dt><dd className="font-semibold">{count("submitted", "approved")}</dd></div><div className="flex justify-between"><dt className="text-muted-foreground">Posted</dt><dd className="font-semibold">{count("posted")}</dd></div></dl></ConsoleSection>
     </>}>

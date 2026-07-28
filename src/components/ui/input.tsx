@@ -1,18 +1,71 @@
 import * as React from "react";
+import { CalendarDays } from "lucide-react";
 import { cn } from "@/lib/utils";
 
+type DateInputProps = Omit<React.InputHTMLAttributes<HTMLInputElement>, "type">;
+
+function normalizeDateValue(value: React.InputHTMLAttributes<HTMLInputElement>["value"] | React.InputHTMLAttributes<HTMLInputElement>["defaultValue"]) {
+  return typeof value === "string" && /^\d{4}-\d{2}-\d{2}$/.test(value) ? value : "";
+}
+
+const DateInput = React.forwardRef<HTMLInputElement, DateInputProps>(
+  ({ className, defaultValue, value, onChange, disabled, ...props }, ref) => {
+    const controlled = value !== undefined;
+    const [uncontrolledValue, setUncontrolledValue] = React.useState(() => normalizeDateValue(defaultValue));
+    const displayedValue = controlled ? normalizeDateValue(value) : uncontrolledValue;
+
+    React.useEffect(() => {
+      if (!controlled) setUncontrolledValue(normalizeDateValue(defaultValue));
+    }, [controlled, defaultValue]);
+
+    return (
+      <div
+        className={cn(
+          "relative flex h-[var(--sb-control-height)] w-full min-w-0 max-w-full items-center rounded-[var(--sb-radius-control)] border border-[var(--sb-border)] bg-white px-2.5 py-1.5 text-sm text-[var(--sb-text)] transition-colors focus-within:ring-2 focus-within:ring-[var(--sb-green-700)] focus-within:ring-offset-1 has-[:disabled]:cursor-not-allowed has-[:disabled]:bg-[var(--sb-surface-muted)] has-[:disabled]:opacity-70",
+          className,
+        )}
+      >
+        <span aria-hidden="true" className={cn("min-w-0 flex-1 truncate tabular-nums", !displayedValue && "text-[var(--sb-text-muted)]")}>
+          {displayedValue || "YYYY-MM-DD"}
+        </span>
+        <CalendarDays aria-hidden="true" className="ml-2 h-4 w-4 shrink-0 text-[var(--sb-text-muted)]" />
+        <input
+          {...props}
+          ref={ref}
+          type="date"
+          value={controlled ? displayedValue : undefined}
+          defaultValue={controlled ? undefined : displayedValue}
+          disabled={disabled}
+          lang="en-GB"
+          onChange={(event) => {
+            if (!controlled) setUncontrolledValue(event.target.value);
+            onChange?.(event);
+          }}
+          className="absolute inset-0 h-full w-full cursor-pointer opacity-0 disabled:cursor-not-allowed"
+        />
+      </div>
+    );
+  },
+);
+DateInput.displayName = "DateInput";
+
 const Input = React.forwardRef<HTMLInputElement, React.InputHTMLAttributes<HTMLInputElement>>(
-  ({ className, type, ...props }, ref) => (
-    <input
-      type={type}
-      className={cn(
-        "flex h-[var(--sb-control-height)] w-full min-w-0 max-w-full rounded-[var(--sb-radius-control)] border border-[var(--sb-border)] bg-white px-2.5 py-1.5 text-sm text-[var(--sb-text)] transition-colors placeholder:text-[var(--sb-text-muted)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--sb-green-700)] focus-visible:ring-offset-1 disabled:cursor-not-allowed disabled:bg-[var(--sb-surface-muted)] disabled:opacity-70",
-        className,
-      )}
-      ref={ref}
-      {...props}
-    />
-  ),
+  ({ className, type, lang, ...props }, ref) => {
+    if (type === "date") return <DateInput ref={ref} className={className} lang={lang} {...props} />;
+
+    return (
+      <input
+        type={type}
+        lang={lang}
+        className={cn(
+          "flex h-[var(--sb-control-height)] w-full min-w-0 max-w-full rounded-[var(--sb-radius-control)] border border-[var(--sb-border)] bg-white px-2.5 py-1.5 text-sm text-[var(--sb-text)] transition-colors placeholder:text-[var(--sb-text-muted)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--sb-green-700)] focus-visible:ring-offset-1 disabled:cursor-not-allowed disabled:bg-[var(--sb-surface-muted)] disabled:opacity-70",
+          className,
+        )}
+        ref={ref}
+        {...props}
+      />
+    );
+  },
 );
 Input.displayName = "Input";
 

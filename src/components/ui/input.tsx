@@ -1,3 +1,5 @@
+"use client";
+
 import * as React from "react";
 import { CalendarDays } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -6,6 +8,11 @@ type DateInputProps = Omit<React.InputHTMLAttributes<HTMLInputElement>, "type">;
 
 function normalizeDateValue(value: React.InputHTMLAttributes<HTMLInputElement>["value"] | React.InputHTMLAttributes<HTMLInputElement>["defaultValue"]) {
   return typeof value === "string" && /^\d{4}-\d{2}-\d{2}$/.test(value) ? value : "";
+}
+
+function formatDateDisplay(value: string) {
+  const [year, month, day] = value.split("-");
+  return year && month && day ? `${day}/${month}/${year}` : value;
 }
 
 const DateInput = React.forwardRef<HTMLInputElement, DateInputProps>(
@@ -26,7 +33,7 @@ const DateInput = React.forwardRef<HTMLInputElement, DateInputProps>(
         )}
       >
         <span aria-hidden="true" className={cn("min-w-0 flex-1 truncate tabular-nums", !displayedValue && "text-[var(--sb-text-muted)]")}>
-          {displayedValue || "YYYY-MM-DD"}
+          {displayedValue ? formatDateDisplay(displayedValue) : "DD/MM/YYYY"}
         </span>
         <CalendarDays aria-hidden="true" className="ml-2 h-4 w-4 shrink-0 text-[var(--sb-text-muted)]" />
         <input

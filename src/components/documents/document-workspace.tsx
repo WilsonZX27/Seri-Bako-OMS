@@ -27,6 +27,7 @@ export function DocumentWorkspace({
   mobilePrimaryAction,
   mobileActivity,
   mobileMoreOptions,
+  hideMobileWorkflow = false,
   tabletRailMode = "context",
 }: {
   breadcrumbs: Crumb[];
@@ -42,6 +43,7 @@ export function DocumentWorkspace({
   mobilePrimaryAction?: ReactNode;
   mobileActivity?: ReactNode;
   mobileMoreOptions?: ReactNode;
+  hideMobileWorkflow?: boolean;
   tabletRailMode?: "context" | "split";
 }) {
   const isNewDocument = documentNo.toLowerCase().startsWith("new ");
@@ -66,7 +68,7 @@ export function DocumentWorkspace({
           </div>
         </div>
         <div className="mt-2 min-w-0">
-          <MobileWorkflowStatus steps={workflowSteps} currentStatus={currentStatus} />
+          {!hideMobileWorkflow ? <MobileWorkflowStatus steps={workflowSteps} currentStatus={currentStatus} /> : null}
           <div className="hidden md:block"><WorkflowStatusPipeline steps={workflowSteps} currentStatus={currentStatus} compact /></div>
         </div>
       </header>

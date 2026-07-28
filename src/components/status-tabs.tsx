@@ -3,6 +3,7 @@
 import { usePathname, useSearchParams } from "next/navigation";
 import { useRouter } from "next/navigation";
 import { useLayoutEffect, useRef } from "react";
+import { SelectControl } from "@/components/ui/select-control";
 
 type StatusTab = string | { value: string; label: string };
 
@@ -40,19 +41,15 @@ export function StatusTabs({ statuses, activeStatus }: { statuses: StatusTab[]; 
     return query ? `${pathname}?${query}` : pathname;
   }
 
-  // Legacy mobile anchor contract: ref={active ? activeTabRef : undefined}
   return (
     <nav ref={tabsRef} aria-label="Filter by status" className="sb-status-filter [scroll-padding-inline:0.75rem]">
-      <label className="sr-only" htmlFor="status-filter">Filter by status</label>
-      <select
-        id="status-filter"
-        name="status"
+      <SelectControl
+        ariaLabel="Filter by status"
         value={selected}
-        onChange={(event) => router.push(hrefFor(event.target.value))}
-        className="h-[var(--sb-control-height)] min-h-[var(--sb-control-height)] w-full min-w-0 rounded-[var(--sb-radius-control)] border border-[var(--sb-border)] bg-white px-2.5 text-xs font-medium text-[var(--sb-text)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--sb-green-700)]"
-      >
-        {tabs.map((tab) => <option key={tab.value} value={tab.value}>{tab.label}</option>)}
-      </select>
+        onValueChange={(value) => router.push(hrefFor(value))}
+        options={tabs}
+        className="sb-status-filter-control w-full text-xs font-medium"
+      />
     </nav>
   );
 }

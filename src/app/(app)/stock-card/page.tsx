@@ -1,10 +1,12 @@
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+import { FilterBar } from "@/components/ui/filter-bar";
 import { Input } from "@/components/ui/input";
+import { WorkspaceGrid } from "@/components/layout/workspace-layout";
 import { PageHeader } from "@/components/ui/page-header";
-import { SelectNative } from "@/components/ui/select-native";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { SelectControl } from "@/components/ui/select-control";
+import { OperationalList, OperationalListRow, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { formatCurrency, formatNumber } from "@/lib/utils";
+import { hasActiveFilters } from "@/lib/table-state";
 import { getItemsForSelect } from "@/server/queries/common";
 import { getStockCard } from "@/server/queries/inventory";
 
@@ -21,62 +23,56 @@ export default async function StockCardPage({ searchParams }: { searchParams: Pr
   const wastage = rows.filter((row) => ["wastage", "damage"].includes(row.transaction_type)).reduce((sum, row) => sum + row.quantity_out, 0);
   const adjustment = rows.filter((row) => ["stock_adjustment", "stock_count_adjustment", "correction"].includes(row.transaction_type)).reduce((sum, row) => sum + row.quantity_in - row.quantity_out, 0);
   const current = rows.reduce((sum, row) => sum + row.quantity_in - row.quantity_out, 0);
+  const filtered = hasActiveFilters(filters);
+  const movementSummary = [
+    ["Opening", opening],
+    ["Purchase", purchase],
+    ["Transfer In", transferIn],
+    ["Production Output", productionOutput],
+    ["Production Usage", -productionUsage],
+    ["Transfer Out", -transferOut],
+    ["Wastage", -wastage],
+    ["Adjustment", adjustment],
+  ] as const;
 
   return (
     <>
       <PageHeader title="Stock Card" description="Chronological stock movement history per item." />
-      <div className="space-y-5 p-5">
-        <Card>
-          <CardContent className="p-5">
-            <form className="sb-list-filters border-0 p-0">
-              <SelectNative name="item_id" defaultValue={filters.item_id ?? ""}>
-                <option value="">All items</option>
-                {items.map((item) => <option key={item.id} value={item.id}>{item.item_code} - {item.item_name}</option>)}
-              </SelectNative>
-              <Input name="from" type="date" defaultValue={filters.from ?? ""} />
-              <Input name="to" type="date" defaultValue={filters.to ?? ""} />
+      <WorkspaceGrid className="p-3 sm:p-4">
+        <div className="space-y-3">
+          <section className="overflow-hidden rounded-[2px] border bg-card" aria-label="Stock card filters">
+            <FilterBar resultCount={rows.length} resetHref="/stock-card" filtered={filtered}>
+              <SelectControl name="item_id" defaultValue={filters.item_id ?? "all"} ariaLabel="Item" options={[{ value: "all", label: "All items" }, ...items.map((item) => ({ value: item.id, label: `${item.item_code} — ${item.item_name}` }))]} />
+              <Input name="from" type="date" defaultValue={filters.from ?? ""} aria-label="From date" />
+              <Input name="to" type="date" defaultValue={filters.to ?? ""} aria-label="To date" />
               <Button type="submit" variant="secondary">Apply</Button>
-              <Button asChild variant="ghost"><a href="/stock-card">Reset</a></Button>
-            </form>
-          </CardContent>
-        </Card>
+            </FilterBar>
+          </section>
 
-        <div className="grid gap-4 md:grid-cols-4 xl:grid-cols-8">
-          {[
-            ["Opening", opening],
-            ["Purchase", purchase],
-            ["Transfer In", transferIn],
-            ["Production Output", productionOutput],
-            ["Production Usage", -productionUsage],
-            ["Transfer Out", -transferOut],
-            ["Wastage", -wastage],
-            ["Adjustment", adjustment],
-          ].map(([label, value]) => (
-            <Card key={label}>
-              <CardContent className="p-4">
-                <p className="text-xs text-muted-foreground">{label}</p>
-                <p className="mt-2 text-lg font-semibold">{formatNumber(Number(value))}</p>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-
-        <Card>
-          <CardContent className="p-5">
-            <div className="mb-3 flex items-center justify-between">
-              <div>
-                <h2 className="text-sm font-semibold">{selectedItem ? `${selectedItem.item_code} - ${selectedItem.item_name}` : "Stock Movement History"}</h2>
-                <p className="text-xs text-muted-foreground">Current balance: {formatNumber(current)} {selectedItem?.base_unit ?? ""}</p>
-              </div>
+          <section className="overflow-hidden rounded-[2px] border bg-card" aria-labelledby="stock-card-summary">
+            <div className="border-b px-3 py-2.5"><h2 id="stock-card-summary" className="text-xs font-semibold">Movement summary</h2></div>
+            <div className="grid divide-y sm:grid-cols-4 sm:divide-x sm:divide-y-0 xl:grid-cols-8">
+              {movementSummary.map(([label, value]) => (
+                <div key={label} className="min-w-0 px-3 py-2.5">
+                  <p className="truncate text-[11px] text-muted-foreground">{label}</p>
+                  <p className="mt-1 font-mono text-sm font-semibold tabular-nums">{formatNumber(value)}</p>
+                </div>
+              ))}
             </div>
-            <div className="overflow-x-auto">
-              <Table>
+          </section>
+
+          <section className="overflow-hidden rounded-[2px] border bg-card">
+            <div className="border-b px-3 py-2.5">
+              <h2 className="text-sm font-semibold">{selectedItem ? `${selectedItem.item_code} — ${selectedItem.item_name}` : "Stock Movement History"}</h2>
+              <p className="mt-0.5 text-xs text-muted-foreground">Current balance: {formatNumber(current)} {selectedItem?.base_unit ?? ""}</p>
+            </div>
+              <Table mobileHidden stickyColumn="first" aria-label="Stock movement history">
                 <TableHeader>
                   <TableRow>
+                    <TableHead>Item</TableHead>
                     <TableHead>Date</TableHead>
                     <TableHead>Transaction No</TableHead>
                     <TableHead>Type</TableHead>
-                    <TableHead>Item</TableHead>
                     <TableHead>Branch</TableHead>
                     <TableHead className="text-right">In</TableHead>
                     <TableHead className="text-right">Out</TableHead>
@@ -88,11 +84,11 @@ export default async function StockCardPage({ searchParams }: { searchParams: Pr
                 </TableHeader>
                 <TableBody>
                   {rows.map((row) => (
-                    <TableRow key={`${row.stock_transaction_id}-${row.location_id}`}>
+                    <TableRow key={row.stock_transaction_id}>
+                      <TableCell className="font-medium">{row.item_name}</TableCell>
                       <TableCell>{row.transaction_date}</TableCell>
                       <TableCell className="font-medium">{row.transaction_no}</TableCell>
                       <TableCell>{row.transaction_type.replaceAll("_", " ")}</TableCell>
-                      <TableCell>{row.item_name}</TableCell>
                       <TableCell>{row.branch_name ?? "-"}</TableCell>
                       <TableCell className="text-right">{row.quantity_in ? formatNumber(row.quantity_in) : "-"}</TableCell>
                       <TableCell className="text-right">{row.quantity_out ? formatNumber(row.quantity_out) : "-"}</TableCell>
@@ -105,10 +101,13 @@ export default async function StockCardPage({ searchParams }: { searchParams: Pr
                   {!rows.length ? <TableRow><TableCell colSpan={11} className="text-center text-muted-foreground">No stock movements found.</TableCell></TableRow> : null}
                 </TableBody>
               </Table>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+              <OperationalList ariaLabel="Stock movement history">
+                {rows.map((row) => <OperationalListRow key={row.stock_transaction_id} href={`/stock-transactions/${row.stock_transaction_id}`} label={`Open ${row.transaction_no}`} primary={row.item_name} secondary={`${row.transaction_date} · ${row.transaction_no} · ${row.transaction_type.replaceAll("_", " ")}`} meta={`${formatNumber(row.quantity_in - row.quantity_out)} ${row.base_unit}`} />)}
+                {!rows.length ? <p className="px-3 py-8 text-center text-sm text-muted-foreground">No stock movements found.</p> : null}
+              </OperationalList>
+          </section>
+        </div>
+      </WorkspaceGrid>
     </>
   );
 }

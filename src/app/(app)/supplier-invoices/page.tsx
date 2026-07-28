@@ -35,7 +35,7 @@ export default async function SupplierInvoicesPage({ searchParams }: { searchPar
   return (
     <>
       <PageHeader title="Supplier Invoices" description="Track posted GRN invoices and basic AP payments." />
-      <WorkspaceGrid
+      <WorkspaceGrid hideMobileConsole
         rightRail={
           <>
             {permissions["supplier_invoice.create"] || permissions["supplier_invoice.pay"] ? <ConsoleSection title="Actions">
@@ -58,11 +58,11 @@ export default async function SupplierInvoicesPage({ searchParams }: { searchPar
           <StatusTabs statuses={statuses} activeStatus={filters.status} />
           <FilterBar resultCount={invoices.totalRows} resetHref="/supplier-invoices" filtered={filtered}>
             <Input name="search" defaultValue={filters.search ?? ""} placeholder="Search invoice or supplier" className="md:max-w-sm" />
-            <SelectControl name="status" defaultValue={filters.status ?? "all"} ariaLabel="Status" options={[{ value: "all", label: "All statuses" }, ...statuses.map((status) => ({ value: status, label: status.replaceAll("_", " ") }))]} />
             <FilterBarMore activeCount={[filters.supplier && filters.supplier !== "all", filters.due && filters.due !== "all"].filter(Boolean).length} resetHref="/supplier-invoices">
               <SelectControl name="supplier" defaultValue={filters.supplier ?? "all"} ariaLabel="Supplier" options={[{ value: "all", label: "All suppliers" }, ...suppliers.map((supplier) => ({ value: supplier.id, label: supplier.name }))]} />
               <SelectControl name="due" defaultValue={filters.due ?? "all"} ariaLabel="Due state" options={[{ value: "all", label: "All due states" }, { value: "overdue", label: "Overdue" }, { value: "due_7", label: "Due in 7 days" }, { value: "no_due", label: "No due date" }]} />
             </FilterBarMore>
+            {filters.status ? <input type="hidden" name="status" value={filters.status} /> : null}
             <Button type="submit" variant="secondary">Search</Button>
           </FilterBar>
             <Table mobileHidden aria-label="Supplier invoices">
@@ -101,7 +101,15 @@ export default async function SupplierInvoicesPage({ searchParams }: { searchPar
               </TableBody>
             </Table>
             <OperationalList ariaLabel="Supplier invoices">
-              {invoices.rows.map((row) => <OperationalListRow key={row.id} href={`/supplier-invoices/${row.id}`} label={`Open ${row.invoice_no}`} primary={<DocumentNumber value={row.invoice_no} size="sm" />} status={<StatusBadge status={row.status} />} secondary={`${row.supplier_name ?? "No supplier"} · Due ${row.due_date ?? "—"}`} meta={formatCurrency(row.balance_due)} />)}
+              {invoices.rows.map((row) => <OperationalListRow
+                key={row.id}
+                href={`/supplier-invoices/${row.id}`}
+                label={`Open ${row.invoice_no}`}
+                primary={<div><DocumentNumber value={row.invoice_no} size="sm" /><p className={row.is_overdue ? "text-[11px] font-medium text-[var(--sb-danger)]" : "text-[11px] font-normal text-[var(--sb-text-muted)]"}>{row.is_overdue ? "Overdue — action required" : `GRN ${row.grn_no ?? row.po_no ?? "not linked"}`}</p></div>}
+                status={<StatusBadge status={row.status} />}
+                secondary={`${row.supplier_name ?? "No supplier"} · Due ${row.due_date ?? "—"}`}
+                meta={formatCurrency(row.balance_due)}
+              />)}
               {!invoices.rows.length ? <EmptyState title={filtered ? "No invoices match these filters" : "No invoices require review"} description={filtered ? "Reset the filters or widen the search." : "All current supplier invoices are up to date."} action={filtered ? { href: "/supplier-invoices", label: "Reset filters" } : undefined} /> : null}
             </OperationalList>
           <PaginationControls page={invoices.page} totalPages={invoices.totalPages} totalRows={invoices.totalRows} searchParams={filters} />

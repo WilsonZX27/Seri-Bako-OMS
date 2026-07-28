@@ -1,13 +1,14 @@
 {
   "name": "seri-bako-ops",
-  "version": "7.23.7",
+  "version": "7.24.31",
   "private": true,
   "scripts": {
     "dev": "node --use-system-ca node_modules/next/dist/bin/next dev",
     "build": "next build",
     "start": "node --use-system-ca node_modules/next/dist/bin/next start",
-    "lint": "next lint",
+    "lint": "eslint src",
     "typecheck": "tsc --noEmit",
+    "typecheck:strict": "tsc --noEmit --noUnusedLocals --noUnusedParameters",
     "test": "node --test tests/*.test.js",
     "test:contract": "node --test tests/*.test.js",
     "test:e2e": "playwright test",
@@ -24,11 +25,17 @@
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "lucide-react": "^0.468.0",
-    "next": "^15.5.19",
+    "next": "15.5.21",
     "react": "19.1.0",
     "react-dom": "19.1.0",
     "tailwind-merge": "^2.5.5",
     "zod": "^4.1.11"
+  },
+  "overrides": {
+    "next": {
+      "postcss": "8.5.23",
+      "sharp": "0.35.3"
+    }
   },
   "devDependencies": {
     "@playwright/test": "^1.51.1",

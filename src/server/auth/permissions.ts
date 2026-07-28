@@ -2,6 +2,7 @@ import { isMockMode, mockProfile } from "@/lib/mock-mode";
 import { cache } from "react";
 import { getRoleDisplayLabel } from "@/lib/roles";
 import { createClient } from "@/lib/supabase/server";
+import { requireActiveTenantActor } from "@/server/auth/tenant-actor";
 
 export const roleDescriptions = {
   super_admin: "Protected system owner with every permission.",
@@ -40,7 +41,7 @@ const permissionAliases: Record<string, string[]> = {
   "supplier_items.update": ["suppliers.manage"],
   "suppliers.manage": ["suppliers.create", "suppliers.update", "supplier_items.create", "supplier_items.update"],
   "attachments.upload": ["documents.attach"],
-  "documents.attach": ["attachments.upload"],
+  "documents.attach": ["attachments.upload", "supplier_invoice.create", "supplier_invoice.pay"],
   "imports.run": ["imports.create"],
   "imports.create": ["imports.run"],
   "reports.view": ["documents.read", "inventory.read"],
@@ -163,7 +164,7 @@ const permissionAliases: Record<string, string[]> = {
 
 export const rolePermissionMatrix = {
   super_admin: ["*"],
-  finance: ["dashboard.view", "pr.finance_review", "pr.reject", "pr.view_all", "purchase_request.read", "purchase_order.read", "goods_receiving.read", "inventory.read", "stock_count.read", "stock_transfer.read", "stock_wastage.read", "po.view", "grn.view", "purchase_return.view", "items.view", "suppliers.view", "production.view", "recipes.view", "outlet_daily_record.view", "outlet_daily_record.view_all", "supplier_invoice.view", "supplier_invoice.create", "supplier_invoice.pay", "supplier_invoice.approve", "supplier_invoice.void", "documents.view", "reports.view", "stock.view", "stock_transactions.read", "staffs.read", "staffs.create", "staffs.update", "document_sequences.read", "document_sequences.create", "document_sequences.update", "imports.create", "imports.run", "branches.read", "branches.create", "branches.update"],
+  finance: ["dashboard.view", "pr.finance_review", "pr.reject", "pr.view_all", "purchase_request.read", "purchase_order.read", "goods_receiving.read", "inventory.read", "stock_count.read", "stock_transfer.read", "stock_wastage.read", "po.view", "grn.view", "purchase_return.view", "items.view", "suppliers.view", "production.view", "recipes.view", "outlet_daily_record.view", "outlet_daily_record.view_all", "supplier_invoice.view", "supplier_invoice.create", "supplier_invoice.pay", "supplier_invoice.approve", "supplier_invoice.void", "documents.view", "documents.attach", "reports.view", "stock.view", "stock_transactions.read", "staffs.read", "staffs.create", "staffs.update", "document_sequences.read", "document_sequences.create", "document_sequences.update", "imports.create", "imports.run", "branches.read", "branches.create", "branches.update"],
   manager: ["dashboard.view", "purchase_request.read", "purchase_order.read", "goods_receiving.read", "inventory.read", "stock_count.read", "stock_transfer.read", "stock_wastage.read", "pr.manager_approve", "pr.reject", "pr.view_all", "po.view", "po.approve", "grn.view", "purchase_return.view", "documents.view", "documents.comment", "reports.view", "stock.view", "stock_transactions.read", "attachments.upload", "production.view", "production.approve", "production.reject", "outlet_daily_record.view", "outlet_daily_record.review", "outlet_daily_record.void", "branches.read", "branches.create", "branches.update"],
   purchasing: [
     "dashboard.view",
@@ -179,6 +180,7 @@ export const rolePermissionMatrix = {
     "po.create",
     "po.submit",
     "po.send",
+    "purchase_order.close",
     "grn.create",
     "purchase_return.view",
     "purchase_return.create",
@@ -197,6 +199,7 @@ export const rolePermissionMatrix = {
   outlet_staff: ["dashboard.view", "outlet_daily_record.view", "outlet_daily_record.create", "outlet_daily_record.update"],
   kitchen: [
     "dashboard.view",
+    "purchase_order.read",
     "pr.create",
     "pr.submit",
     "pr.cancel",
@@ -228,6 +231,11 @@ function roleAllowsPermission(roleCode: string, permission: string) {
 }
 
 const checkPermission = cache(async (permission: string) => {
+  // Permission rows alone are not an authorization boundary. A suspended,
+  // deleted, or unlinked staff profile must never be able to exercise a
+  // still-cached permission through a direct Server Action invocation.
+  await requireActiveTenantActor();
+
   if (isMockMode()) {
     return roleAllowsPermission(mockProfile.role, permission) || permission.endsWith(".read");
   }
@@ -251,6 +259,8 @@ export async function hasPermission(permission: string) {
 }
 
 export async function getPermissionMap(permissions: string[]) {
+  await requireActiveTenantActor();
+
   if (isMockMode()) {
     return Object.fromEntries(permissions.map((permission) => [permission, roleAllowsPermission(mockProfile.role, permission) || permission.endsWith(".read")])) as Record<string, boolean>;
   }

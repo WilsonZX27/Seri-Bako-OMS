@@ -43,6 +43,7 @@ test("mobile create form remains reachable without horizontal overflow", async (
   expect(await login(page, "superAdmin")).toBe(true);
   await page.goto("/purchase-requests/new", { waitUntil: "domcontentloaded" });
   await expect(page.locator("form#purchase-request-form")).toBeVisible();
-  await expect(page.getByRole("button", { name: /open navigation menu/i })).toBeVisible();
+  await expect(page.locator("[data-mobile-page-title]")).toHaveText("Purchase Requests");
+  await expect(page.locator("[data-mobile-app-nav]")).toBeVisible();
   await expectNoPageOverflow(page);
 });

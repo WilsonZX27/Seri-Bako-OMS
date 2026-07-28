@@ -12,15 +12,17 @@ import { Button } from "@/components/ui/button";
 import { ConsoleSection } from "@/components/layout/right-console";
 import { WorkspaceGrid } from "@/components/layout/workspace-layout";
 import { documentTypeLabel } from "@/lib/document-types";
+import { hasActiveFilters } from "@/lib/table-state";
 
 export default async function DocumentSequencesPage({ searchParams }: { searchParams: Promise<{ search?: string; status?: string; error?: string; success?: string }> }) {
   const filters = await searchParams;
   const [sequences, canCreate, canUpdate] = await Promise.all([getDocumentSequences(filters), hasPermission("document_sequences.create"), hasPermission("document_sequences.update")]);
+  const filtered = hasActiveFilters(filters);
 
   return (
     <>
       <PageHeader title="Document Sequences" description="Controlled numbering for operational documents." />
-      <WorkspaceGrid rightRail={<>{canCreate ? <ConsoleSection title="Actions"><Button asChild size="sm" className="w-full" data-mobile-primary-action><Link href="/document-sequences/new">New sequence</Link></Button></ConsoleSection> : null}<ConsoleSection title="Sequence Summary"><p className="text-xs text-muted-foreground">{sequences.length} numbering {sequences.length === 1 ? "sequence" : "sequences"} in the current view.</p></ConsoleSection></>}>
+      <WorkspaceGrid rightRail={<>{canCreate ? <ConsoleSection title="Actions"><Button asChild size="sm" className="w-full" data-mobile-primary-action><Link href="/document-sequences/new">New sequence</Link></Button></ConsoleSection> : null}<ConsoleSection title="Sequence Summary"><p className="text-xs text-muted-foreground">{sequences.length} numbering {sequences.length === 1 ? "sequence" : "sequences"} in the current view.</p><p className="mt-3 border-t pt-3 text-xs leading-5 text-muted-foreground"><span className="font-medium text-foreground">Opening Balance:</span> the cursor is not a stock-record count. Posting skips every existing Ledger and document number automatically.</p></ConsoleSection></>}>
         {filters.error || filters.success ? (
           <Card>
             <CardContent className={`p-4 text-sm ${filters.error ? "text-destructive" : "text-[var(--sb-success)]"}`}>
@@ -29,17 +31,16 @@ export default async function DocumentSequencesPage({ searchParams }: { searchPa
           </Card>
         ) : null}
         <div className="overflow-hidden rounded-[2px] border bg-card">
-          <MasterDataFilters search={filters.search} status={filters.status} placeholder="Search document type, prefix, or preview number" />
-          <div className="overflow-x-auto">
-            <Table>
+          <MasterDataFilters search={filters.search} status={filters.status} placeholder="Search document type, prefix, or preview number" resultCount={sequences.length} filtered={filtered} resetHref="/document-sequences" />
+            <Table aria-label="Document sequences">
               <TableHeader>
                 <TableRow>
                   <TableHead>Document Type</TableHead>
                   <TableHead>Prefix</TableHead>
-                  <TableHead>Format Preview</TableHead>
+                  <TableHead>Next Format</TableHead>
                   <TableHead>Reset Monthly</TableHead>
                   <TableHead>Current Period</TableHead>
-                  <TableHead className="text-right">This Month&apos;s Next Number</TableHead>
+                  <TableHead className="text-right">Next Number</TableHead>
                   <TableHead>Status</TableHead>
                   {canUpdate ? <TableHead className="w-12 text-right">Action</TableHead> : null}
                 </TableRow>
@@ -60,7 +61,6 @@ export default async function DocumentSequencesPage({ searchParams }: { searchPa
                 {!sequences.length ? <TableRow><TableCell colSpan={canUpdate ? 8 : 7} className="text-center text-muted-foreground">No document sequences found.</TableCell></TableRow> : null}
               </TableBody>
             </Table>
-          </div>
         </div>
       </WorkspaceGrid>
     </>

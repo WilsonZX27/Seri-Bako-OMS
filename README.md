@@ -8,8 +8,8 @@ For UI and interaction standards, read `DESIGN.md`.
 
 ## Current Release Baseline
 
-- Application release: `v7.23.7.0`.
-- Database migration ceiling: `098_inventory_document_terminal_atomicity`.
+- Application release: `v7.24.3 — Invited Staff First-Login Recovery`.
+- Database migration ceiling: `106_invited_staff_self_read`.
 - Tenant isolation, inventory posting atomicity, procurement/document transitions, concurrency controls, and credential handoff are database-authoritative.
 - Start with `docs/PILOT_BASELINE.md`, use the controlled CSV files in `docs/import-templates/`, and record sign-off in `docs/PILOT_QA_CHECKLIST.md`.
 
@@ -208,7 +208,7 @@ Recommended order:
 5. Recipes through the supported application form; there is no recipe CSV importer.
 6. Opening stock last, with explicit posting confirmation.
 
-Opening stock uses `branch_code`; the application resolves that branch's default internal location. Preview each CSV and remove its placeholder example row before any pilot import.
+Opening stock uses `branch_code` and is posted directly to that Branch/Outlet. Preview each CSV and remove its placeholder example row before any pilot import.
 
 The repository does not seed or assume dummy business records for production. Suppliers, Items, Products, Recipes, supplier mappings, and opening balances must be deliberately onboarded and reconciled.
 
@@ -338,6 +338,15 @@ DEPLOYMENT.md
 ```
 
 Do not improvise the order of code deployment and database migration for schema-dependent changes.
+
+### Release identification
+
+Every user-visible release uses one canonical semantic version in `package.json` and `src/lib/app-version.ts`. The app footer, login screen, workspace sidebar, backup manifest, Git tag, and GitHub Release must agree on that value.
+
+- Increment the version before a release; use `vX.Y.Z` only (three segments).
+- Set a short, user-facing `APP_RELEASE_TITLE` in `src/lib/app-version.ts`.
+- Publish the GitHub Release with the exact title `vX.Y.Z — Release title` and tag `vX.Y.Z`.
+- Promote only the preview built from that tagged release commit. This keeps the deployed footer version, GitHub Release, and production artifact traceable to the same source.
 
 ## Documentation Map
 

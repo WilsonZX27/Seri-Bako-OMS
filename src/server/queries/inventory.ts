@@ -6,7 +6,6 @@ import {
   isMockMode,
   mockBranches,
   mockItems,
-  mockLocations,
   mockStockTransactions,
 } from "@/lib/mock-mode";
 import { compareTableValues, paginateRows } from "@/lib/table-state";
@@ -64,7 +63,6 @@ function searchExpression(columns: string[], value: string | undefined) {
 function filterRows<T extends Record<string, unknown>>(rows: T[], filters: Filters, keys: (keyof T)[], defaultSort: keyof T) {
   const search = filters.search?.trim().toLowerCase();
   const type = filters.type && filters.type !== "all" ? filters.type : null;
-  const location = filters.location_id && filters.location_id !== "all" ? filters.location_id : null;
   const item = filters.item_id && filters.item_id !== "all" ? filters.item_id : null;
   const sort = filters.sort ?? String(defaultSort);
   const dir = filters.dir ?? "desc";
@@ -72,9 +70,8 @@ function filterRows<T extends Record<string, unknown>>(rows: T[], filters: Filte
     .filter((row) => {
       const matchesSearch = search ? keys.some((key) => String(row[key] ?? "").toLowerCase().includes(search)) : true;
       const matchesType = type ? row.transaction_type === type : true;
-      const matchesLocation = location ? row.location_id === location : true;
       const matchesItem = item ? row.item_id === item : true;
-      return matchesSearch && matchesType && matchesLocation && matchesItem;
+      return matchesSearch && matchesType && matchesItem;
     })
     .sort((a, b) => compareTableValues(a[sort], b[sort], dir));
 }
@@ -91,7 +88,7 @@ function filterLedgerRows(rows: StockLedgerViewRow[], filters: Filters) {
   const sort = filters.sort ?? "transaction_date";
   const dir = filters.dir ?? "desc";
   return rows
-    .filter((row) => search ? [row.transaction_no, row.transaction_type, row.item_code, row.item_name, row.branch_name, row.location_name].some((value) => String(value ?? "").toLowerCase().includes(search)) : true)
+    .filter((row) => search ? [row.transaction_no, row.transaction_type, row.item_code, row.item_name, row.branch_name].some((value) => String(value ?? "").toLowerCase().includes(search)) : true)
     .filter((row) => source ? [row.reference_type, row.reference_id, row.transaction_no].some((value) => String(value ?? "").toLowerCase().includes(source)) : true)
     .filter((row) => type ? row.transaction_type === type : true)
     .filter((row) => branch ? row.branch_id === branch : true)
@@ -104,9 +101,8 @@ function filterLedgerRows(rows: StockLedgerViewRow[], filters: Filters) {
 
 function hydrateTransaction(transaction: StockTransaction) {
   const item = mockItems.find((row) => row.id === transaction.item_id) ?? null;
-  const location = mockLocations.find((row) => row.id === transaction.location_id) ?? null;
-  const branch = mockBranches.find((row) => row.id === transaction.branch_id || row.id === location?.branch_id) ?? null;
-  return { ...transaction, item, location, branch };
+  const branch = mockBranches.find((row) => row.id === transaction.branch_id) ?? null;
+  return { ...transaction, item, branch };
 }
 
 export async function getStockTransactions(filters: Filters = {}) {
@@ -119,7 +115,7 @@ export async function getStockTransactions(filters: Filters = {}) {
   const [
     { data: transactions, error: transactionsError },
     { data: items, error: itemsError },
-    { data: locations, error: locationsError },
+    { data: branches, error: branchesError },
   ] = await Promise.all([
     supabase
       .from("stock_transactions")
@@ -127,20 +123,20 @@ export async function getStockTransactions(filters: Filters = {}) {
       .order("transaction_date", { ascending: false })
       .order("created_at", { ascending: false }),
     supabase.from("items").select("id, item_code, item_name, base_unit"),
-    supabase.from("locations").select("id, location_code, location_name"),
+    supabase.from("branches").select("id, branch_code, branch_name"),
   ]);
 
   if (transactionsError) throw new Error(transactionsError.message);
   if (itemsError) throw new Error(itemsError.message);
-  if (locationsError) throw new Error(locationsError.message);
+  if (branchesError) throw new Error(branchesError.message);
 
   const itemById = new Map((items ?? []).map((item) => [item.id, item]));
-  const locationById = new Map((locations ?? []).map((location) => [location.id, location]));
+  const branchById = new Map((branches ?? []).map((branch) => [branch.id, branch]));
 
   const rows = (transactions ?? []).map((transaction) => ({
     ...transaction,
     item: itemById.get(transaction.item_id) ?? null,
-    location: locationById.get(transaction.location_id) ?? null,
+    branch: transaction.branch_id ? branchById.get(transaction.branch_id) ?? null : null,
   }));
   return paginateRows(filterRows(rows, filters, ["transaction_no", "transaction_type", "remarks", "reference_type"], "transaction_date"), filters.page, 15);
 }
@@ -171,22 +167,18 @@ export async function getStockTransaction(id: string) {
   }
 
   const supabase = await createClient();
-  const [{ data, error }, { data: items }, { data: locations }, { data: branches }] = await Promise.all([
+  const [{ data, error }, { data: items }, { data: branches }] = await Promise.all([
     supabase.from("stock_transactions").select("*").eq("id", id).single(),
     supabase.from("items").select("id, item_code, item_name, base_unit, item_image_url"),
-    supabase.from("locations").select("id, location_code, location_name, branch_id"),
     supabase.from("branches").select("id, branch_name"),
   ]);
   if (error) throw new Error(error.message);
   const itemById = new Map((items ?? []).map((item) => [item.id, item]));
-  const locationById = new Map((locations ?? []).map((location) => [location.id, location]));
   const branchById = new Map((branches ?? []).map((branch) => [branch.id, branch]));
-  const location = locationById.get(data.location_id) ?? null;
   return {
     ...data,
     item: itemById.get(data.item_id) ?? null,
-    location,
-    branch: data.branch_id ? branchById.get(data.branch_id) ?? null : location?.branch_id ? branchById.get(location.branch_id) ?? null : null,
+    branch: data.branch_id ? branchById.get(data.branch_id) ?? null : null,
   };
 }
 
@@ -197,7 +189,7 @@ export async function getStockLedger(filters: Filters = {}) {
       .sort((a, b) => new Date(a.transaction_date).getTime() - new Date(b.transaction_date).getTime() || new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
     const balanceByKey = new Map<string, number>();
     const ledger = sorted.map((row) => {
-      const key = `${row.item_id}:${row.location_id}`;
+      const key = `${row.item_id}:${row.branch_id}`;
       const balance = (balanceByKey.get(key) ?? 0) + row.quantity_in - row.quantity_out;
       balanceByKey.set(key, balance);
       return {
@@ -219,8 +211,6 @@ export async function getStockLedger(filters: Filters = {}) {
         image_url: row.item?.item_image_url ?? null,
         branch_id: row.branch?.id ?? null,
         branch_name: row.branch?.branch_name ?? null,
-        location_id: row.location_id,
-        location_name: row.location?.location_name ?? "-",
         quantity_in: row.quantity_in,
         quantity_out: row.quantity_out,
         unit_cost: row.unit_cost ?? 0,
@@ -268,7 +258,7 @@ export async function getStockBalanceDetails(filters: Filters = {}) {
     const allRows = ledger.rows;
     const grouped = new Map<string, (typeof allRows)[number][]>();
     allRows.forEach((row) => {
-      const key = `${row.item_id}:${row.location_id}`;
+      const key = `${row.item_id}:${row.branch_id}`;
       grouped.set(key, [...(grouped.get(key) ?? []), row]);
     });
     const rows = Array.from(grouped.values()).map((rowsForKey) => {
@@ -282,12 +272,12 @@ export async function getStockBalanceDetails(filters: Filters = {}) {
         item_id: latest.item_id,
         item_code: latest.item_code,
         item_name: latest.item_name,
+        supplier_id: null,
+        supplier_name: null,
         base_unit: latest.base_unit,
         image_url: item?.item_image_url ?? null,
         branch_id: latest.branch_id,
         branch_name: latest.branch_name,
-        location_id: latest.location_id,
-        location_name: latest.location_name,
         available_qty: currentQty,
         reserved_qty: 0,
         current_qty: currentQty,
@@ -299,8 +289,7 @@ export async function getStockBalanceDetails(filters: Filters = {}) {
     });
     const branchId = filters.branch_id && filters.branch_id !== "all" ? filters.branch_id : null;
     const scopeRows = branchId ? rows.filter((row) => row.branch_id === branchId) : rows;
-    const displayRows = filters.view !== "location" ? aggregateStockByBranch(scopeRows) : scopeRows;
-    const filtered = filterRows(displayRows, filters, ["item_code", "item_name", "branch_name", "location_name", "status"], "item_name");
+    const filtered = filterRows(scopeRows, filters, ["item_code", "item_name", "branch_name", "status"], "item_name");
     return paginateRows(filtered, filters.page, filters.page === "all" ? Math.max(filtered.length, 1) : 15);
   }
 
@@ -336,54 +325,6 @@ export async function getStockBalanceDetails(filters: Filters = {}) {
         : "ok",
   }));
   return databasePagination(rows, count, filters.page);
-}
-
-function aggregateStockByBranch<T extends {
-  item_id: string;
-  item_code: string;
-  item_name: string;
-  base_unit: string;
-  image_url: string | null;
-  branch_id: string | null;
-  branch_name: string | null;
-  location_id: string | null;
-  location_name: string | null;
-  available_qty: number;
-  reserved_qty: number;
-  current_qty: number;
-  average_cost: number;
-  inventory_value: number;
-  last_movement: string | null;
-  status: string;
-}>(rows: T[]) {
-  const grouped = new Map<string, T[]>();
-  rows.forEach((row) => {
-    const key = `${row.branch_id ?? "no-branch"}:${row.item_id}`;
-    grouped.set(key, [...(grouped.get(key) ?? []), row]);
-  });
-
-  return Array.from(grouped.values()).map((rowsForKey) => {
-    const first = rowsForKey[0];
-    const currentQty = rowsForKey.reduce((sum, row) => sum + Number(row.current_qty), 0);
-    const availableQty = rowsForKey.reduce((sum, row) => sum + Number(row.available_qty), 0);
-    const reservedQty = rowsForKey.reduce((sum, row) => sum + Number(row.reserved_qty), 0);
-    const inventoryValue = rowsForKey.reduce((sum, row) => sum + Number(row.inventory_value), 0);
-    const averageCost = currentQty > 0 ? inventoryValue / currentQty : first.average_cost;
-    const lastMovement = rowsForKey.map((row) => row.last_movement).filter(Boolean).sort().at(-1) ?? null;
-
-    return {
-      ...first,
-      location_id: `${first.branch_id ?? "no-branch"}:all`,
-      location_name: "All locations",
-      available_qty: availableQty,
-      reserved_qty: reservedQty,
-      current_qty: currentQty,
-      average_cost: averageCost,
-      inventory_value: inventoryValue,
-      last_movement: lastMovement,
-      status: currentQty < 0 ? "negative" : rowsForKey.some((row) => row.status === "low_stock") ? "low_stock" : "ok",
-    };
-  });
 }
 
 export async function getInventoryDashboard(period: "7d" | "30d" | "month" = "30d") {
@@ -451,7 +392,7 @@ export async function getInventoryDashboard(period: "7d" | "30d" | "month" = "30
 
 export async function getStockCard(filters: Filters = {}) {
   const ledger = await getStockLedger({ ...filters, page: "all" });
-  const itemId = filters.item_id;
+  const itemId = filters.item_id && filters.item_id !== "all" ? filters.item_id : null;
   const rows = (itemId ? ledger.rows.filter((row) => row.item_id === itemId) : ledger.rows)
     .filter((row) => filters.from ? row.transaction_date >= filters.from : true)
     .filter((row) => filters.to ? row.transaction_date <= filters.to : true);
@@ -467,8 +408,6 @@ export async function getLowStockItems(filters: Filters = {}) {
       status: "active" as const,
       branch_id: null,
       branch_name: null,
-      location_id: "mock",
-      location_name: "All locations",
       total_quantity_in: row.current_stock,
       total_quantity_out: 0,
       current_qty: row.current_stock,

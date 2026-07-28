@@ -4,7 +4,6 @@ import {
   mockGoodsReceivingLines,
   mockGoodsReceivings,
   mockItems,
-  mockLocations,
   mockProfile,
   mockPurchaseOrderLines,
   mockPurchaseOrders,
@@ -24,7 +23,6 @@ export type GoodsReceivingRow = GoodsReceiving & {
   po_no: string | null;
   supplier_name: string | null;
   branch_name: string | null;
-  location_name: string | null;
   received_by_name: string | null;
   received_total: number;
   rejected_total: number;
@@ -68,14 +66,12 @@ function hydrateGrn(row: GoodsReceiving, lines: GoodsReceivingLine[]): GoodsRece
   const po = mockPurchaseOrders.find((item) => item.id === row.purchase_order_id);
   const supplier = mockSuppliers.find((item) => item.id === row.supplier_id);
   const branch = mockBranches.find((item) => item.id === row.branch_id);
-  const location = mockLocations.find((item) => item.id === row.location_id);
   const ownLines = lines.filter((line) => line.goods_receiving_id === row.id);
   return {
     ...row,
     po_no: po?.po_no ?? null,
     supplier_name: supplier?.name ?? null,
     branch_name: branch?.branch_name ?? null,
-    location_name: location?.location_name ?? null,
     received_by_name: row.received_by ? mockProfile.full_name : null,
     received_total: ownLines.reduce((sum, line) => sum + line.received_qty, 0),
     rejected_total: ownLines.reduce((sum, line) => sum + line.rejected_qty, 0),
@@ -96,24 +92,22 @@ function toReceivingLine(line: PurchaseOrderLine): PurchaseOrderReceivingLine {
 export async function getGoodsReceivings(filters: Filters = {}) {
   if (isMockMode()) {
     const rows = mockGoodsReceivings.map((row) => hydrateGrn(row, mockGoodsReceivingLines));
-    return paginateRows(filterRows(rows, filters, ["grn_no", "status", "po_no", "supplier_name", "location_name", "remarks"], "updated_at"), filters.page, 12);
+    return paginateRows(filterRows(rows, filters, ["grn_no", "status", "po_no", "supplier_name", "remarks"], "updated_at"), filters.page, 12);
   }
 
   const supabase = await createClient();
-  const [{ data, error }, { data: lines, error: linesError }, { data: pos }, { data: suppliers }, { data: branches }, { data: locations }] = await Promise.all([
+  const [{ data, error }, { data: lines, error: linesError }, { data: pos }, { data: suppliers }, { data: branches }] = await Promise.all([
     supabase.from("goods_receivings").select("*").is("deleted_at", null).order("updated_at", { ascending: false }),
     supabase.from("goods_receiving_lines").select("*"),
     supabase.from("purchase_orders").select("id, po_no"),
     supabase.from("suppliers").select("id, name"),
     supabase.from("branches").select("id, branch_name"),
-    supabase.from("locations").select("id, location_name"),
   ]);
   if (error) throw new Error(error.message);
   if (linesError) throw new Error(linesError.message);
   const poById = new Map((pos ?? []).map((row) => [row.id, row.po_no]));
   const supplierById = new Map((suppliers ?? []).map((row) => [row.id, row.name]));
   const branchById = new Map((branches ?? []).map((row) => [row.id, row.branch_name]));
-  const locationById = new Map((locations ?? []).map((row) => [row.id, row.location_name]));
   const rows = ((data ?? []) as GoodsReceiving[]).map((row) => {
     const ownLines = ((lines ?? []) as GoodsReceivingLine[]).filter((line) => line.goods_receiving_id === row.id);
     return {
@@ -121,14 +115,13 @@ export async function getGoodsReceivings(filters: Filters = {}) {
       po_no: poById.get(row.purchase_order_id) ?? null,
       supplier_name: supplierById.get(row.supplier_id) ?? null,
       branch_name: row.branch_id ? branchById.get(row.branch_id) ?? null : null,
-      location_name: locationById.get(row.location_id) ?? null,
       received_by_name: row.received_by,
       received_total: ownLines.reduce((sum, line) => sum + line.received_qty, 0),
       rejected_total: ownLines.reduce((sum, line) => sum + line.rejected_qty, 0),
       line_count: ownLines.length,
     };
   });
-  return paginateRows(filterRows(rows, filters, ["grn_no", "status", "po_no", "supplier_name", "location_name", "remarks"], "updated_at"), filters.page, 12);
+  return paginateRows(filterRows(rows, filters, ["grn_no", "status", "po_no", "supplier_name", "remarks"], "updated_at"), filters.page, 12);
 }
 
 export async function getGoodsReceiving(id: string) {
@@ -141,14 +134,13 @@ export async function getGoodsReceiving(id: string) {
     return { receiving: hydrateGrn(row, mockGoodsReceivingLines), lines };
   }
   const supabase = await createClient();
-  const [{ data, error }, { data: lines, error: linesError }, { data: items }, { data: pos }, { data: suppliers }, { data: branches }, { data: locations }] = await Promise.all([
+  const [{ data, error }, { data: lines, error: linesError }, { data: items }, { data: pos }, { data: suppliers }, { data: branches }] = await Promise.all([
     supabase.from("goods_receivings").select("*").eq("id", id).single(),
     supabase.from("goods_receiving_lines").select("*").eq("goods_receiving_id", id),
     supabase.from("items").select("id, item_code, item_name, base_unit"),
     supabase.from("purchase_orders").select("id, po_no"),
     supabase.from("suppliers").select("id, name"),
     supabase.from("branches").select("id, branch_name"),
-    supabase.from("locations").select("id, location_name"),
   ]);
   if (error) throw new Error(error.message);
   if (linesError) throw new Error(linesError.message);
@@ -156,7 +148,6 @@ export async function getGoodsReceiving(id: string) {
   const poById = new Map((pos ?? []).map((row) => [row.id, row.po_no]));
   const supplierById = new Map((suppliers ?? []).map((row) => [row.id, row.name]));
   const branchById = new Map((branches ?? []).map((row) => [row.id, row.branch_name]));
-  const locationById = new Map((locations ?? []).map((row) => [row.id, row.location_name]));
   const receiving = data as GoodsReceiving;
   return {
     receiving: {
@@ -164,7 +155,6 @@ export async function getGoodsReceiving(id: string) {
       po_no: poById.get(receiving.purchase_order_id) ?? null,
       supplier_name: supplierById.get(receiving.supplier_id) ?? null,
       branch_name: receiving.branch_id ? branchById.get(receiving.branch_id) ?? null : null,
-      location_name: locationById.get(receiving.location_id) ?? null,
       received_by_name: receiving.received_by,
       received_total: ((lines ?? []) as GoodsReceivingLine[]).reduce((sum, line) => sum + line.received_qty, 0),
       rejected_total: ((lines ?? []) as GoodsReceivingLine[]).reduce((sum, line) => sum + line.rejected_qty, 0),

@@ -12,7 +12,7 @@ export default async function NewStockWastagePage({ searchParams }: { searchPara
   const filters = await searchParams;
   const branches = await getBranchesForSelect();
   const selectedBranchId = filters.branch_id ?? branches[0]?.id;
-  const seedLines = await getOperationSeedLines(undefined, selectedBranchId);
+  const seedLines = await getOperationSeedLines(selectedBranchId);
   const formId = "stock-wastage-create-form";
   return (
     <>

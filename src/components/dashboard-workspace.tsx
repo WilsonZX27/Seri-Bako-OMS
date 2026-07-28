@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { AlertTriangle, Boxes, CheckCircle2, ClipboardCheck, Clock3, Factory, PackageCheck, ReceiptText, ShoppingCart } from "lucide-react";
+import { AlertTriangle, Boxes, CheckCircle2, ClipboardCheck, ClipboardList, Clock3, Factory, FileText, PackageCheck, ReceiptText, ShoppingCart } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { ConsoleSection } from "@/components/layout/right-console";
@@ -12,11 +12,35 @@ import type { LucideIcon } from "lucide-react";
 type DashboardSummary = Awaited<ReturnType<typeof import("@/server/queries/dashboard").getDashboardSummary>>;
 
 function Metric({ href, label, value, icon: Icon, alert = false }: { href: string; label: string; value: string | number; icon: LucideIcon; alert?: boolean }) {
-  return <Link href={href} className="flex min-h-12 items-center justify-between gap-3 rounded-[2px] border border-[var(--sb-border-soft)] bg-white px-3 py-2 hover:border-[var(--sb-amber-300)]"><span className="flex min-w-0 items-center gap-2 text-xs font-medium text-muted-foreground"><span className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-[2px] ${alert ? "bg-[var(--sb-warning-bg)] text-[var(--sb-warning)]" : "bg-[var(--sb-neutral-bg)] text-[var(--sb-neutral-text)]"}`}><Icon className="h-4 w-4" /></span><span className="truncate">{label}</span></span><strong className="tabular-nums">{value}</strong></Link>;
+  return <Link href={href} className="flex min-h-[var(--sb-control-height)] items-center justify-between gap-3 px-1 py-2 hover:bg-[var(--sb-surface-muted)]"><span className="flex min-w-0 items-center gap-2 text-xs font-medium text-muted-foreground"><span className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-[2px] ${alert ? "bg-[var(--sb-warning-bg)] text-[var(--sb-warning)]" : "bg-[var(--sb-neutral-bg)] text-[var(--sb-neutral-text)]"}`}><Icon className="h-4 w-4" /></span><span className="truncate">{label}</span></span><strong className="tabular-nums">{value}</strong></Link>;
 }
 
 function Panel({ title, empty, children, action }: { title: string; empty?: string; children?: React.ReactNode; action?: { href: string; label: string } }) {
-  return <section className="rounded-[2px] border border-[var(--sb-border-soft)] bg-card p-3"><div className="mb-2.5 flex items-center justify-between gap-2"><h2 className="text-xs font-semibold">{title}</h2>{action ? <Button asChild variant="ghost" size="sm" className="h-7 px-2 text-[11px]"><Link href={action.href}>{action.label}</Link></Button> : null}</div>{children ?? <p className="text-xs text-muted-foreground">{empty}</p>}</section>;
+  return <section className="rounded-[2px] border border-[var(--sb-border-soft)] bg-card p-3"><div className="mb-2.5 flex items-center justify-between gap-2"><h2 className="text-xs font-semibold">{title}</h2>{action ? <Button asChild variant="ghost" size="sm" className="px-2 text-[11px]"><Link href={action.href}>{action.label}</Link></Button> : null}</div>{children ?? <p className="text-xs text-muted-foreground">{empty}</p>}</section>;
+}
+
+function MobileQuickActions({ actions }: { actions: { href: string; label: string; icon: LucideIcon }[] }) {
+  return (
+    <section className="xl:hidden" aria-labelledby="mobile-quick-actions-title">
+      <div className="mb-2 flex items-center justify-between">
+        <h2 id="mobile-quick-actions-title" className="text-xs font-semibold">Quick actions</h2>
+        <span className="text-[11px] text-[var(--sb-text-muted)]">Based on your role</span>
+      </div>
+      <div className="grid grid-cols-3 divide-x divide-[var(--sb-border-soft)] overflow-hidden rounded-[var(--sb-panel-radius)] border border-[var(--sb-border-soft)] bg-white">
+        {actions.slice(0, 3).map((action) => {
+          const Icon = action.icon;
+          return (
+            <Link key={action.href} href={action.href} className="flex min-h-[4.75rem] min-w-0 flex-col items-center justify-center gap-1.5 px-2 py-2 text-center text-[11px] font-semibold text-[var(--sb-green-950)] active:bg-[var(--sb-surface-muted)]">
+              <span className="grid h-8 w-8 place-items-center rounded-[var(--sb-radius-control)] bg-[var(--sb-green-100)] text-[var(--sb-green-900)]">
+                <Icon className="h-4 w-4" aria-hidden="true" />
+              </span>
+              <span className="line-clamp-2 leading-4">{action.label}</span>
+            </Link>
+          );
+        })}
+      </div>
+    </section>
+  );
 }
 
 const roleCopy: Record<string, { title: string; description: string }> = {
@@ -46,24 +70,71 @@ export function DashboardWorkspace({ summary, renderedAt }: { summary: Dashboard
   const outletAction = !outletStatus ? "Start daily record" : outletComplete ? "Review today’s record" : "Complete daily record";
 
   const quickActions = isOutlet
-    ? [{ href: summary.outletToday?.id ? `/outlet-daily-records/${summary.outletToday.id}` : "/outlet-daily-records/new", label: outletAction }]
+    ? [
+        { href: summary.outletToday?.id ? `/outlet-daily-records/${summary.outletToday.id}` : "/outlet-daily-records/new", label: outletAction, icon: ClipboardCheck },
+        { href: "/outlet-daily-records", label: "Daily records", icon: ClipboardList },
+        { href: "/activity", label: "Recent activity", icon: Clock3 },
+      ]
     : isKitchen
-      ? [{ href: "/purchase-requests/new", label: "Create Purchase Request" }, { href: "/production/jobs/new", label: "New Production Job" }]
+      ? [
+          { href: "/purchase-requests/new", label: "Create request", icon: FileText },
+          { href: "/production/jobs/new", label: "New production job", icon: Factory },
+          { href: "/goods-receivings", label: "Receive goods", icon: PackageCheck },
+        ]
       : isPurchasing
-        ? [{ href: "/purchase-requests?status=admin_review", label: "Review approved PRs" }, { href: "/purchase-orders", label: "Prepare or send PO" }]
+        ? [
+            { href: "/purchase-requests?status=admin_review", label: "Review PRs", icon: FileText },
+            { href: "/purchase-orders", label: "Prepare PO", icon: ShoppingCart },
+            { href: "/goods-receivings", label: "Receive goods", icon: PackageCheck },
+          ]
         : isFinance
-          ? [{ href: "/purchase-requests?status=finance_review", label: "Review Purchase Requests" }, { href: "/supplier-invoices", label: "Review Invoices" }]
+          ? [
+              { href: "/purchase-requests?status=finance_review", label: "Review PRs", icon: FileText },
+              { href: "/supplier-invoices", label: "Review invoices", icon: ReceiptText },
+              { href: "/stock-balance", label: "Check stock", icon: Boxes },
+            ]
           : isManager
-            ? [{ href: "/purchase-requests?status=manager_review", label: "Review Purchase Requests" }, { href: "/goods-receivings", label: "Check Receiving" }]
-            : [{ href: "/purchase-requests", label: "Open approval pipeline" }, { href: "/supplier-invoices/aging", label: "Open AP Aging" }];
-  const primaryAction = quickActions[0];
+            ? [
+                { href: "/purchase-requests?status=manager_review", label: "Review PRs", icon: FileText },
+                { href: "/goods-receivings", label: "Check receiving", icon: PackageCheck },
+                { href: "/stock-counts", label: "Stock count", icon: CheckCircle2 },
+              ]
+            : [
+                { href: "/purchase-requests", label: "Approval pipeline", icon: FileText },
+                { href: "/supplier-invoices/aging", label: "AP aging", icon: ReceiptText },
+                { href: "/stock-counts", label: "Stock count", icon: CheckCircle2 },
+              ];
+  const workspaceContext = <>
+    <p className="text-xs text-[var(--sb-text-muted)]">Welcome, {summary.userName}</p>
+    <div className="mt-1 flex min-w-0 flex-wrap items-baseline gap-x-2 gap-y-0.5">
+      <span className="text-base font-semibold text-[var(--sb-text)] sm:text-lg">{summary.roleLabel}</span>
+      <span aria-hidden="true" className="text-[var(--sb-text-muted)]">|</span>
+      <span className="min-w-0 text-sm text-[var(--sb-text-muted)]">{summary.branchLabel}</span>
+    </div>
+  </>;
 
-  return <WorkspaceGrid hideMobileConsole className="gap-4 p-4 xl:grid-cols-[minmax(0,1fr)_280px]" rightRailClassName="space-y-2" rightRail={<>
+  const desktopWorkspaceContext = (
+    <p className="flex min-w-0 flex-wrap items-baseline gap-x-1.5 gap-y-0.5 text-xs text-[var(--sb-text-muted)]">
+      <span>Welcome, {summary.userName}</span>
+      <span aria-hidden="true">|</span>
+      <span>{summary.roleLabel}</span>
+      <span aria-hidden="true">|</span>
+      <span className="min-w-0 font-medium text-[var(--sb-text)]">{summary.branchLabel}</span>
+    </p>
+  );
+
+  return <WorkspaceGrid hideMobileConsole className="gap-4 p-3 pb-24 sm:p-4 sm:pb-24 xl:pb-4 xl:grid-cols-[minmax(0,1fr)_280px]" rightRailClassName="space-y-2" rightRail={<>
     <ConsoleSection title="Actions"><div className="grid gap-2">{quickActions.map((action, index) => <Button key={action.href} asChild size="sm" variant={index === 0 ? "default" : "outline"} className="w-full"><Link href={action.href}>{action.label}</Link></Button>)}</div></ConsoleSection>
     <ConsoleSection title="Today"><div className="space-y-2 text-[11px]"><p><span className="text-muted-foreground">Role</span><br /><strong>{summary.roleLabel}</strong></p><p><span className="text-muted-foreground">Data scope</span><br /><strong>{summary.scopeLabel}</strong></p><p><span className="text-muted-foreground">Updated</span><br /><strong>{now.toLocaleString("en-MY", { dateStyle: "medium", timeStyle: "short", timeZone: "Asia/Kuala_Lumpur" })}</strong></p></div></ConsoleSection>
     {summary.notifications.length ? <ConsoleSection title="Alerts"><div className="space-y-2">{summary.notifications.slice(0, 3).map((note) => <Link key={note.id} href={note.action_url ?? "/activity"} className="block text-[11px] hover:underline"><strong className="block">{note.title}</strong><span className="text-muted-foreground">{note.message}</span></Link>)}</div></ConsoleSection> : null}
   </>}>
-    <div className="space-y-4"><header className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between"><div><div className="flex flex-wrap items-center gap-2"><h1 className="text-xl font-semibold">{copy.title}</h1><span className="rounded-[2px] bg-[var(--sb-neutral-bg)] px-2 py-1 text-[10px] font-medium text-muted-foreground">{summary.scopeLabel}</span></div><p className="mt-1 text-xs text-muted-foreground">{copy.description}</p></div><Button asChild size="sm" className="w-full shrink-0 sm:w-auto xl:hidden"><Link href={primaryAction.href}>{primaryAction.label}</Link></Button></header>
+    <div className="space-y-4"><header className="hidden flex-col gap-3 md:flex md:flex-row md:items-start md:justify-between"><div className="min-w-0"><h1 className="text-lg font-semibold tracking-[-0.01em] text-[var(--sb-text)]">{copy.title}</h1><div className="mt-1">{desktopWorkspaceContext}</div><p className="mt-2 text-xs text-muted-foreground">{copy.description}</p></div></header>
+
+      <div className="border-b border-[var(--sb-border-soft)] pb-3 md:hidden">
+        {workspaceContext}
+      </div>
+
+      <MobileQuickActions actions={quickActions} />
 
       {isOutlet ? <Panel title="Today’s completion"><div className="flex items-center gap-3 rounded-[2px] border bg-white p-3">{outletComplete ? <CheckCircle2 className="h-5 w-5 text-[var(--sb-success)]" /> : <Clock3 className="h-5 w-5 text-[var(--sb-warning)]" />}<div><p className="text-sm font-semibold">{outletComplete ? "Today’s record is complete" : outletStatus ? "Evening update is still required" : "Morning receive has not started"}</p><p className="text-xs text-muted-foreground">Only your assigned outlet’s record is shown.</p></div></div></Panel> : null}
 

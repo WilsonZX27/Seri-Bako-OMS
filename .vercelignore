@@ -1,0 +1,8 @@
+# Local import workbooks and audit artifacts; never ship with the web bundle.
+.tmp_sheet/
+05_findings/
+findings/
+oms_upload_csv_final/
+scan artifacts/
+*.xlsx
+*.inspect.ndjson

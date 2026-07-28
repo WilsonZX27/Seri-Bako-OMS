@@ -8,12 +8,17 @@ import { itemSchema } from "@/lib/validations/item";
 import { formatActionError, requirePermissionOrRedirect, rethrowRedirect, safeRedirectWithMessage } from "@/server/actions/error-handling";
 import { requireActiveTenantActor } from "@/server/auth/tenant-actor";
 import { uploadMasterDataImage } from "@/server/storage/master-data-image";
+import { z } from "zod";
 
 const editableItemSchema = itemSchema.omit({ status: true });
 
 function cleanText(value: unknown) {
   const text = String(value ?? "").trim();
   return text.length ? text : null;
+}
+
+function parseItemId(id: string) {
+  return z.string().uuid("The item identifier is invalid.").parse(id);
 }
 
 function payload(formData: FormData) {
@@ -85,14 +90,23 @@ export async function updateItem(id: string, formData: FormData) {
   }
 
   try {
+    const itemId = parseItemId(id);
     const writeSupabase = await createClient();
+    const actor = await requireActiveTenantActor();
+    const { data: existing, error: existingError } = await writeSupabase
+      .from("items")
+      .select("id")
+      .eq("id", itemId)
+      .eq("company_id", actor.companyId)
+      .maybeSingle();
+    if (existingError) throw new Error(existingError.message);
+    if (!existing) throw new Error("Item was not found or is outside your workspace.");
     const itemPayload = payload(formData);
-    const imageUrl = await uploadMasterDataImage("items", id, formData.get("item_image"));
-    const { error } = await writeSupabase.from("items").update({ ...itemPayload, ...(imageUrl ? { item_image_url: imageUrl } : {}) }).eq("id", id);
+    const imageUrl = await uploadMasterDataImage("items", itemId, formData.get("item_image"));
+    const { error } = await writeSupabase.from("items").update({ ...itemPayload, ...(imageUrl ? { item_image_url: imageUrl } : {}) }).eq("id", itemId).eq("company_id", actor.companyId);
     if (error) throw new Error(error.message);
 
     revalidatePath("/items");
-    revalidatePath("/stock-balances");
     revalidatePath("/low-stock");
     redirect("/items");
   } catch (error) {
@@ -108,11 +122,14 @@ export async function deleteItem(id: string) {
       redirect("/items");
     }
 
+    const itemId = parseItemId(id);
     const writeSupabase = await createClient();
+    const actor = await requireActiveTenantActor();
     const { error } = await writeSupabase
       .from("items")
       .update({ status: "inactive", deleted_at: new Date().toISOString() })
-      .eq("id", id);
+      .eq("id", itemId)
+      .eq("company_id", actor.companyId);
     if (error) throw new Error(error.message);
 
     revalidatePath("/items");
@@ -130,11 +147,14 @@ export async function restoreItem(id: string) {
       redirect("/items");
     }
 
+    const itemId = parseItemId(id);
     const writeSupabase = await createClient();
+    const actor = await requireActiveTenantActor();
     const { error } = await writeSupabase
       .from("items")
       .update({ status: "active", deleted_at: null })
-      .eq("id", id);
+      .eq("id", itemId)
+      .eq("company_id", actor.companyId);
     if (error) throw new Error(error.message);
 
     revalidatePath("/items");

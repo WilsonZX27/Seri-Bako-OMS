@@ -78,12 +78,11 @@ function MobileSheet({ label, title, children, danger = false, triggerClassName 
 export function MobileWorkflowStatus({ steps, currentStatus }: { steps: WorkflowStep[]; currentStatus: string }) {
   const foundIndex = steps.findIndex((step) => step.key === currentStatus);
   const activeIndex = foundIndex < 0 ? 0 : foundIndex;
-  const active = steps[activeIndex];
 
   return (
-    <div data-mobile-workflow-summary className="flex min-w-0 items-center justify-between gap-2 border-y border-[var(--sb-border-soft)] py-2 md:hidden">
-      <p className="min-w-0 truncate text-[12px] font-medium">Step {activeIndex + 1} of {steps.length}: {active?.label ?? currentStatus}</p>
-      <MobileSheet label="View workflow" title="Workflow progress" triggerClassName="h-8 w-auto shrink-0 px-2 text-[12px]">
+    <div data-mobile-workflow-summary className="mt-1 flex min-w-0 items-center justify-between gap-2 border-t border-[var(--sb-border-soft)] pt-1.5 md:hidden">
+      <p className="min-w-0 truncate text-[12px] font-medium">Step {activeIndex + 1} of {steps.length}</p>
+      <MobileSheet label="Workflow" title="Workflow progress" triggerClassName="h-12 min-h-12 w-auto shrink-0 border-0 px-1.5 text-[12px] shadow-none">
         <ol className="space-y-1" aria-label="Document workflow">
           {steps.map((step, index) => {
             const done = index < activeIndex;

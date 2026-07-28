@@ -1,15 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 
 export default function WorkspaceError({ error, reset }: { error: Error & { digest?: string }; reset: () => void }) {
-  useEffect(() => {
-    console.error(error);
-  }, [error]);
-
   return (
     <div className="p-3 sm:p-5">
       <Card>

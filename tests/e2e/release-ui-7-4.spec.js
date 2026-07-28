@@ -20,7 +20,6 @@ const representativeRoutes = [
   "/roles",
   "/company",
   "/branches",
-  "/locations",
 ];
 
 async function assertNoPageOverflow(page) {

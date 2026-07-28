@@ -83,7 +83,7 @@ export function LowStockPrForm({ items, branches, defaultBranchId, disabled }: {
   }
 
   return (
-    <Card>
+    <Card className="border-0 bg-transparent shadow-none md:border md:bg-card md:shadow-sm" data-low-stock-pr-setup>
       <CardContent className="space-y-4 p-4">
         <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
           <div>
@@ -120,7 +120,7 @@ export function LowStockPrForm({ items, branches, defaultBranchId, disabled }: {
             <input type="hidden" name="priority" value="normal" />
             <input type="hidden" name="branch_id" value={selectedBranchId === "all" ? "" : selectedBranchId} />
 
-            <div className="overflow-x-auto rounded-md border">
+            <div className="hidden overflow-x-auto rounded-[2px] border md:block">
               <table className="w-full">
                 <thead>
                   <tr className="bg-secondary/40 text-left text-xs">
@@ -187,6 +187,45 @@ export function LowStockPrForm({ items, branches, defaultBranchId, disabled }: {
                   ) : null}
                 </tbody>
               </table>
+            </div>
+
+            <div className="border-y md:hidden" data-low-stock-pr-lines>
+              {visibleItems.map((item) => {
+                const key = rowKey(item);
+                const isSelected = Boolean(selected[key]);
+                const requestedQty = quantities[key] ?? String(item.suggested_reorder_qty);
+                return (
+                  <div key={key} className="border-b p-3 last:border-b-0">
+                    <span className="flex items-start gap-3">
+                      <input type="checkbox" aria-label={`Select ${item.item_code}`} checked={isSelected} onChange={() => toggleItem(key)} className="mt-1 h-4 w-4 shrink-0" />
+                      <span className="min-w-0 flex-1">
+                        <span className="block font-medium leading-tight">{item.item_name}</span>
+                        <span className="mt-1 block text-xs text-muted-foreground">{item.item_code} {item.branch_name ? `- ${item.branch_name}` : ""}</span>
+                      </span>
+                    </span>
+                    <span className="mt-3 grid grid-cols-2 gap-3">
+                      <span className="text-xs text-muted-foreground">Current <strong className="block text-sm text-foreground">{item.current_stock} {item.base_unit}</strong></span>
+                      <span className="text-xs text-muted-foreground">Suggested <strong className="block text-sm text-foreground">{item.suggested_reorder_qty} {item.purchase_unit || item.base_unit}</strong></span>
+                      <Field label="Qty for PR" className="col-span-2">
+                        <Input type="number" min="0" step="0.0001" value={requestedQty} onChange={(event) => {
+                          setItemQty(key, event.target.value);
+                          if (!isSelected) setSelected((current) => ({ ...current, [key]: true }));
+                        }} />
+                      </Field>
+                    </span>
+                    {isSelected ? <>
+                      <input type="hidden" name="line_item_id" value={item.item_id} />
+                      <input type="hidden" name="line_uom" value={item.purchase_unit ?? item.base_unit ?? "pcs"} />
+                      <input type="hidden" name="line_suggested_supplier_id" value={item.supplier_id ?? ""} />
+                      <input type="hidden" name="line_estimated_unit_cost" value={String(item.cost ?? 0)} />
+                      <input type="hidden" name="line_remarks" value="" />
+                      <input type="hidden" name="line_reason" value="" />
+                      <input type="hidden" name="line_qty" value={requestedQty} />
+                    </> : null}
+                  </div>
+                );
+              })}
+              {!visibleItems.length ? <p className="px-3 py-4 text-center text-sm text-muted-foreground">No items match this branch filter.</p> : null}
             </div>
 
             <div className="flex items-center justify-between text-xs text-muted-foreground">

@@ -8,13 +8,14 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { FilterBar, FilterBarMore } from "@/components/ui/filter-bar";
 import { PageHeader } from "@/components/ui/page-header";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { SelectControl } from "@/components/ui/select-control";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { OperationalList, OperationalListRow, Table, TableActionLink, TableBody, TableCell, TableHead, TableHeader, TableRow, TableSelectionCell, TableSelectionHead } from "@/components/ui/table";
 import { PaginationControls, SortableHead } from "@/components/sortable-table";
-import { ConsoleSection, RightConsoleMount } from "@/components/layout/right-console";
+import { ConsoleSection } from "@/components/layout/right-console";
+import { WorkspaceGrid } from "@/components/layout/workspace-layout";
+import { StatusTabs } from "@/components/status-tabs";
 import { getBranchesForSelect } from "@/server/queries/common";
 import { getProductionJobs } from "@/server/queries/production-jobs";
 import { hasPermission } from "@/server/auth/permissions";
@@ -22,8 +23,7 @@ import { formatNumber } from "@/lib/utils";
 import { formatStatusLabel } from "@/lib/status-label";
 import { hasActiveFilters } from "@/lib/table-state";
 
-const tabs = [
-  ["all", "All"],
+const jobStatuses = [
   ["draft", "Draft"],
   ["submitted", "Submitted"],
   ["approved", "Approved"],
@@ -53,8 +53,10 @@ export default async function ProductionJobsPage({ searchParams }: { searchParam
         title="Production Jobs"
         description="Create, approve, and post recipe-based production without changing stock until posting."
       />
-      <RightConsoleMount>
-        {canCreate ? <ConsoleSection title="Actions">
+      <WorkspaceGrid
+        hideMobileConsole={!canCreate}
+        rightRail={<>
+          {canCreate ? <ConsoleSection title="Actions">
           <Button asChild size="sm" className="w-full" data-mobile-primary-action>
             <Link href="/production/jobs/new">New Production Job</Link>
           </Button>
@@ -68,19 +70,14 @@ export default async function ProductionJobsPage({ searchParams }: { searchParam
               </div>
             ))}
           </div>
-        </ConsoleSection>
-      </RightConsoleMount>
+          </ConsoleSection>
+        </>}
+      >
       <BulkSelectionProvider ids={jobs.rows.map((row) => row.id)} actionLabel="Archive selected" canAct={false}>
-        <div className="space-y-4 p-5">
-          <div className="flex flex-wrap gap-2">
-            {tabs.map(([value, label]) => (
-              <Button key={value} asChild variant={selectedStatus === value ? "default" : "outline"} size="sm">
-                <Link href={`/production/jobs${value === "all" ? "" : `?status=${value}`}`}>{label}</Link>
-              </Button>
-            ))}
-          </div>
+        <div className="space-y-3">
+          <div className="overflow-hidden rounded-[2px] border bg-card">
+            <StatusTabs statuses={jobStatuses.map(([value, label]) => ({ value, label }))} activeStatus={filters.status} />
 
-          <Card>
             <FilterBar resultCount={jobs.totalRows} resetHref="/production/jobs" filtered={filtered}>
               <Input name="search" defaultValue={filters.search ?? ""} placeholder="Search job no, recipe, output" />
               <SelectControl name="branch_id" defaultValue={filters.branch_id ?? "all"} ariaLabel="Branch" options={[{ value: "all", label: "All branches" }, ...branches.map((branch) => ({ value: branch.id, label: branch.branch_name }))]} />
@@ -89,7 +86,7 @@ export default async function ProductionJobsPage({ searchParams }: { searchParam
               {selectedStatus !== "all" ? <input type="hidden" name="status" value={selectedStatus} /> : null}
             </FilterBar>
             <DataGridHint text="Pro-tip: Double-click any row to open the production job." />
-              <Table mobileHidden aria-label="Production jobs">
+            <Table mobileHidden aria-label="Production jobs" stickyColumn="second">
                 <TableHeader>
                   <TableRow>
                     <TableSelectionHead><BulkSelectAllCheckbox /></TableSelectionHead>
@@ -139,9 +136,10 @@ export default async function ProductionJobsPage({ searchParams }: { searchParam
                 {!jobs.rows.length ? <EmptyState title={filtered ? "No jobs match these filters" : "No production jobs yet"} description={filtered ? "Reset the filters or widen the date range." : "Production jobs appear after they are created."} action={filtered ? { href: "/production/jobs", label: "Reset filters" } : undefined} /> : null}
               </OperationalList>
             <PaginationControls page={jobs.page} totalPages={jobs.totalPages} totalRows={jobs.totalRows} searchParams={filters} />
-          </Card>
+          </div>
         </div>
       </BulkSelectionProvider>
+      </WorkspaceGrid>
     </>
   );
 }

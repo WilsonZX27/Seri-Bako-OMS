@@ -4,6 +4,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import { looseSupabase } from "@/lib/supabase/loose";
 import { requireActiveTenantActor } from "@/server/auth/tenant-actor";
+import { logServerError } from "@/server/observability/logger";
 import { getCompanyBranding } from "@/server/queries/common";
 
 type BackupClassification =
@@ -26,7 +27,6 @@ type BackupDataset = {
 export const BACKUP_DATASETS: readonly BackupDataset[] = [
   { table: "companies", classification: "company_id filtered", column: "id" },
   { table: "branches", classification: "company_id filtered", column: "company_id" },
-  { table: "locations", classification: "company_id filtered", column: "company_id" },
   { table: "staffs", classification: "company_id filtered", column: "company_id" },
   { table: "profiles", classification: "excluded", reason: "Auth-profile identity metadata is not tenant business content; staff records are the authoritative company-scoped identity export." },
   { table: "roles", classification: "company_id filtered", column: "company_id" },
@@ -34,7 +34,6 @@ export const BACKUP_DATASETS: readonly BackupDataset[] = [
   { table: "role_permissions", classification: "parent-company filtered", column: "role_id", parent: "roles" },
   { table: "staff_roles", classification: "parent-company filtered", column: "staff_id", parent: "staffs" },
   { table: "staff_branches", classification: "parent-company filtered", column: "staff_id", parent: "staffs" },
-  { table: "staff_locations", classification: "parent-company filtered", column: "staff_id", parent: "staffs" },
   { table: "staff_permission_overrides", classification: "parent-company filtered", column: "staff_id", parent: "staffs" },
   { table: "items", classification: "company_id filtered", column: "company_id" },
   { table: "products", classification: "company_id filtered", column: "company_id" },
@@ -108,7 +107,11 @@ export const MAX_ZIP_OUTPUT_BYTES = serverLimit("BACKUP_MAX_ZIP_OUTPUT_BYTES", 7
 function csvEscape(value: unknown) {
   if (value === null || value === undefined) return "";
   const text = typeof value === "object" ? JSON.stringify(value) : String(value);
-  return /[",\r\n]/.test(text) ? `"${text.replaceAll('"', '""')}"` : text;
+  // Spreadsheet applications evaluate cells that begin with these characters
+  // as formulas. Imported names, remarks, and references are user-controlled,
+  // so neutralise the formula marker before building any CSV export or backup.
+  const safeText = /^[=+\-@]/.test(text) ? `'${text}` : text;
+  return /[",\r\n]/.test(safeText) ? `"${safeText.replaceAll('"', '""')}"` : safeText;
 }
 
 export function rowsToCsv(rows: Record<string, unknown>[]) {
@@ -266,7 +269,7 @@ export async function generateSystemBackupZip(options: { includeLogs?: boolean; 
       created_by: access.actor.staffId,
     });
   } catch (error) {
-    console.error("Backup audit log failed", { correlationId, actorStaffId: access.actor.staffId, actorCompanyId: access.actor.companyId, error });
+    logServerError(error, { source: "backup.audit-log", requestId: correlationId, actorId: access.actor.staffId, companyId: access.actor.companyId });
   }
 
   let buffer: Buffer;

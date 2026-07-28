@@ -39,13 +39,13 @@ type StockTransactionFormProps = {
 
 export function StockTransactionForm({ items, branches, action, formId, showSubmit = true }: StockTransactionFormProps) {
   return (
-    <Card>
-      <CardContent className="p-5">
+    <Card className="border-0 bg-transparent shadow-none md:border md:bg-card md:shadow-sm" data-stock-transaction-setup>
+      <CardContent className="p-0 md:p-5">
         <form id={formId} action={action} className="grid gap-4 md:grid-cols-3">
-          <Field label="Transaction Date">
+          <Field label="Transaction Date" className="order-1">
             <Input name="transaction_date" type="date" defaultValue={getToday()} required />
           </Field>
-          <Field label="Item">
+          <Field label="Item" className="order-1">
             <SelectNative name="item_id" required>
               <option value="">Select item</option>
               {items.map((item) => (
@@ -55,7 +55,7 @@ export function StockTransactionForm({ items, branches, action, formId, showSubm
               ))}
             </SelectNative>
           </Field>
-          <Field label="Branch">
+          <Field label="Branch" className="order-1">
             <SelectNative name="branch_id" defaultValue={branches[0]?.id ?? ""} required>
               {branches.map((branch) => (
                 <option key={branch.id} value={branch.id}>
@@ -64,7 +64,7 @@ export function StockTransactionForm({ items, branches, action, formId, showSubm
               ))}
             </SelectNative>
           </Field>
-          <Field label="Transaction Type">
+          <Field label="Transaction Type" className="order-2">
             <SelectNative name="transaction_type" required>
               {types.map((type) => (
                 <option key={type.value} value={type.value}>
@@ -73,24 +73,24 @@ export function StockTransactionForm({ items, branches, action, formId, showSubm
               ))}
             </SelectNative>
           </Field>
-          <Field label="Direction">
+          <Field label="Direction" className="order-2">
             <SelectNative name="direction" defaultValue="in" required>
               <option value="in">Increase stock</option>
               <option value="out">Reduce stock</option>
             </SelectNative>
           </Field>
-          <Field label="Quantity in Base Unit">
+          <Field label="Quantity in Base Unit" className="order-2">
             <Input name="quantity" type="number" step="0.0001" min="0.0001" required />
           </Field>
-          <Field label="Unit Cost">
+          <Field label="Unit Cost" className="order-3">
             <Input name="unit_cost" type="number" step="0.0001" min="0" />
           </Field>
-          <div className="md:col-span-3">
+          <div className="order-4 md:col-span-3">
             <Field label="Remarks">
               <Textarea name="remarks" placeholder="Reason, batch note, or manual reference." />
             </Field>
           </div>
-          {showSubmit ? <div className="flex justify-end md:col-span-3">
+          {showSubmit ? <div className="order-5 flex justify-end md:col-span-3">
             <SubmitButton type="submit" pendingLabel="Saving..." showOverlay overlayLabel="Saving changes...">Post stock transaction</SubmitButton>
           </div> : null}
         </form>

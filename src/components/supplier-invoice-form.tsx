@@ -75,12 +75,12 @@ export function SupplierInvoiceForm({
   }
 
   return (
-    <Card>
-      <CardContent className="p-5">
+    <Card className="border-0 bg-transparent shadow-none md:border md:bg-white">
+      <CardContent className="p-0 md:p-5">
         <form id="supplier-invoice-form" action={action} className="space-y-4">
           {initial ? <input type="hidden" name="invoice_no" value={initial.invoice_no} /> : null}
           <input type="hidden" name="lines" value={JSON.stringify(chosen)} />
-          <div className="grid gap-3 md:grid-cols-3">
+          <section data-supplier-invoice-setup className="erp-surface grid gap-3 p-3 md:rounded-none md:border-0 md:bg-transparent md:p-0 md:grid-cols-3">
             <Field label="Supplier" required>
               <SelectNative
                 name={initial ? undefined : "supplier_id"}
@@ -100,17 +100,17 @@ export function SupplierInvoiceForm({
             <Field label="Due Date"><Input name="due_date" type="date" value={dueDate} onChange={(event) => setDueDate(event.target.value)} /></Field>
             <Field label="Tax"><Input name="tax_amount" type="number" min="0" step="0.01" value={tax} onChange={(event) => setTax(Number(event.target.value))} /></Field>
             <div className="md:col-span-3"><Field label="Notes"><Textarea name="notes" defaultValue={initial?.notes ?? ""} placeholder="Invoice notes" /></Field></div>
-          </div>
+          </section>
 
           {selectedSupplierId ? grns.map((grn) => {
             const allSelected = grn.lines.every((line) => !!lines[line.id]);
             return (
-              <div key={grn.id} className="overflow-hidden rounded-md border">
+              <section key={grn.id} data-supplier-invoice-grn className="erp-surface overflow-hidden md:rounded-md">
                 <label className="flex cursor-pointer items-center gap-2 bg-secondary/40 px-3 py-2 text-sm font-medium">
                   <input type="checkbox" checked={allSelected} onChange={(event) => setGrn(grn, event.target.checked)} />
                   {grn.grn_no} / {grn.po_no ?? "PO"} / Available {formatCurrency(grn.received_value)}
                 </label>
-                <div className="overflow-x-auto">
+                <div className="sb-table-region hidden md:block">
                   <Table>
                     <TableHeader><TableRow><TableHead className="w-10" /><TableHead>Item</TableHead><TableHead className="text-right">PO Ordered</TableHead><TableHead className="text-right">Received</TableHead><TableHead className="text-right">Previously Invoiced</TableHead><TableHead className="text-right">Invoice Qty</TableHead><TableHead className="text-right">PO Price</TableHead><TableHead className="text-right">Invoice Price</TableHead><TableHead className="text-right">Qty / Price Variance</TableHead></TableRow></TableHeader>
                     <TableBody>{grn.lines.map((source) => {
@@ -131,12 +131,38 @@ export function SupplierInvoiceForm({
                     })}</TableBody>
                   </Table>
                 </div>
-              </div>
+                <div data-supplier-invoice-line-list className="divide-y divide-[var(--sb-border-soft)] md:hidden">
+                  {grn.lines.map((source) => {
+                    const line = lines[source.id];
+                    const qtyVariance = Number(line?.invoice_qty ?? 0) - source.available_qty;
+                    const priceVariance = Number(line?.invoice_unit_price ?? source.unit_cost) - source.po_unit_price;
+                    return <article key={source.id} className="min-w-0 p-3">
+                      <div className="flex min-w-0 items-start gap-3">
+                        <input aria-label={`Select ${source.item_name}`} type="checkbox" className="mt-1 h-5 w-5 shrink-0" checked={!!line} onChange={(event) => setLine(source, event.target.checked)} />
+                        <div className="min-w-0 flex-1">
+                          <p className="break-words text-sm font-semibold">{source.item_name}</p>
+                          <p className="text-xs text-muted-foreground">{source.item_code ?? "-"} / {source.uom}</p>
+                        </div>
+                      </div>
+                      <div className="mt-3 grid grid-cols-2 gap-3">
+                        <Field label="Invoice Qty"><Input aria-label={`${source.item_name} invoice quantity`} type="number" min="0.0001" max={source.available_qty} step="0.0001" disabled={!line} value={line?.invoice_qty ?? source.available_qty} onChange={(event) => updateLine(source.id, "invoice_qty", Number(event.target.value))} /></Field>
+                        <Field label="Invoice Price"><Input aria-label={`${source.item_name} invoice price`} type="number" min="0" step="0.0001" disabled={!line} value={line?.invoice_unit_price ?? source.unit_cost} onChange={(event) => updateLine(source.id, "invoice_unit_price", Number(event.target.value))} /></Field>
+                      </div>
+                      <dl className="mt-3 grid grid-cols-3 gap-2 border-t border-[var(--sb-border-soft)] pt-2 text-xs">
+                        <div><dt className="text-muted-foreground">Received</dt><dd className="mt-0.5 font-semibold tabular-nums">{formatNumber(source.received_qty)}</dd></div>
+                        <div><dt className="text-muted-foreground">Available</dt><dd className="mt-0.5 font-semibold tabular-nums">{formatNumber(source.available_qty)}</dd></div>
+                        <div><dt className="text-muted-foreground">PO price</dt><dd className="mt-0.5 font-semibold tabular-nums">{formatCurrency(source.po_unit_price)}</dd></div>
+                      </dl>
+                      {line ? <p className="mt-2 text-xs text-muted-foreground">Variance: {formatNumber(qtyVariance)} qty / {formatCurrency(priceVariance)}</p> : null}
+                    </article>;
+                  })}
+                </div>
+              </section>
             );
           }) : <p className="rounded-md border border-dashed p-6 text-center text-sm text-muted-foreground">Select a supplier to load eligible posted GRNs.</p>}
 
           {selectedSupplierId && !grns.length ? <p className="rounded-md border border-dashed p-6 text-center text-sm text-muted-foreground">No eligible uninvoiced received quantities remain for this supplier.</p> : null}
-          <div className="flex justify-end gap-6 rounded-md bg-secondary/30 p-3 text-sm">
+          <div className="grid grid-cols-2 gap-3 bg-secondary/30 p-3 text-sm md:flex md:justify-end md:gap-6">
             <span>Subtotal <strong>{formatCurrency(subtotal)}</strong></span>
             <span>Total <strong>{formatCurrency(subtotal + tax)}</strong></span>
           </div>

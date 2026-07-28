@@ -50,8 +50,8 @@ begin
   order by version desc
   limit 1;
 
-  if v_migration_ceiling is distinct from '098' then
-    raise exception 'Reset blocked: expected migration ceiling 098, found %.', v_migration_ceiling;
+  if v_migration_ceiling is distinct from '103' then
+    raise exception 'Reset blocked: expected migration ceiling 103, found %.', v_migration_ceiling;
   end if;
 end $$;
 
@@ -71,10 +71,10 @@ delete from public.document_comments;
 delete from public.document_revisions;
 delete from public.attachments;
 delete from public.audit_logs
-where entity_type not in ('company','branch','location','staff','role','permission','role_permission','staff_role','staff_branch','staff_location')
+where entity_type not in ('company','branch','staff','role','permission','role_permission','staff_role','staff_branch')
    or entity_type is null;
 delete from public.activity_logs
-where entity_type not in ('company','branch','location','staff','role','permission','role_permission','staff_role','staff_branch','staff_location')
+where entity_type not in ('company','branch','staff','role','permission','role_permission','staff_role','staff_branch')
    or entity_type is null
    or activity_type = 'import';
 

@@ -19,7 +19,7 @@ for (const role of roles) {
   test(`${role} reaches a stable authenticated page`, async ({ page }) => {
     test.skip(!hasAccount(role), `Missing ${role} credentials: ${missingAccountVars(role).join(", ")}`);
     await signInAllowingStableAccessState(page, role);
-    await expect(page.locator("body")).toContainText("v7.23.7.0");
+    await expect(page.locator("body")).toContainText("v7.23.7.2");
   });
 }
 
@@ -117,5 +117,4 @@ test("canonical FilterBar never owns a vertical scrollbar at supported widths", 
   await page.keyboard.press("Escape");
   await expect(page.getByRole("heading", { name: "Filters" })).toBeHidden();
 });
-
 

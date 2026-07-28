@@ -33,9 +33,6 @@ select 'real_branches_remaining' as check_name, count(*) as row_count
 from public.branches
 where deleted_at is null;
 
-select 'real_locations_remaining' as check_name, count(*) as row_count
-from public.locations
-where deleted_at is null;
 
 select 'companies_remaining' as check_name, count(*) as row_count
 from public.companies
@@ -109,7 +106,7 @@ select
   count(*) as row_count,
   count(*) = 0 as passed
 from public.activity_logs
-where entity_type not in ('company','branch','location','staff','role','permission','role_permission','staff_role','staff_branch','staff_location')
+where entity_type not in ('company','branch','staff','role','permission','role_permission','staff_role','staff_branch')
    or entity_type is null
    or activity_type = 'import';
 
@@ -118,7 +115,7 @@ select
   count(*) as row_count,
   count(*) = 0 as passed
 from public.audit_logs
-where entity_type not in ('company','branch','location','staff','role','permission','role_permission','staff_role','staff_branch','staff_location')
+where entity_type not in ('company','branch','staff','role','permission','role_permission','staff_role','staff_branch')
    or entity_type is null;
 
 select
@@ -158,9 +155,9 @@ where document_type in (
 order by document_type;
 
 select
-  'migration_ceiling_098' as check_name,
+  'migration_ceiling_103' as check_name,
   version,
-  version = '098' as passed
+  version = '103' as passed
 from supabase_migrations.schema_migrations
 order by version desc
 limit 1;

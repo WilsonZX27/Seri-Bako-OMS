@@ -165,12 +165,12 @@ export function RecipeForm({ recipe, products, items, action, formId, showSubmit
         )}
       />
 
-      <Card>
-        <CardHeader>
+      <Card className="border-0 bg-transparent shadow-none md:border md:bg-card md:shadow-sm" data-recipe-setup>
+        <CardHeader className="px-0 md:px-6">
           <CardTitle>Recipe Header</CardTitle>
           <CardDescription>Manage the finished product, version, yield, and approval readiness.</CardDescription>
         </CardHeader>
-        <CardContent className="grid gap-4 md:grid-cols-4">
+        <CardContent className="grid gap-4 px-0 md:grid-cols-4 md:px-6">
           <Field label="Recipe No">
             <Input name="recipe_no" defaultValue={recipe?.recipe_no ?? `RCP-${getToday().replaceAll("-", "")}-NEW`} readOnly required />
           </Field>
@@ -225,8 +225,8 @@ export function RecipeForm({ recipe, products, items, action, formId, showSubmit
         </CardContent>
       </Card>
 
-      <Card>
-        <CardHeader className="flex-row items-start justify-between gap-4">
+      <Card className="border-0 bg-transparent shadow-none md:border md:bg-card md:shadow-sm">
+        <CardHeader className="flex-row items-start justify-between gap-4 px-0 md:px-6">
           <div>
             <CardTitle>Ingredient Lines</CardTitle>
             <CardDescription>Search by item code or name. Costs are calculated in base stock UOM.</CardDescription>
@@ -236,14 +236,14 @@ export function RecipeForm({ recipe, products, items, action, formId, showSubmit
             Add row
           </Button>
         </CardHeader>
-        <CardContent className="space-y-4">
+        <CardContent className="space-y-4 px-0 md:px-6">
           <datalist id="recipe-ingredient-items">
             {items.map((item) => (
               <option key={item.id} value={buildItemSearch(item)} />
             ))}
           </datalist>
 
-          <div className="overflow-x-auto rounded-[2px] border">
+          <div className="sb-table-region hidden overflow-x-auto rounded-[2px] border md:block">
             <Table>
               <TableHeader>
                 <TableRow>
@@ -305,9 +305,54 @@ export function RecipeForm({ recipe, products, items, action, formId, showSubmit
             </Table>
           </div>
 
+          <div className="border-y md:hidden" data-recipe-ingredient-list>
+            {enrichedLines.map((line, index) => (
+              <div key={index} className="space-y-3 border-b p-3 last:border-b-0">
+                <div className="flex items-start gap-3">
+                  {line.item_image_url ? (
+                    <Image src={line.item_image_url} alt="" width={40} height={40} className="h-10 w-10 shrink-0 rounded-[2px] object-cover" />
+                  ) : itemFallback(line.item_code || "IT")}
+                  <div className="min-w-0 flex-1 space-y-1">
+                    <Input list="recipe-ingredient-items" value={line.itemSearch} placeholder="Ingredient code or name" onChange={(event) => selectItem(index, event.target.value)} />
+                    {line.item_code ? <p className="truncate text-xs text-muted-foreground">{line.item_code} - {line.item_name}</p> : null}
+                    {line.ingredient_item_id && duplicateIds.includes(line.ingredient_item_id) ? <p className="text-xs text-destructive">Duplicate ingredient</p> : null}
+                  </div>
+                  <Button type="button" variant="ghost" size="icon" aria-label="Remove ingredient row" onClick={() => setLines((current) => current.filter((_, lineIndex) => lineIndex !== index))} disabled={lines.length === 1}>
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <Field label="Qty required">
+                    <Input type="number" step="0.0001" min="0.0001" value={line.qty_required} onChange={(event) => updateLine(index, { qty_required: Number(event.target.value) })} />
+                  </Field>
+                  <Field label="Recipe UOM">
+                    <Input value={line.recipe_uom} onChange={(event) => updateLine(index, { recipe_uom: event.target.value })} />
+                  </Field>
+                  <Field label="Conversion factor">
+                    <Input type="number" step="0.000001" min="0.000001" value={line.conversion_factor} onChange={(event) => updateLine(index, { conversion_factor: Number(event.target.value) })} />
+                  </Field>
+                  <Field label="Wastage %">
+                    <Input type="number" step="0.0001" min="0" value={line.wastage_percent} onChange={(event) => updateLine(index, { wastage_percent: Number(event.target.value) })} />
+                  </Field>
+                  <Field label="Base UOM">
+                    <Input value={line.base_uom} onChange={(event) => updateLine(index, { base_uom: event.target.value })} />
+                  </Field>
+                  <Field label="Cost / base">
+                    <Input type="number" step="0.0001" min="0" value={line.cost_per_unit} onChange={(event) => updateLine(index, { cost_per_unit: Number(event.target.value) })} />
+                  </Field>
+                </div>
+                <div className="grid grid-cols-2 gap-x-4 gap-y-2 bg-secondary/30 p-3 text-xs">
+                  <div><p className="text-muted-foreground">Base qty</p><p className="font-medium">{formatNumber(line.base_qty_required)} {line.base_uom || "-"}</p></div>
+                  <div><p className="text-muted-foreground">Wastage</p><p className="font-medium">{formatNumber(line.wastage_percent)}%</p></div>
+                  <div className="col-span-2"><p className="text-muted-foreground">Line cost</p><p className="font-semibold">{formatCurrency(line.calculated_line_cost)}</p></div>
+                </div>
+              </div>
+            ))}
+          </div>
+
           {hasDuplicate ? <p className="text-sm text-destructive">Duplicate ingredients are not allowed.</p> : null}
 
-          <div className="grid gap-3 rounded-[2px] border bg-secondary/50 p-3 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="grid grid-cols-2 gap-3 rounded-[2px] border bg-secondary/50 p-3 md:grid-cols-4">
             <div>
               <p className="text-xs text-muted-foreground">Ingredient Cost</p>
               <p className="text-base font-semibold">{formatCurrency(totalIngredientCost)}</p>

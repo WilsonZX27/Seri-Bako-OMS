@@ -3,6 +3,7 @@
 import { randomInt } from "crypto";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { z } from "zod";
 import { isMockMode } from "@/lib/mock-mode";
 import { getAppUrl } from "@/lib/site-url";
 import { canAssignRoleCode, isProtectedOwnerAssignableRole, isSuperAdminRole } from "@/lib/roles";
@@ -15,6 +16,7 @@ import { requirePermission } from "@/server/auth/permissions";
 import { formatActionError, requirePermissionOrRedirect, rethrowRedirect, safeRedirectWithMessage } from "@/server/actions/error-handling";
 import { findAuthUsersByEmail } from "@/server/auth/admin-users";
 import { requireActiveTenantActor } from "@/server/auth/tenant-actor";
+import { logServerError } from "@/server/observability/logger";
 
 function formValue(formData: FormData, key: string) {
   return formData.get(key);
@@ -25,7 +27,17 @@ function cleanText(value: FormDataEntryValue | null) {
   return text.length ? text : null;
 }
 
-export async function updateCompany(id: string, formData: FormData) {
+const recordIdSchema = z.string().uuid("The selected record is invalid.");
+const permissionOverrideSchema = z.object({
+  permission_id: z.string().uuid("Permission is invalid"),
+  effect: z.enum(["allow", "deny"]),
+});
+
+function parseRecordId(value: string) {
+  return recordIdSchema.parse(value);
+}
+
+export async function updateCompany(formData: FormData) {
   await requirePermission("company.update");
   const actor = await requireActiveTenantActor();
   const parsed = companySchema.parse({
@@ -54,14 +66,20 @@ const logoTypes: Record<string, string> = {
   "image/png": "png",
   "image/jpeg": "jpg",
   "image/webp": "webp",
-  "image/svg+xml": "svg",
 };
+
+async function hasExpectedRasterSignature(file: File, type: keyof typeof logoTypes) {
+  const bytes = new Uint8Array(await file.slice(0, 12).arrayBuffer());
+  if (type === "image/png") return bytes.length >= 8 && [137, 80, 78, 71, 13, 10, 26, 10].every((value, index) => bytes[index] === value);
+  if (type === "image/jpeg") return bytes.length >= 3 && bytes[0] === 255 && bytes[1] === 216 && bytes[2] === 255;
+  return bytes.length >= 12 && String.fromCharCode(...bytes.slice(0, 4)) === "RIFF" && String.fromCharCode(...bytes.slice(8, 12)) === "WEBP";
+}
 
 function logoError(message: string): never {
   redirect(`/company?logoError=${encodeURIComponent(message)}`);
 }
 
-export async function updateCompanyLogo(id: string, formData: FormData) {
+export async function updateCompanyLogo(formData: FormData) {
   await requirePermissionOrRedirect("company.update", "/company");
   try {
     const actor = await requireActiveTenantActor();
@@ -77,7 +95,12 @@ export async function updateCompanyLogo(id: string, formData: FormData) {
 
     const extension = logoTypes[file.type];
     if (!extension) {
-      logoError("Logo must be a PNG, JPG, JPEG, WEBP, or SVG image.");
+      // SVG is intentionally excluded: public, user-provided SVG can carry
+      // active markup. The system only accepts verifiable raster image types.
+      logoError("Logo must be a PNG, JPG, JPEG, or WebP image.");
+    }
+    if (!(await hasExpectedRasterSignature(file, file.type as keyof typeof logoTypes))) {
+      logoError("The logo file content does not match its file type.");
     }
 
     if (!isMockMode()) {
@@ -117,8 +140,7 @@ export async function updateCompanyLogo(id: string, formData: FormData) {
   safeRedirectWithMessage("/company", "success", "Company logo updated.");
 }
 
-export async function removeCompanyLogo(id: string) {
-  void id; // The target is always derived from the authenticated actor.
+export async function removeCompanyLogo() {
   await requirePermissionOrRedirect("company.update", "/company");
   try {
     const actor = await requireActiveTenantActor();
@@ -198,6 +220,7 @@ export async function createBranch(formData: FormData) {
 }
 
 export async function updateBranch(id: string, formData: FormData) {
+  id = parseRecordId(id);
   await requirePermission("branches.update");
   const actor = await requireActiveTenantActor();
   const payload = branchPayload(formData, actor.companyId);
@@ -214,6 +237,7 @@ export async function updateBranch(id: string, formData: FormData) {
 }
 
 export async function deleteBranch(id: string) {
+  id = parseRecordId(id);
   await requirePermissionOrRedirect("branches.update", "/branches");
   try {
     const actor = await requireActiveTenantActor();
@@ -232,6 +256,7 @@ export async function deleteBranch(id: string) {
 }
 
 export async function restoreBranch(id: string) {
+  id = parseRecordId(id);
   await requirePermissionOrRedirect("branches.update", `/branches/${id}`);
   try {
     const actor = await requireActiveTenantActor();
@@ -268,6 +293,28 @@ function staffAccessPayload(formData: FormData) {
     default_branch_id: formValue(formData, "default_branch_id"),
     accessible_branch_ids: formData.getAll("accessible_branch_ids").map(String),
   });
+}
+
+async function assertStaffAccessIsEligible(
+  admin: ReturnType<typeof createAdminClient>,
+  companyId: string,
+  access: ReturnType<typeof staffAccessPayload>,
+) {
+  const requestedBranchIds = [...new Set([...access.accessible_branch_ids, access.default_branch_id])];
+  const [{ data: role, error: roleError }, { data: branches, error: branchError }] = await Promise.all([
+    admin.from("roles").select("role_code").eq("id", access.role_id).eq("company_id", companyId).eq("status", "active").is("deleted_at", null).maybeSingle(),
+    admin.from("branches").select("id, branch_type").in("id", requestedBranchIds).eq("company_id", companyId).eq("status", "active").is("deleted_at", null),
+  ]);
+  if (roleError) throw new Error(roleError.message);
+  if (branchError) throw new Error(branchError.message);
+  if (!role) throw new Error("Selected role was not found in your company.");
+  if ((branches ?? []).length !== requestedBranchIds.length) throw new Error("Select only active branches in your company.");
+  const typeMismatch = role.role_code === "kitchen"
+    ? (branches ?? []).some((branch) => branch.branch_type !== "central_kitchen")
+    : role.role_code === "outlet_staff"
+      ? (branches ?? []).some((branch) => branch.branch_type !== "outlet")
+      : false;
+  if (typeMismatch) throw new Error(role.role_code === "kitchen" ? "Kitchen staff require a Central Kitchen branch." : "Outlet staff require an Outlet branch.");
 }
 
 async function replaceStaffAccess(staffId: string, formData: FormData, payload?: ReturnType<typeof staffPayload>) {
@@ -449,7 +496,7 @@ async function inviteStaffByEmail(staffId: string, email: string) {
 
   const { error: updateError } = await admin.from("staffs").update(updates).eq("id", staffId).eq("company_id", actor.companyId);
   if (updateError) {
-    if (createdAuthUser && authUserId) await admin.auth.admin.deleteUser(authUserId).catch(console.error);
+    if (createdAuthUser && authUserId) await admin.auth.admin.deleteUser(authUserId).catch((error) => logServerError(error, { source: "foundation.invite.rollback", actorId: actor.staffId, companyId: actor.companyId }));
     throw new Error(updateError.message);
   }
 }
@@ -538,7 +585,7 @@ async function createOrResetStaffAuthAccount(input: {
     .eq("id", input.staffId)
     .eq("company_id", actor.companyId);
   if (updateError) {
-    if (createdAuthUser) await admin.auth.admin.deleteUser(authUserId).catch(console.error);
+    if (createdAuthUser) await admin.auth.admin.deleteUser(authUserId).catch((error) => logServerError(error, { source: "foundation.temporary-password.rollback", actorId: actor.staffId, companyId: actor.companyId }));
     throw new Error(updateError.message);
   }
 
@@ -561,6 +608,7 @@ export async function createStaff(formData: FormData) {
         throw new Error("Role and default branch are required before invite.");
       }
       await assertCanAssignStaffRole(supabase, access.role_id);
+      await assertStaffAccessIsEligible(supabase, actor.companyId, access);
       const invitedBy = actor.staffId;
       const { data: existing, error: existingError } = await supabase
         .from("staffs")
@@ -614,7 +662,7 @@ export async function createStaff(formData: FormData) {
       const admin = createAdminClient();
       const { data: createdStaff } = await admin.from("staffs").select("auth_user_id").eq("id", createdStaffId).eq("company_id", actor.companyId).maybeSingle();
       await admin.from("staffs").delete().eq("id", createdStaffId).eq("company_id", actor.companyId);
-      if (createdStaff?.auth_user_id) await admin.auth.admin.deleteUser(createdStaff.auth_user_id).catch(console.error);
+      if (createdStaff?.auth_user_id) await admin.auth.admin.deleteUser(createdStaff.auth_user_id).catch((rollbackError) => logServerError(rollbackError, { source: "foundation.create-staff.rollback", actorId: actor.staffId, companyId: actor.companyId }));
       createdStaffId = null;
     }
     safeRedirectWithMessage("/staffs/new", "error", formatActionError(error, "Could not create this staff member."));
@@ -628,6 +676,7 @@ export async function createStaff(formData: FormData) {
 }
 
 export async function updateStaff(id: string, formData: FormData) {
+  id = parseRecordId(id);
   await requirePermissionOrRedirect("staffs.update", `/staffs/${id}`);
   try {
     const actor = await requireActiveTenantActor();
@@ -671,20 +720,23 @@ async function saveStaffPermissionOverrides(id: string, overrides: { permission_
 }
 
 export async function updateStaffPermissionOverrides(id: string, formData: FormData) {
-  const overrides: { permission_id: string; effect: "allow" | "deny" }[] = Array.from(formData.entries()).flatMap(([key, value]) => {
+  id = parseRecordId(id);
+  const overrides = z.array(permissionOverrideSchema).max(500, "Too many permission overrides").parse(Array.from(formData.entries()).flatMap(([key, value]) => {
     if (!key.startsWith("permission:") || (value !== "allow" && value !== "deny")) return [];
     return [{ permission_id: key.slice("permission:".length), effect: value }];
-  });
+  }));
   await saveStaffPermissionOverrides(id, overrides);
   safeRedirectWithMessage(`/staffs/${id}`, "success", "Permission overrides updated.");
 }
 
 export async function resetStaffPermissionOverrides(id: string) {
+  id = parseRecordId(id);
   await saveStaffPermissionOverrides(id, []);
   safeRedirectWithMessage(`/staffs/${id}`, "success", "Permission overrides reset to role defaults.");
 }
 
 export async function resendStaffInvite(id: string) {
+  id = parseRecordId(id);
   await requirePermissionOrRedirect("staffs.update", `/staffs/${id}`);
   try {
     const actor = await requireActiveTenantActor();
@@ -708,6 +760,7 @@ export async function resendStaffInvite(id: string) {
 }
 
 export async function resetStaffTemporaryPassword(id: string) {
+  id = parseRecordId(id);
   await requirePermissionOrRedirect("staffs.update", `/staffs/${id}`);
   let temporaryPassword: string | null = null;
   try {
@@ -746,6 +799,7 @@ export async function resetStaffTemporaryPassword(id: string) {
 }
 
 export async function repairStaffSignInLink(id: string) {
+  id = parseRecordId(id);
   await requirePermissionOrRedirect("staffs.update", `/staffs/${id}`);
   try {
     const actor = await requireActiveTenantActor();
@@ -791,6 +845,7 @@ export async function repairStaffSignInLink(id: string) {
 }
 
 export async function forceStaffPasswordChange(id: string) {
+  id = parseRecordId(id);
   await requirePermissionOrRedirect("staffs.update", `/staffs/${id}`);
   try {
     const actor = await requireActiveTenantActor();
@@ -820,6 +875,7 @@ export async function forceStaffPasswordChange(id: string) {
 }
 
 export async function disableStaff(id: string) {
+  id = parseRecordId(id);
   await requirePermissionOrRedirect("staffs.update", `/staffs/${id}`);
   try {
     await requireActiveTenantActor();
@@ -840,6 +896,7 @@ export async function disableStaff(id: string) {
 }
 
 export async function enableStaff(id: string) {
+  id = parseRecordId(id);
   await requirePermissionOrRedirect("staffs.update", `/staffs/${id}`);
   try {
     const actor = await requireActiveTenantActor();
@@ -862,6 +919,7 @@ export async function enableStaff(id: string) {
 }
 
 export async function permanentlyDeleteStaff(id: string) {
+  id = parseRecordId(id);
   await requirePermissionOrRedirect("staffs.update", `/staffs/${id}`);
   try {
     const actor = await requireActiveTenantActor();
@@ -939,6 +997,7 @@ export async function createRole(formData: FormData) {
 }
 
 export async function updateRole(id: string, formData: FormData) {
+  id = parseRecordId(id);
   await requirePermission("roles.update");
   const actor = await requireActiveTenantActor();
   const payload = rolePayload(formData, actor.companyId);
@@ -957,8 +1016,9 @@ export async function updateRole(id: string, formData: FormData) {
 }
 
 export async function updateRolePermissions(id: string, formData: FormData) {
+  id = parseRecordId(id);
   await requirePermissionOrRedirect("roles.update", `/roles/${id}`);
-  const permissionIds = Array.from(formData.getAll("permission_id")).map(String);
+  const permissionIds = z.array(z.string().uuid("Permission is invalid")).max(500, "Too many permissions").parse(formData.getAll("permission_id").map(String));
   try {
     if (!isMockMode()) {
       const supabase = await createClient();
@@ -1002,6 +1062,7 @@ export async function createDocumentSequence(formData: FormData) {
 }
 
 export async function updateDocumentSequence(id: string, formData: FormData) {
+  id = parseRecordId(id);
   await requirePermission("document_sequences.update");
   const actor = await requireActiveTenantActor();
   const payload = documentSequencePayload(formData, actor.companyId);
@@ -1016,6 +1077,7 @@ export async function updateDocumentSequence(id: string, formData: FormData) {
 }
 
 export async function deleteDocumentSequence(id: string) {
+  id = parseRecordId(id);
   await requirePermissionOrRedirect("document_sequences.update", "/document-sequences");
   try {
     const actor = await requireActiveTenantActor();

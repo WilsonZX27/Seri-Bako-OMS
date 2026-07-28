@@ -3,6 +3,8 @@ import { isMockMode, mockDocuments, mockGoodsReceivings, mockItems, mockProducts
 import { getCanonicalDocumentHref } from "@/lib/document-routing";
 import { createClient } from "@/lib/supabase/server";
 import { looseSupabase } from "@/lib/supabase/loose";
+import { getPermissionMap } from "@/server/auth/permissions";
+import { logServerError } from "@/server/observability/logger";
 
 type SearchResult = {
   type: string;
@@ -11,16 +13,27 @@ type SearchResult = {
   href: string;
 };
 
+function normalizeSearchQuery(value: string | null) {
+  return (value ?? "")
+    .trim()
+    .toLowerCase()
+    // PostgREST `or(...)` is a filter language, not a parameterized query.
+    // Keep normal names/codes while removing its syntax operators.
+    .replace(/[,%()\\]/g, "")
+    .slice(0, 80);
+}
+
 function matches(values: Array<string | null | undefined>, query: string) {
   return values.some((value) => String(value ?? "").toLowerCase().includes(query));
 }
 
 export async function GET(request: Request) {
-  const query = new URL(request.url).searchParams.get("q")?.trim().toLowerCase() ?? "";
-  if (!query) return NextResponse.json({ results: [] });
+  try {
+    const query = normalizeSearchQuery(new URL(request.url).searchParams.get("q"));
+    if (!query) return NextResponse.json({ results: [] });
 
-  if (isMockMode()) {
-    const results: SearchResult[] = [
+    if (isMockMode()) {
+      const results: SearchResult[] = [
       ...mockItems
         .filter((item) => matches([item.item_code, item.autocount_code, item.item_name], query))
         .slice(0, 8)
@@ -61,27 +74,38 @@ export async function GET(request: Request) {
         .filter((staff) => matches([staff.staff_code, staff.full_name, staff.email], query))
         .slice(0, 5)
         .map((staff) => ({ type: "User", title: staff.full_name, subtitle: staff.staff_code ?? "-", href: `/staffs/${staff.id}` })),
-    ];
-    return NextResponse.json({ results: results.slice(0, 20) });
-  }
+      ];
+      return NextResponse.json({ results: results.slice(0, 20) });
+    }
 
-  const supabase = await createClient();
-  const db = looseSupabase(supabase);
-  const [items, products, suppliers, documents, receivings, counts, productionJobs] = await Promise.all([
-    supabase.from("items").select("id,item_code,item_name").or(`item_code.ilike.%${query}%,item_name.ilike.%${query}%`).limit(8),
-    supabase.from("products").select("id,product_code,product_name").or(`product_code.ilike.%${query}%,product_name.ilike.%${query}%`).limit(5),
-    supabase.from("suppliers").select("id,supplier_code,name").or(`supplier_code.ilike.%${query}%,name.ilike.%${query}%`).limit(5),
-    supabase.from("documents").select("id,document_no,title,document_type,related_entity_type,related_entity_id").or(`document_no.ilike.%${query}%,title.ilike.%${query}%,document_type.ilike.%${query}%`).limit(8),
-    supabase.from("goods_receivings").select("id,grn_no,status,remarks").or(`grn_no.ilike.%${query}%,status.ilike.%${query}%,remarks.ilike.%${query}%`).limit(5),
-    supabase.from("stock_counts").select("id,count_no,status,remarks").or(`count_no.ilike.%${query}%,status.ilike.%${query}%,remarks.ilike.%${query}%`).limit(5),
-    db.from("production_jobs").select("id,production_job_no,status,remarks").or(`production_job_no.ilike.%${query}%,status.ilike.%${query}%,remarks.ilike.%${query}%`).limit(5),
+    const supabase = await createClient();
+    const db = looseSupabase(supabase);
+  // Search must never become a side channel for modules that are hidden from
+  // the current role. RLS constrains tenant rows; this map constrains product
+  // capabilities before a query is issued or a route is exposed.
+    const permissions = await getPermissionMap([
+    "items.view",
+    "suppliers.view",
+    "documents.view",
+    "goods_receiving.read",
+    "stock_count.read",
+    "production.view",
+  ]);
+    const [items, products, suppliers, documents, receivings, counts, productionJobs] = await Promise.all([
+    permissions["items.view"] ? supabase.from("items").select("id,item_code,item_name").or(`item_code.ilike.%${query}%,item_name.ilike.%${query}%`).limit(8) : Promise.resolve({ data: [], error: null }),
+    permissions["items.view"] ? supabase.from("products").select("id,product_code,product_name").or(`product_code.ilike.%${query}%,product_name.ilike.%${query}%`).limit(5) : Promise.resolve({ data: [], error: null }),
+    permissions["suppliers.view"] ? supabase.from("suppliers").select("id,supplier_code,name").or(`supplier_code.ilike.%${query}%,name.ilike.%${query}%`).limit(5) : Promise.resolve({ data: [], error: null }),
+    permissions["documents.view"] ? supabase.from("documents").select("id,document_no,title,document_type,related_entity_type,related_entity_id").or(`document_no.ilike.%${query}%,title.ilike.%${query}%,document_type.ilike.%${query}%`).limit(8) : Promise.resolve({ data: [], error: null }),
+    permissions["goods_receiving.read"] ? supabase.from("goods_receivings").select("id,grn_no,status,remarks").or(`grn_no.ilike.%${query}%,status.ilike.%${query}%,remarks.ilike.%${query}%`).limit(5) : Promise.resolve({ data: [], error: null }),
+    permissions["stock_count.read"] ? supabase.from("stock_counts").select("id,count_no,status,remarks").or(`count_no.ilike.%${query}%,status.ilike.%${query}%,remarks.ilike.%${query}%`).limit(5) : Promise.resolve({ data: [], error: null }),
+    permissions["production.view"] ? db.from("production_jobs").select("id,production_job_no,status,remarks").or(`production_job_no.ilike.%${query}%,status.ilike.%${query}%,remarks.ilike.%${query}%`).limit(5) : Promise.resolve({ data: [], error: null }),
   ]);
 
-  for (const result of [items, products, suppliers, documents, receivings, counts, productionJobs]) {
-    if (result.error) throw new Error(result.error.message);
-  }
+    for (const result of [items, products, suppliers, documents, receivings, counts, productionJobs]) {
+      if (result.error) throw new Error(result.error.message);
+    }
 
-  const results: SearchResult[] = [
+    const results: SearchResult[] = [
     ...(items.data ?? []).map((item) => ({ type: "Item", title: item.item_name, subtitle: item.item_code, href: `/items/${item.id}` })),
     ...(products.data ?? []).map((product) => ({ type: "Product", title: product.product_name, subtitle: product.product_code, href: `/products/${product.id}` })),
     ...(suppliers.data ?? []).map((supplier) => ({ type: "Supplier", title: supplier.name, subtitle: supplier.supplier_code ?? "-", href: `/suppliers/${supplier.id}` })),
@@ -89,6 +113,12 @@ export async function GET(request: Request) {
     ...(receivings.data ?? []).map((receiving) => ({ type: "Goods Receiving", title: receiving.grn_no, subtitle: receiving.status, href: `/goods-receivings/${receiving.id}` })),
     ...(counts.data ?? []).map((count) => ({ type: "Stock Count", title: count.count_no, subtitle: count.status, href: `/stock-counts/${count.id}` })),
     ...((productionJobs.data ?? []) as Array<{ id: string; production_job_no: string; status: string }>).map((job) => ({ type: "Production Job", title: job.production_job_no, subtitle: job.status, href: `/production/jobs/${job.id}` })),
-  ];
-  return NextResponse.json({ results });
+    ];
+    return NextResponse.json({ results });
+  } catch (error) {
+    // Search is advisory UI. Preserve the shell and avoid reflecting database,
+    // RLS, or query-parser details to a user-controlled request surface.
+    logServerError(error, { source: "api.search" });
+    return NextResponse.json({ results: [], message: "Search is temporarily unavailable. Please try again." }, { status: 503 });
+  }
 }

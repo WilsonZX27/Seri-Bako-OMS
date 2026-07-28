@@ -12,31 +12,21 @@ export function WorkflowStatusPipeline({ steps, currentStatus, compact = false }
   const rejected = ["rejected", "cancelled"].includes(currentStatus);
 
   return (
-    <div className={cn("rounded-[2px] border border-[var(--sb-border-soft)] bg-card", compact ? "p-1.5" : "p-2.5")}>
-      {!compact ? <p className="text-sm font-semibold">Workflow</p> : null}
-      <div className={cn("grid min-w-0 gap-1.5 md:grid-cols-[repeat(auto-fit,minmax(104px,1fr))]", compact ? "" : "mt-2")}>
+    <div className={cn("border-y border-[var(--sb-border-soft)] bg-white", compact ? "px-1.5 py-2" : "px-2.5 py-3")}>
+      {!compact ? <p className="mb-2 text-xs font-semibold text-[var(--sb-text-muted)]">Workflow</p> : null}
+      <div className="flex min-w-0 items-center">
         {steps.map((step, index) => {
           const done = index < activeIndex;
           const active = index === activeIndex;
           const Icon = done ? CheckCircle2 : active ? CircleDot : Circle;
           const errorStep = rejected && active;
           return (
-            <div
-              key={step.key}
-              className={cn(
-                "min-w-0 rounded-[2px] border",
-                compact ? "p-1.5" : "p-2",
-                done ? "border-[var(--sb-success-bg)] bg-[var(--sb-success-bg)] text-[var(--sb-success)]" : "",
-                active && !errorStep ? "border-[var(--sb-amber-700)] bg-white text-[var(--sb-text)]" : "",
-                errorStep ? "border-[var(--sb-danger-bg)] bg-[var(--sb-danger-bg)] text-[var(--sb-danger)]" : "",
-              )}
-              title={step.description}
-            >
-              <div className="flex items-center gap-2">
-                <Icon className="h-3.5 w-3.5 shrink-0" />
-                <p className="min-w-0 truncate text-[11px] font-medium">{step.label}</p>
+            <div key={step.key} className="flex min-w-0 flex-1 items-center" title={step.description}>
+              <div className={cn("flex min-w-0 items-center gap-1.5", errorStep ? "text-[var(--sb-danger)]" : done ? "text-[var(--sb-success)]" : active ? "font-semibold text-[var(--sb-green-900)]" : "text-[var(--sb-text-muted)]")} aria-current={active ? "step" : undefined}>
+                <Icon className={cn("h-4 w-4 shrink-0", active && "text-[var(--sb-green-700)]", errorStep && "text-[var(--sb-danger)]")} />
+                <p className="min-w-0 truncate text-[11px]">{step.label}</p>
               </div>
-              {step.description && !compact ? <p className="mt-1 text-xs text-muted-foreground">{step.description}</p> : null}
+              {index < steps.length - 1 ? <span aria-hidden="true" className={cn("mx-2 h-px min-w-3 flex-1", done ? "bg-[var(--sb-green-300)]" : "bg-[var(--sb-border)]")} /> : null}
             </div>
           );
         })}

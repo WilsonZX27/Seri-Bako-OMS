@@ -15,7 +15,7 @@ test("dashboard composition is all-role, task-first, and finance-gated", () => {
   assert.match(view, /Only your assigned outlet’s record is shown/);
   assert.doesNotMatch(view, /Protected controls/);
   assert.match(view, /<ConsoleSection title="Actions">/);
-  assert.match(view, /xl:hidden/);
+  assert.match(view, /rightRailClassName/);
   assert.match(view, /hideMobileConsole/);
 });
 

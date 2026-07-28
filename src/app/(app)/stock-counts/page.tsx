@@ -1,5 +1,5 @@
-import Link from "next/link";
 import { Pencil } from "lucide-react";
+import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { DataGridHint } from "@/components/ui/data-grid-hint";
 import { DataGridRow } from "@/components/ui/data-grid-row";
@@ -30,9 +30,9 @@ export default async function StockCountsPage({ searchParams }: { searchParams: 
   const emptyAction = filtered ? { href: "/stock-counts", label: "Reset filters" } : canCreate ? { href: "/stock-counts/new", label: "New Count" } : undefined;
 
   return <>
-    <PageHeader title="Stock Counts" description="Physical counts compared against calculated branch stock." />
-    <WorkspaceGrid rightRail={<>
-      <ConsoleSection title="Actions">{canCreate ? <Button asChild className="w-full" data-mobile-primary-action><Link href="/stock-counts/new">New Stock Count</Link></Button> : <p className="text-xs text-muted-foreground">Your role has read-only access.</p>}</ConsoleSection>
+    <PageHeader title="Stock Counts" description="Physical counts compared against calculated branch stock." action={canCreate ? { href: "/stock-counts/new", label: "New Stock Count" } : undefined} />
+    <WorkspaceGrid hideMobileConsole rightRail={<>
+      {canCreate ? <ConsoleSection title="Actions"><Button asChild className="w-full"><Link href="/stock-counts/new">New Stock Count</Link></Button></ConsoleSection> : null}
       <ConsoleSection title="Stock Count Summary"><dl className="grid gap-2 text-xs"><div className="flex justify-between"><dt className="text-muted-foreground">Total</dt><dd className="font-semibold">{rows.length}</dd></div><div className="flex justify-between"><dt className="text-muted-foreground">In review</dt><dd className="font-semibold">{count("submitted", "reviewed")}</dd></div><div className="flex justify-between"><dt className="text-muted-foreground">Posted</dt><dd className="font-semibold">{count("posted")}</dd></div></dl></ConsoleSection>
     </>}>
       <div className="rounded-[2px] border bg-card">
@@ -46,7 +46,7 @@ export default async function StockCountsPage({ searchParams }: { searchParams: 
         <DataGridHint text="Pro-tip: Double-click any row to open the stock count." />
         <Table mobileHidden aria-label="Stock counts"><TableHeader><TableRow><SortableHead label="Count No" column="count_no" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} /><SortableHead label="Date" column="count_date" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} /><TableHead>Branch</TableHead><SortableHead label="Status" column="status" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} /><TableHead className="text-right">Lines</TableHead><TableHead className="text-right">High Variance</TableHead><TableHead className="w-12 text-right">Action</TableHead></TableRow></TableHeader>
           <TableBody>{counts.rows.map((row) => <DataGridRow key={row.id} href={`/stock-counts/${row.id}`}><TableCell className="font-medium">{row.count_no}</TableCell><TableCell>{row.count_date}</TableCell><TableCell>{row.branch_name ?? "-"}</TableCell><TableCell><StatusBadge status={row.status} /></TableCell><TableCell className="text-right">{row.line_count}</TableCell><TableCell className="text-right">{row.high_variance_count}</TableCell><TableCell className="text-right"><TableActionLink href={`/stock-counts/${row.id}`} label={`Open ${row.count_no}`}><Pencil className="h-4 w-4" /></TableActionLink></TableCell></DataGridRow>)}{!counts.rows.length ? <TableRow><TableCell colSpan={7}><EmptyState title={filtered ? "No counts match these filters" : "No stock counts yet"} description={filtered ? "Reset the filters or widen the date range." : "Counts appear after a permitted user starts a branch stock count."} action={emptyAction} /></TableCell></TableRow> : null}</TableBody></Table>
-        <OperationalList ariaLabel="Stock counts">{counts.rows.map((row) => <OperationalListRow key={row.id} href={`/stock-counts/${row.id}`} label={`Open ${row.count_no}`} primary={row.count_no} status={<StatusBadge status={row.status} />} secondary={`${row.branch_name ?? "Unknown branch"} · ${row.count_date}`} meta={`${row.line_count} lines`} />)}{!counts.rows.length ? <EmptyState title={filtered ? "No counts match these filters" : "No stock counts yet"} description={filtered ? "Reset the filters or widen the date range." : "Counts appear after a permitted user starts a branch stock count."} action={emptyAction} /> : null}</OperationalList>
+        <OperationalList ariaLabel="Stock counts">{counts.rows.map((row) => <OperationalListRow key={row.id} href={`/stock-counts/${row.id}`} label={`Open ${row.count_no}`} primary={row.count_no} status={<StatusBadge status={row.status} />} secondary={`${row.branch_name ?? "Unknown branch"} · ${row.count_date}`} meta={<span className={row.high_variance_count > 0 ? "font-semibold text-[var(--sb-warning)]" : undefined}>{row.line_count} lines · {row.high_variance_count} variance</span>} />)}{!counts.rows.length ? <EmptyState title={filtered ? "No counts match these filters" : "No stock counts yet"} description={filtered ? "Reset the filters or widen the date range." : "Counts appear after a permitted user starts a branch stock count."} action={filtered ? emptyAction : undefined} /> : null}</OperationalList>
         <PaginationControls page={counts.page} totalPages={counts.totalPages} totalRows={counts.totalRows} searchParams={filters} />
       </div>
     </WorkspaceGrid>

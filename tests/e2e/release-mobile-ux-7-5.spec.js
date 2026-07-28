@@ -28,7 +28,6 @@ test("mobile shell keeps one primary action and separate context access", async 
     ["/purchase-orders", "New PO"],
     ["/purchase-returns", "New Return"],
     ["/products", "New product"],
-    ["/locations", "New location"],
     ["/items", "New item"],
     ["/recipes", "New recipe"],
     ["/production/jobs/new", "Create draft production job"],
@@ -107,7 +106,6 @@ test("latest responsive feedback keeps actions contextual and mobile UI compact"
 
   for (const [route, actions] of [
     ["/products", ["New product", "Import products"]],
-    ["/locations", ["New location", "Fix missing stock areas", "Clean duplicate internal locations"]],
   ]) {
     await page.goto(route, { waitUntil: "domcontentloaded" });
     const console = page.locator("[data-right-console]");

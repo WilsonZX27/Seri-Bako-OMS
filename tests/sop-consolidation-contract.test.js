@@ -29,5 +29,5 @@ test("browser E2E cannot silently target a remote environment", () => {
   assert.match(config, /E2E is fail-closed/);
   assert.match(config, /ALLOW_REMOTE_E2E !== "1"/);
   assert.match(config, /RUN_TENANT_BOUNDARY_E2E === "1"/);
-  assert.match(read("scripts/playwright-local-server.mjs"), /nextBin, "dev", "-p", "3000"/);
+  assert.match(read("scripts/playwright-local-server.mjs"), /nextBin, "dev", "-p", localPort/);
 });

@@ -1,6 +1,9 @@
 export function getSupabaseEnv() {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL?.trim() ?? "";
+  // Server-only overrides keep local verification isolated even when Next has
+  // inlined public build-time variables from a workstation `.env.local`.
+  const url = process.env.SUPABASE_URL?.trim() ?? process.env.NEXT_PUBLIC_SUPABASE_URL?.trim() ?? "";
   const publishableKey =
+    process.env.SUPABASE_PUBLISHABLE_KEY?.trim() ??
     process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY?.trim() ??
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY?.trim() ??
     "";

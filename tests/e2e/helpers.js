@@ -37,25 +37,22 @@ function requireAccount(role) {
 
 async function login(page, role) {
   const creds = requireAccount(role);
-  await page.goto("/login", { waitUntil: "domcontentloaded" });
-  await page.locator('input[name="email"]').fill(creds.email);
-  await page.locator('input[name="password"]').fill(creds.password);
-  await page.getByRole("button", { name: /sign in/i }).click();
-  await Promise.race([
-    page.waitForURL((url) => !["/login", "/"].includes(url.pathname), { timeout: 20_000 }).catch(() => null),
-    page.locator("text=/Invalid email or password|disabled|expired|temporarily limited/i").waitFor({ timeout: 20_000 }).catch(() => null),
-  ]);
-  const pathname = new URL(page.url()).pathname;
-  const ok = !["/login", "/change-password", "/set-password", "/access-status", "/"].includes(pathname);
-  if (!ok) {
-    const visibleError = await page
-      .locator("text=/Invalid email or password|disabled|expired|temporarily limited|could not/i")
-      .first()
-      .textContent({ timeout: 1000 })
-      .catch(() => null);
-    throw new Error(`Login failed for ${role} (${creds.email}). ${visibleError ? `Message: ${visibleError}` : "No dashboard redirect was observed."}`);
+  let visibleError = null;
+  for (let attempt = 0; attempt < 3; attempt += 1) {
+    await page.goto("/login", { waitUntil: "domcontentloaded" });
+    await page.locator('input[name="email"]').fill(creds.email);
+    await page.locator('input[name="password"]').fill(creds.password);
+    await page.getByRole("button", { name: /sign in/i }).click();
+    await Promise.race([
+      page.waitForURL((url) => !["/login", "/"].includes(url.pathname), { timeout: 20_000 }).catch(() => null),
+      page.locator("text=/Invalid email or password|disabled|expired|temporarily limited/i").waitFor({ timeout: 20_000 }).catch(() => null),
+    ]);
+    const pathname = new URL(page.url()).pathname;
+    if (!["/login", "/change-password", "/set-password", "/access-status", "/"].includes(pathname)) return true;
+    visibleError = await page.locator("text=/Invalid email or password|disabled|expired|temporarily limited|could not/i").first().textContent({ timeout: 1000 }).catch(() => null);
+    await page.waitForTimeout(750);
   }
-  return true;
+  throw new Error(`Login failed for ${role} (${creds.email}). ${visibleError ? `Message: ${visibleError}` : "No dashboard redirect was observed."}`);
 }
 
 async function logout(page) {

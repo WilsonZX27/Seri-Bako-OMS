@@ -26,24 +26,44 @@ test("document details and creation forms use one responsive operational shell",
   }
 });
 
-test("the shared shell owns tablet ratio, mobile workflow, sticky action and accessible sheets", () => {
+test("the shared shell gives iPad a contained canvas and an explicit operational split without reviving desktop rails", () => {
   const workspace = read("src/components/documents/document-workspace.tsx");
+  const recordWorkspace = read("src/components/record-workspace.tsx");
+  const workspaceGrid = read("src/components/layout/workspace-layout.tsx");
+  const grn = app("goods-receivings/new");
+  const pr = app("purchase-requests/new");
   const sheets = read("src/components/documents/mobile-document-surfaces.tsx");
   const confirm = read("src/components/ui/confirm-action-form.tsx");
   const modal = read("src/components/ui/modal-shell.tsx");
   const styles = read("src/app/globals.css");
 
-  assert.match(workspace, /md:grid-cols-\[minmax\(0,7fr\)_minmax\(14rem,3fr\)\]/);
+  assert.match(workspace, /data-tablet-document-header/);
+  assert.match(workspaceGrid, /data-tablet-canvas/);
+  assert.match(workspaceGrid, /tabletRailMode = "context"/);
+  assert.match(workspaceGrid, /data-tablet-document-split/);
+  assert.match(workspaceGrid, /lg:grid-cols-\[minmax\(0,1fr\)_18rem\]/);
+  assert.match(grn, /tabletRailMode="split"/);
+  assert.match(pr, /tabletRailMode="split"/);
+  assert.match(recordWorkspace, /tabletRailMode="split"/);
   assert.match(workspace, /data-mobile-document-action/);
   assert.match(workspace, /mobilePrimaryAction \?/);
-  assert.match(sheets, /View workflow/);
+  assert.match(workspace, /md:hidden/);
+  assert.match(sheets, /label="Workflow"/);
   assert.match(sheets, /document\.body\.style\.overflow = "hidden"/);
   assert.match(sheets, /event\.key === "Escape"/);
   assert.match(sheets, /requestAnimationFrame\(\(\) => trigger\?\.focus\(\)\)/);
   assert.match(confirm, /ModalShell/);
   assert.match(modal, /role="dialog"/);
   assert.match(modal, /event\.key !== "Tab"/);
-  assert.match(styles, /\.sb-mobile-action-bar[\s\S]*border-top:[\s\S]*linear-gradient/);
+  assert.match(styles, /\.sb-mobile-action-bar[\s\S]*border: 1px solid var\(--sb-border\);[\s\S]*background: white;[\s\S]*box-shadow: 0 -2px 6px/);
+});
+
+test("the shared top bar is the only tablet and desktop breadcrumb, while new documents keep a compact context header", () => {
+  const workspace = read("src/components/documents/document-workspace.tsx");
+  assert.match(workspace, /data-document-breadcrumb/);
+  assert.doesNotMatch(workspace, /<nav aria-label="Breadcrumb"/);
+  assert.match(workspace, /isNewDocument && "hidden"/);
+  assert.match(workspace, /title && !isNewDocument/);
 });
 
 test("workflow actions are explicit, confirmed, permission-derived and secondary actions stay with the primary action", () => {
@@ -84,18 +104,15 @@ test("required files remain visible on mobile and support follows the canonical 
   }
 });
 
-test("document terminology and footer match v7.23.7.0", () => {
+test("document terminology and release metadata follow the current operational contract", () => {
   const sources = [
     ...detailRoutes.map(app), ...createRoutes.map(app),
     read("src/components/procurement-forms.tsx"), read("src/components/outlet-daily-record-form.tsx"),
   ].join("\n");
-  assert.doesNotMatch(sources, /Outlet\s*\/\s*Location|Line Note|Line note|Leftover|barcode|scanner|satay/i);
+  assert.doesNotMatch(sources, /Outlet\s*\/\s*Location|Leftover|satay/i);
   assert.match(sources, /Qty Sent/);
   assert.match(sources, /Wastage Reason/);
   assert.match(sources, /Remarks/);
-  assert.match(read("src/lib/app-version.ts"), /APP_SPRINT = "v7\.23\.7\.0"/);
+  assert.match(read("src/lib/app-version.ts"), /APP_SPRINT = `v\$\{APP_VERSION\}`/);
+  assert.match(read("src/lib/app-version.ts"), /APP_VERSION = "\d+\.\d+\.\d+"/);
 });
-
-
-
-

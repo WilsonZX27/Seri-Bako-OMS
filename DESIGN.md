@@ -1,553 +1,158 @@
-# Wilson Stitch Design Contract
+# Seri Bako OMS responsive design standard
+
+This document is the implementation contract for every customer-facing route, form, record workspace, table, panel, dialog, and mobile action bar. It applies to new work and to refactoring of existing UI.
+
+## Viewport contract
+
+Design mobile first. The base class or CSS rule must be the 320px-639px experience. Enhancement uses the shared Tailwind thresholds only:
+
+- `640px`: large phone / compact tablet; remains a single-column, touch-first experience.
+- `768px`: tablet; the active task keeps the full workspace width. Tablet portrait and landscape use the same components as phone and desktop, with layout density and column placement changing only at this shared breakpoint.
+- `1024px`: laptop desktop; dense line-entry layouts may expand, but a persistent inspection rail still remains hidden.
+- `1280px`: full desktop; left navigation, main workspace, and optional right inspection rail may coexist.
+
+Do not introduce a page-specific breakpoint. These thresholds serve distinct operational contexts, so a 1024px laptop is not forced into a cramped tablet layout and a full three-rail workspace is not shown prematurely. Test representative widths at 320, 390, 640, 768, 1024, 1280, 1440, and 2560px.
+
+## Layout contract
 
-## Product UI Philosophy
-
-Seri Bako ERP is a compact restaurant operations cockpit for procurement, inventory, production, dispatch, reporting, administration, and system control.
-
-Wilson's Stitch screenshots in `docs/` are the UI source of truth and override older assistant-generated design direction.
-
-The product must feel like a commercial internal ERP: fast, compact, structured, operational, and easy for restaurant managers, kitchen teams, outlet users, and admin staff to use daily.
-
-Do not redesign freely. Improve by consolidating, reusing, and aligning with the existing Stitch visual direction.
-
----
-
-## Contract Priority
-
-When implementing a page, apply the rules in this order:
-
-1. Core Layout Principle
-2. Page Skeletons
-3. Top Navigation / Sidebar / Right Operation Console
-4. Action Placement
-5. Button Shape
-6. Color System
-7. Global Component Rules
-8. Page-specific Module UX Guidelines
-9. Acceptance Checklist
-
-If a module-specific rule conflicts with a core shell rule, the core shell rule wins.
-
----
-
-# Core Shell Rules
-
-## Core Layout Principle
-
-The application shell follows a strict 3-zone structure:
-
-- Left = tools / functions navigation
-- Center = work, data, forms, documents, tables, and operational content
-- Right = actions, context, analytics, workflow, summaries, timeline, attachments, and page-specific assistance
-
-The layout must remain stable across modules. Do not create new shell patterns per page.
-
----
-
-## Page Skeletons
-
-All pages must use one of these three skeletons only.
-
-### A. Workspace Mode
-
-Used for dashboards, hubs, boards, and overview pages.
-
-Examples:
-
-- Dashboard
-- Reports
-- BI Dashboard
-- Settings
-- Master Data
-- Integrations
-- Dispatch Board
-
-Structure:
-
-- Page title and short subtitle
-- Compact metric or summary cards only when useful
-- Task cards, module cards, board columns, or grouped actions
-- Right console may show page metrics, recent activity, help, or contextual summaries
-
-Avoid:
-
-- Too many KPIs in the center
-- Oversized cards
-- Repeated page titles
-- Decorative content with no operational value
-
----
-
-### B. List Mode
-
-Used for high-density operational records.
-
-Examples:
-
-- Purchase Requests
-- Purchase Orders
-- Goods Receiving
-- Stock Balance
-- Stock Count
-- Stock Transfers
-- Stock Wastage
-- Movement Ledger
-- Activity Log
-- Users
-- Suppliers
-- Import History
-
-Structure:
-
-- Page title and short subtitle
-- Primary create action at top-right page header only when the page has no fixed right operation console action
-- Tabs when needed
-- Filters above table
-- Compact data grid
-- Pagination below table
-- Right console shows page summary, selected record summary, metrics, or contextual actions
-
-Avoid:
-
-- Create buttons inside table rows
-- Duplicate create buttons
-- Large KPI clutter above the table
-- Random cards in the right console
-
----
-
-### C. Document / Form Mode
-
-Used for detail pages, edit pages, approval documents, and guided workflows.
-
-Examples:
-
-- Purchase Request Detail
-- Purchase Order Detail
-- Goods Receiving Detail
-- Production Job Detail
-- Company Profile
-- User Detail
-- Role Permissions
-- Import Data Wizard
-- System Preferences
-- Backup & Restore
-
-Structure:
-
-- Center contains document, form, or work content
-- Right console contains workflow actions, save actions, timeline, comments, attachments, status, and contextual help
-- One primary action at a time
-- Workflow actions must live only in the right console
-
-Avoid:
-
-- Detail-page action buttons in the center unless they are row-level utility actions
-- Duplicate save buttons
-- Floating panels
-- Bottom action bars unless explicitly required for mobile
-
----
-
-## Top Navigation
-
-The top navigation left side is for breadcrumb navigation only.
-
-Examples:
-
-- Operations > Dashboard
-- Procurement > Purchase Requests
-- Procurement > Purchase Orders > PO-00546
-- Inventory > Stock Balance
-- Administration > Company Profile
-
-The top navigation right side contains only:
-
-- Search icon
-- Notification icon
-- User account pill
-
-The topbar must not contain:
-
-- Global create buttons
-- Place order buttons
-- Save buttons
-- Workflow actions
-- Full search bar by default
-- Full profile card
-
-Search is icon-only by default.
-
-Clicking the search icon opens a global search / command palette.
-
-The topbar must stay quiet and must not compete with the sidebar, page header, or right operation console.
-
----
-
-## Sidebar
-
-The sidebar is for function navigation only.
-
-Allowed:
-
-- Operational modules
-- Procurement modules
-- Inventory modules
-- Analytics modules
-- Administration modules
-- Data management modules
-- System modules
-- Compact company / product identity
-- Version label
-- System status label
-
-Forbidden:
-
-- Workflow states
-- Approval queues as navigation items
-- Status filters
-- Duplicated settings sprawl
-- Dead links
-- Temporary mockup-only links
-- Repeated user profile display
-
-Workflow states such as Draft, Manager Review, Admin Review, Finance Review, Approved, Returned, Rejected, Sent, Receiving, Completed, or Closed must never appear as sidebar navigation.
-
-They belong inside tabs, filters, status badges, workflow steps, or right console summaries.
-
----
-
-## Sidebar Information Architecture
-
-Use grouped navigation. Keep the structure stable.
-
-### Operations
-
-- Dashboard
-- Production Jobs
-- Dispatch Board
-
-### Procurement
-
-- Purchase Requests
-- Purchase Orders
-- Goods Receiving
-- Suppliers
-
-### Inventory
-
-- Stock Balance
-- Stock Count
-- Stock Transfers
-- Stock Wastage
-- Movement Ledger
-- Items / SKU Master
-- Batch & Expiry
-
-### Analytics
-
-- Reports
-- BI Dashboard
-- Activity Log
-
-### Administration
-
-- Company Profile
-- Users & Roles
-- Branches / Outlets
-- Departments
-- Approval Workflows
-- Notifications
-
-### Data Management
-
-- Import Data
-- Export Data
-- Import History
-- Data Templates
-
-### System
-
-- Settings
-- Integrations
-- Security
-- Backup & Restore
-
-Billing / Subscription is optional and should be hidden unless actually required.
-
-Do not add navigation items unless the route exists or has a clearly implemented placeholder page.
-
----
-
-## Sidebar Expansion Rules
-
-Do not expand every navigation group by default.
-
-Rules:
-
-- Only the active section should be expanded by default.
-- Dashboard should expand Operations only.
-- Purchase Requests, Purchase Orders, Goods Receiving, and Suppliers should expand Procurement only.
-- Stock-related pages should expand Inventory only.
-- Reports, BI Dashboard, and Activity Log should expand Analytics only.
-- Company Profile, Users & Roles, Branches / Outlets, Departments, Approval Workflows, and Notifications should expand Administration only.
-- Import Data, Export Data, Import History, and Data Templates should expand Data Management only.
-- Settings, Integrations, Security, and Backup & Restore should expand System only.
-- The active page must always remain visible.
-- The sidebar may remember user collapsed / expanded preference.
-
----
-
-## Company Identity
-
-Company / product identity belongs in the sidebar, not the topbar.
-
-The sidebar identity block may include:
-
-- Compact company logo or fallback icon
-- Product name
-- Product subtitle
-- Version label
-
-Recommended display:
-
-- Product name: Seri Bako
-- Subtitle: Operational ERP
-- Footer version: `v0.2.xx / Sprint x.x.x`
-
-Do not show full user profile in both the sidebar and topbar.
-
-Company Profile page controls:
-
-- Company logo
-- Company name
-- Registration number
-- Tax ID / SST number
-- Address
-- Brand colors
-- Document header assets
-- Login assets
-- Footer notes
-- Signature / stamp assets
-
----
-
-## Right Operation Console
-
-The right console is a persistent part of the app shell.
-
-It is fixed within the shell, full height, and internally scrollable.
-
-Right console content must be page-relevant.
-
-Allowed right console content:
-
-- Workflow actions
-- Save / reset actions
-- Approval actions
-- Page / list summaries
-- Selected record summary
-- Timeline
-- Comments
-- Attachments
-- Import progress
-- Validation summary
-- Activity log
-- Permission summary
-- Help notes directly related to the current page
-- Dashboard analytics rail content
-
-Forbidden:
-
-- Random unrelated cards
-- Decorative cards
-- Duplicate KPI cards already shown in center
-- Duplicate buttons
-- Floating panels by default
-- Full user profile display
-
-If a page has no meaningful right-console content, show a compact contextual summary or helpful empty state. Do not fill it with random content.
-
----
-
-## Action Placement
-
-List page create button:
-
-- Top-right page header only when the page does not use a fixed right-console primary action
-- Never in the global topbar
-
-Detail page workflow actions:
-
-- Right console only
-
-Form save button:
-
-- Right console preferred
-
-Dashboard quick actions:
-
-- Center workspace only
-- Must not appear in the right analytics rail
-
-Table row actions:
-
-- Small icon actions only
-- Must not compete with the primary page action
-
-One primary action at a time.
-
-Primary actions should be visually dominant. Secondary and destructive actions must be visually quieter.
-
-Examples:
-
-- Purchase Request Detail: Approve Request is primary, Return for Revision is secondary / destructive
-- Purchase Order Detail: Send to Supplier is primary, Receive Goods is secondary until PO is sent
-- Production Job Detail: Start Production is primary, Mark QC Ready is disabled until production starts
-- Import Data: Continue to Mapping is primary, Cancel Import is secondary
-
----
-
-## Button Shape
-
-All buttons must use square corners.
-
-Rules:
-
-- Button border-radius: 0
-- Applies to primary, secondary, destructive, ghost, icon, dropdown, upload, and right-console buttons
-- Cards and panels may keep very small radius, maximum 4px
-- Inputs may use 0px to 2px radius
-- Status badges may remain pill-shaped
-
-Do not use rounded action buttons anywhere in the app.
-
----
-
-# Color System
-
-Seri Bako ERP must use a controlled operational color system.
-
-## Sprint 7.4 UI token and component contract
-
-`src/app/globals.css` is the canonical runtime token source. Shared components in `src/components/ui` consume those tokens; pages must not create a parallel scale.
-
-- Typography: one system sans stack. Page title 18px, section/card title 14px, body/control text 14px on mobile and 13px on compact desktop, metadata/labels/table headers 12px minimum.
-- Spacing: use the 4, 8, 12, 16, 20, 24, and 32px scale. Page gutters are 12px on mobile and 16px from tablet upward. Panels use 12–16px padding.
-- Controls: 44px high on mobile and 36px from `sm` upward. Buttons remain square; cards/panels and inputs use a 0–2px radius. Icon-only controls require an accessible label.
-- Shell: 48px topbar, 236px desktop sidebar, and 340px desktop right console. Below `xl`, the same contextual console content is available through an accessible bottom drawer; it is not removed from the workflow.
-- Tables: use the shared `Table` containment region. Selection, when present, is the first column. Open/view/edit is the final column and remains reachable while a comparison table scrolls.
-- State: use the shared success, warning, danger, info, neutral, disabled, hover, selected, and focus tokens. Focus uses a visible 2px amber ring with offset.
-- Motion: state transitions only, normally 150–250ms; reduced-motion preferences must remove non-essential animation.
-
-## Sprint 7.5 mobile interaction contract
-
-- Mobile action bar: expose at most one safe primary workflow action plus a separate Actions & context trigger. Never promote a destructive action into the persistent bar. Respect bottom safe-area insets and preserve content clearance.
-- Mobile filters: shared list filters occupy no more than two visible rows. Search owns the first row; remaining controls use a compact horizontally scrollable second row when necessary.
-- Headers: breadcrumbs already supply route context, so page headers remain compact. Descriptions may collapse on narrow screens; workflow actions remain in content or the right console.
-- Tables: prioritize identifier, operational status/quantity, and the final row action on mobile. Secondary comparison fields progressively appear at `md` and `lg`; a whole page must never overflow horizontally.
-- Forms: date fields and native controls use `min-width: 0`, stay within their grid column, and preserve touch targets at 320px.
-- Dashboard metrics: icon and label sit together on the left, with the primary number aligned strongly to the right.
-- Typography: right-console instructions, metadata, alerts, and control labels use the shared compact scale; local oversized body copy is not allowed.
-
-## v0.2.15 pilot UI authority
-
-Pilot operation keeps the validated Sprint 7.4–7.5 shell and responsive contracts. Historical mockups are mood references only: deep green, warm neutral surfaces, rectangular controls, restrained amber accents, and compact operational tone. They do not override current workflows, navigation, action placement, typography, density, right-console behavior, or mobile rules. Pilot preparation must not introduce one-off page structures or fabricated data.
-
-Do not introduce random greens, browns, reds, blues, gradients, or decorative colors.
-
-## Sprint 7.23.3 canonical List Mode
-
-High-use operational indexes use one server-rendered structure: compact `PageHeader`, `FilterBar`, result count, semantic desktop `Table`, mobile `OperationalList`, shared `EmptyState`, pagination, and a permission-aware Right Console.
-
-- Filters keep search first, then the most useful status and branch/supplier controls. Less-used inputs live under `FilterBarMore`. Reset is visible only when a query filter is active, and submitting a status-tab view preserves that status.
-- At `xl` and above, the 236px sidebar and persistent Right Console form the desktop shell. At 1024px the sidebar becomes the existing accessible drawer so operational columns are not compressed.
-- From `md` upward, dense semantic tables remain the comparison surface. Identifiers and badges do not wrap; numeric values stay right-aligned; lower-priority columns progressively hide.
-- Below `md`, migrated routes use compact two-tier rows from the same server-loaded, paginated dataset. Each row exposes its identifier, status, decisive metadata, and a full-row link without horizontal scrolling.
-- Empty copy distinguishes an empty dataset from a filtered result. It offers at most one authorized next action. Pagination is absent when the result count is zero.
-- `--sb-muted` aliases the canonical muted surface token; pages must not invent a parallel muted color.
-
-## Sprint 7.23.4 procurement Document and Form Mode
-
-Procurement creation pages keep the center workspace focused on the minimum inputs needed to save a valid draft. System-generated dates and numbers are recorded without competing form controls. The PR line editor prioritizes item, quantity, and UOM; supplier and estimated cost remain secondary purchasing details and are not exposed to Kitchen users.
-
-Draft creation and workflow submission remain separate, explicit actions. A new PR shows `Save Draft`, then the saved document exposes `Submit PR` through the existing state-aware action resolver. The UI must not imply autosave or submit an unsaved record.
-
-Stage evidence uses the shared attachment repository:
-
-- PO preparation identifies the AutoCount PO number and Purchase Order attachment.
-- Receiving uses `Record Receiving & Attach DO`; the Delivery Order repository is visible in the mobile flow and the desktop Right Console.
-- Supplier invoices expose `Attach Supplier Invoice` before Finance Review.
-- Draft/pending evidence may be removed and replaced. Approved/posted evidence remains locked with correction guidance.
-
-The Right Console remains the persistent desktop action and evidence surface. On mobile procurement documents, a compact bottom action appears only for one real current workflow task; workflow progress and Activity & files use focused disclosures, and destructive actions stay under More options. Tablet keeps a horizontal Workdesk and Inspector split. Stage-critical attachment controls remain inside their actual stage flow. File selection supports camera/photo-library behavior provided by the mobile browser, shows the chosen filename, rejects files above 10 MB, and communicates the pending upload state.
-
-The product visual identity is:
-
-- Deep green operational sidebar
-- Warm off-white workspace
-- Amber / brown action accent
-- Muted gray-green secondary text
-- Thin neutral borders
-- Soft red only for alerts and danger states
-- Soft green only for success and healthy states
-- Soft amber only for warning and pending states
-- Soft blue only for informational or receiving states
-
----
-
-## Core Brand Colors
-
-Use these tokens as the default palette:
-
-```css
-:root {
-  /* Brand / Shell */
-  --sb-green-950: #062C1F;
-  --sb-green-900: #083B2A;
-  --sb-green-800: #0B4A35;
-  --sb-green-700: #0F5A42;
-
-  /* Accent */
-  --sb-amber-700: #8A5A2B;
-  --sb-amber-600: #A16A32;
-  --sb-amber-300: #F2C58D;
-  --sb-amber-100: #FFE3BF;
-
-  /* Workspace */
-  --sb-bg: #F7F5F0;
-  --sb-surface: #FFFFFF;
-  --sb-surface-muted: #F1EFE9;
-  --sb-border: #D8D4C8;
-  --sb-border-soft: #E7E2D8;
-
-  /* Text */
-  --sb-text: #102019;
-  --sb-text-muted: #66756D;
-  --sb-text-soft: #8A948E;
-  --sb-text-inverse: #FFFFFF;
-
-  /* Status */
-  --sb-success: #0F6B3F;
-  --sb-success-bg: #E6F4EC;
-
-  --sb-warning: #9A5B13;
-  --sb-warning-bg: #FFF1D9;
-
-  --sb-danger: #B42318;
-  --sb-danger-bg: #FDE8E8;
-
-  --sb-info: #245A9C;
-  --sb-info-bg: #E8F1FF;
-
-  --sb-neutral-bg: #EEECE6;
-  --sb-neutral-text: #5E665F;
-}
-
-
-Rules:
-
-Do not use bright emerald or neon green.
-Active menu item must use warm amber, not random green.
-Sidebar text should be muted white, not pure gray.
-Sidebar section dividers should be subtle.
+- Use `min-w-0` on children of flex/grid layouts that contain text, controls, or tables.
+- Use grid fractions, `minmax(0, 1fr)`, flex growth, percentages, or viewport-constrained `min()`/`max()` values for page structure. Do not give a page, panel, or content column a fixed pixel width.
+- A dense desktop grid must collapse to one column by default; add the second/third column only at the semantic breakpoints.
+- Tables must sit inside `.sb-table-region` or a local `overflow-x-auto` container. The document itself must never become horizontally scrollable.
+- Technical tables pin their first semantic identity column by default (item, product, document title, record name, or document number) so horizontal scrolling never loses the current record. A leading bulk-selection checkbox is not an identity: those tables pin the second column explicitly. A trailing action column remains scrollable unless that specific task demonstrably requires it.
+- A status tab is itself the status filter. A page that renders `StatusTabs` must not repeat the same status choice in the adjacent filter bar.
+- A mobile primary action is fixed above the safe area, with enough document bottom padding that the last editable control remains reachable. Its border is neutral; it must not visually imply a completed workflow state.
+- Full-width forms use `w-full min-w-0 max-w-full`. A form control may have a minimum touch target (for example quantity entry) but the surrounding layout must still shrink safely.
+- Form sections that contain file inputs, long sample values, or native selects must also set `min-w-0` on the containing grid/flex items; native file controls must never widen their parent on narrow screens.
+
+## Cross-platform workspace system
+
+The OMS is one operational product, not three independently designed sites. Phone may reorganize a workflow for reachability, but tablet and desktop must retain the same data hierarchy, state language, components, and action priority.
+
+- **Phone (`<768px`)** is a focused single-task canvas with a role-aware bottom bar and mobile-only 10px control / 12px panel radii.
+- **Tablet (`768px-1279px`)** is an iPad operational workspace. It uses the same role-aware bottom navigation component as phone, with four or five centered shortcuts and `More`; it does not use a persistent desktop side rail. The bar remains sticky in portrait and landscape, and every page reserves safe bottom space for it.
+- Tablet primary actions are visible in the page action row or in the sticky task action area. They must not be hidden behind `Actions & context`. Context panels are secondary metadata, audit, and low-frequency actions only.
+- `Actions & context` on tablet is a true drawer or sheet with an explicit backdrop and focus/scroll handling. It must never be an absolutely positioned child that overlaps table rows, status cells, or pagination.
+- At `1024px-1279px`, a document may opt into the shared tablet split: the editable or review surface remains primary, while a compact 18rem secondary context rail remains visible on the right. Below 1024px, secondary context uses the shared drawer/sheet opened from `More`; common actions remain in the page action row or sticky task action. This is for operational documents with active line entry or receiving, not generic dashboard cards.
+- **Desktop (`>=1280px`)** is a three-region operational shell: persistent navigation, a flexible central workspace, and an optional 340px inspection/action rail. A record page uses its central width for the data form or ledger; the rail is for next actions, state, audit, and related context, never a duplicate copy of the main form.
+- Context rails use flat divider groups for branch, supplier, and item drill-down. Do not nest rounded cards inside a rail section; hierarchy comes from section labels, spacing, and 1px separators.
+- Tablet and desktop use the compact 2px enterprise radius for panels, controls, menus, table containers, action rows, and icon tiles. Pills are reserved for statuses, counts, and compact semantic badges.
+- The shared shell owns navigation, page spacing, rails, filter placement, and viewport behavior. Feature pages must compose those primitives rather than recreate their own page chrome.
+- A desktop or tablet action must never be duplicated in the page header, empty state, fixed bar, and inspection rail. One primary action is visible at a time; contextual alternatives remain secondary.
+- The shared Top Bar owns the single canonical breadcrumb trail on tablet and desktop. `DocumentWorkspace` retains supplied breadcrumb metadata for route semantics, but does not render a second in-content breadcrumb trail. New documents show status, branch scope, and workflow only; they never repeat “New [document]” or the parent workspace title.
+- On tablet and desktop, the compact workflow pipeline itself is the canonical visible document status. Do not add a second standalone status badge above it; keep that compact badge for the phone context row only.
+- A record form uses one submit source: the shared desktop inspection rail, tablet context disclosure, and phone safe-area action may reference the same form via `form`; it must not retain an additional page-local submit bar.
+
+### Shared component assembly
+
+Every route is assembled from the same primitives. Responsive work may rearrange a primitive, but may not invent a device-specific replacement.
+
+- **Shell:** Top Bar, role-aware navigation, page title/context, and safe-area handling.
+- **Workspace:** one of `contained`, `wide`, or `full`; the content hierarchy remains the same at every viewport.
+- **Actions:** one visible primary action, followed by secondary inline actions; context drawers are never the only route to a common task.
+- **Records:** status tabs, filter bar, summary strip, semantic table/list, and pagination are shared components with responsive presentations.
+- **Forms:** shared field/control tokens, progressive disclosure for notes and advanced options, and one canonical submit source.
+- **States:** status, warning, error, loading, empty, and read-only states use the same semantic vocabulary across devices.
+
+### Pagination contract
+
+All paginated list, ledger, register, and history views must expose direct page navigation whenever more than one page exists: `Previous`, numbered pages, an ellipsis where needed, and `Next`. Previous/Next-only pagination is permitted only for a genuinely sequential stepper, not for a data list. The current page must be visibly selected, disabled edges must be announced, and page changes must preserve active filters and the semantic identity column.
+
+## Color and component discipline
+
+- Deep operational green is the only ordinary primary, active, selected, and focus color across every viewport.
+- Warm orange is semantic only: warning, urgency, attention, or a compact notification cue. It is never a default button, navigation color, neutral icon tile, or decorative panel theme.
+- Success, danger, information, and neutral states use their semantic tokens only when the data carries that meaning. Do not create blue, purple, teal, or amber workspace themes merely to decorate a directory or dashboard.
+- White surfaces, the glare-free neutral canvas, 1px borders, and tabular data carry enterprise density. Shadows are reserved for temporary overlays; persistent cards and panels use borders rather than decorative elevation.
+- Buttons, inputs, selects, action rows, popovers, menus, empty states, and tables use the shared token vocabulary. A new component must not introduce a one-off radius, brown accent, color family, or spacing scale.
+- Every interactive component must have visible default, hover, keyboard-focus, disabled, loading, error, and empty/read-only states appropriate to its task.
+
+## Mobile Web App shell
+
+The authenticated phone experience is an application-style mobile Web layout, not a scaled desktop sidebar.
+
+- Below `1280px`, the primary navigation is a five-slot bottom bar: up to four permission-aware role shortcuts plus `More`. Phone and tablet share the component; tablet uses the same bar with wider centered shortcuts and never falls back to a persistent desktop rail.
+- `More` opens the complete navigation allowed by the current role and effective permission map. It must never expose an unauthorized route.
+- Shortcut destinations are role-aware. Owner and Manager emphasize requests, receiving, and stock count; Finance emphasizes requests, invoices, and stock; Purchasing emphasizes requests, orders, and receiving; Kitchen emphasizes production and assigned operational work; Outlet Staff emphasizes the daily record.
+- Every role receives four permission-safe task destinations plus `More` when its effective permissions allow four destinations. Missing permissions fall back only to another authorized destination; navigation never duplicates a shortcut.
+- The desktop sidebar remains the authoritative desktop navigation and is unchanged at `1280px` and above.
+- The phone top bar uses a fixed three-slot structure: contextual back control on the left, a single centered page title, and workspace notifications on the right. Root workspaces reserve the left slot so the title remains optically centered.
+- Company identity, profile, subtitles, and duplicate document labels do not appear in the phone top bar. Profile remains available through `More`; new, edit, and detail routes link back to their parent workspace.
+- A phone page must not repeat the same workspace name in the top bar, page header, and document header. New documents show status, branch, workflow position, and the next permitted action beneath the top bar instead of repeating “New [document]” and the module title.
+- On a phone document header, place status and branch scope on one compact context row; show workflow position in one small disclosure row beneath it. Do not spend a separate full-height row on the status, branch, and workflow label when the same context can be scanned together.
+- The bottom bar observes `env(safe-area-inset-bottom)`. The top bar observes `env(safe-area-inset-top)`, and the root viewport uses `viewport-fit=cover`.
+- A page-level fixed primary action sits above the bottom navigation. It must not cover the final field, the navigation, or the home indicator.
+- Pages without contextual actions must not render an empty or generic secondary action bar.
+- Mobile sheets lock background scroll, support Escape dismissal, preserve focus, and sit above both navigation and page actions.
+- The web manifest uses `display: standalone` so supported browsers may add the OMS to the home screen without creating a separate native application.
+
+The mobile shell may reorganize navigation, information density, filters, and action placement, but it must reuse the same colors, terminology, permissions, route authorization, document states, and server actions as desktop.
+
+## Typography and spacing
+
+- Use `rem`, `em`, design tokens, or `clamp()` for type and spacing. Do not use screen-specific pixel font sizes or page-level pixel padding.
+- Keep labels, status, and instructions concise. On small screens, progressive disclosure is preferred to a long uninterrupted form.
+- Use the shared control-height token. Phone controls are 48px; tablet controls are 44px to remain iPad touch-safe; desktop regains 36px compact density at `1280px` and above. Do not let the 640px compact breakpoint reduce a phone control below 48px.
+- Phone controls use the shared 10px control radius and 12px panel radius for an iOS-like touch surface. Tablet and desktop retain the compact 2px enterprise radius.
+- Quantity, currency, and date fields must be large enough to enter and review without zooming. Numeric values use tabular figures and retain a visible unit.
+- Date fields use the shared `Input` control (or an equivalent token-based wrapper); do not introduce bare native date inputs that bypass the mobile control height, radius, border, and focus treatment.
+- Date values render as an invariant `YYYY-MM-DD` label across browser and device locales. The native picker remains available as the input mechanism, but its locale-specific visual value must not be the only visible representation.
+
+## Mobile color and shape language
+
+- Deep operational green is the only normal primary-action, selected-navigation, active-workflow, and keyboard-focus color.
+- Warm orange is reserved for warning, urgency, attention, and compact notification cues. It must not compete with green as a second ordinary button color.
+- Phone inputs, selects, text areas, buttons, filter triggers, popovers, and legacy 2px surfaces normalize to the shared phone radii. Status and notification badges may remain fully pill-shaped; ordinary cards must not.
+- A single phone surface must not mix square legacy fields, rounded mobile fields, green primary buttons, and brown primary buttons.
+
+## Media and content safety
+
+- Every `img`, `video`, `iframe`, `canvas`, `object`, and `embed` is constrained with `max-width: 100%` and `height: auto` unless an explicit aspect-ratio container owns its size.
+- Images must have useful alt text unless decorative. They must use `object-fit` deliberately rather than relying on intrinsic dimensions.
+- Long IDs, product names, branch names, and imported values must wrap, truncate with an accessible label, or remain in a scrolling subregion; they must never widen the page.
+
+## Operational workflow UX
+
+- The current status and the next permitted action appear before secondary metadata.
+- Dashboard workspaces show the signed-in operational context consistently at every breakpoint: `Welcome, [staff name] | [role] | [actual branch scope]`. This replaces generic labels such as "Assigned branches". Company-wide roles show `Company-wide`; assigned roles show the readable names of their assigned branches.
+- The contextual welcome line is a dashboard identity and scope cue, not a second top-bar title. Phone top bars continue to use only the centered page title; tablet and desktop place the same contextual line in the workspace header.
+- Role-specific Dashboard quick actions are creation or immediate-execution actions. Mobile navigation instead carries the role's most frequent workspaces. For Kitchen this deliberately separates `Purchase Request`, `New Production`, and `Receive` in Quick actions from `Stock Count`, `Stock Balance`, and `Stock Wastage` in the bottom bar.
+- Module landing pages use the operational hub hierarchy: one current-day summary, one primary task, one attention queue, and one compact tool list. They do not use repeated icon-card directories or duplicate explanatory copy.
+- The operational hub keeps the same information order on phone and desktop. Responsive behavior changes column placement and density, not terminology, color roles, or task priority.
+- Summary values share one flat data strip. Semantic orange or red appears only when the corresponding value requires attention; zero and normal states remain operational green.
+- A form starts with only the fields needed to begin. Notes, advanced filters, and audit detail use progressive disclosure.
+- Line-entry documents place the editable value and unit together, keep theoretical/variance feedback visible, and avoid card height that makes a count feel endless.
+- Long repeated tasks show useful review progress and provide an in-list find/adjusted-items view. A repeated physical count may prefill each line from its latest posted physical result; when no posted result exists, it may use the current ledger balance as an explicitly labelled starting estimate. Prefill is never hidden, is immediately editable, and the UI must distinguish values ready for review from values the user has adjusted.
+- Quantity controls pair a direct numeric field with decrement/increment controls when rapid adjustment is the primary task. Mass and volume units (`KG`, `G`, `L`, `ML` and their documented variants) allow fractional entry; discrete count units such as `CAN`, `ROLL`, `PACK`, and `BTL` accept whole numbers only in both the client and server validation.
+- Per-line remarks remain directly visible in dense desktop layouts. On touch layouts they may collapse until requested. A variance may recommend a note, but creating a draft must not force one; high-variance review and approval controls remain auditable and separate from draft entry.
+- Repeated line-entry work uses three density modes from the same row component: phone is a divided input-first row; tablet portrait uses a four-column ledger (`identity`, `reference`, `editable value`, `variance`) with notes on demand; laptop and desktop add a persistent fifth remarks column. Do not delay all table structure until desktop-sized breakpoints.
+- Destructive, posting, approval, cancel, and backup actions must state their consequence and remain distinct from save/draft actions.
+- Role restrictions must result in an explanatory read-only state, not a missing or broken-looking page.
+
+## Mobile operational surfaces
+
+- A phone workflow uses one boundary per operational unit. Do not place a bordered or shadowed card inside another card merely to group ordinary fields, progress, search, or line items.
+- Use a separate setup panel only when the user must establish context before beginning work (for example, date, branch, and tolerance). The repeatable work itself belongs in one continuous operational surface.
+- Within a continuous operational surface, use flat section backgrounds and 1px dividers for progress, filters, and rows. Do not wrap those sections in additional cards.
+- Preserve the same content hierarchy on desktop, but mobile may split setup from the active work surface to improve scanning and prevent nested-card visual noise.
+- A multi-column editable desktop table must not be the primary phone input. Keep the desktop table at `md` and above, then render the phone workflow as continuous divided rows: identity first, editable operational value and unit next, reference/calculated values last.
+- Do not use a horizontally scrolling table as a substitute for a phone line-entry layout. Horizontal scrolling remains acceptable only for read-only technical detail that has no safe compact representation.
+
+## Verification gate
+
+A UI change is not complete until:
+
+1. every affected route loads with the global stylesheet parsed;
+2. no page-level horizontal overflow occurs at 320, 390, 640, 768, 1024, 1280, 1440, or 2560px;
+3. every visible link, button, input, select, textarea, and summary remains inside the viewport unless it is inside an explicitly contained scrolling table region;
+4. keyboard focus, errors, empty states, loading states, and primary actions remain visible and usable;
+5. the related workflow Playwright test passes using isolated local data; and
+6. static route layout audit and typecheck/lint/build remain green.
+
+The Playwright route-layout audit is the baseline guard for all static workspaces. Workflow specs provide the mutation/role coverage; neither replaces the other.
+
+## Release identification
+
+- The visible footer version is the canonical application release identifier, not a build-only or sprint-only counter.
+- Every production release uses a three-segment semantic version in `package.json` and `src/lib/app-version.ts`; the login footer and workspace sidebar render `vX.Y.Z` from that same source.
+- GitHub tags use `vX.Y.Z`. GitHub Release titles use `vX.Y.Z — Release title`, matching the short `APP_RELEASE_TITLE` stored beside the application version.

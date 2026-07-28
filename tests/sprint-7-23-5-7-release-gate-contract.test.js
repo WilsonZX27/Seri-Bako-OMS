@@ -8,7 +8,7 @@ test("shared overlays and menus use the canonical release surfaces", () => {
   const css = read("src/app/globals.css");
   const modal = read("src/components/ui/modal-shell.tsx");
   const account = read("src/components/layout/account-menu.tsx");
-  const actionDropdown = read("src/components/ui/action-dropdown.tsx");
+  const actionDropdown = read("src/components/layout/quick-access-menu.tsx");
 
   assert.match(css, /\.sb-popover-surface/);
   assert.match(css, /\.sb-dialog-backdrop/);
@@ -20,6 +20,10 @@ test("shared overlays and menus use the canonical release surfaces", () => {
     assert.match(source, /event\.key === "Escape"/);
     assert.match(source, /\.focus\(\)/);
   }
+  assert.match(actionDropdown, /document\.body\.style\.overflow = "hidden"/);
+  assert.match(actionDropdown, /aria-modal="true"/);
+  assert.match(actionDropdown, /event\.key !== "Tab"/);
+  assert.match(actionDropdown, /fixed right-3 top-\[calc\(var\(--sb-topbar-height\)\+0\.5rem\)\]/);
 });
 
 test("annotated actions and compact tables are implemented through shared structures", () => {
@@ -48,7 +52,5 @@ test("the sanitized release package is complete", () => {
   ]) {
     assert.equal(fs.existsSync(file), true, `${file} should exist`);
   }
-  assert.match(read("src/lib/app-version.ts"), /APP_SPRINT = "v7\.23\.7\.0"/);
+  assert.match(read("src/lib/app-version.ts"), /APP_SPRINT = `v\$\{APP_VERSION\}`/);
 });
-
-

@@ -21,7 +21,7 @@ export default async function ProductionPlanningPage({ searchParams }: { searchP
   const report = await getProductionPlanning(await searchParams);
   return <>
     <PageHeader title="Production Planning Lite" description="Planning reference only. HQ/kitchen must check incomplete outlet data before producing." />
-    <WorkspaceGrid rightRail={<>
+    <WorkspaceGrid hideMobileConsole rightRail={<>
       <ConsoleSection title="Planning Assumptions"><div className="space-y-2 text-xs text-muted-foreground"><p>Uses completed or reviewed Outlet Daily Records only.</p><p>Suggestions are planning references, not production orders.</p><p>HQ/kitchen must check incomplete outlet records.</p><p>This page does not create production jobs or inventory writes.</p></div></ConsoleSection>
       <ConsoleSection title="Confidence"><div className="space-y-1 text-xs"><p className="flex justify-between gap-3"><span>Coverage</span><strong>{report.coverage.completed} / {report.coverage.expected} ({formatNumber(report.coverage.percent)}%)</strong></p><p className="flex justify-between gap-3"><span>Confidence</span>{confidenceBadge(report.coverage.confidence, false)}</p><p className="flex justify-between gap-3"><span>Medium</span><span>Suggested with caution</span></p><p className="flex justify-between gap-3"><span>Low / low sample</span><span>Review manually</span></p><p className="flex justify-between gap-3"><span>Incomplete</span><strong>{report.coverage.incomplete}</strong></p><p className="flex justify-between gap-3"><span>Missing outlet-days</span><strong>{report.coverage.missing}</strong></p></div><Button asChild className="mt-3 w-full" variant="outline" size="sm"><Link href="/reports/demand-trends">Open Demand Trends</Link></Button></ConsoleSection>
     </>}>

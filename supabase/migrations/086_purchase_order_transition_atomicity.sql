@@ -14,7 +14,7 @@ declare
   po public.purchase_orders%rowtype;
   next_status public.purchase_order_status;
   next_approval public.approval_status;
-  document_status public.approval_status;
+  document_status public.document_status;
   next_step text;
   activity_message text;
 begin

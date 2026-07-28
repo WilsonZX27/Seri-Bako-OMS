@@ -10,12 +10,18 @@ import { requirePermission } from "@/server/auth/permissions";
 import { formatActionError, requirePermissionOrRedirect, rethrowRedirect, safeRedirectWithMessage } from "@/server/actions/error-handling";
 import { getCurrentProfile } from "@/server/queries/common";
 import { getRecipe } from "@/server/queries/recipes";
+import { parseBoundedJson } from "@/server/validation/json-input";
 import type { RecipeInput } from "@/lib/validations/recipe";
 import type { ApprovalStatus, DocumentStatus, RecipeStatus } from "@/types/database";
+import { z } from "zod";
 
 function cleanText(value: FormDataEntryValue | null) {
   const text = String(value ?? "").trim();
   return text.length ? text : null;
+}
+
+function parseRecipeId(id: string) {
+  return z.string().uuid("The recipe identifier is invalid.").parse(id);
 }
 
 async function identity() {
@@ -24,8 +30,7 @@ async function identity() {
 }
 
 function parseRecipeForm(formData: FormData) {
-  const rawLines = String(formData.get("lines_json") ?? "[]");
-  const lines = JSON.parse(rawLines) as unknown;
+  const lines = parseBoundedJson(formData.get("lines_json"), "recipe ingredients");
 
   return recipeSchema.parse({
     recipe_no: formData.get("recipe_no"),
@@ -195,10 +200,11 @@ export async function updateRecipe(id: string, formData: FormData) {
   const supabase = await assertRecipeReferencesExist(parsed);
 
   if (isMockMode()) redirect(`/recipes/${id}`);
+  const recipeId = parseRecipeId(id);
   if (!supabase) throw new Error("Supabase client is not available");
 
   const profile = await identity();
-  const { data: existing, error: existingError } = await supabase.from("recipes").select("status,document_id").eq("id", id).single();
+  const { data: existing, error: existingError } = await supabase.from("recipes").select("status,document_id").eq("id", recipeId).single();
   if (existingError) throw new Error(existingError.message);
   if (existing.status === "active") throw new Error("Active recipes cannot be edited directly. Create a new version first.");
 
@@ -217,14 +223,14 @@ export async function updateRecipe(id: string, formData: FormData) {
       remarks: parsed.remarks || null,
       updated_by: profile?.id ?? null,
     })
-    .eq("id", id);
+    .eq("id", recipeId);
 
   if (recipeError) throw new Error(recipeError.message);
 
-  const { error: deleteError } = await supabase.from("recipe_lines").delete().eq("recipe_id", id);
+  const { error: deleteError } = await supabase.from("recipe_lines").delete().eq("recipe_id", recipeId);
   if (deleteError) throw new Error(deleteError.message);
 
-  const { error: linesError } = await supabase.from("recipe_lines").insert(recipeLineRows(id, parsed));
+  const { error: linesError } = await supabase.from("recipe_lines").insert(recipeLineRows(recipeId, parsed));
   if (linesError) throw new Error(linesError.message);
   await createCostSnapshot(id, parsed);
 
@@ -235,20 +241,21 @@ export async function updateRecipe(id: string, formData: FormData) {
   }
 
   revalidatePath("/recipes");
-  revalidatePath(`/recipes/${id}`);
-  redirect(`/recipes/${id}`);
+  revalidatePath(`/recipes/${recipeId}`);
+  redirect(`/recipes/${recipeId}`);
 }
 
 async function updateRecipeStatus(id: string, status: RecipeStatus, approvalStatus: ApprovalStatus, documentStatus: DocumentStatus, step: string, message: string) {
   const profile = await identity();
   if (isMockMode()) return;
+  const recipeId = parseRecipeId(id);
   const supabase = await createClient();
-  const { data: recipe, error: recipeError } = await supabase.from("recipes").select("document_id,product_id").eq("id", id).single();
+  const { data: recipe, error: recipeError } = await supabase.from("recipes").select("document_id,product_id").eq("id", recipeId).single();
   if (recipeError) throw new Error(recipeError.message);
   const now = new Date().toISOString();
 
   if (status === "active") {
-    await supabase.from("recipes").update({ status: "archived", archived_at: now, updated_by: profile?.id ?? null }).eq("product_id", recipe.product_id).eq("status", "active").neq("id", id);
+    await supabase.from("recipes").update({ status: "archived", archived_at: now, updated_by: profile?.id ?? null }).eq("product_id", recipe.product_id).eq("status", "active").neq("id", recipeId);
   }
 
   const stamp =
@@ -260,7 +267,7 @@ async function updateRecipeStatus(id: string, status: RecipeStatus, approvalStat
     {};
 
   const [{ error }, { error: docError }] = await Promise.all([
-    supabase.from("recipes").update({ status, approval_status: approvalStatus, updated_by: profile?.id ?? null, ...stamp }).eq("id", id),
+    supabase.from("recipes").update({ status, approval_status: approvalStatus, updated_by: profile?.id ?? null, ...stamp }).eq("id", recipeId),
     recipe.document_id
       ? supabase.from("documents").update({ status: documentStatus, approval_status: approvalStatus, current_step: step, updated_by: profile?.id ?? null }).eq("id", recipe.document_id)
       : Promise.resolve({ error: null }),
@@ -269,7 +276,7 @@ async function updateRecipeStatus(id: string, status: RecipeStatus, approvalStat
   if (docError) throw new Error(docError.message);
   if (recipe.document_id) await writeActivityLog({ entityType: "document", entityId: recipe.document_id, activityType: status, message });
   revalidatePath("/recipes");
-  revalidatePath(`/recipes/${id}`);
+  revalidatePath(`/recipes/${recipeId}`);
 }
 
 export async function submitRecipe(id: string) {
@@ -289,7 +296,7 @@ export async function activateRecipe(id: string) {
 
 export async function rejectRecipe(id: string, formData: FormData) {
   await requirePermission("recipes.approve");
-  const remarks = cleanText(formData.get("remarks"));
+  const remarks = z.string().trim().min(1, "Rejection remarks are required.").max(1_000, "Rejection remarks must be 1,000 characters or fewer.").parse(cleanText(formData.get("remarks")) ?? "");
   if (!remarks) throw new Error("Rejection remarks are required.");
   await updateRecipeStatus(id, "rejected", "rejected", "rejected", "Rejected", `Recipe rejected: ${remarks}`);
 }
@@ -308,8 +315,9 @@ export async function archiveRecipe(id: string) {
 export async function createNewRecipeVersion(id: string) {
   await requirePermission("recipes.create");
   if (isMockMode()) redirect("/recipes/recipe-butter-croissant-v2-draft");
+  const recipeId = parseRecipeId(id);
 
-  const source = await getRecipe(id);
+  const source = await getRecipe(recipeId);
   const supabase = await createClient();
   const profile = await identity();
   const { data: versions, error: versionError } = await supabase.from("recipes").select("version").eq("product_id", source.product_id).order("version", { ascending: false }).limit(1);

@@ -2,6 +2,9 @@ import type { ReactNode } from "react";
 import { RightConsoleMount } from "@/components/layout/right-console";
 import { cn } from "@/lib/utils";
 
+type TabletCanvas = "contained" | "wide" | "full";
+type TabletRailMode = "context" | "split";
+
 export function WorkspaceGrid({
   children,
   rightRail,
@@ -9,6 +12,8 @@ export function WorkspaceGrid({
   rightRailClassName,
   hideMobileConsole = false,
   documentMode = false,
+  tabletCanvas,
+  tabletRailMode = "context",
 }: {
   children: ReactNode;
   rightRail?: ReactNode;
@@ -16,18 +21,28 @@ export function WorkspaceGrid({
   rightRailClassName?: string;
   hideMobileConsole?: boolean;
   documentMode?: boolean;
+  /** Keeps touch-focused work contained while technical registers retain horizontal working room. */
+  tabletCanvas?: TabletCanvas;
+  /** At landscape-tablet widths, a document may keep its operational context visible beside the form. */
+  tabletRailMode?: TabletRailMode;
 }) {
-  void rightRailClassName;
+  const contextualRail = rightRailClassName ? <div className={rightRailClassName}>{rightRail}</div> : rightRail;
+  const effectiveTabletCanvas = tabletCanvas ?? (documentMode ? "contained" : "wide");
+  const usesTabletSplit = Boolean(documentMode && rightRail && tabletRailMode === "split");
 
   return (
-    <div className={cn("min-h-0 p-3 pb-3", className)}>
-      {documentMode && rightRail ? (
-        <div className="min-w-0 md:grid md:grid-cols-[minmax(0,7fr)_minmax(14rem,3fr)] md:gap-3 xl:block">
+    <div data-tablet-canvas={effectiveTabletCanvas} className={cn("min-h-0 p-3 pb-3", rightRail && !hideMobileConsole && "pb-32 xl:pb-3", className)}>
+      {usesTabletSplit ? (
+        <div data-tablet-document-split className="min-w-0 lg:grid lg:grid-cols-[minmax(0,1fr)_18rem] lg:items-start lg:gap-4 xl:block">
           <div className="min-w-0 space-y-3">{children}</div>
-          <aside data-tablet-document-inspector className="hidden min-w-0 border-l border-[var(--sb-border-soft)] bg-white pl-2 md:block xl:hidden">{rightRail}</aside>
+          <aside className="hidden min-w-0 space-y-3 lg:block xl:hidden">{contextualRail}</aside>
+        </div>
+      ) : documentMode && rightRail ? (
+        <div className="min-w-0">
+          <div className="min-w-0 space-y-3">{children}</div>
         </div>
       ) : <div className="min-w-0 space-y-3">{children}</div>}
-      {rightRail ? <RightConsoleMount hideMobileBar={hideMobileConsole} mobileOnlyBar={documentMode}>{rightRail}</RightConsoleMount> : null}
+      {rightRail ? <RightConsoleMount hideMobileBar={hideMobileConsole}>{contextualRail}</RightConsoleMount> : null}
     </div>
   );
 }

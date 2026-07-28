@@ -4,16 +4,19 @@ import { DataGridRow } from "@/components/ui/data-grid-row";
 import { DataGridHint } from "@/components/ui/data-grid-hint";
 import { DocumentNumber } from "@/components/document-number";
 import { EmptyState } from "@/components/ui/empty-state";
+import { FilterBar } from "@/components/ui/filter-bar";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { PageHeader } from "@/components/ui/page-header";
-import { SelectNative } from "@/components/ui/select-native";
+import { SelectControl } from "@/components/ui/select-control";
 import { PaginationControls, SortableHead } from "@/components/sortable-table";
 import { StatusTabs } from "@/components/status-tabs";
-import { Table, TableActionLink, TableBody, TableCell, TableHead, TableHeader, TableRow, TableSelectionCell, TableSelectionHead } from "@/components/ui/table";
+import { OperationalList, OperationalListRow, Table, TableActionLink, TableBody, TableCell, TableHead, TableHeader, TableRow, TableSelectionCell, TableSelectionHead } from "@/components/ui/table";
+import { WorkspaceGrid } from "@/components/layout/workspace-layout";
 import { getCanonicalDocumentHref } from "@/lib/document-routing";
 import { formatStatusLabel } from "@/lib/status-label";
+import { hasActiveFilters } from "@/lib/table-state";
 import type { DocumentRow } from "@/server/queries/documents";
 import { getDocuments } from "@/server/queries/documents";
 
@@ -37,16 +40,13 @@ function getDocumentStageLabel(document: DocumentRow) {
 export default async function DocumentsPage({ searchParams }: { searchParams: Promise<Record<string, string | undefined>> }) {
   const filters = await searchParams;
   const documents = await getDocuments(filters);
+  const filtered = hasActiveFilters(filters);
 
   return (
     <>
       <PageHeader title="Documents Register" description="Audit-ready register for document status, approvals, attachments, revisions, and timelines." />
-      <div className="space-y-5 p-5">
+      <WorkspaceGrid className="p-3 sm:p-4">
         <div className="overflow-hidden rounded-[2px] border bg-card">
-          <div className="border-b bg-white p-4">
-            <p className="sb-section-label">Document Register</p>
-            <h2 className="mt-1 text-lg font-semibold">Audit and document control</h2>
-          </div>
           <StatusTabs statuses={[
             { value: "draft", label: "Draft" },
             { value: "pending_approval", label: "In Review" },
@@ -55,29 +55,25 @@ export default async function DocumentsPage({ searchParams }: { searchParams: Pr
             { value: "rejected", label: "Rejected" },
             { value: "closed", label: "Completed" },
           ]} activeStatus={filters.status} />
-          <form className="sb-list-filters">
+          <FilterBar resultCount={documents.totalRows} resetHref="/documents" filtered={filtered}>
             <Input name="search" defaultValue={filters.search ?? ""} placeholder="Search document no, title, type" />
-            <SelectNative name="document_type" defaultValue={filters.document_type ?? "all"}>
-              <option value="all">All document types</option>
-              <option value="purchase_request">Purchase Request</option>
-              <option value="purchase_order">Purchase Order</option>
-              <option value="goods_receiving">Goods Receiving</option>
-              <option value="stock_count">Stock Count</option>
-              <option value="stock_transfer">Stock Transfer</option>
-              <option value="stock_wastage">Stock Wastage</option>
-              <option value="supplier_invoice">Supplier Invoice</option>
-              <option value="payment_schedule">Payment Schedule</option>
-            </SelectNative>
-            <div className="flex gap-2">
-              {filters.status ? <input type="hidden" name="status" value={filters.status} /> : null}
-              <Button type="submit" variant="secondary">Filter</Button>
-              <Button asChild variant="ghost"><a href="?">Reset</a></Button>
-            </div>
-          </form>
+            <SelectControl name="document_type" defaultValue={filters.document_type ?? "all"} ariaLabel="Document type" options={[
+              { value: "all", label: "All document types" },
+              { value: "purchase_request", label: "Purchase Request" },
+              { value: "purchase_order", label: "Purchase Order" },
+              { value: "goods_receiving", label: "Goods Receiving" },
+              { value: "stock_count", label: "Stock Count" },
+              { value: "stock_transfer", label: "Stock Transfer" },
+              { value: "stock_wastage", label: "Stock Wastage" },
+              { value: "supplier_invoice", label: "Supplier Invoice" },
+              { value: "payment_schedule", label: "Payment Schedule" },
+            ]} />
+            {filters.status ? <input type="hidden" name="status" value={filters.status} /> : null}
+            <Button type="submit" variant="secondary">Filter</Button>
+          </FilterBar>
           <BulkSelectionProvider ids={documents.rows.map((document) => document.id)} actionLabel="Archive selected" actionHint="Documents with history are not hard deleted. Open selected documents to use workflow-safe actions.">
           <DataGridHint text="Pro-tip: Double-click any row to open the document." />
-          <div className="overflow-x-auto">
-            <Table>
+            <Table mobileHidden aria-label="Documents register" stickyColumn="second">
               <TableHeader>
                 <TableRow>
                   <TableSelectionHead><BulkSelectAllCheckbox /></TableSelectionHead>
@@ -111,11 +107,17 @@ export default async function DocumentsPage({ searchParams }: { searchParams: Pr
                 {!documents.rows.length ? <TableRow><TableCell colSpan={7}><EmptyState title="No documents found" description="Documents will appear here after PR, PO, GRN, inventory, or approval activity is recorded." /></TableCell></TableRow> : null}
               </TableBody>
             </Table>
-          </div>
+            <OperationalList ariaLabel="Documents register">
+              {documents.rows.map((document) => {
+                const href = getCanonicalDocumentHref(document);
+                return <OperationalListRow key={document.id} href={href} label={`Open ${document.document_no}`} primary={<DocumentNumber value={document.document_no} size="sm" />} status={<StatusBadge status={getDocumentStageLabel(document)} />} secondary={`${formatStatusLabel(document.document_type)} · ${document.created_by_name ?? "Unknown user"}`} meta={new Date(document.updated_at).toLocaleDateString("en-MY")} />;
+              })}
+              {!documents.rows.length ? <EmptyState title="No documents found" description="Documents will appear here after PR, PO, GRN, inventory, or approval activity is recorded." action={filtered ? { href: "/documents", label: "Reset filters" } : undefined} /> : null}
+            </OperationalList>
           </BulkSelectionProvider>
           <PaginationControls page={documents.page} totalPages={documents.totalPages} totalRows={documents.totalRows} searchParams={filters} />
         </div>
-      </div>
+      </WorkspaceGrid>
     </>
   );
 }

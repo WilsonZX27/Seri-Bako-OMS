@@ -44,18 +44,18 @@ export default async function RecipeDetailPage({
                 <span className="text-muted-foreground">Current status</span>
                 <Badge variant={recipe.status === "active" ? "success" : recipe.status === "rejected" ? "danger" : "secondary"}>{recipe.status}</Badge>
               </div>
-              {permissions["recipes.update"] && !["active", "archived"].includes(recipe.status) ? <Button asChild variant="outline" className="w-full"><Link href={`/recipes/${recipe.id}/edit`}>Edit Recipe</Link></Button> : null}
-              {permissions["recipes.submit"] && recipe.status === "draft" ? <form action={submitRecipe.bind(null, recipe.id)}><Button type="submit" className="w-full">Submit</Button></form> : null}
+              {permissions["recipes.update"] && !["active", "archived"].includes(recipe.status) ? <Button asChild variant="outline" className="w-full" data-mobile-primary-action><Link href={`/recipes/${recipe.id}/edit`}>Edit Recipe</Link></Button> : null}
+              {permissions["recipes.submit"] && recipe.status === "draft" ? <form action={submitRecipe.bind(null, recipe.id)}><Button type="submit" className="w-full" data-mobile-primary-action>Submit</Button></form> : null}
               {permissions["recipes.approve"] && recipe.status === "pending_approval" ? (
                 <>
-                  <form action={approveRecipe.bind(null, recipe.id)}><Button type="submit" className="w-full">Approve</Button></form>
+                  <form action={approveRecipe.bind(null, recipe.id)}><Button type="submit" className="w-full" data-mobile-primary-action>Approve</Button></form>
                   <form action={rejectRecipe.bind(null, recipe.id)} className="grid gap-2">
                     <input name="remarks" className="h-9 rounded-[2px] border bg-background px-3 text-sm" placeholder="Rejection remarks required" required />
                     <Button type="submit" variant="destructive">Reject Recipe</Button>
                   </form>
                 </>
               ) : null}
-              {permissions["recipes.approve"] && recipe.status === "approved" ? <form action={activateRecipe.bind(null, recipe.id)}><Button type="submit" className="w-full">Activate</Button></form> : null}
+              {permissions["recipes.approve"] && recipe.status === "approved" ? <form action={activateRecipe.bind(null, recipe.id)}><Button type="submit" className="w-full" data-mobile-primary-action>Activate</Button></form> : null}
               {permissions["recipes.create"] && recipe.status === "active" ? <form action={createNewRecipeVersion.bind(null, recipe.id)}><Button type="submit" variant="outline" className="w-full">New Version</Button></form> : null}
               {permissions["recipes.archive"] && ["active", "approved"].includes(recipe.status) ? <form action={archiveRecipe.bind(null, recipe.id)}><Button type="submit" variant="ghost" className="w-full">Archive</Button></form> : null}
               {permissions["recipes.archive"] ? <PhaseOneDeleteAction recordType="recipe" recordId={recipe.id} label="recipe" /> : null}
@@ -78,28 +78,16 @@ export default async function RecipeDetailPage({
             </CardContent>
           </Card>
         ) : null}
-        <div className="grid gap-4 md:grid-cols-5">
-          <Card>
-            <CardHeader><CardTitle>Version</CardTitle></CardHeader>
-            <CardContent className="text-2xl font-semibold">v{recipe.version}</CardContent>
-          </Card>
-          <Card>
-            <CardHeader><CardTitle>Yield</CardTitle></CardHeader>
-            <CardContent className="text-2xl font-semibold">{formatNumber(recipe.yield_qty)} {recipe.yield_unit}</CardContent>
-          </Card>
-          <Card>
-            <CardHeader><CardTitle>Ingredient Cost</CardTitle></CardHeader>
-            <CardContent className="text-2xl font-semibold">{formatCurrency(recipe.total_ingredient_cost)}</CardContent>
-          </Card>
-          <Card>
-            <CardHeader><CardTitle>Adjusted Cost</CardTitle></CardHeader>
-            <CardContent className="text-2xl font-semibold">{formatCurrency(recipe.wastage_adjusted_cost)}</CardContent>
-          </Card>
-          <Card>
-            <CardHeader><CardTitle>Cost / Unit</CardTitle></CardHeader>
-            <CardContent className="text-2xl font-semibold">{formatCurrency(recipe.cost_per_finished_unit)}</CardContent>
-          </Card>
-        </div>
+        <section aria-labelledby="recipe-summary" className="overflow-hidden rounded-[2px] border bg-card">
+          <div className="border-b px-4 py-3"><h2 id="recipe-summary" className="text-sm font-semibold">Recipe Summary</h2></div>
+          <dl className="grid divide-y sm:grid-cols-2 sm:divide-x sm:divide-y-0 xl:grid-cols-5">
+            <div className="min-w-0 px-4 py-3"><dt className="text-xs text-muted-foreground">Version</dt><dd className="mt-1 font-mono text-sm font-semibold">v{recipe.version}</dd></div>
+            <div className="min-w-0 px-4 py-3"><dt className="text-xs text-muted-foreground">Yield</dt><dd className="mt-1 truncate font-mono text-sm font-semibold">{formatNumber(recipe.yield_qty)} {recipe.yield_unit}</dd></div>
+            <div className="min-w-0 px-4 py-3"><dt className="text-xs text-muted-foreground">Ingredient Cost</dt><dd className="mt-1 truncate font-mono text-sm font-semibold">{formatCurrency(recipe.total_ingredient_cost)}</dd></div>
+            <div className="min-w-0 px-4 py-3"><dt className="text-xs text-muted-foreground">Adjusted Cost</dt><dd className="mt-1 truncate font-mono text-sm font-semibold">{formatCurrency(recipe.wastage_adjusted_cost)}</dd></div>
+            <div className="min-w-0 px-4 py-3"><dt className="text-xs text-muted-foreground">Cost / Unit</dt><dd className="mt-1 truncate font-mono text-sm font-semibold">{formatCurrency(recipe.cost_per_finished_unit)}</dd></div>
+          </dl>
+        </section>
 
         <Card>
           <CardHeader><CardTitle>Header</CardTitle></CardHeader>

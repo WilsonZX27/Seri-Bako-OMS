@@ -81,7 +81,7 @@ export async function getOutletDailyFormOptions() {
   const profile = await getCurrentProfile();
   const canViewAll = await hasPermission("outlet_daily_record.view_all");
   const [{ data: branches, error: branchError }, { data: products, error: productError }] = await Promise.all([
-    db.from("branches").select("id,branch_code,branch_name,branch_type,status,default_location_id").eq("status", "active").is("deleted_at", null).order("branch_name"),
+    db.from("branches").select("id,branch_code,branch_name,branch_type,status").eq("status", "active").is("deleted_at", null).order("branch_name"),
     db.from("products").select("id,product_code,product_name,category,selling_unit,status,display_order").eq("status", "active"),
   ]);
   if (branchError) throw new Error(branchError.message);

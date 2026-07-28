@@ -10,13 +10,17 @@ import { requirePermission } from "@/server/auth/permissions";
 import { formatActionError, requirePermissionOrRedirect, rethrowRedirect, safeRedirectWithMessage } from "@/server/actions/error-handling";
 import { revalidateWorkspaceState } from "@/server/actions/revalidate";
 import { resolveDocumentNumber } from "@/server/documents/sequences";
-import { resolveDefaultLocation } from "@/server/inventory/locations";
 import { getCurrentProfile } from "@/server/queries/common";
+import { requireActiveTenantActor } from "@/server/auth/tenant-actor";
 import { z } from "zod";
 
 function cleanText(value: FormDataEntryValue | null) {
   const text = String(value ?? "").trim();
   return text.length ? text : null;
+}
+
+function parseGoodsReceivingId(id: string) {
+  return z.uuid().parse(id);
 }
 
 async function identity() {
@@ -43,7 +47,6 @@ function extractGoodsReceiving(formData: FormData) {
     supplier_id: formData.get("supplier_id"),
     received_date: formData.get("received_date"),
     branch_id: formData.get("branch_id"),
-    location_id: formData.get("location_id"),
     received_by: formData.get("received_by") || null,
     remarks: formData.get("remarks"),
     delivery_order_attached: formData.get("delivery_order_attached") === "on",
@@ -67,8 +70,8 @@ function extractGoodsReceiving(formData: FormData) {
 }
 
 async function ensureReceivablePo(purchaseOrderId: string) {
-  const supabase = await createClient();
-  const { data, error } = await supabase.from("purchase_orders").select("id,status,supplier_id").eq("id", purchaseOrderId).single();
+  const [supabase, actor] = await Promise.all([createClient(), requireActiveTenantActor()]);
+  const { data, error } = await supabase.from("purchase_orders").select("id,status,supplier_id").eq("id", purchaseOrderId).eq("company_id", actor.companyId).single();
   if (error) throw new Error(error.message);
   if (!["approved", "sent", "partial_received"].includes(data.status)) {
     throw new Error("Cannot receive against cancelled, closed, draft, or unapproved PO.");
@@ -82,7 +85,6 @@ export async function createGoodsReceiving(formData: FormData) {
     const payload = extractGoodsReceiving(formData);
     const deliveryOrderNo = cleanText(formData.get("delivery_order_no"));
     if (isMockMode()) redirect("/goods-receivings/grn-mock-partial");
-    const locationId = await resolveDefaultLocation(payload.branch_id, payload.location_id);
 
     const po = await ensureReceivablePo(payload.purchase_order_id);
     if (po.supplier_id !== payload.supplier_id) throw new Error("GRN supplier must match selected PO supplier.");
@@ -99,7 +101,6 @@ export async function createGoodsReceiving(formData: FormData) {
       p_payload: {
         ...payload,
         grn_no: grnNo,
-        location_id: locationId,
         idempotency_key: idempotencyKey,
         remarks: [deliveryOrderNo ? `DO ${deliveryOrderNo}` : null, payload.remarks].filter(Boolean).join(" - ") || null,
       },
@@ -118,10 +119,11 @@ export async function postGoodsReceiving(id: string, formData: FormData) {
   await requirePermission("grn.post");
   if (isMockMode()) return;
 
+  const goodsReceivingId = parseGoodsReceivingId(id);
   const supabase = await createClient();
-  const doExceptionReason = cleanText(formData.get("do_exception_reason"));
+  const doExceptionReason = z.string().trim().max(1_000).nullable().parse(cleanText(formData.get("do_exception_reason")));
   const { data, error } = await supabase.rpc("post_goods_receiving_atomic", {
-    p_goods_receiving_id: id,
+    p_goods_receiving_id: goodsReceivingId,
     p_do_exception_reason: doExceptionReason,
   });
   if (error) throw new Error(error.message);
@@ -140,8 +142,9 @@ export async function postGoodsReceiving(id: string, formData: FormData) {
 export async function cancelGoodsReceiving(id: string) {
   await requirePermission("goods_receiving.cancel");
   if (isMockMode()) return;
+  const goodsReceivingId = parseGoodsReceivingId(id);
   const supabase = await createClient();
-  const { error } = await supabase.rpc("cancel_goods_receiving_atomic", { p_goods_receiving_id: id });
+  const { error } = await supabase.rpc("cancel_goods_receiving_atomic", { p_goods_receiving_id: goodsReceivingId });
   if (error) throw new Error(error.message);
   revalidateWorkspaceState(["/goods-receivings", `/goods-receivings/${id}`]);
 }

@@ -22,10 +22,12 @@ function monthlyPreview(prefix: string, nextNumber: number) {
   return `${prefix.trim() || "DOC"}/${month}${year}/${String(nextNumber || 1).padStart(3, "0")}`;
 }
 
-export function DocumentSequenceForm({ sequence, companies, action }: {
+export function DocumentSequenceForm({ sequence, companies, action, formId, showSubmit = true }: {
   sequence?: Sequence;
   companies: Company[];
   action: (formData: FormData) => Promise<void>;
+  formId?: string;
+  showSubmit?: boolean;
 }) {
   const [prefix, setPrefix] = useState(sequence?.prefix ?? "DOC");
   const [nextNumber, setNextNumber] = useState(sequence?.next_number ?? 1);
@@ -34,7 +36,7 @@ export function DocumentSequenceForm({ sequence, companies, action }: {
   return (
     <Card>
       <CardContent className="p-5">
-        <form action={action} className="grid gap-4 md:grid-cols-2">
+        <form id={formId} action={action} className="grid gap-4 pb-20 md:grid-cols-2 md:pb-0">
           <input type="hidden" name="company_id" value={companyId} />
           <input type="hidden" name="padding" value="3" />
           <input type="hidden" name="reset_frequency" value="monthly" />
@@ -56,9 +58,9 @@ export function DocumentSequenceForm({ sequence, companies, action }: {
             <p className="mt-1 font-mono text-lg font-semibold">{monthlyPreview(prefix, nextNumber)}</p>
             <p className="mt-1 text-xs text-muted-foreground">{`{PREFIX}/{MON}{YY}/{SEQ:3}`}</p>
           </div>
-          <div className="flex justify-end md:col-span-2">
-            <SubmitButton type="submit" pendingLabel="Saving..." showOverlay overlayLabel="Saving changes...">{sequence ? "Save sequence" : "Create sequence"}</SubmitButton>
-          </div>
+          {showSubmit ? <div className="sb-mobile-action-bar fixed inset-x-3 bottom-[calc(env(safe-area-inset-bottom)+0.5rem)] z-[var(--sb-z-sticky)] p-2 md:static md:flex md:justify-end md:bg-transparent md:p-0 md:shadow-none md:col-span-2">
+            <SubmitButton type="submit" pendingLabel="Saving..." showOverlay overlayLabel="Saving changes..." className="w-full md:w-auto">{sequence ? "Save sequence" : "Create sequence"}</SubmitButton>
+          </div> : null}
         </form>
       </CardContent>
     </Card>

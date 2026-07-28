@@ -122,7 +122,7 @@ export function WorkspaceSidebar({
                         className={cn(
                           "flex items-center gap-2 rounded-[2px] px-2 font-medium transition-colors",
                           mobile ? "min-h-10 text-xs" : "min-h-8 text-xs",
-                          active ? "bg-[var(--sb-amber-100)] text-[var(--sb-green-950)] ring-1 ring-white/10" : "text-white/72 hover:bg-white/8 hover:text-white",
+                          active ? "bg-[var(--sb-green-100)] text-[var(--sb-green-950)] ring-1 ring-white/10" : "text-white/72 hover:bg-white/8 hover:text-white",
                         )}
                       >
                         <Icon className={cn("h-3.5 w-3.5 shrink-0", active ? "text-[var(--sb-green-950)]" : "text-white/55")} />

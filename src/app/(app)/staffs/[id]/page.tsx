@@ -36,10 +36,14 @@ export default async function EditStaffPage({
     getCurrentProfile(),
     readTemporaryPasswordHandoff(id),
   ]);
-  const assignedRole = allRoles.find((role) => role.id === access.staffRole?.role_id);
-  const additionalRoles = sortRolesForDisplay(allRoles.filter((role) => access.staffRoles?.some((assignment) => assignment.role_id === role.id && role.id !== assignedRole?.id) ?? false));
+  const companyId = profile?.company_id ?? staff.company_id;
+  const tenantCompanies = companies.filter((company) => company.id === companyId);
+  const tenantBranches = branches.filter((branch) => branch.company_id === companyId);
+  const tenantRoles = allRoles.filter((role) => role.company_id === companyId);
+  const assignedRole = tenantRoles.find((role) => role.id === access.staffRole?.role_id);
+  const additionalRoles = sortRolesForDisplay(tenantRoles.filter((role) => access.staffRoles?.some((assignment) => assignment.role_id === role.id && role.id !== assignedRole?.id) ?? false));
   const currentRole = (profile as { role_code?: string; role?: string } | null)?.role_code ?? (profile as { role?: string } | null)?.role ?? null;
-  const roles = sortRolesForDisplay(allRoles).filter((role) => canAssignRoleCode(currentRole, role.role_code) || role.id === assignedRole?.id);
+  const roles = sortRolesForDisplay(tenantRoles).filter((role) => canAssignRoleCode(currentRole, role.role_code) || role.id === assignedRole?.id);
   const roleCode = normalizeRoleCode(assignedRole?.role_code);
   const [permissionAccess, canManageOverrides] = await Promise.all([getStaffPermissionAccess(id), hasPermission("roles.update")]);
   const protectedRole = roleCode === "super_admin";
@@ -50,7 +54,7 @@ export default async function EditStaffPage({
     denied: permissionAccess.filter((permission) => permission.override === "deny").length,
   };
   const formId = "staff-edit-form";
-  const branchName = access.staffBranch?.branch_id ? branches.find((branch) => branch.id === access.staffBranch?.branch_id)?.branch_name ?? "-" : "-";
+  const branchName = access.staffBranch?.branch_id ? tenantBranches.find((branch) => branch.id === access.staffBranch?.branch_id)?.branch_name ?? "-" : "-";
   const authState = getStaffAuthState(staff);
   const isOwner = currentRole === "super_admin";
 
@@ -187,22 +191,22 @@ export default async function EditStaffPage({
         ) : null}
 
         {temporaryPassword ? (
-          <Card className="border-amber-200 bg-amber-50">
+          <Card className="border-[var(--sb-warning)] bg-[var(--sb-warning-bg)]">
             <CardHeader>
               <CardTitle>Temporary password shown once</CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
-              <p className="text-sm text-amber-900">Copy this temporary password now. It will not be shown again.</p>
+              <p className="text-sm text-[var(--sb-warning)]">Copy this temporary password now. It will not be shown again.</p>
               <div className="flex flex-wrap items-center justify-between gap-3 rounded-[2px] border bg-white p-3">
                 <span className="font-mono text-lg font-semibold">{temporaryPassword}</span>
                 <CopyTextButton value={temporaryPassword} label="Copy temporary password" />
               </div>
-              <p className="text-xs text-amber-900">Share it securely. The staff member must change it after first login.</p>
+              <p className="text-xs text-[var(--sb-warning)]">Share it securely. The staff member must change it after first login.</p>
             </CardContent>
           </Card>
         ) : null}
 
-        <StaffForm formId={formId} staff={staff} access={access} companies={companies} branches={branches} roles={roles} action={updateStaff.bind(null, id)} showSubmit={false} />
+        <StaffForm formId={formId} staff={staff} access={access} companies={tenantCompanies} branches={tenantBranches} roles={roles} action={updateStaff.bind(null, id)} showSubmit={false} />
         <StaffPermissionOverrides
           permissions={permissionAccess}
           canManage={canManageOverrides}

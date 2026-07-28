@@ -32,6 +32,7 @@ export default async function SuppliersPage({
     <>
       <PageHeader title="Suppliers" description="Supplier identity, contacts, terms, and purchasing availability." />
       <WorkspaceGrid
+        hideMobileConsole={!canCreate}
         rightRail={
           <>
             {canCreate || permissions["suppliers.manage"] || permissions["imports.run"] ? <ConsoleSection title="Actions">
@@ -52,10 +53,10 @@ export default async function SuppliersPage({
         {filters.success ? <div className="border border-[var(--sb-success)] bg-[var(--sb-success-bg)] p-3 text-sm text-[var(--sb-success)]">{filters.success}</div> : null}
         <div className="overflow-hidden rounded-[2px] border bg-card">
           <StatusTabs statuses={[{ value: "active", label: "Active" }, { value: "inactive", label: "Inactive" }]} activeStatus={filters.status} />
-          <MasterDataFilters search={filters.search} status={filters.status} placeholder="Search supplier code, name, contact, phone, email" resultCount={page.totalRows} filtered={filtered} resetHref="/suppliers" />
+          <MasterDataFilters search={filters.search} status={filters.status} showStatus={false} placeholder="Search supplier code, name, contact, phone, email" resultCount={page.totalRows} filtered={filtered} resetHref="/suppliers" />
           <BulkSelectionProvider ids={page.rows.map((supplier) => supplier.id)} actionLabel="Deactivate selected" actionHint="Deactivate suppliers only when they should no longer be used for purchasing.">
           <DataGridHint text="Pro-tip: Double-click any row to open the supplier." />
-          <Table mobileHidden aria-label="Suppliers">
+          <Table mobileHidden aria-label="Suppliers" stickyColumn="second">
             <TableHeader>
               <TableRow>
                 <TableSelectionHead><BulkSelectAllCheckbox /></TableSelectionHead>
@@ -102,7 +103,7 @@ export default async function SuppliersPage({
           </Table>
           <OperationalList ariaLabel="Suppliers">
             {page.rows.map((supplier) => <OperationalListRow key={supplier.id} href={`/suppliers/${supplier.id}`} label={`Open ${supplier.name}`} primary={supplier.name} status={<Badge variant={supplier.status === "active" ? "success" : "secondary"}>{supplier.status}</Badge>} secondary={`${supplier.supplier_code ?? "No code"} · ${supplier.contact_person ?? "No contact"}`} meta={supplier.payment_terms_days ? `${supplier.payment_terms_days} days` : undefined} />)}
-            {!page.rows.length ? <EmptyState title={filtered ? "No suppliers match these filters" : "No suppliers yet"} description={filtered ? "Reset the filters or widen the search." : "Suppliers appear after they are created or imported."} action={emptyAction} /> : null}
+            {!page.rows.length ? <EmptyState title={filtered ? "No suppliers match these filters" : "No suppliers yet"} description={filtered ? "Reset the filters or widen the search." : "Suppliers appear after they are created or imported."} action={filtered ? emptyAction : undefined} /> : null}
           </OperationalList>
           </BulkSelectionProvider>
           <PaginationControls page={page.page} totalPages={page.totalPages} totalRows={page.totalRows} searchParams={filters} />

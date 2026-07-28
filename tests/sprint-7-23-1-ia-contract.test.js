@@ -55,7 +55,7 @@ test("sign-in resolves a terminal route from the canonical IA instead of hardcod
 });
 
 test("staff assignment UI exposes the canonical role and Branch concepts", () => {
-  const form = read("src/components/foundation-forms.tsx");
+  const form = read("src/components/staff-access-fields.tsx");
   assert.match(form, /label="Role"/);
   assert.match(form, /label="Default Branch"/);
   assert.match(form, /label="Accessible Branches"/);

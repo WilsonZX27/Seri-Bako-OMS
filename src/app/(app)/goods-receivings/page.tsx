@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { Pencil } from "lucide-react";
 import { BulkSelectAllCheckbox, BulkSelectionProvider, BulkSelectRowCheckbox } from "@/components/bulk-selection";
 import { DataGridRow } from "@/components/ui/data-grid-row";
@@ -35,13 +34,12 @@ export default async function GoodsReceivingsPage({ searchParams }: { searchPara
       <PageHeader
         title="Goods Receiving"
         description="Receive supplier deliveries against approved purchase orders. Stock increases only after GRN posting."
+        action={canCreate ? { href: "/goods-receivings/new", label: "New GRN" } : undefined}
       />
       <WorkspaceGrid
+        hideMobileConsole
         rightRail={
           <>
-            <ConsoleSection title="Actions">
-              {canCreate ? <Button asChild size="sm" className="w-full" data-mobile-primary-action><Link href="/goods-receivings/new">New GRN</Link></Button> : <p className="text-xs text-muted-foreground">Your role has read-only access.</p>}
-            </ConsoleSection>
             <ConsoleSection title="GRN Summary">
               <div className="grid gap-2 text-xs">
                 <div className="flex justify-between"><span className="text-muted-foreground">Total GRNs</span><strong>{rows.length}</strong></div>
@@ -61,13 +59,15 @@ export default async function GoodsReceivingsPage({ searchParams }: { searchPara
         <div className="overflow-hidden rounded-[2px] border border-[var(--sb-border-soft)] bg-card">
           <StatusTabs statuses={statuses} activeStatus={filters.status} />
           <FilterBar resultCount={receivings.totalRows} resetHref="/goods-receivings" filtered={filtered}>
-            <Input name="search" defaultValue={filters.search ?? ""} placeholder="Search GRN no, PO, supplier, branch" className="md:max-w-sm" />
+            <div className="flex min-w-0 flex-1 gap-2 md:contents">
+              <Input name="search" defaultValue={filters.search ?? ""} placeholder="Search GRN, PO or supplier" className="min-w-0 flex-1 md:max-w-sm" />
+              <Button type="submit" variant="secondary" className="shrink-0">Search</Button>
+            </div>
             {filters.status ? <input type="hidden" name="status" value={filters.status} /> : null}
-            <Button type="submit" variant="secondary">Search</Button>
           </FilterBar>
           <BulkSelectionProvider ids={receivings.rows.map((receiving) => receiving.id)} actionLabel="Archive selected" actionHint="Open selected GRNs to post or cancel them through workflow-safe actions. Posted receiving records are never hard deleted.">
           <DataGridHint text="Pro-tip: Double-click any row to open the goods receiving document." />
-            <Table mobileHidden aria-label="Goods receiving records">
+          <Table mobileHidden aria-label="Goods receiving records" stickyColumn="second">
               <TableHeader>
                 <TableRow>
                   <TableSelectionHead><BulkSelectAllCheckbox /></TableSelectionHead>
@@ -103,7 +103,15 @@ export default async function GoodsReceivingsPage({ searchParams }: { searchPara
               </TableBody>
             </Table>
             <OperationalList ariaLabel="Goods receiving records">
-              {receivings.rows.map((receiving) => <OperationalListRow key={receiving.id} href={`/goods-receivings/${receiving.id}`} label={`Open ${receiving.grn_no}`} primary={<DocumentNumber value={receiving.grn_no} size="sm" />} status={<StatusBadge status={receiving.status} />} secondary={`${receiving.supplier_name ?? "No supplier"} · ${receiving.received_date}`} meta={`${formatNumber(receiving.received_total)} received`} />)}
+              {receivings.rows.map((receiving) => <OperationalListRow
+                key={receiving.id}
+                href={`/goods-receivings/${receiving.id}`}
+                label={`Open ${receiving.grn_no}`}
+                primary={<div><DocumentNumber value={receiving.grn_no} size="sm" /><p className="text-[11px] font-normal text-[var(--sb-text-muted)]">PO {receiving.po_no ?? "not linked"} · {receiving.received_date}</p></div>}
+                status={<StatusBadge status={receiving.status} />}
+                secondary={`${receiving.supplier_name ?? "No supplier"} · ${receiving.branch_name ?? "No branch"}`}
+                meta={`${formatNumber(receiving.received_total)} in · ${formatNumber(receiving.rejected_total)} rejected`}
+              />)}
               {!receivings.rows.length ? <EmptyState title={filtered ? "No receivings match these filters" : "No goods receivings yet"} description={filtered ? "Reset the filters or widen the search." : "Supplier deliveries will appear after they are recorded."} action={filtered ? { href: "/goods-receivings", label: "Reset filters" } : undefined} /> : null}
             </OperationalList>
           </BulkSelectionProvider>

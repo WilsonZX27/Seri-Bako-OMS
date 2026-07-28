@@ -5,7 +5,6 @@ export type ItemStatus = "active" | "inactive";
 export type SupplierStatus = "active" | "inactive";
 export type RecordStatus = "active" | "inactive" | "archived" | "invited" | "disabled";
 export type StaffStatus = RecordStatus | "invited" | "disabled";
-export type LocationStatus = RecordStatus;
 export type BranchType = "central_kitchen" | "outlet" | "event_booth" | "office" | "other";
 export type StaffAccessLevel = "full" | "manage" | "read_only";
 export type PermissionOverrideEffect = "allow" | "deny";
@@ -25,16 +24,6 @@ export type StockWastageReason = "expired" | "damaged" | "spoiled" | "production
 export type OutletDailyRecordStatus = "draft" | "morning_recorded" | "evening_completed" | "reviewed" | "void";
 export type OutletDailyWastageReason = "unsold" | "damaged" | "expired" | "quality_issue" | "staff_meal" | "other";
 export type RecipeStatus = "draft" | "pending_approval" | "approved" | "active" | "rejected" | "archived";
-export type LocationType =
-  | "dry_store"
-  | "chiller"
-  | "freezer"
-  | "packaging_area"
-  | "production_floor"
-  | "dispatch_area"
-  | "receiving_area"
-  | "finished_goods_store"
-  | "other";
 export type StockTransactionType =
   | "opening_balance"
   | "purchase"
@@ -104,7 +93,6 @@ export type Database = {
           branch_code: string;
           branch_name: string;
           branch_type: BranchType;
-          default_location_id: string | null;
           phone: string | null;
           email: string | null;
           address: string | null;
@@ -121,7 +109,6 @@ export type Database = {
           branch_code: string;
           branch_name: string;
           branch_type?: BranchType;
-          default_location_id?: string | null;
           phone?: string | null;
           email?: string | null;
           address?: string | null;
@@ -321,22 +308,6 @@ export type Database = {
           updated_at?: string;
         };
         Update: Partial<Database["public"]["Tables"]["staff_branches"]["Insert"]>;
-        Relationships: [];
-      };
-      staff_locations: {
-        Row: {
-          id: string;
-          staff_id: string;
-          location_id: string;
-          created_at: string;
-        };
-        Insert: {
-          id?: string;
-          staff_id: string;
-          location_id: string;
-          created_at?: string;
-        };
-        Update: Partial<Database["public"]["Tables"]["staff_locations"]["Insert"]>;
         Relationships: [];
       };
       outlet_daily_records: {
@@ -831,38 +802,6 @@ export type Database = {
         Update: Partial<Database["public"]["Tables"]["suppliers"]["Insert"]>;
         Relationships: [];
       };
-      locations: {
-        Row: {
-          id: string;
-          company_id: string | null;
-          branch_id: string | null;
-          location_code: string;
-          location_name: string;
-          location_type: LocationType;
-          status: LocationStatus;
-          created_at: string;
-          updated_at: string;
-          created_by: string | null;
-          updated_by: string | null;
-          deleted_at: string | null;
-        };
-        Insert: {
-          id?: string;
-          company_id?: string | null;
-          branch_id?: string | null;
-          location_code: string;
-          location_name: string;
-          location_type?: LocationType;
-          status?: LocationStatus;
-          created_at?: string;
-          updated_at?: string;
-          created_by?: string | null;
-          updated_by?: string | null;
-          deleted_at?: string | null;
-        };
-        Update: Partial<Database["public"]["Tables"]["locations"]["Insert"]>;
-        Relationships: [];
-      };
       items: {
         Row: {
           id: string;
@@ -1105,7 +1044,6 @@ export type Database = {
           urgency_reason: string | null;
           production_risk: boolean;
           branch_id: string | null;
-          location_id: string | null;
           status: PurchaseRequestStatus;
           remarks: string | null;
           created_at: string;
@@ -1128,7 +1066,6 @@ export type Database = {
           urgency_reason?: string | null;
           production_risk?: boolean;
           branch_id?: string | null;
-          location_id?: string | null;
           status?: PurchaseRequestStatus;
           remarks?: string | null;
           created_at?: string;
@@ -1260,7 +1197,6 @@ export type Database = {
           supplier_id: string;
           received_date: string;
           branch_id: string | null;
-          location_id: string;
           status: GoodsReceivingStatus;
           received_by: string | null;
           remarks: string | null;
@@ -1282,7 +1218,6 @@ export type Database = {
           supplier_id: string;
           received_date?: string;
           branch_id?: string | null;
-          location_id: string;
           status?: GoodsReceivingStatus;
           received_by?: string | null;
           remarks?: string | null;
@@ -1350,7 +1285,6 @@ export type Database = {
           purchase_order_id: string;
           supplier_id: string;
           branch_id: string | null;
-          location_id: string;
           return_date: string;
           status: PurchaseReturnStatus;
           reason: string | null;
@@ -1373,7 +1307,6 @@ export type Database = {
           purchase_order_id: string;
           supplier_id: string;
           branch_id?: string | null;
-          location_id: string;
           return_date?: string;
           status?: PurchaseReturnStatus;
           reason?: string | null;
@@ -1726,7 +1659,6 @@ export type Database = {
           document_id: string | null;
           branch_id: string | null;
           item_id: string;
-          location_id: string;
           transaction_type: StockTransactionType;
           transaction_date: string;
           quantity_in: number;
@@ -1739,8 +1671,6 @@ export type Database = {
           remarks: string | null;
           reference_type: string | null;
           reference_id: string | null;
-          from_location_id: string | null;
-          to_location_id: string | null;
           created_by: string | null;
           created_at: string;
         };
@@ -1750,7 +1680,6 @@ export type Database = {
           document_id?: string | null;
           branch_id?: string | null;
           item_id: string;
-          location_id: string;
           transaction_type: StockTransactionType;
           transaction_date?: string;
           quantity_in?: number;
@@ -1763,8 +1692,6 @@ export type Database = {
           remarks?: string | null;
           reference_type?: string | null;
           reference_id?: string | null;
-          from_location_id?: string | null;
-          to_location_id?: string | null;
           created_by?: string | null;
           created_at?: string;
         };
@@ -1775,27 +1702,6 @@ export type Database = {
             columns: ["item_id"];
             isOneToOne: false;
             referencedRelation: "items";
-            referencedColumns: ["id"];
-          },
-          {
-            foreignKeyName: "stock_transactions_location_id_fkey";
-            columns: ["location_id"];
-            isOneToOne: false;
-            referencedRelation: "locations";
-            referencedColumns: ["id"];
-          },
-          {
-            foreignKeyName: "stock_transactions_from_location_id_fkey";
-            columns: ["from_location_id"];
-            isOneToOne: false;
-            referencedRelation: "locations";
-            referencedColumns: ["id"];
-          },
-          {
-            foreignKeyName: "stock_transactions_to_location_id_fkey";
-            columns: ["to_location_id"];
-            isOneToOne: false;
-            referencedRelation: "locations";
             referencedColumns: ["id"];
           },
           {
@@ -1815,7 +1721,6 @@ export type Database = {
           item_id: string | null;
           product_id: string | null;
           branch_id: string | null;
-          location_id: string;
           quantity_in: number;
           quantity_out: number;
           running_balance: number | null;
@@ -1834,7 +1739,6 @@ export type Database = {
           item_id?: string | null;
           product_id?: string | null;
           branch_id?: string | null;
-          location_id: string;
           quantity_in?: number;
           quantity_out?: number;
           running_balance?: number | null;
@@ -1856,7 +1760,6 @@ export type Database = {
           count_no: string;
           count_date: string;
           branch_id: string | null;
-          location_id: string;
           counted_by: string | null;
           status: StockCountStatus;
           tolerance_percent: number;
@@ -1880,7 +1783,6 @@ export type Database = {
           count_no: string;
           count_date?: string;
           branch_id?: string | null;
-          location_id: string;
           counted_by?: string | null;
           status?: StockCountStatus;
           tolerance_percent?: number;
@@ -1931,11 +1833,11 @@ export type Database = {
       stock_transfers: {
         Row: {
           id: string; company_id: string | null; document_id: string | null; transfer_no: string; transfer_date: string;
-          from_branch_id: string | null; from_location_id: string; to_branch_id: string | null; to_location_id: string;
+          from_branch_id: string | null; to_branch_id: string | null;
           status: StockOperationStatus; remarks: string | null; posted_at: string | null; created_at: string; updated_at: string;
           created_by: string | null; updated_by: string | null; deleted_at: string | null;
         };
-        Insert: Partial<Database["public"]["Tables"]["stock_transfers"]["Row"]> & { transfer_no: string; from_location_id: string; to_location_id: string };
+        Insert: Partial<Database["public"]["Tables"]["stock_transfers"]["Row"]> & { transfer_no: string };
         Update: Partial<Database["public"]["Tables"]["stock_transfers"]["Insert"]>;
         Relationships: [];
       };
@@ -1949,11 +1851,11 @@ export type Database = {
       };
       stock_wastage: {
         Row: {
-          id: string; company_id: string | null; document_id: string | null; wastage_no: string; wastage_date: string; branch_id: string | null; location_id: string;
+          id: string; company_id: string | null; document_id: string | null; wastage_no: string; wastage_date: string; branch_id: string | null;
           reason: StockWastageReason; status: StockOperationStatus; remarks: string | null; posted_at: string | null; created_at: string; updated_at: string;
           created_by: string | null; updated_by: string | null; deleted_at: string | null;
         };
-        Insert: Partial<Database["public"]["Tables"]["stock_wastage"]["Row"]> & { wastage_no: string; location_id: string; reason: StockWastageReason };
+        Insert: Partial<Database["public"]["Tables"]["stock_wastage"]["Row"]> & { wastage_no: string; reason: StockWastageReason };
         Update: Partial<Database["public"]["Tables"]["stock_wastage"]["Insert"]>;
         Relationships: [];
       };
@@ -1987,8 +1889,6 @@ export type Database = {
           status: ItemStatus;
           branch_id: string | null;
           branch_name: string | null;
-          location_id: string | null;
-          location_name: string | null;
           total_quantity_in: number;
           total_quantity_out: number;
           current_stock: number;
@@ -2031,7 +1931,6 @@ export type Database = {
           count_no: string;
           count_date: string;
           branch_id: string | null;
-          location_id: string;
           counted_by: string | null;
           status: StockCountStatus;
           tolerance_percent: number;
@@ -2048,7 +1947,6 @@ export type Database = {
           updated_by: string | null;
           deleted_at: string | null;
           branch_name: string | null;
-          location_name: string | null;
           counted_by_name: string | null;
           line_count: number;
           high_variance_count: number;
@@ -2076,8 +1974,6 @@ export type Database = {
           base_unit: string;
           branch_id: string | null;
           branch_name: string | null;
-          location_id: string | null;
-          location_name: string | null;
           quantity_in: number;
           quantity_out: number;
           unit_cost: number;
@@ -2096,8 +1992,6 @@ export type Database = {
           base_unit: string;
           branch_id: string | null;
           branch_name: string | null;
-          location_id: string | null;
-          location_name: string | null;
           total_quantity_in: number;
           total_quantity_out: number;
           current_qty: number;
@@ -2176,6 +2070,10 @@ export type Database = {
         Args: { p_payload: Json };
         Returns: Json;
       };
+      create_stock_count_atomic: {
+        Args: { p_payload: Json };
+        Returns: Json;
+      };
       create_stock_wastage_atomic: {
         Args: { p_payload: Json };
         Returns: Json;
@@ -2233,7 +2131,6 @@ export type Database = {
           p_transaction_no: string;
           p_branch_id: string;
           p_item_id: string;
-          p_location_id: string;
           p_transaction_date: string;
           p_quantity: number;
           p_unit_cost: number;
@@ -2266,15 +2163,12 @@ export type Database = {
           p_transaction_no: string;
           p_branch_id: string;
           p_item_id: string;
-          p_location_id: string;
           p_transaction_type: StockTransactionType;
           p_transaction_date: string;
           p_quantity_in: number;
           p_quantity_out: number;
           p_unit_cost: number;
           p_remarks: string | null;
-          p_from_location_id?: string | null;
-          p_to_location_id?: string | null;
         };
         Returns: string;
       };
@@ -2386,8 +2280,6 @@ export type Database = {
     Enums: {
       item_status: ItemStatus;
       supplier_status: SupplierStatus;
-      location_status: LocationStatus;
-      location_type: LocationType;
       branch_type: BranchType;
       staff_access_level: StaffAccessLevel;
       reset_frequency: ResetFrequency;

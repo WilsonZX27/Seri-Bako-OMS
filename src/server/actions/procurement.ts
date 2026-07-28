@@ -9,7 +9,6 @@ import { requirePermission } from "@/server/auth/permissions";
 import { formatActionError, requirePermissionOrRedirect, rethrowRedirect, safeRedirectWithMessage } from "@/server/actions/error-handling";
 import { revalidateWorkspaceState } from "@/server/actions/revalidate";
 import { resolveDocumentNumber } from "@/server/documents/sequences";
-import { resolveDefaultLocation } from "@/server/inventory/locations";
 import { getCurrentProfile } from "@/server/queries/common";
 import { logServerError } from "@/server/observability/logger";
 import { z } from "zod";
@@ -18,6 +17,14 @@ import type { ApprovalStatus, PurchaseOrderStatus } from "@/types/database";
 function cleanText(value: FormDataEntryValue | null) {
   const text = String(value ?? "").trim();
   return text.length ? text : null;
+}
+
+function parsePurchaseRequestId(id: string) {
+  return z.string().uuid("The purchase request identifier is invalid.").parse(id);
+}
+
+function parsePurchaseOrderId(id: string) {
+  return z.string().uuid("The purchase order identifier is invalid.").parse(id);
 }
 
 async function identity() {
@@ -39,6 +46,9 @@ async function notifyNextPrRole(input: {
   if (!roleCodes.length) return;
 
   const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
   const { data: roles, error: rolesError } = await supabase
     .from("roles")
     .select("id, role_code")
@@ -64,12 +74,13 @@ async function notifyNextPrRole(input: {
 
   const notifications = (roles ?? []).map((role) => ({
     company_id: input.pr.company_id,
+    actor_user_id: user?.id ?? null,
     recipient_role_id: role.id,
     branch_id: input.pr.branch_id,
     title: titleByStatus[input.nextStatus] ?? "Purchase Request update",
     message: messageByStatus[input.nextStatus] ?? `${input.pr.request_no} has moved to the next workflow step.`,
     action_url: `/purchase-requests/${input.pr.id}`,
-    priority: input.nextStatus === "finance_review" ? "high" : "normal",
+    priority: input.nextStatus === "finance_review" ? "critical" : "low",
     entity_type: "purchase_request",
     entity_id: input.pr.id,
   }));
@@ -111,7 +122,6 @@ function extractPurchaseRequest(formData: FormData) {
     urgency_reason: formData.get("urgency_reason"),
     production_risk: formData.get("production_risk") === "on",
     branch_id: formData.get("branch_id"),
-    location_id: formData.get("location_id"),
     remarks: formData.get("remarks"),
     lines,
   });
@@ -175,6 +185,41 @@ async function ensureBranchSupplierSelections(
   }
 }
 
+function ensureSinglePurchaseRequestSupplier(
+  lines: Array<{ suggested_supplier_id?: string | null }>,
+) {
+  const supplierIds = new Set(lines.map((line) => line.suggested_supplier_id).filter(Boolean));
+  if (supplierIds.size > 1) {
+    throw new Error("A purchase request can contain items from only one supplier. Split the request into separate PRs.");
+  }
+}
+
+type PurchaseRequestPayload = ReturnType<typeof purchaseRequestSchema.parse> & { lineBranchIds?: string[] };
+
+async function createPurchaseRequestAggregate(
+  payload: PurchaseRequestPayload,
+  profile: { company_id: string | null; id: string | null } | null,
+  idempotencyKey: string,
+  intent: "draft" | "submit",
+) {
+  const supabase = await createClient();
+  const requestNo = await resolveDocumentNumber({
+    companyId: profile?.company_id,
+    documentType: "purchase_request",
+    enteredNumber: payload.request_no,
+  });
+  const { data: created, error } = await supabase.rpc("create_purchase_request_atomic", {
+    p_payload: { ...payload, request_no: requestNo, idempotency_key: idempotencyKey },
+  });
+  if (error) throw new Error(error.message);
+  const data = created as { id: string; request_no: string; document_id: string };
+  if (intent === "submit") {
+    const submitted = await transitionPurchaseRequest(data.id, "submit");
+    return { ...data, submitted: true, request_no: submitted.request_no };
+  }
+  return { ...data, submitted: false };
+}
+
 async function ensureActiveItems(itemIds: string[], branchId?: string | null, lineBranchIds?: string[]) {
   const supabase = await createClient();
   const { data, error } = await supabase.from("items").select("id,status").in("id", itemIds);
@@ -212,11 +257,10 @@ async function createPurchaseOrderCreatedNotification(input: { poId: string; poN
     title: "Purchase Order created",
     message: `${input.poNo} created from ${input.prNo}.`,
     action_url: `/purchase-orders/${input.poId}`,
-    priority: "normal",
+    priority: "low",
     entity_type: "purchase_order",
     entity_id: input.poId,
     actor_user_id: user?.id ?? null,
-    created_by: input.staffId,
   });
 
   if (error) {
@@ -238,33 +282,17 @@ export async function createPurchaseRequest(formData: FormData) {
   try {
     if (isMockMode()) redirect("/purchase-requests");
     const idempotencyKey = z.uuid().parse(cleanText(formData.get("idempotency_key")));
-    const supabase = await createClient();
     mark("idempotency");
     const payload = extractPurchaseRequest(formData);
     const intent = formData.get("intent") === "submit" ? "submit" : "draft";
-    const [locationId, , profile] = await Promise.all([
-      resolveDefaultLocation(payload.branch_id, payload.location_id),
+    const [, profile] = await Promise.all([
       ensureActiveItems(payload.lines.map((line) => line.item_id), payload.branch_id, payload.lineBranchIds),
       identity(),
     ]);
     await ensureBranchSupplierSelections(payload.branch_id, payload.lines, intent === "submit");
+    if (intent === "submit") ensureSinglePurchaseRequestSupplier(payload.lines);
     mark("validation_and_references");
-    const requestNo = await resolveDocumentNumber({
-      companyId: profile?.company_id,
-      documentType: "purchase_request",
-      enteredNumber: payload.request_no,
-    });
-    mark("document_number");
-    const { data: created, error } = await supabase.rpc("create_purchase_request_atomic", {
-      p_payload: {
-        ...payload,
-        request_no: requestNo,
-        location_id: locationId,
-        idempotency_key: idempotencyKey,
-      },
-    });
-    if (error) throw new Error(error.message);
-    const data = created as { id: string; request_no: string; document_id: string };
+    const data = await createPurchaseRequestAggregate(payload, profile, idempotencyKey, intent);
     mark("header_insert");
     mark("document_lines_and_audit");
     revalidateWorkspaceState(["/purchase-requests"]);
@@ -272,14 +300,83 @@ export async function createPurchaseRequest(formData: FormData) {
     if (process.env.SB_PERF_LOG === "true") {
       console.info("[perf] createPurchaseRequest", { ...timings, total: Math.round(performance.now() - startedAt), id: data.id });
     }
-    if (intent === "submit") {
-      const submitted = await transitionPurchaseRequest(data.id, "submit");
-      safeRedirectWithMessage(`/purchase-requests/${data.id}`, "success", `${submitted.request_no} submitted to Manager Review. Manager has been notified.`);
-    }
+    if (intent === "submit") safeRedirectWithMessage(`/purchase-requests/${data.id}`, "success", `${data.request_no} submitted to Manager Review. Manager has been notified.`);
     redirect(`/purchase-requests/${data.id}`);
   } catch (error) {
     rethrowRedirect(error);
     safeRedirectWithMessage("/purchase-requests/new", "error", formatActionError(error, "Could not create this purchase request."));
+  }
+}
+
+const stockBasketLineSchema = z.object({
+  item_id: z.string().uuid("The selected item is invalid."),
+  qty: z.coerce.number().positive("Quantity must be more than 0").max(1_000_000, "Quantity is too large."),
+  uom: z.string().trim().min(1, "UOM is required.").max(32, "UOM is too long."),
+  estimated_unit_cost: z.coerce.number().min(0, "Estimated cost cannot be negative.").max(1_000_000_000, "Estimated cost is too large.").optional(),
+});
+
+const stockBasketGroupsSchema = z.array(z.object({
+  supplier_id: z.string().uuid("The selected supplier is invalid."),
+  lines: z.array(stockBasketLineSchema).min(1, "Each supplier requires at least one item.").max(100, "A supplier group is limited to 100 items."),
+})).min(1, "Select at least one item for the purchase request.").max(20, "A stock basket is limited to 20 suppliers.").superRefine((groups, context) => {
+  const lineCount = groups.reduce((total, group) => total + group.lines.length, 0);
+  if (lineCount > 500) context.addIssue({ code: "custom", message: "A stock basket is limited to 500 items." });
+});
+
+function parseStockBasketGroups(value: FormDataEntryValue | null) {
+  const raw = typeof value === "string" ? value : "";
+  if (!raw || raw.length > 100_000) throw new Error("The selected stock basket is invalid.");
+  try {
+    return stockBasketGroupsSchema.parse(JSON.parse(raw));
+  } catch {
+    throw new Error("The selected stock basket is invalid.");
+  }
+}
+
+export async function createPurchaseRequestsFromBasket(formData: FormData) {
+  await requirePermissionOrRedirect("purchase_request.create", "/stock-balance");
+  try {
+    if (isMockMode()) redirect("/purchase-requests");
+    const branchId = z.uuid().parse(cleanText(formData.get("branch_id")));
+    const groups = parseStockBasketGroups(formData.get("supplier_groups"));
+    const allLines = groups.flatMap((group) => group.lines.map((line) => ({ ...line, suggested_supplier_id: group.supplier_id, branch_id: branchId })));
+    const [, profile] = await Promise.all([
+      ensureActiveItems(allLines.map((line) => line.item_id), branchId, allLines.map(() => branchId)),
+      identity(),
+    ]);
+    const created: Array<{ id: string; request_no: string }> = [];
+    for (const group of groups) {
+      const lines = group.lines.map((line) => ({
+        item_id: line.item_id,
+        qty: line.qty,
+        uom: line.uom,
+        estimated_unit_cost: line.estimated_unit_cost ?? 0,
+        suggested_supplier_id: group.supplier_id,
+        reason: "",
+        remarks: "",
+        branch_id: branchId,
+      }));
+      await ensureBranchSupplierSelections(branchId, lines, true);
+      const payload = purchaseRequestSchema.parse({
+        request_no: "",
+        request_date: new Date().toISOString().slice(0, 10),
+        required_date: "",
+        priority: "normal",
+        needed_by_date: "",
+        urgency_reason: "",
+        production_risk: false,
+        branch_id: branchId,
+        remarks: `Created from stock basket for ${group.supplier_id}.`,
+        lines,
+      });
+      const result = await createPurchaseRequestAggregate(payload, profile, crypto.randomUUID(), "draft");
+      created.push({ id: result.id, request_no: result.request_no });
+    }
+    revalidateWorkspaceState(["/purchase-requests", "/stock-balance"]);
+    safeRedirectWithMessage("/purchase-requests", "success", `Created ${created.length} supplier-grouped draft PR${created.length === 1 ? "" : "s"}.`);
+  } catch (error) {
+    rethrowRedirect(error);
+    safeRedirectWithMessage("/stock-balance", "error", formatActionError(error, "Could not create supplier-grouped purchase requests."));
   }
 }
 
@@ -288,6 +385,7 @@ export async function updateDraftPurchaseRequest(id: string, formData: FormData)
     if (isMockMode()) {
       redirect(`/purchase-requests/${id}`);
     }
+    const requestId = parsePurchaseRequestId(id);
     await requirePermission("purchase_request.create");
 
     const payload = extractPurchaseRequest(formData);
@@ -295,7 +393,7 @@ export async function updateDraftPurchaseRequest(id: string, formData: FormData)
     const { data: request, error: requestError } = await supabase
       .from("purchase_requests")
       .select("id, status, request_no, branch_id")
-      .eq("id", id)
+      .eq("id", requestId)
       .single();
     if (requestError) throw new Error(requestError.message);
     if (!request) throw new Error("Purchase request not found.");
@@ -305,7 +403,7 @@ export async function updateDraftPurchaseRequest(id: string, formData: FormData)
     await ensureBranchSupplierSelections(request.branch_id, payload.lines, false);
 
     const { error: updateError } = await supabase.rpc("update_draft_purchase_request", {
-      target_purchase_request_id: id,
+      target_purchase_request_id: requestId,
       expected_updated_at: String(formData.get("expected_updated_at") ?? ""),
       submitted_branch_id: payload.branch_id,
       request_date_value: payload.request_date,
@@ -322,8 +420,8 @@ export async function updateDraftPurchaseRequest(id: string, formData: FormData)
     const requestNo = request.request_no;
     const message = `${requestNo} draft updated`;
 
-    revalidateWorkspaceState(["/purchase-requests", `/purchase-requests/${id}`]);
-    safeRedirectWithMessage(`/purchase-requests/${id}`, "success", message);
+    revalidateWorkspaceState(["/purchase-requests", `/purchase-requests/${requestId}`]);
+    safeRedirectWithMessage(`/purchase-requests/${requestId}`, "success", message);
   } catch (error) {
     revalidateWorkspaceState([`/purchase-requests/${id}`]);
     rethrowRedirect(error);
@@ -342,9 +440,10 @@ type PrTransitionResult = {
 };
 
 async function transitionPurchaseRequest(id: string, action: PrTransitionAction, remarks?: string | null) {
+  const requestId = parsePurchaseRequestId(id);
   const supabase = await createClient();
   const { data, error } = await supabase.rpc("transition_purchase_request", {
-    target_purchase_request_id: id,
+    target_purchase_request_id: requestId,
     transition_action: action,
     transition_remarks: remarks ?? null,
   });
@@ -352,7 +451,7 @@ async function transitionPurchaseRequest(id: string, action: PrTransitionAction,
   const result = data as unknown as PrTransitionResult;
   if (!result?.id || !result.request_no || !result.status) throw new Error("Purchase request transition returned an invalid result.");
   if (!result.already_applied) await notifyNextPrRole({ pr: result, nextStatus: result.status });
-  revalidateWorkspaceState(["/purchase-requests", `/purchase-requests/${id}`]);
+  revalidateWorkspaceState(["/purchase-requests", `/purchase-requests/${requestId}`]);
   return result;
 }
 
@@ -402,8 +501,7 @@ export async function financeApprovePurchaseRequest(id: string) {
 
 export async function rejectPurchaseRequest(id: string, formData: FormData) {
   try {
-    const remarks = cleanText(formData.get("remarks"));
-    if (!remarks) throw new Error("Rejection remarks are required.");
+    const remarks = z.string().trim().min(1, "Rejection remarks are required.").max(1_000, "Rejection remarks must be 1,000 characters or fewer.").parse(cleanText(formData.get("remarks")) ?? "");
     if (isMockMode()) return;
     const updated = await transitionPurchaseRequest(id, "reject", remarks);
     safeRedirectWithMessage(`/purchase-requests/${id}`, "success", `${updated.request_no} rejected. Requester has been notified.`);
@@ -438,9 +536,9 @@ export async function createPurchaseOrder(formData: FormData) {
       enteredNumber: payload.po_no,
     });
     const supabase = await createClient();
-    const idempotencyKey = cleanText(formData.get("idempotency_key"));
+    const idempotencyKey = z.uuid().parse(cleanText(formData.get("idempotency_key")));
     const { data: created, error } = await supabase.rpc("create_purchase_order_atomic", {
-      p_payload: { ...payload, po_no: poNo, idempotency_key: idempotencyKey || null },
+      p_payload: { ...payload, po_no: poNo, idempotency_key: idempotencyKey },
     });
     if (error) throw new Error(error.message);
     const data = created as { id: string; po_no: string; document_id: string };
@@ -453,6 +551,7 @@ export async function createPurchaseOrder(formData: FormData) {
 }
 
 async function updatePoStatus(id: string, status: PurchaseOrderStatus, approvalStatus: ApprovalStatus) {
+  const purchaseOrderId = parsePurchaseOrderId(id);
   const supabase = await createClient();
   const action = status === "pending_approval"
     ? "submit"
@@ -464,12 +563,12 @@ async function updatePoStatus(id: string, status: PurchaseOrderStatus, approvalS
           ? "close"
           : approvalStatus === "rejected" ? "reject" : "cancel";
   const { data, error } = await supabase.rpc("transition_purchase_order_atomic", {
-    p_purchase_order_id: id,
+    p_purchase_order_id: purchaseOrderId,
     p_action: action,
   });
   if (error) throw new Error(error.message);
   const order = data as { id: string; po_no: string; status: PurchaseOrderStatus; document_id: string | null };
-  revalidateWorkspaceState(["/purchase-orders", `/purchase-orders/${id}`]);
+  revalidateWorkspaceState(["/purchase-orders", `/purchase-orders/${purchaseOrderId}`]);
   return order;
 }
 
@@ -513,12 +612,13 @@ export async function sendPurchaseOrder(id: string) {
   try {
     await requirePermission("po.send");
     if (isMockMode()) return;
+    const purchaseOrderId = parsePurchaseOrderId(id);
     const supabase = await createClient();
-    const { data, error } = await supabase.from("purchase_orders").select("approval_status,status,po_no").eq("id", id).single();
+    const { data, error } = await supabase.from("purchase_orders").select("approval_status,status,po_no").eq("id", purchaseOrderId).single();
     if (error) throw new Error(error.message);
     if (data.status === "sent") safeRedirectWithMessage(`/purchase-orders/${id}`, "success", `${data.po_no} has already been sent.`);
     if (data.approval_status !== "approved") throw new Error("Cannot send unapproved PO.");
-    const order = await updatePoStatus(id, "sent", "approved");
+    const order = await updatePoStatus(purchaseOrderId, "sent", "approved");
     safeRedirectWithMessage(`/purchase-orders/${id}`, "success", `${order.po_no} sent to supplier.`);
   } catch (error) {
     rethrowRedirect(error);
@@ -542,7 +642,30 @@ export async function closePurchaseOrder(id: string) {
   try {
     await requirePermission("purchase_order.close");
     if (isMockMode()) return;
-    const order = await updatePoStatus(id, "closed", "approved");
+    const purchaseOrderId = parsePurchaseOrderId(id);
+    const supabase = await createClient();
+    const { data: purchaseOrder, error: orderError } = await supabase
+      .from("purchase_orders")
+      .select("status,approval_status,po_no")
+      .eq("id", purchaseOrderId)
+      .is("deleted_at", null)
+      .single();
+    if (orderError) throw new Error(orderError.message);
+    if (!["partial_received", "received"].includes(purchaseOrder.status)) throw new Error("A purchase order can only be closed after goods have been received.");
+    const { data: invoices, error: invoiceError } = await supabase
+      .from("supplier_invoices")
+      .select("id,status,document_id")
+      .eq("purchase_order_id", purchaseOrderId)
+      .is("deleted_at", null);
+    if (invoiceError) throw new Error(invoiceError.message);
+    if (!invoices?.length || invoices.some((invoice) => invoice.status !== "paid")) throw new Error("All matched supplier invoices must be fully paid before closing this purchase order.");
+    for (const invoice of invoices) {
+      if (!invoice.document_id) throw new Error("Every matched supplier invoice must have an audit document before closing this purchase order.");
+      const { data: document, error: documentError } = await supabase.from("documents").select("current_step").eq("id", invoice.document_id).single();
+      if (documentError) throw new Error(documentError.message);
+      if (document.current_step !== "Audit Passed") throw new Error("Audit must pass before a purchase order can be closed.");
+    }
+    const order = await updatePoStatus(purchaseOrderId, "closed", "approved");
     safeRedirectWithMessage(`/purchase-orders/${id}`, "success", `${order.po_no} closed.`);
   } catch (error) {
     rethrowRedirect(error);
@@ -554,12 +677,12 @@ export async function convertPurchaseRequestToPurchaseOrder(id: string, formData
   try {
     if (isMockMode()) redirect("/purchase-orders/po-mock-001");
     await requirePermission("pr.convert_to_po");
-    const autocountPoNo = cleanText(formData.get("autocount_po_no"));
-    if (!autocountPoNo) throw new Error("AutoCount PO Number is required.");
+    const requestId = parsePurchaseRequestId(id);
+    const autocountPoNo = z.string().trim().min(1, "AutoCount PO Number is required.").max(160, "AutoCount PO Number must be 160 characters or fewer.").parse(cleanText(formData.get("autocount_po_no")) ?? "");
     const supabase = await createClient();
     const profile = await identity();
     const { data, error } = await supabase.rpc("convert_purchase_request_to_purchase_order", {
-      target_purchase_request_id: id,
+      target_purchase_request_id: requestId,
       target_po_no: autocountPoNo,
     });
     if (error) throw new Error(error.message);
@@ -569,7 +692,7 @@ export async function convertPurchaseRequestToPurchaseOrder(id: string, formData
       await createPurchaseOrderCreatedNotification({ poId: result.purchase_order_id, poNo: result.purchase_order_no, prNo: result.purchase_request_no, companyId: profile?.company_id ?? null, staffId: profile?.id ?? null });
     }
 
-    revalidateWorkspaceState([`/purchase-requests/${id}`, "/purchase-orders"]);
+    revalidateWorkspaceState([`/purchase-requests/${requestId}`, "/purchase-orders"]);
     const message = result.already_existed
       ? `Purchase order ${result.purchase_order_no} is already linked to this PR.`
       : `Purchase order ${result.purchase_order_no} created from ${result.purchase_request_no}.`;

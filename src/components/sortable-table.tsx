@@ -48,19 +48,45 @@ export function PaginationControls({
   searchParams: Record<string, string | undefined>;
 }) {
   if (totalRows === 0) return null;
+  const pageNumbers = totalPages <= 7
+    ? Array.from({ length: totalPages }, (_, index) => index + 1)
+    : page <= 4
+      ? [1, 2, 3, 4, 5, -1, totalPages]
+      : page >= totalPages - 3
+        ? [1, -1, totalPages - 4, totalPages - 3, totalPages - 2, totalPages - 1, totalPages]
+        : [1, -1, page - 1, page, page + 1, -1, totalPages];
   return (
-    <div className="flex items-center justify-between gap-2 border-t px-3 py-1.5 text-[11px] text-muted-foreground">
+    <div className="flex flex-wrap items-center justify-between gap-2 border-t px-3 py-1.5 text-[11px] text-muted-foreground">
       <span className="leading-6">
         Page {page} of {totalPages} - {totalRows} rows
       </span>
-      <div className="flex gap-2">
-        <Button asChild variant="outline" size="sm" className="h-8 px-2 text-xs sm:h-[var(--sb-control-height)]" aria-disabled={page <= 1}>
-          <Link href={buildHref(searchParams, { page: String(Math.max(page - 1, 1)) })}>Previous</Link>
-        </Button>
-        <Button asChild variant="outline" size="sm" className="h-8 px-2 text-xs sm:h-[var(--sb-control-height)]" aria-disabled={page >= totalPages}>
-          <Link href={buildHref(searchParams, { page: String(Math.min(page + 1, totalPages)) })}>Next</Link>
-        </Button>
-      </div>
+      <nav aria-label="Pagination" className="flex items-center gap-1">
+        {page <= 1 ? (
+          <Button type="button" variant="outline" size="sm" className="h-[var(--sb-control-height)] px-2 text-xs" disabled>
+            Previous
+          </Button>
+        ) : (
+          <Button asChild variant="outline" size="sm" className="h-[var(--sb-control-height)] px-2 text-xs">
+            <Link href={buildHref(searchParams, { page: String(page - 1) })}>Previous</Link>
+          </Button>
+        )}
+        {pageNumbers.map((pageNumber, index) => pageNumber === -1 ? (
+          <span key={`ellipsis-${index}`} aria-hidden="true" className="px-1 text-muted-foreground">…</span>
+        ) : (
+          <Button key={pageNumber} asChild variant={pageNumber === page ? "default" : "outline"} size="sm" className="h-[var(--sb-control-height)] min-w-[var(--sb-control-height)] px-2 text-xs" aria-current={pageNumber === page ? "page" : undefined}>
+            <Link href={buildHref(searchParams, { page: String(pageNumber) })}>{pageNumber}</Link>
+          </Button>
+        ))}
+        {page >= totalPages ? (
+          <Button type="button" variant="outline" size="sm" className="h-[var(--sb-control-height)] px-2 text-xs" disabled>
+            Next
+          </Button>
+        ) : (
+          <Button asChild variant="outline" size="sm" className="h-[var(--sb-control-height)] px-2 text-xs">
+            <Link href={buildHref(searchParams, { page: String(page + 1) })}>Next</Link>
+          </Button>
+        )}
+      </nav>
     </div>
   );
 }

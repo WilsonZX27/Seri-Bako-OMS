@@ -1,3 +1,11 @@
+# ⚠️ Historical artifact — do not use as the current OMS specification
+
+This June 2026 v1.0 draft describes the retired location-based design (for example, dry store, chiller, freezer and location-level stock). It is not aligned with the current branch-only inventory model, current role catalogue, or the migration chain after 093.
+
+Use [the strict SOP audit](../docs/audits/OMS_STRICT_SYSTEM_SOP_AUDIT_2026-07-23.md), [the current schema relationship map](../docs/SCHEMA_RELATIONSHIP_MAP_2026-07-23.md), and the checked-in migrations as the current evidence. A replacement functional specification will be generated only after migration 099 has been database-validated.
+
+---
+
 # Seri Bako OMS Functional Specification v1.0
 
 Status: review draft. This document does not change the database schema and does not include frontend implementation.
@@ -585,4 +593,3 @@ Most modules use these page patterns:
 - Supplier portal.
 - Customer/outlet ordering and sales fulfillment.
 - Advanced permission scopes by branch/location.
-

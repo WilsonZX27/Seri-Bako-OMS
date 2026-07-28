@@ -69,13 +69,11 @@ from (
     ('public.staffs', 'preserve', 'Real staff accounts including Wilson.'),
     ('public.staff_roles', 'preserve', 'Role assignments including active Super Admin.'),
     ('public.staff_branches', 'preserve', 'Staff branch assignments.'),
-    ('public.staff_locations', 'preserve', 'Staff location assignments.'),
     ('public.roles', 'preserve', 'Role catalogue.'),
     ('public.permissions', 'preserve', 'Permission catalogue.'),
     ('public.role_permissions', 'preserve', 'Role permission assignments.'),
     ('public.companies', 'preserve', 'Company profile/settings.'),
     ('public.branches', 'preserve', 'Real branches/outlets. QA rows require manual review before any later deletion.'),
-    ('public.locations', 'preserve', 'Real locations. QA rows require manual review before any later deletion.'),
     ('public.uom_conversions', 'preserve', 'System/reference UOM configuration.'),
     ('public.document_sequences', 'preserve_reset_numbers', 'Sequence rows preserved; operational next_number reset to 1.'),
     ('public.user_preferences', 'preserve', 'User workspace preferences.'),
@@ -89,7 +87,7 @@ select
   table_name
 from information_schema.views
 where table_schema = 'public'
-  and table_name in ('item_location_stock_balances','stock_ledger_view','inventory_valuation_view','stock_balances_view','low_stock_items')
+  and table_name in ('stock_ledger_view','inventory_valuation_view','stock_balances_view','low_stock_items')
 order by table_name;
 
 select *
@@ -150,9 +148,6 @@ select 'preserved_branches' as section, to_jsonb(b) as branch_record
 from public.branches b
 order by branch_name;
 
-select 'preserved_locations' as section, to_jsonb(l) as location_record
-from public.locations l
-order by location_name;
 
 select
   'wilson_super_admin_linkage' as section,

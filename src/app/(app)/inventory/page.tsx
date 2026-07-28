@@ -2,6 +2,7 @@ import Link from "next/link";
 import { ArrowDownLeft, ArrowLeftRight, ArrowRight, ArrowUpRight, ClipboardCheck, PackageSearch, ReceiptText, TriangleAlert } from "lucide-react";
 import { ConsoleSection } from "@/components/layout/right-console";
 import { WorkspaceGrid } from "@/components/layout/workspace-layout";
+import { OperationalHub } from "@/components/operational-hub";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { PageHeader } from "@/components/ui/page-header";
@@ -11,13 +12,13 @@ import { getPermissionMap } from "@/server/auth/permissions";
 import { getInventoryDashboard } from "@/server/queries/inventory";
 
 const modules = [
-  { href: "/low-stock", label: "Low Stock", permission: "low_stock.view", icon: TriangleAlert },
-  { href: "/stock-counts", label: "Stock Count", permission: "stock_count.read", icon: ClipboardCheck },
-  { href: "/stock-transfers", label: "Transfers", permission: "stock_transfer.read", icon: ArrowLeftRight },
-  { href: "/stock-wastage", label: "Wastage", permission: "stock_wastage.read", icon: TriangleAlert },
-  { href: "/stock-balance", label: "Stock Balance", permission: "stock_balance.read", icon: PackageSearch },
-  { href: "/stock-card", label: "Stock Card", permission: "stock_card.read", icon: ReceiptText },
-  { href: "/stock-transactions", label: "Movement Ledger", permission: "stock_transactions.read", icon: ArrowUpRight },
+  { href: "/low-stock", label: "Low Stock", description: "Items below safety level", permission: "low_stock.view", icon: TriangleAlert },
+  { href: "/stock-counts", label: "Stock Count", description: "Physical count workspace", permission: "stock_count.read", icon: ClipboardCheck },
+  { href: "/stock-transfers", label: "Transfers", description: "Branch-to-branch movement", permission: "stock_transfer.read", icon: ArrowLeftRight },
+  { href: "/stock-wastage", label: "Wastage", description: "Loss and expiry records", permission: "stock_wastage.read", icon: TriangleAlert },
+  { href: "/stock-balance", label: "Stock Balance", description: "Current branch availability", permission: "stock_balance.read", icon: PackageSearch },
+  { href: "/stock-card", label: "Stock Card", description: "Item movement history", permission: "stock_card.read", icon: ReceiptText },
+  { href: "/stock-transactions", label: "Movement Ledger", description: "Posted stock entries", permission: "stock_transactions.read", icon: ArrowUpRight },
 ] as const;
 
 export default async function InventoryPage({ searchParams }: { searchParams: Promise<{ consumption?: string }> }) {
@@ -31,17 +32,51 @@ export default async function InventoryPage({ searchParams }: { searchParams: Pr
     { label: "Transfers today", value: summary.todaysTransfers, href: "/stock-transfers?date=today", permission: "stock_transfer.read" },
     { label: "Receiving today", value: summary.todaysReceiving, href: "/goods-receivings?date=today", permission: "goods_receiving.read" },
   ].filter((counter) => permissions[counter.permission]);
+  const primaryModule = visibleModules.find((module) => module.href === "/stock-balance") ?? visibleModules[0];
+  const attentionCounters = counters.filter((counter) => counter.label === "Low stock" || counter.label === "Counts due");
 
   return (
     <>
       <PageHeader title="Inventory Workspace" description="Review branch stock, movement, and operational exceptions." />
-      <WorkspaceGrid className="p-5" rightRail={<><ConsoleSection title="Attention summary"><div className="space-y-2 text-xs">{permissions["low_stock.view"] ? <p className="flex justify-between gap-3"><span className="text-muted-foreground">Low stock</span><strong>{formatNumber(summary.lowStockItems)}</strong></p> : null}{permissions["stock_count.read"] ? <p className="flex justify-between gap-3"><span className="text-muted-foreground">Counts due</span><strong>{formatNumber(summary.stockCountDue)}</strong></p> : null}</div></ConsoleSection><ConsoleSection title="Control basis"><p className="text-xs leading-5 text-muted-foreground">Balances come from posted Movement Ledger entries and follow branch access.</p></ConsoleSection></>}>
-        <div className="space-y-4">
-          <section className="overflow-hidden rounded-[2px] border bg-card" aria-labelledby="inventory-overview">
+      <WorkspaceGrid className="p-3 sm:p-5" hideMobileConsole rightRail={<><ConsoleSection title="Attention summary"><div className="space-y-2 text-xs">{permissions["low_stock.view"] ? <p className="flex justify-between gap-3"><span className="text-muted-foreground">Low stock</span><strong>{formatNumber(summary.lowStockItems)}</strong></p> : null}{permissions["stock_count.read"] ? <p className="flex justify-between gap-3"><span className="text-muted-foreground">Counts due</span><strong>{formatNumber(summary.stockCountDue)}</strong></p> : null}</div></ConsoleSection><ConsoleSection title="Control basis"><p className="text-xs leading-5 text-muted-foreground">Balances come from posted Movement Ledger entries and follow branch access.</p></ConsoleSection></>}>
+        <div className="space-y-4 pb-24 md:pb-0">
+          <div className="md:hidden">
+            <OperationalHub
+              eyebrow="Today’s inventory"
+              summary="Check stock exceptions first, then continue with counts, transfers, and movement review."
+              primaryAction={{
+                href: primaryModule?.href ?? "/dashboard",
+                label: primaryModule?.href === "/stock-balance" ? "Review stock balance" : `Open ${primaryModule?.label ?? "workspace"}`,
+              }}
+              metrics={counters.map((counter) => ({
+                label: counter.label,
+                value: formatNumber(counter.value),
+                tone: counter.label === "Low stock" && counter.value ? "danger" : counter.label === "Counts due" && counter.value ? "warning" : "default",
+              }))}
+              queueTitle="Needs attention"
+              queueDescription="Exceptions and open controls that may affect today’s stock."
+              queue={attentionCounters.map((counter) => ({
+                href: counter.href,
+                title: counter.label,
+                description: counter.label === "Low stock" ? "Review items at or below safety level" : "Continue open physical counts",
+                value: formatNumber(counter.value),
+                icon: counter.label === "Low stock" ? TriangleAlert : ClipboardCheck,
+                tone: counter.value ? (counter.label === "Low stock" ? "danger" : "warning") : "default",
+              }))}
+              toolsTitle="Inventory tools"
+              tools={visibleModules.map((module) => ({
+                href: module.href,
+                title: module.label,
+                description: module.description,
+                icon: module.icon,
+              }))}
+            />
+          </div>
+          <section className="hidden overflow-hidden rounded-[2px] border bg-card md:block" aria-labelledby="inventory-overview">
             <div className="border-b px-4 py-3"><h2 id="inventory-overview" className="text-sm font-semibold">Operational overview</h2></div>
-            <div className="grid divide-y sm:grid-cols-2 sm:divide-x sm:divide-y-0 xl:grid-cols-4">{counters.map((counter) => <Link key={counter.label} href={counter.href} className="flex min-h-20 items-center justify-between gap-3 px-4 py-3 hover:bg-secondary/40"><span className="text-xs text-muted-foreground">{counter.label}</span><strong className="font-mono text-xl">{formatNumber(counter.value)}</strong></Link>)}</div>
+            <div className="grid divide-y sm:grid-cols-2 sm:divide-x sm:divide-y-0 xl:grid-cols-4">{counters.map((counter) => <Link key={counter.label} href={counter.href} className="flex min-h-16 items-center justify-between gap-3 px-3 py-2.5 hover:bg-secondary/40 sm:min-h-20 sm:px-4 sm:py-3"><span className="text-xs text-muted-foreground">{counter.label}</span><strong className="font-mono text-lg sm:text-xl">{formatNumber(counter.value)}</strong></Link>)}</div>
           </section>
-          <section className="overflow-hidden rounded-[2px] border bg-card" aria-labelledby="inventory-actions">
+          <section className="hidden overflow-hidden rounded-[2px] border bg-card md:block" aria-labelledby="inventory-actions">
             <div className="border-b px-4 py-3"><h2 id="inventory-actions" className="text-sm font-semibold">Inventory actions and review</h2></div>
             <div className="grid sm:grid-cols-2">{visibleModules.map((module) => { const Icon = module.icon; return <Link key={module.href} href={module.href} className="flex min-h-12 items-center gap-3 border-b px-4 py-3 hover:bg-secondary/40 sm:border-r"><Icon className="h-4 w-4 text-primary" /><span className="flex-1 text-sm font-semibold">{module.label}</span><ArrowRight className="h-4 w-4 text-muted-foreground" /></Link>; })}</div>
           </section>

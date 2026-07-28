@@ -4,7 +4,6 @@ const { createClient } = require("@supabase/supabase-js");
 const ids = {
   company: "b1000000-0000-0000-0000-000000000001",
   branch: "b2000000-0000-0000-0000-000000000001",
-  location: "b3000000-0000-0000-0000-000000000001",
   staff: "b4000000-0000-0000-0000-000000000001",
   item: "b5000000-0000-0000-0000-000000000001",
   role: "b6000000-0000-0000-0000-000000000001",
@@ -39,7 +38,6 @@ test.beforeAll(async () => {
   const created = await must(admin.auth.admin.createUser({ email, password, email_confirm: true }), "create user");
   await must(admin.from("companies").upsert({ id: ids.company, company_code: "OPEN-HTTP", company_name: "Opening HTTP Validation" }), "company");
   await must(admin.from("branches").upsert({ id: ids.branch, company_id: ids.company, branch_code: "OPEN-HTTP-BR", branch_name: "Opening HTTP Branch", branch_type: "central_kitchen" }), "branch");
-  await must(admin.from("locations").upsert({ id: ids.location, company_id: ids.company, branch_id: ids.branch, location_code: "OPEN-HTTP-STORE", location_name: "Opening HTTP Store", location_type: "dry_store" }), "location");
   await must(admin.from("items").upsert({ id: ids.item, company_id: ids.company, item_code: "OPEN-HTTP-ITEM", item_name: "Opening HTTP Item", category: "Validation", purchase_unit: "KG", base_unit: "KG", cost: 5 }), "item");
   await must(admin.from("staffs").upsert({ id: ids.staff, company_id: ids.company, auth_user_id: created.user.id, staff_code: "OPEN-HTTP-OWNER", full_name: "Opening HTTP Owner", email, default_branch_id: ids.branch, invitation_status: "completed", must_change_password: false }), "staff");
   await must(admin.from("roles").upsert({ id: ids.role, company_id: ids.company, role_code: "super_admin", role_name: "Super Admin / Owner", status: "active" }), "super admin role");

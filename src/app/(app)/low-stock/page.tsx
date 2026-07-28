@@ -44,6 +44,7 @@ export default async function LowStockPage({ searchParams }: { searchParams: Pro
         description="Branch-level low-stock and out-of-stock items ready for procurement review."
       />
       <WorkspaceGrid
+        hideMobileConsole
         rightRail={
           <ConsoleSection title="Low Stock Summary">
             <div className="grid gap-2 text-xs">

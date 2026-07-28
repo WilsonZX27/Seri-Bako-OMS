@@ -86,7 +86,7 @@ async function seedLocalReleaseFixture({ managerCanComment = false } = {}) {
     { staff_id: FIXTURE.managerStaffId, branch_id: FIXTURE.branchId, access_level: "manage", is_default: true },
   ]), "seed staff branches");
 
-  const managerPermissionCodes = ["dashboard.view", "purchase_request.read", "pr.view_all", "documents.read"];
+  const managerPermissionCodes = ["dashboard.view", "purchase_request.read", "pr.view_all", "pr.manager_approve", "documents.read"];
   if (managerCanComment) managerPermissionCodes.push("documents.comment");
   const permissions = await must(admin.from("permissions").select("id, permission_code").in("permission_code", managerPermissionCodes), "load Manager permissions");
   await must(admin.from("role_permissions").delete().eq("role_id", roles[2][0]), "clear Manager permissions");

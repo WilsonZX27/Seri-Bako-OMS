@@ -63,9 +63,9 @@ test("Procurement and Inventory are canonical navigable workspaces", () => {
   assert.doesNotMatch(`${procurement}\n${inventory}`, /Location|Quick Tools/i);
 });
 
-test("legacy routes converge and visible runtime no longer exposes Location or Barcode", () => {
+test("Location routes and visible runtime are removed with Barcode", () => {
   for (const file of ["src/app/(app)/locations/page.tsx", "src/app/(app)/locations/new/page.tsx", "src/app/(app)/locations/[id]/page.tsx"]) {
-    assert.match(read(file), /redirect\("\/branches"\)/);
+    assert.equal(fs.existsSync(file), false, `${file} must not remain as a compatibility route`);
   }
   const visibleFiles = [
     "src/lib/information-architecture.ts",

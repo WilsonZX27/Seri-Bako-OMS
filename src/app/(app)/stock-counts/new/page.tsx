@@ -1,7 +1,6 @@
 import { StockCountForm } from "@/components/stock-count-form";
 import { Card, CardContent } from "@/components/ui/card";
 import { DocumentSideSection, DocumentWorkspace } from "@/components/documents/document-workspace";
-import { SubmitButton } from "@/components/ui/submit-button";
 import { createStockCount } from "@/server/actions/stock-counts";
 import { getBranchesForSelect } from "@/server/queries/common";
 import { getStockCountSeedLines } from "@/server/queries/stock-counts";
@@ -10,9 +9,8 @@ export default async function NewStockCountPage({ searchParams }: { searchParams
   const filters = await searchParams;
   const branches = await getBranchesForSelect();
   const selectedBranchId = filters.branch_id ?? branches[0]?.id;
-  const seedLines = await getStockCountSeedLines(undefined, selectedBranchId);
+  const seedLines = await getStockCountSeedLines(selectedBranchId);
   const formId = "stock-count-create-form";
-  const primaryAction = <SubmitButton form={formId} type="submit" disabled={!seedLines.length} className="w-full">Create Draft Count</SubmitButton>;
   const steps = [
     { key: "draft", label: "Draft", description: "Physical quantities can be entered." },
     { key: "submitted", label: "Submitted", description: "The count awaits review." },
@@ -28,11 +26,10 @@ export default async function NewStockCountPage({ searchParams }: { searchParams
         branch={branches.find((branch) => branch.id === selectedBranchId)?.branch_name}
         workflowSteps={steps}
         currentStatus="draft"
-        mobilePrimaryAction={primaryAction}
-        sidePanel={<><DocumentSideSection title="Primary Action">{primaryAction}</DocumentSideSection><DocumentSideSection title="Validation / Next Step"><p className="text-xs text-muted-foreground">Record physical quantities for the selected branch before creating the draft count.</p></DocumentSideSection></>}
+        sidePanel={<DocumentSideSection title="Count guidance"><p className="text-xs text-muted-foreground">Start from the latest posted physical count where available, then use ± or direct entry to record what changed. Variance notes are optional in draft and remain visible for review.</p></DocumentSideSection>}
       >
         {filters.error ? <Card><CardContent className="p-4 text-sm text-destructive">{filters.error}</CardContent></Card> : null}
-        <StockCountForm formId={formId} showSubmit={false} branches={branches} selectedBranchId={selectedBranchId} seedLines={seedLines} action={createStockCount} />
+        <StockCountForm formId={formId} branches={branches} selectedBranchId={selectedBranchId} seedLines={seedLines} action={createStockCount} />
       </DocumentWorkspace>
   );
 }

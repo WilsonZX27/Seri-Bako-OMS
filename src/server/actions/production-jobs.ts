@@ -9,7 +9,6 @@ import { productionJobSchema } from "@/lib/validations/production-job";
 import { formatActionError, requirePermissionOrRedirect, rethrowRedirect, safeRedirectWithMessage } from "@/server/actions/error-handling";
 import { revalidateWorkspaceState } from "@/server/actions/revalidate";
 import { resolveDocumentNumber } from "@/server/documents/sequences";
-import { resolveDefaultLocation } from "@/server/inventory/locations";
 import { getCurrentProfile } from "@/server/queries/common";
 import { logServerError } from "@/server/observability/logger";
 import { z } from "zod";
@@ -17,6 +16,10 @@ import { z } from "zod";
 function cleanText(value: unknown) {
   const text = String(value ?? "").trim();
   return text.length ? text : null;
+}
+
+function parseProductionJobId(id: string) {
+  return z.uuid().parse(id);
 }
 
 async function notifyProduction(input: { title: string; message: string; permission: string; jobId: string; branchId: string; priority?: string }) {
@@ -64,10 +67,9 @@ export async function createProductionJob(formData: FormData) {
     });
     const [supabase, profile] = await Promise.all([createClient(), getCurrentProfile()]);
     const idempotencyKey = z.uuid().parse(String(formData.get("idempotency_key") ?? ""));
-    const locationId = await resolveDefaultLocation(parsed.branch_id);
     const jobNo = await resolveDocumentNumber({ companyId: profile?.company_id, documentType: "production_job", enteredNumber: null });
     const { data, error } = await supabase.rpc("create_production_job_atomic", {
-      p_payload: { ...parsed, production_job_no: jobNo, location_id: locationId, idempotency_key: idempotencyKey },
+      p_payload: { ...parsed, production_job_no: jobNo, idempotency_key: idempotencyKey },
     });
     if (error) throw new Error(error.message);
     const createdJob = data as { id: string };
@@ -83,8 +85,9 @@ export async function createProductionJob(formData: FormData) {
 async function transitionProductionJob(id: string, input: { action: "submit" | "approve" | "reject" | "cancel"; permission: string; message: (jobNo: string) => string; remarks?: string | null; notify?: { permission: string; title: (jobNo: string) => string; message: (jobNo: string) => string } }) {
   await requirePermissionOrRedirect(input.permission, `/production/jobs/${id}`);
   try {
+    const productionJobId = parseProductionJobId(id);
     const supabase = await createClient();
-    const { data, error } = await supabase.rpc("transition_production_job_atomic", { p_job_id: id, p_action: input.action, p_remarks: input.remarks ?? null });
+    const { data, error } = await supabase.rpc("transition_production_job_atomic", { p_job_id: productionJobId, p_action: input.action, p_remarks: input.remarks ?? null });
     if (error) throw new Error(error.message);
     const productionJob = data as { production_job_no: string; branch_id: string; priority: string | null };
     if (input.notify) {
@@ -92,7 +95,7 @@ async function transitionProductionJob(id: string, input: { action: "submit" | "
         title: input.notify.title(productionJob.production_job_no),
         message: input.notify.message(productionJob.production_job_no),
         permission: input.notify.permission,
-        jobId: id,
+        jobId: productionJobId,
         branchId: productionJob.branch_id,
         priority: productionJob.priority ?? "normal",
       });
@@ -134,11 +137,12 @@ export async function approveProductionJob(id: string) {
 export async function rejectProductionJob(id: string, formData: FormData) {
   const remarks = cleanText(formData.get("remarks"));
   if (!remarks) safeRedirectWithMessage(`/production/jobs/${id}`, "error", "Rejection remarks are required.");
+  const validatedRemarks = z.string().trim().min(1).max(1_000).parse(remarks);
   await transitionProductionJob(id, {
     action: "reject",
     permission: "production.reject",
-    remarks,
-    message: (jobNo) => `${jobNo} rejected. ${remarks}`,
+    remarks: validatedRemarks,
+    message: (jobNo) => `${jobNo} rejected. ${validatedRemarks}`,
   });
 }
 
@@ -154,8 +158,9 @@ export async function postProductionJob(id: string) {
   await requirePermissionOrRedirect("production.post", `/production/jobs/${id}`);
   try {
     if (isMockMode()) redirect(`/production/jobs/${id}`);
+    const productionJobId = parseProductionJobId(id);
     const supabase = await createClient();
-    const { error } = await supabase.rpc("post_production_job_atomic", { p_job_id: id });
+    const { error } = await supabase.rpc("post_production_job_atomic", { p_job_id: productionJobId });
     if (error) throw new Error(error.message);
     revalidateWorkspaceState(["/production", "/production/jobs", `/production/jobs/${id}`]);
     revalidatePath("/inventory");

@@ -1,6 +1,7 @@
 import { ImportWorkflow } from "@/components/imports/import-workflow";
-import { Card, CardContent } from "@/components/ui/card";
+import { WorkspaceGrid } from "@/components/layout/workspace-layout";
 import { PageHeader } from "@/components/ui/page-header";
+import { Notice } from "@/components/ui/system-states";
 import { formatPageError } from "@/server/actions/error-handling";
 import { hasPermission } from "@/server/auth/permissions";
 
@@ -16,31 +17,14 @@ export default async function OpeningStockImportPage() {
           title="Import Opening Stock"
           description="Post branch opening balances through the Movement Ledger instead of editing stock directly."
         />
-        <div className="p-5">
-          {allowed ? (
-            <ImportWorkflow entity="opening-stock" />
-          ) : (
-            <Card>
-              <CardContent className="p-5 text-sm text-muted-foreground">
-                You do not have permission to post opening stock.
-              </CardContent>
-            </Card>
-          )}
-        </div>
+        {allowed ? <ImportWorkflow entity="opening-stock" /> : <WorkspaceGrid tabletCanvas="contained"><Notice tone="error" title="Permission required">You do not have permission to post opening stock.</Notice></WorkspaceGrid>}
       </>
     );
   } catch (error) {
-    console.error(error);
     return (
       <>
         <PageHeader title="Import Opening Stock" description="Post branch opening balances through the Movement Ledger instead of editing stock directly." />
-        <div className="p-5">
-          <Card>
-            <CardContent className="p-5 text-sm text-muted-foreground">
-              {formatPageError(error, "This import workspace is unavailable right now. Please try again shortly.")}
-            </CardContent>
-          </Card>
-        </div>
+        <WorkspaceGrid tabletCanvas="contained"><Notice tone="error" title="Import unavailable">{formatPageError(error, "This import workspace is unavailable right now. Please try again shortly.")}</Notice></WorkspaceGrid>
       </>
     );
   }

@@ -33,6 +33,8 @@ export async function getDashboardSummary() {
       role: "super_admin",
       roleLabel: "Super Admin / Owner",
       scopeLabel: "Company-wide",
+      userName: "Mock Owner",
+      branchLabel: "Company-wide",
       totalItems: mockItems.length,
       totalSuppliers: mockSuppliers.length,
       lowStockCount: balances.filter((row) => row.is_low_stock).length,
@@ -104,7 +106,7 @@ export async function getDashboardSummary() {
   const supabase = await createClient();
   const db = looseSupabase(supabase);
   const empty = { data: [], error: null, count: 0 };
-  const [balances, lowStock, transactions, stockItems, suppliers, items, urgentRequests, purchaseRequests, purchaseOrders, pendingApprovals, documents, notifications, recentActivities, productionSummary, outletToday, todayReceiving, stockCountDue, wastageAttention, receivingFollowup] = await Promise.all([
+  const [balances, lowStock, transactions, stockItems, suppliers, items, urgentRequests, purchaseRequests, purchaseOrders, pendingApprovals, documents, notifications, recentActivities, productionSummary, outletToday, todayReceiving, stockCountDue, wastageAttention, receivingFollowup, currentStaff, assignedBranches] = await Promise.all([
     needsInventory ? supabase.from("stock_balances_view").select("item_id, current_stock, is_low_stock") : Promise.resolve(empty),
     needsInventory ? supabase.from("low_stock_items").select("*").limit(5) : Promise.resolve(empty),
     needsInventory ? supabase
@@ -134,6 +136,10 @@ export async function getDashboardSummary() {
     needsInventory ? db.from("stock_counts").select("id", { count: "exact", head: true }).in("status", ["draft", "submitted", "reviewed", "approved"]).is("deleted_at", null) : Promise.resolve(empty),
     needsInventory ? db.from("stock_wastage").select("id", { count: "exact", head: true }).in("status", ["draft", "submitted"]).is("deleted_at", null) : Promise.resolve(empty),
     needsProcurement ? db.from("purchase_orders").select("id", { count: "exact", head: true }).in("status", ["sent", "partial_received"]).is("deleted_at", null) : Promise.resolve(empty),
+    scope.staffId ? supabase.from("staffs").select("full_name").eq("id", scope.staffId).maybeSingle() : Promise.resolve({ data: null, error: null }),
+    !scope.companyWideAccess && scope.branchIds.length
+      ? supabase.from("branches").select("branch_name").in("id", scope.branchIds).order("branch_name")
+      : Promise.resolve(empty),
   ]);
 
   warnOptionalQuery("stock balances", balances.error);
@@ -142,9 +148,23 @@ export async function getDashboardSummary() {
   warnOptionalQuery("stock counts due", stockCountDue.error);
   warnOptionalQuery("wastage attention", wastageAttention.error);
   warnOptionalQuery("receiving follow-up", receivingFollowup.error);
+  warnOptionalQuery("current staff", currentStaff.error);
+  warnOptionalQuery("assigned branches", assignedBranches.error);
 
-  for (const result of [transactions, stockItems, suppliers, items, urgentRequests, purchaseRequests, purchaseOrders, documents]) {
-    if (result.error) throw new Error(result.error.message);
+  // A dashboard is a situational overview, not a transaction form. A degraded
+  // optional read must not strand a signed-in operator behind a generic error
+  // page when the rest of their permitted workspace is still usable.
+  for (const [name, result] of [
+    ["recent transactions", transactions],
+    ["stock items", stockItems],
+    ["suppliers", suppliers],
+    ["items", items],
+    ["urgent requests", urgentRequests],
+    ["purchase requests", purchaseRequests],
+    ["purchase orders", purchaseOrders],
+    ["recent documents", documents],
+  ] as const) {
+    warnOptionalQuery(name, result.error);
   }
 
   const itemById = new Map((stockItems.data ?? []).map((item) => [item.id, item]));
@@ -166,11 +186,16 @@ export async function getDashboardSummary() {
       logServerError("Operations control summaries unavailable; rendering the remaining dashboard.", { source: "dashboard.operationsControl" });
     }
   }
+  const branchLabel = scope.companyWideAccess
+    ? "Company-wide"
+    : assignedBranches.data?.map((branch) => branch.branch_name).filter(Boolean).join(", ") || "Assigned workspace";
 
   return {
     role,
     roleLabel: getRoleDisplayLabel(role),
-    scopeLabel: scope.companyWideAccess ? "Company-wide" : scope.branchIds.length ? "Assigned branches" : "Assigned workspace",
+    scopeLabel: branchLabel,
+    userName: currentStaff.data?.full_name?.trim() || "Team member",
+    branchLabel,
     totalItems: items.count ?? 0,
     totalSuppliers: suppliers.count ?? 0,
     lowStockCount: balances.error ? 0 : balances.data?.filter((row) => row.is_low_stock).length ?? 0,

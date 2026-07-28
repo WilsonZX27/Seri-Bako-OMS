@@ -46,8 +46,8 @@ const config: Config = {
       },
       borderRadius: {
         lg: "var(--radius)",
-        md: "calc(var(--radius) - 2px)",
-        sm: "calc(var(--radius) - 4px)",
+        md: "var(--sb-radius-control)",
+        sm: "var(--sb-radius-control)",
       },
     },
   },

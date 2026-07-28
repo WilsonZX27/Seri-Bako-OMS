@@ -12,11 +12,12 @@ export default async function NewPurchaseOrderPage() {
     <>
       <PageHeader title="New Purchase Order" description="Create a supplier purchase order. Receiving is intentionally not part of Sprint 3." />
       <WorkspaceGrid
+        documentMode
         rightRail={
           <div>
             <ConsoleSection title="PO Actions">
               <div className="grid gap-2">
-                <Button type="submit" form="purchase-order-form" className="w-full">Create PO</Button>
+                <Button type="submit" form="purchase-order-form" className="w-full" data-mobile-primary-action>Create PO</Button>
                 <Button type="submit" form="purchase-order-form" variant="outline" className="w-full">Save Draft</Button>
               </div>
             </ConsoleSection>

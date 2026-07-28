@@ -60,7 +60,7 @@ export function StaffPermissionOverrides({
       <form action={updateAction} className="space-y-3">
         {groups.map(([module, modulePermissions]) => (
           <details key={module} className="border border-[var(--sb-border-soft)]">
-            <summary className="cursor-pointer px-3 py-2 text-sm font-semibold capitalize focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--sb-amber-700)]">
+            <summary className="cursor-pointer px-3 py-2 text-sm font-semibold capitalize focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--sb-green-700)]">
               {friendlyModule(module)} <span className="font-normal text-muted-foreground">({modulePermissions.length})</span>
             </summary>
             <div className="divide-y border-t border-[var(--sb-border-soft)]">

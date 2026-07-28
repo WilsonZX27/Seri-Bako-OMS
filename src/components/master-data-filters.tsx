@@ -14,6 +14,7 @@ type MasterDataFiltersProps = {
   categories?: string[];
   suppliers?: { id: string; name: string }[];
   statuses?: { value: string; label: string }[];
+  showStatus?: boolean;
   showStockFilters?: boolean;
   resultCount?: number;
   filtered?: boolean;
@@ -34,6 +35,7 @@ export function MasterDataFilters({
     { value: "active", label: "Active" },
     { value: "inactive", label: "Inactive" },
   ],
+  showStatus = true,
   showStockFilters = false,
   resultCount,
   filtered = false,
@@ -42,7 +44,7 @@ export function MasterDataFilters({
   return (
     <FilterBar resultCount={resultCount} resetHref={resetHref} filtered={filtered}>
       <Input name="search" defaultValue={search ?? ""} placeholder={placeholder} />
-        <SelectControl name="status" defaultValue={status} options={[{ value: "all", label: "All status" }, ...statuses]} ariaLabel="Status" className="min-w-32 md:w-40" />
+        {showStatus ? <SelectControl name="status" defaultValue={status} options={[{ value: "all", label: "All status" }, ...statuses]} ariaLabel="Status" className="min-w-32 md:w-40" /> : null}
         {suppliers.length ? (
           <SelectControl name="supplier" defaultValue={supplier} options={[{ value: "all", label: "All suppliers" }, ...suppliers.map((row) => ({ value: row.id, label: row.name }))]} ariaLabel="Supplier" className="min-w-36" />
         ) : null}

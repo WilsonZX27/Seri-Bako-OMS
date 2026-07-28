@@ -13,7 +13,7 @@ test("manager opens a manager approval PR", async ({ page }) => {
   test.skip(!process.env.TEST_MANAGER_EMAIL || !process.env.TEST_MANAGER_PASSWORD, "Missing manager test credentials.");
   expect(await login(page, "manager")).toBe(true);
   await page.goto("/purchase-requests?status=manager_review");
-  test.skip(await page.getByText("No purchase requests found").isVisible(), "No live Manager Review PR fixture is available.");
+  test.skip(await page.getByText(/No (purchase requests found|requests match these filters)/i).first().isVisible(), "No live Manager Review PR fixture is available.");
   const firstPr = page.locator("tbody tr").first();
   await expect(firstPr).toBeVisible();
   await firstPr.getByRole("link", { name: /^PR-/ }).click();

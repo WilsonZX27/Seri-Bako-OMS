@@ -59,8 +59,8 @@ export function SupplierForm({ supplier, action, formId, showSubmit = true }: Su
         </div>
       </RecordSection>
       {showSubmit ? (
-        <Card>
-          <CardContent className="flex justify-end gap-2 p-3">
+        <Card className="border-0 bg-transparent shadow-none md:border md:bg-card md:shadow-sm">
+          <CardContent className="flex justify-end gap-2 border-t px-0 py-3 md:border-0 md:p-3">
             <Button asChild type="button" variant="outline"><Link href="/suppliers">Cancel</Link></Button>
             <SubmitButton type="submit" pendingLabel="Saving..." showOverlay overlayLabel="Saving changes...">{supplier ? "Save supplier" : "Create supplier"}</SubmitButton>
           </CardContent>

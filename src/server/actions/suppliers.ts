@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { z } from "zod";
 import { isMockMode } from "@/lib/mock-mode";
 import { createClient } from "@/lib/supabase/server";
 import { supplierSchema } from "@/lib/validations/supplier";
@@ -11,6 +12,10 @@ import { requireActiveTenantActor } from "@/server/auth/tenant-actor";
 function cleanText(value: unknown) {
   const text = String(value ?? "").trim();
   return text.length ? text : null;
+}
+
+function parseSupplierId(id: string) {
+  return z.uuid().parse(id);
 }
 
 export async function createSupplier(formData: FormData) {
@@ -60,6 +65,7 @@ export async function createSupplier(formData: FormData) {
 
 export async function updateSupplier(id: string, formData: FormData) {
   await requirePermissionOrRedirect("suppliers.update", `/suppliers/${id}`);
+  const supplierId = parseSupplierId(id);
   if (isMockMode()) {
     redirect("/suppliers");
   }
@@ -76,8 +82,10 @@ export async function updateSupplier(id: string, formData: FormData) {
 
   try {
     const writeSupabase = await createClient();
-    const { error } = await writeSupabase.from("suppliers").update(parsed).eq("id", id);
+    const actor = await requireActiveTenantActor();
+    const { data, error } = await writeSupabase.from("suppliers").update(parsed).eq("id", supplierId).eq("company_id", actor.companyId).select("id").maybeSingle();
     if (error) throw new Error(error.message);
+    if (!data) throw new Error("Supplier was not found or is outside your workspace.");
 
     revalidatePath("/suppliers");
     redirect("/suppliers");
@@ -89,17 +97,23 @@ export async function updateSupplier(id: string, formData: FormData) {
 
 export async function deleteSupplier(id: string) {
   try {
+    const supplierId = parseSupplierId(id);
     await requirePermissionOrRedirect("suppliers.update", "/suppliers");
     if (isMockMode()) {
       redirect("/suppliers");
     }
 
     const writeSupabase = await createClient();
-    const { error } = await writeSupabase
+    const actor = await requireActiveTenantActor();
+    const { data, error } = await writeSupabase
       .from("suppliers")
       .update({ status: "inactive" })
-      .eq("id", id);
+      .eq("id", supplierId)
+      .eq("company_id", actor.companyId)
+      .select("id")
+      .maybeSingle();
     if (error) throw new Error(error.message);
+    if (!data) throw new Error("Supplier was not found or is outside your workspace.");
 
     revalidatePath("/suppliers");
     redirect("/suppliers?success=Supplier%20deactivated.");
@@ -111,17 +125,23 @@ export async function deleteSupplier(id: string) {
 
 export async function restoreSupplier(id: string) {
   try {
+    const supplierId = parseSupplierId(id);
     await requirePermissionOrRedirect("suppliers.update", `/suppliers/${id}`);
     if (isMockMode()) {
       redirect("/suppliers");
     }
 
     const writeSupabase = await createClient();
-    const { error } = await writeSupabase
+    const actor = await requireActiveTenantActor();
+    const { data, error } = await writeSupabase
       .from("suppliers")
       .update({ status: "active" })
-      .eq("id", id);
+      .eq("id", supplierId)
+      .eq("company_id", actor.companyId)
+      .select("id")
+      .maybeSingle();
     if (error) throw new Error(error.message);
+    if (!data) throw new Error("Supplier was not found or is outside your workspace.");
 
     revalidatePath("/suppliers");
     redirect(`/suppliers/${id}?success=Supplier%20restored.`);

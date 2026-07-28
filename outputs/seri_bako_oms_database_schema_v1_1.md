@@ -1,3 +1,11 @@
+# ⚠️ Historical artifact — do not use as the current database schema
+
+This June 2026 v1.1 draft documents a superseded schema with `locations`, location-level inventory balances and other retired concepts. It does not represent the schema after the branch-level inventory read model (migration 093), and must not be used for implementation, import mapping, or go-live decisions.
+
+Use [the current schema relationship map](../docs/SCHEMA_RELATIONSHIP_MAP_2026-07-23.md), [the strict SOP audit](../docs/audits/OMS_STRICT_SYSTEM_SOP_AUDIT_2026-07-23.md), and the migrations as the source of truth. A replacement schema document will be generated after migration 099 is locally replayed and verified.
+
+---
+
 # Seri Bako OMS Database Schema v1.1
 
 Status: review draft. No frontend work is included in this revision.
@@ -198,4 +206,3 @@ The migration includes sample seed rows for:
 - Item and product categories.
 - Example flour supplier and wheat flour item.
 - Example curry puff product and recipe header.
-

@@ -11,7 +11,6 @@ export default async function DashboardPage() {
 
     return <DashboardWorkspace summary={summary} renderedAt={new Date().toISOString()} />;
   } catch (error) {
-    console.error(error);
     return (
       <div className="p-5">
         <Card>

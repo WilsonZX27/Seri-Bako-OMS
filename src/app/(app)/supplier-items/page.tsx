@@ -26,7 +26,7 @@ export default async function SupplierItemsPage({ searchParams }: { searchParams
 
   return <>
     <PageHeader title="Supplier Items" description="Supplier-specific item codes, costs, UOM, MOQ, and lead time." />
-    <WorkspaceGrid rightRail={<>
+    <WorkspaceGrid hideMobileConsole={!canCreate} rightRail={<>
       {canCreate || permissions["imports.run"] ? <ConsoleSection title="Actions"><div className="grid gap-2">{canCreate ? <Button asChild className="w-full" data-mobile-primary-action><Link href="/supplier-items/new">New supplier item</Link></Button> : null}{permissions["imports.run"] ? <><Button asChild variant="outline" className="w-full"><Link href="/imports/supplier-items">Import supplier items</Link></Button><Button asChild variant="outline" className="w-full"><Link href="/imports/branch-supplier-items">Assign suppliers to branches</Link></Button></> : null}</div></ConsoleSection> : null}
       <ConsoleSection title="Supplier Item Summary"><div className="flex justify-between text-xs"><span className="text-muted-foreground">Matching</span><strong>{page.totalRows}</strong></div></ConsoleSection>
     </>}>
@@ -66,7 +66,7 @@ export default async function SupplierItemsPage({ searchParams }: { searchParams
         </Table>
         <OperationalList ariaLabel="Supplier items">
           {page.rows.map((row) => <OperationalListRow key={row.id} href={`/supplier-items/${row.id}`} label={`Open ${row.supplier_item_code}`} primary={row.item_name} status={<Badge variant={row.status === "active" ? "success" : "secondary"}>{row.status}</Badge>} secondary={`${row.supplier_name} · ${row.supplier_item_code}`} meta={formatCurrency(row.unit_cost)} />)}
-          {!page.rows.length ? <EmptyState title={filtered ? "No supplier items match these filters" : "No supplier items yet"} description={filtered ? "Reset the filters or widen the search." : "Supplier item terms appear after a supplier is linked to an item."} action={emptyAction} /> : null}
+          {!page.rows.length ? <EmptyState title={filtered ? "No supplier items match these filters" : "No supplier items yet"} description={filtered ? "Reset the filters or widen the search." : "Supplier item terms appear after a supplier is linked to an item."} action={filtered ? emptyAction : undefined} /> : null}
         </OperationalList>
         <PaginationControls page={page.page} totalPages={page.totalPages} totalRows={page.totalRows} searchParams={filters} />
       </div>

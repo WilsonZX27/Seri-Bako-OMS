@@ -13,14 +13,10 @@ type RecordWorkspaceProps = {
 
 export function RecordWorkspace({ children, actionPanel, className }: RecordWorkspaceProps) {
   return (
-    <WorkspaceGrid documentMode className={cn("p-4", className)} rightRail={<div>{actionPanel}</div>}>
+    <WorkspaceGrid documentMode tabletRailMode="split" className={cn("p-4", className)} rightRail={<div>{actionPanel}</div>}>
       <main className="min-w-0 space-y-4">{children}</main>
     </WorkspaceGrid>
   );
-}
-
-export function RecordMain({ children, className }: { children: ReactNode; className?: string }) {
-  return <div className={cn("space-y-5", className)}>{children}</div>;
 }
 
 export function RecordActionPanel({ title = "Actions", description, children }: { title?: string; description?: string; children: ReactNode }) {

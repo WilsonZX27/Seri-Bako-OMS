@@ -15,14 +15,16 @@ import { getStaffs } from "@/server/queries/foundation";
 import { ConsoleSection } from "@/components/layout/right-console";
 import { WorkspaceGrid } from "@/components/layout/workspace-layout";
 import { getStaffAuthState, staffAuthStateLabels } from "@/lib/staff-auth-state";
+import { hasActiveFilters } from "@/lib/table-state";
 
 export default async function StaffsPage({ searchParams }: { searchParams: Promise<{ search?: string; status?: string; error?: string; success?: string }> }) {
   const filters = await searchParams;
   const staffs = await getStaffs(filters);
+  const filtered = hasActiveFilters(filters);
   return (
     <>
       <PageHeader title="Staffs" description="Staff access, default branch assignment, and account status." />
-      <WorkspaceGrid rightRail={<><ConsoleSection title="Actions"><Button asChild size="sm" className="w-full"><Link href="/staffs/new">New staff</Link></Button></ConsoleSection><ConsoleSection title="Staff Summary"><dl className="grid gap-2 text-xs"><div className="flex justify-between"><dt className="text-muted-foreground">Total</dt><dd className="font-semibold">{staffs.length}</dd></div><div className="flex justify-between"><dt className="text-muted-foreground">Active</dt><dd className="font-semibold">{staffs.filter((staff) => staff.status === "active").length}</dd></div><div className="flex justify-between"><dt className="text-muted-foreground">Invited / pending</dt><dd className="font-semibold">{staffs.filter((staff) => ["invited", "pending"].includes(staff.invitation_status ?? staff.status)).length}</dd></div><div className="flex justify-between"><dt className="text-muted-foreground">Disabled</dt><dd className="font-semibold">{staffs.filter((staff) => staff.status === "disabled").length}</dd></div></dl></ConsoleSection></>}>
+      <WorkspaceGrid rightRail={<><ConsoleSection title="Actions"><Button asChild size="sm" className="w-full" data-mobile-primary-action><Link href="/staffs/new">New staff</Link></Button></ConsoleSection><ConsoleSection title="Staff Summary"><dl className="grid gap-2 text-xs"><div className="flex justify-between"><dt className="text-muted-foreground">Total</dt><dd className="font-semibold">{staffs.length}</dd></div><div className="flex justify-between"><dt className="text-muted-foreground">Active</dt><dd className="font-semibold">{staffs.filter((staff) => staff.status === "active").length}</dd></div><div className="flex justify-between"><dt className="text-muted-foreground">Invited / pending</dt><dd className="font-semibold">{staffs.filter((staff) => ["invited", "pending"].includes(staff.invitation_status ?? staff.status)).length}</dd></div><div className="flex justify-between"><dt className="text-muted-foreground">Disabled</dt><dd className="font-semibold">{staffs.filter((staff) => staff.status === "disabled").length}</dd></div></dl></ConsoleSection></>}> 
         {filters.error || filters.success ? (
           <Card>
             <CardContent className={`p-4 text-sm ${filters.error ? "text-destructive" : "text-[var(--sb-success)]"}`}>
@@ -39,7 +41,11 @@ export default async function StaffsPage({ searchParams }: { searchParams: Promi
         <MasterDataFilters
           search={filters.search}
           status={filters.status}
+          showStatus={false}
           placeholder="Search staff, email, branch, or role"
+          resultCount={staffs.length}
+          filtered={filtered}
+          resetHref="/staffs"
           statuses={[
             { value: "invited", label: "Invited" },
             { value: "active", label: "Active" },
@@ -48,7 +54,7 @@ export default async function StaffsPage({ searchParams }: { searchParams: Promi
         />
         <BulkSelectionProvider ids={staffs.map((staff) => staff.id)} actionLabel="Deactivate selected" actionHint="Disable staff users from their detail page to keep a clear access history.">
         <DataGridHint text="Pro-tip: Double-click any row to open the staff profile." />
-        <div className="overflow-x-auto"><Table><TableHeader><TableRow>
+          <Table aria-label="Staff members" stickyColumn="second"><TableHeader><TableRow>
           <TableSelectionHead className="hidden md:table-cell"><BulkSelectAllCheckbox /></TableSelectionHead><TableHead>Staff Code</TableHead><TableHead>Name</TableHead><TableHead className="hidden lg:table-cell">Email</TableHead><TableHead className="hidden lg:table-cell">Default Branch</TableHead><TableHead>Role</TableHead><TableHead>Staff Status</TableHead><TableHead className="hidden md:table-cell">Account Status</TableHead><TableHead className="w-12 text-right">Action</TableHead>
         </TableRow></TableHeader><TableBody>
           {staffs.map((staff) => (
@@ -67,7 +73,7 @@ export default async function StaffsPage({ searchParams }: { searchParams: Promi
             </DataGridRow>
           ))}
           {!staffs.length ? <TableRow><TableCell colSpan={8}><EmptyState title="No staff found" description="Staff accounts will appear here after they are invited or created." action={{ href: "/staffs/new", label: "New staff" }} /></TableCell></TableRow> : null}
-        </TableBody></Table></div>
+        </TableBody></Table>
         </BulkSelectionProvider>
       </div></WorkspaceGrid>
     </>

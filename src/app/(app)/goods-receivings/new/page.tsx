@@ -12,7 +12,7 @@ export default async function NewGoodsReceivingPage({ searchParams }: { searchPa
   const selectedOrder = filters.po_id ? purchaseOrders.find((order) => order.id === filters.po_id) ?? null : null;
   const receivingPo = selectedOrder ? await getPurchaseOrderForReceiving(selectedOrder.id) : null;
   const lines = receivingPo?.lines.filter((line) => line.pending_qty > 0) ?? [];
-  const primaryAction = <Button type="submit" form="goods-receiving-form" disabled={!selectedOrder || !lines.length} className="w-full">Record Receiving &amp; Attach DO</Button>;
+  const primaryAction = <Button type="submit" form="goods-receiving-form" disabled={!selectedOrder || !lines.length} className="w-full">Save receiving draft</Button>;
   const steps = [
     { key: "draft", label: "Draft", description: "Receiving quantities can be checked." },
     { key: "posted", label: "Posted", description: "Stock movement is recorded and locked." },
@@ -27,6 +27,7 @@ export default async function NewGoodsReceivingPage({ searchParams }: { searchPa
         branch={branches.find((branch) => branch.id === selectedOrder?.branch_id)?.branch_name}
         workflowSteps={steps}
         currentStatus="draft"
+        tabletRailMode="split"
         mobilePrimaryAction={primaryAction}
         sidePanel={<>
             <DocumentSideSection title="Primary Action">{primaryAction}</DocumentSideSection>

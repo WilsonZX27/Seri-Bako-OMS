@@ -29,8 +29,8 @@ export default async function BranchesPage({ searchParams }: { searchParams: Pro
 
     return (
       <>
-        <PageHeader title="Branches" description="Central kitchen, outlets, event booths, offices, and operating units." />
-        <WorkspaceGrid rightRail={<>{canCreate ? <ConsoleSection title="Actions"><Button asChild size="sm" className="w-full"><Link href="/branches/new">New branch</Link></Button></ConsoleSection> : null}<ConsoleSection title="Branch Summary"><dl className="grid gap-2 text-xs"><div className="flex justify-between"><dt className="text-muted-foreground">Total</dt><dd className="font-semibold">{branches.length}</dd></div><div className="flex justify-between"><dt className="text-muted-foreground">Active</dt><dd className="font-semibold">{branches.filter((branch) => branch.status === "active").length}</dd></div><div className="flex justify-between"><dt className="text-muted-foreground">Archived</dt><dd className="font-semibold">{branches.filter((branch) => branch.status === "archived").length}</dd></div></dl></ConsoleSection></>}>
+        <PageHeader title="Branches" description="Central kitchen, outlets, event booths, offices, and operating units." action={canCreate ? { href: "/branches/new", label: "New branch" } : undefined} />
+        <WorkspaceGrid hideMobileConsole rightRail={<>{canCreate ? <ConsoleSection title="Actions"><Button asChild size="sm" className="w-full" data-mobile-primary-action><Link href="/branches/new">New branch</Link></Button></ConsoleSection> : null}<ConsoleSection title="Branch Summary"><dl className="grid gap-2 text-xs"><div className="flex justify-between"><dt className="text-muted-foreground">Total</dt><dd className="font-semibold">{branches.length}</dd></div><div className="flex justify-between"><dt className="text-muted-foreground">Active</dt><dd className="font-semibold">{branches.filter((branch) => branch.status === "active").length}</dd></div><div className="flex justify-between"><dt className="text-muted-foreground">Archived</dt><dd className="font-semibold">{branches.filter((branch) => branch.status === "archived").length}</dd></div></dl></ConsoleSection></>}>
           {filters.error || filters.success ? (
             <Card>
               <CardContent className={`p-4 text-sm ${filters.error ? "text-destructive" : "text-[var(--sb-success)]"}`}>
@@ -40,11 +40,10 @@ export default async function BranchesPage({ searchParams }: { searchParams: Pro
           ) : null}
           <div className="overflow-hidden rounded-[2px] border bg-card">
             <StatusTabs statuses={["active", "archived"]} activeStatus={filters.status} />
-            <MasterDataFilters search={filters.search} status={filters.status} placeholder="Search branch code, name, or type" statuses={[{ value: "active", label: "Active" }, { value: "archived", label: "Archived" }]} />
+            <MasterDataFilters search={filters.search} status={filters.status} placeholder="Search branch code, name, or type" statuses={[{ value: "active", label: "Active" }, { value: "archived", label: "Archived" }]} showStatus={false} resultCount={branches.length} filtered={filtered} resetHref="/branches" />
             <BulkSelectionProvider ids={branches.map((branch) => branch.id)} actionLabel="Archive selected" actionHint="Archive branches only after confirming they are no longer used by daily operations.">
             <DataGridHint text="Pro-tip: Double-click any row to open the branch." />
-            <div className="overflow-x-auto">
-              <Table>
+              <Table aria-label="Branches" stickyColumn={canManage ? "second" : "first"}>
                 <TableHeader>
                   <TableRow>
                     {canManage ? <TableSelectionHead><BulkSelectAllCheckbox /></TableSelectionHead> : null}
@@ -77,7 +76,6 @@ export default async function BranchesPage({ searchParams }: { searchParams: Pro
                   {!branches.length ? <TableRow><TableCell colSpan={canManage ? 9 : 7}><EmptyState title={filtered ? "No records match these filters" : "No branches yet"} description={filtered ? "Clear filters or widen the search to see more branches." : "Branches will appear here after operating units are created."} action={filtered ? { href: "/branches", label: "Clear filters" } : canCreate ? { href: "/branches/new", label: "New branch" } : undefined} /></TableCell></TableRow> : null}
                 </TableBody>
               </Table>
-            </div>
             </BulkSelectionProvider>
           </div>
         </WorkspaceGrid>

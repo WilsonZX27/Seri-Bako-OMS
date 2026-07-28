@@ -19,6 +19,7 @@ export default async function NewPurchaseRequestPage({ searchParams }: { searchP
     getCurrentProfile(),
   ]);
   const canViewCommercial = hasCommercialAccess && !["kitchen", "kitchen_staff"].includes(String(profile?.role_code ?? "").toLowerCase());
+  const selectedBranchId = params.branch_id ?? branches[0]?.id;
   const initialItem = params.item_id ? items.find((item) => item.id === params.item_id) : null;
   const initialMappings = initialItem && params.branch_id ? supplierMappings.filter((mapping) => mapping.item_id === initialItem.id && mapping.branch_id === params.branch_id) : [];
   const initialMapping = initialMappings.find((mapping) => mapping.is_preferred) ?? (initialMappings.length === 1 ? initialMappings[0] : null);
@@ -46,10 +47,10 @@ export default async function NewPurchaseRequestPage({ searchParams }: { searchP
         documentNo="New Purchase Request"
         title="Purchase Request"
         status="draft"
-        branch={branches.find((branch) => branch.id === params.branch_id)?.branch_name}
+        branch={branches.find((branch) => branch.id === selectedBranchId)?.branch_name}
         workflowSteps={workflowSteps}
         currentStatus="draft"
-        mobilePrimaryAction={primaryAction}
+        tabletRailMode="split"
         mobileMoreOptions={<DocumentMoreOptions>{secondaryActions}</DocumentMoreOptions>}
         sidePanel={<>
             <DocumentActionSection moreOptions={secondaryActions}>{primaryAction}</DocumentActionSection>

@@ -51,7 +51,7 @@ export function CompanyLogoForm({
           </div>
           <div className="min-w-0 text-xs text-muted-foreground">
             <p className="font-medium text-foreground">{visibleLogo ? previewLabel : "No logo uploaded"}</p>
-            <p className="mt-0.5 text-[11px]">Accepted formats: PNG, JPG, JPEG, WEBP, SVG.</p>
+            <p className="mt-0.5 text-[11px]">Accepted formats: PNG, JPG, JPEG, WEBP.</p>
           </div>
         </div>
 
@@ -63,7 +63,7 @@ export function CompanyLogoForm({
             <Input
               name="logo"
               type="file"
-              accept="image/png,image/jpeg,image/webp,image/svg+xml"
+              accept="image/png,image/jpeg,image/webp"
               required
               onChange={(event) => {
                 const file = event.target.files?.[0];

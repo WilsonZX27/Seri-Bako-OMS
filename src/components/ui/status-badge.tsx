@@ -1,7 +1,8 @@
 import { Badge } from "@/components/ui/badge";
 import { formatStatusLabel } from "@/lib/status-label";
+import { cn } from "@/lib/utils";
 
-export function StatusBadge({ status }: { status: string }) {
+export function StatusBadge({ status, className }: { status: string; className?: string }) {
   const normalized = status.toLowerCase();
   const variant = ["approved", "posted", "completed", "ready", "ready_to_convert", "closed", "converted", "converted_to_po", "sent", "sent_to_supplier", "active", "available", "dispatched", "paid"].includes(normalized)
     ? "success"
@@ -12,5 +13,5 @@ export function StatusBadge({ status }: { status: string }) {
         : ["in_production", "qc_review"].includes(normalized)
           ? "default"
         : "secondary";
-  return <Badge variant={variant}>{formatStatusLabel(status)}</Badge>;
+  return <Badge variant={variant} className={cn(className)}>{formatStatusLabel(status)}</Badge>;
 }

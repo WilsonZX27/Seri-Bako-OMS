@@ -10,7 +10,7 @@ export default async function NewStockTransferPage({ searchParams }: { searchPar
   const filters = await searchParams;
   const branches = await getBranchesForSelect();
   const selectedFromBranchId = filters.from_branch_id ?? branches[0]?.id;
-  const seedLines = await getOperationSeedLines(undefined, selectedFromBranchId);
+  const seedLines = await getOperationSeedLines(selectedFromBranchId);
   const formId = "stock-transfer-create-form";
   const primaryAction = <SubmitButton form={formId} type="submit" disabled={!seedLines.length} className="w-full">Create Transfer</SubmitButton>;
   const steps = [

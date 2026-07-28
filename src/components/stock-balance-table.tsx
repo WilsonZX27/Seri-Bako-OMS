@@ -12,6 +12,8 @@ export type StockBalanceRow = {
   item_id: string;
   item_code: string;
   item_name: string;
+  supplier_id: string | null;
+  supplier_name: string | null;
   branch_id: string | null;
   branch_name: string | null;
   available_qty: number;
@@ -92,17 +94,7 @@ export function StockBalanceTableRows({
               }
             }}
           >
-            <TableCell>{item.item_code}</TableCell>
-            <TableCell className="font-medium">{item.item_name}</TableCell>
-            <TableCell>{item.branch_name ?? "-"}</TableCell>
-            <TableCell className="text-right">{formatQuantity(item.available_qty)} {item.base_unit}</TableCell>
-            <TableCell className="text-right">{formatQuantity(item.reserved_qty)} {item.base_unit}</TableCell>
-            <TableCell className="text-right font-medium">{formatQuantity(item.current_qty)} {item.base_unit}</TableCell>
-            <TableCell className="text-right">{formatCurrency(item.average_cost)}</TableCell>
-            <TableCell className="text-right">{formatCurrency(item.inventory_value)}</TableCell>
-            <TableCell>{item.last_movement ?? "-"}</TableCell>
-            <TableCell><Badge variant={statusVariant(item.status)}>{getStockBalanceStatusLabel(item.status)}</Badge></TableCell>
-            <TableCell className="text-right">
+            <TableCell className="w-12 p-0 text-center">
               <Button
                 type="button"
                 variant="ghost"
@@ -116,6 +108,16 @@ export function StockBalanceTableRows({
                 {selected ? <Trash2 className="h-4 w-4" /> : <ShoppingCart className="h-4 w-4" />}
               </Button>
             </TableCell>
+            <TableCell>{item.item_code}</TableCell>
+            <TableCell className="font-medium">{item.item_name}</TableCell>
+            <TableCell>{item.branch_name ?? "-"}</TableCell>
+            <TableCell className="text-right">{formatQuantity(item.available_qty)} {item.base_unit}</TableCell>
+            <TableCell className="text-right">{formatQuantity(item.reserved_qty)} {item.base_unit}</TableCell>
+            <TableCell className="text-right font-medium">{formatQuantity(item.current_qty)} {item.base_unit}</TableCell>
+            <TableCell className="text-right">{formatCurrency(item.average_cost)}</TableCell>
+            <TableCell className="text-right">{formatCurrency(item.inventory_value)}</TableCell>
+            <TableCell>{item.last_movement ?? "-"}</TableCell>
+            <TableCell><Badge variant={statusVariant(item.status)}>{getStockBalanceStatusLabel(item.status)}</Badge></TableCell>
           </TableRow>
         );
       })}
@@ -149,7 +151,7 @@ export function StockBalanceOperationalRows({
             trailing={
               <button
                 type="button"
-                className="inline-flex h-8 w-8 items-center justify-center rounded-md border hover:bg-[var(--sb-surface-muted)]"
+                className="inline-flex h-12 w-12 items-center justify-center rounded-[var(--sb-radius-control)] border border-[var(--sb-border)] active:bg-[var(--sb-surface-muted)]"
                 onClick={(event) => {
                   event.preventDefault();
                   event.stopPropagation();

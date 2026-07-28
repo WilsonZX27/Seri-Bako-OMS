@@ -14,7 +14,7 @@ type Crumb = {
 };
 
 export function DocumentWorkspace({
-  breadcrumbs: _breadcrumbs,
+  breadcrumbs,
   documentNo,
   title,
   status,
@@ -27,6 +27,7 @@ export function DocumentWorkspace({
   mobilePrimaryAction,
   mobileActivity,
   mobileMoreOptions,
+  tabletRailMode = "context",
 }: {
   breadcrumbs: Crumb[];
   documentNo: string;
@@ -41,22 +42,25 @@ export function DocumentWorkspace({
   mobilePrimaryAction?: ReactNode;
   mobileActivity?: ReactNode;
   mobileMoreOptions?: ReactNode;
+  tabletRailMode?: "context" | "split";
 }) {
-  void _breadcrumbs;
+  const isNewDocument = documentNo.toLowerCase().startsWith("new ");
 
   return (
     <>
-      <span data-document-breadcrumb={documentNo} className="sr-only" aria-hidden="true" />
-      <header className="sticky top-0 z-20 min-w-0 border-b border-[var(--border-muted)] bg-[var(--workspace-bg)] px-3 py-3 sm:px-4">
-        <div className="flex flex-col gap-2 xl:flex-row xl:items-start xl:justify-between">
+      <span data-document-breadcrumb={breadcrumbs.map((crumb) => crumb.label).join("/") || documentNo} className="sr-only" aria-hidden="true" />
+      <header className="sticky top-0 z-20 min-w-0 border-b border-[var(--border-muted)] bg-[var(--workspace-bg)] px-3 py-2.5 sm:px-4 sm:py-3">
+        <h1 className="sr-only">{title ?? documentNo}</h1>
+        <div data-tablet-document-header className="flex flex-col gap-2 xl:flex-row xl:items-start xl:justify-between">
           <div className="min-w-0">
             <div className="flex flex-wrap items-center gap-2">
-              <DocumentNumber value={documentNo} size="lg" className="max-w-full break-all text-[16px] sm:text-lg" />
+              <DocumentNumber value={documentNo} size="lg" className={cn("max-w-full break-all text-[16px] sm:text-lg", isNewDocument && "hidden")} />
               {priority ? <PriorityBadge priority={priority} /> : null}
-              <StatusBadge status={status} />
+              <StatusBadge status={status} className="md:hidden" />
+              {branch ? <span className="truncate text-xs text-muted-foreground md:hidden">· {branch}</span> : null}
             </div>
-            <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
-              {title ? <span className="font-medium text-foreground">{title}</span> : null}
+            <div className={cn("hidden flex-wrap items-center gap-2 text-xs text-muted-foreground md:flex", isNewDocument ? "mt-0 md:mt-1" : "mt-1")}>
+              {title && !isNewDocument ? <span className="font-medium text-foreground">{title}</span> : null}
               {branch ? <span>{branch}</span> : null}
             </div>
           </div>
@@ -67,17 +71,16 @@ export function DocumentWorkspace({
         </div>
       </header>
 
-      <WorkspaceGrid className={cn("min-w-0 p-3", mobilePrimaryAction && "pb-20 md:pb-3")} rightRail={<div>{sidePanel}</div>} hideMobileConsole>
-        <div className="grid min-w-0 gap-3 md:grid-cols-[minmax(0,7fr)_minmax(14rem,3fr)] xl:block">
+      <WorkspaceGrid documentMode tabletRailMode={tabletRailMode} className={cn("min-w-0 p-3", mobilePrimaryAction && "pb-20 xl:pb-3")} rightRail={<div>{sidePanel}</div>} hideMobileConsole>
+        <div className="min-w-0">
           <div className="min-w-0 space-y-3">
             {children}
             {mobileActivity ? <MobileActivityAndFiles>{mobileActivity}</MobileActivityAndFiles> : null}
             {mobileMoreOptions ? <div className="md:hidden">{mobileMoreOptions}</div> : null}
           </div>
-          <aside data-tablet-document-inspector className="hidden min-w-0 border-l border-[var(--sb-border-soft)] bg-white md:block md:pl-2 xl:hidden">{sidePanel}</aside>
         </div>
       </WorkspaceGrid>
-      {mobilePrimaryAction ? <div data-mobile-document-action className="sb-mobile-action-bar fixed inset-x-3 bottom-[calc(env(safe-area-inset-bottom)+0.5rem)] z-[var(--sb-z-sticky)] min-w-0 p-2 md:hidden [&>*]:w-full">{mobilePrimaryAction}</div> : null}
+      {mobilePrimaryAction ? <div data-mobile-document-action className="sb-mobile-action-bar fixed inset-x-3 bottom-[calc(var(--sb-mobile-nav-height)+env(safe-area-inset-bottom)+0.5rem)] z-[var(--sb-z-sticky)] min-w-0 p-2 xl:hidden [&>*]:w-full">{mobilePrimaryAction}</div> : null}
     </>
   );
 }

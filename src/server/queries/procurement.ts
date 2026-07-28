@@ -2,7 +2,6 @@ import {
   isMockMode,
   mockBranches,
   mockItems,
-  mockLocations,
   mockProfile,
   mockPurchaseOrderLines,
   mockPurchaseOrders,
@@ -37,7 +36,6 @@ function searchFilter(value: string | undefined) {
 export type PurchaseRequestRow = PurchaseRequest & {
   requested_by_name: string | null;
   branch_name: string | null;
-  location_name: string | null;
   line_count: number;
   estimated_total: number;
 };
@@ -79,13 +77,11 @@ function filterRows<T extends Record<string, unknown>>(rows: T[], filters: Filte
 
 function hydratePr(row: PurchaseRequest, lines: PurchaseRequestLine[]): PurchaseRequestRow {
   const branch = mockBranches.find((item) => item.id === row.branch_id);
-  const location = mockLocations.find((item) => item.id === row.location_id);
   const ownLines = lines.filter((line) => line.purchase_request_id === row.id);
   return {
     ...row,
     requested_by_name: row.requested_by ? mockProfile.full_name : null,
     branch_name: branch?.branch_name ?? null,
-    location_name: location?.location_name ?? null,
     line_count: ownLines.length,
     estimated_total: ownLines.reduce((sum, line) => sum + line.qty * line.estimated_unit_cost, 0),
   };
@@ -105,7 +101,7 @@ function hydratePo(row: PurchaseOrder, lines: PurchaseOrderLine[]): PurchaseOrde
 export async function getPurchaseRequests(filters: Filters = {}) {
   if (isMockMode()) {
     const rows = mockPurchaseRequests.map((row) => hydratePr(row, mockPurchaseRequestLines));
-    return paginateRows(filterRows(rows, filters, ["request_no", "status", "priority", "branch_name", "location_name", "remarks"], "updated_at"), filters.page, 12);
+    return paginateRows(filterRows(rows, filters, ["request_no", "status", "priority", "branch_name", "remarks"], "updated_at"), filters.page, 12);
   }
 
   const supabase = await createClient();
@@ -113,7 +109,7 @@ export async function getPurchaseRequests(filters: Filters = {}) {
   const sort = safeSort(filters.sort, ["request_no", "request_date", "needed_by_date", "status", "updated_at"], "updated_at");
   let query = supabase
     .from("purchase_requests")
-    .select("id, requested_by, request_no, request_date, required_date, priority, needed_by_date, branch_id, location_id, status, remarks, updated_at", { count: "exact" })
+    .select("id, requested_by, request_no, request_date, required_date, priority, needed_by_date, branch_id, status, remarks, updated_at", { count: "exact" })
     .is("deleted_at", null);
   const status = filters.status && filters.status !== "all" ? filters.status : null;
   const priority = filters.priority && filters.priority !== "all" ? filters.priority : null;
@@ -132,21 +128,18 @@ export async function getPurchaseRequests(filters: Filters = {}) {
     .range((page - 1) * PAGE_SIZE, page * PAGE_SIZE - 1);
   if (error) throw new Error(error.message);
   const ids = (data ?? []).map((row) => row.id);
-  const [{ data: lines, error: linesError }, { data: branches }, { data: locations }] = await Promise.all([
+  const [{ data: lines, error: linesError }, { data: branches }] = await Promise.all([
     ids.length ? supabase.from("purchase_request_lines").select("purchase_request_id, qty, estimated_unit_cost").in("purchase_request_id", ids) : Promise.resolve({ data: [], error: null }),
     supabase.from("branches").select("id, branch_name").in("id", (data ?? []).flatMap((row) => (row.branch_id ? [row.branch_id] : []))),
-    supabase.from("locations").select("id, location_name").in("id", (data ?? []).flatMap((row) => (row.location_id ? [row.location_id] : []))),
   ]);
   if (linesError) throw new Error(linesError.message);
   const branchById = new Map((branches ?? []).map((row) => [row.id, row.branch_name]));
-  const locationById = new Map((locations ?? []).map((row) => [row.id, row.location_name]));
   const rows = (data ?? []).map((row) => {
     const ownLines = (lines ?? []).filter((line) => line.purchase_request_id === row.id);
     return {
       ...row,
       requested_by_name: row.requested_by,
       branch_name: row.branch_id ? branchById.get(row.branch_id) ?? null : null,
-      location_name: row.location_id ? locationById.get(row.location_id) ?? null : null,
       line_count: ownLines.length,
       estimated_total: ownLines.reduce((sum, line) => sum + line.qty * line.estimated_unit_cost, 0),
     };

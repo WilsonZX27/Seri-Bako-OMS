@@ -7,7 +7,6 @@ import { createClient } from "@/lib/supabase/server";
 import { stockTransactionSchema } from "@/lib/validations/stock-transaction";
 import { formatActionError, requirePermissionOrRedirect, rethrowRedirect, safeRedirectWithMessage } from "@/server/actions/error-handling";
 import { resolveDocumentNumber } from "@/server/documents/sequences";
-import { resolveDefaultLocation } from "@/server/inventory/locations";
 import { getCurrentProfile } from "@/server/queries/common";
 
 function cleanText(value: unknown) {
@@ -30,20 +29,16 @@ export async function createStockTransaction(formData: FormData) {
     const parsed = stockTransactionSchema.parse({
       item_id: formData.get("item_id"),
       branch_id: formData.get("branch_id"),
-      location_id: formData.get("location_id"),
       transaction_type: formData.get("transaction_type"),
       transaction_date: formData.get("transaction_date"),
       direction: formData.get("direction"),
       quantity: formData.get("quantity"),
       unit_cost: formData.get("unit_cost") || null,
       remarks: cleanText(formData.get("remarks")),
-      from_location_id: formData.get("from_location_id"),
-      to_location_id: formData.get("to_location_id"),
     });
 
     const supabase = await createClient();
     const profile = await identity();
-    const locationId = await resolveDefaultLocation(parsed.branch_id, parsed.location_id);
     const quantityIn = parsed.direction === "in" ? parsed.quantity : 0;
     const quantityOut = parsed.direction === "out" ? parsed.quantity : 0;
     const unitCost = parsed.unit_cost ?? 0;
@@ -52,26 +47,21 @@ export async function createStockTransaction(formData: FormData) {
       documentType: "stock_transaction",
       enteredNumber: null,
     });
-    const { data: location } = await supabase.from("locations").select("branch_id").eq("id", locationId).maybeSingle();
     const { error } = await supabase.rpc("post_manual_inventory_movement", {
       p_transaction_no: transactionNo,
-      p_branch_id: parsed.branch_id ?? location?.branch_id,
+      p_branch_id: parsed.branch_id,
       p_item_id: parsed.item_id,
-      p_location_id: locationId,
       p_transaction_type: parsed.transaction_type,
       p_transaction_date: parsed.transaction_date,
       p_quantity_in: quantityIn,
       p_quantity_out: quantityOut,
       p_unit_cost: unitCost,
       p_remarks: parsed.remarks || null,
-      p_from_location_id: parsed.from_location_id || null,
-      p_to_location_id: parsed.to_location_id || null,
     });
     if (error) throw new Error(error.message);
 
     revalidatePath("/stock-transactions");
     revalidatePath("/stock-balance");
-    revalidatePath("/stock-balances");
     revalidatePath("/stock-card");
     revalidatePath("/inventory");
     revalidatePath("/low-stock");

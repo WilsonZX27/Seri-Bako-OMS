@@ -32,7 +32,7 @@ export default async function ProductsPage({
         title="Products"
         description="Finished goods master data for future recipe and production modules."
       />
-      <WorkspaceGrid rightRail={<>{canCreate || permissions["imports.run"] ? <ConsoleSection title="Actions"><div className="grid gap-2">{canCreate ? <Button asChild size="sm" className="w-full" data-mobile-primary-action><Link href="/products/new">New product</Link></Button> : null}{permissions["imports.run"] ? <Button asChild size="sm" variant="outline" className="w-full"><Link href="/imports/products">Import products</Link></Button> : null}</div></ConsoleSection> : null}<ConsoleSection title="Product Summary"><dl className="grid gap-2 text-xs"><div className="flex justify-between"><dt className="text-muted-foreground">Matching</dt><dd className="font-semibold">{productsPage.totalRows}</dd></div><div className="flex justify-between"><dt className="text-muted-foreground">Active</dt><dd className="font-semibold">{allProducts.filter((product) => product.status === "active").length}</dd></div></dl></ConsoleSection></>}>
+      <WorkspaceGrid hideMobileConsole={!canCreate} rightRail={<>{canCreate || permissions["imports.run"] ? <ConsoleSection title="Actions"><div className="grid gap-2">{canCreate ? <Button asChild size="sm" className="w-full" data-mobile-primary-action><Link href="/products/new">New product</Link></Button> : null}{permissions["imports.run"] ? <Button asChild size="sm" variant="outline" className="w-full"><Link href="/imports/products">Import products</Link></Button> : null}</div></ConsoleSection> : null}<ConsoleSection title="Product Summary"><dl className="grid gap-2 text-xs"><div className="flex justify-between"><dt className="text-muted-foreground">Matching</dt><dd className="font-semibold">{productsPage.totalRows}</dd></div><div className="flex justify-between"><dt className="text-muted-foreground">Active</dt><dd className="font-semibold">{allProducts.filter((product) => product.status === "active").length}</dd></div></dl></ConsoleSection></>}>
         <div className="overflow-hidden rounded-[2px] border bg-card">
           <MasterDataFilters
             search={filters.search}
@@ -77,7 +77,7 @@ export default async function ProductsPage({
             </Table>
           <OperationalList ariaLabel="Products">
             {productsPage.rows.map((product) => <OperationalListRow key={product.id} href={`/products/${product.id}`} label={`Open ${product.product_name}`} primary={product.product_name} status={<Badge variant={product.status === "active" ? "success" : "secondary"}>{product.status}</Badge>} secondary={`${product.product_code} · ${product.category}`} meta={product.selling_unit} />)}
-            {!productsPage.rows.length ? <EmptyState title={filtered ? "No products match these filters" : "No products yet"} description={filtered ? "Reset the filters or widen the search." : "Products appear after finished goods are created or imported."} action={emptyAction} /> : null}
+            {!productsPage.rows.length ? <EmptyState title={filtered ? "No products match these filters" : "No products yet"} description={filtered ? "Reset the filters or widen the search." : "Products appear after finished goods are created or imported."} action={filtered ? emptyAction : undefined} /> : null}
           </OperationalList>
           <PaginationControls page={productsPage.page} totalPages={productsPage.totalPages} totalRows={productsPage.totalRows} searchParams={filters} />
         </div>

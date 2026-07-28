@@ -93,7 +93,40 @@ export async function getStockCounts(filters: Filters = {}) {
     query = query.range((page - 1) * STOCK_COUNT_PAGE_SIZE, page * STOCK_COUNT_PAGE_SIZE - 1);
   }
   const { data, error, count } = await query;
-  if (error) throw new Error(error.message);
+  if (error) {
+    // Keep the workspace usable when the denormalized list view is unavailable
+    // during a migration or a partial deployment. The base tables remain the
+    // authoritative fallback and preserve the same filters/pagination.
+    const [{ data: rawCounts, error: rawCountsError }, { data: branches }, { data: lines }] = await Promise.all([
+      supabase.from("stock_counts").select("*").is("deleted_at", null),
+      supabase.from("branches").select("id, branch_name"),
+      supabase.from("stock_count_lines").select("stock_count_id, variance_percent"),
+    ]);
+    if (rawCountsError) throw new Error(error.message);
+    const branchById = new Map((branches ?? []).map((branch) => [branch.id, branch.branch_name]));
+    const linesByCount = new Map<string, { line_count: number; high_variance_count: number }>();
+    for (const line of lines ?? []) {
+      const stockCountId = line.stock_count_id;
+      if (!stockCountId) continue;
+      const current = linesByCount.get(stockCountId) ?? { line_count: 0, high_variance_count: 0 };
+      current.line_count += 1;
+      if (Math.abs(Number(line.variance_percent ?? 0)) > 0) current.high_variance_count += 1;
+      linesByCount.set(stockCountId, current);
+    }
+    const fallbackRows = (rawCounts ?? []).map((rawRow) => {
+      const row = rawRow as StockCount;
+      const rowId = row.id ?? "";
+      const branchIdForLabel = row.branch_id ?? "";
+      return ({
+      ...row,
+      branch_name: branchById.get(branchIdForLabel) ?? null,
+      counted_by_name: row.counted_by,
+      line_count: linesByCount.get(rowId)?.line_count ?? 0,
+      high_variance_count: linesByCount.get(rowId)?.high_variance_count ?? 0,
+      });
+    }) as StockCountRow[];
+    return databasePagination(filterRows(fallbackRows, filters, ["count_no", "status", "branch_name", "remarks"], "updated_at"), fallbackRows.length, filters.page);
+  }
   return databasePagination((data ?? []) as StockCountRow[], count, filters.page);
 }
 

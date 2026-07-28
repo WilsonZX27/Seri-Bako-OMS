@@ -11,6 +11,7 @@ import { formatNumber } from "@/lib/utils";
 import { deleteUomConversion } from "@/server/actions/master-data";
 import { getUomConversions } from "@/server/queries/master-data";
 import { WorkspaceGrid } from "@/components/layout/workspace-layout";
+import { ConsoleSection } from "@/components/layout/right-console";
 
 export default async function UomConversionsPage({ searchParams }: { searchParams: Promise<Record<string, string | undefined>> }) {
   const filters = await searchParams;
@@ -19,8 +20,8 @@ export default async function UomConversionsPage({ searchParams }: { searchParam
 
   return (
     <>
-      <PageHeader title="UOM Conversions" description="Basic unit conversion factors used by recipes, supplier items, and future receiving." action={{ href: "/uom-conversions/new", label: "New conversion" }} />
-      <WorkspaceGrid hideMobileConsole>
+      <PageHeader title="UOM Conversions" description="Basic unit conversion factors used by recipes, supplier items, and future receiving." />
+      <WorkspaceGrid rightRail={<ConsoleSection title="Actions"><Button asChild className="w-full" data-mobile-primary-action><Link href="/uom-conversions/new">New conversion</Link></Button></ConsoleSection>}>
         {filters.error || filters.success ? (
           <Card>
             <CardContent className={`p-4 text-sm ${filters.error ? "text-destructive" : "text-[var(--sb-success)]"}`}>

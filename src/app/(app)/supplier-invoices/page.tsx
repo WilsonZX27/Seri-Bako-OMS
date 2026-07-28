@@ -34,7 +34,7 @@ export default async function SupplierInvoicesPage({ searchParams }: { searchPar
   const filtered = hasActiveFilters(filters);
   return (
     <>
-      <PageHeader title="Supplier Invoices" description="Track posted GRN invoices and basic AP payments." action={permissions["supplier_invoice.create"] ? { href: "/supplier-invoices/new", label: "New invoice" } : undefined} secondaryAction={permissions["supplier_invoice.pay"] ? { href: "/supplier-invoices/aging", label: "AP aging" } : undefined} />
+      <PageHeader title="Supplier Invoices" description="Track posted GRN invoices and basic AP payments." />
       <WorkspaceGrid hideMobileConsole
         rightRail={
           <>

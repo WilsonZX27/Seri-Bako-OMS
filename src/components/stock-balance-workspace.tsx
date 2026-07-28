@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import { ShoppingCart, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { SelectNative } from "@/components/ui/select-native";
@@ -72,6 +73,7 @@ export function StockBalanceWorkspace({
   hasCreatePr: boolean;
 }) {
   const [basket, setBasket] = useState<Record<string, BasketLine>>({});
+  const [basketOpen, setBasketOpen] = useState(false);
   const [requestedBranchId, setRequestedBranchId] = useState("");
   const [idempotencyKey] = useState(() => crypto.randomUUID());
 
@@ -207,13 +209,13 @@ export function StockBalanceWorkspace({
                             <p className="text-xs font-semibold text-[var(--sb-text-muted)]">{branchName}</p>
                             {(isCreateBranch ? groupBySupplier(lines) : [["preview", lines]] as const).map(([supplierId, supplierLines]) => (
                               <div key={`${branchId}-${supplierId}`} className="space-y-1.5">
-                                {isCreateBranch ? <p className="border-b border-[var(--sb-border-soft)] pb-1 text-xs font-semibold">{supplierLines[0]?.supplier_name ?? "Unassigned supplier"}</p> : null}
+                                {isCreateBranch ? <p className="border-b border-[var(--sb-border-soft)] pb-1 text-[11px] font-semibold uppercase tracking-wide text-[var(--sb-text-muted)]">{supplierLines[0]?.supplier_name ?? "Unassigned supplier"}</p> : null}
                                 {supplierLines.map((line) => {
                               const key = rowKey(line);
                               return (
-                                <div key={key} className="space-y-1 py-1.5">
-                                  <p className="font-medium">{line.item_name}</p>
-                                  <p className="text-xs text-muted-foreground">{line.item_code}</p>
+                                <div key={key} className="space-y-1.5 border-b border-[var(--sb-border-soft)] py-2 last:border-0">
+                                  <p className="text-sm font-semibold leading-5">{line.item_name}</p>
+                                  <p className="text-[10px] text-[var(--sb-text-muted)]">{line.item_code}</p>
                                   {isCreateBranch ? (
                                     <>
                                       <div className="flex items-center gap-2">
@@ -285,9 +287,10 @@ export function StockBalanceWorkspace({
             <input type="hidden" name="view" value="branch" />
             <Button type="submit" variant="secondary">Search</Button>
           </FilterBar>
-          <Table mobileHidden aria-label="Stock balances">
+          <Table mobileHidden aria-label="Stock balances" stickyColumn="second">
             <TableHeader>
               <TableRow>
+                <TableHead className="w-12 text-center">Action</TableHead>
                 <SortableHead label="Item Code" column="item_code" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
                 <SortableHead label="Item Name" column="item_name" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
                 <TableHead>Branch</TableHead>
@@ -298,7 +301,6 @@ export function StockBalanceWorkspace({
                 <TableHead className="text-right">Value</TableHead>
                 <TableHead>Last Movement</TableHead>
                 <TableHead>Status</TableHead>
-                <TableHead className="text-right">Action</TableHead>
               </TableRow>
             </TableHeader>
             {rows.length ? (
@@ -324,6 +326,24 @@ export function StockBalanceWorkspace({
           </div>
         </div>
       </WorkspaceGrid>
+      <button
+        type="button"
+        onClick={() => setBasketOpen(true)}
+        className="fixed bottom-[calc(var(--sb-mobile-nav-height)+env(safe-area-inset-bottom)+1rem)] right-4 z-[var(--sb-z-sticky)] inline-flex h-14 w-14 items-center justify-center rounded-full bg-[var(--sb-green-900)] text-white shadow-[0_3px_8px_rgb(6_44_31_/_0.22)] xl:hidden"
+        aria-label={`Open PR basket${basketRows.length ? `, ${basketRows.length} selected` : ""}`}
+      >
+        <ShoppingCart className="h-5 w-5" aria-hidden="true" />
+        {basketRows.length ? <span className="absolute -right-1 -top-1 inline-flex min-h-5 min-w-5 items-center justify-center rounded-full bg-[var(--sb-warning)] px-1 text-[10px] font-bold text-white">{basketRows.length}</span> : null}
+      </button>
+      {basketOpen ? <div className="fixed inset-0 z-[var(--sb-z-dialog)] xl:hidden">
+        <button type="button" className="sb-dialog-backdrop absolute inset-0 h-full w-full" onClick={() => setBasketOpen(false)} aria-label="Close PR basket" />
+        <section className="sb-popover-surface absolute inset-x-0 bottom-0 max-h-[70dvh] overflow-hidden pb-[env(safe-area-inset-bottom)]" aria-label="PR basket">
+          <header className="flex h-12 items-center justify-between border-b px-3"><div><h2 className="text-sm font-semibold">PR basket</h2><p className="text-[11px] text-[var(--sb-text-muted)]">{basketRows.length} selected item{basketRows.length === 1 ? "" : "s"}</p></div><Button type="button" variant="ghost" size="icon" onClick={() => setBasketOpen(false)} aria-label="Close PR basket"><X className="h-4 w-4" /></Button></header>
+          <div className="max-h-[calc(70dvh-3rem-env(safe-area-inset-bottom))] overflow-y-auto px-3 py-2">
+            {basketRows.length ? basketRows.map((line) => <div key={rowKey(line)} className="border-b py-2 last:border-0"><p className="text-sm font-semibold">{line.item_name}</p><p className="text-[10px] text-[var(--sb-text-muted)]">{line.item_code} · {line.qty} {line.base_unit}</p></div>) : <p className="py-6 text-center text-xs text-[var(--sb-text-muted)]">Add an item from Stock Balance to prepare a PR.</p>}
+          </div>
+        </section>
+      </div> : null}
     </>
   );
 }

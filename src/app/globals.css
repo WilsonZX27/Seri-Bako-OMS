@@ -261,6 +261,23 @@ input[type="date"]::-webkit-date-and-time-value {
   background: var(--sb-surface);
 }
 
+/* Status is a compact select in the same filter line as search. The old tab strip
+   consumed a full row and encouraged duplicate status controls. */
+.sb-status-filter {
+  float: left;
+  width: min(10rem, 32vw);
+  margin: 0.5rem 0.5rem 0 0.75rem;
+  min-width: 0;
+}
+.sb-status-filter + .sb-list-filters {
+  border-top: 0;
+}
+.sb-status-filter ~ .sb-table-region,
+.sb-status-filter ~ .overflow-x-auto,
+.sb-status-filter ~ [role="list"] {
+  clear: both;
+}
+
 .sb-filter-summary {
   display: flex;
   min-height: 2.125rem;
@@ -429,6 +446,13 @@ input[type="date"]::-webkit-date-and-time-value {
     gap: 0.5rem;
     overflow: visible;
     padding: 0.625rem;
+  }
+
+  .sb-status-filter {
+    float: none;
+    width: 100%;
+    margin: 0;
+    padding: 0.625rem 0.625rem 0;
   }
 
   .sb-list-filters input,
@@ -612,6 +636,30 @@ input[type="date"]::-webkit-date-and-time-value {
   z-index: 2;
   background: var(--sb-surface-muted);
 }
+.sb-table-region[data-sticky-column="second"]:has(table.sb-pin-identity-after-action) th:nth-child(3),
+.sb-table-region[data-sticky-column="second"]:has(table.sb-pin-identity-after-action) td:nth-child(3) {
+  position: sticky;
+  left: 5rem;
+  z-index: 1;
+  background: var(--sb-surface);
+  box-shadow: 1px 0 var(--sb-border-soft);
+}
+.sb-table-region[data-sticky-column="second"]:has(table.sb-pin-identity-after-action) thead th:nth-child(3) {
+  z-index: 2;
+  background: var(--sb-surface-muted);
+}
+.sb-table-region[data-sticky-column="third"] th:nth-child(3),
+.sb-table-region[data-sticky-column="third"] td:nth-child(3) {
+  position: sticky;
+  left: 5rem;
+  z-index: 1;
+  background: var(--sb-surface);
+  box-shadow: 1px 0 var(--sb-border-soft);
+}
+.sb-table-region[data-sticky-column="third"] thead th:nth-child(3) {
+  z-index: 2;
+  background: var(--sb-surface-muted);
+}
 
 .sb-table-region[data-sticky-column="first"] tbody tr:hover > :first-child,
 .sb-table-region[data-sticky-column="second"] tbody tr:hover > :nth-child(2) {
@@ -645,6 +693,16 @@ input[type="date"]::-webkit-date-and-time-value {
 
   .sb-list-filters > :not(:first-child) {
     flex: 0 1 9rem;
+  }
+}
+
+/* Tablet keeps the dedicated bottom navigation and page action row; the
+   desktop inspection rail must not leak its mobile More/FAB controls into it. */
+@media (min-width: 768px) and (max-width: 1279px) {
+  [data-mobile-action-bar],
+  [data-mobile-create-fab],
+  [data-mobile-document-action] {
+    display: none !important;
   }
 }
 

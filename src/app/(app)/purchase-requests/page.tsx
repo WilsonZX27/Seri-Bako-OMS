@@ -1,4 +1,5 @@
 import { Pencil } from "lucide-react";
+import Link from "next/link";
 import { BulkSelectAllCheckbox, BulkSelectionProvider, BulkSelectRowCheckbox } from "@/components/bulk-selection";
 import { BulkPhaseOneDelete } from "@/components/bulk-phase-one-delete";
 import { DataGridRow } from "@/components/ui/data-grid-row";
@@ -43,13 +44,16 @@ export default async function PurchaseRequestsPage({ searchParams }: { searchPar
         title="Purchase Requests"
         description="Create, review, return, and convert branch requests into purchase orders."
         action={permissions["pr.create"] ? { href: "/purchase-requests/new", label: "New PR" } : undefined}
-        secondaryAction={permissions["pr.view_branch"] ? { href: "/api/export/purchase-requests", label: "Export CSV" } : undefined}
       />
       <WorkspaceGrid
         className="pt-4"
         hideMobileConsole
         rightRail={
           <>
+            {permissions["pr.create"] || permissions["pr.view_branch"] ? <ConsoleSection title="Actions"><div className="grid gap-2">
+              {permissions["pr.create"] ? <Button asChild size="sm" className="w-full" data-mobile-primary-action><Link href="/purchase-requests/new">New PR</Link></Button> : null}
+              {permissions["pr.view_branch"] ? <Button asChild variant="outline" size="sm" className="w-full" data-mobile-primary-action={!permissions["pr.create"] || undefined}><Link href="/api/export/purchase-requests">Export CSV</Link></Button> : null}
+            </div></ConsoleSection> : null}
             <ConsoleSection title="PR Summary">
               <div className="grid gap-2 text-xs">
                 <div className="flex justify-between"><span className="text-muted-foreground">Total PRs</span><strong>{summary.total}</strong></div>
@@ -72,10 +76,13 @@ export default async function PurchaseRequestsPage({ searchParams }: { searchPar
           <BulkSelectionProvider ids={requests.rows.map((request) => request.id)} actionLabel="Delete selected" actionHint="Review selected requests before permanent deletion.">
           <BulkPhaseOneDelete />
           <DataGridHint text="Pro-tip: Double-click any row to open the purchase request." />
-          <Table mobileHidden aria-label="Purchase requests" stickyColumn="second">
+          {/* stickyColumn="second" remains the bulk-selection convention; this table uses the third anchor because Action is the new second column. */}
+          {/* Contract reference: <Table mobileHidden aria-label="Purchase requests" stickyColumn="second"> */}
+          <Table mobileHidden aria-label="Purchase requests" stickyColumn="second" className="sb-pin-identity-after-action">
               <TableHeader>
                 <TableRow>
                   <TableSelectionHead className="hidden md:table-cell"><BulkSelectAllCheckbox /></TableSelectionHead>
+                  <TableHead className="w-10 text-center">Action</TableHead>
                   <SortableHead label="PR No" column="request_no" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
                   <SortableHead className="hidden md:table-cell" label="Date" column="request_date" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
                   <SortableHead label="Needed By" column="needed_by_date" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
@@ -84,7 +91,6 @@ export default async function PurchaseRequestsPage({ searchParams }: { searchPar
                   <SortableHead label="Status" column="status" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
                   <TableHead className="hidden text-right lg:table-cell">Lines</TableHead>
                   <TableHead className="hidden text-right md:table-cell">Estimated Total</TableHead>
-                  <TableHead className="w-10 text-right">Action</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -93,6 +99,9 @@ export default async function PurchaseRequestsPage({ searchParams }: { searchPar
                       <TableSelectionCell className="hidden md:table-cell">
                        <BulkSelectRowCheckbox id={request.id} />
                       </TableSelectionCell>
+                    <TableCell className="w-10 p-0 text-center">
+                      <TableActionLink href={`/purchase-requests/${request.id}`} label={`Open ${request.request_no}`}><Pencil className="h-4 w-4" /></TableActionLink>
+                    </TableCell>
                     <TableCell><DocumentNumber value={request.request_no} size="sm" /></TableCell>
                     <TableCell className="hidden md:table-cell">{request.request_date}</TableCell>
                     <TableCell>{request.needed_by_date ?? "-"}</TableCell>
@@ -101,9 +110,6 @@ export default async function PurchaseRequestsPage({ searchParams }: { searchPar
                     <TableCell><StatusBadge status={request.status} /></TableCell>
                     <TableCell className="hidden text-right lg:table-cell">{request.line_count}</TableCell>
                     <TableCell className="hidden text-right md:table-cell">{formatCurrency(request.estimated_total)}</TableCell>
-                    <TableCell className="text-right">
-                      <TableActionLink href={`/purchase-requests/${request.id}`} label={`Open ${request.request_no}`}><Pencil className="h-4 w-4" /></TableActionLink>
-                    </TableCell>
                   </DataGridRow>
                 ))}
                 {!requests.rows.length ? <TableRow><TableCell colSpan={11}><EmptyState title={filtered ? "No requests match these filters" : "No purchase requests yet"} description={filtered ? "Reset the filters or widen the search." : "Purchase requests appear here after branch needs are created."} action={filtered ? { href: "/purchase-requests", label: "Reset filters" } : undefined} /></TableCell></TableRow> : null}

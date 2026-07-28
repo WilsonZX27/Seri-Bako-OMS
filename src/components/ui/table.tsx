@@ -6,8 +6,10 @@ import { cn } from "@/lib/utils";
 /**
  * Technical tables keep their primary business identity visible while horizontally scrolling.
  * A leading checkbox is not an identity, so bulk-select tables opt into `second` explicitly.
+ * The `third` anchor is used when a compact action column sits between the checkbox and identity.
+ * Legacy contract: stickyColumn?: "none" | "first" | "second"
  */
-export function Table({ className, mobileHidden = false, stickyColumn = "first", ...props }: React.TableHTMLAttributes<HTMLTableElement> & { mobileHidden?: boolean; stickyColumn?: "none" | "first" | "second" }) {
+export function Table({ className, mobileHidden = false, stickyColumn = "first", ...props }: React.TableHTMLAttributes<HTMLTableElement> & { mobileHidden?: boolean; stickyColumn?: "none" | "first" | "second" | "third" }) {
   return (
     <div className={cn("sb-table-region", mobileHidden && "hidden md:block")} data-sticky-column={stickyColumn} role="region" aria-label={props["aria-label"] ?? "Data table"} tabIndex={0}>
       <table className={cn("w-full caption-bottom text-xs", className)} {...props} />

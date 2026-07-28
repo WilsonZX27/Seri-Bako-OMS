@@ -29,7 +29,7 @@ export default async function PurchaseReturnsPage({ searchParams }: { searchPara
   const emptyAction = filtered ? { href: "/purchase-returns", label: "Reset filters" } : canCreate ? { href: "/purchase-returns/new", label: "New Return" } : undefined;
   return (
     <>
-      <PageHeader title="Purchase Returns" description="Return posted supplier receipts and deduct stock once posted." action={canCreate ? { href: "/purchase-returns/new", label: "New return" } : undefined} />
+      <PageHeader title="Purchase Returns" description="Return posted supplier receipts and deduct stock once posted." />
       <WorkspaceGrid hideMobileConsole
         rightRail={
             <>

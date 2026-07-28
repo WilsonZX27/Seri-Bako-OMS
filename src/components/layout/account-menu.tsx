@@ -45,7 +45,7 @@ export function AccountMenu({ displayName, roleLabel, initials }: { displayName:
         </div>
         <Link ref={firstItemRef} role="menuitem" href="/account" onClick={() => setOpen(false)} className="flex min-h-12 items-center px-2 py-2 hover:bg-[var(--sb-surface-muted)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[var(--sb-green-700)] md:min-h-8">Update Account</Link>
         <form action={signOut}>
-          <button role="menuitem" type="submit" className="flex min-h-12 w-full items-center px-2 py-2 text-left text-[var(--sb-danger)] hover:bg-[var(--sb-surface-muted)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[var(--sb-green-700)] md:min-h-8">Logout</button>
+          <button role="menuitem" type="submit" className="flex min-h-12 w-full items-center px-2 py-2 text-left text-[11px] text-[var(--sb-danger)] hover:bg-[var(--sb-surface-muted)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[var(--sb-green-700)] md:min-h-8">Logout</button>
         </form>
       </div> : null}
     </div>

@@ -21,7 +21,7 @@ import { getProductionJobs } from "@/server/queries/production-jobs";
 import { hasPermission } from "@/server/auth/permissions";
 import { formatNumber } from "@/lib/utils";
 import { formatStatusLabel } from "@/lib/status-label";
-import { hasActiveFilters } from "@/lib/table-state";
+import { hasActiveFilters, paginateRows } from "@/lib/table-state";
 
 const jobStatuses = [
   ["draft", "Draft"],
@@ -31,9 +31,27 @@ const jobStatuses = [
   ["cancelled", "Cancelled"],
 ];
 
+async function loadProductionJobs(filters: Record<string, string | undefined>) {
+  try {
+    return await getProductionJobs(filters);
+  } catch (error) {
+    console.error("[production-jobs] list query failed", error);
+    return paginateRows([], filters.page, 15);
+  }
+}
+
+async function loadBranches() {
+  try {
+    return await getBranchesForSelect();
+  } catch (error) {
+    console.error("[production-jobs] branch filter query failed", error);
+    return [];
+  }
+}
+
 export default async function ProductionJobsPage({ searchParams }: { searchParams: Promise<Record<string, string | undefined>> }) {
   const filters = await searchParams;
-  const [jobs, allJobs, branches, canCreate] = await Promise.all([getProductionJobs(filters), getProductionJobs({ page: "all" }), getBranchesForSelect(), hasPermission("production.create")]);
+  const [jobs, allJobs, branches, canCreate] = await Promise.all([loadProductionJobs(filters), loadProductionJobs({ page: "all" }), loadBranches(), hasPermission("production.create")]);
   const selectedStatus = filters.status ?? "all";
   const rows = allJobs.rows;
   const countByStatus = (...values: string[]) => rows.filter((row) => values.includes(row.status)).length;

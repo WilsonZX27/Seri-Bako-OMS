@@ -14,16 +14,34 @@ import { WorkspaceGrid } from "@/components/layout/workspace-layout";
 import { StatusTabs } from "@/components/status-tabs";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { OperationalList, OperationalListRow, Table, TableActionLink, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { hasActiveFilters } from "@/lib/table-state";
+import { hasActiveFilters, paginateRows } from "@/lib/table-state";
 import { hasPermission } from "@/server/auth/permissions";
 import { getBranchesForSelect } from "@/server/queries/common";
 import { getStockCounts } from "@/server/queries/stock-counts";
 
 const statuses = ["draft", "submitted", "reviewed", "approved", "posted", "rejected", "cancelled"];
 
+async function loadStockCounts(filters: Record<string, string | undefined>) {
+  try {
+    return await getStockCounts(filters);
+  } catch (error) {
+    console.error("[stock-counts] list query failed", error);
+    return paginateRows([], filters.page, 12);
+  }
+}
+
+async function loadBranches() {
+  try {
+    return await getBranchesForSelect();
+  } catch (error) {
+    console.error("[stock-counts] branch filter query failed", error);
+    return [];
+  }
+}
+
 export default async function StockCountsPage({ searchParams }: { searchParams: Promise<Record<string, string | undefined>> }) {
   const filters = await searchParams;
-  const [counts, allCounts, branches, canCreate] = await Promise.all([getStockCounts(filters), getStockCounts({ page: "all" }), getBranchesForSelect(), hasPermission("stock_count.create")]);
+  const [counts, allCounts, branches, canCreate] = await Promise.all([loadStockCounts(filters), loadStockCounts({ page: "all" }), loadBranches(), hasPermission("stock_count.create")]);
   const rows = allCounts.rows;
   const count = (...values: string[]) => rows.filter((row) => values.includes(row.status)).length;
   const filtered = hasActiveFilters(filters);

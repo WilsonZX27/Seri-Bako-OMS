@@ -19,7 +19,7 @@ export default async function SetupPage({
 
   if (status.hasAdmin || params.completed) {
     return (
-      <main className="flex min-h-screen items-center justify-center bg-background p-6">
+      <main className="flex min-h-dvh items-center justify-center bg-background p-6">
         <Card className="w-full max-w-lg">
           <CardHeader>
             <CardTitle>Setup already completed.</CardTitle>
@@ -36,7 +36,7 @@ export default async function SetupPage({
   }
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-background p-6">
+    <main className="flex min-h-dvh items-center justify-center bg-background p-6">
       <Card className="w-full max-w-xl">
         <CardHeader>
           <div className="mb-2 flex h-10 w-10 items-center justify-center rounded-md bg-primary text-primary-foreground">

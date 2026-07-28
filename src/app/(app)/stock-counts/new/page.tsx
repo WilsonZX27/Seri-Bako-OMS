@@ -28,9 +28,10 @@ export default async function NewStockCountPage({ searchParams }: { searchParams
         workflowSteps={steps}
         currentStatus="draft"
         hideMobileWorkflow
+        compactMobileSpacing
         sidePanel={<div className="space-y-4">
           <DocumentSideSection title="Primary action">
-            <SubmitButton form={formId} className="w-full" pendingLabel="Saving...">Create draft count</SubmitButton>
+            <SubmitButton form={formId} className="w-full" pendingLabel="Saving...">Save draft</SubmitButton>
           </DocumentSideSection>
           <DocumentSideSection title="Count guidance"><p className="text-xs text-muted-foreground">Start from the latest posted physical count where available, then use ± or direct entry to record what changed. Variance notes are optional in draft and remain visible for review.</p></DocumentSideSection>
         </div>}

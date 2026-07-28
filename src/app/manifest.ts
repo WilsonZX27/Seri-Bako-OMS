@@ -7,6 +7,7 @@ export default function manifest(): MetadataRoute.Manifest {
     description: "Seri Bako operational workdesk for procurement, receiving, inventory, production, and outlet operations.",
     start_url: "/dashboard",
     display: "standalone",
+    orientation: "portrait",
     background_color: "#F7F5F0",
     theme_color: "#083B2A",
     icons: [

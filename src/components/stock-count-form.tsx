@@ -82,6 +82,7 @@ export function StockCountForm({
   );
   const [search, setSearch] = useState("");
   const [showAdjustedOnly, setShowAdjustedOnly] = useState(false);
+  const [sortBy, setSortBy] = useState<"name" | "code">("name");
 
   // Next can preserve this client component while the branch query changes.
   // Reset the editable rows only when the selected branch changes so PJS10 and
@@ -90,6 +91,7 @@ export function StockCountForm({
     setLines(seedLines.map(makeEditableLine));
     setSearch("");
     setShowAdjustedOnly(false);
+    setSortBy("name");
   }, [selectedBranchId, seedLines]);
 
   function selectBranch(branchId: string) {
@@ -120,11 +122,17 @@ export function StockCountForm({
 
   const adjustedCount = lines.filter((line) => line.adjusted).length;
   const normalizedSearch = search.trim().toLowerCase();
-  const visibleLines = lines.filter((line) => {
-    if (showAdjustedOnly && !line.adjusted) return false;
-    if (!normalizedSearch) return true;
-    return `${line.item_name} ${line.item_code}`.toLowerCase().includes(normalizedSearch);
-  });
+  const visibleLines = lines
+    .filter((line) => {
+      if (showAdjustedOnly && !line.adjusted) return false;
+      if (!normalizedSearch) return true;
+      return `${line.item_name} ${line.item_code}`.toLowerCase().includes(normalizedSearch);
+    })
+    .sort((left, right) => {
+      const leftValue = sortBy === "name" ? left.item_name : left.item_code;
+      const rightValue = sortBy === "name" ? right.item_name : right.item_code;
+      return leftValue.localeCompare(rightValue, undefined, { numeric: true, sensitivity: "base" });
+    });
   const countComplete = lines.length > 0 && lines.every((line) => line.physicalQty.trim() !== "");
 
 
@@ -160,6 +168,10 @@ export function StockCountForm({
               <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" aria-hidden="true" />
               <Input value={search} onChange={(event) => setSearch(event.target.value)} className="pl-9" placeholder="Find item name or code" />
             </label>
+            <SelectNative aria-label="Sort items" value={sortBy} onChange={(event) => setSortBy(event.target.value as "name" | "code")} className="h-[var(--sb-control-height)] w-[4.75rem] shrink-0 px-2 text-xs">
+              <option value="name">Name</option>
+              <option value="code">Code</option>
+            </SelectNative>
             <button
               type="button"
               className="inline-flex h-[var(--sb-control-height)] min-w-11 shrink-0 items-center justify-center gap-1.5 border border-[var(--sb-border)] bg-white px-2.5 text-sm font-medium hover:bg-[var(--sb-surface-muted)]"
@@ -203,11 +215,11 @@ export function StockCountForm({
                   >
                     <div className="order-1 min-w-0">
                       <p className="max-h-9 overflow-hidden break-words text-sm font-medium leading-tight text-slate-800">{line.item_name}</p>
-                      <p className="truncate whitespace-nowrap text-xs text-slate-400">{line.item_code}</p>
+                      <p className="truncate whitespace-nowrap text-[10px] leading-3 tracking-[0.01em] text-slate-400">{line.item_code}</p>
                     </div>
 
                     <div className={`order-2 min-w-0 text-right text-xs font-medium ${variance < 0 ? "text-red-600" : variance > 0 ? "text-emerald-700" : "text-muted-foreground"}`}>
-                      {hasPhysical ? <><span className="block whitespace-nowrap">{variance > 0 ? "+" : ""}{formatQuantity(variance)} {line.uom}</span><span className="block text-[10px] font-normal">{formatVariancePercent(percent)}</span></> : <span className="font-normal">—</span>}
+                      {hasPhysical ? <><span className="block whitespace-nowrap">{variance > 0 ? "+" : ""}{formatQuantity(variance)}</span><span className="block text-[10px] font-normal">{formatVariancePercent(percent)}</span></> : <span className="font-normal">—</span>}
                     </div>
 
                     <div className="order-3 flex min-w-0 items-center justify-end gap-1">
@@ -225,7 +237,7 @@ export function StockCountForm({
                           required
                            aria-label={`Counted quantity for ${line.item_name}`}
                           placeholder="0.00"
-                           className="h-8 min-w-0 rounded-none border-0 px-0 text-center text-[13px] font-semibold tabular-nums shadow-none focus-visible:ring-inset"
+                           className="h-8 min-w-0 flex-1 rounded-none border-0 px-0 text-center text-[13px] font-semibold tabular-nums shadow-none focus-visible:ring-inset [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
                         />
                           <button type="button" className="flex h-8 w-7 shrink-0 items-center justify-center border-l border-[var(--sb-border)] text-[var(--sb-green-900)] hover:bg-[var(--sb-surface-muted)] active:bg-[var(--sb-green-100)]" onClick={() => adjustPhysicalQty(line.item_id, 1)} aria-label={`Increase quantity for ${line.item_name}`}><Plus className="h-3.5 w-3.5" /></button>
                         </div>
@@ -258,11 +270,11 @@ export function StockCountForm({
               className="sb-mobile-action-bar fixed inset-x-3 z-[var(--sb-z-sticky)] flex min-w-0 items-center gap-3 p-2 xl:hidden"
               style={{ bottom: "calc(var(--sb-mobile-nav-height) + env(safe-area-inset-bottom) + 0.5rem)" }}
             >
-              <div className="flex min-w-0 flex-1 items-baseline gap-4">
+              <div className="flex min-w-0 flex-1 flex-col items-start gap-0">
                 <span className="text-sm font-semibold tabular-nums">{lines.length} values ready</span>
-                <span className="text-sm tabular-nums text-muted-foreground">{adjustedCount} adjusted</span>
+                <span className="text-xs tabular-nums text-muted-foreground">{adjustedCount} adjusted</span>
               </div>
-              <SubmitButton type="submit" disabled={!countComplete} className="shrink-0" pendingLabel="Saving..." showOverlay overlayLabel="Saving changes...">Create draft</SubmitButton>
+              <SubmitButton type="submit" disabled={!countComplete} className="shrink-0" pendingLabel="Saving..." showOverlay overlayLabel="Saving changes...">Save draft</SubmitButton>
             </div>
           ) : null}
         </form>

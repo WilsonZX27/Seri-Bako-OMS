@@ -6,7 +6,7 @@ import { ErrorState } from "@/components/ui/system-states";
 
 export default function AuthError({ reset }: { reset: () => void }) {
   return (
-    <main className="min-h-screen bg-background">
+    <main className="min-h-dvh bg-background">
       <ErrorState
         title="This page could not be loaded"
         description="Please refresh or return to login."

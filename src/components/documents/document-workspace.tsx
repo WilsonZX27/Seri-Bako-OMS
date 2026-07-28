@@ -28,6 +28,7 @@ export function DocumentWorkspace({
   mobileActivity,
   mobileMoreOptions,
   hideMobileWorkflow = false,
+  compactMobileSpacing = false,
   tabletRailMode = "context",
 }: {
   breadcrumbs: Crumb[];
@@ -44,6 +45,7 @@ export function DocumentWorkspace({
   mobileActivity?: ReactNode;
   mobileMoreOptions?: ReactNode;
   hideMobileWorkflow?: boolean;
+  compactMobileSpacing?: boolean;
   tabletRailMode?: "context" | "split";
 }) {
   const isNewDocument = documentNo.toLowerCase().startsWith("new ");
@@ -51,11 +53,11 @@ export function DocumentWorkspace({
   return (
     <>
       <span data-document-breadcrumb={breadcrumbs.map((crumb) => crumb.label).join("/") || documentNo} className="sr-only" aria-hidden="true" />
-      <header className="sticky top-0 z-20 min-w-0 border-b border-[var(--border-muted)] bg-[var(--workspace-bg)] px-3 py-2.5 sm:px-4 sm:py-3">
+      <header className="sticky top-0 z-20 min-w-0 border-b border-[var(--border-muted)] bg-[var(--workspace-bg)] px-3 py-2 sm:px-4 sm:py-3">
         <h1 className="sr-only">{title ?? documentNo}</h1>
         <div data-tablet-document-header className="flex flex-col gap-2 xl:flex-row xl:items-start xl:justify-between">
           <div className="min-w-0">
-            <div className="flex flex-wrap items-center gap-2">
+            <div className="flex min-h-8 flex-wrap items-center gap-2">
               <DocumentNumber value={documentNo} size="lg" className={cn("max-w-full break-all text-[16px] sm:text-lg", isNewDocument && "hidden")} />
               {priority ? <PriorityBadge priority={priority} /> : null}
               <StatusBadge status={status} className="md:hidden" />
@@ -67,13 +69,10 @@ export function DocumentWorkspace({
             </div>
           </div>
         </div>
-        <div className="mt-2 min-w-0">
-          {!hideMobileWorkflow ? <MobileWorkflowStatus steps={workflowSteps} currentStatus={currentStatus} /> : null}
-          <div className="hidden md:block"><WorkflowStatusPipeline steps={workflowSteps} currentStatus={currentStatus} compact /></div>
-        </div>
+        {!hideMobileWorkflow ? <div className="mt-2 min-w-0"><MobileWorkflowStatus steps={workflowSteps} currentStatus={currentStatus} /><div className="hidden md:block"><WorkflowStatusPipeline steps={workflowSteps} currentStatus={currentStatus} compact /></div></div> : <div className="hidden md:block"><WorkflowStatusPipeline steps={workflowSteps} currentStatus={currentStatus} compact /></div>}
       </header>
 
-      <WorkspaceGrid documentMode tabletRailMode={tabletRailMode} className={cn("min-w-0 p-3", mobilePrimaryAction && "pb-20 xl:pb-3")} rightRail={<div>{sidePanel}</div>} hideMobileConsole>
+      <WorkspaceGrid documentMode tabletRailMode={tabletRailMode} className={cn("min-w-0 p-3", compactMobileSpacing && "pt-0 md:pt-3", mobilePrimaryAction && "pb-20 xl:pb-3")} rightRail={<div>{sidePanel}</div>} hideMobileConsole>
         <div className="min-w-0">
           <div className="min-w-0 space-y-3">
             {children}

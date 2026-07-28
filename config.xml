@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<widget id="com.seribako.oms" version="7.24.31" xmlns="http://www.w3.org/ns/widgets" xmlns:cdv="http://cordova.apache.org/ns/1.0">
+  <name>Seri Bako OMS</name>
+  <description>Seri Bako Operations Management System</description>
+  <content src="https://seribako-oms.vercel.app/" />
+  <access origin="https://seribako-oms.vercel.app" />
+  <allow-navigation href="https://seribako-oms.vercel.app/*" />
+  <allow-intent href="http://*/*" />
+  <allow-intent href="https://*/*" />
+
+  <!-- Keep the native wrapper edge-to-edge and above the browser chrome. -->
+  <preference name="Fullscreen" value="true" />
+  <preference name="StatusBarOverlaysWebView" value="true" />
+  <preference name="Orientation" value="portrait" />
+  <preference name="StatusBarStyle" value="lightcontent" />
+
+  <plugin name="cordova-plugin-statusbar" spec="3.0.0" />
+</widget>

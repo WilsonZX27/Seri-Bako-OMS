@@ -22,6 +22,7 @@ import { hasPermission } from "@/server/auth/permissions";
 import { formatNumber } from "@/lib/utils";
 import { formatStatusLabel } from "@/lib/status-label";
 import { hasActiveFilters, paginateRows } from "@/lib/table-state";
+import { logServerError } from "@/server/observability/logger";
 
 const jobStatuses = [
   ["draft", "Draft"],
@@ -35,7 +36,7 @@ async function loadProductionJobs(filters: Record<string, string | undefined>) {
   try {
     return await getProductionJobs(filters);
   } catch (error) {
-    console.error("[production-jobs] list query failed", error);
+    logServerError(error, { source: "page.productionJobs.list" });
     return paginateRows([], filters.page, 15);
   }
 }
@@ -44,7 +45,7 @@ async function loadBranches() {
   try {
     return await getBranchesForSelect();
   } catch (error) {
-    console.error("[production-jobs] branch filter query failed", error);
+    logServerError(error, { source: "page.productionJobs.branchFilter" });
     return [];
   }
 }

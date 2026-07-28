@@ -18,6 +18,7 @@ import { hasActiveFilters, paginateRows } from "@/lib/table-state";
 import { hasPermission } from "@/server/auth/permissions";
 import { getBranchesForSelect } from "@/server/queries/common";
 import { getStockCounts } from "@/server/queries/stock-counts";
+import { logServerError } from "@/server/observability/logger";
 
 const statuses = ["draft", "submitted", "reviewed", "approved", "posted", "rejected", "cancelled"];
 
@@ -25,7 +26,7 @@ async function loadStockCounts(filters: Record<string, string | undefined>) {
   try {
     return await getStockCounts(filters);
   } catch (error) {
-    console.error("[stock-counts] list query failed", error);
+    logServerError(error, { source: "page.stockCounts.list" });
     return paginateRows([], filters.page, 12);
   }
 }
@@ -34,7 +35,7 @@ async function loadBranches() {
   try {
     return await getBranchesForSelect();
   } catch (error) {
-    console.error("[stock-counts] branch filter query failed", error);
+    logServerError(error, { source: "page.stockCounts.branchFilter" });
     return [];
   }
 }

@@ -73,6 +73,7 @@ export default async function ProductionJobsPage({ searchParams }: { searchParam
       />
       <WorkspaceGrid
         hideMobileConsole={!canCreate}
+        tabletRailMode="split"
         rightRail={<>
           {canCreate ? <ConsoleSection title="Actions">
           <Button asChild size="sm" className="w-full" data-mobile-primary-action>

@@ -30,7 +30,9 @@ export default async function PurchaseReturnsPage({ searchParams }: { searchPara
   return (
     <>
       <PageHeader title="Purchase Returns" description="Return posted supplier receipts and deduct stock once posted." />
-      <WorkspaceGrid hideMobileConsole
+      <WorkspaceGrid
+        hideMobileConsole={!canCreate}
+        tabletRailMode="split"
         rightRail={
             <>
               <ConsoleSection title="Actions">

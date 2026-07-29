@@ -32,10 +32,13 @@ export default async function SupplierInvoicesPage({ searchParams }: { searchPar
   const rows = allInvoices.rows;
   const count = (...items: string[]) => rows.filter((row) => items.includes(row.status)).length;
   const filtered = hasActiveFilters(filters);
+  const hasMobileAction = permissions["supplier_invoice.create"] || permissions["supplier_invoice.pay"];
   return (
     <>
       <PageHeader title="Supplier Invoices" description="Track posted GRN invoices and basic AP payments." />
-      <WorkspaceGrid hideMobileConsole
+      <WorkspaceGrid
+        hideMobileConsole={!hasMobileAction}
+        tabletRailMode="split"
         rightRail={
           <>
             {permissions["supplier_invoice.create"] || permissions["supplier_invoice.pay"] ? <ConsoleSection title="Actions">

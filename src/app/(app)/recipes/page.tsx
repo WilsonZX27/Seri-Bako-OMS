@@ -32,11 +32,11 @@ export default async function RecipesPage({ searchParams }: { searchParams: Prom
       />
       <WorkspaceGrid hideMobileConsole={!canCreate} rightRail={<><ConsoleSection title="Actions">{canCreate ? <Button asChild className="w-full" data-mobile-primary-action><Link href="/recipes/new">New recipe</Link></Button> : <p className="text-xs text-muted-foreground">Recipe master data is read-only for Finance.</p>}</ConsoleSection><ConsoleSection title="Recipe Summary"><dl className="grid gap-2 text-xs"><div className="flex justify-between"><dt className="text-muted-foreground">Total</dt><dd className="font-semibold">{recipes.length}</dd></div><div className="flex justify-between"><dt className="text-muted-foreground">Active</dt><dd className="font-semibold">{recipes.filter((recipe) => recipe.status === "active").length}</dd></div><div className="flex justify-between"><dt className="text-muted-foreground">Pending approval</dt><dd className="font-semibold">{recipes.filter((recipe) => recipe.status === "pending_approval").length}</dd></div></dl></ConsoleSection></>}>
         <div className="overflow-hidden rounded-[2px] border bg-card">
-          <StatusTabs statuses={[{ value: "active", label: "Active" }, { value: "draft", label: "Draft" }, { value: "pending_approval", label: "Pending Approval" }, { value: "archived", label: "Archived" }]} activeStatus={filters.status} />
-          <MasterDataFilters search={filters.search} status={filters.status} placeholder="Search recipe number, product code, or product" showStatus={false} resultCount={page.totalRows} filtered={filtered} resetHref="/recipes" />
-            <Table mobileHidden aria-label="Recipes">
+          <MasterDataFilters search={filters.search} status={filters.status} leadingFilter={<StatusTabs statuses={[{ value: "active", label: "Active" }, { value: "draft", label: "Draft" }, { value: "pending_approval", label: "Pending Approval" }, { value: "archived", label: "Archived" }]} activeStatus={filters.status} />} placeholder="Search recipe number, product code, or product" showStatus={false} resultCount={page.totalRows} filtered={filtered} resetHref="/recipes" />
+            <Table mobileHidden aria-label="Recipes" stickyColumn="second">
               <TableHeader>
                 <TableRow>
+                  <TableHead className="w-10 text-center">Action</TableHead>
                   <TableHead>Recipe No</TableHead>
                   <TableHead className="hidden md:table-cell">Product Code</TableHead>
                   <TableHead>Product</TableHead>
@@ -47,12 +47,12 @@ export default async function RecipesPage({ searchParams }: { searchParams: Prom
                   <TableHead className="hidden text-right lg:table-cell">Total Cost</TableHead>
                   <TableHead className="hidden text-right lg:table-cell">Cost / Unit</TableHead>
                   <TableHead>Status</TableHead>
-                  <TableHead className="w-12 text-right">Action</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {page.rows.map((recipe) => (
                   <TableRow key={recipe.id}>
+                    <TableCell className="w-10 p-0 text-center"><TableActionLink href={`/recipes/${recipe.id}`} label={`Open ${recipe.recipe_no}`}><Pencil className="h-4 w-4" /></TableActionLink></TableCell>
                     <TableCell className="font-medium">{recipe.recipe_no}</TableCell>
                     <TableCell className="hidden md:table-cell">{recipe.product_code}</TableCell>
                     <TableCell className="font-medium">{recipe.product_name}</TableCell>
@@ -69,7 +69,6 @@ export default async function RecipesPage({ searchParams }: { searchParams: Prom
                     <TableCell>
                       <Badge variant={recipe.status === "active" ? "success" : recipe.status === "rejected" ? "danger" : "secondary"}>{recipe.status}</Badge>
                     </TableCell>
-                    <TableCell className="text-right"><TableActionLink href={`/recipes/${recipe.id}`} label={`Open ${recipe.recipe_no}`}><Pencil className="h-4 w-4" /></TableActionLink></TableCell>
                   </TableRow>
                 ))}
                 {!page.rows.length ? (

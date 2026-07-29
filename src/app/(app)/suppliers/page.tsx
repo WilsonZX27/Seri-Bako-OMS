@@ -52,14 +52,14 @@ export default async function SuppliersPage({
       >
         {filters.success ? <div className="border border-[var(--sb-success)] bg-[var(--sb-success-bg)] p-3 text-sm text-[var(--sb-success)]">{filters.success}</div> : null}
         <div className="overflow-hidden rounded-[2px] border bg-card">
-          <StatusTabs statuses={[{ value: "active", label: "Active" }, { value: "inactive", label: "Inactive" }]} activeStatus={filters.status} />
-          <MasterDataFilters search={filters.search} status={filters.status} showStatus={false} placeholder="Search supplier code, name, contact, phone, email" resultCount={page.totalRows} filtered={filtered} resetHref="/suppliers" />
+          <MasterDataFilters search={filters.search} status={filters.status} showStatus={false} leadingFilter={<StatusTabs statuses={[{ value: "active", label: "Active" }, { value: "inactive", label: "Inactive" }]} activeStatus={filters.status} />} placeholder="Search supplier code, name, contact, phone, email" resultCount={page.totalRows} filtered={filtered} resetHref="/suppliers" />
           <BulkSelectionProvider ids={page.rows.map((supplier) => supplier.id)} actionLabel="Deactivate selected" actionHint="Deactivate suppliers only when they should no longer be used for purchasing.">
           <DataGridHint text="Pro-tip: Double-click any row to open the supplier." />
-          <Table mobileHidden aria-label="Suppliers" stickyColumn="second">
+          <Table mobileHidden aria-label="Suppliers" stickyColumn="third">
             <TableHeader>
               <TableRow>
                 <TableSelectionHead><BulkSelectAllCheckbox /></TableSelectionHead>
+                <TableHead className="w-10 text-center">Action</TableHead>
                 <SortableHead label="Supplier Code" column="supplier_code" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
                 <SortableHead label="Supplier Name" column="name" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
                 <SortableHead className="hidden lg:table-cell" label="Contact Person" column="contact_person" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
@@ -67,7 +67,6 @@ export default async function SuppliersPage({
                 <SortableHead className="hidden xl:table-cell" label="Email" column="email" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
                 <SortableHead className="hidden lg:table-cell" label="Payment Terms" column="payment_terms_days" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
                 <SortableHead label="Status" column="status" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
-                <TableHead className="w-12 text-right">Action</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -76,6 +75,7 @@ export default async function SuppliersPage({
                     <TableSelectionCell>
                      <BulkSelectRowCheckbox id={supplier.id} />
                     </TableSelectionCell>
+                  <TableCell className="w-10 p-0 text-center"><TableActionLink href={`/suppliers/${supplier.id}`} label={`Open ${supplier.name}`}><Pencil className="h-4 w-4" /></TableActionLink></TableCell>
                   <TableCell>{supplier.supplier_code ?? "-"}</TableCell>
                   <TableCell className="font-medium">{supplier.name}</TableCell>
                   <TableCell className="hidden lg:table-cell">{supplier.contact_person ?? "-"}</TableCell>
@@ -85,7 +85,6 @@ export default async function SuppliersPage({
                   <TableCell>
                     <Badge variant={supplier.status === "active" ? "success" : "secondary"}>{supplier.status}</Badge>
                   </TableCell>
-                  <TableCell className="text-right"><TableActionLink href={`/suppliers/${supplier.id}`} label={`Open ${supplier.name}`}><Pencil className="h-4 w-4" /></TableActionLink></TableCell>
                 </DataGridRow>
               ))}
               {!page.rows.length ? (

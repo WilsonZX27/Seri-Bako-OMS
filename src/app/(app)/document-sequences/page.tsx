@@ -32,9 +32,10 @@ export default async function DocumentSequencesPage({ searchParams }: { searchPa
         ) : null}
         <div className="overflow-hidden rounded-[2px] border bg-card">
           <MasterDataFilters search={filters.search} status={filters.status} placeholder="Search document type, prefix, or preview number" resultCount={sequences.length} filtered={filtered} resetHref="/document-sequences" />
-            <Table aria-label="Document sequences">
+            <Table aria-label="Document sequences" stickyColumn={canUpdate ? "second" : "first"}>
               <TableHeader>
                 <TableRow>
+                  {canUpdate ? <TableHead className="w-12 text-center">Action</TableHead> : null}
                   <TableHead>Document Type</TableHead>
                   <TableHead>Prefix</TableHead>
                   <TableHead>Next Format</TableHead>
@@ -42,12 +43,12 @@ export default async function DocumentSequencesPage({ searchParams }: { searchPa
                   <TableHead>Current Period</TableHead>
                   <TableHead className="text-right">Next Number</TableHead>
                   <TableHead>Status</TableHead>
-                  {canUpdate ? <TableHead className="w-12 text-right">Action</TableHead> : null}
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {sequences.map((sequence) => (
                   <TableRow key={sequence.id}>
+                    {canUpdate ? <TableCell className="text-center"><TableActionLink href={`/document-sequences/${sequence.id}`} label={`Edit ${sequence.document_type}`}><Pencil className="h-4 w-4" /></TableActionLink></TableCell> : null}
                     <TableCell className="font-medium">{documentTypeLabel(sequence.document_type)}</TableCell>
                     <TableCell>{sequence.prefix}</TableCell>
                     <TableCell className="font-mono">{sequence.preview_number}</TableCell>
@@ -55,7 +56,6 @@ export default async function DocumentSequencesPage({ searchParams }: { searchPa
                     <TableCell>{new Intl.DateTimeFormat("en-US", { month: "short", year: "numeric", timeZone: "Asia/Kuala_Lumpur" }).format(new Date())}</TableCell>
                     <TableCell className="text-right">{sequence.next_number}</TableCell>
                     <TableCell><Badge variant={sequence.status === "active" ? "success" : "secondary"}>{sequence.status}</Badge></TableCell>
-                    {canUpdate ? <TableCell className="text-right"><TableActionLink href={`/document-sequences/${sequence.id}`} label={`Edit ${sequence.document_type}`}><Pencil className="h-4 w-4" /></TableActionLink></TableCell> : null}
                   </TableRow>
                 ))}
                 {!sequences.length ? <TableRow><TableCell colSpan={canUpdate ? 8 : 7} className="text-center text-muted-foreground">No document sequences found.</TableCell></TableRow> : null}

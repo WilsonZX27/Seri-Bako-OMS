@@ -294,10 +294,7 @@ export function PurchaseOrderForm({
           <input type="hidden" name="idempotency_key" value={idempotencyKey} />
           <input type="hidden" name="status" value="draft" />
           <input type="hidden" name="approval_status" value="draft" />
-          <div className="grid gap-3 md:grid-cols-3">
-            <Field label="PO No">
-              <div className="rounded-md border bg-secondary/30 px-3 py-2 text-sm text-muted-foreground">Auto-generated on submit</div>
-            </Field>
+          <div className="grid gap-3 md:grid-cols-2">
             <Field label="Branch" required>
               <SelectNative name="branch_id" value={branchId} onChange={(event) => { setBranchId(event.target.value); setSupplierId(""); }} required>
                 {branches.map((branch) => <option key={branch.id} value={branch.id}>{branch.branch_name}</option>)}
@@ -315,7 +312,7 @@ export function PurchaseOrderForm({
             <Field label="Expected Delivery">
               <Input name="expected_delivery_date" type="date" />
             </Field>
-            <div className="md:col-span-3">
+            <div className="md:col-span-2">
               <Field label="Remarks">
                 <Textarea name="remarks" placeholder="Supplier ordering remarks" />
               </Field>
@@ -326,6 +323,9 @@ export function PurchaseOrderForm({
             <div className="border-b bg-secondary/40 px-3 py-2">
               <p className="text-xs font-semibold">Ordered Items</p>
               <p className="text-xs text-muted-foreground">Pending quantity is calculated from ordered minus received and cancelled.</p>
+            </div>
+            <div className="hidden grid-cols-[32px_2fr_100px_100px_100px_84px_112px] gap-2 border-b bg-[var(--sb-surface-muted)] px-3 py-2 text-[11px] font-medium text-muted-foreground lg:grid">
+              <span className="text-center">#</span><span>Item</span><span>Ordered</span><span>Received</span><span>Cancelled</span><span>UOM</span><span>Unit price</span>
             </div>
             <div className="divide-y">
               {[0, 1, 2, 3, 4].map((index) => (

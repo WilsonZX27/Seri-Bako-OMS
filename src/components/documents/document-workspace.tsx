@@ -62,10 +62,10 @@ export function DocumentWorkspace({
               {priority ? <PriorityBadge priority={priority} /> : null}
               <StatusBadge status={status} className="md:hidden" />
               {branch ? <span className="truncate text-xs text-muted-foreground md:hidden">· {branch}</span> : null}
+              {branch ? <span className="ml-auto hidden max-w-[45%] truncate text-xs text-muted-foreground md:block">{branch}</span> : null}
             </div>
             <div className={cn("hidden flex-wrap items-center gap-2 text-xs text-muted-foreground md:flex", isNewDocument ? "mt-0 md:mt-1" : "mt-1")}>
               {title && !isNewDocument ? <span className="font-medium text-foreground">{title}</span> : null}
-              {branch ? <span>{branch}</span> : null}
             </div>
           </div>
         </div> : null}
@@ -111,7 +111,10 @@ export function DocumentActionSection({ description, children, moreOptions }: { 
   return (
     <DocumentSideSection title="Primary Action" description={description}>
       {children}
-      {moreOptions ? <DocumentMoreOptions>{moreOptions}</DocumentMoreOptions> : null}
+      {moreOptions ? <>
+        <div className="hidden gap-2 md:grid">{moreOptions}</div>
+        <div className="md:hidden"><DocumentMoreOptions>{moreOptions}</DocumentMoreOptions></div>
+      </> : null}
     </DocumentSideSection>
   );
 }

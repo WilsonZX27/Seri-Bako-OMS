@@ -22,9 +22,9 @@ export default async function NewOutletDailyRecordPage({ searchParams }: { searc
   const disabled = !options.products.length || !options.branches.length;
   const canUpdate = permissions["outlet_daily_record.update"];
   const primaryAction = canUpdate
-    ? <SubmitButton form={formId} name="target_status" value="morning_recorded" disabled={disabled}>Confirm Received</SubmitButton>
-    : <SubmitButton form={formId} name="target_status" value="draft" disabled={disabled}>Save Qty Sent</SubmitButton>;
-  const secondaryActions = canUpdate ? <><SubmitButton form={formId} name="target_status" value="draft" variant="outline" disabled={disabled}>Save Draft</SubmitButton><SubmitButton form={formId} name="target_status" value="evening_completed" variant="outline" disabled={disabled}>Complete Daily Record</SubmitButton></> : null;
+    ? <SubmitButton form={formId} name="target_status" value="morning_recorded" className="w-full" disabled={disabled}>Confirm Received</SubmitButton>
+    : <SubmitButton form={formId} name="target_status" value="draft" className="w-full" disabled={disabled}>Save Qty Sent</SubmitButton>;
+  const secondaryActions = canUpdate ? <><SubmitButton form={formId} name="target_status" value="draft" variant="outline" className="w-full" disabled={disabled}>Save Draft</SubmitButton><SubmitButton form={formId} name="target_status" value="evening_completed" variant="outline" className="w-full" disabled={disabled}>Complete Daily Record</SubmitButton></> : null;
   const sidePanel = <>
     <DocumentActionSection moreOptions={secondaryActions ? <div className="grid gap-2">{secondaryActions}</div> : undefined}>{primaryAction}</DocumentActionSection>
     <DocumentSideSection title="Validation / Next Step"><p className="text-xs text-muted-foreground">Central Kitchen records Qty Sent. Outlet Staff confirms Received and records Wastage.</p><p className="text-xs text-muted-foreground">Wastage needs a reason. Quantity exceptions require a remark.</p></DocumentSideSection>
@@ -41,6 +41,7 @@ export default async function NewOutletDailyRecordPage({ searchParams }: { searc
     sidePanel={sidePanel}
     mobilePrimaryAction={primaryAction}
     mobileMoreOptions={secondaryActions ? <DocumentMoreOptions>{secondaryActions}</DocumentMoreOptions> : undefined}
+    tabletRailMode="split"
   >
     {filters.error ? <Card><CardContent className="p-3 text-sm text-destructive">{filters.error}</CardContent></Card> : null}
     <OutletDailyRecordForm formId={formId} action={saveOutletDailyRecord} branches={options.branches} products={options.products} branchId={options.defaultBranchId} recordDate={today()} canEditQtySent={permissions["outlet_daily_record.qty_sent"]} canEditOutletValues={permissions["outlet_daily_record.update"]} />

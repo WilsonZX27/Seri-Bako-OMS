@@ -7,7 +7,7 @@ const source = fs.readFileSync(path.join(__dirname, "..", "src/app/(app)/documen
 
 test("document sequences uses the shared contained technical-table pattern", () => {
   assert.match(source, /<WorkspaceGrid rightRail=/);
-  assert.match(source, /<Table aria-label="Document sequences">/);
+  assert.match(source, /<Table(?=[^>]*aria-label="Document sequences")(?=[^>]*stickyColumn=\{canUpdate \? "second" : "first"\})/);
   assert.doesNotMatch(source, /<div className="overflow-x-auto">/);
   assert.match(source, /Next Number/);
   assert.match(source, /Opening Balance:[\s\S]*not a stock-record count/);

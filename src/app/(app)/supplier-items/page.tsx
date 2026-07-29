@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { Pencil } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
@@ -8,7 +7,7 @@ import { PageHeader } from "@/components/ui/page-header";
 import { PaginationControls, SortableHead } from "@/components/sortable-table";
 import { ConsoleSection } from "@/components/layout/right-console";
 import { WorkspaceGrid } from "@/components/layout/workspace-layout";
-import { OperationalList, OperationalListRow, Table, TableActionLink, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { OperationalList, OperationalListRow, Table, TableActionMenu, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { hasActiveFilters, paginateRows } from "@/lib/table-state";
 import { formatCurrency, formatNumber } from "@/lib/utils";
 import { deleteSupplierItem } from "@/server/actions/master-data";
@@ -33,9 +32,9 @@ export default async function SupplierItemsPage({ searchParams }: { searchParams
       {filters.error || filters.success ? <div className={`border p-3 text-sm ${filters.error ? "border-destructive text-destructive" : "border-[var(--sb-success)] bg-[var(--sb-success-bg)] text-[var(--sb-success)]"}`}>{filters.error ?? filters.success}</div> : null}
       <div className="overflow-hidden rounded-[2px] border bg-card">
         <MasterDataFilters search={filters.search} status={filters.status} placeholder="Search supplier, item, supplier item code" resultCount={page.totalRows} filtered={filtered} resetHref="/supplier-items" />
-        <Table mobileHidden stickyColumn="second" aria-label="Supplier items">
+        <Table mobileHidden aria-label="Supplier items" stickyColumn="second">
           <TableHeader><TableRow>
-            <TableHead className="w-20 text-center">Actions</TableHead>
+            <TableHead className="w-16">Actions</TableHead>
             <SortableHead label="Supplier" column="supplier_name" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
             <SortableHead label="Item" column="item_name" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
             <SortableHead label="Supplier Code" column="supplier_item_code" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
@@ -49,7 +48,7 @@ export default async function SupplierItemsPage({ searchParams }: { searchParams
           </TableRow></TableHeader>
           <TableBody>
             {page.rows.map((row) => <TableRow key={row.id}>
-              <TableCell><div className="flex justify-center"><TableActionLink href={`/supplier-items/${row.id}`} label={`Open ${row.supplier_item_code}`}><Pencil className="h-4 w-4" /></TableActionLink>{canUpdate ? <form action={deleteSupplierItem.bind(null, row.id)}><Button variant="ghost" size="sm">Archive</Button></form> : null}</div></TableCell>
+              <TableCell className="w-16 p-0 text-center"><TableActionMenu label={`Actions for ${row.supplier_item_code}`}><div className="grid min-w-28 gap-1"><Link href={`/supplier-items/${row.id}`} role="menuitem" className="rounded-[var(--sb-radius-control)] px-2 py-1.5 text-xs hover:bg-[var(--sb-surface-muted)]">Open</Link>{canUpdate ? <form action={deleteSupplierItem.bind(null, row.id)}><Button type="submit" variant="ghost" size="sm" className="w-full justify-start px-2 text-xs text-[var(--sb-danger)]">Archive</Button></form> : null}</div></TableActionMenu></TableCell>
               <TableCell>{row.supplier_name}</TableCell>
               <TableCell><p className="font-medium">{row.item_name}</p><p className="text-xs text-muted-foreground">{row.item_code}</p></TableCell>
               <TableCell>{row.supplier_item_code}</TableCell>

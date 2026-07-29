@@ -98,7 +98,7 @@ export default async function PurchaseOrdersPage({ searchParams }: { searchParam
                     <TableCell className="hidden text-right md:table-cell">{formatCurrency(order.order_total)}</TableCell>
                   </DataGridRow>
                 ))}
-                {!orders.rows.length ? <TableRow><TableCell colSpan={8}><EmptyState title={filtered ? "No orders match these filters" : "No purchase orders yet"} description={filtered ? "Reset the filters or widen the search." : "Approved requests and new orders will appear here."} action={filtered ? { href: "/purchase-orders", label: "Reset filters" } : undefined} /></TableCell></TableRow> : null}
+                {!orders.rows.length ? <TableRow><TableCell colSpan={9}><EmptyState title={filtered ? "No orders match these filters" : "No purchase orders yet"} description={filtered ? "Reset the filters or widen the search." : "Approved requests and new orders will appear here."} action={filtered ? { href: "/purchase-orders", label: "Reset filters" } : undefined} /></TableCell></TableRow> : null}
               </TableBody>
             </Table>
             <OperationalList ariaLabel="Purchase orders">

@@ -265,6 +265,12 @@ input[type="date"]::-webkit-date-and-time-value {
   min-width: 0;
 }
 
+/* The filter row is a single aligned control group: search first, then only
+   the filters that are useful on the page, then submit and the result total. */
+.sb-list-filters > :is(input, button, [data-select-control], .sb-status-filter, .sb-filter-more) {
+  align-self: center;
+}
+
 .sb-filter-summary {
   display: flex;
   min-height: 2.125rem;
@@ -445,7 +451,7 @@ input[type="date"]::-webkit-date-and-time-value {
     padding: 0.625rem;
   }
 
-  .sb-status-filter {
+  .sb-list-filters .sb-status-filter {
     width: 100%;
     flex-basis: 100%;
   }
@@ -612,13 +618,15 @@ input[type="date"]::-webkit-date-and-time-value {
  * third: checkbox + action + identity
  *
  * These widths must be explicit: sticky offsets based on an assumed 2.5rem
- * action column allow the identity cell to overlap a wider table header.
+ * action column allow the identity cell to overlap a wider table header. The
+ * A 4rem action column keeps the visible Action label intact; its row pen stays
+ * left-aligned beside the selection checkbox while retaining a 44px touch target.
  */
 .sb-table-region[data-sticky-column="second"] th:first-child,
 .sb-table-region[data-sticky-column="second"] td:first-child {
-  width: 3rem;
-  min-width: 3rem;
-  max-width: 3rem;
+  width: 4rem;
+  min-width: 4rem;
+  max-width: 4rem;
 }
 
 .sb-table-region[data-sticky-column="third"] th:first-child,
@@ -630,9 +638,9 @@ input[type="date"]::-webkit-date-and-time-value {
 
 .sb-table-region[data-sticky-column="third"] th:nth-child(2),
 .sb-table-region[data-sticky-column="third"] td:nth-child(2) {
-  width: 3rem;
-  min-width: 3rem;
-  max-width: 3rem;
+  width: 4rem;
+  min-width: 4rem;
+  max-width: 4rem;
 }
 
 .sb-table-region[data-sticky-column="first"] th:first-child,
@@ -645,7 +653,6 @@ input[type="date"]::-webkit-date-and-time-value {
   left: 0;
   z-index: 1;
   background: var(--sb-surface);
-  box-shadow: 1px 0 var(--sb-border-soft);
 }
 
 .sb-table-region[data-sticky-column="first"] thead th:first-child,
@@ -656,14 +663,20 @@ input[type="date"]::-webkit-date-and-time-value {
 }
 
 .sb-table-region[data-sticky-column="second"] th:nth-child(2),
-.sb-table-region[data-sticky-column="second"] td:nth-child(2),
+.sb-table-region[data-sticky-column="second"] td:nth-child(2) {
+  position: sticky;
+  left: 4rem;
+  z-index: 1;
+  background: var(--sb-surface);
+}
+
+/* A checkbox is 40px, so its following Action cell must begin at 40px. */
 .sb-table-region[data-sticky-column="third"] th:nth-child(2),
 .sb-table-region[data-sticky-column="third"] td:nth-child(2) {
   position: sticky;
-  left: 3rem;
+  left: 2.5rem;
   z-index: 1;
   background: var(--sb-surface);
-  box-shadow: 1px 0 var(--sb-border-soft);
 }
 
 .sb-table-region[data-sticky-column="second"] thead th:nth-child(2),
@@ -674,22 +687,28 @@ input[type="date"]::-webkit-date-and-time-value {
 .sb-table-region[data-sticky-column="third"] th:nth-child(3),
 .sb-table-region[data-sticky-column="third"] td:nth-child(3) {
   position: sticky;
-  left: 5.5rem;
+  left: 6.5rem;
   z-index: 1;
   background: var(--sb-surface);
-  box-shadow: 1px 0 var(--sb-border-soft);
 }
 .sb-table-region[data-sticky-column="third"] thead th:nth-child(3) {
   z-index: 2;
   background: var(--sb-surface-muted);
 }
 
+/* Internal lead-band cells stay seamless; only its outer trailing edge gets a scroll cue. */
+.sb-table-region[data-sticky-column="first"] th:first-child,
+.sb-table-region[data-sticky-column="first"] td:first-child,
+.sb-table-region[data-sticky-column="second"] th:nth-child(2),
+.sb-table-region[data-sticky-column="second"] td:nth-child(2),
+.sb-table-region[data-sticky-column="third"] th:nth-child(3),
+.sb-table-region[data-sticky-column="third"] td:nth-child(3) {
+  box-shadow: 1px 0 var(--sb-border-soft), 4px 0 8px -2px rgb(6 44 31 / 0.24), 12px 0 18px -7px rgb(6 44 31 / 0.30);
+}
+
 .sb-table-region[data-sticky-column="first"] tbody tr:hover > :first-child,
-.sb-table-region[data-sticky-column="second"] tbody tr:hover > :first-child,
-.sb-table-region[data-sticky-column="second"] tbody tr:hover > :nth-child(2),
-.sb-table-region[data-sticky-column="third"] tbody tr:hover > :first-child,
-.sb-table-region[data-sticky-column="third"] tbody tr:hover > :nth-child(2),
-.sb-table-region[data-sticky-column="third"] tbody tr:hover > :nth-child(3) {
+.sb-table-region[data-sticky-column="second"] tbody tr:hover > :is(:first-child, :nth-child(2)),
+.sb-table-region[data-sticky-column="third"] tbody tr:hover > :is(:first-child, :nth-child(2), :nth-child(3)) {
   background: var(--sb-surface-muted);
 }
 
@@ -727,9 +746,13 @@ input[type="date"]::-webkit-date-and-time-value {
    desktop inspection rail must not leak its mobile More/FAB controls into it. */
 @media (min-width: 768px) and (max-width: 1279px) {
   [data-mobile-action-bar],
-  [data-mobile-create-fab],
   [data-mobile-document-action] {
     display: none !important;
+  }
+
+  [data-mobile-create-fab] {
+    bottom: calc(var(--sb-mobile-nav-height) + env(safe-area-inset-bottom) + 1rem);
+    right: 1.25rem;
   }
 }
 

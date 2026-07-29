@@ -62,7 +62,7 @@ test("the shared top bar is the only tablet and desktop breadcrumb, while new do
   const workspace = read("src/components/documents/document-workspace.tsx");
   assert.match(workspace, /data-document-breadcrumb/);
   assert.doesNotMatch(workspace, /<nav aria-label="Breadcrumb"/);
-  assert.match(workspace, /isNewDocument && "hidden"/);
+  assert.match(workspace, /\(!isNewDocument \|\| priority \|\| branch\)/);
   assert.match(workspace, /title && !isNewDocument/);
 });
 

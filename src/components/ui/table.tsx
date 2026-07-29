@@ -1,6 +1,6 @@
 import * as React from "react";
 import Link from "next/link";
-import { ChevronRight } from "lucide-react";
+import { ChevronRight, MoreHorizontal } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 /**
@@ -52,8 +52,10 @@ export function TableRow({ className, ...props }: React.HTMLAttributes<HTMLTable
   return <tr className={cn("border-b border-[var(--sb-border-soft)] transition-colors hover:bg-[var(--sb-surface-muted)]", className)} {...props} />;
 }
 
-export function TableHead({ className, ...props }: React.ThHTMLAttributes<HTMLTableCellElement>) {
-  return <th className={cn("h-9 min-w-24 overflow-hidden px-3 text-left align-middle text-xs font-semibold text-[var(--sb-text-muted)]", className)} {...props} />;
+export function TableHead({ className, children, "aria-label": ariaLabel, ...props }: React.ThHTMLAttributes<HTMLTableCellElement>) {
+  return (
+    <th aria-label={ariaLabel} className={cn("h-9 min-w-24 overflow-hidden px-3 text-left align-middle text-xs font-semibold text-[var(--sb-text-muted)]", className)} {...props}>{children}</th>
+  );
 }
 
 export function TableSelectionHead({ className, ...props }: React.ThHTMLAttributes<HTMLTableCellElement>) {
@@ -70,8 +72,22 @@ export function TableSelectionCell({ className, ...props }: React.TdHTMLAttribut
 
 export function TableActionLink({ href, label, children, className }: { href: string; label: string; children: React.ReactNode; className?: string }) {
   return (
-    <a href={href} aria-label={label} className={cn("inline-flex h-12 w-12 items-center justify-center text-[var(--sb-text-muted)] hover:bg-[var(--sb-surface-muted)] hover:text-[var(--sb-green-700)] md:h-11 md:w-11 xl:h-8 xl:w-8", className)}>
+    <a href={href} aria-label={label} className={cn("inline-flex h-12 w-full items-center justify-start pl-3 text-[var(--sb-text-muted)] hover:bg-[var(--sb-surface-muted)] hover:text-[var(--sb-green-700)] md:h-11 xl:h-8 [&>svg]:!h-3.5 [&>svg]:!w-3.5", className)}>
       {children}
     </a>
+  );
+}
+
+/** Keeps multi-action rows inside the same compact, fixed Action column. */
+export function TableActionMenu({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <details className="relative inline-flex text-left">
+      <summary aria-label={label} className="inline-flex h-11 w-11 cursor-pointer list-none items-center justify-center text-[var(--sb-text-muted)] hover:bg-[var(--sb-surface-muted)] hover:text-[var(--sb-green-700)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--sb-green-700)] [&::-webkit-details-marker]:hidden">
+        <MoreHorizontal className="h-4 w-4" aria-hidden="true" />
+      </summary>
+      <div role="menu" className="sb-popover-surface absolute left-0 top-[calc(100%+0.25rem)] z-[var(--sb-z-dialog)] min-w-28 p-1">
+        {children}
+      </div>
+    </details>
   );
 }

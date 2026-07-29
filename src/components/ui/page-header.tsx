@@ -41,7 +41,7 @@ export function PageHeader(props: PageHeaderProps) {
         </div>
       </header>
       {props.action || props.secondaryAction ? (
-        <div className="flex min-h-12 items-center justify-end gap-2 border-b border-[var(--sb-border-soft)] bg-white px-3 xl:hidden">
+        <div data-tablet-page-actions className="flex min-h-12 items-center justify-end gap-2 border-b border-[var(--sb-border-soft)] bg-white px-3 md:fixed md:bottom-[calc(var(--sb-mobile-nav-height)+env(safe-area-inset-bottom)+1rem)] md:right-5 md:z-[var(--sb-z-sticky)] md:min-h-0 md:flex-col md:items-stretch md:border md:p-2 md:shadow-[0_3px_8px_rgb(6_44_31_/_0.18)] xl:static xl:min-h-12 xl:flex-row xl:border-x-0 xl:border-t-0 xl:bg-transparent xl:px-3 xl:py-0 xl:shadow-none">
           {props.secondaryAction ? <Button asChild variant="ghost" size="sm"><Link href={props.secondaryAction.href}>{props.secondaryAction.label}</Link></Button> : null}
           {props.action ? <Button asChild size="sm"><Link href={props.action.href}>{props.action.label}</Link></Button> : null}
         </div>

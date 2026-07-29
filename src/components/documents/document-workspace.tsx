@@ -58,7 +58,7 @@ export function DocumentWorkspace({
         {(!isNewDocument || priority || branch) ? <div data-tablet-document-header className="flex flex-col gap-2 xl:flex-row xl:items-start xl:justify-between">
           <div className="min-w-0">
             <div className="flex min-h-8 flex-wrap items-center gap-2">
-              <DocumentNumber value={documentNo} size="lg" className={cn("max-w-full break-all text-[16px] sm:text-lg", isNewDocument && "hidden")} />
+              <DocumentNumber value={documentNo} size="lg" className="max-w-full break-all text-[16px] sm:text-lg" />
               {priority ? <PriorityBadge priority={priority} /> : null}
               <StatusBadge status={status} className="md:hidden" />
               {branch ? <span className="truncate text-xs text-muted-foreground md:hidden">· {branch}</span> : null}

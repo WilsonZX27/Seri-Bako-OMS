@@ -5,7 +5,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { MasterDataFilters } from "@/components/master-data-filters";
 import { PageHeader } from "@/components/ui/page-header";
 import { PaginationControls, SortableHead } from "@/components/sortable-table";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Table, TableActionMenu, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { paginateRows } from "@/lib/table-state";
 import { formatNumber } from "@/lib/utils";
 import { deleteUomConversion } from "@/server/actions/master-data";
@@ -35,7 +35,7 @@ export default async function UomConversionsPage({ searchParams }: { searchParam
             <Table stickyColumn="second">
               <TableHeader>
                 <TableRow>
-                  <TableHead className="w-36 text-center">Actions</TableHead>
+                  <TableHead className="w-16">Actions</TableHead>
                   <SortableHead label="From UOM" column="from_uom" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
                   <SortableHead label="To UOM" column="to_uom" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
                   <SortableHead label="Factor" column="factor" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} className="text-right" />
@@ -45,7 +45,7 @@ export default async function UomConversionsPage({ searchParams }: { searchParam
               <TableBody>
                 {page.rows.map((row) => (
                   <TableRow key={row.id}>
-                    <TableCell><div className="flex justify-center gap-2"><Button asChild variant="outline" size="sm"><Link href={`/uom-conversions/${row.id}`}>Edit</Link></Button><form action={deleteUomConversion.bind(null, row.id)}><Button variant="ghost" size="sm">Archive</Button></form></div></TableCell>
+                    <TableCell className="w-16 p-0 text-center"><TableActionMenu label={`Actions for ${row.from_uom} to ${row.to_uom}`}><div className="grid min-w-28 gap-1"><Link href={`/uom-conversions/${row.id}`} role="menuitem" className="rounded-[var(--sb-radius-control)] px-2 py-1.5 text-xs hover:bg-[var(--sb-surface-muted)]">Edit</Link><form action={deleteUomConversion.bind(null, row.id)}><Button type="submit" variant="ghost" size="sm" className="w-full justify-start px-2 text-xs text-[var(--sb-danger)]">Archive</Button></form></div></TableActionMenu></TableCell>
                     <TableCell>{row.from_uom}</TableCell>
                     <TableCell>{row.to_uom}</TableCell>
                     <TableCell className="text-right">{formatNumber(row.factor)}</TableCell>

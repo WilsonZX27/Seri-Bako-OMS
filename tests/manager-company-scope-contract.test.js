@@ -16,7 +16,7 @@ test("Manager PR scope is company-wide without Finance or Owner capability", () 
   assert.match(migration, /r\.role_code = 'manager'[\s\S]*return true/);
   assert.doesNotMatch(migration, /return target_requested_by = actor\.id/);
 
-  const managerFallback = permissions.match(/manager: \[(.*?)\],\n  purchasing:/s)?.[1] ?? "";
+  const managerFallback = permissions.match(/manager: \[(.*?)\],\r?\n  purchasing:/s)?.[1] ?? "";
   assert.match(managerFallback, /"pr\.view_all"/);
   assert.doesNotMatch(managerFallback, /"pr\.view_branch"/);
   for (const forbidden of ["pr.finance_review", "supplier_invoice.view", "supplier_invoice.pay", "recipes.view", "roles.read", "settings.manage"]) {

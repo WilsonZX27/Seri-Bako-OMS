@@ -59,7 +59,7 @@ export default async function SuppliersPage({
             <TableHeader>
               <TableRow>
                 <TableSelectionHead><BulkSelectAllCheckbox /></TableSelectionHead>
-                <TableHead className="w-12 text-center">Action</TableHead>
+                <TableHead className="w-16 text-center">Action</TableHead>
                 <SortableHead label="Supplier Code" column="supplier_code" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
                 <SortableHead label="Supplier Name" column="name" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
                 <SortableHead className="hidden lg:table-cell" label="Contact Person" column="contact_person" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
@@ -75,7 +75,7 @@ export default async function SuppliersPage({
                     <TableSelectionCell>
                      <BulkSelectRowCheckbox id={supplier.id} />
                     </TableSelectionCell>
-                  <TableCell className="text-center"><TableActionLink href={`/suppliers/${supplier.id}`} label={`Open ${supplier.name}`}><Pencil className="h-4 w-4" /></TableActionLink></TableCell>
+                  <TableCell className="w-16 p-0 text-center"><TableActionLink href={`/suppliers/${supplier.id}`} label={`Open ${supplier.name}`}><Pencil className="h-4 w-4" /></TableActionLink></TableCell>
                   <TableCell>{supplier.supplier_code ?? "-"}</TableCell>
                   <TableCell className="font-medium">{supplier.name}</TableCell>
                   <TableCell className="hidden lg:table-cell">{supplier.contact_person ?? "-"}</TableCell>

@@ -97,7 +97,7 @@ export default async function GoodsReceivingsPage({ searchParams }: { searchPara
                     <TableCell className="text-right">{formatNumber(receiving.rejected_total)}</TableCell>
                   </DataGridRow>
                 ))}
-                {!receivings.rows.length ? <TableRow><TableCell colSpan={9}><EmptyState title={filtered ? "No receivings match these filters" : "No goods receivings yet"} description={filtered ? "Reset the filters or widen the search." : "Supplier deliveries will appear after they are recorded."} action={filtered ? { href: "/goods-receivings", label: "Reset filters" } : undefined} /></TableCell></TableRow> : null}
+                {!receivings.rows.length ? <TableRow><TableCell colSpan={10}><EmptyState title={filtered ? "No receivings match these filters" : "No goods receivings yet"} description={filtered ? "Reset the filters or widen the search." : "Supplier deliveries will appear after they are recorded."} action={filtered ? { href: "/goods-receivings", label: "Reset filters" } : undefined} /></TableCell></TableRow> : null}
               </TableBody>
             </Table>
             <OperationalList ariaLabel="Goods receiving records">

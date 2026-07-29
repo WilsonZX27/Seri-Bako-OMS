@@ -51,14 +51,14 @@ export default async function StaffsPage({ searchParams }: { searchParams: Promi
         <BulkSelectionProvider ids={staffs.map((staff) => staff.id)} actionLabel="Deactivate selected" actionHint="Disable staff users from their detail page to keep a clear access history.">
         <DataGridHint text="Pro-tip: Double-click any row to open the staff profile." />
           <Table aria-label="Staff members" stickyColumn="third"><TableHeader><TableRow>
-          <TableSelectionHead className="hidden md:table-cell"><BulkSelectAllCheckbox /></TableSelectionHead><TableHead className="w-12 text-center">Action</TableHead><TableHead>Staff Code</TableHead><TableHead>Name</TableHead><TableHead className="hidden lg:table-cell">Email</TableHead><TableHead className="hidden lg:table-cell">Default Branch</TableHead><TableHead>Role</TableHead><TableHead>Staff Status</TableHead><TableHead className="hidden md:table-cell">Account Status</TableHead>
+          <TableSelectionHead className="hidden md:table-cell"><BulkSelectAllCheckbox /></TableSelectionHead><TableHead className="w-16">Action</TableHead><TableHead>Staff Code</TableHead><TableHead>Name</TableHead><TableHead className="hidden lg:table-cell">Email</TableHead><TableHead className="hidden lg:table-cell">Default Branch</TableHead><TableHead>Role</TableHead><TableHead>Staff Status</TableHead><TableHead className="hidden md:table-cell">Account Status</TableHead>
         </TableRow></TableHeader><TableBody>
           {staffs.map((staff) => (
             <DataGridRow key={staff.id} href={`/staffs/${staff.id}`}>
                 <TableSelectionCell className="hidden md:table-cell">
                  <BulkSelectRowCheckbox id={staff.id} />
                 </TableSelectionCell>
-              <TableCell className="text-center"><TableActionLink href={`/staffs/${staff.id}`} label={`Open ${staff.full_name}`}><Pencil className="h-4 w-4" /></TableActionLink></TableCell>
+              <TableCell className="w-16 p-0 text-center"><TableActionLink href={`/staffs/${staff.id}`} label={`Open ${staff.full_name}`}><Pencil className="h-4 w-4" /></TableActionLink></TableCell>
               <TableCell>{staff.staff_code?.toUpperCase() ?? "-"}</TableCell>
               <TableCell className="font-medium">{staff.full_name}</TableCell>
               <TableCell className="hidden lg:table-cell">{staff.email ?? "-"}</TableCell>
@@ -68,7 +68,7 @@ export default async function StaffsPage({ searchParams }: { searchParams: Promi
               <TableCell className="hidden md:table-cell text-xs font-medium">{staffAuthStateLabels[getStaffAuthState(staff)]}</TableCell>
             </DataGridRow>
           ))}
-          {!staffs.length ? <TableRow><TableCell colSpan={8}><EmptyState title="No staff found" description="Staff accounts will appear here after they are invited or created." action={{ href: "/staffs/new", label: "New staff" }} /></TableCell></TableRow> : null}
+          {!staffs.length ? <TableRow><TableCell colSpan={9}><EmptyState title="No staff found" description="Staff accounts will appear here after they are invited or created." action={{ href: "/staffs/new", label: "New staff" }} /></TableCell></TableRow> : null}
         </TableBody></Table>
         </BulkSelectionProvider>
       </div></WorkspaceGrid>

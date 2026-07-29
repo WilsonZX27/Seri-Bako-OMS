@@ -15,7 +15,7 @@ test("every operational list uses the canonical desktop, tablet, and mobile surf
     const source = route === "stock-balance" ? `${page}\n${read("src/components/stock-balance-workspace.tsx")}` : page;
     assert.match(source, /PageHeader/, `${route}: PageHeader`);
     assert.match(source, /FilterBar|MasterDataFilters/, `${route}: FilterBar`);
-    assert.match(source, /<Table mobileHidden aria-label=/, `${route}: responsive Table`);
+    assert.match(source, /<Table(?=[^>]*\bmobileHidden\b)(?=[^>]*aria-label=)/, `${route}: responsive Table`);
     assert.match(source, /OperationalList/, `${route}: mobile OperationalList`);
     assert.match(source, /EmptyState/, `${route}: EmptyState`);
     assert.match(source, /PaginationControls/, `${route}: Pagination`);

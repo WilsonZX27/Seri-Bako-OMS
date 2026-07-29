@@ -9,7 +9,8 @@ const read = (file) => fs.readFileSync(path.join(root, file), "utf8");
 test("purchase order mobile search and rows expose delivery context", () => {
   const source = read("src/app/(app)/purchase-orders/page.tsx");
 
-  assert.match(source, /flex min-w-0 flex-1 gap-2 md:contents/);
+  assert.match(source, /<FilterBar resultCount=/);
+  assert.match(source, /placeholder="Search PO no, supplier, remarks"/);
   assert.match(source, /Delivery \{order\.expected_delivery_date \?\? "not set"\}/);
   assert.match(source, /order\.line_count/);
   assert.match(source, /formatCurrency\(order\.order_total\)/);

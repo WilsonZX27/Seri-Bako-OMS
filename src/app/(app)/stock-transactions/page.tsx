@@ -126,11 +126,12 @@ export default async function StockTransactionsPage({ searchParams }: { searchPa
             <Input name="from" type="date" defaultValue={filters.from ?? ""} />
             <Input name="to" type="date" defaultValue={filters.to ?? ""} />
             </FilterBarMore>
-            <Button type="submit" variant="secondary">Filter</Button>
+            <Button type="submit" variant="secondary">Search</Button>
           </FilterBar>
-            <Table mobileHidden aria-label="Stock movement ledger">
+            <Table mobileHidden aria-label="Stock movement ledger" stickyColumn="second">
               <TableHeader>
                 <TableRow>
+                  <TableHead className="w-16 text-center">Action</TableHead>
                   <SortableHead label="Transaction No" column="transaction_no" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
                   <SortableHead label="Date/time" column="transaction_date" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
                   <SortableHead label="Type" column="transaction_type" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
@@ -142,12 +143,14 @@ export default async function StockTransactionsPage({ searchParams }: { searchPa
                   <TableHead>UOM</TableHead>
                   <TableHead className="text-right">Unit Cost</TableHead>
                   <TableHead className="text-right">Total Value</TableHead>
-                  <TableHead className="w-16 text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {ledger.rows.map((row) => (
                   <DataGridRow key={row.stock_transaction_id} href={`/stock-transactions/${row.stock_transaction_id}`}>
+                    <TableCell className="w-16 p-0 text-center">
+                      <TableActionLink href={`/stock-transactions/${row.stock_transaction_id}`} label={`Open ${row.transaction_no}`}><Pencil className="h-4 w-4" /></TableActionLink>
+                    </TableCell>
                     <TableCell className="font-medium">{row.transaction_no}</TableCell>
                     <TableCell>{row.transaction_date}</TableCell>
                     <TableCell><Badge variant="secondary">{movementLabel(row.transaction_type)}</Badge></TableCell>
@@ -159,14 +162,11 @@ export default async function StockTransactionsPage({ searchParams }: { searchPa
                     <TableCell>{row.base_unit}</TableCell>
                     <TableCell className="text-right">{formatCurrency(row.unit_cost)}</TableCell>
                     <TableCell className="text-right">{formatCurrency(row.total_cost)}</TableCell>
-                    <TableCell className="text-right">
-                      <TableActionLink href={`/stock-transactions/${row.stock_transaction_id}`} label={`Open ${row.transaction_no}`}><Pencil className="h-4 w-4" /></TableActionLink>
-                    </TableCell>
                   </DataGridRow>
                 ))}
                 {!ledger.rows.length ? (
                   <TableRow>
-                    <TableCell colSpan={12}>
+                      <TableCell colSpan={12}>
                       <EmptyState title={filtered ? "No movements match these filters" : "No ledger movements yet"} description={filtered ? "Reset the filters or widen the date range." : "Posted inventory movements will appear here."} action={filtered ? { href: "/stock-transactions", label: "Reset filters" } : undefined} />
                     </TableCell>
                   </TableRow>

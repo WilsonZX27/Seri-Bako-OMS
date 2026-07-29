@@ -7,7 +7,10 @@ const root = path.join(__dirname, "..");
 const read = (file) => fs.readFileSync(path.join(root, file), "utf8");
 
 test("master-data lists reserve phone action space for creation, not desktop-only utilities", () => {
-  assert.match(read("src/app/(app)/items/page.tsx"), /<WorkspaceGrid hideMobileConsole=\{!permissions\["items\.create"\]\} rightRail=/);
+  const items = read("src/app/(app)/items/page.tsx");
+  assert.match(items, /<WorkspaceGrid[^>]*hideMobileConsole=\{!permissions\["items\.create"\]\}/);
+  assert.match(items, /<WorkspaceGrid[^>]*tabletRailMode="split"/);
+  assert.match(items, /<WorkspaceGrid[^>]*rightRail=/);
   assert.match(read("src/app/(app)/suppliers/page.tsx"), /hideMobileConsole=\{!canCreate\}/);
   assert.match(read("src/app/(app)/products/page.tsx"), /<WorkspaceGrid hideMobileConsole=\{!canCreate\} rightRail=/);
   assert.match(read("src/app/(app)/supplier-items/page.tsx"), /<WorkspaceGrid hideMobileConsole=\{!canCreate\} rightRail=/);

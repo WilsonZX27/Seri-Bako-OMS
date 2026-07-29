@@ -3,6 +3,7 @@ import { Activity, ArrowRight, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ConsoleSection } from "@/components/layout/right-console";
 import { PageHeader } from "@/components/ui/page-header";
+import { OperationalList, OperationalListRow } from "@/components/ui/table";
 import { WorkspaceGrid } from "@/components/layout/workspace-layout";
 import { getVisibleRecentActivitiesForCurrentUser } from "@/server/queries/notifications";
 
@@ -48,7 +49,22 @@ export default async function ActivityPage({ searchParams }: { searchParams: Pro
         }
       >
         <div className="overflow-hidden rounded-[2px] border bg-card">
-            <div className="divide-y">
+          <OperationalList ariaLabel="Recent activity" className="bg-card" >
+            {activities.map((activity) => {
+              const actor = activity.created_by_name ?? "System";
+              const messageIncludesActor = activity.message.toLocaleLowerCase().startsWith(`${actor.toLocaleLowerCase()}:`);
+              return <OperationalListRow
+                key={activity.id}
+                href={`/activity?selected=${activity.id}`}
+                label={`View activity: ${activity.message}`}
+                primary={activity.message}
+                secondary={messageIncludesActor ? activity.entity_type : `${actor} · ${activity.entity_type}`}
+                meta={new Date(activity.created_at).toLocaleString("en-MY", { dateStyle: "short", timeStyle: "short" })}
+              />;
+            })}
+            {!activities.length ? <div className="p-4 text-sm text-muted-foreground">No recent activity is available for your role.</div> : null}
+          </OperationalList>
+          <div data-activity-desktop-list className="hidden divide-y md:block">
               {activities.map((activity) => {
                 const href = activity.href || null;
                 const active = selected?.id === activity.id;

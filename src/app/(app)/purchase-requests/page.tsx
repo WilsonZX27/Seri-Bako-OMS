@@ -76,9 +76,7 @@ export default async function PurchaseRequestsPage({ searchParams }: { searchPar
           <BulkSelectionProvider ids={requests.rows.map((request) => request.id)} actionLabel="Delete selected" actionHint="Review selected requests before permanent deletion.">
           <BulkPhaseOneDelete />
           <DataGridHint text="Pro-tip: Double-click any row to open the purchase request." />
-          {/* stickyColumn="second" remains the bulk-selection convention; this table uses the third anchor because Action is the new second column. */}
-          {/* Contract reference: <Table mobileHidden aria-label="Purchase requests" stickyColumn="second"> */}
-          <Table mobileHidden aria-label="Purchase requests" stickyColumn="second" className="sb-pin-identity-after-action">
+            <Table mobileHidden aria-label="Purchase requests" stickyColumn="third">
               <TableHeader>
                 <TableRow>
                   <TableSelectionHead className="hidden md:table-cell"><BulkSelectAllCheckbox /></TableSelectionHead>

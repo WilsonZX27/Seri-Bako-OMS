@@ -264,18 +264,9 @@ input[type="date"]::-webkit-date-and-time-value {
 /* Status is a compact select in the same filter line as search. The old tab strip
    consumed a full row and encouraged duplicate status controls. */
 .sb-status-filter {
-  float: left;
-  width: min(10rem, 32vw);
-  margin: 0.5rem 0.5rem 0 0.75rem;
+  flex: 0 1 10rem;
+  width: min(10rem, 100%);
   min-width: 0;
-}
-.sb-status-filter + .sb-list-filters {
-  border-top: 0;
-}
-.sb-status-filter ~ .sb-table-region,
-.sb-status-filter ~ .overflow-x-auto,
-.sb-status-filter ~ [role="list"] {
-  clear: both;
 }
 
 .sb-filter-summary {
@@ -453,11 +444,9 @@ input[type="date"]::-webkit-date-and-time-value {
     padding: 0.625rem;
   }
 
-  .sb-status-filter {
-    float: none;
+  .sb-list-filters .sb-status-filter {
     width: 100%;
-    margin: 0;
-    padding: 0.625rem 0.625rem 0;
+    flex-basis: 100%;
   }
 
   .sb-list-filters input,
@@ -615,7 +604,11 @@ input[type="date"]::-webkit-date-and-time-value {
 }
 
 .sb-table-region[data-sticky-column="first"] th:first-child,
-.sb-table-region[data-sticky-column="first"] td:first-child {
+.sb-table-region[data-sticky-column="first"] td:first-child,
+.sb-table-region[data-sticky-column="second"] th:first-child,
+.sb-table-region[data-sticky-column="second"] td:first-child,
+.sb-table-region[data-sticky-column="third"] th:first-child,
+.sb-table-region[data-sticky-column="third"] td:first-child {
   position: sticky;
   left: 0;
   z-index: 1;
@@ -623,13 +616,17 @@ input[type="date"]::-webkit-date-and-time-value {
   box-shadow: 1px 0 var(--sb-border-soft);
 }
 
-.sb-table-region[data-sticky-column="first"] thead th:first-child {
+.sb-table-region[data-sticky-column="first"] thead th:first-child,
+.sb-table-region[data-sticky-column="second"] thead th:first-child,
+.sb-table-region[data-sticky-column="third"] thead th:first-child {
   z-index: 2;
   background: var(--sb-surface-muted);
 }
 
 .sb-table-region[data-sticky-column="second"] th:nth-child(2),
-.sb-table-region[data-sticky-column="second"] td:nth-child(2) {
+.sb-table-region[data-sticky-column="second"] td:nth-child(2),
+.sb-table-region[data-sticky-column="third"] th:nth-child(2),
+.sb-table-region[data-sticky-column="third"] td:nth-child(2) {
   position: sticky;
   left: 2.5rem;
   z-index: 1;
@@ -637,7 +634,8 @@ input[type="date"]::-webkit-date-and-time-value {
   box-shadow: 1px 0 var(--sb-border-soft);
 }
 
-.sb-table-region[data-sticky-column="second"] thead th:nth-child(2) {
+.sb-table-region[data-sticky-column="second"] thead th:nth-child(2),
+.sb-table-region[data-sticky-column="third"] thead th:nth-child(2) {
   z-index: 2;
   background: var(--sb-surface-muted);
 }
@@ -667,7 +665,8 @@ input[type="date"]::-webkit-date-and-time-value {
 }
 
 .sb-table-region[data-sticky-column="first"] tbody tr:hover > :first-child,
-.sb-table-region[data-sticky-column="second"] tbody tr:hover > :nth-child(2) {
+.sb-table-region[data-sticky-column="second"] tbody tr:hover > :is(:first-child, :nth-child(2)),
+.sb-table-region[data-sticky-column="third"] tbody tr:hover > :is(:first-child, :nth-child(2), :nth-child(3)) {
   background: var(--sb-surface-muted);
 }
 
@@ -705,9 +704,13 @@ input[type="date"]::-webkit-date-and-time-value {
    desktop inspection rail must not leak its mobile More/FAB controls into it. */
 @media (min-width: 768px) and (max-width: 1279px) {
   [data-mobile-action-bar],
-  [data-mobile-create-fab],
   [data-mobile-document-action] {
     display: none !important;
+  }
+
+  [data-mobile-create-fab] {
+    bottom: calc(var(--sb-mobile-nav-height) + env(safe-area-inset-bottom) + 1rem);
+    right: 1.25rem;
   }
 }
 

@@ -57,20 +57,19 @@ export default async function GoodsReceivingsPage({ searchParams }: { searchPara
         }
       >
         <div className="overflow-hidden rounded-[2px] border border-[var(--sb-border-soft)] bg-card">
-          <StatusTabs statuses={statuses} activeStatus={filters.status} />
           <FilterBar resultCount={receivings.totalRows} resetHref="/goods-receivings" filtered={filtered}>
-            <div className="flex min-w-0 flex-1 gap-2 md:contents">
-              <Input name="search" defaultValue={filters.search ?? ""} placeholder="Search GRN, PO or supplier" className="min-w-0 flex-1 md:max-w-sm" />
-              <Button type="submit" variant="secondary" className="shrink-0">Search</Button>
-            </div>
+            <Input name="search" defaultValue={filters.search ?? ""} placeholder="Search GRN, PO or supplier" className="min-w-0 flex-1 md:max-w-sm" />
+            <StatusTabs statuses={statuses} activeStatus={filters.status} />
+            <Button type="submit" variant="secondary" className="shrink-0">Search</Button>
             {filters.status ? <input type="hidden" name="status" value={filters.status} /> : null}
           </FilterBar>
           <BulkSelectionProvider ids={receivings.rows.map((receiving) => receiving.id)} actionLabel="Archive selected" actionHint="Open selected GRNs to post or cancel them through workflow-safe actions. Posted receiving records are never hard deleted.">
           <DataGridHint text="Pro-tip: Double-click any row to open the goods receiving document." />
-          <Table mobileHidden aria-label="Goods receiving records" stickyColumn="second">
+          <Table mobileHidden aria-label="Goods receiving records" stickyColumn="third">
               <TableHeader>
                 <TableRow>
                   <TableSelectionHead><BulkSelectAllCheckbox /></TableSelectionHead>
+                  <TableHead className="w-10 text-center">Action</TableHead>
                   <SortableHead label="GRN No" column="grn_no" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
                   <TableHead>PO</TableHead>
                   <TableHead>Supplier</TableHead>
@@ -79,7 +78,6 @@ export default async function GoodsReceivingsPage({ searchParams }: { searchPara
                   <SortableHead label="Status" column="status" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
                   <TableHead className="text-right">Received</TableHead>
                   <TableHead className="text-right">Rejected</TableHead>
-                  <TableHead className="w-12 text-right">Action</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -88,6 +86,7 @@ export default async function GoodsReceivingsPage({ searchParams }: { searchPara
                       <TableSelectionCell>
                         <BulkSelectRowCheckbox id={receiving.id} />
                       </TableSelectionCell>
+                    <TableCell className="w-10 p-0 text-center"><TableActionLink href={`/goods-receivings/${receiving.id}`} label={`Open ${receiving.grn_no}`}><Pencil className="h-4 w-4" /></TableActionLink></TableCell>
                     <TableCell><DocumentNumber value={receiving.grn_no} size="sm" /></TableCell>
                     <TableCell>{receiving.po_no ?? "-"}</TableCell>
                     <TableCell>{receiving.supplier_name ?? "-"}</TableCell>
@@ -96,10 +95,9 @@ export default async function GoodsReceivingsPage({ searchParams }: { searchPara
                     <TableCell><StatusBadge status={receiving.status} /></TableCell>
                     <TableCell className="text-right">{formatNumber(receiving.received_total)}</TableCell>
                     <TableCell className="text-right">{formatNumber(receiving.rejected_total)}</TableCell>
-                    <TableCell className="text-right"><TableActionLink href={`/goods-receivings/${receiving.id}`} label={`Open ${receiving.grn_no}`}><Pencil className="h-4 w-4" /></TableActionLink></TableCell>
                   </DataGridRow>
                 ))}
-                {!receivings.rows.length ? <TableRow><TableCell colSpan={9}><EmptyState title={filtered ? "No receivings match these filters" : "No goods receivings yet"} description={filtered ? "Reset the filters or widen the search." : "Supplier deliveries will appear after they are recorded."} action={filtered ? { href: "/goods-receivings", label: "Reset filters" } : undefined} /></TableCell></TableRow> : null}
+                {!receivings.rows.length ? <TableRow><TableCell colSpan={10}><EmptyState title={filtered ? "No receivings match these filters" : "No goods receivings yet"} description={filtered ? "Reset the filters or widen the search." : "Supplier deliveries will appear after they are recorded."} action={filtered ? { href: "/goods-receivings", label: "Reset filters" } : undefined} /></TableCell></TableRow> : null}
               </TableBody>
             </Table>
             <OperationalList ariaLabel="Goods receiving records">

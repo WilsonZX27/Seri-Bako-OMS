@@ -67,8 +67,8 @@ export default async function PurchaseRequestsPage({ searchParams }: { searchPar
       >
         <div className="overflow-hidden rounded-[2px] border border-[var(--sb-border-soft)] bg-card">
           <FilterBar resultCount={requests.totalRows} resetHref="/purchase-requests" filtered={filtered}>
-            <StatusTabs statuses={statuses} activeStatus={filters.status} />
             <Input name="search" defaultValue={filters.search ?? ""} placeholder="Search PR no, branch, remarks" className="md:max-w-sm" />
+            <StatusTabs statuses={statuses} activeStatus={filters.status} />
             <SelectControl name="priority" defaultValue={filters.priority ?? "all"} ariaLabel="Priority" options={[{ value: "all", label: "All priorities" }, { value: "critical", label: "Critical" }, { value: "urgent", label: "Urgent" }, { value: "normal", label: "Normal" }, { value: "low", label: "Low" }]} />
             {filters.status ? <input type="hidden" name="status" value={filters.status} /> : null}
             <Button type="submit">Search</Button>

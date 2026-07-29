@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { AlertTriangle, Check, Cloud, ListFilter, Minus, Plus, Search } from "lucide-react";
+import { AlertTriangle, ListFilter, Minus, Plus, Search } from "lucide-react";
 import { Field } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { SelectNative } from "@/components/ui/select-native";
@@ -26,6 +26,8 @@ type SeedLine = {
 
 type SeedLineInput = SeedLine & { physicalQty: string; remarks: string; initialPhysicalQty: string; adjusted: boolean };
 type AutosaveState = "idle" | "recovered" | "saving" | "saved" | "error";
+export const STOCK_COUNT_AUTOSAVE_EVENT = "seri-bako:stock-count-autosave";
+const STOCK_COUNT_SORT_KEY = "seri-bako:stock-count-sort";
 type LocalDraftSnapshot = {
   branchId: string;
   countDate: string;
@@ -110,7 +112,8 @@ export function StockCountForm({
   const [autosaveError, setAutosaveError] = useState("");
   const [search, setSearch] = useState("");
   const [showAdjustedOnly, setShowAdjustedOnly] = useState(false);
-  const [sortBy, setSortBy] = useState<"name" | "code">("name");
+  const [sortBy, setSortBy] = useState<"name" | "code">("code");
+  const sortPreferenceReady = useRef(false);
   const resolvedBranchId = selectedBranchId ?? branches[0]?.id ?? "";
   const localStorageKey = `seri-bako:stock-count-draft:${draftId ?? `new:${resolvedBranchId}`}`;
 
@@ -126,7 +129,6 @@ export function StockCountForm({
     setLines(seedLines.map(makeEditableLine));
     setSearch("");
     setShowAdjustedOnly(false);
-    setSortBy("name");
     setCountDate(initialCountDate ?? getToday());
     setToleranceValue(String(initialTolerance ?? tolerance));
     setCountRemarks(initialRemarks ?? "");
@@ -134,6 +136,17 @@ export function StockCountForm({
     setAutosaveState("idle");
     setAutosaveError("");
   }, [selectedBranchId, seedLines, initialCountDate, initialTolerance, initialRemarks]);
+
+  useEffect(() => {
+    const storedSort = window.localStorage.getItem(STOCK_COUNT_SORT_KEY);
+    if (storedSort === "name" || storedSort === "code") setSortBy(storedSort);
+    sortPreferenceReady.current = true;
+  }, []);
+
+  useEffect(() => {
+    if (!sortPreferenceReady.current) return;
+    window.localStorage.setItem(STOCK_COUNT_SORT_KEY, sortBy);
+  }, [sortBy]);
 
   useEffect(() => {
     try {
@@ -274,6 +287,11 @@ export function StockCountForm({
           ? "Save failed — retrying"
           : "Autosave ready";
 
+  useEffect(() => {
+    window.dispatchEvent(new CustomEvent(STOCK_COUNT_AUTOSAVE_EVENT, {
+      detail: { state: autosaveState, label: autosaveLabel, error: autosaveError },
+    }));
+  }, [autosaveError, autosaveLabel, autosaveState]);
 
   return (
     <div className="rounded-none md:rounded-[var(--sb-panel-radius)] md:border md:bg-white">
@@ -288,11 +306,6 @@ export function StockCountForm({
                 <p className="truncate text-sm font-semibold text-foreground">{initialCountDate ? formatDateOnly(countDate) : `Today · ${formatDateOnly(countDate)}`}</p>
               </div>
               <Input aria-label="Count date" name="count_date" type="date" value={countDate} onChange={(event) => { setCountDate(event.target.value); markDirty(); }} required className="basis-36 shrink-0" />
-            </div>
-            <div className={`mt-1.5 flex items-center gap-1.5 text-[11px] ${autosaveState === "error" ? "text-destructive" : "text-muted-foreground"}`} role="status" aria-live="polite">
-              {autosaveState === "saved" ? <Check className="h-3.5 w-3.5 text-success" aria-hidden="true" /> : <Cloud className="h-3.5 w-3.5" aria-hidden="true" />}
-              <span>{autosaveLabel}</span>
-              {autosaveError ? <span className="sr-only">{autosaveError}</span> : null}
             </div>
             <details className="group mt-2 border-t border-slate-100 pt-2">
               <summary className="cursor-pointer text-xs font-medium text-muted-foreground">More settings</summary>

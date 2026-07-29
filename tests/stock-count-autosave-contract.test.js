@@ -20,14 +20,24 @@ test("stock count autosave preserves the canonical Draft to Confirm and Post wor
 
 test("stock count form keeps a local recovery snapshot and reports server save state", () => {
   const form = read("src", "components", "stock-count-form.tsx");
+  const status = read("src", "components", "stock-count-autosave-status.tsx");
+  const detail = read("src", "app", "(app)", "stock-counts", "[id]", "page.tsx");
+  const actions = read("src", "server", "actions", "stock-counts.ts");
 
   assert.match(form, /window\.localStorage\.setItem\(localStorageKey/);
   assert.match(form, /window\.localStorage\.getItem\(localStorageKey\)/);
   assert.match(form, /document\.visibilityState === "hidden"/);
+  assert.match(form, /useState<"name" \| "code">\("code"\)/);
+  assert.match(form, /seri-bako:stock-count-sort/);
+  assert.doesNotMatch(form, /setSortBy\("name"\)/);
   assert.match(form, /Saving…/);
   assert.match(form, /Recovered unsaved changes/);
   assert.match(form, /Save failed — retrying/);
-  assert.match(form, /role="status" aria-live="polite"/);
+  assert.match(status, /role="status"/);
+  assert.match(status, /aria-live="polite"/);
+  assert.match(detail, /mobileWorkflowTrailing=\{canEdit \? <StockCountAutosaveStatus \/> : null\}/);
+  assert.match(detail, /canEdit && canPost \? "grid-cols-2" : "grid-cols-1"/);
+  assert.match(actions, /autosaveStockCountDraft[\s\S]*updateStockCountDraftRecord\(id, formData, \{ revalidate: false \}\)/);
 });
 
 test("applied Central Kitchen PR history is retired forward without shipping its API", () => {

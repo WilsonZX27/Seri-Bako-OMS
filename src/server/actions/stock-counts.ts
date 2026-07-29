@@ -86,7 +86,7 @@ async function createStockCountRecord(formData: FormData) {
   return created.id;
 }
 
-async function updateStockCountDraftRecord(id: string, formData: FormData) {
+async function updateStockCountDraftRecord(id: string, formData: FormData, options: { revalidate?: boolean } = {}) {
   const countId = stockCountIdSchema.parse(id);
   const payload = extractStockCount(formData);
   const lineIds = formData.getAll("line_id").map(String);
@@ -105,7 +105,7 @@ async function updateStockCountDraftRecord(id: string, formData: FormData) {
     if (error) throw new Error(error.message);
     if (!(data as { id?: string } | null)?.id) throw new Error("Draft save did not return an identifier.");
   }
-  revalidateWorkspaceState(["/stock-counts", `/stock-counts/${countId}`]);
+  if (options.revalidate !== false) revalidateWorkspaceState(["/stock-counts", `/stock-counts/${countId}`]);
   return countId;
 }
 
@@ -144,7 +144,7 @@ export async function autosaveNewStockCount(formData: FormData): Promise<StockCo
 export async function autosaveStockCountDraft(id: string, formData: FormData): Promise<StockCountAutosaveResult> {
   try {
     await requirePermission("stock_count.update");
-    const countId = await updateStockCountDraftRecord(id, formData);
+    const countId = await updateStockCountDraftRecord(id, formData, { revalidate: false });
     return { ok: true, id: countId, savedAt: new Date().toISOString() };
   } catch (error) {
     return { ok: false, error: formatActionError(error, "Autosave failed. Your changes remain on this device.") };

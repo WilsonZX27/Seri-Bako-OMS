@@ -29,7 +29,7 @@ export default async function StockTransfersPage({ searchParams }: { searchParam
 
   return <>
     <PageHeader title="Stock Transfers" description="Move stock between branches through posted transfer in/out ledger movements." action={canCreate ? { href: "/stock-transfers/new", label: "New transfer" } : undefined} />
-    <WorkspaceGrid hideMobileConsole rightRail={<>
+    <WorkspaceGrid hideMobileConsole={!canCreate} tabletRailMode="split" rightRail={<>
       <ConsoleSection title="Actions">{canCreate ? <Button asChild className="w-full" data-mobile-primary-action><Link href="/stock-transfers/new">New Transfer</Link></Button> : <p className="text-xs text-muted-foreground">Your role has read-only access.</p>}</ConsoleSection>
       <ConsoleSection title="Transfer Summary"><dl className="grid gap-2 text-xs"><div className="flex justify-between"><dt className="text-muted-foreground">Total</dt><dd className="font-semibold">{rows.length}</dd></div><div className="flex justify-between"><dt className="text-muted-foreground">Draft</dt><dd className="font-semibold">{count("draft")}</dd></div><div className="flex justify-between"><dt className="text-muted-foreground">In transit</dt><dd className="font-semibold">{count("in_transit")}</dd></div><div className="flex justify-between"><dt className="text-muted-foreground">Completed</dt><dd className="font-semibold">{count("completed")}</dd></div></dl></ConsoleSection>
     </>}>

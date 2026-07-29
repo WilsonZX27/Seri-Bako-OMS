@@ -23,8 +23,32 @@ test("operational queues expose their action rail on tablet", () => {
     "src/app/(app)/supplier-invoices/page.tsx",
     "src/app/(app)/production/jobs/page.tsx",
     "src/app/(app)/stock-counts/page.tsx",
+    "src/app/(app)/stock-transfers/page.tsx",
+    "src/app/(app)/stock-wastage/page.tsx",
   ]) {
     assert.match(read(file), /tabletRailMode="split"/, `${file} must expose its rail from tablet width`);
+  }
+});
+
+test("inventory transaction workspaces expose their document rail on tablet", () => {
+  for (const file of [
+    "src/app/(app)/stock-transactions/new/page.tsx",
+    "src/app/(app)/stock-transactions/[id]/page.tsx",
+  ]) {
+    const source = read(file);
+    assert.match(source, /documentMode/, `${file} must use document spacing`);
+    assert.match(source, /tabletRailMode="split"/, `${file} must expose its rail from tablet width`);
+  }
+});
+
+test("inventory queues expose creation only to permitted mobile users", () => {
+  for (const file of [
+    "src/app/(app)/stock-transfers/page.tsx",
+    "src/app/(app)/stock-wastage/page.tsx",
+  ]) {
+    const source = read(file);
+    assert.match(source, /hideMobileConsole=\{!canCreate\}/);
+    assert.match(source, /data-mobile-primary-action/);
   }
 });
 

@@ -15,7 +15,11 @@ export default async function NewStockTransactionPage({ searchParams }: { search
   return (
     <>
       <PageHeader title="New Stock Movement" description="Post a stock movement in the item base unit." />
-      <WorkspaceGrid rightRail={<ConsoleSection title="Actions"><SubmitButton form={formId} type="submit" className="w-full" data-mobile-primary-action>Post stock transaction</SubmitButton></ConsoleSection>}>
+      <WorkspaceGrid
+        documentMode
+        tabletRailMode="split"
+        rightRail={<ConsoleSection title="Actions"><SubmitButton form={formId} type="submit" className="w-full" data-mobile-primary-action>Post stock transaction</SubmitButton></ConsoleSection>}
+      >
         {params.error ? <Card><CardContent className="p-4 text-sm text-destructive">{params.error}</CardContent></Card> : null}
         <StockTransactionForm formId={formId} showSubmit={false} items={items} branches={branches} action={createStockTransaction} />
       </WorkspaceGrid>

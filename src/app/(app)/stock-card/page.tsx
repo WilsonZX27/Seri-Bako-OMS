@@ -51,11 +51,11 @@ export default async function StockCardPage({ searchParams }: { searchParams: Pr
 
           <section className="overflow-hidden rounded-[2px] border bg-card" aria-labelledby="stock-card-summary">
             <div className="border-b px-3 py-2.5"><h2 id="stock-card-summary" className="text-xs font-semibold">Movement summary</h2></div>
-            <div className="grid grid-cols-2 overflow-hidden sm:grid-cols-4 xl:grid-cols-8">
+            <div className="grid grid-cols-4 overflow-hidden xl:grid-cols-8">
               {movementSummary.map(([label, value]) => (
-                <div key={label} className="min-w-0 border-b border-r px-3 py-2.5">
-                  <p className="truncate text-[11px] text-muted-foreground">{label}</p>
-                  <p className="mt-0.5 font-mono text-sm font-semibold tabular-nums">{formatNumber(value)}</p>
+                <div key={label} className="min-w-0 border-b border-r px-2 py-2 sm:px-3">
+                  <p className="line-clamp-2 min-h-7 text-[10px] leading-3.5 text-muted-foreground sm:min-h-0 sm:truncate sm:text-[11px]">{label}</p>
+                  <p className="mt-0.5 truncate font-mono text-xs font-semibold tabular-nums sm:text-sm">{formatNumber(value)}</p>
                 </div>
               ))}
             </div>

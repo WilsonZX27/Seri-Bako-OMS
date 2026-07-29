@@ -73,17 +73,17 @@ export default async function DocumentsPage({ searchParams }: { searchParams: Pr
           </FilterBar>
           <BulkSelectionProvider ids={documents.rows.map((document) => document.id)} actionLabel="Archive selected" actionHint="Documents with history are not hard deleted. Open selected documents to use workflow-safe actions.">
           <DataGridHint text="Pro-tip: Double-click any row to open the document." />
-            <Table mobileHidden aria-label="Documents register" stickyColumn="second">
+            <Table mobileHidden aria-label="Documents register" stickyColumn="third">
               <TableHeader>
                 <TableRow>
                   <TableSelectionHead><BulkSelectAllCheckbox /></TableSelectionHead>
+                  <TableHead className="w-12 text-center">Action</TableHead>
                   <SortableHead label="Doc No" column="document_no" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
                   <SortableHead label="Type" column="document_type" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
                   <TableHead>Stage</TableHead>
                   <TableHead>Created By</TableHead>
                   <SortableHead label="Created" column="created_at" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
                   <SortableHead label="Updated" column="updated_at" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
-                  <TableHead className="w-12 text-right">Action</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -94,13 +94,13 @@ export default async function DocumentsPage({ searchParams }: { searchParams: Pr
                       <TableSelectionCell>
                         <BulkSelectRowCheckbox id={document.id} />
                       </TableSelectionCell>
+                    <TableCell className="text-center"><TableActionLink href={href} label={`Open ${document.document_no}`}><Pencil className="h-4 w-4" /></TableActionLink></TableCell>
                     <TableCell><DocumentNumber value={document.document_no} size="sm" /></TableCell>
                     <TableCell>{formatStatusLabel(document.document_type)}</TableCell>
                     <TableCell><StatusBadge status={getDocumentStageLabel(document)} /></TableCell>
                     <TableCell>{document.created_by_name ?? "Unknown user"}</TableCell>
                     <TableCell>{new Date(document.created_at).toLocaleDateString("en-MY")}</TableCell>
                     <TableCell>{new Date(document.updated_at).toLocaleDateString("en-MY")}</TableCell>
-                    <TableCell className="text-right"><TableActionLink href={href} label={`Open ${document.document_no}`}><Pencil className="h-4 w-4" /></TableActionLink></TableCell>
                   </DataGridRow>
                   );
                 })}

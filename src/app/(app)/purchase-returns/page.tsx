@@ -56,9 +56,10 @@ export default async function PurchaseReturnsPage({ searchParams }: { searchPara
             {filters.status ? <input type="hidden" name="status" value={filters.status} /> : null}
             <Button type="submit">Search</Button>
           </FilterBar>
-            <Table mobileHidden aria-label="Purchase returns">
+            <Table mobileHidden stickyColumn="second" aria-label="Purchase returns">
               <TableHeader>
                 <TableRow>
+                  <TableHead className="w-12 text-center">Action</TableHead>
                   <TableHead>Return No</TableHead>
                   <TableHead>GRN</TableHead>
                   <TableHead>PO</TableHead>
@@ -66,12 +67,12 @@ export default async function PurchaseReturnsPage({ searchParams }: { searchPara
                   <TableHead>Status</TableHead>
                   <TableHead className="text-right">Qty</TableHead>
                   <TableHead className="text-right">Value</TableHead>
-                  <TableHead className="w-12 text-right">Action</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {returns.rows.map((row) => (
                   <DataGridRow key={row.id} href={`/purchase-returns/${row.id}`}>
+                    <TableCell className="text-center"><TableActionLink href={`/purchase-returns/${row.id}`} label={`Open ${row.purchase_return_no}`}><Pencil className="h-4 w-4" /></TableActionLink></TableCell>
                     <TableCell><DocumentNumber value={row.purchase_return_no} size="sm" /></TableCell>
                     <TableCell>{row.grn_no ?? "-"}</TableCell>
                     <TableCell>{row.po_no ?? "-"}</TableCell>
@@ -79,7 +80,6 @@ export default async function PurchaseReturnsPage({ searchParams }: { searchPara
                     <TableCell><StatusBadge status={row.status} /></TableCell>
                     <TableCell className="text-right">{formatNumber(row.return_total)}</TableCell>
                     <TableCell className="text-right">{formatCurrency(row.return_value)}</TableCell>
-                    <TableCell className="text-right"><TableActionLink href={`/purchase-returns/${row.id}`} label={`Open ${row.purchase_return_no}`}><Pencil className="h-4 w-4" /></TableActionLink></TableCell>
                   </DataGridRow>
                 ))}
                 {!returns.rows.length ? <TableRow><TableCell colSpan={8}><EmptyState title={filtered ? "No returns match these filters" : "No purchase returns yet"} description={filtered ? "Reset the filters or widen the search." : "Supplier returns appear after a posted receiving is returned."} action={emptyAction} /></TableCell></TableRow> : null}

@@ -177,7 +177,7 @@ export function MobileAppNavigation({
       <nav
         data-mobile-app-nav
         aria-label="Primary mobile navigation"
-        className="fixed inset-x-0 bottom-0 z-[var(--sb-z-sticky)] border-t border-[var(--sb-border)] bg-[var(--sb-surface)] pb-[env(safe-area-inset-bottom)] xl:hidden"
+        className="fixed inset-x-0 bottom-0 z-[var(--sb-z-sticky)] border-t border-[var(--sb-border)] bg-[var(--sb-surface)] pb-[env(safe-area-inset-bottom)] shadow-[0_-3px_10px_rgb(6_44_31_/_0.12)] xl:hidden"
       >
         <div className="mx-auto grid min-h-[var(--sb-mobile-nav-height)] max-w-3xl grid-cols-5">
           {tabs.map((tab) => {

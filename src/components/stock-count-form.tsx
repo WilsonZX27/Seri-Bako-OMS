@@ -1,14 +1,15 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
-import { AlertTriangle, ListFilter, Minus, Plus, Search } from "lucide-react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { AlertTriangle, Check, Cloud, ListFilter, Minus, Plus, Search } from "lucide-react";
 import { Field } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { SelectNative } from "@/components/ui/select-native";
 import { SubmitButton } from "@/components/ui/submit-button";
 import { Textarea } from "@/components/ui/textarea";
 import { formatDateOnly, formatQuantity, formatQuantityInput, getToday } from "@/lib/utils";
+import type { StockCountAutosaveResult } from "@/server/actions/stock-counts";
 
 type BranchOption = { id: string; branch_code: string; branch_name: string; status: string };
 type SeedLine = {
@@ -24,6 +25,15 @@ type SeedLine = {
 };
 
 type SeedLineInput = SeedLine & { physicalQty: string; remarks: string; initialPhysicalQty: string; adjusted: boolean };
+type AutosaveState = "idle" | "recovered" | "saving" | "saved" | "error";
+type LocalDraftSnapshot = {
+  branchId: string;
+  countDate: string;
+  tolerance: string;
+  remarks: string;
+  lines: Array<{ itemId: string; physicalQty: string; remarks: string }>;
+  savedLocallyAt: string;
+};
 
 function variancePercent(theoretical: number, physical: number) {
   if (theoretical === 0) return null;
@@ -67,6 +77,8 @@ export function StockCountForm({
   initialCountDate,
   initialTolerance = 2,
   initialRemarks,
+  autosaveAction,
+  draftId,
 }: {
   branches: BranchOption[];
   selectedBranchId?: string;
@@ -77,16 +89,35 @@ export function StockCountForm({
   initialCountDate?: string;
   initialTolerance?: number;
   initialRemarks?: string | null;
+  autosaveAction?: (formData: FormData) => Promise<StockCountAutosaveResult>;
+  draftId?: string;
 }) {
   const router = useRouter();
   const tolerance = 2;
   const [idempotencyKey] = useState(() => crypto.randomUUID());
+  const formRef = useRef<HTMLFormElement>(null);
+  const hasUserEdited = useRef(false);
+  const saveSequence = useRef(0);
+  const lastSavedRevision = useRef(0);
   const [lines, setLines] = useState<SeedLineInput[]>(() =>
     seedLines.map(makeEditableLine),
   );
+  const [countDate, setCountDate] = useState(initialCountDate ?? getToday());
+  const [toleranceValue, setToleranceValue] = useState(String(initialTolerance ?? tolerance));
+  const [countRemarks, setCountRemarks] = useState(initialRemarks ?? "");
+  const [dirtyRevision, setDirtyRevision] = useState(0);
+  const [autosaveState, setAutosaveState] = useState<AutosaveState>("idle");
+  const [autosaveError, setAutosaveError] = useState("");
   const [search, setSearch] = useState("");
   const [showAdjustedOnly, setShowAdjustedOnly] = useState(false);
   const [sortBy, setSortBy] = useState<"name" | "code">("name");
+  const resolvedBranchId = selectedBranchId ?? branches[0]?.id ?? "";
+  const localStorageKey = `seri-bako:stock-count-draft:${draftId ?? `new:${resolvedBranchId}`}`;
+
+  function markDirty() {
+    hasUserEdited.current = true;
+    setDirtyRevision((current) => current + 1);
+  }
 
   // Next can preserve this client component while the branch query changes.
   // Reset the editable rows only when the selected branch changes so PJS10 and
@@ -96,13 +127,107 @@ export function StockCountForm({
     setSearch("");
     setShowAdjustedOnly(false);
     setSortBy("name");
-  }, [selectedBranchId, seedLines]);
+    setCountDate(initialCountDate ?? getToday());
+    setToleranceValue(String(initialTolerance ?? tolerance));
+    setCountRemarks(initialRemarks ?? "");
+    hasUserEdited.current = false;
+    setAutosaveState("idle");
+    setAutosaveError("");
+  }, [selectedBranchId, seedLines, initialCountDate, initialTolerance, initialRemarks]);
+
+  useEffect(() => {
+    try {
+      const raw = window.localStorage.getItem(localStorageKey);
+      if (!raw) return;
+      const snapshot = JSON.parse(raw) as LocalDraftSnapshot;
+      if (snapshot.branchId !== resolvedBranchId) return;
+      const savedLines = new Map(snapshot.lines.map((line) => [line.itemId, line]));
+      if (seedLines.some((line) => !savedLines.has(line.item_id))) return;
+      setLines(seedLines.map((line) => {
+        const editable = makeEditableLine(line);
+        const saved = savedLines.get(line.item_id);
+        if (!saved) return editable;
+        return {
+          ...editable,
+          physicalQty: saved.physicalQty,
+          remarks: saved.remarks,
+          adjusted: saved.physicalQty !== editable.initialPhysicalQty,
+        };
+      }));
+      setCountDate(snapshot.countDate);
+      setToleranceValue(snapshot.tolerance);
+      setCountRemarks(snapshot.remarks);
+      hasUserEdited.current = true;
+      setAutosaveState("recovered");
+      setDirtyRevision((current) => current + 1);
+    } catch {
+      window.localStorage.removeItem(localStorageKey);
+    }
+  }, [localStorageKey, resolvedBranchId, seedLines]);
+
+  const saveDraft = useCallback(async (revision: number) => {
+    if (!autosaveAction || !formRef.current || !hasUserEdited.current || revision <= lastSavedRevision.current) return true;
+    const sequence = ++saveSequence.current;
+    setAutosaveState("saving");
+    setAutosaveError("");
+    try {
+      const result = await autosaveAction(new FormData(formRef.current));
+      if (sequence !== saveSequence.current) return result.ok;
+      if (!result.ok || !result.id) {
+        setAutosaveState("error");
+        setAutosaveError(result.error ?? "Autosave failed. Your changes remain on this device.");
+        window.setTimeout(() => void saveDraft(revision), 5_000);
+        return false;
+      }
+      lastSavedRevision.current = revision;
+      window.localStorage.removeItem(localStorageKey);
+      setAutosaveState("saved");
+      if (!draftId) router.replace(`/stock-counts/${result.id}?autosaved=1`);
+      return true;
+    } catch {
+      if (sequence === saveSequence.current) {
+        setAutosaveState("error");
+        setAutosaveError("Autosave failed. Your changes remain on this device and will retry.");
+        window.setTimeout(() => void saveDraft(revision), 5_000);
+      }
+      return false;
+    }
+  }, [autosaveAction, draftId, localStorageKey, router]);
+
+  useEffect(() => {
+    if (!hasUserEdited.current || dirtyRevision <= lastSavedRevision.current) return;
+    const snapshot: LocalDraftSnapshot = {
+      branchId: resolvedBranchId,
+      countDate,
+      tolerance: toleranceValue,
+      remarks: countRemarks,
+      lines: lines.map((line) => ({ itemId: line.item_id, physicalQty: line.physicalQty, remarks: line.remarks })),
+      savedLocallyAt: new Date().toISOString(),
+    };
+    window.localStorage.setItem(localStorageKey, JSON.stringify(snapshot));
+    const timer = window.setTimeout(() => void saveDraft(dirtyRevision), 800);
+    return () => window.clearTimeout(timer);
+  }, [countDate, countRemarks, dirtyRevision, lines, localStorageKey, resolvedBranchId, saveDraft, toleranceValue]);
+
+  useEffect(() => {
+    const flushWhenHidden = () => {
+      if (document.visibilityState === "hidden") void saveDraft(dirtyRevision);
+    };
+    const retryWhenOnline = () => void saveDraft(dirtyRevision);
+    document.addEventListener("visibilitychange", flushWhenHidden);
+    window.addEventListener("online", retryWhenOnline);
+    return () => {
+      document.removeEventListener("visibilitychange", flushWhenHidden);
+      window.removeEventListener("online", retryWhenOnline);
+    };
+  }, [dirtyRevision, saveDraft]);
 
   function selectBranch(branchId: string) {
     router.push(branchId ? `/stock-counts/new?branch_id=${branchId}` : "/stock-counts/new");
   }
 
   function updatePhysicalQty(itemId: string, nextPhysicalQty: string) {
+    markDirty();
     setLines((current) => current.map((line) => (line.item_id === itemId ? { ...line, physicalQty: nextPhysicalQty, adjusted: nextPhysicalQty !== line.initialPhysicalQty } : line)));
   }
 
@@ -116,6 +241,7 @@ export function StockCountForm({
   }
 
   function adjustPhysicalQty(itemId: string, direction: -1 | 1) {
+    markDirty();
     setLines((current) => current.map((line) => {
       if (line.item_id !== itemId) return line;
       const next = Math.max(0, toNumber(line.physicalQty) + (quantityStep(line.uom) * direction));
@@ -138,29 +264,43 @@ export function StockCountForm({
       return leftValue.localeCompare(rightValue, undefined, { numeric: true, sensitivity: "base" });
     });
   const countComplete = lines.length > 0 && lines.every((line) => line.physicalQty.trim() !== "");
+  const autosaveLabel = autosaveState === "saving"
+    ? "Saving…"
+    : autosaveState === "saved"
+      ? "Saved"
+      : autosaveState === "recovered"
+        ? "Recovered unsaved changes"
+        : autosaveState === "error"
+          ? "Save failed — retrying"
+          : "Autosave ready";
 
 
   return (
     <div className="rounded-none md:rounded-[var(--sb-panel-radius)] md:border md:bg-white">
       <div className="md:p-4">
-        <form id={formId} action={action} className={showSubmit ? "space-y-3 pb-28 xl:pb-0" : "space-y-3"}>
+        <form ref={formRef} id={formId} action={action} className={showSubmit ? "space-y-3 pb-28 xl:pb-0" : "space-y-3"}>
           <input type="hidden" name="idempotency_key" value={idempotencyKey} />
           <section data-stock-count-setup className="erp-surface rounded-none px-3 py-2 md:rounded-none md:border-0 md:bg-transparent md:px-0 md:py-0">
-            <input type="hidden" name="branch_id" value={selectedBranchId ?? branches[0]?.id ?? ""} />
+            <input type="hidden" name="branch_id" value={resolvedBranchId} />
             <div className="flex min-w-0 items-center justify-between gap-3">
               <div className="min-w-0">
                 <p className="text-xs font-medium text-muted-foreground">Count date</p>
-                <p className="truncate text-sm font-semibold text-foreground">{initialCountDate ? formatDateOnly(initialCountDate) : `Today · ${formatDateOnly(getToday())}`}</p>
+                <p className="truncate text-sm font-semibold text-foreground">{initialCountDate ? formatDateOnly(countDate) : `Today · ${formatDateOnly(countDate)}`}</p>
               </div>
-              <Input aria-label="Count date" name="count_date" type="date" defaultValue={initialCountDate ?? getToday()} required className="basis-36 shrink-0" />
+              <Input aria-label="Count date" name="count_date" type="date" value={countDate} onChange={(event) => { setCountDate(event.target.value); markDirty(); }} required className="basis-36 shrink-0" />
+            </div>
+            <div className={`mt-1.5 flex items-center gap-1.5 text-[11px] ${autosaveState === "error" ? "text-destructive" : "text-muted-foreground"}`} role="status" aria-live="polite">
+              {autosaveState === "saved" ? <Check className="h-3.5 w-3.5 text-success" aria-hidden="true" /> : <Cloud className="h-3.5 w-3.5" aria-hidden="true" />}
+              <span>{autosaveLabel}</span>
+              {autosaveError ? <span className="sr-only">{autosaveError}</span> : null}
             </div>
             <details className="group mt-2 border-t border-slate-100 pt-2">
               <summary className="cursor-pointer text-xs font-medium text-muted-foreground">More settings</summary>
               <div className="mt-2 grid gap-2 sm:grid-cols-2">
-                <Field label="Tolerance %"><Input name="tolerance_percent" type="number" min="0" step="0.01" defaultValue={initialTolerance ?? tolerance} required /></Field>
+                <Field label="Tolerance %"><Input name="tolerance_percent" type="number" min="0" step="0.01" value={toleranceValue} onChange={(event) => { setToleranceValue(event.target.value); markDirty(); }} required /></Field>
                 {branches.length > 1 ? <Field label="Branch"><SelectNative name="branch_selector" value={selectedBranchId ?? branches[0]?.id ?? ""} onChange={(event) => selectBranch(event.target.value)}><option value="">Select branch</option>{branches.map((branch) => <option key={branch.id} value={branch.id}>{branch.branch_name}</option>)}</SelectNative></Field> : <p className="self-end pb-2 text-xs text-muted-foreground">Branch locked to {branches[0]?.branch_name ?? "assigned kitchen"}.</p>}
               </div>
-              <div className="mt-2"><Textarea name="remarks" defaultValue={initialRemarks ?? ""} className="min-h-16" placeholder="Count note (optional)" /></div>
+              <div className="mt-2"><Textarea name="remarks" value={countRemarks} onChange={(event) => { setCountRemarks(event.target.value); markDirty(); }} className="min-h-16" placeholder="Count note (optional)" /></div>
             </details>
           </section>
 

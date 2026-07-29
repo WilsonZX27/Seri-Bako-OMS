@@ -150,7 +150,7 @@ The system currently covers or is actively implementing the following operationa
 
 Module maturity must be understood separately from visual completion.
 
-Current integration baseline: `v7.61.0` with reviewed database migrations through `110`. This is an operational release baseline, not a claim that Seri Bako OMS is a full accounting ERP. Migrations `111` and `112` remain excluded because their alternate Central Kitchen purchase-request workflow has not been approved as the canonical procurement model.
+Current integration baseline: `v7.62.0 — Reliable Stock Count Drafts` with reviewed database migrations through `110`. This conflict-safe consolidation retains the canonical operational baseline, adds recoverable Stock Count drafts, and preserves responsive E2E coverage recovered from a divergent local branch. Migrations `111` and `112` remain excluded because their alternate Central Kitchen purchase-request workflow has not been approved as the canonical procurement model.
 
 A page may exist visually without its full workflow, validation, database integration, permissions, and downstream effects being complete.
 
@@ -250,6 +250,9 @@ The read-only Cash Flow Forecast reuses the complete AP Aging result rather than
 
 Stock counts should:
 
+- Use one canonical lifecycle only: `Draft → Confirm & Post`. There are no submit, review, or approval states in this workflow.
+- Autosave edits locally and to the server Draft so refresh, idle timeout, temporary network failure, or recoverable application errors do not discard a user's completed work.
+- Save the latest visible form values before `Confirm & Post`; a failed save must leave the record in Draft and must never partially post it.
 - Be completed by each Branch / Outlet at the end of the operating day as the practical inventory truth for the next day.
 - Record counted quantities separately from the ledger balance and show the variance.
 - Require an explicit reconciliation or adjustment action.

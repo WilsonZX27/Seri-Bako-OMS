@@ -15,6 +15,12 @@ import { getStockCountSeedLines } from "@/server/queries/stock-counts";
 import { z } from "zod";
 
 const stockCountIdSchema = z.uuid("Invalid stock count identifier.");
+export type StockCountAutosaveResult = {
+  ok: boolean;
+  id?: string;
+  savedAt?: string;
+  error?: string;
+};
 
 function formatStockCountPostingError(error: unknown) {
   const message = error instanceof Error ? error.message : String(error ?? "");
@@ -59,46 +65,35 @@ function extractStockCount(formData: FormData) {
   });
 }
 
-export async function createStockCount(formData: FormData) {
-  await requirePermissionOrRedirect("stock_count.create", "/stock-counts/new");
-  try {
-    const payload = extractStockCount(formData);
-    if (isMockMode()) redirect("/stock-counts/stock-count-draft");
-    const expectedLines = await getStockCountSeedLines(payload.branch_id);
-    const expectedIds = new Set(expectedLines.map((line) => line.item_id));
-    const submittedIds = new Set(payload.lines.map((line) => line.item_id));
-    if (expectedIds.size !== submittedIds.size || [...expectedIds].some((itemId) => !submittedIds.has(itemId))) {
-      throw new Error("All items for the selected branch must be included in the stock count.");
-    }
-    const idempotencyKey = z.uuid().parse(String(formData.get("idempotency_key") ?? ""));
-    const supabase = await createClient();
-    const { data, error } = await supabase.rpc("create_stock_count_atomic", {
-      p_payload: { ...payload, idempotency_key: idempotencyKey },
-    });
-    if (error) throw new Error(error.message);
-    const created = data as { id: string } | null;
-    if (!created?.id) throw new Error("Stock count creation did not return an identifier.");
-    revalidateWorkspaceState(["/stock-counts"]);
-    redirect(`/stock-counts/${created.id}`);
-  } catch (error) {
-    rethrowRedirect(error);
-    safeRedirectWithMessage("/stock-counts/new", "error", formatActionError(error, "Could not create this stock count."));
+async function createStockCountRecord(formData: FormData) {
+  const payload = extractStockCount(formData);
+  if (isMockMode()) return "stock-count-draft";
+  const expectedLines = await getStockCountSeedLines(payload.branch_id);
+  const expectedIds = new Set(expectedLines.map((line) => line.item_id));
+  const submittedIds = new Set(payload.lines.map((line) => line.item_id));
+  if (expectedIds.size !== submittedIds.size || [...expectedIds].some((itemId) => !submittedIds.has(itemId))) {
+    throw new Error("All items for the selected branch must be included in the stock count.");
   }
+  const idempotencyKey = z.uuid().parse(String(formData.get("idempotency_key") ?? ""));
+  const supabase = await createClient();
+  const { data, error } = await supabase.rpc("create_stock_count_atomic", {
+    p_payload: { ...payload, idempotency_key: idempotencyKey },
+  });
+  if (error) throw new Error(error.message);
+  const created = data as { id: string } | null;
+  if (!created?.id) throw new Error("Stock count creation did not return an identifier.");
+  revalidateWorkspaceState(["/stock-counts"]);
+  return created.id;
 }
 
-export async function updateStockCountDraft(id: string, formData: FormData) {
-  await requirePermissionOrRedirect("stock_count.update", `/stock-counts/${id}`);
-  try {
-    const countId = stockCountIdSchema.parse(id);
-    const payload = extractStockCount(formData);
-    const lineIds = formData.getAll("line_id").map(String);
-    if (lineIds.length !== payload.lines.length || lineIds.some((lineId) => !z.uuid().safeParse(lineId).success)) {
-      throw new Error("Draft line identifiers are missing. Refresh the count before saving.");
-    }
-    if (isMockMode()) {
-      revalidateWorkspaceState(["/stock-counts", `/stock-counts/${countId}`]);
-      redirect(`/stock-counts/${countId}`);
-    }
+async function updateStockCountDraftRecord(id: string, formData: FormData) {
+  const countId = stockCountIdSchema.parse(id);
+  const payload = extractStockCount(formData);
+  const lineIds = formData.getAll("line_id").map(String);
+  if (lineIds.length !== payload.lines.length || lineIds.some((lineId) => !z.uuid().safeParse(lineId).success)) {
+    throw new Error("Draft line identifiers are missing. Refresh the count before saving.");
+  }
+  if (!isMockMode()) {
     const supabase = await createClient();
     const { data, error } = await supabase.rpc("update_stock_count_draft_atomic", {
       p_stock_count_id: countId,
@@ -109,12 +104,61 @@ export async function updateStockCountDraft(id: string, formData: FormData) {
     });
     if (error) throw new Error(error.message);
     if (!(data as { id?: string } | null)?.id) throw new Error("Draft save did not return an identifier.");
-    revalidateWorkspaceState(["/stock-counts", `/stock-counts/${countId}`]);
+  }
+  revalidateWorkspaceState(["/stock-counts", `/stock-counts/${countId}`]);
+  return countId;
+}
+
+export async function createStockCount(formData: FormData) {
+  await requirePermissionOrRedirect("stock_count.create", "/stock-counts/new");
+  try {
+    const createdId = await createStockCountRecord(formData);
+    redirect(`/stock-counts/${createdId}`);
+  } catch (error) {
+    rethrowRedirect(error);
+    safeRedirectWithMessage("/stock-counts/new", "error", formatActionError(error, "Could not create this stock count."));
+  }
+}
+
+export async function updateStockCountDraft(id: string, formData: FormData) {
+  await requirePermissionOrRedirect("stock_count.update", `/stock-counts/${id}`);
+  try {
+    const countId = await updateStockCountDraftRecord(id, formData);
     redirect(`/stock-counts/${countId}`);
   } catch (error) {
     rethrowRedirect(error);
     safeRedirectWithMessage(`/stock-counts/${id}`, "error", formatActionError(error, "Could not save this stock count draft."));
   }
+}
+
+export async function autosaveNewStockCount(formData: FormData): Promise<StockCountAutosaveResult> {
+  try {
+    await requirePermission("stock_count.create");
+    const id = await createStockCountRecord(formData);
+    return { ok: true, id, savedAt: new Date().toISOString() };
+  } catch (error) {
+    return { ok: false, error: formatActionError(error, "Autosave failed. Your changes remain on this device.") };
+  }
+}
+
+export async function autosaveStockCountDraft(id: string, formData: FormData): Promise<StockCountAutosaveResult> {
+  try {
+    await requirePermission("stock_count.update");
+    const countId = await updateStockCountDraftRecord(id, formData);
+    return { ok: true, id: countId, savedAt: new Date().toISOString() };
+  } catch (error) {
+    return { ok: false, error: formatActionError(error, "Autosave failed. Your changes remain on this device.") };
+  }
+}
+
+export async function saveAndPostStockCount(id: string, formData: FormData) {
+  await requirePermissionOrRedirect("stock_count.update", `/stock-counts/${id}`);
+  try {
+    await updateStockCountDraftRecord(id, formData);
+  } catch (error) {
+    safeRedirectWithMessage(`/stock-counts/${id}`, "error", formatActionError(error, "The latest changes could not be saved, so this Stock Count was not posted."));
+  }
+  await postStockCount(id);
 }
 
 export async function cancelStockCount(id: string) {

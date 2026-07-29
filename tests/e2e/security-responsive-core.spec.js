@@ -93,6 +93,81 @@ for (const viewport of [
   });
 }
 
+const procurementRoutes = [
+  "/purchase-requests",
+  "/purchase-orders",
+  "/goods-receivings",
+];
+
+for (const viewport of [
+  { name: "phone", width: 390, height: 844 },
+  { name: "tablet", width: 768, height: 1024 },
+  { name: "desktop", width: 1440, height: 960 },
+]) {
+  for (const route of procurementRoutes) {
+    test(`purchasing ${route} stays contained and navigation-safe at ${viewport.name}`, async ({ page }) => {
+      test.skip(!hasAccount("purchasing"), "Missing isolated purchasing test credentials.");
+      const errors = [];
+      page.on("console", (message) => {
+        if (message.type() === "error") errors.push(message.text());
+      });
+
+      await page.setViewportSize(viewport);
+      expect(await login(page, "purchasing")).toBe(true);
+      await page.goto(route, { waitUntil: "domcontentloaded" });
+      await expect(page.locator("main#main-content")).toBeVisible();
+      await expect(page.getByRole("heading", { name: "This workspace could not finish the request" })).toHaveCount(0);
+      await expectNoPageOverflow(page);
+
+      const mobileNavigation = page.locator("[data-mobile-app-nav]");
+      if (viewport.width < 1280) {
+        await expect(mobileNavigation).toBeVisible();
+      } else {
+        await expect(mobileNavigation).toBeHidden();
+      }
+      expect(errors, `${route} console errors at ${viewport.name}`).toEqual([]);
+    });
+  }
+}
+
+const kitchenInventoryRoutes = [
+  "/stock-balance",
+  "/stock-counts",
+  "/stock-transfers",
+  "/stock-wastage",
+];
+
+for (const viewport of [
+  { name: "phone", width: 390, height: 844 },
+  { name: "tablet", width: 768, height: 1024 },
+  { name: "desktop", width: 1440, height: 960 },
+]) {
+  for (const route of kitchenInventoryRoutes) {
+    test(`kitchen ${route} stays contained and navigation-safe at ${viewport.name}`, async ({ page }) => {
+      test.skip(!hasAccount("kitchen"), "Missing isolated kitchen test credentials.");
+      const errors = [];
+      page.on("console", (message) => {
+        if (message.type() === "error") errors.push(message.text());
+      });
+
+      await page.setViewportSize(viewport);
+      expect(await login(page, "kitchen")).toBe(true);
+      await page.goto(route, { waitUntil: "domcontentloaded" });
+      await expect(page.locator("main#main-content")).toBeVisible();
+      await expect(page.getByRole("heading", { name: "This workspace could not finish the request" })).toHaveCount(0);
+      await expectNoPageOverflow(page);
+
+      const mobileNavigation = page.locator("[data-mobile-app-nav]");
+      if (viewport.width < 1280) {
+        await expect(mobileNavigation).toBeVisible();
+      } else {
+        await expect(mobileNavigation).toBeHidden();
+      }
+      expect(errors, `${route} console errors at ${viewport.name}`).toEqual([]);
+    });
+  }
+}
+
 test("an unauthenticated cross-site mutation never reaches a write handler", async ({ request, baseURL }) => {
   const response = await request.post(`${baseURL}/api/items/quick-create`, {
     headers: {

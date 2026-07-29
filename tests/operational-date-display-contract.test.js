@@ -40,7 +40,7 @@ test("native date controls keep ISO values while showing DD/MM/YYYY labels", () 
   assert.match(input, /type === "date"/);
   assert.match(input, /`\$\{day\}\/\$\{month\}\/\$\{year\}`/);
   assert.match(targetSources.join("\n"), /type="date"/);
-  assert.match(targetSources.join("\n"), /defaultValue=\{initialCountDate \?\? getToday\(\)\}/);
+  assert.match(targetSources.join("\n"), /value=\{countDate\}/);
   assert.match(targetSources.join("\n"), /defaultValue=\{getToday\(\)\}/);
 });
 

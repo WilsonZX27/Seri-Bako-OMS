@@ -2,7 +2,7 @@ import { StockCountForm } from "@/components/stock-count-form";
 import { Card, CardContent } from "@/components/ui/card";
 import { DocumentSideSection, DocumentWorkspace } from "@/components/documents/document-workspace";
 import { SubmitButton } from "@/components/ui/submit-button";
-import { createStockCount } from "@/server/actions/stock-counts";
+import { autosaveNewStockCount, createStockCount } from "@/server/actions/stock-counts";
 import { getBranchesForSelect } from "@/server/queries/common";
 import { getStockCountSeedLines } from "@/server/queries/stock-counts";
 
@@ -35,7 +35,7 @@ export default async function NewStockCountPage({ searchParams }: { searchParams
         </div>}
       >
         {filters.error ? <Card><CardContent className="p-4 text-sm text-destructive">{filters.error}</CardContent></Card> : null}
-        <StockCountForm formId={formId} branches={branches} selectedBranchId={selectedBranchId} seedLines={seedLines} action={createStockCount} />
+        <StockCountForm formId={formId} branches={branches} selectedBranchId={selectedBranchId} seedLines={seedLines} action={createStockCount} autosaveAction={autosaveNewStockCount} />
       </DocumentWorkspace>
   );
 }

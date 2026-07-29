@@ -22,7 +22,7 @@ export default async function NewOutletDailyRecordPage({ searchParams }: { searc
   const disabled = !options.products.length || !options.branches.length;
   const canUpdate = permissions["outlet_daily_record.update"];
   const primaryAction = canUpdate
-    ? <SubmitButton form={formId} name="target_status" value="morning_recorded" className="w-full" disabled={disabled}>Confirm Received</SubmitButton>
+    ? <SubmitButton form={formId} name="target_status" value="morning_recorded" className="w-full" disabled={disabled}>Confirm Qty Sent</SubmitButton>
     : <SubmitButton form={formId} name="target_status" value="draft" className="w-full" disabled={disabled}>Save Qty Sent</SubmitButton>;
   const secondaryActions = canUpdate ? <><SubmitButton form={formId} name="target_status" value="draft" variant="outline" className="w-full" disabled={disabled}>Save Draft</SubmitButton><SubmitButton form={formId} name="target_status" value="evening_completed" variant="outline" className="w-full" disabled={disabled}>Complete Daily Record</SubmitButton></> : null;
   const sidePanel = <>

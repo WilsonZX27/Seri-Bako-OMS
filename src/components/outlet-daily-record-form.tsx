@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Field } from "@/components/ui/field";
@@ -72,16 +71,16 @@ function DailyProductLine({ product, line, hiddenClass, locked, canEditQtySent, 
   const [received, setReceived] = useState(line ? String(line.morning_received_qty) : "");
   const [wastage, setWastage] = useState(line ? String(line.wastage_qty) : "");
   const [reason, setReason] = useState(line?.wastage_reason ?? "");
-  const [remarkRequested, setRemarkRequested] = useState(Boolean(line?.notes));
-  const hasException = Number(wastage || 0) > 0 || Boolean(reason) || (qtySent !== "" && received !== "" && Number(qtySent) !== Number(received));
-  const showRemark = remarkRequested || hasException;
+  const showWastageDetails = Number(wastage || 0) > 0 || Boolean(reason) || Boolean(line?.notes);
 
-  return <div className={`${hiddenClass} grid grid-cols-2 gap-3 p-3 [&>div:first-child]:col-span-2 md:grid-cols-[minmax(11rem,1.4fr)_6rem_6rem_6rem_9rem_minmax(8rem,1fr)] md:[&>div:first-child]:col-span-1 md:items-end md:gap-2`}>
+  return <div className={`${hiddenClass} grid grid-cols-3 gap-2 p-3 [&>div:first-child]:col-span-3 md:grid-cols-[minmax(11rem,1.4fr)_6rem_6rem_6rem_9rem_minmax(8rem,1fr)] md:[&>div:first-child]:col-span-1 md:items-end`}>
     <div><input type="hidden" name="line_product_id" value={product.id} /><p className="font-medium">{product.product_name}</p><p className="text-xs text-muted-foreground">{product.product_code} · {product.selling_unit}</p></div>
-    <label className="grid gap-1 text-xs"><span className="md:sr-only">Qty Sent</span><Input aria-label={`${product.product_name} qty sent`} name="qty_sent" type="number" min="0" step="0.01" value={qtySent} onChange={(event) => setQtySent(event.target.value)} disabled={locked || !canEditQtySent} /></label>
-    <label className="grid gap-1 text-xs"><span className="md:sr-only">Received</span><Input aria-label={`${product.product_name} received`} name="morning_received_qty" type="number" min="0" step="0.01" value={received} onChange={(event) => setReceived(event.target.value)} disabled={locked || !canEditOutletValues} /></label>
-    <label className="grid gap-1 text-xs"><span className="md:sr-only">Wastage</span><Input aria-label={`${product.product_name} wastage`} name="wastage_qty" type="number" min="0" step="0.01" value={wastage} onChange={(event) => setWastage(event.target.value)} disabled={locked || !canEditOutletValues} /></label>
-    <label className="grid gap-1 text-xs"><span className="md:sr-only">Wastage Reason</span><SelectNative aria-label={`${product.product_name} wastage reason`} name="wastage_reason" value={reason} onChange={(event) => setReason(event.target.value as OutletDailyWastageReason | "")} disabled={locked || !canEditOutletValues}><option value="">No wastage</option>{reasons.map((option) => <option key={option} value={option}>{option.replaceAll("_", " ")}</option>)}</SelectNative></label>
-    {showRemark ? <div className="col-span-2 md:col-span-1"><label className="col-span-2 grid gap-1 text-xs"><span className="md:sr-only">Remarks</span><Input aria-label={`${product.product_name} remarks`} name="line_notes" defaultValue={line?.notes ?? ""} placeholder="Explain exception" disabled={locked || !canEditOutletValues} /></label></div> : <div className="col-span-2 flex md:col-span-1"><input type="hidden" name="line_notes" value="" /><Button type="button" variant="ghost" size="sm" className="w-full" onClick={() => setRemarkRequested(true)} disabled={locked || !canEditOutletValues}>Add remark</Button></div>}
+    <label className="grid min-w-0 gap-1 text-xs"><span className="truncate md:sr-only">Qty Sent</span><Input className="h-10 min-w-0 px-2 text-center" aria-label={`${product.product_name} qty sent`} name="qty_sent" type="number" min="0" step="0.01" value={qtySent} onChange={(event) => setQtySent(event.target.value)} disabled={locked || !canEditQtySent} /></label>
+    <label className="grid min-w-0 gap-1 text-xs"><span className="truncate md:sr-only">Received</span><Input className="h-10 min-w-0 px-2 text-center" aria-label={`${product.product_name} received`} name="morning_received_qty" type="number" min="0" step="0.01" value={received} onChange={(event) => setReceived(event.target.value)} disabled={locked || !canEditOutletValues} /></label>
+    <label className="grid min-w-0 gap-1 text-xs"><span className="truncate md:sr-only">Wastage</span><Input className="h-10 min-w-0 px-2 text-center" aria-label={`${product.product_name} wastage`} name="wastage_qty" type="number" min="0" step="0.01" value={wastage} onChange={(event) => setWastage(event.target.value)} disabled={locked || !canEditOutletValues} /></label>
+    {showWastageDetails ? <>
+      <label className="col-span-3 grid gap-1 text-xs md:col-span-1"><span className="md:sr-only">Wastage Reason</span><SelectNative aria-label={`${product.product_name} wastage reason`} name="wastage_reason" value={reason} onChange={(event) => setReason(event.target.value as OutletDailyWastageReason | "")} required={Number(wastage || 0) > 0} disabled={locked || !canEditOutletValues}><option value="">Select reason</option>{reasons.map((option) => <option key={option} value={option}>{option.replaceAll("_", " ")}</option>)}</SelectNative></label>
+      <label className="col-span-3 grid gap-1 text-xs md:col-span-1"><span className="md:sr-only">Remarks</span><Input aria-label={`${product.product_name} remarks`} name="line_notes" defaultValue={line?.notes ?? ""} placeholder="Required for quantity exceptions" disabled={locked || !canEditOutletValues} /></label>
+    </> : <><input type="hidden" name="wastage_reason" value="" /><input type="hidden" name="line_notes" value="" /></>}
   </div>;
 }

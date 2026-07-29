@@ -101,13 +101,18 @@ test("supplier invoice matching uses editable phone lines instead of a nine-colu
   assert.match(source, /grid grid-cols-2 gap-3 bg-secondary\/30 p-3 text-sm/);
 });
 
-test("outlet daily entry uses a stable phone line grid without nested card boundaries", () => {
+test("outlet daily entry keeps three compact quantities in one phone row and reveals wastage details conditionally", () => {
   const source = read("src/components/outlet-daily-record-form.tsx");
+  const page = read("src/app/(app)/outlet-daily-records/new/page.tsx");
 
   assert.match(source, /data-outlet-daily-setup/);
   assert.match(source, /data-outlet-daily-lines/);
-  assert.match(source, /grid grid-cols-2 gap-3 p-3/);
-  assert.match(source, /label className="col-span-2 grid gap-1 text-xs"/);
+  assert.match(source, /grid grid-cols-3 gap-2 p-3/);
+  assert.match(source, /showWastageDetails = Number\(wastage \|\| 0\) > 0/);
+  assert.match(source, /className="h-10 min-w-0 px-2 text-center"/);
+  assert.match(source, /required=\{Number\(wastage \|\| 0\) > 0\}/);
+  assert.match(page, />Confirm Qty Sent<\/SubmitButton>/);
+  assert.doesNotMatch(page, />Confirm Received<\/SubmitButton>/);
 });
 
 test("recipe BOM editing replaces the phone table with input-first continuous ingredient lines", () => {

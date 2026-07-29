@@ -27,3 +27,12 @@ test("procurement variance route explains thresholds and release", () => {
   assert.match(version, /APP_VERSION = "7\.\d+\.\d+"/);
   assert.match(version, /APP_SPRINT = `v\$\{APP_VERSION\}`/);
 });
+
+test("procurement variance keeps technical detail on tablet and uses compact review rows on phones", () => {
+  assert.match(page, /<MetricStrip className="grid-cols-3"/);
+  assert.match(page, /<FilterBarMore activeCount=/);
+  assert.match(page, /<Table mobileHidden aria-label="Procurement cost variance"/);
+  assert.match(page, /<OperationalList ariaLabel="Procurement cost variance"/);
+  assert.match(page, /PO \{row\.po_no\} · GRN/);
+  assert.match(page, /Qty \{formatNumber\(row\.ordered_qty\)\}/);
+});

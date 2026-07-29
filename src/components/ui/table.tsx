@@ -40,7 +40,7 @@ export function OperationalList({ children, ariaLabel, className }: { children: 
 }
 
 export function OperationalListRow({ href, label, primary, status, statusMeta, secondary, detail, meta, trailing }: {
-  href: string;
+  href?: string;
   label: string;
   primary: React.ReactNode;
   status?: React.ReactNode;
@@ -50,21 +50,23 @@ export function OperationalListRow({ href, label, primary, status, statusMeta, s
   meta?: React.ReactNode;
   trailing?: React.ReactNode;
 }) {
-  return (
-    <Link href={href} aria-label={label} role="listitem" className="grid min-h-16 grid-cols-[minmax(0,1fr)_auto] gap-x-3 gap-y-1 px-3 py-2.5 hover:bg-[var(--sb-surface-muted)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[var(--sb-green-700)]">
+  const className = "grid min-h-16 grid-cols-[minmax(0,1fr)_auto] gap-x-3 gap-y-1 px-3 py-2.5 hover:bg-[var(--sb-surface-muted)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[var(--sb-green-700)]";
+  const content = <>
       <div className="min-w-0 text-[13px] font-semibold leading-5">{primary}</div>
       <div className="flex items-start gap-2 whitespace-nowrap">
         <div className="flex min-w-0 flex-col items-end gap-1">
           {status}
           {statusMeta ? <div className="text-right text-[11px] font-semibold text-[var(--sb-text)]">{statusMeta}</div> : null}
         </div>
-        {trailing ?? <ChevronRight className="mt-1 h-4 w-4 text-[var(--sb-text-soft)]" />}
+        {trailing ?? (href ? <ChevronRight className="mt-1 h-4 w-4 text-[var(--sb-text-soft)]" /> : null)}
       </div>
       {secondary ? <div className="min-w-0 whitespace-normal break-words text-xs leading-4 text-[var(--sb-text-muted)]">{secondary}</div> : <span />}
       {meta ? <div className="whitespace-nowrap text-right text-[11px] text-[var(--sb-text-muted)]">{meta}</div> : null}
       {detail ? <div className="col-span-2 min-w-0 text-[11px] leading-4 text-[var(--sb-text-muted)]">{detail}</div> : null}
-    </Link>
-  );
+    </>;
+  return href
+    ? <Link href={href} aria-label={label} role="listitem" className={className}>{content}</Link>
+    : <div aria-label={label} role="listitem" className={className}>{content}</div>;
 }
 
 export function TableHeader({ className, ...props }: React.HTMLAttributes<HTMLTableSectionElement>) {

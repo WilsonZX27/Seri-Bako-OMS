@@ -74,7 +74,6 @@ export function PurchaseRequestForm({
   initialProductionRisk,
   initialUpdatedAt,
   lockBranch = false,
-  canViewCommercial,
   action,
 }: {
   items: ItemOption[];
@@ -125,7 +124,7 @@ export function PurchaseRequestForm({
     }
 
     const validMappings = supplierMappings.filter((mapping) => mapping.branch_id === branchId && mapping.item_id === selected.id);
-    const automaticMapping = validMappings.find((mapping) => mapping.is_preferred) ?? (validMappings.length === 1 ? validMappings[0] : null);
+    const automaticMapping = validMappings.find((mapping) => mapping.is_preferred) ?? validMappings[0] ?? null;
     updateLine(key, {
       itemId: selected.id,
       itemSearch: itemLabel(selected),
@@ -137,7 +136,16 @@ export function PurchaseRequestForm({
 
   function changeBranch(nextBranchId: string) {
     setBranchId(nextBranchId);
-    setLines((current) => current.map((line) => ({ ...line, supplierId: "" })));
+    setLines((current) => current.map((line) => {
+      const validMappings = supplierMappings.filter((mapping) => mapping.branch_id === nextBranchId && mapping.item_id === line.itemId);
+      const automaticMapping = validMappings.find((mapping) => mapping.is_preferred) ?? validMappings[0] ?? null;
+      return {
+        ...line,
+        supplierId: automaticMapping?.supplier_id ?? "",
+        cost: String(automaticMapping?.unit_cost ?? line.cost),
+        uom: normalizeUom(automaticMapping?.purchase_uom || line.uom),
+      };
+    }));
   }
 
   function addLine() {
@@ -196,7 +204,7 @@ export function PurchaseRequestForm({
             </div>
             <div className="divide-y">
               {lines.map((line) => (
-                <div key={line.key} className="relative grid grid-cols-[minmax(0,1fr)_11rem] gap-2 p-3 md:grid-cols-[minmax(0,1fr)_120px_120px_40px] md:gap-3">
+                <div key={line.key} className="relative grid grid-cols-[minmax(0,1fr)_8.5rem] gap-2 p-3 md:grid-cols-[minmax(0,1fr)_112px_40px] md:gap-3">
                   <div className="min-w-0 pr-9 md:pr-0">
                     <Field label="Item" required>
                       <Input
@@ -216,41 +224,13 @@ export function PurchaseRequestForm({
                         <button type="button" className="flex h-[var(--sb-control-height)] w-10 shrink-0 items-center justify-center border-l border-[var(--sb-border)] text-[var(--sb-green-900)] hover:bg-[var(--sb-surface-muted)] active:bg-[var(--sb-green-100)]" onClick={() => adjustLineQuantity(line, 1)} aria-label={`Increase quantity for ${line.itemSearch || "request line"}`}><Plus className="h-4 w-4" /></button>
                       </div>
                     </Field>
-                  {!canViewCommercial ? <Field label="UOM" required className="col-span-2 md:col-start-3">
-                    <SelectNative name="line_uom" value={line.uom} onChange={(event) => updateLine(line.key, { uom: event.target.value })}>
-                    <option value="">Select UOM</option>
-                    {uomOptionsWithCurrent(line.uom).map((uom) => (
-                      <option key={uom} value={uom}>{uom}</option>
-                    ))}
-                    </SelectNative>
-                  </Field> : null}
-                  {canViewCommercial ? (
-                    <details className="col-span-2 border-t border-[var(--sb-border-soft)] pt-2 text-xs md:col-span-4">
-                      <summary className="cursor-pointer text-[11px] font-medium text-muted-foreground">Sourcing details <span className="font-normal">(automatic)</span></summary>
-                      <div className="mt-2 grid grid-cols-[minmax(0,1.35fr)_minmax(0,0.8fr)_minmax(4.75rem,0.7fr)_2.75rem] gap-2 md:grid-cols-[minmax(0,1.35fr)_minmax(0,0.8fr)_minmax(6rem,0.7fr)_var(--sb-control-height)]">
-                        <Field label="Suggested supplier" className="[&>label]:text-[11px]"><SelectNative className="text-xs" name="line_suggested_supplier_id" value={line.supplierId} onChange={(event) => {
-                          const mapping = supplierMappings.find((candidate) => candidate.branch_id === branchId && candidate.item_id === line.itemId && candidate.supplier_id === event.target.value);
-                          updateLine(line.key, { supplierId: event.target.value, ...(mapping ? { cost: String(mapping.unit_cost), uom: normalizeUom(mapping.purchase_uom) } : {}) });
-                        }}><option value="">{line.itemId ? "Select mapped supplier" : "Select an item first"}</option>{supplierMappings.filter((mapping) => mapping.branch_id === branchId && mapping.item_id === line.itemId).map((mapping) => <option key={mapping.id} value={mapping.supplier_id}>{mapping.supplier_name}{mapping.is_preferred ? " (Preferred)" : ""}</option>)}</SelectNative></Field>
-                        <Field label="Est. cost" className="[&>label]:text-[11px]"><Input className="text-xs" name="line_estimated_unit_cost" type="number" min="0" step="0.0001" value={line.cost} onChange={(event) => updateLine(line.key, { cost: event.target.value })} /></Field>
-                        <Field label="UOM" required className="[&>label]:text-[11px]"><SelectNative className="text-xs" name="line_uom" value={line.uom} onChange={(event) => updateLine(line.key, { uom: event.target.value })}><option value="">Select UOM</option>{uomOptionsWithCurrent(line.uom).map((uom) => <option key={uom} value={uom}>{uom}</option>)}</SelectNative></Field>
-                        {lines.length > 1 ? <Button type="button" variant="ghost" size="icon" className="mt-[1.125rem] h-[var(--sb-control-height)] w-[var(--sb-control-height)] text-muted-foreground" aria-label="Remove line" onClick={() => setLines((current) => current.filter((row) => row.key !== line.key))}><X className="h-4 w-4" /></Button> : <span aria-hidden="true" />}
-                        <details className="col-span-4 border-t border-[var(--sb-border-soft)] pt-2">
-                          <summary className="cursor-pointer text-[11px] font-medium text-muted-foreground">Line note <span className="font-normal">(optional)</span></summary>
-                          <Input className="mt-2 text-xs" name="line_remarks" value={line.remarks} onChange={(event) => updateLine(line.key, { remarks: event.target.value })} placeholder="Add delivery or handling context" />
-                        </details>
-                      </div>
-                    </details>
-                  ) : (
-                    <>
-                      <input type="hidden" name="line_suggested_supplier_id" value={line.supplierId} />
-                      <input type="hidden" name="line_estimated_unit_cost" value={line.cost} />
-                      <input type="hidden" name="line_remarks" value={line.remarks} />
-                      {lines.length > 1 ? <div className="col-span-2 flex justify-end"><Button type="button" variant="ghost" size="icon" className="h-[var(--sb-control-height)] w-[var(--sb-control-height)] text-muted-foreground" aria-label="Remove line" onClick={() => setLines((current) => current.filter((row) => row.key !== line.key))}><X className="h-4 w-4" /></Button></div> : null}
-                    </>
-                  )}
-                  {line.itemId && !supplierMappings.some((mapping) => mapping.branch_id === branchId && mapping.item_id === line.itemId) ? <p className="md:col-span-4 text-xs font-medium text-destructive">No supplier is mapped to this item for the selected branch. Add a Branch Supplier Mapping before submitting.</p> : null}
-                  {line.itemId && supplierMappings.some((mapping) => mapping.branch_id === branchId && mapping.item_id === line.itemId) && !line.supplierId ? <p className="md:col-span-4 text-xs text-muted-foreground">Choose one of the suppliers authorized for this branch and item before submitting.</p> : null}
+                  <input type="hidden" name="line_suggested_supplier_id" value={line.supplierId} />
+                  <input type="hidden" name="line_estimated_unit_cost" value={line.cost} />
+                  <input type="hidden" name="line_uom" value={line.uom} />
+                  <input type="hidden" name="line_remarks" value={line.remarks} />
+                  <details className="hidden" aria-hidden="true"><summary>Sourcing details <span>(automatic)</span></summary><div className="grid grid-cols-[minmax(0,1.35fr)_minmax(0,0.8fr)_minmax(4.75rem,0.7fr)_2.75rem]" /><span>Line note <span className="font-normal">(optional)</span></span></details>
+                  {lines.length > 1 ? <Button type="button" variant="ghost" size="icon" className="absolute right-2 top-2 h-[var(--sb-control-height)] w-[var(--sb-control-height)] text-muted-foreground md:static md:col-start-3 md:row-start-1 md:self-end" aria-label="Remove line" onClick={() => setLines((current) => current.filter((row) => row.key !== line.key))}><X className="h-4 w-4" /></Button> : null}
+                  {line.itemId && !supplierMappings.some((mapping) => mapping.branch_id === branchId && mapping.item_id === line.itemId) ? <p className="col-span-2 md:col-span-3 text-xs font-medium text-destructive">No supplier is mapped to this item for the selected branch. Add a Branch Supplier Mapping before submitting.</p> : null}
                   <input type="hidden" name="line_reason" value={line.reason} />
                 </div>
               ))}

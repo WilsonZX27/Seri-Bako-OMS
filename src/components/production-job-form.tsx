@@ -10,6 +10,9 @@ import { SelectNative } from "@/components/ui/select-native";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Textarea } from "@/components/ui/textarea";
 import { SubmitButton } from "@/components/ui/submit-button";
+import { UrgencySelect } from "@/components/urgency-select";
+import type { ProcurementPriority } from "@/components/priority-badge";
+import { normalizeUom, uomOptionsWithCurrent } from "@/lib/uom";
 import { formatCurrency, formatNumber, getToday } from "@/lib/utils";
 import type { ProductionRecipeOption } from "@/server/queries/production-jobs";
 
@@ -45,7 +48,8 @@ export function ProductionJobForm({
   const [recipeId, setRecipeId] = useState(recipes[0]?.id ?? "");
   const selectedRecipe = recipes.find((recipe) => recipe.id === recipeId) ?? null;
   const [plannedQty, setPlannedQty] = useState(selectedRecipe?.yield_qty ?? 1);
-  const [outputUom, setOutputUom] = useState(selectedRecipe?.yield_unit ?? "PCS");
+  const [outputUom, setOutputUom] = useState(normalizeUom(selectedRecipe?.yield_unit) || "PCS");
+  const [priority, setPriority] = useState<ProcurementPriority>("normal");
   const stockByBranchItem = useMemo(() => new Map(balances.map((row) => [`${row.branch_id}:${row.item_id}`, row.current_qty])), [balances]);
 
   const factor = selectedRecipe ? plannedQty / Math.max(selectedRecipe.yield_qty, 0.0001) : 1;
@@ -93,7 +97,7 @@ export function ProductionJobForm({
                 setRecipeId(event.target.value);
                 if (recipe) {
                   setPlannedQty(recipe.yield_qty);
-                  setOutputUom(recipe.yield_unit);
+                  setOutputUom(normalizeUom(recipe.yield_unit) || "PCS");
                 }
               }}
             >
@@ -106,15 +110,12 @@ export function ProductionJobForm({
             <Input name="planned_output_qty" type="number" min="0.0001" step="0.0001" value={plannedQty} onChange={(event) => setPlannedQty(Number(event.target.value))} required />
           </Field>
           <Field label="Output UOM" required>
-            <Input name="output_uom" value={outputUom} onChange={(event) => setOutputUom(event.target.value)} required />
+            <SelectNative name="output_uom" value={outputUom} onChange={(event) => setOutputUom(event.target.value)} required>
+              {uomOptionsWithCurrent(outputUom).map((uom) => <option key={uom} value={uom}>{uom}</option>)}
+            </SelectNative>
           </Field>
           <Field label="Priority">
-            <SelectNative name="priority" defaultValue="normal">
-              <option value="low">Low</option>
-              <option value="normal">Normal</option>
-              <option value="urgent">Urgent</option>
-              <option value="critical">Critical</option>
-            </SelectNative>
+            <UrgencySelect name="priority" value={priority} onValueChange={setPriority} />
           </Field>
           <div className="md:col-span-3">
             <Field label="Remarks">

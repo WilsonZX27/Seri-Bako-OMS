@@ -26,7 +26,7 @@ export default async function SetupPage({
             <CardDescription>A Super Admin / Owner already exists for this workspace.</CardDescription>
           </CardHeader>
           <CardContent>
-            <Button asChild>
+            <Button asChild className="w-full sm:w-auto">
               <Link href="/dashboard">Go to dashboard</Link>
             </Button>
           </CardContent>

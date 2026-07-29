@@ -32,29 +32,24 @@ export default async function UomConversionsPage({ searchParams }: { searchParam
         <div className="overflow-hidden rounded-[2px] border bg-card">
           <MasterDataFilters search={filters.search} status={filters.status} placeholder="Search UOM pair" />
           <div className="overflow-x-auto">
-            <Table>
+            <Table stickyColumn="second">
               <TableHeader>
                 <TableRow>
+                  <TableHead className="w-36 text-center">Actions</TableHead>
                   <SortableHead label="From UOM" column="from_uom" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
                   <SortableHead label="To UOM" column="to_uom" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
                   <SortableHead label="Factor" column="factor" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} className="text-right" />
                   <TableHead>Status</TableHead>
-                  <TableHead className="w-36 text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {page.rows.map((row) => (
                   <TableRow key={row.id}>
+                    <TableCell><div className="flex justify-center gap-2"><Button asChild variant="outline" size="sm"><Link href={`/uom-conversions/${row.id}`}>Edit</Link></Button><form action={deleteUomConversion.bind(null, row.id)}><Button variant="ghost" size="sm">Archive</Button></form></div></TableCell>
                     <TableCell>{row.from_uom}</TableCell>
                     <TableCell>{row.to_uom}</TableCell>
                     <TableCell className="text-right">{formatNumber(row.factor)}</TableCell>
                     <TableCell><Badge variant={row.status === "active" ? "success" : "secondary"}>{row.status}</Badge></TableCell>
-                    <TableCell>
-                      <div className="flex justify-end gap-2">
-                        <Button asChild variant="outline" size="sm"><Link href={`/uom-conversions/${row.id}`}>Edit</Link></Button>
-                        <form action={deleteUomConversion.bind(null, row.id)}><Button variant="ghost" size="sm">Archive</Button></form>
-                      </div>
-                    </TableCell>
                   </TableRow>
                 ))}
                 {!page.rows.length ? (

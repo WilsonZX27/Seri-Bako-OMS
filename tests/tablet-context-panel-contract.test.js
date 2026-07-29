@@ -12,6 +12,14 @@ test("tablet workspace context never overlaps the primary data canvas", () => {
   assert.match(source, /md:block xl:hidden/);
 });
 
+test("the items master keeps its actions and summary visible beside the tablet list", () => {
+  const source = fs.readFileSync("src/app/(app)/items/page.tsx", "utf8");
+  assert.match(source, /tabletRailMode="split"/);
+  assert.match(source, /tabletRailBreakpoint="md"/);
+  assert.match(source, /title="Actions"/);
+  assert.match(source, /title="Item Summary"/);
+});
+
 test("the shared mobile actions sheet locks background scroll and keeps focus inside", () => {
   const source = fs.readFileSync("src/components/layout/right-console.tsx", "utf8");
   assert.match(source, /const previousOverflow = document\.body\.style\.overflow/);

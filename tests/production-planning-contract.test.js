@@ -27,6 +27,10 @@ test("Production Planning Lite makes weak data manual review and warns on medium
   assert.match(page, /Medium · Caution/);
   assert.match(page, /Suggestions are planning references, not production orders/);
   assert.match(page, /Open Demand Trends/);
+  assert.match(page, /<Table mobileHidden aria-label="Suggested production planning reference"/);
+  assert.match(page, /<OperationalList ariaLabel="Suggested production planning reference"/);
+  assert.match(page, /<Table mobileHidden aria-label="Outlet coverage"/);
+  assert.match(page, /<OperationalList ariaLabel="Outlet coverage"/);
 });
 
 test("Production Planning Lite has no production, stock, AP or cash-flow write path", () => {

@@ -34,6 +34,9 @@ test("Recipe Costing surfaces confidence, manual actions, filters, and the exist
   assert.match(page, /row.confidence === "Low" \? "Incomplete"/);
   for (const action of ["Add item cost", "Align UOM", "Add recipe output", "Add recipe lines"]) assert.match(query, new RegExp(action));
   assert.match(page, /href=\{`\/recipes\/\$\{row.id\}`\}/);
+  assert.match(page, /tabletRailMode="split"/);
+  assert.match(page, /<Table mobileHidden aria-label="Recipe costing estimates"/);
+  assert.match(page, /<OperationalList ariaLabel="Recipe costing estimates"/);
 });
 
 test("Recipe Costing remains compatible with the current footer and scoped Outlet Staff seed", () => {

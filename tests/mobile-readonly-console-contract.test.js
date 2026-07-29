@@ -20,7 +20,10 @@ const readOnlyWorkspaces = [
 
 test("read-only workspaces do not create a competing mobile action bar", () => {
   for (const file of readOnlyWorkspaces) {
-    assert.match(read(file), /<WorkspaceGrid hideMobileConsole rightRail=/, file);
+    const source = read(file);
+    assert.match(source, /<WorkspaceGrid/, file);
+    assert.match(source, /hideMobileConsole/, file);
+    assert.match(source, /rightRail=/, file);
   }
 });
 

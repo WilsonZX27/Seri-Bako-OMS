@@ -41,7 +41,7 @@ export function OperationalList({ children, ariaLabel, className }: { children: 
 
 export function OperationalListRow({ href, label, primary, status, statusMeta, secondary, detail, meta, trailing }: {
   href?: string;
-  label: string;
+  label?: string;
   primary: React.ReactNode;
   status?: React.ReactNode;
   statusMeta?: React.ReactNode;

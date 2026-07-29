@@ -45,8 +45,8 @@ export function GoodsReceivingForm({
           <input type="hidden" name="idempotency_key" value={idempotencyKey} />
           <input type="hidden" name="grn_no" value={grnNo} />
           <input type="hidden" name="status" value="draft" />
-          <section data-goods-receiving-setup className="erp-surface grid gap-3 p-3 md:rounded-none md:border-0 md:bg-transparent md:p-0 lg:grid-cols-3">
-            <Field label="Purchase Order" required>
+          <section data-goods-receiving-setup className="erp-surface grid gap-3 p-3 md:grid-cols-2 md:rounded-none md:border-0 md:bg-transparent md:p-0 lg:grid-cols-3">
+            <Field label="Purchase Order" required className="md:col-span-2 lg:col-span-1">
               <SelectNative value={selectedOrder?.id ?? ""} onChange={(event) => selectPo(event.target.value)} required>
                 <option value="">Select approved/sent PO</option>
                 {purchaseOrders.map((order) => (
@@ -55,9 +55,6 @@ export function GoodsReceivingForm({
                   </option>
                 ))}
               </SelectNative>
-            </Field>
-            <Field label="GRN No">
-              <div className="rounded-md border bg-secondary/30 px-3 py-2 text-sm text-muted-foreground">Auto-generated on submit</div>
             </Field>
             <Field label="Received Date" required>
               <Input name="received_date" type="date" defaultValue={today()} required />
@@ -71,7 +68,7 @@ export function GoodsReceivingForm({
               </SelectNative>
               <p className="mt-1 text-xs text-muted-foreground">Select the branch receiving this delivery.</p>
             </Field>
-            <div className="lg:col-span-3">
+            <div className="md:col-span-2 lg:col-span-3">
               <Field label="Remarks">
                 <Textarea name="remarks" placeholder="Delivery notes, vehicle, temperature, or supplier remarks" />
               </Field>

@@ -1,6 +1,5 @@
 "use client";
 
-import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { ShoppingCart, Trash2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
@@ -58,22 +57,6 @@ export function StockBalanceTableRows({
 }) {
   const router = useRouter();
 
-  useEffect(() => {
-    const body = document.querySelector<HTMLTableSectionElement>("tbody[data-stock-balance-table]");
-    if (!body) return;
-
-    const handlePointerDown = (event: PointerEvent) => {
-      const row = (event.target as HTMLElement | null)?.closest?.("tr[data-href]") as HTMLElement | null;
-      if (!row) return;
-      if ((event.target as HTMLElement | null)?.closest?.("a, button, input, select, textarea, option")) return;
-      const href = row.getAttribute("data-href");
-      if (href) router.push(href);
-    };
-
-    body.addEventListener("pointerdown", handlePointerDown);
-    return () => body.removeEventListener("pointerdown", handlePointerDown);
-  }, [router]);
-
   return (
     <TableBody data-stock-balance-table>
       {rows.map((item) => {
@@ -86,7 +69,10 @@ export function StockBalanceTableRows({
             className="cursor-pointer"
             tabIndex={0}
             data-href={href}
-            onClick={() => router.push(href)}
+            onDoubleClick={(event) => {
+              if ((event.target as HTMLElement).closest("a, button, input, select, textarea, option")) return;
+              router.push(href);
+            }}
             onKeyDown={(event) => {
               if (event.key === "Enter" || event.key === " ") {
                 event.preventDefault();

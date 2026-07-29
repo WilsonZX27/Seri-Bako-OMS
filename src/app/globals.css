@@ -269,6 +269,12 @@ input[type="date"]::-webkit-date-and-time-value {
   min-width: 0;
 }
 
+/* The filter row is a single aligned control group: search first, then only
+   the filters that are useful on the page, then submit and the result total. */
+.sb-list-filters > :is(input, button, [data-select-control], .sb-status-filter, .sb-filter-more) {
+  align-self: center;
+}
+
 .sb-filter-summary {
   display: flex;
   min-height: 2.125rem;

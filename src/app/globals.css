@@ -702,13 +702,13 @@ input[type="date"]::-webkit-date-and-time-value {
 }
 
 /* Internal lead-band cells stay seamless; only its outer trailing edge gets a scroll cue. */
-.sb-table-region[data-sticky-column="first"] th:first-child,
-.sb-table-region[data-sticky-column="first"] td:first-child,
-.sb-table-region[data-sticky-column="second"] th:nth-child(2),
-.sb-table-region[data-sticky-column="second"] td:nth-child(2),
-.sb-table-region[data-sticky-column="third"] th:nth-child(3),
-.sb-table-region[data-sticky-column="third"] td:nth-child(3) {
-  box-shadow: 1px 0 var(--sb-border-soft), 4px 0 8px -2px rgb(6 44 31 / 0.24), 12px 0 18px -7px rgb(6 44 31 / 0.30);
+.sb-table-region[data-scrolled="true"][data-sticky-column="first"] th:first-child,
+.sb-table-region[data-scrolled="true"][data-sticky-column="first"] td:first-child,
+.sb-table-region[data-scrolled="true"][data-sticky-column="second"] th:nth-child(2),
+.sb-table-region[data-scrolled="true"][data-sticky-column="second"] td:nth-child(2),
+.sb-table-region[data-scrolled="true"][data-sticky-column="third"] th:nth-child(3),
+.sb-table-region[data-scrolled="true"][data-sticky-column="third"] td:nth-child(3) {
+  box-shadow: 1px 0 var(--sb-border), 6px 0 8px -3px rgb(6 44 31 / 0.32), 14px 0 18px -8px rgb(6 44 31 / 0.38);
 }
 
 .sb-table-region[data-sticky-column="first"] tbody tr:hover > :first-child,

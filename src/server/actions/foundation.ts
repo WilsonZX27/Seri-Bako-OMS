@@ -255,6 +255,47 @@ export async function deleteBranch(id: string) {
   safeRedirectWithMessage("/branches", "success", "Branch archived.");
 }
 
+export async function archiveBranches(formData: FormData) {
+  await requirePermissionOrRedirect("branches.update", "/branches");
+  const ids = z.array(recordIdSchema).min(1, "Select at least one branch.").max(100, "Archive up to 100 branches at a time.").parse(
+    [...new Set(formData.getAll("branch_id").map(String))],
+  );
+  try {
+    const actor = await requireActiveTenantActor();
+    if (!isMockMode()) {
+      const supabase = createAdminClient();
+      const { data: branches, error: readError } = await supabase
+        .from("branches")
+        .select("id, branch_name")
+        .in("id", ids)
+        .eq("company_id", actor.companyId)
+        .is("deleted_at", null);
+      if (readError) throw new Error(readError.message);
+      if ((branches ?? []).length !== ids.length) throw new Error("One or more selected branches are unavailable.");
+
+      const archivedAt = new Date().toISOString();
+      const { error } = await supabase
+        .from("branches")
+        .update({ deleted_at: archivedAt, status: "archived" })
+        .in("id", ids)
+        .eq("company_id", actor.companyId)
+        .is("deleted_at", null);
+      if (error) throw new Error(error.message);
+      await Promise.all((branches ?? []).map((branch) => writeActivityLog({
+        entityType: "branch",
+        entityId: branch.id,
+        activityType: "archived",
+        message: `Branch ${branch.branch_name} archived`,
+      })));
+    }
+  } catch (error) {
+    rethrowRedirect(error);
+    safeRedirectWithMessage("/branches", "error", formatActionError(error, "Could not archive the selected branches."));
+  }
+  revalidatePath("/branches");
+  safeRedirectWithMessage("/branches", "success", `${ids.length} branch${ids.length === 1 ? "" : "es"} archived.`);
+}
+
 export async function restoreBranch(id: string) {
   id = parseRecordId(id);
   await requirePermissionOrRedirect("branches.update", `/branches/${id}`);

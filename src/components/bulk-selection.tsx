@@ -22,12 +22,21 @@ export function useBulkSelection() {
 export function BulkSelectionProvider(props: {
   ids: string[];
   children: ReactNode;
-  /** Retained temporarily for list callers; no action is shown until it is real. */
   actionLabel?: string;
   actionHint?: string;
   canAct?: boolean;
+  action?: (formData: FormData) => void | Promise<void>;
+  fieldName?: string;
 }) {
-  const { ids, children, actionHint = "Open selected records to archive or deactivate them safely." } = props;
+  const {
+    ids,
+    children,
+    actionHint = "Open selected records to archive or deactivate them safely.",
+    actionLabel,
+    canAct = false,
+    action,
+    fieldName = "selected_id",
+  } = props;
   const [selected, setSelected] = useState<Set<string>>(() => new Set());
   const visibleIds = useMemo(() => ids, [ids]);
 
@@ -57,12 +66,18 @@ export function BulkSelectionProvider(props: {
     <BulkSelectionContext.Provider value={value}>
       <div className="space-y-3">
         {selected.size > 0 ? (
-          <div className="flex flex-col gap-3 rounded-[2px] border bg-white p-3 sm:flex-row sm:items-center sm:justify-between">
-            <div>
-              <p className="text-sm font-semibold">Selected {selected.size} item{selected.size === 1 ? "" : "s"}</p>
-              <p className="text-xs text-muted-foreground">{actionHint}</p>
+          <div className="flex flex-col gap-2 rounded-[2px] border bg-white px-3 py-2 sm:flex-row sm:items-center sm:justify-between">
+            <div className="min-w-0">
+              <p className="text-xs font-semibold">Selected {selected.size} item{selected.size === 1 ? "" : "s"}</p>
+              <p className="truncate text-[11px] text-muted-foreground">{actionHint}</p>
             </div>
             <div className="flex flex-wrap gap-2">
+              {action && actionLabel && canAct ? (
+                <form action={action}>
+                  {[...selected].map((id) => <input key={id} type="hidden" name={fieldName} value={id} />)}
+                  <Button type="submit" variant="destructive" size="sm">{actionLabel}</Button>
+                </form>
+              ) : null}
               <Button type="button" variant="ghost" size="sm" onClick={value.clear}>Deselect all</Button>
             </div>
           </div>

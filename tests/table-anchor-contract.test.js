@@ -20,7 +20,9 @@ test("technical tables use the shared pinned lead band without overlap", () => {
   assert.match(styles, /data-sticky-column="third"/);
   assert.match(styles, /width: 4rem;/);
   assert.match(styles, /left: 6\.5rem;/);
-  assert.match(styles, /12px 0 18px -7px/);
+  assert.match(table, /data-scrolled=\{scrolled \? "true" : "false"\}/);
+  assert.match(styles, /data-scrolled="true"/);
+  assert.match(styles, /14px 0 18px -8px/);
   assert.match(styles, /Internal lead-band cells stay seamless/);
   assert.match(table, /\[&>svg\]:!h-3\.5/);
   assert.doesNotMatch(table, /isActionLabel/);

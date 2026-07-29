@@ -1,3 +1,5 @@
+"use client";
+
 import * as React from "react";
 import Link from "next/link";
 import { ChevronRight, MoreHorizontal } from "lucide-react";
@@ -10,8 +12,24 @@ import { cn } from "@/lib/utils";
  * Legacy contract: stickyColumn?: "none" | "first" | "second"
  */
 export function Table({ className, mobileHidden = false, stickyColumn = "first", ...props }: React.TableHTMLAttributes<HTMLTableElement> & { mobileHidden?: boolean; stickyColumn?: "none" | "first" | "second" | "third" }) {
+  const regionRef = React.useRef<HTMLDivElement>(null);
+  const [scrolled, setScrolled] = React.useState(false);
+
+  const updateScrollState = React.useCallback(() => {
+    setScrolled((regionRef.current?.scrollLeft ?? 0) > 2);
+  }, []);
+
+  React.useEffect(() => {
+    updateScrollState();
+    const region = regionRef.current;
+    if (!region || typeof ResizeObserver === "undefined") return;
+    const observer = new ResizeObserver(updateScrollState);
+    observer.observe(region);
+    return () => observer.disconnect();
+  }, [updateScrollState]);
+
   return (
-    <div className={cn("sb-table-region", mobileHidden && "hidden md:block")} data-sticky-column={stickyColumn} role="region" aria-label={props["aria-label"] ?? "Data table"} tabIndex={0}>
+    <div ref={regionRef} onScroll={updateScrollState} className={cn("sb-table-region", mobileHidden && "hidden md:block")} data-sticky-column={stickyColumn} data-scrolled={scrolled ? "true" : "false"} role="region" aria-label={props["aria-label"] ?? "Data table"} tabIndex={0}>
       <table className={cn("w-full caption-bottom text-xs", className)} {...props} />
     </div>
   );

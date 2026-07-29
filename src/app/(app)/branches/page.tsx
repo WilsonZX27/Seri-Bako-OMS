@@ -17,6 +17,7 @@ import { hasActiveFilters } from "@/lib/table-state";
 import { ConsoleSection } from "@/components/layout/right-console";
 import { WorkspaceGrid } from "@/components/layout/workspace-layout";
 import { hasPermission } from "@/server/auth/permissions";
+import { archiveBranches } from "@/server/actions/foundation";
 
 export const dynamic = "force-dynamic";
 
@@ -40,7 +41,7 @@ export default async function BranchesPage({ searchParams }: { searchParams: Pro
           ) : null}
           <div className="overflow-hidden rounded-[2px] border bg-card">
             <MasterDataFilters search={filters.search} status={filters.status} placeholder="Search branch code, name, or type" statuses={[{ value: "active", label: "Active" }, { value: "archived", label: "Archived" }]} showStatus={false} leadingFilter={<StatusTabs statuses={["active", "archived"]} activeStatus={filters.status} />} resultCount={branches.length} filtered={filtered} resetHref="/branches" />
-            <BulkSelectionProvider ids={branches.map((branch) => branch.id)} actionLabel="Archive selected" actionHint="Archive branches only after confirming they are no longer used by daily operations.">
+            <BulkSelectionProvider ids={branches.map((branch) => branch.id)} action={archiveBranches} fieldName="branch_id" canAct={canUpdate} actionLabel="Archive selected" actionHint="Archive branches only after confirming they are no longer used by daily operations.">
             <DataGridHint text="Pro-tip: Double-click any row to open the branch." />
               <Table aria-label="Branches" stickyColumn={canManage && canUpdate ? "third" : canManage || canUpdate ? "second" : "first"}>
                 <TableHeader>

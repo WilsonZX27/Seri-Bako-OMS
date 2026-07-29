@@ -40,6 +40,14 @@ test("Demand Trend Lite applies date, outlet, product and reliable-status filter
   assert.match(page, /Completed \+ reviewed/);
 });
 
+test("Demand Trend Lite uses dense phone summaries and compact trend rows", () => {
+  assert.match(page, /className="grid-cols-3 lg:grid-cols-6"/);
+  assert.match(page, /<Table mobileHidden aria-label=\{title\}/);
+  assert.match(page, /<OperationalList ariaLabel=\{title\}/);
+  assert.match(page, /Movement \{formatNumber\(row\.movement\)\}/);
+  assert.match(page, /Received \{formatNumber\(row\.received\)\} · Leftover/);
+});
+
 test("Demand Trend Lite has one report route and inherits outlet-record access", () => {
   const routes = read("src/server/auth/route-permissions.ts");
   const reports = read("src/app/(app)/reports/page.tsx");

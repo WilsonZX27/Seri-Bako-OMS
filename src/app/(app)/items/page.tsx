@@ -55,10 +55,11 @@ export default async function ItemsPage({
           />
           <BulkSelectionProvider ids={itemsPage.rows.map((item) => item.id)} actionLabel="Deactivate selected" actionHint="Deactivate items only when they are no longer used in daily operations.">
           <DataGridHint text="Pro-tip: Double-click any row to open the item." />
-          <Table mobileHidden aria-label="Items" stickyColumn="second">
+          <Table mobileHidden aria-label="Items" stickyColumn="third">
             <TableHeader>
               <TableRow>
                 <TableSelectionHead className="hidden md:table-cell"><BulkSelectAllCheckbox /></TableSelectionHead>
+                <TableHead className="w-12 text-center">Action</TableHead>
                 <SortableHead wrap className="min-w-20" label="Item Code" column="item_code" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
                 <SortableHead wrap className="min-w-20" label="Item Name" column="item_name" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
                 <SortableHead className="hidden lg:table-cell" label="Category" column="category" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
@@ -68,7 +69,6 @@ export default async function ItemsPage({
                 <SortableHead wrap label="Safety Stock" column="safety_stock" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} className="hidden min-w-20 text-right lg:table-cell" />
                 <SortableHead wrap label="Current Stock" column="current_stock" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} className="hidden min-w-20 text-right md:table-cell" />
                 <SortableHead label="Status" column="status" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
-                <TableHead className="w-12 text-right">Action</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -78,6 +78,7 @@ export default async function ItemsPage({
                     <TableSelectionCell className="hidden md:table-cell">
                       <BulkSelectRowCheckbox id={item.id} />
                     </TableSelectionCell>
+                    <TableCell className="text-center"><TableActionLink href={`/items/${item.id}`} label={`Open ${item.item_name}`}><Pencil className="h-4 w-4" /></TableActionLink></TableCell>
                     <TableCell>{item.item_code}</TableCell>
                     <TableCell className="font-medium">{item.item_name}</TableCell>
                     <TableCell className="hidden lg:table-cell">{item.category}</TableCell>
@@ -89,7 +90,6 @@ export default async function ItemsPage({
                     <TableCell>
                       <Badge variant={item.status === "active" ? "success" : "secondary"}>{item.status}</Badge>
                     </TableCell>
-                    <TableCell className="text-right"><TableActionLink href={`/items/${item.id}`} label={`Open ${item.item_name}`}><Pencil className="h-4 w-4" /></TableActionLink></TableCell>
                   </DataGridRow>
                 );
               })}

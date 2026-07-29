@@ -42,10 +42,11 @@ export default async function BranchesPage({ searchParams }: { searchParams: Pro
             <MasterDataFilters search={filters.search} status={filters.status} placeholder="Search branch code, name, or type" statuses={[{ value: "active", label: "Active" }, { value: "archived", label: "Archived" }]} showStatus={false} leadingFilter={<StatusTabs statuses={["active", "archived"]} activeStatus={filters.status} />} resultCount={branches.length} filtered={filtered} resetHref="/branches" />
             <BulkSelectionProvider ids={branches.map((branch) => branch.id)} actionLabel="Archive selected" actionHint="Archive branches only after confirming they are no longer used by daily operations.">
             <DataGridHint text="Pro-tip: Double-click any row to open the branch." />
-              <Table aria-label="Branches" stickyColumn={canManage ? "second" : "first"}>
+              <Table aria-label="Branches" stickyColumn={canManage && canUpdate ? "third" : canManage || canUpdate ? "second" : "first"}>
                 <TableHeader>
                   <TableRow>
                     {canManage ? <TableSelectionHead><BulkSelectAllCheckbox /></TableSelectionHead> : null}
+                    {canUpdate ? <TableHead className="w-12 text-center">Action</TableHead> : null}
                     <TableHead>Code</TableHead>
                     <TableHead>Branch Name</TableHead>
                     <TableHead>Type</TableHead>
@@ -53,7 +54,6 @@ export default async function BranchesPage({ searchParams }: { searchParams: Pro
                     <TableHead>Email</TableHead>
                     <TableHead>Address</TableHead>
                     <TableHead>Status</TableHead>
-                    {canUpdate ? <TableHead className="w-12 text-right">Action</TableHead> : null}
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -62,6 +62,7 @@ export default async function BranchesPage({ searchParams }: { searchParams: Pro
                         {canManage ? <TableSelectionCell>
                          <BulkSelectRowCheckbox id={branch.id} />
                         </TableSelectionCell> : null}
+                      {canUpdate ? <TableCell className="text-center"><TableActionLink href={`/branches/${branch.id}`} label={`Open ${branch.branch_name}`}><Pencil className="h-4 w-4" /></TableActionLink></TableCell> : null}
                       <TableCell>{branch.branch_code}</TableCell>
                       <TableCell className="font-medium">{branch.branch_name}</TableCell>
                       <TableCell className="capitalize">{branch.branch_type.replaceAll("_", " ")}</TableCell>
@@ -69,7 +70,6 @@ export default async function BranchesPage({ searchParams }: { searchParams: Pro
                       <TableCell>{branch.email ?? "-"}</TableCell>
                       <TableCell className="max-w-64 truncate">{branch.address ?? "-"}</TableCell>
                       <TableCell><Badge variant={branch.status === "active" ? "success" : "secondary"}>{branch.status}</Badge></TableCell>
-                      {canUpdate ? <TableCell className="text-right"><TableActionLink href={`/branches/${branch.id}`} label={`Open ${branch.branch_name}`}><Pencil className="h-4 w-4" /></TableActionLink></TableCell> : null}
                     </DataGridRow>
                   ))}
                   {!branches.length ? <TableRow><TableCell colSpan={canManage ? 9 : 7}><EmptyState title={filtered ? "No records match these filters" : "No branches yet"} description={filtered ? "Clear filters or widen the search to see more branches." : "Branches will appear here after operating units are created."} action={filtered ? { href: "/branches", label: "Clear filters" } : canCreate ? { href: "/branches/new", label: "New branch" } : undefined} /></TableCell></TableRow> : null}

@@ -123,6 +123,15 @@ export function RightConsoleProvider({ children }: { children: ReactNode }) {
     };
   }, [ownsMobileActionArea]);
 
+  useEffect(() => {
+    const root = document.documentElement;
+    if (hasCreateFab) root.dataset.mobileCreatePage = "true";
+    else delete root.dataset.mobileCreatePage;
+    return () => {
+      delete root.dataset.mobileCreatePage;
+    };
+  }, [hasCreateFab]);
+
   return (
     <RightConsoleContext.Provider value={value}>
       {children}

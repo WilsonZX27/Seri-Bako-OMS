@@ -863,6 +863,15 @@ input[type="date"]::-webkit-date-and-time-value {
   }
 }
 
+/* A create FAB occupies the lower scroll corridor above the mobile navigation.
+   Keep list tails (especially pagination) reachable instead of letting the fixed
+   circle cover the last controls. */
+@media (max-width: 1279px) {
+  html[data-mobile-create-page="true"] [data-center-workspace] main {
+    padding-bottom: calc(var(--sb-mobile-nav-height) + env(safe-area-inset-bottom) + 5.5rem) !important;
+  }
+}
+
 @media (min-width: 768px) and (max-width: 1279px) {
   [data-tablet-canvas="contained"],
   [data-tablet-document-header] {

@@ -17,6 +17,8 @@ test("new and create links become a phone FAB above the tab bar", () => {
   assert.match(consoleSource, /rounded-full/);
   assert.match(consoleSource, /<Plus/);
   assert.match(css, /data-mobile-create-fab[\s\S]*var\(--sb-mobile-nav-height\)/);
+  assert.match(consoleSource, /mobileCreatePage/);
+  assert.match(css, /data-mobile-create-page[\s\S]*padding-bottom: calc\(var\(--sb-mobile-nav-height\)/);
   assert.doesNotMatch(css, /\[data-mobile-action-bar\],\s*\[data-mobile-create-fab\],\s*\[data-mobile-document-action\]/);
 });
 

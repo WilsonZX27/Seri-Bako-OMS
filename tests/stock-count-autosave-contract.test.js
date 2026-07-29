@@ -33,6 +33,7 @@ test("stock count form keeps a local recovery snapshot and reports server save s
   assert.match(form, /Saving…/);
   assert.match(form, /Recovered unsaved changes/);
   assert.match(form, /Save failed — retrying/);
+  assert.match(form, /Save failed — changes kept locally/);
   assert.match(status, /role="status"/);
   assert.match(status, /aria-live="polite"/);
   assert.match(detail, /mobileWorkflowTrailing=\{canEdit \? <StockCountAutosaveStatus \/> : null\}/);
@@ -53,6 +54,7 @@ test("stock count decimal validation tolerates floating point tails and autosave
   assert.match(form, /result\.retryable === false/);
   assert.match(form, /15_000/);
   assert.match(errors, /error\.name === "ZodError"\) return "validation_failed"/);
+  assert.match(errors, /normalized\.includes\("current state"\)/);
 });
 
 test("applied Central Kitchen PR history is retired forward without shipping its API", () => {

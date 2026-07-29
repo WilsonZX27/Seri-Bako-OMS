@@ -25,7 +25,14 @@ export function classifyActionError(error: unknown): ActionErrorKind {
   if (normalized.includes("missing permission") || normalized.includes("permission denied") || normalized.includes("row-level security")) return "permission_denied";
   if (normalized.includes("duplicate key") || normalized.includes("already exists") || normalized.includes("unique constraint")) return "duplicate_record";
   if (normalized.includes("not found") || normalized.includes("no rows") || normalized.includes("does not exist")) return "record_not_found";
-  if (normalized.includes("already posted") || normalized.includes("already converted") || normalized.includes("already completed") || normalized.includes("insufficient stock") || normalized.includes("exceed")) return "conflict";
+  if (
+    normalized.includes("already posted")
+    || normalized.includes("already converted")
+    || normalized.includes("already completed")
+    || normalized.includes("insufficient stock")
+    || normalized.includes("exceed")
+    || normalized.includes("current state")
+  ) return "conflict";
   if (normalized.includes("violates not-null") || normalized.includes("check constraint") || normalized.includes("invalid") || normalized.includes("required")) return "validation_failed";
   if (isPendingMigrationError(error) || normalized.includes("schema cache") || normalized.includes("connection") || normalized.includes("timeout")) return "database_unavailable";
   if (!message) return "unknown_error";

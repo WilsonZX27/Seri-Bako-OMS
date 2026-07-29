@@ -111,6 +111,7 @@ export function StockCountForm({
   const [dirtyRevision, setDirtyRevision] = useState(0);
   const [autosaveState, setAutosaveState] = useState<AutosaveState>("idle");
   const [autosaveError, setAutosaveError] = useState("");
+  const [autosaveRetryable, setAutosaveRetryable] = useState(true);
   const [search, setSearch] = useState("");
   const [showAdjustedOnly, setShowAdjustedOnly] = useState(false);
   const [sortBy, setSortBy] = useState<"name" | "code">("code");
@@ -136,6 +137,7 @@ export function StockCountForm({
     hasUserEdited.current = false;
     setAutosaveState("idle");
     setAutosaveError("");
+    setAutosaveRetryable(true);
   }, [selectedBranchId, seedLines, initialCountDate, initialTolerance, initialRemarks]);
 
   useEffect(() => {
@@ -184,12 +186,14 @@ export function StockCountForm({
     const sequence = ++saveSequence.current;
     setAutosaveState("saving");
     setAutosaveError("");
+    setAutosaveRetryable(true);
     try {
       const result = await autosaveAction(new FormData(formRef.current));
       if (sequence !== saveSequence.current) return result.ok;
       if (!result.ok || !result.id) {
         setAutosaveState("error");
         setAutosaveError(result.error ?? "Autosave failed. Your changes remain on this device.");
+        setAutosaveRetryable(result.retryable !== false);
         if (retryTimer.current !== null) window.clearTimeout(retryTimer.current);
         retryTimer.current = result.retryable === false
           ? null
@@ -199,12 +203,14 @@ export function StockCountForm({
       lastSavedRevision.current = revision;
       window.localStorage.removeItem(localStorageKey);
       setAutosaveState("saved");
+      setAutosaveRetryable(true);
       if (!draftId) router.replace(`/stock-counts/${result.id}?autosaved=1`);
       return true;
     } catch {
       if (sequence === saveSequence.current) {
         setAutosaveState("error");
         setAutosaveError("Autosave failed. Your changes remain on this device and will retry.");
+        setAutosaveRetryable(true);
         if (retryTimer.current !== null) window.clearTimeout(retryTimer.current);
         retryTimer.current = window.setTimeout(() => void saveDraft(revision), 15_000);
       }
@@ -291,16 +297,18 @@ export function StockCountForm({
     : autosaveState === "saved"
       ? "Saved"
       : autosaveState === "recovered"
-        ? "Recovered unsaved changes"
-        : autosaveState === "error"
-          ? "Save failed — retrying"
+          ? "Recovered unsaved changes"
+          : autosaveState === "error"
+          ? autosaveRetryable
+            ? "Save failed — retrying"
+            : "Save failed — changes kept locally"
           : "Autosave ready";
 
   useEffect(() => {
     window.dispatchEvent(new CustomEvent(STOCK_COUNT_AUTOSAVE_EVENT, {
       detail: { state: autosaveState, label: autosaveLabel, error: autosaveError },
     }));
-  }, [autosaveError, autosaveLabel, autosaveState]);
+  }, [autosaveError, autosaveLabel, autosaveState, autosaveRetryable]);
 
   return (
     <div className="rounded-none md:rounded-[var(--sb-panel-radius)] md:border md:bg-white">

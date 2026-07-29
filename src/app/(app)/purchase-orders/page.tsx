@@ -1,5 +1,4 @@
 import { Pencil } from "lucide-react";
-import { BulkSelectAllCheckbox, BulkSelectionProvider, BulkSelectRowCheckbox } from "@/components/bulk-selection";
 import { DataGridRow } from "@/components/ui/data-grid-row";
 import { DataGridHint } from "@/components/ui/data-grid-hint";
 import { DocumentNumber } from "@/components/document-number";
@@ -11,7 +10,7 @@ import { PageHeader } from "@/components/ui/page-header";
 import { FilterBar } from "@/components/ui/filter-bar";
 import { PaginationControls, SortableHead } from "@/components/sortable-table";
 import { StatusTabs } from "@/components/status-tabs";
-import { OperationalList, OperationalListRow, Table, TableActionLink, TableBody, TableCell, TableHead, TableHeader, TableRow, TableSelectionCell, TableSelectionHead } from "@/components/ui/table";
+import { OperationalList, OperationalListRow, Table, TableActionLink, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { ConsoleSection } from "@/components/layout/right-console";
 import { WorkspaceGrid } from "@/components/layout/workspace-layout";
 import { formatCurrency } from "@/lib/utils";
@@ -66,12 +65,10 @@ export default async function PurchaseOrdersPage({ searchParams }: { searchParam
             <Button type="submit" variant="secondary" className="shrink-0">Search</Button>
             {filters.status ? <input type="hidden" name="status" value={filters.status} /> : null}
           </FilterBar>
-          <BulkSelectionProvider ids={orders.rows.map((order) => order.id)} actionLabel="Archive selected" actionHint="Open selected POs to close, reject, or cancel them through workflow-safe actions.">
           <DataGridHint text="Pro-tip: Double-click any row to open the purchase order." />
-          <Table mobileHidden aria-label="Purchase orders" stickyColumn="third">
+          <Table mobileHidden aria-label="Purchase orders" stickyColumn="second">
               <TableHeader>
                 <TableRow>
-                  <TableSelectionHead className="hidden md:table-cell"><BulkSelectAllCheckbox /></TableSelectionHead>
                   <TableHead className="w-10 text-center">Action</TableHead>
                   <SortableHead label="PO No" column="po_no" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
                   <TableHead>Supplier</TableHead>
@@ -85,9 +82,6 @@ export default async function PurchaseOrdersPage({ searchParams }: { searchParam
               <TableBody>
                 {orders.rows.map((order) => (
                   <DataGridRow key={order.id} href={`/purchase-orders/${order.id}`}>
-                      <TableSelectionCell className="hidden md:table-cell">
-                       <BulkSelectRowCheckbox id={order.id} />
-                      </TableSelectionCell>
                     <TableCell className="w-10 p-0 text-center"><TableActionLink href={`/purchase-orders/${order.id}`} label={`Open ${order.po_no}`}><Pencil className="h-4 w-4" /></TableActionLink></TableCell>
                     <TableCell><DocumentNumber value={order.po_no} size="sm" /></TableCell>
                     <TableCell>{order.supplier_name ?? "-"}</TableCell>
@@ -98,7 +92,7 @@ export default async function PurchaseOrdersPage({ searchParams }: { searchParam
                     <TableCell className="hidden text-right md:table-cell">{formatCurrency(order.order_total)}</TableCell>
                   </DataGridRow>
                 ))}
-                {!orders.rows.length ? <TableRow><TableCell colSpan={9}><EmptyState title={filtered ? "No orders match these filters" : "No purchase orders yet"} description={filtered ? "Reset the filters or widen the search." : "Approved requests and new orders will appear here."} action={filtered ? { href: "/purchase-orders", label: "Reset filters" } : undefined} /></TableCell></TableRow> : null}
+                {!orders.rows.length ? <TableRow><TableCell colSpan={8}><EmptyState title={filtered ? "No orders match these filters" : "No purchase orders yet"} description={filtered ? "Reset the filters or widen the search." : "Approved requests and new orders will appear here."} action={filtered ? { href: "/purchase-orders", label: "Reset filters" } : undefined} /></TableCell></TableRow> : null}
               </TableBody>
             </Table>
             <OperationalList ariaLabel="Purchase orders">
@@ -113,7 +107,6 @@ export default async function PurchaseOrdersPage({ searchParams }: { searchParam
               />)}
               {!orders.rows.length ? <EmptyState title={filtered ? "No orders match these filters" : "No purchase orders yet"} description={filtered ? "Reset the filters or widen the search." : "Approved requests and new orders will appear here."} action={filtered ? { href: "/purchase-orders", label: "Reset filters" } : undefined} /> : null}
             </OperationalList>
-          </BulkSelectionProvider>
           <PaginationControls page={orders.page} totalPages={orders.totalPages} totalRows={orders.totalRows} searchParams={filters} />
         </div>
       </WorkspaceGrid>

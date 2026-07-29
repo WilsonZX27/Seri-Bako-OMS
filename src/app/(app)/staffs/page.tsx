@@ -1,6 +1,5 @@
 import Link from "next/link";
 import { Pencil } from "lucide-react";
-import { BulkSelectAllCheckbox, BulkSelectionProvider, BulkSelectRowCheckbox } from "@/components/bulk-selection";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { DataGridHint } from "@/components/ui/data-grid-hint";
@@ -9,7 +8,7 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { MasterDataFilters } from "@/components/master-data-filters";
 import { PageHeader } from "@/components/ui/page-header";
 import { StatusTabs } from "@/components/status-tabs";
-import { Table, TableActionLink, TableBody, TableCell, TableHead, TableHeader, TableRow, TableSelectionCell, TableSelectionHead } from "@/components/ui/table";
+import { Table, TableActionLink, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { getStaffs } from "@/server/queries/foundation";
 import { ConsoleSection } from "@/components/layout/right-console";
@@ -48,16 +47,12 @@ export default async function StaffsPage({ searchParams }: { searchParams: Promi
             { value: "disabled", label: "Disabled" },
           ]}
         />
-        <BulkSelectionProvider ids={staffs.map((staff) => staff.id)} actionLabel="Deactivate selected" actionHint="Disable staff users from their detail page to keep a clear access history.">
         <DataGridHint text="Pro-tip: Double-click any row to open the staff profile." />
-          <Table aria-label="Staff members" stickyColumn="third"><TableHeader><TableRow>
-          <TableSelectionHead className="hidden md:table-cell"><BulkSelectAllCheckbox /></TableSelectionHead><TableHead className="w-16">Action</TableHead><TableHead>Staff Code</TableHead><TableHead>Name</TableHead><TableHead className="hidden lg:table-cell">Email</TableHead><TableHead className="hidden lg:table-cell">Default Branch</TableHead><TableHead>Role</TableHead><TableHead>Staff Status</TableHead><TableHead className="hidden md:table-cell">Account Status</TableHead>
+          <Table aria-label="Staff members" stickyColumn="second"><TableHeader><TableRow>
+          <TableHead className="w-16">Action</TableHead><TableHead>Staff Code</TableHead><TableHead>Name</TableHead><TableHead className="hidden lg:table-cell">Email</TableHead><TableHead className="hidden lg:table-cell">Default Branch</TableHead><TableHead>Role</TableHead><TableHead>Staff Status</TableHead><TableHead className="hidden md:table-cell">Account Status</TableHead>
         </TableRow></TableHeader><TableBody>
           {staffs.map((staff) => (
             <DataGridRow key={staff.id} href={`/staffs/${staff.id}`}>
-                <TableSelectionCell className="hidden md:table-cell">
-                 <BulkSelectRowCheckbox id={staff.id} />
-                </TableSelectionCell>
               <TableCell className="w-16 p-0 text-center"><TableActionLink href={`/staffs/${staff.id}`} label={`Open ${staff.full_name}`}><Pencil className="h-4 w-4" /></TableActionLink></TableCell>
               <TableCell>{staff.staff_code?.toUpperCase() ?? "-"}</TableCell>
               <TableCell className="font-medium">{staff.full_name}</TableCell>
@@ -68,9 +63,8 @@ export default async function StaffsPage({ searchParams }: { searchParams: Promi
               <TableCell className="hidden md:table-cell text-xs font-medium">{staffAuthStateLabels[getStaffAuthState(staff)]}</TableCell>
             </DataGridRow>
           ))}
-          {!staffs.length ? <TableRow><TableCell colSpan={9}><EmptyState title="No staff found" description="Staff accounts will appear here after they are invited or created." action={{ href: "/staffs/new", label: "New staff" }} /></TableCell></TableRow> : null}
+          {!staffs.length ? <TableRow><TableCell colSpan={8}><EmptyState title="No staff found" description="Staff accounts will appear here after they are invited or created." action={{ href: "/staffs/new", label: "New staff" }} /></TableCell></TableRow> : null}
         </TableBody></Table>
-        </BulkSelectionProvider>
       </div></WorkspaceGrid>
     </>
   );

@@ -1,6 +1,5 @@
 import Link from "next/link";
 import { Pencil } from "lucide-react";
-import { BulkSelectAllCheckbox, BulkSelectionProvider, BulkSelectRowCheckbox } from "@/components/bulk-selection";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { DataGridHint } from "@/components/ui/data-grid-hint";
@@ -10,7 +9,7 @@ import { MasterDataFilters } from "@/components/master-data-filters";
 import { PageHeader } from "@/components/ui/page-header";
 import { PaginationControls, SortableHead } from "@/components/sortable-table";
 import { StatusTabs } from "@/components/status-tabs";
-import { OperationalList, OperationalListRow, Table, TableActionLink, TableBody, TableCell, TableHead, TableHeader, TableRow, TableSelectionCell, TableSelectionHead } from "@/components/ui/table";
+import { OperationalList, OperationalListRow, Table, TableActionLink, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { formatCurrency, formatNumber } from "@/lib/utils";
 import { hasActiveFilters } from "@/lib/table-state";
 import { getItemsWithStock, getItemsWithStockPage } from "@/server/queries/items";
@@ -53,12 +52,10 @@ export default async function ItemsPage({
             filtered={filtered}
             resetHref="/items"
           />
-          <BulkSelectionProvider ids={itemsPage.rows.map((item) => item.id)} actionLabel="Deactivate selected" actionHint="Deactivate items only when they are no longer used in daily operations.">
           <DataGridHint text="Pro-tip: Double-click any row to open the item." />
-          <Table mobileHidden aria-label="Items" stickyColumn="third">
+          <Table mobileHidden aria-label="Items" stickyColumn="second">
             <TableHeader>
               <TableRow>
-                <TableSelectionHead className="hidden md:table-cell"><BulkSelectAllCheckbox /></TableSelectionHead>
                 <TableHead className="w-12 text-center">Action</TableHead>
                 <SortableHead wrap className="min-w-20" label="Item Code" column="item_code" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
                 <SortableHead wrap className="min-w-20" label="Item Name" column="item_name" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
@@ -75,9 +72,6 @@ export default async function ItemsPage({
               {itemsPage.rows.map((item) => {
                 return (
                   <DataGridRow key={item.id} href={`/items/${item.id}`}>
-                    <TableSelectionCell className="hidden md:table-cell">
-                      <BulkSelectRowCheckbox id={item.id} />
-                    </TableSelectionCell>
                     <TableCell className="text-center"><TableActionLink href={`/items/${item.id}`} label={`Open ${item.item_name}`}><Pencil className="h-4 w-4" /></TableActionLink></TableCell>
                     <TableCell>{item.item_code}</TableCell>
                     <TableCell className="font-medium">{item.item_name}</TableCell>
@@ -95,7 +89,7 @@ export default async function ItemsPage({
               })}
               {!itemsPage.rows.length ? (
                 <TableRow>
-                  <TableCell colSpan={11}>
+                  <TableCell colSpan={10}>
                     <EmptyState title={filtered ? "No items match these filters" : "No items yet"} description={filtered ? "Reset the filters or widen the search." : "Items appear here after they are created or imported."} action={filtered ? { href: "/items", label: "Reset filters" } : undefined} />
                   </TableCell>
                 </TableRow>
@@ -106,7 +100,6 @@ export default async function ItemsPage({
             {itemsPage.rows.map((item) => <OperationalListRow key={item.id} href={`/items/${item.id}`} label={`Open ${item.item_name}`} primary={item.item_name} status={<Badge variant={item.status === "active" ? "success" : "secondary"}>{item.status}</Badge>} secondary={`${item.item_code} · ${item.category}`} meta={`${formatNumber(item.current_stock)} ${item.base_unit}`} />)}
             {!itemsPage.rows.length ? <EmptyState title={filtered ? "No items match these filters" : "No items yet"} description={filtered ? "Reset the filters or widen the search." : "Items appear here after they are created or imported."} action={filtered ? { href: "/items", label: "Reset filters" } : undefined} /> : null}
           </OperationalList>
-          </BulkSelectionProvider>
           <PaginationControls page={itemsPage.page} totalPages={itemsPage.totalPages} totalRows={itemsPage.totalRows} searchParams={filters} />
         </div>
       </WorkspaceGrid>

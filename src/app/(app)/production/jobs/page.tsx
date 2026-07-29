@@ -1,6 +1,5 @@
 import Link from "next/link";
 import { CheckCircle2, ClipboardCheck, Pencil, FileText, XCircle } from "lucide-react";
-import { BulkSelectionProvider, BulkSelectAllCheckbox, BulkSelectRowCheckbox } from "@/components/bulk-selection";
 import { DataGridRow } from "@/components/ui/data-grid-row";
 import { DataGridHint } from "@/components/ui/data-grid-hint";
 import { DocumentNumber } from "@/components/document-number";
@@ -11,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { SelectControl } from "@/components/ui/select-control";
 import { StatusBadge } from "@/components/ui/status-badge";
-import { OperationalList, OperationalListRow, Table, TableActionLink, TableBody, TableCell, TableHead, TableHeader, TableRow, TableSelectionCell, TableSelectionHead } from "@/components/ui/table";
+import { OperationalList, OperationalListRow, Table, TableActionLink, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { PaginationControls, SortableHead } from "@/components/sortable-table";
 import { ConsoleSection } from "@/components/layout/right-console";
 import { WorkspaceGrid } from "@/components/layout/workspace-layout";
@@ -92,7 +91,6 @@ export default async function ProductionJobsPage({ searchParams }: { searchParam
           </ConsoleSection>
         </>}
       >
-      <BulkSelectionProvider ids={jobs.rows.map((row) => row.id)} actionLabel="Archive selected" canAct={false}>
         <div className="space-y-3">
           <div className="overflow-hidden rounded-[2px] border bg-card">
             <FilterBar resultCount={jobs.totalRows} resetHref="/production/jobs" filtered={filtered}>
@@ -104,10 +102,9 @@ export default async function ProductionJobsPage({ searchParams }: { searchParam
               {selectedStatus !== "all" ? <input type="hidden" name="status" value={selectedStatus} /> : null}
             </FilterBar>
             <DataGridHint text="Pro-tip: Double-click any row to open the production job." />
-            <Table mobileHidden aria-label="Production jobs" stickyColumn="third">
+            <Table mobileHidden aria-label="Production jobs" stickyColumn="second">
                 <TableHeader>
                   <TableRow>
-                    <TableSelectionHead><BulkSelectAllCheckbox /></TableSelectionHead>
                     <TableHead className="w-12 text-center">Action</TableHead>
                     <SortableHead label="Job No" column="production_job_no" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
                     <SortableHead label="Date" column="production_date" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
@@ -124,9 +121,6 @@ export default async function ProductionJobsPage({ searchParams }: { searchParam
                 <TableBody>
                   {jobs.rows.map((job) => (
                     <DataGridRow key={job.id} href={`/production/jobs/${job.id}`}>
-                        <TableSelectionCell>
-                         <BulkSelectRowCheckbox id={job.id} />
-                        </TableSelectionCell>
                       <TableCell className="text-center"><TableActionLink href={`/production/jobs/${job.id}`} label={`Open ${job.production_job_no}`}><Pencil className="h-4 w-4" /></TableActionLink></TableCell>
                       <TableCell><DocumentNumber value={job.production_job_no} size="sm" /></TableCell>
                       <TableCell>{job.production_date}</TableCell>
@@ -142,7 +136,7 @@ export default async function ProductionJobsPage({ searchParams }: { searchParam
                   ))}
                   {!jobs.rows.length ? (
                     <TableRow>
-                      <TableCell colSpan={12}>
+                      <TableCell colSpan={11}>
                         <EmptyState title={filtered ? "No jobs match these filters" : "No production jobs yet"} description={filtered ? `No production jobs match ${formatStatusLabel(selectedStatus)} and the current filters.` : "Production jobs appear after they are created."} action={filtered ? { href: "/production/jobs", label: "Reset filters" } : undefined} />
                       </TableCell>
                     </TableRow>
@@ -156,7 +150,6 @@ export default async function ProductionJobsPage({ searchParams }: { searchParam
             <PaginationControls page={jobs.page} totalPages={jobs.totalPages} totalRows={jobs.totalRows} searchParams={filters} />
           </div>
         </div>
-      </BulkSelectionProvider>
       </WorkspaceGrid>
     </>
   );

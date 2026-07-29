@@ -29,23 +29,23 @@ test("technical tables use the shared pinned lead band without overlap", () => {
   assert.doesNotMatch(styles, /\.sb-table-region th:last-child,/);
   assert.match(design, /Technical tables pin their first semantic identity column by default/);
   for (const page of [
+    "src/app/(app)/documents/page.tsx",
+    "src/app/(app)/goods-receivings/page.tsx",
+    "src/app/(app)/items/page.tsx",
     "src/app/(app)/outlet-daily-records/page.tsx",
+    "src/app/(app)/production/jobs/page.tsx",
+    "src/app/(app)/purchase-orders/page.tsx",
+    "src/app/(app)/staffs/page.tsx",
     "src/app/(app)/stock-transactions/page.tsx",
     "src/app/(app)/stock-wastage/page.tsx",
     "src/app/(app)/supplier-items/page.tsx",
+    "src/app/(app)/suppliers/page.tsx",
     "src/app/(app)/uom-conversions/page.tsx",
   ]) {
     assert.match(read(page), /stickyColumn="second"/, `${page}: action and identity remain pinned`);
   }
   for (const page of [
-    "src/app/(app)/documents/page.tsx",
-    "src/app/(app)/goods-receivings/page.tsx",
-    "src/app/(app)/items/page.tsx",
-    "src/app/(app)/production/jobs/page.tsx",
     "src/app/(app)/purchase-requests/page.tsx",
-    "src/app/(app)/purchase-orders/page.tsx",
-    "src/app/(app)/staffs/page.tsx",
-    "src/app/(app)/suppliers/page.tsx",
   ]) {
     assert.match(read(page), /stickyColumn="third"/, `${page}: checkbox, action, and identity remain pinned`);
   }

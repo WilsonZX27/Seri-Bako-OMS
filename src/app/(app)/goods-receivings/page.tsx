@@ -1,5 +1,4 @@
 import { Pencil } from "lucide-react";
-import { BulkSelectAllCheckbox, BulkSelectionProvider, BulkSelectRowCheckbox } from "@/components/bulk-selection";
 import { DataGridRow } from "@/components/ui/data-grid-row";
 import { DataGridHint } from "@/components/ui/data-grid-hint";
 import { DocumentNumber } from "@/components/document-number";
@@ -11,7 +10,7 @@ import { PageHeader } from "@/components/ui/page-header";
 import { FilterBar } from "@/components/ui/filter-bar";
 import { PaginationControls, SortableHead } from "@/components/sortable-table";
 import { StatusTabs } from "@/components/status-tabs";
-import { OperationalList, OperationalListRow, Table, TableActionLink, TableBody, TableCell, TableHead, TableHeader, TableRow, TableSelectionCell, TableSelectionHead } from "@/components/ui/table";
+import { OperationalList, OperationalListRow, Table, TableActionLink, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { ConsoleSection } from "@/components/layout/right-console";
 import { WorkspaceGrid } from "@/components/layout/workspace-layout";
 import { formatDateOnly, formatNumber } from "@/lib/utils";
@@ -63,12 +62,10 @@ export default async function GoodsReceivingsPage({ searchParams }: { searchPara
             <Button type="submit" variant="secondary" className="shrink-0">Search</Button>
             {filters.status ? <input type="hidden" name="status" value={filters.status} /> : null}
           </FilterBar>
-          <BulkSelectionProvider ids={receivings.rows.map((receiving) => receiving.id)} actionLabel="Archive selected" actionHint="Open selected GRNs to post or cancel them through workflow-safe actions. Posted receiving records are never hard deleted.">
           <DataGridHint text="Pro-tip: Double-click any row to open the goods receiving document." />
-          <Table mobileHidden aria-label="Goods receiving records" stickyColumn="third">
+          <Table mobileHidden aria-label="Goods receiving records" stickyColumn="second">
               <TableHeader>
                 <TableRow>
-                  <TableSelectionHead><BulkSelectAllCheckbox /></TableSelectionHead>
                   <TableHead className="w-10 text-center">Action</TableHead>
                   <SortableHead label="GRN No" column="grn_no" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
                   <TableHead>PO</TableHead>
@@ -83,9 +80,6 @@ export default async function GoodsReceivingsPage({ searchParams }: { searchPara
               <TableBody>
                 {receivings.rows.map((receiving) => (
                   <DataGridRow key={receiving.id} href={`/goods-receivings/${receiving.id}`}>
-                      <TableSelectionCell>
-                        <BulkSelectRowCheckbox id={receiving.id} />
-                      </TableSelectionCell>
                     <TableCell className="w-10 p-0 text-center"><TableActionLink href={`/goods-receivings/${receiving.id}`} label={`Open ${receiving.grn_no}`}><Pencil className="h-4 w-4" /></TableActionLink></TableCell>
                     <TableCell><DocumentNumber value={receiving.grn_no} size="sm" /></TableCell>
                     <TableCell>{receiving.po_no ?? "-"}</TableCell>
@@ -97,7 +91,7 @@ export default async function GoodsReceivingsPage({ searchParams }: { searchPara
                     <TableCell className="text-right">{formatNumber(receiving.rejected_total)}</TableCell>
                   </DataGridRow>
                 ))}
-                {!receivings.rows.length ? <TableRow><TableCell colSpan={10}><EmptyState title={filtered ? "No receivings match these filters" : "No goods receivings yet"} description={filtered ? "Reset the filters or widen the search." : "Supplier deliveries will appear after they are recorded."} action={filtered ? { href: "/goods-receivings", label: "Reset filters" } : undefined} /></TableCell></TableRow> : null}
+                {!receivings.rows.length ? <TableRow><TableCell colSpan={9}><EmptyState title={filtered ? "No receivings match these filters" : "No goods receivings yet"} description={filtered ? "Reset the filters or widen the search." : "Supplier deliveries will appear after they are recorded."} action={filtered ? { href: "/goods-receivings", label: "Reset filters" } : undefined} /></TableCell></TableRow> : null}
               </TableBody>
             </Table>
             <OperationalList ariaLabel="Goods receiving records">
@@ -112,7 +106,6 @@ export default async function GoodsReceivingsPage({ searchParams }: { searchPara
               />)}
               {!receivings.rows.length ? <EmptyState title={filtered ? "No receivings match these filters" : "No goods receivings yet"} description={filtered ? "Reset the filters or widen the search." : "Supplier deliveries will appear after they are recorded."} action={filtered ? { href: "/goods-receivings", label: "Reset filters" } : undefined} /> : null}
             </OperationalList>
-          </BulkSelectionProvider>
           <PaginationControls page={receivings.page} totalPages={receivings.totalPages} totalRows={receivings.totalRows} searchParams={filters} />
         </div>
       </WorkspaceGrid>

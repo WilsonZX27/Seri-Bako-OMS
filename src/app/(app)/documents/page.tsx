@@ -1,5 +1,4 @@
 import { Pencil } from "lucide-react";
-import { BulkSelectAllCheckbox, BulkSelectionProvider, BulkSelectRowCheckbox } from "@/components/bulk-selection";
 import { DataGridRow } from "@/components/ui/data-grid-row";
 import { DataGridHint } from "@/components/ui/data-grid-hint";
 import { DocumentNumber } from "@/components/document-number";
@@ -12,7 +11,7 @@ import { PageHeader } from "@/components/ui/page-header";
 import { SelectControl } from "@/components/ui/select-control";
 import { PaginationControls, SortableHead } from "@/components/sortable-table";
 import { StatusTabs } from "@/components/status-tabs";
-import { OperationalList, OperationalListRow, Table, TableActionLink, TableBody, TableCell, TableHead, TableHeader, TableRow, TableSelectionCell, TableSelectionHead } from "@/components/ui/table";
+import { OperationalList, OperationalListRow, Table, TableActionLink, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { WorkspaceGrid } from "@/components/layout/workspace-layout";
 import { getCanonicalDocumentHref } from "@/lib/document-routing";
 import { formatStatusLabel } from "@/lib/status-label";
@@ -71,12 +70,10 @@ export default async function DocumentsPage({ searchParams }: { searchParams: Pr
             {filters.status ? <input type="hidden" name="status" value={filters.status} /> : null}
             <Button type="submit" variant="secondary">Filter</Button>
           </FilterBar>
-          <BulkSelectionProvider ids={documents.rows.map((document) => document.id)} actionLabel="Archive selected" actionHint="Documents with history are not hard deleted. Open selected documents to use workflow-safe actions.">
           <DataGridHint text="Pro-tip: Double-click any row to open the document." />
-            <Table mobileHidden aria-label="Documents register" stickyColumn="third">
+            <Table mobileHidden aria-label="Documents register" stickyColumn="second">
               <TableHeader>
                 <TableRow>
-                  <TableSelectionHead><BulkSelectAllCheckbox /></TableSelectionHead>
                   <TableHead className="w-12 text-center">Action</TableHead>
                   <SortableHead label="Doc No" column="document_no" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
                   <SortableHead label="Type" column="document_type" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
@@ -91,9 +88,6 @@ export default async function DocumentsPage({ searchParams }: { searchParams: Pr
                   const href = getCanonicalDocumentHref(document);
                   return (
                   <DataGridRow key={document.id} href={href}>
-                      <TableSelectionCell>
-                        <BulkSelectRowCheckbox id={document.id} />
-                      </TableSelectionCell>
                     <TableCell className="text-center"><TableActionLink href={href} label={`Open ${document.document_no}`}><Pencil className="h-4 w-4" /></TableActionLink></TableCell>
                     <TableCell><DocumentNumber value={document.document_no} size="sm" /></TableCell>
                     <TableCell>{formatStatusLabel(document.document_type)}</TableCell>
@@ -114,7 +108,6 @@ export default async function DocumentsPage({ searchParams }: { searchParams: Pr
               })}
               {!documents.rows.length ? <EmptyState title="No documents found" description="Documents will appear here after PR, PO, GRN, inventory, or approval activity is recorded." action={filtered ? { href: "/documents", label: "Reset filters" } : undefined} /> : null}
             </OperationalList>
-          </BulkSelectionProvider>
           <PaginationControls page={documents.page} totalPages={documents.totalPages} totalRows={documents.totalRows} searchParams={filters} />
         </div>
       </WorkspaceGrid>

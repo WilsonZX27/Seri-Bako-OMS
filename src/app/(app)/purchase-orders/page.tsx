@@ -68,10 +68,11 @@ export default async function PurchaseOrdersPage({ searchParams }: { searchParam
           </FilterBar>
           <BulkSelectionProvider ids={orders.rows.map((order) => order.id)} actionLabel="Archive selected" actionHint="Open selected POs to close, reject, or cancel them through workflow-safe actions.">
           <DataGridHint text="Pro-tip: Double-click any row to open the purchase order." />
-          <Table mobileHidden aria-label="Purchase orders" stickyColumn="second">
+          <Table mobileHidden aria-label="Purchase orders" stickyColumn="third">
               <TableHeader>
                 <TableRow>
                   <TableSelectionHead className="hidden md:table-cell"><BulkSelectAllCheckbox /></TableSelectionHead>
+                  <TableHead className="w-10 text-center">Action</TableHead>
                   <SortableHead label="PO No" column="po_no" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
                   <TableHead>Supplier</TableHead>
                   <SortableHead className="hidden md:table-cell" label="Date" column="order_date" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
@@ -79,7 +80,6 @@ export default async function PurchaseOrdersPage({ searchParams }: { searchParam
                   <SortableHead label="Status" column="status" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
                   <TableHead className="hidden text-right lg:table-cell">Lines</TableHead>
                   <TableHead className="hidden text-right md:table-cell">Total</TableHead>
-                  <TableHead className="w-12 text-right">Action</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -88,6 +88,7 @@ export default async function PurchaseOrdersPage({ searchParams }: { searchParam
                       <TableSelectionCell className="hidden md:table-cell">
                        <BulkSelectRowCheckbox id={order.id} />
                       </TableSelectionCell>
+                    <TableCell className="w-10 p-0 text-center"><TableActionLink href={`/purchase-orders/${order.id}`} label={`Open ${order.po_no}`}><Pencil className="h-4 w-4" /></TableActionLink></TableCell>
                     <TableCell><DocumentNumber value={order.po_no} size="sm" /></TableCell>
                     <TableCell>{order.supplier_name ?? "-"}</TableCell>
                     <TableCell className="hidden md:table-cell">{order.order_date}</TableCell>
@@ -95,7 +96,6 @@ export default async function PurchaseOrdersPage({ searchParams }: { searchParam
                     <TableCell><StatusBadge status={order.status} /></TableCell>
                     <TableCell className="hidden text-right lg:table-cell">{order.line_count}</TableCell>
                     <TableCell className="hidden text-right md:table-cell">{formatCurrency(order.order_total)}</TableCell>
-                    <TableCell className="text-right"><TableActionLink href={`/purchase-orders/${order.id}`} label={`Open ${order.po_no}`}><Pencil className="h-4 w-4" /></TableActionLink></TableCell>
                   </DataGridRow>
                 ))}
                 {!orders.rows.length ? <TableRow><TableCell colSpan={8}><EmptyState title={filtered ? "No orders match these filters" : "No purchase orders yet"} description={filtered ? "Reset the filters or widen the search." : "Approved requests and new orders will appear here."} action={filtered ? { href: "/purchase-orders", label: "Reset filters" } : undefined} /></TableCell></TableRow> : null}

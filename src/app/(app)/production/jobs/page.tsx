@@ -104,10 +104,11 @@ export default async function ProductionJobsPage({ searchParams }: { searchParam
               {selectedStatus !== "all" ? <input type="hidden" name="status" value={selectedStatus} /> : null}
             </FilterBar>
             <DataGridHint text="Pro-tip: Double-click any row to open the production job." />
-            <Table mobileHidden aria-label="Production jobs" stickyColumn="second">
+            <Table mobileHidden aria-label="Production jobs" stickyColumn="third">
                 <TableHeader>
                   <TableRow>
                     <TableSelectionHead><BulkSelectAllCheckbox /></TableSelectionHead>
+                    <TableHead className="w-12 text-center">Action</TableHead>
                     <SortableHead label="Job No" column="production_job_no" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
                     <SortableHead label="Date" column="production_date" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
                     <TableHead>Branch</TableHead>
@@ -118,7 +119,6 @@ export default async function ProductionJobsPage({ searchParams }: { searchParam
                     <SortableHead label="Status" column="status" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
                     <TableHead>Created By</TableHead>
                     <TableHead>Posted At</TableHead>
-                    <TableHead className="w-12 text-right">Action</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -127,6 +127,7 @@ export default async function ProductionJobsPage({ searchParams }: { searchParam
                         <TableSelectionCell>
                          <BulkSelectRowCheckbox id={job.id} />
                         </TableSelectionCell>
+                      <TableCell className="text-center"><TableActionLink href={`/production/jobs/${job.id}`} label={`Open ${job.production_job_no}`}><Pencil className="h-4 w-4" /></TableActionLink></TableCell>
                       <TableCell><DocumentNumber value={job.production_job_no} size="sm" /></TableCell>
                       <TableCell>{job.production_date}</TableCell>
                       <TableCell>{job.branch_name ?? "-"}</TableCell>
@@ -137,7 +138,6 @@ export default async function ProductionJobsPage({ searchParams }: { searchParam
                       <TableCell><StatusBadge status={job.status} /></TableCell>
                       <TableCell>{job.created_by_name ?? "-"}</TableCell>
                       <TableCell>{job.posted_at ? new Date(job.posted_at).toLocaleString("en-MY", { dateStyle: "short", timeStyle: "short" }) : "-"}</TableCell>
-                      <TableCell className="text-right"><TableActionLink href={`/production/jobs/${job.id}`} label={`Open ${job.production_job_no}`}><Pencil className="h-4 w-4" /></TableActionLink></TableCell>
                     </DataGridRow>
                   ))}
                   {!jobs.rows.length ? (

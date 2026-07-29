@@ -74,7 +74,7 @@ export default async function ProcurementPage() {
   return (
     <>
       <PageHeader title="Procurement Workspace" description="Review purchasing work from request through invoice follow-up." />
-      <WorkspaceGrid className="p-3 pt-3 sm:p-5 sm:pt-4" rightRail={<><ConsoleSection title="Next actions">{canCreatePr ? <Button asChild size="sm" className="w-full"><Link href="/purchase-requests/new">Create purchase request</Link></Button> : <p className="text-xs text-muted-foreground">Open a queue to continue permitted procurement work.</p>}</ConsoleSection><ConsoleSection title="Workspace scope"><p className="text-xs leading-5 text-muted-foreground">Counts and queues follow your company, branch, role, and document permissions.</p></ConsoleSection></>}>
+      <WorkspaceGrid className="p-3 pt-3 sm:p-5 sm:pt-4" hideMobileConsole rightRail={<><ConsoleSection title="Next actions">{canCreatePr ? <Button asChild size="sm" className="w-full"><Link href="/purchase-requests/new">Create purchase request</Link></Button> : <p className="text-xs text-muted-foreground">Open a queue to continue permitted procurement work.</p>}</ConsoleSection><ConsoleSection title="Workspace scope"><p className="text-xs leading-5 text-muted-foreground">Counts and queues follow your company, branch, role, and document permissions.</p></ConsoleSection></>}>
         <div className="space-y-4 pb-24 md:pb-0">
           <div className="md:hidden">
             <OperationalHub

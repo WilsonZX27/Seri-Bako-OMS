@@ -15,6 +15,7 @@ const importsIndex = read("src/app/(app)/imports/page.tsx");
 const operationalToolList = read("src/components/operational-tool-list.tsx");
 const accountPage = read("src/app/(app)/account/page.tsx");
 const masterDataFilters = read("src/components/master-data-filters.tsx");
+const procurementPage = read("src/app/(app)/procurement/page.tsx");
 
 test("UI consistency keeps imports upload-only and technical permission details collapsed", () => {
   assert.doesNotMatch(imports, /Edit in table|Add blank row|Paste into table/);
@@ -112,4 +113,10 @@ test("account settings use the contained workspace and shared contextual action 
   assert.match(accountPage, /id="account-profile-form"/);
   assert.match(accountPage, /ConsoleSection title="Profile picture"/);
   assert.doesNotMatch(accountPage, /<Card|CardContent/);
+});
+
+test("mobile operational hubs keep their own primary action without a duplicate generic More bar", () => {
+  assert.match(procurementPage, /<WorkspaceGrid[\s\S]*hideMobileConsole[\s\S]*rightRail=/);
+  assert.match(procurementPage, /<OperationalHub/);
+  assert.match(procurementPage, /primaryAction=/);
 });

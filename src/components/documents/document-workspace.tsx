@@ -69,7 +69,7 @@ export function DocumentWorkspace({
             </div>
           </div>
         </div> : null}
-        {!hideMobileWorkflow ? <div data-tablet-document-header className="mt-2 min-w-0"><MobileWorkflowStatus steps={workflowSteps} currentStatus={currentStatus} /><div className="hidden md:block"><WorkflowStatusPipeline steps={workflowSteps} currentStatus={currentStatus} compact /></div></div> : <div data-tablet-document-header className="hidden md:block"><WorkflowStatusPipeline steps={workflowSteps} currentStatus={currentStatus} compact /></div>}
+        {!hideMobileWorkflow ? <div data-tablet-document-header className="mt-1 min-w-0 md:mt-2"><MobileWorkflowStatus steps={workflowSteps} currentStatus={currentStatus} /><div className="hidden md:block"><WorkflowStatusPipeline steps={workflowSteps} currentStatus={currentStatus} compact /></div></div> : <div data-tablet-document-header className="hidden md:block"><WorkflowStatusPipeline steps={workflowSteps} currentStatus={currentStatus} compact /></div>}
       </header>
 
       <WorkspaceGrid documentMode tabletRailMode={tabletRailMode} className={cn("min-w-0 p-3", compactMobileSpacing && "pt-0 md:pt-3", mobilePrimaryAction && "pb-20 xl:pb-3")} rightRail={<div>{sidePanel}</div>} hideMobileConsole>

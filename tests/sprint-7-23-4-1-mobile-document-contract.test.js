@@ -21,6 +21,8 @@ test("procurement documents use focused mobile workflow and exact primary action
   assert.match(mobile, /sb-dialog-backdrop/);
   assert.match(css, /\.sb-dialog-backdrop[\s\S]*backdrop-filter: blur/);
   assert.match(mobile, /label="Workflow"/);
+  assert.match(mobile, /max-w-64/);
+  assert.match(mobile, /h-8 min-h-8/);
   assert.match(pr, />Submit PR</);
   for (const label of ["Approve as Manager", "Approve as Purchasing", "Approve as Finance"]) assert.match(pr, new RegExp(label));
   assert.match(pr, /Prepare Purchase Order/);
@@ -57,6 +59,8 @@ test("More filters escapes list clipping on mobile and tablet", () => {
   const css = read("src/app/globals.css");
   assert.match(filter, /sb-filter-more-backdrop/);
   assert.match(filter, /event\.key === "Escape"/);
+  assert.match(filter, /filterDialogOpen/);
+  assert.match(css, /data-filter-dialog-open="true"[\s\S]*data-mobile-app-nav/);
   assert.match(css, /@media \(max-width: 1279px\)[\s\S]*\.sb-filter-more\[open\]/);
   assert.match(css, /z-index: var\(--sb-z-dialog\)/);
   assert.match(filter, />Filters</);

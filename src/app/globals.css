@@ -456,6 +456,11 @@ input[type="date"]::-webkit-date-and-time-value {
     pointer-events: none;
   }
 
+  html[data-filter-dialog-open="true"] [data-mobile-app-nav] {
+    visibility: hidden;
+    pointer-events: none;
+  }
+
   .sb-list-filters {
     display: flex;
     flex-wrap: wrap;
@@ -468,8 +473,8 @@ input[type="date"]::-webkit-date-and-time-value {
   .sb-list-filters select,
   .sb-list-filters button,
   .sb-list-filters a {
-    height: var(--sb-control-height);
-    min-height: var(--sb-control-height);
+    height: 2.125rem;
+    min-height: 2.125rem;
   }
 
   .sb-list-filters > :first-child {

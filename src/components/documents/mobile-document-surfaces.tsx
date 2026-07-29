@@ -80,9 +80,9 @@ export function MobileWorkflowStatus({ steps, currentStatus }: { steps: Workflow
   const activeIndex = foundIndex < 0 ? 0 : foundIndex;
 
   return (
-    <div data-mobile-workflow-summary className="mx-auto mt-1 flex w-full max-w-80 min-w-0 items-center justify-between gap-2 border-t border-[var(--sb-border-soft)] pt-1.5 md:hidden">
+    <div data-mobile-workflow-summary className="mx-auto flex w-full max-w-64 min-w-0 items-center justify-between gap-2 border-t border-[var(--sb-border-soft)] pt-1 md:hidden">
       <p className="min-w-0 truncate text-[12px] font-medium">Step {activeIndex + 1} of {steps.length}</p>
-      <MobileSheet label="Workflow" title="Workflow progress" triggerClassName="h-12 min-h-12 w-auto shrink-0 border-0 px-1.5 text-[12px] shadow-none">
+      <MobileSheet label="Workflow" title="Workflow progress" triggerClassName="h-8 min-h-8 w-auto shrink-0 border-0 px-1.5 text-[12px] shadow-none">
         <ol className="space-y-1" aria-label="Document workflow">
           {steps.map((step, index) => {
             const done = index < activeIndex;

@@ -53,12 +53,14 @@ export function FilterBarMore({
     if (!open) return;
     const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
+    document.documentElement.dataset.filterDialogOpen = "true";
     function onKeyDown(event: KeyboardEvent) {
       if (event.key === "Escape" && detailsRef.current?.open) close();
     }
     document.addEventListener("keydown", onKeyDown);
     return () => {
       document.body.style.overflow = previousOverflow;
+      delete document.documentElement.dataset.filterDialogOpen;
       document.removeEventListener("keydown", onKeyDown);
     };
   }, [open]);

@@ -5,7 +5,7 @@ import { usePathname, useSearchParams } from "next/navigation";
 import { ChevronDown, Factory } from "lucide-react";
 import { useMemo, useState } from "react";
 import { getVisibleNavGroups } from "@/components/layout/nav-items";
-import { APP_SPRINT } from "@/lib/app-version";
+import { APP_RELEASE_NOTE } from "@/lib/app-version";
 import { cn } from "@/lib/utils";
 import type { SidebarCounts } from "@/server/queries/sidebar";
 import type { UserRole } from "@/types/database";
@@ -144,7 +144,7 @@ export function WorkspaceSidebar({
         </div>
       </nav>
 
-      <div className="border-t border-white/10 px-3 py-2 text-[10px] text-white/45">{APP_SPRINT}</div>
+      <div className="border-t border-white/10 px-3 py-2 text-[10px] text-white/45">{APP_RELEASE_NOTE}</div>
     </div>
   );
 }

@@ -65,7 +65,7 @@ test("the visible footer uses the current version contract and the Production co
   const runbook = read("docs/qa/SPRINT_7_23_5_3_STAFF_ROLE_CORRECTION_RUNBOOK.md");
 
   assert.match(version, /APP_SPRINT = `v\$\{APP_VERSION\}`/);
-  assert.match(sidebar, />\{APP_SPRINT\}<\/div>/);
+  assert.match(sidebar, />\{APP_RELEASE_NOTE\}<\/div>/);
   assert.doesNotMatch(sidebar, /APP_VERSION/);
   assert.match(read("src/components/layout/mobile-sidebar.tsx"), /w-\[min\(var\(--sb-sidebar-width\),88vw\)\]/);
   assert.match(runbook, /No Production mutation was performed/);

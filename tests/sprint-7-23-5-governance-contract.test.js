@@ -86,6 +86,6 @@ test("native controls and generated artifacts follow the product contract", () =
   assert.match(css, /::file-selector-button/);
   for (const entry of ["test-results/", "playwright-report/", "playwright/.cache/", "coverage/", ".next/", "*.log", ".env.test.local"]) assert.match(ignore, new RegExp(entry.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")));
   const authShell = read("src/components/auth/auth-shell.tsx");
-  assert.match(authShell, /APP_SPRINT/);
+  assert.match(authShell, /APP_RELEASE_NOTE/);
   assert.doesNotMatch(authShell, /APP_VERSION/);
 });

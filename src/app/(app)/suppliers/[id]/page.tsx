@@ -6,6 +6,7 @@ import { DangerConfirmForm } from "@/components/ui/danger-confirm-form";
 import { Card, CardContent } from "@/components/ui/card";
 import { PageHeader } from "@/components/ui/page-header";
 import { StatusBadge } from "@/components/ui/status-badge";
+import { formatDateOnly } from "@/lib/utils";
 import { deleteSupplier, restoreSupplier, updateSupplier } from "@/server/actions/suppliers";
 import { getSupplier } from "@/server/queries/suppliers";
 import { PhaseOneDeleteAction } from "@/components/phase-one-delete-action";
@@ -23,7 +24,7 @@ export default async function EditSupplierPage({ params, searchParams }: { param
   return (
     <>
       <PageHeader title={supplier.name} description={`${supplier.supplier_code ?? "No code"} · Supplier master`} />
-      <RecordWorkspace actionPanel={<><RecordActionPanel title="Supplier Actions"><div className="flex items-center justify-between text-xs"><span className="text-muted-foreground">Status</span><StatusBadge status={supplier.status} /></div><Button type="submit" form="supplier-edit-form" className="w-full" data-mobile-primary-action>Save Supplier</Button><Button asChild variant="outline" className="w-full"><Link href="/suppliers">Back to Suppliers</Link></Button></RecordActionPanel><RecordActionPanel title="Lifecycle">{lifecycleAction}</RecordActionPanel><RecordActionPanel title="Metadata"><dl className="grid gap-2 text-xs"><div className="flex justify-between gap-3"><dt className="text-muted-foreground">Created</dt><dd>{new Date(supplier.created_at).toLocaleDateString("en-MY")}</dd></div><div className="flex justify-between gap-3"><dt className="text-muted-foreground">Updated</dt><dd>{new Date(supplier.updated_at).toLocaleDateString("en-MY")}</dd></div></dl></RecordActionPanel></>}>
+      <RecordWorkspace actionPanel={<><RecordActionPanel title="Supplier Actions"><div className="flex items-center justify-between text-xs"><span className="text-muted-foreground">Status</span><StatusBadge status={supplier.status} /></div><Button type="submit" form="supplier-edit-form" className="w-full" data-mobile-primary-action>Save Supplier</Button><Button asChild variant="outline" className="w-full"><Link href="/suppliers">Back to Suppliers</Link></Button></RecordActionPanel><RecordActionPanel title="Lifecycle">{lifecycleAction}</RecordActionPanel><RecordActionPanel title="Metadata"><dl className="grid gap-2 text-xs"><div className="flex justify-between gap-3"><dt className="text-muted-foreground">Created</dt><dd>{formatDateOnly(supplier.created_at)}</dd></div><div className="flex justify-between gap-3"><dt className="text-muted-foreground">Updated</dt><dd>{formatDateOnly(supplier.updated_at)}</dd></div></dl></RecordActionPanel></>}>
         {messages.error || messages.success ? <Card><CardContent className={`p-4 text-sm ${messages.error ? "text-destructive" : "text-[var(--sb-success)]"}`}>{messages.error ?? messages.success}</CardContent></Card> : null}
         <SupplierForm formId="supplier-edit-form" supplier={supplier} action={updateSupplier.bind(null, id)} showSubmit={false} />
       </RecordWorkspace>

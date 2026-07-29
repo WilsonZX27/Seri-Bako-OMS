@@ -5,6 +5,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { ConsoleSection } from "@/components/layout/right-console";
 import { PageHeader } from "@/components/ui/page-header";
 import { StatusBadge } from "@/components/ui/status-badge";
+import { formatDateOnly } from "@/lib/utils";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { AttachmentPanel, CommentsPanel, DocumentTimeline, RevisionPanel } from "@/components/documents/document-panels";
 import { WorkspaceGrid } from "@/components/layout/workspace-layout";
@@ -90,7 +91,7 @@ export default async function StockTransactionDetailPage({ params }: { params: P
                 </div>
               </div>
               <div className="grid gap-4 md:grid-cols-4">
-                <div><p className="text-xs uppercase text-muted-foreground">Date</p><p className="font-medium">{transaction.transaction_date}</p></div>
+                <div><p className="text-xs uppercase text-muted-foreground">Date</p><p className="font-medium">{formatDateOnly(transaction.transaction_date)}</p></div>
                 <div><p className="text-xs uppercase text-muted-foreground">Type</p><p className="font-medium">{transaction.transaction_type.replaceAll("_", " ")}</p></div>
                 <div><p className="text-xs uppercase text-muted-foreground">Posted At</p><p className="font-medium">{transaction.posted_at ?? "-"}</p></div>
                 <div><p className="text-xs uppercase text-muted-foreground">Reference</p><p className="font-medium">{transaction.reference_type ?? "-"}</p></div>

@@ -14,6 +14,9 @@ test("visible application version stays aligned with the package release", () =>
   assert.match(versionSource, new RegExp(`APP_VERSION = "${packageVersion}"`));
   assert.match(versionSource, /APP_SPRINT = `v\$\{APP_VERSION\}`/);
   assert.match(versionSource, /APP_RELEASE_TITLE = "/);
-  assert.match(authShell, /APP_SPRINT/);
-  assert.match(sidebar, /APP_SPRINT/);
+  assert.match(versionSource, /APP_RELEASE_NOTE = `\$\{APP_SPRINT\} — \$\{APP_RELEASE_TITLE\}`/);
+  assert.match(authShell, /APP_RELEASE_NOTE/);
+  assert.match(sidebar, /APP_RELEASE_NOTE/);
+  assert.doesNotMatch(authShell, />\{APP_SPRINT\}</);
+  assert.doesNotMatch(sidebar, />\{APP_SPRINT\}</);
 });

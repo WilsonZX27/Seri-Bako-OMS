@@ -14,7 +14,7 @@ import { StatusTabs } from "@/components/status-tabs";
 import { OperationalList, OperationalListRow, Table, TableActionLink, TableBody, TableCell, TableHead, TableHeader, TableRow, TableSelectionCell, TableSelectionHead } from "@/components/ui/table";
 import { ConsoleSection } from "@/components/layout/right-console";
 import { WorkspaceGrid } from "@/components/layout/workspace-layout";
-import { formatNumber } from "@/lib/utils";
+import { formatDateOnly, formatNumber } from "@/lib/utils";
 import { hasActiveFilters } from "@/lib/table-state";
 import { getGoodsReceivings } from "@/server/queries/goods-receivings";
 import { hasPermission } from "@/server/auth/permissions";
@@ -90,7 +90,7 @@ export default async function GoodsReceivingsPage({ searchParams }: { searchPara
                     <TableCell><DocumentNumber value={receiving.grn_no} size="sm" /></TableCell>
                     <TableCell>{receiving.po_no ?? "-"}</TableCell>
                     <TableCell>{receiving.supplier_name ?? "-"}</TableCell>
-                    <TableCell>{receiving.received_date}</TableCell>
+                    <TableCell>{formatDateOnly(receiving.received_date)}</TableCell>
                     <TableCell>{receiving.branch_name ?? "-"}</TableCell>
                     <TableCell><StatusBadge status={receiving.status} /></TableCell>
                     <TableCell className="text-right">{formatNumber(receiving.received_total)}</TableCell>
@@ -105,7 +105,7 @@ export default async function GoodsReceivingsPage({ searchParams }: { searchPara
                 key={receiving.id}
                 href={`/goods-receivings/${receiving.id}`}
                 label={`Open ${receiving.grn_no}`}
-                primary={<div><DocumentNumber value={receiving.grn_no} size="sm" /><p className="text-[11px] font-normal text-[var(--sb-text-muted)]">PO {receiving.po_no ?? "not linked"} · {receiving.received_date}</p></div>}
+                primary={<div><DocumentNumber value={receiving.grn_no} size="sm" /><p className="text-[11px] font-normal text-[var(--sb-text-muted)]">PO {receiving.po_no ?? "not linked"} · {formatDateOnly(receiving.received_date)}</p></div>}
                 status={<StatusBadge status={receiving.status} />}
                 secondary={`${receiving.supplier_name ?? "No supplier"} · ${receiving.branch_name ?? "No branch"}`}
                 meta={`${formatNumber(receiving.received_total)} in · ${formatNumber(receiving.rejected_total)} rejected`}

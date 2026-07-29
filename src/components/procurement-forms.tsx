@@ -169,25 +169,25 @@ export function PurchaseRequestForm({
           <input type="hidden" name="urgency_reason" value={initialUrgencyReason ?? ""} />
           <input type="hidden" name="production_risk" value={initialProductionRisk ? "on" : ""} />
           <input type="hidden" name="expected_updated_at" value={initialUpdatedAt ?? ""} />
-          <section data-purchase-request-setup className="space-y-3 border-y border-[var(--sb-border)] bg-white p-3 md:border-0 md:bg-transparent md:p-0">
-            <div className="border-b border-[var(--sb-border-soft)] pb-2">
-              <h2 className="text-sm font-semibold">Request details</h2>
-            </div>
-            <div className="grid grid-cols-2 gap-3 sm:grid-cols-[minmax(0,1fr)_minmax(0,1.4fr)_minmax(0,1fr)]">
-              <div className="order-1"><Field label="Needed By">
-                <Input name="needed_by_date" type="date" defaultValue={initialNeededByDate ?? ""} />
-              </Field></div>
-              <div className="order-3 col-span-2 sm:order-2 sm:col-span-1"><Field label="Branch" required>
+          <section data-purchase-request-setup className="border-y border-[var(--sb-border)] bg-white px-3 py-2 md:border-0 md:bg-transparent md:px-0 md:py-0">
+            <Field label="Request branch" required>
                 <SelectNative name="branch_id" value={branchId} onChange={(event) => changeBranch(event.target.value)} required disabled={lockBranch}>
                   {branches.map((branch) => <option key={branch.id} value={branch.id}>{branch.branch_name}</option>)}
                 </SelectNative>
                 {lockBranch ? <input type="hidden" name="branch_id" value={branchId} /> : null}
-              </Field></div>
-              <div className="order-2 sm:order-3"><Field label="Urgency"><UrgencySelect value={priority} onValueChange={setPriority} /></Field></div>
-            </div>
-            <Field label="Remarks">
-              <Textarea className="min-h-[3.75rem] resize-y" rows={2} name="remarks" defaultValue={initialRemarks ?? ""} placeholder="Reason or instructions for this request" />
             </Field>
+            <details className="group mt-2 border-t border-[var(--sb-border-soft)] pt-2">
+              <summary className="cursor-pointer text-xs font-medium text-muted-foreground">More settings</summary>
+              <div className="mt-2 grid grid-cols-2 gap-2">
+                <Field label="Needed By">
+                  <Input name="needed_by_date" type="date" defaultValue={initialNeededByDate ?? ""} />
+                </Field>
+                <Field label="Urgency"><UrgencySelect value={priority} onValueChange={setPriority} /></Field>
+                <Field label="Remarks" className="col-span-2">
+                  <Textarea className="min-h-[3.75rem] resize-y" rows={2} name="remarks" defaultValue={initialRemarks ?? ""} placeholder="Reason or instructions for this request" />
+                </Field>
+              </div>
+            </details>
           </section>
 
           <section data-purchase-request-workspace className="overflow-hidden border-y border-[var(--sb-border)] bg-white md:rounded-[2px] md:border">
@@ -204,8 +204,8 @@ export function PurchaseRequestForm({
             </div>
             <div className="divide-y">
               {lines.map((line) => (
-                <div key={line.key} className="relative grid grid-cols-[minmax(0,1fr)_8.5rem] gap-2 p-3 md:grid-cols-[minmax(0,1fr)_112px_40px] md:gap-3">
-                  <div className="min-w-0 pr-9 md:pr-0">
+                <div key={line.key} className="grid grid-cols-[minmax(0,1.5fr)_minmax(7.25rem,0.75fr)_2.25rem] gap-2 p-3 md:grid-cols-[minmax(0,1fr)_112px_40px] md:gap-3">
+                  <div className="min-w-0">
                     <Field label="Item" required>
                       <Input
                         list="purchase-request-items"
@@ -219,9 +219,9 @@ export function PurchaseRequestForm({
                   </div>
                     <Field label="Quantity" required className="md:col-start-2">
                       <div className="flex overflow-hidden rounded-[var(--sb-radius-control)] border border-[var(--sb-border)] bg-white md:rounded-[2px]">
-                        <button type="button" className="flex h-[var(--sb-control-height)] w-10 shrink-0 items-center justify-center border-r border-[var(--sb-border)] text-[var(--sb-green-900)] hover:bg-[var(--sb-surface-muted)] active:bg-[var(--sb-green-100)]" onClick={() => adjustLineQuantity(line, -1)} aria-label={`Decrease quantity for ${line.itemSearch || "request line"}`}><Minus className="h-4 w-4" /></button>
-                        <Input name="line_qty" type="number" min="0" step={requestQuantityStep(line.uom)} value={line.qty} onChange={(event) => updateLine(line.key, { qty: event.target.value })} placeholder="Qty" className="min-w-0 rounded-none border-0 px-2 text-center font-semibold tabular-nums shadow-none focus-visible:ring-inset" />
-                        <button type="button" className="flex h-[var(--sb-control-height)] w-10 shrink-0 items-center justify-center border-l border-[var(--sb-border)] text-[var(--sb-green-900)] hover:bg-[var(--sb-surface-muted)] active:bg-[var(--sb-green-100)]" onClick={() => adjustLineQuantity(line, 1)} aria-label={`Increase quantity for ${line.itemSearch || "request line"}`}><Plus className="h-4 w-4" /></button>
+                        <button type="button" className="flex h-10 w-8 shrink-0 items-center justify-center border-r border-[var(--sb-border)] text-[var(--sb-green-900)] hover:bg-[var(--sb-surface-muted)] active:bg-[var(--sb-green-100)]" onClick={() => adjustLineQuantity(line, -1)} aria-label={`Decrease quantity for ${line.itemSearch || "request line"}`}><Minus className="h-3.5 w-3.5" /></button>
+                        <Input name="line_qty" type="number" min="0" step={requestQuantityStep(line.uom)} value={line.qty} onChange={(event) => updateLine(line.key, { qty: event.target.value })} placeholder="Qty" className="h-10 min-w-0 rounded-none border-0 px-1 text-center text-sm font-semibold tabular-nums shadow-none focus-visible:ring-inset" />
+                        <button type="button" className="flex h-10 w-8 shrink-0 items-center justify-center border-l border-[var(--sb-border)] text-[var(--sb-green-900)] hover:bg-[var(--sb-surface-muted)] active:bg-[var(--sb-green-100)]" onClick={() => adjustLineQuantity(line, 1)} aria-label={`Increase quantity for ${line.itemSearch || "request line"}`}><Plus className="h-3.5 w-3.5" /></button>
                       </div>
                     </Field>
                   <input type="hidden" name="line_suggested_supplier_id" value={line.supplierId} />
@@ -229,8 +229,8 @@ export function PurchaseRequestForm({
                   <input type="hidden" name="line_uom" value={line.uom} />
                   <input type="hidden" name="line_remarks" value={line.remarks} />
                   <details className="hidden" aria-hidden="true"><summary>Sourcing details <span>(automatic)</span></summary><div className="grid grid-cols-[minmax(0,1.35fr)_minmax(0,0.8fr)_minmax(4.75rem,0.7fr)_2.75rem]" /><span>Line note <span className="font-normal">(optional)</span></span></details>
-                  {lines.length > 1 ? <Button type="button" variant="ghost" size="icon" className="absolute right-2 top-2 h-[var(--sb-control-height)] w-[var(--sb-control-height)] text-muted-foreground md:static md:col-start-3 md:row-start-1 md:self-end" aria-label="Remove line" onClick={() => setLines((current) => current.filter((row) => row.key !== line.key))}><X className="h-4 w-4" /></Button> : null}
-                  {line.itemId && !supplierMappings.some((mapping) => mapping.branch_id === branchId && mapping.item_id === line.itemId) ? <p className="col-span-2 md:col-span-3 text-xs font-medium text-destructive">No supplier is mapped to this item for the selected branch. Add a Branch Supplier Mapping before submitting.</p> : null}
+                  {lines.length > 1 ? <Button type="button" variant="ghost" size="icon" className="h-10 w-9 self-end text-muted-foreground md:col-start-3 md:row-start-1" aria-label="Remove line" onClick={() => setLines((current) => current.filter((row) => row.key !== line.key))}><X className="h-4 w-4" /></Button> : <span aria-hidden="true" />}
+                  {line.itemId && !supplierMappings.some((mapping) => mapping.branch_id === branchId && mapping.item_id === line.itemId) ? <p className="col-span-3 text-xs font-medium text-destructive">Supplier mapping missing. Open Supplier Items, add this item for the selected branch, then return and submit the PR.</p> : null}
                   <input type="hidden" name="line_reason" value={line.reason} />
                 </div>
               ))}

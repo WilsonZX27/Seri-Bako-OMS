@@ -1,4 +1,4 @@
-export const APP_VERSION = "7.56.0";
+export const APP_VERSION = "7.57.0";
 export const APP_SPRINT = `v${APP_VERSION}`;
-export const APP_RELEASE_TITLE = "Compact Stock Operations";
+export const APP_RELEASE_TITLE = "Compact Purchase Requests";
 export const APP_RELEASE_NOTE = `${APP_SPRINT} — ${APP_RELEASE_TITLE}`;

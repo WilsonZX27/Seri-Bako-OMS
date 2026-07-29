@@ -10,7 +10,8 @@ test("PR creation keeps the operational inputs compact and role-aware", () => {
   const form = source("src/components/procurement-forms.tsx");
   const page = source("src/app/(app)/purchase-requests/new/page.tsx");
   assert.match(form, /type="hidden" name="request_date"/);
-  assert.match(form, /Request details/);
+  assert.match(form, /Request branch/);
+  assert.match(form, /More settings/);
   assert.match(form, /Needed By/);
   assert.match(form, /UrgencySelect/);
   assert.match(form, /rows=\{2\}/);

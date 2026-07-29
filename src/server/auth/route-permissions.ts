@@ -28,7 +28,6 @@ const exactRoutePermissions: Record<string, string[]> = {
   "/purchase-requests/new": ["purchase_request.create"],
   "/purchase-returns/new": ["purchase_return.create"],
   "/recipes/new": ["recipes.create"],
-  "/roles/new": ["roles.read"],
   "/staffs/new": ["staffs.create"],
   "/stock-counts/new": ["stock_count.create"],
   "/stock-transactions/new": ["stock_transactions.create"],

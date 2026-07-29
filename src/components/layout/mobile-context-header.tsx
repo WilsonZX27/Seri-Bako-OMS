@@ -26,7 +26,6 @@ const routeTitles: Record<string, RouteTitle> = {
   "/production": { title: "Production" },
   "/production/planning": { title: "Production Planning", backHref: "/production/jobs" },
   "/production/variance": { title: "Demand Variance", backHref: "/production/jobs" },
-  "/quick-tools": { title: "Quick Tools" },
   "/reports": { title: "Reports" },
   "/reports/costing-readiness": { title: "Costing Readiness", backHref: "/reports" },
   "/reports/demand-trends": { title: "Demand Trends", backHref: "/reports" },

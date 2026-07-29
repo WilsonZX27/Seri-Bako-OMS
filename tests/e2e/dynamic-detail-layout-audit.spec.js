@@ -16,7 +16,7 @@ const sources = [
   ["/goods-receivings", "/goods-receivings/", 2], ["/items", "/items/", 2], ["/outlet-daily-records", "/outlet-daily-records/", 2],
   ["/production/jobs", "/production/jobs/", 3], ["/products", "/products/", 2], ["/purchase-orders", "/purchase-orders/", 2],
   ["/purchase-requests", "/purchase-requests/", 2], ["/purchase-returns", "/purchase-returns/", 2], ["/recipes", "/recipes/", 2],
-  ["/roles", "/roles/", 2], ["/staffs", "/staffs/", 2], ["/stock-counts", "/stock-counts/", 2],
+  ["/staffs", "/staffs/", 2], ["/stock-counts", "/stock-counts/", 2],
   ["/stock-transactions", "/stock-transactions/", 2], ["/stock-transfers", "/stock-transfers/", 2], ["/stock-wastage", "/stock-wastage/", 2],
   ["/supplier-invoices", "/supplier-invoices/", 2], ["/supplier-items", "/supplier-items/", 2], ["/suppliers", "/suppliers/", 2],
   ["/uom-conversions", "/uom-conversions/", 2],

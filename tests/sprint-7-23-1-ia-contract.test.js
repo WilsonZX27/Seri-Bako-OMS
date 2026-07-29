@@ -34,8 +34,8 @@ test("migration 071 is guarded and converges without deleting staff or business 
 });
 
 test("fixed roles stay read-only while permitted users can manage system numbering", () => {
-  assert.match(read("src/app/(app)/roles/new/page.tsx"), /redirect\("\/roles"\)/);
-  assert.match(read("src/app/(app)/roles/[id]/page.tsx"), /redirect\("\/roles"\)/);
+  assert.equal(fs.existsSync("src/app/(app)/roles/new/page.tsx"), false);
+  assert.equal(fs.existsSync("src/app/(app)/roles/[id]/page.tsx"), false);
   assert.doesNotMatch(read("src/app/(app)/roles/page.tsx"), /New role|>Edit</);
   assert.match(read("src/app/(app)/document-sequences/new/page.tsx"), /DocumentSequenceForm/);
   assert.match(read("src/app/(app)/document-sequences/page.tsx"), /New sequence|>Edit</);
@@ -44,9 +44,8 @@ test("fixed roles stay read-only while permitted users can manage system numberi
 test("retired hubs are absent and the backup alias converges on its canonical destination", () => {
   assert.equal(fs.existsSync("src/app/(app)/data-onboarding/page.tsx"), false);
   assert.equal(fs.existsSync("src/app/(app)/daily-operations/page.tsx"), false);
+  assert.equal(fs.existsSync("src/app/(app)/quick-tools/page.tsx"), false);
   assert.match(read("src/app/(app)/settings/backups/page.tsx"), /redirect\("\/administration\/backups"\)/);
-  assert.doesNotMatch(read("src/app/(app)/quick-tools/page.tsx"), /CategoryCardGrid|PageHeader/);
-  assert.match(read("src/app/(app)/quick-tools/page.tsx"), /getDefaultLandingRoute/);
 });
 
 test("sign-in resolves a terminal route from the canonical IA instead of hardcoding dashboard", () => {

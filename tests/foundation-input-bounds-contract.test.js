@@ -19,5 +19,5 @@ test("administrative mutation boundaries validate route identifiers and permissi
   assert.match(actions, /const recordIdSchema = z\.string\(\)\.uuid\("The selected record is invalid\."\)/);
   assert.match(actions, /id = parseRecordId\(id\);/);
   assert.match(actions, /z\.array\(permissionOverrideSchema\)\.max\(500, "Too many permission overrides"\)/);
-  assert.match(actions, /z\.array\(z\.string\(\)\.uuid\("Permission is invalid"\)\)\.max\(500, "Too many permissions"\)/);
+  assert.doesNotMatch(actions, /export async function (?:createRole|updateRole|updateRolePermissions)/);
 });

@@ -10,7 +10,7 @@ import { canAssignRoleCode, isProtectedOwnerAssignableRole, isSuperAdminRole } f
 import { createAdminClient } from "@/lib/supabase/admin";
 import { setTemporaryPasswordHandoff } from "@/server/auth/temporary-password-handoff";
 import { createClient } from "@/lib/supabase/server";
-import { branchSchema, companySchema, documentSequenceSchema, roleSchema, staffAccessSchema, staffSchema } from "@/lib/validations/foundation";
+import { branchSchema, companySchema, documentSequenceSchema, staffAccessSchema, staffSchema } from "@/lib/validations/foundation";
 import { writeActivityLog } from "@/server/activity/log";
 import { requirePermission } from "@/server/auth/permissions";
 import { formatActionError, requirePermissionOrRedirect, rethrowRedirect, safeRedirectWithMessage } from "@/server/actions/error-handling";
@@ -1010,70 +1010,6 @@ export async function permanentlyDeleteStaff(id: string) {
   }
   revalidatePath("/staffs");
   safeRedirectWithMessage("/staffs", "success", "Staff permanently deleted.");
-}
-
-function rolePayload(formData: FormData, companyId: string) {
-  return roleSchema.parse({
-    company_id: companyId,
-    role_code: formValue(formData, "role_code"),
-    role_name: formValue(formData, "role_name"),
-    description: cleanText(formValue(formData, "description")),
-    status: formValue(formData, "status") ?? "active",
-  });
-}
-
-export async function createRole(formData: FormData) {
-  await requirePermission("roles.create");
-  const actor = await requireActiveTenantActor();
-  const payload = rolePayload(formData, actor.companyId);
-  if (!isMockMode()) {
-    if (isProtectedOwnerAssignableRole(payload.role_code)) throw new Error("Super Admin / Owner roles cannot be created here.");
-    const supabase = createAdminClient();
-    const { data, error } = await supabase.from("roles").insert(payload).select("id").single();
-    if (error) throw new Error(error.message);
-    await writeActivityLog({ entityType: "role", entityId: data.id, activityType: "created", message: `Role ${payload.role_name} created` });
-  }
-  revalidatePath("/roles");
-  redirect("/roles");
-}
-
-export async function updateRole(id: string, formData: FormData) {
-  id = parseRecordId(id);
-  await requirePermission("roles.update");
-  const actor = await requireActiveTenantActor();
-  const payload = rolePayload(formData, actor.companyId);
-  if (!isMockMode()) {
-    const supabase = createAdminClient();
-    const { data: currentRole, error: roleError } = await supabase.from("roles").select("role_code, company_id").eq("id", id).eq("company_id", actor.companyId).single();
-    if (roleError) throw new Error(roleError.message);
-    if (isProtectedOwnerAssignableRole(currentRole.role_code) || isProtectedOwnerAssignableRole(payload.role_code)) throw new Error("Super Admin / Owner roles cannot be changed here.");
-    if (payload.role_code !== currentRole.role_code) throw new Error("Role codes cannot be changed after creation.");
-    const { error } = await supabase.from("roles").update(payload).eq("id", id).eq("company_id", actor.companyId);
-    if (error) throw new Error(error.message);
-    await writeActivityLog({ entityType: "role", entityId: id, activityType: "updated", message: `Role ${payload.role_name} updated` });
-  }
-  revalidatePath("/roles");
-  redirect("/roles");
-}
-
-export async function updateRolePermissions(id: string, formData: FormData) {
-  id = parseRecordId(id);
-  await requirePermissionOrRedirect("roles.update", `/roles/${id}`);
-  const permissionIds = z.array(z.string().uuid("Permission is invalid")).max(500, "Too many permissions").parse(formData.getAll("permission_id").map(String));
-  try {
-    if (!isMockMode()) {
-      const supabase = await createClient();
-      const { error } = await supabase.rpc("set_role_permissions", { target_role_id: id, permission_ids: permissionIds });
-      if (error) throw new Error(error.message);
-    }
-  } catch (error) {
-    rethrowRedirect(error);
-    safeRedirectWithMessage(`/roles/${id}`, "error", formatActionError(error, "Could not update role permissions."));
-  }
-  revalidatePath("/roles");
-  revalidatePath(`/roles/${id}`);
-  revalidatePath("/", "layout");
-  safeRedirectWithMessage(`/roles/${id}`, "success", "Role permissions updated.");
 }
 
 function documentSequencePayload(formData: FormData, companyId: string) {

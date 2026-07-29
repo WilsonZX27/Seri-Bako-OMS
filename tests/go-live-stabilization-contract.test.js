@@ -49,7 +49,7 @@ test("PR transitions are locked, atomic, permission-aware and idempotent", () =>
   assert.match(procurement, /rpc\("transition_purchase_request"/);
 });
 
-test("role permission saves are atomic and invalidate the app shell", () => {
+test("role permission storage remains database-protected while the UI is read-only", () => {
   assert.match(migration, /create or replace function public\.set_role_permissions/);
   assert.match(migration, /Super Admin permissions cannot be changed here/);
   assert.match(migration, /Role belongs to another company/);
@@ -58,9 +58,7 @@ test("role permission saves are atomic and invalidate the app shell", () => {
   for (const table of ["roles", "staff_roles", "staff_branches", "staff_locations", "staff_permission_overrides"]) {
     assert.match(migration, new RegExp(`revoke insert, update, delete on public\\.${table} from authenticated`));
   }
-  assert.match(foundation, /rpc\("set_role_permissions"/);
-  assert.match(foundation, /revalidatePath\("\/", "layout"\)/);
-  assert.doesNotMatch(foundation.slice(foundation.indexOf("export async function updateRolePermissions"), foundation.indexOf("function documentSequencePayload")), /role_permissions"\)\.delete/);
+  assert.doesNotMatch(foundation, /export async function (?:createRole|updateRole|updateRolePermissions)/);
 });
 
 test("office administration is separated from finance and payables", () => {

@@ -6,7 +6,7 @@ const routes = [
   `/branches/${missingId}`, `/document-sequences/${missingId}`, `/documents/${missingId}`, `/goods-receivings/${missingId}`,
   `/imports/items`, `/items/${missingId}`, `/outlet-daily-records/${missingId}`, `/production/jobs/${missingId}`,
   `/products/${missingId}`, `/purchase-orders/${missingId}`, `/purchase-requests/${missingId}`, `/purchase-returns/${missingId}`,
-  `/recipes/${missingId}`, `/recipes/${missingId}/edit`, `/roles/${missingId}`, `/staffs/${missingId}`, `/stock-counts/${missingId}`,
+  `/recipes/${missingId}`, `/recipes/${missingId}/edit`, `/staffs/${missingId}`, `/stock-counts/${missingId}`,
   `/stock-transactions/${missingId}`, `/stock-transfers/${missingId}`, `/stock-wastage/${missingId}`, `/supplier-invoices/${missingId}`,
   `/supplier-items/${missingId}`, `/suppliers/${missingId}`, `/uom-conversions/${missingId}`,
 ];

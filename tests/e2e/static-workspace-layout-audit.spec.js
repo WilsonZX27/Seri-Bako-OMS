@@ -6,7 +6,7 @@ const { hasAccount, login } = require("./helpers");
 const evidence = path.join(process.cwd(), "test-results", "static-workspace-layout-audit");
 const workspaces = [
   "/account", "/activity", "/administration", "/administration/backups", "/administration/imports", "/administration/master-data-cleanup",
-  "/branches", "/branches/new", "/company", "/daily-operations", "/dashboard", "/data-onboarding", "/documents",
+  "/branches", "/branches/new", "/company", "/dashboard", "/documents",
   "/document-sequences", "/document-sequences/new", "/goods-receivings", "/goods-receivings/new", "/imports", "/inventory",
   "/items", "/items/new", "/low-stock", "/opening-stock/import", "/outlet-daily-records", "/outlet-daily-records/new",
   "/procurement", "/procurement/purchase-requests", "/production", "/production/jobs", "/production/jobs/new", "/production/planning",

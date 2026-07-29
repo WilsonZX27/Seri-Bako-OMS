@@ -8,7 +8,8 @@ test("tablet workspace context never overlaps the primary data canvas", () => {
   assert.doesNotMatch(source, /absolute right-0 z-\[var\(--sb-z-dropdown\)\]/);
   assert.match(source, /RightConsoleMount/);
   assert.match(source, /data-tablet-document-split/);
-  assert.match(source, /lg:grid-cols-\[minmax\(0,1fr\)_18rem\]/);
+  assert.match(source, /md:grid-cols-\[minmax\(0,1fr\)_16rem\]/);
+  assert.match(source, /md:block xl:hidden/);
 });
 
 test("the shared mobile actions sheet locks background scroll and keeps focus inside", () => {

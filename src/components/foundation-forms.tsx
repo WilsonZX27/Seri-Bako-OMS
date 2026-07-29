@@ -148,7 +148,8 @@ export function BranchForm({ branch, companies, action, formId, showSubmit = tru
   return (
     <form id={formId} action={action} className="space-y-4">
       <CompanyHidden companies={companies} companyId={branch?.company_id} />
-      <RecordSection title="Identity" description="Branch reference, name, type, and operational status.">
+      <input type="hidden" name="status" value={branch?.status ?? "active"} />
+      <RecordSection title="Identity" description="Branch reference, name, and operating type. Lifecycle changes stay in the action panel.">
         <div className="grid gap-4 md:grid-cols-3">
           <Field label="Branch Code">
             <Input name="branch_code" defaultValue={branch?.branch_code ?? ""} required />
@@ -166,9 +167,6 @@ export function BranchForm({ branch, companies, action, formId, showSubmit = tru
             </SelectNative>
             <p className="mt-1 text-xs text-muted-foreground">Select the outlet, kitchen, office, or event booth this record belongs to.</p>
             <p className="mt-1 text-xs text-muted-foreground">Stock movements for this branch are recorded to an internal default stock area automatically.</p>
-          </Field>
-          <Field label="Status">
-            <StatusSelect value={branch?.status} />
           </Field>
         </div>
       </RecordSection>

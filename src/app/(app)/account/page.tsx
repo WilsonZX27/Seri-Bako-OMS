@@ -23,6 +23,9 @@ export default async function AccountPage() {
   const role = account?.role_code ?? account?.role ?? null;
   const initials = (account?.full_name ?? account?.email ?? "User").slice(0, 2).toUpperCase();
   const accountContext = <>
+    <ConsoleSection title="Profile actions">
+      <SubmitButton form="account-profile-form" className="w-full" pendingLabel="Saving..." data-mobile-primary-action>Save profile</SubmitButton>
+    </ConsoleSection>
     <ConsoleSection title="Profile picture">
       <form action={uploadOwnAvatar} className="space-y-3">
         <Input name="avatar" type="file" accept="image/png,image/jpeg,image/webp" required />
@@ -39,7 +42,7 @@ export default async function AccountPage() {
   return (
     <>
       <PageHeader title="My Profile" description="Manage your account details, profile picture, and password." />
-      <WorkspaceGrid tabletCanvas="contained" rightRail={accountContext}>
+      <WorkspaceGrid documentMode tabletRailMode="split" tabletCanvas="contained" rightRail={accountContext}>
         <section data-account-identity className="border border-[var(--sb-border-soft)] bg-white px-4 py-4">
           <div className="flex items-start gap-4">
             <div className="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-full bg-primary/10 text-lg font-semibold text-primary">
@@ -58,10 +61,9 @@ export default async function AccountPage() {
 
         <section className="border border-[var(--sb-border-soft)] bg-white p-4">
           <div className="mb-4 flex items-center gap-2"><UserRound className="h-4 w-4 text-primary" /><h2 className="font-semibold">Profile details</h2></div>
-          <form action={updateOwnProfile} className="grid gap-4">
+          <form id="account-profile-form" action={updateOwnProfile} className="grid gap-4">
             <label className="grid gap-2 text-sm font-medium">Display name <span className="sr-only">required</span><Input name="full_name" defaultValue={account?.full_name ?? ""} required className="form-control-compact" /></label>
             <label className="grid gap-2 text-sm font-medium">Phone<Input name="phone" defaultValue={account?.phone ?? ""} className="form-control-compact" /></label>
-            <div className="flex justify-end"><SubmitButton pendingLabel="Saving...">Save profile</SubmitButton></div>
           </form>
         </section>
 

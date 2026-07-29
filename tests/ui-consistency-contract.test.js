@@ -100,8 +100,10 @@ test("administration and import directories use the shared flat operational tool
 });
 
 test("account settings use the contained workspace and shared contextual action rail", () => {
-  assert.match(accountPage, /<WorkspaceGrid tabletCanvas="contained" rightRail=\{accountContext\}>/);
+  assert.match(accountPage, /<WorkspaceGrid documentMode tabletRailMode="split" tabletCanvas="contained" rightRail=\{accountContext\}>/);
   assert.match(accountPage, /data-account-identity/);
+  assert.match(accountPage, /form="account-profile-form"[\s\S]*data-mobile-primary-action/);
+  assert.match(accountPage, /id="account-profile-form"/);
   assert.match(accountPage, /ConsoleSection title="Profile picture"/);
   assert.doesNotMatch(accountPage, /<Card|CardContent/);
 });

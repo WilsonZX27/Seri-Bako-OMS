@@ -33,9 +33,9 @@ export function WorkspaceGrid({
   return (
     <div data-tablet-canvas={effectiveTabletCanvas} className={cn("min-h-0 p-3 pb-3", rightRail && !hideMobileConsole && "pb-32 xl:pb-3", className)}>
       {usesTabletSplit ? (
-        <div data-tablet-document-split className="min-w-0 lg:grid lg:grid-cols-[minmax(0,1fr)_18rem] lg:items-start lg:gap-4 xl:block">
+        <div data-tablet-document-split className="min-w-0 md:grid md:grid-cols-[minmax(0,1fr)_16rem] md:items-start md:gap-4 xl:block">
           <div className="min-w-0 space-y-3">{children}</div>
-          <aside className="hidden min-w-0 space-y-3 lg:block xl:hidden">{contextualRail}</aside>
+          <aside className="hidden min-w-0 space-y-3 md:block xl:hidden">{contextualRail}</aside>
         </div>
       ) : documentMode && rightRail ? (
         <div className="min-w-0">

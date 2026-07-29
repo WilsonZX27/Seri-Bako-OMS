@@ -16,8 +16,6 @@ const routeTitles: Record<string, RouteTitle> = {
   "/administration/master-data-cleanup": { title: "Master Data Cleanup", backHref: "/administration" },
   "/branches": { title: "Branches / Outlets" },
   "/company": { title: "Company Profile" },
-  "/daily-operations": { title: "Daily Operations" },
-  "/data-onboarding": { title: "Data Onboarding" },
   "/document-sequences": { title: "Document Sequences", backHref: "/administration" },
   "/documents": { title: "Documents" },
   "/inventory": { title: "Inventory" },
@@ -60,20 +58,20 @@ function pageContext(pathname: string) {
     const route = routeTitles[matchedRoute];
     return {
       title: route.title,
-      backHref: pathname === matchedRoute ? route.backHref ?? null : matchedRoute,
+      backHref: pathname === matchedRoute ? route.backHref ?? "/dashboard" : matchedRoute,
     };
   }
   const item = getIaItemForPath(pathname);
   if (item) {
     return {
       title: item.label,
-      backHref: pathname === item.href ? null : item.href,
+      backHref: pathname === item.href ? "/dashboard" : item.href,
     };
   }
 
   return {
     title: "Dashboard",
-    backHref: null,
+    backHref: "/dashboard",
   };
 }
 

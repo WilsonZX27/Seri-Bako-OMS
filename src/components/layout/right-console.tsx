@@ -112,6 +112,16 @@ export function RightConsoleProvider({ children }: { children: ReactNode }) {
   const primaryHref = findActionHref(primaryAction);
   const primaryLabel = actionText(primaryAction);
   const hasCreateFab = Boolean(primaryHref?.includes("/new") && /^(new|create)\b/i.test(primaryLabel));
+  const ownsMobileActionArea = Boolean(content && !mobileBarHidden && !hasCreateFab);
+
+  useEffect(() => {
+    const root = document.documentElement;
+    if (ownsMobileActionArea) root.dataset.mobileActionPage = "true";
+    else delete root.dataset.mobileActionPage;
+    return () => {
+      delete root.dataset.mobileActionPage;
+    };
+  }, [ownsMobileActionArea]);
 
   return (
     <RightConsoleContext.Provider value={value}>

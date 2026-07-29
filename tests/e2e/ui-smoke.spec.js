@@ -22,7 +22,6 @@ const superAdminRoutes = [
   "/production/jobs",
   "/production/jobs/new",
   "/documents",
-  "/data-onboarding",
   "/settings",
   "/staffs",
   "/staffs/new",
@@ -60,7 +59,6 @@ async function assertNoObviousVisualBreaks(page) {
 
 async function assertSprint731Rules(page, route) {
   if (route === "/dashboard") {
-    await expect(page.locator('nav a[href="/data-onboarding"]')).toHaveCount(0);
     await expect(page.getByTestId("topbar-search-region")).toHaveCount(1, { timeout: 5_000 });
     await expect(page.getByTestId("topbar-account-region")).toHaveCount(1, { timeout: 5_000 });
     const searchBox = await page.getByTestId("topbar-search-region").boundingBox();

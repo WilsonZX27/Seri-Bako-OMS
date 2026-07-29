@@ -41,8 +41,9 @@ test("fixed roles stay read-only while permitted users can manage system numberi
   assert.match(read("src/app/(app)/document-sequences/page.tsx"), /New sequence|>Edit</);
 });
 
-test("legacy hubs and backup aliases converge on canonical destinations", () => {
-  assert.match(read("src/app/(app)/data-onboarding/page.tsx"), /redirect\("\/imports"\)/);
+test("retired hubs are absent and the backup alias converges on its canonical destination", () => {
+  assert.equal(fs.existsSync("src/app/(app)/data-onboarding/page.tsx"), false);
+  assert.equal(fs.existsSync("src/app/(app)/daily-operations/page.tsx"), false);
   assert.match(read("src/app/(app)/settings/backups/page.tsx"), /redirect\("\/administration\/backups"\)/);
   assert.doesNotMatch(read("src/app/(app)/quick-tools/page.tsx"), /CategoryCardGrid|PageHeader/);
   assert.match(read("src/app/(app)/quick-tools/page.tsx"), /getDefaultLandingRoute/);

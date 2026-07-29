@@ -42,7 +42,6 @@ const exactRoutePermissions: Record<string, string[]> = {
 
 const routePermissions: Array<{ prefixes: string[]; permissions: string[] }> = [
   ...informationArchitecture.map((item) => ({ prefixes: [item.href], permissions: [item.permission] })),
-  { prefixes: ["/daily-operations"], permissions: ["dashboard.view"] },
   { prefixes: ["/outlet-daily-records"], permissions: ["outlet_daily_record.view"] },
   { prefixes: ["/production/jobs", "/production", "/products"], permissions: ["production.view"] },
   { prefixes: ["/recipes"], permissions: ["recipes.view"] },
@@ -70,7 +69,7 @@ const routePermissions: Array<{ prefixes: string[]; permissions: string[] }> = [
   { prefixes: ["/staffs"], permissions: ["staffs.read"] },
   { prefixes: ["/settings"], permissions: ["company.read", "staffs.read", "roles.read", "items.view", "imports.create"] },
   { prefixes: ["/document-sequences"], permissions: ["document_sequences.read"] },
-  { prefixes: ["/administration/imports", "/imports", "/data-onboarding"], permissions: ["imports.create", "company.update"] },
+  { prefixes: ["/administration/imports", "/imports"], permissions: ["imports.create", "company.update"] },
 ];
 
 function matchesPrefix(pathname: string, prefix: string) {

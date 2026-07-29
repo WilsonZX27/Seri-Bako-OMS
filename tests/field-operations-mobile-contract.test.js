@@ -52,6 +52,7 @@ test("goods receiving prioritizes physical receipt before reference quantities o
 
 test("purchase requests use a flat phone setup and line-entry hierarchy", () => {
   const source = read("src/components/procurement-forms.tsx");
+  const page = read("src/app/(app)/purchase-requests/new/page.tsx");
 
   assert.match(source, /data-purchase-request-setup/);
   assert.match(source, /data-purchase-request-workspace/);
@@ -61,9 +62,9 @@ test("purchase requests use a flat phone setup and line-entry hierarchy", () => 
   assert.match(source, /grid-cols-\[minmax\(0,1\.35fr\)_minmax\(0,0\.8fr\)_minmax\(4\.75rem,0\.7fr\)_2\.75rem\]/);
   assert.match(source, /Line note <span className="font-normal">\(optional\)<\/span>/);
   assert.match(source, /lines\.length > 1 \? <Button/);
-  assert.match(source, /aria-label="Submit PR"/);
-  assert.match(source, /bottom-\[calc\(var\(--sb-mobile-nav-height\)\+env\(safe-area-inset-bottom\)\+4\.5rem\)\]/);
-  assert.match(source, /hidden xl:hidden md:inline-flex/);
+  assert.match(page, /mobilePrimaryAction=\{primaryAction\}/);
+  assert.doesNotMatch(source, /aria-label="Submit PR"/);
+  assert.doesNotMatch(source, /hidden xl:hidden md:inline-flex/);
   assert.doesNotMatch(source, /md:rounded-md md:border md:bg-secondary\/20/);
 });
 

@@ -110,7 +110,7 @@ The authenticated phone experience is an application-style mobile Web layout, no
 - A phone page must not repeat the same workspace name in the top bar, page header, and document header. New documents show status, branch, workflow position, and the next permitted action beneath the top bar instead of repeating “New [document]” and the module title.
 - On a phone document header, place status and branch scope on one compact context row; show workflow position in one small disclosure row beneath it. Do not spend a separate full-height row on the status, branch, and workflow label when the same context can be scanned together.
 - The bottom bar observes `env(safe-area-inset-bottom)`. The top bar observes `env(safe-area-inset-top)`, and the root viewport uses `viewport-fit=cover`.
-- A page-level fixed primary action sits above the bottom navigation. It must not cover the final field, the navigation, or the home indicator.
+- A page-level fixed primary action owns the phone bottom action area: its presence hides the bottom navigation and anchors the action directly above the home safe area. It must not cover the final field or the home indicator, and the shared top bar must retain the contextual back button.
 - Pages without contextual actions must not render an empty or generic secondary action bar.
 - Mobile sheets lock background scroll, support Escape dismissal, preserve focus, and sit above both navigation and page actions.
 - The web manifest uses `display: standalone` so supported browsers may add the OMS to the home screen without creating a separate native application.

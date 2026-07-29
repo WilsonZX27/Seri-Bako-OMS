@@ -1,13 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import { Minus, Plus, Send, X } from "lucide-react";
+import { Minus, Plus, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Field } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { SelectNative } from "@/components/ui/select-native";
-import { SubmitButton } from "@/components/ui/submit-button";
 import { Textarea } from "@/components/ui/textarea";
 import { UrgencySelect } from "@/components/urgency-select";
 import type { ProcurementPriority } from "@/components/priority-badge";
@@ -188,14 +187,11 @@ export function PurchaseRequestForm({
               <div>
                 <p className="text-xs font-semibold">Requested Items</p>
               </div>
-              <div className="hidden items-center gap-2 md:flex">
-                <Button type="button" variant="outline" size="sm" onClick={addLine}>
+              <div className="flex items-center gap-2">
+                <Button type="button" variant="outline" size="sm" onClick={addLine} aria-label="Add request line">
                   <Plus className="h-4 w-4" />
                   Add line
                 </Button>
-                <SubmitButton type="submit" name="intent" value="submit" pendingLabel="Submitting..." className="hidden xl:hidden md:inline-flex">
-                  Submit PR
-                </SubmitButton>
               </div>
             </div>
             <div className="divide-y">
@@ -229,7 +225,9 @@ export function PurchaseRequestForm({
                     </SelectNative>
                   </Field> : null}
                   {canViewCommercial ? (
-                    <div className="col-span-2 grid grid-cols-[minmax(0,1.35fr)_minmax(0,0.8fr)_minmax(4.75rem,0.7fr)_2.75rem] gap-2 border-t border-[var(--sb-border-soft)] pt-2 text-xs md:col-span-4 md:grid-cols-[minmax(0,1.35fr)_minmax(0,0.8fr)_minmax(6rem,0.7fr)_var(--sb-control-height)]">
+                    <details className="col-span-2 border-t border-[var(--sb-border-soft)] pt-2 text-xs md:col-span-4">
+                      <summary className="cursor-pointer text-[11px] font-medium text-muted-foreground">Sourcing details <span className="font-normal">(automatic)</span></summary>
+                      <div className="mt-2 grid grid-cols-[minmax(0,1.35fr)_minmax(0,0.8fr)_minmax(4.75rem,0.7fr)_2.75rem] gap-2 md:grid-cols-[minmax(0,1.35fr)_minmax(0,0.8fr)_minmax(6rem,0.7fr)_var(--sb-control-height)]">
                         <Field label="Suggested supplier" className="[&>label]:text-[11px]"><SelectNative className="text-xs" name="line_suggested_supplier_id" value={line.supplierId} onChange={(event) => {
                           const mapping = supplierMappings.find((candidate) => candidate.branch_id === branchId && candidate.item_id === line.itemId && candidate.supplier_id === event.target.value);
                           updateLine(line.key, { supplierId: event.target.value, ...(mapping ? { cost: String(mapping.unit_cost), uom: normalizeUom(mapping.purchase_uom) } : {}) });
@@ -241,7 +239,8 @@ export function PurchaseRequestForm({
                           <summary className="cursor-pointer text-[11px] font-medium text-muted-foreground">Line note <span className="font-normal">(optional)</span></summary>
                           <Input className="mt-2 text-xs" name="line_remarks" value={line.remarks} onChange={(event) => updateLine(line.key, { remarks: event.target.value })} placeholder="Add delivery or handling context" />
                         </details>
-                    </div>
+                      </div>
+                    </details>
                   ) : (
                     <>
                       <input type="hidden" name="line_suggested_supplier_id" value={line.supplierId} />
@@ -257,13 +256,6 @@ export function PurchaseRequestForm({
               ))}
             </div>
           </section>
-
-          <SubmitButton type="submit" name="intent" value="submit" pendingLabel="Submitting..." className="fixed bottom-[calc(var(--sb-mobile-nav-height)+env(safe-area-inset-bottom)+4.5rem)] right-4 z-[var(--sb-z-sticky)] h-12 w-12 rounded-full border-[var(--sb-green-800)] p-0 shadow-[0_6px_18px_rgb(6_44_31_/_0.24)] md:hidden" aria-label="Submit PR" title="Submit PR">
-            <Send className="h-5 w-5" aria-hidden="true" />
-          </SubmitButton>
-          <Button type="button" size="icon" className="fixed bottom-[calc(var(--sb-mobile-nav-height)+env(safe-area-inset-bottom)+1rem)] right-4 z-[var(--sb-z-sticky)] h-12 w-12 rounded-full border-[var(--sb-green-800)] shadow-[0_6px_18px_rgb(6_44_31_/_0.24)] md:hidden" onClick={addLine} aria-label="Add request line" title="Add request line">
-            <Plus className="h-5 w-5" />
-          </Button>
 
           <datalist id="purchase-request-items">
             {items.map((item) => (

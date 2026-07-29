@@ -108,7 +108,7 @@ export function DocumentMoreOptions({ children }: { children: ReactNode }) {
   return (
     <>
       <div className="md:hidden"><MobileSheet label="More options" title="More options" danger>{children}</MobileSheet></div>
-      <details className="hidden border-t border-[var(--sb-border-soft)] pt-2 md:block">
+      <details open className="hidden border-t border-[var(--sb-border-soft)] pt-2 md:block">
         <summary className="cursor-pointer text-[12px] font-medium text-[var(--sb-text-muted)]">More options</summary>
         <div className="mt-2">{children}</div>
       </details>

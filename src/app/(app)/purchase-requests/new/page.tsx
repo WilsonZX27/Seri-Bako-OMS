@@ -51,6 +51,7 @@ export default async function NewPurchaseRequestPage({ searchParams }: { searchP
         workflowSteps={workflowSteps}
         currentStatus="draft"
         tabletRailMode="split"
+        mobilePrimaryAction={primaryAction}
         mobileMoreOptions={<DocumentMoreOptions>{secondaryActions}</DocumentMoreOptions>}
         sidePanel={<>
             <DocumentActionSection moreOptions={secondaryActions}>{primaryAction}</DocumentActionSection>

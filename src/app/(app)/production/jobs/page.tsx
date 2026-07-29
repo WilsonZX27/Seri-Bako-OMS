@@ -89,6 +89,16 @@ export default async function ProductionJobsPage({ searchParams }: { searchParam
             ))}
           </div>
           </ConsoleSection>
+        <ConsoleSection title="Production Tools">
+          <div className="grid gap-2">
+            <Button asChild size="sm" variant="outline" className="w-full">
+              <Link href="/production/planning">Production Planning</Link>
+            </Button>
+            <Button asChild size="sm" variant="outline" className="w-full">
+              <Link href="/production/variance">Demand Variance</Link>
+            </Button>
+          </div>
+        </ConsoleSection>
         </>}
       >
         <div className="space-y-3">

@@ -28,3 +28,34 @@ test("persistent phone actions replace bottom navigation and rely on the shared 
   assert.match(context, /route\.backHref \?\? "\/dashboard"/);
   assert.match(context, /pathname === item\.href \? "\/dashboard" : item\.href/);
 });
+
+test("document detail actions own the phone bottom area even when the route is not new or edit", () => {
+  const workspace = read("src/components/documents/document-workspace.tsx");
+  const context = read("src/components/layout/mobile-context-header.tsx");
+  const css = read("src/app/globals.css");
+
+  assert.match(workspace, /data-mobile-document-action/);
+  assert.match(css, /html:has\(\[data-mobile-document-action\]\) \[data-mobile-app-nav\][\s\S]*display: none/);
+  assert.match(css, /html:has\(\[data-mobile-document-action\]\) \[data-mobile-document-action\][\s\S]*bottom: 0 !important/);
+  assert.match(context, /if \(!context\.backHref\)/);
+  assert.match(context, /href=\{context\.backHref\}/);
+});
+
+test("new purchase requests use one shared submit source on every viewport", () => {
+  const page = read("src/app/(app)/purchase-requests/new/page.tsx");
+  const form = read("src/components/procurement-forms.tsx");
+  const mobile = read("src/components/documents/mobile-document-surfaces.tsx");
+
+  assert.match(page, /mobilePrimaryAction=\{primaryAction\}/);
+  assert.doesNotMatch(form, /rounded-full[\s\S]{0,300}aria-label="Submit PR"/);
+  assert.doesNotMatch(form, /md:inline-flex">\s*Submit PR/);
+  assert.match(form, /<summary[^>]*>Sourcing details <span[^>]*>\(automatic\)<\/span><\/summary>/);
+  assert.match(mobile, /<details open className="hidden/);
+});
+
+test("production jobs retain direct access to planning and demand variance", () => {
+  const jobs = read("src/app/(app)/production/jobs/page.tsx");
+
+  assert.match(jobs, /href="\/production\/planning">Production Planning/);
+  assert.match(jobs, /href="\/production\/variance">Demand Variance/);
+});

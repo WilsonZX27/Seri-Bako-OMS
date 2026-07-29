@@ -11,7 +11,7 @@ import { Input } from "@/components/ui/input";
 import { SelectNative } from "@/components/ui/select-native";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Textarea } from "@/components/ui/textarea";
-import { StatusBadge } from "@/components/ui/status-badge";
+import { normalizeUom, uomOptionsWithCurrent } from "@/lib/uom";
 import { formatCurrency, formatNumber, getToday } from "@/lib/utils";
 import type { RecipeDetail, RecipeIngredientOption } from "@/server/queries/recipes";
 
@@ -83,7 +83,7 @@ export function RecipeForm({ recipe, products, items, action, formId, showSubmit
 
   const [productId, setProductId] = useState(recipe?.product_id ?? products[0]?.id ?? "");
   const [yieldQty, setYieldQty] = useState(Number(recipe?.yield_qty ?? 1));
-  const [yieldUnit, setYieldUnit] = useState(recipe?.yield_unit ?? productById.get(productId)?.selling_unit ?? "pcs");
+  const [yieldUnit, setYieldUnit] = useState(normalizeUom(recipe?.yield_unit ?? productById.get(productId)?.selling_unit) || "PCS");
   const [lines, setLines] = useState<RecipeFormLine[]>(
     recipe?.lines.length
       ? recipe.lines.map((line) => {
@@ -106,7 +106,6 @@ export function RecipeForm({ recipe, products, items, action, formId, showSubmit
       : [createEmptyLine()],
   );
 
-  const selectedProduct = productById.get(productId);
   const duplicateIds = lines
     .map((line) => line.ingredient_item_id)
     .filter(Boolean)
@@ -164,16 +163,15 @@ export function RecipeForm({ recipe, products, items, action, formId, showSubmit
           })),
         )}
       />
+      <input type="hidden" name="recipe_no" value={recipe?.recipe_no ?? ""} />
+      <input type="hidden" name="version" value={recipe?.version ?? 1} />
 
       <Card className="border-0 bg-transparent shadow-none md:border md:bg-card md:shadow-sm" data-recipe-setup>
         <CardHeader className="px-0 md:px-6">
           <CardTitle>Recipe Header</CardTitle>
-          <CardDescription>Manage the finished product, version, yield, and approval readiness.</CardDescription>
+        <CardDescription>Select the finished product, effective date, and controlled yield unit.</CardDescription>
         </CardHeader>
         <CardContent className="grid gap-4 px-0 md:grid-cols-4 md:px-6">
-          <Field label="Recipe No">
-            <Input name="recipe_no" defaultValue={recipe?.recipe_no ?? `RCP-${getToday().replaceAll("-", "")}-NEW`} readOnly required />
-          </Field>
           <Field label="Product">
             <SelectNative
               name="product_id"
@@ -182,7 +180,7 @@ export function RecipeForm({ recipe, products, items, action, formId, showSubmit
               onChange={(event) => {
                 const nextProduct = productById.get(event.target.value);
                 setProductId(event.target.value);
-                setYieldUnit(nextProduct?.selling_unit ?? yieldUnit);
+                setYieldUnit(normalizeUom(nextProduct?.selling_unit) || yieldUnit);
               }}
             >
               {products.map((product) => (
@@ -192,27 +190,13 @@ export function RecipeForm({ recipe, products, items, action, formId, showSubmit
               ))}
             </SelectNative>
           </Field>
-          <Field label="Product Code">
-            <Input value={selectedProduct?.product_code ?? ""} readOnly />
-          </Field>
-          <Field label="Version">
-            <Input name="version" type="number" min="1" defaultValue={recipe?.version ?? 1} required />
-          </Field>
           <Field label="Yield Qty">
             <Input name="yield_qty" type="number" step="0.0001" min="0.0001" value={yieldQty} onChange={(event) => setYieldQty(Number(event.target.value))} required />
           </Field>
           <Field label="Yield UOM">
-            <Input name="yield_unit" value={yieldUnit} onChange={(event) => setYieldUnit(event.target.value)} required />
-          </Field>
-          <Field label="Status">
-            <div className="rounded-md border bg-secondary/30 px-2 py-2 text-sm">
-              <StatusBadge status={recipe?.status ?? "draft"} />
-            </div>
-          </Field>
-          <Field label="Approval">
-            <div className="rounded-md border bg-secondary/30 px-2 py-2 text-sm">
-              <StatusBadge status={recipe?.approval_status ?? "draft"} />
-            </div>
+            <SelectNative name="yield_unit" value={yieldUnit} onChange={(event) => setYieldUnit(event.target.value)} required>
+              {uomOptionsWithCurrent(yieldUnit).map((uom) => <option key={uom} value={uom}>{uom}</option>)}
+            </SelectNative>
           </Field>
           <Field label="Effective Date">
             <Input name="effective_date" type="date" defaultValue={recipe?.effective_date ?? getToday()} required />

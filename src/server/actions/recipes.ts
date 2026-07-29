@@ -150,6 +150,8 @@ function recipeLineRows(recipeId: string, parsed: RecipeInput) {
 
 export async function createRecipe(formData: FormData) {
   await requirePermission("recipes.create");
+  formData.set("recipe_no", `RCP-${new Date().toISOString().slice(0, 10).replaceAll("-", "")}-${crypto.randomUUID().slice(0, 6).toUpperCase()}`);
+  formData.set("version", "1");
   const parsed = parseRecipeForm(formData);
   const supabase = await assertRecipeReferencesExist(parsed);
 

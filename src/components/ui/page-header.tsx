@@ -27,14 +27,14 @@ export function PageHeader(props: PageHeaderProps) {
             <h1 className="truncate text-lg font-semibold leading-5 text-[var(--sb-text)]">{props.title}</h1>
             {props.description ? <p className="mt-0.5 max-w-2xl text-xs leading-4 text-[var(--sb-text-muted)]">{props.description}</p> : null}
           </div>
-          {props.action || props.secondaryAction ? (
+          {props.secondaryAction || (props.action && !isCreateAction) ? (
             <div className="flex shrink-0 flex-wrap gap-2">
               {props.secondaryAction ? (
                 <Button asChild variant="outline" size="sm">
                   <Link href={props.secondaryAction.href}>{props.secondaryAction.label}</Link>
                 </Button>
               ) : null}
-              {props.action ? (
+              {props.action && !isCreateAction ? (
                 <Button asChild size="sm">
                   <Link href={props.action.href}>{props.action.label}</Link>
                 </Button>

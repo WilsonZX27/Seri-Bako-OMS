@@ -34,6 +34,18 @@ test("page-header create actions are icon-only below desktop without an empty ac
   assert.match(source, /data-page-create-fab/);
   assert.match(source, /<span className="sr-only">\{props\.action\.label\}<\/span>/);
   assert.match(source, /props\.secondaryAction \|\| \(props\.action && !isCreateAction\)/);
+  assert.equal((source.match(/props\.secondaryAction \|\| \(props\.action && !isCreateAction\)/g) ?? []).length, 2);
   assert.match(source, /data-tablet-page-actions[\s\S]*xl:hidden/);
   assert.doesNotMatch(source, /xl:not-sr-only/);
+});
+
+test("warning semantics resolve to red rather than orange or amber", () => {
+  const css = read("src/app/globals.css");
+  const badge = read("src/components/ui/badge.tsx");
+  const states = read("src/components/ui/system-states.tsx");
+
+  assert.match(css, /--sb-warning: var\(--sb-danger\)/);
+  assert.match(css, /--sb-warning-bg: var\(--sb-danger-bg\)/);
+  assert.match(badge, /warning: "border-\[var\(--sb-warning-bg\)\]/);
+  assert.match(states, /warning: "border-\[var\(--sb-warning\)\]/);
 });

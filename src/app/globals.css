@@ -498,6 +498,38 @@ input[type="date"]::-webkit-date-and-time-value {
     margin-left: auto;
   }
 
+  /*
+   * A simple search + one status control belongs on one phone row.
+   * More complex filter sets keep the wrapping layout and overflow into More filters.
+   */
+  .sb-list-filters--compact-mobile {
+    flex-wrap: nowrap;
+  }
+
+  .sb-list-filters--compact-mobile > :first-child {
+    order: 1;
+    flex: 1 1 0;
+    min-width: 0;
+  }
+
+  .sb-list-filters--compact-mobile > :not(:first-child) {
+    order: 2;
+    flex: 0 0 6.5rem;
+  }
+
+  .sb-list-filters--compact-mobile > button:is([type="submit"], :not([type])) {
+    order: 3;
+    flex: 0 0 auto;
+    padding-inline: 0.75rem;
+  }
+
+  .sb-list-filters--compact-mobile > .sb-filter-summary {
+    order: 4;
+    flex: 0 0 auto !important;
+    margin-left: 0;
+    white-space: nowrap;
+  }
+
   input[type="date"] {
     min-height: var(--sb-control-height);
     padding-right: 0.5rem;

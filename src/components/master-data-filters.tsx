@@ -44,8 +44,21 @@ export function MasterDataFilters({
   resetHref = "?",
   leadingFilter,
 }: MasterDataFiltersProps) {
+  const compactMobile = Boolean(
+    leadingFilter
+    && !showStatus
+    && !suppliers.length
+    && !categories.length
+    && !showStockFilters,
+  );
+
   return (
-    <FilterBar resultCount={resultCount} resetHref={resetHref} filtered={filtered}>
+    <FilterBar
+      resultCount={resultCount}
+      resetHref={resetHref}
+      filtered={filtered}
+      className={compactMobile ? "sb-list-filters--compact-mobile" : undefined}
+    >
       <Input name="search" defaultValue={search ?? ""} placeholder={placeholder} />
         {leadingFilter}
         {showStatus ? <SelectControl name="status" defaultValue={status} options={[{ value: "all", label: "All status" }, ...statuses]} ariaLabel="Status" className="min-w-32 md:w-40" /> : null}

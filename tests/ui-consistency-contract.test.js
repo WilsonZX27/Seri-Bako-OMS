@@ -14,6 +14,7 @@ const administration = read("src/app/(app)/administration/page.tsx");
 const importsIndex = read("src/app/(app)/imports/page.tsx");
 const operationalToolList = read("src/components/operational-tool-list.tsx");
 const accountPage = read("src/app/(app)/account/page.tsx");
+const masterDataFilters = read("src/components/master-data-filters.tsx");
 
 test("UI consistency keeps imports upload-only and technical permission details collapsed", () => {
   assert.doesNotMatch(imports, /Edit in table|Add blank row|Paste into table/);
@@ -28,6 +29,11 @@ test("shared filter rows use compact operational-green submits without adding du
   assert.match(styles, /background: var\(--sb-green-900\)/);
   assert.doesNotMatch(styles, /\.sb-list-filters > a::before/);
   assert.match(styles, /max-width: 22rem/);
+  assert.match(masterDataFilters, /compactMobile[\s\S]*leadingFilter[\s\S]*!showStatus/);
+  assert.match(masterDataFilters, /sb-list-filters--compact-mobile/);
+  assert.match(styles, /\.sb-list-filters--compact-mobile \{[\s\S]*flex-wrap: nowrap/);
+  assert.match(styles, /\.sb-list-filters--compact-mobile > button:is\([\s\S]*order: 3/);
+  assert.match(styles, /\.sb-list-filters--compact-mobile > \.sb-filter-summary \{[\s\S]*order: 4/);
 });
 
 test("a visible status tab strip remains the only primary status filter", () => {

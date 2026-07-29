@@ -17,7 +17,7 @@ export default async function NewStockWastagePage({ searchParams }: { searchPara
   return (
     <>
       <PageHeader title="New Stock Wastage" description="Record wastage against branch stock." />
-      <WorkspaceGrid rightRail={<><ConsoleSection title="Actions"><SubmitButton form={formId} type="submit" disabled={!seedLines.length} className="w-full" data-mobile-primary-action>Create wastage</SubmitButton></ConsoleSection><ConsoleSection title="Evidence"><p className="text-xs text-muted-foreground">Create the draft first, then upload photos or documents from its Attachments panel.</p></ConsoleSection></>}>
+      <WorkspaceGrid documentMode tabletRailMode="split" rightRail={<><ConsoleSection title="Actions"><SubmitButton form={formId} type="submit" disabled={!seedLines.length} className="w-full" data-mobile-primary-action>Create wastage</SubmitButton></ConsoleSection><ConsoleSection title="Evidence"><p className="text-xs text-muted-foreground">Create the draft first, then upload photos or documents from its Attachments panel.</p></ConsoleSection></>}>
         {filters.error ? <Card><CardContent className="p-4 text-sm text-destructive">{filters.error}</CardContent></Card> : null}
         <StockWastageForm formId={formId} showSubmit={false} branches={branches} selectedBranchId={selectedBranchId} seedLines={seedLines} action={createStockWastage} />
       </WorkspaceGrid>

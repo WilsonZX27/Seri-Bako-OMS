@@ -70,6 +70,7 @@ test("purchase requests use a flat phone setup and line-entry hierarchy", () => 
 
 test("stock transfer and wastage use compact mobile lines and hide fixed UOM fields", () => {
   const source = read("src/components/stock-operation-forms.tsx");
+  const wastagePage = read("src/app/(app)/stock-wastage/new/page.tsx");
 
   assert.match(source, /data-stock-transfer-setup/);
   assert.match(source, /data-stock-wastage-setup/);
@@ -79,6 +80,7 @@ test("stock transfer and wastage use compact mobile lines and hide fixed UOM fie
   assert.match(source, /name="line_uom" value=\{line\.uom\}/);
   assert.match(source, /More line details/);
   assert.doesNotMatch(source, /Field label="UOM"/);
+  assert.match(wastagePage, /<WorkspaceGrid documentMode tabletRailMode="split"/);
 });
 
 test("production ingredient snapshots replace the phone table with a scannable list", () => {

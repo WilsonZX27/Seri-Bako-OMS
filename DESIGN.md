@@ -187,6 +187,17 @@ The Playwright route-layout audit is the baseline guard for all static workspace
 - Every production release uses a three-segment semantic version in `package.json` and `src/lib/app-version.ts`; the login footer and workspace sidebar render `vX.Y.Z` from that same source.
 - Every user-visible change batch must increment that shared version before its Git commit. The commit subject and GitHub release title must use the same short change title as `APP_RELEASE_TITLE`; no UI batch may be pushed with a stale footer version.
 - GitHub tags use `vX.Y.Z`. GitHub Release titles use `vX.Y.Z — Release title`, matching the short `APP_RELEASE_TITLE` stored beside the application version.
+
+## Parallel work and business-logic integration
+
+- Production is promoted only from the designated integration branch after every active workstream has been merged and verified. Never promote an older Preview merely because its isolated smoke test passed.
+- Each concurrent Codex task owns a separate `codex/*` branch and worktree. A task may commit and push its own scoped work, but it must not promote Production or overwrite another task's branch.
+- Business migrations, RPCs, server actions, API routes, and permission changes require an isolated commit and contract tests before entering the integration branch. UI-only changes must not silently introduce a second business workflow.
+- A new specialized workflow may reuse the canonical aggregate operation, but it must not create a competing source of truth, bypass the established approval state machine, or reserve inventory unless that reservation rule is explicitly approved in product documentation.
+- Database migration numbers are allocated once on the integration branch. Before adding a migration, fetch the integration branch and confirm that the number is unused; rebasing or renumbering happens before review, never after Production has applied it.
+- Temporary capture scripts, local CSV reconciliation tools, generated exports, and `supabase/.temp` state stay outside release commits unless the repository intentionally adopts them as maintained tooling.
+- Before promotion, record the candidate commit SHA, current Production SHA, migration range, test result, and rollback point. If Production has moved since validation, stop and rebuild a Preview from the latest integration branch.
+
 ### Table activation and filter overflow
 
 - A table row must never navigate on pointer-down or a single tap. Open a row with double-click/double-tap (or keyboard Enter/Space); explicit action controls remain single-tap.

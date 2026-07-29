@@ -150,7 +150,7 @@ The system currently covers or is actively implementing the following operationa
 
 Module maturity must be understood separately from visual completion.
 
-Current local baseline: `v7.23.7.0` with database migrations through `103`. This is an operational release baseline, not a claim that Seri Bako OMS is a full accounting ERP.
+Current integration baseline: `v7.61.0` with reviewed database migrations through `110`. This is an operational release baseline, not a claim that Seri Bako OMS is a full accounting ERP. Migrations `111` and `112` remain excluded because their alternate Central Kitchen purchase-request workflow has not been approved as the canonical procurement model.
 
 A page may exist visually without its full workflow, validation, database integration, permissions, and downstream effects being complete.
 

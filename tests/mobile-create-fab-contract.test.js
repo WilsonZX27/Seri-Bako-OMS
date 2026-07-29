@@ -27,3 +27,13 @@ test("workflow actions retain descriptive mobile controls", () => {
   assert.match(source, /primaryAction \? <div data-mobile-primary-slot/);
   assert.match(source, /aria-label="Open more actions"/);
 });
+
+test("page-header create actions are icon-only below desktop without an empty action strip", () => {
+  const source = read("src/components/ui/page-header.tsx");
+
+  assert.match(source, /data-page-create-fab/);
+  assert.match(source, /<span className="sr-only">\{props\.action\.label\}<\/span>/);
+  assert.match(source, /props\.secondaryAction \|\| \(props\.action && !isCreateAction\)/);
+  assert.match(source, /data-tablet-page-actions[\s\S]*xl:hidden/);
+  assert.doesNotMatch(source, /xl:not-sr-only/);
+});

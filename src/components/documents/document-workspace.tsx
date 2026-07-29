@@ -30,7 +30,7 @@ export function DocumentWorkspace({
   mobileWorkflowTrailing,
   hideMobileWorkflow = false,
   compactMobileSpacing = false,
-  tabletRailMode = "context",
+  tabletRailMode = "split",
 }: {
   breadcrumbs: Crumb[];
   documentNo: string;

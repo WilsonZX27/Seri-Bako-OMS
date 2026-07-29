@@ -1,4 +1,4 @@
-export const APP_VERSION = "7.73.0";
+export const APP_VERSION = "7.74.0";
 export const APP_SPRINT = `v${APP_VERSION}`;
-export const APP_RELEASE_TITLE = "Retired Route Cleanup";
+export const APP_RELEASE_TITLE = "Tablet Document Rail Closure";
 export const APP_RELEASE_NOTE = `${APP_SPRINT} — ${APP_RELEASE_TITLE}`;

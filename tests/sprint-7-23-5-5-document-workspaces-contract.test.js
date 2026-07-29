@@ -38,6 +38,7 @@ test("the shared shell gives iPad a contained canvas and an explicit operational
   const styles = read("src/app/globals.css");
 
   assert.match(workspace, /data-tablet-document-header/);
+  assert.match(workspace, /tabletRailMode = "split"/);
   assert.match(workspaceGrid, /data-tablet-canvas/);
   assert.match(workspaceGrid, /tabletRailMode = "context"/);
   assert.match(workspaceGrid, /data-tablet-document-split/);

@@ -88,9 +88,10 @@ export default async function LowStockPage({ searchParams }: { searchParams: Pro
             </form>
           </div>
 
-          <Table mobileHidden aria-label="Low stock items">
+          <Table mobileHidden aria-label="Low stock items" stickyColumn={canCreatePr ? "second" : "first"}>
             <TableHeader>
               <TableRow>
+                {canCreatePr ? <TableHead className="w-16 text-center">Action</TableHead> : null}
                 <TableHead>Code</TableHead>
                 <TableHead>Item</TableHead>
                 <TableHead>Branch</TableHead>
@@ -101,12 +102,12 @@ export default async function LowStockPage({ searchParams }: { searchParams: Pro
                 <TableHead className="text-right">Suggested</TableHead>
                 <TableHead className="text-right">MOQ</TableHead>
                 <TableHead className="text-right">Cost</TableHead>
-                <TableHead className="w-16 text-right">Action</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {items.map((item) => (
                 <TableRow key={`${item.branch_id ?? "no-branch"}-${item.item_id}`}>
+                  {canCreatePr ? <TableCell className="text-center"><Button asChild size="sm" variant="outline"><Link href={reorderHref(item)} aria-label={`Create PR for ${item.item_code}`}><Pencil className="h-3.5 w-3.5" />PR</Link></Button></TableCell> : null}
                   <TableCell>{item.item_code}</TableCell>
                   <TableCell className="font-medium">{item.item_name}</TableCell>
                   <TableCell>{item.branch_name ?? "-"}</TableCell>
@@ -119,20 +120,11 @@ export default async function LowStockPage({ searchParams }: { searchParams: Pro
                   </TableCell>
                   <TableCell className="text-right">{formatNumber(item.moq)} {item.base_unit}</TableCell>
                   <TableCell className="text-right">{formatCurrency(item.cost)}</TableCell>
-                  <TableCell className="text-right">
-                    {canCreatePr ? (
-                      <Button asChild size="sm" variant="outline">
-                        <Link href={reorderHref(item)} aria-label={`Create PR for ${item.item_code}`}>
-                          <Pencil className="h-3.5 w-3.5" />PR
-                        </Link>
-                      </Button>
-                    ) : null}
-                  </TableCell>
                 </TableRow>
               ))}
               {!items.length ? (
                 <TableRow>
-                  <TableCell colSpan={11} className="text-center text-muted-foreground">No low stock items.</TableCell>
+                  <TableCell colSpan={canCreatePr ? 11 : 10} className="text-center text-muted-foreground">No low stock items.</TableCell>
                 </TableRow>
               ) : null}
             </TableBody>

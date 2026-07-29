@@ -22,7 +22,15 @@ test("operational queues expose their action rail on tablet", () => {
     "src/app/(app)/purchase-returns/page.tsx",
     "src/app/(app)/supplier-invoices/page.tsx",
     "src/app/(app)/production/jobs/page.tsx",
+    "src/app/(app)/stock-counts/page.tsx",
   ]) {
     assert.match(read(file), /tabletRailMode="split"/, `${file} must expose its rail from tablet width`);
   }
+});
+
+test("stock count list exposes creation only to permitted mobile users", () => {
+  const stockCounts = read("src/app/(app)/stock-counts/page.tsx");
+
+  assert.match(stockCounts, /hideMobileConsole=\{!canCreate\}/);
+  assert.match(stockCounts, /data-mobile-primary-action/);
 });

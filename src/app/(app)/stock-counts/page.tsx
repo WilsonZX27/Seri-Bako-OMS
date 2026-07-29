@@ -51,7 +51,10 @@ export default async function StockCountsPage({ searchParams }: { searchParams: 
 
   return <>
     <PageHeader title="Stock Counts" description="Physical counts compared against calculated branch stock." />
-    <WorkspaceGrid rightRail={<>
+    <WorkspaceGrid
+      hideMobileConsole={!canCreate}
+      tabletRailMode="split"
+      rightRail={<>
       {canCreate ? <ConsoleSection title="Actions"><Button asChild className="w-full" data-mobile-primary-action><Link href="/stock-counts/new">New Stock Count</Link></Button></ConsoleSection> : null}
       <ConsoleSection title="Stock Count Summary"><dl className="grid gap-2 text-xs"><div className="flex justify-between"><dt className="text-muted-foreground">Total</dt><dd className="font-semibold">{rows.length}</dd></div><div className="flex justify-between"><dt className="text-muted-foreground">In review</dt><dd className="font-semibold">{count("submitted", "reviewed")}</dd></div><div className="flex justify-between"><dt className="text-muted-foreground">Posted</dt><dd className="font-semibold">{count("posted")}</dd></div></dl></ConsoleSection>
     </>}>

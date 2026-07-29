@@ -55,9 +55,9 @@ export default async function SupplierInvoicesPage({ searchParams }: { searchPar
         }
       >
         <div className="rounded-[2px] border bg-card">
-          <StatusTabs statuses={statuses} activeStatus={filters.status} />
           <FilterBar resultCount={invoices.totalRows} resetHref="/supplier-invoices" filtered={filtered}>
             <Input name="search" defaultValue={filters.search ?? ""} placeholder="Search invoice or supplier" className="md:max-w-sm" />
+            <StatusTabs statuses={statuses} activeStatus={filters.status} />
             <FilterBarMore activeCount={[filters.supplier && filters.supplier !== "all", filters.due && filters.due !== "all"].filter(Boolean).length} resetHref="/supplier-invoices">
               <SelectControl name="supplier" defaultValue={filters.supplier ?? "all"} ariaLabel="Supplier" options={[{ value: "all", label: "All suppliers" }, ...suppliers.map((supplier) => ({ value: supplier.id, label: supplier.name }))]} />
               <SelectControl name="due" defaultValue={filters.due ?? "all"} ariaLabel="Due state" options={[{ value: "all", label: "All due states" }, { value: "overdue", label: "Overdue" }, { value: "due_7", label: "Due in 7 days" }, { value: "no_due", label: "No due date" }]} />

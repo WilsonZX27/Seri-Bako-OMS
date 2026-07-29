@@ -52,8 +52,7 @@ export default async function SuppliersPage({
       >
         {filters.success ? <div className="border border-[var(--sb-success)] bg-[var(--sb-success-bg)] p-3 text-sm text-[var(--sb-success)]">{filters.success}</div> : null}
         <div className="overflow-hidden rounded-[2px] border bg-card">
-          <StatusTabs statuses={[{ value: "active", label: "Active" }, { value: "inactive", label: "Inactive" }]} activeStatus={filters.status} />
-          <MasterDataFilters search={filters.search} status={filters.status} showStatus={false} placeholder="Search supplier code, name, contact, phone, email" resultCount={page.totalRows} filtered={filtered} resetHref="/suppliers" />
+          <MasterDataFilters search={filters.search} status={filters.status} showStatus={false} leadingFilter={<StatusTabs statuses={[{ value: "active", label: "Active" }, { value: "inactive", label: "Inactive" }]} activeStatus={filters.status} />} placeholder="Search supplier code, name, contact, phone, email" resultCount={page.totalRows} filtered={filtered} resetHref="/suppliers" />
           <BulkSelectionProvider ids={page.rows.map((supplier) => supplier.id)} actionLabel="Deactivate selected" actionHint="Deactivate suppliers only when they should no longer be used for purchasing.">
           <DataGridHint text="Pro-tip: Double-click any row to open the supplier." />
           <Table mobileHidden aria-label="Suppliers" stickyColumn="second">

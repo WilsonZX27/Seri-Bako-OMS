@@ -55,9 +55,9 @@ export default async function StockCountsPage({ searchParams }: { searchParams: 
       <ConsoleSection title="Stock Count Summary"><dl className="grid gap-2 text-xs"><div className="flex justify-between"><dt className="text-muted-foreground">Total</dt><dd className="font-semibold">{rows.length}</dd></div><div className="flex justify-between"><dt className="text-muted-foreground">In review</dt><dd className="font-semibold">{count("submitted", "reviewed")}</dd></div><div className="flex justify-between"><dt className="text-muted-foreground">Posted</dt><dd className="font-semibold">{count("posted")}</dd></div></dl></ConsoleSection>
     </>}>
       <div className="rounded-[2px] border bg-card">
-        <StatusTabs statuses={statuses} activeStatus={filters.status} />
         <FilterBar resultCount={counts.totalRows} resetHref="/stock-counts" filtered={filtered}>
           <Input name="search" defaultValue={filters.search ?? ""} placeholder="Search count no, branch, remarks" />
+          <StatusTabs statuses={statuses} activeStatus={filters.status} />
           <SelectControl name="branch_id" defaultValue={filters.branch_id ?? "all"} ariaLabel="Branch" options={[{ value: "all", label: "All branches" }, ...branches.map((branch) => ({ value: branch.id, label: branch.branch_name }))]} />
           <FilterBarMore activeCount={Number(Boolean(filters.from)) + Number(Boolean(filters.to))} resetHref="/stock-counts"><Input name="from" type="date" defaultValue={filters.from ?? ""} aria-label="From date" /><Input name="to" type="date" defaultValue={filters.to ?? ""} aria-label="To date" /></FilterBarMore>
           {filters.status ? <input type="hidden" name="status" value={filters.status} /> : null}<Button type="submit">Search</Button>

@@ -260,18 +260,9 @@ input[type="date"]::-webkit-date-and-time-value {
 /* Status is a compact select in the same filter line as search. The old tab strip
    consumed a full row and encouraged duplicate status controls. */
 .sb-status-filter {
-  float: left;
-  width: min(10rem, 32vw);
-  margin: 0.5rem 0.5rem 0 0.75rem;
+  flex: 0 1 10rem;
+  width: min(10rem, 100%);
   min-width: 0;
-}
-.sb-status-filter + .sb-list-filters {
-  border-top: 0;
-}
-.sb-status-filter ~ .sb-table-region,
-.sb-status-filter ~ .overflow-x-auto,
-.sb-status-filter ~ [role="list"] {
-  clear: both;
 }
 
 .sb-filter-summary {
@@ -455,10 +446,8 @@ input[type="date"]::-webkit-date-and-time-value {
   }
 
   .sb-status-filter {
-    float: none;
     width: 100%;
-    margin: 0;
-    padding: 0.625rem 0.625rem 0;
+    flex-basis: 100%;
   }
 
   .sb-list-filters input,

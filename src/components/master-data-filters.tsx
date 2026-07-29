@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { SelectControl } from "@/components/ui/select-control";
@@ -19,6 +20,7 @@ type MasterDataFiltersProps = {
   resultCount?: number;
   filtered?: boolean;
   resetHref?: string;
+  leadingFilter?: ReactNode;
 };
 
 export function MasterDataFilters({
@@ -40,10 +42,12 @@ export function MasterDataFilters({
   resultCount,
   filtered = false,
   resetHref = "?",
+  leadingFilter,
 }: MasterDataFiltersProps) {
   return (
     <FilterBar resultCount={resultCount} resetHref={resetHref} filtered={filtered}>
       <Input name="search" defaultValue={search ?? ""} placeholder={placeholder} />
+        {leadingFilter}
         {showStatus ? <SelectControl name="status" defaultValue={status} options={[{ value: "all", label: "All status" }, ...statuses]} ariaLabel="Status" className="min-w-32 md:w-40" /> : null}
         {suppliers.length ? (
           <SelectControl name="supplier" defaultValue={supplier} options={[{ value: "all", label: "All suppliers" }, ...suppliers.map((row) => ({ value: row.id, label: row.name }))]} ariaLabel="Supplier" className="min-w-36" />

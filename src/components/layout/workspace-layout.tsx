@@ -4,6 +4,7 @@ import { cn } from "@/lib/utils";
 
 type TabletCanvas = "contained" | "wide" | "full";
 type TabletRailMode = "context" | "split";
+type TabletRailBreakpoint = "md" | "lg";
 
 export function WorkspaceGrid({
   children,
@@ -14,6 +15,7 @@ export function WorkspaceGrid({
   documentMode = false,
   tabletCanvas,
   tabletRailMode = "context",
+  tabletRailBreakpoint = "md",
 }: {
   children: ReactNode;
   rightRail?: ReactNode;
@@ -25,17 +27,25 @@ export function WorkspaceGrid({
   tabletCanvas?: TabletCanvas;
   /** At landscape-tablet widths, a document may keep its operational context visible beside the form. */
   tabletRailMode?: TabletRailMode;
+  /** Lists may keep portrait tablets stacked and split only on wider tablet canvases. */
+  tabletRailBreakpoint?: TabletRailBreakpoint;
 }) {
   const contextualRail = rightRailClassName ? <div className={rightRailClassName}>{rightRail}</div> : rightRail;
   const effectiveTabletCanvas = tabletCanvas ?? (documentMode ? "contained" : "wide");
-  const usesTabletSplit = Boolean(documentMode && rightRail && tabletRailMode === "split");
+  const usesTabletSplit = Boolean(rightRail && tabletRailMode === "split");
+  const splitGridClass = tabletRailBreakpoint === "lg"
+    ? "lg:grid lg:grid-cols-[minmax(0,1fr)_16rem] lg:items-start lg:gap-4 xl:block"
+    : "md:grid md:grid-cols-[minmax(0,1fr)_16rem] md:items-start md:gap-4 xl:block";
+  const splitRailClass = tabletRailBreakpoint === "lg"
+    ? "hidden min-w-0 space-y-3 lg:block xl:hidden"
+    : "hidden min-w-0 space-y-3 md:block xl:hidden";
 
   return (
     <div data-tablet-canvas={effectiveTabletCanvas} className={cn("min-h-0 p-3 pb-3", rightRail && !hideMobileConsole && "pb-32 xl:pb-3", className)}>
       {usesTabletSplit ? (
-        <div data-tablet-document-split className="min-w-0 md:grid md:grid-cols-[minmax(0,1fr)_16rem] md:items-start md:gap-4 xl:block">
+        <div data-tablet-document-split className={cn("min-w-0", splitGridClass)}>
           <div className="min-w-0 space-y-3">{children}</div>
-          <aside className="hidden min-w-0 space-y-3 md:block xl:hidden">{contextualRail}</aside>
+          <aside className={splitRailClass}>{contextualRail}</aside>
         </div>
       ) : documentMode && rightRail ? (
         <div className="min-w-0">

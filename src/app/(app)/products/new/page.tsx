@@ -10,7 +10,7 @@ export default function NewProductPage() {
   return (
     <>
       <PageHeader title="New Product" description="Create a finished product master record." />
-      <WorkspaceGrid documentMode rightRail={<ConsoleSection title="Primary Action"><SubmitButton form={formId} type="submit" className="w-full" data-mobile-primary-action>Create product</SubmitButton></ConsoleSection>}>
+      <WorkspaceGrid documentMode tabletRailMode="split" rightRail={<ConsoleSection title="Primary Action"><SubmitButton form={formId} type="submit" className="w-full" data-mobile-primary-action>Create product</SubmitButton></ConsoleSection>}>
         <ProductForm formId={formId} showSubmit={false} action={createProduct} />
       </WorkspaceGrid>
     </>

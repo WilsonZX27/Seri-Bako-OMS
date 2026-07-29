@@ -13,6 +13,7 @@ export default async function NewPurchaseOrderPage() {
       <PageHeader title="New Purchase Order" description="Create a supplier purchase order. Receiving is intentionally not part of Sprint 3." />
       <WorkspaceGrid
         documentMode
+        tabletRailMode="split"
         rightRail={
           <div>
             <ConsoleSection title="PO Actions">

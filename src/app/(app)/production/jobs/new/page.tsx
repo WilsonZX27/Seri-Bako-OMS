@@ -27,6 +27,7 @@ export default async function NewProductionJobPage({ searchParams }: { searchPar
         status="draft"
         workflowSteps={steps}
         currentStatus="draft"
+        tabletRailMode="split"
         mobilePrimaryAction={primaryAction}
         sidePanel={<>{primaryAction ? <DocumentSideSection title="Primary Action">{primaryAction}</DocumentSideSection> : null}<DocumentSideSection title="Validation / Next Step"><p className="text-xs text-muted-foreground">Select an active recipe and branch, then check planned output and ingredient availability.</p></DocumentSideSection></>}
       >

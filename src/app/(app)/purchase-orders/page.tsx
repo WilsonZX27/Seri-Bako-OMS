@@ -41,6 +41,8 @@ export default async function PurchaseOrdersPage({ searchParams }: { searchParam
       />
       <WorkspaceGrid
         className="pt-4"
+        tabletRailMode="split"
+        tabletRailBreakpoint="lg"
         hideMobileConsole
         rightRail={
           <>

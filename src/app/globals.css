@@ -397,17 +397,22 @@ input[type="date"]::-webkit-date-and-time-value {
   font-size: 0.75rem;
 }
 
-/* Legacy Tailwind radii resolve through the OMS shape contract on every viewport. */
+/* The OMS shape contract is intentionally razor-sharp. Full-width surfaces stay square;
+   interior controls use the compact 2px token. */
 .rounded-\[2px\],
 .rounded-md,
-.rounded-none {
+.rounded {
   border-radius: var(--sb-radius-control);
+}
+
+.rounded-none {
+  border-radius: 0;
 }
 
 @media (max-width: 767px) {
   :root {
-    --sb-radius-control: 0.625rem;
-    --sb-panel-radius: 0.75rem;
+    --sb-radius-control: 0.125rem;
+    --sb-panel-radius: 0;
     /* Phone controls meet the 48px minimum target for gloved or wet hands. */
     --sb-control-height: 3rem;
   }
@@ -517,7 +522,7 @@ input[type="date"]::-webkit-date-and-time-value {
   }
 
   .erp-surface {
-    border-radius: var(--sb-panel-radius);
+    border-radius: 0;
   }
 
   .sb-filter-more > summary {

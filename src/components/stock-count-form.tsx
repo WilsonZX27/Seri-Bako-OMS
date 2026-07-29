@@ -137,11 +137,11 @@ export function StockCountForm({
 
 
   return (
-    <div className="md:rounded-[var(--sb-panel-radius)] md:border md:bg-white">
+    <div className="rounded-none md:rounded-[var(--sb-panel-radius)] md:border md:bg-white">
       <div className="md:p-4">
         <form id={formId} action={action} className={showSubmit ? "space-y-3 pb-28 xl:pb-0" : "space-y-3"}>
           <input type="hidden" name="idempotency_key" value={idempotencyKey} />
-          <section data-stock-count-setup className="erp-surface px-3 py-2 md:rounded-none md:border-0 md:bg-transparent md:px-0 md:py-0">
+          <section data-stock-count-setup className="erp-surface rounded-none px-3 py-2 md:rounded-none md:border-0 md:bg-transparent md:px-0 md:py-0">
             <input type="hidden" name="branch_id" value={selectedBranchId ?? branches[0]?.id ?? ""} />
             <div className="flex min-w-0 items-center justify-between gap-3">
               <div className="min-w-0">
@@ -150,7 +150,7 @@ export function StockCountForm({
               </div>
               <Input aria-label="Count date" name="count_date" type="date" defaultValue={today()} required className="w-[9.5rem] shrink-0" />
             </div>
-            <details className="group mt-2 border-t border-[var(--sb-border-soft)] pt-2">
+            <details className="group mt-2 border-t border-slate-100 pt-2">
               <summary className="cursor-pointer text-xs font-medium text-muted-foreground">More settings</summary>
               <div className="mt-2 grid gap-2 sm:grid-cols-2">
                 <Field label="Tolerance %"><Input name="tolerance_percent" type="number" min="0" step="0.01" defaultValue={tolerance} required /></Field>
@@ -160,9 +160,9 @@ export function StockCountForm({
             </details>
           </section>
 
-          <section data-stock-count-workspace className="erp-surface overflow-hidden md:rounded-none md:border-0 md:bg-transparent">
+          <section data-stock-count-workspace className="erp-surface rounded-none overflow-hidden md:rounded-none md:border-0 md:bg-transparent">
 
-          <div className="flex items-center gap-2 border-b border-[var(--sb-border-soft)] bg-white p-3 md:border-0 md:bg-transparent md:px-0 md:pt-3">
+          <div className="flex items-center gap-2 border-b border-slate-100 bg-white p-3 md:border-0 md:bg-transparent md:px-0 md:pt-3">
             <label className="relative min-w-0 flex-1">
               <span className="sr-only">Find an item</span>
               <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" aria-hidden="true" />
@@ -196,7 +196,7 @@ export function StockCountForm({
             ))}
           </div>
 
-          <div data-stock-count-line-list className="md:rounded-[2px] md:border">
+          <div data-stock-count-line-list className="rounded-none md:rounded-sm md:border">
             <div className="hidden border-b bg-secondary/40 px-3 py-1.5 md:grid md:grid-cols-[minmax(0,4fr)_minmax(4rem,2fr)_minmax(0,4fr)] md:gap-3">
               <p className="text-xs font-semibold">Item</p>
               <p className="text-xs text-right font-semibold">Variance</p>
@@ -223,7 +223,7 @@ export function StockCountForm({
                     </div>
 
                     <div className="order-3 flex min-w-0 items-center justify-end gap-1">
-                        <div className="flex min-w-0 flex-1 overflow-hidden rounded-[var(--sb-control-radius)] border border-[var(--sb-border)] bg-white md:rounded-[2px]">
+                        <div className="flex min-w-0 flex-1 overflow-hidden rounded-sm border border-[var(--sb-border)] bg-white">
                           <button type="button" className="flex h-8 w-7 shrink-0 items-center justify-center border-r border-[var(--sb-border)] text-[var(--sb-green-900)] hover:bg-[var(--sb-surface-muted)] active:bg-[var(--sb-green-100)]" onClick={() => adjustPhysicalQty(line.item_id, -1)} aria-label={`Decrease quantity for ${line.item_name}`}><Minus className="h-3.5 w-3.5" /></button>
                         <Input
                           id={`physical-${line.item_id}`}

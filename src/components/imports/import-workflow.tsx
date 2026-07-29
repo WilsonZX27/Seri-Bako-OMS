@@ -421,7 +421,7 @@ export function ImportWorkflow({ entity, suppliers = [] }: { entity: ImportEntit
   </>;
 
   return (
-    <WorkspaceGrid tabletCanvas="wide" rightRail={importConsole}>
+    <WorkspaceGrid documentMode tabletRailMode="split" tabletCanvas="wide" rightRail={importConsole}>
       <div className="space-y-5">
       <Card>
         <CardContent className="space-y-5 p-5">
@@ -437,7 +437,7 @@ export function ImportWorkflow({ entity, suppliers = [] }: { entity: ImportEntit
             </div>
           </div>
 
-          <div className="grid items-stretch gap-3 xl:grid-cols-5">
+          <div className="grid items-stretch gap-2 md:grid-cols-5">
             {steps.map((step, index) => (
               <div key={step.title} aria-current={index === activeStep ? "step" : undefined} className={`h-full rounded-[2px] border p-3 ${index === activeStep ? "border-[var(--sb-green-700)] bg-[var(--sb-green-100)]" : index < activeStep ? "bg-[var(--sb-success-bg)]" : "bg-[var(--sb-muted)]"}`}>
                 <p className="text-sm font-medium">{step.title}</p>

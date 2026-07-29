@@ -11,10 +11,10 @@ test("create-capable administration lists promote their new record action to the
   assert.match(read("src/app/(app)/staffs/page.tsx"), /data-mobile-primary-action><Link href="\/staffs\/new">New staff/);
 });
 
-test("company profile preserves save as the explicit phone form action", () => {
+test("company profile preserves save and reuses the canonical tablet split action rail", () => {
   const company = read("src/app/(app)/company/page.tsx");
 
-  assert.match(company, /<WorkspaceGrid\s+documentMode\s+rightRail=/);
+  assert.match(company, /<WorkspaceGrid\s+documentMode\s+tabletRailMode="split"\s+rightRail=/);
   assert.match(company, /form="company-form" className="w-full" data-mobile-primary-action>Save Company/);
 });
 

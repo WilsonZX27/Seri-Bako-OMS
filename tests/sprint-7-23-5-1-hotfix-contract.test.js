@@ -54,7 +54,7 @@ test("Daily Record field ownership and mobile surfaces match the hotfix", () => 
   assert.match(detail, /DocumentWorkspace/);
   assert.match(detail, /mobilePrimaryAction=\{primaryAction\}/);
   assert.match(detail, /Approve as Manager/);
-  assert.match(importFlow, /<WorkspaceGrid tabletCanvas="wide" rightRail=\{importConsole\}>/);
+  assert.match(importFlow, /<WorkspaceGrid documentMode tabletRailMode="split" tabletCanvas="wide" rightRail=\{importConsole\}>/);
   assert.doesNotMatch(importFlow, /RightConsoleMount hideMobileBar/);
   assert.match(migration, /qty_sent = case when can_edit_sent/);
   assert.match(migration, /morning_received_qty = case when can_edit_outlet/);

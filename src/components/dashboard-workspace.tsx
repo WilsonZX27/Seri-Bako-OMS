@@ -30,8 +30,8 @@ function MobileQuickActions({ actions }: { actions: { href: string; label: strin
         {actions.slice(0, 3).map((action) => {
           const Icon = action.icon;
           return (
-            <Link key={action.href} href={action.href} className="flex min-h-[4.75rem] min-w-0 flex-col items-center justify-center gap-1.5 px-2 py-2 text-center text-[11px] font-semibold text-[var(--sb-green-950)] active:bg-[var(--sb-surface-muted)]">
-              <span className="grid h-8 w-8 place-items-center rounded-[var(--sb-radius-control)] bg-[var(--sb-green-100)] text-[var(--sb-green-900)]">
+            <Link key={action.href} href={action.href} className="flex min-h-[4.75rem] min-w-0 flex-col items-center justify-center gap-1.5 bg-[var(--sb-green-900)] px-2 py-2 text-center text-[11px] font-semibold text-white hover:bg-[var(--sb-green-800)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-white">
+              <span className="grid h-8 w-8 place-items-center rounded-[var(--sb-radius-control)] bg-white/12 text-white">
                 <Icon className="h-4 w-4" aria-hidden="true" />
               </span>
               <span className="line-clamp-2 leading-4">{action.label}</span>

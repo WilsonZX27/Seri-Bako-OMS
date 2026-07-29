@@ -12,7 +12,7 @@ export function WorkflowStatusPipeline({ steps, currentStatus, compact = false }
   const rejected = ["rejected", "cancelled"].includes(currentStatus);
 
   return (
-    <div className={cn("border-y border-[var(--sb-border-soft)] bg-white", compact ? "px-1.5 py-2" : "px-2.5 py-3")}>
+    <div className={cn("mx-auto w-full max-w-3xl border-y border-[var(--sb-border-soft)] bg-white", compact ? "px-1.5 py-2" : "px-2.5 py-3")}>
       {!compact ? <p className="mb-2 text-xs font-semibold text-[var(--sb-text-muted)]">Workflow</p> : null}
       <div className="flex min-w-0 items-center">
         {steps.map((step, index) => {

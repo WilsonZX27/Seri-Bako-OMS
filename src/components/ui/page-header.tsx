@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import Link from "next/link";
+import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 type PageHeaderProps = {
@@ -16,6 +17,8 @@ type PageHeaderProps = {
 };
 
 export function PageHeader(props: PageHeaderProps) {
+  const isCreateAction = Boolean(props.action && /^(new|create)\b/i.test(props.action.label));
+
   return (
     <>
       <header className="hidden border-b border-[var(--sb-border-soft)] bg-[var(--workspace-bg)] px-4 py-3 xl:block">
@@ -41,9 +44,16 @@ export function PageHeader(props: PageHeaderProps) {
         </div>
       </header>
       {props.action || props.secondaryAction ? (
-        <div data-tablet-page-actions className="flex min-h-12 items-center justify-end gap-2 border-b border-[var(--sb-border-soft)] bg-white px-3 md:fixed md:bottom-[calc(var(--sb-mobile-nav-height)+env(safe-area-inset-bottom)+1rem)] md:right-5 md:z-[var(--sb-z-sticky)] md:min-h-0 md:flex-col md:items-stretch md:border md:p-2 md:shadow-[0_3px_8px_rgb(6_44_31_/_0.18)] xl:static xl:min-h-12 xl:flex-row xl:border-x-0 xl:border-t-0 xl:bg-transparent xl:px-3 xl:py-0 xl:shadow-none">
-          {props.secondaryAction ? <Button asChild variant="ghost" size="sm"><Link href={props.secondaryAction.href}>{props.secondaryAction.label}</Link></Button> : null}
-          {props.action ? <Button asChild size="sm"><Link href={props.action.href}>{props.action.label}</Link></Button> : null}
+        <div data-tablet-page-actions className="flex min-h-12 items-center justify-end gap-2 border-b border-[var(--sb-border-soft)] bg-white px-3 xl:static xl:min-h-12 xl:flex-row xl:border-x-0 xl:border-t-0 xl:bg-transparent xl:px-3 xl:py-0">
+          {props.secondaryAction ? <Button asChild variant="outline" size="sm"><Link href={props.secondaryAction.href}>{props.secondaryAction.label}</Link></Button> : null}
+          {props.action ? isCreateAction ? (
+            <Button asChild size="icon" className="fixed bottom-[calc(var(--sb-mobile-nav-height)+env(safe-area-inset-bottom)+1rem)] right-4 z-[var(--sb-z-sticky)] h-14 w-14 rounded-full shadow-[0_3px_8px_rgb(6_44_31_/_0.22)] xl:static xl:h-9 xl:w-auto xl:rounded-[var(--sb-radius-control)] xl:px-3 xl:shadow-none">
+              <Link href={props.action.href} aria-label={props.action.label} title={props.action.label}>
+                <Plus className="h-5 w-5" aria-hidden="true" />
+                <span className="sr-only xl:not-sr-only xl:ml-1.5">{props.action.label}</span>
+              </Link>
+            </Button>
+          ) : <Button asChild size="sm"><Link href={props.action.href}>{props.action.label}</Link></Button> : null}
         </div>
       ) : null}
     </>

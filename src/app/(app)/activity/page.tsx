@@ -11,13 +11,14 @@ export const dynamic = "force-dynamic";
 export default async function ActivityPage({ searchParams }: { searchParams: Promise<{ selected?: string }> }) {
   const params = await searchParams;
   const activities = await getVisibleRecentActivitiesForCurrentUser(50);
-  const selected = activities.find((activity) => activity.id === params.selected) ?? activities[0] ?? null;
+  const selected = params.selected ? activities.find((activity) => activity.id === params.selected) ?? null : null;
   const selectedHref = selected?.href || null;
 
   return (
     <>
       <PageHeader title="Activity" description="Recent operational updates and system actions visible to your role." />
       <WorkspaceGrid
+        hideMobileConsole={!selected}
         rightRail={
           selected ? (
             <>
@@ -54,17 +55,17 @@ export default async function ActivityPage({ searchParams }: { searchParams: Pro
                 const actor = activity.created_by_name ?? "System";
                 const messageIncludesActor = activity.message.toLocaleLowerCase().startsWith(`${actor.toLocaleLowerCase()}:`);
                 return (
-                  <Link key={activity.id} href={`/activity?selected=${activity.id}`} className={`grid gap-3 px-3 py-2.5 hover:bg-secondary/50 md:grid-cols-[32px_minmax(0,1fr)_150px_120px_auto] md:items-center ${active ? "bg-primary/5" : ""}`}>
-                    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-primary/10 text-primary">
+                  <Link key={activity.id} href={`/activity?selected=${activity.id}`} className={`grid grid-cols-[28px_minmax(0,1fr)_auto] items-start gap-x-2 gap-y-0.5 px-3 py-2 hover:bg-secondary/50 md:grid-cols-[32px_minmax(0,1fr)_150px_120px_auto] md:items-center md:gap-3 md:py-2.5 ${active ? "bg-primary/5" : ""}`}>
+                    <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-[2px] bg-primary/10 text-primary md:h-8 md:w-8">
                       <Activity className="h-4 w-4" />
                     </div>
                     <div className="min-w-0 flex-1">
                       <p className="truncate text-xs font-medium">{activity.message}</p>
                       {!messageIncludesActor ? <p className="mt-0.5 text-xs text-muted-foreground">{actor}</p> : null}
                     </div>
-                    <p className="text-xs text-muted-foreground">{new Date(activity.created_at).toLocaleString("en-MY", { dateStyle: "short", timeStyle: "short" })}</p>
-                    <p className="inline-flex items-center gap-1 text-xs text-muted-foreground"><FileText className="h-3 w-3" /> {activity.entity_type}</p>
-                    {href ? <span className="text-xs font-medium text-primary">Details</span> : <span className="text-xs text-muted-foreground">Details</span>}
+                    <p className="col-start-2 text-[11px] text-muted-foreground md:col-auto md:text-xs">{new Date(activity.created_at).toLocaleString("en-MY", { dateStyle: "short", timeStyle: "short" })}</p>
+                    <p className="hidden items-center gap-1 text-xs text-muted-foreground md:inline-flex"><FileText className="h-3 w-3" /> {activity.entity_type}</p>
+                    {href ? <span className="row-start-1 text-xs font-medium text-primary md:row-auto">Details</span> : <span className="row-start-1 text-xs text-muted-foreground md:row-auto">Details</span>}
                   </Link>
                 );
               })}

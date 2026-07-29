@@ -21,6 +21,7 @@ export default async function CompanyPage({
       <PageHeader title="Company Profile" description="Legal identity, contact details, address, and supported brand assets." />
       <WorkspaceGrid
         documentMode
+        tabletRailMode="split"
         rightRail={
           <div>
             <ConsoleSection title="Company Actions">

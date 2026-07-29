@@ -451,11 +451,6 @@ input[type="date"]::-webkit-date-and-time-value {
     padding: 0.625rem;
   }
 
-  .sb-list-filters .sb-status-filter {
-    width: 100%;
-    flex-basis: 100%;
-  }
-
   .sb-list-filters input,
   .sb-list-filters select,
   .sb-list-filters button,
@@ -543,6 +538,8 @@ input[type="date"]::-webkit-date-and-time-value {
     position: fixed;
     z-index: var(--sb-z-dialog);
     inset: auto 0 0;
+    display: flex;
+    flex-direction: column;
     width: auto;
     max-height: min(60dvh, 28rem);
     overflow: hidden;
@@ -551,8 +548,16 @@ input[type="date"]::-webkit-date-and-time-value {
   }
 
   .sb-filter-more-fields {
-    max-height: min(38dvh, 18rem);
+    min-height: 0;
+    max-height: none;
+    flex: 1 1 auto;
     overflow-y: auto;
+  }
+
+  .sb-filter-more-header,
+  .sb-filter-more-help,
+  .sb-filter-more-actions {
+    flex: 0 0 auto;
   }
 
   table[aria-label="Product cost and margin estimates"] thead {
@@ -745,6 +750,32 @@ input[type="date"]::-webkit-date-and-time-value {
 /* Tablet keeps the dedicated bottom navigation and page action row; the
    desktop inspection rail must not leak its mobile More/FAB controls into it. */
 @media (min-width: 768px) and (max-width: 1279px) {
+  .sb-list-filters {
+    flex-wrap: nowrap;
+  }
+
+  .sb-list-filters > :first-child {
+    flex: 1 1 10rem;
+    max-width: none;
+  }
+
+  .sb-list-filters > :not(:first-child) {
+    flex: 0 1 8rem;
+  }
+
+  .sb-list-filters > .sb-filter-summary {
+    flex: 0 0 auto;
+  }
+
+  .sb-filter-more > .sb-filter-more-panel {
+    inset: 50% auto auto 50%;
+    width: min(28rem, calc(100vw - 3rem));
+    max-height: min(70dvh, 34rem);
+    transform: translate(-50%, -50%);
+    border: 1px solid var(--sb-border-soft);
+    padding-bottom: 0;
+  }
+
   [data-mobile-action-bar],
   [data-mobile-document-action] {
     display: none !important;

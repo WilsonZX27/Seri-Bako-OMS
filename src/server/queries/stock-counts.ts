@@ -136,13 +136,14 @@ export async function getStockCount(id: string) {
     if (!count) throw new Error("Mock stock count not found");
     const lines = mockStockCountLines
       .filter((line) => line.stock_count_id === id)
+      .sort((left, right) => Number((left as StockCountLine & { line_position?: number }).line_position ?? 0) - Number((right as StockCountLine & { line_position?: number }).line_position ?? 0))
       .map((line) => ({ ...line, item: mockItems.find((item) => item.id === line.item_id) }));
     return { count: hydrateCount(count as StockCount, mockStockCountLines as StockCountLine[]), lines };
   }
   const supabase = await createClient();
   const [{ data, error }, { data: lines, error: linesError }, { data: items }, { data: branches }] = await Promise.all([
     supabase.from("stock_counts").select("*").eq("id", id).single(),
-    supabase.from("stock_count_lines").select("*").eq("stock_count_id", id),
+    supabase.from("stock_count_lines").select("*").eq("stock_count_id", id).order("line_position", { ascending: true }).order("id", { ascending: true }),
     supabase.from("items").select("id, item_code, item_name, base_unit, item_image_url"),
     supabase.from("branches").select("id, branch_name"),
   ]);

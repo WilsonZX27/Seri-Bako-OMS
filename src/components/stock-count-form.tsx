@@ -12,6 +12,7 @@ import { formatQuantity, formatQuantityInput } from "@/lib/utils";
 
 type BranchOption = { id: string; branch_code: string; branch_name: string; status: string };
 type SeedLine = {
+  line_id?: string;
   item_id: string;
   item_code: string;
   item_name: string;
@@ -19,6 +20,7 @@ type SeedLine = {
   physical_qty: number;
   prefill_source: "last_posted_count" | "ledger_balance";
   uom: string;
+  remarks?: string | null;
 };
 
 type SeedLineInput = SeedLine & { physicalQty: string; remarks: string; initialPhysicalQty: string; adjusted: boolean };
@@ -51,7 +53,7 @@ function quantityInputValue(value: number, uom: string) {
 
 function makeEditableLine(line: SeedLine): SeedLineInput {
   const physicalQty = quantityInputValue(line.physical_qty, line.uom);
-  return { ...line, physicalQty, initialPhysicalQty: physicalQty, remarks: "", adjusted: false };
+  return { ...line, physicalQty, initialPhysicalQty: physicalQty, remarks: line.remarks ?? "", adjusted: false };
 }
 
 function formatVariancePercent(percent: number | null) {
@@ -66,6 +68,9 @@ export function StockCountForm({
   action,
   formId,
   showSubmit = true,
+  initialCountDate,
+  initialTolerance = 2,
+  initialRemarks,
 }: {
   branches: BranchOption[];
   selectedBranchId?: string;
@@ -73,6 +78,9 @@ export function StockCountForm({
   action: (formData: FormData) => Promise<void>;
   formId?: string;
   showSubmit?: boolean;
+  initialCountDate?: string;
+  initialTolerance?: number;
+  initialRemarks?: string | null;
 }) {
   const router = useRouter();
   const tolerance = 2;
@@ -146,17 +154,17 @@ export function StockCountForm({
             <div className="flex min-w-0 items-center justify-between gap-3">
               <div className="min-w-0">
                 <p className="text-xs font-medium text-muted-foreground">Count date</p>
-                <p className="truncate text-sm font-semibold text-foreground">Today · {new Date().toLocaleDateString("en-GB", { day: "2-digit", month: "2-digit", year: "numeric", timeZone: "Asia/Kuala_Lumpur" })}</p>
+                <p className="truncate text-sm font-semibold text-foreground">{initialCountDate ? new Date(`${initialCountDate}T00:00:00+08:00`).toLocaleDateString("en-GB", { day: "2-digit", month: "2-digit", year: "numeric", timeZone: "Asia/Kuala_Lumpur" }) : "Today · " + new Date().toLocaleDateString("en-GB", { day: "2-digit", month: "2-digit", year: "numeric", timeZone: "Asia/Kuala_Lumpur" })}</p>
               </div>
-              <Input aria-label="Count date" name="count_date" type="date" defaultValue={today()} required className="w-[9.5rem] shrink-0" />
+              <Input aria-label="Count date" name="count_date" type="date" defaultValue={initialCountDate ?? today()} required className="basis-36 shrink-0" />
             </div>
             <details className="group mt-2 border-t border-slate-100 pt-2">
               <summary className="cursor-pointer text-xs font-medium text-muted-foreground">More settings</summary>
               <div className="mt-2 grid gap-2 sm:grid-cols-2">
-                <Field label="Tolerance %"><Input name="tolerance_percent" type="number" min="0" step="0.01" defaultValue={tolerance} required /></Field>
+                <Field label="Tolerance %"><Input name="tolerance_percent" type="number" min="0" step="0.01" defaultValue={initialTolerance ?? tolerance} required /></Field>
                 {branches.length > 1 ? <Field label="Branch"><SelectNative name="branch_selector" value={selectedBranchId ?? branches[0]?.id ?? ""} onChange={(event) => selectBranch(event.target.value)}><option value="">Select branch</option>{branches.map((branch) => <option key={branch.id} value={branch.id}>{branch.branch_name}</option>)}</SelectNative></Field> : <p className="self-end pb-2 text-xs text-muted-foreground">Branch locked to {branches[0]?.branch_name ?? "assigned kitchen"}.</p>}
               </div>
-              <div className="mt-2"><Textarea name="remarks" className="min-h-16" placeholder="Count note (optional)" /></div>
+              <div className="mt-2"><Textarea name="remarks" defaultValue={initialRemarks ?? ""} className="min-h-16" placeholder="Count note (optional)" /></div>
             </details>
           </section>
 
@@ -188,6 +196,7 @@ export function StockCountForm({
             {lines.filter((line) => !visibleLines.some((visible) => visible.item_id === line.item_id)).map((line) => (
               <div key={`hidden-${line.item_id}`}>
                 <input name="line_item_id" value={line.item_id} readOnly />
+                <input name="line_id" value={line.line_id ?? ""} readOnly />
                 <input name="line_theoretical_qty" value={line.theoretical_qty} readOnly />
                 <input name="line_physical_qty" value={line.physicalQty} readOnly />
                 <input name="line_uom" value={line.uom} readOnly />
@@ -211,7 +220,7 @@ export function StockCountForm({
                 return (
                   <div
                     key={line.item_id}
-                    className="grid min-h-14 grid-cols-[minmax(0,4fr)_minmax(4rem,2fr)_minmax(0,4fr)] items-center gap-2 border-b border-slate-100 px-3 py-2 md:gap-3"
+                    className="grid min-h-14 grid-cols-[minmax(0,4fr)_minmax(4rem,2fr)_minmax(0,4fr)] items-center gap-2 border-b border-[var(--sb-border-soft)] px-3 py-2 md:gap-3"
                   >
                     <div className="order-1 min-w-0">
                       <p className="max-h-9 overflow-hidden break-words text-sm font-medium leading-tight text-slate-800">{line.item_name}</p>
@@ -224,7 +233,7 @@ export function StockCountForm({
 
                     <div className="order-3 flex min-w-0 items-center justify-end gap-1">
                         <div className="flex min-w-0 flex-1 overflow-hidden rounded-sm border border-[var(--sb-border)] bg-white">
-                          <button type="button" className="flex h-8 w-7 shrink-0 items-center justify-center border-r border-[var(--sb-border)] text-[var(--sb-green-900)] hover:bg-[var(--sb-surface-muted)] active:bg-[var(--sb-green-100)]" onClick={() => adjustPhysicalQty(line.item_id, -1)} aria-label={`Decrease quantity for ${line.item_name}`}><Minus className="h-3.5 w-3.5" /></button>
+                          <button type="button" className="flex h-8 w-7 shrink-0 items-center justify-center border-r border-[var(--sb-border)] text-[var(--sb-green-900)] hover:bg-[var(--sb-surface-muted)] active:bg-[var(--sb-green-100)]" onClick={() => adjustPhysicalQty(line.item_id, -1)} aria-label={`Decrease physical quantity for ${line.item_name}`}><Minus className="h-3.5 w-3.5" /></button>
                         <Input
                           id={`physical-${line.item_id}`}
                           name="line_physical_qty"
@@ -239,12 +248,13 @@ export function StockCountForm({
                           placeholder="0.00"
                            className="h-8 min-w-0 flex-1 rounded-none border-0 px-0 text-center text-[13px] font-semibold tabular-nums shadow-none focus-visible:ring-inset [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
                         />
-                          <button type="button" className="flex h-8 w-7 shrink-0 items-center justify-center border-l border-[var(--sb-border)] text-[var(--sb-green-900)] hover:bg-[var(--sb-surface-muted)] active:bg-[var(--sb-green-100)]" onClick={() => adjustPhysicalQty(line.item_id, 1)} aria-label={`Increase quantity for ${line.item_name}`}><Plus className="h-3.5 w-3.5" /></button>
+                          <button type="button" className="flex h-8 w-7 shrink-0 items-center justify-center border-l border-[var(--sb-border)] text-[var(--sb-green-900)] hover:bg-[var(--sb-surface-muted)] active:bg-[var(--sb-green-100)]" onClick={() => adjustPhysicalQty(line.item_id, 1)} aria-label={`Increase physical quantity for ${line.item_name}`}><Plus className="h-3.5 w-3.5" /></button>
                         </div>
                       <span className="shrink-0 text-[11px] text-muted-foreground">{line.uom}</span>
                     </div>
 
                     <input type="hidden" name="line_item_id" value={line.item_id} />
+                    <input type="hidden" name="line_id" value={line.line_id ?? ""} />
                     <input type="hidden" name="line_theoretical_qty" value={line.theoretical_qty} />
                     <input type="hidden" name="line_uom" value={line.uom} />
                     <input type="hidden" name="line_remarks" value={line.remarks} readOnly />

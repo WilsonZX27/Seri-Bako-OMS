@@ -14,8 +14,6 @@ export default async function NewStockCountPage({ searchParams }: { searchParams
   const formId = "stock-count-create-form";
   const steps = [
     { key: "draft", label: "Draft", description: "Physical quantities can be entered." },
-    { key: "submitted", label: "Submitted", description: "The count awaits review." },
-    { key: "approved", label: "Approved", description: "Verified variance is ready to post." },
     { key: "posted", label: "Posted", description: "Stock variance is recorded and locked." },
   ];
   return (

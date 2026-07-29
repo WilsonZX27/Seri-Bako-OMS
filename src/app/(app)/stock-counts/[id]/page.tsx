@@ -1,46 +1,55 @@
-import { AlertTriangle } from "lucide-react";
 import { DocumentActionBar, DocumentActionForm } from "@/components/document-action-bar";
 import { AttachmentPanel, CommentsPanel, DocumentTimeline, RevisionPanel } from "@/components/documents/document-panels";
 import { DocumentActionSection, DocumentSideSection, DocumentWorkspace } from "@/components/documents/document-workspace";
 import { DocumentMoreOptions } from "@/components/documents/mobile-document-surfaces";
 import { ConfirmActionForm } from "@/components/ui/confirm-action-form";
+import { SubmitButton } from "@/components/ui/submit-button";
 import { Card, CardContent } from "@/components/ui/card";
+import { StockCountForm } from "@/components/stock-count-form";
 import { BlockedDestructiveAction } from "@/components/ui/danger-confirm-form";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { formatQuantity } from "@/lib/utils";
-import { approveStockCount, cancelStockCount, postStockCount, rejectStockCount, reviewStockCount, submitStockCount } from "@/server/actions/stock-counts";
+import { cancelStockCount, postStockCount, updateStockCountDraft } from "@/server/actions/stock-counts";
 import { getPermissionMap } from "@/server/auth/permissions";
+import { getBranchesForSelect } from "@/server/queries/common";
 import { getDocumentBundle } from "@/server/queries/documents";
 import { getStockCount } from "@/server/queries/stock-counts";
 
 const stockCountSteps = [
   { key: "draft", label: "Draft", description: "Count is being prepared." },
-  { key: "submitted", label: "Submitted", description: "Waiting for review." },
-  { key: "reviewed", label: "Reviewed", description: "Ready for approval or posting." },
-  { key: "approved", label: "Approved", description: "Ready to post variance." },
   { key: "posted", label: "Posted", description: "Variance posted to stock." },
 ];
+const legacyPendingStatuses = new Set(["submitted", "reviewed", "approved"]);
 
 export default async function StockCountDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const [{ count, lines }, permissions] = await Promise.all([
+  const [{ count, lines }, permissions, branches] = await Promise.all([
     getStockCount(id),
-    getPermissionMap(["stock_count.submit", "stock_count.review", "stock_count.approve", "stock_count.post", "stock_count.cancel"]),
+    getPermissionMap(["stock_count.update", "stock_count.post", "stock_count.cancel"]),
+    getBranchesForSelect(),
   ]);
   const documentBundle = count.document_id ? await getDocumentBundle(count.document_id) : null;
   const highVarianceLines = lines.filter((line) => Math.abs(line.variance_percent) > count.tolerance_percent);
-  const hasHighVarianceAttachment = Boolean(documentBundle?.attachments.length);
-  const canSubmit = count.status === "draft" && permissions["stock_count.submit"];
-  const canReview = count.status === "submitted" && permissions["stock_count.review"];
-  const requiresHighVarianceAttachment = highVarianceLines.length > 0 && !hasHighVarianceAttachment;
-  const canApprove = count.status === "reviewed" && permissions["stock_count.approve"] && !requiresHighVarianceAttachment;
-  const canPost = ["approved", "reviewed"].includes(count.status) && permissions["stock_count.post"] && !requiresHighVarianceAttachment;
-  const canCancel = ["draft", "submitted", "reviewed"].includes(count.status) && permissions["stock_count.cancel"];
-  const canReject = ["submitted", "reviewed"].includes(count.status) && permissions["stock_count.approve"];
-  const hasPrimaryAction = canSubmit || canReview || canApprove || canPost;
-  const deleteControl = <BlockedDestructiveAction buttonLabel="Delete stock count" title={`Cannot delete ${count.count_no}`} description={count.status === "posted" ? "This count produced an auditable variance adjustment." : "The count preserves physical quantities and workflow review."} recommendation={count.status === "posted" ? "Post a new count or correction; physical deletion is prohibited." : "Cancel or reject the count through its current workflow."} />;
-  const secondaryActions = canReject || canCancel ? <div className="space-y-2">{canReject ? <DocumentActionForm action={rejectStockCount.bind(null, count.id)} pendingLabel="Rejecting..." variant="destructive">Reject stock count</DocumentActionForm> : null}{canCancel ? <DocumentActionForm action={cancelStockCount.bind(null, count.id)} pendingLabel="Cancelling..." variant="ghost">Cancel stock count</DocumentActionForm> : null}{deleteControl}</div> : deleteControl;
-  const mobilePrimaryAction = canSubmit ? <DocumentActionForm action={submitStockCount.bind(null, count.id)} pendingLabel="Submitting...">Submit Stock Count</DocumentActionForm> : canReview ? <DocumentActionForm action={reviewStockCount.bind(null, count.id)} pendingLabel="Reviewing...">Review Stock Count</DocumentActionForm> : canApprove ? <ConfirmActionForm action={approveStockCount.bind(null, count.id)} label="Approve Stock Count" title="Approve this stock count?" description="This makes the verified variance ready for posting." pendingLabel="Approving..." mobilePrimary /> : canPost ? <DocumentActionForm action={postStockCount.bind(null, count.id)} pendingLabel="Posting...">Post Stock Variance</DocumentActionForm> : null;
+  const isLegacyPending = legacyPendingStatuses.has(count.status);
+  const canPost = (count.status === "draft" || isLegacyPending) && permissions["stock_count.post"];
+  const canEdit = count.status === "draft" && permissions["stock_count.update"];
+  const canCancel = count.status === "draft" && permissions["stock_count.cancel"];
+  const hasPrimaryAction = canPost || canEdit;
+  const formId = `stock-count-edit-${count.id}`;
+  const deleteControl = <BlockedDestructiveAction buttonLabel="Delete stock count" title={`Cannot delete ${count.count_no}`} description={count.status === "posted" ? "This count produced an auditable variance adjustment." : "The count preserves physical quantities and its audit history."} recommendation={count.status === "posted" ? "Post a new count or correction; physical deletion is prohibited." : "Cancel the draft when permitted, or confirm and post a legacy pending count."} />;
+  const secondaryActions = canCancel ? <div className="space-y-2"><DocumentActionForm action={cancelStockCount.bind(null, count.id)} pendingLabel="Cancelling..." variant="ghost">Cancel stock count</DocumentActionForm>{deleteControl}</div> : deleteControl;
+  const mobilePrimaryAction = canPost ? <ConfirmActionForm action={postStockCount.bind(null, count.id)} label="Confirm & Post Count" title="Post this stock count?" description={`${lines.filter((line) => line.variance_qty !== 0).length} adjusted lines will update the branch stock ledger. This cannot be undone.`} pendingLabel="Posting..." mobilePrimary /> : null;
+  const editableLines = lines.map((line) => ({
+    line_id: line.id,
+    item_id: line.item_id,
+    item_code: line.item?.item_code ?? line.item_id,
+    item_name: line.item?.item_name ?? line.item_id,
+    theoretical_qty: line.theoretical_qty,
+    physical_qty: line.physical_qty,
+    prefill_source: "ledger_balance" as const,
+    uom: line.uom,
+    remarks: line.remarks,
+  }));
 
   return (
     <DocumentWorkspace
@@ -50,7 +59,7 @@ export default async function StockCountDetailPage({ params }: { params: Promise
       status={count.status}
       branch={count.branch_name}
       workflowSteps={stockCountSteps}
-      currentStatus={count.status}
+      currentStatus={isLegacyPending ? "draft" : count.status}
       mobilePrimaryAction={mobilePrimaryAction}
       mobileActivity={documentBundle ? <><AttachmentPanel documentId={documentBundle.document.id} attachments={documentBundle.attachments} /><CommentsPanel documentId={documentBundle.document.id} comments={documentBundle.comments} /><DocumentTimeline document={documentBundle.document} activities={documentBundle.activityLogs} comments={documentBundle.comments} attachments={documentBundle.attachments} /></> : null}
       mobileMoreOptions={<DocumentMoreOptions>{secondaryActions}</DocumentMoreOptions>}
@@ -59,24 +68,14 @@ export default async function StockCountDetailPage({ params }: { params: Promise
           <DocumentActionSection description="Only valid stock count actions are shown." moreOptions={secondaryActions}>
             {hasPrimaryAction ? (
               <DocumentActionBar>
-                {canSubmit ? <DocumentActionForm action={submitStockCount.bind(null, count.id)} pendingLabel="Submitting...">Submit Stock Count</DocumentActionForm> : null}
-                {canReview ? <DocumentActionForm action={reviewStockCount.bind(null, count.id)} pendingLabel="Reviewing...">Review Stock Count</DocumentActionForm> : null}
-                {canApprove ? <ConfirmActionForm action={approveStockCount.bind(null, count.id)} label="Approve Stock Count" title="Approve this stock count?" description="This makes the verified variance ready for posting." pendingLabel="Approving..." mobilePrimary /> : null}
-                {canPost ? <DocumentActionForm action={postStockCount.bind(null, count.id)} pendingLabel="Posting...">Post Stock Variance</DocumentActionForm> : null}
+                {canEdit ? <SubmitButton form={formId} className="w-full" pendingLabel="Saving...">Save draft</SubmitButton> : null}
+                {canPost ? <ConfirmActionForm action={postStockCount.bind(null, count.id)} label="Confirm & Post Count" title="Post this stock count?" description={`${lines.filter((line) => line.variance_qty !== 0).length} adjusted lines will update the branch stock ledger. This cannot be undone.`} pendingLabel="Posting..." /> : null}
               </DocumentActionBar>
             ) : (
               <p className="text-sm text-muted-foreground">You can view this count, but there is no workflow action available for your role or this status.</p>
             )}
           </DocumentActionSection>
-          <DocumentSideSection title="Validation / Next Step"><p className="text-xs text-muted-foreground">{count.status === "draft" ? "Enter physical quantities and submit the completed count for review." : count.status === "submitted" ? "Review the count and resolve high-variance evidence before approval." : count.status === "approved" ? "Post the verified variance to stock." : "Posted counts remain read-only."}</p></DocumentSideSection>
-          {highVarianceLines.length && !hasHighVarianceAttachment ? (
-            <DocumentSideSection title="Attachment Required">
-              <div className="flex gap-2 rounded-md bg-warning/10 p-3 text-sm text-warning">
-                <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
-                High variance lines detected. Attach a count sheet photo or supporting proof before final approval.
-              </div>
-            </DocumentSideSection>
-          ) : null}
+          <DocumentSideSection title="Validation / Next Step"><p className="text-xs text-muted-foreground">{count.status === "draft" ? "Save the physical quantities, then confirm and post. The server checks that stock has not moved since this snapshot." : isLegacyPending ? "This historical pending count is locked for editing. Confirm and post it to finish the inventory reconciliation, or cancel it if permitted." : "Posted counts remain read-only; use a new count for a correction."}</p></DocumentSideSection>
           {documentBundle ? (
             <>
               <AttachmentPanel documentId={documentBundle.document.id} attachments={documentBundle.attachments} />
@@ -88,8 +87,10 @@ export default async function StockCountDetailPage({ params }: { params: Promise
         </>
       }
     >
-      {highVarianceLines.length && !hasHighVarianceAttachment && documentBundle ? <div className="md:hidden"><AttachmentPanel documentId={documentBundle.document.id} attachments={documentBundle.attachments} title="Count Evidence Required" description="Attach a count sheet photo or supporting proof before final approval." presentation="inline" documentStatus={documentBundle.document.status} /></div> : null}
-      <Card>
+      {canEdit ? <div className="md:hidden"><SubmitButton form={formId} className="w-full" pendingLabel="Saving...">Save draft</SubmitButton></div> : null}
+      {canEdit ? <StockCountForm formId={formId} branches={branches} selectedBranchId={count.branch_id ?? undefined} seedLines={editableLines} action={updateStockCountDraft.bind(null, count.id)} showSubmit={false} initialCountDate={count.count_date} initialTolerance={count.tolerance_percent} initialRemarks={count.remarks} /> : null}
+
+      {!canEdit ? <Card>
         <CardContent className="space-y-4 p-5">
           <h2 className="text-sm font-semibold">Count Summary</h2>
             <div className="grid gap-4 md:grid-cols-4">
@@ -100,9 +101,9 @@ export default async function StockCountDetailPage({ params }: { params: Promise
           </div>
           {count.remarks ? <p className="rounded-md border bg-secondary/30 p-3 text-sm">{count.remarks}</p> : null}
         </CardContent>
-      </Card>
+      </Card> : null}
 
-      <Card>
+      {!canEdit ? <Card>
         <CardContent className="p-5">
           <h2 className="mb-3 text-sm font-semibold">Count Lines</h2>
           <Table>
@@ -135,7 +136,7 @@ export default async function StockCountDetailPage({ params }: { params: Promise
               </TableBody>
           </Table>
         </CardContent>
-      </Card>
+      </Card> : null}
     </DocumentWorkspace>
   );
 }

@@ -23,10 +23,11 @@ test("tablet keeps role navigation sticky while primary actions stay visible", (
   assert.doesNotMatch(appLayout, /lg:pb-4/);
   assert.match(documentWorkspace, /mobilePrimaryAction && "pb-20 xl:pb-3"/);
   assert.match(documentWorkspace, /xl:hidden \[&>\*\]:w-full/);
-  assert.match(stockCountForm, /pb-20 xl:pb-0/);
-  // Tablet's visible primary action is the shared sticky task action; the
-  // duplicate in-surface button begins only at the desktop shell breakpoint.
-  assert.match(stockCountForm, /hidden xl:inline-flex/);
+  assert.match(stockCountForm, /pb-28 xl:pb-0/);
+  // Phone and tablet use the fixed task rail; desktop action ownership stays
+  // in the document workspace right panel rather than duplicating the submit.
+  assert.match(stockCountForm, /sb-mobile-action-bar[\s\S]*xl:hidden/);
+  assert.doesNotMatch(stockCountForm, /hidden xl:inline-flex/);
   assert.match(topBar, /<MobileSidebar/);
   assert.match(tabletSidebar, /hidden md:inline-flex xl:hidden/);
   assert.match(tabletSidebar, /fixed inset-0 z-50 hidden md:block xl:hidden/);

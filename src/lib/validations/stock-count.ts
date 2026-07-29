@@ -35,5 +35,8 @@ export const stockCountSchema = z.object({
     if (!stockCountAllowsFraction(line.uom) && !Number.isInteger(line.physical_qty)) {
       context.addIssue({ code: "custom", path: ["lines", index, "physical_qty"], message: `${line.uom} quantities must be whole numbers` });
     }
+    if (!Number.isInteger(line.physical_qty * 10_000)) {
+      context.addIssue({ code: "custom", path: ["lines", index, "physical_qty"], message: "Physical quantity cannot exceed 4 decimal places" });
+    }
   });
 });

@@ -49,7 +49,8 @@ test("mobile shell respects safe areas, action stacking, and standalone web inst
   assert.match(css, /env\(safe-area-inset-bottom\)/);
   assert.match(css, /\[data-mobile-document-action\]/);
   assert.match(css, /data-mobile-task-page="true"/);
-  assert.match(css, /bottom: calc\(env\(safe-area-inset-bottom\) \+ 0\.5rem\)/);
+  assert.match(css, /bottom: calc\(var\(--sb-mobile-nav-height\) \+ env\(safe-area-inset-bottom\) \+ 0\.5rem\)/);
+  assert.match(css, /data-mobile-task-page="true"[\s\S]*?bottom: 0 !important;[\s\S]*?padding-bottom: calc\(0\.5rem \+ env\(safe-area-inset-bottom\)\)/);
   assert.match(appLayout, /pb-\[calc\(var\(--sb-mobile-nav-height\)\+env\(safe-area-inset-bottom\)\+1rem\)\]/);
   assert.match(workspace, /rightRail && !hideMobileConsole && "pb-32 xl:pb-3"/);
   assert.match(rootLayout, /viewportFit: "cover"/);

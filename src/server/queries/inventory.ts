@@ -14,12 +14,6 @@ import type { Database } from "@/types/database";
 type Filters = Record<string, string | undefined>;
 type StockTransaction = Database["public"]["Tables"]["stock_transactions"]["Row"];
 type StockLedgerViewRow = Database["public"]["Views"]["stock_ledger_view"]["Row"];
-type StockBalanceDetail = Database["public"]["Views"]["stock_balances_view"]["Row"] & {
-  image_url: string | null;
-  available_qty: number;
-  reserved_qty: number;
-  status: string;
-};
 type LowStockRow = Database["public"]["Views"]["stock_balances_view"]["Row"] & {
   stock_status: "out_of_stock" | "low_stock";
   suggested_reorder_qty: number;
@@ -153,8 +147,7 @@ export async function getStockBalances() {
     .order("item_name", { ascending: true });
 
   if (error) {
-    warnOptionalInventoryQuery("stock balances", error);
-    return [];
+    throw new Error(`Stock Balance could not be loaded: ${error.message}`);
   }
   return data;
 }
@@ -310,8 +303,7 @@ export async function getStockBalanceDetails(filters: Filters = {}) {
   if (range) query = query.range(range.from, range.to);
   const { data, error, count } = await query;
   if (error) {
-    warnOptionalInventoryQuery("stock balance details", error);
-    return databasePagination([] as StockBalanceDetail[], 0, filters.page);
+    throw new Error(`Stock Balance could not be loaded: ${error.message}`);
   }
   const rows = (data ?? []).map((row) => ({
     ...row,

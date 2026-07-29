@@ -480,6 +480,7 @@ export type Database = {
           submitted_at: string | null;
           posted_at: string | null;
           cancelled_at: string | null;
+          posting_reference: string | null;
           closed_at: string | null;
           created_at: string;
           updated_at: string;
@@ -502,6 +503,7 @@ export type Database = {
           submitted_at?: string | null;
           posted_at?: string | null;
           cancelled_at?: string | null;
+          posting_reference?: string | null;
           closed_at?: string | null;
           created_at?: string;
           updated_at?: string;
@@ -1770,6 +1772,7 @@ export type Database = {
           posted_at: string | null;
           rejected_at: string | null;
           cancelled_at: string | null;
+          posting_reference: string | null;
           created_at: string;
           updated_at: string;
           created_by: string | null;
@@ -1793,6 +1796,7 @@ export type Database = {
           posted_at?: string | null;
           rejected_at?: string | null;
           cancelled_at?: string | null;
+          posting_reference?: string | null;
           created_at?: string;
           updated_at?: string;
           created_by?: string | null;
@@ -1806,6 +1810,7 @@ export type Database = {
         Row: {
           id: string;
           stock_count_id: string;
+          line_position: number;
           item_id: string;
           theoretical_qty: number;
           physical_qty: number;
@@ -1819,6 +1824,7 @@ export type Database = {
         Insert: {
           id?: string;
           stock_count_id: string;
+          line_position?: number;
           item_id: string;
           theoretical_qty?: number;
           physical_qty?: number;
@@ -1941,6 +1947,7 @@ export type Database = {
           posted_at: string | null;
           rejected_at: string | null;
           cancelled_at: string | null;
+          posting_reference: string | null;
           created_at: string;
           updated_at: string;
           created_by: string | null;
@@ -2062,6 +2069,10 @@ export type Database = {
         Args: { p_payload: Json };
         Returns: Json;
       };
+      create_central_kitchen_purchase_request_atomic: {
+        Args: { p_payload: Json };
+        Returns: Json;
+      };
       create_purchase_order_atomic: {
         Args: { p_payload: Json };
         Returns: Json;
@@ -2072,6 +2083,10 @@ export type Database = {
       };
       create_stock_count_atomic: {
         Args: { p_payload: Json };
+        Returns: Json;
+      };
+      update_stock_count_draft_atomic: {
+        Args: { p_stock_count_id: string; p_payload: Json };
         Returns: Json;
       };
       create_stock_wastage_atomic: {

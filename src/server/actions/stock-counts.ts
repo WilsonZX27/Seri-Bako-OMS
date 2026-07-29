@@ -9,12 +9,26 @@ import { writeActivityLog } from "@/server/activity/log";
 import { requirePermission } from "@/server/auth/permissions";
 import { formatActionError, requirePermissionOrRedirect, rethrowRedirect, safeRedirectWithMessage } from "@/server/actions/error-handling";
 import { revalidateWorkspaceState } from "@/server/actions/revalidate";
+import { logServerWarning } from "@/server/observability/logger";
 import { getCurrentProfile } from "@/server/queries/common";
 import { getStockCountSeedLines } from "@/server/queries/stock-counts";
-import type { StockCountStatus } from "@/types/database";
 import { z } from "zod";
 
 const stockCountIdSchema = z.uuid("Invalid stock count identifier.");
+
+function formatStockCountPostingError(error: unknown) {
+  const message = error instanceof Error ? error.message : String(error ?? "");
+  const normalized = message.toLowerCase();
+
+  if (normalized.includes("missing permission: stock_count.post")) return "You do not have permission to confirm and post stock counts.";
+  if (normalized.includes("only draft or legacy pending stock counts")) return "This stock count is no longer pending and cannot be posted.";
+  if (normalized.includes("stock changed since this draft was created")) return "Stock changed after this count was started. Refresh the count and recount before posting.";
+  if (normalized.includes("uom")) return "An item UOM does not match its Stock Count line. Refresh the count and check the item setup.";
+  if (normalized.includes("quantity") || normalized.includes("decimal")) return "A counted quantity is invalid. Check whole-unit rules and the four-decimal limit.";
+  if (normalized.includes("unavailable for this branch")) return "This Stock Count is outside your assigned branch scope.";
+  if (normalized.includes("posting reference") || normalized.includes("transaction reference")) return "This Stock Count posting reference conflicts with an existing inventory movement.";
+  return formatActionError(error, "The Stock Count could not be posted. No inventory changes were made.");
+}
 
 async function identity() {
   if (isMockMode()) return { company_id: mockCompany.id, id: mockProfile.id };
@@ -72,92 +86,92 @@ export async function createStockCount(formData: FormData) {
   }
 }
 
-async function updateStockCountStatus(id: string, status: StockCountStatus, step: string, message: string, expectedStatuses: StockCountStatus[]) {
-  const countId = stockCountIdSchema.parse(id);
-  const profile = await identity();
-  const supabase = await createClient();
-  const stamp: Record<string, string> = {
-    submitted: "submitted_at",
-    reviewed: "reviewed_at",
-    approved: "approved_at",
-    posted: "posted_at",
-    rejected: "rejected_at",
-    cancelled: "cancelled_at",
-  };
-  const { data: count, error: countError } = await supabase.from("stock_counts").select("document_id,count_no").eq("id", countId).single();
-  if (countError) throw new Error(countError.message);
-  const now = new Date().toISOString();
-  const patch = { status, updated_by: profile?.id ?? null, ...(stamp[status] ? { [stamp[status]]: now } : {}) };
-  const documentStatus = status === "posted" ? "posted" : status === "approved" ? "approved" : status === "rejected" ? "rejected" : status === "cancelled" ? "cancelled" : "pending_approval";
-  const { data: updatedCount, error } = await supabase
-    .from("stock_counts")
-    .update(patch)
-    .eq("id", countId)
-    .in("status", expectedStatuses)
-    .select("id")
-    .maybeSingle();
-  if (error) throw new Error(error.message);
-  if (!updatedCount) throw new Error("This stock count changed state. Refresh before trying again.");
-  const { error: docError } = count.document_id ? await supabase.from("documents").update({
-      status: documentStatus,
-      approval_status: status === "approved" || status === "posted" ? "approved" : status === "rejected" ? "rejected" : "pending",
-      current_step: step,
-      updated_by: profile?.id ?? null,
-      ...(status === "posted" ? { posted_at: now } : {}),
-    }).eq("id", count.document_id) : { error: null };
-  if (docError) throw new Error(docError.message);
-  if (count.document_id) await writeActivityLog({ entityType: "document", entityId: count.document_id, activityType: status, message });
-  revalidateWorkspaceState(["/stock-counts", `/stock-counts/${countId}`]);
-}
-
-export async function submitStockCount(id: string) {
-  await requirePermission("stock_count.submit");
-  if (isMockMode()) return;
-  await updateStockCountStatus(id, "submitted", "Manager review", "Stock count submitted for review", ["draft"]);
-}
-
-export async function reviewStockCount(id: string) {
-  await requirePermission("stock_count.review");
-  if (isMockMode()) return;
-  await updateStockCountStatus(id, "reviewed", "Approval", "Stock count reviewed", ["submitted"]);
-}
-
-export async function approveStockCount(id: string) {
-  await requirePermission("stock_count.approve");
-  if (isMockMode()) return;
-  const countId = stockCountIdSchema.parse(id);
-  const supabase = await createClient();
-  const { data, error } = await supabase.rpc("approve_stock_count_atomic", { p_stock_count_id: countId });
-  if (error) throw new Error(error.message);
-  const result = data as { document_id?: string | null; count_no?: string } | null;
-  if (result?.document_id) await writeActivityLog({ entityType: "document", entityId: result.document_id, activityType: "approved", message: `Stock count ${result.count_no ?? countId} approved` });
-  revalidateWorkspaceState(["/stock-counts", `/stock-counts/${countId}`]);
-}
-
-export async function rejectStockCount(id: string) {
-  await requirePermission("stock_count.approve");
-  if (isMockMode()) return;
-  await updateStockCountStatus(id, "rejected", "Rejected", "Stock count rejected", ["submitted", "reviewed"]);
+export async function updateStockCountDraft(id: string, formData: FormData) {
+  await requirePermissionOrRedirect("stock_count.update", `/stock-counts/${id}`);
+  try {
+    const countId = stockCountIdSchema.parse(id);
+    const payload = extractStockCount(formData);
+    const lineIds = formData.getAll("line_id").map(String);
+    if (lineIds.length !== payload.lines.length || lineIds.some((lineId) => !z.uuid().safeParse(lineId).success)) {
+      throw new Error("Draft line identifiers are missing. Refresh the count before saving.");
+    }
+    if (isMockMode()) {
+      revalidateWorkspaceState(["/stock-counts", `/stock-counts/${countId}`]);
+      redirect(`/stock-counts/${countId}`);
+    }
+    const supabase = await createClient();
+    const { data, error } = await supabase.rpc("update_stock_count_draft_atomic", {
+      p_stock_count_id: countId,
+      p_payload: {
+        remarks: payload.remarks,
+        lines: payload.lines.map((line, index) => ({ ...line, line_id: lineIds[index] })),
+      },
+    });
+    if (error) throw new Error(error.message);
+    if (!(data as { id?: string } | null)?.id) throw new Error("Draft save did not return an identifier.");
+    revalidateWorkspaceState(["/stock-counts", `/stock-counts/${countId}`]);
+    redirect(`/stock-counts/${countId}`);
+  } catch (error) {
+    rethrowRedirect(error);
+    safeRedirectWithMessage(`/stock-counts/${id}`, "error", formatActionError(error, "Could not save this stock count draft."));
+  }
 }
 
 export async function cancelStockCount(id: string) {
   await requirePermission("stock_count.cancel");
   if (isMockMode()) return;
-  await updateStockCountStatus(id, "cancelled", "Cancelled", "Stock count cancelled", ["draft", "submitted", "reviewed"]);
+  const countId = stockCountIdSchema.parse(id);
+  const profile = await identity();
+  const supabase = await createClient();
+  const { data: updatedCount, error } = await supabase
+    .from("stock_counts")
+    .update({ status: "cancelled", cancelled_at: new Date().toISOString(), updated_by: profile?.id ?? null })
+    .eq("id", countId)
+    .eq("status", "draft")
+    .select("id,document_id,count_no")
+    .maybeSingle();
+  if (error) throw new Error(error.message);
+  if (!updatedCount) throw new Error("Only a draft stock count can be cancelled.");
+  if (updatedCount.document_id) {
+    const { error: documentError } = await supabase.from("documents").update({ status: "cancelled", approval_status: "not_required", current_step: "Cancelled", updated_by: profile?.id ?? null }).eq("id", updatedCount.document_id);
+    if (documentError) throw new Error(documentError.message);
+    await writeActivityLog({ entityType: "document", entityId: updatedCount.document_id, activityType: "cancelled", message: `Stock count ${updatedCount.count_no ?? countId} cancelled` });
+  }
+  revalidateWorkspaceState(["/stock-counts", `/stock-counts/${countId}`]);
 }
 
 export async function postStockCount(id: string) {
-  await requirePermission("stock_count.post");
-  if (isMockMode()) return;
-  const countId = stockCountIdSchema.parse(id);
-  const supabase = await createClient();
-  const { data, error } = await supabase.rpc("post_stock_count_atomic", { p_stock_count_id: countId });
-  if (error) throw new Error(error.message);
-  const result = data as { document_id?: string | null; count_no?: string; already_posted?: boolean } | null;
-  if (result?.document_id && !result.already_posted) await writeActivityLog({ entityType: "document", entityId: result.document_id, activityType: "posted", message: `Stock count ${result.count_no ?? countId} posted to ledger` });
-  revalidateWorkspaceState(["/stock-counts", `/stock-counts/${countId}`]);
-  revalidatePath("/inventory");
-  revalidatePath("/stock-balance");
-  revalidatePath("/stock-card");
-  revalidatePath("/stock-transactions");
+  await requirePermissionOrRedirect("stock_count.post", `/stock-counts/${id}`);
+  try {
+    const countId = stockCountIdSchema.parse(id);
+    if (isMockMode()) {
+      safeRedirectWithMessage(`/stock-counts/${countId}`, "error", "Mock mode cannot post inventory. Connect Supabase and try again.");
+    }
+    const supabase = await createClient();
+    const { data, error } = await supabase.rpc("post_stock_count_atomic", { p_stock_count_id: countId });
+    if (error) throw new Error(error.message);
+    const result = data as { document_id?: string | null; count_no?: string; already_posted?: boolean; adjusted_count?: number; unchanged_count?: number } | null;
+    revalidateWorkspaceState(["/stock-counts", `/stock-counts/${countId}`]);
+    revalidatePath("/inventory");
+    revalidatePath("/stock-balance");
+    revalidatePath("/stock-card");
+    revalidatePath("/stock-transactions");
+    if (result?.document_id && !result.already_posted) {
+      try {
+        await writeActivityLog({ entityType: "document", entityId: result.document_id, activityType: "posted", message: `Stock count ${result.count_no ?? countId} posted to ledger` });
+      } catch (activityError) {
+        logServerWarning(activityError, { source: `stock_count.post.activity_log.${countId}` });
+      }
+    }
+    safeRedirectWithMessage(
+      `/stock-counts/${countId}`,
+      "success",
+      result?.already_posted
+        ? "This Stock Count was already posted."
+        : `Stock Count posted. ${result?.adjusted_count ?? 0} inventory movements created; ${result?.unchanged_count ?? 0} zero-variance lines required no movement.`,
+    );
+  } catch (error) {
+    rethrowRedirect(error);
+    safeRedirectWithMessage(`/stock-counts/${id}`, "error", formatStockCountPostingError(error));
+  }
 }

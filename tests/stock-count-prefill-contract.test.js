@@ -15,8 +15,8 @@ test("stock count starts from a visible historical or ledger prefill instead of 
   assert.match(query, /prefill_source/);
   assert.match(query, /last_posted_count/);
   assert.match(form, /seedLines\.map\(makeEditableLine\)/);
-  assert.match(form, /Review prefilled values/);
-  assert.match(form, /grid-cols-1 gap-3 sm:grid-cols-\[minmax\(0,1fr\)_6\.5rem\]/);
+  assert.match(form, /prefill_source/);
+  assert.match(form, /grid-cols-\[minmax\(0,4fr\)_minmax\(4rem,2fr\)_minmax\(0,4fr\)\]/);
   assert.match(design, /latest posted physical result/);
 });
 
@@ -32,21 +32,27 @@ test("stock count uses direct plus/minus adjustments and protects discrete quant
   assert.match(validation, /quantities must be whole numbers/);
 });
 
-test("tablet portrait uses its width for a four-column count ledger before desktop adds persistent remarks", () => {
+test("tablet portrait uses a dense 40/20/40 ledger without a persistent remarks column", () => {
   const form = read("src", "components", "stock-count-form.tsx");
 
-  assert.match(form, /md:grid-cols-\[minmax\(10rem,1\.4fr\)_minmax\(6rem,0\.65fr\)_minmax\(10rem,0\.8fr\)_minmax\(7\.5rem,0\.7fr\)\]/);
-  assert.match(form, /md:col-span-4 md:order-5 lg:col-span-1/);
-  assert.match(form, /lg:grid-cols-\[minmax\(12rem,1\.4fr\)_minmax\(7rem,0\.65fr\)_minmax\(10rem,0\.8fr\)_minmax\(9rem,0\.7fr\)_minmax\(10rem,1fr\)\]/);
+  assert.match(form, /md:grid md:grid-cols-\[minmax\(0,4fr\)_minmax\(4rem,2fr\)_minmax\(0,4fr\)\]/);
+  assert.match(form, /grid-cols-\[minmax\(0,4fr\)_minmax\(4rem,2fr\)_minmax\(0,4fr\)\]/);
+  assert.match(form, />Variance</);
+  assert.match(form, /quantityStep\(line\.uom\)/);
+  assert.doesNotMatch(form, /md:col-span-4 md:order-5 lg:col-span-1/);
 });
 
-test("variance context stays optional while high-variance approval remains separately controlled", () => {
+test("variance context stays optional without reintroducing the legacy review and approval chain", () => {
   const form = read("src", "components", "stock-count-form.tsx");
   const validation = read("src", "lib", "validations", "stock-count.ts");
-  const approval = read("supabase", "migrations", "079_inventory_go_live_hardening.sql");
+  const detail = read("src", "app", "(app)", "stock-counts", "[id]", "page.tsx");
 
-  assert.match(form, /Variance note/);
+  assert.match(form, /name="line_remarks"/);
   assert.doesNotMatch(form, /required=\{high\}/);
   assert.doesNotMatch(validation, /Remarks required for variance above tolerance/);
-  assert.match(approval, /Attach the stock count variance report before approving this stock count/);
+  assert.match(detail, /Confirm & Post Count/);
+  assert.match(detail, /stock_count\.post/);
+  assert.doesNotMatch(detail, />Review</);
+  assert.doesNotMatch(detail, />Approve</);
+  assert.doesNotMatch(detail, /Count Evidence Required/);
 });

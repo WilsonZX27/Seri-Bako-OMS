@@ -39,13 +39,14 @@ export function OperationalList({ children, ariaLabel, className }: { children: 
   return <div className={cn("divide-y divide-[var(--sb-border-soft)] md:hidden", className)} role="list" aria-label={ariaLabel}>{children}</div>;
 }
 
-export function OperationalListRow({ href, label, primary, status, statusMeta, secondary, meta, trailing }: {
+export function OperationalListRow({ href, label, primary, status, statusMeta, secondary, detail, meta, trailing }: {
   href: string;
   label: string;
   primary: React.ReactNode;
   status?: React.ReactNode;
   statusMeta?: React.ReactNode;
   secondary?: React.ReactNode;
+  detail?: React.ReactNode;
   meta?: React.ReactNode;
   trailing?: React.ReactNode;
 }) {
@@ -61,6 +62,7 @@ export function OperationalListRow({ href, label, primary, status, statusMeta, s
       </div>
       {secondary ? <div className="min-w-0 whitespace-normal break-words text-xs leading-4 text-[var(--sb-text-muted)]">{secondary}</div> : <span />}
       {meta ? <div className="whitespace-nowrap text-right text-[11px] text-[var(--sb-text-muted)]">{meta}</div> : null}
+      {detail ? <div className="col-span-2 min-w-0 text-[11px] leading-4 text-[var(--sb-text-muted)]">{detail}</div> : null}
     </Link>
   );
 }

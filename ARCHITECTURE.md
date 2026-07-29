@@ -649,9 +649,9 @@ The request middleware enforces mapped workspace permissions for direct navigati
 
 `src/lib/information-architecture.ts` is the canonical registry for role-aware navigation labels, parent groups, permissions, Administration cards, breadcrumbs, and default landing order. Desktop and mobile sidebars consume the same registry. Route permission mapping adds only dynamic/create-route and compatibility-alias exceptions.
 
-Canonical routes include `/administration`, `/administration/backups`, `/imports`, `/document-sequences`, and `/uom-conversions`. `/settings`, `/settings/backups`, `/administration/imports`, `/data-onboarding`, `/quick-tools`, `/daily-operations`, `/procurement/purchase-requests`, and `/stock-balances` are compatibility redirects. `/setup` remains an unaffiliated bootstrap-only route because the authentication bootstrap RPC is still live; it creates the first protected Owner and never appears in navigation.
+Canonical routes include `/administration`, `/administration/backups`, `/imports`, `/document-sequences`, and `/uom-conversions`. The retired `/settings`, `/settings/backups`, `/administration/imports`, `/data-onboarding`, `/quick-tools`, and `/daily-operations` surfaces have no route files, navigation entries, or compatibility redirects; requests must not be reintroduced as aliases. `/procurement/purchase-requests` and `/stock-balances` remain narrow legacy aliases to their canonical destinations while existing bookmarks are being retired. `/setup` remains an unaffiliated bootstrap-only route because the authentication bootstrap RPC is still live; it creates the first protected Owner and never appears in navigation.
 
-Procurement, Inventory, Production, and Administration hubs remain only where they provide operational summaries, queues, or permission-aware management context. Quick Tools and Daily Operations link-only hubs converge on the user's first permitted canonical route.
+Procurement, Inventory, Production, and Administration hubs remain only where they provide operational summaries, queues, or permission-aware management context. The former Quick Tools and Daily Operations link-only hubs are retired and must not be recreated.
 
 ## v0.2.15 pilot baseline architecture
 

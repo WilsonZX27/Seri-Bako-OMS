@@ -41,8 +41,8 @@ export function GoodsReceivingForm({
           <input type="hidden" name="idempotency_key" value={idempotencyKey} />
           <input type="hidden" name="grn_no" value={grnNo} />
           <input type="hidden" name="status" value="draft" />
-          <section data-goods-receiving-setup className="erp-surface grid gap-3 p-3 md:grid-cols-2 md:rounded-none md:border-0 md:bg-transparent md:p-0 lg:grid-cols-3">
-            <Field label="Purchase Order" required className="md:col-span-2 lg:col-span-1">
+          <section data-goods-receiving-setup className="erp-surface grid grid-cols-2 gap-3 p-3 md:rounded-none md:border-0 md:bg-transparent md:p-0 lg:grid-cols-3">
+            <Field label="Purchase Order" required className="col-span-2 lg:col-span-1">
               <SelectNative value={selectedOrder?.id ?? ""} onChange={(event) => selectPo(event.target.value)} required>
                 <option value="">Select approved/sent PO</option>
                 {purchaseOrders.map((order) => (
@@ -58,17 +58,20 @@ export function GoodsReceivingForm({
             <Field label="Delivery Order Number">
               <Input name="delivery_order_no" placeholder="Supplier DO reference" />
             </Field>
-            <Field label="Branch" required>
+            <Field label="Branch" required className="col-span-2 lg:col-span-1">
               <SelectNative name="branch_id" defaultValue={selectedOrder?.branch_id ?? branches[0]?.id ?? ""} required>
                 {branches.map((branch) => <option key={branch.id} value={branch.id}>{branch.branch_name}</option>)}
               </SelectNative>
               <p className="mt-1 text-xs text-muted-foreground">Select the branch receiving this delivery.</p>
             </Field>
-            <div className="md:col-span-2 lg:col-span-3">
-              <Field label="Remarks">
-                <Textarea name="remarks" placeholder="Delivery notes, vehicle, temperature, or supplier remarks" />
-              </Field>
-            </div>
+            <details className="col-span-2 border-t pt-2 lg:col-span-3">
+              <summary className="cursor-pointer text-xs font-semibold text-muted-foreground">More receiving details</summary>
+              <div className="mt-2">
+                <Field label="Remarks">
+                  <Textarea name="remarks" placeholder="Delivery notes, vehicle, temperature, or supplier remarks" />
+                </Field>
+              </div>
+            </details>
           </section>
 
           {selectedOrder ? (

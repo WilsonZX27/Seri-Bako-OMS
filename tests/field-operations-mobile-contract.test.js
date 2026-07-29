@@ -68,14 +68,17 @@ test("purchase requests use a flat phone setup and line-entry hierarchy", () => 
   assert.doesNotMatch(source, /md:rounded-md md:border md:bg-secondary\/20/);
 });
 
-test("stock transfer and wastage use a flat mobile line surface with quantity before availability", () => {
+test("stock transfer and wastage use compact mobile lines and hide fixed UOM fields", () => {
   const source = read("src/components/stock-operation-forms.tsx");
 
   assert.match(source, /data-stock-transfer-setup/);
   assert.match(source, /data-stock-wastage-setup/);
   assert.match(source, /data-stock-operation-lines/);
-  assert.match(source, /Field label="Quantity" className="order-2/);
-  assert.match(source, /className="order-3 bg-\[var\(--sb-surface-muted\)\]/);
+  assert.match(source, /grid grid-cols-2 gap-2 p-3/);
+  assert.match(source, /<Field label="Quantity">/);
+  assert.match(source, /name="line_uom" value=\{line\.uom\}/);
+  assert.match(source, /More line details/);
+  assert.doesNotMatch(source, /Field label="UOM"/);
 });
 
 test("production ingredient snapshots replace the phone table with a scannable list", () => {

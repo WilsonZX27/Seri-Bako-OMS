@@ -2,6 +2,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Field } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
+import { SelectNative } from "@/components/ui/select-native";
+import { normalizeUom, uomOptionsWithCurrent } from "@/lib/uom";
 import type { Database } from "@/types/database";
 
 type Product = Database["public"]["Tables"]["products"]["Row"];
@@ -34,7 +36,9 @@ export function ProductForm({ product, packaging = [], action, formId, showSubmi
             <Input name="display_order" type="number" min="1" step="1" defaultValue={product?.display_order ?? 9999} required />
           </Field>
           <Field label="Selling Unit">
-            <Input name="selling_unit" defaultValue={product?.selling_unit ?? ""} placeholder="pcs" required />
+            <SelectNative name="selling_unit" defaultValue={normalizeUom(product?.selling_unit) || "PCS"} required>
+              {uomOptionsWithCurrent(product?.selling_unit).map((uom) => <option key={uom} value={uom}>{uom}</option>)}
+            </SelectNative>
           </Field>
           <input type="hidden" name="status" value={product?.status ?? "active"} />
           <Field label="Product Image">
@@ -50,7 +54,9 @@ export function ProductForm({ product, packaging = [], action, formId, showSubmi
               <Input name="packaging_name" defaultValue={primaryPackaging?.packaging_name ?? "Default Pack"} />
             </Field>
             <Field label="Selling UOM">
-              <Input name="packaging_selling_uom" defaultValue={primaryPackaging?.selling_uom ?? product?.selling_unit ?? ""} />
+              <SelectNative name="packaging_selling_uom" defaultValue={normalizeUom(primaryPackaging?.selling_uom ?? product?.selling_unit) || "PCS"}>
+                {uomOptionsWithCurrent(primaryPackaging?.selling_uom ?? product?.selling_unit).map((uom) => <option key={uom} value={uom}>{uom}</option>)}
+              </SelectNative>
             </Field>
             <Field label="Units Per Pack">
               <Input name="units_per_pack" type="number" min="0.0001" step="0.0001" defaultValue={primaryPackaging?.units_per_pack ?? 1} />
@@ -60,10 +66,10 @@ export function ProductForm({ product, packaging = [], action, formId, showSubmi
             </Field>
             <input type="hidden" name="packaging_id" value={primaryPackaging?.id ?? ""} />
           </div>
-          <div className="grid gap-4 border-y py-4 md:col-span-2 md:border-0 md:py-0 md:grid-cols-2">
+          {product ? <div className="grid gap-4 border-y py-4 md:col-span-2 md:border-0 md:py-0 md:grid-cols-2">
             <div className="md:col-span-2 md:rounded-[2px] md:border md:bg-secondary/30 md:p-4">
               <p className="text-sm font-semibold">Product Image</p>
-              {product?.product_image_url ? (
+              {product.product_image_url ? (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img src={product.product_image_url} alt={product.product_name} className="mt-3 aspect-video w-full rounded-[10px] border object-cover md:rounded-md" />
               ) : (
@@ -72,7 +78,7 @@ export function ProductForm({ product, packaging = [], action, formId, showSubmi
                 </div>
               )}
             </div>
-          </div>
+          </div> : null}
           {showSubmit ? <div className="flex justify-end md:col-span-2">
             <Button type="submit">{product ? "Save product" : "Create product"}</Button>
           </div> : null}

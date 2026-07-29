@@ -41,11 +41,10 @@ The OMS uses one continuous high-density ledger language across phone, tablet, a
 Color communicates workflow state, not decoration. All semantic text/background pairs must pass WCAG AA contrast: at least 4.5:1 for normal text and 3:1 for large text or UI boundaries.
 
 - **Deep operational green:** primary actions, selected navigation, active workflow, keyboard focus, and normal/safe states.
-- **Warm orange:** warning and prompt attention that is not yet blocking, such as low stock or pending approvals.
-- **Semantic red / crimson:** danger, critical, destructive, rejected, or blocking states. Use it for overdue AP, out of stock, production exceptions, rejected statuses, validation failures, and destructive confirmations.
+- **Semantic red / crimson:** warning, danger, critical, destructive, rejected, or blocking states. Use it for low stock, pending approvals, overdue AP, out of stock, production exceptions, rejected statuses, validation failures, and destructive confirmations.
 - **Neutral:** white surfaces, glare-free neutral canvas, neutral borders, and muted text. Blue, purple, teal, and amber must not be used as decorative workspace themes.
 
-Never use orange as a substitute for a critical error, and never use red for ordinary emphasis. A semantic color must appear with a text label, icon, or explicit status—not by color alone.
+Never use red for ordinary emphasis. A semantic red state must appear with a text label, icon, or explicit status—not by color alone.
 
 ## Cross-platform workspace system
 
@@ -83,8 +82,7 @@ All paginated list, ledger, register, and history views must expose direct page 
 ## Color and component discipline
 
 - Deep operational green is the only ordinary primary, active, selected, and focus color across every viewport.
-- Warm orange is semantic only: warning, urgency, attention, or a compact notification cue. It is never a default button, navigation color, neutral icon tile, or decorative panel theme.
-- Semantic red/crimson is mandatory for danger and critical states: overdue AP, out of stock, production exceptions, rejected statuses, destructive actions, blocking validation errors, and failed operations. It must not be softened into orange when the workflow is blocked or consequential.
+- Semantic red/crimson is the shared attention color for warning, urgency, danger, critical states, and compact notification cues. It is never a default button, navigation color, neutral icon tile, or decorative panel theme.
 - Success, danger, information, and neutral states use their semantic tokens only when the data carries that meaning. Do not create blue, purple, teal, or amber workspace themes merely to decorate a directory or dashboard.
 - Verify semantic foreground/background pairs against WCAG AA before shipping. Do not communicate a critical state by color alone; pair color with a label, icon, or explicit copy.
 - White surfaces, the glare-free neutral canvas, 1px borders, and tabular data carry enterprise density. Shadows are reserved for temporary overlays; persistent cards and panels use borders rather than decorative elevation.
@@ -125,7 +123,7 @@ The mobile shell may reorganize navigation, information density, filters, and ac
 ## Mobile color and shape language
 
 - Deep operational green is the only normal primary-action, selected-navigation, active-workflow, and keyboard-focus color.
-- Warm orange is reserved for warning, urgency, attention, and compact notification cues. Semantic red/crimson is reserved for critical, rejected, destructive, and blocking states, including overdue AP, out of stock, and production exceptions.
+- Semantic red/crimson is the shared warning and critical attention color, including pending approval, overdue AP, out of stock, rejected, destructive, and blocking states.
 - Phone inputs, selects, text areas, buttons, filter triggers, popovers, and row actions use the same `2px`/`4px` interior radii as tablet and desktop. Full-width surfaces use square edges. Status and notification badges may remain fully pill-shaped; ordinary cards must not.
 - A single phone surface must not mix square legacy fields, inconsistent radii, green primary buttons, and semantic colors used outside their tier.
 
@@ -143,7 +141,7 @@ The mobile shell may reorganize navigation, information density, filters, and ac
 - Role-specific Dashboard quick actions are creation or immediate-execution actions. Mobile navigation instead carries the role's most frequent workspaces. For Kitchen this deliberately separates `Purchase Request`, `New Production`, and `Receive` in Quick actions from `Stock Count`, `Stock Balance`, and `Stock Wastage` in the bottom bar.
 - Module landing pages use the operational hub hierarchy: one current-day summary, one primary task, one attention queue, and one compact tool list. They do not use repeated icon-card directories or duplicate explanatory copy.
 - The operational hub keeps the same information order on phone and desktop. Responsive behavior changes column placement and density, not terminology, color roles, or task priority.
-- Summary values share one flat data strip. Semantic orange or red appears only when the corresponding value requires attention; zero and normal states remain operational green.
+- Summary values share one flat data strip. Semantic red appears only when the corresponding value requires attention; zero and normal states remain operational green.
 - A form starts with only the fields needed to begin. Notes, advanced filters, and audit detail use progressive disclosure.
 - Line-entry documents place the editable value and unit together, keep theoretical/variance feedback visible, and avoid card height that makes a count feel endless.
 - Long repeated tasks show useful review progress and provide an in-list find/adjusted-items view. A repeated physical count may prefill each line from its latest posted physical result; when no posted result exists, it may use the current ledger balance as an explicitly labelled starting estimate. Prefill is never hidden, is immediately editable, and the UI must distinguish values ready for review from values the user has adjusted.

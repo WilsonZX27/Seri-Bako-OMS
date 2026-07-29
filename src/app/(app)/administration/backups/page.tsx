@@ -1,1 +1,1 @@
-export { dynamic, default } from "../../settings/backups/backup-page";
+export { dynamic, default } from "./backup-page";

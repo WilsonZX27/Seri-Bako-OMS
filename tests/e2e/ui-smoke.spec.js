@@ -22,11 +22,9 @@ const superAdminRoutes = [
   "/production/jobs",
   "/production/jobs/new",
   "/documents",
-  "/settings",
   "/staffs",
   "/staffs/new",
   "/account",
-  "/settings/backups",
   "/activity",
 ];
 
@@ -76,9 +74,6 @@ async function assertSprint731Rules(page, route) {
     await expect(page.getByRole("heading", { name: /operational pipeline/i })).toBeVisible();
     await expect(page.getByRole("heading", { name: /exceptions requiring follow-up/i })).toBeVisible();
     await expect(page.getByRole("heading", { name: /payables and cash obligations/i })).toBeVisible();
-  }
-  if (route === "/settings") {
-    await expect(page.getByRole("heading", { name: /administration/i })).toBeVisible();
   }
   if (route === "/procurement") {
     const titles = ["Requesting", "Ordering", "Receiving", "Supplier Master Data"];
@@ -171,9 +166,6 @@ for (const role of roles) {
     await assertNoObviousVisualBreaks(page);
     await page.screenshot({ path: path.join(screenshotDir, `${role}-dashboard.png`), fullPage: true });
     await page.locator("aside:visible").first().screenshot({ path: path.join(screenshotDir, `${role}-sidebar.png`) });
-
-    await page.goto("/settings/backups", { waitUntil: "domcontentloaded" });
-    await page.waitForURL((url) => !url.pathname.endsWith("/settings/backups"), { timeout: 10_000 });
 
     await logout(page);
   });

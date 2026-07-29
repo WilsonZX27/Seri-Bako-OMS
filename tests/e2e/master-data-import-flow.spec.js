@@ -22,7 +22,7 @@ test("master data imports remain duplicate-safe", async ({ page }) => {
     await expect(page.locator("body")).toContainText(expectedMessage, { timeout: 30_000 });
   }
 
-  await page.goto("/administration/imports", { waitUntil: "domcontentloaded" });
+  await page.goto("/imports", { waitUntil: "domcontentloaded" });
   await expect(page.locator("body")).toContainText("Items");
   await expect(page.locator("body")).toContainText("Opening Stock");
 

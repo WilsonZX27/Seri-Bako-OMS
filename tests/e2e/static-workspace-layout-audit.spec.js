@@ -5,15 +5,15 @@ const { hasAccount, login } = require("./helpers");
 
 const evidence = path.join(process.cwd(), "test-results", "static-workspace-layout-audit");
 const workspaces = [
-  "/account", "/activity", "/administration", "/administration/backups", "/administration/imports", "/administration/master-data-cleanup",
+  "/account", "/activity", "/administration", "/administration/backups", "/administration/master-data-cleanup",
   "/branches", "/branches/new", "/company", "/dashboard", "/documents",
   "/document-sequences", "/document-sequences/new", "/goods-receivings", "/goods-receivings/new", "/imports", "/inventory",
   "/items", "/items/new", "/low-stock", "/opening-stock/import", "/outlet-daily-records", "/outlet-daily-records/new",
-  "/procurement", "/procurement/purchase-requests", "/production", "/production/jobs", "/production/jobs/new", "/production/planning",
+  "/procurement", "/production", "/production/jobs", "/production/jobs/new", "/production/planning",
   "/production/variance", "/products", "/products/new", "/purchase-orders", "/purchase-orders/new", "/purchase-requests",
   "/purchase-requests/new", "/purchase-returns", "/purchase-returns/new", "/recipes", "/recipes/new", "/reports",
   "/reports/costing-readiness", "/reports/demand-trends", "/reports/procurement-variance", "/reports/product-margin", "/reports/recipe-costing",
-  "/roles", "/settings", "/settings/backups", "/staffs", "/staffs/new", "/stock-balance", "/stock-balances", "/stock-card",
+  "/roles", "/staffs", "/staffs/new", "/stock-balance", "/stock-balances", "/stock-card",
   "/stock-counts", "/stock-counts/new", "/stock-transactions", "/stock-transactions/new", "/stock-transfers", "/stock-transfers/new",
   "/stock-wastage", "/stock-wastage/new", "/supplier-invoices", "/supplier-invoices/aging", "/supplier-invoices/cash-flow", "/supplier-invoices/new",
   "/supplier-items", "/supplier-items/new", "/suppliers", "/suppliers/new", "/uom-conversions", "/uom-conversions/new",

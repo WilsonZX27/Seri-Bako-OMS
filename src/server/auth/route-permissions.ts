@@ -3,7 +3,6 @@ import { informationArchitecture } from "@/lib/information-architecture";
 const exactRoutePermissions: Record<string, string[]> = {
   "/activity": ["dashboard.view"],
   "/administration": ["company.read", "staffs.read", "roles.read", "items.view", "imports.create"],
-  "/settings": ["company.read", "staffs.read", "roles.read", "items.view", "imports.create"],
   "/procurement": ["purchase_request.read", "purchase_order.read", "goods_receiving.read", "purchase_return.view", "supplier_invoice.view", "suppliers.view"],
   "/inventory": ["items.view", "production.view", "recipes.view", "stock_balance.read", "stock_transactions.read", "stock_transfer.read", "stock_count.read", "stock_wastage.read", "low_stock.view"],
   "/reports/costing-readiness": ["recipes.view"],
@@ -66,9 +65,8 @@ const routePermissions: Array<{ prefixes: string[]; permissions: string[] }> = [
   { prefixes: ["/branches"], permissions: ["branches.read"] },
   { prefixes: ["/roles"], permissions: ["roles.read"] },
   { prefixes: ["/staffs"], permissions: ["staffs.read"] },
-  { prefixes: ["/settings"], permissions: ["company.read", "staffs.read", "roles.read", "items.view", "imports.create"] },
   { prefixes: ["/document-sequences"], permissions: ["document_sequences.read"] },
-  { prefixes: ["/administration/imports", "/imports"], permissions: ["imports.create", "company.update"] },
+  { prefixes: ["/imports"], permissions: ["imports.create", "company.update"] },
 ];
 
 function matchesPrefix(pathname: string, prefix: string) {
@@ -83,7 +81,7 @@ export function getRoutePermissionCodes(pathname: string) {
 }
 
 export function getRouteAllowedRoles(pathname: string) {
-  if (pathname === "/administration" || pathname === "/settings") return ["super_admin", "finance", "manager", "purchasing"] as const;
+  if (pathname === "/administration") return ["super_admin", "finance", "manager", "purchasing"] as const;
   const item = informationArchitecture.find((entry) => pathname === entry.href || pathname.startsWith(`${entry.href}/`));
   return item?.roles ?? null;
 }

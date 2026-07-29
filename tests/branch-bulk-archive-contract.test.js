@@ -23,7 +23,7 @@ test("branch bulk selection exposes a real tenant-scoped archive action", () => 
 });
 
 test("backup reuses the canonical tablet split action rail", () => {
-  const backup = read("src/app/(app)/settings/backups/backup-page.tsx");
+  const backup = read("src/app/(app)/administration/backups/backup-page.tsx");
   assert.match(backup, /<WorkspaceGrid documentMode tabletRailMode="split" rightRail=/);
   assert.match(backup, /data-mobile-primary-action/);
 });

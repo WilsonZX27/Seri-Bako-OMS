@@ -62,8 +62,7 @@ test("administration and master data pages use the shared list and detail patter
     await expect(page.locator("[data-right-console]")).toContainText("Role Summary");
   }
 
-  await page.goto("/administration/imports", { waitUntil: "domcontentloaded" });
-  await expect(page).toHaveURL(/\/imports$/);
+  await page.goto("/imports", { waitUntil: "domcontentloaded" });
   await expect(page.getByRole("heading", { name: "Import Data" })).toBeVisible();
   await page.goto("/imports/items", { waitUntil: "domcontentloaded" });
   await expect(page.getByText("Import workflow", { exact: true })).toBeVisible();

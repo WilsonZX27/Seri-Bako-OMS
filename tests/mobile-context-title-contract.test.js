@@ -10,8 +10,8 @@ test("secondary phone workspaces retain their own centered title and parent cont
     assert.match(source, new RegExp(`title: "${title}"`));
   }
   assert.match(source, /backHref: "\/supplier-invoices"/);
-  assert.match(source, /backHref: "\/procurement"/);
   assert.match(source, /backHref: "\/reports"/);
   assert.match(source, /backHref: "\/production\/jobs"/);
+  assert.match(source, /getIaItemForPath\(pathname\)/);
   assert.match(source, /sort\(\(a, b\) => b\.length - a\.length\)/);
 });

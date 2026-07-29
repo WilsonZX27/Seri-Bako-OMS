@@ -41,11 +41,14 @@ test("fixed roles stay read-only while permitted users can manage system numberi
   assert.match(read("src/app/(app)/document-sequences/page.tsx"), /New sequence|>Edit</);
 });
 
-test("retired hubs are absent and the backup alias converges on its canonical destination", () => {
+test("retired hubs and compatibility routes are absent", () => {
   assert.equal(fs.existsSync("src/app/(app)/data-onboarding/page.tsx"), false);
   assert.equal(fs.existsSync("src/app/(app)/daily-operations/page.tsx"), false);
   assert.equal(fs.existsSync("src/app/(app)/quick-tools/page.tsx"), false);
-  assert.match(read("src/app/(app)/settings/backups/page.tsx"), /redirect\("\/administration\/backups"\)/);
+  assert.equal(fs.existsSync("src/app/(app)/settings/page.tsx"), false);
+  assert.equal(fs.existsSync("src/app/(app)/settings/backups/page.tsx"), false);
+  assert.equal(fs.existsSync("src/app/(app)/administration/imports/page.tsx"), false);
+  assert.equal(fs.existsSync("src/app/(app)/procurement/purchase-requests/page.tsx"), false);
 });
 
 test("sign-in resolves a terminal route from the canonical IA instead of hardcoding dashboard", () => {

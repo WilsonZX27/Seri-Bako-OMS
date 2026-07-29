@@ -80,7 +80,7 @@ export function MobileWorkflowStatus({ steps, currentStatus, trailing }: { steps
   const activeIndex = foundIndex < 0 ? 0 : foundIndex;
 
   return (
-    <div data-mobile-workflow-summary className={cn("mx-auto grid w-full min-w-0 items-center gap-2 border-t border-[var(--sb-border-soft)] pt-1 md:hidden", trailing ? "grid-cols-[auto_1fr_auto]" : "max-w-64 grid-cols-[1fr_auto]")}>
+    <div data-mobile-workflow-summary className={cn("mx-auto grid w-full max-w-64 min-w-0 items-center gap-1 border-t border-[var(--sb-border-soft)] pt-1 md:hidden", trailing ? "grid-cols-[auto_minmax(0,1fr)_auto]" : "grid-cols-[1fr_auto]")}>
       <p className="min-w-0 truncate text-[12px] font-medium">Step {activeIndex + 1} of {steps.length}</p>
       <MobileSheet label="Workflow" title="Workflow progress" triggerClassName="h-8 min-h-8 w-auto shrink-0 border-0 px-1.5 text-[12px] shadow-none">
         <ol className="space-y-1" aria-label="Document workflow">
@@ -92,7 +92,7 @@ export function MobileWorkflowStatus({ steps, currentStatus, trailing }: { steps
           })}
         </ol>
       </MobileSheet>
-      {trailing}
+      {trailing ? <div className="min-w-0 max-w-20">{trailing}</div> : null}
     </div>
   );
 }

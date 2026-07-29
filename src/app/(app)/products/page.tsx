@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Pencil } from "lucide-react";
+import { DataGridRow } from "@/components/ui/data-grid-row";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { MasterDataFilters } from "@/components/master-data-filters";
@@ -44,20 +45,21 @@ export default async function ProductsPage({
             filtered={filtered}
             resetHref="/products"
           />
-            <Table mobileHidden aria-label="Products">
+            <Table mobileHidden aria-label="Products" stickyColumn="second">
               <TableHeader>
                 <TableRow>
+                  <TableHead className="w-10 text-center">Action</TableHead>
                   <SortableHead label="Product Code" column="product_code" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
                   <SortableHead label="Product Name" column="product_name" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
                   <SortableHead label="Category" column="category" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
                   <SortableHead label="Selling Unit" column="selling_unit" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
                   <SortableHead label="Status" column="status" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
-                  <TableHead className="w-12 text-right">Action</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {productsPage.rows.map((product) => (
-                  <TableRow key={product.id}>
+                  <DataGridRow key={product.id} href={`/products/${product.id}`}>
+                    <TableCell className="w-10 p-0 text-center"><TableActionLink href={`/products/${product.id}`} label={`Open ${product.product_name}`}><Pencil className="h-4 w-4" /></TableActionLink></TableCell>
                     <TableCell>{product.product_code}</TableCell>
                     <TableCell className="font-medium">{product.product_name}</TableCell>
                     <TableCell>{product.category}</TableCell>
@@ -65,8 +67,7 @@ export default async function ProductsPage({
                     <TableCell>
                       <Badge variant={product.status === "active" ? "success" : "secondary"}>{product.status}</Badge>
                     </TableCell>
-                    <TableCell className="text-right"><TableActionLink href={`/products/${product.id}`} label={`Open ${product.product_name}`}><Pencil className="h-4 w-4" /></TableActionLink></TableCell>
-                  </TableRow>
+                  </DataGridRow>
                 ))}
                 {!productsPage.rows.length ? (
                   <TableRow>

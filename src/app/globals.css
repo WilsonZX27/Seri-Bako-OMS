@@ -605,7 +605,11 @@ input[type="date"]::-webkit-date-and-time-value {
 }
 
 .sb-table-region[data-sticky-column="first"] th:first-child,
-.sb-table-region[data-sticky-column="first"] td:first-child {
+.sb-table-region[data-sticky-column="first"] td:first-child,
+.sb-table-region[data-sticky-column="second"] th:first-child,
+.sb-table-region[data-sticky-column="second"] td:first-child,
+.sb-table-region[data-sticky-column="third"] th:first-child,
+.sb-table-region[data-sticky-column="third"] td:first-child {
   position: sticky;
   left: 0;
   z-index: 1;
@@ -613,13 +617,17 @@ input[type="date"]::-webkit-date-and-time-value {
   box-shadow: 1px 0 var(--sb-border-soft);
 }
 
-.sb-table-region[data-sticky-column="first"] thead th:first-child {
+.sb-table-region[data-sticky-column="first"] thead th:first-child,
+.sb-table-region[data-sticky-column="second"] thead th:first-child,
+.sb-table-region[data-sticky-column="third"] thead th:first-child {
   z-index: 2;
   background: var(--sb-surface-muted);
 }
 
 .sb-table-region[data-sticky-column="second"] th:nth-child(2),
-.sb-table-region[data-sticky-column="second"] td:nth-child(2) {
+.sb-table-region[data-sticky-column="second"] td:nth-child(2),
+.sb-table-region[data-sticky-column="third"] th:nth-child(2),
+.sb-table-region[data-sticky-column="third"] td:nth-child(2) {
   position: sticky;
   left: 2.5rem;
   z-index: 1;
@@ -627,7 +635,8 @@ input[type="date"]::-webkit-date-and-time-value {
   box-shadow: 1px 0 var(--sb-border-soft);
 }
 
-.sb-table-region[data-sticky-column="second"] thead th:nth-child(2) {
+.sb-table-region[data-sticky-column="second"] thead th:nth-child(2),
+.sb-table-region[data-sticky-column="third"] thead th:nth-child(2) {
   z-index: 2;
   background: var(--sb-surface-muted);
 }
@@ -657,7 +666,11 @@ input[type="date"]::-webkit-date-and-time-value {
 }
 
 .sb-table-region[data-sticky-column="first"] tbody tr:hover > :first-child,
-.sb-table-region[data-sticky-column="second"] tbody tr:hover > :nth-child(2) {
+.sb-table-region[data-sticky-column="second"] tbody tr:hover > :first-child,
+.sb-table-region[data-sticky-column="second"] tbody tr:hover > :nth-child(2),
+.sb-table-region[data-sticky-column="third"] tbody tr:hover > :first-child,
+.sb-table-region[data-sticky-column="third"] tbody tr:hover > :nth-child(2),
+.sb-table-region[data-sticky-column="third"] tbody tr:hover > :nth-child(3) {
   background: var(--sb-surface-muted);
 }
 

@@ -65,9 +65,10 @@ export default async function SupplierInvoicesPage({ searchParams }: { searchPar
             {filters.status ? <input type="hidden" name="status" value={filters.status} /> : null}
             <Button type="submit" variant="secondary">Search</Button>
           </FilterBar>
-            <Table mobileHidden aria-label="Supplier invoices">
+            <Table mobileHidden aria-label="Supplier invoices" stickyColumn="second">
               <TableHeader>
                 <TableRow>
+                  <TableHead className="w-10 text-center">Action</TableHead>
                   <TableHead>Invoice</TableHead>
                   <TableHead>Supplier Inv.</TableHead>
                   <TableHead>Supplier</TableHead>
@@ -78,12 +79,12 @@ export default async function SupplierInvoicesPage({ searchParams }: { searchPar
                   <TableHead className="text-right">Total</TableHead>
                   <TableHead className="text-right">Paid</TableHead>
                   <TableHead className="text-right">Balance</TableHead>
-                  <TableHead className="w-12 text-right">Action</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {invoices.rows.map((row) => (
                   <DataGridRow key={row.id} href={`/supplier-invoices/${row.id}`}>
+                    <TableCell className="w-10 p-0 text-center"><TableActionLink href={`/supplier-invoices/${row.id}`} label={`Open ${row.invoice_no}`}><Pencil className="h-4 w-4" /></TableActionLink></TableCell>
                     <TableCell><DocumentNumber value={row.invoice_no} size="sm" /></TableCell>
                     <TableCell>{row.supplier_invoice_no}</TableCell>
                     <TableCell>{row.supplier_name ?? "-"}</TableCell>
@@ -94,7 +95,6 @@ export default async function SupplierInvoicesPage({ searchParams }: { searchPar
                     <TableCell className="text-right">{formatCurrency(row.total_amount)}</TableCell>
                     <TableCell className="text-right">{formatCurrency(row.amount_paid)}</TableCell>
                     <TableCell className="text-right">{formatCurrency(row.balance_due)}</TableCell>
-                    <TableCell className="text-right"><TableActionLink href={`/supplier-invoices/${row.id}`} label={`Open ${row.invoice_no}`}><Pencil className="h-4 w-4" /></TableActionLink></TableCell>
                   </DataGridRow>
                 ))}
                 {!invoices.rows.length ? <TableRow><TableCell colSpan={11}><EmptyState title={filtered ? "No invoices match these filters" : "No invoices require review"} description={filtered ? "Reset the filters or widen the search." : "All current supplier invoices are up to date."} action={filtered ? { href: "/supplier-invoices", label: "Reset filters" } : undefined} /></TableCell></TableRow> : null}

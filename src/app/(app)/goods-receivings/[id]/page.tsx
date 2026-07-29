@@ -8,7 +8,7 @@ import { SubmitButton } from "@/components/ui/submit-button";
 import { Textarea } from "@/components/ui/textarea";
 import { BlockedDestructiveAction } from "@/components/ui/danger-confirm-form";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { formatCurrency, formatNumber } from "@/lib/utils";
+import { formatCurrency, formatDateOnly, formatNumber } from "@/lib/utils";
 import { cancelGoodsReceiving, postGoodsReceiving } from "@/server/actions/goods-receivings";
 import { getPermissionMap } from "@/server/auth/permissions";
 import { getDocumentBundle } from "@/server/queries/documents";
@@ -85,7 +85,7 @@ export default async function GoodsReceivingDetailPage({ params }: { params: Pro
               <h2 className="text-sm font-semibold">Receiving Summary</h2>
               <div className="grid gap-4 md:grid-cols-4">
                 <div><p className="text-xs uppercase text-muted-foreground">Supplier</p><p className="font-medium">{receivingDisplay.supplier_name ?? receiving.supplier_id}</p></div>
-                <div><p className="text-xs uppercase text-muted-foreground">Received Date</p><p className="font-medium">{receiving.received_date}</p></div>
+                <div><p className="text-xs uppercase text-muted-foreground">Received Date</p><p className="font-medium">{formatDateOnly(receiving.received_date)}</p></div>
                 <div><p className="text-xs uppercase text-muted-foreground">Branch</p><p className="font-medium">{receivingDisplay.branch_name ?? "-"}</p></div>
                 <div><p className="text-xs uppercase text-muted-foreground">Received Value</p><p className="font-medium">{formatCurrency(totalReceivedValue)}</p></div>
               </div>
@@ -133,7 +133,7 @@ export default async function GoodsReceivingDetailPage({ params }: { params: Pro
                         <TableCell className="text-right font-medium">{formatNumber(line.received_qty)}</TableCell>
                         <TableCell className="text-right">{line.rejected_qty > 0 ? <span className="font-medium text-destructive">{formatNumber(line.rejected_qty)}</span> : formatNumber(0)}</TableCell>
                         <TableCell>{line.uom}</TableCell>
-                        <TableCell><p>{line.batch_no ?? "-"}</p><p className="text-xs text-muted-foreground">{line.expiry_date ?? ""}</p></TableCell>
+                        <TableCell><p>{line.batch_no ?? "-"}</p><p className="text-xs text-muted-foreground">{formatDateOnly(line.expiry_date, "")}</p></TableCell>
                         <TableCell className="text-right">{formatCurrency(line.unit_cost)}</TableCell>
                         <TableCell className="text-right">{formatCurrency(line.received_qty * line.unit_cost)}</TableCell>
                       </TableRow>

@@ -34,6 +34,21 @@ export function formatQuantityInput(value: number | string | null | undefined) {
   return String(rounded);
 }
 
+export function formatDateOnly(value: string | null | undefined, fallback = "-") {
+  if (!value) return fallback;
+  const match = value.trim().match(/^(\d{4})-(\d{2})-(\d{2})(?:$|T)/);
+  if (!match) return fallback;
+  const [, year, month, day] = match;
+  return `${day}/${month}/${year}`;
+}
+
 export function getToday() {
-  return new Date().toISOString().slice(0, 10);
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Asia/Kuala_Lumpur",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).formatToParts(new Date());
+  const part = (type: Intl.DateTimeFormatPartTypes) => parts.find((entry) => entry.type === type)?.value ?? "";
+  return `${part("year")}-${part("month")}-${part("day")}`;
 }

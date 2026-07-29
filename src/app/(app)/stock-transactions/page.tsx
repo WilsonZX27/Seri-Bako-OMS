@@ -13,7 +13,7 @@ import { PaginationControls, SortableHead } from "@/components/sortable-table";
 import { OperationalList, OperationalListRow, Table, TableActionLink, TableBody } from "@/components/ui/table";
 import { ConsoleSection } from "@/components/layout/right-console";
 import { WorkspaceGrid } from "@/components/layout/workspace-layout";
-import { formatCurrency, formatNumber } from "@/lib/utils";
+import { formatCurrency, formatDateOnly, formatNumber } from "@/lib/utils";
 import { hasActiveFilters } from "@/lib/table-state";
 import { getBranchesForSelect, getItemsForSelect } from "@/server/queries/common";
 import { hasPermission } from "@/server/auth/permissions";
@@ -152,7 +152,7 @@ export default async function StockTransactionsPage({ searchParams }: { searchPa
                       <TableActionLink href={`/stock-transactions/${row.stock_transaction_id}`} label={`Open ${row.transaction_no}`}><Pencil className="h-4 w-4" /></TableActionLink>
                     </TableCell>
                     <TableCell className="font-medium">{row.transaction_no}</TableCell>
-                    <TableCell>{row.transaction_date}</TableCell>
+                    <TableCell>{formatDateOnly(row.transaction_date)}</TableCell>
                     <TableCell><Badge variant="secondary">{movementLabel(row.transaction_type)}</Badge></TableCell>
                     <TableCell className="font-medium">{row.item_code}<p className="text-xs text-muted-foreground">{row.item_name}</p></TableCell>
                     <TableCell>{row.branch_name ?? "-"}</TableCell>
@@ -182,7 +182,7 @@ export default async function StockTransactionsPage({ searchParams }: { searchPa
                   key={row.stock_transaction_id}
                   href={`/stock-transactions/${row.stock_transaction_id}`}
                   label={`Open ${row.transaction_no}`}
-                  primary={<div><span>{row.item_name}</span><p className="text-[11px] font-normal text-[var(--sb-text-muted)]">{row.transaction_no} · {row.transaction_date}</p></div>}
+                  primary={<div><span>{row.item_name}</span><p className="text-[11px] font-normal text-[var(--sb-text-muted)]">{row.transaction_no} · {formatDateOnly(row.transaction_date)}</p></div>}
                   status={<Badge variant="secondary">{movementLabel(row.transaction_type)}</Badge>}
                   secondary={`${row.item_code} · ${row.branch_name ?? "Unknown branch"}`}
                   meta={<span className={direction === "in" ? "font-semibold text-[var(--sb-success)]" : direction === "out" ? "font-semibold text-[var(--sb-danger)]" : undefined}>{direction === "in" ? "+" : direction === "out" ? "−" : ""}{formatNumber(quantityIn || quantityOut)} {row.base_unit}</span>}

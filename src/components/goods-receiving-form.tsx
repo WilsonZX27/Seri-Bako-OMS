@@ -8,14 +8,10 @@ import { Field } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { SelectNative } from "@/components/ui/select-native";
 import { Textarea } from "@/components/ui/textarea";
-import { formatCurrency, formatNumber } from "@/lib/utils";
+import { formatCurrency, formatNumber, getToday } from "@/lib/utils";
 import type { EligiblePurchaseOrder, PurchaseOrderReceivingLine } from "@/server/queries/goods-receivings";
 
 type BranchOption = { id: string; branch_code: string; branch_name: string; status: string };
-
-function today() {
-  return new Date().toISOString().slice(0, 10);
-}
 
 export function GoodsReceivingForm({
   purchaseOrders,
@@ -57,7 +53,7 @@ export function GoodsReceivingForm({
               </SelectNative>
             </Field>
             <Field label="Received Date" required>
-              <Input name="received_date" type="date" defaultValue={today()} required />
+              <Input name="received_date" type="date" defaultValue={getToday()} required />
             </Field>
             <Field label="Delivery Order Number">
               <Input name="delivery_order_no" placeholder="Supplier DO reference" />

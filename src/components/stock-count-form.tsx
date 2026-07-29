@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { SelectNative } from "@/components/ui/select-native";
 import { SubmitButton } from "@/components/ui/submit-button";
 import { Textarea } from "@/components/ui/textarea";
-import { formatQuantity, formatQuantityInput } from "@/lib/utils";
+import { formatDateOnly, formatQuantity, formatQuantityInput, getToday } from "@/lib/utils";
 
 type BranchOption = { id: string; branch_code: string; branch_name: string; status: string };
 type SeedLine = {
@@ -24,10 +24,6 @@ type SeedLine = {
 };
 
 type SeedLineInput = SeedLine & { physicalQty: string; remarks: string; initialPhysicalQty: string; adjusted: boolean };
-
-function today() {
-  return new Date().toISOString().slice(0, 10);
-}
 
 function variancePercent(theoretical: number, physical: number) {
   if (theoretical === 0) return null;
@@ -154,9 +150,9 @@ export function StockCountForm({
             <div className="flex min-w-0 items-center justify-between gap-3">
               <div className="min-w-0">
                 <p className="text-xs font-medium text-muted-foreground">Count date</p>
-                <p className="truncate text-sm font-semibold text-foreground">{initialCountDate ? new Date(`${initialCountDate}T00:00:00+08:00`).toLocaleDateString("en-GB", { day: "2-digit", month: "2-digit", year: "numeric", timeZone: "Asia/Kuala_Lumpur" }) : "Today · " + new Date().toLocaleDateString("en-GB", { day: "2-digit", month: "2-digit", year: "numeric", timeZone: "Asia/Kuala_Lumpur" })}</p>
+                <p className="truncate text-sm font-semibold text-foreground">{initialCountDate ? formatDateOnly(initialCountDate) : `Today · ${formatDateOnly(getToday())}`}</p>
               </div>
-              <Input aria-label="Count date" name="count_date" type="date" defaultValue={initialCountDate ?? today()} required className="basis-36 shrink-0" />
+              <Input aria-label="Count date" name="count_date" type="date" defaultValue={initialCountDate ?? getToday()} required className="basis-36 shrink-0" />
             </div>
             <details className="group mt-2 border-t border-slate-100 pt-2">
               <summary className="cursor-pointer text-xs font-medium text-muted-foreground">More settings</summary>

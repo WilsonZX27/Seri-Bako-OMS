@@ -1,5 +1,5 @@
 import { Factory } from "lucide-react";
-import { APP_SPRINT } from "@/lib/app-version";
+import { APP_RELEASE_NOTE } from "@/lib/app-version";
 import { getCompanyBranding } from "@/server/queries/common";
 
 export async function AuthShell({
@@ -41,7 +41,7 @@ export async function AuthShell({
 
         <footer className="mt-4 flex items-center justify-between gap-3 text-xs text-[var(--sb-text-muted)]">
           <span>Seri Bako OMS</span>
-          <span>{APP_SPRINT}</span>
+          <span>{APP_RELEASE_NOTE}</span>
         </footer>
       </section>
     </main>

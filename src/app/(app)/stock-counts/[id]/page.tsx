@@ -8,7 +8,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { StockCountForm } from "@/components/stock-count-form";
 import { BlockedDestructiveAction } from "@/components/ui/danger-confirm-form";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { formatQuantity } from "@/lib/utils";
+import { formatDateOnly, formatQuantity } from "@/lib/utils";
 import { cancelStockCount, postStockCount, updateStockCountDraft } from "@/server/actions/stock-counts";
 import { getPermissionMap } from "@/server/auth/permissions";
 import { getBranchesForSelect } from "@/server/queries/common";
@@ -94,7 +94,7 @@ export default async function StockCountDetailPage({ params }: { params: Promise
         <CardContent className="space-y-4 p-5">
           <h2 className="text-sm font-semibold">Count Summary</h2>
             <div className="grid gap-4 md:grid-cols-4">
-            <div><p className="text-xs uppercase text-muted-foreground">Date</p><p className="font-medium">{count.count_date}</p></div>
+            <div><p className="text-xs uppercase text-muted-foreground">Date</p><p className="font-medium">{formatDateOnly(count.count_date)}</p></div>
             <div><p className="text-xs uppercase text-muted-foreground">Branch</p><p className="font-medium">{count.branch_name ?? "-"}</p></div>
             <div><p className="text-xs uppercase text-muted-foreground">Tolerance</p><p className="font-medium">{formatQuantity(count.tolerance_percent)}%</p></div>
             <div><p className="text-xs uppercase text-muted-foreground">High Variance</p><p className="font-medium">{highVarianceLines.length}</p></div>

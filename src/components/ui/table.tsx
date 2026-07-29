@@ -39,11 +39,12 @@ export function OperationalList({ children, ariaLabel, className }: { children: 
   return <div className={cn("divide-y divide-[var(--sb-border-soft)] md:hidden", className)} role="list" aria-label={ariaLabel}>{children}</div>;
 }
 
-export function OperationalListRow({ href, label, primary, status, secondary, meta, trailing }: {
+export function OperationalListRow({ href, label, primary, status, statusMeta, secondary, meta, trailing }: {
   href: string;
   label: string;
   primary: React.ReactNode;
   status?: React.ReactNode;
+  statusMeta?: React.ReactNode;
   secondary?: React.ReactNode;
   meta?: React.ReactNode;
   trailing?: React.ReactNode;
@@ -51,8 +52,14 @@ export function OperationalListRow({ href, label, primary, status, secondary, me
   return (
     <Link href={href} aria-label={label} role="listitem" className="grid min-h-16 grid-cols-[minmax(0,1fr)_auto] gap-x-3 gap-y-1 px-3 py-2.5 hover:bg-[var(--sb-surface-muted)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[var(--sb-green-700)]">
       <div className="min-w-0 text-[13px] font-semibold leading-5">{primary}</div>
-      <div className="flex items-start gap-1 whitespace-nowrap">{status}{trailing ?? <ChevronRight className="mt-1 h-4 w-4 text-[var(--sb-text-soft)]" />}</div>
-      {secondary ? <div className="min-w-0 truncate text-xs text-[var(--sb-text-muted)]">{secondary}</div> : <span />}
+      <div className="flex items-start gap-2 whitespace-nowrap">
+        <div className="flex min-w-0 flex-col items-end gap-1">
+          {status}
+          {statusMeta ? <div className="text-right text-[11px] font-semibold text-[var(--sb-text)]">{statusMeta}</div> : null}
+        </div>
+        {trailing ?? <ChevronRight className="mt-1 h-4 w-4 text-[var(--sb-text-soft)]" />}
+      </div>
+      {secondary ? <div className="min-w-0 whitespace-normal break-words text-xs leading-4 text-[var(--sb-text-muted)]">{secondary}</div> : <span />}
       {meta ? <div className="whitespace-nowrap text-right text-[11px] text-[var(--sb-text-muted)]">{meta}</div> : null}
     </Link>
   );

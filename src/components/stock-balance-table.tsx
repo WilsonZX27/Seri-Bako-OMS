@@ -132,8 +132,8 @@ export function StockBalanceOperationalRows({
             label={`Open ledger for ${item.item_name}`}
             primary={item.item_name}
             status={<Badge variant={statusVariant(item.status)}>{getStockBalanceStatusLabel(item.status)}</Badge>}
-            secondary={`${item.item_code} · ${item.branch_name ?? "All permitted branches"}`}
-            meta={`${formatQuantity(item.current_qty)} ${item.base_unit}`}
+            statusMeta={`${formatQuantity(item.current_qty)} ${item.base_unit}`}
+            secondary={<><span className="block">{item.item_code}</span><span className="block">{item.branch_name ?? "All permitted branches"}</span></>}
             trailing={
               <button
                 type="button"

@@ -198,6 +198,8 @@ The Playwright route-layout audit is the baseline guard for all static workspace
 - **Mobile elevation:** Fixed bottom navigation and action bars use a restrained upward shadow so scrolling content is visibly separated from persistent controls.
 - **Compact metric summaries:** Phone summaries with four or more scalar metrics use a dense two-column grid instead of one full-width row per value; tablet and desktop may expand to four or eight columns.
 - **High-count metric summaries:** When a phone summary contains eight short operational totals, it may use four compact columns and two rows; labels may wrap to two lines, but the summary must not become a long vertical ledger.
+- **Mobile list status hierarchy:** A compact operational row may place its primary numeric value directly beneath the status badge. Supporting identity such as item code and branch/location wraps as separate lines instead of competing with that value.
+- **Mobile pagination:** Phone pagination shows Previous, current/total, and Next only. Direct numbered page choices belong at tablet and desktop widths so pagination never collides with a floating operational action.
 - **System-owned identifiers:** Auto-generated document numbers and versions are never editable form controls. Creation actions generate them authoritatively; the right rail may display their current system state.
 - **Canonical units:** Quantity UOM fields use the shared canonical UOM list and normalization. Never accept free-text unit aliases where the value drives stock, recipe, or purchasing calculations.
 - **Derived base units:** A recipe ingredient's base UOM comes from Item Master and is read-only in the recipe editor. Only the controlled recipe UOM may be selected; neither value accepts free-text aliases.

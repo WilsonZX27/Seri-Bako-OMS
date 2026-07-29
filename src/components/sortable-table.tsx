@@ -60,7 +60,30 @@ export function PaginationControls({
       <span className="leading-6">
         Page {page} of {totalPages} - {totalRows} rows
       </span>
-      <nav aria-label="Pagination" className="flex items-center gap-1">
+      <nav aria-label="Pagination" className="flex items-center gap-1 sm:hidden">
+        {page <= 1 ? (
+          <Button type="button" variant="outline" size="sm" className="h-[var(--sb-control-height)] px-2 text-xs" disabled>
+            Previous
+          </Button>
+        ) : (
+          <Button asChild variant="outline" size="sm" className="h-[var(--sb-control-height)] px-2 text-xs">
+            <Link href={buildHref(searchParams, { page: String(page - 1) })}>Previous</Link>
+          </Button>
+        )}
+        <span className="inline-flex h-[var(--sb-control-height)] min-w-[var(--sb-control-height)] items-center justify-center border bg-[var(--sb-green-900)] px-2 text-xs font-semibold text-white" aria-current="page">
+          {page}/{totalPages}
+        </span>
+        {page >= totalPages ? (
+          <Button type="button" variant="outline" size="sm" className="h-[var(--sb-control-height)] px-2 text-xs" disabled>
+            Next
+          </Button>
+        ) : (
+          <Button asChild variant="outline" size="sm" className="h-[var(--sb-control-height)] px-2 text-xs">
+            <Link href={buildHref(searchParams, { page: String(page + 1) })}>Next</Link>
+          </Button>
+        )}
+      </nav>
+      <nav aria-label="Pagination pages" className="hidden items-center gap-1 sm:flex">
         {page <= 1 ? (
           <Button type="button" variant="outline" size="sm" className="h-[var(--sb-control-height)] px-2 text-xs" disabled>
             Previous

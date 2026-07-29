@@ -47,16 +47,16 @@ export default async function DocumentsPage({ searchParams }: { searchParams: Pr
       <PageHeader title="Documents Register" description="Audit-ready register for document status, approvals, attachments, revisions, and timelines." />
       <WorkspaceGrid className="p-3 sm:p-4">
         <div className="overflow-hidden rounded-[2px] border bg-card">
-          <StatusTabs statuses={[
-            { value: "draft", label: "Draft" },
-            { value: "pending_approval", label: "In Review" },
-            { value: "approved", label: "Approved" },
-            { value: "posted", label: "Posted" },
-            { value: "rejected", label: "Rejected" },
-            { value: "closed", label: "Completed" },
-          ]} activeStatus={filters.status} />
           <FilterBar resultCount={documents.totalRows} resetHref="/documents" filtered={filtered}>
             <Input name="search" defaultValue={filters.search ?? ""} placeholder="Search document no, title, type" />
+            <StatusTabs statuses={[
+              { value: "draft", label: "Draft" },
+              { value: "pending_approval", label: "In Review" },
+              { value: "approved", label: "Approved" },
+              { value: "posted", label: "Posted" },
+              { value: "rejected", label: "Rejected" },
+              { value: "closed", label: "Completed" },
+            ]} activeStatus={filters.status} />
             <SelectControl name="document_type" defaultValue={filters.document_type ?? "all"} ariaLabel="Document type" options={[
               { value: "all", label: "All document types" },
               { value: "purchase_request", label: "Purchase Request" },

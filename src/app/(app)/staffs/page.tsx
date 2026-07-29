@@ -33,15 +33,11 @@ export default async function StaffsPage({ searchParams }: { searchParams: Promi
           </Card>
         ) : null}
         <div className="overflow-hidden rounded-[2px] border bg-card">
-        <StatusTabs statuses={[
-          { value: "invited", label: "Invited" },
-          { value: "active", label: "Active" },
-          { value: "disabled", label: "Disabled" },
-        ]} activeStatus={filters.status} />
         <MasterDataFilters
           search={filters.search}
           status={filters.status}
           showStatus={false}
+          leadingFilter={<StatusTabs statuses={[{ value: "invited", label: "Invited" }, { value: "active", label: "Active" }, { value: "disabled", label: "Disabled" }]} activeStatus={filters.status} />}
           placeholder="Search staff, email, branch, or role"
           resultCount={staffs.length}
           filtered={filtered}

@@ -39,8 +39,7 @@ export default async function BranchesPage({ searchParams }: { searchParams: Pro
             </Card>
           ) : null}
           <div className="overflow-hidden rounded-[2px] border bg-card">
-            <StatusTabs statuses={["active", "archived"]} activeStatus={filters.status} />
-            <MasterDataFilters search={filters.search} status={filters.status} placeholder="Search branch code, name, or type" statuses={[{ value: "active", label: "Active" }, { value: "archived", label: "Archived" }]} showStatus={false} resultCount={branches.length} filtered={filtered} resetHref="/branches" />
+            <MasterDataFilters search={filters.search} status={filters.status} placeholder="Search branch code, name, or type" statuses={[{ value: "active", label: "Active" }, { value: "archived", label: "Archived" }]} showStatus={false} leadingFilter={<StatusTabs statuses={["active", "archived"]} activeStatus={filters.status} />} resultCount={branches.length} filtered={filtered} resetHref="/branches" />
             <BulkSelectionProvider ids={branches.map((branch) => branch.id)} actionLabel="Archive selected" actionHint="Archive branches only after confirming they are no longer used by daily operations.">
             <DataGridHint text="Pro-tip: Double-click any row to open the branch." />
               <Table aria-label="Branches" stickyColumn={canManage ? "second" : "first"}>

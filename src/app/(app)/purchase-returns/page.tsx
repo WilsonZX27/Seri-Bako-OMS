@@ -50,9 +50,9 @@ export default async function PurchaseReturnsPage({ searchParams }: { searchPara
         }
       >
         <div className="overflow-hidden rounded-[2px] border bg-card">
-          <StatusTabs statuses={statuses} activeStatus={filters.status} />
           <FilterBar resultCount={returns.totalRows} resetHref="/purchase-returns" filtered={filtered}>
             <Input name="search" defaultValue={filters.search ?? ""} placeholder="Search return, GRN, PO, supplier" className="md:max-w-sm" />
+            <StatusTabs statuses={statuses} activeStatus={filters.status} />
             {filters.status ? <input type="hidden" name="status" value={filters.status} /> : null}
             <Button type="submit">Search</Button>
           </FilterBar>

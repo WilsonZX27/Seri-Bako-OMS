@@ -10,7 +10,7 @@ import { SelectNative } from "@/components/ui/select-native";
 import { Textarea } from "@/components/ui/textarea";
 import { UrgencySelect } from "@/components/urgency-select";
 import type { ProcurementPriority } from "@/components/priority-badge";
-import { normalizeUom, uomOptionsWithCurrent } from "@/lib/uom";
+import { normalizeUom } from "@/lib/uom";
 import type { Database } from "@/types/database";
 
 type ItemOption = Pick<Database["public"]["Tables"]["items"]["Row"], "id" | "item_code" | "item_name" | "base_unit" | "purchase_unit" | "supplier_id" | "cost" | "status">;
@@ -261,20 +261,20 @@ export function PurchaseOrderForm({
   const poNo = "PO-AUTO";
   const [idempotencyKey] = useState(() => crypto.randomUUID());
   const [branchId, setBranchId] = useState(branches[0]?.id ?? "");
-  const [selectedItemIds, setSelectedItemIds] = useState<string[]>(["", "", "", "", ""]);
+  const [selectedItemIds, setSelectedItemIds] = useState<string[]>([""]);
   const [supplierId, setSupplierId] = useState("");
   const selectedItems = selectedItemIds.filter(Boolean);
   const eligibleSupplierIds = [...new Set(supplierMappings.filter((mapping) => mapping.branch_id === branchId && selectedItems.every((itemId) => supplierMappings.some((candidate) => candidate.branch_id === branchId && candidate.item_id === itemId && candidate.supplier_id === mapping.supplier_id))).map((mapping) => mapping.supplier_id))];
   const eligibleSuppliers = eligibleSupplierIds.map((id) => supplierMappings.find((mapping) => mapping.branch_id === branchId && mapping.supplier_id === id)).filter((mapping): mapping is BranchSupplierMappingOption => Boolean(mapping));
   return (
-    <Card>
-      <CardContent className="p-5">
+    <Card className="border-0 bg-transparent shadow-none md:border md:bg-white">
+      <CardContent className="p-0 md:p-5">
         <form id="purchase-order-form" action={action} className="space-y-3">
           <input type="hidden" name="po_no" value={poNo} />
           <input type="hidden" name="idempotency_key" value={idempotencyKey} />
           <input type="hidden" name="status" value="draft" />
           <input type="hidden" name="approval_status" value="draft" />
-          <div className="grid gap-3 md:grid-cols-2">
+          <section data-purchase-order-setup className="erp-surface grid grid-cols-2 gap-3 p-3 md:rounded-none md:border-0 md:bg-transparent md:p-0">
             <Field label="Branch" required>
               <SelectNative name="branch_id" value={branchId} onChange={(event) => { setBranchId(event.target.value); setSupplierId(""); }} required>
                 {branches.map((branch) => <option key={branch.id} value={branch.id}>{branch.branch_name}</option>)}
@@ -286,49 +286,66 @@ export function PurchaseOrderForm({
                 {eligibleSuppliers.map((supplier) => <option key={supplier.supplier_id} value={supplier.supplier_id}>{supplier.supplier_name}</option>)}
               </SelectNative>
             </Field>
-            <Field label="Order Date" required>
-              <Input name="order_date" type="date" defaultValue={today()} required />
-            </Field>
-            <Field label="Expected Delivery">
-              <Input name="expected_delivery_date" type="date" />
-            </Field>
-            <div className="md:col-span-2">
-              <Field label="Remarks">
-                <Textarea name="remarks" placeholder="Supplier ordering remarks" />
-              </Field>
-            </div>
-          </div>
+            <details className="col-span-2 border-t pt-2">
+              <summary className="cursor-pointer text-xs font-medium text-muted-foreground">More order details</summary>
+              <div className="mt-2 grid grid-cols-2 gap-2">
+                <Field label="Order Date" required>
+                  <Input name="order_date" type="date" defaultValue={today()} required />
+                </Field>
+                <Field label="Expected Delivery">
+                  <Input name="expected_delivery_date" type="date" />
+                </Field>
+                <Field label="Remarks" className="col-span-2">
+                  <Textarea name="remarks" placeholder="Supplier ordering remarks" />
+                </Field>
+              </div>
+            </details>
+          </section>
 
-          <div className="rounded-[2px] border">
-            <div className="border-b bg-secondary/40 px-3 py-2">
-              <p className="text-xs font-semibold">Ordered Items</p>
-              <p className="text-xs text-muted-foreground">Pending quantity is calculated from ordered minus received and cancelled.</p>
+          <section data-purchase-order-lines className="overflow-hidden border-y border-[var(--sb-border)] bg-white md:rounded-[2px] md:border">
+            <div className="flex items-center justify-between gap-3 border-b bg-secondary/40 px-3 py-2">
+              <div>
+                <p className="text-xs font-semibold">Ordered Items</p>
+                <p className="text-xs text-muted-foreground">Add only the items included in this order.</p>
+              </div>
+              <Button type="button" variant="outline" size="sm" onClick={() => setSelectedItemIds((current) => [...current, ""])} aria-label="Add order line">
+                <Plus className="h-4 w-4" />
+                Add line
+              </Button>
             </div>
-            <div className="hidden grid-cols-[32px_2fr_100px_100px_100px_84px_112px] gap-2 border-b bg-[var(--sb-surface-muted)] px-3 py-2 text-[11px] font-medium text-muted-foreground lg:grid">
-              <span className="text-center">#</span><span>Item</span><span>Ordered</span><span>Received</span><span>Cancelled</span><span>UOM</span><span>Unit price</span>
+            <div className="hidden grid-cols-[2fr_112px_112px_40px] gap-2 border-b bg-[var(--sb-surface-muted)] px-3 py-2 text-[11px] font-medium text-muted-foreground md:grid">
+              <span>Item</span><span>Ordered Qty</span><span>Unit price</span><span aria-hidden="true" />
             </div>
             <div className="divide-y">
-              {[0, 1, 2, 3, 4].map((index) => (
-                <div key={index} className="grid gap-2 p-3 lg:grid-cols-[32px_2fr_100px_100px_100px_84px_112px]">
-                  <div className="hidden items-center justify-center rounded border bg-secondary/40 text-xs font-semibold text-muted-foreground lg:flex">{index + 1}</div>
-                  <SelectNative name="line_item_id" value={selectedItemIds[index]} onChange={(event) => { const next = [...selectedItemIds]; next[index] = event.target.value; setSelectedItemIds(next); setSupplierId(""); }} required={index === 0}>
-                    <option value="">Select item</option>
-                    {items.map((item) => <option key={item.id} value={item.id}>{item.item_code} - {item.item_name} - {item.base_unit}</option>)}
-                  </SelectNative>
-                  <Input name="line_qty_ordered" type="number" min="0.0001" step="0.0001" placeholder="Ordered" required={index === 0} />
-                  <Input name="line_qty_received" type="number" min="0" step="0.0001" placeholder="Received" defaultValue={0} />
-                  <Input name="line_qty_cancelled" type="number" min="0" step="0.0001" placeholder="Cancelled" defaultValue={0} />
-                  <SelectNative name="line_uom" defaultValue={normalizeUom(items[index]?.base_unit)} required={index === 0}>
-                    <option value="">Select UOM</option>
-                    {uomOptionsWithCurrent(items[index]?.base_unit).map((uom) => (
-                      <option key={uom} value={uom}>{uom}</option>
-                    ))}
-                  </SelectNative>
-                  <Input name="line_unit_price" type="number" min="0" step="0.0001" placeholder="Unit price" defaultValue={0} />
-                </div>
-              ))}
+              {selectedItemIds.map((itemId, index) => {
+                const selectedItem = items.find((item) => item.id === itemId);
+                const lineUom = normalizeUom(selectedItem?.purchase_unit || selectedItem?.base_unit || "");
+                return (
+                  <div key={index} className="grid grid-cols-[minmax(0,1fr)_2.25rem] gap-2 p-3 md:grid-cols-[minmax(0,1fr)_112px_112px_40px]">
+                    <div className="min-w-0">
+                      <Field label="Item" required={index === 0}>
+                        <SelectNative name="line_item_id" value={itemId} onChange={(event) => { const next = [...selectedItemIds]; next[index] = event.target.value; setSelectedItemIds(next); setSupplierId(""); }} required={index === 0}>
+                          <option value="">Select item</option>
+                          {items.map((item) => <option key={item.id} value={item.id}>{item.item_code} - {item.item_name}</option>)}
+                        </SelectNative>
+                      </Field>
+                      {lineUom ? <p className="mt-1 text-xs text-muted-foreground">{selectedItem?.item_code} · {lineUom}</p> : null}
+                    </div>
+                    <Button type="button" variant="ghost" size="icon" className="h-10 w-9 self-end text-muted-foreground md:col-start-4 md:row-start-1" aria-label="Remove order line" disabled={selectedItemIds.length === 1} onClick={() => setSelectedItemIds((current) => current.filter((_, rowIndex) => rowIndex !== index))}><X className="h-4 w-4" /></Button>
+                    <Field label="Ordered Qty" required={index === 0} className="col-span-1 md:col-start-2 md:row-start-1">
+                      <Input name="line_qty_ordered" type="number" inputMode="decimal" min="0.0001" step="0.0001" placeholder="Qty" required={index === 0} />
+                    </Field>
+                    <Field label="Unit price" className="col-span-1 md:col-start-3 md:row-start-1">
+                      <Input name="line_unit_price" type="number" inputMode="decimal" min="0" step="0.0001" placeholder="0.00" defaultValue={0} />
+                    </Field>
+                    <input type="hidden" name="line_qty_received" value="0" />
+                    <input type="hidden" name="line_qty_cancelled" value="0" />
+                    <input type="hidden" name="line_uom" value={lineUom} />
+                  </div>
+                );
+              })}
             </div>
-          </div>
+          </section>
 
           {selectedItems.length > 0 && eligibleSuppliers.length === 0 ? <p className="text-sm font-medium text-destructive">No single supplier is mapped to every selected item for this branch. Adjust the lines or create the required branch mappings.</p> : null}
 

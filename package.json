@@ -1,6 +1,6 @@
 {
   "name": "seri-bako-ops",
-  "version": "7.57.0",
+  "version": "7.58.0",
   "private": true,
   "scripts": {
     "dev": "node --use-system-ca node_modules/next/dist/bin/next dev",

@@ -95,8 +95,8 @@ export function RecipeForm({ recipe, products, items, action, formId, showSubmit
             item_name: line.ingredient_name,
             item_image_url: line.ingredient_image_url,
             qty_required: Number(line.qty_required),
-            recipe_uom: line.recipe_uom,
-            base_uom: line.base_uom,
+            recipe_uom: normalizeUom(line.recipe_uom) || normalizeUom(line.base_uom),
+            base_uom: normalizeUom(line.base_uom),
             conversion_factor: Number(line.conversion_factor),
             wastage_percent: Number(line.wastage_percent),
             cost_per_unit: Number(line.cost_per_unit),
@@ -137,8 +137,8 @@ export function RecipeForm({ recipe, products, items, action, formId, showSubmit
       item_code: item?.item_code ?? "",
       item_name: item?.item_name ?? "",
       item_image_url: item?.item_image_url ?? null,
-      recipe_uom: item?.base_unit ?? "",
-      base_uom: item?.base_unit ?? "",
+      recipe_uom: normalizeUom(item?.base_unit),
+      base_uom: normalizeUom(item?.base_unit),
       conversion_factor: 1,
       cost_per_unit: item?.cost ?? 0,
     });
@@ -262,15 +262,16 @@ export function RecipeForm({ recipe, products, items, action, formId, showSubmit
                       <Input type="number" step="0.0001" min="0.0001" value={line.qty_required} onChange={(event) => updateLine(index, { qty_required: Number(event.target.value) })} />
                     </TableCell>
                     <TableCell>
-                      <Input value={line.recipe_uom} onChange={(event) => updateLine(index, { recipe_uom: event.target.value })} />
+                      <SelectNative value={line.recipe_uom} onChange={(event) => updateLine(index, { recipe_uom: event.target.value })} aria-label={`Recipe UOM for ${line.item_name || `ingredient ${index + 1}`}`}>
+                        <option value="">Select UOM</option>
+                        {uomOptionsWithCurrent(line.recipe_uom).map((uom) => <option key={uom} value={uom}>{uom}</option>)}
+                      </SelectNative>
                     </TableCell>
                     <TableCell>
                       <Input type="number" step="0.000001" min="0.000001" value={line.conversion_factor} onChange={(event) => updateLine(index, { conversion_factor: Number(event.target.value) })} />
                     </TableCell>
                     <TableCell className="font-medium">{formatNumber(line.base_qty_required)}</TableCell>
-                    <TableCell>
-                      <Input value={line.base_uom} onChange={(event) => updateLine(index, { base_uom: event.target.value })} />
-                    </TableCell>
+                    <TableCell className="font-medium">{line.base_uom || "-"}</TableCell>
                     <TableCell>
                       <Input type="number" step="0.0001" min="0" value={line.wastage_percent} onChange={(event) => updateLine(index, { wastage_percent: Number(event.target.value) })} />
                     </TableCell>
@@ -310,7 +311,10 @@ export function RecipeForm({ recipe, products, items, action, formId, showSubmit
                     <Input type="number" step="0.0001" min="0.0001" value={line.qty_required} onChange={(event) => updateLine(index, { qty_required: Number(event.target.value) })} />
                   </Field>
                   <Field label="Recipe UOM">
-                    <Input value={line.recipe_uom} onChange={(event) => updateLine(index, { recipe_uom: event.target.value })} />
+                    <SelectNative value={line.recipe_uom} onChange={(event) => updateLine(index, { recipe_uom: event.target.value })}>
+                      <option value="">Select UOM</option>
+                      {uomOptionsWithCurrent(line.recipe_uom).map((uom) => <option key={uom} value={uom}>{uom}</option>)}
+                    </SelectNative>
                   </Field>
                   <Field label="Conversion factor">
                     <Input type="number" step="0.000001" min="0.000001" value={line.conversion_factor} onChange={(event) => updateLine(index, { conversion_factor: Number(event.target.value) })} />
@@ -319,7 +323,7 @@ export function RecipeForm({ recipe, products, items, action, formId, showSubmit
                     <Input type="number" step="0.0001" min="0" value={line.wastage_percent} onChange={(event) => updateLine(index, { wastage_percent: Number(event.target.value) })} />
                   </Field>
                   <Field label="Base UOM">
-                    <Input value={line.base_uom} onChange={(event) => updateLine(index, { base_uom: event.target.value })} />
+                    <p className="mt-2 min-h-12 border bg-secondary/30 px-3 py-3 text-sm font-medium">{line.base_uom || "Select an ingredient"}</p>
                   </Field>
                   <Field label="Cost / base">
                     <Input type="number" step="0.0001" min="0" value={line.cost_per_unit} onChange={(event) => updateLine(index, { cost_per_unit: Number(event.target.value) })} />

@@ -7,7 +7,7 @@ import { createClient } from "@/lib/supabase/server";
 import { stockCountSchema } from "@/lib/validations/stock-count";
 import { writeActivityLog } from "@/server/activity/log";
 import { requirePermission } from "@/server/auth/permissions";
-import { formatActionError, requirePermissionOrRedirect, rethrowRedirect, safeRedirectWithMessage } from "@/server/actions/error-handling";
+import { classifyActionError, formatActionError, requirePermissionOrRedirect, rethrowRedirect, safeRedirectWithMessage } from "@/server/actions/error-handling";
 import { revalidateWorkspaceState } from "@/server/actions/revalidate";
 import { logServerWarning } from "@/server/observability/logger";
 import { getCurrentProfile } from "@/server/queries/common";
@@ -20,6 +20,7 @@ export type StockCountAutosaveResult = {
   id?: string;
   savedAt?: string;
   error?: string;
+  retryable?: boolean;
 };
 
 function formatStockCountPostingError(error: unknown) {
@@ -137,7 +138,12 @@ export async function autosaveNewStockCount(formData: FormData): Promise<StockCo
     const id = await createStockCountRecord(formData);
     return { ok: true, id, savedAt: new Date().toISOString() };
   } catch (error) {
-    return { ok: false, error: formatActionError(error, "Autosave failed. Your changes remain on this device.") };
+    const kind = classifyActionError(error);
+    return {
+      ok: false,
+      error: formatActionError(error, "Autosave failed. Your changes remain on this device."),
+      retryable: kind === "database_unavailable" || kind === "operation_failed" || kind === "unknown_error",
+    };
   }
 }
 
@@ -147,7 +153,12 @@ export async function autosaveStockCountDraft(id: string, formData: FormData): P
     const countId = await updateStockCountDraftRecord(id, formData, { revalidate: false });
     return { ok: true, id: countId, savedAt: new Date().toISOString() };
   } catch (error) {
-    return { ok: false, error: formatActionError(error, "Autosave failed. Your changes remain on this device.") };
+    const kind = classifyActionError(error);
+    return {
+      ok: false,
+      error: formatActionError(error, "Autosave failed. Your changes remain on this device."),
+      retryable: kind === "database_unavailable" || kind === "operation_failed" || kind === "unknown_error",
+    };
   }
 }
 

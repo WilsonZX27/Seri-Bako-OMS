@@ -21,6 +21,7 @@ export function classifyActionError(error: unknown): ActionErrorKind {
   const message = error instanceof Error ? error.message : String(error ?? "");
   const normalized = message.toLowerCase();
 
+  if (error instanceof Error && error.name === "ZodError") return "validation_failed";
   if (normalized.includes("missing permission") || normalized.includes("permission denied") || normalized.includes("row-level security")) return "permission_denied";
   if (normalized.includes("duplicate key") || normalized.includes("already exists") || normalized.includes("unique constraint")) return "duplicate_record";
   if (normalized.includes("not found") || normalized.includes("no rows") || normalized.includes("does not exist")) return "record_not_found";

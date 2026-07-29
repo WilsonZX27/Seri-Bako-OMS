@@ -6,6 +6,12 @@ export function stockCountAllowsFraction(uom: string) {
   return FRACTIONAL_UOMS.has(uom.trim().toLowerCase());
 }
 
+export function stockCountHasAtMostFourDecimals(value: number) {
+  const rounded = Math.round(value * 10_000) / 10_000;
+  const tolerance = Number.EPSILON * Math.max(1, Math.abs(value)) * 16;
+  return Math.abs(value - rounded) <= tolerance;
+}
+
 export const stockCountLineSchema = z.object({
   item_id: z.string().uuid("Item is required"),
   // The server recalculates the theoretical quantity from the ledger. Keeping
@@ -35,7 +41,9 @@ export const stockCountSchema = z.object({
     if (!stockCountAllowsFraction(line.uom) && !Number.isInteger(line.physical_qty)) {
       context.addIssue({ code: "custom", path: ["lines", index, "physical_qty"], message: `${line.uom} quantities must be whole numbers` });
     }
-    if (!Number.isInteger(line.physical_qty * 10_000)) {
+    // Do not use Number.isInteger(value * 10_000) here. Valid decimal input can
+    // acquire a tiny IEEE-754 tail after Zod coerces the FormData string.
+    if (!stockCountHasAtMostFourDecimals(line.physical_qty)) {
       context.addIssue({ code: "custom", path: ["lines", index, "physical_qty"], message: "Physical quantity cannot exceed 4 decimal places" });
     }
   });

@@ -101,6 +101,7 @@ export function StockCountForm({
   const hasUserEdited = useRef(false);
   const saveSequence = useRef(0);
   const lastSavedRevision = useRef(0);
+  const retryTimer = useRef<number | null>(null);
   const [lines, setLines] = useState<SeedLineInput[]>(() =>
     seedLines.map(makeEditableLine),
   );
@@ -189,7 +190,10 @@ export function StockCountForm({
       if (!result.ok || !result.id) {
         setAutosaveState("error");
         setAutosaveError(result.error ?? "Autosave failed. Your changes remain on this device.");
-        window.setTimeout(() => void saveDraft(revision), 5_000);
+        if (retryTimer.current !== null) window.clearTimeout(retryTimer.current);
+        retryTimer.current = result.retryable === false
+          ? null
+          : window.setTimeout(() => void saveDraft(revision), 15_000);
         return false;
       }
       lastSavedRevision.current = revision;
@@ -201,11 +205,16 @@ export function StockCountForm({
       if (sequence === saveSequence.current) {
         setAutosaveState("error");
         setAutosaveError("Autosave failed. Your changes remain on this device and will retry.");
-        window.setTimeout(() => void saveDraft(revision), 5_000);
+        if (retryTimer.current !== null) window.clearTimeout(retryTimer.current);
+        retryTimer.current = window.setTimeout(() => void saveDraft(revision), 15_000);
       }
       return false;
     }
   }, [autosaveAction, draftId, localStorageKey, router]);
+
+  useEffect(() => () => {
+    if (retryTimer.current !== null) window.clearTimeout(retryTimer.current);
+  }, []);
 
   useEffect(() => {
     if (!hasUserEdited.current || dirtyRevision <= lastSavedRevision.current) return;

@@ -40,6 +40,21 @@ test("stock count form keeps a local recovery snapshot and reports server save s
   assert.match(actions, /autosaveStockCountDraft[\s\S]*updateStockCountDraftRecord\(id, formData, \{ revalidate: false \}\)/);
 });
 
+test("stock count decimal validation tolerates floating point tails and autosave does not retry validation failures", () => {
+  const validation = read("src", "lib", "validations", "stock-count.ts");
+  const form = read("src", "components", "stock-count-form.tsx");
+  const actions = read("src", "server", "actions", "stock-counts.ts");
+  const errors = read("src", "server", "actions", "error-handling.ts");
+
+  assert.match(validation, /stockCountHasAtMostFourDecimals/);
+  assert.match(validation, /Number\.EPSILON/);
+  assert.doesNotMatch(validation, /Number\.isInteger\(line\.physical_qty \* 10_000\)/);
+  assert.match(actions, /retryable: kind === "database_unavailable"/);
+  assert.match(form, /result\.retryable === false/);
+  assert.match(form, /15_000/);
+  assert.match(errors, /error\.name === "ZodError"\) return "validation_failed"/);
+});
+
 test("applied Central Kitchen PR history is retired forward without shipping its API", () => {
   assert.equal(existsSync(join(root, "supabase", "migrations", "111_central_kitchen_purchase_request_atomic.sql")), true);
   assert.equal(existsSync(join(root, "supabase", "migrations", "112_restrict_central_kitchen_pr_rpc_acl.sql")), true);

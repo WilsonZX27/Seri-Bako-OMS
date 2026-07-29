@@ -11,16 +11,6 @@ type UomConversion = Database["public"]["Tables"]["uom_conversions"]["Row"];
 type Supplier = Pick<Database["public"]["Tables"]["suppliers"]["Row"], "id" | "name" | "supplier_code">;
 type Item = Pick<Database["public"]["Tables"]["items"]["Row"], "id" | "item_code" | "item_name" | "base_unit">;
 
-function StatusSelect({ value }: { value?: string }) {
-  return (
-    <SelectNative name="status" defaultValue={value ?? "active"}>
-      <option value="active">Active</option>
-      <option value="inactive">Inactive</option>
-      <option value="archived">Archived</option>
-    </SelectNative>
-  );
-}
-
 export function SupplierItemForm({
   supplierItem,
   suppliers,
@@ -40,6 +30,7 @@ export function SupplierItemForm({
     <Card>
       <CardContent className="p-5">
         <form id={formId} action={action} className="grid gap-4 pb-20 md:grid-cols-3 md:pb-0">
+          <input type="hidden" name="status" value={supplierItem?.status ?? "active"} />
           <Field label="Supplier">
             <SelectNative name="supplier_id" defaultValue={supplierItem?.supplier_id ?? suppliers[0]?.id ?? ""} required>
               {suppliers.map((supplier) => (
@@ -57,9 +48,6 @@ export function SupplierItemForm({
                 </option>
               ))}
             </SelectNative>
-          </Field>
-          <Field label="Status">
-            <StatusSelect value={supplierItem?.status} />
           </Field>
           <Field label="Supplier Item Code">
             <Input name="supplier_item_code" defaultValue={supplierItem?.supplier_item_code ?? ""} required />
@@ -106,6 +94,7 @@ export function UomConversionForm({ conversion, action, formId, showSubmit = tru
     <Card>
       <CardContent className="p-5">
         <form id={formId} action={action} className="grid gap-4 pb-20 md:grid-cols-2 md:pb-0">
+          <input type="hidden" name="status" value={conversion?.status ?? "active"} />
           <Field label="From UOM">
             <SelectNative name="from_uom" defaultValue={normalizeUom(conversion?.from_uom) || "KG"} required>
               {uomOptionsWithCurrent(conversion?.from_uom).map((uom) => (
@@ -122,9 +111,6 @@ export function UomConversionForm({ conversion, action, formId, showSubmit = tru
           </Field>
           <Field label="Factor">
             <Input name="factor" type="number" min="0.00000001" step="0.00000001" defaultValue={conversion?.factor ?? 1} required />
-          </Field>
-          <Field label="Status">
-            <StatusSelect value={conversion?.status} />
           </Field>
           <div className="rounded-[var(--sb-radius-control)] border bg-secondary/50 p-3 md:col-span-2">
             <p className="text-sm font-medium">Preview</p>

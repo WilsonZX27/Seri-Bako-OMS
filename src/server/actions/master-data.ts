@@ -89,6 +89,26 @@ export async function deleteSupplierItem(id: string) {
   safeRedirectWithMessage("/supplier-items", "success", "Supplier item archived.");
 }
 
+export async function restoreSupplierItem(id: string) {
+  await requirePermissionOrRedirect("supplier_items.update", `/supplier-items/${id}`);
+  try {
+    const supplierItemId = parseRecordId(id);
+    if (!isMockMode()) {
+      const [supabase, actor] = [await createClient(), await requireActiveTenantActor()];
+      const { data, error } = await supabase.from("supplier_items").update({ status: "active", deleted_at: null }).eq("id", supplierItemId).eq("company_id", actor.companyId).select("id").maybeSingle();
+      if (error) throw new Error(error.message);
+      if (!data) throw new Error("Supplier item was not found or is outside your workspace.");
+      await writeActivityLog({ entityType: "supplier_item", entityId: id, activityType: "restored", message: "Supplier item restored" });
+    }
+  } catch (error) {
+    rethrowRedirect(error);
+    safeRedirectWithMessage(`/supplier-items/${id}`, "error", formatActionError(error, "Could not restore this supplier item."));
+  }
+  revalidatePath("/supplier-items");
+  revalidatePath(`/supplier-items/${id}`);
+  safeRedirectWithMessage(`/supplier-items/${id}`, "success", "Supplier item restored.");
+}
+
 function uomPayload(formData: FormData) {
   return uomConversionSchema.parse({
     from_uom: formData.get("from_uom"),
@@ -143,4 +163,24 @@ export async function deleteUomConversion(id: string) {
   }
   revalidatePath("/uom-conversions");
   safeRedirectWithMessage("/uom-conversions", "success", "UOM conversion archived.");
+}
+
+export async function restoreUomConversion(id: string) {
+  await requirePermissionOrRedirect("uom_conversions.update", `/uom-conversions/${id}`);
+  try {
+    const conversionId = parseRecordId(id);
+    if (!isMockMode()) {
+      const [supabase, actor] = [await createClient(), await requireActiveTenantActor()];
+      const { data, error } = await supabase.from("uom_conversions").update({ status: "active", deleted_at: null }).eq("id", conversionId).eq("company_id", actor.companyId).select("id").maybeSingle();
+      if (error) throw new Error(error.message);
+      if (!data) throw new Error("UOM conversion was not found or is outside your workspace.");
+      await writeActivityLog({ entityType: "uom_conversion", entityId: id, activityType: "restored", message: "UOM conversion restored" });
+    }
+  } catch (error) {
+    rethrowRedirect(error);
+    safeRedirectWithMessage(`/uom-conversions/${id}`, "error", formatActionError(error, "Could not restore this UOM conversion."));
+  }
+  revalidatePath("/uom-conversions");
+  revalidatePath(`/uom-conversions/${id}`);
+  safeRedirectWithMessage(`/uom-conversions/${id}`, "success", "UOM conversion restored.");
 }

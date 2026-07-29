@@ -30,6 +30,13 @@ test("Master Data Cleanup checks codes, core fields, and inactive references wit
   assert.doesNotMatch(query, /\.insert\(|\.update\(|\.delete\(/);
 });
 
+test("Master Data Cleanup keeps the four summary metrics in one compact row", () => {
+  assert.match(page, /<MetricStrip/);
+  assert.match(page, /className="grid-cols-4 sm:grid-cols-4 lg:grid-cols-4"/);
+  assert.match(page, /label: "Total issues"[\s\S]*label: "Critical"[\s\S]*label: "Warnings"[\s\S]*label: "Information"/);
+  assert.doesNotMatch(page, /function Metric\(/);
+});
+
 test("Master Data Cleanup follows the current footer with the scoped Outlet Staff seed", () => {
   const version = read("src/lib/app-version.ts");
   assert.match(version, /APP_VERSION = "\d+\.\d+\.\d+"/);

@@ -34,7 +34,7 @@ export default async function SupplierItemsPage({ searchParams }: { searchParams
         <MasterDataFilters search={filters.search} status={filters.status} placeholder="Search supplier, item, supplier item code" resultCount={page.totalRows} filtered={filtered} resetHref="/supplier-items" />
         <Table mobileHidden aria-label="Supplier items" stickyColumn="second">
           <TableHeader><TableRow>
-            <TableHead className="w-16">Actions</TableHead>
+            <TableHead className="w-16 text-center">Action</TableHead>
             <SortableHead label="Supplier" column="supplier_name" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
             <SortableHead label="Item" column="item_name" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
             <SortableHead label="Supplier Code" column="supplier_item_code" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />

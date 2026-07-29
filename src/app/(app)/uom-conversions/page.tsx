@@ -35,7 +35,7 @@ export default async function UomConversionsPage({ searchParams }: { searchParam
             <Table stickyColumn="second">
               <TableHeader>
                 <TableRow>
-                  <TableHead className="w-16">Actions</TableHead>
+                  <TableHead className="w-16 text-center">Action</TableHead>
                   <SortableHead label="From UOM" column="from_uom" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
                   <SortableHead label="To UOM" column="to_uom" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
                   <SortableHead label="Factor" column="factor" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} className="text-right" />

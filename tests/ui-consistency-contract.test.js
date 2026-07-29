@@ -16,6 +16,10 @@ const operationalToolList = read("src/components/operational-tool-list.tsx");
 const accountPage = read("src/app/(app)/account/page.tsx");
 const masterDataFilters = read("src/components/master-data-filters.tsx");
 const procurementPage = read("src/app/(app)/procurement/page.tsx");
+const supplierItemsPage = read("src/app/(app)/supplier-items/page.tsx");
+const uomConversionsPage = read("src/app/(app)/uom-conversions/page.tsx");
+const staffsPage = read("src/app/(app)/staffs/page.tsx");
+const purchaseReturnForm = read("src/components/purchase-return-form.tsx");
 
 test("UI consistency keeps imports upload-only and technical permission details collapsed", () => {
   assert.doesNotMatch(imports, /Edit in table|Add blank row|Paste into table/);
@@ -119,4 +123,17 @@ test("mobile operational hubs keep their own primary action without a duplicate 
   assert.match(procurementPage, /<WorkspaceGrid[\s\S]*hideMobileConsole[\s\S]*rightRail=/);
   assert.match(procurementPage, /<OperationalHub/);
   assert.match(procurementPage, /primaryAction=/);
+});
+
+test("operational tables use one centered Action column and hide generated document numbers", () => {
+  for (const [name, source] of [
+    ["supplier items", supplierItemsPage],
+    ["UOM conversions", uomConversionsPage],
+    ["staffs", staffsPage],
+  ]) {
+    assert.match(source, /<TableHead className="w-16 text-center">Action<\/TableHead>/, `${name}: centered singular Action heading`);
+    assert.doesNotMatch(source, /<TableHead[^>]*>Actions<\/TableHead>/, `${name}: no plural Actions heading`);
+  }
+  assert.doesNotMatch(purchaseReturnForm, /Auto-generated on submit|label="Return No"/);
+  assert.match(purchaseReturnForm, /name="purchase_return_no" value="PRT-AUTO"/);
 });

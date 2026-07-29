@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/empty-state";
+import { MetricStrip } from "@/components/ui/metric-strip";
 import { PageHeader } from "@/components/ui/page-header";
 import { SelectControl } from "@/components/ui/select-control";
 import { FilterBar } from "@/components/ui/filter-bar";
@@ -25,7 +26,15 @@ export default async function MasterDataCleanupPage({ searchParams }: { searchPa
       <ConsoleSection title="Scope"><p className="text-xs text-muted-foreground">Checks visible items, products, and suppliers only. It never changes stock, production, or finance records.</p></ConsoleSection>
     </>}>
       {!report ? <Card><CardContent className="p-5"><EmptyState title="Cleanup checks unavailable" description="Try again shortly. No master data was changed." /></CardContent></Card> : <div className="space-y-4">
-        <Card><CardContent className="grid gap-3 p-3 sm:grid-cols-4"><Metric label="Total issues" value={report.summary.total} /><Metric label="Critical" value={report.summary.critical} /><Metric label="Warnings" value={report.summary.warning} /><Metric label="Information" value={report.summary.info} /></CardContent></Card>
+        <MetricStrip
+          className="grid-cols-4 sm:grid-cols-4 lg:grid-cols-4"
+          items={[
+            { label: "Total issues", value: report.summary.total },
+            { label: "Critical", value: report.summary.critical },
+            { label: "Warnings", value: report.summary.warning },
+            { label: "Information", value: report.summary.info },
+          ]}
+        />
         <section className="overflow-hidden border bg-card">
           <FilterBar resultCount={report.issues.length} resetHref="/administration/master-data-cleanup" filtered={filtered}>
             <SelectControl name="severity" defaultValue={filters.severity ?? "all"} ariaLabel="Severity" options={[{ value: "all", label: "All severities" }, { value: "critical", label: "Critical" }, { value: "warning", label: "Warning" }, { value: "info", label: "Information" }]} />
@@ -40,8 +49,4 @@ export default async function MasterDataCleanupPage({ searchParams }: { searchPa
       </div>}
     </WorkspaceGrid>
   </>;
-}
-
-function Metric({ label, value }: { label: string; value: number }) {
-  return <div><p className="text-xs text-muted-foreground">{label}</p><strong>{value}</strong></div>;
 }

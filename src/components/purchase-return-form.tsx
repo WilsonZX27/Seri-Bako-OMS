@@ -45,9 +45,6 @@ export function PurchaseReturnForm({
                 ))}
               </SelectNative>
             </Field>
-            <Field label="Return No">
-              <div className="rounded-md border bg-secondary/30 px-3 py-2 text-sm text-muted-foreground">Auto-generated on submit</div>
-            </Field>
             <Field label="Return Date" required>
               <Input name="return_date" type="date" defaultValue={today()} required />
             </Field>

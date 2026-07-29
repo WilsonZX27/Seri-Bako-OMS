@@ -2069,10 +2069,6 @@ export type Database = {
         Args: { p_payload: Json };
         Returns: Json;
       };
-      create_central_kitchen_purchase_request_atomic: {
-        Args: { p_payload: Json };
-        Returns: Json;
-      };
       create_purchase_order_atomic: {
         Args: { p_payload: Json };
         Returns: Json;

@@ -30,8 +30,9 @@ test("stock count form keeps a local recovery snapshot and reports server save s
   assert.match(form, /role="status" aria-live="polite"/);
 });
 
-test("unapproved Central Kitchen PR migrations stay outside the integration tree", () => {
-  assert.equal(existsSync(join(root, "supabase", "migrations", "111_central_kitchen_purchase_request_atomic.sql")), false);
-  assert.equal(existsSync(join(root, "supabase", "migrations", "112_restrict_central_kitchen_pr_rpc_acl.sql")), false);
+test("applied Central Kitchen PR history is retired forward without shipping its API", () => {
+  assert.equal(existsSync(join(root, "supabase", "migrations", "111_central_kitchen_purchase_request_atomic.sql")), true);
+  assert.equal(existsSync(join(root, "supabase", "migrations", "112_restrict_central_kitchen_pr_rpc_acl.sql")), true);
+  assert.equal(existsSync(join(root, "supabase", "migrations", "113_retire_central_kitchen_pr_reservation_workflow.sql")), true);
   assert.equal(existsSync(join(root, "src", "app", "api", "central-kitchen")), false);
 });

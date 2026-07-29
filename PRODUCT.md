@@ -150,7 +150,7 @@ The system currently covers or is actively implementing the following operationa
 
 Module maturity must be understood separately from visual completion.
 
-Current integration baseline: `v7.62.0 — Reliable Stock Count Drafts` with reviewed database migrations through `110`. This conflict-safe consolidation retains the canonical operational baseline, adds recoverable Stock Count drafts, and preserves responsive E2E coverage recovered from a divergent local branch. Migrations `111` and `112` remain excluded because their alternate Central Kitchen purchase-request workflow has not been approved as the canonical procurement model.
+Current integration baseline: `v7.63.0 — Canonical PR Workflow Recovery` with reviewed database migrations through `113`. Migrations `111` and `112` are retained only as immutable history because they were applied to the linked database accidentally. Migration `113` removes their callable Central Kitchen PR RPC, prevents further access to the stock-holds table, and preserves that table temporarily for a non-destructive data audit.
 
 A page may exist visually without its full workflow, validation, database integration, permissions, and downstream effects being complete.
 

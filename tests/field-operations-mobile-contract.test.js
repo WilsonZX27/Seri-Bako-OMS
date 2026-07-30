@@ -31,7 +31,9 @@ test("stock count keeps setup separate from one continuous phone work surface", 
   assert.match(source, /data-stock-count-setup/);
   assert.match(source, /data-stock-count-workspace/);
   assert.match(source, /data-stock-count-line-list/);
-  assert.match(source, /border-b border-\[var\(--sb-border-soft\)\]/);
+  assert.match(source, /border-b border-slate-100/);
+  assert.match(source, /data-mobile-document-action/);
+  assert.match(source, /aria-live="polite"/);
   assert.match(design, /A phone workflow uses one boundary per operational unit/);
   assert.match(design, /Do not place a bordered or shadowed card inside another card/);
   assert.match(design, /multi-column editable desktop table must not be the primary phone input/);

@@ -386,7 +386,7 @@ export function StockCountForm({
                 return (
                   <div
                     key={line.item_id}
-                    className="grid min-h-14 grid-cols-[minmax(0,4fr)_minmax(4rem,2fr)_minmax(0,4fr)] items-center gap-2 border-b border-[var(--sb-border-soft)] px-3 py-2 md:gap-3"
+                    className="grid min-h-14 grid-cols-[minmax(0,4fr)_minmax(4rem,2fr)_minmax(0,4fr)] items-center gap-2 border-b border-slate-100 px-3 py-2 md:gap-3"
                   >
                     <div className="order-1 min-w-0">
                       <p className="max-h-9 overflow-hidden break-words text-sm font-medium leading-tight text-slate-800">{line.item_name}</p>
@@ -443,12 +443,20 @@ export function StockCountForm({
 
           {showSubmit ? (
             <div
+              data-mobile-document-action
               className="sb-mobile-action-bar fixed inset-x-3 z-[var(--sb-z-sticky)] flex min-w-0 items-center gap-3 p-2 xl:hidden"
               style={{ bottom: "calc(var(--sb-mobile-nav-height) + env(safe-area-inset-bottom) + 0.5rem)" }}
             >
               <div className="flex min-w-0 flex-1 flex-col items-start gap-0">
+                <span
+                  className={`max-w-full truncate text-xs font-medium ${autosaveState === "error" ? "text-destructive" : autosaveState === "saved" ? "text-[var(--sb-green-900)]" : "text-muted-foreground"}`}
+                  aria-live="polite"
+                  title={autosaveError || autosaveLabel}
+                >
+                  {autosaveLabel}
+                </span>
                 <span className="text-sm font-semibold tabular-nums">{lines.length} values ready</span>
-                <span className="text-xs tabular-nums text-muted-foreground">{adjustedCount} adjusted</span>
+                <span className="text-xs tabular-nums text-muted-foreground">{adjustedCount} adjusted{autosaveError ? ` · ${autosaveError}` : ""}</span>
               </div>
               <SubmitButton type="submit" disabled={!countComplete} className="shrink-0" pendingLabel="Saving..." showOverlay overlayLabel="Saving changes...">Save draft</SubmitButton>
             </div>

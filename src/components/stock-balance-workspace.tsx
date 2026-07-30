@@ -11,6 +11,7 @@ import { WorkspaceGrid } from "@/components/layout/workspace-layout";
 import { PageHeader } from "@/components/ui/page-header";
 import { FilterBar } from "@/components/ui/filter-bar";
 import { EmptyState } from "@/components/ui/empty-state";
+import { ErrorState } from "@/components/ui/system-states";
 import { SelectControl } from "@/components/ui/select-control";
 import { PaginationControls, SortableHead } from "@/components/sortable-table";
 import { OperationalList, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -59,6 +60,7 @@ export function StockBalanceWorkspace({
   page,
   lowStock,
   negative,
+  queryError,
   hasCreatePr,
 }: {
   rows: StockBalanceRow[];
@@ -70,6 +72,7 @@ export function StockBalanceWorkspace({
   page: number;
   lowStock: number;
   negative: number;
+  queryError: string | null;
   hasCreatePr: boolean;
 }) {
   const [basket, setBasket] = useState<Record<string, BasketLine>>({});
@@ -147,15 +150,15 @@ export function StockBalanceWorkspace({
             </ConsoleSection>
             <ConsoleSection title="Stock Summary">
               <div className="grid gap-2 text-xs">
-                <div className="flex justify-between"><span className="text-muted-foreground">Rows Shown</span><strong>{totalRows}</strong></div>
-                <div className="flex justify-between"><span className="text-muted-foreground">Low Stock</span><strong>{lowStock}</strong></div>
-                <div className="flex justify-between"><span className="text-muted-foreground">Negative</span><strong>{negative}</strong></div>
+                <div className="flex justify-between"><span className="text-muted-foreground">Rows Shown</span><strong>{queryError ? "—" : totalRows}</strong></div>
+                <div className="flex justify-between"><span className="text-muted-foreground">Low Stock</span><strong>{queryError ? "—" : lowStock}</strong></div>
+                <div className="flex justify-between"><span className="text-muted-foreground">Negative</span><strong>{queryError ? "—" : negative}</strong></div>
                 <div className="flex justify-between"><span className="text-muted-foreground">Scope</span><strong>Branch</strong></div>
               </div>
               <div className="my-3 border-t" />
               <div className="flex justify-between gap-3 text-xs">
                 <span className="text-muted-foreground">Inventory Value</span>
-                <strong>{formatCurrency(totalValue)}</strong>
+                <strong>{queryError ? "—" : formatCurrency(totalValue)}</strong>
               </div>
             </ConsoleSection>
             <ConsoleSection title="PR Preparation">
@@ -303,7 +306,15 @@ export function StockBalanceWorkspace({
                 <TableHead>Status</TableHead>
               </TableRow>
             </TableHeader>
-            {rows.length ? (
+            {queryError ? (
+              <TableBody>
+                <TableRow>
+                  <TableCell colSpan={11}>
+                    <ErrorState title="库存暂时无法加载" description={queryError} />
+                  </TableCell>
+                </TableRow>
+              </TableBody>
+            ) : rows.length ? (
               <StockBalanceTableRows rows={rows} inBasket={inBasket} onToggleBasket={toggleBasket} />
             ) : (
               <TableBody>
@@ -315,12 +326,14 @@ export function StockBalanceWorkspace({
               </TableBody>
             )}
           </Table>
-          <OperationalList ariaLabel="Stock balances">
-            {rows.length ? <StockBalanceOperationalRows rows={rows} inBasket={inBasket} onToggleBasket={toggleBasket} /> : null}
-            {!rows.length ? (
-              <EmptyState title="No stock balances yet" description="Balances appear after posted stock movements." />
-            ) : null}
-          </OperationalList>
+          {queryError ? null : (
+            <OperationalList ariaLabel="Stock balances">
+              {rows.length ? <StockBalanceOperationalRows rows={rows} inBasket={inBasket} onToggleBasket={toggleBasket} /> : null}
+              {!rows.length ? (
+                <EmptyState title="No stock balances yet" description="Balances appear after posted stock movements." />
+              ) : null}
+            </OperationalList>
+          )}
           <div className="pb-4">
             <PaginationControls page={page} totalPages={totalPages} totalRows={totalRows} searchParams={filters} />
           </div>

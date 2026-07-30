@@ -18,8 +18,38 @@ type LowStockRow = Database["public"]["Views"]["stock_balances_view"]["Row"] & {
   stock_status: "out_of_stock" | "low_stock";
   suggested_reorder_qty: number;
 };
+type StockBalanceRow = {
+  item_id: string;
+  item_code: string;
+  item_name: string;
+  supplier_id: string | null;
+  supplier_name: string | null;
+  branch_id: string | null;
+  branch_name: string | null;
+  available_qty: number;
+  reserved_qty: number;
+  current_qty: number;
+  base_unit: string;
+  average_cost: number;
+  inventory_value: number;
+  last_movement: string | null;
+  status: string;
+};
 
 const INVENTORY_PAGE_SIZE = 15;
+
+type PaginatedRows<T> = {
+  rows: T[];
+  totalRows: number;
+  page: number;
+  pageSize: number;
+  totalPages: number;
+  error: string | null;
+};
+
+function databasePaginationOrError<T>(rows: T[], totalRows: number | null, pageValue: string | undefined, error: string | null, pageSize = INVENTORY_PAGE_SIZE): PaginatedRows<T> {
+  return { ...databasePagination(rows, totalRows, pageValue, pageSize), error };
+}
 const LEDGER_SORT_COLUMNS = new Set(["transaction_no", "transaction_date", "transaction_type", "item_code", "item_name", "branch_name", "quantity_in", "quantity_out", "running_balance"]);
 const BALANCE_SORT_COLUMNS = new Set(["item_code", "item_name", "branch_name", "current_qty", "average_cost", "inventory_value", "last_movement"]);
 
@@ -245,7 +275,7 @@ export async function getStockLedger(filters: Filters = {}) {
   return databasePagination(data ?? [], count, filters.page);
 }
 
-export async function getStockBalanceDetails(filters: Filters = {}) {
+export async function getStockBalanceDetails(filters: Filters = {}): Promise<PaginatedRows<StockBalanceRow>> {
   if (isMockMode()) {
     const ledger = await getStockLedger({ sort: "transaction_date", dir: "asc" });
     const allRows = ledger.rows;
@@ -283,7 +313,7 @@ export async function getStockBalanceDetails(filters: Filters = {}) {
     const branchId = filters.branch_id && filters.branch_id !== "all" ? filters.branch_id : null;
     const scopeRows = branchId ? rows.filter((row) => row.branch_id === branchId) : rows;
     const filtered = filterRows(scopeRows, filters, ["item_code", "item_name", "branch_name", "status"], "item_name");
-    return paginateRows(filtered, filters.page, filters.page === "all" ? Math.max(filtered.length, 1) : 15);
+    return databasePaginationOrError(filtered, filtered.length, filters.page, null, filters.page === "all" ? Math.max(filtered.length, 1) : 15);
   }
 
   const supabase = await createClient();
@@ -303,7 +333,9 @@ export async function getStockBalanceDetails(filters: Filters = {}) {
   if (range) query = query.range(range.from, range.to);
   const { data, error, count } = await query;
   if (error) {
-    throw new Error(`Stock Balance could not be loaded: ${error.message}`);
+    const message = `Stock Balance could not be loaded: ${error.message}`;
+    warnOptionalInventoryQuery("Stock Balance details", error);
+    return databasePaginationOrError<StockBalanceRow>([], 0, filters.page, message);
   }
   const rows = (data ?? []).map((row) => ({
     ...row,
@@ -316,7 +348,7 @@ export async function getStockBalanceDetails(filters: Filters = {}) {
         ? "low_stock"
         : "ok",
   }));
-  return databasePagination(rows, count, filters.page);
+  return databasePaginationOrError(rows, count, filters.page, null);
 }
 
 export async function getInventoryDashboard(period: "7d" | "30d" | "month" = "30d") {

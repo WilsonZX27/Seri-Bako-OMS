@@ -10,6 +10,7 @@ export default async function StockBalancePage({ searchParams }: { searchParams:
     getStockBalanceDetails({ ...filters, view: "branch" }),
     hasPermission("purchase_request.create"),
   ]);
+  const queryError = balances.error;
   const totalValue = balances.rows.reduce((sum, item) => sum + item.inventory_value, 0);
   const lowStock = balances.rows.filter((item) => item.status === "low_stock").length;
   const negative = balances.rows.filter((item) => item.status === "negative").length;
@@ -25,6 +26,7 @@ export default async function StockBalancePage({ searchParams }: { searchParams:
       page={balances.page}
       lowStock={lowStock}
       negative={negative}
+      queryError={queryError}
       hasCreatePr={hasCreatePr}
     />
   );

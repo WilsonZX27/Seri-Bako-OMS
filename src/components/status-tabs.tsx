@@ -48,7 +48,7 @@ export function StatusTabs({ statuses, activeStatus }: { statuses: StatusTab[]; 
         value={selected}
         onValueChange={(value) => router.push(hrefFor(value))}
         options={tabs}
-        className="sb-status-filter-control w-full text-xs font-medium"
+        className="sb-status-filter-control min-h-[var(--sb-control-height)] w-full text-xs font-medium"
       />
     </nav>
   );

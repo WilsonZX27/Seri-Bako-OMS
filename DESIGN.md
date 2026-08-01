@@ -249,3 +249,8 @@ The Playwright route-layout audit is the baseline guard for all static workspace
 - **Non-retryable workflow conflicts:** A server response stating that an action cannot be completed in the current state is a lifecycle conflict, not a transient outage. Stop background retries, keep the local snapshot, and show that the changes remain recoverable on this device.
 - **85% audit baseline:** Pages that use `DocumentWorkspace`, `WorkspaceGrid`, `OperationalList`, or the shared mobile action/filter surfaces inherit the approved `/staffs/new` tablet split, compact phone hierarchy, and action-first rules. Record the audit in Notion before changing a shared component; only promote a code change when a real contract or visual defect is found.
 - **90% audit baseline:** Authentication and operational detail/report routes must be audited against the same shared shell before being marked ready; isolated auth pages keep business navigation out, while detail/report pages retain the approved right rail or compact operational list for their viewport.
+
+### v7.83.0 — Stock Count Autosave Visibility
+
+- Stock Count autosave feedback is visible directly beside the count date whenever a server draft action is available, so `Saving…`, `Saved`, recovery, and retry states remain discoverable without opening another panel.
+- Shared table Action links use a centered fixed touch target (`44px` on tablet, compact on desktop) rather than stretching the pen trigger across the entire cell; the Action header follows the same centered alignment.

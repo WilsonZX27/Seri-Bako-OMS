@@ -6,7 +6,6 @@ import { ConfirmActionForm } from "@/components/ui/confirm-action-form";
 import { SubmitButton } from "@/components/ui/submit-button";
 import { Card, CardContent } from "@/components/ui/card";
 import { StockCountForm } from "@/components/stock-count-form";
-import { StockCountAutosaveStatus } from "@/components/stock-count-autosave-status";
 import { BlockedDestructiveAction } from "@/components/ui/danger-confirm-form";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { formatDateOnly, formatQuantity } from "@/lib/utils";
@@ -68,7 +67,6 @@ export default async function StockCountDetailPage({ params }: { params: Promise
       branch={count.branch_name}
       workflowSteps={stockCountSteps}
       currentStatus={isLegacyPending ? "draft" : count.status}
-      mobileWorkflowTrailing={canEdit ? <StockCountAutosaveStatus /> : null}
       mobilePrimaryAction={mobilePrimaryAction}
       mobileActivity={documentBundle ? <><AttachmentPanel documentId={documentBundle.document.id} attachments={documentBundle.attachments} /><CommentsPanel documentId={documentBundle.document.id} comments={documentBundle.comments} /><DocumentTimeline document={documentBundle.document} activities={documentBundle.activityLogs} comments={documentBundle.comments} attachments={documentBundle.attachments} /></> : null}
       mobileMoreOptions={<DocumentMoreOptions>{secondaryActions}</DocumentMoreOptions>}

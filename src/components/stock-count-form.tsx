@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { AlertTriangle, ListFilter, Minus, Plus, Search } from "lucide-react";
+import { AlertTriangle, Check, Cloud, ListFilter, Minus, Plus, Search } from "lucide-react";
 import { Field } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { SelectNative } from "@/components/ui/select-native";
@@ -321,6 +321,10 @@ export function StockCountForm({
               <div className="min-w-0">
                 <p className="text-xs font-medium text-muted-foreground">Count date</p>
                 <p className="truncate text-sm font-semibold text-foreground">{initialCountDate ? formatDateOnly(countDate) : `Today · ${formatDateOnly(countDate)}`}</p>
+                {autosaveAction ? <div className={`mt-1 flex min-w-0 items-center gap-1 text-[11px] ${autosaveState === "error" ? "text-destructive" : autosaveState === "saved" ? "text-[var(--sb-green-900)]" : "text-muted-foreground"}`} role="status" aria-live="polite">
+                  {autosaveState === "saved" ? <Check className="h-3.5 w-3.5 shrink-0" aria-hidden="true" /> : <Cloud className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />}
+                  <span className="truncate" title={autosaveError || autosaveLabel}>{autosaveLabel}</span>
+                </div> : null}
               </div>
               <Input aria-label="Count date" name="count_date" type="date" value={countDate} onChange={(event) => { setCountDate(event.target.value); markDirty(); }} required className="basis-36 shrink-0" />
             </div>

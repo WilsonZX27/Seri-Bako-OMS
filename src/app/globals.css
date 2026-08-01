@@ -729,6 +729,11 @@ input[type="date"]::-webkit-date-and-time-value {
   background: var(--sb-surface);
 }
 
+.sb-table-region[data-sticky-column="second"] thead th:first-child,
+.sb-table-region[data-sticky-column="third"] thead th:nth-child(2) {
+  text-align: center;
+}
+
 /* A checkbox is 40px, so its following Action cell must begin at 40px. */
 .sb-table-region[data-sticky-column="third"] th:nth-child(2),
 .sb-table-region[data-sticky-column="third"] td:nth-child(2) {

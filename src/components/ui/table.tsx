@@ -101,7 +101,7 @@ export function TableSelectionCell({ className, ...props }: React.TdHTMLAttribut
 
 export function TableActionLink({ href, label, children, className }: { href: string; label: string; children: React.ReactNode; className?: string }) {
   return (
-    <a href={href} aria-label={label} className={cn("mx-auto inline-flex h-12 w-full items-center justify-center text-[var(--sb-text-muted)] hover:bg-[var(--sb-surface-muted)] hover:text-[var(--sb-green-700)] md:h-11 xl:h-8 [&>svg]:!h-3.5 [&>svg]:!w-3.5", className)}>
+    <a href={href} aria-label={label} className={cn("mx-auto inline-flex h-11 w-11 shrink-0 items-center justify-center text-[var(--sb-text-muted)] hover:bg-[var(--sb-surface-muted)] hover:text-[var(--sb-green-700)] xl:h-8 xl:w-8 [&>svg]:!h-3.5 [&>svg]:!w-3.5", className)}>
       {children}
     </a>
   );

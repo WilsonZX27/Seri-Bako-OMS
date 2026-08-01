@@ -572,6 +572,10 @@ input[type="date"]::-webkit-date-and-time-value {
 }
 
 @media (max-width: 1279px) {
+  html[data-filter-dialog-open] [data-mobile-app-nav] {
+    display: none !important;
+  }
+
   .sb-filter-more[open] > .sb-filter-more-backdrop {
     position: fixed;
     z-index: var(--sb-z-backdrop);

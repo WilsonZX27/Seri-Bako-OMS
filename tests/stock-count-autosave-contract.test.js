@@ -20,7 +20,6 @@ test("stock count autosave preserves the canonical Draft to Confirm and Post wor
 
 test("stock count form keeps a local recovery snapshot and reports server save state", () => {
   const form = read("src", "components", "stock-count-form.tsx");
-  const status = read("src", "components", "stock-count-autosave-status.tsx");
   const detail = read("src", "app", "(app)", "stock-counts", "[id]", "page.tsx");
   const actions = read("src", "server", "actions", "stock-counts.ts");
 
@@ -34,9 +33,10 @@ test("stock count form keeps a local recovery snapshot and reports server save s
   assert.match(form, /Recovered unsaved changes/);
   assert.match(form, /Save failed — retrying/);
   assert.match(form, /Save failed — changes kept locally/);
-  assert.match(status, /role="status"/);
-  assert.match(status, /aria-live="polite"/);
-  assert.match(detail, /mobileWorkflowTrailing=\{canEdit \? <StockCountAutosaveStatus \/> : null\}/);
+  assert.match(form, /role="status"/);
+  assert.match(form, /aria-live="polite"/);
+  assert.doesNotMatch(detail, /mobileWorkflowTrailing/);
+  assert.doesNotMatch(detail, /StockCountAutosaveStatus/);
   assert.match(detail, /canEdit && canPost \? "grid-cols-2" : "grid-cols-1"/);
   assert.match(actions, /autosaveStockCountDraft[\s\S]*updateStockCountDraftRecord\(id, formData, \{ revalidate: false \}\)/);
 });

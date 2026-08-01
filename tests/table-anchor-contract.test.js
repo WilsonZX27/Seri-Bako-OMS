@@ -14,7 +14,7 @@ test("technical tables use the shared pinned lead band without overlap", () => {
   assert.match(table, /stickyColumn = "first"/);
   assert.match(table, /stickyColumn\?: "none" \| "first" \| "second" \| "third"/);
   assert.doesNotMatch(table, /"last"/);
-  assert.match(table, /mx-auto[\s\S]*h-12 w-full[\s\S]*justify-center[\s\S]*md:h-11[\s\S]*xl:h-8/);
+  assert.match(table, /mx-auto[\s\S]*h-11 w-11[\s\S]*shrink-0[\s\S]*justify-center[\s\S]*xl:h-8 xl:w-8/);
   assert.match(styles, /data-sticky-column="first"/);
   assert.match(styles, /data-sticky-column="second"/);
   assert.match(styles, /data-sticky-column="third"/);

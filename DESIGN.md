@@ -258,3 +258,8 @@ The Playwright route-layout audit is the baseline guard for all static workspace
 ### v7.84.0 — Filter Dialog Navigation Safety
 
 - When `FilterBarMore` is open on phone or tablet, the mobile bottom navigation is hidden behind the dialog. The filter dialog owns the interaction surface until it is closed or applied.
+
+### v7.85.0 — Stock Count Autosave Cleanup
+
+- Stock Count keeps one canonical autosave status beside the count date; the retired event-driven duplicate status component is removed so the visible state cannot diverge between surfaces.
+- Contract tests follow the fixed centered Action touch target and the single autosave status source.

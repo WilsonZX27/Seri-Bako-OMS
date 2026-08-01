@@ -26,7 +26,6 @@ type SeedLine = {
 
 type SeedLineInput = SeedLine & { physicalQty: string; remarks: string; initialPhysicalQty: string; adjusted: boolean };
 type AutosaveState = "idle" | "recovered" | "saving" | "saved" | "error";
-export const STOCK_COUNT_AUTOSAVE_EVENT = "seri-bako:stock-count-autosave";
 const STOCK_COUNT_SORT_KEY = "seri-bako:stock-count-sort";
 type LocalDraftSnapshot = {
   branchId: string;
@@ -303,12 +302,6 @@ export function StockCountForm({
             ? "Save failed — retrying"
             : "Save failed — changes kept locally"
           : "Autosave ready";
-
-  useEffect(() => {
-    window.dispatchEvent(new CustomEvent(STOCK_COUNT_AUTOSAVE_EVENT, {
-      detail: { state: autosaveState, label: autosaveLabel, error: autosaveError },
-    }));
-  }, [autosaveError, autosaveLabel, autosaveState, autosaveRetryable]);
 
   return (
     <div className="rounded-none md:rounded-[var(--sb-panel-radius)] md:border md:bg-white">

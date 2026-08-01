@@ -26,11 +26,12 @@ export default async function InventoryPage({ searchParams }: { searchParams: Pr
   const period = params.consumption === "7d" || params.consumption === "month" ? params.consumption : "30d";
   const [summary, permissions] = await Promise.all([getInventoryDashboard(period), getPermissionMap([...modules.map((module) => module.permission), "goods_receiving.read"])]);
   const visibleModules = modules.filter((module) => permissions[module.permission]);
+  const formatCounter = (counter: { value: number; unavailable?: boolean }) => counter.unavailable ? "Unavailable" : formatNumber(counter.value);
   const counters = [
-    { label: "Low stock", value: summary.lowStockItems, href: "/low-stock", permission: "low_stock.view" },
-    { label: "Counts due", value: summary.stockCountDue, href: "/stock-counts?status=draft", permission: "stock_count.read" },
-    { label: "Transfers today", value: summary.todaysTransfers, href: "/stock-transfers?date=today", permission: "stock_transfer.read" },
-    { label: "Receiving today", value: summary.todaysReceiving, href: "/goods-receivings?date=today", permission: "goods_receiving.read" },
+    { label: "Low stock", value: summary.lowStockItems, unavailable: summary.lowStockUnavailable, href: "/low-stock", permission: "low_stock.view" },
+    { label: "Counts due", value: summary.stockCountDue, unavailable: summary.stockCountDueUnavailable, href: "/stock-counts?status=draft", permission: "stock_count.read" },
+    { label: "Transfers today", value: summary.todaysTransfers, unavailable: summary.todaysTransfersUnavailable, href: "/stock-transfers?date=today", permission: "stock_transfer.read" },
+    { label: "Receiving today", value: summary.todaysReceiving, unavailable: summary.todaysReceivingUnavailable, href: "/goods-receivings?date=today", permission: "goods_receiving.read" },
   ].filter((counter) => permissions[counter.permission]);
   const primaryModule = visibleModules.find((module) => module.href === "/stock-balance") ?? visibleModules[0];
   const attentionCounters = counters.filter((counter) => counter.label === "Low stock" || counter.label === "Counts due");
@@ -38,7 +39,7 @@ export default async function InventoryPage({ searchParams }: { searchParams: Pr
   return (
     <>
       <PageHeader title="Inventory Workspace" description="Review branch stock, movement, and operational exceptions." />
-      <WorkspaceGrid className="p-3 sm:p-5" hideMobileConsole rightRail={<><ConsoleSection title="Attention summary"><div className="space-y-2 text-xs">{permissions["low_stock.view"] ? <p className="flex justify-between gap-3"><span className="text-muted-foreground">Low stock</span><strong>{formatNumber(summary.lowStockItems)}</strong></p> : null}{permissions["stock_count.read"] ? <p className="flex justify-between gap-3"><span className="text-muted-foreground">Counts due</span><strong>{formatNumber(summary.stockCountDue)}</strong></p> : null}</div></ConsoleSection><ConsoleSection title="Control basis"><p className="text-xs leading-5 text-muted-foreground">Balances come from posted Movement Ledger entries and follow branch access.</p></ConsoleSection></>}>
+      <WorkspaceGrid className="p-3 sm:p-5" hideMobileConsole rightRail={<><ConsoleSection title="Attention summary"><div className="space-y-2 text-xs">{permissions["low_stock.view"] ? <p className="flex justify-between gap-3"><span className="text-muted-foreground">Low stock</span><strong>{formatCounter(counters.find((counter) => counter.label === "Low stock")!)}</strong></p> : null}{permissions["stock_count.read"] ? <p className="flex justify-between gap-3"><span className="text-muted-foreground">Counts due</span><strong>{formatCounter(counters.find((counter) => counter.label === "Counts due")!)}</strong></p> : null}</div></ConsoleSection><ConsoleSection title="Control basis"><p className="text-xs leading-5 text-muted-foreground">Balances come from posted Movement Ledger entries and follow branch access.</p></ConsoleSection></>}>
         <div className="space-y-4 pb-24 md:pb-0">
           <div className="md:hidden">
             <OperationalHub
@@ -50,7 +51,7 @@ export default async function InventoryPage({ searchParams }: { searchParams: Pr
               }}
               metrics={counters.map((counter) => ({
                 label: counter.label,
-                value: formatNumber(counter.value),
+                value: formatCounter(counter),
                 tone: counter.label === "Low stock" && counter.value ? "danger" : counter.label === "Counts due" && counter.value ? "warning" : "default",
               }))}
               queueTitle="Needs attention"
@@ -59,7 +60,7 @@ export default async function InventoryPage({ searchParams }: { searchParams: Pr
                 href: counter.href,
                 title: counter.label,
                 description: counter.label === "Low stock" ? "Review items at or below safety level" : "Continue open physical counts",
-                value: formatNumber(counter.value),
+                value: formatCounter(counter),
                 icon: counter.label === "Low stock" ? TriangleAlert : ClipboardCheck,
                 tone: counter.value ? (counter.label === "Low stock" ? "danger" : "warning") : "default",
               }))}
@@ -74,7 +75,7 @@ export default async function InventoryPage({ searchParams }: { searchParams: Pr
           </div>
           <section className="hidden overflow-hidden rounded-[2px] border bg-card md:block" aria-labelledby="inventory-overview">
             <div className="border-b px-4 py-3"><h2 id="inventory-overview" className="text-sm font-semibold">Operational overview</h2></div>
-            <div className="grid divide-y sm:grid-cols-2 sm:divide-x sm:divide-y-0 xl:grid-cols-4">{counters.map((counter) => <Link key={counter.label} href={counter.href} className="flex min-h-16 items-center justify-between gap-3 px-3 py-2.5 hover:bg-secondary/40 sm:min-h-20 sm:px-4 sm:py-3"><span className="text-xs text-muted-foreground">{counter.label}</span><strong className="font-mono text-lg sm:text-xl">{formatNumber(counter.value)}</strong></Link>)}</div>
+            <div className="grid divide-y sm:grid-cols-2 sm:divide-x sm:divide-y-0 xl:grid-cols-4">{counters.map((counter) => <Link key={counter.label} href={counter.href} className="flex min-h-16 items-center justify-between gap-3 px-3 py-2.5 hover:bg-secondary/40 sm:min-h-20 sm:px-4 sm:py-3"><span className="text-xs text-muted-foreground">{counter.label}</span><strong className={counter.unavailable ? "font-mono text-lg text-[var(--sb-warning)] sm:text-xl" : "font-mono text-lg sm:text-xl"}>{formatCounter(counter)}</strong></Link>)}</div>
           </section>
           <section className="hidden overflow-hidden rounded-[2px] border bg-card md:block" aria-labelledby="inventory-actions">
             <div className="border-b px-4 py-3"><h2 id="inventory-actions" className="text-sm font-semibold">Inventory actions and review</h2></div>

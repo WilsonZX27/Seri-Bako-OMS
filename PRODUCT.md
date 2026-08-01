@@ -2,6 +2,17 @@
 
 ## Product Overview
 
+### Current audit baseline
+
+The current application baseline is `v7.87.0 — Staff Access Default Branch Submission Fix`.
+Deep operational green is the ordinary primary action color;
+mobile controls keep a minimum 48px touch target. User-visible dates use
+`dd/mm/yyyy`, while native date inputs continue to submit ISO date-only values.
+Read failures must remain visibly unavailable rather than being presented as a
+misleading zero or empty-success state. Save and confirm/post actions remain
+separate, and retrying a committed inventory action must not create a second
+movement.
+
 Seri Bako Operations Management System (OMS) is an internal operations platform for managing Seri Bako's daily procurement, inventory, goods receiving, production, approval, staff access, and operational records.
 
 The system is designed to replace fragmented workflows across spreadsheets, paper forms, WhatsApp messages, and disconnected records with a single operational source of truth.

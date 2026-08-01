@@ -1,5 +1,20 @@
 # Seri Bako OMS Architecture
 
+## Current audit baseline (v7.87.0 — Staff Access Default Branch Submission Fix)
+
+The application shell uses dynamic viewport sizing (`dvh`) instead of a fixed
+`100vh` contract. Mobile-safe content reserves space for bottom navigation and
+sticky action rails, so browser chrome changes do not clip the work area. The
+Next.js App Router exposes `src/app/manifest.ts` as a standalone portrait PWA
+manifest. The optional Cordova wrapper is edge-to-edge with fullscreen and
+status-bar overlay preferences; it is not an authorization boundary.
+
+Operational reads must distinguish an unavailable query from a real zero.
+Dashboard and Inventory surfaces render an explicit unavailable state when a
+source query fails. Inventory balances remain derived from posted ledger
+movements. Mutation forms use server-side permission checks and synchronous
+client locks where a repeat click could create a second request.
+
 ## Purpose
 
 This document defines the technical architecture, system boundaries, authorization model, data principles, and implementation rules for Seri Bako OMS.

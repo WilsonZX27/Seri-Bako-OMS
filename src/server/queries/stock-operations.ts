@@ -42,12 +42,14 @@ export async function getStockTransfers(filters: Filters = {}) {
     return paginateRows(filterRows(rows, filters, ["transfer_no", "status", "remarks", "from_branch_name", "to_branch_name"], "transfer_date"), filters.page, 12);
   }
   const supabase = await createClient();
-  const [{ data, error }, { data: lines }, { data: branches }] = await Promise.all([
+  const [{ data, error }, { data: lines, error: linesError }, { data: branches, error: branchesError }] = await Promise.all([
     supabase.from("stock_transfers").select("*").is("deleted_at", null),
     supabase.from("stock_transfer_lines").select("*"),
     supabase.from("branches").select("id, branch_name"),
   ]);
   if (error) throw new Error(error.message);
+  if (linesError) throw new Error(`Stock transfer lines could not be loaded: ${linesError.message}`);
+  if (branchesError) throw new Error(`Branches could not be loaded: ${branchesError.message}`);
   const branch = new Map((branches ?? []).map((row) => [row.id, row.branch_name]));
   const displayMap = await resolveActorDisplayMap((data ?? []).map((row) => row.created_by));
   const rows = ((data ?? []) as Transfer[]).map((row) => ({ ...row, from_branch_name: row.from_branch_id ? branch.get(row.from_branch_id) ?? null : null, to_branch_name: row.to_branch_id ? branch.get(row.to_branch_id) ?? null : null, created_by_name: actorDisplayName(displayMap, row.created_by), line_count: (lines ?? []).filter((line) => line.stock_transfer_id === row.id).length }));
@@ -62,13 +64,16 @@ export async function getStockTransfer(id: string) {
     return { transfer: { ...transfer, from_branch_name: mockBranches.find((branch) => branch.id === transfer.from_branch_id)?.branch_name ?? null, to_branch_name: mockBranches.find((branch) => branch.id === transfer.to_branch_id)?.branch_name ?? null, line_count: lines.length }, lines };
   }
   const supabase = await createClient();
-  const [{ data, error }, { data: lines }, { data: items }, { data: branches }] = await Promise.all([
+  const [{ data, error }, { data: lines, error: linesError }, { data: items, error: itemsError }, { data: branches, error: branchesError }] = await Promise.all([
     supabase.from("stock_transfers").select("*").eq("id", id).single(),
     supabase.from("stock_transfer_lines").select("*").eq("stock_transfer_id", id),
     supabase.from("items").select("id,item_code,item_name,base_unit,item_image_url"),
     supabase.from("branches").select("id, branch_name"),
   ]);
   if (error) throw new Error(error.message);
+  if (linesError) throw new Error(`Stock transfer lines could not be loaded: ${linesError.message}`);
+  if (itemsError) throw new Error(`Items could not be loaded: ${itemsError.message}`);
+  if (branchesError) throw new Error(`Branches could not be loaded: ${branchesError.message}`);
   const itemMap = new Map((items ?? []).map((row) => [row.id, row]));
   const branch = new Map((branches ?? []).map((row) => [row.id, row.branch_name]));
   const transfer = data as Transfer;
@@ -81,12 +86,14 @@ export async function getStockWastage(filters: Filters = {}) {
     return paginateRows(filterRows(rows, filters, ["wastage_no", "status", "reason", "remarks", "branch_name"], "wastage_date"), filters.page, 12);
   }
   const supabase = await createClient();
-  const [{ data, error }, { data: lines }, { data: branches }] = await Promise.all([
+  const [{ data, error }, { data: lines, error: linesError }, { data: branches, error: branchesError }] = await Promise.all([
     supabase.from("stock_wastage").select("*").is("deleted_at", null),
     supabase.from("stock_wastage_lines").select("*"),
     supabase.from("branches").select("id, branch_name"),
   ]);
   if (error) throw new Error(error.message);
+  if (linesError) throw new Error(`Wastage lines could not be loaded: ${linesError.message}`);
+  if (branchesError) throw new Error(`Branches could not be loaded: ${branchesError.message}`);
   const branch = new Map((branches ?? []).map((row) => [row.id, row.branch_name]));
   const displayMap = await resolveActorDisplayMap((data ?? []).map((row) => row.created_by));
   const rows = ((data ?? []) as Wastage[]).map((row) => ({ ...row, branch_name: row.branch_id ? branch.get(row.branch_id) ?? null : null, created_by_name: actorDisplayName(displayMap, row.created_by), line_count: (lines ?? []).filter((line) => line.stock_wastage_id === row.id).length }));
@@ -101,13 +108,16 @@ export async function getStockWastageDetail(id: string) {
     return { wastage: { ...wastage, branch_name: mockBranches.find((branch) => branch.id === wastage.branch_id)?.branch_name ?? null, line_count: lines.length }, lines };
   }
   const supabase = await createClient();
-  const [{ data, error }, { data: lines }, { data: items }, { data: branches }] = await Promise.all([
+  const [{ data, error }, { data: lines, error: linesError }, { data: items, error: itemsError }, { data: branches, error: branchesError }] = await Promise.all([
     supabase.from("stock_wastage").select("*").eq("id", id).single(),
     supabase.from("stock_wastage_lines").select("*").eq("stock_wastage_id", id),
     supabase.from("items").select("id,item_code,item_name,base_unit,item_image_url"),
     supabase.from("branches").select("id, branch_name"),
   ]);
   if (error) throw new Error(error.message);
+  if (linesError) throw new Error(`Wastage lines could not be loaded: ${linesError.message}`);
+  if (itemsError) throw new Error(`Items could not be loaded: ${itemsError.message}`);
+  if (branchesError) throw new Error(`Branches could not be loaded: ${branchesError.message}`);
   const itemMap = new Map((items ?? []).map((row) => [row.id, row]));
   const branch = new Map((branches ?? []).map((row) => [row.id, row.branch_name]));
   const wastage = data as Wastage;

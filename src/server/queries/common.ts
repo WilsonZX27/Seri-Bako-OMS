@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { isMockMode, mockBranches, mockCompany, mockItems, mockProfile, mockSuppliers } from "@/lib/mock-mode";
+import { getCurrentUserScope } from "@/server/queries/notifications";
 import { cache } from "react";
 
 export const getCurrentProfile = cache(async function getCurrentProfile() {
@@ -153,7 +154,7 @@ export async function getDefaultCompanyId() {
   return data.id;
 }
 
-export const getBranchesForSelect = cache(async function getBranchesForSelect() {
+export const getBranchesForSelect = cache(async function getBranchesForSelect(restrictToActorScope = false) {
   if (isMockMode()) {
     return mockBranches
       .filter((branch) => branch.status === "active")
@@ -161,12 +162,15 @@ export const getBranchesForSelect = cache(async function getBranchesForSelect() 
   }
 
   const supabase = await createClient();
-  const { data, error } = await supabase
-    .from("branches")
-    .select("id, branch_code, branch_name, status")
-    .eq("status", "active")
-    .order("branch_name", { ascending: true });
-
+  let query = supabase.from("branches").select("id, branch_code, branch_name, status").eq("status", "active").order("branch_name", { ascending: true });
+  if (restrictToActorScope) {
+    const scope = await getCurrentUserScope();
+    if (!scope || (!scope.companyWideAccess && !scope.branchIds.length)) return [];
+    if (!scope.companyWideAccess && scope.branchIds.length) {
+      query = query.in("id", scope.branchIds);
+    }
+  }
+  const { data, error } = await query;
   if (error) throw new Error(error.message);
   return data;
 });

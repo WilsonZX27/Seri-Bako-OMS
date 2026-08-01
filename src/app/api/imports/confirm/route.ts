@@ -19,7 +19,13 @@ const importSchema = z.object({
   entity: z.enum(importEntities),
   mode: z.enum(["create", "update", "upsert"]).default("create"),
   confirmPosting: z.boolean().optional(),
-  rows: z.array(z.record(z.string().max(100), importCellSchema)).min(1).max(500),
+  rows: z.array(
+    z.record(z.string().max(100), importCellSchema).superRefine((row, context) => {
+      if (Object.keys(row).length > 64) {
+        context.addIssue({ code: "custom", message: "An import row contains too many columns." });
+      }
+    }),
+  ).min(1).max(500),
 });
 
 type ImportRequest = z.infer<typeof importSchema>;
@@ -92,12 +98,19 @@ function hasDuplicateInFile(summary: ImportSummary, seen: Map<string, number>, k
   return false;
 }
 
-function parseDate(value: unknown) {
+function parseDate(value: unknown): string | null {
   const text = normalizeText(value);
   if (!text) return null;
-  const parsed = new Date(text);
-  if (Number.isNaN(parsed.getTime())) return null;
-  return parsed.toISOString().slice(0, 10);
+  const dateOnly = text.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (dateOnly) {
+    const [, year, month, day] = dateOnly;
+    const candidate = new Date(Date.UTC(Number(year), Number(month) - 1, Number(day)));
+    return candidate.getUTCFullYear() === Number(year) && candidate.getUTCMonth() === Number(month) - 1 && candidate.getUTCDate() === Number(day)
+      ? `${year}-${month}-${day}`
+      : null;
+  }
+  const slashDate = text.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+  return slashDate ? parseDate(`${slashDate[3]}-${slashDate[2]}-${slashDate[1]}`) : null;
 }
 
 function createSummary(): ImportSummary {
@@ -1205,6 +1218,7 @@ export async function POST(request: Request) {
     return response(payload.data.entity, summary);
   } catch (error) {
     logServerError(error, { source: "api.imports.confirm" });
+    const message = formatActionError(error, "Could not complete this import right now.");
     return NextResponse.json(
       {
         ok: false,
@@ -1213,7 +1227,7 @@ export async function POST(request: Request) {
         skipped: 0,
         errors: 1,
           message: formatActionError(error, "Could not complete this import right now."),
-        errorRows: [],
+        errorRows: [{ rowNumber: 0, values: {}, message }],
       },
       { status: 500 },
     );

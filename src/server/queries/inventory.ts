@@ -364,6 +364,12 @@ export async function getInventoryDashboard(period: "7d" | "30d" | "month" = "30
     pendingAdjustments: 0,
     stockCountDue: 0,
   };
+  let counterUnavailable = {
+    todaysReceiving: false,
+    todaysTransfers: false,
+    pendingAdjustments: false,
+    stockCountDue: false,
+  };
   if (!isMockMode()) {
     const supabase = await createClient();
     const [items, receiving, transfers, pendingAdjustments, stockCountDue] = await Promise.all([
@@ -383,6 +389,12 @@ export async function getInventoryDashboard(period: "7d" | "30d" | "month" = "30
       pendingAdjustments: pendingAdjustments.count ?? 0,
       stockCountDue: stockCountDue.count ?? 0,
     };
+    counterUnavailable = {
+      todaysReceiving: Boolean(receiving.error),
+      todaysTransfers: Boolean(transfers.error),
+      pendingAdjustments: Boolean(pendingAdjustments.error),
+      stockCountDue: Boolean(stockCountDue.error),
+    };
   }
   const periodStart = new Date();
   if (period === "7d") periodStart.setDate(periodStart.getDate() - 7);
@@ -395,7 +407,14 @@ export async function getInventoryDashboard(period: "7d" | "30d" | "month" = "30
     if (row.quantity_out > 0 && row.transaction_type === "production_usage" && new Date(row.transaction_date) >= periodStart) consumed.set(row.item_name, (consumed.get(row.item_name) ?? 0) + row.quantity_out);
   });
   const top = (map: Map<string, number>) => Array.from(map.entries()).map(([name, qty]) => ({ name, qty })).sort((a, b) => b.qty - a.qty).slice(0, 5);
-  const lowStockRows = await getLowStockItems();
+  let lowStockRows: Awaited<ReturnType<typeof getLowStockItems>> = [];
+  let lowStockUnavailable = false;
+  try {
+    lowStockRows = await getLowStockItems();
+  } catch (error) {
+    lowStockUnavailable = true;
+    warnOptionalInventoryQuery("dashboard low stock", error instanceof Error ? error : { message: String(error) });
+  }
   return {
     inventoryValue: rows.reduce((sum, row) => sum + row.inventory_value, 0),
     totalActiveItems: operationCounts.totalActiveItems,
@@ -410,6 +429,12 @@ export async function getInventoryDashboard(period: "7d" | "30d" | "month" = "30
     topPurchasedItems: top(purchased),
     topConsumedItems: top(consumed),
     lowStockRows,
+    inventoryUnavailable: Boolean(balances.error || lowStockUnavailable),
+    lowStockUnavailable,
+    stockCountDueUnavailable: counterUnavailable.stockCountDue,
+    todaysTransfersUnavailable: counterUnavailable.todaysTransfers,
+    todaysReceivingUnavailable: counterUnavailable.todaysReceiving,
+    pendingAdjustmentsUnavailable: counterUnavailable.pendingAdjustments,
     consumptionPeriod: period,
   };
 }
@@ -448,7 +473,7 @@ export async function getLowStockItems(filters: Filters = {}) {
   const { data, error } = await supabase.from("stock_balances_view").select("*").order("item_name", { ascending: true });
   if (error) {
     warnOptionalInventoryQuery("low stock items", error);
-    return [];
+    throw new Error(`Low stock could not be loaded: ${error.message}`);
   }
   const search = filters.search?.trim().toLowerCase();
   const branchId = filters.branch_id && filters.branch_id !== "all" ? filters.branch_id : null;

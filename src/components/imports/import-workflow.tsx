@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { AlertTriangle, CheckCircle2, Download, FileSpreadsheet, Save, Trash2, Upload, XCircle } from "lucide-react";
 import { importTemplates, type ImportEntity, type ImportMode } from "@/lib/imports/config";
 import { Button } from "@/components/ui/button";
@@ -208,6 +208,7 @@ export function ImportWorkflow({ entity, suppliers = [] }: { entity: ImportEntit
   const [confirmPosting, setConfirmPosting] = useState(false);
   const [result, setResult] = useState<ImportResult | null>(null);
   const [draftSavedAt, setDraftSavedAt] = useState<string | null>(null);
+  const savingRef = useRef(false);
   const validRows = useMemo(() => rows.filter((row) => !row.errors.length), [rows]);
   const errorRows = useMemo(() => rows.filter((row) => row.errors.length), [rows]);
 
@@ -363,6 +364,8 @@ export function ImportWorkflow({ entity, suppliers = [] }: { entity: ImportEntit
   }
 
   async function confirmImport() {
+    if (savingRef.current) return;
+    savingRef.current = true;
     setIsSaving(true);
     setResult(null);
 
@@ -387,6 +390,7 @@ export function ImportWorkflow({ entity, suppliers = [] }: { entity: ImportEntit
     } catch {
       setMessage("Could not complete this import. Please try again.");
     } finally {
+      savingRef.current = false;
       setIsSaving(false);
     }
   }

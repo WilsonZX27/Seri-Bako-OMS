@@ -8,10 +8,16 @@ For UI and interaction standards, read `DESIGN.md`.
 
 ## Current Release Baseline
 
-- Application release: `v7.24.3 — Invited Staff First-Login Recovery`.
+- Application release: `v7.87.0 — Staff Access Default Branch Submission Fix`.
 - Database migration ceiling: `106_invited_staff_self_read`.
 - Tenant isolation, inventory posting atomicity, procurement/document transitions, concurrency controls, and credential handoff are database-authoritative.
 - Start with `docs/PILOT_BASELINE.md`, use the controlled CSV files in `docs/import-templates/`, and record sign-off in `docs/PILOT_QA_CHECKLIST.md`.
+
+The shell uses dynamic viewport sizing for mobile browser chrome, and
+`/manifest.webmanifest` is standalone/portrait for installed PWA use. User-
+visible dates use `dd/mm/yyyy`; native date inputs keep ISO `yyyy-mm-dd`
+payloads. Query failures are shown as unavailable rather than silently
+presented as zero.
 
 ## Technology Stack
 

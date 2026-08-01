@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { isMockMode, mockCompany, mockProfile } from "@/lib/mock-mode";
+import { isMockMode } from "@/lib/mock-mode";
 import { createClient } from "@/lib/supabase/server";
 import { stockCountSchema } from "@/lib/validations/stock-count";
 import { writeActivityLog } from "@/server/activity/log";
@@ -10,7 +10,6 @@ import { requirePermission } from "@/server/auth/permissions";
 import { classifyActionError, formatActionError, requirePermissionOrRedirect, rethrowRedirect, safeRedirectWithMessage } from "@/server/actions/error-handling";
 import { revalidateWorkspaceState } from "@/server/actions/revalidate";
 import { logServerWarning } from "@/server/observability/logger";
-import { getCurrentProfile } from "@/server/queries/common";
 import { getStockCountSeedLines } from "@/server/queries/stock-counts";
 import { z } from "zod";
 
@@ -35,11 +34,6 @@ function formatStockCountPostingError(error: unknown) {
   if (normalized.includes("unavailable for this branch")) return "This Stock Count is outside your assigned branch scope.";
   if (normalized.includes("posting reference") || normalized.includes("transaction reference")) return "This Stock Count posting reference conflicts with an existing inventory movement.";
   return formatActionError(error, "The Stock Count could not be posted. No inventory changes were made.");
-}
-
-async function identity() {
-  if (isMockMode()) return { company_id: mockCompany.id, id: mockProfile.id };
-  return getCurrentProfile();
 }
 
 function extractStockCount(formData: FormData) {
@@ -176,22 +170,10 @@ export async function cancelStockCount(id: string) {
   await requirePermission("stock_count.cancel");
   if (isMockMode()) return;
   const countId = stockCountIdSchema.parse(id);
-  const profile = await identity();
   const supabase = await createClient();
-  const { data: updatedCount, error } = await supabase
-    .from("stock_counts")
-    .update({ status: "cancelled", cancelled_at: new Date().toISOString(), updated_by: profile?.id ?? null })
-    .eq("id", countId)
-    .eq("status", "draft")
-    .select("id,document_id,count_no")
-    .maybeSingle();
+  const { data: updatedCount, error } = await supabase.rpc("cancel_stock_count_atomic", { p_stock_count_id: countId });
   if (error) throw new Error(error.message);
-  if (!updatedCount) throw new Error("Only a draft stock count can be cancelled.");
-  if (updatedCount.document_id) {
-    const { error: documentError } = await supabase.from("documents").update({ status: "cancelled", approval_status: "not_required", current_step: "Cancelled", updated_by: profile?.id ?? null }).eq("id", updatedCount.document_id);
-    if (documentError) throw new Error(documentError.message);
-    await writeActivityLog({ entityType: "document", entityId: updatedCount.document_id, activityType: "cancelled", message: `Stock count ${updatedCount.count_no ?? countId} cancelled` });
-  }
+  if (!(updatedCount as { id?: string } | null)?.id) throw new Error("Stock count cancellation did not return an identifier.");
   revalidateWorkspaceState(["/stock-counts", `/stock-counts/${countId}`]);
 }
 

@@ -269,3 +269,6 @@ The Playwright route-layout audit is the baseline guard for all static workspace
 
 - Page-header create actions now opt into the same `data-mobile-create-fab` contract as right-console create actions, keeping bottom-navigation clearance and safe-area positioning consistent across list pages.
 - The legacy `data-page-create-fab` marker remains only for compatibility; it is no longer the sole positioning hook.
+### v7.87.0 — Staff Access Default Branch Submission Fix
+
+- Staff creation keeps the default branch visually locked while submitting it as an accessible branch value, so the server-side access validation receives the required branch instead of an empty checkbox payload.

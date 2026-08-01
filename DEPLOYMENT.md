@@ -2,6 +2,20 @@
 
 ## Purpose
 
+## Current application audit baseline (v7.87.0 — Staff Access Default Branch Submission Fix)
+
+Deploy only from the reviewed release commit after TypeScript, lint, contract
+tests, and a production build pass. Do not combine application deployment with
+an unreviewed Supabase migration. The shell is validated against dynamic
+viewport units (`dvh`); the generated manifest is standalone/portrait, and
+the Cordova wrapper must be verified separately. Smoke tests must distinguish
+an unavailable query from an empty result and must verify inventory mutation
+idempotency before a user retries a failed-looking request.
+
+Migration `114_stock_count_cancel_atomicity.sql` is a forward-only pending
+schema change. Review and apply it separately from the application release;
+this worktree has not executed it against any Supabase project.
+
 This document defines the production deployment, environment configuration, Supabase migration, authentication, and recovery procedures for Seri Bako OMS.
 
 Use this guide whenever a change affects:

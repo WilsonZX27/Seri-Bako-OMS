@@ -12,6 +12,7 @@ import { revalidateWorkspaceState } from "@/server/actions/revalidate";
 import { resolveDocumentNumber } from "@/server/documents/sequences";
 import { getCurrentProfile } from "@/server/queries/common";
 import { requireActiveTenantActor } from "@/server/auth/tenant-actor";
+import { logServerWarning } from "@/server/observability/logger";
 import { z } from "zod";
 
 function cleanText(value: FormDataEntryValue | null) {
@@ -129,8 +130,15 @@ export async function postGoodsReceiving(id: string, formData: FormData) {
   if (error) throw new Error(error.message);
   const result = data as { document_id?: string | null; grn_no?: string; purchase_order_id?: string; already_posted?: boolean } | null;
   if (result?.document_id && !result.already_posted) {
-    if (doExceptionReason) await writeActivityLog({ entityType: "document", entityId: result.document_id, activityType: "delivery_order_exception", message: `Delivery Order exception: ${doExceptionReason}` });
-    await writeActivityLog({ entityType: "document", entityId: result.document_id, activityType: "posted", message: `Goods receiving ${result.grn_no ?? id} posted to inventory` });
+    // Activity history is useful audit metadata, but it is not the posting
+    // transaction. A logging failure must not turn an already committed GRN
+    // into a false failure or invite a user to retry and duplicate movement.
+    try {
+      if (doExceptionReason) await writeActivityLog({ entityType: "document", entityId: result.document_id, activityType: "delivery_order_exception", message: `Delivery Order exception: ${doExceptionReason}` });
+      await writeActivityLog({ entityType: "document", entityId: result.document_id, activityType: "posted", message: `Goods receiving ${result.grn_no ?? id} posted to inventory` });
+    } catch (activityError) {
+      logServerWarning(activityError, { source: "goods-receivings.post.activity-log", actorId: result.document_id });
+    }
   }
   revalidateWorkspaceState(["/goods-receivings", `/goods-receivings/${id}`, "/purchase-orders", ...(result?.purchase_order_id ? [`/purchase-orders/${result.purchase_order_id}`] : [])]);
   revalidatePath("/inventory");

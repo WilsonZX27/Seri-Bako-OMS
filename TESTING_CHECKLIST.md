@@ -1,5 +1,26 @@
 # Milestone 1 Testing Checklist
 
+## Current audit closure checks (v7.87.0)
+
+- Confirm the app shell uses `dvh`, with no fixed `100vh` route clipping mobile
+  browser chrome.
+- Confirm `/manifest.webmanifest` reports `display: standalone` and
+  `orientation: portrait`; verify the Cordova wrapper fullscreen/status-bar
+  preferences separately.
+- Force Dashboard and Inventory read failures; the UI must show `Unavailable`,
+  never a fabricated zero or empty-success state.
+- Double-click import confirmation and other mutation submits; only one
+  request may be sent while the first is pending.
+- Confirm import dates accept only date-only `YYYY-MM-DD` or `DD/MM/YYYY`,
+  normalize without timezone drift, and return row-level errors.
+- Confirm Stock Count Save draft and Confirm & Post remain distinct, stepper
+  controls are at least 48px on mobile, and legacy Submit/Review/Approve paths
+  are absent.
+- Confirm Kitchen purchase-request creation/submission remains branch-scoped
+  and ordinary procurement permissions are not removed.
+- Run `npm run typecheck`, `npm run lint`, `npm run test:contract`, and
+  `npm run build` before release handoff.
+
 ## Database
 
 - Run `supabase/migrations/001_milestone_1_inventory_foundation.sql`.

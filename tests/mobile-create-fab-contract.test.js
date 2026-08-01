@@ -34,6 +34,7 @@ test("page-header create actions are icon-only below desktop without an empty ac
   const source = read("src/components/ui/page-header.tsx");
 
   assert.match(source, /data-page-create-fab/);
+  assert.match(source, /data-mobile-create-fab/);
   assert.match(source, /<span className="sr-only">\{props\.action\.label\}<\/span>/);
   assert.match(source, /props\.secondaryAction \|\| \(props\.action && !isCreateAction\)/);
   assert.equal((source.match(/props\.secondaryAction \|\| \(props\.action && !isCreateAction\)/g) ?? []).length, 2);

@@ -210,6 +210,7 @@ The Playwright route-layout audit is the baseline guard for all static workspace
 - Autosave feedback belongs inside that same capped workflow summary; it may occupy a narrow trailing slot, but must never expand the summary back to full viewport width.
 - A mobile page must not render a generic `More actions` bar merely because a desktop rail exists. The bar appears only after the user has selected a record/detail context or when the page has a real contextual action.
 - A phone `OperationalHub` owns its own primary action. Its desktop-only context rail must set `hideMobileConsole`; never duplicate the hub action with a generic `More actions` bar or hide bottom navigation on the hub landing page.
+- Every create FAB, including the `PageHeader` fallback used by list pages, uses the shared `data-mobile-create-fab` marker so safe-area clearance and tablet positioning cannot drift between action sources. Legacy `data-page-create-fab` may remain as a compatibility marker.
 - **Mobile elevation:** Fixed bottom navigation and action bars use a restrained upward shadow so scrolling content is visibly separated from persistent controls.
 - **Compact metric summaries:** Phone summaries with four or more scalar metrics use a dense two-column grid instead of one full-width row per value; tablet and desktop may expand to four or eight columns.
 - **Short four-metric summaries:** When exactly four short totals fit legibly at the target phone width, keep them in one four-column strip. Do not turn a four-value status summary into four stacked cards.
@@ -263,3 +264,8 @@ The Playwright route-layout audit is the baseline guard for all static workspace
 
 - Stock Count keeps one canonical autosave status beside the count date; the retired event-driven duplicate status component is removed so the visible state cannot diverge between surfaces.
 - Contract tests follow the fixed centered Action touch target and the single autosave status source.
+
+### v7.86.0 - Shared Create FAB Safe-Area Alignment
+
+- Page-header create actions now opt into the same `data-mobile-create-fab` contract as right-console create actions, keeping bottom-navigation clearance and safe-area positioning consistent across list pages.
+- The legacy `data-page-create-fab` marker remains only for compatibility; it is no longer the sole positioning hook.

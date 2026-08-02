@@ -2,6 +2,10 @@
 
 This document is the implementation contract for every customer-facing route, form, record workspace, table, panel, dialog, and mobile action bar. It applies to new work and to refactoring of existing UI.
 
+## v8.16.0 - Compact Mobile Workflow Context
+
+- The shared phone workflow summary is capped at `max-w-56` so Step/Workflow context does not become a full-width banner on narrow devices. The document title and primary action retain priority while the workflow sheet remains available.
+
 ## v8.15.1 - Global Unposted Deletion Contract
 
 - Every operational document detail must expose one explicit Delete draft/Delete unposted action before posting. The action may call an audited cancellation RPC, but it must set `deleted_at`, preserve the audit trail, release eligible reservations, and remove the row from active work.

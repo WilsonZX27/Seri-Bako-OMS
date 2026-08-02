@@ -2,6 +2,11 @@
 
 This document is the implementation contract for every customer-facing route, form, record workspace, table, panel, dialog, and mobile action bar. It applies to new work and to refactoring of existing UI.
 
+## v8.15.1 - Global Unposted Deletion Contract
+
+- Every operational document detail must expose one explicit Delete draft/Delete unposted action before posting. The action may call an audited cancellation RPC, but it must set `deleted_at`, preserve the audit trail, release eligible reservations, and remove the row from active work.
+- Posted or ledger-impacting records remain immutable; their destructive affordance must explain the boundary and point to correction.
+
 ## v8.15.0 - Direct Draft Deletion
 
 - Stock Count drafts expose the dedicated audited **Delete draft** action directly. They do not route the user's discard intent through a visible Cancel action, so an autosave-created draft can be removed immediately and cannot remain as active work after redirect.

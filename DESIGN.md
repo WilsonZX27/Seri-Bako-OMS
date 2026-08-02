@@ -2,10 +2,10 @@
 
 This document is the implementation contract for every customer-facing route, form, record workspace, table, panel, dialog, and mobile action bar. It applies to new work and to refactoring of existing UI.
 
-## v8.11.0 — Unposted Cancellation Consistency
+## v8.11.0 — Unposted Cancellation Consistency (superseded by v8.13.0 wording)
 
-- **One destructive exit for unposted work:** Goods Receiving, Purchase Return, Production Job, Stock Transfer, Stock Wastage, Purchase Request, Purchase Order, and Stock Count drafts/unposted records use `Cancel & remove …`. The action performs the permission-aware atomic transition, releases any applicable reservation, sets `deleted_at`, keeps the audit/document history, and returns to the module list.
-- **No misleading delete vocabulary:** “Delete draft” and “Delete unposted …” are not used for an action that first cancels a workflow. Posted, received, completed, or ledger-impacting records remain protected and explain the correction path instead.
+- **One destructive exit for unposted work:** Goods Receiving, Purchase Return, Production Job, Stock Transfer, Stock Wastage, Purchase Request, Purchase Order, and Stock Count drafts/unposted records use an explicit `Delete draft` or `Delete unposted …` action. The action performs the permission-aware atomic transition, releases any applicable reservation, sets `deleted_at`, keeps the audit/document history, and returns to the module list.
+- The underlying transition may still use a cancellation status for audit semantics, but the UI must describe the user's intent: removing unposted work. Posted, received, completed, or ledger-impacting records remain protected and explain the correction path instead.
 - **Cancellation must not leave active work:** a cancelled unposted record may remain in audit/history tables, but it must not remain in active list queries or reopen in an autosave editor after redirect.
 
 ## v8.12.0 — Deliberate Stock Count Autosave
@@ -14,12 +14,12 @@ This document is the implementation contract for every customer-facing route, fo
 
 ## v8.10.0 — Remove Unposted Procurement Work
 
-- **Global cancellation rule:** Draft/unposted Purchase Requests and Purchase Orders expose one clear destructive exit: **Cancel & remove**. The atomic cancel RPC runs the existing state/permission workflow, removes the record from active work with `deleted_at`, and preserves the document/activity audit trail.
+- **Global cancellation rule:** Draft/unposted Purchase Requests and Purchase Orders expose one clear destructive exit: **Delete draft/Delete unposted order**. The atomic cancel RPC runs the existing state/permission workflow, removes the record from active work with `deleted_at`, and preserves the document/activity audit trail.
 - **External commitment boundary:** Sent, partially received, received, converted, and posted records remain visible and auditable; cancellation never erases supplier or ledger history.
 
 ## v8.09.0 — Clarify Draft Count Removal
 
-- Stock Count drafts expose one destructive exit: **Cancel & remove draft**. It soft-deletes the unposted count, retains the document/activity audit trail, and returns to the list so autosave cannot resurrect it.
+- Stock Count drafts expose one destructive exit: **Delete draft**. It soft-deletes the unposted count, retains the document/activity audit trail, and returns to the list so autosave cannot resurrect it.
 - Posted counts remain immutable. Their delete affordance explains the audit boundary and offers correction guidance instead of a dead-end action.
 
 ## v8.08.0 — Remove Unposted Work Safely
@@ -412,7 +412,7 @@ the route matrix in `docs/qa/FULL_SYSTEM_AUDIT_MATRIX.md`.
 - Integrated the committed OpsLogic branch into the UI closure branch without dropping the existing shared-component work.
 - Preserved branch-scoped Purchase Request creation, transition authorization, Stock Count cancellation atomicity, and Stock Transfer reservation/partial-receiving contracts.
 - Release gate: 451/451 contract tests, typecheck, strict typecheck, and lint pass. No Supabase migration was executed from this worktree.
-## v8.13.0 — Unposted work can be deleted explicitly
+## v8.13.1 — Deletion rule alignment
 
 - Every document detail surface must expose a clear `Delete draft` or `Delete unposted …` action while work has not posted inventory or accounting impact.
 - This action removes the record from active work through the existing audited cancellation/removal RPC; it must not hard-delete activity history.

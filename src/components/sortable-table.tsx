@@ -56,11 +56,11 @@ export function PaginationControls({
         ? [1, -1, totalPages - 4, totalPages - 3, totalPages - 2, totalPages - 1, totalPages]
         : [1, -1, page - 1, page, page + 1, -1, totalPages];
   return (
-    <div className="flex flex-wrap items-center justify-between gap-2 border-t px-3 py-1.5 text-[11px] text-muted-foreground">
-      <span className="leading-6">
+    <div className="flex min-w-0 flex-wrap items-center justify-between gap-2 border-t px-3 py-1.5 text-[11px] text-muted-foreground">
+      <span className="min-w-0 flex-1 truncate leading-6">
         Page {page} of {totalPages} - {totalRows} rows
       </span>
-      <nav aria-label="Pagination" className="flex items-center gap-1 sm:hidden">
+      <nav aria-label="Pagination" className="flex shrink-0 items-center gap-1 sm:hidden">
         {page <= 1 ? (
           <Button type="button" variant="outline" size="sm" className="h-[var(--sb-control-height)] px-2 text-xs" disabled>
             Previous
@@ -83,7 +83,7 @@ export function PaginationControls({
           </Button>
         )}
       </nav>
-      <nav aria-label="Pagination pages" className="hidden items-center gap-1 sm:flex">
+      <nav aria-label="Pagination pages" className="hidden max-w-full flex-wrap items-center justify-end gap-1 sm:flex">
         {page <= 1 ? (
           <Button type="button" variant="outline" size="sm" className="h-[var(--sb-control-height)] px-2 text-xs" disabled>
             Previous

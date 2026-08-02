@@ -321,6 +321,10 @@ the route matrix in `docs/qa/FULL_SYSTEM_AUDIT_MATRIX.md`.
 - Shared filter rows keep a first-position dropdown content-sized (14rem maximum) on tablet and desktop, leaving intentional breathing room instead of stretching a lone status control across the canvas.
 - Search-first rows retain their flexible search field; the rule applies to both native selects and the shared Radix select trigger.
 
+### v8.04.0 — Safe Mobile Pagination Density
+
+- Shared pagination keeps its result summary shrinkable and its navigation controls intact on narrow phones; desktop page choices may wrap instead of clipping the final controls.
+
 ### v8.03.0 — Unposted Stock Count Deletion
 
 - Stock Counts may be removed while they are still unposted, including legacy pending and cancelled records; autosave-created work is not trapped in an undeletable state.

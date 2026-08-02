@@ -175,6 +175,10 @@ export async function cancelStockCount(id: string) {
   if (error) throw new Error(error.message);
   if (!(updatedCount as { id?: string } | null)?.id) throw new Error("Stock count cancellation did not return an identifier.");
   revalidateWorkspaceState(["/stock-counts", `/stock-counts/${countId}`]);
+  // Leave the editable detail surface after cancellation. Otherwise the
+  // autosave form remains mounted and can make a cancelled draft appear to
+  // come back when the user continues typing or refreshes the page.
+  safeRedirectWithMessage("/stock-counts", "success", "Stock Count cancelled and removed from active work.");
 }
 
 export async function deleteStockCount(id: string, formData: FormData) {

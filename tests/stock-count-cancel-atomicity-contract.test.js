@@ -18,4 +18,5 @@ test("Stock Count cancellation uses one forward-only atomic RPC", () => {
   assert.match(migration, /update public\.documents/);
   assert.match(migration, /insert into public\.activity_logs/);
   assert.match(migration, /grant execute on function public\.cancel_stock_count_atomic\(uuid\) to authenticated/);
+  assert.match(action, /safeRedirectWithMessage\("\/stock-counts", "success", "Stock Count cancelled/);
 });

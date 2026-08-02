@@ -2,6 +2,11 @@
 
 This document is the implementation contract for every customer-facing route, form, record workspace, table, panel, dialog, and mobile action bar. It applies to new work and to refactoring of existing UI.
 
+## v8.05.0 — Explicit Unposted Count Cleanup
+
+- Stock Counts remain deletable while unposted; posted counts remain the immutable audit boundary.
+- Cancelling a draft immediately returns the user to the Stock Counts list so the autosave editor cannot remain mounted and recreate stale work.
+
 ## Viewport contract
 
 Design mobile first. The base class or CSS rule must be the 320px-639px experience. Enhancement uses the shared Tailwind thresholds only:

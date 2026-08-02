@@ -2,6 +2,10 @@
 
 This document is the implementation contract for every customer-facing route, form, record workspace, table, panel, dialog, and mobile action bar. It applies to new work and to refactoring of existing UI.
 
+## v8.18.0 - Compact Stock Count Steppers
+
+- Stock Count phone quantity steppers use a compact 40px control geometry so the item title, code, variance, and quantity remain visible together. The buttons retain explicit accessible labels and keyboard focus treatment; this is a compact control adjustment, not a removal of the quantity affordance.
+
 ## v8.17.0 - Search-First Filter Ordering
 
 - On phone filter rows, Search follows the useful dropdown controls and the result summary comes last. A multi-filter row must never read as search + Search while its filters wrap invisibly below; compact one-filter rows retain their intentional inline arrangement.

@@ -301,6 +301,15 @@ the route matrix in `docs/qa/FULL_SYSTEM_AUDIT_MATRIX.md`.
 - Server-side creation and submit transitions continue to validate branch access; client selection is not treated as an authorization boundary.
 - Release gate: 451/451 contract tests, typecheck, strict typecheck, and lint pass. Supabase migrations remain staged but unapplied until the linked project and migration history are verified.
 
+### v7.92.0 — Stock Count Three-Viewport Acceptance
+
+- Production acceptance completed against `/stock-counts` and a real Draft record at desktop (1440×900), tablet (820×1180), and phone (393×852).
+- All three viewports reached the Stock Count list and Draft detail without a login redirect or route error.
+- The Draft detail visibly exposes `Autosave ready`, preserves the `Code` sort selector, and exposes both `Save draft` and `Confirm & Post Count`.
+- Desktop/tablet use the approved right action rail; phone uses the shared bottom action row with both actions visible together.
+- Evidence screenshots: `D:/CodexHome/visualizations/2026/08/02/stock-count-audit/` (`*-list.png`, `*-detail.png`).
+- This acceptance verifies the UI contract only; it does not post or mutate production business data.
+
 ### v7.88.0 — Tablet Split Action Deduplication
 
 - A tablet split workspace exposes its primary action in the right rail. The shared mobile FAB and mobile action bar are suppressed between 768px and 1279px so one task never presents duplicate primary actions. Phone retains the FAB and desktop retains the right console action.

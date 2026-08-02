@@ -155,4 +155,5 @@ export async function cancelGoodsReceiving(id: string) {
   const { error } = await supabase.rpc("cancel_goods_receiving_atomic", { p_goods_receiving_id: goodsReceivingId });
   if (error) throw new Error(error.message);
   revalidateWorkspaceState(["/goods-receivings", `/goods-receivings/${id}`]);
+  safeRedirectWithMessage("/goods-receivings", "success", "Draft receiving deleted from active work.");
 }

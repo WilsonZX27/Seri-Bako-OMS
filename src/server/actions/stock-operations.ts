@@ -120,7 +120,7 @@ async function transitionStockTransferTerminal(id: string, action: "cancel" | "r
   const { error } = await supabase.rpc("transition_stock_transfer_terminal_atomic", { p_transfer_id: transferId, p_action: action });
   if (error) throw new Error(error.message);
   revalidateWorkspaceState(["/stock-transfers", `/stock-transfers/${transferId}`]);
-  redirect(`/stock-transfers/${transferId}`);
+  redirect(action === "cancel" ? "/stock-transfers" : `/stock-transfers/${transferId}`);
 }
 
 export async function cancelStockTransfer(id: string) { await transitionStockTransferTerminal(id, "cancel"); }
@@ -168,6 +168,7 @@ async function transitionStockWastageTerminal(id: string, action: "cancel" | "re
   const { error } = await supabase.rpc("transition_stock_wastage_terminal_atomic", { p_wastage_id: wastageId, p_action: action });
   if (error) throw new Error(error.message);
   revalidateWorkspaceState(["/stock-wastage", `/stock-wastage/${wastageId}`]);
+  if (action === "cancel") redirect("/stock-wastage");
 }
 
 export async function cancelStockWastage(id: string) { await transitionStockWastageTerminal(id, "cancel"); }

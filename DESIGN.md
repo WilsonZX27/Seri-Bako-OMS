@@ -2,6 +2,12 @@
 
 This document is the implementation contract for every customer-facing route, form, record workspace, table, panel, dialog, and mobile action bar. It applies to new work and to refactoring of existing UI.
 
+## v8.08.0 — Remove Unposted Work Safely
+
+- **Unposted work deletion rule:** Draft/unposted Goods Receivings, Purchase Returns, Production Jobs, Stock Transfers, Stock Wastage, and Stock Counts may be deleted by the existing cancel permission. The action is transactional: release any reservation, retain document/activity history, set `deleted_at`, and remove the record from active work lists.
+- **Posted record protection:** Records that have posted ledger movements remain immutable. They show a clear correction/return workflow instead of a misleading delete action.
+- **After deletion:** Redirect to the module list so autosave/editor state cannot resurrect a cancelled record.
+
 ## v8.07.0 — Compact Dashboard Action Labels
 
 - Stock Counts remain deletable while unposted; posted counts remain the immutable audit boundary.

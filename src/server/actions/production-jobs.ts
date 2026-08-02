@@ -101,7 +101,7 @@ async function transitionProductionJob(id: string, input: { action: "submit" | "
       });
     }
     revalidateWorkspaceState(["/production", "/production/jobs", `/production/jobs/${id}`]);
-    safeRedirectWithMessage(`/production/jobs/${id}`, "success", input.message(productionJob.production_job_no));
+    safeRedirectWithMessage(input.action === "cancel" ? "/production/jobs" : `/production/jobs/${id}`, "success", input.action === "cancel" ? `${productionJob.production_job_no} deleted from active work.` : input.message(productionJob.production_job_no));
   } catch (error) {
     rethrowRedirect(error);
     safeRedirectWithMessage(`/production/jobs/${id}`, "error", formatActionError(error, "Could not update this production job."));

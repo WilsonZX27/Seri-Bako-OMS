@@ -27,8 +27,8 @@ export default async function PurchaseReturnDetailPage({ params, searchParams }:
   const totalValue = lines.reduce((sum, line) => sum + Number(line.return_qty) * Number(line.unit_cost), 0);
   const canPost = permissions["purchase_return.post"] && purchaseReturn.status === "draft";
   const canCancel = permissions["purchase_return.cancel"] && purchaseReturn.status === "draft";
-  const deleteControl = <BlockedDestructiveAction buttonLabel="Delete return" title={`Cannot delete ${purchaseReturn.purchase_return_no}`} description={purchaseReturn.status === "posted" ? "This return has stock-impacting ledger rows and must remain auditable." : "This return is linked to its goods receiving record."} recommendation={purchaseReturn.status === "draft" ? "Cancel the draft to preserve its relationship history." : "Create a correction through the existing stock workflow; physical deletion is prohibited."} />;
-  const secondaryActions = canCancel ? <div className="space-y-2"><DocumentActionForm action={cancelPurchaseReturn.bind(null, purchaseReturn.id)} pendingLabel="Cancelling..." variant="destructive">Cancel draft</DocumentActionForm>{deleteControl}</div> : deleteControl;
+  const deleteControl = <BlockedDestructiveAction buttonLabel="Delete return" title={`Cannot delete ${purchaseReturn.purchase_return_no}`} description="This return has stock-impacting ledger rows and must remain auditable." recommendation="Posted returns require a correction through the existing stock workflow." />;
+  const secondaryActions = canCancel ? <DocumentActionForm action={cancelPurchaseReturn.bind(null, purchaseReturn.id)} pendingLabel="Deleting draft..." variant="destructive">Delete draft</DocumentActionForm> : deleteControl;
 
   return (
     <DocumentWorkspace

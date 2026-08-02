@@ -41,8 +41,7 @@ export default async function StockWastageDetailPage({ params }: { params: Promi
               <DocumentActionBar>
                 <DocumentActionForm action={postStockWastage.bind(null, wastage.id)} pendingLabel="Posting...">Post wastage</DocumentActionForm>
                 <DocumentActionForm action={rejectStockWastage.bind(null, wastage.id)} pendingLabel="Rejecting..." variant="destructive">Reject</DocumentActionForm>
-                <DocumentActionForm action={cancelStockWastage.bind(null, wastage.id)} pendingLabel="Cancelling..." variant="ghost">Cancel</DocumentActionForm>
-                <BlockedDestructiveAction buttonLabel="Delete wastage" title={`Cannot delete ${wastage.wastage_no}`} description="Wastage records preserve evidence and stock history." recommendation="Cancel or reject the draft. Posted wastage requires a controlled stock correction." />
+                <DocumentActionForm action={cancelStockWastage.bind(null, wastage.id)} pendingLabel="Deleting draft..." variant="ghost">Delete draft</DocumentActionForm>
               </DocumentActionBar>
             ) : (
               <BlockedDestructiveAction buttonLabel="Delete wastage" title={`Cannot delete ${wastage.wastage_no}`} description="Posted wastage has stock-impacting ledger rows." recommendation="Use a controlled stock correction; physical deletion is prohibited." />

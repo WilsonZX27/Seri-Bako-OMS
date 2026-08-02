@@ -456,11 +456,6 @@ input[type="date"]::-webkit-date-and-time-value {
     pointer-events: none;
   }
 
-  html[data-filter-dialog-open="true"] [data-mobile-app-nav] {
-    visibility: hidden;
-    pointer-events: none;
-  }
-
   .sb-list-filters {
     display: flex;
     flex-wrap: wrap;
@@ -569,6 +564,15 @@ input[type="date"]::-webkit-date-and-time-value {
     border-radius: var(--sb-panel-radius) var(--sb-panel-radius) 0 0;
   }
 
+}
+
+/* A filter dialog owns the interaction surface on phone and tablet. Remove the
+   underlying navigation instead of leaving an invisible hit area beneath the
+   dialog's actions. */
+@media (max-width: 1279px) {
+  html[data-filter-dialog-open="true"] [data-mobile-app-nav] {
+    display: none !important;
+  }
 }
 
 @media (max-width: 1279px) {

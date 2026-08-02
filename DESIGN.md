@@ -310,6 +310,12 @@ the route matrix in `docs/qa/FULL_SYSTEM_AUDIT_MATRIX.md`.
 - Evidence screenshots: `D:/CodexHome/visualizations/2026/08/02/stock-count-audit/` (`*-list.png`, `*-detail.png`).
 - This acceptance verifies the UI contract only; it does not post or mutate production business data.
 
+### v7.93.0 — Tablet Filter Dialog Navigation Safety
+
+- `FilterBarMore` now removes the mobile bottom navigation on every mobile and tablet viewport (up to 1279px) while open.
+- The dialog therefore owns the full interaction surface; Apply, Reset, and Close cannot be obscured by or compete with bottom navigation.
+- This is a shared rule and applies to every page using `FilterBarMore`; no page-specific duplicate implementation is allowed.
+
 ### v7.88.0 — Tablet Split Action Deduplication
 
 - A tablet split workspace exposes its primary action in the right rail. The shared mobile FAB and mobile action bar are suppressed between 768px and 1279px so one task never presents duplicate primary actions. Phone retains the FAB and desktop retains the right console action.

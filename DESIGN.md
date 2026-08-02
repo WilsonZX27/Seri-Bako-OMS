@@ -2,6 +2,10 @@
 
 This document is the implementation contract for every customer-facing route, form, record workspace, table, panel, dialog, and mobile action bar. It applies to new work and to refactoring of existing UI.
 
+## v8.17.0 - Search-First Filter Ordering
+
+- On phone filter rows, Search follows the useful dropdown controls and the result summary comes last. A multi-filter row must never read as search + Search while its filters wrap invisibly below; compact one-filter rows retain their intentional inline arrangement.
+
 ## v8.16.0 - Compact Mobile Workflow Context
 
 - The shared phone workflow summary is capped at `max-w-56` so Step/Workflow context does not become a full-width banner on narrow devices. The document title and primary action retain priority while the workflow sheet remains available.

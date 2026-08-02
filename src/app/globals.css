@@ -485,7 +485,9 @@ input[type="date"]::-webkit-date-and-time-value {
   }
 
   .sb-list-filters > button:is([type="submit"], :not([type])) {
-    order: 2;
+    /* Keep Search after the useful dropdowns; placing it directly after the
+       input made multi-filter rows read as search + button + hidden filters. */
+    order: 4;
     flex: 0 0 auto;
   }
 
@@ -500,7 +502,7 @@ input[type="date"]::-webkit-date-and-time-value {
   }
 
   .sb-filter-summary {
-    order: 4;
+    order: 5;
     flex: 0 0 auto !important;
     width: auto !important;
     justify-content: flex-end;

@@ -812,6 +812,15 @@ input[type="date"]::-webkit-date-and-time-value {
   .sb-list-filters > :not(:first-child) {
     flex: 0 1 9rem;
   }
+
+  /* A filter row that starts with a dropdown should stay content-sized.
+     Search-first rows keep their flexible search field; dropdown-first rows
+     must leave intentional breathing room instead of stretching a single
+     status control across the whole canvas. */
+  .sb-list-filters > :is(select, [data-select-control]):first-child {
+    flex: 0 1 14rem;
+    max-width: 14rem;
+  }
 }
 
 /* Tablet keeps the dedicated bottom navigation and page action row; the
@@ -824,6 +833,11 @@ input[type="date"]::-webkit-date-and-time-value {
   .sb-list-filters > :first-child {
     flex: 1 1 10rem;
     max-width: none;
+  }
+
+  .sb-list-filters > :is(select, [data-select-control]):first-child {
+    flex: 0 1 14rem;
+    max-width: 14rem;
   }
 
   .sb-list-filters > :not(:first-child) {

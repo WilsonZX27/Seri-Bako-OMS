@@ -316,6 +316,12 @@ the route matrix in `docs/qa/FULL_SYSTEM_AUDIT_MATRIX.md`.
 - The dialog therefore owns the full interaction surface; Apply, Reset, and Close cannot be obscured by or compete with bottom navigation.
 - This is a shared rule and applies to every page using `FilterBarMore`; no page-specific duplicate implementation is allowed.
 
+### v7.94.0 - Compact Dropdown-First Filter Rows
+
+- Shared filter rows keep a first-position dropdown content-sized (14rem maximum) on tablet and desktop, leaving intentional breathing room instead of stretching a lone status control across the canvas.
+- Search-first rows retain their flexible search field; the rule applies to both native selects and the shared Radix select trigger.
+- This closes the Costing Readiness “All severities” density annotation without changing the canonical Search-first ordering or mobile wrapping behavior.
+
 ### v7.88.0 — Tablet Split Action Deduplication
 
 - A tablet split workspace exposes its primary action in the right rail. The shared mobile FAB and mobile action bar are suppressed between 768px and 1279px so one task never presents duplicate primary actions. Phone retains the FAB and desktop retains the right console action.

@@ -15,7 +15,8 @@ test("procurement documents use focused mobile workflow and exact primary action
   assert.match(workspace, /MobileWorkflowStatus/);
   assert.match(workspace, /collapseMoreOptions\?: boolean/);
   assert.match(workspace, /isNewDocument \? "py-1\.5 sm:py-2"/);
-  assert.match(workspace, /isNewDocument \? "default" : "lg"/);
+  assert.match(workspace, /isNewDocument \? <span className=/);
+  assert.match(workspace, /<DocumentNumber value=\{documentNo\} size="lg"/);
   assert.match(workspace, /data-mobile-document-action/);
   assert.doesNotMatch(workspace, /Page actions/);
   assert.match(mobile, /aria-modal="true"/);

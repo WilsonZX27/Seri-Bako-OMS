@@ -6,10 +6,10 @@ import { ConfirmActionForm } from "@/components/ui/confirm-action-form";
 import { SubmitButton } from "@/components/ui/submit-button";
 import { Card, CardContent } from "@/components/ui/card";
 import { StockCountForm } from "@/components/stock-count-form";
-import { BlockedDestructiveAction } from "@/components/ui/danger-confirm-form";
+import { BlockedDestructiveAction, DangerConfirmForm } from "@/components/ui/danger-confirm-form";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { formatDateOnly, formatQuantity } from "@/lib/utils";
-import { autosaveStockCountDraft, cancelStockCount, postStockCount, saveAndPostStockCount, updateStockCountDraft } from "@/server/actions/stock-counts";
+import { autosaveStockCountDraft, cancelStockCount, deleteStockCount, postStockCount, saveAndPostStockCount, updateStockCountDraft } from "@/server/actions/stock-counts";
 import { getPermissionMap } from "@/server/auth/permissions";
 import { getBranchesForSelect } from "@/server/queries/common";
 import { getDocumentBundle } from "@/server/queries/documents";
@@ -34,9 +34,12 @@ export default async function StockCountDetailPage({ params }: { params: Promise
   const canPost = (count.status === "draft" || isLegacyPending) && permissions["stock_count.post"];
   const canEdit = count.status === "draft" && permissions["stock_count.update"];
   const canCancel = count.status === "draft" && permissions["stock_count.cancel"];
+  const canDelete = (count.status === "draft" || count.status === "cancelled") && permissions["stock_count.update"];
   const hasPrimaryAction = canPost || canEdit;
   const formId = `stock-count-edit-${count.id}`;
-  const deleteControl = <BlockedDestructiveAction buttonLabel="Delete stock count" title={`Cannot delete ${count.count_no}`} description={count.status === "posted" ? "This count produced an auditable variance adjustment." : "The count preserves physical quantities and its audit history."} recommendation={count.status === "posted" ? "Post a new count or correction; physical deletion is prohibited." : "Cancel the draft when permitted, or confirm and post a legacy pending count."} />;
+  const deleteControl = canDelete
+    ? <DangerConfirmForm action={deleteStockCount.bind(null, count.id)} buttonLabel="Delete stock count" title={`Delete ${count.count_no}?`} description="This removes the draft from active Stock Count lists. Its audit activity remains available." checkboxLabel="I understand this removes the Stock Count from active records." warning="Posted counts are never deletable; use a new count for corrections." confirmWord={count.count_no} pendingLabel="Deleting..." />
+    : <BlockedDestructiveAction buttonLabel="Delete stock count" title={`Cannot delete ${count.count_no}`} description="This count produced an auditable variance adjustment." recommendation="Posted counts remain immutable. Create a new count for any correction." />;
   const secondaryActions = canCancel ? <div className="space-y-2"><DocumentActionForm action={cancelStockCount.bind(null, count.id)} pendingLabel="Cancelling..." variant="ghost">Cancel stock count</DocumentActionForm>{deleteControl}</div> : deleteControl;
   const postAction = canEdit ? saveAndPostStockCount.bind(null, count.id) : postStockCount.bind(null, count.id);
   const confirmAction = canPost ? <ConfirmActionForm action={postAction} formId={canEdit ? formId : undefined} label="Confirm & Post Count" title="Post this stock count?" description={`${lines.filter((line) => line.variance_qty !== 0).length} adjusted lines will update the branch stock ledger. Your latest entries will be saved before posting. This cannot be undone.`} pendingLabel="Saving & posting..." mobilePrimary /> : null;
@@ -74,7 +77,7 @@ export default async function StockCountDetailPage({ params }: { params: Promise
         <>
           <DocumentActionSection description="Only valid stock count actions are shown." moreOptions={secondaryActions}>
             {hasPrimaryAction ? (
-              <DocumentActionBar>
+              <DocumentActionBar className={canEdit && canPost ? "grid-cols-2" : undefined}>
                 {canEdit ? <SubmitButton form={formId} className="w-full" pendingLabel="Saving...">Save draft</SubmitButton> : null}
                 {canPost ? <ConfirmActionForm action={postAction} formId={canEdit ? formId : undefined} label="Confirm & Post Count" title="Post this stock count?" description={`${lines.filter((line) => line.variance_qty !== 0).length} adjusted lines will update the branch stock ledger. Your latest entries will be saved before posting. This cannot be undone.`} pendingLabel="Saving & posting..." /> : null}
               </DocumentActionBar>

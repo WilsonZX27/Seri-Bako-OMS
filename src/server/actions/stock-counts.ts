@@ -177,6 +177,26 @@ export async function cancelStockCount(id: string) {
   revalidateWorkspaceState(["/stock-counts", `/stock-counts/${countId}`]);
 }
 
+export async function deleteStockCount(id: string, formData: FormData) {
+  void formData;
+  await requirePermissionOrRedirect("stock_count.update", `/stock-counts/${id}`);
+  try {
+    const countId = stockCountIdSchema.parse(id);
+    if (isMockMode()) {
+      safeRedirectWithMessage(`/stock-counts/${countId}`, "error", "Mock mode cannot remove stock counts. Connect Supabase and try again.");
+    }
+    const supabase = await createClient();
+    const { data, error } = await supabase.rpc("delete_stock_count_draft_atomic", { p_stock_count_id: countId });
+    if (error) throw new Error(error.message);
+    if (!(data as { deleted?: boolean } | null)?.deleted) throw new Error("Stock count removal did not complete.");
+    revalidateWorkspaceState(["/stock-counts", `/stock-counts/${countId}`]);
+    safeRedirectWithMessage("/stock-counts", "success", "Stock Count removed from active records.");
+  } catch (error) {
+    rethrowRedirect(error);
+    safeRedirectWithMessage(`/stock-counts/${id}`, "error", formatActionError(error, "This Stock Count could not be removed."));
+  }
+}
+
 export async function postStockCount(id: string) {
   await requirePermissionOrRedirect("stock_count.post", `/stock-counts/${id}`);
   try {

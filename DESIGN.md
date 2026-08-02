@@ -321,6 +321,13 @@ the route matrix in `docs/qa/FULL_SYSTEM_AUDIT_MATRIX.md`.
 - Shared filter rows keep a first-position dropdown content-sized (14rem maximum) on tablet and desktop, leaving intentional breathing room instead of stretching a lone status control across the canvas.
 - Search-first rows retain their flexible search field; the rule applies to both native selects and the shared Radix select trigger.
 
+### v7.96.0 — Safer Stock Count Draft Management
+
+- Stock Counts in `draft` or `cancelled` status may be soft-deleted by users with `stock_count.update` access; posted counts remain immutable and their audit history is retained.
+- Stock Count CSV export respects the selected from/to date filters and excludes soft-deleted records.
+- Stock Count autosave waits for 2 seconds of user idle time, keeps recovery state locally, and reports its status in the mobile action bar.
+- Mobile Stock Count rows use compact 44px steppers and preserve the item-first reading hierarchy; Save draft and Confirm & Post share one action row when both are valid.
+
 ### v7.95.0 - Compact Dropdown-First Filter Rows on Phones
 
 - A leading status or category dropdown stays content-sized on phones instead of inheriting the full-width search slot.

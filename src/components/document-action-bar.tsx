@@ -7,8 +7,8 @@ import { LoaderCircle } from "lucide-react";
 import { Button, type ButtonProps } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
-export function DocumentActionBar({ children }: { children: ReactNode }) {
-  return <div className="grid gap-2">{children}</div>;
+export function DocumentActionBar({ children, className }: { children: ReactNode; className?: string }) {
+  return <div className={cn("grid gap-2", className)}>{children}</div>;
 }
 
 export function DocumentActionForm({

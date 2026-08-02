@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { AlertTriangle, Check, Cloud, ListFilter, Minus, Plus, Search } from "lucide-react";
+import { AlertTriangle, ListFilter, Minus, Plus, Search } from "lucide-react";
 import { Field } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { SelectNative } from "@/components/ui/select-native";
@@ -232,7 +232,7 @@ export function StockCountForm({
       savedLocallyAt: new Date().toISOString(),
     };
     window.localStorage.setItem(localStorageKey, JSON.stringify(snapshot));
-    const timer = window.setTimeout(() => void saveDraft(dirtyRevision), 800);
+    const timer = window.setTimeout(() => void saveDraft(dirtyRevision), 2000);
     return () => window.clearTimeout(timer);
   }, [countDate, countRemarks, dirtyRevision, lines, localStorageKey, resolvedBranchId, saveDraft, toleranceValue]);
 
@@ -314,10 +314,6 @@ export function StockCountForm({
               <div className="min-w-0">
                 <p className="text-xs font-medium text-muted-foreground">Count date</p>
                 <p className="truncate text-sm font-semibold text-foreground">{initialCountDate ? formatDateOnly(countDate) : `Today · ${formatDateOnly(countDate)}`}</p>
-                {autosaveAction ? <div className={`mt-1 flex min-w-0 items-center gap-1 text-[11px] ${autosaveState === "error" ? "text-destructive" : autosaveState === "saved" ? "text-[var(--sb-green-900)]" : "text-muted-foreground"}`} role="status" aria-live="polite">
-                  {autosaveState === "saved" ? <Check className="h-3.5 w-3.5 shrink-0" aria-hidden="true" /> : <Cloud className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />}
-                  <span className="truncate" title={autosaveError || autosaveLabel}>{autosaveLabel}</span>
-                </div> : null}
               </div>
               <Input aria-label="Count date" name="count_date" type="date" value={countDate} onChange={(event) => { setCountDate(event.target.value); markDirty(); }} required className="basis-36 shrink-0" />
             </div>
@@ -383,7 +379,7 @@ export function StockCountForm({
                 return (
                   <div
                     key={line.item_id}
-                    className="grid min-h-14 grid-cols-[minmax(0,4fr)_minmax(4rem,2fr)_minmax(0,4fr)] items-center gap-2 border-b border-slate-100 px-3 py-2 md:gap-3"
+                    className="grid min-h-12 grid-cols-[minmax(0,1.35fr)_minmax(3.25rem,0.55fr)_minmax(7.25rem,1fr)] items-center gap-1.5 border-b border-slate-100 px-3 py-1.5 md:min-h-14 md:grid-cols-[minmax(0,4fr)_minmax(4rem,2fr)_minmax(0,4fr)] md:gap-3 md:py-2"
                   >
                     <div className="order-1 min-w-0">
                       <p className="break-words text-sm font-medium leading-tight text-slate-800">{line.item_name}</p>
@@ -396,7 +392,7 @@ export function StockCountForm({
 
                     <div className="order-3 flex min-w-0 items-center justify-end gap-1">
                         <div className="flex min-w-0 flex-1 overflow-hidden rounded-sm border border-[var(--sb-border)] bg-white">
-                          <button type="button" className="flex h-12 w-12 shrink-0 items-center justify-center border-r border-[var(--sb-border)] text-[var(--sb-green-900)] hover:bg-[var(--sb-surface-muted)] active:bg-[var(--sb-green-100)]" onClick={() => adjustPhysicalQty(line.item_id, -1)} aria-label={`Decrease physical quantity for ${line.item_name}`}><Minus className="h-4 w-4" /></button>
+                          <button type="button" className="flex h-11 w-11 shrink-0 items-center justify-center border-r border-[var(--sb-border)] text-[var(--sb-green-900)] hover:bg-[var(--sb-surface-muted)] active:bg-[var(--sb-green-100)]" onClick={() => adjustPhysicalQty(line.item_id, -1)} aria-label={`Decrease physical quantity for ${line.item_name}`}><Minus className="h-4 w-4" /></button>
                         <Input
                           id={`physical-${line.item_id}`}
                           name="line_physical_qty"
@@ -409,9 +405,9 @@ export function StockCountForm({
                           required
                            aria-label={`Counted quantity for ${line.item_name}`}
                           placeholder="0.00"
-                           className="h-12 min-w-0 flex-1 rounded-none border-0 px-0 text-center text-[13px] font-semibold tabular-nums shadow-none focus-visible:ring-inset [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+                           className="h-11 min-w-0 flex-1 rounded-none border-0 px-0 text-center text-[13px] font-semibold tabular-nums shadow-none focus-visible:ring-inset [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
                         />
-                          <button type="button" className="flex h-12 w-12 shrink-0 items-center justify-center border-l border-[var(--sb-border)] text-[var(--sb-green-900)] hover:bg-[var(--sb-surface-muted)] active:bg-[var(--sb-green-100)]" onClick={() => adjustPhysicalQty(line.item_id, 1)} aria-label={`Increase physical quantity for ${line.item_name}`}><Plus className="h-4 w-4" /></button>
+                          <button type="button" className="flex h-11 w-11 shrink-0 items-center justify-center border-l border-[var(--sb-border)] text-[var(--sb-green-900)] hover:bg-[var(--sb-surface-muted)] active:bg-[var(--sb-green-100)]" onClick={() => adjustPhysicalQty(line.item_id, 1)} aria-label={`Increase physical quantity for ${line.item_name}`}><Plus className="h-4 w-4" /></button>
                         </div>
                       <span className="shrink-0 text-[11px] text-muted-foreground">{line.uom}</span>
                     </div>
@@ -447,6 +443,7 @@ export function StockCountForm({
               <div className="flex min-w-0 flex-1 flex-col items-start gap-0">
                 <span
                   className={`max-w-full truncate text-xs font-medium ${autosaveState === "error" ? "text-destructive" : autosaveState === "saved" ? "text-[var(--sb-green-900)]" : "text-muted-foreground"}`}
+                  role="status"
                   aria-live="polite"
                   title={autosaveError || autosaveLabel}
                 >

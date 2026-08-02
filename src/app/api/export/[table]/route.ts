@@ -5,7 +5,7 @@ import { looseSupabase } from "@/lib/supabase/loose";
 import { createClient } from "@/lib/supabase/server";
 import { logServerError } from "@/server/observability/logger";
 
-const exportTables: Record<string, { table: string; permission: string; order?: string }> = {
+const exportTables: Record<string, { table: string; permission: string; order?: string; dateColumn?: string }> = {
   items: { table: "items", permission: "items.manage", order: "item_name" },
   suppliers: { table: "suppliers", permission: "suppliers.manage", order: "name" },
   "supplier-items": { table: "supplier_items", permission: "suppliers.manage", order: "created_at" },
@@ -16,9 +16,10 @@ const exportTables: Record<string, { table: string; permission: string; order?: 
   "purchase-requests": { table: "purchase_requests", permission: "pr.view_branch", order: "created_at" },
   "purchase-orders": { table: "purchase_orders", permission: "po.create", order: "created_at" },
   "production-jobs": { table: "production_jobs", permission: "production.view", order: "created_at" },
+  "stock-counts": { table: "stock_counts", permission: "stock_count.read", order: "count_date", dateColumn: "count_date" },
 };
 
-export async function GET(_request: Request, { params }: { params: Promise<{ table: string }> }) {
+export async function GET(request: Request, { params }: { params: Promise<{ table: string }> }) {
   const { table: key } = await params;
   const config = exportTables[key];
   if (!config) {
@@ -33,6 +34,10 @@ export async function GET(_request: Request, { params }: { params: Promise<{ tab
   const supabase = await createClient();
   const db = looseSupabase(supabase);
   let query = db.from(config.table).select("*").limit(10000);
+  const url = new URL(request.url);
+  if (config.dateColumn && url.searchParams.get("from")) query = query.gte(config.dateColumn, url.searchParams.get("from")!);
+  if (config.dateColumn && url.searchParams.get("to")) query = query.lte(config.dateColumn, url.searchParams.get("to")!);
+  if (key === "stock-counts") query = query.is("deleted_at", null);
   if (config.order) query = query.order(config.order, { ascending: true });
   const { data, error } = await query;
   if (error) {

@@ -48,9 +48,14 @@ export default async function StockCountsPage({ searchParams }: { searchParams: 
   const count = (...values: string[]) => rows.filter((row) => values.includes(row.status)).length;
   const filtered = hasActiveFilters(filters);
   const emptyAction = filtered ? { href: "/stock-counts", label: "Reset filters" } : canCreate ? { href: "/stock-counts/new", label: "New Count" } : undefined;
+  const exportParams = new URLSearchParams();
+  if (filters.from) exportParams.set("from", filters.from);
+  if (filters.to) exportParams.set("to", filters.to);
+  const exportQuery = exportParams.toString();
+  const exportHref = `/api/export/stock-counts${exportQuery ? `?${exportQuery}` : ""}`;
 
   return <>
-    <PageHeader title="Stock Counts" description="Physical counts compared against calculated branch stock." />
+    <PageHeader title="Stock Counts" description="Physical counts compared against calculated branch stock." secondaryAction={{ href: exportHref, label: "Export CSV" }} />
     <WorkspaceGrid
       hideMobileConsole={!canCreate}
       tabletRailMode="split"

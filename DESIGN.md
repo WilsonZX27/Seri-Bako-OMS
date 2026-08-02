@@ -2,6 +2,12 @@
 
 This document is the implementation contract for every customer-facing route, form, record workspace, table, panel, dialog, and mobile action bar. It applies to new work and to refactoring of existing UI.
 
+## v8.11.0 — Unposted Cancellation Consistency
+
+- **One destructive exit for unposted work:** Goods Receiving, Purchase Return, Production Job, Stock Transfer, Stock Wastage, Purchase Request, Purchase Order, and Stock Count drafts/unposted records use `Cancel & remove …`. The action performs the permission-aware atomic transition, releases any applicable reservation, sets `deleted_at`, keeps the audit/document history, and returns to the module list.
+- **No misleading delete vocabulary:** “Delete draft” and “Delete unposted …” are not used for an action that first cancels a workflow. Posted, received, completed, or ledger-impacting records remain protected and explain the correction path instead.
+- **Cancellation must not leave active work:** a cancelled unposted record may remain in audit/history tables, but it must not remain in active list queries or reopen in an autosave editor after redirect.
+
 ## v8.10.0 — Remove Unposted Procurement Work
 
 - **Global cancellation rule:** Draft/unposted Purchase Requests and Purchase Orders expose one clear destructive exit: **Cancel & remove**. The atomic cancel RPC runs the existing state/permission workflow, removes the record from active work with `deleted_at`, and preserves the document/activity audit trail.

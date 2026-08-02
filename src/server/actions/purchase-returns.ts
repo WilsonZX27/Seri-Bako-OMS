@@ -104,5 +104,5 @@ export async function cancelPurchaseReturn(id: string) {
   const { error } = await (await createClient()).rpc("cancel_purchase_return_atomic", { p_purchase_return_id: purchaseReturnId });
   if (error) throw new Error(error.message);
   revalidateWorkspaceState(["/purchase-returns", `/purchase-returns/${id}`]);
-  safeRedirectWithMessage("/purchase-returns", "success", "Draft purchase return deleted from active work.");
+  safeRedirectWithMessage("/purchase-returns", "success", "Draft purchase return cancelled and removed from active work.");
 }

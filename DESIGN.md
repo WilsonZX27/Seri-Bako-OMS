@@ -320,6 +320,11 @@ the route matrix in `docs/qa/FULL_SYSTEM_AUDIT_MATRIX.md`.
 
 - Shared filter rows keep a first-position dropdown content-sized (14rem maximum) on tablet and desktop, leaving intentional breathing room instead of stretching a lone status control across the canvas.
 - Search-first rows retain their flexible search field; the rule applies to both native selects and the shared Radix select trigger.
+
+### v7.95.0 - Compact Dropdown-First Filter Rows on Phones
+
+- A leading status or category dropdown stays content-sized on phones instead of inheriting the full-width search slot.
+- Search-first rows keep their flexible search behavior; this shared rule keeps dropdown-first filters within the approved two-row mobile density.
 - This closes the Costing Readiness “All severities” density annotation without changing the canonical Search-first ordering or mobile wrapping behavior.
 
 ### v7.88.0 — Tablet Split Action Deduplication

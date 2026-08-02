@@ -507,6 +507,14 @@ input[type="date"]::-webkit-date-and-time-value {
     margin-left: auto;
   }
 
+  /* Dropdown-first rows stay compact on phones; only search-first rows get
+     the flexible full-width search slot. */
+  .sb-list-filters > :is(select, [data-select-control]):first-child {
+    order: 1;
+    flex: 0 1 10rem;
+    max-width: 14rem;
+  }
+
   /*
    * A simple search + one status control belongs on one phone row.
    * More complex filter sets keep the wrapping layout and overflow into More filters.

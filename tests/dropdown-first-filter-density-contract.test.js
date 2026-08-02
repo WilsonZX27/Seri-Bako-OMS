@@ -10,7 +10,7 @@ const css = fs.readFileSync(
 
 test("dropdown-first filter controls stay compact on wider surfaces", () => {
   const selector = /\.sb-list-filters > :is\(select, \[data-select-control\]\):first-child/g;
-  assert.equal((css.match(selector) ?? []).length, 2);
+  assert.equal((css.match(selector) ?? []).length, 3);
   assert.match(
     css,
     /\.sb-list-filters > :is\(select, \[data-select-control\]\):first-child[\s\S]*?max-width:\s*14rem/,

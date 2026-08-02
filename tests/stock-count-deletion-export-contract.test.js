@@ -9,15 +9,16 @@ const read = (...parts) => fs.readFileSync(path.join(root, ...parts), "utf8");
 test("Stock Count draft removal is an audited, status-gated atomic RPC", () => {
   const action = read("src", "server", "actions", "stock-counts.ts");
   const detail = read("src", "app", "(app)", "stock-counts", "[id]", "page.tsx");
-  const migration = read("supabase", "migrations", "116_stock_count_draft_deletion.sql");
+  const migration = read("supabase", "migrations", "117_stock_count_unposted_deletion.sql");
   const types = read("src", "types", "database.ts");
 
   assert.match(action, /delete_stock_count_draft_atomic/);
   assert.match(detail, /DangerConfirmForm action=\{deleteStockCount\.bind/);
   assert.match(detail, /collapseMoreOptions/);
-  assert.match(detail, /count\.status === "draft" \|\| count\.status === "cancelled"/);
+  assert.match(detail, /count\.status !== "posted"/);
   assert.match(migration, /for update/);
-  assert.match(migration, /status not in \('draft', 'cancelled'\)/);
+  assert.match(migration, /status = 'posted'/);
+  assert.match(migration, /status <> 'posted'/);
   assert.match(migration, /set deleted_at = now\(\)/);
   assert.match(migration, /insert into public\.activity_logs/);
   assert.match(types, /delete_stock_count_draft_atomic/);

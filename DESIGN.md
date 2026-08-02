@@ -321,6 +321,11 @@ the route matrix in `docs/qa/FULL_SYSTEM_AUDIT_MATRIX.md`.
 - Shared filter rows keep a first-position dropdown content-sized (14rem maximum) on tablet and desktop, leaving intentional breathing room instead of stretching a lone status control across the canvas.
 - Search-first rows retain their flexible search field; the rule applies to both native selects and the shared Radix select trigger.
 
+### v8.03.0 — Unposted Stock Count Deletion
+
+- Stock Counts may be removed while they are still unposted, including legacy pending and cancelled records; autosave-created work is not trapped in an undeletable state.
+- Posted Stock Counts remain immutable because they have already changed the stock ledger. Deletion remains soft, branch-scoped, permission-gated, confirmation-protected, and activity-logged.
+
 ### v8.02.0 — Lightweight New-Document Headers
 
 - New documents show their descriptive title as plain context text instead of a bordered document-number control; generated document numbers keep the shared number treatment on detail pages.

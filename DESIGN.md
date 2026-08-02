@@ -2,11 +2,12 @@
 
 This document is the implementation contract for every customer-facing route, form, record workspace, table, panel, dialog, and mobile action bar. It applies to new work and to refactoring of existing UI.
 
-## v8.06.0 — Explicit Unposted Count Cleanup
+## v8.07.0 — Compact Dashboard Action Labels
 
 - Stock Counts remain deletable while unposted; posted counts remain the immutable audit boundary.
 - Cancelling a draft immediately returns the user to the Stock Counts list so the autosave editor cannot remain mounted and recreate stale work.
 - Cancellation soft-deletes the unposted count from active work while retaining the document activity log; posted inventory history is never deleted.
+- Dashboard payables actions use an explicitly compact label scale so secondary links do not compete with the metric hierarchy.
 
 ## Viewport contract
 

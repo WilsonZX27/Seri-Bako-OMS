@@ -22,3 +22,11 @@ test("dashboard degrades optional reads instead of replacing the whole workdesk"
   assert.match(source, /warnOptionalQuery\(name, result\.error\)/);
   assert.doesNotMatch(source, /for \(const result of \[transactions, stockItems, suppliers, items, urgentRequests, purchaseRequests, purchaseOrders, documents\]\)[\s\S]*?throw new Error/);
 });
+
+test("dashboard payables actions use the compact label scale", () => {
+  const source = fs.readFileSync(path.join(process.cwd(), "src/components/dashboard-workspace.tsx"), "utf8");
+
+  assert.match(source, /Review Invoice<\/Link><\/Button>/);
+  assert.match(source, /Review Invoice<\/Link><\/Button><Button[^>]+className="!text-xs"/);
+  assert.match(source, /View Cash Flow<\/Link><\/Button>/);
+});

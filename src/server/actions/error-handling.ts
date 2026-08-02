@@ -112,3 +112,10 @@ export async function requirePermissionOrRedirect(permission: string, path: stri
     safeRedirectWithMessage(path, "error", "You do not have permission to perform this action.");
   }
 }
+
+export async function requireAnyPermissionOrRedirect(permissions: string[], path: string) {
+  const allowed = (await Promise.all(permissions.map((permission) => hasPermission(permission)))).some(Boolean);
+  if (!allowed) {
+    safeRedirectWithMessage(path, "error", "You do not have permission to perform this action.");
+  }
+}

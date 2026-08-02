@@ -7,7 +7,7 @@ import { createClient } from "@/lib/supabase/server";
 import { stockCountSchema } from "@/lib/validations/stock-count";
 import { writeActivityLog } from "@/server/activity/log";
 import { requirePermission } from "@/server/auth/permissions";
-import { classifyActionError, formatActionError, requirePermissionOrRedirect, rethrowRedirect, safeRedirectWithMessage } from "@/server/actions/error-handling";
+import { classifyActionError, formatActionError, requireAnyPermissionOrRedirect, requirePermissionOrRedirect, rethrowRedirect, safeRedirectWithMessage } from "@/server/actions/error-handling";
 import { revalidateWorkspaceState } from "@/server/actions/revalidate";
 import { logServerWarning } from "@/server/observability/logger";
 import { getStockCountSeedLines } from "@/server/queries/stock-counts";
@@ -183,7 +183,7 @@ export async function cancelStockCount(id: string, _formData?: FormData) {
 
 export async function deleteStockCount(id: string, formData: FormData) {
   void formData;
-  await requirePermissionOrRedirect("stock_count.update", `/stock-counts/${id}`);
+  await requireAnyPermissionOrRedirect(["stock_count.update", "stock_count.cancel"], `/stock-counts/${id}`);
   try {
     const countId = stockCountIdSchema.parse(id);
     if (isMockMode()) {

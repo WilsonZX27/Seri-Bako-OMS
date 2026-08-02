@@ -2,6 +2,11 @@
 
 This document is the implementation contract for every customer-facing route, form, record workspace, table, panel, dialog, and mobile action bar. It applies to new work and to refactoring of existing UI.
 
+## v8.20.0 - Unposted Delete Permission Alignment
+
+- Removing an unposted operational record accepts either its edit permission or its cancellation permission. Users must not be trapped by an autosave-created draft merely because their role can cancel but not edit it.
+- Posted or ledger-impacting records remain immutable; deletion preserves the audit boundary and must route users to a correction workflow instead.
+
 ## v8.19.0 - Deliberate Stock Count Autosave Window
 
 - Stock Count server autosave waits for **6 seconds of idle time** after an edit. The local recovery snapshot still writes immediately, so a longer server debounce reduces disruptive draft writes without sacrificing recoverability after refresh, logout, or network interruption.

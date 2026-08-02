@@ -10,6 +10,7 @@ test("Stock Count draft removal is an audited, status-gated atomic RPC", () => {
   const action = read("src", "server", "actions", "stock-counts.ts");
   const detail = read("src", "app", "(app)", "stock-counts", "[id]", "page.tsx");
   const migration = read("supabase", "migrations", "117_stock_count_unposted_deletion.sql");
+  const permissionMigration = read("supabase", "migrations", "123_stock_count_delete_permission_alignment.sql");
   const types = read("src", "types", "database.ts");
 
   assert.match(action, /delete_stock_count_draft_atomic/);
@@ -21,6 +22,8 @@ test("Stock Count draft removal is an audited, status-gated atomic RPC", () => {
   assert.match(migration, /status <> 'posted'/);
   assert.match(migration, /set deleted_at = now\(\)/);
   assert.match(migration, /insert into public\.activity_logs/);
+  assert.match(permissionMigration, /stock_count\.update.*stock_count\.cancel/);
+  assert.match(permissionMigration, /status <> 'posted'/);
   assert.match(types, /delete_stock_count_draft_atomic/);
 });
 
@@ -39,7 +42,7 @@ test("Stock Count export accepts the selected date range", () => {
 
 test("Stock Count autosave waits for a deliberate idle interval", () => {
   const form = read("src", "components", "stock-count-form.tsx");
-  assert.match(form, /setTimeout\(\(\) => void saveDraft\(dirtyRevision\), 4000\)/);
+  assert.match(form, /setTimeout\(\(\) => void saveDraft\(dirtyRevision\), 6000\)/);
   assert.doesNotMatch(form, /saveDraft\(dirtyRevision\), 800\)/);
   assert.match(form, /data-mobile-document-action[\s\S]*autosaveLabel/);
 });

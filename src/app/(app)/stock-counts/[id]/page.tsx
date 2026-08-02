@@ -25,7 +25,7 @@ export default async function StockCountDetailPage({ params }: { params: Promise
   const { id } = await params;
   const [{ count, lines }, permissions, branches] = await Promise.all([
     getStockCount(id),
-    getPermissionMap(["stock_count.update", "stock_count.post"]),
+    getPermissionMap(["stock_count.update", "stock_count.cancel", "stock_count.post"]),
     getBranchesForSelect(),
   ]);
   const documentBundle = count.document_id ? await getDocumentBundle(count.document_id) : null;
@@ -35,7 +35,7 @@ export default async function StockCountDetailPage({ params }: { params: Promise
   const canEdit = count.status === "draft" && permissions["stock_count.update"];
   // Any count that has not posted inventory can still be safely removed from
   // active work. Posted counts are the immutable audit boundary.
-  const canDelete = count.status !== "posted" && permissions["stock_count.update"];
+  const canDelete = count.status !== "posted" && (permissions["stock_count.update"] || permissions["stock_count.cancel"]);
   const hasPrimaryAction = canPost || canEdit;
   const formId = `stock-count-edit-${count.id}`;
   const deleteLabel = count.status === "draft" ? "Delete draft" : "Delete unposted count";

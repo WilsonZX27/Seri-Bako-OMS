@@ -21,7 +21,9 @@ import { getBranchesForSelect } from "@/server/queries/common";
 import { getStockCounts } from "@/server/queries/stock-counts";
 import { logServerError } from "@/server/observability/logger";
 
-const statuses = ["draft", "submitted", "reviewed", "approved", "posted", "rejected", "cancelled"];
+// Stock Count has one active workflow: Draft → Confirm & Post. Legacy states
+// remain readable in the table, but are intentionally not promoted as filters.
+const statuses = ["draft", "posted", "cancelled"];
 
 async function loadStockCounts(filters: Record<string, string | undefined>) {
   try {

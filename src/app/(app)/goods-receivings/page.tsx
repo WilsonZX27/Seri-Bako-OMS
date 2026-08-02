@@ -56,7 +56,7 @@ export default async function GoodsReceivingsPage({ searchParams }: { searchPara
         }
       >
         <div className="overflow-hidden rounded-[2px] border border-[var(--sb-border-soft)] bg-card">
-          <FilterBar resultCount={receivings.totalRows} resetHref="/goods-receivings" filtered={filtered}>
+          <FilterBar resultCount={receivings.totalRows} resetHref="/goods-receivings" filtered={filtered} className="sb-list-filters--compact-mobile">
             <Input name="search" defaultValue={filters.search ?? ""} placeholder="Search GRN, PO or supplier" className="min-w-0 flex-1 md:max-w-sm" />
             <StatusTabs statuses={statuses} activeStatus={filters.status} />
             <Button type="submit" variant="secondary" className="shrink-0">Search</Button>

@@ -3,7 +3,6 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { AlertTriangle, PackageCheck } from "lucide-react";
-import { Card, CardContent } from "@/components/ui/card";
 import { Field } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { SelectNative } from "@/components/ui/select-native";
@@ -35,9 +34,8 @@ export function GoodsReceivingForm({
   }
 
   return (
-    <Card className="border-0 bg-transparent shadow-none md:border md:bg-white">
-      <CardContent className="p-0 md:p-5">
-        <form id="goods-receiving-form" action={action} className="space-y-3">
+    <div className="min-w-0">
+      <form id="goods-receiving-form" action={action} className="space-y-3">
           <input type="hidden" name="idempotency_key" value={idempotencyKey} />
           <input type="hidden" name="grn_no" value={grnNo} />
           <input type="hidden" name="status" value="draft" />
@@ -130,8 +128,7 @@ export function GoodsReceivingForm({
               <p className="mt-1 text-sm text-muted-foreground">Only approved, sent, or partially received POs can be received.</p>
             </section>
           )}
-        </form>
-      </CardContent>
-    </Card>
+      </form>
+    </div>
   );
 }

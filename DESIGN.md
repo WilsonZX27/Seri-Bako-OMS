@@ -321,6 +321,11 @@ the route matrix in `docs/qa/FULL_SYSTEM_AUDIT_MATRIX.md`.
 - Shared filter rows keep a first-position dropdown content-sized (14rem maximum) on tablet and desktop, leaving intentional breathing room instead of stretching a lone status control across the canvas.
 - Search-first rows retain their flexible search field; the rule applies to both native selects and the shared Radix select trigger.
 
+### v7.97.0 — Focused Stock Count and Receiving Surfaces
+
+- Stock Count status filters expose only the current Draft, Posted, and Cancelled states; legacy records remain readable without reviving the retired approval chain.
+- Goods Receiving list filters use the compact mobile search/status/result arrangement, and the new receiving form has one surface boundary instead of a nested duplicate card.
+
 ### v7.96.0 — Safer Stock Count Draft Management
 
 - Stock Counts in `draft` or `cancelled` status may be soft-deleted by users with `stock_count.update` access; posted counts remain immutable and their audit history is retained.

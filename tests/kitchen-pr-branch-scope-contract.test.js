@@ -7,7 +7,7 @@ const read = (file) => fs.readFileSync(file, "utf8");
 const branchesQuery = read("src/server/queries/common.ts");
 test("PR new page uses scoped branch options", () => {
   const page = read("src/app/(app)/purchase-requests/new/page.tsx");
-  assert.match(page, /getBranchesForSelect\((?:\{\s*restrictToActorScope:\s*true\s*\}|true)\)/);
+  assert.match(page, /getBranchesForSelect\(\{\s*restrictToActorScope:\s*true\s*\}\)/);
   assert.match(page, /selectedBranchId = params\.branch_id && branches\.some\(\(branch\) => branch\.id === params\.branch_id\) \? params\.branch_id : branches\[0\]\?\.id;/);
   assert.match(page, /initialBranchId=\{selectedBranchId\}/);
 });

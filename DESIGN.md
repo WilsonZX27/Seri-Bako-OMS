@@ -288,6 +288,12 @@ the route matrix in `docs/qa/FULL_SYSTEM_AUDIT_MATRIX.md`.
 - Preserved branch-scoped Purchase Request creation, transition authorization, Stock Count cancellation atomicity, and Stock Transfer reservation/partial-receiving contracts.
 - Release gate: 451/451 contract tests, typecheck, strict typecheck, and lint pass. No Supabase migration was executed from this worktree.
 
+### v7.90.0 — Purchase Request Branch Scope Hardening
+
+- Purchase Request branch selectors use an explicit typed scope option and only expose branches assigned to the actor when required.
+- Server-side creation and submit transitions continue to validate branch access; client selection is not treated as an authorization boundary.
+- Release gate: 451/451 contract tests, typecheck, strict typecheck, and lint pass. Supabase migrations remain staged but unapplied until the linked project and migration history are verified.
+
 ### v7.88.0 — Tablet Split Action Deduplication
 
 - A tablet split workspace exposes its primary action in the right rail. The shared mobile FAB and mobile action bar are suppressed between 768px and 1279px so one task never presents duplicate primary actions. Phone retains the FAB and desktop retains the right console action.

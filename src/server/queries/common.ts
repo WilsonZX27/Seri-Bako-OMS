@@ -154,7 +154,11 @@ export async function getDefaultCompanyId() {
   return data.id;
 }
 
-export const getBranchesForSelect = cache(async function getBranchesForSelect(restrictToActorScope = false) {
+type BranchSelectScope = {
+  restrictToActorScope?: boolean;
+};
+
+export const getBranchesForSelect = cache(async function getBranchesForSelect(options: BranchSelectScope = {}) {
   if (isMockMode()) {
     return mockBranches
       .filter((branch) => branch.status === "active")
@@ -162,15 +166,15 @@ export const getBranchesForSelect = cache(async function getBranchesForSelect(re
   }
 
   const supabase = await createClient();
-  let query = supabase.from("branches").select("id, branch_code, branch_name, status").eq("status", "active").order("branch_name", { ascending: true });
-  if (restrictToActorScope) {
+  let query = supabase.from("branches").select("id, branch_code, branch_name, status").eq("status", "active");
+  if (options.restrictToActorScope) {
     const scope = await getCurrentUserScope();
     if (!scope || (!scope.companyWideAccess && !scope.branchIds.length)) return [];
     if (!scope.companyWideAccess && scope.branchIds.length) {
       query = query.in("id", scope.branchIds);
     }
   }
-  const { data, error } = await query;
+  const { data, error } = await query.order("branch_name", { ascending: true });
   if (error) throw new Error(error.message);
   return data;
 });

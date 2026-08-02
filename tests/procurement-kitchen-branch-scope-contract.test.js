@@ -10,10 +10,10 @@ test("Kitchen branch selector should query only actor-assigned branches on PR cr
   const page = read("src/app/(app)/purchase-requests/new/page.tsx");
   const queries = read("src/server/queries/common.ts");
 
-  assert.match(page, /getBranchesForSelect\(true\)/);
+  assert.match(page, /getBranchesForSelect\(\{ restrictToActorScope: true \}\)/);
   assert.match(page, /params\.branch_id && branches\.some\(\(branch\) => branch\.id === params\.branch_id\)/);
-  assert.match(queries, /export const getBranchesForSelect = cache\(async function getBranchesForSelect\(restrictToActorScope = false\) \{/);
-  assert.match(queries, /if \(restrictToActorScope\) \{/);
+  assert.match(queries, /export const getBranchesForSelect = cache\(async function getBranchesForSelect\(options: BranchSelectScope = \{\}\) \{/);
+  assert.match(queries, /if \(options\.restrictToActorScope\) \{/);
 });
 
 test("Kitchen branch scope is enforced in creation and submit transition action paths", () => {

@@ -14,7 +14,7 @@ export default async function NewPurchaseRequestPage({ searchParams }: { searchP
   const [items, supplierMappings, branches, hasCommercialAccess, profile] = await Promise.all([
     getItemsForSelect(),
     getBranchSupplierMappingsForSelect(),
-    getBranchesForSelect(true),
+    getBranchesForSelect({ restrictToActorScope: true }),
     hasPermission("pr.view_all"),
     getCurrentProfile(),
   ]);

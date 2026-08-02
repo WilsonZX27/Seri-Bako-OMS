@@ -418,3 +418,4 @@ the route matrix in `docs/qa/FULL_SYSTEM_AUDIT_MATRIX.md`.
 - This action removes the record from active work through the existing audited cancellation/removal RPC; it must not hard-delete activity history.
 - Posted records remain immutable. Their destructive control explains the accounting boundary and points to a correction workflow instead of silently failing.
 - Do not label an action `Cancel & remove` when the user intent is to discard an unposted draft; the visible label must say `Delete` and the pending state must say `Deleting`.
+- A one-time forward-only backfill may set `deleted_at` on legacy rows already in a cancelled terminal state so they stop appearing in active lists; it must not delete rows or alter posted ledger data.

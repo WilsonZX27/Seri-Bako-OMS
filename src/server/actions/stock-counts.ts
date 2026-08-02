@@ -166,7 +166,7 @@ export async function saveAndPostStockCount(id: string, formData: FormData) {
   await postStockCount(id);
 }
 
-export async function cancelStockCount(id: string) {
+export async function cancelStockCount(id: string, _formData?: FormData) {
   await requirePermission("stock_count.cancel");
   if (isMockMode()) return;
   const countId = stockCountIdSchema.parse(id);
@@ -178,7 +178,7 @@ export async function cancelStockCount(id: string) {
   // Leave the editable detail surface after cancellation. Otherwise the
   // autosave form remains mounted and can make a cancelled draft appear to
   // come back when the user continues typing or refreshes the page.
-  safeRedirectWithMessage("/stock-counts", "success", "Stock Count cancelled and removed from active work.");
+  safeRedirectWithMessage("/stock-counts", "success", "Draft Stock Count cancelled and removed from active work.");
 }
 
 export async function deleteStockCount(id: string, formData: FormData) {

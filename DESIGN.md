@@ -2,6 +2,11 @@
 
 This document is the implementation contract for every customer-facing route, form, record workspace, table, panel, dialog, and mobile action bar. It applies to new work and to refactoring of existing UI.
 
+## v8.09.0 — Clarify Draft Count Removal
+
+- Stock Count drafts expose one destructive exit: **Cancel & remove draft**. It soft-deletes the unposted count, retains the document/activity audit trail, and returns to the list so autosave cannot resurrect it.
+- Posted counts remain immutable. Their delete affordance explains the audit boundary and offers correction guidance instead of a dead-end action.
+
 ## v8.08.0 — Remove Unposted Work Safely
 
 - **Unposted work deletion rule:** Draft/unposted Goods Receivings, Purchase Returns, Production Jobs, Stock Transfers, Stock Wastage, and Stock Counts may be deleted by the existing cancel permission. The action is transactional: release any reservation, retain document/activity history, set `deleted_at`, and remove the record from active work lists.

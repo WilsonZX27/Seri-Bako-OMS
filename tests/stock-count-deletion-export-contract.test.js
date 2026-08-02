@@ -14,6 +14,7 @@ test("Stock Count draft removal is an audited, status-gated atomic RPC", () => {
 
   assert.match(action, /delete_stock_count_draft_atomic/);
   assert.match(detail, /DangerConfirmForm action=\{deleteStockCount\.bind/);
+  assert.match(detail, /collapseMoreOptions/);
   assert.match(detail, /count\.status === "draft" \|\| count\.status === "cancelled"/);
   assert.match(migration, /for update/);
   assert.match(migration, /status not in \('draft', 'cancelled'\)/);

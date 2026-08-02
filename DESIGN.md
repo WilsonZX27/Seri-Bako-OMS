@@ -321,6 +321,11 @@ the route matrix in `docs/qa/FULL_SYSTEM_AUDIT_MATRIX.md`.
 - Shared filter rows keep a first-position dropdown content-sized (14rem maximum) on tablet and desktop, leaving intentional breathing room instead of stretching a lone status control across the canvas.
 - Search-first rows retain their flexible search field; the rule applies to both native selects and the shared Radix select trigger.
 
+### v7.99.0 — Focused Stock Count Actions
+
+- Stock Count details keep Save draft and Confirm & Post as the primary action pair; Cancel and Delete remain available inside collapsed More options to reduce accidental destructive actions and visual noise.
+- Collapsing secondary actions is opt-in per workflow, so existing procurement action rails are not changed without an explicit rule.
+
 ### v7.98.0 — Compact New-Document Context Headers
 
 - New-document headers use a smaller document identifier and tighter vertical rhythm on phones; status and branch remain visible without turning the context row into a large action surface.

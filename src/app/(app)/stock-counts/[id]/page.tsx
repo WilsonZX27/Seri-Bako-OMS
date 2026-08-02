@@ -75,7 +75,7 @@ export default async function StockCountDetailPage({ params }: { params: Promise
       mobileMoreOptions={<DocumentMoreOptions>{secondaryActions}</DocumentMoreOptions>}
       sidePanel={
         <>
-          <DocumentActionSection description="Only valid stock count actions are shown." moreOptions={secondaryActions}>
+          <DocumentActionSection description="Only valid stock count actions are shown." moreOptions={secondaryActions} collapseMoreOptions>
             {hasPrimaryAction ? (
               <DocumentActionBar className={canEdit && canPost ? "grid-cols-2" : undefined}>
                 {canEdit ? <SubmitButton form={formId} className="w-full" pendingLabel="Saving...">Save draft</SubmitButton> : null}

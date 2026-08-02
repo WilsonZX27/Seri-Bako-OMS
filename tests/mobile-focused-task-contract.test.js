@@ -50,7 +50,8 @@ test("new purchase requests use one shared submit source on every viewport", () 
   assert.doesNotMatch(form, /rounded-full[\s\S]{0,300}aria-label="Submit PR"/);
   assert.doesNotMatch(form, /md:inline-flex">\s*Submit PR/);
   assert.match(form, /<summary[^>]*>Sourcing details <span[^>]*>\(automatic\)<\/span><\/summary>/);
-  assert.match(mobile, /<details open className="hidden/);
+  assert.match(mobile, /<details open=\{defaultOpen\} className="hidden/);
+  assert.match(mobile, /defaultOpen = true/);
 });
 
 test("production jobs retain direct access to planning and demand variance", () => {

@@ -109,13 +109,15 @@ export function DocumentSideSection({
   );
 }
 
-export function DocumentActionSection({ description, children, moreOptions }: { description?: string; children: ReactNode; moreOptions?: ReactNode }) {
+export function DocumentActionSection({ description, children, moreOptions, collapseMoreOptions = false }: { description?: string; children: ReactNode; moreOptions?: ReactNode; collapseMoreOptions?: boolean }) {
   return (
     <DocumentSideSection title="Primary Action" description={description}>
       {children}
       {moreOptions ? <>
-        <div className="hidden gap-2 md:grid">{moreOptions}</div>
-        <div className="md:hidden"><DocumentMoreOptions>{moreOptions}</DocumentMoreOptions></div>
+        {collapseMoreOptions ? <DocumentMoreOptions defaultOpen={false}>{moreOptions}</DocumentMoreOptions> : <>
+          <div className="hidden gap-2 md:grid">{moreOptions}</div>
+          <div className="md:hidden"><DocumentMoreOptions>{moreOptions}</DocumentMoreOptions></div>
+        </>}
       </> : null}
     </DocumentSideSection>
   );

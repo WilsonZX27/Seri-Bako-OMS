@@ -18,6 +18,6 @@ test("unposted procurement cancellation removes active work through dedicated RP
   assert.match(migration, /'removed_from_active_work'/);
   assert.match(actions, /rpc\("cancel_purchase_request_atomic"/);
   assert.match(actions, /rpc\("cancel_purchase_order_atomic"/);
-  assert.match(prDetail, /Cancel &amp; remove draft/);
-  assert.match(poDetail, /Cancel &amp; remove unposted order/);
+  assert.match(prDetail, /Delete draft/);
+  assert.match(poDetail, /Delete unposted order/);
 });

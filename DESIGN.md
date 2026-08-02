@@ -412,3 +412,9 @@ the route matrix in `docs/qa/FULL_SYSTEM_AUDIT_MATRIX.md`.
 - Integrated the committed OpsLogic branch into the UI closure branch without dropping the existing shared-component work.
 - Preserved branch-scoped Purchase Request creation, transition authorization, Stock Count cancellation atomicity, and Stock Transfer reservation/partial-receiving contracts.
 - Release gate: 451/451 contract tests, typecheck, strict typecheck, and lint pass. No Supabase migration was executed from this worktree.
+## v8.13.0 — Unposted work can be deleted explicitly
+
+- Every document detail surface must expose a clear `Delete draft` or `Delete unposted …` action while work has not posted inventory or accounting impact.
+- This action removes the record from active work through the existing audited cancellation/removal RPC; it must not hard-delete activity history.
+- Posted records remain immutable. Their destructive control explains the accounting boundary and points to a correction workflow instead of silently failing.
+- Do not label an action `Cancel & remove` when the user intent is to discard an unposted draft; the visible label must say `Delete` and the pending state must say `Deleting`.

@@ -28,7 +28,7 @@ export default async function PurchaseReturnDetailPage({ params, searchParams }:
   const canPost = permissions["purchase_return.post"] && purchaseReturn.status === "draft";
   const canCancel = permissions["purchase_return.cancel"] && purchaseReturn.status === "draft";
   const deleteControl = <BlockedDestructiveAction buttonLabel="Delete return" title={`Cannot delete ${purchaseReturn.purchase_return_no}`} description="This return has stock-impacting ledger rows and must remain auditable." recommendation="Posted returns require a correction through the existing stock workflow." />;
-  const secondaryActions = canCancel ? <DocumentActionForm action={cancelPurchaseReturn.bind(null, purchaseReturn.id)} pendingLabel="Cancelling & removing..." variant="destructive">Cancel &amp; remove draft</DocumentActionForm> : deleteControl;
+  const secondaryActions = canCancel ? <DocumentActionForm action={cancelPurchaseReturn.bind(null, purchaseReturn.id)} pendingLabel="Deleting draft..." variant="destructive">Delete draft</DocumentActionForm> : deleteControl;
 
   return (
     <DocumentWorkspace

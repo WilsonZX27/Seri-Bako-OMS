@@ -42,11 +42,11 @@ export default async function StockCountDetailPage({ params }: { params: Promise
   const deleteControl = canDelete
     ? <DangerConfirmForm action={deleteStockCount.bind(null, count.id)} buttonLabel="Delete stock count" title={`Delete ${count.count_no}?`} description="This removes the unposted count from active work. Its audit activity remains available." checkboxLabel="I understand this removes the Stock Count from active records." warning="Only posted counts are protected because they already changed the stock ledger." confirmWord={count.count_no} pendingLabel="Deleting..." />
     : <BlockedDestructiveAction buttonLabel="Delete stock count" title={`Cannot delete ${count.count_no}`} description="This count has already been posted to the stock ledger." recommendation="Posted counts remain immutable. Create a new count for any correction." />;
-  // A draft has one destructive exit: cancelling also removes it from active
-  // work. Showing a second delete control made the autosave workflow look
-  // contradictory and encouraged users to try two actions with the same outcome.
+  // A draft has one destructive exit. It uses the cancellation RPC so the
+  // workflow is audited, but the visible language is explicit: delete the
+  // unposted work from the active list.
   const secondaryActions = canCancel
-    ? <DocumentActionForm action={cancelStockCount.bind(null, count.id)} pendingLabel="Cancelling..." variant="destructive">Cancel &amp; remove draft</DocumentActionForm>
+    ? <DocumentActionForm action={cancelStockCount.bind(null, count.id)} pendingLabel="Deleting draft..." variant="destructive">Delete draft</DocumentActionForm>
     : deleteControl;
   const postAction = canEdit ? saveAndPostStockCount.bind(null, count.id) : postStockCount.bind(null, count.id);
   const confirmAction = canPost ? <ConfirmActionForm action={postAction} formId={canEdit ? formId : undefined} label="Confirm & Post Count" title="Post this stock count?" description={`${lines.filter((line) => line.variance_qty !== 0).length} adjusted lines will update the branch stock ledger. Your latest entries will be saved before posting. This cannot be undone.`} pendingLabel="Saving & posting..." mobilePrimary /> : null;

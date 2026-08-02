@@ -29,9 +29,9 @@ test("Stock Count cancellation uses one forward-only atomic RPC", () => {
   assert.match(action, /safeRedirectWithMessage\("\/stock-counts", "success", "Draft Stock Count cancelled/);
 });
 
-test("Stock Count draft exposes one cancel-and-remove destructive exit", () => {
+test("Stock Count draft exposes one explicit delete-draft destructive exit", () => {
   const detail = read("src/app/(app)/stock-counts/[id]/page.tsx");
-  assert.match(detail, /Cancel &amp; remove draft/);
+  assert.match(detail, /Delete draft/);
   assert.match(detail, /const secondaryActions = canCancel/);
   assert.doesNotMatch(detail, /Cancel stock count/);
 });

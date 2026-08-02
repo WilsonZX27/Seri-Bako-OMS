@@ -4,6 +4,7 @@ import { ShieldCheck, TriangleAlert } from "lucide-react";
 import { runFirstAdminSetup } from "@/server/actions/setup";
 import { getSetupStatus } from "@/server/queries/setup";
 import { Button } from "@/components/ui/button";
+import { SubmitButton } from "@/components/ui/submit-button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
 export default async function SetupPage({
@@ -65,9 +66,9 @@ export default async function SetupPage({
               Operator bootstrap token
               <input id="bootstrap-token" name="bootstrap_token" type="password" autoComplete="off" required className="h-10 rounded-md border bg-background px-3" />
             </label>
-            <Button type="submit" className="w-full">
+            <SubmitButton type="submit" className="w-full" pendingLabel="Setting up...">
               Run setup
-            </Button>
+            </SubmitButton>
           </form>
         </CardContent>
       </Card>

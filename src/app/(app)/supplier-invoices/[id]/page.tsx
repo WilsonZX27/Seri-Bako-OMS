@@ -12,7 +12,7 @@ import { ConfirmActionForm } from "@/components/ui/confirm-action-form";
 import { Button } from "@/components/ui/button";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { SupplierInvoiceForm } from "@/components/supplier-invoice-form";
-import { formatCurrency, formatNumber } from "@/lib/utils";
+import { formatCurrency, formatDateOnly, formatNumber, getToday } from "@/lib/utils";
 import { approveSupplierInvoice, recordSupplierInvoicePayment, updateSupplierInvoiceDraft, voidSupplierInvoice } from "@/server/actions/supplier-invoices";
 import { getPermissionMap } from "@/server/auth/permissions";
 import { getDocumentBundle } from "@/server/queries/documents";
@@ -26,12 +26,10 @@ const invoiceSteps = [
   { key: "paid", label: "Paid", description: "Invoice balance is settled." },
 ];
 
-function today() { return new Date().toISOString().slice(0, 10); }
-
 function PaymentForm({ invoiceId, balance, idempotencyKey }: { invoiceId: string; balance: number; idempotencyKey: string }) {
   return <form action={recordSupplierInvoicePayment.bind(null, invoiceId)} className="grid gap-2">
     <input type="hidden" name="idempotency_key" value={idempotencyKey} />
-    <Input name="payment_date" type="date" defaultValue={today()} required />
+    <Input name="payment_date" type="date" defaultValue={getToday()} required />
     <Input name="amount" type="number" min="0.01" max={balance} step="0.01" placeholder={`Outstanding ${formatCurrency(balance)}`} required />
     <Input name="payment_method" placeholder="Payment method" required />
     <Input name="reference_no" placeholder="Reference" />
@@ -85,7 +83,7 @@ export default async function SupplierInvoiceDetailPage({ params, searchParams }
           {agingRow ? <DocumentSideSection title="Payment Attention" description="Live status from AP Aging.">
             <div className="space-y-2 text-xs">
               <p><strong>{agingRow.alert_label ?? "No immediate alert"}</strong></p>
-              <p className="flex justify-between gap-2"><span>Due date</span><strong>{agingRow.due_date ?? "Missing"}</strong></p>
+              <p className="flex justify-between gap-2"><span>Due date</span><strong>{formatDateOnly(agingRow.due_date, "Missing")}</strong></p>
               <p className="flex justify-between gap-2"><span>Outstanding</span><strong>{formatCurrency(agingRow.outstanding)}</strong></p>
               <p>{agingRow.days_overdue > 0 ? `${agingRow.days_overdue} days overdue` : agingRow.due_date ? `${agingRow.days_until_due} days until due` : "Due date requires attention"}</p>
               <DocumentActionLink href={`/supplier-invoices/aging?search=${encodeURIComponent(invoice.invoice_no)}`} variant="outline">View in AP Aging</DocumentActionLink>
@@ -126,8 +124,8 @@ export default async function SupplierInvoiceDetailPage({ params, searchParams }
           <div className="grid gap-4 md:grid-cols-4">
             <div><p className="text-xs uppercase text-muted-foreground">Supplier Reference</p><p className="font-medium">{invoice.supplier_invoice_no}</p></div>
             <div><p className="text-xs uppercase text-muted-foreground">Supplier</p><p className="font-medium">{invoice.supplier_name ?? "-"}</p></div>
-            <div><p className="text-xs uppercase text-muted-foreground">Invoice Date</p><p className="font-medium">{invoice.invoice_date}</p></div>
-            <div><p className="text-xs uppercase text-muted-foreground">Due Date</p><p className="font-medium">{invoice.due_date ?? "-"}</p></div>
+            <div><p className="text-xs uppercase text-muted-foreground">Invoice Date</p><p className="font-medium">{formatDateOnly(invoice.invoice_date)}</p></div>
+            <div><p className="text-xs uppercase text-muted-foreground">Due Date</p><p className="font-medium">{formatDateOnly(invoice.due_date)}</p></div>
             <div><p className="text-xs uppercase text-muted-foreground">Payment Terms</p><p className="font-medium">{invoice.payment_terms_days} days</p></div>
             <div><p className="text-xs uppercase text-muted-foreground">Status</p><StatusBadge status={invoice.status} /></div>
             <div><p className="text-xs uppercase text-muted-foreground">Paid</p><p className="font-medium">{formatCurrency(invoice.amount_paid)}</p></div>
@@ -154,7 +152,7 @@ export default async function SupplierInvoiceDetailPage({ params, searchParams }
         <div className="mb-3 flex items-center justify-between"><h2 className="text-sm font-semibold">Payment History</h2><span className="text-xs text-muted-foreground">{payments.length} payment(s)</span></div>
         <Table>
           <TableHeader><TableRow><TableHead>Payment No</TableHead><TableHead>Date</TableHead><TableHead>Method</TableHead><TableHead>Reference</TableHead><TableHead>Notes</TableHead><TableHead className="text-right">Amount</TableHead></TableRow></TableHeader>
-          <TableBody>{payments.map((payment) => <TableRow key={payment.id}><TableCell>{payment.payment_no}</TableCell><TableCell>{payment.payment_date}</TableCell><TableCell>{payment.payment_method ?? "-"}</TableCell><TableCell>{payment.reference_no ?? "-"}</TableCell><TableCell>{payment.notes ?? "-"}</TableCell><TableCell className="text-right">{formatCurrency(payment.amount)}</TableCell></TableRow>)}
+          <TableBody>{payments.map((payment) => <TableRow key={payment.id}><TableCell>{payment.payment_no}</TableCell><TableCell>{formatDateOnly(payment.payment_date)}</TableCell><TableCell>{payment.payment_method ?? "-"}</TableCell><TableCell>{payment.reference_no ?? "-"}</TableCell><TableCell>{payment.notes ?? "-"}</TableCell><TableCell className="text-right">{formatCurrency(payment.amount)}</TableCell></TableRow>)}
           {!payments.length ? <TableRow><TableCell colSpan={6} className="text-sm text-muted-foreground">No payments recorded.</TableCell></TableRow> : null}</TableBody>
         </Table>
       </CardContent></Card></DocumentWorkspace>

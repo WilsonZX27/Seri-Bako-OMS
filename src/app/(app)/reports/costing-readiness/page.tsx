@@ -13,6 +13,8 @@ import { OperationalList, OperationalListRow, Table, TableBody, TableCell, Table
 import { hasActiveFilters } from "@/lib/table-state";
 import { getCostingReadiness } from "@/server/queries/costing-readiness";
 
+export const dynamic = "force-dynamic";
+
 const variants = { critical: "danger", warning: "warning", info: "secondary" } as const;
 
 export default async function CostingReadinessPage({ searchParams }: { searchParams: Promise<Record<string, string | undefined>> }) {

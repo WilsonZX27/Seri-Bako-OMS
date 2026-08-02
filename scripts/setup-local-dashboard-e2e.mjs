@@ -29,6 +29,18 @@ const accounts = [
 
 const { data: company } = await admin.from("companies").select("id").limit(1).single();
 const { data: branch } = await admin.from("branches").select("id").eq("company_id", company.id).limit(1).single();
+const { data: branchRows, error: branchRowsError } = await admin.from("branches").select("id, branch_code").eq("company_id", company.id).is("deleted_at", null);
+if (branchRowsError) throw branchRowsError;
+if ((branchRows ?? []).length < 2) {
+  const { error: destinationBranchError } = await admin.from("branches").insert({ company_id: company.id, branch_code: "E2E-DST", branch_name: "Local E2E Destination", branch_type: "central_kitchen", status: "active" });
+  if (destinationBranchError && destinationBranchError.code !== "23505") throw destinationBranchError;
+}
+const { data: transferSequence, error: transferSequenceError } = await admin.from("document_sequences").select("id").eq("company_id", company.id).eq("document_type", "stock_transfer").maybeSingle();
+if (transferSequenceError) throw transferSequenceError;
+if (!transferSequence) {
+  const { error: createTransferSequenceError } = await admin.from("document_sequences").insert({ company_id: company.id, document_type: "stock_transfer", prefix: "ST", next_number: 1, padding: 5, reset_frequency: "yearly", status: "active" });
+  if (createTransferSequenceError && createTransferSequenceError.code !== "23505") throw createTransferSequenceError;
+}
 const { data: roles } = await admin.from("roles").select("id, role_code").eq("company_id", company.id).is("deleted_at", null);
 const { data: authUsers, error: authUsersError } = await admin.auth.admin.listUsers({ page: 1, perPage: 1000 });
 if (authUsersError) throw authUsersError;

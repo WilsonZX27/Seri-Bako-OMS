@@ -12,13 +12,12 @@ import { PageHeader } from "@/components/ui/page-header";
 import { SelectControl } from "@/components/ui/select-control";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { OperationalList, OperationalListRow, Table, TableActionLink, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { formatNumber } from "@/lib/utils";
+import { formatDateOnly, formatDateTime, formatNumber } from "@/lib/utils";
 import { hasActiveFilters } from "@/lib/table-state";
 import { hasPermission } from "@/server/auth/permissions";
 import { getOutletDailyFormOptions, getOutletDailyRecords } from "@/server/queries/outlet-daily-records";
 
 const statuses = ["draft", "morning_recorded", "evening_completed", "reviewed", "void"];
-const dateTime = (value: string) => new Intl.DateTimeFormat("en-MY", { dateStyle: "medium", timeStyle: "short", timeZone: "Asia/Kuala_Lumpur" }).format(new Date(value));
 const statusGuidance = (status: string) => status === "evening_completed" ? "Needs review" : status === "reviewed" ? "Locked" : ["draft", "morning_recorded"].includes(status) ? "Needs evening entry" : "Locked";
 
 export default async function OutletDailyRecordsPage({ searchParams }: { searchParams: Promise<Record<string, string | undefined>> }) {
@@ -40,7 +39,7 @@ export default async function OutletDailyRecordsPage({ searchParams }: { searchP
           <Button type="submit" variant="secondary">Search</Button>
         </FilterBar>
         <Table mobileHidden aria-label="Outlet daily records" stickyColumn="second"><TableHeader><TableRow><TableHead className="w-16 text-center">Action</TableHead><TableHead>Date</TableHead><TableHead>Outlet</TableHead><TableHead>Status</TableHead><TableHead className="text-right">Received</TableHead><TableHead className="text-right">Wastage</TableHead><TableHead className="text-right">Wastage %</TableHead><TableHead>Submitted By</TableHead><TableHead>Updated</TableHead></TableRow></TableHeader><TableBody>
-          {data.rows.map((row) => <DataGridRow key={row.id} href={`/outlet-daily-records/${row.id}`} className={row.record_date === data.summary.today ? "bg-warning/5" : undefined}><TableCell className="w-16 p-0 text-center"><TableActionLink href={`/outlet-daily-records/${row.id}`} label={`Open ${row.branch_name} daily record`}><Pencil className="h-4 w-4" /></TableActionLink></TableCell><TableCell><span className="whitespace-nowrap">{row.record_date}</span>{row.record_date === data.summary.today ? <p className="text-xs font-medium text-warning">Today</p> : null}</TableCell><TableCell className="font-medium">{row.branch_name}</TableCell><TableCell><StatusBadge status={row.status} /><p className="mt-1 whitespace-nowrap text-xs text-muted-foreground">{statusGuidance(row.status)}</p></TableCell><TableCell className="text-right">{formatNumber(row.total_received)}</TableCell><TableCell className="text-right">{formatNumber(row.total_wastage)}</TableCell><TableCell className="text-right">{formatNumber(row.wastage_percent)}%</TableCell><TableCell>{row.submitted_by_name ?? "Draft"}</TableCell><TableCell className="whitespace-nowrap">{dateTime(row.updated_at)}</TableCell></DataGridRow>)}
+          {data.rows.map((row) => <DataGridRow key={row.id} href={`/outlet-daily-records/${row.id}`} className={row.record_date === data.summary.today ? "bg-warning/5" : undefined}><TableCell className="w-16 p-0 text-center"><TableActionLink href={`/outlet-daily-records/${row.id}`} label={`Open ${row.branch_name} daily record`}><Pencil className="h-4 w-4" /></TableActionLink></TableCell><TableCell><span className="whitespace-nowrap">{formatDateOnly(row.record_date)}</span>{row.record_date === data.summary.today ? <p className="text-xs font-medium text-warning">Today</p> : null}</TableCell><TableCell className="font-medium">{row.branch_name}</TableCell><TableCell><StatusBadge status={row.status} /><p className="mt-1 whitespace-nowrap text-xs text-muted-foreground">{statusGuidance(row.status)}</p></TableCell><TableCell className="text-right">{formatNumber(row.total_received)}</TableCell><TableCell className="text-right">{formatNumber(row.total_wastage)}</TableCell><TableCell className="text-right">{formatNumber(row.wastage_percent)}%</TableCell><TableCell>{row.submitted_by_name ?? "Draft"}</TableCell><TableCell className="whitespace-nowrap">{formatDateTime(row.updated_at)}</TableCell></DataGridRow>)}
           {!data.rows.length ? <TableRow><TableCell colSpan={9}><EmptyState title={filtered ? "No daily records match these filters" : "No outlet daily records yet"} description={filtered ? "Reset the filters or widen the search." : "Daily receiving and wastage records will appear here."} action={filtered ? { href: "/outlet-daily-records", label: "Reset filters" } : undefined} /></TableCell></TableRow> : null}
         </TableBody></Table>
         <OperationalList ariaLabel="Outlet daily records">
@@ -50,7 +49,7 @@ export default async function OutletDailyRecordsPage({ searchParams }: { searchP
             label={`Open ${row.branch_name} daily record`}
             primary={<div><span>{row.branch_name}</span><p className="text-[11px] font-normal text-[var(--sb-text-muted)]">{statusGuidance(row.status)}</p></div>}
             status={<StatusBadge status={row.status} />}
-            secondary={`${row.record_date}${row.record_date === data.summary.today ? " · Today" : ""}${row.total_wastage > 0 ? ` · ${formatNumber(row.total_wastage)} waste` : ""}`}
+            secondary={`${formatDateOnly(row.record_date)}${row.record_date === data.summary.today ? " · Today" : ""}${row.total_wastage > 0 ? ` · ${formatNumber(row.total_wastage)} waste` : ""}`}
             meta={`${formatNumber(row.total_received)} received`}
           />)}
           {!data.rows.length ? <EmptyState title={filtered ? "No daily records match these filters" : "No outlet daily records yet"} description={filtered ? "Reset the filters or widen the search." : "Daily receiving and wastage records will appear here."} action={filtered ? { href: "/outlet-daily-records", label: "Reset filters" } : undefined} /> : null}

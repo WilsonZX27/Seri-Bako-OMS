@@ -6,6 +6,7 @@ import { PageHeader } from "@/components/ui/page-header";
 import { OperationalList, OperationalListRow } from "@/components/ui/table";
 import { WorkspaceGrid } from "@/components/layout/workspace-layout";
 import { getVisibleRecentActivitiesForCurrentUser } from "@/server/queries/notifications";
+import { formatDateTime } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
 
@@ -28,7 +29,7 @@ export default async function ActivityPage({ searchParams }: { searchParams: Pro
                   <p className="text-xs font-medium">{selected.message}</p>
                   <div className="flex justify-between gap-3"><span className="text-muted-foreground">Actor</span><strong>{selected.created_by_name ?? "System"}</strong></div>
                   <div className="flex justify-between gap-3"><span className="text-muted-foreground">Type</span><strong>{selected.activity_type}</strong></div>
-                  <div className="flex justify-between gap-3"><span className="text-muted-foreground">When</span><strong>{new Date(selected.created_at).toLocaleString("en-MY", { dateStyle: "medium", timeStyle: "short" })}</strong></div>
+                  <div className="flex justify-between gap-3"><span className="text-muted-foreground">When</span><strong>{formatDateTime(selected.created_at)}</strong></div>
                   <div className="flex justify-between gap-3"><span className="text-muted-foreground">Related</span><strong>{selected.entity_type}</strong></div>
                 </div>
                 {selectedHref ? (
@@ -59,7 +60,7 @@ export default async function ActivityPage({ searchParams }: { searchParams: Pro
                 label={`View activity: ${activity.message}`}
                 primary={activity.message}
                 secondary={messageIncludesActor ? activity.entity_type : `${actor} · ${activity.entity_type}`}
-                meta={new Date(activity.created_at).toLocaleString("en-MY", { dateStyle: "short", timeStyle: "short" })}
+                meta={formatDateTime(activity.created_at)}
               />;
             })}
             {!activities.length ? <div className="p-4 text-sm text-muted-foreground">No recent activity is available for your role.</div> : null}
@@ -79,7 +80,7 @@ export default async function ActivityPage({ searchParams }: { searchParams: Pro
                       <p className="truncate text-xs font-medium">{activity.message}</p>
                       {!messageIncludesActor ? <p className="mt-0.5 text-xs text-muted-foreground">{actor}</p> : null}
                     </div>
-                    <p className="col-start-2 text-[11px] text-muted-foreground md:col-auto md:text-xs">{new Date(activity.created_at).toLocaleString("en-MY", { dateStyle: "short", timeStyle: "short" })}</p>
+                    <p className="col-start-2 text-[11px] text-muted-foreground md:col-auto md:text-xs">{formatDateTime(activity.created_at)}</p>
                     <p className="hidden items-center gap-1 text-xs text-muted-foreground md:inline-flex"><FileText className="h-3 w-3" /> {activity.entity_type}</p>
                     {href ? <span className="row-start-1 text-xs font-medium text-primary md:row-auto">Details</span> : <span className="row-start-1 text-xs text-muted-foreground md:row-auto">Details</span>}
                   </Link>

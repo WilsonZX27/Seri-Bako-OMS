@@ -5,11 +5,8 @@ import { ApprovalPanel, AttachmentPanel, CommentsPanel, DocumentTimeline, Revisi
 import { DocumentWorkspace } from "@/components/documents/document-workspace";
 import { getCanonicalDocumentHref } from "@/lib/document-routing";
 import { formatStatusLabel } from "@/lib/status-label";
+import { formatDateTime } from "@/lib/utils";
 import { getDocumentBundle } from "@/server/queries/documents";
-
-function formatDate(value: string | null) {
-  return value ? new Intl.DateTimeFormat("en-MY", { dateStyle: "medium", timeStyle: "short" }).format(new Date(value)) : "-";
-}
 
 const documentSteps = [
   { key: "draft", label: "Draft", description: "Document is being prepared." },
@@ -82,11 +79,11 @@ export default async function DocumentDetailPage({
                 </div>
                 <div>
                   <p className="text-xs uppercase text-muted-foreground">Created</p>
-                  <p className="mt-1 font-medium">{formatDate(document.created_at)}</p>
+                  <p className="mt-1 font-medium">{formatDateTime(document.created_at)}</p>
                 </div>
                 <div>
                   <p className="text-xs uppercase text-muted-foreground">Updated</p>
-                  <p className="mt-1 font-medium">{formatDate(document.updated_at)}</p>
+                  <p className="mt-1 font-medium">{formatDateTime(document.updated_at)}</p>
                 </div>
                 <div>
                   <p className="text-xs uppercase text-muted-foreground">Revision</p>

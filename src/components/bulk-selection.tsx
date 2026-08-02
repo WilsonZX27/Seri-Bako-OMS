@@ -2,6 +2,7 @@
 
 import { createContext, type ReactNode, useContext, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
+import { SubmitButton } from "@/components/ui/submit-button";
 
 type BulkSelectionContextValue = {
   selectedIds: Set<string>;
@@ -75,7 +76,7 @@ export function BulkSelectionProvider(props: {
               {action && actionLabel && canAct ? (
                 <form action={action}>
                   {[...selected].map((id) => <input key={id} type="hidden" name={fieldName} value={id} />)}
-                  <Button type="submit" variant="destructive" size="sm">{actionLabel}</Button>
+                  <SubmitButton type="submit" variant="destructive" size="sm" pendingLabel="Processing...">{actionLabel}</SubmitButton>
                 </form>
               ) : null}
               <Button type="button" variant="ghost" size="sm" onClick={value.clear}>Deselect all</Button>

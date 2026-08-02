@@ -21,6 +21,21 @@
 - Run `npm run typecheck`, `npm run lint`, `npm run test:contract`, and
   `npm run build` before release handoff.
 
+## Full-system audit gates
+
+- Repeat route smoke at 390px, 820px, and 1440px for every route group listed in
+  `docs/qa/FULL_SYSTEM_AUDIT_MATRIX.md`.
+- Every business mutation must use `SubmitButton`, `DocumentActionForm`, or an
+  equivalent control that disables on the first submit, exposes `aria-busy`, and
+  shows contextual pending text with a spinner.
+- Force permission, validation, stale-snapshot, dependency, and database errors;
+  verify the page shows an explicit error or unavailable state rather than zero,
+  empty-success, or a false success toast.
+- Double-activate create, post, cancel, archive, restore, approve, and reject
+  actions; verify only one durable result is produced.
+- Verify page-level horizontal overflow is absent and task-critical controls have
+  a 48px minimum touch target on phone/tablet.
+
 ## Database
 
 - Run `supabase/migrations/001_milestone_1_inventory_foundation.sql`.

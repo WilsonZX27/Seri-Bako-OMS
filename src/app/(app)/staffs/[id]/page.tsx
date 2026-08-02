@@ -1,7 +1,6 @@
 import { StaffForm } from "@/components/foundation-forms";
 import { redirect } from "next/navigation";
 import { RecordActionPanel, RecordWorkspace } from "@/components/record-workspace";
-import { Button } from "@/components/ui/button";
 import { CopyTextButton } from "@/components/ui/copy-text-button";
 import { DangerConfirmForm } from "@/components/ui/danger-confirm-form";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -11,6 +10,7 @@ import { SubmitButton } from "@/components/ui/submit-button";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { canAssignRoleCode, getRoleDisplayLabel, normalizeRoleCode, sortRolesForDisplay } from "@/lib/roles";
 import { formatStatusLabel } from "@/lib/status-label";
+import { formatDateTime } from "@/lib/utils";
 import { getStaffAuthState, staffAuthStateLabels } from "@/lib/staff-auth-state";
 import { disableStaff, enableStaff, forceStaffPasswordChange, permanentlyDeleteStaff, repairStaffSignInLink, resetStaffPermissionOverrides, resetStaffTemporaryPassword, updateStaff, updateStaffPermissionOverrides } from "@/server/actions/foundation";
 import { hasPermission } from "@/server/auth/permissions";
@@ -80,14 +80,14 @@ export default async function EditStaffPage({
               <div className="rounded-[2px] border bg-white p-3 text-xs">
                 <p className="font-semibold">Recent Account Activity</p>
                 <div className="mt-2 grid gap-2">
-                  <div className="flex justify-between gap-3"><span className="text-muted-foreground">Last login</span><span className="font-medium">{staff.last_login_at ? new Date(staff.last_login_at).toLocaleString("en-MY") : "-"}</span></div>
-                  <div className="flex justify-between gap-3"><span className="text-muted-foreground">Password changed</span><span className="font-medium">{staff.password_changed_at ? new Date(staff.password_changed_at).toLocaleString("en-MY") : "-"}</span></div>
+                  <div className="flex justify-between gap-3"><span className="text-muted-foreground">Last login</span><span className="font-medium">{staff.last_login_at ? formatDateTime(staff.last_login_at) : "-"}</span></div>
+                  <div className="flex justify-between gap-3"><span className="text-muted-foreground">Password changed</span><span className="font-medium">{staff.password_changed_at ? formatDateTime(staff.password_changed_at) : "-"}</span></div>
                 </div>
               </div>
 
-              <Button type="submit" form={formId} className="w-full" data-mobile-primary-action>
+              <SubmitButton type="submit" form={formId} className="w-full" pendingLabel="Saving..." data-mobile-primary-action>
                 Save Staff
-              </Button>
+              </SubmitButton>
 
               <div className="grid gap-2">
                 {staff.status === "disabled" ? (

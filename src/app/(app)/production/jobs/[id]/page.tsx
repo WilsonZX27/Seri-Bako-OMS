@@ -10,7 +10,7 @@ import { Input } from "@/components/ui/input";
 import { SubmitButton } from "@/components/ui/submit-button";
 import { BlockedDestructiveAction } from "@/components/ui/danger-confirm-form";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { formatCurrency, formatNumber } from "@/lib/utils";
+import { formatCurrency, formatDateOnly, formatDateTime, formatNumber } from "@/lib/utils";
 import { approveProductionJob, cancelProductionJob, postProductionJob, rejectProductionJob, submitProductionJob } from "@/server/actions/production-jobs";
 import { getPermissionMap } from "@/server/auth/permissions";
 import { getDocumentBundle } from "@/server/queries/documents";
@@ -97,8 +97,8 @@ export default async function ProductionJobDetailPage({
           <DocumentSideSection title="Metadata">
             <dl className="grid gap-2 text-xs">
               <div><dt className="text-muted-foreground">Created by</dt><dd className="font-medium">{job.created_by_name ?? "-"}</dd></div>
-              <div><dt className="text-muted-foreground">Created</dt><dd className="font-medium">{new Date(job.created_at).toLocaleString("en-MY", { dateStyle: "medium", timeStyle: "short" })}</dd></div>
-              <div><dt className="text-muted-foreground">Updated</dt><dd className="font-medium">{new Date(job.updated_at).toLocaleString("en-MY", { dateStyle: "medium", timeStyle: "short" })}</dd></div>
+              <div><dt className="text-muted-foreground">Created</dt><dd className="font-medium">{formatDateTime(job.created_at)}</dd></div>
+              <div><dt className="text-muted-foreground">Updated</dt><dd className="font-medium">{formatDateTime(job.updated_at)}</dd></div>
               <div><dt className="text-muted-foreground">Branch</dt><dd className="font-medium">{job.branch_name ?? "-"}</dd></div>
             </dl>
           </DocumentSideSection>
@@ -117,7 +117,7 @@ export default async function ProductionJobDetailPage({
         <CardContent className="space-y-4 p-5">
           <h2 className="text-sm font-semibold">Production Summary</h2>
           <div className="grid gap-4 md:grid-cols-4">
-            <div><p className="text-xs uppercase text-muted-foreground">Production Date</p><p className="font-medium">{job.production_date}</p></div>
+            <div><p className="text-xs uppercase text-muted-foreground">Production Date</p><p className="font-medium">{formatDateOnly(job.production_date)}</p></div>
             <div><p className="text-xs uppercase text-muted-foreground">Branch</p><p className="font-medium">{job.branch_name ?? "-"}</p></div>
             <div><p className="text-xs uppercase text-muted-foreground">Recipe</p><p className="font-medium">{job.recipe_no ?? "-"}</p></div>
             <div><p className="text-xs uppercase text-muted-foreground">Output</p><p className="font-medium">{job.product_name ?? outputLines[0]?.output_name ?? "-"}</p></div>

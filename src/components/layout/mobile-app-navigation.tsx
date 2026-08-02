@@ -24,6 +24,7 @@ import { useEffect, useId, useMemo, useRef, useState } from "react";
 import type { LucideIcon } from "lucide-react";
 import { getVisibleNavGroups } from "@/components/layout/nav-items";
 import { Button } from "@/components/ui/button";
+import { SubmitButton } from "@/components/ui/submit-button";
 import { GlobalSearch } from "@/components/search/global-search";
 import { cn } from "@/lib/utils";
 import { signOut } from "@/server/actions/auth";
@@ -244,10 +245,10 @@ export function MobileAppNavigation({
                     <span className="min-w-0 flex-1">My Profile</span>
                   </Link>
                   <form action={signOut}>
-                    <button type="submit" className="flex min-h-12 w-full items-center gap-3 px-2 text-left text-[13px] font-medium text-[var(--sb-danger)] active:bg-[var(--sb-surface-muted)]">
+                    <SubmitButton type="submit" variant="ghost" pendingLabel="Signing out..." className="flex min-h-12 w-full items-center justify-start gap-3 rounded-none px-2 text-left text-[13px] font-medium text-[var(--sb-danger)] active:bg-[var(--sb-surface-muted)]">
                       <LogOut className="h-4.5 w-4.5 shrink-0" aria-hidden="true" />
                       <span>Logout</span>
-                    </button>
+                    </SubmitButton>
                   </form>
                 </div>
               </section>

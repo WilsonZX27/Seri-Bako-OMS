@@ -6,8 +6,7 @@ import { SubmitButton } from "@/components/ui/submit-button";
 import { saveOutletDailyRecord } from "@/server/actions/outlet-daily-records";
 import { getPermissionMap } from "@/server/auth/permissions";
 import { getOutletDailyFormOptions } from "@/server/queries/outlet-daily-records";
-
-const today = () => new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Kuala_Lumpur", year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date());
+import { getToday } from "@/lib/utils";
 const dailySteps = [
   { key: "draft", label: "Qty Sent", description: "Central Kitchen records the quantity sent." },
   { key: "morning_recorded", label: "Outlet Entry", description: "Outlet Staff confirms received quantity and wastage." },
@@ -44,6 +43,6 @@ export default async function NewOutletDailyRecordPage({ searchParams }: { searc
     tabletRailMode="split"
   >
     {filters.error ? <Card><CardContent className="p-3 text-sm text-destructive">{filters.error}</CardContent></Card> : null}
-    <OutletDailyRecordForm formId={formId} action={saveOutletDailyRecord} branches={options.branches} products={options.products} branchId={options.defaultBranchId} recordDate={today()} canEditQtySent={permissions["outlet_daily_record.qty_sent"]} canEditOutletValues={permissions["outlet_daily_record.update"]} />
+    <OutletDailyRecordForm formId={formId} action={saveOutletDailyRecord} branches={options.branches} products={options.products} branchId={options.defaultBranchId} recordDate={getToday()} canEditQtySent={permissions["outlet_daily_record.qty_sent"]} canEditOutletValues={permissions["outlet_daily_record.update"]} />
   </DocumentWorkspace>;
 }

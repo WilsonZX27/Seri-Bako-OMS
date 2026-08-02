@@ -1,6 +1,6 @@
 import { PurchaseReturnForm } from "@/components/purchase-return-form";
 import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import { SubmitButton } from "@/components/ui/submit-button";
 import { DocumentSideSection, DocumentWorkspace } from "@/components/documents/document-workspace";
 import { createPurchaseReturn } from "@/server/actions/purchase-returns";
 import { getGoodsReceivingForReturn, getPostedGoodsReceivingsForReturn } from "@/server/queries/purchase-returns";
@@ -11,7 +11,7 @@ export default async function NewPurchaseReturnPage({ searchParams }: { searchPa
   const selectedReceiving = filters.grn_id ? receivings.find((row) => row.id === filters.grn_id) ?? null : null;
   const selected = selectedReceiving ? await getGoodsReceivingForReturn(selectedReceiving.id) : null;
   const lines = selected?.lines ?? [];
-  const primaryAction = <Button type="submit" form="purchase-return-form" disabled={!selectedReceiving || !lines.length} className="w-full">Create Draft Return</Button>;
+  const primaryAction = <SubmitButton type="submit" form="purchase-return-form" disabled={!selectedReceiving || !lines.length} className="w-full" pendingLabel="Creating...">Create Draft Return</SubmitButton>;
   const steps = [
     { key: "draft", label: "Draft", description: "Return details and quantities can be checked." },
     { key: "posted", label: "Posted", description: "Returned stock is recorded and locked." },

@@ -11,6 +11,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { formatCurrency } from "@/lib/utils";
 import { getProductMargin, type ProductMarginRow } from "@/server/queries/product-margin";
 
+export const dynamic = "force-dynamic";
+
 const statusVariant = { Ready: "success", "Cost incomplete": "warning", "Missing price": "danger", "Missing recipe": "danger" } as const;
 const bandLabel = { review: "Review", healthy: "Healthy", unavailable: "Unavailable" } as const;
 

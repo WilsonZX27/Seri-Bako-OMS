@@ -1,4 +1,4 @@
-import { Button } from "@/components/ui/button";
+import { SubmitButton } from "@/components/ui/submit-button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Field } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
@@ -81,7 +81,7 @@ export function SupplierItemForm({
             <Input name="valid_to" type="date" defaultValue={supplierItem?.valid_to ?? ""} />
           </Field>
           {showSubmit ? <div className="sb-mobile-action-bar fixed inset-x-3 bottom-[calc(env(safe-area-inset-bottom)+0.5rem)] z-[var(--sb-z-sticky)] p-2 md:static md:flex md:justify-end md:bg-transparent md:p-0 md:shadow-none md:col-span-3">
-            <Button type="submit" className="w-full md:w-auto">{supplierItem ? "Save supplier item" : "Create supplier item"}</Button>
+            <SubmitButton type="submit" className="w-full md:w-auto" pendingLabel={supplierItem ? "Saving..." : "Creating..."}>{supplierItem ? "Save supplier item" : "Create supplier item"}</SubmitButton>
           </div> : null}
         </form>
       </CardContent>
@@ -117,7 +117,7 @@ export function UomConversionForm({ conversion, action, formId, showSubmit = tru
             <p className="mt-1 text-sm text-muted-foreground">1 {conversion?.from_uom ?? "from UOM"} = {conversion?.factor ?? 1} {conversion?.to_uom ?? "to UOM"}</p>
           </div>
           {showSubmit ? <div className="sb-mobile-action-bar fixed inset-x-3 bottom-[calc(env(safe-area-inset-bottom)+0.5rem)] z-[var(--sb-z-sticky)] p-2 md:static md:flex md:justify-end md:bg-transparent md:p-0 md:shadow-none md:col-span-2">
-            <Button type="submit" className="w-full md:w-auto">{conversion ? "Save conversion" : "Create conversion"}</Button>
+            <SubmitButton type="submit" className="w-full md:w-auto" pendingLabel={conversion ? "Saving..." : "Creating..."}>{conversion ? "Save conversion" : "Create conversion"}</SubmitButton>
           </div> : null}
         </form>
       </CardContent>

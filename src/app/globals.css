@@ -882,6 +882,13 @@ input[type="date"]::-webkit-date-and-time-value {
 }
 
 @media (min-width: 768px) and (max-width: 1279px) {
+  /* A tablet split already exposes its primary action in the visible right rail.
+     Keep the mobile FAB for phone only so the same action is never duplicated. */
+  html:has([data-tablet-split-actions]) [data-mobile-create-fab],
+  html:has([data-tablet-split-actions]) [data-mobile-action-bar] {
+    display: none !important;
+  }
+
   [data-tablet-canvas="contained"],
   [data-tablet-document-header] {
     width: calc(100% - 2rem);

@@ -18,7 +18,7 @@ import { StatusTabs } from "@/components/status-tabs";
 import { OperationalList, OperationalListRow, Table, TableActionLink, TableBody, TableCell, TableHead, TableHeader, TableRow, TableSelectionCell, TableSelectionHead } from "@/components/ui/table";
 import { ConsoleSection } from "@/components/layout/right-console";
 import { WorkspaceGrid } from "@/components/layout/workspace-layout";
-import { formatCurrency } from "@/lib/utils";
+import { formatCurrency, formatDateOnly } from "@/lib/utils";
 import { hasActiveFilters } from "@/lib/table-state";
 import { getPurchaseRequestSummary, getPurchaseRequests } from "@/server/queries/procurement";
 import { getPermissionMap } from "@/server/auth/permissions";
@@ -101,8 +101,8 @@ export default async function PurchaseRequestsPage({ searchParams }: { searchPar
                       <TableActionLink href={`/purchase-requests/${request.id}`} label={`Open ${request.request_no}`}><Pencil className="h-4 w-4" /></TableActionLink>
                     </TableCell>
                     <TableCell><DocumentNumber value={request.request_no} size="sm" /></TableCell>
-                    <TableCell className="hidden md:table-cell">{request.request_date}</TableCell>
-                    <TableCell>{request.needed_by_date ?? "-"}</TableCell>
+                    <TableCell className="hidden md:table-cell">{formatDateOnly(request.request_date)}</TableCell>
+                    <TableCell>{formatDateOnly(request.needed_by_date, "-")}</TableCell>
                     <TableCell className="hidden md:table-cell"><PriorityBadge priority={request.priority} /></TableCell>
                     <TableCell className="hidden lg:table-cell">{request.branch_name ?? "-"}</TableCell>
                     <TableCell><StatusBadge status={request.status} /></TableCell>
@@ -114,7 +114,7 @@ export default async function PurchaseRequestsPage({ searchParams }: { searchPar
               </TableBody>
             </Table>
             <OperationalList ariaLabel="Purchase requests">
-              {requests.rows.map((request) => <OperationalListRow key={request.id} href={`/purchase-requests/${request.id}`} label={`Open ${request.request_no}`} primary={<DocumentNumber value={request.request_no} size="sm" />} status={<StatusBadge status={request.status} />} secondary={`${request.branch_name ?? "Unassigned branch"} · ${request.request_date}`} meta={`${request.line_count} items · Needed ${request.needed_by_date ?? "—"}`} />)}
+              {requests.rows.map((request) => <OperationalListRow key={request.id} href={`/purchase-requests/${request.id}`} label={`Open ${request.request_no}`} primary={<DocumentNumber value={request.request_no} size="sm" />} status={<StatusBadge status={request.status} />} secondary={`${request.branch_name ?? "Unassigned branch"} · ${formatDateOnly(request.request_date)}`} meta={`${request.line_count} items · Needed ${formatDateOnly(request.needed_by_date, "—")}`} />)}
               {!requests.rows.length ? <EmptyState title={filtered ? "No requests match these filters" : "No purchase requests yet"} description={filtered ? "Reset the filters or widen the search." : "Purchase requests appear here after branch needs are created."} action={filtered ? { href: "/purchase-requests", label: "Reset filters" } : undefined} /> : null}
             </OperationalList>
           </BulkSelectionProvider>

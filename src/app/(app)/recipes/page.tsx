@@ -11,7 +11,7 @@ import { WorkspaceGrid } from "@/components/layout/workspace-layout";
 import { OperationalList, OperationalListRow, Table, TableActionLink, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { PaginationControls } from "@/components/sortable-table";
 import { hasActiveFilters, paginateRows } from "@/lib/table-state";
-import { formatCurrency, formatNumber } from "@/lib/utils";
+import { formatCurrency, formatDateOnly, formatNumber } from "@/lib/utils";
 import { getRecipes } from "@/server/queries/recipes";
 import { hasPermission } from "@/server/auth/permissions";
 
@@ -60,7 +60,7 @@ export default async function RecipesPage({ searchParams }: { searchParams: Prom
                     <TableCell className="hidden md:table-cell">
                       {formatNumber(recipe.yield_qty)} {recipe.yield_unit}
                     </TableCell>
-                    <TableCell className="hidden lg:table-cell">{recipe.effective_date}</TableCell>
+                    <TableCell className="hidden lg:table-cell">{formatDateOnly(recipe.effective_date)}</TableCell>
                     <TableCell className="hidden md:table-cell">
                       <Badge variant={recipe.approval_status === "approved" ? "success" : recipe.approval_status === "rejected" ? "danger" : "secondary"}>{recipe.approval_status}</Badge>
                     </TableCell>

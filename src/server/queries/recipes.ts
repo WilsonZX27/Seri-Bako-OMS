@@ -146,7 +146,7 @@ export async function getRecipes() {
     supabase.from("stock_balances_view").select("item_id,current_stock,current_qty"),
   ]);
 
-  for (const result of [recipes, products, lines, items, packaging, snapshots]) {
+  for (const result of [recipes, products, lines, items, packaging, snapshots, stockBalances]) {
     if (result.error) throw new Error(result.error.message);
   }
 
@@ -175,7 +175,7 @@ export async function getRecipe(id: string) {
   ]);
 
   if (recipe.error) throw new Error(recipe.error.message);
-  for (const result of [products, lines, items, packaging, snapshots]) {
+  for (const result of [products, lines, items, packaging, snapshots, stockBalances]) {
     if (result.error) throw new Error(result.error.message);
   }
 

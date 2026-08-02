@@ -12,7 +12,8 @@ test("purchase order mobile pages keep the list quiet and the creation action re
   assert.match(listPage, /hideMobileConsole/);
   assert.ok(listPage.includes('action={permissions["po.create"] ? { href: "/purchase-orders/new", label: "New PO" } : undefined}'));
   assert.match(newPage, /<WorkspaceGrid\s+documentMode\s+tabletRailMode="split"\s+rightRail=/);
-  assert.match(newPage, /form="purchase-order-form" className="w-full" data-mobile-primary-action>Create PO/);
+  assert.match(newPage, /<SubmitButton[^>]*form="purchase-order-form"[^>]*data-mobile-primary-action>Create PO/);
+  assert.match(newPage, /form="purchase-order-form"[^>]*pendingLabel="Creating\.\.\."/);
 });
 
 test("purchase order creation uses dynamic compact lines and hides future workflow values", () => {

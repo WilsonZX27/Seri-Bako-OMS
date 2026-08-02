@@ -13,6 +13,8 @@ import { OperationalList, OperationalListRow, Table, TableBody, TableCell, Table
 import { formatNumber } from "@/lib/utils";
 import { getOutletDailyDemandTrend } from "@/server/queries/outlet-daily-records";
 
+export const dynamic = "force-dynamic";
+
 export default async function DemandTrendsPage({ searchParams }: { searchParams: Promise<Record<string, string | undefined>> }) {
   const report = await getOutletDailyDemandTrend(await searchParams);
   const lowConfidence = report.coverage.confidence === "Low";

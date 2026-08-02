@@ -1,4 +1,4 @@
-import { Button } from "@/components/ui/button";
+import { SubmitButton } from "@/components/ui/submit-button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Field } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
@@ -80,7 +80,7 @@ export function ProductForm({ product, packaging = [], action, formId, showSubmi
             </div>
           </div> : null}
           {showSubmit ? <div className="flex justify-end md:col-span-2">
-            <Button type="submit">{product ? "Save product" : "Create product"}</Button>
+            <SubmitButton type="submit" pendingLabel={product ? "Saving..." : "Creating..."}>{product ? "Save product" : "Create product"}</SubmitButton>
           </div> : null}
         </form>
       </CardContent>

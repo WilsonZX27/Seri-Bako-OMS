@@ -13,6 +13,8 @@ import { formatCurrency, formatNumber } from "@/lib/utils";
 import { hasActiveFilters } from "@/lib/table-state";
 import { getRecipeCosting } from "@/server/queries/recipe-costing";
 
+export const dynamic = "force-dynamic";
+
 const confidenceVariant = { High: "success", Medium: "warning", Low: "danger" } as const;
 
 export default async function RecipeCostingPage({ searchParams }: { searchParams: Promise<Record<string, string | undefined>> }) {

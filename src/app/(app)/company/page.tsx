@@ -1,12 +1,13 @@
 import { CompanyForm } from "@/components/foundation-forms";
 import { CompanyLogoForm } from "@/components/company-logo-form";
-import { Button } from "@/components/ui/button";
+import { SubmitButton } from "@/components/ui/submit-button";
 import { Card, CardContent } from "@/components/ui/card";
 import { PageHeader } from "@/components/ui/page-header";
 import { ConsoleSection } from "@/components/layout/right-console";
 import { WorkspaceGrid } from "@/components/layout/workspace-layout";
 import { removeCompanyLogo, updateCompany, updateCompanyLogo } from "@/server/actions/foundation";
 import { getCompany } from "@/server/queries/foundation";
+import { formatDateTime } from "@/lib/utils";
 
 export default async function CompanyPage({
   searchParams,
@@ -26,9 +27,9 @@ export default async function CompanyPage({
           <div>
             <ConsoleSection title="Company Actions">
               <div className="grid gap-2">
-                <Button type="submit" form="company-form" className="w-full" data-mobile-primary-action>Save Company</Button>
-                <Button type="submit" form="company-logo-upload-form" variant="outline" className="w-full">Upload Logo</Button>
-                {company.logo_url ? <Button type="submit" form="company-logo-remove-form" variant="ghost" className="w-full">Remove Logo</Button> : null}
+                <SubmitButton type="submit" form="company-form" className="w-full" pendingLabel="Saving..." data-mobile-primary-action>Save Company</SubmitButton>
+                <SubmitButton type="submit" form="company-logo-upload-form" variant="outline" className="w-full" pendingLabel="Uploading...">Upload Logo</SubmitButton>
+                {company.logo_url ? <SubmitButton type="submit" form="company-logo-remove-form" variant="ghost" className="w-full" pendingLabel="Removing...">Remove Logo</SubmitButton> : null}
               </div>
             </ConsoleSection>
             <ConsoleSection title="Profile Summary">
@@ -36,7 +37,7 @@ export default async function CompanyPage({
                 <div className="flex justify-between gap-3"><span className="text-muted-foreground">Code</span><strong>{company.company_code}</strong></div>
                 <div className="flex justify-between gap-3"><span className="text-muted-foreground">Status</span><strong>{company.status}</strong></div>
                 <div className="flex justify-between gap-3"><span className="text-muted-foreground">Logo</span><strong>{company.logo_url ? "Uploaded" : "Missing"}</strong></div>
-                <div className="flex justify-between gap-3"><span className="text-muted-foreground">Updated</span><strong>{new Date(company.updated_at).toLocaleDateString("en-MY")}</strong></div>
+                <div className="flex justify-between gap-3"><span className="text-muted-foreground">Updated</span><strong>{formatDateTime(company.updated_at).slice(0, 10)}</strong></div>
               </div>
             </ConsoleSection>
           </div>

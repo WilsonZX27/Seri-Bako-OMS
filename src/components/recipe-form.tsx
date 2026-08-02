@@ -5,6 +5,7 @@ import { Calculator, Plus, Trash2 } from "lucide-react";
 import { useMemo, useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { SubmitButton } from "@/components/ui/submit-button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Field } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
@@ -299,7 +300,7 @@ export function RecipeForm({ recipe, products, items, action, formId, showSubmit
                   ) : itemFallback(line.item_code || "IT")}
                   <div className="min-w-0 flex-1 space-y-1">
                     <Input list="recipe-ingredient-items" value={line.itemSearch} placeholder="Ingredient code or name" onChange={(event) => selectItem(index, event.target.value)} />
-                    {line.item_code ? <p className="truncate text-xs text-muted-foreground">{line.item_code} - {line.item_name}</p> : null}
+                    {line.item_code ? <p className="break-words text-xs text-muted-foreground">{line.item_code} - {line.item_name}</p> : null}
                     {line.ingredient_item_id && duplicateIds.includes(line.ingredient_item_id) ? <p className="text-xs text-destructive">Duplicate ingredient</p> : null}
                   </div>
                   <Button type="button" variant="ghost" size="icon" aria-label="Remove ingredient row" onClick={() => setLines((current) => current.filter((_, lineIndex) => lineIndex !== index))} disabled={lines.length === 1}>
@@ -361,10 +362,10 @@ export function RecipeForm({ recipe, products, items, action, formId, showSubmit
           </div>
 
           {showSubmit ? <div className="flex justify-end">
-            <Button type="submit" disabled={hasDuplicate}>
+            <SubmitButton type="submit" disabled={hasDuplicate} pendingLabel={recipe ? "Saving..." : "Creating..."}>
               <Calculator className="h-4 w-4" />
               {recipe ? "Save recipe" : "Create recipe"}
-            </Button>
+            </SubmitButton>
           </div> : null}
         </CardContent>
       </Card>

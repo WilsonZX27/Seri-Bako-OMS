@@ -15,6 +15,7 @@ import { OperationalList, OperationalListRow, Table, TableActionLink, TableBody,
 import { WorkspaceGrid } from "@/components/layout/workspace-layout";
 import { getCanonicalDocumentHref } from "@/lib/document-routing";
 import { formatStatusLabel } from "@/lib/status-label";
+import { formatDateTime } from "@/lib/utils";
 import { hasActiveFilters } from "@/lib/table-state";
 import type { DocumentRow } from "@/server/queries/documents";
 import { getDocuments } from "@/server/queries/documents";
@@ -93,8 +94,8 @@ export default async function DocumentsPage({ searchParams }: { searchParams: Pr
                     <TableCell>{formatStatusLabel(document.document_type)}</TableCell>
                     <TableCell><StatusBadge status={getDocumentStageLabel(document)} /></TableCell>
                     <TableCell>{document.created_by_name ?? "Unknown user"}</TableCell>
-                    <TableCell>{new Date(document.created_at).toLocaleDateString("en-MY")}</TableCell>
-                    <TableCell>{new Date(document.updated_at).toLocaleDateString("en-MY")}</TableCell>
+                    <TableCell>{formatDateTime(document.created_at).slice(0, 10)}</TableCell>
+                    <TableCell>{formatDateTime(document.updated_at).slice(0, 10)}</TableCell>
                   </DataGridRow>
                   );
                 })}
@@ -104,7 +105,7 @@ export default async function DocumentsPage({ searchParams }: { searchParams: Pr
             <OperationalList ariaLabel="Documents register">
               {documents.rows.map((document) => {
                 const href = getCanonicalDocumentHref(document);
-                return <OperationalListRow key={document.id} href={href} label={`Open ${document.document_no}`} primary={<DocumentNumber value={document.document_no} size="sm" />} status={<StatusBadge status={getDocumentStageLabel(document)} />} secondary={`${formatStatusLabel(document.document_type)} · ${document.created_by_name ?? "Unknown user"}`} meta={new Date(document.updated_at).toLocaleDateString("en-MY")} />;
+                return <OperationalListRow key={document.id} href={href} label={`Open ${document.document_no}`} primary={<DocumentNumber value={document.document_no} size="sm" />} status={<StatusBadge status={getDocumentStageLabel(document)} />} secondary={`${formatStatusLabel(document.document_type)} · ${document.created_by_name ?? "Unknown user"}`} meta={formatDateTime(document.updated_at).slice(0, 10)} />;
               })}
               {!documents.rows.length ? <EmptyState title="No documents found" description="Documents will appear here after PR, PO, GRN, inventory, or approval activity is recorded." action={filtered ? { href: "/documents", label: "Reset filters" } : undefined} /> : null}
             </OperationalList>

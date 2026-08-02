@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { SubmitButton } from "@/components/ui/submit-button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { PageHeader } from "@/components/ui/page-header";
 import { RecordActionPanel, RecordWorkspace } from "@/components/record-workspace";
@@ -10,7 +11,7 @@ import { ApprovalPanel, AttachmentPanel, CommentsPanel, DocumentTimeline, Revisi
 import { activateRecipe, approveRecipe, archiveRecipe, createNewRecipeVersion, rejectRecipe, submitRecipe } from "@/server/actions/recipes";
 import { getDocumentBundle } from "@/server/queries/documents";
 import { getRecipe } from "@/server/queries/recipes";
-import { formatCurrency, formatNumber } from "@/lib/utils";
+import { formatCurrency, formatDateOnly, formatNumber } from "@/lib/utils";
 import { PhaseOneDeleteAction } from "@/components/phase-one-delete-action";
 import { getPermissionMap } from "@/server/auth/permissions";
 
@@ -45,25 +46,25 @@ export default async function RecipeDetailPage({
                 <Badge variant={recipe.status === "active" ? "success" : recipe.status === "rejected" ? "danger" : "secondary"}>{recipe.status}</Badge>
               </div>
               {permissions["recipes.update"] && !["active", "archived"].includes(recipe.status) ? <Button asChild variant="outline" className="w-full" data-mobile-primary-action><Link href={`/recipes/${recipe.id}/edit`}>Edit Recipe</Link></Button> : null}
-              {permissions["recipes.submit"] && recipe.status === "draft" ? <form action={submitRecipe.bind(null, recipe.id)}><Button type="submit" className="w-full" data-mobile-primary-action>Submit</Button></form> : null}
+              {permissions["recipes.submit"] && recipe.status === "draft" ? <form action={submitRecipe.bind(null, recipe.id)}><SubmitButton type="submit" className="w-full" pendingLabel="Submitting..." data-mobile-primary-action>Submit</SubmitButton></form> : null}
               {permissions["recipes.approve"] && recipe.status === "pending_approval" ? (
                 <>
-                  <form action={approveRecipe.bind(null, recipe.id)}><Button type="submit" className="w-full" data-mobile-primary-action>Approve</Button></form>
+                  <form action={approveRecipe.bind(null, recipe.id)}><SubmitButton type="submit" className="w-full" pendingLabel="Approving..." data-mobile-primary-action>Approve</SubmitButton></form>
                   <form action={rejectRecipe.bind(null, recipe.id)} className="grid gap-2">
                     <input name="remarks" className="h-9 rounded-[2px] border bg-background px-3 text-sm" placeholder="Rejection remarks required" required />
-                    <Button type="submit" variant="destructive">Reject Recipe</Button>
+                    <SubmitButton type="submit" variant="destructive" pendingLabel="Rejecting...">Reject Recipe</SubmitButton>
                   </form>
                 </>
               ) : null}
-              {permissions["recipes.approve"] && recipe.status === "approved" ? <form action={activateRecipe.bind(null, recipe.id)}><Button type="submit" className="w-full" data-mobile-primary-action>Activate</Button></form> : null}
-              {permissions["recipes.create"] && recipe.status === "active" ? <form action={createNewRecipeVersion.bind(null, recipe.id)}><Button type="submit" variant="outline" className="w-full">New Version</Button></form> : null}
-              {permissions["recipes.archive"] && ["active", "approved"].includes(recipe.status) ? <form action={archiveRecipe.bind(null, recipe.id)}><Button type="submit" variant="ghost" className="w-full">Archive</Button></form> : null}
+              {permissions["recipes.approve"] && recipe.status === "approved" ? <form action={activateRecipe.bind(null, recipe.id)}><SubmitButton type="submit" className="w-full" pendingLabel="Activating..." data-mobile-primary-action>Activate</SubmitButton></form> : null}
+              {permissions["recipes.create"] && recipe.status === "active" ? <form action={createNewRecipeVersion.bind(null, recipe.id)}><SubmitButton type="submit" variant="outline" className="w-full" pendingLabel="Creating...">New Version</SubmitButton></form> : null}
+              {permissions["recipes.archive"] && ["active", "approved"].includes(recipe.status) ? <form action={archiveRecipe.bind(null, recipe.id)}><SubmitButton type="submit" variant="ghost" className="w-full" pendingLabel="Archiving...">Archive</SubmitButton></form> : null}
               {permissions["recipes.archive"] ? <PhaseOneDeleteAction recordType="recipe" recordId={recipe.id} label="recipe" /> : null}
             </RecordActionPanel>
             <RecordActionPanel title="Recipe Metadata">
               <dl className="grid gap-2 text-xs">
                 <div className="flex justify-between gap-3"><dt className="text-muted-foreground">Version</dt><dd>v{recipe.version}</dd></div>
-                <div className="flex justify-between gap-3"><dt className="text-muted-foreground">Effective</dt><dd>{recipe.effective_date}</dd></div>
+                <div className="flex justify-between gap-3"><dt className="text-muted-foreground">Effective</dt><dd>{formatDateOnly(recipe.effective_date)}</dd></div>
                 <div className="flex justify-between gap-3"><dt className="text-muted-foreground">Yield</dt><dd>{formatNumber(recipe.yield_qty)} {recipe.yield_unit}</dd></div>
                 <div className="flex justify-between gap-3"><dt className="text-muted-foreground">Cost / unit</dt><dd>{formatCurrency(recipe.cost_per_finished_unit)}</dd></div>
               </dl>
@@ -98,7 +99,7 @@ export default async function RecipeDetailPage({
             </div>
             <div>
               <p className="text-muted-foreground">Effective Date</p>
-              <p className="font-medium">{recipe.effective_date}</p>
+              <p className="font-medium">{formatDateOnly(recipe.effective_date)}</p>
             </div>
             <div>
               <p className="text-muted-foreground">Status</p>

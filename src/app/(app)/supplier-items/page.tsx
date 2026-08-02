@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { SubmitButton } from "@/components/ui/submit-button";
 import { EmptyState } from "@/components/ui/empty-state";
 import { MasterDataFilters } from "@/components/master-data-filters";
 import { PageHeader } from "@/components/ui/page-header";
@@ -48,7 +49,7 @@ export default async function SupplierItemsPage({ searchParams }: { searchParams
           </TableRow></TableHeader>
           <TableBody>
             {page.rows.map((row) => <TableRow key={row.id}>
-              <TableCell className="w-16 p-0 text-center"><TableActionMenu label={`Actions for ${row.supplier_item_code}`}><div className="grid min-w-28 gap-1"><Link href={`/supplier-items/${row.id}`} role="menuitem" className="rounded-[var(--sb-radius-control)] px-2 py-1.5 text-xs hover:bg-[var(--sb-surface-muted)]">Open</Link>{canUpdate ? <form action={deleteSupplierItem.bind(null, row.id)}><Button type="submit" variant="ghost" size="sm" className="w-full justify-start px-2 text-xs text-[var(--sb-danger)]">Archive</Button></form> : null}</div></TableActionMenu></TableCell>
+                    <TableCell className="w-16 p-0 text-center"><TableActionMenu label={`Actions for ${row.supplier_item_code}`}><div className="grid min-w-28 gap-1"><Link href={`/supplier-items/${row.id}`} role="menuitem" className="rounded-[var(--sb-radius-control)] px-2 py-1.5 text-xs hover:bg-[var(--sb-surface-muted)]">Open</Link>{canUpdate ? <form action={deleteSupplierItem.bind(null, row.id)}><SubmitButton type="submit" variant="ghost" size="sm" className="w-full justify-start px-2 text-xs text-[var(--sb-danger)]" pendingLabel="Archiving...">Archive</SubmitButton></form> : null}</div></TableActionMenu></TableCell>
               <TableCell>{row.supplier_name}</TableCell>
               <TableCell><p className="font-medium">{row.item_name}</p><p className="text-xs text-muted-foreground">{row.item_code}</p></TableCell>
               <TableCell>{row.supplier_item_code}</TableCell>

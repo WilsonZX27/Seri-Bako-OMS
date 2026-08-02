@@ -11,6 +11,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { UrgencySelect } from "@/components/urgency-select";
 import type { ProcurementPriority } from "@/components/priority-badge";
 import { normalizeUom } from "@/lib/uom";
+import { getToday } from "@/lib/utils";
 import type { Database } from "@/types/database";
 
 type ItemOption = Pick<Database["public"]["Tables"]["items"]["Row"], "id" | "item_code" | "item_name" | "base_unit" | "purchase_unit" | "supplier_id" | "cost" | "status">;
@@ -38,10 +39,6 @@ type RequestLine = {
   remarks: string;
   reason: string;
 };
-
-function today() {
-  return new Date().toISOString().slice(0, 10);
-}
 
 function createBlankLine(key: number): RequestLine {
   return { key, itemId: "", itemSearch: "", qty: "", uom: "", supplierId: "", cost: "0", remarks: "", reason: "" };
@@ -163,7 +160,7 @@ export function PurchaseRequestForm({
         <form id="purchase-request-form" action={action} className="space-y-3 pb-36 md:pb-0">
           <input type="hidden" name="request_no" value="" />
           <input type="hidden" name="idempotency_key" value={idempotencyKey} />
-          <input type="hidden" name="request_date" value={initialRequestDate ?? today()} />
+          <input type="hidden" name="request_date" value={initialRequestDate ?? getToday()} />
           <input type="hidden" name="required_date" value={initialRequiredDate ?? ""} />
           <input type="hidden" name="priority" value={priority} />
           <input type="hidden" name="urgency_reason" value={initialUrgencyReason ?? ""} />
@@ -290,7 +287,7 @@ export function PurchaseOrderForm({
               <summary className="cursor-pointer text-xs font-medium text-muted-foreground">More order details</summary>
               <div className="mt-2 grid grid-cols-2 gap-2">
                 <Field label="Order Date" required>
-                  <Input name="order_date" type="date" defaultValue={today()} required />
+                  <Input name="order_date" type="date" defaultValue={getToday()} required />
                 </Field>
                 <Field label="Expected Delivery">
                   <Input name="expected_delivery_date" type="date" />

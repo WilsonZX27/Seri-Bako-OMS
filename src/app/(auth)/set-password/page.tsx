@@ -11,10 +11,7 @@ import { signOut } from "@/server/actions/auth";
 import { createClient } from "@/lib/supabase/server";
 import { updatePassword } from "@/server/actions/auth";
 import { getPasswordSetupContext } from "@/server/auth/staff-session";
-
-function formatDate(value: string | null) {
-  return value ? new Intl.DateTimeFormat("en-MY", { dateStyle: "medium", timeStyle: "short" }).format(new Date(value)) : "-";
-}
+import { formatDateTime } from "@/lib/utils";
 
 export default async function SetPasswordPage({
   searchParams,
@@ -141,7 +138,7 @@ export default async function SetPasswordPage({
           </div>
           <div className="sm:col-span-2">
             <dt className="text-xs font-medium uppercase text-muted-foreground">Invited At</dt>
-            <dd className="mt-1">{formatDate(setupContext.invitedAt)}</dd>
+            <dd className="mt-1">{formatDateTime(setupContext.invitedAt)}</dd>
           </div>
         </dl>
       </div>

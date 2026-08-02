@@ -10,6 +10,7 @@ import { SelectNative } from "@/components/ui/select-native";
 import { ConsoleSection } from "@/components/layout/right-console";
 import { WorkspaceGrid } from "@/components/layout/workspace-layout";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { formatDateTime } from "@/lib/utils";
 
 type RowState = { index: number; values: Record<string, string>; errors: string[] };
 type ImportErrorRow = { rowNumber: number; values: Record<string, string>; message: string };
@@ -183,9 +184,7 @@ function draftKey(entity: ImportEntity) {
 }
 
 function formatSavedAt(value: string) {
-  const parsed = new Date(value);
-  if (Number.isNaN(parsed.getTime())) return value;
-  return parsed.toLocaleString();
+  return formatDateTime(value, value);
 }
 
 const steps = [

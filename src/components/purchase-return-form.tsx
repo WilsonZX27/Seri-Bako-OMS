@@ -8,12 +8,8 @@ import { Field } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { SelectNative } from "@/components/ui/select-native";
 import { Textarea } from "@/components/ui/textarea";
-import { formatCurrency, formatNumber } from "@/lib/utils";
+import { formatCurrency, formatNumber, getToday } from "@/lib/utils";
 import type { ReturnableGoodsReceiving, ReturnableGoodsReceivingLine } from "@/server/queries/purchase-returns";
-
-function today() {
-  return new Date().toISOString().slice(0, 10);
-}
 
 export function PurchaseReturnForm({
   receivings,
@@ -46,7 +42,7 @@ export function PurchaseReturnForm({
               </SelectNative>
             </Field>
             <Field label="Return Date" required>
-              <Input name="return_date" type="date" defaultValue={today()} required />
+              <Input name="return_date" type="date" defaultValue={getToday()} required />
             </Field>
             <Field label="Reason">
               <Input name="reason" placeholder="Supplier return / quality issue" />

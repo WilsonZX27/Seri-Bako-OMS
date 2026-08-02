@@ -15,6 +15,8 @@ import { formatCurrency, formatDateOnly, formatNumber } from "@/lib/utils";
 import { hasActiveFilters } from "@/lib/table-state";
 import { getProcurementVariance } from "@/server/queries/procurement-variance";
 
+export const dynamic = "force-dynamic";
+
 const variants = { Matched: "success", "Price variance": "warning", "Quantity variance": "warning", "Missing invoice": "danger", "Missing GRN": "danger", "Not linked": "secondary", "Review manually": "secondary" } as const;
 export default async function ProcurementVariancePage({ searchParams }: { searchParams: Promise<Record<string, string | undefined>> }) {
   const filters = await searchParams; const rows = await getProcurementVariance(filters).catch(() => null);

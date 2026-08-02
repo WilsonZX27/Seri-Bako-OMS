@@ -7,7 +7,7 @@ import { Field } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { SubmitButton } from "@/components/ui/submit-button";
 import { sortProductsForDisplay } from "@/lib/product-order";
-import { formatNumber } from "@/lib/utils";
+import { formatDateOnly, formatNumber } from "@/lib/utils";
 import { reviewOutletDailyRecord, saveOutletDailyRecord, voidOutletDailyRecord } from "@/server/actions/outlet-daily-records";
 import { getPermissionMap } from "@/server/auth/permissions";
 import { getOutletDailyFormOptions, getOutletDailyRecord } from "@/server/queries/outlet-daily-records";
@@ -73,8 +73,8 @@ export default async function OutletDailyRecordDetailPage({ params, searchParams
   </>;
 
   return <DocumentWorkspace
-    breadcrumbs={[{ label: "Outlet Daily Records", href: "/outlet-daily-records" }, { label: record.record_date }]}
-    documentNo={`${record.branch_name} · ${record.record_date}`}
+    breadcrumbs={[{ label: "Outlet Daily Records", href: "/outlet-daily-records" }, { label: formatDateOnly(record.record_date) }]}
+    documentNo={`${record.branch_name} · ${formatDateOnly(record.record_date)}`}
     title="Outlet Daily Record"
     status={record.status}
     branch={record.branch_name}

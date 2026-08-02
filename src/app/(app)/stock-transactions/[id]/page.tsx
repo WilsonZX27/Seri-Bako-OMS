@@ -5,7 +5,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { ConsoleSection } from "@/components/layout/right-console";
 import { PageHeader } from "@/components/ui/page-header";
 import { StatusBadge } from "@/components/ui/status-badge";
-import { formatDateOnly } from "@/lib/utils";
+import { formatDateOnly, formatDateTime } from "@/lib/utils";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { AttachmentPanel, CommentsPanel, DocumentTimeline, RevisionPanel } from "@/components/documents/document-panels";
 import { WorkspaceGrid } from "@/components/layout/workspace-layout";
@@ -17,10 +17,6 @@ function statusVariant(status: string) {
   if (status === "posted") return "success";
   if (status === "cancelled") return "danger";
   return "secondary";
-}
-
-function formatDateTime(value: string | null) {
-  return value ? new Intl.DateTimeFormat("en-MY", { dateStyle: "medium", timeStyle: "short" }).format(new Date(value)) : "-";
 }
 
 function isUuid(value: string | null) {
@@ -59,7 +55,7 @@ export default async function StockTransactionDetailPage({ params }: { params: P
                 <div className="flex justify-between gap-3"><dt className="text-muted-foreground">Status</dt><dd><StatusBadge status={transaction.status} /></dd></div>
                 <div className="flex justify-between gap-3"><dt className="text-muted-foreground">Type</dt><dd className="text-right capitalize">{transaction.transaction_type.replaceAll("_", " ")}</dd></div>
                 <div className="flex justify-between gap-3"><dt className="text-muted-foreground">No.</dt><dd className="text-right font-semibold">{transaction.transaction_no}</dd></div>
-                <div className="flex justify-between gap-3"><dt className="text-muted-foreground">Date</dt><dd className="text-right">{formatDateTime(transaction.transaction_date)}</dd></div>
+                <div className="flex justify-between gap-3"><dt className="text-muted-foreground">Date</dt><dd className="text-right">{formatDateOnly(transaction.transaction_date)}</dd></div>
                 <div className="flex justify-between gap-3"><dt className="text-muted-foreground">Branch</dt><dd className="text-right">{transaction.branch?.branch_name ?? "-"}</dd></div>
                 <div className="flex justify-between gap-3"><dt className="text-muted-foreground">Source</dt><dd className="text-right">{transaction.reference_type?.replaceAll("_", " ") ?? "-"}</dd></div>
                 <div className="flex justify-between gap-3"><dt className="text-muted-foreground">Posted at</dt><dd className="text-right">{formatDateTime(transaction.posted_at)}</dd></div>
@@ -95,7 +91,7 @@ export default async function StockTransactionDetailPage({ params }: { params: P
               <div className="grid gap-4 md:grid-cols-4">
                 <div><p className="text-xs uppercase text-muted-foreground">Date</p><p className="font-medium">{formatDateOnly(transaction.transaction_date)}</p></div>
                 <div><p className="text-xs uppercase text-muted-foreground">Type</p><p className="font-medium">{transaction.transaction_type.replaceAll("_", " ")}</p></div>
-                <div><p className="text-xs uppercase text-muted-foreground">Posted At</p><p className="font-medium">{transaction.posted_at ?? "-"}</p></div>
+                <div><p className="text-xs uppercase text-muted-foreground">Posted At</p><p className="font-medium">{formatDateTime(transaction.posted_at)}</p></div>
                 <div><p className="text-xs uppercase text-muted-foreground">Reference</p><p className="font-medium">{transaction.reference_type ?? "-"}</p></div>
               </div>
               {transaction.remarks ? <p className="rounded-md border bg-secondary/30 p-3 text-sm">{transaction.remarks}</p> : null}

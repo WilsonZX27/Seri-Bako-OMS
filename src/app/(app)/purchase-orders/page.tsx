@@ -13,7 +13,7 @@ import { StatusTabs } from "@/components/status-tabs";
 import { OperationalList, OperationalListRow, Table, TableActionLink, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { ConsoleSection } from "@/components/layout/right-console";
 import { WorkspaceGrid } from "@/components/layout/workspace-layout";
-import { formatCurrency } from "@/lib/utils";
+import { formatCurrency, formatDateOnly } from "@/lib/utils";
 import { hasActiveFilters } from "@/lib/table-state";
 import { getPurchaseOrderSummary, getPurchaseOrders } from "@/server/queries/procurement";
 import { getPermissionMap } from "@/server/auth/permissions";
@@ -87,8 +87,8 @@ export default async function PurchaseOrdersPage({ searchParams }: { searchParam
                     <TableCell className="w-10 p-0 text-center"><TableActionLink href={`/purchase-orders/${order.id}`} label={`Open ${order.po_no}`}><Pencil className="h-4 w-4" /></TableActionLink></TableCell>
                     <TableCell><DocumentNumber value={order.po_no} size="sm" /></TableCell>
                     <TableCell>{order.supplier_name ?? "-"}</TableCell>
-                    <TableCell className="hidden md:table-cell">{order.order_date}</TableCell>
-                    <TableCell className="hidden lg:table-cell">{order.expected_delivery_date ?? "-"}</TableCell>
+                    <TableCell className="hidden md:table-cell">{formatDateOnly(order.order_date)}</TableCell>
+                    <TableCell className="hidden lg:table-cell">{formatDateOnly(order.expected_delivery_date, "-")}</TableCell>
                     <TableCell><StatusBadge status={order.status} /></TableCell>
                     <TableCell className="hidden text-right lg:table-cell">{order.line_count}</TableCell>
                     <TableCell className="hidden text-right md:table-cell">{formatCurrency(order.order_total)}</TableCell>
@@ -102,9 +102,9 @@ export default async function PurchaseOrdersPage({ searchParams }: { searchParam
                 key={order.id}
                 href={`/purchase-orders/${order.id}`}
                 label={`Open ${order.po_no}`}
-                primary={<div><DocumentNumber value={order.po_no} size="sm" /><p className="text-[11px] font-normal text-[var(--sb-text-muted)]">Delivery {order.expected_delivery_date ?? "not set"}</p></div>}
+                primary={<div><DocumentNumber value={order.po_no} size="sm" /><p className="text-[11px] font-normal text-[var(--sb-text-muted)]">Delivery {formatDateOnly(order.expected_delivery_date, "not set")}</p></div>}
                 status={<StatusBadge status={order.status} />}
-                secondary={`${order.supplier_name ?? "No supplier"} · ${order.order_date}`}
+                secondary={`${order.supplier_name ?? "No supplier"} · ${formatDateOnly(order.order_date)}`}
                 meta={`${order.line_count} items · ${formatCurrency(order.order_total)}`}
               />)}
               {!orders.rows.length ? <EmptyState title={filtered ? "No orders match these filters" : "No purchase orders yet"} description={filtered ? "Reset the filters or widen the search." : "Approved requests and new orders will appear here."} action={filtered ? { href: "/purchase-orders", label: "Reset filters" } : undefined} /> : null}

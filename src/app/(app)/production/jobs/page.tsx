@@ -18,7 +18,7 @@ import { StatusTabs } from "@/components/status-tabs";
 import { getBranchesForSelect } from "@/server/queries/common";
 import { getProductionJobs } from "@/server/queries/production-jobs";
 import { hasPermission } from "@/server/auth/permissions";
-import { formatNumber } from "@/lib/utils";
+import { formatDateOnly, formatDateTime, formatNumber } from "@/lib/utils";
 import { formatStatusLabel } from "@/lib/status-label";
 import { hasActiveFilters, paginateRows } from "@/lib/table-state";
 import { logServerError } from "@/server/observability/logger";
@@ -134,7 +134,7 @@ export default async function ProductionJobsPage({ searchParams }: { searchParam
                     <DataGridRow key={job.id} href={`/production/jobs/${job.id}`}>
                       <TableCell className="text-center"><TableActionLink href={`/production/jobs/${job.id}`} label={`Open ${job.production_job_no}`}><Pencil className="h-4 w-4" /></TableActionLink></TableCell>
                       <TableCell><DocumentNumber value={job.production_job_no} size="sm" /></TableCell>
-                      <TableCell>{job.production_date}</TableCell>
+                      <TableCell>{formatDateOnly(job.production_date)}</TableCell>
                       <TableCell>{job.branch_name ?? "-"}</TableCell>
                       <TableCell>{job.recipe_no ?? "-"}</TableCell>
                       <TableCell>{job.product_name ?? "-"}</TableCell>
@@ -142,7 +142,7 @@ export default async function ProductionJobsPage({ searchParams }: { searchParam
                       <TableCell className="text-right">{job.actual_output_qty ? formatNumber(job.actual_output_qty) : "-"}</TableCell>
                       <TableCell><StatusBadge status={job.status} /></TableCell>
                       <TableCell>{job.created_by_name ?? "-"}</TableCell>
-                      <TableCell>{job.posted_at ? new Date(job.posted_at).toLocaleString("en-MY", { dateStyle: "short", timeStyle: "short" }) : "-"}</TableCell>
+                      <TableCell>{job.posted_at ? formatDateTime(job.posted_at) : "-"}</TableCell>
                     </DataGridRow>
                   ))}
                   {!jobs.rows.length ? (
@@ -155,7 +155,7 @@ export default async function ProductionJobsPage({ searchParams }: { searchParam
                 </TableBody>
               </Table>
               <OperationalList ariaLabel="Production jobs">
-                {jobs.rows.map((job) => <OperationalListRow key={job.id} href={`/production/jobs/${job.id}`} label={`Open ${job.production_job_no}`} primary={<DocumentNumber value={job.production_job_no} size="sm" />} status={<StatusBadge status={job.status} />} secondary={`${job.product_name ?? job.recipe_no ?? "No output"} · ${job.production_date}`} meta={`${formatNumber(job.planned_output_qty)} ${job.output_uom}`} />)}
+                {jobs.rows.map((job) => <OperationalListRow key={job.id} href={`/production/jobs/${job.id}`} label={`Open ${job.production_job_no}`} primary={<DocumentNumber value={job.production_job_no} size="sm" />} status={<StatusBadge status={job.status} />} secondary={`${job.product_name ?? job.recipe_no ?? "No output"} · ${formatDateOnly(job.production_date)}`} meta={`${formatNumber(job.planned_output_qty)} ${job.output_uom}`} />)}
                 {!jobs.rows.length ? <EmptyState title={filtered ? "No jobs match these filters" : "No production jobs yet"} description={filtered ? "Reset the filters or widen the date range." : "Production jobs appear after they are created."} action={filtered ? { href: "/production/jobs", label: "Reset filters" } : undefined} /> : null}
               </OperationalList>
             <PaginationControls page={jobs.page} totalPages={jobs.totalPages} totalRows={jobs.totalRows} searchParams={filters} />

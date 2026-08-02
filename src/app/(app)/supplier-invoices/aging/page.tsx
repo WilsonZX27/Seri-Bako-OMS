@@ -10,8 +10,10 @@ import { ConsoleSection } from "@/components/layout/right-console";
 import { WorkspaceGrid } from "@/components/layout/workspace-layout";
 import { PaginationControls } from "@/components/sortable-table";
 import { DocumentNumber } from "@/components/document-number";
-import { formatCurrency } from "@/lib/utils";
+import { formatCurrency, formatDateOnly } from "@/lib/utils";
 import { getApAgingReport } from "@/server/queries/ap-aging";
+
+export const dynamic = "force-dynamic";
 
 const bucketLabels: Record<string, string> = {
   not_due: "Not Due", due_today: "Due Today", overdue_1_30: "1–30 Days Overdue",
@@ -19,7 +21,7 @@ const bucketLabels: Record<string, string> = {
   overdue_90_plus: "90+ Days Overdue", missing_due_date: "Missing Due Date",
 };
 
-const dates = (value: string | null) => value ? new Intl.DateTimeFormat("en-MY", { dateStyle: "medium", timeZone: "Asia/Kuala_Lumpur" }).format(new Date(`${value}T00:00:00+08:00`)) : "Missing";
+const dates = (value: string | null) => value ? formatDateOnly(value, "Missing") : "Missing";
 const shiftDate = (value: string, days: number) => { const date = new Date(`${value}T00:00:00Z`); date.setUTCDate(date.getUTCDate() + days); return date.toISOString().slice(0, 10); };
 
 export default async function ApAgingPage({ searchParams }: { searchParams: Promise<Record<string, string | undefined>> }) {

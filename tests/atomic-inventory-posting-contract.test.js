@@ -23,7 +23,10 @@ test("inventory posting actions do not perform per-line ledger writes", () => {
   const operations = read("src/server/actions/stock-operations.ts");
   const manual = read("src/server/actions/stock-transactions.ts");
   const production = read("src/server/actions/production-jobs.ts");
-  assert.match(operations, /rpc\("post_stock_transfer_atomic"/);
+  // Transfers now reserve on dispatch and post only explicit received quantities;
+  // the legacy all-or-nothing posting action must not be called by the app.
+  assert.match(operations, /rpc\("receive_stock_transfer_atomic"/);
+  assert.doesNotMatch(operations, /rpc\("post_stock_transfer_atomic"/);
   assert.match(operations, /rpc\("dispatch_stock_transfer_atomic"/);
   assert.match(operations, /rpc\("post_stock_wastage_atomic"/);
   assert.match(manual, /rpc\("post_manual_inventory_movement"/);

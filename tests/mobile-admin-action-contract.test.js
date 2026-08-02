@@ -15,7 +15,8 @@ test("company profile preserves save and reuses the canonical tablet split actio
   const company = read("src/app/(app)/company/page.tsx");
 
   assert.match(company, /<WorkspaceGrid\s+documentMode\s+tabletRailMode="split"\s+rightRail=/);
-  assert.match(company, /form="company-form" className="w-full" data-mobile-primary-action>Save Company/);
+  assert.match(company, /<SubmitButton[^>]*form="company-form"[^>]*data-mobile-primary-action>Save Company/);
+  assert.match(company, /form="company-form"[^>]*pendingLabel="Saving\.\.\."/);
 });
 
 test("master-data cleanup stays a read-only mobile workspace without an action bar", () => {

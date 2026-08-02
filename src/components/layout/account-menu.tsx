@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { signOut } from "@/server/actions/auth";
+import { SubmitButton } from "@/components/ui/submit-button";
 
 export function AccountMenu({ displayName, roleLabel, initials }: { displayName: string; roleLabel: string; initials: string }) {
   const [open, setOpen] = useState(false);
@@ -45,7 +46,7 @@ export function AccountMenu({ displayName, roleLabel, initials }: { displayName:
         </div>
         <Link ref={firstItemRef} role="menuitem" href="/account" onClick={() => setOpen(false)} className="flex min-h-12 items-center px-2 py-2 hover:bg-[var(--sb-surface-muted)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[var(--sb-green-700)] md:min-h-8">Update Account</Link>
         <form action={signOut}>
-          <button role="menuitem" type="submit" className="flex min-h-12 w-full items-center px-2 py-2 text-left text-[11px] text-[var(--sb-danger)] hover:bg-[var(--sb-surface-muted)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[var(--sb-green-700)] md:min-h-8">Logout</button>
+          <SubmitButton role="menuitem" type="submit" variant="ghost" pendingLabel="Signing out..." className="flex min-h-12 w-full items-center justify-start rounded-none px-2 py-2 text-left text-[11px] text-[var(--sb-danger)] hover:bg-[var(--sb-surface-muted)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[var(--sb-green-700)] md:min-h-8">Logout</SubmitButton>
         </form>
       </div> : null}
     </div>

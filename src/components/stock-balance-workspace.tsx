@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { ShoppingCart, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { SubmitButton } from "@/components/ui/submit-button";
 import { Input } from "@/components/ui/input";
 import { SelectNative } from "@/components/ui/select-native";
 import { ConsoleSection } from "@/components/layout/right-console";
@@ -263,9 +264,9 @@ export function StockBalanceWorkspace({
                 ) : (
                   <p className="text-xs text-muted-foreground">You do not have permission to create purchase requests.</p>
                 )}
-                <Button type="submit" disabled={!canCreatePr} className="w-full">
+                <SubmitButton type="submit" disabled={!canCreatePr} className="w-full" pendingLabel="Creating...">
                   Create PR
-                </Button>
+                </SubmitButton>
               </form>
             </ConsoleSection>
           </>

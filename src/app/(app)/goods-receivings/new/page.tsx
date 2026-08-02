@@ -1,6 +1,6 @@
 import { GoodsReceivingForm } from "@/components/goods-receiving-form";
 import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import { SubmitButton } from "@/components/ui/submit-button";
 import { DocumentSideSection, DocumentWorkspace } from "@/components/documents/document-workspace";
 import { createGoodsReceiving } from "@/server/actions/goods-receivings";
 import { getBranchesForSelect } from "@/server/queries/common";
@@ -12,7 +12,7 @@ export default async function NewGoodsReceivingPage({ searchParams }: { searchPa
   const selectedOrder = filters.po_id ? purchaseOrders.find((order) => order.id === filters.po_id) ?? null : null;
   const receivingPo = selectedOrder ? await getPurchaseOrderForReceiving(selectedOrder.id) : null;
   const lines = receivingPo?.lines.filter((line) => line.pending_qty > 0) ?? [];
-  const primaryAction = <Button type="submit" form="goods-receiving-form" disabled={!selectedOrder || !lines.length} className="w-full">Save receiving draft</Button>;
+  const primaryAction = <SubmitButton type="submit" form="goods-receiving-form" disabled={!selectedOrder || !lines.length} className="w-full" pendingLabel="Saving...">Save receiving draft</SubmitButton>;
   const steps = [
     { key: "draft", label: "Draft", description: "Receiving quantities can be checked." },
     { key: "posted", label: "Posted", description: "Stock movement is recorded and locked." },

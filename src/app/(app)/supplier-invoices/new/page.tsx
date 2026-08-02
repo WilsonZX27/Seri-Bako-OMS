@@ -1,4 +1,4 @@
-import { Button } from "@/components/ui/button";
+import { SubmitButton } from "@/components/ui/submit-button";
 import { Card, CardContent } from "@/components/ui/card";
 import { DocumentSideSection, DocumentWorkspace } from "@/components/documents/document-workspace";
 import { SupplierInvoiceForm } from "@/components/supplier-invoice-form";
@@ -8,7 +8,7 @@ import { getPostedGrnsForInvoice } from "@/server/queries/supplier-invoices";
 export default async function NewSupplierInvoicePage({ searchParams }: { searchParams: Promise<Record<string, string | undefined>> }) {
   const filters = await searchParams;
   const { grns, suppliers } = await getPostedGrnsForInvoice(filters.supplier_id);
-  const primaryAction = <Button type="submit" form="supplier-invoice-form" disabled={!filters.supplier_id || !grns.length} className="w-full">Save Invoice Details</Button>;
+  const primaryAction = <SubmitButton type="submit" form="supplier-invoice-form" disabled={!filters.supplier_id || !grns.length} className="w-full" pendingLabel="Saving...">Save Invoice Details</SubmitButton>;
   const steps = [
     { key: "draft", label: "Draft", description: "Invoice matching details can be edited." },
     { key: "open", label: "Approved / Open", description: "Finance has approved the invoice for payment." },

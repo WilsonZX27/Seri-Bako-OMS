@@ -8,14 +8,12 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { PageHeader } from "@/components/ui/page-header";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { formatCurrency } from "@/lib/utils";
+import { formatCurrency, formatDateOnly } from "@/lib/utils";
 import { getCashFlowForecast } from "@/server/queries/ap-aging";
 
 const periodLabels = { "7": "7 Days", "14": "14 Days", "30": "30 Days", month: "Current Month" } as const;
 const stateLabels = { overdue: "Overdue", due_today: "Due Today", upcoming: "Upcoming", missing_due_date: "Missing Due Date" } as const;
-const date = (value: string | null) => value
-  ? new Intl.DateTimeFormat("en-MY", { dateStyle: "medium", timeZone: "Asia/Kuala_Lumpur" }).format(new Date(`${value}T00:00:00+08:00`))
-  : "Missing";
+const date = (value: string | null) => value ? formatDateOnly(value, "Missing") : "Missing";
 
 export default async function CashFlowForecastPage({ searchParams }: { searchParams: Promise<Record<string, string | undefined>> }) {
   const filters = await searchParams;

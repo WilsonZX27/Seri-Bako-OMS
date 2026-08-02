@@ -17,6 +17,17 @@ const targetSources = [
   read("src", "app", "(app)", "goods-receivings", "page.tsx"),
   read("src", "app", "(app)", "goods-receivings", "[id]", "page.tsx"),
   read("src", "components", "goods-receiving-form.tsx"),
+  read("src", "app", "(app)", "purchase-requests", "page.tsx"),
+  read("src", "app", "(app)", "purchase-requests", "[id]", "page.tsx"),
+  read("src", "app", "(app)", "purchase-orders", "page.tsx"),
+  read("src", "app", "(app)", "purchase-orders", "[id]", "page.tsx"),
+  read("src", "app", "(app)", "stock-transfers", "page.tsx"),
+  read("src", "app", "(app)", "stock-transfers", "[id]", "page.tsx"),
+  read("src", "app", "(app)", "stock-wastage", "page.tsx"),
+  read("src", "app", "(app)", "stock-wastage", "[id]", "page.tsx"),
+  read("src", "app", "(app)", "purchase-returns", "[id]", "page.tsx"),
+  read("src", "app", "(app)", "production", "planning", "page.tsx"),
+  read("src", "components", "imports", "import-workflow.tsx"),
 ];
 
 test("date-only formatter is zero-padded and does not parse through Date", () => {
@@ -33,6 +44,16 @@ test("operational pages format visible dates through the shared formatter", () =
   assert.match(combined, /formatDateOnly\(transaction\.transaction_date\)/);
   assert.match(combined, /formatDateOnly\(receiving\.received_date\)/);
   assert.match(combined, /formatDateOnly\(supplier\.created_at\)/);
+  assert.match(combined, /formatDateOnly\(request\.request_date\)/);
+  assert.match(combined, /formatDateOnly\(request\.needed_by_date/);
+  assert.match(combined, /formatDateOnly\(order\.order_date\)/);
+  assert.match(combined, /formatDateOnly\(row\.transfer_date\)/);
+  assert.match(combined, /formatDateOnly\(transfer\.transfer_date\)/);
+  assert.match(combined, /formatDateOnly\(row\.wastage_date\)/);
+  assert.match(combined, /formatDateOnly\(wastage\.wastage_date\)/);
+  assert.match(combined, /formatDateOnly\(purchaseReturn\.return_date\)/);
+  assert.match(combined, /formatDateOnly\(report\.planning\.planning_date\)/);
+  assert.match(combined, /formatDateTime\(value, value\)/);
   assert.doesNotMatch(combined, />\{(?:row\.count_date|count\.count_date|row\.transaction_date|transaction\.transaction_date|receiving\.received_date)\}</);
 });
 

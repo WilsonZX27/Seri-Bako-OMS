@@ -5,7 +5,7 @@ import { DocumentMoreOptions } from "@/components/documents/mobile-document-surf
 import { Card, CardContent } from "@/components/ui/card";
 import { BlockedDestructiveAction } from "@/components/ui/danger-confirm-form";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { formatCurrency, formatNumber } from "@/lib/utils";
+import { formatCurrency, formatDateOnly, formatNumber } from "@/lib/utils";
 import { cancelPurchaseReturn, postPurchaseReturn } from "@/server/actions/purchase-returns";
 import { getPermissionMap } from "@/server/auth/permissions";
 import { getDocumentBundle } from "@/server/queries/documents";
@@ -78,7 +78,7 @@ export default async function PurchaseReturnDetailPage({ params, searchParams }:
           <div className="grid gap-4 md:grid-cols-4">
             <div><p className="text-xs uppercase text-muted-foreground">Supplier</p><p className="font-medium">{purchaseReturn.supplier_name ?? purchaseReturn.supplier_id}</p></div>
             <div><p className="text-xs uppercase text-muted-foreground">GRN / PO</p><p className="font-medium">{purchaseReturn.grn_no ?? "-"} / {purchaseReturn.po_no ?? "-"}</p></div>
-            <div><p className="text-xs uppercase text-muted-foreground">Return Date</p><p className="font-medium">{purchaseReturn.return_date}</p></div>
+            <div><p className="text-xs uppercase text-muted-foreground">Return Date</p><p className="font-medium">{formatDateOnly(purchaseReturn.return_date)}</p></div>
             <div><p className="text-xs uppercase text-muted-foreground">Return Value</p><p className="font-medium">{formatCurrency(totalValue)}</p></div>
           </div>
           {purchaseReturn.reason || purchaseReturn.remarks ? <p className="rounded-md border bg-secondary/30 p-3 text-sm">{purchaseReturn.reason ?? purchaseReturn.remarks}</p> : null}

@@ -60,7 +60,7 @@ export async function getStockTransfer(id: string) {
   if (isMockMode()) {
     const transfer = mockStockTransfers.find((row) => row.id === id);
     if (!transfer) throw new Error("Mock transfer not found");
-    const lines = mockStockTransferLines.filter((line) => line.stock_transfer_id === id).map((line) => ({ ...line, item: mockItems.find((item) => item.id === line.item_id) }));
+    const lines = mockStockTransferLines.filter((line) => line.stock_transfer_id === id).map((line) => ({ ...line, received_quantity: 0, item: mockItems.find((item) => item.id === line.item_id) }));
     return { transfer: { ...transfer, from_branch_name: mockBranches.find((branch) => branch.id === transfer.from_branch_id)?.branch_name ?? null, to_branch_name: mockBranches.find((branch) => branch.id === transfer.to_branch_id)?.branch_name ?? null, line_count: lines.length }, lines };
   }
   const supabase = await createClient();

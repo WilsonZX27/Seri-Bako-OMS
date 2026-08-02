@@ -1847,14 +1847,40 @@ export type Database = {
         Update: Partial<Database["public"]["Tables"]["stock_transfers"]["Insert"]>;
         Relationships: [];
       };
-      stock_transfer_lines: {
-        Row: {
-          id: string; stock_transfer_id: string; item_id: string; quantity: number; uom: string; remarks: string | null; created_at: string; updated_at: string;
-        };
+        stock_transfer_lines: {
+          Row: {
+            id: string; stock_transfer_id: string; item_id: string; quantity: number; received_quantity: number; uom: string; remarks: string | null; created_at: string; updated_at: string;
+          };
         Insert: Partial<Database["public"]["Tables"]["stock_transfer_lines"]["Row"]> & { stock_transfer_id: string; item_id: string; quantity: number; uom: string };
         Update: Partial<Database["public"]["Tables"]["stock_transfer_lines"]["Insert"]>;
-        Relationships: [];
-      };
+          Relationships: [];
+        };
+        stock_transfer_reservations: {
+          Row: {
+            id: string; company_id: string; stock_transfer_id: string; stock_transfer_line_id: string; item_id: string; from_branch_id: string;
+            reserved_quantity: number; received_quantity: number; status: "active" | "consumed" | "released"; reserved_at: string;
+            released_at: string | null; created_by: string | null; updated_at: string;
+          };
+          Insert: Partial<Database["public"]["Tables"]["stock_transfer_reservations"]["Row"]> & { company_id: string; stock_transfer_id: string; stock_transfer_line_id: string; item_id: string; from_branch_id: string; reserved_quantity: number };
+          Update: Partial<Database["public"]["Tables"]["stock_transfer_reservations"]["Insert"]>;
+          Relationships: [];
+        };
+        stock_transfer_receipts: {
+          Row: {
+            id: string; company_id: string; stock_transfer_id: string; idempotency_key: string; received_by: string; received_at: string; status: "posted"; created_at: string;
+          };
+          Insert: Partial<Database["public"]["Tables"]["stock_transfer_receipts"]["Row"]> & { company_id: string; stock_transfer_id: string; idempotency_key: string; received_by: string };
+          Update: Partial<Database["public"]["Tables"]["stock_transfer_receipts"]["Insert"]>;
+          Relationships: [];
+        };
+        stock_transfer_receipt_lines: {
+          Row: {
+            id: string; receipt_id: string; stock_transfer_line_id: string; received_quantity: number; uom: string; source_transaction_id: string | null; destination_transaction_id: string | null; created_at: string;
+          };
+          Insert: Partial<Database["public"]["Tables"]["stock_transfer_receipt_lines"]["Row"]> & { receipt_id: string; stock_transfer_line_id: string; received_quantity: number; uom: string };
+          Update: Partial<Database["public"]["Tables"]["stock_transfer_receipt_lines"]["Insert"]>;
+          Relationships: [];
+        };
       stock_wastage: {
         Row: {
           id: string; company_id: string | null; document_id: string | null; wastage_no: string; wastage_date: string; branch_id: string | null;
@@ -2187,7 +2213,8 @@ export type Database = {
         };
         Returns: string;
       };
-      dispatch_stock_transfer_atomic: { Args: { p_transfer_id: string }; Returns: void };
+        dispatch_stock_transfer_atomic: { Args: { p_transfer_id: string }; Returns: Json };
+        receive_stock_transfer_atomic: { Args: { p_transfer_id: string; p_payload: Json }; Returns: Json };
       post_stock_transfer_atomic: { Args: { p_transfer_id: string }; Returns: Json };
       post_stock_wastage_atomic: { Args: { p_wastage_id: string }; Returns: Json };
       post_production_job_atomic: { Args: { p_job_id: string }; Returns: Json };

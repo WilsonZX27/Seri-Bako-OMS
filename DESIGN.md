@@ -182,6 +182,15 @@ A UI change is not complete until:
 
 The Playwright route-layout audit is the baseline guard for all static workspaces. Workflow specs provide the mutation/role coverage; neither replaces the other.
 
+### Full-system interaction audit
+
+All business actions follow one visible feedback contract: the first activation
+disables the control, sets `aria-busy`, shows a contextual pending label and a
+small spinner, then resolves to an explicit success or error state. A form may not
+silently submit, render a fabricated zero, or leave the user guessing whether a
+posting action completed. Audit this contract at 390px, 820px, and 1440px using
+the route matrix in `docs/qa/FULL_SYSTEM_AUDIT_MATRIX.md`.
+
 ## Release identification
 
 - The visible footer version is the canonical application release identifier, not a build-only or sprint-only counter.
@@ -250,6 +259,7 @@ The Playwright route-layout audit is the baseline guard for all static workspace
 - **Non-retryable workflow conflicts:** A server response stating that an action cannot be completed in the current state is a lifecycle conflict, not a transient outage. Stop background retries, keep the local snapshot, and show that the changes remain recoverable on this device.
 - **85% audit baseline:** Pages that use `DocumentWorkspace`, `WorkspaceGrid`, `OperationalList`, or the shared mobile action/filter surfaces inherit the approved `/staffs/new` tablet split, compact phone hierarchy, and action-first rules. Record the audit in Notion before changing a shared component; only promote a code change when a real contract or visual defect is found.
 - **90% audit baseline:** Authentication and operational detail/report routes must be audited against the same shared shell before being marked ready; isolated auth pages keep business navigation out, while detail/report pages retain the approved right rail or compact operational list for their viewport.
+- **Public route verification:** Next.js route-group segments such as `/(app)` are source layout folders, never production URL segments. Browser QA, screenshots, links, and Notion route records must use the literal public path (for example `/purchase-requests/new` or `/supplier-items/new`). Any result collected from a `/(app)/...` URL is invalid and must be discarded.
 
 ### v7.83.0 — Stock Count Autosave Visibility
 
@@ -272,3 +282,17 @@ The Playwright route-layout audit is the baseline guard for all static workspace
 ### v7.87.0 — Staff Access Default Branch Submission Fix
 
 - Staff creation keeps the default branch visually locked while submitting it as an accessible branch value, so the server-side access validation receives the required branch instead of an empty checkbox payload.
+### v7.89.0 — Integrated OpsLogic Business Workflows
+
+- Integrated the committed OpsLogic branch into the UI closure branch without dropping the existing shared-component work.
+- Preserved branch-scoped Purchase Request creation, transition authorization, Stock Count cancellation atomicity, and Stock Transfer reservation/partial-receiving contracts.
+- Release gate: 451/451 contract tests, typecheck, strict typecheck, and lint pass. No Supabase migration was executed from this worktree.
+
+### v7.88.0 — Tablet Split Action Deduplication
+
+- A tablet split workspace exposes its primary action in the right rail. The shared mobile FAB and mobile action bar are suppressed between 768px and 1279px so one task never presents duplicate primary actions. Phone retains the FAB and desktop retains the right console action.
+### v7.89.0 — Integrated OpsLogic Business Workflows
+
+- Integrated the committed OpsLogic branch into the UI closure branch without dropping the existing shared-component work.
+- Preserved branch-scoped Purchase Request creation, transition authorization, Stock Count cancellation atomicity, and Stock Transfer reservation/partial-receiving contracts.
+- Release gate: 451/451 contract tests, typecheck, strict typecheck, and lint pass. No Supabase migration was executed from this worktree.

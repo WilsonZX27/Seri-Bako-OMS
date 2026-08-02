@@ -7,6 +7,7 @@ const root = path.join(__dirname, "..");
 const source = fs.readFileSync(path.join(root, "src", "components", "stock-balance-workspace.tsx"), "utf8");
 const page = fs.readFileSync(path.join(root, "src", "app", "(app)", "stock-balance", "page.tsx"), "utf8");
 const inventoryQuery = fs.readFileSync(path.join(root, "src", "server", "queries", "inventory.ts"), "utf8");
+const recipesQuery = fs.readFileSync(path.join(root, "src", "server", "queries", "recipes.ts"), "utf8");
 
 test("stock balance does not duplicate mobile navigation with a generic action bar", () => {
   assert.match(source, /<WorkspaceGrid\s+hideMobileConsole\s+rightRail=/);
@@ -41,4 +42,9 @@ test("stock balance query failure preserves error state instead of success value
   assert.match(source, /queryError \? "—" : totalRows/);
   assert.match(source, /queryError \? "—" : lowStock/);
   assert.match(source, /queryError \? "—" : negative/);
+});
+
+test("recipe stock availability fails closed when the balance view fails", () => {
+  assert.match(recipesQuery, /for \(const result of \[recipes, products, lines, items, packaging, snapshots, stockBalances\]\)/);
+  assert.match(recipesQuery, /for \(const result of \[products, lines, items, packaging, snapshots, stockBalances\]\)/);
 });

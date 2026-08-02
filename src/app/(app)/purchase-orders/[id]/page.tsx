@@ -10,7 +10,7 @@ import { MobileTaskSheet } from "@/components/documents/mobile-document-surfaces
 import { DocumentMoreOptions } from "@/components/documents/mobile-document-surfaces";
 import { ConfirmActionForm } from "@/components/ui/confirm-action-form";
 import { PriorityBadge } from "@/components/priority-badge";
-import { formatCurrency, formatNumber } from "@/lib/utils";
+import { formatCurrency, formatDateOnly, formatNumber } from "@/lib/utils";
 import { approvePurchaseOrder, closePurchaseOrder, rejectPurchaseOrder, sendPurchaseOrder, submitPurchaseOrder } from "@/server/actions/procurement";
 import { getPermissionMap } from "@/server/auth/permissions";
 import { getBranchesForSelect, getItemsForSelect, getSuppliersForSelect } from "@/server/queries/common";
@@ -114,11 +114,11 @@ export default async function PurchaseOrderDetailPage({ params }: { params: Prom
                 <div><p className="text-xs uppercase text-muted-foreground">AutoCount PO Number</p><p className="font-medium">{order.po_no}</p></div>
                 <div><p className="text-xs uppercase text-muted-foreground">Supplier</p><p className="font-medium">{supplier?.name ?? order.supplier_id}</p></div>
                 <div><p className="text-xs uppercase text-muted-foreground">Branch</p><p className="font-medium">{branch?.branch_name ?? "-"}</p></div>
-                <div><p className="text-xs uppercase text-muted-foreground">Order Date</p><p className="font-medium">{order.order_date}</p></div>
-                <div><p className="text-xs uppercase text-muted-foreground">Expected Delivery</p><p className="font-medium">{order.expected_delivery_date ?? "-"}</p></div>
+                <div><p className="text-xs uppercase text-muted-foreground">Order Date</p><p className="font-medium">{formatDateOnly(order.order_date)}</p></div>
+                <div><p className="text-xs uppercase text-muted-foreground">Expected Delivery</p><p className="font-medium">{formatDateOnly(order.expected_delivery_date, "-")}</p></div>
                 {!fromApprovedPr ? <div><p className="text-xs uppercase text-muted-foreground">Approval</p><StatusBadge status={order.approval_status} /></div> : null}
                 <div><p className="text-xs uppercase text-muted-foreground">Priority</p><PriorityBadge priority={order.priority} /></div>
-                <div><p className="text-xs uppercase text-muted-foreground">Needed By</p><p className="font-medium">{order.needed_by_date ?? "-"}</p></div>
+                <div><p className="text-xs uppercase text-muted-foreground">Needed By</p><p className="font-medium">{formatDateOnly(order.needed_by_date, "-")}</p></div>
                 <div><p className="text-xs uppercase text-muted-foreground">Source Document</p><p className="font-medium">{sourceRequest?.request_no ?? "-"}</p></div>
                 <div><p className="text-xs uppercase text-muted-foreground">Production Risk</p><p className="font-medium">{order.production_risk ? "Yes" : "No"}</p></div>
               </div>

@@ -78,14 +78,27 @@ export async function createStockTransfer(formData: FormData) {
   }
 }
 
-export async function postStockTransfer(id: string) {
+export async function receiveStockTransfer(formData: FormData) {
   await requirePermission("stock_transfer.post");
+  const transferId = parseOperationalRecordId(String(formData.get("transfer_id") ?? ""), "stock transfer");
   if (isMockMode()) return;
-  const transferId = parseOperationalRecordId(id, "stock transfer");
+  const lineIds = formData.getAll("receipt_line_id").map(String);
+  const quantities = formData.getAll("receipt_quantity").map(String);
+  const uoms = formData.getAll("receipt_uom").map(String);
+  const idempotencyKey = z.uuid().parse(String(formData.get("idempotency_key") ?? ""));
+  const lines = lineIds.map((lineId, index) => ({
+    line_id: z.uuid().parse(lineId),
+    received_quantity: z.number().nonnegative().max(1_000_000).multipleOf(0.0001).parse(Number(quantities[index] ?? 0)),
+    uom: uoms[index] ?? "",
+  }));
   const supabase = await createClient();
-  const { error } = await supabase.rpc("post_stock_transfer_atomic", { p_transfer_id: transferId });
+  const { error } = await supabase.rpc("receive_stock_transfer_atomic", {
+    p_transfer_id: transferId,
+    p_payload: { idempotency_key: idempotencyKey, lines },
+  });
   if (error) throw new Error(error.message);
   revalidateWorkspaceState(["/stock-transfers", `/stock-transfers/${transferId}`, "/inventory", "/stock-balance", "/stock-card", "/stock-transactions"]);
+  redirect(`/stock-transfers/${transferId}`);
 }
 
 export async function startStockTransfer(id: string) {
@@ -96,6 +109,7 @@ export async function startStockTransfer(id: string) {
   const { error } = await supabase.rpc("dispatch_stock_transfer_atomic", { p_transfer_id: transferId });
   if (error) throw new Error(error.message);
   revalidateWorkspaceState(["/stock-transfers", `/stock-transfers/${transferId}`, "/inventory", "/stock-balance", "/stock-card", "/stock-transactions"]);
+  redirect(`/stock-transfers/${transferId}`);
 }
 async function transitionStockTransferTerminal(id: string, action: "cancel" | "reject") {
   if (action === "cancel") await requirePermission("stock_transfer.cancel");
@@ -106,6 +120,7 @@ async function transitionStockTransferTerminal(id: string, action: "cancel" | "r
   const { error } = await supabase.rpc("transition_stock_transfer_terminal_atomic", { p_transfer_id: transferId, p_action: action });
   if (error) throw new Error(error.message);
   revalidateWorkspaceState(["/stock-transfers", `/stock-transfers/${transferId}`]);
+  redirect(`/stock-transfers/${transferId}`);
 }
 
 export async function cancelStockTransfer(id: string) { await transitionStockTransferTerminal(id, "cancel"); }

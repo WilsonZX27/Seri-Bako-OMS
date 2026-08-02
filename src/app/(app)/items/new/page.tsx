@@ -1,4 +1,5 @@
 import { ItemForm } from "@/components/item-form";
+import { SubmitButton } from "@/components/ui/submit-button";
 import Link from "next/link";
 import { RecordActionPanel, RecordWorkspace } from "@/components/record-workspace";
 import { Button } from "@/components/ui/button";
@@ -18,7 +19,7 @@ export default async function NewItemPage() {
     return (
       <>
         <PageHeader title="New Item" description="Create an ingredient or packaging item." />
-        <RecordWorkspace actionPanel={<RecordActionPanel title="Primary Action" description="Creating an item changes master data only; stock remains ledger-controlled."><Button type="submit" form="item-create-form" className="w-full" data-mobile-primary-action>Create Item</Button><Button asChild variant="outline" className="w-full"><Link href="/items">Cancel</Link></Button></RecordActionPanel>}>
+        <RecordWorkspace actionPanel={<RecordActionPanel title="Primary Action" description="Creating an item changes master data only; stock remains ledger-controlled."><SubmitButton type="submit" form="item-create-form" className="w-full" pendingLabel="Creating..." data-mobile-primary-action>Create Item</SubmitButton><Button asChild variant="outline" className="w-full"><Link href="/items">Cancel</Link></Button></RecordActionPanel>}>
           <ItemForm formId="item-create-form" suppliers={suppliers} action={createItem} showSubmit={false} canCreateSupplier={canCreateSupplier} />
         </RecordWorkspace>
       </>

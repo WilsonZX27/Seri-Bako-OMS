@@ -14,7 +14,7 @@ import { StatusTabs } from "@/components/status-tabs";
 import { OperationalList, OperationalListRow, Table, TableActionLink, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { ConsoleSection } from "@/components/layout/right-console";
 import { WorkspaceGrid } from "@/components/layout/workspace-layout";
-import { formatCurrency } from "@/lib/utils";
+import { formatCurrency, formatDateOnly } from "@/lib/utils";
 import { hasActiveFilters } from "@/lib/table-state";
 import { getPermissionMap } from "@/server/auth/permissions";
 import { getSupplierInvoiceFilterSuppliers, getSupplierInvoices } from "@/server/queries/supplier-invoices";
@@ -92,8 +92,8 @@ export default async function SupplierInvoicesPage({ searchParams }: { searchPar
                     <TableCell>{row.supplier_invoice_no}</TableCell>
                     <TableCell>{row.supplier_name ?? "-"}</TableCell>
                     <TableCell>{row.po_no ?? "-"} / {row.grn_no ?? "-"}</TableCell>
-                    <TableCell>{row.invoice_date}</TableCell>
-                    <TableCell>{row.due_date ?? "-"}{row.is_overdue ? <span className="ml-2 text-xs font-medium text-destructive">Overdue</span> : null}</TableCell>
+                    <TableCell>{formatDateOnly(row.invoice_date)}</TableCell>
+                    <TableCell>{formatDateOnly(row.due_date)}{row.is_overdue ? <span className="ml-2 text-xs font-medium text-destructive">Overdue</span> : null}</TableCell>
                     <TableCell><StatusBadge status={row.status} /></TableCell>
                     <TableCell className="text-right">{formatCurrency(row.total_amount)}</TableCell>
                     <TableCell className="text-right">{formatCurrency(row.amount_paid)}</TableCell>
@@ -110,7 +110,7 @@ export default async function SupplierInvoicesPage({ searchParams }: { searchPar
                 label={`Open ${row.invoice_no}`}
                 primary={<div><DocumentNumber value={row.invoice_no} size="sm" /><p className={row.is_overdue ? "text-[11px] font-medium text-[var(--sb-danger)]" : "text-[11px] font-normal text-[var(--sb-text-muted)]"}>{row.is_overdue ? "Overdue — action required" : `GRN ${row.grn_no ?? row.po_no ?? "not linked"}`}</p></div>}
                 status={<StatusBadge status={row.status} />}
-                secondary={`${row.supplier_name ?? "No supplier"} · Due ${row.due_date ?? "—"}`}
+                secondary={`${row.supplier_name ?? "No supplier"} · Due ${formatDateOnly(row.due_date, "—")}`}
                 meta={formatCurrency(row.balance_due)}
               />)}
               {!invoices.rows.length ? <EmptyState title={filtered ? "No invoices match these filters" : "No invoices require review"} description={filtered ? "Reset the filters or widen the search." : "All current supplier invoices are up to date."} action={filtered ? { href: "/supplier-invoices", label: "Reset filters" } : undefined} /> : null}

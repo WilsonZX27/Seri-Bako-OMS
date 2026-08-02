@@ -14,6 +14,7 @@ import { wastageReasons } from "@/lib/validations/stock-operations";
 
 type Branch = { id: string; branch_code: string; branch_name: string; status: string };
 type SeedLine = { item_id: string; item_code: string; item_name: string; available_qty: number; quantity: number; uom: string };
+type TransferReceiveLine = { id: string; item_id: string; item_name: string; item_code?: string | null; quantity: number; received_quantity: number; uom: string };
 
 export function StockTransferForm({ branches, selectedFromBranchId, seedLines, action, formId, showSubmit = true }: { branches: Branch[]; selectedFromBranchId?: string; seedLines: SeedLine[]; action: (formData: FormData) => Promise<void>; formId?: string; showSubmit?: boolean }) {
   const router = useRouter();
@@ -37,6 +38,40 @@ export function StockTransferForm({ branches, selectedFromBranchId, seedLines, a
         {showSubmit ? <div className="flex justify-end"><SubmitButton disabled={!seedLines.length} pendingLabel="Saving..." showOverlay overlayLabel="Saving changes...">Create transfer</SubmitButton></div> : null}
       </form>
     </CardContent></Card>
+  );
+}
+
+export function StockTransferReceiveForm({ transferId, lines, action, formId = "stock-transfer-receive-form" }: { transferId: string; lines: TransferReceiveLine[]; action: (formData: FormData) => Promise<void>; formId?: string }) {
+  const [idempotencyKey] = useState(() => crypto.randomUUID());
+  return (
+    <form id={formId} action={action} className="space-y-3" data-stock-transfer-receive-form>
+      <input type="hidden" name="transfer_id" value={transferId} />
+      <input type="hidden" name="idempotency_key" value={idempotencyKey} />
+      <div className="overflow-hidden rounded-sm border">
+        <div className="grid grid-cols-[minmax(0,1fr)_96px_92px] gap-2 border-b bg-secondary/30 px-3 py-2 text-xs font-semibold">
+          <span>Item</span><span className="text-right">Sent / received</span><span className="text-right">Receive</span>
+        </div>
+        <div className="divide-y">
+          {lines.map((line) => {
+            const remaining = Math.max(0, line.quantity - line.received_quantity);
+            return (
+              <div key={line.id} className="grid grid-cols-[minmax(0,1fr)_96px_92px] items-center gap-2 px-3 py-3" data-transfer-receive-line={line.id}>
+                <div className="min-w-0">
+                  <p className="break-words text-sm font-medium">{line.item_name}</p>
+                  <p className="text-xs text-muted-foreground">{line.item_code ?? line.item_id} · {line.uom}</p>
+                  <input type="hidden" name="receipt_line_id" value={line.id} />
+                  <input type="hidden" name="receipt_uom" value={line.uom} />
+                </div>
+                <p className="text-right text-xs tabular-nums text-muted-foreground">{line.received_quantity} / {line.quantity} {line.uom}</p>
+                <Input name="receipt_quantity" type="number" inputMode="decimal" min="0" max={remaining} step="0.0001" defaultValue="0" disabled={remaining === 0} aria-label={`Receive quantity for ${line.item_name}`} className="h-12 text-right" />
+              </div>
+            );
+          })}
+        </div>
+      </div>
+      <p className="text-xs text-muted-foreground">Enter only the quantity physically received. Any remainder stays in transit and can be received later.</p>
+      <SubmitButton pendingLabel="Receiving..." disabled={!lines.some((line) => line.quantity > line.received_quantity)} showOverlay overlayLabel="Posting received quantities...">Confirm received quantities</SubmitButton>
+    </form>
   );
 }
 

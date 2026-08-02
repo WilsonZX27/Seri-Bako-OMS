@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { SelectNative } from "@/components/ui/select-native";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Textarea } from "@/components/ui/textarea";
-import { formatCurrency, formatNumber } from "@/lib/utils";
+import { formatCurrency, formatNumber, getToday } from "@/lib/utils";
 import type { InvoiceSourceLine, PostedGrnForInvoice } from "@/server/queries/supplier-invoices";
 
 type DraftLine = { goods_receiving_line_id: string; invoice_qty: number; invoice_unit_price: number };
@@ -23,10 +23,10 @@ type InitialDraft = {
   lines: DraftLine[];
 };
 
-function today() { return new Date().toISOString().slice(0, 10); }
 function addDays(date: string, days: number) {
-  const value = new Date(`${date}T00:00:00`);
-  value.setDate(value.getDate() + days);
+  const [year, month, day] = date.split("-").map(Number);
+  const value = new Date(Date.UTC(year, month - 1, day));
+  value.setUTCDate(value.getUTCDate() + days);
   return value.toISOString().slice(0, 10);
 }
 
@@ -42,7 +42,7 @@ export function SupplierInvoiceForm({
   const router = useRouter();
   const sourceLines = useMemo(() => new Map(grns.flatMap((grn) => grn.lines).map((line) => [line.id, line])), [grns]);
   const [lines, setLines] = useState<Record<string, DraftLine>>(() => Object.fromEntries((initial?.lines ?? []).map((line) => [line.goods_receiving_line_id, line])));
-  const [invoiceDate, setInvoiceDate] = useState(initial?.invoice_date ?? today());
+  const [invoiceDate, setInvoiceDate] = useState(initial?.invoice_date ?? getToday());
   const supplierTerms = suppliers.find((supplier) => supplier.id === selectedSupplierId)?.payment_terms_days ?? 30;
   const [terms, setTerms] = useState(initial?.payment_terms_days ?? supplierTerms);
   const [dueDate, setDueDate] = useState(initial?.due_date ?? addDays(invoiceDate, terms));

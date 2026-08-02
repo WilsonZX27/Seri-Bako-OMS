@@ -386,7 +386,7 @@ export function StockCountForm({
                     className="grid min-h-14 grid-cols-[minmax(0,4fr)_minmax(4rem,2fr)_minmax(0,4fr)] items-center gap-2 border-b border-slate-100 px-3 py-2 md:gap-3"
                   >
                     <div className="order-1 min-w-0">
-                      <p className="max-h-9 overflow-hidden break-words text-sm font-medium leading-tight text-slate-800">{line.item_name}</p>
+                      <p className="break-words text-sm font-medium leading-tight text-slate-800">{line.item_name}</p>
                       <p className="truncate whitespace-nowrap text-[10px] leading-3 tracking-[0.01em] text-slate-400">{line.item_code}</p>
                     </div>
 
@@ -396,7 +396,7 @@ export function StockCountForm({
 
                     <div className="order-3 flex min-w-0 items-center justify-end gap-1">
                         <div className="flex min-w-0 flex-1 overflow-hidden rounded-sm border border-[var(--sb-border)] bg-white">
-                          <button type="button" className="flex h-8 w-7 shrink-0 items-center justify-center border-r border-[var(--sb-border)] text-[var(--sb-green-900)] hover:bg-[var(--sb-surface-muted)] active:bg-[var(--sb-green-100)]" onClick={() => adjustPhysicalQty(line.item_id, -1)} aria-label={`Decrease physical quantity for ${line.item_name}`}><Minus className="h-3.5 w-3.5" /></button>
+                          <button type="button" className="flex h-12 w-12 shrink-0 items-center justify-center border-r border-[var(--sb-border)] text-[var(--sb-green-900)] hover:bg-[var(--sb-surface-muted)] active:bg-[var(--sb-green-100)]" onClick={() => adjustPhysicalQty(line.item_id, -1)} aria-label={`Decrease physical quantity for ${line.item_name}`}><Minus className="h-4 w-4" /></button>
                         <Input
                           id={`physical-${line.item_id}`}
                           name="line_physical_qty"
@@ -409,9 +409,9 @@ export function StockCountForm({
                           required
                            aria-label={`Counted quantity for ${line.item_name}`}
                           placeholder="0.00"
-                           className="h-8 min-w-0 flex-1 rounded-none border-0 px-0 text-center text-[13px] font-semibold tabular-nums shadow-none focus-visible:ring-inset [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+                           className="h-12 min-w-0 flex-1 rounded-none border-0 px-0 text-center text-[13px] font-semibold tabular-nums shadow-none focus-visible:ring-inset [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
                         />
-                          <button type="button" className="flex h-8 w-7 shrink-0 items-center justify-center border-l border-[var(--sb-border)] text-[var(--sb-green-900)] hover:bg-[var(--sb-surface-muted)] active:bg-[var(--sb-green-100)]" onClick={() => adjustPhysicalQty(line.item_id, 1)} aria-label={`Increase physical quantity for ${line.item_name}`}><Plus className="h-3.5 w-3.5" /></button>
+                          <button type="button" className="flex h-12 w-12 shrink-0 items-center justify-center border-l border-[var(--sb-border)] text-[var(--sb-green-900)] hover:bg-[var(--sb-surface-muted)] active:bg-[var(--sb-green-100)]" onClick={() => adjustPhysicalQty(line.item_id, 1)} aria-label={`Increase physical quantity for ${line.item_name}`}><Plus className="h-4 w-4" /></button>
                         </div>
                       <span className="shrink-0 text-[11px] text-muted-foreground">{line.uom}</span>
                     </div>

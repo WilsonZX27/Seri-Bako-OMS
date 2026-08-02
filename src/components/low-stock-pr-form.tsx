@@ -2,11 +2,12 @@
 
 import { useMemo, useState } from "react";
 import { PackageOpen } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { SubmitButton } from "@/components/ui/submit-button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Field } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { SelectNative } from "@/components/ui/select-native";
+import { getToday } from "@/lib/utils";
 import { createPurchaseRequest } from "@/server/actions/procurement";
 
 type LowStockItem = {
@@ -27,10 +28,6 @@ type LowStockItem = {
 };
 
 type BranchOption = { id: string; branch_code: string; branch_name: string; status: string };
-
-function today() {
-  return new Date().toISOString().slice(0, 10);
-}
 
 function numberValue(value: string) {
   const parsed = Number(value);
@@ -115,7 +112,7 @@ export function LowStockPrForm({ items, branches, defaultBranchId, disabled }: {
           <form action={createPurchaseRequest} className="space-y-3">
             <input type="hidden" name="idempotency_key" value={crypto.randomUUID()} />
             <input type="hidden" name="request_no" value="" />
-            <input type="hidden" name="request_date" value={today()} />
+            <input type="hidden" name="request_date" value={getToday()} />
             <input type="hidden" name="required_date" value="" />
             <input type="hidden" name="priority" value="normal" />
             <input type="hidden" name="branch_id" value={selectedBranchId === "all" ? "" : selectedBranchId} />
@@ -233,10 +230,10 @@ export function LowStockPrForm({ items, branches, defaultBranchId, disabled }: {
               <p>{selectedCount} selected</p>
             </div>
             <div className="flex justify-end">
-              <Button type="submit" disabled={!selectedCount || selectedBranchId === "all"} className="w-full md:w-auto">
+              <SubmitButton type="submit" disabled={!selectedCount || selectedBranchId === "all"} className="w-full md:w-auto" pendingLabel="Creating...">
                 <PackageOpen className="h-4 w-4" />
                 Create PR from selected
-              </Button>
+              </SubmitButton>
             </div>
           </form>
         )}

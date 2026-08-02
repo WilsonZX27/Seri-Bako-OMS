@@ -1,7 +1,7 @@
 import { StaffForm } from "@/components/foundation-forms";
 import { RecordActionPanel, RecordWorkspace } from "@/components/record-workspace";
 import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import { SubmitButton } from "@/components/ui/submit-button";
 import { PageHeader } from "@/components/ui/page-header";
 import { canAssignRoleCode, getRoleDisplayLabel, sortRolesForDisplay } from "@/lib/roles";
 import { createStaff } from "@/server/actions/foundation";
@@ -68,9 +68,9 @@ export default async function NewStaffPage({
               <p className="font-medium text-foreground">Role assignment</p>
               <p className="mt-1">Your current role can assign: {roles.map((role) => getRoleDisplayLabel(role.role_code, role.role_name)).join(", ")}.</p>
             </div>
-            <Button type="submit" form={formId} className="w-full" data-mobile-primary-action>
+            <SubmitButton type="submit" form={formId} className="w-full" pendingLabel="Creating..." data-mobile-primary-action>
               Create Staff
-            </Button>
+            </SubmitButton>
           </RecordActionPanel>
         }
       >

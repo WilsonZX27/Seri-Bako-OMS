@@ -20,6 +20,7 @@ import {
 } from "@/server/actions/documents";
 import { hasPermission } from "@/server/auth/permissions";
 import { getDocument } from "@/server/queries/documents";
+import { formatDateTime } from "@/lib/utils";
 import type { Database } from "@/types/database";
 
 type Document = Database["public"]["Tables"]["documents"]["Row"] & { created_by_name?: string | null; updated_by_name?: string | null };
@@ -29,10 +30,6 @@ type Revision = Database["public"]["Tables"]["document_revisions"]["Row"] & { ch
 type Approval = Database["public"]["Tables"]["approvals"]["Row"] | null;
 type ApprovalStep = Database["public"]["Tables"]["approval_steps"]["Row"] & { acted_by_name?: string | null; approver_staff_name?: string | null };
 type Activity = Pick<Database["public"]["Tables"]["activity_logs"]["Row"], "id" | "activity_type" | "message" | "created_at" | "created_by"> & { created_by_name?: string | null };
-
-function formatDate(value: string | null) {
-  return value ? new Intl.DateTimeFormat("en-MY", { dateStyle: "medium", timeStyle: "short" }).format(new Date(value)) : "-";
-}
 
 function actorLabel(name: string | null | undefined) {
   return name?.trim() || "System";
@@ -75,7 +72,7 @@ export function DocumentTimeline({ document, activities, comments, attachments }
               <div className="-ml-[21px] mt-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-[var(--rail-bg)]">{eventIcon(event.activity_type)}</div>
               <div className="min-w-0">
                 <p className="text-xs font-medium">{event.message}</p>
-                <p className="text-xs text-muted-foreground">{actorLabel(event.created_by_name)} - {formatDate(event.created_at)}</p>
+                <p className="text-xs text-muted-foreground">{actorLabel(event.created_by_name)} - {formatDateTime(event.created_at)}</p>
               </div>
             </div>
           ))}
@@ -126,7 +123,7 @@ export async function AttachmentPanel({
                 <div>
                   <p className="break-words text-xs font-medium">{attachment.file_name}</p>
                   <p className="text-xs text-muted-foreground">{attachment.file_type ?? "File"}</p>
-                  <p className="text-xs text-muted-foreground">Uploaded by {actorLabel(attachment.uploaded_by_name)} - {formatDate(attachment.created_at)}</p>
+                  <p className="text-xs text-muted-foreground">Uploaded by {actorLabel(attachment.uploaded_by_name)} - {formatDateTime(attachment.created_at)}</p>
                 </div>
               </div>
               <div className="grid gap-2">
@@ -162,7 +159,7 @@ export function CommentsPanel({ documentId, comments }: { documentId: string; co
           {comments.map((comment) => (
             <div key={comment.id} className="rounded-[2px] border bg-secondary/30 p-3">
               <p className="text-xs">{comment.comment_text}</p>
-              <p className="mt-1 text-xs text-muted-foreground">{actorLabel(comment.created_by_name)} - {formatDate(comment.created_at)}</p>
+              <p className="mt-1 text-xs text-muted-foreground">{actorLabel(comment.created_by_name)} - {formatDateTime(comment.created_at)}</p>
             </div>
           ))}
           {!comments.length ? <p className="text-xs text-muted-foreground">No comments yet.</p> : null}
@@ -201,7 +198,7 @@ export function ApprovalPanel({ document, approval, approvalSteps }: { document:
               <div>
                 <p className="text-xs font-medium">Step {step.step_no}: {step.approver_role ?? "Approver"}</p>
                 <p className="text-xs text-muted-foreground">{step.remarks ?? "No remarks yet"}</p>
-                <p className="text-xs text-muted-foreground">{actorLabel(step.acted_by_name)} - {formatDate(step.acted_at ?? step.updated_at)}</p>
+                <p className="text-xs text-muted-foreground">{actorLabel(step.acted_by_name)} - {formatDateTime(step.acted_at ?? step.updated_at)}</p>
               </div>
               <Badge variant={step.status === "approved" ? "success" : step.status === "rejected" ? "danger" : "secondary"}>{step.status}</Badge>
             </div>
@@ -221,7 +218,7 @@ export function RevisionPanel({ revisions }: { revisions: Revision[] }) {
             <div key={revision.id} className="p-3">
               <p className="text-xs font-medium">Revision {revision.revision_no}</p>
               <p className="text-xs text-muted-foreground">{revision.change_summary}</p>
-              <p className="mt-1 text-xs text-muted-foreground">{actorLabel(revision.changed_by_name)} - {formatDate(revision.changed_at)}</p>
+              <p className="mt-1 text-xs text-muted-foreground">{actorLabel(revision.changed_by_name)} - {formatDateTime(revision.changed_at)}</p>
             </div>
           ))}
           {!revisions.length ? <p className="p-3 text-center text-xs text-muted-foreground">No revisions yet.</p> : null}

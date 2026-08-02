@@ -5,7 +5,7 @@ import { WorkspaceGrid } from "@/components/layout/workspace-layout";
 import { PageHeader } from "@/components/ui/page-header";
 import { SelectControl } from "@/components/ui/select-control";
 import { OperationalList, OperationalListRow, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { formatCurrency, formatNumber } from "@/lib/utils";
+import { formatCurrency, formatDateOnly, formatNumber } from "@/lib/utils";
 import { hasActiveFilters } from "@/lib/table-state";
 import { getItemsForSelect } from "@/server/queries/common";
 import { getStockCard } from "@/server/queries/inventory";
@@ -86,7 +86,7 @@ export default async function StockCardPage({ searchParams }: { searchParams: Pr
                   {rows.map((row) => (
                     <TableRow key={row.stock_transaction_id}>
                       <TableCell className="font-medium">{row.item_name}</TableCell>
-                      <TableCell>{row.transaction_date}</TableCell>
+                      <TableCell>{formatDateOnly(row.transaction_date)}</TableCell>
                       <TableCell className="font-medium">{row.transaction_no}</TableCell>
                       <TableCell>{row.transaction_type.replaceAll("_", " ")}</TableCell>
                       <TableCell>{row.branch_name ?? "-"}</TableCell>
@@ -102,7 +102,7 @@ export default async function StockCardPage({ searchParams }: { searchParams: Pr
                 </TableBody>
               </Table>
               <OperationalList ariaLabel="Stock movement history">
-                {rows.map((row) => <OperationalListRow key={row.stock_transaction_id} href={`/stock-transactions/${row.stock_transaction_id}`} label={`Open ${row.transaction_no}`} primary={row.item_name} secondary={`${row.transaction_date} · ${row.transaction_no} · ${row.transaction_type.replaceAll("_", " ")}`} meta={`${formatNumber(row.quantity_in - row.quantity_out)} ${row.base_unit}`} />)}
+                {rows.map((row) => <OperationalListRow key={row.stock_transaction_id} href={`/stock-transactions/${row.stock_transaction_id}`} label={`Open ${row.transaction_no}`} primary={row.item_name} secondary={`${formatDateOnly(row.transaction_date)} · ${row.transaction_no} · ${row.transaction_type.replaceAll("_", " ")}`} meta={`${formatNumber(row.quantity_in - row.quantity_out)} ${row.base_unit}`} />)}
                 {!rows.length ? <p className="px-3 py-8 text-center text-sm text-muted-foreground">No stock movements found.</p> : null}
               </OperationalList>
           </section>

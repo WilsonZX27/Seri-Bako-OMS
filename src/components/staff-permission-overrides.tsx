@@ -1,4 +1,3 @@
-import { Button } from "@/components/ui/button";
 import { RecordSection } from "@/components/record-workspace";
 import { SelectNative } from "@/components/ui/select-native";
 import { SubmitButton } from "@/components/ui/submit-button";
@@ -89,7 +88,7 @@ export function StaffPermissionOverrides({
       </form>
       {canManage && !protectedRole && (allowed || denied) ? (
         <form action={resetAction} className="mt-2 flex justify-end">
-          <Button type="submit" variant="outline">Reset to role defaults</Button>
+          <SubmitButton type="submit" variant="outline" pendingLabel="Resetting...">Reset to role defaults</SubmitButton>
         </form>
       ) : null}
     </RecordSection>

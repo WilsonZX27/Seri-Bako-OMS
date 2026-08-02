@@ -1,5 +1,5 @@
 import { PurchaseOrderForm } from "@/components/procurement-forms";
-import { Button } from "@/components/ui/button";
+import { SubmitButton } from "@/components/ui/submit-button";
 import { PageHeader } from "@/components/ui/page-header";
 import { ConsoleSection } from "@/components/layout/right-console";
 import { WorkspaceGrid } from "@/components/layout/workspace-layout";
@@ -18,8 +18,8 @@ export default async function NewPurchaseOrderPage() {
           <div>
             <ConsoleSection title="PO Actions">
               <div className="grid gap-2">
-                <Button type="submit" form="purchase-order-form" className="w-full" data-mobile-primary-action>Create PO</Button>
-                <Button type="submit" form="purchase-order-form" variant="outline" className="w-full">Save Draft</Button>
+                <SubmitButton type="submit" form="purchase-order-form" className="w-full" pendingLabel="Creating..." data-mobile-primary-action>Create PO</SubmitButton>
+                <SubmitButton type="submit" form="purchase-order-form" variant="outline" className="w-full" pendingLabel="Saving...">Save Draft</SubmitButton>
               </div>
             </ConsoleSection>
             <ConsoleSection title="PO Summary">

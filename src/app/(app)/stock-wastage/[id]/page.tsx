@@ -5,7 +5,7 @@ import { DocumentSideSection, DocumentWorkspace } from "@/components/documents/d
 import { Card, CardContent } from "@/components/ui/card";
 import { BlockedDestructiveAction } from "@/components/ui/danger-confirm-form";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { formatNumber } from "@/lib/utils";
+import { formatDateOnly, formatNumber } from "@/lib/utils";
 import { cancelStockWastage, postStockWastage, rejectStockWastage } from "@/server/actions/stock-operations";
 import { getDocumentBundle } from "@/server/queries/documents";
 import { getStockWastageDetail } from "@/server/queries/stock-operations";
@@ -71,7 +71,7 @@ export default async function StockWastageDetailPage({ params }: { params: Promi
         <CardContent className="space-y-4 p-5">
           <h2 className="text-sm font-semibold">Wastage Summary</h2>
           <div className="grid gap-4 md:grid-cols-3">
-            <div><p className="text-xs uppercase text-muted-foreground">Date</p><p className="font-medium">{wastage.wastage_date}</p></div>
+            <div><p className="text-xs uppercase text-muted-foreground">Date</p><p className="font-medium">{formatDateOnly(wastage.wastage_date)}</p></div>
             <div><p className="text-xs uppercase text-muted-foreground">Branch</p><p className="font-medium">{wastage.branch_name ?? "-"}</p></div>
             <div><p className="text-xs uppercase text-muted-foreground">Reason</p><p className="font-medium capitalize">{wastage.reason.replaceAll("_", " ")}</p></div>
           </div>

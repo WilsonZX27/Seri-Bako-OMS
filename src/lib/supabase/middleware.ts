@@ -6,6 +6,7 @@ import { getRouteAllowedRoles, getRoutePermissionCodes } from "@/server/auth/rou
 import { resolveEffectivePermission } from "@/server/auth/permissions";
 import { getAuthLandingRoutes, resolveAuthRoute } from "@/server/auth/route-resolver";
 import { isSystemRoleCode } from "@/lib/roles";
+import { getToday } from "@/lib/utils";
 import type { Database } from "@/types/database";
 
 function redirectWithCookies(request: NextRequest, response: NextResponse, destination: string) {
@@ -67,7 +68,7 @@ export async function updateSession(request: NextRequest) {
   const permissionCodes = getRoutePermissionCodes(pathname);
   let roleCode: string | null = null;
   if (staff?.id) {
-    const today = new Date().toISOString().slice(0, 10);
+    const today = getToday();
     const { data: assignments } = await supabase
       .from("staff_roles")
       .select("role_id, is_primary, roles(role_code)")

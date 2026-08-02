@@ -4,6 +4,7 @@ import Link from "next/link";
 import { Bell, ListTodo, Megaphone, ShieldAlert } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
+import { formatDateTime } from "@/lib/utils";
 
 type TopBarActivity = Awaited<ReturnType<typeof import("@/server/queries/topbar").getTopBarActivity>>;
 const seenKey = "seri-bako-workspace-updates-seen-v1";
@@ -24,7 +25,7 @@ export function TopBarActivityMenu({ data }: { data: TopBarActivity }) {
   const unreadCount = seen ? 0 : notificationCount + recentCount;
   const count = pendingCount + unreadCount;
   const badgeLabel = count > 99 ? "99+" : String(count);
-  const formatTime = (value: string) => new Date(value).toLocaleString("en-MY", { dateStyle: "short", timeStyle: "short" });
+  const formatTime = (value: string) => formatDateTime(value);
 
   useEffect(() => {
     setSeen(window.sessionStorage.getItem(seenKey) === "true");

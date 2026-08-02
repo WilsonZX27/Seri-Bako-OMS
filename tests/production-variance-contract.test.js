@@ -34,7 +34,7 @@ test("Production variance has one protected route and the current footer", () =>
   const version = read("src/lib/app-version.ts");
   assert.match(routes, /"\/production\/variance": \["outlet_daily_record\.view"\]/);
   assert.match(production, /\/production\/variance/);
-  assert.match(version, /APP_VERSION = "7\.\d+\.\d+"/);
+  assert.match(version, /APP_VERSION = "\d+\.\d+\.\d+"/);
   assert.match(version, /APP_SPRINT = `v\$\{APP_VERSION\}`/);
   assert.match(page, /<FilterBar resultCount=\{report\.variance\.rows\.length\} resetHref="\/production\/variance" filtered=\{filtered\}>/);
   assert.match(page, /<SelectControl name="signal"/);

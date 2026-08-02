@@ -321,6 +321,11 @@ the route matrix in `docs/qa/FULL_SYSTEM_AUDIT_MATRIX.md`.
 - Shared filter rows keep a first-position dropdown content-sized (14rem maximum) on tablet and desktop, leaving intentional breathing room instead of stretching a lone status control across the canvas.
 - Search-first rows retain their flexible search field; the rule applies to both native selects and the shared Radix select trigger.
 
+### v8.00.0 — Aligned Filter Rails and Dashboard Actions
+
+- Shared list filters use a consistent 8px control gap on wider surfaces; compact mobile rows retain their explicit density rules so search, dropdowns, submit, and result totals stay aligned without accidental crowding.
+- Dashboard payables actions use the compact action text scale, matching the operational console instead of competing with the metric hierarchy.
+
 ### v7.99.0 — Focused Stock Count Actions
 
 - Stock Count details keep Save draft and Confirm & Post as the primary action pair; Cancel and Delete remain available inside collapsed More options to reduce accidental destructive actions and visual noise.

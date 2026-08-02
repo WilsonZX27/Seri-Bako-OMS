@@ -321,6 +321,11 @@ the route matrix in `docs/qa/FULL_SYSTEM_AUDIT_MATRIX.md`.
 - Shared filter rows keep a first-position dropdown content-sized (14rem maximum) on tablet and desktop, leaving intentional breathing room instead of stretching a lone status control across the canvas.
 - Search-first rows retain their flexible search field; the rule applies to both native selects and the shared Radix select trigger.
 
+### v7.98.0 — Compact New-Document Context Headers
+
+- New-document headers use a smaller document identifier and tighter vertical rhythm on phones; status and branch remain visible without turning the context row into a large action surface.
+- Workflow progress remains a compact, accessible secondary summary; the primary page content and action bar retain visual priority.
+
 ### v7.97.0 — Focused Stock Count and Receiving Surfaces
 
 - Stock Count status filters expose only the current Draft, Posted, and Cancelled states; legacy records remain readable without reviving the retired approval chain.

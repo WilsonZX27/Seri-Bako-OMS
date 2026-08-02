@@ -39,7 +39,7 @@ test("Stock Count export accepts the selected date range", () => {
 
 test("Stock Count autosave waits for a deliberate idle interval", () => {
   const form = read("src", "components", "stock-count-form.tsx");
-  assert.match(form, /setTimeout\(\(\) => void saveDraft\(dirtyRevision\), 2000\)/);
+  assert.match(form, /setTimeout\(\(\) => void saveDraft\(dirtyRevision\), 4000\)/);
   assert.doesNotMatch(form, /saveDraft\(dirtyRevision\), 800\)/);
   assert.match(form, /data-mobile-document-action[\s\S]*autosaveLabel/);
 });

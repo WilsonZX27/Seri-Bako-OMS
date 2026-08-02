@@ -8,6 +8,10 @@ This document is the implementation contract for every customer-facing route, fo
 - **No misleading delete vocabulary:** “Delete draft” and “Delete unposted …” are not used for an action that first cancels a workflow. Posted, received, completed, or ledger-impacting records remain protected and explain the correction path instead.
 - **Cancellation must not leave active work:** a cancelled unposted record may remain in audit/history tables, but it must not remain in active list queries or reopen in an autosave editor after redirect.
 
+## v8.12.0 — Deliberate Stock Count Autosave
+
+- Stock Count writes wait for **4 seconds of idle time** after an edit, so rapid physical entry does not create a draft on every small interaction. The local recovery snapshot is written immediately and remains the source of truth while the server save is pending or retrying.
+
 ## v8.10.0 — Remove Unposted Procurement Work
 
 - **Global cancellation rule:** Draft/unposted Purchase Requests and Purchase Orders expose one clear destructive exit: **Cancel & remove**. The atomic cancel RPC runs the existing state/permission workflow, removes the record from active work with `deleted_at`, and preserves the document/activity audit trail.

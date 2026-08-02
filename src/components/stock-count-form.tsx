@@ -232,7 +232,10 @@ export function StockCountForm({
       savedLocallyAt: new Date().toISOString(),
     };
     window.localStorage.setItem(localStorageKey, JSON.stringify(snapshot));
-    const timer = window.setTimeout(() => void saveDraft(dirtyRevision), 2000);
+    // Give a physical-count entry session time to finish a short burst of
+    // edits before sending a draft write. The local snapshot is still written
+    // immediately, so this delay never risks losing the user's work.
+    const timer = window.setTimeout(() => void saveDraft(dirtyRevision), 4000);
     return () => window.clearTimeout(timer);
   }, [countDate, countRemarks, dirtyRevision, lines, localStorageKey, resolvedBranchId, saveDraft, toleranceValue]);
 

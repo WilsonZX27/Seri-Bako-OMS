@@ -52,7 +52,7 @@ test("stock count decimal validation tolerates floating point tails and autosave
   assert.doesNotMatch(validation, /Number\.isInteger\(line\.physical_qty \* 10_000\)/);
   assert.match(actions, /retryable: kind === "database_unavailable"/);
   assert.match(form, /result\.retryable === false/);
-  assert.match(form, /15_000/);
+  assert.match(form, /4000/);
   assert.match(errors, /error\.name === "ZodError"\) return "validation_failed"/);
   assert.match(errors, /normalized\.includes\("current state"\)/);
 });

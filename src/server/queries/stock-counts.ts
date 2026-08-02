@@ -141,22 +141,30 @@ export async function getStockCount(id: string) {
     return { count: hydrateCount(count as StockCount, mockStockCountLines as StockCountLine[]), lines };
   }
   const supabase = await createClient();
-  const [{ data, error }, { data: lines, error: linesError }, { data: items }, { data: branches }] = await Promise.all([
+  const [{ data, error }, { data: lines, error: linesError }] = await Promise.all([
     supabase.from("stock_counts").select("*").eq("id", id).single(),
     supabase.from("stock_count_lines").select("*").eq("stock_count_id", id).order("line_position", { ascending: true }).order("id", { ascending: true }),
-    supabase.from("items").select("id, item_code, item_name, base_unit, item_image_url"),
-    supabase.from("branches").select("id, branch_name"),
   ]);
   if (error) throw new Error(error.message);
   if (linesError) throw new Error(linesError.message);
-  const itemById = new Map((items ?? []).map((row) => [row.id, row]));
-  const branchById = new Map((branches ?? []).map((row) => [row.id, row.branch_name]));
   const count = data as StockCount;
   const ownLines = (lines ?? []) as StockCountLine[];
+  const itemIds = [...new Set(ownLines.map((line) => line.item_id).filter(Boolean))];
+  const [{ data: items, error: itemsError }, { data: branch, error: branchError }] = await Promise.all([
+    itemIds.length
+      ? supabase.from("items").select("id, item_code, item_name, base_unit, item_image_url").in("id", itemIds)
+      : Promise.resolve({ data: [], error: null }),
+    count.branch_id
+      ? supabase.from("branches").select("id, branch_name").eq("id", count.branch_id).maybeSingle()
+      : Promise.resolve({ data: null, error: null }),
+  ]);
+  if (itemsError) throw new Error(itemsError.message);
+  if (branchError) throw new Error(branchError.message);
+  const itemById = new Map((items ?? []).map((row) => [row.id, row]));
   return {
     count: {
       ...count,
-      branch_name: count.branch_id ? branchById.get(count.branch_id) ?? null : null,
+      branch_name: branch?.branch_name ?? null,
       counted_by_name: count.counted_by,
       line_count: ownLines.length,
       high_variance_count: ownLines.filter((line) => Math.abs(line.variance_percent) > count.tolerance_percent).length,

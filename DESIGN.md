@@ -288,6 +288,13 @@ the route matrix in `docs/qa/FULL_SYSTEM_AUDIT_MATRIX.md`.
 - Preserved branch-scoped Purchase Request creation, transition authorization, Stock Count cancellation atomicity, and Stock Transfer reservation/partial-receiving contracts.
 - Release gate: 451/451 contract tests, typecheck, strict typecheck, and lint pass. No Supabase migration was executed from this worktree.
 
+### v7.91.0 — Stock Count Detail Query Reliability
+
+- Stock Count detail loading now reads only the current count's line item IDs and branch instead of scanning all Items and Branches for every detail request.
+- This preserves the Draft → Confirm & Post workflow and autosave behavior while reducing the chance of a detail page remaining in `Loading data…` on larger workspaces.
+- Browser evidence: phone Stock Counts list and Draft workflow passed; detail reload still requires production three-viewport verification when the browser runner is available.
+- Release gate: 451/451 contract tests, strict typecheck, and lint pass. Production build remains environment-dependent when Supabase variables are absent.
+
 ### v7.90.0 — Purchase Request Branch Scope Hardening
 
 - Purchase Request branch selectors use an explicit typed scope option and only expose branches assigned to the actor when required.

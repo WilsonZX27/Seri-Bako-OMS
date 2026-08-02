@@ -321,6 +321,10 @@ the route matrix in `docs/qa/FULL_SYSTEM_AUDIT_MATRIX.md`.
 - Shared filter rows keep a first-position dropdown content-sized (14rem maximum) on tablet and desktop, leaving intentional breathing room instead of stretching a lone status control across the canvas.
 - Search-first rows retain their flexible search field; the rule applies to both native selects and the shared Radix select trigger.
 
+### v8.01.0 — Centered Table Actions
+
+- Shared table action links use a block-level flex control so the pen/action icon is truly centered inside the fixed Action column at phone, tablet, and desktop widths; sticky checkbox/action/identity offsets remain unchanged.
+
 ### v8.00.0 — Aligned Filter Rails and Dashboard Actions
 
 - Shared list filters use a consistent 8px control gap on wider surfaces; compact mobile rows retain their explicit density rules so search, dropdowns, submit, and result totals stay aligned without accidental crowding.

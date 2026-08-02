@@ -235,7 +235,7 @@ export function StockCountForm({
     // Give a physical-count entry session time to finish a short burst of
     // edits before sending a draft write. The local snapshot is still written
     // immediately, so this delay never risks losing the user's work.
-    const timer = window.setTimeout(() => void saveDraft(dirtyRevision), 4000);
+    const timer = window.setTimeout(() => void saveDraft(dirtyRevision), 6000);
     return () => window.clearTimeout(timer);
   }, [countDate, countRemarks, dirtyRevision, lines, localStorageKey, resolvedBranchId, saveDraft, toleranceValue]);
 

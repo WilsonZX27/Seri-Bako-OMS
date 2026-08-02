@@ -2,6 +2,10 @@
 
 This document is the implementation contract for every customer-facing route, form, record workspace, table, panel, dialog, and mobile action bar. It applies to new work and to refactoring of existing UI.
 
+## v8.19.0 - Deliberate Stock Count Autosave Window
+
+- Stock Count server autosave waits for **6 seconds of idle time** after an edit. The local recovery snapshot still writes immediately, so a longer server debounce reduces disruptive draft writes without sacrificing recoverability after refresh, logout, or network interruption.
+
 ## v8.18.0 - Compact Stock Count Steppers
 
 - Stock Count phone quantity steppers use a compact 40px control geometry so the item title, code, variance, and quantity remain visible together. The buttons retain explicit accessible labels and keyboard focus treatment; this is a compact control adjustment, not a removal of the quantity affordance.
@@ -32,7 +36,7 @@ This document is the implementation contract for every customer-facing route, fo
 
 ## v8.12.0 — Deliberate Stock Count Autosave
 
-- Stock Count writes wait for **4 seconds of idle time** after an edit, so rapid physical entry does not create a draft on every small interaction. The local recovery snapshot is written immediately and remains the source of truth while the server save is pending or retrying.
+- Stock Count writes wait for **6 seconds of idle time** after an edit, so rapid physical entry does not create a draft on every small interaction. The local recovery snapshot is written immediately and remains the source of truth while the server save is pending or retrying.
 
 ## v8.10.0 — Remove Unposted Procurement Work
 

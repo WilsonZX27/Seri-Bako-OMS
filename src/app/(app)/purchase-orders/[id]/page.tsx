@@ -11,7 +11,7 @@ import { DocumentMoreOptions } from "@/components/documents/mobile-document-surf
 import { ConfirmActionForm } from "@/components/ui/confirm-action-form";
 import { PriorityBadge } from "@/components/priority-badge";
 import { formatCurrency, formatDateOnly, formatNumber } from "@/lib/utils";
-import { approvePurchaseOrder, closePurchaseOrder, rejectPurchaseOrder, sendPurchaseOrder, submitPurchaseOrder } from "@/server/actions/procurement";
+import { approvePurchaseOrder, cancelPurchaseOrder, closePurchaseOrder, rejectPurchaseOrder, sendPurchaseOrder, submitPurchaseOrder } from "@/server/actions/procurement";
 import { getPermissionMap } from "@/server/auth/permissions";
 import { getBranchesForSelect, getItemsForSelect, getSuppliersForSelect } from "@/server/queries/common";
 import { getDocumentBundle } from "@/server/queries/documents";
@@ -42,7 +42,7 @@ export default async function PurchaseOrderDetailPage({ params }: { params: Prom
     getItemsForSelect(),
     getSuppliersForSelect(),
     getBranchesForSelect(),
-    getPermissionMap(["po.submit", "po.approve", "po.send", "po.receive", "purchase_order.close", "documents.attach"]),
+    getPermissionMap(["po.submit", "po.approve", "po.send", "po.receive", "purchase_order.cancel", "purchase_order.close", "documents.attach"]),
   ]);
   const sourceRequest = await getPurchaseRequestForOrder(order.purchase_request_id);
   const fromApprovedPr = Boolean(sourceRequest);
@@ -57,8 +57,9 @@ export default async function PurchaseOrderDetailPage({ params }: { params: Prom
     (order.status === "approved" && permissions["po.send"]) ||
     (["sent", "partial_received"].includes(order.status) && permissions["po.receive"]);
   const canReject = !fromApprovedPr && order.status === "pending_approval" && permissions["po.approve"];
+  const canCancel = !fromApprovedPr && ["draft", "pending_approval", "approved"].includes(order.status) && permissions["purchase_order.cancel"];
   const canClose = ["partial_received", "received"].includes(order.status) && permissions["purchase_order.close"];
-  const secondaryActions = canReject || canClose ? <div className="space-y-2">{canReject ? <DocumentActionForm action={rejectPurchaseOrder.bind(null, order.id)} pendingLabel="Rejecting..." variant="destructive">Reject purchase order</DocumentActionForm> : null}{canClose ? <DocumentActionForm action={closePurchaseOrder.bind(null, order.id)} pendingLabel="Closing..." variant="outline">Close purchase order</DocumentActionForm> : null}</div> : null;
+  const secondaryActions = canCancel || canReject || canClose ? <div className="space-y-2">{canCancel ? <DocumentActionForm action={cancelPurchaseOrder.bind(null, order.id)} pendingLabel="Cancelling..." variant="destructive">Cancel &amp; remove unposted order</DocumentActionForm> : null}{canReject ? <DocumentActionForm action={rejectPurchaseOrder.bind(null, order.id)} pendingLabel="Rejecting..." variant="destructive">Reject purchase order</DocumentActionForm> : null}{canClose ? <DocumentActionForm action={closePurchaseOrder.bind(null, order.id)} pendingLabel="Closing..." variant="outline">Close purchase order</DocumentActionForm> : null}</div> : null;
   const nextStep = (fromApprovedPr ? convertedPoSteps : poSteps).find((step) => step.key === order.status)?.description;
   const mobilePrimaryAction = !fromApprovedPr && order.status === "draft" && permissions["po.submit"]
     ? <DocumentActionForm action={submitPurchaseOrder.bind(null, order.id)} pendingLabel="Submitting...">Submit Purchase Order</DocumentActionForm>

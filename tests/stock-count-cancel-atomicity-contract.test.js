@@ -22,7 +22,7 @@ test("Stock Count cancellation uses one forward-only atomic RPC", () => {
   assert.match(removalMigration, /create or replace function public\.cancel_stock_count_atomic/);
   assert.match(removalMigration, /deleted_at = now\(\)/);
   assert.match(removalMigration, /'deleted', true/);
-  assert.match(action, /safeRedirectWithMessage\("\/stock-counts", "success", "Stock Count cancelled/);
+  assert.match(action, /safeRedirectWithMessage\("\/stock-counts", "success", "Draft Stock Count cancelled/);
 });
 
 test("Stock Count draft exposes one cancel-and-remove destructive exit", () => {

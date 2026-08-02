@@ -538,8 +538,15 @@ export async function rejectPurchaseRequest(id: string, formData: FormData) {
 export async function cancelPurchaseRequest(id: string) {
   try {
     if (isMockMode()) return;
-    const pr = await transitionPurchaseRequest(id, "cancel");
-    safeRedirectWithMessage(`/purchase-requests/${id}`, "success", `${pr.request_no} cancelled.`);
+    const requestId = parsePurchaseRequestId(id);
+    const supabase = await createClient();
+    const { data, error } = await supabase.rpc("cancel_purchase_request_atomic", {
+      target_purchase_request_id: requestId,
+    });
+    if (error) throw new Error(error.message);
+    const pr = data as { request_no: string };
+    revalidateWorkspaceState(["/purchase-requests", `/purchase-requests/${requestId}`]);
+    safeRedirectWithMessage("/purchase-requests", "success", `${pr.request_no} cancelled and removed from active work.`);
   } catch (error) {
     rethrowRedirect(error);
     safeRedirectWithMessage(`/purchase-requests/${id}`, "error", formatActionError(error, "Could not cancel this purchase request."));
@@ -654,8 +661,15 @@ export async function cancelPurchaseOrder(id: string) {
   try {
     await requirePermission("purchase_order.cancel");
     if (isMockMode()) return;
-    const order = await updatePoStatus(id, "cancelled", "cancelled");
-    safeRedirectWithMessage(`/purchase-orders/${id}`, "success", `${order.po_no} cancelled.`);
+    const purchaseOrderId = parsePurchaseOrderId(id);
+    const supabase = await createClient();
+    const { data, error } = await supabase.rpc("cancel_purchase_order_atomic", {
+      p_purchase_order_id: purchaseOrderId,
+    });
+    if (error) throw new Error(error.message);
+    const order = data as { po_no: string };
+    revalidateWorkspaceState(["/purchase-orders", `/purchase-orders/${purchaseOrderId}`]);
+    safeRedirectWithMessage("/purchase-orders", "success", `${order.po_no} cancelled and removed from active work.`);
   } catch (error) {
     rethrowRedirect(error);
     safeRedirectWithMessage(`/purchase-orders/${id}`, "error", formatActionError(error, "Could not cancel this purchase order."));

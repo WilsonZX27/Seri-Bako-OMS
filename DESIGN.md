@@ -2,6 +2,11 @@
 
 This document is the implementation contract for every customer-facing route, form, record workspace, table, panel, dialog, and mobile action bar. It applies to new work and to refactoring of existing UI.
 
+## v8.10.0 — Remove Unposted Procurement Work
+
+- **Global cancellation rule:** Draft/unposted Purchase Requests and Purchase Orders expose one clear destructive exit: **Cancel & remove**. The atomic cancel RPC runs the existing state/permission workflow, removes the record from active work with `deleted_at`, and preserves the document/activity audit trail.
+- **External commitment boundary:** Sent, partially received, received, converted, and posted records remain visible and auditable; cancellation never erases supplier or ledger history.
+
 ## v8.09.0 — Clarify Draft Count Removal
 
 - Stock Count drafts expose one destructive exit: **Cancel & remove draft**. It soft-deletes the unposted count, retains the document/activity audit trail, and returns to the list so autosave cannot resurrect it.

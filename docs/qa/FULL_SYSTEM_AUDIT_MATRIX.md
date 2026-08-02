@@ -1,5 +1,12 @@
 # Full-system audit matrix
 
+## v8.10.0 release note
+
+Unposted Purchase Requests and Purchase Orders now use dedicated atomic cancel
+RPCs. They leave active lists after cancellation while retaining documents and
+activity logs. Sent/received/posted records remain protected. Migration 120 is
+forward-only and must be applied to Production before this behavior is live.
+
 This is the living audit map for the Seri Bako OMS. It is intentionally explicit:
 every route is checked at 390px phone, 820px tablet portrait, and 1440px desktop
 before a release is called closed.

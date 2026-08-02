@@ -2091,6 +2091,14 @@ export type Database = {
         Args: { p_purchase_order_id: string; p_action: string };
         Returns: Json;
       };
+      cancel_purchase_request_atomic: {
+        Args: { target_purchase_request_id: string };
+        Returns: Json;
+      };
+      cancel_purchase_order_atomic: {
+        Args: { p_purchase_order_id: string };
+        Returns: Json;
+      };
       create_purchase_request_atomic: {
         Args: { p_payload: Json };
         Returns: Json;

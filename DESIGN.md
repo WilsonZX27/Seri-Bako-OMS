@@ -2,6 +2,11 @@
 
 This document is the implementation contract for every customer-facing route, form, record workspace, table, panel, dialog, and mobile action bar. It applies to new work and to refactoring of existing UI.
 
+## v8.15.0 - Direct Draft Deletion
+
+- Stock Count drafts expose the dedicated audited **Delete draft** action directly. They do not route the user's discard intent through a visible Cancel action, so an autosave-created draft can be removed immediately and cannot remain as active work after redirect.
+- Posted counts remain immutable and retain their audit history. The delete control explains the ledger boundary instead of acting as a dead end.
+
 ## v8.11.0 — Unposted Cancellation Consistency (superseded by v8.13.0 wording)
 
 - **One destructive exit for unposted work:** Goods Receiving, Purchase Return, Production Job, Stock Transfer, Stock Wastage, Purchase Request, Purchase Order, and Stock Count drafts/unposted records use an explicit `Delete draft` or `Delete unposted …` action. The action performs the permission-aware atomic transition, releases any applicable reservation, sets `deleted_at`, keeps the audit/document history, and returns to the module list.
@@ -378,7 +383,7 @@ the route matrix in `docs/qa/FULL_SYSTEM_AUDIT_MATRIX.md`.
 
 ### v7.99.0 — Focused Stock Count Actions
 
-- Stock Count details keep Save draft and Confirm & Post as the primary action pair; Cancel and Delete remain available inside collapsed More options to reduce accidental destructive actions and visual noise.
+- Stock Count details keep Save draft and Confirm & Post as the primary action pair; the explicit Delete draft action remains inside collapsed More options to reduce accidental destructive actions and visual noise.
 - Collapsing secondary actions is opt-in per workflow, so existing procurement action rails are not changed without an explicit rule.
 
 ### v7.98.0 — Compact New-Document Context Headers

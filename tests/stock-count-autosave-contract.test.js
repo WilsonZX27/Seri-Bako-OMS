@@ -18,6 +18,15 @@ test("stock count autosave preserves the canonical Draft to Confirm and Post wor
   assert.doesNotMatch(actions, /submitStockCount|reviewStockCount|approveStockCount/);
 });
 
+test("stock count keeps an explicit cancel path for unposted autosaved work", () => {
+  const detail = read("src", "app", "(app)", "stock-counts", "[id]", "page.tsx");
+  assert.match(detail, /cancelStockCount/);
+  assert.match(detail, /const canCancel = \(count\.status === "draft" \|\| isLegacyPending\)/);
+  assert.match(detail, /buttonLabel="Cancel stock count"/);
+  assert.match(detail, /preserving its audit history/);
+  assert.match(detail, /const secondaryActions = cancelControl \|\| deleteControl/);
+});
+
 test("stock count form keeps a local recovery snapshot and reports server save state", () => {
   const form = read("src", "components", "stock-count-form.tsx");
   const detail = read("src", "app", "(app)", "stock-counts", "[id]", "page.tsx");

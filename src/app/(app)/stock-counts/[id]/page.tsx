@@ -9,7 +9,7 @@ import { StockCountForm } from "@/components/stock-count-form";
 import { BlockedDestructiveAction, DangerConfirmForm } from "@/components/ui/danger-confirm-form";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { formatDateOnly, formatQuantity } from "@/lib/utils";
-import { autosaveStockCountDraft, deleteStockCount, postStockCount, saveAndPostStockCount, updateStockCountDraft } from "@/server/actions/stock-counts";
+import { autosaveStockCountDraft, cancelStockCount, deleteStockCount, postStockCount, saveAndPostStockCount, updateStockCountDraft } from "@/server/actions/stock-counts";
 import { getPermissionMap } from "@/server/auth/permissions";
 import { getBranchesForSelect } from "@/server/queries/common";
 import { getDocumentBundle } from "@/server/queries/documents";
@@ -37,6 +37,7 @@ export default async function StockCountDetailPage({ params }: { params: Promise
   // active work. Posted counts are the immutable audit boundary.
   const canDeleteByStatus = count.status !== "posted";
   const canDelete = canDeleteByStatus && (permissions["stock_count.update"] || permissions["stock_count.cancel"]);
+  const canCancel = (count.status === "draft" || isLegacyPending) && permissions["stock_count.cancel"];
   const hasPrimaryAction = canPost || canEdit;
   const formId = `stock-count-edit-${count.id}`;
   const deleteLabel = count.status === "draft" ? "Delete draft" : "Delete unposted count";
@@ -48,7 +49,19 @@ export default async function StockCountDetailPage({ params }: { params: Promise
       description={canDeleteByStatus ? "This unposted count can be removed, but your role does not have the required Stock Count delete permission." : "This count has already been posted to the stock ledger."}
       recommendation={canDeleteByStatus ? "Ask an Owner to grant Stock Count update or cancel permission." : "Posted counts remain immutable. Create a new count for any correction."}
     />;
-  const secondaryActions = deleteControl;
+  const cancelControl = canCancel ? (
+    <DangerConfirmForm
+      action={cancelStockCount.bind(null, count.id)}
+      buttonLabel="Cancel stock count"
+      title={`Cancel ${count.count_no}?`}
+      description="This removes the unposted count from active work while preserving its audit history. You can start a new count later."
+      checkboxLabel="I understand this count will be cancelled and removed from active work."
+      warning="No stock ledger movement will be posted."
+      confirmWord={count.count_no}
+      pendingLabel="Cancelling..."
+    />
+  ) : null;
+  const secondaryActions = cancelControl || deleteControl ? <div className="space-y-2">{cancelControl}{deleteControl}</div> : null;
   const postAction = canEdit ? saveAndPostStockCount.bind(null, count.id) : postStockCount.bind(null, count.id);
   const confirmAction = canPost ? <ConfirmActionForm action={postAction} formId={canEdit ? formId : undefined} label="Confirm & Post Count" title="Post this stock count?" description={`${lines.filter((line) => line.variance_qty !== 0).length} adjusted lines will update the branch stock ledger. Your latest entries will be saved before posting. This cannot be undone.`} pendingLabel="Saving & posting..." mobilePrimary /> : null;
   const mobilePrimaryAction = hasPrimaryAction ? (

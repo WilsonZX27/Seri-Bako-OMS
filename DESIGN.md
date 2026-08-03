@@ -524,3 +524,9 @@ the route matrix in `docs/qa/FULL_SYSTEM_AUDIT_MATRIX.md`.
 - Posted records remain immutable. Their destructive control explains the accounting boundary and points to a correction workflow instead of silently failing.
 - Do not label an action `Cancel & remove` when the user intent is to discard an unposted draft; the visible label must say `Delete` and the pending state must say `Deleting`.
 - A one-time forward-only backfill may set `deleted_at` on legacy rows already in a cancelled terminal state so they stop appearing in active lists; it must not delete rows or alter posted ledger data.
+
+## v8.36.0 — Explicit Stock Count Cancellation
+
+- Autosaved or manually saved Stock Counts that have not posted inventory expose an explicit, confirmation-protected `Cancel stock count` action in the shared More options area.
+- Cancellation removes the count from active work while preserving its audit history; it does not create a ledger movement and does not replace the separate `Delete draft` control.
+- Posted counts remain immutable. The primary action pair stays limited to `Save draft` and `Confirm & Post Count`; destructive actions remain secondary to reduce accidental taps.

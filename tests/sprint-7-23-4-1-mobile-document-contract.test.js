@@ -25,7 +25,8 @@ test("procurement documents use focused mobile workflow and exact primary action
   assert.match(mobile, /sb-dialog-backdrop/);
   assert.match(css, /\.sb-dialog-backdrop[\s\S]*backdrop-filter: blur/);
   assert.match(mobile, /label="Workflow"/);
-  assert.match(mobile, /max-w-56/);
+  assert.match(mobile, /inline-grid w-fit max-w-full/);
+  assert.doesNotMatch(mobile, /grid w-full max-w-56/);
   assert.match(mobile, /max-w-20/);
   assert.match(mobile, /grid-cols-\[auto_minmax\(0,1fr\)_auto\]/);
   assert.match(mobile, /h-8 min-h-8/);

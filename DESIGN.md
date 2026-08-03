@@ -2,6 +2,11 @@
 
 This document is the implementation contract for every customer-facing route, form, record workspace, table, panel, dialog, and mobile action bar. It applies to new work and to refactoring of existing UI.
 
+## v8.33.0 - Compact Mobile Workflow Disclosure
+
+- The shared phone workflow context is an inline-width disclosure, not a full-width banner. Its Step/Workflow trigger stays compact, centered, and bounded by the content width while the full step list remains available in the modal sheet.
+- The disclosure keeps status/branch context as the primary header hierarchy and must not add a second tall card or force a document page to scroll just to reach the first field.
+
 ## v8.32.0 - Honest Stock Count Removal States
 
 - An unposted Stock Count remains removable when the actor has `stock_count.update` or `stock_count.cancel`; the UI must not imply that it is immutable.
@@ -80,10 +85,6 @@ This document is the implementation contract for every customer-facing route, fo
 ## v8.17.0 - Search-First Filter Ordering
 
 - On phone filter rows, Search follows the useful dropdown controls and the result summary comes last. A multi-filter row must never read as search + Search while its filters wrap invisibly below; compact one-filter rows retain their intentional inline arrangement.
-
-## v8.16.0 - Compact Mobile Workflow Context
-
-- The shared phone workflow summary is capped at `max-w-56` so Step/Workflow context does not become a full-width banner on narrow devices. The document title and primary action retain priority while the workflow sheet remains available.
 
 ## v8.15.1 - Global Unposted Deletion Contract
 
@@ -341,7 +342,7 @@ the route matrix in `docs/qa/FULL_SYSTEM_AUDIT_MATRIX.md`.
 - On phones, a simple Search + one status dropdown + Search + result total set stays on one row with a shorter search field. Only genuinely larger filter sets may wrap or move secondary controls into More filters.
 - More filters is a modal surface on touch layouts: centered on tablet and bottom-aligned on phone. It sits above and temporarily obscures the bottom navigation, locks interaction with the page behind it, and always keeps Reset and Apply visible while only its fields scroll.
 - Phone list-filter controls use the compact 34px height demonstrated by Movement Ledger; the search field, dropdowns, More filters trigger, Search/Filter button, and result summary share one visual baseline. Larger task-form controls keep their separate touch contract.
-- Phone document workflow status is a compact secondary disclosure, not a full-width banner: cap it at 16rem, keep its trigger at 32px, and open the full workflow only on request.
+- Phone document workflow status is a compact secondary disclosure, not a full-width banner: use an inline-width container capped by the available content, keep its trigger at 32px, and open the full workflow only on request.
 - Autosave feedback belongs inside that same capped workflow summary; it may occupy a narrow trailing slot, but must never expand the summary back to full viewport width.
 - A mobile page must not render a generic `More actions` bar merely because a desktop rail exists. The bar appears only after the user has selected a record/detail context or when the page has a real contextual action.
 - A phone `OperationalHub` owns its own primary action. Its desktop-only context rail must set `hideMobileConsole`; never duplicate the hub action with a generic `More actions` bar or hide bottom navigation on the hub landing page.

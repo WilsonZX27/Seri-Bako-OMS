@@ -50,6 +50,8 @@ test("the shared shell gives iPad a contained canvas and an explicit operational
   assert.match(workspace, /mobilePrimaryAction \?/);
   assert.match(workspace, /md:hidden/);
   assert.match(sheets, /label="Workflow"/);
+  assert.match(sheets, /inline-grid w-fit max-w-full/);
+  assert.doesNotMatch(sheets, /grid w-full max-w-56/);
   assert.match(sheets, /document\.body\.style\.overflow = "hidden"/);
   assert.match(sheets, /event\.key === "Escape"/);
   assert.match(sheets, /requestAnimationFrame\(\(\) => trigger\?\.focus\(\)\)/);

@@ -8,7 +8,7 @@ const read = (file) => fs.readFileSync(path.join(root, file), "utf8");
 
 test("unposted procurement cancellation removes active work through dedicated RPCs", () => {
   const migration = read("supabase/migrations/120_unposted_procurement_cancel_removes_active_work.sql");
-  const approvalRemovalMigration = read("supabase/migrations/122_unposted_purchase_request_removal.sql");
+  const approvalRemovalMigration = read("supabase/migrations/125_unposted_purchase_request_removal.sql");
   const actions = read("src/server/actions/procurement.ts");
   const prDetail = read("src/app/(app)/purchase-requests/[id]/page.tsx");
   const poDetail = read("src/app/(app)/purchase-orders/[id]/page.tsx");

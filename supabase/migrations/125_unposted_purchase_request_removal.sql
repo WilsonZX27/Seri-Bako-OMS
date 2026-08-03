@@ -1,6 +1,6 @@
 -- Sprint 8.22.0 — Allow unposted Purchase Requests to leave active work.
--- Approval-stage requests have not created stock or a purchase order yet, so
--- they can be safely removed from active work while preserving the audit trail.
+-- Renumbered from the duplicate 122 filename so Supabase migration versions
+-- remain unique after 122_backfill_cancelled_work_deleted_at.sql.
 
 create or replace function public.cancel_purchase_request_atomic(target_purchase_request_id uuid)
 returns jsonb

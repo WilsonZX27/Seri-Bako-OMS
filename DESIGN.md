@@ -2,6 +2,11 @@
 
 This document is the implementation contract for every customer-facing route, form, record workspace, table, panel, dialog, and mobile action bar. It applies to new work and to refactoring of existing UI.
 
+## v8.34.0 - Migration Version Collision Repair
+
+- Supabase migration filenames must have unique numeric versions. A duplicate numeric prefix is a release blocker because `schema_migrations` rejects the later migration and leaves subsequent database changes unapplied.
+- When a duplicate is discovered after earlier migrations have already applied, renumber only the unapplied migration to a new forward-only version; never rewrite an already-applied migration.
+
 ## v8.33.0 - Compact Mobile Workflow Disclosure
 
 - The shared phone workflow context is an inline-width disclosure, not a full-width banner. Its Step/Workflow trigger stays compact, centered, and bounded by the content width while the full step list remains available in the modal sheet.

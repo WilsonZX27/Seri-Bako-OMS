@@ -2,6 +2,12 @@
 
 This document is the implementation contract for every customer-facing route, form, record workspace, table, panel, dialog, and mobile action bar. It applies to new work and to refactoring of existing UI.
 
+## v8.22.0 - Unposted Purchase Request Removal
+
+- Purchase Requests may be removed from active work while they are still unposted: Draft, Manager Review, Purchasing Review, Finance Review, and Ready to Convert.
+- The action is a single `Delete unposted request` control. It soft-deletes the active row, marks the linked document cancelled, and records the original workflow state in activity history.
+- Posted or converted records remain immutable because they may have supplier, stock, or accounting impact. Their correction path is cancellation/return/correction, not physical deletion.
+
 ## v8.21.0 - Unposted Removal Route Guard
 
 - Removing an unposted operational record accepts either its edit permission or its cancellation permission. Users must not be trapped by an autosave-created draft merely because their role can cancel but not edit it.

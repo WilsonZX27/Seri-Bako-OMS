@@ -100,7 +100,7 @@ export default async function PurchaseRequestDetailPage({
   const isFinance = roleCode === "finance";
   const canManageDeletion = roleCode === "super_admin";
   const canSubmit = isStatus(request.status, "draft", "rejected", "returned") && permissions["pr.submit"];
-  const canCancel = request.status === "draft" && permissions["pr.cancel"];
+  const canCancel = ["draft", "manager_review", "admin_review", "finance_review", "ready_to_convert"].includes(request.status) && permissions["pr.cancel"];
   const canEditDraft = request.status === "draft" && permissions["purchase_request.create"];
   const canManagerReview = request.status === "manager_review" && permissions["pr.manager_approve"] && !isFinance;
   const canAdminReview = request.status === "admin_review" && permissions["pr.admin_review"];
@@ -111,9 +111,9 @@ export default async function PurchaseRequestDetailPage({
     (request.status === "admin_review" && (permissions["pr.admin_review"] || permissions["pr.reject"])) ||
     (request.status === "finance_review" && (permissions["pr.finance_review"] || permissions["pr.reject"]));
   const hasPrimaryAction = canSubmit || canManagerReview || canAdminReview || canFinanceReview || canConvert;
-  const deleteControl = canManageDeletion ? (deletePreview?.eligible ? <DangerConfirmForm action={hardDeletePhaseOne.bind(null, "purchase_request", request.id)} title={`Permanently delete ${request.request_no}?`} description="This cannot be undone. Purchase request lines will be removed; the document number will remain consumed." warning="Type the exact request number to continue." checkboxLabel="I understand this permanently deletes the eligible request." confirmWord={deletePreview.confirmation} buttonLabel="Delete purchase request" pendingLabel="Deleting..." /> : <BlockedDestructiveAction buttonLabel="Delete purchase request" title={`Cannot delete ${request.request_no}`} description="Permanent deletion is blocked by the current status or linked records." recommendation={deletePreview ? Object.entries(deletePreview.dependencies).filter(([, count]) => count > 0).map(([key, count]) => `${key}: ${count}`).join("; ") : "Dependency preview unavailable."} />) : null;
+  const deleteControl = canManageDeletion && !canCancel ? (deletePreview?.eligible ? <DangerConfirmForm action={hardDeletePhaseOne.bind(null, "purchase_request", request.id)} title={`Permanently delete ${request.request_no}?`} description="This cannot be undone. Purchase request lines will be removed; the document number will remain consumed." warning="Type the exact request number to continue." checkboxLabel="I understand this permanently deletes the eligible request." confirmWord={deletePreview.confirmation} buttonLabel="Delete purchase request" pendingLabel="Deleting..." /> : <BlockedDestructiveAction buttonLabel="Delete purchase request" title={`Cannot delete ${request.request_no}`} description="Permanent deletion is blocked by the current status or linked records." recommendation={deletePreview ? Object.entries(deletePreview.dependencies).filter(([, count]) => count > 0).map(([key, count]) => `${key}: ${count}`).join("; ") : "Dependency preview unavailable."} />) : null;
   const secondaryActions = canCancel || canReject || deleteControl ? <div className="space-y-2">
-              {canCancel ? <DocumentActionForm action={cancelPurchaseRequest.bind(null, request.id)} pendingLabel="Deleting draft..." variant="destructive">Delete draft</DocumentActionForm> : null}
+              {canCancel ? <DocumentActionForm action={cancelPurchaseRequest.bind(null, request.id)} pendingLabel="Removing..." variant="destructive">Delete unposted request</DocumentActionForm> : null}
     {canReject ? <form action={rejectPurchaseRequest.bind(null, request.id)} className="space-y-2"><Input name="remarks" placeholder="Rejection remarks required" required /><SubmitButton type="submit" pendingLabel="Rejecting..." variant="destructive" className="w-full justify-center">Reject request</SubmitButton></form> : null}
     {deleteControl}
   </div> : null;

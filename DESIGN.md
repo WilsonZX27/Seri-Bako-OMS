@@ -2,6 +2,13 @@
 
 This document is the implementation contract for every customer-facing route, form, record workspace, table, panel, dialog, and mobile action bar. It applies to new work and to refactoring of existing UI.
 
+## v8.26.0 - Unposted Deletion Policy
+
+- Every operational document must offer one clear destructive exit while it is still unposted: `Delete draft` / `Delete unposted …`.
+- Delete and cancel are soft-removal operations for unposted work: the row, document, and activity history remain auditable, while `deleted_at` removes it from active queues.
+- Posted or ledger-impacting records remain immutable and must use a correction/return workflow.
+- Stock Count cancellation is reasserted by migration 124 so older deployments cannot resurrect cancelled autosave drafts in active lists.
+
 ## v8.25.0 - Local Visual Audit Environment
 
 - Local multi-viewport audits may load a user-provided environment file through `TEST_ENV_FILE`; credentials stay outside the worktree and are never copied into source control.

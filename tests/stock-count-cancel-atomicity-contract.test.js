@@ -11,6 +11,7 @@ test("Stock Count cancellation uses one forward-only atomic RPC", () => {
   const migration = read("supabase/migrations/114_stock_count_cancel_atomicity.sql");
   const removalMigration = read("supabase/migrations/118_stock_count_cancel_removes_active_work.sql");
   const currentRemovalMigration = read("supabase/migrations/121_stock_count_cancel_removes_active_work.sql");
+  const policyMigration = read("supabase/migrations/124_unposted_work_delete_policy.sql");
 
   assert.match(action, /rpc\("cancel_stock_count_atomic", \{ p_stock_count_id: countId \}\)/);
   assert.doesNotMatch(action, /from\("stock_counts"\)\s*\.update\(\{ status: "cancelled"/);
@@ -26,6 +27,10 @@ test("Stock Count cancellation uses one forward-only atomic RPC", () => {
   assert.match(currentRemovalMigration, /create or replace function public\.cancel_stock_count_atomic\(p_stock_count_id uuid\)/);
   assert.match(currentRemovalMigration, /deleted_at = now\(\)/);
   assert.match(currentRemovalMigration, /'deleted', true/);
+  assert.match(policyMigration, /create or replace function public\.cancel_stock_count_atomic\(p_stock_count_id uuid\)/);
+  assert.match(policyMigration, /deleted_at = removal_time/);
+  assert.match(policyMigration, /'deleted', true/);
+  assert.match(policyMigration, /where status = 'cancelled' and deleted_at is null/);
   assert.match(action, /safeRedirectWithMessage\("\/stock-counts", "success", "Draft Stock Count cancelled/);
 });
 

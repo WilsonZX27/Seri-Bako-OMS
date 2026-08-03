@@ -2,6 +2,11 @@
 
 This document is the implementation contract for every customer-facing route, form, record workspace, table, panel, dialog, and mobile action bar. It applies to new work and to refactoring of existing UI.
 
+## v8.28.0 - Current Stock Count Workflow Summary
+
+- Stock Count uses one current workflow: Draft → Confirm & Post. The list summary must show Total, Draft, Posted, and Cancelled; it must not present the retired approval-chain label `In review` as a live state.
+- Legacy submitted/reviewed/approved rows remain readable and are counted under Draft for operational triage, but they are not promoted into filters or new workflow actions.
+
 ## v8.27.0 - Bounded Autosave Recovery
 
 - Stock Count autosave writes the local recovery snapshot immediately, then waits for the deliberate idle window before sending a server write.

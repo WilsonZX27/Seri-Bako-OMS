@@ -11,6 +11,9 @@ test("Stock Count exposes only the current workflow states in its filter", () =>
   assert.match(page, /const statuses = \["draft", "posted", "cancelled"\]/);
   assert.match(page, /legacy states[\s\S]*remain readable/i);
   assert.doesNotMatch(page, /const statuses = \["draft", "submitted", "reviewed"/);
+  assert.doesNotMatch(page, />In review<\/dt>/);
+  assert.match(page, />Draft<\/dt>/);
+  assert.match(page, />Cancelled<\/dt>/);
 });
 
 test("Goods Receiving uses one form surface and compact phone filters", () => {

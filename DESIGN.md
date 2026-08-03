@@ -2,6 +2,12 @@
 
 This document is the implementation contract for every customer-facing route, form, record workspace, table, panel, dialog, and mobile action bar. It applies to new work and to refactoring of existing UI.
 
+## v8.35.0 - Compact Document Context Closure
+
+- New document headers do not repeat `New [document]` inside the content area; the shared top bar/breadcrumb owns the route title while the document header prioritizes status, branch scope, and workflow context.
+- Phone workflow context is a small inline disclosure with a subtle divider, not a full-width nested card. The complete step list remains available through the Workflow sheet.
+- Goods Receiving's no-selection state shares one continuous setup surface with its empty state; it must not render a second floating card before a purchase order is selected.
+
 ## v8.34.0 - Migration Version Collision Repair
 
 - Supabase migration filenames must have unique numeric versions. A duplicate numeric prefix is a release blocker because `schema_migrations` rejects the later migration and leaves subsequent database changes unapplied.

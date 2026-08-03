@@ -26,5 +26,6 @@ test("Goods Receiving uses one form surface and compact phone filters", () => {
 
 test("Goods Receiving keeps the no-PO empty state in the same continuous surface", () => {
   const form = read("src", "components", "goods-receiving-form.tsx");
-  assert.match(form, /data-goods-receiving-empty className="erp-surface -mt-3 border-t-0/);
+  assert.match(form, /data-goods-receiving-empty className="border-t border-\[var\(--sb-border-soft\)\] bg-\[var\(--sb-surface\)\]/);
+  assert.doesNotMatch(form, /data-goods-receiving-empty className="erp-surface/);
 });

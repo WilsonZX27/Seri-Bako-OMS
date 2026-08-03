@@ -122,7 +122,7 @@ export function GoodsReceivingForm({
               </p>
             </>
           ) : (
-            <section data-goods-receiving-empty className="erp-surface p-8 text-center">
+            <section data-goods-receiving-empty className="erp-surface -mt-3 border-t-0 p-8 text-center">
               <PackageCheck className="mx-auto h-10 w-10 text-muted-foreground" />
               <p className="mt-3 font-semibold">Select a purchase order to begin receiving</p>
               <p className="mt-1 text-sm text-muted-foreground">Only approved, sent, or partially received POs can be received.</p>

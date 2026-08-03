@@ -2,6 +2,11 @@
 
 This document is the implementation contract for every customer-facing route, form, record workspace, table, panel, dialog, and mobile action bar. It applies to new work and to refactoring of existing UI.
 
+## v8.29.0 - Continuous Goods Receiving Surface
+
+- Goods Receiving setup and its no-selection state must read as one continuous surface on phone, tablet, and desktop; do not leave a second floating card separated by a vertical gap when the user has not selected a PO.
+- The selected-PO receiving lines remain a separate working surface because they contain the editable operational grid and its own heading.
+
 ## v8.28.0 - Current Stock Count Workflow Summary
 
 - Stock Count uses one current workflow: Draft → Confirm & Post. The list summary must show Total, Draft, Posted, and Cancelled; it must not present the retired approval-chain label `In review` as a live state.

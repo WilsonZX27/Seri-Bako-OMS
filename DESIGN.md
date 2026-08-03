@@ -2,6 +2,11 @@
 
 This document is the implementation contract for every customer-facing route, form, record workspace, table, panel, dialog, and mobile action bar. It applies to new work and to refactoring of existing UI.
 
+## v8.32.0 - Honest Stock Count Removal States
+
+- An unposted Stock Count remains removable when the actor has `stock_count.update` or `stock_count.cancel`; the UI must not imply that it is immutable.
+- If removal is unavailable only because of permissions, explain the permission boundary. Reserve the immutable warning for counts that have actually posted to the ledger.
+
 ## v8.31.0 - Stock Count Mobile Editing Closure
 
 - Stock Count autosave waits 12 seconds after the latest edit before writing a draft; local recovery remains immediate and visibility/online transitions still flush safely.

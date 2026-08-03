@@ -2,6 +2,11 @@
 
 This document is the implementation contract for every customer-facing route, form, record workspace, table, panel, dialog, and mobile action bar. It applies to new work and to refactoring of existing UI.
 
+## v8.24.0 - Dashboard Hierarchy Closure
+
+- Dashboard panels reuse the flat shared surface and compact heading scale; KPI icons are square interior tiles, not status pills.
+- Dashboard action hierarchy stays readable across phone, tablet, and desktop without oversized page titles or decorative panel shadows.
+
 ## v8.23.0 - Shared Shell Elevation Cue
 
 - Persistent mobile action bars and create FABs may use a restrained directional shadow so users can distinguish fixed controls from scrolling content.

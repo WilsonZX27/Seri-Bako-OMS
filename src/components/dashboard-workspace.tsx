@@ -11,26 +11,81 @@ import type { LucideIcon } from "lucide-react";
 
 type DashboardSummary = Awaited<ReturnType<typeof import("@/server/queries/dashboard").getDashboardSummary>>;
 
-function Metric({ href, label, value, icon: Icon, alert = false, unavailable = false }: { href: string; label: string; value: string | number; icon: LucideIcon; alert?: boolean; unavailable?: boolean }) {
-  return <Link href={href} className="flex min-h-10 items-center justify-between gap-3 border-b border-[var(--sb-border-soft)] px-1.5 py-1.5 last:border-b-0 hover:bg-[var(--sb-surface-muted)]"><span className="flex min-w-0 items-center gap-2 text-xs font-medium text-muted-foreground"><span className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-[2px] ${unavailable || alert ? "bg-[var(--sb-warning-bg)] text-[var(--sb-warning)]" : "bg-[var(--sb-neutral-bg)] text-[var(--sb-neutral-text)]"}`}><Icon className="h-3.5 w-3.5" /></span><span className="truncate">{label}</span></span><strong className={unavailable ? "text-xs font-semibold text-[var(--sb-warning)]" : "tabular-nums"}>{unavailable ? "Unavailable" : value}</strong></Link>;
+function Metric({
+  href,
+  label,
+  value,
+  icon: Icon,
+  alert = false,
+  unavailable = false,
+}: {
+  href: string;
+  label: string;
+  value: string | number;
+  icon: LucideIcon;
+  alert?: boolean;
+  unavailable?: boolean;
+}) {
+  return (
+    <Link
+      href={href}
+      className="group flex min-h-10 items-center justify-between gap-3 border-b border-[var(--sb-border-soft)] px-2 py-2.5 transition-colors duration-300 hover:bg-[var(--sb-surface-muted)] last:border-b-0"
+    >
+      <span className="flex min-w-0 items-center gap-2 text-xs font-medium text-[var(--sb-text-muted)]">
+        <span
+        className={`grid h-6 w-6 shrink-0 place-items-center rounded-[var(--sb-radius-control)] ${unavailable || alert ? "bg-[var(--sb-warning-bg)] text-[var(--sb-warning)]" : "bg-[var(--sb-neutral-bg)] text-[var(--sb-neutral-text)]"}`}
+        >
+          <Icon className="h-3.5 w-3.5 group-hover:scale-105" />
+        </span>
+        <span className="truncate">{label}</span>
+      </span>
+      <strong className={unavailable ? "text-xs font-semibold text-[var(--sb-warning)]" : "tabular-nums"}>{unavailable ? "Unavailable" : value}</strong>
+    </Link>
+  );
 }
 
-function Panel({ title, empty, children, action }: { title: string; empty?: string; children?: React.ReactNode; action?: { href: string; label: string } }) {
-  return <section className="overflow-hidden rounded-[2px] border border-[var(--sb-border-soft)] bg-card"><div className="flex min-h-10 items-center justify-between gap-2 border-b border-[var(--sb-border-soft)] bg-[var(--sb-surface-muted)] px-3"><h2 className="text-xs font-semibold">{title}</h2>{action ? <Button asChild variant="ghost" size="sm" className="h-8 px-2 text-[11px]"><Link href={action.href}>{action.label}</Link></Button> : null}</div><div className="px-2 py-1.5">{children ?? <p className="px-1 py-2 text-xs text-muted-foreground">{empty}</p>}</div></section>;
+function Panel({
+  title,
+  empty,
+  children,
+  action,
+}: {
+  title: string;
+  empty?: string;
+  children?: React.ReactNode;
+  action?: { href: string; label: string };
+}) {
+  return (
+    <section className="overflow-hidden rounded-[var(--sb-panel-radius)] border border-[var(--sb-border-soft)] bg-card">
+      <div className="flex min-h-11 items-center justify-between gap-2 border-b border-[var(--sb-border-soft)] bg-[var(--sb-surface-muted)] px-3">
+        <h2 className="text-xs font-semibold uppercase tracking-[0.14em] text-[var(--sb-text-muted)]">{title}</h2>
+        {action ? (
+          <Button asChild variant="ghost" size="sm" className="h-8 px-2 text-[11px]">
+            <Link href={action.href}>{action.label}</Link>
+          </Button>
+        ) : null}
+      </div>
+      <div className="px-2 py-1.5">{children ?? <p className="px-1 py-2 text-xs text-muted-foreground">{empty}</p>}</div>
+    </section>
+  );
 }
 
 function MobileQuickActions({ actions }: { actions: { href: string; label: string; icon: LucideIcon }[] }) {
   return (
     <section className="xl:hidden" aria-labelledby="mobile-quick-actions-title">
       <div className="mb-2 flex items-center justify-between">
-        <h2 id="mobile-quick-actions-title" className="text-xs font-semibold">Quick actions</h2>
+        <h2 id="mobile-quick-actions-title" className="text-xs font-semibold uppercase tracking-[0.14em] text-[var(--sb-text-muted)]">Quick actions</h2>
         <span className="text-[11px] text-[var(--sb-text-muted)]">Based on your role</span>
       </div>
-      <div className="grid grid-cols-3 divide-x divide-[var(--sb-border-soft)] overflow-hidden rounded-[var(--sb-panel-radius)] border border-[var(--sb-border-soft)] bg-white">
+      <div className="grid grid-cols-3 divide-x divide-[var(--sb-border-soft)] overflow-hidden rounded-[var(--sb-panel-radius)] border border-[var(--sb-border-soft)] bg-[var(--rail-bg)]">
         {actions.slice(0, 3).map((action) => {
           const Icon = action.icon;
           return (
-            <Link key={action.href} href={action.href} className="flex min-h-[4.75rem] min-w-0 flex-col items-center justify-center gap-1.5 bg-[var(--sb-green-900)] px-2 py-2 text-center text-[11px] font-semibold text-white hover:bg-[var(--sb-green-800)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-white">
+            <Link
+              key={action.href}
+              href={action.href}
+              className="flex min-h-[4.75rem] min-w-0 flex-col items-center justify-center gap-1.5 bg-[var(--sb-green-900)] px-2 py-2 text-center text-[11px] font-semibold text-white hover:bg-[var(--sb-green-800)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-white"
+            >
               <span className="grid h-8 w-8 place-items-center rounded-[var(--sb-radius-control)] bg-white/12 text-white">
                 <Icon className="h-4 w-4" aria-hidden="true" />
               </span>
@@ -44,17 +99,40 @@ function MobileQuickActions({ actions }: { actions: { href: string; label: strin
 }
 
 const roleCopy: Record<string, { title: string; description: string }> = {
-  super_admin: { title: "Owner Workdesk", description: "Company-wide approvals, operational exceptions, and near-term obligations." },
-  finance: { title: "Finance Workdesk", description: "Company-wide finance reviews, payables, and operational follow-up." },
-  manager: { title: "Manager Workdesk", description: "Company-wide operational reviews, completion queues, and stock exceptions." },
-  purchasing: { title: "Purchasing Workdesk", description: "Company-wide purchasing actions, supplier follow-up, and document readiness." },
-  kitchen: { title: "Kitchen Workdesk", description: "Central Kitchen requests, expected receiving, raw-material stock, and production tasks." },
-  outlet_staff: { title: "Outlet Today", description: "Complete today’s receiving, wastage, and remaining-stock record." },
+  super_admin: {
+    title: "Owner Workdesk",
+    description: "Company-wide approvals, operational exceptions, and near-term obligations.",
+  },
+  finance: {
+    title: "Finance Workdesk",
+    description: "Company-wide finance reviews, payables, and operational follow-up.",
+  },
+  manager: {
+    title: "Manager Workdesk",
+    description: "Company-wide operational reviews, completion queues, and stock exceptions.",
+  },
+  purchasing: {
+    title: "Purchasing Workdesk",
+    description: "Company-wide purchasing actions, supplier follow-up, and document readiness.",
+  },
+  kitchen: {
+    title: "Kitchen Workdesk",
+    description: "Central Kitchen requests, expected receiving, raw-material stock, and production tasks.",
+  },
+  outlet_staff: {
+    title: "Outlet Today",
+    description: "Complete today's receiving, wastage, and remaining-stock record.",
+  },
 };
 
 export function DashboardWorkspace({ summary, renderedAt }: { summary: DashboardSummary; renderedAt: string }) {
   const [now, setNow] = useState(() => new Date(renderedAt));
-  useEffect(() => { const timer = window.setInterval(() => setNow(new Date()), 60_000); return () => window.clearInterval(timer); }, []);
+
+  useEffect(() => {
+    const timer = window.setInterval(() => setNow(new Date()), 60_000);
+    return () => window.clearInterval(timer);
+  }, []);
+
   const role = summary.role;
   const copy = roleCopy[role] ?? roleCopy.outlet_staff;
   const isOwner = role === "super_admin";
@@ -67,7 +145,7 @@ export function DashboardWorkspace({ summary, renderedAt }: { summary: Dashboard
   const showOperations = isOwner || isFinance || isManager;
   const outletStatus = summary.outletToday?.status ?? null;
   const outletComplete = outletStatus === "reviewed" || outletStatus === "evening_completed";
-  const outletAction = !outletStatus ? "Start daily record" : outletComplete ? "Review today’s record" : "Complete daily record";
+  const outletAction = !outletStatus ? "Start daily record" : outletComplete ? "Review today's record" : "Complete daily record";
 
   const quickActions = isOutlet
     ? [
@@ -104,14 +182,19 @@ export function DashboardWorkspace({ summary, renderedAt }: { summary: Dashboard
                 { href: "/supplier-invoices/aging", label: "AP aging", icon: ReceiptText },
                 { href: "/stock-counts", label: "Stock count", icon: CheckCircle2 },
               ];
-  const workspaceContext = <>
-    <p className="text-xs text-[var(--sb-text-muted)]">Welcome, {summary.userName}</p>
-    <div className="mt-1 flex min-w-0 flex-wrap items-baseline gap-x-2 gap-y-0.5">
-      <span className="text-base font-semibold text-[var(--sb-text)] sm:text-lg">{summary.roleLabel}</span>
-      <span aria-hidden="true" className="text-[var(--sb-text-muted)]">|</span>
-      <span className="min-w-0 text-sm text-[var(--sb-text-muted)]">{summary.branchLabel}</span>
-    </div>
-  </>;
+
+  const workspaceContext = (
+    <>
+      <p className="text-xs text-[var(--sb-text-muted)]">Welcome, {summary.userName}</p>
+      <div className="mt-1 flex min-w-0 flex-wrap items-baseline gap-x-2 gap-y-0.5">
+        <span className="text-base font-semibold text-[var(--sb-text)] sm:text-lg">{summary.roleLabel}</span>
+        <span aria-hidden="true" className="text-[var(--sb-text-muted)]">
+          |
+        </span>
+        <span className="min-w-0 text-sm text-[var(--sb-text-muted)]">{summary.branchLabel}</span>
+      </div>
+    </>
+  );
 
   const desktopWorkspaceContext = (
     <p className="flex min-w-0 flex-wrap items-baseline gap-x-1.5 gap-y-0.5 text-xs text-[var(--sb-text-muted)]">
@@ -123,27 +206,204 @@ export function DashboardWorkspace({ summary, renderedAt }: { summary: Dashboard
     </p>
   );
 
-  return <WorkspaceGrid hideMobileConsole className="gap-4 p-3 pb-24 sm:p-4 sm:pb-24 xl:pb-4 xl:grid-cols-[minmax(0,1fr)_280px]" rightRailClassName="space-y-2" rightRail={<>
-    <ConsoleSection title="Actions"><div className="grid gap-2">{quickActions.map((action, index) => <Button key={action.href} asChild size="sm" variant={index === 0 ? "default" : "outline"} className="w-full"><Link href={action.href}>{action.label}</Link></Button>)}</div></ConsoleSection>
-    <ConsoleSection title="Today"><div className="space-y-2 text-[11px]"><p><span className="text-muted-foreground">Role</span><br /><strong>{summary.roleLabel}</strong></p><p><span className="text-muted-foreground">Data scope</span><br /><strong>{summary.scopeLabel}</strong></p><p><span className="text-muted-foreground">Updated</span><br /><strong>{formatDateTime(now.toISOString())}</strong></p></div></ConsoleSection>
-    {summary.notifications.length ? <ConsoleSection title="Alerts"><div className="space-y-2">{summary.notifications.slice(0, 3).map((note) => <Link key={note.id} href={note.action_url ?? "/activity"} className="block text-[11px] hover:underline"><strong className="block">{note.title}</strong><span className="text-muted-foreground">{note.message}</span></Link>)}</div></ConsoleSection> : null}
-  </>}>
-    <div className="space-y-4"><header className="hidden flex-col gap-3 md:flex md:flex-row md:items-start md:justify-between"><div className="min-w-0"><h1 className="text-lg font-semibold tracking-[-0.01em] text-[var(--sb-text)]">{copy.title}</h1><div className="mt-1">{desktopWorkspaceContext}</div><p className="mt-2 text-xs text-muted-foreground">{copy.description}</p></div></header>
+  return (
+    <WorkspaceGrid
+      hideMobileConsole
+      className="gap-4 p-3 pb-24 sm:p-4 sm:pb-24 xl:pb-4 xl:grid-cols-[minmax(0,1fr)_280px]"
+      rightRailClassName="space-y-2"
+      rightRail={
+        <>
+          <ConsoleSection title="Actions">
+            <div className="grid gap-2">
+              {quickActions.map((action, index) => (
+                <Button key={action.href} asChild size="sm" variant={index === 0 ? "default" : "outline"} className="w-full">
+                  <Link href={action.href}>{action.label}</Link>
+                </Button>
+              ))}
+            </div>
+          </ConsoleSection>
+          <ConsoleSection title="Today">
+            <div className="space-y-2 text-xs">
+              <p><span className="text-muted-foreground">Role</span><br /><strong>{summary.roleLabel}</strong></p>
+              <p><span className="text-muted-foreground">Data scope</span><br /><strong>{summary.scopeLabel}</strong></p>
+              <p><span className="text-muted-foreground">Updated</span><br /><strong>{formatDateTime(now.toISOString())}</strong></p>
+            </div>
+          </ConsoleSection>
+          {summary.notifications.length ? (
+            <ConsoleSection title="Alerts">
+              <div className="space-y-2">
+                {summary.notifications.slice(0, 3).map((note) => (
+                  <Link key={note.id} href={note.action_url ?? "/activity"} className="block text-xs hover:underline">
+                    <strong className="block">{note.title}</strong>
+                    <span className="text-muted-foreground">{note.message}</span>
+                  </Link>
+                ))}
+              </div>
+            </ConsoleSection>
+          ) : null}
+        </>
+      }
+    >
+      <div className="space-y-4">
+        <header className="hidden flex-col gap-3 md:flex md:flex-row md:items-start md:justify-between">
+          <div className="min-w-0">
+            <h1 className="text-lg font-semibold tracking-[-0.01em] text-[var(--sb-text)]">{copy.title}</h1>
+            <div className="mt-1">{desktopWorkspaceContext}</div>
+            <p className="mt-2 max-w-3xl text-xs text-muted-foreground">{copy.description}</p>
+          </div>
+        </header>
 
-      <div className="border-b border-[var(--sb-border-soft)] pb-3 md:hidden">
-        {workspaceContext}
+        <div className="border-b border-[var(--sb-border-soft)] pb-3 md:hidden">{workspaceContext}</div>
+
+        <MobileQuickActions actions={quickActions} />
+
+        {isOutlet ? (
+          <Panel title="Today's completion">
+            <div className="flex items-center gap-3 rounded-[var(--sb-radius-control)] bg-[var(--sb-surface)] p-3">
+              {outletComplete ? <CheckCircle2 className="h-5 w-5 text-[var(--sb-success)]" /> : <Clock3 className="h-5 w-5 text-[var(--sb-warning)]" />}
+              <div>
+                <p className="text-sm font-semibold">
+                  {outletComplete ? "Today’s record is complete" : outletStatus ? "Evening update is still required" : "Morning receive has not started"}
+                </p>
+                <p className="text-xs text-muted-foreground">Only your assigned outlet’s record is shown.</p>
+              </div>
+            </div>
+          </Panel>
+        ) : null}
+
+        {!isOutlet ? (
+          <div className="grid gap-4 lg:grid-cols-2">
+            <Panel
+              title={isKitchen ? "Purchase request progress" : "Actions awaiting you"}
+              empty={isKitchen ? "No active purchase requests need your attention." : "No reviews or transitions require your action."}
+              action={{ href: "/purchase-requests", label: "Open PRs" }}
+            >
+              {summary.pendingApprovals.length ? (
+                <div className="divide-y rounded-[var(--sb-radius-control)] border bg-[var(--workspace-bg)]">
+                  {summary.pendingApprovals.map((row) => (
+                    <Link
+                      key={row.id}
+                      href={row.href}
+                      className="flex min-h-11 items-center justify-between gap-3 px-3 py-2 text-xs hover:bg-[var(--sb-surface-muted)]"
+                    >
+                      <span className="min-w-0">
+                        <strong className="block truncate font-mono">{row.document_no}</strong>
+                        <span className="text-muted-foreground">
+                          {row.step}
+                          {row.branch_name ? ` · ${row.branch_name}` : ""}
+                        </span>
+                      </span>
+                      <span className="shrink-0 text-[11px] text-muted-foreground">{row.age_label}</span>
+                    </Link>
+                  ))}
+                </div>
+              ) : undefined}
+            </Panel>
+            <Panel title={isPurchasing ? "Purchasing pipeline" : isKitchen ? "Production and receiving" : "Operational pipeline"}>
+              <div className="grid gap-2 sm:grid-cols-2">
+                <Metric
+                  href="/purchase-orders"
+                  label={isPurchasing ? "PO preparation / sending" : "Recent purchase orders"}
+                  value={summary.purchaseOrders.length}
+                  icon={ShoppingCart}
+                />
+                <Metric
+                  href={isKitchen ? "/goods-receivings?date=today" : "/goods-receivings"}
+                  label={isKitchen ? "Receiving today" : "Receiving follow-up"}
+                  value={isKitchen ? summary.today.goodsReceiving : summary.financeForecast.receivingNotInvoiced}
+                  icon={PackageCheck}
+                  alert={isKitchen ? summary.today.goodsReceiving > 0 : summary.financeForecast.receivingNotInvoiced > 0}
+                  unavailable={isKitchen ? summary.todayReceivingUnavailable : summary.receivingFollowupUnavailable}
+                />
+                {summary.productionSummary ? (
+                  <Metric
+                    href="/production/jobs"
+                    label={isKitchen ? "Production pending" : "Production exceptions"}
+                    value={summary.productionSummary.pendingApproval + summary.productionSummary.ingredientShortages}
+                    icon={Factory}
+                    alert={summary.productionSummary.ingredientShortages > 0}
+                  />
+                ) : null}
+                {isPurchasing ? <Metric href="/administration/master-data-cleanup" label="Master-data follow-up" value="Review" icon={Boxes} /> : null}
+              </div>
+            </Panel>
+          </div>
+        ) : null}
+
+        {(showOperations || isKitchen || isPurchasing) ? (
+          <Panel
+            title={isKitchen ? "Raw-material exceptions" : "Exceptions requiring follow-up"}
+            empty="No urgent operational exceptions are visible in your scope."
+            action={{ href: "/low-stock", label: "Open stock" }}
+          >
+            <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+              <Metric href="/low-stock" label="Low stock" value={summary.lowStockCount} icon={AlertTriangle} alert={summary.lowStockCount > 0} unavailable={summary.inventoryUnavailable} />
+              {showOperations && summary.operationsControl?.outlet ? (
+                <Metric
+                  href="/outlet-daily-records?status=draft"
+                  label="Outlet completion issues"
+                  value={summary.operationsControl.outlet.missing_evening + summary.operationsControl.outlet.needs_review}
+                  icon={ClipboardCheck}
+                  alert
+                />
+              ) : null}
+              {(isOwner || isManager || isKitchen) ? (
+                <Metric
+                  href="/stock-wastage?status=submitted"
+                  label="Wastage attention"
+                  value={summary.wastageAttention}
+                  icon={AlertTriangle}
+                  alert={summary.wastageAttention > 0}
+                  unavailable={summary.wastageUnavailable}
+                />
+              ) : (
+                <Metric
+                  href="/purchase-requests?priority=urgent"
+                  label="Urgent requests"
+                  value={summary.urgentRequests.length}
+                  icon={Clock3}
+                  alert={summary.urgentRequests.length > 0}
+                />
+              )}
+            </div>
+          </Panel>
+        ) : null}
+
+        {showFinance ? <Panel title="Payables and cash obligations"
+            empty={summary.payablesAttentionUnavailable ? "Payables attention is temporarily unavailable; operational queues remain current." : "All current supplier invoices are up to date."}
+            action={{ href: "/supplier-invoices/aging", label: "Open AP Aging" }}
+          >
+            {summary.payablesAttention ? (
+              <>
+                <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+                  <Metric
+                    href="/supplier-invoices/aging?overdue=1"
+                    label="Overdue AP"
+                    value={formatCurrency(summary.payablesAttention.overdue_amount + summary.payablesAttention.critical_amount)}
+                    icon={ReceiptText}
+                    alert={summary.payablesAttention.overdue_count + summary.payablesAttention.critical_count > 0}
+                  />
+                  <Metric
+                    href="/supplier-invoices/aging?bucket=missing_due_date"
+                    label="Missing due date"
+                    value={formatNumber(summary.payablesAttention.missing_due_date_count)}
+                    icon={AlertTriangle}
+                    alert={summary.payablesAttention.missing_due_date_count > 0}
+                  />
+                  <Metric
+                    href="/supplier-invoices/cash-flow"
+                    label="Due soon"
+                    value={formatCurrency(summary.payablesAttention.due_today_amount + summary.payablesAttention.due_next_7_amount)}
+                    icon={Clock3}
+                  />
+                </div>
+                <div className="mt-3 flex flex-wrap gap-2">
+                  <Button asChild size="sm" className="!text-xs"><Link href="/supplier-invoices">Review Invoice</Link></Button><Button asChild variant="outline" size="sm" className="!text-xs"><Link href="/supplier-invoices/cash-flow">View Cash Flow</Link></Button>
+                </div>
+              </>
+            ) : null}
+          </Panel> : null}
       </div>
-
-      <MobileQuickActions actions={quickActions} />
-
-      {isOutlet ? <Panel title="Today’s completion"><div className="flex items-center gap-3 rounded-[2px] border bg-white p-3">{outletComplete ? <CheckCircle2 className="h-5 w-5 text-[var(--sb-success)]" /> : <Clock3 className="h-5 w-5 text-[var(--sb-warning)]" />}<div><p className="text-sm font-semibold">{outletComplete ? "Today’s record is complete" : outletStatus ? "Evening update is still required" : "Morning receive has not started"}</p><p className="text-xs text-muted-foreground">Only your assigned outlet’s record is shown.</p></div></div></Panel> : null}
-
-      {!isOutlet ? <div className="grid gap-4 lg:grid-cols-2"><Panel title={isKitchen ? "Purchase request progress" : "Actions awaiting you"} empty={isKitchen ? "No active purchase requests need your attention." : "No reviews or transitions require your action."} action={{ href: "/purchase-requests", label: "Open PRs" }}>{summary.pendingApprovals.length ? <div className="divide-y rounded-[2px] border bg-white">{summary.pendingApprovals.map((row) => <Link key={row.id} href={row.href} className="flex min-h-11 items-center justify-between gap-3 px-3 py-2 text-xs hover:bg-[var(--sb-surface-muted)]"><span className="min-w-0"><strong className="block truncate font-mono">{row.document_no}</strong><span className="text-muted-foreground">{row.step}{row.branch_name ? ` · ${row.branch_name}` : ""}</span></span><span className="shrink-0 text-[11px] text-muted-foreground">{row.age_label}</span></Link>)}</div> : undefined}</Panel>
-      <Panel title={isPurchasing ? "Purchasing pipeline" : isKitchen ? "Production and receiving" : "Operational pipeline"}><div className="grid gap-2 sm:grid-cols-2"><Metric href="/purchase-orders" label={isPurchasing ? "PO preparation / sending" : "Recent purchase orders"} value={summary.purchaseOrders.length} icon={ShoppingCart} /><Metric href={isKitchen ? "/goods-receivings?date=today" : "/goods-receivings"} label={isKitchen ? "Receiving today" : "Receiving follow-up"} value={isKitchen ? summary.today.goodsReceiving : summary.financeForecast.receivingNotInvoiced} icon={PackageCheck} alert={(isKitchen ? summary.today.goodsReceiving : summary.financeForecast.receivingNotInvoiced) > 0} unavailable={isKitchen ? summary.todayReceivingUnavailable : summary.receivingFollowupUnavailable} />{summary.productionSummary ? <Metric href="/production/jobs" label={isKitchen ? "Production pending" : "Production exceptions"} value={summary.productionSummary.pendingApproval + summary.productionSummary.ingredientShortages} icon={Factory} alert={summary.productionSummary.ingredientShortages > 0} /> : null}{isPurchasing ? <Metric href="/administration/master-data-cleanup" label="Master-data follow-up" value="Review" icon={Boxes} /> : null}</div></Panel></div> : null}
-
-      {(showOperations || isKitchen || isPurchasing) ? <Panel title={isKitchen ? "Raw-material exceptions" : "Exceptions requiring follow-up"} empty="No urgent operational exceptions are visible in your scope." action={{ href: "/low-stock", label: "Open stock" }}><div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3"><Metric href="/low-stock" label="Low stock" value={summary.lowStockCount} icon={AlertTriangle} alert={summary.lowStockCount > 0} unavailable={summary.inventoryUnavailable} />{showOperations && summary.operationsControl?.outlet ? <Metric href="/outlet-daily-records?status=draft" label="Outlet completion issues" value={summary.operationsControl.outlet.missing_evening + summary.operationsControl.outlet.needs_review} icon={ClipboardCheck} alert /> : null}{(isOwner || isManager || isKitchen) ? <Metric href="/stock-wastage?status=submitted" label="Wastage attention" value={summary.wastageAttention} icon={AlertTriangle} alert={summary.wastageAttention > 0} unavailable={summary.wastageUnavailable} /> : <Metric href="/purchase-requests?priority=urgent" label="Urgent requests" value={summary.urgentRequests.length} icon={Clock3} alert={summary.urgentRequests.length > 0} />}</div></Panel> : null}
-
-      {showFinance ? <Panel title="Payables and cash obligations" empty={summary.payablesAttentionUnavailable ? "Payables attention is temporarily unavailable; operational queues remain current." : "All current supplier invoices are up to date."} action={{ href: "/supplier-invoices/aging", label: "Open AP Aging" }}>{summary.payablesAttention ? <><div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3"><Metric href="/supplier-invoices/aging?overdue=1" label="Overdue AP" value={formatCurrency(summary.payablesAttention.overdue_amount + summary.payablesAttention.critical_amount)} icon={ReceiptText} alert={summary.payablesAttention.overdue_count + summary.payablesAttention.critical_count > 0} /><Metric href="/supplier-invoices/aging?bucket=missing_due_date" label="Missing due date" value={formatNumber(summary.payablesAttention.missing_due_date_count)} icon={AlertTriangle} alert={summary.payablesAttention.missing_due_date_count > 0} /><Metric href="/supplier-invoices/cash-flow" label="Due soon" value={formatCurrency(summary.payablesAttention.due_today_amount + summary.payablesAttention.due_next_7_amount)} icon={Clock3} /></div><div className="mt-3 flex flex-wrap gap-2"><Button asChild size="sm" className="!text-xs"><Link href="/supplier-invoices">Review Invoice</Link></Button><Button asChild variant="outline" size="sm" className="!text-xs"><Link href="/supplier-invoices/cash-flow">View Cash Flow</Link></Button></div></> : undefined}</Panel> : null}
-    </div>
-  </WorkspaceGrid>;
+    </WorkspaceGrid>
+  );
 }

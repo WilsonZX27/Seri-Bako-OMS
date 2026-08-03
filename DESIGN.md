@@ -2,6 +2,11 @@
 
 This document is the implementation contract for every customer-facing route, form, record workspace, table, panel, dialog, and mobile action bar. It applies to new work and to refactoring of existing UI.
 
+## v8.30.0 - Deliberate Mobile Row Opening
+
+- Mobile operational list rows use a deliberate double tap to open a record, reducing accidental navigation while users scroll through dense data.
+- Keyboard users retain single-action Enter/Space activation, and explicit action links/buttons inside a row are never intercepted by the row gesture.
+
 ## v8.29.0 - Continuous Goods Receiving Surface
 
 - Goods Receiving setup and its no-selection state must read as one continuous surface on phone, tablet, and desktop; do not leave a second floating card separated by a vertical gap when the user has not selected a PO.

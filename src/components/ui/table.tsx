@@ -50,6 +50,19 @@ export function OperationalListRow({ href, label, primary, status, statusMeta, s
   meta?: React.ReactNode;
   trailing?: React.ReactNode;
 }) {
+  const lastTapAt = React.useRef(0);
+  const handlePointerOpen = (event: React.MouseEvent<HTMLAnchorElement>) => {
+    const now = Date.now();
+    if (now - lastTapAt.current < 350) {
+      lastTapAt.current = 0;
+      return;
+    }
+    lastTapAt.current = now;
+    event.preventDefault();
+    window.setTimeout(() => {
+      if (Date.now() - lastTapAt.current >= 350) lastTapAt.current = 0;
+    }, 350);
+  };
   const className = "grid min-h-16 grid-cols-[minmax(0,1fr)_auto] gap-x-3 gap-y-1 px-3 py-2.5 hover:bg-[var(--sb-surface-muted)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[var(--sb-green-700)]";
   const content = <>
       <div className="min-w-0 text-[13px] font-semibold leading-5">{primary}</div>
@@ -65,7 +78,7 @@ export function OperationalListRow({ href, label, primary, status, statusMeta, s
       {detail ? <div className="col-span-2 min-w-0 text-[11px] leading-4 text-[var(--sb-text-muted)]">{detail}</div> : null}
     </>;
   return href
-    ? <Link href={href} aria-label={label} role="listitem" className={className}>{content}</Link>
+    ? <Link href={href} aria-label={label} role="listitem" className={className} data-open-gesture="double-tap" onClick={handlePointerOpen}>{content}</Link>
     : <div aria-label={label} role="listitem" className={className}>{content}</div>;
 }
 

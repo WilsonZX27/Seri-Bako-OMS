@@ -51,3 +51,10 @@ test("technical tables use the shared pinned lead band without overlap", () => {
   }
   assert.match(design, /The shared Action column is 4rem wide/);
 });
+
+test("mobile operational rows require a deliberate double tap while keyboard access stays available", () => {
+  const table = read("src/components/ui/table.tsx");
+  assert.match(table, /data-open-gesture="double-tap"/);
+  assert.match(table, /event\.preventDefault\(\)/);
+  assert.match(table, /<Link href=\{href\}/);
+});

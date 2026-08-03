@@ -33,6 +33,8 @@ test("stock count form keeps a local recovery snapshot and reports server save s
   assert.match(form, /Recovered unsaved changes/);
   assert.match(form, /Save failed — retrying/);
   assert.match(form, /Save failed — changes kept locally/);
+  assert.match(form, /MAX_AUTOSAVE_RETRIES = 3/);
+  assert.match(form, /retryAttempts\.current < MAX_AUTOSAVE_RETRIES/);
   assert.match(form, /role="status"/);
   assert.match(form, /aria-live="polite"/);
   assert.doesNotMatch(detail, /mobileWorkflowTrailing/);

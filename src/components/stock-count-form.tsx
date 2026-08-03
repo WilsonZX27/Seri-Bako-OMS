@@ -27,6 +27,7 @@ type SeedLine = {
 type SeedLineInput = SeedLine & { physicalQty: string; remarks: string; initialPhysicalQty: string; adjusted: boolean };
 type AutosaveState = "idle" | "recovered" | "saving" | "saved" | "error";
 const STOCK_COUNT_SORT_KEY = "seri-bako:stock-count-sort";
+const MAX_AUTOSAVE_RETRIES = 3;
 type LocalDraftSnapshot = {
   branchId: string;
   countDate: string;
@@ -101,6 +102,8 @@ export function StockCountForm({
   const saveSequence = useRef(0);
   const lastSavedRevision = useRef(0);
   const retryTimer = useRef<number | null>(null);
+  const retryRevision = useRef(0);
+  const retryAttempts = useRef(0);
   const [lines, setLines] = useState<SeedLineInput[]>(() =>
     seedLines.map(makeEditableLine),
   );
@@ -182,6 +185,10 @@ export function StockCountForm({
 
   const saveDraft = useCallback(async (revision: number) => {
     if (!autosaveAction || !formRef.current || !hasUserEdited.current || revision <= lastSavedRevision.current) return true;
+    if (retryRevision.current !== revision) {
+      retryRevision.current = revision;
+      retryAttempts.current = 0;
+    }
     const sequence = ++saveSequence.current;
     setAutosaveState("saving");
     setAutosaveError("");
@@ -192,14 +199,17 @@ export function StockCountForm({
       if (!result.ok || !result.id) {
         setAutosaveState("error");
         setAutosaveError(result.error ?? "Autosave failed. Your changes remain on this device.");
-        setAutosaveRetryable(result.retryable !== false);
+        const canRetry = result.retryable === false ? false : retryAttempts.current < MAX_AUTOSAVE_RETRIES;
+        retryAttempts.current += 1;
+        setAutosaveRetryable(canRetry);
         if (retryTimer.current !== null) window.clearTimeout(retryTimer.current);
-        retryTimer.current = result.retryable === false
+        retryTimer.current = !canRetry
           ? null
           : window.setTimeout(() => void saveDraft(revision), 15_000);
         return false;
       }
       lastSavedRevision.current = revision;
+      retryAttempts.current = 0;
       window.localStorage.removeItem(localStorageKey);
       setAutosaveState("saved");
       setAutosaveRetryable(true);
@@ -208,10 +218,12 @@ export function StockCountForm({
     } catch {
       if (sequence === saveSequence.current) {
         setAutosaveState("error");
-        setAutosaveError("Autosave failed. Your changes remain on this device and will retry.");
-        setAutosaveRetryable(true);
+        const canRetry = retryAttempts.current < MAX_AUTOSAVE_RETRIES;
+        retryAttempts.current += 1;
+        setAutosaveError(canRetry ? "Autosave failed. Your changes remain on this device and will retry." : "Autosave failed. Your changes remain on this device. Save draft manually when the connection is ready.");
+        setAutosaveRetryable(canRetry);
         if (retryTimer.current !== null) window.clearTimeout(retryTimer.current);
-        retryTimer.current = window.setTimeout(() => void saveDraft(revision), 15_000);
+        retryTimer.current = canRetry ? window.setTimeout(() => void saveDraft(revision), 15_000) : null;
       }
       return false;
     }

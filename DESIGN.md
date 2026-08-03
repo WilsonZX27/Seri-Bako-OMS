@@ -2,6 +2,12 @@
 
 This document is the implementation contract for every customer-facing route, form, record workspace, table, panel, dialog, and mobile action bar. It applies to new work and to refactoring of existing UI.
 
+## v8.27.0 - Bounded Autosave Recovery
+
+- Stock Count autosave writes the local recovery snapshot immediately, then waits for the deliberate idle window before sending a server write.
+- Retryable server failures are retried at most three times per edit revision. After that, the form stops retrying and keeps the local snapshot for manual Save draft recovery.
+- A successful save resets the retry budget; a new edit revision gets its own bounded retry budget.
+
 ## v8.26.0 - Unposted Deletion Policy
 
 - Every operational document must offer one clear destructive exit while it is still unposted: `Delete draft` / `Delete unposted …`.

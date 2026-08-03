@@ -142,7 +142,10 @@ export async function getStockCount(id: string) {
   }
   const supabase = await createClient();
   const [{ data, error }, { data: lines, error: linesError }] = await Promise.all([
-    supabase.from("stock_counts").select("*").eq("id", id).single(),
+    // Removed unposted counts must not remain addressable through a stale detail URL.
+    // Their activity/audit rows remain available through the activity log, while the
+    // operational document itself is no longer treated as active work.
+    supabase.from("stock_counts").select("*").eq("id", id).is("deleted_at", null).single(),
     supabase.from("stock_count_lines").select("*").eq("stock_count_id", id).order("line_position", { ascending: true }).order("id", { ascending: true }),
   ]);
   if (error) throw new Error(error.message);

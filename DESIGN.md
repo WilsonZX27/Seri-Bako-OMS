@@ -2,10 +2,13 @@
 
 This document is the implementation contract for every customer-facing route, form, record workspace, table, panel, dialog, and mobile action bar. It applies to new work and to refactoring of existing UI.
 
-## v8.20.0 - Unposted Delete Permission Alignment
+## v8.21.0 - Unposted Removal Route Guard
 
 - Removing an unposted operational record accepts either its edit permission or its cancellation permission. Users must not be trapped by an autosave-created draft merely because their role can cancel but not edit it.
 - Posted or ledger-impacting records remain immutable; deletion preserves the audit boundary and must route users to a correction workflow instead.
+- Once an unposted record is removed from active work, its operational detail route must no longer reopen it from a stale URL; history remains available through the audit/activity surfaces.
+
+## v8.20.0 - Unposted Delete Permission Alignment
 
 ## v8.19.0 - Deliberate Stock Count Autosave Window
 

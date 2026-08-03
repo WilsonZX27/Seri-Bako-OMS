@@ -2,6 +2,11 @@
 
 This document is the implementation contract for every customer-facing route, form, record workspace, table, panel, dialog, and mobile action bar. It applies to new work and to refactoring of existing UI.
 
+## v8.25.0 - Local Visual Audit Environment
+
+- Local multi-viewport audits may load a user-provided environment file through `TEST_ENV_FILE`; credentials stay outside the worktree and are never copied into source control.
+- A visual audit is only considered passed when the authenticated fixture initializes successfully. Skipped tests caused by missing local data are reported as unverified, not as passing.
+
 ## v8.24.0 - Dashboard Hierarchy Closure
 
 - Dashboard panels reuse the flat shared surface and compact heading scale; KPI icons are square interior tiles, not status pills.

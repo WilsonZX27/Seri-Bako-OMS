@@ -1,19 +1,22 @@
 import fs from "node:fs";
 import { createClient } from "@supabase/supabase-js";
 
-const env = Object.fromEntries(fs.readFileSync(".env.test.local", "utf8").split(/\r?\n/).filter((line) => line && !line.startsWith("#") && line.includes("=")).map((line) => {
+const envFile = process.env.TEST_ENV_FILE || ".env.test.local";
+const env = Object.fromEntries(fs.readFileSync(envFile, "utf8").split(/\r?\n/).filter((line) => line && !line.startsWith("#") && line.includes("=")).map((line) => {
   const index = line.indexOf("=");
   return [line.slice(0, index).trim(), line.slice(index + 1).trim().replace(/^['"]|['"]$/g, "")];
 }));
 // This fixture deliberately avoids `supabase status`: recent Windows CLI builds
 // may try to write a global telemetry file, making a deterministic local test
 // suite fail before it touches the application. `.env.test.local` is the sole,
-// explicit authority for this disposable local target.
+// explicit authority for this disposable local target. TEST_ENV_FILE may point
+// at a local-only env file outside the worktree so secrets do not need to be
+// copied into the repository.
 const localUrl = env.NEXT_PUBLIC_SUPABASE_URL;
 const serviceRoleKey = env.SUPABASE_SERVICE_ROLE_KEY;
 const publishableKey = env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
 if (!localUrl || !serviceRoleKey || !publishableKey) {
-  throw new Error("Local E2E fixture requires NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY, and SUPABASE_SERVICE_ROLE_KEY in .env.test.local.");
+  throw new Error(`Local E2E fixture requires NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY, and SUPABASE_SERVICE_ROLE_KEY in ${envFile}.`);
 }
 const admin = createClient(localUrl, serviceRoleKey, { auth: { persistSession: false } });
 const authCheck = createClient(localUrl, publishableKey, { auth: { persistSession: false } });
@@ -27,8 +30,14 @@ const accounts = [
   ["outlet_staff", "TEST_OUTLET_EMAIL", "TEST_OUTLET_PASSWORD"],
 ];
 
-const { data: company } = await admin.from("companies").select("id").limit(1).single();
-const { data: branch } = await admin.from("branches").select("id").eq("company_id", company.id).limit(1).single();
+const { data: company, error: companyError } = await admin.from("companies").select("id").limit(1).single();
+if (companyError || !company) {
+  throw new Error(`Local E2E fixture requires at least one company in the configured Supabase target (${envFile}).${companyError ? ` ${companyError.message}` : ""}`);
+}
+const { data: branch, error: branchError } = await admin.from("branches").select("id").eq("company_id", company.id).limit(1).single();
+if (branchError || !branch) {
+  throw new Error(`Local E2E fixture requires at least one active branch for the configured company (${envFile}).${branchError ? ` ${branchError.message}` : ""}`);
+}
 const { data: branchRows, error: branchRowsError } = await admin.from("branches").select("id, branch_code").eq("company_id", company.id).is("deleted_at", null);
 if (branchRowsError) throw branchRowsError;
 if ((branchRows ?? []).length < 2) {

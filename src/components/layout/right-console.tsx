@@ -135,8 +135,8 @@ export function RightConsoleProvider({ children }: { children: ReactNode }) {
   return (
     <RightConsoleContext.Provider value={value}>
       {children}
-      <aside data-right-console className="hidden h-full min-h-0 w-[var(--sb-console-width)] shrink-0 overflow-hidden border-l bg-white xl:block">
-        <div data-right-console-scroll className="h-full overflow-y-auto overflow-x-hidden bg-white px-2 py-1">
+      <aside data-right-console className="hidden h-full min-h-0 w-[var(--sb-console-width)] shrink-0 overflow-hidden border-l bg-[var(--rail-bg)] xl:block">
+        <div data-right-console-scroll className="h-full overflow-y-auto overflow-x-hidden bg-[var(--rail-bg)] px-2 py-1">
           {consoleContent}
         </div>
       </aside>
@@ -144,14 +144,14 @@ export function RightConsoleProvider({ children }: { children: ReactNode }) {
         <Link
           href={primaryHref}
           data-mobile-create-fab
-          className="fixed bottom-[calc(var(--sb-mobile-nav-height)+env(safe-area-inset-bottom)+1rem)] right-4 z-[var(--sb-z-sticky)] inline-flex h-14 w-14 items-center justify-center rounded-full bg-[var(--sb-green-900)] text-white shadow-[0_3px_8px_rgb(6_44_31_/_0.22)] transition-transform active:scale-95 xl:hidden"
+          className="fixed bottom-[calc(var(--sb-mobile-nav-height)+env(safe-area-inset-bottom)+1rem)] right-4 z-[var(--sb-z-sticky)] inline-flex h-14 w-14 items-center justify-center rounded-full bg-[var(--sb-green-900)] text-white shadow-[0_10px_24px_rgba(10,58,43,0.30)] transition-transform active:scale-95 xl:hidden"
           aria-label={primaryLabel}
           title={primaryLabel}
         >
           <Plus className="h-6 w-6" aria-hidden="true" />
         </Link>
       ) : null}
-      {content && !mobileBarHidden ? <div data-mobile-action-bar className={cn("sb-mobile-action-bar fixed inset-x-3 bottom-[calc(var(--sb-mobile-nav-height)+env(safe-area-inset-bottom)+0.5rem)] z-[var(--sb-z-sticky)] items-center gap-2 p-2", hasCreateFab ? "hidden" : "flex", "xl:hidden")}>
+      {content && !mobileBarHidden ? <div data-mobile-action-bar className={cn("sb-mobile-action-bar fixed inset-x-3 bottom-[calc(var(--sb-mobile-nav-height)+env(safe-area-inset-bottom)+0.5rem)] z-[var(--sb-z-sticky)] items-center gap-2 rounded-[var(--sb-radius-control)] border bg-white/95 p-2 shadow-[0_-8px_20px_rgba(17,30,22,0.2)]", hasCreateFab ? "hidden" : "flex", "xl:hidden")}>
         {primaryAction ? <div data-mobile-primary-slot className="min-w-0 flex-1 [&>*]:w-full">{primaryAction}</div> : null}
         <Button ref={triggerRef} type="button" variant={primaryAction ? "outline" : "default"} className={primaryAction ? "shrink-0 gap-2" : "w-full gap-2"} onClick={() => setOpen(true)} aria-label="Open more actions" aria-haspopup="dialog" aria-expanded={open}>
           <PanelRight className="h-4 w-4" aria-hidden="true" />

@@ -2,6 +2,11 @@
 
 This document is the implementation contract for every customer-facing route, form, record workspace, table, panel, dialog, and mobile action bar. It applies to new work and to refactoring of existing UI.
 
+## v8.23.0 - Shared Shell Elevation Cue
+
+- Persistent mobile action bars and create FABs may use a restrained directional shadow so users can distinguish fixed controls from scrolling content.
+- Shared rails and workspace surfaces remain neutral and flat: no decorative gradients, oversized radii, or blur overlays. Interior controls stay at the 2px compact radius.
+
 ## v8.22.0 - Unposted Purchase Request Removal
 
 - Purchase Requests may be removed from active work while they are still unposted: Draft, Manager Review, Purchasing Review, Finance Review, and Ready to Convert.

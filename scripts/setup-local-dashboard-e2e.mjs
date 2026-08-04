@@ -18,6 +18,10 @@ const publishableKey = env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
 if (!localUrl || !serviceRoleKey || !publishableKey) {
   throw new Error(`Local E2E fixture requires NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY, and SUPABASE_SERVICE_ROLE_KEY in ${envFile}.`);
 }
+const localHostname = new URL(localUrl).hostname;
+if (!["127.0.0.1", "localhost"].includes(localHostname) || process.env.RUN_TENANT_BOUNDARY_E2E !== "1") {
+  throw new Error("Dashboard E2E fixtures are restricted to an explicitly enabled local Supabase stack.");
+}
 const admin = createClient(localUrl, serviceRoleKey, { auth: { persistSession: false } });
 const authCheck = createClient(localUrl, publishableKey, { auth: { persistSession: false } });
 const includeStockCountFixture = process.argv.includes("--stock-count-fixture") || process.env.E2E_STOCK_COUNT_FIXTURE === "1";
@@ -66,10 +70,17 @@ for (const [roleCode, emailKey, passwordKey] of accounts) {
   if (signInCheck.error) throw new Error(`The disposable ${roleCode} identity could not authenticate: ${signInCheck.error.message}`);
   const role = roles.find((row) => row.role_code === roleCode);
   const staffCode = `E2E-${roleCode.toUpperCase().replace("_", "-")}`;
-  const { data: existingStaff, error: existingStaffError } = await admin.from("staffs").select("id").eq("auth_user_id", authUser.id).maybeSingle();
+  // Preserve the stable Staff row because local workflow fixtures may refer to
+  // it through audit FKs. Re-linking Auth is safe; deleting the Staff row is not.
+  const { data: existingStaff, error: existingStaffError } = await admin
+    .from("staffs")
+    .select("id")
+    .eq("company_id", company.id)
+    .eq("staff_code", staffCode)
+    .maybeSingle();
   if (existingStaffError) throw existingStaffError;
   const staffWrite = existingStaff
-    ? await admin.from("staffs").update({ company_id: company.id, staff_code: staffCode, full_name: `Local ${roleCode}`, email: env[emailKey], default_branch_id: branch.id, status: "active", invitation_status: "completed", must_change_password: false }).eq("id", existingStaff.id).select("id").single()
+    ? await admin.from("staffs").update({ auth_user_id: authUser.id, full_name: `Local ${roleCode}`, email: env[emailKey], default_branch_id: branch.id, status: "active", invitation_status: "completed", must_change_password: false }).eq("id", existingStaff.id).select("id").single()
     : await admin.from("staffs").insert({ company_id: company.id, auth_user_id: authUser.id, staff_code: staffCode, full_name: `Local ${roleCode}`, email: env[emailKey], default_branch_id: branch.id, status: "active", invitation_status: "completed", must_change_password: false }).select("id").single();
   if (staffWrite.error) throw staffWrite.error;
   const staff = staffWrite.data;

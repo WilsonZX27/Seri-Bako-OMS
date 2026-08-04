@@ -35,8 +35,14 @@ const child = spawn(process.execPath, ["--use-system-ca", nextBin, "dev", "-p", 
 });
 
 const shutdown = (signal) => {
-  if (!child.killed) child.kill(signal);
-  setTimeout(() => process.exit(0), 1_000).unref();
+  if (child.pid && process.platform === "win32") {
+    spawn("taskkill", ["/PID", String(child.pid), "/T", "/F"], { stdio: "ignore", windowsHide: true });
+  } else if (!child.killed) {
+    child.kill(signal);
+  }
+  // Windows does not reliably deliver a second signal after taskkill starts;
+  // close the wrapper promptly so Playwright never waits on a stale stdio pipe.
+  setTimeout(() => process.exit(0), 100).unref();
 };
 process.on("SIGINT", () => shutdown("SIGINT"));
 process.on("SIGTERM", () => shutdown("SIGTERM"));

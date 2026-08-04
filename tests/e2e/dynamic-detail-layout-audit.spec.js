@@ -29,7 +29,7 @@ async function assertBounds(page, route, viewport) {
     controls: Array.from(document.querySelectorAll("a,button,input,select,textarea,summary,[role='button'],[role='link']")).filter((node) => {
       const rect = node.getBoundingClientRect();
       const style = getComputedStyle(node);
-      if (rect.width <= 0 || rect.height <= 0 || style.visibility === "hidden" || style.display === "none") return false;
+      if (node.classList.contains("sr-only") || rect.width <= 0 || rect.height <= 0 || style.visibility === "hidden" || style.display === "none") return false;
       let parent = node.parentElement;
       while (parent) {
         const parentStyle = getComputedStyle(parent);

@@ -166,7 +166,7 @@ export async function saveAndPostStockCount(id: string, formData: FormData) {
   await postStockCount(id);
 }
 
-export async function cancelStockCount(id: string, _formData?: FormData) {
+export async function cancelStockCount(id: string) {
   await requirePermission("stock_count.cancel");
   if (isMockMode()) return;
   const countId = stockCountIdSchema.parse(id);

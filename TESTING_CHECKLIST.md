@@ -1,6 +1,6 @@
 # Milestone 1 Testing Checklist
 
-## Current audit closure checks (v7.87.0)
+## Current audit closure checks (v8.36.0 / migration 126)
 
 - Confirm the app shell uses `dvh`, with no fixed `100vh` route clipping mobile
   browser chrome.

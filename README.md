@@ -8,8 +8,8 @@ For UI and interaction standards, read `DESIGN.md`.
 
 ## Current Release Baseline
 
-- Application release: `v7.87.0 — Staff Access Default Branch Submission Fix`.
-- Database migration ceiling: `106_invited_staff_self_read`.
+- Application release: `v8.36.0 — Explicit Stock Count Cancellation`.
+- Database migration ceiling: `126_retire_legacy_rpc_acl_and_hold_rls`.
 - Tenant isolation, inventory posting atomicity, procurement/document transitions, concurrency controls, and credential handoff are database-authoritative.
 - Start with `docs/PILOT_BASELINE.md`, use the controlled CSV files in `docs/import-templates/`, and record sign-off in `docs/PILOT_QA_CHECKLIST.md`.
 

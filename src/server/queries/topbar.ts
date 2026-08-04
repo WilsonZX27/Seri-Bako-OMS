@@ -5,6 +5,7 @@ import { isMockMode, mockDocuments } from "@/lib/mock-mode";
 import { hasPermission } from "@/server/auth/permissions";
 import { getVisibleNotificationsForCurrentUser, getVisibleRecentActivitiesForCurrentUser } from "@/server/queries/notifications";
 import { getCurrentUserPendingActions } from "@/server/queries/pending-actions";
+import { logServerWarning } from "@/server/observability/logger";
 
 type AssignedActivity = {
   id: string;
@@ -46,11 +47,26 @@ export async function getTopBarActivity() {
   const db = looseSupabase(supabase);
   const [documentApprovals, notifications, assignedActivities, workflowPendingActions, canApproveProduction, canPostProduction] = await Promise.all([
     supabase.from("documents").select("id, document_no, title, document_type, related_entity_type, related_entity_id").eq("approval_status", "pending").order("updated_at", { ascending: false }).limit(5),
-    getVisibleNotificationsForCurrentUser(),
-    getVisibleRecentActivitiesForCurrentUser(5),
-    getCurrentUserPendingActions(5),
-    hasPermission("production.approve"),
-    hasPermission("production.post"),
+    getVisibleNotificationsForCurrentUser().catch((error) => {
+      logServerWarning(error, { source: "topbar.notifications" });
+      return [];
+    }),
+    getVisibleRecentActivitiesForCurrentUser(5).catch((error) => {
+      logServerWarning(error, { source: "topbar.recent-activities" });
+      return [] as AssignedActivity[];
+    }),
+    getCurrentUserPendingActions(5).catch((error) => {
+      logServerWarning(error, { source: "topbar.pending-actions" });
+      return [] as PendingAction[];
+    }),
+    hasPermission("production.approve").catch((error) => {
+      logServerWarning(error, { source: "topbar.production-approve-permission" });
+      return false;
+    }),
+    hasPermission("production.post").catch((error) => {
+      logServerWarning(error, { source: "topbar.production-post-permission" });
+      return false;
+    }),
   ]);
 
   const documentPendingActions: PendingAction[] = documentApprovals.error

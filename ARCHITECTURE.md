@@ -1,6 +1,6 @@
 # Seri Bako OMS Architecture
 
-## Current audit baseline (v7.87.0 — Staff Access Default Branch Submission Fix)
+## Current audit baseline (v8.36.0 — Explicit Stock Count Cancellation)
 
 The application shell uses dynamic viewport sizing (`dvh`) instead of a fixed
 `100vh` contract. Mobile-safe content reserves space for bottom navigation and

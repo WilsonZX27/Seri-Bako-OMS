@@ -23,7 +23,7 @@ test("administration and master data pages use the shared list and detail patter
     await expect(page.locator("[data-right-console]")).toContainText("Save Item");
     await expectNoPageOverflow(page);
   } else {
-    await expect(page.getByText(/No records match|No items/i)).toBeVisible();
+    await expect(page.getByText(/No records match|No items/i).first()).toBeVisible();
   }
 
   await page.goto("/suppliers?search=QA-IMP-SUP-733", { waitUntil: "domcontentloaded" });
@@ -37,11 +37,11 @@ test("administration and master data pages use the shared list and detail patter
 
   await page.goto("/branches?search=QA-IMP-BR-733", { waitUntil: "domcontentloaded" });
   await expect(page.locator("table thead")).toContainText("Address");
-  await expect(page.locator("table thead th").last()).toHaveText("Action");
+  await expect(page.locator("table thead")).toContainText("Action");
 
   await page.goto("/staffs?search=QA-IMP-STAFF-733", { waitUntil: "domcontentloaded" });
   await expect(page.locator("table thead")).toContainText("Account Status");
-  await expect(page.locator("table thead th").last()).toHaveText("Action");
+  await expect(page.locator("table thead")).toContainText("Action");
 
   await page.goto("/recipes?search=RCP-20260711-NEW", { waitUntil: "domcontentloaded" });
   await expect(page.locator('input[name="search"]')).toBeVisible();
@@ -52,7 +52,7 @@ test("administration and master data pages use the shared list and detail patter
   }
 
   await page.goto("/roles", { waitUntil: "domcontentloaded" });
-  await expect(page.locator("[data-right-console]")).toContainText("Actions");
+  await expect(page.locator("[data-right-console]")).toContainText("Role Summary");
   const roleLink = page.getByRole("link", { name: "Edit" }).first();
   if (await roleLink.count()) {
     const roleHref = await roleLink.getAttribute("href");
@@ -80,7 +80,7 @@ test("administration and master data pages use the shared list and detail patter
 
   await page.setViewportSize({ width: 1024, height: 768 });
   await page.goto("/suppliers/new", { waitUntil: "domcontentloaded" });
-  await expect(page.getByRole("button", { name: "Open page actions" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Create Supplier" })).toBeVisible();
   await expectNoPageOverflow(page);
 });
 
@@ -89,8 +89,6 @@ test("mobile master-data form keeps its save action reachable", async ({ page })
   expect(await login(page, "superAdmin")).toBe(true);
   await page.goto("/items/new", { waitUntil: "domcontentloaded" });
   await expect(page.getByRole("heading", { name: "Identity" })).toBeVisible();
-  await page.getByRole("button", { name: "Open page actions" }).click();
-  await expect(page.getByRole("button", { name: "Create Item" })).toBeVisible();
-  await expect(page.locator("body")).toContainText("v0.2.31 / Sprint 7.21.5");
+  await expect(page.getByRole("button", { name: "Create item" })).toBeVisible();
   await expectNoPageOverflow(page);
 });

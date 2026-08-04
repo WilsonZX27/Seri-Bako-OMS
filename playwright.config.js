@@ -42,12 +42,17 @@ module.exports = defineConfig({
   // a setup command while keeping remote and production targets untouched.
   globalSetup: usesLocalRoleFixture ? "./tests/e2e/local-role-fixture-global-setup.cjs" : undefined,
   timeout: 45_000,
+  // The local Supabase fetch adapter deliberately serializes requests. Running
+  // several authenticated browser workers against it creates an artificial
+  // request queue and turns healthy routes into minute-long timeouts.
+  workers: usesLocalRoleFixture ? 1 : undefined,
   retries: process.env.CI ? 1 : 0,
   outputDir: "test-results/ui-smoke-sprint-7-2-6-artifacts",
   webServer: startsLocalServer ? {
     command: "node scripts/playwright-local-server.mjs",
     url: `${localBaseUrl}/login`,
     reuseExistingServer: true,
+    gracefulShutdown: { signal: "SIGINT", timeout: 1_000 },
     timeout: 120_000,
     env: {
       ...process.env,

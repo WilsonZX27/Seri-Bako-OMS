@@ -5,6 +5,7 @@ import type { PurchaseRequestStatus } from "@/lib/status-contracts";
 import { hasCompanyWideOperationalScope } from "@/lib/roles";
 import { getCanonicalEntityHref } from "@/lib/document-routing";
 import { actorDisplayName, formatActivityWithActor, resolveActorDisplayMap } from "@/server/actors/display";
+import { cache } from "react";
 
 export type CurrentUserScope = {
   authUserId: string;
@@ -15,7 +16,7 @@ export type CurrentUserScope = {
   companyWideAccess: boolean;
 };
 
-export async function getCurrentUserScope(): Promise<CurrentUserScope | null> {
+export const getCurrentUserScope = cache(async function getCurrentUserScope(): Promise<CurrentUserScope | null> {
   const supabase = await createClient();
   const {
     data: { user },
@@ -51,7 +52,7 @@ export async function getCurrentUserScope(): Promise<CurrentUserScope | null> {
   const companyWideAccess = hasCompanyWideOperationalScope(roleCode);
 
   return { authUserId: user.id, staffId, roleIds, branchIds, roleCode, companyWideAccess };
-}
+});
 
 export async function getVisibleNotificationsForCurrentUser() {
   if (isMockMode()) {

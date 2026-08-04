@@ -107,9 +107,12 @@ test("mobile workflow and approval sheets trap focus, lock scroll and return foc
   await page.setViewportSize({ width: 390, height: 844 });
   await login(page, "manager");
   await page.goto("/purchase-requests?status=manager_review", { waitUntil: "domcontentloaded" });
+  await page.waitForLoadState("networkidle", { timeout: 15_000 }).catch(() => {});
   const emptyState = page.getByText(/No (purchase requests found|requests match these filters)/i).first();
   test.skip(await emptyState.isVisible().catch(() => false), "No Manager Review PR fixture is available");
-  const href = await page.locator('tbody a[href^="/purchase-requests/"]').first().getAttribute("href");
+  const requestLink = page.locator('tbody a[href^="/purchase-requests/"]').first();
+  if (!await requestLink.count()) test.skip(true, "No Manager Review PR fixture is available");
+  const href = await requestLink.getAttribute("href", { timeout: 3_000 }).catch(() => null);
   test.skip(!href, "No Manager Review PR fixture is available");
   await page.goto(href, { waitUntil: "domcontentloaded" });
 

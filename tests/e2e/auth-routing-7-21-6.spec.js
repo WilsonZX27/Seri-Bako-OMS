@@ -1,5 +1,6 @@
 const { test, expect } = require("@playwright/test");
 const { requireAccount } = require("./helpers");
+const packageVersion = require("../../package.json").version;
 
 const roles = ["superAdmin", "manager", "finance", "purchasing", "kitchen", "outlet"];
 
@@ -27,8 +28,7 @@ for (const role of roles) {
     expect(redirects.every(([source, destination]) => source !== destination)).toBe(true);
     expect(redirects.length).toBeLessThan(8);
     expect(["/login", "/"].includes(terminal)).toBe(false);
-    await expect(page.locator("body")).toContainText("v0.2.34");
-    await expect(page.locator("body")).toContainText("Sprint 7.22.1");
+    await expect(page.locator("body")).toContainText(`v${packageVersion}`);
   });
 }
 
@@ -42,9 +42,9 @@ test("desktop and mobile keep usable navigation after login", async ({ browser }
     await page.getByRole("button", { name: /sign in/i }).click();
     await page.waitForURL((url) => !["/login", "/"].includes(url.pathname), { timeout: 20_000 });
     if (viewport.width < 640) {
-      await expect(page.getByRole("button", { name: "Open navigation" })).toBeVisible();
+      await expect(page.getByRole("navigation", { name: "Primary mobile navigation" })).toBeVisible();
     } else {
-      await expect(page.locator("nav")).toBeVisible();
+      await expect(page.getByRole("navigation").first()).toBeVisible();
     }
     await page.close();
   }

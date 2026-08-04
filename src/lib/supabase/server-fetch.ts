@@ -1,4 +1,7 @@
-const MAX_CONCURRENT_SUPABASE_REQUESTS = 1;
+const configuredConcurrency = Number(process.env.SUPABASE_LOCAL_FETCH_CONCURRENCY ?? "3");
+const MAX_CONCURRENT_SUPABASE_REQUESTS = Number.isFinite(configuredConcurrency)
+  ? Math.min(12, Math.max(1, Math.floor(configuredConcurrency)))
+  : 3;
 let activeRequests = 0;
 const waiters: Array<() => void> = [];
 

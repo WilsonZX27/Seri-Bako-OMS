@@ -5,13 +5,14 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 
 export default function WorkspaceError({ error, reset }: { error: Error & { digest?: string }; reset: () => void }) {
+  const missingRecord = /Cannot coerce the result to a single JSON object/i.test(error.message);
   return (
     <div className="p-3 sm:p-5">
       <Card>
         <CardContent className="space-y-3 p-4 sm:p-5">
           <div>
-            <h2 className="text-sm font-semibold">This workspace could not finish the request</h2>
-            <p className="mt-1 text-xs text-muted-foreground">Your saved records are unchanged unless a success message was shown. Retry, or return to a safe workspace.</p>
+            <h2 className="text-sm font-semibold">{missingRecord ? "Record unavailable" : "This workspace could not finish the request"}</h2>
+            <p className="mt-1 text-xs text-muted-foreground">{missingRecord ? "This record is not available in the current workspace, or it has already been removed." : "Your saved records are unchanged unless a success message was shown. Retry, or return to a safe workspace."}</p>
             {error.digest ? <p className="mt-2 text-xs text-muted-foreground">Reference: {error.digest}</p> : null}
           </div>
           <div className="flex flex-wrap gap-2">

@@ -25,6 +25,61 @@
   --sb-content-gutter: clamp(0.75rem, 1.5vw, 1.25rem);
 }
 
+/* Compact list filters: search and primary action share the first row on phones. */
+@media (max-width: 639px) {
+  form.sb-mobile-list-filter {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) auto !important;
+    align-items: center !important;
+    gap: 0.5rem !important;
+  }
+
+  form.sb-mobile-list-filter > :first-child {
+    display: block !important;
+    grid-column: 1 !important;
+    grid-row: 1 !important;
+    min-width: 0 !important;
+    width: 100% !important;
+  }
+
+  form.sb-mobile-list-filter > .sb-filter-submit {
+    grid-column: 2 !important;
+    grid-row: 1 !important;
+    width: auto !important;
+    min-width: 5.5rem !important;
+  }
+
+  form.sb-mobile-list-filter > input[type="hidden"] {
+    display: none !important;
+  }
+
+  form.sb-mobile-list-filter > .sb-filter-summary {
+    grid-column: 1 / -1 !important;
+    justify-self: end !important;
+    width: auto !important;
+  }
+}
+
+/* Tablet filter bars retain one full-width search row and one compact control row. */
+@media (min-width: 640px) and (max-width: 1023px) {
+  form.sb-tablet-split-filter {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) minmax(8rem, 0.34fr) auto auto !important;
+    align-items: center !important;
+    gap: 0.5rem !important;
+  }
+
+  form.sb-tablet-split-filter > :first-child {
+    grid-column: 1 / -1 !important;
+    width: 100% !important;
+  }
+
+  form.sb-tablet-split-filter > .sb-filter-submit {
+    width: auto !important;
+    min-width: 6rem !important;
+  }
+}
+
 [data-app-shell] {
   color: var(--sb-text);
   background:

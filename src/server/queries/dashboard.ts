@@ -3,8 +3,6 @@ import { looseSupabase } from "@/lib/supabase/loose";
 import { getCurrentUserScope, getVisibleNotificationsForCurrentUser } from "@/server/queries/notifications";
 import { getCurrentUserPendingActions } from "@/server/queries/pending-actions";
 import { getPayablesAttention } from "@/server/queries/ap-aging";
-import { getOperationsControlCenterSummary } from "@/server/queries/outlet-daily-records";
-import { getProductionHubSummary } from "@/server/queries/production-jobs";
 import { getInventoryDashboard } from "@/server/queries/inventory";
 import { getRoleDisplayLabel } from "@/lib/roles";
 import { logServerWarning } from "@/server/observability/logger";
@@ -36,6 +34,12 @@ type DashboardCoreSnapshot = {
   stock_count_due: number;
   wastage_attention: number;
   receiving_followup: number;
+  production_today_posted: number;
+  production_pending_approval: number;
+  production_ready_to_post: number;
+  production_ingredient_shortages: number;
+  outlet_missing_evening: number;
+  outlet_needs_review: number;
 };
 
 export async function getDashboardSummary() {
@@ -125,7 +129,7 @@ export async function getDashboardSummary() {
   const supabase = await createClient();
   const db = looseSupabase(supabase);
   const empty = { data: [], error: null, count: 0 };
-  const [inventorySummary, coreSnapshotResult, pendingApprovals, notifications, recentActivities, productionSummary, outletToday, currentStaff, assignedBranches, payablesAttention, operationsControl] = await Promise.all([
+  const [inventorySummary, coreSnapshotResult, pendingApprovals, notifications, recentActivities, outletToday, currentStaff, assignedBranches, payablesAttention] = await Promise.all([
     needsInventory ? getInventoryDashboard("7d").catch((error) => { warnOptionalQuery("inventory summary", error); return null; }) : Promise.resolve(null),
     (needsProcurement || needsInventory) ? supabase.rpc("get_dashboard_core_snapshot", { p_today: today }) : Promise.resolve({ data: null, error: null }),
     getCurrentUserPendingActions(5),
@@ -133,7 +137,6 @@ export async function getDashboardSummary() {
     // Actor resolution is intentionally reserved for Activity Log and the
     // notification workspace. It is not part of the dashboard's critical path.
     Promise.resolve([]),
-    needsProduction ? getProductionHubSummary().catch(() => null) : Promise.resolve(null),
     isOutlet ? db.from("outlet_daily_records").select("id, status, record_date, branch_id").eq("record_date", today).order("updated_at", { ascending: false }).limit(1).maybeSingle() : Promise.resolve({ data: null, error: null }),
     scope.staffId ? supabase.from("staffs").select("full_name").eq("id", scope.staffId).maybeSingle() : Promise.resolve({ data: null, error: null }),
     !scope.companyWideAccess && scope.branchIds.length
@@ -142,12 +145,6 @@ export async function getDashboardSummary() {
     (isOwner || isFinance)
       ? getPayablesAttention().catch((error) => {
           warnOptionalQuery("payables attention", error);
-          return null;
-        })
-      : Promise.resolve(null),
-    needsOperations
-      ? getOperationsControlCenterSummary().catch((error) => {
-          warnOptionalQuery("operations control", error);
           return null;
         })
       : Promise.resolve(null),
@@ -197,7 +194,7 @@ export async function getDashboardSummary() {
     today: {
       goodsReceiving: Number(coreSnapshot?.today_receiving ?? 0),
       stockCountDue: Number(coreSnapshot?.stock_count_due ?? 0),
-      production: productionSummary?.todayPosted ?? 0,
+      production: needsProduction && !coreUnavailable ? Number(coreSnapshot?.production_today_posted ?? 0) : 0,
       deliveries: 0,
     },
     todayReceivingUnavailable: coreUnavailable,
@@ -212,8 +209,23 @@ export async function getDashboardSummary() {
     receivingFollowupUnavailable: coreUnavailable,
     payablesAttention,
     payablesAttentionUnavailable,
-    operationsControl,
-    productionSummary,
+    operationsControl: needsOperations && !coreUnavailable ? {
+      outlet: {
+        missing_evening: Number(coreSnapshot?.outlet_missing_evening ?? 0),
+        needs_review: Number(coreSnapshot?.outlet_needs_review ?? 0),
+      },
+      demand: null,
+      variance: null,
+      planning: null,
+      unavailable: { outlet: false, demand: true },
+    } : null,
+    productionSummary: needsProduction && !coreUnavailable ? {
+      todayPosted: Number(coreSnapshot?.production_today_posted ?? 0),
+      pendingApproval: Number(coreSnapshot?.production_pending_approval ?? 0),
+      readyToPost: Number(coreSnapshot?.production_ready_to_post ?? 0),
+      activeRecipes: 0,
+      ingredientShortages: Number(coreSnapshot?.production_ingredient_shortages ?? 0),
+    } : null,
     outletToday: outletToday.data ?? null,
   };
   return result;

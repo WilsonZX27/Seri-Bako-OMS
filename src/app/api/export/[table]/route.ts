@@ -14,7 +14,7 @@ const exportTables: Record<string, { table: string; permission: string; order?: 
   staffs: { table: "staffs", permission: "staff.manage", order: "full_name" },
   "stock-transactions": { table: "stock_transactions", permission: "documents.view", order: "created_at" },
   "purchase-requests": { table: "purchase_requests", permission: "pr.view_branch", order: "created_at" },
-  "purchase-orders": { table: "purchase_orders", permission: "po.create", order: "created_at" },
+  "purchase-orders": { table: "purchase_orders", permission: "po.create", order: "created_at", dateColumn: "order_date" },
   "production-jobs": { table: "production_jobs", permission: "production.view", order: "created_at" },
   "stock-counts": { table: "stock_counts", permission: "stock_count.read", order: "count_date", dateColumn: "count_date" },
 };
@@ -37,6 +37,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ tabl
   const url = new URL(request.url);
   if (config.dateColumn && url.searchParams.get("from")) query = query.gte(config.dateColumn, url.searchParams.get("from")!);
   if (config.dateColumn && url.searchParams.get("to")) query = query.lte(config.dateColumn, url.searchParams.get("to")!);
+  if (url.searchParams.get("status") && url.searchParams.get("status") !== "all") query = query.eq("status", url.searchParams.get("status")!);
   if (key === "stock-counts") query = query.is("deleted_at", null);
   if (config.order) query = query.order(config.order, { ascending: true });
   const { data, error } = await query;

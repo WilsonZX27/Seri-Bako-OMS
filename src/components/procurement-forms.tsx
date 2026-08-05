@@ -212,7 +212,7 @@ export function PurchaseRequestForm({
             <div className="mb-3 flex items-baseline justify-between gap-3 border-b border-[var(--sb-border-soft)] pb-2">
               <div><h2 className="text-sm font-semibold text-[var(--sb-text)]">Request details <span className="sr-only">More settings</span></h2><p className="text-xs text-muted-foreground">Where and when this purchase is needed.</p></div>
             </div>
-            <div className="grid gap-3 md:grid-cols-2">
+            <div className="grid gap-3 md:grid-cols-3">
             <Field label="Request branch" required>
                 <SelectNative name="branch_id" value={branchId} onChange={(event) => changeBranch(event.target.value)} required disabled={lockBranch}>
                   {branches.map((branch) => <option key={branch.id} value={branch.id}>{branch.branch_name}</option>)}
@@ -223,7 +223,7 @@ export function PurchaseRequestForm({
               <Input name="needed_by_date" type="date" defaultValue={initialNeededByDate ?? ""} />
             </Field>
             <Field label="Urgency"><UrgencySelect value={priority} onValueChange={setPriority} /></Field>
-            <Field label="Remarks" className="md:col-span-2">
+            <Field label="Remarks" className="md:col-span-3">
               <Textarea className="min-h-[3.75rem] resize-y" rows={2} name="remarks" defaultValue={initialRemarks ?? ""} placeholder="Reason or instructions for this request" />
             </Field>
             </div>

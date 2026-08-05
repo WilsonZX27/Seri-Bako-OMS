@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { MapPin } from "lucide-react";
 import { DocumentNumber } from "@/components/document-number";
 import { PriorityBadge } from "@/components/priority-badge";
 import { ConsoleSection } from "@/components/layout/right-console";
@@ -64,14 +65,13 @@ export function DocumentWorkspace({
             <div className={cn("flex min-w-0 flex-wrap items-center gap-1.5", isNewDocument ? "min-h-7" : "min-h-8 gap-2")}>
               {!isNewDocument ? <DocumentNumber value={documentNo} size="lg" className="max-w-[min(100%,18rem)] break-all text-[16px] sm:text-lg" /> : null}
               {priority ? <PriorityBadge priority={priority} /> : null}
-              {title && isNewDocument ? <span className="min-w-0 break-words text-sm font-semibold text-foreground md:hidden">{title}</span> : null}
+              {title && isNewDocument ? <span className="min-w-0 break-words text-sm font-semibold text-foreground md:text-base">{title}</span> : null}
               <StatusBadge status={status} className="md:hidden" />
               {branch ? <span className="truncate text-xs text-muted-foreground md:hidden">· {branch}</span> : null}
-              {branch ? <span className="ml-auto hidden max-w-[45%] break-words text-right text-xs text-muted-foreground md:block">{branch}</span> : null}
+              {branch ? <span className="ml-auto hidden max-w-[45%] items-center justify-end gap-1.5 break-words text-right text-xs text-muted-foreground md:flex"><MapPin className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />{branch}</span> : null}
             </div>
             <div className={cn("hidden flex-wrap items-center gap-2 text-xs text-muted-foreground md:flex", isNewDocument ? "mt-0 md:mt-1" : "mt-1")}>
               {title && !isNewDocument ? <span className="font-medium text-foreground">{title}</span> : null}
-              {title && isNewDocument ? <span className="font-medium text-foreground">{title}</span> : null}
             </div>
           </div>
         </div> : null}

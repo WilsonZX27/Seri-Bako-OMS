@@ -31,7 +31,7 @@ function Metric({
   return (
     <Link prefetch={false}
       href={href}
-      className={variant === "tile" ? "group flex min-h-[5.75rem] min-w-0 flex-col items-start justify-between gap-2 border border-[var(--sb-border-soft)] bg-[var(--sb-surface)] p-2 transition-colors duration-200 hover:bg-[var(--sb-surface-muted)] sm:min-h-[7rem] sm:p-3" : "group flex min-h-10 items-center justify-between gap-3 border-b border-[var(--sb-border-soft)] px-2 py-2.5 transition-colors duration-300 hover:bg-[var(--sb-surface-muted)] last:border-b-0"}
+      className={variant === "tile" ? "group flex min-h-[5.75rem] min-w-0 flex-col items-start justify-between gap-2 rounded-[var(--sb-control-radius)] border border-[var(--sb-border-soft)] bg-[var(--sb-surface)] p-2 transition-colors duration-200 hover:bg-[var(--sb-surface-muted)] sm:min-h-[7rem] sm:p-3" : "group flex min-h-10 items-center justify-between gap-3 border-b border-[var(--sb-border-soft)] px-2 py-2.5 transition-colors duration-300 hover:bg-[var(--sb-surface-muted)] last:border-b-0"}
     >
       <span className={variant === "tile" ? "flex min-w-0 flex-col items-start gap-2 text-xs font-medium text-[var(--sb-text-muted)]" : "flex min-w-0 items-center gap-2 text-xs font-medium text-[var(--sb-text-muted)]"}>
         <span
@@ -223,7 +223,7 @@ export function DashboardWorkspace({ summary, renderedAt }: { summary: Dashboard
           {summary.notifications.length ? (
             <ConsoleSection title="Alerts">
               <div className="space-y-2">
-                {summary.notifications.slice(0, 3).map((note) => (
+                {summary.notifications.slice(0, 3).map((note: DashboardSummary["notifications"][number]) => (
                   <Link prefetch={false} key={note.id} href={note.action_url ?? "/activity"} className="block text-xs hover:underline">
                     <strong className="block">{note.title}</strong>
                     <span className="text-muted-foreground">{note.message}</span>
@@ -297,7 +297,7 @@ export function DashboardWorkspace({ summary, renderedAt }: { summary: Dashboard
               title={isKitchen ? "Purchase request progress" : "Actions awaiting you"}
             >
                 <div className="divide-y rounded-[var(--sb-radius-control)] border bg-[var(--workspace-bg)]">
-                  {summary.pendingApprovals.map((row) => (
+                  {summary.pendingApprovals.map((row: DashboardSummary["pendingApprovals"][number]) => (
                     <Link prefetch={false}
                       key={row.id}
                       href={row.href}

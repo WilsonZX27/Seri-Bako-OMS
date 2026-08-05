@@ -163,9 +163,9 @@ export async function getDashboardSummary() {
   const payablesAttentionUnavailable = (isOwner || isFinance) && payablesAttention === null;
   const branchLabel = scope.companyWideAccess
     ? "Company-wide"
-    : assignedBranches.data?.map((branch) => branch.branch_name).filter(Boolean).join(", ") || "Assigned workspace";
+    : assignedBranches.data?.map((branch: { branch_name: string | null }) => branch.branch_name).filter(Boolean).join(", ") || "Assigned workspace";
   const lowStockRows = (inventorySummary?.lowStockRows ?? [])
-    .sort((a, b) => Number(b.shortage_quantity ?? 0) - Number(a.shortage_quantity ?? 0) || a.item_name.localeCompare(b.item_name))
+    .sort((a: { shortage_quantity: number | string | null; item_name: string }, b: { shortage_quantity: number | string | null; item_name: string }) => Number(b.shortage_quantity ?? 0) - Number(a.shortage_quantity ?? 0) || a.item_name.localeCompare(b.item_name))
     .slice(0, 5);
   const inventoryUnavailable = needsInventory && (inventorySummary === null || inventorySummary.inventoryUnavailable);
 

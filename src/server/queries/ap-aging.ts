@@ -202,6 +202,18 @@ export async function getCashFlowForecast(requestedPeriod?: string, requestedPag
 }
 
 export async function getPayablesAttention() {
-  const report = await getApAgingReport();
-  return { ...report.attention, report_date: report.report_date, timezone: report.timezone };
+  const db = await createClient();
+  type PayablesAttention = Omit<
+    ApAgingReport["attention"],
+    "highest_exposure_supplier" | "oldest_overdue_invoice" | "rows"
+  > & { report_date: string; timezone: string };
+  const callSummary = db.rpc as unknown as (
+    fn: "get_payables_attention_summary",
+  ) => Promise<{ data: PayablesAttention | null; error: { message: string } | null }>;
+  const { data, error } = await callSummary("get_payables_attention_summary");
+
+  if (error) throw error;
+  if (!data) throw new Error("Payables attention summary is unavailable.");
+
+  return data;
 }

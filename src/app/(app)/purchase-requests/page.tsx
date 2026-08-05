@@ -68,12 +68,12 @@ export default async function PurchaseRequestsPage({ searchParams }: { searchPar
         }
       >
         <div className="overflow-hidden rounded-[var(--sb-panel-radius)] border border-[var(--sb-border-soft)] bg-card" data-tablet-main-list>
-          <FilterBar resetHref="/purchase-requests" filtered={filtered} resultCount={requests.totalRows} className="sb-tablet-split-filter">
+          <FilterBar resetHref="/purchase-requests" filtered={filtered} resultCount={requests.totalRows} className="sb-tablet-split-filter sb-mobile-list-filter">
             <Input name="search" defaultValue={filters.search ?? ""} placeholder="Search PR no, branch, remarks" className="md:max-w-sm" />
             <StatusTabs statuses={statuses} activeStatus={filters.status} />
             <SelectControl name="priority" defaultValue={filters.priority ?? "all"} ariaLabel="Priority" options={[{ value: "all", label: "All priorities" }, { value: "critical", label: "Critical" }, { value: "urgent", label: "Urgent" }, { value: "normal", label: "Normal" }, { value: "low", label: "Low" }]} />
             {filters.status ? <input type="hidden" name="status" value={filters.status} /> : null}
-            {filtered ? <Button asChild variant="secondary" className="shrink-0"><Link href="/purchase-requests">Reset</Link></Button> : <Button type="submit" variant="secondary" className="shrink-0">Search</Button>}
+            {filtered ? <Button asChild variant="secondary" className="sb-filter-submit shrink-0"><Link href="/purchase-requests">Reset</Link></Button> : <Button type="submit" variant="secondary" className="sb-filter-submit shrink-0">Search</Button>}
           </FilterBar>
           <BulkSelectionProvider ids={requests.rows.map((request) => request.id)} actionLabel="Delete selected" actionHint="Review selected requests before permanent deletion.">
           <BulkPhaseOneDelete />

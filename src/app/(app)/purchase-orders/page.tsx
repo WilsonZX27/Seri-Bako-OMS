@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Download, Pencil, Plus } from "lucide-react";
+import { Pencil, Plus } from "lucide-react";
 import { DataGridRow } from "@/components/ui/data-grid-row";
 import { DataGridHint } from "@/components/ui/data-grid-hint";
 import { DocumentNumber } from "@/components/document-number";
@@ -18,6 +18,7 @@ import { formatCurrency, formatDateOnly } from "@/lib/utils";
 import { hasActiveFilters } from "@/lib/table-state";
 import { getPurchaseOrderSummary, getPurchaseOrders } from "@/server/queries/procurement";
 import { getPermissionMap } from "@/server/auth/permissions";
+import { PurchaseOrderExportDialog } from "@/components/purchase-order-export-dialog";
 
 const statuses = [
   { value: "approved", label: "Ready to Send" },
@@ -47,7 +48,7 @@ export default async function PurchaseOrdersPage({ searchParams }: { searchParam
           <>
             {permissions["po.create"] ? <ConsoleSection title="Actions"><div className="grid gap-2">
               <Button asChild size="sm" className="w-full" data-mobile-primary-action><Link href="/purchase-orders/new"><Plus className="h-4 w-4" />New PO</Link></Button>
-              <Button asChild variant="outline" size="sm" className="w-full"><Link href="/api/export/purchase-orders"><Download className="h-4 w-4" />Export CSV</Link></Button>
+              <PurchaseOrderExportDialog />
             </div></ConsoleSection> : null}
             <ConsoleSection title="PO Summary">
               <div className="grid gap-2 text-xs">
@@ -116,6 +117,7 @@ export default async function PurchaseOrdersPage({ searchParams }: { searchParam
           <PaginationControls page={orders.page} totalPages={orders.totalPages} totalRows={orders.totalRows} searchParams={filters} />
         </div>
       </WorkspaceGrid>
+      {permissions["po.create"] ? <Button asChild size="icon" className="fixed bottom-[calc(var(--sb-mobile-nav-height)+env(safe-area-inset-bottom)+1rem)] right-4 z-[var(--sb-z-sticky)] h-14 w-14 rounded-full shadow-[0_8px_24px_rgb(6_44_31_/_0.24)] lg:hidden"><Link href="/purchase-orders/new" aria-label="New purchase order"><Plus className="h-5 w-5" /></Link></Button> : null}
     </>
   );
 }

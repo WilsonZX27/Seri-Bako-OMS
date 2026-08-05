@@ -224,6 +224,7 @@ export function MobileAppNavigation({
     <>
       <nav
         data-mobile-app-nav
+        data-mobile-bottom-nav
         aria-label="Primary mobile navigation"
         className="fixed inset-x-0 bottom-0 z-[var(--sb-z-sticky)] border-t border-[var(--sb-border)] bg-[var(--sb-surface)] pb-[env(safe-area-inset-bottom)] shadow-[0_-3px_10px_rgb(6_44_31_/_0.12)] xl:hidden"
       >

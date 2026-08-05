@@ -44,7 +44,7 @@ export function CompanyLogoForm({
           <div className="flex h-20 w-20 items-center justify-center overflow-hidden rounded-[2px] border bg-secondary">
             {visibleLogo ? (
               // eslint-disable-next-line @next/next/no-img-element
-              <img src={visibleLogo} alt={previewLabel} className="h-full w-full object-contain p-2" />
+              <img src={visibleLogo} alt={previewLabel} className="h-full w-full object-contain" />
             ) : (
               <ImageIcon className="h-8 w-8 text-muted-foreground" />
             )}

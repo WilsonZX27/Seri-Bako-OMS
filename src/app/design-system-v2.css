@@ -191,63 +191,9 @@ button[form="purchase-request-form"][name="intent"][value="draft"]::before {
   }
 }
 
-.sb-list-filters {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.75rem;
-  border-bottom: 1px solid var(--sb-border-soft);
-  background: rgb(255 255 255 / 0.92);
-}
-
-.sb-list-filters > :first-child {
-  min-width: min(14rem, 100%);
-  flex: 1 1 18rem;
-}
-
-.sb-list-filters > nav,
-.sb-list-filters > [data-select-control],
-.sb-list-filters > select,
-.sb-list-filters > .sb-filter-more {
-  flex: 0 1 auto;
-  min-width: 9rem;
-}
-
-.sb-list-filters > button[type="submit"] {
-  flex: 0 0 auto;
-}
-
-.sb-filter-summary {
-  display: flex;
-  min-width: max-content;
-  align-items: center;
-  justify-content: flex-end;
-  gap: 0.25rem;
-  order: 5;
-  margin-left: auto;
-  color: var(--sb-text-muted);
-  font-size: 0.75rem;
-  font-variant-numeric: tabular-nums;
-}
-
-@media (min-width: 1280px) {
-  .sb-list-filters {
-    flex-wrap: nowrap;
-  }
-
-  .sb-list-filters > :first-child {
-    max-width: 28rem;
-  }
-
-  .sb-list-filters > nav,
-  .sb-list-filters > [data-select-control],
-  .sb-list-filters > select,
-  .sb-list-filters > .sb-filter-more {
-    max-width: 18rem;
-  }
-}
-
+/* FilterBar has one authoritative responsive grammar in globals.css. Keep
+   visual tokens here, but never re-declare its geometry after the page-level
+   mobile and tablet rules have loaded. */
 .sb-filter-more > summary {
   min-height: var(--sb-control-height);
   border-radius: var(--sb-radius-control);
@@ -414,51 +360,10 @@ aside section > h2 {
   box-shadow: 0 12px 28px rgb(5 60 44 / 0.28) !important;
 }
 
-@media (max-width: 1279px) {
-  .sb-list-filters {
-    display: flex;
-    flex-wrap: nowrap;
-  }
-
-  .sb-filter-summary {
-    order: 5;
-    margin-left: auto;
-  }
-}
-
 @media (max-width: 767px) {
   :root:root {
     --sb-content-gutter: 0.75rem;
     --sb-control-height: 2.75rem;
-  }
-
-  .sb-list-filters {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) auto;
-    gap: 0.625rem;
-    padding: 0.75rem;
-  }
-
-  .sb-list-filters > :first-child {
-    grid-column: 1 / -1;
-    max-width: none;
-  }
-
-  .sb-list-filters > nav,
-  .sb-list-filters > [data-select-control],
-  .sb-list-filters > select,
-  .sb-list-filters > .sb-filter-more {
-    min-width: 0;
-    max-width: none;
-  }
-
-  .sb-list-filters [data-select-control],
-  .sb-list-filters select {
-    min-width: 0;
-  }
-
-  .sb-filter-summary {
-    grid-column: 1 / -1;
   }
 
   [data-document-workspace-header] > div:first-child {
@@ -504,7 +409,6 @@ aside section > h2 {
 @media (max-height: 520px) and (orientation: landscape) {
   :root:root { --sb-mobile-nav-height: 3.25rem; }
   [data-document-workspace-header] { position: relative !important; }
-  .sb-list-filters { padding-block: 0.5rem; }
 }
 
 @media (prefers-reduced-motion: reduce) {

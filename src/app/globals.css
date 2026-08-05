@@ -407,6 +407,14 @@ input[type="date"]::-webkit-date-and-time-value {
   width: auto;
 }
 
+/* Hidden persisted filters must not steal the leading query slot. */
+.sb-list-filters > input[type="hidden"]:first-child + * {
+  flex: 1 1 14rem;
+  min-width: 0;
+  width: auto;
+  order: 1;
+}
+
 .sb-list-filters > :not(:first-child) {
   flex: 1 1 8rem;
   min-width: 0;
@@ -515,8 +523,13 @@ input[type="date"]::-webkit-date-and-time-value {
 
   .sb-list-filters > :first-child {
     order: 1;
-    flex: 1 1 calc(100% - 5.5rem);
+    flex: 1 1 100%;
     width: auto;
+  }
+
+  .sb-list-filters > input[type="hidden"]:first-child + * {
+    order: 1;
+    flex: 1 1 100%;
   }
 
   .sb-list-filters > :not(:first-child) {
@@ -527,7 +540,7 @@ input[type="date"]::-webkit-date-and-time-value {
 
   .sb-list-filters > button:is([type="submit"], :not([type])) {
     order: 4;
-    flex: 1 1 10rem;
+    flex: 1 1 12rem;
   }
 
   .sb-list-filters button:is([type="submit"], :not([type])) {
@@ -1019,21 +1032,6 @@ input[type="date"]::-webkit-date-and-time-value {
     border-radius: var(--sb-panel-radius);
     background: var(--sb-surface);
     box-shadow: var(--sb-shadow-card);
-  }
-
-  [data-tablet-main-list] .sb-list-filters {
-    display: grid;
-    grid-template-columns: minmax(10rem, 1fr) minmax(8rem, 0.65fr);
-    align-items: center;
-  }
-
-  [data-tablet-main-list] .sb-list-filters > * {
-    width: 100%;
-    max-width: none;
-  }
-
-  [data-tablet-main-list] .sb-list-filters > :is(button, a, .sb-filter-summary, .sb-filter-more) {
-    width: auto;
   }
 
   [data-tablet-canvas="contained"],

@@ -62,7 +62,7 @@ export function SelectControl({
           position="popper"
           sideOffset={4}
           collisionPadding={8}
-          className="sb-popover-surface z-[var(--sb-z-dropdown)] max-h-[min(18rem,var(--radix-select-content-available-height))] min-w-[var(--radix-select-trigger-width)] overflow-hidden rounded-[2px] text-foreground"
+          className="sb-popover-surface z-[var(--sb-z-dropdown)] max-h-[min(18rem,var(--radix-select-content-available-height))] min-w-[var(--radix-select-trigger-width)] overflow-hidden rounded-[var(--sb-radius-control)] text-foreground"
         >
           <Select.Viewport className="p-1">
             {options.map((option) => (
@@ -70,7 +70,7 @@ export function SelectControl({
                 key={option.value}
                 value={option.value}
                 disabled={option.disabled}
-                className="relative flex min-h-[var(--sb-control-height)] cursor-default select-none items-center rounded-[2px] py-1.5 pl-7 pr-2 text-sm outline-none focus:bg-[var(--sb-green-100)] data-[disabled]:pointer-events-none data-[disabled]:opacity-50 data-[state=checked]:font-medium"
+                className="relative flex min-h-[var(--sb-control-height)] cursor-default select-none items-center rounded-md py-1.5 pl-7 pr-2 text-sm outline-none focus:bg-[var(--sb-green-100)] data-[disabled]:pointer-events-none data-[disabled]:opacity-50 data-[state=checked]:font-medium"
               >
                 <Select.ItemIndicator className="absolute left-2"><Check className="h-3.5 w-3.5" /></Select.ItemIndicator>
                 <Select.ItemText>{option.label}</Select.ItemText>

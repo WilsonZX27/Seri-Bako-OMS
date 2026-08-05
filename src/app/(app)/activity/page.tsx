@@ -77,12 +77,12 @@ export default async function ActivityPage({ searchParams }: { searchParams: Pro
                       <Activity className="h-4 w-4" />
                     </div>
                     <div className="min-w-0 flex-1">
-                      <p className="truncate text-xs font-medium">{activity.message}</p>
+                      <p className="whitespace-normal break-words text-xs font-medium leading-5">{activity.message}</p>
                       {!messageIncludesActor ? <p className="mt-0.5 text-xs text-muted-foreground">{actor}</p> : null}
                     </div>
                     <p className="col-start-2 text-[11px] text-muted-foreground md:col-auto md:text-xs">{formatDateTime(activity.created_at)}</p>
                     <p className="hidden items-center gap-1 text-xs text-muted-foreground md:inline-flex"><FileText className="h-3 w-3" /> {activity.entity_type}</p>
-                    {href ? <span className="row-start-1 text-xs font-medium text-primary md:row-auto">Details</span> : <span className="row-start-1 text-xs text-muted-foreground md:row-auto">Details</span>}
+                    {href ? <span className="row-start-1 justify-self-end text-xs font-medium text-primary md:row-auto">Details</span> : <span className="row-start-1 justify-self-end text-xs text-muted-foreground md:row-auto">Details</span>}
                   </Link>
                 );
               })}

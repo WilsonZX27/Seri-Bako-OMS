@@ -21,11 +21,10 @@ export function FilterBar({
   className?: string;
 }) {
   return (
-    <form className={cn("sb-list-filters", className)}>
+    <form className={cn("sb-list-filters", className)} data-filtered={filtered || undefined} data-reset-href={resetHref}>
       {children}
       {typeof resultCount === "number" ? <div className="sb-filter-summary" aria-live="polite">
         <span>{resultCount} {resultCount === 1 ? "record" : "records"}</span>
-        {filtered ? <Button asChild variant="ghost" size="sm"><Link href={resetHref}>Reset</Link></Button> : null}
       </div> : null}
     </form>
   );

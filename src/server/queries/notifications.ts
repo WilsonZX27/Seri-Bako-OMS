@@ -54,7 +54,7 @@ export const getCurrentUserScope = cache(async function getCurrentUserScope(): P
   return { authUserId: user.id, staffId, roleIds, branchIds, roleCode, companyWideAccess };
 });
 
-export async function getVisibleNotificationsForCurrentUser() {
+export const getVisibleNotificationsForCurrentUser = cache(async function getVisibleNotificationsForCurrentUser() {
   if (isMockMode()) {
     return [];
   }
@@ -136,13 +136,24 @@ export async function getVisibleNotificationsForCurrentUser() {
   };
   const allowedPrStatuses = pendingPrStatusesByRole[scope.roleCode];
   const prIds = visibleNotifications.flatMap((row) => row.entity_type === "purchase_request" && row.entity_id ? [row.entity_id] : []);
-  if (!allowedPrStatuses || !prIds.length) return visibleNotifications;
-
-  const { data: pendingRequests, error: pendingError } = await supabase.from("purchase_requests").select("id, status").in("id", prIds).in("status", allowedPrStatuses);
-  if (pendingError) return visibleNotifications.filter((row) => row.entity_type !== "purchase_request");
-  const pendingIds = new Set((pendingRequests ?? []).map((row) => row.id));
-  return visibleNotifications.filter((row) => row.entity_type !== "purchase_request" || (row.entity_id && pendingIds.has(row.entity_id)));
-}
+  const stockCountIds = visibleNotifications.flatMap((row) => row.entity_type === "stock_count" && row.entity_id ? [row.entity_id] : []);
+  const [pendingRequestsResult, activeStockCountsResult] = await Promise.all([
+    allowedPrStatuses && prIds.length
+      ? supabase.from("purchase_requests").select("id, status").in("id", prIds).in("status", allowedPrStatuses)
+      : Promise.resolve({ data: [], error: null }),
+    stockCountIds.length
+      ? supabase.from("stock_counts").select("id, status").in("id", stockCountIds).is("deleted_at", null).in("status", ["draft", "submitted", "reviewed", "approved"])
+      : Promise.resolve({ data: [], error: null }),
+  ]);
+  const pendingPrIds = new Set((pendingRequestsResult.data ?? []).map((row) => row.id));
+  const pendingIds = pendingPrIds;
+  const activeStockCountIds = new Set((activeStockCountsResult.data ?? []).map((row) => row.id));
+  return visibleNotifications.filter((row) => {
+    if (row.entity_type === "purchase_request") return Boolean(!pendingRequestsResult.error && row.entity_id && pendingIds.has(row.entity_id));
+    if (row.entity_type === "stock_count") return Boolean(!activeStockCountsResult.error && row.entity_id && activeStockCountIds.has(row.entity_id));
+    return true;
+  });
+});
 
 const activityEntitiesByRole = {
   super_admin: null,
@@ -164,7 +175,7 @@ export async function getVisibleRecentActivitiesForCurrentUser(limit = 6) {
     .from("activity_logs")
     .select("id, entity_type, entity_id, activity_type, created_by, message, created_at")
     .order("created_at", { ascending: false })
-    .limit(Math.max(limit * 4, 24));
+    .limit(Math.min(Math.max(limit * 2, 24), 100));
   if (error) throw new Error(error.message);
 
   const allowedEntities = activityEntitiesByRole[scope.roleCode as keyof typeof activityEntitiesByRole] ?? [];

@@ -3,6 +3,7 @@ import { hasPermission } from "@/server/auth/permissions";
 import { getCurrentUserScope } from "@/server/queries/notifications";
 import type { PurchaseRequestStatus } from "@/lib/status-contracts";
 import { logServerWarning } from "@/server/observability/logger";
+import { cache } from "react";
 
 export type PendingAction = {
   id: string;
@@ -22,7 +23,7 @@ function ageLabel(updatedAt?: string | null) {
   return `${days} days`;
 }
 
-export async function getCurrentUserPendingActions(limit = 5): Promise<PendingAction[]> {
+export const getCurrentUserPendingActions = cache(async function getCurrentUserPendingActions(limit = 5): Promise<PendingAction[]> {
   const scope = await getCurrentUserScope();
   if (!scope) return [];
 
@@ -93,4 +94,4 @@ export async function getCurrentUserPendingActions(limit = 5): Promise<PendingAc
       return bDays - aDays;
     })
     .slice(0, limit);
-}
+});

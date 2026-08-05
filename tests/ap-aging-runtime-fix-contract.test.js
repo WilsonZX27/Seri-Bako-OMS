@@ -23,8 +23,8 @@ test("dashboard isolates AP failure and user-facing errors stay generic", () => 
   const workspace = read("src/components/dashboard-workspace.tsx");
   const errorPage = read("src/app/(app)/supplier-invoices/aging/error.tsx");
   const apQuery = read("src/server/queries/ap-aging.ts");
-  assert.match(query, /try \{[\s\S]*getPayablesAttention\(\)[\s\S]*catch \{/);
-  assert.match(query, /payablesAttentionUnavailable = true/);
+  assert.match(query, /\(isOwner \|\| isFinance\)[\s\S]*getPayablesAttention\(\)\.catch\(\(error\) => \{[\s\S]*warnOptionalQuery\("payables attention", error\)[\s\S]*return null/);
+  assert.match(query, /payablesAttentionUnavailable = \(isOwner \|\| isFinance\) && payablesAttention === null/);
   assert.match(workspace, /payablesAttentionUnavailable/);
   assert.match(workspace, /operational queues remain current/);
   assert.match(errorPage, /temporarily unavailable\. Please retry or contact the Super Admin \/ Owner/);

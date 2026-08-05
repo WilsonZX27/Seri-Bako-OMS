@@ -71,6 +71,6 @@ export const documentSequenceSchema = z.object({
   prefix: z.string().trim().min(1, "Prefix is required").max(32),
   next_number: z.coerce.number().int().min(1, "Current number must be positive").max(9_999_999_999, "Current number is too large"),
   padding: z.coerce.number().int().min(1, "Padding must be positive").max(12, "Padding is too large"),
-  reset_frequency: z.enum(["never", "yearly", "monthly", "daily"]),
+  reset_frequency: z.enum(["never", "yearly", "quarterly", "monthly", "daily"]),
   status: recordStatusSchema,
 });

@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Pencil } from "lucide-react";
+import { Download, Pencil, Plus, Upload } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { DataGridHint } from "@/components/ui/data-grid-hint";
@@ -36,9 +36,9 @@ export default async function SuppliersPage({
           <>
             {canCreate || permissions["suppliers.manage"] || permissions["imports.run"] ? <ConsoleSection title="Actions">
               <div className="grid gap-2">
-                {canCreate ? <Button asChild size="sm" className="w-full" data-mobile-primary-action><Link href="/suppliers/new">New supplier</Link></Button> : null}
-                {permissions["suppliers.manage"] ? <Button asChild variant="outline" size="sm" className="w-full"><Link href="/api/export/suppliers">Export CSV</Link></Button> : null}
-                {permissions["imports.run"] ? <Button asChild variant="outline" size="sm" className="w-full"><Link href="/imports/suppliers">Import suppliers</Link></Button> : null}
+                {canCreate ? <Button asChild size="sm" className="w-full" data-mobile-primary-action><Link href="/suppliers/new"><Plus className="h-4 w-4" />New supplier</Link></Button> : null}
+                {permissions["suppliers.manage"] ? <Button asChild variant="outline" size="sm" className="w-full"><Link href="/api/export/suppliers"><Download className="h-4 w-4" />Export CSV</Link></Button> : null}
+                {permissions["imports.run"] ? <Button asChild variant="outline" size="sm" className="w-full"><Link href="/imports/suppliers"><Upload className="h-4 w-4" />Import suppliers</Link></Button> : null}
               </div>
             </ConsoleSection> : null}
             <ConsoleSection title="Supplier Summary">

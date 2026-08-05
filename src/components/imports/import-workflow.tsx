@@ -183,6 +183,10 @@ function draftKey(entity: ImportEntity) {
   return `seri-bako-import-draft-${entity}`;
 }
 
+function emptyRow(entity: ImportEntity) {
+  return Object.fromEntries(importTemplates[entity].headers.map((header) => [header, ""]));
+}
+
 function formatSavedAt(value: string) {
   return formatDateTime(value, value);
 }
@@ -199,7 +203,7 @@ type SupplierPreview = { id: string; supplier_code: string | null; name: string 
 
 export function ImportWorkflow({ entity, suppliers = [] }: { entity: ImportEntity; suppliers?: SupplierPreview[] }) {
   const spec = importTemplates[entity];
-  const [rows, setRows] = useState<RowState[]>([]);
+  const [rows, setRows] = useState<RowState[]>(() => validateRows(entity, [emptyRow(entity)]));
   const [message, setMessage] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [fileName, setFileName] = useState("");
@@ -264,14 +268,14 @@ export function ImportWorkflow({ entity, suppliers = [] }: { entity: ImportEntit
 
     setFileName(file.name);
     if (file.size > 2 * 1024 * 1024) {
-      setRows([]);
+      setRows(validateRows(entity, [emptyRow(entity)]));
       setMessage("File is too large. Keep imports under 2 MB.");
       return;
     }
 
     const lowerName = file.name.toLowerCase();
     if (!lowerName.endsWith(".csv") && !lowerName.endsWith(".xlsx")) {
-      setRows([]);
+      setRows(validateRows(entity, [emptyRow(entity)]));
       setMessage("Unsupported file type. Upload CSV or XLSX only.");
       return;
     }
@@ -280,25 +284,25 @@ export function ImportWorkflow({ entity, suppliers = [] }: { entity: ImportEntit
     try {
       parsed = lowerName.endsWith(".xlsx") ? await parseXlsx(file) : parseCsv(await file.text());
     } catch {
-      setRows([]);
+      setRows(validateRows(entity, [emptyRow(entity)]));
       setMessage("Could not read this file. Use the fixed CSV/XLSX template.");
       return;
     }
     const missingColumns = spec.required.filter((header) => !parsed.headers.includes(header));
 
     if (missingColumns.length) {
-      setRows([]);
+      setRows(validateRows(entity, [emptyRow(entity)]));
       setMessage(`Missing required column${missingColumns.length > 1 ? "s" : ""}: ${missingColumns.join(", ")}`);
       return;
     }
 
     if (parsed.dataRows.length > 500) {
-      setRows([]);
+      setRows(validateRows(entity, [emptyRow(entity)]));
       setMessage("Too many rows. Keep one import under 500 rows.");
       return;
     }
 
-    updateRows(parsed.dataRows);
+    updateRows(parsed.dataRows.length ? parsed.dataRows : [emptyRow(entity)]);
     setMessage(`${parsed.dataRows.length} row(s) loaded. ${parsed.dataRows.length - validateRows(entity, parsed.dataRows).filter((row) => row.errors.length).length} valid so far.`);
   }
 
@@ -309,7 +313,13 @@ export function ImportWorkflow({ entity, suppliers = [] }: { entity: ImportEntit
   }
 
   function removeRow(rowIndex: number) {
-    updateRows(rows.filter((_, index) => index !== rowIndex).map((row) => row.values));
+    const next = rows.filter((_, index) => index !== rowIndex).map((row) => row.values);
+    updateRows(next.length ? next : [emptyRow(entity)]);
+  }
+
+  function addRow() {
+    updateRows([...rows.map((row) => row.values), emptyRow(entity)]);
+    setMessage("Blank row added. Enter the values, then check errors before importing.");
   }
 
   function saveDraft() {
@@ -376,7 +386,7 @@ export function ImportWorkflow({ entity, suppliers = [] }: { entity: ImportEntit
           entity,
           mode,
           confirmPosting,
-          rows: rows.map((row) => row.values),
+          rows: validRows.map((row) => row.values),
         }),
       });
       const payload = (await response.json()) as ImportResult;
@@ -403,7 +413,7 @@ export function ImportWorkflow({ entity, suppliers = [] }: { entity: ImportEntit
     message: "",
     errorRows: [],
   };
-  const activeStep = result ? 4 : rows.length ? 3 : 2;
+  const activeStep = result ? 4 : validRows.length ? 3 : 2;
   const importConsole = <>
     <ConsoleSection title="Template and draft">
       <Button type="button" variant="outline" className="w-full justify-start" onClick={downloadTemplate}><Download className="mr-2 h-4 w-4" />CSV template</Button>
@@ -463,7 +473,7 @@ export function ImportWorkflow({ entity, suppliers = [] }: { entity: ImportEntit
 
               <div className="grid min-w-0 gap-4 lg:grid-cols-[minmax(0,1fr)_220px]">
                 <div className="min-w-0 space-y-3">
-                  <label className="grid min-w-0 gap-1 text-xs"><span>Upload file</span><Input type="file" accept=".csv,.xlsx" onChange={(event) => loadFile(event.target.files?.[0])} /></label>
+                  <label className="grid min-w-0 gap-1 text-xs font-medium"><span>Upload file</span><Input type="file" accept=".csv,.xlsx" onChange={(event) => loadFile(event.target.files?.[0])} /></label>
                   {fileName ? <p className="text-xs text-muted-foreground">Loaded source: {fileName}</p> : null}
                   {draftSavedAt ? <p className="text-xs text-muted-foreground">Saved draft on this browser: {formatSavedAt(draftSavedAt)}</p> : null}
                 </div>
@@ -511,6 +521,10 @@ export function ImportWorkflow({ entity, suppliers = [] }: { entity: ImportEntit
       </Card>
 
       <div className="overflow-hidden rounded-[2px] border bg-card">
+        <div className="flex items-center justify-between gap-3 border-b bg-[var(--sb-surface-muted)] px-3 py-2">
+          <div><p className="text-sm font-semibold">Import rows</p><p className="text-xs text-muted-foreground">Upload a file or enter a row manually.</p></div>
+          <Button type="button" variant="outline" size="sm" onClick={addRow}>Add row</Button>
+        </div>
         <div className="overflow-x-auto">
           <Table>
             <TableHeader>

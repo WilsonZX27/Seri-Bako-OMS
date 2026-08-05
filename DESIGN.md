@@ -1,5 +1,7 @@
 # Seri Bako OMS responsive design standard
 
+> **Precedence:** `docs/DESIGN_SYSTEM.md` is the living visual and interaction contract. When a historical release note or an older rule in this file conflicts with that contract, the living contract wins. Update both documents when a new pattern is accepted; do not preserve a visibly weaker rule for compatibility.
+
 This document is the implementation contract for every customer-facing route, form, record workspace, table, panel, dialog, and mobile action bar. It applies to new work and to refactoring of existing UI.
 
 ## v8.35.0 - Compact Document Context Closure
@@ -171,7 +173,7 @@ Do not introduce a page-specific breakpoint. These thresholds serve distinct ope
 
 ## Design language
 
-The OMS uses one continuous high-density ledger language across phone, tablet, and desktop. Responsive layout changes information density and placement; it must not change the product's edge treatment, semantic color meaning, or interaction vocabulary.
+The OMS uses one continuous high-density ledger language across phone, tablet, and desktop. Responsive layout changes information density and placement; it must not change semantic color meaning or interaction vocabulary. Current geometry, elevation, and density tokens are defined by `docs/DESIGN_SYSTEM.md`; older square-surface rules below are historical defaults, not authority for new work.
 
 - **Screen-edge surfaces:** full-width mobile rows, workspace cards, list containers, and primary content sections use `rounded-none` so their borders align into one uninterrupted vertical rail.
 - **Interior controls:** textboxes, numeric steppers, selects, buttons, filters, and row actions use only `rounded-sm` (`2px`) or `rounded` (`4px`). The default compact control radius is `2px`; use `4px` only when a control needs a slightly clearer hit area.

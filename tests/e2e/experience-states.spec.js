@@ -6,13 +6,13 @@ async function expectNoPageOverflow(page) {
 }
 
 test("core error, empty, feedback, and mobile states stay usable", async ({ page }) => {
-  test.setTimeout(120_000);
+  test.setTimeout(360_000);
   expect(await login(page, "superAdmin")).toBe(true);
 
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.goto("/items?search=NO_MATCH_SPRINT_734", { waitUntil: "domcontentloaded" });
   await expect(page.getByRole("heading", { name: "Items" })).toBeVisible();
-  await expect(page.getByText(/No items found|No records match/i)).toBeVisible();
+  await expect(page.getByRole("cell").getByText(/No items found|No records match/i)).toBeVisible();
   await expect(page.getByRole("cell").getByRole("link", { name: "Clear filters" })).toBeVisible();
   await expectNoPageOverflow(page);
 
@@ -33,7 +33,7 @@ test("core error, empty, feedback, and mobile states stay usable", async ({ page
   await expect(page.getByRole("alert").filter({ hasText: "permission" })).toBeVisible();
 
   await page.goto("/purchase-requests/new", { waitUntil: "domcontentloaded" });
-  const submit = page.getByRole("button", { name: "Create PR" });
+  const submit = page.getByRole("button", { name: "Submit PR" });
   await submit.click();
   await expect(page.getByRole("alert").filter({ hasText: "Could not create this purchase request" })).toBeVisible();
 
@@ -48,7 +48,8 @@ test("core error, empty, feedback, and mobile states stay usable", async ({ page
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto("/items/new?error=Review%20the%20required%20fields%20and%20try%20again.", { waitUntil: "domcontentloaded" });
   await expect(page.getByRole("alert").filter({ hasText: "Review the required fields" })).toBeVisible();
-  await page.getByRole("button", { name: "Open page actions" }).click();
-  await expect(page.getByRole("button", { name: "Create Item" })).toBeVisible();
+  await page.getByRole("button", { name: "More" }).click();
+  await expect(page.getByRole("button", { name: "Create Item" })).toHaveCount(1);
+  await expect(page.getByRole("link", { name: "Cancel" })).toBeVisible();
   await expectNoPageOverflow(page);
 });

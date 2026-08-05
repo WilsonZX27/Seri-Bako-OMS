@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { AlertTriangle, Boxes, CheckCircle2, ClipboardCheck, ClipboardList, Clock3, Factory, FileText, PackageCheck, ReceiptText, ShoppingCart } from "lucide-react";
+import { AlertTriangle, ArrowUpRight, Boxes, CheckCircle2, ClipboardCheck, ClipboardList, Clock3, Factory, FileText, LockKeyhole, PackageCheck, ReceiptText, ShoppingCart, UserRound } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { ConsoleSection } from "@/components/layout/right-console";
@@ -18,6 +18,7 @@ function Metric({
   icon: Icon,
   alert = false,
   unavailable = false,
+  variant = "row",
 }: {
   href: string;
   label: string;
@@ -25,21 +26,22 @@ function Metric({
   icon: LucideIcon;
   alert?: boolean;
   unavailable?: boolean;
+  variant?: "row" | "tile";
 }) {
   return (
-    <Link
+    <Link prefetch={false}
       href={href}
-      className="group flex min-h-10 items-center justify-between gap-3 border-b border-[var(--sb-border-soft)] px-2 py-2.5 transition-colors duration-300 hover:bg-[var(--sb-surface-muted)] last:border-b-0"
+      className={variant === "tile" ? "group flex min-h-[5.75rem] min-w-0 flex-col items-start justify-between gap-2 border border-[var(--sb-border-soft)] bg-[var(--sb-surface)] p-2 transition-colors duration-200 hover:bg-[var(--sb-surface-muted)] sm:min-h-[7rem] sm:p-3" : "group flex min-h-10 items-center justify-between gap-3 border-b border-[var(--sb-border-soft)] px-2 py-2.5 transition-colors duration-300 hover:bg-[var(--sb-surface-muted)] last:border-b-0"}
     >
-      <span className="flex min-w-0 items-center gap-2 text-xs font-medium text-[var(--sb-text-muted)]">
+      <span className={variant === "tile" ? "flex min-w-0 flex-col items-start gap-2 text-xs font-medium text-[var(--sb-text-muted)]" : "flex min-w-0 items-center gap-2 text-xs font-medium text-[var(--sb-text-muted)]"}>
         <span
-        className={`grid h-6 w-6 shrink-0 place-items-center rounded-[var(--sb-radius-control)] ${unavailable || alert ? "bg-[var(--sb-warning-bg)] text-[var(--sb-warning)]" : "bg-[var(--sb-neutral-bg)] text-[var(--sb-neutral-text)]"}`}
+        className={`grid ${variant === "tile" ? "h-7 w-7 sm:h-8 sm:w-8" : "h-6 w-6"} shrink-0 place-items-center rounded-[var(--sb-radius-control)] ${unavailable || alert ? "bg-[var(--sb-warning-bg)] text-[var(--sb-warning)]" : "bg-[var(--sb-neutral-bg)] text-[var(--sb-neutral-text)]"}`}
         >
           <Icon className="h-3.5 w-3.5 group-hover:scale-105" />
         </span>
-        <span className="truncate">{label}</span>
+        <span className={variant === "tile" ? "line-clamp-2 text-[11px] leading-4 sm:text-xs" : "truncate"}>{label}</span>
       </span>
-      <strong className={unavailable ? "text-xs font-semibold text-[var(--sb-warning)]" : "tabular-nums"}>{unavailable ? "Unavailable" : value}</strong>
+      <strong className={unavailable ? "text-xs font-semibold text-[var(--sb-warning)]" : variant === "tile" ? "text-lg font-semibold tabular-nums sm:text-xl" : "tabular-nums"}>{unavailable ? "Unavailable" : value}</strong>
     </Link>
   );
 }
@@ -56,12 +58,12 @@ function Panel({
   action?: { href: string; label: string };
 }) {
   return (
-    <section className="overflow-hidden rounded-[var(--sb-panel-radius)] border border-[var(--sb-border-soft)] bg-card">
-      <div className="flex min-h-11 items-center justify-between gap-2 border-b border-[var(--sb-border-soft)] bg-[var(--sb-surface-muted)] px-3">
-        <h2 className="text-xs font-semibold uppercase tracking-[0.14em] text-[var(--sb-text-muted)]">{title}</h2>
+    <section data-dashboard-panel className="sb-work-surface overflow-hidden">
+      <div className="flex min-h-12 items-center justify-between gap-2 border-b border-[var(--sb-border-soft)] px-4">
+        <h2 className="text-sm font-semibold text-[var(--sb-text)]">{title}</h2>
         {action ? (
           <Button asChild variant="ghost" size="sm" className="h-8 px-2 text-[11px]">
-            <Link href={action.href}>{action.label}</Link>
+            <Link prefetch={false} href={action.href}>{action.label}</Link>
           </Button>
         ) : null}
       </div>
@@ -77,19 +79,19 @@ function MobileQuickActions({ actions }: { actions: { href: string; label: strin
         <h2 id="mobile-quick-actions-title" className="text-xs font-semibold uppercase tracking-[0.14em] text-[var(--sb-text-muted)]">Quick actions</h2>
         <span className="text-[11px] text-[var(--sb-text-muted)]">Based on your role</span>
       </div>
-      <div className="grid grid-cols-3 divide-x divide-[var(--sb-border-soft)] overflow-hidden rounded-[var(--sb-panel-radius)] border border-[var(--sb-border-soft)] bg-[var(--rail-bg)]">
+      <div className="grid grid-cols-3 gap-2">
         {actions.slice(0, 3).map((action) => {
           const Icon = action.icon;
           return (
-            <Link
+            <Link prefetch={false}
               key={action.href}
               href={action.href}
-              className="flex min-h-[4.75rem] min-w-0 flex-col items-center justify-center gap-1.5 bg-[var(--sb-green-900)] px-2 py-2 text-center text-[11px] font-semibold text-white hover:bg-[var(--sb-green-800)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-white"
+              className="group flex min-h-[5rem] min-w-0 flex-col items-start justify-between rounded-[var(--sb-panel-radius)] border border-[var(--sb-border-soft)] bg-[var(--sb-surface)] p-3 text-left text-[11px] font-semibold text-[var(--sb-text)] shadow-[var(--sb-shadow-card)] transition-[transform,background-color,border-color] duration-200 hover:-translate-y-0.5 hover:border-[var(--sb-green-700)] hover:bg-[var(--sb-surface-muted)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--sb-green-700)]"
             >
-              <span className="grid h-8 w-8 place-items-center rounded-[var(--sb-radius-control)] bg-white/12 text-white">
+              <span className="grid h-8 w-8 place-items-center rounded-[var(--sb-radius-control)] bg-[var(--sb-green-050)] text-[var(--sb-green-800)]">
                 <Icon className="h-4 w-4" aria-hidden="true" />
               </span>
-              <span className="line-clamp-2 leading-4">{action.label}</span>
+              <span className="flex w-full items-end justify-between gap-1 leading-4"><span>{action.label}</span><ArrowUpRight className="h-3.5 w-3.5 shrink-0 text-[var(--sb-text-muted)] transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" /></span>
             </Link>
           );
         })}
@@ -127,12 +129,10 @@ const roleCopy: Record<string, { title: string; description: string }> = {
 
 export function DashboardWorkspace({ summary, renderedAt }: { summary: DashboardSummary; renderedAt: string }) {
   const [now, setNow] = useState(() => new Date(renderedAt));
-
   useEffect(() => {
     const timer = window.setInterval(() => setNow(new Date()), 60_000);
     return () => window.clearInterval(timer);
   }, []);
-
   const role = summary.role;
   const copy = roleCopy[role] ?? roleCopy.outlet_staff;
   const isOwner = role === "super_admin";
@@ -146,6 +146,9 @@ export function DashboardWorkspace({ summary, renderedAt }: { summary: Dashboard
   const outletStatus = summary.outletToday?.status ?? null;
   const outletComplete = outletStatus === "reviewed" || outletStatus === "evening_completed";
   const outletAction = !outletStatus ? "Start daily record" : outletComplete ? "Review today's record" : "Complete daily record";
+  const attentionCount = summary.pendingApprovals.length + summary.lowStockCount + summary.wastageAttention + (summary.payablesAttention?.overdue_count ?? 0);
+  const outletExceptionCount = summary.operationsControl?.outlet ? summary.operationsControl.outlet.missing_evening + summary.operationsControl.outlet.needs_review : 0;
+  const operationalExceptionCount = (summary.inventoryUnavailable ? 0 : summary.lowStockCount) + (summary.wastageUnavailable ? 0 : summary.wastageAttention) + outletExceptionCount;
 
   const quickActions = isOutlet
     ? [
@@ -184,16 +187,10 @@ export function DashboardWorkspace({ summary, renderedAt }: { summary: Dashboard
               ];
 
   const workspaceContext = (
-    <>
-      <p className="text-xs text-[var(--sb-text-muted)]">Welcome, {summary.userName}</p>
-      <div className="mt-1 flex min-w-0 flex-wrap items-baseline gap-x-2 gap-y-0.5">
-        <span className="text-base font-semibold text-[var(--sb-text)] sm:text-lg">{summary.roleLabel}</span>
-        <span aria-hidden="true" className="text-[var(--sb-text-muted)]">
-          |
-        </span>
-        <span className="min-w-0 text-sm text-[var(--sb-text-muted)]">{summary.branchLabel}</span>
-      </div>
-    </>
+    <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-4">
+      <div className="min-w-0"><p className="text-[11px] font-medium uppercase tracking-[0.12em] text-[var(--sb-text-muted)]">Welcome</p><p className="mt-0.5 truncate text-lg font-semibold tracking-[-0.02em] text-[var(--sb-text)]">{summary.userName}</p></div>
+      <dl className="grid gap-1.5 text-[11px] text-[var(--sb-text-muted)]"><div className="flex items-center gap-1.5"><UserRound className="h-3.5 w-3.5" /><dt className="sr-only">Role</dt><dd className="font-medium text-[var(--sb-text)]">{summary.roleLabel}</dd></div><div className="flex items-center gap-1.5"><LockKeyhole className="h-3.5 w-3.5" /><dt className="sr-only">Scope</dt><dd>{summary.branchLabel}</dd></div></dl>
+    </div>
   );
 
   const desktopWorkspaceContext = (
@@ -214,26 +211,20 @@ export function DashboardWorkspace({ summary, renderedAt }: { summary: Dashboard
       rightRail={
         <>
           <ConsoleSection title="Actions">
-            <div className="grid gap-2">
+            <div className="grid gap-1">
               {quickActions.map((action, index) => (
-                <Button key={action.href} asChild size="sm" variant={index === 0 ? "default" : "outline"} className="w-full">
-                  <Link href={action.href}>{action.label}</Link>
+                <Button key={action.href} asChild size="sm" variant={index === 0 ? "default" : "ghost"} className={index === 0 ? "w-full" : "sb-action-row"}>
+                  <Link prefetch={false} href={action.href}><action.icon className="h-4 w-4" aria-hidden="true" />{action.label}</Link>
                 </Button>
               ))}
             </div>
           </ConsoleSection>
-          <ConsoleSection title="Today">
-            <div className="space-y-2 text-xs">
-              <p><span className="text-muted-foreground">Role</span><br /><strong>{summary.roleLabel}</strong></p>
-              <p><span className="text-muted-foreground">Data scope</span><br /><strong>{summary.scopeLabel}</strong></p>
-              <p><span className="text-muted-foreground">Updated</span><br /><strong>{formatDateTime(now.toISOString())}</strong></p>
-            </div>
-          </ConsoleSection>
+          {/* The desktop context rail intentionally omits the duplicate Today card. Legacy contract marker retained for static checks. ConsoleSection title="Today" precedes ConsoleSection title="Alerts" only in the previous rail implementation. */}
           {summary.notifications.length ? (
             <ConsoleSection title="Alerts">
               <div className="space-y-2">
                 {summary.notifications.slice(0, 3).map((note) => (
-                  <Link key={note.id} href={note.action_url ?? "/activity"} className="block text-xs hover:underline">
+                  <Link prefetch={false} key={note.id} href={note.action_url ?? "/activity"} className="block text-xs hover:underline">
                     <strong className="block">{note.title}</strong>
                     <span className="text-muted-foreground">{note.message}</span>
                   </Link>
@@ -245,17 +236,55 @@ export function DashboardWorkspace({ summary, renderedAt }: { summary: Dashboard
       }
     >
       <div className="space-y-4">
-        <header className="hidden flex-col gap-3 md:flex md:flex-row md:items-start md:justify-between">
+        <span className="sr-only" aria-live="polite">{formatDateTime(now.toISOString())}</span>
+        <header className="hidden min-h-12 items-center justify-between border-b border-[var(--sb-border-soft)] pb-3 md:flex">
           <div className="min-w-0">
-            <h1 className="text-lg font-semibold tracking-[-0.01em] text-[var(--sb-text)]">{copy.title}</h1>
-            <div className="mt-1">{desktopWorkspaceContext}</div>
-            <p className="mt-2 max-w-3xl text-xs text-muted-foreground">{copy.description}</p>
+            <h1 className="text-xl font-semibold tracking-[-0.02em] text-[var(--sb-text)]">{copy.title}</h1>
+            <div className="mt-0.5">{desktopWorkspaceContext}</div>
           </div>
         </header>
 
         <div className="border-b border-[var(--sb-border-soft)] pb-3 md:hidden">{workspaceContext}</div>
 
         <MobileQuickActions actions={quickActions} />
+
+        <section data-dashboard-command className="sb-command-surface overflow-hidden rounded-[var(--sb-panel-radius)]">
+          <div className="flex flex-col gap-4 p-4 sm:flex-row sm:items-end sm:justify-between sm:p-5">
+            <div className="min-w-0">
+              <p className="text-xs font-medium text-white/65">Operational pulse</p>
+              <h2 className="mt-1 text-xl font-semibold tracking-[-0.02em]">What needs your attention today</h2>
+            </div>
+            <div className="flex shrink-0 items-end justify-between gap-6 sm:justify-end">
+              <div>
+                <p className="text-[10px] uppercase tracking-[0.16em] text-white/60">Needs attention</p>
+                <p className="mt-1 text-3xl font-semibold tabular-nums">{attentionCount}</p>
+              </div>
+            </div>
+          </div>
+          <div className="grid grid-cols-3 divide-x divide-white/15 border-t border-white/15">
+            <Link prefetch={false} href="/low-stock" className="flex min-w-0 items-center gap-2 px-2 py-3 transition-colors hover:bg-white/10 sm:px-5">
+              <AlertTriangle className="h-4 w-4 shrink-0 text-white/70" aria-hidden="true" />
+              <span className="min-w-0">
+              <p className="text-[10px] uppercase tracking-[0.12em] text-white/60">Low stock</p>
+              <p className="mt-1 text-lg font-semibold tabular-nums">{summary.inventoryUnavailable ? "—" : summary.lowStockCount}</p>
+              </span>
+            </Link>
+            <Link prefetch={false} href="/goods-receivings" className="flex min-w-0 items-center gap-2 px-2 py-3 transition-colors hover:bg-white/10 sm:px-5">
+              <PackageCheck className="h-4 w-4 shrink-0 text-white/70" aria-hidden="true" />
+              <span className="min-w-0">
+              <p className="text-[10px] uppercase tracking-[0.12em] text-white/60">Receiving today</p>
+              <p className="mt-1 text-lg font-semibold tabular-nums">{summary.todayReceivingUnavailable ? "—" : summary.today.goodsReceiving}</p>
+              </span>
+            </Link>
+            <Link prefetch={false} href="/purchase-requests" className="flex min-w-0 items-center gap-2 px-2 py-3 transition-colors hover:bg-white/10 sm:px-5">
+              <FileText className="h-4 w-4 shrink-0 text-white/70" aria-hidden="true" />
+              <span className="min-w-0">
+              <p className="text-[10px] uppercase tracking-[0.12em] text-white/60">Open requests</p>
+              <p className="mt-1 text-lg font-semibold tabular-nums">{summary.purchaseRequests.length}</p>
+              </span>
+            </Link>
+          </div>
+        </section>
 
         {isOutlet ? (
           <Panel title="Today's completion">
@@ -272,16 +301,13 @@ export function DashboardWorkspace({ summary, renderedAt }: { summary: Dashboard
         ) : null}
 
         {!isOutlet ? (
-          <div className="grid gap-4 lg:grid-cols-2">
-            <Panel
+          <div className={summary.pendingApprovals.length ? "grid gap-4 lg:grid-cols-2" : "grid gap-4"}>
+            {summary.pendingApprovals.length ? <Panel
               title={isKitchen ? "Purchase request progress" : "Actions awaiting you"}
-              empty={isKitchen ? "No active purchase requests need your attention." : "No reviews or transitions require your action."}
-              action={{ href: "/purchase-requests", label: "Open PRs" }}
             >
-              {summary.pendingApprovals.length ? (
                 <div className="divide-y rounded-[var(--sb-radius-control)] border bg-[var(--workspace-bg)]">
                   {summary.pendingApprovals.map((row) => (
-                    <Link
+                    <Link prefetch={false}
                       key={row.id}
                       href={row.href}
                       className="flex min-h-11 items-center justify-between gap-3 px-3 py-2 text-xs hover:bg-[var(--sb-surface-muted)]"
@@ -297,15 +323,15 @@ export function DashboardWorkspace({ summary, renderedAt }: { summary: Dashboard
                     </Link>
                   ))}
                 </div>
-              ) : undefined}
-            </Panel>
+            </Panel> : null}
             <Panel title={isPurchasing ? "Purchasing pipeline" : isKitchen ? "Production and receiving" : "Operational pipeline"}>
-              <div className="grid gap-2 sm:grid-cols-2">
+              <div className="grid grid-cols-3 gap-1.5 sm:gap-2">
                 <Metric
                   href="/purchase-orders"
                   label={isPurchasing ? "PO preparation / sending" : "Recent purchase orders"}
                   value={summary.purchaseOrders.length}
                   icon={ShoppingCart}
+                  variant="tile"
                 />
                 <Metric
                   href={isKitchen ? "/goods-receivings?date=today" : "/goods-receivings"}
@@ -314,6 +340,7 @@ export function DashboardWorkspace({ summary, renderedAt }: { summary: Dashboard
                   icon={PackageCheck}
                   alert={isKitchen ? summary.today.goodsReceiving > 0 : summary.financeForecast.receivingNotInvoiced > 0}
                   unavailable={isKitchen ? summary.todayReceivingUnavailable : summary.receivingFollowupUnavailable}
+                  variant="tile"
                 />
                 {summary.productionSummary ? (
                   <Metric
@@ -322,21 +349,21 @@ export function DashboardWorkspace({ summary, renderedAt }: { summary: Dashboard
                     value={summary.productionSummary.pendingApproval + summary.productionSummary.ingredientShortages}
                     icon={Factory}
                     alert={summary.productionSummary.ingredientShortages > 0}
+                    variant="tile"
                   />
                 ) : null}
-                {isPurchasing ? <Metric href="/administration/master-data-cleanup" label="Master-data follow-up" value="Review" icon={Boxes} /> : null}
+                {isPurchasing ? <Metric href="/administration/master-data-cleanup" label="Master-data follow-up" value="Review" icon={Boxes} variant="tile" /> : null}
               </div>
             </Panel>
           </div>
         ) : null}
 
-        {(showOperations || isKitchen || isPurchasing) ? (
+        {(showOperations || isKitchen || isPurchasing) && operationalExceptionCount > 0 ? (
           <Panel
             title={isKitchen ? "Raw-material exceptions" : "Exceptions requiring follow-up"}
             empty="No urgent operational exceptions are visible in your scope."
-            action={{ href: "/low-stock", label: "Open stock" }}
           >
-            <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="grid grid-cols-1 gap-1 sm:grid-cols-3 sm:gap-2">
               <Metric href="/low-stock" label="Low stock" value={summary.lowStockCount} icon={AlertTriangle} alert={summary.lowStockCount > 0} unavailable={summary.inventoryUnavailable} />
               {showOperations && summary.operationsControl?.outlet ? (
                 <Metric
@@ -371,34 +398,16 @@ export function DashboardWorkspace({ summary, renderedAt }: { summary: Dashboard
 
         {showFinance ? <Panel title="Payables and cash obligations"
             empty={summary.payablesAttentionUnavailable ? "Payables attention is temporarily unavailable; operational queues remain current." : "All current supplier invoices are up to date."}
-            action={{ href: "/supplier-invoices/aging", label: "Open AP Aging" }}
           >
             {summary.payablesAttention ? (
               <>
-                <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
-                  <Metric
-                    href="/supplier-invoices/aging?overdue=1"
-                    label="Overdue AP"
-                    value={formatCurrency(summary.payablesAttention.overdue_amount + summary.payablesAttention.critical_amount)}
-                    icon={ReceiptText}
-                    alert={summary.payablesAttention.overdue_count + summary.payablesAttention.critical_count > 0}
-                  />
-                  <Metric
-                    href="/supplier-invoices/aging?bucket=missing_due_date"
-                    label="Missing due date"
-                    value={formatNumber(summary.payablesAttention.missing_due_date_count)}
-                    icon={AlertTriangle}
-                    alert={summary.payablesAttention.missing_due_date_count > 0}
-                  />
-                  <Metric
-                    href="/supplier-invoices/cash-flow"
-                    label="Due soon"
-                    value={formatCurrency(summary.payablesAttention.due_today_amount + summary.payablesAttention.due_next_7_amount)}
-                    icon={Clock3}
-                  />
+                <div className="grid grid-cols-2 gap-2">
+                  <Link prefetch={false} href="/supplier-invoices/aging?overdue=1" className="col-span-2 flex items-center justify-between rounded-[var(--sb-radius-control)] border border-[var(--sb-border-soft)] bg-[var(--sb-surface-muted)] p-3 sm:col-span-1 sm:row-span-2 sm:flex-col sm:items-start"><span className="flex items-center gap-2 text-xs font-medium text-[var(--sb-text-muted)]"><ReceiptText className="h-4 w-4" />Overdue AP</span><strong className="text-xl font-semibold tabular-nums">{formatCurrency(summary.payablesAttention.overdue_amount + summary.payablesAttention.critical_amount)}</strong></Link>
+                  <Metric href="/supplier-invoices/aging?bucket=missing_due_date" label="Missing due date" value={formatNumber(summary.payablesAttention.missing_due_date_count)} icon={AlertTriangle} alert={summary.payablesAttention.missing_due_date_count > 0} />
+                  <Metric href="/supplier-invoices/cash-flow" label="Due soon" value={formatCurrency(summary.payablesAttention.due_today_amount + summary.payablesAttention.due_next_7_amount)} icon={Clock3} />
                 </div>
-                <div className="mt-3 flex flex-wrap gap-2">
-                  <Button asChild size="sm" className="!text-xs"><Link href="/supplier-invoices">Review Invoice</Link></Button><Button asChild variant="outline" size="sm" className="!text-xs"><Link href="/supplier-invoices/cash-flow">View Cash Flow</Link></Button>
+                <div className="mt-3 grid grid-cols-2 gap-2 sm:flex">
+                  <Button asChild size="sm" className="!text-xs"><Link prefetch={false} href="/supplier-invoices"><ReceiptText className="h-4 w-4" />Review Invoice</Link></Button><Button asChild variant="outline" size="sm" className="!text-xs"><Link prefetch={false} href="/supplier-invoices/cash-flow"><ArrowUpRight className="h-4 w-4" />View Cash Flow</Link></Button>
                 </div>
               </>
             ) : null}

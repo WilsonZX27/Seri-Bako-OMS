@@ -26,7 +26,7 @@ test("dashboard degrades optional reads instead of replacing the whole workdesk"
 test("dashboard payables actions use the compact label scale", () => {
   const source = fs.readFileSync(path.join(process.cwd(), "src/components/dashboard-workspace.tsx"), "utf8");
 
-  assert.match(source, /Review Invoice<\/Link><\/Button>/);
-  assert.match(source, /Review Invoice<\/Link><\/Button><Button[^>]+className="!text-xs"/);
-  assert.match(source, /View Cash Flow<\/Link><\/Button>/);
+  assert.match(source, /href="\/supplier-invoices"[\s\S]*?Review Invoice<\/Link><\/Button>/);
+  assert.match(source, /<Button[^>]+className="!text-xs"[\s\S]*?Review Invoice<\/Link><\/Button><Button[^>]+className="!text-xs"/);
+  assert.match(source, /href="\/supplier-invoices\/cash-flow"[\s\S]*?View Cash Flow<\/Link><\/Button>/);
 });

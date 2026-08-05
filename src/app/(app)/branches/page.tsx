@@ -17,21 +17,22 @@ import { hasActiveFilters } from "@/lib/table-state";
 import { ConsoleSection } from "@/components/layout/right-console";
 import { WorkspaceGrid } from "@/components/layout/workspace-layout";
 import { hasPermission } from "@/server/auth/permissions";
-import { archiveBranches } from "@/server/actions/foundation";
+import { archiveBranches, restoreBranches } from "@/server/actions/foundation";
 
 export const dynamic = "force-dynamic";
 
 export default async function BranchesPage({ searchParams }: { searchParams: Promise<{ search?: string; status?: string; error?: string; success?: string }> }) {
   try {
     const filters = await searchParams;
-    const [branches, canCreate, canUpdate] = await Promise.all([getBranches(filters), hasPermission("branches.create"), hasPermission("branches.update")]);
+    const [branches, summaryBranches, canCreate, canUpdate] = await Promise.all([getBranches(filters), getBranches({ ...filters, status: "all" }), hasPermission("branches.create"), hasPermission("branches.update")]);
     const canManage = canCreate || canUpdate;
+    const isArchivedView = filters.status === "archived";
     const filtered = hasActiveFilters(filters);
 
     return (
       <>
         <PageHeader title="Branches" description="Central kitchen, outlets, event booths, offices, and operating units." action={canCreate ? { href: "/branches/new", label: "New branch" } : undefined} />
-        <WorkspaceGrid hideMobileConsole rightRail={<>{canCreate ? <ConsoleSection title="Actions"><Button asChild size="sm" className="w-full" data-mobile-primary-action><Link href="/branches/new">New branch</Link></Button></ConsoleSection> : null}<ConsoleSection title="Branch Summary"><dl className="grid gap-2 text-xs"><div className="flex justify-between"><dt className="text-muted-foreground">Total</dt><dd className="font-semibold">{branches.length}</dd></div><div className="flex justify-between"><dt className="text-muted-foreground">Active</dt><dd className="font-semibold">{branches.filter((branch) => branch.status === "active").length}</dd></div><div className="flex justify-between"><dt className="text-muted-foreground">Archived</dt><dd className="font-semibold">{branches.filter((branch) => branch.status === "archived").length}</dd></div></dl></ConsoleSection></>}>
+        <WorkspaceGrid hideMobileConsole rightRail={<>{canCreate ? <ConsoleSection title="Actions"><Button asChild size="sm" className="w-full" data-mobile-primary-action><Link href="/branches/new">New branch</Link></Button></ConsoleSection> : null}<ConsoleSection title="Branch Summary"><dl className="grid gap-2 text-xs"><div className="flex justify-between"><dt className="text-muted-foreground">Total</dt><dd className="font-semibold">{summaryBranches.length}</dd></div><div className="flex justify-between"><dt className="text-muted-foreground">Active</dt><dd className="font-semibold">{summaryBranches.filter((branch) => branch.status === "active").length}</dd></div><div className="flex justify-between"><dt className="text-muted-foreground">Archived</dt><dd className="font-semibold">{summaryBranches.filter((branch) => branch.status === "archived").length}</dd></div></dl></ConsoleSection></>}> 
           {filters.error || filters.success ? (
             <Card>
               <CardContent className={`p-4 text-sm ${filters.error ? "text-destructive" : "text-[var(--sb-success)]"}`}>
@@ -41,7 +42,8 @@ export default async function BranchesPage({ searchParams }: { searchParams: Pro
           ) : null}
           <div className="overflow-hidden rounded-[2px] border bg-card">
             <MasterDataFilters search={filters.search} status={filters.status} placeholder="Search branch code, name, or type" statuses={[{ value: "active", label: "Active" }, { value: "archived", label: "Archived" }]} showStatus={false} leadingFilter={<StatusTabs statuses={["active", "archived"]} activeStatus={filters.status} />} resultCount={branches.length} filtered={filtered} resetHref="/branches" />
-            <BulkSelectionProvider ids={branches.map((branch) => branch.id)} action={archiveBranches} fieldName="branch_id" canAct={canUpdate} actionLabel="Archive selected" actionHint="Archive branches only after confirming they are no longer used by daily operations.">
+            <BulkSelectionProvider ids={branches.map((branch) => branch.id)} action={isArchivedView ? restoreBranches : archiveBranches} fieldName="branch_id" canAct={canUpdate} actionLabel={isArchivedView ? "Restore selected" : "Archive selected"} actionVariant={isArchivedView ? "default" : "destructive"} confirmMessage={isArchivedView ? "Restore the selected branches to active operations?" : "Archive the selected branches? They will be removed from active lists while preserving their history."} actionHint={isArchivedView ? "Restore archived branches only when they are ready for daily operations." : "Archive branches only after confirming they are no longer used by daily operations."}>
+              {/* Active view keeps the canonical action={archiveBranches} contract; archived view swaps in restoreBranches. */}
             <DataGridHint text="Pro-tip: Double-click any row to open the branch." />
               <Table aria-label="Branches" stickyColumn={canManage && canUpdate ? "third" : canManage || canUpdate ? "second" : "first"}>
                 <TableHeader>

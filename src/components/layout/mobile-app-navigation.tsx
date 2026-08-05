@@ -188,6 +188,7 @@ export function MobileAppNavigation({
               <Link
                 key={tab.href}
                 href={tab.href}
+                prefetch={false}
                 aria-current={active ? "page" : undefined}
                 className={cn(
                   "relative flex min-w-0 flex-col items-center justify-center gap-0.5 px-1 py-1.5 text-[10px] font-medium text-[var(--sb-text-muted)]",
@@ -240,7 +241,7 @@ export function MobileAppNavigation({
                   Search OMS
                 </Button>
                 <div className="divide-y divide-[var(--sb-border-soft)] border-y border-[var(--sb-border-soft)]">
-                  <Link href="/account" className="flex min-h-12 items-center gap-3 px-2 text-[13px] font-medium text-[var(--sb-text)] active:bg-[var(--sb-surface-muted)]">
+                  <Link href="/account" prefetch={false} className="flex min-h-12 items-center gap-3 px-2 text-[13px] font-medium text-[var(--sb-text)] active:bg-[var(--sb-surface-muted)]">
                     <UserRound className="h-4.5 w-4.5 shrink-0" aria-hidden="true" />
                     <span className="min-w-0 flex-1">My Profile</span>
                   </Link>
@@ -263,6 +264,7 @@ export function MobileAppNavigation({
                         <Link
                           key={item.href}
                           href={item.href}
+                          prefetch={false}
                           aria-current={active ? "page" : undefined}
                           className={cn(
                             "flex min-h-12 items-center gap-3 px-2 text-[13px] font-medium",

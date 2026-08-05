@@ -32,7 +32,7 @@ test("high-volume inventory lists filter and page in the database", () => {
 
   assert.match(inventory, /from\("stock_ledger_view"\)\.select\("\*", \{ count: "exact" \}\)/);
   assert.match(inventory, /query = query\.range\(range\.from, range\.to\)/);
-  assert.match(inventory, /from\("stock_balances_view"\)\.select\("\*", \{ count: "exact" \}\)/);
+  assert.match(inventory, /from\("stock_balances_summary"\)\.select\("\*", \{ count: "exact" \}\)/);
   assert.match(counts, /from\("stock_counts_list_view"\)\.select\("\*", \{ count: "exact" \}\)/);
   assert.match(counts, /query = query\.range\(\(page - 1\) \* STOCK_COUNT_PAGE_SIZE/);
   assert.doesNotMatch(counts, /supabase\.from\("stock_counts"\)\.select\("\*"\)\.is\("deleted_at", null\)\.order\("updated_at"/);

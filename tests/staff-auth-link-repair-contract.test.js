@@ -66,7 +66,8 @@ test("Staff UI exposes explicit states and only Owners receive the repair contro
 test("unlinked Auth users remain outside operational workspaces", () => {
   const middleware = read("src/lib/supabase/middleware.ts");
   const resolver = read("src/server/auth/route-resolver.ts");
-  assert.match(middleware, /eq\("auth_user_id", user\.id\)/);
+  assert.match(middleware, /const authUserId = claimsData\?\.claims\?\.sub/);
+  assert.match(middleware, /eq\("auth_user_id", authUserId\)/);
   assert.match(resolver, /missing-profile/);
 });
 

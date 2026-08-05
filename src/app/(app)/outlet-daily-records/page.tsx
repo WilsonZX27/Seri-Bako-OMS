@@ -18,7 +18,7 @@ import { hasPermission } from "@/server/auth/permissions";
 import { getOutletDailyFormOptions, getOutletDailyRecords } from "@/server/queries/outlet-daily-records";
 
 const statuses = ["draft", "morning_recorded", "evening_completed", "reviewed", "void"];
-const statusGuidance = (status: string) => status === "evening_completed" ? "Needs review" : status === "reviewed" ? "Locked" : ["draft", "morning_recorded"].includes(status) ? "Needs evening entry" : "Locked";
+const statusGuidance = (status: string) => status === "evening_completed" ? "Posted · editable" : status === "reviewed" ? "Legacy reviewed record" : ["draft", "morning_recorded"].includes(status) ? "In progress" : "Locked";
 
 export default async function OutletDailyRecordsPage({ searchParams }: { searchParams: Promise<Record<string, string | undefined>> }) {
   const filters = await searchParams;
@@ -29,14 +29,14 @@ export default async function OutletDailyRecordsPage({ searchParams }: { searchP
     <WorkspaceGrid hideMobileConsole={!canCreate} rightRail={<>
       <ConsoleSection title="Actions">{canCreate ? <Button asChild size="sm" className="w-full" data-mobile-primary-action><Link href="/outlet-daily-records/new">New Daily Record</Link></Button> : <p className="text-xs text-muted-foreground">Your role has read-only access.</p>}</ConsoleSection>
       <ConsoleSection title="Today"><div className="space-y-2 text-xs"><p className="flex justify-between"><span>Records</span><strong>{data.summary.today_records}</strong></p><p className="flex justify-between"><span>Qty sent</span><strong>{formatNumber(data.summary.today_sent)}</strong></p><p className="flex justify-between"><span>Total received</span><strong>{formatNumber(data.summary.today_received)}</strong></p><p className="flex justify-between"><span>Incomplete</span><strong>{data.summary.missing_evening}</strong></p></div></ConsoleSection>
-      <ConsoleSection title="Review Queue"><p className="text-xs"><span className="text-muted-foreground">Records needing review</span><br /><strong>{data.summary.needs_review}</strong></p></ConsoleSection>
+      <ConsoleSection title="Completion"><p className="text-xs"><span className="text-muted-foreground">Ready to post</span><br /><strong>{data.summary.needs_review}</strong></p></ConsoleSection>
     </>}>
       <div className="overflow-hidden border bg-card">
-        <FilterBar resultCount={data.totalRows} resetHref="/outlet-daily-records" filtered={filtered}>
-          <Input name="date" type="date" defaultValue={filters.date ?? ""} aria-label="Record date" />
+        <FilterBar resultCount={data.totalRows} resetHref="/outlet-daily-records" filtered={filtered} className="sb-list-filters--date-first">
+          <Input name="date" type="date" defaultValue={filters.date ?? ""} aria-label="Record date" className="sb-filter-date" />
           <SelectControl name="branch" defaultValue={filters.branch ?? "all"} ariaLabel="Branch" options={[{ value: "all", label: "All branches" }, ...options.branches.map((branch) => ({ value: branch.id, label: branch.branch_name }))]} />
           <SelectControl name="status" defaultValue={filters.status ?? "all"} ariaLabel="Status" options={[{ value: "all", label: "All statuses" }, ...statuses.map((status) => ({ value: status, label: status.replaceAll("_", " ") }))]} />
-          <Button type="submit" variant="secondary">Search</Button>
+          {filtered ? <Button asChild variant="secondary"><Link href="/outlet-daily-records">Reset</Link></Button> : <Button type="submit" variant="secondary">Search</Button>}
         </FilterBar>
         <Table mobileHidden aria-label="Outlet daily records" stickyColumn="second"><TableHeader><TableRow><TableHead className="w-16 text-center">Action</TableHead><TableHead>Date</TableHead><TableHead>Outlet</TableHead><TableHead>Status</TableHead><TableHead className="text-right">Received</TableHead><TableHead className="text-right">Wastage</TableHead><TableHead className="text-right">Wastage %</TableHead><TableHead>Submitted By</TableHead><TableHead>Updated</TableHead></TableRow></TableHeader><TableBody>
           {data.rows.map((row) => <DataGridRow key={row.id} href={`/outlet-daily-records/${row.id}`} className={row.record_date === data.summary.today ? "bg-warning/5" : undefined}><TableCell className="w-16 p-0 text-center"><TableActionLink href={`/outlet-daily-records/${row.id}`} label={`Open ${row.branch_name} daily record`}><Pencil className="h-4 w-4" /></TableActionLink></TableCell><TableCell><span className="whitespace-nowrap">{formatDateOnly(row.record_date)}</span>{row.record_date === data.summary.today ? <p className="text-xs font-medium text-warning">Today</p> : null}</TableCell><TableCell className="font-medium">{row.branch_name}</TableCell><TableCell><StatusBadge status={row.status} /><p className="mt-1 whitespace-nowrap text-xs text-muted-foreground">{statusGuidance(row.status)}</p></TableCell><TableCell className="text-right">{formatNumber(row.total_received)}</TableCell><TableCell className="text-right">{formatNumber(row.total_wastage)}</TableCell><TableCell className="text-right">{formatNumber(row.wastage_percent)}%</TableCell><TableCell>{row.submitted_by_name ?? "Draft"}</TableCell><TableCell className="whitespace-nowrap">{formatDateTime(row.updated_at)}</TableCell></DataGridRow>)}

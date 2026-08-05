@@ -80,8 +80,11 @@ test("workflow actions are explicit, confirmed, permission-derived and secondary
   assert.match(po, /Approve as Manager/);
   assert.match(invoice, /Approve as Finance/);
   assert.match(production, /Approve as Manager/);
-  assert.match(daily, /Approve as Manager/);
-  for (const source of [pr, po, invoice, production, daily]) assert.match(source, /ConfirmActionForm/);
+  assert.doesNotMatch(daily, /Approve as Manager|Review Daily Record/);
+  assert.match(daily, /label: "Posted"/);
+  assert.match(daily, /Post Daily Record/);
+  assert.match(daily, /Save Changes/);
+  for (const source of [pr, po, invoice, production]) assert.match(source, /ConfirmActionForm/);
   for (const route of detailRoutes) {
     const source = app(route);
     const primary = source.indexOf("DocumentActionSection");

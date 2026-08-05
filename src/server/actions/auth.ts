@@ -34,6 +34,10 @@ export async function signIn(formData: FormData) {
   const { error } = await supabase.auth.signInWithPassword({ email, password });
   if (error) {
     logServerError(error, { source: "auth.sign-in" });
+    const normalized = error.message.toLowerCase();
+    if (error.name === "AuthRetryableFetchError" || normalized.includes("fetch failed") || normalized.includes("network")) {
+      redirect(`/login?error=${encodeURIComponent("Unable to reach Supabase. Check the local server connection and try again.")}`);
+    }
     redirect(`/login?error=${encodeURIComponent("Invalid email or password.")}`);
   }
 

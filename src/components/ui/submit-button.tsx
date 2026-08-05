@@ -1,6 +1,7 @@
 "use client";
 
 import { LoaderCircle } from "lucide-react";
+import { usePathname, useSearchParams } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { useFormStatus } from "react-dom";
 import { Button, type ButtonProps } from "@/components/ui/button";
@@ -24,6 +25,9 @@ export function SubmitButton({
   const buttonRef = useRef<HTMLButtonElement>(null);
   const sawPending = useRef(false);
   const formId = typeof props.form === "string" ? props.form : null;
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const locationKey = `${pathname}?${searchParams.toString()}`;
 
   useEffect(() => {
     const markSubmitted = (event: SubmitEvent) => {
@@ -44,6 +48,44 @@ export function SubmitButton({
     }
   }, [pending]);
 
+  useEffect(() => {
+    setSubmitted(false);
+  }, [locationKey]);
+
+  useEffect(() => {
+    if (!submitted || !formId) return;
+    const form = document.getElementById(formId);
+    const observationRoot = form?.parentElement ?? form;
+    let settled = false;
+    let observer: MutationObserver | null = null;
+    const release = () => {
+      if (settled) return;
+      settled = true;
+      setSubmitted(false);
+    };
+    const beginObserving = window.setTimeout(() => {
+      if (!observationRoot || settled) return;
+      observer = new MutationObserver((records) => {
+        if (records.some((record) => record.type === "childList" || record.type === "characterData")) {
+          window.setTimeout(release, 120);
+        }
+      });
+      observer.observe(observationRoot, { childList: true, subtree: true, characterData: true });
+    }, 250);
+    form?.addEventListener("reset", release);
+    window.addEventListener("pageshow", release);
+    window.addEventListener("popstate", release);
+    const timeout = window.setTimeout(release, 30000);
+    return () => {
+      observer?.disconnect();
+      window.clearTimeout(beginObserving);
+      form?.removeEventListener("reset", release);
+      window.removeEventListener("pageshow", release);
+      window.removeEventListener("popstate", release);
+      window.clearTimeout(timeout);
+    };
+  }, [submitted, formId]);
+
   const isPending = submitted && (formId ? true : pending);
 
   return (
@@ -53,8 +95,8 @@ export function SubmitButton({
         {isPending ? pendingLabel : children}
       </Button>
       {showOverlay && isPending ? (
-        <div className="sb-dialog-backdrop fixed inset-0 z-50 flex items-center justify-center">
-          <div className="sb-popover-surface flex items-center gap-3 px-5 py-4">
+        <div className="sb-dialog-backdrop fixed inset-0 z-50 flex items-center justify-center" aria-busy="true">
+          <div className="sb-popover-surface flex items-center gap-3 px-5 py-4" role="status" aria-live="polite" aria-atomic="true">
             <LoaderCircle className="h-5 w-5 animate-spin text-primary" />
             <p className="text-sm font-medium">{overlayLabel ?? pendingLabel}</p>
           </div>

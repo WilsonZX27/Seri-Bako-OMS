@@ -1,12 +1,13 @@
 import { createClient } from "@/lib/supabase/server";
 import { looseSupabase } from "@/lib/supabase/loose";
-import { getCurrentUserScope, getVisibleNotificationsForCurrentUser, getVisibleRecentActivitiesForCurrentUser } from "@/server/queries/notifications";
+import { getCurrentUserScope, getVisibleNotificationsForCurrentUser } from "@/server/queries/notifications";
 import { getCurrentUserPendingActions } from "@/server/queries/pending-actions";
 import { getPayablesAttention } from "@/server/queries/ap-aging";
 import { getOperationsControlCenterSummary } from "@/server/queries/outlet-daily-records";
 import { getProductionHubSummary } from "@/server/queries/production-jobs";
+import { getInventoryDashboard } from "@/server/queries/inventory";
 import { getRoleDisplayLabel } from "@/lib/roles";
-import { logServerError, logServerWarning } from "@/server/observability/logger";
+import { logServerWarning } from "@/server/observability/logger";
 import {
   getMockLowStockItems,
   getMockStockBalances,
@@ -111,15 +112,8 @@ export async function getDashboardSummary() {
   const supabase = await createClient();
   const db = looseSupabase(supabase);
   const empty = { data: [], error: null, count: 0 };
-  const [balances, lowStock, transactions, stockItems, suppliers, items, urgentRequests, purchaseRequests, purchaseOrders, pendingApprovals, documents, notifications, recentActivities, productionSummary, outletToday, todayReceiving, stockCountDue, wastageAttention, receivingFollowup, currentStaff, assignedBranches] = await Promise.all([
-    needsInventory ? supabase.from("stock_balances_view").select("item_id, current_stock, is_low_stock") : Promise.resolve(empty),
-    needsInventory ? supabase.from("low_stock_items").select("*").limit(5) : Promise.resolve(empty),
-    needsInventory ? supabase
-      .from("stock_transactions")
-      .select("id, item_id, transaction_date, transaction_type, quantity_in, quantity_out")
-      .order("created_at", { ascending: false })
-      .limit(6) : Promise.resolve(empty),
-    needsInventory ? supabase.from("items").select("id, item_name, base_unit") : Promise.resolve(empty),
+  const [inventorySummary, suppliers, items, urgentRequests, purchaseRequests, purchaseOrders, pendingApprovals, documents, notifications, recentActivities, productionSummary, outletToday, todayReceiving, stockCountDue, wastageAttention, receivingFollowup, currentStaff, assignedBranches, payablesAttention, operationsControl] = await Promise.all([
+    needsInventory ? getInventoryDashboard("7d").catch((error) => { warnOptionalQuery("inventory summary", error); return null; }) : Promise.resolve(null),
     (isOwner || isFinance || isPurchasing) ? supabase.from("suppliers").select("id", { count: "exact", head: true }) : Promise.resolve(empty),
     (isOwner || isFinance || isPurchasing) ? supabase.from("items").select("id", { count: "exact", head: true }) : Promise.resolve(empty),
     needsProcurement ? supabase
@@ -134,7 +128,9 @@ export async function getDashboardSummary() {
     getCurrentUserPendingActions(5),
     (isOwner || isFinance || isPurchasing || isKitchen) ? supabase.from("documents").select("id, document_no, document_type").order("updated_at", { ascending: false }).limit(6) : Promise.resolve(empty),
     getVisibleNotificationsForCurrentUser(),
-    (isOwner || isFinance || isManager) ? getVisibleRecentActivitiesForCurrentUser() : Promise.resolve([]),
+    // Actor resolution is intentionally reserved for Activity Log and the
+    // notification workspace. It is not part of the dashboard's critical path.
+    Promise.resolve([]),
     needsProduction ? getProductionHubSummary().catch(() => null) : Promise.resolve(null),
     isOutlet ? db.from("outlet_daily_records").select("id, status, record_date, branch_id").eq("record_date", today).order("updated_at", { ascending: false }).limit(1).maybeSingle() : Promise.resolve({ data: null, error: null }),
     needsProcurement ? db.from("goods_receivings").select("id", { count: "exact", head: true }).eq("received_date", today).is("deleted_at", null) : Promise.resolve(empty),
@@ -145,10 +141,20 @@ export async function getDashboardSummary() {
     !scope.companyWideAccess && scope.branchIds.length
       ? supabase.from("branches").select("branch_name").in("id", scope.branchIds).order("branch_name")
       : Promise.resolve(empty),
+    (isOwner || isFinance)
+      ? getPayablesAttention().catch((error) => {
+          warnOptionalQuery("payables attention", error);
+          return null;
+        })
+      : Promise.resolve(null),
+    needsOperations
+      ? getOperationsControlCenterSummary().catch((error) => {
+          warnOptionalQuery("operations control", error);
+          return null;
+        })
+      : Promise.resolve(null),
   ]);
 
-  warnOptionalQuery("stock balances", balances.error);
-  warnOptionalQuery("low stock items", lowStock.error);
   warnOptionalQuery("today receiving", todayReceiving.error);
   warnOptionalQuery("stock counts due", stockCountDue.error);
   warnOptionalQuery("wastage attention", wastageAttention.error);
@@ -160,8 +166,6 @@ export async function getDashboardSummary() {
   // optional read must not strand a signed-in operator behind a generic error
   // page when the rest of their permitted workspace is still usable.
   for (const [name, result] of [
-    ["recent transactions", transactions],
-    ["stock items", stockItems],
     ["suppliers", suppliers],
     ["items", items],
     ["urgent requests", urgentRequests],
@@ -172,30 +176,16 @@ export async function getDashboardSummary() {
     warnOptionalQuery(name, result.error);
   }
 
-  const itemById = new Map((stockItems.data ?? []).map((item) => [item.id, item]));
-  let payablesAttention: Awaited<ReturnType<typeof getPayablesAttention>> | null = null;
-  let payablesAttentionUnavailable = false;
-  if (isOwner || isFinance) {
-    try {
-      payablesAttention = await getPayablesAttention();
-    } catch {
-      payablesAttentionUnavailable = true;
-      logServerError("AP Aging unavailable; rendering the remaining dashboard.", { source: "dashboard.payablesAttention" });
-    }
-  }
-  let operationsControl: Awaited<ReturnType<typeof getOperationsControlCenterSummary>> | null = null;
-  if (needsOperations) {
-    try {
-      operationsControl = await getOperationsControlCenterSummary();
-    } catch {
-      logServerError("Operations control summaries unavailable; rendering the remaining dashboard.", { source: "dashboard.operationsControl" });
-    }
-  }
+  const payablesAttentionUnavailable = (isOwner || isFinance) && payablesAttention === null;
   const branchLabel = scope.companyWideAccess
     ? "Company-wide"
     : assignedBranches.data?.map((branch) => branch.branch_name).filter(Boolean).join(", ") || "Assigned workspace";
+  const lowStockRows = (inventorySummary?.lowStockRows ?? [])
+    .sort((a, b) => Number(b.shortage_quantity ?? 0) - Number(a.shortage_quantity ?? 0) || a.item_name.localeCompare(b.item_name))
+    .slice(0, 5);
+  const inventoryUnavailable = needsInventory && (inventorySummary === null || inventorySummary.inventoryUnavailable);
 
-  return {
+  const result = {
     role,
     roleLabel: getRoleDisplayLabel(role),
     scopeLabel: branchLabel,
@@ -203,16 +193,14 @@ export async function getDashboardSummary() {
     branchLabel,
     totalItems: items.count ?? 0,
     totalSuppliers: suppliers.count ?? 0,
-    lowStockCount: balances.error ? 0 : balances.data?.filter((row) => row.is_low_stock).length ?? 0,
-    totalStockValue:
-      balances.error ? 0 : balances.data?.reduce((sum, row) => sum + Number(row.current_stock ?? 0), 0) ?? 0,
-    lowStockItems: lowStock.error ? [] : lowStock.data ?? [],
-    inventoryUnavailable: Boolean(balances.error || lowStock.error),
+    lowStockCount: inventoryUnavailable ? 0 : inventorySummary?.lowStockItems ?? 0,
+    totalStockValue: inventoryUnavailable ? 0 : inventorySummary?.inventoryValue ?? 0,
+    lowStockItems: inventoryUnavailable ? [] : lowStockRows,
+    inventoryUnavailable,
     urgentRequests: urgentRequests.data ?? [],
-    recentTransactions: (transactions.data ?? []).map((transaction) => ({
-      ...transaction,
-      item: itemById.get(transaction.item_id) ?? null,
-    })),
+    // Transaction history is intentionally loaded only from Inventory drill-down
+    // routes. The owner workdesk must remain a summary read, not a ledger scan.
+    recentTransactions: [],
     pendingApprovals,
     purchaseRequests: purchaseRequests.data ?? [],
     purchaseOrders: purchaseOrders.data ?? [],
@@ -241,4 +229,5 @@ export async function getDashboardSummary() {
     productionSummary,
     outletToday: outletToday.data ?? null,
   };
+  return result;
 }

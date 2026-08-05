@@ -15,6 +15,9 @@ import type { Database } from "@/types/database";
 
 type DocumentFilters = Record<string, string | undefined>;
 
+const DOCUMENT_PAGE_SIZE = 12;
+const DOCUMENT_SORT_COLUMNS = new Set(["document_no", "document_type", "status", "approval_status", "created_at", "updated_at"]);
+
 export type DocumentRow = Database["public"]["Tables"]["documents"]["Row"] & {
   created_by_name?: string | null;
   updated_by_name?: string | null;
@@ -57,15 +60,41 @@ function filterDocuments(rows: DocumentRow[], filters: DocumentFilters) {
 export async function getDocuments(filters: DocumentFilters = {}) {
   if (isMockMode()) {
     const rows = mockDocuments.map((document) => ({ ...document, created_by_name: mockProfile.full_name }));
-    return paginateRows(filterDocuments(rows, filters), filters.page, 12);
+    return paginateRows(filterDocuments(rows, filters), filters.page, DOCUMENT_PAGE_SIZE);
   }
 
   const supabase = await createClient();
-  const { data, error } = await supabase
+  const requestedPage = Math.max(Number.parseInt(filters.page ?? "1", 10) || 1, 1);
+  const start = (requestedPage - 1) * DOCUMENT_PAGE_SIZE;
+  const search = filters.search?.trim().replace(/[,%()]/g, " ");
+  const status = filters.status && filters.status !== "all" ? filters.status : null;
+  const documentType = filters.document_type && filters.document_type !== "all" ? filters.document_type : null;
+  const approvalStatus = filters.approval_status && filters.approval_status !== "all" ? filters.approval_status : null;
+  const sort = DOCUMENT_SORT_COLUMNS.has(filters.sort ?? "") ? filters.sort! : "updated_at";
+  const ascending = filters.dir === "asc";
+  const statusGroup =
+    status === "rejected" ? ["rejected", "cancelled"]
+    : status === "closed" ? ["completed", "closed", "converted"]
+    : status === "posted" ? ["posted"]
+    : status === "pending_approval" ? ["pending_approval", "submitted"]
+    : status ? [status] : [];
+
+  let query = supabase
     .from("documents")
-    .select("*")
-    .is("deleted_at", null)
-    .order("updated_at", { ascending: false });
+    .select("*", { count: "exact" })
+    .is("deleted_at", null);
+  if (search) {
+    query = query.or(
+      `document_no.ilike.%${search}%,document_type.ilike.%${search}%,title.ilike.%${search}%,current_step.ilike.%${search}%,related_entity_type.ilike.%${search}%`,
+    );
+  }
+  if (statusGroup.length) query = query.in("status", statusGroup as DocumentRow["status"][]);
+  if (documentType) query = query.eq("document_type", documentType);
+  if (approvalStatus) query = query.eq("approval_status", approvalStatus as NonNullable<DocumentRow["approval_status"]>);
+
+  const { data, error, count } = await query
+    .order(sort, { ascending })
+    .range(start, start + DOCUMENT_PAGE_SIZE - 1);
   if (error) throw new Error(error.message);
   const displayMap = await resolveActorDisplayMap((data ?? []).flatMap((document) => [document.created_by, document.updated_by]));
   const rows = ((data ?? []) as DocumentRow[]).map((document) => ({
@@ -73,7 +102,15 @@ export async function getDocuments(filters: DocumentFilters = {}) {
     created_by_name: actorDisplayName(displayMap, document.created_by),
     updated_by_name: actorDisplayName(displayMap, document.updated_by),
   }));
-  return paginateRows(filterDocuments(rows, filters), filters.page, 12);
+  const totalRows = count ?? rows.length;
+  const totalPages = Math.max(Math.ceil(totalRows / DOCUMENT_PAGE_SIZE), 1);
+  return {
+    rows,
+    totalRows,
+    page: Math.min(requestedPage, totalPages),
+    pageSize: DOCUMENT_PAGE_SIZE,
+    totalPages,
+  };
 }
 
 export async function getDocument(id: string) {

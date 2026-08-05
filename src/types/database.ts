@@ -8,7 +8,7 @@ export type StaffStatus = RecordStatus | "invited" | "disabled";
 export type BranchType = "central_kitchen" | "outlet" | "event_booth" | "office" | "other";
 export type StaffAccessLevel = "full" | "manage" | "read_only";
 export type PermissionOverrideEffect = "allow" | "deny";
-export type ResetFrequency = "never" | "yearly" | "monthly" | "daily";
+export type ResetFrequency = "never" | "yearly" | "quarterly" | "monthly" | "daily";
 export type StockEntityType = "item" | "product";
 export type DocumentStatus = "draft" | "submitted" | "pending_approval" | "approved" | "rejected" | "posted" | "cancelled" | "closed";
 export type ApprovalStatus = "not_required" | "draft" | "pending" | "approved" | "rejected" | "cancelled";
@@ -1900,6 +1900,70 @@ export type Database = {
         Update: Partial<Database["public"]["Tables"]["stock_wastage_lines"]["Insert"]>;
         Relationships: [];
       };
+      stock_balances_summary: {
+        Row: {
+          item_id: string;
+          branch_id: string;
+          company_id: string;
+          item_code: string;
+          autocount_code: string | null;
+          item_name: string;
+          branch_name: string;
+          category: string;
+          purchase_unit: string;
+          base_unit: string;
+          conversion_to_base_unit: number;
+          supplier_id: string | null;
+          supplier_name: string | null;
+          cost: number;
+          safety_stock: number;
+          lead_time_days: number;
+          moq: number;
+          status: ItemStatus;
+          total_quantity_in: number;
+          total_quantity_out: number;
+          current_stock: number;
+          current_qty: number;
+          average_cost: number;
+          inventory_value: number;
+          last_movement: string | null;
+          is_low_stock: boolean;
+          shortage_quantity: number;
+          updated_at: string;
+        };
+        Insert: {
+          item_id: string;
+          branch_id: string;
+          company_id: string;
+          item_code: string;
+          autocount_code?: string | null;
+          item_name: string;
+          branch_name: string;
+          category?: string;
+          purchase_unit?: string;
+          base_unit?: string;
+          conversion_to_base_unit?: number;
+          supplier_id?: string | null;
+          supplier_name?: string | null;
+          cost?: number;
+          safety_stock?: number;
+          lead_time_days?: number;
+          moq?: number;
+          status?: ItemStatus;
+          total_quantity_in?: number;
+          total_quantity_out?: number;
+          current_stock?: number;
+          current_qty?: number;
+          average_cost?: number;
+          inventory_value?: number;
+          last_movement?: string | null;
+          is_low_stock?: boolean;
+          shortage_quantity?: number;
+          updated_at?: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["stock_balances_summary"]["Insert"]>;
+        Relationships: [];
+      };
     };
     Views: {
       stock_balances_view: {
@@ -2038,6 +2102,10 @@ export type Database = {
       };
     };
     Functions: {
+      get_goods_receiving_summary: {
+        Args: Record<string, never>;
+        Returns: Json;
+      };
       current_user_role: {
         Args: Record<string, never>;
         Returns: UserRole;
@@ -2178,6 +2246,25 @@ export type Database = {
       can_access_inventory_branch: {
         Args: { target_company_id: string; target_branch_id: string };
         Returns: boolean;
+      };
+      get_inventory_dashboard_summary: {
+        Args: { p_period?: string };
+        Returns: Json;
+      };
+      get_items_workspace: {
+        Args: {
+          p_search?: string | null;
+          p_status?: string | null;
+          p_category?: string | null;
+          p_supplier_id?: string | null;
+          p_stock_control?: string | null;
+          p_low_stock?: string | null;
+          p_sort?: string;
+          p_direction?: string;
+          p_page?: number;
+          p_page_size?: number;
+        };
+        Returns: Json;
       };
       post_opening_stock: {
         Args: {

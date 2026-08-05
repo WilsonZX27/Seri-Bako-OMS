@@ -98,7 +98,7 @@ test("draft submission preserves every line id even when rows are filtered", () 
 test("Stock Balance is branch-filtered and query failures are not converted to empty balances", () => {
   const inventory = read("src/server/queries/inventory.ts");
 
-  assert.match(inventory, /from\("stock_balances_view"\)/);
+  assert.match(inventory, /from\("stock_balances_summary"\)/);
   assert.match(inventory, /if \(branchId\) query = query\.eq\("branch_id", branchId\)/);
   assert.match(inventory, /throw new Error\(`Stock Balance could not be loaded:/);
   assert.doesNotMatch(

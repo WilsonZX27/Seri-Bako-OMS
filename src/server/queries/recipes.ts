@@ -49,6 +49,19 @@ export type RecipeIngredientOption = {
   item_image_url: string | null;
 };
 
+export type RecipeListRow = RecipeRow & {
+  product_code: string;
+  product_name: string;
+  display_order: number | null;
+  product_image_url: string | null;
+  selling_unit: string;
+  total_recipe_cost: number;
+  cost_per_finished_unit: number;
+};
+
+type RecipeListFilters = Record<string, string | undefined>;
+const RECIPE_PAGE_SIZE = 12;
+
 function lineBaseQty(line: RecipeLineRow) {
   return Number(line.base_qty_required || Number(line.qty_required) * Number(line.conversion_factor || 1));
 }
@@ -129,30 +142,113 @@ function buildRecipeDetail(
   };
 }
 
-export async function getRecipes() {
+export async function getRecipes(filters: RecipeListFilters = {}) {
   await requirePermission("recipes.view");
   if (isMockMode()) {
-    return sortProductsForDisplay(mockRecipes.map((recipe) => buildRecipeDetail(recipe, mockProducts, mockRecipeLines, mockItems, mockProductPackaging, mockRecipeCostSnapshots)));
+    const search = filters.search?.trim().toLowerCase();
+    const status = filters.status && filters.status !== "all" ? filters.status : null;
+    const rows = sortProductsForDisplay(mockRecipes
+      .map((recipe) => buildRecipeDetail(recipe, mockProducts, mockRecipeLines, mockItems, mockProductPackaging, mockRecipeCostSnapshots))
+      .filter((recipe) => (!search || [recipe.recipe_no, recipe.product_code, recipe.product_name].some((value) => value.toLowerCase().includes(search))) && (!status || recipe.status === status)));
+    const page = Math.max(1, Number(filters.page) || 1);
+    return {
+      rows: rows.slice((page - 1) * RECIPE_PAGE_SIZE, page * RECIPE_PAGE_SIZE),
+      page,
+      pageSize: RECIPE_PAGE_SIZE,
+      totalRows: rows.length,
+      totalPages: Math.max(Math.ceil(rows.length / RECIPE_PAGE_SIZE), 1),
+    };
   }
 
   const supabase = await createClient();
-  const [recipes, products, lines, items, packaging, snapshots, stockBalances] = await Promise.all([
-    supabase.from("recipes").select("*").is("deleted_at", null).order("effective_date", { ascending: false }),
-    supabase.from("products").select("*").is("deleted_at", null),
-    supabase.from("recipe_lines").select("*"),
-    supabase.from("items").select("*").is("deleted_at", null),
-    supabase.from("product_packaging").select("*").is("deleted_at", null),
-    supabase.from("recipe_cost_snapshots").select("*"),
-    supabase.from("stock_balances_view").select("item_id,current_stock,current_qty"),
-  ]);
-
-  for (const result of [recipes, products, lines, items, packaging, snapshots, stockBalances]) {
-    if (result.error) throw new Error(result.error.message);
+  const page = Math.max(1, Number(filters.page) || 1);
+  const search = filters.search?.trim();
+  const status = filters.status && filters.status !== "all" ? filters.status : null;
+  let matchingProductIds: string[] = [];
+  if (search) {
+    const term = search.replace(/[(),]/g, " ").replace(/[\\%_]/g, "\\$&");
+    const { data, error } = await supabase
+      .from("products")
+      .select("id")
+      .is("deleted_at", null)
+      .or(`product_code.ilike.%${term}%,product_name.ilike.%${term}%`)
+      .limit(200);
+    if (error) throw new Error(error.message);
+    matchingProductIds = (data ?? []).map((row) => row.id);
   }
 
-  return sortProductsForDisplay((recipes.data ?? []).map((recipe) =>
-    buildRecipeDetail(recipe, products.data ?? [], lines.data ?? [], items.data ?? [], packaging.data ?? [], snapshots.data ?? [], stockBalances.data ?? []),
-  ));
+  let query = supabase.from("recipes").select("*", { count: "exact" }).is("deleted_at", null);
+  if (status) query = query.eq("status", status as RecipeRow["status"]);
+  if (search) {
+    const term = search.replace(/[(),]/g, " ").replace(/[\\%_]/g, "\\$&");
+    query = matchingProductIds.length
+      ? query.or(`recipe_no.ilike.%${term}%,product_id.in.(${matchingProductIds.join(",")})`)
+      : query.ilike("recipe_no", `%${term}%`);
+  }
+  const { data: recipeRows, error, count } = await query
+    .order("effective_date", { ascending: false })
+    .order("id", { ascending: false })
+    .range((page - 1) * RECIPE_PAGE_SIZE, page * RECIPE_PAGE_SIZE - 1);
+  if (error) throw new Error(error.message);
+
+  const productIds = [...new Set((recipeRows ?? []).map((recipe) => recipe.product_id))];
+  const recipeIds = (recipeRows ?? []).map((recipe) => recipe.id);
+  const [{ data: products, error: productsError }, { data: snapshots, error: snapshotsError }] = await Promise.all([
+    productIds.length
+      ? supabase.from("products").select("id,product_code,product_name,display_order,product_image_url,selling_unit").in("id", productIds)
+      : Promise.resolve({ data: [], error: null }),
+    recipeIds.length
+      ? supabase.from("recipe_cost_snapshots").select("recipe_id,snapshot_no,wastage_adjusted_cost,cost_per_finished_unit").in("recipe_id", recipeIds).order("snapshot_no", { ascending: false })
+      : Promise.resolve({ data: [], error: null }),
+  ]);
+  if (productsError) throw new Error(productsError.message);
+  if (snapshotsError) throw new Error(snapshotsError.message);
+
+  const productById = new Map((products ?? []).map((product) => [product.id, product]));
+  const snapshotByRecipe = new Map<string, (typeof snapshots)[number]>();
+  for (const snapshot of snapshots ?? []) if (!snapshotByRecipe.has(snapshot.recipe_id)) snapshotByRecipe.set(snapshot.recipe_id, snapshot);
+  const rows: RecipeListRow[] = (recipeRows ?? []).map((recipe) => {
+    const product = productById.get(recipe.product_id);
+    const snapshot = snapshotByRecipe.get(recipe.id);
+    return {
+      ...recipe,
+      product_code: product?.product_code ?? "Unknown",
+      product_name: product?.product_name ?? "Unknown product",
+      display_order: product?.display_order ?? null,
+      product_image_url: product?.product_image_url ?? null,
+      selling_unit: product?.selling_unit ?? recipe.yield_unit,
+      total_recipe_cost: Number(snapshot?.wastage_adjusted_cost ?? 0),
+      cost_per_finished_unit: Number(snapshot?.cost_per_finished_unit ?? 0),
+    };
+  });
+  const totalRows = count ?? 0;
+  return {
+    rows: sortProductsForDisplay(rows),
+    page,
+    pageSize: RECIPE_PAGE_SIZE,
+    totalRows,
+    totalPages: Math.max(Math.ceil(totalRows / RECIPE_PAGE_SIZE), 1),
+  };
+}
+
+export async function getRecipeSummary() {
+  await requirePermission("recipes.view");
+  if (isMockMode()) {
+    return {
+      total: mockRecipes.length,
+      active: mockRecipes.filter((recipe) => recipe.status === "active").length,
+      pendingApproval: mockRecipes.filter((recipe) => recipe.status === "pending_approval").length,
+    };
+  }
+  const supabase = await createClient();
+  const count = (status?: RecipeRow["status"]) => {
+    let query = supabase.from("recipes").select("id", { count: "exact", head: true }).is("deleted_at", null);
+    if (status) query = query.eq("status", status);
+    return query;
+  };
+  const [total, active, pendingApproval] = await Promise.all([count(), count("active"), count("pending_approval")]);
+  for (const result of [total, active, pendingApproval]) if (result.error) throw new Error(result.error.message);
+  return { total: total.count ?? 0, active: active.count ?? 0, pendingApproval: pendingApproval.count ?? 0 };
 }
 
 export async function getRecipe(id: string) {

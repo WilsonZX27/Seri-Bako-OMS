@@ -22,6 +22,18 @@ const sources = [
   ["/uom-conversions", "/uom-conversions/", 2],
 ];
 
+function selectedValues(value) {
+  return new Set(String(value ?? "").split(",").map((entry) => entry.trim()).filter(Boolean));
+}
+
+const sourceSelection = selectedValues(process.env.DYNAMIC_DETAIL_SOURCES);
+const viewportSelection = selectedValues(process.env.DYNAMIC_DETAIL_VIEWPORTS);
+const auditedSources = sourceSelection.size ? sources.filter(([listRoute]) => sourceSelection.has(listRoute)) : sources;
+const auditedViewports = viewportSelection.size ? viewports.filter(({ label }) => viewportSelection.has(label)) : viewports;
+
+if (sourceSelection.size && !auditedSources.length) throw new Error("DYNAMIC_DETAIL_SOURCES did not match a canonical source route.");
+if (viewportSelection.size && !auditedViewports.length) throw new Error("DYNAMIC_DETAIL_VIEWPORTS did not match a configured viewport.");
+
 async function assertBounds(page, route, viewport) {
   await expect(page.getByText("This page could not load", { exact: true })).toHaveCount(0);
   const result = await page.evaluate(() => ({
@@ -43,14 +55,14 @@ async function assertBounds(page, route, viewport) {
   expect(result.controls, `${viewport.label} ${route} controls must remain in bounds`).toEqual([]);
 }
 
-for (const viewport of viewports) {
+for (const viewport of auditedViewports) {
   test(`${viewport.label}: populated dynamic detail surfaces stay responsive`, async ({ page }) => {
     test.setTimeout(180_000);
     test.skip(!hasAccount("superAdmin"), "Missing local-only Super Admin credentials.");
     await login(page, "superAdmin");
     await page.setViewportSize(viewport);
     let covered = 0;
-    for (const [listRoute, prefix, depth] of sources) {
+    for (const [listRoute, prefix, depth] of auditedSources) {
       await page.goto(listRoute, { waitUntil: "domcontentloaded" });
       const detail = await page.locator("a[href]").evaluateAll((nodes, args) => nodes.map((node) => {
         try { return new URL(node.getAttribute("href"), window.location.origin).pathname; } catch { return null; }

@@ -197,13 +197,23 @@ export async function getPurchaseOrdersForRequest(id: string) {
   }
 
   const supabase = await createClient();
-  const [{ data, error }, { data: lines, error: linesError }, { data: suppliers }] = await Promise.all([
-    supabase.from("purchase_orders").select("*").eq("purchase_request_id", id).is("deleted_at", null).order("created_at", { ascending: true }),
-    supabase.from("purchase_order_lines").select("*"),
-    supabase.from("suppliers").select("id, name"),
-  ]);
+  const { data, error } = await supabase
+    .from("purchase_orders")
+    .select("*")
+    .eq("purchase_request_id", id)
+    .is("deleted_at", null)
+    .order("created_at", { ascending: true });
   if (error) throw new Error(error.message);
+  if (!data?.length) return [];
+
+  const purchaseOrderIds = data.map((row) => row.id);
+  const supplierIds = [...new Set(data.map((row) => row.supplier_id))];
+  const [{ data: lines, error: linesError }, { data: suppliers, error: suppliersError }] = await Promise.all([
+    supabase.from("purchase_order_lines").select("*").in("purchase_order_id", purchaseOrderIds),
+    supabase.from("suppliers").select("id, name").in("id", supplierIds),
+  ]);
   if (linesError) throw new Error(linesError.message);
+  if (suppliersError) throw new Error(suppliersError.message);
   const supplierById = new Map((suppliers ?? []).map((row) => [row.id, row.name]));
   return ((data ?? []) as PurchaseOrder[]).map((row) => {
     const ownLines = ((lines ?? []) as PurchaseOrderLine[]).filter((line) => line.purchase_order_id === row.id);

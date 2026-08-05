@@ -21,6 +21,13 @@ export type StockCountLineRow = StockCountLine & {
   item?: Pick<Database["public"]["Tables"]["items"]["Row"], "id" | "item_code" | "item_name" | "base_unit" | "item_image_url">;
 };
 
+export class StockCountNotFoundError extends Error {
+  constructor() {
+    super("Stock Count not found.");
+    this.name = "StockCountNotFoundError";
+  }
+}
+
 function filterRows<T extends Record<string, unknown>>(rows: T[], filters: Filters, keys: (keyof T)[], defaultSort: keyof T) {
   const search = filters.search?.trim().toLowerCase();
   const status = filters.status && filters.status !== "all" ? filters.status : null;
@@ -130,6 +137,34 @@ export async function getStockCounts(filters: Filters = {}) {
   return databasePagination((data ?? []) as StockCountRow[], count, filters.page);
 }
 
+export async function getStockCountSummary() {
+  if (isMockMode()) {
+    const rows = mockStockCounts as StockCount[];
+    return {
+      total: rows.length,
+      draft: rows.filter((row) => ["draft", "submitted", "reviewed", "approved"].includes(row.status)).length,
+      posted: rows.filter((row) => row.status === "posted").length,
+      cancelled: rows.filter((row) => row.status === "cancelled").length,
+    };
+  }
+
+  const supabase = await createClient();
+  const statuses = ["draft", "submitted", "reviewed", "approved", "posted", "cancelled"] as const;
+  const results = await Promise.all(statuses.map(async (status) => {
+    const { count, error } = await supabase
+      .from("stock_counts_list_view")
+      .select("id", { count: "exact", head: true })
+      .eq("status", status);
+    if (error) throw new Error(error.message);
+    return { status, count: count ?? 0 };
+  }));
+  const byStatus = new Map(results.map((result) => [result.status, result.count]));
+  const draft = ["draft", "submitted", "reviewed", "approved"].reduce((sum, status) => sum + (byStatus.get(status as typeof statuses[number]) ?? 0), 0);
+  const posted = byStatus.get("posted") ?? 0;
+  const cancelled = byStatus.get("cancelled") ?? 0;
+  return { total: draft + posted + cancelled, draft, posted, cancelled };
+}
+
 export async function getStockCount(id: string) {
   if (isMockMode()) {
     const count = mockStockCounts.find((row) => row.id === id);
@@ -148,8 +183,12 @@ export async function getStockCount(id: string) {
     supabase.from("stock_counts").select("*").eq("id", id).is("deleted_at", null).single(),
     supabase.from("stock_count_lines").select("*").eq("stock_count_id", id).order("line_position", { ascending: true }).order("id", { ascending: true }),
   ]);
-  if (error) throw new Error(error.message);
+  if (error) {
+    if (error.code === "PGRST116") throw new StockCountNotFoundError();
+    throw new Error(error.message);
+  }
   if (linesError) throw new Error(linesError.message);
+  if (!data) throw new StockCountNotFoundError();
   const count = data as StockCount;
   const ownLines = (lines ?? []) as StockCountLine[];
   const itemIds = [...new Set(ownLines.map((line) => line.item_id).filter(Boolean))];
@@ -177,7 +216,11 @@ export async function getStockCount(id: string) {
 }
 
 export async function getStockCountSeedLines(branchId?: string) {
-  const balances = await getStockBalanceDetails({ page: "all", view: "branch" });
+  const balances = await getStockBalanceDetails({
+    page: "all",
+    view: "branch",
+    branch_id: branchId,
+  });
   const lastPostedPhysicalByItem = new Map<string, number>();
 
   // A repeated count starts from the last verified physical result, not from an
@@ -194,7 +237,8 @@ export async function getStockCountSeedLines(branchId?: string) {
       .eq("status", "posted")
       .is("deleted_at", null)
       .order("count_date", { ascending: false })
-      .order("posted_at", { ascending: false });
+      .order("posted_at", { ascending: false })
+      .limit(1);
     if (postedCountsError) throw new Error(postedCountsError.message);
 
     const countIds = (postedCounts ?? []).map((count) => count.id);

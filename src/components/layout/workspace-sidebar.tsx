@@ -71,7 +71,7 @@ export function WorkspaceSidebar({
   return (
     <div className={cn("flex h-dvh w-[var(--sb-sidebar-width)] flex-col border-r border-white/10 bg-[var(--sb-green-950)] text-white", mobile ? "w-full" : "")}>
       <div className="border-b border-white/10 px-3 py-3">
-        <Link href={brandHref} onClick={onNavigate} className="flex min-w-0 flex-1 items-center gap-3 rounded-[2px] p-1 hover:bg-white/10">
+        <Link href={brandHref} prefetch={false} onClick={onNavigate} className="flex min-w-0 flex-1 items-center gap-3 rounded-[2px] p-1 hover:bg-white/10">
           <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-[2px] bg-white/12 text-white ring-1 ring-white/10">
             {companyLogoUrl ? (
               // eslint-disable-next-line @next/next/no-img-element
@@ -96,7 +96,7 @@ export function WorkspaceSidebar({
               <div key={group.id}>
                   <div className={cn("mb-1 flex w-full items-center rounded-[2px] font-medium leading-none text-white/60 hover:bg-white/8 hover:text-white", activeGroupId === group.id && group.href ? "bg-white/8 text-white" : "", mobile ? "min-h-9 text-[11px]" : "min-h-8 text-[10px]")}>
                     {group.href ? (
-                      <Link href={group.href} onClick={onNavigate} className="flex min-h-[inherit] min-w-0 flex-1 items-center px-2">
+                      <Link href={group.href} prefetch={false} onClick={onNavigate} className="flex min-h-[inherit] min-w-0 flex-1 items-center px-2">
                         <span className={mobile ? "text-[11px]" : "text-[10px]"}>{group.label}</span>
                       </Link>
                     ) : (
@@ -118,6 +118,7 @@ export function WorkspaceSidebar({
                       <Link
                         key={itemKey}
                         href={item.href}
+                        prefetch={false}
                         onClick={onNavigate}
                         className={cn(
                           "flex items-center gap-2 rounded-[2px] px-2 font-medium transition-colors",

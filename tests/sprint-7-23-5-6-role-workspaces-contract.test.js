@@ -13,7 +13,10 @@ test("workspace updates share one role and scope source", () => {
   assert.match(notifications, /const hasExplicitRecipient = Boolean/);
   assert.match(notifications, /if \(hasExplicitRecipient\)/);
   assert.match(notifications, /return scope\.companyWideAccess/);
-  for (const source of [dashboard, topbar, activity]) assert.match(source, /getVisibleRecentActivitiesForCurrentUser/);
+  assert.match(activity, /getVisibleRecentActivitiesForCurrentUser/);
+  for (const source of [dashboard, topbar]) assert.doesNotMatch(source, /getVisibleRecentActivitiesForCurrentUser/);
+  assert.match(dashboard, /not part of the dashboard's critical path[\s\S]*Promise\.resolve\(\[\]\)/);
+  assert.match(topbar, /complete activity stream belongs to \/activity[\s\S]*Promise\.resolve\(\[\] as AssignedActivity\[\]\)/);
   assert.match(dashboard, /getVisibleNotificationsForCurrentUser/);
   assert.match(topbar, /getVisibleNotificationsForCurrentUser/);
 });

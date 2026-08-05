@@ -18,6 +18,7 @@ export function Badge({
 }: React.HTMLAttributes<HTMLSpanElement> & { variant?: BadgeVariant }) {
   return (
     <span
+      data-badge-variant={variant}
       className={cn("inline-flex max-w-full items-center overflow-hidden text-ellipsis whitespace-nowrap rounded-full border px-2 py-0.5 text-[11px] font-medium", variants[variant], className)}
       {...props}
     />

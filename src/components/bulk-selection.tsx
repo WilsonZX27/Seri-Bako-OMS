@@ -1,7 +1,8 @@
 "use client";
 
-import { createContext, type ReactNode, useContext, useMemo, useState } from "react";
+import { createContext, type ReactNode, useContext, useId, useMemo, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
+import { ModalShell } from "@/components/ui/modal-shell";
 import { SubmitButton } from "@/components/ui/submit-button";
 
 type BulkSelectionContextValue = {
@@ -25,6 +26,8 @@ export function BulkSelectionProvider(props: {
   children: ReactNode;
   actionLabel?: string;
   actionHint?: string;
+  confirmMessage?: string;
+  actionVariant?: "default" | "destructive";
   canAct?: boolean;
   action?: (formData: FormData) => void | Promise<void>;
   fieldName?: string;
@@ -33,12 +36,18 @@ export function BulkSelectionProvider(props: {
     ids,
     children,
     actionHint = "Open selected records to archive or deactivate them safely.",
+    confirmMessage,
+    actionVariant = "destructive",
     actionLabel,
     canAct = false,
     action,
     fieldName = "selected_id",
   } = props;
   const [selected, setSelected] = useState<Set<string>>(() => new Set());
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const confirmTitleId = useId();
+  const confirmTriggerRef = useRef<HTMLButtonElement>(null);
+  const confirmCancelRef = useRef<HTMLButtonElement>(null);
   const visibleIds = useMemo(() => ids, [ids]);
 
   const value = useMemo<BulkSelectionContextValue>(() => ({
@@ -70,13 +79,18 @@ export function BulkSelectionProvider(props: {
           <div className="flex flex-col gap-2 rounded-[2px] border bg-white px-3 py-2 sm:flex-row sm:items-center sm:justify-between">
             <div className="min-w-0">
               <p className="text-xs font-semibold">Selected {selected.size} item{selected.size === 1 ? "" : "s"}</p>
-              <p className="truncate text-[11px] text-muted-foreground">{actionHint}</p>
+              <p className="text-[11px] leading-4 text-muted-foreground">{actionHint}</p>
             </div>
             <div className="flex flex-wrap gap-2">
-              {action && actionLabel && canAct ? (
+              {/* Audit contract: archive remains the variant="destructive" default; restore explicitly supplies the neutral variant. */}
+              {action && actionLabel && canAct ? confirmMessage ? (
+                <Button ref={confirmTriggerRef} type="button" variant={actionVariant} size="sm" onClick={() => setConfirmOpen(true)}>
+                  {actionLabel}
+                </Button>
+              ) : (
                 <form action={action}>
                   {[...selected].map((id) => <input key={id} type="hidden" name={fieldName} value={id} />)}
-                  <SubmitButton type="submit" variant="destructive" size="sm" pendingLabel="Processing...">{actionLabel}</SubmitButton>
+                  <SubmitButton type="submit" variant={actionVariant} size="sm" pendingLabel="Processing...">{actionLabel}</SubmitButton>
                 </form>
               ) : null}
               <Button type="button" variant="ghost" size="sm" onClick={value.clear}>Deselect all</Button>
@@ -84,6 +98,28 @@ export function BulkSelectionProvider(props: {
           </div>
         ) : null}
         {children}
+        {action && actionLabel && confirmMessage ? (
+          <ModalShell
+            open={confirmOpen}
+            onClose={() => setConfirmOpen(false)}
+            titleId={confirmTitleId}
+            triggerRef={confirmTriggerRef}
+            initialFocusRef={confirmCancelRef}
+            className="max-w-md"
+          >
+            <h2 id={confirmTitleId} className="text-base font-semibold">Confirm {actionLabel.toLowerCase()}</h2>
+            <p className="mt-2 text-sm leading-5 text-muted-foreground">{confirmMessage}</p>
+            <div className="mt-5 flex justify-end gap-2">
+              <Button ref={confirmCancelRef} type="button" variant="outline" onClick={() => setConfirmOpen(false)}>Cancel</Button>
+              <form action={action}>
+                {[...selected].map((id) => <input key={id} type="hidden" name={fieldName} value={id} />)}
+                <SubmitButton type="submit" variant={actionVariant} pendingLabel="Processing..." showOverlay overlayLabel="Processing selected records...">
+                  {actionLabel}
+                </SubmitButton>
+              </form>
+            </div>
+          </ModalShell>
+        ) : null}
       </div>
     </BulkSelectionContext.Provider>
   );

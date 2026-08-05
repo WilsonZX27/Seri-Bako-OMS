@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { SelectControl } from "@/components/ui/select-control";
@@ -54,7 +55,7 @@ export function MasterDataFilters({
 
   return (
     <FilterBar
-      resultCount={resultCount}
+      resultCount={undefined}
       resetHref={resetHref}
       filtered={filtered}
       className={compactMobile ? "sb-list-filters--compact-mobile" : undefined}
@@ -71,9 +72,16 @@ export function MasterDataFilters({
           <SelectControl name="stock_control" defaultValue={stockControl} options={[{ value: "all", label: "All stock control" }, { value: "with_safety_stock", label: "With safety stock" }, { value: "without_safety_stock", label: "Without safety stock" }]} ariaLabel="Stock control" />
           <SelectControl name="low_stock" defaultValue={lowStock} options={[{ value: "all", label: "All stock levels" }, { value: "yes", label: "Low stock only" }, { value: "no", label: "Healthy stock only" }]} ariaLabel="Stock level" />
         </FilterBarMore> : null}
-        <Button type="submit">
-          Search
-        </Button>
+        {typeof resultCount === "number" ? <div className="sb-filter-summary" aria-live="polite">
+          <span>{resultCount} {resultCount === 1 ? "record" : "records"}</span>
+        </div> : null}
+        {filtered ? (
+          <Button asChild variant="secondary">
+            <Link href={resetHref}>Reset</Link>
+          </Button>
+        ) : (
+          <Button type="submit">Search</Button>
+        )}
     </FilterBar>
   );
 }

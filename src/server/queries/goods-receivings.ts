@@ -96,14 +96,29 @@ export async function getGoodsReceivings(filters: Filters = {}) {
   }
 
   const supabase = await createClient();
-  const [{ data, error }, { data: lines, error: linesError }, { data: pos }, { data: suppliers }, { data: branches }] = await Promise.all([
-    supabase.from("goods_receivings").select("*").is("deleted_at", null).order("updated_at", { ascending: false }),
-    supabase.from("goods_receiving_lines").select("*"),
-    supabase.from("purchase_orders").select("id, po_no"),
-    supabase.from("suppliers").select("id, name"),
-    supabase.from("branches").select("id, branch_name"),
-  ]);
+  const pageSize = 12;
+  const page = Math.max(1, Number.isFinite(Number(filters.page)) ? Math.trunc(Number(filters.page)) : 1);
+  let query = supabase.from("goods_receivings").select("*", { count: "exact" }).is("deleted_at", null);
+  const status = filters.status && filters.status !== "all" ? filters.status : null;
+  if (status) query = query.eq("status", status as GoodsReceiving["status"]);
+  if (filters.date === "today") query = query.eq("received_date", new Date().toISOString().slice(0, 10));
+  const search = filters.search?.trim();
+  if (search) {
+    const term = search.replace(/[(),]/g, " ").replace(/[\\%_]/g, "\\$&");
+    query = query.or(`grn_no.ilike.%${term}%,remarks.ilike.%${term}%`);
+  }
+  const { data, error, count } = await query.order(filters.sort === "received_date" ? "received_date" : "updated_at", { ascending: filters.dir === "asc" }).order("id", { ascending: false }).range((page - 1) * pageSize, page * pageSize - 1);
   if (error) throw new Error(error.message);
+  const ids = (data ?? []).map((row) => row.id);
+  const branchIds = [...new Set((data ?? []).map((row) => row.branch_id).filter((id): id is string => Boolean(id)))];
+  const poIds = [...new Set((data ?? []).map((row) => row.purchase_order_id).filter((id): id is string => Boolean(id)))];
+  const supplierIds = [...new Set((data ?? []).map((row) => row.supplier_id).filter((id): id is string => Boolean(id)))];
+  const [{ data: lines, error: linesError }, { data: pos }, { data: suppliers }, { data: branches }] = await Promise.all([
+    ids.length ? supabase.from("goods_receiving_lines").select("goods_receiving_id, received_qty, rejected_qty").in("goods_receiving_id", ids) : Promise.resolve({ data: [], error: null }),
+    poIds.length ? supabase.from("purchase_orders").select("id, po_no").in("id", poIds) : Promise.resolve({ data: [] }),
+    supplierIds.length ? supabase.from("suppliers").select("id, name").in("id", supplierIds) : Promise.resolve({ data: [] }),
+    branchIds.length ? supabase.from("branches").select("id, branch_name").in("id", branchIds) : Promise.resolve({ data: [] }),
+  ]);
   if (linesError) throw new Error(linesError.message);
   const poById = new Map((pos ?? []).map((row) => [row.id, row.po_no]));
   const supplierById = new Map((suppliers ?? []).map((row) => [row.id, row.name]));
@@ -121,7 +136,34 @@ export async function getGoodsReceivings(filters: Filters = {}) {
       line_count: ownLines.length,
     };
   });
-  return paginateRows(filterRows(rows, filters, ["grn_no", "status", "po_no", "supplier_name", "remarks"], "updated_at"), filters.page, 12);
+  const filteredRows = filterRows(rows, filters, ["grn_no", "status", "po_no", "supplier_name", "remarks"], "updated_at");
+  return { rows: filteredRows, page, pageSize, totalRows: count ?? filteredRows.length, totalPages: Math.max(Math.ceil((count ?? filteredRows.length) / pageSize), 1) };
+}
+
+export async function getGoodsReceivingSummary() {
+  if (isMockMode()) {
+    const rows = mockGoodsReceivings;
+    return {
+      total: rows.length,
+      draft: rows.filter((row) => row.status === "draft").length,
+      posted: rows.filter((row) => row.status === "posted").length,
+      cancelled: rows.filter((row) => row.status === "cancelled").length,
+      receivedTotal: mockGoodsReceivingLines.reduce((sum, line) => sum + line.received_qty, 0),
+      rejectedTotal: mockGoodsReceivingLines.reduce((sum, line) => sum + line.rejected_qty, 0),
+    };
+  }
+  const supabase = await createClient();
+  const { data, error } = await supabase.rpc("get_goods_receiving_summary");
+  if (error) throw new Error(error.message);
+  const summary = data && typeof data === "object" && !Array.isArray(data) ? data as Record<string, unknown> : {};
+  return {
+    total: Number(summary.total ?? 0),
+    draft: Number(summary.draft ?? 0),
+    posted: Number(summary.posted ?? 0),
+    cancelled: Number(summary.cancelled ?? 0),
+    receivedTotal: Number(summary.received_total ?? 0),
+    rejectedTotal: Number(summary.rejected_total ?? 0),
+  };
 }
 
 export async function getGoodsReceiving(id: string) {
@@ -134,21 +176,36 @@ export async function getGoodsReceiving(id: string) {
     return { receiving: hydrateGrn(row, mockGoodsReceivingLines), lines };
   }
   const supabase = await createClient();
-  const [{ data, error }, { data: lines, error: linesError }, { data: items }, { data: pos }, { data: suppliers }, { data: branches }] = await Promise.all([
+  const [{ data, error }, { data: lines, error: linesError }] = await Promise.all([
     supabase.from("goods_receivings").select("*").eq("id", id).single(),
     supabase.from("goods_receiving_lines").select("*").eq("goods_receiving_id", id),
-    supabase.from("items").select("id, item_code, item_name, base_unit"),
-    supabase.from("purchase_orders").select("id, po_no"),
-    supabase.from("suppliers").select("id, name"),
-    supabase.from("branches").select("id, branch_name"),
   ]);
   if (error) throw new Error(error.message);
   if (linesError) throw new Error(linesError.message);
+  const receiving = data as GoodsReceiving;
+  const itemIds = [...new Set((lines ?? []).map((line) => line.item_id))];
+  const [
+    { data: items, error: itemsError },
+    { data: pos, error: posError },
+    { data: suppliers, error: suppliersError },
+    { data: branches, error: branchesError },
+  ] = await Promise.all([
+    itemIds.length
+      ? supabase.from("items").select("id, item_code, item_name, base_unit").in("id", itemIds)
+      : Promise.resolve({ data: [], error: null }),
+    supabase.from("purchase_orders").select("id, po_no").eq("id", receiving.purchase_order_id),
+    supabase.from("suppliers").select("id, name").eq("id", receiving.supplier_id),
+    receiving.branch_id
+      ? supabase.from("branches").select("id, branch_name").eq("id", receiving.branch_id)
+      : Promise.resolve({ data: [], error: null }),
+  ]);
+  for (const relatedError of [itemsError, posError, suppliersError, branchesError]) {
+    if (relatedError) throw new Error(relatedError.message);
+  }
   const itemById = new Map((items ?? []).map((row) => [row.id, row]));
   const poById = new Map((pos ?? []).map((row) => [row.id, row.po_no]));
   const supplierById = new Map((suppliers ?? []).map((row) => [row.id, row.name]));
   const branchById = new Map((branches ?? []).map((row) => [row.id, row.branch_name]));
-  const receiving = data as GoodsReceiving;
   return {
     receiving: {
       ...receiving,
@@ -181,13 +238,21 @@ export async function getEligiblePurchaseOrders() {
       });
   }
   const supabase = await createClient();
-  const [{ data, error }, { data: lines, error: linesError }, { data: suppliers }] = await Promise.all([
-    supabase.from("purchase_orders").select("*").in("status", ["approved", "sent", "partial_received"]).is("deleted_at", null),
-    supabase.from("purchase_order_lines").select("*"),
-    supabase.from("suppliers").select("id, name"),
-  ]);
+  const { data, error } = await supabase
+    .from("purchase_orders")
+    .select("*")
+    .in("status", ["approved", "sent", "partial_received"])
+    .is("deleted_at", null);
   if (error) throw new Error(error.message);
+  if (!data?.length) return [];
+  const purchaseOrderIds = data.map((order) => order.id);
+  const supplierIds = [...new Set(data.map((order) => order.supplier_id))];
+  const [{ data: lines, error: linesError }, { data: suppliers, error: suppliersError }] = await Promise.all([
+    supabase.from("purchase_order_lines").select("*").in("purchase_order_id", purchaseOrderIds),
+    supabase.from("suppliers").select("id, name").in("id", supplierIds),
+  ]);
   if (linesError) throw new Error(linesError.message);
+  if (suppliersError) throw new Error(suppliersError.message);
   const supplierById = new Map((suppliers ?? []).map((row) => [row.id, row.name]));
   return ((data ?? []) as PurchaseOrder[]).map((order) => {
     const ownLines = ((lines ?? []) as PurchaseOrderLine[]).filter((line) => line.purchase_order_id === order.id);
@@ -210,14 +275,21 @@ export async function getPurchaseOrderForReceiving(id: string) {
     return { order: { ...order, supplier_name: supplier?.name ?? null }, lines };
   }
   const supabase = await createClient();
-  const [{ data: order, error }, { data: lines, error: linesError }, { data: items }] = await Promise.all([
+  const [{ data: order, error }, { data: lines, error: linesError }] = await Promise.all([
     supabase.from("purchase_orders").select("*").eq("id", id).single(),
     supabase.from("purchase_order_lines").select("*").eq("purchase_order_id", id),
-    supabase.from("items").select("id, item_code, item_name, base_unit, item_image_url"),
   ]);
   if (error) throw new Error(error.message);
   if (linesError) throw new Error(linesError.message);
-  const { data: supplier } = await supabase.from("suppliers").select("id, name").eq("id", order.supplier_id).maybeSingle();
+  const itemIds = [...new Set((lines ?? []).map((line) => line.item_id))];
+  const [{ data: items, error: itemsError }, { data: supplier, error: supplierError }] = await Promise.all([
+    itemIds.length
+      ? supabase.from("items").select("id, item_code, item_name, base_unit, item_image_url").in("id", itemIds)
+      : Promise.resolve({ data: [], error: null }),
+    supabase.from("suppliers").select("id, name").eq("id", order.supplier_id).maybeSingle(),
+  ]);
+  if (itemsError) throw new Error(itemsError.message);
+  if (supplierError) throw new Error(supplierError.message);
   const itemById = new Map((items ?? []).map((row) => [row.id, row]));
   return {
     order: { ...(order as PurchaseOrder), supplier_name: supplier?.name ?? null },

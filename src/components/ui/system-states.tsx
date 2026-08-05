@@ -20,14 +20,27 @@ function renderAction(action?: StateAction) {
 
 export function PageLoadingState({ label = "Loading workspace..." }: { label?: string }) {
   return (
-    <div className="space-y-3 p-4" aria-live="polite" aria-busy="true">
-      <div className="h-9 w-64 animate-pulse bg-[var(--sb-neutral-bg)]" />
-      <div className="grid gap-2 rounded-[2px] border bg-card p-3">
-        <div className="h-6 animate-pulse bg-[var(--sb-surface-muted)]" />
-        <div className="h-6 animate-pulse bg-[var(--sb-surface-muted)]" />
-        <div className="h-6 w-2/3 animate-pulse bg-[var(--sb-surface-muted)]" />
+    <div className="min-h-0 space-y-4 p-3 sm:p-4" aria-live="polite" aria-busy="true">
+      <div className="space-y-2 border-b border-[var(--sb-border-soft)] pb-4">
+        <div className="h-6 w-48 animate-pulse rounded-[var(--sb-radius-control)] bg-[var(--sb-neutral-bg)]" />
+        <div className="h-3 w-72 max-w-[80%] animate-pulse rounded-[var(--sb-radius-control)] bg-[var(--sb-surface-muted)]" />
       </div>
-      <p className="flex items-center gap-2 text-xs text-muted-foreground">
+      <div className="grid grid-cols-3 gap-2 sm:gap-3">
+        {[0, 1, 2].map((item) => <div key={item} className="h-20 animate-pulse rounded-[var(--sb-panel-radius)] border border-[var(--sb-border-soft)] bg-card" />)}
+      </div>
+      <div className="grid min-h-[18rem] gap-4 lg:grid-cols-[minmax(0,1fr)_16rem]">
+        <div className="animate-pulse rounded-[var(--sb-panel-radius)] border border-[var(--sb-border-soft)] bg-card p-4">
+          <div className="h-4 w-36 rounded-[var(--sb-radius-control)] bg-[var(--sb-neutral-bg)]" />
+          <div className="mt-6 grid gap-3">
+            {[0, 1, 2, 3].map((item) => <div key={item} className="h-12 rounded-[var(--sb-radius-control)] bg-[var(--sb-surface-muted)]" />)}
+          </div>
+        </div>
+        <div className="hidden space-y-3 lg:block">
+          <div className="h-32 animate-pulse rounded-[var(--sb-panel-radius)] border border-[var(--sb-border-soft)] bg-card" />
+          <div className="h-40 animate-pulse rounded-[var(--sb-panel-radius)] border border-[var(--sb-border-soft)] bg-card" />
+        </div>
+      </div>
+      <p className="flex items-center gap-2 text-xs text-muted-foreground" role="status">
         <LoaderCircle className="h-3.5 w-3.5 animate-spin" />
         {label}
       </p>

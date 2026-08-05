@@ -16,7 +16,8 @@ test("Operations Control Center reuses existing outlet and demand query sources"
 
 test("Operations Control Center isolates outlet and demand failures", () => {
   assert.match(outlet, /unavailable: \{ outlet: !outlet, demand: !trend \}/);
-  assert.match(dashboard, /Operations control summaries unavailable; rendering the remaining dashboard/);
+  assert.match(dashboard, /getOperationsControlCenterSummary\(\)\.catch\(\(error\) => \{[\s\S]*warnOptionalQuery\("operations control", error\);[\s\S]*return null/);
+  assert.match(dashboard, /dashboard\.optional\.\$\{name\}/);
   assert.match(workspace, /No urgent operational exceptions are visible in your scope/);
 });
 

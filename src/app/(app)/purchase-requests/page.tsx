@@ -1,4 +1,4 @@
-import { Pencil } from "lucide-react";
+import { Download, Pencil, Plus } from "lucide-react";
 import Link from "next/link";
 import { BulkSelectAllCheckbox, BulkSelectionProvider, BulkSelectRowCheckbox } from "@/components/bulk-selection";
 import { BulkPhaseOneDelete } from "@/components/bulk-phase-one-delete";
@@ -43,16 +43,18 @@ export default async function PurchaseRequestsPage({ searchParams }: { searchPar
       <PageHeader
         title="Purchase Requests"
         description="Create, review, return, and convert branch requests into purchase orders."
-        action={permissions["pr.create"] ? { href: "/purchase-requests/new", label: "New PR" } : undefined}
+        action={permissions["pr.create"] ? { href: "/purchase-requests/new", label: "New purchase request" } : undefined}
       />
       <WorkspaceGrid
         className="pt-4"
         hideMobileConsole
+        tabletRailMode="split"
+        tabletRailBreakpoint="lg"
         rightRail={
-          <>
+          <div className="space-y-3 [&>section]:overflow-hidden [&>section]:rounded-[var(--sb-panel-radius)] [&>section]:border [&>section]:border-[var(--sb-border-soft)] [&>section]:bg-card" data-tablet-split-actions>
             {permissions["pr.create"] || permissions["pr.view_branch"] ? <ConsoleSection title="Actions"><div className="grid gap-2">
-              {permissions["pr.create"] ? <Button asChild size="sm" className="w-full" data-mobile-primary-action><Link href="/purchase-requests/new">New PR</Link></Button> : null}
-              {permissions["pr.view_branch"] ? <Button asChild variant="outline" size="sm" className="w-full" data-mobile-primary-action={!permissions["pr.create"] || undefined}><Link href="/api/export/purchase-requests">Export CSV</Link></Button> : null}
+              {permissions["pr.create"] ? <Button asChild size="sm" className="w-full" data-mobile-primary-action><Link href="/purchase-requests/new"><Plus className="h-4 w-4" />New PR</Link></Button> : null}
+              {permissions["pr.view_branch"] ? <Button asChild variant="outline" size="sm" className="w-full" data-mobile-primary-action={!permissions["pr.create"] || undefined}><Link href="/api/export/purchase-requests"><Download className="h-4 w-4" />Export CSV</Link></Button> : null}
             </div></ConsoleSection> : null}
             <ConsoleSection title="PR Summary">
               <div className="grid gap-2 text-xs">
@@ -62,21 +64,21 @@ export default async function PurchaseRequestsPage({ searchParams }: { searchPar
                 <div className="flex justify-between"><span className="text-muted-foreground">Finance Review</span><strong>{summary.financeReview}</strong></div>
               </div>
             </ConsoleSection>
-          </>
+          </div>
         }
       >
-        <div className="overflow-hidden rounded-[2px] border border-[var(--sb-border-soft)] bg-card">
-          <FilterBar resultCount={requests.totalRows} resetHref="/purchase-requests" filtered={filtered}>
+        <div className="overflow-hidden rounded-[var(--sb-panel-radius)] border border-[var(--sb-border-soft)] bg-card" data-tablet-main-list>
+          <FilterBar resetHref="/purchase-requests" filtered={filtered} resultCount={requests.totalRows}>
             <Input name="search" defaultValue={filters.search ?? ""} placeholder="Search PR no, branch, remarks" className="md:max-w-sm" />
             <StatusTabs statuses={statuses} activeStatus={filters.status} />
             <SelectControl name="priority" defaultValue={filters.priority ?? "all"} ariaLabel="Priority" options={[{ value: "all", label: "All priorities" }, { value: "critical", label: "Critical" }, { value: "urgent", label: "Urgent" }, { value: "normal", label: "Normal" }, { value: "low", label: "Low" }]} />
             {filters.status ? <input type="hidden" name="status" value={filters.status} /> : null}
-            <Button type="submit">Search</Button>
+            {filtered ? <Button asChild variant="secondary" className="shrink-0"><Link href="/purchase-requests">Reset</Link></Button> : <Button type="submit" variant="secondary" className="shrink-0">Search</Button>}
           </FilterBar>
           <BulkSelectionProvider ids={requests.rows.map((request) => request.id)} actionLabel="Delete selected" actionHint="Review selected requests before permanent deletion.">
           <BulkPhaseOneDelete />
           <DataGridHint text="Pro-tip: Double-click any row to open the purchase request." />
-          <Table mobileHidden aria-label="Purchase requests" stickyColumn="third">
+          <Table mobileHidden compactUntil="xl" aria-label="Purchase requests" stickyColumn="third">
               <TableHeader>
                 <TableRow>
                   <TableSelectionHead className="hidden md:table-cell"><BulkSelectAllCheckbox /></TableSelectionHead>
@@ -113,7 +115,7 @@ export default async function PurchaseRequestsPage({ searchParams }: { searchPar
                 {!requests.rows.length ? <TableRow><TableCell colSpan={11}><EmptyState title={filtered ? "No requests match these filters" : "No purchase requests yet"} description={filtered ? "Reset the filters or widen the search." : "Purchase requests appear here after branch needs are created."} action={filtered ? { href: "/purchase-requests", label: "Reset filters" } : undefined} /></TableCell></TableRow> : null}
               </TableBody>
             </Table>
-            <OperationalList ariaLabel="Purchase requests">
+            <OperationalList ariaLabel="Purchase requests" showUntil="xl">
               {requests.rows.map((request) => <OperationalListRow key={request.id} href={`/purchase-requests/${request.id}`} label={`Open ${request.request_no}`} primary={<DocumentNumber value={request.request_no} size="sm" />} status={<StatusBadge status={request.status} />} secondary={`${request.branch_name ?? "Unassigned branch"} · ${formatDateOnly(request.request_date)}`} meta={`${request.line_count} items · Needed ${formatDateOnly(request.needed_by_date, "—")}`} />)}
               {!requests.rows.length ? <EmptyState title={filtered ? "No requests match these filters" : "No purchase requests yet"} description={filtered ? "Reset the filters or widen the search." : "Purchase requests appear here after branch needs are created."} action={filtered ? { href: "/purchase-requests", label: "Reset filters" } : undefined} /> : null}
             </OperationalList>

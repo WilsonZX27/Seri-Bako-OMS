@@ -1,7 +1,7 @@
 import type { UserRole } from "@/types/database";
 
 export type IaGroupId = "operations" | "procurement" | "inventory" | "analytics" | "administration";
-export type IaIcon = "activity" | "alert" | "archive" | "boxes" | "building" | "check" | "clipboard" | "factory" | "gauge" | "receipt" | "request" | "rotate" | "scale" | "shopping" | "users" | "userCog" | "upload";
+export type IaIcon = "activity" | "alert" | "archive" | "arrowLeftRight" | "barChart" | "bookOpen" | "boxes" | "building" | "check" | "clipboard" | "factory" | "file" | "gauge" | "layers" | "list" | "package" | "receipt" | "request" | "rotate" | "scale" | "shopping" | "users" | "userCog" | "upload";
 
 export type IaItem = {
   href: string;
@@ -47,18 +47,19 @@ export const informationArchitecture: readonly IaItem[] = [
   { href: "/supplier-invoices", label: "Supplier Invoices", group: "procurement", icon: "receipt", roles: ["super_admin", "finance"], permission: "supplier_invoice.view", badgeKey: "invoices" },
   { href: "/suppliers", label: "Suppliers", group: "procurement", icon: "users", roles: MASTER_DATA, permission: "suppliers.view" },
 
-  { href: "/items", label: "Items / SKU Master", group: "inventory", icon: "boxes", roles: MASTER_DATA, permission: "items.view" },
+  { href: "/items", label: "Items / SKU Master", group: "inventory", icon: "layers", roles: MASTER_DATA, permission: "items.view" },
   { href: "/uom-conversions", label: "UOM Conversions", group: "inventory", icon: "scale", roles: MASTER_DATA, permission: "uom_conversions.read" },
-  { href: "/products", label: "Products", group: "inventory", icon: "boxes", roles: PRODUCTION, permission: "production.view" },
-  { href: "/recipes", label: "Recipes", group: "inventory", icon: "clipboard", roles: ["super_admin", "finance"], permission: "recipes.view" },
+  { href: "/products", label: "Products", group: "inventory", icon: "package", roles: PRODUCTION, permission: "production.view" },
+  { href: "/recipes", label: "Recipes", group: "inventory", icon: "bookOpen", roles: ["super_admin", "finance"], permission: "recipes.view" },
   { href: "/stock-balance", label: "Stock Balance", group: "inventory", icon: "boxes", roles: INVENTORY, permission: "stock_balance.read", badgeKey: "stockBalanceAlerts", attention: true },
   { href: "/stock-transactions", label: "Movement Ledger", group: "inventory", icon: "activity", roles: INVENTORY, permission: "stock_transactions.read" },
-  { href: "/stock-transfers", label: "Stock Transfers", group: "inventory", icon: "boxes", roles: INVENTORY, permission: "stock_transfer.read", badgeKey: "stockTransfers" },
+  { href: "/stock-card", label: "Stock Card", group: "inventory", icon: "list", roles: INVENTORY, permission: "stock_transactions.read" },
+  { href: "/stock-transfers", label: "Stock Transfers", group: "inventory", icon: "arrowLeftRight", roles: INVENTORY, permission: "stock_transfer.read", badgeKey: "stockTransfers" },
   { href: "/stock-counts", label: "Stock Count", group: "inventory", icon: "check", roles: INVENTORY, permission: "stock_count.read", badgeKey: "stockCounts" },
   { href: "/stock-wastage", label: "Stock Wastage", group: "inventory", icon: "scale", roles: INVENTORY, permission: "stock_wastage.read", badgeKey: "stockWastage", attention: true },
   { href: "/low-stock", label: "Low Stock", group: "inventory", icon: "alert", roles: INVENTORY, permission: "low_stock.view" },
 
-  { href: "/reports", label: "Reports", group: "analytics", icon: "clipboard", roles: REPORTS, permission: "reports.view" },
+  { href: "/reports", label: "Reports", group: "analytics", icon: "barChart", roles: REPORTS, permission: "reports.view" },
   { href: "/activity", label: "Activity Log", group: "analytics", icon: "activity", roles: ALL, permission: "dashboard.view" },
 
   { href: "/company", label: "Company Profile", group: "administration", icon: "building", roles: OWNER, permission: "company.read", administrationCard: "Maintain legal identity, contact details, logo, and branding." },

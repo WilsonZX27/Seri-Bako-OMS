@@ -1,4 +1,5 @@
-import { Pencil } from "lucide-react";
+import Link from "next/link";
+import { Pencil, Plus } from "lucide-react";
 import { DataGridRow } from "@/components/ui/data-grid-row";
 import { DataGridHint } from "@/components/ui/data-grid-hint";
 import { DocumentNumber } from "@/components/document-number";
@@ -15,41 +16,37 @@ import { ConsoleSection } from "@/components/layout/right-console";
 import { WorkspaceGrid } from "@/components/layout/workspace-layout";
 import { formatDateOnly, formatNumber } from "@/lib/utils";
 import { hasActiveFilters } from "@/lib/table-state";
-import { getGoodsReceivings } from "@/server/queries/goods-receivings";
+import { getGoodsReceivingSummary, getGoodsReceivings } from "@/server/queries/goods-receivings";
 import { hasPermission } from "@/server/auth/permissions";
 
 const statuses = ["draft", "posted", "cancelled"];
 
 export default async function GoodsReceivingsPage({ searchParams }: { searchParams: Promise<Record<string, string | undefined>> }) {
   const filters = await searchParams;
-  const [receivings, allReceivings, canCreate] = await Promise.all([getGoodsReceivings(filters), getGoodsReceivings({ page: "all" }), hasPermission("grn.create")]);
-  const rows = allReceivings.rows;
-  const count = (...statuses: string[]) => rows.filter((receiving) => statuses.includes(receiving.status)).length;
-  const receivedTotal = rows.reduce((sum, receiving) => sum + receiving.received_total, 0);
-  const rejectedTotal = rows.reduce((sum, receiving) => sum + receiving.rejected_total, 0);
+  const [receivings, summary, canCreate] = await Promise.all([getGoodsReceivings(filters), getGoodsReceivingSummary(), hasPermission("grn.create")]);
   const filtered = hasActiveFilters(filters);
   return (
     <>
       <PageHeader
         title="Goods Receiving"
         description="Receive supplier deliveries against approved purchase orders. Stock increases only after GRN posting."
-        action={canCreate ? { href: "/goods-receivings/new", label: "New GRN" } : undefined}
       />
       <WorkspaceGrid
         hideMobileConsole
         rightRail={
           <>
+            {canCreate ? <ConsoleSection title="Actions"><Button asChild size="sm" className="w-full" data-mobile-primary-action><Link href="/goods-receivings/new"><Plus className="h-4 w-4" />New GRN</Link></Button></ConsoleSection> : null}
             <ConsoleSection title="GRN Summary">
               <div className="grid gap-2 text-xs">
-                <div className="flex justify-between"><span className="text-muted-foreground">Total GRNs</span><strong>{rows.length}</strong></div>
-                <div className="flex justify-between"><span className="text-muted-foreground">Draft</span><strong>{count("draft")}</strong></div>
-                <div className="flex justify-between"><span className="text-muted-foreground">Posted</span><strong>{count("posted")}</strong></div>
-                <div className="flex justify-between"><span className="text-muted-foreground">Cancelled</span><strong>{count("cancelled")}</strong></div>
+                <div className="flex justify-between"><span className="text-muted-foreground">Total GRNs</span><strong>{summary.total}</strong></div>
+                <div className="flex justify-between"><span className="text-muted-foreground">Draft</span><strong>{summary.draft}</strong></div>
+                <div className="flex justify-between"><span className="text-muted-foreground">Posted</span><strong>{summary.posted}</strong></div>
+                <div className="flex justify-between"><span className="text-muted-foreground">Cancelled</span><strong>{summary.cancelled}</strong></div>
               </div>
               <div className="my-3 border-t" />
               <div className="grid gap-2 text-xs">
-                <div className="flex justify-between"><span className="text-muted-foreground">Received Qty</span><strong>{formatNumber(receivedTotal)}</strong></div>
-                <div className="flex justify-between"><span className="text-muted-foreground">Rejected Qty</span><strong>{formatNumber(rejectedTotal)}</strong></div>
+                <div className="flex justify-between"><span className="text-muted-foreground">Received Qty</span><strong>{formatNumber(summary.receivedTotal)}</strong></div>
+                <div className="flex justify-between"><span className="text-muted-foreground">Rejected Qty</span><strong>{formatNumber(summary.rejectedTotal)}</strong></div>
               </div>
             </ConsoleSection>
           </>
@@ -59,7 +56,7 @@ export default async function GoodsReceivingsPage({ searchParams }: { searchPara
           <FilterBar resultCount={receivings.totalRows} resetHref="/goods-receivings" filtered={filtered} className="sb-list-filters--compact-mobile">
             <Input name="search" defaultValue={filters.search ?? ""} placeholder="Search GRN, PO or supplier" className="min-w-0 flex-1 md:max-w-sm" />
             <StatusTabs statuses={statuses} activeStatus={filters.status} />
-            <Button type="submit" variant="secondary" className="shrink-0">Search</Button>
+            {filtered ? <Button asChild variant="secondary" className="shrink-0"><Link href="/goods-receivings">Reset</Link></Button> : <Button type="submit" variant="secondary" className="shrink-0">Search</Button>}
             {filters.status ? <input type="hidden" name="status" value={filters.status} /> : null}
           </FilterBar>
           <DataGridHint text="Pro-tip: Double-click any row to open the goods receiving document." />

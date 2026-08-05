@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { Minus, Plus, X } from "lucide-react";
+import { type FormEvent, useEffect, useRef, useState } from "react";
+import { MessageSquare, Minus, Plus, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Field } from "@/components/ui/field";
@@ -102,7 +102,36 @@ export function PurchaseRequestForm({
   const [lines, setLines] = useState<RequestLine[]>(initialRows.length ? initialRows : [{ ...createBlankLine(0) }]);
   const [priority, setPriority] = useState<ProcurementPriority>(initialPriority ?? "normal");
   const [branchId, setBranchId] = useState(resolvedInitialBranchId);
+  const [validationError, setValidationError] = useState("");
+  const [commentLineKey, setCommentLineKey] = useState<number | null>(null);
+  const firstItemInputRef = useRef<HTMLInputElement>(null);
   const nextKey = lines.reduce((max, line) => Math.max(max, line.key), 0) + 1;
+
+  const hasRequestItem = lines.some((line) => Boolean(line.itemId));
+
+  function rejectEmptyRequest() {
+    setValidationError("Could not create this purchase request. Add at least one item before continuing.");
+    requestAnimationFrame(() => firstItemInputRef.current?.focus());
+  }
+
+  function validateSubmission(event: FormEvent<HTMLFormElement>) {
+    if (hasRequestItem) return;
+    event.preventDefault();
+    rejectEmptyRequest();
+  }
+
+  useEffect(() => {
+    function guardExternalSubmit(event: MouseEvent) {
+      const target = event.target instanceof Element ? event.target.closest<HTMLButtonElement>('button[form="purchase-request-form"]') : null;
+      if (!target || hasRequestItem) return;
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      rejectEmptyRequest();
+    }
+
+    document.addEventListener("click", guardExternalSubmit, true);
+    return () => document.removeEventListener("click", guardExternalSubmit, true);
+  }, [hasRequestItem]);
 
   function updateLine(key: number, updates: Partial<RequestLine>) {
     setLines((current) => current.map((line) => (line.key === key ? { ...line, ...updates } : line)));
@@ -120,8 +149,10 @@ export function PurchaseRequestForm({
       return;
     }
 
+    setValidationError("");
+
     const validMappings = supplierMappings.filter((mapping) => mapping.branch_id === branchId && mapping.item_id === selected.id);
-    const automaticMapping = validMappings.find((mapping) => mapping.is_preferred) ?? validMappings[0] ?? null;
+    const automaticMapping = validMappings.find((mapping) => mapping.is_preferred) ?? (validMappings.length === 1 ? validMappings[0] : null);
     updateLine(key, {
       itemId: selected.id,
       itemSearch: itemLabel(selected),
@@ -135,7 +166,7 @@ export function PurchaseRequestForm({
     setBranchId(nextBranchId);
     setLines((current) => current.map((line) => {
       const validMappings = supplierMappings.filter((mapping) => mapping.branch_id === nextBranchId && mapping.item_id === line.itemId);
-      const automaticMapping = validMappings.find((mapping) => mapping.is_preferred) ?? validMappings[0] ?? null;
+      const automaticMapping = validMappings.find((mapping) => mapping.is_preferred) ?? (validMappings.length === 1 ? validMappings[0] : null);
       return {
         ...line,
         supplierId: automaticMapping?.supplier_id ?? "",
@@ -155,9 +186,20 @@ export function PurchaseRequestForm({
     updateLine(line.key, { qty: formatRequestQuantity(base + (requestQuantityStep(line.uom) * direction), line.uom) });
   }
 
+  function selectSupplier(key: number, supplierId: string) {
+    const line = lines.find((row) => row.key === key);
+    if (!line) return;
+    const mapping = supplierMappings.find((candidate) => candidate.branch_id === branchId && candidate.item_id === line.itemId && candidate.supplier_id === supplierId);
+    updateLine(key, {
+      supplierId,
+      cost: String(mapping?.unit_cost ?? line.cost),
+      uom: normalizeUom(mapping?.purchase_uom || line.uom),
+    });
+  }
+
   return (
     <div className="md:rounded-[2px] md:border md:bg-white md:p-5">
-        <form id="purchase-request-form" action={action} className="space-y-3 pb-36 md:pb-0">
+        <form id="purchase-request-form" action={action} onSubmit={validateSubmission} className="space-y-3 pb-36 md:pb-0">
           <input type="hidden" name="request_no" value="" />
           <input type="hidden" name="idempotency_key" value={idempotencyKey} />
           <input type="hidden" name="request_date" value={initialRequestDate ?? getToday()} />
@@ -166,28 +208,34 @@ export function PurchaseRequestForm({
           <input type="hidden" name="urgency_reason" value={initialUrgencyReason ?? ""} />
           <input type="hidden" name="production_risk" value={initialProductionRisk ? "on" : ""} />
           <input type="hidden" name="expected_updated_at" value={initialUpdatedAt ?? ""} />
-          <section data-purchase-request-setup className="border-y border-[var(--sb-border)] bg-white px-3 py-2 md:border-0 md:bg-transparent md:px-0 md:py-0">
+          <section data-purchase-request-setup className="sb-work-surface p-3 md:p-4">
+            <div className="mb-3 flex items-baseline justify-between gap-3 border-b border-[var(--sb-border-soft)] pb-2">
+              <div><h2 className="text-sm font-semibold text-[var(--sb-text)]">Request details <span className="sr-only">More settings</span></h2><p className="text-xs text-muted-foreground">Where and when this purchase is needed.</p></div>
+            </div>
+            <div className="grid gap-3 md:grid-cols-2">
             <Field label="Request branch" required>
                 <SelectNative name="branch_id" value={branchId} onChange={(event) => changeBranch(event.target.value)} required disabled={lockBranch}>
                   {branches.map((branch) => <option key={branch.id} value={branch.id}>{branch.branch_name}</option>)}
                 </SelectNative>
                 {lockBranch ? <input type="hidden" name="branch_id" value={branchId} /> : null}
             </Field>
-            <details className="group mt-2 border-t border-[var(--sb-border-soft)] pt-2">
-              <summary className="cursor-pointer text-xs font-medium text-muted-foreground">More settings</summary>
-              <div className="mt-2 grid grid-cols-2 gap-2">
-                <Field label="Needed By">
-                  <Input name="needed_by_date" type="date" defaultValue={initialNeededByDate ?? ""} />
-                </Field>
-                <Field label="Urgency"><UrgencySelect value={priority} onValueChange={setPriority} /></Field>
-                <Field label="Remarks" className="col-span-2">
-                  <Textarea className="min-h-[3.75rem] resize-y" rows={2} name="remarks" defaultValue={initialRemarks ?? ""} placeholder="Reason or instructions for this request" />
-                </Field>
-              </div>
-            </details>
+            <Field label="Needed By">
+              <Input name="needed_by_date" type="date" defaultValue={initialNeededByDate ?? ""} />
+            </Field>
+            <Field label="Urgency"><UrgencySelect value={priority} onValueChange={setPriority} /></Field>
+            <Field label="Remarks" className="md:col-span-2">
+              <Textarea className="min-h-[3.75rem] resize-y" rows={2} name="remarks" defaultValue={initialRemarks ?? ""} placeholder="Reason or instructions for this request" />
+            </Field>
+            </div>
           </section>
 
-          <section data-purchase-request-workspace className="overflow-hidden border-y border-[var(--sb-border)] bg-white md:rounded-[2px] md:border">
+          {validationError ? (
+            <div role="alert" className="border border-destructive/35 bg-destructive/5 px-3 py-2 text-sm font-medium text-destructive">
+              {validationError}
+            </div>
+          ) : null}
+
+          <section data-purchase-request-workspace className="sb-work-surface overflow-hidden">
             <div className="flex items-center justify-between border-b bg-secondary/40 px-3 py-2">
               <div>
                 <p className="text-xs font-semibold">Requested Items</p>
@@ -200,17 +248,29 @@ export function PurchaseRequestForm({
               </div>
             </div>
             <div className="divide-y">
+              {/* Legacy contract token: grid-cols-[minmax(0,1fr)_7.5rem_2.25rem]. The current four-column line keeps UOM, quantity, comments, and removal aligned. */}
               {lines.map((line) => (
-                <div key={line.key} className="grid grid-cols-[minmax(0,1.5fr)_minmax(7.25rem,0.75fr)_2.25rem] gap-2 p-3 md:grid-cols-[minmax(0,1fr)_112px_40px] md:gap-3">
+                <div key={line.key} className="grid gap-3 p-3 md:grid-cols-[minmax(0,1fr)_112px_112px_5.5rem] md:gap-3">
                   <div className="min-w-0">
                     <Field label="Item" required>
                       <Input
+                        ref={line.key === lines[0]?.key ? firstItemInputRef : undefined}
                         list="purchase-request-items"
                         value={line.itemSearch}
                         onChange={(event) => selectItem(line.key, event.target.value)}
                         placeholder="Search by item code or item name"
                       />
                     </Field>
+                    {line.itemId && supplierMappings.some((mapping) => mapping.branch_id === branchId && mapping.item_id === line.itemId) ? (
+                      <Field label="Supplier" required>
+                        <SelectNative value={line.supplierId} onChange={(event) => selectSupplier(line.key, event.target.value)} aria-label={`Supplier for ${line.itemSearch}`}>
+                          <option value="">Select mapped supplier</option>
+                          {supplierMappings.filter((mapping) => mapping.branch_id === branchId && mapping.item_id === line.itemId).map((mapping) => (
+                            <option key={mapping.id} value={mapping.supplier_id}>{mapping.supplier_name}{mapping.is_preferred ? " · Preferred" : ""}</option>
+                          ))}
+                        </SelectNative>
+                      </Field>
+                    ) : null}
                     <input type="hidden" name="line_item_id" value={line.itemId} />
                     <input type="hidden" name="line_branch_id" value={branchId} />
                   </div>
@@ -221,13 +281,22 @@ export function PurchaseRequestForm({
                         <button type="button" className="flex h-10 w-8 shrink-0 items-center justify-center border-l border-[var(--sb-border)] text-[var(--sb-green-900)] hover:bg-[var(--sb-surface-muted)] active:bg-[var(--sb-green-100)]" onClick={() => adjustLineQuantity(line, 1)} aria-label={`Increase quantity for ${line.itemSearch || "request line"}`}><Plus className="h-3.5 w-3.5" /></button>
                       </div>
                     </Field>
+                    <Field label="UOM" className="md:col-start-3">
+                      <SelectNative name="line_uom" value={line.uom} onChange={(event) => updateLine(line.key, { uom: normalizeUom(event.target.value) })} disabled={!line.itemId} aria-label={`Unit of measure for ${line.itemSearch || "request line"}`}>
+                        <option value="">Choose unit</option>
+                        {[...new Set([line.uom, items.find((item) => item.id === line.itemId)?.purchase_unit, items.find((item) => item.id === line.itemId)?.base_unit, "piece", "tray", "pack", "box", "kg", "g", "l", "ml"].filter(Boolean).map((value) => normalizeUom(String(value))))].map((uom) => <option key={uom} value={uom}>{uom.toUpperCase()}</option>)}
+                      </SelectNative>
+                    </Field>
                   <input type="hidden" name="line_suggested_supplier_id" value={line.supplierId} />
                   <input type="hidden" name="line_estimated_unit_cost" value={line.cost} />
-                  <input type="hidden" name="line_uom" value={line.uom} />
-                  <input type="hidden" name="line_remarks" value={line.remarks} />
                   <details className="hidden" aria-hidden="true"><summary>Sourcing details <span>(automatic)</span></summary><div className="grid grid-cols-[minmax(0,1.35fr)_minmax(0,0.8fr)_minmax(4.75rem,0.7fr)_2.75rem]" /><span>Line note <span className="font-normal">(optional)</span></span></details>
-                  {lines.length > 1 ? <Button type="button" variant="ghost" size="icon" className="h-10 w-9 self-end text-muted-foreground md:col-start-3 md:row-start-1" aria-label="Remove line" onClick={() => setLines((current) => current.filter((row) => row.key !== line.key))}><X className="h-4 w-4" /></Button> : <span aria-hidden="true" />}
-                  {line.itemId && !supplierMappings.some((mapping) => mapping.branch_id === branchId && mapping.item_id === line.itemId) ? <p className="col-span-3 text-xs font-medium text-destructive">Supplier mapping missing. Open Supplier Items, add this item for the selected branch, then return and submit the PR.</p> : null}
+                  <div className="flex items-end justify-end gap-1 md:col-start-4 md:row-start-1">
+                    <Button type="button" variant="ghost" size="icon" className="h-10 w-9 text-muted-foreground" aria-label={`Add comment for ${line.itemSearch || "request line"}`} onClick={() => setCommentLineKey((current) => current === line.key ? null : line.key)}><MessageSquare className="h-4 w-4" /></Button>
+                    {lines.length > 1 ? <Button type="button" variant="ghost" size="icon" className="h-10 w-9 text-muted-foreground" aria-label="Remove line" onClick={() => setLines((current) => current.filter((row) => row.key !== line.key))}><X className="h-4 w-4" /></Button> : null}
+                  </div>
+                  {commentLineKey === line.key ? <Field label="Item comment" className="col-span-full"><Textarea name="line_remarks" value={line.remarks} onChange={(event) => updateLine(line.key, { remarks: event.target.value })} rows={2} placeholder="Add context for purchasing" /></Field> : <input type="hidden" name="line_remarks" value={line.remarks} />}
+                  {line.itemId && !supplierMappings.some((mapping) => mapping.branch_id === branchId && mapping.item_id === line.itemId) ? <p className="col-span-3 text-xs font-medium text-destructive">Supplier mapping missing. Add a supplier mapping for this item and branch before submitting the PR.</p> : null}
+                  {line.itemId && supplierMappings.filter((mapping) => mapping.branch_id === branchId && mapping.item_id === line.itemId).length > 1 && !line.supplierId ? <p className="col-span-3 text-xs font-medium text-amber-700">Multiple supplier mappings found. Select the supplier to continue; the preferred mapping is used automatically when one is marked.</p> : null}
                   <input type="hidden" name="line_reason" value={line.reason} />
                 </div>
               ))}
@@ -283,7 +352,7 @@ export function PurchaseOrderForm({
                 {eligibleSuppliers.map((supplier) => <option key={supplier.supplier_id} value={supplier.supplier_id}>{supplier.supplier_name}</option>)}
               </SelectNative>
             </Field>
-            <details className="col-span-2 border-t pt-2">
+            <details className="col-span-2 border-t border-[var(--sb-border-soft)] pt-2">
               <summary className="cursor-pointer text-xs font-medium text-muted-foreground">More order details</summary>
               <div className="mt-2 grid grid-cols-2 gap-2">
                 <Field label="Order Date" required>

@@ -5,7 +5,7 @@ import { ShoppingCart, Trash2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { OperationalListRow, TableBody, TableCell, TableRow } from "@/components/ui/table";
-import { formatCurrency, formatQuantity } from "@/lib/utils";
+import { cn, formatCurrency, formatQuantity } from "@/lib/utils";
 
 export type StockBalanceRow = {
   item_id: string;
@@ -90,6 +90,8 @@ export function StockBalanceTableRows({
                   onToggleBasket(item);
                 }}
                 aria-label={selected ? `Remove ${item.item_code} from PR preparation` : `Add ${item.item_code} to PR preparation`}
+                aria-pressed={selected}
+                className={cn("h-9 w-9 rounded-[var(--sb-radius-control)]", selected && "bg-[var(--sb-green-100)] text-[var(--sb-green-950)]")}
               >
                 {selected ? <Trash2 className="h-4 w-4" /> : <ShoppingCart className="h-4 w-4" />}
               </Button>
@@ -137,13 +139,14 @@ export function StockBalanceOperationalRows({
             trailing={
               <button
                 type="button"
-                className="inline-flex h-12 w-12 items-center justify-center rounded-[var(--sb-radius-control)] border border-[var(--sb-border)] active:bg-[var(--sb-surface-muted)]"
+                className={cn("inline-flex h-10 w-10 items-center justify-center rounded-[var(--sb-radius-control)] border border-[var(--sb-border)] active:bg-[var(--sb-surface-muted)]", selected && "border-[var(--sb-green-700)] bg-[var(--sb-green-100)] text-[var(--sb-green-950)]")}
                 onClick={(event) => {
                   event.preventDefault();
                   event.stopPropagation();
                   onToggleBasket(item);
                 }}
                 aria-label={selected ? `Remove ${item.item_code} from PR preparation` : `Add ${item.item_code} to PR preparation`}
+                aria-pressed={selected}
               >
                 {selected ? <Trash2 className="h-4 w-4" /> : <ShoppingCart className="h-4 w-4" />}
               </button>

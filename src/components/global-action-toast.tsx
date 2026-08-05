@@ -30,7 +30,7 @@ function GlobalActionToastInner() {
   return (
     <div
       className={cn(
-        "fixed right-4 top-20 z-50 flex max-w-md items-start gap-3 rounded-[2px] border p-3 text-sm shadow-sm",
+        "fixed left-4 right-4 top-[calc(var(--sb-topbar-height)+0.75rem)] z-50 flex max-w-md items-start gap-3 rounded-[2px] border p-3 text-sm shadow-[0_8px_24px_rgba(6,44,31,0.16)] sm:left-auto sm:right-6",
         tone === "error"
           ? "border-[var(--sb-danger)] bg-[var(--sb-danger-bg)] text-[var(--sb-danger)]"
           : "border-[var(--sb-success)] bg-[var(--sb-success-bg)] text-[var(--sb-success)]",

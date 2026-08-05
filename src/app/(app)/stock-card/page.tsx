@@ -1,18 +1,21 @@
+import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { FilterBar } from "@/components/ui/filter-bar";
+import { FilterBar, FilterBarMore } from "@/components/ui/filter-bar";
 import { Input } from "@/components/ui/input";
 import { WorkspaceGrid } from "@/components/layout/workspace-layout";
 import { PageHeader } from "@/components/ui/page-header";
 import { SelectControl } from "@/components/ui/select-control";
 import { OperationalList, OperationalListRow, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { formatCurrency, formatDateOnly, formatNumber } from "@/lib/utils";
+import { formatCurrency, formatDateOnly, formatNumber, getToday } from "@/lib/utils";
 import { hasActiveFilters } from "@/lib/table-state";
-import { getItemsForSelect } from "@/server/queries/common";
+import { getBranchesForSelect, getItemsForSelect } from "@/server/queries/common";
 import { getStockCard } from "@/server/queries/inventory";
 
 export default async function StockCardPage({ searchParams }: { searchParams: Promise<Record<string, string | undefined>> }) {
   const filters = await searchParams;
-  const [items, rows] = await Promise.all([getItemsForSelect(), getStockCard(filters)]);
+  const today = getToday();
+  const effectiveFilters = { ...filters, from: filters.from ?? today, to: filters.to ?? today };
+  const [items, branches, rows] = await Promise.all([getItemsForSelect(), getBranchesForSelect({ restrictToActorScope: true }), getStockCard(effectiveFilters)]);
   const selectedItem = filters.item_id ? items.find((item) => item.id === filters.item_id) : null;
   const opening = rows.filter((row) => row.transaction_type === "opening_balance").reduce((sum, row) => sum + row.quantity_in - row.quantity_out, 0);
   const purchase = rows.filter((row) => row.transaction_type === "purchase").reduce((sum, row) => sum + row.quantity_in, 0);
@@ -40,12 +43,17 @@ export default async function StockCardPage({ searchParams }: { searchParams: Pr
       <PageHeader title="Stock Card" description="Chronological stock movement history per item." />
       <WorkspaceGrid className="p-3 sm:p-4">
         <div className="space-y-3">
-          <section className="overflow-hidden rounded-[2px] border bg-card" aria-label="Stock card filters">
+          <section className="sb-list-filters--stock-card overflow-hidden rounded-[2px] border bg-card" aria-label="Stock card filters">
             <FilterBar resultCount={rows.length} resetHref="/stock-card" filtered={filtered}>
+              <Input name="search" defaultValue={filters.search ?? ""} placeholder="Search item, transaction, or branch" aria-label="Search stock movements" />
               <SelectControl name="item_id" defaultValue={filters.item_id ?? "all"} ariaLabel="Item" options={[{ value: "all", label: "All items" }, ...items.map((item) => ({ value: item.id, label: `${item.item_code} — ${item.item_name}` }))]} />
-              <Input name="from" type="date" defaultValue={filters.from ?? ""} aria-label="From date" />
-              <Input name="to" type="date" defaultValue={filters.to ?? ""} aria-label="To date" />
-              <Button type="submit" variant="secondary">Apply</Button>
+              <SelectControl name="branch_id" defaultValue={filters.branch_id ?? "all"} ariaLabel="Branch" options={[{ value: "all", label: "All branches" }, ...branches.map((branch) => ({ value: branch.id, label: branch.branch_name }))]} />
+              <FilterBarMore activeCount={Number(Boolean(filters.type && filters.type !== "all")) + Number(Boolean(filters.from)) + Number(Boolean(filters.to))} resetHref="/stock-card">
+                <SelectControl name="type" defaultValue={filters.type ?? "all"} ariaLabel="Movement type" options={[{ value: "all", label: "All movement types" }, ...["opening_balance", "purchase", "transfer_in", "transfer_out", "production_output", "production_usage", "wastage", "damage", "stock_adjustment", "stock_count_adjustment", "correction"].map((type) => ({ value: type, label: type.replaceAll("_", " ") }))]} />
+                <label className="grid gap-1 text-xs">From date<Input name="from" type="date" defaultValue={effectiveFilters.from} aria-label="From date" /></label>
+                <label className="grid gap-1 text-xs">To date<Input name="to" type="date" defaultValue={effectiveFilters.to} aria-label="To date" /></label>
+              </FilterBarMore>
+            {filtered ? <Button asChild variant="secondary"><Link href="/stock-card">Reset</Link></Button> : <Button type="submit" variant="secondary">Apply</Button>}
             </FilterBar>
           </section>
 

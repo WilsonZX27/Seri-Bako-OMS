@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Pencil } from "lucide-react";
+import { Clock3, FilePlus2, Pencil, TrendingUp } from "lucide-react";
 import { DataGridRow } from "@/components/ui/data-grid-row";
 import { DocumentNumber } from "@/components/document-number";
 import { EmptyState } from "@/components/ui/empty-state";
@@ -17,20 +17,18 @@ import { WorkspaceGrid } from "@/components/layout/workspace-layout";
 import { formatCurrency, formatDateOnly } from "@/lib/utils";
 import { hasActiveFilters } from "@/lib/table-state";
 import { getPermissionMap } from "@/server/auth/permissions";
-import { getSupplierInvoiceFilterSuppliers, getSupplierInvoices } from "@/server/queries/supplier-invoices";
+import { getSupplierInvoiceFilterSuppliers, getSupplierInvoiceSummary, getSupplierInvoices } from "@/server/queries/supplier-invoices";
 
 const statuses = ["draft", "open", "partially_paid", "paid", "void"];
 
 export default async function SupplierInvoicesPage({ searchParams }: { searchParams: Promise<Record<string, string | undefined>> }) {
   const filters = await searchParams;
-  const [invoices, allInvoices, suppliers, permissions] = await Promise.all([
+  const [invoices, summary, suppliers, permissions] = await Promise.all([
     getSupplierInvoices(filters),
-    getSupplierInvoices({ page: "all" }),
+    getSupplierInvoiceSummary(),
     getSupplierInvoiceFilterSuppliers(),
     getPermissionMap(["supplier_invoice.create", "supplier_invoice.pay"]),
   ]);
-  const rows = allInvoices.rows;
-  const count = (...items: string[]) => rows.filter((row) => items.includes(row.status)).length;
   const filtered = hasActiveFilters(filters);
   const hasMobileAction = permissions["supplier_invoice.create"] || permissions["supplier_invoice.pay"];
   return (
@@ -43,15 +41,15 @@ export default async function SupplierInvoicesPage({ searchParams }: { searchPar
           <>
             {permissions["supplier_invoice.create"] || permissions["supplier_invoice.pay"] ? <ConsoleSection title="Actions">
               <div className="grid gap-2">
-                {permissions["supplier_invoice.create"] ? <Button asChild size="sm" className="w-full" data-mobile-primary-action><Link href="/supplier-invoices/new">New Invoice</Link></Button> : null}
-                {permissions["supplier_invoice.pay"] ? <><Button asChild variant="outline" size="sm" className="w-full" data-mobile-primary-action={!permissions["supplier_invoice.create"] || undefined}><Link href="/supplier-invoices/aging">AP Aging</Link></Button><Button asChild variant="outline" size="sm" className="w-full"><Link href="/supplier-invoices/cash-flow">Cash Flow Forecast</Link></Button></> : null}
+                {permissions["supplier_invoice.create"] ? <Button asChild size="sm" className="w-full" data-mobile-primary-action><Link href="/supplier-invoices/new"><FilePlus2 className="h-4 w-4" />New Invoice</Link></Button> : null}
+                {permissions["supplier_invoice.pay"] ? <><Button asChild variant="outline" size="sm" className="w-full" data-mobile-primary-action={!permissions["supplier_invoice.create"] || undefined}><Link href="/supplier-invoices/aging"><Clock3 className="h-4 w-4" />AP Aging</Link></Button><Button asChild variant="outline" size="sm" className="w-full"><Link href="/supplier-invoices/cash-flow"><TrendingUp className="h-4 w-4" />Cash Flow Forecast</Link></Button></> : null}
               </div>
             </ConsoleSection> : null}
             {permissions["supplier_invoice.pay"] ? <ConsoleSection title="AP Summary">
               <div className="grid gap-2 text-xs">
-                <div className="flex justify-between"><span className="text-muted-foreground">Open</span><strong>{count("open", "partially_paid")}</strong></div>
-                <div className="flex justify-between"><span className="text-muted-foreground">Paid</span><strong>{count("paid")}</strong></div>
-                <div className="flex justify-between"><span className="text-muted-foreground">Balance</span><strong>{formatCurrency(rows.reduce((sum, row) => sum + row.balance_due, 0))}</strong></div>
+                <div className="flex justify-between"><span className="text-muted-foreground">Open</span><strong>{summary.open}</strong></div>
+                <div className="flex justify-between"><span className="text-muted-foreground">Paid</span><strong>{summary.paid}</strong></div>
+                <div className="flex justify-between"><span className="text-muted-foreground">Balance</span><strong>{formatCurrency(summary.balance)}</strong></div>
               </div>
             </ConsoleSection> : null}
           </>
@@ -66,7 +64,7 @@ export default async function SupplierInvoicesPage({ searchParams }: { searchPar
               <SelectControl name="due" defaultValue={filters.due ?? "all"} ariaLabel="Due state" options={[{ value: "all", label: "All due states" }, { value: "overdue", label: "Overdue" }, { value: "due_7", label: "Due in 7 days" }, { value: "no_due", label: "No due date" }]} />
             </FilterBarMore>
             {filters.status ? <input type="hidden" name="status" value={filters.status} /> : null}
-            <Button type="submit" variant="secondary">Search</Button>
+            {filtered ? <Button asChild variant="secondary"><Link href="/supplier-invoices">Reset</Link></Button> : <Button type="submit" variant="secondary">Search</Button>}
           </FilterBar>
             <Table mobileHidden aria-label="Supplier invoices" stickyColumn="second">
               <TableHeader>

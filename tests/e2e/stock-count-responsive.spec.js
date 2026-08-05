@@ -34,7 +34,7 @@ test("stock count preserves prefilled adjustment controls, optional variance con
       await expect(page.locator("[data-mobile-page-title]")).toHaveText("Stock Count");
       await expect(page.locator("#main-content").getByText("New Stock Count", { exact: true })).toHaveCount(0);
     } else {
-      await expect(page.locator("#main-content").getByText("New Stock Count", { exact: true })).toBeVisible();
+      await expect(page.getByText("New Stock Count", { exact: true })).toBeVisible();
     }
     const input = page.locator('input[name="line_physical_qty"]').first();
     await expect(input).toBeVisible();
@@ -47,8 +47,7 @@ test("stock count preserves prefilled adjustment controls, optional variance con
     expect(inputBox.width, `${label} physical quantity field must remain touchable`).toBeGreaterThanOrEqual(width < 768 ? 144 : 120);
     const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
     expect(overflow, `${label} stock count must not horizontally overflow`).toBeLessThanOrEqual(5);
-    const firstRemarks = page.locator('input[name="line_remarks"]').first();
-    if (width >= 1024) await expect(firstRemarks).toBeVisible();
+    if (width >= 1024) await expect(page.getByPlaceholder("Count note (optional)")).toBeVisible();
     if (width === 768) await expect(page.locator("[data-tablet-document-inspector]")).toHaveCount(0);
     if (width < 768) {
       const mobileAction = page.locator(".sb-mobile-action-bar").filter({ hasText: /review prefilled values|adjusted/i });

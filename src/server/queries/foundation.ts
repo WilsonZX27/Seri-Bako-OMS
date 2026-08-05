@@ -2,6 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getCurrentProfile } from "@/server/queries/common";
 import { hasUniqueValidAuthLink, listAuthUserSummaries } from "@/server/auth/admin-users";
 import { getRoleDisplayLabel, sortRolesForDisplay, SYSTEM_ROLE_CODES } from "@/lib/roles";
+import type { Database } from "@/types/database";
 import {
   isMockMode,
   mockBranches,
@@ -18,6 +19,8 @@ type Filters = {
   search?: string;
   status?: string;
 };
+
+type StaffStatus = NonNullable<Database["public"]["Tables"]["staffs"]["Row"]["status"]>;
 
 function wantsArchived(status?: string) {
   return status === "archived";
@@ -64,9 +67,12 @@ export async function getBranches(filters: Filters = {}) {
   query = query.eq("company_id", profile.company_id);
   if (wantsArchived(filters.status)) query = query.not("deleted_at", "is", null);
   else if (!wantsAllStatuses(filters.status)) query = query.is("deleted_at", null);
+  const search = filters.search?.trim().replace(/[,%()]/g, " ");
+  if (search) query = query.or(`branch_code.ilike.%${search}%,branch_name.ilike.%${search}%,branch_type.ilike.%${search}%`);
+  if (filters.status && filters.status !== "all") query = query.eq("status", filters.status as "active" | "inactive" | "archived");
   const { data, error } = await query;
   if (error) throw new Error(error.message);
-  return (data ?? []).filter((branch) => matchesFilter([branch.branch_code, branch.branch_name, branch.branch_type], filters, branch.status));
+  return data ?? [];
 }
 
 export async function getBranch(id: string) {
@@ -100,15 +106,27 @@ export async function getStaffs(filters: Filters = {}) {
       .filter((staff) => matchesFilter([staff.staff_code, staff.full_name, staff.email, staff.role_name, staff.default_branch_name], filters, staff.status));
   }
 
-  const supabase = await createClient();
-  const [{ data: staffs, error: staffsError }, { data: branches, error: branchesError }, { data: roles }, { data: staffRoles }, { data: staffBranches }] = await Promise.all([
-    supabase.from("staffs").select("*").is("deleted_at", null).order("full_name", { ascending: true }),
-    supabase.from("branches").select("id, branch_name"),
-    supabase.from("roles").select("id, role_name, role_code"),
-    supabase.from("staff_roles").select("staff_id, role_id"),
-    supabase.from("staff_branches").select("staff_id, branch_id, access_level, is_default"),
-  ]);
+  const [supabase, profile] = await Promise.all([createClient(), getCurrentProfile()]);
+  if (!profile?.company_id) return [];
+  let staffQuery = supabase
+    .from("staffs")
+    .select("*")
+    .eq("company_id", profile.company_id)
+    .is("deleted_at", null)
+    .order("full_name", { ascending: true });
+  const search = filters.search?.trim().replace(/[,%()]/g, " ");
+  if (search) staffQuery = staffQuery.or(`staff_code.ilike.%${search}%,full_name.ilike.%${search}%,email.ilike.%${search}%`);
+  if (filters.status && filters.status !== "all") staffQuery = staffQuery.eq("status", filters.status as StaffStatus);
+  const { data: staffs, error: staffsError } = await staffQuery;
   if (staffsError) throw new Error(staffsError.message);
+  const staffIds = (staffs ?? []).map((staff) => staff.id);
+  if (!staffIds.length) return [];
+  const [{ data: branches, error: branchesError }, { data: roles }, { data: staffRoles }, { data: staffBranches }] = await Promise.all([
+    supabase.from("branches").select("id, branch_name").eq("company_id", profile.company_id).is("deleted_at", null),
+    supabase.from("roles").select("id, role_name, role_code").eq("company_id", profile.company_id).is("deleted_at", null),
+    supabase.from("staff_roles").select("staff_id, role_id").in("staff_id", staffIds),
+    supabase.from("staff_branches").select("staff_id, branch_id, access_level, is_default").in("staff_id", staffIds),
+  ]);
   if (branchesError) throw new Error(branchesError.message);
   const authUsers = await listAuthUserSummaries();
   const branchById = new Map((branches ?? []).map((branch) => [branch.id, branch.branch_name]));
@@ -125,8 +143,7 @@ export async function getStaffs(filters: Filters = {}) {
         role_code: null,
         auth_link_valid: hasUniqueValidAuthLink(staff, authUsers),
       };
-    })
-    .filter((staff) => matchesFilter([staff.staff_code, staff.full_name, staff.email, staff.default_branch_name], filters, staff.status));
+    });
 }
 
 export async function getStaff(id: string) {
@@ -268,16 +285,30 @@ export async function getStaffPermissionAccess(staffId: string) {
   });
 }
 
-export function previewDocumentNumber(prefix: string, nextNumber: number, padding: number, date = new Date()) {
-  const month = new Intl.DateTimeFormat("en-US", { month: "short", timeZone: "Asia/Kuala_Lumpur" }).format(date).toUpperCase();
-  const year = new Intl.DateTimeFormat("en-US", { year: "2-digit", timeZone: "Asia/Kuala_Lumpur" }).format(date);
-  return `${prefix}/${month}${year}/${String(nextNumber).padStart(Math.max(padding, 3), "0")}`;
+function sequencePeriod(resetFrequency: string, date = new Date()) {
+  const parts = new Intl.DateTimeFormat("en-US", { timeZone: "Asia/Kuala_Lumpur", year: "numeric", month: "2-digit", day: "2-digit" }).formatToParts(date);
+  const year = Number(parts.find((part) => part.type === "year")?.value);
+  const month = Number(parts.find((part) => part.type === "month")?.value);
+  const day = Number(parts.find((part) => part.type === "day")?.value);
+  if (resetFrequency === "never") return { start: "1970-01-01", label: "ALL" };
+  if (resetFrequency === "yearly") return { start: `${year}-01-01`, label: String(year) };
+  if (resetFrequency === "quarterly") {
+    const quarter = Math.floor((month - 1) / 3) + 1;
+    return { start: `${year}-${String((quarter - 1) * 3 + 1).padStart(2, "0")}-01`, label: `Q${quarter}${String(year).slice(-2)}` };
+  }
+  if (resetFrequency === "daily") return { start: `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`, label: `${String(month).padStart(2, "0")}${String(day).padStart(2, "0")}${String(year).slice(-2)}` };
+  const label = new Intl.DateTimeFormat("en-US", { month: "short", year: "2-digit", timeZone: "Asia/Kuala_Lumpur" }).format(date).replace(" ", "").toUpperCase();
+  return { start: `${year}-${String(month).padStart(2, "0")}-01`, label };
+}
+
+export function previewDocumentNumber(prefix: string, nextNumber: number, padding: number, date = new Date(), resetFrequency = "monthly") {
+  return `${prefix}/${sequencePeriod(resetFrequency, date).label}/${String(nextNumber).padStart(Math.max(padding, 3), "0")}`;
 }
 
 export async function getDocumentSequences(filters: Filters = {}) {
   if (isMockMode()) {
     return mockDocumentSequences
-      .map((sequence) => ({ ...sequence, preview_number: previewDocumentNumber(sequence.prefix, sequence.next_number, sequence.padding) }))
+      .map((sequence) => ({ ...sequence, preview_number: previewDocumentNumber(sequence.prefix, sequence.next_number, sequence.padding, new Date(), sequence.reset_frequency) }))
       .filter((sequence) => matchesFilter([sequence.document_type, sequence.prefix, sequence.preview_number], filters, sequence.status));
   }
 
@@ -288,18 +319,16 @@ export async function getDocumentSequences(filters: Filters = {}) {
   const { data, error } = await query;
   if (error) throw new Error(error.message);
   const sequences = data ?? [];
-  const dateParts = new Intl.DateTimeFormat("en-US", { timeZone: "Asia/Kuala_Lumpur", year: "numeric", month: "2-digit" }).formatToParts(new Date());
-  const currentPeriod = `${dateParts.find((part) => part.type === "year")?.value}-${dateParts.find((part) => part.type === "month")?.value}-01`;
   const { data: periods, error: periodsError } = await supabase
     .from("document_sequence_periods")
-    .select("company_id, document_type, next_number")
-    .eq("period_start", currentPeriod);
+    .select("company_id, document_type, period_start, next_number");
   if (periodsError) throw new Error(periodsError.message);
-  const nextBySequence = new Map((periods ?? []).map((period) => [`${period.company_id}:${period.document_type}`, period.next_number]));
+  const nextBySequence = new Map((periods ?? []).map((period) => [`${period.company_id}:${period.document_type}:${period.period_start}`, period.next_number]));
   return sequences
     .map((sequence) => {
-      const nextNumber = nextBySequence.get(`${sequence.company_id}:${sequence.document_type}`) ?? 1;
-      return { ...sequence, next_number: nextNumber, preview_number: previewDocumentNumber(sequence.prefix, nextNumber, sequence.padding) };
+      const period = sequencePeriod(sequence.reset_frequency);
+      const nextNumber = nextBySequence.get(`${sequence.company_id}:${sequence.document_type}:${period.start}`) ?? 1;
+      return { ...sequence, next_number: nextNumber, preview_number: previewDocumentNumber(sequence.prefix, nextNumber, sequence.padding, new Date(), sequence.reset_frequency) };
     })
     .filter((sequence) => matchesFilter([sequence.document_type, sequence.prefix, sequence.preview_number], filters, sequence.status));
 }
@@ -314,8 +343,7 @@ export async function getDocumentSequence(id: string) {
   const supabase = await createClient();
   const { data, error } = await supabase.from("document_sequences").select("*").eq("id", id).single();
   if (error) throw new Error(error.message);
-  const dateParts = new Intl.DateTimeFormat("en-US", { timeZone: "Asia/Kuala_Lumpur", year: "numeric", month: "2-digit" }).formatToParts(new Date());
-  const currentPeriod = `${dateParts.find((part) => part.type === "year")?.value}-${dateParts.find((part) => part.type === "month")?.value}-01`;
+  const currentPeriod = sequencePeriod(data.reset_frequency).start;
   const { data: period, error: periodError } = await supabase
     .from("document_sequence_periods")
     .select("next_number")

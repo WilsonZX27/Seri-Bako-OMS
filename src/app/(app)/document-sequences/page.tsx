@@ -39,7 +39,7 @@ export default async function DocumentSequencesPage({ searchParams }: { searchPa
                   <TableHead>Document Type</TableHead>
                   <TableHead>Prefix</TableHead>
                   <TableHead>Next Format</TableHead>
-                  <TableHead>Reset Monthly</TableHead>
+                  <TableHead>Reset Cycle</TableHead>
                   <TableHead>Current Period</TableHead>
                   <TableHead className="text-right">Next Number</TableHead>
                   <TableHead>Status</TableHead>
@@ -52,8 +52,8 @@ export default async function DocumentSequencesPage({ searchParams }: { searchPa
                     <TableCell className="font-medium">{documentTypeLabel(sequence.document_type)}</TableCell>
                     <TableCell>{sequence.prefix}</TableCell>
                     <TableCell className="font-mono">{sequence.preview_number}</TableCell>
-                    <TableCell>{sequence.reset_frequency === "monthly" ? "Yes" : "No"}</TableCell>
-                    <TableCell>{new Intl.DateTimeFormat("en-US", { month: "short", year: "numeric", timeZone: "Asia/Kuala_Lumpur" }).format(new Date())}</TableCell>
+                    <TableCell className="capitalize">{sequence.reset_frequency === "never" ? "Never" : sequence.reset_frequency}</TableCell>
+                    <TableCell className="font-mono">{sequence.preview_number.split("/")[1] ?? "-"}</TableCell>
                     <TableCell className="text-right">{sequence.next_number}</TableCell>
                     <TableCell><Badge variant={sequence.status === "active" ? "success" : "secondary"}>{sequence.status}</Badge></TableCell>
                   </TableRow>

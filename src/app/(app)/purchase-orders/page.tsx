@@ -1,4 +1,5 @@
-import { Pencil } from "lucide-react";
+import Link from "next/link";
+import { Download, Pencil, Plus } from "lucide-react";
 import { DataGridRow } from "@/components/ui/data-grid-row";
 import { DataGridHint } from "@/components/ui/data-grid-hint";
 import { DocumentNumber } from "@/components/document-number";
@@ -36,8 +37,6 @@ export default async function PurchaseOrdersPage({ searchParams }: { searchParam
       <PageHeader
         title="Purchase Orders"
         description="Supplier purchase orders created from approved requests or manually."
-        action={permissions["po.create"] ? { href: "/purchase-orders/new", label: "New PO" } : undefined}
-        secondaryAction={permissions["po.create"] ? { href: "/api/export/purchase-orders", label: "Export CSV" } : undefined}
       />
       <WorkspaceGrid
         className="pt-4"
@@ -46,6 +45,10 @@ export default async function PurchaseOrdersPage({ searchParams }: { searchParam
         hideMobileConsole
         rightRail={
           <>
+            {permissions["po.create"] ? <ConsoleSection title="Actions"><div className="grid gap-2">
+              <Button asChild size="sm" className="w-full" data-mobile-primary-action><Link href="/purchase-orders/new"><Plus className="h-4 w-4" />New PO</Link></Button>
+              <Button asChild variant="outline" size="sm" className="w-full"><Link href="/api/export/purchase-orders"><Download className="h-4 w-4" />Export CSV</Link></Button>
+            </div></ConsoleSection> : null}
             <ConsoleSection title="PO Summary">
               <div className="grid gap-2 text-xs">
                 <div className="flex justify-between"><span className="text-muted-foreground">Total POs</span><strong>{summary.total}</strong></div>
@@ -61,10 +64,11 @@ export default async function PurchaseOrdersPage({ searchParams }: { searchParam
         }
       >
         <div className="overflow-hidden rounded-[2px] border border-[var(--sb-border-soft)] bg-card">
-          <FilterBar resultCount={orders.totalRows} resetHref="/purchase-orders" filtered={filtered}>
+          <FilterBar resetHref="/purchase-orders" filtered={filtered}>
             <Input name="search" defaultValue={filters.search ?? ""} placeholder="Search PO no, supplier, remarks" className="min-w-0 flex-1 md:max-w-sm" />
             <StatusTabs statuses={statuses} activeStatus={filters.status} />
-            <Button type="submit" variant="secondary" className="shrink-0">Search</Button>
+            <div className="sb-filter-summary" aria-live="polite"><span>{orders.totalRows} {orders.totalRows === 1 ? "record" : "records"}</span></div>
+            {filtered ? <Button asChild variant="secondary" className="shrink-0"><Link href="/purchase-orders">Reset</Link></Button> : <Button type="submit" variant="secondary" className="shrink-0">Search</Button>}
             {filters.status ? <input type="hidden" name="status" value={filters.status} /> : null}
           </FilterBar>
           <DataGridHint text="Pro-tip: Double-click any row to open the purchase order." />

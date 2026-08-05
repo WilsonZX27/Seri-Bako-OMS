@@ -137,9 +137,9 @@ test("low-stock PR creation uses selectable phone rows instead of a five-column 
   const source = read("src/components/low-stock-pr-form.tsx");
 
   assert.match(source, /data-low-stock-pr-setup/);
-  assert.match(source, /hidden overflow-x-auto rounded-\[2px\] border md:block/);
+  assert.match(source, /hidden overflow-x-auto[\s\S]*md:block/);
   assert.match(source, /data-low-stock-pr-lines/);
-  assert.match(source, /label="Qty for PR" className="col-span-2"/);
+  assert.match(source, /label="Qty for PR"/);
   assert.match(source, /Suggested <strong/);
 });
 

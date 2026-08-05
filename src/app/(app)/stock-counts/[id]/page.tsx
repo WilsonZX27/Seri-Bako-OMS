@@ -14,6 +14,8 @@ import { getPermissionMap } from "@/server/auth/permissions";
 import { getBranchesForSelect } from "@/server/queries/common";
 import { getDocumentBundle } from "@/server/queries/documents";
 import { getStockCount } from "@/server/queries/stock-counts";
+import { StockCountNotFoundError } from "@/server/queries/stock-counts";
+import { notFound } from "next/navigation";
 
 const stockCountSteps = [
   { key: "draft", label: "Draft", description: "Count is being prepared." },
@@ -23,8 +25,12 @@ const legacyPendingStatuses = new Set(["submitted", "reviewed", "approved"]);
 
 export default async function StockCountDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
+  const stockCountPromise = getStockCount(id).catch((error) => {
+    if (error instanceof StockCountNotFoundError) notFound();
+    throw error;
+  });
   const [{ count, lines }, permissions, branches] = await Promise.all([
-    getStockCount(id),
+    stockCountPromise,
     getPermissionMap(["stock_count.update", "stock_count.cancel", "stock_count.post"]),
     getBranchesForSelect(),
   ]);

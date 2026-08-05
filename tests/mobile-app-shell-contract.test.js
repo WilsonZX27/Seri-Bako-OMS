@@ -50,7 +50,7 @@ test("mobile shell respects safe areas, action stacking, and standalone web inst
   assert.match(css, /\[data-mobile-document-action\]/);
   assert.match(css, /data-mobile-task-page="true"/);
   assert.match(css, /bottom: calc\(var\(--sb-mobile-nav-height\) \+ env\(safe-area-inset-bottom\) \+ 0\.5rem\)/);
-  assert.match(css, /data-mobile-task-page="true"[\s\S]*?bottom: 0 !important;[\s\S]*?padding-bottom: calc\(0\.5rem \+ env\(safe-area-inset-bottom\)\)/);
+  assert.match(css, /html:is\(\[data-mobile-task-page="true"\], \[data-mobile-action-page="true"\]\)[\s\S]*?bottom: calc\(var\(--sb-mobile-nav-height\) \+ env\(safe-area-inset-bottom\) \+ 0\.5rem\) !important/);
   assert.match(appLayout, /pb-\[calc\(var\(--sb-mobile-nav-height\)\+env\(safe-area-inset-bottom\)\+1rem\)\]/);
   assert.match(workspace, /rightRail && !hideMobileConsole && "pb-32 xl:pb-3"/);
   assert.match(rootLayout, /viewportFit: "cover"/);
@@ -120,5 +120,5 @@ test("dashboard exposes direct mobile actions and field forms keep touch-first g
   assert.match(dashboard, /Stock count/);
   assert.match(receiving, /grid-cols-2/);
   assert.match(receiving, /inputMode="decimal"/);
-  assert.match(stock, /h-12 w-12/);
+  assert.match(stock, /h-(?:9|10) w-(?:9|10)/);
 });

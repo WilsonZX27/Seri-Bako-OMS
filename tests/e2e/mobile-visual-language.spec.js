@@ -18,7 +18,15 @@ const canonicalRoutes = [
   "/stock-wastage", "/stock-wastage/new", "/supplier-invoices", "/supplier-invoices/aging", "/supplier-invoices/cash-flow", "/supplier-invoices/new",
   "/supplier-items", "/supplier-items/new", "/suppliers", "/suppliers/new", "/uom-conversions", "/uom-conversions/new",
 ];
-const routes = process.env.MOBILE_VISUAL_ROUTE ? [process.env.MOBILE_VISUAL_ROUTE] : canonicalRoutes;
+const requestedRoutes = process.env.MOBILE_VISUAL_ROUTES
+  ?.split(",")
+  .map((route) => route.trim())
+  .filter(Boolean);
+const routes = requestedRoutes?.length
+  ? requestedRoutes
+  : process.env.MOBILE_VISUAL_ROUTE
+    ? [process.env.MOBILE_VISUAL_ROUTE]
+    : canonicalRoutes;
 
 test.beforeAll(() => fs.mkdirSync(evidence, { recursive: true }));
 

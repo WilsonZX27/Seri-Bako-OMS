@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { ArrowLeft, ClipboardCheck, Save } from "lucide-react";
 import { PurchaseRequestForm } from "@/components/procurement-forms";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -32,8 +33,8 @@ export default async function NewPurchaseRequestPage({ searchParams }: { searchP
     cost: String(initialMapping?.unit_cost ?? initialItem.cost ?? 0),
     remarks: params.notes ?? "",
   } : undefined;
-  const primaryAction = <SubmitButton type="submit" form="purchase-request-form" name="intent" value="submit" pendingLabel="Submitting..." className="w-full">Submit PR</SubmitButton>;
-  const secondaryActions = <div className="grid gap-2"><SubmitButton type="submit" form="purchase-request-form" name="intent" value="draft" pendingLabel="Saving..." variant="outline" className="w-full">Save Draft</SubmitButton><Button asChild variant="ghost" className="w-full"><Link href="/purchase-requests">Cancel</Link></Button></div>;
+  const primaryAction = <SubmitButton type="submit" form="purchase-request-form" name="intent" value="submit" pendingLabel="Submitting..." className="w-full"><ClipboardCheck className="h-4 w-4" />Submit PR</SubmitButton>;
+  const secondaryActions = <div className="grid gap-1"><SubmitButton type="submit" form="purchase-request-form" name="intent" value="draft" pendingLabel="Saving..." variant="ghost" className="sb-action-row"><Save className="h-4 w-4" />Save Draft</SubmitButton><Button asChild variant="ghost" className="sb-action-row"><Link href="/purchase-requests"><ArrowLeft className="h-4 w-4" />Back to purchase requests</Link></Button></div>;
   const workflowSteps = [
     { key: "draft", label: "Draft", description: "Request details and items can be edited." },
     { key: "manager_review", label: "Manager", description: "Manager reviews the operational need." },
@@ -47,7 +48,7 @@ export default async function NewPurchaseRequestPage({ searchParams }: { searchP
         documentNo="New Purchase Request"
         title="Purchase Request"
         status="draft"
-        branch={branches.find((branch) => branch.id === selectedBranchId)?.branch_name}
+        branch={undefined}
         workflowSteps={workflowSteps}
         currentStatus="draft"
         tabletRailMode="split"

@@ -7,11 +7,11 @@ const read = (file) => fs.readFileSync(file, "utf8");
 test("inventory dashboard uses the implemented stock rules", () => {
   const query = read("src/server/queries/inventory.ts");
   assert.match(query, /getLowStockItems/);
-  assert.match(query, /current_qty.*safety_stock/);
-  assert.match(query, /production_usage/);
-  assert.match(query, /period.*7d/);
-  assert.match(query, /period.*30d/);
-  assert.match(query, /period.*month/);
+  assert.match(query, /get_inventory_dashboard_summary/);
+  assert.match(query, /p_period/);
+  assert.match(query, /boundedInventoryInsight/);
+  assert.match(query, /inventoryUnavailable/);
+  assert.match(query, /low_stock_rows/);
 });
 
 test("inventory keeps a role-aware attention summary and control context in the shared right console", () => {

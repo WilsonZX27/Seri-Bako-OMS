@@ -38,3 +38,14 @@ test("shared submit control disables repeated activation and exposes busy state"
   assert.match(source, /aria-busy=\{isPending\}/);
   assert.match(source, /animate-spin/);
 });
+
+test("external form submit feedback releases on server rerender and browser lifecycle recovery", () => {
+  const source = read("src/components/ui/submit-button.tsx");
+  assert.match(source, /new MutationObserver/);
+  assert.match(source, /record\.type === "childList" \|\| record\.type === "characterData"/);
+  assert.doesNotMatch(source, /attributes: true/);
+  assert.match(source, /addEventListener\("reset", release\)/);
+  assert.match(source, /addEventListener\("pageshow", release\)/);
+  assert.match(source, /addEventListener\("popstate", release\)/);
+  assert.match(source, /setTimeout\(release, 30000\)/);
+});

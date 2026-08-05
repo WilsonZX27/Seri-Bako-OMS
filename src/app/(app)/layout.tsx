@@ -12,6 +12,7 @@ import { navPermissionCodes } from "@/components/layout/nav-items";
 import { MobileAppNavigation } from "@/components/layout/mobile-app-navigation";
 import { getCompanyBranding } from "@/server/queries/common";
 import type { UserRole } from "@/types/database";
+import "../design-system-v2.css";
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
   const mobileNavigationPermissionCodes = ["outlet_daily_record.create", "goods_receiving.create", "stock_count.create"];

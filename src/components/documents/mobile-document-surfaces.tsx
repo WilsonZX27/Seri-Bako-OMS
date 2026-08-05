@@ -3,11 +3,12 @@
 import { CheckCircle2, ChevronRight, Circle, CircleDot, X } from "lucide-react";
 import { useEffect, useId, useRef, useState } from "react";
 import type { ReactNode } from "react";
+import { createPortal } from "react-dom";
 import { Button } from "@/components/ui/button";
 import type { WorkflowStep } from "@/components/workflow-status-pipeline";
 import { cn } from "@/lib/utils";
 
-function MobileSheet({ label, title, children, danger = false, triggerClassName }: { label: string; title: string; children: ReactNode; danger?: boolean; triggerClassName?: string }) {
+function MobileSheet({ label, title, children, danger = false, triggerClassName, triggerAriaLabel }: { label: string; title: string; children: ReactNode; danger?: boolean; triggerClassName?: string; triggerAriaLabel?: string }) {
   const [open, setOpen] = useState(false);
   const [hydrated, setHydrated] = useState(false);
   const triggerRef = useRef<HTMLButtonElement>(null);
@@ -56,10 +57,10 @@ function MobileSheet({ label, title, children, danger = false, triggerClassName 
 
   return (
     <>
-      <Button ref={triggerRef} type="button" variant="outline" className={cn("w-full justify-between text-[13px]", danger && "text-[var(--sb-danger)]", triggerClassName)} disabled={!hydrated} onClick={() => setOpen(true)} aria-haspopup="dialog" aria-expanded={open}>
+      <Button ref={triggerRef} type="button" variant="outline" className={cn("w-full justify-between text-[13px]", danger && "text-[var(--sb-danger)]", triggerClassName)} disabled={!hydrated} onClick={() => setOpen(true)} aria-label={triggerAriaLabel} aria-haspopup="dialog" aria-expanded={open}>
         {label}<ChevronRight className="h-4 w-4" aria-hidden="true" />
       </Button>
-      {open ? (
+      {open && hydrated ? createPortal(
         <div className="fixed inset-0 z-[var(--sb-z-dialog)] md:hidden">
           <button type="button" className="sb-dialog-backdrop absolute inset-0 h-full w-full" onClick={() => setOpen(false)} aria-label={`Close ${title}`} />
           <div ref={dialogRef} role="dialog" aria-modal="true" aria-labelledby={titleId} className="sb-popover-surface absolute inset-x-0 bottom-0 max-h-[88dvh] overflow-hidden pb-[env(safe-area-inset-bottom)]">
@@ -69,7 +70,8 @@ function MobileSheet({ label, title, children, danger = false, triggerClassName 
             </header>
             <div className="max-h-[calc(88dvh-3rem-env(safe-area-inset-bottom))] min-w-0 overflow-y-auto overscroll-contain px-3 py-3 text-[13px]">{children}</div>
           </div>
-        </div>
+        </div>,
+        document.body,
       ) : null}
     </>
   );
@@ -82,7 +84,7 @@ export function MobileWorkflowStatus({ steps, currentStatus, trailing }: { steps
   return (
     <div data-mobile-workflow-summary className={cn("mx-0 inline-grid w-fit max-w-full min-w-0 items-center gap-1 border-b border-[var(--sb-border-soft)] px-0 py-1 md:hidden", trailing ? "grid-cols-[auto_minmax(0,1fr)_auto]" : "grid-cols-[auto_auto]")}>
       <p className="min-w-0 truncate text-[12px] font-medium">Step {activeIndex + 1} of {steps.length}</p>
-      <MobileSheet label="Workflow" title="Workflow progress" triggerClassName="h-8 min-h-8 w-auto shrink-0 border-0 px-1.5 text-[12px] shadow-none">
+      <MobileSheet label="Workflow" triggerAriaLabel="View workflow" title="Workflow progress" triggerClassName="h-8 min-h-8 w-auto shrink-0 border-0 px-1.5 text-[12px] shadow-none">
         <ol className="space-y-1" aria-label="Document workflow">
           {steps.map((step, index) => {
             const done = index < activeIndex;
@@ -105,10 +107,10 @@ export function MobileTaskSheet({ label, children }: { label: string; children: 
   return <MobileSheet label={label} title={label}>{children}</MobileSheet>;
 }
 
-export function DocumentMoreOptions({ children, defaultOpen = true }: { children: ReactNode; defaultOpen?: boolean }) {
+export function DocumentMoreOptions({ children, defaultOpen = true, triggerClassName }: { children: ReactNode; defaultOpen?: boolean; triggerClassName?: string }) {
   return (
     <>
-      <div className="md:hidden"><MobileSheet label="More options" title="More options" danger>{children}</MobileSheet></div>
+      <div className="md:hidden"><MobileSheet label="More" title="More options" danger triggerClassName={triggerClassName ?? "h-10 w-auto min-w-[3.5rem] px-3"}>{children}</MobileSheet></div>
       <details open={defaultOpen} className="hidden border-t border-[var(--sb-border-soft)] pt-2 md:block">
         <summary className="cursor-pointer text-[12px] font-medium text-[var(--sb-text-muted)]">More options</summary>
         <div className="mt-2">{children}</div>

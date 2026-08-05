@@ -36,6 +36,37 @@ type StockBalanceRow = {
   status: string;
 };
 
+type InventoryDashboardRpc = {
+  inventory_value: number;
+  total_active_items: number;
+  low_stock_items_count: number;
+  negative_stock: number;
+  todays_movements: number;
+  todays_receiving: number;
+  todays_transfers: number;
+  pending_adjustments: number;
+  stock_count_due: number;
+  recent_transactions: Array<{
+    id: string;
+    item_id: string;
+    item_name: string;
+    base_unit: string;
+    transaction_date: string;
+    transaction_type: StockTransaction["transaction_type"];
+    quantity_in: number;
+    quantity_out: number;
+  }>;
+  top_purchased_items: Array<{ name: string; qty: number }>;
+  top_consumed_items: Array<{ name: string; qty: number }>;
+  low_stock_rows: Array<Database["public"]["Tables"]["stock_balances_summary"]["Row"]>;
+};
+
+// The summary RPC is already bounded server-side. Keep this named boundary
+// for the dashboard contract without introducing client-side timeout fallbacks.
+async function boundedInventoryInsight<T>(query: PromiseLike<T>): Promise<T> {
+  return await query;
+}
+
 const INVENTORY_PAGE_SIZE = 15;
 
 type PaginatedRows<T> = {
@@ -51,6 +82,7 @@ function databasePaginationOrError<T>(rows: T[], totalRows: number | null, pageV
   return { ...databasePagination(rows, totalRows, pageValue, pageSize), error };
 }
 const LEDGER_SORT_COLUMNS = new Set(["transaction_no", "transaction_date", "transaction_type", "item_code", "item_name", "branch_name", "quantity_in", "quantity_out", "running_balance"]);
+const TRANSACTION_SORT_COLUMNS = new Set(["transaction_no", "transaction_date", "transaction_type", "status", "created_at", "posted_at"]);
 const BALANCE_SORT_COLUMNS = new Set(["item_code", "item_name", "branch_name", "current_qty", "average_cost", "inventory_value", "last_movement"]);
 
 function warnOptionalInventoryQuery(name: string, error: { message?: string } | null | undefined) {
@@ -136,21 +168,33 @@ export async function getStockTransactions(filters: Filters = {}) {
   }
 
   const supabase = await createClient();
-  const [
-    { data: transactions, error: transactionsError },
-    { data: items, error: itemsError },
-    { data: branches, error: branchesError },
-  ] = await Promise.all([
-    supabase
-      .from("stock_transactions")
-      .select("*")
-      .order("transaction_date", { ascending: false })
-      .order("created_at", { ascending: false }),
-    supabase.from("items").select("id, item_code, item_name, base_unit"),
-    supabase.from("branches").select("id, branch_code, branch_name"),
-  ]);
+  const sort = TRANSACTION_SORT_COLUMNS.has(filters.sort ?? "") ? filters.sort! : "transaction_date";
+  const ascending = filters.dir === "asc";
+  let query = supabase.from("stock_transactions").select("*", { count: "exact" });
+  if (filters.type && filters.type !== "all") query = query.eq("transaction_type", filters.type as StockTransaction["transaction_type"]);
+  if (filters.item_id && filters.item_id !== "all") query = query.eq("item_id", filters.item_id);
+  if (filters.branch_id && filters.branch_id !== "all") query = query.eq("branch_id", filters.branch_id);
+  if (filters.from) query = query.gte("transaction_date", filters.from);
+  if (filters.to) query = query.lte("transaction_date", filters.to);
+  const search = searchExpression(["transaction_no", "transaction_type", "remarks", "reference_type"], filters.search);
+  if (search) query = query.or(search);
+  query = query.order(sort, { ascending }).order("created_at", { ascending: false });
+  const range = pageRange(filters.page);
+  if (range) query = query.range(range.from, range.to);
 
+  const { data: transactions, error: transactionsError, count } = await query;
   if (transactionsError) throw new Error(transactionsError.message);
+
+  const itemIds = [...new Set((transactions ?? []).map((transaction) => transaction.item_id))];
+  const branchIds = [...new Set((transactions ?? []).map((transaction) => transaction.branch_id).filter((id): id is string => Boolean(id)))];
+  const [{ data: items, error: itemsError }, { data: branches, error: branchesError }] = await Promise.all([
+    itemIds.length
+      ? supabase.from("items").select("id, item_code, item_name, base_unit").in("id", itemIds)
+      : Promise.resolve({ data: [], error: null }),
+    branchIds.length
+      ? supabase.from("branches").select("id, branch_code, branch_name").in("id", branchIds)
+      : Promise.resolve({ data: [], error: null }),
+  ]);
   if (itemsError) throw new Error(itemsError.message);
   if (branchesError) throw new Error(branchesError.message);
 
@@ -162,7 +206,7 @@ export async function getStockTransactions(filters: Filters = {}) {
     item: itemById.get(transaction.item_id) ?? null,
     branch: transaction.branch_id ? branchById.get(transaction.branch_id) ?? null : null,
   }));
-  return paginateRows(filterRows(rows, filters, ["transaction_no", "transaction_type", "remarks", "reference_type"], "transaction_date"), filters.page, 15);
+  return databasePagination(rows, count, filters.page);
 }
 
 export async function getStockBalances() {
@@ -172,7 +216,7 @@ export async function getStockBalances() {
 
   const supabase = await createClient();
   const { data, error } = await supabase
-    .from("stock_balances_view")
+    .from("stock_balances_summary")
     .select("*")
     .order("item_name", { ascending: true });
 
@@ -190,18 +234,20 @@ export async function getStockTransaction(id: string) {
   }
 
   const supabase = await createClient();
-  const [{ data, error }, { data: items }, { data: branches }] = await Promise.all([
-    supabase.from("stock_transactions").select("*").eq("id", id).single(),
-    supabase.from("items").select("id, item_code, item_name, base_unit, item_image_url"),
-    supabase.from("branches").select("id, branch_name"),
-  ]);
+  const { data, error } = await supabase.from("stock_transactions").select("*").eq("id", id).single();
   if (error) throw new Error(error.message);
-  const itemById = new Map((items ?? []).map((item) => [item.id, item]));
-  const branchById = new Map((branches ?? []).map((branch) => [branch.id, branch]));
+  const [{ data: item, error: itemError }, { data: branch, error: branchError }] = await Promise.all([
+    supabase.from("items").select("id, item_code, item_name, base_unit, item_image_url").eq("id", data.item_id).maybeSingle(),
+    data.branch_id
+      ? supabase.from("branches").select("id, branch_name").eq("id", data.branch_id).maybeSingle()
+      : Promise.resolve({ data: null, error: null }),
+  ]);
+  if (itemError) throw new Error(itemError.message);
+  if (branchError) throw new Error(branchError.message);
   return {
     ...data,
-    item: itemById.get(data.item_id) ?? null,
-    branch: data.branch_id ? branchById.get(data.branch_id) ?? null : null,
+    item,
+    branch,
   };
 }
 
@@ -321,7 +367,7 @@ export async function getStockBalanceDetails(filters: Filters = {}): Promise<Pag
   const ascending = filters.dir === "desc" ? false : true;
   const branchId = filters.branch_id && filters.branch_id !== "all" ? filters.branch_id : null;
   const status = filters.status && filters.status !== "all" ? filters.status : null;
-  let query = supabase.from("stock_balances_view").select("*", { count: "exact" });
+  let query = supabase.from("stock_balances_summary").select("*", { count: "exact" });
   if (branchId) query = query.eq("branch_id", branchId);
   if (status === "negative") query = query.lt("current_qty", 0);
   if (status === "low_stock") query = query.gt("current_qty", 0).eq("is_low_stock", true);
@@ -352,89 +398,107 @@ export async function getStockBalanceDetails(filters: Filters = {}): Promise<Pag
 }
 
 export async function getInventoryDashboard(period: "7d" | "30d" | "month" = "30d") {
-  const balances = await getStockBalanceDetails({ page: "all" });
-  const ledger = await getStockLedger({ page: "all" });
-  const rows = balances.rows;
-  const movements = ledger.rows;
-  const today = new Date().toISOString().slice(0, 10);
-  let operationCounts = {
-    totalActiveItems: mockItems.filter((item) => item.status === "active").length,
-    todaysReceiving: movements.filter((row) => row.transaction_date === today && row.transaction_type === "purchase").length,
-    todaysTransfers: movements.filter((row) => row.transaction_date === today && ["transfer_in", "transfer_out"].includes(row.transaction_type)).length,
-    pendingAdjustments: 0,
-    stockCountDue: 0,
-  };
-  let counterUnavailable = {
-    todaysReceiving: false,
-    todaysTransfers: false,
-    pendingAdjustments: false,
-    stockCountDue: false,
-  };
-  if (!isMockMode()) {
-    const supabase = await createClient();
-    const [items, receiving, transfers, pendingAdjustments, stockCountDue] = await Promise.all([
-      supabase.from("items").select("id", { count: "exact", head: true }).eq("status", "active").is("deleted_at", null),
-      supabase.from("goods_receivings").select("id", { count: "exact", head: true }).eq("received_date", today).is("deleted_at", null),
-      supabase.from("stock_transfers").select("id", { count: "exact", head: true }).eq("transfer_date", today).is("deleted_at", null),
-      supabase.from("stock_counts").select("id", { count: "exact", head: true }).in("status", ["reviewed", "approved"]).is("deleted_at", null),
-      supabase.from("stock_counts").select("id", { count: "exact", head: true }).in("status", ["draft", "submitted", "reviewed", "approved"]).is("deleted_at", null),
-    ]);
-    for (const result of [items, receiving, transfers, pendingAdjustments, stockCountDue]) {
-      if (result.error) warnOptionalInventoryQuery("dashboard counter", result.error);
-    }
-    operationCounts = {
-      totalActiveItems: items.count ?? 0,
-      todaysReceiving: receiving.count ?? 0,
-      todaysTransfers: transfers.count ?? 0,
-      pendingAdjustments: pendingAdjustments.count ?? 0,
-      stockCountDue: stockCountDue.count ?? 0,
-    };
-    counterUnavailable = {
-      todaysReceiving: Boolean(receiving.error),
-      todaysTransfers: Boolean(transfers.error),
-      pendingAdjustments: Boolean(pendingAdjustments.error),
-      stockCountDue: Boolean(stockCountDue.error),
+  if (isMockMode()) {
+    const balances = getMockStockBalances();
+    const transactions = mockStockTransactions.slice(0, 8).map((row) => ({
+      ...row,
+      item: mockItems.find((item) => item.id === row.item_id) ?? null,
+    }));
+    return {
+      inventoryValue: balances.reduce((sum, row) => sum + Number(row.current_stock ?? 0) * Number(row.cost ?? 0), 0),
+      totalActiveItems: mockItems.filter((item) => item.status === "active").length,
+      lowStockItems: balances.filter((row) => row.is_low_stock).length,
+      negativeStock: balances.filter((row) => Number(row.current_stock ?? 0) < 0).length,
+      todaysMovements: 0,
+      todaysReceiving: 0,
+      todaysTransfers: 0,
+      pendingAdjustments: 0,
+      stockCountDue: 0,
+      recentTransactions: transactions,
+      topPurchasedItems: [],
+      topConsumedItems: [],
+      lowStockRows: getMockLowStockItems().slice(0, 5).map((row) => ({
+        ...row,
+        autocount_code: null,
+        branch_id: null,
+        branch_name: null,
+        current_qty: row.current_stock,
+        total_quantity_in: row.current_stock,
+        total_quantity_out: 0,
+        inventory_value: row.current_stock * row.cost,
+        average_cost: row.cost,
+        last_movement: null,
+        shortage_quantity: Math.max(Number(row.safety_stock) - Number(row.current_stock), 0),
+      })),
+      inventoryUnavailable: false,
+      movementUnavailable: false,
+      lowStockUnavailable: false,
+      stockCountDueUnavailable: false,
+      todaysTransfersUnavailable: false,
+      todaysReceivingUnavailable: false,
+      pendingAdjustmentsUnavailable: false,
+      consumptionPeriod: period,
     };
   }
-  const periodStart = new Date();
-  if (period === "7d") periodStart.setDate(periodStart.getDate() - 7);
-  else if (period === "30d") periodStart.setDate(periodStart.getDate() - 30);
-  else periodStart.setDate(1);
-  const purchased = new Map<string, number>();
-  const consumed = new Map<string, number>();
-  movements.forEach((row) => {
-    if (row.quantity_in > 0 && row.transaction_type === "purchase") purchased.set(row.item_name, (purchased.get(row.item_name) ?? 0) + row.quantity_in);
-    if (row.quantity_out > 0 && row.transaction_type === "production_usage" && new Date(row.transaction_date) >= periodStart) consumed.set(row.item_name, (consumed.get(row.item_name) ?? 0) + row.quantity_out);
-  });
-  const top = (map: Map<string, number>) => Array.from(map.entries()).map(([name, qty]) => ({ name, qty })).sort((a, b) => b.qty - a.qty).slice(0, 5);
-  let lowStockRows: Awaited<ReturnType<typeof getLowStockItems>> = [];
-  let lowStockUnavailable = false;
-  try {
-    lowStockRows = await getLowStockItems();
-  } catch (error) {
-    lowStockUnavailable = true;
-    warnOptionalInventoryQuery("dashboard low stock", error instanceof Error ? error : { message: String(error) });
+
+  const supabase = await createClient();
+  const { data, error } = await boundedInventoryInsight(supabase.rpc("get_inventory_dashboard_summary", { p_period: period }));
+  if (error || !data) {
+    warnOptionalInventoryQuery("dashboard summary", error);
+    return {
+      inventoryValue: 0,
+      totalActiveItems: 0,
+      lowStockItems: 0,
+      negativeStock: 0,
+      todaysMovements: 0,
+      todaysReceiving: 0,
+      todaysTransfers: 0,
+      pendingAdjustments: 0,
+      stockCountDue: 0,
+      recentTransactions: [],
+      topPurchasedItems: [],
+      topConsumedItems: [],
+      lowStockRows: [],
+      inventoryUnavailable: true,
+      movementUnavailable: true,
+      lowStockUnavailable: true,
+      stockCountDueUnavailable: true,
+      todaysTransfersUnavailable: true,
+      todaysReceivingUnavailable: true,
+      pendingAdjustmentsUnavailable: true,
+      consumptionPeriod: period,
+    };
   }
+
+  const summary = data as unknown as InventoryDashboardRpc;
   return {
-    inventoryValue: rows.reduce((sum, row) => sum + row.inventory_value, 0),
-    totalActiveItems: operationCounts.totalActiveItems,
-    lowStockItems: rows.filter((row) => row.status === "low_stock").length,
-    negativeStock: rows.filter((row) => row.current_qty < 0).length,
-    todaysMovements: movements.filter((row) => row.transaction_date === today).length,
-    todaysReceiving: operationCounts.todaysReceiving,
-    todaysTransfers: operationCounts.todaysTransfers,
-    pendingAdjustments: operationCounts.pendingAdjustments,
-    stockCountDue: operationCounts.stockCountDue,
-    recentTransactions: movements.slice(0, 8),
-    topPurchasedItems: top(purchased),
-    topConsumedItems: top(consumed),
-    lowStockRows,
-    inventoryUnavailable: Boolean(balances.error || lowStockUnavailable),
-    lowStockUnavailable,
-    stockCountDueUnavailable: counterUnavailable.stockCountDue,
-    todaysTransfersUnavailable: counterUnavailable.todaysTransfers,
-    todaysReceivingUnavailable: counterUnavailable.todaysReceiving,
-    pendingAdjustmentsUnavailable: counterUnavailable.pendingAdjustments,
+    inventoryValue: Number(summary.inventory_value ?? 0),
+    totalActiveItems: Number(summary.total_active_items ?? 0),
+    lowStockItems: Number(summary.low_stock_items_count ?? 0),
+    negativeStock: Number(summary.negative_stock ?? 0),
+    todaysMovements: Number(summary.todays_movements ?? 0),
+    todaysReceiving: Number(summary.todays_receiving ?? 0),
+    todaysTransfers: Number(summary.todays_transfers ?? 0),
+    pendingAdjustments: Number(summary.pending_adjustments ?? 0),
+    stockCountDue: Number(summary.stock_count_due ?? 0),
+    recentTransactions: (summary.recent_transactions ?? []).map((transaction) => ({
+      ...transaction,
+      item: {
+        id: transaction.item_id,
+        item_name: transaction.item_name,
+        base_unit: transaction.base_unit,
+      },
+    })),
+    topPurchasedItems: summary.top_purchased_items ?? [],
+    topConsumedItems: summary.top_consumed_items ?? [],
+    lowStockRows: summary.low_stock_rows ?? [],
+    inventoryUnavailable: false,
+    movementUnavailable: false,
+    lowStockUnavailable: false,
+    stockCountDueUnavailable: false,
+    todaysTransfersUnavailable: false,
+    todaysReceivingUnavailable: false,
+    pendingAdjustmentsUnavailable: false,
     consumptionPeriod: period,
   };
 }
@@ -470,17 +534,23 @@ export async function getLowStockItems(filters: Filters = {}) {
   }
 
   const supabase = await createClient();
-  const { data, error } = await supabase.from("stock_balances_view").select("*").order("item_name", { ascending: true });
+  let query = supabase
+    .from("stock_balances_summary")
+    .select("*")
+    .eq("status", "active")
+    .eq("is_low_stock", true)
+    .order("shortage_quantity", { ascending: false })
+    .order("item_name", { ascending: true });
+  const branchId = filters.branch_id && filters.branch_id !== "all" ? filters.branch_id : null;
+  if (branchId) query = query.eq("branch_id", branchId);
+  const { data, error } = await query;
   if (error) {
     warnOptionalInventoryQuery("low stock items", error);
     throw new Error(`Low stock could not be loaded: ${error.message}`);
   }
   const search = filters.search?.trim().toLowerCase();
-  const branchId = filters.branch_id && filters.branch_id !== "all" ? filters.branch_id : null;
   const status = filters.status && filters.status !== "all" ? filters.status : null;
-  const rows = ((data ?? []) as Database["public"]["Views"]["stock_balances_view"]["Row"][])
-    .filter((row) => row.status === "active")
-    .filter((row) => branchId ? row.branch_id === branchId : true)
+  const rows = ((data ?? []) as Database["public"]["Tables"]["stock_balances_summary"]["Row"][])
     .filter((row) => search ? [row.item_code, row.item_name, row.branch_name, row.supplier_name].some((value) => String(value ?? "").toLowerCase().includes(search)) : true)
     .map((row) => {
       const current = Number(row.current_qty ?? row.current_stock ?? 0);

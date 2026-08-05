@@ -40,7 +40,8 @@ test("the current form uses sent, received, wastage, reason and remarks without 
 
 test("lite polish keeps line entry searchable and outlet defaults unambiguous", () => {
   const newPage = read("src/app/(app)/outlet-daily-records/new/page.tsx");
-  assert.match(form, /Search name, code, or category/);
+  assert.match(form, /<span className="sr-only">Find product<\/span><Search/);
+  assert.match(form, /placeholder="Find product by name, code, or category"/);
   assert.match(form, /matches \? "" : "hidden"/);
   assert.match(query, /defaultBranchId: allowedBranches\.some/);
   assert.match(query, /allowedBranches\.length === 1/);

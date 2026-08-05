@@ -3,7 +3,7 @@ import { looseSupabase } from "@/lib/supabase/loose";
 import { getCanonicalDocumentHref, getCanonicalEntityHref } from "@/lib/document-routing";
 import { isMockMode, mockDocuments } from "@/lib/mock-mode";
 import { hasPermission } from "@/server/auth/permissions";
-import { getVisibleNotificationsForCurrentUser, getVisibleRecentActivitiesForCurrentUser } from "@/server/queries/notifications";
+import { getVisibleNotificationsForCurrentUser } from "@/server/queries/notifications";
 import { getCurrentUserPendingActions } from "@/server/queries/pending-actions";
 import { logServerWarning } from "@/server/observability/logger";
 
@@ -51,10 +51,9 @@ export async function getTopBarActivity() {
       logServerWarning(error, { source: "topbar.notifications" });
       return [];
     }),
-    getVisibleRecentActivitiesForCurrentUser(5).catch((error) => {
-      logServerWarning(error, { source: "topbar.recent-activities" });
-      return [] as AssignedActivity[];
-    }),
+    // The complete activity stream belongs to /activity. Resolving actor
+    // identities here made every application route wait on an audit-log query.
+    Promise.resolve([] as AssignedActivity[]),
     getCurrentUserPendingActions(5).catch((error) => {
       logServerWarning(error, { source: "topbar.pending-actions" });
       return [] as PendingAction[];
@@ -107,7 +106,7 @@ export async function getTopBarActivity() {
     .filter((item, index, rows) => rows.findIndex((row) => row.href === item.href) === index)
     .slice(0, 5);
 
-  return {
+  const result = {
     pendingApprovals,
     assignedActivities: assignedActivities as AssignedActivity[],
     notifications: notifications
@@ -119,4 +118,5 @@ export async function getTopBarActivity() {
       .slice(0, 5),
     announcements: notifications.filter((row) => row.is_company_wide && !row.read_at).slice(0, 5),
   };
+  return result;
 }

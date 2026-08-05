@@ -129,22 +129,25 @@ export async function getProductionJobs(filters: Filters = {}): Promise<Paginati
 
   const supabase = await createClient();
   const db = looseSupabase(supabase);
-  const [{ data, error }, { data: branches }, { data: products }] = await Promise.all([
-    db.from("production_jobs").select("*").is("deleted_at", null),
-    supabase.from("branches").select("id, branch_name"),
-    supabase.from("products").select("id, product_code, product_name"),
-  ]);
+  const { data, error } = await db.from("production_jobs").select("*").is("deleted_at", null);
   if (error) throw new Error(error.message);
-
-  const branchRows = (branches ?? []) as Array<{ id: string; branch_name: string }>;
-  const productRows = (products ?? []) as Array<{ id: string; product_name: string }>;
   const productionRows = (data ?? []) as Array<Record<string, unknown>>;
+  if (productionRows.length === 0) return paginateRows([], filters.page, 15);
+  const jobs = productionRows.map(asProductionJob);
+  const branchIds = [...new Set(jobs.map((job) => job.branch_id))];
+  const productIds = [...new Set(jobs.map((job) => job.product_id).filter((id): id is string => Boolean(id)))];
+  const [branchesResult, productsResult] = await Promise.all([
+    supabase.from("branches").select("id, branch_name").in("id", branchIds),
+    productIds.length > 0 ? supabase.from("products").select("id, product_code, product_name").in("id", productIds) : Promise.resolve({ data: [], error: null }),
+  ]);
+  if (branchesResult.error || productsResult.error) throw new Error((branchesResult.error ?? productsResult.error)!.message);
+  const branchRows = (branchesResult.data ?? []) as Array<{ id: string; branch_name: string }>;
+  const productRows = (productsResult.data ?? []) as Array<{ id: string; product_name: string }>;
   const branchById = new Map(branchRows.map((row) => [row.id, row.branch_name]));
   const productById = new Map(productRows.map((row) => [row.id, row]));
   const displayMap = await resolveActorDisplayMap(productionRows.map((row) => String(row.created_by ?? "")));
 
-  const rows: ProductionJob[] = productionRows.map((row) => {
-    const job = asProductionJob(row);
+  const rows: ProductionJob[] = jobs.map((job) => {
     const product = job.product_id ? productById.get(job.product_id) : null;
     return {
       ...job,
@@ -163,19 +166,23 @@ export async function getProductionJob(id: string): Promise<{ job: ProductionJob
 
   const supabase = await createClient();
   const db = looseSupabase(supabase);
-  const [{ data, error }, { data: ingredientLines }, { data: outputLines }, { data: branches }, { data: products }] = await Promise.all([
+  const [{ data, error }, { data: ingredientLines, error: ingredientError }, { data: outputLines, error: outputError }] = await Promise.all([
     db.from("production_jobs").select("*").eq("id", id).maybeSingle(),
     db.from("production_job_ingredient_lines").select("*").eq("production_job_id", id).order("created_at", { ascending: true }),
     db.from("production_job_output_lines").select("*").eq("production_job_id", id).order("created_at", { ascending: true }),
-    supabase.from("branches").select("id, branch_name"),
-    supabase.from("products").select("id, product_code, product_name"),
   ]);
   if (error) throw new Error(error.message);
+  if (ingredientError || outputError) throw new Error((ingredientError ?? outputError)!.message);
   if (!data) throw new ProductionJobNotFoundError("Production job not found");
 
   const job = asProductionJob(data);
-  const branch = (branches ?? []).find((row) => row.id === job.branch_id);
-  const product = job.product_id ? (products ?? []).find((row) => row.id === job.product_id) : null;
+  const [branchResult, productResult] = await Promise.all([
+    supabase.from("branches").select("id, branch_name").eq("id", job.branch_id).maybeSingle(),
+    job.product_id ? supabase.from("products").select("id, product_code, product_name").eq("id", job.product_id).maybeSingle() : Promise.resolve({ data: null, error: null }),
+  ]);
+  if (branchResult.error || productResult.error) throw new Error((branchResult.error ?? productResult.error)!.message);
+  const branch = branchResult.data;
+  const product = productResult.data;
   const displayMap = await resolveActorDisplayMap([job.created_by ?? ""]);
 
   return {

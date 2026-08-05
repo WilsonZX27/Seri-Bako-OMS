@@ -35,7 +35,7 @@ test("Recipes are Owner and Finance only while production uses a narrow RPC", ()
   const productionQuery = read("src/server/queries/production-jobs.ts");
   const migration = read("supabase/migrations/074_daily_record_recipe_access_product_order.sql");
   assert.match(ia, /href: "\/recipes"[\s\S]*roles: \["super_admin", "finance"\]/);
-  assert.equal((recipeQuery.match(/requirePermission\("recipes\.view"\)/g) ?? []).length, 3);
+  assert.equal((recipeQuery.match(/requirePermission\("recipes\.view"\)/g) ?? []).length, 4);
   assert.match(migration, /p\.module = 'recipes' and r\.role_code not in \('super_admin', 'finance'\)/);
   assert.match(migration, /create or replace function public\.get_production_recipe_options/);
   assert.match(productionQuery, /rpc\("get_production_recipe_options"\)/);
@@ -53,7 +53,10 @@ test("Daily Record field ownership and mobile surfaces match the hotfix", () => 
   assert.match(form, /canEditOutletValues/);
   assert.match(detail, /DocumentWorkspace/);
   assert.match(detail, /mobilePrimaryAction=\{primaryAction\}/);
-  assert.match(detail, /Approve as Manager/);
+  assert.doesNotMatch(detail, /Approve as Manager|Review Daily Record/);
+  assert.match(detail, /label: "Posted"/);
+  assert.match(detail, /Post Daily Record/);
+  assert.match(detail, /Save Changes/);
   assert.match(importFlow, /<WorkspaceGrid documentMode tabletRailMode="split" tabletCanvas="wide" rightRail=\{importConsole\}>/);
   assert.doesNotMatch(importFlow, /RightConsoleMount hideMobileBar/);
   assert.match(migration, /qty_sent = case when can_edit_sent/);

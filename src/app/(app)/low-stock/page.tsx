@@ -1,5 +1,5 @@
-import Link from "next/link";
 import { Pencil } from "lucide-react";
+import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -9,6 +9,7 @@ import { ConsoleSection } from "@/components/layout/right-console";
 import { WorkspaceGrid } from "@/components/layout/workspace-layout";
 import { SelectControl } from "@/components/ui/select-control";
 import { formatCurrency, formatNumber } from "@/lib/utils";
+import { hasActiveFilters } from "@/lib/table-state";
 import { hasPermission } from "@/server/auth/permissions";
 import { getBranchesForSelect } from "@/server/queries/common";
 import { getLowStockItems } from "@/server/queries/inventory";
@@ -36,6 +37,7 @@ export default async function LowStockPage({ searchParams }: { searchParams: Pro
   ]);
   const out = items.filter((item) => item.stock_status === "out_of_stock").length;
   const low = items.filter((item) => item.stock_status === "low_stock").length;
+  const filtered = hasActiveFilters(filters);
 
   return (
     <>
@@ -85,8 +87,7 @@ export default async function LowStockPage({ searchParams }: { searchParams: Pro
                 className="md:max-w-44"
                 options={[{ value: "all", label: "All statuses" }, { value: "low_stock", label: "Low Stock" }, { value: "out_of_stock", label: "Out of Stock" }]}
               />
-              <Button type="submit" variant="secondary">Filter</Button>
-              <Button asChild variant="ghost"><a href="?">Reset</a></Button>
+              {filtered ? <Button asChild variant="secondary"><Link href="/low-stock">Reset</Link></Button> : <Button type="submit" variant="secondary">Search</Button>}
             </form>
           </div>
 

@@ -10,7 +10,8 @@ const form = fs.readFileSync(path.join(root, "src", "components", "procurement-f
 
 test("purchase order mobile pages keep the list quiet and the creation action reachable", () => {
   assert.match(listPage, /hideMobileConsole/);
-  assert.ok(listPage.includes('action={permissions["po.create"] ? { href: "/purchase-orders/new", label: "New PO" } : undefined}'));
+  assert.match(listPage, /ConsoleSection title="Actions"/);
+  assert.match(listPage, /href="\/purchase-orders\/new"/);
   assert.match(newPage, /<WorkspaceGrid\s+documentMode\s+tabletRailMode="split"\s+rightRail=/);
   assert.match(newPage, /<SubmitButton[^>]*form="purchase-order-form"[^>]*data-mobile-primary-action>Create PO/);
   assert.match(newPage, /form="purchase-order-form"[^>]*pendingLabel="Creating\.\.\."/);

@@ -49,32 +49,41 @@ export async function updateSession(request: NextRequest) {
     },
   );
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const { data: claimsData } = await supabase.auth.getClaims();
+  const authUserId = claimsData?.claims?.sub;
 
   const pathname = request.nextUrl.pathname;
-  if (!user) {
+  if (!authUserId) {
     const decision = resolveAuthRoute({ pathname, authenticated: false, staffStatus: null, mustChangePassword: false, routeProtected: false, routeAllowed: false, firstPermittedRoute: null });
     return decision ? redirectWithCookies(request, response, decision.destination) : response;
   }
 
   const { data: staff, error: staffError } = await supabase
     .from("staffs")
-    .select("id, status, must_change_password")
-    .eq("auth_user_id", user.id)
+    .select("id, status, must_change_password, staff_roles(role_id, is_primary, effective_from, effective_to, roles(role_code))")
+    .eq("auth_user_id", authUserId)
     .maybeSingle();
 
+  const staffRecord = staff as unknown as {
+    id: string;
+    status: string | null;
+    must_change_password: boolean | null;
+    staff_roles?: Array<{
+      role_id: string;
+      is_primary: boolean | null;
+      effective_from: string | null;
+      effective_to: string | null;
+      roles: { role_code?: string | null } | Array<{ role_code?: string | null }> | null;
+    }>;
+  } | null;
   const permissionCodes = getRoutePermissionCodes(pathname);
   let roleCode: string | null = null;
-  if (staff?.id) {
+  if (staffRecord?.id) {
     const today = getToday();
-    const { data: assignments } = await supabase
-      .from("staff_roles")
-      .select("role_id, is_primary, roles(role_code)")
-      .eq("staff_id", staff.id)
-      .lte("effective_from", today)
-      .or(`effective_to.is.null,effective_to.gte.${today}`);
+    const assignments = (staffRecord.staff_roles ?? []).filter((assignment) => {
+      return (!assignment.effective_from || assignment.effective_from <= today)
+        && (!assignment.effective_to || assignment.effective_to >= today);
+    });
     const assignment = assignments?.find((row) => row.is_primary) ?? assignments?.[0];
     const role = assignment?.roles as { role_code?: string | null } | { role_code?: string | null }[] | null;
     roleCode = Array.isArray(role) ? role[0]?.role_code ?? null : role?.role_code ?? null;
@@ -84,7 +93,7 @@ export async function updateSession(request: NextRequest) {
   const routeAllowed = permissionAllowed && (!allowedRoles || (roleCode ? allowedRoles.includes(roleCode as never) : false));
   const needsLanding = pathname === "/login" || pathname === "/change-password" || Boolean(permissionCodes && !routeAllowed);
   let firstPermittedRoute: string | null = null;
-  if (staff && !staffError && needsLanding && !staff.must_change_password && staff.status !== "invited") {
+  if (staffRecord && !staffError && needsLanding && !staffRecord.must_change_password && staffRecord.status !== "invited") {
     for (const [route, permissions] of isSystemRoleCode(roleCode) ? getAuthLandingRoutes(roleCode) : []) {
       if (await resolveEffectivePermission(supabase, permissions).catch(() => false)) {
         firstPermittedRoute = route;
@@ -96,8 +105,8 @@ export async function updateSession(request: NextRequest) {
   const decision = resolveAuthRoute({
     pathname,
     authenticated: true,
-    staffStatus: staffError ? null : staff?.status ?? null,
-    mustChangePassword: staff?.must_change_password ?? false,
+    staffStatus: staffError ? null : staffRecord?.status ?? null,
+    mustChangePassword: staffRecord?.must_change_password ?? false,
     routeProtected: Boolean(permissionCodes),
     routeAllowed,
     firstPermittedRoute,

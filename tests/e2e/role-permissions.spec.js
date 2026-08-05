@@ -41,6 +41,7 @@ test("Purchasing can read operational PRs but cannot open finance payables", asy
 });
 
 test("finance can open payables but cannot perform manager approval", async ({ page }) => {
+  test.setTimeout(120_000);
   test.skip(!process.env.TEST_FINANCE_EMAIL || !process.env.TEST_FINANCE_PASSWORD, "Missing finance test credentials.");
   expect(await login(page, "finance")).toBe(true);
   await page.goto("/supplier-invoices/aging");

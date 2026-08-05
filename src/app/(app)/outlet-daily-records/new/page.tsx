@@ -7,23 +7,24 @@ import { saveOutletDailyRecord } from "@/server/actions/outlet-daily-records";
 import { getPermissionMap } from "@/server/auth/permissions";
 import { getOutletDailyFormOptions } from "@/server/queries/outlet-daily-records";
 import { getToday } from "@/lib/utils";
+import { CheckCircle2, Save, Send } from "lucide-react";
 const dailySteps = [
   { key: "draft", label: "Qty Sent", description: "Central Kitchen records the quantity sent." },
   { key: "morning_recorded", label: "Outlet Entry", description: "Outlet Staff confirms received quantity and wastage." },
-  { key: "evening_completed", label: "Review", description: "The completed record awaits Manager review." },
-  { key: "reviewed", label: "Reviewed", description: "The record is reviewed and locked." },
+  { key: "evening_completed", label: "Posted", description: "The completed daily record is posted and remains editable by authorised staff." },
 ];
 
 export default async function NewOutletDailyRecordPage({ searchParams }: { searchParams: Promise<Record<string, string | undefined>> }) {
   const filters = await searchParams;
-  const [options, permissions] = await Promise.all([getOutletDailyFormOptions(), getPermissionMap(["outlet_daily_record.update", "outlet_daily_record.qty_sent"])]);
+  const recordDate = getToday();
+  const [options, permissions] = await Promise.all([getOutletDailyFormOptions(recordDate), getPermissionMap(["outlet_daily_record.update", "outlet_daily_record.qty_sent"])]);
   const formId = "outlet-daily-record-form";
   const disabled = !options.products.length || !options.branches.length;
   const canUpdate = permissions["outlet_daily_record.update"];
   const primaryAction = canUpdate
-    ? <SubmitButton form={formId} name="target_status" value="morning_recorded" className="w-full" disabled={disabled}>Confirm Qty Sent</SubmitButton>
-    : <SubmitButton form={formId} name="target_status" value="draft" className="w-full" disabled={disabled}>Save Qty Sent</SubmitButton>;
-  const secondaryActions = canUpdate ? <><SubmitButton form={formId} name="target_status" value="draft" variant="outline" className="w-full" disabled={disabled}>Save Draft</SubmitButton><SubmitButton form={formId} name="target_status" value="evening_completed" variant="outline" className="w-full" disabled={disabled}>Complete Daily Record</SubmitButton></> : null;
+    ? <SubmitButton form={formId} name="target_status" value="morning_recorded" className="w-full gap-2" disabled={disabled}><Send className="h-4 w-4" aria-hidden="true" />Confirm Qty Sent</SubmitButton>
+    : <SubmitButton form={formId} name="target_status" value="draft" className="w-full gap-2" disabled={disabled}><Save className="h-4 w-4" aria-hidden="true" />Save Qty Sent</SubmitButton>;
+  const secondaryActions = canUpdate ? <><SubmitButton form={formId} name="target_status" value="draft" variant="outline" className="w-full gap-2" disabled={disabled}><Save className="h-4 w-4" aria-hidden="true" />Save Draft</SubmitButton><SubmitButton form={formId} name="target_status" value="evening_completed" variant="outline" className="w-full gap-2" disabled={disabled}><CheckCircle2 className="h-4 w-4" aria-hidden="true" />Post Daily Record</SubmitButton></> : null;
   const sidePanel = <>
     <DocumentActionSection moreOptions={secondaryActions ? <div className="grid gap-2">{secondaryActions}</div> : undefined}>{primaryAction}</DocumentActionSection>
     <DocumentSideSection title="Validation / Next Step"><p className="text-xs text-muted-foreground">Central Kitchen records Qty Sent. Outlet Staff confirms Received and records Wastage.</p><p className="text-xs text-muted-foreground">Wastage needs a reason. Quantity exceptions require a remark.</p></DocumentSideSection>
@@ -31,7 +32,7 @@ export default async function NewOutletDailyRecordPage({ searchParams }: { searc
 
   return <DocumentWorkspace
     breadcrumbs={[{ label: "Outlet Daily Records", href: "/outlet-daily-records" }, { label: "New" }]}
-    documentNo="New Daily Record"
+    documentNo="New Outlet Daily Record"
     title="Outlet Daily Record"
     status="draft"
     branch={options.branches.find((branch) => branch.id === options.defaultBranchId)?.branch_name}
@@ -43,6 +44,6 @@ export default async function NewOutletDailyRecordPage({ searchParams }: { searc
     tabletRailMode="split"
   >
     {filters.error ? <Card><CardContent className="p-3 text-sm text-destructive">{filters.error}</CardContent></Card> : null}
-    <OutletDailyRecordForm formId={formId} action={saveOutletDailyRecord} branches={options.branches} products={options.products} branchId={options.defaultBranchId} recordDate={getToday()} canEditQtySent={permissions["outlet_daily_record.qty_sent"]} canEditOutletValues={permissions["outlet_daily_record.update"]} />
+    <OutletDailyRecordForm formId={formId} action={saveOutletDailyRecord} branches={options.branches} products={options.products} branchId={options.defaultBranchId} recordDate={recordDate} defaultsByBranch={options.defaultsByBranch} canEditQtySent={permissions["outlet_daily_record.qty_sent"]} canEditOutletValues={permissions["outlet_daily_record.update"]} />
   </DocumentWorkspace>;
 }

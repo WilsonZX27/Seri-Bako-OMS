@@ -296,6 +296,45 @@ export async function archiveBranches(formData: FormData) {
   safeRedirectWithMessage("/branches", "success", `${ids.length} branch${ids.length === 1 ? "" : "es"} archived.`);
 }
 
+export async function restoreBranches(formData: FormData) {
+  await requirePermissionOrRedirect("branches.update", "/branches?status=archived");
+  const ids = z.array(recordIdSchema).min(1, "Select at least one branch.").max(100, "Restore up to 100 branches at a time.").parse(
+    [...new Set(formData.getAll("branch_id").map(String))],
+  );
+  try {
+    const actor = await requireActiveTenantActor();
+    if (!isMockMode()) {
+      const supabase = createAdminClient();
+      const { data: branches, error: readError } = await supabase
+        .from("branches")
+        .select("id, branch_name")
+        .in("id", ids)
+        .eq("company_id", actor.companyId)
+        .not("deleted_at", "is", null);
+      if (readError) throw new Error(readError.message);
+      if ((branches ?? []).length !== ids.length) throw new Error("One or more selected archived branches are unavailable.");
+      const { error } = await supabase
+        .from("branches")
+        .update({ deleted_at: null, status: "active" })
+        .in("id", ids)
+        .eq("company_id", actor.companyId)
+        .not("deleted_at", "is", null);
+      if (error) throw new Error(error.message);
+      await Promise.all((branches ?? []).map((branch) => writeActivityLog({
+        entityType: "branch",
+        entityId: branch.id,
+        activityType: "restored",
+        message: `Branch ${branch.branch_name} restored`,
+      })));
+    }
+  } catch (error) {
+    rethrowRedirect(error);
+    safeRedirectWithMessage("/branches?status=archived", "error", formatActionError(error, "Could not restore the selected branches."));
+  }
+  revalidatePath("/branches");
+  safeRedirectWithMessage("/branches?status=archived", "success", `${ids.length} branch${ids.length === 1 ? "" : "es"} restored.`);
+}
+
 export async function restoreBranch(id: string) {
   id = parseRecordId(id);
   await requirePermissionOrRedirect("branches.update", `/branches/${id}`);
@@ -1019,7 +1058,7 @@ function documentSequencePayload(formData: FormData, companyId: string) {
     prefix: formValue(formData, "prefix"),
     next_number: formValue(formData, "next_number") ?? 1,
     padding: 3,
-    reset_frequency: "monthly",
+    reset_frequency: formValue(formData, "reset_frequency") ?? "monthly",
     status: formValue(formData, "status") ?? "active",
   });
 }

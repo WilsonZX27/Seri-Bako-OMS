@@ -9,15 +9,17 @@ const tabs = fs.readFileSync(path.join(root, "src", "components", "status-tabs.t
 const workspace = fs.readFileSync(path.join(root, "src", "components", "layout", "workspace-layout.tsx"), "utf8");
 
 test("purchase-request list uses device-appropriate list surfaces and anchors the request identity", () => {
-  assert.match(page, /<Table mobileHidden aria-label="Purchase requests" stickyColumn="third">/);
-  assert.match(page, /<OperationalList ariaLabel="Purchase requests">/);
-  assert.match(page, /<FilterBar resultCount=/);
+  assert.match(page, /<Table mobileHidden compactUntil="xl" aria-label="Purchase requests" stickyColumn="third">/);
+  assert.match(page, /<OperationalList ariaLabel="Purchase requests" showUntil="xl">/);
+  assert.match(page, /tabletRailBreakpoint="lg"/);
+  assert.match(page, /<FilterBar resetHref="\/purchase-requests"/);
+  assert.match(page, /resultCount=\{requests\.totalRows\}/);
 });
 
 test("purchase-request creation remains permission guarded", () => {
   assert.match(page, /permissions\["pr\.create"\]/);
-  assert.ok(page.includes('action={permissions["pr.create"] ? { href: "/purchase-requests/new", label: "New PR" } : undefined}'));
-  assert.ok(page.includes('href: "/purchase-requests/new"'));
+  assert.match(page, /ConsoleSection title="Actions"/);
+  assert.match(page, /href="\/purchase-requests\/new"/);
 });
 
 test("phone list clears fixed actions and keeps the active status visible", () => {

@@ -23,6 +23,8 @@ export type OutletDailyRecordRow = RecordRow & {
   wastage_percent: number;
 };
 
+export type OutletDailyDefaultLine = Pick<LineRow, "qty_sent" | "morning_received_qty" | "wastage_qty" | "wastage_reason" | "notes">;
+
 const todayInKualaLumpur = () => new Intl.DateTimeFormat("en-CA", {
   timeZone: "Asia/Kuala_Lumpur", year: "numeric", month: "2-digit", day: "2-digit",
 }).format(new Date());
@@ -68,13 +70,56 @@ const planningNumber = (value: string | undefined, fallback: number, minimum: nu
   return Number.isFinite(parsed) && parsed >= minimum && parsed <= maximum ? parsed : fallback;
 };
 
-export async function getOutletDailyFormOptions() {
+async function getOutletDailyDefaults(db: Awaited<ReturnType<typeof createClient>>, branchIds: string[], recordDate: string) {
+  if (!branchIds.length) return {} as Record<string, Record<string, OutletDailyDefaultLine>>;
+  const cutoff = shiftDate(recordDate, -56);
+  const weekday = new Date(`${recordDate}T00:00:00Z`).getUTCDay();
+  const { data: records, error: recordError } = await db
+    .from("outlet_daily_records")
+    .select("id,branch_id,record_date,status")
+    .in("branch_id", branchIds)
+    .gte("record_date", cutoff)
+    .lt("record_date", recordDate)
+    .neq("status", "void")
+    .order("record_date", { ascending: false });
+  if (recordError) throw new Error(recordError.message);
+  const chosen = new Map<string, string>();
+  for (const record of records ?? []) {
+    if (!chosen.has(record.branch_id) && new Date(`${record.record_date}T00:00:00Z`).getUTCDay() === weekday) chosen.set(record.branch_id, record.id);
+  }
+  for (const record of records ?? []) {
+    if (!chosen.has(record.branch_id)) chosen.set(record.branch_id, record.id);
+  }
+  const recordIds = [...chosen.values()];
+  if (!recordIds.length) return {} as Record<string, Record<string, OutletDailyDefaultLine>>;
+  const { data: lines, error: lineError } = await db
+    .from("outlet_daily_record_lines")
+    .select("record_id,product_id,qty_sent,morning_received_qty,wastage_qty,wastage_reason,notes")
+    .in("record_id", recordIds);
+  if (lineError) throw new Error(lineError.message);
+  const branchByRecord = new Map([...chosen.entries()].map(([branchId, recordId]) => [recordId, branchId]));
+  return ((lines ?? []) as Pick<LineRow, "record_id" | "product_id" | "qty_sent" | "morning_received_qty" | "wastage_qty" | "wastage_reason" | "notes">[]).reduce<Record<string, Record<string, OutletDailyDefaultLine>>>((result, line) => {
+    const branchId = branchByRecord.get(line.record_id);
+    if (!branchId) return result;
+    (result[branchId] ??= {})[line.product_id] = {
+      qty_sent: line.qty_sent,
+      morning_received_qty: line.morning_received_qty,
+      wastage_qty: line.wastage_qty,
+      wastage_reason: line.wastage_reason,
+      notes: line.notes,
+    };
+    return result;
+  }, {});
+}
+
+export async function getOutletDailyFormOptions(recordDate?: string) {
   if (isMockMode()) {
     const branches = mockBranches.filter((row) => row.status === "active");
     return {
       branches,
       products: sortProductsForDisplay(mockProducts.filter((row) => row.status === "active")),
       defaultBranchId: branches.length === 1 ? branches[0].id : undefined,
+      defaultsByBranch: {},
     };
   }
   const db = await createClient();
@@ -88,13 +133,17 @@ export async function getOutletDailyFormOptions() {
   if (productError) throw new Error(productError.message);
   const activeBranches = branches ?? [];
   const profileDefaultBranchId = profile && "default_branch_id" in profile ? profile.default_branch_id : null;
-  if (canViewAll) return {
-    branches: activeBranches,
-    products: sortProductsForDisplay(products ?? []),
-    defaultBranchId: activeBranches.some((row) => row.id === profileDefaultBranchId)
-      ? profileDefaultBranchId ?? undefined
-      : activeBranches.length === 1 ? activeBranches[0].id : undefined,
-  };
+  if (canViewAll) {
+    const branchesForForm = activeBranches;
+    return {
+      branches: branchesForForm,
+      products: sortProductsForDisplay(products ?? []),
+      defaultBranchId: branchesForForm.some((row) => row.id === profileDefaultBranchId)
+        ? profileDefaultBranchId ?? undefined
+        : branchesForForm.length === 1 ? branchesForForm[0].id : undefined,
+      defaultsByBranch: recordDate ? await getOutletDailyDefaults(db, branchesForForm.map((branch) => branch.id), recordDate) : {},
+    };
+  }
   const { data: assignments, error } = await db.from("staff_branches").select("branch_id").eq("staff_id", profile?.id ?? "");
   if (error) throw new Error(error.message);
   const allowed = new Set([profileDefaultBranchId, ...(assignments ?? []).map((row) => row.branch_id)].filter(Boolean));
@@ -105,6 +154,7 @@ export async function getOutletDailyFormOptions() {
     defaultBranchId: allowedBranches.some((row) => row.id === profileDefaultBranchId)
       ? profileDefaultBranchId ?? undefined
       : allowedBranches.length === 1 ? allowedBranches[0].id : undefined,
+    defaultsByBranch: recordDate ? await getOutletDailyDefaults(db, allowedBranches.map((branch) => branch.id), recordDate) : {},
   };
 }
 

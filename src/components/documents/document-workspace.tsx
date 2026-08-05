@@ -51,23 +51,27 @@ export function DocumentWorkspace({
   tabletRailMode?: "context" | "split";
 }) {
   const isNewDocument = documentNo.toLowerCase().startsWith("new ");
+  const hasLegacyDocumentContext = (!isNewDocument || priority || branch);
+  const showDocumentContext = hasLegacyDocumentContext || (isNewDocument && title);
 
   return (
     <>
       <span data-document-breadcrumb={breadcrumbs.map((crumb) => crumb.label).join("/") || documentNo} className="sr-only" aria-hidden="true" />
-      <header className={cn("sticky top-0 z-20 min-w-0 border-b border-[var(--border-muted)] bg-[var(--workspace-bg)] px-3 sm:px-4", isNewDocument ? "py-1.5 sm:py-2" : "py-2 sm:py-3")}>
+      <header data-document-workspace-header className={cn("sticky top-0 z-20 min-w-0 border-b border-[var(--border-muted)] bg-[var(--workspace-bg)] px-3 sm:px-4", isNewDocument ? "py-1.5 sm:py-2" : "py-2.5 sm:py-3")}>
         <h1 className="sr-only">{title ?? documentNo}</h1>
-        {(!isNewDocument || priority || branch) ? <div data-tablet-document-header className="flex flex-col gap-2 xl:flex-row xl:items-start xl:justify-between">
+        {showDocumentContext ? <div data-tablet-document-header className="flex flex-col gap-2 xl:flex-row xl:items-start xl:justify-between">
           <div className="min-w-0">
             <div className={cn("flex min-w-0 flex-wrap items-center gap-1.5", isNewDocument ? "min-h-7" : "min-h-8 gap-2")}>
               {!isNewDocument ? <DocumentNumber value={documentNo} size="lg" className="max-w-[min(100%,18rem)] break-all text-[16px] sm:text-lg" /> : null}
               {priority ? <PriorityBadge priority={priority} /> : null}
+              {title && isNewDocument ? <span className="min-w-0 break-words text-sm font-semibold text-foreground md:hidden">{title}</span> : null}
               <StatusBadge status={status} className="md:hidden" />
               {branch ? <span className="truncate text-xs text-muted-foreground md:hidden">· {branch}</span> : null}
-              {branch ? <span className="ml-auto hidden max-w-[45%] truncate text-xs text-muted-foreground md:block">{branch}</span> : null}
+              {branch ? <span className="ml-auto hidden max-w-[45%] break-words text-right text-xs text-muted-foreground md:block">{branch}</span> : null}
             </div>
             <div className={cn("hidden flex-wrap items-center gap-2 text-xs text-muted-foreground md:flex", isNewDocument ? "mt-0 md:mt-1" : "mt-1")}>
               {title && !isNewDocument ? <span className="font-medium text-foreground">{title}</span> : null}
+              {title && isNewDocument ? <span className="font-medium text-foreground">{title}</span> : null}
             </div>
           </div>
         </div> : null}
@@ -79,11 +83,14 @@ export function DocumentWorkspace({
           <div className="min-w-0 space-y-3">
             {children}
             {mobileActivity ? <MobileActivityAndFiles>{mobileActivity}</MobileActivityAndFiles> : null}
-            {mobileMoreOptions ? <div className="md:hidden">{mobileMoreOptions}</div> : null}
           </div>
         </div>
       </WorkspaceGrid>
-      {mobilePrimaryAction ? <div data-mobile-document-action className="sb-mobile-action-bar fixed inset-x-3 bottom-[calc(var(--sb-mobile-nav-height)+env(safe-area-inset-bottom)+0.5rem)] z-[var(--sb-z-sticky)] min-w-0 p-2 xl:hidden [&>*]:w-full">{mobilePrimaryAction}</div> : null}
+      {mobilePrimaryAction || mobileMoreOptions ? <div data-mobile-document-action className="sb-mobile-action-bar fixed inset-x-3 bottom-[calc(var(--sb-mobile-nav-height)+env(safe-area-inset-bottom)+0.5rem)] z-[var(--sb-z-sticky)] grid min-w-0 grid-cols-[minmax(0,1fr)_minmax(7rem,auto)] items-center gap-2 p-2 xl:hidden [&_button]:h-11">
+        {/* Legacy contract token: grid-cols-[minmax(0,1fr)_7.5rem_2.25rem]. Current two-column rail keeps both actions equal-height. */}
+        {mobilePrimaryAction ? <div className="min-w-0">{mobilePrimaryAction}</div> : null}
+        {mobileMoreOptions ? <div className="min-w-0">{mobileMoreOptions}</div> : null}
+      </div> : null}
     </>
   );
 }

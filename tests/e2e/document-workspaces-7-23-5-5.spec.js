@@ -7,17 +7,19 @@ const widths = [1440, 1024, 768, 430, 390, 360];
 function collectCriticalErrors(page) {
   const errors = [];
   page.on("console", (message) => {
-    if (message.type() === "error" && !/favicon|Failed to load resource.*404/i.test(message.text())) errors.push(message.text());
+    if (message.type() === "error" && !/favicon|Failed to load resource.*404/i.test(message.text())) errors.push(`${page.url()} :: ${message.text()}`);
   });
-  page.on("pageerror", (error) => errors.push(error.message));
+  page.on("pageerror", (error) => errors.push(`${page.url()} :: ${error.message}`));
   return errors;
 }
 
 async function firstDetailHref(page, listRoute, pattern) {
   await page.goto(listRoute, { waitUntil: "domcontentloaded" });
-  const link = page.locator(`a[href^="${pattern}"]`).filter({ hasNotText: /new/i }).first();
-  if (!await link.count()) return null;
-  return await link.getAttribute("href", { timeout: 3000 }).catch(() => null);
+  const hrefs = await page.locator(`a[href^="${pattern}"]`).evaluateAll((links) => links.map((link) => link.getAttribute("href")).filter(Boolean));
+  return hrefs.find((href) => {
+    const recordKey = href.slice(pattern.length).split(/[?#]/)[0];
+    return recordKey && !recordKey.includes("/") && !["new", "aging", "cash-flow", "forecast"].includes(recordKey);
+  }) ?? null;
 }
 
 async function assertStableDocument(page, route, width, navigate = true) {
@@ -25,7 +27,8 @@ async function assertStableDocument(page, route, width, navigate = true) {
   await expect(page.locator("body"), `${route} at ${width}px`).not.toContainText(/Application error|Internal Server Error|Page actions/i);
   const documentBreadcrumb = page.locator("[data-document-breadcrumb]").first();
   if (!await documentBreadcrumb.count()) {
-    await expect(page.getByRole("heading", { name: /New Purchase Order/i }), `${route} at ${width}px`).toBeVisible();
+    await expect(page.locator("main#main-content"), `${route} at ${width}px`).toBeVisible();
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth + 1), `${route} at ${width}px overflows`).toBe(true);
     return;
   }
   await expect(documentBreadcrumb, `${route} at ${width}px`).toBeAttached();

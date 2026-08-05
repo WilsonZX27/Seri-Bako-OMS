@@ -39,10 +39,10 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   const role = roleProfile?.role_code ?? roleProfile?.role ?? "outlet_staff";
 
   return (
-    <div data-app-shell className="h-dvh overflow-hidden bg-[var(--app-bg)]">
-      <div className="flex h-dvh min-w-0">
+    <div data-app-shell className="min-h-dvh bg-[var(--app-bg)] xl:h-dvh xl:overflow-hidden">
+      <div className="flex min-h-dvh min-w-0 xl:h-dvh">
         <Sidebar permissionMap={permissionMap} />
-        <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
+        <div className="flex min-w-0 flex-1 flex-col xl:overflow-hidden">
           <TopBar permissionMap={permissionMap} />
           {!hasStaffRole ? (
             <div className="border-b border-[var(--sb-warning)] bg-[var(--sb-warning-bg)] px-5 py-3 text-sm font-medium text-[var(--sb-warning)]" role="alert">
@@ -51,10 +51,10 @@ export default async function AppLayout({ children }: { children: React.ReactNod
           ) : null}
           <div className="relative z-10 flex min-h-0 flex-1">
             <RightConsoleProvider>
-              <div data-center-workspace className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
+              <div data-center-workspace className="flex min-h-0 min-w-0 flex-1 flex-col xl:overflow-hidden">
                 <GlobalActionToast />
                 <SessionTimeoutProvider />
-                <main id="main-content" className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden pb-[calc(var(--sb-mobile-nav-height)+env(safe-area-inset-bottom)+1rem)] xl:pb-0">{children}</main>
+                <main id="main-content" className="min-h-0 flex-1 overflow-x-hidden pb-[calc(var(--sb-mobile-nav-height)+env(safe-area-inset-bottom)+1rem)] xl:overflow-y-auto xl:pb-0">{children}</main>
               </div>
             </RightConsoleProvider>
           </div>

@@ -19,7 +19,7 @@ returns table (
   status text,
   document_id uuid,
   reference_type text,
-  reference_id uuid,
+  reference_id text,
   created_by uuid,
   posted_at timestamptz,
   stock_transaction_line_id uuid,
@@ -110,7 +110,6 @@ with expanded as (
   from expanded e
   where (p_item_id is null or e.item_id = p_item_id)
     and (p_branch_id is null or e.branch_id = p_branch_id)
-    and (p_transaction_type is null or e.transaction_type = p_transaction_type)
 ), opening as (
   select item_id, branch_id, sum(quantity_in - quantity_out)::numeric as opening_balance
   from scoped
@@ -120,11 +119,17 @@ with expanded as (
   select s.*
   from scoped s
   where s.transaction_date between p_from and p_to
-    and (p_direction is null
-      or (p_direction = 'inbound' and s.quantity_in > 0)
-      or (p_direction = 'outbound' and s.quantity_out > 0))
-    and (nullif(btrim(p_search), '') is null or concat_ws(' ', s.transaction_no, s.transaction_type, s.item_code, s.item_name, s.branch_name) ilike '%' || btrim(p_search) || '%')
-    and (nullif(btrim(p_source), '') is null or concat_ws(' ', s.reference_type, s.reference_id::text, s.transaction_no) ilike '%' || btrim(p_source) || '%')
+), calculated as (
+  select
+    p.*,
+    coalesce(o.opening_balance, 0)
+      + sum(p.quantity_in - p.quantity_out) over (
+        partition by p.item_id, p.branch_id
+        order by p.transaction_date, p.created_at, p.stock_transaction_id, p.stock_transaction_line_id
+        rows between unbounded preceding and current row
+      ) as calculated_running_balance
+  from period_rows p
+  left join opening o on o.item_id = p.item_id and o.branch_id = p.branch_id
 )
 select
   p.stock_transaction_id,
@@ -148,17 +153,16 @@ select
   p.quantity_out,
   p.unit_cost,
   p.total_cost,
-  coalesce(o.opening_balance, 0)
-    + sum(p.quantity_in - p.quantity_out) over (
-      partition by p.item_id, p.branch_id
-      order by p.transaction_date, p.created_at, p.stock_transaction_id, p.stock_transaction_line_id
-      rows between unbounded preceding and current row
-    ) as running_balance
-from period_rows p
-left join opening o on o.item_id = p.item_id and o.branch_id = p.branch_id
+  p.calculated_running_balance as running_balance
+from calculated p
+where (p_transaction_type is null or p.transaction_type = p_transaction_type)
+  and (p_direction is null
+    or (p_direction = 'inbound' and p.quantity_in > 0)
+    or (p_direction = 'outbound' and p.quantity_out > 0))
+  and (nullif(btrim(p_search), '') is null or concat_ws(' ', p.transaction_no, p.transaction_type, p.item_code, p.item_name, p.branch_name) ilike '%' || btrim(p_search) || '%')
+  and (nullif(btrim(p_source), '') is null or concat_ws(' ', p.reference_type, p.reference_id, p.transaction_no) ilike '%' || btrim(p_source) || '%')
 order by p.transaction_date, p.created_at, p.stock_transaction_id, p.stock_transaction_line_id;
 $$;
 
 revoke all on function public.get_stock_card_bounded(date, date, uuid, uuid, text, text, text, text) from public, anon;
 grant execute on function public.get_stock_card_bounded(date, date, uuid, uuid, text, text, text, text) to authenticated;
-

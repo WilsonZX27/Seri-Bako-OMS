@@ -17,6 +17,9 @@ test("bounded read model filters the period before its running window", () => {
   assert.match(migrationSource, /transaction_date between p_from and p_to/);
   assert.match(migrationSource, /opening_balance/);
   assert.match(migrationSource, /sum\(p\.quantity_in - p\.quantity_out\) over/);
+  assert.match(migrationSource, /calculated_running_balance/);
+  assert.ok(migrationSource.indexOf("calculated_running_balance") < migrationSource.indexOf("p_transaction_type is null"), "display filters must run after balance calculation");
+  assert.match(migrationSource, /reference_id text/);
   assert.match(migrationSource, /can_access_inventory_branch/);
   assert.match(migrationSource, /grant execute[\s\S]*to authenticated/);
 });

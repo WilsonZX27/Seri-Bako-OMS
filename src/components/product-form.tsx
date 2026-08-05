@@ -71,9 +71,9 @@ export function ProductForm({ product, packaging = [], action, formId, showSubmi
               <p className="text-sm font-semibold">Product Image</p>
               {product.product_image_url ? (
                 // eslint-disable-next-line @next/next/no-img-element
-                <img src={product.product_image_url} alt={product.product_name} className="mt-3 aspect-video w-full rounded-[10px] border object-cover md:rounded-md" />
+                <img src={product.product_image_url} alt={product.product_name} className="mt-3 aspect-video w-full rounded-[var(--sb-control-radius)] border object-cover" />
               ) : (
-                <div className="mt-3 flex h-24 items-center justify-center rounded-[10px] border bg-background text-xs text-muted-foreground md:rounded-md">
+                <div className="mt-3 flex h-24 items-center justify-center rounded-[var(--sb-control-radius)] border bg-background text-xs text-muted-foreground">
                   No image uploaded yet
                 </div>
               )}

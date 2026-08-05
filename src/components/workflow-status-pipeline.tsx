@@ -12,7 +12,7 @@ export function WorkflowStatusPipeline({ steps, currentStatus, compact = false }
   const rejected = ["rejected", "cancelled"].includes(currentStatus);
 
   return (
-    <div data-workflow-pipeline className={cn("mx-auto w-full rounded-xl border border-[var(--sb-border-soft)] bg-white shadow-[var(--sb-shadow-xs)]", compact ? "px-3 py-2.5" : "px-4 py-3.5")}>
+    <div data-workflow-pipeline className={cn("mx-auto w-full rounded-[var(--sb-panel-radius)] border border-[var(--sb-border-soft)] bg-white shadow-[var(--sb-shadow-xs)]", compact ? "px-3 py-2.5" : "px-4 py-3.5")}>
       {!compact ? <p className="mb-2 text-xs font-semibold text-[var(--sb-text-muted)]">Workflow</p> : null}
       <div className="grid min-w-0 items-center" style={{ gridTemplateColumns: `repeat(${steps.length}, minmax(0, 1fr))` }}>
         {steps.map((step, index) => {

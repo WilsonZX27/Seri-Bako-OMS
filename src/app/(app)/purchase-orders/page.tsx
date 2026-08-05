@@ -45,7 +45,7 @@ export default async function PurchaseOrdersPage({ searchParams }: { searchParam
         tabletRailBreakpoint="lg"
         hideMobileConsole
         rightRail={
-          <>
+          <div className="space-y-3 [&>section]:overflow-hidden [&>section]:rounded-[var(--sb-panel-radius)] [&>section]:border [&>section]:border-[var(--sb-border-soft)] [&>section]:bg-card">
             {permissions["po.create"] ? <ConsoleSection title="Actions"><div className="grid gap-2">
               <Button asChild size="sm" className="w-full" data-mobile-primary-action><Link href="/purchase-orders/new"><Plus className="h-4 w-4" />New PO</Link></Button>
               <PurchaseOrderExportDialog />
@@ -61,7 +61,7 @@ export default async function PurchaseOrdersPage({ searchParams }: { searchParam
                 <div className="flex justify-between"><span className="text-muted-foreground">Cancelled</span><strong>{summary.cancelled}</strong></div>
               </div>
             </ConsoleSection>
-          </>
+          </div>
         }
       >
         <div className="overflow-hidden rounded-[2px] border border-[var(--sb-border-soft)] bg-card">

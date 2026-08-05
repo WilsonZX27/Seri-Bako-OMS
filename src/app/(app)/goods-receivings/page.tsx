@@ -34,7 +34,7 @@ export default async function GoodsReceivingsPage({ searchParams }: { searchPara
       <WorkspaceGrid
         hideMobileConsole
         rightRail={
-          <>
+          <div className="space-y-3 [&>section]:overflow-hidden [&>section]:rounded-[var(--sb-panel-radius)] [&>section]:border [&>section]:border-[var(--sb-border-soft)] [&>section]:bg-card">
             {canCreate ? <ConsoleSection title="Actions"><Button asChild size="sm" className="w-full" data-mobile-primary-action><Link href="/goods-receivings/new"><Plus className="h-4 w-4" />New GRN</Link></Button></ConsoleSection> : null}
             <ConsoleSection title="GRN Summary">
               <div className="grid gap-2 text-xs">
@@ -49,7 +49,7 @@ export default async function GoodsReceivingsPage({ searchParams }: { searchPara
                 <div className="flex justify-between"><span className="text-muted-foreground">Rejected Qty</span><strong>{formatNumber(summary.rejectedTotal)}</strong></div>
               </div>
             </ConsoleSection>
-          </>
+          </div>
         }
       >
         <div className="overflow-hidden rounded-[2px] border border-[var(--sb-border-soft)] bg-card">

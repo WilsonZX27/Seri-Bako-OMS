@@ -316,7 +316,7 @@ export function DashboardWorkspace({ summary, renderedAt }: { summary: Dashboard
                 </div>
             </Panel> : null}
             <Panel title={isPurchasing ? "Purchasing pipeline" : isKitchen ? "Production and receiving" : "Operational pipeline"}>
-              <div className="grid grid-cols-3 gap-1.5 sm:gap-2">
+              <div className={`grid gap-1.5 sm:gap-2 ${summary.productionSummary || isPurchasing ? "grid-cols-3" : "grid-cols-2"}`}>
                 <Metric
                   href="/purchase-orders"
                   label={isPurchasing ? "PO preparation / sending" : "Recent purchase orders"}

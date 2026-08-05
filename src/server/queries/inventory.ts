@@ -527,7 +527,7 @@ export async function getStockCard(filters: Filters = {}) {
     });
     if (error) {
       warnOptionalInventoryQuery("Stock Card", error);
-      throw new Error(`Stock Card could not be loaded: ${error.message}`);
+      return [];
     }
     return data ?? [];
   }

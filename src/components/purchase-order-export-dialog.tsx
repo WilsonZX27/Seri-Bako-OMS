@@ -4,6 +4,7 @@ import { useId, useMemo, useState } from "react";
 import { Download } from "lucide-react";
 
 import { ModalShell } from "@/components/ui/modal-shell";
+import { Button } from "@/components/ui/button";
 
 type PurchaseOrderExportDialogProps = {
   className?: string;
@@ -59,9 +60,11 @@ export function PurchaseOrderExportDialog({ className }: PurchaseOrderExportDial
 
   return (
     <>
-      <button
+      <Button
         type="button"
-        className={className}
+        variant="ghost"
+        size="sm"
+        className={className ?? "w-full justify-start"}
         onClick={() => {
           setError(null);
           setOpen(true);
@@ -69,7 +72,7 @@ export function PurchaseOrderExportDialog({ className }: PurchaseOrderExportDial
       >
         <Download aria-hidden="true" className="size-4" />
         Export CSV
-      </button>
+      </Button>
 
       <ModalShell
         open={open}
@@ -77,7 +80,7 @@ export function PurchaseOrderExportDialog({ className }: PurchaseOrderExportDial
           if (!pending) setOpen(false);
         }}
         titleId={titleId}
-        className="max-w-xl p-0"
+        className="max-w-xl overflow-hidden rounded-[var(--sb-panel-radius)] p-0"
       >
         <header className="border-b px-5 py-4">
           <h2 id={titleId} className="text-lg font-semibold">Export Purchase Orders</h2>
@@ -112,13 +115,13 @@ export function PurchaseOrderExportDialog({ className }: PurchaseOrderExportDial
           ) : null}
         </div>
         <footer className="flex justify-end gap-2 border-t px-5 py-4">
-          <button type="button" className="sb-button-secondary" disabled={pending} onClick={() => setOpen(false)}>
+          <Button type="button" variant="outline" disabled={pending} onClick={() => setOpen(false)}>
             Cancel
-          </button>
-          <button type="button" className="sb-button-primary" disabled={pending} onClick={downloadExport}>
+          </Button>
+          <Button type="button" disabled={pending} onClick={downloadExport}>
             <Download aria-hidden="true" className="size-4" />
             {pending ? "Preparing..." : "Download CSV"}
-          </button>
+          </Button>
         </footer>
       </ModalShell>
     </>

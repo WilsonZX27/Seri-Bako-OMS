@@ -106,7 +106,7 @@
 }
 
 #main-content > :not([data-document-workspace-header]) {
-  animation: sb-content-enter 280ms cubic-bezier(.2,.7,.2,1) both;
+  animation: sb-content-enter 220ms cubic-bezier(.2,.7,.2,1);
 }
 
 [data-page-header] {
@@ -126,8 +126,8 @@
 }
 
 @keyframes sb-content-enter {
-  from { opacity: 0; transform: translateY(4px); }
-  to { opacity: 1; transform: translateY(0); }
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
 .erp-surface,

@@ -2102,6 +2102,10 @@ export type Database = {
       };
     };
     Functions: {
+      get_dashboard_core_snapshot: {
+        Args: { p_today?: string };
+        Returns: Json;
+      };
       get_stock_card_bounded: {
         Args: {
           p_from: string;

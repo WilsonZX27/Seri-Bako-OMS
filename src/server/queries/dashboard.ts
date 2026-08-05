@@ -25,6 +25,19 @@ function warnOptionalQuery(name: string, error: { message?: string } | null | un
   if (error) logServerWarning(error, { source: `dashboard.optional.${name}` });
 }
 
+type DashboardCoreSnapshot = {
+  total_items: number;
+  total_suppliers: number;
+  urgent_requests: Array<{ id: string; request_no: string; status: string; priority: string; needed_by_date: string | null }>;
+  purchase_requests: Array<{ id: string; request_no: string; status: string; priority: string }>;
+  purchase_orders: Array<{ id: string; po_no: string; status: string; priority: string }>;
+  recent_documents: Array<{ id: string; document_no: string; document_type: string }>;
+  today_receiving: number;
+  stock_count_due: number;
+  wastage_attention: number;
+  receiving_followup: number;
+};
+
 export async function getDashboardSummary() {
   if (isMockMode()) {
     const balances = getMockStockBalances();
@@ -112,31 +125,16 @@ export async function getDashboardSummary() {
   const supabase = await createClient();
   const db = looseSupabase(supabase);
   const empty = { data: [], error: null, count: 0 };
-  const [inventorySummary, suppliers, items, urgentRequests, purchaseRequests, purchaseOrders, pendingApprovals, documents, notifications, recentActivities, productionSummary, outletToday, todayReceiving, stockCountDue, wastageAttention, receivingFollowup, currentStaff, assignedBranches, payablesAttention, operationsControl] = await Promise.all([
+  const [inventorySummary, coreSnapshotResult, pendingApprovals, notifications, recentActivities, productionSummary, outletToday, currentStaff, assignedBranches, payablesAttention, operationsControl] = await Promise.all([
     needsInventory ? getInventoryDashboard("7d").catch((error) => { warnOptionalQuery("inventory summary", error); return null; }) : Promise.resolve(null),
-    (isOwner || isFinance || isPurchasing) ? supabase.from("suppliers").select("id", { count: "exact", head: true }) : Promise.resolve(empty),
-    (isOwner || isFinance || isPurchasing) ? supabase.from("items").select("id", { count: "exact", head: true }) : Promise.resolve(empty),
-    needsProcurement ? supabase
-      .from("purchase_requests")
-      .select("id, request_no, status, priority, needed_by_date")
-      .in("priority", ["urgent", "critical"])
-      .is("deleted_at", null)
-      .order("needed_by_date", { ascending: true, nullsFirst: false })
-      .limit(5) : Promise.resolve(empty),
-    needsProcurement ? supabase.from("purchase_requests").select("id, request_no, status, priority").is("deleted_at", null).order("updated_at", { ascending: false }).limit(5) : Promise.resolve(empty),
-    needsProcurement ? supabase.from("purchase_orders").select("id, po_no, status, priority").is("deleted_at", null).order("updated_at", { ascending: false }).limit(5) : Promise.resolve(empty),
+    (needsProcurement || needsInventory) ? supabase.rpc("get_dashboard_core_snapshot", { p_today: today }) : Promise.resolve({ data: null, error: null }),
     getCurrentUserPendingActions(5),
-    (isOwner || isFinance || isPurchasing || isKitchen) ? supabase.from("documents").select("id, document_no, document_type").order("updated_at", { ascending: false }).limit(6) : Promise.resolve(empty),
     getVisibleNotificationsForCurrentUser(),
     // Actor resolution is intentionally reserved for Activity Log and the
     // notification workspace. It is not part of the dashboard's critical path.
     Promise.resolve([]),
     needsProduction ? getProductionHubSummary().catch(() => null) : Promise.resolve(null),
     isOutlet ? db.from("outlet_daily_records").select("id, status, record_date, branch_id").eq("record_date", today).order("updated_at", { ascending: false }).limit(1).maybeSingle() : Promise.resolve({ data: null, error: null }),
-    needsProcurement ? db.from("goods_receivings").select("id", { count: "exact", head: true }).eq("received_date", today).is("deleted_at", null) : Promise.resolve(empty),
-    needsInventory ? db.from("stock_counts").select("id", { count: "exact", head: true }).in("status", ["draft", "submitted", "reviewed", "approved"]).is("deleted_at", null) : Promise.resolve(empty),
-    needsInventory ? db.from("stock_wastage").select("id", { count: "exact", head: true }).in("status", ["draft", "submitted"]).is("deleted_at", null) : Promise.resolve(empty),
-    needsProcurement ? db.from("purchase_orders").select("id", { count: "exact", head: true }).in("status", ["sent", "partial_received"]).is("deleted_at", null) : Promise.resolve(empty),
     scope.staffId ? supabase.from("staffs").select("full_name").eq("id", scope.staffId).maybeSingle() : Promise.resolve({ data: null, error: null }),
     !scope.companyWideAccess && scope.branchIds.length
       ? supabase.from("branches").select("branch_name").in("id", scope.branchIds).order("branch_name")
@@ -155,27 +153,16 @@ export async function getDashboardSummary() {
       : Promise.resolve(null),
   ]);
 
-  warnOptionalQuery("today receiving", todayReceiving.error);
-  warnOptionalQuery("stock counts due", stockCountDue.error);
-  warnOptionalQuery("wastage attention", wastageAttention.error);
-  warnOptionalQuery("receiving follow-up", receivingFollowup.error);
+  warnOptionalQuery("core snapshot", coreSnapshotResult.error);
   warnOptionalQuery("current staff", currentStaff.error);
   warnOptionalQuery("assigned branches", assignedBranches.error);
+
+  const coreSnapshot = coreSnapshotResult.data as DashboardCoreSnapshot | null;
+  const coreUnavailable = (needsProcurement || needsInventory) && (Boolean(coreSnapshotResult.error) || !coreSnapshot);
 
   // A dashboard is a situational overview, not a transaction form. A degraded
   // optional read must not strand a signed-in operator behind a generic error
   // page when the rest of their permitted workspace is still usable.
-  for (const [name, result] of [
-    ["suppliers", suppliers],
-    ["items", items],
-    ["urgent requests", urgentRequests],
-    ["purchase requests", purchaseRequests],
-    ["purchase orders", purchaseOrders],
-    ["recent documents", documents],
-  ] as const) {
-    warnOptionalQuery(name, result.error);
-  }
-
   const payablesAttentionUnavailable = (isOwner || isFinance) && payablesAttention === null;
   const branchLabel = scope.companyWideAccess
     ? "Company-wide"
@@ -191,38 +178,38 @@ export async function getDashboardSummary() {
     scopeLabel: branchLabel,
     userName: currentStaff.data?.full_name?.trim() || "Team member",
     branchLabel,
-    totalItems: items.count ?? 0,
-    totalSuppliers: suppliers.count ?? 0,
+    totalItems: Number(coreSnapshot?.total_items ?? 0),
+    totalSuppliers: Number(coreSnapshot?.total_suppliers ?? 0),
     lowStockCount: inventoryUnavailable ? 0 : inventorySummary?.lowStockItems ?? 0,
     totalStockValue: inventoryUnavailable ? 0 : inventorySummary?.inventoryValue ?? 0,
     lowStockItems: inventoryUnavailable ? [] : lowStockRows,
     inventoryUnavailable,
-    urgentRequests: urgentRequests.data ?? [],
+    urgentRequests: coreSnapshot?.urgent_requests ?? [],
     // Transaction history is intentionally loaded only from Inventory drill-down
     // routes. The owner workdesk must remain a summary read, not a ledger scan.
     recentTransactions: [],
     pendingApprovals,
-    purchaseRequests: purchaseRequests.data ?? [],
-    purchaseOrders: purchaseOrders.data ?? [],
-    recentDocuments: documents.data ?? [],
+    purchaseRequests: coreSnapshot?.purchase_requests ?? [],
+    purchaseOrders: coreSnapshot?.purchase_orders ?? [],
+    recentDocuments: coreSnapshot?.recent_documents ?? [],
     recentActivities,
     notifications: notifications.slice(0, 6),
     today: {
-      goodsReceiving: todayReceiving.error ? 0 : todayReceiving.count ?? 0,
-      stockCountDue: stockCountDue.error ? 0 : stockCountDue.count ?? 0,
+      goodsReceiving: Number(coreSnapshot?.today_receiving ?? 0),
+      stockCountDue: Number(coreSnapshot?.stock_count_due ?? 0),
       production: productionSummary?.todayPosted ?? 0,
       deliveries: 0,
     },
-    todayReceivingUnavailable: Boolean(todayReceiving.error),
-    stockCountDueUnavailable: Boolean(stockCountDue.error),
-    wastageAttention: wastageAttention.error ? 0 : wastageAttention.count ?? 0,
-    wastageUnavailable: Boolean(wastageAttention.error),
+    todayReceivingUnavailable: coreUnavailable,
+    stockCountDueUnavailable: coreUnavailable,
+    wastageAttention: Number(coreSnapshot?.wastage_attention ?? 0),
+    wastageUnavailable: coreUnavailable,
     financeForecast: {
       upcomingPayables: 0,
       pendingPoValue: 0,
-      receivingNotInvoiced: receivingFollowup.error ? 0 : receivingFollowup.count ?? 0,
+      receivingNotInvoiced: Number(coreSnapshot?.receiving_followup ?? 0),
     },
-    receivingFollowupUnavailable: Boolean(receivingFollowup.error),
+    receivingFollowupUnavailable: coreUnavailable,
     payablesAttention,
     payablesAttentionUnavailable,
     operationsControl,

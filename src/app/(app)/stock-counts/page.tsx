@@ -65,12 +65,12 @@ export default async function StockCountsPage({ searchParams }: { searchParams: 
       hideMobileConsole={!canCreate}
       tabletRailMode="split"
       tabletRailBreakpoint="lg"
-      rightRail={<div className="space-y-3 [&>section]:overflow-hidden [&>section]:rounded-[var(--sb-panel-radius)] [&>section]:border [&>section]:border-[var(--sb-border-soft)] [&>section]:bg-card" data-tablet-split-actions>
+      rightRail={<div className="space-y-3 [&>section]:overflow-hidden [&>section]:rounded-[var(--sb-panel-radius)] [&>section]:border [&>section]:border-[var(--sb-border-soft)] [&>section]:bg-card [&>section]:shadow-[var(--sb-shadow-card)]" data-tablet-split-actions data-stock-count-tablet-rail>
       <ConsoleSection title="Actions"><div className="grid gap-2" data-export-href={exportHref}>{canCreate ? <Button asChild className="w-full" data-mobile-primary-action><Link href="/stock-counts/new"><Plus className="h-4 w-4" />New Stock Count</Link></Button> : null}<StockCountExportDialog branches={branches} defaultFrom={filters.from} defaultTo={filters.to} /></div></ConsoleSection>
       <ConsoleSection title="Stock Count Summary"><dl className="grid gap-2 text-xs"><div className="flex justify-between"><dt className="text-muted-foreground">Total</dt><dd className="font-semibold">{summary.total ?? "—"}</dd></div><div className="flex justify-between"><dt className="text-muted-foreground">Draft</dt><dd className="font-semibold">{summary.draft ?? "—"}</dd></div><div className="flex justify-between"><dt className="text-muted-foreground">Posted</dt><dd className="font-semibold">{summary.posted ?? "—"}</dd></div><div className="flex justify-between"><dt className="text-muted-foreground">Cancelled</dt><dd className="font-semibold">{summary.cancelled ?? "—"}</dd></div></dl></ConsoleSection>
     </div>}>
       <div className="overflow-hidden rounded-[var(--sb-panel-radius)] border bg-card" data-tablet-main-list>
-        <FilterBar resultCount={counts.totalRows} resetHref="/stock-counts" filtered={filtered}>
+        <FilterBar resultCount={counts.totalRows} resetHref="/stock-counts" filtered={filtered} className="sb-tablet-split-filter">
           <Input name="search" defaultValue={filters.search ?? ""} placeholder="Search count no, branch, remarks" />
           <SelectControl name="branch_id" defaultValue={filters.branch_id ?? "all"} ariaLabel="Branch" options={[{ value: "all", label: "All branches" }, ...branches.map((branch) => ({ value: branch.id, label: branch.branch_name }))]} />
           <StatusTabs statuses={statuses} activeStatus={filters.status} />

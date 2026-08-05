@@ -8,6 +8,7 @@ import {
   CheckCircle2,
   ClipboardCheck,
   ClipboardList,
+  Download,
   FileText,
   Home,
   Menu,
@@ -35,6 +36,11 @@ type MobileTab = {
   label: string;
   icon: LucideIcon;
   permission?: string;
+};
+
+type InstallPromptEvent = Event & {
+  prompt: () => Promise<void>;
+  userChoice: Promise<{ outcome: "accepted" | "dismissed" }>;
 };
 
 function has(permissionMap: Record<string, boolean>, permission: string) {
@@ -110,6 +116,10 @@ export function MobileAppNavigation({
   const pathname = usePathname();
   const [moreOpen, setMoreOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
+  const [installHelpOpen, setInstallHelpOpen] = useState(false);
+  const [installPrompt, setInstallPrompt] = useState<InstallPromptEvent | null>(null);
+  const [isStandalone, setIsStandalone] = useState(false);
+  const [isAppleMobile, setIsAppleMobile] = useState(false);
   const triggerRef = useRef<HTMLButtonElement>(null);
   const dialogRef = useRef<HTMLDivElement>(null);
   const titleId = useId();
@@ -127,6 +137,43 @@ export function MobileAppNavigation({
   }, [groups, permissionMap, role]);
 
   useEffect(() => setMoreOpen(false), [pathname]);
+
+  useEffect(() => {
+    const standalone = window.matchMedia("(display-mode: standalone)");
+    const navigatorWithStandalone = navigator as Navigator & { standalone?: boolean };
+    const updateStandalone = () => setIsStandalone(standalone.matches || navigatorWithStandalone.standalone === true);
+    const onInstallPrompt = (event: Event) => {
+      event.preventDefault();
+      setInstallPrompt(event as InstallPromptEvent);
+    };
+    const onInstalled = () => {
+      setInstallPrompt(null);
+      setIsStandalone(true);
+      setInstallHelpOpen(false);
+    };
+
+    setIsAppleMobile(/iphone|ipad|ipod/i.test(navigator.userAgent));
+    updateStandalone();
+    standalone.addEventListener("change", updateStandalone);
+    window.addEventListener("beforeinstallprompt", onInstallPrompt);
+    window.addEventListener("appinstalled", onInstalled);
+    return () => {
+      standalone.removeEventListener("change", updateStandalone);
+      window.removeEventListener("beforeinstallprompt", onInstallPrompt);
+      window.removeEventListener("appinstalled", onInstalled);
+    };
+  }, []);
+
+  async function openFullscreenApp() {
+    if (installPrompt) {
+      await installPrompt.prompt();
+      const choice = await installPrompt.userChoice;
+      if (choice.outcome === "accepted") setInstallPrompt(null);
+      return;
+    }
+    setMoreOpen(false);
+    setInstallHelpOpen(true);
+  }
 
   useEffect(() => {
     const root = document.documentElement;
@@ -241,6 +288,17 @@ export function MobileAppNavigation({
                   Search OMS
                 </Button>
                 <div className="divide-y divide-[var(--sb-border-soft)] border-y border-[var(--sb-border-soft)]">
+                  {!isStandalone ? (
+                    <button
+                      type="button"
+                      data-install-oms-app
+                      className="flex min-h-12 w-full items-center gap-3 px-2 text-left text-[13px] font-medium text-[var(--sb-text)] active:bg-[var(--sb-surface-muted)]"
+                      onClick={openFullscreenApp}
+                    >
+                      <Download className="h-4.5 w-4.5 shrink-0" aria-hidden="true" />
+                      <span className="min-w-0 flex-1">Install full-screen app</span>
+                    </button>
+                  ) : null}
                   <Link href="/account" prefetch={false} className="flex min-h-12 items-center gap-3 px-2 text-[13px] font-medium text-[var(--sb-text)] active:bg-[var(--sb-surface-muted)]">
                     <UserRound className="h-4.5 w-4.5 shrink-0" aria-hidden="true" />
                     <span className="min-w-0 flex-1">My Profile</span>
@@ -281,6 +339,33 @@ export function MobileAppNavigation({
               ))}
             </div>
           </div>
+        </div>
+      ) : null}
+      {installHelpOpen ? (
+        <div className="fixed inset-0 z-[var(--sb-z-dialog)] xl:hidden">
+          <button type="button" className="sb-dialog-backdrop absolute inset-0 h-full w-full" aria-label="Close install guide" onClick={() => setInstallHelpOpen(false)} />
+          <section
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="install-app-title"
+            className="sb-popover-surface absolute inset-x-0 bottom-0 px-5 pb-[calc(1.25rem+env(safe-area-inset-bottom))] pt-4"
+          >
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[var(--sb-text-muted)]">Full-screen workspace</p>
+                <h2 id="install-app-title" className="mt-1 text-lg font-semibold text-[var(--sb-green-950)]">Add Seri Bako OMS to your Home Screen</h2>
+              </div>
+              <Button type="button" variant="ghost" size="icon" aria-label="Close install guide" onClick={() => setInstallHelpOpen(false)}>
+                <X className="h-5 w-5" />
+              </Button>
+            </div>
+            <ol className="mt-5 grid gap-3 text-sm text-[var(--sb-text)]">
+              <li className="grid grid-cols-[1.75rem_1fr] gap-3"><span className="flex h-7 w-7 items-center justify-center rounded-full bg-[var(--sb-green-100)] font-semibold text-[var(--sb-green-900)]">1</span><span>{isAppleMobile ? "Tap the Share button in Safari." : "Open this page in your browser menu."}</span></li>
+              <li className="grid grid-cols-[1.75rem_1fr] gap-3"><span className="flex h-7 w-7 items-center justify-center rounded-full bg-[var(--sb-green-100)] font-semibold text-[var(--sb-green-900)]">2</span><span>Select <strong>Add to Home Screen</strong> or <strong>Install app</strong>.</span></li>
+              <li className="grid grid-cols-[1.75rem_1fr] gap-3"><span className="flex h-7 w-7 items-center justify-center rounded-full bg-[var(--sb-green-100)] font-semibold text-[var(--sb-green-900)]">3</span><span>Open the new Seri Bako icon for the full-screen experience.</span></li>
+            </ol>
+            <Button type="button" className="mt-5 w-full" onClick={() => setInstallHelpOpen(false)}>Got it</Button>
+          </section>
         </div>
       ) : null}
       <GlobalSearch permissionMap={permissionMap} mobile open={searchOpen} onOpenChange={setSearchOpen} hideTrigger />

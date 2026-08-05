@@ -79,19 +79,19 @@ function MobileQuickActions({ actions }: { actions: { href: string; label: strin
         <h2 id="mobile-quick-actions-title" className="text-xs font-semibold uppercase tracking-[0.14em] text-[var(--sb-text-muted)]">Quick actions</h2>
         <span className="text-[11px] text-[var(--sb-text-muted)]">Based on your role</span>
       </div>
-      <div className="grid grid-cols-3 gap-2">
+      <div className="grid grid-cols-3 gap-2" data-dashboard-quick-actions>
         {actions.slice(0, 3).map((action) => {
           const Icon = action.icon;
           return (
             <Link prefetch={false}
               key={action.href}
               href={action.href}
-              className="group flex min-h-[5rem] min-w-0 flex-col items-start justify-between rounded-[var(--sb-panel-radius)] border border-[var(--sb-border-soft)] bg-[var(--sb-surface)] p-3 text-left text-[11px] font-semibold text-[var(--sb-text)] shadow-[var(--sb-shadow-card)] transition-[transform,background-color,border-color] duration-200 hover:-translate-y-0.5 hover:border-[var(--sb-green-700)] hover:bg-[var(--sb-surface-muted)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--sb-green-700)]"
+              className="group flex min-h-[4.5rem] min-w-0 flex-col items-start justify-between rounded-[var(--sb-panel-radius)] border border-[var(--sb-border-soft)] bg-[var(--sb-surface)] p-2.5 text-left text-[11px] font-semibold text-[var(--sb-text)] shadow-[var(--sb-shadow-card)] transition-[transform,background-color,border-color] duration-200 hover:-translate-y-0.5 hover:border-[var(--sb-green-700)] hover:bg-[var(--sb-surface-muted)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--sb-green-700)]"
             >
-              <span className="grid h-8 w-8 place-items-center rounded-[var(--sb-radius-control)] bg-[var(--sb-green-050)] text-[var(--sb-green-800)]">
+              <span className="grid h-7 w-7 place-items-center rounded-[var(--sb-radius-control)] bg-[var(--sb-green-050)] text-[var(--sb-green-800)]">
                 <Icon className="h-4 w-4" aria-hidden="true" />
               </span>
-              <span className="flex w-full items-end justify-between gap-1 leading-4"><span>{action.label}</span><ArrowUpRight className="h-3.5 w-3.5 shrink-0 text-[var(--sb-text-muted)] transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" /></span>
+              <span className="line-clamp-2 leading-4">{action.label}</span>
             </Link>
           );
         })}
@@ -187,9 +187,9 @@ export function DashboardWorkspace({ summary, renderedAt }: { summary: Dashboard
               ];
 
   const workspaceContext = (
-    <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-4">
-      <div className="min-w-0"><p className="text-[11px] font-medium uppercase tracking-[0.12em] text-[var(--sb-text-muted)]">Welcome</p><p className="mt-0.5 truncate text-lg font-semibold tracking-[-0.02em] text-[var(--sb-text)]">{summary.userName}</p></div>
-      <dl className="grid gap-1.5 text-[11px] text-[var(--sb-text-muted)]"><div className="flex items-center gap-1.5"><UserRound className="h-3.5 w-3.5" /><dt className="sr-only">Role</dt><dd className="font-medium text-[var(--sb-text)]">{summary.roleLabel}</dd></div><div className="flex items-center gap-1.5"><LockKeyhole className="h-3.5 w-3.5" /><dt className="sr-only">Scope</dt><dd>{summary.branchLabel}</dd></div></dl>
+    <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-4" data-dashboard-identity>
+      <div className="min-w-0"><p className="text-[10px] font-medium uppercase tracking-[0.14em] text-[var(--sb-text-muted)]">Welcome</p><p className="mt-0.5 break-words text-xl font-semibold tracking-[-0.025em] text-[var(--sb-text)]">{summary.userName}</p></div>
+      <dl className="grid max-w-[11rem] gap-1.5 text-[11px] text-[var(--sb-text-muted)]"><div className="flex items-start gap-1.5"><UserRound className="mt-0.5 h-3.5 w-3.5 shrink-0" /><dt className="sr-only">Role</dt><dd className="font-medium text-[var(--sb-text)]">{summary.roleLabel}</dd></div><div className="flex items-start gap-1.5"><LockKeyhole className="mt-0.5 h-3.5 w-3.5 shrink-0" /><dt className="sr-only">Scope</dt><dd className="break-words">{summary.branchLabel}</dd></div></dl>
     </div>
   );
 
@@ -249,10 +249,10 @@ export function DashboardWorkspace({ summary, renderedAt }: { summary: Dashboard
         <MobileQuickActions actions={quickActions} />
 
         <section data-dashboard-command className="sb-command-surface overflow-hidden rounded-[var(--sb-panel-radius)]">
-          <div className="flex flex-col gap-4 p-4 sm:flex-row sm:items-end sm:justify-between sm:p-5">
+          <div className="flex items-end justify-between gap-4 p-4 sm:p-5">
             <div className="min-w-0">
               <p className="text-xs font-medium text-white/65">Operational pulse</p>
-              <h2 className="mt-1 text-xl font-semibold tracking-[-0.02em]">What needs your attention today</h2>
+              <h2 className="mt-1 max-w-xl text-lg font-semibold tracking-[-0.02em] sm:text-xl">What needs your attention today</h2>
             </div>
             <div className="flex shrink-0 items-end justify-between gap-6 sm:justify-end">
               <div>
@@ -261,27 +261,18 @@ export function DashboardWorkspace({ summary, renderedAt }: { summary: Dashboard
               </div>
             </div>
           </div>
-          <div className="grid grid-cols-3 divide-x divide-white/15 border-t border-white/15">
-            <Link prefetch={false} href="/low-stock" className="flex min-w-0 items-center gap-2 px-2 py-3 transition-colors hover:bg-white/10 sm:px-5">
-              <AlertTriangle className="h-4 w-4 shrink-0 text-white/70" aria-hidden="true" />
-              <span className="min-w-0">
-              <p className="text-[10px] uppercase tracking-[0.12em] text-white/60">Low stock</p>
-              <p className="mt-1 text-lg font-semibold tabular-nums">{summary.inventoryUnavailable ? "—" : summary.lowStockCount}</p>
-              </span>
+          <div className="grid grid-cols-3 divide-x divide-white/15 border-t border-white/15" data-dashboard-pulse-metrics>
+            <Link prefetch={false} href="/low-stock" className="group flex min-w-0 items-center justify-between gap-2 px-3 py-3 transition-colors hover:bg-white/10 sm:px-5">
+              <span className="min-w-0"><span className="flex items-center gap-1.5 text-white/65"><AlertTriangle className="h-3.5 w-3.5 shrink-0" aria-hidden="true" /><span className="truncate text-[10px] uppercase tracking-[0.12em]">Low stock</span></span></span>
+              <strong className="text-xl font-semibold tabular-nums">{summary.inventoryUnavailable ? "—" : summary.lowStockCount}</strong>
             </Link>
-            <Link prefetch={false} href="/goods-receivings" className="flex min-w-0 items-center gap-2 px-2 py-3 transition-colors hover:bg-white/10 sm:px-5">
-              <PackageCheck className="h-4 w-4 shrink-0 text-white/70" aria-hidden="true" />
-              <span className="min-w-0">
-              <p className="text-[10px] uppercase tracking-[0.12em] text-white/60">Receiving today</p>
-              <p className="mt-1 text-lg font-semibold tabular-nums">{summary.todayReceivingUnavailable ? "—" : summary.today.goodsReceiving}</p>
-              </span>
+            <Link prefetch={false} href="/goods-receivings" className="group flex min-w-0 items-center justify-between gap-2 px-3 py-3 transition-colors hover:bg-white/10 sm:px-5">
+              <span className="min-w-0"><span className="flex items-center gap-1.5 text-white/65"><PackageCheck className="h-3.5 w-3.5 shrink-0" aria-hidden="true" /><span className="truncate text-[10px] uppercase tracking-[0.12em]">Receiving</span></span></span>
+              <strong className="text-xl font-semibold tabular-nums">{summary.todayReceivingUnavailable ? "—" : summary.today.goodsReceiving}</strong>
             </Link>
-            <Link prefetch={false} href="/purchase-requests" className="flex min-w-0 items-center gap-2 px-2 py-3 transition-colors hover:bg-white/10 sm:px-5">
-              <FileText className="h-4 w-4 shrink-0 text-white/70" aria-hidden="true" />
-              <span className="min-w-0">
-              <p className="text-[10px] uppercase tracking-[0.12em] text-white/60">Open requests</p>
-              <p className="mt-1 text-lg font-semibold tabular-nums">{summary.purchaseRequests.length}</p>
-              </span>
+            <Link prefetch={false} href="/purchase-requests" className="group flex min-w-0 items-center justify-between gap-2 px-3 py-3 transition-colors hover:bg-white/10 sm:px-5">
+              <span className="min-w-0"><span className="flex items-center gap-1.5 text-white/65"><FileText className="h-3.5 w-3.5 shrink-0" aria-hidden="true" /><span className="truncate text-[10px] uppercase tracking-[0.12em]">Requests</span></span></span>
+              <strong className="text-xl font-semibold tabular-nums">{summary.purchaseRequests.length}</strong>
             </Link>
           </div>
         </section>
@@ -363,8 +354,8 @@ export function DashboardWorkspace({ summary, renderedAt }: { summary: Dashboard
             title={isKitchen ? "Raw-material exceptions" : "Exceptions requiring follow-up"}
             empty="No urgent operational exceptions are visible in your scope."
           >
-            <div className="grid grid-cols-1 gap-1 sm:grid-cols-3 sm:gap-2">
-              <Metric href="/low-stock" label="Low stock" value={summary.lowStockCount} icon={AlertTriangle} alert={summary.lowStockCount > 0} unavailable={summary.inventoryUnavailable} />
+            <div className="grid grid-cols-3 gap-2" data-dashboard-exceptions>
+              <Metric href="/low-stock" label="Low stock" value={summary.lowStockCount} icon={AlertTriangle} alert={summary.lowStockCount > 0} unavailable={summary.inventoryUnavailable} variant="tile" />
               {showOperations && summary.operationsControl?.outlet ? (
                 <Metric
                   href="/outlet-daily-records?status=draft"
@@ -372,6 +363,7 @@ export function DashboardWorkspace({ summary, renderedAt }: { summary: Dashboard
                   value={summary.operationsControl.outlet.missing_evening + summary.operationsControl.outlet.needs_review}
                   icon={ClipboardCheck}
                   alert
+                  variant="tile"
                 />
               ) : null}
               {(isOwner || isManager || isKitchen) ? (
@@ -382,6 +374,7 @@ export function DashboardWorkspace({ summary, renderedAt }: { summary: Dashboard
                   icon={AlertTriangle}
                   alert={summary.wastageAttention > 0}
                   unavailable={summary.wastageUnavailable}
+                  variant="tile"
                 />
               ) : (
                 <Metric
@@ -390,6 +383,7 @@ export function DashboardWorkspace({ summary, renderedAt }: { summary: Dashboard
                   value={summary.urgentRequests.length}
                   icon={Clock3}
                   alert={summary.urgentRequests.length > 0}
+                  variant="tile"
                 />
               )}
             </div>
@@ -401,10 +395,10 @@ export function DashboardWorkspace({ summary, renderedAt }: { summary: Dashboard
           >
             {summary.payablesAttention ? (
               <>
-                <div className="grid grid-cols-2 gap-2">
-                  <Link prefetch={false} href="/supplier-invoices/aging?overdue=1" className="col-span-2 flex items-center justify-between rounded-[var(--sb-radius-control)] border border-[var(--sb-border-soft)] bg-[var(--sb-surface-muted)] p-3 sm:col-span-1 sm:row-span-2 sm:flex-col sm:items-start"><span className="flex items-center gap-2 text-xs font-medium text-[var(--sb-text-muted)]"><ReceiptText className="h-4 w-4" />Overdue AP</span><strong className="text-xl font-semibold tabular-nums">{formatCurrency(summary.payablesAttention.overdue_amount + summary.payablesAttention.critical_amount)}</strong></Link>
-                  <Metric href="/supplier-invoices/aging?bucket=missing_due_date" label="Missing due date" value={formatNumber(summary.payablesAttention.missing_due_date_count)} icon={AlertTriangle} alert={summary.payablesAttention.missing_due_date_count > 0} />
-                  <Metric href="/supplier-invoices/cash-flow" label="Due soon" value={formatCurrency(summary.payablesAttention.due_today_amount + summary.payablesAttention.due_next_7_amount)} icon={Clock3} />
+                <div className="grid grid-cols-3 gap-2" data-dashboard-payables>
+                  <Metric href="/supplier-invoices/aging?overdue=1" label="Overdue AP" value={formatCurrency(summary.payablesAttention.overdue_amount + summary.payablesAttention.critical_amount)} icon={ReceiptText} alert={summary.payablesAttention.overdue_count > 0} variant="tile" />
+                  <Metric href="/supplier-invoices/aging?bucket=missing_due_date" label="Missing due date" value={formatNumber(summary.payablesAttention.missing_due_date_count)} icon={AlertTriangle} alert={summary.payablesAttention.missing_due_date_count > 0} variant="tile" />
+                  <Metric href="/supplier-invoices/cash-flow" label="Due soon" value={formatCurrency(summary.payablesAttention.due_today_amount + summary.payablesAttention.due_next_7_amount)} icon={Clock3} variant="tile" />
                 </div>
                 <div className="mt-3 grid grid-cols-2 gap-2 sm:flex">
                   <Button asChild size="sm" className="!text-xs"><Link prefetch={false} href="/supplier-invoices"><ReceiptText className="h-4 w-4" />Review Invoice</Link></Button><Button asChild variant="outline" size="sm" className="!text-xs"><Link prefetch={false} href="/supplier-invoices/cash-flow"><ArrowUpRight className="h-4 w-4" />View Cash Flow</Link></Button>

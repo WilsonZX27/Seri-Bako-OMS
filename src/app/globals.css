@@ -1026,6 +1026,41 @@ input[type="date"]::-webkit-date-and-time-value {
     display: none !important;
   }
 
+  /* Split-list filters must size themselves against the narrowed work column,
+     never the full viewport. This prevents controls from painting under the
+     16rem action rail at landscape-tablet widths. */
+  [data-tablet-document-split] .sb-tablet-split-filter {
+    display: grid;
+    grid-template-columns: minmax(12rem, 1fr) minmax(7.5rem, 9rem) minmax(7.5rem, 9rem);
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  [data-tablet-document-split] .sb-tablet-split-filter > * {
+    min-width: 0;
+    width: 100%;
+    max-width: none;
+  }
+
+  [data-tablet-document-split] .sb-tablet-split-filter > :first-child {
+    grid-column: 1 / -1;
+  }
+
+  [data-tablet-document-split] .sb-tablet-split-filter > input[type="hidden"] {
+    display: none;
+  }
+
+  [data-tablet-document-split] .sb-tablet-split-filter > .sb-filter-more,
+  [data-tablet-document-split] .sb-tablet-split-filter > .sb-filter-summary,
+  [data-tablet-document-split] .sb-tablet-split-filter > button,
+  [data-tablet-document-split] .sb-tablet-split-filter > a {
+    width: auto;
+  }
+
+  [data-stock-count-tablet-rail] > section {
+    border-radius: var(--sb-panel-radius) !important;
+  }
+
   [data-tablet-split-actions] > section,
   [data-tablet-main-list] {
     overflow: hidden;

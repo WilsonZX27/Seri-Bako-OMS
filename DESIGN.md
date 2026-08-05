@@ -4,6 +4,14 @@
 
 This document is the implementation contract for every customer-facing route, form, record workspace, table, panel, dialog, and mobile action bar. It applies to new work and to refactoring of existing UI.
 
+## v8.37.0 - Browser-Native Mobile Canvas
+
+- Phone and tablet routes use document-level scrolling so Safari and Chromium can collapse their browser chrome naturally. A fixed `100dvh` shell with the page trapped inside an `overflow-y-auto` main region is desktop-only.
+- The ordinary browser experience must already fill the available canvas and respect `viewport-fit=cover`, the top safe area, and the bottom navigation/action safe area. Installing the OMS is an optional enhancement, never a prerequisite for a usable full-height mobile workspace.
+- Desktop at `>=1280px` retains the fixed-height three-region workbench and its independently scrolling central canvas/right console.
+- A full-screen sheet or takeover is reserved for focused selection, filtering, or inspection. It must not be used merely to hide weak page composition.
+- Movement Ledger and comparable history routes must query a bounded server page. They may not read an entire ledger view and paginate or aggregate it in application memory.
+
 ## v8.35.0 - Compact Document Context Closure
 
 - New document headers do not repeat `New [document]` inside the content area; the shared top bar/breadcrumb owns the route title while the document header prioritizes status, branch scope, and workflow context.

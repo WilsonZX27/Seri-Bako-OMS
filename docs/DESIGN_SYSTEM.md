@@ -23,11 +23,15 @@ These rules translate current product-design research into acceptance criteria r
 
 Research basis: [Apple Human Interface Guidelines](https://developer.apple.com/design/human-interface-guidelines), [Apple design principles](https://developer-mdn.apple.com/videos/play/wwdc2026/250/), [Linear UI redesign](https://linear.app/now/how-we-redesigned-the-linear-ui), [Linear design refresh](https://linear.app/now/behind-the-latest-design-refresh), and [Basis density guidance](https://design.basis.com/foundations/density).
 
+Additional implementation references: [Vercel Geist typography](https://vercel.com/geist/typography), [Vercel Geist materials](https://vercel.com/geist/material), [Vercel Geist sheets](https://vercel.com/geist/sheet), and [web.dev INP guidance](https://web.dev/articles/optimize-inp).
+
 ## Workspace architecture
 
 - Desktop: left navigation, central work/data canvas, right action and context rail.
 - Tablet: use a true master-detail split when actions or summaries matter during inspection. The main list owns at least 60% of available width; the rail never overlays filters or rows.
 - Phone: one task canvas with a compact top context and bottom navigation/action rail. Move secondary context into a sheet, never below a long form.
+- Phone and tablet use browser-native document scrolling. This lets mobile browser chrome collapse as the user moves through the page and avoids the false "app inside a webpage" feeling created by nested full-height scrollers. Only overlays, menus, and intentionally bounded data regions own nested scrolling.
+- Installed standalone mode is optional. The responsive browser page remains the canonical experience and cannot depend on installation for full-height layout, safe-area handling, or access to any workflow.
 - Primary actions belong in the right rail on desktop/tablet and in a visible bottom action or FAB on phone. Do not duplicate them in the center header.
 
 ## Responsive information hierarchy
@@ -47,6 +51,7 @@ Research basis: [Apple Human Interface Guidelines](https://developer.apple.com/d
 - Shadows indicate elevation or sticky separation only. Default panels use one restrained card shadow, never stacked glow effects.
 - Radius is tokenized, never improvised: panels use `8px`, controls use `4px`, compact chips use `999px`, and viewport-edge surfaces use `0`. A single component may not mix multiple panel/control radii.
 - Use three elevation levels only: canvas (`none`), persistent panel (`0 1px 2px` plus a low-contrast border), and transient overlay/sticky separation (one stronger shadow). Elevation must communicate containment or overlap, not luxury decoration.
+- Typography uses named roles rather than arbitrary size/weight combinations: page heading, section heading, body copy, compact label, metadata, tabular value, and button label. Operational numbers use tabular figures; labels pair with icons on one baseline and do not become bold merely because they are table headers.
 
 ## Operational feedback
 
@@ -65,6 +70,8 @@ Research basis: [Apple Human Interface Guidelines](https://developer.apple.com/d
 - Overview and list initial reads have explicit query bounds. A list route may fetch at most the requested page plus the small summary/category payload needed for that screen; it must not load the full table and paginate in application memory.
 - Performance truth is measured at the data boundary: query row count, database duration, route response time, and transferred payload. Skeleton polish never substitutes for removing an unbounded query.
 - Targets under warm normal conditions: summary query `p95 < 100ms`, list data query `p95 < 300ms`, visible mutation acknowledgement `< 100ms`, and no ordinary route may rely on a client timeout to appear responsive.
+- Interaction acceptance targets INP `<= 200ms` at the 75th percentile separately for phone and desktop. Measure the actual slow interaction and its route/query context; loading animation duration is not response-time evidence.
+- Ledger/history filters default to a useful bounded period and retain server-side pagination after search, branch, item, type, and date predicates are applied. Export is a separate explicit operation and is never implemented by silently expanding the on-screen query to all rows.
 
 ## Reference principles
 

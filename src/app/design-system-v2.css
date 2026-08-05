@@ -435,33 +435,6 @@ aside section > h2 {
     display: none !important;
   }
 
-  .sb-mobile-list-filter {
-    display: grid !important;
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-    gap: 0.625rem !important;
-    padding: 0.75rem !important;
-  }
-
-  .sb-mobile-list-filter > :first-child {
-    grid-column: 1 / -1;
-    width: 100% !important;
-    max-width: none !important;
-  }
-
-  .sb-mobile-list-filter > :is(button, a):last-of-type {
-    grid-column: 1 / -1;
-    width: 100%;
-  }
-
-  .sb-mobile-list-filter > .sb-filter-summary {
-    grid-column: 2;
-    justify-self: end;
-  }
-
-  .sb-mobile-list-filter > * {
-    min-width: 0;
-  }
-
   [data-tablet-main-list],
   [data-dashboard-panel] {
     border-radius: var(--sb-panel-radius) !important;
@@ -485,6 +458,29 @@ aside section > h2 {
   .sb-command-surface {
     border-radius: 0.875rem;
   }
+}
+
+/* Preserve touch/trackpad scrolling without a permanent gutter beside data. */
+.overflow-x-auto,
+.overflow-y-auto,
+[data-table-scroll],
+.sb-table-region {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.overflow-x-auto::-webkit-scrollbar,
+.overflow-y-auto::-webkit-scrollbar,
+[data-table-scroll]::-webkit-scrollbar,
+.sb-table-region::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+  display: none;
+}
+
+nav[aria-label="Pagination"] > span,
+.sb-pagination-current {
+  border-radius: var(--sb-radius-control) !important;
 }
 
 [data-right-console] section {

@@ -49,9 +49,9 @@ export default async function PurchaseRequestsPage({ searchParams }: { searchPar
         className="pt-4"
         hideMobileConsole
         tabletRailMode="split"
-        tabletRailBreakpoint="md"
+        tabletRailBreakpoint="lg"
         rightRail={
-          <div className="space-y-3 [&>section]:overflow-hidden [&>section]:rounded-[var(--sb-panel-radius)] [&>section]:border [&>section]:border-[var(--sb-border-soft)] [&>section]:bg-card" data-tablet-split-actions>
+          <div className="space-y-3 [&>section]:overflow-hidden [&>section]:rounded-[var(--sb-panel-radius)] [&>section]:border [&>section]:border-[var(--sb-border-soft)] [&>section]:bg-card [&>section]:shadow-[var(--sb-shadow-panel)]" data-tablet-split-actions>
             {permissions["pr.create"] || permissions["pr.view_branch"] ? <ConsoleSection title="Actions"><div className="grid gap-2">
               {permissions["pr.create"] ? <Button asChild size="sm" className="w-full" data-mobile-primary-action><Link href="/purchase-requests/new"><Plus className="h-4 w-4" />New PR</Link></Button> : null}
               {permissions["pr.view_branch"] ? <Button asChild variant="outline" size="sm" className="w-full" data-mobile-primary-action={!permissions["pr.create"] || undefined}><Link href="/api/export/purchase-requests"><Download className="h-4 w-4" />Export CSV</Link></Button> : null}

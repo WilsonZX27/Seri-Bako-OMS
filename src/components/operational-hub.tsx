@@ -95,7 +95,7 @@ export function OperationalHub({
                   index > 0 && "md:border-l md:border-[var(--sb-border-soft)]",
                 )}
               >
-                <dt className="truncate text-[13px] font-medium text-[var(--sb-text)]">{metric.label}</dt>
+                <dt className="break-words text-[13px] font-medium leading-4 text-[var(--sb-text)]">{metric.label}</dt>
                 <dd className={cn("mt-1.5 font-mono text-[1.375rem] font-bold leading-none tabular-nums", tone.value)}>
                   {metric.value}
                 </dd>
@@ -125,8 +125,8 @@ export function OperationalHub({
                     <ItemIcon aria-hidden="true" className="h-4 w-4" />
                   </span>
                   <span className="min-w-0 flex-1">
-                    <span className="block truncate text-[13px] font-medium text-[var(--sb-text)]">{item.title}</span>
-                    <span className="mt-0.5 block truncate text-xs text-[var(--sb-text-muted)]">{item.description}</span>
+                    <span className="block break-words text-[13px] font-medium leading-4 text-[var(--sb-text)]">{item.title}</span>
+                    <span className="mt-0.5 block break-words text-xs leading-4 text-[var(--sb-text-muted)]">{item.description}</span>
                   </span>
                   {item.value !== undefined ? (
                     <span className={cn("shrink-0 font-mono text-sm font-semibold tabular-nums", tone.value)}>{item.value}</span>
@@ -153,8 +153,8 @@ export function OperationalHub({
                 >
                   <ToolIcon aria-hidden="true" className="h-4 w-4 shrink-0 text-[var(--sb-green-800)]" />
                   <span className="min-w-0 flex-1">
-                    <span className="block truncate text-[13px] font-medium text-[var(--sb-text)]">{tool.title}</span>
-                    {tool.description ? <span className="mt-0.5 block truncate text-xs text-[var(--sb-text-muted)]">{tool.description}</span> : null}
+                    <span className="block break-words text-[13px] font-medium leading-4 text-[var(--sb-text)]">{tool.title}</span>
+                    {tool.description ? <span className="mt-0.5 block break-words text-xs leading-4 text-[var(--sb-text-muted)]">{tool.description}</span> : null}
                   </span>
                   <ChevronRight aria-hidden="true" className="h-4 w-4 shrink-0 text-[var(--sb-text-soft)] transition-transform group-hover:translate-x-0.5" />
                 </Link>

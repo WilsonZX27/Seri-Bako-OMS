@@ -292,33 +292,39 @@ export async function getStockLedger(filters: Filters = {}) {
   }
 
   const supabase = await createClient();
+  const today = new Date().toISOString().slice(0, 10);
+  const thirtyDaysAgo = new Date(Date.now() - 29 * 86_400_000).toISOString().slice(0, 10);
+  const from = filters.from || thirtyDaysAgo;
+  const to = filters.to || today;
   const sort = LEDGER_SORT_COLUMNS.has(filters.sort ?? "") ? filters.sort! : "transaction_date";
-  const ascending = filters.dir === "asc";
   const branchId = filters.branch_id && filters.branch_id !== "all" ? filters.branch_id : null;
   const itemId = filters.item_id && filters.item_id !== "all" ? filters.item_id : null;
   const type = filters.type && filters.type !== "all" ? filters.type : null;
   const direction = filters.direction && filters.direction !== "all" ? filters.direction : null;
-  let query = supabase.from("stock_ledger_view").select("*", { count: "exact" });
-  if (branchId) query = query.eq("branch_id", branchId);
-  if (itemId) query = query.eq("item_id", itemId);
-  if (type) query = query.eq("transaction_type", type as StockTransaction["transaction_type"]);
-  if (filters.from) query = query.gte("transaction_date", filters.from);
-  if (filters.to) query = query.lte("transaction_date", filters.to);
-  if (direction === "inbound") query = query.gt("quantity_in", 0);
-  if (direction === "outbound") query = query.gt("quantity_out", 0);
-  const search = searchExpression(["transaction_no", "transaction_type", "item_code", "item_name", "branch_name"], filters.search);
-  if (search) query = query.or(search);
-  const source = searchExpression(["reference_type", "reference_id", "transaction_no"], filters.source);
-  if (source) query = query.or(source);
-  query = query.order(sort, { ascending }).order("stock_transaction_id", { ascending: false });
-  const range = pageRange(filters.page);
-  if (range) query = query.range(range.from, range.to);
-  const { data, error, count } = await query;
+  const page = requestedPage(filters.page);
+  const exportAll = filters.page === "all";
+  const { data, error } = await supabase.rpc("get_stock_ledger_bounded_page", {
+    p_from: from,
+    p_to: to,
+    p_item_id: itemId,
+    p_branch_id: branchId,
+    p_transaction_type: type,
+    p_direction: direction,
+    p_search: filters.search?.trim() || null,
+    p_source: filters.source?.trim() || null,
+    p_sort: sort,
+    p_dir: filters.dir === "asc" ? "asc" : "desc",
+    p_offset: exportAll ? 0 : (page - 1) * INVENTORY_PAGE_SIZE,
+    p_limit: exportAll ? 50000 : INVENTORY_PAGE_SIZE,
+  });
   if (error) {
     warnOptionalInventoryQuery("Movement Ledger", error);
     return databasePagination([] as StockLedgerViewRow[], 0, filters.page);
   }
-  return databasePagination(data ?? [], count, filters.page);
+  const result = data ?? [];
+  const totalRows = Number(result[0]?.total_count ?? 0);
+  const rows = result.map(({ total_count: _totalCount, ...row }) => row as StockLedgerViewRow);
+  return databasePagination(rows, totalRows, filters.page, exportAll ? Math.max(rows.length, 1) : INVENTORY_PAGE_SIZE);
 }
 
 export async function getStockBalanceDetails(filters: Filters = {}): Promise<PaginatedRows<StockBalanceRow>> {

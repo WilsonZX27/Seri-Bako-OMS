@@ -62,7 +62,14 @@ function exportHref(filters: Record<string, string | undefined>) {
 }
 
 export default async function StockTransactionsPage({ searchParams }: { searchParams: Promise<Record<string, string | undefined>> }) {
-  const filters = await searchParams;
+  const requestedFilters = await searchParams;
+  const today = new Date().toISOString().slice(0, 10);
+  const thirtyDaysAgo = new Date(Date.now() - 29 * 86_400_000).toISOString().slice(0, 10);
+  const filters: Record<string, string | undefined> = {
+    ...requestedFilters,
+    from: requestedFilters.from || thirtyDaysAgo,
+    to: requestedFilters.to || today,
+  };
   const [ledger, balances, branches, items, canExport, canCreate] = await Promise.all([
     getStockLedger(filters),
     getStockBalanceDetails({ ...filters, page: "all" }),

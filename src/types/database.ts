@@ -2119,6 +2119,23 @@ export type Database = {
         };
         Returns: Database["public"]["Views"]["stock_ledger_view"]["Row"][];
       };
+      get_stock_ledger_bounded_page: {
+        Args: {
+          p_from: string;
+          p_to: string;
+          p_item_id?: string | null;
+          p_branch_id?: string | null;
+          p_transaction_type?: string | null;
+          p_direction?: string | null;
+          p_search?: string | null;
+          p_source?: string | null;
+          p_sort?: string | null;
+          p_dir?: string | null;
+          p_offset?: number | null;
+          p_limit?: number | null;
+        };
+        Returns: (Database["public"]["Views"]["stock_ledger_view"]["Row"] & { total_count: number })[];
+      };
       get_goods_receiving_summary: {
         Args: Record<string, never>;
         Returns: Json;

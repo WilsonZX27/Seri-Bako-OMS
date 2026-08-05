@@ -504,6 +504,28 @@ export async function getInventoryDashboard(period: "7d" | "30d" | "month" = "30
 }
 
 export async function getStockCard(filters: Filters = {}) {
+  if (!isMockMode()) {
+    const today = new Date().toISOString().slice(0, 10);
+    const from = filters.from || today;
+    const to = filters.to || from;
+    const supabase = await createClient();
+    const { data, error } = await supabase.rpc("get_stock_card_bounded", {
+      p_from: from,
+      p_to: to,
+      p_item_id: filters.item_id && filters.item_id !== "all" ? filters.item_id : null,
+      p_branch_id: filters.branch_id && filters.branch_id !== "all" ? filters.branch_id : null,
+      p_transaction_type: filters.type && filters.type !== "all" ? filters.type : null,
+      p_direction: filters.direction && filters.direction !== "all" ? filters.direction : null,
+      p_search: filters.search?.trim() || null,
+      p_source: filters.source?.trim() || null,
+    });
+    if (error) {
+      warnOptionalInventoryQuery("Stock Card", error);
+      throw new Error(`Stock Card could not be loaded: ${error.message}`);
+    }
+    return data ?? [];
+  }
+
   const ledger = await getStockLedger({ ...filters, page: "all" });
   const itemId = filters.item_id && filters.item_id !== "all" ? filters.item_id : null;
   const rows = (itemId ? ledger.rows.filter((row) => row.item_id === itemId) : ledger.rows)

@@ -2102,6 +2102,19 @@ export type Database = {
       };
     };
     Functions: {
+      get_stock_card_bounded: {
+        Args: {
+          p_from: string;
+          p_to: string;
+          p_item_id?: string | null;
+          p_branch_id?: string | null;
+          p_transaction_type?: string | null;
+          p_direction?: string | null;
+          p_search?: string | null;
+          p_source?: string | null;
+        };
+        Returns: Database["public"]["Views"]["stock_ledger_view"]["Row"][];
+      };
       get_goods_receiving_summary: {
         Args: Record<string, never>;
         Returns: Json;

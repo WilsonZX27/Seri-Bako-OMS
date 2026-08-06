@@ -40,6 +40,13 @@ function isAction(child: ReactNode) {
   return props.type === "submit" || (props.asChild === true && props.variant === "secondary");
 }
 
+function isPrimaryControl(child: ReactNode) {
+  const props = propsOf(child);
+  if (props.type === "date" || props.type === "search" || props.type === "text") return true;
+  if (props.options || Array.isArray(props.children)) return false;
+  return true;
+}
+
 function SearchControl({ child }: { child: ReactElement }) {
   const props = propsOf(child);
   if (props.type === "date") {
@@ -91,7 +98,7 @@ export function UnifiedListHeader({ children, resultCount, resetHref, filtered =
   }, []);
 
   const all = Children.toArray(children);
-  const primary = all.find((child) => !isAction(child) && !isFilterMore(child));
+  const primary = all.find((child) => !isAction(child) && !isFilterMore(child) && isPrimaryControl(child));
   const more = all.find(isFilterMore);
   const filters = useMemo(() => all.filter((child) => child !== primary && !isAction(child) && !isFilterMore(child)), [all, primary]);
   const nested = more && isValidElement(more) ? Children.toArray(propsOf(more).children as ReactNode) : [];

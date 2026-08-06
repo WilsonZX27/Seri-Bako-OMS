@@ -541,6 +541,14 @@ nav[aria-label="Pagination"] > span,
 }
 
 @media (max-width: 639px) {
+  /* List pages already expose their context in the mobile shell/breadcrumb.
+     Remove the repeated desktop header on phones; create actions remain
+     available through the fixed FAB or mobile action rail. */
+  [data-page-header],
+  [data-tablet-page-actions] {
+    display: none !important;
+  }
+
   #main-content > header:not(.sb-document-workspace-header) {
     display: none;
   }

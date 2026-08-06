@@ -51,14 +51,16 @@ function Panel({
   empty,
   children,
   action,
+  dataAttribute,
 }: {
   title: string;
   empty?: string;
   children?: React.ReactNode;
   action?: { href: string; label: string };
+  dataAttribute?: string;
 }) {
   return (
-    <section data-dashboard-panel className="sb-work-surface overflow-hidden">
+    <section data-dashboard-panel={dataAttribute ?? "true"} className="sb-work-surface overflow-hidden">
       <div className="flex min-h-12 items-center justify-between gap-2 border-b border-[var(--sb-border-soft)] px-4">
         <h2 className="text-sm font-semibold text-[var(--sb-text)]">{title}</h2>
         {action ? (
@@ -389,12 +391,12 @@ export function DashboardWorkspace({ summary, renderedAt }: { summary: Dashboard
           </Panel>
         ) : null}
 
-        {showFinance ? <Panel title="Payables and cash obligations"
+        {showFinance ? <Panel dataAttribute="payables" title="Payables and cash obligations"
             empty={summary.payablesAttentionUnavailable ? "Payables attention is temporarily unavailable; operational queues remain current." : "All current supplier invoices are up to date."}
           >
             {summary.payablesAttention ? (
               <>
-                <div className="grid grid-cols-3 gap-2" data-dashboard-payables>
+                <div className="grid grid-cols-3 gap-1.5 sm:gap-2" data-dashboard-payables>
                   <Metric href="/supplier-invoices/aging?overdue=1" label="Overdue AP" value={formatCurrency(summary.payablesAttention.overdue_amount + summary.payablesAttention.critical_amount)} icon={ReceiptText} alert={summary.payablesAttention.overdue_count > 0} variant="tile" />
                   <Metric href="/supplier-invoices/aging?bucket=missing_due_date" label="Missing due date" value={formatNumber(summary.payablesAttention.missing_due_date_count)} icon={AlertTriangle} alert={summary.payablesAttention.missing_due_date_count > 0} variant="tile" />
                   <Metric href="/supplier-invoices/cash-flow" label="Due soon" value={formatCurrency(summary.payablesAttention.due_today_amount + summary.payablesAttention.due_next_7_amount)} icon={Clock3} variant="tile" />

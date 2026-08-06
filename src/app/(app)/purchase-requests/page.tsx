@@ -49,7 +49,7 @@ export default async function PurchaseRequestsPage({ searchParams }: { searchPar
         className="pt-4"
         hideMobileConsole
         tabletRailMode="split"
-        tabletRailBreakpoint="lg"
+      tabletRailBreakpoint="md"
         rightRail={
           <div className="space-y-3 [&>section]:overflow-hidden [&>section]:rounded-[var(--sb-panel-radius)] [&>section]:border [&>section]:border-[var(--sb-border-soft)] [&>section]:bg-card [&>section]:shadow-[var(--sb-shadow-panel)]" data-tablet-split-actions>
             {permissions["pr.create"] || permissions["pr.view_branch"] ? <ConsoleSection title="Actions"><div className="grid gap-2">

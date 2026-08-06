@@ -607,3 +607,17 @@ nav[aria-label="Pagination"] > span,
     display: none;
   }
 }
+/* Document workflows hide the global mobile nav; their action rail owns the bottom safe area. */
+@media (max-width: 1279px) {
+  .sb-mobile-action-bar {
+    bottom: env(safe-area-inset-bottom) !important;
+  }
+}
+
+/* Task pages replace the app nav with their own fixed action rail on phones. */
+@media (max-width: 767px) {
+  html:is([data-mobile-task-page="true"], [data-mobile-action-page="true"])
+    :is([data-mobile-action-bar], [data-mobile-document-action], .sb-mobile-action-bar) {
+    bottom: env(safe-area-inset-bottom) !important;
+  }
+}

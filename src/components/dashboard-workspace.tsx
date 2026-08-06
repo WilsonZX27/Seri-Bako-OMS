@@ -39,7 +39,7 @@ function Metric({
         >
           <Icon className="h-3.5 w-3.5 group-hover:scale-105" />
         </span>
-        <span className={variant === "tile" ? "line-clamp-2 text-[11px] leading-4 sm:text-xs" : "truncate"}>{label}</span>
+        <span className={variant === "tile" ? "break-words text-[11px] leading-4 sm:text-xs" : "truncate"}>{label}</span>
       </span>
       <strong className={unavailable ? "text-xs font-semibold text-[var(--sb-warning)]" : variant === "tile" ? "text-lg font-semibold tabular-nums sm:text-xl" : "tabular-nums"}>{unavailable ? "Unavailable" : value}</strong>
     </Link>
@@ -359,7 +359,7 @@ export function DashboardWorkspace({ summary, renderedAt }: { summary: Dashboard
             title={isKitchen ? "Raw-material exceptions" : "Exceptions requiring follow-up"}
             empty="No urgent operational exceptions are visible in your scope."
           >
-            <div className="grid grid-cols-3 gap-2" data-dashboard-exceptions>
+            <div className="grid grid-cols-2 gap-2 sm:grid-cols-3" data-dashboard-exceptions>
               <Metric href="/low-stock" label="Low stock" value={summary.lowStockCount} icon={AlertTriangle} alert={summary.lowStockCount > 0} unavailable={summary.inventoryUnavailable} variant="tile" />
               {showOperations && summary.operationsControl?.outlet ? (
                 <Metric
@@ -400,7 +400,7 @@ export function DashboardWorkspace({ summary, renderedAt }: { summary: Dashboard
           >
             {summary.payablesAttention ? (
               <>
-                <div className="grid grid-cols-3 gap-1.5 sm:gap-2" data-dashboard-payables>
+                <div className="grid grid-cols-2 gap-1.5 sm:grid-cols-3 sm:gap-2" data-dashboard-payables>
                   <Metric href="/supplier-invoices/aging?overdue=1" label="Overdue AP" value={formatCurrency(summary.payablesAttention.overdue_amount + summary.payablesAttention.critical_amount)} icon={ReceiptText} alert={summary.payablesAttention.overdue_count > 0} variant="tile" />
                   <Metric href="/supplier-invoices/aging?bucket=missing_due_date" label="Missing due date" value={formatNumber(summary.payablesAttention.missing_due_date_count)} icon={AlertTriangle} alert={summary.payablesAttention.missing_due_date_count > 0} variant="tile" />
                   <Metric href="/supplier-invoices/cash-flow" label="Due soon" value={formatCurrency(summary.payablesAttention.due_today_amount + summary.payablesAttention.due_next_7_amount)} icon={Clock3} variant="tile" />

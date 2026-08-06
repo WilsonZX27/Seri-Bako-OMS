@@ -6,29 +6,27 @@ import { useEffect, useRef, useState } from "react";
 import { SlidersHorizontal, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { UnifiedListHeader } from "@/components/common/UnifiedListHeader";
 
 export function FilterBar({
   children,
   resultCount,
   resetHref,
   filtered = false,
+  activeCount = 0,
   className,
 }: {
   children: ReactNode;
   resultCount?: number;
   resetHref: string;
   filtered?: boolean;
+  activeCount?: number;
   className?: string;
 }) {
-  return (
-    <form className={cn("sb-list-filters", className)} data-filtered={filtered || undefined} data-reset-href={resetHref}>
-      {children}
-      {typeof resultCount === "number" ? <div className="sb-filter-summary" aria-live="polite">
-        <span>{resultCount} {resultCount === 1 ? "record" : "records"}</span>
-      </div> : null}
-    </form>
-  );
+  return <UnifiedListHeader {...{ children, resultCount, resetHref, filtered, activeCount, className }} />;
 }
+
+FilterBarMore.displayName = "FilterBarMore";
 
 export function FilterBarMore({
   children,

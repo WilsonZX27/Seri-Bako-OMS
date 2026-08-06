@@ -316,7 +316,7 @@ export function DashboardWorkspace({ summary, renderedAt }: { summary: Dashboard
                 </div>
             </Panel> : null}
             <Panel title={isPurchasing ? "Purchasing pipeline" : isKitchen ? "Production and receiving" : "Operational pipeline"}>
-              <div className={`grid gap-1.5 sm:gap-2 ${summary.productionSummary || isPurchasing ? "grid-cols-3" : "grid-cols-2"}`}>
+              <div className="grid grid-cols-3 gap-1.5 sm:gap-2">
                 <Metric
                   href="/purchase-orders"
                   label={isPurchasing ? "PO preparation / sending" : "Recent purchase orders"}
@@ -333,16 +333,15 @@ export function DashboardWorkspace({ summary, renderedAt }: { summary: Dashboard
                   unavailable={isKitchen ? summary.todayReceivingUnavailable : summary.receivingFollowupUnavailable}
                   variant="tile"
                 />
-                {summary.productionSummary ? (
-                  <Metric
-                    href="/production/jobs"
-                    label={isKitchen ? "Production pending" : "Production exceptions"}
-                    value={summary.productionSummary.pendingApproval + summary.productionSummary.ingredientShortages}
-                    icon={Factory}
-                    alert={summary.productionSummary.ingredientShortages > 0}
-                    variant="tile"
-                  />
-                ) : null}
+                <Metric
+                  href="/production/jobs"
+                  label={isKitchen ? "Production pending" : "Production exceptions"}
+                  value={summary.productionSummary ? summary.productionSummary.pendingApproval + summary.productionSummary.ingredientShortages : 0}
+                  icon={Factory}
+                  alert={Boolean(summary.productionSummary?.ingredientShortages)}
+                  unavailable={!summary.productionSummary}
+                  variant="tile"
+                />
                 {isPurchasing ? <Metric href="/administration/master-data-cleanup" label="Master-data follow-up" value="Review" icon={Boxes} variant="tile" /> : null}
               </div>
             </Panel>

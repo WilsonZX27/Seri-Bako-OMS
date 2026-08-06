@@ -25,6 +25,19 @@
   --sb-content-gutter: clamp(0.75rem, 1.5vw, 1.25rem);
 }
 
+/* Keep the workspace visually edge-to-edge while preserving touch, wheel, and
+   keyboard scrolling. Fixed rails provide the action affordances instead. */
+html,
+body {
+  scrollbar-width: none;
+}
+
+html::-webkit-scrollbar,
+body::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+}
+
 /* Compact list filters: search and primary action share the first row on phones. */
 @media (max-width: 639px) {
   form.sb-mobile-list-filter {

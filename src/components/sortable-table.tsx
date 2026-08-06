@@ -70,7 +70,7 @@ export function PaginationControls({
             <Link href={buildHref(searchParams, { page: String(page - 1) })}>Previous</Link>
           </Button>
         )}
-        <span className="inline-flex h-[var(--sb-control-height)] min-w-[var(--sb-control-height)] items-center justify-center rounded-[var(--sb-control-radius)] border bg-[var(--sb-green-900)] px-2 text-xs font-semibold text-white" aria-current="page">
+        <span className="inline-flex h-[var(--sb-control-height)] min-w-[var(--sb-control-height)] items-center justify-center rounded-[var(--sb-radius-control)] border bg-[var(--sb-green-900)] px-2 text-xs font-semibold text-white" aria-current="page">
           {page}/{totalPages}
         </span>
         {page >= totalPages ? (

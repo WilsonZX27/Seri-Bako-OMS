@@ -7,6 +7,7 @@ import {
   isValidElement,
   useEffect,
   useMemo,
+  useRef,
   useState,
   type FormEvent,
   type ReactElement,
@@ -47,13 +48,15 @@ function isPrimaryControl(child: ReactNode) {
   return true;
 }
 
-function SearchControl({ child }: { child: ReactElement }) {
+function SearchControl({ child, formRef }: { child: ReactElement; formRef: React.RefObject<HTMLFormElement | null> }) {
   const props = propsOf(child);
   const initial = typeof props.defaultValue === "string" ? props.defaultValue : typeof props.value === "string" ? props.value : "";
   const [value, setValue] = useState(initial);
-  const [timer, setTimer] = useState<ReturnType<typeof setTimeout> | null>(null);
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  useEffect(() => () => { if (timer) clearTimeout(timer); }, [timer]);
+  useEffect(() => () => {
+    if (timerRef.current) clearTimeout(timerRef.current);
+  }, []);
 
   if (props.type === "date") {
     return <div className="unified-list-primary-control unified-list-date-control">{cloneElement(child as ReactElement<Record<string, unknown>>, { className: cn("unified-list-primary-input", props.className as string) })}</div>;
@@ -61,9 +64,8 @@ function SearchControl({ child }: { child: ReactElement }) {
 
   const update = (next: string) => {
     setValue(next);
-    if (timer) clearTimeout(timer);
-    const form = document.getElementById("main-content")?.querySelector("form") as HTMLFormElement | null;
-    setTimer(setTimeout(() => form?.requestSubmit(), 300));
+    if (timerRef.current) clearTimeout(timerRef.current);
+    timerRef.current = setTimeout(() => formRef.current?.requestSubmit(), 300);
   };
 
   const control = cloneElement(child as ReactElement<Record<string, unknown>>, {
@@ -90,6 +92,7 @@ function SearchControl({ child }: { child: ReactElement }) {
 export function UnifiedListHeader({ children, resultCount, resetHref, filtered = false, activeCount = 0, className }: HeaderProps) {
   const [mobile, setMobile] = useState(false);
   const [open, setOpen] = useState(false);
+  const formRef = useRef<HTMLFormElement>(null);
   useEffect(() => {
     const query = window.matchMedia("(max-width: 639px)");
     const sync = () => setMobile(query.matches);
@@ -111,9 +114,9 @@ export function UnifiedListHeader({ children, resultCount, resetHref, filtered =
     event.currentTarget.querySelectorAll<HTMLButtonElement>('button[type="submit"]').forEach((button) => { button.disabled = true; button.dataset.pending = "true"; });
   };
   return (
-    <form className={cn("sb-list-filters unified-list-header", className)} data-filtered={filtered || undefined} data-reset-href={resetHref} onSubmit={submit}>
+    <form ref={formRef} className={cn("sb-list-filters unified-list-header", className)} data-filtered={filtered || undefined} data-reset-href={resetHref} onSubmit={submit}>
       <div className="unified-list-row">
-        {primary && isValidElement(primary) ? <SearchControl child={primary} /> : <div className="unified-list-primary-control" />}
+        {primary && isValidElement(primary) ? <SearchControl child={primary} formRef={formRef} /> : <div className="unified-list-primary-control" />}
         <button type="button" className="unified-list-filter-trigger" onClick={() => setOpen(true)} aria-label={active ? `Filters, ${active} active` : "Filters"}><SlidersHorizontal /><span className="unified-list-filter-label">Filters</span>{active ? <span className="unified-list-filter-badge">{active}</span> : null}</button>
         {typeof resultCount === "number" ? <span className="unified-list-result" aria-live="polite">{resultCount}</span> : null}
       </div>

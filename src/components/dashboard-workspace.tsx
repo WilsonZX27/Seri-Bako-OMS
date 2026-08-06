@@ -148,7 +148,7 @@ export function DashboardWorkspace({ summary, renderedAt }: { summary: Dashboard
   const outletStatus = summary.outletToday?.status ?? null;
   const outletComplete = outletStatus === "reviewed" || outletStatus === "evening_completed";
   const outletAction = !outletStatus ? "Start daily record" : outletComplete ? "Review today's record" : "Complete daily record";
-  const attentionCount = summary.pendingApprovals.length + summary.lowStockCount + summary.wastageAttention + (summary.payablesAttention?.overdue_count ?? 0);
+  const attentionCount = summary.pendingApprovals.length + summary.lowStockCount + summary.today.stockCountDue + summary.wastageAttention + (summary.payablesAttention?.overdue_count ?? 0);
   const outletExceptionCount = summary.operationsControl?.outlet ? summary.operationsControl.outlet.missing_evening + summary.operationsControl.outlet.needs_review : 0;
   const operationalExceptionCount = (summary.inventoryUnavailable ? 0 : summary.lowStockCount) + (summary.wastageUnavailable ? 0 : summary.wastageAttention) + outletExceptionCount;
 
@@ -263,7 +263,7 @@ export function DashboardWorkspace({ summary, renderedAt }: { summary: Dashboard
               </div>
             </div>
           </div>
-          <div className="grid grid-cols-3 divide-x divide-white/15 border-t border-white/15" data-dashboard-pulse-metrics>
+          <div className="grid grid-cols-2 divide-x divide-y divide-white/15 border-t border-white/15 sm:grid-cols-4 sm:divide-y-0" data-dashboard-pulse-metrics>
             <Link prefetch={false} href="/low-stock" className="group flex min-w-0 items-center justify-between gap-2 px-3 py-3 transition-colors hover:bg-white/10 sm:px-5">
               <span className="min-w-0"><span className="flex items-center gap-1.5 text-white/65"><AlertTriangle className="h-3.5 w-3.5 shrink-0" aria-hidden="true" /><span className="text-[10px] uppercase leading-4 tracking-[0.12em]">Low stock</span></span></span>
               <strong className="text-xl font-semibold tabular-nums">{summary.inventoryUnavailable ? "—" : summary.lowStockCount}</strong>
@@ -275,6 +275,10 @@ export function DashboardWorkspace({ summary, renderedAt }: { summary: Dashboard
             <Link prefetch={false} href="/purchase-requests" className="group flex min-w-0 items-center justify-between gap-2 px-3 py-3 transition-colors hover:bg-white/10 sm:px-5">
               <span className="min-w-0"><span className="flex items-center gap-1.5 text-white/65"><FileText className="h-3.5 w-3.5 shrink-0" aria-hidden="true" /><span className="text-[10px] uppercase leading-4 tracking-[0.12em]">Requests</span></span></span>
               <strong className="text-xl font-semibold tabular-nums">{summary.purchaseRequests.length}</strong>
+            </Link>
+            <Link prefetch={false} href="/stock-counts" className="group flex min-w-0 items-center justify-between gap-2 px-3 py-3 transition-colors hover:bg-white/10 sm:px-5">
+              <span className="min-w-0"><span className="flex items-center gap-1.5 text-white/65"><CheckCircle2 className="h-3.5 w-3.5 shrink-0" aria-hidden="true" /><span className="text-[10px] uppercase leading-4 tracking-[0.12em]">Stock count due</span></span></span>
+              <strong className="text-xl font-semibold tabular-nums">{summary.stockCountDueUnavailable ? "—" : summary.today.stockCountDue}</strong>
             </Link>
           </div>
         </section>

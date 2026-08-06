@@ -620,4 +620,9 @@ nav[aria-label="Pagination"] > span,
     :is([data-mobile-action-bar], [data-mobile-document-action], .sb-mobile-action-bar) {
     bottom: env(safe-area-inset-bottom) !important;
   }
+
+  /* List-page subtitles repeat the mobile title and consume scarce vertical space. */
+  [data-page-header] > div > div > p {
+    display: none !important;
+  }
 }

@@ -3,7 +3,6 @@ import { looseSupabase } from "@/lib/supabase/loose";
 import { getCurrentUserScope, getVisibleNotificationsForCurrentUser } from "@/server/queries/notifications";
 import { getCurrentUserPendingActions } from "@/server/queries/pending-actions";
 import { getPayablesAttention } from "@/server/queries/ap-aging";
-import { getInventoryDashboard } from "@/server/queries/inventory";
 import { getRoleDisplayLabel } from "@/lib/roles";
 import { logServerWarning } from "@/server/observability/logger";
 import {
@@ -26,6 +25,9 @@ function warnOptionalQuery(name: string, error: { message?: string } | null | un
 type DashboardCoreSnapshot = {
   total_items: number;
   total_suppliers: number;
+  inventory_value: number;
+  low_stock_items_count: number;
+  negative_stock: number;
   urgent_requests: Array<{ id: string; request_no: string; status: string; priority: string; needed_by_date: string | null }>;
   purchase_requests: Array<{ id: string; request_no: string; status: string; priority: string }>;
   purchase_orders: Array<{ id: string; po_no: string; status: string; priority: string }>;
@@ -129,8 +131,7 @@ export async function getDashboardSummary() {
   const supabase = await createClient();
   const db = looseSupabase(supabase);
   const empty = { data: [], error: null, count: 0 };
-  const [inventorySummary, coreSnapshotResult, pendingApprovals, notifications, recentActivities, outletToday, currentStaff, assignedBranches, payablesAttention] = await Promise.all([
-    needsInventory ? getInventoryDashboard("7d").catch((error) => { warnOptionalQuery("inventory summary", error); return null; }) : Promise.resolve(null),
+  const [coreSnapshotResult, pendingApprovals, notifications, recentActivities, outletToday, currentStaff, assignedBranches, payablesAttention] = await Promise.all([
     (needsProcurement || needsInventory) ? supabase.rpc("get_dashboard_core_snapshot", { p_today: today }) : Promise.resolve({ data: null, error: null }),
     getCurrentUserPendingActions(5),
     getVisibleNotificationsForCurrentUser(),
@@ -164,10 +165,7 @@ export async function getDashboardSummary() {
   const branchLabel = scope.companyWideAccess
     ? "Company-wide"
     : assignedBranches.data?.map((branch: { branch_name: string | null }) => branch.branch_name).filter(Boolean).join(", ") || "Assigned workspace";
-  const lowStockRows = (inventorySummary?.lowStockRows ?? [])
-    .sort((a: { shortage_quantity: number | string | null; item_name: string }, b: { shortage_quantity: number | string | null; item_name: string }) => Number(b.shortage_quantity ?? 0) - Number(a.shortage_quantity ?? 0) || a.item_name.localeCompare(b.item_name))
-    .slice(0, 5);
-  const inventoryUnavailable = needsInventory && (inventorySummary === null || inventorySummary.inventoryUnavailable);
+  const inventoryUnavailable = needsInventory && coreUnavailable;
 
   const result = {
     role,
@@ -177,9 +175,9 @@ export async function getDashboardSummary() {
     branchLabel,
     totalItems: Number(coreSnapshot?.total_items ?? 0),
     totalSuppliers: Number(coreSnapshot?.total_suppliers ?? 0),
-    lowStockCount: inventoryUnavailable ? 0 : inventorySummary?.lowStockItems ?? 0,
-    totalStockValue: inventoryUnavailable ? 0 : inventorySummary?.inventoryValue ?? 0,
-    lowStockItems: inventoryUnavailable ? [] : lowStockRows,
+    lowStockCount: inventoryUnavailable ? 0 : Number(coreSnapshot?.low_stock_items_count ?? 0),
+    totalStockValue: inventoryUnavailable ? 0 : Number(coreSnapshot?.inventory_value ?? 0),
+    lowStockItems: [],
     inventoryUnavailable,
     urgentRequests: coreSnapshot?.urgent_requests ?? [],
     // Transaction history is intentionally loaded only from Inventory drill-down

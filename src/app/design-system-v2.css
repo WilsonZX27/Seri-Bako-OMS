@@ -652,6 +652,16 @@ nav[aria-label="Pagination"] > span,
   }
 }
 @media (max-width: 639px) {
+  /* UnifiedListHeader is the phone-only replacement for the legacy grid
+     filter bar. The compound selector intentionally outranks the legacy
+     sb-mobile-list-filter rules so its controls cannot leak into multiple
+     rows on narrow screens. Tablet and desktop retain the original controls. */
+  form.sb-mobile-list-filter.unified-list-header {
+    display: block !important;
+    grid-template-columns: none !important;
+    align-items: initial !important;
+  }
+
   .unified-list-header { display: block !important; padding: .75rem !important; position: relative; }
   .unified-list-row { display: flex; align-items: center; gap: .5rem; min-height: 2.75rem; }
   .unified-list-primary-control { position: relative; flex: 1 1 auto; min-width: 0; }

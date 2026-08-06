@@ -49,14 +49,15 @@ function isPrimaryControl(child: ReactNode) {
 
 function SearchControl({ child }: { child: ReactElement }) {
   const props = propsOf(child);
-  if (props.type === "date") {
-    return <div className="unified-list-primary-control unified-list-date-control">{cloneElement(child as ReactElement<Record<string, unknown>>, { className: cn("unified-list-primary-input", props.className as string) })}</div>;
-  }
   const initial = typeof props.defaultValue === "string" ? props.defaultValue : typeof props.value === "string" ? props.value : "";
   const [value, setValue] = useState(initial);
   const [timer, setTimer] = useState<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => () => { if (timer) clearTimeout(timer); }, [timer]);
+
+  if (props.type === "date") {
+    return <div className="unified-list-primary-control unified-list-date-control">{cloneElement(child as ReactElement<Record<string, unknown>>, { className: cn("unified-list-primary-input", props.className as string) })}</div>;
+  }
 
   const update = (next: string) => {
     setValue(next);

@@ -79,7 +79,7 @@ export default async function PurchaseRequestsPage({ searchParams }: { searchPar
             </FilterBar>
           </div>
           <div className="sm:hidden">
-            <UnifiedListHeader resultCount={requests.totalRows} resetHref="/purchase-requests" filtered={filtered} activeCount={Number(Boolean(filters.status)) + Number(Boolean(filters.priority && filters.priority !== "all"))} className="sb-mobile-list-filter">
+            <UnifiedListHeader resultCount={requests.totalRows} resetHref="/purchase-requests" filtered={filtered} activeCount={Number(Boolean(filters.status && filters.status !== "all")) + Number(Boolean(filters.priority && filters.priority !== "all"))} className="sb-mobile-list-filter">
               <Input name="search" defaultValue={filters.search ?? ""} placeholder="Search PR no, branch, remarks" />
               <StatusTabs statuses={statuses} activeStatus={filters.status} />
               <SelectControl name="priority" defaultValue={filters.priority ?? "all"} ariaLabel="Priority" options={[{ value: "all", label: "All priorities" }, { value: "critical", label: "Critical" }, { value: "urgent", label: "Urgent" }, { value: "normal", label: "Normal" }, { value: "low", label: "Low" }]} />

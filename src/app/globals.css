@@ -84,8 +84,11 @@
   --sb-panel-radius: 4px;
   --sb-z-dropdown: 30;
   --sb-z-sticky: 40;
-  --sb-z-backdrop: 50;
-  --sb-z-dialog: 60;
+  /* Narrow-screen drawers must fully cover the mobile navigation and any
+     fixed action rail. Desktop/tablet rails keep their normal stacking order;
+     these values are consumed by the narrow-screen drawer rules below. */
+  --sb-z-backdrop: 100;
+  --sb-z-dialog: 101;
   --sb-z-toast: 70;
   --app-bg: var(--sb-bg);
   --workspace-bg: var(--sb-surface);

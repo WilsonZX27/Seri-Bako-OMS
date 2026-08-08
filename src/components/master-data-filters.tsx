@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { SelectControl } from "@/components/ui/select-control";
 import { FilterBar, FilterBarMore } from "@/components/ui/filter-bar";
+import { UnifiedListHeader } from "@/components/common/UnifiedListHeader";
 
 type MasterDataFiltersProps = {
   search?: string;
@@ -53,35 +54,68 @@ export function MasterDataFilters({
     && !showStockFilters,
   );
 
-  return (
-    <FilterBar
-      resultCount={undefined}
-      resetHref={resetHref}
-      filtered={filtered}
-      className={compactMobile ? "sb-list-filters--compact-mobile" : undefined}
-    >
+  const activeFilterCount = [
+    showStatus && status !== "all",
+    supplier !== "all",
+    category !== "all",
+    stockControl !== "all",
+    lowStock !== "all",
+  ].filter(Boolean).length;
+
+  const controls = (
+    <>
       <Input name="search" defaultValue={search ?? ""} placeholder={placeholder} />
-        {leadingFilter}
-        {showStatus ? <SelectControl name="status" defaultValue={status} options={[{ value: "all", label: "All status" }, ...statuses]} ariaLabel="Status" className="min-w-32 md:w-40" /> : null}
-        {suppliers.length ? (
-          <SelectControl name="supplier" defaultValue={supplier} options={[{ value: "all", label: "All suppliers" }, ...suppliers.map((row) => ({ value: row.id, label: row.name }))]} ariaLabel="Supplier" className="min-w-36" />
-        ) : null}
-        {categories.length && !showStockFilters ? <SelectControl name="category" defaultValue={category} options={[{ value: "all", label: "All categories" }, ...categories.map((row) => ({ value: row, label: row }))]} ariaLabel="Category" /> : null}
-        {showStockFilters ? <FilterBarMore activeCount={[categories.length && category !== "all", stockControl !== "all", lowStock !== "all"].filter(Boolean).length} resetHref={resetHref}>
-          {categories.length ? <SelectControl name="category" defaultValue={category} options={[{ value: "all", label: "All categories" }, ...categories.map((row) => ({ value: row, label: row }))]} ariaLabel="Category" /> : null}
-          <SelectControl name="stock_control" defaultValue={stockControl} options={[{ value: "all", label: "All stock control" }, { value: "with_safety_stock", label: "With safety stock" }, { value: "without_safety_stock", label: "Without safety stock" }]} ariaLabel="Stock control" />
-          <SelectControl name="low_stock" defaultValue={lowStock} options={[{ value: "all", label: "All stock levels" }, { value: "yes", label: "Low stock only" }, { value: "no", label: "Healthy stock only" }]} ariaLabel="Stock level" />
-        </FilterBarMore> : null}
-        {typeof resultCount === "number" ? <div className="sb-filter-summary" aria-live="polite">
-          <span>{resultCount} {resultCount === 1 ? "record" : "records"}</span>
-        </div> : null}
-        {filtered ? (
-          <Button asChild variant="secondary">
-            <Link href={resetHref}>Reset</Link>
-          </Button>
-        ) : (
-          <Button type="submit">Search</Button>
-        )}
-    </FilterBar>
+      {leadingFilter}
+      {showStatus ? <SelectControl name="status" defaultValue={status} options={[{ value: "all", label: "All status" }, ...statuses]} ariaLabel="Status" className="min-w-32 md:w-40" /> : null}
+      {suppliers.length ? (
+        <SelectControl name="supplier" defaultValue={supplier} options={[{ value: "all", label: "All suppliers" }, ...suppliers.map((row) => ({ value: row.id, label: row.name }))]} ariaLabel="Supplier" className="min-w-36" />
+      ) : null}
+      {categories.length && !showStockFilters ? <SelectControl name="category" defaultValue={category} options={[{ value: "all", label: "All categories" }, ...categories.map((row) => ({ value: row, label: row }))]} ariaLabel="Category" /> : null}
+      {showStockFilters ? <FilterBarMore activeCount={[categories.length && category !== "all", stockControl !== "all", lowStock !== "all"].filter(Boolean).length} resetHref={resetHref}>
+        {categories.length ? <SelectControl name="category" defaultValue={category} options={[{ value: "all", label: "All categories" }, ...categories.map((row) => ({ value: row, label: row }))]} ariaLabel="Category" /> : null}
+        <SelectControl name="stock_control" defaultValue={stockControl} options={[{ value: "all", label: "All stock control" }, { value: "with_safety_stock", label: "With safety stock" }, { value: "without_safety_stock", label: "Without safety stock" }]} ariaLabel="Stock control" />
+        <SelectControl name="low_stock" defaultValue={lowStock} options={[{ value: "all", label: "All stock levels" }, { value: "yes", label: "Low stock only" }, { value: "no", label: "Healthy stock only" }]} ariaLabel="Stock level" />
+      </FilterBarMore> : null}
+    </>
+  );
+
+  const summary = typeof resultCount === "number" ? <div className="sb-filter-summary" aria-live="polite">
+    <span>{resultCount} {resultCount === 1 ? "record" : "records"}</span>
+  </div> : null;
+
+  const action = filtered ? (
+    <Button asChild variant="secondary">
+      <Link href={resetHref}>Reset</Link>
+    </Button>
+  ) : (
+    <Button type="submit">Search</Button>
+  );
+
+  return (
+    <>
+      <div className="hidden sm:block">
+        <FilterBar
+          resultCount={undefined}
+          resetHref={resetHref}
+          filtered={filtered}
+          className={compactMobile ? "sb-list-filters--compact-mobile" : undefined}
+        >
+          {controls}
+          {summary}
+          {action}
+        </FilterBar>
+      </div>
+      <div className="sm:hidden">
+        <UnifiedListHeader
+          resultCount={resultCount}
+          resetHref={resetHref}
+          filtered={filtered}
+          activeCount={activeFilterCount}
+          className={compactMobile ? "sb-list-filters--compact-mobile" : undefined}
+        >
+          {controls}
+        </UnifiedListHeader>
+      </div>
+    </>
   );
 }

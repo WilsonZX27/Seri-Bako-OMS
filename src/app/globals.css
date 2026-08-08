@@ -498,7 +498,12 @@ input[type="date"]::-webkit-date-and-time-value {
   }
 
   html:has([data-mobile-document-action]) [data-mobile-document-action] {
-    bottom: calc(var(--sb-mobile-nav-height) + env(safe-area-inset-bottom) + 0.5rem) !important;
+    bottom: env(safe-area-inset-bottom) !important;
+  }
+
+  /* A document action rail replaces, rather than stacks with, phone navigation. */
+  html:has([data-mobile-document-action]) [data-mobile-app-nav] {
+    display: none !important;
   }
 
   html[data-mobile-sheet-open="true"] [data-mobile-app-nav] {

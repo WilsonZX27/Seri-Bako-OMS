@@ -323,7 +323,11 @@ export async function getStockLedger(filters: Filters = {}) {
   }
   const result = data ?? [];
   const totalRows = Number(result[0]?.total_count ?? 0);
-  const rows = result.map(({ total_count: _totalCount, ...row }) => row as StockLedgerViewRow);
+  const rows = result.map((entry) => {
+    const { total_count, ...row } = entry;
+    void total_count;
+    return row as StockLedgerViewRow;
+  });
   return databasePagination(rows, totalRows, filters.page, exportAll ? Math.max(rows.length, 1) : INVENTORY_PAGE_SIZE);
 }
 

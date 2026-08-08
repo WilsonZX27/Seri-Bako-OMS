@@ -75,8 +75,8 @@ export default async function StockCountsPage({ searchParams }: { searchParams: 
           <FilterBar resultCount={counts.totalRows} resetHref="/stock-counts" filtered={filtered} className="sb-tablet-split-filter sb-mobile-list-filter">
             <Input name="search" defaultValue={filters.search ?? ""} placeholder="Search count no, branch, remarks" />
             <SelectControl name="branch_id" defaultValue={filters.branch_id ?? "all"} ariaLabel="Branch" options={[{ value: "all", label: "All branches" }, ...branches.map((branch) => ({ value: branch.id, label: branch.branch_name }))]} />
-            <StatusTabs statuses={statuses} activeStatus={filters.status} />
-            {filters.status ? <input type="hidden" name="status" value={filters.status} /> : null}{filtered ? <Button asChild variant="secondary" className="sb-filter-submit"><Link href="/stock-counts">Reset</Link></Button> : <Button type="submit" className="sb-filter-submit">Search</Button>}
+            <SelectControl name="status" defaultValue={filters.status ?? "all"} ariaLabel="Status" options={[{ value: "all", label: "All statuses" }, { value: "draft", label: "Draft" }, { value: "posted", label: "Posted" }, { value: "cancelled", label: "Cancelled" }]} />
+            {filtered ? <Button asChild variant="secondary" className="sb-filter-submit"><Link href="/stock-counts">Reset</Link></Button> : <Button type="submit" className="sb-filter-submit">Search</Button>}
             <FilterBarMore activeCount={Number(Boolean(filters.from)) + Number(Boolean(filters.to))} resetHref="/stock-counts"><Input name="from" type="date" defaultValue={filters.from ?? ""} aria-label="From date" /><Input name="to" type="date" defaultValue={filters.to ?? ""} aria-label="To date" /></FilterBarMore>
           </FilterBar>
         </div>

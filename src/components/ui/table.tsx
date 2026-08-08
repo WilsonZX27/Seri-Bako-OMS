@@ -29,7 +29,7 @@ export function Table({ className, mobileHidden = false, compactUntil = "md", st
   }, [updateScrollState]);
 
   return (
-    <div ref={regionRef} onScroll={updateScrollState} className={cn("sb-table-region", mobileHidden && (compactUntil === "xl" ? "hidden xl:block" : "hidden md:block"))} data-sticky-column={stickyColumn} data-scrolled={scrolled ? "true" : "false"} role="region" aria-label={props["aria-label"] ?? "Data table"} tabIndex={0}>
+    <div ref={regionRef} onScroll={updateScrollState} className={cn("sb-table-region sb-scrollbar-none", mobileHidden && (compactUntil === "xl" ? "hidden xl:block" : "hidden md:block"))} data-sticky-column={stickyColumn} data-scrolled={scrolled ? "true" : "false"} role="region" aria-label={props["aria-label"] ?? "Data table"} tabIndex={0}>
       <table className={cn("w-full caption-bottom text-xs", className)} {...props} />
     </div>
   );

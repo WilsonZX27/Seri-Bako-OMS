@@ -145,7 +145,7 @@ export function RightConsoleProvider({ children }: { children: ReactNode }) {
     <RightConsoleContext.Provider value={value}>
       {children}
       <aside data-right-console className="hidden h-full min-h-0 w-[var(--sb-console-width)] shrink-0 overflow-hidden border-l bg-[var(--rail-bg)] xl:block">
-        <div data-right-console-scroll className="h-full overflow-y-auto overflow-x-hidden bg-[var(--rail-bg)] px-2 py-1">
+        <div data-right-console-scroll className="sb-scrollbar-none h-full overflow-y-auto overflow-x-hidden bg-[var(--rail-bg)] px-2 py-1">
           {consoleContent}
         </div>
       </aside>
@@ -171,12 +171,12 @@ export function RightConsoleProvider({ children }: { children: ReactNode }) {
       {open && content && !mobileBarHidden ? (
         <div className={cn("fixed inset-0 z-[var(--sb-z-dialog)] xl:hidden", hasCreateFab && "hidden")}>
           <button type="button" className="sb-dialog-backdrop absolute inset-0 h-full w-full" onClick={close} aria-label="Close more actions" />
-          <div ref={dialogRef} role="dialog" aria-modal="true" aria-labelledby={titleId} className="sb-popover-surface absolute inset-x-0 bottom-0 max-h-[82dvh] overflow-hidden pb-[env(safe-area-inset-bottom)]">
+            <div ref={dialogRef} role="dialog" aria-modal="true" aria-labelledby={titleId} className="sb-popover-surface absolute inset-x-0 bottom-0 max-h-[82dvh] overflow-hidden pb-[env(safe-area-inset-bottom)]">
             <header className="flex h-12 items-center justify-between border-b px-3">
               <h2 id={titleId} className="text-sm font-semibold">More actions</h2>
               <Button type="button" variant="ghost" size="icon" onClick={close} aria-label="Close more actions"><X className="h-5 w-5" /></Button>
             </header>
-            <div className="max-h-[calc(82dvh-3rem-env(safe-area-inset-bottom))] overflow-y-auto overscroll-contain px-2 py-1">{secondaryConsoleContent}</div>
+            <div className="sb-scrollbar-none max-h-[calc(82dvh-3rem-env(safe-area-inset-bottom))] overflow-y-auto overscroll-contain px-2 py-1">{secondaryConsoleContent}</div>
           </div>
         </div>
       ) : null}

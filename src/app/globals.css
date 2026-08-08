@@ -282,7 +282,8 @@ input[type="date"]::-webkit-date-and-time-value {
   max-width: 100%;
   overflow-x: auto;
   overscroll-behavior-inline: contain;
-  scrollbar-gutter: stable;
+  /* Hidden scrollbars must not leave a phantom right-hand gutter. */
+  scrollbar-gutter: auto;
 }
 
 .sb-list-filters {

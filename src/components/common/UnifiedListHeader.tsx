@@ -48,6 +48,17 @@ function isPrimaryControl(child: ReactNode) {
   return true;
 }
 
+function isSearchControl(child: ReactNode) {
+  const props = propsOf(child);
+  if (props.type === "search") return true;
+  if (props.type !== "text" && typeof props.type !== "undefined") return false;
+  const searchable = [props.name, props.id, props.placeholder]
+    .filter((value): value is string => typeof value === "string")
+    .join(" ")
+    .toLowerCase();
+  return searchable.includes("search") || searchable.includes("find");
+}
+
 function SearchControl({ child, formRef }: { child: ReactElement; formRef: React.RefObject<HTMLFormElement | null> }) {
   const props = propsOf(child);
   const initial = typeof props.defaultValue === "string" ? props.defaultValue : typeof props.value === "string" ? props.value : "";
@@ -102,7 +113,8 @@ export function UnifiedListHeader({ children, resultCount, resetHref, filtered =
   }, []);
 
   const all = Children.toArray(children);
-  const primary = all.find((child) => !isAction(child) && !isFilterMore(child) && isPrimaryControl(child));
+  const candidates = all.filter((child) => !isAction(child) && !isFilterMore(child));
+  const primary = candidates.find(isSearchControl) ?? candidates.find(isPrimaryControl);
   const more = all.find(isFilterMore);
   const filters = useMemo(() => all.filter((child) => child !== primary && !isAction(child) && !isFilterMore(child)), [all, primary]);
   const nested = more && isValidElement(more) ? Children.toArray(propsOf(more).children as ReactNode) : [];
@@ -117,7 +129,7 @@ export function UnifiedListHeader({ children, resultCount, resetHref, filtered =
     <form ref={formRef} className={cn("sb-list-filters unified-list-header", className)} data-filtered={filtered || undefined} data-reset-href={resetHref} onSubmit={submit}>
       <div className="unified-list-row">
         {primary && isValidElement(primary) ? <SearchControl child={primary} formRef={formRef} /> : <div className="unified-list-primary-control" />}
-        <button type="button" className="unified-list-filter-trigger" onClick={() => setOpen(true)} aria-label={active ? `Filters, ${active} active` : "Filters"}><SlidersHorizontal /><span className="unified-list-filter-label">Filters</span>{active ? <span className="unified-list-filter-badge">{active}</span> : null}</button>
+        <button type="button" className="unified-list-filter-trigger" onClick={() => setOpen(true)} aria-label={active ? `Filter, ${active} active` : "Filter"}><SlidersHorizontal /><span className="unified-list-filter-label">Filter</span>{active ? <span className="unified-list-filter-badge">{active}</span> : null}</button>
         {typeof resultCount === "number" ? <span className="unified-list-result" aria-live="polite">{resultCount}</span> : null}
       </div>
       <button type="submit" className="sr-only" tabIndex={-1} aria-hidden="true">Search</button>

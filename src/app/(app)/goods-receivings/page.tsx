@@ -30,9 +30,13 @@ export default async function GoodsReceivingsPage({ searchParams }: { searchPara
       <PageHeader
         title="Goods Receiving"
         description="Receive supplier deliveries against approved purchase orders. Stock increases only after GRN posting."
+        action={canCreate ? { href: "/goods-receivings/new", label: "New GRN" } : undefined}
+        hideTabletCreateFab
       />
       <WorkspaceGrid
         hideMobileConsole
+        tabletRailMode="split"
+        tabletRailBreakpoint="md"
         rightRail={
           <div className="space-y-3 [&>section]:overflow-hidden [&>section]:rounded-[var(--sb-panel-radius)] [&>section]:border [&>section]:border-[var(--sb-border-soft)] [&>section]:bg-card">
             {canCreate ? <ConsoleSection title="Actions"><Button asChild size="sm" className="w-full" data-mobile-primary-action><Link href="/goods-receivings/new"><Plus className="h-4 w-4" />New GRN</Link></Button></ConsoleSection> : null}
@@ -106,7 +110,6 @@ export default async function GoodsReceivingsPage({ searchParams }: { searchPara
           <PaginationControls page={receivings.page} totalPages={receivings.totalPages} totalRows={receivings.totalRows} searchParams={filters} />
         </div>
       </WorkspaceGrid>
-      {canCreate ? <Button asChild size="icon" className="fixed bottom-[calc(var(--sb-mobile-nav-height)+env(safe-area-inset-bottom)+1rem)] right-4 z-[var(--sb-z-sticky)] h-14 w-14 rounded-full shadow-[0_8px_24px_rgb(6_44_31_/_0.24)] lg:hidden"><Link href="/goods-receivings/new" aria-label="New goods receiving"><Plus className="h-5 w-5" /></Link></Button> : null}
     </>
   );
 }

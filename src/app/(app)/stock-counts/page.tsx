@@ -5,6 +5,7 @@ import { DataGridHint } from "@/components/ui/data-grid-hint";
 import { DataGridRow } from "@/components/ui/data-grid-row";
 import { EmptyState } from "@/components/ui/empty-state";
 import { FilterBar, FilterBarMore } from "@/components/ui/filter-bar";
+import { UnifiedListHeader } from "@/components/common/UnifiedListHeader";
 import { Input } from "@/components/ui/input";
 import { PageHeader } from "@/components/ui/page-header";
 import { SelectControl } from "@/components/ui/select-control";
@@ -70,13 +71,24 @@ export default async function StockCountsPage({ searchParams }: { searchParams: 
       <ConsoleSection title="Stock Count Summary"><dl className="grid gap-2 text-xs"><div className="flex justify-between"><dt className="text-muted-foreground">Total</dt><dd className="font-semibold">{summary.total ?? "—"}</dd></div><div className="flex justify-between"><dt className="text-muted-foreground">Draft</dt><dd className="font-semibold">{summary.draft ?? "—"}</dd></div><div className="flex justify-between"><dt className="text-muted-foreground">Posted</dt><dd className="font-semibold">{summary.posted ?? "—"}</dd></div><div className="flex justify-between"><dt className="text-muted-foreground">Cancelled</dt><dd className="font-semibold">{summary.cancelled ?? "—"}</dd></div></dl></ConsoleSection>
     </div>}>
       <div className="overflow-hidden rounded-[var(--sb-panel-radius)] border bg-card" data-tablet-main-list>
-        <FilterBar resultCount={counts.totalRows} resetHref="/stock-counts" filtered={filtered} className="sb-tablet-split-filter sb-mobile-list-filter">
-          <Input name="search" defaultValue={filters.search ?? ""} placeholder="Search count no, branch, remarks" />
-          <SelectControl name="branch_id" defaultValue={filters.branch_id ?? "all"} ariaLabel="Branch" options={[{ value: "all", label: "All branches" }, ...branches.map((branch) => ({ value: branch.id, label: branch.branch_name }))]} />
-          <StatusTabs statuses={statuses} activeStatus={filters.status} />
-          {filters.status ? <input type="hidden" name="status" value={filters.status} /> : null}{filtered ? <Button asChild variant="secondary" className="sb-filter-submit"><Link href="/stock-counts">Reset</Link></Button> : <Button type="submit" className="sb-filter-submit">Search</Button>}
-          <FilterBarMore activeCount={Number(Boolean(filters.from)) + Number(Boolean(filters.to))} resetHref="/stock-counts"><Input name="from" type="date" defaultValue={filters.from ?? ""} aria-label="From date" /><Input name="to" type="date" defaultValue={filters.to ?? ""} aria-label="To date" /></FilterBarMore>
-        </FilterBar>
+        <div className="hidden sm:block">
+          <FilterBar resultCount={counts.totalRows} resetHref="/stock-counts" filtered={filtered} className="sb-tablet-split-filter sb-mobile-list-filter">
+            <Input name="search" defaultValue={filters.search ?? ""} placeholder="Search count no, branch, remarks" />
+            <SelectControl name="branch_id" defaultValue={filters.branch_id ?? "all"} ariaLabel="Branch" options={[{ value: "all", label: "All branches" }, ...branches.map((branch) => ({ value: branch.id, label: branch.branch_name }))]} />
+            <StatusTabs statuses={statuses} activeStatus={filters.status} />
+            {filters.status ? <input type="hidden" name="status" value={filters.status} /> : null}{filtered ? <Button asChild variant="secondary" className="sb-filter-submit"><Link href="/stock-counts">Reset</Link></Button> : <Button type="submit" className="sb-filter-submit">Search</Button>}
+            <FilterBarMore activeCount={Number(Boolean(filters.from)) + Number(Boolean(filters.to))} resetHref="/stock-counts"><Input name="from" type="date" defaultValue={filters.from ?? ""} aria-label="From date" /><Input name="to" type="date" defaultValue={filters.to ?? ""} aria-label="To date" /></FilterBarMore>
+          </FilterBar>
+        </div>
+        <div className="sm:hidden">
+          <UnifiedListHeader resultCount={counts.totalRows} resetHref="/stock-counts" filtered={filtered} activeCount={Number(Boolean(filters.branch_id && filters.branch_id !== "all")) + Number(Boolean(filters.status)) + Number(Boolean(filters.from)) + Number(Boolean(filters.to))} className="sb-mobile-list-filter">
+            <Input name="search" defaultValue={filters.search ?? ""} placeholder="Search count no, branch, remarks" />
+            <SelectControl name="branch_id" defaultValue={filters.branch_id ?? "all"} ariaLabel="Branch" options={[{ value: "all", label: "All branches" }, ...branches.map((branch) => ({ value: branch.id, label: branch.branch_name }))]} />
+            <StatusTabs statuses={statuses} activeStatus={filters.status} />
+            {filters.status ? <input type="hidden" name="status" value={filters.status} /> : null}
+            <FilterBarMore activeCount={Number(Boolean(filters.from)) + Number(Boolean(filters.to))} resetHref="/stock-counts"><Input name="from" type="date" defaultValue={filters.from ?? ""} aria-label="From date" /><Input name="to" type="date" defaultValue={filters.to ?? ""} aria-label="To date" /></FilterBarMore>
+          </UnifiedListHeader>
+        </div>
         <DataGridHint text="Pro-tip: Double-click any row to open the stock count." />
         <Table mobileHidden compactUntil="xl" aria-label="Stock counts" stickyColumn="second"><TableHeader><TableRow><TableHead className="w-16 text-center">Action</TableHead><SortableHead label="Count No" column="count_no" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} /><SortableHead label="Date" column="count_date" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} /><TableHead>Branch</TableHead><TableHead>Submitted by</TableHead><SortableHead label="Status" column="status" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} /><TableHead className="text-right">Lines</TableHead><TableHead className="text-right">High Variance</TableHead></TableRow></TableHeader>
           <TableBody>{counts.rows.map((row) => <DataGridRow key={row.id} href={`/stock-counts/${row.id}`}><TableCell className="w-16 p-0 text-center"><TableActionLink href={`/stock-counts/${row.id}`} label={`Open ${row.count_no}`}><Pencil className="h-4 w-4" /></TableActionLink></TableCell><TableCell className="font-medium">{row.count_no}</TableCell><TableCell>{formatDateOnly(row.count_date)}</TableCell><TableCell>{row.branch_name ?? "-"}</TableCell><TableCell>{row.counted_by_name ?? "-"}</TableCell><TableCell><StatusBadge status={row.status} /></TableCell><TableCell className="text-right">{row.line_count}</TableCell><TableCell className="text-right">{row.high_variance_count}</TableCell></DataGridRow>)}{!counts.rows.length ? <TableRow><TableCell colSpan={8}><EmptyState title={filtered ? "No counts match these filters" : "No stock counts yet"} description={filtered ? "Reset the filters or widen the date range." : "Counts appear after a permitted user starts a branch stock count."} action={emptyAction} /></TableCell></TableRow> : null}</TableBody></Table>

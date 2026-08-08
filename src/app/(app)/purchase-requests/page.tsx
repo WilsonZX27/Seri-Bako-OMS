@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { PageHeader } from "@/components/ui/page-header";
 import { FilterBar } from "@/components/ui/filter-bar";
+import { UnifiedListHeader } from "@/components/common/UnifiedListHeader";
 import { PriorityBadge } from "@/components/priority-badge";
 import { PaginationControls, SortableHead } from "@/components/sortable-table";
 import { SelectControl } from "@/components/ui/select-control";
@@ -69,13 +70,23 @@ export default async function PurchaseRequestsPage({ searchParams }: { searchPar
         }
       >
         <div className="overflow-hidden rounded-[var(--sb-panel-radius)] border border-[var(--sb-border-soft)] bg-card" data-tablet-main-list>
-          <FilterBar resetHref="/purchase-requests" filtered={filtered} resultCount={requests.totalRows} className="sb-tablet-split-filter sb-mobile-list-filter">
-            <Input name="search" defaultValue={filters.search ?? ""} placeholder="Search PR no, branch, remarks" className="md:max-w-sm" />
-            <StatusTabs statuses={statuses} activeStatus={filters.status} />
-            <SelectControl name="priority" defaultValue={filters.priority ?? "all"} ariaLabel="Priority" options={[{ value: "all", label: "All priorities" }, { value: "critical", label: "Critical" }, { value: "urgent", label: "Urgent" }, { value: "normal", label: "Normal" }, { value: "low", label: "Low" }]} />
-            {filters.status ? <input type="hidden" name="status" value={filters.status} /> : null}
-            {filtered ? <Button asChild variant="secondary" className="sb-filter-submit shrink-0"><Link href="/purchase-requests">Reset</Link></Button> : <Button type="submit" variant="secondary" className="sb-filter-submit shrink-0">Search</Button>}
-          </FilterBar>
+          <div className="hidden sm:block">
+            <FilterBar resetHref="/purchase-requests" filtered={filtered} resultCount={requests.totalRows} className="sb-tablet-split-filter sb-mobile-list-filter">
+              <Input name="search" defaultValue={filters.search ?? ""} placeholder="Search PR no, branch, remarks" className="md:max-w-sm" />
+              <StatusTabs statuses={statuses} activeStatus={filters.status} />
+              <SelectControl name="priority" defaultValue={filters.priority ?? "all"} ariaLabel="Priority" options={[{ value: "all", label: "All priorities" }, { value: "critical", label: "Critical" }, { value: "urgent", label: "Urgent" }, { value: "normal", label: "Normal" }, { value: "low", label: "Low" }]} />
+              {filters.status ? <input type="hidden" name="status" value={filters.status} /> : null}
+              {filtered ? <Button asChild variant="secondary" className="sb-filter-submit shrink-0"><Link href="/purchase-requests">Reset</Link></Button> : <Button type="submit" variant="secondary" className="sb-filter-submit shrink-0">Search</Button>}
+            </FilterBar>
+          </div>
+          <div className="sm:hidden">
+            <UnifiedListHeader resultCount={requests.totalRows} resetHref="/purchase-requests" filtered={filtered} activeCount={Number(Boolean(filters.status)) + Number(Boolean(filters.priority && filters.priority !== "all"))} className="sb-mobile-list-filter">
+              <Input name="search" defaultValue={filters.search ?? ""} placeholder="Search PR no, branch, remarks" />
+              <StatusTabs statuses={statuses} activeStatus={filters.status} />
+              <SelectControl name="priority" defaultValue={filters.priority ?? "all"} ariaLabel="Priority" options={[{ value: "all", label: "All priorities" }, { value: "critical", label: "Critical" }, { value: "urgent", label: "Urgent" }, { value: "normal", label: "Normal" }, { value: "low", label: "Low" }]} />
+              {filters.status ? <input type="hidden" name="status" value={filters.status} /> : null}
+            </UnifiedListHeader>
+          </div>
           <BulkSelectionProvider ids={requests.rows.map((request) => request.id)} actionLabel="Delete selected" actionHint="Review selected requests before permanent deletion.">
           <BulkPhaseOneDelete />
           <DataGridHint text="Pro-tip: Double-click any row to open the purchase request." />

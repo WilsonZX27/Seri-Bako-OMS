@@ -660,6 +660,18 @@ nav[aria-label="Pagination"] > span,
   }
 }
 @media (max-width: 639px) {
+  /* Pages with a real action rail own the phone viewport bottom. This keeps
+     actions reachable without stacking them above the bottom navigation. */
+  body:has([data-mobile-action-bar]) [data-mobile-app-nav],
+  body:has([data-mobile-document-action]) [data-mobile-app-nav] {
+    display: none !important;
+  }
+
+  body:has([data-mobile-action-bar]) .sb-mobile-action-bar,
+  body:has([data-mobile-document-action]) .sb-mobile-action-bar {
+    bottom: env(safe-area-inset-bottom) !important;
+  }
+
   /* UnifiedListHeader is the phone-only replacement for the legacy grid
      filter bar. The compound selector intentionally outranks the legacy
      sb-mobile-list-filter rules so its controls cannot leak into multiple

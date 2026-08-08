@@ -20,8 +20,8 @@ test("dashboard uses one non-duplicated operational hierarchy", () => {
 
 test("priority dashboard groups remain compact across phone and tablet", () => {
   assert.match(dashboard, /grid grid-cols-3 gap-2[^\n]*data-dashboard-quick-actions/);
-  assert.match(dashboard, /grid grid-cols-3 gap-2[^\n]*data-dashboard-exceptions/);
-  assert.match(dashboard, /grid grid-cols-3 gap-2[^\n]*data-dashboard-payables/);
+  assert.match(dashboard, /grid grid-cols-2 gap-2 sm:grid-cols-3[^\n]*data-dashboard-exceptions/);
+  assert.match(dashboard, /grid grid-cols-2 gap-1\.5 sm:grid-cols-3[^\n]*data-dashboard-payables/);
 });
 
 test("purchase requests and stock counts share the bounded tablet split filter", () => {

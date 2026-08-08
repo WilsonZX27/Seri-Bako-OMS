@@ -19,6 +19,7 @@ function Metric({
   alert = false,
   unavailable = false,
   variant = "row",
+  className,
 }: {
   href: string;
   label: string;
@@ -27,11 +28,12 @@ function Metric({
   alert?: boolean;
   unavailable?: boolean;
   variant?: "row" | "tile";
+  className?: string;
 }) {
   return (
     <Link prefetch={false}
       href={href}
-      className={variant === "tile" ? "group flex min-h-[5.75rem] min-w-0 flex-col items-start justify-between gap-2 rounded-[var(--sb-radius-control)] border border-[var(--sb-border-soft)] bg-[var(--sb-surface)] p-2 transition-colors duration-200 hover:bg-[var(--sb-surface-muted)] sm:min-h-[7rem] sm:p-3" : "group flex min-h-10 items-center justify-between gap-3 border-b border-[var(--sb-border-soft)] px-2 py-2.5 transition-colors duration-300 hover:bg-[var(--sb-surface-muted)] last:border-b-0"}
+      className={`${variant === "tile" ? "group flex min-h-[5.75rem] min-w-0 flex-col items-start justify-between gap-2 rounded-[var(--sb-radius-control)] border border-[var(--sb-border-soft)] bg-[var(--sb-surface)] p-2 transition-colors duration-200 hover:bg-[var(--sb-surface-muted)] sm:min-h-[7rem] sm:p-3" : "group flex min-h-10 items-center justify-between gap-3 border-b border-[var(--sb-border-soft)] px-2 py-2.5 transition-colors duration-300 hover:bg-[var(--sb-surface-muted)] last:border-b-0"} ${className ?? ""}`}
     >
       <span className={variant === "tile" ? "flex min-w-0 flex-col items-start gap-2 text-xs font-medium text-[var(--sb-text-muted)]" : "flex min-w-0 items-center gap-2 text-xs font-medium text-[var(--sb-text-muted)]"}>
         <span
@@ -438,8 +440,8 @@ export function DashboardWorkspace({ summary, renderedAt }: { summary: Dashboard
           >
             {summary.payablesAttention ? (
               <>
-                <div className="grid grid-cols-3 gap-1.5 sm:gap-2" data-dashboard-payables>
-                  <Metric href="/supplier-invoices/aging?overdue=1" label="Overdue AP" value={formatCurrency(summary.payablesAttention.overdue_amount + summary.payablesAttention.critical_amount)} icon={ReceiptText} alert={summary.payablesAttention.overdue_count > 0} variant="tile" />
+                <div className="grid grid-cols-2 gap-1.5 sm:grid-cols-3 sm:gap-2" data-dashboard-payables>
+                  <Metric className="col-span-2 sm:col-span-1" href="/supplier-invoices/aging?overdue=1" label="Overdue AP" value={formatCurrency(summary.payablesAttention.overdue_amount + summary.payablesAttention.critical_amount)} icon={ReceiptText} alert={summary.payablesAttention.overdue_count > 0} variant="tile" />
                   <Metric href="/supplier-invoices/aging?bucket=missing_due_date" label="Missing due date" value={formatNumber(summary.payablesAttention.missing_due_date_count)} icon={AlertTriangle} alert={summary.payablesAttention.missing_due_date_count > 0} variant="tile" />
                   <Metric href="/supplier-invoices/cash-flow" label="Due soon" value={formatCurrency(summary.payablesAttention.due_today_amount + summary.payablesAttention.due_next_7_amount)} icon={Clock3} variant="tile" />
                 </div>

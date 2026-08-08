@@ -45,7 +45,7 @@ export function ProductForm({ product, packaging = [], action, formId, showSubmi
             <Input name="product_image" type="file" accept="image/png,image/jpeg,image/webp" />
             <p className="mt-1 text-xs text-muted-foreground">PNG, JPG, or WEBP, up to 2MB.</p>
           </Field>
-          <div className="grid gap-4 border-y bg-secondary/30 py-4 md:col-span-2 md:rounded-[2px] md:border md:p-4 md:grid-cols-4">
+          <div className="grid gap-4 border-y bg-secondary/30 py-4 md:col-span-2 md:rounded-[var(--sb-control-radius)] md:border md:p-4 md:grid-cols-4">
             <div className="md:col-span-4">
               <p className="text-sm font-semibold">Packaging & Pricing</p>
               <p className="mt-1 text-xs text-muted-foreground">Default selling pack used for catalogue and future order pricing.</p>
@@ -67,7 +67,7 @@ export function ProductForm({ product, packaging = [], action, formId, showSubmi
             <input type="hidden" name="packaging_id" value={primaryPackaging?.id ?? ""} />
           </div>
           {product ? <div className="grid gap-4 border-y py-4 md:col-span-2 md:border-0 md:py-0 md:grid-cols-2">
-            <div className="md:col-span-2 md:rounded-[2px] md:border md:bg-secondary/30 md:p-4">
+            <div className="md:col-span-2 md:rounded-[var(--sb-control-radius)] md:border md:bg-secondary/30 md:p-4">
               <p className="text-sm font-semibold">Product Image</p>
               {product.product_image_url ? (
                 // eslint-disable-next-line @next/next/no-img-element

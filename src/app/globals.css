@@ -48,6 +48,7 @@
   --sb-muted: var(--sb-surface-muted);
   --sb-border: #D7DDD8;
   --sb-radius-control: 4px;
+  --sb-shadow-card: 0 1px 2px rgb(6 44 31 / 0.04), 0 8px 24px rgb(6 44 31 / 0.06);
   --sb-border-soft: #E5E9E5;
   --sb-text: #102019;
   --sb-text-muted: #66756D;

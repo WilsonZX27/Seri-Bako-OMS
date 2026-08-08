@@ -81,7 +81,7 @@ export default async function PurchaseOrdersPage({ searchParams }: { searchParam
             </FilterBar>
           </div>
           <div className="sm:hidden">
-            <UnifiedListHeader resultCount={orders.totalRows} resetHref="/purchase-orders" filtered={filtered} activeCount={Number(Boolean(filters.status))}>
+            <UnifiedListHeader phoneOnly resultCount={orders.totalRows} resetHref="/purchase-orders" filtered={filtered} activeCount={Number(Boolean(filters.status))}>
               <Input name="search" defaultValue={filters.search ?? ""} placeholder="Search PO no, supplier, remarks" />
               <StatusTabs statuses={statuses} activeStatus={filters.status} />
               {filters.status ? <input type="hidden" name="status" value={filters.status} /> : null}

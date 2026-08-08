@@ -81,7 +81,7 @@ export default async function StockCountsPage({ searchParams }: { searchParams: 
           </FilterBar>
         </div>
         <div className="sm:hidden">
-          <UnifiedListHeader resultCount={counts.totalRows} resetHref="/stock-counts" filtered={filtered} activeCount={Number(Boolean(filters.branch_id && filters.branch_id !== "all")) + Number(Boolean(filters.status && filters.status !== "all")) + Number(Boolean(filters.from)) + Number(Boolean(filters.to))} className="sb-mobile-list-filter">
+          <UnifiedListHeader phoneOnly resultCount={counts.totalRows} resetHref="/stock-counts" filtered={filtered} activeCount={Number(Boolean(filters.branch_id && filters.branch_id !== "all")) + Number(Boolean(filters.status && filters.status !== "all")) + Number(Boolean(filters.from)) + Number(Boolean(filters.to))} className="sb-mobile-list-filter">
             <Input name="search" defaultValue={filters.search ?? ""} placeholder="Search count no, branch, remarks" />
             <SelectControl name="branch_id" defaultValue={filters.branch_id ?? "all"} ariaLabel="Branch" options={[{ value: "all", label: "All branches" }, ...branches.map((branch) => ({ value: branch.id, label: branch.branch_name }))]} />
             <StatusTabs statuses={statuses} activeStatus={filters.status} />

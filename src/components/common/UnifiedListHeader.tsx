@@ -24,6 +24,7 @@ type HeaderProps = {
   filtered?: boolean;
   activeCount?: number;
   className?: string;
+  phoneOnly?: boolean;
 };
 
 function propsOf(child: ReactNode): Record<string, unknown> {
@@ -87,17 +88,18 @@ function SearchControl({ child, value, onChange }: { child: ReactElement; value:
   );
 }
 
-export function UnifiedListHeader({ children, resultCount, resetHref, filtered = false, activeCount = 0, className }: HeaderProps) {
-  const [mobile, setMobile] = useState(false);
+export function UnifiedListHeader({ children, resultCount, resetHref, filtered = false, activeCount = 0, className, phoneOnly = false }: HeaderProps) {
+  const [mobile, setMobile] = useState(phoneOnly);
   const [open, setOpen] = useState(false);
   const formRef = useRef<HTMLFormElement>(null);
   useEffect(() => {
+    if (phoneOnly) return;
     const query = window.matchMedia("(max-width: 639px)");
     const sync = () => setMobile(query.matches);
     sync();
     query.addEventListener("change", sync);
     return () => query.removeEventListener("change", sync);
-  }, []);
+  }, [phoneOnly]);
 
   useEffect(() => {
     if (!mobile || !open) return;

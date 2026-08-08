@@ -59,7 +59,7 @@ export default async function StockCardPage({ searchParams }: { searchParams: Pr
               </FilterBar>
             </div>
             <div className="sm:hidden">
-              <UnifiedListHeader resultCount={rows.length} resetHref="/stock-card" filtered={filtered} activeCount={Number(Boolean(filters.item_id && filters.item_id !== "all")) + Number(Boolean(filters.branch_id && filters.branch_id !== "all")) + Number(Boolean(filters.type && filters.type !== "all")) + Number(Boolean(filters.from)) + Number(Boolean(filters.to))}>
+              <UnifiedListHeader phoneOnly resultCount={rows.length} resetHref="/stock-card" filtered={filtered} activeCount={Number(Boolean(filters.item_id && filters.item_id !== "all")) + Number(Boolean(filters.branch_id && filters.branch_id !== "all")) + Number(Boolean(filters.type && filters.type !== "all")) + Number(Boolean(filters.from)) + Number(Boolean(filters.to))}>
                 <Input name="search" defaultValue={filters.search ?? ""} placeholder="Search item, transaction, or branch" aria-label="Search stock movements" />
                 <SelectControl name="item_id" defaultValue={filters.item_id ?? "all"} ariaLabel="Item" options={[{ value: "all", label: "All items" }, ...items.map((item) => ({ value: item.id, label: `${item.item_code} — ${item.item_name}` }))]} />
                 <SelectControl name="branch_id" defaultValue={filters.branch_id ?? "all"} ariaLabel="Branch" options={[{ value: "all", label: "All branches" }, ...branches.map((branch) => ({ value: branch.id, label: branch.branch_name }))]} />

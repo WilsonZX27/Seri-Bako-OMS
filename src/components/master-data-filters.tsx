@@ -107,6 +107,7 @@ export function MasterDataFilters({
       </div>
       <div className="sm:hidden">
         <UnifiedListHeader
+          phoneOnly
           resultCount={resultCount}
           resetHref={resetHref}
           filtered={filtered}

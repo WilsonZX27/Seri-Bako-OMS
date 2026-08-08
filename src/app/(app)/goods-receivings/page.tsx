@@ -73,6 +73,7 @@ export default async function GoodsReceivingsPage({ searchParams }: { searchPara
           </div>
           <div className="sm:hidden">
             <UnifiedListHeader
+              phoneOnly
               resultCount={receivings.totalRows}
               resetHref="/goods-receivings"
               filtered={filtered}

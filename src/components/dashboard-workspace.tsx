@@ -283,20 +283,6 @@ export function DashboardWorkspace({ summary, renderedAt }: { summary: Dashboard
           </div>
         </section>
 
-        {isOutlet ? (
-          <Panel title="Today's completion">
-            <div className="flex items-center gap-3 rounded-[var(--sb-radius-control)] bg-[var(--sb-surface)] p-3">
-              {outletComplete ? <CheckCircle2 className="h-5 w-5 text-[var(--sb-success)]" /> : <Clock3 className="h-5 w-5 text-[var(--sb-warning)]" />}
-              <div>
-                <p className="text-sm font-semibold">
-                  {outletComplete ? "Today’s record is complete" : outletStatus ? "Evening update is still required" : "Morning receive has not started"}
-                </p>
-                <p className="text-xs text-muted-foreground">Only your assigned outlet’s record is shown.</p>
-              </div>
-            </div>
-          </Panel>
-        ) : null}
-
         {!isOutlet ? (
           <Panel title="Stock control" action={{ href: "/stock-counts", label: "Open stock counts" }}>
             <div className="grid gap-2 sm:grid-cols-2" data-dashboard-stock-control>
@@ -331,6 +317,20 @@ export function DashboardWorkspace({ summary, renderedAt }: { summary: Dashboard
                 </span>
                 <AlertTriangle className="h-4 w-4 shrink-0 text-[var(--sb-text-muted)]" aria-hidden="true" />
               </Link>
+            </div>
+          </Panel>
+        ) : null}
+
+        {isOutlet ? (
+          <Panel title="Today's completion">
+            <div className="flex items-center gap-3 rounded-[var(--sb-radius-control)] bg-[var(--sb-surface)] p-3">
+              {outletComplete ? <CheckCircle2 className="h-5 w-5 text-[var(--sb-success)]" /> : <Clock3 className="h-5 w-5 text-[var(--sb-warning)]" />}
+              <div>
+                <p className="text-sm font-semibold">
+                  {outletComplete ? "Today’s record is complete" : outletStatus ? "Evening update is still required" : "Morning receive has not started"}
+                </p>
+                <p className="text-xs text-muted-foreground">Only your assigned outlet’s record is shown.</p>
+              </div>
             </div>
           </Panel>
         ) : null}

@@ -58,7 +58,7 @@ export function WorkspaceGrid({
 }
 
 export function RightRail({ children, className }: { children: ReactNode; className?: string }) {
-  return <aside className={cn("min-h-0 min-w-0 space-y-3 xl:sticky xl:top-3 xl:max-h-[calc(100dvh-72px)] xl:overflow-y-auto xl:pr-1", className)}>{children}</aside>;
+  return <aside className={cn("min-h-0 min-w-0 space-y-3 xl:sticky xl:top-3 xl:max-h-[calc(100dvh-72px)] xl:overflow-y-auto", className)}>{children}</aside>;
 }
 
 export function ActionPanel({ children, title = "Actions" }: { children: ReactNode; title?: string }) {

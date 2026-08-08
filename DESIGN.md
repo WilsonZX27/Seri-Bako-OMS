@@ -540,3 +540,10 @@ the route matrix in `docs/qa/FULL_SYSTEM_AUDIT_MATRIX.md`.
 - Autosaved or manually saved Stock Counts that have not posted inventory expose an explicit, confirmation-protected `Cancel stock count` action in the shared More options area.
 - Cancellation removes the count from active work while preserving its audit history; it does not create a ledger movement and does not replace the separate `Delete draft` control.
 - Posted counts remain immutable. The primary action pair stays limited to `Save draft` and `Confirm & Post Count`; destructive actions remain secondary to reduce accidental taps.
+# v8.38.0 — Phone Search Surface Evolution
+
+- Phone list routes (`max-width: 639px`) use the shared `UnifiedListHeader`: one 44px search control, one icon filter trigger, and the result total. Search submits from its own form after the short debounce; it must never submit an unrelated form on the page.
+- Phone-only filters open a full-viewport backdrop and bottom sheet above the mobile navigation. The backdrop owns `z-index: 100`, the sheet owns `z-index: 101`, and both include the safe-area inset. Reset and Apply remain visible while filter fields scroll.
+- Tablet (`640px–1023px`) and desktop keep the practical inline filter controls and right action rail. They do not receive the phone drawer or its icon-only replacement unless a route explicitly documents a different task surface.
+- This is a responsive presentation change only. Filter names, query parameters, authorization, Supabase data sources, and server-side pagination remain unchanged.
+- A shared control may evolve when viewport evidence demonstrates a real comprehension or density defect. New rules supersede earlier historical notes; the newest section is authoritative for future implementation.

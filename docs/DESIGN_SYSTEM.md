@@ -78,3 +78,12 @@ Additional implementation references: [Vercel Geist typography](https://vercel.c
 - Apple HIG: purpose, familiarity, feedback, adaptive layout, and consistent hierarchy.
 - Enterprise list patterns: split-view inspection on tablet, scannable row identity, and persistent action context.
 - Accessibility is part of quality: keyboard focus, clear labels, reduced-motion support, touch-safe targets, and semantic live states are mandatory.
+# Phone search and filter contract (v8.38.0)
+
+The phone list surface is intentionally distinct from tablet and desktop. At `max-width: 639px`, `UnifiedListHeader` renders a single 44px search row with a Lucide search affordance, a clear affordance when text exists, a filter trigger, and the result count. The search control owns its form submission and debounces query updates without touching unrelated page forms.
+
+The phone filter trigger opens a full-viewport backdrop at `z-index: 100` and a bottom sheet at `z-index: 101`. The sheet completely covers mobile navigation, respects the safe-area inset, and keeps Reset and Apply visible while its fields scroll. This is the only viewport that uses the iconic search/filter-drawer treatment.
+
+At `640px–1023px`, retain inline filters and the documented master/list-to-rail split. At desktop, retain inline filters and the right action rail. Responsive presentation may change density and placement, but it must not change query semantics, authorization, business logic, or Supabase data sources.
+
+The newest versioned rule is authoritative when it conflicts with an older historical note in this document. Promote a rule only after evidence from representative phone, tablet, and desktop routes demonstrates a real usability or density improvement.

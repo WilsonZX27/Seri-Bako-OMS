@@ -683,6 +683,7 @@ nav[aria-label="Pagination"] > span,
   }
 
   .unified-list-header { display: block !important; padding: .75rem !important; position: relative; }
+  form[data-unified-list-desktop="true"] { display: none; }
   .unified-list-row { display: flex; align-items: center; gap: .5rem; min-height: 2.75rem; }
   .unified-list-primary-control { position: relative; flex: 1 1 auto; min-width: 0; }
   .unified-list-primary-input { width: 100% !important; min-width: 0 !important; height: 2.75rem !important; padding-left: 2.25rem !important; padding-right: 2.25rem !important; border-radius: .375rem !important; }

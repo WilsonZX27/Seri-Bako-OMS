@@ -136,7 +136,7 @@ export function UnifiedListHeader({ children, resultCount, resetHref, filtered =
     searchTimerRef.current = setTimeout(() => formRef.current?.requestSubmit(), 300);
   };
 
-  if (!mobile) return <form className={cn("sb-list-filters", className)} data-filtered={filtered || undefined} data-reset-href={resetHref}>{children}{typeof resultCount === "number" ? <div className="sb-filter-summary" aria-live="polite"><span>{resultCount} {resultCount === 1 ? "record" : "records"}</span></div> : null}</form>;
+  if (!mobile) return <form className={cn("sb-list-filters", className)} data-unified-list-desktop="true" data-filtered={filtered || undefined} data-reset-href={resetHref}>{children}{typeof resultCount === "number" ? <div className="sb-filter-summary" aria-live="polite"><span>{resultCount} {resultCount === 1 ? "record" : "records"}</span></div> : null}</form>;
 
   const submit = (event: FormEvent<HTMLFormElement>) => {
     event.currentTarget.querySelectorAll<HTMLButtonElement>('button[type="submit"]').forEach((button) => { button.disabled = true; button.dataset.pending = "true"; });

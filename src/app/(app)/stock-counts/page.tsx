@@ -72,7 +72,7 @@ export default async function StockCountsPage({ searchParams }: { searchParams: 
     </div>}>
       <div className="overflow-hidden rounded-[var(--sb-panel-radius)] border bg-card" data-tablet-main-list>
         <div className="hidden sm:block">
-          <FilterBar resultCount={counts.totalRows} resetHref="/stock-counts" filtered={filtered} className="sb-tablet-split-filter sb-mobile-list-filter">
+          <FilterBar resultCount={counts.totalRows} resetHref="/stock-counts" filtered={filtered} className="sb-tablet-split-filter">
             <Input name="search" defaultValue={filters.search ?? ""} placeholder="Search count no, branch, remarks" />
             <SelectControl name="branch_id" defaultValue={filters.branch_id ?? "all"} ariaLabel="Branch" options={[{ value: "all", label: "All branches" }, ...branches.map((branch) => ({ value: branch.id, label: branch.branch_name }))]} />
             <SelectControl name="status" defaultValue={filters.status ?? "all"} ariaLabel="Status" options={[{ value: "all", label: "All statuses" }, { value: "draft", label: "Draft" }, { value: "posted", label: "Posted" }, { value: "cancelled", label: "Cancelled" }]} />

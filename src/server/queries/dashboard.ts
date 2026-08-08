@@ -22,6 +22,10 @@ function warnOptionalQuery(name: string, error: { message?: string } | null | un
   if (error) logServerWarning(error, { source: `dashboard.optional.${name}` });
 }
 
+function warnOptionalQueryResult<T extends { error?: { message?: string } | null }>(name: string, result: T) {
+  warnOptionalQuery(name, result.error);
+}
+
 type DashboardCoreSnapshot = {
   total_items: number;
   total_suppliers: number;
@@ -153,9 +157,9 @@ export async function getDashboardSummary() {
       : Promise.resolve(null),
   ]);
 
-  warnOptionalQuery("core snapshot", coreSnapshotResult.error);
-  warnOptionalQuery("current staff", currentStaff.error);
-  warnOptionalQuery("assigned branches", assignedBranches.error);
+  warnOptionalQueryResult("core snapshot", coreSnapshotResult);
+  warnOptionalQueryResult("current staff", currentStaff);
+  warnOptionalQueryResult("assigned branches", assignedBranches);
 
   const coreSnapshot = coreSnapshotResult.data as DashboardCoreSnapshot | null;
   const coreUnavailable = (needsProcurement || needsInventory) && (Boolean(coreSnapshotResult.error) || !coreSnapshot);

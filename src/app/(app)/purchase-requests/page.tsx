@@ -71,7 +71,7 @@ export default async function PurchaseRequestsPage({ searchParams }: { searchPar
       >
         <div className="overflow-hidden rounded-[var(--sb-panel-radius)] border border-[var(--sb-border-soft)] bg-card" data-tablet-main-list>
           <div className="hidden sm:block">
-            <FilterBar resetHref="/purchase-requests" filtered={filtered} resultCount={requests.totalRows} className="sb-tablet-split-filter sb-mobile-list-filter">
+            <FilterBar resetHref="/purchase-requests" filtered={filtered} resultCount={requests.totalRows} className="sb-tablet-split-filter">
               <Input name="search" defaultValue={filters.search ?? ""} placeholder="Search PR no, branch, remarks" className="md:max-w-sm" />
               <SelectControl name="status" defaultValue={filters.status ?? "all"} ariaLabel="Status" options={[{ value: "all", label: "All statuses" }, ...statuses.map((status) => ({ value: status.value, label: status.label }))]} />
               <SelectControl name="priority" defaultValue={filters.priority ?? "all"} ariaLabel="Priority" options={[{ value: "all", label: "All priorities" }, { value: "critical", label: "Critical" }, { value: "urgent", label: "Urgent" }, { value: "normal", label: "Normal" }, { value: "low", label: "Low" }]} />

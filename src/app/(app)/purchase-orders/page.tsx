@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { PageHeader } from "@/components/ui/page-header";
 import { FilterBar } from "@/components/ui/filter-bar";
+import { UnifiedListHeader } from "@/components/common/UnifiedListHeader";
 import { PaginationControls, SortableHead } from "@/components/sortable-table";
 import { StatusTabs } from "@/components/status-tabs";
 import { OperationalList, OperationalListRow, Table, TableActionLink, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -65,13 +66,22 @@ export default async function PurchaseOrdersPage({ searchParams }: { searchParam
         }
       >
         <div className="overflow-hidden rounded-[2px] border border-[var(--sb-border-soft)] bg-card">
-          <FilterBar resetHref="/purchase-orders" filtered={filtered}>
-            <Input name="search" defaultValue={filters.search ?? ""} placeholder="Search PO no, supplier, remarks" className="min-w-0 flex-1 md:max-w-sm" />
-            <StatusTabs statuses={statuses} activeStatus={filters.status} />
-            <div className="sb-filter-summary" aria-live="polite"><span>{orders.totalRows} {orders.totalRows === 1 ? "record" : "records"}</span></div>
-            {filtered ? <Button asChild variant="secondary" className="shrink-0"><Link href="/purchase-orders">Reset</Link></Button> : <Button type="submit" variant="secondary" className="shrink-0">Search</Button>}
-            {filters.status ? <input type="hidden" name="status" value={filters.status} /> : null}
-          </FilterBar>
+          <div className="hidden sm:block">
+            <FilterBar resetHref="/purchase-orders" filtered={filtered}>
+              <Input name="search" defaultValue={filters.search ?? ""} placeholder="Search PO no, supplier, remarks" className="min-w-0 flex-1 md:max-w-sm" />
+              <StatusTabs statuses={statuses} activeStatus={filters.status} />
+              <div className="sb-filter-summary" aria-live="polite"><span>{orders.totalRows} {orders.totalRows === 1 ? "record" : "records"}</span></div>
+              {filtered ? <Button asChild variant="secondary" className="shrink-0"><Link href="/purchase-orders">Reset</Link></Button> : <Button type="submit" variant="secondary" className="shrink-0">Search</Button>}
+              {filters.status ? <input type="hidden" name="status" value={filters.status} /> : null}
+            </FilterBar>
+          </div>
+          <div className="sm:hidden">
+            <UnifiedListHeader resultCount={orders.totalRows} resetHref="/purchase-orders" filtered={filtered} activeCount={Number(Boolean(filters.status))}>
+              <Input name="search" defaultValue={filters.search ?? ""} placeholder="Search PO no, supplier, remarks" />
+              <StatusTabs statuses={statuses} activeStatus={filters.status} />
+              {filters.status ? <input type="hidden" name="status" value={filters.status} /> : null}
+            </UnifiedListHeader>
+          </div>
           <DataGridHint text="Pro-tip: Double-click any row to open the purchase order." />
           <Table mobileHidden aria-label="Purchase orders" stickyColumn="second">
               <TableHeader>

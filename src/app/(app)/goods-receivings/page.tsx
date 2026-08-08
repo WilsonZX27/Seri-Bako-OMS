@@ -26,6 +26,11 @@ export default async function GoodsReceivingsPage({ searchParams }: { searchPara
   const filters = await searchParams;
   const [receivings, summary, canCreate] = await Promise.all([getGoodsReceivings(filters), getGoodsReceivingSummary(), hasPermission("grn.create")]);
   const filtered = hasActiveFilters(filters);
+  const emptyStateAction = filtered
+    ? { href: "/goods-receivings", label: "Reset filters" }
+    : canCreate
+      ? { href: "/goods-receivings/new", label: "New GRN" }
+      : undefined;
   return (
     <>
       <PageHeader
@@ -107,7 +112,7 @@ export default async function GoodsReceivingsPage({ searchParams }: { searchPara
                     <TableCell className="text-right">{formatNumber(receiving.rejected_total)}</TableCell>
                   </DataGridRow>
                 ))}
-                {!receivings.rows.length ? <TableRow><TableCell colSpan={9}><EmptyState title={filtered ? "No receivings match these filters" : "No goods receivings yet"} description={filtered ? "Reset the filters or widen the search." : "Supplier deliveries will appear after they are recorded."} action={filtered ? { href: "/goods-receivings", label: "Reset filters" } : undefined} /></TableCell></TableRow> : null}
+                {!receivings.rows.length ? <TableRow><TableCell colSpan={9}><EmptyState title={filtered ? "No receivings match these filters" : "No goods receivings yet"} description={filtered ? "Reset the filters or widen the search." : "Supplier deliveries will appear after they are recorded."} action={emptyStateAction} /></TableCell></TableRow> : null}
               </TableBody>
             </Table>
             <OperationalList ariaLabel="Goods receiving records">
@@ -120,7 +125,7 @@ export default async function GoodsReceivingsPage({ searchParams }: { searchPara
                 secondary={`${receiving.supplier_name ?? "No supplier"} · ${receiving.branch_name ?? "No branch"}`}
                 meta={`${formatNumber(receiving.received_total)} in · ${formatNumber(receiving.rejected_total)} rejected`}
               />)}
-              {!receivings.rows.length ? <EmptyState title={filtered ? "No receivings match these filters" : "No goods receivings yet"} description={filtered ? "Reset the filters or widen the search." : "Supplier deliveries will appear after they are recorded."} action={filtered ? { href: "/goods-receivings", label: "Reset filters" } : undefined} /> : null}
+              {!receivings.rows.length ? <EmptyState title={filtered ? "No receivings match these filters" : "No goods receivings yet"} description={filtered ? "Reset the filters or widen the search." : "Supplier deliveries will appear after they are recorded."} action={emptyStateAction} /> : null}
             </OperationalList>
           <PaginationControls page={receivings.page} totalPages={receivings.totalPages} totalRows={receivings.totalRows} searchParams={filters} />
         </div>

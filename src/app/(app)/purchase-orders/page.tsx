@@ -34,6 +34,11 @@ export default async function PurchaseOrdersPage({ searchParams }: { searchParam
   const filters = await searchParams;
   const [orders, summary, permissions] = await Promise.all([getPurchaseOrders(filters), getPurchaseOrderSummary(), getPermissionMap(["po.create"])]);
   const filtered = hasActiveFilters(filters);
+  const emptyStateAction = filtered
+    ? { href: "/purchase-orders", label: "Reset filters" }
+    : permissions["po.create"]
+      ? { href: "/purchase-orders/new", label: "New PO" }
+      : undefined;
   return (
     <>
       <PageHeader
@@ -109,7 +114,7 @@ export default async function PurchaseOrdersPage({ searchParams }: { searchParam
                     <TableCell className="hidden text-right md:table-cell">{formatCurrency(order.order_total)}</TableCell>
                   </DataGridRow>
                 ))}
-                {!orders.rows.length ? <TableRow><TableCell colSpan={8}><EmptyState title={filtered ? "No orders match these filters" : "No purchase orders yet"} description={filtered ? "Reset the filters or widen the search." : "Approved requests and new orders will appear here."} action={filtered ? { href: "/purchase-orders", label: "Reset filters" } : undefined} /></TableCell></TableRow> : null}
+                {!orders.rows.length ? <TableRow><TableCell colSpan={8}><EmptyState title={filtered ? "No orders match these filters" : "No purchase orders yet"} description={filtered ? "Reset the filters or widen the search." : "Approved requests and new orders will appear here."} action={emptyStateAction} /></TableCell></TableRow> : null}
               </TableBody>
             </Table>
             <OperationalList ariaLabel="Purchase orders">
@@ -122,7 +127,7 @@ export default async function PurchaseOrdersPage({ searchParams }: { searchParam
                 secondary={`${order.supplier_name ?? "No supplier"} · ${formatDateOnly(order.order_date)}`}
                 meta={`${order.line_count} items · ${formatCurrency(order.order_total)}`}
               />)}
-              {!orders.rows.length ? <EmptyState title={filtered ? "No orders match these filters" : "No purchase orders yet"} description={filtered ? "Reset the filters or widen the search." : "Approved requests and new orders will appear here."} action={filtered ? { href: "/purchase-orders", label: "Reset filters" } : undefined} /> : null}
+              {!orders.rows.length ? <EmptyState title={filtered ? "No orders match these filters" : "No purchase orders yet"} description={filtered ? "Reset the filters or widen the search." : "Approved requests and new orders will appear here."} action={emptyStateAction} /> : null}
             </OperationalList>
           <PaginationControls page={orders.page} totalPages={orders.totalPages} totalRows={orders.totalRows} searchParams={filters} />
         </div>

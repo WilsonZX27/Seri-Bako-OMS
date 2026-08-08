@@ -44,6 +44,7 @@ export default async function PurchaseRequestsPage({ searchParams }: { searchPar
         title="Purchase Requests"
         description="Create, review, return, and convert branch requests into purchase orders."
         action={permissions["pr.create"] ? { href: "/purchase-requests/new", label: "New purchase request" } : undefined}
+        hideTabletCreateFab
       />
       <WorkspaceGrid
         className="pt-4"

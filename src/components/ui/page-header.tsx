@@ -14,10 +14,13 @@ type PageHeaderProps = {
     href: string;
     label: string;
   };
+  /** Split tablet workspaces expose the same create action in their right rail. */
+  hideTabletCreateFab?: boolean;
 };
 
 export function PageHeader(props: PageHeaderProps) {
   const isCreateAction = Boolean(props.action && /^(new|create)\b/i.test(props.action.label));
+  const createFabVisibility = props.hideTabletCreateFab ? "md:hidden xl:hidden" : "xl:hidden";
 
   return (
     <>
@@ -50,7 +53,7 @@ export function PageHeader(props: PageHeaderProps) {
         </div>
       ) : null}
       {props.action && isCreateAction ? (
-        <Button asChild size="icon" data-page-create-fab data-mobile-create-fab className="fixed bottom-[calc(var(--sb-mobile-nav-height)+env(safe-area-inset-bottom)+1rem)] right-4 z-[var(--sb-z-sticky)] h-14 w-14 rounded-full shadow-[0_3px_8px_rgb(6_44_31_/_0.22)] xl:hidden">
+        <Button asChild size="icon" data-page-create-fab data-mobile-create-fab className={`fixed bottom-[calc(var(--sb-mobile-nav-height)+env(safe-area-inset-bottom)+1rem)] right-4 z-[var(--sb-z-sticky)] h-14 w-14 rounded-full shadow-[0_3px_8px_rgb(6_44_31_/_0.22)] ${createFabVisibility}`}>
           <Link href={props.action.href} aria-label={props.action.label} title={props.action.label}>
             <Plus className="h-5 w-5" aria-hidden="true" />
             <span className="sr-only">{props.action.label}</span>

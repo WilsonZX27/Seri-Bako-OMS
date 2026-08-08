@@ -501,8 +501,8 @@ input[type="date"]::-webkit-date-and-time-value {
 
 @media (max-width: 767px) {
   :root {
-    --sb-radius-control: 0.125rem;
-    --sb-panel-radius: 0.5rem;
+    --sb-radius-control: 0.25rem;
+    --sb-panel-radius: 0.25rem;
     /* Phone controls meet the 48px minimum target for gloved or wet hands. */
     --sb-control-height: 3rem;
   }

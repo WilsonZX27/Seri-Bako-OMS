@@ -17,8 +17,10 @@
   --sb-green-200: #c4dfd2;
   --sb-green-100: #e7f1eb;
   --sb-control-height: 2.625rem;
-  --sb-radius-control: 0.5rem;
-  --sb-panel-radius: 0.75rem;
+  /* Shared geometry: controls and interior panels use the same 4px radius.
+     Pills/badges remain explicitly circular where their semantics require it. */
+  --sb-radius-control: 0.25rem;
+  --sb-panel-radius: 0.25rem;
   --sb-shadow-xs: 0 1px 2px rgb(12 43 32 / 0.05), 0 1px 1px rgb(12 43 32 / 0.03);
   --sb-shadow-sm: 0 5px 18px rgb(12 43 32 / 0.07), 0 1px 3px rgb(12 43 32 / 0.05);
   --sb-shadow-md: 0 14px 36px rgb(12 43 32 / 0.10), 0 3px 10px rgb(12 43 32 / 0.06);
@@ -464,12 +466,9 @@ aside section > h2 {
 
   .erp-surface,
   .sb-work-surface,
-  .border.bg-card {
-    border-radius: 0.625rem;
-  }
-
+  .border.bg-card,
   .sb-command-surface {
-    border-radius: 0.875rem;
+    border-radius: var(--sb-panel-radius);
   }
 }
 

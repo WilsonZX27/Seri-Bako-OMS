@@ -112,6 +112,19 @@ export function UnifiedListHeader({ children, resultCount, resetHref, filtered =
     return () => query.removeEventListener("change", sync);
   }, []);
 
+  useEffect(() => {
+    if (!mobile || !open) return;
+
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    document.documentElement.dataset.mobileSheetOpen = "true";
+
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      delete document.documentElement.dataset.mobileSheetOpen;
+    };
+  }, [mobile, open]);
+
   const all = Children.toArray(children);
   const candidates = all.filter((child) => !isAction(child) && !isFilterMore(child));
   const primary = candidates.find(isSearchControl) ?? candidates.find(isPrimaryControl);

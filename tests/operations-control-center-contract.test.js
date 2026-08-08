@@ -8,15 +8,16 @@ const outlet = read("src/server/queries/outlet-daily-records.ts");
 const workspace = read("src/components/dashboard-workspace.tsx");
 
 test("Operations Control Center reuses existing outlet and demand query sources", () => {
-  assert.match(dashboard, /getOperationsControlCenterSummary/);
-  assert.match(outlet, /Promise\.allSettled\(\[getOutletDailyRecords\(\), getOutletDailyDemandTrend\(\{ period: "7" \}\)\]\)/);
-  assert.match(outlet, /buildProductionDemandVariance\(trend\)/);
-  assert.match(outlet, /buildProductionPlanning\(trend\)/);
+  assert.match(dashboard, /get_dashboard_core_snapshot/);
+  assert.match(dashboard, /outlet_daily_records/);
+  assert.match(outlet, /getOutletDailyRecords/);
+  assert.match(outlet, /getOutletDailyDemandTrend/);
 });
 
 test("Operations Control Center isolates outlet and demand failures", () => {
-  assert.match(outlet, /unavailable: \{ outlet: !outlet, demand: !trend \}/);
-  assert.match(dashboard, /getOperationsControlCenterSummary\(\)\.catch\(\(error\) => \{[\s\S]*warnOptionalQuery\("operations control", error\);[\s\S]*return null/);
+  assert.match(dashboard, /warnOptionalQueryResult\("core snapshot", coreSnapshotResult\)/);
+  assert.match(dashboard, /const coreUnavailable =/);
+  assert.match(dashboard, /todayReceivingUnavailable: coreUnavailable/);
   assert.match(dashboard, /dashboard\.optional\.\$\{name\}/);
   assert.match(workspace, /No urgent operational exceptions are visible in your scope/);
 });

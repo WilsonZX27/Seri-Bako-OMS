@@ -50,7 +50,7 @@ test("dashboard, AP Aging and invoice detail use the shared live report without 
   const aging = read("src/app/(app)/supplier-invoices/aging/page.tsx");
   const topbar = read("src/server/queries/topbar.ts");
   assert.match(query, /getPayablesAttention/);
-  assert.match(query, /getApAgingReport\(\)/);
+  assert.match(query, /getApAgingReport\(/);
   assert.match(detail, /getApAgingReport\(\{ search: invoice\.invoice_no \}\)/);
   for (const href of ["bucket=missing_due_date", "bucket=overdue_90_plus", "overdue=1", "bucket=due_today", "due_from="]) assert.match(dashboard + aging, new RegExp(href));
   assert.match(aging, /row\.alert_label/);

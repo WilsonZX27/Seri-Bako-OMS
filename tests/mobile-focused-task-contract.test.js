@@ -36,8 +36,8 @@ test("document detail actions sit above the persistent phone navigation", () => 
   const css = read("src/app/globals.css");
 
   assert.match(workspace, /data-mobile-document-action/);
-  assert.doesNotMatch(css, /html:has\(\[data-mobile-document-action\]\) \[data-mobile-app-nav\][\s\S]{0,160}display: none/);
-  assert.match(css, /html:has\(\[data-mobile-document-action\]\) \[data-mobile-document-action\][\s\S]*bottom: calc\(var\(--sb-mobile-nav-height\) \+ env\(safe-area-inset-bottom\) \+ 0\.5rem\) !important/);
+  assert.match(css, /html:has\(\[data-mobile-document-action\]\) \[data-mobile-app-nav\][\s\S]{0,160}display: none/);
+  assert.match(css, /html:has\(\[data-mobile-document-action\]\) \[data-mobile-document-action\][\s\S]*bottom: env\(safe-area-inset-bottom\) !important/);
   assert.match(context, /if \(!context\.backHref\)/);
   assert.match(context, /href=\{context\.backHref\}/);
 });

@@ -30,8 +30,9 @@ test("high-volume inventory lists filter and page in the database", () => {
   const inventory = fs.readFileSync("src/server/queries/inventory.ts", "utf8");
   const counts = fs.readFileSync("src/server/queries/stock-counts.ts", "utf8");
 
-  assert.match(inventory, /from\("stock_ledger_view"\)\.select\("\*", \{ count: "exact" \}\)/);
-  assert.match(inventory, /query = query\.range\(range\.from, range\.to\)/);
+  assert.match(inventory, /rpc\("get_stock_ledger_bounded_page"/);
+  assert.match(inventory, /p_offset: exportAll \? 0 : \(page - 1\) \* INVENTORY_PAGE_SIZE/);
+  assert.match(inventory, /p_limit: exportAll \? 50000 : INVENTORY_PAGE_SIZE/);
   assert.match(inventory, /from\("stock_balances_summary"\)\.select\("\*", \{ count: "exact" \}\)/);
   assert.match(counts, /from\("stock_counts_list_view"\)\.select\("\*", \{ count: "exact" \}\)/);
   assert.match(counts, /query = query\.range\(\(page - 1\) \* STOCK_COUNT_PAGE_SIZE/);

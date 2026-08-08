@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { FilterBar, FilterBarMore } from "@/components/ui/filter-bar";
+import { UnifiedListHeader } from "@/components/common/UnifiedListHeader";
 import { Input } from "@/components/ui/input";
 import { WorkspaceGrid } from "@/components/layout/workspace-layout";
 import { PageHeader } from "@/components/ui/page-header";
@@ -44,17 +45,31 @@ export default async function StockCardPage({ searchParams }: { searchParams: Pr
       <WorkspaceGrid className="p-3 sm:p-4">
         <div className="space-y-3">
           <section className="sb-list-filters--stock-card overflow-hidden rounded-[2px] border bg-card" aria-label="Stock card filters">
-            <FilterBar resultCount={rows.length} resetHref="/stock-card" filtered={filtered}>
-              <Input name="search" defaultValue={filters.search ?? ""} placeholder="Search item, transaction, or branch" aria-label="Search stock movements" />
-              <SelectControl name="item_id" defaultValue={filters.item_id ?? "all"} ariaLabel="Item" options={[{ value: "all", label: "All items" }, ...items.map((item) => ({ value: item.id, label: `${item.item_code} — ${item.item_name}` }))]} />
-              <SelectControl name="branch_id" defaultValue={filters.branch_id ?? "all"} ariaLabel="Branch" options={[{ value: "all", label: "All branches" }, ...branches.map((branch) => ({ value: branch.id, label: branch.branch_name }))]} />
-              <FilterBarMore activeCount={Number(Boolean(filters.type && filters.type !== "all")) + Number(Boolean(filters.from)) + Number(Boolean(filters.to))} resetHref="/stock-card">
-                <SelectControl name="type" defaultValue={filters.type ?? "all"} ariaLabel="Movement type" options={[{ value: "all", label: "All movement types" }, ...["opening_balance", "purchase", "transfer_in", "transfer_out", "production_output", "production_usage", "wastage", "damage", "stock_adjustment", "stock_count_adjustment", "correction"].map((type) => ({ value: type, label: type.replaceAll("_", " ") }))]} />
-                <label className="grid gap-1 text-xs">From date<Input name="from" type="date" defaultValue={effectiveFilters.from} aria-label="From date" /></label>
-                <label className="grid gap-1 text-xs">To date<Input name="to" type="date" defaultValue={effectiveFilters.to} aria-label="To date" /></label>
-              </FilterBarMore>
-            {filtered ? <Button asChild variant="secondary" className="sb-filter-submit"><Link href="/stock-card">Reset</Link></Button> : <Button type="submit" variant="secondary" className="sb-filter-submit">Apply</Button>}
-            </FilterBar>
+            <div className="hidden sm:block">
+              <FilterBar resultCount={rows.length} resetHref="/stock-card" filtered={filtered}>
+                <Input name="search" defaultValue={filters.search ?? ""} placeholder="Search item, transaction, or branch" aria-label="Search stock movements" />
+                <SelectControl name="item_id" defaultValue={filters.item_id ?? "all"} ariaLabel="Item" options={[{ value: "all", label: "All items" }, ...items.map((item) => ({ value: item.id, label: `${item.item_code} — ${item.item_name}` }))]} />
+                <SelectControl name="branch_id" defaultValue={filters.branch_id ?? "all"} ariaLabel="Branch" options={[{ value: "all", label: "All branches" }, ...branches.map((branch) => ({ value: branch.id, label: branch.branch_name }))]} />
+                <FilterBarMore activeCount={Number(Boolean(filters.type && filters.type !== "all")) + Number(Boolean(filters.from)) + Number(Boolean(filters.to))} resetHref="/stock-card">
+                  <SelectControl name="type" defaultValue={filters.type ?? "all"} ariaLabel="Movement type" options={[{ value: "all", label: "All movement types" }, ...["opening_balance", "purchase", "transfer_in", "transfer_out", "production_output", "production_usage", "wastage", "damage", "stock_adjustment", "stock_count_adjustment", "correction"].map((type) => ({ value: type, label: type.replaceAll("_", " ") }))]} />
+                  <label className="grid gap-1 text-xs">From date<Input name="from" type="date" defaultValue={effectiveFilters.from} aria-label="From date" /></label>
+                  <label className="grid gap-1 text-xs">To date<Input name="to" type="date" defaultValue={effectiveFilters.to} aria-label="To date" /></label>
+                </FilterBarMore>
+                {filtered ? <Button asChild variant="secondary" className="sb-filter-submit"><Link href="/stock-card">Reset</Link></Button> : <Button type="submit" variant="secondary" className="sb-filter-submit">Apply</Button>}
+              </FilterBar>
+            </div>
+            <div className="sm:hidden">
+              <UnifiedListHeader resultCount={rows.length} resetHref="/stock-card" filtered={filtered} activeCount={Number(Boolean(filters.item_id && filters.item_id !== "all")) + Number(Boolean(filters.branch_id && filters.branch_id !== "all")) + Number(Boolean(filters.type && filters.type !== "all")) + Number(Boolean(filters.from)) + Number(Boolean(filters.to))}>
+                <Input name="search" defaultValue={filters.search ?? ""} placeholder="Search item, transaction, or branch" aria-label="Search stock movements" />
+                <SelectControl name="item_id" defaultValue={filters.item_id ?? "all"} ariaLabel="Item" options={[{ value: "all", label: "All items" }, ...items.map((item) => ({ value: item.id, label: `${item.item_code} — ${item.item_name}` }))]} />
+                <SelectControl name="branch_id" defaultValue={filters.branch_id ?? "all"} ariaLabel="Branch" options={[{ value: "all", label: "All branches" }, ...branches.map((branch) => ({ value: branch.id, label: branch.branch_name }))]} />
+                <FilterBarMore activeCount={Number(Boolean(filters.type && filters.type !== "all")) + Number(Boolean(filters.from)) + Number(Boolean(filters.to))} resetHref="/stock-card">
+                  <SelectControl name="type" defaultValue={filters.type ?? "all"} ariaLabel="Movement type" options={[{ value: "all", label: "All movement types" }, ...["opening_balance", "purchase", "transfer_in", "transfer_out", "production_output", "production_usage", "wastage", "damage", "stock_adjustment", "stock_count_adjustment", "correction"].map((type) => ({ value: type, label: type.replaceAll("_", " ") }))]} />
+                  <label className="grid gap-1 text-xs">From date<Input name="from" type="date" defaultValue={effectiveFilters.from} aria-label="From date" /></label>
+                  <label className="grid gap-1 text-xs">To date<Input name="to" type="date" defaultValue={effectiveFilters.to} aria-label="To date" /></label>
+                </FilterBarMore>
+              </UnifiedListHeader>
+            </div>
           </section>
 
           <section className="overflow-hidden rounded-[2px] border bg-card" aria-labelledby="stock-card-summary">

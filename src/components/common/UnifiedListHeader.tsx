@@ -59,25 +59,12 @@ function isSearchControl(child: ReactNode) {
   return searchable.includes("search") || searchable.includes("find");
 }
 
-function SearchControl({ child, formRef }: { child: ReactElement; formRef: React.RefObject<HTMLFormElement | null> }) {
+function SearchControl({ child, value, onChange }: { child: ReactElement; value: string; onChange: (value: string) => void }) {
   const props = propsOf(child);
-  const initial = typeof props.defaultValue === "string" ? props.defaultValue : typeof props.value === "string" ? props.value : "";
-  const [value, setValue] = useState(initial);
-  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  useEffect(() => () => {
-    if (timerRef.current) clearTimeout(timerRef.current);
-  }, []);
 
   if (props.type === "date") {
     return <div className="unified-list-primary-control unified-list-date-control">{cloneElement(child as ReactElement<Record<string, unknown>>, { className: cn("unified-list-primary-input", props.className as string) })}</div>;
   }
-
-  const update = (next: string) => {
-    setValue(next);
-    if (timerRef.current) clearTimeout(timerRef.current);
-    timerRef.current = setTimeout(() => formRef.current?.requestSubmit(), 300);
-  };
 
   const control = cloneElement(child as ReactElement<Record<string, unknown>>, {
     ...props,
@@ -86,7 +73,7 @@ function SearchControl({ child, formRef }: { child: ReactElement; formRef: React
     enterKeyHint: "search",
     onChange: (event: React.ChangeEvent<HTMLInputElement>) => {
       if (typeof props.onChange === "function") props.onChange(event);
-      update(event.target.value);
+      onChange(event.target.value);
     },
     className: cn("unified-list-primary-input", props.className as string),
   });
@@ -95,7 +82,7 @@ function SearchControl({ child, formRef }: { child: ReactElement; formRef: React
     <div className="unified-list-primary-control">
       <Search aria-hidden="true" className="unified-list-search-icon" />
       {control}
-      {value ? <button type="button" className="unified-list-clear" aria-label="Clear search" onClick={() => update("")}><X /></button> : null}
+      {value ? <button type="button" className="unified-list-clear" aria-label="Clear search" onClick={() => onChange("")}><X /></button> : null}
     </div>
   );
 }
@@ -132,6 +119,22 @@ export function UnifiedListHeader({ children, resultCount, resetHref, filtered =
   const filters = useMemo(() => all.filter((child) => child !== primary && !isAction(child) && !isFilterMore(child)), [all, primary]);
   const nested = more && isValidElement(more) ? Children.toArray(propsOf(more).children as ReactNode) : [];
   const active = activeCount || (more && isValidElement(more) && typeof propsOf(more).activeCount === "number" ? propsOf(more).activeCount as number : 0);
+  const primaryProps = primary && isValidElement(primary) ? propsOf(primary) : {};
+  const initialSearchValue = typeof primaryProps.defaultValue === "string"
+    ? primaryProps.defaultValue
+    : typeof primaryProps.value === "string" ? primaryProps.value : "";
+  const [searchValue, setSearchValue] = useState(initialSearchValue);
+  const searchTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => () => {
+    if (searchTimerRef.current) clearTimeout(searchTimerRef.current);
+  }, []);
+
+  const updateSearch = (next: string) => {
+    setSearchValue(next);
+    if (searchTimerRef.current) clearTimeout(searchTimerRef.current);
+    searchTimerRef.current = setTimeout(() => formRef.current?.requestSubmit(), 300);
+  };
 
   if (!mobile) return <form className={cn("sb-list-filters", className)} data-filtered={filtered || undefined} data-reset-href={resetHref}>{children}{typeof resultCount === "number" ? <div className="sb-filter-summary" aria-live="polite"><span>{resultCount} {resultCount === 1 ? "record" : "records"}</span></div> : null}</form>;
 
@@ -141,7 +144,7 @@ export function UnifiedListHeader({ children, resultCount, resetHref, filtered =
   return (
     <form ref={formRef} className={cn("sb-list-filters unified-list-header", className)} data-filtered={filtered || undefined} data-reset-href={resetHref} onSubmit={submit}>
       <div className="unified-list-row">
-        {primary && isValidElement(primary) ? <SearchControl child={primary} formRef={formRef} /> : <div className="unified-list-primary-control" />}
+        {primary && isValidElement(primary) ? <SearchControl child={primary} value={searchValue} onChange={updateSearch} /> : <div className="unified-list-primary-control" />}
         <button type="button" className="unified-list-filter-trigger" onClick={() => setOpen(true)} aria-label={active ? `Filter, ${active} active` : "Filter"}><SlidersHorizontal /><span className="unified-list-filter-label">Filter</span>{active ? <span className="unified-list-filter-badge">{active}</span> : null}</button>
         {typeof resultCount === "number" ? <span className="unified-list-result" aria-live="polite">{resultCount}</span> : null}
       </div>

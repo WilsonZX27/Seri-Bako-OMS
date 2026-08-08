@@ -469,8 +469,7 @@ export function StockCountForm({
           {showSubmit ? (
             <div
               data-mobile-document-action
-              className="sb-mobile-action-bar fixed inset-x-3 z-[var(--sb-z-sticky)] flex min-w-0 items-center gap-3 p-2 xl:hidden"
-              style={{ bottom: "calc(var(--sb-mobile-nav-height) + env(safe-area-inset-bottom) + 0.5rem)" }}
+              className="sb-mobile-action-bar fixed inset-x-0 bottom-0 z-[var(--sb-z-sticky)] flex min-w-0 items-center gap-3 border-t border-[var(--sb-border)] bg-[var(--sb-surface)] p-2 pb-[calc(0.5rem+env(safe-area-inset-bottom))] shadow-[0_-4px_14px_rgb(6_44_31_/_0.14)] xl:hidden"
             >
               <div className="flex min-w-0 flex-1 flex-col items-start gap-0">
                 <span

@@ -2,6 +2,12 @@
 @tailwind components;
 @tailwind utilities;
 
+@media (max-width: 639px) {
+  body:has([data-mobile-document-action]) [data-mobile-bottom-nav] {
+    display: none !important;
+  }
+}
+
 /* Scroll containers remain keyboard/touch scrollable, but never reserve a visible gutter. */
 .sb-scrollbar-none {
   scrollbar-width: none;

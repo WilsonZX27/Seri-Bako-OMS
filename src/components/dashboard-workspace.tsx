@@ -6,7 +6,7 @@ import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { ConsoleSection } from "@/components/layout/right-console";
 import { WorkspaceGrid } from "@/components/layout/workspace-layout";
-import { formatCurrency, formatDateTime, formatNumber } from "@/lib/utils";
+import { formatCurrency, formatDateOnly, formatDateTime, formatNumber } from "@/lib/utils";
 import type { LucideIcon } from "lucide-react";
 
 type DashboardSummary = Awaited<ReturnType<typeof import("@/server/queries/dashboard").getDashboardSummary>>;
@@ -293,6 +293,44 @@ export function DashboardWorkspace({ summary, renderedAt }: { summary: Dashboard
                 </p>
                 <p className="text-xs text-muted-foreground">Only your assigned outlet’s record is shown.</p>
               </div>
+            </div>
+          </Panel>
+        ) : null}
+
+        {!isOutlet ? (
+          <Panel title="Stock control" action={{ href: "/stock-counts", label: "Open stock counts" }}>
+            <div className="grid gap-2 sm:grid-cols-2" data-dashboard-stock-control>
+              <Link
+                prefetch={false}
+                href="/stock-counts"
+                className="group flex min-w-0 items-center justify-between gap-3 rounded-[var(--sb-radius-control)] border border-[var(--sb-border-soft)] bg-[var(--sb-surface)] p-3 transition-colors hover:bg-[var(--sb-surface-muted)]"
+              >
+                <span className="min-w-0">
+                  <span className="block text-xs font-medium text-[var(--sb-text-muted)]">Last posted stock count</span>
+                  <span className="mt-1 block break-words text-sm font-semibold">
+                    {summary.lastStockCount?.count_no ?? "No posted count yet"}
+                  </span>
+                  {summary.lastStockCount ? (
+                    <span className="mt-0.5 block text-xs text-[var(--sb-text-muted)]">
+                      {formatDateOnly(summary.lastStockCount.count_date)}
+                    </span>
+                  ) : null}
+                </span>
+                <ArrowUpRight className="h-4 w-4 shrink-0 text-[var(--sb-text-muted)]" aria-hidden="true" />
+              </Link>
+              <Link
+                prefetch={false}
+                href="/low-stock"
+                className="group flex min-w-0 items-center justify-between gap-3 rounded-[var(--sb-radius-control)] border border-[var(--sb-border-soft)] bg-[var(--sb-surface)] p-3 transition-colors hover:bg-[var(--sb-surface-muted)]"
+              >
+                <span className="min-w-0">
+                  <span className="block text-xs font-medium text-[var(--sb-text-muted)]">Low-stock items</span>
+                  <strong className="mt-1 block text-lg font-semibold tabular-nums">
+                    {summary.inventoryUnavailable ? "—" : summary.lowStockCount}
+                  </strong>
+                </span>
+                <AlertTriangle className="h-4 w-4 shrink-0 text-[var(--sb-text-muted)]" aria-hidden="true" />
+              </Link>
             </div>
           </Panel>
         ) : null}

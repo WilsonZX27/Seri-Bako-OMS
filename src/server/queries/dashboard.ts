@@ -42,6 +42,7 @@ type DashboardCoreSnapshot = {
   production_ingredient_shortages: number;
   outlet_missing_evening: number;
   outlet_needs_review: number;
+  last_stock_count: { count_no: string; count_date: string; status: string } | null;
 };
 
 export async function getDashboardSummary() {
@@ -59,6 +60,7 @@ export async function getDashboardSummary() {
       totalSuppliers: mockSuppliers.length,
       lowStockCount: balances.filter((row) => row.is_low_stock).length,
       totalStockValue: balances.reduce((sum, row) => sum + Number(row.current_stock ?? 0), 0),
+      lastStockCount: null,
       lowStockItems: getMockLowStockItems().slice(0, 5),
       pendingApprovals: mockPurchaseRequests
         .filter((request) => request.status === "finance_review")
@@ -176,6 +178,7 @@ export async function getDashboardSummary() {
     totalItems: Number(coreSnapshot?.total_items ?? 0),
     totalSuppliers: Number(coreSnapshot?.total_suppliers ?? 0),
     lowStockCount: inventoryUnavailable ? 0 : Number(coreSnapshot?.low_stock_items_count ?? 0),
+    lastStockCount: coreSnapshot?.last_stock_count ?? null,
     totalStockValue: inventoryUnavailable ? 0 : Number(coreSnapshot?.inventory_value ?? 0),
     lowStockItems: [],
     inventoryUnavailable,

@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { PageHeader } from "@/components/ui/page-header";
 import { FilterBar } from "@/components/ui/filter-bar";
+import { UnifiedListHeader } from "@/components/common/UnifiedListHeader";
 import { PaginationControls, SortableHead } from "@/components/sortable-table";
 import { StatusTabs } from "@/components/status-tabs";
 import { OperationalList, OperationalListRow, Table, TableActionLink, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -57,12 +58,26 @@ export default async function GoodsReceivingsPage({ searchParams }: { searchPara
         }
       >
         <div className="overflow-hidden rounded-[2px] border border-[var(--sb-border-soft)] bg-card">
-          <FilterBar resultCount={receivings.totalRows} resetHref="/goods-receivings" filtered={filtered} className="sb-list-filters--compact-mobile">
-            <Input name="search" defaultValue={filters.search ?? ""} placeholder="Search GRN, PO or supplier" className="min-w-0 flex-1 md:max-w-sm" />
-            <StatusTabs statuses={statuses} activeStatus={filters.status} />
-            {filtered ? <Button asChild variant="secondary" className="shrink-0"><Link href="/goods-receivings">Reset</Link></Button> : <Button type="submit" variant="secondary" className="shrink-0">Search</Button>}
-            {filters.status ? <input type="hidden" name="status" value={filters.status} /> : null}
-          </FilterBar>
+          <div className="hidden sm:block">
+            <FilterBar resultCount={receivings.totalRows} resetHref="/goods-receivings" filtered={filtered} className="sb-list-filters--compact-mobile">
+              <Input name="search" defaultValue={filters.search ?? ""} placeholder="Search GRN, PO or supplier" className="min-w-0 flex-1 md:max-w-sm" />
+              <StatusTabs statuses={statuses} activeStatus={filters.status} />
+              {filtered ? <Button asChild variant="secondary" className="shrink-0"><Link href="/goods-receivings">Reset</Link></Button> : <Button type="submit" variant="secondary" className="shrink-0">Search</Button>}
+              {filters.status ? <input type="hidden" name="status" value={filters.status} /> : null}
+            </FilterBar>
+          </div>
+          <div className="sm:hidden">
+            <UnifiedListHeader
+              resultCount={receivings.totalRows}
+              resetHref="/goods-receivings"
+              filtered={filtered}
+              activeCount={filters.status ? 1 : 0}
+            >
+              <Input name="search" defaultValue={filters.search ?? ""} placeholder="Search GRN, PO or supplier" />
+              <StatusTabs statuses={statuses} activeStatus={filters.status} />
+              {filters.status ? <input type="hidden" name="status" value={filters.status} /> : null}
+            </UnifiedListHeader>
+          </div>
           <DataGridHint text="Pro-tip: Double-click any row to open the goods receiving document." />
           <Table mobileHidden aria-label="Goods receiving records" stickyColumn="second">
               <TableHeader>

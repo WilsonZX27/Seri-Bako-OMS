@@ -45,7 +45,12 @@ function Metric({
         </span>
         <span className={variant === "tile" ? density === "compact" ? "line-clamp-2 break-words" : "break-words text-[11px] leading-4 sm:text-xs" : "truncate"}>{label}</span>
       </span>
-      <strong className={unavailable ? "text-xs font-semibold text-[var(--sb-warning)]" : variant === "tile" ? density === "compact" ? "text-base font-semibold tabular-nums sm:text-lg" : "text-lg font-semibold tabular-nums sm:text-xl" : "tabular-nums"}>{unavailable ? "Unavailable" : value}</strong>
+      <strong
+        className={unavailable ? "text-lg font-semibold tabular-nums text-[var(--sb-text-muted)]" : variant === "tile" ? density === "compact" ? "text-base font-semibold tabular-nums sm:text-lg" : "text-lg font-semibold tabular-nums sm:text-xl" : "tabular-nums"}
+        aria-label={unavailable ? `${label} is temporarily unavailable` : undefined}
+      >
+        {unavailable ? "—" : value}
+      </strong>
     </Link>
   );
 }
@@ -281,49 +286,11 @@ export function DashboardWorkspace({ summary, renderedAt }: { summary: Dashboard
               <strong className="text-xl font-semibold tabular-nums">{summary.purchaseRequests.length}</strong>
             </Link>
             <Link prefetch={false} href="/stock-counts" className="group flex min-w-0 items-center justify-between gap-2 px-3 py-3 transition-colors hover:bg-white/10 sm:px-5">
-              <span className="min-w-0"><span className="flex items-center gap-1.5 text-white/65"><CheckCircle2 className="h-3.5 w-3.5 shrink-0" aria-hidden="true" /><span className="text-[10px] uppercase leading-4 tracking-[0.12em]">Stock count due</span></span></span>
+              <span className="min-w-0"><span className="flex items-center gap-1.5 text-white/65"><CheckCircle2 className="h-3.5 w-3.5 shrink-0" aria-hidden="true" /><span className="text-[10px] uppercase leading-4 tracking-[0.12em]">Stock count due</span></span><span className="mt-0.5 hidden max-w-40 truncate text-[10px] text-white/55 lg:block">Last: {summary.lastStockCount?.count_no ?? "No posted count"}{summary.lastStockCount ? ` · ${formatDateOnly(summary.lastStockCount.count_date)}` : ""}</span></span>
               <strong className="text-xl font-semibold tabular-nums">{summary.stockCountDueUnavailable ? "—" : summary.today.stockCountDue}</strong>
             </Link>
           </div>
         </section>
-
-        {!isOutlet ? (
-          <Panel title="Stock control" action={{ href: "/stock-counts", label: "Open stock counts" }}>
-            <div className="grid gap-2 sm:grid-cols-2" data-dashboard-stock-control>
-              <Link
-                prefetch={false}
-                href="/stock-counts"
-                className="group flex min-w-0 items-center justify-between gap-3 rounded-[var(--sb-radius-control)] border border-[var(--sb-border-soft)] bg-[var(--sb-surface)] p-3 transition-colors hover:bg-[var(--sb-surface-muted)]"
-              >
-                <span className="min-w-0">
-                  <span className="block text-xs font-medium text-[var(--sb-text-muted)]">Last posted stock count</span>
-                  <span className="mt-1 block break-words text-sm font-semibold">
-                    {summary.lastStockCount?.count_no ?? "No posted count yet"}
-                  </span>
-                  {summary.lastStockCount ? (
-                    <span className="mt-0.5 block text-xs text-[var(--sb-text-muted)]">
-                      {formatDateOnly(summary.lastStockCount.count_date)}
-                    </span>
-                  ) : null}
-                </span>
-                <ArrowUpRight className="h-4 w-4 shrink-0 text-[var(--sb-text-muted)]" aria-hidden="true" />
-              </Link>
-              <Link
-                prefetch={false}
-                href="/stock-counts?status=draft"
-                className="group flex min-w-0 items-center justify-between gap-3 rounded-[var(--sb-radius-control)] border border-[var(--sb-border-soft)] bg-[var(--sb-surface)] p-3 transition-colors hover:bg-[var(--sb-surface-muted)]"
-              >
-                <span className="min-w-0">
-                  <span className="block text-xs font-medium text-[var(--sb-text-muted)]">Counts due</span>
-                  <strong className="mt-1 block text-lg font-semibold tabular-nums">
-                    {summary.stockCountDueUnavailable ? "—" : summary.today.stockCountDue}
-                  </strong>
-                </span>
-                <CheckCircle2 className="h-4 w-4 shrink-0 text-[var(--sb-text-muted)]" aria-hidden="true" />
-              </Link>
-            </div>
-          </Panel>
-        ) : null}
 
         {isOutlet ? (
           <Panel title="Today's completion">

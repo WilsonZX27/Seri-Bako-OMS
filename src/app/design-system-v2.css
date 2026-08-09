@@ -12,6 +12,35 @@
   --sb-content-gutter: clamp(0.75rem, 1.5vw, 1.25rem);
 }
 
+/* Tablet split authority: list tools must reflow before they collide with the context rail. */
+@media (min-width: 768px) and (max-width: 1279px) {
+  [data-tablet-document-split] [data-tablet-main-list],
+  [data-tablet-document-split] [data-tablet-split-actions] {
+    min-width: 0;
+  }
+
+  [data-tablet-document-split] .sb-tablet-split-filter {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--sb-space-2);
+  }
+
+  [data-tablet-document-split] .sb-tablet-split-filter > :first-child {
+    flex: 1 0 100%;
+    max-width: none;
+  }
+
+  [data-tablet-document-split] .sb-tablet-split-filter select,
+  [data-tablet-document-split] .sb-tablet-split-filter [role="combobox"] {
+    min-width: 0;
+  }
+
+  [data-tablet-document-split] [data-tablet-split-actions] > section {
+    border-radius: var(--sb-panel-radius);
+  }
+}
+
 /* Mobile overlay authority: shared sheets own the complete viewport and suppress
    every lower navigation/action layer while open. Kept last to resolve legacy
    component rules without reintroducing per-route overrides. */

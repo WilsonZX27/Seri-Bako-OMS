@@ -51,6 +51,78 @@ html[data-design-layer="v2"] .sb-filter-more > .sb-filter-more-panel {
   }
 }
 
+/*
+ * Canonical surface contract
+ *
+ * The legacy stylesheet still contains structural compatibility rules for
+ * list filters. It must not be able to change the visual language. Keeping
+ * this contract scoped to the document marker makes the active design layer
+ * deterministic even when a route renders an older shared component.
+ */
+html[data-design-layer="v2"] :where(.erp-surface, .sb-work-surface, .sb-command-surface, .border.bg-card) {
+  border: 1px solid var(--sb-border-soft);
+  border-radius: var(--sb-panel-radius);
+  background: var(--sb-surface-raised);
+  box-shadow: var(--sb-shadow-xs);
+}
+
+html[data-design-layer="v2"] :where(.sb-list-filters, .sb-filter-more-panel, .sb-right-console, .sb-pr-basket-sheet) {
+  border-color: var(--sb-border-soft);
+  border-radius: var(--sb-panel-radius);
+  box-shadow: var(--sb-shadow-sm);
+}
+
+html[data-design-layer="v2"] :where(.sb-list-filters, .sb-list-filters > *, .sb-filter-more-panel > *) {
+  --sb-active-control-radius: var(--sb-radius-control);
+}
+
+html[data-design-layer="v2"] :where(.sb-list-filters input, .sb-list-filters select, .sb-list-filters button, .sb-list-filters a, .sb-filter-more-panel input, .sb-filter-more-panel select, .sb-filter-more-panel button) {
+  border-radius: var(--sb-radius-control);
+}
+
+html[data-design-layer="v2"] :where(.sb-list-filters input, .sb-list-filters select, .sb-filter-more-panel input, .sb-filter-more-panel select) {
+  min-height: var(--sb-control-height);
+  border-color: var(--sb-border-soft);
+  background: var(--sb-surface-raised);
+}
+
+html[data-design-layer="v2"] :where(.sb-list-filters button, .sb-list-filters a, .sb-filter-more-panel button) {
+  min-height: var(--sb-control-height);
+}
+
+html[data-design-layer="v2"] :where([data-mobile-app-nav], .sb-mobile-action-bar) {
+  border-radius: 0;
+  box-shadow: var(--sb-shadow-lg);
+}
+
+html[data-design-layer="v2"] :where(.sb-table-scroll, .sb-scroll-container, [data-table-scroll]) {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+html[data-design-layer="v2"] :where(.sb-table-scroll, .sb-scroll-container, [data-table-scroll])::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+}
+
+@media (max-width: 767px) {
+  html[data-design-layer="v2"] :where(.sb-list-filters, .sb-filter-more-panel) {
+    border-radius: var(--sb-panel-radius);
+  }
+
+  html[data-design-layer="v2"] :where(.sb-mobile-action-bar) {
+    position: fixed;
+    inset-inline: 0;
+    bottom: 0;
+    z-index: var(--sb-z-action-rail);
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  html[data-design-layer="v2"] :where([data-mobile-app-nav]) {
+    z-index: var(--sb-z-mobile-nav);
+  }
+}
+
 /* Keep the workspace visually edge-to-edge while preserving touch, wheel, and
    keyboard scrolling. Fixed rails provide the action affordances instead. */
 html,

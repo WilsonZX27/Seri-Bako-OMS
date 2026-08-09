@@ -19,6 +19,7 @@ function Metric({
   alert = false,
   unavailable = false,
   variant = "row",
+  density = "default",
   className,
 }: {
   href: string;
@@ -28,22 +29,23 @@ function Metric({
   alert?: boolean;
   unavailable?: boolean;
   variant?: "row" | "tile";
+  density?: "default" | "compact";
   className?: string;
 }) {
   return (
     <Link prefetch={false}
       href={href}
-      className={`${variant === "tile" ? "group flex min-h-[5.75rem] min-w-0 flex-col items-start justify-between gap-2 rounded-[var(--sb-radius-control)] border border-[var(--sb-border-soft)] bg-[var(--sb-surface)] p-2 transition-colors duration-200 hover:bg-[var(--sb-surface-muted)] sm:min-h-[7rem] sm:p-3" : "group flex min-h-10 items-center justify-between gap-3 border-b border-[var(--sb-border-soft)] px-2 py-2.5 transition-colors duration-300 hover:bg-[var(--sb-surface-muted)] last:border-b-0"} ${className ?? ""}`}
+      className={`${variant === "tile" ? density === "compact" ? "group flex min-h-[5.25rem] min-w-0 flex-col items-start justify-between gap-1.5 rounded-[var(--sb-radius-control)] border border-[var(--sb-border-soft)] bg-[var(--sb-surface)] p-2 transition-colors duration-200 hover:bg-[var(--sb-surface-muted)] sm:min-h-[6.25rem] sm:p-3" : "group flex min-h-[5.75rem] min-w-0 flex-col items-start justify-between gap-2 rounded-[var(--sb-radius-control)] border border-[var(--sb-border-soft)] bg-[var(--sb-surface)] p-2 transition-colors duration-200 hover:bg-[var(--sb-surface-muted)] sm:min-h-[7rem] sm:p-3" : "group flex min-h-10 items-center justify-between gap-3 border-b border-[var(--sb-border-soft)] px-2 py-2.5 transition-colors duration-300 hover:bg-[var(--sb-surface-muted)] last:border-b-0"} ${className ?? ""}`}
     >
-      <span className={variant === "tile" ? "flex min-w-0 flex-col items-start gap-2 text-xs font-medium text-[var(--sb-text-muted)]" : "flex min-w-0 items-center gap-2 text-xs font-medium text-[var(--sb-text-muted)]"}>
+      <span className={variant === "tile" ? `flex min-w-0 flex-col items-start ${density === "compact" ? "gap-1.5 text-[10px] leading-3.5 sm:text-xs sm:leading-4" : "gap-2 text-xs"} font-medium text-[var(--sb-text-muted)]` : "flex min-w-0 items-center gap-2 text-xs font-medium text-[var(--sb-text-muted)]"}>
         <span
-        className={`grid ${variant === "tile" ? "h-7 w-7 sm:h-8 sm:w-8" : "h-6 w-6"} shrink-0 place-items-center rounded-[var(--sb-radius-control)] ${unavailable || alert ? "bg-[var(--sb-warning-bg)] text-[var(--sb-warning)]" : "bg-[var(--sb-neutral-bg)] text-[var(--sb-neutral-text)]"}`}
+        className={`grid ${variant === "tile" ? density === "compact" ? "h-6 w-6 sm:h-7 sm:w-7" : "h-7 w-7 sm:h-8 sm:w-8" : "h-6 w-6"} shrink-0 place-items-center rounded-[var(--sb-radius-control)] ${unavailable || alert ? "bg-[var(--sb-warning-bg)] text-[var(--sb-warning)]" : "bg-[var(--sb-neutral-bg)] text-[var(--sb-neutral-text)]"}`}
         >
           <Icon className="h-3.5 w-3.5 group-hover:scale-105" />
         </span>
-        <span className={variant === "tile" ? "break-words text-[11px] leading-4 sm:text-xs" : "truncate"}>{label}</span>
+        <span className={variant === "tile" ? density === "compact" ? "line-clamp-2 break-words" : "break-words text-[11px] leading-4 sm:text-xs" : "truncate"}>{label}</span>
       </span>
-      <strong className={unavailable ? "text-xs font-semibold text-[var(--sb-warning)]" : variant === "tile" ? "text-lg font-semibold tabular-nums sm:text-xl" : "tabular-nums"}>{unavailable ? "Unavailable" : value}</strong>
+      <strong className={unavailable ? "text-xs font-semibold text-[var(--sb-warning)]" : variant === "tile" ? density === "compact" ? "text-base font-semibold tabular-nums sm:text-lg" : "text-lg font-semibold tabular-nums sm:text-xl" : "tabular-nums"}>{unavailable ? "Unavailable" : value}</strong>
     </Link>
   );
 }
@@ -399,8 +401,8 @@ export function DashboardWorkspace({ summary, renderedAt }: { summary: Dashboard
             title={isKitchen ? "Raw-material exceptions" : "Exceptions requiring follow-up"}
             empty="No urgent operational exceptions are visible in your scope."
           >
-            <div className="grid grid-cols-2 gap-2 sm:grid-cols-3" data-dashboard-exceptions>
-              <Metric href="/low-stock" label="Low stock" value={summary.lowStockCount} icon={AlertTriangle} alert={summary.lowStockCount > 0} unavailable={summary.inventoryUnavailable} variant="tile" />
+            <div className="grid grid-cols-3 gap-1.5 sm:gap-2" data-dashboard-exceptions>
+              <Metric href="/low-stock" label="Low stock" value={summary.lowStockCount} icon={AlertTriangle} alert={summary.lowStockCount > 0} unavailable={summary.inventoryUnavailable} variant="tile" density="compact" />
               {showOperations && summary.operationsControl?.outlet ? (
                 <Metric
                   href="/outlet-daily-records?status=draft"
@@ -409,6 +411,7 @@ export function DashboardWorkspace({ summary, renderedAt }: { summary: Dashboard
                   icon={ClipboardCheck}
                   alert
                   variant="tile"
+                  density="compact"
                 />
               ) : null}
               {(isOwner || isManager || isKitchen) ? (
@@ -420,6 +423,7 @@ export function DashboardWorkspace({ summary, renderedAt }: { summary: Dashboard
                   alert={summary.wastageAttention > 0}
                   unavailable={summary.wastageUnavailable}
                   variant="tile"
+                  density="compact"
                 />
               ) : (
                 <Metric
@@ -429,6 +433,7 @@ export function DashboardWorkspace({ summary, renderedAt }: { summary: Dashboard
                   icon={Clock3}
                   alert={summary.urgentRequests.length > 0}
                   variant="tile"
+                  density="compact"
                 />
               )}
             </div>
@@ -440,10 +445,10 @@ export function DashboardWorkspace({ summary, renderedAt }: { summary: Dashboard
           >
             {summary.payablesAttention ? (
               <>
-                <div className="grid grid-cols-2 gap-1.5 sm:grid-cols-3 sm:gap-2" data-dashboard-payables>
-                  <Metric className="col-span-2 sm:col-span-1" href="/supplier-invoices/aging?overdue=1" label="Overdue AP" value={formatCurrency(summary.payablesAttention.overdue_amount + summary.payablesAttention.critical_amount)} icon={ReceiptText} alert={summary.payablesAttention.overdue_count > 0} variant="tile" />
-                  <Metric href="/supplier-invoices/aging?bucket=missing_due_date" label="Missing due date" value={formatNumber(summary.payablesAttention.missing_due_date_count)} icon={AlertTriangle} alert={summary.payablesAttention.missing_due_date_count > 0} variant="tile" />
-                  <Metric href="/supplier-invoices/cash-flow" label="Due soon" value={formatCurrency(summary.payablesAttention.due_today_amount + summary.payablesAttention.due_next_7_amount)} icon={Clock3} variant="tile" />
+                <div className="grid grid-cols-3 gap-1.5 sm:gap-2" data-dashboard-payables>
+                  <Metric href="/supplier-invoices/aging?overdue=1" label="Overdue AP" value={formatCurrency(summary.payablesAttention.overdue_amount + summary.payablesAttention.critical_amount)} icon={ReceiptText} alert={summary.payablesAttention.overdue_count > 0} variant="tile" density="compact" />
+                  <Metric href="/supplier-invoices/aging?bucket=missing_due_date" label="Missing due date" value={formatNumber(summary.payablesAttention.missing_due_date_count)} icon={AlertTriangle} alert={summary.payablesAttention.missing_due_date_count > 0} variant="tile" density="compact" />
+                  <Metric href="/supplier-invoices/cash-flow" label="Due soon" value={formatCurrency(summary.payablesAttention.due_today_amount + summary.payablesAttention.due_next_7_amount)} icon={Clock3} variant="tile" density="compact" />
                 </div>
                 <div className="mt-3 grid grid-cols-2 gap-2 sm:flex">
                   <Button asChild size="sm" className="!text-xs"><Link prefetch={false} href="/supplier-invoices"><ReceiptText className="h-4 w-4" />Review Invoice</Link></Button><Button asChild variant="outline" size="sm" className="!text-xs"><Link prefetch={false} href="/supplier-invoices/cash-flow"><ArrowUpRight className="h-4 w-4" />View Cash Flow</Link></Button>

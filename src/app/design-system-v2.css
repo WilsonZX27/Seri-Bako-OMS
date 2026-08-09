@@ -641,10 +641,11 @@ nav[aria-label="Pagination"] > span,
 
   [data-dashboard-panel="payables"] [data-dashboard-payables] > a > span > span:last-child {
     display: block;
-    max-width: 4.25rem;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+    max-width: none;
+    overflow: visible;
+    text-overflow: clip;
+    white-space: normal;
+    line-height: 1rem;
   }
 
   [data-dashboard-panel="payables"] [data-dashboard-payables] strong {

@@ -234,7 +234,7 @@ export function DashboardWorkspace({ summary, renderedAt }: { summary: Dashboard
   return (
     <WorkspaceGrid
       hideMobileConsole
-      className="gap-4 p-3 pb-24 sm:p-4 sm:pb-24 xl:pb-4 xl:grid-cols-[minmax(0,1fr)_280px]"
+      className="gap-4 p-3 pb-32 sm:p-4 sm:pb-24 xl:pb-4 xl:grid-cols-[minmax(0,1fr)_280px]"
       rightRailClassName="space-y-2"
       rightRail={
         <>

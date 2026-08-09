@@ -1129,7 +1129,56 @@ html[data-design-layer="v2"] [data-mobile-bottom-nav] {
     font-weight: 700;
   }
 
-  html[data-design-layer="v2"] form:has([data-mobile-document-action]) {
+html[data-design-layer="v2"] form:has([data-mobile-document-action]) {
     padding-bottom: calc(8rem + env(safe-area-inset-bottom)) !important;
+  }
+}
+
+/* WorkspaceGrid builds the split class at runtime, so keep the responsive
+   document canvas contract in the canonical layer instead of relying on a
+   dynamically assembled Tailwind utility being emitted. */
+[data-tablet-document-split] {
+  display: block;
+}
+
+[data-tablet-document-split] > aside {
+  display: none;
+}
+
+@media (min-width: 768px) and (max-width: 1279px) {
+  [data-tablet-document-split][data-tablet-rail-breakpoint="md"] {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(14rem, 30%);
+    align-items: start;
+    gap: 0.75rem;
+  }
+
+  [data-tablet-document-split][data-tablet-rail-breakpoint="md"] > aside {
+    display: block;
+    min-width: 0;
+  }
+}
+
+@media (min-width: 1024px) and (max-width: 1279px) {
+  [data-tablet-document-split][data-tablet-rail-breakpoint="lg"] {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 16rem;
+    align-items: start;
+    gap: 0.75rem;
+  }
+
+  [data-tablet-document-split][data-tablet-rail-breakpoint="lg"] > aside {
+    display: block;
+    min-width: 0;
+  }
+}
+
+@media (min-width: 1280px) {
+  [data-tablet-document-split] {
+    display: block;
+  }
+
+  [data-tablet-document-split] > aside {
+    display: none;
   }
 }

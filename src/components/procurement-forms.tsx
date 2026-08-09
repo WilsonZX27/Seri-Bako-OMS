@@ -306,7 +306,7 @@ export function PurchaseRequestForm({
               {/* Legacy contract token: grid-cols-[minmax(0,1fr)_7.5rem_2.25rem]. The current four-column line keeps UOM, quantity, comments, and removal aligned. */}
               {lines.map((line) => (
                 <div data-purchase-request-line key={line.key} className="grid grid-cols-[minmax(0,1fr)_minmax(6.5rem,.65fr)_2.5rem] gap-2 p-3 md:grid-cols-[minmax(0,1fr)_112px_112px_5.5rem] md:gap-3">
-                  <div className="col-span-full min-w-0 md:col-span-1">
+                  <div className="col-span-3 min-w-0 md:col-span-1">
                     <Field label="Item" required>
                       <Input
                         ref={line.key === lines[0]?.key ? firstItemInputRef : undefined}

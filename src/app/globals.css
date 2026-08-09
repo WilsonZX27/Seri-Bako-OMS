@@ -2,11 +2,11 @@
 @tailwind components;
 @tailwind utilities;
 
-@media (max-width: 639px) {
-  body:has([data-mobile-document-action]) [data-mobile-bottom-nav] {
-    display: none !important;
-  }
-}
+/*
+ * Legacy compatibility layer: keep structural utilities here only.
+ * Visual ownership for responsive action rails, sheets, and navigation lives
+ * in design-system-v2.css. Do not add a second responsive owner here.
+ */
 
 /* Scroll containers remain keyboard/touch scrollable, but never reserve a visible gutter. */
 .sb-scrollbar-none {
@@ -249,11 +249,6 @@ summary {
   display: none;
 }
 
-html[data-mobile-sheet-open="true"] [data-mobile-document-action] {
-  visibility: hidden;
-  pointer-events: none;
-}
-
 .document-surface {
   background: var(--workspace-bg);
   border-color: var(--border-muted);
@@ -491,11 +486,6 @@ input[type="date"]::-webkit-date-and-time-value {
 
   [data-mobile-create-fab] {
     bottom: calc(var(--sb-mobile-nav-height) + env(safe-area-inset-bottom) + 1rem);
-  }
-
-  html[data-mobile-sheet-open="true"] [data-mobile-app-nav] {
-    visibility: hidden;
-    pointer-events: none;
   }
 
   .sb-list-filters {
@@ -951,11 +941,6 @@ input[type="date"]::-webkit-date-and-time-value {
     transform: translate(-50%, -50%);
     border: 1px solid var(--sb-border-soft);
     padding-bottom: 0;
-  }
-
-  [data-mobile-action-bar],
-  [data-mobile-document-action] {
-    display: none !important;
   }
 
   [data-mobile-create-fab] {

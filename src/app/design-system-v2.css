@@ -12,6 +12,45 @@
   --sb-content-gutter: clamp(0.75rem, 1.5vw, 1.25rem);
 }
 
+/*
+ * Document-level ownership boundary.
+ *
+ * The app is deliberately marked on <html>, not only on the authenticated
+ * shell. That makes the cascade deterministic during route transitions and
+ * prevents legacy list/filter geometry from winning when a page swaps in a
+ * different layout tree. The old layer remains available for structural
+ * compatibility, but all visual geometry below is owned by v2.
+ */
+html[data-design-layer="v2"] {
+  --sb-design-layer-active: v2;
+}
+
+html[data-design-layer="v2"] .sb-list-filters {
+  border: 1px solid var(--sb-border-soft);
+  border-radius: var(--sb-panel-radius);
+  background: rgb(255 255 255 / 0.94);
+  box-shadow: var(--sb-shadow-xs);
+}
+
+html[data-design-layer="v2"] .sb-list-filters :is(input, select, button, a, [data-select-control], summary) {
+  border-radius: var(--sb-radius-control);
+}
+
+html[data-design-layer="v2"] .sb-filter-more > .sb-filter-more-panel {
+  border-radius: var(--sb-panel-radius);
+}
+
+@media (max-width: 1279px) {
+  html[data-design-layer="v2"] .sb-filter-more[open] > .sb-filter-more-backdrop {
+    z-index: var(--sb-z-backdrop);
+  }
+
+  html[data-design-layer="v2"] .sb-filter-more[open] > .sb-filter-more-panel {
+    z-index: var(--sb-z-dialog);
+    border-radius: var(--sb-panel-radius) var(--sb-panel-radius) 0 0;
+  }
+}
+
 /* Keep the workspace visually edge-to-edge while preserving touch, wheel, and
    keyboard scrolling. Fixed rails provide the action affordances instead. */
 html,

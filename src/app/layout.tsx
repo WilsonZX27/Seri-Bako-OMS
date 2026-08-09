@@ -30,7 +30,7 @@ const enableFigmaCapture = process.env.NEXT_PUBLIC_ENABLE_FIGMA_CAPTURE === "1";
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en">
+    <html lang="en" data-design-layer="v2">
       <head>
         {enableFigmaCapture ? <script src="https://mcp.figma.com/mcp/html-to-design/capture.js" async /> : null}
       </head>

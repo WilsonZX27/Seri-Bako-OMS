@@ -10,6 +10,13 @@ const exportQuerySchema = z.object({
   to: z.iso.date(),
 });
 
+// Keep workbook generation bounded even for a permitted, tenant-scoped export.
+// The date range remains the primary product filter; these caps protect the
+// in-memory XML/ZIP builder from unbounded row and output growth.
+const MAX_STOCK_COUNTS = 10_000;
+const MAX_STOCK_COUNT_LINES = 50_000;
+const MAX_WORKBOOK_BYTES = 25 * 1024 * 1024;
+
 function dateRange(from: string, to: string) {
   const start = new Date(`${from}T00:00:00.000Z`);
   const end = new Date(`${to}T00:00:00.000Z`);
@@ -133,16 +140,17 @@ export async function GET(request: Request) {
     const supabase = await createClient();
     const [{ data: branch, error: branchError }, { data: counts, error: countsError }] = await Promise.all([
       supabase.from("branches").select("id, branch_code, branch_name").eq("id", input.branch_id).single(),
-      supabase.from("stock_counts").select("id, count_no, count_date, status, counted_by, remarks").eq("branch_id", input.branch_id).gte("count_date", input.from).lte("count_date", input.to).is("deleted_at", null).order("count_date", { ascending: true }).order("count_no", { ascending: true }),
+      supabase.from("stock_counts").select("id, count_no, count_date, status, counted_by, remarks").eq("branch_id", input.branch_id).gte("count_date", input.from).lte("count_date", input.to).is("deleted_at", null).order("count_date", { ascending: true }).order("count_no", { ascending: true }).limit(MAX_STOCK_COUNTS + 1),
     ]);
     if (branchError) throw new Error(branchError.message);
     if (countsError) throw new Error(countsError.message);
+    if ((counts ?? []).length > MAX_STOCK_COUNTS) throw new Error(`Export a maximum of ${MAX_STOCK_COUNTS.toLocaleString()} stock counts at a time.`);
 
     const countIds = (counts ?? []).map((count) => count.id);
     const staffIds = [...new Set((counts ?? []).map((count) => count.counted_by).filter(Boolean))] as string[];
     const [{ data: lines, error: linesError }, { data: staffs, error: staffsError }] = await Promise.all([
       countIds.length
-        ? supabase.from("stock_count_lines").select("stock_count_id, item_id, theoretical_qty, physical_qty, variance_qty, variance_percent, uom, remarks, line_position").in("stock_count_id", countIds).order("line_position", { ascending: true })
+        ? supabase.from("stock_count_lines").select("stock_count_id, item_id, theoretical_qty, physical_qty, variance_qty, variance_percent, uom, remarks, line_position").in("stock_count_id", countIds).order("line_position", { ascending: true }).limit(MAX_STOCK_COUNT_LINES + 1)
         : Promise.resolve({ data: [], error: null }),
       staffIds.length
         ? supabase.from("staffs").select("id, full_name").in("id", staffIds)
@@ -150,6 +158,7 @@ export async function GET(request: Request) {
     ]);
     if (linesError) throw new Error(linesError.message);
     if (staffsError) throw new Error(staffsError.message);
+    if ((lines ?? []).length > MAX_STOCK_COUNT_LINES) throw new Error(`Export a maximum of ${MAX_STOCK_COUNT_LINES.toLocaleString()} stock count lines at a time.`);
 
     const itemIds = [...new Set((lines ?? []).map((line) => line.item_id).filter(Boolean))];
     const { data: items, error: itemsError } = itemIds.length
@@ -187,6 +196,7 @@ export async function GET(request: Request) {
       ...worksheets.map((sheet) => ({ name: sheet.path, content: sheet.xml })),
     ];
     const buffer = makeZip(files);
+    if (buffer.byteLength > MAX_WORKBOOK_BYTES) throw new Error("The workbook is too large to export. Narrow the date range and try again.");
     const safeBranchCode = String(branch.branch_code ?? branch.branch_name ?? "branch").replace(/[^a-zA-Z0-9_-]+/g, "-");
     return new NextResponse(Buffer.from(buffer), {
       headers: {

@@ -114,12 +114,15 @@ export async function getApAgingReport(filters: Record<string, string | undefine
   return data as unknown as ApAgingReport;
 }
 
-export async function getCompleteApAgingReport(filters: Record<string, string | undefined> = {}) {
+export async function getCompleteApAgingReport(filters: Record<string, string | undefined> = {}, options: { maxRows?: number } = {}) {
+  const maxRows = options.maxRows ?? Number.POSITIVE_INFINITY;
   const report = await getApAgingReport({ ...filters, page: "1" }, true);
+  if (report.total_rows > maxRows) throw new Error("The AP Aging export is too large. Narrow the filters and try again.");
   const rows = [...report.rows];
   for (let page = 2; rows.length < report.total_rows; page += 1) {
     const next = await getApAgingReport({ ...filters, page: String(page) }, true);
     if (!next.rows.length) break;
+    if (rows.length + next.rows.length > maxRows) throw new Error("The AP Aging export is too large. Narrow the filters and try again.");
     rows.push(...next.rows);
   }
   return { ...report, page: 1, rows };

@@ -35,7 +35,7 @@ export function WorkspaceGrid({
   const usesTabletSplit = Boolean(rightRail && tabletRailMode === "split");
   const splitGridClass = tabletRailBreakpoint === "lg"
     ? "lg:grid lg:grid-cols-[minmax(0,1fr)_16rem] lg:items-start lg:gap-3 xl:block"
-    : "md:grid md:grid-cols-[minmax(0,1fr)_minmax(14rem,30%)] md:items-start md:gap-3 xl:block";
+    : "md:grid md:grid-cols-[minmax(0,1fr)_16rem] md:items-start md:gap-3 xl:block";
   const splitRailClass = tabletRailBreakpoint === "lg"
     ? "hidden min-w-0 space-y-3 lg:block xl:hidden"
     : "hidden min-w-0 space-y-3 md:block xl:hidden";

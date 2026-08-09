@@ -4,11 +4,14 @@ import { hasPermission } from "@/server/auth/permissions";
 import { getCompleteApAgingReport } from "@/server/queries/ap-aging";
 import { logServerError } from "@/server/observability/logger";
 
+const MAX_AP_AGING_EXPORT_ROWS = 50_000;
+const MAX_AP_AGING_EXPORT_BYTES = 25 * 1024 * 1024;
+
 export async function GET(request: Request) {
   try {
     if (!(await hasPermission("supplier_invoice.pay"))) throw new Error("Missing permission: supplier_invoice.pay");
     const params = Object.fromEntries(new URL(request.url).searchParams.entries());
-    const report = await getCompleteApAgingReport(params);
+    const report = await getCompleteApAgingReport(params, { maxRows: MAX_AP_AGING_EXPORT_ROWS });
     const rows = report.rows.map((row) => ({
       internal_invoice_number: row.invoice_no,
       supplier_invoice_reference: row.supplier_invoice_no,
@@ -23,7 +26,9 @@ export async function GET(request: Request) {
       status: row.status,
       currency: row.currency,
     }));
-    return new NextResponse(`\uFEFF${rowsToCsv(rows)}`, { headers: {
+    const csv = `\uFEFF${rowsToCsv(rows)}`;
+    if (Buffer.byteLength(csv, "utf8") > MAX_AP_AGING_EXPORT_BYTES) throw new Error("The AP Aging export is too large. Narrow the filters and try again.");
+    return new NextResponse(csv, { headers: {
       "content-type": "text/csv; charset=utf-8",
       "content-disposition": `attachment; filename="ap-aging-${report.report_date}.csv"`,
       "cache-control": "no-store",

@@ -163,8 +163,6 @@ export function StockBalanceWorkspace({
       <PageHeader title="Stock Balance" description="Calculated from posted Movement Ledger transactions. No direct balance edits." />
       <WorkspaceGrid
         hideMobileConsole
-        tabletRailMode="split"
-        tabletRailBreakpoint="md"
         rightRail={
           <>
             <ConsoleSection title="Actions">
@@ -299,6 +297,8 @@ export function StockBalanceWorkspace({
             </ConsoleSection>
           </>
         }
+        tabletRailMode="split"
+        tabletRailBreakpoint="md"
       >
         <div className="overflow-hidden rounded-[2px] border border-[var(--sb-border-soft)] bg-card">
           <FilterBar resultCount={totalRows} resetHref="/stock-balance" filtered={Boolean(filters.search || filters.branch_id || filters.status)}>

@@ -212,11 +212,6 @@ summary {
   color: var(--sb-green-950);
 }
 
-.erp-surface {
-  @apply border bg-card;
-  border-color: var(--sb-border-soft);
-}
-
 .sb-action-row {
   display: flex;
   width: 100%;

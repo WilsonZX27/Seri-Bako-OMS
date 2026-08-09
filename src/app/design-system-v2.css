@@ -113,6 +113,8 @@ body::-webkit-scrollbar {
 .erp-surface,
 .sb-work-surface,
 .border.bg-card {
+  border: 1px solid var(--sb-border-soft);
+  border-radius: var(--sb-panel-radius);
   border-color: var(--sb-border-soft);
   background: rgb(255 255 255 / 0.94);
   box-shadow: var(--sb-shadow-xs);

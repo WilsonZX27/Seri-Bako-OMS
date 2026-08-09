@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { PackageOpen } from "lucide-react";
+import { PackageOpen, ShoppingBasket, X } from "lucide-react";
 import { SubmitButton } from "@/components/ui/submit-button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Field } from "@/components/ui/field";
@@ -51,6 +51,7 @@ export function LowStockPrForm({ items, branches, defaultBranchId, disabled }: {
   }, [items, selectedBranchId]);
   const [selected, setSelected] = useState<Record<string, boolean>>({});
   const [quantities, setQuantities] = useState<Record<string, string>>({});
+  const [basketOpen, setBasketOpen] = useState(false);
 
   const selectedCount = visibleItems.filter((item) => selected[rowKey(item)]).length;
   const selectedTotal = selectedCount === 0
@@ -80,13 +81,22 @@ export function LowStockPrForm({ items, branches, defaultBranchId, disabled }: {
   }
 
   return (
-    <Card className="sb-procurement-basket" data-low-stock-pr-setup>
-      <CardContent className="space-y-4 p-4 md:p-5">
+    <>
+      <button type="button" className="fixed bottom-[calc(var(--sb-mobile-nav-height)+1rem)] right-4 z-[60] inline-flex h-14 w-14 items-center justify-center rounded-full bg-[var(--sb-green)] text-white shadow-[var(--sb-shadow-lg)] md:hidden" onClick={() => setBasketOpen(true)} aria-label={`Open PR basket, ${selectedCount} selected`}>
+        <ShoppingBasket className="h-5 w-5" />
+        {selectedCount ? <span className="absolute -right-1 -top-1 min-w-5 rounded-full bg-white px-1 text-center text-[11px] font-bold leading-5 text-[var(--sb-green)]">{selectedCount}</span> : null}
+      </button>
+      {basketOpen ? <button type="button" className="fixed inset-0 z-[100] bg-black/45 md:hidden" aria-label="Close PR basket" onClick={() => setBasketOpen(false)} /> : null}
+      <Card className={`sb-procurement-basket max-md:fixed max-md:inset-x-0 max-md:bottom-0 max-md:z-[101] max-md:max-h-[84dvh] max-md:overflow-hidden max-md:rounded-b-none max-md:rounded-t-[var(--sb-panel-radius)] ${basketOpen ? "max-md:block" : "max-md:hidden"}`} data-low-stock-pr-setup>
+      <CardContent className="space-y-4 p-4 max-md:max-h-[84dvh] max-md:overflow-y-auto max-md:pb-[calc(env(safe-area-inset-bottom)+1rem)] md:p-5">
         <div className="flex flex-col gap-3 border-b border-[var(--sb-border-soft)] pb-4 md:flex-row md:items-end md:justify-between">
-          <div>
+          <div className="flex min-w-0 items-start justify-between gap-3">
+            <div>
             <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[var(--sb-text-muted)]">Procurement queue</p>
             <p className="mt-1 text-base font-semibold tracking-[-0.01em]">PR basket</p>
             <p className="text-xs text-muted-foreground">Add low-stock items, adjust quantities, then create ordinary draft PRs.</p>
+            </div>
+            <button type="button" className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-md border md:hidden" onClick={() => setBasketOpen(false)} aria-label="Close PR basket"><X className="h-4 w-4" /></button>
           </div>
           <div className="flex items-baseline gap-2 text-xs text-muted-foreground md:text-right">
             <strong className="text-sm text-foreground">{selectedCount}</strong> selected
@@ -242,5 +252,6 @@ export function LowStockPrForm({ items, branches, defaultBranchId, disabled }: {
         )}
       </CardContent>
     </Card>
+    </>
   );
 }

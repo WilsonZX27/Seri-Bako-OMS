@@ -41,55 +41,6 @@
   }
 }
 
-/* Mobile overlay authority: shared sheets own the complete viewport and suppress
-   every lower navigation/action layer while open. Kept last to resolve legacy
-   component rules without reintroducing per-route overrides. */
-@media (max-width: 639px) {
-  html[data-design-layer="v2"][data-mobile-sheet-open] :where([data-mobile-app-nav], [data-mobile-bottom-nav], .sb-mobile-bottom-nav, .sb-mobile-action-bar) {
-    display: none !important;
-  }
-
-  html[data-design-layer="v2"] .unified-list-header {
-    overflow: visible !important;
-  }
-
-  html[data-design-layer="v2"] .unified-list-layer {
-    position: fixed !important;
-    inset: 0 !important;
-    z-index: 2147483646 !important;
-    isolation: isolate;
-  }
-
-  html[data-design-layer="v2"] .unified-list-backdrop {
-    position: absolute !important;
-    inset: 0 !important;
-    z-index: 0 !important;
-    background: rgb(12 22 18 / 0.52) !important;
-    backdrop-filter: blur(2px);
-  }
-
-  html[data-design-layer="v2"] .unified-list-sheet {
-    position: absolute !important;
-    inset: auto 0 0 !important;
-    z-index: 1 !important;
-    border-radius: var(--sb-radius-panel) var(--sb-radius-panel) 0 0 !important;
-    padding-bottom: env(safe-area-inset-bottom) !important;
-  }
-
-  html[data-design-layer="v2"] .unified-list-sheet-fields > *,
-  html[data-design-layer="v2"] .unified-list-inline-fields > * {
-    min-width: 0;
-    width: 100%;
-  }
-
-  html[data-design-layer="v2"] .unified-list-inline-fields {
-    display: grid !important;
-    grid-template-columns: minmax(0, 1fr) !important;
-    gap: 0.5rem !important;
-    margin-top: 0.5rem;
-  }
-}
-
 /*
  * Document-level ownership boundary.
  *
@@ -103,27 +54,32 @@ html[data-design-layer="v2"] {
   --sb-design-layer-active: v2;
 }
 
-html[data-design-layer="v2"] .sb-list-filters {
+html[data-design-layer="v2"] {
+  /* One radius source for Tailwind's `rounded-lg` and shared panel primitives. */
+  --radius: var(--sb-panel-radius);
+}
+
+html[data-design-layer="v2"] .sb-list-filters:not(.unified-list-header) {
   border: 1px solid var(--sb-border-soft);
   border-radius: var(--sb-panel-radius);
   background: rgb(255 255 255 / 0.94);
   box-shadow: var(--sb-shadow-xs);
 }
 
-html[data-design-layer="v2"] .sb-list-filters :is(input, select, button, a, [data-select-control], summary) {
+html[data-design-layer="v2"] .sb-list-filters:not(.unified-list-header) :is(input, select, button, a, [data-select-control], summary) {
   border-radius: var(--sb-radius-control);
 }
 
-html[data-design-layer="v2"] .sb-filter-more > .sb-filter-more-panel {
+html[data-design-layer="v2"] .sb-list-filters:not(.unified-list-header) .sb-filter-more > .sb-filter-more-panel {
   border-radius: var(--sb-panel-radius);
 }
 
 @media (max-width: 1279px) {
-  html[data-design-layer="v2"] .sb-filter-more[open] > .sb-filter-more-backdrop {
+  html[data-design-layer="v2"] .sb-list-filters:not(.unified-list-header) .sb-filter-more[open] > .sb-filter-more-backdrop {
     z-index: var(--sb-z-backdrop);
   }
 
-  html[data-design-layer="v2"] .sb-filter-more[open] > .sb-filter-more-panel {
+  html[data-design-layer="v2"] .sb-list-filters:not(.unified-list-header) .sb-filter-more[open] > .sb-filter-more-panel {
     z-index: var(--sb-z-dialog);
     border-radius: var(--sb-panel-radius) var(--sb-panel-radius) 0 0;
   }
@@ -144,27 +100,27 @@ html[data-design-layer="v2"] :where(.erp-surface, .sb-work-surface, .sb-command-
   box-shadow: var(--sb-shadow-xs);
 }
 
-html[data-design-layer="v2"] :where(.sb-list-filters, .sb-filter-more-panel, .sb-right-console, .sb-pr-basket-sheet) {
+html[data-design-layer="v2"] :where(.sb-list-filters:not(.unified-list-header), .sb-filter-more-panel, .sb-right-console, .sb-pr-basket-sheet) {
   border-color: var(--sb-border-soft);
   border-radius: var(--sb-panel-radius) !important;
   box-shadow: var(--sb-shadow-sm);
 }
 
-html[data-design-layer="v2"] :where(.sb-list-filters, .sb-list-filters > *, .sb-filter-more-panel > *) {
+html[data-design-layer="v2"] :where(.sb-list-filters:not(.unified-list-header), .sb-list-filters:not(.unified-list-header) > *, .sb-filter-more-panel > *) {
   --sb-active-control-radius: var(--sb-radius-control);
 }
 
-html[data-design-layer="v2"] :where(.sb-list-filters input, .sb-list-filters select, .sb-list-filters button, .sb-list-filters a, .sb-filter-more-panel input, .sb-filter-more-panel select, .sb-filter-more-panel button) {
+html[data-design-layer="v2"] :where(.sb-list-filters:not(.unified-list-header) input, .sb-list-filters:not(.unified-list-header) select, .sb-list-filters:not(.unified-list-header) button, .sb-list-filters:not(.unified-list-header) a, .sb-filter-more-panel input, .sb-filter-more-panel select, .sb-filter-more-panel button) {
   border-radius: var(--sb-radius-control) !important;
 }
 
-html[data-design-layer="v2"] :where(.sb-list-filters input, .sb-list-filters select, .sb-filter-more-panel input, .sb-filter-more-panel select) {
+html[data-design-layer="v2"] :where(.sb-list-filters:not(.unified-list-header) input, .sb-list-filters:not(.unified-list-header) select, .sb-filter-more-panel input, .sb-filter-more-panel select) {
   min-height: var(--sb-control-height);
   border-color: var(--sb-border-soft);
   background: var(--sb-surface-raised);
 }
 
-html[data-design-layer="v2"] :where(.sb-list-filters button, .sb-list-filters a, .sb-filter-more-panel button) {
+html[data-design-layer="v2"] :where(.sb-list-filters:not(.unified-list-header) button, .sb-list-filters:not(.unified-list-header) a, .sb-filter-more-panel button) {
   min-height: var(--sb-control-height);
 }
 
@@ -188,7 +144,7 @@ html[data-design-layer="v2"] :where(.sb-table-scroll, .sb-scroll-container, [dat
     display: none !important;
   }
 
-  html[data-design-layer="v2"] :where(.sb-list-filters, .sb-filter-more-panel) {
+  html[data-design-layer="v2"] :where(.sb-list-filters:not(.unified-list-header), .sb-filter-more-panel) {
     border-radius: var(--sb-panel-radius) !important;
   }
 
@@ -832,13 +788,18 @@ nav[aria-label="Pagination"] > span,
     gap: 0.25rem;
   }
 
-[data-dashboard-panel="payables"] [data-dashboard-payables] > a > span > span:last-child {
-  display: block;
-  max-width: none;
+  [data-dashboard-panel="payables"] [data-dashboard-payables] > a > span > span:last-child {
+    display: block;
+    max-width: none;
     overflow: visible;
     text-overflow: clip;
     white-space: normal;
-  line-height: 1rem;
+    line-height: 1rem;
+  }
+
+  [data-dashboard-panel="payables"] [data-dashboard-payables] strong {
+    font-size: 0.875rem;
+  }
 }
 
 @media (max-width: 639px) {
@@ -865,11 +826,6 @@ nav[aria-label="Pagination"] > span,
     overflow: visible;
     text-overflow: clip;
     white-space: normal;
-  }
-}
-
-  [data-dashboard-panel="payables"] [data-dashboard-payables] strong {
-    font-size: 0.875rem;
   }
 }
 @media (max-width: 639px) {
@@ -907,7 +863,7 @@ nav[aria-label="Pagination"] > span,
   .unified-list-filter-trigger svg { width: 1.125rem; height: 1.125rem; }
   .unified-list-filter-label { display: inline; font-size: .8125rem; font-weight: 700; white-space: nowrap; }
   .unified-list-filter-badge { position: absolute; top: -.35rem; right: -.35rem; min-width: 1.15rem; height: 1.15rem; padding: 0 .25rem; border-radius: 999px; background: var(--sb-green-900); color: white; font-size: .6875rem; font-weight: 700; line-height: 1.15rem; }
-  .unified-list-result { display: block; margin-top: .5rem; text-align: right; color: var(--sb-muted); font-size: .75rem; font-variant-numeric: tabular-nums; }
+  .unified-list-result { flex: 0 0 auto; margin: 0; color: var(--sb-text-muted); font-size: .75rem; font-weight: 600; font-variant-numeric: tabular-nums; white-space: nowrap; }
   .unified-list-layer { position: fixed; inset: 0; z-index: 100; }
   .unified-list-backdrop { position: fixed; inset: 0; z-index: 100; background: rgb(10 31 25 / .5); }
   .unified-list-sheet { position: fixed; inset-inline: 0; bottom: 0; z-index: 101; display: grid; grid-template-rows: auto minmax(0,1fr) auto; max-height: min(85dvh, 40rem); overflow: hidden; padding: 1rem 1rem calc(1rem + env(safe-area-inset-bottom)); border-radius: var(--sb-panel-radius) var(--sb-panel-radius) 0 0; border: 1px solid var(--sb-border); background: var(--sb-surface-raised); box-shadow: 0 -1rem 3rem rgb(10 31 25 / .16); }
@@ -922,15 +878,8 @@ nav[aria-label="Pagination"] > span,
   .unified-list-inline-fields { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: .5rem; margin-top: .5rem; }
   .unified-list-inline-fields > * { min-width: 0; }
 }
-.sb-command-surface,
-.sb-work-surface,
-[data-tablet-split-actions] > section {
-  border-radius: var(--sb-panel-radius);
-}
-
 @media (max-width: 639px) {
-  body:has(.unified-list-layer) nav.fixed.bottom-0,
-  body:has(.unified-list-layer) .sb-mobile-bottom-nav,
+  body:has(.unified-list-layer) [data-mobile-bottom-nav],
   body:has([data-mobile-document-action]) nav.fixed.bottom-0,
   body:has([data-mobile-document-action]) .sb-mobile-bottom-nav,
   html[data-mobile-action-page="true"] nav.fixed.bottom-0,
@@ -945,5 +894,182 @@ nav[aria-label="Pagination"] > span,
 
   html[data-mobile-action-page="true"] main#main-content {
     padding-bottom: calc(5rem + env(safe-area-inset-bottom));
+  }
+}
+
+/* UI stability contract: one final surface definition; mobile layout lives above. */
+html[data-design-layer="v2"] body .sb-command-surface {
+  border-color: rgb(255 255 255 / 0.13) !important;
+  border-radius: var(--sb-panel-radius) !important;
+  background: radial-gradient(circle at 86% 12%, rgb(44 145 110 / 0.26), transparent 34%), linear-gradient(135deg, #063f2f 0%, #005944 62%, #0b6a51 100%) !important;
+  color: #fff !important;
+  box-shadow: 0 14px 32px rgb(0 64 48 / 0.18) !important;
+}
+
+@media (max-width: 639px) {
+  .unified-list-inline-control {
+    flex: 0 0 min(38%, 10rem);
+    min-width: 0;
+  }
+
+  .unified-list-inline-control :where(select, input, button) {
+    width: 100%;
+    height: 2.75rem;
+    min-height: 2.75rem;
+  }
+
+  html[data-design-layer="v2"] [data-mobile-bottom-nav] {
+    z-index: var(--sb-z-sticky) !important;
+    pointer-events: auto !important;
+  }
+
+  html[data-design-layer="v2"] [data-mobile-bottom-nav] :where(a, button) {
+    pointer-events: auto !important;
+  }
+}
+/* --------------------------------------------------------------------------
+   Canonical convergence contract
+   This block is intentionally last: shared geometry and mobile interaction
+   must have one authority, rather than page-level overrides competing.
+   -------------------------------------------------------------------------- */
+
+html[data-design-layer="v2"] {
+  --sb-panel-radius: 12px;
+  --sb-control-radius: 8px;
+  --sb-z-mobile-nav: 50;
+  --sb-z-sheet-backdrop: 100;
+  --sb-z-sheet: 101;
+}
+
+html[data-design-layer="v2"] :where(.erp-surface, .sb-work-surface, .sb-command-surface, .border.bg-card) {
+  border-radius: var(--sb-panel-radius) !important;
+}
+
+html[data-design-layer="v2"] :where(input, select, textarea, button, .inline-flex, .unified-list-filter-trigger) {
+  border-radius: var(--sb-control-radius);
+}
+
+html[data-design-layer="v2"] :where(.overflow-auto, .overflow-x-auto, .overflow-y-auto, .scrollbar-none) {
+  scrollbar-width: none;
+}
+
+html[data-design-layer="v2"] :where(.overflow-auto, .overflow-x-auto, .overflow-y-auto, .scrollbar-none)::-webkit-scrollbar {
+  display: none;
+}
+
+html[data-design-layer="v2"] [data-dashboard-command] {
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, #0b5a43 76%, white) !important;
+  border-radius: var(--sb-panel-radius) !important;
+  background:
+    linear-gradient(135deg, rgba(9, 86, 65, 0.99), rgba(5, 66, 51, 0.99)),
+    radial-gradient(circle at top right, rgba(174, 238, 210, 0.17), transparent 42%) !important;
+  color: #f8fffb;
+}
+
+html[data-design-layer="v2"] [data-dashboard-command] :where(h1, h2, h3, p, span, a) {
+  color: inherit;
+}
+
+html[data-design-layer="v2"] [data-dashboard-command] [data-dashboard-pulse-metrics] {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  background: rgba(255, 255, 255, 0.04);
+}
+
+html[data-design-layer="v2"] [data-mobile-bottom-nav] {
+  z-index: var(--sb-z-mobile-nav) !important;
+  pointer-events: auto !important;
+  visibility: visible !important;
+}
+
+@media (max-width: 639px) {
+  html[data-design-layer="v2"] body {
+    overflow-x: clip;
+  }
+
+  html[data-design-layer="v2"] [data-dashboard-command] [data-dashboard-pulse-metrics] {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  html[data-design-layer="v2"] form.unified-list-header {
+    overflow: visible !important;
+    border: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+  }
+
+  html[data-design-layer="v2"] form.unified-list-header .unified-list-row {
+    position: relative;
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) 108px;
+    gap: 8px;
+    align-items: stretch;
+  }
+
+  html[data-design-layer="v2"] form.unified-list-header .unified-list-row > :first-child {
+    min-width: 0;
+  }
+
+  html[data-design-layer="v2"] form.unified-list-header :where(input[type="search"], input[name="search"]) {
+    min-width: 0;
+    height: 44px !important;
+    border-radius: var(--sb-control-radius) !important;
+  }
+
+  html[data-design-layer="v2"] form.unified-list-header .unified-list-filter-trigger,
+  html[data-design-layer="v2"] form.unified-list-header .unified-list-inline-control {
+    min-width: 0;
+    min-height: 44px;
+    height: 44px;
+    border-radius: var(--sb-control-radius) !important;
+  }
+
+  html[data-design-layer="v2"] form.unified-list-header .unified-list-filter-trigger {
+    display: inline-flex !important;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    border-color: #075942 !important;
+    background: #075942 !important;
+    color: #ffffff !important;
+    font-weight: 650;
+  }
+
+  html[data-design-layer="v2"] form.unified-list-header .unified-list-result {
+    display: none !important;
+  }
+
+  html[data-design-layer="v2"] form.unified-list-header button[type="submit"] {
+    display: none !important;
+  }
+
+  html[data-design-layer="v2"] form.unified-list-header .unified-list-inline-fields {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+    margin-top: 8px;
+  }
+
+  html[data-design-layer="v2"] .unified-list-sheet-backdrop {
+    position: fixed !important;
+    inset: 0 !important;
+    z-index: var(--sb-z-sheet-backdrop) !important;
+  }
+
+  html[data-design-layer="v2"] .unified-list-sheet {
+    position: fixed !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    left: 0 !important;
+    z-index: var(--sb-z-sheet) !important;
+    max-height: min(78dvh, 640px);
+    padding-bottom: max(16px, env(safe-area-inset-bottom)) !important;
+    border-radius: 16px 16px 0 0 !important;
+  }
+
+  html[data-design-layer="v2"] body:has(.unified-list-sheet) [data-mobile-bottom-nav] {
+    visibility: hidden !important;
+    pointer-events: none !important;
   }
 }

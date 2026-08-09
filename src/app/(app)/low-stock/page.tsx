@@ -14,6 +14,7 @@ import { hasPermission } from "@/server/auth/permissions";
 import { getBranchesForSelect } from "@/server/queries/common";
 import { getLowStockItems } from "@/server/queries/inventory";
 import { LowStockPrForm } from "@/components/low-stock-pr-form";
+import { UnifiedListHeader } from "@/components/common/UnifiedListHeader";
 
 function reorderHref(item: Awaited<ReturnType<typeof getLowStockItems>>[number]) {
   const params = new URLSearchParams({
@@ -71,7 +72,7 @@ export default async function LowStockPage({ searchParams }: { searchParams: Pro
           </div>
 
           <div className="px-4 pb-4">
-            <form className="sb-list-filters">
+            <UnifiedListHeader resultCount={items.length} resetHref="/low-stock" filtered={filtered}>
               <Input name="search" defaultValue={filters.search ?? ""} placeholder="Search item, branch, supplier" className="md:max-w-sm" />
               <SelectControl
                 name="branch_id"
@@ -87,8 +88,7 @@ export default async function LowStockPage({ searchParams }: { searchParams: Pro
                 className="md:max-w-44"
                 options={[{ value: "all", label: "All statuses" }, { value: "low_stock", label: "Low Stock" }, { value: "out_of_stock", label: "Out of Stock" }]}
               />
-              {filtered ? <Button asChild variant="secondary"><Link href="/low-stock">Reset</Link></Button> : <Button type="submit" variant="secondary">Search</Button>}
-            </form>
+            </UnifiedListHeader>
           </div>
 
           <Table mobileHidden aria-label="Low stock items" stickyColumn={canCreatePr ? "second" : "first"}>

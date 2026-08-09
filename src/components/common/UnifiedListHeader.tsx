@@ -148,7 +148,7 @@ export function UnifiedListHeader({ children, resultCount, resetHref, filtered =
   const filters = useMemo(() => all.filter((child) => child !== primary && !isAction(child) && !isFilterMore(child)), [all, primary]);
   const nested = more && isValidElement(more) ? Children.toArray(propsOf(more).children as ReactNode) : [];
   const contextualFilterCount = filters.length + nested.length;
-  const resolvedPhoneMode = phoneMode === "drawer" && contextualFilterCount <= 1 ? "inline" : phoneMode;
+  const resolvedPhoneMode = phoneMode;
   const active = activeCount || (more && isValidElement(more) && typeof propsOf(more).activeCount === "number" ? propsOf(more).activeCount as number : 0);
   const primaryProps = primary && isValidElement(primary) ? propsOf(primary) : {};
   const initialSearchValue = typeof primaryProps.defaultValue === "string"
@@ -189,17 +189,18 @@ export function UnifiedListHeader({ children, resultCount, resetHref, filtered =
     document.body,
   ) : null;
   return (
-    <form ref={formRef} className={cn("sb-list-filters unified-list-header", className)} data-filtered={filtered || undefined} data-reset-href={resetHref} onSubmit={submit}>
+    <form ref={formRef} className={cn("unified-list-header", className)} data-filtered={filtered || undefined} data-reset-href={resetHref} onSubmit={submit}>
       <div className="unified-list-row">
         {primary && isValidElement(primary) ? <SearchControl child={primary} value={searchValue} onChange={updateSearch} /> : <div className="unified-list-primary-control" />}
         {resolvedPhoneMode === "drawer" ? <button type="button" className="unified-list-filter-trigger" onClick={() => setOpen(true)} aria-label={active ? `Filter, ${active} active` : "Filter"}><SlidersHorizontal /><span className="unified-list-filter-label">Filter{active ? ` (${active})` : ""}</span></button> : null}
+        {resolvedPhoneMode === "inline" && contextualFilterCount === 1 ? <div className="unified-list-inline-control">{filterControls}</div> : null}
+        {typeof resultCount === "number" ? <span className="unified-list-result" aria-live="polite">{resultCount} {resultCount === 1 ? "record" : "records"}</span> : null}
       </div>
-      {resolvedPhoneMode === "inline" ? <div className="unified-list-inline-fields">{filterControls}</div> : null}
+      {resolvedPhoneMode === "inline" && contextualFilterCount > 1 ? <div className="unified-list-inline-fields">{filterControls}</div> : null}
       {resolvedPhoneMode === "drawer" && !open ? [...filters, ...nested].map((child, index) => {
         const hidden = hiddenFilterValue(child);
         return hidden ? <input key={`${hidden.name}-${index}`} type="hidden" name={hidden.name} value={hidden.value} /> : null;
       }) : null}
-      {typeof resultCount === "number" ? <span className="unified-list-result" aria-live="polite">{resultCount} {resultCount === 1 ? "record" : "records"}</span> : null}
       <button type="submit" className="sr-only" tabIndex={-1} aria-hidden="true">Search</button>
       {filterSheet}
     </form>

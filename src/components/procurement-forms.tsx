@@ -1,7 +1,7 @@
 "use client";
 
 import { type FormEvent, useEffect, useRef, useState } from "react";
-import { MessageSquare, Minus, Plus, X } from "lucide-react";
+import { CalendarDays, ChevronDown, MapPin, MessageSquare, Minus, Plus, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Field } from "@/components/ui/field";
@@ -95,7 +95,7 @@ export function PurchaseRequestForm({
   const initialRows = initialLines?.length
     ? initialLines.map((line, index) => {
         const row = { ...createBlankLine(index), ...line, key: index };
-        const supplierStillValid = supplierMappings.some((mapping) => mapping.branch_id === resolvedInitialBranchId && mapping.item_id === row.itemId && mapping.supplier_id === row.supplierId);
+        const supplierStillValid = supplierMappings.some((mapping) => mapping.branch_id === resolvedInitialBranchId && mapping.item_id === row.itemId && mapping.supplier_id === row.supplierId && (!row.uom || normalizeUom(mapping.purchase_uom) === normalizeUom(row.uom)));
         return supplierStillValid ? row : { ...row, supplierId: "" };
       })
     : [];
@@ -104,10 +104,28 @@ export function PurchaseRequestForm({
   const [branchId, setBranchId] = useState(resolvedInitialBranchId);
   const [validationError, setValidationError] = useState("");
   const [commentLineKey, setCommentLineKey] = useState<number | null>(null);
+  const [neededByDate, setNeededByDate] = useState(initialNeededByDate ?? "");
+  const [detailsOpen, setDetailsOpen] = useState(true);
   const firstItemInputRef = useRef<HTMLInputElement>(null);
   const nextKey = lines.reduce((max, line) => Math.max(max, line.key), 0) + 1;
 
   const hasRequestItem = lines.some((line) => Boolean(line.itemId));
+  const selectedBranchName = branches.find((branch) => branch.id === branchId)?.branch_name ?? "Select branch";
+  const detailsComplete = Boolean(branchId);
+
+  function mappingsForLine(line: RequestLine) {
+    return supplierMappings.filter((mapping) => mapping.branch_id === branchId && mapping.item_id === line.itemId);
+  }
+
+  function allowedUomsForLine(line: RequestLine) {
+    const item = items.find((candidate) => candidate.id === line.itemId);
+    return [...new Set([
+      line.uom,
+      item?.purchase_unit,
+      item?.base_unit,
+      ...mappingsForLine(line).map((mapping) => mapping.purchase_uom),
+    ].filter(Boolean).map((value) => normalizeUom(String(value))))];
+  }
 
   function rejectEmptyRequest() {
     setValidationError("Could not create this purchase request. Add at least one item before continuing.");
@@ -132,6 +150,10 @@ export function PurchaseRequestForm({
     document.addEventListener("click", guardExternalSubmit, true);
     return () => document.removeEventListener("click", guardExternalSubmit, true);
   }, [hasRequestItem]);
+
+  useEffect(() => {
+    if (validationError) setDetailsOpen(true);
+  }, [validationError]);
 
   function updateLine(key: number, updates: Partial<RequestLine>) {
     setLines((current) => current.map((line) => (line.key === key ? { ...line, ...updates } : line)));
@@ -189,11 +211,25 @@ export function PurchaseRequestForm({
   function selectSupplier(key: number, supplierId: string) {
     const line = lines.find((row) => row.key === key);
     if (!line) return;
-    const mapping = supplierMappings.find((candidate) => candidate.branch_id === branchId && candidate.item_id === line.itemId && candidate.supplier_id === supplierId);
+    const mapping = supplierMappings.find((candidate) => candidate.branch_id === branchId && candidate.item_id === line.itemId && candidate.supplier_id === supplierId && (!line.uom || normalizeUom(candidate.purchase_uom) === line.uom));
     updateLine(key, {
       supplierId,
       cost: String(mapping?.unit_cost ?? line.cost),
       uom: normalizeUom(mapping?.purchase_uom || line.uom),
+    });
+  }
+
+  function selectLineUom(key: number, value: string) {
+    const line = lines.find((row) => row.key === key);
+    if (!line) return;
+    const uom = normalizeUom(value);
+    const compatibleMappings = mappingsForLine(line).filter((mapping) => normalizeUom(mapping.purchase_uom) === uom);
+    const currentMapping = compatibleMappings.find((mapping) => mapping.supplier_id === line.supplierId);
+    const automaticMapping = currentMapping ?? compatibleMappings.find((mapping) => mapping.is_preferred) ?? (compatibleMappings.length === 1 ? compatibleMappings[0] : null);
+    updateLine(key, {
+      uom,
+      supplierId: automaticMapping?.supplier_id ?? "",
+      cost: String(automaticMapping?.unit_cost ?? line.cost),
     });
   }
 
@@ -209,10 +245,22 @@ export function PurchaseRequestForm({
           <input type="hidden" name="production_risk" value={initialProductionRisk ? "on" : ""} />
           <input type="hidden" name="expected_updated_at" value={initialUpdatedAt ?? ""} />
           <section data-purchase-request-setup className="sb-work-surface p-3 md:p-4">
-            <div className="mb-3 flex items-baseline justify-between gap-3 border-b border-[var(--sb-border-soft)] pb-2">
-              <div><h2 className="text-sm font-semibold text-[var(--sb-text)]">Request details <span className="sr-only">More settings</span></h2><p className="text-xs text-muted-foreground">Where and when this purchase is needed.</p></div>
+            <div className={`${detailsOpen ? "mb-3" : ""} flex items-start justify-between gap-3 border-b border-[var(--sb-border-soft)] pb-2`}>
+              <div className="min-w-0">
+                <h2 className="text-sm font-semibold text-[var(--sb-text)]">Request details</h2>
+                {detailsOpen ? <p className="text-xs text-muted-foreground">Where and when this purchase is needed.</p> : (
+                  <div className="mt-1 flex flex-wrap gap-x-3 gap-y-1 text-xs text-muted-foreground">
+                    <span className="inline-flex min-w-0 items-center gap-1"><MapPin className="h-3.5 w-3.5 shrink-0" /><span className="break-words">{selectedBranchName}</span></span>
+                    <span className="inline-flex items-center gap-1"><CalendarDays className="h-3.5 w-3.5 shrink-0" />{neededByDate || "Date not set"}</span>
+                    <span className="font-medium capitalize text-[var(--sb-text)]">{priority}</span>
+                  </div>
+                )}
+              </div>
+              <Button type="button" variant="ghost" size="icon" className="h-8 w-8 shrink-0" aria-expanded={detailsOpen} aria-label={detailsOpen ? "Collapse request details" : "Expand request details"} onClick={() => setDetailsOpen((open) => !open)}>
+                <ChevronDown className={`h-4 w-4 transition-transform ${detailsOpen ? "rotate-180" : ""}`} />
+              </Button>
             </div>
-            <div className="grid grid-cols-2 gap-3 md:grid-cols-3">
+            <div className={`${detailsOpen ? "grid" : "hidden"} grid-cols-2 gap-3 md:grid-cols-3`}>
             <Field label="Request branch" required>
                 <SelectNative name="branch_id" value={branchId} onChange={(event) => changeBranch(event.target.value)} required disabled={lockBranch}>
                   {branches.map((branch) => <option key={branch.id} value={branch.id}>{branch.branch_name}</option>)}
@@ -220,7 +268,7 @@ export function PurchaseRequestForm({
                 {lockBranch ? <input type="hidden" name="branch_id" value={branchId} /> : null}
             </Field>
             <Field label="Needed By">
-              <Input name="needed_by_date" type="date" defaultValue={initialNeededByDate ?? ""} />
+              <Input name="needed_by_date" type="date" value={neededByDate} onChange={(event) => setNeededByDate(event.target.value)} />
             </Field>
             <Field label="Urgency" className="col-span-2 md:col-span-1"><UrgencySelect value={priority} onValueChange={setPriority} /></Field>
             <Field label="Remarks" className="col-span-2 md:col-span-3">
@@ -235,7 +283,7 @@ export function PurchaseRequestForm({
             </div>
           ) : null}
 
-          <section data-purchase-request-workspace className="sb-work-surface overflow-hidden">
+          <section data-purchase-request-workspace className="sb-work-surface overflow-hidden" onFocusCapture={() => { if (detailsComplete && !validationError) setDetailsOpen(false); }}>
             <div className="flex items-center justify-between border-b bg-secondary/40 px-3 py-2">
               <div>
                 <p className="text-xs font-semibold">Requested Items</p>
@@ -250,8 +298,8 @@ export function PurchaseRequestForm({
             <div className="divide-y">
               {/* Legacy contract token: grid-cols-[minmax(0,1fr)_7.5rem_2.25rem]. The current four-column line keeps UOM, quantity, comments, and removal aligned. */}
               {lines.map((line) => (
-                <div data-purchase-request-line key={line.key} className="grid grid-cols-[minmax(0,1fr)_minmax(7rem,.7fr)] gap-3 p-3 md:grid-cols-[minmax(0,1fr)_112px_112px_5.5rem] md:gap-3">
-                  <div className="min-w-0">
+                <div data-purchase-request-line key={line.key} className="grid grid-cols-[minmax(0,1fr)_minmax(6.5rem,.65fr)_2.5rem] gap-2 p-3 md:grid-cols-[minmax(0,1fr)_112px_112px_5.5rem] md:gap-3">
+                  <div className="col-span-full min-w-0 md:col-span-1">
                     <Field label="Item" required>
                       <Input
                         ref={line.key === lines[0]?.key ? firstItemInputRef : undefined}
@@ -261,11 +309,11 @@ export function PurchaseRequestForm({
                         placeholder="Search by item code or item name"
                       />
                     </Field>
-                    {line.itemId && supplierMappings.some((mapping) => mapping.branch_id === branchId && mapping.item_id === line.itemId) ? (
+                    {line.itemId && mappingsForLine(line).some((mapping) => !line.uom || normalizeUom(mapping.purchase_uom) === line.uom) ? (
                       <Field label="Supplier" required>
                         <SelectNative value={line.supplierId} onChange={(event) => selectSupplier(line.key, event.target.value)} aria-label={`Supplier for ${line.itemSearch}`}>
                           <option value="">Select mapped supplier</option>
-                          {supplierMappings.filter((mapping) => mapping.branch_id === branchId && mapping.item_id === line.itemId).map((mapping) => (
+                          {mappingsForLine(line).filter((mapping) => !line.uom || normalizeUom(mapping.purchase_uom) === line.uom).map((mapping) => (
                             <option key={mapping.id} value={mapping.supplier_id}>{mapping.supplier_name}{mapping.is_preferred ? " · Preferred" : ""}</option>
                           ))}
                         </SelectNative>
@@ -274,7 +322,7 @@ export function PurchaseRequestForm({
                     <input type="hidden" name="line_item_id" value={line.itemId} />
                     <input type="hidden" name="line_branch_id" value={branchId} />
                   </div>
-                    <Field label="Quantity" required className="md:col-start-2">
+                    <Field label="Quantity" required className="col-start-1 md:col-start-2">
                       <div className="flex overflow-hidden rounded-[var(--sb-radius-control)] border border-[var(--sb-border)] bg-white">
                         <button type="button" className="flex h-10 w-8 shrink-0 items-center justify-center border-r border-[var(--sb-border)] text-[var(--sb-green-900)] hover:bg-[var(--sb-surface-muted)] active:bg-[var(--sb-green-100)]" onClick={() => adjustLineQuantity(line, -1)} aria-label={`Decrease quantity for ${line.itemSearch || "request line"}`}><Minus className="h-3.5 w-3.5" /></button>
                         <Input name="line_qty" type="number" min="0" step={requestQuantityStep(line.uom)} value={line.qty} onChange={(event) => updateLine(line.key, { qty: event.target.value })} placeholder="Qty" className="h-10 min-w-0 rounded-none border-0 px-1 text-center text-sm font-semibold tabular-nums shadow-none focus-visible:ring-inset" />
@@ -282,21 +330,22 @@ export function PurchaseRequestForm({
                       </div>
                     </Field>
                     <Field label="UOM" className="col-start-2 md:col-start-3">
-                      <SelectNative name="line_uom" value={line.uom} onChange={(event) => updateLine(line.key, { uom: normalizeUom(event.target.value) })} disabled={!line.itemId} aria-label={`Unit of measure for ${line.itemSearch || "request line"}`}>
+                      <SelectNative name="line_uom" value={line.uom} onChange={(event) => selectLineUom(line.key, event.target.value)} disabled={!line.itemId} aria-label={`Unit of measure for ${line.itemSearch || "request line"}`}>
                         <option value="">Choose unit</option>
-                        {[...new Set([line.uom, items.find((item) => item.id === line.itemId)?.purchase_unit, items.find((item) => item.id === line.itemId)?.base_unit, "piece", "tray", "pack", "box", "kg", "g", "l", "ml"].filter(Boolean).map((value) => normalizeUom(String(value))))].map((uom) => <option key={uom} value={uom}>{uom.toUpperCase()}</option>)}
+                        {allowedUomsForLine(line).map((uom) => <option key={uom} value={uom}>{uom.toUpperCase()}</option>)}
                       </SelectNative>
                     </Field>
                   <input type="hidden" name="line_suggested_supplier_id" value={line.supplierId} />
                   <input type="hidden" name="line_estimated_unit_cost" value={line.cost} />
                   <details className="hidden" aria-hidden="true"><summary>Sourcing details <span>(automatic)</span></summary><div className="grid grid-cols-[minmax(0,1.35fr)_minmax(0,0.8fr)_minmax(4.75rem,0.7fr)_2.75rem]" /><span>Line note <span className="font-normal">(optional)</span></span></details>
-                  <div className="col-span-2 flex items-end justify-end gap-1 md:col-span-1 md:col-start-4 md:row-start-1">
+                  <div className="col-start-3 flex items-end justify-end gap-1 md:col-span-1 md:col-start-4 md:row-start-1">
                     <Button type="button" variant="ghost" size="icon" className="h-10 w-9 text-muted-foreground" aria-label={`Add comment for ${line.itemSearch || "request line"}`} onClick={() => setCommentLineKey((current) => current === line.key ? null : line.key)}><MessageSquare className="h-4 w-4" /></Button>
                     {lines.length > 1 ? <Button type="button" variant="ghost" size="icon" className="h-10 w-9 text-muted-foreground" aria-label="Remove line" onClick={() => setLines((current) => current.filter((row) => row.key !== line.key))}><X className="h-4 w-4" /></Button> : null}
                   </div>
                   {commentLineKey === line.key ? <Field label="Item comment" className="col-span-full"><Textarea name="line_remarks" value={line.remarks} onChange={(event) => updateLine(line.key, { remarks: event.target.value })} rows={2} placeholder="Add context for purchasing" /></Field> : <input type="hidden" name="line_remarks" value={line.remarks} />}
-                  {line.itemId && !supplierMappings.some((mapping) => mapping.branch_id === branchId && mapping.item_id === line.itemId) ? <p className="col-span-full rounded-[var(--sb-radius-control)] border border-destructive/25 bg-destructive/5 px-3 py-2 text-xs font-medium leading-relaxed text-destructive">Supplier mapping missing. Add a supplier mapping for this item and branch before submitting the PR.</p> : null}
-                  {line.itemId && supplierMappings.filter((mapping) => mapping.branch_id === branchId && mapping.item_id === line.itemId).length > 1 && !line.supplierId ? <p className="col-span-full rounded-[var(--sb-radius-control)] border border-amber-300/60 bg-amber-50 px-3 py-2 text-xs font-medium leading-relaxed text-amber-800">Multiple supplier mappings found. Select the supplier to continue; the preferred mapping is used automatically when one is marked.</p> : null}
+                  {line.itemId && mappingsForLine(line).length === 0 ? <p className="col-span-full rounded-[var(--sb-radius-control)] border border-destructive/25 bg-destructive/5 px-3 py-2 text-xs font-medium leading-relaxed text-destructive">Supplier mapping missing. Add a supplier mapping for this item and branch before submitting the PR.</p> : null}
+                  {line.itemId && line.uom && mappingsForLine(line).length > 0 && !mappingsForLine(line).some((mapping) => normalizeUom(mapping.purchase_uom) === line.uom) ? <p className="col-span-full rounded-[var(--sb-radius-control)] border border-amber-300/60 bg-amber-50 px-3 py-2 text-xs font-medium leading-relaxed text-amber-800">No supplier mapping uses {line.uom.toUpperCase()} for this branch. Choose a mapped purchase unit or update Supplier Items before submitting.</p> : null}
+                  {line.itemId && mappingsForLine(line).filter((mapping) => !line.uom || normalizeUom(mapping.purchase_uom) === line.uom).length > 1 && !line.supplierId ? <p className="col-span-full rounded-[var(--sb-radius-control)] border border-amber-300/60 bg-amber-50 px-3 py-2 text-xs font-medium leading-relaxed text-amber-800">Multiple supplier mappings found for this unit. Select the supplier to continue; the preferred mapping is used automatically when one is marked.</p> : null}
                   <input type="hidden" name="line_reason" value={line.reason} />
                 </div>
               ))}

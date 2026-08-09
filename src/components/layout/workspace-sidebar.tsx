@@ -75,7 +75,7 @@ export function WorkspaceSidebar({
           <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-[2px] bg-white/12 text-white ring-1 ring-white/10">
             {companyLogoUrl ? (
               // eslint-disable-next-line @next/next/no-img-element
-              <img src={companyLogoUrl} alt={`${companyName} logo`} className="h-full w-full object-contain p-1" />
+              <img src={companyLogoUrl} alt={`${companyName} logo`} className="h-full w-full object-contain" />
             ) : (
               <Factory className="h-4 w-4" />
             )}

@@ -174,7 +174,7 @@ export async function cancelStockCount(id: string) {
   const { data: updatedCount, error } = await supabase.rpc("cancel_stock_count_atomic", { p_stock_count_id: countId });
   if (error) throw new Error(error.message);
   if (!(updatedCount as { id?: string } | null)?.id) throw new Error("Stock count cancellation did not return an identifier.");
-  revalidateWorkspaceState(["/stock-counts", `/stock-counts/${countId}`]);
+  revalidateWorkspaceState(["/stock-counts", `/stock-counts/${countId}`, "/dashboard", "/activity"]);
   // Leave the editable detail surface after cancellation. Otherwise the
   // autosave form remains mounted and can make a cancelled draft appear to
   // come back when the user continues typing or refreshes the page.
@@ -193,7 +193,7 @@ export async function deleteStockCount(id: string, formData: FormData) {
     const { data, error } = await supabase.rpc("delete_stock_count_draft_atomic", { p_stock_count_id: countId });
     if (error) throw new Error(error.message);
     if (!(data as { deleted?: boolean } | null)?.deleted) throw new Error("Stock count removal did not complete.");
-    revalidateWorkspaceState(["/stock-counts", `/stock-counts/${countId}`]);
+    revalidateWorkspaceState(["/stock-counts", `/stock-counts/${countId}`, "/dashboard", "/activity"]);
     safeRedirectWithMessage("/stock-counts", "success", "Stock Count removed from active records.");
   } catch (error) {
     rethrowRedirect(error);

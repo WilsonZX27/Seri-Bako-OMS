@@ -8,7 +8,8 @@ import { PageHeader } from "@/components/ui/page-header";
 import { PaginationControls, SortableHead } from "@/components/sortable-table";
 import { ConsoleSection } from "@/components/layout/right-console";
 import { WorkspaceGrid } from "@/components/layout/workspace-layout";
-import { OperationalList, OperationalListRow, Table, TableActionMenu, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { OperationalList, OperationalListRow, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { TableActionMenuPortal } from "@/components/ui/table-action-menu-portal";
 import { hasActiveFilters, paginateRows } from "@/lib/table-state";
 import { formatCurrency, formatNumber } from "@/lib/utils";
 import { deleteSupplierItem } from "@/server/actions/master-data";
@@ -49,7 +50,7 @@ export default async function SupplierItemsPage({ searchParams }: { searchParams
           </TableRow></TableHeader>
           <TableBody>
             {page.rows.map((row) => <TableRow key={row.id}>
-                    <TableCell className="w-16 p-0 text-center"><TableActionMenu label={`Actions for ${row.supplier_item_code}`}><div className="grid min-w-28 gap-1"><Link href={`/supplier-items/${row.id}`} role="menuitem" className="rounded-[var(--sb-radius-control)] px-2 py-1.5 text-xs hover:bg-[var(--sb-surface-muted)]">Open</Link>{canUpdate ? <form action={deleteSupplierItem.bind(null, row.id)}><SubmitButton type="submit" variant="ghost" size="sm" className="w-full justify-start px-2 text-xs text-[var(--sb-danger)]" pendingLabel="Archiving...">Archive</SubmitButton></form> : null}</div></TableActionMenu></TableCell>
+                    <TableCell className="w-16 p-0 text-center"><TableActionMenuPortal label={`Actions for ${row.supplier_item_code}`}><div className="grid min-w-36 gap-1"><Link href={`/supplier-items/${row.id}`} role="menuitem" className="rounded-[var(--sb-radius-control)] px-2 py-1.5 text-xs hover:bg-[var(--sb-surface-muted)]">Open</Link>{canUpdate ? <form action={deleteSupplierItem.bind(null, row.id)}><SubmitButton type="submit" variant="ghost" size="sm" className="w-full justify-start px-2 text-xs text-[var(--sb-danger)]" pendingLabel="Archiving...">Archive</SubmitButton></form> : null}</div></TableActionMenuPortal></TableCell>
               <TableCell>{row.supplier_name}</TableCell>
               <TableCell><p className="font-medium">{row.item_name}</p><p className="text-xs text-muted-foreground">{row.item_code}</p></TableCell>
               <TableCell>{row.supplier_item_code}</TableCell>

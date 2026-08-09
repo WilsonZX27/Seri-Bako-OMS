@@ -6,7 +6,8 @@ import { Card, CardContent } from "@/components/ui/card";
 import { MasterDataFilters } from "@/components/master-data-filters";
 import { PageHeader } from "@/components/ui/page-header";
 import { PaginationControls, SortableHead } from "@/components/sortable-table";
-import { Table, TableActionMenu, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { TableActionMenuPortal } from "@/components/ui/table-action-menu-portal";
 import { paginateRows } from "@/lib/table-state";
 import { formatNumber } from "@/lib/utils";
 import { deleteUomConversion } from "@/server/actions/master-data";
@@ -46,7 +47,7 @@ export default async function UomConversionsPage({ searchParams }: { searchParam
               <TableBody>
                 {page.rows.map((row) => (
                   <TableRow key={row.id}>
-                    <TableCell className="w-16 p-0 text-center"><TableActionMenu label={`Actions for ${row.from_uom} to ${row.to_uom}`}><div className="grid min-w-28 gap-1"><Link href={`/uom-conversions/${row.id}`} role="menuitem" className="rounded-[var(--sb-radius-control)] px-2 py-1.5 text-xs hover:bg-[var(--sb-surface-muted)]">Edit</Link><form action={deleteUomConversion.bind(null, row.id)}><SubmitButton type="submit" variant="ghost" size="sm" className="w-full justify-start px-2 text-xs text-[var(--sb-danger)]" pendingLabel="Archiving...">Archive</SubmitButton></form></div></TableActionMenu></TableCell>
+                    <TableCell className="w-16 p-0 text-center"><TableActionMenuPortal label={`Actions for ${row.from_uom} to ${row.to_uom}`}><div className="grid min-w-36 gap-1"><Link href={`/uom-conversions/${row.id}`} role="menuitem" className="rounded-[var(--sb-radius-control)] px-2 py-1.5 text-xs hover:bg-[var(--sb-surface-muted)]">Edit</Link><form action={deleteUomConversion.bind(null, row.id)}><SubmitButton type="submit" variant="ghost" size="sm" className="w-full justify-start px-2 text-xs text-[var(--sb-danger)]" pendingLabel="Archiving...">Archive</SubmitButton></form></div></TableActionMenuPortal></TableCell>
                     <TableCell>{row.from_uom}</TableCell>
                     <TableCell>{row.to_uom}</TableCell>
                     <TableCell className="text-right">{formatNumber(row.factor)}</TableCell>

@@ -36,6 +36,8 @@ export function OutletDailyRecordForm({ formId, action, branches, products, line
   const [productSearch, setProductSearch] = useState("");
   const initialBranchId = branchId ?? (branches.length === 1 ? branches[0].id : "");
   const [selectedBranchId, setSelectedBranchId] = useState(initialBranchId);
+  const [selectedRecordDate, setSelectedRecordDate] = useState(recordDate);
+  const [setupOpen, setSetupOpen] = useState(true);
   const [touchedProducts, setTouchedProducts] = useState<Set<string>>(() => new Set());
   const lineByProduct = useMemo(() => new Map(lines.map((line) => [line.product_id, line])), [lines]);
   const selectedDefaults = useMemo(() => defaultsByBranch[selectedBranchId] ?? {}, [defaultsByBranch, selectedBranchId]);
@@ -48,13 +50,19 @@ export function OutletDailyRecordForm({ formId, action, branches, products, line
   const normalizedSearch = productSearch.trim().toLowerCase();
   const matchingProductIds = new Set(products.filter((product) => `${product.product_code} ${product.product_name} ${product.category}`.toLowerCase().includes(normalizedSearch)).map((product) => product.id));
 
+  const selectedBranch = branches.find((branch) => branch.id === selectedBranchId);
+  const setupSummary = selectedBranch ? `${selectedBranch.branch_name} · ${selectedRecordDate}` : "Choose a branch and date";
+
   return <form id={formId} action={action} className="space-y-4">
     <Card className="border-0 bg-transparent shadow-none md:border md:bg-white"><CardContent className="p-0 md:p-4">
-      <section data-outlet-daily-setup className="erp-surface grid gap-4 p-3 md:rounded-none md:border-0 md:bg-transparent md:p-0 md:grid-cols-2">
-      <Field label="Branch">{!canEditHeader && branchId ? <input type="hidden" name="branch_id" value={branchId} /> : null}<SelectNative name="branch_id" value={selectedBranchId} onChange={(event) => { setSelectedBranchId(event.target.value); setTouchedProducts(new Set()); }} required disabled={locked || !canEditHeader}>{branches.length > 1 && !branchId ? <option value="">Select branch</option> : null}{branches.map((branch) => <option key={branch.id} value={branch.id}>{branch.branch_name} ({branch.branch_code})</option>)}</SelectNative></Field>
-      <Field label="Record Date">{!canEditHeader ? <input type="hidden" name="record_date" value={recordDate} /> : null}<Input name="record_date" type="date" defaultValue={recordDate} required disabled={locked || !canEditHeader} /></Field>
-      <div className="md:col-span-2"><Field label="Record Remarks"><Textarea name="notes" rows={2} defaultValue={notes ?? ""} placeholder="Optional outlet-level remarks" disabled={locked || !canEditOutletValues} /></Field></div>
-      </section>
+      <details data-outlet-daily-setup open={setupOpen} onToggle={(event) => setSetupOpen(event.currentTarget.open)} className="erp-surface overflow-hidden md:rounded-none md:border-0 md:bg-transparent">
+        <summary className="flex cursor-pointer list-none items-center justify-between gap-3 px-3 py-3 text-sm font-semibold md:hidden [&::-webkit-details-marker]:hidden"><span>Record setup</span><span className="min-w-0 truncate text-right text-xs font-normal text-muted-foreground">{setupSummary}</span></summary>
+        <div className="grid gap-4 border-t p-3 md:border-0 md:p-0 md:grid-cols-2">
+          <Field label="Branch">{!canEditHeader && branchId ? <input type="hidden" name="branch_id" value={branchId} /> : null}<SelectNative name="branch_id" value={selectedBranchId} onChange={(event) => { const nextBranch = event.target.value; setSelectedBranchId(nextBranch); setTouchedProducts(new Set()); if (nextBranch && selectedRecordDate) setSetupOpen(false); }} required disabled={locked || !canEditHeader}>{branches.length > 1 && !branchId ? <option value="">Select branch</option> : null}{branches.map((branch) => <option key={branch.id} value={branch.id}>{branch.branch_name} ({branch.branch_code})</option>)}</SelectNative></Field>
+          <Field label="Record Date">{!canEditHeader ? <input type="hidden" name="record_date" value={recordDate} /> : null}<Input name="record_date" type="date" value={selectedRecordDate} onChange={(event) => { const nextDate = event.target.value; setSelectedRecordDate(nextDate); if (selectedBranchId && nextDate) setSetupOpen(false); }} required disabled={locked || !canEditHeader} /></Field>
+          <div className="md:col-span-2"><Field label="Record Remarks"><Textarea name="notes" rows={2} defaultValue={notes ?? ""} placeholder="Optional outlet-level remarks" disabled={locked || !canEditOutletValues} /></Field></div>
+        </div>
+      </details>
     </CardContent></Card>
 
     <Card className="border-0 bg-transparent shadow-none md:border md:bg-white"><CardContent className="p-0">

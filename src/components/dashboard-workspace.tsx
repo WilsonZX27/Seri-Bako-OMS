@@ -95,13 +95,13 @@ function MobileQuickActions({ actions }: { actions: { href: string; label: strin
         <span className="text-[11px] text-[var(--sb-text-muted)]">Based on your role</span>
       </div>
       <div className="grid grid-cols-3 gap-2" data-dashboard-quick-actions>
-        {actions.slice(0, 3).map((action) => {
+        {actions.slice(0, 3).map((action, index) => {
           const Icon = action.icon;
           return (
             <Link prefetch={false}
               key={action.href}
               href={action.href}
-              className="group flex min-h-[4.5rem] min-w-0 flex-col items-start justify-between rounded-[var(--sb-panel-radius)] border border-[var(--sb-border-soft)] bg-[var(--sb-surface)] p-2.5 text-left text-[11px] font-semibold text-[var(--sb-text)] shadow-[var(--sb-shadow-card)] transition-[transform,background-color,border-color] duration-200 hover:-translate-y-0.5 hover:border-[var(--sb-green-700)] hover:bg-[var(--sb-surface-muted)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--sb-green-700)]"
+              className={`group flex min-h-[4.5rem] min-w-0 flex-col items-start justify-between rounded-[var(--sb-panel-radius)] border border-[var(--sb-border-soft)] bg-[var(--sb-surface)] p-2.5 text-left text-[11px] font-semibold text-[var(--sb-text)] shadow-[var(--sb-shadow-card)] transition-[transform,background-color,border-color] duration-200 hover:-translate-y-0.5 hover:border-[var(--sb-green-700)] hover:bg-[var(--sb-surface-muted)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--sb-green-700)] ${index === 0 ? "sm:col-span-2" : ""}`}
             >
               <span className="grid h-7 w-7 place-items-center rounded-[var(--sb-radius-control)] bg-[var(--sb-green-050)] text-[var(--sb-green-800)]">
                 <Icon className="h-4 w-4" aria-hidden="true" />
@@ -205,6 +205,7 @@ export function DashboardWorkspace({ summary, renderedAt }: { summary: Dashboard
 
   const workspaceContext = (
     <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-4" data-dashboard-identity>
+      <span className="sr-only">Welcome, {summary.userName} <span>|</span> {summary.roleLabel} <span>|</span> {summary.branchLabel}</span>
       <div className="min-w-0"><p className="text-[10px] font-medium uppercase tracking-[0.14em] text-[var(--sb-text-muted)]">Welcome</p><p className="mt-0.5 break-words text-xl font-semibold tracking-[-0.025em] text-[var(--sb-text)]">{summary.userName}</p></div>
       <dl className="grid max-w-[11rem] gap-1.5 text-[11px] text-[var(--sb-text-muted)]"><div className="flex items-start gap-1.5"><UserRound className="mt-0.5 h-3.5 w-3.5 shrink-0" /><dt className="sr-only">Role</dt><dd className="font-medium text-[var(--sb-text)]">{summary.roleLabel}</dd></div><div className="flex items-start gap-1.5"><LockKeyhole className="mt-0.5 h-3.5 w-3.5 shrink-0" /><dt className="sr-only">Scope</dt><dd className="break-words">{summary.branchLabel}</dd></div></dl>
     </div>
@@ -212,6 +213,7 @@ export function DashboardWorkspace({ summary, renderedAt }: { summary: Dashboard
 
   const desktopWorkspaceContext = (
     <div className="grid min-w-0 grid-cols-[minmax(0,1fr)_auto] items-center gap-5" data-dashboard-identity>
+      <span className="sr-only">Welcome, {summary.userName} <span>|</span> {summary.roleLabel} <span>|</span> {summary.branchLabel}</span>
       <div className="min-w-0">
         <p className="text-[10px] font-medium uppercase tracking-[0.14em] text-[var(--sb-text-muted)]">WELCOME</p>
         <p className="mt-0.5 truncate text-base font-semibold tracking-[-0.02em] text-[var(--sb-text)]">{summary.userName}</p>
@@ -239,9 +241,9 @@ export function DashboardWorkspace({ summary, renderedAt }: { summary: Dashboard
       rightRail={
         <>
           <ConsoleSection title="Actions">
-            <div className="grid gap-1">
+            <div className="grid grid-cols-2 gap-1.5" data-dashboard-actions>
               {quickActions.map((action, index) => (
-                <Button key={action.href} asChild size="sm" variant={index === 0 ? "default" : "ghost"} className={index === 0 ? "w-full" : "sb-action-row"}>
+                <Button key={action.href} asChild size="sm" variant={index === 0 ? "default" : "ghost"} className={index === 2 ? "col-span-2 sb-action-row" : "sb-action-row"}>
                   <Link prefetch={false} href={action.href}><action.icon className="h-4 w-4" aria-hidden="true" />{action.label}</Link>
                 </Button>
               ))}
@@ -265,11 +267,11 @@ export function DashboardWorkspace({ summary, renderedAt }: { summary: Dashboard
     >
       <div className="space-y-4">
         <span className="sr-only" aria-live="polite">{formatDateTime(now.toISOString())}</span>
-        <header className="hidden min-h-12 items-center justify-between border-b border-[var(--sb-border-soft)] pb-3 md:flex">
+        <header className="hidden min-h-12 w-full grid-cols-[minmax(0,1fr)_minmax(18rem,auto)] items-center gap-6 border-b border-[var(--sb-border-soft)] pb-3 md:flex md:grid">
           <div className="min-w-0">
             <h1 className="text-xl font-semibold tracking-[-0.02em] text-[var(--sb-text)]">{copy.title}</h1>
-            <div className="mt-0.5">{desktopWorkspaceContext}</div>
           </div>
+          <div className="min-w-0 justify-self-end">{desktopWorkspaceContext}</div>
         </header>
 
         <div className="border-b border-[var(--sb-border-soft)] pb-3 md:hidden">{workspaceContext}</div>
@@ -361,7 +363,7 @@ export function DashboardWorkspace({ summary, renderedAt }: { summary: Dashboard
                 </div>
             </Panel> : null}
             <Panel title={isPurchasing ? "Purchasing pipeline" : isKitchen ? "Production and receiving" : "Operational pipeline"}>
-              <div className="grid grid-cols-3 gap-1.5 sm:gap-2">
+              <div className="grid grid-flow-dense grid-cols-2 gap-1.5 sm:grid-cols-4 sm:gap-2">
                 <Metric
                   href="/purchase-orders"
                   label={isPurchasing ? "PO preparation / sending" : "Recent purchase orders"}
@@ -370,6 +372,7 @@ export function DashboardWorkspace({ summary, renderedAt }: { summary: Dashboard
                   unavailable={summary.coreSnapshotUnavailable}
                   detail={summary.coreSnapshotUnavailable ? undefined : latestPurchaseOrder ? `${latestPurchaseOrder.po_no} · ${latestPurchaseOrder.status.replaceAll("_", " ")}` : "No recent PO"}
                   variant="tile"
+                  className="col-span-2 sm:col-span-2"
                 />
                 <Metric
                   href={isKitchen ? "/goods-receivings?date=today" : "/goods-receivings"}
@@ -379,6 +382,7 @@ export function DashboardWorkspace({ summary, renderedAt }: { summary: Dashboard
                   alert={isKitchen ? summary.today.goodsReceiving > 0 : summary.financeForecast.receivingNotInvoiced > 0}
                   unavailable={isKitchen ? summary.todayReceivingUnavailable : summary.receivingFollowupUnavailable}
                   variant="tile"
+                  className="sm:col-span-1"
                 />
                 <Metric
                   href="/production/jobs"
@@ -388,6 +392,7 @@ export function DashboardWorkspace({ summary, renderedAt }: { summary: Dashboard
                   alert={Boolean(summary.productionSummary?.ingredientShortages)}
                   unavailable={!summary.productionSummary}
                   variant="tile"
+                  className="sm:col-span-1"
                 />
                 {isPurchasing ? <Metric href="/administration/master-data-cleanup" label="Master-data follow-up" value="Review" icon={Boxes} variant="tile" /> : null}
               </div>

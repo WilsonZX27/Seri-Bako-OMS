@@ -39,7 +39,7 @@ export function GoodsReceivingForm({
           <input type="hidden" name="idempotency_key" value={idempotencyKey} />
           <input type="hidden" name="grn_no" value={grnNo} />
           <input type="hidden" name="status" value="draft" />
-          <section data-goods-receiving-setup className="erp-surface grid grid-cols-2 gap-3 p-3 md:rounded-none md:border-0 md:bg-transparent md:p-0 lg:grid-cols-3">
+          <section data-goods-receiving-setup className="erp-surface grid grid-cols-2 gap-3 p-3 lg:grid-cols-3">
             <Field label="Purchase Order" required className="col-span-2 lg:col-span-1">
               <SelectNative value={selectedOrder?.id ?? ""} onChange={(event) => selectPo(event.target.value)} required>
                 <option value="">Select approved/sent PO</option>
@@ -122,7 +122,7 @@ export function GoodsReceivingForm({
               </p>
             </>
           ) : (
-            <section data-goods-receiving-empty className="border-t border-[var(--sb-border-soft)] bg-[var(--sb-surface)] p-8 text-center">
+            <section data-goods-receiving-empty className="sb-work-surface p-8 text-center">
               <PackageCheck className="mx-auto h-10 w-10 text-muted-foreground" />
               <p className="mt-3 font-semibold">Select a purchase order to begin receiving</p>
               <p className="mt-1 text-sm text-muted-foreground">Only approved, sent, or partially received POs can be received.</p>

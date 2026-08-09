@@ -13,6 +13,7 @@ import {
   type ReactElement,
   type ReactNode,
 } from "react";
+import { createPortal } from "react-dom";
 import { Search, SlidersHorizontal, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -25,6 +26,7 @@ type HeaderProps = {
   activeCount?: number;
   className?: string;
   phoneOnly?: boolean;
+  phoneMode?: "drawer" | "inline";
 };
 
 function propsOf(child: ReactNode): Record<string, unknown> {
@@ -109,7 +111,7 @@ function SearchControl({ child, value, onChange }: { child: ReactElement; value:
   );
 }
 
-export function UnifiedListHeader({ children, resultCount, resetHref, filtered = false, activeCount = 0, className, phoneOnly = false }: HeaderProps) {
+export function UnifiedListHeader({ children, resultCount, resetHref, filtered = false, activeCount = 0, className, phoneOnly = false, phoneMode = "drawer" }: HeaderProps) {
   const [mobile, setMobile] = useState(phoneOnly);
   const [open, setOpen] = useState(false);
   const formRef = useRef<HTMLFormElement>(null);
@@ -168,26 +170,36 @@ export function UnifiedListHeader({ children, resultCount, resetHref, filtered =
   const submit = (event: FormEvent<HTMLFormElement>) => {
     event.currentTarget.querySelectorAll<HTMLButtonElement>('button[type="submit"]').forEach((button) => { button.disabled = true; button.dataset.pending = "true"; });
   };
+  const filterControls = <>{filters}{nested}</>;
+  const filterSheet = open && typeof document !== "undefined" ? createPortal(
+    <div className="unified-list-layer">
+      <button type="button" className="unified-list-backdrop" aria-label="Close filters" onClick={() => setOpen(false)} />
+      <form className="unified-list-sheet" role="dialog" aria-modal="true" aria-label="Filters" onSubmit={submit}>
+        {primary && isValidElement(primary) ? (() => {
+          const hidden = hiddenFilterValue(primary);
+          return hidden ? <input type="hidden" name={hidden.name} value={searchValue || hidden.value} /> : null;
+        })() : null}
+        <header className="unified-list-sheet-header"><h2>Filters</h2><button type="button" onClick={() => setOpen(false)} aria-label="Close filters"><X /></button></header>
+        <div className="unified-list-sheet-fields">{filterControls}</div>
+        <footer className="unified-list-sheet-actions"><Button asChild type="button" variant="ghost"><Link href={resetHref}>Reset</Link></Button><Button type="submit">Apply filters</Button></footer>
+      </form>
+    </div>,
+    document.body,
+  ) : null;
   return (
     <form ref={formRef} className={cn("sb-list-filters unified-list-header", className)} data-filtered={filtered || undefined} data-reset-href={resetHref} onSubmit={submit}>
       <div className="unified-list-row">
         {primary && isValidElement(primary) ? <SearchControl child={primary} value={searchValue} onChange={updateSearch} /> : <div className="unified-list-primary-control" />}
-        <button type="button" className="unified-list-filter-trigger" onClick={() => setOpen(true)} aria-label={active ? `Filter, ${active} active` : "Filter"}><SlidersHorizontal /><span className="unified-list-filter-label">Filter</span>{active ? <span className="unified-list-filter-badge">{active}</span> : null}</button>
-        {typeof resultCount === "number" ? <span className="unified-list-result" aria-live="polite">{resultCount}</span> : null}
+        {phoneMode === "drawer" ? <button type="button" className="unified-list-filter-trigger" onClick={() => setOpen(true)} aria-label={active ? `Filter, ${active} active` : "Filter"}><SlidersHorizontal /><span className="unified-list-filter-label">Filter{active ? ` (${active})` : ""}</span></button> : null}
       </div>
-      {!open ? [...filters, ...nested].map((child, index) => {
+      {phoneMode === "inline" ? <div className="unified-list-inline-fields">{filterControls}</div> : null}
+      {phoneMode === "drawer" && !open ? [...filters, ...nested].map((child, index) => {
         const hidden = hiddenFilterValue(child);
         return hidden ? <input key={`${hidden.name}-${index}`} type="hidden" name={hidden.name} value={hidden.value} /> : null;
       }) : null}
+      {typeof resultCount === "number" ? <span className="unified-list-result" aria-live="polite">{resultCount} {resultCount === 1 ? "record" : "records"}</span> : null}
       <button type="submit" className="sr-only" tabIndex={-1} aria-hidden="true">Search</button>
-      {open ? <>
-        <button type="button" className="unified-list-backdrop" aria-label="Close filters" onClick={() => setOpen(false)} />
-        <section className="unified-list-sheet" role="dialog" aria-modal="true" aria-label="Filters">
-          <header className="unified-list-sheet-header"><h2>Filters</h2><button type="button" onClick={() => setOpen(false)} aria-label="Close filters"><X /></button></header>
-          <div className="unified-list-sheet-fields">{filters}{nested}</div>
-          <footer className="unified-list-sheet-actions"><Button asChild type="button" variant="ghost"><Link href={resetHref}>Reset</Link></Button><Button type="submit" onClick={() => setOpen(false)}>Apply filters</Button></footer>
-        </section>
-      </> : null}
+      {filterSheet}
     </form>
   );
 }

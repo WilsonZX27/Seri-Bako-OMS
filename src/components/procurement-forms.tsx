@@ -250,7 +250,7 @@ export function PurchaseRequestForm({
             <div className="divide-y">
               {/* Legacy contract token: grid-cols-[minmax(0,1fr)_7.5rem_2.25rem]. The current four-column line keeps UOM, quantity, comments, and removal aligned. */}
               {lines.map((line) => (
-                <div key={line.key} className="grid gap-3 p-3 md:grid-cols-[minmax(0,1fr)_112px_112px_5.5rem] md:gap-3">
+                <div data-purchase-request-line key={line.key} className="grid gap-3 p-3 md:grid-cols-[minmax(0,1fr)_112px_112px_5.5rem] md:gap-3">
                   <div className="min-w-0">
                     <Field label="Item" required>
                       <Input

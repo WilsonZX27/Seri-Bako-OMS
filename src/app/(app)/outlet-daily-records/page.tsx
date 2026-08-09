@@ -42,7 +42,7 @@ export default async function OutletDailyRecordsPage({ searchParams }: { searchP
           </FilterBar>
         </div>
         <div className="sm:hidden">
-          <UnifiedListHeader phoneOnly resultCount={data.totalRows} resetHref="/outlet-daily-records" filtered={filtered} activeCount={Number(Boolean(filters.date)) + Number(Boolean(filters.branch && filters.branch !== "all")) + Number(Boolean(filters.status && filters.status !== "all"))} className="sb-list-filters--date-first">
+          <UnifiedListHeader phoneOnly phoneMode="inline" resultCount={data.totalRows} resetHref="/outlet-daily-records" filtered={filtered} activeCount={Number(Boolean(filters.date)) + Number(Boolean(filters.branch && filters.branch !== "all")) + Number(Boolean(filters.status && filters.status !== "all"))} className="sb-list-filters--date-first">
             <Input name="date" type="date" defaultValue={filters.date ?? ""} aria-label="Record date" className="sb-filter-date" />
             <SelectControl name="branch" defaultValue={filters.branch ?? "all"} ariaLabel="Branch" options={[{ value: "all", label: "All branches" }, ...options.branches.map((branch) => ({ value: branch.id, label: branch.branch_name }))]} />
             <SelectControl name="status" defaultValue={filters.status ?? "all"} ariaLabel="Status" options={[{ value: "all", label: "All statuses" }, ...statuses.map((status) => ({ value: status, label: status.replaceAll("_", " ") }))]} />

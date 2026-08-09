@@ -651,10 +651,6 @@ input[type="date"]::-webkit-date-and-time-value {
     opacity: 0.72;
   }
 
-  .erp-surface {
-    border-radius: 0;
-  }
-
   .sb-filter-more > summary {
     border-radius: var(--sb-radius-control);
   }
@@ -668,12 +664,6 @@ input[type="date"]::-webkit-date-and-time-value {
 /* A filter dialog owns the interaction surface on phone and tablet. Remove the
    underlying navigation instead of leaving an invisible hit area beneath the
    dialog's actions. */
-@media (max-width: 1279px) {
-  html[data-filter-dialog-open="true"] [data-mobile-app-nav] {
-    display: none !important;
-  }
-}
-
 @media (max-width: 1279px) {
   html[data-filter-dialog-open] [data-mobile-app-nav] {
     display: none !important;

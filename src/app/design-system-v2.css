@@ -1209,3 +1209,27 @@ html[data-design-layer="v2"] :where([class~="rounded-[2px]"][class~="bg-primary\
 html[data-design-layer="v2"] :where(.erp-surface[class~="rounded-[2px]"], .sb-work-surface[class~="rounded-[2px]"], .border.bg-card[class~="rounded-[2px]"], [role="alert"][class~="rounded-[2px]"], [role="status"][class~="rounded-[2px]"]) {
   border-radius: var(--sb-panel-radius) !important;
 }
+
+/* Final mobile filter contract: ordinary controls share a compact two-column
+   rhythm, while legacy nested disclosures still span the sheet. Radix portals
+   must sit above the sheet itself so an opened option list is never obscured. */
+@media (max-width: 639px) {
+  html[data-design-layer="v2"] .unified-list-sheet-fields {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    align-items: start;
+  }
+
+  html[data-design-layer="v2"] .unified-list-sheet-fields > [data-filter-more-wrapper] {
+    grid-column: 1 / -1;
+  }
+
+  html[data-design-layer="v2"] .unified-list-sheet-fields > :where(nav, [data-select-control], input, select, textarea) {
+    min-width: 0;
+    width: 100%;
+  }
+
+  html[data-design-layer="v2"] body:has(.unified-list-sheet) > [data-radix-popper-content-wrapper],
+  html[data-design-layer="v2"] body:has(.unified-list-sheet) > .sb-popover-surface {
+    z-index: calc(var(--sb-z-sheet) + 2) !important;
+  }
+}

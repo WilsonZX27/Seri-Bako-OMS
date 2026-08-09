@@ -29,7 +29,9 @@ type StockBalanceRow = {
   available_qty: number;
   reserved_qty: number;
   current_qty: number;
+  purchase_unit: string;
   base_unit: string;
+  conversion_to_base_unit: number;
   average_cost: number;
   inventory_value: number;
   last_movement: string | null;
@@ -427,7 +429,9 @@ export async function getStockBalanceDetails(filters: Filters = {}): Promise<Pag
         item_name: latest.item_name,
         supplier_id: null,
         supplier_name: null,
+        purchase_unit: latest.base_unit,
         base_unit: latest.base_unit,
+        conversion_to_base_unit: 1,
         image_url: item?.item_image_url ?? null,
         branch_id: latest.branch_id,
         branch_name: latest.branch_name,
@@ -627,14 +631,35 @@ export async function getLowStockItems(filters: Filters = {}) {
     .order("item_name", { ascending: true });
   const branchId = filters.branch_id && filters.branch_id !== "all" ? filters.branch_id : null;
   if (branchId) query = query.eq("branch_id", branchId);
-  const { data, error } = await query;
+  const summaryResult = await query;
+  const data = summaryResult.data;
+  let error = summaryResult.error;
+  let fallbackData: unknown[] | null = null;
+  // The pre-aggregated summary can briefly be empty while its refresh trigger catches up.
+  // Read the canonical view before surfacing an empty low-stock screen so users never lose
+  // an actionable item merely because the read model is stale or its grant is lagging.
+  if (error || !data?.length) {
+    warnOptionalInventoryQuery("low stock summary fallback", error);
+    let viewQuery = supabase
+      .from("stock_balances_view")
+      .select("*")
+      .eq("status", "active")
+      .order("shortage_quantity", { ascending: false })
+      .order("item_name", { ascending: true });
+    if (branchId) viewQuery = viewQuery.eq("branch_id", branchId);
+    const viewResult = await viewQuery;
+    if (viewResult.data?.length) {
+      fallbackData = viewResult.data;
+      error = null;
+    }
+  }
   if (error) {
     warnOptionalInventoryQuery("low stock items", error);
     throw new Error(`Low stock could not be loaded: ${error.message}`);
   }
   const search = filters.search?.trim().toLowerCase();
   const status = filters.status && filters.status !== "all" ? filters.status : null;
-  const rows = ((data ?? []) as Database["public"]["Tables"]["stock_balances_summary"]["Row"][])
+  const rows = ((fallbackData ?? data ?? []) as unknown as LowStockRow[])
     .filter((row) => search ? [row.item_code, row.item_name, row.branch_name, row.supplier_name].some((value) => String(value ?? "").toLowerCase().includes(search)) : true)
     .map((row) => {
       const current = Number(row.current_qty ?? row.current_stock ?? 0);

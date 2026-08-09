@@ -256,7 +256,7 @@ export async function getDashboardSummary() {
   const supabase = await createClient();
   const db = looseSupabase(supabase);
   const empty = { data: [], error: null, count: 0 };
-  const [coreSnapshotRpcResult, pendingApprovals, notifications, recentActivities, outletToday, currentStaff, assignedBranches, payablesAttention] = await Promise.all([
+  const [coreSnapshotRpcResult, pendingApprovals, notifications, recentActivities, outletToday, currentStaff, assignedBranches, payablesAttention, lowStockViewResult] = await Promise.all([
     (needsProcurement || needsInventory) ? supabase.rpc("get_dashboard_core_snapshot", { p_today: today }) : Promise.resolve({ data: null, error: null }),
     getCurrentUserPendingActions(5),
     getVisibleNotificationsForCurrentUser(),
@@ -274,6 +274,12 @@ export async function getDashboardSummary() {
           return null;
         })
       : Promise.resolve(null),
+    // The dashboard RPC can temporarily lag the canonical inventory view while
+    // its refresh trigger catches up. Keep the attention count aligned with
+    // the Low Stock route without changing any business state or RLS scope.
+    needsInventory
+      ? supabase.from("stock_balances_view").select("item_id, current_qty, safety_stock, status")
+      : Promise.resolve({ data: [], error: null }),
   ]);
 
   let coreSnapshot = coreSnapshotRpcResult.data as DashboardCoreSnapshot | null;
@@ -302,6 +308,21 @@ export async function getDashboardSummary() {
   warnOptionalQueryResult("assigned branches", assignedBranches);
 
   const coreUnavailable = (needsProcurement || needsInventory) && coreSnapshotUnavailable;
+  const lowStockViewRows = (lowStockViewResult.data ?? []) as Array<{
+    item_id: string | null;
+    current_qty: number | string | null;
+    safety_stock: number | string | null;
+    status: string | null;
+  }>;
+  const lowStockViewCount = lowStockViewResult.error
+    ? null
+    : new Set(
+        lowStockViewRows
+          .filter((row) => row.status === "active")
+          .filter((row) => Number(row.current_qty ?? 0) <= Number(row.safety_stock ?? 0) || Number(row.current_qty ?? 0) <= 0)
+          .map((row) => row.item_id)
+          .filter(Boolean),
+      ).size;
 
   // A dashboard is a situational overview, not a transaction form. A degraded
   // optional read must not strand a signed-in operator behind a generic error
@@ -326,7 +347,7 @@ export async function getDashboardSummary() {
     branchLabel,
     totalItems: Number(coreSnapshot?.total_items ?? 0),
     totalSuppliers: Number(coreSnapshot?.total_suppliers ?? 0),
-    lowStockCount: inventoryUnavailable ? 0 : Number(coreSnapshot?.low_stock_items_count ?? 0),
+    lowStockCount: inventoryUnavailable ? 0 : (lowStockViewCount ?? Number(coreSnapshot?.low_stock_items_count ?? 0)),
     lastStockCount: coreSnapshot?.last_stock_count ?? null,
     totalStockValue: inventoryUnavailable ? 0 : Number(coreSnapshot?.inventory_value ?? 0),
     lowStockItems: [],

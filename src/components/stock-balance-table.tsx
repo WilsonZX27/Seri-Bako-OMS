@@ -18,7 +18,9 @@ export type StockBalanceRow = {
   available_qty: number;
   reserved_qty: number;
   current_qty: number;
+  purchase_unit: string;
   base_unit: string;
+  conversion_to_base_unit: number;
   average_cost: number;
   inventory_value: number;
   last_movement: string | null;

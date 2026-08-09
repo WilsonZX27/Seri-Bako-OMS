@@ -76,8 +76,33 @@ export async function getTopBarActivity() {
         title: document.title,
         href: getCanonicalDocumentHref(document),
       }));
+  const stockCountDocumentIds = (documentApprovals.data ?? [])
+    .filter((document) => document.related_entity_type === "stock_count" && document.related_entity_id)
+    .map((document) => document.related_entity_id as string);
+  let activeStockCountIds = new Set<string>();
+  let activeStockCountValidationFailed = false;
+  if (stockCountDocumentIds.length) {
+    const activeStockCountsResult = await supabase
+      .from("stock_counts")
+      .select("id")
+      .in("id", stockCountDocumentIds)
+      .is("deleted_at", null)
+      .in("status", ["draft", "submitted", "reviewed", "approved"]);
+    if (!activeStockCountsResult.error) {
+      activeStockCountIds = new Set((activeStockCountsResult.data ?? []).map((row) => row.id));
+    } else {
+      activeStockCountValidationFailed = true;
+    }
+  }
+  const liveDocumentPendingActions = (documentApprovals.data ?? []).length
+    ? documentPendingActions.filter((_, index) => {
+        const document = documentApprovals.data?.[index];
+        if (document?.related_entity_type !== "stock_count" || !document.related_entity_id) return true;
+        return activeStockCountValidationFailed || activeStockCountIds.has(document.related_entity_id);
+      })
+    : documentPendingActions;
   const workflowPrHrefs = new Set(workflowPendingActions.filter((item) => item.href.startsWith("/purchase-requests/")).map((item) => item.href));
-  const scopedDocumentPendingActions = documentPendingActions.filter((item) => !item.href.startsWith("/purchase-requests/") || workflowPrHrefs.has(item.href));
+  const scopedDocumentPendingActions = liveDocumentPendingActions.filter((item) => !item.href.startsWith("/purchase-requests/") || workflowPrHrefs.has(item.href));
 
   const productionPendingActions: PendingAction[] = [];
   if (canApproveProduction || canPostProduction) {

@@ -78,7 +78,7 @@ export function DocumentWorkspace({
         {!hideMobileWorkflow ? <div data-tablet-document-header className={cn("min-w-0", isNewDocument ? "mt-0 md:mt-1" : "mt-1 md:mt-2")}><MobileWorkflowStatus steps={workflowSteps} currentStatus={currentStatus} trailing={mobileWorkflowTrailing} /><div className="hidden md:block"><WorkflowStatusPipeline steps={workflowSteps} currentStatus={currentStatus} compact /></div></div> : <div data-tablet-document-header className="hidden md:block"><WorkflowStatusPipeline steps={workflowSteps} currentStatus={currentStatus} compact /></div>}
       </header>
 
-      <WorkspaceGrid documentMode tabletRailMode={tabletRailMode} className={cn("min-w-0 p-3", compactMobileSpacing && "pt-0 md:pt-3", mobilePrimaryAction && "pb-20 xl:pb-3")} rightRail={<div>{sidePanel}</div>} hideMobileConsole>
+      <WorkspaceGrid documentMode tabletRailMode={tabletRailMode} className={cn("min-w-0 p-3", compactMobileSpacing && "pt-0 md:pt-3", mobilePrimaryAction && "pb-20 md:pb-3")} rightRail={<div>{sidePanel}</div>} hideMobileConsole>
         <div className="min-w-0">
           <div className="min-w-0 space-y-3">
             {children}
@@ -87,7 +87,7 @@ export function DocumentWorkspace({
         </div>
       </WorkspaceGrid>
       {mobilePrimaryAction || mobileMoreOptions ? <div data-mobile-document-action className={cn(
-        "sb-mobile-action-bar fixed inset-x-0 bottom-0 z-[var(--sb-z-sticky)] grid min-w-0 items-center gap-2 border-x-0 border-b-0 p-2 pb-[calc(0.75rem+env(safe-area-inset-bottom))] xl:hidden [&_button]:h-11 [&_button]:w-full",
+        "sb-mobile-action-bar fixed inset-x-0 bottom-0 z-[var(--sb-z-sticky)] grid min-w-0 items-center gap-2 border-x-0 border-b-0 p-2 pb-[calc(0.75rem+env(safe-area-inset-bottom))] md:hidden [&_button]:h-11 [&_button]:w-full",
         mobilePrimaryAction && mobileMoreOptions ? "grid-cols-[minmax(0,1fr)_minmax(7rem,auto)]" : "grid-cols-1",
       )}>
         {mobilePrimaryAction ? <div className="min-w-0">{mobilePrimaryAction}</div> : null}

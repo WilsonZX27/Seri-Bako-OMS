@@ -21,10 +21,9 @@ export function StockTransferForm({ branches, selectedFromBranchId, seedLines, a
   const [idempotencyKey] = useState(() => crypto.randomUUID());
   function selectFromBranch(id: string) { router.push(id ? `/stock-transfers/new?from_branch_id=${id}` : "/stock-transfers/new"); }
   return (
-    <Card className="border-0 bg-transparent shadow-none md:border md:bg-white"><CardContent className="p-0 md:p-5">
       <form id={formId} action={action} className="space-y-3">
         <input type="hidden" name="idempotency_key" value={idempotencyKey} />
-        <section data-stock-transfer-setup className="erp-surface grid grid-cols-2 gap-3 p-3 md:rounded-none md:border-0 md:bg-transparent md:p-0 md:grid-cols-3">
+        <section data-stock-transfer-setup className="erp-surface grid grid-cols-2 gap-3 p-3 md:grid-cols-3 md:p-4">
           <Field label="Transfer Date" className="col-span-2 md:col-span-1"><Input name="transfer_date" type="date" defaultValue={getToday()} required /></Field>
           <Field label="From Branch"><SelectNative name="from_branch_id" value={selectedFromBranchId ?? branches[0]?.id ?? ""} onChange={(e) => selectFromBranch(e.target.value)} required>{branches.map((b) => <option key={b.id} value={b.id}>{b.branch_name}</option>)}</SelectNative></Field>
           <Field label="To Branch"><SelectNative name="to_branch_id" defaultValue={branches[1]?.id ?? branches[0]?.id ?? ""} required>{branches.map((b) => <option key={b.id} value={b.id}>{b.branch_name}</option>)}</SelectNative></Field>
@@ -37,7 +36,6 @@ export function StockTransferForm({ branches, selectedFromBranchId, seedLines, a
         <LineGrid seedLines={seedLines} mode="transfer" />
         {showSubmit ? <div className="flex justify-end"><SubmitButton disabled={!seedLines.length} pendingLabel="Saving..." showOverlay overlayLabel="Saving changes...">Create transfer</SubmitButton></div> : null}
       </form>
-    </CardContent></Card>
   );
 }
 

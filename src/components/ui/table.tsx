@@ -64,22 +64,29 @@ export function OperationalListRow({ href, label, primary, status, statusMeta, s
     }, 350);
   };
   const className = "grid min-h-16 grid-cols-[minmax(0,1fr)_auto] gap-x-3 gap-y-1 px-3 py-2.5 hover:bg-[var(--sb-surface-muted)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[var(--sb-green-700)]";
-  const content = <>
+  const renderContent = (withTrailing: boolean) => <>
       <div className="min-w-0 text-[13px] font-semibold leading-5">{primary}</div>
       <div className="flex items-start gap-2 whitespace-nowrap">
         <div className="flex min-w-0 flex-col items-end gap-1">
           {status}
           {statusMeta ? <div className="text-right text-[11px] font-semibold text-[var(--sb-text)]">{statusMeta}</div> : null}
         </div>
-        {trailing ?? (href ? <ChevronRight className="mt-1 h-4 w-4 text-[var(--sb-text-soft)]" /> : null)}
+        {withTrailing ? (trailing ?? (href ? <ChevronRight className="mt-1 h-4 w-4 text-[var(--sb-text-soft)]" /> : null)) : null}
       </div>
       {secondary ? <div className="min-w-0 whitespace-normal break-words text-xs leading-4 text-[var(--sb-text-muted)]">{secondary}</div> : <span />}
       {meta ? <div className="whitespace-nowrap text-right text-[11px] text-[var(--sb-text-muted)]">{meta}</div> : null}
       {detail ? <div className="col-span-2 min-w-0 text-[11px] leading-4 text-[var(--sb-text-muted)]">{detail}</div> : null}
     </>;
-  return href
-    ? <Link href={href} aria-label={label} role="listitem" className={className} data-open-gesture="double-tap" onClick={handlePointerOpen}>{content}</Link>
-    : <div aria-label={label} role="listitem" className={className}>{content}</div>;
+  if (!href) return <div aria-label={label} role="listitem" className={className}>{renderContent(true)}</div>;
+  // Do not nest a button/select inside an anchor. Besides being invalid HTML,
+  // that makes a basket/action control navigate to the row destination on tap.
+  if (trailing) {
+    return <div aria-label={label} role="listitem" className={cn(className, "relative pr-14")}>
+      <Link href={href} aria-label={label} className="contents" data-open-gesture="double-tap" onClick={handlePointerOpen}>{renderContent(false)}</Link>
+      <div className="absolute right-3 top-2.5">{trailing}</div>
+    </div>;
+  }
+  return <Link href={href} aria-label={label} role="listitem" className={className} data-open-gesture="double-tap" onClick={handlePointerOpen}>{renderContent(true)}</Link>;
 }
 
 export function TableHeader({ className, ...props }: React.HTMLAttributes<HTMLTableSectionElement>) {

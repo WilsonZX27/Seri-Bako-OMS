@@ -305,9 +305,9 @@ export function PurchaseRequestForm({
             <div className="divide-y">
               {/* Legacy contract token: grid-cols-[minmax(0,1fr)_7.5rem_2.25rem]. The current four-column line keeps UOM, quantity, comments, and removal aligned. */}
               {lines.map((line) => (
-                <div data-purchase-request-line key={line.key} className="grid grid-cols-[minmax(0,1fr)_minmax(6.5rem,.65fr)_2.5rem] gap-2 p-3 md:grid-cols-[minmax(0,1fr)_112px_112px_5.5rem] md:gap-3">
+                <div data-purchase-request-line key={line.key} className="grid grid-cols-[minmax(0,1fr)_minmax(6.5rem,.65fr)_2.5rem] gap-1.5 p-2 md:grid-cols-[minmax(0,1fr)_112px_112px_5.5rem] md:gap-3 md:p-3">
                   <div className="col-span-3 min-w-0 md:col-span-1">
-                    <Field label="Item" required>
+                    <Field label="Item" required labelClassName="sr-only md:not-sr-only">
                       <Input
                         ref={line.key === lines[0]?.key ? firstItemInputRef : undefined}
                         list="purchase-request-items"
@@ -317,7 +317,7 @@ export function PurchaseRequestForm({
                       />
                     </Field>
                     {line.itemId && mappingsForLine(line).some((mapping) => !line.uom || normalizeUom(mapping.purchase_uom) === line.uom) ? (
-                      <Field label="Supplier" required>
+                      <Field label="Supplier" required labelClassName="sr-only md:not-sr-only">
                         <SelectNative value={line.supplierId} onChange={(event) => selectSupplier(line.key, event.target.value)} aria-label={`Supplier for ${line.itemSearch}`}>
                           <option value="">Select mapped supplier</option>
                           {mappingsForLine(line).filter((mapping) => !line.uom || normalizeUom(mapping.purchase_uom) === line.uom).map((mapping) => (
@@ -329,14 +329,14 @@ export function PurchaseRequestForm({
                     <input type="hidden" name="line_item_id" value={line.itemId} />
                     <input type="hidden" name="line_branch_id" value={branchId} />
                   </div>
-                    <Field label="Quantity" required className="col-start-1 md:col-start-2">
+                    <Field label="Quantity" required labelClassName="sr-only md:not-sr-only" className="col-start-1 md:col-start-2">
                       <div className="flex overflow-hidden rounded-[var(--sb-radius-control)] border border-[var(--sb-border)] bg-white">
                         <button type="button" className="flex h-10 w-8 shrink-0 items-center justify-center border-r border-[var(--sb-border)] text-[var(--sb-green-900)] hover:bg-[var(--sb-surface-muted)] active:bg-[var(--sb-green-100)]" onClick={() => adjustLineQuantity(line, -1)} aria-label={`Decrease quantity for ${line.itemSearch || "request line"}`}><Minus className="h-3.5 w-3.5" /></button>
                         <Input name="line_qty" type="number" min="0" step={requestQuantityStep(line.uom)} value={line.qty} onChange={(event) => updateLine(line.key, { qty: event.target.value })} placeholder="Qty" className="h-10 min-w-0 rounded-none border-0 px-1 text-center text-sm font-semibold tabular-nums shadow-none focus-visible:ring-inset" />
                         <button type="button" className="flex h-10 w-8 shrink-0 items-center justify-center border-l border-[var(--sb-border)] text-[var(--sb-green-900)] hover:bg-[var(--sb-surface-muted)] active:bg-[var(--sb-green-100)]" onClick={() => adjustLineQuantity(line, 1)} aria-label={`Increase quantity for ${line.itemSearch || "request line"}`}><Plus className="h-3.5 w-3.5" /></button>
                       </div>
                     </Field>
-                    <Field label="UOM" className="col-start-2 md:col-start-3">
+                    <Field label="UOM" labelClassName="sr-only md:not-sr-only" className="col-start-2 md:col-start-3">
                       <SelectNative name="line_uom" value={line.uom} onChange={(event) => selectLineUom(line.key, event.target.value)} disabled={!line.itemId} aria-label={`Unit of measure for ${line.itemSearch || "request line"}`}>
                         <option value="">Choose unit</option>
                         {allowedUomsForLine(line).map((uom) => <option key={uom} value={uom}>{uom.toUpperCase()}</option>)}

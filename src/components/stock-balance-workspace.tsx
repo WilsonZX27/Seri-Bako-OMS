@@ -22,7 +22,7 @@ import { createPurchaseRequestsFromBasket } from "@/server/actions/procurement";
 import { StockBalanceOperationalRows, StockBalanceTableRows, type StockBalanceRow } from "@/components/stock-balance-table";
 
 type BranchOption = { id: string; branch_name: string };
-type BasketLine = StockBalanceRow & { qty: string };
+type BasketLine = StockBalanceRow & { qty: string; uom: string };
 
 function rowKey(item: StockBalanceRow) {
   return `${item.item_id}-${item.branch_id ?? "all"}`;
@@ -95,7 +95,7 @@ export function StockBalanceWorkspace({
   const supplierGroups = useMemo(() => groupBySupplier(createRows), [createRows]);
   const basketPayload = useMemo(() => supplierGroups.filter(([supplierId]) => supplierId !== "unassigned").map(([supplierId, lines]) => ({
     supplier_id: supplierId,
-    lines: lines.map((line) => ({ item_id: line.item_id, qty: line.qty, uom: line.base_unit, estimated_unit_cost: line.average_cost })),
+    lines: lines.map((line) => ({ item_id: line.item_id, qty: line.qty, uom: line.uom, estimated_unit_cost: line.average_cost })),
   })), [supplierGroups]);
   const canCreatePr = hasCreatePr && createRows.length > 0 && createRows.every((line) => Boolean(line.supplier_id));
 
@@ -135,6 +135,14 @@ export function StockBalanceWorkspace({
     });
   }
 
+  function updateUom(key: string, nextUom: string) {
+    setBasket((current) => {
+      const existing = current[key];
+      if (!existing) return current;
+      return { ...current, [key]: { ...existing, uom: nextUom } };
+    });
+  }
+
   function toggleBasket(row: StockBalanceRow) {
     const key = rowKey(row);
     setBasket((current) => {
@@ -145,7 +153,7 @@ export function StockBalanceWorkspace({
       }
       return {
         ...current,
-        [key]: { ...row, qty: formatQuantityInput(1) },
+        [key]: { ...row, qty: formatQuantityInput(1), uom: row.purchase_unit || row.base_unit },
       };
     });
   }
@@ -155,6 +163,8 @@ export function StockBalanceWorkspace({
       <PageHeader title="Stock Balance" description="Calculated from posted Movement Ledger transactions. No direct balance edits." />
       <WorkspaceGrid
         hideMobileConsole
+        tabletRailMode="split"
+        tabletRailBreakpoint="md"
         rightRail={
           <>
             <ConsoleSection title="Actions">
@@ -238,7 +248,7 @@ export function StockBalanceWorkspace({
                                       <div className="flex items-center justify-between gap-2">
                                         <QuantityStepper
                                           value={line.qty}
-                                          uom={line.base_unit}
+                                          uom={line.uom}
                                           step={0.01}
                                           label={`Quantity for ${line.item_name}`}
                                           onChange={(value) => updateQty(key, value)}
@@ -256,7 +266,7 @@ export function StockBalanceWorkspace({
                                       <div className="grid gap-2 text-xs">
                                         <input type="hidden" name="line_item_id" value={line.item_id} />
                                         <input type="hidden" name="line_branch_id" value={line.branch_id ?? ""} />
-                                        <input type="hidden" name="line_uom" value={line.base_unit} />
+                                        <input type="hidden" name="line_uom" value={line.uom} />
                                         <input type="hidden" name="line_estimated_unit_cost" value="0" />
                                         <input type="hidden" name="line_suggested_supplier_id" value="" />
                                         <input type="hidden" name="line_reason" value="" />
@@ -396,12 +406,17 @@ export function StockBalanceWorkspace({
                 const key = rowKey(line);
                 const activeBranch = normalizeBranchId(line.branch_id) === createBranchId;
                 return (
-                  <article key={key} className="border-b border-[var(--sb-border-soft)] py-2.5 first:pt-0 last:border-0">
-                    <div className="mb-1.5 flex items-start justify-between gap-2">
-                      <div className="min-w-0"><h3 className="text-sm font-semibold leading-5 text-[var(--sb-green-950)]">{line.item_name}</h3><p className="mt-0.5 text-[11px] text-[var(--sb-text-muted)]">{line.item_code} · {line.supplier_name ?? "Supplier mapping missing"}</p></div>
+                  <article key={key} className="border-b border-[var(--sb-border-soft)] py-1.5 first:pt-0 last:border-0">
+                    <div className="mb-1 flex items-start justify-between gap-2">
+                      <div className="min-w-0"><h3 className="truncate text-[13px] font-semibold leading-4 text-[var(--sb-green-950)]">{line.item_name}</h3><p className="truncate text-[10px] leading-4 text-[var(--sb-text-muted)]">{line.item_code} · {line.supplier_name ?? "Supplier mapping missing"}</p></div>
                       <button type="button" className="inline-flex h-8 w-8 shrink-0 items-center justify-center text-[var(--sb-danger)] active:bg-[var(--sb-danger-soft)]" onClick={() => toggleBasket(line)} aria-label={`Remove ${line.item_name} from PR basket`}><Trash2 className="h-3.5 w-3.5" aria-hidden="true" /></button>
                     </div>
-                    {activeBranch ? <QuantityStepper value={line.qty} uom={line.base_unit} step={0.01} label={`Quantity for ${line.item_name}`} onChange={(value) => updateQty(key, value)} className="min-h-10 [&_button]:h-10 [&_button]:w-10 [&_input]:h-10 [&_input]:w-16" /> : <p className="text-xs text-[var(--sb-text-muted)]">Select {line.branch_name ?? "this branch"} above to include this item.</p>}
+                    {activeBranch ? <div className="flex min-w-0 items-stretch gap-1.5">
+                      <QuantityStepper value={line.qty} uom={null} step={0.01} label={`Quantity for ${line.item_name}`} onChange={(value) => updateQty(key, value)} className="min-h-10 min-w-0 flex-1 [&_button]:min-h-10 [&_button]:w-9 [&_input]:min-h-10 [&_input]:w-16" />
+                      <SelectNative aria-label={`UOM for ${line.item_name}`} value={line.uom} onChange={(event) => updateUom(key, event.target.value)} className="h-10 w-20 shrink-0 px-2 text-xs">
+                        {[line.purchase_unit, line.base_unit].filter((uom, index, all) => Boolean(uom) && all.indexOf(uom) === index).map((uom) => <option key={uom} value={uom}>{uom.toUpperCase()}</option>)}
+                      </SelectNative>
+                    </div> : <p className="text-xs text-[var(--sb-text-muted)]">Select {line.branch_name ?? "this branch"} above to include this item.</p>}
                   </article>
                 );
               }) : <p className="py-10 text-center text-sm text-[var(--sb-text-muted)]">Add an item from Stock Balance to prepare a PR.</p>}

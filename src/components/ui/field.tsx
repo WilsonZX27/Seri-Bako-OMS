@@ -9,9 +9,10 @@ type FieldProps = {
   error?: string;
   required?: boolean;
   className?: string;
+  labelClassName?: string;
 };
 
-export function Field({ label, children, error, required = false, className }: FieldProps) {
+export function Field({ label, children, error, required = false, className, labelClassName }: FieldProps) {
   const generatedId = useId();
   const child = isValidElement<{ id?: string; "aria-describedby"?: string; "aria-invalid"?: boolean }>(children)
     ? cloneElement(children, {
@@ -23,7 +24,7 @@ export function Field({ label, children, error, required = false, className }: F
 
   return (
     <div className={cn("min-w-0 space-y-1.5", className)}>
-      <Label htmlFor={isValidElement<{ id?: string }>(child) ? child.props.id : undefined}>
+      <Label className={labelClassName} htmlFor={isValidElement<{ id?: string }>(child) ? child.props.id : undefined}>
         {label}
         {required ? <span className="ml-1 text-destructive">*</span> : null}
       </Label>

@@ -118,7 +118,10 @@ export function StockCountForm({
   const [search, setSearch] = useState("");
   const [showAdjustedOnly, setShowAdjustedOnly] = useState(false);
   const [sortBy, setSortBy] = useState<"name" | "code">("code");
-  const [settingsOpen, setSettingsOpen] = useState(false);
+  // Keep the settings content present on the first render so desktop/tablet
+  // users never lose the optional count note while the viewport media query
+  // synchronises. The media-query effect below collapses it on phone widths.
+  const [settingsOpen, setSettingsOpen] = useState(true);
   const sortPreferenceReady = useRef(false);
   const resolvedBranchId = selectedBranchId ?? branches[0]?.id ?? "";
   const localStorageKey = `seri-bako:stock-count-draft:${draftId ?? `new:${resolvedBranchId}`}`;

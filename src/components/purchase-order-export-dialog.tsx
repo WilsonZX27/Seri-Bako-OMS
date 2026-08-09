@@ -1,7 +1,5 @@
 "use client";
 
-"use client";
-
 import { useId, useMemo, useState } from "react";
 import { Download } from "lucide-react";
 
@@ -102,7 +100,7 @@ export function PurchaseOrderExportDialog({ className }: PurchaseOrderExportDial
             <select value={status} onChange={(event) => setStatus(event.target.value)}>
               <option value="all">All statuses</option>
               <option value="draft">Draft</option>
-              <option value="ready_to_send">Ready to send</option>
+              <option value="approved">Ready to send</option>
               <option value="sent">Sent to supplier</option>
               <option value="receiving">Receiving</option>
               <option value="received">Received</option>

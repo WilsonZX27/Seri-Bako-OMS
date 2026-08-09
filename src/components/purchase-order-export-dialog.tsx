@@ -1,5 +1,7 @@
 "use client";
 
+"use client";
+
 import { useId, useMemo, useState } from "react";
 import { Download } from "lucide-react";
 

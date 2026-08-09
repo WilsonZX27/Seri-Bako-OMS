@@ -211,13 +211,24 @@ export function DashboardWorkspace({ summary, renderedAt }: { summary: Dashboard
   );
 
   const desktopWorkspaceContext = (
-    <p className="flex min-w-0 flex-wrap items-baseline gap-x-1.5 gap-y-0.5 text-xs text-[var(--sb-text-muted)]">
-      <span>Welcome, {summary.userName}</span>
-      <span aria-hidden="true">|</span>
-      <span>{summary.roleLabel}</span>
-      <span aria-hidden="true">|</span>
-      <span className="min-w-0 font-medium text-[var(--sb-text)]">{summary.branchLabel}</span>
-    </p>
+    <div className="grid min-w-0 grid-cols-[minmax(0,1fr)_auto] items-center gap-5" data-dashboard-identity>
+      <div className="min-w-0">
+        <p className="text-[10px] font-medium uppercase tracking-[0.14em] text-[var(--sb-text-muted)]">WELCOME</p>
+        <p className="mt-0.5 truncate text-base font-semibold tracking-[-0.02em] text-[var(--sb-text)]">{summary.userName}</p>
+      </div>
+      <dl className="flex max-w-[28rem] flex-wrap justify-end gap-x-4 gap-y-1.5 text-xs text-[var(--sb-text-muted)]">
+        <div className="flex min-w-0 items-center gap-1.5">
+          <UserRound className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+          <dt className="sr-only">Role</dt>
+          <dd className="truncate font-medium text-[var(--sb-text)]">{summary.roleLabel}</dd>
+        </div>
+        <div className="flex min-w-0 items-center gap-1.5">
+          <LockKeyhole className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+          <dt className="sr-only">Scope</dt>
+          <dd className="truncate">{summary.branchLabel}</dd>
+        </div>
+      </dl>
+    </div>
   );
 
   return (

@@ -207,10 +207,13 @@ export async function getPayablesAttention() {
     ApAgingReport["attention"],
     "highest_exposure_supplier" | "oldest_overdue_invoice" | "rows"
   > & { report_date: string; timezone: string };
-  const callSummary = db.rpc as unknown as (
-    fn: "get_payables_attention_summary",
-  ) => Promise<{ data: PayablesAttention | null; error: { message: string } | null }>;
-  const { data, error } = await callSummary("get_payables_attention_summary");
+  // Keep the Supabase client method bound to its instance. Detaching `db.rpc`
+  // loses the internal PostgREST client (`this.rest`) and turns a healthy
+  // read-only RPC into the generic dashboard "unavailable" state.
+  const { data, error } = await db.rpc("get_payables_attention_summary" as never) as {
+    data: PayablesAttention | null;
+    error: { message: string } | null;
+  };
 
   if (error) throw error;
   if (!data) throw new Error("Payables attention summary is unavailable.");

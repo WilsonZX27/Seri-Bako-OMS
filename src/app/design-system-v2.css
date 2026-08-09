@@ -12,6 +12,55 @@
   --sb-content-gutter: clamp(0.75rem, 1.5vw, 1.25rem);
 }
 
+/* Mobile overlay authority: shared sheets own the complete viewport and suppress
+   every lower navigation/action layer while open. Kept last to resolve legacy
+   component rules without reintroducing per-route overrides. */
+@media (max-width: 639px) {
+  html[data-design-layer="v2"][data-mobile-sheet-open] :where([data-mobile-app-nav], [data-mobile-bottom-nav], .sb-mobile-bottom-nav, .sb-mobile-action-bar) {
+    display: none !important;
+  }
+
+  html[data-design-layer="v2"] .unified-list-header {
+    overflow: visible !important;
+  }
+
+  html[data-design-layer="v2"] .unified-list-layer {
+    position: fixed !important;
+    inset: 0 !important;
+    z-index: 2147483646 !important;
+    isolation: isolate;
+  }
+
+  html[data-design-layer="v2"] .unified-list-backdrop {
+    position: absolute !important;
+    inset: 0 !important;
+    z-index: 0 !important;
+    background: rgb(12 22 18 / 0.52) !important;
+    backdrop-filter: blur(2px);
+  }
+
+  html[data-design-layer="v2"] .unified-list-sheet {
+    position: absolute !important;
+    inset: auto 0 0 !important;
+    z-index: 1 !important;
+    border-radius: var(--sb-radius-panel) var(--sb-radius-panel) 0 0 !important;
+    padding-bottom: env(safe-area-inset-bottom) !important;
+  }
+
+  html[data-design-layer="v2"] .unified-list-sheet-fields > *,
+  html[data-design-layer="v2"] .unified-list-inline-fields > * {
+    min-width: 0;
+    width: 100%;
+  }
+
+  html[data-design-layer="v2"] .unified-list-inline-fields {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) !important;
+    gap: 0.5rem !important;
+    margin-top: 0.5rem;
+  }
+}
+
 /*
  * Document-level ownership boundary.
  *

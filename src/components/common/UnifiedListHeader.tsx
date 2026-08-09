@@ -147,6 +147,8 @@ export function UnifiedListHeader({ children, resultCount, resetHref, filtered =
   const more = all.find(isFilterMore);
   const filters = useMemo(() => all.filter((child) => child !== primary && !isAction(child) && !isFilterMore(child)), [all, primary]);
   const nested = more && isValidElement(more) ? Children.toArray(propsOf(more).children as ReactNode) : [];
+  const contextualFilterCount = filters.length + nested.length;
+  const resolvedPhoneMode = phoneMode === "drawer" && contextualFilterCount <= 1 ? "inline" : phoneMode;
   const active = activeCount || (more && isValidElement(more) && typeof propsOf(more).activeCount === "number" ? propsOf(more).activeCount as number : 0);
   const primaryProps = primary && isValidElement(primary) ? propsOf(primary) : {};
   const initialSearchValue = typeof primaryProps.defaultValue === "string"
@@ -190,10 +192,10 @@ export function UnifiedListHeader({ children, resultCount, resetHref, filtered =
     <form ref={formRef} className={cn("sb-list-filters unified-list-header", className)} data-filtered={filtered || undefined} data-reset-href={resetHref} onSubmit={submit}>
       <div className="unified-list-row">
         {primary && isValidElement(primary) ? <SearchControl child={primary} value={searchValue} onChange={updateSearch} /> : <div className="unified-list-primary-control" />}
-        {phoneMode === "drawer" ? <button type="button" className="unified-list-filter-trigger" onClick={() => setOpen(true)} aria-label={active ? `Filter, ${active} active` : "Filter"}><SlidersHorizontal /><span className="unified-list-filter-label">Filter{active ? ` (${active})` : ""}</span></button> : null}
+        {resolvedPhoneMode === "drawer" ? <button type="button" className="unified-list-filter-trigger" onClick={() => setOpen(true)} aria-label={active ? `Filter, ${active} active` : "Filter"}><SlidersHorizontal /><span className="unified-list-filter-label">Filter{active ? ` (${active})` : ""}</span></button> : null}
       </div>
-      {phoneMode === "inline" ? <div className="unified-list-inline-fields">{filterControls}</div> : null}
-      {phoneMode === "drawer" && !open ? [...filters, ...nested].map((child, index) => {
+      {resolvedPhoneMode === "inline" ? <div className="unified-list-inline-fields">{filterControls}</div> : null}
+      {resolvedPhoneMode === "drawer" && !open ? [...filters, ...nested].map((child, index) => {
         const hidden = hiddenFilterValue(child);
         return hidden ? <input key={`${hidden.name}-${index}`} type="hidden" name={hidden.name} value={hidden.value} /> : null;
       }) : null}

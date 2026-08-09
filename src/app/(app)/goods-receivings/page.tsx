@@ -62,7 +62,7 @@ export default async function GoodsReceivingsPage({ searchParams }: { searchPara
           </div>
         }
       >
-        <div className="overflow-hidden rounded-[2px] border border-[var(--sb-border-soft)] bg-card">
+        <div className="sb-work-surface overflow-hidden">
           <div className="hidden sm:block">
             <FilterBar resultCount={receivings.totalRows} resetHref="/goods-receivings" filtered={filtered} className="sb-list-filters--compact-mobile">
               <Input name="search" defaultValue={filters.search ?? ""} placeholder="Search GRN, PO or supplier" className="min-w-0 flex-1 md:max-w-sm" />
@@ -74,6 +74,7 @@ export default async function GoodsReceivingsPage({ searchParams }: { searchPara
           <div className="sm:hidden">
             <UnifiedListHeader
               phoneOnly
+              phoneMode="inline"
               resultCount={receivings.totalRows}
               resetHref="/goods-receivings"
               filtered={filtered}

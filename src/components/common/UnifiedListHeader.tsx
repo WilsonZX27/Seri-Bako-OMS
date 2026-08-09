@@ -42,6 +42,12 @@ function isAction(child: ReactNode) {
   return props.type === "submit" || (props.asChild === true && props.variant === "secondary");
 }
 
+function isStatusTabs(child: ReactNode) {
+  if (!isValidElement(child)) return false;
+  const type = child.type as { displayName?: string; name?: string };
+  return type.displayName === "StatusTabs" || type.name === "StatusTabs";
+}
+
 function isPrimaryControl(child: ReactNode) {
   const props = propsOf(child);
   if (props.type === "date" || props.type === "search" || props.type === "text") return true;
@@ -63,7 +69,7 @@ function isSearchControl(child: ReactNode) {
 function hiddenFilterValue(child: ReactNode) {
   if (!isValidElement(child)) return null;
   const props = propsOf(child);
-  const name = typeof props.name === "string" ? props.name : null;
+  const name = typeof props.name === "string" ? props.name : isStatusTabs(child) ? "status" : null;
   if (!name || props.type === "checkbox" || props.type === "radio" || props.type === "file") return null;
   const value = typeof props.value === "string" || typeof props.value === "number"
     ? String(props.value)

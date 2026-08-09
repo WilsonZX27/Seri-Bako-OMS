@@ -90,8 +90,9 @@ export default async function StockCountsPage({ searchParams }: { searchParams: 
             <Input name="search" defaultValue={filters.search ?? ""} placeholder="Search count no, branch, remarks" />
             <SelectControl name="branch_id" defaultValue={filters.branch_id ?? "all"} ariaLabel="Branch" options={[{ value: "all", label: "All branches" }, ...branches.map((branch) => ({ value: branch.id, label: branch.branch_name }))]} />
             <StatusTabs statuses={statuses} activeStatus={filters.status} />
+            <Input name="from" type="date" defaultValue={filters.from ?? ""} aria-label="From date" />
+            <Input name="to" type="date" defaultValue={filters.to ?? ""} aria-label="To date" />
             {filters.status ? <input type="hidden" name="status" value={filters.status} /> : null}
-            <FilterBarMore activeCount={Number(Boolean(filters.from)) + Number(Boolean(filters.to))} resetHref="/stock-counts"><Input name="from" type="date" defaultValue={filters.from ?? ""} aria-label="From date" /><Input name="to" type="date" defaultValue={filters.to ?? ""} aria-label="To date" /></FilterBarMore>
           </UnifiedListHeader>
         </div>
         <DataGridHint text="Pro-tip: Double-click any row to open the stock count." />

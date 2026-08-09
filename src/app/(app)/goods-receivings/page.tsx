@@ -44,7 +44,7 @@ export default async function GoodsReceivingsPage({ searchParams }: { searchPara
         tabletRailMode="split"
         tabletRailBreakpoint="md"
         rightRail={
-          <div className="space-y-3 [&>section]:overflow-hidden [&>section]:rounded-[var(--sb-panel-radius)] [&>section]:border [&>section]:border-[var(--sb-border-soft)] [&>section]:bg-card">
+          <div className="space-y-3 [&>section]:overflow-hidden [&>section]:rounded-[var(--sb-panel-radius)] [&>section]:border [&>section]:border-[var(--sb-border-soft)] [&>section]:bg-card" data-tablet-split-actions data-goods-receiving-tablet-rail>
             {canCreate ? <ConsoleSection title="Actions"><Button asChild size="sm" className="w-full" data-mobile-primary-action><Link href="/goods-receivings/new"><Plus className="h-4 w-4" />New GRN</Link></Button></ConsoleSection> : null}
             <ConsoleSection title="GRN Summary">
               <div className="grid gap-2 text-xs">
@@ -62,7 +62,7 @@ export default async function GoodsReceivingsPage({ searchParams }: { searchPara
           </div>
         }
       >
-        <div className="sb-work-surface overflow-hidden">
+        <div className="sb-work-surface overflow-hidden" data-tablet-main-list>
           <div className="hidden sm:block">
             <FilterBar resultCount={receivings.totalRows} resetHref="/goods-receivings" filtered={filtered} className="sb-list-filters--compact-mobile">
               <Input name="search" defaultValue={filters.search ?? ""} placeholder="Search GRN, PO or supplier" className="min-w-0 flex-1 md:max-w-sm" />

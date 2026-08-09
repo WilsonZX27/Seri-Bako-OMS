@@ -106,7 +106,7 @@ export function PurchaseRequestForm({
   const [validationError, setValidationError] = useState("");
   const [commentLineKey, setCommentLineKey] = useState<number | null>(null);
   const [neededByDate, setNeededByDate] = useState(initialNeededByDate ?? "");
-  const [detailsOpen, setDetailsOpen] = useState(true);
+  const [detailsOpen, setDetailsOpen] = useState(!(resolvedInitialBranchId && initialNeededByDate));
   const firstItemInputRef = useRef<HTMLInputElement>(null);
   const nextKey = lines.reduce((max, line) => Math.max(max, line.key), 0) + 1;
 
@@ -187,6 +187,7 @@ export function PurchaseRequestForm({
 
   function changeBranch(nextBranchId: string) {
     setBranchId(nextBranchId);
+    if (nextBranchId && neededByDate) setDetailsOpen(false);
     setLines((current) => current.map((line) => {
       const validMappings = supplierMappings.filter((mapping) => mapping.branch_id === nextBranchId && mapping.item_id === line.itemId);
       const automaticMapping = validMappings.find((mapping) => mapping.is_preferred) ?? (validMappings.length === 1 ? validMappings[0] : null);
@@ -197,6 +198,11 @@ export function PurchaseRequestForm({
         uom: normalizeUom(automaticMapping?.purchase_uom || line.uom),
       };
     }));
+  }
+
+  function changeNeededByDate(nextDate: string) {
+    setNeededByDate(nextDate);
+    if (branchId && nextDate) setDetailsOpen(false);
   }
 
   function addLine() {
@@ -269,7 +275,7 @@ export function PurchaseRequestForm({
                 {lockBranch ? <input type="hidden" name="branch_id" value={branchId} /> : null}
             </Field>
             <Field label="Needed By">
-              <Input name="needed_by_date" type="date" value={neededByDate} onChange={(event) => setNeededByDate(event.target.value)} />
+              <Input name="needed_by_date" type="date" value={neededByDate} onChange={(event) => changeNeededByDate(event.target.value)} />
             </Field>
             <Field label="Urgency" className="col-span-2 md:col-span-1"><UrgencySelect value={priority} onValueChange={setPriority} /></Field>
             <Field label="Remarks" className="col-span-2 md:col-span-3">
@@ -418,7 +424,7 @@ export function PurchaseOrderForm({
             </details>
           </section>
 
-          <section data-purchase-order-lines className="overflow-hidden border-y border-[var(--sb-border)] bg-white md:rounded-[2px] md:border">
+          <section data-purchase-order-lines className="overflow-hidden border-y border-[var(--sb-border)] bg-white md:rounded-[var(--sb-panel-radius)] md:border">
             <div className="flex items-center justify-between gap-3 border-b bg-secondary/40 px-3 py-2">
               <div>
                 <p className="text-xs font-semibold">Ordered Items</p>

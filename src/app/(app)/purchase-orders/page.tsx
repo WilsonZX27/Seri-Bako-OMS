@@ -55,7 +55,7 @@ export default async function PurchaseOrdersPage({ searchParams }: { searchParam
         tabletRailBreakpoint="md"
         hideMobileConsole
         rightRail={
-          <div className="space-y-3 [&>section]:overflow-hidden [&>section]:rounded-[var(--sb-panel-radius)] [&>section]:border [&>section]:border-[var(--sb-border-soft)] [&>section]:bg-card">
+          <div className="space-y-3 [&>section]:overflow-hidden [&>section]:rounded-[var(--sb-panel-radius)] [&>section]:border [&>section]:border-[var(--sb-border-soft)] [&>section]:bg-card" data-tablet-split-actions data-purchase-order-tablet-rail>
             {permissions["po.create"] ? <ConsoleSection title="Actions"><div className="grid gap-2">
               <Button asChild size="sm" className="w-full" data-mobile-primary-action><Link href="/purchase-orders/new"><Plus className="h-4 w-4" />New PO</Link></Button>
               <PurchaseOrderExportDialog branches={exportBranches} />
@@ -74,7 +74,7 @@ export default async function PurchaseOrdersPage({ searchParams }: { searchParam
           </div>
         }
       >
-        <div className="overflow-hidden rounded-[2px] border border-[var(--sb-border-soft)] bg-card">
+        <div className="overflow-hidden rounded-[var(--sb-panel-radius)] border border-[var(--sb-border-soft)] bg-card" data-tablet-main-list>
           <div className="hidden sm:block">
             <FilterBar resetHref="/purchase-orders" filtered={filtered}>
               <Input name="search" defaultValue={filters.search ?? ""} placeholder="Search PO no, supplier, remarks" className="min-w-0 flex-1 md:max-w-sm" />

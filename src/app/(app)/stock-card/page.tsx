@@ -63,11 +63,9 @@ export default async function StockCardPage({ searchParams }: { searchParams: Pr
                 <Input name="search" defaultValue={filters.search ?? ""} placeholder="Search item, transaction, or branch" aria-label="Search stock movements" />
                 <SelectControl name="item_id" defaultValue={filters.item_id ?? "all"} ariaLabel="Item" options={[{ value: "all", label: "All items" }, ...items.map((item) => ({ value: item.id, label: `${item.item_code} — ${item.item_name}` }))]} />
                 <SelectControl name="branch_id" defaultValue={filters.branch_id ?? "all"} ariaLabel="Branch" options={[{ value: "all", label: "All branches" }, ...branches.map((branch) => ({ value: branch.id, label: branch.branch_name }))]} />
-                <FilterBarMore activeCount={Number(Boolean(filters.type && filters.type !== "all")) + Number(Boolean(filters.from)) + Number(Boolean(filters.to))} resetHref="/stock-card">
-                  <SelectControl name="type" defaultValue={filters.type ?? "all"} ariaLabel="Movement type" options={[{ value: "all", label: "All movement types" }, ...["opening_balance", "purchase", "transfer_in", "transfer_out", "production_output", "production_usage", "wastage", "damage", "stock_adjustment", "stock_count_adjustment", "correction"].map((type) => ({ value: type, label: type.replaceAll("_", " ") }))]} />
-                  <label className="grid gap-1 text-xs">From date<Input name="from" type="date" defaultValue={effectiveFilters.from} aria-label="From date" /></label>
-                  <label className="grid gap-1 text-xs">To date<Input name="to" type="date" defaultValue={effectiveFilters.to} aria-label="To date" /></label>
-                </FilterBarMore>
+                <SelectControl name="type" defaultValue={filters.type ?? "all"} ariaLabel="Movement type" options={[{ value: "all", label: "All movement types" }, ...["opening_balance", "purchase", "transfer_in", "transfer_out", "production_output", "production_usage", "wastage", "damage", "stock_adjustment", "stock_count_adjustment", "correction"].map((type) => ({ value: type, label: type.replaceAll("_", " ") }))]} />
+                <label className="grid gap-1 text-xs">From date<Input name="from" type="date" defaultValue={effectiveFilters.from} aria-label="From date" /></label>
+                <label className="grid gap-1 text-xs">To date<Input name="to" type="date" defaultValue={effectiveFilters.to} aria-label="To date" /></label>
               </UnifiedListHeader>
             </div>
           </section>

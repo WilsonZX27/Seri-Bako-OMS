@@ -87,7 +87,7 @@ export function DocumentWorkspace({
         </div>
       </WorkspaceGrid>
       {mobilePrimaryAction || mobileMoreOptions ? <div data-mobile-document-action className={cn(
-        "sb-mobile-action-bar fixed inset-x-0 bottom-0 z-[102] grid min-w-0 items-center gap-2 border-x-0 border-b-0 p-2 pb-[calc(0.5rem+env(safe-area-inset-bottom))] xl:hidden [&_button]:h-11 [&_button]:w-full",
+        "sb-mobile-action-bar fixed inset-x-0 bottom-0 z-[var(--sb-z-sticky)] grid min-w-0 items-center gap-2 border-x-0 border-b-0 p-2 pb-[calc(0.5rem+env(safe-area-inset-bottom))] xl:hidden [&_button]:h-11 [&_button]:w-full",
         mobilePrimaryAction && mobileMoreOptions ? "grid-cols-[minmax(0,1fr)_minmax(7rem,auto)]" : "grid-cols-1",
       )}>
         {mobilePrimaryAction ? <div className="min-w-0">{mobilePrimaryAction}</div> : null}

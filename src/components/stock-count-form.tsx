@@ -329,22 +329,22 @@ export function StockCountForm({
           : "Autosave ready";
 
   return (
-    <div className="rounded-none md:rounded-[var(--sb-panel-radius)] md:border md:bg-white">
-      <div className="md:p-4">
+    <div className="min-w-0">
+      <div>
         <form ref={formRef} id={formId} action={action} className={showSubmit ? "space-y-3 pb-28 xl:pb-0" : "space-y-3"}>
           <input type="hidden" name="idempotency_key" value={idempotencyKey} />
-          <section data-stock-count-setup className="erp-surface grid rounded-none px-3 py-2 md:grid-cols-2 md:gap-3 md:rounded-none md:border-0 md:bg-transparent md:px-0 md:py-0">
+          <section data-stock-count-setup className="erp-surface grid overflow-hidden rounded-[var(--sb-panel-radius)] border bg-white px-3 py-3 md:grid-cols-2 md:gap-3 md:px-4 md:py-4">
             <input type="hidden" name="branch_id" value={resolvedBranchId} />
             <div className="flex min-w-0 items-center justify-between gap-3 md:border md:border-[var(--sb-border-soft)] md:bg-[var(--sb-surface)] md:p-3">
               <div className="min-w-0">
                 <p className="text-xs font-medium text-muted-foreground">Count date</p>
-                <p className="truncate text-sm font-semibold text-foreground">{initialCountDate ? formatDateOnly(countDate) : `Today · ${formatDateOnly(countDate)}`}</p>
+                <p className="break-words text-sm font-semibold text-foreground">{initialCountDate ? formatDateOnly(countDate) : `Today · ${formatDateOnly(countDate)}`}</p>
               </div>
               <Input aria-label="Count date" name="count_date" type="date" value={countDate} onChange={(event) => { setCountDate(event.target.value); markDirty(); }} required className="basis-36 shrink-0" />
             </div>
             <div className="hidden items-center justify-between gap-3 border border-[var(--sb-border-soft)] bg-[var(--sb-surface)] p-3 md:flex" aria-live="polite">
               <div className="min-w-0">
-                <p className={`truncate text-xs font-medium ${autosaveState === "error" ? "text-destructive" : autosaveState === "saved" ? "text-[var(--sb-green-900)]" : "text-muted-foreground"}`} title={autosaveError || autosaveLabel}>{autosaveLabel}</p>
+                <p className={`break-words text-xs font-medium ${autosaveState === "error" ? "text-destructive" : autosaveState === "saved" ? "text-[var(--sb-green-900)]" : "text-muted-foreground"}`} title={autosaveError || autosaveLabel}>{autosaveLabel}</p>
                 <p className="text-xs text-muted-foreground">{lines.length} values ready · {adjustedCount} adjusted</p>
               </div>
               <span className="shrink-0 text-xs tabular-nums text-muted-foreground">{countComplete ? "Ready to save" : "Complete all quantities to save"}</span>
@@ -359,7 +359,7 @@ export function StockCountForm({
             </details>
           </section>
 
-          <section data-stock-count-workspace className="erp-surface rounded-none overflow-hidden md:rounded-none md:border-0 md:bg-transparent">
+          <section data-stock-count-workspace className="erp-surface overflow-hidden rounded-[var(--sb-panel-radius)] border bg-white">
 
           <div className="flex items-center gap-2 border-b border-slate-100 bg-white p-3 md:border-0 md:bg-transparent md:px-0 md:pt-3">
             <label className="relative min-w-0 flex-1">
@@ -396,7 +396,7 @@ export function StockCountForm({
             ))}
           </div>
 
-          <div data-stock-count-line-list className="rounded-none md:rounded-sm md:border">
+          <div data-stock-count-line-list>
             <div className="hidden border-b bg-secondary/40 px-3 py-1.5 md:grid md:grid-cols-[minmax(0,4fr)_minmax(4rem,2fr)_minmax(0,4fr)] md:gap-3">
               <p className="text-xs font-semibold">Item</p>
               <p className="text-xs text-right font-semibold">Variance</p>
@@ -415,7 +415,7 @@ export function StockCountForm({
                   >
                     <div className="order-1 min-w-0">
                       <p className="break-words text-sm font-medium leading-tight text-slate-800">{line.item_name}</p>
-                      <p className="truncate whitespace-nowrap text-[10px] leading-3 tracking-[0.01em] text-slate-400">{line.item_code}</p>
+                      <p className="break-all text-[10px] leading-3 tracking-[0.01em] text-slate-400">{line.item_code}</p>
                     </div>
 
                     <div className={`order-2 min-w-0 text-right text-xs font-medium ${variance < 0 ? "text-red-600" : variance > 0 ? "text-emerald-700" : "text-muted-foreground"}`}>
@@ -473,7 +473,7 @@ export function StockCountForm({
             >
               <div className="flex min-w-0 flex-1 flex-col items-start gap-0">
                 <span
-                  className={`max-w-full truncate text-xs font-medium ${autosaveState === "error" ? "text-destructive" : autosaveState === "saved" ? "text-[var(--sb-green-900)]" : "text-muted-foreground"}`}
+                  className={`max-w-full break-words text-xs font-medium ${autosaveState === "error" ? "text-destructive" : autosaveState === "saved" ? "text-[var(--sb-green-900)]" : "text-muted-foreground"}`}
                   role="status"
                   aria-live="polite"
                   title={autosaveError || autosaveLabel}
@@ -483,7 +483,7 @@ export function StockCountForm({
                 <span className="text-sm font-semibold tabular-nums">{lines.length} values ready</span>
                 <span className="text-xs tabular-nums text-muted-foreground">{adjustedCount} adjusted{autosaveError ? ` · ${autosaveError}` : ""}</span>
               </div>
-              <SubmitButton type="submit" disabled={!countComplete} className="shrink-0" pendingLabel="Saving..." showOverlay overlayLabel="Saving changes...">Save draft</SubmitButton>
+              <SubmitButton type="submit" disabled={!countComplete} className="h-11 shrink-0 px-5" pendingLabel="Saving..." showOverlay overlayLabel="Saving changes...">Save draft</SubmitButton>
             </div>
           ) : null}
         </form>

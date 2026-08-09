@@ -160,7 +160,7 @@ export function RightConsoleProvider({ children }: { children: ReactNode }) {
           <Plus className="h-6 w-6" aria-hidden="true" />
         </Link>
       ) : null}
-      {content && !mobileBarHidden && !hasCreateFab ? <div data-mobile-action-bar className={cn("sb-mobile-action-bar fixed inset-x-0 bottom-0 z-[102] items-center gap-2 rounded-none border-x-0 border-b-0 bg-white/95 p-2 pb-[calc(0.5rem+env(safe-area-inset-bottom))] shadow-[0_-8px_20px_rgba(17,30,22,0.2)]", "grid", primaryAction ? "grid-cols-2" : "grid-cols-1", "md:hidden")}>
+      {content && !mobileBarHidden && !hasCreateFab ? <div data-mobile-action-bar className={cn("sb-mobile-action-bar fixed inset-x-0 bottom-0 z-[var(--sb-z-sticky)] items-center gap-2 rounded-none border-x-0 border-b-0 bg-white/95 p-2 pb-[calc(0.5rem+env(safe-area-inset-bottom))] shadow-[0_-8px_20px_rgba(17,30,22,0.2)]", "grid", primaryAction ? "grid-cols-2" : "grid-cols-1", "md:hidden")}>
         {primaryAction ? <div data-mobile-primary-slot className="min-w-0 [&>*]:h-11 [&>*]:w-full">{primaryAction}</div> : null}
         <Button ref={triggerRef} type="button" variant={primaryAction ? "outline" : "default"} className="h-11 min-w-0 w-full gap-2" onClick={() => setOpen(true)} aria-label="Open more actions" aria-haspopup="dialog" aria-expanded={open}>
           <PanelRight className="h-4 w-4" aria-hidden="true" />

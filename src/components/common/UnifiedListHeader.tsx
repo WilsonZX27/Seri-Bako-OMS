@@ -3,6 +3,7 @@
 import Link from "next/link";
 import {
   Children,
+  Fragment,
   cloneElement,
   isValidElement,
   useEffect,
@@ -33,10 +34,26 @@ function propsOf(child: ReactNode): Record<string, unknown> {
   return isValidElement(child) ? (child.props as Record<string, unknown>) : {};
 }
 
+function flattenChildren(children: ReactNode): ReactNode[] {
+  return Children.toArray(children).flatMap((child) => {
+    if (isValidElement(child) && child.type === Fragment) {
+      return flattenChildren(propsOf(child).children as ReactNode);
+    }
+    return [child];
+  });
+}
+
 function isFilterMore(child: ReactNode) {
   if (!isValidElement(child)) return false;
-  const type = child.type as { displayName?: string; name?: string };
-  return type.displayName === "FilterBarMore" || type.name === "FilterBarMore" || Boolean(propsOf(child)["data-filter-more-wrapper"]);
+  const props = propsOf(child);
+  const type = child.type as { displayName?: string; name?: string; type?: { displayName?: string; name?: string } };
+  const names = [type.displayName, type.name, type.type?.displayName, type.type?.name];
+  return names.includes("FilterBarMore")
+    || Boolean(props["data-filter-more-wrapper"])
+    // React can wrap the client component in a dev-only proxy, which drops
+    // function displayName/name. These props are unique to FilterBarMore in
+    // the shared filter contract and keep the mobile sheet flat in that case.
+    || (typeof props.resetHref === "string" && typeof props.activeCount === "number" && props.children !== undefined && !props.name && !props.options && !props.type);
 }
 
 function isAction(child: ReactNode) {
@@ -92,6 +109,10 @@ function SearchControl({ child, value, onChange }: { child: ReactElement; value:
 
   const control = cloneElement(child as ReactElement<Record<string, unknown>>, {
     ...props,
+    // The shared phone search owns the value. Keeping the source control's
+    // defaultValue alongside it makes React treat the input as both controlled
+    // and uncontrolled and emits a warning on every list route.
+    defaultValue: undefined,
     value,
     type: "search",
     enterKeyHint: "search",
@@ -141,12 +162,12 @@ export function UnifiedListHeader({ children, resultCount, resetHref, filtered =
     if (!mobile && open) setOpen(false);
   }, [mobile, open]);
 
-  const all = Children.toArray(children);
+  const all = flattenChildren(children);
   const candidates = all.filter((child) => !isAction(child) && !isFilterMore(child));
   const primary = candidates.find(isSearchControl) ?? candidates.find(isPrimaryControl);
   const more = all.find(isFilterMore);
   const filters = useMemo(() => all.filter((child) => child !== primary && !isAction(child) && !isFilterMore(child)), [all, primary]);
-  const nested = more && isValidElement(more) ? Children.toArray(propsOf(more).children as ReactNode) : [];
+  const nested = more && isValidElement(more) ? flattenChildren(propsOf(more).children as ReactNode) : [];
   const contextualFilterCount = filters.length + nested.length;
   const resolvedPhoneMode = phoneMode;
   const active = activeCount || (more && isValidElement(more) && typeof propsOf(more).activeCount === "number" ? propsOf(more).activeCount as number : 0);

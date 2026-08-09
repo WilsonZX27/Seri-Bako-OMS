@@ -135,6 +135,10 @@ export function UnifiedListHeader({ children, resultCount, resetHref, filtered =
     };
   }, [mobile, open]);
 
+  useEffect(() => {
+    if (!mobile && open) setOpen(false);
+  }, [mobile, open]);
+
   const all = Children.toArray(children);
   const candidates = all.filter((child) => !isAction(child) && !isFilterMore(child));
   const primary = candidates.find(isSearchControl) ?? candidates.find(isPrimaryControl);

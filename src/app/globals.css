@@ -514,31 +514,8 @@ input[type="date"]::-webkit-date-and-time-value {
     padding-top: env(safe-area-inset-top);
   }
 
-  [data-mobile-action-bar],
-  [data-mobile-document-action],
-  .sb-mobile-action-bar {
-    right: 0 !important;
-    left: 0 !important;
-    bottom: calc(var(--sb-mobile-nav-height) + env(safe-area-inset-bottom) + 0.5rem) !important;
-    border-right: 0;
-    border-left: 0;
-  }
-
   [data-mobile-create-fab] {
     bottom: calc(var(--sb-mobile-nav-height) + env(safe-area-inset-bottom) + 1rem);
-  }
-
-  html:is([data-mobile-task-page="true"], [data-mobile-action-page="true"]) :is([data-mobile-action-bar], [data-mobile-document-action], .sb-mobile-action-bar) {
-    bottom: calc(var(--sb-mobile-nav-height) + env(safe-area-inset-bottom) + 0.5rem) !important;
-  }
-
-  html:has([data-mobile-document-action]) [data-mobile-document-action] {
-    bottom: env(safe-area-inset-bottom) !important;
-  }
-
-  /* A document action rail replaces, rather than stacks with, phone navigation. */
-  html:has([data-mobile-document-action]) [data-mobile-app-nav] {
-    display: none !important;
   }
 
   html[data-mobile-sheet-open="true"] [data-mobile-app-nav] {

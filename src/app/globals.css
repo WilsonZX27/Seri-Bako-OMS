@@ -1071,7 +1071,11 @@ input[type="date"]::-webkit-date-and-time-value {
      16rem action rail at landscape-tablet widths. */
   [data-tablet-document-split] .sb-tablet-split-filter {
     display: grid;
-    grid-template-columns: minmax(12rem, 1fr) minmax(7.5rem, 9rem) minmax(7.5rem, 9rem);
+    /* The work column is intentionally narrow beside the tablet rail. Keep
+       search and the result count on the first row, then give each filter a
+       predictable home on the second row instead of letting flex-wrap paint
+       controls across the rail. */
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto auto;
     align-items: center;
     gap: 0.5rem;
   }
@@ -1083,7 +1087,15 @@ input[type="date"]::-webkit-date-and-time-value {
   }
 
   [data-tablet-document-split] .sb-tablet-split-filter > :first-child {
-    grid-column: 1 / -1;
+    grid-column: 1 / 4;
+    grid-row: 1;
+  }
+
+  [data-tablet-document-split] .sb-tablet-split-filter > .sb-filter-summary {
+    grid-column: 4;
+    grid-row: 1;
+    justify-self: end;
+    white-space: nowrap;
   }
 
   [data-tablet-document-split] .sb-tablet-split-filter > input[type="hidden"] {

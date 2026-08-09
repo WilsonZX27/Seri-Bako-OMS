@@ -79,19 +79,19 @@ body::-webkit-scrollbar {
 @media (min-width: 640px) and (max-width: 1023px) {
   form.sb-tablet-split-filter {
     display: grid !important;
-    grid-template-columns: minmax(0, 1fr) minmax(8rem, 0.34fr) auto auto !important;
+    grid-template-columns: minmax(0, 1fr) minmax(8rem, 0.3fr) minmax(8rem, 0.3fr) auto auto !important;
     align-items: center !important;
     gap: 0.5rem !important;
   }
 
   form.sb-tablet-split-filter > :first-child {
-    grid-column: 1 / -1 !important;
+    grid-column: 1 !important;
     width: 100% !important;
   }
 
   form.sb-tablet-split-filter > .sb-filter-submit {
     width: auto !important;
-    min-width: 6rem !important;
+    min-width: 5.5rem !important;
   }
 }
 
@@ -639,14 +639,41 @@ nav[aria-label="Pagination"] > span,
     gap: 0.25rem;
   }
 
-  [data-dashboard-panel="payables"] [data-dashboard-payables] > a > span > span:last-child {
-    display: block;
-    max-width: none;
+[data-dashboard-panel="payables"] [data-dashboard-payables] > a > span > span:last-child {
+  display: block;
+  max-width: none;
     overflow: visible;
     text-overflow: clip;
     white-space: normal;
-    line-height: 1rem;
+  line-height: 1rem;
+}
+
+@media (max-width: 639px) {
+  [data-dashboard-quick-actions] a {
+    min-height: 4rem;
+    padding: 0.625rem;
   }
+
+  [data-dashboard-command] > :first-child {
+    padding-inline: 0.875rem;
+  }
+
+  [data-dashboard-command] [data-dashboard-pulse-metrics] > a {
+    padding-inline: 0.625rem;
+  }
+
+  [data-dashboard-exceptions] a > span:first-child,
+  [data-dashboard-payables] a > span:first-child {
+    min-width: 0;
+  }
+
+  [data-dashboard-exceptions] a > span:first-child > span:last-child,
+  [data-dashboard-payables] a > span:first-child > span:last-child {
+    overflow: visible;
+    text-overflow: clip;
+    white-space: normal;
+  }
+}
 
   [data-dashboard-panel="payables"] [data-dashboard-payables] strong {
     font-size: 0.875rem;

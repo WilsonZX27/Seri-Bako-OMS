@@ -71,6 +71,19 @@ body::-webkit-scrollbar {
   background: transparent;
 }
 
+/* Canonical visual owner for shared workspace chrome. globals.css keeps only
+   structural compatibility selectors so these surfaces cannot change shape
+   when route CSS or breakpoint rules load in a different order. */
+[data-right-console] {
+  background: var(--rail-bg);
+  border-left-color: var(--border-soft);
+}
+
+.document-surface {
+  background: var(--workspace-bg);
+  border-color: var(--border-muted);
+}
+
 #main-content {
   scrollbar-width: none;
 }
@@ -458,6 +471,17 @@ nav[aria-label="Pagination"] > span,
   border-top: 1px solid var(--sb-border);
 }
 
+[data-right-console] [data-right-console-scroll],
+.scrollbar-none {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+[data-right-console] [data-right-console-scroll]::-webkit-scrollbar,
+.scrollbar-none::-webkit-scrollbar {
+  display: none;
+}
+
 .sb-procurement-basket {
   border: 1px solid var(--sb-border) !important;
   border-radius: var(--sb-panel-radius) !important;
@@ -466,8 +490,17 @@ nav[aria-label="Pagination"] > span,
 }
 
 .sb-pr-basket-sheet {
+  padding-bottom: 0;
+  border-inline: 0;
+  border-bottom: 0;
   border-radius: var(--sb-panel-radius) var(--sb-panel-radius) 0 0;
   box-shadow: 0 -10px 32px rgb(12 43 32 / 0.18);
+  animation: sb-sheet-enter 220ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes sb-sheet-enter {
+  from { transform: translateY(1.25rem); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
 }
 
 /* Mobile task rails are app chrome, not legacy page decoration. */
@@ -476,6 +509,10 @@ nav[aria-label="Pagination"] > span,
   border-radius: 0;
   background: var(--sb-surface);
   box-shadow: 0 -3px 10px rgb(6 44 31 / 0.14);
+}
+
+[data-mobile-app-nav] {
+  box-shadow: 0 -4px 14px rgb(6 44 31 / 0.16);
 }
 
 @media (max-height: 520px) and (orientation: landscape) {

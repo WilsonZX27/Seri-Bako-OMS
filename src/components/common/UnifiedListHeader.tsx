@@ -69,6 +69,8 @@ function hiddenFilterValue(child: ReactNode) {
     ? String(props.value)
     : typeof props.defaultValue === "string" || typeof props.defaultValue === "number"
       ? String(props.defaultValue)
+      : typeof props.activeStatus === "string"
+        ? props.activeStatus
       : "";
   return { name, value };
 }

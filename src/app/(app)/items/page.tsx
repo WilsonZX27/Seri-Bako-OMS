@@ -46,7 +46,7 @@ export default async function ItemsPage({
             categories={categories}
             suppliers={suppliers}
             showStatus={false}
-            leadingFilter={<StatusTabs statuses={[{ value: "active", label: "Active" }, { value: "inactive", label: "Inactive" }, { value: "archived", label: "Archived" }]} activeStatus={filters.status} />}
+            leadingFilter={<StatusTabs name="status" statuses={[{ value: "active", label: "Active" }, { value: "inactive", label: "Inactive" }, { value: "archived", label: "Archived" }]} activeStatus={filters.status} />}
             showStockFilters
             resultCount={itemsPage.totalRows}
             filtered={filtered}

@@ -60,6 +60,19 @@ function isSearchControl(child: ReactNode) {
   return searchable.includes("search") || searchable.includes("find");
 }
 
+function hiddenFilterValue(child: ReactNode) {
+  if (!isValidElement(child)) return null;
+  const props = propsOf(child);
+  const name = typeof props.name === "string" ? props.name : null;
+  if (!name || props.type === "checkbox" || props.type === "radio" || props.type === "file") return null;
+  const value = typeof props.value === "string" || typeof props.value === "number"
+    ? String(props.value)
+    : typeof props.defaultValue === "string" || typeof props.defaultValue === "number"
+      ? String(props.defaultValue)
+      : "";
+  return { name, value };
+}
+
 function SearchControl({ child, value, onChange }: { child: ReactElement; value: string; onChange: (value: string) => void }) {
   const props = propsOf(child);
 
@@ -150,6 +163,10 @@ export function UnifiedListHeader({ children, resultCount, resetHref, filtered =
         <button type="button" className="unified-list-filter-trigger" onClick={() => setOpen(true)} aria-label={active ? `Filter, ${active} active` : "Filter"}><SlidersHorizontal /><span className="unified-list-filter-label">Filter</span>{active ? <span className="unified-list-filter-badge">{active}</span> : null}</button>
         {typeof resultCount === "number" ? <span className="unified-list-result" aria-live="polite">{resultCount}</span> : null}
       </div>
+      {!open ? [...filters, ...nested].map((child, index) => {
+        const hidden = hiddenFilterValue(child);
+        return hidden ? <input key={`${hidden.name}-${index}`} type="hidden" name={hidden.name} value={hidden.value} /> : null;
+      }) : null}
       <button type="submit" className="sr-only" tabIndex={-1} aria-hidden="true">Search</button>
       {open ? <>
         <button type="button" className="unified-list-backdrop" aria-label="Close filters" onClick={() => setOpen(false)} />

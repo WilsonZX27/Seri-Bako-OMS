@@ -86,8 +86,10 @@ export function DocumentWorkspace({
           </div>
         </div>
       </WorkspaceGrid>
-      {mobilePrimaryAction || mobileMoreOptions ? <div data-mobile-document-action className="sb-mobile-action-bar fixed inset-x-3 bottom-[calc(var(--sb-mobile-nav-height)+env(safe-area-inset-bottom)+0.5rem)] z-[var(--sb-z-sticky)] grid min-w-0 grid-cols-[minmax(0,1fr)_minmax(7rem,auto)] items-center gap-2 p-2 xl:hidden [&_button]:h-11">
-        {/* Legacy contract token: grid-cols-[minmax(0,1fr)_7.5rem_2.25rem]. Current two-column rail keeps both actions equal-height. */}
+      {mobilePrimaryAction || mobileMoreOptions ? <div data-mobile-document-action className={cn(
+        "sb-mobile-action-bar fixed inset-x-0 bottom-0 z-[102] grid min-w-0 items-center gap-2 border-x-0 border-b-0 p-2 pb-[calc(0.5rem+env(safe-area-inset-bottom))] xl:hidden [&_button]:h-11 [&_button]:w-full",
+        mobilePrimaryAction && mobileMoreOptions ? "grid-cols-[minmax(0,1fr)_minmax(7rem,auto)]" : "grid-cols-1",
+      )}>
         {mobilePrimaryAction ? <div className="min-w-0">{mobilePrimaryAction}</div> : null}
         {mobileMoreOptions ? <div className="min-w-0">{mobileMoreOptions}</div> : null}
       </div> : null}

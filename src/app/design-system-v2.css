@@ -60,26 +60,6 @@ body::-webkit-scrollbar {
   }
 }
 
-/* Tablet filter bars retain one full-width search row and one compact control row. */
-@media (min-width: 640px) and (max-width: 1023px) {
-  form.sb-tablet-split-filter {
-    display: grid !important;
-    grid-template-columns: minmax(0, 1fr) minmax(8rem, 0.3fr) minmax(8rem, 0.3fr) auto auto !important;
-    align-items: center !important;
-    gap: 0.5rem !important;
-  }
-
-  form.sb-tablet-split-filter > :first-child {
-    grid-column: 1 !important;
-    width: 100% !important;
-  }
-
-  form.sb-tablet-split-filter > .sb-filter-submit {
-    width: auto !important;
-    min-width: 5.5rem !important;
-  }
-}
-
 [data-app-shell] {
   color: var(--sb-text);
   background:

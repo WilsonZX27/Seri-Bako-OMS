@@ -37,7 +37,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   const role = roleProfile?.role_code ?? roleProfile?.role ?? "outlet_staff";
 
   return (
-    <div data-app-shell className="min-h-dvh bg-[var(--app-bg)] xl:h-dvh xl:overflow-hidden">
+    <div data-app-shell data-design-layer="v2" className="min-h-dvh bg-[var(--app-bg)] xl:h-dvh xl:overflow-hidden">
       <div className="flex min-h-dvh min-w-0 xl:h-dvh">
         <Sidebar permissionMap={permissionMap} />
         <div className="flex min-w-0 flex-1 flex-col xl:overflow-hidden">

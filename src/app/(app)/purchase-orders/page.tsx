@@ -20,6 +20,7 @@ import { hasActiveFilters } from "@/lib/table-state";
 import { getPurchaseOrderSummary, getPurchaseOrders } from "@/server/queries/procurement";
 import { getPermissionMap } from "@/server/auth/permissions";
 import { PurchaseOrderExportDialog } from "@/components/purchase-order-export-dialog";
+import { getBranchesForSelect } from "@/server/queries/common";
 
 const statuses = [
   { value: "approved", label: "Ready to Send" },
@@ -33,6 +34,7 @@ const statuses = [
 export default async function PurchaseOrdersPage({ searchParams }: { searchParams: Promise<Record<string, string | undefined>> }) {
   const filters = await searchParams;
   const [orders, summary, permissions] = await Promise.all([getPurchaseOrders(filters), getPurchaseOrderSummary(), getPermissionMap(["po.create"])]);
+  const exportBranches = permissions["po.create"] ? await getBranchesForSelect({ restrictToActorScope: true }) : [];
   const filtered = hasActiveFilters(filters);
   const emptyStateAction = filtered
     ? { href: "/purchase-orders", label: "Reset filters" }
@@ -56,7 +58,7 @@ export default async function PurchaseOrdersPage({ searchParams }: { searchParam
           <div className="space-y-3 [&>section]:overflow-hidden [&>section]:rounded-[var(--sb-panel-radius)] [&>section]:border [&>section]:border-[var(--sb-border-soft)] [&>section]:bg-card">
             {permissions["po.create"] ? <ConsoleSection title="Actions"><div className="grid gap-2">
               <Button asChild size="sm" className="w-full" data-mobile-primary-action><Link href="/purchase-orders/new"><Plus className="h-4 w-4" />New PO</Link></Button>
-              <PurchaseOrderExportDialog />
+              <PurchaseOrderExportDialog branches={exportBranches} />
             </div></ConsoleSection> : null}
             <ConsoleSection title="PO Summary">
               <div className="grid gap-2 text-xs">

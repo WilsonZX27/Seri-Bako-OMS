@@ -67,6 +67,80 @@ async function boundedInventoryInsight<T>(query: PromiseLike<T>): Promise<T> {
   return await query;
 }
 
+async function getInventoryDashboardFallback(supabase: Awaited<ReturnType<typeof createClient>>, period: "7d" | "30d" | "month") {
+  const today = new Date().toISOString().slice(0, 10);
+  const periodStart = period === "7d"
+    ? new Date(Date.now() - 6 * 86_400_000).toISOString().slice(0, 10)
+    : period === "month"
+      ? `${today.slice(0, 7)}-01`
+      : new Date(Date.now() - 29 * 86_400_000).toISOString().slice(0, 10);
+  const [balancesResult, transactionsResult, movementsTodayResult, receivingResult, transfersResult, stockCountResult] = await Promise.all([
+    supabase.from("stock_balances_summary").select("*").order("item_name", { ascending: true }),
+    supabase.from("stock_transactions")
+      .select("id, item_id, transaction_no, transaction_date, transaction_type, quantity_in, quantity_out")
+      .eq("status", "posted")
+      .gte("transaction_date", periodStart)
+      .order("transaction_date", { ascending: false })
+      .limit(8),
+    supabase.from("stock_transactions").select("id", { count: "exact", head: true }).eq("status", "posted").eq("transaction_date", today),
+    supabase.from("goods_receivings").select("id", { count: "exact", head: true }).eq("received_date", today).is("deleted_at", null),
+    supabase.from("stock_transactions").select("id", { count: "exact", head: true }).eq("status", "posted").eq("transaction_date", today).in("transaction_type", ["transfer_in", "transfer_out"]),
+    supabase.from("stock_counts").select("id", { count: "exact", head: true }).in("status", ["draft", "submitted", "reviewed", "approved"]).is("deleted_at", null),
+  ]);
+  const balances = balancesResult.data ?? [];
+  const activeBalances = balances.filter((row) => row.status === "active");
+  const lowStockRows = activeBalances
+    .filter((row) => row.is_low_stock)
+    .sort((left, right) => Number(right.shortage_quantity ?? 0) - Number(left.shortage_quantity ?? 0))
+    .slice(0, 5);
+  const itemIds = [...new Set((transactionsResult.data ?? []).map((row) => row.item_id))];
+  const { data: items, error: itemsError } = itemIds.length
+    ? await supabase.from("items").select("id, item_name, base_unit").in("id", itemIds)
+    : { data: [], error: null };
+  const itemById = new Map((items ?? []).map((item) => [item.id, item]));
+  const recentTransactions = (transactionsResult.data ?? []).map((transaction) => ({
+    ...transaction,
+    item: {
+      id: transaction.item_id,
+      item_name: itemById.get(transaction.item_id)?.item_name ?? "Unknown item",
+      base_unit: itemById.get(transaction.item_id)?.base_unit ?? "",
+    },
+  }));
+  const unavailable = {
+    inventory: Boolean(balancesResult.error),
+    movement: Boolean(transactionsResult.error || movementsTodayResult.error || itemsError),
+    lowStock: Boolean(balancesResult.error),
+    stockCountDue: Boolean(stockCountResult.error),
+    todaysTransfers: Boolean(transfersResult.error),
+    todaysReceiving: Boolean(receivingResult.error),
+    pendingAdjustments: Boolean(stockCountResult.error),
+  };
+  warnOptionalInventoryQuery("dashboard summary fallback", balancesResult.error || transactionsResult.error || movementsTodayResult.error || receivingResult.error || transfersResult.error || stockCountResult.error || itemsError);
+  return {
+    inventoryValue: activeBalances.reduce((sum, row) => sum + Number(row.inventory_value ?? 0), 0),
+    totalActiveItems: new Set(activeBalances.map((row) => row.item_id)).size,
+    lowStockItems: activeBalances.filter((row) => row.is_low_stock).length,
+    negativeStock: activeBalances.filter((row) => Number(row.current_qty ?? 0) < 0).length,
+    todaysMovements: Number(movementsTodayResult.count ?? 0),
+    todaysReceiving: Number(receivingResult.count ?? 0),
+    todaysTransfers: Number(transfersResult.count ?? 0),
+    pendingAdjustments: unavailable.pendingAdjustments ? 0 : Number(stockCountResult.count ?? 0),
+    stockCountDue: Number(stockCountResult.count ?? 0),
+    recentTransactions,
+    topPurchasedItems: [],
+    topConsumedItems: [],
+    lowStockRows,
+    inventoryUnavailable: unavailable.inventory,
+    movementUnavailable: unavailable.movement,
+    lowStockUnavailable: unavailable.lowStock,
+    stockCountDueUnavailable: unavailable.stockCountDue,
+    todaysTransfersUnavailable: unavailable.todaysTransfers,
+    todaysReceivingUnavailable: unavailable.todaysReceiving,
+    pendingAdjustmentsUnavailable: unavailable.pendingAdjustments,
+    consumptionPeriod: period,
+  };
+}
+
 const INVENTORY_PAGE_SIZE = 15;
 
 type PaginatedRows<T> = {
@@ -455,29 +529,7 @@ export async function getInventoryDashboard(period: "7d" | "30d" | "month" = "30
   const { data, error } = await boundedInventoryInsight(supabase.rpc("get_inventory_dashboard_summary", { p_period: period }));
   if (error || !data) {
     warnOptionalInventoryQuery("dashboard summary", error);
-    return {
-      inventoryValue: 0,
-      totalActiveItems: 0,
-      lowStockItems: 0,
-      negativeStock: 0,
-      todaysMovements: 0,
-      todaysReceiving: 0,
-      todaysTransfers: 0,
-      pendingAdjustments: 0,
-      stockCountDue: 0,
-      recentTransactions: [],
-      topPurchasedItems: [],
-      topConsumedItems: [],
-      lowStockRows: [],
-      inventoryUnavailable: true,
-      movementUnavailable: true,
-      lowStockUnavailable: true,
-      stockCountDueUnavailable: true,
-      todaysTransfersUnavailable: true,
-      todaysReceivingUnavailable: true,
-      pendingAdjustmentsUnavailable: true,
-      consumptionPeriod: period,
-    };
+    return await getInventoryDashboardFallback(supabase, period);
   }
 
   const summary = data as unknown as InventoryDashboardRpc;

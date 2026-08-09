@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { type FormEvent, useEffect, useRef, useState } from "react";
 import { CalendarDays, ChevronDown, MapPin, MessageSquare, Minus, Plus, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -343,8 +344,8 @@ export function PurchaseRequestForm({
                     {lines.length > 1 ? <Button type="button" variant="ghost" size="icon" className="h-10 w-9 text-muted-foreground" aria-label="Remove line" onClick={() => setLines((current) => current.filter((row) => row.key !== line.key))}><X className="h-4 w-4" /></Button> : null}
                   </div>
                   {commentLineKey === line.key ? <Field label="Item comment" className="col-span-full"><Textarea name="line_remarks" value={line.remarks} onChange={(event) => updateLine(line.key, { remarks: event.target.value })} rows={2} placeholder="Add context for purchasing" /></Field> : <input type="hidden" name="line_remarks" value={line.remarks} />}
-                  {line.itemId && mappingsForLine(line).length === 0 ? <p className="col-span-full rounded-[var(--sb-radius-control)] border border-destructive/25 bg-destructive/5 px-3 py-2 text-xs font-medium leading-relaxed text-destructive">Supplier mapping missing. Add a supplier mapping for this item and branch before submitting the PR.</p> : null}
-                  {line.itemId && line.uom && mappingsForLine(line).length > 0 && !mappingsForLine(line).some((mapping) => normalizeUom(mapping.purchase_uom) === line.uom) ? <p className="col-span-full rounded-[var(--sb-radius-control)] border border-amber-300/60 bg-amber-50 px-3 py-2 text-xs font-medium leading-relaxed text-amber-800">No supplier mapping uses {line.uom.toUpperCase()} for this branch. Choose a mapped purchase unit or update Supplier Items before submitting.</p> : null}
+                  {line.itemId && mappingsForLine(line).length === 0 ? <div className="col-span-full rounded-[var(--sb-radius-control)] border border-destructive/25 bg-destructive/5 px-3 py-2 text-xs font-medium leading-relaxed text-destructive"><p>Supplier mapping missing for this item and branch.</p><Link href="/imports/branch-supplier-items" className="mt-1 inline-flex font-semibold underline underline-offset-2">Add supplier mapping</Link></div> : null}
+                  {line.itemId && line.uom && mappingsForLine(line).length > 0 && !mappingsForLine(line).some((mapping) => normalizeUom(mapping.purchase_uom) === line.uom) ? <div className="col-span-full rounded-[var(--sb-radius-control)] border border-amber-300/60 bg-amber-50 px-3 py-2 text-xs font-medium leading-relaxed text-amber-800"><p>No supplier mapping uses {line.uom.toUpperCase()} for this branch.</p><Link href="/imports/branch-supplier-items" className="mt-1 inline-flex font-semibold underline underline-offset-2">Update branch mapping</Link></div> : null}
                   {line.itemId && mappingsForLine(line).filter((mapping) => !line.uom || normalizeUom(mapping.purchase_uom) === line.uom).length > 1 && !line.supplierId ? <p className="col-span-full rounded-[var(--sb-radius-control)] border border-amber-300/60 bg-amber-50 px-3 py-2 text-xs font-medium leading-relaxed text-amber-800">Multiple supplier mappings found for this unit. Select the supplier to continue; the preferred mapping is used automatically when one is marked.</p> : null}
                   <input type="hidden" name="line_reason" value={line.reason} />
                 </div>

@@ -1,5 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
-import { looseSupabase } from "@/lib/supabase/loose";
+import { looseSupabase, type LooseSupabase } from "@/lib/supabase/loose";
 import { getCurrentUserScope, getVisibleNotificationsForCurrentUser } from "@/server/queries/notifications";
 import { getCurrentUserPendingActions } from "@/server/queries/pending-actions";
 import { getPayablesAttention } from "@/server/queries/ap-aging";
@@ -24,6 +24,124 @@ function warnOptionalQuery(name: string, error: { message?: string } | null | un
 
 function warnOptionalQueryResult<T extends { error?: { message?: string } | null }>(name: string, result: T) {
   warnOptionalQuery(name, result.error);
+}
+
+/**
+ * The dashboard RPC is the preferred read path, but a newly deployed branch
+ * can briefly be ahead of the database migration that defines it. Keep the
+ * workdesk useful by replaying the same read-only aggregates through the
+ * existing RLS-scoped tables until the RPC is available again.
+ */
+async function getDashboardCoreSnapshotFallback(db: LooseSupabase, today: string) {
+  const [
+    items,
+    suppliers,
+    balances,
+    lowStockBalances,
+    negativeBalances,
+    urgentRequests,
+    purchaseRequests,
+    purchaseOrders,
+    recentDocuments,
+    todayReceiving,
+    stockCountDue,
+    wastageAttention,
+    receivingFollowup,
+    productionTodayPosted,
+    productionPendingApproval,
+    productionReadyToPost,
+    productionIngredientShortages,
+    outletMissingEvening,
+    outletNeedsReview,
+    lastStockCount,
+  ] = await Promise.all([
+    db.from("items").select("id", { count: "exact", head: true }),
+    db.from("suppliers").select("id", { count: "exact", head: true }),
+    db.from("stock_balances_summary").select("inventory_value, is_low_stock", { count: "exact" }),
+    db.from("stock_balances_summary").select("item_id", { count: "exact", head: true }).eq("status", "active").eq("is_low_stock", true),
+    db.from("stock_balances_summary").select("item_id", { count: "exact", head: true }).lt("current_qty", 0),
+    db.from("purchase_requests").select("id, request_no, status, priority, needed_by_date").in("priority", ["urgent", "critical"]).is("deleted_at", null).order("needed_by_date", { ascending: true }).limit(5),
+    db.from("purchase_requests").select("id, request_no, status, priority").is("deleted_at", null).order("updated_at", { ascending: false }).limit(5),
+    db.from("purchase_orders").select("id, po_no, status, priority").is("deleted_at", null).order("updated_at", { ascending: false }).limit(5),
+    db.from("documents").select("id, document_no, document_type").order("updated_at", { ascending: false }).limit(6),
+    db.from("goods_receivings").select("id", { count: "exact", head: true }).eq("received_date", today).is("deleted_at", null),
+    db.from("stock_counts").select("id", { count: "exact", head: true }).in("status", ["draft", "submitted", "reviewed", "approved"]).is("deleted_at", null),
+    db.from("stock_wastage").select("id", { count: "exact", head: true }).in("status", ["draft", "submitted"]).is("deleted_at", null),
+    db.from("purchase_orders").select("id", { count: "exact", head: true }).in("status", ["sent", "partial_received"]).is("deleted_at", null),
+    db.from("production_jobs").select("id", { count: "exact", head: true }).eq("status", "posted").eq("production_date", today).is("deleted_at", null),
+    db.from("production_jobs").select("id", { count: "exact", head: true }).eq("status", "submitted").is("deleted_at", null),
+    db.from("production_jobs").select("id", { count: "exact", head: true }).eq("status", "approved").is("deleted_at", null),
+    db.from("production_job_ingredient_lines").select("id", { count: "exact", head: true }).lt("stock_available_qty", 0),
+    db.from("outlet_daily_records").select("id", { count: "exact", head: true }).eq("record_date", today).in("status", ["draft", "morning_recorded"]),
+    db.from("outlet_daily_records").select("id", { count: "exact", head: true }).eq("status", "evening_completed"),
+    db.from("stock_counts").select("count_no, count_date, status").eq("status", "posted").is("deleted_at", null).order("count_date", { ascending: false }).order("posted_at", { ascending: false }).limit(1),
+  ]);
+
+  const results = [
+    items,
+    suppliers,
+    balances,
+    lowStockBalances,
+    negativeBalances,
+    urgentRequests,
+    purchaseRequests,
+    purchaseOrders,
+    recentDocuments,
+    todayReceiving,
+    stockCountDue,
+    wastageAttention,
+    receivingFollowup,
+    productionTodayPosted,
+    productionPendingApproval,
+    productionReadyToPost,
+    productionIngredientShortages,
+    outletMissingEvening,
+    outletNeedsReview,
+    lastStockCount,
+  ];
+  const error = results.find((result) => result.error)?.error;
+  if (error) warnOptionalQuery("core snapshot fallback", error);
+
+  const unavailable = {
+    inventory: Boolean(balances.error || lowStockBalances.error || negativeBalances.error),
+    procurement: Boolean(urgentRequests.error || purchaseRequests.error || purchaseOrders.error),
+    receiving: Boolean(todayReceiving.error),
+    stockCount: Boolean(stockCountDue.error || lastStockCount.error),
+    wastage: Boolean(wastageAttention.error),
+    receivingFollowup: Boolean(receivingFollowup.error),
+    production: Boolean(productionTodayPosted.error || productionPendingApproval.error || productionReadyToPost.error || productionIngredientShortages.error),
+    operations: Boolean(outletMissingEvening.error || outletNeedsReview.error),
+  };
+
+  const count = (result: { count?: number | null; data?: unknown[] | null }) => Number(result.count ?? result.data?.length ?? 0);
+  const rows = <T,>(result: { data?: unknown[] | null }) => (result.data ?? []) as T[];
+  const balanceRows = rows<{ inventory_value?: number | string | null; is_low_stock?: boolean | null }>(balances);
+
+  return {
+    snapshot: {
+      total_items: count(items),
+      total_suppliers: count(suppliers),
+      inventory_value: balanceRows.reduce((total, row) => total + Number(row.inventory_value ?? 0), 0),
+      low_stock_items_count: count(lowStockBalances),
+      negative_stock: count(negativeBalances),
+      urgent_requests: rows(urgentRequests),
+      purchase_requests: rows(purchaseRequests),
+      purchase_orders: rows(purchaseOrders),
+      recent_documents: rows(recentDocuments),
+      today_receiving: count(todayReceiving),
+      stock_count_due: count(stockCountDue),
+      wastage_attention: count(wastageAttention),
+      receiving_followup: count(receivingFollowup),
+      production_today_posted: count(productionTodayPosted),
+      production_pending_approval: count(productionPendingApproval),
+      production_ready_to_post: count(productionReadyToPost),
+      production_ingredient_shortages: count(productionIngredientShortages),
+      outlet_missing_evening: count(outletMissingEvening),
+      outlet_needs_review: count(outletNeedsReview),
+      last_stock_count: rows(lastStockCount)[0] ?? null,
+    } as DashboardCoreSnapshot,
+    unavailable,
+  };
 }
 
 type DashboardCoreSnapshot = {
@@ -105,6 +223,7 @@ export async function getDashboardSummary() {
       },
       payablesAttention: null,
       payablesAttentionUnavailable: false,
+      coreSnapshotUnavailable: false,
       inventoryUnavailable: false,
       todayReceivingUnavailable: false,
       stockCountDueUnavailable: false,
@@ -137,7 +256,7 @@ export async function getDashboardSummary() {
   const supabase = await createClient();
   const db = looseSupabase(supabase);
   const empty = { data: [], error: null, count: 0 };
-  const [coreSnapshotResult, pendingApprovals, notifications, recentActivities, outletToday, currentStaff, assignedBranches, payablesAttention] = await Promise.all([
+  const [coreSnapshotRpcResult, pendingApprovals, notifications, recentActivities, outletToday, currentStaff, assignedBranches, payablesAttention] = await Promise.all([
     (needsProcurement || needsInventory) ? supabase.rpc("get_dashboard_core_snapshot", { p_today: today }) : Promise.resolve({ data: null, error: null }),
     getCurrentUserPendingActions(5),
     getVisibleNotificationsForCurrentUser(),
@@ -157,12 +276,32 @@ export async function getDashboardSummary() {
       : Promise.resolve(null),
   ]);
 
-  warnOptionalQueryResult("core snapshot", coreSnapshotResult);
+  let coreSnapshot = coreSnapshotRpcResult.data as DashboardCoreSnapshot | null;
+  let coreSnapshotUnavailable = Boolean(coreSnapshotRpcResult.error) || !coreSnapshot;
+  let fallbackUnavailable = {
+    inventory: false,
+    procurement: false,
+    receiving: false,
+    stockCount: false,
+    wastage: false,
+    receivingFollowup: false,
+    production: false,
+    operations: false,
+  };
+  if ((needsProcurement || needsInventory) && coreSnapshotUnavailable) {
+    const fallbackSnapshot = await getDashboardCoreSnapshotFallback(db, today);
+    if (fallbackSnapshot) {
+      coreSnapshot = fallbackSnapshot.snapshot;
+      fallbackUnavailable = fallbackSnapshot.unavailable;
+      coreSnapshotUnavailable = (needsProcurement && fallbackUnavailable.procurement) || (needsInventory && fallbackUnavailable.inventory);
+    }
+  }
+
+  warnOptionalQueryResult("core snapshot", coreSnapshotRpcResult);
   warnOptionalQueryResult("current staff", currentStaff);
   warnOptionalQueryResult("assigned branches", assignedBranches);
 
-  const coreSnapshot = coreSnapshotResult.data as DashboardCoreSnapshot | null;
-  const coreUnavailable = (needsProcurement || needsInventory) && (Boolean(coreSnapshotResult.error) || !coreSnapshot);
+  const coreUnavailable = (needsProcurement || needsInventory) && coreSnapshotUnavailable;
 
   // A dashboard is a situational overview, not a transaction form. A degraded
   // optional read must not strand a signed-in operator behind a generic error
@@ -171,7 +310,13 @@ export async function getDashboardSummary() {
   const branchLabel = scope.companyWideAccess
     ? "Company-wide"
     : assignedBranches.data?.map((branch: { branch_name: string | null }) => branch.branch_name).filter(Boolean).join(", ") || "Assigned workspace";
-  const inventoryUnavailable = needsInventory && coreUnavailable;
+  const inventoryUnavailable = needsInventory && (coreUnavailable || fallbackUnavailable.inventory);
+  const todayReceivingUnavailable = (needsProcurement || needsInventory) && (coreUnavailable || fallbackUnavailable.receiving);
+  const stockCountDueUnavailable = (needsProcurement || needsInventory) && (coreUnavailable || fallbackUnavailable.stockCount);
+  const wastageUnavailable = (needsProcurement || needsInventory) && (coreUnavailable || fallbackUnavailable.wastage);
+  const receivingFollowupUnavailable = (needsProcurement || needsInventory) && (coreUnavailable || fallbackUnavailable.receivingFollowup);
+  const productionUnavailable = needsProduction && (coreUnavailable || fallbackUnavailable.production);
+  const operationsUnavailable = needsOperations && (coreUnavailable || fallbackUnavailable.operations);
 
   const result = {
     role,
@@ -196,25 +341,26 @@ export async function getDashboardSummary() {
     recentDocuments: coreSnapshot?.recent_documents ?? [],
     recentActivities,
     notifications: notifications.slice(0, 6),
+    coreSnapshotUnavailable: coreUnavailable,
     today: {
       goodsReceiving: Number(coreSnapshot?.today_receiving ?? 0),
       stockCountDue: Number(coreSnapshot?.stock_count_due ?? 0),
-      production: needsProduction && !coreUnavailable ? Number(coreSnapshot?.production_today_posted ?? 0) : 0,
+      production: needsProduction && !productionUnavailable ? Number(coreSnapshot?.production_today_posted ?? 0) : 0,
       deliveries: 0,
     },
-    todayReceivingUnavailable: coreUnavailable,
-    stockCountDueUnavailable: coreUnavailable,
+    todayReceivingUnavailable,
+    stockCountDueUnavailable,
     wastageAttention: Number(coreSnapshot?.wastage_attention ?? 0),
-    wastageUnavailable: coreUnavailable,
+    wastageUnavailable,
     financeForecast: {
       upcomingPayables: 0,
       pendingPoValue: 0,
       receivingNotInvoiced: Number(coreSnapshot?.receiving_followup ?? 0),
     },
-    receivingFollowupUnavailable: coreUnavailable,
+    receivingFollowupUnavailable,
     payablesAttention,
     payablesAttentionUnavailable,
-    operationsControl: needsOperations && !coreUnavailable ? {
+    operationsControl: needsOperations && !operationsUnavailable ? {
       outlet: {
         missing_evening: Number(coreSnapshot?.outlet_missing_evening ?? 0),
         needs_review: Number(coreSnapshot?.outlet_needs_review ?? 0),
@@ -224,7 +370,7 @@ export async function getDashboardSummary() {
       planning: null,
       unavailable: { outlet: false, demand: true },
     } : null,
-    productionSummary: needsProduction && !coreUnavailable ? {
+    productionSummary: needsProduction && !productionUnavailable ? {
       todayPosted: Number(coreSnapshot?.production_today_posted ?? 0),
       pendingApproval: Number(coreSnapshot?.production_pending_approval ?? 0),
       readyToPost: Number(coreSnapshot?.production_ready_to_post ?? 0),

@@ -7,6 +7,7 @@ import { ModalShell } from "@/components/ui/modal-shell";
 import { Button } from "@/components/ui/button";
 
 type PurchaseOrderExportDialogProps = {
+  branches?: Array<{ id: string; branch_name: string }>;
   className?: string;
 };
 
@@ -16,12 +17,13 @@ function todayValue() {
   return new Date(now.getTime() - offset * 60_000).toISOString().slice(0, 10);
 }
 
-export function PurchaseOrderExportDialog({ className }: PurchaseOrderExportDialogProps) {
+export function PurchaseOrderExportDialog({ branches = [], className }: PurchaseOrderExportDialogProps) {
   const titleId = useId();
   const today = useMemo(todayValue, []);
   const [open, setOpen] = useState(false);
   const [from, setFrom] = useState(today);
   const [to, setTo] = useState(today);
+  const [branchId, setBranchId] = useState("all");
   const [status, setStatus] = useState("all");
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -37,6 +39,7 @@ export function PurchaseOrderExportDialog({ className }: PurchaseOrderExportDial
     setError(null);
     try {
       const params = new URLSearchParams({ from, to });
+      if (branchId !== "all") params.set("branch_id", branchId);
       if (status !== "all") params.set("status", status);
       const response = await fetch(`/api/export/purchase-orders?${params.toString()}`);
       if (!response.ok) throw new Error("The purchase order export could not be prepared.");
@@ -89,15 +92,22 @@ export function PurchaseOrderExportDialog({ className }: PurchaseOrderExportDial
         <div className="grid gap-4 px-5 py-4 sm:grid-cols-2">
           <label className="grid gap-1.5 text-sm font-medium">
             From date
-            <input type="date" value={from} max={to} onChange={(event) => setFrom(event.target.value)} />
+            <input className="h-[var(--sb-control-height)] rounded-[var(--sb-radius-control)] border border-input bg-background px-3 text-sm" type="date" value={from} max={to} onChange={(event) => setFrom(event.target.value)} />
           </label>
           <label className="grid gap-1.5 text-sm font-medium">
             To date
-            <input type="date" value={to} min={from} onChange={(event) => setTo(event.target.value)} />
+            <input className="h-[var(--sb-control-height)] rounded-[var(--sb-radius-control)] border border-input bg-background px-3 text-sm" type="date" value={to} min={from} onChange={(event) => setTo(event.target.value)} />
+          </label>
+          <label className="grid gap-1.5 text-sm font-medium sm:col-span-2">
+            Store
+            <select className="h-[var(--sb-control-height)] rounded-[var(--sb-radius-control)] border border-input bg-background px-3 text-sm" value={branchId} onChange={(event) => setBranchId(event.target.value)}>
+              <option value="all">All assigned stores</option>
+              {branches.map((branch) => <option key={branch.id} value={branch.id}>{branch.branch_name}</option>)}
+            </select>
           </label>
           <label className="grid gap-1.5 text-sm font-medium sm:col-span-2">
             Status
-            <select value={status} onChange={(event) => setStatus(event.target.value)}>
+            <select className="h-[var(--sb-control-height)] rounded-[var(--sb-radius-control)] border border-input bg-background px-3 text-sm" value={status} onChange={(event) => setStatus(event.target.value)}>
               <option value="all">All statuses</option>
               <option value="draft">Draft</option>
               <option value="approved">Ready to send</option>

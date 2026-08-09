@@ -35,8 +35,8 @@ function propsOf(child: ReactNode): Record<string, unknown> {
 
 function isFilterMore(child: ReactNode) {
   if (!isValidElement(child)) return false;
-  const type = child.type as { displayName?: string };
-  return type.displayName === "FilterBarMore" || Boolean(propsOf(child)["data-filter-more-wrapper"]);
+  const type = child.type as { displayName?: string; name?: string };
+  return type.displayName === "FilterBarMore" || type.name === "FilterBarMore" || Boolean(propsOf(child)["data-filter-more-wrapper"]);
 }
 
 function isAction(child: ReactNode) {

@@ -1,7 +1,4 @@
-import { Pencil } from "lucide-react";
-import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { PageHeader } from "@/components/ui/page-header";
 import { OperationalList, OperationalListRow, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -15,19 +12,6 @@ import { getBranchesForSelect } from "@/server/queries/common";
 import { getLowStockItems } from "@/server/queries/inventory";
 import { LowStockPrForm } from "@/components/low-stock-pr-form";
 import { UnifiedListHeader } from "@/components/common/UnifiedListHeader";
-
-function reorderHref(item: Awaited<ReturnType<typeof getLowStockItems>>[number]) {
-  const params = new URLSearchParams({
-    source: "low-stock",
-    branch_id: item.branch_id ?? "",
-    item_id: item.item_id,
-    qty: String(item.suggested_reorder_qty),
-    uom: item.purchase_unit || item.base_unit,
-    supplier_id: item.supplier_id ?? "",
-    notes: `Created from Low Stock Sprint 7.2.30 - ${item.item_code} at ${item.branch_name ?? "branch"}`,
-  });
-  return `/purchase-requests/new?${params.toString()}`;
-}
 
 export default async function LowStockPage({ searchParams }: { searchParams: Promise<Record<string, string | undefined>> }) {
   const filters = await searchParams;
@@ -91,10 +75,9 @@ export default async function LowStockPage({ searchParams }: { searchParams: Pro
             </UnifiedListHeader>
           </div>
 
-          <Table mobileHidden aria-label="Low stock items" stickyColumn={canCreatePr ? "second" : "first"}>
+          <Table mobileHidden aria-label="Low stock items" stickyColumn="first">
             <TableHeader>
               <TableRow>
-                {canCreatePr ? <TableHead className="w-16 text-center">Action</TableHead> : null}
                 <TableHead>Code</TableHead>
                 <TableHead>Item</TableHead>
                 <TableHead>Branch</TableHead>
@@ -110,7 +93,6 @@ export default async function LowStockPage({ searchParams }: { searchParams: Pro
             <TableBody>
               {items.map((item) => (
                 <TableRow key={`${item.branch_id ?? "no-branch"}-${item.item_id}`}>
-                  {canCreatePr ? <TableCell className="text-center"><Button asChild size="sm" variant="outline"><Link href={reorderHref(item)} aria-label={`Create PR for ${item.item_code}`}><Pencil className="h-3.5 w-3.5" />PR</Link></Button></TableCell> : null}
                   <TableCell>{item.item_code}</TableCell>
                   <TableCell className="font-medium">{item.item_name}</TableCell>
                   <TableCell>{item.branch_name ?? "-"}</TableCell>
@@ -127,19 +109,17 @@ export default async function LowStockPage({ searchParams }: { searchParams: Pro
               ))}
               {!items.length ? (
                 <TableRow>
-                  <TableCell colSpan={canCreatePr ? 11 : 10} className="text-center text-muted-foreground">No low stock items.</TableCell>
+                  <TableCell colSpan={10} className="text-center text-muted-foreground">No low stock items.</TableCell>
                 </TableRow>
               ) : null}
             </TableBody>
           </Table>
           <OperationalList ariaLabel="Low stock items">
             {items.map((item) => {
-              const href = canCreatePr ? reorderHref(item) : "/low-stock";
-              const trailing = canCreatePr ? undefined : <span className="text-xs text-muted-foreground">Read-only</span>;
+              const trailing = <span className="text-[11px] font-medium text-[var(--sb-text-muted)]">{canCreatePr ? "Use PR basket" : "Read-only"}</span>;
               return (
                 <OperationalListRow
                   key={`${item.branch_id ?? "no-branch"}-${item.item_id}`}
-                  href={href}
                   label={item.item_name}
                   primary={item.item_name}
                   status={<Badge variant={item.stock_status === "out_of_stock" ? "danger" : "warning"}>{item.stock_status.replaceAll("_", " ")}</Badge>}

@@ -18,6 +18,7 @@ function Metric({
   icon: Icon,
   alert = false,
   unavailable = false,
+  detail,
   variant = "row",
   density = "default",
   className,
@@ -28,6 +29,7 @@ function Metric({
   icon: LucideIcon;
   alert?: boolean;
   unavailable?: boolean;
+  detail?: string;
   variant?: "row" | "tile";
   density?: "default" | "compact";
   className?: string;
@@ -46,11 +48,13 @@ function Metric({
         <span className={variant === "tile" ? density === "compact" ? "line-clamp-2 break-words" : "break-words text-[11px] leading-4 sm:text-xs" : "truncate"}>{label}</span>
       </span>
       <strong
-        className={unavailable ? "text-lg font-semibold tabular-nums text-[var(--sb-text-muted)]" : variant === "tile" ? density === "compact" ? "text-base font-semibold tabular-nums sm:text-lg" : "text-lg font-semibold tabular-nums sm:text-xl" : "tabular-nums"}
+        className={unavailable ? "text-[11px] font-semibold uppercase tracking-[0.08em] text-[var(--sb-warning)]" : variant === "tile" ? density === "compact" ? "text-base font-semibold tabular-nums sm:text-lg" : "text-lg font-semibold tabular-nums sm:text-xl" : "tabular-nums"}
         aria-label={unavailable ? `${label} is temporarily unavailable` : undefined}
+        title={unavailable ? `${label} is temporarily unavailable` : undefined}
       >
-        {unavailable ? "—" : value}
+        {unavailable ? "Unavailable" : value}
       </strong>
+      {detail ? <span className="max-w-full truncate text-[10px] font-medium text-[var(--sb-text-muted)]" title={detail}>{detail}</span> : null}
     </Link>
   );
 }
@@ -158,8 +162,10 @@ export function DashboardWorkspace({ summary, renderedAt }: { summary: Dashboard
   const outletComplete = outletStatus === "reviewed" || outletStatus === "evening_completed";
   const outletAction = !outletStatus ? "Start daily record" : outletComplete ? "Review today's record" : "Complete daily record";
   const attentionCount = summary.pendingApprovals.length + summary.lowStockCount + summary.today.stockCountDue + summary.wastageAttention + (summary.payablesAttention?.overdue_count ?? 0);
+  const attentionCountUnavailable = summary.inventoryUnavailable || summary.todayReceivingUnavailable || summary.stockCountDueUnavailable || summary.wastageUnavailable;
   const outletExceptionCount = summary.operationsControl?.outlet ? summary.operationsControl.outlet.missing_evening + summary.operationsControl.outlet.needs_review : 0;
   const operationalExceptionCount = (summary.inventoryUnavailable ? 0 : summary.lowStockCount) + (summary.wastageUnavailable ? 0 : summary.wastageAttention) + outletExceptionCount;
+  const latestPurchaseOrder = summary.purchaseOrders[0];
 
   const quickActions = isOutlet
     ? [
@@ -268,26 +274,39 @@ export function DashboardWorkspace({ summary, renderedAt }: { summary: Dashboard
             <div className="flex shrink-0 items-end justify-between gap-6 sm:justify-end">
               <div>
                 <p className="text-[10px] uppercase tracking-[0.16em] text-white/60">Needs attention</p>
-                <p className="mt-1 text-3xl font-semibold tabular-nums">{attentionCount}</p>
+                <p className="mt-1 text-3xl font-semibold tabular-nums" aria-label={attentionCountUnavailable ? "Needs attention summary is temporarily unavailable" : `${attentionCount} items need attention`}>
+                  {attentionCountUnavailable ? <span className="text-sm font-semibold uppercase tracking-[0.08em] text-white/85">Review data</span> : attentionCount}
+                </p>
               </div>
             </div>
           </div>
           <div className="grid grid-cols-2 divide-x divide-y divide-white/15 border-t border-white/15 sm:grid-cols-4 sm:divide-y-0" data-dashboard-pulse-metrics>
             <Link prefetch={false} href="/low-stock" className="group flex min-w-0 items-center justify-between gap-2 px-3 py-3 transition-colors hover:bg-white/10 sm:px-5">
               <span className="min-w-0"><span className="flex items-center gap-1.5 text-white/65"><AlertTriangle className="h-3.5 w-3.5 shrink-0" aria-hidden="true" /><span className="text-[10px] uppercase leading-4 tracking-[0.12em]">Low stock</span></span></span>
-              <strong className="text-xl font-semibold tabular-nums">{summary.inventoryUnavailable ? "—" : summary.lowStockCount}</strong>
+              <strong className={summary.inventoryUnavailable ? "text-[10px] font-semibold uppercase tracking-[0.08em] text-white/85" : "text-xl font-semibold tabular-nums"} aria-label={summary.inventoryUnavailable ? "Low stock data is temporarily unavailable" : `${summary.lowStockCount} low stock items`}>
+                {summary.inventoryUnavailable ? "Unavailable" : summary.lowStockCount}
+              </strong>
             </Link>
             <Link prefetch={false} href="/goods-receivings" className="group flex min-w-0 items-center justify-between gap-2 px-3 py-3 transition-colors hover:bg-white/10 sm:px-5">
               <span className="min-w-0"><span className="flex items-center gap-1.5 text-white/65"><PackageCheck className="h-3.5 w-3.5 shrink-0" aria-hidden="true" /><span className="text-[10px] uppercase leading-4 tracking-[0.12em]">Receiving</span></span></span>
-              <strong className="text-xl font-semibold tabular-nums">{summary.todayReceivingUnavailable ? "—" : summary.today.goodsReceiving}</strong>
+              <strong className={summary.todayReceivingUnavailable ? "text-[10px] font-semibold uppercase tracking-[0.08em] text-white/85" : "text-xl font-semibold tabular-nums"} aria-label={summary.todayReceivingUnavailable ? "Receiving data is temporarily unavailable" : `${summary.today.goodsReceiving} receiving records today`}>
+                {summary.todayReceivingUnavailable ? "Unavailable" : summary.today.goodsReceiving}
+              </strong>
             </Link>
             <Link prefetch={false} href="/purchase-requests" className="group flex min-w-0 items-center justify-between gap-2 px-3 py-3 transition-colors hover:bg-white/10 sm:px-5">
               <span className="min-w-0"><span className="flex items-center gap-1.5 text-white/65"><FileText className="h-3.5 w-3.5 shrink-0" aria-hidden="true" /><span className="text-[10px] uppercase leading-4 tracking-[0.12em]">Requests</span></span></span>
-              <strong className="text-xl font-semibold tabular-nums">{summary.purchaseRequests.length}</strong>
+              <strong
+                className={summary.coreSnapshotUnavailable ? "text-[10px] font-semibold uppercase tracking-[0.08em] text-white/85" : "text-xl font-semibold tabular-nums"}
+                aria-label={summary.coreSnapshotUnavailable ? "Purchase request data is temporarily unavailable" : `${summary.purchaseRequests.length} purchase requests`}
+              >
+                {summary.coreSnapshotUnavailable ? "Unavailable" : summary.purchaseRequests.length}
+              </strong>
             </Link>
             <Link prefetch={false} href="/stock-counts" className="group flex min-w-0 items-center justify-between gap-2 px-3 py-3 transition-colors hover:bg-white/10 sm:px-5">
-              <span className="min-w-0"><span className="flex items-center gap-1.5 text-white/65"><CheckCircle2 className="h-3.5 w-3.5 shrink-0" aria-hidden="true" /><span className="text-[10px] uppercase leading-4 tracking-[0.12em]">Stock count due</span></span><span className="mt-0.5 hidden max-w-40 truncate text-[10px] text-white/55 lg:block">Last: {summary.lastStockCount?.count_no ?? "No posted count"}{summary.lastStockCount ? ` · ${formatDateOnly(summary.lastStockCount.count_date)}` : ""}</span></span>
-              <strong className="text-xl font-semibold tabular-nums">{summary.stockCountDueUnavailable ? "—" : summary.today.stockCountDue}</strong>
+              <span className="min-w-0"><span className="flex items-center gap-1.5 text-white/65"><CheckCircle2 className="h-3.5 w-3.5 shrink-0" aria-hidden="true" /><span className="text-[10px] uppercase leading-4 tracking-[0.12em]">Stock count due</span></span><span className="mt-0.5 block max-w-40 truncate text-[10px] text-white/55">Last: {summary.lastStockCount?.count_no ?? "No posted count"}{summary.lastStockCount ? ` · ${formatDateOnly(summary.lastStockCount.count_date)}` : ""}</span></span>
+              <strong className={summary.stockCountDueUnavailable ? "text-[10px] font-semibold uppercase tracking-[0.08em] text-white/85" : "text-xl font-semibold tabular-nums"} aria-label={summary.stockCountDueUnavailable ? "Stock count due data is temporarily unavailable" : `${summary.today.stockCountDue} stock counts due`}>
+                {summary.stockCountDueUnavailable ? "Unavailable" : summary.today.stockCountDue}
+              </strong>
             </Link>
           </div>
         </section>
@@ -337,6 +356,8 @@ export function DashboardWorkspace({ summary, renderedAt }: { summary: Dashboard
                   label={isPurchasing ? "PO preparation / sending" : "Recent purchase orders"}
                   value={summary.purchaseOrders.length}
                   icon={ShoppingCart}
+                  unavailable={summary.coreSnapshotUnavailable}
+                  detail={summary.coreSnapshotUnavailable ? undefined : latestPurchaseOrder ? `${latestPurchaseOrder.po_no} · ${latestPurchaseOrder.status.replaceAll("_", " ")}` : "No recent PO"}
                   variant="tile"
                 />
                 <Metric

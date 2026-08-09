@@ -48,7 +48,10 @@ export async function getSidebarCounts(): Promise<SidebarCounts> {
     safeCount(db.from("purchase_requests").select("id", { count: "exact", head: true }).in("status", ["manager_review", "admin_review", "finance_review", "ready_to_convert"]).is("deleted_at", null)),
     safeCount(db.from("purchase_orders").select("id", { count: "exact", head: true }).in("status", ["draft", "pending_approval", "approved", "sent", "partial_received"]).is("deleted_at", null)),
     safeCount(db.from("supplier_invoices").select("id", { count: "exact", head: true }).in("status", ["open", "partially_paid"]).is("deleted_at", null)),
-    safeCount(supabase.from("low_stock_items").select("item_id", { count: "exact", head: true })),
+    // The legacy low_stock_items view is no longer the canonical inventory
+    // read model and can fail with a 500 on upgraded projects. Count from the
+    // same RLS-scoped summary table used by the inventory and dashboard pages.
+    safeCount(db.from("stock_balances_summary").select("item_id", { count: "exact", head: true }).eq("status", "active").eq("is_low_stock", true)),
     safeCount(db.from("stock_counts").select("id", { count: "exact", head: true }).in("status", ["draft", "submitted", "reviewed", "approved"]).is("deleted_at", null)),
     safeCount(db.from("stock_transfers").select("id", { count: "exact", head: true }).in("status", ["draft", "in_transit"]).is("deleted_at", null)),
     safeCount(db.from("stock_wastage").select("id", { count: "exact", head: true }).in("status", ["draft", "submitted", "approved"]).is("deleted_at", null)),

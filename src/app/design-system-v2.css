@@ -1037,7 +1037,14 @@ html[data-design-layer="v2"] [data-mobile-bottom-nav] {
   }
 
   html[data-design-layer="v2"] form.unified-list-header .unified-list-result {
-    display: none !important;
+    grid-column: 1 / -1;
+    display: block !important;
+    min-height: 1rem;
+    margin-top: 2px;
+    color: var(--sb-text) !important;
+    font-size: 0.75rem;
+    font-weight: 650;
+    line-height: 1rem;
   }
 
   html[data-design-layer="v2"] form.unified-list-header button[type="submit"] {
@@ -1051,7 +1058,7 @@ html[data-design-layer="v2"] [data-mobile-bottom-nav] {
     margin-top: 8px;
   }
 
-  html[data-design-layer="v2"] .unified-list-sheet-backdrop {
+  html[data-design-layer="v2"] .unified-list-backdrop {
     position: fixed !important;
     inset: 0 !important;
     z-index: var(--sb-z-sheet-backdrop) !important;
@@ -1071,5 +1078,58 @@ html[data-design-layer="v2"] [data-mobile-bottom-nav] {
   html[data-design-layer="v2"] body:has(.unified-list-sheet) [data-mobile-bottom-nav] {
     visibility: hidden !important;
     pointer-events: none !important;
+  }
+
+  /* Mobile filter sheets are a compact control surface, not a second form page. */
+  html[data-design-layer="v2"] .unified-list-sheet-fields {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-content: start;
+    gap: 10px 8px;
+    padding: 12px 0 16px;
+  }
+
+  html[data-design-layer="v2"] .unified-list-sheet-fields > * {
+    width: 100%;
+    min-width: 0;
+  }
+
+  html[data-design-layer="v2"] .unified-list-sheet-fields > :where([type="hidden"]) {
+    display: none;
+  }
+
+  html[data-design-layer="v2"] .unified-list-sheet-fields .sb-status-filter {
+    width: 100%;
+    min-width: 0;
+    flex: none;
+  }
+
+  html[data-design-layer="v2"] .unified-list-sheet-header button {
+    color: var(--sb-text) !important;
+    border-radius: var(--sb-control-radius);
+  }
+
+  html[data-design-layer="v2"] .unified-list-sheet-header button:hover,
+  html[data-design-layer="v2"] .unified-list-sheet-header button:focus-visible {
+    background: var(--sb-surface-muted);
+    color: var(--sb-green-900) !important;
+  }
+
+  html[data-design-layer="v2"] body:has(.unified-list-sheet) .sb-popover-surface {
+    z-index: calc(var(--sb-z-sheet) + 1) !important;
+  }
+
+  html[data-design-layer="v2"] :where(.unified-list-search-icon, .unified-list-clear svg) {
+    color: var(--sb-green-800) !important;
+    opacity: 1 !important;
+    stroke-width: 2.25;
+  }
+
+  html[data-design-layer="v2"] .unified-list-result {
+    color: var(--sb-text) !important;
+    font-weight: 700;
+  }
+
+  html[data-design-layer="v2"] form:has([data-mobile-document-action]) {
+    padding-bottom: calc(8rem + env(safe-area-inset-bottom)) !important;
   }
 }

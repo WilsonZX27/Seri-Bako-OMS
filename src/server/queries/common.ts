@@ -57,12 +57,18 @@ export const getCompanyBranding = cache(async function getCompanyBranding() {
   }
 
   const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  // The companies table is intentionally not readable by anon. Public auth
+  // surfaces should use the stable fallback instead of generating repeated
+  // 42501 permission errors before a user has a tenant scope.
+  if (!user) return { company_name: "Seri Bako", logo_url: null };
+  const profile = await getCurrentProfile();
+  if (!profile?.company_id) return { company_name: "Seri Bako", logo_url: null };
   const { data } = await supabase
     .from("companies")
     .select("company_name, logo_url")
+    .eq("id", profile.company_id)
     .is("deleted_at", null)
-    .order("created_at", { ascending: true })
-    .limit(1)
     .maybeSingle();
 
   return {

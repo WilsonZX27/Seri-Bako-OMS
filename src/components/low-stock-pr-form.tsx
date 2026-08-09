@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { Fragment, useMemo, useState } from "react";
 import { PackageOpen, ShoppingBasket, X } from "lucide-react";
 import { SubmitButton } from "@/components/ui/submit-button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -8,7 +8,7 @@ import { Field } from "@/components/ui/field";
 import { SelectNative } from "@/components/ui/select-native";
 import { QuantityStepper } from "@/components/ui/quantity-stepper";
 import { getToday } from "@/lib/utils";
-import { createPurchaseRequest } from "@/server/actions/procurement";
+import { createPurchaseRequestsFromBasket } from "@/server/actions/procurement";
 
 type LowStockItem = {
   branch_id: string | null;
@@ -38,6 +38,17 @@ function rowKey(item: LowStockItem) {
   return `${item.branch_id ?? "all"}|${item.item_id}`;
 }
 
+function groupBySupplier(items: LowStockItem[]) {
+  const groups = new Map<string, LowStockItem[]>();
+  for (const item of items) {
+    const key = item.supplier_id ?? "unassigned";
+    groups.set(key, [...(groups.get(key) ?? []), item]);
+  }
+  return Array.from(groups.entries()).sort(([, left], [, right]) =>
+    (left[0]?.supplier_name ?? "Supplier mapping missing").localeCompare(right[0]?.supplier_name ?? "Supplier mapping missing"),
+  );
+}
+
 export function LowStockPrForm({ items, branches, defaultBranchId, disabled }: {
   items: LowStockItem[];
   branches: BranchOption[];
@@ -52,6 +63,7 @@ export function LowStockPrForm({ items, branches, defaultBranchId, disabled }: {
   const [selected, setSelected] = useState<Record<string, boolean>>({});
   const [quantities, setQuantities] = useState<Record<string, string>>({});
   const [basketOpen, setBasketOpen] = useState(false);
+  const [idempotencyKey] = useState(() => crypto.randomUUID());
 
   const selectedCount = visibleItems.filter((item) => selected[rowKey(item)]).length;
   const selectedTotal = selectedCount === 0
@@ -63,6 +75,24 @@ export function LowStockPrForm({ items, branches, defaultBranchId, disabled }: {
         return sum + Math.max(0, numberValue(quantities[key] ?? String(item.suggested_reorder_qty)));
       }, 0)
       .toFixed(2);
+  const selectedItems = useMemo(() => visibleItems.filter((item) => selected[rowKey(item)]), [selected, visibleItems]);
+  const supplierGroups = useMemo(() => groupBySupplier(selectedItems), [selectedItems]);
+  const basketPayload = useMemo(() => supplierGroups
+    .filter(([supplierId]) => supplierId !== "unassigned")
+    .map(([supplierId, lines]) => ({
+      supplier_id: supplierId,
+      lines: lines.map((item) => {
+        const key = rowKey(item);
+        return {
+          item_id: item.item_id,
+          qty: quantities[key] ?? String(item.suggested_reorder_qty),
+          uom: item.purchase_unit || item.base_unit || "pcs",
+          estimated_unit_cost: item.cost ?? 0,
+        };
+      }),
+    })), [quantities, supplierGroups]);
+  const hasMissingSupplier = selectedItems.some((item) => !item.supplier_id);
+  const canCreatePr = selectedCount > 0 && selectedBranchId !== "all" && !hasMissingSupplier;
 
   function toggleItem(key: string) {
     const wasSelected = Boolean(selected[key]);
@@ -122,13 +152,14 @@ export function LowStockPrForm({ items, branches, defaultBranchId, disabled }: {
             You do not have permission to create purchase requests.
           </div>
         ) : (
-          <form action={createPurchaseRequest} className="space-y-3">
-            <input type="hidden" name="idempotency_key" value={crypto.randomUUID()} />
+          <form action={createPurchaseRequestsFromBasket} className="space-y-3">
+            <input type="hidden" name="idempotency_key" value={idempotencyKey} />
             <input type="hidden" name="request_no" value="" />
             <input type="hidden" name="request_date" value={getToday()} />
             <input type="hidden" name="required_date" value="" />
             <input type="hidden" name="priority" value="normal" />
             <input type="hidden" name="branch_id" value={selectedBranchId === "all" ? "" : selectedBranchId} />
+            <input type="hidden" name="supplier_groups" value={JSON.stringify(basketPayload)} />
 
             <div className="hidden overflow-x-auto rounded-[var(--sb-radius-card)] border border-[var(--sb-border-soft)] bg-[var(--sb-surface)] md:block">
               <table className="w-full">
@@ -142,7 +173,14 @@ export function LowStockPrForm({ items, branches, defaultBranchId, disabled }: {
                   </tr>
                 </thead>
                 <tbody>
-                  {visibleItems.map((item) => {
+                  {groupBySupplier(visibleItems).map(([supplierId, supplierItems]) => (
+                    <Fragment key={`supplier-group-${supplierId}`}>
+                    <tr className="bg-secondary/30">
+                      <td colSpan={5} className="px-3 py-2 text-[11px] font-semibold uppercase tracking-[0.08em] text-[var(--sb-text-muted)]">
+                        {supplierItems[0]?.supplier_name ?? "Supplier mapping missing"}
+                      </td>
+                    </tr>
+                    {supplierItems.map((item) => {
                     const key = rowKey(item);
                     const isSelected = Boolean(selected[key]);
                     const requestedQty = quantities[key] ?? String(item.suggested_reorder_qty);
@@ -173,21 +211,12 @@ export function LowStockPrForm({ items, branches, defaultBranchId, disabled }: {
                               if (!isSelected) setSelected((current) => ({ ...current, [key]: true }));
                             }}
                           />
-                          {isSelected ? (
-                            <>
-                              <input type="hidden" name="line_item_id" value={item.item_id} />
-                              <input type="hidden" name="line_uom" value={item.purchase_unit ?? item.base_unit ?? "pcs"} />
-                              <input type="hidden" name="line_suggested_supplier_id" value={item.supplier_id ?? ""} />
-                              <input type="hidden" name="line_estimated_unit_cost" value={String(item.cost ?? 0)} />
-                              <input type="hidden" name="line_remarks" value="" />
-                              <input type="hidden" name="line_reason" value="" />
-                              <input type="hidden" name="line_qty" value={requestedQty} />
-                            </>
-                          ) : null}
                         </td>
                       </tr>
                     );
-                  })}
+                    })}
+                    </Fragment>
+                  ))}
                   {!visibleItems.length ? (
                     <tr>
                       <td className="px-3 py-4 text-center text-sm text-muted-foreground" colSpan={5}>
@@ -200,7 +229,11 @@ export function LowStockPrForm({ items, branches, defaultBranchId, disabled }: {
             </div>
 
             <div className="divide-y divide-[var(--sb-border-soft)] border-y border-[var(--sb-border-soft)] md:hidden" data-low-stock-pr-lines>
-              {visibleItems.map((item) => {
+              {groupBySupplier(visibleItems).map(([supplierId, supplierItems]) => <div key={`mobile-supplier-group-${supplierId}`}>
+                <div className="bg-secondary/30 px-3 py-2 text-[11px] font-semibold uppercase tracking-[0.08em] text-[var(--sb-text-muted)]">
+                  {supplierItems[0]?.supplier_name ?? "Supplier mapping missing"}
+                </div>
+                {supplierItems.map((item) => {
                 const key = rowKey(item);
                 const isSelected = Boolean(selected[key]);
                 const requestedQty = quantities[key] ?? String(item.suggested_reorder_qty);
@@ -223,29 +256,24 @@ export function LowStockPrForm({ items, branches, defaultBranchId, disabled }: {
                         }} />
                       </Field>
                     </span>
-                    {isSelected ? <>
-                      <input type="hidden" name="line_item_id" value={item.item_id} />
-                      <input type="hidden" name="line_uom" value={item.purchase_unit ?? item.base_unit ?? "pcs"} />
-                      <input type="hidden" name="line_suggested_supplier_id" value={item.supplier_id ?? ""} />
-                      <input type="hidden" name="line_estimated_unit_cost" value={String(item.cost ?? 0)} />
-                      <input type="hidden" name="line_remarks" value="" />
-                      <input type="hidden" name="line_reason" value="" />
-                      <input type="hidden" name="line_qty" value={requestedQty} />
-                    </> : null}
                   </div>
                 );
-              })}
+                })}
+              </div>)}
               {!visibleItems.length ? <p className="px-3 py-4 text-center text-sm text-muted-foreground">No items match this branch filter.</p> : null}
             </div>
 
             <div className="flex items-center justify-between gap-3 text-xs text-muted-foreground">
-              <p>Only rows checked will be included in the draft PR.</p>
+              <div>
+                <p>Only checked rows will be included. Each supplier becomes a separate draft PR.</p>
+                {hasMissingSupplier ? <p className="mt-1 font-medium text-destructive">Supplier mapping is required before these items can become a PR.</p> : null}
+              </div>
               <p>{selectedCount} selected</p>
             </div>
             <div className="flex justify-end border-t border-[var(--sb-border-soft)] pt-3">
-              <SubmitButton type="submit" disabled={!selectedCount || selectedBranchId === "all"} className="min-h-11 w-full md:w-auto md:min-w-56" pendingLabel="Creating...">
+              <SubmitButton type="submit" disabled={!canCreatePr} className="min-h-11 w-full md:w-auto md:min-w-56" pendingLabel="Creating PR...">
                 <PackageOpen className="h-4 w-4" />
-                Create PR from selected
+                Create PR{supplierGroups.length > 1 ? `s (${supplierGroups.length} suppliers)` : ""}
               </SubmitButton>
             </div>
           </form>

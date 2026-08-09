@@ -62,7 +62,7 @@ export function FilterBarMore({
   }, [open]);
 
   return (
-    <details ref={detailsRef} className="sb-filter-more" onToggle={(event) => setOpen(event.currentTarget.open)}>
+    <details ref={detailsRef} data-filter-more-wrapper className="sb-filter-more" onToggle={(event) => setOpen(event.currentTarget.open)}>
       <summary ref={summaryRef}><SlidersHorizontal className="h-3.5 w-3.5" />More filters{activeCount ? <span className="sb-filter-more-count" aria-label={`${activeCount} active filters`}>{activeCount}</span> : null}</summary>
       <button type="button" className="sb-filter-more-backdrop" onClick={close} aria-label="Dismiss filters" />
       <div className="sb-filter-more-panel" role="dialog" aria-modal="true" aria-label="Filters">

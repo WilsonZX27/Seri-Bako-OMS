@@ -5,7 +5,7 @@ import { looseSupabase } from "@/lib/supabase/loose";
 import { createClient } from "@/lib/supabase/server";
 import { logServerError } from "@/server/observability/logger";
 
-const exportTables: Record<string, { table: string; permission: string; order?: string; dateColumn?: string }> = {
+const exportTables: Record<string, { table: string; permission: string; order?: string; dateColumn?: string; branchColumn?: string }> = {
   items: { table: "items", permission: "items.manage", order: "item_name" },
   suppliers: { table: "suppliers", permission: "suppliers.manage", order: "name" },
   "supplier-items": { table: "supplier_items", permission: "suppliers.manage", order: "created_at" },
@@ -14,7 +14,7 @@ const exportTables: Record<string, { table: string; permission: string; order?: 
   staffs: { table: "staffs", permission: "staff.manage", order: "full_name" },
   "stock-transactions": { table: "stock_transactions", permission: "documents.view", order: "created_at" },
   "purchase-requests": { table: "purchase_requests", permission: "pr.view_branch", order: "created_at" },
-  "purchase-orders": { table: "purchase_orders", permission: "po.create", order: "created_at", dateColumn: "order_date" },
+  "purchase-orders": { table: "purchase_orders", permission: "po.create", order: "created_at", dateColumn: "order_date", branchColumn: "branch_id" },
   "production-jobs": { table: "production_jobs", permission: "production.view", order: "created_at" },
   "stock-counts": { table: "stock_counts", permission: "stock_count.read", order: "count_date", dateColumn: "count_date" },
 };
@@ -37,6 +37,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ tabl
   const url = new URL(request.url);
   if (config.dateColumn && url.searchParams.get("from")) query = query.gte(config.dateColumn, url.searchParams.get("from")!);
   if (config.dateColumn && url.searchParams.get("to")) query = query.lte(config.dateColumn, url.searchParams.get("to")!);
+  if (config.branchColumn && url.searchParams.get("branch_id")) query = query.eq(config.branchColumn, url.searchParams.get("branch_id")!);
   if (url.searchParams.get("status") && url.searchParams.get("status") !== "all") query = query.eq("status", url.searchParams.get("status")!);
   if (key === "stock-counts") query = query.is("deleted_at", null);
   if (config.order) query = query.order(config.order, { ascending: true });

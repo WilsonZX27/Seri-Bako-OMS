@@ -214,10 +214,11 @@ body::-webkit-scrollbar {
   background: var(--sb-green-100) !important;
 }
 
-/* Legacy density classes resolve to the panel token so older routes do not
-   silently drift to a second geometry language. */
+/* Legacy utility classes resolve to the shared control token. They are used
+   by both cards and controls in older routes, so they must not impersonate
+   the larger panel radius. New panels should use the panel token explicitly. */
 [class~="rounded-[2px]"] {
-  border-radius: var(--sb-panel-radius) !important;
+  border-radius: var(--sb-radius-control) !important;
 }
 
 [data-dashboard-panel] {
@@ -690,17 +691,17 @@ nav[aria-label="Pagination"] > span,
   form[data-unified-list-desktop="true"] { display: none; }
   .unified-list-row { display: flex; align-items: center; gap: .5rem; min-height: 2.75rem; }
   .unified-list-primary-control { position: relative; flex: 1 1 auto; min-width: 0; }
-  .unified-list-primary-input { width: 100% !important; min-width: 0 !important; height: 2.75rem !important; padding-left: 2.25rem !important; padding-right: 2.25rem !important; border-radius: .375rem !important; }
+  .unified-list-primary-input { width: 100% !important; min-width: 0 !important; height: 2.75rem !important; padding-left: 2.25rem !important; padding-right: 2.25rem !important; border-radius: var(--sb-radius-control) !important; }
   .unified-list-search-icon { position: absolute; z-index: 1; left: .75rem; top: 50%; width: 1rem; height: 1rem; color: var(--sb-muted); transform: translateY(-50%); pointer-events: none; }
   .unified-list-clear { position: absolute; right: .5rem; top: 50%; display: grid; place-items: center; width: 1.5rem; height: 1.5rem; color: var(--sb-muted); transform: translateY(-50%); }
   .unified-list-clear svg { width: .875rem; height: .875rem; }
-  .unified-list-filter-trigger { position: relative; display: inline-flex; align-items: center; justify-content: center; flex: 0 0 2.75rem; width: 2.75rem; height: 2.75rem; border: 1px solid var(--sb-border); border-radius: .375rem; background: var(--sb-surface-raised); color: var(--sb-ink); }
+  .unified-list-filter-trigger { position: relative; display: inline-flex; align-items: center; justify-content: center; flex: 0 0 2.75rem; width: 2.75rem; height: 2.75rem; border: 1px solid var(--sb-border); border-radius: var(--sb-radius-control); background: var(--sb-surface-raised); color: var(--sb-ink); }
   .unified-list-filter-trigger svg { width: 1.125rem; height: 1.125rem; }
   .unified-list-filter-label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
   .unified-list-filter-badge { position: absolute; top: -.35rem; right: -.35rem; min-width: 1.15rem; height: 1.15rem; padding: 0 .25rem; border-radius: 999px; background: var(--sb-green-900); color: white; font-size: .6875rem; font-weight: 700; line-height: 1.15rem; }
   .unified-list-result { flex: 0 0 auto; color: var(--sb-muted); font-size: .75rem; font-variant-numeric: tabular-nums; }
   .unified-list-backdrop { position: fixed; inset: 0; z-index: 100; background: rgb(10 31 25 / .5); }
-  .unified-list-sheet { position: fixed; inset-inline: 0; bottom: 0; z-index: 101; max-height: min(85dvh, 40rem); overflow: auto; padding: 1rem 1rem calc(1rem + env(safe-area-inset-bottom)); border-radius: .5rem .5rem 0 0; border: 1px solid var(--sb-border); background: var(--sb-surface-raised); box-shadow: 0 -1rem 3rem rgb(10 31 25 / .16); }
+  .unified-list-sheet { position: fixed; inset-inline: 0; bottom: 0; z-index: 101; max-height: min(85dvh, 40rem); overflow: auto; padding: 1rem 1rem calc(1rem + env(safe-area-inset-bottom)); border-radius: var(--sb-panel-radius) var(--sb-panel-radius) 0 0; border: 1px solid var(--sb-border); background: var(--sb-surface-raised); box-shadow: 0 -1rem 3rem rgb(10 31 25 / .16); }
   .unified-list-sheet-header { display: flex; align-items: center; justify-content: space-between; padding-bottom: .75rem; border-bottom: 1px solid var(--sb-border); }
   .unified-list-sheet-header h2 { margin: 0; font-size: 1rem; font-weight: 700; }
   .unified-list-sheet-header button { display: grid; place-items: center; width: 2rem; height: 2rem; color: var(--sb-muted); }

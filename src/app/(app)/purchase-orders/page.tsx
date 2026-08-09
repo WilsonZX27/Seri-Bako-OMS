@@ -44,6 +44,8 @@ export default async function PurchaseOrdersPage({ searchParams }: { searchParam
       <PageHeader
         title="Purchase Orders"
         description="Supplier purchase orders created from approved requests or manually."
+        action={permissions["po.create"] ? { href: "/purchase-orders/new", label: "New PO" } : undefined}
+        hideTabletCreateFab
       />
       <WorkspaceGrid
         className="pt-4"

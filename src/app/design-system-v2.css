@@ -185,7 +185,7 @@ body::-webkit-scrollbar {
   position: relative;
   overflow: hidden;
   border: 1px solid rgb(255 255 255 / 0.09);
-  border-radius: 1rem;
+  border-radius: var(--sb-panel-radius);
   background:
     radial-gradient(circle at 92% 12%, rgb(113 180 147 / 0.2), transparent 16rem),
     linear-gradient(135deg, #063f2f 0%, #07523c 58%, #063d2e 100%);
@@ -500,7 +500,7 @@ nav[aria-label="Pagination"] > span,
 }
 
 .sb-pr-basket-sheet {
-  border-radius: 1rem 1rem 0 0;
+  border-radius: var(--sb-panel-radius) var(--sb-panel-radius) 0 0;
   box-shadow: 0 -10px 32px rgb(12 43 32 / 0.18);
 }
 
@@ -544,7 +544,7 @@ nav[aria-label="Pagination"] > span,
   .sb-work-surface,
   .sb-command-surface,
   aside > section {
-    border-radius: var(--sb-surface-radius);
+    border-radius: var(--sb-panel-radius);
   }
 
   .sb-mobile-list-filter {

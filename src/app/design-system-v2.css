@@ -932,12 +932,18 @@ nav[aria-label="Pagination"] > span,
   body:has(.unified-list-layer) nav.fixed.bottom-0,
   body:has(.unified-list-layer) .sb-mobile-bottom-nav,
   body:has([data-mobile-document-action]) nav.fixed.bottom-0,
-  body:has([data-mobile-document-action]) .sb-mobile-bottom-nav {
+  body:has([data-mobile-document-action]) .sb-mobile-bottom-nav,
+  html[data-mobile-action-page="true"] nav.fixed.bottom-0,
+  html[data-mobile-action-page="true"] .sb-mobile-bottom-nav {
     visibility: hidden;
     pointer-events: none;
   }
 
   body:has([data-mobile-document-action]) main#main-content {
+    padding-bottom: calc(5rem + env(safe-area-inset-bottom));
+  }
+
+  html[data-mobile-action-page="true"] main#main-content {
     padding-bottom: calc(5rem + env(safe-area-inset-bottom));
   }
 }

@@ -310,16 +310,16 @@ export function DashboardWorkspace({ summary, renderedAt }: { summary: Dashboard
               </Link>
               <Link
                 prefetch={false}
-                href="/low-stock"
+                href="/stock-counts?status=draft"
                 className="group flex min-w-0 items-center justify-between gap-3 rounded-[var(--sb-radius-control)] border border-[var(--sb-border-soft)] bg-[var(--sb-surface)] p-3 transition-colors hover:bg-[var(--sb-surface-muted)]"
               >
                 <span className="min-w-0">
-                  <span className="block text-xs font-medium text-[var(--sb-text-muted)]">Low-stock items</span>
+                  <span className="block text-xs font-medium text-[var(--sb-text-muted)]">Counts due</span>
                   <strong className="mt-1 block text-lg font-semibold tabular-nums">
-                    {summary.inventoryUnavailable ? "—" : summary.lowStockCount}
+                    {summary.stockCountDueUnavailable ? "—" : summary.today.stockCountDue}
                   </strong>
                 </span>
-                <AlertTriangle className="h-4 w-4 shrink-0 text-[var(--sb-text-muted)]" aria-hidden="true" />
+                <CheckCircle2 className="h-4 w-4 shrink-0 text-[var(--sb-text-muted)]" aria-hidden="true" />
               </Link>
             </div>
           </Panel>

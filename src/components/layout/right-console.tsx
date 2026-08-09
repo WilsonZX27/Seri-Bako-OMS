@@ -153,14 +153,14 @@ export function RightConsoleProvider({ children }: { children: ReactNode }) {
         <Link
           href={primaryHref}
           data-mobile-create-fab
-          className="fixed bottom-[calc(var(--sb-mobile-nav-height)+env(safe-area-inset-bottom)+1rem)] right-4 z-[var(--sb-z-sticky)] inline-flex h-14 w-14 items-center justify-center rounded-full bg-[var(--sb-green-900)] text-white shadow-[0_10px_24px_rgba(10,58,43,0.30)] transition-transform active:scale-95 xl:hidden"
+          className="fixed bottom-[calc(var(--sb-mobile-nav-height)+env(safe-area-inset-bottom)+1rem)] right-4 z-[var(--sb-z-sticky)] inline-flex h-14 w-14 items-center justify-center rounded-full bg-[var(--sb-green-900)] text-white shadow-[0_10px_24px_rgba(10,58,43,0.30)] transition-transform active:scale-95 md:hidden"
           aria-label={primaryLabel}
           title={primaryLabel}
         >
           <Plus className="h-6 w-6" aria-hidden="true" />
         </Link>
       ) : null}
-      {content && !mobileBarHidden && !hasCreateFab ? <div data-mobile-action-bar className={cn("sb-mobile-action-bar fixed inset-x-3 bottom-[calc(var(--sb-mobile-nav-height)+env(safe-area-inset-bottom)+0.5rem)] z-[var(--sb-z-sticky)] items-center gap-2 rounded-[var(--sb-radius-control)] border bg-white/95 p-2 shadow-[0_-8px_20px_rgba(17,30,22,0.2)]", "grid", primaryAction ? "grid-cols-2" : "grid-cols-1", "xl:hidden")}>
+      {content && !mobileBarHidden && !hasCreateFab ? <div data-mobile-action-bar className={cn("sb-mobile-action-bar fixed inset-x-3 bottom-[calc(var(--sb-mobile-nav-height)+env(safe-area-inset-bottom)+0.5rem)] z-[var(--sb-z-sticky)] items-center gap-2 rounded-[var(--sb-radius-control)] border bg-white/95 p-2 shadow-[0_-8px_20px_rgba(17,30,22,0.2)]", "grid", primaryAction ? "grid-cols-2" : "grid-cols-1", "md:hidden")}>
         {/* Legacy contract shape: hasCreateFab ? "hidden" : "flex", "xl:hidden". The grid is intentional so primary and More actions share equal height. */}
         {primaryAction ? <div data-mobile-primary-slot className="min-w-0 [&>*]:h-11 [&>*]:w-full">{primaryAction}</div> : null}
         <Button ref={triggerRef} type="button" variant={primaryAction ? "outline" : "default"} className="h-11 min-w-0 w-full gap-2" onClick={() => setOpen(true)} aria-label="Open more actions" aria-haspopup="dialog" aria-expanded={open}>
@@ -169,7 +169,7 @@ export function RightConsoleProvider({ children }: { children: ReactNode }) {
         </Button>
       </div> : null}
       {open && content && !mobileBarHidden ? (
-        <div className={cn("fixed inset-0 z-[var(--sb-z-dialog)] xl:hidden", hasCreateFab && "hidden")}>
+        <div className={cn("fixed inset-0 z-[var(--sb-z-dialog)] md:hidden", hasCreateFab && "hidden")}>
           <button type="button" className="sb-dialog-backdrop absolute inset-0 h-full w-full" onClick={close} aria-label="Close more actions" />
             <div ref={dialogRef} role="dialog" aria-modal="true" aria-labelledby={titleId} className="sb-popover-surface absolute inset-x-0 bottom-0 max-h-[82dvh] overflow-hidden pb-[env(safe-area-inset-bottom)]">
             <header className="flex h-12 items-center justify-between border-b px-3">

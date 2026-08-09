@@ -68,7 +68,7 @@ html[data-design-layer="v2"] :where(.erp-surface, .sb-work-surface, .sb-command-
 
 html[data-design-layer="v2"] :where(.sb-list-filters, .sb-filter-more-panel, .sb-right-console, .sb-pr-basket-sheet) {
   border-color: var(--sb-border-soft);
-  border-radius: var(--sb-panel-radius);
+  border-radius: var(--sb-panel-radius) !important;
   box-shadow: var(--sb-shadow-sm);
 }
 
@@ -77,7 +77,7 @@ html[data-design-layer="v2"] :where(.sb-list-filters, .sb-list-filters > *, .sb-
 }
 
 html[data-design-layer="v2"] :where(.sb-list-filters input, .sb-list-filters select, .sb-list-filters button, .sb-list-filters a, .sb-filter-more-panel input, .sb-filter-more-panel select, .sb-filter-more-panel button) {
-  border-radius: var(--sb-radius-control);
+  border-radius: var(--sb-radius-control) !important;
 }
 
 html[data-design-layer="v2"] :where(.sb-list-filters input, .sb-list-filters select, .sb-filter-more-panel input, .sb-filter-more-panel select) {
@@ -106,8 +106,12 @@ html[data-design-layer="v2"] :where(.sb-table-scroll, .sb-scroll-container, [dat
 }
 
 @media (max-width: 767px) {
+  html[data-design-layer="v2"][data-mobile-sheet-open] [data-mobile-app-nav] {
+    display: none !important;
+  }
+
   html[data-design-layer="v2"] :where(.sb-list-filters, .sb-filter-more-panel) {
-    border-radius: var(--sb-panel-radius);
+    border-radius: var(--sb-panel-radius) !important;
   }
 
   html[data-design-layer="v2"] :where(.sb-mobile-action-bar) {

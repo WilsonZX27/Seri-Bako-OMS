@@ -82,7 +82,9 @@
   --sb-mobile-nav-height: 4rem;
   --sb-sidebar-width: 14.75rem;
   --sb-console-width: 20rem;
-  --sb-panel-radius: 4px;
+  /* Canonical geometry tokens. Every route consumes these values; the app
+     design layer must not redefine them at a later cascade position. */
+  --sb-panel-radius: 0.5rem;
   --sb-z-dropdown: 30;
   --sb-z-sticky: 40;
   /* Narrow-screen drawers must fully cover the mobile navigation and any
@@ -503,7 +505,6 @@ input[type="date"]::-webkit-date-and-time-value {
 @media (max-width: 767px) {
   :root {
     --sb-radius-control: 0.25rem;
-    --sb-panel-radius: 0.25rem;
     /* Phone controls meet the 48px minimum target for gloved or wet hands. */
     --sb-control-height: 3rem;
   }

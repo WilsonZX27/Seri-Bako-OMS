@@ -33,25 +33,27 @@
 }
 
 :root {
-  --sb-green-950: #062C1F;
-  --sb-green-900: #083B2A;
-  --sb-green-800: #0B4A35;
-  --sb-green-700: #0F5A42;
-  --sb-green-300: #A9C7B9;
-  --sb-green-100: #E8F1ED;
+  /* Shared palette: the single source of truth for legacy and v2 surfaces. */
+  --sb-green-950: #053c2c;
+  --sb-green-900: #074b37;
+  --sb-green-800: #096247;
+  --sb-green-700: #0f7757;
+  --sb-green-300: #8fc5ad;
+  --sb-green-200: #c4dfd2;
+  --sb-green-100: #e7f1eb;
   --sb-primary: var(--sb-green-900);
   --sb-primary-dark: var(--sb-green-950);
   --sb-accent: var(--sb-green-700);
-  --sb-bg: #F2F4F1;
+  --sb-bg: #eef1ee;
   --sb-surface: #FFFFFF;
-  --sb-surface-muted: #F5F6F4;
+  --sb-surface-muted: #f5f6f3;
   --sb-muted: var(--sb-surface-muted);
-  --sb-border: #D7DDD8;
+  --sb-border: #d8ded9;
   --sb-radius-control: 4px;
   --sb-shadow-card: 0 1px 2px rgb(6 44 31 / 0.04), 0 8px 24px rgb(6 44 31 / 0.06);
-  --sb-border-soft: #E5E9E5;
-  --sb-text: #102019;
-  --sb-text-muted: #66756D;
+  --sb-border-soft: #e7ebe7;
+  --sb-text: #13261f;
+  --sb-text-muted: #66766f;
   --sb-text-soft: #8A948E;
   --sb-text-inverse: #FFFFFF;
   --sb-success: #0F6B3F;
@@ -94,8 +96,8 @@
   --sb-z-dialog: 101;
   --sb-z-toast: 70;
   --app-bg: var(--sb-bg);
-  --workspace-bg: var(--sb-surface);
-  --rail-bg: var(--sb-surface);
+  --workspace-bg: #f4f5f2;
+  --rail-bg: #fbfcfa;
   --border-soft: var(--sb-border);
   --border-muted: var(--sb-border-soft);
   --text-main: var(--sb-text);

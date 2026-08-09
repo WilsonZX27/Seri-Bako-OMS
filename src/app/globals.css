@@ -715,12 +715,6 @@ input[type="date"]::-webkit-date-and-time-value {
   table[aria-label="Product cost and margin estimates"] td:nth-child(7)::before { content: "Margin %"; }
 }
 
-.sb-mobile-action-bar {
-  border: 1px solid var(--sb-border);
-  background: white;
-  box-shadow: 0 -3px 10px rgb(6 44 31 / 0.14);
-}
-
 [data-mobile-app-nav] {
   box-shadow: 0 -4px 14px rgb(6 44 31 / 0.16);
 }

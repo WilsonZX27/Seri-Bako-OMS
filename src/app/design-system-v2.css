@@ -500,6 +500,14 @@ nav[aria-label="Pagination"] > span,
   box-shadow: 0 -10px 32px rgb(12 43 32 / 0.18);
 }
 
+/* Mobile task rails are app chrome, not legacy page decoration. */
+.sb-mobile-action-bar {
+  border: 1px solid var(--sb-border);
+  border-radius: 0;
+  background: var(--sb-surface);
+  box-shadow: 0 -3px 10px rgb(6 44 31 / 0.14);
+}
+
 @media (max-height: 520px) and (orientation: landscape) {
   :root:root { --sb-mobile-nav-height: 3.25rem; }
   [data-document-workspace-header] { position: relative !important; }

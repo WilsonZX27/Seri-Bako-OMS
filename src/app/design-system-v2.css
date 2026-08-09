@@ -17,10 +17,11 @@
   --sb-green-200: #c4dfd2;
   --sb-green-100: #e7f1eb;
   --sb-control-height: 2.625rem;
-  /* Shared geometry: controls and interior panels use the same 4px radius.
-     Pills/badges remain explicitly circular where their semantics require it. */
+  /* Stable geometry contract:
+     panels/cards use a visible 8px radius, controls/actions use a tighter 4px
+     radius, edge-to-edge shells stay square, and badges remain circular. */
   --sb-radius-control: 0.25rem;
-  --sb-panel-radius: 0.25rem;
+  --sb-panel-radius: 0.5rem;
   --sb-shadow-xs: 0 1px 2px rgb(12 43 32 / 0.05), 0 1px 1px rgb(12 43 32 / 0.03);
   --sb-shadow-sm: 0 5px 18px rgb(12 43 32 / 0.07), 0 1px 3px rgb(12 43 32 / 0.05);
   --sb-shadow-md: 0 14px 36px rgb(12 43 32 / 0.10), 0 3px 10px rgb(12 43 32 / 0.06);
@@ -217,20 +218,8 @@ body::-webkit-scrollbar {
   background: var(--sb-green-100) !important;
 }
 
-button[form="purchase-request-form"]::before,
-button[form="stock-count-create-form"]::before {
-  width: 1rem;
-  height: 1rem;
-  flex: none;
-  content: "";
-  background: currentColor;
-  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m22 2-7 20-4-9-9-4Z'/%3E%3Cpath d='M22 2 11 13'/%3E%3C/svg%3E") center / contain no-repeat;
-}
-
-button[form="purchase-request-form"][name="intent"][value="draft"]::before {
-  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M15.2 3a2 2 0 0 1 1.4.6l3.8 3.8a2 2 0 0 1 .6 1.4V19a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z'/%3E%3Cpath d='M17 21v-8H7v8'/%3E%3Cpath d='M7 3v5h8'/%3E%3C/svg%3E");
-}
-
+/* Legacy density classes resolve to the panel token so older routes do not
+   silently drift to a second geometry language. */
 [class~="rounded-[2px]"] {
   border-radius: var(--sb-panel-radius) !important;
 }

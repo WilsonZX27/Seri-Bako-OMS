@@ -361,7 +361,11 @@ export function DashboardWorkspace({ summary, renderedAt }: { summary: Dashboard
                     </Link>
                   ))}
                 </div>
-            </Panel> : null}
+            </Panel> : (
+              <div className="hidden xl:block">
+                <Panel title={isKitchen ? "Purchase request progress" : "Actions awaiting you"} empty="No pending actions in your current scope." />
+              </div>
+            )}
             <Panel title={isPurchasing ? "Purchasing pipeline" : isKitchen ? "Production and receiving" : "Operational pipeline"}>
               <div className="grid grid-flow-dense grid-cols-2 gap-1.5 sm:grid-cols-4 sm:gap-2">
                 <Metric

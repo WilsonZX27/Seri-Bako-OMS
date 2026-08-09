@@ -61,7 +61,12 @@ export default async function StockCountsPage({ searchParams }: { searchParams: 
   const emptyAction = filtered ? { href: "/stock-counts", label: "Reset filters" } : canCreate ? { href: "/stock-counts/new", label: "New Count" } : undefined;
   const exportHref = `/api/export/stock-counts?from=${filters.from ?? ""}&to=${filters.to ?? ""}`;
   return <>
-    <PageHeader title="Stock Counts" description="Physical counts compared against calculated branch stock." hideTabletCreateFab />
+        <PageHeader
+          title="Stock Counts"
+          description="Physical counts compared against calculated branch stock."
+          action={canCreate ? { href: "/stock-counts/new", label: "New Stock Count" } : undefined}
+          hideTabletCreateFab
+        />
     <WorkspaceGrid
       hideMobileConsole={!canCreate}
       tabletRailMode="split"

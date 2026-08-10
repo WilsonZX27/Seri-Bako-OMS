@@ -72,11 +72,11 @@ export function ItemForm({ item, suppliers, action, formId, showSubmit = true, c
       </RecordSection>
 
       <RecordSection title="Supplier & Usage" description="Optional default supplier used by purchasing workflows.">
-        <div className="grid gap-3 md:grid-cols-[minmax(0,1fr)_auto] md:items-end">
+        <div className="grid gap-3 md:grid-cols-[minmax(0,1fr)_auto] md:items-start">
           <Field label="Supplier">
             <SupplierCombobox suppliers={suppliers} initialSupplierId={item?.supplier_id} />
           </Field>
-          {canCreateSupplier ? <div>
+          {canCreateSupplier ? <div className="md:pt-[1.875rem]">
             <Button asChild type="button" variant="outline" size="sm">
               <Link href="/suppliers/new">Create supplier</Link>
             </Button>

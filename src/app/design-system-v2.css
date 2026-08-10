@@ -956,15 +956,16 @@ html[data-design-layer="v2"] :where(input, select, textarea, button, .inline-fle
 @media (min-width: 768px) {
   html[data-design-layer="v2"] form[data-unified-list-desktop="true"] {
     align-items: center;
-    flex-wrap: nowrap;
+    flex-wrap: wrap;
     min-width: 0;
+    row-gap: 0.5rem;
   }
 
   html[data-design-layer="v2"] form[data-unified-list-desktop="true"] > :where(input[type="search"], input[name="search"], input[placeholder*="Search"], input[placeholder*="Find"]) {
-    flex: 1 1 20rem;
+    flex: 1 1 16rem;
     width: auto;
-    max-width: 24rem;
-    min-width: 12rem;
+    max-width: none;
+    min-width: 10rem;
   }
 
   html[data-design-layer="v2"] form[data-unified-list-desktop="true"] > :where(select, [data-select-control], .sb-status-filter, .sb-filter-more) {
@@ -988,6 +989,20 @@ html[data-design-layer="v2"] :where(input, select, textarea, button, .inline-fle
     flex: 0 0 8.5rem;
     width: 8.5rem;
     justify-content: center;
+    margin-left: auto;
+  }
+
+  html[data-design-layer="v2"] form[data-unified-list-desktop="true"] > :where(input, select, button, [data-select-control], .sb-status-filter, .sb-filter-more > summary) {
+    height: var(--sb-control-height) !important;
+    min-height: var(--sb-control-height) !important;
+  }
+
+  html[data-design-layer="v2"] form[data-unified-list-desktop="true"] > .sb-filter-more {
+    height: var(--sb-control-height);
+  }
+
+  html[data-design-layer="v2"] form[data-unified-list-desktop="true"] > .sb-filter-more > summary {
+    height: 100%;
   }
 }
 

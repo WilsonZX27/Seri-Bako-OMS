@@ -65,3 +65,15 @@ The previous 19 browser comments remain part of this ledger and must not be regr
 - Unified `ConsoleSection` into the same raised, rounded panel language used by Stock Wastage and Stock Balance. Stock Balance now labels the side panel `PR basket`, while its desktop floating basket trigger remains suppressed when the rail is visible to avoid duplicate entry points.
 - Focused Playwright static audit passed `/dashboard`, `/stock-balance`, and `/stock-wastage` at mobile 390 and desktop 1440 (2/2 tests, no viewport overflow or out-of-bounds interactive controls). Screenshots were captured for both profiles.
 - Re-verified `npm run typecheck:strict`, `npm run lint`, and `npm run build` after the refinement. No Supabase paths, server actions, or business-state transitions were changed.
+
+## Annotation close-out pass — 2026-08-10 (current browser comments)
+
+| ID | Route / surface | Finding | Shared fix / verification |
+|---:|---|---|---|
+| 1 | Dashboard desktop | Main workspace felt 1/3 + 2/3 and crowded | Dashboard content changed to equal `lg:col-span-6` / `lg:col-span-6`; verified at 1440 and 1024 without overflow |
+| 2 | Items | Desktop filter rail overflowed into the right edge | Shared desktop `UnifiedListHeader` now wraps at the available work-surface width; action remains terminal and right-aligned; verified at 1440, 1024, 768 |
+| 3 | Stock Card | Apply action was cut off | Same shared wrapping contract keeps Apply visible on its own right-aligned row; verified at 1440, 1024, 768 |
+| 4 | Stock Counts | More filters control height differed from dropdowns | Shared filter controls and `FilterBarMore` summary now use `--sb-control-height`; verified at 1440, 1024, 768 |
+| 5 | New Item | Supplier input and Create supplier action were vertically misaligned | Item form now aligns the action to the input control rather than the helper text; verified at 1440 and 768 |
+
+Focused Playwright static audit passed these five routes at mobile 390, tablet 768, laptop 1024, and desktop 1440 profiles with no page overflow or out-of-bounds interactive controls. An additional authenticated exact-820px browser pass reported `overflow: 0` and no out-of-bounds interactive controls for all five routes.

@@ -271,7 +271,7 @@ export function DashboardWorkspace({ summary, renderedAt }: { summary: Dashboard
         <QuickActionsCluster actions={quickActions} className="lg:hidden" />
 
         <div data-dashboard-layout className="grid gap-4 lg:grid-cols-12 lg:items-start">
-          <div className="space-y-4 lg:col-span-4">
+          <div className="space-y-4 lg:col-span-6">
         <section data-dashboard-command className="sb-command-surface overflow-hidden rounded-[var(--sb-panel-radius)]">
           <div className="flex items-end justify-between gap-4 p-4 sm:p-5">
             <div className="min-w-0">
@@ -335,7 +335,7 @@ export function DashboardWorkspace({ summary, renderedAt }: { summary: Dashboard
         ) : null}
           </div>
 
-          <div className="space-y-4 lg:col-span-8">
+          <div className="space-y-4 lg:col-span-6">
         {!isOutlet ? (
           <div className="space-y-4">
             {summary.pendingApprovals.length ? <Panel

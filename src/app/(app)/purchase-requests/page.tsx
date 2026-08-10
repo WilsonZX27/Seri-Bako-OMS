@@ -69,7 +69,7 @@ export default async function PurchaseRequestsPage({ searchParams }: { searchPar
           </div>
         }
       >
-        <div className="overflow-hidden rounded-[var(--sb-panel-radius)] border border-[var(--sb-border-soft)] bg-card" data-tablet-main-list>
+        <div className="sb-work-surface overflow-hidden shadow-[var(--sb-shadow-card)]" data-tablet-main-list>
           <div className="hidden sm:block">
             <FilterBar resetHref="/purchase-requests" filtered={filtered} resultCount={requests.totalRows} className="sb-tablet-split-filter">
               <Input name="search" defaultValue={filters.search ?? ""} placeholder="Search PR no, branch, remarks" className="md:max-w-sm" />

@@ -94,7 +94,7 @@ function QuickActionsCluster({ actions, className }: { actions: { href: string; 
         <h2 id="dashboard-quick-actions-title" className="text-xs font-semibold uppercase tracking-[0.14em] text-[var(--sb-text-muted)]">Quick actions</h2>
         <span className="text-[11px] text-[var(--sb-text-muted)]">Based on your role</span>
       </div>
-      <div className="grid grid-cols-3 gap-2 lg:grid-cols-1" data-dashboard-quick-actions>
+      <div className="grid grid-cols-3 gap-2" data-dashboard-quick-actions>
         {actions.slice(0, 3).map((action) => {
           const Icon = action.icon;
           return (
@@ -252,13 +252,13 @@ export function DashboardWorkspace({ summary, renderedAt }: { summary: Dashboard
     >
       <div className="space-y-4">
         <span className="sr-only" aria-live="polite">{formatDateTime(now.toISOString())}</span>
-        <header className="hidden min-h-12 w-full items-end justify-between gap-6 border-b border-[var(--sb-border-soft)] pb-3 md:flex">
-          <div className="flex min-w-0 items-end gap-8">
+        <header className="hidden min-h-12 w-full items-center justify-between gap-6 border-b border-[var(--sb-border-soft)] pb-3 md:flex">
+          <div className="flex min-w-0 items-center gap-6">
             <h1 className="text-xl font-semibold tracking-[-0.02em] text-[var(--sb-text)]">{copy.title}</h1>
-            <div className="min-w-0" data-dashboard-identity>
+            <div className="flex min-w-0 items-baseline gap-2" data-dashboard-identity>
               <span className="sr-only">Welcome, {summary.userName} <span>|</span> {summary.roleLabel} <span>|</span> {summary.branchLabel}</span>
-              <p className="text-[10px] font-medium uppercase tracking-[0.14em] text-[var(--sb-text-muted)]">WELCOME</p>
-              <p className="mt-0.5 truncate text-base font-semibold tracking-[-0.02em] text-[var(--sb-text)]">{summary.userName}</p>
+              <span className="text-[10px] font-medium uppercase tracking-[0.14em] text-[var(--sb-text-muted)]">WELCOME</span>
+              <span className="truncate text-base font-semibold tracking-[-0.02em] text-[var(--sb-text)]">{summary.userName}</span>
             </div>
           </div>
           <div className="min-w-0">{desktopWorkspaceContext}</div>

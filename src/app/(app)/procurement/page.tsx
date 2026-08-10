@@ -110,13 +110,13 @@ export default async function ProcurementPage() {
               }))}
             />
           </div>
-          <section aria-labelledby="procurement-overview" className="hidden overflow-hidden rounded-[2px] border bg-card md:block">
+          <section aria-labelledby="procurement-overview" className="sb-work-surface hidden overflow-hidden shadow-[var(--sb-shadow-card)] md:block">
             <div className="border-b px-4 py-3"><h2 id="procurement-overview" className="text-sm font-semibold">Purchasing pipeline</h2></div>
             <div className="grid divide-y sm:grid-cols-2 sm:divide-x sm:divide-y-0 xl:grid-cols-4">
               {counters.map((counter) => { const presentation = counterPresentation[counter.label]; const Icon = presentation.icon; return <Link key={counter.label} href={counter.href} className="group flex min-h-20 flex-col justify-between gap-2 px-3 py-3 transition-colors hover:bg-secondary/40 sm:px-4"><span className="flex items-center gap-2 text-xs text-muted-foreground"><span className="grid h-7 w-7 place-items-center rounded-[var(--sb-radius-control)] bg-[var(--sb-surface-muted)] text-[var(--sb-green-900)]"><Icon className="h-4 w-4" /></span><span className="leading-4">{counter.label}</span></span><strong className="font-mono text-lg tabular-nums sm:text-xl">{counter.value}</strong></Link>; })}
             </div>
           </section>
-          <section aria-labelledby="procurement-queue" className="hidden overflow-hidden rounded-[2px] border bg-card md:block">
+          <section aria-labelledby="procurement-queue" className="sb-work-surface hidden overflow-hidden shadow-[var(--sb-shadow-card)] md:block">
             <div className="flex items-center justify-between border-b px-4 py-3"><div><h2 id="procurement-queue" className="text-sm font-semibold">My Work Queue</h2><p className="text-xs text-muted-foreground">Only modules permitted for your role are shown.</p></div></div>
             <div className="divide-y">
               {visibleModules.map((module) => { const Icon = module.icon; return <Link key={module.href} href={module.href} className="flex min-h-14 items-center gap-3 px-4 py-3 hover:bg-secondary/40"><Icon className="h-4 w-4 shrink-0 text-primary" /><span className="min-w-0 flex-1"><span className="block text-sm font-semibold">{module.label}</span><span className="block whitespace-normal text-xs leading-4 text-muted-foreground">{module.description}</span></span><ArrowRight className="h-4 w-4 text-muted-foreground" /></Link>; })}

@@ -1485,3 +1485,39 @@ html[data-design-layer="v2"] :where(.erp-surface[class~="rounded-[2px]"], .sb-wo
     z-index: calc(var(--sb-z-sheet) + 2) !important;
   }
 }
+
+/* Compact desktop filter contract: the work surface can be narrower than the
+   browser (the right console is intentionally visible), so the terminal action
+   must stay on the same rail instead of wrapping beneath the controls. Every
+   select/status/more control keeps the same width; only search absorbs space. */
+@media (min-width: 768px) {
+  html[data-design-layer="v2"] :is(form[data-unified-list-desktop="true"], form.sb-list-filters) {
+    flex-wrap: nowrap !important;
+    gap: 0.5rem;
+  }
+
+  html[data-design-layer="v2"] :is(form[data-unified-list-desktop="true"], form.sb-list-filters) > :where(select, [data-select-control], .sb-status-filter, .sb-filter-more) {
+    flex: 0 1 7.25rem !important;
+    width: 7.25rem !important;
+    min-width: 0 !important;
+  }
+
+  html[data-design-layer="v2"] :is(form[data-unified-list-desktop="true"], form.sb-list-filters) > :where(input[type="search"], input[name="search"], input[placeholder*="Search"], input[placeholder*="Find"]) {
+    flex: 2 1 10rem !important;
+    width: auto !important;
+    min-width: 0 !important;
+  }
+
+  html[data-design-layer="v2"] :is(form[data-unified-list-desktop="true"], form.sb-list-filters) > .sb-filter-summary {
+    flex: 0 0 auto !important;
+    margin-left: 0 !important;
+  }
+
+  html[data-design-layer="v2"] :is(form[data-unified-list-desktop="true"], form.sb-list-filters) > :where(.unified-list-action, button[type="submit"], .sb-filter-submit) {
+    flex: 0 1 7.5rem !important;
+    width: 7.5rem !important;
+    min-width: 0 !important;
+    margin-left: 0 !important;
+    justify-content: center;
+  }
+}

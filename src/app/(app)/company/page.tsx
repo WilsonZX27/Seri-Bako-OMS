@@ -24,7 +24,7 @@ export default async function CompanyPage({
         documentMode
         tabletRailMode="split"
         rightRail={
-          <div>
+          <div className="space-y-3">
             <ConsoleSection title="Company Actions">
               <div className="grid gap-2">
                 <SubmitButton type="submit" form="company-form" className="w-full" pendingLabel="Saving..." data-mobile-primary-action>Save Company</SubmitButton>

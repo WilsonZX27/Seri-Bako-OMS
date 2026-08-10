@@ -31,9 +31,12 @@ export default async function UomConversionsPage({ searchParams }: { searchParam
             </CardContent>
           </Card>
         ) : null}
-        <div className="overflow-hidden rounded-[2px] border bg-card">
-          <MasterDataFilters search={filters.search} status={filters.status} placeholder="Search UOM pair" />
-          <div className="overflow-x-auto">
+        <div className="space-y-3">
+          <div className="rounded-[var(--sb-panel-radius)] border bg-card p-2">
+            <MasterDataFilters search={filters.search} status={filters.status} placeholder="Search UOM pair" />
+          </div>
+          <div className="overflow-hidden rounded-[var(--sb-panel-radius)] border bg-card">
+            <div className="overflow-x-auto">
             <Table stickyColumn="second">
               <TableHeader>
                 <TableRow>
@@ -59,8 +62,9 @@ export default async function UomConversionsPage({ searchParams }: { searchParam
                 ) : null}
               </TableBody>
             </Table>
+            </div>
+            <PaginationControls page={page.page} totalPages={page.totalPages} totalRows={page.totalRows} searchParams={filters} />
           </div>
-          <PaginationControls page={page.page} totalPages={page.totalPages} totalRows={page.totalRows} searchParams={filters} />
         </div>
       </WorkspaceGrid>
     </>

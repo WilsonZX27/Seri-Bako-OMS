@@ -33,6 +33,35 @@ This is the working ledger for the final close-out. Every browser comment must h
 
 The previous 19 browser comments remain part of this ledger and must not be regressed: Dashboard data/identity/density, shared mobile filters, Stock Count action rail and cards, Outlet Daily setup/action rail, Purchase Returns filter width, UOM menus, and global logo/scrollbar rules.
 
+## Full re-audit pass — 2026-08-10 (annotation batch)
+
+This pass rechecked the newly reported dashboard, filter, action-rail, procurement, receiving, inventory, master-data, and authentication surfaces after the shared convergence patch.
+
+### Source changes in this pass
+
+- Dashboard pending actions now live below the left command/quick-action column instead of creating a tall right-side stack; the main desktop grid remains an equal 6/6 split.
+- Desktop legacy and UnifiedListHeader filters now share equal 9rem control widths, centered actions, and the same 36px desktop control height. Date-first filters and status triggers use the same geometry.
+- Mobile action rails use equal columns; a single action spans the full rail. Nested More/primary actions are full-width and evenly spaced.
+- Purchase Request lines now have one shared Item / Quantity / UOM header, visible line indices, compact four-column responsive alignment, and non-repeated visual field labels (accessible labels remain in the DOM).
+- Goods Receiving setup now collapses after a PO is selected into a PO/date/branch quick summary with an explicit Edit/Done affordance; controlled values remain in the form when collapsed.
+- Login shell keeps tenant branding when authenticated branding is available and uses a compact `SB` company mark as the safe unauthenticated fallback; auth card and mark use canonical panel radius/shadow tokens.
+- Sidebar release footer now shows the current package version only (`v8.36.0`) without the stale sprint note.
+
+### Runtime evidence
+
+- Static workspace layout audit, mobile-390: 10 affected routes passed (Purchase Request new, Goods Receiving new, Production Jobs, Outlet Daily, Supplier Invoices, Suppliers, Items, Stock Card, Stock Counts, UOM Conversions).
+- Static workspace layout audit, tablet-768: the same 10 affected routes passed; this covers the tablet breakpoint used by the responsive system and the 820px portrait behavior.
+- Static workspace layout audit, desktop-1440: Dashboard plus the same 10 affected routes passed.
+- Focused live geometry probe: mobile Purchase Request action rail measured 393px × 72px with two 179.5px columns; Submit PR and More both measured 179.5px × 44px with `space-evenly`. Goods Receiving single-action rail measured full available width after the `:only-child` rule.
+- Desktop geometry probe: Production Jobs, Items, Outlet Daily, Purchase Orders, and UOM Conversions shared filter actions measured 144px wide; status, date, More filters, and submit controls measured 36px high after the canonical desktop override.
+- `npm run typecheck:strict` passed after the form and shared CSS changes.
+
+### Remaining evidence limits
+
+- The three viewport audits were run as split batches to keep the authenticated local preview stable; the individual batches passed. This is not represented as one uninterrupted all-route process.
+- The unauthenticated login surface cannot safely read tenant-specific Supabase branding before authentication; the `SB` mark is an intentional fallback, not a claim that the tenant logo is unavailable after sign-in.
+- Full mutation E2E and production Supabase data freshness still require the user's authenticated environment; no business records or database state were changed in this pass.
+
 ## Evidence log
 
 - `998ec08`: previous shared responsive interaction close-out.
@@ -77,3 +106,9 @@ The previous 19 browser comments remain part of this ledger and must not be regr
 | 5 | New Item | Supplier input and Create supplier action were vertically misaligned | Item form now aligns the action to the input control rather than the helper text; verified at 1440 and 768 |
 
 Focused Playwright static audit passed these five routes at mobile 390, tablet 768, laptop 1024, and desktop 1440 profiles with no page overflow or out-of-bounds interactive controls. An additional authenticated exact-820px browser pass reported `overflow: 0` and no out-of-bounds interactive controls for all five routes.
+
+## Outlet access repair — 2026-08-10
+
+- Added an idempotent repair migration for active tenant `outlet_staff` roles. It backfills the canonical dashboard and outlet-daily-record view/create/update grants when a tenant role was created after the original seed migration.
+- The repair does not grant company-wide access; existing `can_access_outlet_daily_branch` and RLS branch scoping remain authoritative.
+- The local preview is running with the configured cloud Supabase environment, but automated outlet probing is blocked by the absent `TEST_OUTLET_EMAIL` / `TEST_OUTLET_PASSWORD` fixture. The tenant browser session remains the required final access check after migration 140 is applied.

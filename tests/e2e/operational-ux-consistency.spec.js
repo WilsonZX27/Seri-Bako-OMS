@@ -17,7 +17,9 @@ test("core list and document pages keep the operational UX skeleton", async ({ p
   await page.goto("/purchase-requests", { waitUntil: "domcontentloaded" });
   await expect(page.getByRole("heading", { name: "Purchase Requests" })).toBeVisible();
   await expect(page.locator("[data-right-console]").getByRole("link", { name: "New PR" })).toBeVisible();
-  await expect(page.locator("form").filter({ has: page.locator('input[name="search"]') })).toBeVisible();
+  // Both desktop and mobile filter shells are rendered for responsive hydration;
+  // assert the canonical desktop shell explicitly at this viewport.
+  await expect(page.locator('form[data-unified-list-desktop="true"]').filter({ has: page.locator('input[name="search"]') })).toBeVisible();
   await expect(page.locator("table thead")).toContainText("PR No");
   await expectNoPageOverflow(page);
 
@@ -44,6 +46,7 @@ test("mobile create form remains reachable without horizontal overflow", async (
   await page.goto("/purchase-requests/new", { waitUntil: "domcontentloaded" });
   await expect(page.locator("form#purchase-request-form")).toBeVisible();
   await expect(page.locator("[data-mobile-page-title]")).toHaveText("Purchase Requests");
-  await expect(page.locator("[data-mobile-app-nav]")).toBeVisible();
+  // Document/task pages intentionally replace the global nav with their fixed action rail.
+  await expect(page.locator("[data-mobile-app-nav]")).toBeHidden();
   await expectNoPageOverflow(page);
 });

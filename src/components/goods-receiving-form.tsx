@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { AlertTriangle, PackageCheck } from "lucide-react";
 import { Field } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
@@ -27,7 +27,19 @@ export function GoodsReceivingForm({
 }) {
   const router = useRouter();
   const [idempotencyKey] = useState(() => crypto.randomUUID());
+  const [setupOpen, setSetupOpen] = useState(() => !selectedOrder);
+  const [receivedDate, setReceivedDate] = useState(() => getToday());
+  const [deliveryOrderNo, setDeliveryOrderNo] = useState("");
+  const [branchId, setBranchId] = useState(() => selectedOrder?.branch_id ?? branches[0]?.id ?? "");
+  const [remarks, setRemarks] = useState("");
   const grnNo = "GRN-AUTO";
+  const hasSelectedOrder = Boolean(selectedOrder);
+  const selectedBranchId = selectedOrder?.branch_id ?? branches[0]?.id ?? "";
+
+  useEffect(() => {
+    setSetupOpen(!hasSelectedOrder);
+    if (hasSelectedOrder) setBranchId(selectedBranchId);
+  }, [hasSelectedOrder, selectedBranchId]);
 
   function selectPo(poId: string) {
     router.push(poId ? `/goods-receivings/new?po_id=${poId}` : "/goods-receivings/new");
@@ -39,37 +51,61 @@ export function GoodsReceivingForm({
           <input type="hidden" name="idempotency_key" value={idempotencyKey} />
           <input type="hidden" name="grn_no" value={grnNo} />
           <input type="hidden" name="status" value="draft" />
-          <section data-goods-receiving-setup className="erp-surface grid grid-cols-2 gap-3 p-3 lg:grid-cols-3">
-            <Field label="Purchase Order" required className="col-span-2 lg:col-span-1">
-              <SelectNative value={selectedOrder?.id ?? ""} onChange={(event) => selectPo(event.target.value)} required>
-                <option value="">Select approved/sent PO</option>
-                {purchaseOrders.map((order) => (
-                  <option key={order.id} value={order.id}>
-                    {order.po_no} - {order.supplier_name ?? "Supplier"} - Pending {formatNumber(order.pending_qty)}
-                  </option>
-                ))}
-              </SelectNative>
-            </Field>
-            <Field label="Received Date" required>
-              <Input name="received_date" type="date" defaultValue={getToday()} required />
-            </Field>
-            <Field label="Delivery Order Number">
-              <Input name="delivery_order_no" placeholder="Supplier DO reference" />
-            </Field>
-            <Field label="Branch" required className="col-span-2 lg:col-span-1">
-              <SelectNative name="branch_id" defaultValue={selectedOrder?.branch_id ?? branches[0]?.id ?? ""} required>
-                {branches.map((branch) => <option key={branch.id} value={branch.id}>{branch.branch_name}</option>)}
-              </SelectNative>
-              <p className="mt-1 text-xs text-muted-foreground">Select the branch receiving this delivery.</p>
-            </Field>
-            <details className="col-span-2 border-t pt-2 lg:col-span-3">
-              <summary className="cursor-pointer text-xs font-semibold text-muted-foreground">More receiving details</summary>
-              <div className="mt-2">
-                <Field label="Remarks">
-                  <Textarea name="remarks" placeholder="Delivery notes, vehicle, temperature, or supplier remarks" />
-                </Field>
+          <section data-goods-receiving-setup className="erp-surface overflow-hidden p-3 lg:p-4">
+            <div className="flex items-start justify-between gap-3 border-b border-[var(--sb-border-soft)] pb-2">
+              <div className="min-w-0">
+                <p className="text-xs font-semibold uppercase tracking-[0.08em] text-[var(--sb-text-muted)]">Receiving setup</p>
+                {setupOpen ? <p className="mt-0.5 text-xs text-muted-foreground">Choose the posted order and receiving context.</p> : (
+                  <div className="mt-1 flex flex-wrap gap-x-3 gap-y-1 text-xs text-muted-foreground">
+                    <span className="font-semibold text-[var(--sb-text)]">{selectedOrder?.po_no ?? "Select purchase order"}</span>
+                    <span>{receivedDate}</span>
+                    <span>{branches.find((branch) => branch.id === branchId)?.branch_name ?? "Branch not set"}</span>
+                  </div>
+                )}
               </div>
-            </details>
+              {selectedOrder ? <button type="button" className="shrink-0 rounded-[var(--sb-radius-control)] px-2 py-1 text-xs font-semibold text-[var(--sb-green-800)] hover:bg-[var(--sb-surface-muted)]" onClick={() => setSetupOpen((open) => !open)} aria-expanded={setupOpen}>{setupOpen ? "Done" : "Edit"}</button> : null}
+            </div>
+            {setupOpen ? (
+              <div className="mt-3 grid grid-cols-2 gap-3 lg:grid-cols-3">
+                <Field label="Purchase Order" required className="col-span-2 lg:col-span-1">
+                  <SelectNative value={selectedOrder?.id ?? ""} onChange={(event) => selectPo(event.target.value)} required>
+                    <option value="">Select approved/sent PO</option>
+                    {purchaseOrders.map((order) => (
+                      <option key={order.id} value={order.id}>
+                        {order.po_no} - {order.supplier_name ?? "Supplier"} - Pending {formatNumber(order.pending_qty)}
+                      </option>
+                    ))}
+                  </SelectNative>
+                </Field>
+                <Field label="Received Date" required>
+                  <Input name="received_date" type="date" value={receivedDate} onChange={(event) => setReceivedDate(event.target.value)} required />
+                </Field>
+                <Field label="Delivery Order Number">
+                  <Input name="delivery_order_no" value={deliveryOrderNo} onChange={(event) => setDeliveryOrderNo(event.target.value)} placeholder="Supplier DO reference" />
+                </Field>
+                <Field label="Branch" required className="col-span-2 lg:col-span-1">
+                  <SelectNative name="branch_id" value={branchId} onChange={(event) => setBranchId(event.target.value)} required>
+                    {branches.map((branch) => <option key={branch.id} value={branch.id}>{branch.branch_name}</option>)}
+                  </SelectNative>
+                  <p className="mt-1 text-xs text-muted-foreground">Select the branch receiving this delivery.</p>
+                </Field>
+                <details className="col-span-2 border-t pt-2 lg:col-span-3">
+                  <summary className="cursor-pointer text-xs font-semibold text-muted-foreground">More receiving details</summary>
+                  <div className="mt-2">
+                    <Field label="Remarks">
+                      <Textarea name="remarks" value={remarks} onChange={(event) => setRemarks(event.target.value)} placeholder="Delivery notes, vehicle, temperature, or supplier remarks" />
+                    </Field>
+                  </div>
+                </details>
+              </div>
+            ) : (
+              <>
+                <input type="hidden" name="received_date" value={receivedDate} />
+                <input type="hidden" name="delivery_order_no" value={deliveryOrderNo} />
+                <input type="hidden" name="branch_id" value={branchId} />
+                <input type="hidden" name="remarks" value={remarks} />
+              </>
+            )}
           </section>
 
           {selectedOrder ? (

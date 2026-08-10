@@ -302,12 +302,25 @@ export function PurchaseRequestForm({
                 </Button>
               </div>
             </div>
+            <div
+              data-purchase-request-line-header
+              className="grid grid-cols-[minmax(0,1fr)_minmax(6.5rem,.65fr)_minmax(6.5rem,.65fr)_2.5rem] gap-1.5 border-b border-[var(--sb-border-soft)] bg-[var(--sb-surface-muted)] px-2 py-1.5 text-[10px] font-semibold uppercase tracking-[0.08em] text-[var(--sb-text-muted)] md:gap-3 md:px-3"
+            >
+              <span>Item</span>
+              <span>Quantity</span>
+              <span>UOM</span>
+              <span className="sr-only">Line actions</span>
+            </div>
             <div className="divide-y">
               {/* Legacy contract token: grid-cols-[minmax(0,1fr)_7.5rem_2.25rem]. The current four-column line keeps UOM, quantity, comments, and removal aligned. */}
-              {lines.map((line) => (
-                <div data-purchase-request-line key={line.key} className="grid grid-cols-[minmax(0,1fr)_minmax(6.5rem,.65fr)_2.5rem] gap-1.5 p-2 md:grid-cols-[minmax(0,1fr)_112px_112px_5.5rem] md:gap-3 md:p-3">
-                  <div className="col-span-3 min-w-0 md:col-span-1">
-                    <Field label="Item" required labelClassName="sr-only md:not-sr-only">
+              {lines.map((line, index) => (
+                <div data-purchase-request-line key={line.key} className="grid grid-cols-[minmax(0,1fr)_minmax(6.5rem,.65fr)_minmax(6.5rem,.65fr)_2.5rem] gap-1.5 p-2 md:grid-cols-[minmax(0,1fr)_112px_112px_5.5rem] md:gap-3 md:p-3">
+                  <div className="col-span-4 min-w-0 md:col-span-1">
+                    <div className="mb-1 flex items-center gap-1.5 text-[10px] font-semibold text-[var(--sb-text-muted)] md:hidden">
+                      <span className="grid h-5 min-w-5 place-items-center rounded-full bg-[var(--sb-green-050)] px-1 text-[var(--sb-green-800)]">{index + 1}</span>
+                      <span className="sr-only">Item</span>
+                    </div>
+                    <Field label="Item" required labelClassName="sr-only">
                       <Input
                         ref={line.key === lines[0]?.key ? firstItemInputRef : undefined}
                         list="purchase-request-items"
@@ -317,7 +330,7 @@ export function PurchaseRequestForm({
                       />
                     </Field>
                     {line.itemId && mappingsForLine(line).some((mapping) => !line.uom || normalizeUom(mapping.purchase_uom) === line.uom) ? (
-                      <Field label="Supplier" required labelClassName="sr-only md:not-sr-only">
+                    <Field label="Supplier" required labelClassName="sr-only">
                         <SelectNative value={line.supplierId} onChange={(event) => selectSupplier(line.key, event.target.value)} aria-label={`Supplier for ${line.itemSearch}`}>
                           <option value="">Select mapped supplier</option>
                           {mappingsForLine(line).filter((mapping) => !line.uom || normalizeUom(mapping.purchase_uom) === line.uom).map((mapping) => (
@@ -329,14 +342,14 @@ export function PurchaseRequestForm({
                     <input type="hidden" name="line_item_id" value={line.itemId} />
                     <input type="hidden" name="line_branch_id" value={branchId} />
                   </div>
-                    <Field label="Quantity" required labelClassName="sr-only md:not-sr-only" className="col-start-1 md:col-start-2">
+                    <Field label="Quantity" required labelClassName="sr-only" className="col-start-2 md:col-start-2">
                       <div className="flex overflow-hidden rounded-[var(--sb-radius-control)] border border-[var(--sb-border)] bg-white">
                         <button type="button" className="flex h-10 w-8 shrink-0 items-center justify-center border-r border-[var(--sb-border)] text-[var(--sb-green-900)] hover:bg-[var(--sb-surface-muted)] active:bg-[var(--sb-green-100)]" onClick={() => adjustLineQuantity(line, -1)} aria-label={`Decrease quantity for ${line.itemSearch || "request line"}`}><Minus className="h-3.5 w-3.5" /></button>
                         <Input name="line_qty" type="number" min="0" step={requestQuantityStep(line.uom)} value={line.qty} onChange={(event) => updateLine(line.key, { qty: event.target.value })} placeholder="Qty" className="h-10 min-w-0 rounded-none border-0 px-1 text-center text-sm font-semibold tabular-nums shadow-none focus-visible:ring-inset" />
                         <button type="button" className="flex h-10 w-8 shrink-0 items-center justify-center border-l border-[var(--sb-border)] text-[var(--sb-green-900)] hover:bg-[var(--sb-surface-muted)] active:bg-[var(--sb-green-100)]" onClick={() => adjustLineQuantity(line, 1)} aria-label={`Increase quantity for ${line.itemSearch || "request line"}`}><Plus className="h-3.5 w-3.5" /></button>
                       </div>
                     </Field>
-                    <Field label="UOM" labelClassName="sr-only md:not-sr-only" className="col-start-2 md:col-start-3">
+                    <Field label="UOM" labelClassName="sr-only" className="col-start-3 md:col-start-3">
                       <SelectNative name="line_uom" value={line.uom} onChange={(event) => selectLineUom(line.key, event.target.value)} disabled={!line.itemId} aria-label={`Unit of measure for ${line.itemSearch || "request line"}`}>
                         <option value="">Choose unit</option>
                         {allowedUomsForLine(line).map((uom) => <option key={uom} value={uom}>{uom.toUpperCase()}</option>)}
@@ -345,7 +358,7 @@ export function PurchaseRequestForm({
                   <input type="hidden" name="line_suggested_supplier_id" value={line.supplierId} />
                   <input type="hidden" name="line_estimated_unit_cost" value={line.cost} />
                   <details className="hidden" aria-hidden="true"><summary>Sourcing details <span>(automatic)</span></summary><div className="grid grid-cols-[minmax(0,1.35fr)_minmax(0,0.8fr)_minmax(4.75rem,0.7fr)_2.75rem]" /><span>Line note <span className="font-normal">(optional)</span></span></details>
-                  <div className="col-start-3 flex items-end justify-end gap-1 md:col-span-1 md:col-start-4 md:row-start-1">
+                  <div className="col-start-4 flex items-end justify-end gap-1 md:col-span-1 md:col-start-4 md:row-start-1">
                     <Button type="button" variant="ghost" size="icon" className="h-10 w-9 text-muted-foreground" aria-label={`Add comment for ${line.itemSearch || "request line"}`} onClick={() => setCommentLineKey((current) => current === line.key ? null : line.key)}><MessageSquare className="h-4 w-4" /></Button>
                     {lines.length > 1 ? <Button type="button" variant="ghost" size="icon" className="h-10 w-9 text-muted-foreground" aria-label="Remove line" onClick={() => setLines((current) => current.filter((row) => row.key !== line.key))}><X className="h-4 w-4" /></Button> : null}
                   </div>

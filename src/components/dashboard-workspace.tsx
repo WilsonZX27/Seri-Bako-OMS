@@ -212,25 +212,18 @@ export function DashboardWorkspace({ summary, renderedAt }: { summary: Dashboard
   );
 
   const desktopWorkspaceContext = (
-    <div className="grid min-w-0 grid-cols-[minmax(0,1fr)_auto] items-center gap-5" data-dashboard-identity>
-      <span className="sr-only">Welcome, {summary.userName} <span>|</span> {summary.roleLabel} <span>|</span> {summary.branchLabel}</span>
-      <div className="min-w-0">
-        <p className="text-[10px] font-medium uppercase tracking-[0.14em] text-[var(--sb-text-muted)]">WELCOME</p>
-        <p className="mt-0.5 truncate text-base font-semibold tracking-[-0.02em] text-[var(--sb-text)]">{summary.userName}</p>
+    <dl className="flex min-w-0 max-w-[28rem] flex-wrap justify-end gap-x-4 gap-y-1.5 text-xs text-[var(--sb-text-muted)]">
+      <div className="flex min-w-0 items-center gap-1.5">
+        <UserRound className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+        <dt className="sr-only">Role</dt>
+        <dd className="truncate font-medium text-[var(--sb-text)]">{summary.roleLabel}</dd>
       </div>
-      <dl className="flex max-w-[28rem] flex-wrap justify-end gap-x-4 gap-y-1.5 text-xs text-[var(--sb-text-muted)]">
-        <div className="flex min-w-0 items-center gap-1.5">
-          <UserRound className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
-          <dt className="sr-only">Role</dt>
-          <dd className="truncate font-medium text-[var(--sb-text)]">{summary.roleLabel}</dd>
-        </div>
-        <div className="flex min-w-0 items-center gap-1.5">
-          <LockKeyhole className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
-          <dt className="sr-only">Scope</dt>
-          <dd className="truncate">{summary.branchLabel}</dd>
-        </div>
-      </dl>
-    </div>
+      <div className="flex min-w-0 items-center gap-1.5">
+        <LockKeyhole className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+        <dt className="sr-only">Scope</dt>
+        <dd className="truncate">{summary.branchLabel}</dd>
+      </div>
+    </dl>
   );
 
   return (
@@ -259,20 +252,25 @@ export function DashboardWorkspace({ summary, renderedAt }: { summary: Dashboard
     >
       <div className="space-y-4">
         <span className="sr-only" aria-live="polite">{formatDateTime(now.toISOString())}</span>
-        <header className="hidden min-h-12 w-full grid-cols-[minmax(10rem,auto)_minmax(0,1fr)] items-center gap-6 border-b border-[var(--sb-border-soft)] pb-3 md:flex md:grid">
-          <div className="min-w-0">
+        <header className="hidden min-h-12 w-full items-end justify-between gap-6 border-b border-[var(--sb-border-soft)] pb-3 md:flex">
+          <div className="flex min-w-0 items-end gap-8">
             <h1 className="text-xl font-semibold tracking-[-0.02em] text-[var(--sb-text)]">{copy.title}</h1>
+            <div className="min-w-0" data-dashboard-identity>
+              <span className="sr-only">Welcome, {summary.userName} <span>|</span> {summary.roleLabel} <span>|</span> {summary.branchLabel}</span>
+              <p className="text-[10px] font-medium uppercase tracking-[0.14em] text-[var(--sb-text-muted)]">WELCOME</p>
+              <p className="mt-0.5 truncate text-base font-semibold tracking-[-0.02em] text-[var(--sb-text)]">{summary.userName}</p>
+            </div>
           </div>
-          <div className="min-w-0 justify-self-stretch">{desktopWorkspaceContext}</div>
+          <div className="min-w-0">{desktopWorkspaceContext}</div>
         </header>
 
         <div className="border-b border-[var(--sb-border-soft)] pb-3 md:hidden">{workspaceContext}</div>
 
         <QuickActionsCluster actions={quickActions} className="lg:hidden" />
 
-        <div data-dashboard-layout className="grid gap-4 lg:grid-cols-12 lg:items-start">
-          <div className="space-y-4 lg:col-span-6">
-        <section data-dashboard-command className="sb-command-surface overflow-hidden rounded-[var(--sb-panel-radius)]">
+        <div data-dashboard-layout className={`grid gap-4 lg:items-start ${isOutlet ? "lg:grid-cols-2" : "lg:grid-cols-12"}`}>
+          <div className={isOutlet ? "grid min-w-0 gap-4 lg:col-span-2 lg:grid-cols-2 lg:items-start" : "space-y-4 lg:col-span-6"}>
+        <section data-dashboard-command className={`sb-command-surface overflow-hidden rounded-[var(--sb-panel-radius)] ${isOutlet ? "lg:col-span-1" : ""}`}>
           <div className="flex items-end justify-between gap-4 p-4 sm:p-5">
             <div className="min-w-0">
               <p className="text-xs font-medium text-white/65">Operational pulse</p>
@@ -318,9 +316,33 @@ export function DashboardWorkspace({ summary, renderedAt }: { summary: Dashboard
           </div>
         </section>
 
-        <QuickActionsCluster actions={quickActions} className="hidden lg:block xl:hidden" />
+        <QuickActionsCluster actions={quickActions} className={isOutlet ? "hidden" : "hidden lg:block xl:hidden"} />
+
+        {!isOutlet && summary.pendingApprovals.length ? <Panel
+          title={isKitchen ? "Purchase request progress" : "Actions awaiting you"}
+        >
+          <div className="divide-y rounded-[var(--sb-radius-control)] border bg-[var(--workspace-bg)]">
+            {summary.pendingApprovals.map((row: DashboardSummary["pendingApprovals"][number]) => (
+              <Link prefetch={false}
+                key={row.id}
+                href={row.href}
+                className="flex min-h-11 items-center justify-between gap-3 px-3 py-2 text-xs hover:bg-[var(--sb-surface-muted)]"
+              >
+                <span className="min-w-0">
+                  <strong className="block truncate font-mono">{row.document_no}</strong>
+                  <span className="text-muted-foreground">
+                    {row.step}
+                    {row.branch_name ? ` · ${row.branch_name}` : ""}
+                  </span>
+                </span>
+                <span className="shrink-0 text-[11px] text-muted-foreground">{row.age_label}</span>
+              </Link>
+            ))}
+          </div>
+        </Panel> : null}
 
         {isOutlet ? (
+          <>
           <Panel title="Today's completion">
             <div className="flex items-center gap-3 rounded-[var(--sb-radius-control)] bg-[var(--sb-surface)] p-3">
               {outletComplete ? <CheckCircle2 className="h-5 w-5 text-[var(--sb-success)]" /> : <Clock3 className="h-5 w-5 text-[var(--sb-warning)]" />}
@@ -332,38 +354,14 @@ export function DashboardWorkspace({ summary, renderedAt }: { summary: Dashboard
               </div>
             </div>
           </Panel>
+          <QuickActionsCluster actions={quickActions} className="hidden lg:block" />
+          </>
         ) : null}
           </div>
 
           <div className="space-y-4 lg:col-span-6">
         {!isOutlet ? (
           <div className="space-y-4">
-            {summary.pendingApprovals.length ? <Panel
-              title={isKitchen ? "Purchase request progress" : "Actions awaiting you"}
-            >
-                <div className="divide-y rounded-[var(--sb-radius-control)] border bg-[var(--workspace-bg)]">
-                  {summary.pendingApprovals.map((row: DashboardSummary["pendingApprovals"][number]) => (
-                    <Link prefetch={false}
-                      key={row.id}
-                      href={row.href}
-                      className="flex min-h-11 items-center justify-between gap-3 px-3 py-2 text-xs hover:bg-[var(--sb-surface-muted)]"
-                    >
-                      <span className="min-w-0">
-                        <strong className="block truncate font-mono">{row.document_no}</strong>
-                        <span className="text-muted-foreground">
-                          {row.step}
-                          {row.branch_name ? ` · ${row.branch_name}` : ""}
-                        </span>
-                      </span>
-                      <span className="shrink-0 text-[11px] text-muted-foreground">{row.age_label}</span>
-                    </Link>
-                  ))}
-                </div>
-            </Panel> : (
-              <div className="hidden xl:block">
-                <Panel title={isKitchen ? "Purchase request progress" : "Actions awaiting you"} empty="No pending actions in your current scope." />
-              </div>
-            )}
             <Panel title={isPurchasing ? "Purchasing pipeline" : isKitchen ? "Production and receiving" : "Operational pipeline"}>
               <div className="grid grid-cols-3 gap-1.5 sm:gap-2">
                 <Metric

@@ -4,7 +4,6 @@ import Link from "next/link";
 import { AlertTriangle, ArrowUpRight, Boxes, CheckCircle2, ClipboardCheck, ClipboardList, Clock3, Factory, FileText, LockKeyhole, PackageCheck, ReceiptText, ShoppingCart, UserRound } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { ConsoleSection } from "@/components/layout/right-console";
 import { WorkspaceGrid } from "@/components/layout/workspace-layout";
 import { formatCurrency, formatDateOnly, formatDateTime, formatNumber } from "@/lib/utils";
 import type { LucideIcon } from "lucide-react";
@@ -87,21 +86,21 @@ function Panel({
   );
 }
 
-function MobileQuickActions({ actions }: { actions: { href: string; label: string; icon: LucideIcon }[] }) {
+function QuickActionsCluster({ actions, className }: { actions: { href: string; label: string; icon: LucideIcon }[]; className?: string }) {
   return (
-    <section className="xl:hidden" aria-labelledby="mobile-quick-actions-title">
+    <section className={className} aria-labelledby="dashboard-quick-actions-title">
       <div className="mb-2 flex items-center justify-between">
-        <h2 id="mobile-quick-actions-title" className="text-xs font-semibold uppercase tracking-[0.14em] text-[var(--sb-text-muted)]">Quick actions</h2>
+        <h2 id="dashboard-quick-actions-title" className="text-xs font-semibold uppercase tracking-[0.14em] text-[var(--sb-text-muted)]">Quick actions</h2>
         <span className="text-[11px] text-[var(--sb-text-muted)]">Based on your role</span>
       </div>
-      <div className="grid grid-cols-3 gap-2" data-dashboard-quick-actions>
-        {actions.slice(0, 3).map((action, index) => {
+      <div className="grid grid-cols-3 gap-2 lg:grid-cols-1" data-dashboard-quick-actions>
+        {actions.slice(0, 3).map((action) => {
           const Icon = action.icon;
           return (
             <Link prefetch={false}
               key={action.href}
               href={action.href}
-              className={`group flex min-h-[4.5rem] min-w-0 flex-col items-start justify-between rounded-[var(--sb-panel-radius)] border border-[var(--sb-border-soft)] bg-[var(--sb-surface)] p-2.5 text-left text-[11px] font-semibold text-[var(--sb-text)] shadow-[var(--sb-shadow-card)] transition-[transform,background-color,border-color] duration-200 hover:-translate-y-0.5 hover:border-[var(--sb-green-700)] hover:bg-[var(--sb-surface-muted)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--sb-green-700)] ${index === 0 ? "sm:col-span-2" : ""}`}
+              className="group flex min-h-[4.5rem] min-w-0 flex-col items-start justify-between rounded-[var(--sb-panel-radius)] border border-[var(--sb-border-soft)] bg-[var(--sb-surface)] p-2.5 text-left text-[11px] font-semibold text-[var(--sb-text)] shadow-[var(--sb-shadow-card)] transition-[transform,background-color,border-color] duration-200 hover:-translate-y-0.5 hover:border-[var(--sb-green-700)] hover:bg-[var(--sb-surface-muted)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--sb-green-700)]"
             >
               <span className="grid h-7 w-7 place-items-center rounded-[var(--sb-radius-control)] bg-[var(--sb-green-050)] text-[var(--sb-green-800)]">
                 <Icon className="h-4 w-4" aria-hidden="true" />
@@ -236,34 +235,7 @@ export function DashboardWorkspace({ summary, renderedAt }: { summary: Dashboard
   return (
     <WorkspaceGrid
       hideMobileConsole
-      className="gap-4 p-3 pb-32 sm:p-4 sm:pb-24 xl:pb-4 xl:grid-cols-[minmax(0,1fr)_280px]"
-      rightRailClassName="space-y-2"
-      rightRail={
-        <>
-          <ConsoleSection title="Actions">
-            <div className="grid grid-cols-2 gap-1.5" data-dashboard-actions>
-              {quickActions.map((action, index) => (
-                <Button key={action.href} asChild size="sm" variant={index === 0 ? "default" : "ghost"} className={index === 2 ? "col-span-2 sb-action-row" : "sb-action-row"}>
-                  <Link prefetch={false} href={action.href}><action.icon className="h-4 w-4" aria-hidden="true" />{action.label}</Link>
-                </Button>
-              ))}
-            </div>
-          </ConsoleSection>
-          {/* The desktop context rail intentionally omits the duplicate Today card. Legacy contract marker retained for static checks. ConsoleSection title="Today" precedes ConsoleSection title="Alerts" only in the previous rail implementation. */}
-          {summary.notifications.length ? (
-            <ConsoleSection title="Alerts">
-              <div className="space-y-2">
-                {summary.notifications.slice(0, 3).map((note: DashboardSummary["notifications"][number]) => (
-                  <Link prefetch={false} key={note.id} href={note.action_url ?? "/activity"} className="block text-xs hover:underline">
-                    <strong className="block">{note.title}</strong>
-                    <span className="text-muted-foreground">{note.message}</span>
-                  </Link>
-                ))}
-              </div>
-            </ConsoleSection>
-          ) : null}
-        </>
-      }
+      className="gap-4 p-3 pb-32 sm:p-4 sm:pb-24 xl:pb-4"
     >
       <div className="space-y-4">
         <span className="sr-only" aria-live="polite">{formatDateTime(now.toISOString())}</span>
@@ -276,8 +248,10 @@ export function DashboardWorkspace({ summary, renderedAt }: { summary: Dashboard
 
         <div className="border-b border-[var(--sb-border-soft)] pb-3 md:hidden">{workspaceContext}</div>
 
-        <MobileQuickActions actions={quickActions} />
+        <QuickActionsCluster actions={quickActions} className="lg:hidden" />
 
+        <div data-dashboard-layout className="grid gap-4 lg:grid-cols-12 lg:items-start">
+          <div className="space-y-4 lg:col-span-4">
         <section data-dashboard-command className="sb-command-surface overflow-hidden rounded-[var(--sb-panel-radius)]">
           <div className="flex items-end justify-between gap-4 p-4 sm:p-5">
             <div className="min-w-0">
@@ -293,20 +267,20 @@ export function DashboardWorkspace({ summary, renderedAt }: { summary: Dashboard
               </div>
             </div>
           </div>
-          <div className="grid grid-cols-2 divide-x divide-y divide-white/15 border-t border-white/15 sm:grid-cols-4 sm:divide-y-0" data-dashboard-pulse-metrics>
-            <Link prefetch={false} href="/low-stock" className="group flex min-w-0 items-center justify-between gap-2 px-3 py-3 transition-colors hover:bg-white/10 sm:px-5">
+          <div className="grid grid-cols-2 divide-x divide-y divide-white/15 border-t border-white/15" data-dashboard-pulse-metrics>
+            <Link prefetch={false} href="/low-stock" className="group flex min-w-0 flex-col items-start gap-1 px-3 py-3 transition-colors hover:bg-white/10 sm:px-4">
               <span className="min-w-0"><span className="flex items-center gap-1.5 text-white/65"><AlertTriangle className="h-3.5 w-3.5 shrink-0" aria-hidden="true" /><span className="text-[10px] uppercase leading-4 tracking-[0.12em]">Low stock</span></span></span>
               <strong className={summary.inventoryUnavailable ? "text-[10px] font-semibold uppercase tracking-[0.08em] text-white/85" : "text-xl font-semibold tabular-nums"} aria-label={summary.inventoryUnavailable ? "Low stock data is temporarily unavailable" : `${summary.lowStockCount} low stock items`}>
                 {summary.inventoryUnavailable ? "Unavailable" : summary.lowStockCount}
               </strong>
             </Link>
-            <Link prefetch={false} href="/goods-receivings" className="group flex min-w-0 items-center justify-between gap-2 px-3 py-3 transition-colors hover:bg-white/10 sm:px-5">
+            <Link prefetch={false} href="/goods-receivings" className="group flex min-w-0 flex-col items-start gap-1 px-3 py-3 transition-colors hover:bg-white/10 sm:px-4">
               <span className="min-w-0"><span className="flex items-center gap-1.5 text-white/65"><PackageCheck className="h-3.5 w-3.5 shrink-0" aria-hidden="true" /><span className="text-[10px] uppercase leading-4 tracking-[0.12em]">Receiving</span></span></span>
               <strong className={summary.todayReceivingUnavailable ? "text-[10px] font-semibold uppercase tracking-[0.08em] text-white/85" : "text-xl font-semibold tabular-nums"} aria-label={summary.todayReceivingUnavailable ? "Receiving data is temporarily unavailable" : `${summary.today.goodsReceiving} receiving records today`}>
                 {summary.todayReceivingUnavailable ? "Unavailable" : summary.today.goodsReceiving}
               </strong>
             </Link>
-            <Link prefetch={false} href="/purchase-requests" className="group flex min-w-0 items-center justify-between gap-2 px-3 py-3 transition-colors hover:bg-white/10 sm:px-5">
+            <Link prefetch={false} href="/purchase-requests" className="group flex min-w-0 flex-col items-start gap-1 px-3 py-3 transition-colors hover:bg-white/10 sm:px-4">
               <span className="min-w-0"><span className="flex items-center gap-1.5 text-white/65"><FileText className="h-3.5 w-3.5 shrink-0" aria-hidden="true" /><span className="text-[10px] uppercase leading-4 tracking-[0.12em]">Requests</span></span></span>
               <strong
                 className={summary.coreSnapshotUnavailable ? "text-[10px] font-semibold uppercase tracking-[0.08em] text-white/85" : "text-xl font-semibold tabular-nums"}
@@ -315,7 +289,7 @@ export function DashboardWorkspace({ summary, renderedAt }: { summary: Dashboard
                 {summary.coreSnapshotUnavailable ? "Unavailable" : summary.purchaseRequests.length}
               </strong>
             </Link>
-            <Link prefetch={false} href="/stock-counts" className="group flex min-w-0 items-center justify-between gap-2 px-3 py-3 transition-colors hover:bg-white/10 sm:px-5">
+            <Link prefetch={false} href="/stock-counts" className="group flex min-w-0 flex-col items-start gap-1 px-3 py-3 transition-colors hover:bg-white/10 sm:px-4">
               <span className="min-w-0"><span className="flex items-center gap-1.5 text-white/65"><CheckCircle2 className="h-3.5 w-3.5 shrink-0" aria-hidden="true" /><span className="text-[10px] uppercase leading-4 tracking-[0.12em]">Stock count due</span></span><span className="mt-0.5 block max-w-40 truncate text-[10px] text-white/55">Last: {summary.lastStockCount?.count_no ?? "No posted count"}{summary.lastStockCount ? ` · ${formatDateOnly(summary.lastStockCount.count_date)}` : ""}</span></span>
               <strong className={summary.stockCountDueUnavailable ? "text-[10px] font-semibold uppercase tracking-[0.08em] text-white/85" : "text-xl font-semibold tabular-nums"} aria-label={summary.stockCountDueUnavailable ? "Stock count due data is temporarily unavailable" : `${summary.today.stockCountDue} stock counts due`}>
                 {summary.stockCountDueUnavailable ? "Unavailable" : summary.today.stockCountDue}
@@ -323,6 +297,8 @@ export function DashboardWorkspace({ summary, renderedAt }: { summary: Dashboard
             </Link>
           </div>
         </section>
+
+        <QuickActionsCluster actions={quickActions} className="hidden lg:block" />
 
         {isOutlet ? (
           <Panel title="Today's completion">
@@ -337,9 +313,11 @@ export function DashboardWorkspace({ summary, renderedAt }: { summary: Dashboard
             </div>
           </Panel>
         ) : null}
+          </div>
 
+          <div className="space-y-4 lg:col-span-8">
         {!isOutlet ? (
-          <div className={summary.pendingApprovals.length ? "grid gap-4 lg:grid-cols-2" : "grid gap-4"}>
+          <div className="space-y-4">
             {summary.pendingApprovals.length ? <Panel
               title={isKitchen ? "Purchase request progress" : "Actions awaiting you"}
             >
@@ -367,7 +345,7 @@ export function DashboardWorkspace({ summary, renderedAt }: { summary: Dashboard
               </div>
             )}
             <Panel title={isPurchasing ? "Purchasing pipeline" : isKitchen ? "Production and receiving" : "Operational pipeline"}>
-              <div className="grid grid-flow-dense grid-cols-2 gap-1.5 sm:grid-cols-4 sm:gap-2">
+              <div className="grid grid-cols-3 gap-1.5 sm:gap-2">
                 <Metric
                   href="/purchase-orders"
                   label={isPurchasing ? "PO preparation / sending" : "Recent purchase orders"}
@@ -376,7 +354,7 @@ export function DashboardWorkspace({ summary, renderedAt }: { summary: Dashboard
                   unavailable={summary.coreSnapshotUnavailable}
                   detail={summary.coreSnapshotUnavailable ? undefined : latestPurchaseOrder ? `${latestPurchaseOrder.po_no} · ${latestPurchaseOrder.status.replaceAll("_", " ")}` : "No recent PO"}
                   variant="tile"
-                  className="col-span-2 sm:col-span-2"
+                  density="compact"
                 />
                 <Metric
                   href={isKitchen ? "/goods-receivings?date=today" : "/goods-receivings"}
@@ -386,7 +364,7 @@ export function DashboardWorkspace({ summary, renderedAt }: { summary: Dashboard
                   alert={isKitchen ? summary.today.goodsReceiving > 0 : summary.financeForecast.receivingNotInvoiced > 0}
                   unavailable={isKitchen ? summary.todayReceivingUnavailable : summary.receivingFollowupUnavailable}
                   variant="tile"
-                  className="sm:col-span-1"
+                  density="compact"
                 />
                 <Metric
                   href="/production/jobs"
@@ -396,9 +374,9 @@ export function DashboardWorkspace({ summary, renderedAt }: { summary: Dashboard
                   alert={Boolean(summary.productionSummary?.ingredientShortages)}
                   unavailable={!summary.productionSummary}
                   variant="tile"
-                  className="sm:col-span-1"
+                  density="compact"
                 />
-                {isPurchasing ? <Metric href="/administration/master-data-cleanup" label="Master-data follow-up" value="Review" icon={Boxes} variant="tile" /> : null}
+                {isPurchasing ? <Metric href="/administration/master-data-cleanup" label="Master-data follow-up" value="Review" icon={Boxes} variant="tile" density="compact" /> : null}
               </div>
             </Panel>
           </div>
@@ -464,6 +442,21 @@ export function DashboardWorkspace({ summary, renderedAt }: { summary: Dashboard
               </>
             ) : null}
           </Panel> : null}
+
+        {summary.notifications.length ? (
+          <Panel title="Alerts">
+            <div className="space-y-2 px-1 py-1">
+              {summary.notifications.slice(0, 3).map((note: DashboardSummary["notifications"][number]) => (
+                <Link prefetch={false} key={note.id} href={note.action_url ?? "/activity"} className="block rounded-[var(--sb-radius-control)] px-2 py-1.5 text-xs hover:bg-[var(--sb-surface-muted)]">
+                  <strong className="block">{note.title}</strong>
+                  <span className="text-muted-foreground">{note.message}</span>
+                </Link>
+              ))}
+            </div>
+          </Panel>
+        ) : null}
+          </div>
+        </div>
       </div>
     </WorkspaceGrid>
   );

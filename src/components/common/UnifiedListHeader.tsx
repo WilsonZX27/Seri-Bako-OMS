@@ -192,7 +192,20 @@ export function UnifiedListHeader({ children, resultCount, resetHref, filtered =
     searchTimerRef.current = setTimeout(() => formRef.current?.requestSubmit(), 300);
   };
 
-  if (!mobile) return <form className={cn("sb-list-filters", className)} data-unified-list-desktop="true" data-filtered={filtered || undefined} data-reset-href={resetHref}>{children}{typeof resultCount === "number" ? <div className="sb-filter-summary" aria-live="polite"><span>{resultCount} {resultCount === 1 ? "record" : "records"}</span></div> : null}</form>;
+  if (!mobile) {
+    const desktopActions = all.filter(isAction);
+    const desktopControls = all.filter((child) => !isAction(child));
+    const actionNodes = desktopActions.map((child) => {
+      if (!isValidElement(child)) return child;
+      const props = propsOf(child);
+      return cloneElement(child as ReactElement<Record<string, unknown>>, { className: cn("unified-list-action", props.className as string) });
+    });
+    return <form className={cn("sb-list-filters", className)} data-unified-list-desktop="true" data-filtered={filtered || undefined} data-reset-href={resetHref}>
+      {desktopControls}
+      {typeof resultCount === "number" ? <div className="sb-filter-summary" aria-live="polite"><span>{resultCount} {resultCount === 1 ? "record" : "records"}</span></div> : null}
+      {actionNodes}
+    </form>;
+  }
 
   const submit = (event: FormEvent<HTMLFormElement>) => {
     event.currentTarget.querySelectorAll<HTMLButtonElement>('button[type="submit"]').forEach((button) => { button.disabled = true; button.dataset.pending = "true"; });

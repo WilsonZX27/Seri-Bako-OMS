@@ -949,6 +949,78 @@ html[data-design-layer="v2"] :where(input, select, textarea, button, .inline-fle
   border-radius: var(--sb-control-radius);
 }
 
+/* Canonical desktop/tablet filter rail: controls share a predictable width and
+   the terminal action sits at the far edge after the result summary. Search is
+   the only flexible control; this keeps long list canvases from becoming a
+   row of stretched, unrelated buttons. */
+@media (min-width: 768px) {
+  html[data-design-layer="v2"] form[data-unified-list-desktop="true"] {
+    align-items: center;
+    flex-wrap: nowrap;
+    min-width: 0;
+  }
+
+  html[data-design-layer="v2"] form[data-unified-list-desktop="true"] > :where(input[type="search"], input[name="search"], input[placeholder*="Search"], input[placeholder*="Find"]) {
+    flex: 1 1 20rem;
+    width: auto;
+    max-width: 24rem;
+    min-width: 12rem;
+  }
+
+  html[data-design-layer="v2"] form[data-unified-list-desktop="true"] > :where(select, [data-select-control], .sb-status-filter, .sb-filter-more) {
+    flex: 0 0 9rem;
+    width: 9rem;
+    min-width: 0;
+  }
+
+  html[data-design-layer="v2"] form[data-unified-list-desktop="true"] > .sb-filter-more > summary {
+    width: 100%;
+    justify-content: center;
+  }
+
+  html[data-design-layer="v2"] form[data-unified-list-desktop="true"] > .sb-filter-summary {
+    order: 20;
+    margin-left: auto;
+  }
+
+  html[data-design-layer="v2"] form[data-unified-list-desktop="true"] > .unified-list-action {
+    order: 30;
+    flex: 0 0 8.5rem;
+    width: 8.5rem;
+    justify-content: center;
+  }
+}
+
+/* Portrait/compact tablets can expose a contextual rail beside a list. Keep
+   the shared filter row inside the available work surface instead of letting
+   the terminal action escape the viewport. Wide desktop (1280px+) keeps the
+   single horizontal rail above. */
+@media (min-width: 768px) and (max-width: 1279px) {
+  html[data-design-layer="v2"] form[data-unified-list-desktop="true"] {
+    flex-wrap: wrap;
+    row-gap: 0.5rem;
+  }
+
+  html[data-design-layer="v2"] form[data-unified-list-desktop="true"] > :where(input[type="search"], input[name="search"], input[placeholder*="Search"], input[placeholder*="Find"]) {
+    flex: 1 1 10rem;
+    max-width: none;
+  }
+
+  html[data-design-layer="v2"] form[data-unified-list-desktop="true"] > :where(select, [data-select-control], .sb-status-filter, .sb-filter-more) {
+    flex: 1 1 7rem;
+    width: auto;
+  }
+
+  html[data-design-layer="v2"] form[data-unified-list-desktop="true"] > .sb-filter-summary {
+    margin-left: 0;
+  }
+
+  html[data-design-layer="v2"] form[data-unified-list-desktop="true"] > .unified-list-action {
+    flex: 0 0 7rem;
+    width: 7rem;
+  }
+}
+
 @media (min-width: 640px) {
   html[data-design-layer="v2"] .sb-list-filters :where(button[type="submit"], .sb-filter-submit) {
     min-width: 6.5rem;
@@ -985,8 +1057,18 @@ html[data-design-layer="v2"] [data-dashboard-command] :where(h1, h2, h3, p, span
 
 html[data-design-layer="v2"] [data-dashboard-command] [data-dashboard-pulse-metrics] {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   background: rgba(255, 255, 255, 0.04);
+}
+
+html[data-design-layer="v2"] [data-dashboard-command] [data-dashboard-pulse-metrics] > a > span:first-child {
+  min-width: 0;
+}
+
+html[data-design-layer="v2"] [data-dashboard-command] [data-dashboard-pulse-metrics] > a > span:first-child > span:last-child {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  white-space: normal;
 }
 
 html[data-design-layer="v2"] [data-mobile-bottom-nav] {

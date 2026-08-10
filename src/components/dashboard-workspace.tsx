@@ -4,6 +4,7 @@ import Link from "next/link";
 import { AlertTriangle, ArrowUpRight, Boxes, CheckCircle2, ClipboardCheck, ClipboardList, Clock3, Factory, FileText, LockKeyhole, PackageCheck, ReceiptText, ShoppingCart, UserRound } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
+import { ConsoleSection } from "@/components/layout/right-console";
 import { WorkspaceGrid } from "@/components/layout/workspace-layout";
 import { formatCurrency, formatDateOnly, formatDateTime, formatNumber } from "@/lib/utils";
 import type { LucideIcon } from "lucide-react";
@@ -235,15 +236,34 @@ export function DashboardWorkspace({ summary, renderedAt }: { summary: Dashboard
   return (
     <WorkspaceGrid
       hideMobileConsole
+      rightRail={
+        <>
+          <ConsoleSection title="Actions">
+            <div className="grid gap-2" data-dashboard-actions>
+              {quickActions.map((action, index) => {
+                const Icon = action.icon;
+                return (
+                  <Button key={action.href} asChild size="sm" variant={index === 0 ? "default" : "outline"} className="w-full justify-start">
+                    <Link prefetch={false} href={action.href}><Icon className="h-4 w-4" aria-hidden="true" />{action.label}</Link>
+                  </Button>
+                );
+              })}
+            </div>
+          </ConsoleSection>
+          <ConsoleSection title="Workspace context">
+            <p className="text-xs text-[var(--sb-text-muted)]">Open a record to see actions, timeline, and metadata here.</p>
+          </ConsoleSection>
+        </>
+      }
       className="gap-4 p-3 pb-32 sm:p-4 sm:pb-24 xl:pb-4"
     >
       <div className="space-y-4">
         <span className="sr-only" aria-live="polite">{formatDateTime(now.toISOString())}</span>
-        <header className="hidden min-h-12 w-full grid-cols-[minmax(0,1fr)_minmax(18rem,auto)] items-center gap-6 border-b border-[var(--sb-border-soft)] pb-3 md:flex md:grid">
+        <header className="hidden min-h-12 w-full grid-cols-[minmax(10rem,auto)_minmax(0,1fr)] items-center gap-6 border-b border-[var(--sb-border-soft)] pb-3 md:flex md:grid">
           <div className="min-w-0">
             <h1 className="text-xl font-semibold tracking-[-0.02em] text-[var(--sb-text)]">{copy.title}</h1>
           </div>
-          <div className="min-w-0 justify-self-end">{desktopWorkspaceContext}</div>
+          <div className="min-w-0 justify-self-stretch">{desktopWorkspaceContext}</div>
         </header>
 
         <div className="border-b border-[var(--sb-border-soft)] pb-3 md:hidden">{workspaceContext}</div>
@@ -298,7 +318,7 @@ export function DashboardWorkspace({ summary, renderedAt }: { summary: Dashboard
           </div>
         </section>
 
-        <QuickActionsCluster actions={quickActions} className="hidden lg:block" />
+        <QuickActionsCluster actions={quickActions} className="hidden lg:block xl:hidden" />
 
         {isOutlet ? (
           <Panel title="Today's completion">

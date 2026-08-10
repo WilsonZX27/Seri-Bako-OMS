@@ -58,3 +58,10 @@ The previous 19 browser comments remain part of this ledger and must not be regr
 - `UnifiedListHeader` now places desktop controls first, result count next, and terminal actions (Search/Reset/Filter) at the right. A shared 768–1279px compact rule allows a controlled wrap inside narrow content rails; 1280px+ retains the single horizontal rail. No page-specific filter CSS was added.
 - Targeted authenticated static audit passed for `/dashboard`, `/production/jobs`, `/purchase-requests`, `/purchase-returns`, `/stock-balance`, `/supplier-invoices`, `/suppliers`, and `/uom-conversions` at 390, 768, 1024, 1280, and 1440 profiles after the compact-rail fix. Dashboard screenshot evidence was captured at 390, 768, and 1440; all selected route checks reported no viewport overflow or out-of-bounds interactive controls.
 - `npm run typecheck:strict`, `npm run lint`, and `npm run build` passed after this pass. A live dev preview is available on `0.0.0.0:3000` for multi-device review: `http://localhost:3000/dashboard` and `http://192.168.0.25:3000/dashboard`.
+
+## Latest refinement pass — 2026-08-10
+
+- Restored Dashboard desktop Actions in the shared right console, alongside a compact Workspace context card. The main dashboard keeps the 12-column density model; the welcome identity stays left-aligned while role/scope remains right-aligned.
+- Unified `ConsoleSection` into the same raised, rounded panel language used by Stock Wastage and Stock Balance. Stock Balance now labels the side panel `PR basket`, while its desktop floating basket trigger remains suppressed when the rail is visible to avoid duplicate entry points.
+- Focused Playwright static audit passed `/dashboard`, `/stock-balance`, and `/stock-wastage` at mobile 390 and desktop 1440 (2/2 tests, no viewport overflow or out-of-bounds interactive controls). Screenshots were captured for both profiles.
+- Re-verified `npm run typecheck:strict`, `npm run lint`, and `npm run build` after the refinement. No Supabase paths, server actions, or business-state transitions were changed.

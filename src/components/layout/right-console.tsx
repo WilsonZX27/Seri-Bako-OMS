@@ -145,7 +145,7 @@ export function RightConsoleProvider({ children }: { children: ReactNode }) {
     <RightConsoleContext.Provider value={value}>
       {children}
       <aside data-right-console className="hidden h-full min-h-0 w-[var(--sb-console-width)] shrink-0 overflow-hidden border-l bg-[var(--rail-bg)] xl:block">
-        <div data-right-console-scroll className="sb-scrollbar-none h-full overflow-y-auto overflow-x-hidden bg-[var(--rail-bg)] px-2 py-1">
+        <div data-right-console-scroll className="sb-scrollbar-none h-full space-y-3 overflow-y-auto overflow-x-hidden bg-[var(--rail-bg)] px-2 py-3">
           {consoleContent}
         </div>
       </aside>
@@ -196,8 +196,11 @@ export function RightConsoleMount({ children, hideMobileBar = false }: { childre
 
 export function ConsoleSection({ title, children }: { title: string; children: ReactNode }) {
   return (
-    <section data-console-section className="border-b border-[var(--border-muted)] px-3 py-3 last:border-b-0">
-      <h2 className="mb-2 text-xs font-semibold text-[var(--sb-text-muted)]">{title}</h2>
+    <section data-console-section className="rounded-[var(--sb-panel-radius)] border border-[var(--sb-border-soft)] bg-[var(--sb-surface-raised)] px-3 py-3 shadow-[var(--sb-shadow-card)]">
+      <div className="mb-3 flex items-center gap-2">
+        <h2 className="shrink-0 text-xs font-semibold uppercase tracking-[0.12em] text-[var(--sb-text-muted)]">{title}</h2>
+        <span aria-hidden="true" className="h-px min-w-0 flex-1 bg-[var(--sb-border-soft)]" />
+      </div>
       <div className="space-y-2 text-xs [&_.inline-flex]:text-xs">{children}</div>
     </section>
   );

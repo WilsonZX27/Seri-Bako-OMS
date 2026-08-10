@@ -183,7 +183,7 @@ export function StockBalanceWorkspace({
                 <strong>{queryError ? "—" : formatCurrency(totalValue)}</strong>
               </div>
             </ConsoleSection>
-            <ConsoleSection title="PR Preparation">
+            <ConsoleSection title="PR basket">
               <form action={createPurchaseRequestsFromBasket} className="space-y-3">
                 <input type="hidden" name="idempotency_key" value={idempotencyKey} />
                 <input type="hidden" name="request_no" value="" />

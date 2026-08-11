@@ -32,10 +32,8 @@ export default async function UomConversionsPage({ searchParams }: { searchParam
           </Card>
         ) : null}
         <div className="space-y-3">
-          <div className="rounded-[var(--sb-panel-radius)] border bg-card p-2">
-            <MasterDataFilters search={filters.search} status={filters.status} placeholder="Search UOM pair" />
-          </div>
-          <div className="overflow-hidden rounded-[var(--sb-panel-radius)] border bg-card">
+          <MasterDataFilters search={filters.search} status={filters.status} placeholder="Search UOM pair" resultCount={page.totalRows} resetHref="/uom-conversions" />
+          <div className="sb-list-content-card overflow-hidden">
             <div className="overflow-x-auto">
             <Table stickyColumn="second">
               <TableHeader>

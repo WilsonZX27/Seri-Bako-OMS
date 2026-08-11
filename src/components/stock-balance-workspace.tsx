@@ -300,7 +300,7 @@ export function StockBalanceWorkspace({
         tabletRailMode="split"
         tabletRailBreakpoint="md"
       >
-        <div className="overflow-hidden rounded-[2px] border border-[var(--sb-border-soft)] bg-card">
+        <div className="space-y-3">
           <FilterBar resultCount={totalRows} resetHref="/stock-balance" filtered={Boolean(filters.search || filters.branch_id || filters.status)}>
             <Input name="search" defaultValue={filters.search ?? ""} placeholder="Search item, branch, status" className="md:max-w-sm" />
             <SelectControl name="branch_id" defaultValue={filters.branch_id ?? "all"} ariaLabel="Branch" className="md:max-w-xs" options={[{ value: "all", label: "All branches" }, ...branches.map((branch) => ({ value: branch.id, label: branch.branch_name }))]} />
@@ -319,6 +319,7 @@ export function StockBalanceWorkspace({
             <input type="hidden" name="view" value="branch" />
             {Boolean(filters.search || filters.branch_id || filters.status) ? <Button asChild variant="secondary"><Link href="/stock-balance">Reset</Link></Button> : <Button type="submit" variant="secondary">Search</Button>}
           </FilterBar>
+          <div className="sb-list-content-card overflow-hidden">
           <Table mobileHidden aria-label="Stock balances" stickyColumn="second">
             <TableHeader>
               <TableRow>
@@ -365,6 +366,7 @@ export function StockBalanceWorkspace({
           )}
           <div className="pb-4">
             <PaginationControls page={page} totalPages={totalPages} totalRows={totalRows} searchParams={filters} />
+          </div>
           </div>
         </div>
       </WorkspaceGrid>

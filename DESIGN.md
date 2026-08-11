@@ -576,3 +576,10 @@ the route matrix in `docs/qa/FULL_SYSTEM_AUDIT_MATRIX.md`.
 - `UnifiedListHeader` owns phone, tablet, and desktop geometry. Search remains elastic; filters and the terminal Search/Reset action use the shared 8rem width at `640px+`; every visible query control renders at 44px high.
 - Result count remains immediately left of the far-right Search/Reset action. Query controls never inherit table overflow or appear vertically attached to table headers.
 - `MasterDataFilters` delegates its responsive presentation to `UnifiedListHeader`; master-data routes must not maintain a parallel desktop filter implementation.
+
+# v8.36.5 — Unified List Surface Contract
+
+- Every record list uses two sibling surfaces: one query card and one content card. Never nest the query card inside the table/content card.
+- Desktop query controls are 44px high. Filters and actions use a consistent 8rem width; search may be wider but is capped at 250px when desktop space permits.
+- Query inputs, selects, status controls, and More Filters use a white surface. The primary Search/Reset action remains Seri Bako green.
+- On mobile Outlet Daily creation, the sticky context header carries status and workflow only. Record setup owns the live location and date summary so the same context is not repeated twice.

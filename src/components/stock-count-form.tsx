@@ -338,14 +338,14 @@ export function StockCountForm({
           <input type="hidden" name="idempotency_key" value={idempotencyKey} />
           <section data-stock-count-setup className="erp-surface grid overflow-hidden rounded-[var(--sb-panel-radius)] border bg-white px-3 py-3 md:grid-cols-2 md:gap-3 md:px-4 md:py-4">
             <input type="hidden" name="branch_id" value={resolvedBranchId} />
-            <div className="flex min-w-0 items-center justify-between gap-3 md:border md:border-[var(--sb-border-soft)] md:bg-[var(--sb-surface)] md:p-3">
+            <div className="flex min-w-0 items-center justify-between gap-3 md:rounded-[var(--sb-control-radius)] md:border md:border-[var(--sb-border-soft)] md:bg-[var(--sb-surface)] md:p-3">
               <div className="min-w-0">
                 <p className="text-xs font-medium text-muted-foreground">Count date</p>
                 <p className="break-words text-sm font-semibold text-foreground">{initialCountDate ? formatDateOnly(countDate) : `Today · ${formatDateOnly(countDate)}`}</p>
               </div>
               <Input aria-label="Count date" name="count_date" type="date" value={countDate} onChange={(event) => { setCountDate(event.target.value); markDirty(); }} required className="basis-36 shrink-0" />
             </div>
-            <div className="hidden items-center justify-between gap-3 border border-[var(--sb-border-soft)] bg-[var(--sb-surface)] p-3 md:flex" aria-live="polite">
+            <div className="hidden items-center justify-between gap-3 rounded-[var(--sb-control-radius)] border border-[var(--sb-border-soft)] bg-[var(--sb-surface)] p-3 md:flex" aria-live="polite">
               <div className="min-w-0">
                 <p className={`break-words text-xs font-medium ${autosaveState === "error" ? "text-destructive" : autosaveState === "saved" ? "text-[var(--sb-green-900)]" : "text-muted-foreground"}`} title={autosaveError || autosaveLabel}>{autosaveLabel}</p>
                 <p className="text-xs text-muted-foreground">{lines.length} values ready · {adjustedCount} adjusted</p>
@@ -364,7 +364,7 @@ export function StockCountForm({
 
           <section data-stock-count-workspace className="erp-surface overflow-hidden rounded-[var(--sb-panel-radius)] border bg-white">
 
-          <div className="flex items-center gap-2 border-b border-slate-100 bg-white p-3 md:border-0 md:bg-transparent md:px-0 md:pt-3">
+          <div className="flex items-center gap-2 border-b border-slate-100 bg-white p-3 md:bg-transparent md:px-3 md:pt-3">
             <label className="relative min-w-0 flex-1">
               <span className="sr-only">Find an item</span>
               <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" aria-hidden="true" />

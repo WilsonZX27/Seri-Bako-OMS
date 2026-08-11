@@ -36,6 +36,7 @@ export default async function NewOutletDailyRecordPage({ searchParams }: { searc
     documentNo="New Outlet Daily Record"
     title="Outlet Daily Record"
     status="draft"
+    mobileStatusOnly
     branch={options.branches.find((branch) => branch.id === options.defaultBranchId)?.branch_name}
     workflowSteps={dailySteps}
     currentStatus="draft"

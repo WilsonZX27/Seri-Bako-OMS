@@ -30,6 +30,7 @@ export function DocumentWorkspace({
   mobileMoreOptions,
   mobileWorkflowTrailing,
   mobileContextDate,
+  mobileStatusOnly = false,
   hideMobileWorkflow = false,
   compactMobileSpacing = false,
   tabletRailMode = "split",
@@ -49,6 +50,7 @@ export function DocumentWorkspace({
   mobileMoreOptions?: ReactNode;
   mobileWorkflowTrailing?: ReactNode;
   mobileContextDate?: string | null;
+  mobileStatusOnly?: boolean;
   hideMobileWorkflow?: boolean;
   compactMobileSpacing?: boolean;
   tabletRailMode?: "context" | "split";
@@ -66,7 +68,7 @@ export function DocumentWorkspace({
         {showDocumentContext ? <div data-tablet-document-header className="flex flex-col gap-2 xl:flex-row xl:items-start xl:justify-between">
           <div className="min-w-0">
             <div className={cn("min-w-0", isNewDocument ? "min-h-7" : "flex min-h-8 flex-wrap items-center gap-2")}>
-              {isNewDocument ? <DocumentContextSummary title={title} status={status} branch={branch} date={mobileContextDate} /> : <>
+              {isNewDocument ? <DocumentContextSummary title={title} status={status} branch={branch} date={mobileContextDate} mobileStatusOnly={mobileStatusOnly} /> : <>
               {!isNewDocument ? <DocumentNumber value={documentNo} size="lg" className="max-w-[min(100%,18rem)] break-all text-[16px] sm:text-lg" /> : null}
               {priority ? <PriorityBadge priority={priority} /> : null}
               {branch ? <span className="basis-full truncate text-xs text-muted-foreground md:hidden">{branch}</span> : null}

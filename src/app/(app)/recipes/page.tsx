@@ -28,8 +28,9 @@ export default async function RecipesPage({ searchParams }: { searchParams: Prom
         description="Finished product recipes linked to Item Master ingredients."
       />
       <WorkspaceGrid tabletRailMode="split" tabletRailBreakpoint="md" hideMobileConsole={!canCreate} rightRail={<><ConsoleSection title="Actions">{canCreate ? <Button asChild className="w-full" data-mobile-primary-action><PendingLink href="/recipes/new" pendingLabel="Opening recipe form...">New recipe</PendingLink></Button> : <p className="text-xs text-muted-foreground">Recipe master data is read-only for Finance.</p>}</ConsoleSection><ConsoleSection title="Recipe Summary"><dl className="grid gap-2 text-xs"><div className="flex justify-between"><dt className="text-muted-foreground">Total</dt><dd className="font-semibold">{summary.total}</dd></div><div className="flex justify-between"><dt className="text-muted-foreground">Active</dt><dd className="font-semibold">{summary.active}</dd></div><div className="flex justify-between"><dt className="text-muted-foreground">Pending approval</dt><dd className="font-semibold">{summary.pendingApproval}</dd></div></dl></ConsoleSection></>}> 
-        <div className="overflow-hidden rounded-[2px] border bg-card">
+        <div className="space-y-3">
           <MasterDataFilters search={filters.search} status={filters.status} leadingFilter={<StatusTabs statuses={[{ value: "active", label: "Active" }, { value: "draft", label: "Draft" }, { value: "pending_approval", label: "Pending Approval" }, { value: "archived", label: "Archived" }]} activeStatus={filters.status} />} placeholder="Search recipe number, product code, or product" showStatus={false} resultCount={page.totalRows} filtered={filtered} resetHref="/recipes" />
+          <div className="sb-list-content-card overflow-hidden">
             <Table mobileHidden aria-label="Recipes" stickyColumn="second">
               <TableHeader>
                 <TableRow>
@@ -80,6 +81,7 @@ export default async function RecipesPage({ searchParams }: { searchParams: Prom
             {!page.rows.length ? <EmptyState title={filtered ? "No recipes match these filters" : "No recipes yet"} description={filtered ? "Reset the filters or widen the search." : "Recipes appear after a finished product receives a BOM."} action={filtered ? emptyAction : undefined} /> : null}
           </OperationalList>
           <PaginationControls page={page.page} totalPages={page.totalPages} totalRows={page.totalRows} searchParams={filters} />
+          </div>
         </div>
       </WorkspaceGrid>
     </>

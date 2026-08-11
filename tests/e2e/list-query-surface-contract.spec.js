@@ -10,6 +10,11 @@ const routes = [
   "/supplier-invoices",
   "/suppliers",
   "/outlet-daily-records",
+  "/items",
+  "/recipes",
+  "/uom-conversions",
+  "/stock-wastage",
+  "/stock-balance",
 ];
 const viewports = [
   { name: "phone", width: 430, height: 932 },

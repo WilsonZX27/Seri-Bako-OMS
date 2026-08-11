@@ -1649,6 +1649,10 @@ html[data-design-layer="v2"] form.sb-list-query-card :where(input, select, butto
   border-radius: var(--sb-control-radius) !important;
 }
 
+html[data-design-layer="v2"] form.sb-list-query-card :where(input, select, [role="combobox"], [data-select-control], .sb-status-filter-control, .sb-filter-more > summary) {
+  background-color: #fff !important;
+}
+
 html[data-design-layer="v2"] .sb-list-content-card {
   min-width: 0;
 }
@@ -1679,6 +1683,34 @@ html[data-design-layer="v2"] .sb-list-content-card {
     background: var(--sb-green-900) !important;
     color: white !important;
   }
+}
+
+@media (min-width: 1024px) {
+  html[data-design-layer="v2"] form.sb-list-query-card > :where(input[type="search"], input[name="search"], input[placeholder*="Search"], input[placeholder*="Find"]) {
+    flex: 0 1 15.625rem !important;
+    width: 15.625rem !important;
+    max-width: 15.625rem !important;
+  }
+}
+
+/* Legacy list containers are flattened at the shared layer while their route
+   markup is migrated. This prevents a query card from appearing inside a
+   second bordered card on any remaining consumer. */
+html[data-design-layer="v2"] :where([class~="bg-card"], [class~="overflow-hidden"]):has(> form.sb-list-query-card) {
+  overflow: visible;
+  border-color: transparent !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+html[data-design-layer="v2"] :where([class~="bg-card"], [class~="overflow-hidden"]):has(> form.sb-list-query-card) > form.sb-list-query-card {
+  margin-bottom: .75rem;
+}
+
+html[data-design-layer="v2"] :where([class~="bg-card"], [class~="overflow-hidden"]):has(> form.sb-list-query-card) > :where(.sb-table-shell, table, [role="table"], [data-operational-list]) {
+  border-radius: var(--sb-panel-radius);
+  background: var(--sb-surface-raised);
+  box-shadow: var(--sb-shadow-card);
 }
 
 @media (min-width: 640px) and (max-width: 1023px) {

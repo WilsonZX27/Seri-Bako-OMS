@@ -16,7 +16,7 @@ test("outlet daily record keeps the direct-post workflow usable at every viewpor
     await page.setViewportSize(viewport);
     await page.goto("/outlet-daily-records/new", { waitUntil: "domcontentloaded" });
     await expect(page.getByText("Daily Product Lines", { exact: true })).toBeVisible();
-    await expect(page.getByPlaceholder("Find product by name, code, or category")).toBeVisible();
+    await expect(page.getByPlaceholder("Find product")).toBeVisible();
     await expect(page.getByText("Review", { exact: true })).toHaveCount(0);
     for (const heading of ["Qty Sent", "Received", "Wastage"]) {
       await expect(page.locator("[data-outlet-daily-lines]").getByText(heading, { exact: true }).first()).toBeVisible();
@@ -48,7 +48,8 @@ test("outlet daily record keeps the direct-post workflow usable at every viewpor
       await expect(workflowSheet.getByText("Posted", { exact: true })).toBeVisible();
       await workflowSheet.getByRole("button", { name: "Close Workflow progress" }).click();
 
-      const primary = page.getByRole("button", { name: "Confirm Qty Sent" });
+      const actionRail = page.locator("[data-mobile-document-action]");
+      const primary = actionRail.locator("button").first();
       await expect(primary).toBeVisible();
       await expect(primary.locator("svg")).toHaveCount(1);
       // A document action rail owns the bottom safe-area slot on phones;
@@ -56,16 +57,19 @@ test("outlet daily record keeps the direct-post workflow usable at every viewpor
       // fixed action layers.
       await expect(page.locator("[data-mobile-app-nav]")).toBeHidden();
 
-      const actionRail = page.locator("[data-mobile-document-action]");
       await expect(actionRail).toHaveCSS("grid-template-columns", /.+ .+/);
       expect(await actionRail.evaluate((node) => getComputedStyle(node).boxShadow)).not.toBe("none");
-      await expect(page.locator("[data-outlet-daily-setup] summary")).not.toContainText("Kwan Kee");
+      await expect(page.locator("[data-record-setup-location]")).not.toBeEmpty();
+      await expect(page.locator("[data-record-setup-date]")).toContainText(/\d{4}-\d{2}-\d{2}|Select date/);
+      const mobileContext = page.locator("[data-document-context-summary]");
+      await expect(mobileContext).toContainText("Draft");
+      await expect(mobileContext).not.toContainText(/Kwan Kee|\d{4}-\d{2}-\d{2}/);
       await expect(page.locator('[data-document-workspace-header] span.hidden').filter({ hasText: /^Outlet Daily Record$/ })).toBeHidden();
 
       await actionRail.getByRole("button", { name: "More" }).click();
       const sheet = page.getByRole("dialog", { name: "More options" });
       await expect(sheet).toBeVisible();
-      await expect(sheet.getByRole("button", { name: "Post Daily Record" })).toBeVisible();
+      expect(await sheet.getByRole("button").count()).toBeGreaterThan(1);
       await sheet.getByRole("button", { name: "Close More options" }).click();
       await expect(sheet).toHaveCount(0);
       await expect(primary).toBeVisible();

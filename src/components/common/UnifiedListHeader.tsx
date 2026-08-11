@@ -198,9 +198,12 @@ export function UnifiedListHeader({ children, resultCount, resetHref, filtered =
     const actionNodes = desktopActions.map((child) => {
       if (!isValidElement(child)) return child;
       const props = propsOf(child);
-      return cloneElement(child as ReactElement<Record<string, unknown>>, { className: cn("unified-list-action", props.className as string) });
+      return cloneElement(child as ReactElement<Record<string, unknown>>, {
+        className: cn("unified-list-action", props.className as string),
+        "data-list-primary-action": true,
+      });
     });
-    return <form className={cn("sb-list-filters", className)} data-unified-list-desktop="true" data-filtered={filtered || undefined} data-reset-href={resetHref}>
+    return <form className={cn("sb-list-filters sb-list-query-card", className)} data-unified-list-desktop="true" data-filtered={filtered || undefined} data-reset-href={resetHref}>
       {desktopControls}
       <div className="unified-list-desktop-actions">
         {typeof resultCount === "number" ? <div className="sb-filter-summary" aria-live="polite"><span>{resultCount} {resultCount === 1 ? "record" : "records"}</span></div> : null}
@@ -229,7 +232,7 @@ export function UnifiedListHeader({ children, resultCount, resetHref, filtered =
     document.body,
   ) : null;
   return (
-    <form ref={formRef} className={cn("unified-list-header", className)} data-filtered={filtered || undefined} data-reset-href={resetHref} onSubmit={submit}>
+    <form ref={formRef} className={cn("unified-list-header sb-list-query-card", className)} data-filtered={filtered || undefined} data-reset-href={resetHref} onSubmit={submit}>
       <div className="unified-list-row">
         {primary && isValidElement(primary) ? <SearchControl child={primary} value={searchValue} onChange={updateSearch} /> : <div className="unified-list-primary-control" />}
         {resolvedPhoneMode === "drawer" ? <button type="button" className="unified-list-filter-trigger" onClick={() => setOpen(true)} aria-label={active ? `Filter, ${active} active` : "Filter"}><SlidersHorizontal /><span className="unified-list-filter-label">Filter{active ? ` (${active})` : ""}</span></button> : null}

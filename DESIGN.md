@@ -560,3 +560,12 @@ the route matrix in `docs/qa/FULL_SYSTEM_AUDIT_MATRIX.md`.
 - Every completed product/UI closure increments the application patch version.
 - Keep `package.json`, the root package entry in `package-lock.json`, and `src/lib/app-version.ts` synchronized.
 - Navigation and authentication footers display only the concise `vX.Y.Z`; release titles belong in release notes, not narrow rails.
+# v8.36.3 — Shared List Surfaces and Role-Aware Daily Entry
+
+- Every operational list separates its query controls from its result content. The query card may contain two internal rows on compact tablets; the table, operational rows, pagination, and empty state belong to a separate content card.
+- At `640px+`, search is the only elastic field. Filter controls, More filters, and the terminal Search/Reset action share a 44px height and an 8rem width. The result count sits immediately left of the far-right action.
+- At phone widths, `UnifiedListHeader` remains one 44px search plus a green Filter trigger and a visible result count. The list or empty state starts on a separate surface below it.
+- Outlet Daily exposes one primary action determined by capability and workflow state: kitchen confirms Qty Sent; outlet entry completes Received/Wastage. Save Draft and privileged stage-only actions remain secondary.
+- Outlet Daily reserves a conditional desktop detail column for wastage reason and remarks. On tablet, those two controls share the row beginning under Qty Sent. Remarks remain collapsed behind the comment affordance until requested.
+- New-document mobile context is sticky and becomes denser after scrolling. It keeps status, date, location, and workflow orientation without repeating those values in the collapsed Record setup summary.
+- The current visual language remains authoritative: 12px panels, 8px controls, restrained shadows, and existing motion. Structural convergence is not permission for an aesthetic reset.

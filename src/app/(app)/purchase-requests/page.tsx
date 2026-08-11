@@ -69,7 +69,7 @@ export default async function PurchaseRequestsPage({ searchParams }: { searchPar
           </div>
         }
       >
-        <div className="sb-work-surface overflow-hidden shadow-[var(--sb-shadow-card)]" data-tablet-main-list>
+        <div className="space-y-3" data-tablet-main-list>
           <div className="hidden sm:block">
             <FilterBar resetHref="/purchase-requests" filtered={filtered} resultCount={requests.totalRows} className="sb-tablet-split-filter">
               <Input name="search" defaultValue={filters.search ?? ""} placeholder="Search PR no, branch, remarks" className="md:max-w-sm" />
@@ -86,6 +86,7 @@ export default async function PurchaseRequestsPage({ searchParams }: { searchPar
               {filters.status ? <input type="hidden" name="status" value={filters.status} /> : null}
             </UnifiedListHeader>
           </div>
+          <div className="sb-list-content-card overflow-hidden">
           <BulkSelectionProvider ids={requests.rows.map((request) => request.id)} actionLabel="Delete selected" actionHint="Review selected requests before permanent deletion.">
           <BulkPhaseOneDelete />
           <DataGridHint text="Pro-tip: Double-click any row to open the purchase request." />
@@ -132,6 +133,7 @@ export default async function PurchaseRequestsPage({ searchParams }: { searchPar
             </OperationalList>
           </BulkSelectionProvider>
           <PaginationControls page={requests.page} totalPages={requests.totalPages} totalRows={requests.totalRows} searchParams={filters} />
+          </div>
         </div>
       </WorkspaceGrid>
     </>

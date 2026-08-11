@@ -87,3 +87,12 @@ The phone filter trigger opens a full-viewport backdrop at `z-index: 100` and a 
 At `640px–1023px`, retain inline filters and the documented master/list-to-rail split. At desktop, retain inline filters and the right action rail. Responsive presentation may change density and placement, but it must not change query semantics, authorization, business logic, or Supabase data sources.
 
 The newest versioned rule is authoritative when it conflicts with an older historical note in this document. Promote a rule only after evidence from representative phone, tablet, and desktop routes demonstrates a real usability or density improvement.
+# v8.36.3 shared list and daily-entry contract
+
+- A list workspace has two sibling surfaces: `sb-list-query-card` and `sb-list-content-card`. Do not wrap both inside a third visual card.
+- From 1024px upward, query controls use one row when space permits. From 640px through 1023px, search owns the first row and filters/actions own the second. Search is elastic; filters and the terminal action use the shared 8rem width and 44px height.
+- The trailing group is ordered `record count → Search/Reset`, aligned to the far right. Search uses the primary green treatment; an active Reset keeps identical geometry.
+- Phone uses `UnifiedListHeader` and a separate content surface. The drawer is phone-only and remains above the bottom navigation.
+- Panel radius is 12px and control radius is 8px. Historical 8px/4px notes are superseded by this newest convergence contract.
+- In Outlet Daily, conditional exception controls do not consume vertical space until wastage exists. Desktop reserves the exception column; tablet begins the exception row beneath Qty Sent; phone stacks it beneath the three quantities.
+- Document actions are capability and state driven. One clear next action is primary; Save Draft and alternate authorized transitions belong to More.

@@ -103,15 +103,15 @@ export default async function ProductionJobsPage({ searchParams }: { searchParam
         </>}
       >
         <div className="space-y-3">
-          <div className="overflow-hidden rounded-[2px] border bg-card">
             <FilterBar resultCount={jobs.totalRows} resetHref="/production/jobs" filtered={filtered}>
               <Input name="search" defaultValue={filters.search ?? ""} placeholder="Search job no, recipe, output" />
               <StatusTabs statuses={jobStatuses.map(([value, label]) => ({ value, label }))} activeStatus={filters.status} />
               <SelectControl name="branch_id" defaultValue={filters.branch_id ?? "all"} ariaLabel="Branch" options={[{ value: "all", label: "All branches" }, ...branches.map((branch) => ({ value: branch.id, label: branch.branch_name }))]} />
               <FilterBarMore activeCount={Number(Boolean(filters.from)) + Number(Boolean(filters.to))} resetHref="/production/jobs"><Input name="from" type="date" defaultValue={filters.from ?? ""} /><Input name="to" type="date" defaultValue={filters.to ?? ""} /></FilterBarMore>
-              <Button type="submit" variant="secondary">Filter</Button>
+              <Button type="submit">Search</Button>
               {selectedStatus !== "all" ? <input type="hidden" name="status" value={selectedStatus} /> : null}
             </FilterBar>
+          <div className="sb-list-content-card overflow-hidden">
             <DataGridHint text="Pro-tip: Double-click any row to open the production job." />
             <Table mobileHidden aria-label="Production jobs" stickyColumn="second">
                 <TableHeader>

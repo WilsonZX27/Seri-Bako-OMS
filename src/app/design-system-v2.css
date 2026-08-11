@@ -1627,3 +1627,98 @@ html[data-design-layer="v2"] :where(.erp-surface[class~="rounded-[2px]"], .sb-wo
     min-height: 2.75rem !important;
   }
 }
+/*
+ * Canonical list workspace contract
+ *
+ * Query controls and records are separate surfaces at every viewport. Search
+ * is the only elastic control; filters share one width and all controls share
+ * one height. Compact tablets use a deliberate two-row toolbar.
+ */
+html[data-design-layer="v2"] :where(.sb-list-query-card, .sb-list-content-card) {
+  border: 1px solid var(--sb-border-soft);
+  border-radius: var(--sb-panel-radius) !important;
+  background: var(--sb-surface-raised);
+  box-shadow: var(--sb-shadow-card);
+}
+
+html[data-design-layer="v2"] .sb-list-content-card {
+  min-width: 0;
+}
+
+@media (min-width: 640px) {
+  html[data-design-layer="v2"] form.sb-list-query-card {
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+    min-width: 0;
+    padding: .5rem;
+  }
+
+  html[data-design-layer="v2"] form.sb-list-query-card > :where(select, [data-select-control], .sb-status-filter, .sb-filter-more),
+  html[data-design-layer="v2"] form.sb-list-query-card > :where(button[type="submit"], .sb-filter-submit) {
+    flex: 0 0 8rem !important;
+    width: 8rem !important;
+    min-width: 8rem !important;
+  }
+
+  html[data-design-layer="v2"] form.sb-list-query-card :where(input, select, button, [data-select-control], .sb-status-filter-control, .sb-filter-more > summary) {
+    height: 2.75rem !important;
+    min-height: 2.75rem !important;
+  }
+
+  html[data-design-layer="v2"] form.sb-list-query-card [data-list-primary-action="true"] {
+    border-color: var(--sb-green-900) !important;
+    background: var(--sb-green-900) !important;
+    color: white !important;
+  }
+}
+
+@media (min-width: 640px) and (max-width: 1023px) {
+  html[data-design-layer="v2"] form.sb-list-query-card {
+    display: grid !important;
+    grid-template-columns: repeat(3, minmax(0, 8rem)) minmax(0, 1fr) auto;
+    align-items: center;
+  }
+
+  html[data-design-layer="v2"] form.sb-list-query-card > :where(input[type="search"], input[name="search"], input[placeholder*="Search"], input[placeholder*="Find"]) {
+    grid-column: 1 / -1;
+    width: 100% !important;
+  }
+
+  html[data-design-layer="v2"] form.sb-list-query-card > .unified-list-desktop-actions {
+    grid-column: 4 / -1;
+    justify-self: end;
+  }
+}
+
+@media (max-width: 639px) {
+  html[data-design-layer="v2"] form.sb-list-query-card {
+    margin: 0;
+    padding: .75rem !important;
+    border: 1px solid var(--sb-border-soft) !important;
+    background: var(--sb-surface-raised) !important;
+    box-shadow: var(--sb-shadow-card) !important;
+  }
+
+  html[data-design-layer="v2"] form.unified-list-header :where(.unified-list-primary-control, .unified-list-date-control, .unified-list-primary-input, .unified-list-inline-control, .unified-list-inline-control > *, .unified-list-inline-control input, .unified-list-inline-control select, .unified-list-inline-fields > *, .unified-list-inline-fields input, .unified-list-inline-fields select, [data-select-control]) {
+    height: 44px !important;
+    min-height: 44px !important;
+  }
+}
+
+@media (max-width: 639px) {
+  html[data-design-layer="v2"] [data-document-workspace-header][data-context-compact="true"] {
+    padding-top: .25rem !important;
+    padding-bottom: .25rem !important;
+    box-shadow: var(--sb-shadow-sm);
+  }
+
+  html[data-design-layer="v2"] [data-document-workspace-header][data-context-compact="true"] [data-document-context-summary] {
+    align-items: center;
+  }
+
+  html[data-design-layer="v2"] [data-document-workspace-header][data-context-compact="true"] [data-document-context-summary] > :last-child {
+    grid-column: 1 / -1;
+    line-height: .875rem;
+  }
+}

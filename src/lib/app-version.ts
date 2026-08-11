@@ -1,4 +1,4 @@
-export const APP_VERSION = "8.36.2";
+export const APP_VERSION = "8.36.3";
 export const APP_SPRINT = `v${APP_VERSION}`;
 export const APP_RELEASE_TITLE = "Canonical List Toolbar Alignment";
 // Keep the shell footer concise; the detailed release title belongs in release

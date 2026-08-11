@@ -60,7 +60,8 @@ export function DocumentWorkspace({
   return (
     <>
       <span data-document-breadcrumb={breadcrumbs.map((crumb) => crumb.label).join("/") || documentNo} className="sr-only" aria-hidden="true" />
-      <header data-document-workspace-header className={cn("sticky top-0 z-20 min-w-0 border-b border-[var(--border-muted)] bg-[var(--workspace-bg)] px-3 sm:px-4", isNewDocument ? "py-1.5 sm:py-2" : "py-2.5 sm:py-3")}>
+      <span data-document-context-sentinel className="block h-px" aria-hidden="true" />
+      <header data-document-workspace-header className={cn("sticky top-0 z-20 min-w-0 border-b border-[var(--border-muted)] bg-[var(--workspace-bg)] px-3 transition-[padding] duration-200 motion-reduce:transition-none sm:px-4", isNewDocument ? "py-1.5 sm:py-2" : "py-2.5 sm:py-3")}>
         <h1 className="sr-only">{title ?? documentNo}</h1>
         {showDocumentContext ? <div data-tablet-document-header className="flex flex-col gap-2 xl:flex-row xl:items-start xl:justify-between">
           <div className="min-w-0">

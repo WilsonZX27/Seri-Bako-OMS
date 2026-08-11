@@ -9,6 +9,7 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { PaginationControls, SortableHead } from "@/components/sortable-table";
 import { ConsoleSection } from "@/components/layout/right-console";
 import { WorkspaceGrid } from "@/components/layout/workspace-layout";
+import { StatusMix } from "@/components/ui/status-mix";
 import { OperationalList, OperationalListRow, Table, TableActionLink, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { hasActiveFilters, paginateRows } from "@/lib/table-state";
 import { getProducts } from "@/server/queries/products";
@@ -34,7 +35,8 @@ export default async function ProductsPage({
         description="Finished goods master data for future recipe and production modules."
       />
       <WorkspaceGrid hideMobileConsole={!canCreate} rightRail={<>{canCreate || permissions["imports.run"] ? <ConsoleSection title="Actions"><div className="grid gap-2">{canCreate ? <Button asChild size="sm" className="w-full" data-mobile-primary-action><Link href="/products/new">New product</Link></Button> : null}{permissions["imports.run"] ? <Button asChild size="sm" variant="outline" className="w-full"><Link href="/imports/products">Import products</Link></Button> : null}</div></ConsoleSection> : null}<ConsoleSection title="Product Summary"><dl className="grid gap-2 text-xs"><div className="flex justify-between"><dt className="text-muted-foreground">Matching</dt><dd className="font-semibold">{productsPage.totalRows}</dd></div><div className="flex justify-between"><dt className="text-muted-foreground">Active</dt><dd className="font-semibold">{allProducts.filter((product) => product.status === "active").length}</dd></div></dl></ConsoleSection></>}>
-        <div className="overflow-hidden rounded-[2px] border bg-card">
+        <StatusMix title="Product data health" total={allProducts.length} items={[{ label: "Active", value: allProducts.filter((product) => product.status === "active").length }, { label: "Inactive", value: allProducts.filter((product) => product.status === "inactive").length, tone: "warning" }, { label: "Matching", value: productsPage.totalRows }]} />
+        <div className="overflow-hidden border bg-card">
           <MasterDataFilters
             search={filters.search}
             status={filters.status}

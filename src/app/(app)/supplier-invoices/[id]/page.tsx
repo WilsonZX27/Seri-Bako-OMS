@@ -133,8 +133,8 @@ export default async function SupplierInvoiceDetailPage({ params, searchParams }
             <div><p className="text-xs uppercase text-muted-foreground">Paid</p><p className="font-medium">{formatCurrency(invoice.amount_paid)}</p></div>
             <div><p className="text-xs uppercase text-muted-foreground">Outstanding</p><p className="font-medium">{formatCurrency(invoice.balance_due)}</p></div>
           </div>
-          {invoice.notes ? <p className="rounded-md border bg-secondary/30 p-3 text-sm">{invoice.notes}</p> : null}
-          {invoice.void_reason ? <p className="rounded-md border border-destructive/30 bg-destructive/5 p-3 text-sm"><strong>Void reason:</strong> {invoice.void_reason}</p> : null}
+          {invoice.notes ? <p className="border bg-secondary/30 p-3 text-sm">{invoice.notes}</p> : null}
+          {invoice.void_reason ? <p className="border border-destructive/30 bg-destructive/5 p-3 text-sm"><strong>Void reason:</strong> {invoice.void_reason}</p> : null}
         </CardContent></Card>
         <Card><CardContent className="p-5">
           <div className="mb-3 flex items-center justify-between"><h2 className="text-sm font-semibold">Invoice Matching</h2><strong>{formatCurrency(invoice.total_amount)}</strong></div>

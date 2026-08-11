@@ -108,7 +108,7 @@ export function LowStockPrForm({ items, branches, defaultBranchId, disabled }: {
         </div>
 
         {disabled ? (
-          <div className="rounded-md border border-dashed p-4 text-center text-sm text-muted-foreground">
+          <div className="border border-dashed p-4 text-center text-sm text-muted-foreground">
             You do not have permission to create purchase requests.
           </div>
         ) : (
@@ -120,7 +120,7 @@ export function LowStockPrForm({ items, branches, defaultBranchId, disabled }: {
             <input type="hidden" name="priority" value="normal" />
             <input type="hidden" name="branch_id" value={selectedBranchId === "all" ? "" : selectedBranchId} />
 
-            <div className="hidden overflow-x-auto rounded-[2px] border md:block">
+            <div className="sb-table-region hidden overflow-x-auto rounded-[var(--sb-panel-radius)] border md:block">
               <table className="w-full">
                 <thead>
                   <tr className="bg-secondary/40 text-left text-xs">
@@ -233,7 +233,7 @@ export function LowStockPrForm({ items, branches, defaultBranchId, disabled }: {
               <p>{selectedCount} selected</p>
             </div>
             <div className="flex justify-end">
-              <Button type="submit" disabled={!selectedCount || selectedBranchId === "all"} className="w-full md:w-auto">
+              <Button type="submit" disabled={!selectedCount || selectedBranchId === "all"} className="w-full md:w-auto" data-mobile-primary-action>
                 <PackageOpen className="h-4 w-4" />
                 Create PR from selected
               </Button>

@@ -105,7 +105,7 @@ export function SupplierInvoiceForm({
           {selectedSupplierId ? grns.map((grn) => {
             const allSelected = grn.lines.every((line) => !!lines[line.id]);
             return (
-              <section key={grn.id} data-supplier-invoice-grn className="erp-surface overflow-hidden md:rounded-md">
+              <section key={grn.id} data-supplier-invoice-grn className="erp-surface overflow-hidden rounded-none">
                 <label className="flex cursor-pointer items-center gap-2 bg-secondary/40 px-3 py-2 text-sm font-medium">
                   <input type="checkbox" checked={allSelected} onChange={(event) => setGrn(grn, event.target.checked)} />
                   {grn.grn_no} / {grn.po_no ?? "PO"} / Available {formatCurrency(grn.received_value)}
@@ -159,9 +159,9 @@ export function SupplierInvoiceForm({
                 </div>
               </section>
             );
-          }) : <p className="rounded-md border border-dashed p-6 text-center text-sm text-muted-foreground">Select a supplier to load eligible posted GRNs.</p>}
+          }) : <p className="border border-dashed p-6 text-center text-sm text-muted-foreground">Select a supplier to load eligible posted GRNs.</p>}
 
-          {selectedSupplierId && !grns.length ? <p className="rounded-md border border-dashed p-6 text-center text-sm text-muted-foreground">No eligible uninvoiced received quantities remain for this supplier.</p> : null}
+          {selectedSupplierId && !grns.length ? <p className="border border-dashed p-6 text-center text-sm text-muted-foreground">No eligible uninvoiced received quantities remain for this supplier.</p> : null}
           <div className="grid grid-cols-2 gap-3 bg-secondary/30 p-3 text-sm md:flex md:justify-end md:gap-6">
             <span>Subtotal <strong>{formatCurrency(subtotal)}</strong></span>
             <span>Total <strong>{formatCurrency(subtotal + tax)}</strong></span>

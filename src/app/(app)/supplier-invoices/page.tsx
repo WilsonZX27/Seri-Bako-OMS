@@ -4,7 +4,9 @@ import { DataGridRow } from "@/components/ui/data-grid-row";
 import { DocumentNumber } from "@/components/document-number";
 import { EmptyState } from "@/components/ui/empty-state";
 import { StatusBadge } from "@/components/ui/status-badge";
+import { StatusMix } from "@/components/ui/status-mix";
 import { Button } from "@/components/ui/button";
+import { HeroActionBar } from "@/components/ui/hero-action-bar";
 import { Input } from "@/components/ui/input";
 import { SelectControl } from "@/components/ui/select-control";
 import { FilterBar, FilterBarMore } from "@/components/ui/filter-bar";
@@ -35,7 +37,7 @@ export default async function SupplierInvoicesPage({ searchParams }: { searchPar
   return (
     <>
       <PageHeader title="Supplier Invoices" description="Track posted GRN invoices and basic AP payments." />
-      <WorkspaceGrid hideMobileConsole
+      <WorkspaceGrid
         rightRail={
           <>
             {permissions["supplier_invoice.create"] || permissions["supplier_invoice.pay"] ? <ConsoleSection title="Actions">
@@ -54,7 +56,8 @@ export default async function SupplierInvoicesPage({ searchParams }: { searchPar
           </>
         }
       >
-        <div className="rounded-[2px] border bg-card">
+        <div className="border bg-card">
+          <HeroActionBar eyebrow="Payables focus" title="Keep invoice status and cash obligations visible." description="Use the Actions rail for invoice creation, AP aging, and cash-flow review." />
           <FilterBar resultCount={invoices.totalRows} resetHref="/supplier-invoices" filtered={filtered}>
             <Input name="search" defaultValue={filters.search ?? ""} placeholder="Search invoice or supplier" className="md:max-w-sm" />
             <StatusTabs statuses={statuses} activeStatus={filters.status} />
@@ -65,7 +68,8 @@ export default async function SupplierInvoicesPage({ searchParams }: { searchPar
             {filters.status ? <input type="hidden" name="status" value={filters.status} /> : null}
             <Button type="submit" variant="secondary">Search</Button>
           </FilterBar>
-            <Table mobileHidden aria-label="Supplier invoices" stickyColumn="second">
+          <StatusMix title="Invoice status" items={[{ label: "Open", value: count("open", "partially_paid"), href: "/supplier-invoices?status=open" }, { label: "Paid", value: count("paid"), href: "/supplier-invoices?status=paid" }, { label: "Draft", value: count("draft"), href: "/supplier-invoices?status=draft" }, { label: "Void", value: count("void"), tone: "danger", href: "/supplier-invoices?status=void" }]} />
+          <Table mobileHidden aria-label="Supplier invoices" stickyColumn="second">
               <TableHeader>
                 <TableRow>
                   <TableHead className="w-10 text-center">Action</TableHead>

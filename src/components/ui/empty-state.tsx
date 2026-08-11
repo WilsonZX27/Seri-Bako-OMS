@@ -15,8 +15,8 @@ type EmptyStateProps = {
 
 export function EmptyState({ icon: Icon = FolderOpen, title, description, action }: EmptyStateProps) {
   return (
-    <div className="flex flex-col items-center justify-center gap-2.5 px-4 py-8 text-center sm:gap-3 sm:py-10">
-      <div className="flex h-10 w-10 items-center justify-center rounded-[2px] bg-[var(--sb-neutral-bg)] text-[var(--sb-neutral-text)] sm:h-11 sm:w-11">
+    <div data-empty-state className="flex flex-col items-center justify-center gap-2.5 px-4 py-8 text-center sm:gap-3 sm:py-10">
+      <div className="flex h-10 w-10 items-center justify-center border border-[var(--sb-border-soft)] bg-[var(--sb-neutral-bg)] text-[var(--sb-neutral-text)] sm:h-11 sm:w-11">
         <Icon className="h-5 w-5" />
       </div>
       <div>

@@ -141,7 +141,7 @@ export function StockBalanceWorkspace({
         rightRail={
           <>
             <ConsoleSection title="Actions">
-              <Button asChild size="sm" className="w-full" data-mobile-primary-action>
+              <Button asChild size="sm" className="w-full">
                 <Link href="/stock-transactions">Open Movement Ledger</Link>
               </Button>
             </ConsoleSection>
@@ -198,7 +198,7 @@ export function StockBalanceWorkspace({
                       </div>
                     ) : null}
                     {selectableBranchIds.length > 1 && !createBranchId ? (
-                      <p className="rounded-md border border-dashed px-2 py-1 text-xs text-muted-foreground">Select a branch above to include rows in this PR.</p>
+                      <p className="border border-dashed px-2 py-1 text-xs text-muted-foreground">Select a branch above to include rows in this PR.</p>
                     ) : null}
                     <div className="max-h-80 divide-y divide-[var(--sb-border-soft)] overflow-y-auto border-y border-[var(--sb-border-soft)]">
                       {Array.from(basketByBranch.entries()).map(([branchId, lines]) => {
@@ -268,7 +268,7 @@ export function StockBalanceWorkspace({
           </>
         }
       >
-        <div className="overflow-hidden rounded-[2px] border border-[var(--sb-border-soft)] bg-card">
+        <div className="overflow-hidden border border-[var(--sb-border-soft)] bg-card">
           <FilterBar resultCount={totalRows} resetHref="/stock-balance" filtered={Boolean(filters.search || filters.branch_id || filters.status)}>
             <Input name="search" defaultValue={filters.search ?? ""} placeholder="Search item, branch, status" className="md:max-w-sm" />
             <SelectControl name="branch_id" defaultValue={filters.branch_id ?? "all"} ariaLabel="Branch" className="md:max-w-xs" options={[{ value: "all", label: "All branches" }, ...branches.map((branch) => ({ value: branch.id, label: branch.branch_name }))]} />
@@ -329,11 +329,12 @@ export function StockBalanceWorkspace({
       <button
         type="button"
         onClick={() => setBasketOpen(true)}
-        className="fixed bottom-[calc(var(--sb-mobile-nav-height)+env(safe-area-inset-bottom)+1rem)] right-4 z-[var(--sb-z-sticky)] inline-flex h-14 w-14 items-center justify-center rounded-full bg-[var(--sb-green-900)] text-white shadow-[0_3px_8px_rgb(6_44_31_/_0.22)] xl:hidden"
+        className="fixed bottom-[calc(var(--sb-mobile-nav-height)+env(safe-area-inset-bottom)+1rem)] right-4 z-[var(--sb-z-sticky)] inline-flex h-14 w-14 items-center justify-center rounded-none bg-[var(--sb-green-900)] text-white shadow-[0_3px_8px_rgb(6_44_31_/_0.22)] xl:hidden"
+        data-mobile-primary-action
         aria-label={`Open PR basket${basketRows.length ? `, ${basketRows.length} selected` : ""}`}
       >
         <ShoppingCart className="h-5 w-5" aria-hidden="true" />
-        {basketRows.length ? <span className="absolute -right-1 -top-1 inline-flex min-h-5 min-w-5 items-center justify-center rounded-full bg-[var(--sb-warning)] px-1 text-[10px] font-bold text-white">{basketRows.length}</span> : null}
+        {basketRows.length ? <span className="absolute -right-1 -top-1 inline-flex min-h-5 min-w-5 items-center justify-center border border-[var(--sb-warning)] bg-[var(--sb-warning)] px-1 text-[10px] font-bold text-white">{basketRows.length}</span> : null}
       </button>
       {basketOpen ? <div className="fixed inset-0 z-[var(--sb-z-dialog)] xl:hidden">
         <button type="button" className="sb-dialog-backdrop absolute inset-0 h-full w-full" onClick={() => setBasketOpen(false)} aria-label="Close PR basket" />

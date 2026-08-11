@@ -27,7 +27,7 @@ export default async function AccessStatusPage({ searchParams }: { searchParams:
   if (!user) redirect("/login");
   return (
     <AuthShell title="Workspace access unavailable" description="Your authentication succeeded, but this account cannot open an operational workspace.">
-      <p className="rounded-[2px] border border-[var(--sb-warning)] bg-[var(--sb-warning-bg)] p-3 text-sm text-[var(--sb-warning)]" role="alert">
+      <p className="border border-[var(--sb-warning)] bg-[var(--sb-warning-bg)] p-3 text-sm text-[var(--sb-warning)]" role="alert">
         {messages[reason ?? ""] ?? messages["no-permitted-route"]}
       </p>
       <form action={signOut} className="mt-4">

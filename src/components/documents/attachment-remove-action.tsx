@@ -22,7 +22,7 @@ export function AttachmentRemoveAction({
   }
 
   return (
-    <div className="space-y-2 rounded-md border border-destructive/30 bg-destructive/5 p-2" role="group" aria-label={`Remove ${fileName}`}>
+    <div className="space-y-2 border border-destructive/30 bg-destructive/5 p-2" role="group" aria-label={`Remove ${fileName}`}>
       <p className="text-xs text-destructive">Remove this mistaken upload?</p>
       <div className="grid grid-cols-2 gap-2">
         <Button type="button" variant="outline" size="sm" onClick={() => setConfirming(false)}>Keep file</Button>

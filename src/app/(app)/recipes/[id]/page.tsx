@@ -16,7 +16,7 @@ import { getPermissionMap } from "@/server/auth/permissions";
 
 function imageFallback(label: string) {
   return (
-    <div className="flex h-10 w-10 items-center justify-center rounded-[2px] bg-secondary text-xs font-semibold text-muted-foreground">
+    <div className="flex h-10 w-10 items-center justify-center rounded-[var(--sb-radius-control)] bg-secondary text-xs font-semibold text-muted-foreground">
       {label.slice(0, 2).toUpperCase()}
     </div>
   );
@@ -50,7 +50,7 @@ export default async function RecipeDetailPage({
                 <>
                   <form action={approveRecipe.bind(null, recipe.id)}><Button type="submit" className="w-full" data-mobile-primary-action>Approve</Button></form>
                   <form action={rejectRecipe.bind(null, recipe.id)} className="grid gap-2">
-                    <input name="remarks" className="h-9 rounded-[2px] border bg-background px-3 text-sm" placeholder="Rejection remarks required" required />
+                    <input name="remarks" className="h-9 rounded-[var(--sb-radius-control)] border bg-background px-3 text-sm" placeholder="Rejection remarks required" required />
                     <Button type="submit" variant="destructive">Reject Recipe</Button>
                   </form>
                 </>
@@ -78,7 +78,7 @@ export default async function RecipeDetailPage({
             </CardContent>
           </Card>
         ) : null}
-        <section aria-labelledby="recipe-summary" className="overflow-hidden rounded-[2px] border bg-card">
+        <section aria-labelledby="recipe-summary" className="overflow-hidden rounded-[var(--sb-panel-radius)] border bg-card">
           <div className="border-b px-4 py-3"><h2 id="recipe-summary" className="text-sm font-semibold">Recipe Summary</h2></div>
           <dl className="grid divide-y sm:grid-cols-2 sm:divide-x sm:divide-y-0 xl:grid-cols-5">
             <div className="min-w-0 px-4 py-3"><dt className="text-xs text-muted-foreground">Version</dt><dd className="mt-1 font-mono text-sm font-semibold">v{recipe.version}</dd></div>
@@ -122,7 +122,7 @@ export default async function RecipeDetailPage({
         <Card>
           <CardHeader><CardTitle>Ingredient Lines</CardTitle></CardHeader>
           <CardContent>
-            <div className="overflow-x-auto rounded-[2px] border">
+            <div className="overflow-x-auto rounded-[var(--sb-panel-radius)] border">
               <Table>
                 <TableHeader>
                     <TableRow>
@@ -140,7 +140,7 @@ export default async function RecipeDetailPage({
                     <TableRow key={line.id}>
                       <TableCell>
                         <div className="flex items-center gap-3">
-                          {line.ingredient_image_url ? <Image src={line.ingredient_image_url} alt="" width={40} height={40} className="h-10 w-10 rounded-[2px] object-cover" /> : imageFallback(line.ingredient_item_code)}
+                          {line.ingredient_image_url ? <Image src={line.ingredient_image_url} alt="" width={40} height={40} className="h-10 w-10 rounded-[var(--sb-radius-control)] object-cover" /> : imageFallback(line.ingredient_item_code)}
                           <div>
                             <p className="font-medium">{line.ingredient_name}</p>
                             <p className="text-xs text-muted-foreground">{line.ingredient_item_code}</p>

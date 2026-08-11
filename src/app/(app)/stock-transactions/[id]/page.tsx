@@ -95,7 +95,7 @@ export default async function StockTransactionDetailPage({ params }: { params: P
                 <div><p className="text-xs uppercase text-muted-foreground">Posted At</p><p className="font-medium">{transaction.posted_at ?? "-"}</p></div>
                 <div><p className="text-xs uppercase text-muted-foreground">Reference</p><p className="font-medium">{transaction.reference_type ?? "-"}</p></div>
               </div>
-              {transaction.remarks ? <p className="rounded-md border bg-secondary/30 p-3 text-sm">{transaction.remarks}</p> : null}
+              {transaction.remarks ? <p className="border bg-secondary/30 p-3 text-sm">{transaction.remarks}</p> : null}
             </CardContent>
           </Card>
 

@@ -18,7 +18,7 @@ export function Badge({
 }: React.HTMLAttributes<HTMLSpanElement> & { variant?: BadgeVariant }) {
   return (
     <span
-      className={cn("inline-flex max-w-full items-center overflow-hidden text-ellipsis whitespace-nowrap rounded-full border px-2 py-0.5 text-[11px] font-medium", variants[variant], className)}
+      className={cn("inline-flex max-w-full items-center overflow-hidden text-ellipsis whitespace-nowrap rounded-none border px-2 py-0.5 text-[11px] font-medium", variants[variant], className)}
       {...props}
     />
   );

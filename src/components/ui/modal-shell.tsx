@@ -66,7 +66,7 @@ export function ModalShell({
   return (
     <div className="fixed inset-0 z-[var(--sb-z-dialog)] flex items-center justify-center p-4">
       <button type="button" className="sb-dialog-backdrop absolute inset-0 h-full w-full" onClick={onClose} aria-label="Close dialog" />
-      <div ref={dialogRef} role="dialog" aria-modal="true" aria-labelledby={titleId} className={cn("sb-popover-surface relative max-h-[calc(100dvh-2rem)] w-full max-w-lg overflow-y-auto p-4", className)}>
+      <div ref={dialogRef} role="dialog" aria-modal="true" aria-labelledby={titleId} className={cn("sb-popover-surface relative max-h-[calc(100dvh-2rem)] w-full max-w-lg overflow-y-auto rounded-none p-4", className)}>
         {children}
       </div>
     </div>

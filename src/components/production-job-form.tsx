@@ -142,12 +142,12 @@ export function ProductionJobForm({
             </CardHeader>
             <CardContent className="space-y-4">
               {hasShortage ? (
-                <div className="flex gap-2 rounded-md bg-warning/10 p-3 text-sm text-warning">
+                <div className="flex gap-2 border border-warning/30 bg-warning/10 p-3 text-sm text-warning">
                   <AlertTriangle className="h-4 w-4 shrink-0" />
                   Some ingredients are below required stock. Draft can be created, but posting will be blocked unless an authorized user overrides negative stock.
                 </div>
               ) : null}
-              <div className="sb-table-region hidden rounded-[2px] border md:block">
+              <div className="sb-table-region hidden rounded-[var(--sb-panel-radius)] border md:block">
                 <Table>
                   <TableHeader>
                     <TableRow>

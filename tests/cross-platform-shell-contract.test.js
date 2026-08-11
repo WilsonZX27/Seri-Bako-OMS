@@ -44,8 +44,11 @@ test("desktop and tablet shared geometry remains token based", () => {
   assert.match(tailwind, /sm: "var\(--sb-radius-control\)"/);
   assert.match(design, /Tablet \(`768px-1279px`\)/);
   assert.match(design, /Desktop \(`>=1280px`\)/);
-  assert.match(globals, /\.rounded-\\\[2px\\\],[\s\S]*\.rounded-md,[\s\S]*\.rounded-none[\s\S]*border-radius: var\(--sb-radius-control\)/);
-  assert.match(globals, /--sb-panel-radius:/);
+  // Canonical convergence owns radius values through design tokens; legacy
+  // razor-sharp overrides must stay removed so mobile/tablet/desktop agree.
+  assert.match(globals, /--sb-radius-control:\s*0\.5rem/);
+  assert.match(globals, /--sb-panel-radius:\s*0\.75rem/);
+  assert.doesNotMatch(globals, /rounded-\\\[2px\\\]/);
   assert.doesNotMatch(`${dashboard}\n${operationalHub}`, /--sb-radius-panel/);
 });
 

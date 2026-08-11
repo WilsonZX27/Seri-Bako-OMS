@@ -65,7 +65,7 @@ export default async function EditStaffPage({
         actionPanel={
           <>
             <RecordActionPanel title="Staff Actions" description="Save changes and manage this staff member's login setup.">
-              <div className="rounded-[2px] border bg-white p-3">
+              <div className="rounded-[var(--sb-panel-radius)] border bg-white p-3">
                 <p className="text-[11px] font-medium uppercase text-muted-foreground">Current Status</p>
                 <div className="mt-2 flex items-center justify-between gap-3">
                   <StatusBadge status={staff.status} />
@@ -77,7 +77,7 @@ export default async function EditStaffPage({
                 </div>
               </div>
 
-              <div className="rounded-[2px] border bg-white p-3 text-xs">
+              <div className="rounded-[var(--sb-panel-radius)] border bg-white p-3 text-xs">
                 <p className="font-semibold">Recent Account Activity</p>
                 <div className="mt-2 grid gap-2">
                   <div className="flex justify-between gap-3"><span className="text-muted-foreground">Last login</span><span className="font-medium">{staff.last_login_at ? new Date(staff.last_login_at).toLocaleString("en-MY") : "-"}</span></div>
@@ -110,7 +110,7 @@ export default async function EditStaffPage({
                 )}
               </div>
 
-              <div className="rounded-[2px] border bg-secondary/30 p-3 text-xs">
+              <div className="rounded-[var(--sb-panel-radius)] border bg-secondary/30 p-3 text-xs">
                 <p className="font-semibold">Auth Setup</p>
                 <p className="mt-1 text-xs text-muted-foreground">Internal staff accounts use a temporary password and require a secure password change.</p>
                 <div className="mt-3 grid gap-2 text-xs">
@@ -154,7 +154,7 @@ export default async function EditStaffPage({
                 </div>
               </div>
 
-              <div className="rounded-[2px] border bg-secondary/30 p-3 text-xs">
+              <div className="rounded-[var(--sb-panel-radius)] border bg-secondary/30 p-3 text-xs">
                 <p className="font-semibold">Permission Summary</p>
                 <p className="mt-1 text-muted-foreground">{getRoleDisplayLabel(assignedRole?.role_code, assignedRole?.role_name)}</p>
                 {additionalRoles.length ? <p className="mt-1 text-muted-foreground">Additional: {additionalRoles.map((role) => getRoleDisplayLabel(role.role_code, role.role_name)).join(", ")}</p> : null}
@@ -197,7 +197,7 @@ export default async function EditStaffPage({
             </CardHeader>
             <CardContent className="space-y-3">
               <p className="text-sm text-[var(--sb-warning)]">Copy this temporary password now. It will not be shown again.</p>
-              <div className="flex flex-wrap items-center justify-between gap-3 rounded-[2px] border bg-white p-3">
+              <div className="flex flex-wrap items-center justify-between gap-3 rounded-[var(--sb-panel-radius)] border bg-white p-3">
                 <span className="font-mono text-lg font-semibold">{temporaryPassword}</span>
                 <CopyTextButton value={temporaryPassword} label="Copy temporary password" />
               </div>

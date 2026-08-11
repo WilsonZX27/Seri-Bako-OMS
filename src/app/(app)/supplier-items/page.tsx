@@ -8,6 +8,7 @@ import { PageHeader } from "@/components/ui/page-header";
 import { PaginationControls, SortableHead } from "@/components/sortable-table";
 import { ConsoleSection } from "@/components/layout/right-console";
 import { WorkspaceGrid } from "@/components/layout/workspace-layout";
+import { StatusMix } from "@/components/ui/status-mix";
 import { OperationalList, OperationalListRow, Table, TableActionLink, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { hasActiveFilters, paginateRows } from "@/lib/table-state";
 import { formatCurrency, formatNumber } from "@/lib/utils";
@@ -31,7 +32,8 @@ export default async function SupplierItemsPage({ searchParams }: { searchParams
       <ConsoleSection title="Supplier Item Summary"><div className="flex justify-between text-xs"><span className="text-muted-foreground">Matching</span><strong>{page.totalRows}</strong></div></ConsoleSection>
     </>}>
       {filters.error || filters.success ? <div className={`border p-3 text-sm ${filters.error ? "border-destructive text-destructive" : "border-[var(--sb-success)] bg-[var(--sb-success-bg)] text-[var(--sb-success)]"}`}>{filters.error ?? filters.success}</div> : null}
-      <div className="overflow-hidden rounded-[2px] border bg-card">
+      <StatusMix title="Supplier item coverage" total={page.totalRows} items={[{ label: "Active", value: page.rows.filter((row) => row.status === "active").length }, { label: "Inactive", value: page.rows.filter((row) => row.status === "inactive").length, tone: "warning" }, { label: "Matching", value: page.totalRows }]} />
+      <div className="overflow-hidden border bg-card">
         <MasterDataFilters search={filters.search} status={filters.status} placeholder="Search supplier, item, supplier item code" resultCount={page.totalRows} filtered={filtered} resetHref="/supplier-items" />
         <Table mobileHidden stickyColumn="second" aria-label="Supplier items">
           <TableHeader><TableRow>

@@ -42,7 +42,7 @@ export default async function AccountPage() {
       <WorkspaceGrid tabletCanvas="contained" rightRail={accountContext}>
         <section data-account-identity className="border border-[var(--sb-border-soft)] bg-white px-4 py-4">
           <div className="flex items-start gap-4">
-            <div className="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-full bg-primary/10 text-lg font-semibold text-primary">
+            <div className="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-full border border-primary/20 bg-primary/10 text-lg font-semibold text-primary">
               {account?.avatar_url ? (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img src={account.avatar_url} alt="Profile picture" className="h-full w-full object-cover" />
@@ -51,7 +51,7 @@ export default async function AccountPage() {
             <div className="min-w-0">
               <p className="text-lg font-semibold">{account?.full_name ?? "Signed in user"}</p>
               <p className="text-sm text-muted-foreground">{account?.email}</p>
-              <p className="mt-2 inline-flex rounded-full border bg-secondary px-2.5 py-1 text-xs font-medium">{getRoleDisplayLabel(role)}</p>
+              <p className="mt-2 inline-flex border bg-secondary px-2.5 py-1 text-xs font-medium">{getRoleDisplayLabel(role)}</p>
             </div>
           </div>
         </section>

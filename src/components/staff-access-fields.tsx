@@ -63,13 +63,13 @@ export function StaffAccessFields({ branches, roles, access }: { branches: Branc
         <Field label="Accessible Branches" required>
           <p className="mb-2 text-xs text-muted-foreground">{branchHelp}</p>
           {availableBranches.length ? (
-            <div className="grid gap-2 rounded-[2px] border p-3 md:grid-cols-2">
+            <div className="grid gap-2 border p-3 md:grid-cols-2">
               {availableBranches.map((branch) => {
                 const isDefault = branch.id === defaultBranchId;
                 return <label key={branch.id} className="flex min-h-10 items-center gap-2 text-sm"><input type="checkbox" name="accessible_branch_ids" value={branch.id} checked={branchIds.includes(branch.id)} disabled={isDefault} onChange={(event) => toggleBranch(branch.id, event.target.checked)} /><span>{branch.branch_name}{isDefault ? " (default)" : ""}</span></label>;
               })}
             </div>
-          ) : <p className="rounded-[2px] border border-dashed p-3 text-sm text-muted-foreground">Create an eligible active branch before assigning this role.</p>}
+          ) : <p className="border border-dashed p-3 text-sm text-muted-foreground">Create an eligible active branch before assigning this role.</p>}
         </Field>
       </div>
     </div>

@@ -72,7 +72,7 @@ export function DocumentTimeline({ document, activities, comments, attachments }
         <div className="space-y-0">
           {events.map((event) => (
             <div key={event.id} className="relative flex gap-3 border-l border-[var(--sb-border-soft)] pb-4 pl-3 last:pb-0">
-              <div className="-ml-[21px] mt-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-[var(--rail-bg)]">{eventIcon(event.activity_type)}</div>
+              <div className="-ml-[21px] mt-0.5 flex h-4 w-4 items-center justify-center border border-[var(--sb-border-soft)] bg-[var(--rail-bg)]">{eventIcon(event.activity_type)}</div>
               <div className="min-w-0">
                 <p className="text-xs font-medium">{event.message}</p>
                 <p className="text-xs text-muted-foreground">{actorLabel(event.created_by_name)} - {formatDate(event.created_at)}</p>
@@ -138,14 +138,14 @@ export async function AttachmentPanel({
           {!attachments.length ? <EmptyAttachmentState /> : null}
         </div>
         {resolvedCanManage && attachments.length > 0 && !canRemoveAttachments ? (
-          <p className="rounded-md border bg-secondary/40 p-2 text-xs text-muted-foreground">
+          <p className="border bg-secondary/40 p-2 text-xs text-muted-foreground">
             Attachments are locked after approval or posting to preserve the audit trail. Add the correct file as a new attachment instead.
           </p>
         ) : null}
       </div>
   );
   if (presentation === "inline") {
-    return <section aria-label={title} className="rounded-[2px] border bg-card p-4"><h2 className="mb-2 text-sm font-semibold">{title}</h2>{content}</section>;
+    return <section aria-label={title} className="border bg-card p-4"><h2 className="mb-2 text-sm font-semibold">{title}</h2>{content}</section>;
   }
   return <ConsoleSection title={title}>{content}</ConsoleSection>;
 }
@@ -160,7 +160,7 @@ export function CommentsPanel({ documentId, comments }: { documentId: string; co
         </form>
         <div className="space-y-3">
           {comments.map((comment) => (
-            <div key={comment.id} className="rounded-[2px] border bg-secondary/30 p-3">
+            <div key={comment.id} className="border bg-secondary/30 p-3">
               <p className="text-xs">{comment.comment_text}</p>
               <p className="mt-1 text-xs text-muted-foreground">{actorLabel(comment.created_by_name)} - {formatDate(comment.created_at)}</p>
             </div>
@@ -195,7 +195,7 @@ export function ApprovalPanel({ document, approval, approvalSteps }: { document:
           <Input name="remarks" placeholder="Rejection remarks required" required />
           <SubmitButton type="submit" variant="destructive" pendingLabel="Rejecting..." className="w-full justify-center">Reject</SubmitButton>
         </form>
-        <div className="rounded-[2px] border">
+        <div className="border">
           {approvalSteps.map((step) => (
             <div key={step.id} className="flex flex-col gap-1 border-b p-3 last:border-b-0 sm:flex-row sm:items-center sm:justify-between">
               <div>
@@ -216,7 +216,7 @@ export function ApprovalPanel({ document, approval, approvalSteps }: { document:
 export function RevisionPanel({ revisions }: { revisions: Revision[] }) {
   return (
     <ConsoleSection title="Revision History">
-        <div className="divide-y rounded-[2px] border">
+        <div className="divide-y border">
           {revisions.map((revision) => (
             <div key={revision.id} className="p-3">
               <p className="text-xs font-medium">Revision {revision.revision_no}</p>

@@ -30,7 +30,7 @@ export default async function PurchaseReturnsPage({ searchParams }: { searchPara
   return (
     <>
       <PageHeader title="Purchase Returns" description="Return posted supplier receipts and deduct stock once posted." />
-      <WorkspaceGrid hideMobileConsole
+      <WorkspaceGrid
         rightRail={
             <>
               <ConsoleSection title="Actions">
@@ -49,7 +49,7 @@ export default async function PurchaseReturnsPage({ searchParams }: { searchPara
           </>
         }
       >
-        <div className="overflow-hidden rounded-[2px] border bg-card">
+        <div className="overflow-hidden border bg-card">
           <FilterBar resultCount={returns.totalRows} resetHref="/purchase-returns" filtered={filtered}>
             <Input name="search" defaultValue={filters.search ?? ""} placeholder="Search return, GRN, PO, supplier" className="md:max-w-sm" />
             <StatusTabs statuses={statuses} activeStatus={filters.status} />

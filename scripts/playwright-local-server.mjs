@@ -17,7 +17,8 @@ try {
 // Do not shell out to `supabase status`: the test fixture is already explicit in
 // that file, while the CLI can fail to close on locked telemetry files in Windows.
 const localPort = process.env.PLAYWRIGHT_LOCAL_PORT || "3000";
-const child = spawn(process.execPath, ["--use-system-ca", nextBin, "dev", "-p", localPort], {
+const localHost = process.env.PLAYWRIGHT_LOCAL_HOST || "127.0.0.1";
+const child = spawn(process.execPath, ["--use-system-ca", nextBin, "dev", "-H", localHost, "-p", localPort], {
   cwd: process.cwd(),
   env: {
     ...process.env,

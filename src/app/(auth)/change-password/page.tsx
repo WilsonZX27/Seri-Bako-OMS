@@ -39,7 +39,7 @@ export default async function ChangePasswordPage({
   if (staffError || !staff) {
     return (
       <AuthShell title="Account check unavailable" description="We could not verify your staff profile, so no account changes were made.">
-        <p className="rounded-md border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive">
+        <p className="border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive">
           Sign out and try again. If this continues, ask the Super Admin / Owner to check that your login is linked to an active staff profile.
         </p>
         <form action={signOut} className="mt-3">
@@ -62,10 +62,10 @@ export default async function ChangePasswordPage({
         <Field label="Confirm New Password" required>
           <PasswordInput name="confirm_password" autoComplete="new-password" minLength={8} required />
         </Field>
-        <div className="rounded-md border bg-secondary/40 p-3 text-sm text-muted-foreground">
+        <div className="border bg-secondary/40 p-3 text-sm text-muted-foreground">
           Use at least 8 characters. After saving, you will continue to the dashboard.
         </div>
-        {params.error ? <p className="rounded-md border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive">{params.error}</p> : null}
+        {params.error ? <p className="border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive">{params.error}</p> : null}
         <SubmitButton className="w-full" pendingLabel="Changing password..." showOverlay overlayLabel="Changing password...">Change password</SubmitButton>
       </form>
       <form action={signOut} className="mt-3">

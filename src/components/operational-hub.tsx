@@ -68,7 +68,7 @@ export function OperationalHub({
 }: OperationalHubProps) {
   return (
     <div data-operational-hub className="space-y-3 sm:space-y-4">
-      <section className="overflow-hidden rounded-[var(--sb-panel-radius)] border border-[var(--sb-border-soft)] bg-white">
+      <section className="overflow-hidden border border-[var(--sb-border-soft)] bg-white">
         <div className="flex flex-col gap-3 p-3.5 sm:flex-row sm:items-center sm:justify-between sm:p-4">
           <div className="min-w-0">
             <p className="text-sm font-semibold text-[var(--sb-text)]">{eyebrow}</p>
@@ -106,7 +106,7 @@ export function OperationalHub({
       </section>
 
       <div className="grid min-w-0 gap-3 lg:grid-cols-[minmax(0,1.7fr)_minmax(17rem,1fr)] lg:gap-4">
-        <section className="min-w-0 overflow-hidden rounded-[var(--sb-panel-radius)] border border-[var(--sb-border-soft)] bg-white">
+        <section className="min-w-0 overflow-hidden border border-[var(--sb-border-soft)] bg-white">
           <div className="border-b border-[var(--sb-border-soft)] px-3.5 py-3 sm:px-4">
             <h2 className="text-sm font-semibold text-[var(--sb-text)]">{queueTitle}</h2>
             <p className="mt-0.5 text-xs leading-5 text-[var(--sb-text-muted)]">{queueDescription}</p>
@@ -121,7 +121,7 @@ export function OperationalHub({
                   href={item.href}
                   className="group flex min-h-16 items-center gap-3 px-3.5 py-3 transition-colors hover:bg-[var(--sb-surface-muted)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[var(--sb-green-700)] sm:px-4"
                 >
-                  <span className={cn("flex h-8 w-8 shrink-0 items-center justify-center rounded-[var(--sb-radius-control)]", tone.icon)}>
+                  <span className={cn("flex h-8 w-8 shrink-0 items-center justify-center border border-[var(--sb-border-soft)]", tone.icon)}>
                     <ItemIcon aria-hidden="true" className="h-4 w-4" />
                   </span>
                   <span className="min-w-0 flex-1">
@@ -138,7 +138,7 @@ export function OperationalHub({
           </div>
         </section>
 
-        <section className="min-w-0 overflow-hidden rounded-[var(--sb-panel-radius)] border border-[var(--sb-border-soft)] bg-white">
+        <section className="min-w-0 overflow-hidden border border-[var(--sb-border-soft)] bg-white">
           <div className="border-b border-[var(--sb-border-soft)] px-3.5 py-3 sm:px-4">
             <h2 className="text-sm font-semibold text-[var(--sb-text)]">{toolsTitle}</h2>
           </div>

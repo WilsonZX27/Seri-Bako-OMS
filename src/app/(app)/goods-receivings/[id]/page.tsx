@@ -62,7 +62,7 @@ export default async function GoodsReceivingDetailPage({ params }: { params: Pro
           <DocumentSideSection title="Validation / Next Step"><DocumentActionLink href={`/purchase-orders/${receiving.purchase_order_id}`} variant="outline">View Purchase Order</DocumentActionLink><p className="text-xs text-muted-foreground">{receiving.status === "draft" ? "Attach the Delivery Order or document an exception before posting." : "This receiving is finalized and read-only."}</p></DocumentSideSection>
           {!hasDeliveryOrder && receiving.status === "draft" ? (
             <DocumentSideSection title="Attachment Recommended">
-              <div className="flex gap-2 rounded-md bg-warning/10 p-3 text-sm text-warning">
+              <div className="flex gap-2 border border-warning/30 bg-warning/10 p-3 text-sm text-warning">
                 <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
                 Add the Delivery Order attachment when it is available.
               </div>
@@ -90,12 +90,12 @@ export default async function GoodsReceivingDetailPage({ params }: { params: Pro
                 <div><p className="text-xs uppercase text-muted-foreground">Received Value</p><p className="font-medium">{formatCurrency(totalReceivedValue)}</p></div>
               </div>
               {hasRejected ? (
-                <div className="flex gap-2 rounded-md bg-destructive/10 p-3 text-sm text-destructive">
+                <div className="flex gap-2 border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive">
                   <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
                   This GRN contains rejected quantity. Rejected quantity does not increase stock.
                 </div>
               ) : null}
-              {receiving.remarks ? <p className="rounded-md border bg-secondary/30 p-3 text-sm">{receiving.remarks}</p> : null}
+              {receiving.remarks ? <p className="border bg-secondary/30 p-3 text-sm">{receiving.remarks}</p> : null}
             </CardContent>
           </Card>
 

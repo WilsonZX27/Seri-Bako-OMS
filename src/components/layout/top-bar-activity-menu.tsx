@@ -69,13 +69,13 @@ export function TopBarActivityMenu({ data }: { data: TopBarActivity }) {
       <Button ref={triggerRef} type="button" variant="ghost" size="icon" onClick={toggleOpen} aria-label={count ? `Open workspace updates, ${count} unread or pending` : "Open workspace updates"} aria-haspopup="dialog" aria-expanded={open}>
         <Bell className="h-5 w-5" />
         {count ? (
-          <span className="absolute right-0 top-0 flex h-4 min-w-4 items-center justify-center rounded-full bg-[var(--sb-warning)] px-1 text-[9px] font-semibold leading-none text-white">
+          <span className="absolute right-0 top-0 flex h-4 min-w-4 items-center justify-center border border-background bg-[var(--sb-warning)] px-1 text-[9px] font-semibold leading-none text-white">
             {badgeLabel}
           </span>
         ) : null}
       </Button>
       {open ? (
-        <div ref={menuRef} data-topbar-activity-menu role="dialog" aria-label="Workspace Updates" className="sb-popover-surface fixed right-4 top-12 z-40 w-[min(22rem,calc(100vw-2rem))] overflow-hidden rounded-[2px]">
+        <div ref={menuRef} data-topbar-activity-menu role="dialog" aria-label="Workspace Updates" className="sb-popover-surface fixed right-4 top-12 z-40 w-[min(22rem,calc(100vw-2rem))] overflow-hidden">
           <div className="border-b p-3">
             <div className="flex items-start justify-between gap-3">
               <div>
@@ -91,47 +91,47 @@ export function TopBarActivityMenu({ data }: { data: TopBarActivity }) {
             <section className="space-y-1 p-3">
               <div className="flex items-center justify-between gap-3">
                 <p className="text-xs font-semibold uppercase text-muted-foreground">My Pending Actions</p>
-                {pendingCount ? <span className="rounded-full bg-[var(--sb-warning-bg)] px-2 py-0.5 text-xs font-medium text-[var(--sb-warning)]">{pendingCount}</span> : null}
+                {pendingCount ? <span className="border border-[var(--sb-warning)] bg-[var(--sb-warning-bg)] px-2 py-0.5 text-xs font-medium text-[var(--sb-warning)]">{pendingCount}</span> : null}
               </div>
               {pendingApprovals.map((item) => (
-                <Link key={item.id} href={item.href} onClick={() => setOpen(false)} className="flex gap-2 rounded-md p-2 text-xs hover:bg-secondary">
+                <Link key={item.id} href={item.href} onClick={() => setOpen(false)} className="flex gap-2 p-2 text-xs hover:bg-secondary">
                   <ListTodo className="mt-0.5 h-4 w-4 text-primary" />
                   <span>{item.document_no} - {item.title}</span>
                 </Link>
               ))}
-              {!pendingApprovals.length ? <p className="rounded-md p-2 text-sm text-muted-foreground">No pending actions.</p> : null}
+              {!pendingApprovals.length ? <p className="p-2 text-sm text-muted-foreground">No pending actions.</p> : null}
             </section>
             <section className="space-y-1 p-3">
               <div className="flex items-center justify-between gap-3">
                 <p className="text-xs font-semibold uppercase text-muted-foreground">My Notifications</p>
-                {notificationCount ? <span className="rounded-full bg-[var(--sb-warning-bg)] px-2 py-0.5 text-xs font-medium text-[var(--sb-warning)]">{notificationCount}</span> : null}
+                {notificationCount ? <span className="border border-[var(--sb-warning)] bg-[var(--sb-warning-bg)] px-2 py-0.5 text-xs font-medium text-[var(--sb-warning)]">{notificationCount}</span> : null}
               </div>
               {notifications.map((notification) => (
-                <Link key={notification.id} href={notification.action_url ?? "/activity"} onClick={() => setOpen(false)} className="flex gap-2 rounded-[2px] p-2 text-xs hover:bg-secondary">
+                <Link key={notification.id} href={notification.action_url ?? "/activity"} onClick={() => setOpen(false)} className="flex gap-2 p-2 text-xs hover:bg-secondary">
                   <ShieldAlert className="mt-0.5 h-4 w-4 text-primary" />
                   <span><span className="block">{notification.title}</span>{notification.message ? <span className="block text-xs text-muted-foreground">{notification.message}</span> : null}</span>
                 </Link>
               ))}
               {announcements.map((notification) => (
-                <div key={notification.id} className="flex gap-2 rounded-md p-2 text-xs">
+                <div key={notification.id} className="flex gap-2 p-2 text-xs">
                   <Megaphone className="mt-0.5 h-4 w-4 text-muted-foreground" />
                   <span>{notification.title}</span>
                 </div>
               ))}
-              {!notificationCount ? <p className="rounded-md p-2 text-sm text-muted-foreground">No new notifications.</p> : null}
+              {!notificationCount ? <p className="p-2 text-sm text-muted-foreground">No new notifications.</p> : null}
             </section>
             <section className="space-y-1 p-3">
               <div className="flex items-center justify-between gap-3">
                 <p className="text-xs font-semibold uppercase text-muted-foreground">Recent Activity</p>
-                {recentCount ? <span className="rounded-full bg-[var(--sb-neutral-bg)] px-2 py-0.5 text-xs font-medium text-[var(--sb-neutral-text)]">{recentCount}</span> : null}
+                {recentCount ? <span className="border border-[var(--sb-border)] bg-[var(--sb-neutral-bg)] px-2 py-0.5 text-xs font-medium text-[var(--sb-neutral-text)]">{recentCount}</span> : null}
               </div>
               {assignedActivities.map((activity) => (
-                <div key={activity.id} className="rounded-md p-2 text-xs">
+                <div key={activity.id} className="p-2 text-xs">
                   <p>{activity.message}</p>
                   <p className="mt-1 text-xs text-muted-foreground">{formatTime(activity.created_at)}</p>
                 </div>
               ))}
-              {!assignedActivities.length ? <p className="rounded-md p-2 text-sm text-muted-foreground">No recent activity.</p> : null}
+              {!assignedActivities.length ? <p className="p-2 text-sm text-muted-foreground">No recent activity.</p> : null}
               <Link href="/activity" onClick={() => setOpen(false)} className="inline-flex min-h-[var(--sb-control-height)] items-center text-xs font-semibold text-primary underline underline-offset-2">Show more</Link>
             </section>
           </div>

@@ -46,7 +46,7 @@ export default async function DocumentsPage({ searchParams }: { searchParams: Pr
     <>
       <PageHeader title="Documents Register" description="Audit-ready register for document status, approvals, attachments, revisions, and timelines." />
       <WorkspaceGrid className="p-3 sm:p-4">
-        <div className="overflow-hidden rounded-[2px] border bg-card">
+        <div className="overflow-hidden border bg-card">
           <FilterBar resultCount={documents.totalRows} resetHref="/documents" filtered={filtered}>
             <Input name="search" defaultValue={filters.search ?? ""} placeholder="Search document no, title, type" />
             <StatusTabs statuses={[

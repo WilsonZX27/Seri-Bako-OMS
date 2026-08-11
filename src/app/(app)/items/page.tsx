@@ -17,6 +17,7 @@ import { getItemsWithStock, getItemsWithStockPage } from "@/server/queries/items
 import { getSuppliersForSelect } from "@/server/queries/common";
 import { ConsoleSection } from "@/components/layout/right-console";
 import { WorkspaceGrid } from "@/components/layout/workspace-layout";
+import { StatusMix } from "@/components/ui/status-mix";
 import { getPermissionMap } from "@/server/auth/permissions";
 
 export default async function ItemsPage({
@@ -35,7 +36,8 @@ export default async function ItemsPage({
       <PageHeader title="Items" description="Ingredient and packaging master data. Stock balance is calculated separately." />
       <WorkspaceGrid hideMobileConsole={!permissions["items.create"]} rightRail={<>{permissions["items.create"] || permissions["items.manage"] ? <ConsoleSection title="Actions"><div className="grid gap-2">{permissions["items.create"] ? <><Button asChild size="sm" className="w-full" data-mobile-primary-action><Link href="/items/new">New item</Link></Button><Button asChild variant="outline" size="sm" className="w-full"><Link href="/imports/items">Import Items</Link></Button></> : null}{permissions["items.manage"] ? <Button asChild variant="outline" size="sm" className="w-full" data-mobile-primary-action={!permissions["items.create"] || undefined}><Link href="/api/export/items">Export CSV</Link></Button> : null}</div></ConsoleSection> : null}<ConsoleSection title="Item Summary"><dl className="grid gap-2 text-xs"><div className="flex justify-between"><dt className="text-muted-foreground">Active</dt><dd className="font-semibold">{allItems.filter((item) => item.status === "active").length}</dd></div><div className="flex justify-between"><dt className="text-muted-foreground">Inactive</dt><dd className="font-semibold">{allItems.filter((item) => item.status === "inactive").length}</dd></div><div className="flex justify-between"><dt className="text-muted-foreground">Low stock</dt><dd className="font-semibold">{lowStockCount}</dd></div></dl></ConsoleSection></>}>
         {filters.success ? <div className="border border-[var(--sb-success)] bg-[var(--sb-success-bg)] p-3 text-sm text-[var(--sb-success)]">{filters.success}</div> : null}
-        <div className="rounded-[2px] border bg-card">
+        <StatusMix title="Item data health" total={allItems.length} items={[{ label: "Active", value: allItems.filter((item) => item.status === "active").length }, { label: "Inactive", value: allItems.filter((item) => item.status === "inactive").length, tone: "warning" }, { label: "Low stock", value: lowStockCount, tone: "danger" }]} />
+        <div className="border bg-card">
           <MasterDataFilters
             search={filters.search}
             status={filters.status}

@@ -99,7 +99,7 @@ export default async function StockCountDetailPage({ params }: { params: Promise
             <div><p className="text-xs uppercase text-muted-foreground">Tolerance</p><p className="font-medium">{formatQuantity(count.tolerance_percent)}%</p></div>
             <div><p className="text-xs uppercase text-muted-foreground">High Variance</p><p className="font-medium">{highVarianceLines.length}</p></div>
           </div>
-          {count.remarks ? <p className="rounded-md border bg-secondary/30 p-3 text-sm">{count.remarks}</p> : null}
+          {count.remarks ? <p className="border bg-secondary/30 p-3 text-sm">{count.remarks}</p> : null}
         </CardContent>
       </Card> : null}
 

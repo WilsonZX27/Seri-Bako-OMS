@@ -14,6 +14,7 @@ import { StatusBadge } from "@/components/ui/status-badge";
 import { getStaffs } from "@/server/queries/foundation";
 import { ConsoleSection } from "@/components/layout/right-console";
 import { WorkspaceGrid } from "@/components/layout/workspace-layout";
+import { StatusMix } from "@/components/ui/status-mix";
 import { getStaffAuthState, staffAuthStateLabels } from "@/lib/staff-auth-state";
 import { hasActiveFilters } from "@/lib/table-state";
 
@@ -32,7 +33,8 @@ export default async function StaffsPage({ searchParams }: { searchParams: Promi
             </CardContent>
           </Card>
         ) : null}
-        <div className="overflow-hidden rounded-[2px] border bg-card">
+        <StatusMix title="Staff account status" items={[{ label: "Active", value: staffs.filter((staff) => staff.status === "active").length }, { label: "Invited / pending", value: staffs.filter((staff) => ["invited", "pending"].includes(staff.invitation_status ?? staff.status)).length, tone: "warning" }, { label: "Disabled", value: staffs.filter((staff) => staff.status === "disabled").length, tone: "danger" }]} />
+        <div className="overflow-hidden border bg-card">
         <MasterDataFilters
           search={filters.search}
           status={filters.status}

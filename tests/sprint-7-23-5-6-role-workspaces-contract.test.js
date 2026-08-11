@@ -29,7 +29,7 @@ test("role workdesks and workspace links use permitted real queues", () => {
   assert.match(dashboard, /Company-wide operational reviews/);
   assert.doesNotMatch(dashboard, /Protected controls/);
   assert.match(dashboard, /<ConsoleSection title="Actions">/);
-  assert.match(dashboard, /hideMobileConsole/);
+  assert.match(dashboard, /data-mobile-primary-action/);
   assert.doesNotMatch(procurement, /status=(?:in_review|awaiting_delivery|unpaid)/);
   assert.match(procurement, /status=manager_review/);
   assert.match(procurement, /status=admin_review/);

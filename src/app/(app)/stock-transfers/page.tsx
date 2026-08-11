@@ -28,12 +28,12 @@ export default async function StockTransfersPage({ searchParams }: { searchParam
   const emptyAction = filtered ? { href: "/stock-transfers", label: "Reset filters" } : canCreate ? { href: "/stock-transfers/new", label: "New Transfer" } : undefined;
 
   return <>
-    <PageHeader title="Stock Transfers" description="Move stock between branches through posted transfer in/out ledger movements." action={canCreate ? { href: "/stock-transfers/new", label: "New transfer" } : undefined} />
-    <WorkspaceGrid hideMobileConsole rightRail={<>
+    <PageHeader title="Stock Transfers" description="Move stock between branches through posted transfer in/out ledger movements." />
+    <WorkspaceGrid rightRail={<>
       <ConsoleSection title="Actions">{canCreate ? <Button asChild className="w-full" data-mobile-primary-action><Link href="/stock-transfers/new">New Transfer</Link></Button> : <p className="text-xs text-muted-foreground">Your role has read-only access.</p>}</ConsoleSection>
       <ConsoleSection title="Transfer Summary"><dl className="grid gap-2 text-xs"><div className="flex justify-between"><dt className="text-muted-foreground">Total</dt><dd className="font-semibold">{rows.length}</dd></div><div className="flex justify-between"><dt className="text-muted-foreground">Draft</dt><dd className="font-semibold">{count("draft")}</dd></div><div className="flex justify-between"><dt className="text-muted-foreground">In transit</dt><dd className="font-semibold">{count("in_transit")}</dd></div><div className="flex justify-between"><dt className="text-muted-foreground">Completed</dt><dd className="font-semibold">{count("completed")}</dd></div></dl></ConsoleSection>
     </>}>
-      <div className="overflow-hidden rounded-[2px] border bg-card">
+      <div className="overflow-hidden border bg-card">
         <FilterBar resultCount={data.totalRows} resetHref="/stock-transfers" filtered={filtered}><Input name="search" defaultValue={filters.search ?? ""} placeholder="Search transfer no, branch, remarks" /><StatusTabs statuses={statuses} activeStatus={filters.status} />{filters.status ? <input type="hidden" name="status" value={filters.status} /> : null}<Button type="submit">Search</Button></FilterBar>
         <DataGridHint text="Pro-tip: Double-click any row to open the stock transfer." />
         <Table mobileHidden stickyColumn="second" aria-label="Stock transfers"><TableHeader><TableRow><TableHead className="w-12 text-center">Action</TableHead><TableHead>No</TableHead><TableHead>Date</TableHead><TableHead>From</TableHead><TableHead>To</TableHead><TableHead>Status</TableHead><TableHead className="text-right">Lines</TableHead></TableRow></TableHeader>

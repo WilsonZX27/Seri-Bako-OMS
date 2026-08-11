@@ -115,8 +115,8 @@ test("dashboard exposes direct mobile actions and field forms keep touch-first g
   const receiving = read("src/components/goods-receiving-form.tsx");
   const stock = read("src/components/stock-balance-table.tsx");
 
-  assert.match(dashboard, /MobileQuickActions/);
-  assert.match(dashboard, /Based on your role/);
+  assert.match(dashboard, /actions\.slice\(0, 3\)\.map/);
+  assert.match(dashboard, /data-mobile-primary-action/);
   assert.match(dashboard, /Stock count/);
   assert.match(receiving, /grid-cols-2/);
   assert.match(receiving, /inputMode="decimal"/);

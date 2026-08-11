@@ -30,7 +30,7 @@ function GlobalActionToastInner() {
   return (
     <div
       className={cn(
-        "fixed right-4 top-20 z-50 flex max-w-md items-start gap-3 rounded-[2px] border p-3 text-sm shadow-sm",
+        "fixed right-4 top-20 z-50 flex max-w-md items-start gap-3 border p-3 text-sm shadow-sm",
         tone === "error"
           ? "border-[var(--sb-danger)] bg-[var(--sb-danger-bg)] text-[var(--sb-danger)]"
           : "border-[var(--sb-success)] bg-[var(--sb-success-bg)] text-[var(--sb-success)]",

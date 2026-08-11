@@ -46,7 +46,7 @@ export function PurchaseReturnForm({
               </SelectNative>
             </Field>
             <Field label="Return No">
-              <div className="rounded-md border bg-secondary/30 px-3 py-2 text-sm text-muted-foreground">Auto-generated on submit</div>
+              <div className="border bg-secondary/30 px-3 py-2 text-sm text-muted-foreground">Auto-generated on submit</div>
             </Field>
             <Field label="Return Date" required>
               <Input name="return_date" type="date" defaultValue={today()} required />
@@ -64,7 +64,7 @@ export function PurchaseReturnForm({
           {selectedReceiving ? (
             <>
               <input type="hidden" name="goods_receiving_id" value={selectedReceiving.id} />
-              <div className="border-y md:rounded-[2px] md:border" data-purchase-return-lines>
+              <div className="border-y md:border" data-purchase-return-lines>
                 <div className="flex flex-col gap-1 border-b bg-secondary/40 px-4 py-3">
                   <p className="text-xs font-semibold">Return Lines</p>
                   <p className="text-xs text-muted-foreground">
@@ -94,7 +94,7 @@ export function PurchaseReturnForm({
               </div>
             </>
           ) : (
-            <div className="rounded-[2px] border bg-secondary/30 p-8 text-center">
+            <div className="border bg-secondary/30 p-8 text-center">
               <PackageX className="mx-auto h-10 w-10 text-muted-foreground" />
               <p className="mt-3 font-semibold">Select a posted GRN to return stock</p>
               <p className="mt-1 text-sm text-muted-foreground">Only GRN lines with remaining returnable quantity appear here.</p>

@@ -13,11 +13,12 @@ type FieldProps = {
 
 export function Field({ label, children, error, required = false, className }: FieldProps) {
   const generatedId = useId();
-  const child = isValidElement<{ id?: string; "aria-describedby"?: string; "aria-invalid"?: boolean }>(children)
+  const child = isValidElement<{ id?: string; "aria-describedby"?: string; "aria-invalid"?: boolean; "aria-required"?: boolean }>(children)
     ? cloneElement(children, {
         id: children.props.id ?? generatedId,
         "aria-describedby": error ? `${generatedId}-error` : children.props["aria-describedby"],
         "aria-invalid": error ? true : children.props["aria-invalid"],
+        "aria-required": required || children.props["aria-required"],
       })
     : children;
 

@@ -70,7 +70,7 @@ function createEmptyLine(): RecipeFormLine {
 
 function itemFallback(label: string) {
   return (
-    <div className="flex h-10 w-10 items-center justify-center rounded-[2px] bg-secondary text-xs font-semibold text-muted-foreground">
+    <div className="flex h-10 w-10 items-center justify-center border border-[var(--sb-border-soft)] bg-secondary text-xs font-semibold text-muted-foreground">
       {label.slice(0, 2).toUpperCase()}
     </div>
   );
@@ -205,12 +205,12 @@ export function RecipeForm({ recipe, products, items, action, formId, showSubmit
             <Input name="yield_unit" value={yieldUnit} onChange={(event) => setYieldUnit(event.target.value)} required />
           </Field>
           <Field label="Status">
-            <div className="rounded-md border bg-secondary/30 px-2 py-2 text-sm">
+            <div className="border bg-secondary/30 px-2 py-2 text-sm">
               <StatusBadge status={recipe?.status ?? "draft"} />
             </div>
           </Field>
           <Field label="Approval">
-            <div className="rounded-md border bg-secondary/30 px-2 py-2 text-sm">
+            <div className="border bg-secondary/30 px-2 py-2 text-sm">
               <StatusBadge status={recipe?.approval_status ?? "draft"} />
             </div>
           </Field>
@@ -243,7 +243,7 @@ export function RecipeForm({ recipe, products, items, action, formId, showSubmit
             ))}
           </datalist>
 
-          <div className="sb-table-region hidden overflow-x-auto rounded-[2px] border md:block">
+          <div className="sb-table-region hidden overflow-x-auto rounded-[var(--sb-panel-radius)] border md:block">
             <Table>
               <TableHeader>
                 <TableRow>
@@ -265,7 +265,7 @@ export function RecipeForm({ recipe, products, items, action, formId, showSubmit
                     <TableCell>
                       <div className="flex items-center gap-3">
                         {line.item_image_url ? (
-                          <Image src={line.item_image_url} alt="" width={40} height={40} className="h-10 w-10 rounded-[2px] object-cover" />
+                          <Image src={line.item_image_url} alt="" width={40} height={40} className="h-10 w-10 border object-cover" />
                         ) : itemFallback(line.item_code || "IT")}
                         <div className="min-w-64 space-y-1">
                           <Input list="recipe-ingredient-items" value={line.itemSearch} placeholder="Type item code or name" onChange={(event) => selectItem(index, event.target.value)} />
@@ -310,7 +310,7 @@ export function RecipeForm({ recipe, products, items, action, formId, showSubmit
               <div key={index} className="space-y-3 border-b p-3 last:border-b-0">
                 <div className="flex items-start gap-3">
                   {line.item_image_url ? (
-                    <Image src={line.item_image_url} alt="" width={40} height={40} className="h-10 w-10 shrink-0 rounded-[2px] object-cover" />
+                    <Image src={line.item_image_url} alt="" width={40} height={40} className="h-10 w-10 shrink-0 border object-cover" />
                   ) : itemFallback(line.item_code || "IT")}
                   <div className="min-w-0 flex-1 space-y-1">
                     <Input list="recipe-ingredient-items" value={line.itemSearch} placeholder="Ingredient code or name" onChange={(event) => selectItem(index, event.target.value)} />
@@ -352,7 +352,7 @@ export function RecipeForm({ recipe, products, items, action, formId, showSubmit
 
           {hasDuplicate ? <p className="text-sm text-destructive">Duplicate ingredients are not allowed.</p> : null}
 
-          <div className="grid grid-cols-2 gap-3 rounded-[2px] border bg-secondary/50 p-3 md:grid-cols-4">
+          <div className="grid grid-cols-2 gap-3 border bg-secondary/50 p-3 md:grid-cols-4">
             <div>
               <p className="text-xs text-muted-foreground">Ingredient Cost</p>
               <p className="text-base font-semibold">{formatCurrency(totalIngredientCost)}</p>

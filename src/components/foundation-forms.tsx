@@ -276,7 +276,7 @@ export function StaffAuthSetupFields({ formId }: { formId?: string }) {
   return (
     <div className="space-y-3">
       <input type="hidden" name="auth_setup_method" value="temporary_password" form={formId} />
-      <div className="rounded-[2px] border bg-white p-3 text-xs">
+      <div className="border bg-white p-3 text-xs">
         <p className="font-medium">Create login with temporary password</p>
         <p className="mt-1 text-muted-foreground">Internal staff must change this password after their first sign-in.</p>
       </div>
@@ -329,7 +329,7 @@ export function DocumentSequenceForm({
             <StatusSelect value={sequence?.status} />
           </Field>
           <div className="md:col-span-2">
-            <div className="rounded-[2px] border bg-secondary p-4">
+            <div className="border bg-secondary p-4">
               <p className="text-xs font-medium uppercase text-muted-foreground">Preview Number</p>
               <p className="mt-1 font-mono text-lg font-semibold">{previewDocumentNumber(prefix, nextNumber, padding)}</p>
             </div>

@@ -122,8 +122,8 @@ export default async function PurchaseOrderDetailPage({ params }: { params: Prom
                 <div><p className="text-xs uppercase text-muted-foreground">Source Document</p><p className="font-medium">{sourceRequest?.request_no ?? "-"}</p></div>
                 <div><p className="text-xs uppercase text-muted-foreground">Production Risk</p><p className="font-medium">{order.production_risk ? "Yes" : "No"}</p></div>
               </div>
-              {order.urgency_reason ? <p className="rounded-md border bg-warning/10 p-3 text-sm text-warning">{order.urgency_reason}</p> : null}
-              {order.remarks ? <p className="rounded-md border bg-secondary/30 p-3 text-sm">{order.remarks}</p> : null}
+              {order.urgency_reason ? <p className="border border-warning/30 bg-warning/10 p-3 text-sm text-warning">{order.urgency_reason}</p> : null}
+              {order.remarks ? <p className="border bg-secondary/30 p-3 text-sm">{order.remarks}</p> : null}
             </CardContent>
           </Card>
 

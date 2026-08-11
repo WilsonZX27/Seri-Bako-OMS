@@ -14,14 +14,14 @@ export default async function NewPurchaseRequestPage({ searchParams }: { searchP
   const [items, supplierMappings, branches, hasCommercialAccess, profile] = await Promise.all([
     getItemsForSelect(),
     getBranchSupplierMappingsForSelect(),
-    getBranchesForSelect(),
+    getBranchesForSelect({ restrictToActorScope: true }),
     hasPermission("pr.view_all"),
     getCurrentProfile(),
   ]);
   const canViewCommercial = hasCommercialAccess && !["kitchen", "kitchen_staff"].includes(String(profile?.role_code ?? "").toLowerCase());
-  const selectedBranchId = params.branch_id ?? branches[0]?.id;
+  const selectedBranchId = params.branch_id && branches.some((branch) => branch.id === params.branch_id) ? params.branch_id : branches[0]?.id;
   const initialItem = params.item_id ? items.find((item) => item.id === params.item_id) : null;
-  const initialMappings = initialItem && params.branch_id ? supplierMappings.filter((mapping) => mapping.item_id === initialItem.id && mapping.branch_id === params.branch_id) : [];
+  const initialMappings = initialItem && selectedBranchId ? supplierMappings.filter((mapping) => mapping.item_id === initialItem.id && mapping.branch_id === selectedBranchId) : [];
   const initialMapping = initialMappings.find((mapping) => mapping.is_preferred) ?? (initialMappings.length === 1 ? initialMappings[0] : null);
   const initialLine = initialItem ? {
     itemId: initialItem.id,
@@ -51,6 +51,7 @@ export default async function NewPurchaseRequestPage({ searchParams }: { searchP
         workflowSteps={workflowSteps}
         currentStatus="draft"
         tabletRailMode="split"
+        mobilePrimaryAction={primaryAction}
         mobileMoreOptions={<DocumentMoreOptions>{secondaryActions}</DocumentMoreOptions>}
         sidePanel={<>
             <DocumentActionSection moreOptions={secondaryActions}>{primaryAction}</DocumentActionSection>
@@ -69,7 +70,7 @@ export default async function NewPurchaseRequestPage({ searchParams }: { searchP
           items={items}
           supplierMappings={supplierMappings}
           branches={branches}
-          initialBranchId={params.branch_id}
+          initialBranchId={selectedBranchId}
           initialLines={initialLine ? [initialLine] : undefined}
           initialRemarks={params.notes}
           canViewCommercial={canViewCommercial}

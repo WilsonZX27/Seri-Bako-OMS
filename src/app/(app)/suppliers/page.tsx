@@ -13,6 +13,7 @@ import { StatusTabs } from "@/components/status-tabs";
 import { OperationalList, OperationalListRow, Table, TableActionLink, TableBody, TableCell, TableHead, TableHeader, TableRow, TableSelectionCell, TableSelectionHead } from "@/components/ui/table";
 import { ConsoleSection } from "@/components/layout/right-console";
 import { WorkspaceGrid } from "@/components/layout/workspace-layout";
+import { StatusMix } from "@/components/ui/status-mix";
 import { hasActiveFilters } from "@/lib/table-state";
 import { getSuppliers } from "@/server/queries/suppliers";
 import { getPermissionMap } from "@/server/auth/permissions";
@@ -51,7 +52,8 @@ export default async function SuppliersPage({
         }
       >
         {filters.success ? <div className="border border-[var(--sb-success)] bg-[var(--sb-success-bg)] p-3 text-sm text-[var(--sb-success)]">{filters.success}</div> : null}
-        <div className="overflow-hidden rounded-[2px] border bg-card">
+        <StatusMix title="Supplier availability" total={page.totalRows} items={[{ label: "Active", value: page.rows.filter((supplier) => supplier.status === "active").length }, { label: "Inactive", value: page.rows.filter((supplier) => supplier.status === "inactive").length, tone: "warning" }, { label: "Matching", value: page.totalRows }]} />
+        <div className="overflow-hidden border bg-card">
           <MasterDataFilters search={filters.search} status={filters.status} showStatus={false} leadingFilter={<StatusTabs statuses={[{ value: "active", label: "Active" }, { value: "inactive", label: "Inactive" }]} activeStatus={filters.status} />} placeholder="Search supplier code, name, contact, phone, email" resultCount={page.totalRows} filtered={filtered} resetHref="/suppliers" />
           <BulkSelectionProvider ids={page.rows.map((supplier) => supplier.id)} actionLabel="Deactivate selected" actionHint="Deactivate suppliers only when they should no longer be used for purchasing.">
           <DataGridHint text="Pro-tip: Double-click any row to open the supplier." />

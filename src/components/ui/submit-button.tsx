@@ -54,7 +54,7 @@ export function SubmitButton({
       </Button>
       {showOverlay && isPending ? (
         <div className="sb-dialog-backdrop fixed inset-0 z-50 flex items-center justify-center">
-          <div className="sb-popover-surface flex items-center gap-3 px-5 py-4">
+          <div className="sb-popover-surface rounded-none flex items-center gap-3 px-5 py-4">
             <LoaderCircle className="h-5 w-5 animate-spin text-primary" />
             <p className="text-sm font-medium">{overlayLabel ?? pendingLabel}</p>
           </div>

@@ -46,7 +46,7 @@ export default async function ActivityPage({ searchParams }: { searchParams: Pro
           )
         }
       >
-        <div className="overflow-hidden rounded-[2px] border bg-card">
+        <div className="overflow-hidden border bg-card">
             <div className="divide-y">
               {activities.map((activity) => {
                 const href = activity.href || null;
@@ -55,7 +55,7 @@ export default async function ActivityPage({ searchParams }: { searchParams: Pro
                 const messageIncludesActor = activity.message.toLocaleLowerCase().startsWith(`${actor.toLocaleLowerCase()}:`);
                 return (
                   <Link key={activity.id} href={`/activity?selected=${activity.id}`} className={`grid gap-3 px-3 py-2.5 hover:bg-secondary/50 md:grid-cols-[32px_minmax(0,1fr)_150px_120px_auto] md:items-center ${active ? "bg-primary/5" : ""}`}>
-                    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-primary/10 text-primary">
+                    <div className="flex h-8 w-8 shrink-0 items-center justify-center border bg-primary/10 text-primary">
                       <Activity className="h-4 w-4" />
                     </div>
                     <div className="min-w-0 flex-1">

@@ -53,7 +53,7 @@ export function RightRail({ children, className }: { children: ReactNode; classN
 
 export function ActionPanel({ children, title = "Actions" }: { children: ReactNode; title?: string }) {
   return (
-    <section className="rounded-[2px] border border-[var(--sb-border-soft)] bg-white p-3">
+    <section data-action-panel className="border border-[var(--sb-border-soft)] bg-white p-3">
       <p className="mb-3 text-sm font-semibold">{title}</p>
       <div className="grid gap-2">{children}</div>
     </section>

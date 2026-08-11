@@ -110,12 +110,12 @@ export function GlobalSearch({
             </div>
             <div className="max-h-[60vh] overflow-y-auto p-2">
               {results.map((result) => (
-                <Link key={`${result.type}-${result.href}`} href={result.href} onClick={() => setSearchOpen(false)} className="flex items-center justify-between rounded-[2px] px-3 py-2 hover:bg-secondary">
+                <Link key={`${result.type}-${result.href}`} href={result.href} onClick={() => setSearchOpen(false)} className="flex items-center justify-between px-3 py-2 hover:bg-secondary">
                   <div>
                     <p className="text-sm font-medium">{result.title}</p>
                     <p className="text-xs text-muted-foreground">{result.subtitle}</p>
                   </div>
-                  <span className="rounded-[2px] bg-secondary px-2 py-1 text-xs text-muted-foreground">{result.type}</span>
+                  <span className="border border-[var(--sb-border-soft)] bg-secondary px-2 py-1 text-xs text-muted-foreground">{result.type}</span>
                 </Link>
               ))}
               {query && !results.length ? <p className="p-6 text-center text-sm text-muted-foreground">No results found.</p> : null}

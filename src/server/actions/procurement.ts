@@ -10,6 +10,7 @@ import { formatActionError, requirePermissionOrRedirect, rethrowRedirect, safeRe
 import { revalidateWorkspaceState } from "@/server/actions/revalidate";
 import { resolveDocumentNumber } from "@/server/documents/sequences";
 import { getCurrentProfile } from "@/server/queries/common";
+import { getCurrentUserScope } from "@/server/queries/notifications";
 import { logServerError } from "@/server/observability/logger";
 import { z } from "zod";
 import type { ApprovalStatus, PurchaseOrderStatus } from "@/types/database";
@@ -30,6 +31,15 @@ function parsePurchaseOrderId(id: string) {
 async function identity() {
   if (isMockMode()) return { company_id: mockCompany.id, id: mockProfile.id };
   return getCurrentProfile();
+}
+
+async function ensureActorCanUsePurchaseRequestBranch(branchId: string | null) {
+  if (!branchId) return;
+  const scope = await getCurrentUserScope();
+  if (!scope) throw new Error("Could not verify branch scope for this purchase request.");
+  if (!scope.companyWideAccess && !scope.branchIds.includes(branchId)) {
+    throw new Error("You can only create or submit purchase requests for branches assigned to you.");
+  }
 }
 
 async function notifyNextPrRole(input: {
@@ -284,6 +294,7 @@ export async function createPurchaseRequest(formData: FormData) {
     const idempotencyKey = z.uuid().parse(cleanText(formData.get("idempotency_key")));
     mark("idempotency");
     const payload = extractPurchaseRequest(formData);
+    await ensureActorCanUsePurchaseRequestBranch(payload.branch_id);
     const intent = formData.get("intent") === "submit" ? "submit" : "draft";
     const [, profile] = await Promise.all([
       ensureActiveItems(payload.lines.map((line) => line.item_id), payload.branch_id, payload.lineBranchIds),
@@ -338,6 +349,7 @@ export async function createPurchaseRequestsFromBasket(formData: FormData) {
   try {
     if (isMockMode()) redirect("/purchase-requests");
     const branchId = z.uuid().parse(cleanText(formData.get("branch_id")));
+    await ensureActorCanUsePurchaseRequestBranch(branchId);
     const groups = parseStockBasketGroups(formData.get("supplier_groups"));
     const allLines = groups.flatMap((group) => group.lines.map((line) => ({ ...line, suggested_supplier_id: group.supplier_id, branch_id: branchId })));
     const [, profile] = await Promise.all([
@@ -442,6 +454,10 @@ type PrTransitionResult = {
 async function transitionPurchaseRequest(id: string, action: PrTransitionAction, remarks?: string | null) {
   const requestId = parsePurchaseRequestId(id);
   const supabase = await createClient();
+  const { data: request, error: requestError } = await supabase.from("purchase_requests").select("id, branch_id").eq("id", requestId).is("deleted_at", null).maybeSingle();
+  if (requestError) throw new Error(requestError.message);
+  if (!request) throw new Error("Purchase request not found.");
+  await ensureActorCanUsePurchaseRequestBranch(request.branch_id);
   const { data, error } = await supabase.rpc("transition_purchase_request", {
     target_purchase_request_id: requestId,
     transition_action: action,

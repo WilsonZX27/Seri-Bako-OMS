@@ -93,7 +93,7 @@ export function SupplierItemForm({
             <Input name="valid_to" type="date" defaultValue={supplierItem?.valid_to ?? ""} />
           </Field>
           {showSubmit ? <div className="sb-mobile-action-bar fixed inset-x-3 bottom-[calc(env(safe-area-inset-bottom)+0.5rem)] z-[var(--sb-z-sticky)] p-2 md:static md:flex md:justify-end md:bg-transparent md:p-0 md:shadow-none md:col-span-3">
-            <Button type="submit" className="w-full md:w-auto">{supplierItem ? "Save supplier item" : "Create supplier item"}</Button>
+            <Button type="submit" className="w-full rounded-[var(--sb-radius-control)] md:w-auto">{supplierItem ? "Save supplier item" : "Create supplier item"}</Button>
           </div> : null}
         </form>
       </CardContent>
@@ -126,12 +126,12 @@ export function UomConversionForm({ conversion, action, formId, showSubmit = tru
           <Field label="Status">
             <StatusSelect value={conversion?.status} />
           </Field>
-          <div className="rounded-[var(--sb-radius-control)] border bg-secondary/50 p-3 md:col-span-2">
+          <div className="border bg-secondary/50 p-3 md:col-span-2">
             <p className="text-sm font-medium">Preview</p>
             <p className="mt-1 text-sm text-muted-foreground">1 {conversion?.from_uom ?? "from UOM"} = {conversion?.factor ?? 1} {conversion?.to_uom ?? "to UOM"}</p>
           </div>
           {showSubmit ? <div className="sb-mobile-action-bar fixed inset-x-3 bottom-[calc(env(safe-area-inset-bottom)+0.5rem)] z-[var(--sb-z-sticky)] p-2 md:static md:flex md:justify-end md:bg-transparent md:p-0 md:shadow-none md:col-span-2">
-            <Button type="submit" className="w-full md:w-auto">{conversion ? "Save conversion" : "Create conversion"}</Button>
+            <Button type="submit" className="w-full rounded-[var(--sb-radius-control)] md:w-auto">{conversion ? "Save conversion" : "Create conversion"}</Button>
           </div> : null}
         </form>
       </CardContent>

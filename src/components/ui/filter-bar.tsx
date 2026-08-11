@@ -21,7 +21,7 @@ export function FilterBar({
   className?: string;
 }) {
   return (
-    <form className={cn("sb-list-filters", className)}>
+    <form className={cn("sb-list-filters", className)} role="search" aria-label="Filter records" data-filter-bar>
       {children}
       {typeof resultCount === "number" ? <div className="sb-filter-summary" aria-live="polite">
         <span>{resultCount} {resultCount === 1 ? "record" : "records"}</span>
@@ -56,7 +56,7 @@ export function FilterBarMore({
   }, []);
 
   return (
-    <details ref={detailsRef} className="sb-filter-more">
+    <details ref={detailsRef} className="sb-filter-more" data-filter-drawer>
       <summary ref={summaryRef}><SlidersHorizontal className="h-3.5 w-3.5" />More filters{activeCount ? <span className="sb-filter-more-count" aria-label={`${activeCount} active filters`}>{activeCount}</span> : null}</summary>
       <button type="button" className="sb-filter-more-backdrop" onClick={close} aria-label="Dismiss filters" />
       <div className="sb-filter-more-panel">

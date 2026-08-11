@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { Pencil } from "lucide-react";
 import { BulkSelectAllCheckbox, BulkSelectionProvider, BulkSelectRowCheckbox } from "@/components/bulk-selection";
 import { DataGridRow } from "@/components/ui/data-grid-row";
@@ -9,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { PageHeader } from "@/components/ui/page-header";
 import { FilterBar } from "@/components/ui/filter-bar";
+import { StatusMix } from "@/components/ui/status-mix";
 import { PaginationControls, SortableHead } from "@/components/sortable-table";
 import { StatusTabs } from "@/components/status-tabs";
 import { OperationalList, OperationalListRow, Table, TableActionLink, TableBody, TableCell, TableHead, TableHeader, TableRow, TableSelectionCell, TableSelectionHead } from "@/components/ui/table";
@@ -37,14 +39,16 @@ export default async function PurchaseOrdersPage({ searchParams }: { searchParam
       <PageHeader
         title="Purchase Orders"
         description="Supplier purchase orders created from approved requests or manually."
-        action={permissions["po.create"] ? { href: "/purchase-orders/new", label: "New PO" } : undefined}
-        secondaryAction={permissions["po.create"] ? { href: "/api/export/purchase-orders", label: "Export CSV" } : undefined}
       />
       <WorkspaceGrid
         className="pt-4"
-        hideMobileConsole
+        hideMobileConsole={!permissions["po.create"]}
         rightRail={
           <>
+            <ConsoleSection title="Actions">
+              {permissions["po.create"] ? <Link href="/purchase-orders/new" data-mobile-primary-action className="flex min-h-10 items-center justify-center border border-primary bg-primary px-3 py-2 text-center text-xs font-semibold text-primary-foreground hover:bg-primary/90">New PO</Link> : null}
+              {permissions["po.create"] ? <Link href="/api/export/purchase-orders" className="mt-2 flex min-h-9 items-center justify-center border border-border bg-card px-3 py-2 text-center text-xs font-semibold hover:bg-secondary/40">Export CSV</Link> : null}
+            </ConsoleSection>
             <ConsoleSection title="PO Summary">
               <div className="grid gap-2 text-xs">
                 <div className="flex justify-between"><span className="text-muted-foreground">Total POs</span><strong>{summary.total}</strong></div>
@@ -59,7 +63,8 @@ export default async function PurchaseOrdersPage({ searchParams }: { searchParam
           </>
         }
       >
-        <div className="overflow-hidden rounded-[2px] border border-[var(--sb-border-soft)] bg-card">
+        <StatusMix title="Purchase order pipeline" total={summary.total} items={[{ label: "Ready to send", value: summary.approved }, { label: "Sent", value: summary.sent }, { label: "Receiving", value: summary.receiving, tone: "warning" }, { label: "Received", value: summary.received }, { label: "Closed", value: summary.closed }, { label: "Cancelled", value: summary.cancelled, tone: "danger" }]} />
+        <div className="overflow-hidden border border-[var(--sb-border-soft)] bg-card">
           <FilterBar resultCount={orders.totalRows} resetHref="/purchase-orders" filtered={filtered}>
             <Input name="search" defaultValue={filters.search ?? ""} placeholder="Search PO no, supplier, remarks" className="min-w-0 flex-1 md:max-w-sm" />
             <StatusTabs statuses={statuses} activeStatus={filters.status} />

@@ -18,6 +18,7 @@ import { StatusTabs } from "@/components/status-tabs";
 import { OperationalList, OperationalListRow, Table, TableActionLink, TableBody, TableCell, TableHead, TableHeader, TableRow, TableSelectionCell, TableSelectionHead } from "@/components/ui/table";
 import { ConsoleSection } from "@/components/layout/right-console";
 import { WorkspaceGrid } from "@/components/layout/workspace-layout";
+import { StatusMix } from "@/components/ui/status-mix";
 import { formatCurrency } from "@/lib/utils";
 import { hasActiveFilters } from "@/lib/table-state";
 import { getPurchaseRequestSummary, getPurchaseRequests } from "@/server/queries/procurement";
@@ -43,11 +44,10 @@ export default async function PurchaseRequestsPage({ searchParams }: { searchPar
       <PageHeader
         title="Purchase Requests"
         description="Create, review, return, and convert branch requests into purchase orders."
-        action={permissions["pr.create"] ? { href: "/purchase-requests/new", label: "New PR" } : undefined}
       />
       <WorkspaceGrid
         className="pt-4"
-        hideMobileConsole
+        hideMobileConsole={!permissions["pr.create"]}
         rightRail={
           <>
             {permissions["pr.create"] || permissions["pr.view_branch"] ? <ConsoleSection title="Actions"><div className="grid gap-2">
@@ -65,7 +65,8 @@ export default async function PurchaseRequestsPage({ searchParams }: { searchPar
           </>
         }
       >
-        <div className="overflow-hidden rounded-[2px] border border-[var(--sb-border-soft)] bg-card">
+        <StatusMix title="Approval pipeline" items={[{ label: "Manager review", value: requests.rows.filter((request) => request.status === "manager_review").length, tone: "warning" }, { label: "Purchasing review", value: requests.rows.filter((request) => request.status === "admin_review").length, tone: "warning" }, { label: "Finance review", value: requests.rows.filter((request) => request.status === "finance_review").length, tone: "warning" }, { label: "Ready to convert", value: requests.rows.filter((request) => request.status === "ready_to_convert").length }, { label: "Rejected / returned", value: requests.rows.filter((request) => ["rejected", "returned"].includes(request.status)).length, tone: "danger" }]} />
+        <div className="overflow-hidden border border-[var(--sb-border-soft)] bg-card">
           <FilterBar resultCount={requests.totalRows} resetHref="/purchase-requests" filtered={filtered}>
             <Input name="search" defaultValue={filters.search ?? ""} placeholder="Search PR no, branch, remarks" className="md:max-w-sm" />
             <StatusTabs statuses={statuses} activeStatus={filters.status} />

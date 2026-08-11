@@ -8,7 +8,7 @@ import { Button, type ButtonProps } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
 export function DocumentActionBar({ children }: { children: ReactNode }) {
-  return <div className="grid gap-2">{children}</div>;
+  return <div className="grid gap-2" data-document-actions>{children}</div>;
 }
 
 export function DocumentActionForm({
@@ -32,9 +32,9 @@ export function DocumentActionForm({
   );
 }
 
-export function DocumentActionLink({ href, children, ...buttonProps }: { href: string; children: ReactNode } & ButtonProps) {
+export function DocumentActionLink({ href, children, mobilePrimary = false, ...buttonProps }: { href: string; children: ReactNode; mobilePrimary?: boolean } & ButtonProps) {
   return (
-    <Button asChild {...buttonProps} className={cn("w-full justify-center", buttonProps.className)}>
+    <Button asChild {...buttonProps} data-mobile-primary-action={mobilePrimary || undefined} className={cn("w-full justify-center", buttonProps.className)}>
       <Link href={href}>{children}</Link>
     </Button>
   );

@@ -20,9 +20,9 @@ function renderAction(action?: StateAction) {
 
 export function PageLoadingState({ label = "Loading workspace..." }: { label?: string }) {
   return (
-    <div className="space-y-3 p-4" aria-live="polite" aria-busy="true">
+    <div data-system-state="loading" className="space-y-3 p-4" aria-live="polite" aria-busy="true">
       <div className="h-9 w-64 animate-pulse bg-[var(--sb-neutral-bg)]" />
-      <div className="grid gap-2 rounded-[2px] border bg-card p-3">
+      <div className="grid gap-2 border bg-card p-3">
         <div className="h-6 animate-pulse bg-[var(--sb-surface-muted)]" />
         <div className="h-6 animate-pulse bg-[var(--sb-surface-muted)]" />
         <div className="h-6 w-2/3 animate-pulse bg-[var(--sb-surface-muted)]" />
@@ -36,7 +36,7 @@ export function PageLoadingState({ label = "Loading workspace..." }: { label?: s
 }
 
 export function SectionLoadingState({ label = "Loading..." }: { label?: string }) {
-  return <p className="p-3 text-xs text-muted-foreground" aria-live="polite" aria-busy="true">{label}</p>;
+  return <p data-system-state="section-loading" className="p-3 text-xs text-muted-foreground" aria-live="polite" aria-busy="true">{label}</p>;
 }
 
 export function ErrorState({
@@ -49,8 +49,8 @@ export function ErrorState({
   action?: StateAction;
 }) {
   return (
-    <div className="p-4">
-      <div className="flex flex-col items-start gap-3 rounded-[2px] border border-[var(--sb-danger)] bg-[var(--sb-danger-bg)] p-4 text-[var(--sb-danger)]" role="alert">
+    <div data-system-state="error" className="p-4">
+      <div className="flex flex-col items-start gap-3 border border-[var(--sb-danger)] bg-[var(--sb-danger-bg)] p-4 text-[var(--sb-danger)]" role="alert">
         <AlertTriangle className="h-5 w-5" />
         <div>
           <p className="text-sm font-semibold">{title}</p>
@@ -64,7 +64,7 @@ export function ErrorState({
 
 export function NotFoundState({ title, description, action }: { title: string; description: string; action: StateAction }) {
   return (
-    <div className="p-4">
+    <div data-system-state="not-found" className="p-4">
       <div className="flex flex-col items-center justify-center gap-3 border bg-card px-4 py-10 text-center">
         <FileQuestion className="h-8 w-8 text-[var(--sb-neutral-text)]" />
         <div>
@@ -106,7 +106,7 @@ export function Notice({ tone = "info", title, children, className }: { tone?: "
   };
   const Icon = tone === "success" ? CheckCircle2 : tone === "error" ? Ban : tone === "warning" ? ShieldAlert : AlertTriangle;
   return (
-    <div className={cn("flex items-start gap-2 rounded-[2px] border p-3 text-sm", tones[tone], className)} role={tone === "error" ? "alert" : "status"}>
+    <div data-system-state={`notice-${tone}`} className={cn("flex items-start gap-2 border p-3 text-sm", tones[tone], className)} role={tone === "error" ? "alert" : "status"}>
       <Icon className="mt-0.5 h-4 w-4 shrink-0" />
       <div>
         {title ? <p className="font-semibold">{title}</p> : null}

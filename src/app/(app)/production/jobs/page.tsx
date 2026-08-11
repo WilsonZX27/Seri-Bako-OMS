@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { SelectControl } from "@/components/ui/select-control";
 import { StatusBadge } from "@/components/ui/status-badge";
+import { StatusMix } from "@/components/ui/status-mix";
 import { OperationalList, OperationalListRow, Table, TableActionLink, TableBody, TableCell, TableHead, TableHeader, TableRow, TableSelectionCell, TableSelectionHead } from "@/components/ui/table";
 import { PaginationControls, SortableHead } from "@/components/sortable-table";
 import { ConsoleSection } from "@/components/layout/right-console";
@@ -94,7 +95,8 @@ export default async function ProductionJobsPage({ searchParams }: { searchParam
       >
       <BulkSelectionProvider ids={jobs.rows.map((row) => row.id)} actionLabel="Archive selected" canAct={false}>
         <div className="space-y-3">
-          <div className="overflow-hidden rounded-[2px] border bg-card">
+          <StatusMix title="Production status" items={[{ label: "Draft", value: countByStatus("draft") }, { label: "In review", value: countByStatus("submitted"), tone: "warning" }, { label: "Approved", value: countByStatus("approved") }, { label: "Posted", value: countByStatus("posted") }, { label: "Cancelled", value: countByStatus("cancelled"), tone: "danger" }]} />
+          <div className="overflow-hidden border bg-card">
             <FilterBar resultCount={jobs.totalRows} resetHref="/production/jobs" filtered={filtered}>
               <Input name="search" defaultValue={filters.search ?? ""} placeholder="Search job no, recipe, output" />
               <StatusTabs statuses={jobStatuses.map(([value, label]) => ({ value, label }))} activeStatus={filters.status} />

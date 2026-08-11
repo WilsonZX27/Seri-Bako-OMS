@@ -152,7 +152,7 @@ export function PurchaseRequestForm({
   }
 
   return (
-    <div className="md:rounded-[2px] md:border md:bg-white md:p-5">
+    <div className="md:border md:bg-white md:p-5">
         <form id="purchase-request-form" action={action} className="space-y-3 pb-36 md:pb-0">
           <input type="hidden" name="request_no" value="" />
           <input type="hidden" name="idempotency_key" value={idempotencyKey} />
@@ -183,7 +183,7 @@ export function PurchaseRequestForm({
             </Field>
           </section>
 
-          <section data-purchase-request-workspace className="overflow-hidden border-y border-[var(--sb-border)] bg-white md:rounded-[2px] md:border">
+          <section data-purchase-request-workspace className="overflow-hidden border-y border-[var(--sb-border)] bg-white md:border">
             <div className="flex items-center justify-between border-b bg-secondary/40 px-3 py-2">
               <div>
                 <p className="text-xs font-semibold">Requested Items</p>
@@ -214,7 +214,7 @@ export function PurchaseRequestForm({
                     <input type="hidden" name="line_branch_id" value={branchId} />
                   </div>
                     <Field label="Quantity" required className="md:col-start-2">
-                      <div className="flex overflow-hidden rounded-[var(--sb-radius-control)] border border-[var(--sb-border)] bg-white md:rounded-[2px]">
+                      <div className="flex overflow-hidden border border-[var(--sb-border)] bg-white">
                         <button type="button" className="flex h-[var(--sb-control-height)] w-10 shrink-0 items-center justify-center border-r border-[var(--sb-border)] text-[var(--sb-green-900)] hover:bg-[var(--sb-surface-muted)] active:bg-[var(--sb-green-100)]" onClick={() => adjustLineQuantity(line, -1)} aria-label={`Decrease quantity for ${line.itemSearch || "request line"}`}><Minus className="h-4 w-4" /></button>
                         <Input name="line_qty" type="number" min="0" step={requestQuantityStep(line.uom)} value={line.qty} onChange={(event) => updateLine(line.key, { qty: event.target.value })} placeholder="Qty" className="min-w-0 rounded-none border-0 px-2 text-center font-semibold tabular-nums shadow-none focus-visible:ring-inset" />
                         <button type="button" className="flex h-[var(--sb-control-height)] w-10 shrink-0 items-center justify-center border-l border-[var(--sb-border)] text-[var(--sb-green-900)] hover:bg-[var(--sb-surface-muted)] active:bg-[var(--sb-green-100)]" onClick={() => adjustLineQuantity(line, 1)} aria-label={`Increase quantity for ${line.itemSearch || "request line"}`}><Plus className="h-4 w-4" /></button>
@@ -258,10 +258,10 @@ export function PurchaseRequestForm({
             </div>
           </section>
 
-          <SubmitButton type="submit" name="intent" value="submit" pendingLabel="Submitting..." className="fixed bottom-[calc(var(--sb-mobile-nav-height)+env(safe-area-inset-bottom)+4.5rem)] right-4 z-[var(--sb-z-sticky)] h-12 w-12 rounded-full border-[var(--sb-green-800)] p-0 shadow-[0_6px_18px_rgb(6_44_31_/_0.24)] md:hidden" aria-label="Submit PR" title="Submit PR">
+          <SubmitButton type="submit" name="intent" value="submit" pendingLabel="Submitting..." data-mobile-primary-action className="fixed bottom-[calc(var(--sb-mobile-nav-height)+env(safe-area-inset-bottom)+4.5rem)] right-4 z-[var(--sb-z-sticky)] h-12 w-12 rounded-none border-[var(--sb-green-800)] p-0 shadow-[0_6px_18px_rgb(6_44_31_/_0.24)] md:hidden" aria-label="Submit PR" title="Submit PR">
             <Send className="h-5 w-5" aria-hidden="true" />
           </SubmitButton>
-          <Button type="button" size="icon" className="fixed bottom-[calc(var(--sb-mobile-nav-height)+env(safe-area-inset-bottom)+1rem)] right-4 z-[var(--sb-z-sticky)] h-12 w-12 rounded-full border-[var(--sb-green-800)] shadow-[0_6px_18px_rgb(6_44_31_/_0.24)] md:hidden" onClick={addLine} aria-label="Add request line" title="Add request line">
+          <Button type="button" size="icon" className="fixed bottom-[calc(var(--sb-mobile-nav-height)+env(safe-area-inset-bottom)+1rem)] right-4 z-[var(--sb-z-sticky)] h-12 w-12 rounded-none border-[var(--sb-green-800)] shadow-[0_6px_18px_rgb(6_44_31_/_0.24)] md:hidden" onClick={addLine} aria-label="Add request line" title="Add request line">
             <Plus className="h-5 w-5" />
           </Button>
 
@@ -304,7 +304,7 @@ export function PurchaseOrderForm({
           <input type="hidden" name="approval_status" value="draft" />
           <div className="grid gap-3 md:grid-cols-3">
             <Field label="PO No">
-              <div className="rounded-md border bg-secondary/30 px-3 py-2 text-sm text-muted-foreground">Auto-generated on submit</div>
+              <div className="border bg-secondary/30 px-3 py-2 text-sm text-muted-foreground">Auto-generated on submit</div>
             </Field>
             <Field label="Branch" required>
               <SelectNative name="branch_id" value={branchId} onChange={(event) => { setBranchId(event.target.value); setSupplierId(""); }} required>
@@ -330,7 +330,7 @@ export function PurchaseOrderForm({
             </div>
           </div>
 
-          <div className="rounded-[2px] border">
+          <div className="border">
             <div className="border-b bg-secondary/40 px-3 py-2">
               <p className="text-xs font-semibold">Ordered Items</p>
               <p className="text-xs text-muted-foreground">Pending quantity is calculated from ordered minus received and cancelled.</p>
@@ -338,7 +338,7 @@ export function PurchaseOrderForm({
             <div className="divide-y">
               {[0, 1, 2, 3, 4].map((index) => (
                 <div key={index} className="grid gap-2 p-3 lg:grid-cols-[32px_2fr_100px_100px_100px_84px_112px]">
-                  <div className="hidden items-center justify-center rounded border bg-secondary/40 text-xs font-semibold text-muted-foreground lg:flex">{index + 1}</div>
+                  <div className="hidden items-center justify-center rounded-none border bg-secondary/40 text-xs font-semibold text-muted-foreground lg:flex">{index + 1}</div>
                   <SelectNative name="line_item_id" value={selectedItemIds[index]} onChange={(event) => { const next = [...selectedItemIds]; next[index] = event.target.value; setSelectedItemIds(next); setSupplierId(""); }} required={index === 0}>
                     <option value="">Select item</option>
                     {items.map((item) => <option key={item.id} value={item.id}>{item.item_code} - {item.item_name} - {item.base_unit}</option>)}

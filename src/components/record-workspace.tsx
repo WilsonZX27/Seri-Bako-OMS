@@ -13,8 +13,8 @@ type RecordWorkspaceProps = {
 
 export function RecordWorkspace({ children, actionPanel, className }: RecordWorkspaceProps) {
   return (
-    <WorkspaceGrid documentMode tabletRailMode="split" className={cn("p-4", className)} rightRail={<div>{actionPanel}</div>}>
-      <main className="min-w-0 space-y-4">{children}</main>
+    <WorkspaceGrid documentMode tabletRailMode="split" className={cn("p-3 sm:p-4", className)} rightRail={<div>{actionPanel}</div>}>
+      <main className="min-w-0 space-y-4 pb-24 md:pb-0">{children}</main>
     </WorkspaceGrid>
   );
 }
@@ -43,7 +43,7 @@ export function RecordSection({
 }) {
   return (
     <Card className={className}>
-      <CardHeader className="p-3 pb-2">
+      <CardHeader className="border-b bg-[var(--sb-surface-muted)] p-3 pb-2">
         <CardTitle className="text-[14px]">{title}</CardTitle>
         {description ? <CardDescription>{description}</CardDescription> : null}
       </CardHeader>

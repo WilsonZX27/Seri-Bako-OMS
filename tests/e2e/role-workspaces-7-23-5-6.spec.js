@@ -11,6 +11,14 @@ const roles = {
   kitchen: "Kitchen Workdesk",
   outlet: "Outlet Today",
 };
+const mobileRoleLabels = {
+  superAdmin: "Super Admin / Owner",
+  finance: "Finance",
+  manager: "Manager",
+  purchasing: "Purchasing",
+  kitchen: "Kitchen",
+  outlet: "Outlet Staff",
+};
 const widths = [1440, 1024, 768, 430, 390, 360];
 const evidence = path.join(process.cwd(), "test-results", "sprint-7-23-5-7");
 
@@ -28,7 +36,11 @@ for (const [role, heading] of Object.entries(roles)) {
     for (const width of widths) {
       await page.setViewportSize({ width, height: 900 });
       await page.goto("/dashboard", { waitUntil: "domcontentloaded" });
-      await expect(page.getByRole("heading", { name: heading })).toBeVisible();
+      if (width >= 768) {
+        await expect(page.getByRole("heading", { name: heading })).toBeVisible();
+      } else {
+        await expect(page.locator("main")).toContainText(mobileRoleLabels[role]);
+      }
       await expect(page.locator("body")).not.toContainText(/Application error|Internal Server Error|Page actions/i);
       expect(await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)).toBeLessThanOrEqual(5);
       if (width >= 1280) await expect(page.locator("[data-right-console]")).toBeVisible();

@@ -87,8 +87,7 @@ export default async function ReportsPage() {
             <ConsoleSection title="Report Summary">
               <div className="grid gap-2 text-xs">
                 <div className="flex justify-between gap-3"><span className="text-muted-foreground">Categories</span><strong>{visibleCategories.length}</strong></div>
-                <div className="flex justify-between gap-3"><span className="text-muted-foreground">Available</span><strong>{reportCount}</strong></div>
-                <div className="flex justify-between gap-3"><span className="text-muted-foreground">Total Listed</span><strong>{reportCount}</strong></div>
+                <div className="flex justify-between gap-3"><span className="text-muted-foreground">Available reports</span><strong>{reportCount}</strong></div>
               </div>
             </ConsoleSection>
             <ConsoleSection title="Data Freshness">
@@ -97,9 +96,30 @@ export default async function ReportsPage() {
           </>
         }
       >
-        <div className="space-y-4">
+        <div className="space-y-4 pb-24 md:pb-0">
+          <section aria-labelledby="report-coverage" className="border bg-card p-3">
+            <div className="flex items-baseline justify-between gap-3">
+              <div>
+                <p id="report-coverage" className="text-sm font-semibold">Report coverage</p>
+                <p className="text-xs text-muted-foreground">Available views grouped by operational area.</p>
+              </div>
+              <span className="font-mono text-xs text-muted-foreground">{reportCount} views</span>
+            </div>
+            <div className="mt-3 grid gap-2">
+              {visibleCategories.map((category) => {
+                const width = reportCount ? Math.max(8, (category.reports.length / reportCount) * 100) : 0;
+                return (
+                  <div key={category.title} className="grid grid-cols-[minmax(0,10rem)_1fr_auto] items-center gap-2 text-xs">
+                    <span className="truncate text-muted-foreground">{category.title}</span>
+                    <div className="h-2 border bg-[var(--sb-neutral-bg)]" aria-hidden="true"><div className="h-full bg-[var(--sb-green-900)]" style={{ width: `${width}%` }} /></div>
+                    <strong className="font-mono">{category.reports.length}</strong>
+                  </div>
+                );
+              })}
+            </div>
+          </section>
           {visibleCategories.map((category) => (
-            <section key={category.title} className="overflow-hidden rounded-[2px] border bg-card">
+            <section key={category.title} className="overflow-hidden border bg-card">
               <div className="border-b bg-secondary/30 px-3 py-2">
                 <h2 className="text-sm font-semibold">{category.title}</h2>
                 <p className="text-xs text-muted-foreground">{category.description}</p>
@@ -109,7 +129,7 @@ export default async function ReportsPage() {
                   const Icon = report.icon;
                   return (
                     <div key={report.title} className="grid grid-cols-[24px_minmax(0,1fr)_auto] items-center gap-2 px-3 py-2">
-                      <div className="flex h-6 w-6 items-center justify-center rounded-[2px] bg-primary/10 text-primary">
+                      <div className="flex h-6 w-6 items-center justify-center border bg-primary/10 text-primary">
                         <Icon className="h-3.5 w-3.5" />
                       </div>
                       <div className="min-w-0">

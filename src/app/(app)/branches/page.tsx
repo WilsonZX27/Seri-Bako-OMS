@@ -16,6 +16,7 @@ import { getBranches } from "@/server/queries/foundation";
 import { hasActiveFilters } from "@/lib/table-state";
 import { ConsoleSection } from "@/components/layout/right-console";
 import { WorkspaceGrid } from "@/components/layout/workspace-layout";
+import { StatusMix } from "@/components/ui/status-mix";
 import { hasPermission } from "@/server/auth/permissions";
 
 export const dynamic = "force-dynamic";
@@ -29,8 +30,8 @@ export default async function BranchesPage({ searchParams }: { searchParams: Pro
 
     return (
       <>
-        <PageHeader title="Branches" description="Central kitchen, outlets, event booths, offices, and operating units." action={canCreate ? { href: "/branches/new", label: "New branch" } : undefined} />
-        <WorkspaceGrid hideMobileConsole rightRail={<>{canCreate ? <ConsoleSection title="Actions"><Button asChild size="sm" className="w-full" data-mobile-primary-action><Link href="/branches/new">New branch</Link></Button></ConsoleSection> : null}<ConsoleSection title="Branch Summary"><dl className="grid gap-2 text-xs"><div className="flex justify-between"><dt className="text-muted-foreground">Total</dt><dd className="font-semibold">{branches.length}</dd></div><div className="flex justify-between"><dt className="text-muted-foreground">Active</dt><dd className="font-semibold">{branches.filter((branch) => branch.status === "active").length}</dd></div><div className="flex justify-between"><dt className="text-muted-foreground">Archived</dt><dd className="font-semibold">{branches.filter((branch) => branch.status === "archived").length}</dd></div></dl></ConsoleSection></>}>
+        <PageHeader title="Branches" description="Central kitchen, outlets, event booths, offices, and operating units." />
+        <WorkspaceGrid rightRail={<>{canCreate ? <ConsoleSection title="Actions"><Button asChild size="sm" className="w-full" data-mobile-primary-action><Link href="/branches/new">New branch</Link></Button></ConsoleSection> : null}<ConsoleSection title="Branch Summary"><dl className="grid gap-2 text-xs"><div className="flex justify-between"><dt className="text-muted-foreground">Total</dt><dd className="font-semibold">{branches.length}</dd></div><div className="flex justify-between"><dt className="text-muted-foreground">Active</dt><dd className="font-semibold">{branches.filter((branch) => branch.status === "active").length}</dd></div><div className="flex justify-between"><dt className="text-muted-foreground">Archived</dt><dd className="font-semibold">{branches.filter((branch) => branch.status === "archived").length}</dd></div></dl></ConsoleSection></>}>
           {filters.error || filters.success ? (
             <Card>
               <CardContent className={`p-4 text-sm ${filters.error ? "text-destructive" : "text-[var(--sb-success)]"}`}>
@@ -38,7 +39,8 @@ export default async function BranchesPage({ searchParams }: { searchParams: Pro
               </CardContent>
             </Card>
           ) : null}
-          <div className="overflow-hidden rounded-[2px] border bg-card">
+          <StatusMix title="Branch availability" items={[{ label: "Active", value: branches.filter((branch) => branch.status === "active").length }, { label: "Archived", value: branches.filter((branch) => branch.status === "archived").length, tone: "warning" }, { label: "Total", value: branches.length }]} />
+          <div className="overflow-hidden border bg-card">
             <MasterDataFilters search={filters.search} status={filters.status} placeholder="Search branch code, name, or type" statuses={[{ value: "active", label: "Active" }, { value: "archived", label: "Archived" }]} showStatus={false} leadingFilter={<StatusTabs statuses={["active", "archived"]} activeStatus={filters.status} />} resultCount={branches.length} filtered={filtered} resetHref="/branches" />
             <BulkSelectionProvider ids={branches.map((branch) => branch.id)} actionLabel="Archive selected" actionHint="Archive branches only after confirming they are no longer used by daily operations.">
             <DataGridHint text="Pro-tip: Double-click any row to open the branch." />

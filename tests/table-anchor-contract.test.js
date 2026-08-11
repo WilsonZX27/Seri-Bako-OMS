@@ -12,7 +12,7 @@ test("technical tables pin the first semantic identity by default and skip bulk-
   const design = read("DESIGN.md");
 
   assert.match(table, /stickyColumn = "first"/);
-  assert.match(table, /stickyColumn\?: "none" \| "first" \| "second"/);
+  assert.match(table, /stickyColumn\?: "none" \| "first" \| "second" \| "third"/);
   assert.doesNotMatch(table, /"last"/);
   assert.match(table, /h-12 w-12[\s\S]*md:h-11 md:w-11[\s\S]*xl:h-8 xl:w-8/);
   assert.match(styles, /data-sticky-column="first"/);
@@ -28,7 +28,7 @@ test("technical tables pin the first semantic identity by default and skip bulk-
     "src/app/(app)/production/jobs/page.tsx",
     "src/app/(app)/suppliers/page.tsx",
   ]) {
-    assert.match(read(page), /stickyColumn="second"/, `${page}: semantic column follows bulk selection`);
+    assert.match(read(page), /stickyColumn="(?:second|third)"/, `${page}: semantic column follows bulk selection`);
   }
   assert.match(design, /status tab is itself the status filter/);
 });

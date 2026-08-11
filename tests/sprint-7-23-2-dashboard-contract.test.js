@@ -16,7 +16,7 @@ test("dashboard composition is all-role, task-first, and finance-gated", () => {
   assert.doesNotMatch(view, /Protected controls/);
   assert.match(view, /<ConsoleSection title="Actions">/);
   assert.match(view, /rightRailClassName/);
-  assert.match(view, /hideMobileConsole/);
+  assert.match(view, /data-mobile-primary-action/);
 });
 
 test("migration 072 grants Finance read union without Manager Review or purchasing mutations", () => {

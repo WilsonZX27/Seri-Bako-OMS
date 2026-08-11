@@ -145,7 +145,7 @@ export function StockCountForm({
 
 
   return (
-    <div className="rounded-none md:rounded-[var(--sb-panel-radius)] md:border md:bg-white">
+    <div className="rounded-none border bg-white">
       <div className="md:p-4">
         <form id={formId} action={action} className={showSubmit ? "space-y-3 pb-28 xl:pb-0" : "space-y-3"}>
           <input type="hidden" name="idempotency_key" value={idempotencyKey} />
@@ -205,7 +205,7 @@ export function StockCountForm({
             ))}
           </div>
 
-          <div data-stock-count-line-list className="rounded-none md:rounded-sm md:border">
+          <div data-stock-count-line-list className="rounded-none border">
             <div className="hidden border-b bg-secondary/40 px-3 py-1.5 md:grid md:grid-cols-[minmax(0,4fr)_minmax(4rem,2fr)_minmax(0,4fr)] md:gap-3">
               <p className="text-xs font-semibold">Item</p>
               <p className="text-xs text-right font-semibold">Variance</p>
@@ -232,7 +232,7 @@ export function StockCountForm({
                     </div>
 
                     <div className="order-3 flex min-w-0 items-center justify-end gap-1">
-                        <div className="flex min-w-0 flex-1 overflow-hidden rounded-sm border border-[var(--sb-border)] bg-white">
+                        <div className="flex min-w-0 flex-1 overflow-hidden border border-[var(--sb-border)] bg-white">
                           <button type="button" className="flex h-8 w-7 shrink-0 items-center justify-center border-r border-[var(--sb-border)] text-[var(--sb-green-900)] hover:bg-[var(--sb-surface-muted)] active:bg-[var(--sb-green-100)]" onClick={() => adjustPhysicalQty(line.item_id, -1)} aria-label={`Decrease physical quantity for ${line.item_name}`}><Minus className="h-3.5 w-3.5" /></button>
                         <Input
                           id={`physical-${line.item_id}`}

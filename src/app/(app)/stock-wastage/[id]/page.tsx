@@ -50,7 +50,7 @@ export default async function StockWastageDetailPage({ params }: { params: Promi
           </DocumentSideSection>
           {evidenceMissing ? (
             <DocumentSideSection title="Attachment Recommended">
-              <div className="flex gap-2 rounded-md bg-warning/10 p-3 text-sm text-warning">
+              <div className="flex gap-2 border border-warning/30 bg-warning/10 p-3 text-sm text-warning">
                 <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
                 Add a photo when available for audit support.
               </div>
@@ -75,7 +75,7 @@ export default async function StockWastageDetailPage({ params }: { params: Promi
             <div><p className="text-xs uppercase text-muted-foreground">Branch</p><p className="font-medium">{wastage.branch_name ?? "-"}</p></div>
             <div><p className="text-xs uppercase text-muted-foreground">Reason</p><p className="font-medium capitalize">{wastage.reason.replaceAll("_", " ")}</p></div>
           </div>
-          {wastage.remarks ? <p className="rounded-md border bg-secondary/30 p-3 text-sm">{wastage.remarks}</p> : null}
+          {wastage.remarks ? <p className="border bg-secondary/30 p-3 text-sm">{wastage.remarks}</p> : null}
         </CardContent>
       </Card>
 

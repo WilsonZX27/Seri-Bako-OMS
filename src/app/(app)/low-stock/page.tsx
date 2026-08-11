@@ -56,7 +56,7 @@ export default async function LowStockPage({ searchParams }: { searchParams: Pro
           </ConsoleSection>
         }
       >
-        <div className="overflow-hidden rounded-[2px] border border-[var(--sb-border-soft)] bg-card">
+        <div className="overflow-hidden border border-[var(--sb-border-soft)] bg-card">
           <div className="p-4">
             <LowStockPrForm
               items={items}

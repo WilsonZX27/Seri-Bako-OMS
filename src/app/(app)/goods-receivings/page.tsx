@@ -1,10 +1,12 @@
 import { Pencil } from "lucide-react";
+import Link from "next/link";
 import { BulkSelectAllCheckbox, BulkSelectionProvider, BulkSelectRowCheckbox } from "@/components/bulk-selection";
 import { DataGridRow } from "@/components/ui/data-grid-row";
 import { DataGridHint } from "@/components/ui/data-grid-hint";
 import { DocumentNumber } from "@/components/document-number";
 import { EmptyState } from "@/components/ui/empty-state";
 import { StatusBadge } from "@/components/ui/status-badge";
+import { StatusMix } from "@/components/ui/status-mix";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { PageHeader } from "@/components/ui/page-header";
@@ -37,9 +39,9 @@ export default async function GoodsReceivingsPage({ searchParams }: { searchPara
         action={canCreate ? { href: "/goods-receivings/new", label: "New GRN" } : undefined}
       />
       <WorkspaceGrid
-        hideMobileConsole
         rightRail={
           <>
+            {canCreate ? <ConsoleSection title="Actions"><Button asChild className="w-full" data-mobile-primary-action><Link href="/goods-receivings/new">New GRN</Link></Button></ConsoleSection> : null}
             <ConsoleSection title="GRN Summary">
               <div className="grid gap-2 text-xs">
                 <div className="flex justify-between"><span className="text-muted-foreground">Total GRNs</span><strong>{rows.length}</strong></div>
@@ -56,13 +58,14 @@ export default async function GoodsReceivingsPage({ searchParams }: { searchPara
           </>
         }
       >
-        <div className="overflow-hidden rounded-[2px] border border-[var(--sb-border-soft)] bg-card">
+        <div className="overflow-hidden border border-[var(--sb-border-soft)] bg-card">
           <FilterBar resultCount={receivings.totalRows} resetHref="/goods-receivings" filtered={filtered}>
             <Input name="search" defaultValue={filters.search ?? ""} placeholder="Search GRN, PO or supplier" className="min-w-0 flex-1 md:max-w-sm" />
             <StatusTabs statuses={statuses} activeStatus={filters.status} />
             <Button type="submit" variant="secondary" className="shrink-0">Search</Button>
             {filters.status ? <input type="hidden" name="status" value={filters.status} /> : null}
           </FilterBar>
+          <StatusMix items={[{ label: "Draft", value: count("draft"), href: "/goods-receivings?status=draft" }, { label: "Posted", value: count("posted"), href: "/goods-receivings?status=posted" }, { label: "Cancelled", value: count("cancelled"), tone: "danger", href: "/goods-receivings?status=cancelled" }]} />
           <BulkSelectionProvider ids={receivings.rows.map((receiving) => receiving.id)} actionLabel="Archive selected" actionHint="Open selected GRNs to post or cancel them through workflow-safe actions. Posted receiving records are never hard deleted.">
           <DataGridHint text="Pro-tip: Double-click any row to open the goods receiving document." />
           <Table mobileHidden aria-label="Goods receiving records" stickyColumn="third">

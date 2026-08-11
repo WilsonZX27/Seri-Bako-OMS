@@ -11,6 +11,7 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { ConsoleSection } from "@/components/layout/right-console";
 import { WorkspaceGrid } from "@/components/layout/workspace-layout";
+import { StatusMix } from "@/components/ui/status-mix";
 import { documentTypeLabel } from "@/lib/document-types";
 import { hasActiveFilters } from "@/lib/table-state";
 
@@ -30,7 +31,8 @@ export default async function DocumentSequencesPage({ searchParams }: { searchPa
             </CardContent>
           </Card>
         ) : null}
-        <div className="overflow-hidden rounded-[2px] border bg-card">
+        <StatusMix title="Sequence availability" items={[{ label: "Active", value: sequences.filter((sequence) => sequence.status === "active").length }, { label: "Inactive", value: sequences.filter((sequence) => sequence.status !== "active").length, tone: "warning" }, { label: "Matching", value: sequences.length }]} />
+        <div className="overflow-hidden border bg-card">
           <MasterDataFilters search={filters.search} status={filters.status} placeholder="Search document type, prefix, or preview number" resultCount={sequences.length} filtered={filtered} resetHref="/document-sequences" />
             <Table aria-label="Document sequences" stickyColumn={canUpdate ? "second" : "first"}>
               <TableHeader>

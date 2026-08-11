@@ -90,8 +90,8 @@ export function QuickAccessMenu({ permissionMap }: QuickAccessMenuProps) {
             </div>
             <div className="grid gap-1 pt-2">
               {visibleActions.map(({ href, label, hint, icon: Icon }) => (
-                <Link key={href} href={href} onClick={() => setOpen(false)} className={cn("flex min-h-12 items-center gap-3 rounded-md px-2 py-2 hover:bg-[var(--sb-surface-muted)] focus-visible:bg-[var(--sb-surface-muted)]") }>
-                  <span className="sb-icon-tile h-8 w-8 rounded-md"><Icon className="h-4 w-4" aria-hidden="true" /></span>
+                <Link key={href} href={href} onClick={() => setOpen(false)} className={cn("flex min-h-12 items-center gap-3 px-2 py-2 hover:bg-[var(--sb-surface-muted)] focus-visible:bg-[var(--sb-surface-muted)]") }>
+                  <span className="sb-icon-tile h-8 w-8"><Icon className="h-4 w-4" aria-hidden="true" /></span>
                   <span className="min-w-0"><span className="block text-sm font-medium">{label}</span><span className="block truncate text-xs text-[var(--sb-text-muted)]">{hint}</span></span>
                 </Link>
               ))}

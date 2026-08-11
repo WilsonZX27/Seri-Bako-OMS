@@ -8,6 +8,7 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { StatusTabs } from "@/components/status-tabs";
 import { ConsoleSection } from "@/components/layout/right-console";
 import { WorkspaceGrid } from "@/components/layout/workspace-layout";
+import { StatusMix } from "@/components/ui/status-mix";
 import { OperationalList, OperationalListRow, Table, TableActionLink, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { PaginationControls } from "@/components/sortable-table";
 import { hasActiveFilters, paginateRows } from "@/lib/table-state";
@@ -30,8 +31,9 @@ export default async function RecipesPage({ searchParams }: { searchParams: Prom
         title="Recipe / BOM"
         description="Finished product recipes linked to Item Master ingredients."
       />
-      <WorkspaceGrid hideMobileConsole={!canCreate} rightRail={<><ConsoleSection title="Actions">{canCreate ? <Button asChild className="w-full" data-mobile-primary-action><Link href="/recipes/new">New recipe</Link></Button> : <p className="text-xs text-muted-foreground">Recipe master data is read-only for Finance.</p>}</ConsoleSection><ConsoleSection title="Recipe Summary"><dl className="grid gap-2 text-xs"><div className="flex justify-between"><dt className="text-muted-foreground">Total</dt><dd className="font-semibold">{recipes.length}</dd></div><div className="flex justify-between"><dt className="text-muted-foreground">Active</dt><dd className="font-semibold">{recipes.filter((recipe) => recipe.status === "active").length}</dd></div><div className="flex justify-between"><dt className="text-muted-foreground">Pending approval</dt><dd className="font-semibold">{recipes.filter((recipe) => recipe.status === "pending_approval").length}</dd></div></dl></ConsoleSection></>}>
-        <div className="overflow-hidden rounded-[2px] border bg-card">
+      <WorkspaceGrid rightRail={<><ConsoleSection title="Actions">{canCreate ? <Button asChild className="w-full" data-mobile-primary-action><Link href="/recipes/new">New recipe</Link></Button> : <p className="text-xs text-muted-foreground">Recipe master data is read-only for Finance.</p>}</ConsoleSection><ConsoleSection title="Recipe Summary"><dl className="grid gap-2 text-xs"><div className="flex justify-between"><dt className="text-muted-foreground">Total</dt><dd className="font-semibold">{recipes.length}</dd></div><div className="flex justify-between"><dt className="text-muted-foreground">Active</dt><dd className="font-semibold">{recipes.filter((recipe) => recipe.status === "active").length}</dd></div><div className="flex justify-between"><dt className="text-muted-foreground">Pending approval</dt><dd className="font-semibold">{recipes.filter((recipe) => recipe.status === "pending_approval").length}</dd></div></dl></ConsoleSection></>}>
+        <StatusMix title="Recipe lifecycle" items={[{ label: "Active", value: recipes.filter((recipe) => recipe.status === "active").length }, { label: "Draft", value: recipes.filter((recipe) => recipe.status === "draft").length, tone: "warning" }, { label: "Pending approval", value: recipes.filter((recipe) => recipe.status === "pending_approval").length, tone: "warning" }, { label: "Rejected", value: recipes.filter((recipe) => recipe.status === "rejected").length, tone: "danger" }]} />
+        <div className="overflow-hidden border bg-card">
           <MasterDataFilters search={filters.search} status={filters.status} placeholder="Search recipe number, product code, or product" showStatus={false} leadingFilter={<StatusTabs statuses={[{ value: "active", label: "Active" }, { value: "draft", label: "Draft" }, { value: "pending_approval", label: "Pending Approval" }, { value: "archived", label: "Archived" }]} activeStatus={filters.status} />} resultCount={page.totalRows} filtered={filtered} resetHref="/recipes" />
             <Table mobileHidden stickyColumn="second" aria-label="Recipes">
               <TableHeader>

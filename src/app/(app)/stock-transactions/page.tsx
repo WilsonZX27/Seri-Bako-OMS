@@ -112,7 +112,7 @@ export default async function StockTransactionsPage({ searchParams }: { searchPa
           </>
         }
       >
-        <div className="rounded-[2px] border border-[var(--sb-border-soft)] bg-card">
+        <div className="border border-[var(--sb-border-soft)] bg-card">
           {activeFilterChips.length ? <div className="sb-filter-summary flex-wrap px-3 py-2" aria-label="Active filters">
             {activeFilterChips.map((chip) => <span key={chip} className="max-w-full truncate">{chip}</span>)}
           </div> : null}

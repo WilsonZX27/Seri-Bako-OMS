@@ -80,7 +80,7 @@ export default async function ProductionJobDetailPage({
           <DocumentSideSection title="Validation / Next Step">{job.stock_transaction_id ? <DocumentActionLink href={`/stock-transactions/${job.stock_transaction_id}`} variant="outline">View Stock Movement</DocumentActionLink> : null}<p className="text-xs text-muted-foreground">{job.status === "draft" ? "Check recipe, output, and ingredient quantities before submission." : job.status === "submitted" ? "Manager approval is required before stock posting." : job.status === "approved" ? "Posting rechecks stock and creates the audited movement." : "Posted production is read-only."}</p></DocumentSideSection>
           {hasShortage && job.status !== "posted" ? (
             <DocumentSideSection title="Ingredient Warning">
-              <div className="flex gap-2 rounded-md bg-warning/10 p-3 text-sm text-warning">
+              <div className="flex gap-2 border border-warning/30 bg-warning/10 p-3 text-sm text-warning">
                 <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
                 Some ingredient lines were short when this draft was created. Posting rechecks stock.
               </div>
@@ -127,7 +127,7 @@ export default async function ProductionJobDetailPage({
             <div><p className="text-xs uppercase text-muted-foreground">Ingredient Cost</p><p className="font-medium">{formatCurrency(totalIngredientCost)}</p></div>
             <div><p className="text-xs uppercase text-muted-foreground">Cost / Output</p><p className="font-medium">{formatCurrency(outputQty > 0 ? totalIngredientCost / outputQty : 0)}</p></div>
           </div>
-          {job.remarks ? <p className="rounded-md border bg-secondary/30 p-3 text-sm">{job.remarks}</p> : null}
+          {job.remarks ? <p className="border bg-secondary/30 p-3 text-sm">{job.remarks}</p> : null}
         </CardContent>
       </Card>
 

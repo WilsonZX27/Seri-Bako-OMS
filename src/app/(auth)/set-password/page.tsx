@@ -107,9 +107,9 @@ export default async function SetPasswordPage({
           </div>
         </Notice>
       ) : null}
-      <div className="mb-5 rounded-[2px] border bg-white p-4">
+      <div className="mb-5 border bg-white p-4">
         <div className="flex items-center gap-3">
-          <div className="flex h-12 w-12 items-center justify-center rounded-[var(--sb-radius-control)] bg-primary/10 text-sm font-semibold text-primary">
+          <div className="flex h-12 w-12 items-center justify-center border border-primary/20 bg-primary/10 text-sm font-semibold text-primary">
             {setupContext.companyLogoUrl ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img src={setupContext.companyLogoUrl} alt={`${setupContext.companyName} logo`} className="h-full w-full object-contain p-2" />
@@ -157,7 +157,7 @@ export default async function SetPasswordPage({
         <Field label="Confirm Password" required>
           <PasswordInput name="confirm_password" autoComplete="new-password" minLength={8} required />
         </Field>
-        <div className="rounded-md border bg-secondary/40 p-3 text-sm text-muted-foreground">
+        <div className="border bg-secondary/40 p-3 text-sm text-muted-foreground">
           Minimum 8 characters. Your new password should be different from the old one if you already used this account before.
         </div>
         <p className="text-sm text-muted-foreground">This password will be applied only to the invited account shown above.</p>

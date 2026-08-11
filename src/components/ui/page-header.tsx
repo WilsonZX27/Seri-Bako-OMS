@@ -40,12 +40,6 @@ export function PageHeader(props: PageHeaderProps) {
         ) : null}
         </div>
       </header>
-      {props.action || props.secondaryAction ? (
-        <div className="flex min-h-12 items-center justify-end gap-2 border-b border-[var(--sb-border-soft)] bg-white px-3 xl:hidden">
-          {props.secondaryAction ? <Button asChild variant="ghost" size="sm"><Link href={props.secondaryAction.href}>{props.secondaryAction.label}</Link></Button> : null}
-          {props.action ? <Button asChild size="sm"><Link href={props.action.href}>{props.action.label}</Link></Button> : null}
-        </div>
-      ) : null}
     </>
   );
 }

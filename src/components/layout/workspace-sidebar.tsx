@@ -71,8 +71,8 @@ export function WorkspaceSidebar({
   return (
     <div className={cn("flex h-dvh w-[var(--sb-sidebar-width)] flex-col border-r border-white/10 bg-[var(--sb-green-950)] text-white", mobile ? "w-full" : "")}>
       <div className="border-b border-white/10 px-3 py-3">
-        <Link href={brandHref} onClick={onNavigate} className="flex min-w-0 flex-1 items-center gap-3 rounded-[2px] p-1 hover:bg-white/10">
-          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-[2px] bg-white/12 text-white ring-1 ring-white/10">
+        <Link href={brandHref} onClick={onNavigate} className="flex min-w-0 flex-1 items-center gap-3 p-1 hover:bg-white/10">
+          <div className="flex h-8 w-8 shrink-0 items-center justify-center bg-white/12 text-white ring-1 ring-white/10">
             {companyLogoUrl ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img src={companyLogoUrl} alt={`${companyName} logo`} className="h-full w-full object-contain p-1" />
@@ -94,7 +94,7 @@ export function WorkspaceSidebar({
             const groupClosed = closedGroups[group.id] ?? group.id !== activeGroupId;
             return (
               <div key={group.id}>
-                  <div className={cn("mb-1 flex w-full items-center rounded-[2px] font-medium leading-none text-white/60 hover:bg-white/8 hover:text-white", activeGroupId === group.id && group.href ? "bg-white/8 text-white" : "", mobile ? "min-h-9 text-[11px]" : "min-h-8 text-[10px]")}>
+                  <div className={cn("mb-1 flex w-full items-center font-medium leading-none text-white/60 hover:bg-white/8 hover:text-white", activeGroupId === group.id && group.href ? "bg-white/8 text-white" : "", mobile ? "min-h-9 text-[11px]" : "min-h-8 text-[10px]")}>
                     {group.href ? (
                       <Link href={group.href} onClick={onNavigate} className="flex min-h-[inherit] min-w-0 flex-1 items-center px-2">
                         <span className={mobile ? "text-[11px]" : "text-[10px]"}>{group.label}</span>
@@ -104,7 +104,7 @@ export function WorkspaceSidebar({
                         <span className={mobile ? "text-[11px]" : "text-[10px]"}>{group.label}</span>
                       </button>
                     )}
-                    <button type="button" className="flex min-h-8 min-w-8 items-center justify-center rounded-[2px] hover:bg-white/10" onClick={() => toggleGroup(group.id, groupClosed)} aria-expanded={!groupClosed} aria-label={`${groupClosed ? "Expand" : "Collapse"} ${group.label}`}>
+                    <button type="button" className="flex min-h-8 min-w-8 items-center justify-center hover:bg-white/10" onClick={() => toggleGroup(group.id, groupClosed)} aria-expanded={!groupClosed} aria-label={`${groupClosed ? "Expand" : "Collapse"} ${group.label}`}>
                       <ChevronDown className={cn("h-3 w-3 transition-transform", groupClosed ? "-rotate-90" : "")} />
                     </button>
                   </div>
@@ -120,7 +120,7 @@ export function WorkspaceSidebar({
                         href={item.href}
                         onClick={onNavigate}
                         className={cn(
-                          "flex items-center gap-2 rounded-[2px] px-2 font-medium transition-colors",
+                          "flex items-center gap-2 px-2 font-medium transition-colors",
                           mobile ? "min-h-10 text-xs" : "min-h-8 text-xs",
                           active ? "bg-[var(--sb-green-100)] text-[var(--sb-green-950)] ring-1 ring-white/10" : "text-white/72 hover:bg-white/8 hover:text-white",
                         )}
@@ -129,7 +129,7 @@ export function WorkspaceSidebar({
                           <>
                             <span className="min-w-0 flex-1 truncate">{item.label}</span>
                             {typeof count === "number" && count > 0 ? (
-                              <span className="ml-2 inline-flex min-w-5 justify-center rounded-full bg-[var(--sb-amber-300)] px-1.5 py-0.5 text-[10px] font-semibold leading-none text-[var(--sb-green-950)]">
+                              <span className="ml-2 inline-flex min-w-5 justify-center border border-[var(--sb-amber-300)] bg-[var(--sb-amber-300)] px-1.5 py-0.5 text-[10px] font-semibold leading-none text-[var(--sb-green-950)]">
                                 {count > 99 ? "99+" : count}
                               </span>
                             ) : null}

@@ -74,7 +74,7 @@ export default async function StockTransferDetailPage({ params }: { params: Prom
             <div><p className="text-xs uppercase text-muted-foreground">From</p><p className="font-medium">{transfer.from_branch_name}</p></div>
             <div><p className="text-xs uppercase text-muted-foreground">To</p><p className="font-medium">{transfer.to_branch_name}</p></div>
           </div>
-          {transfer.remarks ? <p className="rounded-md border bg-secondary/30 p-3 text-sm">{transfer.remarks}</p> : null}
+              {transfer.remarks ? <p className="border bg-secondary/30 p-3 text-sm">{transfer.remarks}</p> : null}
         </CardContent>
       </Card>
 

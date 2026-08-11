@@ -40,7 +40,7 @@ export default async function StockCardPage({ searchParams }: { searchParams: Pr
       <PageHeader title="Stock Card" description="Chronological stock movement history per item." />
       <WorkspaceGrid className="p-3 sm:p-4">
         <div className="space-y-3">
-          <section className="overflow-hidden rounded-[2px] border bg-card" aria-label="Stock card filters">
+          <section className="overflow-hidden border bg-card" aria-label="Stock card filters">
             <FilterBar resultCount={rows.length} resetHref="/stock-card" filtered={filtered}>
               <SelectControl name="item_id" defaultValue={filters.item_id ?? "all"} ariaLabel="Item" options={[{ value: "all", label: "All items" }, ...items.map((item) => ({ value: item.id, label: `${item.item_code} — ${item.item_name}` }))]} />
               <Input name="from" type="date" defaultValue={filters.from ?? ""} aria-label="From date" />
@@ -49,7 +49,7 @@ export default async function StockCardPage({ searchParams }: { searchParams: Pr
             </FilterBar>
           </section>
 
-          <section className="overflow-hidden rounded-[2px] border bg-card" aria-labelledby="stock-card-summary">
+          <section className="overflow-hidden border bg-card" aria-labelledby="stock-card-summary">
             <div className="border-b px-3 py-2.5"><h2 id="stock-card-summary" className="text-xs font-semibold">Movement summary</h2></div>
             <div className="grid divide-y sm:grid-cols-4 sm:divide-x sm:divide-y-0 xl:grid-cols-8">
               {movementSummary.map(([label, value]) => (
@@ -61,7 +61,7 @@ export default async function StockCardPage({ searchParams }: { searchParams: Pr
             </div>
           </section>
 
-          <section className="overflow-hidden rounded-[2px] border bg-card">
+          <section className="overflow-hidden border bg-card">
             <div className="border-b px-3 py-2.5">
               <h2 className="text-sm font-semibold">{selectedItem ? `${selectedItem.item_code} — ${selectedItem.item_name}` : "Stock Movement History"}</h2>
               <p className="mt-0.5 text-xs text-muted-foreground">Current balance: {formatNumber(current)} {selectedItem?.base_unit ?? ""}</p>

@@ -125,7 +125,7 @@ export function RightConsoleProvider({ children }: { children: ReactNode }) {
         <Link
           href={primaryHref}
           data-mobile-create-fab
-          className="fixed right-4 z-[var(--sb-z-sticky)] inline-flex h-14 w-14 items-center justify-center rounded-full bg-[var(--sb-green-900)] text-white shadow-[0_3px_8px_rgb(6_44_31_/_0.22)] transition-transform active:scale-95 xl:hidden"
+          className="fixed right-4 z-[var(--sb-z-sticky)] inline-flex h-14 w-14 items-center justify-center rounded-full border border-[var(--sb-green-950)] bg-[var(--sb-green-900)] text-white shadow-[0_3px_8px_rgb(6_44_31_/_0.22)] transition-transform active:scale-95 xl:hidden"
           aria-label={primaryLabel}
           title={primaryLabel}
         >

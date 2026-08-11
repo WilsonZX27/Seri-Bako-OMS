@@ -5,12 +5,14 @@ import { WorkspaceGrid } from "@/components/layout/workspace-layout";
 import { PaginationControls } from "@/components/sortable-table";
 import { DataGridRow } from "@/components/ui/data-grid-row";
 import { Button } from "@/components/ui/button";
+import { HeroActionBar } from "@/components/ui/hero-action-bar";
 import { EmptyState } from "@/components/ui/empty-state";
 import { FilterBar } from "@/components/ui/filter-bar";
 import { Input } from "@/components/ui/input";
 import { PageHeader } from "@/components/ui/page-header";
 import { SelectControl } from "@/components/ui/select-control";
 import { StatusBadge } from "@/components/ui/status-badge";
+import { StatusMix } from "@/components/ui/status-mix";
 import { OperationalList, OperationalListRow, Table, TableActionLink, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { formatNumber } from "@/lib/utils";
 import { hasActiveFilters } from "@/lib/table-state";
@@ -27,12 +29,14 @@ export default async function OutletDailyRecordsPage({ searchParams }: { searchP
   const filtered = hasActiveFilters(filters);
   return <>
     <PageHeader title="Outlet Daily Records" description="Morning receiving and evening wastage capture by outlet." />
-    <WorkspaceGrid hideMobileConsole={!canCreate} rightRail={<>
+    <WorkspaceGrid rightRail={<>
       <ConsoleSection title="Actions">{canCreate ? <Button asChild size="sm" className="w-full" data-mobile-primary-action><Link href="/outlet-daily-records/new">New Daily Record</Link></Button> : <p className="text-xs text-muted-foreground">Your role has read-only access.</p>}</ConsoleSection>
       <ConsoleSection title="Today"><div className="space-y-2 text-xs"><p className="flex justify-between"><span>Records</span><strong>{data.summary.today_records}</strong></p><p className="flex justify-between"><span>Qty sent</span><strong>{formatNumber(data.summary.today_sent)}</strong></p><p className="flex justify-between"><span>Total received</span><strong>{formatNumber(data.summary.today_received)}</strong></p><p className="flex justify-between"><span>Incomplete</span><strong>{data.summary.missing_evening}</strong></p></div></ConsoleSection>
       <ConsoleSection title="Review Queue"><p className="text-xs"><span className="text-muted-foreground">Records needing review</span><br /><strong>{data.summary.needs_review}</strong></p></ConsoleSection>
     </>}>
       <div className="overflow-hidden border bg-card">
+        <StatusMix title="Record status" items={[{ label: "Draft / morning", value: data.rows.filter((row) => ["draft", "morning_recorded"].includes(row.status)).length }, { label: "Needs review", value: data.rows.filter((row) => row.status === "evening_completed").length, tone: "warning" }, { label: "Reviewed", value: data.rows.filter((row) => row.status === "reviewed").length }, { label: "Void", value: data.rows.filter((row) => row.status === "void").length, tone: "danger" }]} />
+        <HeroActionBar eyebrow="Today&apos;s work" title="Capture receiving and wastage in one record." description="Use the Actions rail to start a record or open the review queue." />
         <FilterBar resultCount={data.totalRows} resetHref="/outlet-daily-records" filtered={filtered}>
           <Input name="date" type="date" defaultValue={filters.date ?? ""} aria-label="Record date" />
           <SelectControl name="branch" defaultValue={filters.branch ?? "all"} ariaLabel="Branch" options={[{ value: "all", label: "All branches" }, ...options.branches.map((branch) => ({ value: branch.id, label: branch.branch_name }))]} />

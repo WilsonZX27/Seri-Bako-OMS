@@ -57,7 +57,7 @@ export function BulkSelectionProvider(props: {
     <BulkSelectionContext.Provider value={value}>
       <div className="space-y-3">
         {selected.size > 0 ? (
-          <div className="flex flex-col gap-3 rounded-[2px] border bg-white p-3 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex flex-col gap-3 border bg-white p-3 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <p className="text-sm font-semibold">Selected {selected.size} item{selected.size === 1 ? "" : "s"}</p>
               <p className="text-xs text-muted-foreground">{actionHint}</p>
@@ -86,7 +86,7 @@ export function BulkSelectAllCheckbox() {
       }}
       onChange={toggleAll}
       aria-label="Select all visible rows"
-      className="h-4 w-4 rounded border-slate-300"
+      className="h-4 w-4 border-slate-300"
     />
   );
 }
@@ -99,7 +99,7 @@ export function BulkSelectRowCheckbox({ id }: { id: string }) {
       checked={selectedIds.has(id)}
       onChange={() => toggleOne(id)}
       aria-label="Select row"
-      className="h-4 w-4 rounded border-slate-300"
+      className="h-4 w-4 border-slate-300"
     />
   );
 }

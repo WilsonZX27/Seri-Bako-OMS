@@ -590,3 +590,11 @@ the route matrix in `docs/qa/FULL_SYSTEM_AUDIT_MATRIX.md`.
 - Desktop query controls are 44px high. Filters and actions use a consistent 8rem width; search may be wider but is capped at 250px when desktop space permits.
 - Query inputs, selects, status controls, and More Filters use a white surface. The primary Search/Reset action remains Seri Bako green.
 - On mobile Outlet Daily creation, the sticky context header carries status and workflow only. Record setup owns the live location and date summary so the same context is not repeated twice.
+
+# v8.36.7 — Compact Document Editing Contract
+
+- New-document phone headers show the document title and status without repeating branch or date. Location and date belong to the collapsible details/setup surface immediately below the header.
+- Mobile workflow triggers use the concise `Step X of N ›` label. The sheet title and accessible label carry the word “workflow”; the compact trigger does not repeat it.
+- Repeating item editors use one numbered item-search row followed by one aligned quantity, UOM, and comment row. Controls share one height and the established 8px control radius.
+- Stock Count setup reuses the collapsible document-details pattern. Its closed summary exposes branch and date; its expanded content keeps date/autosave cards and settings readable as two rows on compact tablets.
+- Mobile document action rails use explicit grid slots. Status text may shrink and wrap by phrase, but action buttons never force status words into vertical single-character columns. Rails retain safe-area padding and the established elevated shadow.

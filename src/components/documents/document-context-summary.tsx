@@ -51,9 +51,9 @@ export function DocumentContextSummary({
 
   return (
     <>
-      <div data-document-context-summary data-compact={compact || undefined} className="grid min-w-0 grid-cols-[auto_minmax(0,1fr)] items-center gap-x-2 gap-y-0.5 md:hidden">
-        <StatusBadge status={status} />
-        {!mobileStatusOnly && date ? <time className="justify-self-end text-xs tabular-nums text-muted-foreground" dateTime={date}>{date}</time> : <span />}
+      <div data-document-context-summary data-compact={compact || undefined} className="grid min-w-0 grid-cols-[minmax(0,1fr)_auto] items-center gap-x-2 gap-y-0.5 md:hidden">
+        {mobileStatusOnly && title ? <span className="truncate text-sm font-semibold text-foreground">{title}</span> : <StatusBadge status={status} />}
+        {mobileStatusOnly ? <StatusBadge status={status} /> : date ? <time className="justify-self-end text-xs tabular-nums text-muted-foreground" dateTime={date}>{date}</time> : <span />}
         {!mobileStatusOnly && branch ? <span className={compact ? "col-span-2 truncate text-[11px] text-muted-foreground" : "col-span-2 truncate text-xs text-muted-foreground"}>{branch}</span> : null}
       </div>
       <div className="hidden min-w-0 items-center gap-3 md:flex">

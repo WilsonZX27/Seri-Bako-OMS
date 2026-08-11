@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { AlertTriangle, ListFilter, Minus, Plus, Search } from "lucide-react";
+import { AlertTriangle, CalendarDays, ChevronDown, ListFilter, MapPin, Minus, Plus, Search } from "lucide-react";
 import { Field } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { SelectNative } from "@/components/ui/select-native";
@@ -336,30 +336,39 @@ export function StockCountForm({
       <div>
         <form ref={formRef} id={formId} action={action} className={showSubmit ? "space-y-3 pb-28 xl:pb-0" : "space-y-3"}>
           <input type="hidden" name="idempotency_key" value={idempotencyKey} />
-          <section data-stock-count-setup className="erp-surface grid overflow-hidden rounded-[var(--sb-panel-radius)] border bg-white px-3 py-3 md:grid-cols-2 md:gap-3 md:px-4 md:py-4">
+          <section data-stock-count-setup className="erp-surface overflow-hidden rounded-[var(--sb-panel-radius)] border bg-white p-3 md:p-4">
             <input type="hidden" name="branch_id" value={resolvedBranchId} />
-            <div className="flex min-w-0 items-center justify-between gap-3 md:rounded-[var(--sb-control-radius)] md:border md:border-[var(--sb-border-soft)] md:bg-[var(--sb-surface)] md:p-3">
+            <button type="button" className="flex w-full min-w-0 items-start justify-between gap-3 text-left" aria-expanded={settingsOpen} onClick={() => setSettingsOpen((current) => !current)}>
               <div className="min-w-0">
-                <p className="text-xs font-medium text-muted-foreground">Count date</p>
-                <p className="break-words text-sm font-semibold text-foreground">{initialCountDate ? formatDateOnly(countDate) : `Today · ${formatDateOnly(countDate)}`}</p>
+                <p className="text-sm font-semibold text-foreground">Count details</p>
+                {!settingsOpen ? <div className="mt-1 flex flex-wrap gap-x-3 gap-y-1 text-xs text-muted-foreground">
+                  <span className="inline-flex min-w-0 items-center gap-1"><MapPin className="h-3.5 w-3.5 shrink-0" />{branches.find((branch) => branch.id === resolvedBranchId)?.branch_name ?? "Assigned branch"}</span>
+                  <span className="inline-flex items-center gap-1"><CalendarDays className="h-3.5 w-3.5 shrink-0" />{formatDateOnly(countDate)}</span>
+                </div> : <p className="mt-0.5 text-xs text-muted-foreground">Date, branch and count settings.</p>}
               </div>
-              <Input aria-label="Count date" name="count_date" type="date" value={countDate} onChange={(event) => { setCountDate(event.target.value); markDirty(); }} required className="basis-36 shrink-0" />
-            </div>
-            <div className="hidden items-center justify-between gap-3 rounded-[var(--sb-control-radius)] border border-[var(--sb-border-soft)] bg-[var(--sb-surface)] p-3 md:flex" aria-live="polite">
-              <div className="min-w-0">
-                <p className={`break-words text-xs font-medium ${autosaveState === "error" ? "text-destructive" : autosaveState === "saved" ? "text-[var(--sb-green-900)]" : "text-muted-foreground"}`} title={autosaveError || autosaveLabel}>{autosaveLabel}</p>
-                <p className="text-xs text-muted-foreground">{lines.length} values ready · {adjustedCount} adjusted</p>
+              <ChevronDown className={`mt-0.5 h-4 w-4 shrink-0 transition-transform ${settingsOpen ? "rotate-180" : ""}`} />
+            </button>
+            <div className={`${settingsOpen ? "grid" : "hidden"} mt-3 gap-3 border-t border-[var(--sb-border-soft)] pt-3 lg:grid-cols-2`}>
+              <div className="flex min-w-0 flex-col gap-2 rounded-[var(--sb-control-radius)] border border-[var(--sb-border-soft)] bg-[var(--sb-surface)] p-3 sm:flex-row sm:items-center sm:justify-between">
+                <div className="min-w-0">
+                  <p className="text-xs font-medium text-muted-foreground">Count date</p>
+                  <p className="text-sm font-semibold text-foreground">{initialCountDate ? formatDateOnly(countDate) : `Today · ${formatDateOnly(countDate)}`}</p>
+                </div>
+                <Input aria-label="Count date" name="count_date" type="date" value={countDate} onChange={(event) => { setCountDate(event.target.value); markDirty(); }} required className="w-full shrink-0 sm:w-40" />
               </div>
-              <span className="shrink-0 text-xs tabular-nums text-muted-foreground">{countComplete ? "Ready to save" : "Complete all quantities to save"}</span>
-            </div>
-            <details open={settingsOpen} className="sb-stock-count-settings group mt-2 border-t border-slate-100 pt-2 md:col-span-2">
-              <summary onClick={(event) => { event.preventDefault(); setSettingsOpen((current) => !current); }} className="cursor-pointer text-xs font-medium text-muted-foreground lg:hidden">More settings</summary>
-              <div className="sb-stock-count-settings-content mt-2 grid gap-2 sm:grid-cols-2">
+              <div className="hidden min-w-0 items-center justify-between gap-3 rounded-[var(--sb-control-radius)] border border-[var(--sb-border-soft)] bg-[var(--sb-surface)] p-3 md:flex" aria-live="polite">
+                <div className="min-w-0">
+                  <p className={`text-xs font-medium ${autosaveState === "error" ? "text-destructive" : autosaveState === "saved" ? "text-[var(--sb-green-900)]" : "text-muted-foreground"}`} title={autosaveError || autosaveLabel}>{autosaveLabel}</p>
+                  <p className="text-xs text-muted-foreground">{lines.length} values ready · {adjustedCount} adjusted</p>
+                </div>
+                <span className="shrink-0 text-xs tabular-nums text-muted-foreground">{countComplete ? "Ready to save" : "Complete all quantities"}</span>
+              </div>
+              <div className="grid gap-2 sm:grid-cols-2 lg:col-span-2">
                 <Field label="Tolerance %"><Input name="tolerance_percent" type="number" min="0" step="0.01" value={toleranceValue} onChange={(event) => { setToleranceValue(event.target.value); markDirty(); }} required /></Field>
                 {branches.length > 1 ? <Field label="Branch"><SelectNative name="branch_selector" value={selectedBranchId ?? branches[0]?.id ?? ""} onChange={(event) => selectBranch(event.target.value)}><option value="">Select branch</option>{branches.map((branch) => <option key={branch.id} value={branch.id}>{branch.branch_name}</option>)}</SelectNative></Field> : <p className="self-end pb-2 text-xs text-muted-foreground">Branch locked to {branches[0]?.branch_name ?? "assigned kitchen"}.</p>}
               </div>
-              <div className="sb-stock-count-settings-content mt-2"><Textarea name="remarks" value={countRemarks} onChange={(event) => { setCountRemarks(event.target.value); markDirty(); }} className="min-h-16" placeholder="Count note (optional)" /></div>
-            </details>
+              <div className="lg:col-span-2"><Textarea name="remarks" value={countRemarks} onChange={(event) => { setCountRemarks(event.target.value); markDirty(); }} className="min-h-16" placeholder="Count note (optional)" /></div>
+            </div>
           </section>
 
           <section data-stock-count-workspace className="erp-surface overflow-hidden rounded-[var(--sb-panel-radius)] border bg-white">
@@ -472,7 +481,7 @@ export function StockCountForm({
           {showSubmit ? (
             <div
               data-mobile-document-action
-              className="sb-mobile-action-bar fixed inset-x-0 bottom-0 z-[var(--sb-z-sticky)] flex min-w-0 items-center gap-3 border-t border-[var(--sb-border)] bg-[var(--sb-surface)] p-2 pb-[calc(0.5rem+env(safe-area-inset-bottom))] shadow-[0_-4px_14px_rgb(6_44_31_/_0.14)] xl:hidden"
+              className="sb-mobile-action-bar fixed inset-x-0 bottom-0 z-[var(--sb-z-sticky)] grid min-w-0 grid-cols-[minmax(0,1fr)_auto] items-center gap-3 border-t border-[var(--sb-border)] bg-[var(--sb-surface)] p-2 pb-[calc(0.75rem+env(safe-area-inset-bottom))] shadow-[0_-8px_24px_rgb(6_44_31_/_0.16)] xl:hidden"
             >
               <div className="flex min-w-0 flex-1 flex-col items-start gap-0">
                 <span
@@ -486,7 +495,7 @@ export function StockCountForm({
                 <span className="text-sm font-semibold tabular-nums">{lines.length} values ready</span>
                 <span className="text-xs tabular-nums text-muted-foreground">{adjustedCount} adjusted{autosaveError ? ` · ${autosaveError}` : ""}</span>
               </div>
-              <SubmitButton type="submit" disabled={!countComplete} className="h-11 shrink-0 px-5" pendingLabel="Saving..." showOverlay overlayLabel="Saving changes...">Save draft</SubmitButton>
+              <SubmitButton type="submit" disabled={!countComplete} className="h-11 w-auto min-w-32 shrink-0 px-5" pendingLabel="Saving..." showOverlay overlayLabel="Saving changes...">Save draft</SubmitButton>
             </div>
           ) : null}
         </form>

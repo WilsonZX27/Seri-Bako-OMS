@@ -20,9 +20,10 @@ export default async function NewStockCountPage({ searchParams }: { searchParams
       <DocumentWorkspace
         breadcrumbs={[{ label: "Stock Counts", href: "/stock-counts" }, { label: "New" }]}
         documentNo="New Stock Count"
-        title=""
+        title="Stock Count"
         status="draft"
         branch={branches.find((branch) => branch.id === selectedBranchId)?.branch_name}
+        mobileStatusOnly
         workflowSteps={steps}
         currentStatus="draft"
         hideMobileWorkflow

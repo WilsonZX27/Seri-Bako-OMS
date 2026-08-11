@@ -1770,3 +1770,34 @@ html[data-design-layer="v2"] :where([class~="bg-card"], [class~="overflow-hidden
     line-height: .875rem;
   }
 }
+
+/* v8.36.7 — document closure: mobile rails must preserve readable slots. */
+@media (max-width: 1279px) {
+  html[data-design-layer="v2"] [data-mobile-document-action].sb-mobile-action-bar {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) auto !important;
+    align-items: center !important;
+    gap: .75rem !important;
+  }
+
+  html[data-design-layer="v2"] [data-mobile-document-action].sb-mobile-action-bar > * {
+    width: auto !important;
+    min-width: 0 !important;
+  }
+
+  html[data-design-layer="v2"] [data-mobile-document-action].sb-mobile-action-bar > :first-child {
+    width: 100% !important;
+  }
+
+  html[data-design-layer="v2"] [data-mobile-document-action].sb-mobile-action-bar > button,
+  html[data-design-layer="v2"] [data-mobile-document-action].sb-mobile-action-bar > :last-child button {
+    width: auto !important;
+    min-width: 8rem;
+  }
+}
+
+@media (max-width: 639px) {
+  html[data-design-layer="v2"] [data-purchase-request-line] :where(input, select, button) {
+    min-height: 40px;
+  }
+}

@@ -24,11 +24,12 @@ test("procurement documents use focused mobile workflow and exact primary action
   assert.match(mobile, /mobileSheetOpen/);
   assert.match(mobile, /sb-dialog-backdrop/);
   assert.match(css, /\.sb-dialog-backdrop[\s\S]*backdrop-filter: blur/);
-  assert.match(mobile, /label="Workflow"/);
-  assert.match(mobile, /inline-grid w-fit max-w-full/);
+  assert.match(mobile, /Step \{activeIndex \+ 1\} of \{steps\.length\}/);
+  assert.match(mobile, /title="Workflow progress"/);
+  assert.doesNotMatch(mobile, />WORKFLOW</);
   assert.doesNotMatch(mobile, /grid w-full max-w-56/);
   assert.match(mobile, /max-w-20/);
-  assert.match(mobile, /grid-cols-\[auto_minmax\(0,1fr\)_auto\]/);
+  assert.match(mobile, /flex min-w-0 items-center gap-1 md:hidden/);
   assert.match(mobile, /h-8 min-h-8/);
   assert.match(pr, />Submit PR</);
   for (const label of ["Approve as Manager", "Approve as Purchasing", "Approve as Finance"]) assert.match(pr, new RegExp(label));

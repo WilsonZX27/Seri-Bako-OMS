@@ -50,6 +50,7 @@ export default async function NewPurchaseRequestPage({ searchParams }: { searchP
         title="Purchase Request"
         status="draft"
         branch={selectedBranch?.branch_name}
+        mobileStatusOnly
         workflowSteps={workflowSteps}
         currentStatus="draft"
         tabletRailMode="split"

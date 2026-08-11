@@ -547,3 +547,16 @@ the route matrix in `docs/qa/FULL_SYSTEM_AUDIT_MATRIX.md`.
 - Tablet (`640px–1023px`) and desktop keep the practical inline filter controls and right action rail. They do not receive the phone drawer or its icon-only replacement unless a route explicitly documents a different task surface.
 - This is a responsive presentation change only. Filter names, query parameters, authorization, Supabase data sources, and server-side pagination remain unchanged.
 - A shared control may evolve when viewport evidence demonstrates a real comprehension or density defect. New rules supersede earlier historical notes; the newest section is authoritative for future implementation.
+# Iterative polish, not aesthetic rollback
+
+- A UI closure pass preserves the established visual language: intentional panel radii, restrained depth, quiet motion, and decorative brand details remain valid. Do not remove them merely to make a screen flatter or more minimal.
+- Fix structural defects first: duplicated containers, broken alignment, wasted height, wrapping context, inconsistent control geometry, hidden actions, and responsive overflow.
+- Reduce card nesting only when two surfaces communicate the same hierarchy. A meaningful action rail, section surface, or elevated mobile action bar may retain its own surface treatment.
+- Reuse an existing shared pattern before adding page-specific styling. When a recurring pattern is corrected, update its owning shared component or token and verify every known consumer.
+- Mature product patterns are references, not replacement themes. Adopt proven information architecture and interaction behavior without importing a new aesthetic, motion system, radius scale, icon set, or business workflow.
+- User annotations are problem evidence, not automatic implementation specifications. Preserve their intent, test the proposed solution against permissions, data semantics, accessibility, and all supported breakpoints, then record the final rule.
+# Release version discipline
+
+- Every completed product/UI closure increments the application patch version.
+- Keep `package.json`, the root package entry in `package-lock.json`, and `src/lib/app-version.ts` synchronized.
+- Navigation and authentication footers display only the concise `vX.Y.Z`; release titles belong in release notes, not narrow rails.

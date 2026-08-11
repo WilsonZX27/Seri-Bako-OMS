@@ -11,7 +11,12 @@ import { formatActionError } from "@/server/actions/error-handling";
 import { readEmailInput, readPasswordChangeInput, readSignInInput } from "@/server/auth/auth-input";
 import { resolveEffectivePermission } from "@/server/auth/permissions";
 import { acceptCurrentStaffInvite, requireCurrentLinkedStaff } from "@/server/auth/staff-session";
-import { logServerError } from "@/server/observability/logger";
+import { logServerError, logServerWarning } from "@/server/observability/logger";
+
+function isRetryableAuthNetworkError(error: { name?: string; message?: string } | null) {
+  const normalized = error?.message?.toLowerCase() ?? "";
+  return error?.name === "AuthRetryableFetchError" || normalized.includes("fetch failed") || normalized.includes("network");
+}
 
 async function requireLinkedStaffForAuthUser(_userId: string, _email: string | null) {
   void _userId;
@@ -31,12 +36,16 @@ export async function signIn(formData: FormData) {
   const { email, password } = parsed.data;
   const supabase = await createClient();
 
-  const { error } = await supabase.auth.signInWithPassword({ email, password });
+  let { error } = await supabase.auth.signInWithPassword({ email, password });
+  if (error && isRetryableAuthNetworkError(error)) {
+    logServerWarning(error, { source: "auth.sign-in.retry" });
+    await new Promise((resolve) => setTimeout(resolve, 250));
+    ({ error } = await supabase.auth.signInWithPassword({ email, password }));
+  }
   if (error) {
     logServerError(error, { source: "auth.sign-in" });
-    const normalized = error.message.toLowerCase();
-    if (error.name === "AuthRetryableFetchError" || normalized.includes("fetch failed") || normalized.includes("network")) {
-      redirect(`/login?error=${encodeURIComponent("Unable to reach Supabase. Check the local server connection and try again.")}`);
+    if (isRetryableAuthNetworkError(error)) {
+      redirect(`/login?error=${encodeURIComponent("Unable to contact the sign-in service. Check your connection and try again.")}`);
     }
     redirect(`/login?error=${encodeURIComponent("Invalid email or password.")}`);
   }

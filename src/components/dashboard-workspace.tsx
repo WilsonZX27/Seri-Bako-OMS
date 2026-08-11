@@ -115,33 +115,6 @@ function QuickActionsCluster({ actions, className }: { actions: { href: string; 
   );
 }
 
-const roleCopy: Record<string, { title: string; description: string }> = {
-  super_admin: {
-    title: "Owner Workdesk",
-    description: "Company-wide approvals, operational exceptions, and near-term obligations.",
-  },
-  finance: {
-    title: "Finance Workdesk",
-    description: "Company-wide finance reviews, payables, and operational follow-up.",
-  },
-  manager: {
-    title: "Manager Workdesk",
-    description: "Company-wide operational reviews, completion queues, and stock exceptions.",
-  },
-  purchasing: {
-    title: "Purchasing Workdesk",
-    description: "Company-wide purchasing actions, supplier follow-up, and document readiness.",
-  },
-  kitchen: {
-    title: "Kitchen Workdesk",
-    description: "Central Kitchen requests, expected receiving, raw-material stock, and production tasks.",
-  },
-  outlet_staff: {
-    title: "Outlet Today",
-    description: "Complete today's receiving, wastage, and remaining-stock record.",
-  },
-};
-
 export function DashboardWorkspace({ summary, renderedAt }: { summary: DashboardSummary; renderedAt: string }) {
   const [now, setNow] = useState(() => new Date(renderedAt));
   useEffect(() => {
@@ -149,7 +122,6 @@ export function DashboardWorkspace({ summary, renderedAt }: { summary: Dashboard
     return () => window.clearInterval(timer);
   }, []);
   const role = summary.role;
-  const copy = roleCopy[role] ?? roleCopy.outlet_staff;
   const isOwner = role === "super_admin";
   const isFinance = role === "finance";
   const isManager = role === "manager";
@@ -229,7 +201,7 @@ export function DashboardWorkspace({ summary, renderedAt }: { summary: Dashboard
   return (
     <WorkspaceGrid
       hideMobileConsole
-      rightRail={
+      rightRail={isOutlet ? undefined : (
         <>
           <ConsoleSection title="Actions">
             <div className="grid gap-2" data-dashboard-actions>
@@ -247,30 +219,48 @@ export function DashboardWorkspace({ summary, renderedAt }: { summary: Dashboard
             <p className="text-xs text-[var(--sb-text-muted)]">Open a record to see actions, timeline, and metadata here.</p>
           </ConsoleSection>
         </>
-      }
+      )}
       className="gap-4 p-3 pb-32 sm:p-4 sm:pb-24 xl:pb-4"
     >
       <div className="space-y-4">
         <span className="sr-only" aria-live="polite">{formatDateTime(now.toISOString())}</span>
         <header className="hidden min-h-12 w-full items-center justify-between gap-6 border-b border-[var(--sb-border-soft)] pb-3 md:flex">
-          <div className="flex min-w-0 items-center gap-6">
-            <h1 className="text-xl font-semibold tracking-[-0.02em] text-[var(--sb-text)]">{copy.title}</h1>
-            <div className="flex min-w-0 items-baseline gap-2" data-dashboard-identity>
+          <div className="min-w-0" data-dashboard-identity>
               <span className="sr-only">Welcome, {summary.userName} <span>|</span> {summary.roleLabel} <span>|</span> {summary.branchLabel}</span>
-              <span className="text-[10px] font-medium uppercase tracking-[0.14em] text-[var(--sb-text-muted)]">WELCOME</span>
-              <span className="truncate text-base font-semibold tracking-[-0.02em] text-[var(--sb-text)]">{summary.userName}</span>
-            </div>
+              <p className="text-[10px] font-medium uppercase tracking-[0.14em] text-[var(--sb-text-muted)]">WELCOME</p>
+              <h1 className="mt-0.5 truncate text-xl font-semibold tracking-[-0.025em] text-[var(--sb-text)]">{summary.userName}</h1>
           </div>
           <div className="min-w-0">{desktopWorkspaceContext}</div>
         </header>
 
         <div className="border-b border-[var(--sb-border-soft)] pb-3 md:hidden">{workspaceContext}</div>
 
-        <QuickActionsCluster actions={quickActions} className="lg:hidden" />
-
-        <div data-dashboard-layout className={`grid gap-4 lg:items-start ${isOutlet ? "lg:grid-cols-2" : "lg:grid-cols-12"}`}>
-          <div className={isOutlet ? "grid min-w-0 gap-4 lg:col-span-2 lg:grid-cols-2 lg:items-start" : "space-y-4 lg:col-span-6"}>
-        <section data-dashboard-command className={`sb-command-surface overflow-hidden rounded-[var(--sb-panel-radius)] ${isOutlet ? "lg:col-span-1" : ""}`}>
+        {isOutlet ? (
+          <div data-dashboard-layout className="grid max-w-5xl gap-4 lg:grid-cols-[minmax(0,1.1fr)_minmax(20rem,0.9fr)] lg:items-start">
+            <Panel title="Today's completion">
+              <Link
+                prefetch={false}
+                href={summary.outletToday?.id ? `/outlet-daily-records/${summary.outletToday.id}` : "/outlet-daily-records/new"}
+                className="flex min-h-28 items-center gap-4 rounded-[var(--sb-radius-control)] bg-[var(--sb-surface)] p-4 transition-colors hover:bg-[var(--sb-surface-muted)]"
+              >
+                <span className={`grid h-10 w-10 shrink-0 place-items-center rounded-[var(--sb-radius-control)] ${outletComplete ? "bg-[var(--sb-success-bg)] text-[var(--sb-success)]" : "bg-[var(--sb-warning-bg)] text-[var(--sb-warning)]"}`}>
+                  {outletComplete ? <CheckCircle2 className="h-5 w-5" /> : <Clock3 className="h-5 w-5" />}
+                </span>
+                <span className="min-w-0">
+                  <strong className="block text-base font-semibold text-[var(--sb-text)]">
+                    {outletComplete ? "Today’s record is complete" : outletStatus ? "Evening update is still required" : "Morning receive has not started"}
+                  </strong>
+                  <span className="mt-1 block text-xs text-muted-foreground">{outletAction} for {summary.branchLabel}.</span>
+                </span>
+                <ArrowUpRight className="ml-auto h-4 w-4 shrink-0 text-[var(--sb-text-muted)]" aria-hidden="true" />
+              </Link>
+            </Panel>
+            <QuickActionsCluster actions={quickActions} />
+          </div>
+        ) : (
+        <div data-dashboard-layout className="grid gap-4 lg:grid-cols-12 lg:items-start">
+          <div className="space-y-4 lg:col-span-6">
+        <section data-dashboard-command className="sb-command-surface overflow-hidden rounded-[var(--sb-panel-radius)]">
           <div className="flex items-end justify-between gap-4 p-4 sm:p-5">
             <div className="min-w-0">
               <p className="text-xs font-medium text-white/65">Operational pulse</p>
@@ -316,9 +306,9 @@ export function DashboardWorkspace({ summary, renderedAt }: { summary: Dashboard
           </div>
         </section>
 
-        <QuickActionsCluster actions={quickActions} className={isOutlet ? "hidden" : "hidden lg:block xl:hidden"} />
+        <QuickActionsCluster actions={quickActions} className="hidden lg:block xl:hidden" />
 
-        {!isOutlet ? <Panel title={isKitchen ? "Purchase request progress" : "Actions awaiting you"}>
+        <Panel title={isKitchen ? "Purchase request progress" : "Actions awaiting you"}>
           {summary.pendingApprovals.length ? (
             <div className="divide-y rounded-[var(--sb-radius-control)] border bg-[var(--workspace-bg)]">
               {summary.pendingApprovals.map((row: DashboardSummary["pendingApprovals"][number]) => (
@@ -341,24 +331,7 @@ export function DashboardWorkspace({ summary, renderedAt }: { summary: Dashboard
           ) : (
             <p className="px-1 py-2 text-xs text-muted-foreground">No pending actions in your current scope.</p>
           )}
-        </Panel> : null}
-
-        {isOutlet ? (
-          <>
-          <Panel title="Today's completion">
-            <div className="flex items-center gap-3 rounded-[var(--sb-radius-control)] bg-[var(--sb-surface)] p-3">
-              {outletComplete ? <CheckCircle2 className="h-5 w-5 text-[var(--sb-success)]" /> : <Clock3 className="h-5 w-5 text-[var(--sb-warning)]" />}
-              <div>
-                <p className="text-sm font-semibold">
-                  {outletComplete ? "Today’s record is complete" : outletStatus ? "Evening update is still required" : "Morning receive has not started"}
-                </p>
-                <p className="text-xs text-muted-foreground">Only your assigned outlet’s record is shown.</p>
-              </div>
-            </div>
-          </Panel>
-          <QuickActionsCluster actions={quickActions} className="hidden lg:block" />
-          </>
-        ) : null}
+        </Panel>
           </div>
 
           <div className="space-y-4 lg:col-span-6">
@@ -477,6 +450,7 @@ export function DashboardWorkspace({ summary, renderedAt }: { summary: Dashboard
         ) : null}
           </div>
         </div>
+        )}
       </div>
     </WorkspaceGrid>
   );

@@ -2,6 +2,9 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   outputFileTracingRoot: __dirname,
+  // The dev-tools badge obscures fixed mobile action rails during localhost
+  // responsive audits. Error overlays and build diagnostics remain enabled.
+  devIndicators: false,
   // Browser/E2E dev sessions use an isolated output directory so a concurrent
   // production build cannot replace their webpack chunks mid-audit.
   distDir: process.env.NEXT_DIST_DIR || ".next",

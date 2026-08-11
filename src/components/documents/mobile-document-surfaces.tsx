@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import type { WorkflowStep } from "@/components/workflow-status-pipeline";
 import { cn } from "@/lib/utils";
 
-function MobileSheet({ label, title, children, danger = false, triggerClassName, triggerAriaLabel }: { label: string; title: string; children: ReactNode; danger?: boolean; triggerClassName?: string; triggerAriaLabel?: string }) {
+function MobileSheet({ label, title, children, danger = false, triggerClassName, triggerAriaLabel, trailingChevron = true }: { label: ReactNode; title: string; children: ReactNode; danger?: boolean; triggerClassName?: string; triggerAriaLabel?: string; trailingChevron?: boolean }) {
   const [open, setOpen] = useState(false);
   const [hydrated, setHydrated] = useState(false);
   const triggerRef = useRef<HTMLButtonElement>(null);
@@ -58,7 +58,7 @@ function MobileSheet({ label, title, children, danger = false, triggerClassName,
   return (
     <>
       <Button ref={triggerRef} type="button" variant="outline" className={cn("w-full justify-between text-[13px]", danger && "text-[var(--sb-danger)]", triggerClassName)} disabled={!hydrated} onClick={() => setOpen(true)} aria-label={triggerAriaLabel} aria-haspopup="dialog" aria-expanded={open}>
-        {label}<ChevronRight className="h-4 w-4" aria-hidden="true" />
+        {label}{trailingChevron ? <ChevronRight className="h-4 w-4" aria-hidden="true" /> : null}
       </Button>
       {open && hydrated ? createPortal(
         <div className="fixed inset-0 z-[var(--sb-z-dialog)] md:hidden">
@@ -82,9 +82,8 @@ export function MobileWorkflowStatus({ steps, currentStatus, trailing }: { steps
   const activeIndex = foundIndex < 0 ? 0 : foundIndex;
 
   return (
-    <div data-mobile-workflow-summary className={cn("mx-0 inline-grid w-fit max-w-full min-w-0 items-center gap-1 border-b border-[var(--sb-border-soft)] px-0 py-1 md:hidden", trailing ? "grid-cols-[auto_minmax(0,1fr)_auto]" : "grid-cols-[auto_auto]")}>
-      <p className="min-w-0 truncate text-[12px] font-medium">Step {activeIndex + 1} of {steps.length}</p>
-      <MobileSheet label="Workflow" triggerAriaLabel="View workflow" title="Workflow progress" triggerClassName="h-8 min-h-8 w-auto shrink-0 border-0 px-1.5 text-[12px] shadow-none">
+    <div data-mobile-workflow-summary className={cn("flex min-w-0 items-center gap-1 md:hidden", trailing && "justify-between")}>
+      <MobileSheet label={<span className="grid grid-cols-[auto_auto_auto] items-center gap-1.5 text-left"><span className="font-semibold">Step {activeIndex + 1} of {steps.length}</span><ChevronRight className="h-3.5 w-3.5 text-muted-foreground" aria-hidden="true" /><span className="text-[10px] font-medium uppercase tracking-[0.08em] text-muted-foreground">Workflow</span></span>} triggerAriaLabel={`View workflow, step ${activeIndex + 1} of ${steps.length}`} title="Workflow progress" trailingChevron={false} triggerClassName="h-8 min-h-8 w-auto shrink-0 justify-start border-0 px-1.5 text-[12px] shadow-none">
         <ol className="space-y-1" aria-label="Document workflow">
           {steps.map((step, index) => {
             const done = index < activeIndex;
@@ -110,7 +109,7 @@ export function MobileTaskSheet({ label, children }: { label: string; children: 
 export function DocumentMoreOptions({ children, defaultOpen = true, triggerClassName }: { children: ReactNode; defaultOpen?: boolean; triggerClassName?: string }) {
   return (
     <>
-      <div className="md:hidden"><MobileSheet label="More" title="More options" danger triggerClassName={triggerClassName ?? "h-10 w-auto min-w-[3.5rem] px-3"}>{children}</MobileSheet></div>
+      <div className="md:hidden"><MobileSheet label="More" title="More options" triggerClassName={triggerClassName ?? "h-11 w-full min-w-0 !justify-center gap-2 px-3"}>{children}</MobileSheet></div>
       <details open={defaultOpen} className="hidden border-t border-[var(--sb-border-soft)] pt-2 md:block">
         <summary className="cursor-pointer text-[12px] font-medium text-[var(--sb-text-muted)]">More options</summary>
         <div className="mt-2">{children}</div>

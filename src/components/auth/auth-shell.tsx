@@ -19,7 +19,7 @@ export async function AuthShell({
           <div className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-[var(--sb-panel-radius)] border border-[var(--sb-green-800)] bg-[var(--sb-green-950)] text-white">
             {branding.logo_url ? (
               // eslint-disable-next-line @next/next/no-img-element
-              <img src={branding.logo_url} alt="" className="h-full w-full object-contain bg-white p-1" />
+              <img src={branding.logo_url} alt="" className="h-full w-full object-contain" />
             ) : (
               <span className="text-sm font-semibold tracking-[-0.04em] text-white" aria-hidden="true">SB</span>
             )}

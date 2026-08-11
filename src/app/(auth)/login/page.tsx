@@ -10,7 +10,7 @@ function friendlyLoginError(error?: string) {
   if (!error) return null;
   const normalized = error.toLowerCase();
   if (normalized === "disabled" || normalized.includes("disabled")) return "Your staff account is disabled. Please contact the Super Admin / Owner.";
-  if (normalized.includes("supabase") || normalized.includes("fetch failed") || normalized.includes("network")) return "We could not reach Supabase. Check the local server connection and try again.";
+  if (normalized.includes("supabase") || normalized.includes("fetch failed") || normalized.includes("network") || normalized.includes("sign-in service")) return "We could not contact the sign-in service. Check your connection and try again.";
   if (normalized.includes("otp_expired")) return "This link has expired or was already used. Please sign in with your password or contact the Super Admin / Owner.";
   if (normalized.includes("rate limit") || normalized.includes("too many") || normalized.includes("email rate") || normalized.includes("email sending") || normalized.includes("mailer")) return "Email sending is temporarily limited. Please contact the Super Admin / Owner for temporary password setup.";
   if (normalized.includes("invitation expired")) return "Your invitation link has expired. Please contact the Super Admin / Owner.";
@@ -37,8 +37,8 @@ export default async function LoginPage({
           <PasswordInput name="password" autoComplete="current-password" required />
         </Field>
         <div id="login-status" className="min-h-11" aria-live="polite">
-          {params.message ? <p className="border border-[var(--sb-success)] bg-[var(--sb-success-bg)] p-3 text-sm text-[var(--sb-success)]">{params.message}</p> : null}
-          {errorMessage ? <p className="border border-[var(--sb-danger)] bg-[var(--sb-danger-bg)] p-3 text-sm text-[var(--sb-danger)]" role="alert">{errorMessage}</p> : null}
+          {params.message ? <p className="rounded-[var(--sb-control-radius)] border border-[var(--sb-success)] bg-[var(--sb-success-bg)] p-3 text-sm text-[var(--sb-success)]">{params.message}</p> : null}
+          {errorMessage ? <p className="rounded-[var(--sb-control-radius)] border border-[var(--sb-danger)] bg-[var(--sb-danger-bg)] p-3 text-sm text-[var(--sb-danger)]" role="alert">{errorMessage}</p> : null}
         </div>
         <SubmitButton className="w-full" pendingLabel="Signing in…">Sign in</SubmitButton>
         <div className="text-center">

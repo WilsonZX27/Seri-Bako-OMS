@@ -3,14 +3,7 @@ const path = require("path");
 const { test, expect } = require("@playwright/test");
 const { hasAccount, requireAccount } = require("./helpers");
 
-const roles = {
-  superAdmin: "Owner Workdesk",
-  finance: "Finance Workdesk",
-  manager: "Manager Workdesk",
-  purchasing: "Purchasing Workdesk",
-  kitchen: "Kitchen Workdesk",
-  outlet: "Outlet Today",
-};
+const roles = ["superAdmin", "finance", "manager", "purchasing", "kitchen", "outlet"];
 const evidence = path.join(process.cwd(), "test-results", "sprint-7-23-2");
 
 async function signIn(page, role) {
@@ -24,7 +17,7 @@ async function signIn(page, role) {
 
 test.beforeAll(() => fs.mkdirSync(evidence, { recursive: true }));
 
-for (const [role, heading] of Object.entries(roles)) {
+for (const role of roles) {
   test(`${role} receives a scoped terminal dashboard`, async ({ page }) => {
     test.setTimeout(90_000);
     test.skip(!hasAccount(role), `Missing local-only credentials for ${role}.`);
@@ -34,16 +27,22 @@ for (const [role, heading] of Object.entries(roles)) {
     await signIn(page, role);
     await page.goto("/dashboard", { waitUntil: "domcontentloaded" });
     await expect(page).toHaveURL(/\/dashboard$/);
-    await expect(page.getByRole("heading", { name: heading })).toBeVisible();
+    await expect(page.locator("[data-dashboard-identity]").first()).toContainText(/welcome/i);
+    await expect(page.locator("body")).not.toContainText(/Owner Workdesk|Finance Workdesk|Manager Workdesk|Purchasing Workdesk|Kitchen Workdesk|Outlet Today/);
+    if (role === "outlet") {
+      await expect(page.locator("[data-dashboard-command]")).toHaveCount(0);
+      await expect(page.getByRole("heading", { name: "Today's completion" })).toBeVisible();
+      await expect(page.locator("[data-dashboard-quick-actions] a")).toHaveCount(3);
+    }
 
     for (const [width, label] of [[1024, "tablet"], [390, "mobile"]]) {
       await page.setViewportSize({ width, height: 900 });
       await page.reload({ waitUntil: "domcontentloaded" });
-      await expect(page.getByRole("heading", { name: heading })).toBeVisible();
+      await expect(page.locator("[data-dashboard-identity]").first()).toContainText(/welcome/i);
+      if (role === "outlet") await expect(page.locator("[data-dashboard-command]")).toHaveCount(0);
       const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
       expect(overflow, `${role} ${label} dashboard must not overflow`).toBeLessThanOrEqual(5);
-      if (width === 390) await expect(page.getByRole("button", { name: "Open page actions" })).toContainText("More");
-      await page.screenshot({ path: path.join(evidence, `${Object.keys(roles).indexOf(role) + 1}-${role}-${label}.png`), fullPage: true });
+      await page.screenshot({ path: path.join(evidence, `${roles.indexOf(role) + 1}-${role}-${label}.png`), fullPage: true });
     }
 
     if (!["superAdmin", "finance"].includes(role)) {

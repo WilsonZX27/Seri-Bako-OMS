@@ -4,9 +4,9 @@ import { DocumentNumber } from "@/components/document-number";
 import { PriorityBadge } from "@/components/priority-badge";
 import { ConsoleSection } from "@/components/layout/right-console";
 import { WorkspaceGrid } from "@/components/layout/workspace-layout";
-import { StatusBadge } from "@/components/ui/status-badge";
 import { WorkflowStatusPipeline, type WorkflowStep } from "@/components/workflow-status-pipeline";
 import { DocumentMoreOptions, MobileActivityAndFiles, MobileWorkflowStatus } from "@/components/documents/mobile-document-surfaces";
+import { DocumentContextSummary } from "@/components/documents/document-context-summary";
 import { cn } from "@/lib/utils";
 
 type Crumb = {
@@ -29,6 +29,7 @@ export function DocumentWorkspace({
   mobileActivity,
   mobileMoreOptions,
   mobileWorkflowTrailing,
+  mobileContextDate,
   hideMobileWorkflow = false,
   compactMobileSpacing = false,
   tabletRailMode = "split",
@@ -47,6 +48,7 @@ export function DocumentWorkspace({
   mobileActivity?: ReactNode;
   mobileMoreOptions?: ReactNode;
   mobileWorkflowTrailing?: ReactNode;
+  mobileContextDate?: string | null;
   hideMobileWorkflow?: boolean;
   compactMobileSpacing?: boolean;
   tabletRailMode?: "context" | "split";
@@ -62,13 +64,13 @@ export function DocumentWorkspace({
         <h1 className="sr-only">{title ?? documentNo}</h1>
         {showDocumentContext ? <div data-tablet-document-header className="flex flex-col gap-2 xl:flex-row xl:items-start xl:justify-between">
           <div className="min-w-0">
-            <div className={cn("flex min-w-0 flex-wrap items-center gap-1.5", isNewDocument ? "min-h-7" : "min-h-8 gap-2")}>
+            <div className={cn("min-w-0", isNewDocument ? "min-h-7" : "flex min-h-8 flex-wrap items-center gap-2")}>
+              {isNewDocument ? <DocumentContextSummary title={title} status={status} branch={branch} date={mobileContextDate} /> : <>
               {!isNewDocument ? <DocumentNumber value={documentNo} size="lg" className="max-w-[min(100%,18rem)] break-all text-[16px] sm:text-lg" /> : null}
               {priority ? <PriorityBadge priority={priority} /> : null}
-              {title && isNewDocument ? <span className="min-w-0 break-words text-sm font-semibold text-foreground md:text-base">{title}</span> : null}
-              <StatusBadge status={status} className="md:hidden" />
-              {branch ? <span className="truncate text-xs text-muted-foreground md:hidden">· {branch}</span> : null}
-              {branch ? <span className="ml-auto hidden max-w-[45%] items-center justify-end gap-1.5 break-words text-right text-xs text-muted-foreground md:flex"><MapPin className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />{branch}</span> : null}
+              {branch ? <span className="basis-full truncate text-xs text-muted-foreground md:hidden">{branch}</span> : null}
+              {branch ? <span className="ml-auto hidden min-w-0 items-center justify-end gap-1.5 whitespace-nowrap text-right text-xs text-muted-foreground md:flex"><MapPin className="h-3.5 w-3.5 shrink-0" aria-hidden="true" /><span className="truncate">{branch}</span></span> : null}
+              </>}
             </div>
             <div className={cn("hidden flex-wrap items-center gap-2 text-xs text-muted-foreground md:flex", isNewDocument ? "mt-0 md:mt-1" : "mt-1")}>
               {title && !isNewDocument ? <span className="font-medium text-foreground">{title}</span> : null}
@@ -78,7 +80,7 @@ export function DocumentWorkspace({
         {!hideMobileWorkflow ? <div data-tablet-document-header className={cn("min-w-0", isNewDocument ? "mt-0 md:mt-1" : "mt-1 md:mt-2")}><MobileWorkflowStatus steps={workflowSteps} currentStatus={currentStatus} trailing={mobileWorkflowTrailing} /><div className="hidden md:block"><WorkflowStatusPipeline steps={workflowSteps} currentStatus={currentStatus} compact /></div></div> : <div data-tablet-document-header className="hidden md:block"><WorkflowStatusPipeline steps={workflowSteps} currentStatus={currentStatus} compact /></div>}
       </header>
 
-      <WorkspaceGrid documentMode tabletRailMode={tabletRailMode} className={cn("min-w-0 p-3", compactMobileSpacing && "pt-0 md:pt-3", mobilePrimaryAction && "pb-20 md:pb-3")} rightRail={<div>{sidePanel}</div>} hideMobileConsole>
+      <WorkspaceGrid documentMode tabletRailMode={tabletRailMode} className={cn("min-w-0 p-3", compactMobileSpacing && "pt-0 md:pt-3", mobilePrimaryAction && "pb-20 md:pb-3")} rightRail={sidePanel} hideMobileConsole>
         <div className="min-w-0">
           <div className="min-w-0 space-y-3">
             {children}
@@ -87,7 +89,7 @@ export function DocumentWorkspace({
         </div>
       </WorkspaceGrid>
       {mobilePrimaryAction || mobileMoreOptions ? <div data-mobile-document-action className={cn(
-        "sb-mobile-action-bar fixed inset-x-0 bottom-0 z-[var(--sb-z-sticky)] grid min-w-0 items-center gap-2 border-x-0 border-b-0 p-2 pb-[calc(0.75rem+env(safe-area-inset-bottom))] md:hidden [&_button]:h-11 [&_button]:w-full",
+        "sb-mobile-action-bar fixed inset-x-0 bottom-0 z-[var(--sb-z-sticky)] grid min-w-0 items-center gap-2 border-x-0 border-b-0 bg-white/95 p-2 pb-[calc(0.75rem+env(safe-area-inset-bottom))] shadow-[0_-8px_24px_rgba(17,30,22,0.16)] md:hidden [&_button]:h-11 [&_button]:w-full",
         mobilePrimaryAction && mobileMoreOptions ? "grid-cols-[minmax(0,1fr)_minmax(7rem,auto)]" : "grid-cols-1",
       )}>
         {mobilePrimaryAction ? <div className="min-w-0">{mobilePrimaryAction}</div> : null}

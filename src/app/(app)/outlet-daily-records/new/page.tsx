@@ -26,7 +26,7 @@ export default async function NewOutletDailyRecordPage({ searchParams }: { searc
     : <SubmitButton form={formId} name="target_status" value="draft" className="w-full gap-2" disabled={disabled}><Save className="h-4 w-4" aria-hidden="true" />Save Qty Sent</SubmitButton>;
   const secondaryActions = canUpdate ? <><SubmitButton form={formId} name="target_status" value="draft" variant="outline" className="w-full gap-2" disabled={disabled}><Save className="h-4 w-4" aria-hidden="true" />Save Draft</SubmitButton><SubmitButton form={formId} name="target_status" value="evening_completed" variant="outline" className="w-full gap-2" disabled={disabled}><CheckCircle2 className="h-4 w-4" aria-hidden="true" />Post Daily Record</SubmitButton></> : null;
   const sidePanel = <>
-    <DocumentActionSection moreOptions={secondaryActions ? <div className="grid gap-2">{secondaryActions}</div> : undefined}>{primaryAction}</DocumentActionSection>
+    <DocumentActionSection moreOptions={secondaryActions ? <div className="grid gap-3">{secondaryActions}</div> : undefined}>{primaryAction}</DocumentActionSection>
     <DocumentSideSection title="Validation / Next Step"><p className="text-xs text-muted-foreground">Central Kitchen records Qty Sent. Outlet Staff confirms Received and records Wastage.</p><p className="text-xs text-muted-foreground">Wastage needs a reason. Quantity exceptions require a remark.</p></DocumentSideSection>
   </>;
 
@@ -38,9 +38,10 @@ export default async function NewOutletDailyRecordPage({ searchParams }: { searc
     branch={options.branches.find((branch) => branch.id === options.defaultBranchId)?.branch_name}
     workflowSteps={dailySteps}
     currentStatus="draft"
+    mobileContextDate={recordDate}
     sidePanel={sidePanel}
     mobilePrimaryAction={primaryAction}
-    mobileMoreOptions={secondaryActions ? <DocumentMoreOptions>{secondaryActions}</DocumentMoreOptions> : undefined}
+    mobileMoreOptions={secondaryActions ? <DocumentMoreOptions><div className="grid gap-3">{secondaryActions}</div></DocumentMoreOptions> : undefined}
     tabletRailMode="split"
   >
     {filters.error ? <Card><CardContent className="p-3 text-sm text-destructive">{filters.error}</CardContent></Card> : null}

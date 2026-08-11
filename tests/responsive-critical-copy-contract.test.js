@@ -11,9 +11,12 @@ test("mobile operational hub preserves complete business labels", () => {
   assert.match(source, /break-words/);
 });
 
-test("outlet daily quantity labels remain readable on narrow screens", () => {
+test("outlet daily quantities use one stable shared heading row", () => {
   const source = read("src/components/outlet-daily-record-form.tsx");
   for (const label of ["Qty Sent", "Received", "Wastage"]) {
-    assert.match(source, new RegExp(`whitespace-normal[^>]*>${label}<`));
+    assert.match(source, new RegExp(`<span>${label}</span>`));
   }
+  assert.match(source, /grid-cols-3/);
+  assert.match(source, /md:grid-cols-\[minmax\(12rem,1fr\)_repeat\(3,minmax\(4\.5rem,6rem\)\)\]/);
+  assert.doesNotMatch(source, /Review the prefilled values/);
 });

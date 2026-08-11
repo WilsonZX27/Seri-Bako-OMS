@@ -1399,6 +1399,74 @@ html[data-design-layer="v2"] .sb-mobile-action-bar {
   align-items: center;
   min-height: 4.5rem;
   padding: 0.625rem 0.75rem max(0.75rem, env(safe-area-inset-bottom));
+  box-shadow: 0 -8px 24px rgba(17, 30, 22, 0.16);
+}
+
+/* Canonical desktop list toolbar: controls originate at the left edge; only
+   text search may grow. Result count and the Search/Reset action form a
+   stable right-aligned group with an intentional flexible gutter. */
+@media (min-width: 640px) {
+  html[data-design-layer="v2"] form[data-unified-list-desktop="true"] {
+    display: flex;
+    align-items: center;
+    flex-wrap: nowrap;
+    gap: 0.5rem;
+    min-width: 0;
+  }
+
+  html[data-design-layer="v2"] form[data-unified-list-desktop="true"] > :where(
+    input:not([type="search"]):not([name="search"]),
+    select,
+    [data-select-control],
+    .sb-status-filter,
+    .sb-filter-more
+  ) {
+    flex: 0 0 8rem !important;
+    width: 8rem !important;
+    min-width: 0 !important;
+  }
+
+  html[data-design-layer="v2"] form[data-unified-list-desktop="true"] > :where(
+    input[type="search"],
+    input[name="search"],
+    input[placeholder*="Search"],
+    input[placeholder*="Find"]
+  ) {
+    flex: 1 1 16rem !important;
+    width: auto !important;
+    min-width: 10rem !important;
+  }
+
+  html[data-design-layer="v2"] .unified-list-desktop-actions {
+    display: flex;
+    flex: 0 0 auto;
+    align-items: center;
+    gap: 0.5rem;
+    min-width: 0;
+    margin-left: auto;
+  }
+
+  html[data-design-layer="v2"] .unified-list-desktop-actions > .sb-filter-summary {
+    flex: 0 0 auto !important;
+    margin: 0 !important;
+    white-space: nowrap;
+  }
+
+  html[data-design-layer="v2"] .unified-list-desktop-actions > .unified-list-action {
+    flex: 0 0 8rem !important;
+    width: 8rem !important;
+    min-width: 8rem !important;
+    justify-content: center;
+  }
+}
+
+@media (min-width: 768px) and (max-width: 1279px) {
+  html[data-design-layer="v2"] [data-tablet-document-split] > aside {
+    position: sticky;
+    top: 5rem;
+    max-height: calc(100dvh - 5.75rem);
+    overflow: hidden;
+  }
 }
 
 html[data-design-layer="v2"] :where([data-mobile-action-bar], .sb-mobile-action-bar) {
@@ -1503,8 +1571,8 @@ html[data-design-layer="v2"] :where(.erp-surface[class~="rounded-[2px]"], .sb-wo
   }
 
   html[data-design-layer="v2"] :is(form[data-unified-list-desktop="true"], form.sb-list-filters) > :where(select, [data-select-control], .sb-status-filter, .sb-filter-more) {
-    flex: 0 1 7.25rem !important;
-    width: 7.25rem !important;
+    flex: 0 0 8rem !important;
+    width: 8rem !important;
     min-width: 0 !important;
   }
 
@@ -1520,10 +1588,42 @@ html[data-design-layer="v2"] :where(.erp-surface[class~="rounded-[2px]"], .sb-wo
   }
 
   html[data-design-layer="v2"] :is(form[data-unified-list-desktop="true"], form.sb-list-filters) > :where(.unified-list-action, button[type="submit"], .sb-filter-submit) {
-    flex: 0 1 7.5rem !important;
-    width: 7.5rem !important;
+    flex: 0 0 8rem !important;
+    width: 8rem !important;
     min-width: 0 !important;
     margin-left: 0 !important;
     justify-content: center;
+  }
+
+  html[data-design-layer="v2"] form[data-unified-list-desktop="true"] > .unified-list-desktop-actions {
+    display: flex;
+    flex: 0 0 auto;
+    align-items: center;
+    gap: 0.5rem;
+    min-width: 0;
+    margin-left: auto;
+  }
+
+  html[data-design-layer="v2"] form[data-unified-list-desktop="true"] > .unified-list-desktop-actions > .sb-filter-summary {
+    margin: 0 !important;
+    white-space: nowrap;
+  }
+
+  html[data-design-layer="v2"] form[data-unified-list-desktop="true"] > .unified-list-desktop-actions > .unified-list-action {
+    flex: 0 0 8rem !important;
+    width: 8rem !important;
+    min-width: 8rem !important;
+    justify-content: center;
+  }
+
+  html[data-design-layer="v2"] form[data-unified-list-desktop="true"] > .sb-filter-date {
+    flex: 0 0 8rem !important;
+    width: 8rem !important;
+    min-width: 8rem !important;
+  }
+
+  html[data-design-layer="v2"] form[data-unified-list-desktop="true"] > :where(.sb-filter-date, [data-select-control]) {
+    height: 2.75rem !important;
+    min-height: 2.75rem !important;
   }
 }

@@ -58,10 +58,26 @@ export const getCompanyBranding = cache(async function getCompanyBranding() {
 
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
-  // The companies table is intentionally not readable by anon. Public auth
-  // surfaces should use the stable fallback instead of generating repeated
-  // 42501 permission errors before a user has a tenant scope.
-  if (!user) return { company_name: "Seri Bako", logo_url: null };
+  // The companies table remains tenant-protected before authentication. The
+  // company-assets bucket is deliberately public, so the auth shell can still
+  // show the uploaded brand mark without exposing company records.
+  if (!user) {
+    const { data: companyFolders, error: folderError } = await supabase.storage
+      .from("company-assets")
+      .list("", { limit: 2 });
+    if (!folderError && companyFolders?.length === 1 && !companyFolders[0]?.id) {
+      const folder = companyFolders[0].name;
+      const { data: logos, error: logoError } = await supabase.storage
+        .from("company-assets")
+        .list(folder, { limit: 5, sortBy: { column: "updated_at", order: "desc" } });
+      const logo = logoError ? null : logos?.find((file) => file.id && /^logo\.(png|jpe?g|webp|svg)$/i.test(file.name));
+      if (logo) {
+        const { data } = supabase.storage.from("company-assets").getPublicUrl(`${folder}/${logo.name}`);
+        return { company_name: "Seri Bako", logo_url: data.publicUrl };
+      }
+    }
+    return { company_name: "Seri Bako", logo_url: null };
+  }
   const profile = await getCurrentProfile();
   if (!profile?.company_id) return { company_name: "Seri Bako", logo_url: null };
   const { data } = await supabase

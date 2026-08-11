@@ -1772,7 +1772,7 @@ html[data-design-layer="v2"] :where([class~="bg-card"], [class~="overflow-hidden
 }
 
 /* v8.36.7 — document closure: mobile rails must preserve readable slots. */
-@media (max-width: 1279px) {
+@media (max-width: 767px) {
   html[data-design-layer="v2"] [data-mobile-document-action].sb-mobile-action-bar {
     display: grid !important;
     grid-template-columns: minmax(0, 1fr) auto !important;

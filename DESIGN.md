@@ -603,3 +603,8 @@ the route matrix in `docs/qa/FULL_SYSTEM_AUDIT_MATRIX.md`.
 - Repeating item editors use one numbered item-search row followed by one aligned quantity, UOM, and comment row. Controls share one height and the established 8px control radius.
 - Stock Count setup reuses the collapsible document-details pattern. Its closed summary exposes branch and date; its expanded content keeps date/autosave cards and settings readable as two rows on compact tablets.
 - Mobile document action rails use explicit grid slots. Status text may shrink and wrap by phrase, but action buttons never force status words into vertical single-character columns. Rails retain safe-area padding and the established elevated shadow.
+
+# v8.36.9 — Tablet Stock Count Control Recovery
+
+- Dense quantity steppers must allow the numeric input to shrink inside its grid column while preserving both 40px decrement and increment controls. A minimum input width must never clip either action.
+- Fixed document action rails are phone-only (`<768px`). Tablet and desktop layouts use their contextual right-side primary action and must not render a duplicate bottom action rail.

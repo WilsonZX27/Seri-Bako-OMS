@@ -38,6 +38,7 @@ test("stock count uses direct plus/minus adjustments and protects discrete quant
 
 test("tablet portrait uses one aligned item, variance, and count ledger without a persistent remarks column", () => {
   const form = read("src", "components", "stock-count-form.tsx");
+  const styles = read("src", "app", "design-system-v2.css");
 
   assert.equal(
     (form.match(/md:grid-cols-\[minmax\(12rem,1fr\)_5rem_minmax\(14rem,17rem\)\]/g) ?? []).length,
@@ -49,6 +50,10 @@ test("tablet portrait uses one aligned item, variance, and count ledger without 
   );
   assert.match(form, /md:justify-self-stretch/);
   assert.doesNotMatch(form, /md:max-w-64/);
+  assert.match(form, /h-9 w-full min-w-0 flex-1/);
+  assert.doesNotMatch(form, /md:min-w-\[7\.5rem\]/);
+  assert.match(form, /data-mobile-document-action[\s\S]*md:hidden/);
+  assert.match(styles, /@media \(max-width: 767px\)[\s\S]*\[data-mobile-document-action\]\.sb-mobile-action-bar/);
   assert.match(form, />Variance</);
   assert.match(form, /quantityStep\(line\.uom\)/);
   assert.doesNotMatch(form, /md:col-span-4 md:order-5 lg:col-span-1/);

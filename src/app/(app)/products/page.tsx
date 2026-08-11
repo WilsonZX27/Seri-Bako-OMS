@@ -34,7 +34,7 @@ export default async function ProductsPage({
         description="Finished goods master data for future recipe and production modules."
       />
       <WorkspaceGrid hideMobileConsole={!canCreate} rightRail={<>{canCreate || permissions["imports.run"] ? <ConsoleSection title="Actions"><div className="grid gap-2">{canCreate ? <Button asChild size="sm" className="w-full" data-mobile-primary-action><Link href="/products/new"><Plus className="h-4 w-4" />New product</Link></Button> : null}{permissions["imports.run"] ? <Button asChild size="sm" variant="outline" className="w-full"><Link href="/imports/products"><Upload className="h-4 w-4" />Import products</Link></Button> : null}</div></ConsoleSection> : null}<ConsoleSection title="Product Summary"><dl className="grid gap-2 text-xs"><div className="flex justify-between"><dt className="text-muted-foreground">Matching</dt><dd className="font-semibold">{productsPage.totalRows}</dd></div><div className="flex justify-between"><dt className="text-muted-foreground">Active</dt><dd className="font-semibold">{allProducts.filter((product) => product.status === "active").length}</dd></div></dl></ConsoleSection></>}> 
-        <div className="overflow-hidden rounded-[2px] border bg-card">
+        <div className="space-y-3">
           <MasterDataFilters
             search={filters.search}
             status={filters.status}
@@ -45,6 +45,7 @@ export default async function ProductsPage({
             filtered={filtered}
             resetHref="/products"
           />
+          <div className="sb-list-content-card overflow-hidden">
             <Table mobileHidden aria-label="Products" stickyColumn="second">
               <TableHeader>
                 <TableRow>
@@ -81,6 +82,7 @@ export default async function ProductsPage({
             {!productsPage.rows.length ? <EmptyState title={filtered ? "No products match these filters" : "No products yet"} description={filtered ? "Reset the filters or widen the search." : "Products appear after finished goods are created or imported."} action={filtered ? emptyAction : undefined} /> : null}
           </OperationalList>
           <PaginationControls page={productsPage.page} totalPages={productsPage.totalPages} totalRows={productsPage.totalRows} searchParams={filters} />
+          </div>
         </div>
       </WorkspaceGrid>
     </>

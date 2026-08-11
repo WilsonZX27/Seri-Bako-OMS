@@ -225,6 +225,13 @@ The OMS is one operational product, not three independently designed sites. Phon
 
 Every route is assembled from the same primitives. Responsive work may rearrange a primitive, but may not invent a device-specific replacement.
 
+- Every list workspace uses two sibling surfaces at every viewport: a query/filter card and a separate content card. Never nest the content table inside the query card.
+- Desktop and tablet query controls are 44px high. Search may be wider; date, select, More filters, and the primary Search/Reset action use shared control dimensions. Records stay beside the right-aligned action.
+- Phone list headers keep the primary search/date control with the green Filter action. Secondary filters live directly in the shared sheet; never add another nested More filters disclosure inside that sheet.
+- Dense operational tables may stack closely related values in one column (for example Wastage over Wastage %) and render timestamps as date over time.
+- Role dashboards do not repeat bottom-navigation destinations as a second mobile quick-action group. Sparse role content expands across the available workspace instead of leaving an artificial empty column.
+- Right-console action buttons are 44px high and center-aligned. Page-specific action alignment overrides are not allowed.
+
 - **Shell:** Top Bar, role-aware navigation, page title/context, and safe-area handling.
 - **Workspace:** one of `contained`, `wide`, or `full`; the content hierarchy remains the same at every viewport.
 - **Actions:** one visible primary action, followed by secondary inline actions; context drawers are never the only route to a common task.

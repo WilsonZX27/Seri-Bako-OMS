@@ -208,7 +208,7 @@ export function DashboardWorkspace({ summary, renderedAt }: { summary: Dashboard
               {quickActions.map((action, index) => {
                 const Icon = action.icon;
                 return (
-                  <Button key={action.href} asChild size="sm" variant={index === 0 ? "default" : "outline"} className="w-full justify-start">
+                  <Button key={action.href} asChild size="sm" variant={index === 0 ? "default" : "outline"} className="w-full justify-center">
                     <Link prefetch={false} href={action.href}><Icon className="h-4 w-4" aria-hidden="true" />{action.label}</Link>
                   </Button>
                 );
@@ -236,7 +236,7 @@ export function DashboardWorkspace({ summary, renderedAt }: { summary: Dashboard
         <div className="border-b border-[var(--sb-border-soft)] pb-3 md:hidden">{workspaceContext}</div>
 
         {isOutlet ? (
-          <div data-dashboard-layout className="grid max-w-5xl gap-4 lg:grid-cols-[minmax(0,1.1fr)_minmax(20rem,0.9fr)] lg:items-start">
+          <div data-dashboard-layout className="grid w-full gap-4 xl:grid-cols-2 xl:items-start">
             <Panel title="Today's completion">
               <Link
                 prefetch={false}
@@ -255,7 +255,7 @@ export function DashboardWorkspace({ summary, renderedAt }: { summary: Dashboard
                 <ArrowUpRight className="ml-auto h-4 w-4 shrink-0 text-[var(--sb-text-muted)]" aria-hidden="true" />
               </Link>
             </Panel>
-            <QuickActionsCluster actions={quickActions} />
+            <QuickActionsCluster actions={quickActions} className="hidden xl:block" />
           </div>
         ) : (
         <div data-dashboard-layout className="grid gap-4 lg:grid-cols-12 lg:items-start">

@@ -128,7 +128,9 @@ export async function getStaffs(filters: Filters = {}) {
     supabase.from("staff_branches").select("staff_id, branch_id, access_level, is_default").in("staff_id", staffIds),
   ]);
   if (branchesError) throw new Error(branchesError.message);
-  const authUsers = await listAuthUserSummaries();
+  // Directory reads are RLS-scoped and remain useful when a local preview does
+  // not have the privileged Auth Admin credential. Only auth-link health drops.
+  const authUsers = process.env.SUPABASE_SERVICE_ROLE_KEY?.trim() ? await listAuthUserSummaries() : [];
   const branchById = new Map((branches ?? []).map((branch) => [branch.id, branch.branch_name]));
   const roleById = new Map((roles ?? []).map((role) => [role.id, getRoleDisplayLabel(role.role_code, role.role_name)]));
   return (staffs ?? [])
@@ -156,7 +158,7 @@ export async function getStaff(id: string) {
   const supabase = await createClient();
   const { data, error } = await supabase.from("staffs").select("*").eq("id", id).single();
   if (error) throw new Error(error.message);
-  const authUsers = await listAuthUserSummaries();
+  const authUsers = process.env.SUPABASE_SERVICE_ROLE_KEY?.trim() ? await listAuthUserSummaries() : [];
   return { ...data, auth_link_valid: hasUniqueValidAuthLink(data, authUsers) };
 }
 

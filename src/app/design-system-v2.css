@@ -1651,6 +1651,14 @@ html[data-design-layer="v2"] form.sb-list-query-card :where(input, select, butto
 
 html[data-design-layer="v2"] form.sb-list-query-card :where(input, select, [role="combobox"], [data-select-control], .sb-status-filter-control, .sb-filter-more > summary) {
   background-color: #fff !important;
+  border-color: var(--sb-border) !important;
+}
+
+html[data-design-layer="v2"] [data-right-console] [data-console-section] :where(a.inline-flex, button.inline-flex) {
+  height: 2.75rem !important;
+  min-height: 2.75rem !important;
+  max-height: 2.75rem !important;
+  justify-content: center;
 }
 
 html[data-design-layer="v2"] .sb-list-content-card {

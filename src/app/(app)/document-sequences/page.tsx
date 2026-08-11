@@ -30,8 +30,9 @@ export default async function DocumentSequencesPage({ searchParams }: { searchPa
             </CardContent>
           </Card>
         ) : null}
-        <div className="overflow-hidden rounded-[2px] border bg-card">
+        <div className="space-y-3">
           <MasterDataFilters search={filters.search} status={filters.status} placeholder="Search document type, prefix, or preview number" resultCount={sequences.length} filtered={filtered} resetHref="/document-sequences" />
+          <div className="sb-list-content-card overflow-hidden">
             <Table aria-label="Document sequences" stickyColumn={canUpdate ? "second" : "first"}>
               <TableHeader>
                 <TableRow>
@@ -61,6 +62,7 @@ export default async function DocumentSequencesPage({ searchParams }: { searchPa
                 {!sequences.length ? <TableRow><TableCell colSpan={canUpdate ? 8 : 7} className="text-center text-muted-foreground">No document sequences found.</TableCell></TableRow> : null}
               </TableBody>
             </Table>
+          </div>
         </div>
       </WorkspaceGrid>
     </>

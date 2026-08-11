@@ -25,7 +25,9 @@ test("new and create links become a phone FAB above the tab bar", () => {
 test("workflow actions retain descriptive mobile controls", () => {
   const source = read("src/components/layout/right-console.tsx");
 
-  assert.match(source, /hasCreateFab \? "hidden" : "flex", "xl:hidden"/);
+  assert.match(source, /ownsMobileActionArea/);
+  assert.match(source, /data-mobile-action-bar/);
+  assert.match(source, /md:hidden xl:hidden/);
   assert.match(source, /primaryAction \? <div data-mobile-primary-slot/);
   assert.match(source, /aria-label="Open more actions"/);
 });

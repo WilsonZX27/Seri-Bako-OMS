@@ -49,7 +49,8 @@
   --sb-surface-muted: #f5f6f3;
   --sb-muted: var(--sb-surface-muted);
   --sb-border: #d8ded9;
-  --sb-radius-control: 4px;
+  /* Canonical control geometry: 8px controls, 12px panels across every viewport. */
+  --sb-radius-control: 0.5rem;
   --sb-shadow-card: 0 1px 2px rgb(6 44 31 / 0.04), 0 8px 24px rgb(6 44 31 / 0.06);
   --sb-border-soft: #e7ebe7;
   --sb-text: #13261f;
@@ -86,7 +87,7 @@
   --sb-console-width: 20rem;
   /* Canonical geometry tokens. Every route consumes these values; the app
      design layer must not redefine them at a later cascade position. */
-  --sb-panel-radius: 0.5rem;
+  --sb-panel-radius: 0.75rem;
   --sb-z-dropdown: 30;
   --sb-z-sticky: 40;
   /* Narrow-screen drawers must fully cover the mobile navigation and any
@@ -421,7 +422,8 @@ input[type="date"]::-webkit-date-and-time-value {
 
 @media (max-width: 767px) {
   :root {
-    --sb-radius-control: 0.25rem;
+    /* Mobile keeps the same geometry; only target size changes at this breakpoint. */
+    --sb-radius-control: 0.5rem;
     /* Phone controls meet the 48px minimum target for gloved or wet hands. */
     --sb-control-height: 3rem;
   }

@@ -274,11 +274,11 @@ export async function getDashboardSummary() {
           return null;
         })
       : Promise.resolve(null),
-    // The dashboard RPC can temporarily lag the canonical inventory view while
-    // its refresh trigger catches up. Keep the attention count aligned with
-    // the Low Stock route without changing any business state or RLS scope.
+    // Keep the attention count on the bounded pre-aggregated inventory model.
+    // The legacy stock_balances_view recomputes the entire ledger and can time
+    // out even for a small dashboard count.
     needsInventory
-      ? supabase.from("stock_balances_view").select("item_id, current_qty, safety_stock, status")
+      ? supabase.from("stock_balances_summary").select("item_id, current_qty, safety_stock, status, is_low_stock")
       : Promise.resolve({ data: [], error: null }),
   ]);
 

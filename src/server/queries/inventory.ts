@@ -14,6 +14,10 @@ import type { Database } from "@/types/database";
 type Filters = Record<string, string | undefined>;
 type StockTransaction = Database["public"]["Tables"]["stock_transactions"]["Row"];
 type StockLedgerViewRow = Database["public"]["Views"]["stock_ledger_view"]["Row"];
+type StockCardResult = {
+  rows: StockLedgerViewRow[];
+  unavailable: boolean;
+};
 type LowStockRow = Database["public"]["Views"]["stock_balances_view"]["Row"] & {
   stock_status: "out_of_stock" | "low_stock";
   suggested_reorder_qty: number;
@@ -569,7 +573,7 @@ export async function getInventoryDashboard(period: "7d" | "30d" | "month" = "30
   };
 }
 
-export async function getStockCard(filters: Filters = {}) {
+export async function getStockCardResult(filters: Filters = {}): Promise<StockCardResult> {
   if (!isMockMode()) {
     const today = new Date().toISOString().slice(0, 10);
     const from = filters.from || today;
@@ -587,9 +591,9 @@ export async function getStockCard(filters: Filters = {}) {
     });
     if (error) {
       warnOptionalInventoryQuery("Stock Card", error);
-      return [];
+      return { rows: [], unavailable: true };
     }
-    return data ?? [];
+    return { rows: data ?? [], unavailable: false };
   }
 
   const ledger = await getStockLedger({ ...filters, page: "all" });
@@ -597,7 +601,14 @@ export async function getStockCard(filters: Filters = {}) {
   const rows = (itemId ? ledger.rows.filter((row) => row.item_id === itemId) : ledger.rows)
     .filter((row) => filters.from ? row.transaction_date >= filters.from : true)
     .filter((row) => filters.to ? row.transaction_date <= filters.to : true);
-  return rows.sort((a, b) => new Date(a.transaction_date).getTime() - new Date(b.transaction_date).getTime());
+  return {
+    rows: rows.sort((a, b) => new Date(a.transaction_date).getTime() - new Date(b.transaction_date).getTime()),
+    unavailable: false,
+  };
+}
+
+export async function getStockCard(filters: Filters = {}) {
+  return (await getStockCardResult(filters)).rows;
 }
 
 export async function getLowStockItems(filters: Filters = {}) {
@@ -635,9 +646,10 @@ export async function getLowStockItems(filters: Filters = {}) {
   const data = summaryResult.data;
   let error = summaryResult.error;
   let fallbackData: unknown[] | null = null;
-  // The pre-aggregated summary can briefly be empty while its refresh trigger catches up.
-  // Read the canonical view before surfacing an empty low-stock screen so users never lose
-  // an actionable item merely because the read model is stale or its grant is lagging.
+  // The pre-aggregated summary can briefly be empty while its refresh trigger
+  // catches up, and older linked deployments may not have the summary grant
+  // yet. Keep the canonical view as a read-only fallback so a transient read
+  // model gap never presents an empty low-stock workspace to the operator.
   if (error || !data?.length) {
     warnOptionalInventoryQuery("low stock summary fallback", error);
     let viewQuery = supabase
@@ -651,6 +663,8 @@ export async function getLowStockItems(filters: Filters = {}) {
     if (viewResult.data?.length) {
       fallbackData = viewResult.data;
       error = null;
+    } else if (error && viewResult.error) {
+      warnOptionalInventoryQuery("low stock canonical fallback", viewResult.error);
     }
   }
   if (error) {

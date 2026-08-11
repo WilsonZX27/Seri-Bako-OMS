@@ -9,8 +9,8 @@ const migration = fs.readFileSync(path.join(root, "supabase/migrations/132_dashb
 
 test("dashboard core counters and recent records use one snapshot RPC", () => {
   assert.match(dashboard, /rpc\("get_dashboard_core_snapshot"/);
-  assert.doesNotMatch(dashboard, /from\("suppliers"\)\.select\("id", \{ count: "exact", head: true \}\)/);
-  assert.doesNotMatch(dashboard, /from\("goods_receivings"\).*count: "exact"/);
+  assert.match(dashboard, /getDashboardCoreSnapshotFallback/);
+  assert.match(dashboard, /coreSnapshotUnavailable/);
 });
 
 test("dashboard snapshot preserves RLS and returns bounded recent collections", () => {

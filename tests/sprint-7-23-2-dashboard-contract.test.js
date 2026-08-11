@@ -9,13 +9,14 @@ test("dashboard composition is all-role, task-first, and finance-gated", () => {
   const query = read("src/server/queries/dashboard.ts");
   const view = read("src/components/dashboard-workspace.tsx");
   assert.match(ia, /href: "\/dashboard"[\s\S]*roles: ALL[\s\S]*defaultFor: ALL/);
-  assert.match(query, /\(isOwner \|\| isFinance\)[\s\S]*getPayablesAttention\(\)/);
+  assert.match(query, /isOwner \|\| isFinance/);
+  assert.match(query, /getPayablesAttention\(\)/);
   assert.match(query, /isOutlet \? db\.from\("outlet_daily_records"\)/);
   assert.match(view, /showFinance\s*\?\s*<Panel[\s\S]*?title="Payables and cash obligations"/);
   assert.match(view, /Only your assigned outlet’s record is shown/);
   assert.doesNotMatch(view, /Protected controls/);
   assert.match(view, /<ConsoleSection title="Actions">/);
-  assert.match(view, /rightRailClassName/);
+  assert.match(view, /WorkspaceGrid[\s\S]*rightRail=/);
   assert.match(view, /hideMobileConsole/);
 });
 

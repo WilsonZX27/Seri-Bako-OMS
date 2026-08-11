@@ -46,7 +46,7 @@ test("stock balance query failure preserves error state instead of success value
 
 test("recipe stock availability fails closed when the balance view fails", () => {
   assert.match(recipesQuery, /export async function getRecipe\(id: string\)/);
-  assert.match(recipesQuery, /from\("stock_balances_view"\)/);
+  assert.match(recipesQuery, /from\("stock_balances_summary"\)/);
   assert.match(recipesQuery, /for \(const result of \[products, lines, items, packaging, snapshots, stockBalances\]\)/);
   assert.match(recipesQuery, /if \(result\.error\) throw new Error\(result\.error\.message\)/);
 });

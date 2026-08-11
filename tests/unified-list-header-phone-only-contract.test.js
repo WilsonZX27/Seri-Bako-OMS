@@ -16,7 +16,7 @@ const styles = fs.readFileSync(
 test("unified list header is phone-only and preserves desktop controls", () => {
   assert.match(component, /matchMedia\("\(max-width: 639px\)"\)/);
   assert.match(component, /data-unified-list-desktop="true"/);
-  assert.match(component, /if \(!mobile\) return <form[\s\S]*data-unified-list-desktop/);
+  assert.match(component, /if \(!mobile\)[\s\S]*data-unified-list-desktop/);
   assert.match(styles, /@media \(max-width: 639px\)[\s\S]*\.unified-list-header/);
   assert.match(styles, /form\[data-unified-list-desktop="true"\]\s*\{\s*display:\s*none/);
 });

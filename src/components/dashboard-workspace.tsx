@@ -318,27 +318,29 @@ export function DashboardWorkspace({ summary, renderedAt }: { summary: Dashboard
 
         <QuickActionsCluster actions={quickActions} className={isOutlet ? "hidden" : "hidden lg:block xl:hidden"} />
 
-        {!isOutlet && summary.pendingApprovals.length ? <Panel
-          title={isKitchen ? "Purchase request progress" : "Actions awaiting you"}
-        >
-          <div className="divide-y rounded-[var(--sb-radius-control)] border bg-[var(--workspace-bg)]">
-            {summary.pendingApprovals.map((row: DashboardSummary["pendingApprovals"][number]) => (
-              <Link prefetch={false}
-                key={row.id}
-                href={row.href}
-                className="flex min-h-11 items-center justify-between gap-3 px-3 py-2 text-xs hover:bg-[var(--sb-surface-muted)]"
-              >
-                <span className="min-w-0">
-                  <strong className="block truncate font-mono">{row.document_no}</strong>
-                  <span className="text-muted-foreground">
-                    {row.step}
-                    {row.branch_name ? ` · ${row.branch_name}` : ""}
+        {!isOutlet ? <Panel title={isKitchen ? "Purchase request progress" : "Actions awaiting you"}>
+          {summary.pendingApprovals.length ? (
+            <div className="divide-y rounded-[var(--sb-radius-control)] border bg-[var(--workspace-bg)]">
+              {summary.pendingApprovals.map((row: DashboardSummary["pendingApprovals"][number]) => (
+                <Link prefetch={false}
+                  key={row.id}
+                  href={row.href}
+                  className="flex min-h-11 items-center justify-between gap-3 px-3 py-2 text-xs hover:bg-[var(--sb-surface-muted)]"
+                >
+                  <span className="min-w-0">
+                    <strong className="block truncate font-mono">{row.document_no}</strong>
+                    <span className="text-muted-foreground">
+                      {row.step}
+                      {row.branch_name ? ` · ${row.branch_name}` : ""}
+                    </span>
                   </span>
-                </span>
-                <span className="shrink-0 text-[11px] text-muted-foreground">{row.age_label}</span>
-              </Link>
-            ))}
-          </div>
+                  <span className="shrink-0 text-[11px] text-muted-foreground">{row.age_label}</span>
+                </Link>
+              ))}
+            </div>
+          ) : (
+            <p className="px-1 py-2 text-xs text-muted-foreground">No pending actions in your current scope.</p>
+          )}
         </Panel> : null}
 
         {isOutlet ? (

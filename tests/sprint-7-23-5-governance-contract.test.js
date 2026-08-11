@@ -38,7 +38,7 @@ test("PR creation is dense and uses the accessible urgency select", () => {
   const select = read("src/components/urgency-select.tsx");
   const badges = read("src/components/priority-badge.tsx");
   assert.match(form, /Request branch/);
-  assert.match(form, /More settings/);
+  assert.match(form, /Sourcing details/);
   assert.match(form, /grid grid-cols-2/);
   assert.match(form, /grid-cols-\[minmax\(0,1fr\)_7\.5rem_2\.25rem\]/);
   assert.match(form, /rows=\{2\}/);

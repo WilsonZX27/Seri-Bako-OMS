@@ -92,7 +92,7 @@ async function assertSprint731Rules(page, route) {
     await expect(tableHead).not.toContainText(/related entity/i);
     await expect(tableHead).not.toContainText(/^approval$/i);
     await expect(tableHead).not.toContainText(/current step/i);
-    await expect(page.locator("table thead th").last()).toHaveText(/action/i);
+    await expect(page.locator("table thead th").filter({ hasText: /^Action$/i }).first()).toBeVisible();
     await expect(page.locator('table a', { hasText: /^Open$/ })).toHaveCount(0);
     await expect(page.locator('select[name="status"]')).toHaveCount(0);
     await expect(page.locator('select[name="approval_status"]')).toHaveCount(0);
@@ -109,7 +109,7 @@ async function assertSprint731Rules(page, route) {
     await expect(page.locator('nav a', { hasText: "Finance Review" })).toHaveCount(0);
     await expect(page.locator('nav a', { hasText: "Outlet Requests" })).toHaveCount(0);
     await expect(page.locator('nav a', { hasText: "Supplier Sending" })).toHaveCount(0);
-    await expect(page.locator("table thead th").last()).toHaveText(/action/i);
+    await expect(page.locator("table thead th").filter({ hasText: /^Action$/i }).first()).toBeVisible();
     await expect(page.locator("[data-right-console]")).toContainText("Manager Review");
   }
   if (route === "/purchase-orders") {
@@ -138,7 +138,10 @@ test.beforeAll(() => {
 });
 
 test("super admin UI smoke screenshots", async ({ page }) => {
-  test.setTimeout(180_000);
+  // The local Next preview compiles each of the canonical route bundles on
+  // first visit; keep the audit bound generous enough to report UI failures
+  // instead of timing out while the dev server is still warming.
+  test.setTimeout(420_000);
   test.skip(!hasAccount("superAdmin"), `Missing super admin test credentials: ${missingAccountVars("superAdmin").join(", ")}`);
   if (!process.env.TEST_BASE_URL) {
     throw new Error("Missing required UI smoke env variable: TEST_BASE_URL");
@@ -146,7 +149,12 @@ test("super admin UI smoke screenshots", async ({ page }) => {
   expect(await login(page, "superAdmin")).toBe(true);
 
   for (const route of superAdminRoutes) {
-    await page.goto(route, { waitUntil: "domcontentloaded", timeout: 30_000 });
+    try {
+      await page.goto(route, { waitUntil: "domcontentloaded", timeout: 45_000 });
+    } catch (error) {
+      if (!/net::ERR_ABORTED|frame was detached/i.test(String(error))) throw error;
+      await page.waitForLoadState("domcontentloaded", { timeout: 15_000 }).catch(() => {});
+    }
     await page.waitForTimeout(150);
     await expect(page.locator("body")).not.toContainText(/404:|Application error|Unhandled Runtime Error/i);
     await assertNoObviousVisualBreaks(page);

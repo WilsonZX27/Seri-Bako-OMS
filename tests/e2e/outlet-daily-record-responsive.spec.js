@@ -22,7 +22,15 @@ test("outlet daily record keeps the direct-post workflow usable at every viewpor
     expect(overflow, `${viewport.label} must not horizontally overflow`).toBeLessThanOrEqual(5);
 
     if (viewport.width < 768) {
-      await page.getByRole("button", { name: "View workflow" }).click();
+      // The trigger exposes an explicit aria-label while its visible label is
+      // intentionally compact (“Workflow”). Use the authored accessibility
+      // contract directly; Chromium’s role-name resolver can otherwise omit
+      // this portal trigger when the parent is governed by a responsive
+      // `md:hidden` utility.
+      const workflowTrigger = page.locator('button[aria-label="View workflow"]');
+      await expect(workflowTrigger).toBeVisible();
+      await expect(workflowTrigger).toBeEnabled();
+      await workflowTrigger.click();
       const workflowSheet = page.getByRole("dialog", { name: "Workflow progress" });
       await expect(workflowSheet.getByText("Posted", { exact: true })).toBeVisible();
       await workflowSheet.getByRole("button", { name: "Close Workflow progress" }).click();
@@ -30,7 +38,10 @@ test("outlet daily record keeps the direct-post workflow usable at every viewpor
       const primary = page.getByRole("button", { name: "Confirm Qty Sent" });
       await expect(primary).toBeVisible();
       await expect(primary.locator("svg")).toHaveCount(1);
-      await expect(page.locator("[data-mobile-app-nav]")).toBeVisible();
+      // A document action rail owns the bottom safe-area slot on phones;
+      // the shared shell hides the persistent nav to prevent two competing
+      // fixed action layers.
+      await expect(page.locator("[data-mobile-app-nav]")).toBeHidden();
 
       await page.locator("[data-mobile-document-action]").getByRole("button", { name: "More" }).click();
       const sheet = page.getByRole("dialog", { name: "More options" });

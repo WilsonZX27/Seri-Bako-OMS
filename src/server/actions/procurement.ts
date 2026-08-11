@@ -244,7 +244,7 @@ async function ensureActiveItems(itemIds: string[], branchId?: string | null, li
     throw new Error("All purchase request lines must belong to the selected branch.");
   }
   const { data: branchItems, error: branchItemsError } = await supabase
-    .from("stock_balances_view")
+    .from("stock_balances_summary")
     .select("item_id")
     .eq("branch_id", branchId)
     .in("item_id", itemIds);

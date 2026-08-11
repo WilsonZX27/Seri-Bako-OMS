@@ -35,7 +35,7 @@ test("the shared shell gives iPad a contained canvas and an explicit operational
   const sheets = read("src/components/documents/mobile-document-surfaces.tsx");
   const confirm = read("src/components/ui/confirm-action-form.tsx");
   const modal = read("src/components/ui/modal-shell.tsx");
-  const styles = read("src/app/globals.css");
+  const styles = `${read("src/app/globals.css")}\n${read("src/app/design-system-v2.css")}`;
 
   assert.match(workspace, /data-tablet-document-header/);
   assert.match(workspace, /tabletRailMode = "split"/);
@@ -58,7 +58,7 @@ test("the shared shell gives iPad a contained canvas and an explicit operational
   assert.match(confirm, /ModalShell/);
   assert.match(modal, /role="dialog"/);
   assert.match(modal, /event\.key !== "Tab"/);
-  assert.match(styles, /\.sb-mobile-action-bar[\s\S]*border: 1px solid var\(--sb-border\);[\s\S]*background: white;[\s\S]*box-shadow: 0 -3px 10px/);
+  assert.match(styles, /\.sb-mobile-action-bar[\s\S]*border: 1px solid var\(--sb-border\);[\s\S]*background: var\(--sb-surface\);[\s\S]*box-shadow: 0 -3px 10px/);
 });
 
 test("the shared top bar is the only tablet and desktop breadcrumb, while new documents keep a compact context header", () => {

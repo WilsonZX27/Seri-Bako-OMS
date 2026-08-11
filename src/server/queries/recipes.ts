@@ -10,7 +10,7 @@ type ProductRow = Database["public"]["Tables"]["products"]["Row"];
 type ItemRow = Database["public"]["Tables"]["items"]["Row"];
 type ProductPackagingRow = Database["public"]["Tables"]["product_packaging"]["Row"];
 type CostSnapshotRow = Database["public"]["Tables"]["recipe_cost_snapshots"]["Row"];
-type StockBalanceRow = Database["public"]["Views"]["stock_balances_view"]["Row"];
+type StockBalanceRow = Database["public"]["Tables"]["stock_balances_summary"]["Row"];
 
 export type RecipeLineDetail = RecipeLineRow & {
   ingredient_item_code: string;
@@ -267,7 +267,7 @@ export async function getRecipe(id: string) {
     supabase.from("items").select("*").is("deleted_at", null),
     supabase.from("product_packaging").select("*").is("deleted_at", null),
     supabase.from("recipe_cost_snapshots").select("*").eq("recipe_id", id),
-    supabase.from("stock_balances_view").select("item_id,current_stock,current_qty"),
+    supabase.from("stock_balances_summary").select("item_id,current_stock,current_qty"),
   ]);
 
   if (recipe.error) throw new Error(recipe.error.message);

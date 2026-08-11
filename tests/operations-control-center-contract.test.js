@@ -15,10 +15,10 @@ test("Operations Control Center reuses existing outlet and demand query sources"
 });
 
 test("Operations Control Center isolates outlet and demand failures", () => {
-  assert.match(dashboard, /warnOptionalQueryResult\("core snapshot", coreSnapshotResult\)/);
+  assert.match(dashboard, /warnOptionalQueryResult\("core snapshot", coreSnapshotRpcResult\)/);
   assert.match(dashboard, /const coreUnavailable =/);
-  assert.match(dashboard, /todayReceivingUnavailable: coreUnavailable/);
-  assert.match(dashboard, /dashboard\.optional\.\$\{name\}/);
+  assert.match(dashboard, /todayReceivingUnavailable/);
+  assert.match(dashboard, /source: `dashboard\.optional\.\$\{name\}`/);
   assert.match(workspace, /No urgent operational exceptions are visible in your scope/);
 });
 

@@ -7,7 +7,7 @@ const root = path.join(__dirname, "..");
 const dashboard = fs.readFileSync(path.join(root, "src", "components", "dashboard-workspace.tsx"), "utf8");
 const purchaseRequests = fs.readFileSync(path.join(root, "src", "app", "(app)", "purchase-requests", "page.tsx"), "utf8");
 const stockCounts = fs.readFileSync(path.join(root, "src", "app", "(app)", "stock-counts", "page.tsx"), "utf8");
-const css = fs.readFileSync(path.join(root, "src", "app", "globals.css"), "utf8");
+const css = `${fs.readFileSync(path.join(root, "src", "app", "globals.css"), "utf8")}\n${fs.readFileSync(path.join(root, "src", "app", "design-system-v2.css"), "utf8")}`;
 
 test("dashboard uses one non-duplicated operational hierarchy", () => {
   assert.doesNotMatch(dashboard, /Signal mix|Live summary/);
@@ -20,15 +20,15 @@ test("dashboard uses one non-duplicated operational hierarchy", () => {
 
 test("priority dashboard groups remain compact across phone and tablet", () => {
   assert.match(dashboard, /grid grid-cols-3 gap-2[^\n]*data-dashboard-quick-actions/);
-  assert.match(dashboard, /grid grid-cols-2 gap-2 sm:grid-cols-3[^\n]*data-dashboard-exceptions/);
-  assert.match(dashboard, /grid grid-cols-2 gap-1\.5 sm:grid-cols-3[^\n]*data-dashboard-payables/);
+  assert.match(dashboard, /grid grid-cols-3 gap-1\.5 sm:gap-2[^\n]*data-dashboard-exceptions/);
+  assert.match(dashboard, /grid grid-cols-3 gap-1\.5 sm:gap-2[^\n]*data-dashboard-payables/);
 });
 
 test("purchase requests and stock counts share the bounded tablet split filter", () => {
   assert.match(purchaseRequests, /className="sb-tablet-split-filter"/);
   assert.match(stockCounts, /className="sb-tablet-split-filter"/);
   assert.match(css, /\[data-tablet-document-split\] \.sb-tablet-split-filter/);
-  assert.match(css, /grid-template-columns: minmax\(12rem, 1fr\)/);
+  assert.match(css, /display: flex;[\s\S]*flex-wrap: wrap/);
 });
 
 test("stock count tablet rail has an explicit card contract", () => {

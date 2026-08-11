@@ -38,7 +38,7 @@ test("kitchen mobile navigation keeps stock execution one tap away", () => {
 });
 
 test("mobile shell respects safe areas, action stacking, and standalone web installation", () => {
-  const css = read("src/app/globals.css");
+  const css = `${read("src/app/globals.css")}\n${read("src/app/design-system-v2.css")}`;
   const rootLayout = read("src/app/layout.tsx");
   const appLayout = read("src/app/(app)/layout.tsx");
   const workspace = read("src/components/layout/workspace-layout.tsx");
@@ -49,8 +49,8 @@ test("mobile shell respects safe areas, action stacking, and standalone web inst
   assert.match(css, /env\(safe-area-inset-bottom\)/);
   assert.match(css, /\[data-mobile-document-action\]/);
   assert.match(css, /data-mobile-task-page="true"/);
-  assert.match(css, /bottom: calc\(var\(--sb-mobile-nav-height\) \+ env\(safe-area-inset-bottom\) \+ 0\.5rem\)/);
-  assert.match(css, /html:is\(\[data-mobile-task-page="true"\], \[data-mobile-action-page="true"\]\)[\s\S]*?bottom: calc\(var\(--sb-mobile-nav-height\) \+ env\(safe-area-inset-bottom\) \+ 0\.5rem\) !important/);
+  assert.match(css, /html:is\(\[data-mobile-task-page="true"\], \[data-mobile-action-page="true"\]\)[\s\S]*?bottom: env\(safe-area-inset-bottom\) !important/);
+  assert.match(css, /\[data-mobile-document-action\][\s\S]*padding-bottom: max\(0\.75rem, env\(safe-area-inset-bottom\)\)/);
   assert.match(appLayout, /pb-\[calc\(var\(--sb-mobile-nav-height\)\+env\(safe-area-inset-bottom\)\+1rem\)\]/);
   assert.match(workspace, /rightRail && !hideMobileConsole && "pb-32 xl:pb-3"/);
   assert.match(rootLayout, /viewportFit: "cover"/);
@@ -115,7 +115,7 @@ test("dashboard exposes direct mobile actions and field forms keep touch-first g
   const receiving = read("src/components/goods-receiving-form.tsx");
   const stock = read("src/components/stock-balance-table.tsx");
 
-  assert.match(dashboard, /MobileQuickActions/);
+  assert.match(dashboard, /QuickActionsCluster/);
   assert.match(dashboard, /Based on your role/);
   assert.match(dashboard, /Stock count/);
   assert.match(receiving, /grid-cols-2/);

@@ -470,6 +470,11 @@ tbody tr:hover {
 
   [data-document-workspace-header] > [data-tablet-document-header]:last-child {
     justify-self: end;
+    /* Keep the compact workflow trigger measurable inside the auto grid track.
+       Without an intrinsic width, `min-w-0` collapses the second header column
+       to 0×0 at mobile widths even though the trigger is present in the DOM. */
+    width: max-content;
+    min-width: max-content;
   }
 
   [data-mobile-workflow-summary] {
@@ -697,7 +702,7 @@ nav[aria-label="Pagination"] > span,
     display: none !important;
   }
 
-  #main-content > header:not(.sb-document-workspace-header) {
+  #main-content > header:not(.sb-document-workspace-header):not([data-document-workspace-header]) {
     display: none;
   }
 
@@ -936,6 +941,7 @@ html[data-design-layer="v2"] body .sb-command-surface {
 html[data-design-layer="v2"] {
   --sb-panel-radius: 12px;
   --sb-control-radius: 8px;
+  --sb-radius-control: var(--sb-control-radius);
   --sb-z-mobile-nav: 50;
   --sb-z-sheet-backdrop: 100;
   --sb-z-sheet: 101;

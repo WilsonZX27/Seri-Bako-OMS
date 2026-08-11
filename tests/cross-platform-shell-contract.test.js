@@ -17,12 +17,12 @@ test("tablet keeps role navigation sticky while primary actions stay visible", (
 
   assert.doesNotMatch(workspaceGrid, /data-tablet-context/);
   assert.doesNotMatch(workspaceGrid, /absolute right-0 z-\[var\(--sb-z-dropdown\)\]/);
-  assert.match(rightConsole, /"xl:hidden"/);
+  assert.match(rightConsole, /"md:hidden xl:hidden"/);
   assert.doesNotMatch(rightConsole, /mobileOnlyBar/);
   assert.match(appLayout, /pb-\[calc\(var\(--sb-mobile-nav-height\)\+env\(safe-area-inset-bottom\)\+1rem\)\] xl:pb-0/);
   assert.doesNotMatch(appLayout, /lg:pb-4/);
-  assert.match(documentWorkspace, /mobilePrimaryAction && "pb-20 xl:pb-3"/);
-  assert.match(documentWorkspace, /sb-mobile-action-bar fixed[\s\S]*xl:hidden/);
+  assert.match(documentWorkspace, /mobilePrimaryAction && "pb-20 md:pb-3"/);
+  assert.match(documentWorkspace, /sb-mobile-action-bar fixed[\s\S]*md:hidden/);
   assert.match(stockCountForm, /pb-28 xl:pb-0/);
   // Phone and tablet use the fixed task rail; desktop action ownership stays
   // in the document workspace right panel rather than duplicating the submit.
@@ -37,6 +37,7 @@ test("desktop and tablet shared geometry remains token based", () => {
   const tailwind = read("tailwind.config.ts");
   const design = read("DESIGN.md");
   const globals = read("src", "app", "globals.css");
+  const designLayer = read("src", "app", "design-system-v2.css");
   const dashboard = read("src", "components", "dashboard-workspace.tsx");
   const operationalHub = read("src", "components", "operational-hub.tsx");
 
@@ -44,8 +45,10 @@ test("desktop and tablet shared geometry remains token based", () => {
   assert.match(tailwind, /sm: "var\(--sb-radius-control\)"/);
   assert.match(design, /Tablet \(`768px-1279px`\)/);
   assert.match(design, /Desktop \(`>=1280px`\)/);
-  assert.match(globals, /\.rounded-\\\[2px\\\],[\s\S]*\.rounded-md,[\s\S]*\.rounded-none[\s\S]*border-radius: var\(--sb-radius-control\)/);
-  assert.match(globals, /--sb-panel-radius:/);
+  assert.match(globals, /--sb-radius-control:\s*0\.5rem/);
+  assert.match(globals, /--sb-panel-radius:\s*0\.75rem/);
+  assert.match(designLayer, /--sb-panel-radius:\s*12px/);
+  assert.match(designLayer, /--sb-control-radius:\s*8px/);
   assert.doesNotMatch(`${dashboard}\n${operationalHub}`, /--sb-radius-panel/);
 });
 

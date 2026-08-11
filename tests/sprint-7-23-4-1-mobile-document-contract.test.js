@@ -7,7 +7,7 @@ const read = (file) => fs.readFileSync(file, "utf8");
 test("procurement documents use focused mobile workflow and exact primary actions", () => {
   const workspace = read("src/components/documents/document-workspace.tsx");
   const mobile = read("src/components/documents/mobile-document-surfaces.tsx");
-  const css = read("src/app/globals.css");
+  const css = `${read("src/app/globals.css")}\n${read("src/app/design-system-v2.css")}`;
   const pr = read("src/app/(app)/purchase-requests/[id]/page.tsx");
   const po = read("src/app/(app)/purchase-orders/[id]/page.tsx");
 
@@ -63,11 +63,11 @@ test("Manager notification visibility uses company scope and current-stage recip
 
 test("More filters escapes list clipping on mobile and tablet", () => {
   const filter = read("src/components/ui/filter-bar.tsx");
-  const css = read("src/app/globals.css");
+  const css = `${read("src/app/globals.css")}\n${read("src/app/design-system-v2.css")}`;
   assert.match(filter, /sb-filter-more-backdrop/);
   assert.match(filter, /event\.key === "Escape"/);
   assert.match(filter, /filterDialogOpen/);
-  assert.match(css, /data-filter-dialog-open="true"[\s\S]*data-mobile-app-nav/);
+  assert.match(css, /html\[data-filter-dialog-open\] \[data-mobile-app-nav\]/);
   assert.match(css, /@media \(max-width: 1279px\)[\s\S]*\.sb-filter-more\[open\]/);
   assert.match(css, /z-index: var\(--sb-z-dialog\)/);
   assert.match(filter, />Filters</);

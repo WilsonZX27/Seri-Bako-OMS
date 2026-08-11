@@ -10,13 +10,15 @@ import { OperationalList, OperationalListRow, Table, TableBody, TableCell, Table
 import { formatCurrency, formatDateOnly, formatNumber, getToday } from "@/lib/utils";
 import { hasActiveFilters } from "@/lib/table-state";
 import { getBranchesForSelect, getItemsForSelect } from "@/server/queries/common";
-import { getStockCard } from "@/server/queries/inventory";
+import { getStockCardResult } from "@/server/queries/inventory";
+import { Notice } from "@/components/ui/system-states";
 
 export default async function StockCardPage({ searchParams }: { searchParams: Promise<Record<string, string | undefined>> }) {
   const filters = await searchParams;
   const today = getToday();
   const effectiveFilters = { ...filters, from: filters.from ?? today, to: filters.to ?? today };
-  const [items, branches, rows] = await Promise.all([getItemsForSelect(), getBranchesForSelect({ restrictToActorScope: true }), getStockCard(effectiveFilters)]);
+  const [items, branches, stockCard] = await Promise.all([getItemsForSelect(), getBranchesForSelect({ restrictToActorScope: true }), getStockCardResult(effectiveFilters)]);
+  const { rows, unavailable } = stockCard;
   const selectedItem = filters.item_id ? items.find((item) => item.id === filters.item_id) : null;
   const opening = rows.filter((row) => row.transaction_type === "opening_balance").reduce((sum, row) => sum + row.quantity_in - row.quantity_out, 0);
   const purchase = rows.filter((row) => row.transaction_type === "purchase").reduce((sum, row) => sum + row.quantity_in, 0);
@@ -87,6 +89,7 @@ export default async function StockCardPage({ searchParams }: { searchParams: Pr
               <h2 className="text-sm font-semibold">{selectedItem ? `${selectedItem.item_code} — ${selectedItem.item_name}` : "Stock Movement History"}</h2>
               <p className="mt-0.5 text-xs text-muted-foreground">Current balance: {formatNumber(current)} {selectedItem?.base_unit ?? ""}</p>
             </div>
+              {unavailable ? <div className="p-3"><Notice tone="error" title="Stock Card data is temporarily unavailable">The inventory movement service did not respond. Retry this page shortly; no data was changed.</Notice></div> : null}
               <Table mobileHidden stickyColumn="first" aria-label="Stock movement history">
                 <TableHeader>
                   <TableRow>
@@ -119,12 +122,12 @@ export default async function StockCardPage({ searchParams }: { searchParams: Pr
                       <TableCell>{row.reference_type ?? "-"}</TableCell>
                     </TableRow>
                   ))}
-                  {!rows.length ? <TableRow><TableCell colSpan={11} className="text-center text-muted-foreground">No stock movements found.</TableCell></TableRow> : null}
+                  {!rows.length && !unavailable ? <TableRow><TableCell colSpan={11} className="text-center text-muted-foreground">No stock movements found.</TableCell></TableRow> : null}
                 </TableBody>
               </Table>
               <OperationalList ariaLabel="Stock movement history">
                 {rows.map((row) => <OperationalListRow key={row.stock_transaction_id} href={`/stock-transactions/${row.stock_transaction_id}`} label={`Open ${row.transaction_no}`} primary={row.item_name} secondary={`${formatDateOnly(row.transaction_date)} · ${row.transaction_no} · ${row.transaction_type.replaceAll("_", " ")}`} meta={`${formatNumber(row.quantity_in - row.quantity_out)} ${row.base_unit}`} />)}
-                {!rows.length ? <p className="px-3 py-8 text-center text-sm text-muted-foreground">No stock movements found.</p> : null}
+                {!rows.length && !unavailable ? <p className="px-3 py-8 text-center text-sm text-muted-foreground">No stock movements found.</p> : null}
               </OperationalList>
           </section>
         </div>

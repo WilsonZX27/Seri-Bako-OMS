@@ -16,7 +16,11 @@ test("stock count starts from a visible historical or ledger prefill instead of 
   assert.match(query, /last_posted_count/);
   assert.match(form, /seedLines\.map\(makeEditableLine\)/);
   assert.match(form, /prefill_source/);
-  assert.match(form, /grid-cols-\[minmax\(0,4fr\)_minmax\(4rem,2fr\)_minmax\(0,4fr\)\]/);
+  assert.equal(
+    (form.match(/md:grid-cols-\[minmax\(12rem,1fr\)_5rem_minmax\(14rem,17rem\)\]/g) ?? []).length,
+    2,
+    "the Stock Count heading and rows must share the same tablet column template",
+  );
   assert.match(design, /latest posted physical result/);
 });
 
@@ -32,11 +36,19 @@ test("stock count uses direct plus/minus adjustments and protects discrete quant
   assert.match(validation, /quantities must be whole numbers/);
 });
 
-test("tablet portrait uses a dense 40/20/40 ledger without a persistent remarks column", () => {
+test("tablet portrait uses one aligned item, variance, and count ledger without a persistent remarks column", () => {
   const form = read("src", "components", "stock-count-form.tsx");
 
-  assert.match(form, /md:grid md:grid-cols-\[minmax\(0,4fr\)_minmax\(4rem,2fr\)_minmax\(0,4fr\)\]/);
-  assert.match(form, /grid-cols-\[minmax\(0,4fr\)_minmax\(4rem,2fr\)_minmax\(0,4fr\)\]/);
+  assert.equal(
+    (form.match(/md:grid-cols-\[minmax\(12rem,1fr\)_5rem_minmax\(14rem,17rem\)\]/g) ?? []).length,
+    2,
+  );
+  assert.equal(
+    (form.match(/lg:grid-cols-\[minmax\(16rem,1fr\)_5rem_minmax\(16rem,18rem\)\]/g) ?? []).length,
+    2,
+  );
+  assert.match(form, /md:justify-self-stretch/);
+  assert.doesNotMatch(form, /md:max-w-64/);
   assert.match(form, />Variance</);
   assert.match(form, /quantityStep\(line\.uom\)/);
   assert.doesNotMatch(form, /md:col-span-4 md:order-5 lg:col-span-1/);

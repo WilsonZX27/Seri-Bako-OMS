@@ -409,7 +409,7 @@ export function StockCountForm({
           </div>
 
           <div data-stock-count-line-list>
-            <div className="hidden border-b bg-secondary/40 px-3 py-1.5 md:grid md:grid-cols-[minmax(0,4fr)_minmax(4rem,2fr)_minmax(0,4fr)] md:gap-3">
+            <div className="hidden border-b bg-secondary/40 px-4 py-2 md:grid md:grid-cols-[minmax(12rem,1fr)_5rem_minmax(14rem,17rem)] md:items-center md:gap-4 lg:grid-cols-[minmax(16rem,1fr)_5rem_minmax(16rem,18rem)]">
               <p className="text-xs font-semibold">Item</p>
               <p className="text-xs text-right font-semibold">Variance</p>
               <p className="text-xs font-semibold">Count</p>
@@ -423,7 +423,7 @@ export function StockCountForm({
                 return (
                   <div
                     key={line.item_id}
-                    className="grid min-h-12 grid-cols-[minmax(0,1fr)_auto] items-center gap-x-2 gap-y-1.5 border-b border-slate-100 px-3 py-2 md:min-h-14 md:grid-cols-[minmax(0,4fr)_minmax(4rem,2fr)_minmax(0,4fr)] md:gap-3"
+                    className="grid min-h-12 grid-cols-[minmax(0,1fr)_auto] items-center gap-x-2 gap-y-1.5 border-b border-slate-100 px-4 py-2 md:min-h-14 md:grid-cols-[minmax(12rem,1fr)_5rem_minmax(14rem,17rem)] md:gap-4 lg:grid-cols-[minmax(16rem,1fr)_5rem_minmax(16rem,18rem)]"
                   >
                     <div className="order-1 min-w-0">
                       <p className="break-words text-sm font-medium leading-tight text-slate-800">{line.item_name}</p>
@@ -434,8 +434,8 @@ export function StockCountForm({
                       {hasPhysical ? <><span className="block whitespace-nowrap">{variance > 0 ? "+" : ""}{formatQuantity(variance)}</span><span className="block text-[10px] font-normal">{formatVariancePercent(percent)}</span></> : <span className="font-normal">—</span>}
                     </div>
 
-                    <div className="order-3 col-span-2 flex min-w-0 items-center justify-end gap-1 md:col-span-1">
-                        <div className="flex w-full min-w-0 overflow-hidden rounded-sm border border-[var(--sb-border)] bg-white md:max-w-64">
+                    <div className="order-3 col-span-2 flex min-w-0 items-center justify-end gap-2 md:col-span-1 md:justify-self-stretch">
+                        <div className="flex min-w-0 flex-1 overflow-hidden rounded-sm border border-[var(--sb-border)] bg-white">
                           <button type="button" className="flex h-9 w-9 shrink-0 items-center justify-center border-r border-[var(--sb-border)] text-[var(--sb-green-900)] hover:bg-[var(--sb-surface-muted)] active:bg-[var(--sb-green-100)] md:h-10 md:w-10" onClick={() => adjustPhysicalQty(line.item_id, -1)} aria-label={`Decrease physical quantity for ${line.item_name}`}><Minus className="h-4 w-4" /></button>
                         <Input
                           id={`physical-${line.item_id}`}

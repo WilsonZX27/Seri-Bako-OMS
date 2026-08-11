@@ -4,6 +4,11 @@
 
 This document is the implementation contract for every customer-facing route, form, record workspace, table, panel, dialog, and mobile action bar. It applies to new work and to refactoring of existing UI.
 
+### Dense editable row alignment
+
+- A dense editable list must use the exact same column template, horizontal gutter, and gap for its header and every data row. Inner controls may fill their assigned column but must not introduce a second `max-width` or end-alignment rule that visually detaches them from the column heading.
+- Stock Count uses an elastic Item column, a stable Variance column, and a bounded Count column. Quantity stepper and UOM remain inside that Count column at desktop and tablet widths; phone rows may stack the Count control beneath the item context.
+
 ## v8.37.0 - Browser-Native Mobile Canvas
 
 - Phone and tablet routes use document-level scrolling so Safari and Chromium can collapse their browser chrome naturally. A fixed `100dvh` shell with the page trapped inside an `overflow-y-auto` main region is desktop-only.

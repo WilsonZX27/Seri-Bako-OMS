@@ -7,7 +7,8 @@ import { StatusBadge } from "@/components/ui/status-badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { SelectControl } from "@/components/ui/select-control";
-import { FilterBar, FilterBarMore } from "@/components/ui/filter-bar";
+import { FilterBarMore } from "@/components/ui/filter-bar";
+import { UnifiedListHeader } from "@/components/common/UnifiedListHeader";
 import { PageHeader } from "@/components/ui/page-header";
 import { PaginationControls } from "@/components/sortable-table";
 import { StatusTabs } from "@/components/status-tabs";
@@ -55,8 +56,8 @@ export default async function SupplierInvoicesPage({ searchParams }: { searchPar
           </>
         }
       >
-        <div className="rounded-[2px] border bg-card">
-          <FilterBar resultCount={invoices.totalRows} resetHref="/supplier-invoices" filtered={filtered}>
+        <div className="space-y-3">
+          <UnifiedListHeader resultCount={invoices.totalRows} resetHref="/supplier-invoices" filtered={filtered} activeCount={[filters.status, filters.supplier && filters.supplier !== "all", filters.due && filters.due !== "all"].filter(Boolean).length}>
             <Input name="search" defaultValue={filters.search ?? ""} placeholder="Search invoice or supplier" className="md:max-w-sm" />
             <StatusTabs statuses={statuses} activeStatus={filters.status} />
             <FilterBarMore activeCount={[filters.supplier && filters.supplier !== "all", filters.due && filters.due !== "all"].filter(Boolean).length} resetHref="/supplier-invoices">
@@ -65,7 +66,8 @@ export default async function SupplierInvoicesPage({ searchParams }: { searchPar
             </FilterBarMore>
             {filters.status ? <input type="hidden" name="status" value={filters.status} /> : null}
             {filtered ? <Button asChild variant="secondary"><Link href="/supplier-invoices">Reset</Link></Button> : <Button type="submit" variant="secondary">Search</Button>}
-          </FilterBar>
+          </UnifiedListHeader>
+          <div className="sb-list-content-card overflow-hidden" data-mobile-list-content-card>
             <Table mobileHidden aria-label="Supplier invoices" stickyColumn="second">
               <TableHeader>
                 <TableRow>
@@ -114,6 +116,7 @@ export default async function SupplierInvoicesPage({ searchParams }: { searchPar
               {!invoices.rows.length ? <EmptyState title={filtered ? "No invoices match these filters" : "No invoices require review"} description={filtered ? "Reset the filters or widen the search." : "All current supplier invoices are up to date."} action={filtered ? { href: "/supplier-invoices", label: "Reset filters" } : undefined} /> : null}
             </OperationalList>
           <PaginationControls page={invoices.page} totalPages={invoices.totalPages} totalRows={invoices.totalRows} searchParams={filters} />
+          </div>
         </div>
       </WorkspaceGrid>
     </>

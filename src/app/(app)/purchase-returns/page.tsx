@@ -7,7 +7,7 @@ import { StatusBadge } from "@/components/ui/status-badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { PageHeader } from "@/components/ui/page-header";
-import { FilterBar } from "@/components/ui/filter-bar";
+import { UnifiedListHeader } from "@/components/common/UnifiedListHeader";
 import { PaginationControls } from "@/components/sortable-table";
 import { StatusTabs } from "@/components/status-tabs";
 import { OperationalList, OperationalListRow, Table, TableActionLink, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -51,13 +51,14 @@ export default async function PurchaseReturnsPage({ searchParams }: { searchPara
           </>
         }
       >
-        <div className="overflow-hidden rounded-[2px] border bg-card">
-          <FilterBar resultCount={returns.totalRows} resetHref="/purchase-returns" filtered={filtered}>
+        <div className="space-y-3">
+          <UnifiedListHeader resultCount={returns.totalRows} resetHref="/purchase-returns" filtered={filtered} activeCount={filters.status ? 1 : 0}>
             <Input name="search" defaultValue={filters.search ?? ""} placeholder="Search return, GRN, PO, supplier" className="md:max-w-sm" />
             <StatusTabs statuses={statuses} activeStatus={filters.status} />
             {filters.status ? <input type="hidden" name="status" value={filters.status} /> : null}
-            <Button type="submit">Search</Button>
-          </FilterBar>
+            {filtered ? <Button asChild variant="secondary"><Link href="/purchase-returns">Reset</Link></Button> : <Button type="submit">Search</Button>}
+          </UnifiedListHeader>
+          <div className="sb-list-content-card overflow-hidden" data-mobile-list-content-card>
             <Table mobileHidden stickyColumn="second" aria-label="Purchase returns">
               <TableHeader>
                 <TableRow>
@@ -100,6 +101,7 @@ export default async function PurchaseReturnsPage({ searchParams }: { searchPara
             {!returns.rows.length ? <EmptyState title={filtered ? "No returns match these filters" : "No purchase returns yet"} description={filtered ? "Reset the filters or widen the search." : "Supplier returns appear after a posted receiving is returned."} action={filtered ? emptyAction : undefined} /> : null}
           </OperationalList>
           <PaginationControls page={returns.page} totalPages={returns.totalPages} totalRows={returns.totalRows} searchParams={filters} />
+          </div>
         </div>
       </WorkspaceGrid>
     </>

@@ -569,3 +569,10 @@ the route matrix in `docs/qa/FULL_SYSTEM_AUDIT_MATRIX.md`.
 - Outlet Daily reserves a conditional desktop detail column for wastage reason and remarks. On tablet, those two controls share the row beginning under Qty Sent. Remarks remain collapsed behind the comment affordance until requested.
 - New-document mobile context is sticky and becomes denser after scrolling. It keeps status, date, location, and workflow orientation without repeating those values in the collapsed Record setup summary.
 - The current visual language remains authoritative: 12px panels, 8px controls, restrained shadows, and existing motion. Structural convergence is not permission for an aesthetic reset.
+
+# v8.36.4 — Procurement List Surface Convergence
+
+- Purchase Orders, Goods Receiving, Purchase Returns, Supplier Invoices, Suppliers, Purchase Requests, Production Jobs, and Outlet Daily Records use the same two-surface list structure: one independent query card followed by one independent content card.
+- `UnifiedListHeader` owns phone, tablet, and desktop geometry. Search remains elastic; filters and the terminal Search/Reset action use the shared 8rem width at `640px+`; every visible query control renders at 44px high.
+- Result count remains immediately left of the far-right Search/Reset action. Query controls never inherit table overflow or appear vertically attached to table headers.
+- `MasterDataFilters` delegates its responsive presentation to `UnifiedListHeader`; master-data routes must not maintain a parallel desktop filter implementation.

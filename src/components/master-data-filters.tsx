@@ -3,7 +3,7 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { SelectControl } from "@/components/ui/select-control";
-import { FilterBar, FilterBarMore } from "@/components/ui/filter-bar";
+import { FilterBarMore } from "@/components/ui/filter-bar";
 import { UnifiedListHeader } from "@/components/common/UnifiedListHeader";
 
 type MasterDataFiltersProps = {
@@ -79,10 +79,6 @@ export function MasterDataFilters({
     </>
   );
 
-  const summary = typeof resultCount === "number" ? <div className="sb-filter-summary" aria-live="polite">
-    <span>{resultCount} {resultCount === 1 ? "record" : "records"}</span>
-  </div> : null;
-
   const action = filtered ? (
     <Button asChild variant="secondary">
       <Link href={resetHref}>Reset</Link>
@@ -92,31 +88,15 @@ export function MasterDataFilters({
   );
 
   return (
-    <>
-      <div className="hidden sm:block">
-        <FilterBar
-          resultCount={undefined}
-          resetHref={resetHref}
-          filtered={filtered}
-          className={compactMobile ? "sb-list-filters--compact-mobile" : undefined}
-        >
-          {controls}
-          {summary}
-          {action}
-        </FilterBar>
-      </div>
-      <div className="sm:hidden">
-        <UnifiedListHeader
-          phoneOnly
-          resultCount={resultCount}
-          resetHref={resetHref}
-          filtered={filtered}
-          activeCount={activeFilterCount}
-          className={compactMobile ? "sb-list-filters--compact-mobile" : undefined}
-        >
-          {controls}
-        </UnifiedListHeader>
-      </div>
-    </>
+    <UnifiedListHeader
+      resultCount={resultCount}
+      resetHref={resetHref}
+      filtered={filtered}
+      activeCount={activeFilterCount}
+      className={compactMobile ? "sb-list-filters--compact-mobile" : undefined}
+    >
+      {controls}
+      {action}
+    </UnifiedListHeader>
   );
 }

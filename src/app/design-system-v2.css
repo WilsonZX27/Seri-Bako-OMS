@@ -1641,6 +1641,14 @@ html[data-design-layer="v2"] :where(.sb-list-query-card, .sb-list-content-card) 
   box-shadow: var(--sb-shadow-card);
 }
 
+html[data-design-layer="v2"] form.sb-list-query-card :where(input, select, button, [role="combobox"], [data-select-control], .sb-status-filter, .sb-status-filter-control, .sb-filter-more, .sb-filter-more > summary) {
+  box-sizing: border-box;
+  height: 2.75rem !important;
+  min-height: 2.75rem !important;
+  max-height: 2.75rem !important;
+  border-radius: var(--sb-control-radius) !important;
+}
+
 html[data-design-layer="v2"] .sb-list-content-card {
   min-width: 0;
 }

@@ -96,3 +96,9 @@ The newest versioned rule is authoritative when it conflicts with an older histo
 - Panel radius is 12px and control radius is 8px. Historical 8px/4px notes are superseded by this newest convergence contract.
 - In Outlet Daily, conditional exception controls do not consume vertical space until wastage exists. Desktop reserves the exception column; tablet begins the exception row beneath Qty Sent; phone stacks it beneath the three quantities.
 - Document actions are capability and state driven. One clear next action is primary; Save Draft and alternate authorized transitions belong to More.
+
+# v8.36.4 procurement list surface contract
+
+- Operational and master-data lists render query controls and result content as sibling surfaces, never as one clipped table card.
+- Shared query controls are 44px high. At tablet and desktop sizes, search may grow while filter controls and Search/Reset stay 8rem wide; the result count stays in the terminal action group.
+- `UnifiedListHeader` is the responsive owner for these rules, including `MasterDataFilters` consumers. Pages supply fields and data only; they do not recreate toolbar geometry.

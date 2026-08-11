@@ -8,7 +8,6 @@ import { StatusBadge } from "@/components/ui/status-badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { PageHeader } from "@/components/ui/page-header";
-import { FilterBar } from "@/components/ui/filter-bar";
 import { UnifiedListHeader } from "@/components/common/UnifiedListHeader";
 import { PaginationControls, SortableHead } from "@/components/sortable-table";
 import { StatusTabs } from "@/components/status-tabs";
@@ -74,23 +73,14 @@ export default async function PurchaseOrdersPage({ searchParams }: { searchParam
           </div>
         }
       >
-        <div className="overflow-hidden rounded-[var(--sb-panel-radius)] border border-[var(--sb-border-soft)] bg-card" data-tablet-main-list>
-          <div className="hidden sm:block">
-            <FilterBar resetHref="/purchase-orders" filtered={filtered}>
+        <div className="space-y-3" data-tablet-main-list>
+            <UnifiedListHeader resultCount={orders.totalRows} resetHref="/purchase-orders" filtered={filtered} activeCount={Number(Boolean(filters.status))}>
               <Input name="search" defaultValue={filters.search ?? ""} placeholder="Search PO no, supplier, remarks" className="min-w-0 flex-1 md:max-w-sm" />
               <StatusTabs statuses={statuses} activeStatus={filters.status} />
-              <div className="sb-filter-summary" aria-live="polite"><span>{orders.totalRows} {orders.totalRows === 1 ? "record" : "records"}</span></div>
               {filtered ? <Button asChild variant="secondary" className="shrink-0"><Link href="/purchase-orders">Reset</Link></Button> : <Button type="submit" variant="secondary" className="shrink-0">Search</Button>}
               {filters.status ? <input type="hidden" name="status" value={filters.status} /> : null}
-            </FilterBar>
-          </div>
-          <div className="sm:hidden">
-            <UnifiedListHeader phoneOnly resultCount={orders.totalRows} resetHref="/purchase-orders" filtered={filtered} activeCount={Number(Boolean(filters.status))}>
-              <Input name="search" defaultValue={filters.search ?? ""} placeholder="Search PO no, supplier, remarks" />
-              <StatusTabs statuses={statuses} activeStatus={filters.status} />
-              {filters.status ? <input type="hidden" name="status" value={filters.status} /> : null}
             </UnifiedListHeader>
-          </div>
+          <div className="sb-list-content-card overflow-hidden" data-mobile-list-content-card>
           <DataGridHint text="Pro-tip: Double-click any row to open the purchase order." />
           <Table mobileHidden aria-label="Purchase orders" stickyColumn="second">
               <TableHeader>
@@ -134,6 +124,7 @@ export default async function PurchaseOrdersPage({ searchParams }: { searchParam
               {!orders.rows.length ? <EmptyState title={filtered ? "No orders match these filters" : "No purchase orders yet"} description={filtered ? "Reset the filters or widen the search." : "Approved requests and new orders will appear here."} action={emptyStateAction} /> : null}
             </OperationalList>
           <PaginationControls page={orders.page} totalPages={orders.totalPages} totalRows={orders.totalRows} searchParams={filters} />
+          </div>
         </div>
       </WorkspaceGrid>
       {permissions["po.create"] ? <Button asChild size="icon" className="fixed bottom-[calc(var(--sb-mobile-nav-height)+env(safe-area-inset-bottom)+1rem)] right-4 z-[var(--sb-z-sticky)] h-14 w-14 rounded-full shadow-[0_8px_24px_rgb(6_44_31_/_0.24)] md:hidden"><Link href="/purchase-orders/new" aria-label="New purchase order"><Plus className="h-5 w-5" /></Link></Button> : null}

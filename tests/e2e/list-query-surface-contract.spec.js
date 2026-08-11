@@ -1,7 +1,16 @@
 const { test, expect } = require("@playwright/test");
 const { hasAccount, login } = require("./helpers");
 
-const routes = ["/production/jobs", "/purchase-requests", "/outlet-daily-records"];
+const routes = [
+  "/production/jobs",
+  "/purchase-requests",
+  "/purchase-orders",
+  "/goods-receivings",
+  "/purchase-returns",
+  "/supplier-invoices",
+  "/suppliers",
+  "/outlet-daily-records",
+];
 const viewports = [
   { name: "phone", width: 430, height: 932 },
   { name: "tablet", width: 820, height: 1180 },
@@ -41,7 +50,7 @@ test("list query and content surfaces keep the shared responsive contract", asyn
 
       expect(geometry.contentTop, `${route} ${viewport.name} surfaces must not overlap`).toBeGreaterThanOrEqual(geometry.queryBottom);
       expect(geometry.horizontalOverflow, `${route} ${viewport.name} must not overflow`).toBeLessThanOrEqual(1);
-      expect(geometry.controlHeights.every((height) => height <= 44), `${route} ${viewport.name} controls must stay compact: ${geometry.controlHeights}`).toBe(true);
+      expect(geometry.controlHeights.every((height) => height === 44), `${route} ${viewport.name} controls must share the 44px contract: ${geometry.controlHeights}`).toBe(true);
     }
   }
 });

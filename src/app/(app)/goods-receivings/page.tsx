@@ -8,7 +8,6 @@ import { StatusBadge } from "@/components/ui/status-badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { PageHeader } from "@/components/ui/page-header";
-import { FilterBar } from "@/components/ui/filter-bar";
 import { UnifiedListHeader } from "@/components/common/UnifiedListHeader";
 import { PaginationControls, SortableHead } from "@/components/sortable-table";
 import { StatusTabs } from "@/components/status-tabs";
@@ -62,29 +61,14 @@ export default async function GoodsReceivingsPage({ searchParams }: { searchPara
           </div>
         }
       >
-        <div className="sb-work-surface overflow-hidden" data-tablet-main-list>
-          <div className="hidden sm:block">
-            <FilterBar resultCount={receivings.totalRows} resetHref="/goods-receivings" filtered={filtered} className="sb-list-filters--compact-mobile">
+        <div className="space-y-3" data-tablet-main-list>
+            <UnifiedListHeader resultCount={receivings.totalRows} resetHref="/goods-receivings" filtered={filtered} activeCount={filters.status ? 1 : 0} className="sb-list-filters--compact-mobile">
               <Input name="search" defaultValue={filters.search ?? ""} placeholder="Search GRN, PO or supplier" className="min-w-0 flex-1 md:max-w-sm" />
               <StatusTabs statuses={statuses} activeStatus={filters.status} />
               {filtered ? <Button asChild variant="secondary" className="shrink-0"><Link href="/goods-receivings">Reset</Link></Button> : <Button type="submit" variant="secondary" className="shrink-0">Search</Button>}
               {filters.status ? <input type="hidden" name="status" value={filters.status} /> : null}
-            </FilterBar>
-          </div>
-          <div className="sm:hidden">
-            <UnifiedListHeader
-              phoneOnly
-              phoneMode="inline"
-              resultCount={receivings.totalRows}
-              resetHref="/goods-receivings"
-              filtered={filtered}
-              activeCount={filters.status ? 1 : 0}
-            >
-              <Input name="search" defaultValue={filters.search ?? ""} placeholder="Search GRN, PO or supplier" />
-              <StatusTabs statuses={statuses} activeStatus={filters.status} />
-              {filters.status ? <input type="hidden" name="status" value={filters.status} /> : null}
             </UnifiedListHeader>
-          </div>
+          <div className="sb-list-content-card overflow-hidden" data-mobile-list-content-card>
           <DataGridHint text="Pro-tip: Double-click any row to open the goods receiving document." />
           <Table mobileHidden aria-label="Goods receiving records" stickyColumn="second">
               <TableHeader>
@@ -130,6 +114,7 @@ export default async function GoodsReceivingsPage({ searchParams }: { searchPara
               {!receivings.rows.length ? <EmptyState title={filtered ? "No receivings match these filters" : "No goods receivings yet"} description={filtered ? "Reset the filters or widen the search." : "Supplier deliveries will appear after they are recorded."} action={emptyStateAction} /> : null}
             </OperationalList>
           <PaginationControls page={receivings.page} totalPages={receivings.totalPages} totalRows={receivings.totalRows} searchParams={filters} />
+          </div>
         </div>
       </WorkspaceGrid>
     </>

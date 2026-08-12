@@ -24,11 +24,11 @@ test("priority dashboard groups remain compact across phone and tablet", () => {
   assert.match(dashboard, /grid grid-cols-3 gap-1\.5 sm:gap-2[^\n]*data-dashboard-payables/);
 });
 
-test("purchase requests and stock counts share the bounded tablet split filter", () => {
-  assert.match(purchaseRequests, /className="sb-tablet-split-filter"/);
-  assert.match(stockCounts, /className="sb-tablet-split-filter"/);
-  assert.match(css, /\[data-tablet-document-split\] \.sb-tablet-split-filter/);
-  assert.match(css, /display: flex;[\s\S]*flex-wrap: wrap/);
+test("purchase requests and stock counts share canonical query-card ownership", () => {
+  assert.match(purchaseRequests, /UnifiedListHeader/);
+  assert.match(stockCounts, /sb-list-query-card sb-tablet-split-filter/);
+  assert.match(stockCounts, /UnifiedListHeader/);
+  assert.match(css, /\.sb-list-query-card/);
 });
 
 test("stock count tablet rail has an explicit card contract", () => {

@@ -608,3 +608,9 @@ the route matrix in `docs/qa/FULL_SYSTEM_AUDIT_MATRIX.md`.
 
 - Dense quantity steppers must allow the numeric input to shrink inside its grid column while preserving both 40px decrement and increment controls. A minimum input width must never clip either action.
 - Fixed document action rails are phone-only (`<768px`). Tablet and desktop layouts use their contextual right-side primary action and must not render a duplicate bottom action rail.
+
+# v8.36.10 — Responsive Contract Closure
+
+- Stock Count regression coverage includes the exact 820px portrait-tablet viewport in addition to phone, compact tablet, and desktop widths.
+- Tablet verification checks rendered behavior rather than DOM absence: the phone action rail may remain mounted but must be hidden, while both stepper actions remain visible and inside the viewport.
+- Shared UI contract tests assert durable interaction semantics and explicit data ownership instead of brittle Tailwind class ordering. Outlet Daily must keep its three quantity inputs aligned, default a newly activated wastage reason to `unsold`, and expose remarks through the labeled comment action.

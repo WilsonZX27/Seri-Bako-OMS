@@ -8,7 +8,7 @@ const createPage = fs.readFileSync(path.join(process.cwd(), "src/app/(app)/stock
 const detailPage = fs.readFileSync(path.join(process.cwd(), "src/app/(app)/stock-counts/[id]/page.tsx"), "utf8");
 
 test("stock count exposes one primary submit source at each responsive band", () => {
-  assert.match(source, /sb-mobile-action-bar[\s\S]*?xl:hidden/);
+  assert.match(source, /data-mobile-document-action[\s\S]*?sb-mobile-action-bar[\s\S]*?md:hidden/);
   assert.match(createPage, /sidePanel=\{[\s\S]*?<SubmitButton form=\{formId\}[\s\S]*?>Save draft<\/SubmitButton>/);
   assert.match(detailPage, /DocumentActionBar[\s\S]*?<SubmitButton form=\{formId\}[\s\S]*?>Save draft<\/SubmitButton>/);
   assert.match(detailPage, /Confirm & Post Count/);

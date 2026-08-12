@@ -1,4 +1,4 @@
-export const APP_VERSION = "8.36.9";
+export const APP_VERSION = "8.36.10";
 export const APP_SPRINT = `v${APP_VERSION}`;
 export const APP_RELEASE_TITLE = "Tablet Stock Count Control Recovery";
 // Keep the shell footer concise; the detailed release title belongs in release

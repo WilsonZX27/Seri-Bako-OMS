@@ -19,8 +19,9 @@ test("operations navigation keeps one clear path for each new operational page",
 
 test("dashboard follows the role-aware task priority layout without recent activity", () => {
   for (const phrase of ["Actions awaiting you", "Operational pipeline", "Exceptions requiring follow-up", "Payables and cash obligations"]) assert.match(dashboard, new RegExp(phrase));
-  assert.match(dashboard, /Outlet Today/);
-  assert.match(dashboard, /Kitchen Workdesk/);
+  assert.match(dashboard, /data-dashboard-identity/);
+  assert.match(dashboard, /summary\.userName/);
+  assert.doesNotMatch(dashboard, /Outlet Today|Kitchen Workdesk/);
   assert.doesNotMatch(dashboard, /ConsoleSection title="Recent Activity"/);
 });
 

@@ -26,13 +26,14 @@ test("role workdesks and workspace links use permitted real queues", () => {
   const procurement = read("src/app/(app)/procurement/page.tsx");
   const inventory = read("src/app/(app)/inventory/page.tsx");
 
-  for (const heading of ["Owner Workdesk", "Finance Workdesk", "Manager Workdesk", "Purchasing Workdesk", "Kitchen Workdesk", "Outlet Today"]) {
-    assert.match(dashboard, new RegExp(heading));
+  for (const roleFlag of ["isOwner", "isFinance", "isManager", "isPurchasing", "isKitchen", "isOutlet"]) {
+    assert.match(dashboard, new RegExp(`const ${roleFlag}`));
   }
-  assert.match(dashboard, /Company-wide operational reviews/);
+  assert.match(dashboard, /data-dashboard-identity/);
+  assert.match(dashboard, /data-dashboard-quick-actions/);
+  assert.doesNotMatch(dashboard, /Owner Workdesk|Finance Workdesk|Manager Workdesk|Purchasing Workdesk|Kitchen Workdesk|Outlet Today/);
   assert.doesNotMatch(dashboard, /Protected controls/);
-  assert.match(dashboard, /<ConsoleSection title="Actions">/);
-  assert.match(dashboard, /hideMobileConsole/);
+  assert.match(dashboard, /WorkspaceGrid[\s\S]*rightRail=/);
   assert.doesNotMatch(procurement, /status=(?:in_review|awaiting_delivery|unpaid)/);
   assert.match(procurement, /status=manager_review/);
   assert.match(procurement, /status=admin_review/);

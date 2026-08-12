@@ -7,6 +7,7 @@ const evidence = path.join(process.cwd(), "test-results", "stock-count-responsiv
 const viewports = [
   [390, 844, "mobile"],
   [768, 1024, "tablet"],
+  [820, 1180, "tablet-820"],
   [1440, 960, "desktop"],
 ];
 
@@ -39,8 +40,10 @@ test("stock count preserves prefilled adjustment controls, optional variance con
     const input = page.locator('input[name="line_physical_qty"]').first();
     await expect(input).toBeVisible();
     await expect(input).not.toHaveValue("");
-    await expect(page.getByRole("button", { name: /decrease physical quantity/i }).first()).toBeVisible();
-    await expect(page.getByRole("button", { name: /increase physical quantity/i }).first()).toBeVisible();
+    const decreaseButton = page.getByRole("button", { name: /decrease physical quantity/i }).first();
+    const increaseButton = page.getByRole("button", { name: /increase physical quantity/i }).first();
+    await expect(decreaseButton).toBeVisible();
+    await expect(increaseButton).toBeVisible();
     await expect(page.getByText("Reason required")).toHaveCount(0);
     const inputBox = await input.boundingBox();
     expect(inputBox, `${label} physical quantity field must render`).toBeTruthy();
@@ -48,7 +51,13 @@ test("stock count preserves prefilled adjustment controls, optional variance con
     const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
     expect(overflow, `${label} stock count must not horizontally overflow`).toBeLessThanOrEqual(5);
     if (width >= 1024) await expect(page.getByPlaceholder("Count note (optional)")).toBeVisible();
-    if (width === 768) await expect(page.locator("[data-tablet-document-inspector]")).toHaveCount(0);
+    if (width >= 768 && width < 1024) {
+      await expect(page.locator("[data-tablet-document-inspector]")).toHaveCount(0);
+      await expect(page.locator(".sb-mobile-action-bar")).toBeHidden();
+      const increaseBox = await increaseButton.boundingBox();
+      expect(increaseBox, `${label} increase control must render`).toBeTruthy();
+      expect(increaseBox.x + increaseBox.width, `${label} increase control must remain inside the viewport`).toBeLessThanOrEqual(width);
+    }
     if (width < 768) {
       const mobileAction = page.locator(".sb-mobile-action-bar").filter({ hasText: /review prefilled values|adjusted/i });
       await expect(mobileAction).toBeVisible();

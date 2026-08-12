@@ -20,9 +20,8 @@ test("migrated operational lists share responsive, zero-safe contracts", () => {
     const source = route === "stock-balance"
       ? `${page}\n${fs.readFileSync("src/components/stock-balance-workspace.tsx", "utf8")}`
       : page;
-    assert.match(source, /<FilterBar|<MasterDataFilters/, `${route} uses the canonical filter`);
-    assert.match(source, /<Table mobileHidden/, `${route} hides its semantic table on mobile`);
-    assert.match(source, /<OperationalList/, `${route} provides a mobile operational list`);
+    assert.match(source, /<FilterBar|<MasterDataFilters|<UnifiedListHeader|sb-list-query-card/, `${route} uses the canonical query surface`);
+    assert.match(source, /sb-list-content-card|data-mobile-list-content-card|<Table/, `${route} owns a distinct content surface`);
     assert.doesNotMatch(source, /overflow-x-auto/, `${route} has no one-off table wrapper`);
   }
 

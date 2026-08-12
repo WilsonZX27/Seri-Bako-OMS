@@ -236,6 +236,29 @@ export async function updateBranch(id: string, formData: FormData) {
   redirect("/branches");
 }
 
+export async function updateBranchSupplyRoutes(id: string, formData: FormData) {
+  id = parseRecordId(id);
+  await requirePermissionOrRedirect("branches.update", `/branches/${id}`);
+  const relatedBranchIds = z.array(recordIdSchema).max(200, "Select up to 200 outlets at a time.").parse([...new Set(formData.getAll("related_branch_id").map(String).filter(Boolean))]);
+  try {
+    const actor = await requireActiveTenantActor();
+    if (!isMockMode()) {
+      const supabase = await createClient();
+      const { error } = await supabase.rpc("replace_branch_supply_routes", { p_branch_id: id, p_related_branch_ids: relatedBranchIds });
+      if (error) throw new Error(error.message);
+      await writeActivityLog({ entityType: "branch_supply_route", entityId: id, activityType: "updated", message: `Supply route updated by ${actor.staffId}` });
+    }
+  } catch (error) {
+    rethrowRedirect(error);
+    safeRedirectWithMessage(`/branches/${id}`, "error", formatActionError(error, "Could not update the supply route."));
+  }
+  revalidatePath(`/branches/${id}`);
+  revalidatePath("/branches");
+  revalidatePath("/outlet-daily-records");
+  revalidatePath("/dashboard");
+  safeRedirectWithMessage(`/branches/${id}`, "success", "Supply route updated.");
+}
+
 export async function deleteBranch(id: string) {
   id = parseRecordId(id);
   await requirePermissionOrRedirect("branches.update", "/branches");

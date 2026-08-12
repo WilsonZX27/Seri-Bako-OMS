@@ -88,6 +88,24 @@ export async function getBranch(id: string) {
   return data;
 }
 
+export async function getBranchSupplyRouteContext() {
+  const empty = { available: true, centralKitchens: [], outlets: [], routes: [] };
+  if (isMockMode()) return { ...empty, centralKitchens: mockBranches.filter((row) => row.branch_type === "central_kitchen" && row.status === "active"), outlets: mockBranches.filter((row) => row.branch_type === "outlet" && row.status === "active") };
+  const [supabase, profile] = await Promise.all([createClient(), getCurrentProfile()]);
+  if (!profile?.company_id) return empty;
+  const [branchesResult, routesResult] = await Promise.all([
+    supabase.from("branches").select("id, branch_code, branch_name, branch_type").eq("company_id", profile.company_id).eq("status", "active").is("deleted_at", null).in("branch_type", ["central_kitchen", "outlet"]).order("branch_name"),
+    supabase.from("branch_supply_routes").select("source_branch_id, destination_branch_id").eq("company_id", profile.company_id).eq("status", "active").eq("is_primary", true).is("effective_to", null),
+  ]);
+  if (branchesResult.error) throw new Error(branchesResult.error.message);
+  if (routesResult.error) {
+    if (routesResult.error.code === "42P01" || routesResult.error.code === "PGRST205") return { ...empty, available: false };
+    throw new Error(routesResult.error.message);
+  }
+  const branches = branchesResult.data ?? [];
+  return { available: true, centralKitchens: branches.filter((row) => row.branch_type === "central_kitchen"), outlets: branches.filter((row) => row.branch_type === "outlet"), routes: routesResult.data ?? [] };
+}
+
 export async function getStaffs(filters: Filters = {}) {
   if (isMockMode()) {
     const roleById = new Map(mockRoles.map((role) => [role.id, role]));

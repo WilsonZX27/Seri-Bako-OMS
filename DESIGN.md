@@ -4,6 +4,13 @@
 
 This document is the implementation contract for every customer-facing route, form, record workspace, table, panel, dialog, and mobile action bar. It applies to new work and to refactoring of existing UI.
 
+### Operational relationship ownership
+
+- Central Kitchen to outlet supply routes are managed in Administration > Branches / Outlets, never as frontend constants.
+- An outlet has exactly one active Primary Central Kitchen; a Central Kitchen may supply multiple outlets.
+- Outlet detail uses one Central Kitchen selector. Central Kitchen detail uses a responsive outlet checklist and identifies assignments owned by another kitchen before transfer.
+- Route changes are atomic, permission-checked, tenant-scoped, and auditable. The relationship editor is a sibling work surface, not a card nested inside Identity.
+
 ### Dense editable row alignment
 
 - A dense editable list must use the exact same column template, horizontal gutter, and gap for its header and every data row. Inner controls may fill their assigned column but must not introduce a second `max-width` or end-alignment rule that visually detaches them from the column heading.

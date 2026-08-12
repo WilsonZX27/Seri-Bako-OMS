@@ -2462,6 +2462,10 @@ export type Database = {
         Args: { target_branch_id: string };
         Returns: boolean;
       };
+      replace_branch_supply_routes: {
+        Args: { p_branch_id: string; p_related_branch_ids?: string[] };
+        Returns: void;
+      };
       save_outlet_daily_record: {
         Args: {
           p_record_id: string | null;

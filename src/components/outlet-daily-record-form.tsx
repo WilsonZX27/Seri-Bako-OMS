@@ -11,8 +11,16 @@ import { CalendarDays, ChevronDown, MapPin, MessageSquare, Search } from "lucide
 
 type Branch = { id: string; branch_code: string; branch_name: string };
 type Product = { id: string; product_code: string; product_name: string; category: string; selling_unit: string; display_order?: number };
-type Line = { product_id: string; qty_sent: number; morning_received_qty: number; wastage_qty: number; wastage_reason: OutletDailyWastageReason | null; notes: string | null };
-type DefaultLine = { qty_sent: number; morning_received_qty: number; wastage_qty: number; wastage_reason: OutletDailyWastageReason | null; notes: string | null };
+type Line = {
+  product_id: string;
+  qty_sent: number;
+  qty_sent_source?: "unavailable" | "legacy_unverified" | "outlet_received_estimate" | "authorized_draft" | "authorized_confirmed";
+  morning_received_qty: number;
+  wastage_qty: number;
+  wastage_reason: OutletDailyWastageReason | null;
+  notes: string | null;
+};
+type DefaultLine = { morning_received_qty: number; wastage_qty: number; wastage_reason: OutletDailyWastageReason | null; notes: string | null };
 const reasons: OutletDailyWastageReason[] = ["unsold", "damaged", "expired", "quality_issue", "staff_meal", "other"];
 const EMPTY_LINES: Line[] = [];
 const EMPTY_DEFAULTS_BY_BRANCH: Record<string, Record<string, DefaultLine>> = {};
@@ -92,7 +100,8 @@ function DailyProductLine({ product, line, defaultLine, hiddenClass, locked, can
   onTouched: () => void;
 }) {
   const source = line ?? defaultLine;
-  const [qtySent, setQtySent] = useState(source ? String(source.qty_sent) : "");
+  const qtySentIsKnown = line && !["unavailable", "outlet_received_estimate"].includes(line.qty_sent_source ?? "legacy_unverified");
+  const [qtySent, setQtySent] = useState(qtySentIsKnown ? String(line.qty_sent) : "");
   const [received, setReceived] = useState(source ? String(source.morning_received_qty) : "");
   const [wastage, setWastage] = useState(source ? String(source.wastage_qty) : "");
   const [reason, setReason] = useState(source?.wastage_reason ?? "");

@@ -12,8 +12,9 @@ const outletDailyStatusSchema = z.enum(["draft", "morning_recorded", "evening_co
 const quantitySchema = z.coerce.number().finite().min(0).max(1_000_000);
 const outletDailyLineSchema = z.object({
   product_id: z.uuid(),
-  qty_sent: quantitySchema,
+  qty_sent: quantitySchema.nullable(),
   morning_received_qty: quantitySchema,
+  morning_received_provided: z.boolean(),
   evening_leftover_qty: quantitySchema,
   wastage_qty: quantitySchema,
   wastage_reason: z.enum(["unsold", "damaged", "expired", "quality_issue", "staff_meal", "other"]).nullable(),
@@ -50,8 +51,9 @@ function extractOutletDailyPayload(formData: FormData) {
     target_status: String(formData.get("target_status") ?? "draft"),
     lines: productIds.map((productId, index) => ({
       product_id: productId,
-      qty_sent: sent[index] ?? "0",
+      qty_sent: nullableText(sent[index]),
       morning_received_qty: received[index] ?? "0",
+      morning_received_provided: received[index] != null && received[index].trim() !== "",
       evening_leftover_qty: leftover[index] ?? "0",
       wastage_qty: wastage[index] ?? "0",
       wastage_reason: nullableText(reasons[index]),

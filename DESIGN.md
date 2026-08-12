@@ -360,6 +360,9 @@ the route matrix in `docs/qa/FULL_SYSTEM_AUDIT_MATRIX.md`.
 
 ## Parallel work and business-logic integration
 
+- **Supply ownership is explicit:** Outlet access and operational rollups derive from a dated Central Kitchen → Outlet route, never from branch-name guesses in application code. A route must stay within one company and link a `central_kitchen` source to an `outlet` destination.
+- **Qty Sent is never inferred as fact:** A new daily record leaves Qty Sent unknown until an authorized Kitchen or Office actor confirms it. Outlet Received may create a separately stored estimate for reconciliation, but must never prefill or overwrite formal Qty Sent. Every persisted sent value carries provenance and a confirmation flag.
+
 - Production is promoted only from the designated integration branch after every active workstream has been merged and verified. Never promote an older Preview merely because its isolated smoke test passed.
 - Each concurrent Codex task owns a separate `codex/*` branch and worktree. A task may commit and push its own scoped work, but it must not promote Production or overwrite another task's branch.
 - Business migrations, RPCs, server actions, API routes, and permission changes require an isolated commit and contract tests before entering the integration branch. UI-only changes must not silently introduce a second business workflow.

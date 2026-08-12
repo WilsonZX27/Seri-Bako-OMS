@@ -23,7 +23,7 @@ export type OutletDailyRecordRow = RecordRow & {
   wastage_percent: number;
 };
 
-export type OutletDailyDefaultLine = Pick<LineRow, "qty_sent" | "morning_received_qty" | "wastage_qty" | "wastage_reason" | "notes">;
+export type OutletDailyDefaultLine = Pick<LineRow, "morning_received_qty" | "wastage_qty" | "wastage_reason" | "notes">;
 
 const todayInKualaLumpur = () => new Intl.DateTimeFormat("en-CA", {
   timeZone: "Asia/Kuala_Lumpur", year: "numeric", month: "2-digit", day: "2-digit",
@@ -94,15 +94,14 @@ async function getOutletDailyDefaults(db: Awaited<ReturnType<typeof createClient
   if (!recordIds.length) return {} as Record<string, Record<string, OutletDailyDefaultLine>>;
   const { data: lines, error: lineError } = await db
     .from("outlet_daily_record_lines")
-    .select("record_id,product_id,qty_sent,morning_received_qty,wastage_qty,wastage_reason,notes")
+    .select("record_id,product_id,morning_received_qty,wastage_qty,wastage_reason,notes")
     .in("record_id", recordIds);
   if (lineError) throw new Error(lineError.message);
   const branchByRecord = new Map([...chosen.entries()].map(([branchId, recordId]) => [recordId, branchId]));
-  return ((lines ?? []) as Pick<LineRow, "record_id" | "product_id" | "qty_sent" | "morning_received_qty" | "wastage_qty" | "wastage_reason" | "notes">[]).reduce<Record<string, Record<string, OutletDailyDefaultLine>>>((result, line) => {
+  return ((lines ?? []) as Pick<LineRow, "record_id" | "product_id" | "morning_received_qty" | "wastage_qty" | "wastage_reason" | "notes">[]).reduce<Record<string, Record<string, OutletDailyDefaultLine>>>((result, line) => {
     const branchId = branchByRecord.get(line.record_id);
     if (!branchId) return result;
     (result[branchId] ??= {})[line.product_id] = {
-      qty_sent: line.qty_sent,
       morning_received_qty: line.morning_received_qty,
       wastage_qty: line.wastage_qty,
       wastage_reason: line.wastage_reason,
@@ -126,7 +125,7 @@ export async function getOutletDailyFormOptions(recordDate?: string) {
   const profile = await getCurrentProfile();
   const canViewAll = await hasPermission("outlet_daily_record.view_all");
   const [{ data: branches, error: branchError }, { data: products, error: productError }] = await Promise.all([
-    db.from("branches").select("id,branch_code,branch_name,branch_type,status").eq("status", "active").is("deleted_at", null).order("branch_name"),
+    db.from("branches").select("id,branch_code,branch_name,branch_type,status").eq("branch_type", "outlet").eq("status", "active").is("deleted_at", null).order("branch_name"),
     db.from("products").select("id,product_code,product_name,category,selling_unit,status,display_order").eq("status", "active"),
   ]);
   if (branchError) throw new Error(branchError.message);
@@ -146,7 +145,12 @@ export async function getOutletDailyFormOptions(recordDate?: string) {
   }
   const { data: assignments, error } = await db.from("staff_branches").select("branch_id").eq("staff_id", profile?.id ?? "");
   if (error) throw new Error(error.message);
-  const allowed = new Set([profileDefaultBranchId, ...(assignments ?? []).map((row) => row.branch_id)].filter(Boolean));
+  const assignedBranchIds = [profileDefaultBranchId, ...(assignments ?? []).map((row) => row.branch_id)].filter((value): value is string => Boolean(value));
+  const { data: suppliedDestinations, error: routeError } = assignedBranchIds.length
+    ? await db.from("branch_supply_routes").select("destination_branch_id").in("source_branch_id", assignedBranchIds).eq("status", "active")
+    : { data: [], error: null };
+  if (routeError) throw new Error(routeError.message);
+  const allowed = new Set([...assignedBranchIds, ...(suppliedDestinations ?? []).map((row) => row.destination_branch_id)]);
   const allowedBranches = activeBranches.filter((row) => allowed.has(row.id));
   return {
     branches: allowedBranches,

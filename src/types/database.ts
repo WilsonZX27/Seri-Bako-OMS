@@ -310,11 +310,46 @@ export type Database = {
         Update: Partial<Database["public"]["Tables"]["staff_branches"]["Insert"]>;
         Relationships: [];
       };
+      branch_supply_routes: {
+        Row: {
+          id: string;
+          company_id: string;
+          source_branch_id: string;
+          destination_branch_id: string;
+          is_primary: boolean;
+          status: RecordStatus;
+          effective_from: string;
+          effective_to: string | null;
+          notes: string | null;
+          created_at: string;
+          updated_at: string;
+          created_by: string | null;
+          updated_by: string | null;
+        };
+        Insert: {
+          id?: string;
+          company_id: string;
+          source_branch_id: string;
+          destination_branch_id: string;
+          is_primary?: boolean;
+          status?: RecordStatus;
+          effective_from?: string;
+          effective_to?: string | null;
+          notes?: string | null;
+          created_at?: string;
+          updated_at?: string;
+          created_by?: string | null;
+          updated_by?: string | null;
+        };
+        Update: Partial<Database["public"]["Tables"]["branch_supply_routes"]["Insert"]>;
+        Relationships: [];
+      };
       outlet_daily_records: {
         Row: {
           id: string;
           company_id: string;
           branch_id: string;
+          source_branch_id: string | null;
           record_date: string;
           status: OutletDailyRecordStatus;
           submitted_by: string | null;
@@ -333,6 +368,7 @@ export type Database = {
           id?: string;
           company_id: string;
           branch_id: string;
+          source_branch_id?: string | null;
           record_date: string;
           status?: OutletDailyRecordStatus;
           submitted_by?: string | null;
@@ -357,6 +393,9 @@ export type Database = {
           product_id: string;
           morning_received_qty: number;
           qty_sent: number;
+          qty_sent_estimated: number | null;
+          qty_sent_confirmed: boolean;
+          qty_sent_source: "unavailable" | "legacy_unverified" | "outlet_received_estimate" | "authorized_draft" | "authorized_confirmed";
           evening_leftover_qty: number;
           wastage_qty: number;
           wastage_reason: OutletDailyWastageReason | null;
@@ -370,6 +409,9 @@ export type Database = {
           product_id: string;
           morning_received_qty?: number;
           qty_sent?: number;
+          qty_sent_estimated?: number | null;
+          qty_sent_confirmed?: boolean;
+          qty_sent_source?: "unavailable" | "legacy_unverified" | "outlet_received_estimate" | "authorized_draft" | "authorized_confirmed";
           evening_leftover_qty?: number;
           wastage_qty?: number;
           wastage_reason?: OutletDailyWastageReason | null;

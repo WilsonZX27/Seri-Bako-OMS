@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { AlertTriangle, PackageCheck } from "lucide-react";
+import { AlertTriangle, ChevronDown, PackageCheck } from "lucide-react";
 import { Field } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { SelectNative } from "@/components/ui/select-native";
@@ -63,10 +63,12 @@ export function GoodsReceivingForm({
                   </div>
                 )}
               </div>
-              {selectedOrder ? <button type="button" className="shrink-0 rounded-[var(--sb-radius-control)] px-2 py-1 text-xs font-semibold text-[var(--sb-green-800)] hover:bg-[var(--sb-surface-muted)]" onClick={() => setSetupOpen((open) => !open)} aria-expanded={setupOpen}>{setupOpen ? "Done" : "Edit"}</button> : null}
+              <button type="button" className="inline-flex h-9 shrink-0 items-center gap-1 rounded-[var(--sb-radius-control)] px-2 text-xs font-semibold text-[var(--sb-green-800)] hover:bg-[var(--sb-surface-muted)]" onClick={() => setSetupOpen((open) => !open)} aria-expanded={setupOpen} aria-controls="goods-receiving-setup-fields">
+                {setupOpen ? "Hide" : "Expand"}<ChevronDown className={`h-4 w-4 transition-transform ${setupOpen ? "rotate-180" : ""}`} />
+              </button>
             </div>
             {setupOpen ? (
-              <div className="mt-3 grid grid-cols-2 gap-3 lg:grid-cols-3">
+              <div id="goods-receiving-setup-fields" className="mt-3 grid grid-cols-2 gap-3 lg:grid-cols-3">
                 <Field label="Purchase Order" required className="col-span-2 lg:col-span-1">
                   <SelectNative value={selectedOrder?.id ?? ""} onChange={(event) => selectPo(event.target.value)} required>
                     <option value="">Select approved/sent PO</option>

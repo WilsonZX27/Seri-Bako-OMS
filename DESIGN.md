@@ -624,3 +624,12 @@ the route matrix in `docs/qa/FULL_SYSTEM_AUDIT_MATRIX.md`.
 - Stock Count regression coverage includes the exact 820px portrait-tablet viewport in addition to phone, compact tablet, and desktop widths.
 - Tablet verification checks rendered behavior rather than DOM absence: the phone action rail may remain mounted but must be hidden, while both stepper actions remain visible and inside the viewport.
 - Shared UI contract tests assert durable interaction semantics and explicit data ownership instead of brittle Tailwind class ordering. Outlet Daily must keep its three quantity inputs aligned, default a newly activated wastage reason to `unsold`, and expose remarks through the labeled comment action.
+
+# v8.36.13 — Tablet Work-Surface and Form Surface Closure
+
+- A route with contextual actions uses the shared tablet split by default. At `768px–1279px`, its query controls may wrap as complete groups when the right rail reduces usable width; search keeps a readable 12rem minimum and must never collapse to icon width.
+- Routes use one `FilterBar`/`UnifiedListHeader` instance across phone, tablet, and desktop. Do not render parallel hidden mobile and desktop filter trees.
+- New purchase returns, supplier invoices, recipes, stock transfers, and wastage records keep one explicit outer work surface. Inner sections communicate a distinct task only; they do not recreate a card around the same form.
+- Collapsible setup surfaces expose one Expand/Hide control and keep all setup fields together. A second hidden “more details” disclosure inside the setup is not allowed.
+- Line-level remarks use a message action on the item title row and render the remarks field only after activation. Availability/read-only metric blocks use the shared control radius.
+- Purchase Request CSV export opens a selection dialog. User-selectable columns are restricted by a server-side allowlist before the database query is built.

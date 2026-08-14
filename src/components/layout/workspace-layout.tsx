@@ -14,7 +14,7 @@ export function WorkspaceGrid({
   hideMobileConsole = false,
   documentMode = false,
   tabletCanvas,
-  tabletRailMode = "context",
+  tabletRailMode = rightRail ? "split" : "context",
   tabletRailBreakpoint = "md",
 }: {
   children: ReactNode;

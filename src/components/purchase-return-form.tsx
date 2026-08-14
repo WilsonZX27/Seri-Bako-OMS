@@ -25,7 +25,7 @@ export function PurchaseReturnForm({
   const [idempotencyKey] = useState(() => crypto.randomUUID());
   return (
     <div className="min-w-0">
-        <form id="purchase-return-form" action={action} className="space-y-3">
+        <form id="purchase-return-form" action={action} className="erp-surface space-y-3 p-3 md:p-4">
           <input type="hidden" name="idempotency_key" value={idempotencyKey} />
           <input type="hidden" name="purchase_return_no" value="PRT-AUTO" />
           <div className="grid grid-cols-2 gap-3 lg:grid-cols-3">
@@ -55,7 +55,7 @@ export function PurchaseReturnForm({
           {selectedReceiving ? (
             <>
               <input type="hidden" name="goods_receiving_id" value={selectedReceiving.id} />
-              <div className="border-y md:rounded-[2px] md:border" data-purchase-return-lines>
+              <div className="overflow-hidden rounded-[var(--sb-panel-radius)] border" data-purchase-return-lines>
                 <div className="flex flex-col gap-1 border-b bg-secondary/40 px-4 py-3">
                   <p className="text-xs font-semibold">Return Lines</p>
                   <p className="text-xs text-muted-foreground">
@@ -85,7 +85,7 @@ export function PurchaseReturnForm({
               </div>
             </>
           ) : (
-            <div className="rounded-[2px] border bg-secondary/30 p-8 text-center">
+            <div className="rounded-[var(--sb-panel-radius)] border bg-secondary/30 p-8 text-center">
               <PackageX className="mx-auto h-10 w-10 text-muted-foreground" />
               <p className="mt-3 font-semibold">Select a posted GRN to return stock</p>
               <p className="mt-1 text-sm text-muted-foreground">Only GRN lines with remaining returnable quantity appear here.</p>

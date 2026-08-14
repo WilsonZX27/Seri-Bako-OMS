@@ -4,7 +4,6 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { AlertTriangle, ChevronDown, MessageSquare, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
 import { Field } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { SelectNative } from "@/components/ui/select-native";
@@ -81,14 +80,13 @@ export function StockWastageForm({ branches, selectedBranchId, seedLines, action
   const [idempotencyKey] = useState(() => crypto.randomUUID());
   function selectBranch(id: string) { router.push(id ? `/stock-wastage/new?branch_id=${id}` : "/stock-wastage/new"); }
   return (
-    <Card className="border-0 bg-transparent shadow-none md:border md:bg-white"><CardContent className="p-0 md:p-5">
       <form id={formId} action={action} className="space-y-3">
         <input type="hidden" name="idempotency_key" value={idempotencyKey} />
-        <details open data-stock-wastage-setup className="erp-surface group overflow-hidden md:rounded-none md:border-0 md:bg-transparent">
-          <summary className="flex cursor-pointer list-none items-center justify-between border-b px-3 py-2.5 text-sm font-semibold md:px-0 [&::-webkit-details-marker]:hidden">
+        <details open data-stock-wastage-setup className="erp-surface group overflow-hidden">
+          <summary className="flex cursor-pointer list-none items-center justify-between border-b px-3 py-2.5 text-sm font-semibold [&::-webkit-details-marker]:hidden">
             Wastage setup <ChevronDown className="h-4 w-4 transition-transform group-open:rotate-180" />
           </summary>
-          <div className="grid grid-cols-2 gap-3 p-3 md:grid-cols-3 md:p-0 md:pt-3">
+          <div className="grid grid-cols-2 gap-3 p-3 md:grid-cols-3 md:p-4">
             <Field label="Wastage Date"><Input name="wastage_date" type="date" defaultValue={getToday()} required /></Field>
             <Field label="Main Reason"><SelectNative name="reason" defaultValue="damaged">{wastageReasons.map((r) => <option key={r} value={r}>{r.replaceAll("_", " ")}</option>)}</SelectNative></Field>
             <Field label="Branch" className="col-span-2 md:col-span-1"><SelectNative name="branch_id" value={selectedBranchId ?? branches[0]?.id ?? ""} onChange={(e) => selectBranch(e.target.value)} required>{branches.map((b) => <option key={b.id} value={b.id}>{b.branch_name}</option>)}</SelectNative></Field>
@@ -98,7 +96,6 @@ export function StockWastageForm({ branches, selectedBranchId, seedLines, action
         <LineGrid seedLines={seedLines} mode="wastage" />
         {showSubmit ? <div className="flex justify-end"><SubmitButton disabled={!seedLines.length} pendingLabel="Saving..." showOverlay overlayLabel="Saving changes...">Create wastage</SubmitButton></div> : null}
       </form>
-    </CardContent></Card>
   );
 }
 
@@ -125,15 +122,17 @@ function LineGrid({ seedLines, mode }: { seedLines: SeedLine[]; mode: "transfer"
           const matches = !normalizedSearch || `${line.item_code} ${line.item_name}`.toLowerCase().includes(normalizedSearch);
           return (
           <div key={line.item_id} hidden={!matches} className="grid grid-cols-2 gap-2 p-3 xl:grid-cols-[2fr_120px_120px_130px_1fr]">
-            <div className="col-span-2 xl:col-span-1"><label className="flex items-center gap-2 font-medium"><input name="line_enabled" type="checkbox" value={line.item_id} defaultChecked={index === 0} />{line.item_name}</label><p className="text-xs text-muted-foreground">{line.item_code} · {line.uom}</p></div>
+            <div className="col-span-2 xl:col-span-1">
+              <div className="flex min-w-0 items-start justify-between gap-2">
+                <div className="min-w-0"><label className="flex items-start gap-2 font-medium"><input className="mt-0.5" name="line_enabled" type="checkbox" value={line.item_id} defaultChecked={index === 0} /><span className="break-words">{line.item_name}</span></label><p className="pl-6 text-xs text-muted-foreground">{line.item_code} · {line.uom}</p></div>
+                <Button type="button" variant="ghost" size="icon" className="-mt-1 shrink-0" aria-label={`Notes for ${line.item_name}`} aria-expanded={openNotes.has(index)} onClick={() => toggleNote(index)}><MessageSquare className="h-4 w-4" /></Button>
+              </div>
+            </div>
             <Field label="Quantity"><Input name="line_quantity" type="number" inputMode="decimal" min="0.0001" max={line.available_qty} step="0.0001" defaultValue={Math.min(line.quantity, line.available_qty)} /></Field>
-            <div className="bg-[var(--sb-surface-muted)] p-2 text-sm md:rounded-[var(--sb-radius-control)]"><p className="text-xs text-muted-foreground">Available</p><p className="font-semibold">{formatNumber(line.available_qty)} {line.uom}</p></div>
+            <div className="rounded-[var(--sb-radius-control)] bg-[var(--sb-surface-muted)] p-2 text-sm"><p className="text-xs text-muted-foreground">Available</p><p className="font-semibold">{formatNumber(line.available_qty)} {line.uom}</p></div>
             <input type="hidden" name="line_uom" value={line.uom} />
             {mode === "wastage" ? <Field label="Reason" className="col-span-2 xl:col-span-1"><SelectNative name="line_reason" defaultValue="damaged">{wastageReasons.map((r) => <option key={r} value={r}>{r.replaceAll("_", " ")}</option>)}</SelectNative></Field> : <input type="hidden" name="line_reason" value="other" />}
-            <div className="col-span-2 xl:col-span-1">
-              <Button type="button" variant="ghost" size="icon" aria-label={`Notes for ${line.item_name}`} aria-expanded={openNotes.has(index)} onClick={() => toggleNote(index)}>
-                <MessageSquare className="h-4 w-4" />
-              </Button>
+            <div className="col-span-2 xl:col-span-1" hidden={!openNotes.has(index)}>
               <div hidden={!openNotes.has(index)} className="mt-2 grid gap-2">
                 {mode === "wastage" ? <Field label="Batch"><Input name="line_batch_no" placeholder="Batch" /></Field> : <input type="hidden" name="line_batch_no" value="" />}
                 <Field label="Remarks"><Input name="line_remarks" placeholder="Notes" /></Field>

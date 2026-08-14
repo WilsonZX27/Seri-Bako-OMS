@@ -1701,6 +1701,26 @@ html[data-design-layer="v2"] .sb-list-content-card {
   }
 }
 
+/* A landscape tablet with a visible context rail has less usable width than
+   the browser viewport. Keep search readable and let complete control groups
+   move together instead of crushing the first input to icon width. */
+@media (min-width: 768px) and (max-width: 1279px) {
+  html[data-design-layer="v2"] [data-tablet-document-split] form.sb-list-query-card {
+    flex-wrap: wrap !important;
+  }
+
+  html[data-design-layer="v2"] [data-tablet-document-split] form.sb-list-query-card > :where(input[type="search"], input[name="search"], input[placeholder*="Search"], input[placeholder*="Find"]) {
+    flex: 1 1 12rem !important;
+    width: auto !important;
+    min-width: 12rem !important;
+    max-width: none !important;
+  }
+
+  html[data-design-layer="v2"] [data-tablet-document-split] form.sb-list-query-card > .unified-list-desktop-actions {
+    margin-left: auto;
+  }
+}
+
 /* Legacy list containers are flattened at the shared layer while their route
    markup is migrated. This prevents a query card from appearing inside a
    second bordered card on any remaining consumer. */

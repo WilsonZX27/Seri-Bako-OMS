@@ -1,4 +1,4 @@
-import { Download, Pencil, Plus } from "lucide-react";
+import { Pencil, Plus } from "lucide-react";
 import Link from "next/link";
 import { BulkSelectAllCheckbox, BulkSelectionProvider, BulkSelectRowCheckbox } from "@/components/bulk-selection";
 import { BulkPhaseOneDelete } from "@/components/bulk-phase-one-delete";
@@ -11,11 +11,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { PageHeader } from "@/components/ui/page-header";
 import { FilterBar } from "@/components/ui/filter-bar";
-import { UnifiedListHeader } from "@/components/common/UnifiedListHeader";
 import { PriorityBadge } from "@/components/priority-badge";
 import { PaginationControls, SortableHead } from "@/components/sortable-table";
 import { SelectControl } from "@/components/ui/select-control";
-import { StatusTabs } from "@/components/status-tabs";
 import { OperationalList, OperationalListRow, Table, TableActionLink, TableBody, TableCell, TableHead, TableHeader, TableRow, TableSelectionCell, TableSelectionHead } from "@/components/ui/table";
 import { ConsoleSection } from "@/components/layout/right-console";
 import { WorkspaceGrid } from "@/components/layout/workspace-layout";
@@ -23,6 +21,7 @@ import { formatCurrency, formatDateOnly } from "@/lib/utils";
 import { hasActiveFilters } from "@/lib/table-state";
 import { getPurchaseRequestSummary, getPurchaseRequests } from "@/server/queries/procurement";
 import { getPermissionMap } from "@/server/auth/permissions";
+import { PurchaseRequestExportDialog } from "@/components/purchase-request-export-dialog";
 
 const statuses = [
   { value: "draft", label: "Draft" },
@@ -56,7 +55,7 @@ export default async function PurchaseRequestsPage({ searchParams }: { searchPar
           <div className="space-y-3 [&>section]:overflow-hidden [&>section]:rounded-[var(--sb-panel-radius)] [&>section]:border [&>section]:border-[var(--sb-border-soft)] [&>section]:bg-card [&>section]:shadow-[var(--sb-shadow-panel)]" data-tablet-split-actions>
             {permissions["pr.create"] || permissions["pr.view_branch"] ? <ConsoleSection title="Actions"><div className="grid gap-2">
               {permissions["pr.create"] ? <Button asChild size="sm" className="w-full" data-mobile-primary-action><Link href="/purchase-requests/new"><Plus className="h-4 w-4" />New PR</Link></Button> : null}
-              {permissions["pr.view_branch"] ? <Button asChild variant="outline" size="sm" className="w-full" data-mobile-primary-action={!permissions["pr.create"] || undefined}><Link href="/api/export/purchase-requests"><Download className="h-4 w-4" />Export CSV</Link></Button> : null}
+              {permissions["pr.view_branch"] ? <PurchaseRequestExportDialog /> : null}
             </div></ConsoleSection> : null}
             <ConsoleSection title="PR Summary">
               <div className="grid gap-2 text-xs">
@@ -70,22 +69,12 @@ export default async function PurchaseRequestsPage({ searchParams }: { searchPar
         }
       >
         <div className="space-y-3" data-tablet-main-list>
-          <div className="hidden sm:block">
             <FilterBar resetHref="/purchase-requests" filtered={filtered} resultCount={requests.totalRows} className="sb-tablet-split-filter">
               <Input name="search" defaultValue={filters.search ?? ""} placeholder="Search PR no, branch, remarks" className="md:max-w-sm" />
               <SelectControl name="status" defaultValue={filters.status ?? "all"} ariaLabel="Status" options={[{ value: "all", label: "All statuses" }, ...statuses.map((status) => ({ value: status.value, label: status.label }))]} />
               <SelectControl name="priority" defaultValue={filters.priority ?? "all"} ariaLabel="Priority" options={[{ value: "all", label: "All priorities" }, { value: "critical", label: "Critical" }, { value: "urgent", label: "Urgent" }, { value: "normal", label: "Normal" }, { value: "low", label: "Low" }]} />
               {filtered ? <Button asChild variant="secondary" className="sb-filter-submit shrink-0"><Link href="/purchase-requests">Reset</Link></Button> : <Button type="submit" variant="secondary" className="sb-filter-submit shrink-0">Search</Button>}
             </FilterBar>
-          </div>
-          <div className="sm:hidden">
-            <UnifiedListHeader phoneOnly resultCount={requests.totalRows} resetHref="/purchase-requests" filtered={filtered} activeCount={Number(Boolean(filters.status && filters.status !== "all")) + Number(Boolean(filters.priority && filters.priority !== "all"))} className="sb-mobile-list-filter">
-              <Input name="search" defaultValue={filters.search ?? ""} placeholder="Search PR no, branch, remarks" />
-              <StatusTabs statuses={statuses} activeStatus={filters.status} />
-              <SelectControl name="priority" defaultValue={filters.priority ?? "all"} ariaLabel="Priority" options={[{ value: "all", label: "All priorities" }, { value: "critical", label: "Critical" }, { value: "urgent", label: "Urgent" }, { value: "normal", label: "Normal" }, { value: "low", label: "Low" }]} />
-              {filters.status ? <input type="hidden" name="status" value={filters.status} /> : null}
-            </UnifiedListHeader>
-          </div>
           <div className="sb-list-content-card overflow-hidden">
           <BulkSelectionProvider ids={requests.rows.map((request) => request.id)} actionLabel="Delete selected" actionHint="Review selected requests before permanent deletion.">
           <BulkPhaseOneDelete />

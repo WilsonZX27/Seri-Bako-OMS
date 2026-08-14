@@ -5,7 +5,7 @@ import { looseSupabase } from "@/lib/supabase/loose";
 import { createClient } from "@/lib/supabase/server";
 import { logServerError } from "@/server/observability/logger";
 
-const exportTables: Record<string, { table: string; permission: string; order?: string; dateColumn?: string; branchColumn?: string }> = {
+const exportTables: Record<string, { table: string; permission: string; order?: string; dateColumn?: string; branchColumn?: string; columns?: readonly string[] }> = {
   items: { table: "items", permission: "items.manage", order: "item_name" },
   suppliers: { table: "suppliers", permission: "suppliers.manage", order: "name" },
   "supplier-items": { table: "supplier_items", permission: "suppliers.manage", order: "created_at" },
@@ -13,7 +13,7 @@ const exportTables: Record<string, { table: string; permission: string; order?: 
   branches: { table: "branches", permission: "settings.manage", order: "branch_name" },
   staffs: { table: "staffs", permission: "staff.manage", order: "full_name" },
   "stock-transactions": { table: "stock_transactions", permission: "documents.view", order: "created_at" },
-  "purchase-requests": { table: "purchase_requests", permission: "pr.view_branch", order: "created_at" },
+  "purchase-requests": { table: "purchase_requests", permission: "pr.view_branch", order: "created_at", dateColumn: "request_date", branchColumn: "branch_id", columns: ["request_no", "request_date", "needed_by_date", "priority", "status", "branch_id", "remarks"] },
   "purchase-orders": { table: "purchase_orders", permission: "po.create", order: "created_at", dateColumn: "order_date", branchColumn: "branch_id" },
   "production-jobs": { table: "production_jobs", permission: "production.view", order: "created_at" },
   "stock-counts": { table: "stock_counts", permission: "stock_count.read", order: "count_date", dateColumn: "count_date" },
@@ -33,8 +33,10 @@ export async function GET(request: Request, { params }: { params: Promise<{ tabl
 
   const supabase = await createClient();
   const db = looseSupabase(supabase);
-  let query = db.from(config.table).select("*").limit(10000);
   const url = new URL(request.url);
+  const requestedColumns = (url.searchParams.get("columns") ?? "").split(",").filter(Boolean);
+  const selectedColumns = config.columns && requestedColumns.length ? requestedColumns.filter((column) => config.columns!.includes(column)) : [];
+  let query = db.from(config.table).select(selectedColumns.length ? selectedColumns.join(",") : "*").limit(10000);
   if (config.dateColumn && url.searchParams.get("from")) query = query.gte(config.dateColumn, url.searchParams.get("from")!);
   if (config.dateColumn && url.searchParams.get("to")) query = query.lte(config.dateColumn, url.searchParams.get("to")!);
   if (config.branchColumn && url.searchParams.get("branch_id")) query = query.eq(config.branchColumn, url.searchParams.get("branch_id")!);

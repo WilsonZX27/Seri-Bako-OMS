@@ -146,7 +146,7 @@ export function RecipeForm({ recipe, products, items, action, formId, showSubmit
   }
 
   return (
-    <form id={formId} action={action} className="space-y-5">
+    <form id={formId} action={action} className="space-y-3 md:space-y-5">
       <input
         type="hidden"
         name="lines_json"
@@ -167,12 +167,12 @@ export function RecipeForm({ recipe, products, items, action, formId, showSubmit
       <input type="hidden" name="recipe_no" value={recipe?.recipe_no ?? ""} />
       <input type="hidden" name="version" value={recipe?.version ?? 1} />
 
-      <Card className="border-0 bg-transparent shadow-none md:border md:bg-card md:shadow-sm" data-recipe-setup>
-        <CardHeader className="px-0 md:px-6">
+      <Card className="erp-surface shadow-none" data-recipe-setup>
+        <CardHeader className="px-3 py-3 md:px-5">
           <CardTitle>Recipe Header</CardTitle>
         <CardDescription>Select the finished product, effective date, and controlled yield unit.</CardDescription>
         </CardHeader>
-        <CardContent className="grid grid-cols-2 gap-3 px-0 sm:gap-4 md:grid-cols-4 md:px-6">
+        <CardContent className="grid grid-cols-2 gap-3 px-3 pb-3 sm:gap-4 md:grid-cols-4 md:px-5 md:pb-5">
           <Field label="Product" className="col-span-2 md:col-span-1">
             <SelectNative
               name="product_id"
@@ -210,8 +210,8 @@ export function RecipeForm({ recipe, products, items, action, formId, showSubmit
         </CardContent>
       </Card>
 
-      <Card className="border-0 bg-transparent shadow-none md:border md:bg-card md:shadow-sm">
-        <CardHeader className="flex-row items-start justify-between gap-4 px-0 md:px-6">
+      <Card className="erp-surface shadow-none">
+        <CardHeader className="flex-row items-start justify-between gap-3 px-3 py-3 md:px-5">
           <div>
             <CardTitle>Ingredient Lines</CardTitle>
             <CardDescription>Search by item code or name. Costs are calculated in base stock UOM.</CardDescription>
@@ -221,7 +221,7 @@ export function RecipeForm({ recipe, products, items, action, formId, showSubmit
             Add row
           </Button>
         </CardHeader>
-        <CardContent className="space-y-4 px-0 md:px-6">
+        <CardContent className="space-y-4 px-3 pb-3 md:px-5 md:pb-5">
           <datalist id="recipe-ingredient-items">
             {items.map((item) => (
               <option key={item.id} value={buildItemSearch(item)} />
@@ -291,7 +291,7 @@ export function RecipeForm({ recipe, products, items, action, formId, showSubmit
             </Table>
           </div>
 
-          <div className="border-y md:hidden" data-recipe-ingredient-list>
+          <div className="overflow-hidden rounded-[var(--sb-radius-control)] border md:hidden" data-recipe-ingredient-list>
             {enrichedLines.map((line, index) => (
               <div key={index} className="space-y-3 border-b p-3 last:border-b-0">
                 <div className="flex items-start gap-3">

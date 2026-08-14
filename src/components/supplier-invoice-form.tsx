@@ -75,10 +75,10 @@ export function SupplierInvoiceForm({
 
   return (
     <div className="min-w-0">
-        <form id="supplier-invoice-form" action={action} className="space-y-4">
+        <form id="supplier-invoice-form" action={action} className="erp-surface space-y-4 p-3 md:p-4">
           {initial ? <input type="hidden" name="invoice_no" value={initial.invoice_no} /> : null}
           <input type="hidden" name="lines" value={JSON.stringify(chosen)} />
-          <section data-supplier-invoice-setup className="grid grid-cols-2 gap-3 border-b border-[var(--sb-border-soft)] pb-3 md:grid-cols-3">
+          <section data-supplier-invoice-setup className="grid grid-cols-2 gap-3 border-b border-[var(--sb-border-soft)] pb-4 md:grid-cols-3">
             <Field label="Supplier" required className="col-span-2 md:col-span-1">
               <SelectNative
                 name={initial ? undefined : "supplier_id"}

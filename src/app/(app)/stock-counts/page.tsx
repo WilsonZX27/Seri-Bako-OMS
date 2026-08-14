@@ -5,14 +5,12 @@ import { DataGridHint } from "@/components/ui/data-grid-hint";
 import { DataGridRow } from "@/components/ui/data-grid-row";
 import { EmptyState } from "@/components/ui/empty-state";
 import { FilterBar, FilterBarMore } from "@/components/ui/filter-bar";
-import { UnifiedListHeader } from "@/components/common/UnifiedListHeader";
 import { Input } from "@/components/ui/input";
 import { PageHeader } from "@/components/ui/page-header";
 import { SelectControl } from "@/components/ui/select-control";
 import { PaginationControls, SortableHead } from "@/components/sortable-table";
 import { ConsoleSection } from "@/components/layout/right-console";
 import { WorkspaceGrid } from "@/components/layout/workspace-layout";
-import { StatusTabs } from "@/components/status-tabs";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { OperationalList, OperationalListRow, Table, TableActionLink, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { hasActiveFilters, paginateRows } from "@/lib/table-state";
@@ -25,8 +23,6 @@ import { StockCountExportDialog } from "@/components/stock-count-export-dialog";
 
 // Stock Count has one active workflow: Draft → Confirm & Post. Legacy states
 // remain readable in the table, but are intentionally not promoted as filters.
-const statuses = ["draft", "posted", "cancelled"];
-
 async function loadStockCounts(filters: Record<string, string | undefined>) {
   try {
     return await getStockCounts(filters);
@@ -76,7 +72,6 @@ export default async function StockCountsPage({ searchParams }: { searchParams: 
       <ConsoleSection title="Stock Count Summary"><dl className="grid gap-2 text-xs"><div className="flex justify-between"><dt className="text-muted-foreground">Total</dt><dd className="font-semibold">{summary.total ?? "—"}</dd></div><div className="flex justify-between"><dt className="text-muted-foreground">Draft</dt><dd className="font-semibold">{summary.draft ?? "—"}</dd></div><div className="flex justify-between"><dt className="text-muted-foreground">Posted</dt><dd className="font-semibold">{summary.posted ?? "—"}</dd></div><div className="flex justify-between"><dt className="text-muted-foreground">Cancelled</dt><dd className="font-semibold">{summary.cancelled ?? "—"}</dd></div></dl></ConsoleSection>
     </div>}>
       <div className="space-y-3" data-tablet-main-list>
-        <div className="hidden sm:block">
           <FilterBar resultCount={counts.totalRows} resetHref="/stock-counts" filtered={filtered} className="sb-list-query-card sb-tablet-split-filter">
             <Input name="search" defaultValue={filters.search ?? ""} placeholder="Search count no, branch, remarks" />
             <SelectControl name="branch_id" defaultValue={filters.branch_id ?? "all"} ariaLabel="Branch" options={[{ value: "all", label: "All branches" }, ...branches.map((branch) => ({ value: branch.id, label: branch.branch_name }))]} />
@@ -84,17 +79,6 @@ export default async function StockCountsPage({ searchParams }: { searchParams: 
             {filtered ? <Button asChild variant="secondary" className="sb-filter-submit"><Link href="/stock-counts">Reset</Link></Button> : <Button type="submit" className="sb-filter-submit">Search</Button>}
             <FilterBarMore activeCount={Number(Boolean(filters.from)) + Number(Boolean(filters.to))} resetHref="/stock-counts"><Input name="from" type="date" defaultValue={filters.from ?? ""} aria-label="From date" /><Input name="to" type="date" defaultValue={filters.to ?? ""} aria-label="To date" /></FilterBarMore>
           </FilterBar>
-        </div>
-        <div className="sm:hidden">
-          <UnifiedListHeader phoneOnly resultCount={counts.totalRows} resetHref="/stock-counts" filtered={filtered} activeCount={Number(Boolean(filters.branch_id && filters.branch_id !== "all")) + Number(Boolean(filters.status && filters.status !== "all")) + Number(Boolean(filters.from)) + Number(Boolean(filters.to))} className="sb-list-query-card sb-mobile-list-filter">
-            <Input name="search" defaultValue={filters.search ?? ""} placeholder="Search count no, branch, remarks" />
-            <SelectControl name="branch_id" defaultValue={filters.branch_id ?? "all"} ariaLabel="Branch" options={[{ value: "all", label: "All branches" }, ...branches.map((branch) => ({ value: branch.id, label: branch.branch_name }))]} />
-            <StatusTabs statuses={statuses} activeStatus={filters.status} />
-            <Input name="from" type="date" defaultValue={filters.from ?? ""} aria-label="From date" />
-            <Input name="to" type="date" defaultValue={filters.to ?? ""} aria-label="To date" />
-            {filters.status ? <input type="hidden" name="status" value={filters.status} /> : null}
-          </UnifiedListHeader>
-        </div>
         <div className="sb-list-content-card overflow-hidden" data-mobile-list-content-card>
         <DataGridHint text="Pro-tip: Double-click any row to open the stock count." />
         <Table mobileHidden compactUntil="xl" aria-label="Stock counts" stickyColumn="second"><TableHeader><TableRow><TableHead className="w-16 text-center">Action</TableHead><SortableHead label="Count No" column="count_no" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} /><SortableHead label="Date" column="count_date" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} /><TableHead>Branch</TableHead><TableHead>Submitted by</TableHead><SortableHead label="Status" column="status" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} /><TableHead className="text-right">Lines</TableHead><TableHead className="text-right">High Variance</TableHead></TableRow></TableHeader>

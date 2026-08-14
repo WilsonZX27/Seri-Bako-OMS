@@ -1,4 +1,4 @@
-export const APP_VERSION = "8.36.12";
+export const APP_VERSION = "8.36.13";
 export const APP_SPRINT = `v${APP_VERSION}`;
 export const APP_RELEASE_TITLE = "Branch Supply Route Administration";
 // Keep the shell footer concise; the detailed release title belongs in release

@@ -1,6 +1,6 @@
 # Seri Bako OMS responsive design standard
 
-> **Release authority:** the currently released application is `v8.36.23`, as
+> **Release authority:** the currently released application is `v8.36.24`, as
 > defined by `src/lib/app-version.ts`. A versioned section above that number is
 > an accepted forward design contract or unreleased implementation note—not
 > evidence that the application itself has been released at that version.
@@ -22,6 +22,12 @@ This document is the implementation contract for every customer-facing route, fo
 
 - A dense editable list must use the exact same column template, horizontal gutter, and gap for its header and every data row. Inner controls may fill their assigned column but must not introduce a second `max-width` or end-alignment rule that visually detaches them from the column heading.
 - Stock Count uses an elastic Item column, a stable Variance column, and a bounded Count column. Quantity stepper and UOM remain inside that Count column at desktop and tablet widths; phone rows may stack the Count control beneath the item context.
+
+## v8.36.24 — Ranking Preview Before Open
+
+- Ranking bars are selection controls, never navigation links. Hover, focus, click, and first touch reveal the same exact preview without leaving the report.
+- A linked ranking exposes a separate `Open` action inside the persistent preview. This action carries the authoritative detail URL and remains keyboard reachable after row selection.
+- Ranking semantics use a real list of buttons plus a labeled live preview region; Escape clears keyboard selection.
 
 ## v8.36.23 — Shared Surface Style Authority
 

@@ -29,11 +29,13 @@ test("Stock Count insight provides compact views, exact previews, drill-through 
   for (const label of ["Daily trend", "Repeat items", "Branches"]) assert.match(component, new RegExp(label));
   assert.match(component, /InteractiveLineChart/);
   assert.match(component, /InteractiveRankingChart/);
+  assert.match(ranking, /data-ranking-open/);
+  assert.match(ranking, /aria-pressed/);
   assert.match(component, /latest_variance_percent/);
   assert.match(component, /latest_variance_qty/);
   assert.match(component, /Variance insight unavailable/);
   assert.match(component, /no unavailable result is shown as zero/);
   assert.match(component, /stock-counts\?status=posted&from=/);
-  assert.match(ranking, /item\.href \?/);
+  assert.match(ranking, /activeItem\.href \?/);
   assert.match(page, /<StockCountVarianceInsights insight=\{varianceInsight\}/);
 });

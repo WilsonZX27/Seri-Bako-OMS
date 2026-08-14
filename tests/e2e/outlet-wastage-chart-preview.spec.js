@@ -92,7 +92,7 @@ test.describe("outlet wastage chart preview", () => {
     await page.goto("/reports/demand-trends?period=7", { waitUntil: "domcontentloaded" });
     const ranking = page.locator('[data-demand-ranking-chart="wastage"] [data-interactive-ranking-chart]');
     await expect(ranking).toBeVisible();
-    const firstBar = ranking.getByRole("listitem").first();
+    const firstBar = ranking.locator("[data-ranking-row]").first();
     await firstBar.hover();
     const preview = ranking.locator("[data-ranking-preview]");
     await expect(preview).toContainText(/wastage/i);
@@ -116,7 +116,7 @@ test.describe("outlet wastage chart preview", () => {
     if (await insights.count()) {
       await expect(insights).toBeVisible();
       const statusRanking = insights.locator("[data-interactive-ranking-chart]").first();
-      const firstStatus = statusRanking.getByRole("listitem").first();
+      const firstStatus = statusRanking.locator("[data-ranking-row]").first();
       await firstStatus.hover();
       await expect(statusRanking.locator("[data-ranking-preview]")).toContainText(/comparable line/i);
       await firstStatus.focus();
@@ -180,7 +180,7 @@ test.describe("outlet wastage chart preview", () => {
       await page.goto("/reports/demand-trends?period=7", { waitUntil: "domcontentloaded" });
       const ranking = page.locator('[data-demand-ranking-chart="wastage"] [data-interactive-ranking-chart]');
       await expect(ranking).toBeVisible();
-      const firstBar = ranking.getByRole("listitem").first();
+      const firstBar = ranking.locator("[data-ranking-row]").first();
       await firstBar.tap();
       await expect(ranking.locator("[data-ranking-preview]")).toContainText(/wastage/i);
       const fitsViewport = await ranking.evaluate((node) => {
@@ -228,7 +228,7 @@ test.describe("outlet wastage chart preview", () => {
       if (await insights.count()) {
         await expect(insights).toBeVisible();
         const firstRanking = insights.locator("[data-interactive-ranking-chart]").first();
-        await firstRanking.getByRole("listitem").first().tap();
+        await firstRanking.locator("[data-ranking-row]").first().tap();
         await expect(firstRanking.locator("[data-ranking-preview]")).toContainText(/comparable line/i);
         const insightsFit = await insights.evaluate((node) => {
           const bounds = node.getBoundingClientRect();

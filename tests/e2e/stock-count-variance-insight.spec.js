@@ -56,15 +56,22 @@ test.describe("Stock Count variance insight", () => {
       await expect(chart.locator("[data-chart-preview]")).toContainText(/above tolerance/i);
 
       await insight.getByRole("tab", { name: "Repeat items" }).click();
-      const itemRow = insight.locator('[data-interactive-ranking-chart] [role="listitem"]').first();
+      const itemRow = insight.locator('[data-interactive-ranking-chart] [data-ranking-row]').first();
       await itemRow.hover();
       await expect(insight.locator("[data-ranking-preview]")).toContainText(/Latest \+12%/);
-      await expect(itemRow).toHaveAttribute("href", /\/stock-counts\//);
+      await expect(itemRow).not.toHaveAttribute("href", /./);
+      await expect(insight.locator("[data-ranking-open]")).toHaveAttribute("href", /\/stock-counts\//);
+      if (viewport.width === 393) {
+        const listUrl = page.url();
+        await itemRow.click();
+        await expect(page).toHaveURL(listUrl);
+        await expect(insight.locator("[data-ranking-open]")).toBeVisible();
+      }
 
       await insight.getByRole("tab", { name: "Branches" }).click();
-      const branchRow = insight.locator('[data-interactive-ranking-chart] [role="listitem"]').first();
+      const branchRow = insight.locator('[data-interactive-ranking-chart] [data-ranking-row]').first();
       await branchRow.focus();
-      await expect(branchRow).toHaveAttribute("href", /branch_id=.*status=posted/);
+      await expect(insight.locator("[data-ranking-open]")).toHaveAttribute("href", /branch_id=.*status=posted/);
       expect(await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)).toBeLessThanOrEqual(5);
       await page.screenshot({ path: `test-results/stock-count-variance-${viewport.width}x${viewport.height}.png`, fullPage: false });
     }

@@ -1,7 +1,7 @@
 "use client";
 
 import { useId, useRef, useState } from "react";
-import type { PointerEvent } from "react";
+import type { KeyboardEvent, PointerEvent } from "react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 
@@ -32,7 +32,7 @@ export function InteractiveRankingChart({
 
   return (
     <div data-interactive-ranking-chart>
-      <div
+      <ol
         role="list"
         aria-label={`${ariaLabel}. Hover, tap, or focus a bar to preview its values.`}
         className="space-y-1.5"
@@ -51,9 +51,12 @@ export function InteractiveRankingChart({
               <span className="text-right text-xs font-semibold tabular-nums">{item.formattedValue}</span>
             </>;
           const rowProps = {
-              role: "listitem" as const,
+              type: "button" as const,
               "aria-describedby": active ? previewId : undefined,
+              "aria-controls": previewId,
+              "aria-pressed": active,
               "aria-label": `${index + 1}. ${item.label}, ${item.formattedValue}`,
+              "data-ranking-row": true,
               className: cn(
                 "group grid w-full grid-cols-[minmax(5.5rem,0.9fr)_minmax(7rem,1.6fr)_auto] items-center gap-2 rounded-[var(--sb-radius-control)] px-1.5 py-1.5 text-left outline-none transition-colors",
                 "hover:bg-[var(--sb-surface-muted)] focus-visible:bg-[var(--sb-green-100)] focus-visible:ring-2 focus-visible:ring-[var(--sb-green-700)] focus-visible:ring-offset-1",
@@ -64,7 +67,7 @@ export function InteractiveRankingChart({
                 setActiveId(item.id);
               },
               onMouseLeave: () => {
-                if (!touchSelectionRef.current) setActiveId(null);
+                if (!touchSelectionRef.current && !item.href) setActiveId(null);
               },
               onPointerDown: (event: PointerEvent<HTMLElement>) => {
                 touchSelectionRef.current = event.pointerType !== "mouse";
@@ -76,23 +79,26 @@ export function InteractiveRankingChart({
               },
               onFocus: () => setActiveId(item.id),
               onBlur: () => {
-                if (!touchSelectionRef.current) setActiveId(null);
+                if (!touchSelectionRef.current && !item.href) setActiveId(null);
+              },
+              onKeyDown: (event: KeyboardEvent<HTMLButtonElement>) => {
+                if (event.key === "Escape") {
+                  setActiveId(null);
+                  event.currentTarget.blur();
+                }
               },
             };
-          return item.href ? (
-            <Link key={item.id} href={item.href} {...rowProps}>{content}</Link>
-          ) : (
-            <button
-              key={item.id}
-              type="button"
-              {...rowProps}
-            >{content}</button>
+          return (
+            <li key={item.id} role="listitem">
+              <button {...rowProps}>{content}</button>
+            </li>
           );
         })}
-      </div>
+      </ol>
       <div
         id={previewId}
-        role="tooltip"
+        role="region"
+        aria-label="Selected ranking preview"
         aria-live="polite"
         data-ranking-preview
         className={cn(
@@ -108,6 +114,16 @@ export function InteractiveRankingChart({
             </div>
             <p className="mt-1 text-[11px] leading-4 text-muted-foreground">{activeItem.details.join(" · ")}</p>
             {activeItem.caution ? <p className="mt-1 text-[11px] font-medium text-warning">{activeItem.caution}</p> : null}
+            {activeItem.href ? (
+              <Link
+                href={activeItem.href}
+                data-ranking-open
+                className="mt-2 inline-flex min-h-11 items-center rounded-[var(--sb-radius-control)] border border-[var(--sb-border)] bg-[var(--sb-surface-raised)] px-3 text-xs font-semibold text-[var(--sb-green-800)] hover:bg-[var(--sb-green-100)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--sb-green-700)] focus-visible:ring-offset-1 xl:min-h-8"
+              >
+                Open
+                <span className="sr-only"> {activeItem.label}</span>
+              </Link>
+            ) : null}
           </>
         ) : (
           <p className="text-[11px] text-muted-foreground">{idlePrompt}</p>

@@ -54,7 +54,7 @@ export function DemandRankingChart({
         <p className="mt-0.5 text-xs text-muted-foreground">{description}</p>
       </div>
       <div className="p-2.5 sm:p-3">
-        <InteractiveRankingChart items={items} ariaLabel={title} />
+        <InteractiveRankingChart items={items} ariaLabel={title} idlePrompt="Hover, tap, or focus a product to preview its complete values." />
       </div>
     </section>
   );

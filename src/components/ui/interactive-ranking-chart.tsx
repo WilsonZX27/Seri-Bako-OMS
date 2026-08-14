@@ -15,9 +15,11 @@ export type InteractiveRankingChartItem = {
 export function InteractiveRankingChart({
   items,
   ariaLabel,
+  idlePrompt = "Hover, tap, or focus a row to preview its complete values.",
 }: {
   items: InteractiveRankingChartItem[];
   ariaLabel: string;
+  idlePrompt?: string;
 }) {
   const previewId = useId();
   const touchSelectionRef = useRef(false);
@@ -99,7 +101,7 @@ export function InteractiveRankingChart({
             {activeItem.caution ? <p className="mt-1 text-[11px] font-medium text-warning">{activeItem.caution}</p> : null}
           </>
         ) : (
-          <p className="text-[11px] text-muted-foreground">Hover or tap a product for its complete values.</p>
+          <p className="text-[11px] text-muted-foreground">{idlePrompt}</p>
         )}
       </div>
     </div>

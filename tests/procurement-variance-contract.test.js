@@ -4,6 +4,8 @@ const fs = require("node:fs");
 
 const query = fs.readFileSync("src/server/queries/procurement-variance.ts", "utf8");
 const page = fs.readFileSync("src/app/(app)/reports/procurement-variance/page.tsx", "utf8");
+const charts = fs.readFileSync("src/components/reports/procurement-variance-charts.tsx", "utf8");
+const ranking = fs.readFileSync("src/components/ui/interactive-ranking-chart.tsx", "utf8");
 const version = fs.readFileSync("src/lib/app-version.ts", "utf8");
 
 test("procurement variance only compares existing document-line links", () => {
@@ -39,4 +41,16 @@ test("procurement variance keeps technical detail on tablet and uses compact rev
   assert.match(page, /label: "Invoice"/);
   assert.match(page, /Supplier reference:/);
   assert.match(page, /statusMeta=\{varianceSignal\(row\)\}/);
+});
+
+test("procurement variance exposes filtered concentration and absolute price rankings without changing source semantics", () => {
+  assert.match(page, /<ProcurementVarianceCharts rows=\{rows\} \/>/);
+  assert.match(charts, /Where review work is concentrated/);
+  assert.match(charts, /Largest price variances/);
+  assert.match(charts, /Math\.abs\(row\.price_variance_amount/);
+  assert.match(charts, /Absolute size determines rank; the displayed amount keeps its direction/);
+  assert.match(charts, /current filtered scope/);
+  assert.match(charts, /InteractiveRankingChart/);
+  assert.match(ranking, /idlePrompt/);
+  assert.doesNotMatch(charts, /\.insert\(|\.update\(|\.delete\(|\.rpc\(/);
 });

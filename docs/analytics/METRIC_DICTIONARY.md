@@ -1,6 +1,6 @@
 # Seri Bako OMS Metric Dictionary
 
-**Current application:** `v8.36.15`
+**Current application:** `v8.36.16`
 **Repository migration ceiling:** `147`
 **Last reviewed:** 2026-08-15
 
@@ -90,6 +90,8 @@ Daily trend uses request-time report data. The line preview exposes date, moveme
 | Freshness | Request-time read of current permitted source records. |
 | Missing/unavailable | Missing GRN/invoice are explicit statuses; unavailable supplier reference stays unavailable. Route query failure shows unavailable. |
 | Detail | Desktop technical table; phone three-stage PO/GRN/Invoice comparison with document, quantity, and price labels. |
+| Visual summaries | Status distribution counts the current filtered lines by existing comparison status. Largest price variances ranks up to six linked rows by absolute RM difference while retaining the signed RM amount and percentage. |
+| Interaction/accessibility | Direct labels remain visible. Hover, touch, and keyboard focus expose source item, supplier, PO, quantity path, percentage, and caution. The existing filtered table/list is the complete data alternative. |
 
 ## Product Margin
 

@@ -112,6 +112,16 @@ test.describe("outlet wastage chart preview", () => {
     await page.goto("/reports/procurement-variance", { waitUntil: "domcontentloaded" });
     await expect(page.locator("[data-procurement-variance-workspace]")).toBeVisible();
     await expect(page.getByRole("region", { name: "Procurement cost variance" })).toBeVisible();
+    const insights = page.locator("[data-procurement-variance-insights]");
+    if (await insights.count()) {
+      await expect(insights).toBeVisible();
+      const statusRanking = insights.locator("[data-interactive-ranking-chart]").first();
+      const firstStatus = statusRanking.getByRole("listitem").first();
+      await firstStatus.hover();
+      await expect(statusRanking.locator("[data-ranking-preview]")).toContainText(/comparable line/i);
+      await firstStatus.focus();
+      await expect(statusRanking.locator("[data-ranking-preview]")).toBeVisible();
+    }
   });
 
   test("AP Aging buckets expose hover and keyboard previews and filter links", async ({ page }) => {
@@ -214,6 +224,18 @@ test.describe("outlet wastage chart preview", () => {
         return bounds.left >= 0 && bounds.right <= document.documentElement.clientWidth;
       });
       expect(fitsViewport).toBe(true);
+      const insights = page.locator("[data-procurement-variance-insights]");
+      if (await insights.count()) {
+        await expect(insights).toBeVisible();
+        const firstRanking = insights.locator("[data-interactive-ranking-chart]").first();
+        await firstRanking.getByRole("listitem").first().tap();
+        await expect(firstRanking.locator("[data-ranking-preview]")).toContainText(/comparable line/i);
+        const insightsFit = await insights.evaluate((node) => {
+          const bounds = node.getBoundingClientRect();
+          return bounds.left >= 0 && bounds.right <= document.documentElement.clientWidth;
+        });
+        expect(insightsFit).toBe(true);
+      }
     });
 
     test("AP Aging distribution stays directly labeled and bounded on phone", async ({ page }) => {

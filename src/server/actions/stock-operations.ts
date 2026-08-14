@@ -44,13 +44,14 @@ function extractWastage(formData: FormData) {
   const batches = formData.getAll("line_batch_no").map(String);
   const expiries = formData.getAll("line_expiry_date").map(String);
   const remarks = formData.getAll("line_remarks").map(String);
+  const enabled = new Set(formData.getAll("line_enabled").map(String));
   return stockWastageSchema.parse({
     wastage_no: formData.get("wastage_no"),
     wastage_date: formData.get("wastage_date"),
     branch_id: formData.get("branch_id") || null,
     reason: formData.get("reason"),
     remarks: formData.get("remarks"),
-    lines: itemIds.map((itemId, i) => ({ item_id: itemId, quantity: qtys[i], uom: uoms[i], reason: reasons[i], batch_no: batches[i], expiry_date: expiries[i], remarks: remarks[i] })).filter((line) => line.item_id),
+    lines: itemIds.map((itemId, i) => ({ item_id: itemId, quantity: qtys[i], uom: uoms[i], reason: reasons[i], batch_no: batches[i], expiry_date: expiries[i], remarks: remarks[i] })).filter((line) => line.item_id && enabled.has(line.item_id)),
   });
 }
 

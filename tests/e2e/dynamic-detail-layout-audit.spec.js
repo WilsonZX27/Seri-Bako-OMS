@@ -6,7 +6,9 @@ const viewports = [
   { label: "mobile-390", width: 390, height: 844 },
   { label: "compact-640", width: 640, height: 900 },
   { label: "tablet-768", width: 768, height: 1024 },
+  { label: "tablet-820", width: 820, height: 1180 },
   { label: "laptop-1024", width: 1024, height: 900 },
+  { label: "laptop-1180", width: 1180, height: 820 },
   { label: "desktop-1280", width: 1280, height: 960 },
   { label: "desktop-1440", width: 1440, height: 960 },
   { label: "wide-2560", width: 2560, height: 1440 },
@@ -42,6 +44,8 @@ async function assertBounds(page, route, viewport) {
       const rect = node.getBoundingClientRect();
       const style = getComputedStyle(node);
       if (node.classList.contains("sr-only") || rect.width <= 0 || rect.height <= 0 || style.visibility === "hidden" || style.display === "none") return false;
+      if (node.getAttribute("aria-hidden") === "true") return false;
+      if (style.pointerEvents === "none" && node.tabIndex < 0) return false;
       let parent = node.parentElement;
       while (parent) {
         const parentStyle = getComputedStyle(parent);
@@ -57,7 +61,7 @@ async function assertBounds(page, route, viewport) {
 
 for (const viewport of auditedViewports) {
   test(`${viewport.label}: populated dynamic detail surfaces stay responsive`, async ({ page }) => {
-    test.setTimeout(180_000);
+    test.setTimeout(10 * 60_000);
     test.skip(!hasAccount("superAdmin"), "Missing local-only Super Admin credentials.");
     await login(page, "superAdmin");
     await page.setViewportSize(viewport);

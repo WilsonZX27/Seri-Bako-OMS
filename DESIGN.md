@@ -1,6 +1,6 @@
 # Seri Bako OMS responsive design standard
 
-> **Release authority:** the currently released application is `v8.36.29`, as
+> **Release authority:** the currently released application is `v8.36.30`, as
 > defined by `src/lib/app-version.ts`. A versioned section above that number is
 > an accepted forward design contract or unreleased implementation note—not
 > evidence that the application itself has been released at that version.
@@ -10,6 +10,13 @@
 > **Precedence:** `docs/DESIGN_SYSTEM.md` is the living visual and interaction contract. When a historical release note or an older rule in this file conflicts with that contract, the living contract wins. Update both documents when a new pattern is accepted; do not preserve a visibly weaker rule for compatibility.
 
 This document is the implementation contract for every customer-facing route, form, record workspace, table, panel, dialog, and mobile action bar. It applies to new work and to refactoring of existing UI.
+
+## v8.36.30 — Selected Stock Lines Only
+
+- Stock Transfer and Stock Wastage item selection is authoritative: unchecked item IDs must never enter an action payload, even when dormant form values remain mounted.
+- Unselected inventory rows show only the checkbox, item identity, code, and UOM. Quantity, availability, reason, batch, and remarks progressively disclose only after selection.
+- The item summary states selected and visible counts separately. Search visibility must not change which items are selected.
+- Dynamic-detail audits include the actual 820px tablet and 1180px laptop review widths. Coverage reports distinguish populated records from routes whose fixture has no data.
 
 ## v8.36.29 — Responsive Audit Reliability
 

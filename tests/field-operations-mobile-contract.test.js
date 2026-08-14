@@ -75,11 +75,16 @@ test("purchase requests use a flat phone setup and line-entry hierarchy", () => 
 
 test("stock transfer and wastage use searchable compact lines with one setup disclosure", () => {
   const source = read("src/components/stock-operation-forms.tsx");
+  const actions = read("src/server/actions/stock-operations.ts");
   const wastagePage = read("src/app/(app)/stock-wastage/new/page.tsx");
 
   assert.match(source, /data-stock-transfer-setup/);
   assert.match(source, /data-stock-wastage-setup/);
   assert.match(source, /data-stock-operation-lines/);
+  assert.match(source, /data-stock-operation-line-details/);
+  assert.match(source, /selectedItems\.has\(line\.item_id\)/);
+  assert.match(source, /className=\{selected \? "contents" : "hidden"\}/);
+  assert.match(source, /\{selected \? <Button/);
   assert.match(source, /grid grid-cols-2 gap-2 p-3/);
   assert.match(source, /<Field label="Quantity">/);
   assert.match(source, /name="line_uom" value=\{line\.uom\}/);
@@ -91,6 +96,7 @@ test("stock transfer and wastage use searchable compact lines with one setup dis
   assert.doesNotMatch(source, /Add transfer remarks|Add evidence note/);
   assert.doesNotMatch(source, /Field label="UOM"/);
   assert.match(wastagePage, /<WorkspaceGrid documentMode tabletRailMode="split"/);
+  assert.equal((actions.match(/enabled\.has\(line\.item_id\)/g) ?? []).length, 2);
 });
 
 test("production ingredient snapshots replace the phone table with a scannable list", () => {

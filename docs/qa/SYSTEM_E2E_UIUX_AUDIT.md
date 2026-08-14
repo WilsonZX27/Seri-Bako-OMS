@@ -70,6 +70,10 @@ The authenticated local Owner audit now verifies all 69 canonical static workspa
 
 The audit harness now treats the isolated local server address as authoritative whenever it starts that server. This prevents a stale `TEST_BASE_URL` from silently directing evidence collection to another dev session. Headless-control form mirrors are excluded from interactive geometry only when they are explicitly hidden or both pointer-inert and unfocusable; visible and operable controls remain fully checked.
 
+The populated-detail audit additionally verifies eight fixture-backed record types at the real 820px tablet and 1180px laptop review widths. Thirteen configured detail types have no populated local fixture and remain explicitly unverified rather than being counted as passes. Stock Transfer, Stock Wastage, and Production Job creation forms pass the phone, tablet, and desktop workflow audit.
+
+Stock Wastage previously rendered selection checkboxes without applying `line_enabled` when the server action built its payload. Unchecked rows could therefore retain default quantities and be submitted. Transfer and Wastage now both filter payload lines through the enabled item IDs, while the shared phone form hides quantity, availability, reason, batch, and remarks until an item is selected.
+
 ## Continuation verification (2026-07-16)
 
 Local source/build verification: Passed (6 contract tests, typecheck, lint, build, diff check). Local browser route verification reached the login gate at `/imports`; no local credentials were supplied, so authenticated screenshots and data-state checks remain Blocked. Production read-only tab was restored to `/stock-balance`; no records, imports, attachments, or permissions were changed.

@@ -5,6 +5,7 @@ import { ConsoleSection } from "@/components/layout/right-console";
 import { WorkspaceGrid } from "@/components/layout/workspace-layout";
 import { createPurchaseOrder } from "@/server/actions/procurement";
 import { getBranchesForSelect, getBranchSupplierMappingsForSelect, getItemsForSelect } from "@/server/queries/common";
+import { ShoppingCart } from "lucide-react";
 
 export default async function NewPurchaseOrderPage() {
   const [items, branches, supplierMappings] = await Promise.all([getItemsForSelect(), getBranchesForSelect(), getBranchSupplierMappingsForSelect()]);
@@ -18,7 +19,7 @@ export default async function NewPurchaseOrderPage() {
           <div>
             <ConsoleSection title="PO Actions">
               <div className="grid gap-2">
-                <SubmitButton type="submit" form="purchase-order-form" className="w-full" pendingLabel="Creating..." data-mobile-primary-action>Create PO</SubmitButton>
+                <SubmitButton type="submit" form="purchase-order-form" className="w-full" pendingLabel="Creating..." data-mobile-primary-action><ShoppingCart className="h-4 w-4" />Create PO</SubmitButton>
                 <SubmitButton type="submit" form="purchase-order-form" variant="outline" className="w-full" pendingLabel="Saving...">Save Draft</SubmitButton>
               </div>
             </ConsoleSection>

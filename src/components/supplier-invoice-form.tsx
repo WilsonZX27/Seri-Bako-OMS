@@ -2,7 +2,6 @@
 
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Card, CardContent } from "@/components/ui/card";
 import { Field } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { SelectNative } from "@/components/ui/select-native";
@@ -75,13 +74,12 @@ export function SupplierInvoiceForm({
   }
 
   return (
-    <Card className="border-0 bg-transparent shadow-none md:border md:bg-white">
-      <CardContent className="p-0 md:p-5">
+    <div className="min-w-0">
         <form id="supplier-invoice-form" action={action} className="space-y-4">
           {initial ? <input type="hidden" name="invoice_no" value={initial.invoice_no} /> : null}
           <input type="hidden" name="lines" value={JSON.stringify(chosen)} />
-          <section data-supplier-invoice-setup className="erp-surface grid gap-3 p-3 md:rounded-none md:border-0 md:bg-transparent md:p-0 md:grid-cols-3">
-            <Field label="Supplier" required>
+          <section data-supplier-invoice-setup className="grid grid-cols-2 gap-3 border-b border-[var(--sb-border-soft)] pb-3 md:grid-cols-3">
+            <Field label="Supplier" required className="col-span-2 md:col-span-1">
               <SelectNative
                 name={initial ? undefined : "supplier_id"}
                 value={selectedSupplierId ?? ""}
@@ -94,12 +92,12 @@ export function SupplierInvoiceForm({
               </SelectNative>
               {initial ? <input type="hidden" name="supplier_id" value={selectedSupplierId} /> : null}
             </Field>
-            <Field label="Supplier Invoice Reference" required><Input name="supplier_invoice_no" defaultValue={initial?.supplier_invoice_no} required /></Field>
+            <Field label="Supplier Invoice Reference" required className="col-span-2 md:col-span-1"><Input name="supplier_invoice_no" defaultValue={initial?.supplier_invoice_no} required /></Field>
             <Field label="Invoice Date" required><Input name="invoice_date" type="date" value={invoiceDate} onChange={(event) => { setInvoiceDate(event.target.value); setDueDate(addDays(event.target.value, terms)); }} required /></Field>
             <Field label="Payment Terms (days)" required><Input name="payment_terms_days" type="number" min="0" step="1" value={terms} onChange={(event) => { const days = Number(event.target.value); setTerms(days); setDueDate(addDays(invoiceDate, days)); }} required /></Field>
             <Field label="Due Date"><Input name="due_date" type="date" value={dueDate} onChange={(event) => setDueDate(event.target.value)} /></Field>
             <Field label="Tax"><Input name="tax_amount" type="number" min="0" step="0.01" value={tax} onChange={(event) => setTax(Number(event.target.value))} /></Field>
-            <div className="md:col-span-3"><Field label="Notes"><Textarea name="notes" defaultValue={initial?.notes ?? ""} placeholder="Invoice notes" /></Field></div>
+            <div className="col-span-2 md:col-span-3"><Field label="Notes"><Textarea name="notes" rows={2} defaultValue={initial?.notes ?? ""} placeholder="Invoice notes" /></Field></div>
           </section>
 
           {selectedSupplierId ? grns.map((grn) => {
@@ -168,7 +166,6 @@ export function SupplierInvoiceForm({
           </div>
           {chosen.some((line) => line.invoice_qty > (sourceLines.get(line.goods_receiving_line_id)?.available_qty ?? 0)) ? <p className="text-sm text-destructive">Invoice quantity exceeds an available received quantity.</p> : null}
         </form>
-      </CardContent>
-    </Card>
+    </div>
   );
 }

@@ -18,8 +18,10 @@ import { SelectControl } from "@/components/ui/select-control";
 import { PaginationControls, SortableHead } from "@/components/sortable-table";
 import { OperationalList, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { formatCurrency, formatQuantityInput, getToday } from "@/lib/utils";
+import { uomOptionsWithCurrent } from "@/lib/uom";
 import { createPurchaseRequestsFromBasket } from "@/server/actions/procurement";
 import { StockBalanceOperationalRows, StockBalanceTableRows, type StockBalanceRow } from "@/components/stock-balance-table";
+import { ItemThumbnail } from "@/components/ui/item-thumbnail";
 
 type BranchOption = { id: string; branch_name: string };
 type BasketLine = StockBalanceRow & { qty: string; uom: string };
@@ -410,13 +412,13 @@ export function StockBalanceWorkspace({
                 return (
                   <article key={key} className="border-b border-[var(--sb-border-soft)] py-1.5 first:pt-0 last:border-0">
                     <div className="mb-1 flex items-start justify-between gap-2">
-                      <div className="min-w-0"><h3 className="truncate text-[13px] font-semibold leading-4 text-[var(--sb-green-950)]">{line.item_name}</h3><p className="truncate text-[10px] leading-4 text-[var(--sb-text-muted)]">{line.item_code} · {line.supplier_name ?? "Supplier mapping missing"}</p></div>
+                      <div className="flex min-w-0 items-center gap-2.5"><ItemThumbnail src={line.image_url} alt={line.item_name} /><div className="min-w-0"><h3 className="truncate text-[13px] font-semibold leading-4 text-[var(--sb-green-950)]">{line.item_name}</h3><p className="truncate text-[10px] leading-4 text-[var(--sb-text-muted)]">{line.item_code} · {line.supplier_name ?? "Supplier mapping missing"}</p></div></div>
                       <button type="button" className="inline-flex h-8 w-8 shrink-0 items-center justify-center text-[var(--sb-danger)] active:bg-[var(--sb-danger-soft)]" onClick={() => toggleBasket(line)} aria-label={`Remove ${line.item_name} from PR basket`}><Trash2 className="h-3.5 w-3.5" aria-hidden="true" /></button>
                     </div>
                     {activeBranch ? <div className="flex min-w-0 items-stretch gap-1.5">
                       <QuantityStepper value={line.qty} uom={null} step={0.01} label={`Quantity for ${line.item_name}`} onChange={(value) => updateQty(key, value)} className="min-h-10 min-w-0 flex-1 [&_button]:min-h-10 [&_button]:w-9 [&_input]:min-h-10 [&_input]:w-16" />
                       <SelectNative aria-label={`UOM for ${line.item_name}`} value={line.uom} onChange={(event) => updateUom(key, event.target.value)} className="h-10 w-20 shrink-0 px-2 text-xs">
-                        {[line.purchase_unit, line.base_unit].filter((uom, index, all) => Boolean(uom) && all.indexOf(uom) === index).map((uom) => <option key={uom} value={uom}>{uom.toUpperCase()}</option>)}
+                        {uomOptionsWithCurrent(line.uom).map((uom) => <option key={uom} value={uom}>{uom}</option>)}
                       </SelectNative>
                     </div> : <p className="text-xs text-[var(--sb-text-muted)]">Select {line.branch_name ?? "this branch"} above to include this item.</p>}
                   </article>

@@ -76,18 +76,18 @@ export function ProductionJobForm({
           <CardTitle>Production Details</CardTitle>
           <CardDescription>Branch-first production setup. Stock posts to the selected branch after approval.</CardDescription>
         </CardHeader>
-        <CardContent className="grid gap-4 md:grid-cols-3">
-          <Field label="Production Date" required>
+        <CardContent className="grid grid-cols-3 gap-3 md:gap-4">
+          <Field label="Production Date" required className="col-span-1">
             <Input name="production_date" type="date" defaultValue={getToday()} required />
           </Field>
-          <Field label="Branch" required>
+          <Field label="Branch" required className="col-span-2 md:col-span-1">
             <SelectNative name="branch_id" value={branchId} required onChange={(event) => setBranchId(event.target.value)}>
               {branches.map((branch) => (
                 <option key={branch.id} value={branch.id}>{branch.branch_name}</option>
               ))}
             </SelectNative>
           </Field>
-          <Field label="Recipe" required>
+          <Field label="Recipe" required className="col-span-2 md:col-span-1">
             <SelectNative
               name="recipe_id"
               value={recipeId}
@@ -106,18 +106,18 @@ export function ProductionJobForm({
               ))}
             </SelectNative>
           </Field>
-          <Field label="Planned Output Qty" required>
+          <Field label="Planned Output Qty" required className="col-span-1">
             <Input name="planned_output_qty" type="number" min="0.0001" step="0.0001" value={plannedQty} onChange={(event) => setPlannedQty(Number(event.target.value))} required />
           </Field>
-          <Field label="Output UOM" required>
+          <Field label="Output UOM" required className="col-span-1">
             <SelectNative name="output_uom" value={outputUom} onChange={(event) => setOutputUom(event.target.value)} required>
               {uomOptionsWithCurrent(outputUom).map((uom) => <option key={uom} value={uom}>{uom}</option>)}
             </SelectNative>
           </Field>
-          <Field label="Priority">
+          <Field label="Priority" className="col-span-2 md:col-span-1">
             <UrgencySelect name="priority" value={priority} onValueChange={setPriority} />
           </Field>
-          <div className="md:col-span-3">
+          <div className="col-span-3">
             <Field label="Remarks">
               <Textarea name="remarks" placeholder="Optional production notes" />
             </Field>

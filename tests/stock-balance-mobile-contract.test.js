@@ -20,6 +20,15 @@ test("stock balance keeps PR preparation as a flat grouped rail, not nested card
   assert.doesNotMatch(source, /max-h-80 space-y-2 overflow-auto rounded border p-2/);
 });
 
+test("stock balance hydrates item images into compact rows and keeps common PR UOM choices", () => {
+  const rows = fs.readFileSync(path.join(root, "src", "components", "stock-balance-table.tsx"), "utf8");
+
+  assert.match(inventoryQuery, /from\("items"\)\.select\("id, item_image_url"\)\.in\("id", itemIds\)/);
+  assert.match(rows, /ItemThumbnail src=\{item\.image_url\}/);
+  assert.match(source, /ItemThumbnail src=\{line\.image_url\}/);
+  assert.match(source, /uomOptionsWithCurrent\(line\.uom\)/);
+});
+
 test("stock balance propagates stock balance query error state to UI props", () => {
   assert.match(page, /queryError={queryError}/);
   assert.match(source, /queryError:\s*string \| null/);

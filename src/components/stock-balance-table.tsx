@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { OperationalListRow, TableBody, TableCell, TableRow } from "@/components/ui/table";
 import { cn, formatCurrency, formatQuantity } from "@/lib/utils";
+import { ItemThumbnail } from "@/components/ui/item-thumbnail";
 
 export type StockBalanceRow = {
   item_id: string;
@@ -25,6 +26,7 @@ export type StockBalanceRow = {
   inventory_value: number;
   last_movement: string | null;
   status: string;
+  image_url?: string | null;
 };
 
 function rowKey(item: StockBalanceRow) {
@@ -134,10 +136,10 @@ export function StockBalanceOperationalRows({
             key={key}
             href={`/stock-transactions?item_id=${item.item_id}&branch_id=${item.branch_id ?? ""}`}
             label={`Open ledger for ${item.item_name}`}
-            primary={item.item_name}
+            primary={<span className="flex min-w-0 items-center gap-2.5"><ItemThumbnail src={item.image_url} alt={item.item_name} /><span className="min-w-0 truncate">{item.item_name}</span></span>}
             status={<Badge variant={statusVariant(item.status)}>{getStockBalanceStatusLabel(item.status)}</Badge>}
             statusMeta={`${formatQuantity(item.current_qty)} ${item.base_unit}`}
-            secondary={<><span className="block">{item.item_code}</span><span className="block">{item.branch_name ?? "All permitted branches"}</span></>}
+            secondary={<span className="block pl-[3.125rem]"><span className="block">{item.item_code}</span><span className="block">{item.branch_name ?? "All permitted branches"}</span></span>}
             trailing={
               <button
                 type="button"

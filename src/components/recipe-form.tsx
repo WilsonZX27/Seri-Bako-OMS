@@ -172,8 +172,8 @@ export function RecipeForm({ recipe, products, items, action, formId, showSubmit
           <CardTitle>Recipe Header</CardTitle>
         <CardDescription>Select the finished product, effective date, and controlled yield unit.</CardDescription>
         </CardHeader>
-        <CardContent className="grid gap-4 px-0 md:grid-cols-4 md:px-6">
-          <Field label="Product">
+        <CardContent className="grid grid-cols-2 gap-3 px-0 sm:gap-4 md:grid-cols-4 md:px-6">
+          <Field label="Product" className="col-span-2 md:col-span-1">
             <SelectNative
               name="product_id"
               value={productId}
@@ -202,7 +202,7 @@ export function RecipeForm({ recipe, products, items, action, formId, showSubmit
           <Field label="Effective Date">
             <Input name="effective_date" type="date" defaultValue={recipe?.effective_date ?? getToday()} required />
           </Field>
-          <div className="md:col-span-3">
+          <div className="col-span-2 md:col-span-3">
             <Field label="Remarks">
               <Textarea name="remarks" defaultValue={recipe?.remarks ?? ""} />
             </Field>

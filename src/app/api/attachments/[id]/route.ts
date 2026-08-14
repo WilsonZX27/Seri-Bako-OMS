@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
+import { requireSupabaseEnv } from "@/lib/supabase/env";
 import { resolveEffectivePermission } from "@/server/auth/permissions";
 import { requireActiveTenantActor } from "@/server/auth/tenant-actor";
 
@@ -40,7 +41,14 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
   if (attachment.file_url) {
     try {
       const legacyUrl = new URL(attachment.file_url);
-      if (legacyUrl.protocol === "https:") return NextResponse.redirect(legacyUrl);
+      const storageOrigin = new URL(requireSupabaseEnv().url).origin;
+      if (
+        legacyUrl.protocol === "https:" &&
+        legacyUrl.origin === storageOrigin &&
+        legacyUrl.pathname.startsWith("/storage/v1/object/")
+      ) {
+        return NextResponse.redirect(legacyUrl);
+      }
     } catch {
       return NextResponse.json({ error: "The stored file is unavailable." }, { status: 404 });
     }

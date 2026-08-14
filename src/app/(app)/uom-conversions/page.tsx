@@ -6,7 +6,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { MasterDataFilters } from "@/components/master-data-filters";
 import { PageHeader } from "@/components/ui/page-header";
 import { PaginationControls, SortableHead } from "@/components/sortable-table";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { OperationalList, OperationalListRow, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { TableActionMenuPortal } from "@/components/ui/table-action-menu-portal";
 import { paginateRows } from "@/lib/table-state";
 import { formatNumber } from "@/lib/utils";
@@ -35,7 +35,7 @@ export default async function UomConversionsPage({ searchParams }: { searchParam
           <MasterDataFilters search={filters.search} status={filters.status} placeholder="Search UOM pair" resultCount={page.totalRows} resetHref="/uom-conversions" />
           <div className="sb-list-content-card overflow-hidden">
             <div className="overflow-x-auto">
-            <Table stickyColumn="second">
+            <Table mobileHidden stickyColumn="second">
               <TableHeader>
                 <TableRow>
                   <TableHead className="w-16 text-center">Action</TableHead>
@@ -61,6 +61,20 @@ export default async function UomConversionsPage({ searchParams }: { searchParam
               </TableBody>
             </Table>
             </div>
+            <OperationalList ariaLabel="UOM conversions">
+              {page.rows.map((row) => (
+                <OperationalListRow
+                  key={row.id}
+                  href={`/uom-conversions/${row.id}`}
+                  label={`Open ${row.from_uom} to ${row.to_uom}`}
+                  primary={`${row.from_uom} → ${row.to_uom}`}
+                  status={<Badge variant={row.status === "active" ? "success" : "secondary"}>{row.status}</Badge>}
+                  secondary="Conversion factor"
+                  meta={formatNumber(row.factor)}
+                />
+              ))}
+              {!page.rows.length ? <div className="px-3 py-8 text-center text-sm text-muted-foreground">No UOM conversions found.</div> : null}
+            </OperationalList>
             <PaginationControls page={page.page} totalPages={page.totalPages} totalRows={page.totalRows} searchParams={filters} />
           </div>
         </div>

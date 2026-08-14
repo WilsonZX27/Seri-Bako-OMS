@@ -133,11 +133,11 @@ function SearchControl({ child, value, onChange }: { child: ReactElement; value:
 }
 
 export function UnifiedListHeader({ children, resultCount, resetHref, filtered = false, activeCount = 0, className, phoneOnly = false, phoneMode = "drawer" }: HeaderProps) {
-  // Resolve the viewport during the first client render as well as in the
-  // listener below. This prevents a mobile list from briefly rendering the
-  // desktop filter form (which is display:none at phone widths) and leaving
-  // users with no visible search/filter controls during hydration.
-  const [mobile, setMobile] = useState(() => phoneOnly || (typeof window !== "undefined" && window.matchMedia("(max-width: 639px)").matches));
+  // The first client render must match SSR exactly. Viewport detection belongs
+  // in the effect below; reading matchMedia in the state initializer rendered
+  // different desktop/mobile trees and caused hydration recovery on every
+  // phone-sized list route.
+  const [mobile, setMobile] = useState(phoneOnly);
   const [open, setOpen] = useState(false);
   const formRef = useRef<HTMLFormElement>(null);
   useEffect(() => {

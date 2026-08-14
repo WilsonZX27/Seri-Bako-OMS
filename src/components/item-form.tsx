@@ -76,8 +76,8 @@ export function ItemForm({ item, suppliers, action, formId, showSubmit = true, c
           <Field label="Supplier">
             <SupplierCombobox suppliers={suppliers} initialSupplierId={item?.supplier_id} />
           </Field>
-          {canCreateSupplier ? <div className="md:pt-[1.875rem]">
-            <Button asChild type="button" variant="outline" size="sm">
+          {canCreateSupplier ? <div className="flex items-start md:self-start md:pt-6">
+            <Button asChild type="button" variant="outline" className="h-11 w-full md:w-auto">
               <Link href="/suppliers/new">Create supplier</Link>
             </Button>
           </div> : null}

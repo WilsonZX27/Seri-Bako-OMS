@@ -70,7 +70,7 @@ test("purchase requests use a flat phone setup and line-entry hierarchy", () => 
   assert.doesNotMatch(source, /md:rounded-md md:border md:bg-secondary\/20/);
 });
 
-test("stock transfer and wastage use compact mobile lines and hide fixed UOM fields", () => {
+test("stock transfer and wastage use searchable compact lines with one setup disclosure", () => {
   const source = read("src/components/stock-operation-forms.tsx");
   const wastagePage = read("src/app/(app)/stock-wastage/new/page.tsx");
 
@@ -80,7 +80,12 @@ test("stock transfer and wastage use compact mobile lines and hide fixed UOM fie
   assert.match(source, /grid grid-cols-2 gap-2 p-3/);
   assert.match(source, /<Field label="Quantity">/);
   assert.match(source, /name="line_uom" value=\{line\.uom\}/);
-  assert.match(source, /More line details/);
+  assert.match(source, /placeholder="Search item code or name"/);
+  assert.match(source, /aria-label=\{`Notes for \$\{line\.item_name\}`\}/);
+  assert.match(source, /<details open data-stock-transfer-setup/);
+  assert.match(source, /<details open data-stock-wastage-setup/);
+  assert.doesNotMatch(source, /More line details/);
+  assert.doesNotMatch(source, /Add transfer remarks|Add evidence note/);
   assert.doesNotMatch(source, /Field label="UOM"/);
   assert.match(wastagePage, /<WorkspaceGrid documentMode tabletRailMode="split"/);
 });
@@ -194,7 +199,7 @@ test("product master editing avoids nested card boundaries on phones", () => {
 
   assert.match(source, /data-product-setup/);
   assert.match(source, /border-0 bg-transparent shadow-none md:border/);
-  assert.match(source, /border-y bg-secondary\/30 py-4 md:col-span-2/);
+  assert.match(source, /col-span-2 grid grid-cols-2 gap-3 border-y py-4/);
   assert.match(source, /border-y py-4 md:col-span-2/);
 });
 

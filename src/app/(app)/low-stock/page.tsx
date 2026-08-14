@@ -12,6 +12,7 @@ import { getBranchesForSelect } from "@/server/queries/common";
 import { getLowStockItems } from "@/server/queries/inventory";
 import { LowStockPrForm } from "@/components/low-stock-pr-form";
 import { UnifiedListHeader } from "@/components/common/UnifiedListHeader";
+import { EmptyState } from "@/components/ui/empty-state";
 
 export default async function LowStockPage({ searchParams }: { searchParams: Promise<Record<string, string | undefined>> }) {
   const filters = await searchParams;
@@ -45,8 +46,8 @@ export default async function LowStockPage({ searchParams }: { searchParams: Pro
           </ConsoleSection>
         }
       >
-        <div className="overflow-hidden rounded-[2px] border border-[var(--sb-border-soft)] bg-card">
-          <div className="p-4">
+        <div className="overflow-hidden border-y border-[var(--sb-border-soft)] bg-card md:rounded-[2px] md:border">
+          <div className="contents md:block md:border-b md:p-4">
             <LowStockPrForm
               items={items}
               branches={branches}
@@ -55,7 +56,7 @@ export default async function LowStockPage({ searchParams }: { searchParams: Pro
             />
           </div>
 
-          <div className="px-4 pb-4">
+          <div className="border-b p-3 md:p-4">
             <UnifiedListHeader resultCount={items.length} resetHref="/low-stock" filtered={filtered}>
               <Input name="search" defaultValue={filters.search ?? ""} placeholder="Search item, branch, supplier" className="md:max-w-sm" />
               <SelectControl
@@ -109,14 +110,14 @@ export default async function LowStockPage({ searchParams }: { searchParams: Pro
               ))}
               {!items.length ? (
                 <TableRow>
-                  <TableCell colSpan={10} className="text-center text-muted-foreground">No low stock items.</TableCell>
+                  <TableCell colSpan={10}><EmptyState title={filtered ? "No items match these filters" : "Stock levels are healthy"} description={filtered ? "Reset the filters or search for another item." : "Items that need replenishment will appear here."} action={filtered ? { href: "/low-stock", label: "Reset filters" } : undefined} /></TableCell>
                 </TableRow>
               ) : null}
             </TableBody>
           </Table>
           <OperationalList ariaLabel="Low stock items">
             {items.map((item) => {
-              const trailing = <span className="text-[11px] font-medium text-[var(--sb-text-muted)]">{canCreatePr ? "Use PR basket" : "Read-only"}</span>;
+              const trailing = <span className="text-[11px] font-medium text-[var(--sb-green-700)]">{canCreatePr ? "Add to request" : "View only"}</span>;
               return (
                 <OperationalListRow
                   key={`${item.branch_id ?? "no-branch"}-${item.item_id}`}
@@ -129,7 +130,7 @@ export default async function LowStockPage({ searchParams }: { searchParams: Pro
                 />
               );
             })}
-            {!items.length ? <div className="px-3 py-3 text-center text-xs text-muted-foreground">No low stock items.</div> : null}
+            {!items.length ? <EmptyState title={filtered ? "No items match these filters" : "Stock levels are healthy"} description={filtered ? "Reset the filters or search for another item." : "Items that need replenishment will appear here."} action={filtered ? { href: "/low-stock", label: "Reset filters" } : undefined} /> : null}
           </OperationalList>
         </div>
       </WorkspaceGrid>

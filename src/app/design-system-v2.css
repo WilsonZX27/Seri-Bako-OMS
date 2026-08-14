@@ -1775,13 +1775,13 @@ html[data-design-layer="v2"] :where([class~="bg-card"], [class~="overflow-hidden
 @media (max-width: 767px) {
   html[data-design-layer="v2"] [data-mobile-document-action].sb-mobile-action-bar {
     display: grid !important;
-    grid-template-columns: minmax(0, 1fr) auto !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
     align-items: center !important;
     gap: .75rem !important;
   }
 
   html[data-design-layer="v2"] [data-mobile-document-action].sb-mobile-action-bar > * {
-    width: auto !important;
+    width: 100% !important;
     min-width: 0 !important;
   }
 
@@ -1789,10 +1789,14 @@ html[data-design-layer="v2"] :where([class~="bg-card"], [class~="overflow-hidden
     width: 100% !important;
   }
 
+  html[data-design-layer="v2"] [data-mobile-document-action].sb-mobile-action-bar > :only-child {
+    grid-column: 1 / -1;
+  }
+
   html[data-design-layer="v2"] [data-mobile-document-action].sb-mobile-action-bar > button,
   html[data-design-layer="v2"] [data-mobile-document-action].sb-mobile-action-bar > :last-child button {
-    width: auto !important;
-    min-width: 8rem;
+    width: 100% !important;
+    min-width: 0;
   }
 }
 

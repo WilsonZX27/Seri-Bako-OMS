@@ -7,6 +7,7 @@ import { WorkspaceGrid } from "@/components/layout/workspace-layout";
 import { WorkflowStatusPipeline, type WorkflowStep } from "@/components/workflow-status-pipeline";
 import { DocumentMoreOptions, MobileActivityAndFiles, MobileWorkflowStatus } from "@/components/documents/mobile-document-surfaces";
 import { DocumentContextSummary } from "@/components/documents/document-context-summary";
+import { StatusBadge } from "@/components/ui/status-badge";
 import { cn } from "@/lib/utils";
 
 type Crumb = {
@@ -65,13 +66,12 @@ export function DocumentWorkspace({
       <span data-document-context-sentinel className="block h-px" aria-hidden="true" />
       <header data-document-workspace-header className={cn("sticky top-0 z-20 min-w-0 border-b border-[var(--border-muted)] bg-[var(--workspace-bg)] px-3 transition-[padding] duration-200 motion-reduce:transition-none sm:px-4", isNewDocument ? "py-1.5 sm:py-2" : "py-2.5 sm:py-3")}>
         <h1 className="sr-only">{title ?? documentNo}</h1>
-        {showDocumentContext ? <div data-tablet-document-header className="flex flex-col gap-2 xl:flex-row xl:items-start xl:justify-between">
+        {showDocumentContext ? <div data-tablet-document-header className={cn("flex flex-col gap-2 xl:flex-row xl:items-start xl:justify-between", isNewDocument && "hidden md:flex")}>
           <div className="min-w-0">
             <div className={cn("min-w-0", isNewDocument ? "min-h-7" : "flex min-h-8 flex-wrap items-center gap-2")}>
               {isNewDocument ? <DocumentContextSummary title={title} status={status} branch={branch} date={mobileContextDate} mobileStatusOnly={mobileStatusOnly} /> : <>
               {!isNewDocument ? <DocumentNumber value={documentNo} size="lg" className="max-w-[min(100%,18rem)] break-all text-[16px] sm:text-lg" /> : null}
               {priority ? <PriorityBadge priority={priority} /> : null}
-              {branch ? <span className="basis-full truncate text-xs text-muted-foreground md:hidden">{branch}</span> : null}
               {branch ? <span className="ml-auto hidden min-w-0 items-center justify-end gap-1.5 whitespace-nowrap text-right text-xs text-muted-foreground md:flex"><MapPin className="h-3.5 w-3.5 shrink-0" aria-hidden="true" /><span className="truncate">{branch}</span></span> : null}
               </>}
             </div>
@@ -80,7 +80,8 @@ export function DocumentWorkspace({
             </div>
           </div>
         </div> : null}
-        {!hideMobileWorkflow ? <div data-tablet-document-header className={cn("min-w-0", isNewDocument ? "mt-0 md:mt-1" : "mt-1 md:mt-2")}><MobileWorkflowStatus steps={workflowSteps} currentStatus={currentStatus} trailing={mobileWorkflowTrailing} /><div className="hidden md:block"><WorkflowStatusPipeline steps={workflowSteps} currentStatus={currentStatus} compact /></div></div> : <div data-tablet-document-header className="hidden md:block"><WorkflowStatusPipeline steps={workflowSteps} currentStatus={currentStatus} compact /></div>}
+        {isNewDocument && !hideMobileWorkflow ? <div className="flex min-h-9 items-center justify-center gap-2 md:hidden"><StatusBadge status={status} /><MobileWorkflowStatus steps={workflowSteps} currentStatus={currentStatus} trailing={mobileWorkflowTrailing} /></div> : null}
+        {!hideMobileWorkflow ? <div data-tablet-document-header className={cn("min-w-0", isNewDocument ? "mt-0 md:mt-1" : "mt-1 md:mt-2", isNewDocument && "hidden md:block")}>{!isNewDocument ? <MobileWorkflowStatus steps={workflowSteps} currentStatus={currentStatus} trailing={mobileWorkflowTrailing} /> : null}<div className="hidden md:block"><WorkflowStatusPipeline steps={workflowSteps} currentStatus={currentStatus} compact /></div></div> : <div data-tablet-document-header className="hidden md:block"><WorkflowStatusPipeline steps={workflowSteps} currentStatus={currentStatus} compact /></div>}
       </header>
 
       <WorkspaceGrid documentMode tabletRailMode={tabletRailMode} className={cn("min-w-0 p-3", compactMobileSpacing && "pt-0 md:pt-3", mobilePrimaryAction && "pb-20 md:pb-3")} rightRail={sidePanel} hideMobileConsole>
@@ -126,7 +127,7 @@ export function DocumentSideSection({
 export function DocumentActionSection({ description, children, moreOptions, collapseMoreOptions = false }: { description?: string; children: ReactNode; moreOptions?: ReactNode; collapseMoreOptions?: boolean }) {
   return (
     <DocumentSideSection title="Primary Action" description={description}>
-      {children}
+      <div className="[&_button]:w-full">{children}</div>
       {moreOptions ? <>
         {collapseMoreOptions ? <DocumentMoreOptions defaultOpen={false}>{moreOptions}</DocumentMoreOptions> : <>
           <div className="hidden gap-2 md:grid">{moreOptions}</div>

@@ -89,14 +89,9 @@ export function GoodsReceivingForm({
                   </SelectNative>
                   <p className="mt-1 text-xs text-muted-foreground">Select the branch receiving this delivery.</p>
                 </Field>
-                <details className="col-span-2 border-t pt-2 lg:col-span-3">
-                  <summary className="cursor-pointer text-xs font-semibold text-muted-foreground">More receiving details</summary>
-                  <div className="mt-2">
-                    <Field label="Remarks">
-                      <Textarea name="remarks" value={remarks} onChange={(event) => setRemarks(event.target.value)} placeholder="Delivery notes, vehicle, temperature, or supplier remarks" />
-                    </Field>
-                  </div>
-                </details>
+                <Field label="Remarks" className="col-span-2 lg:col-span-3">
+                  <Textarea name="remarks" value={remarks} onChange={(event) => setRemarks(event.target.value)} placeholder="Delivery notes, vehicle, temperature, or supplier remarks" />
+                </Field>
               </div>
             ) : (
               <>

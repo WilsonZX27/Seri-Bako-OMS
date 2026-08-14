@@ -4,7 +4,6 @@ import Link from "next/link";
 import { type FormEvent, useEffect, useRef, useState } from "react";
 import { CalendarDays, ChevronDown, MapPin, MessageSquare, Minus, Plus, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
 import { Field } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { SelectNative } from "@/components/ui/select-native";
@@ -296,7 +295,7 @@ export function PurchaseRequestForm({
                 <p className="text-xs font-semibold">Requested Items</p>
               </div>
               <div className="flex items-center gap-2">
-                <Button type="button" variant="outline" size="sm" onClick={addLine} aria-label="Add request line">
+                <Button type="button" variant="outline" size="sm" className="h-8 px-2.5" onClick={addLine} aria-label="Add request line">
                   <Plus className="h-4 w-4" />
                   Add line
                 </Button>
@@ -360,7 +359,7 @@ export function PurchaseRequestForm({
                     <Button type="button" variant="ghost" size="icon" className="order-2 h-10 w-9 text-muted-foreground md:order-1" aria-label={`Add comment for ${line.itemSearch || "request line"}`} onClick={() => setCommentLineKey((current) => current === line.key ? null : line.key)}><MessageSquare className="h-4 w-4" /></Button>
                   </div>
                   {commentLineKey === line.key ? <Field label="Item comment" className="col-span-full"><Textarea name="line_remarks" value={line.remarks} onChange={(event) => updateLine(line.key, { remarks: event.target.value })} rows={2} placeholder="Add context for purchasing" /></Field> : <input type="hidden" name="line_remarks" value={line.remarks} />}
-                  {line.itemId && mappingsForLine(line).length === 0 ? <div className="col-span-full rounded-[var(--sb-radius-control)] border border-destructive/25 bg-destructive/5 px-3 py-2 text-xs font-medium leading-relaxed text-destructive"><p>Supplier mapping missing for this item and branch.</p><Link href="/imports/branch-supplier-items" className="mt-1 inline-flex font-semibold underline underline-offset-2">Add supplier mapping</Link></div> : null}
+                  {line.itemId && mappingsForLine(line).length === 0 ? <div className="col-span-full flex min-w-0 flex-wrap items-center justify-between gap-2 rounded-[var(--sb-radius-control)] bg-destructive/8 px-3 py-2 text-xs font-medium text-destructive"><p className="min-w-0">No supplier mapping for this item and branch.</p><Link href="/imports/branch-supplier-items" className="shrink-0 font-semibold underline underline-offset-2">Add mapping</Link></div> : null}
                   {line.itemId && line.uom && mappingsForLine(line).length > 0 && !mappingsForLine(line).some((mapping) => normalizeUom(mapping.purchase_uom) === line.uom) ? <div className="col-span-full rounded-[var(--sb-radius-control)] border border-amber-300/60 bg-amber-50 px-3 py-2 text-xs font-medium leading-relaxed text-amber-800"><p>No supplier mapping uses {line.uom.toUpperCase()} for this branch.</p><Link href="/imports/branch-supplier-items" className="mt-1 inline-flex font-semibold underline underline-offset-2">Update branch mapping</Link></div> : null}
                   {line.itemId && mappingsForLine(line).filter((mapping) => !line.uom || normalizeUom(mapping.purchase_uom) === line.uom).length > 1 && !line.supplierId ? <p className="col-span-full rounded-[var(--sb-radius-control)] border border-amber-300/60 bg-amber-50 px-3 py-2 text-xs font-medium leading-relaxed text-amber-800">Multiple supplier mappings found for this unit. Select the supplier to continue; the preferred mapping is used automatically when one is marked.</p> : null}
                   <input type="hidden" name="line_reason" value={line.reason} />
@@ -399,14 +398,13 @@ export function PurchaseOrderForm({
   const eligibleSupplierIds = [...new Set(supplierMappings.filter((mapping) => mapping.branch_id === branchId && selectedItems.every((itemId) => supplierMappings.some((candidate) => candidate.branch_id === branchId && candidate.item_id === itemId && candidate.supplier_id === mapping.supplier_id))).map((mapping) => mapping.supplier_id))];
   const eligibleSuppliers = eligibleSupplierIds.map((id) => supplierMappings.find((mapping) => mapping.branch_id === branchId && mapping.supplier_id === id)).filter((mapping): mapping is BranchSupplierMappingOption => Boolean(mapping));
   return (
-    <Card className="border-0 bg-transparent shadow-none md:border md:bg-white">
-      <CardContent className="p-0 md:p-5">
+    <div className="min-w-0">
         <form id="purchase-order-form" action={action} className="space-y-3">
           <input type="hidden" name="po_no" value={poNo} />
           <input type="hidden" name="idempotency_key" value={idempotencyKey} />
           <input type="hidden" name="status" value="draft" />
           <input type="hidden" name="approval_status" value="draft" />
-          <section data-purchase-order-setup className="erp-surface grid grid-cols-2 gap-3 p-3 md:rounded-none md:border-0 md:bg-transparent md:p-0">
+          <section data-purchase-order-setup className="grid grid-cols-2 gap-3 border-b border-[var(--sb-border-soft)] pb-3">
             <Field label="Branch" required>
               <SelectNative name="branch_id" value={branchId} onChange={(event) => { setBranchId(event.target.value); setSupplierId(""); }} required>
                 {branches.map((branch) => <option key={branch.id} value={branch.id}>{branch.branch_name}</option>)}
@@ -455,7 +453,7 @@ export function PurchaseOrderForm({
                 return (
                   <div key={index} className="grid grid-cols-[minmax(0,1fr)_2.25rem] gap-2 p-3 md:grid-cols-[minmax(0,1fr)_112px_112px_40px]">
                     <div className="min-w-0">
-                      <Field label="Item" required={index === 0}>
+                      <Field label="Item" required={index === 0} labelClassName="md:sr-only">
                         <SelectNative name="line_item_id" value={itemId} onChange={(event) => { const next = [...selectedItemIds]; next[index] = event.target.value; setSelectedItemIds(next); setSupplierId(""); }} required={index === 0}>
                           <option value="">Select item</option>
                           {items.map((item) => <option key={item.id} value={item.id}>{item.item_code} - {item.item_name}</option>)}
@@ -464,10 +462,10 @@ export function PurchaseOrderForm({
                       {lineUom ? <p className="mt-1 text-xs text-muted-foreground">{selectedItem?.item_code} · {lineUom}</p> : null}
                     </div>
                     <Button type="button" variant="ghost" size="icon" className="h-10 w-9 self-end text-muted-foreground md:col-start-4 md:row-start-1" aria-label="Remove order line" disabled={selectedItemIds.length === 1} onClick={() => setSelectedItemIds((current) => current.filter((_, rowIndex) => rowIndex !== index))}><X className="h-4 w-4" /></Button>
-                    <Field label="Ordered Qty" required={index === 0} className="col-span-1 md:col-start-2 md:row-start-1">
+                    <Field label="Ordered Qty" required={index === 0} labelClassName="md:sr-only" className="col-span-1 md:col-start-2 md:row-start-1">
                       <Input name="line_qty_ordered" type="number" inputMode="decimal" min="0.0001" step="0.0001" placeholder="Qty" required={index === 0} />
                     </Field>
-                    <Field label="Unit price" className="col-span-1 md:col-start-3 md:row-start-1">
+                    <Field label="Unit price" labelClassName="md:sr-only" className="col-span-1 md:col-start-3 md:row-start-1">
                       <Input name="line_unit_price" type="number" inputMode="decimal" min="0" step="0.0001" placeholder="0.00" defaultValue={0} />
                     </Field>
                     <input type="hidden" name="line_qty_received" value="0" />
@@ -482,7 +480,6 @@ export function PurchaseOrderForm({
           {selectedItems.length > 0 && eligibleSuppliers.length === 0 ? <p className="text-sm font-medium text-destructive">No single supplier is mapped to every selected item for this branch. Adjust the lines or create the required branch mappings.</p> : null}
 
         </form>
-      </CardContent>
-    </Card>
+    </div>
   );
 }

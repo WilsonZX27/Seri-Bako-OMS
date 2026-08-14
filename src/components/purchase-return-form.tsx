@@ -3,7 +3,6 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { PackageX } from "lucide-react";
-import { Card, CardContent } from "@/components/ui/card";
 import { Field } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { SelectNative } from "@/components/ui/select-native";
@@ -25,13 +24,12 @@ export function PurchaseReturnForm({
   const router = useRouter();
   const [idempotencyKey] = useState(() => crypto.randomUUID());
   return (
-    <Card className="border-0 bg-transparent shadow-none md:border md:bg-card md:shadow-sm">
-      <CardContent className="p-0 md:p-5">
+    <div className="min-w-0">
         <form id="purchase-return-form" action={action} className="space-y-3">
           <input type="hidden" name="idempotency_key" value={idempotencyKey} />
           <input type="hidden" name="purchase_return_no" value="PRT-AUTO" />
-          <div className="grid gap-3 lg:grid-cols-3">
-            <Field label="Posted GRN" required>
+          <div className="grid grid-cols-2 gap-3 lg:grid-cols-3">
+            <Field label="Posted GRN" required className="col-span-2 lg:col-span-1">
               <SelectNative value={selectedReceiving?.id ?? ""} onChange={(event) => router.push(event.target.value ? `/purchase-returns/new?grn_id=${event.target.value}` : "/purchase-returns/new")} required>
                 <option value="">Select posted GRN</option>
                 {receivings.map((grn) => (
@@ -44,10 +42,10 @@ export function PurchaseReturnForm({
             <Field label="Return Date" required>
               <Input name="return_date" type="date" defaultValue={getToday()} required />
             </Field>
-            <Field label="Reason">
+            <Field label="Reason" className="col-span-1 lg:col-span-1">
               <Input name="reason" placeholder="Supplier return / quality issue" />
             </Field>
-            <div className="lg:col-span-2">
+            <div className="col-span-2 lg:col-span-2">
               <Field label="Notes">
                 <Textarea name="remarks" placeholder="Return reference, supplier contact, or handling notes" />
               </Field>
@@ -94,7 +92,6 @@ export function PurchaseReturnForm({
             </div>
           )}
         </form>
-      </CardContent>
-    </Card>
+    </div>
   );
 }

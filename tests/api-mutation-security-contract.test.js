@@ -55,6 +55,24 @@ test("attachment downloads layer tenant scope on top of permission and RLS check
   assert.match(attachment, /createSignedUrl/);
 });
 
+test("legacy attachment redirects are restricted to the configured Supabase storage origin", () => {
+  const attachment = read("src/app/api/attachments/[id]/route.ts");
+
+  assert.match(attachment, /requireSupabaseEnv/);
+  assert.match(attachment, /legacyUrl\.origin === storageOrigin/);
+  assert.match(attachment, /legacyUrl\.pathname\.startsWith\("\/storage\/v1\/object\/"\)/);
+  assert.doesNotMatch(attachment, /legacyUrl\.protocol === "https:"\) return NextResponse\.redirect/);
+});
+
+test("supplier list search bounds and neutralises PostgREST filter syntax", () => {
+  const suppliers = read("src/server/queries/suppliers.ts");
+
+  assert.match(suppliers, /function normalizeSupplierSearch/);
+  assert.match(suppliers, /slice\(0, 80\)/);
+  assert.match(suppliers, /replace\(\/\[/);
+  assert.match(suppliers, /const search = normalizeSupplierSearch\(filters\.search\)/);
+});
+
 test("global search is capability-gated before querying modules and quick item creation validates supplier scope", () => {
   const search = read("src/app/api/search/route.ts");
   const quickCreate = read("src/app/api/items/quick-create/route.ts");

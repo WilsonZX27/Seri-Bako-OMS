@@ -13,6 +13,15 @@ type SupplierFilters = {
 
 const PAGE_SIZE = 15;
 
+function normalizeSupplierSearch(value: string | undefined) {
+  return value
+    ?.trim()
+    .slice(0, 80)
+    .replace(/[(),\\%_"']/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
 function filterSuppliers<T extends { supplier_code: string | null; name: string; contact_person: string | null; phone: string | null; email: string | null; status: string }>(
   suppliers: T[],
   filters: SupplierFilters,
@@ -54,8 +63,8 @@ export async function getSuppliers(filters: SupplierFilters = {}) {
     query = query.eq("status", requestedStatus);
   }
 
-  if (filters.search?.trim()) {
-    const search = filters.search.trim();
+  const search = normalizeSupplierSearch(filters.search);
+  if (search) {
     query = query.or(`supplier_code.ilike.%${search}%,name.ilike.%${search}%,contact_person.ilike.%${search}%,phone.ilike.%${search}%,email.ilike.%${search}%`);
   }
 

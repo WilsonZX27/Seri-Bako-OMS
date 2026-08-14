@@ -67,6 +67,8 @@ type InventoryDashboardRpc = {
   low_stock_rows: Array<Database["public"]["Tables"]["stock_balances_summary"]["Row"]>;
 };
 
+const MAX_INVENTORY_DASHBOARD_FALLBACK_BALANCES = 2_000;
+
 // The summary RPC is already bounded server-side. Keep this named boundary
 // for the dashboard contract without introducing client-side timeout fallbacks.
 async function boundedInventoryInsight<T>(query: PromiseLike<T>): Promise<T> {
@@ -81,7 +83,11 @@ async function getInventoryDashboardFallback(supabase: Awaited<ReturnType<typeof
       ? `${today.slice(0, 7)}-01`
       : new Date(Date.now() - 29 * 86_400_000).toISOString().slice(0, 10);
   const [balancesResult, transactionsResult, movementsTodayResult, receivingResult, transfersResult, stockCountResult] = await Promise.all([
-    supabase.from("stock_balances_summary").select("*").order("item_name", { ascending: true }),
+    supabase
+      .from("stock_balances_summary")
+      .select("item_id, item_code, item_name, base_unit, branch_id, branch_name, current_qty, inventory_value, is_low_stock, shortage_quantity, status")
+      .order("item_name", { ascending: true })
+      .limit(MAX_INVENTORY_DASHBOARD_FALLBACK_BALANCES + 1),
     supabase.from("stock_transactions")
       .select("id, item_id, transaction_no, transaction_date, transaction_type, quantity_in, quantity_out")
       .eq("status", "posted")
@@ -93,7 +99,8 @@ async function getInventoryDashboardFallback(supabase: Awaited<ReturnType<typeof
     supabase.from("stock_transactions").select("id", { count: "exact", head: true }).eq("status", "posted").eq("transaction_date", today).in("transaction_type", ["transfer_in", "transfer_out"]),
     supabase.from("stock_counts").select("id", { count: "exact", head: true }).in("status", ["draft", "submitted", "reviewed", "approved"]).is("deleted_at", null),
   ]);
-  const balances = balancesResult.data ?? [];
+  const fallbackBalancesTruncated = (balancesResult.data?.length ?? 0) > MAX_INVENTORY_DASHBOARD_FALLBACK_BALANCES;
+  const balances = balancesResult.error || fallbackBalancesTruncated ? [] : (balancesResult.data ?? []);
   const activeBalances = balances.filter((row) => row.status === "active");
   const lowStockRows = activeBalances
     .filter((row) => row.is_low_stock)
@@ -113,14 +120,20 @@ async function getInventoryDashboardFallback(supabase: Awaited<ReturnType<typeof
     },
   }));
   const unavailable = {
-    inventory: Boolean(balancesResult.error),
+    inventory: Boolean(balancesResult.error || fallbackBalancesTruncated),
     movement: Boolean(transactionsResult.error || movementsTodayResult.error || itemsError),
-    lowStock: Boolean(balancesResult.error),
+    lowStock: Boolean(balancesResult.error || fallbackBalancesTruncated),
     stockCountDue: Boolean(stockCountResult.error),
     todaysTransfers: Boolean(transfersResult.error),
     todaysReceiving: Boolean(receivingResult.error),
     pendingAdjustments: Boolean(stockCountResult.error),
   };
+  if (fallbackBalancesTruncated) {
+    logServerWarning(
+      new Error(`Dashboard fallback exceeded ${MAX_INVENTORY_DASHBOARD_FALLBACK_BALANCES} balances.`),
+      { source: "inventory.optional.dashboard summary fallback limit" },
+    );
+  }
   warnOptionalInventoryQuery("dashboard summary fallback", balancesResult.error || transactionsResult.error || movementsTodayResult.error || receivingResult.error || transfersResult.error || stockCountResult.error || itemsError);
   return {
     inventoryValue: activeBalances.reduce((sum, row) => sum + Number(row.inventory_value ?? 0), 0),
@@ -475,9 +488,17 @@ export async function getStockBalanceDetails(filters: Filters = {}): Promise<Pag
     warnOptionalInventoryQuery("Stock Balance details", error);
     return databasePaginationOrError<StockBalanceRow>([], 0, filters.page, message);
   }
-  const rows = (data ?? []).map((row) => ({
+  const balanceRows = data ?? [];
+  const itemIds = Array.from(new Set(balanceRows.map((row) => row.item_id))).slice(0, 500);
+  const imageByItemId = new Map<string, string | null>();
+  if (itemIds.length) {
+    const images = await supabase.from("items").select("id, item_image_url").in("id", itemIds);
+    if (images.error) warnOptionalInventoryQuery("Stock Balance item images", images.error);
+    else images.data?.forEach((item) => imageByItemId.set(item.id, item.item_image_url));
+  }
+  const rows = balanceRows.map((row) => ({
     ...row,
-    image_url: null,
+    image_url: imageByItemId.get(row.item_id) ?? null,
     available_qty: row.current_qty,
     reserved_qty: 0,
     status: Number(row.current_qty) < 0
@@ -591,7 +612,33 @@ export async function getStockCardResult(filters: Filters = {}): Promise<StockCa
     });
     if (error) {
       warnOptionalInventoryQuery("Stock Card", error);
-      return { rows: [], unavailable: true };
+      // Keep the operator-facing Stock Card available while an older linked
+      // database catches up with the bounded RPC migrations. The canonical
+      // view is still tenant-scoped by RLS and this fallback is strictly
+      // bounded to the requested date range.
+      let fallbackQuery = supabase
+        .from("stock_ledger_view")
+        .select("*")
+        .gte("transaction_date", from)
+        .lte("transaction_date", to)
+        .order("transaction_date", { ascending: true })
+        .limit(5_000);
+      if (filters.item_id && filters.item_id !== "all") fallbackQuery = fallbackQuery.eq("item_id", filters.item_id);
+      if (filters.branch_id && filters.branch_id !== "all") fallbackQuery = fallbackQuery.eq("branch_id", filters.branch_id);
+      if (filters.type && filters.type !== "all") fallbackQuery = fallbackQuery.eq("transaction_type", filters.type as StockTransaction["transaction_type"]);
+      const fallback = await fallbackQuery;
+      if (fallback.error) {
+        warnOptionalInventoryQuery("Stock Card canonical fallback", fallback.error);
+        return { rows: [], unavailable: true };
+      }
+      const search = filters.search?.trim().toLowerCase();
+      const source = filters.source?.trim().toLowerCase();
+      const direction = filters.direction && filters.direction !== "all" ? filters.direction : null;
+      const rows = ((fallback.data ?? []) as StockLedgerViewRow[])
+        .filter((row) => search ? [row.item_code, row.item_name, row.transaction_no, row.branch_name, row.reference_type].some((value) => String(value ?? "").toLowerCase().includes(search)) : true)
+        .filter((row) => source ? String(row.reference_type ?? "").toLowerCase().includes(source) : true)
+        .filter((row) => direction === "in" ? Number(row.quantity_in) > 0 : direction === "out" ? Number(row.quantity_out) > 0 : true);
+      return { rows, unavailable: false };
     }
     return { rows: data ?? [], unavailable: false };
   }

@@ -22,14 +22,14 @@ export function ProductForm({ product, packaging = [], action, formId, showSubmi
   return (
     <Card className="border-0 bg-transparent shadow-none md:border md:bg-card md:shadow-sm" data-product-setup>
       <CardContent className="p-0 md:p-5">
-        <form id={formId} action={action} className="grid gap-4 md:grid-cols-2">
+        <form id={formId} action={action} className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-2">
           <Field label="Product Code">
             <Input name="product_code" defaultValue={product?.product_code ?? ""} required />
           </Field>
-          <Field label="Product Name">
+          <Field label="Product Name" className="col-span-2 sm:col-span-1">
             <Input name="product_name" defaultValue={product?.product_name ?? ""} required />
           </Field>
-          <Field label="Category">
+          <Field label="Category" className="col-span-2 sm:col-span-1">
             <Input name="category" defaultValue={product?.category ?? ""} placeholder="Frozen Pastry" required />
           </Field>
           <Field label="Display Order">
@@ -41,16 +41,16 @@ export function ProductForm({ product, packaging = [], action, formId, showSubmi
             </SelectNative>
           </Field>
           <input type="hidden" name="status" value={product?.status ?? "active"} />
-          <Field label="Product Image">
+          <Field label="Product Image" className="col-span-2">
             <Input name="product_image" type="file" accept="image/png,image/jpeg,image/webp" />
             <p className="mt-1 text-xs text-muted-foreground">PNG, JPG, or WEBP, up to 2MB.</p>
           </Field>
-          <div className="grid gap-4 border-y bg-secondary/30 py-4 md:col-span-2 md:rounded-[var(--sb-control-radius)] md:border md:p-4 md:grid-cols-4">
-            <div className="md:col-span-4">
+          <div className="col-span-2 grid grid-cols-2 gap-3 border-y py-4 sm:gap-4 md:rounded-[var(--sb-control-radius)] md:border md:bg-secondary/30 md:p-4 md:grid-cols-4">
+            <div className="col-span-2 md:col-span-4">
               <p className="text-sm font-semibold">Packaging & Pricing</p>
               <p className="mt-1 text-xs text-muted-foreground">Default selling pack used for catalogue and future order pricing.</p>
             </div>
-            <Field label="Packaging Name">
+            <Field label="Packaging Name" className="col-span-2 sm:col-span-1">
               <Input name="packaging_name" defaultValue={primaryPackaging?.packaging_name ?? "Default Pack"} />
             </Field>
             <Field label="Selling UOM">

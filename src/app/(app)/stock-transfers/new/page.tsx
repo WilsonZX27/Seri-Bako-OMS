@@ -13,7 +13,7 @@ export default async function NewStockTransferPage({ searchParams }: { searchPar
   const selectedFromBranchId = filters.from_branch_id ?? branches[0]?.id;
   const seedLines = await getOperationSeedLines(selectedFromBranchId);
   const formId = "stock-transfer-create-form";
-  const primaryAction = <SubmitButton form={formId} type="submit" disabled={!seedLines.length} className="w-full"><ArrowLeftRight className="h-4 w-4" />Create Transfer</SubmitButton>;
+  const primaryAction = <SubmitButton form={formId} type="submit" disabled={!seedLines.length} className="w-full"><ArrowLeftRight className="h-4 w-4" />Save Transfer Draft</SubmitButton>;
   const steps = [
     { key: "draft", label: "Draft", description: "Branches and quantities can be checked." },
     { key: "in_transit", label: "In Transit", description: "Stock is moving to the destination branch." },

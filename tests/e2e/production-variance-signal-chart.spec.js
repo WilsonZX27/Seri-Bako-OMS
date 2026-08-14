@@ -57,14 +57,21 @@ test.describe("Production variance signal distribution", () => {
       await page.goto(`/production/variance?period=7&branch=${fixtureBranchId}`, { waitUntil: "domcontentloaded" });
       const chart = page.getByRole("region", { name: "Supply signal distribution" });
       await expect(chart).toBeVisible();
-      const under = chart.getByRole("link", { name: /Under-supplied/ }).first();
-      const over = chart.getByRole("link", { name: /Over-supplied/ }).first();
-      await expect(under).toHaveAttribute("href", /signal=under_supplied/);
-      await expect(over).toHaveAttribute("href", /signal=over_supplied/);
+      const under = chart.locator('[data-production-signal-option="under_supplied"]');
+      const over = chart.locator('[data-production-signal-option="over_supplied"]');
+      await expect(under).not.toHaveAttribute("href", /./);
+      await expect(over).not.toHaveAttribute("href", /./);
       await under.focus();
       await expect(chart).toContainText(/Under-supplied · 1 product-outlet row/);
+      await expect(chart.locator("[data-production-signal-open]")).toHaveAttribute("href", /signal=under_supplied/);
       await over.hover();
       await expect(chart).toContainText(/Over-supplied · 1 product-outlet row/);
+      await expect(chart.locator("[data-production-signal-open]")).toHaveAttribute("href", /signal=over_supplied/);
+      if (viewport.width === 393) {
+        const reportUrl = page.url();
+        await over.click();
+        await expect(page).toHaveURL(reportUrl);
+      }
       if (viewport.width < 1280) await expect(page.locator("[data-production-variance-list]")).toContainText("E2E Under Signal Product");
       if (viewport.width >= 1280) await expect(page.getByRole("region", { name: "Production versus outlet demand variance" })).toContainText("E2E Under Signal Product");
       expect(await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)).toBeLessThanOrEqual(5);

@@ -19,9 +19,13 @@ test("AP Aging renders ordered direct-label distribution bars from the report bu
 test("Every aging bar preserves current filters and drills into the same invoice table", () => {
   assert.match(page, /params\.set\("bucket", bucket\)/);
   assert.match(page, /params\.delete\("page"\)/);
-  assert.match(chart, /href=\{item\.href\}/);
+  assert.match(chart, /data-aging-bucket/);
+  assert.match(chart, /href=\{activeItem\.href\}/);
+  assert.match(chart, /data-aging-open/);
   assert.match(chart, /onMouseEnter/);
   assert.match(chart, /onFocus/);
-  assert.match(chart, /role="tooltip"/);
+  assert.match(chart, /role="region"/);
+  assert.match(chart, /aria-pressed/);
+  assert.doesNotMatch(chart, /return <Link[\s\S]*?href=\{item\.href\}/);
   assert.match(chart, /Select a bucket to filter invoice detail/);
 });

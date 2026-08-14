@@ -128,11 +128,12 @@ test.describe("outlet wastage chart preview", () => {
     await page.goto("/supplier-invoices/aging", { waitUntil: "domcontentloaded" });
     const chart = page.locator("[data-aging-distribution]");
     await expect(chart).toBeVisible();
-    const firstBucket = chart.getByRole("listitem").first();
+    const firstBucket = chart.locator("[data-aging-bucket]").first();
     await firstBucket.hover();
     await expect(chart.locator("[data-aging-preview]")).toContainText(/invoice/i);
     await firstBucket.focus();
-    await expect(firstBucket).toHaveAttribute("href", /bucket=not_due/);
+    await expect(firstBucket).not.toHaveAttribute("href", /./);
+    await expect(chart.locator("[data-aging-open]")).toHaveAttribute("href", /bucket=not_due/);
   });
 
   test("Cash Flow due windows expose direct labels, previews, and AP drill-through", async ({ page }) => {
@@ -141,10 +142,11 @@ test.describe("outlet wastage chart preview", () => {
     await expect(chart).toBeVisible();
     await expect(chart.getByText("Due in 1–7 days")).toBeVisible();
     await expect(chart.getByText("Due in 8–14 days")).toBeVisible();
-    const overdue = chart.getByRole("listitem").first();
+    const overdue = chart.locator("[data-aging-bucket]").first();
     await overdue.hover();
     await expect(chart.locator("[data-aging-preview]")).toContainText(/invoice/i);
-    await expect(overdue).toHaveAttribute("href", /supplier-invoices\/aging\?overdue=1/);
+    await expect(overdue).not.toHaveAttribute("href", /./);
+    await expect(chart.locator("[data-aging-open]")).toHaveAttribute("href", /supplier-invoices\/aging\?overdue=1/);
   });
 
   test.describe("on a touch viewport", () => {
@@ -245,6 +247,11 @@ test.describe("outlet wastage chart preview", () => {
       await expect(chart.getByRole("listitem")).toHaveCount(7);
       await expect(chart.getByText("90+ Days Overdue")).toBeVisible();
       await expect(chart.getByText("Missing Due Date")).toBeVisible();
+      const firstBucket = chart.locator("[data-aging-bucket]").first();
+      const agingUrl = page.url();
+      await firstBucket.tap();
+      await expect(page).toHaveURL(agingUrl);
+      await expect(chart.locator("[data-aging-open]")).toBeVisible();
       const fitsViewport = await chart.evaluate((node) => {
         const bounds = node.getBoundingClientRect();
         return bounds.left >= 0 && bounds.right <= document.documentElement.clientWidth;
@@ -259,7 +266,8 @@ test.describe("outlet wastage chart preview", () => {
       await expect(chart.getByRole("listitem").filter({ hasText: "Missing due date" })).toBeVisible();
       await expect(chart.getByText(/Due in 15\+ days through/)).toBeVisible();
       const missing = chart.getByRole("listitem").filter({ hasText: "Missing due date" });
-      await expect(missing).toHaveAttribute("href", /bucket=missing_due_date/);
+      await missing.locator("[data-aging-bucket]").tap();
+      await expect(chart.locator("[data-aging-open]")).toHaveAttribute("href", /bucket=missing_due_date/);
       const fitsViewport = await chart.evaluate((node) => {
         const bounds = node.getBoundingClientRect();
         return bounds.left >= 0 && bounds.right <= document.documentElement.clientWidth;

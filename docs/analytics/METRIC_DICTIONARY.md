@@ -1,6 +1,6 @@
 # Seri Bako OMS Metric Dictionary
 
-**Current application:** `v8.36.24`
+**Current application:** `v8.36.25`
 **Repository migration ceiling:** `149`
 **Last reviewed:** 2026-08-15
 
@@ -118,7 +118,7 @@ Daily trend uses request-time report data. The line preview exposes date, moveme
 | Permission | `supplier_invoice.view`, company scoped by the database function. |
 | Freshness | Explicit `report_date`; this is an as-of report, not a browser clock. |
 | Zero/unavailable | Valid empty bucket shows RM0 and zero invoices. Query failure uses the route error boundary. |
-| Drill-through | Bucket bar preserves current filters, replaces bucket, resets page, and opens the same invoice detail authority. |
+| Interaction/drill-through | Hover, touch, click, and keyboard focus select the same preview without navigation. Its explicit Open action preserves current filters, replaces bucket, resets page, and opens the same invoice detail authority. |
 
 ## Cash Flow payable pressure
 
@@ -131,7 +131,7 @@ Daily trend uses request-time report data. The line preview exposes date, moveme
 | Source | Complete AP Aging authority through `getCashFlowForecast`; no bank balance or cash-in data. |
 | Permission | Same AP Aging/Supplier Invoice view boundary. |
 | Freshness | Explicit `report_date` and `period_end`. |
-| Drill-through | Equivalent AP Aging overdue, bucket, or due-date range filter. |
+| Interaction/drill-through | Due-window selection previews exact MYR and invoice count without navigation. Its explicit Open action applies the equivalent AP Aging overdue, bucket, or due-date range filter. |
 
 ## Procurement Variance
 

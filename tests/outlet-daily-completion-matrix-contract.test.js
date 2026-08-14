@@ -1,0 +1,31 @@
+const test = require("node:test");
+const assert = require("node:assert/strict");
+const fs = require("node:fs");
+const path = require("node:path");
+
+const root = path.resolve(__dirname, "..");
+const read = (file) => fs.readFileSync(path.join(root, file), "utf8");
+
+test("outlet completion matrix uses a bounded seven-day header query and preserves authoritative states", () => {
+  const query = read("src/server/queries/outlet-daily-records.ts");
+  assert.match(query, /getOutletDailyCompletionMatrix/);
+  assert.match(query, /const start = shiftDate\(end, -6\)/);
+  assert.match(query, /select\("id,branch_id,record_date,status,updated_at"\)/);
+  assert.match(query, /\.gte\("record_date", start\)[\s\S]*\.lte\("record_date", end\)/);
+  assert.match(query, /record\?\.status \?\? "missing"/);
+  assert.match(query, /\["evening_completed", "reviewed"\]\.includes\(cell\.status\)/);
+  assert.doesNotMatch(query, /getOutletDailyCompletionMatrix[\s\S]*outlet_daily_record_lines/);
+});
+
+test("outlet completion matrix provides hover, touch, keyboard and direct-record preview", () => {
+  const component = read("src/components/outlet-daily-completion-matrix.tsx");
+  const page = read("src/app/(app)/outlet-daily-records/page.tsx");
+  assert.match(component, /onMouseEnter=\{\(\) => setActiveKey\(key\)\}/);
+  assert.match(component, /onFocus=\{\(\) => setActiveKey\(key\)\}/);
+  assert.match(component, /onPointerDown=\{\(\) => setActiveKey\(key\)\}/);
+  assert.match(component, /data-outlet-completion-preview/);
+  assert.match(component, /Open daily record/);
+  assert.match(component, /not a lateness estimate/);
+  assert.match(component, /overflow-x-auto/);
+  assert.match(page, /<OutletDailyCompletionMatrix/);
+});

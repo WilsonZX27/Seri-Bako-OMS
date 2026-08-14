@@ -1,6 +1,6 @@
 # Seri Bako OMS Metric Dictionary
 
-**Current application:** `v8.36.17`
+**Current application:** `v8.36.18`
 **Repository migration ceiling:** `148`
 **Last reviewed:** 2026-08-15
 
@@ -40,6 +40,19 @@ This is the authority for user-visible KPI and chart meaning. It documents prese
 | Freshness | Request-time; record dates are displayed for every point. |
 | Incomplete | Non-completed records are excluded from reliable totals and coverage messaging remains visible. |
 | Accessible alternative | Screen-reader data table/list containing every plotted point. |
+
+## Outlet Daily completion matrix
+
+| Field | Contract |
+|---|---|
+| Decision | Which visible outlet-days are missing, in progress, completed, reviewed, or void over the last seven calendar dates? |
+| Formula | One expected cell per active, permitted outlet × calendar date. Evening Completed and Reviewed count as complete; Draft and Morning Recorded count as in progress; no record is Missing; Void remains separate. |
+| Grain | Outlet × calendar date for exactly seven dates through the Asia/Kuala_Lumpur request date. |
+| Source | Bounded `outlet_daily_records` header query only; no product-line read and no inferred deadline. |
+| Permission | Existing `outlet_daily_record.view`, Outlet Daily RLS, and permitted outlet options. |
+| Freshness | Request-time record status. Dates and selected outlet are shown in the preview. |
+| Zero/unavailable | A missing record is Missing, never zero or complete. Query failure must remain unavailable through the page error boundary. |
+| Interaction/accessibility | Direct status letters plus legend, semantic table, hover/touch/focus preview, and direct link for existing records. Lateness is not claimed. |
 
 ## Demand Trend Lite
 

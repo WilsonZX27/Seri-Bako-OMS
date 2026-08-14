@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
 import { FilterBar } from "@/components/ui/filter-bar";
 import { OutletDailyWastageChart } from "@/components/outlet-daily-wastage-chart";
+import { OutletDailyCompletionMatrix } from "@/components/outlet-daily-completion-matrix";
 import { Input } from "@/components/ui/input";
 import { PageHeader } from "@/components/ui/page-header";
 import { SelectControl } from "@/components/ui/select-control";
@@ -16,18 +17,19 @@ import { OperationalList, OperationalListRow, Table, TableActionLink, TableBody,
 import { formatDateOnly, formatDateTime, formatNumber } from "@/lib/utils";
 import { hasActiveFilters } from "@/lib/table-state";
 import { hasPermission } from "@/server/auth/permissions";
-import { getOutletDailyDemandTrend, getOutletDailyFormOptions, getOutletDailyRecords } from "@/server/queries/outlet-daily-records";
+import { getOutletDailyCompletionMatrix, getOutletDailyDemandTrend, getOutletDailyFormOptions, getOutletDailyRecords } from "@/server/queries/outlet-daily-records";
 
 const statuses = ["draft", "morning_recorded", "evening_completed", "reviewed", "void"];
 const statusGuidance = (status: string) => status === "evening_completed" ? "Posted · editable" : status === "reviewed" ? "Legacy reviewed record" : ["draft", "morning_recorded"].includes(status) ? "In progress" : "Locked";
 
 export default async function OutletDailyRecordsPage({ searchParams }: { searchParams: Promise<Record<string, string | undefined>> }) {
   const filters = await searchParams;
-  const [data, options, canCreate, trend] = await Promise.all([
+  const [data, options, canCreate, trend, completion] = await Promise.all([
     getOutletDailyRecords(filters),
     getOutletDailyFormOptions(),
     hasPermission("outlet_daily_record.create"),
     getOutletDailyDemandTrend({ period: "30", branch: filters.branch }),
+    getOutletDailyCompletionMatrix({ branch: filters.branch }),
   ]);
   const filtered = hasActiveFilters(filters);
   return <>
@@ -38,6 +40,7 @@ export default async function OutletDailyRecordsPage({ searchParams }: { searchP
       <ConsoleSection title="Completion"><p className="text-xs"><span className="text-muted-foreground">Ready to post</span><br /><strong>{data.summary.needs_review}</strong></p></ConsoleSection>
     </>}>
       <div className="space-y-3">
+        <OutletDailyCompletionMatrix dates={completion.dates} rows={completion.rows} summary={completion.summary} />
         <OutletDailyWastageChart points={trend.daily} />
         <FilterBar resultCount={data.totalRows} resetHref="/outlet-daily-records" filtered={filtered} className="sb-list-filters--date-first">
             <Input name="date" type="date" defaultValue={filters.date ?? ""} aria-label="Record date" className="sb-filter-date" />

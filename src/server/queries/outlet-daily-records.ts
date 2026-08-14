@@ -25,6 +25,15 @@ export type OutletDailyRecordRow = RecordRow & {
 
 export type OutletDailyDefaultLine = Pick<LineRow, "morning_received_qty" | "wastage_qty" | "wastage_reason" | "notes">;
 
+export type OutletDailyCompletionStatus = RecordRow["status"] | "missing";
+export type OutletDailyCompletionCell = {
+  branch_id: string;
+  branch_name: string;
+  record_date: string;
+  record_id: string | null;
+  status: OutletDailyCompletionStatus;
+};
+
 const todayInKualaLumpur = () => new Intl.DateTimeFormat("en-CA", {
   timeZone: "Asia/Kuala_Lumpur", year: "numeric", month: "2-digit", day: "2-digit",
 }).format(new Date());
@@ -260,6 +269,61 @@ export async function getOutletDailyDemandTrend(filters: Filters = {}) {
     : { data: [], error: null };
   if (linesError) throw new Error(linesError.message);
   return buildDemandTrend({ records: typedRecords, lines: (lines ?? []) as LineRow[], branches: options.branches, products: options.products, start, end, period, status, branchId, productId });
+}
+
+export async function getOutletDailyCompletionMatrix(filters: Filters = {}) {
+  const end = todayInKualaLumpur();
+  const start = shiftDate(end, -6);
+  const options = await getOutletDailyFormOptions();
+  const selectedBranchId = filters.branch && filters.branch !== "all" ? filters.branch : undefined;
+  if (selectedBranchId && !options.branches.some((branch) => branch.id === selectedBranchId)) throw new Error("Selected outlet is not available.");
+  const branches = options.branches.filter((branch) => !selectedBranchId || branch.id === selectedBranchId);
+  const dates = Array.from({ length: 7 }, (_, index) => shiftDate(start, index));
+  if (isMockMode()) return buildOutletDailyCompletionMatrix({ branches, dates, records: [] });
+
+  if (!await hasPermission("outlet_daily_record.view")) throw new Error("Missing permission: outlet_daily_record.view");
+  const db = await createClient();
+  let query = db
+    .from("outlet_daily_records")
+    .select("id,branch_id,record_date,status,updated_at")
+    .gte("record_date", start)
+    .lte("record_date", end)
+    .order("updated_at", { ascending: false });
+  if (selectedBranchId) query = query.eq("branch_id", selectedBranchId);
+  const { data, error } = await query;
+  if (error) throw new Error(error.message);
+  return buildOutletDailyCompletionMatrix({ branches, dates, records: (data ?? []) as Pick<RecordRow, "id" | "branch_id" | "record_date" | "status" | "updated_at">[] });
+}
+
+function buildOutletDailyCompletionMatrix({ branches, dates, records }: {
+  branches: Awaited<ReturnType<typeof getOutletDailyFormOptions>>["branches"];
+  dates: string[];
+  records: Pick<RecordRow, "id" | "branch_id" | "record_date" | "status" | "updated_at">[];
+}) {
+  const recordByOutletDay = new Map<string, (typeof records)[number]>();
+  for (const record of records) {
+    const key = `${record.branch_id}:${record.record_date}`;
+    const current = recordByOutletDay.get(key);
+    if (!current || (current.status === "void" && record.status !== "void")) recordByOutletDay.set(key, record);
+  }
+  const rows = branches.map((branch) => ({
+    branch_id: branch.id,
+    branch_name: branch.branch_name,
+    cells: dates.map<OutletDailyCompletionCell>((recordDate) => {
+      const record = recordByOutletDay.get(`${branch.id}:${recordDate}`);
+      return { branch_id: branch.id, branch_name: branch.branch_name, record_date: recordDate, record_id: record?.id ?? null, status: record?.status ?? "missing" };
+    }),
+  }));
+  const cells = rows.flatMap((row) => row.cells);
+  const completed = cells.filter((cell) => ["evening_completed", "reviewed"].includes(cell.status)).length;
+  const incomplete = cells.filter((cell) => ["draft", "morning_recorded"].includes(cell.status)).length;
+  const missing = cells.filter((cell) => cell.status === "missing").length;
+  const voided = cells.filter((cell) => cell.status === "void").length;
+  return {
+    dates,
+    rows,
+    summary: { expected: cells.length, completed, incomplete, missing, voided },
+  };
 }
 
 export async function getProductionPlanning(filters: Filters = {}) {

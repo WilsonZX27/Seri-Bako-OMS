@@ -1,6 +1,6 @@
 # Seri Bako OMS responsive design standard
 
-> **Release authority:** the currently released application is `v8.36.17`, as
+> **Release authority:** the currently released application is `v8.36.18`, as
 > defined by `src/lib/app-version.ts`. A versioned section above that number is
 > an accepted forward design contract or unreleased implementation note—not
 > evidence that the application itself has been released at that version.
@@ -22,6 +22,12 @@ This document is the implementation contract for every customer-facing route, fo
 
 - A dense editable list must use the exact same column template, horizontal gutter, and gap for its header and every data row. Inner controls may fill their assigned column but must not introduce a second `max-width` or end-alignment rule that visually detaches them from the column heading.
 - Stock Count uses an elastic Item column, a stable Variance column, and a bounded Count column. Quantity stepper and UOM remain inside that Count column at desktop and tablet widths; phone rows may stack the Count control beneath the item context.
+
+## v8.36.18 — Outlet Completion Matrix
+
+- Outlet Daily Records shows a bounded seven-day outlet-by-day completion matrix using record headers only. It reuses the existing Outlet Daily permission and branch scope and does not read product lines for completion state.
+- Missing, Draft, Morning Recorded, Evening Completed, Reviewed, and Void remain authoritative distinct states. The UI may group Draft and Morning Recorded as “In progress,” but it must not infer lateness without an approved deadline source.
+- Hover, touch, and keyboard focus expose the same outlet-day preview. Existing records drill directly to their record workspace; the compact matrix may scroll internally on narrow screens but must not cause document-level horizontal overflow.
 
 ## v8.36.17 — Inventory Daily Movement Insight
 

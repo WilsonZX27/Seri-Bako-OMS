@@ -22,6 +22,20 @@ test("Production variance classifies supply signals conservatively", () => {
   assert.match(page, /Under-supply is a low-leftover movement signal, not a production shortfall/);
 });
 
+test("Production variance visual compares signal counts without inventing a cross-UOM magnitude", () => {
+  const chart = read("src/components/reports/production-variance-signal-chart.tsx");
+  assert.match(query, /const all_rows = trend\.product_outlets\.map/);
+  assert.match(query, /const rows = all_rows\.filter/);
+  assert.match(page, /rows=\{report\.variance\.all_rows\}/);
+  assert.match(page, /className="divide-y xl:hidden" data-production-variance-list/);
+  assert.match(chart, /Bar length compares row counts, never quantities across unlike UOMs/);
+  assert.match(chart, /Under- and over-supply signal count comparison/);
+  assert.match(chart, /onMouseEnter/);
+  assert.match(chart, /onFocus/);
+  assert.match(chart, /aria-live="polite"/);
+  assert.doesNotMatch(chart, /received\s*[-+\/]\s*(movement|leftover|wastage)/);
+});
+
 test("Production variance remains read-only and avoids a production-job comparison", () => {
   assert.doesNotMatch(query, /(insert into|update|delete from) public\.(production_jobs|stock_transactions|stock_transaction_lines|stock_balances|supplier_invoices|supplier_invoice_payments)/i);
   assert.match(page, /Production job comparison is not included without a reliable posted-output join/);

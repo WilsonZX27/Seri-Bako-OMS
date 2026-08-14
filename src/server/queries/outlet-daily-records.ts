@@ -371,8 +371,8 @@ export async function getProductionDemandVariance(filters: Filters = {}) {
 }
 
 function buildProductionDemandVariance(trend: Awaited<ReturnType<typeof getOutletDailyDemandTrend>>, filters: Filters = {}) {
-  const signal = ["all", "over_supplied", "under_supplied", "review_manual"].includes(filters.signal ?? "") ? filters.signal ?? "all" : "all";
-  const rows = trend.product_outlets.map((row) => {
+  const signal = ["all", "over_supplied", "under_supplied", "balanced", "review_manual"].includes(filters.signal ?? "") ? filters.signal ?? "all" : "all";
+  const all_rows = trend.product_outlets.map((row) => {
     const leftover_percent = row.received > 0 ? (row.leftover / row.received) * 100 : 0;
     const manual_review = trend.coverage.confidence === "Low" || row.low_sample;
     const variance_signal = manual_review
@@ -383,11 +383,13 @@ function buildProductionDemandVariance(trend: Awaited<ReturnType<typeof getOutle
           ? "under_supplied"
           : "balanced";
     return { ...row, leftover_percent, variance_signal, manual_review };
-  }).filter((row) => signal === "all" || row.variance_signal === signal);
+  });
+  const rows = all_rows.filter((row) => signal === "all" || row.variance_signal === signal);
   return {
     ...trend,
     variance: {
       signal,
+      all_rows,
       rows,
       summary: {
         over_supplied: rows.filter((row) => row.variance_signal === "over_supplied").length,

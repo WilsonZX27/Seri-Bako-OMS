@@ -272,7 +272,7 @@ These are the safest first implementations because the data already exists in ea
 | Inventory | Are inbound and outbound movements changing by day? | Daily paired/stacked columns by movement direction/type. | Extend the bounded Inventory summary from `inventory_daily_summary`; never scan the raw ledger on the page. |
 | Manager operations | Which outlet-days are incomplete or late? | Outlet × day completion heatmap with explicit missing/incomplete/reviewed states. | Add a bounded operational read model or reuse the existing reliable Outlet Daily query with a strict period. |
 | Stock Count | Where are recurring physical variances? | Signed variance bars by branch/item and a small 30-day variance trend. | Define a read-only stock-count variance report; preserve posted count and adjustment authority. |
-| Production planning | Where is received quantity misaligned with estimated outlet movement? | Diverging bars for over-/under-supply signals with coverage confidence. | Reuse the existing conservative variance semantics; do not label it production output until a reliable posted-output join exists. |
+| Production planning | Where is received quantity misaligned with estimated outlet movement? | **Delivered v8.36.20:** zero-baseline diverging counts for conservative under-/over-supply product-outlet signals, with hover/touch/focus definitions and direct signal filtering. | Reuses the existing conservative variance semantics, compares row counts rather than unlike-UOM quantities, and does not label the signal as production output. |
 
 ### Phase 3 — only after data-definition approval
 

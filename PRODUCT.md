@@ -4,7 +4,7 @@
 
 ### Current audit baseline
 
-The current released application baseline is `v8.36.19 — Stock Count Variance Insight`.
+The current released application baseline is `v8.36.20 — Production Variance Signal Distribution`.
 The repository migration history currently runs through migration `149`. Release
 version authority lives in `src/lib/app-version.ts`; migration authority lives in
 the immutable, forward-only `supabase/migrations/` directory. Documentation must
@@ -165,7 +165,7 @@ The system currently covers or is actively implementing the following operationa
 
 Module maturity must be understood separately from visual completion.
 
-Current integration baseline: `v8.36.19 — Stock Count Variance Insight`, with repository migrations reviewed through `149`. Migrations `111` and `112` remain immutable history because they were applied to the linked database accidentally. Migration `113` removes their callable Central Kitchen PR RPC, prevents further access to the stock-holds table, and preserves that table temporarily for a non-destructive data audit. Later forward-only migrations add bounded inventory and Dashboard read models, repair grants and scoped access, and introduce branch supply-route provenance; they do not restore the retired Central Kitchen PR workflow.
+Current integration baseline: `v8.36.20 — Production Variance Signal Distribution`, with repository migrations reviewed through `149`. Migrations `111` and `112` remain immutable history because they were applied to the linked database accidentally. Migration `113` removes their callable Central Kitchen PR RPC, prevents further access to the stock-holds table, and preserves that table temporarily for a non-destructive data audit. Later forward-only migrations add bounded inventory and Dashboard read models, repair grants and scoped access, and introduce branch supply-route provenance; they do not restore the retired Central Kitchen PR workflow.
 
 A page may exist visually without its full workflow, validation, database integration, permissions, and downstream effects being complete.
 
@@ -325,6 +325,8 @@ Production Planning Lite turns the same reliable Demand Trend movement into a ca
 ### Production vs Outlet Demand Variance
 
 Production vs Outlet Demand Variance compares received quantities, estimated movement, leftovers, and wastage from reliable Outlet Daily Records by product and outlet. It uses conservative over-/under-supply signals and inherits demand coverage confidence; it does not compare production jobs until a reliable posted-output join is available, and it performs no writes.
+
+Its overview compares classified product-outlet row counts around a shared zero baseline. It never compares raw quantities across products or unlike UOMs. Every signal supports pointer, touch, and keyboard preview and opens the equivalent filtered detail list; the list remains the source-detail authority.
 
 ### Operations Control Center Lite
 

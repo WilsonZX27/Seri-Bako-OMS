@@ -74,6 +74,8 @@ The populated-detail audit additionally verifies eight fixture-backed record typ
 
 Stock Wastage previously rendered selection checkboxes without applying `line_enabled` when the server action built its payload. Unchecked rows could therefore retain default quantities and be submitted. Transfer and Wastage now both filter payload lines through the enabled item IDs, while the shared phone form hides quantity, availability, reason, batch, and remarks until an item is selected.
 
+Supplier Invoice matching now uses one flat form surface: eligible GRNs are internal border sections rather than nested `erp-surface` cards. Phone rows progressively disclose invoice quantity, price, receiving references, and variance only after selection, with an announced empty requirement and selected-line count. An opt-in loopback-only fixture builds an idempotent supplier, branch mapping, received PO, and posted GRN chain; the populated 390px, 820px, and 1180px browser audit passes without saving an invoice.
+
 ## Continuation verification (2026-07-16)
 
 Local source/build verification: Passed (6 contract tests, typecheck, lint, build, diff check). Local browser route verification reached the login gate at `/imports`; no local credentials were supplied, so authenticated screenshots and data-state checks remain Blocked. Production read-only tab was restored to `/stock-balance`; no records, imports, attachments, or permissions were changed.

@@ -20,6 +20,9 @@ test("local Playwright role fixtures are explicit, disposable, and never enabled
   assert.match(seed, /NEXT_PUBLIC_SUPABASE_URL/);
   assert.doesNotMatch(seed, /execFileSync/);
   assert.match(seed, /process\.env\.E2E_STOCK_COUNT_FIXTURE\s*===\s*["']1["']/);
+  assert.match(seed, /process\.env\.E2E_SUPPLIER_INVOICE_FIXTURE\s*===\s*["']1["']/);
+  assert.match(seed, /E2E-GRN-INVOICE-OPEN/);
+  assert.match(seed, /Disposable local Supplier Invoice UI fixture/);
 });
 
 test("interactive-bound audits ignore only non-operable headless form mirrors", () => {

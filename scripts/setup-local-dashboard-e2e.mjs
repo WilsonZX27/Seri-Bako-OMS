@@ -25,6 +25,7 @@ if (!["127.0.0.1", "localhost"].includes(localHostname) || process.env.RUN_TENAN
 const admin = createClient(localUrl, serviceRoleKey, { auth: { persistSession: false } });
 const authCheck = createClient(localUrl, publishableKey, { auth: { persistSession: false } });
 const includeStockCountFixture = process.argv.includes("--stock-count-fixture") || process.env.E2E_STOCK_COUNT_FIXTURE === "1";
+const includeSupplierInvoiceFixture = process.argv.includes("--supplier-invoice-fixture") || process.env.E2E_SUPPLIER_INVOICE_FIXTURE === "1";
 const accounts = [
   ["super_admin", "TEST_SUPER_ADMIN_EMAIL", "TEST_SUPER_ADMIN_PASSWORD"],
   ["finance", "TEST_FINANCE_EMAIL", "TEST_FINANCE_PASSWORD"],
@@ -138,6 +139,75 @@ if (includeStockCountFixture) {
   if (stockError) throw stockError;
 }
 
-console.log(includeStockCountFixture
-  ? "Created six disposable local dashboard identities and a local-only stock-count visual fixture."
+if (includeSupplierInvoiceFixture) {
+  const fixtureItemCode = "E2E-INV-001";
+  const fixtureSupplierCode = "E2E-INV-SUP";
+  const fixturePoNo = "E2E-PO-INVOICE-OPEN";
+  const fixtureGrnNo = "E2E-GRN-INVOICE-OPEN";
+
+  let { data: invoiceItem, error: invoiceItemError } = await admin.from("items").select("id").eq("company_id", company.id).eq("item_code", fixtureItemCode).maybeSingle();
+  if (invoiceItemError) throw invoiceItemError;
+  if (!invoiceItem) {
+    const result = await admin.from("items").insert({ company_id: company.id, item_code: fixtureItemCode, item_name: "Invoice Matching Ingredient", category: "E2E fixture", purchase_unit: "KG", base_unit: "KG", cost: 4.25, safety_stock: 0 }).select("id").single();
+    if (result.error) throw result.error;
+    invoiceItem = result.data;
+  }
+
+  let { data: invoiceSupplier, error: invoiceSupplierError } = await admin.from("suppliers").select("id").eq("company_id", company.id).eq("supplier_code", fixtureSupplierCode).maybeSingle();
+  if (invoiceSupplierError) throw invoiceSupplierError;
+  if (!invoiceSupplier) {
+    const result = await admin.from("suppliers").insert({ company_id: company.id, supplier_code: fixtureSupplierCode, name: "Local E2E Invoice Supplier", payment_terms_days: 30, status: "active" }).select("id").single();
+    if (result.error) throw result.error;
+    invoiceSupplier = result.data;
+  }
+
+  let { data: invoiceSupplierItem, error: invoiceSupplierItemError } = await admin.from("supplier_items").select("id").eq("company_id", company.id).eq("supplier_id", invoiceSupplier.id).eq("item_id", invoiceItem.id).is("deleted_at", null).maybeSingle();
+  if (invoiceSupplierItemError) throw invoiceSupplierItemError;
+  if (!invoiceSupplierItem) {
+    const result = await admin.from("supplier_items").insert({ company_id: company.id, supplier_id: invoiceSupplier.id, item_id: invoiceItem.id, supplier_item_code: "E2E-INV-SUP-ITEM", supplier_item_name: "Invoice Matching Ingredient", purchase_uom: "KG", conversion_to_base_uom: 1, unit_cost: 4.25, moq: 1, lead_time_days: 1, status: "active" }).select("id").single();
+    if (result.error) throw result.error;
+    invoiceSupplierItem = result.data;
+  }
+  const { data: invoiceBranchMapping, error: invoiceBranchMappingError } = await admin.from("branch_supplier_items").select("id").eq("branch_id", branch.id).eq("supplier_item_id", invoiceSupplierItem.id).eq("item_id", invoiceItem.id).is("deleted_at", null).maybeSingle();
+  if (invoiceBranchMappingError) throw invoiceBranchMappingError;
+  if (!invoiceBranchMapping) {
+    const result = await admin.from("branch_supplier_items").insert({ branch_id: branch.id, supplier_item_id: invoiceSupplierItem.id, item_id: invoiceItem.id, is_preferred: true, status: "active" });
+    if (result.error) throw result.error;
+  }
+
+  let { data: invoicePo, error: invoicePoError } = await admin.from("purchase_orders").select("id").eq("company_id", company.id).eq("po_no", fixturePoNo).maybeSingle();
+  if (invoicePoError) throw invoicePoError;
+  if (!invoicePo) {
+    const result = await admin.from("purchase_orders").insert({ company_id: company.id, branch_id: branch.id, po_no: fixturePoNo, supplier_id: invoiceSupplier.id, status: "received", approval_status: "approved", remarks: "Disposable local Supplier Invoice UI fixture." }).select("id").single();
+    if (result.error) throw result.error;
+    invoicePo = result.data;
+  }
+
+  let { data: invoicePoLine, error: invoicePoLineError } = await admin.from("purchase_order_lines").select("id").eq("purchase_order_id", invoicePo.id).eq("item_id", invoiceItem.id).maybeSingle();
+  if (invoicePoLineError) throw invoicePoLineError;
+  if (!invoicePoLine) {
+    const result = await admin.from("purchase_order_lines").insert({ purchase_order_id: invoicePo.id, item_id: invoiceItem.id, qty_ordered: 10, qty_received: 10, uom: "KG", unit_price: 4.25 }).select("id").single();
+    if (result.error) throw result.error;
+    invoicePoLine = result.data;
+  }
+
+  let { data: invoiceGrn, error: invoiceGrnError } = await admin.from("goods_receivings").select("id").eq("company_id", company.id).eq("grn_no", fixtureGrnNo).maybeSingle();
+  if (invoiceGrnError) throw invoiceGrnError;
+  if (!invoiceGrn) {
+    const result = await admin.from("goods_receivings").insert({ company_id: company.id, purchase_order_id: invoicePo.id, grn_no: fixtureGrnNo, supplier_id: invoiceSupplier.id, branch_id: branch.id, status: "posted", posted_at: new Date().toISOString(), remarks: "Disposable local Supplier Invoice UI fixture." }).select("id").single();
+    if (result.error) throw result.error;
+    invoiceGrn = result.data;
+  }
+
+  const { data: currentGrnLine, error: currentGrnLineError } = await admin.from("goods_receiving_lines").select("id").eq("goods_receiving_id", invoiceGrn.id).eq("item_id", invoiceItem.id).maybeSingle();
+  if (currentGrnLineError) throw currentGrnLineError;
+  if (!currentGrnLine) {
+    const result = await admin.from("goods_receiving_lines").insert({ goods_receiving_id: invoiceGrn.id, purchase_order_line_id: invoicePoLine.id, item_id: invoiceItem.id, ordered_qty: 10, pending_qty: 0, received_qty: 10, rejected_qty: 0, returned_qty: 0, uom: "KG", unit_cost: 4.25, remarks: "Disposable local Supplier Invoice UI fixture." });
+    if (result.error) throw result.error;
+  }
+}
+
+const fixtureLabels = [includeStockCountFixture ? "stock-count" : null, includeSupplierInvoiceFixture ? "supplier-invoice" : null].filter(Boolean);
+console.log(fixtureLabels.length
+  ? `Created six disposable local dashboard identities and local-only ${fixtureLabels.join(" + ")} fixtures.`
   : "Created six disposable local dashboard identities without business records.");

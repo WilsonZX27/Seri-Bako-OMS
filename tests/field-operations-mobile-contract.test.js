@@ -115,6 +115,12 @@ test("supplier invoice matching uses editable phone lines instead of a nine-colu
   assert.match(source, /data-supplier-invoice-grn/);
   assert.match(source, /sb-table-region hidden md:block/);
   assert.match(source, /data-supplier-invoice-line-list/);
+  assert.match(source, /data-supplier-invoice-line-editor/);
+  assert.match(source, /Select at least one receiving line before saving the invoice\./);
+  assert.match(source, /aria-live="polite"/);
+  assert.match(source, /\{line \? <div data-supplier-invoice-line-editor>/);
+  assert.doesNotMatch(source, /data-supplier-invoice-grn className="erp-surface/);
+  assert.match(source, /data-supplier-invoice-grn className="overflow-hidden border-y/);
   assert.match(source, /Field label="Invoice Qty"/);
   assert.match(source, /grid grid-cols-2 gap-3 bg-secondary\/30 p-3 text-sm/);
 });
@@ -159,6 +165,16 @@ test("low-stock PR creation uses selectable phone rows instead of a five-column 
   assert.match(source, /Suggested <strong/);
   assert.match(source, /bg-\[var\(--sb-green-900\)\]/);
   assert.doesNotMatch(source, /var\(--sb-green\)/);
+});
+
+test("supplier invoice responsive audit verifies flat selected-line disclosure", () => {
+  const source = read("tests/e2e/supplier-invoice-create-responsive.spec.js");
+
+  assert.match(source, /mobile-390/);
+  assert.match(source, /tablet-820/);
+  assert.match(source, /laptop-1180/);
+  assert.match(source, /data-supplier-invoice-line-editor/);
+  assert.match(source, /erp-surface \[data-supplier-invoice-grn\]\.erp-surface/);
 });
 
 test("purchase returns lead with the return quantity before read-only stock references on phones", () => {

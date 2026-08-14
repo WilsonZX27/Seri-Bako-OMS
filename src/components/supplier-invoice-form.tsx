@@ -103,7 +103,7 @@ export function SupplierInvoiceForm({
           {selectedSupplierId ? grns.map((grn) => {
             const allSelected = grn.lines.every((line) => !!lines[line.id]);
             return (
-              <section key={grn.id} data-supplier-invoice-grn className="erp-surface overflow-hidden md:rounded-md">
+              <section key={grn.id} data-supplier-invoice-grn className="overflow-hidden border-y border-[var(--sb-border-soft)]">
                 <label className="flex cursor-pointer items-center gap-2 bg-secondary/40 px-3 py-2 text-sm font-medium">
                   <input type="checkbox" checked={allSelected} onChange={(event) => setGrn(grn, event.target.checked)} />
                   {grn.grn_no} / {grn.po_no ?? "PO"} / Available {formatCurrency(grn.received_value)}
@@ -142,16 +142,18 @@ export function SupplierInvoiceForm({
                           <p className="text-xs text-muted-foreground">{source.item_code ?? "-"} / {source.uom}</p>
                         </div>
                       </div>
-                      <div className="mt-3 grid grid-cols-2 gap-3">
-                        <Field label="Invoice Qty"><Input aria-label={`${source.item_name} invoice quantity`} type="number" min="0.0001" max={source.available_qty} step="0.0001" disabled={!line} value={line?.invoice_qty ?? source.available_qty} onChange={(event) => updateLine(source.id, "invoice_qty", Number(event.target.value))} /></Field>
-                        <Field label="Invoice Price"><Input aria-label={`${source.item_name} invoice price`} type="number" min="0" step="0.0001" disabled={!line} value={line?.invoice_unit_price ?? source.unit_cost} onChange={(event) => updateLine(source.id, "invoice_unit_price", Number(event.target.value))} /></Field>
-                      </div>
-                      <dl className="mt-3 grid grid-cols-3 gap-2 border-t border-[var(--sb-border-soft)] pt-2 text-xs">
-                        <div><dt className="text-muted-foreground">Received</dt><dd className="mt-0.5 font-semibold tabular-nums">{formatNumber(source.received_qty)}</dd></div>
-                        <div><dt className="text-muted-foreground">Available</dt><dd className="mt-0.5 font-semibold tabular-nums">{formatNumber(source.available_qty)}</dd></div>
-                        <div><dt className="text-muted-foreground">PO price</dt><dd className="mt-0.5 font-semibold tabular-nums">{formatCurrency(source.po_unit_price)}</dd></div>
-                      </dl>
-                      {line ? <p className="mt-2 text-xs text-muted-foreground">Variance: {formatNumber(qtyVariance)} qty / {formatCurrency(priceVariance)}</p> : null}
+                      {line ? <div data-supplier-invoice-line-editor>
+                        <div className="mt-3 grid grid-cols-2 gap-3">
+                          <Field label="Invoice Qty"><Input aria-label={`${source.item_name} invoice quantity`} type="number" min="0.0001" max={source.available_qty} step="0.0001" value={line.invoice_qty} onChange={(event) => updateLine(source.id, "invoice_qty", Number(event.target.value))} /></Field>
+                          <Field label="Invoice Price"><Input aria-label={`${source.item_name} invoice price`} type="number" min="0" step="0.0001" value={line.invoice_unit_price} onChange={(event) => updateLine(source.id, "invoice_unit_price", Number(event.target.value))} /></Field>
+                        </div>
+                        <dl className="mt-3 grid grid-cols-3 gap-2 border-t border-[var(--sb-border-soft)] pt-2 text-xs">
+                          <div><dt className="text-muted-foreground">Received</dt><dd className="mt-0.5 font-semibold tabular-nums">{formatNumber(source.received_qty)}</dd></div>
+                          <div><dt className="text-muted-foreground">Available</dt><dd className="mt-0.5 font-semibold tabular-nums">{formatNumber(source.available_qty)}</dd></div>
+                          <div><dt className="text-muted-foreground">PO price</dt><dd className="mt-0.5 font-semibold tabular-nums">{formatCurrency(source.po_unit_price)}</dd></div>
+                        </dl>
+                        <p className="mt-2 text-xs text-muted-foreground">Variance: {formatNumber(qtyVariance)} qty / {formatCurrency(priceVariance)}</p>
+                      </div> : null}
                     </article>;
                   })}
                 </div>
@@ -160,6 +162,9 @@ export function SupplierInvoiceForm({
           }) : <p className="rounded-md border border-dashed p-6 text-center text-sm text-muted-foreground">Select a supplier to load eligible posted GRNs.</p>}
 
           {selectedSupplierId && !grns.length ? <p className="rounded-md border border-dashed p-6 text-center text-sm text-muted-foreground">No eligible uninvoiced received quantities remain for this supplier.</p> : null}
+          {selectedSupplierId && grns.length ? <p className={chosen.length ? "text-xs text-muted-foreground" : "text-xs font-medium text-[var(--sb-warning-text)]"} aria-live="polite">
+            {chosen.length ? `${chosen.length} invoice ${chosen.length === 1 ? "line" : "lines"} selected.` : "Select at least one receiving line before saving the invoice."}
+          </p> : null}
           <div className="grid grid-cols-2 gap-3 bg-secondary/30 p-3 text-sm md:flex md:justify-end md:gap-6">
             <span>Subtotal <strong>{formatCurrency(subtotal)}</strong></span>
             <span>Total <strong>{formatCurrency(subtotal + tax)}</strong></span>

@@ -271,7 +271,7 @@ export default async function PurchaseRequestDetailPage({
                         })}
                       </TableBody>
                   </Table>
-                  <div className="divide-y divide-[var(--sb-border-soft)] md:hidden" role="list" aria-label="Requested items">
+                  <div className="divide-y divide-[var(--sb-border-soft)] xl:hidden" role="list" aria-label="Requested items">
                     {lines.map((line) => {
                       const item = itemById.get(line.item_id);
                       const supplier = line.suggested_supplier_id ? supplierById.get(line.suggested_supplier_id) : null;

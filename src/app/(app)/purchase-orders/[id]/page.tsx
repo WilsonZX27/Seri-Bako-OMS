@@ -166,7 +166,7 @@ export default async function PurchaseOrderDetailPage({ params }: { params: Prom
                     })}
                   </TableBody>
               </Table>
-              <div className="divide-y divide-[var(--sb-border-soft)] md:hidden" role="list" aria-label="Ordered items">
+              <div className="divide-y divide-[var(--sb-border-soft)] xl:hidden" role="list" aria-label="Ordered items">
                 {lines.map((line) => {
                   const item = itemById.get(line.item_id);
                   const pending = line.qty_ordered - line.qty_received - line.qty_cancelled;

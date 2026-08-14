@@ -1,6 +1,6 @@
 # Seri Bako OMS responsive design standard
 
-> **Release authority:** the currently released application is `v8.36.21`, as
+> **Release authority:** the currently released application is `v8.36.22`, as
 > defined by `src/lib/app-version.ts`. A versioned section above that number is
 > an accepted forward design contract or unreleased implementation note—not
 > evidence that the application itself has been released at that version.
@@ -22,6 +22,12 @@ This document is the implementation contract for every customer-facing route, fo
 
 - A dense editable list must use the exact same column template, horizontal gutter, and gap for its header and every data row. Inner controls may fill their assigned column but must not introduce a second `max-width` or end-alignment rule that visually detaches them from the column heading.
 - Stock Count uses an elastic Item column, a stable Variance column, and a bounded Count column. Quantity stepper and UOM remain inside that Count column at desktop and tablet widths; phone rows may stack the Count control beneath the item context.
+
+## v8.36.22 — Responsive Detail Parity
+
+- A default `Table mobileHidden` appears at `xl`; every hand-written compact replacement for that table must therefore remain visible through `xl:hidden`. Hiding the replacement at `md` or `lg` creates an unsupported tablet interval and is a release blocker.
+- Purchase Request detail, Purchase Order detail, Roles, and Production Variance now preserve their complete detail authority at phone and tablet widths, then switch once to the technical table at desktop width.
+- A repository contract scans application TSX for this mismatched manual-list pattern. Shared `OperationalList` remains the preferred implementation because it already owns the matching breakpoint.
 
 ## v8.36.21 — Role-Aware Dashboard Signals
 

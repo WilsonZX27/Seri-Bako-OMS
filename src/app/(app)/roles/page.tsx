@@ -31,7 +31,7 @@ export default async function RolesPage() {
         <Table mobileHidden aria-label="Roles and permissions"><TableHeader><TableRow><TableHead>Role</TableHead><TableHead>Purpose</TableHead><TableHead className="text-right">Modules</TableHead><TableHead className="text-right">Permissions</TableHead><TableHead>Status</TableHead></TableRow></TableHeader><TableBody>
         {summaries.map((role) => <TableRow key={role.id}><TableCell className="font-medium">{getRoleDisplayLabel(role.role_code, role.role_name)}</TableCell><TableCell>{role.description ?? "System-controlled access role."}</TableCell><TableCell className="text-right">{role.moduleCount}</TableCell><TableCell className="text-right">{role.permissionCount}</TableCell><TableCell><Badge variant={role.status === "active" ? "success" : "secondary"}>{role.status}</Badge></TableCell></TableRow>)}
         </TableBody></Table>
-        <div className="divide-y md:hidden" role="list" aria-label="Roles and permissions">
+        <div className="divide-y xl:hidden" role="list" aria-label="Roles and permissions">
           {summaries.map((role) => <div key={role.id} role="listitem" className="grid grid-cols-[minmax(0,1fr)_auto] gap-x-3 gap-y-1 px-3 py-2.5"><p className="min-w-0 text-[13px] font-semibold">{getRoleDisplayLabel(role.role_code, role.role_name)}</p><Badge variant={role.status === "active" ? "success" : "secondary"}>{role.status}</Badge><p className="min-w-0 text-xs text-muted-foreground">{role.description ?? "System-controlled access role."}</p><p className="whitespace-nowrap text-[11px] text-muted-foreground">{role.moduleCount} modules · {role.permissionCount} permissions</p></div>)}
         </div>
       </div>

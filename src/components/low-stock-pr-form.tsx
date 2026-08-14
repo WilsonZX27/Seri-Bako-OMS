@@ -112,9 +112,9 @@ export function LowStockPrForm({ items, branches, defaultBranchId, disabled }: {
 
   return (
     <>
-      <button type="button" className="fixed bottom-[calc(var(--sb-mobile-nav-height)+1rem)] right-4 z-[60] inline-flex h-14 w-14 items-center justify-center rounded-full bg-[var(--sb-green)] text-white shadow-[var(--sb-shadow-lg)] md:hidden" onClick={() => setBasketOpen(true)} aria-label={`Open PR basket, ${selectedCount} selected`}>
+      <button type="button" className="fixed bottom-[calc(var(--sb-mobile-nav-height)+env(safe-area-inset-bottom)+1rem)] right-4 z-[var(--sb-z-sticky)] inline-flex h-14 w-14 items-center justify-center rounded-full bg-[var(--sb-green-900)] text-white shadow-[0_3px_8px_rgb(6_44_31_/_0.22)] md:hidden" onClick={() => setBasketOpen(true)} aria-label={`Open PR basket, ${selectedCount} selected`}>
         <ShoppingBasket className="h-5 w-5" />
-        {selectedCount ? <span className="absolute -right-1 -top-1 min-w-5 rounded-full bg-white px-1 text-center text-[11px] font-bold leading-5 text-[var(--sb-green)]">{selectedCount}</span> : null}
+        {selectedCount ? <span className="absolute -right-1 -top-1 min-w-5 rounded-full bg-white px-1 text-center text-[11px] font-bold leading-5 text-[var(--sb-green-900)]">{selectedCount}</span> : null}
       </button>
       {basketOpen ? <button type="button" className="fixed inset-0 z-[100] bg-black/45 md:hidden" aria-label="Close PR basket" onClick={() => setBasketOpen(false)} /> : null}
       <Card className={`sb-procurement-basket max-md:fixed max-md:inset-x-0 max-md:bottom-0 max-md:z-[101] max-md:max-h-[84dvh] max-md:overflow-hidden max-md:rounded-b-none max-md:rounded-t-[var(--sb-panel-radius)] ${basketOpen ? "max-md:block" : "max-md:hidden"}`} data-low-stock-pr-setup>

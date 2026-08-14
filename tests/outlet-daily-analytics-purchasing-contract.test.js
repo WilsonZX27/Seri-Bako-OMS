@@ -15,6 +15,8 @@ test("outlet daily workspace renders a lightweight 30-day completed-record wasta
   assert.match(chart, /Completed outlet records only/);
   assert.match(chart, /wastage ÷ received/);
   assert.match(chart, /<svg/);
+  assert.match(chart, /maximumFractionDigits: 1/);
+  assert.match(chart, /left: 54/);
   assert.doesNotMatch(chart, /"use client"|recharts|chart\.js|d3/);
 });
 

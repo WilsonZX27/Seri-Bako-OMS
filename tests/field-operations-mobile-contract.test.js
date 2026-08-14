@@ -55,6 +55,7 @@ test("goods receiving prioritizes physical receipt before reference quantities o
 test("purchase requests use a flat phone setup and line-entry hierarchy", () => {
   const source = read("src/components/procurement-forms.tsx");
   const page = read("src/app/(app)/purchase-requests/new/page.tsx");
+  const css = read("src/app/design-system-v2.css");
 
   assert.match(source, /data-purchase-request-setup/);
   assert.match(source, /data-purchase-request-workspace/);
@@ -68,6 +69,8 @@ test("purchase requests use a flat phone setup and line-entry hierarchy", () => 
   assert.doesNotMatch(source, /aria-label="Submit PR"/);
   assert.doesNotMatch(source, /hidden xl:hidden md:inline-flex/);
   assert.doesNotMatch(source, /md:rounded-md md:border md:bg-secondary\/20/);
+  assert.doesNotMatch(css, /#purchase-request-form \[data-purchase-request-line\] \{[\s\S]{0,160}grid-template-columns/);
+  assert.match(source, /<Field label="Item comment" className="col-span-full">/);
 });
 
 test("stock transfer and wastage use searchable compact lines with one setup disclosure", () => {
@@ -148,6 +151,8 @@ test("low-stock PR creation uses selectable phone rows instead of a five-column 
   assert.match(source, /data-low-stock-pr-lines/);
   assert.match(source, /label="Qty for PR"/);
   assert.match(source, /Suggested <strong/);
+  assert.match(source, /bg-\[var\(--sb-green-900\)\]/);
+  assert.doesNotMatch(source, /var\(--sb-green\)/);
 });
 
 test("purchase returns lead with the return quantity before read-only stock references on phones", () => {

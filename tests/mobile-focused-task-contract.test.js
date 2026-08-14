@@ -27,7 +27,8 @@ test("persistent phone actions sit above bottom navigation and rely on the share
   assert.match(css, /body:has\(\[data-mobile-action-bar\]\) \[data-mobile-app-nav\]/);
   assert.doesNotMatch(css, /data-mobile-action-page="true"[\s\S]{0,220}data-mobile-app-nav[\s\S]{0,120}display: none/);
   assert.match(css, /data-mobile-action-page="true"/);
-  assert.match(css, /bottom: env\(safe-area-inset-bottom\) !important/);
+  assert.match(css, /bottom: 0 !important/);
+  assert.doesNotMatch(css, /\.sb-mobile-action-bar\s*\{\s*bottom: env\(safe-area-inset-bottom\)/);
   assert.match(context, /route\.backHref \?\? "\/dashboard"/);
   assert.match(context, /pathname === item\.href \? "\/dashboard" : item\.href/);
 });

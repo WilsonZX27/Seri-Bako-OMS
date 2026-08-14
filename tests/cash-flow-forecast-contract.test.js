@@ -21,8 +21,21 @@ test("forecast separates overdue, future and missing due-date pressure", () => {
   assert.match(query, /row\.due_date! >= report\.report_date && row\.due_date! <= periodEnd/);
   assert.match(query, /const missingDueDate = report\.rows\.filter\(\(row\) => !row\.due_date\)/);
   for (const key of ["total_due_in_period", "overdue_brought_forward", "due_today", "due_this_week", "due_next_week", "missing_due_date_exposure"]) assert.match(query, new RegExp(key));
+  for (const key of ["dueOneToSeven", "dueEightToFourteen", "dueFifteenToPeriodEnd", "windows"]) assert.match(query, new RegExp(key));
   assert.match(page, /Overdue Brought Forward/);
   assert.match(page, /Missing Due Date Exposure/);
+  assert.match(page, /Payable pressure by due window/);
+  assert.match(page, /Windows are mutually exclusive/);
+});
+
+test("forecast due-window bars drill into equivalent AP Aging date filters", () => {
+  assert.match(page, /due_1_7: "Due in 1–7 days"/);
+  assert.match(page, /due_8_14: "Due in 8–14 days"/);
+  assert.match(page, /missing_due_date: "Missing due date"/);
+  assert.match(page, /supplier-invoices\/aging\?overdue=1/);
+  assert.match(page, /supplier-invoices\/aging\?bucket=missing_due_date/);
+  assert.match(page, /due_from=\$\{dueFrom\}&due_to=\$\{dueTo\}/);
+  assert.match(page, /<AgingDistributionBars/);
 });
 
 test("forecast supports every requested horizon and top supplier aggregation", () => {

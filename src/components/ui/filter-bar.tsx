@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import type { CSSProperties, ReactNode, ToggleEvent } from "react";
+import type { CSSProperties, MouseEvent, ReactNode } from "react";
 import { useEffect, useRef, useState } from "react";
 import { SlidersHorizontal, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -52,11 +52,17 @@ export function FilterBarMore({
     const top = Math.min(anchor.bottom + 8, Math.max(12, window.innerHeight - 420));
     setPanelStyle({ position: "fixed", top, left, width });
   };
-  const close = () => {
-    if (detailsRef.current) detailsRef.current.open = false;
+  const close = (restoreFocus = true) => {
     setOpen(false);
-    summaryRef.current?.focus();
+    detailsRef.current?.removeAttribute("open");
+    if (restoreFocus) summaryRef.current?.focus();
   };
+
+  useEffect(() => {
+    const closeForSelect = () => close(false);
+    document.addEventListener("sb:close-filter-more", closeForSelect);
+    return () => document.removeEventListener("sb:close-filter-more", closeForSelect);
+  }, []);
 
   useEffect(() => {
     if (!open) return;
@@ -70,30 +76,41 @@ export function FilterBarMore({
     function onKeyDown(event: KeyboardEvent) {
       if (event.key === "Escape" && detailsRef.current?.open) close();
     }
+    function onPointerDown(event: PointerEvent) {
+      const target = event.target;
+      if (target instanceof Node && detailsRef.current && !detailsRef.current.contains(target)) close(false);
+    }
     document.addEventListener("keydown", onKeyDown);
+    document.addEventListener("pointerdown", onPointerDown, true);
     return () => {
       window.removeEventListener("resize", onViewportChange);
       window.removeEventListener("scroll", onViewportChange, true);
       document.body.style.overflow = previousOverflow;
       delete document.documentElement.dataset.filterDialogOpen;
       document.removeEventListener("keydown", onKeyDown);
+      document.removeEventListener("pointerdown", onPointerDown, true);
     };
   }, [open]);
 
-  const handleToggle = (event: ToggleEvent<HTMLDetailsElement>) => {
-    const nextOpen = event.currentTarget.open;
-    setOpen(nextOpen);
-    if (nextOpen) requestAnimationFrame(positionPanel);
+  const handleSummaryClick = (event: MouseEvent<HTMLElement>) => {
+    event.preventDefault();
+    if (open) {
+      close();
+    } else {
+      setOpen(true);
+      document.dispatchEvent(new CustomEvent("sb:close-select-controls"));
+      requestAnimationFrame(positionPanel);
+    }
   };
 
   return (
-    <details ref={detailsRef} data-filter-more-wrapper className="sb-filter-more" onToggle={handleToggle}>
-      <summary ref={summaryRef} onClick={() => { setOpen(true); window.setTimeout(positionPanel, 0); }}><SlidersHorizontal className="h-3.5 w-3.5" />More filters{activeCount ? <span className="sb-filter-more-count" aria-label={`${activeCount} active filters`}>{activeCount}</span> : null}</summary>
-      <button type="button" className="sb-filter-more-backdrop" onClick={close} aria-label="Dismiss filters" />
+    <details ref={detailsRef} open={open} data-filter-more-wrapper className="sb-filter-more">
+      <summary ref={summaryRef} onClick={handleSummaryClick}><SlidersHorizontal className="h-3.5 w-3.5" />More filters{activeCount ? <span className="sb-filter-more-count" aria-label={`${activeCount} active filters`}>{activeCount}</span> : null}</summary>
+      <button type="button" className="sb-filter-more-backdrop" onClick={() => close()} aria-label="Dismiss filters" />
       <div className="sb-filter-more-panel sb-filter-more-panel--anchored" style={panelStyle} role="dialog" aria-modal="true" aria-label="Filters">
         <div className="sb-filter-more-header">
           <div><h2>Filters</h2>{activeCount ? <p>{activeCount} active</p> : null}</div>
-          <Button type="button" variant="ghost" size="icon" onClick={close} aria-label="Close filters"><X className="h-4 w-4" /></Button>
+          <Button type="button" variant="ghost" size="icon" onClick={() => close()} aria-label="Close filters"><X className="h-4 w-4" /></Button>
         </div>
         <div className="sb-filter-more-fields">{children}</div>
         <p className="sb-filter-more-help">Changes take effect after you select Apply.</p>

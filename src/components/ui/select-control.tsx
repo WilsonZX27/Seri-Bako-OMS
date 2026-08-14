@@ -1,6 +1,7 @@
 "use client";
 
 import * as Select from "@radix-ui/react-select";
+import { useEffect, useState } from "react";
 import { Check, ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -35,11 +36,25 @@ export function SelectControl({
   disabled?: boolean;
   className?: string;
 }) {
+  const [open, setOpen] = useState(false);
   const selection = value === undefined ? { defaultValue } : { value };
+
+  useEffect(() => {
+    const closeForMore = () => setOpen(false);
+    document.addEventListener("sb:close-select-controls", closeForMore);
+    return () => document.removeEventListener("sb:close-select-controls", closeForMore);
+  }, []);
+
+  const handleOpenChange = (nextOpen: boolean) => {
+    setOpen(nextOpen);
+    if (nextOpen) document.dispatchEvent(new CustomEvent("sb:close-filter-more"));
+  };
 
   return (
     <Select.Root
       {...selection}
+      open={open}
+      onOpenChange={handleOpenChange}
       name={name}
       onValueChange={onValueChange}
       required={required}

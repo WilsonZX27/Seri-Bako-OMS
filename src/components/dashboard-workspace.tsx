@@ -1,12 +1,9 @@
-"use client";
-
 import Link from "next/link";
 import { AlertTriangle, ArrowUpRight, Boxes, CheckCircle2, ClipboardCheck, ClipboardList, Clock3, Factory, FileText, LockKeyhole, PackageCheck, ReceiptText, ShoppingCart, UserRound } from "lucide-react";
-import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { ConsoleSection } from "@/components/layout/right-console";
 import { WorkspaceGrid } from "@/components/layout/workspace-layout";
-import { formatCurrency, formatDateOnly, formatDateTime, formatNumber } from "@/lib/utils";
+import { formatCurrency, formatDateOnly, formatNumber } from "@/lib/utils";
 import type { LucideIcon } from "lucide-react";
 
 type DashboardSummary = Awaited<ReturnType<typeof import("@/server/queries/dashboard").getDashboardSummary>>;
@@ -91,7 +88,7 @@ function QuickActionsCluster({ actions, className }: { actions: { href: string; 
   return (
     <section className={className} aria-labelledby="dashboard-quick-actions-title">
       <div className="mb-2 flex items-center justify-between">
-        <h2 id="dashboard-quick-actions-title" className="text-xs font-semibold uppercase tracking-[0.14em] text-[var(--sb-text-muted)]">Quick actions</h2>
+        <h2 id="dashboard-quick-actions-title" className="text-xs font-semibold text-[var(--sb-text-muted)]">Quick actions</h2>
         <span className="text-[11px] text-[var(--sb-text-muted)]">Based on your role</span>
       </div>
       <div className="grid grid-cols-3 gap-2" data-dashboard-quick-actions>
@@ -115,12 +112,7 @@ function QuickActionsCluster({ actions, className }: { actions: { href: string; 
   );
 }
 
-export function DashboardWorkspace({ summary, renderedAt }: { summary: DashboardSummary; renderedAt: string }) {
-  const [now, setNow] = useState(() => new Date(renderedAt));
-  useEffect(() => {
-    const timer = window.setInterval(() => setNow(new Date()), 60_000);
-    return () => window.clearInterval(timer);
-  }, []);
+export function DashboardWorkspace({ summary }: { summary: DashboardSummary }) {
   const role = summary.role;
   const isOwner = role === "super_admin";
   const isFinance = role === "finance";
@@ -133,8 +125,14 @@ export function DashboardWorkspace({ summary, renderedAt }: { summary: Dashboard
   const outletStatus = summary.outletToday?.status ?? null;
   const outletComplete = outletStatus === "reviewed" || outletStatus === "evening_completed";
   const outletAction = !outletStatus ? "Start daily record" : outletComplete ? "Review today's record" : "Complete daily record";
-  const attentionCount = summary.pendingApprovals.length + summary.lowStockCount + summary.today.stockCountDue + summary.wastageAttention + (summary.payablesAttention?.overdue_count ?? 0);
-  const attentionCountUnavailable = summary.inventoryUnavailable || summary.todayReceivingUnavailable || summary.stockCountDueUnavailable || summary.wastageUnavailable;
+  const attentionSourceLabels = {
+    pending_approvals: "pending approvals",
+    low_stock: "low stock",
+    stock_count_due: "stock count",
+    wastage: "wastage",
+    overdue_payables: "payables",
+  } as const;
+  const unavailableAttentionLabels = summary.attentionSummary.unavailableSources.map((source) => attentionSourceLabels[source]);
   const outletExceptionCount = summary.operationsControl?.outlet ? summary.operationsControl.outlet.missing_evening + summary.operationsControl.outlet.needs_review : 0;
   const operationalExceptionCount = (summary.inventoryUnavailable ? 0 : summary.lowStockCount) + (summary.wastageUnavailable ? 0 : summary.wastageAttention) + outletExceptionCount;
   const latestPurchaseOrder = summary.purchaseOrders[0];
@@ -178,8 +176,8 @@ export function DashboardWorkspace({ summary, renderedAt }: { summary: Dashboard
   const workspaceContext = (
     <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-4" data-dashboard-identity>
       <span className="sr-only">Welcome, {summary.userName} <span>|</span> {summary.roleLabel} <span>|</span> {summary.branchLabel}</span>
-      <div className="min-w-0"><p className="text-[10px] font-medium uppercase tracking-[0.14em] text-[var(--sb-text-muted)]">Welcome</p><p className="mt-0.5 break-words text-xl font-semibold tracking-[-0.025em] text-[var(--sb-text)]">{summary.userName}</p></div>
-      <dl className="grid max-w-[11rem] gap-1.5 text-[11px] text-[var(--sb-text-muted)]"><div className="flex items-start gap-1.5"><UserRound className="mt-0.5 h-3.5 w-3.5 shrink-0" /><dt className="sr-only">Role</dt><dd className="font-medium text-[var(--sb-text)]">{summary.roleLabel}</dd></div><div className="flex items-start gap-1.5"><LockKeyhole className="mt-0.5 h-3.5 w-3.5 shrink-0" /><dt className="sr-only">Scope</dt><dd className="break-words">{summary.branchLabel}</dd></div></dl>
+      <div className="min-w-0"><p className="text-[11px] font-medium text-[var(--sb-text-muted)]">Welcome</p><p data-dashboard-user-name className="mt-0.5 break-words text-xl font-semibold tracking-[-0.025em] text-[var(--sb-text)]">{summary.userName}</p></div>
+      <dl className="grid max-w-[11rem] gap-1.5 text-[11px] text-[var(--sb-text-muted)]"><div className="flex items-start gap-1.5"><UserRound className="mt-0.5 h-3.5 w-3.5 shrink-0" /><dt className="sr-only">Role</dt><dd data-dashboard-role-label className="font-medium text-[var(--sb-text)]">{summary.roleLabel}</dd></div><div className="flex items-start gap-1.5"><LockKeyhole className="mt-0.5 h-3.5 w-3.5 shrink-0" /><dt className="sr-only">Scope</dt><dd data-dashboard-scope-label className="break-words">{summary.branchLabel}</dd></div></dl>
     </div>
   );
 
@@ -188,12 +186,12 @@ export function DashboardWorkspace({ summary, renderedAt }: { summary: Dashboard
       <div className="flex min-w-0 items-center gap-1.5">
         <UserRound className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
         <dt className="sr-only">Role</dt>
-        <dd className="truncate font-medium text-[var(--sb-text)]">{summary.roleLabel}</dd>
+        <dd data-dashboard-role-label className="truncate font-medium text-[var(--sb-text)]">{summary.roleLabel}</dd>
       </div>
       <div className="flex min-w-0 items-center gap-1.5">
         <LockKeyhole className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
         <dt className="sr-only">Scope</dt>
-        <dd className="truncate">{summary.branchLabel}</dd>
+        <dd data-dashboard-scope-label className="truncate">{summary.branchLabel}</dd>
       </div>
     </dl>
   );
@@ -223,12 +221,11 @@ export function DashboardWorkspace({ summary, renderedAt }: { summary: Dashboard
       className="gap-4 p-3 pb-32 sm:p-4 sm:pb-24 xl:pb-4"
     >
       <div className="space-y-4">
-        <span className="sr-only" aria-live="polite">{formatDateTime(now.toISOString())}</span>
         <header className="hidden min-h-12 w-full items-center justify-between gap-6 border-b border-[var(--sb-border-soft)] pb-3 md:flex">
           <div className="min-w-0" data-dashboard-identity>
               <span className="sr-only">Welcome, {summary.userName} <span>|</span> {summary.roleLabel} <span>|</span> {summary.branchLabel}</span>
-              <p className="text-[10px] font-medium uppercase tracking-[0.14em] text-[var(--sb-text-muted)]">WELCOME</p>
-              <h1 className="mt-0.5 truncate text-xl font-semibold tracking-[-0.025em] text-[var(--sb-text)]">{summary.userName}</h1>
+              <p className="text-[11px] font-medium text-[var(--sb-text-muted)]">Welcome</p>
+              <h1 data-dashboard-user-name className="mt-0.5 truncate text-xl font-semibold tracking-[-0.025em] text-[var(--sb-text)]">{summary.userName}</h1>
           </div>
           <div className="min-w-0">{desktopWorkspaceContext}</div>
         </header>
@@ -263,45 +260,53 @@ export function DashboardWorkspace({ summary, renderedAt }: { summary: Dashboard
         <section data-dashboard-command className="sb-command-surface overflow-hidden rounded-[var(--sb-panel-radius)]">
           <div className="flex items-end justify-between gap-4 p-4 sm:p-5">
             <div className="min-w-0">
-              <p className="text-xs font-medium text-white/65">Operational pulse</p>
+              <p className="text-xs font-medium text-white/85">Operational pulse</p>
               <h2 className="mt-1 max-w-xl text-lg font-semibold tracking-[-0.02em] sm:text-xl">What needs your attention today</h2>
             </div>
             <div className="flex shrink-0 items-end justify-between gap-6 sm:justify-end">
-              <div>
-                <p className="text-[10px] uppercase tracking-[0.16em] text-white/60">Needs attention</p>
-                <p className="mt-1 text-3xl font-semibold tabular-nums" aria-label={attentionCountUnavailable ? "Needs attention summary is temporarily unavailable" : `${attentionCount} items need attention`}>
-                  {attentionCountUnavailable ? <span className="text-sm font-semibold uppercase tracking-[0.08em] text-white/85">Review data</span> : attentionCount}
+              <div data-dashboard-attention-summary>
+                <p className="text-[11px] font-medium tracking-[0.04em] text-white/85">Needs attention</p>
+                <p
+                  className="mt-1 text-3xl font-semibold tabular-nums"
+                  aria-label={summary.attentionSummary.state === "unavailable" ? `Attention summary unavailable because ${unavailableAttentionLabels.join(", ")} data could not be loaded` : `${summary.attentionSummary.total} items need attention`}
+                >
+                  {summary.attentionSummary.state === "unavailable" ? <span className="text-sm font-semibold text-white">Partial data</span> : summary.attentionSummary.total}
                 </p>
+                {summary.attentionSummary.state === "unavailable" ? <p className="mt-1 max-w-40 text-[11px] leading-4 text-white/85">Unavailable: {unavailableAttentionLabels.join(", ")}</p> : null}
               </div>
             </div>
           </div>
           <div className="grid grid-cols-2 divide-x divide-y divide-white/15 border-t border-white/15" data-dashboard-pulse-metrics>
-            <Link prefetch={false} href="/low-stock" className="group flex min-w-0 flex-col items-start gap-1 px-3 py-3 transition-colors hover:bg-white/10 sm:px-4">
-              <span className="min-w-0"><span className="flex items-center gap-1.5 text-white/65"><AlertTriangle className="h-3.5 w-3.5 shrink-0" aria-hidden="true" /><span className="text-[10px] uppercase leading-4 tracking-[0.12em]">Low stock</span></span></span>
+            <Link prefetch={false} href="/low-stock" className={`group flex min-w-0 flex-col items-start gap-1 px-3 py-3 transition-colors hover:bg-white/10 sm:px-4 ${!summary.inventoryUnavailable && summary.lowStockCount > 0 ? "bg-white/[0.08]" : ""}`}>
+              <span className="min-w-0"><span className="flex items-center gap-1.5 text-white/85"><AlertTriangle className="h-3.5 w-3.5 shrink-0" aria-hidden="true" /><span className="text-[11px] font-medium leading-4 tracking-[0.04em]">Low stock</span></span></span>
               <strong className={summary.inventoryUnavailable ? "text-[10px] font-semibold uppercase tracking-[0.08em] text-white/85" : "text-xl font-semibold tabular-nums"} aria-label={summary.inventoryUnavailable ? "Low stock data is temporarily unavailable" : `${summary.lowStockCount} low stock items`}>
                 {summary.inventoryUnavailable ? "Unavailable" : summary.lowStockCount}
               </strong>
+              {!summary.inventoryUnavailable ? <span className="text-[11px] leading-4 text-white/80">{summary.lowStockCount > 0 ? "Needs replenishment" : "No exception"}</span> : null}
             </Link>
             <Link prefetch={false} href="/goods-receivings" className="group flex min-w-0 flex-col items-start gap-1 px-3 py-3 transition-colors hover:bg-white/10 sm:px-4">
-              <span className="min-w-0"><span className="flex items-center gap-1.5 text-white/65"><PackageCheck className="h-3.5 w-3.5 shrink-0" aria-hidden="true" /><span className="text-[10px] uppercase leading-4 tracking-[0.12em]">Receiving</span></span></span>
+              <span className="min-w-0"><span className="flex items-center gap-1.5 text-white/85"><PackageCheck className="h-3.5 w-3.5 shrink-0" aria-hidden="true" /><span className="text-[11px] font-medium leading-4 tracking-[0.04em]">Receiving</span></span></span>
               <strong className={summary.todayReceivingUnavailable ? "text-[10px] font-semibold uppercase tracking-[0.08em] text-white/85" : "text-xl font-semibold tabular-nums"} aria-label={summary.todayReceivingUnavailable ? "Receiving data is temporarily unavailable" : `${summary.today.goodsReceiving} receiving records today`}>
                 {summary.todayReceivingUnavailable ? "Unavailable" : summary.today.goodsReceiving}
               </strong>
+              {!summary.todayReceivingUnavailable ? <span className="text-[11px] leading-4 text-white/80">Today’s activity</span> : null}
             </Link>
             <Link prefetch={false} href="/purchase-requests" className="group flex min-w-0 flex-col items-start gap-1 px-3 py-3 transition-colors hover:bg-white/10 sm:px-4">
-              <span className="min-w-0"><span className="flex items-center gap-1.5 text-white/65"><FileText className="h-3.5 w-3.5 shrink-0" aria-hidden="true" /><span className="text-[10px] uppercase leading-4 tracking-[0.12em]">Requests</span></span></span>
+              <span className="min-w-0"><span className="flex items-center gap-1.5 text-white/85"><FileText className="h-3.5 w-3.5 shrink-0" aria-hidden="true" /><span className="text-[11px] font-medium leading-4 tracking-[0.04em]">Recent requests</span></span></span>
               <strong
                 className={summary.coreSnapshotUnavailable ? "text-[10px] font-semibold uppercase tracking-[0.08em] text-white/85" : "text-xl font-semibold tabular-nums"}
                 aria-label={summary.coreSnapshotUnavailable ? "Purchase request data is temporarily unavailable" : `${summary.purchaseRequests.length} purchase requests`}
               >
                 {summary.coreSnapshotUnavailable ? "Unavailable" : summary.purchaseRequests.length}
               </strong>
+              {!summary.coreSnapshotUnavailable ? <span className="text-[11px] leading-4 text-white/80">Current snapshot</span> : null}
             </Link>
-            <Link prefetch={false} href="/stock-counts" className="group flex min-w-0 flex-col items-start gap-1 px-3 py-3 transition-colors hover:bg-white/10 sm:px-4">
-              <span className="min-w-0"><span className="flex items-center gap-1.5 text-white/65"><CheckCircle2 className="h-3.5 w-3.5 shrink-0" aria-hidden="true" /><span className="text-[10px] uppercase leading-4 tracking-[0.12em]">Stock count due</span></span><span className="mt-0.5 block max-w-40 truncate text-[10px] text-white/55">Last: {summary.lastStockCount?.count_no ?? "No posted count"}{summary.lastStockCount ? ` · ${formatDateOnly(summary.lastStockCount.count_date)}` : ""}</span></span>
+            <Link prefetch={false} href="/stock-counts" className={`group flex min-w-0 flex-col items-start gap-1 px-3 py-3 transition-colors hover:bg-white/10 sm:px-4 ${!summary.stockCountDueUnavailable && summary.today.stockCountDue > 0 ? "bg-white/[0.08]" : ""}`}>
+              <span className="min-w-0"><span className="flex items-center gap-1.5 text-white/85"><CheckCircle2 className="h-3.5 w-3.5 shrink-0" aria-hidden="true" /><span className="text-[11px] font-medium leading-4 tracking-[0.04em]">Stock count due</span></span><span className="mt-0.5 block max-w-40 truncate text-[11px] text-white/80">Last: {summary.lastStockCount?.count_no ?? "No posted count"}{summary.lastStockCount ? ` · ${formatDateOnly(summary.lastStockCount.count_date)}` : ""}</span></span>
               <strong className={summary.stockCountDueUnavailable ? "text-[10px] font-semibold uppercase tracking-[0.08em] text-white/85" : "text-xl font-semibold tabular-nums"} aria-label={summary.stockCountDueUnavailable ? "Stock count due data is temporarily unavailable" : `${summary.today.stockCountDue} stock counts due`}>
                 {summary.stockCountDueUnavailable ? "Unavailable" : summary.today.stockCountDue}
               </strong>
+              {!summary.stockCountDueUnavailable ? <span className="text-[11px] leading-4 text-white/80">{summary.today.stockCountDue > 0 ? "Due for follow-up" : "No count due"}</span> : null}
             </Link>
           </div>
         </section>
@@ -329,7 +334,7 @@ export function DashboardWorkspace({ summary, renderedAt }: { summary: Dashboard
               ))}
             </div>
           ) : (
-            <p className="px-1 py-2 text-xs text-muted-foreground">No pending actions in your current scope.</p>
+            <p className="px-1 py-2 text-xs text-muted-foreground">You’re clear—no approvals or workflow actions are waiting in your current scope.</p>
           )}
         </Panel>
           </div>

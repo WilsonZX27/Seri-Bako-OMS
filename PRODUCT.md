@@ -4,7 +4,11 @@
 
 ### Current audit baseline
 
-The current application baseline is `v7.87.0 — Staff Access Default Branch Submission Fix`.
+The current released application baseline is `v8.36.15 — Unified Tablet Filter Surfaces`.
+The repository migration history currently runs through migration `147`. Release
+version authority lives in `src/lib/app-version.ts`; migration authority lives in
+the immutable, forward-only `supabase/migrations/` directory. Documentation must
+not claim a later release or database ceiling unless both authorities support it.
 Deep operational green is the ordinary primary action color;
 mobile controls keep a minimum 48px touch target. User-visible dates use
 `dd/mm/yyyy`, while native date inputs continue to submit ISO date-only values.
@@ -161,7 +165,7 @@ The system currently covers or is actively implementing the following operationa
 
 Module maturity must be understood separately from visual completion.
 
-Current integration baseline: `v7.63.0 — Canonical PR Workflow Recovery` with reviewed database migrations through `113`. Migrations `111` and `112` are retained only as immutable history because they were applied to the linked database accidentally. Migration `113` removes their callable Central Kitchen PR RPC, prevents further access to the stock-holds table, and preserves that table temporarily for a non-destructive data audit.
+Current integration baseline: `v8.36.15 — Unified Tablet Filter Surfaces`, with repository migrations reviewed through `147`. Migrations `111` and `112` remain immutable history because they were applied to the linked database accidentally. Migration `113` removes their callable Central Kitchen PR RPC, prevents further access to the stock-holds table, and preserves that table temporarily for a non-destructive data audit. Later forward-only migrations add bounded inventory and Dashboard read models, repair grants and scoped access, and introduce branch supply-route provenance; they do not restore the retired Central Kitchen PR workflow.
 
 A page may exist visually without its full workflow, validation, database integration, permissions, and downstream effects being complete.
 

@@ -167,10 +167,53 @@ type DashboardCoreSnapshot = {
   last_stock_count: { count_no: string; count_date: string; status: string } | null;
 };
 
+export type DashboardAttentionSource =
+  | "pending_approvals"
+  | "low_stock"
+  | "stock_count_due"
+  | "wastage"
+  | "overdue_payables";
+
+export type DashboardAttentionSummary = {
+  state: "complete" | "unavailable";
+  total: number | null;
+  unavailableSources: DashboardAttentionSource[];
+};
+
+function createDashboardAttentionSummary(input: {
+  pendingApprovals: number;
+  lowStock: number;
+  stockCountDue: number;
+  wastage: number;
+  overduePayables: number;
+  inventoryUnavailable: boolean;
+  stockCountDueUnavailable: boolean;
+  wastageUnavailable: boolean;
+  payablesAttentionUnavailable: boolean;
+}): DashboardAttentionSummary {
+  const unavailableSources: DashboardAttentionSource[] = [];
+  if (input.inventoryUnavailable) unavailableSources.push("low_stock");
+  if (input.stockCountDueUnavailable) unavailableSources.push("stock_count_due");
+  if (input.wastageUnavailable) unavailableSources.push("wastage");
+  if (input.payablesAttentionUnavailable) unavailableSources.push("overdue_payables");
+
+  if (unavailableSources.length > 0) {
+    return { state: "unavailable", total: null, unavailableSources };
+  }
+
+  return {
+    state: "complete",
+    total: input.pendingApprovals + input.lowStock + input.stockCountDue + input.wastage + input.overduePayables,
+    unavailableSources,
+  };
+}
+
 export async function getDashboardSummary() {
   if (isMockMode()) {
     const balances = getMockStockBalances();
     const itemById = new Map<string, (typeof mockItems)[number]>(mockItems.map((item) => [item.id, item]));
+    const mockPendingApprovals = mockPurchaseRequests.filter((request) => request.status === "finance_review").slice(0, 5);
+    const mockLowStockCount = balances.filter((row) => row.is_low_stock).length;
 
     return {
       role: "super_admin",
@@ -180,14 +223,11 @@ export async function getDashboardSummary() {
       branchLabel: "Company-wide",
       totalItems: mockItems.length,
       totalSuppliers: mockSuppliers.length,
-      lowStockCount: balances.filter((row) => row.is_low_stock).length,
+      lowStockCount: mockLowStockCount,
       totalStockValue: balances.reduce((sum, row) => sum + Number(row.current_stock ?? 0), 0),
       lastStockCount: null,
       lowStockItems: getMockLowStockItems().slice(0, 5),
-      pendingApprovals: mockPurchaseRequests
-        .filter((request) => request.status === "finance_review")
-        .slice(0, 5)
-        .map((request) => ({
+      pendingApprovals: mockPendingApprovals.map((request) => ({
           id: `pr-finance_review-${request.id}`,
           document_no: request.request_no,
           title: "Manager Approval required",
@@ -223,6 +263,17 @@ export async function getDashboardSummary() {
       },
       payablesAttention: null,
       payablesAttentionUnavailable: false,
+      attentionSummary: createDashboardAttentionSummary({
+        pendingApprovals: mockPendingApprovals.length,
+        lowStock: mockLowStockCount,
+        stockCountDue: 3,
+        wastage: 0,
+        overduePayables: 0,
+        inventoryUnavailable: false,
+        stockCountDueUnavailable: false,
+        wastageUnavailable: false,
+        payablesAttentionUnavailable: false,
+      }),
       coreSnapshotUnavailable: false,
       inventoryUnavailable: false,
       todayReceivingUnavailable: false,
@@ -338,6 +389,17 @@ export async function getDashboardSummary() {
   const receivingFollowupUnavailable = (needsProcurement || needsInventory) && (coreUnavailable || fallbackUnavailable.receivingFollowup);
   const productionUnavailable = needsProduction && (coreUnavailable || fallbackUnavailable.production);
   const operationsUnavailable = needsOperations && (coreUnavailable || fallbackUnavailable.operations);
+  const attentionSummary = createDashboardAttentionSummary({
+    pendingApprovals: pendingApprovals.length,
+    lowStock: inventoryUnavailable ? 0 : (lowStockViewCount ?? Number(coreSnapshot?.low_stock_items_count ?? 0)),
+    stockCountDue: Number(coreSnapshot?.stock_count_due ?? 0),
+    wastage: Number(coreSnapshot?.wastage_attention ?? 0),
+    overduePayables: Number(payablesAttention?.overdue_count ?? 0),
+    inventoryUnavailable,
+    stockCountDueUnavailable,
+    wastageUnavailable,
+    payablesAttentionUnavailable,
+  });
 
   const result = {
     role,
@@ -381,6 +443,7 @@ export async function getDashboardSummary() {
     receivingFollowupUnavailable,
     payablesAttention,
     payablesAttentionUnavailable,
+    attentionSummary,
     operationsControl: needsOperations && !operationsUnavailable ? {
       outlet: {
         missing_evening: Number(coreSnapshot?.outlet_missing_evening ?? 0),

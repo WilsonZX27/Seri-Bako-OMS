@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { AgingDistributionBars } from "@/components/reports/aging-distribution-bars";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Input } from "@/components/ui/input";
@@ -30,6 +31,19 @@ export default async function ApAgingPage({ searchParams }: { searchParams: Prom
   const totalPages = Math.max(1, Math.ceil(report.total_rows / report.page_size));
   const dueSoonHref = `?due_from=${shiftDate(report.report_date, 1)}&due_to=${shiftDate(report.report_date, 7)}`;
   const exportQuery = new URLSearchParams(Object.entries(filters).filter((entry): entry is [string, string] => !!entry[1] && entry[0] !== "page")).toString();
+  const bucketHref = (bucket: string) => {
+    const params = new URLSearchParams(Object.entries(filters).filter((entry): entry is [string, string] => Boolean(entry[1])));
+    params.set("bucket", bucket);
+    params.delete("page");
+    return `?${params.toString()}`;
+  };
+  const agingDistribution = Object.entries(bucketLabels).map(([key, label]) => ({
+    key,
+    label,
+    outstanding: report.buckets[key]?.outstanding ?? 0,
+    invoiceCount: report.buckets[key]?.invoice_count ?? 0,
+    href: bucketHref(key),
+  }));
   const metric = (label: string, value: number | string, href?: string) => <Link href={href ?? "#aging-table"} className="flex min-h-[4.25rem] min-w-0 flex-col justify-between rounded-[var(--sb-radius-control)] border bg-white px-3 py-2 hover:border-[var(--sb-amber-300)]"><span className="text-[11px] leading-4 text-muted-foreground">{label}</span><strong className="tabular-nums">{typeof value === "number" ? formatCurrency(value) : value}</strong></Link>;
   return <>
     <PageHeader title="AP Aging" description={`Open supplier payables as of ${dates(report.report_date)}.`} />
@@ -52,7 +66,7 @@ export default async function ApAgingPage({ searchParams }: { searchParams: Prom
           {metric("Suppliers with Balance", String(report.summary.supplier_count))}
         </section>
 
-        <section className="overflow-hidden border bg-card"><div className="border-b px-3 py-2"><h2 className="text-sm font-semibold">Aging Buckets</h2></div><div className="grid grid-cols-2 gap-px bg-border lg:grid-cols-4">{Object.entries(bucketLabels).map(([key, label]) => <Link key={key} href={`?bucket=${key}`} className="min-w-0 bg-white px-3 py-2 text-xs"><span className="block leading-4 text-muted-foreground">{label}</span><strong>{formatCurrency(report.buckets[key]?.outstanding ?? 0)}</strong><span className="ml-2 text-muted-foreground">{report.buckets[key]?.invoice_count ?? 0} invoices</span></Link>)}</div></section>
+        <AgingDistributionBars items={agingDistribution} reportDate={dates(report.report_date)} />
 
         <section className="overflow-hidden border bg-card"><div className="border-b px-3 py-2"><h2 className="text-sm font-semibold">Supplier Exposure</h2></div><div className="overflow-x-auto"><Table><TableHeader><TableRow><TableHead>Supplier</TableHead><TableHead className="text-right">Invoices</TableHead><TableHead className="text-right">Outstanding</TableHead><TableHead className="text-right">Overdue</TableHead><TableHead>Oldest Due</TableHead><TableHead className="text-right">Max Days</TableHead></TableRow></TableHeader><TableBody>{report.suppliers.map((row) => <TableRow key={row.supplier_id}><TableCell><Link href={`?supplier=${row.supplier_id}`} className="font-medium hover:underline">{row.supplier_name}</Link></TableCell><TableCell className="text-right">{row.invoice_count}</TableCell><TableCell className="whitespace-nowrap text-right">{formatCurrency(row.total_outstanding)}</TableCell><TableCell className="whitespace-nowrap text-right">{formatCurrency(row.overdue_outstanding ?? 0)}</TableCell><TableCell>{dates(row.oldest_due_date)}</TableCell><TableCell className="text-right">{row.maximum_days_overdue}</TableCell></TableRow>)}</TableBody></Table></div></section>
 

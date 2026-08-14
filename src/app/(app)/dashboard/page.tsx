@@ -9,7 +9,7 @@ export default async function DashboardPage() {
   try {
     const summary = await getDashboardSummary();
 
-    return <DashboardWorkspace summary={summary} renderedAt={new Date().toISOString()} />;
+    return <DashboardWorkspace summary={summary} />;
   } catch (error) {
     return (
       <div className="p-5">

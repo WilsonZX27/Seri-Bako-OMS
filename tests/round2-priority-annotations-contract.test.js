@@ -27,7 +27,8 @@ test("priority dashboard groups remain compact across phone and tablet", () => {
 test("purchase requests and stock counts share canonical query-card ownership", () => {
   assert.equal((purchaseRequests.match(/<FilterBar\s/g) ?? []).length, 1);
   assert.doesNotMatch(purchaseRequests, /UnifiedListHeader|hidden sm:block[\s\S]*sm:hidden/);
-  assert.match(stockCounts, /sb-list-query-card sb-tablet-split-filter/);
+  assert.doesNotMatch(purchaseRequests, /sb-tablet-split-filter/);
+  assert.doesNotMatch(stockCounts, /sb-tablet-split-filter/);
   assert.equal((stockCounts.match(/<FilterBar\s/g) ?? []).length, 1);
   assert.doesNotMatch(stockCounts, /UnifiedListHeader|hidden sm:block[\s\S]*sm:hidden/);
   assert.match(css, /\.sb-list-query-card/);

@@ -73,7 +73,7 @@ export default async function StockCountsPage({ searchParams }: { searchParams: 
       <ConsoleSection title="Stock Count Summary"><dl className="grid gap-2 text-xs"><div className="flex justify-between"><dt className="text-muted-foreground">Total</dt><dd className="font-semibold">{summary.total ?? "—"}</dd></div><div className="flex justify-between"><dt className="text-muted-foreground">Draft</dt><dd className="font-semibold">{summary.draft ?? "—"}</dd></div><div className="flex justify-between"><dt className="text-muted-foreground">Posted</dt><dd className="font-semibold">{summary.posted ?? "—"}</dd></div><div className="flex justify-between"><dt className="text-muted-foreground">Cancelled</dt><dd className="font-semibold">{summary.cancelled ?? "—"}</dd></div></dl></ConsoleSection>
     </div>}>
       <div className="space-y-3" data-tablet-main-list>
-          <FilterBar resultCount={counts.totalRows} resetHref="/stock-counts" filtered={filtered} className="sb-list-query-card sb-tablet-split-filter">
+          <FilterBar resultCount={counts.totalRows} resetHref="/stock-counts" filtered={filtered}>
             <Input name="search" defaultValue={filters.search ?? ""} placeholder="Search count no, branch, remarks" />
             <SelectControl name="branch_id" defaultValue={filters.branch_id ?? "all"} ariaLabel="Branch" options={[{ value: "all", label: "All branches" }, ...branches.map((branch) => ({ value: branch.id, label: branch.branch_name }))]} />
             <SelectControl name="status" defaultValue={filters.status ?? "all"} ariaLabel="Status" options={[{ value: "all", label: "All statuses" }, ...statuses.map((status) => ({ value: status, label: status[0].toUpperCase() + status.slice(1) }))]} />

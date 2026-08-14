@@ -4,6 +4,29 @@
 **Scope:** current Dashboard, operational analytics/report surfaces, existing chart implementation, responsive evidence, design governance, and the user's annotation-to-Codex workflow.  
 **Constraint:** this audit does not change workflow states, permissions, inventory posting, approval rules, calculations, or other business logic.
 
+## Closure status — 15 August 2026
+
+This section is the current disposition; the detailed findings below remain as the original audit evidence.
+
+| Finding | Status | Implemented evidence |
+| --- | --- | --- |
+| Attention total can understate unavailable data | Closed | The server now owns an explicit attention summary and withholds the total when any contributing source is unavailable. |
+| Command-surface contrast | Closed | The surface uses one tested semantic green and stronger inverse text. |
+| Wastage chart accessible dataset | Closed | The shared interactive chart exposes hover, touch, keyboard, description, and a readable data alternative. |
+| Current responsive proof is stale | Closed | A fresh six-role matrix covers 390×844, 820×1180, and 1440×900. Dedicated partial-data and long-label stress fixtures cover the same three viewports, with horizontal-overflow diagnostics and 21 current evidence screenshots in total. |
+| Product/design/schema baselines are stale | Closed | Current release and migration authority are explicit; later design sections are marked forward/unreleased. |
+| Full Dashboard hydration for a clock | Closed | Dashboard composition is server-rendered and the non-source freshness clock was removed. |
+| Reports lack decision-specific charts | Closed for phase 1 | Demand, rankings, AP aging, and cash-flow windows now use interactive direct-label charts while retaining detailed data views. |
+| Equal metrics obscure priority | Improved | Exception tiles now identify actionable, clear, unavailable, activity, and snapshot states instead of presenting every count as equivalent urgency. |
+| Decorative command surface | Closed | Decorative grid, layered gradient, and wide shadow were removed. |
+| Raw color and duplicate overrides | Improved in touched scope | The command surface has one semantic owner; unrelated legacy CSS was not globally rewritten. |
+| Mock role contradiction | Closed | The supported mock owner fixture now has a coherent staff-role state without changing production checks. |
+| Data freshness context | Resolved without invention | No source-owned refresh timestamp exists. The UI no longer presents render time as freshness; the metric dictionary records request-time semantics. |
+| Tiny uppercase cadence | Closed in Dashboard ordinary labels | Welcome, quick actions, and metric labels use readable sentence case; uppercase remains reserved for status semantics. |
+| Ambiguous empty states | Closed in audited panels | Clear, unavailable, and up-to-date states now have distinct copy. |
+
+Metric definitions and drill-through contracts are maintained in `docs/analytics/METRIC_DICTIONARY.md`.
+
 ## Executive verdict
 
 The application has a strong operational foundation: role-aware actions, bounded read models, explicit unavailable states, shared responsive primitives, and 534 passing contract tests. It is no longer an unstable MVP shell.

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { AgingDistributionBars } from "@/components/reports/aging-distribution-bars";
 import { ConsoleSection } from "@/components/layout/right-console";
 import { WorkspaceGrid } from "@/components/layout/workspace-layout";
 import { DocumentNumber } from "@/components/document-number";
@@ -19,6 +20,30 @@ export default async function CashFlowForecastPage({ searchParams }: { searchPar
   const filters = await searchParams;
   const forecast = await getCashFlowForecast(filters.period, filters.page);
   const totalPages = Math.max(1, Math.ceil(forecast.total_rows / forecast.page_size));
+  const windowLabels = {
+    overdue: "Overdue brought forward",
+    due_today: "Due today",
+    due_1_7: "Due in 1–7 days",
+    due_8_14: "Due in 8–14 days",
+    due_15_period_end: `Due in 15+ days through ${date(forecast.period_end)}`,
+    missing_due_date: "Missing due date",
+  } as const;
+  const windowHref = (key: (typeof forecast.windows)[number]["key"]) => {
+    if (key === "overdue") return "/supplier-invoices/aging?overdue=1";
+    if (key === "due_today") return "/supplier-invoices/aging?bucket=due_today";
+    if (key === "missing_due_date") return "/supplier-invoices/aging?bucket=missing_due_date";
+    const startOffset = key === "due_1_7" ? 1 : key === "due_8_14" ? 8 : 15;
+    const endOffset = key === "due_1_7" ? 7 : key === "due_8_14" ? 14 : null;
+    const start = new Date(`${forecast.report_date}T00:00:00Z`);
+    start.setUTCDate(start.getUTCDate() + startOffset);
+    const dueFrom = start.toISOString().slice(0, 10);
+    const dueTo = endOffset === null ? forecast.period_end : (() => { const end = new Date(`${forecast.report_date}T00:00:00Z`); end.setUTCDate(end.getUTCDate() + endOffset); return end.toISOString().slice(0, 10); })();
+    return `/supplier-invoices/aging?due_from=${dueFrom}&due_to=${dueTo}`;
+  };
+  const dueWindowDistribution = forecast.windows
+    .filter((window) => window.key !== "due_8_14" || forecast.period !== "7")
+    .filter((window) => window.key !== "due_15_period_end" || forecast.period === "30" || forecast.period === "month")
+    .map((window) => ({ key: window.key, label: windowLabels[window.key], outstanding: window.amount, invoiceCount: window.invoice_count, href: windowHref(window.key) }));
   const metric = (label: string, value: number) => <div className="border bg-white px-3 py-2"><span className="block text-[11px] text-muted-foreground">{label}</span><strong className="tabular-nums">{formatCurrency(value)}</strong></div>;
 
   return <>
@@ -41,6 +66,14 @@ export default async function CashFlowForecastPage({ searchParams }: { searchPar
           {metric("Due Next Week", forecast.due_next_week)}
           {metric("Missing Due Date Exposure", forecast.missing_due_date_exposure)}
         </section>
+
+        <AgingDistributionBars
+          items={dueWindowDistribution}
+          reportDate={date(forecast.report_date)}
+          title="Payable pressure by due window"
+          description={`Open MYR balances through ${date(forecast.period_end)}. Windows are mutually exclusive; missing due dates remain outside the forecast period.`}
+          ariaLabel="Cash flow due-window distribution"
+        />
 
         <section className="overflow-hidden border bg-card">
           <div className="border-b px-3 py-2"><h2 className="text-sm font-semibold">Top Suppliers in Selected Period</h2></div>

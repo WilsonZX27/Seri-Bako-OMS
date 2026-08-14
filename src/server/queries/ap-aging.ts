@@ -87,6 +87,11 @@ export type CashFlowForecast = {
   due_this_week: number;
   due_next_week: number;
   missing_due_date_exposure: number;
+  windows: Array<{
+    key: "overdue" | "due_today" | "due_1_7" | "due_8_14" | "due_15_period_end" | "missing_due_date";
+    amount: number;
+    invoice_count: number;
+  }>;
   top_suppliers: Array<{ supplier_id: string; supplier_name: string; invoice_count: number; amount: number }>;
   rows: CashFlowForecastRow[];
   page: number;
@@ -155,6 +160,9 @@ export async function getCashFlowForecast(requestedPeriod?: string, requestedPag
   const dueToday = withDueDate.filter((row) => row.due_date === report.report_date);
   const dueThisWeek = withDueDate.filter((row) => row.due_date! >= report.report_date && row.due_date! <= weekEnd);
   const dueNextWeek = withDueDate.filter((row) => row.due_date! > weekEnd && row.due_date! <= nextWeekEnd);
+  const dueOneToSeven = withDueDate.filter((row) => row.due_date! > report.report_date && row.due_date! <= weekEnd && row.due_date! <= periodEnd);
+  const dueEightToFourteen = withDueDate.filter((row) => row.due_date! > weekEnd && row.due_date! <= nextWeekEnd && row.due_date! <= periodEnd);
+  const dueFifteenToPeriodEnd = withDueDate.filter((row) => row.due_date! > nextWeekEnd && row.due_date! <= periodEnd);
   const missingDueDate = report.rows.filter((row) => !row.due_date);
 
   const supplierTotals = new Map<string, { supplier_id: string; supplier_name: string; invoice_count: number; amount: number }>();
@@ -196,6 +204,14 @@ export async function getCashFlowForecast(requestedPeriod?: string, requestedPag
     due_this_week: total(dueThisWeek),
     due_next_week: total(dueNextWeek),
     missing_due_date_exposure: total(missingDueDate),
+    windows: [
+      { key: "overdue", amount: total(overdue), invoice_count: overdue.length },
+      { key: "due_today", amount: total(dueToday), invoice_count: dueToday.length },
+      { key: "due_1_7", amount: total(dueOneToSeven), invoice_count: dueOneToSeven.length },
+      { key: "due_8_14", amount: total(dueEightToFourteen), invoice_count: dueEightToFourteen.length },
+      { key: "due_15_period_end", amount: total(dueFifteenToPeriodEnd), invoice_count: dueFifteenToPeriodEnd.length },
+      { key: "missing_due_date", amount: total(missingDueDate), invoice_count: missingDueDate.length },
+    ],
     top_suppliers: topSuppliers,
     rows: relevantRows.slice((page - 1) * pageSize, page * pageSize),
     page,

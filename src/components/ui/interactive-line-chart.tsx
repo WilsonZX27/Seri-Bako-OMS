@@ -132,7 +132,7 @@ export function InteractiveLineChart({
           );
         })}
         <path d={path} fill="none" stroke="var(--sb-green-700)" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" pointerEvents="none" />
-        {points.map((point, index) => (
+        {points.length <= 14 ? points.map((point, index) => (
           <circle
             key={point.id}
             cx={x(index)}
@@ -143,7 +143,7 @@ export function InteractiveLineChart({
             strokeWidth="3"
             pointerEvents="none"
           />
-        ))}
+        )) : null}
         <text x={inset.left} y={height - 7} fontSize="10" fill="var(--sb-text-muted)">{points[0]?.label}</text>
         <text x={width - inset.right} y={height - 7} textAnchor="end" fontSize="10" fill="var(--sb-text-muted)">{points[points.length - 1]?.label}</text>
         <rect

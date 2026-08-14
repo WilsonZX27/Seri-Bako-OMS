@@ -1,5 +1,12 @@
 # Seri Bako OMS responsive design standard
 
+> **Release authority:** the currently released application is `v8.36.15`, as
+> defined by `src/lib/app-version.ts`. A versioned section above that number is
+> an accepted forward design contract or unreleased implementation note—not
+> evidence that the application itself has been released at that version.
+> `docs/DESIGN_SYSTEM.md` owns the current visual principles; this file retains
+> versioned implementation history and workspace rules.
+
 > **Precedence:** `docs/DESIGN_SYSTEM.md` is the living visual and interaction contract. When a historical release note or an older rule in this file conflicts with that contract, the living contract wins. Update both documents when a new pattern is accepted; do not preserve a visibly weaker rule for compatibility.
 
 This document is the implementation contract for every customer-facing route, form, record workspace, table, panel, dialog, and mobile action bar. It applies to new work and to refactoring of existing UI.
@@ -15,6 +22,13 @@ This document is the implementation contract for every customer-facing route, fo
 
 - A dense editable list must use the exact same column template, horizontal gutter, and gap for its header and every data row. Inner controls may fill their assigned column but must not introduce a second `max-width` or end-alignment rule that visually detaches them from the column heading.
 - Stock Count uses an elastic Item column, a stable Variance column, and a bounded Count column. Quantity stepper and UOM remain inside that Count column at desktop and tablet widths; phone rows may stack the Count control beneath the item context.
+
+## v8.36.15 — Unified Tablet Filter Surfaces
+
+- Search-first list workspaces use one tablet grammar: the query spans row one; compact filters remain left-aligned on row two; result count and Search/Reset remain a stable right-aligned group.
+- The query surface and record surface are siblings. A tablet main-list wrapper must not add another border, background, radius, or shadow around them.
+- Opening a Select filter closes More filters; opening More filters closes any Select popover. Only one filter overlay may remain visible.
+- Purchase Requests, Goods Receiving, Stock Counts, Stock Card, and Outlet Daily Records are the reference comparison set for filter alignment and surface nesting.
 
 ## v8.37.0 - Browser-Native Mobile Canvas
 

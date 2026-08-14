@@ -12,6 +12,7 @@ type MockProfile = {
   full_name: string;
   role: UserRole;
   role_code: UserRole;
+  has_staff_role: true;
   created_at: string;
   updated_at: string;
 };
@@ -26,6 +27,7 @@ export const mockProfile: MockProfile = {
   full_name: "Mock Owner",
   role: "super_admin" as const,
   role_code: "super_admin" as const,
+  has_staff_role: true,
   created_at: "2026-07-01T00:00:00.000Z",
   updated_at: "2026-07-01T00:00:00.000Z",
 };

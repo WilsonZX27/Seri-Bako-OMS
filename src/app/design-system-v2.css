@@ -19,23 +19,6 @@
     min-width: 0;
   }
 
-  [data-tablet-document-split] .sb-tablet-split-filter {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: var(--sb-space-2);
-  }
-
-  [data-tablet-document-split] .sb-tablet-split-filter > :first-child {
-    flex: 1 0 100%;
-    max-width: none;
-  }
-
-  [data-tablet-document-split] .sb-tablet-split-filter select,
-  [data-tablet-document-split] .sb-tablet-split-filter [role="combobox"] {
-    min-width: 0;
-  }
-
   [data-tablet-document-split] [data-tablet-split-actions] > section {
     border-radius: var(--sb-panel-radius);
   }
@@ -1741,24 +1724,38 @@ html[data-design-layer="v2"] :where([class~="bg-card"], [class~="overflow-hidden
   box-shadow: var(--sb-shadow-card);
 }
 
-@media (min-width: 640px) and (max-width: 1023px) {
-  html[data-design-layer="v2"] form.sb-list-query-card {
-    display: flex !important;
-    flex-wrap: wrap !important;
+@media (min-width: 640px) and (max-width: 1279px) {
+  html[data-design-layer="v2"] form.sb-list-query-card:has(> :is(input[type="search"], input[name="search"], input[placeholder*="Search"], input[placeholder*="Find"])) {
+    display: grid !important;
+    grid-template-columns: repeat(3, minmax(5.5rem, 1fr)) minmax(9.5rem, auto);
     align-items: center;
   }
 
-  html[data-design-layer="v2"] form.sb-list-query-card > :where(input[type="search"], input[name="search"], input[placeholder*="Search"], input[placeholder*="Find"]) {
-    flex: 1 0 100% !important;
+  html[data-design-layer="v2"] form.sb-list-query-card:has(> :is(input[type="search"], input[name="search"], input[placeholder*="Search"], input[placeholder*="Find"])) > :where(input[type="search"], input[name="search"], input[placeholder*="Search"], input[placeholder*="Find"]) {
+    grid-column: 1 / -1;
     width: 100% !important;
     min-width: 0 !important;
     max-width: none !important;
   }
 
-  html[data-design-layer="v2"] form.sb-list-query-card > .unified-list-desktop-actions {
-    flex: 0 0 auto;
+  /* One tablet grammar for every list: full-width query on row one; compact
+     filters followed by a stable right-aligned result/action group on row two. */
+  html[data-design-layer="v2"] form.sb-list-query-card:has(> :is(input[type="search"], input[name="search"], input[placeholder*="Search"], input[placeholder*="Find"])) > :where(select, [data-select-control], .sb-status-filter, .sb-filter-more) {
+    width: 100% !important;
+    min-width: 0 !important;
+  }
+
+  html[data-design-layer="v2"] form.sb-list-query-card:has(> :is(input[type="search"], input[name="search"], input[placeholder*="Search"], input[placeholder*="Find"])) > .unified-list-desktop-actions {
+    grid-column: 4;
+    justify-content: flex-end;
     min-width: 0;
-    margin-left: auto;
+    margin-left: 0;
+  }
+
+  html[data-design-layer="v2"] form.sb-list-query-card:has(> :is(input[type="search"], input[name="search"], input[placeholder*="Search"], input[placeholder*="Find"])) > .unified-list-desktop-actions > .unified-list-action {
+    flex: 0 0 7rem !important;
+    width: 7rem !important;
+    min-width: 7rem !important;
   }
 }
 

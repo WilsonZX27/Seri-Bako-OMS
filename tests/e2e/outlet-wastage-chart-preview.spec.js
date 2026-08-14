@@ -88,6 +88,55 @@ test.describe("outlet wastage chart preview", () => {
     await expect(preview).toBeVisible();
   });
 
+  test("Demand Trend ranking bars reveal complete product values", async ({ page }) => {
+    await page.goto("/reports/demand-trends?period=7", { waitUntil: "domcontentloaded" });
+    const ranking = page.locator('[data-demand-ranking-chart="wastage"] [data-interactive-ranking-chart]');
+    await expect(ranking).toBeVisible();
+    const firstBar = ranking.getByRole("listitem").first();
+    await firstBar.hover();
+    const preview = ranking.locator("[data-ranking-preview]");
+    await expect(preview).toContainText(/wastage/i);
+    await expect(preview).toContainText(/received/i);
+    await firstBar.focus();
+    await expect(preview).toContainText(/Local Chart Preview Product/i);
+  });
+
+  test("Product Margin keeps the technical table on desktop", async ({ page }) => {
+    await page.goto("/reports/product-margin", { waitUntil: "domcontentloaded" });
+    await expect(page.locator("[data-product-margin-workspace]")).toBeVisible();
+    await expect(page.getByRole("region", { name: "Product cost and margin estimates" })).toBeVisible();
+    await expect(page.locator("[data-product-margin-mobile-list]").getByRole("list")).toBeHidden();
+  });
+
+  test("Procurement Variance keeps its technical comparison table on desktop", async ({ page }) => {
+    await page.goto("/reports/procurement-variance", { waitUntil: "domcontentloaded" });
+    await expect(page.locator("[data-procurement-variance-workspace]")).toBeVisible();
+    await expect(page.getByRole("region", { name: "Procurement cost variance" })).toBeVisible();
+  });
+
+  test("AP Aging buckets expose hover and keyboard previews and filter links", async ({ page }) => {
+    await page.goto("/supplier-invoices/aging", { waitUntil: "domcontentloaded" });
+    const chart = page.locator("[data-aging-distribution]");
+    await expect(chart).toBeVisible();
+    const firstBucket = chart.getByRole("listitem").first();
+    await firstBucket.hover();
+    await expect(chart.locator("[data-aging-preview]")).toContainText(/invoice/i);
+    await firstBucket.focus();
+    await expect(firstBucket).toHaveAttribute("href", /bucket=not_due/);
+  });
+
+  test("Cash Flow due windows expose direct labels, previews, and AP drill-through", async ({ page }) => {
+    await page.goto("/supplier-invoices/cash-flow?period=30", { waitUntil: "domcontentloaded" });
+    const chart = page.locator("[data-aging-distribution]");
+    await expect(chart).toBeVisible();
+    await expect(chart.getByText("Due in 1–7 days")).toBeVisible();
+    await expect(chart.getByText("Due in 8–14 days")).toBeVisible();
+    const overdue = chart.getByRole("listitem").first();
+    await overdue.hover();
+    await expect(chart.locator("[data-aging-preview]")).toContainText(/invoice/i);
+    await expect(overdue).toHaveAttribute("href", /supplier-invoices\/aging\?overdue=1/);
+  });
+
   test.describe("on a touch viewport", () => {
     test.use({ viewport: { width: 393, height: 852 }, hasTouch: true });
 
@@ -115,6 +164,85 @@ test.describe("outlet wastage chart preview", () => {
       await expect(preview).toBeVisible();
       await expect(preview).toContainText(/wastage rate/i);
       await expect(preview).toContainText(/received/i);
+    });
+
+    test("ranking bars fit the phone viewport and respond to touch", async ({ page }) => {
+      await page.goto("/reports/demand-trends?period=7", { waitUntil: "domcontentloaded" });
+      const ranking = page.locator('[data-demand-ranking-chart="wastage"] [data-interactive-ranking-chart]');
+      await expect(ranking).toBeVisible();
+      const firstBar = ranking.getByRole("listitem").first();
+      await firstBar.tap();
+      await expect(ranking.locator("[data-ranking-preview]")).toContainText(/wastage/i);
+      const fitsViewport = await ranking.evaluate((node) => {
+        const bounds = node.getBoundingClientRect();
+        return bounds.left >= 0 && bounds.right <= document.documentElement.clientWidth;
+      });
+      expect(fitsViewport).toBe(true);
+    });
+
+    test("Product Margin uses a phone decision list without horizontal overflow", async ({ page }) => {
+      await page.goto("/reports/product-margin", { waitUntil: "domcontentloaded" });
+      const workspace = page.locator("[data-product-margin-workspace]");
+      await expect(workspace).toBeVisible();
+      await expect(page.getByRole("region", { name: "Product cost and margin estimates" })).toBeHidden();
+      await expect(workspace.getByRole("list", { name: "Product cost and margin estimates" })).toBeVisible();
+      const fitsViewport = await workspace.evaluate((node) => {
+        const bounds = node.getBoundingClientRect();
+        return bounds.left >= 0 && bounds.right <= document.documentElement.clientWidth;
+      });
+      expect(fitsViewport).toBe(true);
+    });
+
+    test("Procurement Variance uses a bounded phone comparison layout", async ({ page }) => {
+      await page.goto("/reports/procurement-variance", { waitUntil: "domcontentloaded" });
+      const workspace = page.locator("[data-procurement-variance-workspace]");
+      await expect(workspace).toBeVisible();
+      await expect(page.getByRole("region", { name: "Procurement cost variance" })).toBeHidden();
+      const comparison = workspace.locator("[data-procurement-stage-comparison]").first();
+      if (await comparison.count()) {
+        await expect(comparison).toBeVisible();
+        await expect(comparison).toContainText("PO");
+        await expect(comparison).toContainText("GRN");
+        await expect(comparison).toContainText("Invoice");
+        await expect(comparison).toContainText("Qty");
+        await expect(comparison).toContainText("Price");
+      } else {
+        await expect(workspace.getByRole("list", { name: "Procurement cost variance" }).getByText("No comparable procurement lines")).toBeVisible();
+      }
+      const fitsViewport = await workspace.evaluate((node) => {
+        const bounds = node.getBoundingClientRect();
+        return bounds.left >= 0 && bounds.right <= document.documentElement.clientWidth;
+      });
+      expect(fitsViewport).toBe(true);
+    });
+
+    test("AP Aging distribution stays directly labeled and bounded on phone", async ({ page }) => {
+      await page.goto("/supplier-invoices/aging", { waitUntil: "domcontentloaded" });
+      const chart = page.locator("[data-aging-distribution]");
+      await expect(chart).toBeVisible();
+      await expect(chart.getByRole("listitem")).toHaveCount(7);
+      await expect(chart.getByText("90+ Days Overdue")).toBeVisible();
+      await expect(chart.getByText("Missing Due Date")).toBeVisible();
+      const fitsViewport = await chart.evaluate((node) => {
+        const bounds = node.getBoundingClientRect();
+        return bounds.left >= 0 && bounds.right <= document.documentElement.clientWidth;
+      });
+      expect(fitsViewport).toBe(true);
+    });
+
+    test("Cash Flow keeps missing dates separate and due windows bounded on phone", async ({ page }) => {
+      await page.goto("/supplier-invoices/cash-flow?period=30", { waitUntil: "domcontentloaded" });
+      const chart = page.locator("[data-aging-distribution]");
+      await expect(chart).toBeVisible();
+      await expect(chart.getByRole("listitem").filter({ hasText: "Missing due date" })).toBeVisible();
+      await expect(chart.getByText(/Due in 15\+ days through/)).toBeVisible();
+      const missing = chart.getByRole("listitem").filter({ hasText: "Missing due date" });
+      await expect(missing).toHaveAttribute("href", /bucket=missing_due_date/);
+      const fitsViewport = await chart.evaluate((node) => {
+        const bounds = node.getBoundingClientRect();
+        return bounds.left >= 0 && bounds.right <= document.documentElement.clientWidth;
+      });
+      expect(fitsViewport).toBe(true);
     });
   });
 });

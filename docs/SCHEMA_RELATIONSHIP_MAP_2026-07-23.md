@@ -2,7 +2,24 @@
 
 > 读取时间：2026-07-23。来源为本机运行中的 Supabase/PostgreSQL `public` schema，**不是 Production 线上库**。
 >
-> 实际读取结果：61 张基础表、5 个只读库存视图。仓库中已有 001–089 号迁移。不要因本文件而直接删除任何线上表；先确认 Production 实际迁移版本、数据量和调用方。
+> 2026-07-23 原始读取结果：61 张基础表、5 个只读库存视图，当时仓库迁移到 089。本文件仍是历史实库快照，不是当前 Production schema 证明。
+>
+> 2026-08-15 仓库核对：forward-only migration 历史已到 `147`。权威顺序为：目标数据库的 `schema_migrations` 与实际 catalog → 仓库 `supabase/migrations/` → 本历史关系图。不要仅凭本文件执行删除、重命名或 Production 变更。
+
+## 2026-08-15 repository 增量（migrations 128–147）
+
+以下只记录从 migration 文件直接验证到的结构/读模型变化，不声称这些 migration 已部署到任何特定 Production 项目：
+
+- `128` 新增 RLS 保护的 `stock_balances_summary` 预聚合表及刷新函数，并提供 bounded Inventory Dashboard summary。
+- `129–137` 增加或迭代 Goods Receiving、Items workspace、Stock Card、Stock Ledger、Dashboard、Payables attention 等有界 RPC/read models。
+- `138` 新增 RLS 保护的 `inventory_daily_summary` 与刷新函数，并扩展 Inventory Dashboard summary。
+- `139–143` 修复 authenticated grants、Dashboard master reads、Outlet Staff access 与 bounded stock-card reference/read behavior；这些是权限/函数修复，不应被误记为新业务表。
+- `144` 是范围明确的数据 reconciliation；它不是通用 schema ownership 变更。
+- `145` 新增 `branch_supply_routes`，为 `outlet_daily_records` 增加 `source_branch_id`，并为 `outlet_daily_record_lines` 增加 `qty_sent_estimated`、`qty_sent_confirmed` 与 `qty_sent_source` provenance。
+- `146` 增加原子替换 branch supply routes 的管理函数。
+- `147` 扩展 Purchasing 对 Outlet Daily Records 的受控管理权限；不改变 Outlet Daily 数量公式。
+
+完整字段、约束、RLS 与函数签名必须回到对应 migration 和实际数据库 catalog 核对。
 
 ## 先看全局结构
 

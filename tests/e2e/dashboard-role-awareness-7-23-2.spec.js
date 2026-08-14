@@ -43,8 +43,17 @@ for (const role of roles) {
     await expect(page.locator("body")).not.toContainText(/Owner Workdesk|Finance Workdesk|Manager Workdesk|Purchasing Workdesk|Kitchen Workdesk|Outlet Today/);
     if (role === "outlet") {
       await expect(page.locator("[data-dashboard-command]")).toHaveCount(0);
+      await expect(page.locator("[data-dashboard-role-micro-chart]")).toHaveCount(0);
       await expect(page.getByRole("heading", { name: "Today's completion" })).toBeVisible();
       await expect(page.locator("[data-dashboard-quick-actions] a")).toHaveCount(3);
+    }
+    if (role !== "outlet") {
+      const roleChart = page.locator("[data-dashboard-role-micro-chart]");
+      await expect(roleChart).toHaveCount(1);
+      const firstSignal = roleChart.getByRole("button").first();
+      await firstSignal.focus();
+      await expect(roleChart.locator("[data-dashboard-role-chart-preview]")).toBeVisible();
+      await expect(roleChart.locator("[data-dashboard-role-chart-preview]").getByRole("link", { name: "Open" })).toHaveCount(1);
     }
 
     for (const [width, height, label] of [[390, 844, "mobile"], [820, 1180, "tablet"], [1440, 900, "desktop"]]) {
@@ -76,8 +85,12 @@ test("Dashboard survives partial-data and long-label visual stress states", asyn
   await signIn(page, "superAdmin");
   await page.goto("/dashboard", { waitUntil: "domcontentloaded" });
   await expect(page.locator("[data-dashboard-command]")).toBeVisible();
+  const hydratedSignal = page.locator("[data-dashboard-role-micro-chart]").getByRole("button").first();
+  await hydratedSignal.click();
+  await expect(hydratedSignal).toHaveAttribute("aria-pressed", "true");
 
-  await page.evaluate(() => {
+  const applyStressState = () => page.evaluate(() => {
+    document.querySelectorAll("[data-dashboard-stress-detail]").forEach((node) => node.remove());
     const longName = "Wilson Tan Wei Ming — Regional Operations and Procurement Administrator";
     const longRole = "Super Administrator / Owner with Company-wide Operational Oversight";
     const longScope = "All Seri Bako branches, central kitchen, event outlets, and future operating locations";
@@ -92,6 +105,7 @@ test("Dashboard survives partial-data and long-label visual stress states", asyn
     value.textContent = "Partial data";
     value.setAttribute("aria-label", "Attention summary unavailable because payables and wastage data could not be loaded");
     const detail = document.createElement("p");
+    detail.dataset.dashboardStressDetail = "true";
     detail.className = "mt-1 max-w-40 text-[11px] leading-4 text-white/85";
     detail.textContent = "Unavailable: payables, wastage";
     summary.append(detail);
@@ -99,6 +113,7 @@ test("Dashboard survives partial-data and long-label visual stress states", asyn
 
   for (const [width, height, label] of [[390, 844, "mobile"], [820, 1180, "tablet"], [1440, 900, "desktop"]]) {
     await page.setViewportSize({ width, height });
+    await applyStressState();
     await expect(page.getByText("Partial data", { exact: true })).toBeVisible();
     await expect(page.getByText("Unavailable: payables, wastage", { exact: true })).toBeVisible();
     const measurement = await measureHorizontalOverflow(page);

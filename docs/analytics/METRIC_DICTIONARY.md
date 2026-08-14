@@ -1,6 +1,6 @@
 # Seri Bako OMS Metric Dictionary
 
-**Current application:** `v8.36.20`
+**Current application:** `v8.36.21`
 **Repository migration ceiling:** `149`
 **Last reviewed:** 2026-08-15
 
@@ -27,6 +27,19 @@ This is the authority for user-visible KPI and chart meaning. It documents prese
 | Freshness | Request-time result; no source-owned refresh timestamp is currently exposed. |
 | Unavailable | If any contributing source is unavailable, total is `null` and UI shows Partial data plus missing sources. |
 | Drill-through | Low Stock, Stock Counts, Wastage, pending action, or AP Aging routes. |
+
+## Dashboard role signal comparison
+
+| Field | Contract |
+|---|---|
+| Decision | Within this role's permitted scope, which current work or exception category is most concentrated? |
+| Formula | Role-specific counts already returned by the bounded Dashboard snapshot and AP attention summary. Finance compares invoice counts by due-date state; Owner/Manager compare operational exception counts; Purchasing compares sourcing, receiving-follow-up, and production-exception counts; Kitchen compares receiving, production, shortage, and low-stock counts. |
+| Grain | Current permitted workspace and role scope; one bar per documented category. |
+| Exclusions | No currency, raw quantity, percentage, forecast, or length of a truncated recent-record collection is used as bar magnitude. Outlet Staff receives no comparison chart. |
+| Source | Existing `getDashboardSummary` fields only; no additional Dashboard query or raw-ledger scan. |
+| Freshness | Request-time snapshot. No source-owned refresh timestamp is currently exposed. |
+| Unavailable | A failed contributing source renders its category Unavailable and zero bar length; it is not reported as zero. |
+| Interaction | Hover, keyboard focus, and touch select the same exact count and definition. The preview's Open action drills to the corresponding authority route. |
 
 ## Outlet Daily wastage trend
 

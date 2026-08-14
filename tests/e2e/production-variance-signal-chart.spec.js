@@ -1,6 +1,7 @@
 const { test, expect } = require("@playwright/test");
 const { createClient } = require("@supabase/supabase-js");
 const { login } = require("./helpers");
+const expectedVersion = `v${require("../../package.json").version}`;
 
 const fixtureNote = "Disposable local production variance signal fixture.";
 let admin = null;
@@ -67,8 +68,8 @@ test.describe("Production variance signal distribution", () => {
       if (viewport.width < 1280) await expect(page.locator("[data-production-variance-list]")).toContainText("E2E Under Signal Product");
       if (viewport.width >= 1280) await expect(page.getByRole("region", { name: "Production versus outlet demand variance" })).toContainText("E2E Under Signal Product");
       expect(await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)).toBeLessThanOrEqual(5);
-      await expect(page.getByText("v8.36.20", { exact: true })).toHaveText("v8.36.20");
-      if (viewport.width >= 1280) await expect(page.getByText("v8.36.20", { exact: true })).toBeVisible();
+      await expect(page.getByText(expectedVersion, { exact: true })).toHaveText(expectedVersion);
+      if (viewport.width >= 1280) await expect(page.getByText(expectedVersion, { exact: true })).toBeVisible();
       await page.screenshot({ path: `test-results/production-variance-signal-${viewport.width}x${viewport.height}.png`, fullPage: false });
     }
   });

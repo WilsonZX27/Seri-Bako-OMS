@@ -423,8 +423,8 @@ Give me a recommended option plus one conservative alternative. Do not implement
 
 - Bounded Inventory daily movement is complete through `inventory_daily_summary`; no raw-ledger page scan or mixed-UOM total was introduced.
 - Outlet completion and Stock Count variance read models are complete with bounded, permission-preserving queries and exact drill-through.
-- Procurement variance concentration and Inventory daily movement are complete; continue with role-specific Dashboard micro charts only where a trusted bounded source already exists.
-- Add at most one trusted micro chart per Dashboard role.
+- Procurement variance concentration and Inventory daily movement are complete. **Delivered v8.36.21:** each non-outlet Dashboard role now receives one trusted micro comparison using only its already-loaded bounded counters; Outlet Staff remains completion-task-first without an executive chart.
+- The one-chart-per-role limit is enforced by one shared Dashboard surface. Failed sources remain unavailable, touch selects before navigation, and bar magnitude never mixes currency, quantities, percentages, or truncated recent-list lengths.
 
 ### Wave 3 — hardening and personalisation
 

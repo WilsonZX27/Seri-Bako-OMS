@@ -5,6 +5,7 @@ import { ConsoleSection } from "@/components/layout/right-console";
 import { WorkspaceGrid } from "@/components/layout/workspace-layout";
 import { formatCurrency, formatDateOnly, formatNumber } from "@/lib/utils";
 import type { LucideIcon } from "lucide-react";
+import { DashboardRoleMicroChart, type DashboardRoleMicroChartItem } from "@/components/dashboard-role-micro-chart";
 
 type DashboardSummary = Awaited<ReturnType<typeof import("@/server/queries/dashboard").getDashboardSummary>>;
 
@@ -136,6 +137,33 @@ export function DashboardWorkspace({ summary }: { summary: DashboardSummary }) {
   const outletExceptionCount = summary.operationsControl?.outlet ? summary.operationsControl.outlet.missing_evening + summary.operationsControl.outlet.needs_review : 0;
   const operationalExceptionCount = (summary.inventoryUnavailable ? 0 : summary.lowStockCount) + (summary.wastageUnavailable ? 0 : summary.wastageAttention) + outletExceptionCount;
   const latestPurchaseOrder = summary.purchaseOrders[0];
+  const roleChartItems: DashboardRoleMicroChartItem[] = isFinance
+    ? [
+        { key: "overdue", label: "Overdue invoices", value: summary.payablesAttentionUnavailable ? null : summary.payablesAttention?.overdue_count ?? 0, href: "/supplier-invoices/aging?overdue=1", definition: "Outstanding supplier invoices past their due date.", tone: "critical" },
+        { key: "due_today", label: "Due today", value: summary.payablesAttentionUnavailable ? null : summary.payablesAttention?.due_today_count ?? 0, href: "/supplier-invoices/aging?bucket=due_today", definition: "Outstanding supplier invoices due on the report date.", tone: "warning" },
+        { key: "due_soon", label: "Due in 1–7 days", value: summary.payablesAttentionUnavailable ? null : summary.payablesAttention?.due_next_7_count ?? 0, href: "/supplier-invoices/cash-flow?period=7", definition: "Outstanding supplier invoices due in the next seven days.", tone: "active" },
+        { key: "missing_date", label: "Missing due date", value: summary.payablesAttentionUnavailable ? null : summary.payablesAttention?.missing_due_date_count ?? 0, href: "/supplier-invoices/aging?bucket=missing_due_date", definition: "Outstanding supplier invoices that cannot be placed on a due-date timeline.", tone: "warning" },
+      ]
+    : isKitchen
+      ? [
+          { key: "receiving", label: "Receiving today", value: summary.todayReceivingUnavailable ? null : summary.today.goodsReceiving, href: "/goods-receivings?date=today", definition: "Goods receiving records created today in the current scope.", tone: "active" },
+          { key: "production_pending", label: "Production pending", value: summary.productionSummary ? summary.productionSummary.pendingApproval + summary.productionSummary.readyToPost : null, href: "/production/jobs", definition: "Production jobs awaiting approval or ready to post.", tone: "warning" },
+          { key: "ingredient_shortage", label: "Ingredient shortages", value: summary.productionSummary?.ingredientShortages ?? null, href: "/production/jobs", definition: "Production jobs carrying a bounded ingredient-shortage exception.", tone: "critical" },
+          { key: "low_stock", label: "Low-stock items", value: summary.inventoryUnavailable ? null : summary.lowStockCount, href: "/low-stock", definition: "Active items at or below their safety-stock threshold.", tone: "critical" },
+        ]
+      : isPurchasing
+        ? [
+            { key: "low_stock", label: "Items needing sourcing", value: summary.inventoryUnavailable ? null : summary.lowStockCount, href: "/low-stock", definition: "Active items at or below their safety-stock threshold.", tone: "critical" },
+            { key: "receiving_followup", label: "Receiving follow-up", value: summary.receivingFollowupUnavailable ? null : summary.financeForecast.receivingNotInvoiced, href: "/goods-receivings", definition: "Bounded receiving records that still require downstream follow-up.", tone: "warning" },
+            { key: "production_exception", label: "Production exceptions", value: summary.productionSummary ? summary.productionSummary.pendingApproval + summary.productionSummary.ingredientShortages : null, href: "/production/jobs", definition: "Production jobs pending approval plus ingredient-shortage exceptions.", tone: "warning" },
+          ]
+        : [
+            { key: "low_stock", label: "Low-stock items", value: summary.inventoryUnavailable ? null : summary.lowStockCount, href: "/low-stock", definition: "Active items at or below their safety-stock threshold.", tone: "critical" },
+            { key: "stock_count", label: "Stock counts due", value: summary.stockCountDueUnavailable ? null : summary.today.stockCountDue, href: "/stock-counts", definition: "Stock counts currently due in the permitted scope.", tone: "warning" },
+            { key: "wastage", label: "Wastage attention", value: summary.wastageUnavailable ? null : summary.wastageAttention, href: "/stock-wastage?status=submitted", definition: "Draft or submitted wastage records requiring attention.", tone: "warning" },
+            { key: "outlet", label: "Outlet completion issues", value: summary.operationsControl ? outletExceptionCount : null, href: "/outlet-daily-records", definition: "Outlet records missing an evening completion or awaiting review.", tone: "critical" },
+            ...(isOwner ? [{ key: "overdue", label: "Overdue invoices", value: summary.payablesAttentionUnavailable ? null : summary.payablesAttention?.overdue_count ?? 0, href: "/supplier-invoices/aging?overdue=1", definition: "Outstanding supplier invoices past their due date.", tone: "critical" as const }] : []),
+          ];
 
   const quickActions = isOutlet
     ? [
@@ -310,6 +338,8 @@ export function DashboardWorkspace({ summary }: { summary: DashboardSummary }) {
             </Link>
           </div>
         </section>
+
+        <DashboardRoleMicroChart title={isFinance ? "Payables due-date mix" : isKitchen ? "Kitchen work signals" : isPurchasing ? "Purchasing follow-up mix" : isManager ? "Manager exception mix" : "Cross-functional exception mix"} items={roleChartItems} />
 
         <QuickActionsCluster actions={quickActions} className="hidden lg:block xl:hidden" />
 

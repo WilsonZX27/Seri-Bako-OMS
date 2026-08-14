@@ -14,6 +14,7 @@ type FieldProps = {
 
 export function Field({ label, children, error, required = false, className, labelClassName }: FieldProps) {
   const generatedId = useId();
+  const visuallyHiddenLabel = labelClassName?.split(/\s+/).includes("sr-only") ?? false;
   const child = isValidElement<{ id?: string; "aria-describedby"?: string; "aria-invalid"?: boolean }>(children)
     ? cloneElement(children, {
         id: children.props.id ?? generatedId,
@@ -23,7 +24,7 @@ export function Field({ label, children, error, required = false, className, lab
     : children;
 
   return (
-    <div className={cn("min-w-0 space-y-1.5", className)}>
+    <div className={cn("min-w-0", visuallyHiddenLabel ? "space-y-0" : "space-y-1.5", className)}>
       <Label className={labelClassName} htmlFor={isValidElement<{ id?: string }>(child) ? child.props.id : undefined}>
         {label}
         {required ? <span className="ml-1 text-destructive">*</span> : null}

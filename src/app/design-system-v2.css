@@ -314,20 +314,8 @@ body::-webkit-scrollbar {
   overflow: hidden;
   border: 1px solid rgb(255 255 255 / 0.09);
   border-radius: var(--sb-panel-radius);
-  background:
-    radial-gradient(circle at 92% 12%, rgb(113 180 147 / 0.2), transparent 16rem),
-    linear-gradient(135deg, #063f2f 0%, #07523c 58%, #063d2e 100%);
-  box-shadow: 0 15px 34px rgb(5 60 44 / 0.17);
-}
-
-.sb-command-surface::after {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  content: "";
-  background-image: linear-gradient(rgb(255 255 255 / 0.025) 1px, transparent 1px), linear-gradient(90deg, rgb(255 255 255 / 0.025) 1px, transparent 1px);
-  background-size: 32px 32px;
-  mask-image: linear-gradient(to left, black, transparent 65%);
+  background: var(--sb-green-900);
+  box-shadow: none;
 }
 
 .sb-action-row {
@@ -502,6 +490,18 @@ tbody tr:hover {
 
 #purchase-request-form [data-purchase-request-line] > * {
   min-width: 0;
+}
+
+html[data-design-layer="v2"] form.sb-list-filters > .sb-list-filter-actions {
+  display: flex;
+  flex: 1 1 100% !important;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  margin-left: auto;
+}
+
+html[data-design-layer="v2"] form.sb-list-filters > .sb-list-filter-actions > * {
+  min-width: 6.5rem;
 }
 
 [data-right-console] section,
@@ -888,9 +888,9 @@ nav[aria-label="Pagination"] > span,
 html[data-design-layer="v2"] body .sb-command-surface {
   border-color: rgb(255 255 255 / 0.13) !important;
   border-radius: var(--sb-panel-radius) !important;
-  background: radial-gradient(circle at 86% 12%, rgb(44 145 110 / 0.26), transparent 34%), linear-gradient(135deg, #063f2f 0%, #005944 62%, #0b6a51 100%) !important;
+  background: var(--sb-green-900) !important;
   color: #fff !important;
-  box-shadow: 0 14px 32px rgb(0 64 48 / 0.18) !important;
+  box-shadow: none !important;
 }
 
 @media (max-width: 639px) {
@@ -1094,9 +1094,7 @@ html[data-design-layer="v2"] [data-dashboard-command] {
   overflow: hidden;
   border: 1px solid color-mix(in srgb, #0b5a43 76%, white) !important;
   border-radius: var(--sb-panel-radius) !important;
-  background:
-    linear-gradient(135deg, rgba(9, 86, 65, 0.99), rgba(5, 66, 51, 0.99)),
-    radial-gradient(circle at top right, rgba(174, 238, 210, 0.17), transparent 42%) !important;
+  background: var(--sb-green-900) !important;
   color: #f8fffb;
 }
 
@@ -1552,6 +1550,26 @@ html[data-design-layer="v2"] :where(.erp-surface[class~="rounded-[2px]"], .sb-wo
     gap: 0.5rem;
   }
 
+  html[data-design-layer="v2"] form.sb-list-filters.sb-list-filters--dense {
+    flex-wrap: wrap !important;
+  }
+
+  html[data-design-layer="v2"] form.sb-list-filters.sb-list-filters--dense > :where(select, [data-select-control]) {
+    flex: 1 1 8rem !important;
+    width: auto !important;
+  }
+
+  html[data-design-layer="v2"] form.sb-list-filters.sb-list-filters--dense > label {
+    flex: 0 0 auto !important;
+    min-width: 7rem;
+    white-space: nowrap;
+  }
+
+  html[data-design-layer="v2"] form.sb-list-filters.sb-list-filters--dense > .sb-list-filter-actions {
+    flex: 1 1 auto !important;
+    min-width: 14rem;
+  }
+
   html[data-design-layer="v2"] :is(form[data-unified-list-desktop="true"], form.sb-list-filters) > :where(select, [data-select-control], .sb-status-filter, .sb-filter-more) {
     flex: 0 0 8rem !important;
     width: 8rem !important;
@@ -1806,6 +1824,40 @@ html[data-design-layer="v2"] :where([class~="bg-card"], [class~="overflow-hidden
 }
 
 @media (max-width: 639px) {
+  html[data-design-layer="v2"] [data-purchase-request-line] {
+    grid-template-columns: 1.75rem minmax(0, 1fr) minmax(0, 1fr) 2.5rem;
+  }
+
+  html[data-design-layer="v2"] [data-purchase-request-line] [data-pr-line-number] {
+    grid-column: 1;
+    grid-row: 1;
+  }
+
+  html[data-design-layer="v2"] [data-purchase-request-line] [data-pr-line-item] {
+    grid-column: 2 / 4;
+    grid-row: 1;
+  }
+
+  html[data-design-layer="v2"] [data-purchase-request-line] .pr-line-quantity {
+    grid-column: 2;
+    grid-row: 2;
+  }
+
+  html[data-design-layer="v2"] [data-purchase-request-line] .pr-line-uom {
+    grid-column: 3;
+    grid-row: 2;
+  }
+
+  html[data-design-layer="v2"] [data-purchase-request-line] [data-pr-line-actions] {
+    grid-column: 4;
+    grid-row: 1 / 3;
+    grid-template-rows: subgrid;
+  }
+
+  html[data-design-layer="v2"] [data-purchase-request-line] [data-pr-line-actions] > * {
+    align-self: start;
+  }
+
   html[data-design-layer="v2"] [data-purchase-request-line] :where(input, select, button) {
     min-height: 40px;
   }

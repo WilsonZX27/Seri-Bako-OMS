@@ -128,6 +128,54 @@ async function assertInteractiveBounds(page, route, viewport) {
   }
 }
 
+async function stableEvaluate(page, evaluator) {
+  for (let attempt = 0; attempt < 3; attempt += 1) {
+    try {
+      return await page.evaluate(evaluator);
+    } catch (error) {
+      if (!/Execution context was destroyed/.test(String(error)) || attempt === 2) throw error;
+      await page.waitForLoadState("domcontentloaded");
+      await page.waitForTimeout(150);
+    }
+  }
+  throw new Error("Page did not stabilize for UI geometry measurement.");
+}
+
+async function assertNoAccidentalVerticalText(page, route, viewport) {
+  const glitches = await stableEvaluate(page, () => Array.from(document.querySelectorAll("label,p,span,h1,h2,h3,h4,button,a,summary"))
+    .filter((node) => {
+      const text = node.textContent?.replace(/\s+/g, " ").trim() ?? "";
+      if (text.length < 4 || !/[A-Za-z]{4}/.test(text)) return false;
+      const rect = node.getBoundingClientRect();
+      if (rect.width <= 0 || rect.height <= 0 || rect.width >= 40) return false;
+      const style = getComputedStyle(node);
+      if (style.display === "none" || style.visibility === "hidden" || style.writingMode !== "horizontal-tb") return false;
+      if (style.whiteSpace === "nowrap" || style.textOverflow === "ellipsis") return false;
+      const lineHeight = Number.parseFloat(style.lineHeight) || Number.parseFloat(style.fontSize) * 1.2;
+      return rect.height >= lineHeight * 2.5;
+    })
+    .map((node) => {
+      const rect = node.getBoundingClientRect();
+      return { tag: node.tagName, text: node.textContent?.replace(/\s+/g, " ").trim().slice(0, 80), width: rect.width, height: rect.height };
+    }));
+  expect(glitches, `${viewport.label} ${route} must not collapse ordinary labels into vertical single-character columns`).toEqual([]);
+}
+
+async function assertTerminalFilterActions(page, route, viewport) {
+  const groups = await stableEvaluate(page, () => Array.from(document.querySelectorAll(".sb-list-filter-actions")).map((group) => {
+    const form = group.closest("form");
+    const formRect = form?.getBoundingClientRect();
+    const groupRect = group.getBoundingClientRect();
+    const actionTops = Array.from(group.querySelectorAll("button,a")).map((action) => action.getBoundingClientRect().top);
+    return {
+      rightGap: formRect ? formRect.right - groupRect.right : null,
+      aligned: actionTops.length < 2 || Math.max(...actionTops) - Math.min(...actionTops) <= 1,
+    };
+  }));
+  expect(groups.every((group) => group.rightGap !== null && group.rightGap >= -1 && group.rightGap <= 12), `${viewport.label} ${route} terminal filter actions must stay right-aligned`).toBe(true);
+  expect(groups.every((group) => group.aligned), `${viewport.label} ${route} Clear and Search/Filter actions must share a baseline`).toBe(true);
+}
+
 fs.mkdirSync(evidence, { recursive: true });
 
 test.describe("static workspace layout audit", () => {
@@ -150,6 +198,8 @@ test.describe("static workspace layout audit", () => {
       const overflow = await pageOverflow(page);
       expect(overflow, `${viewport.label} ${route} must not cause page-level horizontal overflow`).toBeLessThanOrEqual(5);
       await assertInteractiveBounds(page, route, viewport);
+      await assertNoAccidentalVerticalText(page, route, viewport);
+      await assertTerminalFilterActions(page, route, viewport);
       if (captureScreenshots || viewport.label === "mobile-390") {
         const safeName = route === "/" ? "root" : route.slice(1).replaceAll("/", "--");
         await page.screenshot({ path: path.join(evidence, `${viewport.label}--${safeName}.png`), fullPage: true });

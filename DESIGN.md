@@ -633,3 +633,11 @@ the route matrix in `docs/qa/FULL_SYSTEM_AUDIT_MATRIX.md`.
 - Collapsible setup surfaces expose one Expand/Hide control and keep all setup fields together. A second hidden “more details” disclosure inside the setup is not allowed.
 - Line-level remarks use a message action on the item title row and render the remarks field only after activation. Availability/read-only metric blocks use the shared control radius.
 - Purchase Request CSV export opens a selection dialog. User-selectable columns are restricted by a server-side allowlist before the database query is built.
+
+# v8.36.14 — Evidence-Driven Responsive Release Gate
+
+- Every customer-facing static workspace is audited at phone (390×844), portrait tablet (820×1180), landscape tablet (1180×820), and desktop (1440×900) before a UI release. Dynamic record routes use seeded IDs in their separate route audit; a skipped or stale-fixture route is unverified, never a pass.
+- The release gate rejects document-level horizontal overflow, interactive controls outside the viewport, ordinary labels collapsed into narrow vertical single-character columns, fixed action rails separated from the viewport bottom by a duplicated safe-area inset, and floating controls whose background becomes transparent because a design token is undefined.
+- Repeating mobile item editors use explicit named grid regions. Item search owns the first row; quantity, UOM, and the comment action share the second row. A broad selector may not replace a component's grid template or reset its child placement.
+- Screenshot evidence must come from a clean `.next-playwright` cache and a clean evidence directory. Old screenshots or a reused build cannot be accepted as current verification.
+- New features must pass the existing responsive route matrix before they are considered complete. A feature change does not authorize weakening, hiding, or removing an established responsive contract.

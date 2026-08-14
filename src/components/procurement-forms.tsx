@@ -313,9 +313,9 @@ export function PurchaseRequestForm({
             <div className="divide-y">
               {/* Legacy contract token: grid-cols-[minmax(0,1fr)_7.5rem_2.25rem]. The current four-column line keeps UOM, quantity, comments, and removal aligned. */}
               {lines.map((line, index) => (
-                <div data-purchase-request-line key={line.key} className="grid grid-cols-[1.75rem_minmax(0,1fr)_minmax(6.75rem,.7fr)_2.5rem] gap-1.5 p-2 md:grid-cols-[minmax(0,1fr)_112px_112px_5.5rem] md:gap-3 md:p-3">
-                  <span className="grid h-10 place-items-center self-start text-xs font-semibold text-[var(--sb-green-800)] md:hidden">{index + 1}</span>
-                  <div className="col-span-2 col-start-2 min-w-0 md:col-span-1 md:col-start-1">
+                <div data-purchase-request-line key={line.key} className="grid grid-cols-[1.75rem_minmax(0,1fr)_minmax(0,1fr)_2.5rem] gap-1.5 p-2 md:grid-cols-[minmax(0,1fr)_112px_112px_5.5rem] md:gap-3 md:p-3">
+                  <span data-pr-line-number className="grid h-10 place-items-center self-start md:hidden"><span className="grid h-6 w-6 place-items-center rounded-[var(--sb-radius-control)] bg-[var(--sb-surface-muted)] text-[11px] font-semibold tabular-nums text-[var(--sb-text-muted)]">{index + 1}</span></span>
+                  <div data-pr-line-item className="col-span-2 col-start-2 min-w-0 md:col-span-1 md:col-start-1">
                     <Field label="Item" required labelClassName="sr-only">
                       <Input
                         ref={line.key === lines[0]?.key ? firstItemInputRef : undefined}
@@ -338,14 +338,14 @@ export function PurchaseRequestForm({
                     <input type="hidden" name="line_item_id" value={line.itemId} />
                     <input type="hidden" name="line_branch_id" value={branchId} />
                   </div>
-                    <Field label="Quantity" required labelClassName="sr-only" className="col-start-2 row-start-2 md:col-start-2 md:row-start-1">
+                    <Field label="Quantity" required labelClassName="sr-only" className="pr-line-quantity col-start-2 row-start-2 md:col-start-2 md:row-start-1">
                       <div className="flex h-10 overflow-hidden rounded-[var(--sb-radius-control)] border border-[var(--sb-border)] bg-white">
                         <button type="button" className="flex h-full w-9 shrink-0 items-center justify-center border-r border-[var(--sb-border)] text-[var(--sb-green-900)] hover:bg-[var(--sb-surface-muted)] active:bg-[var(--sb-green-100)]" onClick={() => adjustLineQuantity(line, -1)} aria-label={`Decrease quantity for ${line.itemSearch || "request line"}`}><Minus className="h-3.5 w-3.5" /></button>
                         <Input name="line_qty" type="number" min="0" step={requestQuantityStep(line.uom)} value={line.qty} onChange={(event) => updateLine(line.key, { qty: event.target.value })} placeholder="Qty" className="h-full min-w-0 rounded-none border-0 px-1 text-center text-sm font-semibold tabular-nums shadow-none focus-visible:ring-inset" />
                         <button type="button" className="flex h-full w-9 shrink-0 items-center justify-center border-l border-[var(--sb-border)] text-[var(--sb-green-900)] hover:bg-[var(--sb-surface-muted)] active:bg-[var(--sb-green-100)]" onClick={() => adjustLineQuantity(line, 1)} aria-label={`Increase quantity for ${line.itemSearch || "request line"}`}><Plus className="h-3.5 w-3.5" /></button>
                       </div>
                     </Field>
-                    <Field label="UOM" labelClassName="sr-only" className="col-start-3 row-start-2 md:row-start-1">
+                    <Field label="UOM" labelClassName="sr-only" className="pr-line-uom col-start-3 row-start-2 md:row-start-1">
                       <SelectNative name="line_uom" value={line.uom} onChange={(event) => selectLineUom(line.key, event.target.value)} disabled={!line.itemId} aria-label={`Unit of measure for ${line.itemSearch || "request line"}`}>
                         <option value="">Choose unit</option>
                         {allowedUomsForLine(line).map((uom) => <option key={uom} value={uom}>{uom.toUpperCase()}</option>)}
@@ -354,9 +354,9 @@ export function PurchaseRequestForm({
                   <input type="hidden" name="line_suggested_supplier_id" value={line.supplierId} />
                   <input type="hidden" name="line_estimated_unit_cost" value={line.cost} />
                   <details className="hidden" aria-hidden="true"><summary>Sourcing details <span>(automatic)</span></summary><div className="grid grid-cols-[minmax(0,1.35fr)_minmax(0,0.8fr)_minmax(4.75rem,0.7fr)_2.75rem]" /><span>Line note <span className="font-normal">(optional)</span></span></details>
-                  <div className="col-start-4 row-span-2 row-start-1 grid content-start gap-0.5 md:col-span-1 md:col-start-4 md:row-span-1 md:row-start-1 md:grid-cols-2">
-                    {lines.length > 1 ? <Button type="button" variant="ghost" size="icon" className="order-1 h-10 w-9 text-muted-foreground md:order-2" aria-label="Remove line" onClick={() => setLines((current) => current.filter((row) => row.key !== line.key))}><X className="h-4 w-4" /></Button> : <span className="h-10" />}
-                    <Button type="button" variant="ghost" size="icon" className="order-2 h-10 w-9 text-muted-foreground md:order-1" aria-label={`Add comment for ${line.itemSearch || "request line"}`} onClick={() => setCommentLineKey((current) => current === line.key ? null : line.key)}><MessageSquare className="h-4 w-4" /></Button>
+                  <div data-pr-line-actions className="col-start-4 row-span-2 row-start-1 grid content-start gap-1.5 md:col-span-1 md:col-start-4 md:row-span-1 md:row-start-1 md:grid-cols-2 md:grid-rows-1 md:gap-0.5">
+                    {lines.length > 1 ? <Button type="button" variant="outline" size="icon" className="order-1 h-10 w-10 text-muted-foreground md:order-2" aria-label="Remove line" onClick={() => setLines((current) => current.filter((row) => row.key !== line.key))}><X className="h-4 w-4" /></Button> : <span className="h-10 w-10" aria-hidden="true" />}
+                    <Button type="button" variant="outline" size="icon" className="order-2 h-10 w-10 text-muted-foreground md:order-1" aria-label={`Add comment for ${line.itemSearch || "request line"}`} onClick={() => setCommentLineKey((current) => current === line.key ? null : line.key)}><MessageSquare className="h-4 w-4" /></Button>
                   </div>
                   {commentLineKey === line.key ? <Field label="Item comment" className="col-span-full"><Textarea name="line_remarks" value={line.remarks} onChange={(event) => updateLine(line.key, { remarks: event.target.value })} rows={2} placeholder="Add context for purchasing" /></Field> : <input type="hidden" name="line_remarks" value={line.remarks} />}
                   {line.itemId && mappingsForLine(line).length === 0 ? <div className="col-span-full grid min-w-0 gap-2 rounded-[var(--sb-radius-control)] border border-destructive/25 bg-destructive/8 px-3 py-2.5 text-xs text-destructive sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center"><div className="min-w-0"><p className="font-semibold">Supplier setup required</p><p className="mt-0.5 leading-relaxed">This item has no supplier assigned for the selected branch.</p></div><Button asChild type="button" variant="outline" size="sm" className="w-full border-destructive/30 text-destructive sm:w-auto"><Link href="/imports/branch-supplier-items">Add supplier mapping</Link></Button></div> : null}

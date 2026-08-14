@@ -30,7 +30,7 @@ export default async function ApAgingPage({ searchParams }: { searchParams: Prom
   const totalPages = Math.max(1, Math.ceil(report.total_rows / report.page_size));
   const dueSoonHref = `?due_from=${shiftDate(report.report_date, 1)}&due_to=${shiftDate(report.report_date, 7)}`;
   const exportQuery = new URLSearchParams(Object.entries(filters).filter((entry): entry is [string, string] => !!entry[1] && entry[0] !== "page")).toString();
-  const metric = (label: string, value: number | string, href?: string) => <Link href={href ?? "#aging-table"} className="border bg-white px-3 py-2 hover:border-[var(--sb-amber-300)]"><span className="block text-[11px] text-muted-foreground">{label}</span><strong className="tabular-nums">{typeof value === "number" ? formatCurrency(value) : value}</strong></Link>;
+  const metric = (label: string, value: number | string, href?: string) => <Link href={href ?? "#aging-table"} className="flex min-h-[4.25rem] min-w-0 flex-col justify-between rounded-[var(--sb-radius-control)] border bg-white px-3 py-2 hover:border-[var(--sb-amber-300)]"><span className="text-[11px] leading-4 text-muted-foreground">{label}</span><strong className="tabular-nums">{typeof value === "number" ? formatCurrency(value) : value}</strong></Link>;
   return <>
     <PageHeader title="AP Aging" description={`Open supplier payables as of ${dates(report.report_date)}.`} />
     <WorkspaceGrid hideMobileConsole rightRail={<>
@@ -43,7 +43,7 @@ export default async function ApAgingPage({ searchParams }: { searchParams: Prom
           <Button asChild size="sm" className="flex-1"><a href={`/api/export/ap-aging${exportQuery ? `?${exportQuery}` : ""}`}>Export CSV</a></Button>
           <Button asChild size="sm" variant="outline" className="flex-1"><Link href="/supplier-invoices/cash-flow">Cash flow</Link></Button>
         </div>
-        <section className="grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
+        <section className="grid grid-cols-2 gap-2 md:grid-cols-3">
           {metric("Total Outstanding", report.summary.total_outstanding)}
           {metric("Total Overdue", report.summary.total_overdue, "?overdue=1")}
           {metric("Due Today", report.summary.due_today, "?bucket=due_today")}
@@ -52,20 +52,23 @@ export default async function ApAgingPage({ searchParams }: { searchParams: Prom
           {metric("Suppliers with Balance", String(report.summary.supplier_count))}
         </section>
 
-        <section className="overflow-hidden border bg-card"><div className="border-b px-3 py-2"><h2 className="text-sm font-semibold">Aging Buckets</h2></div><div className="grid gap-px bg-border sm:grid-cols-2 xl:grid-cols-4">{Object.entries(bucketLabels).map(([key, label]) => <Link key={key} href={`?bucket=${key}`} className="bg-white px-3 py-2 text-xs"><span className="block text-muted-foreground">{label}</span><strong>{formatCurrency(report.buckets[key]?.outstanding ?? 0)}</strong><span className="ml-2 text-muted-foreground">{report.buckets[key]?.invoice_count ?? 0} invoices</span></Link>)}</div></section>
+        <section className="overflow-hidden border bg-card"><div className="border-b px-3 py-2"><h2 className="text-sm font-semibold">Aging Buckets</h2></div><div className="grid grid-cols-2 gap-px bg-border lg:grid-cols-4">{Object.entries(bucketLabels).map(([key, label]) => <Link key={key} href={`?bucket=${key}`} className="min-w-0 bg-white px-3 py-2 text-xs"><span className="block leading-4 text-muted-foreground">{label}</span><strong>{formatCurrency(report.buckets[key]?.outstanding ?? 0)}</strong><span className="ml-2 text-muted-foreground">{report.buckets[key]?.invoice_count ?? 0} invoices</span></Link>)}</div></section>
 
         <section className="overflow-hidden border bg-card"><div className="border-b px-3 py-2"><h2 className="text-sm font-semibold">Supplier Exposure</h2></div><div className="overflow-x-auto"><Table><TableHeader><TableRow><TableHead>Supplier</TableHead><TableHead className="text-right">Invoices</TableHead><TableHead className="text-right">Outstanding</TableHead><TableHead className="text-right">Overdue</TableHead><TableHead>Oldest Due</TableHead><TableHead className="text-right">Max Days</TableHead></TableRow></TableHeader><TableBody>{report.suppliers.map((row) => <TableRow key={row.supplier_id}><TableCell><Link href={`?supplier=${row.supplier_id}`} className="font-medium hover:underline">{row.supplier_name}</Link></TableCell><TableCell className="text-right">{row.invoice_count}</TableCell><TableCell className="whitespace-nowrap text-right">{formatCurrency(row.total_outstanding)}</TableCell><TableCell className="whitespace-nowrap text-right">{formatCurrency(row.overdue_outstanding ?? 0)}</TableCell><TableCell>{dates(row.oldest_due_date)}</TableCell><TableCell className="text-right">{row.maximum_days_overdue}</TableCell></TableRow>)}</TableBody></Table></div></section>
 
         <section id="aging-table" className="overflow-hidden border bg-card">
-          <form className="sb-list-filters">
+          <form className="sb-list-filters sb-list-filters--dense">
             <Input name="search" defaultValue={filters.search ?? ""} placeholder="Search invoice, reference, or supplier" />
             <SelectNative name="supplier" defaultValue={filters.supplier ?? "all"}><option value="all">All suppliers</option>{report.suppliers.map((row) => <option key={row.supplier_id} value={row.supplier_id}>{row.supplier_name}</option>)}</SelectNative>
             <SelectNative name="bucket" defaultValue={filters.bucket ?? "all"}><option value="all">All aging buckets</option>{Object.entries(bucketLabels).map(([key, label]) => <option key={key} value={key}>{label}</option>)}</SelectNative>
             <SelectNative name="status" defaultValue={filters.status ?? "all"}><option value="all">All open statuses</option><option value="open">Open</option><option value="partially_paid">Partially Paid</option></SelectNative>
             <Input name="due_from" type="date" defaultValue={filters.due_from ?? ""} aria-label="Due date from" />
             <Input name="due_to" type="date" defaultValue={filters.due_to ?? ""} aria-label="Due date to" />
-            <label className="flex items-center gap-2 text-xs"><input type="checkbox" name="overdue" value="1" defaultChecked={filters.overdue === "1"} /> Overdue only</label>
-            <Button type="submit">Filter</Button><Button asChild variant="ghost"><Link href="/supplier-invoices/aging">Clear</Link></Button>
+            <label className="flex min-w-28 shrink-0 items-center gap-2 whitespace-nowrap text-xs"><input type="checkbox" name="overdue" value="1" defaultChecked={filters.overdue === "1"} /> Overdue only</label>
+            <div className="sb-list-filter-actions">
+              <Button asChild variant="ghost"><Link href="/supplier-invoices/aging">Clear</Link></Button>
+              <Button type="submit">Filter</Button>
+            </div>
           </form>
           <div className="overflow-x-auto"><Table><TableHeader><TableRow><TableHead>Invoice</TableHead><TableHead>Supplier Ref.</TableHead><TableHead>Supplier</TableHead><TableHead>Invoice Date</TableHead><TableHead>Due Date</TableHead><TableHead className="text-right">Days Overdue</TableHead><TableHead className="text-right">Original</TableHead><TableHead className="text-right">Paid</TableHead><TableHead className="text-right">Outstanding</TableHead><TableHead>Bucket</TableHead><TableHead>Alert</TableHead><TableHead>Status</TableHead></TableRow></TableHeader><TableBody>{report.rows.map((row) => <TableRow key={row.id}><TableCell><Link href={`/supplier-invoices/${row.id}`}><DocumentNumber value={row.invoice_no} size="sm" /></Link></TableCell><TableCell>{row.supplier_invoice_no}</TableCell><TableCell>{row.supplier_name}</TableCell><TableCell>{dates(row.invoice_date)}</TableCell><TableCell className="whitespace-nowrap">{dates(row.due_date)}</TableCell><TableCell className="whitespace-nowrap text-right">{row.days_overdue > 0 ? `${row.days_overdue} days overdue` : "0"}</TableCell><TableCell className="whitespace-nowrap text-right">{formatCurrency(row.original_total)}</TableCell><TableCell className="whitespace-nowrap text-right">{formatCurrency(row.amount_paid)}</TableCell><TableCell className="whitespace-nowrap text-right font-semibold">{formatCurrency(row.outstanding)}</TableCell><TableCell className="whitespace-nowrap">{bucketLabels[row.aging_bucket]}</TableCell><TableCell className="whitespace-nowrap text-xs font-medium">{row.alert_severity === "due_soon" ? `${row.days_until_due} days until due` : row.alert_label ?? "No immediate alert"}</TableCell><TableCell><StatusBadge status={row.status} /></TableCell></TableRow>)}{!report.rows.length ? <TableRow><TableCell colSpan={12}><EmptyState title="No open payables match these filters" description="Open and partially paid invoices with positive balances appear here." /></TableCell></TableRow> : null}</TableBody></Table></div>
           <PaginationControls page={report.page} totalPages={totalPages} totalRows={report.total_rows} searchParams={filters} />

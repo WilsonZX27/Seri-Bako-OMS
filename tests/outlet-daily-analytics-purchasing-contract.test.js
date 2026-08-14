@@ -6,6 +6,7 @@ const assert = require("node:assert/strict");
 const root = path.join(__dirname, "..");
 const page = fs.readFileSync(path.join(root, "src", "app", "(app)", "outlet-daily-records", "page.tsx"), "utf8");
 const chart = fs.readFileSync(path.join(root, "src", "components", "outlet-daily-wastage-chart.tsx"), "utf8");
+const interactiveChart = fs.readFileSync(path.join(root, "src", "components", "ui", "interactive-line-chart.tsx"), "utf8");
 const permissions = fs.readFileSync(path.join(root, "src", "server", "auth", "permissions.ts"), "utf8");
 const migration = fs.readFileSync(path.join(root, "supabase", "migrations", "147_purchasing_manage_outlet_daily_records.sql"), "utf8");
 
@@ -14,10 +15,18 @@ test("outlet daily workspace renders a lightweight 30-day completed-record wasta
   assert.match(page, /<OutletDailyWastageChart points=\{trend\.daily\} \/>/);
   assert.match(chart, /Completed outlet records only/);
   assert.match(chart, /wastage ÷ received/);
-  assert.match(chart, /<svg/);
+  assert.match(chart, /InteractiveLineChart/);
   assert.match(chart, /maximumFractionDigits: 1/);
   assert.match(chart, /left: 54/);
-  assert.doesNotMatch(chart, /"use client"|recharts|chart\.js|d3/);
+  assert.match(chart, /Daily wastage rate data/);
+  assert.match(interactiveChart, /"use client"/);
+  assert.match(interactiveChart, /<svg/);
+  assert.match(interactiveChart, /data-chart-preview/);
+  assert.match(interactiveChart, /onPointerMove/);
+  assert.match(interactiveChart, /ArrowLeft/);
+  assert.match(interactiveChart, /ArrowRight/);
+  assert.match(interactiveChart, /touch-pan-y/);
+  assert.doesNotMatch(chart + interactiveChart, /recharts|chart\.js|d3/);
 });
 
 test("purchasing can inspect and correct company outlet daily records without bypassing RLS", () => {

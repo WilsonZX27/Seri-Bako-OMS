@@ -7,7 +7,7 @@ import { DataGridRow } from "@/components/ui/data-grid-row";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
 import { FilterBar } from "@/components/ui/filter-bar";
-import { UnifiedListHeader } from "@/components/common/UnifiedListHeader";
+import { OutletDailyWastageChart } from "@/components/outlet-daily-wastage-chart";
 import { Input } from "@/components/ui/input";
 import { PageHeader } from "@/components/ui/page-header";
 import { SelectControl } from "@/components/ui/select-control";
@@ -16,14 +16,19 @@ import { OperationalList, OperationalListRow, Table, TableActionLink, TableBody,
 import { formatDateOnly, formatDateTime, formatNumber } from "@/lib/utils";
 import { hasActiveFilters } from "@/lib/table-state";
 import { hasPermission } from "@/server/auth/permissions";
-import { getOutletDailyFormOptions, getOutletDailyRecords } from "@/server/queries/outlet-daily-records";
+import { getOutletDailyDemandTrend, getOutletDailyFormOptions, getOutletDailyRecords } from "@/server/queries/outlet-daily-records";
 
 const statuses = ["draft", "morning_recorded", "evening_completed", "reviewed", "void"];
 const statusGuidance = (status: string) => status === "evening_completed" ? "Posted · editable" : status === "reviewed" ? "Legacy reviewed record" : ["draft", "morning_recorded"].includes(status) ? "In progress" : "Locked";
 
 export default async function OutletDailyRecordsPage({ searchParams }: { searchParams: Promise<Record<string, string | undefined>> }) {
   const filters = await searchParams;
-  const [data, options, canCreate] = await Promise.all([getOutletDailyRecords(filters), getOutletDailyFormOptions(), hasPermission("outlet_daily_record.create")]);
+  const [data, options, canCreate, trend] = await Promise.all([
+    getOutletDailyRecords(filters),
+    getOutletDailyFormOptions(),
+    hasPermission("outlet_daily_record.create"),
+    getOutletDailyDemandTrend({ period: "30", branch: filters.branch }),
+  ]);
   const filtered = hasActiveFilters(filters);
   return <>
     <PageHeader title="Outlet Daily Records" description="Morning receiving and evening wastage capture by outlet." />
@@ -33,21 +38,13 @@ export default async function OutletDailyRecordsPage({ searchParams }: { searchP
       <ConsoleSection title="Completion"><p className="text-xs"><span className="text-muted-foreground">Ready to post</span><br /><strong>{data.summary.needs_review}</strong></p></ConsoleSection>
     </>}>
       <div className="space-y-3">
-        <div className="hidden sm:block">
+        <OutletDailyWastageChart points={trend.daily} />
         <FilterBar resultCount={data.totalRows} resetHref="/outlet-daily-records" filtered={filtered} className="sb-list-filters--date-first">
             <Input name="date" type="date" defaultValue={filters.date ?? ""} aria-label="Record date" className="sb-filter-date" />
             <SelectControl name="branch" value={filters.branch ?? "all"} ariaLabel="Branch" options={[{ value: "all", label: "All branches" }, ...options.branches.map((branch) => ({ value: branch.id, label: branch.branch_name }))]} />
             <SelectControl name="status" value={filters.status ?? "all"} ariaLabel="Status" options={[{ value: "all", label: "All statuses" }, ...statuses.map((status) => ({ value: status, label: status.replaceAll("_", " ") }))]} />
             {filtered ? <Button asChild variant="secondary"><Link href="/outlet-daily-records">Reset</Link></Button> : <Button type="submit" variant="secondary">Search</Button>}
         </FilterBar>
-        </div>
-        <div className="sm:hidden">
-          <UnifiedListHeader phoneOnly resultCount={data.totalRows} resetHref="/outlet-daily-records" filtered={filtered} activeCount={Number(Boolean(filters.date)) + Number(Boolean(filters.branch && filters.branch !== "all")) + Number(Boolean(filters.status && filters.status !== "all"))} className="sb-mobile-list-filter sb-list-filters--date-first">
-            <Input name="date" type="date" defaultValue={filters.date ?? ""} aria-label="Record date" className="sb-filter-date" />
-            <SelectControl name="branch" value={filters.branch ?? "all"} ariaLabel="Branch" options={[{ value: "all", label: "All branches" }, ...options.branches.map((branch) => ({ value: branch.id, label: branch.branch_name }))]} />
-            <SelectControl name="status" value={filters.status ?? "all"} ariaLabel="Status" options={[{ value: "all", label: "All statuses" }, ...statuses.map((status) => ({ value: status, label: status.replaceAll("_", " ") }))]} />
-          </UnifiedListHeader>
-        </div>
         <div className="sb-list-content-card overflow-hidden" data-mobile-list-content-card>
         <Table mobileHidden aria-label="Outlet daily records" stickyColumn="second"><TableHeader><TableRow><TableHead className="w-16 text-center">Action</TableHead><TableHead>Date</TableHead><TableHead>Outlet</TableHead><TableHead>Status</TableHead><TableHead className="text-right">Received</TableHead><TableHead className="text-right">Wastage<br /><span className="font-normal text-muted-foreground">Wastage %</span></TableHead><TableHead>Submitted By</TableHead><TableHead>Updated</TableHead></TableRow></TableHeader><TableBody>
           {data.rows.map((row) => <DataGridRow key={row.id} href={`/outlet-daily-records/${row.id}`} className={row.record_date === data.summary.today ? "bg-warning/5" : undefined}><TableCell className="w-16 p-0 text-center"><TableActionLink href={`/outlet-daily-records/${row.id}`} label={`Open ${row.branch_name} daily record`}><Pencil className="h-4 w-4" /></TableActionLink></TableCell><TableCell><span className="whitespace-nowrap">{formatDateOnly(row.record_date)}</span>{row.record_date === data.summary.today ? <p className="text-xs font-medium text-warning">Today</p> : null}</TableCell><TableCell className="font-medium">{row.branch_name}</TableCell><TableCell><StatusBadge status={row.status} /><p className="mt-1 whitespace-nowrap text-xs text-muted-foreground">{statusGuidance(row.status)}</p></TableCell><TableCell className="text-right">{formatNumber(row.total_received)}</TableCell><TableCell className="text-right"><span className="block">{formatNumber(row.total_wastage)}</span><span className="block text-[11px] text-muted-foreground">{formatNumber(row.wastage_percent)}%</span></TableCell><TableCell>{row.submitted_by_name ?? "Draft"}</TableCell><TableCell className="whitespace-nowrap">{formatDateTime(row.updated_at).split(" ").map((part) => <span key={part} className="block">{part}</span>)}</TableCell></DataGridRow>)}

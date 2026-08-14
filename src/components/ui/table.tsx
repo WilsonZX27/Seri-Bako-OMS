@@ -11,7 +11,7 @@ import { cn } from "@/lib/utils";
  * The `third` anchor is used when a compact action column sits between the checkbox and identity.
  * Legacy contract: stickyColumn?: "none" | "first" | "second"
  */
-export function Table({ className, mobileHidden = false, compactUntil = "md", stickyColumn = "first", ...props }: React.TableHTMLAttributes<HTMLTableElement> & { mobileHidden?: boolean; compactUntil?: "md" | "xl"; stickyColumn?: "none" | "first" | "second" | "third" }) {
+export function Table({ className, mobileHidden = false, compactUntil = "xl", stickyColumn = "first", ...props }: React.TableHTMLAttributes<HTMLTableElement> & { mobileHidden?: boolean; compactUntil?: "md" | "xl"; stickyColumn?: "none" | "first" | "second" | "third" }) {
   const regionRef = React.useRef<HTMLDivElement>(null);
   const [scrolled, setScrolled] = React.useState(false);
 
@@ -35,7 +35,7 @@ export function Table({ className, mobileHidden = false, compactUntil = "md", st
   );
 }
 
-export function OperationalList({ children, ariaLabel, className, showUntil = "md" }: { children: React.ReactNode; ariaLabel: string; className?: string; showUntil?: "md" | "xl" }) {
+export function OperationalList({ children, ariaLabel, className, showUntil = "xl" }: { children: React.ReactNode; ariaLabel: string; className?: string; showUntil?: "md" | "xl" }) {
   return <div className={cn("divide-y divide-[var(--sb-border-soft)]", showUntil === "xl" ? "xl:hidden" : "md:hidden", className)} role="list" aria-label={ariaLabel}>{children}</div>;
 }
 

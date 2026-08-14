@@ -1743,19 +1743,22 @@ html[data-design-layer="v2"] :where([class~="bg-card"], [class~="overflow-hidden
 
 @media (min-width: 640px) and (max-width: 1023px) {
   html[data-design-layer="v2"] form.sb-list-query-card {
-    display: grid !important;
-    grid-template-columns: repeat(3, minmax(0, 8rem)) minmax(0, 1fr) auto;
+    display: flex !important;
+    flex-wrap: wrap !important;
     align-items: center;
   }
 
   html[data-design-layer="v2"] form.sb-list-query-card > :where(input[type="search"], input[name="search"], input[placeholder*="Search"], input[placeholder*="Find"]) {
-    grid-column: 1 / -1;
+    flex: 1 0 100% !important;
     width: 100% !important;
+    min-width: 0 !important;
+    max-width: none !important;
   }
 
   html[data-design-layer="v2"] form.sb-list-query-card > .unified-list-desktop-actions {
-    grid-column: 4 / -1;
-    justify-self: end;
+    flex: 0 0 auto;
+    min-width: 0;
+    margin-left: auto;
   }
 }
 

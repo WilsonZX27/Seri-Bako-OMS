@@ -40,7 +40,7 @@ test("the shared shell gives iPad a contained canvas and an explicit operational
   assert.match(workspace, /data-tablet-document-header/);
   assert.match(workspace, /tabletRailMode = "split"/);
   assert.match(workspaceGrid, /data-tablet-canvas/);
-  assert.match(workspaceGrid, /tabletRailMode = "context"/);
+  assert.match(workspaceGrid, /tabletRailMode = rightRail \? "split" : "context"/);
   assert.match(workspaceGrid, /data-tablet-document-split/);
   assert.match(workspaceGrid, /md:grid-cols-\[minmax\(0,1fr\)_16rem\]/);
   assert.match(grn, /tabletRailMode="split"/);

@@ -23,6 +23,7 @@ import { StockCountExportDialog } from "@/components/stock-count-export-dialog";
 
 // Stock Count has one active workflow: Draft → Confirm & Post. Legacy states
 // remain readable in the table, but are intentionally not promoted as filters.
+const statuses = ["draft", "posted", "cancelled"];
 async function loadStockCounts(filters: Record<string, string | undefined>) {
   try {
     return await getStockCounts(filters);
@@ -75,7 +76,7 @@ export default async function StockCountsPage({ searchParams }: { searchParams: 
           <FilterBar resultCount={counts.totalRows} resetHref="/stock-counts" filtered={filtered} className="sb-list-query-card sb-tablet-split-filter">
             <Input name="search" defaultValue={filters.search ?? ""} placeholder="Search count no, branch, remarks" />
             <SelectControl name="branch_id" defaultValue={filters.branch_id ?? "all"} ariaLabel="Branch" options={[{ value: "all", label: "All branches" }, ...branches.map((branch) => ({ value: branch.id, label: branch.branch_name }))]} />
-            <SelectControl name="status" defaultValue={filters.status ?? "all"} ariaLabel="Status" options={[{ value: "all", label: "All statuses" }, { value: "draft", label: "Draft" }, { value: "posted", label: "Posted" }, { value: "cancelled", label: "Cancelled" }]} />
+            <SelectControl name="status" defaultValue={filters.status ?? "all"} ariaLabel="Status" options={[{ value: "all", label: "All statuses" }, ...statuses.map((status) => ({ value: status, label: status[0].toUpperCase() + status.slice(1) }))]} />
             {filtered ? <Button asChild variant="secondary" className="sb-filter-submit"><Link href="/stock-counts">Reset</Link></Button> : <Button type="submit" className="sb-filter-submit">Search</Button>}
             <FilterBarMore activeCount={Number(Boolean(filters.from)) + Number(Boolean(filters.to))} resetHref="/stock-counts"><Input name="from" type="date" defaultValue={filters.from ?? ""} aria-label="From date" /><Input name="to" type="date" defaultValue={filters.to ?? ""} aria-label="To date" /></FilterBarMore>
           </FilterBar>

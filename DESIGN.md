@@ -1,6 +1,6 @@
 # Seri Bako OMS responsive design standard
 
-> **Release authority:** the currently released application is `v8.36.26`, as
+> **Release authority:** the currently released application is `v8.36.27`, as
 > defined by `src/lib/app-version.ts`. A versioned section above that number is
 > an accepted forward design contract or unreleased implementation note—not
 > evidence that the application itself has been released at that version.
@@ -10,6 +10,13 @@
 > **Precedence:** `docs/DESIGN_SYSTEM.md` is the living visual and interaction contract. When a historical release note or an older rule in this file conflicts with that contract, the living contract wins. Update both documents when a new pattern is accepted; do not preserve a visibly weaker rule for compatibility.
 
 This document is the implementation contract for every customer-facing route, form, record workspace, table, panel, dialog, and mobile action bar. It applies to new work and to refactoring of existing UI.
+
+## v8.36.27 — Canonical List Filter Authority
+
+- Shared list query cards have one responsive geometry owner. Retired 9rem, 7rem, and generic 8rem override layers must not be reintroduced around the canonical contract.
+- Portrait and compact tablets use one deliberate two-row grammar: the query spans row one; filters and the stable result/action group occupy row two. Controls remain 44px high and labels stay on one line.
+- Query and content cards are sibling surfaces. Legacy outer containers are flattened by the shared layer so a filter card cannot appear inside another visual card.
+- Opening Select or More filters closes the other desktop overlay; route CSS must not own overlay coexistence.
 
 ## v8.36.26 — Exception-First Dashboard Priority
 

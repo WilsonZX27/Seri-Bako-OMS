@@ -898,151 +898,6 @@ html[data-design-layer="v2"] :where(input, select, textarea, button, .inline-fle
   border-radius: var(--sb-control-radius);
 }
 
-/* Canonical desktop/tablet filter rail: controls share a predictable width and
-   the terminal action sits at the far edge after the result summary. Search is
-   the only flexible control; this keeps long list canvases from becoming a
-   row of stretched, unrelated buttons. */
-@media (min-width: 768px) {
-  html[data-design-layer="v2"] form[data-unified-list-desktop="true"] {
-    align-items: center;
-    flex-wrap: wrap;
-    min-width: 0;
-    row-gap: 0.5rem;
-  }
-
-  html[data-design-layer="v2"] form[data-unified-list-desktop="true"] > :where(input[type="search"], input[name="search"], input[placeholder*="Search"], input[placeholder*="Find"]) {
-    flex: 1 1 16rem;
-    width: auto;
-    max-width: none;
-    min-width: 10rem;
-  }
-
-  html[data-design-layer="v2"] form[data-unified-list-desktop="true"] > :where(select, [data-select-control], .sb-status-filter, .sb-filter-more) {
-    flex: 0 0 9rem;
-    width: 9rem;
-    min-width: 0;
-  }
-
-  html[data-design-layer="v2"] form[data-unified-list-desktop="true"] > :where(.sb-status-filter, .sb-filter-more) > :where([data-select-control], summary) {
-    width: 100%;
-    min-width: 0;
-  }
-
-  html[data-design-layer="v2"] form[data-unified-list-desktop="true"] > .sb-filter-more > summary {
-    width: 100%;
-    justify-content: center;
-  }
-
-  html[data-design-layer="v2"] form[data-unified-list-desktop="true"] > .sb-filter-summary {
-    order: 20;
-    margin-left: auto;
-  }
-
-  html[data-design-layer="v2"] form[data-unified-list-desktop="true"] > .unified-list-action {
-    order: 30;
-    flex: 0 0 9rem;
-    width: 9rem;
-    justify-content: center;
-    margin-left: auto;
-  }
-
-  html[data-design-layer="v2"] form[data-unified-list-desktop="true"] > :where(input, select, button, [data-select-control], .sb-status-filter, .sb-filter-more > summary) {
-    height: var(--sb-control-height) !important;
-    min-height: var(--sb-control-height) !important;
-  }
-
-  html[data-design-layer="v2"] form[data-unified-list-desktop="true"] > .sb-filter-more {
-    height: var(--sb-control-height);
-  }
-
-  html[data-design-layer="v2"] form[data-unified-list-desktop="true"] > .sb-filter-more > summary {
-    height: 100%;
-  }
-}
-
-/* Legacy list forms now follow the same control contract as UnifiedListHeader.
-   A few analytics/register pages still use the original FilterBar markup; keep
-   their controls equal-width without page-specific overrides. */
-@media (min-width: 768px) {
-  html[data-design-layer="v2"] form.sb-list-filters {
-    align-items: center;
-    flex-wrap: wrap;
-    min-width: 0;
-    row-gap: 0.5rem;
-  }
-
-  html[data-design-layer="v2"] form.sb-list-filters > :where(select, [data-select-control], .sb-status-filter, .sb-filter-more) {
-    flex: 0 0 9rem;
-    width: 9rem;
-    min-width: 0;
-  }
-
-  html[data-design-layer="v2"] form.sb-list-filters > :where(.sb-status-filter, .sb-filter-more) > :where([data-select-control], summary) {
-    width: 100%;
-    min-width: 0;
-  }
-
-  html[data-design-layer="v2"] :where(form[data-unified-list-desktop="true"], form.sb-list-filters) > :where(input, select, button, [data-select-control], .sb-filter-more > summary),
-  html[data-design-layer="v2"] :where(form[data-unified-list-desktop="true"], form.sb-list-filters) .sb-status-filter :where(.sb-status-filter-control, [data-select-control]) {
-    height: var(--sb-control-height) !important;
-    min-height: var(--sb-control-height) !important;
-  }
-
-  html[data-design-layer="v2"] form.sb-list-filters > :where(input[type="search"], input[name="search"], input[placeholder*="Search"], input[placeholder*="Find"]) {
-    flex: 1 1 16rem;
-    width: auto;
-    min-width: 10rem;
-  }
-
-  html[data-design-layer="v2"] form.sb-list-filters > :where(button[type="submit"], .sb-filter-submit) {
-    flex: 0 0 9rem;
-    width: 9rem;
-    justify-content: center;
-  }
-}
-
-/* Portrait/compact tablets can expose a contextual rail beside a list. Keep
-   the shared filter row inside the available work surface instead of letting
-   the terminal action escape the viewport. Wide desktop (1280px+) keeps the
-   single horizontal rail above. */
-@media (min-width: 768px) and (max-width: 1279px) {
-  html[data-design-layer="v2"] form[data-unified-list-desktop="true"] {
-    flex-wrap: wrap;
-    row-gap: 0.5rem;
-  }
-
-  html[data-design-layer="v2"] form[data-unified-list-desktop="true"] > :where(input[type="search"], input[name="search"], input[placeholder*="Search"], input[placeholder*="Find"]) {
-    flex: 1 1 10rem;
-    max-width: none;
-  }
-
-  html[data-design-layer="v2"] form[data-unified-list-desktop="true"] > :where(select, [data-select-control], .sb-status-filter, .sb-filter-more) {
-    flex: 1 1 7rem;
-    width: auto;
-  }
-
-  html[data-design-layer="v2"] form[data-unified-list-desktop="true"] > .sb-filter-summary {
-    margin-left: 0;
-  }
-
-  html[data-design-layer="v2"] form[data-unified-list-desktop="true"] > .unified-list-action {
-    flex: 0 0 7rem;
-    width: 7rem;
-  }
-}
-
-@media (min-width: 640px) {
-  html[data-design-layer="v2"] .sb-list-filters :where(button[type="submit"], .sb-filter-submit) {
-    min-width: 6.5rem;
-    min-height: 2.75rem;
-    justify-content: center;
-  }
-
-  html[data-design-layer="v2"] .sb-list-filters :where(input, select, [data-select-control], .sb-status-filter) {
-    min-height: 2.75rem;
-  }
-}
-
 html[data-design-layer="v2"] :where(.overflow-auto, .overflow-x-auto, .overflow-y-auto, .scrollbar-none) {
   scrollbar-width: none;
 }
@@ -1053,10 +908,10 @@ html[data-design-layer="v2"] :where(.overflow-auto, .overflow-x-auto, .overflow-
 
 html[data-design-layer="v2"] [data-dashboard-command] {
   overflow: hidden;
-  border: 1px solid color-mix(in srgb, #0b5a43 76%, white) !important;
+  border: 1px solid color-mix(in srgb, var(--sb-green-800) 76%, var(--sb-text-inverse)) !important;
   border-radius: var(--sb-panel-radius) !important;
   background: var(--sb-green-900) !important;
-  color: #f8fffb;
+  color: var(--sb-text-inverse);
 }
 
 html[data-design-layer="v2"] [data-dashboard-command] :where(h1, h2, h3, p, span, a) {
@@ -1066,7 +921,7 @@ html[data-design-layer="v2"] [data-dashboard-command] :where(h1, h2, h3, p, span
 html[data-design-layer="v2"] [data-dashboard-command] [data-dashboard-pulse-metrics] {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  background: rgba(255, 255, 255, 0.04);
+  background: color-mix(in srgb, var(--sb-text-inverse) 4%, transparent);
 }
 
 html[data-design-layer="v2"] [data-dashboard-command] [data-dashboard-pulse-metrics] > a > span:first-child {
@@ -1343,64 +1198,6 @@ html[data-design-layer="v2"] .sb-mobile-action-bar {
   box-shadow: 0 -8px 24px rgba(17, 30, 22, 0.16);
 }
 
-/* Canonical desktop list toolbar: controls originate at the left edge; only
-   text search may grow. Result count and the Search/Reset action form a
-   stable right-aligned group with an intentional flexible gutter. */
-@media (min-width: 640px) {
-  html[data-design-layer="v2"] form[data-unified-list-desktop="true"] {
-    display: flex;
-    align-items: center;
-    flex-wrap: nowrap;
-    gap: 0.5rem;
-    min-width: 0;
-  }
-
-  html[data-design-layer="v2"] form[data-unified-list-desktop="true"] > :where(
-    input:not([type="search"]):not([name="search"]),
-    select,
-    [data-select-control],
-    .sb-status-filter,
-    .sb-filter-more
-  ) {
-    flex: 0 0 8rem !important;
-    width: 8rem !important;
-    min-width: 0 !important;
-  }
-
-  html[data-design-layer="v2"] form[data-unified-list-desktop="true"] > :where(
-    input[type="search"],
-    input[name="search"],
-    input[placeholder*="Search"],
-    input[placeholder*="Find"]
-  ) {
-    flex: 1 1 16rem !important;
-    width: auto !important;
-    min-width: 10rem !important;
-  }
-
-  html[data-design-layer="v2"] .unified-list-desktop-actions {
-    display: flex;
-    flex: 0 0 auto;
-    align-items: center;
-    gap: 0.5rem;
-    min-width: 0;
-    margin-left: auto;
-  }
-
-  html[data-design-layer="v2"] .unified-list-desktop-actions > .sb-filter-summary {
-    flex: 0 0 auto !important;
-    margin: 0 !important;
-    white-space: nowrap;
-  }
-
-  html[data-design-layer="v2"] .unified-list-desktop-actions > .unified-list-action {
-    flex: 0 0 8rem !important;
-    width: 8rem !important;
-    min-width: 8rem !important;
-    justify-content: center;
-  }
-}
-
 @media (min-width: 768px) and (max-width: 1279px) {
   html[data-design-layer="v2"] [data-tablet-document-split] > aside {
     position: sticky;
@@ -1501,18 +1298,12 @@ html[data-design-layer="v2"] :where(.erp-surface[class~="rounded-[2px]"], .sb-wo
   }
 }
 
-/* Compact desktop filter contract: the work surface can be narrower than the
-   browser (the right console is intentionally visible), so the terminal action
-   must stay on the same rail instead of wrapping beneath the controls. Every
-   select/status/more control keeps the same width; only search absorbs space. */
+/* AP Aging is the only intentionally dense query surface. Keep this opt-in
+   variant independent from the canonical list toolbar below. */
 @media (min-width: 768px) {
-  html[data-design-layer="v2"] :is(form[data-unified-list-desktop="true"], form.sb-list-filters) {
-    flex-wrap: nowrap !important;
-    gap: 0.5rem;
-  }
-
   html[data-design-layer="v2"] form.sb-list-filters.sb-list-filters--dense {
     flex-wrap: wrap !important;
+    gap: 0.5rem;
   }
 
   html[data-design-layer="v2"] form.sb-list-filters.sb-list-filters--dense > :where(select, [data-select-control]) {
@@ -1529,63 +1320,6 @@ html[data-design-layer="v2"] :where(.erp-surface[class~="rounded-[2px]"], .sb-wo
   html[data-design-layer="v2"] form.sb-list-filters.sb-list-filters--dense > .sb-list-filter-actions {
     flex: 1 1 auto !important;
     min-width: 14rem;
-  }
-
-  html[data-design-layer="v2"] :is(form[data-unified-list-desktop="true"], form.sb-list-filters) > :where(select, [data-select-control], .sb-status-filter, .sb-filter-more) {
-    flex: 0 0 8rem !important;
-    width: 8rem !important;
-    min-width: 0 !important;
-  }
-
-  html[data-design-layer="v2"] :is(form[data-unified-list-desktop="true"], form.sb-list-filters) > :where(input[type="search"], input[name="search"], input[placeholder*="Search"], input[placeholder*="Find"]) {
-    flex: 2 1 10rem !important;
-    width: auto !important;
-    min-width: 0 !important;
-  }
-
-  html[data-design-layer="v2"] :is(form[data-unified-list-desktop="true"], form.sb-list-filters) > .sb-filter-summary {
-    flex: 0 0 auto !important;
-    margin-left: 0 !important;
-  }
-
-  html[data-design-layer="v2"] :is(form[data-unified-list-desktop="true"], form.sb-list-filters) > :where(.unified-list-action, button[type="submit"], .sb-filter-submit) {
-    flex: 0 0 8rem !important;
-    width: 8rem !important;
-    min-width: 0 !important;
-    margin-left: 0 !important;
-    justify-content: center;
-  }
-
-  html[data-design-layer="v2"] form[data-unified-list-desktop="true"] > .unified-list-desktop-actions {
-    display: flex;
-    flex: 0 0 auto;
-    align-items: center;
-    gap: 0.5rem;
-    min-width: 0;
-    margin-left: auto;
-  }
-
-  html[data-design-layer="v2"] form[data-unified-list-desktop="true"] > .unified-list-desktop-actions > .sb-filter-summary {
-    margin: 0 !important;
-    white-space: nowrap;
-  }
-
-  html[data-design-layer="v2"] form[data-unified-list-desktop="true"] > .unified-list-desktop-actions > .unified-list-action {
-    flex: 0 0 8rem !important;
-    width: 8rem !important;
-    min-width: 8rem !important;
-    justify-content: center;
-  }
-
-  html[data-design-layer="v2"] form[data-unified-list-desktop="true"] > .sb-filter-date {
-    flex: 0 0 8rem !important;
-    width: 8rem !important;
-    min-width: 8rem !important;
-  }
-
-  html[data-design-layer="v2"] form[data-unified-list-desktop="true"] > :where(.sb-filter-date, [data-select-control]) {
-    height: 2.75rem !important;
-    min-height: 2.75rem !important;
   }
 }
 /*
@@ -1610,8 +1344,14 @@ html[data-design-layer="v2"] form.sb-list-query-card :where(input, select, butto
   border-radius: var(--sb-control-radius) !important;
 }
 
+html[data-design-layer="v2"] form.sb-list-query-card :where(select, button, [role="combobox"], [data-select-control], .sb-status-filter-control, .sb-filter-more > summary) {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
 html[data-design-layer="v2"] form.sb-list-query-card :where(input, select, [role="combobox"], [data-select-control], .sb-status-filter-control, .sb-filter-more > summary) {
-  background-color: #fff !important;
+  background-color: var(--sb-surface-raised) !important;
   border-color: var(--sb-border) !important;
 }
 
@@ -1635,6 +1375,19 @@ html[data-design-layer="v2"] .sb-list-content-card {
     padding: .5rem;
   }
 
+  html[data-design-layer="v2"] form.sb-list-query-card > .unified-list-desktop-actions {
+    display: flex;
+    flex: 0 0 auto;
+    align-items: center;
+    gap: .5rem;
+    min-width: 0;
+    margin-left: auto;
+  }
+
+  html[data-design-layer="v2"] form.sb-list-query-card > .unified-list-desktop-actions > .sb-filter-summary {
+    margin: 0 !important;
+  }
+
   html[data-design-layer="v2"] form.sb-list-query-card > :where(select, [data-select-control], .sb-status-filter, .sb-filter-more),
   html[data-design-layer="v2"] form.sb-list-query-card > :where(button[type="submit"], .sb-filter-submit) {
     flex: 0 0 8rem !important;
@@ -1650,7 +1403,7 @@ html[data-design-layer="v2"] .sb-list-content-card {
   html[data-design-layer="v2"] form.sb-list-query-card [data-list-primary-action="true"] {
     border-color: var(--sb-green-900) !important;
     background: var(--sb-green-900) !important;
-    color: white !important;
+    color: var(--sb-text-inverse) !important;
   }
 }
 

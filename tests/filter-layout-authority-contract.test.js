@@ -15,6 +15,13 @@ test("FilterBar geometry has one authoritative stylesheet", () => {
   assert.match(designV2, /One tablet grammar for every list/);
   assert.match(designV2, /full-width query on row one/);
   assert.doesNotMatch(globals, /\[data-tablet-split-actions\] > section,\s*\[data-tablet-main-list\]/);
+  const canonicalStart = designV2.indexOf("Canonical list workspace contract");
+  assert.notEqual(canonicalStart, -1);
+  const beforeCanonical = designV2.slice(0, canonicalStart);
+  assert.equal((designV2.match(/form\[data-unified-list-desktop="true"\]/g) ?? []).length, 1);
+  assert.doesNotMatch(beforeCanonical, /Canonical desktop\/tablet filter rail|Compact desktop filter contract|flex:\s*0 0 9rem/);
+  assert.equal((designV2.match(/Canonical list workspace contract/g) ?? []).length, 1);
+  assert.match(designV2.slice(canonicalStart), /form\.sb-list-query-card[\s\S]*?white-space:\s*nowrap;[\s\S]*?text-overflow:\s*ellipsis;/);
 });
 
 test("hidden persisted filters do not steal the leading query slot", () => {

@@ -23,7 +23,7 @@ This section is the current disposition; the detailed findings below remain as t
 | Stock Count variance | Closed | Posted 30-day lines use each count's saved tolerance; the compact trend/item/branch views count signed shortage/overage occurrences without aggregating unlike UOM quantities and retain exact Stock Count drill-through. |
 | Equal metrics obscure priority | Closed | Role signals use stable severity ordering; zero and unavailable states are explicitly Clear and Unavailable; the ordered Dashboard column places exceptions before routine activity without deriving urgency from count magnitude. |
 | Decorative command surface | Closed | Decorative grid, layered gradient, and wide shadow were removed. |
-| Raw color and duplicate overrides | Improved in touched scope | The command surface has one semantic owner; unrelated legacy CSS was not globally rewritten. |
+| Raw color and duplicate overrides | Closed in audited shared surfaces | Dashboard command and shared list-query surfaces use semantic tokens and one final owner. Three competing list-filter width/breakpoint layers were removed; a contract prevents those retired layers from returning. Unrelated legacy CSS was intentionally not rewritten indiscriminately. |
 | Mock role contradiction | Closed | The supported mock owner fixture now has a coherent staff-role state without changing production checks. |
 | Data freshness context | Resolved without invention | No source-owned refresh timestamp exists. The UI no longer presents render time as freshness; the metric dictionary records request-time semantics. |
 | Tiny uppercase cadence | Closed in Dashboard ordinary labels | Welcome, quick actions, and metric labels use readable sentence case; uppercase remains reserved for status semantics. |

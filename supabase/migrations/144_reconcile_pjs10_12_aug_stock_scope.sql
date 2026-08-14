@@ -21,7 +21,8 @@ begin
   limit 1;
 
   if target_branch.id is null then
-    raise exception 'CK-PJS10 branch was not found; 12 Aug stock scope was not changed.';
+    raise notice 'CK-PJS10 branch was not found; 12 Aug stock scope reconciliation was skipped.';
+    return;
   end if;
   source_company_id := target_branch.company_id;
 

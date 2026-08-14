@@ -9,6 +9,7 @@ const chart = fs.readFileSync(path.join(root, "src", "components", "outlet-daily
 const interactiveChart = fs.readFileSync(path.join(root, "src", "components", "ui", "interactive-line-chart.tsx"), "utf8");
 const permissions = fs.readFileSync(path.join(root, "src", "server", "auth", "permissions.ts"), "utf8");
 const migration = fs.readFileSync(path.join(root, "supabase", "migrations", "147_purchasing_manage_outlet_daily_records.sql"), "utf8");
+const stockScopeMigration = fs.readFileSync(path.join(root, "supabase", "migrations", "144_reconcile_pjs10_12_aug_stock_scope.sql"), "utf8");
 
 test("outlet daily workspace renders a lightweight 30-day completed-record wastage trend", () => {
   assert.match(page, /getOutletDailyDemandTrend\(\{ period: "30", branch: filters\.branch \}\)/);
@@ -41,4 +42,11 @@ test("purchasing can inspect and correct company outlet daily records without by
   assert.match(migration, /on conflict \(role_id, permission_id\) do nothing/);
   assert.doesNotMatch(migration, /outlet_daily_record\.create/);
   assert.doesNotMatch(migration, /alter table|disable row level security|security definer/i);
+});
+
+test("optional CK-PJS10 reconciliation cannot block later release migrations", () => {
+  assert.match(stockScopeMigration, /CK-PJS10 branch was not found; 12 Aug stock scope reconciliation was skipped\./);
+  assert.match(stockScopeMigration, /raise notice/);
+  assert.match(stockScopeMigration, /return;/);
+  assert.doesNotMatch(stockScopeMigration, /raise exception 'CK-PJS10 branch was not found/);
 });

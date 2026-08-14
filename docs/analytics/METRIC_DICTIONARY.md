@@ -1,6 +1,6 @@
 # Seri Bako OMS Metric Dictionary
 
-**Current application:** `v8.36.27`
+**Current application:** `v8.36.28`
 **Repository migration ceiling:** `149`
 **Last reviewed:** 2026-08-15
 
@@ -147,6 +147,20 @@ Daily trend uses request-time report data. The line preview exposes date, moveme
 | Detail | Desktop technical table; phone three-stage PO/GRN/Invoice comparison with document, quantity, and price labels. |
 | Visual summaries | Status distribution counts the current filtered lines by existing comparison status. Largest price variances ranks up to six linked rows by absolute RM difference while retaining the signed RM amount and percentage. |
 | Interaction/accessibility | Direct labels remain visible. Hover, touch, and keyboard focus expose source item, supplier, PO, quantity path, percentage, and caution. The existing filtered table/list is the complete data alternative. |
+
+## Costing Readiness concentration
+
+| Field | Contract |
+|---|---|
+| Decision | Which master-data module concentrates the gaps blocking trustworthy recipe or product costing? |
+| Population | Existing read-only Costing Readiness issues from active Items, Supplier items, Recipes/lines, and Products. |
+| Grain | Module. Value is issue count; critical, warning, and information counts remain separate preview details. |
+| Filters | Module comparison follows the selected severity but ignores the selected module so every module remains comparable. Global readiness and total severity counts remain unfiltered. |
+| Source | `buildCostingReadiness` / `getCostingReadiness`; no additional database reads and no writes. |
+| Permission | Existing `recipes.view` Costing Readiness boundary. |
+| Freshness | Request-time master and recipe data; no historical trend or financial exposure is claimed. |
+| Zero/unavailable | Zero issues renders zero filled bar width. Query failure remains an unavailable report, never an empty/ready state. |
+| Interaction/drill-through | Hover, touch, click, and focus select the same preview without navigation. Open preserves severity and applies the module to the existing accessible issue table/list. |
 
 ## Product Margin
 

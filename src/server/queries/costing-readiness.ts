@@ -13,6 +13,13 @@ export type CostingIssue = {
 };
 
 type Filters = { severity?: string; module?: string };
+export type CostingModuleSummary = {
+  module: CostingIssue["module"];
+  total: number;
+  critical: number;
+  warning: number;
+  info: number;
+};
 type Data = {
   items: typeof mockItems;
   suppliers: typeof mockSuppliers;
@@ -64,9 +71,21 @@ export function buildCostingReadiness(data: Data, filters: Filters = {}) {
     if (!recipes.some(active)) issues.push({ id: `product-recipe-${product.id}`, severity: "critical", module: "product", record: record(product.product_code, product.product_name), reason: "No linked active recipe/BOM.", action: "Link active recipe.", href: `/products/${product.id}` });
   }
 
-  const filtered = issues.filter((issue) => (!filters.severity || filters.severity === "all" || issue.severity === filters.severity) && (!filters.module || filters.module === "all" || issue.module === filters.module));
+  const severityScoped = issues.filter((issue) => !filters.severity || filters.severity === "all" || issue.severity === filters.severity);
+  const filtered = severityScoped.filter((issue) => !filters.module || filters.module === "all" || issue.module === filters.module);
   const summary = { total: issues.length, critical: issues.filter((issue) => issue.severity === "critical").length, warning: issues.filter((issue) => issue.severity === "warning").length, info: issues.filter((issue) => issue.severity === "info").length };
-  return { issues: filtered, summary, readiness: summary.critical ? "Not ready" : summary.warning ? "Needs cleanup" : "Ready" };
+  const moduleSummary: CostingModuleSummary[] = (["item", "supplier_item", "recipe", "product"] as const).map((module) => {
+    const moduleIssues = severityScoped.filter((issue) => issue.module === module);
+    return {
+      module,
+      total: moduleIssues.length,
+      critical: moduleIssues.filter((issue) => issue.severity === "critical").length,
+      warning: moduleIssues.filter((issue) => issue.severity === "warning").length,
+      info: moduleIssues.filter((issue) => issue.severity === "info").length,
+    };
+  });
+  const readiness: "Not ready" | "Needs cleanup" | "Ready" = summary.critical ? "Not ready" : summary.warning ? "Needs cleanup" : "Ready";
+  return { issues: filtered, summary, moduleSummary, readiness };
 }
 
 export async function getCostingReadiness(filters: Filters = {}) {

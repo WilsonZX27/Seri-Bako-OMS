@@ -40,6 +40,7 @@ test("Top movement and wastage use touch-friendly ranking previews with progress
   assert.match(ranking, /role="region"/);
   assert.match(ranking, /data-ranking-row/);
   assert.match(ranking, /data-ranking-open/);
+  assert.match(ranking, /item\.value <= 0 \? 0 : Math\.max\(3,/);
   assert.doesNotMatch(ranking, /<Link key=\{item\.id\} href=\{item\.href\}/);
   assert.match(ranking, /truncate/);
 });

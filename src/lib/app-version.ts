@@ -1,6 +1,6 @@
-export const APP_VERSION = "8.36.27";
+export const APP_VERSION = "8.36.28";
 export const APP_SPRINT = `v${APP_VERSION}`;
-export const APP_RELEASE_TITLE = "Canonical List Filter Authority";
+export const APP_RELEASE_TITLE = "Costing Readiness Concentration";
 // Keep the shell footer concise; the detailed release title belongs in release
 // notes, not in a narrow navigation rail where it is clipped on small screens.
 export const APP_RELEASE_NOTE = APP_SPRINT;

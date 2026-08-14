@@ -39,7 +39,7 @@ export function InteractiveRankingChart({
       >
         {items.map((item, index) => {
           const active = item.id === activeId;
-          const width = Math.max(3, (item.value / maximum) * 100);
+          const width = item.value <= 0 ? 0 : Math.max(3, (item.value / maximum) * 100);
           const content = <>
               <span className="min-w-0 truncate text-xs font-medium" title={item.label}>{item.label}</span>
               <span className="h-2.5 overflow-hidden rounded-sm bg-[var(--sb-surface-muted)]" aria-hidden="true">

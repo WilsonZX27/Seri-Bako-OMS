@@ -5,6 +5,7 @@ const fs = require("node:fs");
 const read = (file) => fs.readFileSync(file, "utf8");
 const query = read("src/server/queries/costing-readiness.ts");
 const page = read("src/app/(app)/reports/costing-readiness/page.tsx");
+const insights = read("src/components/reports/costing-readiness-insights.tsx");
 const reports = read("src/app/(app)/reports/page.tsx");
 const version = read("src/lib/app-version.ts");
 
@@ -37,4 +38,15 @@ test("Costing Readiness remains compatible with the current footer and the scope
   assert.match(version, /APP_VERSION = "\d+\.\d+\.\d+"/);
   assert.match(version, /APP_SPRINT = `v\$\{APP_VERSION\}`/);
   assert.match(read("supabase/migrations/066_create_outlet_staff_role.sql"), /outlet_staff/);
+});
+
+test("Costing Readiness compares severity-scoped module concentration before opening detail", () => {
+  assert.match(query, /const severityScoped = issues\.filter/);
+  assert.match(query, /const moduleSummary: CostingModuleSummary\[\]/);
+  assert.match(page, /<CostingReadinessInsights/);
+  assert.doesNotMatch(page, /<MetricStrip/);
+  assert.match(insights, /InteractiveRankingChart/);
+  assert.match(insights, /issue counts, not financial value/);
+  assert.match(insights, /data-costing-readiness-insights/);
+  assert.match(insights, /href: `\/reports\/costing-readiness\?\$\{params\.toString\(\)\}`/);
 });

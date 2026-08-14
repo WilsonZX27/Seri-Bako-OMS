@@ -76,7 +76,7 @@ html[data-design-layer="v2"] .sb-list-filters:not(.unified-list-header) .sb-filt
  * this contract scoped to the document marker makes the active design layer
  * deterministic even when a route renders an older shared component.
  */
-html[data-design-layer="v2"] :where(.erp-surface, .sb-work-surface, .sb-command-surface, .border.bg-card) {
+html[data-design-layer="v2"] :where(.erp-surface, .sb-work-surface, .border.bg-card) {
   border: 1px solid var(--sb-border-soft);
   border-radius: var(--sb-panel-radius);
   background: var(--sb-surface-raised);
@@ -255,16 +255,6 @@ body::-webkit-scrollbar {
   to { opacity: 1; }
 }
 
-.erp-surface,
-.sb-work-surface,
-.border.bg-card {
-  border: 1px solid var(--sb-border-soft);
-  border-radius: var(--sb-panel-radius);
-  border-color: var(--sb-border-soft);
-  background: rgb(255 255 255 / 0.94);
-  box-shadow: var(--sb-shadow-xs);
-}
-
 .erp-surface:hover {
   border-color: var(--sb-border);
 }
@@ -290,15 +280,6 @@ body::-webkit-scrollbar {
   content: "";
   background: currentColor;
   opacity: 0.72;
-}
-
-.sb-command-surface {
-  position: relative;
-  overflow: hidden;
-  border: 1px solid rgb(255 255 255 / 0.09);
-  border-radius: var(--sb-panel-radius);
-  background: var(--sb-green-900);
-  box-shadow: none;
 }
 
 .sb-action-row {
@@ -473,6 +454,16 @@ tbody tr:hover {
 
 #purchase-request-form [data-purchase-request-line] > * {
   min-width: 0;
+}
+
+html[data-design-layer="v2"] .sb-command-surface {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid rgb(255 255 255 / 0.13);
+  border-radius: var(--sb-panel-radius);
+  background: var(--sb-green-900);
+  color: var(--sb-surface-raised);
+  box-shadow: none;
 }
 
 html[data-design-layer="v2"] form.sb-list-filters > .sb-list-filter-actions {
@@ -867,15 +858,6 @@ nav[aria-label="Pagination"] > span,
   }
 }
 
-/* UI stability contract: one final surface definition; mobile layout lives above. */
-html[data-design-layer="v2"] body .sb-command-surface {
-  border-color: rgb(255 255 255 / 0.13) !important;
-  border-radius: var(--sb-panel-radius) !important;
-  background: var(--sb-green-900) !important;
-  color: #fff !important;
-  box-shadow: none !important;
-}
-
 @media (max-width: 639px) {
   .unified-list-inline-control {
     flex: 0 0 min(38%, 10rem);
@@ -910,10 +892,6 @@ html[data-design-layer="v2"] {
   --sb-z-mobile-nav: 50;
   --sb-z-sheet-backdrop: 100;
   --sb-z-sheet: 101;
-}
-
-html[data-design-layer="v2"] :where(.erp-surface, .sb-work-surface, .sb-command-surface, .border.bg-card) {
-  border-radius: var(--sb-panel-radius) !important;
 }
 
 html[data-design-layer="v2"] :where(input, select, textarea, button, .inline-flex, .unified-list-filter-trigger) {

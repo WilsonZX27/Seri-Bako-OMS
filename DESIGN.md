@@ -1,6 +1,6 @@
 # Seri Bako OMS responsive design standard
 
-> **Release authority:** the currently released application is `v8.36.22`, as
+> **Release authority:** the currently released application is `v8.36.23`, as
 > defined by `src/lib/app-version.ts`. A versioned section above that number is
 > an accepted forward design contract or unreleased implementation note—not
 > evidence that the application itself has been released at that version.
@@ -22,6 +22,12 @@ This document is the implementation contract for every customer-facing route, fo
 
 - A dense editable list must use the exact same column template, horizontal gutter, and gap for its header and every data row. Inner controls may fill their assigned column but must not introduce a second `max-width` or end-alignment rule that visually detaches them from the column heading.
 - Stock Count uses an elastic Item column, a stable Variance column, and a bounded Count column. Quantity stepper and UOM remain inside that Count column at desktop and tablet widths; phone rows may stack the Count control beneath the item context.
+
+## v8.36.23 — Shared Surface Style Authority
+
+- Shared work and command surfaces now have one design-layer-scoped visual owner.
+- Removed late, high-specificity command-surface overrides and duplicate base surface declarations.
+- Added a regression contract that prevents unscoped or `!important` command-surface ownership from returning.
 
 ## v8.36.22 — Responsive Detail Parity
 

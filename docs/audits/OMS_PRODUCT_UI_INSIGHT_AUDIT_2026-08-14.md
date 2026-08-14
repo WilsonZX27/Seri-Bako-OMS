@@ -18,6 +18,7 @@ This section is the current disposition; the detailed findings below remain as t
 | Full Dashboard hydration for a clock | Closed | Dashboard composition is server-rendered and the non-source freshness clock was removed. |
 | Reports lack decision-specific charts | Closed for phase 1 | Demand, rankings, AP aging, and cash-flow windows now use interactive direct-label charts while retaining detailed data views. |
 | Procurement variance concentration | Closed | The filtered report now exposes status concentration and the six largest absolute RM price differences, with signed direction, hover/touch/keyboard previews, and the existing table/list as detail authority. |
+| Inventory daily movement | Closed | Inventory now compares bounded posted inbound/outbound entry counts by MYT calendar date, preserves zero days, avoids mixed-UOM quantity totals, and provides hover/touch/keyboard preview plus exact ledger drill-through. |
 | Equal metrics obscure priority | Improved | Exception tiles now identify actionable, clear, unavailable, activity, and snapshot states instead of presenting every count as equivalent urgency. |
 | Decorative command surface | Closed | Decorative grid, layered gradient, and wide shadow were removed. |
 | Raw color and duplicate overrides | Improved in touched scope | The command surface has one semantic owner; unrelated legacy CSS was not globally rewritten. |
@@ -418,9 +419,9 @@ Give me a recommended option plus one conservative alternative. Do not implement
 
 ### Wave 2 — operational insight expansion
 
-- Add bounded Inventory daily movement series from `inventory_daily_summary`.
+- Bounded Inventory daily movement is complete through `inventory_daily_summary`; no raw-ledger page scan or mixed-UOM total was introduced.
 - Add outlet completion heatmap and stock-count variance report.
-- Procurement variance concentration is complete; continue with bounded Inventory daily movement, outlet completion, and Stock Count variance read models.
+- Procurement variance concentration and Inventory daily movement are complete; continue with outlet completion and Stock Count variance read models.
 - Add at most one trusted micro chart per Dashboard role.
 
 ### Wave 3 — hardening and personalisation

@@ -67,12 +67,67 @@ type InventoryDashboardRpc = {
   low_stock_rows: Array<Database["public"]["Tables"]["stock_balances_summary"]["Row"]>;
 };
 
+export type InventoryDailyMovementRow = {
+  transaction_date: string;
+  inbound_entries: number;
+  outbound_entries: number;
+  movement_entries: number;
+};
+
 const MAX_INVENTORY_DASHBOARD_FALLBACK_BALANCES = 2_000;
 
 // The summary RPC is already bounded server-side. Keep this named boundary
 // for the dashboard contract without introducing client-side timeout fallbacks.
 async function boundedInventoryInsight<T>(query: PromiseLike<T>): Promise<T> {
   return await query;
+}
+
+function inventoryPeriodRange(period: "7d" | "30d" | "month") {
+  const reportDate = new Date();
+  const end = reportDate.toISOString().slice(0, 10);
+  const startDate = period === "month"
+    ? new Date(Date.UTC(reportDate.getUTCFullYear(), reportDate.getUTCMonth(), 1))
+    : new Date(reportDate.getTime() - (period === "7d" ? 6 : 29) * 86_400_000);
+  return { start: startDate.toISOString().slice(0, 10), end };
+}
+
+function mockInventoryDailyMovement(period: "7d" | "30d" | "month"): InventoryDailyMovementRow[] {
+  const { start, end } = inventoryPeriodRange(period);
+  const activity = new Map<string, Omit<InventoryDailyMovementRow, "transaction_date">>();
+  for (const row of mockStockTransactions) {
+    if (row.status !== "posted" || row.transaction_date < start || row.transaction_date > end) continue;
+    const current = activity.get(row.transaction_date) ?? { inbound_entries: 0, outbound_entries: 0, movement_entries: 0 };
+    current.inbound_entries += Number(row.quantity_in) > 0 ? 1 : 0;
+    current.outbound_entries += Number(row.quantity_out) > 0 ? 1 : 0;
+    current.movement_entries += 1;
+    activity.set(row.transaction_date, current);
+  }
+  const dates: InventoryDailyMovementRow[] = [];
+  for (let cursor = new Date(`${start}T00:00:00Z`); cursor <= new Date(`${end}T00:00:00Z`); cursor = new Date(cursor.getTime() + 86_400_000)) {
+    const transactionDate = cursor.toISOString().slice(0, 10);
+    dates.push({ transaction_date: transactionDate, ...(activity.get(transactionDate) ?? { inbound_entries: 0, outbound_entries: 0, movement_entries: 0 }) });
+  }
+  return dates;
+}
+
+export async function getInventoryDailyMovement(period: "7d" | "30d" | "month" = "30d") {
+  if (isMockMode()) return { rows: mockInventoryDailyMovement(period), unavailable: false };
+
+  const supabase = await createClient();
+  const { data, error } = await boundedInventoryInsight(supabase.rpc("get_inventory_daily_movement_summary", { p_period: period }));
+  if (error) {
+    warnOptionalInventoryQuery("daily movement summary", error);
+    return { rows: [] as InventoryDailyMovementRow[], unavailable: true };
+  }
+  return {
+    rows: (data ?? []).map((row) => ({
+      transaction_date: row.transaction_date,
+      inbound_entries: Number(row.inbound_entries ?? 0),
+      outbound_entries: Number(row.outbound_entries ?? 0),
+      movement_entries: Number(row.movement_entries ?? 0),
+    })),
+    unavailable: false,
+  };
 }
 
 async function getInventoryDashboardFallback(supabase: Awaited<ReturnType<typeof createClient>>, period: "7d" | "30d" | "month") {

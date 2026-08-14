@@ -14,6 +14,34 @@ test("inventory dashboard uses the implemented stock rules", () => {
   assert.match(query, /low_stock_rows/);
 });
 
+test("inventory daily movement insight is bounded, unit-safe, and based on the daily read model", () => {
+  const migration = read("supabase/migrations/148_inventory_daily_movement_insight.sql");
+  const query = read("src/server/queries/inventory.ts");
+  const page = read("src/app/(app)/inventory/page.tsx");
+  const chart = read("src/components/reports/inventory-daily-movement-chart.tsx");
+
+  assert.match(migration, /get_inventory_daily_movement_summary/);
+  assert.match(migration, /from public\.inventory_daily_summary/);
+  assert.match(migration, /report_date - 6/);
+  assert.match(migration, /report_date - 29/);
+  assert.match(migration, /Asia\/Kuala_Lumpur/);
+  assert.match(migration, /sum\(d\.movement_count\) filter \(where d\.quantity_in > 0\)/);
+  assert.match(migration, /sum\(d\.movement_count\) filter \(where d\.quantity_out > 0\)/);
+  assert.doesNotMatch(migration, /from public\.stock_transactions/);
+  assert.doesNotMatch(migration, /sum\(d\.quantity_(?:in|out)\)/);
+  assert.match(query, /get_inventory_daily_movement_summary/);
+  assert.match(query, /daily movement summary/);
+  assert.match(page, /Counts are posted entries, not quantities mixed across different UOMs/);
+  assert.match(page, /<InventoryDailyMovementChart points=\{movement\.rows\}/);
+  assert.match(page, /collapseToolsOnPhone/);
+  assert.match(read("src/components/operational-hub.tsx"), /Inventory tools|collapseToolsOnPhone/);
+  assert.match(chart, /onPointerMove/);
+  assert.match(chart, /ArrowLeft/);
+  assert.match(chart, /Open inbound/);
+  assert.match(chart, /Open outbound/);
+  assert.match(chart, /Daily data/);
+});
+
 test("inventory dashboard fallback keeps balance hydration bounded and fails closed when truncated", () => {
   const query = read("src/server/queries/inventory.ts");
 

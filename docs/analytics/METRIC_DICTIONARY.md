@@ -1,7 +1,7 @@
 # Seri Bako OMS Metric Dictionary
 
-**Current application:** `v8.36.16`
-**Repository migration ceiling:** `147`
+**Current application:** `v8.36.17`
+**Repository migration ceiling:** `148`
 **Last reviewed:** 2026-08-15
 
 This is the authority for user-visible KPI and chart meaning. It documents presentation contracts; database migrations, RLS, and server queries remain the calculation and permission authority. A render timestamp is never a data-freshness timestamp.
@@ -51,6 +51,20 @@ This is the authority for user-visible KPI and chart meaning. It documents prese
 | Coverage | Completed outlet-days ÷ expected outlet-days; incomplete and missing counts remain explicit. | Period/outlet/status. | Coverage console and warning state. |
 
 Daily trend uses request-time report data. The line preview exposes date, movement, received, leftover, wastage, rate, and sample warning. Ranked charts show the first six visually while the complete top-ten detail remains available.
+
+## Inventory daily movement activity
+
+| Field | Contract |
+|---|---|
+| Decision | Are posted inbound and outbound inventory activities changing by day? |
+| Formula | Sum of `movement_count` for `inventory_daily_summary` rows with positive `quantity_in` or positive `quantity_out`. This counts posted ledger entries; quantities are not summed across unlike item UOMs. |
+| Grain | Calendar date × direction across branches visible through inventory RLS. Zero-activity dates remain present. |
+| Period | Last 7 calendar dates, last 30 calendar dates, or current month through the Asia/Kuala_Lumpur report date. |
+| Source | `get_inventory_daily_movement_summary`; maximum 31 rows from `inventory_daily_summary`, never the raw ledger. |
+| Permission | Authenticated execution plus the summary table's existing inventory/stock-balance/low-stock RLS and branch scope. |
+| Freshness | Request-time read of trigger-maintained posted movement summary. The displayed date is the data grain, not a browser refresh timestamp. |
+| Zero/unavailable | A valid quiet date is zero. RPC/read failure shows unavailable and keeps Stock Balance and Movement Ledger reachable. |
+| Interaction/accessibility | Direct direction labels, hover/touch/arrow-key preview, equivalent same-date ledger links, and an expandable complete numeric table. |
 
 ## AP Aging distribution
 

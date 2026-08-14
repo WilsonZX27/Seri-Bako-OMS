@@ -38,6 +38,7 @@ type OperationalHubProps = {
   queue: OperationalQueueItem[];
   toolsTitle: string;
   tools: OperationalTool[];
+  collapseToolsOnPhone?: boolean;
 };
 
 const toneStyles = {
@@ -65,6 +66,7 @@ export function OperationalHub({
   queue,
   toolsTitle,
   tools,
+  collapseToolsOnPhone = false,
 }: OperationalHubProps) {
   return (
     <div data-operational-hub className="space-y-3 sm:space-y-4">
@@ -138,7 +140,32 @@ export function OperationalHub({
           </div>
         </section>
 
-        <section className="min-w-0 overflow-hidden rounded-[var(--sb-panel-radius)] border border-[var(--sb-border-soft)] bg-white">
+        {collapseToolsOnPhone ? (
+          <details className="min-w-0 overflow-hidden rounded-[var(--sb-panel-radius)] border border-[var(--sb-border-soft)] bg-white sm:hidden">
+            <summary className="cursor-pointer px-3.5 py-3 text-sm font-semibold text-[var(--sb-text)]">{toolsTitle} · {tools.length}</summary>
+            <div className="divide-y divide-[var(--sb-border-soft)] border-t border-[var(--sb-border-soft)]">
+              {tools.map((tool) => {
+                const ToolIcon = tool.icon;
+                return (
+                  <Link
+                    key={`${tool.href}-${tool.title}-compact`}
+                    href={tool.href}
+                    className="group flex min-h-14 items-center gap-3 px-3.5 py-2.5 transition-colors hover:bg-[var(--sb-surface-muted)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[var(--sb-green-700)]"
+                  >
+                    <ToolIcon aria-hidden="true" className="h-4 w-4 shrink-0 text-[var(--sb-green-800)]" />
+                    <span className="min-w-0 flex-1">
+                      <span className="block break-words text-[13px] font-medium leading-4 text-[var(--sb-text)]">{tool.title}</span>
+                      {tool.description ? <span className="mt-0.5 block break-words text-xs leading-4 text-[var(--sb-text-muted)]">{tool.description}</span> : null}
+                    </span>
+                    <ChevronRight aria-hidden="true" className="h-4 w-4 shrink-0 text-[var(--sb-text-soft)]" />
+                  </Link>
+                );
+              })}
+            </div>
+          </details>
+        ) : null}
+
+        <section className={cn("min-w-0 overflow-hidden rounded-[var(--sb-panel-radius)] border border-[var(--sb-border-soft)] bg-white", collapseToolsOnPhone && "hidden sm:block")}>
           <div className="border-b border-[var(--sb-border-soft)] px-3.5 py-3 sm:px-4">
             <h2 className="text-sm font-semibold text-[var(--sb-text)]">{toolsTitle}</h2>
           </div>

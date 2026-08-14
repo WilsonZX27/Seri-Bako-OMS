@@ -1,6 +1,6 @@
 # Seri Bako OMS responsive design standard
 
-> **Release authority:** the currently released application is `v8.36.16`, as
+> **Release authority:** the currently released application is `v8.36.17`, as
 > defined by `src/lib/app-version.ts`. A versioned section above that number is
 > an accepted forward design contract or unreleased implementation note—not
 > evidence that the application itself has been released at that version.
@@ -22,6 +22,13 @@ This document is the implementation contract for every customer-facing route, fo
 
 - A dense editable list must use the exact same column template, horizontal gutter, and gap for its header and every data row. Inner controls may fill their assigned column but must not introduce a second `max-width` or end-alignment rule that visually detaches them from the column heading.
 - Stock Count uses an elastic Item column, a stable Variance column, and a bounded Count column. Quantity stepper and UOM remain inside that Count column at desktop and tablet widths; phone rows may stack the Count control beneath the item context.
+
+## v8.36.17 — Inventory Daily Movement Insight
+
+- Inventory shows one bounded daily comparison of posted inbound and outbound ledger-entry counts for 7 days, 30 days, or the current month. It reads `inventory_daily_summary` through a maximum-31-row RPC and never scans the raw ledger from the page.
+- Quantities from different item UOMs are never added together. The chart and preview consistently say “entries,” preserve zero days, and use the Kuala Lumpur report date.
+- Hover, touch, and left/right keyboard navigation expose the same date-level values. Each selected date drills to the equivalent inbound or outbound Movement Ledger filter, and an expandable numeric table remains the complete accessible alternative.
+- The activity period is controlled once and also scopes the existing production-usage and purchased-item summaries; adjacent cards do not repeat the same filter.
 
 ## v8.36.16 — Procurement Variance Insight Layer
 

@@ -2323,6 +2323,15 @@ export type Database = {
         Args: { target_company_id: string; target_branch_id: string };
         Returns: boolean;
       };
+      get_inventory_daily_movement_summary: {
+        Args: { p_period?: string };
+        Returns: {
+          transaction_date: string;
+          inbound_entries: number;
+          outbound_entries: number;
+          movement_entries: number;
+        }[];
+      };
       get_inventory_dashboard_summary: {
         Args: { p_period?: string };
         Returns: Json;

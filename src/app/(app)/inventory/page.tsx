@@ -3,13 +3,14 @@ import { ArrowDownLeft, ArrowLeftRight, ArrowRight, ArrowUpRight, ClipboardCheck
 import { ConsoleSection } from "@/components/layout/right-console";
 import { WorkspaceGrid } from "@/components/layout/workspace-layout";
 import { OperationalHub } from "@/components/operational-hub";
+import { InventoryDailyMovementChart } from "@/components/reports/inventory-daily-movement-chart";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { PageHeader } from "@/components/ui/page-header";
 import { SelectNative } from "@/components/ui/select-native";
 import { formatNumber } from "@/lib/utils";
 import { getPermissionMap } from "@/server/auth/permissions";
-import { getInventoryDashboard } from "@/server/queries/inventory";
+import { getInventoryDailyMovement, getInventoryDashboard } from "@/server/queries/inventory";
 
 const modules = [
   { href: "/low-stock", label: "Low Stock", description: "Items below safety level", permission: "low_stock.view", icon: TriangleAlert },
@@ -24,7 +25,11 @@ const modules = [
 export default async function InventoryPage({ searchParams }: { searchParams: Promise<{ consumption?: string }> }) {
   const params = await searchParams;
   const period = params.consumption === "7d" || params.consumption === "month" ? params.consumption : "30d";
-  const [summary, permissions] = await Promise.all([getInventoryDashboard(period), getPermissionMap([...modules.map((module) => module.permission), "goods_receiving.read"])]);
+  const [summary, movement, permissions] = await Promise.all([
+    getInventoryDashboard(period),
+    getInventoryDailyMovement(period),
+    getPermissionMap([...modules.map((module) => module.permission), "goods_receiving.read"]),
+  ]);
   const visibleModules = modules.filter((module) => permissions[module.permission]);
   const formatCounter = (counter: { value: number; unavailable?: boolean }) => counter.unavailable ? "Unavailable" : formatNumber(counter.value);
   const counters = [
@@ -65,6 +70,7 @@ export default async function InventoryPage({ searchParams }: { searchParams: Pr
                 tone: counter.value ? (counter.label === "Low stock" ? "danger" : "warning") : "default",
               }))}
               toolsTitle="Inventory tools"
+              collapseToolsOnPhone
               tools={visibleModules.map((module) => ({
                 href: module.href,
                 title: module.label,
@@ -73,6 +79,23 @@ export default async function InventoryPage({ searchParams }: { searchParams: Pr
               }))}
             />
           </div>
+          <section className="overflow-hidden border bg-card" aria-labelledby="inventory-movement-activity">
+            <div className="flex flex-wrap items-start justify-between gap-3 border-b px-3 py-2.5 sm:px-4 sm:py-3">
+              <div className="min-w-0">
+                <h2 id="inventory-movement-activity" className="text-sm font-semibold">Posted movement activity</h2>
+                <p className="mt-0.5 max-w-[68ch] text-xs text-muted-foreground">Are inbound and outbound ledger entries changing by day? Counts are posted entries, not quantities mixed across different UOMs.</p>
+              </div>
+              <form className="flex shrink-0 items-center gap-2">
+                <SelectNative name="consumption" defaultValue={period} aria-label="Inventory insight period"><option value="7d">7 days</option><option value="30d">30 days</option><option value="month">Current month</option></SelectNative>
+                <Button type="submit" size="sm" variant="outline">Apply</Button>
+              </form>
+            </div>
+            <div className="p-3 sm:p-4">
+              {movement.unavailable
+                ? <p className="border border-dashed p-4 text-sm text-muted-foreground">Movement activity is temporarily unavailable. The stock balance and ledger remain available.</p>
+                : <InventoryDailyMovementChart points={movement.rows} />}
+            </div>
+          </section>
           <section className="hidden overflow-hidden rounded-[2px] border border-[var(--sb-green-900)] bg-card md:block" aria-labelledby="inventory-overview">
             <div className="flex items-end justify-between gap-3 bg-[var(--sb-green-900)] px-4 py-3 text-white"><div><p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-white/70">Today at a glance</p><h2 id="inventory-overview" className="mt-1 text-sm font-semibold">Operational overview</h2></div><Link href="/stock-balance" className="text-xs font-semibold text-white/80 underline-offset-4 hover:text-white hover:underline">Open stock balance</Link></div>
             <div className="grid divide-y sm:grid-cols-2 sm:divide-x sm:divide-y-0 xl:grid-cols-4">{counters.map((counter) => <Link key={counter.label} href={counter.href} className="group flex min-h-16 items-center justify-between gap-3 px-3 py-2.5 transition-colors hover:bg-[var(--sb-green-100)] sm:min-h-20 sm:px-4 sm:py-3"><span className="text-xs text-muted-foreground group-hover:text-[var(--sb-green-900)]">{counter.label}</span><strong className={counter.unavailable ? "font-mono text-lg text-[var(--sb-warning)] sm:text-xl" : "font-mono text-lg text-[var(--sb-green-900)] sm:text-xl"}>{formatCounter(counter)}</strong></Link>)}</div>
@@ -83,7 +106,7 @@ export default async function InventoryPage({ searchParams }: { searchParams: Pr
           </section>
           <div className="grid gap-4 lg:grid-cols-2">
             <Card><CardContent className="p-4"><div className="mb-3 flex items-center justify-between"><div><h2 className="text-sm font-semibold">Low Stock</h2><p className="text-xs text-muted-foreground">Branch stock at or below safety level.</p></div><Link className="text-xs font-semibold text-primary underline" href="/low-stock">Review all</Link></div>{summary.lowStockRows.length ? <div className="divide-y">{summary.lowStockRows.slice(0, 6).map((item, index) => <Link key={`${item.item_id}-${item.branch_id ?? index}`} href={`/stock-card?item_id=${item.item_id}`} className="flex items-center justify-between gap-3 py-2 text-sm hover:bg-secondary/30"><span className="min-w-0"><span className="block break-words font-medium">{item.item_code} · {item.item_name}</span><span className="block text-xs text-muted-foreground">{item.branch_name ?? "All permitted branches"}</span></span><span className="shrink-0 font-mono text-xs">{formatNumber(item.current_qty)} {item.base_unit}</span></Link>)}</div> : <p className="border border-dashed p-4 text-sm text-muted-foreground">{summary.lowStockUnavailable ? "Low-stock insight is temporarily unavailable. Open Low Stock to retry." : "No active items are currently low stock."}</p>}</CardContent></Card>
-            <Card><CardContent className="p-4"><div className="mb-3 flex items-start justify-between gap-3"><div><h2 className="text-sm font-semibold">Consumption</h2><p className="text-xs text-muted-foreground">Posted production usage; wastage excluded.</p></div><form className="flex items-center gap-2"><SelectNative name="consumption" defaultValue={period} aria-label="Consumption period"><option value="7d">7 days</option><option value="30d">30 days</option><option value="month">Current month</option></SelectNative><Button type="submit" size="sm" variant="outline">Apply</Button></form></div>{summary.topConsumedItems.length ? <div className="divide-y">{summary.topConsumedItems.map((item) => <div key={item.name} className="flex items-center justify-between gap-3 py-2 text-sm"><span className="min-w-0 break-words">{item.name}</span><span className="shrink-0 font-mono text-xs font-semibold">{formatNumber(item.qty)}</span></div>)}</div> : <p className="border border-dashed p-4 text-sm text-muted-foreground">{summary.movementUnavailable ? "Consumption insight is temporarily unavailable. Try again shortly." : "No posted production usage in this period."}</p>}</CardContent></Card>
+            <Card><CardContent className="p-4"><div className="mb-3"><h2 className="text-sm font-semibold">Consumption</h2><p className="text-xs text-muted-foreground">Posted production usage for the selected activity period; wastage excluded.</p></div>{summary.topConsumedItems.length ? <div className="divide-y">{summary.topConsumedItems.map((item) => <div key={item.name} className="flex items-center justify-between gap-3 py-2 text-sm"><span className="min-w-0 break-words">{item.name}</span><span className="shrink-0 font-mono text-xs font-semibold">{formatNumber(item.qty)}</span></div>)}</div> : <p className="border border-dashed p-4 text-sm text-muted-foreground">{summary.movementUnavailable ? "Consumption insight is temporarily unavailable. Try again shortly." : "No posted production usage in this period."}</p>}</CardContent></Card>
           </div>
           {summary.topPurchasedItems.length ? <Card><CardContent className="p-4"><div className="mb-3 flex items-center gap-2"><ArrowDownLeft className="h-4 w-4 text-success" /><h2 className="text-sm font-semibold">Top Purchased Items</h2></div><div className="grid gap-x-6 sm:grid-cols-2">{summary.topPurchasedItems.map((item) => <div key={item.name} className="flex items-center justify-between gap-3 border-b py-2 text-sm"><span className="min-w-0 break-words">{item.name}</span><span className="shrink-0 font-mono text-xs font-semibold">{formatNumber(item.qty)}</span></div>)}</div></CardContent></Card> : null}
         </div>

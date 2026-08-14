@@ -107,6 +107,11 @@ async function assertInteractiveBounds(page, route, viewport) {
           if (rect.width <= 0 || rect.height <= 0) return false;
           const style = getComputedStyle(node);
           if (style.visibility === "hidden" || style.display === "none") return false;
+          // Headless controls such as Radix Select keep an off-screen/transparent
+          // native form mirror for submission. It is neither focusable nor
+          // pointer-operable, so its geometry is not an interactive UI bound.
+          if (node.getAttribute("aria-hidden") === "true") return false;
+          if (style.pointerEvents === "none" && node.tabIndex < 0) return false;
           // A dense table is allowed to scroll inside its own contained region; it
           // must not make the document viewport scroll horizontally.
           let parent = node.parentElement;

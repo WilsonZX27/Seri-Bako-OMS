@@ -64,6 +64,12 @@ Fresh authenticated read-only evidence:
 - Responsive/mobile screenshots and accessibility checks.
 - Production read-only verification after Wilson provides an authenticated browser session.
 
+## Responsive continuation evidence (2026-08-15)
+
+The authenticated local Owner audit now verifies all 69 canonical static workspaces at 320px, 820px, and 1180px. Every route passed global-style availability, application-error, page overflow, interactive-bound, accidental vertical-text, and terminal filter-action alignment checks. The audit includes the reported Purchase Requests, Goods Receiving, Stock Count, Outlet Daily Records, Stock Card, and Stock Wastage surfaces.
+
+The audit harness now treats the isolated local server address as authoritative whenever it starts that server. This prevents a stale `TEST_BASE_URL` from silently directing evidence collection to another dev session. Headless-control form mirrors are excluded from interactive geometry only when they are explicitly hidden or both pointer-inert and unfocusable; visible and operable controls remain fully checked.
+
 ## Continuation verification (2026-07-16)
 
 Local source/build verification: Passed (6 contract tests, typecheck, lint, build, diff check). Local browser route verification reached the login gate at `/imports`; no local credentials were supplied, so authenticated screenshots and data-state checks remain Blocked. Production read-only tab was restored to `/stock-balance`; no records, imports, attachments, or permissions were changed.

@@ -24,7 +24,10 @@ const localPort = process.env.PLAYWRIGHT_LOCAL_PORT || "3000";
 const localBaseUrl = `http://127.0.0.1:${localPort}`;
 const startsLocalServer = process.env.RUN_TENANT_BOUNDARY_E2E === "1" && process.env.PW_MANUAL_SERVER !== "1";
 const usesLocalRoleFixture = process.env.RUN_TENANT_BOUNDARY_E2E === "1";
-const baseURL = process.env.TEST_BASE_URL || (startsLocalServer ? localBaseUrl : "");
+// When this process owns the local server, that server is the only valid audit
+// target. A stale TEST_BASE_URL from .env.test.local must never send the browser
+// to a different dev session while Playwright waits on localBaseUrl.
+const baseURL = startsLocalServer ? localBaseUrl : (process.env.TEST_BASE_URL || "");
 
 if (!baseURL) {
   throw new Error("E2E is fail-closed: set TEST_BASE_URL to an isolated target, or set RUN_TENANT_BOUNDARY_E2E=1 for the local test server.");

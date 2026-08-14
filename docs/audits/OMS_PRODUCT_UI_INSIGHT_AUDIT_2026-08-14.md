@@ -19,6 +19,8 @@ This section is the current disposition; the detailed findings below remain as t
 | Reports lack decision-specific charts | Closed for phase 1 | Demand, rankings, AP aging, and cash-flow windows now use interactive direct-label charts while retaining detailed data views. |
 | Procurement variance concentration | Closed | The filtered report now exposes status concentration and the six largest absolute RM price differences, with signed direction, hover/touch/keyboard previews, and the existing table/list as detail authority. |
 | Inventory daily movement | Closed | Inventory now compares bounded posted inbound/outbound entry counts by MYT calendar date, preserves zero days, avoids mixed-UOM quantity totals, and provides hover/touch/keyboard preview plus exact ledger drill-through. |
+| Outlet completion | Closed | Outlet Daily Records now exposes a bounded seven-day outlet × date matrix with explicit missing/in-progress/completed/reviewed/void states, hover/touch/focus preview, and direct record drill-through without inventing lateness. |
+| Stock Count variance | Closed | Posted 30-day lines use each count's saved tolerance; the compact trend/item/branch views count signed shortage/overage occurrences without aggregating unlike UOM quantities and retain exact Stock Count drill-through. |
 | Equal metrics obscure priority | Improved | Exception tiles now identify actionable, clear, unavailable, activity, and snapshot states instead of presenting every count as equivalent urgency. |
 | Decorative command surface | Closed | Decorative grid, layered gradient, and wide shadow were removed. |
 | Raw color and duplicate overrides | Improved in touched scope | The command surface has one semantic owner; unrelated legacy CSS was not globally rewritten. |
@@ -420,8 +422,8 @@ Give me a recommended option plus one conservative alternative. Do not implement
 ### Wave 2 — operational insight expansion
 
 - Bounded Inventory daily movement is complete through `inventory_daily_summary`; no raw-ledger page scan or mixed-UOM total was introduced.
-- Add outlet completion heatmap and stock-count variance report.
-- Procurement variance concentration and Inventory daily movement are complete; continue with outlet completion and Stock Count variance read models.
+- Outlet completion and Stock Count variance read models are complete with bounded, permission-preserving queries and exact drill-through.
+- Procurement variance concentration and Inventory daily movement are complete; continue with role-specific Dashboard micro charts only where a trusted bounded source already exists.
 - Add at most one trusted micro chart per Dashboard role.
 
 ### Wave 3 — hardening and personalisation

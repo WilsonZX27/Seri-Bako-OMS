@@ -1,6 +1,8 @@
 "use client";
 
 import { useId, useRef, useState } from "react";
+import type { PointerEvent } from "react";
+import Link from "next/link";
 import { cn } from "@/lib/utils";
 
 export type InteractiveRankingChartItem = {
@@ -10,6 +12,7 @@ export type InteractiveRankingChartItem = {
   formattedValue: string;
   details: string[];
   caution?: string;
+  href?: string;
 };
 
 export function InteractiveRankingChart({
@@ -37,38 +40,7 @@ export function InteractiveRankingChart({
         {items.map((item, index) => {
           const active = item.id === activeId;
           const width = Math.max(3, (item.value / maximum) * 100);
-          return (
-            <button
-              key={item.id}
-              type="button"
-              role="listitem"
-              aria-describedby={active ? previewId : undefined}
-              aria-label={`${index + 1}. ${item.label}, ${item.formattedValue}`}
-              className={cn(
-                "group grid w-full grid-cols-[minmax(5.5rem,0.9fr)_minmax(7rem,1.6fr)_auto] items-center gap-2 rounded-[var(--sb-radius-control)] px-1.5 py-1.5 text-left outline-none transition-colors",
-                "hover:bg-[var(--sb-surface-muted)] focus-visible:bg-[var(--sb-green-100)] focus-visible:ring-2 focus-visible:ring-[var(--sb-green-700)] focus-visible:ring-offset-1",
-                active && "bg-[var(--sb-surface-muted)]",
-              )}
-              onMouseEnter={() => {
-                touchSelectionRef.current = false;
-                setActiveId(item.id);
-              }}
-              onMouseLeave={() => {
-                if (!touchSelectionRef.current) setActiveId(null);
-              }}
-              onPointerDown={(event) => {
-                touchSelectionRef.current = event.pointerType !== "mouse";
-                setActiveId(item.id);
-              }}
-              onClick={() => {
-                touchSelectionRef.current = true;
-                setActiveId(item.id);
-              }}
-              onFocus={() => setActiveId(item.id)}
-              onBlur={() => {
-                if (!touchSelectionRef.current) setActiveId(null);
-              }}
-            >
+          const content = <>
               <span className="min-w-0 truncate text-xs font-medium" title={item.label}>{item.label}</span>
               <span className="h-2.5 overflow-hidden rounded-sm bg-[var(--sb-surface-muted)]" aria-hidden="true">
                 <span
@@ -77,7 +49,44 @@ export function InteractiveRankingChart({
                 />
               </span>
               <span className="text-right text-xs font-semibold tabular-nums">{item.formattedValue}</span>
-            </button>
+            </>;
+          const rowProps = {
+              role: "listitem" as const,
+              "aria-describedby": active ? previewId : undefined,
+              "aria-label": `${index + 1}. ${item.label}, ${item.formattedValue}`,
+              className: cn(
+                "group grid w-full grid-cols-[minmax(5.5rem,0.9fr)_minmax(7rem,1.6fr)_auto] items-center gap-2 rounded-[var(--sb-radius-control)] px-1.5 py-1.5 text-left outline-none transition-colors",
+                "hover:bg-[var(--sb-surface-muted)] focus-visible:bg-[var(--sb-green-100)] focus-visible:ring-2 focus-visible:ring-[var(--sb-green-700)] focus-visible:ring-offset-1",
+                active && "bg-[var(--sb-surface-muted)]",
+              ),
+              onMouseEnter: () => {
+                touchSelectionRef.current = false;
+                setActiveId(item.id);
+              },
+              onMouseLeave: () => {
+                if (!touchSelectionRef.current) setActiveId(null);
+              },
+              onPointerDown: (event: PointerEvent<HTMLElement>) => {
+                touchSelectionRef.current = event.pointerType !== "mouse";
+                setActiveId(item.id);
+              },
+              onClick: () => {
+                touchSelectionRef.current = true;
+                setActiveId(item.id);
+              },
+              onFocus: () => setActiveId(item.id),
+              onBlur: () => {
+                if (!touchSelectionRef.current) setActiveId(null);
+              },
+            };
+          return item.href ? (
+            <Link key={item.id} href={item.href} {...rowProps}>{content}</Link>
+          ) : (
+            <button
+              key={item.id}
+              type="button"
+              {...rowProps}
+            >{content}</button>
           );
         })}
       </div>

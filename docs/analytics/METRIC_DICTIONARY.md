@@ -1,7 +1,7 @@
 # Seri Bako OMS Metric Dictionary
 
-**Current application:** `v8.36.18`
-**Repository migration ceiling:** `148`
+**Current application:** `v8.36.19`
+**Repository migration ceiling:** `149`
 **Last reviewed:** 2026-08-15
 
 This is the authority for user-visible KPI and chart meaning. It documents presentation contracts; database migrations, RLS, and server queries remain the calculation and permission authority. A render timestamp is never a data-freshness timestamp.
@@ -78,6 +78,21 @@ Daily trend uses request-time report data. The line preview exposes date, moveme
 | Freshness | Request-time read of trigger-maintained posted movement summary. The displayed date is the data grain, not a browser refresh timestamp. |
 | Zero/unavailable | A valid quiet date is zero. RPC/read failure shows unavailable and keeps Stock Balance and Movement Ledger reachable. |
 | Interaction/accessibility | Direct direction labels, hover/touch/arrow-key preview, equivalent same-date ledger links, and an expandable complete numeric table. |
+
+## Stock Count variance insight
+
+| Field | Contract |
+|---|---|
+| Decision | On which days, items, and branches do posted physical counts repeatedly exceed their own saved tolerance? |
+| Population | Posted, non-deleted Stock Counts in the last 30 Asia/Kuala_Lumpur calendar dates; only lines where `abs(variance_percent) > stock_counts.tolerance_percent`. |
+| Grain | Daily trend: calendar date. Rankings: item or branch. Ranking value is the count of above-tolerance line occurrences. |
+| Direction | Negative `variance_qty` is shortage; positive is overage. Zero cannot be above tolerance. |
+| Unit safety | Quantities are never summed across items or UOMs. Item preview shows only the latest signed variance quantity with its source UOM, signed percentage, and source count. |
+| Source | `get_stock_count_variance_insight`; security-invoker, maximum 30 daily + 8 item + 8 branch rows. |
+| Permission | Existing Stock Count RLS and branch scope; optional branch filter is validated before RPC execution. |
+| Freshness | Request-time view of immutable posted counts through the current Kuala Lumpur report date. |
+| Zero/unavailable | Thirty valid quiet dates show zero. RPC/read failure shows Unavailable and never fabricates a zero insight. |
+| Interaction/accessibility | Compact Daily Trend / Repeat Items / Branches tabs; hover/touch/keyboard previews; direct ranking drill-through; expandable complete daily table with equivalent posted-count date filters. |
 
 ## AP Aging distribution
 

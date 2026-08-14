@@ -111,13 +111,14 @@ export async function getStockCounts(filters: Filters = {}) {
     ]);
     if (rawCountsError) throw new Error(error.message);
     const branchById = new Map((branches ?? []).map((branch) => [branch.id, branch.branch_name]));
+    const toleranceByCount = new Map((rawCounts ?? []).map((row) => [row.id, Number(row.tolerance_percent)]));
     const linesByCount = new Map<string, { line_count: number; high_variance_count: number }>();
     for (const line of lines ?? []) {
       const stockCountId = line.stock_count_id;
       if (!stockCountId) continue;
       const current = linesByCount.get(stockCountId) ?? { line_count: 0, high_variance_count: 0 };
       current.line_count += 1;
-      if (Math.abs(Number(line.variance_percent ?? 0)) > 0) current.high_variance_count += 1;
+      if (Math.abs(Number(line.variance_percent ?? 0)) > (toleranceByCount.get(stockCountId) ?? 0)) current.high_variance_count += 1;
       linesByCount.set(stockCountId, current);
     }
     const fallbackRows = (rawCounts ?? []).map((rawRow) => {
@@ -135,6 +136,27 @@ export async function getStockCounts(filters: Filters = {}) {
     return databasePagination(filterRows(fallbackRows, filters, ["count_no", "status", "branch_name", "remarks"], "updated_at"), fallbackRows.length, filters.page);
   }
   return databasePagination((data ?? []) as StockCountRow[], count, filters.page);
+}
+
+export type StockCountVarianceInsightRow = Database["public"]["Functions"]["get_stock_count_variance_insight"]["Returns"][number];
+
+export async function getStockCountVarianceInsight(branchId?: string) {
+  const empty = { daily: [] as StockCountVarianceInsightRow[], items: [] as StockCountVarianceInsightRow[], branches: [] as StockCountVarianceInsightRow[] };
+  if (isMockMode()) return { available: true as const, ...empty };
+  const supabase = await createClient();
+  if (branchId) {
+    const { data: branch, error: branchError } = await supabase.from("branches").select("id").eq("id", branchId).maybeSingle();
+    if (branchError || !branch) return { available: false as const, ...empty };
+  }
+  const { data, error } = await supabase.rpc("get_stock_count_variance_insight", { p_branch_id: branchId || null });
+  if (error) return { available: false as const, ...empty };
+  const rows = data ?? [];
+  return {
+    available: true as const,
+    daily: rows.filter((row) => row.row_kind === "day").sort((left, right) => left.rank_order - right.rank_order),
+    items: rows.filter((row) => row.row_kind === "item").sort((left, right) => left.rank_order - right.rank_order),
+    branches: rows.filter((row) => row.row_kind === "branch").sort((left, right) => left.rank_order - right.rank_order),
+  };
 }
 
 export async function getStockCountSummary() {

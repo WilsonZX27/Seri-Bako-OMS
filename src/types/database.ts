@@ -2332,6 +2332,26 @@ export type Database = {
           movement_entries: number;
         }[];
       };
+      get_stock_count_variance_insight: {
+        Args: { p_branch_id?: string | null };
+        Returns: {
+          row_kind: string;
+          row_key: string;
+          row_label: string;
+          record_date: string | null;
+          entity_id: string | null;
+          high_variance_count: number;
+          shortage_count: number;
+          overage_count: number;
+          latest_count_id: string | null;
+          latest_count_no: string | null;
+          latest_count_date: string | null;
+          latest_variance_percent: number | null;
+          latest_variance_qty: number | null;
+          latest_uom: string | null;
+          rank_order: number;
+        }[];
+      };
       get_inventory_dashboard_summary: {
         Args: { p_period?: string };
         Returns: Json;

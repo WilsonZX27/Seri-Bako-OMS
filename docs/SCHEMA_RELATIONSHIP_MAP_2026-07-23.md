@@ -4,9 +4,9 @@
 >
 > 2026-07-23 原始读取结果：61 张基础表、5 个只读库存视图，当时仓库迁移到 089。本文件仍是历史实库快照，不是当前 Production schema 证明。
 >
-> 2026-08-15 仓库核对：forward-only migration 历史已到 `148`。权威顺序为：目标数据库的 `schema_migrations` 与实际 catalog → 仓库 `supabase/migrations/` → 本历史关系图。不要仅凭本文件执行删除、重命名或 Production 变更。
+> 2026-08-15 仓库核对：forward-only migration 历史已到 `149`。权威顺序为：目标数据库的 `schema_migrations` 与实际 catalog → 仓库 `supabase/migrations/` → 本历史关系图。不要仅凭本文件执行删除、重命名或 Production 变更。
 
-## 2026-08-15 repository 增量（migrations 128–148）
+## 2026-08-15 repository 增量（migrations 128–149）
 
 以下只记录从 migration 文件直接验证到的结构/读模型变化，不声称这些 migration 已部署到任何特定 Production 项目：
 
@@ -19,6 +19,7 @@
 - `146` 增加原子替换 branch supply routes 的管理函数。
 - `147` 扩展 Purchasing 对 Outlet Daily Records 的受控管理权限；不改变 Outlet Daily 数量公式。
 - `148` 新增最多 31 行的 Inventory daily movement 只读 RPC；它按 MYT 日历日汇总 `inventory_daily_summary.movement_count` 的 inbound/outbound entries，不跨不同 UOM 相加数量，也不扫描 raw ledger。
+- `149` 新增最多 46 行的 Stock Count variance 只读 RPC；它只统计最近 30 个 MYT 日历日内 posted lines 超过各自 count 保存容差的 occurrence，按 shortage/overage、item 与 branch 呈现，不跨 UOM 汇总 variance quantity。
 
 完整字段、约束、RLS 与函数签名必须回到对应 migration 和实际数据库 catalog 核对。
 

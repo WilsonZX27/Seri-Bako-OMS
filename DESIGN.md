@@ -1,6 +1,6 @@
 # Seri Bako OMS responsive design standard
 
-> **Release authority:** the currently released application is `v8.36.18`, as
+> **Release authority:** the currently released application is `v8.36.19`, as
 > defined by `src/lib/app-version.ts`. A versioned section above that number is
 > an accepted forward design contract or unreleased implementation note—not
 > evidence that the application itself has been released at that version.
@@ -22,6 +22,12 @@ This document is the implementation contract for every customer-facing route, fo
 
 - A dense editable list must use the exact same column template, horizontal gutter, and gap for its header and every data row. Inner controls may fill their assigned column but must not introduce a second `max-width` or end-alignment rule that visually detaches them from the column heading.
 - Stock Count uses an elastic Item column, a stable Variance column, and a bounded Count column. Quantity stepper and UOM remain inside that Count column at desktop and tablet widths; phone rows may stack the Count control beneath the item context.
+
+## v8.36.19 — Stock Count Variance Insight
+
+- Stock Count variance insight uses posted lines from the last 30 Kuala Lumpur calendar dates and each count's saved `tolerance_percent`. The list fallback, detail, trend, and rankings must share that same above-tolerance definition.
+- Daily and ranked views count high-variance occurrences by shortage/overage direction. They never sum `variance_qty` across items or unlike UOMs. Item preview may show the latest signed quantity only with its source UOM and Stock Count.
+- Daily Trend, Repeat Items, and Branches share one compact tabbed surface. Hover, touch, and keyboard focus expose exact values; ranking rows and daily data link to the equivalent Stock Count authority. RPC failure is unavailable, never a valid zero.
 
 ## v8.36.18 — Outlet Completion Matrix
 

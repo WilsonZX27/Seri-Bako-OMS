@@ -1,6 +1,6 @@
 # Seri Bako OMS responsive design standard
 
-> **Release authority:** the currently released application is `v8.36.25`, as
+> **Release authority:** the currently released application is `v8.36.26`, as
 > defined by `src/lib/app-version.ts`. A versioned section above that number is
 > an accepted forward design contract or unreleased implementation note—not
 > evidence that the application itself has been released at that version.
@@ -10,6 +10,12 @@
 > **Precedence:** `docs/DESIGN_SYSTEM.md` is the living visual and interaction contract. When a historical release note or an older rule in this file conflicts with that contract, the living contract wins. Update both documents when a new pattern is accepted; do not preserve a visibly weaker rule for compatibility.
 
 This document is the implementation contract for every customer-facing route, form, record workspace, table, panel, dialog, and mobile action bar. It applies to new work and to refactoring of existing UI.
+
+## v8.36.26 — Exception-First Dashboard Priority
+
+- Dashboard comparison signals use a stable semantic order: critical exceptions, follow-up, activity, then snapshots. Source order resolves ties; count magnitude never invents urgency.
+- Zero and unavailable values remain distinct trust states: zero is Clear, while a failed or absent source is Unavailable.
+- The secondary Dashboard column is a single ordered layout owner. Exceptions precede routine operational activity, followed by finance obligations and informational alerts.
 
 ### Operational relationship ownership
 

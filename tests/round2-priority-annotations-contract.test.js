@@ -34,6 +34,14 @@ test("purchase requests and stock counts share canonical query-card ownership", 
   assert.match(css, /\.sb-list-query-card/);
 });
 
+test("dashboard secondary column keeps exceptions ahead of routine activity", () => {
+  assert.match(dashboard, /flex flex-col gap-4 lg:col-span-6" data-dashboard-secondary-column/);
+  assert.match(dashboard, /className="order-1" data-dashboard-priority-group="exceptions"/);
+  assert.match(dashboard, /className="order-2 space-y-4" data-dashboard-activity-group/);
+  assert.match(dashboard, /className="order-3" data-dashboard-priority-group="payables"/);
+  assert.match(dashboard, /className="order-4"/);
+});
+
 test("stock count tablet rail has an explicit card contract", () => {
   assert.match(stockCounts, /data-stock-count-tablet-rail/);
   assert.match(stockCounts, /shadow-\[var\(--sb-shadow-card\)\]/);

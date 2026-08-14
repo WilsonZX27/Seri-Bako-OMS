@@ -26,6 +26,14 @@ test("Dashboard role comparison preserves unavailable state and exact interactio
   assert.match(chart, /href=\{active\.href\}/);
 });
 
+test("Dashboard role comparison uses stable severity order and explicit trust states", () => {
+  assert.match(chart, /const tonePriority = \{ critical: 0, warning: 1, active: 2, neutral: 3 \}/);
+  assert.match(chart, /const orderedItems = useMemo/);
+  assert.match(chart, /tonePriority\[left\.tone \?\? "neutral"\] - tonePriority\[right\.tone \?\? "neutral"\]/);
+  assert.match(chart, /active\?\.value === null \? "Unavailable" : active\?\.value === 0 \? "Clear"/);
+  assert.match(chart, /data-dashboard-signal-priority/);
+});
+
 test("Finance-only payables fields stay out of non-finance role branches", () => {
   const financeBranch = roleChartBlock.match(/isFinance([\s\S]*?): isKitchen/)?.[1] ?? "";
   const kitchenBranch = roleChartBlock.match(/: isKitchen([\s\S]*?): isPurchasing/)?.[1] ?? "";

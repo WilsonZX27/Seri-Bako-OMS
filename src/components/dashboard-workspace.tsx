@@ -369,9 +369,9 @@ export function DashboardWorkspace({ summary }: { summary: DashboardSummary }) {
         </Panel>
           </div>
 
-          <div className="space-y-4 lg:col-span-6">
+          <div className="flex flex-col gap-4 lg:col-span-6" data-dashboard-secondary-column>
         {!isOutlet ? (
-          <div className="space-y-4">
+          <div className="order-2 space-y-4" data-dashboard-activity-group>
             <Panel title={isPurchasing ? "Purchasing pipeline" : isKitchen ? "Production and receiving" : "Operational pipeline"}>
               <div className="grid grid-cols-3 gap-1.5 sm:gap-2">
                 <Metric
@@ -410,7 +410,7 @@ export function DashboardWorkspace({ summary }: { summary: DashboardSummary }) {
           </div>
         ) : null}
 
-        {(showOperations || isKitchen || isPurchasing) && operationalExceptionCount > 0 ? (
+        {(showOperations || isKitchen || isPurchasing) && operationalExceptionCount > 0 ? <div className="order-1" data-dashboard-priority-group="exceptions">
           <Panel
             title={isKitchen ? "Raw-material exceptions" : "Exceptions requiring follow-up"}
             empty="No urgent operational exceptions are visible in your scope."
@@ -452,9 +452,9 @@ export function DashboardWorkspace({ summary }: { summary: DashboardSummary }) {
               )}
             </div>
           </Panel>
-        ) : null}
+        </div> : null}
 
-        {showFinance ? <Panel dataAttribute="payables" title="Payables and cash obligations"
+        {showFinance ? <div className="order-3" data-dashboard-priority-group="payables"><Panel dataAttribute="payables" title="Payables and cash obligations"
             empty={summary.payablesAttentionUnavailable ? "Payables attention is temporarily unavailable; operational queues remain current." : "All current supplier invoices are up to date."}
           >
             {summary.payablesAttention ? (
@@ -469,9 +469,9 @@ export function DashboardWorkspace({ summary }: { summary: DashboardSummary }) {
                 </div>
               </>
             ) : null}
-          </Panel> : null}
+          </Panel></div> : null}
 
-        {summary.notifications.length ? (
+        {summary.notifications.length ? <div className="order-4">
           <Panel title="Alerts">
             <div className="space-y-2 px-1 py-1">
               {summary.notifications.slice(0, 3).map((note: DashboardSummary["notifications"][number]) => (
@@ -482,7 +482,7 @@ export function DashboardWorkspace({ summary }: { summary: DashboardSummary }) {
               ))}
             </div>
           </Panel>
-        ) : null}
+        </div> : null}
           </div>
         </div>
         )}

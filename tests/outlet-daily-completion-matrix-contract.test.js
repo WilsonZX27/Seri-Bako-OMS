@@ -25,20 +25,29 @@ test("outlet completion matrix provides hover, touch, keyboard and direct-record
   assert.match(component, /onPointerDown=\{\(\) => setActiveKey\(key\)\}/);
   assert.match(component, /data-outlet-completion-preview/);
   assert.match(component, /Open daily record/);
-  assert.match(component, /h-11 w-full min-w-11[\s\S]*sm:h-9 sm:min-w-9/);
+  assert.match(component, /h-9 w-full min-w-0[\s\S]*sm:min-w-9/);
   assert.match(component, /inline-flex min-h-11 items-center[\s\S]*xl:min-h-8/);
   assert.match(component, /not a lateness estimate/);
-  assert.match(component, /overflow-x-auto/);
+  assert.match(component, /sm:overflow-x-auto/);
   assert.match(page, /<OutletDailyCompletionMatrix/);
 });
 
-test("horizontal matrix scrolling preserves outlet identity on narrow workspaces", () => {
+test("phone matrix fits all seven days while wider workspaces retain pinned horizontal navigation", () => {
   const component = read("src/components/outlet-daily-completion-matrix.tsx");
-  assert.match(component, /Swipe across dates; outlet names remain pinned\./);
+  assert.match(component, /All seven days fit this view\./);
   assert.match(component, /aria-describedby="outlet-completion-scroll-hint"/);
-  assert.match(component, /<th scope="col" className="sticky left-0 z-20/);
-  assert.match(component, /<th scope="row" className="sticky left-0 z-10/);
-  assert.match(component, /overflow-x-auto overscroll-x-contain/);
+  assert.match(component, /sm:sticky sm:left-0 sm:z-20/);
+  assert.match(component, /sm:sticky sm:left-0 sm:z-10/);
+  assert.match(component, /overflow-hidden[\s\S]*sm:overflow-x-auto sm:overscroll-x-contain/);
+  assert.match(component, /table-fixed[\s\S]*sm:min-w-\[34rem\] sm:table-auto/);
+});
+
+test("outlet daily phone filters keep date, branch, and status inside one drawer", () => {
+  const page = read("src/app/(app)/outlet-daily-records/page.tsx");
+  const filter = read("src/components/common/UnifiedListHeader.tsx");
+  assert.match(page, /phonePrimary="drawer"/);
+  assert.match(filter, /primaryInDrawer \? primary : null/);
+  assert.match(filter, /unified-list-row--filter-only/);
 });
 
 test("outlet completion states use semantic surfaces instead of a hard-coded theme", () => {

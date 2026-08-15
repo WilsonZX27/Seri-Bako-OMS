@@ -28,6 +28,7 @@ type HeaderProps = {
   className?: string;
   phoneOnly?: boolean;
   phoneMode?: "drawer" | "inline";
+  phonePrimary?: "inline" | "drawer";
 };
 
 function propsOf(child: ReactNode): Record<string, unknown> {
@@ -150,7 +151,7 @@ function SearchControl({ child, value, onChange }: { child: ReactElement; value:
   );
 }
 
-export function UnifiedListHeader({ children, resultCount, resetHref, filtered = false, activeCount = 0, className, phoneOnly = false, phoneMode = "drawer" }: HeaderProps) {
+export function UnifiedListHeader({ children, resultCount, resetHref, filtered = false, activeCount = 0, className, phoneOnly = false, phoneMode = "drawer", phonePrimary = "inline" }: HeaderProps) {
   // The first client render must match SSR exactly. Viewport detection belongs
   // in the effect below; reading matchMedia in the state initializer rendered
   // different desktop/mobile trees and caused hydration recovery on every
@@ -192,6 +193,7 @@ export function UnifiedListHeader({ children, resultCount, resetHref, filtered =
   const nested = more && isValidElement(more) ? flattenChildren(propsOf(more).children as ReactNode) : [];
   const contextualFilterCount = filters.length + nested.length;
   const resolvedPhoneMode = phoneMode;
+  const primaryInDrawer = resolvedPhoneMode === "drawer" && phonePrimary === "drawer";
   const active = activeCount || (more && isValidElement(more) && typeof propsOf(more).activeCount === "number" ? propsOf(more).activeCount as number : 0);
   const primaryProps = primary && isValidElement(primary) ? propsOf(primary) : {};
   const initialSearchValue = typeof primaryProps.defaultValue === "string"
@@ -233,7 +235,7 @@ export function UnifiedListHeader({ children, resultCount, resetHref, filtered =
   const submit = (event: FormEvent<HTMLFormElement>) => {
     event.currentTarget.querySelectorAll<HTMLButtonElement>('button[type="submit"]').forEach((button) => { button.disabled = true; button.dataset.pending = "true"; });
   };
-  const filterControls = <>{filters}{nested}</>;
+  const filterControls = <>{primaryInDrawer ? primary : null}{filters}{nested}</>;
   const filterSheet = open && typeof document !== "undefined" ? createPortal(
     <div className="unified-list-layer">
       <button type="button" className="unified-list-backdrop" aria-label="Close filters" onClick={() => setOpen(false)} />
@@ -251,8 +253,8 @@ export function UnifiedListHeader({ children, resultCount, resetHref, filtered =
   ) : null;
   return (
     <form ref={formRef} className={cn("unified-list-header sb-list-query-card", className)} data-filtered={filtered || undefined} data-reset-href={resetHref} onSubmit={submit}>
-      <div className="unified-list-row">
-        {primary && isValidElement(primary) ? <SearchControl child={primary} value={searchValue} onChange={updateSearch} /> : <div className="unified-list-primary-control" />}
+      <div className={cn("unified-list-row", primaryInDrawer && "unified-list-row--filter-only")}>
+        {!primaryInDrawer && primary && isValidElement(primary) ? <SearchControl child={primary} value={searchValue} onChange={updateSearch} /> : <div className="unified-list-primary-control" />}
         {resolvedPhoneMode === "drawer" ? <button type="button" className="unified-list-filter-trigger" onClick={() => setOpen(true)} aria-label={active ? `Filter, ${active} active` : "Filter"}><SlidersHorizontal /><span className="unified-list-filter-label">Filter{active ? ` (${active})` : ""}</span></button> : null}
         {resolvedPhoneMode === "inline" && contextualFilterCount === 1 ? <div className="unified-list-inline-control">{filterControls}</div> : null}
         {typeof resultCount === "number" ? <span className="unified-list-result" aria-live="polite">{resultCount} {resultCount === 1 ? "record" : "records"}</span> : null}

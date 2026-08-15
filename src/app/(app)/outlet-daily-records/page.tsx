@@ -50,7 +50,7 @@ export default async function OutletDailyRecordsPage({ searchParams }: { searchP
       <div className="min-w-0 max-w-full space-y-3 overflow-x-clip" data-outlet-daily-list-workspace>
         <OutletDailyCompletionMatrix dates={completion?.dates ?? []} rows={completion?.rows ?? []} summary={completion?.summary ?? null} unavailable={!completion} />
         <OutletDailyWastageChart points={trend?.daily ?? []} branch={filters.branch} unavailable={!trend} />
-        <FilterBar resultCount={data.totalRows} resetHref="/outlet-daily-records" filtered={filtered} className="sb-list-filters--date-first">
+        <FilterBar resultCount={data.totalRows} resetHref="/outlet-daily-records" filtered={filtered} phonePrimary="drawer" className="sb-list-filters--date-first">
             <Input name="date" type="date" defaultValue={filters.date ?? ""} aria-label="Record date" className="sb-filter-date" />
             <SelectControl name="branch" value={filters.branch ?? "all"} ariaLabel="Branch" options={[{ value: "all", label: "All branches" }, ...options.branches.map((branch) => ({ value: branch.id, label: branch.branch_name }))]} />
             <SelectControl name="status" value={filters.status ?? "all"} ariaLabel="Status" options={[{ value: "all", label: "All statuses" }, ...statuses.map((status) => ({ value: status, label: status.replaceAll("_", " ") }))]} />

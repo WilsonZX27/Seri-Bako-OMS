@@ -16,6 +16,7 @@ export function FilterBar({
   className,
   phoneOnly = false,
   phoneMode = "drawer",
+  phonePrimary = "inline",
 }: {
   children: ReactNode;
   resultCount?: number;
@@ -25,8 +26,9 @@ export function FilterBar({
   className?: string;
   phoneOnly?: boolean;
   phoneMode?: "drawer" | "inline";
+  phonePrimary?: "inline" | "drawer";
 }) {
-  return <UnifiedListHeader {...{ children, resultCount, resetHref, filtered, activeCount, className, phoneOnly, phoneMode }} />;
+  return <UnifiedListHeader {...{ children, resultCount, resetHref, filtered, activeCount, className, phoneOnly, phoneMode, phonePrimary }} />;
 }
 
 FilterBarMore.displayName = "FilterBarMore";

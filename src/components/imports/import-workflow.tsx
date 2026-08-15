@@ -214,6 +214,14 @@ export function ImportWorkflow({ entity, suppliers = [] }: { entity: ImportEntit
   const savingRef = useRef(false);
   const validRows = useMemo(() => rows.filter((row) => !row.errors.length), [rows]);
   const errorRows = useMemo(() => rows.filter((row) => row.errors.length), [rows]);
+  const rowValidationMessage = (row: RowState) => {
+    if (row.errors.length) return row.errors.join("; ");
+    const supplierCode = row.values.supplier_code?.trim().toLowerCase();
+    const supplier = entity === "items" && supplierCode
+      ? suppliers.find((entry) => entry.supplier_code?.trim().toLowerCase() === supplierCode)
+      : null;
+    return supplierCode ? (supplier ? `Resolved: ${supplier.supplier_code} - ${supplier.name}` : "Supplier code will be verified on import") : "Valid";
+  };
 
   useEffect(() => {
     try {
@@ -525,7 +533,7 @@ export function ImportWorkflow({ entity, suppliers = [] }: { entity: ImportEntit
           <div><p className="text-sm font-semibold">Import rows</p><p className="text-xs text-muted-foreground">Upload a file or enter a row manually.</p></div>
           <Button type="button" variant="outline" size="sm" onClick={addRow}>Add row</Button>
         </div>
-        <div className="overflow-x-auto">
+        <div className="hidden overflow-x-auto md:block">
           <Table>
             <TableHeader>
               <TableRow>
@@ -546,15 +554,7 @@ export function ImportWorkflow({ entity, suppliers = [] }: { entity: ImportEntit
                       <Input value={row.values[header] ?? ""} onChange={(event) => updateCell(rowIndex, header, event.target.value)} />
                     </TableCell>
                   ))}
-                  <TableCell className={row.errors.length ? "text-destructive" : "text-success"}>
-                    {row.errors.length ? row.errors.join("; ") : (() => {
-                      const supplierCode = row.values.supplier_code?.trim().toLowerCase();
-                      const supplier = entity === "items" && supplierCode
-                        ? suppliers.find((entry) => entry.supplier_code?.trim().toLowerCase() === supplierCode)
-                        : null;
-                      return supplierCode ? (supplier ? `Resolved: ${supplier.supplier_code} - ${supplier.name}` : "Supplier code will be verified on import") : "Valid";
-                    })()}
-                  </TableCell>
+                  <TableCell className={row.errors.length ? "text-destructive" : "text-success"}>{rowValidationMessage(row)}</TableCell>
                   <TableCell className="text-right">
                     <Button type="button" variant="ghost" size="sm" onClick={() => removeRow(rowIndex)}>Remove</Button>
                   </TableCell>
@@ -570,6 +570,28 @@ export function ImportWorkflow({ entity, suppliers = [] }: { entity: ImportEntit
             </TableBody>
           </Table>
         </div>
+        <div className="divide-y divide-[var(--sb-border-soft)] md:hidden" data-import-row-list>
+          {rows.map((row, rowIndex) => (
+            <article key={row.index} className="space-y-3 px-3 py-4">
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <p className="text-sm font-semibold">Row {row.index}</p>
+                  <p className={`mt-0.5 text-xs ${row.errors.length ? "text-destructive" : "text-success"}`}>{rowValidationMessage(row)}</p>
+                </div>
+                <Button type="button" variant="ghost" size="sm" onClick={() => removeRow(rowIndex)}>Remove</Button>
+              </div>
+              <div className="grid gap-3">
+                {spec.headers.map((header) => (
+                  <label key={header} className="grid gap-1 text-xs font-medium">
+                    <span>{header}</span>
+                    <Input value={row.values[header] ?? ""} onChange={(event) => updateCell(rowIndex, header, event.target.value)} />
+                  </label>
+                ))}
+              </div>
+            </article>
+          ))}
+          {!rows.length ? <p className="px-3 py-8 text-center text-sm text-muted-foreground">Upload a CSV or XLSX file to start reviewing data.</p> : null}
+        </div>
       </div>
 
       {result?.errorRows.length ? (
@@ -579,7 +601,7 @@ export function ImportWorkflow({ entity, suppliers = [] }: { entity: ImportEntit
               <p className="font-semibold">Row-level issues from import</p>
               <p className="text-sm text-muted-foreground">These rows were rejected by the server and should be corrected before retrying.</p>
             </div>
-            <div className="overflow-x-auto">
+            <div className="hidden overflow-x-auto md:block">
               <Table>
                 <TableHeader>
                   <TableRow>
@@ -606,6 +628,24 @@ export function ImportWorkflow({ entity, suppliers = [] }: { entity: ImportEntit
                   ))}
                 </TableBody>
               </Table>
+            </div>
+            <div className="divide-y divide-[var(--sb-border-soft)] rounded-[var(--sb-radius-control)] border border-[var(--sb-border-soft)] md:hidden" data-import-error-list>
+              {result.errorRows.map((row) => (
+                <article key={`${row.rowNumber}-${row.message}`} className="space-y-3 px-3 py-4">
+                  <div className="flex items-start justify-between gap-3">
+                    <p className="text-sm font-semibold">Row {row.rowNumber}</p>
+                    <p className="max-w-[70%] text-right text-xs font-medium text-destructive">{row.message}</p>
+                  </div>
+                  <dl className="grid gap-2 text-xs">
+                    {Object.entries(row.values).map(([key, value]) => (
+                      <div key={key} className="grid grid-cols-[minmax(6rem,0.45fr)_minmax(0,1fr)] gap-3">
+                        <dt className="font-medium text-muted-foreground">{key}</dt>
+                        <dd className="min-w-0 break-words text-foreground">{value || "-"}</dd>
+                      </div>
+                    ))}
+                  </dl>
+                </article>
+              ))}
             </div>
           </CardContent>
         </Card>

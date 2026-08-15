@@ -1,6 +1,6 @@
 # Seri Bako OMS responsive design standard
 
-> **Release authority:** the currently released application is `v8.36.46`, as
+> **Release authority:** the currently released application is `v8.36.47`, as
 > defined by `src/lib/app-version.ts`. A versioned section above that number is
 > an accepted forward design contract or unreleased implementation note—not
 > evidence that the application itself has been released at that version.
@@ -10,6 +10,12 @@
 > **Precedence:** `docs/DESIGN_SYSTEM.md` is the living visual and interaction contract. When a historical release note or an older rule in this file conflicts with that contract, the living contract wins. Update both documents when a new pattern is accepted; do not preserve a visibly weaker rule for compatibility.
 
 This document is the implementation contract for every customer-facing route, form, record workspace, table, panel, dialog, and mobile action bar. It applies to new work and to refactoring of existing UI.
+
+## v8.36.47 — Responsive Import Review
+
+- Import Review retains the editable spreadsheet grid at tablet and desktop widths. Phones use a vertical row editor with every dynamic import header rendered as a visible field label; users never need horizontal table navigation to correct a row.
+- Desktop cells and phone fields share the same `rows`, `updateCell`, remove action, and validation-message authority. Supplier resolution, required-field errors, and duplicate-row errors cannot diverge by viewport.
+- Server-rejected row-level issues keep the wide audit table and add a complete phone definition list. Every submitted key/value and the server message remain readable without truncating the evidence needed for correction.
 
 ## v8.36.46 — Pinned Outlet Completion Context
 

@@ -7,7 +7,6 @@ import { useMemo, useState } from "react";
 import { getVisibleNavGroups } from "@/components/layout/nav-items";
 import { APP_RELEASE_NOTE } from "@/lib/app-version";
 import { cn } from "@/lib/utils";
-import type { SidebarCounts } from "@/server/queries/sidebar";
 import type { UserRole } from "@/types/database";
 
 type WorkspaceSidebarProps = {
@@ -17,7 +16,6 @@ type WorkspaceSidebarProps = {
   companyLogoUrl?: string | null;
   brandHref?: string;
   onNavigate?: () => void;
-  navCounts?: SidebarCounts;
   userName?: string;
   userRoleLabel?: string;
   permissionMap?: Record<string, boolean>;
@@ -30,7 +28,6 @@ export function WorkspaceSidebar({
   companyLogoUrl,
   brandHref = "/dashboard",
   onNavigate,
-  navCounts = {},
   permissionMap,
 }: WorkspaceSidebarProps) {
   const pathname = usePathname();
@@ -113,7 +110,6 @@ export function WorkspaceSidebar({
                     const Icon = item.icon;
                     const itemKey = `${group.id}-${item.href}`;
                     const active = activeNavKey === itemKey;
-                    const count = item.badgeKey ? navCounts[item.badgeKey] : undefined;
                     return (
                       <Link
                         key={itemKey}
@@ -127,14 +123,7 @@ export function WorkspaceSidebar({
                         )}
                       >
                         <Icon className={cn("h-3.5 w-3.5 shrink-0", active ? "text-[var(--sb-green-950)]" : "text-white/55")} />
-                          <>
-                            <span className="min-w-0 flex-1 truncate">{item.label}</span>
-                            {typeof count === "number" && count > 0 ? (
-                              <span className="ml-2 inline-flex min-w-5 justify-center rounded-full bg-[var(--sb-amber-300)] px-1.5 py-0.5 text-[10px] font-semibold leading-none text-[var(--sb-green-950)]">
-                                {count > 99 ? "99+" : count}
-                              </span>
-                            ) : null}
-                          </>
+                          <span className="min-w-0 flex-1 truncate">{item.label}</span>
                       </Link>
                     );
                   })}

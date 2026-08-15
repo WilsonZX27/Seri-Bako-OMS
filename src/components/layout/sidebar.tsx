@@ -18,7 +18,6 @@ export async function Sidebar({ permissionMap }: { permissionMap: Record<string,
         role={role}
         companyName={branding.company_name}
         companyLogoUrl={branding.logo_url}
-        navCounts={{}}
         permissionMap={permissionMap}
         userName={account?.full_name ?? account?.email ?? "Signed in"}
         userRoleLabel={getRoleDisplayLabel(role)}

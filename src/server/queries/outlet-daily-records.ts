@@ -174,13 +174,16 @@ export async function getOutletDailyFormOptions(recordDate?: string) {
 async function loadRows() {
   if (isMockMode()) return [] as OutletDailyRecordRow[];
   const db = await createClient();
-  const [{ data, error }, { data: lines }, { data: branches }, { data: staffs }] = await Promise.all([
+  const [{ data, error }, { data: lines, error: linesError }, { data: branches, error: branchesError }, { data: staffs, error: staffsError }] = await Promise.all([
     db.from("outlet_daily_records").select("*").order("record_date", { ascending: false }).order("updated_at", { ascending: false }),
     db.from("outlet_daily_record_lines").select("*"),
     db.from("branches").select("id,branch_name"),
     db.from("staffs").select("id,full_name"),
   ]);
   if (error) throw new Error(error.message);
+  if (linesError) throw new Error(linesError.message);
+  if (branchesError) throw new Error(branchesError.message);
+  if (staffsError) throw new Error(staffsError.message);
   const branchNames = new Map((branches ?? []).map((row) => [row.id, row.branch_name]));
   const staffNames = new Map((staffs ?? []).map((row) => [row.id, row.full_name]));
   return ((data ?? []) as RecordRow[]).map((record) => ({

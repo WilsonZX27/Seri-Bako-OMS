@@ -1,6 +1,6 @@
 # Seri Bako OMS responsive design standard
 
-> **Release authority:** the currently released application is `v8.37.2`, as
+> **Release authority:** the currently released application is `v8.37.3`, as
 > defined by `src/lib/app-version.ts`. A versioned section above that number is
 > an accepted forward design contract or unreleased implementation note—not
 > evidence that the application itself has been released at that version.
@@ -10,6 +10,13 @@
 > **Precedence:** `docs/DESIGN_SYSTEM.md` is the living visual and interaction contract. When a historical release note or an older rule in this file conflicts with that contract, the living contract wins. Update both documents when a new pattern is accepted; do not preserve a visibly weaker rule for compatibility.
 
 This document is the implementation contract for every customer-facing route, form, record workspace, table, panel, dialog, and mobile action bar. It applies to new work and to refactoring of existing UI.
+
+## v8.37.3 — Operational UI Closure Round 2
+
+- Stock Count removes the duplicate custom progress panel and keeps the canonical Draft → Posted workflow in the shared document header. Phone lines use a proven two-column count-card layout with full item names, leading ordinal markers, compact controls, and a desktop/tablet scan-friendly list.
+- Purchase Order lines expose a real selectable purchase UOM, avoid repeating the item code beneath the selector, and restore the outer work surface. Purchase Return reasons use a controlled dropdown with notes shown only for Other.
+- Outlet Daily completion keeps outlet labels pinned during wider-workspace scrolling, moves coverage into the contextual rail, and treats auxiliary read failures as unavailable instead of rendering misleading zero totals. AP Aging and Cash Flow now separate query/content surfaces and remove duplicated financial context.
+- Shared filter overlays anchor to the trigger edge on tablet/desktop, avoiding detached panels; all changes preserve server-side authority, touch targets, and existing document workflows.
 
 ## v8.36.96 — Unified Mobile Create Actions and Report Detail Links
 

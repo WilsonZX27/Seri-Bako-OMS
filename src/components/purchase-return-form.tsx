@@ -23,6 +23,7 @@ export function PurchaseReturnForm({
 }) {
   const router = useRouter();
   const [idempotencyKey] = useState(() => crypto.randomUUID());
+  const [reason, setReason] = useState("");
   return (
     <div className="min-w-0">
         <form id="purchase-return-form" action={action} className="erp-surface space-y-3 p-3 md:p-4">
@@ -43,12 +44,18 @@ export function PurchaseReturnForm({
               <Input name="return_date" type="date" defaultValue={getToday()} required />
             </Field>
             <Field label="Reason" className="col-span-1 lg:col-span-1">
-              <Input name="reason" placeholder="Supplier return / quality issue" />
+              <SelectNative name="reason" value={reason} onChange={(event) => setReason(event.target.value)}>
+                <option value="">Select a reason</option>
+                <option value="Supplier return">Supplier return</option>
+                <option value="Quality issue">Quality issue</option>
+                <option value="Damaged in transit">Damaged in transit</option>
+                <option value="Wrong item">Wrong item</option>
+                <option value="Over-delivered">Over-delivered</option>
+                <option value="Other">Other</option>
+              </SelectNative>
             </Field>
-            <div className="col-span-2 lg:col-span-2">
-              <Field label="Notes">
-                <Textarea name="remarks" placeholder="Return reference, supplier contact, or handling notes" />
-              </Field>
+            <div className="col-span-2 lg:col-span-3">
+              {reason === "Other" ? <Field label="Notes"><Textarea name="remarks" placeholder="Describe the return reason" required /></Field> : <input type="hidden" name="remarks" value="" />}
             </div>
           </div>
 

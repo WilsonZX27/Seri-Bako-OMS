@@ -50,7 +50,10 @@ export function FilterBarMore({
     const anchor = summaryRef.current?.getBoundingClientRect();
     if (!anchor) return;
     const width = Math.min(360, Math.max(280, window.innerWidth - 24));
-    const left = Math.min(Math.max(12, anchor.right - width), Math.max(12, window.innerWidth - width - 12));
+    // Keep the sheet anchored to the trigger's leading edge whenever possible.
+    // Aligning by `anchor.right - width` makes a wide panel appear detached on
+    // tablet when the trigger sits near the left side of a split workspace.
+    const left = Math.min(Math.max(12, anchor.left), Math.max(12, window.innerWidth - width - 12));
     const top = Math.min(anchor.bottom + 8, Math.max(12, window.innerHeight - 420));
     setPanelStyle({ position: "fixed", top, left, width });
   };

@@ -32,8 +32,8 @@ test("stock count keeps setup separate from one continuous phone work surface", 
   assert.match(source, /data-stock-count-workspace/);
   assert.match(source, /data-stock-count-line-list/);
   assert.match(source, /data-stock-count-line/);
-  assert.match(source, /\{visibleLines\.length\}<\/strong> visible of \{lines\.length\}/);
-  assert.match(source, /\{lineIndex \+ 1\} of \{visibleLines\.length\}/);
+  assert.match(source, /\{visibleLines\.length\}<\/strong> items shown/);
+  assert.match(source, /aria-label=\{`Item \$\{lineIndex \+ 1\}`\}/);
   assert.match(source, /line\.adjusted \? "bg-\[var\(--sb-green-100\)\]"/);
   assert.match(source, /lg:grid-cols-\[minmax\(12rem,1fr\)_5rem_minmax\(14rem,17rem\)\]/);
   assert.match(source, /border-b border-\[var\(--sb-border-soft\)\]/);
@@ -91,7 +91,7 @@ test("stock transfer and wastage use searchable compact lines with one setup dis
   assert.match(source, /className=\{selected \? "contents" : "hidden"\}/);
   assert.match(source, /\{selected \? <Button/);
   assert.match(source, /grid grid-cols-2 gap-2 p-3/);
-  assert.match(source, /<Field label="Quantity">/);
+  assert.match(source, /<Field label="Quantity"/);
   assert.match(source, /name="line_uom" value=\{line\.uom\}/);
   assert.match(source, /placeholder="Search item code or name"/);
   assert.match(source, /aria-label=\{`Notes for \$\{line\.item_name\}`\}/);

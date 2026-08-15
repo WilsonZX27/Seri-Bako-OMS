@@ -290,7 +290,7 @@ export function PurchaseRequestForm({
           ) : null}
 
           <section data-purchase-request-workspace className="sb-work-surface overflow-hidden" onFocusCapture={() => { if (detailsComplete && !validationError) setDetailsOpen(false); }}>
-            <div className="flex items-center justify-between border-b bg-secondary/40 px-3 py-2">
+            <div className="flex items-center justify-between border-b bg-white px-3 py-2">
               <div>
                 <p className="text-xs font-semibold">Requested Items</p>
               </div>
@@ -303,7 +303,7 @@ export function PurchaseRequestForm({
             </div>
             <div
               data-purchase-request-line-header
-              className="hidden grid-cols-[minmax(0,1fr)_112px_112px_5.5rem] gap-3 border-b border-[var(--sb-border-soft)] bg-[var(--sb-surface-muted)] px-3 py-1.5 text-[10px] font-semibold uppercase tracking-[0.08em] text-[var(--sb-text-muted)] md:grid"
+              className="hidden grid-cols-[minmax(0,1fr)_112px_112px_5.5rem] gap-3 border-b border-[var(--sb-border-soft)] bg-[#fafafa] px-3 py-1.5 text-[10px] font-semibold uppercase tracking-[0.08em] text-[var(--sb-text-muted)] md:grid"
             >
               <span>Item</span>
               <span>Quantity</span>
@@ -313,7 +313,7 @@ export function PurchaseRequestForm({
             <div className="divide-y">
               {/* Legacy contract token: grid-cols-[minmax(0,1fr)_7.5rem_2.25rem]. The current four-column line keeps UOM, quantity, comments, and removal aligned. */}
               {lines.map((line, index) => (
-                <div data-purchase-request-line key={line.key} className="grid grid-cols-[1.75rem_minmax(0,1fr)_minmax(0,1fr)_2.5rem] gap-1.5 p-2 md:grid-cols-[minmax(0,1fr)_112px_112px_5.5rem] md:gap-3 md:p-3">
+                <div data-purchase-request-line key={line.key} className="grid grid-cols-[1.75rem_minmax(0,1fr)_minmax(0,1fr)_2.5rem] gap-2 p-3 md:grid-cols-[minmax(0,1fr)_112px_112px_5.5rem] md:gap-3 md:p-3">
                   <span data-pr-line-number className="grid h-10 place-items-center self-start md:hidden"><span className="grid h-6 w-6 place-items-center rounded-[var(--sb-radius-control)] bg-[var(--sb-surface-muted)] text-[11px] font-semibold tabular-nums text-[var(--sb-text-muted)]">{index + 1}</span></span>
                   <div data-pr-line-item className="col-span-2 col-start-2 min-w-0 md:col-span-1 md:col-start-1">
                     <Field label="Item" required labelClassName="sr-only">
@@ -341,7 +341,7 @@ export function PurchaseRequestForm({
                     <Field label="Quantity" required labelClassName="sr-only" className="pr-line-quantity col-start-2 row-start-2 md:col-start-2 md:row-start-1">
                       <div className="flex h-10 overflow-hidden rounded-[var(--sb-radius-control)] border border-[var(--sb-border)] bg-white">
                         <button type="button" className="flex h-full w-9 shrink-0 items-center justify-center border-r border-[var(--sb-border)] text-[var(--sb-green-900)] hover:bg-[var(--sb-surface-muted)] active:bg-[var(--sb-green-100)]" onClick={() => adjustLineQuantity(line, -1)} aria-label={`Decrease quantity for ${line.itemSearch || "request line"}`}><Minus className="h-3.5 w-3.5" /></button>
-                        <Input name="line_qty" type="number" min="0" step={requestQuantityStep(line.uom)} value={line.qty} onChange={(event) => updateLine(line.key, { qty: event.target.value })} placeholder="Qty" className="h-full min-w-0 rounded-none border-0 px-1 text-center text-sm font-semibold tabular-nums shadow-none focus-visible:ring-inset" />
+                        <Input name="line_qty" type="number" min="0" step={requestQuantityStep(line.uom)} value={line.qty} onChange={(event) => updateLine(line.key, { qty: event.target.value })} placeholder="Qty" className="h-full min-w-0 rounded-none border-0 px-1 text-center text-xs font-semibold tabular-nums shadow-none focus-visible:ring-inset" />
                         <button type="button" className="flex h-full w-9 shrink-0 items-center justify-center border-l border-[var(--sb-border)] text-[var(--sb-green-900)] hover:bg-[var(--sb-surface-muted)] active:bg-[var(--sb-green-100)]" onClick={() => adjustLineQuantity(line, 1)} aria-label={`Increase quantity for ${line.itemSearch || "request line"}`}><Plus className="h-3.5 w-3.5" /></button>
                       </div>
                     </Field>
@@ -359,7 +359,7 @@ export function PurchaseRequestForm({
                     <Button type="button" variant="outline" size="icon" className="order-2 h-10 w-10 text-muted-foreground md:order-1" aria-label={`Add comment for ${line.itemSearch || "request line"}`} onClick={() => setCommentLineKey((current) => current === line.key ? null : line.key)}><MessageSquare className="h-4 w-4" /></Button>
                   </div>
                   {commentLineKey === line.key ? <Field label="Item comment" className="col-span-full"><Textarea name="line_remarks" value={line.remarks} onChange={(event) => updateLine(line.key, { remarks: event.target.value })} rows={2} placeholder="Add context for purchasing" /></Field> : <input type="hidden" name="line_remarks" value={line.remarks} />}
-                  {line.itemId && mappingsForLine(line).length === 0 ? <div className="col-span-full grid min-w-0 gap-2 rounded-[var(--sb-radius-control)] border border-destructive/25 bg-destructive/8 px-3 py-2.5 text-xs text-destructive sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center"><div className="min-w-0"><p className="font-semibold">Supplier setup required</p><p className="mt-0.5 leading-relaxed">This item has no supplier assigned for the selected branch.</p></div><Button asChild type="button" variant="outline" size="sm" className="w-full border-destructive/30 text-destructive sm:w-auto"><Link href="/imports/branch-supplier-items">Add supplier mapping</Link></Button></div> : null}
+                  {line.itemId && mappingsForLine(line).length === 0 ? <div className="col-span-full grid min-w-0 gap-2 rounded-[var(--sb-radius-control)] border border-destructive/25 bg-destructive/8 px-3 py-2.5 text-xs text-destructive sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center"><div className="min-w-0"><p className="font-semibold">Supplier setup required</p><p className="mt-0.5 leading-relaxed">This item has no supplier assigned for the selected branch.</p></div><Button asChild type="button" variant="outline" size="sm" className="h-9 w-full border-destructive/30 text-xs text-destructive sm:w-auto"><Link href="/imports/branch-supplier-items">Add supplier mapping</Link></Button></div> : null}
                   {line.itemId && line.uom && mappingsForLine(line).length > 0 && !mappingsForLine(line).some((mapping) => normalizeUom(mapping.purchase_uom) === line.uom) ? <div className="col-span-full rounded-[var(--sb-radius-control)] border border-amber-300/60 bg-amber-50 px-3 py-2 text-xs font-medium leading-relaxed text-amber-800"><p>No supplier mapping uses {line.uom.toUpperCase()} for this branch.</p><Link href="/imports/branch-supplier-items" className="mt-1 inline-flex font-semibold underline underline-offset-2">Update branch mapping</Link></div> : null}
                   {line.itemId && mappingsForLine(line).filter((mapping) => !line.uom || normalizeUom(mapping.purchase_uom) === line.uom).length > 1 && !line.supplierId ? <p className="col-span-full rounded-[var(--sb-radius-control)] border border-amber-300/60 bg-amber-50 px-3 py-2 text-xs font-medium leading-relaxed text-amber-800">Multiple supplier mappings found for this unit. Select the supplier to continue; the preferred mapping is used automatically when one is marked.</p> : null}
                   <input type="hidden" name="line_reason" value={line.reason} />
@@ -393,10 +393,26 @@ export function PurchaseOrderForm({
   const [idempotencyKey] = useState(() => crypto.randomUUID());
   const [branchId, setBranchId] = useState(branches[0]?.id ?? "");
   const [selectedItemIds, setSelectedItemIds] = useState<string[]>([""]);
+  const [selectedItemUoms, setSelectedItemUoms] = useState<string[]>([""]);
   const [supplierId, setSupplierId] = useState("");
   const selectedItems = selectedItemIds.filter(Boolean);
   const eligibleSupplierIds = [...new Set(supplierMappings.filter((mapping) => mapping.branch_id === branchId && selectedItems.every((itemId) => supplierMappings.some((candidate) => candidate.branch_id === branchId && candidate.item_id === itemId && candidate.supplier_id === mapping.supplier_id))).map((mapping) => mapping.supplier_id))];
   const eligibleSuppliers = eligibleSupplierIds.map((id) => supplierMappings.find((mapping) => mapping.branch_id === branchId && mapping.supplier_id === id)).filter((mapping): mapping is BranchSupplierMappingOption => Boolean(mapping));
+  function uomOptions(itemId: string) {
+    const item = items.find((candidate) => candidate.id === itemId);
+    return [...new Set([
+      item?.purchase_unit,
+      item?.base_unit,
+      ...supplierMappings.filter((mapping) => mapping.branch_id === branchId && mapping.item_id === itemId).map((mapping) => mapping.purchase_uom),
+    ].filter(Boolean).map((value) => normalizeUom(String(value))))];
+  }
+
+  function preferredUom(itemId: string) {
+    const item = items.find((candidate) => candidate.id === itemId);
+    const preferredMapping = supplierMappings.find((mapping) => mapping.branch_id === branchId && mapping.item_id === itemId && mapping.is_preferred);
+    return normalizeUom(preferredMapping?.purchase_uom || item?.purchase_unit || item?.base_unit || "");
+  }
+
   return (
     <div className="min-w-0">
         <form id="purchase-order-form" action={action} className="space-y-3">
@@ -404,7 +420,8 @@ export function PurchaseOrderForm({
           <input type="hidden" name="idempotency_key" value={idempotencyKey} />
           <input type="hidden" name="status" value="draft" />
           <input type="hidden" name="approval_status" value="draft" />
-          <section data-purchase-order-setup className="grid grid-cols-2 gap-3 border-b border-[var(--sb-border-soft)] pb-3">
+          <section data-purchase-order-form-surface className="sb-work-surface p-3 md:p-4">
+          <div data-purchase-order-setup className="grid grid-cols-2 gap-3 border-b border-[var(--sb-border-soft)] pb-3">
             <Field label="Branch" required>
               <SelectNative name="branch_id" value={branchId} onChange={(event) => { setBranchId(event.target.value); setSupplierId(""); }} required>
                 {branches.map((branch) => <option key={branch.id} value={branch.id}>{branch.branch_name}</option>)}
@@ -430,7 +447,7 @@ export function PurchaseOrderForm({
                 </Field>
               </div>
             </details>
-          </section>
+          </div>
 
           <section data-purchase-order-lines className="overflow-hidden border-y border-[var(--sb-border)] bg-white md:rounded-[var(--sb-panel-radius)] md:border">
             <div className="flex items-center justify-between gap-3 border-b bg-secondary/40 px-3 py-2">
@@ -438,7 +455,7 @@ export function PurchaseOrderForm({
                 <p className="text-xs font-semibold">Ordered Items</p>
                 <p className="text-xs text-muted-foreground">Add only the items included in this order.</p>
               </div>
-              <Button type="button" variant="outline" size="sm" onClick={() => setSelectedItemIds((current) => [...current, ""])} aria-label="Add order line">
+              <Button type="button" variant="outline" size="sm" onClick={() => { setSelectedItemIds((current) => [...current, ""]); setSelectedItemUoms((current) => [...current, ""]); }} aria-label="Add order line">
                 <Plus className="h-4 w-4" />
                 Add line
               </Button>
@@ -449,19 +466,20 @@ export function PurchaseOrderForm({
             <div className="divide-y">
               {selectedItemIds.map((itemId, index) => {
                 const selectedItem = items.find((item) => item.id === itemId);
-                const lineUom = normalizeUom(selectedItem?.purchase_unit || selectedItem?.base_unit || "");
+                const options = uomOptions(itemId);
+                const lineUom = normalizeUom(selectedItemUoms[index] || preferredUom(itemId));
                 return (
                   <div key={index} className="grid grid-cols-[minmax(0,1fr)_2.25rem] gap-2 p-3 md:grid-cols-[minmax(0,1fr)_112px_112px_40px]">
                     <div className="min-w-0">
                       <Field label="Item" required={index === 0} labelClassName="md:sr-only">
-                        <SelectNative name="line_item_id" value={itemId} onChange={(event) => { const next = [...selectedItemIds]; next[index] = event.target.value; setSelectedItemIds(next); setSupplierId(""); }} required={index === 0}>
+                        <SelectNative name="line_item_id" value={itemId} onChange={(event) => { const next = [...selectedItemIds]; next[index] = event.target.value; setSelectedItemIds(next); const nextUoms = [...selectedItemUoms]; nextUoms[index] = preferredUom(event.target.value); setSelectedItemUoms(nextUoms); setSupplierId(""); }} required={index === 0}>
                           <option value="">Select item</option>
                           {items.map((item) => <option key={item.id} value={item.id}>{item.item_code} - {item.item_name}</option>)}
                         </SelectNative>
                       </Field>
-                      {lineUom ? <p className="mt-1 text-xs text-muted-foreground">{selectedItem?.item_code} · {lineUom}</p> : null}
+                      {itemId ? <div className="mt-1 flex justify-end"><SelectNative name="line_uom" value={lineUom} onChange={(event) => { const next = [...selectedItemUoms]; next[index] = normalizeUom(event.target.value); setSelectedItemUoms(next); }} aria-label={`Unit of measure for ${selectedItem?.item_name ?? "order line"}`} className="h-9 w-full text-xs sm:w-32" disabled={!options.length}><option value="">Choose UOM</option>{options.map((uom) => <option key={uom} value={uom}>{uom.toUpperCase()}</option>)}</SelectNative></div> : null}
                     </div>
-                    <Button type="button" variant="ghost" size="icon" className="h-10 w-9 self-end text-muted-foreground md:col-start-4 md:row-start-1" aria-label="Remove order line" disabled={selectedItemIds.length === 1} onClick={() => setSelectedItemIds((current) => current.filter((_, rowIndex) => rowIndex !== index))}><X className="h-4 w-4" /></Button>
+                    <Button type="button" variant="ghost" size="icon" className="h-10 w-9 self-end text-muted-foreground md:col-start-4 md:row-start-1" aria-label="Remove order line" disabled={selectedItemIds.length === 1} onClick={() => { setSelectedItemIds((current) => current.filter((_, rowIndex) => rowIndex !== index)); setSelectedItemUoms((current) => current.filter((_, rowIndex) => rowIndex !== index)); }}><X className="h-4 w-4" /></Button>
                     <Field label="Ordered Qty" required={index === 0} labelClassName="md:sr-only" className="col-span-1 md:col-start-2 md:row-start-1">
                       <Input name="line_qty_ordered" type="number" inputMode="decimal" min="0.0001" step="0.0001" placeholder="Qty" required={index === 0} />
                     </Field>
@@ -470,7 +488,7 @@ export function PurchaseOrderForm({
                     </Field>
                     <input type="hidden" name="line_qty_received" value="0" />
                     <input type="hidden" name="line_qty_cancelled" value="0" />
-                    <input type="hidden" name="line_uom" value={lineUom} />
+                    {!itemId ? <input type="hidden" name="line_uom" value="" /> : null}
                   </div>
                 );
               })}
@@ -478,7 +496,7 @@ export function PurchaseOrderForm({
           </section>
 
           {selectedItems.length > 0 && eligibleSuppliers.length === 0 ? <p className="text-sm font-medium text-destructive">No single supplier is mapped to every selected item for this branch. Adjust the lines or create the required branch mappings.</p> : null}
-
+          </section>
         </form>
     </div>
   );

@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { AlertTriangle, CalendarDays, CheckCircle2, ChevronDown, ListFilter, MapPin, Minus, Plus, Search } from "lucide-react";
+import { AlertTriangle, CalendarDays, ChevronDown, ListFilter, MapPin, Minus, Plus, Search } from "lucide-react";
 import { Field } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { SelectNative } from "@/components/ui/select-native";
@@ -336,19 +336,6 @@ export function StockCountForm({
       <div>
         <form ref={formRef} id={formId} action={action} className={showSubmit ? "space-y-3 pb-28 xl:pb-0" : "space-y-3"}>
           <input type="hidden" name="idempotency_key" value={idempotencyKey} />
-          <section data-stock-count-mobile-progress className="border-y border-[var(--sb-border-soft)] bg-[var(--sb-surface)] px-3 py-2.5 md:hidden" aria-label="Stock count progress">
-            <div className="flex items-center justify-between gap-3">
-              <div className="min-w-0">
-                <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">Step 1 of 2</p>
-                <p className="mt-0.5 text-sm font-semibold text-foreground">Enter physical quantities</p>
-              </div>
-              <span className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-[var(--sb-warning-bg)] px-2.5 py-1 text-xs font-semibold text-[var(--sb-warning)]">
-                <CheckCircle2 className="h-3.5 w-3.5" aria-hidden="true" />Draft
-              </span>
-            </div>
-            <div className="mt-2 h-1 overflow-hidden rounded-full bg-[var(--sb-border-soft)]" aria-hidden="true"><div className="h-full w-1/2 rounded-full bg-[var(--sb-green-700)]" /></div>
-            <p className="mt-1.5 text-[11px] leading-4 text-muted-foreground">Saving a draft does not change stock. Posting is the final step.</p>
-          </section>
           <section data-stock-count-setup className="erp-surface overflow-hidden rounded-[var(--sb-panel-radius)] border bg-[var(--sb-surface)] p-3 md:p-4">
             <input type="hidden" name="branch_id" value={resolvedBranchId} />
             <button type="button" className="flex w-full min-w-0 items-start justify-between gap-3 text-left" aria-expanded={settingsOpen} onClick={() => setSettingsOpen((current) => !current)}>
@@ -409,7 +396,7 @@ export function StockCountForm({
           </div>
 
           <div className="flex min-w-0 items-center justify-between gap-3 border-b border-[var(--sb-border-soft)] bg-[var(--sb-surface)] px-4 py-2 text-xs" role="status" aria-live="polite">
-            <p className="min-w-0 text-muted-foreground"><strong className="font-semibold text-foreground">{visibleLines.length}</strong> visible of {lines.length}</p>
+            <p className="min-w-0 text-muted-foreground"><strong className="font-semibold text-foreground">{visibleLines.length}</strong> items shown</p>
             <p className="shrink-0 tabular-nums text-muted-foreground"><strong className="font-semibold text-foreground">{adjustedCount}</strong> adjusted</p>
           </div>
 
@@ -432,7 +419,7 @@ export function StockCountForm({
               <p className="text-xs text-right font-semibold">Variance</p>
               <p className="text-xs font-semibold">Count</p>
             </div>
-            <div className="divide-y">
+            <div className="grid grid-cols-2 gap-2 p-2 sm:block sm:divide-y sm:gap-0 sm:p-0">
               {visibleLines.map((line, lineIndex) => {
                 const hasPhysical = line.physicalQty.trim() !== "";
                 const physical = hasPhysical ? toNumber(line.physicalQty) : 0;
@@ -442,18 +429,21 @@ export function StockCountForm({
                   <div
                     key={line.item_id}
                     data-stock-count-line
-                    className={`grid min-h-12 grid-cols-[minmax(0,1fr)_auto] items-center gap-x-2 gap-y-1.5 border-b border-[var(--sb-border-soft)] px-4 py-2 md:min-h-14 ${line.adjusted ? "bg-[var(--sb-green-100)]" : lineIndex % 2 ? "bg-[var(--sb-surface-muted)]" : "bg-[var(--sb-surface)]"} lg:grid-cols-[minmax(12rem,1fr)_5rem_minmax(14rem,17rem)] lg:gap-4 xl:grid-cols-[minmax(16rem,1fr)_5rem_minmax(16rem,18rem)]`}
+                    className={`grid min-h-[13rem] grid-cols-1 content-between gap-2 rounded-[var(--sb-control-radius)] border border-[var(--sb-border-soft)] px-3 py-3 ${line.adjusted ? "bg-[var(--sb-green-100)]" : "bg-[var(--sb-surface)]"} sm:min-h-14 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center sm:gap-x-2 sm:gap-y-1.5 sm:rounded-none sm:border-0 sm:border-b sm:px-4 sm:py-2 md:min-h-14 lg:grid-cols-[minmax(12rem,1fr)_5rem_minmax(14rem,17rem)] lg:gap-4 xl:grid-cols-[minmax(16rem,1fr)_5rem_minmax(16rem,18rem)]`}
                   >
-                    <div className="order-1 min-w-0">
-                      <p className="break-words text-sm font-medium leading-tight text-slate-800">{line.item_name}</p>
-                      <p className="flex min-w-0 items-center justify-between gap-2 text-[10px] leading-3 tracking-[0.01em] text-slate-400"><span className="min-w-0 break-all">{line.item_code}</span><span className="shrink-0 tabular-nums lg:hidden">{lineIndex + 1} of {visibleLines.length}</span></p>
+                    <div className="order-1 flex min-w-0 items-start gap-2">
+                      <span className="mt-0.5 inline-flex h-5 min-w-5 shrink-0 items-center justify-center rounded-full bg-[var(--sb-surface-muted)] px-1 text-[10px] font-semibold tabular-nums text-muted-foreground" aria-label={`Item ${lineIndex + 1}`}>{lineIndex + 1}</span>
+                      <div className="min-w-0">
+                        <p className="break-words text-[13px] font-medium leading-tight text-slate-800">{line.item_name}</p>
+                        <p className="min-w-0 break-all text-[10px] leading-3 tracking-[0.01em] text-slate-400">{line.item_code}</p>
+                      </div>
                     </div>
 
-                    <div className={`order-2 min-w-0 text-right text-xs font-medium ${variance < 0 ? "text-red-600" : variance > 0 ? "text-emerald-700" : "text-muted-foreground"}`}>
+                    <div className={`order-2 min-w-0 text-right text-xs font-medium sm:justify-self-end ${variance < 0 ? "text-red-600" : variance > 0 ? "text-emerald-700" : "text-muted-foreground"}`}>
                       {hasPhysical ? <><span className="block whitespace-nowrap">{variance > 0 ? "+" : ""}{formatQuantity(variance)}</span><span className="block text-[10px] font-normal">{formatVariancePercent(percent)}</span></> : <span className="font-normal">—</span>}
                     </div>
 
-                    <div className="order-3 col-span-2 flex min-w-0 items-center justify-end gap-2 lg:col-span-1 lg:justify-self-stretch">
+                    <div className="order-3 flex min-w-0 items-center justify-end gap-2 sm:col-span-2 lg:col-span-1 lg:justify-self-stretch">
                         <div className="flex min-w-0 flex-1 overflow-hidden rounded-sm border border-[var(--sb-border)] bg-[var(--sb-surface)]">
                           <button type="button" className="flex h-9 w-9 shrink-0 items-center justify-center border-r border-[var(--sb-border)] text-[var(--sb-green-900)] hover:bg-[var(--sb-surface-muted)] active:bg-[var(--sb-green-100)] lg:h-10 lg:w-10" onClick={() => adjustPhysicalQty(line.item_id, -1)} aria-label={`Decrease physical quantity for ${line.item_name}`}><Minus className="h-4 w-4" /></button>
                         <Input

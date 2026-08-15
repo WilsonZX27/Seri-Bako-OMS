@@ -132,6 +132,9 @@ function LineGrid({ seedLines, mode }: { seedLines: SeedLine[]; mode: "transfer"
         <div className="flex items-center justify-between gap-3"><div><p className="text-xs font-semibold">Items</p><p className="text-xs text-muted-foreground">Select an item to enter its quantity.</p></div><span className="text-xs tabular-nums text-muted-foreground">{selectedItems.size} selected · {visibleCount} shown</span></div>
         <label className="relative mt-2 block"><Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" /><Input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search item code or name" aria-label="Search item code or name" className="pl-9" /></label>
       </div>
+      <div className="hidden grid-cols-[2fr_120px_120px_130px_1fr] gap-2 border-b bg-[var(--sb-surface-muted)] px-3 py-1.5 text-[10px] font-semibold uppercase tracking-[0.08em] text-[var(--sb-text-muted)] xl:grid">
+        <span>Item</span><span>Quantity</span><span>Available</span><span>{mode === "wastage" ? "Reason" : "Destination"}</span><span>Notes</span>
+      </div>
       <div className="divide-y">
         {seedLines.map((line, index) => {
           const matches = !normalizedSearch || `${line.item_code} ${line.item_name}`.toLowerCase().includes(normalizedSearch);
@@ -141,14 +144,13 @@ function LineGrid({ seedLines, mode }: { seedLines: SeedLine[]; mode: "transfer"
             <div className="col-span-2 xl:col-span-1">
               <div className="flex min-w-0 items-start justify-between gap-2">
                 <div className="min-w-0"><label className="flex items-start gap-2 font-medium"><input className="mt-0.5" name="line_enabled" type="checkbox" value={line.item_id} checked={selected} onChange={(event) => toggleItem(line.item_id, event.target.checked, index)} /><span className="break-words">{line.item_name}</span></label><p className="pl-6 text-xs text-muted-foreground">{line.item_code} · {line.uom}</p></div>
-                {selected ? <Button type="button" variant="ghost" size="icon" className="-mt-1 shrink-0" aria-label={`Notes for ${line.item_name}`} aria-expanded={openNotes.has(index)} onClick={() => toggleNote(index)}><MessageSquare className="h-4 w-4" /></Button> : null}
               </div>
             </div>
             <div className={selected ? "contents" : "hidden"} data-stock-operation-line-details>
-              <Field label="Quantity"><Input name="line_quantity" type="number" inputMode="decimal" min="0.0001" max={line.available_qty} step="0.0001" defaultValue={Math.min(line.quantity, line.available_qty)} /></Field>
-              <div className="rounded-[var(--sb-radius-control)] bg-[var(--sb-surface-muted)] p-2 text-sm"><p className="text-xs text-muted-foreground">Available</p><p className="font-semibold">{formatNumber(line.available_qty)} {line.uom}</p></div>
+              <Field label="Quantity" labelClassName="xl:sr-only"><Input name="line_quantity" type="number" inputMode="decimal" min="0.0001" max={line.available_qty} step="0.0001" defaultValue={Math.min(line.quantity, line.available_qty)} /></Field>
+              <div className="flex items-center justify-between gap-2 rounded-[var(--sb-radius-control)] bg-[var(--sb-surface-muted)] p-2 text-sm"><div><p className="text-xs text-muted-foreground xl:sr-only">Available</p><p className="font-semibold">{formatNumber(line.available_qty)} {line.uom}</p></div>{selected ? <Button type="button" variant="ghost" size="icon" className="h-9 w-9 shrink-0" aria-label={`Notes for ${line.item_name}`} aria-expanded={openNotes.has(index)} onClick={() => toggleNote(index)}><MessageSquare className="h-4 w-4" /></Button> : null}</div>
               <input type="hidden" name="line_uom" value={line.uom} />
-              {mode === "wastage" ? <Field label="Reason" className="col-span-2 xl:col-span-1"><SelectNative name="line_reason" defaultValue="damaged">{wastageReasons.map((r) => <option key={r} value={r}>{r.replaceAll("_", " ")}</option>)}</SelectNative></Field> : <input type="hidden" name="line_reason" value="other" />}
+              {mode === "wastage" ? <Field label="Reason" labelClassName="xl:sr-only" className="col-span-2 xl:col-span-1"><SelectNative name="line_reason" defaultValue="damaged">{wastageReasons.map((r) => <option key={r} value={r}>{r.replaceAll("_", " ")}</option>)}</SelectNative></Field> : <input type="hidden" name="line_reason" value="other" />}
               <div className="col-span-2 xl:col-span-1" hidden={!openNotes.has(index)}>
                 <div hidden={!openNotes.has(index)} className="mt-2 grid gap-2">
                   {mode === "wastage" ? <Field label="Batch"><Input name="line_batch_no" placeholder="Batch" /></Field> : <input type="hidden" name="line_batch_no" value="" />}

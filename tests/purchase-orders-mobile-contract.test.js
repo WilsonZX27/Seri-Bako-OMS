@@ -25,7 +25,7 @@ test("purchase order creation uses dynamic compact lines and hides future workfl
   assert.match(form, /aria-label="Remove order line"/);
   assert.match(form, /type="hidden" name="line_qty_received" value="0"/);
   assert.match(form, /type="hidden" name="line_qty_cancelled" value="0"/);
-  assert.match(form, /type="hidden" name="line_uom" value=\{lineUom\}/);
+  assert.match(form, /<SelectNative name="line_uom"/);
   assert.doesNotMatch(form, /placeholder="Received"/);
   assert.doesNotMatch(form, /placeholder="Cancelled"/);
   assert.doesNotMatch(form, /Select UOM/);

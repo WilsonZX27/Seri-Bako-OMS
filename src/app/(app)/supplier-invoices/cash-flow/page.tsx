@@ -53,7 +53,7 @@ export default async function CashFlowForecastPage({ searchParams }: { searchPar
       <ConsoleSection title="Forecast Assumptions"><div className="space-y-2 text-xs text-muted-foreground"><p>Based on approved Open and Partially Paid supplier invoices with a positive outstanding balance.</p><p>Draft, Void and Paid invoices are excluded. Missing due dates are shown separately.</p><p>Amounts are MYR only under the current schema. This is a payables forecast, not a bank or cash-in forecast.</p></div></ConsoleSection>
       <ConsoleSection title="Period"><div className="text-xs"><p className="flex justify-between"><span className="text-muted-foreground">Selected</span><strong>{periodLabels[forecast.period]}</strong></p><p className="mt-2 flex justify-between"><span className="text-muted-foreground">Through</span><strong>{date(forecast.period_end)}</strong></p><p className="mt-2 text-muted-foreground">This week covers today through seven days ahead; next week covers days eight through fourteen.</p></div></ConsoleSection>
     </>}>
-      <div className="space-y-4 py-4">
+      <div className="space-y-3">
         <nav aria-label="Forecast period" className="flex gap-2 overflow-x-auto border bg-card p-2">
           {Object.entries(periodLabels).map(([value, label]) => <Button key={value} asChild size="sm" variant={forecast.period === value ? "default" : "outline"}><Link href={`?period=${value}`}>{label}</Link></Button>)}
         </nav>

@@ -47,8 +47,8 @@ test("phone matrix fits all seven days while wider workspaces retain pinned hori
   const component = read("src/components/outlet-daily-completion-matrix.tsx");
   assert.match(component, /All seven days fit this view\./);
   assert.match(component, /aria-describedby="outlet-completion-scroll-hint"/);
+  assert.match(component, /sm:sticky sm:left-0 sm:z-30/);
   assert.match(component, /sm:sticky sm:left-0 sm:z-20/);
-  assert.match(component, /sm:sticky sm:left-0 sm:z-10/);
   assert.match(component, /overflow-hidden[\s\S]*sm:overflow-x-auto sm:overscroll-x-contain/);
   assert.match(component, /table-fixed[\s\S]*sm:min-w-\[34rem\] sm:table-auto/);
 });

@@ -141,8 +141,15 @@ export default async function RecipeCostingPage({ searchParams }: { searchParams
                   label={`Open ${row.recipe_no}`}
                   primary={row.recipe_name}
                   status={<Badge variant={confidenceVariant[row.confidence]}>{row.confidence}</Badge>}
+                  statusMeta={row.cost_per_output_unit == null ? "Incomplete" : `${formatCurrency(row.cost_per_output_unit)} / output`}
                   secondary={`${row.recipe_no} · ${row.status.replace("_", " ")}`}
-                  meta={`${row.ingredient_line_count} lines · ${row.missing_cost_count} missing cost · ${row.cost_per_output_unit == null ? "Incomplete" : `${formatCurrency(row.cost_per_output_unit)} / output`}`}
+                  meta={`${row.ingredient_line_count} lines`}
+                  detail={<>
+                    <span className="block">Missing cost {row.missing_cost_count} · UOM mismatch {row.uom_mismatch_count}</span>
+                    <span className="block">Ingredients {row.total_ingredient_cost == null ? "incomplete" : formatCurrency(row.total_ingredient_cost)} · Output {row.output_qty == null ? "unavailable" : `${formatNumber(row.output_qty)} ${row.output_uom}`}</span>
+                    {row.warning ? <span className="block text-[var(--sb-warning)]">Warning: {row.warning}</span> : null}
+                    {row.action ? <span className="block font-medium text-[var(--sb-text)]">Next: {row.action}</span> : null}
+                  </>}
                 />
               ))}
               {!rows.length ? <EmptyState title="Recipe costs are ready for review" description="No recipes match these filters." /> : null}

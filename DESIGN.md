@@ -1,6 +1,6 @@
 # Seri Bako OMS responsive design standard
 
-> **Release authority:** the currently released application is `v8.36.83`, as
+> **Release authority:** the currently released application is `v8.36.84`, as
 > defined by `src/lib/app-version.ts`. A versioned section above that number is
 > an accepted forward design contract or unreleased implementation note—not
 > evidence that the application itself has been released at that version.
@@ -10,6 +10,12 @@
 > **Precedence:** `docs/DESIGN_SYSTEM.md` is the living visual and interaction contract. When a historical release note or an older rule in this file conflicts with that contract, the living contract wins. Update both documents when a new pattern is accepted; do not preserve a visibly weaker rule for compatibility.
 
 This document is the implementation contract for every customer-facing route, form, record workspace, table, panel, dialog, and mobile action bar. It applies to new work and to refactoring of existing UI.
+
+## v8.36.84 — Complete Mobile Recipe Costing
+
+- Recipe Costing phone and tablet rows preserve the complete decision authority of the desktop table: lifecycle, confidence, line count, missing cost, UOM mismatch, ingredient cost, output, cost per output, warning, and next action.
+- Cost per output is promoted beside confidence while line count remains compact metadata. Cost gaps and UOM mismatches stay together in the detail hierarchy instead of competing in one unbroken trailing label.
+- Missing ingredient cost, output, or cost per output remains explicitly incomplete or unavailable; mobile compaction never converts an absent value to zero.
 
 ## v8.36.83 — Preview-first Outlet Completion
 

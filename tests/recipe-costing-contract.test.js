@@ -37,6 +37,12 @@ test("Recipe Costing surfaces confidence, manual actions, filters, and the exist
   assert.match(page, /tabletRailMode="split"/);
   assert.match(page, /<Table mobileHidden aria-label="Recipe costing estimates"/);
   assert.match(page, /<OperationalList ariaLabel="Recipe costing estimates"/);
+  assert.match(page, /statusMeta=\{row\.cost_per_output_unit == null \? "Incomplete"/);
+  assert.match(page, /Missing cost \{row\.missing_cost_count\} · UOM mismatch \{row\.uom_mismatch_count\}/);
+  assert.match(page, /Ingredients \{row\.total_ingredient_cost == null \? "incomplete"/);
+  assert.match(page, /Output \{row\.output_qty == null \? "unavailable"/);
+  assert.match(page, /Warning: \{row\.warning\}/);
+  assert.match(page, /Next: \{row\.action\}/);
 });
 
 test("Recipe Costing remains compatible with the current footer and scoped Outlet Staff seed", () => {

@@ -1,6 +1,6 @@
-export const APP_VERSION = "8.36.83";
+export const APP_VERSION = "8.36.84";
 export const APP_SPRINT = `v${APP_VERSION}`;
-export const APP_RELEASE_TITLE = "Preview-first Outlet Completion";
+export const APP_RELEASE_TITLE = "Complete Mobile Recipe Costing";
 // Keep the shell footer concise; the detailed release title belongs in release
 // notes, not in a narrow navigation rail where it is clipped on small screens.
 export const APP_RELEASE_NOTE = APP_SPRINT;

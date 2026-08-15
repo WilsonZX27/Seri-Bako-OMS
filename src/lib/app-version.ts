@@ -1,4 +1,4 @@
-export const APP_VERSION = "8.36.79";
+export const APP_VERSION = "8.36.80";
 export const APP_SPRINT = `v${APP_VERSION}`;
 export const APP_RELEASE_TITLE = "Resilient Demand Reporting";
 // Keep the shell footer concise; the detailed release title belongs in release

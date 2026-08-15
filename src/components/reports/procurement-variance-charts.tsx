@@ -25,24 +25,30 @@ const statusOrder = [
   "Matched",
 ];
 
-export function ProcurementVarianceCharts({ rows }: { rows: ProcurementVarianceChartRow[] }) {
+export function ProcurementVarianceCharts({ rows, searchParams }: { rows: ProcurementVarianceChartRow[]; searchParams: Record<string, string | undefined> }) {
   if (!rows.length) return null;
 
   const statusItems = statusOrder
     .map((status) => ({ status, count: rows.filter((row) => row.status === status).length }))
     .filter((item) => item.count > 0)
     .sort((left, right) => right.count - left.count || statusOrder.indexOf(left.status) - statusOrder.indexOf(right.status))
-    .map((item) => ({
+    .map((item) => {
+      const params = new URLSearchParams();
+      for (const [key, value] of Object.entries(searchParams)) if (value) params.set(key, value);
+      params.set("status", item.status.toLowerCase().replaceAll(" ", "_"));
+      return {
       id: item.status.toLowerCase().replaceAll(" ", "-"),
       label: item.status,
       value: item.count,
       formattedValue: formatNumber(item.count),
       details: [`${formatNumber(item.count)} of ${formatNumber(rows.length)} comparable line(s) in the current filtered scope`],
       caution: item.status === "Matched" ? undefined : "Review the source documents before taking action",
-    }));
+      href: `/reports/procurement-variance?${params.toString()}`,
+    };
+    });
 
   const priceItems = rows
-    .filter((row) => row.price_variance_amount != null && Math.abs(row.price_variance_amount) > 0.01)
+    .filter((row) => row.price_variance_amount != null && (Math.abs(row.price_variance_amount) > 0.01 || Math.abs(row.price_variance_percent ?? 0) > 0.02))
     .sort((left, right) => Math.abs(right.price_variance_amount ?? 0) - Math.abs(left.price_variance_amount ?? 0))
     .slice(0, 6)
     .map((row) => ({
@@ -78,7 +84,7 @@ export function ProcurementVarianceCharts({ rows }: { rows: ProcurementVarianceC
       <article className="overflow-hidden border bg-card">
         <div className="border-b px-3 py-2.5">
           <h2 className="text-sm font-semibold">Largest price variances</h2>
-          <p className="mt-0.5 text-xs text-muted-foreground">Top six linked lines ranked by absolute RM difference; direction remains visible.</p>
+          <p className="mt-0.5 text-xs text-muted-foreground">Top six PO-to-GRN warnings ranked by absolute RM difference; direction remains visible.</p>
         </div>
         <div className="p-2.5 sm:p-3">
           {priceItems.length ? (
@@ -88,7 +94,7 @@ export function ProcurementVarianceCharts({ rows }: { rows: ProcurementVarianceC
               idlePrompt="Hover, tap, or focus an item to preview its linked document values."
             />
           ) : (
-            <p className="px-1 py-3 text-xs text-muted-foreground">No price variance above the documented warning threshold exists in this filtered scope.</p>
+            <p className="px-1 py-3 text-xs text-muted-foreground">No PO-to-GRN price variance above RM 0.01 or 2% exists in this filtered scope.</p>
           )}
         </div>
       </article>

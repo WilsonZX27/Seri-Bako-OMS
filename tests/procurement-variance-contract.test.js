@@ -44,13 +44,23 @@ test("procurement variance keeps technical detail on tablet and uses compact rev
 });
 
 test("procurement variance exposes filtered concentration and absolute price rankings without changing source semantics", () => {
-  assert.match(page, /<ProcurementVarianceCharts rows=\{rows\} \/>/);
+  assert.match(page, /<ProcurementVarianceCharts rows=\{rows\} searchParams=\{filters\} \/>/);
   assert.match(charts, /Where review work is concentrated/);
   assert.match(charts, /Largest price variances/);
   assert.match(charts, /Math\.abs\(row\.price_variance_amount/);
   assert.match(charts, /Absolute size determines rank; the displayed amount keeps its direction/);
   assert.match(charts, /current filtered scope/);
+  assert.match(charts, /Math\.abs\(row\.price_variance_amount\) > 0\.01 \|\| Math\.abs\(row\.price_variance_percent \?\? 0\) > 0\.02/);
+  assert.match(charts, /params\.set\("status", item\.status\.toLowerCase\(\)\.replaceAll\(" ", "_"\)\)/);
+  assert.match(charts, /href: `\/reports\/procurement-variance\?\$\{params\.toString\(\)\}`/);
   assert.match(charts, /InteractiveRankingChart/);
   assert.match(ranking, /idlePrompt/);
   assert.doesNotMatch(charts, /\.insert\(|\.update\(|\.delete\(|\.rpc\(/);
+
+  const workspace = page.indexOf("data-procurement-variance-workspace");
+  const filters = page.indexOf("<FilterBar", workspace);
+  const metrics = page.indexOf("<MetricStrip", workspace);
+  const insights = page.indexOf("<ProcurementVarianceCharts", workspace);
+  const detail = page.indexOf("<section className=\"sb-list-content-card", workspace);
+  assert.ok(workspace >= 0 && filters > workspace && metrics > filters && insights > metrics && detail > insights, "Procurement Variance must keep filters, metrics, insights, and detail in one ordered workspace");
 });

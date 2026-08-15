@@ -22,6 +22,16 @@ export type StockCountLineRow = StockCountLine & {
   item?: Pick<Database["public"]["Tables"]["items"]["Row"], "id" | "item_code" | "item_name" | "base_unit" | "item_image_url">;
 };
 
+export type StockCountSeedLine = {
+  item_id: string;
+  item_code: string;
+  item_name: string;
+  theoretical_qty: number;
+  physical_qty: number | null;
+  prefill_source: "last_posted_count" | "ledger_balance" | "unavailable";
+  uom: string;
+};
+
 export class StockCountNotFoundError extends Error {
   constructor() {
     super("Stock Count not found.");
@@ -302,8 +312,16 @@ export async function getStockCountSeedLines(branchId?: string) {
       item_code: row.item_code,
       item_name: row.item_name,
       theoretical_qty: row.current_qty,
-      physical_qty: lastPostedPhysicalByItem.get(row.item_id) ?? row.current_qty,
-      prefill_source: lastPostedPhysicalByItem.has(row.item_id) ? ("last_posted_count" as const) : ("ledger_balance" as const),
+      // A zero with no posted movement is not a verified balance. Keep the
+      // physical count blank so the operator must observe and enter it rather
+      // than accidentally confirming an invented zero.
+      physical_qty: lastPostedPhysicalByItem.get(row.item_id)
+        ?? (row.last_movement || Number(row.current_qty) !== 0 ? row.current_qty : null),
+      prefill_source: lastPostedPhysicalByItem.has(row.item_id)
+        ? ("last_posted_count" as const)
+        : row.last_movement || Number(row.current_qty) !== 0
+          ? ("ledger_balance" as const)
+          : ("unavailable" as const),
       uom: row.base_unit,
-    }));
+    })) satisfies StockCountSeedLine[];
 }

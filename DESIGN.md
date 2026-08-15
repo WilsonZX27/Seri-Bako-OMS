@@ -1,6 +1,6 @@
 # Seri Bako OMS responsive design standard
 
-> **Release authority:** the currently released application is `v8.44.0`, as
+> **Release authority:** the currently released application is `v8.45.0`, as
 > defined by `src/lib/app-version.ts`. A versioned section above that number is
 > an accepted forward design contract or unreleased implementation note—not
 > evidence that the application itself has been released at that version.
@@ -10,6 +10,11 @@
 > **Precedence:** `docs/DESIGN_SYSTEM.md` is the living visual and interaction contract. When a historical release note or an older rule in this file conflicts with that contract, the living contract wins. Update both documents when a new pattern is accepted; do not preserve a visibly weaker rule for compatibility.
 
 This document is the implementation contract for every customer-facing route, form, record workspace, table, panel, dialog, and mobile action bar. It applies to new work and to refactoring of existing UI.
+
+## v8.45.0 — Unverified Stock Counts Stay Blank
+
+- Stock Count seed lines no longer prefill `0` when an item has no posted ledger movement or prior physical count. These rows remain blank, are marked as requiring a physical count, and cannot be saved until observed by the operator.
+- Existing two-column mobile cards expose starting-balance provenance directly: ledger-derived values are labelled, while unavailable balances are visibly distinguished without inventing a quantity.
 
 ## v8.44.0 — Operational Business Date Consistency
 

@@ -29,3 +29,10 @@ test("operational query defaults share the Kuala Lumpur business date", () => {
     assert.doesNotMatch(source, /new Date\(\)\.toISOString\(\)\.slice\(0, 10\)/, `${file} must not derive an operational today value from UTC`);
   }
 });
+
+test("stock count seeds do not turn an unverified balance into physical zero", () => {
+  const source = read("src/server/queries/stock-counts.ts");
+  assert.match(source, /physical_qty: lastPostedPhysicalByItem\.get\(row\.item_id\)/);
+  assert.match(source, /Number\(row\.current_qty\) !== 0 \? row\.current_qty : null/);
+  assert.match(source, /prefill_source.*unavailable/);
+});

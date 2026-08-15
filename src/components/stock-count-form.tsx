@@ -18,8 +18,8 @@ type SeedLine = {
   item_code: string;
   item_name: string;
   theoretical_qty: number;
-  physical_qty: number;
-  prefill_source: "last_posted_count" | "ledger_balance";
+  physical_qty: number | null;
+  prefill_source: "last_posted_count" | "ledger_balance" | "unavailable";
   uom: string;
   remarks?: string | null;
 };
@@ -61,7 +61,7 @@ function quantityInputValue(value: number, uom: string) {
 }
 
 function makeEditableLine(line: SeedLine): SeedLineInput {
-  const physicalQty = quantityInputValue(line.physical_qty, line.uom);
+  const physicalQty = line.physical_qty === null ? "" : quantityInputValue(line.physical_qty, line.uom);
   return { ...line, physicalQty, initialPhysicalQty: physicalQty, remarks: line.remarks ?? "", adjusted: false };
 }
 
@@ -308,6 +308,7 @@ export function StockCountForm({
   }
 
   const adjustedCount = lines.filter((line) => line.adjusted).length;
+  const needsPhysicalCount = lines.filter((line) => line.physicalQty.trim() === "").length;
   const normalizedSearch = search.trim().toLowerCase();
   const visibleLines = lines
     .filter((line) => {
@@ -363,7 +364,7 @@ export function StockCountForm({
                   <p className={`text-xs font-medium ${autosaveState === "error" ? "text-destructive" : autosaveState === "saved" ? "text-[var(--sb-green-900)]" : "text-muted-foreground"}`} title={autosaveError || autosaveLabel}>{autosaveLabel}</p>
                   <p className="text-xs text-muted-foreground">{lines.length} values ready · {adjustedCount} adjusted</p>
                 </div>
-                <span className="shrink-0 text-xs tabular-nums text-muted-foreground">{countComplete ? "Ready to save" : "Complete all quantities"}</span>
+                <span className="shrink-0 text-xs tabular-nums text-muted-foreground">{countComplete ? "Ready to save" : `${needsPhysicalCount} need${needsPhysicalCount === 1 ? "s" : ""} a physical count`}</span>
               </div>
               <div className="grid gap-2 sm:grid-cols-2 lg:col-span-2">
                 <Field label="Tolerance %"><Input name="tolerance_percent" type="number" min="0" step="0.01" value={toleranceValue} onChange={(event) => { setToleranceValue(event.target.value); markDirty(); }} required /></Field>
@@ -431,13 +432,14 @@ export function StockCountForm({
                   <div
                     key={line.item_id}
                     data-stock-count-line
-                    className={`grid min-h-[13rem] grid-cols-1 content-between gap-2 rounded-[var(--sb-control-radius)] border border-[var(--sb-border-soft)] px-3 py-3 ${line.adjusted ? "bg-[var(--sb-green-100)]" : "bg-[var(--sb-surface)]"} sm:min-h-14 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center sm:gap-x-2 sm:gap-y-1.5 sm:rounded-none sm:border-0 sm:border-b sm:px-4 sm:py-2 md:min-h-14 lg:grid-cols-[minmax(12rem,1fr)_5rem_minmax(14rem,17rem)] lg:gap-4 xl:grid-cols-[minmax(16rem,1fr)_5rem_minmax(16rem,18rem)]`}
+                    className={`grid min-h-[13rem] grid-cols-1 content-between gap-2 rounded-[var(--sb-control-radius)] border border-[var(--sb-border-soft)] px-3 py-3 ${line.adjusted ? "bg-[var(--sb-green-100)]" : line.prefill_source === "unavailable" ? "bg-[var(--sb-warning-bg)]" : "bg-[var(--sb-surface)]"} sm:min-h-14 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center sm:gap-x-2 sm:gap-y-1.5 sm:rounded-none sm:border-0 sm:border-b sm:px-4 sm:py-2 md:min-h-14 lg:grid-cols-[minmax(12rem,1fr)_5rem_minmax(14rem,17rem)] lg:gap-4 xl:grid-cols-[minmax(16rem,1fr)_5rem_minmax(16rem,18rem)]`}
                   >
                     <div className="order-1 flex min-w-0 items-start gap-2">
                       <span className="mt-0.5 inline-flex h-5 min-w-5 shrink-0 items-center justify-center rounded-full bg-[var(--sb-surface-muted)] px-1 text-[10px] font-semibold tabular-nums text-muted-foreground" aria-label={`Item ${lineIndex + 1}`}>{lineIndex + 1}</span>
                       <div className="min-w-0">
                         <p className="break-words text-[13px] font-medium leading-tight text-slate-800">{line.item_name}</p>
                         <p className="min-w-0 break-all text-[10px] leading-3 tracking-[0.01em] text-slate-400">{line.item_code}</p>
+                        <p className="mt-1 text-[10px] leading-3 text-muted-foreground">{line.prefill_source === "unavailable" ? "No prior ledger balance · enter count" : `Starting balance · ${formatQuantity(line.theoretical_qty)} ${line.uom}`}</p>
                       </div>
                     </div>
 
@@ -459,7 +461,7 @@ export function StockCountForm({
                           onBlur={() => normalizePhysicalQty(line.item_id)}
                           required
                            aria-label={`Counted quantity for ${line.item_name}`}
-                          placeholder="0.00"
+                          placeholder={line.prefill_source === "unavailable" ? "Enter count" : "0.00"}
                            className="h-9 w-full min-w-0 flex-1 rounded-none border-0 px-2 text-center text-[13px] font-semibold tabular-nums shadow-none focus-visible:ring-inset [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none lg:h-10"
                         />
                           <button type="button" className="flex h-9 w-9 shrink-0 items-center justify-center border-l border-[var(--sb-border)] text-[var(--sb-green-900)] hover:bg-[var(--sb-surface-muted)] active:bg-[var(--sb-green-100)] lg:h-10 lg:w-10" onClick={() => adjustPhysicalQty(line.item_id, 1)} aria-label={`Increase physical quantity for ${line.item_name}`}><Plus className="h-4 w-4" /></button>

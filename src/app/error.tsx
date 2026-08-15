@@ -1,6 +1,19 @@
 "use client";
 
+import Link from "next/link";
+import { AlertTriangle } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+
 export default function AppError({ error, reset }: { error: Error & { digest?: string }; reset: () => void }) {
   const missingRecord = /Cannot coerce the result to a single JSON object/i.test(error.message);
-  return <main className="mx-auto flex min-h-[60vh] max-w-xl flex-col justify-center gap-4 p-6"><h1 className="text-xl font-semibold">{missingRecord ? "Record unavailable" : "This page could not load"}</h1><p className="text-sm text-muted-foreground">{missingRecord ? "This record is not available in the current workspace, or it has already been removed." : "The error was recorded safely. Try again, or return to the dashboard."}</p><div className="flex gap-2"><button className="rounded-[2px] bg-primary px-3 py-2 text-sm text-primary-foreground" onClick={() => reset()}>Try again</button><a className="rounded-[2px] border px-3 py-2 text-sm" href="/dashboard">Dashboard</a></div></main>;
+  const title = missingRecord ? "Record unavailable" : "This page could not load";
+  return <main className="mx-auto flex min-h-dvh w-full max-w-xl items-center p-4 sm:p-6" aria-labelledby="root-error-title">
+    <Card className="w-full" role="alert">
+      <CardContent className="space-y-4 p-5 sm:p-6">
+        <div className="flex items-start gap-3"><AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-[var(--sb-danger)]" aria-hidden="true" /><div><h1 id="root-error-title" className="text-lg font-semibold">{title}</h1><p className="mt-1 text-sm leading-5 text-muted-foreground">{missingRecord ? "This record is not available in the current workspace, or it has already been removed." : "The error was recorded safely. Your saved records are unchanged unless a success message was shown."}</p>{error.digest ? <p className="mt-2 text-xs text-muted-foreground">Reference: {error.digest}</p> : null}</div></div>
+        <div className="grid gap-2 sm:grid-cols-2"><Button type="button" className="min-h-11" onClick={reset}>Try again</Button><Button asChild variant="outline" className="min-h-11"><Link href="/dashboard">Return to dashboard</Link></Button></div>
+      </CardContent>
+    </Card>
+  </main>;
 }

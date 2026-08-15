@@ -1,6 +1,6 @@
 # Seri Bako OMS responsive design standard
 
-> **Release authority:** the currently released application is `v8.36.67`, as
+> **Release authority:** the currently released application is `v8.36.68`, as
 > defined by `src/lib/app-version.ts`. A versioned section above that number is
 > an accepted forward design contract or unreleased implementation note—not
 > evidence that the application itself has been released at that version.
@@ -10,6 +10,12 @@
 > **Precedence:** `docs/DESIGN_SYSTEM.md` is the living visual and interaction contract. When a historical release note or an older rule in this file conflicts with that contract, the living contract wins. Update both documents when a new pattern is accepted; do not preserve a visibly weaker rule for compatibility.
 
 This document is the implementation contract for every customer-facing route, form, record workspace, table, panel, dialog, and mobile action bar. It applies to new work and to refactoring of existing UI.
+
+## v8.36.68 — Recoverable System Errors
+
+- Root, workspace, and application-shell error boundaries expose a semantic page heading, alert region, safe retry path, and Dashboard escape instead of leaving users on a dead-end error screen.
+- Recovery controls keep at least a 44px touch target with visible keyboard focus; workspace buttons may return to compact desktop height only at the wide-shell breakpoint.
+- Opaque error references remain visible for support without exposing the underlying exception, and the root global fallback stays self-contained when the design system itself cannot load.
 
 ## v8.36.67 — Readable Reports Directory
 

@@ -53,13 +53,12 @@ test("phone matrix fits all seven days while wider workspaces retain pinned hori
   assert.match(component, /table-fixed[\s\S]*sm:min-w-\[34rem\] sm:table-auto/);
 });
 
-test("phone completion insight starts with a compact summary and reveals the dense matrix on demand", () => {
+test("phone completion insight keeps the summary and seven-day matrix directly scannable", () => {
   const component = read("src/components/outlet-daily-completion-matrix.tsx");
   assert.match(component, /data-outlet-completion-phone-summary/);
-  assert.match(component, /data-outlet-completion-toggle/);
-  assert.match(component, /aria-expanded=\{matrixOpen\}/);
-  assert.match(component, /aria-controls="outlet-completion-detail"/);
-  assert.match(component, /matrixOpen \? "block" : "hidden sm:block"/);
+  assert.match(component, /id="outlet-completion-detail"/);
+  assert.doesNotMatch(component, /data-outlet-completion-toggle/);
+  assert.doesNotMatch(component, /matrixOpen/);
   assert.match(component, /Complete[\s\S]*In progress[\s\S]*Missing/);
 });
 

@@ -65,7 +65,7 @@ export default async function ProductMarginPage({ searchParams }: { searchParams
               status={<Badge variant={statusVariant[row.status]}>{row.status}</Badge>}
               statusMeta={row.gross_margin_percent == null ? "Margin unavailable" : `${(row.gross_margin_percent * 100).toFixed(1)}% margin`}
               secondary={<>{row.product_code} · {row.recipe_no ?? "No active recipe"}</>}
-              detail={<><span className="block">Price {row.selling_price == null ? "unavailable" : formatCurrency(row.selling_price)} · Cost {row.estimated_product_cost == null ? "incomplete" : formatCurrency(row.estimated_product_cost)}</span><span className="block">Margin {row.gross_margin_amount == null ? "unavailable" : formatCurrency(row.gross_margin_amount)} · Confidence {row.recipe_confidence ?? "unavailable"}</span><span className="block font-medium text-[var(--sb-text)]">Next: {actionLabel(row)}</span></>}
+              detail={<><span className="block">Price {row.selling_price == null ? "unavailable" : formatCurrency(row.selling_price)} · Cost {row.estimated_product_cost == null ? "incomplete" : formatCurrency(row.estimated_product_cost)} · Margin {row.gross_margin_amount == null ? "unavailable" : formatCurrency(row.gross_margin_amount)}</span><span className="block"><span className="font-medium text-[var(--sb-text)]">Confidence:</span> {row.recipe_confidence ?? "unavailable"} · <span className="font-medium text-[var(--sb-text)]">Next: {actionLabel(row)}</span></span></>}
               meta={`Band ${bandLabel[row.margin_band]}`}
             />)}
             {!rows.length ? <EmptyState title={emptyTitle} description={emptyDescription} /> : null}

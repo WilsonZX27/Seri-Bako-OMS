@@ -41,6 +41,7 @@ export function InteractiveRankingChart({
           const active = item.id === activeId;
           const width = item.value <= 0 ? 0 : Math.max(3, (item.value / maximum) * 100);
           const content = <>
+              <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[var(--sb-surface-muted)] text-[10px] font-semibold tabular-nums text-[var(--sb-text-muted)]" aria-hidden="true">{index + 1}</span>
               <span className="min-w-0 truncate text-xs font-medium" title={item.label}>{item.label}</span>
               <span className="h-2.5 overflow-hidden rounded-sm bg-[var(--sb-surface-muted)]" aria-hidden="true">
                 <span
@@ -58,7 +59,7 @@ export function InteractiveRankingChart({
               "aria-label": `${index + 1}. ${item.label}, ${item.formattedValue}`,
               "data-ranking-row": true,
               className: cn(
-                "group grid min-h-11 w-full grid-cols-[minmax(5.5rem,0.9fr)_minmax(7rem,1.6fr)_auto] items-center gap-2 rounded-[var(--sb-radius-control)] px-1.5 py-1.5 text-left outline-none transition-colors xl:min-h-9",
+                "group grid min-h-11 w-full grid-cols-[1.25rem_minmax(0,0.9fr)_minmax(7rem,1.6fr)_auto] items-center gap-2 rounded-[var(--sb-radius-control)] px-1.5 py-1.5 text-left outline-none transition-colors xl:min-h-9",
                 "hover:bg-[var(--sb-surface-muted)] focus-visible:bg-[var(--sb-green-100)] focus-visible:ring-2 focus-visible:ring-[var(--sb-green-700)] focus-visible:ring-offset-1",
                 active && "bg-[var(--sb-surface-muted)]",
               ),
@@ -102,8 +103,9 @@ export function InteractiveRankingChart({
         aria-live="polite"
         data-ranking-preview
         className={cn(
-          "mt-2 min-h-[3.75rem] rounded-[var(--sb-radius-control)] border border-[var(--sb-border-soft)] bg-[var(--sb-surface-muted)] px-3 py-2",
-          !activeItem && "flex items-center",
+          "mt-2 rounded-[var(--sb-radius-control)] px-3 py-2",
+          activeItem && "border border-[var(--sb-border-soft)] bg-[var(--sb-surface-muted)]",
+          !activeItem && "sr-only",
         )}
       >
         {activeItem ? (

@@ -4,7 +4,7 @@
 
 ### Current audit baseline
 
-The current released application baseline is `v8.36.97 — Operational UI Density and Shared Surface Convergence`.
+The current released application baseline is `v8.36.98 — Report Preview and Mobile Density Refinement`.
 The repository migration history currently runs through migration `149`. Release
 version authority lives in `src/lib/app-version.ts`; migration authority lives in
 the immutable, forward-only `supabase/migrations/` directory. Documentation must

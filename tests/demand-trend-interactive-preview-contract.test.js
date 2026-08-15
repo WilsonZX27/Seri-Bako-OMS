@@ -12,6 +12,8 @@ test("Demand Trend exposes a direct hover, touch, and keyboard preview", () => {
   const interactive = read("src/components/ui/interactive-line-chart.tsx");
 
   assert.match(page, /<DemandTrendChart rows=\{report\.daily\} \/>/);
+  assert.match(page, /className="lg:grid-cols-6"/);
+  assert.doesNotMatch(page, /className="grid-cols-3 lg:grid-cols-6"/);
   assert.match(chart, /previewValue:/);
   assert.match(chart, /Received \$\{formatNumber\(row\.received\)\}/);
   assert.match(chart, /Wastage \$\{formatNumber\(row\.wastage\)\}/);
@@ -46,6 +48,8 @@ test("Top movement and wastage use touch-friendly ranking previews with progress
   assert.match(ranking, /data-ranking-row/);
   assert.match(ranking, /data-ranking-open/);
   assert.match(ranking, /grid min-h-11 w-full[\s\S]*xl:min-h-9/);
+  assert.match(ranking, /index \+ 1/);
+  assert.match(ranking, /!activeItem && "sr-only"/);
   assert.match(ranking, /item\.value <= 0 \? 0 : Math\.max\(3,/);
   assert.doesNotMatch(ranking, /<Link key=\{item\.id\} href=\{item\.href\}/);
   assert.match(ranking, /truncate/);

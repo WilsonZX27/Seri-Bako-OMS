@@ -41,7 +41,8 @@ test("Demand Trend Lite applies date, outlet, product and reliable-status filter
 });
 
 test("Demand Trend Lite uses dense phone summaries and compact trend rows", () => {
-  assert.match(page, /className="grid-cols-3 lg:grid-cols-6"/);
+  assert.match(page, /className="lg:grid-cols-6"/);
+  assert.doesNotMatch(page, /className="grid-cols-3 lg:grid-cols-6"/);
   assert.match(page, /<Table mobileHidden aria-label=\{title\}/);
   assert.match(page, /<OperationalList ariaLabel=\{title\}/);
   assert.match(page, /Movement \{formatNumber\(row\.movement\)\}/);

@@ -46,6 +46,9 @@ export function formatActionError(error: unknown, fallback = "Something went wro
   const kind = classifyActionError(error);
 
   if (!message) return fallback;
+  if (normalized.includes("outlet_daily_active_branch_date_idx")) {
+    return "This outlet already has a record for that date. Open it from the Outlet Daily Records list instead.";
+  }
   if (isPendingMigrationError(error)) return "Database migration is pending. Please contact the Super Admin / Owner.";
   if (normalized.includes("service role key")) return "Supabase service role key is not configured.";
   if (

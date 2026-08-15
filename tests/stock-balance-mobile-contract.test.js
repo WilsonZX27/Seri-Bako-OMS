@@ -5,6 +5,7 @@ const test = require("node:test");
 
 const root = path.join(__dirname, "..");
 const source = fs.readFileSync(path.join(root, "src", "components", "stock-balance-workspace.tsx"), "utf8");
+const procurementAction = fs.readFileSync(path.join(root, "src", "server", "actions", "procurement.ts"), "utf8");
 const page = fs.readFileSync(path.join(root, "src", "app", "(app)", "stock-balance", "page.tsx"), "utf8");
 const inventoryQuery = fs.readFileSync(path.join(root, "src", "server", "queries", "inventory.ts"), "utf8");
 const recipesQuery = fs.readFileSync(path.join(root, "src", "server", "queries", "recipes.ts"), "utf8");
@@ -18,6 +19,18 @@ test("stock balance keeps PR preparation as a flat grouped rail, not nested card
   assert.match(source, /divide-y divide-\[var\(--sb-border-soft\)\] overflow-y-auto border-y/);
   assert.match(source, /space-y-2 py-2\.5 first:pt-0 last:pb-0/);
   assert.doesNotMatch(source, /max-h-80 space-y-2 overflow-auto rounded border p-2/);
+});
+
+test("stock balance persists the PR basket across filter refreshes without trusting browser state", () => {
+  assert.match(source, /seri-bako:stock-balance-pr-basket:v1/);
+  assert.match(source, /branches\.map\(\(branch\) => branch\.id\)\.sort\(\)\.join/);
+  assert.match(source, /window\.localStorage\.getItem\(basketStorageKey\)/);
+  assert.match(source, /window\.localStorage\.setItem\(basketStorageKey, JSON\.stringify\(basket\)\)/);
+  assert.match(source, /window\.localStorage\.removeItem\(basketStorageKey\)/);
+  assert.match(source, /typeof line\.item_id === "string"/);
+  assert.match(source, /Saved on this device/);
+  assert.match(source, /createPurchaseRequestsFromBasket/);
+  assert.match(procurementAction, /ensureActorCanUsePurchaseRequestBranch/);
 });
 
 test("stock balance hydrates item images into compact rows and keeps common PR UOM choices", () => {

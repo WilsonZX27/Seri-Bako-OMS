@@ -16,8 +16,14 @@ const dailySteps = [
 
 export default async function NewOutletDailyRecordPage({ searchParams }: { searchParams: Promise<Record<string, string | undefined>> }) {
   const filters = await searchParams;
-  const recordDate = getToday();
+  const today = getToday();
+  const requestedDate = filters.date?.trim() ?? "";
+  const recordDate = /^\d{4}-\d{2}-\d{2}$/.test(requestedDate) && requestedDate <= today ? requestedDate : today;
   const [options, permissions] = await Promise.all([getOutletDailyFormOptions(recordDate), getPermissionMap(["outlet_daily_record.update", "outlet_daily_record.qty_sent"])]);
+  const requestedBranchId = filters.branch_id?.trim() ?? "";
+  const selectedBranchId = options.branches.some((branch) => branch.id === requestedBranchId)
+    ? requestedBranchId
+    : options.defaultBranchId;
   const formId = "outlet-daily-record-form";
   const disabled = !options.products.length || !options.branches.length;
   const canEnterOutlet = permissions["outlet_daily_record.update"];
@@ -37,7 +43,7 @@ export default async function NewOutletDailyRecordPage({ searchParams }: { searc
     title="Outlet Daily Record"
     status="draft"
     mobileStatusOnly
-    branch={options.branches.find((branch) => branch.id === options.defaultBranchId)?.branch_name}
+    branch={options.branches.find((branch) => branch.id === selectedBranchId)?.branch_name}
     workflowSteps={dailySteps}
     currentStatus="draft"
     mobileContextDate={recordDate}
@@ -47,6 +53,6 @@ export default async function NewOutletDailyRecordPage({ searchParams }: { searc
     tabletRailMode="split"
   >
     {filters.error ? <Card><CardContent className="p-3 text-sm text-destructive">{filters.error}</CardContent></Card> : null}
-    <OutletDailyRecordForm formId={formId} action={saveOutletDailyRecord} branches={options.branches} products={options.products} branchId={options.defaultBranchId} recordDate={recordDate} defaultsByBranch={options.defaultsByBranch} canEditQtySent={permissions["outlet_daily_record.qty_sent"]} canEditOutletValues={permissions["outlet_daily_record.update"]} />
+    <OutletDailyRecordForm formId={formId} action={saveOutletDailyRecord} branches={options.branches} products={options.products} branchId={selectedBranchId} recordDate={recordDate} defaultsByBranch={options.defaultsByBranch} canEditQtySent={permissions["outlet_daily_record.qty_sent"]} canEditOutletValues={permissions["outlet_daily_record.update"]} />
   </DocumentWorkspace>;
 }

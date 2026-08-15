@@ -1031,6 +1031,18 @@ html[data-design-layer="v2"] [data-mobile-bottom-nav] {
     max-width: 100% !important;
   }
 
+  /* Outlet Daily Records is a task list first on phones. Keep the bounded
+     completion and wastage insights available, but place them after the
+     filter and record list so today's operational work is not buried below
+     two analytical panels. Desktop keeps the insight-first reading order. */
+  html[data-design-layer="v2"] [data-outlet-daily-list-workspace] > [data-outlet-daily-primary] {
+    order: 1;
+  }
+
+  html[data-design-layer="v2"] [data-outlet-daily-list-workspace] > [data-outlet-daily-insights] {
+    order: 2;
+  }
+
   html[data-design-layer="v2"] form.unified-list-header .unified-list-row > :first-child {
     min-width: 0;
   }

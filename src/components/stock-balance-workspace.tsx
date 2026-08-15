@@ -80,11 +80,47 @@ export function StockBalanceWorkspace({
   hasCreatePr: boolean;
 }) {
   const [basket, setBasket] = useState<Record<string, BasketLine>>({});
+  const [basketStorageReady, setBasketStorageReady] = useState(false);
   const [basketOpen, setBasketOpen] = useState(false);
   const [requestedBranchId, setRequestedBranchId] = useState("");
   const [idempotencyKey] = useState(() => crypto.randomUUID());
 
   const branchNameById = useMemo(() => new Map<string, string>(branches.map((branch) => [branch.id, branch.branch_name])), [branches]);
+  const basketStorageKey = useMemo(() => {
+    const scope = branches.map((branch) => branch.id).sort().join(".") || "unassigned";
+    return `seri-bako:stock-balance-pr-basket:v1:${scope}`;
+  }, [branches]);
+
+  useEffect(() => {
+    setBasketStorageReady(false);
+    try {
+      const raw = window.localStorage.getItem(basketStorageKey);
+      if (!raw) {
+        setBasket({});
+      } else {
+        const parsed = JSON.parse(raw) as Record<string, BasketLine>;
+        const restored = Object.fromEntries(Object.entries(parsed).filter(([key, line]) => (
+          Boolean(key) && Boolean(line) && typeof line.item_id === "string" && typeof line.item_name === "string"
+          && typeof line.qty === "string" && typeof line.uom === "string"
+        )).slice(0, 500));
+        setBasket(restored);
+      }
+    } catch {
+      setBasket({});
+    } finally {
+      setBasketStorageReady(true);
+    }
+  }, [basketStorageKey]);
+
+  useEffect(() => {
+    if (!basketStorageReady) return;
+    try {
+      if (Object.keys(basket).length) window.localStorage.setItem(basketStorageKey, JSON.stringify(basket));
+      else window.localStorage.removeItem(basketStorageKey);
+    } catch {
+      // Basket state remains usable for this session when storage is unavailable.
+    }
+  }, [basket, basketStorageKey, basketStorageReady]);
 
   const basketRows = useMemo(() => Object.values(basket), [basket]);
   const basketByBranch = useMemo(() => groupBasketRows(basketRows), [basketRows]);
@@ -200,6 +236,7 @@ export function StockBalanceWorkspace({
                     <div>
                       <p className="text-xs font-semibold text-[var(--sb-text-muted)]">Selected items</p>
                       <p className="text-sm">{basketRows.length} item{basketRows.length === 1 ? "" : "s"} in basket</p>
+                      <p className="text-[11px] text-[var(--sb-text-muted)]">{basketStorageReady ? "Saved on this device while you search." : "Restoring saved selections…"}</p>
                       {createRows.length > 0 && createRows.some((line) => !line.supplier_id) ? (
                         <p className="mt-1 text-xs text-destructive">Some selected items have no supplier mapping. Map them before creating PRs.</p>
                       ) : null}
@@ -385,7 +422,7 @@ export function StockBalanceWorkspace({
         <button type="button" className="sb-dialog-backdrop absolute inset-0 h-full w-full" onClick={() => setBasketOpen(false)} aria-label="Close PR basket" />
         <section className="sb-pr-basket-sheet sb-popover-surface absolute inset-x-0 bottom-0 flex max-h-[82dvh] flex-col overflow-hidden" role="dialog" aria-modal="true" aria-label="PR basket">
           <header className="flex min-h-14 items-center justify-between border-b border-[var(--sb-border-soft)] px-4">
-            <div className="min-w-0"><h2 className="text-base font-semibold text-[var(--sb-green-950)]">PR basket</h2><p className="text-xs text-[var(--sb-text-muted)]">{basketRows.length} selected item{basketRows.length === 1 ? "" : "s"}</p></div>
+            <div className="min-w-0"><h2 className="text-base font-semibold text-[var(--sb-green-950)]">PR basket</h2><p className="text-xs text-[var(--sb-text-muted)]">{basketRows.length} selected item{basketRows.length === 1 ? "" : "s"} · {basketStorageReady ? "saved on this device" : "restoring…"}</p></div>
             <Button type="button" variant="ghost" size="icon" onClick={() => setBasketOpen(false)} aria-label="Close PR basket"><X className="h-5 w-5" /></Button>
           </header>
           <form action={createPurchaseRequestsFromBasket} className="flex min-h-0 flex-1 flex-col">

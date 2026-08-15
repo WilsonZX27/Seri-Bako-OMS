@@ -1,6 +1,6 @@
 # Seri Bako OMS responsive design standard
 
-> **Release authority:** the currently released application is `v8.36.93`, as
+> **Release authority:** the currently released application is `v8.36.95`, as
 > defined by `src/lib/app-version.ts`. A versioned section above that number is
 > an accepted forward design contract or unreleased implementation note—not
 > evidence that the application itself has been released at that version.
@@ -10,6 +10,18 @@
 > **Precedence:** `docs/DESIGN_SYSTEM.md` is the living visual and interaction contract. When a historical release note or an older rule in this file conflicts with that contract, the living contract wins. Update both documents when a new pattern is accepted; do not preserve a visibly weaker rule for compatibility.
 
 This document is the implementation contract for every customer-facing route, form, record workspace, table, panel, dialog, and mobile action bar. It applies to new work and to refactoring of existing UI.
+
+## v8.36.95 — PR Basket Persistence and Shared Mobile Actions
+
+- Outlet Daily Records uses the shared PageHeader create action on phones, so its floating `+` matches Purchase Requests and other operational workspaces.
+- Missing outlet-days in the completion preview expose a direct create link with the selected branch and date; the new-record form accepts those scoped values while rejecting future dates.
+- Stock Balance keeps the PR basket in device-local storage scoped to the visible branch set. The browser copy is recoverable convenience state only; server-side branch and supplier validation remains authoritative when a PR is created.
+
+## v8.36.94 — Outlet List First on Mobile
+
+- Outlet Daily Records keeps its completion matrix and wastage trend, but the mobile reading order is task-first: filter, record list, then secondary insights.
+- Desktop retains the insight-first layout because the wider workspace can show the bounded analytics without burying the record queue.
+- The responsive contract covers both the list-first phone order and the existing matrix/chart detail surfaces; no data or status semantics change.
 
 ## v8.36.93 — Consistent Wastage Workflow
 

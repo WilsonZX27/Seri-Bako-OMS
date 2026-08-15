@@ -13,15 +13,13 @@ test("operational workspaces never fade readable content during route streaming"
   assert.doesNotMatch(css, /@keyframes\s+sb-content-enter/);
 });
 
-test("outlet daily create stays in the phone toolbar instead of covering records", () => {
+test("outlet daily create uses the shared page-header phone FAB", () => {
   const page = read("src/app/(app)/outlet-daily-records/page.tsx");
-  const filterBar = read("src/components/ui/filter-bar.tsx");
-  const header = read("src/components/common/UnifiedListHeader.tsx");
 
   assert.match(page, /<WorkspaceGrid hideMobileConsole rightRail=/);
-  assert.match(page, /phoneEndAction=\{canCreate/);
-  assert.match(filterBar, /phoneEndAction\?: ReactNode/);
-  assert.match(header, /unified-list-end-action/);
+  assert.match(page, /action=\{canCreate \? \{ href: "\/outlet-daily-records\/new", label: "New Daily Record" \} : undefined\}/);
+  assert.match(page, /hideTabletCreateFab/);
+  assert.doesNotMatch(page, /phoneEndAction=/);
 });
 
 test("the route matrix treats client runtime errors as release failures", () => {

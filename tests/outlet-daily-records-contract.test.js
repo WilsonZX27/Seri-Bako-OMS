@@ -45,7 +45,7 @@ test("lite polish keeps line entry searchable and outlet defaults unambiguous", 
   assert.match(form, /matches \? "" : "hidden"/);
   assert.match(query, /defaultBranchId: allowedBranches\.some/);
   assert.match(query, /allowedBranches\.length === 1/);
-  assert.match(newPage, /branchId=\{options\.defaultBranchId\}/);
+  assert.match(newPage, /branchId=\{selectedBranchId\}/);
 });
 
 test("active staff, permissions, company and assigned branch are checked inside RPCs", () => {
@@ -56,6 +56,13 @@ test("active staff, permissions, company and assigned branch are checked inside 
   for (const permission of ["create", "update", "review", "void"]) assert.match(sql, new RegExp(`outlet_daily_record\\.${permission}`));
   assert.match(sql, /security definer/g);
   assert.equal((sql.match(/set search_path = public/g) ?? []).length, 3);
+});
+
+test("new outlet daily saves route existing outlet-days back to their authoritative record", () => {
+  const action = read("src/server/actions/outlet-daily-records.ts");
+  assert.match(action, /\.from\("outlet_daily_records"\)[\s\S]*\.eq\("branch_id", payload\.branch_id\)[\s\S]*\.eq\("record_date", payload\.record_date\)/);
+  assert.match(action, /\.neq\("status", "void"\)/);
+  assert.match(action, /A record already exists for this outlet and date/);
 });
 
 test("daily capture never writes stock, production, AP or cash-flow records", () => {

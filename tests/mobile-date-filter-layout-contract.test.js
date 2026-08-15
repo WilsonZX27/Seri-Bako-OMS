@@ -17,11 +17,16 @@ test("phone date filters render an explicit readable value above the native pick
 
 test("outlet daily matrix scroll stays inside its own viewport and cannot collapse the date row", () => {
   assert.match(outletPage, /data-outlet-daily-list-workspace/);
+  assert.match(outletPage, /data-outlet-daily-primary/);
+  assert.match(outletPage, /data-outlet-daily-insights/);
+  assert.match(outletPage, /data-outlet-daily-record-list/);
   assert.match(outletPage, /overflow-x-clip/);
   assert.match(matrix, /data-outlet-completion-matrix/);
   assert.match(matrix, /isolate min-w-0 max-w-full overflow-hidden/);
   assert.match(matrix, /data-outlet-completion-scrollport/);
   assert.match(design, /form\.unified-list-header\.sb-list-filters--date-first[\s\S]*?width: 100% !important;[\s\S]*?max-width: 100% !important;/);
+  assert.match(design, /\[data-outlet-daily-list-workspace\] > \[data-outlet-daily-primary\][\s\S]*?order: 1;/);
+  assert.match(design, /\[data-outlet-daily-list-workspace\] > \[data-outlet-daily-insights\][\s\S]*?order: 2;/);
 });
 
 test("phone result count stays beside the date and filter controls", () => {

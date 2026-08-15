@@ -138,10 +138,19 @@ test("outlet daily mobile matrix cannot widen the page or collapse the date filt
 
   const matrix = page.locator("[data-outlet-completion-matrix]");
   const scrollport = page.locator("[data-outlet-completion-scrollport]");
+  const mobileOrdering = await page.evaluate(() => {
+    const primary = document.querySelector("[data-outlet-daily-primary]")?.getBoundingClientRect();
+    const insights = document.querySelector("[data-outlet-daily-insights]")?.getBoundingClientRect();
+    const records = document.querySelector("[data-outlet-daily-record-list]")?.getBoundingClientRect();
+    return { primaryTop: primary?.top ?? 0, insightsTop: insights?.top ?? 0, recordsTop: records?.top ?? 0 };
+  });
+  expect(mobileOrdering.primaryTop).toBeLessThan(mobileOrdering.insightsTop);
+  expect(mobileOrdering.recordsTop).toBeLessThan(mobileOrdering.insightsTop);
   await expect(matrix).toBeVisible();
   const createAction = page.getByRole("link", { name: "New Daily Record" });
   await expect(createAction).toBeVisible();
-  await expect(page.locator("[data-mobile-create-fab]")).toHaveCount(0);
+  await expect(page.locator("[data-mobile-create-fab]")).toHaveCount(1);
+  await expect(page.locator(".unified-list-end-action")).toHaveCount(0);
 
   await page.getByRole("button", { name: "Filter" }).click();
   const filterDialog = page.getByRole("dialog", { name: "Filters" });
@@ -157,17 +166,13 @@ test("outlet daily mobile matrix cannot widen the page or collapse the date filt
   expect(initial.pageOverflow).toBeLessThanOrEqual(5);
   expect(initial.pageScrollX).toBe(0);
 
-  const toolbarGeometry = await page.locator("form.unified-list-header").evaluate((toolbar) => {
-    const toolbarBox = toolbar.getBoundingClientRect();
-    const action = toolbar.querySelector(".unified-list-end-action");
-    const actionBox = action?.getBoundingClientRect();
-    return {
-      actionInsideToolbar: Boolean(actionBox && actionBox.left >= toolbarBox.left && actionBox.right <= toolbarBox.right),
-      actionPosition: action ? getComputedStyle(action).position : null,
-    };
-  });
-  expect(toolbarGeometry.actionInsideToolbar).toBe(true);
-  expect(toolbarGeometry.actionPosition).not.toBe("fixed");
+  const toolbarGeometry = await page.locator("form.unified-list-header").evaluate((toolbar) => ({
+    hasLegacyEndAction: Boolean(toolbar.querySelector(".unified-list-end-action")),
+    toolbarPosition: getComputedStyle(toolbar).position,
+  }));
+  expect(toolbarGeometry.hasLegacyEndAction).toBe(false);
+  expect(toolbarGeometry.toolbarPosition).not.toBe("fixed");
+  expect(await page.locator("[data-mobile-create-fab]").evaluate((node) => getComputedStyle(node).position)).toBe("fixed");
 
   await scrollport.evaluate((node) => { node.scrollLeft = node.scrollWidth; });
   const afterMatrixScroll = await page.evaluate(() => ({

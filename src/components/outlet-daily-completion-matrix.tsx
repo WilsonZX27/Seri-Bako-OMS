@@ -17,7 +17,7 @@ const stateMeta = {
   void: { label: "Void", short: "V", className: "border-[var(--sb-danger)] bg-[var(--sb-danger-bg)] text-[var(--sb-danger)]" },
 } as const;
 
-export function OutletDailyCompletionMatrix({ dates, rows, summary, unavailable = false }: { dates: string[]; rows: MatrixRow[]; summary: MatrixSummary | null; unavailable?: boolean }) {
+export function OutletDailyCompletionMatrix({ dates, rows, summary, unavailable = false, canCreate = false }: { dates: string[]; rows: MatrixRow[]; summary: MatrixSummary | null; unavailable?: boolean; canCreate?: boolean }) {
   const cells = useMemo(() => rows.flatMap((row) => row.cells), [rows]);
   const [activeKey, setActiveKey] = useState(() => {
     const preferred = [...cells].reverse().find((cell) => cell.status !== "missing") ?? cells.at(-1);
@@ -66,7 +66,7 @@ export function OutletDailyCompletionMatrix({ dates, rows, summary, unavailable 
       <div className="border-t border-[var(--sb-border-soft)] px-3 py-2" aria-live="polite" data-outlet-completion-preview>
         {active ? <div className="grid gap-1 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center">
           <div><p className="text-xs font-semibold">{active.branch_name} · {formatDateOnly(active.record_date)}</p><p className="text-[11px] text-muted-foreground">{stateMeta[active.status].label}{active.status === "missing" ? " · no record exists for this outlet-day" : " · recorded system status"}</p></div>
-          {active.record_id ? <Link href={`/outlet-daily-records/${active.record_id}`} className="inline-flex min-h-11 items-center text-xs font-semibold text-primary underline-offset-4 hover:underline xl:min-h-8">Open daily record</Link> : null}
+          {active.record_id ? <Link href={`/outlet-daily-records/${active.record_id}`} className="inline-flex min-h-11 items-center text-xs font-semibold text-primary underline-offset-4 hover:underline xl:min-h-8">Open daily record</Link> : active.status === "missing" && canCreate ? <Link href={`/outlet-daily-records/new?branch_id=${encodeURIComponent(active.branch_id)}&date=${encodeURIComponent(active.record_date)}`} className="inline-flex min-h-11 items-center text-xs font-semibold text-primary underline-offset-4 hover:underline xl:min-h-8">Create daily record</Link> : null}
         </div> : null}
       </div>
       </div>

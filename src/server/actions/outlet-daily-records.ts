@@ -78,6 +78,17 @@ export async function saveOutletDailyRecord(formData: FormData) {
   } else await requirePermissionOrRedirect("outlet_daily_record.create", "/outlet-daily-records/new");
   try {
     const db = await createClient();
+    if (!recordId) {
+      const { data: existing, error: existingError } = await db
+        .from("outlet_daily_records")
+        .select("id")
+        .eq("branch_id", payload.branch_id)
+        .eq("record_date", payload.record_date)
+        .neq("status", "void")
+        .maybeSingle();
+      if (existingError) throw new Error(existingError.message);
+      if (existing?.id) safeRedirectWithMessage(`/outlet-daily-records/${existing.id}`, "error", "A record already exists for this outlet and date. Continue from the existing record.");
+    }
     const { data, error } = await db.rpc("save_outlet_daily_record", {
       p_record_id: recordId,
       p_branch_id: payload.branch_id,

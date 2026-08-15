@@ -1,6 +1,6 @@
 # Seri Bako OMS responsive design standard
 
-> **Release authority:** the currently released application is `v8.36.75`, as
+> **Release authority:** the currently released application is `v8.36.76`, as
 > defined by `src/lib/app-version.ts`. A versioned section above that number is
 > an accepted forward design contract or unreleased implementation note—not
 > evidence that the application itself has been released at that version.
@@ -10,6 +10,12 @@
 > **Precedence:** `docs/DESIGN_SYSTEM.md` is the living visual and interaction contract. When a historical release note or an older rule in this file conflicts with that contract, the living contract wins. Update both documents when a new pattern is accepted; do not preserve a visibly weaker rule for compatibility.
 
 This document is the implementation contract for every customer-facing route, form, record workspace, table, panel, dialog, and mobile action bar. It applies to new work and to refactoring of existing UI.
+
+## v8.36.76 — Mobile-first Outlet Completion
+
+- Outlet Daily Records presents completion insight as a compact phone summary before the dense seven-day matrix, keeping complete, in-progress, and missing outlet-days visible without dropping users into a spreadsheet-like surface.
+- The phone matrix is available through one explicit, accessible disclosure and remains fully visible by default from tablet upward; its exact preview and record links are unchanged.
+- A primary filter moved into the shared mobile drawer is no longer represented by an empty layout node. Outlet Daily therefore exposes one complete Filter action and record count with no clipped date-control remnant.
 
 ## v8.36.75 — Complete Staff Directory Reads
 

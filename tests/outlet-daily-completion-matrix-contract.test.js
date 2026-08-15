@@ -42,12 +42,24 @@ test("phone matrix fits all seven days while wider workspaces retain pinned hori
   assert.match(component, /table-fixed[\s\S]*sm:min-w-\[34rem\] sm:table-auto/);
 });
 
+test("phone completion insight starts with a compact summary and reveals the dense matrix on demand", () => {
+  const component = read("src/components/outlet-daily-completion-matrix.tsx");
+  assert.match(component, /data-outlet-completion-phone-summary/);
+  assert.match(component, /data-outlet-completion-toggle/);
+  assert.match(component, /aria-expanded=\{matrixOpen\}/);
+  assert.match(component, /aria-controls="outlet-completion-detail"/);
+  assert.match(component, /matrixOpen \? "block" : "hidden sm:block"/);
+  assert.match(component, /Complete[\s\S]*In progress[\s\S]*Missing/);
+});
+
 test("outlet daily phone filters keep date, branch, and status inside one drawer", () => {
   const page = read("src/app/(app)/outlet-daily-records/page.tsx");
   const filter = read("src/components/common/UnifiedListHeader.tsx");
   assert.match(page, /phonePrimary="drawer"/);
   assert.match(filter, /primaryInDrawer \? primary : null/);
   assert.match(filter, /unified-list-row--filter-only/);
+  assert.match(filter, /!primaryInDrawer[\s\S]*\? <SearchControl[\s\S]*: null/);
+  assert.doesNotMatch(filter, /: <div className="unified-list-primary-control" \/>/);
 });
 
 test("outlet completion states use semantic surfaces instead of a hard-coded theme", () => {

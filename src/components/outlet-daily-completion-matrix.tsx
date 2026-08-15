@@ -23,6 +23,7 @@ export function OutletDailyCompletionMatrix({ dates, rows, summary, unavailable 
     const preferred = [...cells].reverse().find((cell) => cell.status !== "missing") ?? cells.at(-1);
     return preferred ? `${preferred.branch_id}:${preferred.record_date}` : "";
   });
+  const [matrixOpen, setMatrixOpen] = useState(false);
   const active = cells.find((cell) => `${cell.branch_id}:${cell.record_date}` === activeKey) ?? cells.at(-1) ?? null;
   const completionPercent = summary?.expected ? (summary.completed / summary.expected) * 100 : 0;
 
@@ -35,6 +36,17 @@ export function OutletDailyCompletionMatrix({ dates, rows, summary, unavailable 
       <p className="text-xs text-muted-foreground"><strong className={unavailable ? "text-[var(--sb-warning)]" : "text-foreground"}>{unavailable ? "Unavailable" : `${formatNumber(completionPercent)}%`}</strong>{unavailable ? "" : " completed or reviewed"}</p>
     </div>
     {unavailable ? <div className="px-4 py-8 text-center" role="status"><p className="text-sm font-medium">Completion insight unavailable</p><p className="mt-1 text-xs text-muted-foreground">The daily record list remains current. Retry this page to load outlet-day coverage.</p></div> : rows.length && summary ? <>
+      <div className="grid grid-cols-[repeat(3,minmax(0,1fr))] divide-x divide-[var(--sb-border-soft)] border-b border-[var(--sb-border-soft)] sm:hidden" data-outlet-completion-phone-summary>
+        <div className="px-3 py-2.5"><p className="text-[10px] uppercase tracking-wide text-muted-foreground">Complete</p><p className="mt-0.5 text-base font-semibold tabular-nums">{summary.completed}<span className="text-xs font-normal text-muted-foreground">/{summary.expected}</span></p></div>
+        <div className="px-3 py-2.5"><p className="text-[10px] uppercase tracking-wide text-muted-foreground">In progress</p><p className="mt-0.5 text-base font-semibold tabular-nums">{summary.incomplete}</p></div>
+        <div className="px-3 py-2.5"><p className="text-[10px] uppercase tracking-wide text-muted-foreground">Missing</p><p className="mt-0.5 text-base font-semibold tabular-nums">{summary.missing}</p></div>
+      </div>
+      <div className="border-b border-[var(--sb-border-soft)] p-2 sm:hidden">
+        <button type="button" className="flex min-h-11 w-full items-center justify-between rounded-[var(--sb-radius-control)] px-2 text-left text-xs font-semibold text-primary hover:bg-[var(--sb-surface-muted)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--sb-green-700)]" aria-expanded={matrixOpen} aria-controls="outlet-completion-detail" onClick={() => setMatrixOpen((open) => !open)} data-outlet-completion-toggle>
+          <span>{matrixOpen ? "Hide 7-day status" : "View 7-day status"}</span><span aria-hidden="true">{matrixOpen ? "−" : "+"}</span>
+        </button>
+      </div>
+      <div id="outlet-completion-detail" className={matrixOpen ? "block" : "hidden sm:block"}>
       <div className="flex flex-wrap gap-x-3 gap-y-1 px-3 pt-2 text-[11px] text-muted-foreground" aria-hidden="true">
         {(["missing", "draft", "evening_completed", "reviewed", "void"] as const).map((status) => <span key={status} className="inline-flex items-center gap-1"><span className={`grid h-4 w-4 place-items-center border text-[9px] font-bold ${stateMeta[status].className}`}>{stateMeta[status].short}</span>{status === "draft" ? "In progress" : stateMeta[status].label}</span>)}
       </div>
@@ -58,6 +70,7 @@ export function OutletDailyCompletionMatrix({ dates, rows, summary, unavailable 
           <div><p className="text-xs font-semibold">{active.branch_name} · {formatDateOnly(active.record_date)}</p><p className="text-[11px] text-muted-foreground">{stateMeta[active.status].label}{active.status === "missing" ? " · no record exists for this outlet-day" : " · recorded system status"}</p></div>
           {active.record_id ? <Link href={`/outlet-daily-records/${active.record_id}`} className="inline-flex min-h-11 items-center text-xs font-semibold text-primary underline-offset-4 hover:underline xl:min-h-8">Open daily record</Link> : null}
         </div> : null}
+      </div>
       </div>
       <details className="border-t border-[var(--sb-border-soft)] px-3 py-2 text-xs"><summary className="cursor-pointer font-medium text-primary">Coverage details · {summary.completed} of {summary.expected} complete</summary><p className="mt-2 text-muted-foreground">{summary.incomplete} in progress · {summary.missing} missing · {summary.voided} void. Missing and void outlet-days are not counted as complete.</p></details>
     </> : <div className="px-4 py-8 text-center"><p className="text-sm font-medium">No outlets in your current scope</p><p className="mt-1 text-xs text-muted-foreground">Completion appears after an outlet is assigned and active.</p></div>}

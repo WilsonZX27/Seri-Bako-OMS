@@ -1,6 +1,6 @@
 # Seri Bako OMS responsive design standard
 
-> **Release authority:** the currently released application is `v8.36.44`, as
+> **Release authority:** the currently released application is `v8.36.45`, as
 > defined by `src/lib/app-version.ts`. A versioned section above that number is
 > an accepted forward design contract or unreleased implementation note—not
 > evidence that the application itself has been released at that version.
@@ -10,6 +10,12 @@
 > **Precedence:** `docs/DESIGN_SYSTEM.md` is the living visual and interaction contract. When a historical release note or an older rule in this file conflicts with that contract, the living contract wins. Update both documents when a new pattern is accepted; do not preserve a visibly weaker rule for compatibility.
 
 This document is the implementation contract for every customer-facing route, form, record workspace, table, panel, dialog, and mobile action bar. It applies to new work and to refactoring of existing UI.
+
+## v8.36.45 — Unified Costing Report Surfaces
+
+- Recipe Costing, Costing Readiness, and Procurement Variance complete the report-family convergence to sibling query and result surfaces. Together with Product Margin, Production Variance, and Master Data Cleanup, all six guarded high-density workspaces use one structural contract.
+- Filter overlays remain owned by the shared `FilterBar`; the result card alone owns table/list clipping, dividers, and empty states. A visual flattening selector is not a substitute for correct DOM hierarchy.
+- Every result card retains its wide audit table and a complete narrow-workspace OperationalList or decision list, so structural cleanup cannot hide costing confidence, variance context, next actions, or unavailable states.
 
 ## v8.36.44 — Separated Report Query Surfaces
 

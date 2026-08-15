@@ -1,6 +1,6 @@
 # Seri Bako OMS responsive design standard
 
-> **Release authority:** the currently released application is `v8.36.88`, as
+> **Release authority:** the currently released application is `v8.36.89`, as
 > defined by `src/lib/app-version.ts`. A versioned section above that number is
 > an accepted forward design contract or unreleased implementation note—not
 > evidence that the application itself has been released at that version.
@@ -10,6 +10,13 @@
 > **Precedence:** `docs/DESIGN_SYSTEM.md` is the living visual and interaction contract. When a historical release note or an older rule in this file conflicts with that contract, the living contract wins. Update both documents when a new pattern is accepted; do not preserve a visibly weaker rule for compatibility.
 
 This document is the implementation contract for every customer-facing route, form, record workspace, table, panel, dialog, and mobile action bar. It applies to new work and to refactoring of existing UI.
+
+## v8.36.89 — Stable Mobile Workspaces
+
+- Outlet Daily Records keeps its phone create command inside the filter toolbar. The action remains visible without floating over branch names, quantities, empty-state guidance, pagination, or the persistent bottom navigation.
+- The shared Unified List Header exposes a reusable phone end-action slot so dense operational workspaces can opt out of a floating action without creating a page-specific toolbar.
+- Authenticated workspace content no longer fades from zero opacity during streamed navigation. Headers, context, and working data remain immediately legible while explicit loading and interaction feedback continue to communicate change.
+- Browser regression coverage verifies that the Outlet Daily create command is toolbar-owned, non-fixed, and contained within the mobile filter surface.
 
 ## v8.36.88 — Readable Dense Reports
 

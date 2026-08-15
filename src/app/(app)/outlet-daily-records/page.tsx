@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Pencil } from "lucide-react";
+import { Pencil, Plus } from "lucide-react";
 import { ConsoleSection } from "@/components/layout/right-console";
 import { WorkspaceGrid } from "@/components/layout/workspace-layout";
 import { PaginationControls } from "@/components/sortable-table";
@@ -42,7 +42,7 @@ export default async function OutletDailyRecordsPage({ searchParams }: { searchP
   const filtered = hasActiveFilters(filters);
   return <>
     <PageHeader title="Outlet Daily Records" description="Morning receiving and evening wastage capture by outlet." />
-    <WorkspaceGrid hideMobileConsole={!canCreate} rightRail={<>
+    <WorkspaceGrid hideMobileConsole rightRail={<>
       <ConsoleSection title="Actions">{canCreate ? <Button asChild size="sm" className="w-full" data-mobile-primary-action><Link href="/outlet-daily-records/new">New Daily Record</Link></Button> : <p className="text-xs text-muted-foreground">Your role has read-only access.</p>}</ConsoleSection>
       <ConsoleSection title="Today"><div className="space-y-2 text-xs"><p className="flex justify-between"><span>Records</span><strong>{data.summary.today_records}</strong></p><p className="flex justify-between"><span>Qty sent</span><strong>{formatNumber(data.summary.today_sent)}</strong></p><p className="flex justify-between"><span>Total received</span><strong>{formatNumber(data.summary.today_received)}</strong></p><p className="flex justify-between"><span>Incomplete</span><strong>{data.summary.missing_evening}</strong></p></div></ConsoleSection>
       <ConsoleSection title="Completion"><p className="text-xs"><span className="text-muted-foreground">Ready to post</span><br /><strong>{data.summary.needs_review}</strong></p></ConsoleSection>
@@ -50,7 +50,14 @@ export default async function OutletDailyRecordsPage({ searchParams }: { searchP
       <div className="min-w-0 max-w-full space-y-3 overflow-x-clip" data-outlet-daily-list-workspace>
         <OutletDailyCompletionMatrix dates={completion?.dates ?? []} rows={completion?.rows ?? []} summary={completion?.summary ?? null} unavailable={!completion} />
         <OutletDailyWastageChart points={trend?.daily ?? []} branch={filters.branch} unavailable={!trend} />
-        <FilterBar resultCount={data.totalRows} resetHref="/outlet-daily-records" filtered={filtered} phonePrimary="drawer" className="sb-list-filters--date-first">
+        <FilterBar
+          resultCount={data.totalRows}
+          resetHref="/outlet-daily-records"
+          filtered={filtered}
+          phonePrimary="drawer"
+          className="sb-list-filters--date-first"
+          phoneEndAction={canCreate ? <Button asChild size="icon" aria-label="New Daily Record"><Link href="/outlet-daily-records/new"><Plus className="h-5 w-5" aria-hidden="true" /><span className="sr-only">New Daily Record</span></Link></Button> : null}
+        >
             <Input name="date" type="date" defaultValue={filters.date ?? ""} aria-label="Record date" className="sb-filter-date" />
             <SelectControl name="branch" value={filters.branch ?? "all"} ariaLabel="Branch" options={[{ value: "all", label: "All branches" }, ...options.branches.map((branch) => ({ value: branch.id, label: branch.branch_name }))]} />
             <SelectControl name="status" value={filters.status ?? "all"} ariaLabel="Status" options={[{ value: "all", label: "All statuses" }, ...statuses.map((status) => ({ value: status, label: status.replaceAll("_", " ") }))]} />

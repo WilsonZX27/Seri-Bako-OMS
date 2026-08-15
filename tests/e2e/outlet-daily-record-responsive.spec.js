@@ -42,7 +42,7 @@ test("outlet daily record keeps the direct-post workflow usable at every viewpor
       await expect(workflowTrigger).toBeVisible();
       await expect(workflowTrigger).toBeEnabled();
       await expect(workflowTrigger).toContainText("Step 1 of 3");
-      await expect(workflowTrigger).toContainText("Workflow");
+      await expect(workflowTrigger).toHaveAttribute("aria-label", "View workflow, step 1 of 3");
       await workflowTrigger.click();
       const workflowSheet = page.getByRole("dialog", { name: "Workflow progress" });
       await expect(workflowSheet.getByText("Posted", { exact: true })).toBeVisible();
@@ -117,10 +117,12 @@ test("outlet daily list keeps fixed controls left and count/action right", async
     };
   });
 
-  const widths = [...geometry.controls.map((control) => control.width), geometry.action.width];
-  // Native date/Radix controls can differ by their two one-pixel borders even
-  // when they share the same authored 8rem outer-width contract.
-  expect(Math.max(...widths) - Math.min(...widths)).toBeLessThanOrEqual(2);
+  const selectWidths = geometry.controls.slice(1).map((control) => control.width);
+  // The date owns the flexible search corridor; the two categorical selects
+  // retain the same compact width and Search remains a content-sized command.
+  expect(geometry.controls[0].width).toBeGreaterThan(selectWidths[0] * 2);
+  expect(Math.max(...selectWidths) - Math.min(...selectWidths)).toBeLessThanOrEqual(2);
+  expect(geometry.action.width).toBeGreaterThanOrEqual(60);
   expect(geometry.controls.every((control) => Math.abs(control.height - geometry.action.height) <= 1)).toBe(true);
   expect(geometry.controls[0].left - geometry.form.left).toBeLessThanOrEqual(12);
   expect(geometry.actionGroup.right).toBeGreaterThan(geometry.controls.at(-1).right + 8);
@@ -136,9 +138,17 @@ test("outlet daily mobile matrix cannot widen the page or collapse the date filt
 
   const matrix = page.locator("[data-outlet-completion-matrix]");
   const scrollport = page.locator("[data-outlet-completion-scrollport]");
-  const dateControl = page.locator("form.unified-list-header .unified-list-date-control");
   await expect(matrix).toBeVisible();
+  const createAction = page.getByRole("link", { name: "New Daily Record" });
+  await expect(createAction).toBeVisible();
+  await expect(page.locator("[data-mobile-create-fab]")).toHaveCount(0);
+
+  await page.getByRole("button", { name: "Filter" }).click();
+  const filterDialog = page.getByRole("dialog", { name: "Filters" });
+  const dateControl = filterDialog.getByRole("textbox", { name: "Record date" });
   await expect(dateControl).toBeVisible();
+  expect((await dateControl.boundingBox())?.width ?? 0).toBeGreaterThanOrEqual(96);
+  await filterDialog.getByRole("button", { name: "Close filters" }).click();
 
   const initial = await page.evaluate(() => ({
     pageOverflow: document.documentElement.scrollWidth - document.documentElement.clientWidth,
@@ -146,7 +156,18 @@ test("outlet daily mobile matrix cannot widen the page or collapse the date filt
   }));
   expect(initial.pageOverflow).toBeLessThanOrEqual(5);
   expect(initial.pageScrollX).toBe(0);
-  expect((await dateControl.boundingBox())?.width ?? 0).toBeGreaterThanOrEqual(96);
+
+  const toolbarGeometry = await page.locator("form.unified-list-header").evaluate((toolbar) => {
+    const toolbarBox = toolbar.getBoundingClientRect();
+    const action = toolbar.querySelector(".unified-list-end-action");
+    const actionBox = action?.getBoundingClientRect();
+    return {
+      actionInsideToolbar: Boolean(actionBox && actionBox.left >= toolbarBox.left && actionBox.right <= toolbarBox.right),
+      actionPosition: action ? getComputedStyle(action).position : null,
+    };
+  });
+  expect(toolbarGeometry.actionInsideToolbar).toBe(true);
+  expect(toolbarGeometry.actionPosition).not.toBe("fixed");
 
   await scrollport.evaluate((node) => { node.scrollLeft = node.scrollWidth; });
   const afterMatrixScroll = await page.evaluate(() => ({
@@ -155,5 +176,4 @@ test("outlet daily mobile matrix cannot widen the page or collapse the date filt
   }));
   expect(afterMatrixScroll.pageOverflow).toBeLessThanOrEqual(5);
   expect(afterMatrixScroll.pageScrollX).toBe(0);
-  expect((await dateControl.boundingBox())?.width ?? 0).toBeGreaterThanOrEqual(96);
 });

@@ -230,10 +230,6 @@ body::-webkit-scrollbar {
   scrollbar-width: none;
 }
 
-#main-content > :not([data-document-workspace-header]) {
-  animation: sb-content-enter 220ms cubic-bezier(.2,.7,.2,1);
-}
-
 [data-page-header] {
   min-height: 4.25rem;
   padding-inline: var(--sb-content-gutter) !important;
@@ -248,11 +244,6 @@ body::-webkit-scrollbar {
 
 [data-page-header] p {
   max-width: 48rem;
-}
-
-@keyframes sb-content-enter {
-  from { opacity: 0; }
-  to { opacity: 1; }
 }
 
 .erp-surface:hover {
@@ -993,6 +984,11 @@ html[data-design-layer="v2"] [data-mobile-bottom-nav] {
     justify-content: start;
   }
 
+  html[data-design-layer="v2"] form.unified-list-header .unified-list-row--filter-only.unified-list-row--has-end-action {
+    grid-template-columns: 104px minmax(0, 1fr) 44px;
+    justify-content: stretch;
+  }
+
   html[data-design-layer="v2"] form.unified-list-header .unified-list-row--filter-only > .unified-list-primary-control {
     display: none;
   }
@@ -1003,6 +999,23 @@ html[data-design-layer="v2"] [data-mobile-bottom-nav] {
 
   html[data-design-layer="v2"] form.unified-list-header .unified-list-row--filter-only .unified-list-result {
     grid-column: 2;
+  }
+
+  html[data-design-layer="v2"] form.unified-list-header .unified-list-end-action {
+    grid-column: 4;
+    display: flex;
+    align-items: stretch;
+  }
+
+  html[data-design-layer="v2"] form.unified-list-header .unified-list-row--filter-only .unified-list-end-action {
+    grid-column: 3;
+  }
+
+  html[data-design-layer="v2"] form.unified-list-header .unified-list-end-action > :where(a, button) {
+    width: 44px;
+    height: 44px;
+    min-height: 44px;
+    flex: none;
   }
 
   /* Outlet Daily Records combines a date primary control with a wide,

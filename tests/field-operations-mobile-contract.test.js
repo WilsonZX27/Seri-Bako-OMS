@@ -161,6 +161,13 @@ test("low-stock PR creation uses selectable phone rows instead of a five-column 
   assert.match(source, /data-low-stock-pr-setup/);
   assert.match(source, /hidden overflow-x-auto[\s\S]*md:block/);
   assert.match(source, /data-low-stock-pr-lines/);
+  assert.match(source, /function selectBranch\(branchId: string\)/);
+  assert.match(source, /setSelected\(\{\}\)/);
+  assert.match(source, /Choose one branch before selecting items for a purchase request\./);
+  assert.match(source, /disabled=\{!branchSelected\}/);
+  assert.match(source, /data-low-stock-pr-line data-selected=/);
+  assert.match(source, /data-low-stock-pr-quantity/);
+  assert.match(source, /\{isSelected \? <span className="col-span-2"/);
   assert.match(source, /label="Qty for PR"/);
   assert.match(source, /Suggested <strong/);
   assert.match(source, /bg-\[var\(--sb-green-900\)\]/);

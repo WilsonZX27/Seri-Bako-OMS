@@ -110,6 +110,14 @@ export function LowStockPrForm({ items, branches, defaultBranchId, disabled }: {
     setQuantities((current) => ({ ...current, [key]: value }));
   }
 
+  function selectBranch(branchId: string) {
+    setSelectedBranchId(branchId);
+    setSelected({});
+    setQuantities({});
+  }
+
+  const branchSelected = selectedBranchId !== "all";
+
   return (
     <>
       <button type="button" className="fixed bottom-[calc(var(--sb-mobile-nav-height)+env(safe-area-inset-bottom)+1rem)] right-4 z-[var(--sb-z-sticky)] inline-flex h-14 w-14 items-center justify-center rounded-full bg-[var(--sb-green-900)] text-white shadow-[0_3px_8px_rgb(6_44_31_/_0.22)] md:hidden" onClick={() => setBasketOpen(true)} aria-label={`Open PR basket, ${selectedCount} selected`}>
@@ -139,13 +147,18 @@ export function LowStockPrForm({ items, branches, defaultBranchId, disabled }: {
           <Field label="Branch">
             <SelectNative
               value={selectedBranchId}
-              onChange={(event) => setSelectedBranchId(event.target.value)}
+              onChange={(event) => selectBranch(event.target.value)}
+              aria-describedby="low-stock-branch-guidance"
             >
-              <option value="all">All branches</option>
+              <option value="all">Choose a branch</option>
               {branches.map((branch) => <option key={branch.id} value={branch.id}>{branch.branch_name}</option>)}
             </SelectNative>
           </Field>
         </div>
+
+        <p id="low-stock-branch-guidance" className="text-xs text-muted-foreground">
+          {branchSelected ? "Selections apply only to this branch. Changing branch clears the basket." : "Choose one branch before selecting items for a purchase request."}
+        </p>
 
         {disabled ? (
           <div className="rounded-md border border-dashed p-4 text-center text-sm text-muted-foreground">
@@ -185,13 +198,14 @@ export function LowStockPrForm({ items, branches, defaultBranchId, disabled }: {
                     const isSelected = Boolean(selected[key]);
                     const requestedQty = quantities[key] ?? String(item.suggested_reorder_qty);
                     return (
-                      <tr key={key} className="border-b last:border-0">
+                      <tr key={key} className="border-b last:border-0" data-low-stock-pr-line data-selected={isSelected ? "true" : "false"}>
                         <td className="px-3 py-2">
                           <input
                             type="checkbox"
                             aria-label={`Select ${item.item_code}`}
                             checked={isSelected}
                             onChange={() => toggleItem(key)}
+                            disabled={!branchSelected}
                           />
                         </td>
                         <td className="px-3 py-2">
@@ -201,7 +215,7 @@ export function LowStockPrForm({ items, branches, defaultBranchId, disabled }: {
                         <td className="px-3 py-2 text-xs text-muted-foreground">{item.current_stock}</td>
                         <td className="px-3 py-2 text-xs text-muted-foreground">{item.suggested_reorder_qty} {item.purchase_unit || item.base_unit}</td>
                         <td className="px-3 py-2">
-                          <QuantityStepper
+                          {branchSelected ? <QuantityStepper
                             value={requestedQty}
                             uom={item.purchase_unit || item.base_unit}
                             step={0.0001}
@@ -210,7 +224,7 @@ export function LowStockPrForm({ items, branches, defaultBranchId, disabled }: {
                               setItemQty(key, value);
                               if (!isSelected) setSelected((current) => ({ ...current, [key]: true }));
                             }}
-                          />
+                          /> : <span className="text-xs text-muted-foreground">Choose branch</span>}
                         </td>
                       </tr>
                     );
@@ -238,9 +252,9 @@ export function LowStockPrForm({ items, branches, defaultBranchId, disabled }: {
                 const isSelected = Boolean(selected[key]);
                 const requestedQty = quantities[key] ?? String(item.suggested_reorder_qty);
                 return (
-                  <div key={key} className="p-3 first:pt-2 last:pb-2">
+                  <div key={key} className="p-3 first:pt-2 last:pb-2" data-low-stock-pr-line data-selected={isSelected ? "true" : "false"}>
                     <span className="flex items-start gap-3">
-                      <input type="checkbox" aria-label={`Select ${item.item_code}`} checked={isSelected} onChange={() => toggleItem(key)} className="mt-1 h-4 w-4 shrink-0" />
+                      <input type="checkbox" aria-label={`Select ${item.item_code}`} checked={isSelected} onChange={() => toggleItem(key)} disabled={!branchSelected} className="mt-1 h-4 w-4 shrink-0" />
                       <span className="min-w-0 flex-1">
                         <span className="block font-medium leading-tight">{item.item_name}</span>
                         <span className="mt-1 block text-xs text-muted-foreground">{item.item_code} {item.branch_name ? `- ${item.branch_name}` : ""}</span>
@@ -249,12 +263,11 @@ export function LowStockPrForm({ items, branches, defaultBranchId, disabled }: {
                     <span className="mt-3 grid grid-cols-2 gap-3">
                       <span className="text-xs text-muted-foreground">Current <strong className="block text-sm text-foreground">{item.current_stock} {item.base_unit}</strong></span>
                       <span className="text-xs text-muted-foreground">Suggested <strong className="block text-sm text-foreground">{item.suggested_reorder_qty} {item.purchase_unit || item.base_unit}</strong></span>
-                      <Field label="Qty for PR" className="col-span-2">
+                      {isSelected ? <span className="col-span-2" data-low-stock-pr-quantity><Field label="Qty for PR">
                         <QuantityStepper value={requestedQty} uom={item.purchase_unit || item.base_unit} step={0.0001} label={`Quantity for ${item.item_name}`} onChange={(value) => {
                           setItemQty(key, value);
-                          if (!isSelected) setSelected((current) => ({ ...current, [key]: true }));
                         }} />
-                      </Field>
+                      </Field></span> : null}
                     </span>
                   </div>
                 );
@@ -268,7 +281,7 @@ export function LowStockPrForm({ items, branches, defaultBranchId, disabled }: {
                 <p>Only checked rows will be included. Each supplier becomes a separate draft PR.</p>
                 {hasMissingSupplier ? <p className="mt-1 font-medium text-destructive">Supplier mapping is required before these items can become a PR.</p> : null}
               </div>
-              <p>{selectedCount} selected</p>
+              <p aria-live="polite">{selectedCount} selected</p>
             </div>
             <div className="flex justify-end border-t border-[var(--sb-border-soft)] pt-3">
               <SubmitButton type="submit" disabled={!canCreatePr} className="min-h-11 w-full md:w-auto md:min-w-56" pendingLabel="Creating PR...">

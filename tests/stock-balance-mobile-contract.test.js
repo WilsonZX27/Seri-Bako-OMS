@@ -21,6 +21,14 @@ test("stock balance keeps PR preparation as a flat grouped rail, not nested card
   assert.doesNotMatch(source, /max-h-80 space-y-2 overflow-auto rounded border p-2/);
 });
 
+test("stock balance keeps query controls balanced and the desktop basket compact", () => {
+  assert.match(source, /<FilterBar resultCount=\{totalRows\} resetHref="\/stock-balance"[\s\S]*className="sb-list-filters--balanced">/);
+  assert.doesNotMatch(source, /md:max-w-sm|md:max-w-xs|md:max-w-44/);
+  assert.match(source, /Saved on this device/);
+  assert.match(source, /\[&_button\]:h-8[\s\S]*\[&_input\]:h-8/);
+  assert.match(source, /className="h-8 w-14 shrink-0/);
+});
+
 test("stock balance persists the PR basket across filter refreshes without trusting browser state", () => {
   assert.match(source, /seri-bako:stock-balance-pr-basket:v1/);
   assert.match(source, /branches\.map\(\(branch\) => branch\.id\)\.sort\(\)\.join/);

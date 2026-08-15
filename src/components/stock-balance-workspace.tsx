@@ -234,9 +234,10 @@ export function StockBalanceWorkspace({
                 {hasCreatePr ? (
                   <>
                     <div>
-                      <p className="text-xs font-semibold text-[var(--sb-text-muted)]">Selected items</p>
-                      <p className="text-sm">{basketRows.length} item{basketRows.length === 1 ? "" : "s"} in basket</p>
-                      <p className="text-[11px] text-[var(--sb-text-muted)]">{basketStorageReady ? "Saved on this device while you search." : "Restoring saved selections…"}</p>
+                      <div className="flex items-baseline justify-between gap-2">
+                        <p className="text-xs font-semibold text-[var(--sb-text-muted)]">{basketRows.length} item{basketRows.length === 1 ? "" : "s"}</p>
+                        <p className="truncate text-[10px] text-[var(--sb-text-muted)]">{basketStorageReady ? "Saved on this device" : "Restoring..."}</p>
+                      </div>
                       {createRows.length > 0 && createRows.some((line) => !line.supplier_id) ? (
                         <p className="mt-1 text-xs text-destructive">Some selected items have no supplier mapping. Map them before creating PRs.</p>
                       ) : null}
@@ -289,14 +290,14 @@ export function StockBalanceWorkspace({
                                           step={0.01}
                                           label={`Quantity for ${line.item_name}`}
                                           onChange={(value) => updateQty(key, value)}
-                                          className="min-h-9 min-w-0 flex-1 [&_button]:h-9 [&_button]:min-h-9 [&_button]:w-8 [&_input]:h-9 [&_input]:w-12"
+                                          className="min-h-8 min-w-0 flex-1 [&_button]:h-8 [&_button]:min-h-8 [&_button]:w-7 [&_input]:h-8 [&_input]:w-10"
                                         />
-                                        <SelectNative aria-label={`UOM for ${line.item_name}`} value={line.uom} onChange={(event) => updateUom(key, event.target.value)} className="h-9 w-16 shrink-0 px-1.5 text-[11px]">
+                                        <SelectNative aria-label={`UOM for ${line.item_name}`} value={line.uom} onChange={(event) => updateUom(key, event.target.value)} className="h-8 w-14 shrink-0 px-1 text-[10px]">
                                           {uomOptionsWithCurrent(line.uom).map((uom) => <option key={uom} value={uom}>{uom}</option>)}
                                         </SelectNative>
                                         <button
                                           type="button"
-                                          className="inline-flex h-9 w-8 shrink-0 items-center justify-center text-[var(--sb-danger)] hover:bg-[var(--sb-danger-soft)]"
+                                          className="inline-flex h-8 w-7 shrink-0 items-center justify-center text-[var(--sb-danger)] hover:bg-[var(--sb-danger-soft)]"
                                           onClick={() => toggleBasket(line)}
                                           aria-label={`Remove ${line.item_name} from PR basket`}
                                         >
@@ -344,14 +345,13 @@ export function StockBalanceWorkspace({
         tabletRailWidth="half"
       >
         <div className="space-y-3">
-          <FilterBar resultCount={totalRows} resetHref="/stock-balance" filtered={Boolean(filters.search || filters.branch_id || filters.status)}>
-            <Input name="search" defaultValue={filters.search ?? ""} placeholder="Search item, branch, status" className="md:max-w-sm" />
-            <SelectControl name="branch_id" defaultValue={filters.branch_id ?? "all"} ariaLabel="Branch" className="md:max-w-xs" options={[{ value: "all", label: "All branches" }, ...branches.map((branch) => ({ value: branch.id, label: branch.branch_name }))]} />
+          <FilterBar resultCount={totalRows} resetHref="/stock-balance" filtered={Boolean(filters.search || filters.branch_id || filters.status)} className="sb-list-filters--balanced">
+            <Input name="search" defaultValue={filters.search ?? ""} placeholder="Search item, branch, status" />
+            <SelectControl name="branch_id" defaultValue={filters.branch_id ?? "all"} ariaLabel="Branch" options={[{ value: "all", label: "All branches" }, ...branches.map((branch) => ({ value: branch.id, label: branch.branch_name }))]} />
             <SelectControl
               name="status"
               defaultValue={filters.status ?? "all"}
               ariaLabel="Status"
-              className="md:max-w-44"
               options={[
                 { value: "all", label: "All statuses" },
                 { value: "ok", label: "Sufficient" },

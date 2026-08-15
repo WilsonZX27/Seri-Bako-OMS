@@ -26,7 +26,7 @@ export function OutletDailyCompletionMatrix({ dates, rows, summary, unavailable 
   const active = cells.find((cell) => `${cell.branch_id}:${cell.record_date}` === activeKey) ?? cells.at(-1) ?? null;
   const completionPercent = summary?.expected ? (summary.completed / summary.expected) * 100 : 0;
 
-  return <section className="erp-surface overflow-hidden" aria-labelledby="outlet-completion-title" data-outlet-completion-matrix>
+  return <section className="erp-surface isolate min-w-0 max-w-full overflow-hidden" aria-labelledby="outlet-completion-title" data-outlet-completion-matrix>
     <div className="flex flex-wrap items-end justify-between gap-2 border-b border-[var(--sb-border-soft)] px-3 py-2.5">
       <div>
         <h2 id="outlet-completion-title" className="text-sm font-semibold">7-day outlet completion</h2>
@@ -39,7 +39,7 @@ export function OutletDailyCompletionMatrix({ dates, rows, summary, unavailable 
         {(["missing", "draft", "evening_completed", "reviewed", "void"] as const).map((status) => <span key={status} className="inline-flex items-center gap-1"><span className={`grid h-4 w-4 place-items-center border text-[9px] font-bold ${stateMeta[status].className}`}>{stateMeta[status].short}</span>{status === "draft" ? "In progress" : stateMeta[status].label}</span>)}
       </div>
       <p id="outlet-completion-scroll-hint" className="px-3 pt-2 text-[11px] text-muted-foreground sm:sr-only">Swipe across dates; outlet names remain pinned.</p>
-      <div className="overflow-x-auto overscroll-x-contain px-3 py-2" tabIndex={0} aria-label="Outlet completion matrix" aria-describedby="outlet-completion-scroll-hint">
+      <div className="block w-full max-w-full overflow-x-auto overscroll-x-contain px-3 py-2" tabIndex={0} aria-label="Outlet completion matrix" aria-describedby="outlet-completion-scroll-hint" data-outlet-completion-scrollport>
         <table className="w-full min-w-[34rem] border-separate border-spacing-1 text-xs">
           <thead><tr><th scope="col" className="sticky left-0 z-20 w-32 max-w-32 border-r border-[var(--sb-border-soft)] bg-[var(--sb-surface)] pb-1 pr-3 text-left font-medium text-muted-foreground sm:w-40 sm:max-w-40">Outlet</th>{dates.map((date) => <th key={date} scope="col" className="pb-1 text-center font-medium text-muted-foreground"><span className="block">{new Intl.DateTimeFormat("en-MY", { weekday: "short", timeZone: "UTC" }).format(new Date(`${date}T00:00:00Z`))}</span><span className="text-[10px] font-normal">{date.slice(8)}</span></th>)}</tr></thead>
           <tbody>{rows.map((row) => <tr key={row.branch_id}><th scope="row" className="sticky left-0 z-10 w-32 max-w-32 truncate border-r border-[var(--sb-border-soft)] bg-[var(--sb-surface)] pr-3 text-left font-medium sm:w-40 sm:max-w-40" title={row.branch_name}>{row.branch_name}</th>{row.cells.map((cell) => {

@@ -127,3 +127,33 @@ test("outlet daily list keeps fixed controls left and count/action right", async
   expect(geometry.form.right - geometry.actionGroup.right).toBeLessThanOrEqual(12);
   expect(geometry.overflow).toBeLessThanOrEqual(5);
 });
+
+test("outlet daily mobile matrix cannot widen the page or collapse the date filter", async ({ page }) => {
+  test.setTimeout(90_000);
+  expect(await login(page, "superAdmin")).toBe(true);
+  await page.setViewportSize({ width: 393, height: 852 });
+  await page.goto("/outlet-daily-records", { waitUntil: "domcontentloaded" });
+
+  const matrix = page.locator("[data-outlet-completion-matrix]");
+  const scrollport = page.locator("[data-outlet-completion-scrollport]");
+  const dateControl = page.locator("form.unified-list-header .unified-list-date-control");
+  await expect(matrix).toBeVisible();
+  await expect(dateControl).toBeVisible();
+
+  const initial = await page.evaluate(() => ({
+    pageOverflow: document.documentElement.scrollWidth - document.documentElement.clientWidth,
+    pageScrollX: window.scrollX,
+  }));
+  expect(initial.pageOverflow).toBeLessThanOrEqual(5);
+  expect(initial.pageScrollX).toBe(0);
+  expect((await dateControl.boundingBox())?.width ?? 0).toBeGreaterThanOrEqual(96);
+
+  await scrollport.evaluate((node) => { node.scrollLeft = node.scrollWidth; });
+  const afterMatrixScroll = await page.evaluate(() => ({
+    pageOverflow: document.documentElement.scrollWidth - document.documentElement.clientWidth,
+    pageScrollX: window.scrollX,
+  }));
+  expect(afterMatrixScroll.pageOverflow).toBeLessThanOrEqual(5);
+  expect(afterMatrixScroll.pageScrollX).toBe(0);
+  expect((await dateControl.boundingBox())?.width ?? 0).toBeGreaterThanOrEqual(96);
+});

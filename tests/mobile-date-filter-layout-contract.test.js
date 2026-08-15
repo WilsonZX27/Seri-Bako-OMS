@@ -5,12 +5,23 @@ import test from "node:test";
 const header = readFileSync("src/components/common/UnifiedListHeader.tsx", "utf8");
 const design = readFileSync("src/app/design-system-v2.css", "utf8");
 const globals = readFileSync("src/app/globals.css", "utf8");
+const outletPage = readFileSync("src/app/(app)/outlet-daily-records/page.tsx", "utf8");
+const matrix = readFileSync("src/components/outlet-daily-completion-matrix.tsx", "utf8");
 
 test("phone date filters render an explicit readable value above the native picker", () => {
   assert.match(header, /const visibleDate = value/);
   assert.match(header, /unified-list-date-placeholder[^>]*aria-hidden="true">\{visibleDate\}/);
   assert.match(design, /\.unified-list-date-control input\[type="date"\][\s\S]*?position: absolute;[\s\S]*?opacity: 0;/);
   assert.match(design, /\.unified-list-date-control:focus-within/);
+});
+
+test("outlet daily matrix scroll stays inside its own viewport and cannot collapse the date row", () => {
+  assert.match(outletPage, /data-outlet-daily-list-workspace/);
+  assert.match(outletPage, /overflow-x-clip/);
+  assert.match(matrix, /data-outlet-completion-matrix/);
+  assert.match(matrix, /isolate min-w-0 max-w-full overflow-hidden/);
+  assert.match(matrix, /data-outlet-completion-scrollport/);
+  assert.match(design, /form\.unified-list-header\.sb-list-filters--date-first[\s\S]*?width: 100% !important;[\s\S]*?max-width: 100% !important;/);
 });
 
 test("phone result count stays beside the date and filter controls", () => {

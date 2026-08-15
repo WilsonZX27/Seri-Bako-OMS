@@ -988,6 +988,19 @@ html[data-design-layer="v2"] [data-mobile-bottom-nav] {
     align-items: stretch;
   }
 
+  /* Outlet Daily Records combines a date primary control with a wide,
+     independently scrollable completion matrix. Keep the filter grid owned
+     by its card even after the matrix scrollport has been moved horizontally. */
+  html[data-design-layer="v2"] [data-outlet-daily-list-workspace],
+  html[data-design-layer="v2"] [data-outlet-completion-matrix],
+  html[data-design-layer="v2"] [data-outlet-completion-scrollport],
+  html[data-design-layer="v2"] form.unified-list-header.sb-list-filters--date-first,
+  html[data-design-layer="v2"] form.unified-list-header.sb-list-filters--date-first .unified-list-row {
+    min-width: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+
   html[data-design-layer="v2"] form.unified-list-header .unified-list-row > :first-child {
     min-width: 0;
   }

@@ -1,6 +1,6 @@
 # Seri Bako OMS responsive design standard
 
-> **Release authority:** the currently released application is `v8.36.84`, as
+> **Release authority:** the currently released application is `v8.36.85`, as
 > defined by `src/lib/app-version.ts`. A versioned section above that number is
 > an accepted forward design contract or unreleased implementation note—not
 > evidence that the application itself has been released at that version.
@@ -10,6 +10,12 @@
 > **Precedence:** `docs/DESIGN_SYSTEM.md` is the living visual and interaction contract. When a historical release note or an older rule in this file conflicts with that contract, the living contract wins. Update both documents when a new pattern is accepted; do not preserve a visibly weaker rule for compatibility.
 
 This document is the implementation contract for every customer-facing route, form, record workspace, table, panel, dialog, and mobile action bar. It applies to new work and to refactoring of existing UI.
+
+## v8.36.85 — Complete Mobile Product Margin
+
+- Product Margin phone and tablet rows retain the desktop margin band alongside status, price, estimated cost, signed margin, margin percentage, recipe confidence, and next review action.
+- The compact trailing meta owns only the short margin band. The longer next action moves into the full-width detail hierarchy so it cannot squeeze or truncate the product identity.
+- Unavailable price, cost, margin, or confidence remains explicit and never appears as a valid zero; the row destination still follows the status-aware review path.
 
 ## v8.36.84 — Complete Mobile Recipe Costing
 

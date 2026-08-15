@@ -21,6 +21,8 @@ test("product margin exposes a compact preview-first readiness and margin rankin
   assert.match(insights, /params\.set\("status", item\.status\.toLowerCase\(\)\.replaceAll\(" ", "_"\)\)/);
   assert.match(insights, /href: `\/reports\/product-margin\?\$\{params\.toString\(\)\}`/);
   assert.match(insights, /Open applies that status to the detail list/);
+  assert.match(page, /meta=\{`Band \$\{bandLabel\[row\.margin_band\]\}`\}/);
+  assert.match(page, /Next: \{actionLabel\(row\)\}/);
 
   const workspace = page.indexOf("<WorkspaceGrid");
   const filters = page.indexOf("<FilterBar", workspace);

@@ -1,4 +1,5 @@
 import { isMockMode, mockBranches, mockItems, mockProfile, mockStockTransferLines, mockStockTransfers, mockStockWastage, mockStockWastageLines } from "@/lib/mock-mode";
+import { todayInKualaLumpur } from "@/lib/business-date";
 import { createClient } from "@/lib/supabase/server";
 import { compareTableValues, paginateRows } from "@/lib/table-state";
 import { actorDisplayName, resolveActorDisplayMap } from "@/server/actors/display";
@@ -40,7 +41,7 @@ function filterRows<T extends Record<string, unknown>>(rows: T[], filters: Filte
   const search = filters.search?.toLowerCase();
   const status = filters.status && filters.status !== "all" ? filters.status : null;
   const reason = filters.reason && filters.reason !== "all" ? filters.reason : null;
-  const today = new Date().toISOString().slice(0, 10);
+  const today = todayInKualaLumpur();
   const date = filters.date === "today" ? today : null;
   const sort = filters.sort ?? String(dateKey);
   const dir = filters.dir ?? "desc";
@@ -78,7 +79,7 @@ export async function getStockTransfers(filters: Filters = {}) {
   if (filters.status && filters.status !== "all") query = query.eq("status", filters.status as Transfer["status"]);
   if (filters.from) query = query.gte("transfer_date", filters.from);
   if (filters.to) query = query.lte("transfer_date", filters.to);
-  if (filters.date === "today") query = query.eq("transfer_date", new Date().toISOString().slice(0, 10));
+    if (filters.date === "today") query = query.eq("transfer_date", todayInKualaLumpur());
   if (search) {
     const branchFilters = matchingBranchIds.length
       ? `,from_branch_id.in.(${matchingBranchIds.join(",")}),to_branch_id.in.(${matchingBranchIds.join(",")})`
@@ -154,7 +155,7 @@ export async function getStockWastage(filters: Filters = {}) {
   if (filters.reason && filters.reason !== "all") query = query.eq("reason", filters.reason as NonNullable<Wastage["reason"]>);
   if (filters.from) query = query.gte("wastage_date", filters.from);
   if (filters.to) query = query.lte("wastage_date", filters.to);
-  if (filters.date === "today") query = query.eq("wastage_date", new Date().toISOString().slice(0, 10));
+    if (filters.date === "today") query = query.eq("wastage_date", todayInKualaLumpur());
   if (search) {
     const branchFilter = matchingBranchIds.length ? `,branch_id.in.(${matchingBranchIds.join(",")})` : "";
     query = query.or(`wastage_no.ilike.%${search}%,status.ilike.%${search}%,reason.ilike.%${search}%,remarks.ilike.%${search}%${branchFilter}`);

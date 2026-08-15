@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { todayInKualaLumpur } from "@/lib/business-date";
 import { isMockMode, mockBranches, mockCompany, mockItems, mockProfile, mockSuppliers } from "@/lib/mock-mode";
 import { getCurrentUserScope } from "@/server/queries/notifications";
 import { cache } from "react";
@@ -21,7 +22,7 @@ export const getCurrentProfile = cache(async function getCurrentProfile() {
       .from("staff_roles")
       .select("role_id, is_primary, effective_from, effective_to")
       .eq("staff_id", staff.id);
-    const today = new Date().toISOString().slice(0, 10);
+  const today = todayInKualaLumpur();
     const activeRoles = (staffRoles ?? []).filter((row) => {
       const role = row as { effective_from?: string; effective_to?: string | null };
       return (!role.effective_from || role.effective_from <= today) && (!role.effective_to || role.effective_to >= today);

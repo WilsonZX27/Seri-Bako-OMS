@@ -9,6 +9,7 @@ import {
   mockPurchaseRequests,
   mockSuppliers,
 } from "@/lib/mock-mode";
+import { todayInKualaLumpur } from "@/lib/business-date";
 import { createClient } from "@/lib/supabase/server";
 import { compareTableValues, paginateRows } from "@/lib/table-state";
 import type { Database } from "@/types/database";
@@ -339,7 +340,7 @@ export async function getProcurementWorkspaceInsights() {
   const supabase = await createClient();
   const scope = await getCurrentUserScope();
   const canSeeFinance = scope?.roleCode === "super_admin" || scope?.roleCode === "finance";
-  const today = new Date().toISOString().slice(0, 10);
+  const today = todayInKualaLumpur();
   const countPr = (status: PurchaseRequest["status"]) => supabase.from("purchase_requests").select("id", { count: "exact", head: true }).eq("status", status).is("deleted_at", null);
   const countPo = (status: PurchaseOrder["status"]) => supabase.from("purchase_orders").select("id", { count: "exact", head: true }).eq("status", status).is("deleted_at", null);
   const [draftPr, submittedPr, managerReview, purchasingReview, financeReview, readyToConvert, draftPo, pendingPoApproval, sentPo, receivingToday, invoiceFollowup] = await Promise.all([

@@ -12,3 +12,18 @@ export function todayInKualaLumpur() {
     day: "2-digit",
   }).format(new Date());
 }
+
+/** Shift an ISO business date without letting the server timezone change it. */
+export function shiftBusinessDate(value: string, days: number) {
+  const date = new Date(`${value}T00:00:00Z`);
+  date.setUTCDate(date.getUTCDate() + days);
+  return date.toISOString().slice(0, 10);
+}
+
+export function businessDateDaysAgo(days: number) {
+  return shiftBusinessDate(todayInKualaLumpur(), -days);
+}
+
+export function businessDateDaysAhead(days: number) {
+  return shiftBusinessDate(todayInKualaLumpur(), days);
+}

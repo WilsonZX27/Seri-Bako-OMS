@@ -14,6 +14,7 @@ import { OperationalList, OperationalListRow, Table, TableActionLink, TableBody 
 import { ConsoleSection } from "@/components/layout/right-console";
 import { WorkspaceGrid } from "@/components/layout/workspace-layout";
 import { formatCurrency, formatDateOnly, formatNumber } from "@/lib/utils";
+import { shiftBusinessDate, todayInKualaLumpur } from "@/lib/business-date";
 import { hasActiveFilters } from "@/lib/table-state";
 import { getBranchesForSelect, getItemsForSelect } from "@/server/queries/common";
 import { hasPermission } from "@/server/auth/permissions";
@@ -63,8 +64,8 @@ function exportHref(filters: Record<string, string | undefined>) {
 
 export default async function StockTransactionsPage({ searchParams }: { searchParams: Promise<Record<string, string | undefined>> }) {
   const requestedFilters = await searchParams;
-  const today = new Date().toISOString().slice(0, 10);
-  const thirtyDaysAgo = new Date(Date.now() - 29 * 86_400_000).toISOString().slice(0, 10);
+  const today = todayInKualaLumpur();
+  const thirtyDaysAgo = shiftBusinessDate(today, -29);
   const filters: Record<string, string | undefined> = {
     ...requestedFilters,
     from: requestedFilters.from || thirtyDaysAgo,

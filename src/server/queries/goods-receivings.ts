@@ -9,6 +9,7 @@ import {
   mockPurchaseOrders,
   mockSuppliers,
 } from "@/lib/mock-mode";
+import { todayInKualaLumpur } from "@/lib/business-date";
 import { createClient } from "@/lib/supabase/server";
 import { compareTableValues, paginateRows } from "@/lib/table-state";
 import type { Database } from "@/types/database";
@@ -48,7 +49,7 @@ export type PurchaseOrderReceivingLine = PurchaseOrderLine & {
 function filterRows<T extends Record<string, unknown>>(rows: T[], filters: Filters, keys: (keyof T)[], defaultSort: keyof T) {
   const search = filters.search?.trim().toLowerCase();
   const status = filters.status && filters.status !== "all" ? filters.status : null;
-  const today = new Date().toISOString().slice(0, 10);
+  const today = todayInKualaLumpur();
   const date = filters.date === "today" ? today : null;
   const sort = filters.sort ?? String(defaultSort);
   const dir = filters.dir ?? "desc";
@@ -101,7 +102,7 @@ export async function getGoodsReceivings(filters: Filters = {}) {
   let query = supabase.from("goods_receivings").select("*", { count: "exact" }).is("deleted_at", null);
   const status = filters.status && filters.status !== "all" ? filters.status : null;
   if (status) query = query.eq("status", status as GoodsReceiving["status"]);
-  if (filters.date === "today") query = query.eq("received_date", new Date().toISOString().slice(0, 10));
+    if (filters.date === "today") query = query.eq("received_date", todayInKualaLumpur());
   const search = filters.search?.trim();
   if (search) {
     const term = search.replace(/[(),]/g, " ").replace(/[\\%_]/g, "\\$&");

@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { shiftBusinessDate, todayInKualaLumpur } from "@/lib/business-date";
 import { compareTableValues } from "@/lib/table-state";
 import type { Database } from "@/types/database";
 import { getCurrentProfile } from "@/server/queries/common";
@@ -44,8 +45,8 @@ function filterRows(rows: SupplierInvoiceRow[], filters: Filters) {
   const status = filters.status && filters.status !== "all" ? filters.status : null;
   const supplier = filters.supplier && filters.supplier !== "all" ? filters.supplier : null;
   const due = filters.due && filters.due !== "all" ? filters.due : null;
-  const today = new Date().toISOString().slice(0, 10);
-  const nextWeek = new Date(Date.now() + 7 * 86400000).toISOString().slice(0, 10);
+  const today = todayInKualaLumpur();
+  const nextWeek = shiftBusinessDate(today, 7);
   const sort = filters.sort ?? "updated_at";
   const dir = filters.dir ?? "desc";
   return rows
@@ -71,10 +72,10 @@ export async function getSupplierInvoices(filters: Filters = {}) {
   if (status) query = query.eq("status", status as SupplierInvoice["status"]);
   if (supplierId) query = query.eq("supplier_id", supplierId);
   if (due === "no_due") query = query.is("due_date", null);
-  if (due === "overdue") query = query.lt("due_date", new Date().toISOString().slice(0, 10));
+  if (due === "overdue") query = query.lt("due_date", todayInKualaLumpur());
   if (due === "due_7") {
-    const today = new Date().toISOString().slice(0, 10);
-    const nextWeek = new Date(Date.now() + 7 * 86400000).toISOString().slice(0, 10);
+    const today = todayInKualaLumpur();
+    const nextWeek = shiftBusinessDate(today, 7);
     query = query.gte("due_date", today).lte("due_date", nextWeek);
   }
 
@@ -112,7 +113,7 @@ export async function getSupplierInvoices(filters: Filters = {}) {
   const grnById = new Map((grns ?? []).map((row) => [row.id, row.grn_no]));
   const paymentCounts = new Map<string, number>();
   for (const payment of payments ?? []) paymentCounts.set(payment.supplier_invoice_id, (paymentCounts.get(payment.supplier_invoice_id) ?? 0) + 1);
-  const today = new Date().toISOString().slice(0, 10);
+  const today = todayInKualaLumpur();
   const rows = invoiceRows.map((row) => {
     const balance = Number(row.total_amount) - Number(row.amount_paid);
     return {

@@ -1,4 +1,5 @@
 import { isMockMode } from "@/lib/mock-mode";
+import { todayInKualaLumpur } from "@/lib/business-date";
 import { looseSupabase } from "@/lib/supabase/loose";
 import { createClient } from "@/lib/supabase/server";
 import { compareTableValues, paginateRows, type PaginationResult } from "@/lib/table-state";
@@ -257,7 +258,7 @@ export async function getProductionHubSummary() {
   }
   const supabase = await createClient();
   const db = looseSupabase(supabase);
-  const today = new Date().toISOString().slice(0, 10);
+  const today = todayInKualaLumpur();
   const [posted, pending, readyToPost, recipes, shortageLines] = await Promise.all([
     db.from("production_jobs").select("id", { count: "exact", head: true }).eq("status", "posted").eq("production_date", today).is("deleted_at", null),
     db.from("production_jobs").select("id", { count: "exact", head: true }).eq("status", "submitted").is("deleted_at", null),

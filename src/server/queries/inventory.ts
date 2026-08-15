@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { shiftBusinessDate, todayInKualaLumpur } from "@/lib/business-date";
 import { logServerWarning } from "@/server/observability/logger";
 import {
   getMockLowStockItems,
@@ -83,12 +84,9 @@ async function boundedInventoryInsight<T>(query: PromiseLike<T>): Promise<T> {
 }
 
 function inventoryPeriodRange(period: "7d" | "30d" | "month") {
-  const reportDate = new Date();
-  const end = reportDate.toISOString().slice(0, 10);
-  const startDate = period === "month"
-    ? new Date(Date.UTC(reportDate.getUTCFullYear(), reportDate.getUTCMonth(), 1))
-    : new Date(reportDate.getTime() - (period === "7d" ? 6 : 29) * 86_400_000);
-  return { start: startDate.toISOString().slice(0, 10), end };
+  const end = todayInKualaLumpur();
+  const start = period === "month" ? `${end.slice(0, 7)}-01` : shiftBusinessDate(end, -(period === "7d" ? 6 : 29));
+  return { start, end };
 }
 
 function mockInventoryDailyMovement(period: "7d" | "30d" | "month"): InventoryDailyMovementRow[] {
@@ -131,12 +129,12 @@ export async function getInventoryDailyMovement(period: "7d" | "30d" | "month" =
 }
 
 async function getInventoryDashboardFallback(supabase: Awaited<ReturnType<typeof createClient>>, period: "7d" | "30d" | "month") {
-  const today = new Date().toISOString().slice(0, 10);
+  const today = todayInKualaLumpur();
   const periodStart = period === "7d"
-    ? new Date(Date.now() - 6 * 86_400_000).toISOString().slice(0, 10)
+    ? shiftBusinessDate(today, -6)
     : period === "month"
       ? `${today.slice(0, 7)}-01`
-      : new Date(Date.now() - 29 * 86_400_000).toISOString().slice(0, 10);
+      : shiftBusinessDate(today, -29);
   const [balancesResult, transactionsResult, movementsTodayResult, receivingResult, transfersResult, stockCountResult] = await Promise.all([
     supabase
       .from("stock_balances_summary")
@@ -440,8 +438,8 @@ export async function getStockLedger(filters: Filters = {}) {
   }
 
   const supabase = await createClient();
-  const today = new Date().toISOString().slice(0, 10);
-  const thirtyDaysAgo = new Date(Date.now() - 29 * 86_400_000).toISOString().slice(0, 10);
+  const today = todayInKualaLumpur();
+  const thirtyDaysAgo = shiftBusinessDate(today, -29);
   const from = filters.from || thirtyDaysAgo;
   const to = filters.to || today;
   const sort = LEDGER_SORT_COLUMNS.has(filters.sort ?? "") ? filters.sort! : "transaction_date";
@@ -651,7 +649,7 @@ export async function getInventoryDashboard(period: "7d" | "30d" | "month" = "30
 
 export async function getStockCardResult(filters: Filters = {}): Promise<StockCardResult> {
   if (!isMockMode()) {
-    const today = new Date().toISOString().slice(0, 10);
+    const today = todayInKualaLumpur();
     const from = filters.from || today;
     const to = filters.to || from;
     const supabase = await createClient();

@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { todayInKualaLumpur } from "@/lib/business-date";
 import { isMockMode } from "@/lib/mock-mode";
 import type { Database } from "@/types/database";
 import type { PurchaseRequestStatus } from "@/lib/status-contracts";
@@ -38,7 +39,7 @@ export const getCurrentUserScope = cache(async function getCurrentUserScope(): P
     };
   }
 
-  const today = new Date().toISOString().slice(0, 10);
+  const today = todayInKualaLumpur();
   const [staffRolesResult, staffBranchesResult, rolesResult] = await Promise.all([
     supabase.from("staff_roles").select("role_id, branch_id, is_primary, effective_from").eq("staff_id", staffId).lte("effective_from", today).or(`effective_to.is.null,effective_to.gte.${today}`),
     supabase.from("staff_branches").select("branch_id").eq("staff_id", staffId),

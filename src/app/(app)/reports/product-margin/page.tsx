@@ -40,10 +40,10 @@ export default async function ProductMarginPage({ searchParams }: { searchParams
       {!rows ? <Card><CardContent className="p-5"><EmptyState title="Product margin is unavailable" description="Try again shortly. No product data was changed." /></CardContent></Card> : <div className="space-y-3" data-product-margin-workspace>
         <FilterBar resultCount={rows.length} resetHref="/reports/product-margin" filtered={hasActiveFilters(filters)}>
           <Input name="search" defaultValue={filters.search} placeholder="Search product" aria-label="Search product" />
-          <SelectNative name="status" defaultValue={filters.status ?? "all"}><option value="all">All statuses</option><option value="ready">Ready</option><option value="cost_incomplete">Cost incomplete</option><option value="missing_price">Missing price</option><option value="missing_recipe">Missing recipe</option></SelectNative>
+          <SelectNative name="status" defaultValue={filters.status ?? "all"} aria-label="Margin readiness status"><option value="all">All statuses</option><option value="ready">Ready</option><option value="cost_incomplete">Cost incomplete</option><option value="missing_price">Missing price</option><option value="missing_recipe">Missing recipe</option></SelectNative>
           <FilterBarMore activeCount={Number(Boolean(filters.margin_band && filters.margin_band !== "all")) + Number(Boolean(filters.incomplete && filters.incomplete !== "all"))} resetHref="/reports/product-margin">
-            <SelectNative name="margin_band" defaultValue={filters.margin_band ?? "all"}><option value="all">All margin bands</option><option value="review">Review</option><option value="healthy">Healthy</option><option value="unavailable">Unavailable</option></SelectNative>
-            <SelectNative name="incomplete" defaultValue={filters.incomplete ?? "all"}><option value="all">All recipe links</option><option value="yes">Missing recipe/cost only</option><option value="no">Ready only</option></SelectNative>
+            <SelectNative name="margin_band" defaultValue={filters.margin_band ?? "all"} aria-label="Margin band"><option value="all">All margin bands</option><option value="review">Review</option><option value="healthy">Healthy</option><option value="unavailable">Unavailable</option></SelectNative>
+            <SelectNative name="incomplete" defaultValue={filters.incomplete ?? "all"} aria-label="Recipe cost completeness"><option value="all">All recipe links</option><option value="yes">Missing recipe/cost only</option><option value="no">Ready only</option></SelectNative>
           </FilterBarMore>
           <Button type="submit" variant="secondary">Filter</Button>
         </FilterBar>

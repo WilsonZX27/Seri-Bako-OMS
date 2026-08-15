@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/empty-state";
 import { FilterBar, FilterBarMore } from "@/components/ui/filter-bar";
+import { Input } from "@/components/ui/input";
 import { PageHeader } from "@/components/ui/page-header";
 import { SelectNative } from "@/components/ui/select-native";
 import {
@@ -61,8 +62,8 @@ export default async function RecipeCostingPage({ searchParams }: { searchParams
       ) : (
         <div className="space-y-3" data-recipe-costing-workspace>
           <FilterBar resultCount={rows.length} resetHref="/reports/recipe-costing" filtered={hasActiveFilters(filters)}>
-            <input name="search" defaultValue={filters.search} placeholder="Search recipe" />
-            <SelectNative name="status" defaultValue={filters.status ?? "active"}>
+            <Input name="search" defaultValue={filters.search} placeholder="Search recipe" aria-label="Search recipes" />
+            <SelectNative name="status" defaultValue={filters.status ?? "active"} aria-label="Recipe status">
               <option value="all">All statuses</option>
               <option value="active">Active</option>
               <option value="approved">Approved</option>
@@ -74,13 +75,13 @@ export default async function RecipeCostingPage({ searchParams }: { searchParams
               activeCount={[filters.confidence && filters.confidence !== "all", filters.missing_cost && filters.missing_cost !== "all"].filter(Boolean).length}
               resetHref="/reports/recipe-costing"
             >
-              <SelectNative name="confidence" defaultValue={filters.confidence ?? "all"}>
+              <SelectNative name="confidence" defaultValue={filters.confidence ?? "all"} aria-label="Cost confidence">
                 <option value="all">All confidence</option>
                 <option value="high">High</option>
                 <option value="medium">Medium</option>
                 <option value="low">Low confidence</option>
               </SelectNative>
-              <SelectNative name="missing_cost" defaultValue={filters.missing_cost ?? "all"}>
+              <SelectNative name="missing_cost" defaultValue={filters.missing_cost ?? "all"} aria-label="Cost completeness">
                 <option value="all">All cost gaps</option>
                 <option value="yes">Missing cost only</option>
                 <option value="no">Cost complete</option>

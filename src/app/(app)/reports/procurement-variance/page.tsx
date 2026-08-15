@@ -107,7 +107,7 @@ export default async function ProcurementVariancePage({ searchParams }: { search
         <div className="space-y-3" data-procurement-variance-workspace>
           <FilterBar resultCount={rows.length} resetHref="/reports/procurement-variance" filtered={hasActiveFilters(filters)}>
             <Input name="search" defaultValue={filters.search} placeholder="Search PO, supplier, or item" aria-label="Search PO, supplier, or item" />
-            <SelectNative name="status" defaultValue={filters.status ?? "all"}>
+            <SelectNative name="status" defaultValue={filters.status ?? "all"} aria-label="Variance status">
               <option value="all">All statuses</option>
               {Object.keys(variants).map((status) => <option key={status} value={status.toLowerCase().replaceAll(" ", "_")}>{status}</option>)}
             </SelectNative>

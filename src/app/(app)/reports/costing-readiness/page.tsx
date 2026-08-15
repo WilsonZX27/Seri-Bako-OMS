@@ -60,14 +60,14 @@ export default async function CostingReadinessPage({ searchParams }: { searchPar
       ) : (
         <div className="space-y-3" data-costing-readiness-workspace>
           <FilterBar resultCount={report.issues.length} resetHref="/reports/costing-readiness" filtered={hasActiveFilters(filters)} className="[&>select]:!flex-[0_1_10rem]">
-            <SelectNative name="severity" defaultValue={filters.severity ?? "all"}>
+            <SelectNative name="severity" defaultValue={filters.severity ?? "all"} aria-label="Issue severity">
               <option value="all">All severities</option>
               <option value="critical">Critical</option>
               <option value="warning">Warning</option>
               <option value="info">Information</option>
             </SelectNative>
             <FilterBarMore activeCount={filters.module && filters.module !== "all" ? 1 : 0} resetHref="/reports/costing-readiness">
-              <SelectNative name="module" defaultValue={filters.module ?? "all"}>
+              <SelectNative name="module" defaultValue={filters.module ?? "all"} aria-label="Issue module">
                 <option value="all">All modules</option>
                 <option value="item">Items</option>
                 <option value="supplier_item">Supplier items</option>

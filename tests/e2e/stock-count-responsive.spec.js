@@ -47,7 +47,11 @@ test("stock count preserves prefilled adjustment controls, optional variance con
     await expect(page.getByText("Reason required")).toHaveCount(0);
     const inputBox = await input.boundingBox();
     expect(inputBox, `${label} physical quantity field must render`).toBeTruthy();
-    expect(inputBox.width, `${label} physical quantity field must remain touchable`).toBeGreaterThanOrEqual(width < 768 ? 144 : 120);
+    const countControl = page.locator("[data-stock-count-line]").first().locator("div.order-3");
+    const countControlBox = await countControl.boundingBox();
+    expect(countControlBox, `${label} physical quantity control must render`).toBeTruthy();
+    expect(countControlBox.width, `${label} physical quantity control must remain touchable`).toBeGreaterThanOrEqual(width < 768 ? 144 : 120);
+    expect(inputBox.width, `${label} physical quantity input must remain usable inside the compact card`).toBeGreaterThanOrEqual(40);
     const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
     expect(overflow, `${label} stock count must not horizontally overflow`).toBeLessThanOrEqual(5);
     if (width >= 1024) await expect(page.getByPlaceholder("Count note (optional)")).toBeVisible();

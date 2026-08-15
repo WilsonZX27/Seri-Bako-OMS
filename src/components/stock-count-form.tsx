@@ -66,7 +66,9 @@ function makeEditableLine(line: SeedLine): SeedLineInput {
 }
 
 function formatVariancePercent(percent: number | null) {
-  if (percent === null || Number.isNaN(percent)) return "0%";
+  // A zero theoretical balance has no meaningful percentage denominator. Do
+  // not turn that undefined ratio into a false 0% signal.
+  if (percent === null || Number.isNaN(percent)) return "—";
   return `${percent > 0 ? "+" : ""}${formatQuantity(percent)}%`;
 }
 

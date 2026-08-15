@@ -84,3 +84,9 @@ test("stock count refuses incomplete source values instead of defaulting them to
   assert.doesNotMatch(action, /theoretical_qty: theoretical\[index\] \?\? 0/);
   assert.doesNotMatch(action, /physical_qty: physical\[index\] \?\? 0/);
 });
+
+test("stock count does not render an undefined zero-denominator variance as 0%", () => {
+  const form = read("src", "components", "stock-count-form.tsx");
+  assert.match(form, /percent === null \|\| Number\.isNaN\(percent\)\) return "—"/);
+  assert.doesNotMatch(form, /percent === null \|\| Number\.isNaN\(percent\)\) return "0%"/);
+});

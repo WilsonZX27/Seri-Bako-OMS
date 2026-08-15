@@ -1,6 +1,6 @@
 # Seri Bako OMS responsive design standard
 
-> **Release authority:** the currently released application is `v8.41.0`, as
+> **Release authority:** the currently released application is `v8.42.0`, as
 > defined by `src/lib/app-version.ts`. A versioned section above that number is
 > an accepted forward design contract or unreleased implementation note—not
 > evidence that the application itself has been released at that version.
@@ -11,10 +11,11 @@
 
 This document is the implementation contract for every customer-facing route, form, record workspace, table, panel, dialog, and mobile action bar. It applies to new work and to refactoring of existing UI.
 
-## v8.41.0 — Outlet Daily Completion Clarity
+## v8.42.0 — Stock Count Variance Clarity
 
 - Outlet Daily Records expose the operator-facing `Posted` label for the completed editable state. The internal `evening_completed` workflow value remains unchanged for database and transition authority.
 - The completion rail reports records posted today; completed outlet records are not counted as a fictitious review queue because outlet staff post directly.
+- Stock Count leaves percentage variance as `—` when the theoretical quantity is zero; an undefined ratio is never presented as a false `0%` result.
 
 ## v8.39.0 — Stock Balance Procurement Density
 

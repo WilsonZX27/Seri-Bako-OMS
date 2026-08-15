@@ -1,6 +1,6 @@
 # Seri Bako OMS responsive design standard
 
-> **Release authority:** the currently released application is `v8.36.71`, as
+> **Release authority:** the currently released application is `v8.36.72`, as
 > defined by `src/lib/app-version.ts`. A versioned section above that number is
 > an accepted forward design contract or unreleased implementation note—not
 > evidence that the application itself has been released at that version.
@@ -10,6 +10,12 @@
 > **Precedence:** `docs/DESIGN_SYSTEM.md` is the living visual and interaction contract. When a historical release note or an older rule in this file conflicts with that contract, the living contract wins. Update both documents when a new pattern is accepted; do not preserve a visibly weaker rule for compatibility.
 
 This document is the implementation contract for every customer-facing route, form, record workspace, table, panel, dialog, and mobile action bar. It applies to new work and to refactoring of existing UI.
+
+## v8.36.72 — Accessible Loading Motion
+
+- Continuous skeleton and spinner motion honors the operating system's reduced-motion preference through one global contract; loading feedback never depends on animation alone.
+- AP Aging and Cash Flow Forecast skeletons expose a named, atomic polite status while their report data is busy, matching the shared workspace loading behavior.
+- Motion and finance-loading semantics are source-contract tested so a future page-specific skeleton cannot silently remove the accessibility guarantees.
 
 ## v8.36.71 — Contained Outlet Daily Mobile Matrix
 

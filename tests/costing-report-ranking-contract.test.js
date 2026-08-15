@@ -18,6 +18,13 @@ test("product margin exposes a compact preview-first readiness and margin rankin
   assert.match(insights, /Absolute RM size determines rank; the displayed margin keeps its direction/);
   assert.match(insights, /this is not a pricing recommendation/);
   assert.match(insights, /href: `\/products\/\$\{row\.id\}`/);
+
+  const workspace = page.indexOf("<WorkspaceGrid");
+  const filters = page.indexOf("<FilterBar", workspace);
+  const charts = page.indexOf("<ProductMarginInsights", workspace);
+  const detail = page.indexOf("<section className=\"sb-list-content-card", workspace);
+  assert.ok(workspace >= 0 && filters > workspace && charts > filters && detail > charts, "Product Margin must keep filters, insights, and detail in one ordered workspace");
+  assert.doesNotMatch(page, /px-3 pt-3 sm:px-4[^>]*><ProductMarginInsights/);
 });
 
 test("recipe costing ranks only usable cost authority and preserves Low as incomplete", () => {

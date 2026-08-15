@@ -18,6 +18,7 @@ import { getPermissionMap } from "@/server/auth/permissions";
 import { getDocumentBundle } from "@/server/queries/documents";
 import { getApAgingReport } from "@/server/queries/ap-aging";
 import { getPostedGrnsForInvoice, getSupplierInvoice } from "@/server/queries/supplier-invoices";
+import { logServerError } from "@/server/observability/logger";
 
 const invoiceSteps = [
   { key: "draft", label: "Draft", description: "Invoice details can be edited." },
@@ -44,21 +45,35 @@ export default async function SupplierInvoiceDetailPage({ params, searchParams }
     getSupplierInvoice(id),
     getPermissionMap(["supplier_invoice.create", "supplier_invoice.approve", "supplier_invoice.pay", "supplier_invoice.void", "documents.attach"]),
   ]);
-  const [documentBundle, editSources, agingReport] = await Promise.all([
-    invoice.document_id ? getDocumentBundle(invoice.document_id) : null,
-    invoice.status === "draft" ? getPostedGrnsForInvoice(invoice.supplier_id, invoice.id) : null,
-    permissions["supplier_invoice.pay"] && ["open", "partially_paid"].includes(invoice.status) && invoice.balance_due > 0
-      ? getApAgingReport({ search: invoice.invoice_no }).catch(() => null)
-      : null,
+  const agingRequested = permissions["supplier_invoice.pay"] && ["open", "partially_paid"].includes(invoice.status) && invoice.balance_due > 0;
+  const [documentBundleResult, editSourcesResult, agingReportResult] = await Promise.allSettled([
+    invoice.document_id ? getDocumentBundle(invoice.document_id) : Promise.resolve(null),
+    invoice.status === "draft" ? getPostedGrnsForInvoice(invoice.supplier_id, invoice.id) : Promise.resolve(null),
+    agingRequested ? getApAgingReport({ search: invoice.invoice_no }) : Promise.resolve(null),
   ]);
+  for (const [result, source] of [
+    [documentBundleResult, "page.supplierInvoiceDetail.documentBundle"],
+    [editSourcesResult, "page.supplierInvoiceDetail.editSources"],
+    [agingReportResult, "page.supplierInvoiceDetail.aging"],
+  ] as const) {
+    if (result.status === "rejected") logServerError(result.reason, { source });
+  }
+  const documentBundle = documentBundleResult.status === "fulfilled" ? documentBundleResult.value : null;
+  const editSources = editSourcesResult.status === "fulfilled" ? editSourcesResult.value : null;
+  const agingReport = agingReportResult.status === "fulfilled" ? agingReportResult.value : null;
+  const documentBundleUnavailable = Boolean(invoice.document_id && documentBundleResult.status === "rejected");
+  const editSourcesUnavailable = invoice.status === "draft" && editSourcesResult.status === "rejected";
+  const agingUnavailable = agingRequested && agingReportResult.status === "rejected";
   const agingRow = agingReport?.rows.find((row) => row.id === invoice.id);
   const hasInvoiceAttachment = Boolean(documentBundle?.attachments.some((attachment) => attachment.status === "active"));
   const canPay = permissions["supplier_invoice.pay"] && ["open", "partially_paid"].includes(invoice.status);
   const canVoid = permissions["supplier_invoice.void"] && invoice.status !== "void" && invoice.status !== "paid" && Number(invoice.amount_paid) === 0;
   const canApprove = invoice.status === "draft" && permissions["supplier_invoice.approve"];
-  const canSave = invoice.status === "draft" && permissions["supplier_invoice.create"];
+  const canSave = invoice.status === "draft" && permissions["supplier_invoice.create"] && Boolean(editSources);
   const paymentKey = randomUUID();
-  const approvalAction = hasInvoiceAttachment
+  const approvalAction = documentBundleUnavailable
+    ? <div role="status"><Button type="button" disabled className="w-full">Approval unavailable</Button><p className="mt-2 text-xs text-muted-foreground">Attachment status could not be verified. Retry before approval.</p></div>
+    : hasInvoiceAttachment
     ? <ConfirmActionForm action={approveSupplierInvoice.bind(null, invoice.id)} label="Approve as Finance" title="Approve this supplier invoice as Finance?" description="This locks the invoice totals and opens it for payment." pendingLabel="Approving..." mobilePrimary />
     : <div><Button type="button" disabled className="w-full">Approve as Finance</Button><p className="mt-2 text-xs text-muted-foreground">Attach the supplier invoice before Finance approval.</p></div>;
   const mobilePrimaryAction = canApprove ? approvalAction : canSave ? <SubmitButton form="supplier-invoice-form" pendingLabel="Saving..." className="w-full justify-center">Save Draft</SubmitButton> : canPay ? <MobileTaskSheet label="Record Payment"><PaymentForm invoiceId={invoice.id} balance={invoice.balance_due} idempotencyKey={paymentKey} /></MobileTaskSheet> : null;
@@ -88,19 +103,21 @@ export default async function SupplierInvoiceDetailPage({ params, searchParams }
               <p>{agingRow.days_overdue > 0 ? `${agingRow.days_overdue} days overdue` : agingRow.due_date ? `${agingRow.days_until_due} days until due` : "Due date requires attention"}</p>
               <DocumentActionLink href={`/supplier-invoices/aging?search=${encodeURIComponent(invoice.invoice_no)}`} variant="outline">View in AP Aging</DocumentActionLink>
             </div>
-          </DocumentSideSection> : null}
+          </DocumentSideSection> : agingUnavailable ? <DocumentSideSection title="Payment Attention"><div role="status"><p className="text-xs font-semibold text-[var(--sb-warning)]">Unavailable</p><p className="mt-1 text-xs text-muted-foreground">AP Aging could not be loaded. The invoice balance remains authoritative; retry before payment review.</p></div></DocumentSideSection> : null}
           {documentBundle ? <>
             <AttachmentPanel documentId={documentBundle.document.id} attachments={documentBundle.attachments} title="Supplier Invoice" description="Attach the supplier-issued invoice for Finance review and audit." defaultLabel="Supplier Invoice" uploadLabel="Attach Supplier Invoice" canManage={permissions["documents.attach"]} documentStatus={documentBundle.document.status} />
             {canPay ? <AttachmentPanel documentId={documentBundle.document.id} attachments={documentBundle.attachments} title="Payment Slip" description="Attach the payment slip before recording payment." defaultLabel="Payment Slip" uploadLabel="Attach Payment Slip" canManage={permissions["documents.attach"]} documentStatus={documentBundle.document.status} /> : null}
             <CommentsPanel documentId={documentBundle.document.id} comments={documentBundle.comments} />
             <DocumentTimeline document={documentBundle.document} activities={documentBundle.activityLogs} comments={documentBundle.comments} attachments={documentBundle.attachments} />
             <RevisionPanel revisions={documentBundle.revisions} />
-          </> : null}
+          </> : documentBundleUnavailable ? <DocumentSideSection title="Document Activity"><div role="status"><p className="text-xs font-semibold text-[var(--sb-warning)]">Unavailable</p><p className="mt-1 text-xs text-muted-foreground">Attachments, comments, and timeline could not be loaded. Retry this page.</p></div></DocumentSideSection> : null}
         </>
       }
     >
       {messageParams.error || messageParams.success ? <Card><CardContent className={`p-3 text-xs ${messageParams.error ? "text-destructive" : "text-[var(--sb-success)]"}`}>{messageParams.error ?? messageParams.success}</CardContent></Card> : null}
+      {documentBundleUnavailable ? <Card className="md:hidden"><CardContent className="p-3" role="status"><p className="text-sm font-semibold text-[var(--sb-warning)]">Document activity unavailable</p><p className="mt-1 text-xs text-muted-foreground">Attachments and audit activity could not be loaded. Approval remains disabled until verification succeeds.</p></CardContent></Card> : null}
       {documentBundle ? <div className="md:hidden"><AttachmentPanel documentId={documentBundle.document.id} attachments={documentBundle.attachments} title="Supplier Invoice" description="Attach the supplier-issued invoice before Finance approval." defaultLabel="Supplier Invoice" uploadLabel="Attach Supplier Invoice" presentation="inline" canManage={permissions["documents.attach"]} documentStatus={documentBundle.document.status} />{canPay ? <AttachmentPanel documentId={documentBundle.document.id} attachments={documentBundle.attachments} title="Payment Slip" description="Attach the payment slip before recording payment." defaultLabel="Payment Slip" uploadLabel="Attach Payment Slip" presentation="inline" canManage={permissions["documents.attach"]} documentStatus={documentBundle.document.status} /> : null}</div> : null}
+      {editSourcesUnavailable ? <Card><CardContent className="border-l-2 border-[var(--sb-warning)] p-4" role="status"><p className="text-sm font-semibold">Draft editing unavailable</p><p className="mt-1 text-xs text-muted-foreground">Eligible GRN and supplier options could not be loaded. Existing invoice values remain read-only until you retry.</p></CardContent></Card> : null}
       {invoice.status === "draft" && editSources ? (
         <SupplierInvoiceForm
           suppliers={editSources.suppliers}

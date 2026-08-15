@@ -13,6 +13,7 @@ import { OperationalList, OperationalListRow, Table, TableBody, TableCell, Table
 import { formatCurrency, formatNumber } from "@/lib/utils";
 import { hasActiveFilters } from "@/lib/table-state";
 import { getRecipeCosting } from "@/server/queries/recipe-costing";
+import { logServerError } from "@/server/observability/logger";
 
 export const dynamic = "force-dynamic";
 
@@ -20,7 +21,7 @@ const confidenceVariant = { High: "success", Medium: "warning", Low: "danger" } 
 
 export default async function RecipeCostingPage({ searchParams }: { searchParams: Promise<Record<string, string | undefined>> }) {
   const filters = await searchParams;
-  const rows = await getRecipeCosting({ ...filters, status: filters.status ?? "active" }).catch(() => null);
+  const rows = await getRecipeCosting({ ...filters, status: filters.status ?? "active" }).catch((error) => { logServerError(error, { source: "page.recipeCosting.report" }); return null; });
   return <><PageHeader title="Recipe Costing" description="Read-only ingredient-cost estimates from existing recipe and item master data." />
     {rows ? <div className="px-3 pt-3 sm:px-4"><RecipeCostingInsights rows={rows} /></div> : null}
     <WorkspaceGrid hideMobileConsole tabletRailMode="split" rightRail={<><ConsoleSection title="Cost source"><div className="space-y-2 text-xs text-muted-foreground"><p>Estimate only; no recipe, item, or product cost is written.</p><p>Uses <strong className="text-foreground">items.cost</strong> only when the recipe line UOM matches the item base UOM. A UOM mismatch is not estimated.</p><p>Missing cost is not counted as zero. <strong className="text-foreground">High</strong> has usable ingredient costs and output; <strong className="text-foreground">Medium</strong> has minor warnings; <strong className="text-foreground">Low</strong> has a cost, UOM, output, or line gap.</p><p>Margin is future scope.</p></div></ConsoleSection><ConsoleSection title="Scope"><p className="text-xs text-muted-foreground">Use the linked recipe to add item cost, align UOM, add recipe output, or add recipe lines. This report does not change stock, production, or finance records.</p></ConsoleSection></>}>

@@ -15,6 +15,7 @@ import { OperationalList, OperationalListRow, Table, TableBody, TableCell, Table
 import { formatCurrency, formatDateOnly, formatNumber } from "@/lib/utils";
 import { hasActiveFilters } from "@/lib/table-state";
 import { getProcurementVariance } from "@/server/queries/procurement-variance";
+import { logServerError } from "@/server/observability/logger";
 
 export const dynamic = "force-dynamic";
 
@@ -49,7 +50,7 @@ function ProcurementStageComparison({ row }: { row: VarianceRow }) {
 }
 
 export default async function ProcurementVariancePage({ searchParams }: { searchParams: Promise<Record<string, string | undefined>> }) {
-  const filters = await searchParams; const rows = await getProcurementVariance(filters).catch(() => null);
+  const filters = await searchParams; const rows = await getProcurementVariance(filters).catch((error) => { logServerError(error, { source: "page.procurementVariance.report" }); return null; });
   const count = (status: string) => rows?.filter((row) => row.status === status).length ?? 0;
   return <><PageHeader title="Procurement Variance" description="Read-only comparison of linked purchase, receiving, invoice, and supplier reference records." />
     <WorkspaceGrid hideMobileConsole rightRail={<><ConsoleSection title="Review paths"><div className="grid gap-2"><Button asChild size="sm" variant="outline"><Link href="/purchase-orders">Purchase Orders</Link></Button><Button asChild size="sm" variant="outline"><Link href="/goods-receivings">Goods Receiving</Link></Button><Button asChild size="sm" variant="outline"><Link href="/supplier-invoices">Supplier Invoices</Link></Button></div></ConsoleSection><ConsoleSection title="Comparison rules"><div className="space-y-2 text-xs text-muted-foreground"><p>Read-only comparison of records joined by existing document-line links only. Unlinked records are never guessed.</p><p>Price warnings are more than RM 0.01 or 2%. Any quantity difference is a warning where no document tolerance exists.</p><p>Thresholds are warnings, not automatic claims. No PO, GRN, invoice, supplier price, or stock record is changed.</p></div></ConsoleSection></>} tabletRailMode="split" tabletRailBreakpoint="md">

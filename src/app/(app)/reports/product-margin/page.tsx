@@ -14,6 +14,7 @@ import { OperationalList, OperationalListRow, Table, TableBody, TableCell, Table
 import { hasActiveFilters } from "@/lib/table-state";
 import { formatCurrency } from "@/lib/utils";
 import { getProductMargin, type ProductMarginRow } from "@/server/queries/product-margin";
+import { logServerError } from "@/server/observability/logger";
 
 export const dynamic = "force-dynamic";
 
@@ -33,7 +34,7 @@ function actionHref(row: ProductMarginRow) {
 
 export default async function ProductMarginPage({ searchParams }: { searchParams: Promise<Record<string, string | undefined>> }) {
   const filters = await searchParams;
-  const rows = await getProductMargin(filters).catch(() => null);
+  const rows = await getProductMargin(filters).catch((error) => { logServerError(error, { source: "page.productMargin.report" }); return null; });
   return <><PageHeader title="Product Margin" description="Read-only product cost and gross-margin estimate from trusted recipe costs." />
     {rows ? <div className="px-3 pt-3 sm:px-4"><ProductMarginInsights rows={rows} /></div> : null}
     <WorkspaceGrid hideMobileConsole rightRail={<><ConsoleSection title="Margin assumptions"><div className="space-y-2 text-xs text-muted-foreground"><p>Read-only estimate, not a pricing recommendation. Only <strong className="text-foreground">High</strong>-confidence recipe costs are used; Medium and Low are Cost incomplete.</p><p>One active product-packaging price is required. Missing or ambiguous pricing blocks margin, and missing cost is never zero.</p><p>No product price, product cost, or margin is written. Pricing decisions remain manual.</p></div></ConsoleSection><ConsoleSection title="Review paths"><p className="text-xs text-muted-foreground">Use Product to review packaging pricing. Use Recipe Costing or Costing Readiness when a recipe cost is incomplete.</p></ConsoleSection></>}>

@@ -12,12 +12,13 @@ import { FilterBar } from "@/components/ui/filter-bar";
 import { OperationalList, OperationalListRow, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { getMasterDataCleanup } from "@/server/queries/master-data-cleanup";
 import { hasActiveFilters } from "@/lib/table-state";
+import { logServerError } from "@/server/observability/logger";
 
 const severityVariant = { critical: "danger", warning: "warning", info: "secondary" } as const;
 
 export default async function MasterDataCleanupPage({ searchParams }: { searchParams: Promise<Record<string, string | undefined>> }) {
   const filters = await searchParams;
-  const report = await getMasterDataCleanup(filters).catch(() => null);
+  const report = await getMasterDataCleanup(filters).catch((error) => { logServerError(error, { source: "page.masterDataCleanup.report" }); return null; });
   const filtered = hasActiveFilters(filters);
   return <>
     <PageHeader title="Master Data Cleanup" description="Read-only checks for codes, core fields, references, and branch assignments." />

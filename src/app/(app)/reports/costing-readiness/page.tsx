@@ -12,6 +12,7 @@ import { SelectNative } from "@/components/ui/select-native";
 import { OperationalList, OperationalListRow, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { hasActiveFilters } from "@/lib/table-state";
 import { getCostingReadiness } from "@/server/queries/costing-readiness";
+import { logServerError } from "@/server/observability/logger";
 
 export const dynamic = "force-dynamic";
 
@@ -19,7 +20,7 @@ const variants = { critical: "danger", warning: "warning", info: "secondary" } a
 
 export default async function CostingReadinessPage({ searchParams }: { searchParams: Promise<Record<string, string | undefined>> }) {
   const filters = await searchParams;
-  const report = await getCostingReadiness(filters).catch(() => null);
+  const report = await getCostingReadiness(filters).catch((error) => { logServerError(error, { source: "page.costingReadiness.report" }); return null; });
   return <>
     <PageHeader title="Costing Readiness" description="Read-only checks for the data needed before trusting future recipe or product costing." />
     <WorkspaceGrid hideMobileConsole rightRail={<>

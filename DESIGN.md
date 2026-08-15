@@ -1,6 +1,6 @@
 # Seri Bako OMS responsive design standard
 
-> **Release authority:** the currently released application is `v8.36.60`, as
+> **Release authority:** the currently released application is `v8.36.61`, as
 > defined by `src/lib/app-version.ts`. A versioned section above that number is
 > an accepted forward design contract or unreleased implementation note—not
 > evidence that the application itself has been released at that version.
@@ -10,6 +10,14 @@
 > **Precedence:** `docs/DESIGN_SYSTEM.md` is the living visual and interaction contract. When a historical release note or an older rule in this file conflicts with that contract, the living contract wins. Update both documents when a new pattern is accepted; do not preserve a visibly weaker rule for compatibility.
 
 This document is the implementation contract for every customer-facing route, form, record workspace, table, panel, dialog, and mobile action bar. It applies to new work and to refactoring of existing UI.
+
+## v8.36.61 — Trustworthy Invoice Detail Reads
+
+- Supplier Invoice detail now settles document activity, draft GRN sources, and AP Aging independently, with redacted logs and explicit unavailable states.
+- An unverified attachment state disables Finance approval instead of incorrectly asking for another attachment; the warning remains visible on phone and wider workspaces.
+- A failed draft-source read preserves the authoritative invoice summary and matching lines in read-only mode, while suppressing save actions that require a complete eligible-GRN catalogue.
+- AP Aging failure is shown as unavailable rather than silently removing payment attention; the invoice balance remains the payment authority.
+- Costing Readiness, Procurement Variance, Product Margin, Recipe Costing, and Master Data Cleanup retain their existing unavailable UI while now recording redacted failure context.
 
 ## v8.36.60 — Trustworthy PR Detail Reads
 

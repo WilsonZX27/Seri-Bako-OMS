@@ -1,6 +1,6 @@
 # Seri Bako OMS responsive design standard
 
-> **Release authority:** the currently released application is `v8.36.63`, as
+> **Release authority:** the currently released application is `v8.36.64`, as
 > defined by `src/lib/app-version.ts`. A versioned section above that number is
 > an accepted forward design contract or unreleased implementation note—not
 > evidence that the application itself has been released at that version.
@@ -10,6 +10,12 @@
 > **Precedence:** `docs/DESIGN_SYSTEM.md` is the living visual and interaction contract. When a historical release note or an older rule in this file conflicts with that contract, the living contract wins. Update both documents when a new pattern is accepted; do not preserve a visibly weaker rule for compatibility.
 
 This document is the implementation contract for every customer-facing route, form, record workspace, table, panel, dialog, and mobile action bar. It applies to new work and to refactoring of existing UI.
+
+## v8.36.64 — Resilient Demand Reporting
+
+- Demand Trend Lite now records report failures through the redacting server logger and preserves the report shell with an explicit retryable unavailable state.
+- An incomplete demand-trend source is never rendered as zero coverage, an empty chart, or a trustworthy empty result.
+- Reports summary now distinguishes reports visible to the current role from catalogue entries hidden by access, replacing the duplicate `Available` / `Total Listed` counters.
 
 ## v8.36.63 — Truthful Workspace Updates
 

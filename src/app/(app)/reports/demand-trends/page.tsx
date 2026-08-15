@@ -14,11 +14,22 @@ import { SelectNative } from "@/components/ui/select-native";
 import { OperationalList, OperationalListRow, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { formatNumber } from "@/lib/utils";
 import { getOutletDailyDemandTrend } from "@/server/queries/outlet-daily-records";
+import { logServerError } from "@/server/observability/logger";
 
 export const dynamic = "force-dynamic";
 
 export default async function DemandTrendsPage({ searchParams }: { searchParams: Promise<Record<string, string | undefined>> }) {
-  const report = await getOutletDailyDemandTrend(await searchParams);
+  const filters = await searchParams;
+  const report = await getOutletDailyDemandTrend(filters).catch((error) => {
+    logServerError(error, { source: "page.demandTrends.report" });
+    return null;
+  });
+  if (!report) return <>
+    <PageHeader title="Demand Trend Lite" description="Outlet-record movement and wastage trends for operational review." />
+    <WorkspaceGrid hideMobileConsole rightRail={<ConsoleSection title="Report status"><p className="text-xs text-muted-foreground">The report source could not be verified. No incomplete result is shown as zero.</p></ConsoleSection>} tabletRailMode="split">
+      <Card><CardContent className="p-5"><EmptyState title="Demand Trend Lite is unavailable" description="Try again shortly. Outlet records remain unchanged, and no incomplete trend is presented as an empty report." action={{ href: "/reports/demand-trends", label: "Retry report" }} /></CardContent></Card>
+    </WorkspaceGrid>
+  </>;
   const lowConfidence = report.coverage.confidence === "Low";
   return <>
     <PageHeader title="Demand Trend Lite" description="Outlet-record movement and wastage trends for operational review." />

@@ -75,6 +75,8 @@ export default async function ReportsPage() {
     }),
   })).filter((category) => category.reports.length);
   const reportCount = visibleCategories.reduce((sum, category) => sum + category.reports.length, 0);
+  const catalogueCount = reportCategories.reduce((sum, category) => sum + category.reports.length, 0);
+  const hiddenByAccess = Math.max(0, catalogueCount - reportCount);
 
   return (
     <>
@@ -87,7 +89,7 @@ export default async function ReportsPage() {
               <div className="grid gap-2 text-xs">
                 <div className="flex justify-between gap-3"><span className="text-muted-foreground">Categories</span><strong>{visibleCategories.length}</strong></div>
                 <div className="flex justify-between gap-3"><span className="text-muted-foreground">Available</span><strong>{reportCount}</strong></div>
-                <div className="flex justify-between gap-3"><span className="text-muted-foreground">Total Listed</span><strong>{reportCount}</strong></div>
+                <div className="flex justify-between gap-3"><span className="text-muted-foreground">Hidden by access</span><strong>{hiddenByAccess}</strong></div>
               </div>
             </ConsoleSection>
             <ConsoleSection title="Data Freshness">

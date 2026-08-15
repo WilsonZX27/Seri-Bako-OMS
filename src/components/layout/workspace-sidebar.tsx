@@ -145,7 +145,7 @@ export function WorkspaceSidebar({
         </div>
       </nav>
 
-      <div className="border-t border-white/10 px-3 py-2 text-[10px] text-white/45">{APP_RELEASE_NOTE}</div>
+      <div className="border-t border-white/10 px-3 py-2 text-[10px] text-white/70">{APP_RELEASE_NOTE}</div>
     </div>
   );
 }

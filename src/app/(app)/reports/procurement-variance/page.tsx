@@ -39,7 +39,7 @@ function ProcurementStageComparison({ row }: { row: VarianceRow }) {
   return <div className="space-y-2" data-procurement-stage-comparison>
     <div className="grid grid-cols-3 divide-x divide-[var(--sb-border-soft)] rounded-[var(--sb-radius-control)] border border-[var(--sb-border-soft)] bg-[var(--sb-surface-muted)]">
       {stages.map((stage) => <div key={stage.label} className="min-w-0 px-2 py-1.5">
-        <span className="block text-[10px] font-semibold uppercase tracking-[0.08em] text-[var(--sb-text-soft)]">{stage.label}</span>
+        <span className="block text-[10px] font-semibold uppercase tracking-[0.08em] text-[var(--sb-text-muted)]">{stage.label}</span>
         <strong className="mt-0.5 block truncate text-[11px] text-[var(--sb-text)]" title={stage.document}>{stage.document}</strong>
         <span className="mt-1 block tabular-nums">Qty {stage.quantity}</span>
         <span className="block tabular-nums">Price {stage.price}</span>

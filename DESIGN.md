@@ -1,6 +1,6 @@
 # Seri Bako OMS responsive design standard
 
-> **Release authority:** the currently released application is `v8.36.40`, as
+> **Release authority:** the currently released application is `v8.36.41`, as
 > defined by `src/lib/app-version.ts`. A versioned section above that number is
 > an accepted forward design contract or unreleased implementation note—not
 > evidence that the application itself has been released at that version.
@@ -10,6 +10,13 @@
 > **Precedence:** `docs/DESIGN_SYSTEM.md` is the living visual and interaction contract. When a historical release note or an older rule in this file conflicts with that contract, the living contract wins. Update both documents when a new pattern is accepted; do not preserve a visibly weaker rule for compatibility.
 
 This document is the implementation contract for every customer-facing route, form, record workspace, table, panel, dialog, and mobile action bar. It applies to new work and to refactoring of existing UI.
+
+## v8.36.41 — Costing Report Rankings
+
+- Product Margin adds filtered-population readiness distribution and a top-five ready-margin comparison. Absolute RM size determines visual rank while the direct label and preview preserve the signed margin; the report remains explicitly non-prescriptive.
+- Recipe Costing adds confidence distribution and a top-five usable cost-per-output comparison. Low-confidence rows are excluded from numeric cost ranking and remain explicitly incomplete rather than zero.
+- Both surfaces reuse the shared preview-before-open ranking contract: hover, first touch, and keyboard focus reveal exact values without navigation; linked records open only through the persistent Open action.
+- Rankings are capped at five records so phone users receive scan value without duplicating the full operational list. The existing table and phone list remain the complete detail authority.
 
 ## v8.36.40 — Guided Stock Count Workspace
 

@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { ConsoleSection } from "@/components/layout/right-console";
+import { ProductMarginInsights } from "@/components/reports/costing-report-insights";
 import { WorkspaceGrid } from "@/components/layout/workspace-layout";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -34,6 +35,7 @@ export default async function ProductMarginPage({ searchParams }: { searchParams
   const filters = await searchParams;
   const rows = await getProductMargin(filters).catch(() => null);
   return <><PageHeader title="Product Margin" description="Read-only product cost and gross-margin estimate from trusted recipe costs." />
+    {rows ? <div className="px-3 pt-3 sm:px-4"><ProductMarginInsights rows={rows} /></div> : null}
     <WorkspaceGrid hideMobileConsole rightRail={<><ConsoleSection title="Margin assumptions"><div className="space-y-2 text-xs text-muted-foreground"><p>Read-only estimate, not a pricing recommendation. Only <strong className="text-foreground">High</strong>-confidence recipe costs are used; Medium and Low are Cost incomplete.</p><p>One active product-packaging price is required. Missing or ambiguous pricing blocks margin, and missing cost is never zero.</p><p>No product price, product cost, or margin is written. Pricing decisions remain manual.</p></div></ConsoleSection><ConsoleSection title="Review paths"><p className="text-xs text-muted-foreground">Use Product to review packaging pricing. Use Recipe Costing or Costing Readiness when a recipe cost is incomplete.</p></ConsoleSection></>}>
       {!rows ? <Card><CardContent className="p-5"><EmptyState title="Product margin is unavailable" description="Try again shortly. No product data was changed." /></CardContent></Card> : <section className="overflow-hidden border bg-card" data-product-margin-workspace>
         <FilterBar resultCount={rows.length} resetHref="/reports/product-margin" filtered={hasActiveFilters(filters)}>

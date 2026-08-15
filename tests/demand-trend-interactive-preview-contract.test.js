@@ -33,6 +33,9 @@ test("Top movement and wastage use touch-friendly ranking previews with progress
   assert.match(page, /metric="wastage"/);
   assert.match(page, /searchParams=\{\{ period: report\.filters\.period, branch: report\.filters\.branch, status: report\.filters\.status \}\}/);
   assert.match(page, /collapsible \/>/);
+  assert.equal((page.match(/collapsible \/>/g) ?? []).length, 4);
+  assert.match(page, /data-demand-detail-disclosure/);
+  assert.match(page, /summary className="flex min-h-11/);
   assert.match(ranking, /onMouseEnter/);
   assert.match(ranking, /onMouseLeave/);
   assert.match(ranking, /onPointerDown/);

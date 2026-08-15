@@ -39,3 +39,12 @@ test("recipe costing empty states never claim that absent results are ready", ()
   assert.match(page, /No active recipes to cost/);
   assert.doesNotMatch(page, /Recipe costs are ready for review/);
 });
+
+test("product margin empty states distinguish missing products from filtered results", () => {
+  const page = read("src/app/(app)/reports/product-margin/page.tsx");
+
+  assert.match(page, /No product margins match these filters/);
+  assert.match(page, /No active products to review/);
+  assert.match(page, /Clear or widen the filters/);
+  assert.doesNotMatch(page, /Product margins are ready for review/);
+});

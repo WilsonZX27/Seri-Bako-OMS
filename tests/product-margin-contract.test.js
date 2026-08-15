@@ -30,7 +30,8 @@ test("Product Margin uses neutral bands and clear manual review paths", () => {
   assert.match(query, /"review" : "healthy"/);
   assert.match(page, /Medium and Low are Cost incomplete/);
   assert.match(page, /Missing or ambiguous pricing blocks margin/);
-  assert.match(page, /Product margins are ready for review/);
+  assert.match(page, /No product margins match these filters/);
+  assert.match(page, /No active products to review/);
   assert.match(page, /Review product pricing/);
   assert.match(page, /href=\{`\/recipes\/\$\{row.recipe_id\}`\}/);
 });

@@ -105,7 +105,7 @@ export default async function GoodsReceivingDetailPage({ params }: { params: Pro
                 <h2 className="text-sm font-semibold">Received Items</h2>
                 <p className="text-sm font-semibold">{formatCurrency(totalReceivedValue)}</p>
               </div>
-              <Table>
+              <Table mobileHidden aria-label="Received items">
                   <TableHeader>
                     <TableRow>
                       <TableHead>Item</TableHead>
@@ -140,6 +140,33 @@ export default async function GoodsReceivingDetailPage({ params }: { params: Pro
                     ))}
                   </TableBody>
               </Table>
+              <div className="divide-y divide-[var(--sb-border-soft)] xl:hidden" role="list" aria-label="Received items" data-goods-receiving-detail-lines>
+                {lines.map((line) => (
+                  <article key={line.id} role="listitem" className="min-w-0 py-3 first:pt-0 last:pb-0">
+                    <div className="flex min-w-0 items-start justify-between gap-3">
+                      <div className="min-w-0">
+                        <h3 className="break-words text-sm font-semibold leading-tight">{line.item?.item_name ?? line.item_id}</h3>
+                        <p className="mt-0.5 text-[11px] text-muted-foreground">{line.item?.item_code ?? "No item code"}</p>
+                      </div>
+                      <div className="shrink-0 text-right">
+                        <p className="text-[11px] text-muted-foreground">Received</p>
+                        <p className="font-semibold tabular-nums">{formatNumber(line.received_qty)} {line.uom}</p>
+                      </div>
+                    </div>
+                    <dl className="mt-3 grid grid-cols-3 gap-x-3 border-y border-[var(--sb-border-soft)] py-2 text-xs">
+                      <div><dt className="text-muted-foreground">Ordered</dt><dd className="mt-0.5 font-medium tabular-nums">{formatNumber(line.ordered_qty)}</dd></div>
+                      <div><dt className="text-muted-foreground">Previously</dt><dd className="mt-0.5 font-medium tabular-nums">{formatNumber(line.previously_received_qty)}</dd></div>
+                      <div><dt className="text-muted-foreground">Pending</dt><dd className="mt-0.5 font-medium tabular-nums">{formatNumber(line.pending_qty)}</dd></div>
+                    </dl>
+                    {line.rejected_qty > 0 ? <p className="mt-2 text-xs font-medium text-destructive">Rejected {formatNumber(line.rejected_qty)} {line.uom} · excluded from stock</p> : null}
+                    {line.batch_no || line.expiry_date ? <p className="mt-2 text-xs text-muted-foreground">Batch {line.batch_no ?? "not recorded"}{line.expiry_date ? ` · Expires ${formatDateOnly(line.expiry_date)}` : ""}</p> : null}
+                    <div className="mt-2 flex items-center justify-between gap-3 text-xs text-muted-foreground">
+                      <span>{formatCurrency(line.unit_cost)} / {line.uom}</span>
+                      <span className="font-medium text-foreground">Stock value {formatCurrency(line.received_qty * line.unit_cost)}</span>
+                    </div>
+                  </article>
+                ))}
+              </div>
             </CardContent>
           </Card>
 

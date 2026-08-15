@@ -104,6 +104,27 @@ test("stock transfer and wastage use searchable compact lines with one setup dis
   assert.equal((actions.match(/enabled\.has\(line\.item_id\)/g) ?? []).length, 2);
 });
 
+test("goods receiving detail replaces the ten-column phone table with a complete audit summary", () => {
+  const source = read("src/app/(app)/goods-receivings/[id]/page.tsx");
+  const browser = read("tests/e2e/goods-receiving-detail-responsive.spec.js");
+
+  assert.match(source, /<Table mobileHidden aria-label="Received items">/);
+  assert.match(source, /data-goods-receiving-detail-lines/);
+  assert.match(source, /role="list" aria-label="Received items"/);
+  assert.match(source, />Received<\/p>/);
+  assert.match(source, />Ordered<\/dt>/);
+  assert.match(source, />Previously<\/dt>/);
+  assert.match(source, />Pending<\/dt>/);
+  assert.match(source, /excluded from stock/);
+  assert.match(source, /Batch \{line\.batch_no/);
+  assert.match(source, /Stock value \{formatCurrency/);
+  assert.match(browser, /mobile-390/);
+  assert.match(browser, /tablet-820/);
+  assert.match(browser, /laptop-1180/);
+  assert.match(browser, /desktop-1440/);
+  assert.match(browser, /await expect\(table\)\.toBeHidden\(\)/);
+});
+
 test("stock count responsive audit covers workflow orientation and medium-width stacking", () => {
   const source = read("tests/e2e/stock-count-create-responsive.spec.js");
 

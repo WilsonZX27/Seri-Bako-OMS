@@ -123,8 +123,8 @@ export default async function RecipeDetailPage({
         <Card>
           <CardHeader><CardTitle>Ingredient Lines</CardTitle></CardHeader>
           <CardContent>
-            <div className="overflow-x-auto rounded-[2px] border">
-              <Table>
+            <div className="rounded-[2px] border">
+              <Table mobileHidden aria-label="Recipe ingredient availability">
                 <TableHeader>
                     <TableRow>
                       <TableHead>Ingredient</TableHead>
@@ -160,6 +160,9 @@ export default async function RecipeDetailPage({
                   ))}
                 </TableBody>
               </Table>
+              <div className="divide-y xl:hidden" role="list" aria-label="Recipe ingredient availability" data-recipe-ingredient-detail-list>
+                {recipe.lines.map((line) => { const action = line.stock_status === "available" ? "Use stock" : line.stock_status === "unknown" ? "Check stock" : "Create PR"; return <article key={line.id} className="space-y-3 p-3" role="listitem"><div className="flex items-start gap-3">{line.ingredient_image_url ? <Image src={line.ingredient_image_url} alt="" width={40} height={40} className="h-10 w-10 shrink-0 rounded-[2px] object-cover" /> : imageFallback(line.ingredient_item_code)}<div className="min-w-0 flex-1"><div className="flex items-start justify-between gap-3"><div className="min-w-0"><h3 className="font-medium leading-snug">{line.ingredient_name}</h3><p className="text-xs text-muted-foreground">{line.ingredient_item_code}</p></div><strong className="shrink-0">{formatNumber(line.base_qty_required)} {line.base_uom}</strong></div></div></div><dl className="grid grid-cols-2 gap-x-4 gap-y-3 rounded-md bg-secondary/35 p-3 text-xs"><div><dt className="text-muted-foreground">Current stock</dt><dd className="mt-1 font-medium">{line.current_stock == null ? "Unknown" : `${formatNumber(line.current_stock)} ${line.base_uom}`}</dd></div><div><dt className="text-muted-foreground">Shortage</dt><dd className="mt-1 font-medium">{line.shortage_qty == null ? "Unavailable" : `${formatNumber(line.shortage_qty)} ${line.base_uom}`}</dd></div><div><dt className="text-muted-foreground">Suggested action</dt><dd className="mt-1 font-medium">{action}</dd></div><div><dt className="text-muted-foreground">Line cost</dt><dd className="mt-1 font-medium">{formatCurrency(line.calculated_line_cost)}</dd></div></dl><Badge variant={line.stock_status === "available" ? "success" : line.stock_status === "short" ? "danger" : "secondary"}>{line.stock_status === "need_purchase" ? "Need Purchase" : line.stock_status}</Badge></article>; })}
+              </div>
             </div>
           </CardContent>
         </Card>

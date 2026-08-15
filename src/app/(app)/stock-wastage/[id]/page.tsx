@@ -81,8 +81,7 @@ export default async function StockWastageDetailPage({ params }: { params: Promi
       <Card>
         <CardContent className="p-5">
           <h2 className="mb-3 text-sm font-semibold">Wastage Lines</h2>
-          <div className="overflow-x-auto">
-            <Table>
+            <Table mobileHidden aria-label="Wastage lines">
               <TableHeader>
                 <TableRow>
                   <TableHead>Item</TableHead>
@@ -104,7 +103,7 @@ export default async function StockWastageDetailPage({ params }: { params: Promi
                 ))}
               </TableBody>
             </Table>
-          </div>
+            <div className="divide-y xl:hidden" role="list" aria-label="Wastage lines" data-stock-wastage-detail-lines>{lines.map((line) => <article key={line.id} className="space-y-3 py-4 first:pt-1 last:pb-1" role="listitem"><div className="flex items-start justify-between gap-4"><div className="min-w-0"><h3 className="font-medium leading-snug">{line.item?.item_name ?? line.item_id}</h3><p className="mt-0.5 text-xs text-muted-foreground">{line.item?.item_code ?? "No item code"}</p></div><strong className="shrink-0 text-[var(--sb-warning)]">{formatNumber(line.quantity)} {line.uom}</strong></div><dl className="grid grid-cols-2 gap-4 rounded-md bg-secondary/35 p-3 text-xs"><div><dt className="text-muted-foreground">Reason</dt><dd className="mt-1 font-medium capitalize">{line.reason.replaceAll("_", " ")}</dd></div><div><dt className="text-muted-foreground">Batch / expiry</dt><dd className="mt-1 font-medium">{line.batch_no ?? "No batch"}{line.expiry_date ? ` · ${formatDateOnly(line.expiry_date)}` : ""}</dd></div></dl>{line.remarks ? <p className="text-xs"><span className="text-muted-foreground">Remarks:</span> {line.remarks}</p> : null}</article>)}</div>
         </CardContent>
       </Card>
     </DocumentWorkspace>

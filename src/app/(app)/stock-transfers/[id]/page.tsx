@@ -98,7 +98,7 @@ export default async function StockTransferDetailPage({ params }: { params: Prom
       <Card>
         <CardContent className="p-5">
           <h2 className="mb-3 text-sm font-semibold">Transfer Lines</h2>
-          <Table>
+          <Table mobileHidden aria-label="Transfer lines">
               <TableHeader>
                 <TableRow>
                   <TableHead>Item</TableHead>
@@ -118,6 +118,9 @@ export default async function StockTransferDetailPage({ params }: { params: Prom
                 ))}
               </TableBody>
           </Table>
+          <div className="divide-y xl:hidden" role="list" aria-label="Transfer lines" data-stock-transfer-detail-lines>
+            {lines.map((line) => { const received = Number(line.received_quantity ?? 0); const remaining = Math.max(Number(line.quantity) - received, 0); return <article key={line.id} className="space-y-3 py-4 first:pt-1 last:pb-1" role="listitem"><div className="flex items-start justify-between gap-4"><div className="min-w-0"><h3 className="font-medium leading-snug">{line.item?.item_name ?? line.item_id}</h3><p className="mt-0.5 text-xs text-muted-foreground">{line.item?.item_code ?? "No item code"}</p></div><strong className="shrink-0">{formatNumber(line.quantity)} {line.uom}</strong></div><dl className="grid grid-cols-2 gap-4 rounded-md bg-secondary/35 p-3 text-xs"><div><dt className="text-muted-foreground">Received</dt><dd className="mt-1 font-medium">{formatNumber(received)} {line.uom}</dd></div><div><dt className="text-muted-foreground">Remaining</dt><dd className="mt-1 font-medium">{formatNumber(remaining)} {line.uom}</dd></div></dl>{line.remarks ? <p className="text-xs"><span className="text-muted-foreground">Remarks:</span> {line.remarks}</p> : null}</article>; })}
+          </div>
         </CardContent>
       </Card>
     </DocumentWorkspace>

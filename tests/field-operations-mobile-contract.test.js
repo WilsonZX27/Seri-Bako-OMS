@@ -244,6 +244,27 @@ test("posted production and stock count details keep reconciliation authority of
   assert.match(stockCount, /Variance exceeds tolerance; remarks were not recorded/);
 });
 
+test("remaining operational details replace narrow audit tables without dropping authority", () => {
+  const recipe = read("src/app/(app)/recipes/[id]/page.tsx");
+  const transfer = read("src/app/(app)/stock-transfers/[id]/page.tsx");
+  const wastage = read("src/app/(app)/stock-wastage/[id]/page.tsx");
+  const ledger = read("src/app/(app)/stock-transactions/[id]/page.tsx");
+
+  assert.match(recipe, /<Table mobileHidden aria-label="Recipe ingredient availability">/);
+  assert.match(recipe, /data-recipe-ingredient-detail-list/);
+  assert.match(recipe, /line\.current_stock == null \? "Unknown"/);
+  assert.match(recipe, /line\.shortage_qty == null \? "Unavailable"/);
+  assert.match(transfer, /<Table mobileHidden aria-label="Transfer lines">/);
+  assert.match(transfer, /data-stock-transfer-detail-lines/);
+  assert.match(transfer, /Math\.max\(Number\(line\.quantity\) - received, 0\)/);
+  assert.match(wastage, /<Table mobileHidden aria-label="Wastage lines">/);
+  assert.match(wastage, /data-stock-wastage-detail-lines/);
+  assert.match(wastage, /line\.batch_no \?\? "No batch"/);
+  assert.match(ledger, /data-ledger-movement-detail/);
+  assert.match(ledger, /transaction\.quantity_in > 0 \? `\+\$\{formatNumber/);
+  assert.doesNotMatch(ledger, /<Table/);
+});
+
 test("supplier invoice responsive audit verifies flat selected-line disclosure", () => {
   const source = read("tests/e2e/supplier-invoice-create-responsive.spec.js");
 

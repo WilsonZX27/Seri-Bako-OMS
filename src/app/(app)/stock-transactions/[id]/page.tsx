@@ -6,7 +6,6 @@ import { ConsoleSection } from "@/components/layout/right-console";
 import { PageHeader } from "@/components/ui/page-header";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { formatDateOnly, formatDateTime } from "@/lib/utils";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { AttachmentPanel, CommentsPanel, DocumentTimeline, RevisionPanel } from "@/components/documents/document-panels";
 import { WorkspaceGrid } from "@/components/layout/workspace-layout";
 import { formatCurrency, formatNumber } from "@/lib/utils";
@@ -101,30 +100,10 @@ export default async function StockTransactionDetailPage({ params }: { params: P
           <Card>
             <CardContent className="p-5">
               <h2 className="mb-3 text-sm font-semibold">Ledger Line</h2>
-              <div className="overflow-x-auto">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Item</TableHead>
-                      <TableHead>Branch</TableHead>
-                      <TableHead className="text-right">Qty In</TableHead>
-                      <TableHead className="text-right">Qty Out</TableHead>
-                      <TableHead className="text-right">Unit Cost</TableHead>
-                      <TableHead className="text-right">Total Cost</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    <TableRow>
-                      <TableCell><p className="font-medium">{transaction.item?.item_name ?? transaction.item_id}</p><p className="text-xs text-muted-foreground">{transaction.item?.item_code}</p></TableCell>
-                      <TableCell>{transaction.branch?.branch_name ?? "-"}</TableCell>
-                      <TableCell className="text-right">{transaction.quantity_in > 0 ? `${formatNumber(transaction.quantity_in)} ${transaction.item?.base_unit ?? ""}` : "-"}</TableCell>
-                      <TableCell className="text-right">{transaction.quantity_out > 0 ? `${formatNumber(transaction.quantity_out)} ${transaction.item?.base_unit ?? ""}` : "-"}</TableCell>
-                      <TableCell className="text-right">{formatCurrency(transaction.unit_cost ?? 0)}</TableCell>
-                      <TableCell className="text-right">{formatCurrency(transaction.total_cost ?? movementQty * (transaction.unit_cost ?? 0))}</TableCell>
-                    </TableRow>
-                  </TableBody>
-                </Table>
-              </div>
+              <section className="space-y-4" aria-label="Ledger movement detail" data-ledger-movement-detail>
+                <div className="flex items-start justify-between gap-4"><div className="min-w-0"><h3 className="font-medium leading-snug">{transaction.item?.item_name ?? transaction.item_id}</h3><p className="mt-0.5 text-xs text-muted-foreground">{transaction.item?.item_code ?? "No item code"} · {transaction.branch?.branch_name ?? "Unknown branch"}</p></div><div className="shrink-0 text-right"><strong className={transaction.quantity_in > 0 ? "text-[var(--sb-success)]" : "text-[var(--sb-warning)]"}>{transaction.quantity_in > 0 ? `+${formatNumber(transaction.quantity_in)}` : `−${formatNumber(transaction.quantity_out)}`} {transaction.item?.base_unit ?? ""}</strong><p className="text-xs text-muted-foreground">{transaction.quantity_in > 0 ? "Stock in" : "Stock out"}</p></div></div>
+                <dl className="grid grid-cols-2 gap-4 rounded-md bg-secondary/35 p-3 text-xs"><div><dt className="text-muted-foreground">Unit cost</dt><dd className="mt-1 font-medium">{formatCurrency(transaction.unit_cost ?? 0)}</dd></div><div><dt className="text-muted-foreground">Movement value</dt><dd className="mt-1 font-medium">{formatCurrency(transaction.total_cost ?? movementQty * (transaction.unit_cost ?? 0))}</dd></div></dl>
+              </section>
             </CardContent>
           </Card>
 

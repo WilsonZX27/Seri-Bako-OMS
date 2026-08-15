@@ -9,7 +9,7 @@ type MatrixRow = { branch_id: string; branch_name: string; cells: OutletDailyCom
 type MatrixSummary = { expected: number; completed: number; incomplete: number; missing: number; voided: number };
 
 const stateMeta = {
-  missing: { label: "Missing", short: "—", className: "border-[var(--sb-border-strong)] bg-white text-[var(--sb-text-muted)]" },
+  missing: { label: "Missing", short: "—", className: "border-[var(--sb-border-strong)] bg-[var(--sb-surface)] text-[var(--sb-text-muted)]" },
   draft: { label: "Draft", short: "D", className: "border-[var(--sb-warning)] bg-[var(--sb-warning-bg)] text-[var(--sb-warning)]" },
   morning_recorded: { label: "Morning recorded", short: "M", className: "border-[var(--sb-warning)] bg-[var(--sb-warning-bg)] text-[var(--sb-warning)]" },
   evening_completed: { label: "Completed", short: "C", className: "border-[var(--sb-success)] bg-[var(--sb-success-bg)] text-[var(--sb-success)]" },

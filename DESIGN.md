@@ -1,6 +1,6 @@
 # Seri Bako OMS responsive design standard
 
-> **Release authority:** the currently released application is `v8.36.47`, as
+> **Release authority:** the currently released application is `v8.36.48`, as
 > defined by `src/lib/app-version.ts`. A versioned section above that number is
 > an accepted forward design contract or unreleased implementation note—not
 > evidence that the application itself has been released at that version.
@@ -10,6 +10,13 @@
 > **Precedence:** `docs/DESIGN_SYSTEM.md` is the living visual and interaction contract. When a historical release note or an older rule in this file conflicts with that contract, the living contract wins. Update both documents when a new pattern is accepted; do not preserve a visibly weaker rule for compatibility.
 
 This document is the implementation contract for every customer-facing route, form, record workspace, table, panel, dialog, and mobile action bar. It applies to new work and to refactoring of existing UI.
+
+## v8.36.48 — Semantic Operational Surfaces
+
+- Ordinary workspace backgrounds, alternating rows, controls, and missing-state cells use the shared surface tokens. Operational components must not hard-code white or a framework gray when the meaning is an ordinary, raised, or muted application surface.
+- Dark operational-green states use `--sb-text-inverse` for foreground contrast. Literal white opacity remains valid only for intentional layered content on a known dark background, such as the Dashboard Operational Pulse.
+- Stock Count setup, long-entry workspace, toolbar, row striping, quantity editor, and adjusted-only control now share the same semantic surface and border authority. The workflow remains visually coherent across theme variants without changing count behavior.
+- Outlet completion missing cells and Stock Count variance view tabs follow the same contract, with regression tests preventing local hard-coded surface colors from returning.
 
 ## v8.36.47 — Responsive Import Review
 

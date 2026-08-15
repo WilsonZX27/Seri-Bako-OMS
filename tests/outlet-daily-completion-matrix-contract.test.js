@@ -38,3 +38,9 @@ test("horizontal matrix scrolling preserves outlet identity on narrow workspaces
   assert.match(component, /<th scope="row" className="sticky left-0 z-10/);
   assert.match(component, /overflow-x-auto overscroll-x-contain/);
 });
+
+test("outlet completion states use semantic surfaces instead of a hard-coded theme", () => {
+  const component = read("src/components/outlet-daily-completion-matrix.tsx");
+  assert.match(component, /missing:[\s\S]*bg-\[var\(--sb-surface\)\]/);
+  assert.doesNotMatch(component, /bg-white|text-white|border-white/);
+});

@@ -349,7 +349,7 @@ export function StockCountForm({
             <div className="mt-2 h-1 overflow-hidden rounded-full bg-[var(--sb-border-soft)]" aria-hidden="true"><div className="h-full w-1/2 rounded-full bg-[var(--sb-green-700)]" /></div>
             <p className="mt-1.5 text-[11px] leading-4 text-muted-foreground">Saving a draft does not change stock. Posting is the final step.</p>
           </section>
-          <section data-stock-count-setup className="erp-surface overflow-hidden rounded-[var(--sb-panel-radius)] border bg-white p-3 md:p-4">
+          <section data-stock-count-setup className="erp-surface overflow-hidden rounded-[var(--sb-panel-radius)] border bg-[var(--sb-surface)] p-3 md:p-4">
             <input type="hidden" name="branch_id" value={resolvedBranchId} />
             <button type="button" className="flex w-full min-w-0 items-start justify-between gap-3 text-left" aria-expanded={settingsOpen} onClick={() => setSettingsOpen((current) => !current)}>
               <div className="min-w-0">
@@ -384,9 +384,9 @@ export function StockCountForm({
             </div>
           </section>
 
-          <section data-stock-count-workspace className="erp-surface overflow-hidden rounded-[var(--sb-panel-radius)] border bg-white">
+          <section data-stock-count-workspace className="erp-surface overflow-hidden rounded-[var(--sb-panel-radius)] border bg-[var(--sb-surface)]">
 
-          <div className="flex items-center gap-2 border-b border-slate-200 bg-white p-3 md:bg-transparent md:px-3 md:pt-3">
+          <div className="flex items-center gap-2 border-b border-[var(--sb-border-soft)] bg-[var(--sb-surface)] p-3 md:bg-transparent md:px-3 md:pt-3">
             <label className="relative min-w-0 flex-1">
               <span className="sr-only">Find an item</span>
               <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" aria-hidden="true" />
@@ -398,7 +398,7 @@ export function StockCountForm({
             </SelectNative>
             <button
               type="button"
-              className="inline-flex h-[var(--sb-control-height)] min-w-11 shrink-0 items-center justify-center gap-1.5 border border-[var(--sb-border)] bg-white px-2.5 text-sm font-medium hover:bg-[var(--sb-surface-muted)]"
+              className="inline-flex h-[var(--sb-control-height)] min-w-11 shrink-0 items-center justify-center gap-1.5 border border-[var(--sb-border)] bg-[var(--sb-surface)] px-2.5 text-sm font-medium hover:bg-[var(--sb-surface-muted)]"
               aria-pressed={showAdjustedOnly}
               onClick={() => setShowAdjustedOnly((current) => !current)}
             >
@@ -442,7 +442,7 @@ export function StockCountForm({
                   <div
                     key={line.item_id}
                     data-stock-count-line
-                    className={`grid min-h-12 grid-cols-[minmax(0,1fr)_auto] items-center gap-x-2 gap-y-1.5 border-b border-slate-200 px-4 py-2 md:min-h-14 ${line.adjusted ? "bg-[var(--sb-green-100)]" : lineIndex % 2 ? "bg-slate-50/70" : "bg-white"} lg:grid-cols-[minmax(12rem,1fr)_5rem_minmax(14rem,17rem)] lg:gap-4 xl:grid-cols-[minmax(16rem,1fr)_5rem_minmax(16rem,18rem)]`}
+                    className={`grid min-h-12 grid-cols-[minmax(0,1fr)_auto] items-center gap-x-2 gap-y-1.5 border-b border-[var(--sb-border-soft)] px-4 py-2 md:min-h-14 ${line.adjusted ? "bg-[var(--sb-green-100)]" : lineIndex % 2 ? "bg-[var(--sb-surface-muted)]" : "bg-[var(--sb-surface)]"} lg:grid-cols-[minmax(12rem,1fr)_5rem_minmax(14rem,17rem)] lg:gap-4 xl:grid-cols-[minmax(16rem,1fr)_5rem_minmax(16rem,18rem)]`}
                   >
                     <div className="order-1 min-w-0">
                       <p className="break-words text-sm font-medium leading-tight text-slate-800">{line.item_name}</p>
@@ -454,7 +454,7 @@ export function StockCountForm({
                     </div>
 
                     <div className="order-3 col-span-2 flex min-w-0 items-center justify-end gap-2 lg:col-span-1 lg:justify-self-stretch">
-                        <div className="flex min-w-0 flex-1 overflow-hidden rounded-sm border border-[var(--sb-border)] bg-white">
+                        <div className="flex min-w-0 flex-1 overflow-hidden rounded-sm border border-[var(--sb-border)] bg-[var(--sb-surface)]">
                           <button type="button" className="flex h-9 w-9 shrink-0 items-center justify-center border-r border-[var(--sb-border)] text-[var(--sb-green-900)] hover:bg-[var(--sb-surface-muted)] active:bg-[var(--sb-green-100)] lg:h-10 lg:w-10" onClick={() => adjustPhysicalQty(line.item_id, -1)} aria-label={`Decrease physical quantity for ${line.item_name}`}><Minus className="h-4 w-4" /></button>
                         <Input
                           id={`physical-${line.item_id}`}

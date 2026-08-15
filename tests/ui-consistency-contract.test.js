@@ -126,8 +126,9 @@ test("stock count sessions preserve workflow orientation throughout long entry l
   assert.match(stockCountForm, /Step 1 of 2/);
   assert.match(stockCountForm, /Saving a draft does not change stock\. Posting is the final step\./);
   assert.match(stockCountForm, /sticky top-\[7\.25rem\][\s\S]*Item[\s\S]*Variance[\s\S]*Count/);
-  assert.match(stockCountForm, /border-b border-slate-200/);
+  assert.match(stockCountForm, /border-b border-\[var\(--sb-border-soft\)\]/);
   assert.match(documentWorkspace, /shadow-\[0_8px_22px_rgb\(6_44_31_\/_0\.16\)\]/);
+  assert.doesNotMatch(stockCountForm, /bg-white|text-white|border-white/);
 });
 
 test("administration and import directories use the shared flat operational tool list", () => {

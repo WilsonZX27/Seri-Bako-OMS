@@ -49,4 +49,14 @@ test("Costing Readiness compares severity-scoped module concentration before ope
   assert.match(insights, /issue counts, not financial value/);
   assert.match(insights, /data-costing-readiness-insights/);
   assert.match(insights, /href: `\/reports\/costing-readiness\?\$\{params\.toString\(\)\}`/);
+  assert.match(insights, /const scopedSummary = modules\.reduce/);
+  assert.match(insights, /\{scopedSummary\.total\} in scope/);
+  assert.match(insights, />Overall: \{readiness\}<\/Badge>/);
+  assert.doesNotMatch(insights, /summary: \{ total:/);
+
+  const workspace = page.indexOf("data-costing-readiness-workspace");
+  const filters = page.indexOf("<FilterBar", workspace);
+  const charts = page.indexOf("<CostingReadinessInsights", workspace);
+  const detail = page.indexOf("<section className=\"sb-list-content-card", workspace);
+  assert.ok(workspace >= 0 && filters > workspace && charts > filters && detail > charts, "Costing Readiness must keep filters, scoped insights, and detail in one ordered workspace");
 });

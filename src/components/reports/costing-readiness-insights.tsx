@@ -11,16 +11,20 @@ const moduleLabels = {
 
 export function CostingReadinessInsights({
   readiness,
-  summary,
   modules,
   severity,
 }: {
   readiness: "Ready" | "Needs cleanup" | "Not ready";
-  summary: { total: number; critical: number; warning: number; info: number };
   modules: CostingModuleSummary[];
   severity?: string;
 }) {
   const scope = severity && severity !== "all" ? severity : "all severities";
+  const scopedSummary = modules.reduce((summary, row) => ({
+    total: summary.total + row.total,
+    critical: summary.critical + row.critical,
+    warning: summary.warning + row.warning,
+    info: summary.info + row.info,
+  }), { total: 0, critical: 0, warning: 0, info: 0 });
   const items = [...modules]
     .sort((left, right) => right.total - left.total || moduleLabels[left.module].localeCompare(moduleLabels[right.module]))
     .map((row) => {
@@ -43,10 +47,10 @@ export function CostingReadinessInsights({
         <h2 id="costing-readiness-insight-title" className="text-sm font-semibold">Where are costing gaps concentrated?</h2>
         <p className="mt-0.5 text-[11px] text-muted-foreground">Current master data and recipe lines · {scope} · issue counts, not financial value</p>
       </div>
-      <Badge variant={readiness === "Ready" ? "success" : readiness === "Needs cleanup" ? "warning" : "danger"}>{readiness}</Badge>
+      <Badge variant={readiness === "Ready" ? "success" : readiness === "Needs cleanup" ? "warning" : "danger"}>Overall: {readiness}</Badge>
     </header>
     <div className="p-3">
-      <p className="mb-2 text-xs text-muted-foreground"><strong className="text-foreground">{summary.total} total</strong> · {summary.critical} critical · {summary.warning} warning · {summary.info} information</p>
+      <p className="mb-2 text-xs text-muted-foreground"><strong className="text-foreground">{scopedSummary.total} in scope</strong> · {scopedSummary.critical} critical · {scopedSummary.warning} warning · {scopedSummary.info} information</p>
       <InteractiveRankingChart items={items} ariaLabel={`Costing readiness issues by module for ${scope}`} idlePrompt="Hover, tap, or focus a module to preview severity composition. Open applies that module to the issue list." />
     </div>
   </section>;

@@ -18,7 +18,9 @@ test("PR detail keeps required access stable and optional panels non-fatal", () 
   assert.match(query, /purchase_requests"\)\.select\("\*"\)\.eq\("id", id\)\.maybeSingle\(\)/);
   assert.match(page, /if \(!purchaseRequest\)/);
   assert.match(page, /Purchase request not available/);
-  assert.match(page, /getDocumentBundle\(request\.document_id\)\.catch\(\(\) => null\)/);
+  assert.match(page, /Promise\.allSettled\(\[/);
+  assert.match(page, /page\.purchaseRequestDetail\.documentBundle/);
+  assert.match(page, /documentBundleUnavailable/);
 });
 
 test("Purchasing conversion is state and database-permission driven", () => {

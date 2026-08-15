@@ -1,6 +1,6 @@
 # Seri Bako OMS responsive design standard
 
-> **Release authority:** the currently released application is `v8.36.87`, as
+> **Release authority:** the currently released application is `v8.36.88`, as
 > defined by `src/lib/app-version.ts`. A versioned section above that number is
 > an accepted forward design contract or unreleased implementation note—not
 > evidence that the application itself has been released at that version.
@@ -10,6 +10,12 @@
 > **Precedence:** `docs/DESIGN_SYSTEM.md` is the living visual and interaction contract. When a historical release note or an older rule in this file conflicts with that contract, the living contract wins. Update both documents when a new pattern is accepted; do not preserve a visibly weaker rule for compatibility.
 
 This document is the implementation contract for every customer-facing route, form, record workspace, table, panel, dialog, and mobile action bar. It applies to new work and to refactoring of existing UI.
+
+## v8.36.88 — Readable Dense Reports
+
+- Ten-column decision reports do not switch to a technical table merely because the viewport reached `xl`; the available main canvas must also be wide enough after the navigation and report guidance rail are present.
+- Procurement Variance, Product Margin, and Recipe Costing keep their complete Operational List through 1440px and switch to the dense table at `2xl`, where all decision columns and the final status/action remain readable together.
+- The shared Table and Operational List primitives now support a `2xl` handoff. No report field is removed, compressed into unreadable text, or hidden behind an apparently clipped table edge.
 
 ## v8.36.87 — Accessible Report Filters
 

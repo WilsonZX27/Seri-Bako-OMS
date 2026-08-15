@@ -128,7 +128,7 @@ export default async function ProcurementVariancePage({ searchParams }: { search
           <ProcurementVarianceCharts rows={rows} searchParams={filters} />
 
           <section className="sb-list-content-card overflow-hidden">
-            <Table mobileHidden aria-label="Procurement cost variance">
+            <Table mobileHidden compactUntil="2xl" aria-label="Procurement cost variance">
               <TableHeader>
                 <TableRow>
                   <TableHead>Item / supplier</TableHead>
@@ -164,7 +164,7 @@ export default async function ProcurementVariancePage({ searchParams }: { search
               </TableBody>
             </Table>
 
-            <OperationalList ariaLabel="Procurement cost variance">
+            <OperationalList ariaLabel="Procurement cost variance" showUntil="2xl">
               {rows.map((row) => (
                 <OperationalListRow
                   key={row.id}

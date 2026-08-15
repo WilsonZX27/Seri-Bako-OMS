@@ -23,6 +23,8 @@ test("product margin exposes a compact preview-first readiness and margin rankin
   assert.match(insights, /Open applies that status to the detail list/);
   assert.match(page, /meta=\{`Band \$\{bandLabel\[row\.margin_band\]\}`\}/);
   assert.match(page, /Next: \{actionLabel\(row\)\}/);
+  assert.match(page, /<Table mobileHidden compactUntil="2xl" aria-label="Product cost and margin estimates"/);
+  assert.match(page, /<OperationalList ariaLabel="Product cost and margin estimates" showUntil="2xl"/);
 
   const workspace = page.indexOf("<WorkspaceGrid");
   const filters = page.indexOf("<FilterBar", workspace);
@@ -51,6 +53,8 @@ test("recipe costing ranks only usable cost authority and preserves Low as incom
   assert.match(ranking, /onFocus/);
   assert.match(ranking, /aria-pressed/);
   assert.match(ranking, /data-ranking-open/);
+  assert.match(page, /<Table mobileHidden compactUntil="2xl" aria-label="Recipe costing estimates"/);
+  assert.match(page, /<OperationalList ariaLabel="Recipe costing estimates" showUntil="2xl"/);
 
   const workspace = page.indexOf("data-recipe-costing-workspace");
   const filters = page.indexOf("<FilterBar", workspace);

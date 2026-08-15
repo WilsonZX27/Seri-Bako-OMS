@@ -93,7 +93,7 @@ export default async function RecipeCostingPage({ searchParams }: { searchParams
           <RecipeCostingInsights rows={rows} searchParams={{ ...filters, status: filters.status ?? "active" }} />
 
           <section className="sb-list-content-card overflow-hidden">
-            <Table mobileHidden aria-label="Recipe costing estimates">
+            <Table mobileHidden compactUntil="2xl" aria-label="Recipe costing estimates">
               <TableHeader>
                 <TableRow>
                   <TableHead>Recipe</TableHead>
@@ -134,7 +134,7 @@ export default async function RecipeCostingPage({ searchParams }: { searchParams
               </TableBody>
             </Table>
 
-            <OperationalList ariaLabel="Recipe costing estimates">
+            <OperationalList ariaLabel="Recipe costing estimates" showUntil="2xl">
               {rows.map((row) => (
                 <OperationalListRow
                   key={row.id}

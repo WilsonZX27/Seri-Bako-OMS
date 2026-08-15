@@ -35,7 +35,7 @@ test("Recipe Costing surfaces confidence, manual actions, filters, and the exist
   for (const action of ["Add item cost", "Align UOM", "Add recipe output", "Add recipe lines"]) assert.match(query, new RegExp(action));
   assert.match(page, /href=\{`\/recipes\/\$\{row.id\}`\}/);
   assert.match(page, /tabletRailMode="split"/);
-  assert.match(page, /<Table mobileHidden aria-label="Recipe costing estimates"/);
+  assert.match(page, /<Table mobileHidden compactUntil="2xl" aria-label="Recipe costing estimates"/);
   assert.match(page, /<OperationalList ariaLabel="Recipe costing estimates"/);
   assert.match(page, /statusMeta=\{row\.cost_per_output_unit == null \? "Incomplete"/);
   assert.match(page, /Missing cost \{row\.missing_cost_count\} · UOM mismatch \{row\.uom_mismatch_count\}/);

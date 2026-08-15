@@ -6,9 +6,9 @@ const path = require("node:path");
 const page = fs.readFileSync(path.join(__dirname, "../src/app/(app)/reports/product-margin/page.tsx"), "utf8");
 
 test("Product Margin replaces the ten-column phone table with a decision-first operational list", () => {
-  assert.match(page, /<Table mobileHidden aria-label="Product cost and margin estimates">/);
+  assert.match(page, /<Table mobileHidden compactUntil="2xl" aria-label="Product cost and margin estimates">/);
   assert.match(page, /data-product-margin-mobile-list/);
-  assert.match(page, /<OperationalList ariaLabel="Product cost and margin estimates">/);
+  assert.match(page, /<OperationalList ariaLabel="Product cost and margin estimates" showUntil="2xl">/);
   assert.match(page, /status=\{<Badge variant=\{statusVariant\[row\.status\]\}/);
   assert.match(page, /Margin unavailable/);
   assert.match(page, /Price \{row\.selling_price == null \? "unavailable"/);

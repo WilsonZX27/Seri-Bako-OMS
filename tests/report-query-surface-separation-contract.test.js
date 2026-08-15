@@ -31,7 +31,7 @@ test("each separated result surface retains a narrow-workspace equivalent", () =
   assert.match(cleanup, /<OperationalList ariaLabel="Master data cleanup issues">/);
   assert.match(variance, /data-production-variance-list/);
   assert.match(readiness, /data-costing-readiness-list/);
-  assert.match(procurement, /<OperationalList ariaLabel="Procurement cost variance">/);
+  assert.match(procurement, /<OperationalList ariaLabel="Procurement cost variance" showUntil="2xl">/);
   assert.match(margin, /data-product-margin-mobile-list/);
-  assert.match(recipe, /<OperationalList ariaLabel="Recipe costing estimates">/);
+  assert.match(recipe, /<OperationalList ariaLabel="Recipe costing estimates" showUntil="2xl">/);
 });

@@ -11,7 +11,7 @@ import { cn } from "@/lib/utils";
  * The `third` anchor is used when a compact action column sits between the checkbox and identity.
  * Legacy contract: stickyColumn?: "none" | "first" | "second"
  */
-export function Table({ className, mobileHidden = false, compactUntil = "xl", stickyColumn = "first", ...props }: React.TableHTMLAttributes<HTMLTableElement> & { mobileHidden?: boolean; compactUntil?: "md" | "xl"; stickyColumn?: "none" | "first" | "second" | "third" }) {
+export function Table({ className, mobileHidden = false, compactUntil = "xl", stickyColumn = "first", ...props }: React.TableHTMLAttributes<HTMLTableElement> & { mobileHidden?: boolean; compactUntil?: "md" | "xl" | "2xl"; stickyColumn?: "none" | "first" | "second" | "third" }) {
   const regionRef = React.useRef<HTMLDivElement>(null);
   const [scrolled, setScrolled] = React.useState(false);
 
@@ -29,14 +29,14 @@ export function Table({ className, mobileHidden = false, compactUntil = "xl", st
   }, [updateScrollState]);
 
   return (
-    <div ref={regionRef} onScroll={updateScrollState} className={cn("sb-table-region sb-scrollbar-none", mobileHidden && (compactUntil === "xl" ? "hidden xl:block" : "hidden md:block"))} data-sticky-column={stickyColumn} data-scrolled={scrolled ? "true" : "false"} role="region" aria-label={props["aria-label"] ?? "Data table"} tabIndex={0}>
+    <div ref={regionRef} onScroll={updateScrollState} className={cn("sb-table-region sb-scrollbar-none", mobileHidden && (compactUntil === "2xl" ? "hidden 2xl:block" : compactUntil === "xl" ? "hidden xl:block" : "hidden md:block"))} data-sticky-column={stickyColumn} data-scrolled={scrolled ? "true" : "false"} role="region" aria-label={props["aria-label"] ?? "Data table"} tabIndex={0}>
       <table className={cn("w-full caption-bottom text-xs", className)} {...props} />
     </div>
   );
 }
 
-export function OperationalList({ children, ariaLabel, className, showUntil = "xl" }: { children: React.ReactNode; ariaLabel: string; className?: string; showUntil?: "md" | "xl" }) {
-  return <div className={cn("divide-y divide-[var(--sb-border-soft)]", showUntil === "xl" ? "xl:hidden" : "md:hidden", className)} role="list" aria-label={ariaLabel}>{children}</div>;
+export function OperationalList({ children, ariaLabel, className, showUntil = "xl" }: { children: React.ReactNode; ariaLabel: string; className?: string; showUntil?: "md" | "xl" | "2xl" }) {
+  return <div className={cn("divide-y divide-[var(--sb-border-soft)]", showUntil === "2xl" ? "2xl:hidden" : showUntil === "xl" ? "xl:hidden" : "md:hidden", className)} role="list" aria-label={ariaLabel}>{children}</div>;
 }
 
 export function OperationalListRow({ href, label, primary, status, statusMeta, secondary, detail, meta, trailing }: {

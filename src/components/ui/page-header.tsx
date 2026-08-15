@@ -53,9 +53,9 @@ export function PageHeader(props: PageHeaderProps) {
         </div>
       ) : null}
       {props.action && isCreateAction ? (
-        <Button asChild size="icon" data-page-create-fab data-mobile-create-fab className={`fixed bottom-[calc(var(--sb-mobile-nav-height)+env(safe-area-inset-bottom)+1rem)] right-4 z-[var(--sb-z-sticky)] h-14 w-14 rounded-full shadow-[0_3px_8px_rgb(6_44_31_/_0.22)] ${createFabVisibility}`}>
+        <Button asChild size="icon" data-page-create-fab data-mobile-create-fab className={`fixed bottom-[calc(var(--sb-mobile-nav-height)+env(safe-area-inset-bottom)+1rem)] right-4 z-[var(--sb-z-sticky)] inline-flex h-14 w-14 items-center justify-center rounded-full shadow-[0_10px_24px_rgba(10,58,43,0.30)] ${createFabVisibility}`}>
           <Link href={props.action.href} aria-label={props.action.label} title={props.action.label}>
-            <Plus className="h-5 w-5" aria-hidden="true" />
+            <Plus className="h-6 w-6" aria-hidden="true" />
             <span className="sr-only">{props.action.label}</span>
           </Link>
         </Button>

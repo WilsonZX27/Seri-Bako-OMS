@@ -164,6 +164,7 @@ test.describe("outlet wastage chart preview", () => {
       await expect(chart).toBeVisible();
       const interactiveSvg = chart.locator("svg");
       await expect(interactiveSvg).toHaveAttribute("data-chart-ready", "true", { timeout: 20_000 });
+      await chart.scrollIntoViewIfNeeded();
       const labelsFit = await interactiveSvg.evaluate((svg) => {
         const viewport = svg.getBoundingClientRect();
         return [...svg.querySelectorAll("text")].every((label) => {

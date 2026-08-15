@@ -1,6 +1,6 @@
 # Seri Bako OMS responsive design standard
 
-> **Release authority:** the currently released application is `v8.36.95`, as
+> **Release authority:** the currently released application is `v8.36.96`, as
 > defined by `src/lib/app-version.ts`. A versioned section above that number is
 > an accepted forward design contract or unreleased implementation note—not
 > evidence that the application itself has been released at that version.
@@ -10,6 +10,12 @@
 > **Precedence:** `docs/DESIGN_SYSTEM.md` is the living visual and interaction contract. When a historical release note or an older rule in this file conflicts with that contract, the living contract wins. Update both documents when a new pattern is accepted; do not preserve a visibly weaker rule for compatibility.
 
 This document is the implementation contract for every customer-facing route, form, record workspace, table, panel, dialog, and mobile action bar. It applies to new work and to refactoring of existing UI.
+
+## v8.36.96 — Unified Mobile Create Actions and Report Detail Links
+
+- All mobile create commands use the same circular floating action geometry, icon size, elevation, and safe-area offset; the obsolete inline list-toolbar create slot is removed so a page cannot drift into a second `+` pattern.
+- Demand Trend keeps the chart preview focused on exact values and exposes accessible daily drill-through links in the full-detail table/list, carrying the selected outlet and status scope into Outlet Daily Records.
+- The Outlet Daily chart touch regression now scrolls the analytical panel into view before sampling it, preserving the task-first phone order while still verifying tap preview behavior.
 
 ## v8.36.95 — PR Basket Persistence and Shared Mobile Actions
 

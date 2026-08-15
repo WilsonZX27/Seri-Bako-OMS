@@ -138,6 +138,7 @@ test("outlet daily mobile matrix cannot widen the page or collapse the date filt
 
   const matrix = page.locator("[data-outlet-completion-matrix]");
   const scrollport = page.locator("[data-outlet-completion-scrollport]");
+  await expect(matrix).toBeVisible();
   const mobileOrdering = await page.evaluate(() => {
     const primary = document.querySelector("[data-outlet-daily-primary]")?.getBoundingClientRect();
     const insights = document.querySelector("[data-outlet-daily-insights]")?.getBoundingClientRect();
@@ -146,7 +147,6 @@ test("outlet daily mobile matrix cannot widen the page or collapse the date filt
   });
   expect(mobileOrdering.primaryTop).toBeLessThan(mobileOrdering.insightsTop);
   expect(mobileOrdering.recordsTop).toBeLessThan(mobileOrdering.insightsTop);
-  await expect(matrix).toBeVisible();
   const createAction = page.getByRole("link", { name: "New Daily Record" });
   await expect(createAction).toBeVisible();
   await expect(page.locator("[data-mobile-create-fab]")).toHaveCount(1);

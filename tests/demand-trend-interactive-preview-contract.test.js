@@ -17,7 +17,8 @@ test("Demand Trend exposes a direct hover, touch, and keyboard preview", () => {
   assert.match(chart, /Wastage \$\{formatNumber\(row\.wastage\)\}/);
   assert.match(interactive, /onPointerMove=\{handlePointerMove\}/);
   assert.match(interactive, /onKeyDown=\{handleKeyDown\}/);
-  assert.match(interactive, /role="tooltip"/);
+  assert.match(page, /detailHref=\{\(row\) => outletDailyHref\(row\.id, report\.filters\)\}/);
+  assert.match(page, /params = new URLSearchParams\(\{ date \}\)/);
 });
 
 test("Dense 30-day trends do not render a permanent marker for every point", () => {
@@ -32,8 +33,8 @@ test("Top movement and wastage use touch-friendly ranking previews with progress
   assert.match(page, /metric="movement"/);
   assert.match(page, /metric="wastage"/);
   assert.match(page, /searchParams=\{\{ period: report\.filters\.period, branch: report\.filters\.branch, status: report\.filters\.status \}\}/);
-  assert.match(page, /collapsible \/>/);
-  assert.equal((page.match(/collapsible \/>/g) ?? []).length, 4);
+  assert.match(page, /<TrendTable[^>]*collapsible/);
+  assert.equal((page.match(/<TrendTable[^>]*collapsible/g) ?? []).length, 4);
   assert.match(page, /data-demand-detail-disclosure/);
   assert.match(page, /summary className="flex min-h-11/);
   assert.match(ranking, /onMouseEnter/);

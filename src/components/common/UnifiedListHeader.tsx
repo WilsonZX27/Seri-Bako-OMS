@@ -159,6 +159,8 @@ export function UnifiedListHeader({ children, resultCount, resetHref, filtered =
   const [mobile, setMobile] = useState(phoneOnly);
   const [open, setOpen] = useState(false);
   const formRef = useRef<HTMLFormElement>(null);
+  const filterTriggerRef = useRef<HTMLButtonElement>(null);
+  const filterDialogRef = useRef<HTMLFormElement>(null);
   useEffect(() => {
     if (phoneOnly) return;
     const query = window.matchMedia("(max-width: 639px)");
@@ -172,12 +174,40 @@ export function UnifiedListHeader({ children, resultCount, resetHref, filtered =
     if (!mobile || !open) return;
 
     const previousOverflow = document.body.style.overflow;
+    const trigger = filterTriggerRef.current;
     document.body.style.overflow = "hidden";
     document.documentElement.dataset.mobileSheetOpen = "true";
+    const dialog = filterDialogRef.current;
+    const focusable = () => Array.from(dialog?.querySelectorAll<HTMLElement>("button, a, input, select, textarea, [tabindex]:not([tabindex='-1'])") ?? []).filter((element) => !element.hasAttribute("disabled"));
+    focusable()[0]?.focus();
+
+    function onKeyDown(event: KeyboardEvent) {
+      if (event.key === "Escape") {
+        event.preventDefault();
+        setOpen(false);
+        return;
+      }
+      if (event.key !== "Tab") return;
+      const elements = focusable();
+      if (!elements.length) return;
+      const first = elements[0];
+      const last = elements[elements.length - 1];
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
+      }
+    }
+
+    document.addEventListener("keydown", onKeyDown);
 
     return () => {
       document.body.style.overflow = previousOverflow;
       delete document.documentElement.dataset.mobileSheetOpen;
+      document.removeEventListener("keydown", onKeyDown);
+      requestAnimationFrame(() => trigger?.focus());
     };
   }, [mobile, open]);
 
@@ -239,7 +269,7 @@ export function UnifiedListHeader({ children, resultCount, resetHref, filtered =
   const filterSheet = open && typeof document !== "undefined" ? createPortal(
     <div className="unified-list-layer">
       <button type="button" className="unified-list-backdrop" aria-label="Close filters" onClick={() => setOpen(false)} />
-      <form className="unified-list-sheet" role="dialog" aria-modal="true" aria-label="Filters" onSubmit={submit}>
+      <form ref={filterDialogRef} className="unified-list-sheet" role="dialog" aria-modal="true" aria-label="Filters" onSubmit={submit}>
         {primary && isValidElement(primary) ? (() => {
           const hidden = hiddenFilterValue(primary);
           return hidden ? <input type="hidden" name={hidden.name} value={searchValue || hidden.value} /> : null;
@@ -255,7 +285,7 @@ export function UnifiedListHeader({ children, resultCount, resetHref, filtered =
     <form ref={formRef} className={cn("unified-list-header sb-list-query-card", className)} data-filtered={filtered || undefined} data-reset-href={resetHref} onSubmit={submit}>
       <div className={cn("unified-list-row", primaryInDrawer && "unified-list-row--filter-only")}>
         {!primaryInDrawer && primary && isValidElement(primary) ? <SearchControl child={primary} value={searchValue} onChange={updateSearch} /> : <div className="unified-list-primary-control" />}
-        {resolvedPhoneMode === "drawer" ? <button type="button" className="unified-list-filter-trigger" onClick={() => setOpen(true)} aria-label={active ? `Filter, ${active} active` : "Filter"}><SlidersHorizontal /><span className="unified-list-filter-label">Filter{active ? ` (${active})` : ""}</span></button> : null}
+        {resolvedPhoneMode === "drawer" ? <button ref={filterTriggerRef} type="button" className="unified-list-filter-trigger" onClick={() => setOpen(true)} aria-label={active ? `Filter, ${active} active` : "Filter"} aria-haspopup="dialog" aria-expanded={open}><SlidersHorizontal /><span className="unified-list-filter-label">Filter{active ? ` (${active})` : ""}</span></button> : null}
         {resolvedPhoneMode === "inline" && contextualFilterCount === 1 ? <div className="unified-list-inline-control">{filterControls}</div> : null}
         {typeof resultCount === "number" ? <span className="unified-list-result" aria-live="polite">{resultCount} {resultCount === 1 ? "record" : "records"}</span> : null}
       </div>

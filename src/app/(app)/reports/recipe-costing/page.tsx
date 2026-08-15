@@ -66,7 +66,7 @@ export default async function RecipeCostingPage({ searchParams }: { searchParams
         </Card>
       ) : (
         <div className="space-y-3" data-recipe-costing-workspace>
-          <FilterBar resultCount={rows.length} resetHref="/reports/recipe-costing" filtered={filtered}>
+          <FilterBar resultCount={rows.length} resetHref="/reports/recipe-costing" filtered={filtered} className="sb-list-filters--balanced">
             <Input name="search" defaultValue={filters.search} placeholder="Search recipe" aria-label="Search recipes" />
             <SelectNative name="status" defaultValue={filters.status ?? "active"} aria-label="Recipe status">
               <option value="all">All statuses</option>

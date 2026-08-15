@@ -59,7 +59,7 @@ export default async function CostingReadinessPage({ searchParams }: { searchPar
         </Card>
       ) : (
         <div className="space-y-3" data-costing-readiness-workspace>
-          <FilterBar resultCount={report.issues.length} resetHref="/reports/costing-readiness" filtered={hasActiveFilters(filters)} className="[&>select]:!flex-[0_1_10rem]">
+          <FilterBar resultCount={report.issues.length} resetHref="/reports/costing-readiness" filtered={hasActiveFilters(filters)} className="sb-list-filters--balanced [&>select]:!flex-[0_1_10rem]">
             <SelectNative name="severity" defaultValue={filters.severity ?? "all"} aria-label="Issue severity">
               <option value="all">All severities</option>
               <option value="critical">Critical</option>

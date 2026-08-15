@@ -110,6 +110,7 @@ export function InteractiveLineChart({
         viewBox={`0 0 ${width} ${height}`}
         role="img"
         tabIndex={0}
+        aria-roledescription="interactive line chart"
         data-chart-active-index={activeIndex ?? undefined}
         aria-label={`${ariaLabel}. Hover, tap, or use the left and right arrow keys to preview each recorded point.`}
         aria-describedby={activePoint ? previewId : undefined}
@@ -173,6 +174,13 @@ export function InteractiveLineChart({
           </g>
         ) : null}
       </svg>
+      <ol className="sr-only" data-chart-data-list aria-label={`${ariaLabel} data points`}>
+        {points.map((point) => (
+          <li key={point.id}>
+            <span>{point.label}</span>: <span>{point.previewValue}</span>. {point.previewDetails.join(". ")}
+          </li>
+        ))}
+      </ol>
       {activePoint && activeX !== null && activeY !== null ? (
         <div
           id={previewId}

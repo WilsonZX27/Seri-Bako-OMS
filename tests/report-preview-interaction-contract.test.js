@@ -22,6 +22,8 @@ test("shared line previews remain discoverable to assistive technology after poi
   assert.match(source, /data-chart-active-index=\{activeIndex \?\? undefined\}/);
   assert.match(source, /role="tooltip"/);
   assert.match(source, /aria-live="polite"/);
+  assert.match(source, /aria-roledescription="interactive line chart"/);
+  assert.match(source, /data-chart-data-list/);
   assert.match(source, /onPointerMove/);
   assert.match(source, /onKeyDown/);
 });

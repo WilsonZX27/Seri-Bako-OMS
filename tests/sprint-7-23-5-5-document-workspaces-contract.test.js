@@ -13,7 +13,7 @@ const detailRoutes = [
 
 const createRoutes = [
   "purchase-requests/new", "goods-receivings/new", "purchase-returns/new", "stock-transfers/new",
-  "stock-counts/new", "production/jobs/new", "outlet-daily-records/new", "supplier-invoices/new",
+  "stock-counts/new", "stock-wastage/new", "production/jobs/new", "outlet-daily-records/new", "supplier-invoices/new",
 ];
 
 test("document details and creation forms use one responsive operational shell", () => {

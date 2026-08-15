@@ -100,7 +100,9 @@ test("stock transfer and wastage use searchable compact lines with one setup dis
   assert.doesNotMatch(source, /More line details/);
   assert.doesNotMatch(source, /Add transfer remarks|Add evidence note/);
   assert.doesNotMatch(source, /Field label="UOM"/);
-  assert.match(wastagePage, /<WorkspaceGrid documentMode tabletRailMode="split"/);
+  assert.match(wastagePage, /<DocumentWorkspace/);
+  assert.match(wastagePage, /workflowSteps={steps}/);
+  assert.match(wastagePage, /currentStatus="draft"/);
   assert.equal((actions.match(/enabled\.has\(line\.item_id\)/g) ?? []).length, 2);
 });
 

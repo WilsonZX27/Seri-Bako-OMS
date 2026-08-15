@@ -983,7 +983,7 @@ html[data-design-layer="v2"] [data-mobile-bottom-nav] {
   html[data-design-layer="v2"] form.unified-list-header .unified-list-row {
     position: relative;
     display: grid !important;
-    grid-template-columns: minmax(0, 1fr) 108px;
+    grid-template-columns: minmax(0, 1fr) 104px auto;
     gap: 8px;
     align-items: stretch;
   }
@@ -1018,10 +1018,11 @@ html[data-design-layer="v2"] [data-mobile-bottom-nav] {
   }
 
   html[data-design-layer="v2"] form.unified-list-header .unified-list-result {
-    grid-column: 1 / -1;
+    grid-column: 3;
+    align-self: center;
     display: block !important;
     min-height: 1rem;
-    margin-top: 2px;
+    margin: 0;
     color: var(--sb-text) !important;
     font-size: 0.75rem;
     font-weight: 650;
@@ -1201,14 +1202,27 @@ html[data-design-layer="v2"] .sb-mobile-action-bar {
 @media (max-width: 639px) {
   html[data-design-layer="v2"] form.unified-list-header .unified-list-date-control {
     min-width: 0;
+    border: 1px solid var(--sb-border-soft);
+    border-radius: var(--sb-control-radius);
+    background: var(--sb-surface-raised);
+  }
+
+  html[data-design-layer="v2"] form.unified-list-header .unified-list-date-control:focus-within {
+    border-color: var(--sb-green-700);
+    box-shadow: 0 0 0 3px rgb(7 89 66 / .12);
   }
 
   html[data-design-layer="v2"] form.unified-list-header .unified-list-date-control input[type="date"] {
+    position: absolute;
+    z-index: 2;
+    inset: 0;
     width: 100% !important;
     min-width: 0 !important;
-    padding-inline: 2.25rem .625rem !important;
-    color: var(--sb-text) !important;
-    background: var(--sb-surface-raised) !important;
+    padding: 0 !important;
+    color: transparent !important;
+    background: transparent !important;
+    opacity: 0;
+    cursor: pointer;
   }
 
   html[data-design-layer="v2"] form.unified-list-header .unified-list-date-control[data-empty] input[type="date"] {
@@ -1232,9 +1246,13 @@ html[data-design-layer="v2"] .sb-mobile-action-bar {
 
   html[data-design-layer="v2"] form.unified-list-header .unified-list-date-placeholder {
     left: 2.25rem;
+    right: .625rem;
+    overflow: hidden;
     color: var(--sb-text-muted);
     font-size: .8125rem;
     font-weight: 600;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 }
 

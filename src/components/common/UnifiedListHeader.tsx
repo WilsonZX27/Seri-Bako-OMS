@@ -104,6 +104,9 @@ function SearchControl({ child, value, onChange }: { child: ReactElement; value:
   const props = propsOf(child);
 
   if (props.type === "date") {
+    const visibleDate = value
+      ? new Intl.DateTimeFormat("en-GB", { day: "2-digit", month: "short", year: "numeric", timeZone: "UTC" }).format(new Date(`${value}T00:00:00Z`))
+      : "Any date";
     const control = cloneElement(child as ReactElement<Record<string, unknown>>, {
       ...props,
       defaultValue: undefined,
@@ -117,7 +120,7 @@ function SearchControl({ child, value, onChange }: { child: ReactElement; value:
 
     return <div className="unified-list-primary-control unified-list-date-control" data-empty={!value || undefined}>
       <CalendarDays aria-hidden="true" className="unified-list-date-icon" />
-      {!value ? <span className="unified-list-date-placeholder">Any date</span> : null}
+      <span className="unified-list-date-placeholder" data-default-label="Any date" aria-hidden="true">{visibleDate}</span>
       {control}
     </div>;
   }

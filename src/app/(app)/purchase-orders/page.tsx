@@ -31,12 +31,21 @@ const statuses = [
   { value: "cancelled", label: "Cancelled" },
 ];
 
+async function loadExportBranches() {
+  try {
+    return await getBranchesForSelect({ restrictToActorScope: true });
+  } catch (error) {
+    logServerError(error, { source: "page.purchaseOrders.exportBranches" });
+    return null;
+  }
+}
+
 export default async function PurchaseOrdersPage({ searchParams }: { searchParams: Promise<Record<string, string | undefined>> }) {
   const filters = await searchParams;
   const [orders, permissions, [summaryResult]] = await Promise.all([getPurchaseOrders(filters), getPermissionMap(["po.create"]), Promise.allSettled([getPurchaseOrderSummary()])]);
   if (summaryResult.status === "rejected") logServerError(summaryResult.reason, { source: "page.purchaseOrders.summary" });
   const summary = summaryResult.status === "fulfilled" ? summaryResult.value : null;
-  const exportBranches = permissions["po.create"] ? await getBranchesForSelect({ restrictToActorScope: true }) : [];
+  const exportBranches = permissions["po.create"] ? await loadExportBranches() : [];
   const filtered = hasActiveFilters(filters);
   const emptyStateAction = filtered
     ? { href: "/purchase-orders", label: "Reset filters" }
@@ -60,7 +69,7 @@ export default async function PurchaseOrdersPage({ searchParams }: { searchParam
           <div className="space-y-3 [&>section]:overflow-hidden [&>section]:rounded-[var(--sb-panel-radius)] [&>section]:border [&>section]:border-[var(--sb-border-soft)] [&>section]:bg-card" data-tablet-split-actions data-purchase-order-tablet-rail>
             {permissions["po.create"] ? <ConsoleSection title="Actions"><div className="grid gap-2">
               <Button asChild size="sm" className="w-full" data-mobile-primary-action><Link href="/purchase-orders/new"><Plus className="h-4 w-4" />New PO</Link></Button>
-              <PurchaseOrderExportDialog branches={exportBranches} />
+              {exportBranches ? <PurchaseOrderExportDialog branches={exportBranches} /> : <div role="status"><Button type="button" variant="outline" className="w-full" disabled>Export unavailable</Button><p className="mt-1.5 text-xs text-muted-foreground">Branch options could not be loaded. The order queue remains available; retry before exporting.</p></div>}
             </div></ConsoleSection> : null}
             <ConsoleSection title="PO Summary">
               {summary ? <div className="grid gap-2 text-xs">

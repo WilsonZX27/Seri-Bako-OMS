@@ -23,7 +23,8 @@ export const getCurrentUserScope = cache(async function getCurrentUserScope(): P
   } = await supabase.auth.getUser();
   if (!user) return null;
 
-  const { data: staff } = await supabase.from("staffs").select("id, auth_user_id").eq("auth_user_id", user.id).maybeSingle();
+  const { data: staff, error: staffError } = await supabase.from("staffs").select("id, auth_user_id").eq("auth_user_id", user.id).maybeSingle();
+  if (staffError) throw new Error(staffError.message);
   const staffId = staff?.id ?? null;
 
   if (!staffId) {
@@ -38,11 +39,17 @@ export const getCurrentUserScope = cache(async function getCurrentUserScope(): P
   }
 
   const today = new Date().toISOString().slice(0, 10);
-  const [{ data: staffRoles }, { data: staffBranches }, { data: roles }] = await Promise.all([
+  const [staffRolesResult, staffBranchesResult, rolesResult] = await Promise.all([
     supabase.from("staff_roles").select("role_id, branch_id, is_primary, effective_from").eq("staff_id", staffId).lte("effective_from", today).or(`effective_to.is.null,effective_to.gte.${today}`),
     supabase.from("staff_branches").select("branch_id").eq("staff_id", staffId),
     supabase.from("roles").select("id, role_code"),
   ]);
+  for (const result of [staffRolesResult, staffBranchesResult, rolesResult]) {
+    if (result.error) throw new Error(result.error.message);
+  }
+  const staffRoles = staffRolesResult.data;
+  const staffBranches = staffBranchesResult.data;
+  const roles = rolesResult.data;
 
   const activeRoles = [...(staffRoles ?? [])].sort((a, b) => Number(Boolean(b.is_primary)) - Number(Boolean(a.is_primary)));
   const roleIds = activeRoles.map((row) => row.role_id);
@@ -81,7 +88,8 @@ export const getVisibleNotificationsForCurrentUser = cache(async function getVis
       : recipientQuery.eq("recipient_user_id", scope.authUserId).limit(80),
   ]);
 
-  if (notificationsResult.error || recipientsResult.error) return [];
+  if (notificationsResult.error) throw new Error(notificationsResult.error.message);
+  if (recipientsResult.error) throw new Error(recipientsResult.error.message);
 
   const recipientByNotificationId = new Map<
     string,
@@ -145,12 +153,14 @@ export const getVisibleNotificationsForCurrentUser = cache(async function getVis
       ? supabase.from("stock_counts").select("id, status").in("id", stockCountIds).is("deleted_at", null).in("status", ["draft", "submitted", "reviewed", "approved"])
       : Promise.resolve({ data: [], error: null }),
   ]);
+  if (pendingRequestsResult.error) throw new Error(pendingRequestsResult.error.message);
+  if (activeStockCountsResult.error) throw new Error(activeStockCountsResult.error.message);
   const pendingPrIds = new Set((pendingRequestsResult.data ?? []).map((row) => row.id));
   const pendingIds = pendingPrIds;
   const activeStockCountIds = new Set((activeStockCountsResult.data ?? []).map((row) => row.id));
   return visibleNotifications.filter((row) => {
-    if (row.entity_type === "purchase_request") return Boolean(!pendingRequestsResult.error && row.entity_id && pendingIds.has(row.entity_id));
-    if (row.entity_type === "stock_count") return Boolean(!activeStockCountsResult.error && row.entity_id && activeStockCountIds.has(row.entity_id));
+    if (row.entity_type === "purchase_request") return Boolean(row.entity_id && pendingIds.has(row.entity_id));
+    if (row.entity_type === "stock_count") return Boolean(row.entity_id && activeStockCountIds.has(row.entity_id));
     return true;
   });
 });

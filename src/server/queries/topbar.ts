@@ -28,6 +28,7 @@ type PendingAction = {
 export async function getTopBarActivity() {
   if (isMockMode()) {
     return {
+      availability: { pendingActions: true, notifications: true },
       pendingApprovals: mockDocuments
         .filter((document) => document.approval_status === "pending")
         .slice(0, 5)
@@ -45,28 +46,39 @@ export async function getTopBarActivity() {
 
   const supabase = await createClient();
   const db = looseSupabase(supabase);
-  const [documentApprovals, notifications, assignedActivities, workflowPendingActions, canApproveProduction, canPostProduction] = await Promise.all([
+  const [documentApprovals, notificationsResult, assignedActivities, workflowPendingActionsResult, canApproveProductionResult, canPostProductionResult] = await Promise.all([
     supabase.from("documents").select("id, document_no, title, document_type, related_entity_type, related_entity_id").eq("approval_status", "pending").order("updated_at", { ascending: false }).limit(5),
-    getVisibleNotificationsForCurrentUser().catch((error) => {
+    getVisibleNotificationsForCurrentUser().then((rows) => ({ rows, unavailable: false })).catch((error) => {
       logServerWarning(error, { source: "topbar.notifications" });
-      return [];
+      return { rows: [], unavailable: true };
     }),
     // The complete activity stream belongs to /activity. Resolving actor
     // identities here made every application route wait on an audit-log query.
     Promise.resolve([] as AssignedActivity[]),
-    getCurrentUserPendingActions(5).catch((error) => {
+    getCurrentUserPendingActions(5).then((rows) => ({ rows, unavailable: false })).catch((error) => {
       logServerWarning(error, { source: "topbar.pending-actions" });
-      return [] as PendingAction[];
+      return { rows: [] as PendingAction[], unavailable: true };
     }),
-    hasPermission("production.approve").catch((error) => {
+    hasPermission("production.approve").then((allowed) => ({ allowed, unavailable: false })).catch((error) => {
       logServerWarning(error, { source: "topbar.production-approve-permission" });
-      return false;
+      return { allowed: false, unavailable: true };
     }),
-    hasPermission("production.post").catch((error) => {
+    hasPermission("production.post").then((allowed) => ({ allowed, unavailable: false })).catch((error) => {
       logServerWarning(error, { source: "topbar.production-post-permission" });
-      return false;
+      return { allowed: false, unavailable: true };
     }),
   ]);
+  const notifications = notificationsResult.rows;
+  const workflowPendingActions = workflowPendingActionsResult.rows;
+  const canApproveProduction = canApproveProductionResult.allowed;
+  const canPostProduction = canPostProductionResult.allowed;
+  let pendingActionsUnavailable = Boolean(
+    documentApprovals.error
+    || workflowPendingActionsResult.unavailable
+    || canApproveProductionResult.unavailable
+    || canPostProductionResult.unavailable
+  );
+  if (documentApprovals.error) logServerWarning(documentApprovals.error, { source: "topbar.document-approvals" });
 
   const documentPendingActions: PendingAction[] = documentApprovals.error
     ? []
@@ -92,6 +104,8 @@ export async function getTopBarActivity() {
       activeStockCountIds = new Set((activeStockCountsResult.data ?? []).map((row) => row.id));
     } else {
       activeStockCountValidationFailed = true;
+      pendingActionsUnavailable = true;
+      logServerWarning(activeStockCountsResult.error, { source: "topbar.active-stock-counts" });
     }
   }
   const liveDocumentPendingActions = (documentApprovals.data ?? []).length
@@ -111,13 +125,18 @@ export async function getTopBarActivity() {
       ...(canPostProduction ? [{ status: "approved", label: "Ready to post production" }] : []),
     ];
     for (const filter of productionStatuses) {
-      const { data } = await db
+      const { data, error } = await db
         .from("production_jobs")
         .select("id, production_job_no, branch_id, updated_at")
         .eq("status", filter.status)
         .is("deleted_at", null)
         .order("updated_at", { ascending: false })
         .limit(5);
+      if (error) {
+        pendingActionsUnavailable = true;
+        logServerWarning(error, { source: `topbar.production-${filter.status}` });
+        continue;
+      }
       productionPendingActions.push(...((data ?? []) as Array<{ id: string; production_job_no: string }>).map((row) => ({
         id: `prod-${filter.status}-${row.id}`,
         document_no: row.production_job_no,
@@ -132,6 +151,10 @@ export async function getTopBarActivity() {
     .slice(0, 5);
 
   const result = {
+    availability: {
+      pendingActions: !pendingActionsUnavailable,
+      notifications: !notificationsResult.unavailable,
+    },
     pendingApprovals,
     assignedActivities: assignedActivities as AssignedActivity[],
     notifications: notifications

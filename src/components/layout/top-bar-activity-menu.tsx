@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Bell, ListTodo, Megaphone, ShieldAlert } from "lucide-react";
+import { Bell, ListTodo, Megaphone, ShieldAlert, TriangleAlert } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { formatDateTime } from "@/lib/utils";
@@ -19,6 +19,8 @@ export function TopBarActivityMenu({ data }: { data: TopBarActivity }) {
   const notifications = data.notifications ?? [];
   const announcements = data.announcements ?? [];
   const assignedActivities = data.assignedActivities ?? [];
+  const pendingActionsAvailable = data.availability?.pendingActions !== false;
+  const notificationsAvailable = data.availability?.notifications !== false;
   const pendingCount = pendingApprovals.length;
   const notificationCount = notifications.length + announcements.length;
   const recentCount = assignedActivities.length;
@@ -100,7 +102,8 @@ export function TopBarActivityMenu({ data }: { data: TopBarActivity }) {
                   <span>{item.document_no} - {item.title}</span>
                 </Link>
               ))}
-              {!pendingApprovals.length ? <p className="rounded-md p-2 text-sm text-muted-foreground">No pending actions.</p> : null}
+              {!pendingActionsAvailable ? <p className="flex gap-2 rounded-md bg-[var(--sb-warning-bg)] p-2 text-sm text-[var(--sb-warning-text)]"><TriangleAlert className="mt-0.5 h-4 w-4 shrink-0" /><span>Pending actions are temporarily unavailable. Open the relevant workspace before assuming the queue is clear.</span></p> : null}
+              {pendingActionsAvailable && !pendingApprovals.length ? <p className="rounded-md p-2 text-sm text-muted-foreground">No pending actions.</p> : null}
             </section>
             <section className="space-y-1 p-3">
               <div className="flex items-center justify-between gap-3">
@@ -119,11 +122,12 @@ export function TopBarActivityMenu({ data }: { data: TopBarActivity }) {
                   <span>{notification.title}</span>
                 </div>
               ))}
-              {!notificationCount ? <p className="rounded-md p-2 text-sm text-muted-foreground">No new notifications.</p> : null}
+              {!notificationsAvailable ? <p className="flex gap-2 rounded-md bg-[var(--sb-warning-bg)] p-2 text-sm text-[var(--sb-warning-text)]"><TriangleAlert className="mt-0.5 h-4 w-4 shrink-0" /><span>Notifications are temporarily unavailable. Try again before assuming there are no updates.</span></p> : null}
+              {notificationsAvailable && !notificationCount ? <p className="rounded-md p-2 text-sm text-muted-foreground">No new notifications.</p> : null}
             </section>
             <section className="space-y-1 p-3">
               <div className="flex items-center justify-between gap-3">
-                <p className="text-xs font-semibold uppercase text-muted-foreground">Recent Activity</p>
+                <p className="text-xs font-semibold uppercase text-muted-foreground">Activity Log</p>
                 {recentCount ? <span className="rounded-full bg-[var(--sb-neutral-bg)] px-2 py-0.5 text-xs font-medium text-[var(--sb-neutral-text)]">{recentCount}</span> : null}
               </div>
               {assignedActivities.map((activity) => (
@@ -132,8 +136,7 @@ export function TopBarActivityMenu({ data }: { data: TopBarActivity }) {
                   <p className="mt-1 text-xs text-muted-foreground">{formatTime(activity.created_at)}</p>
                 </div>
               ))}
-              {!assignedActivities.length ? <p className="rounded-md p-2 text-sm text-muted-foreground">No recent activity.</p> : null}
-              <Link href="/activity" onClick={() => setOpen(false)} className="inline-flex min-h-[var(--sb-control-height)] items-center text-xs font-semibold text-primary underline underline-offset-2">Show more</Link>
+              <Link href="/activity" onClick={() => setOpen(false)} className="inline-flex min-h-[var(--sb-control-height)] items-center text-xs font-semibold text-primary underline underline-offset-2">Open full activity log</Link>
             </section>
           </div>
         </div>

@@ -520,7 +520,10 @@ input[type="date"]::-webkit-date-and-time-value {
     flex: 0 0 6.5rem;
   }
 
-  .sb-list-filters--date-first > :first-child {
+  /* Legacy date-first rows may constrain their first control. The unified
+     phone header's first child is the entire three-column row, so applying
+     this width there collapses the visible date to a sliver. */
+  form.sb-list-filters.sb-list-filters--date-first > :first-child {
     flex: 0 1 10.5rem;
     width: min(10.5rem, 100%);
   }

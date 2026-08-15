@@ -31,6 +31,11 @@ test("stock count keeps setup separate from one continuous phone work surface", 
   assert.match(source, /data-stock-count-setup/);
   assert.match(source, /data-stock-count-workspace/);
   assert.match(source, /data-stock-count-line-list/);
+  assert.match(source, /data-stock-count-line/);
+  assert.match(source, /\{visibleLines\.length\}<\/strong> visible of \{lines\.length\}/);
+  assert.match(source, /\{lineIndex \+ 1\} of \{visibleLines\.length\}/);
+  assert.match(source, /line\.adjusted \? "bg-\[var\(--sb-green-100\)\]"/);
+  assert.match(source, /lg:grid-cols-\[minmax\(12rem,1fr\)_5rem_minmax\(14rem,17rem\)\]/);
   assert.match(source, /border-b border-slate-100/);
   assert.match(source, /data-mobile-document-action/);
   assert.match(source, /aria-live="polite"/);
@@ -97,6 +102,17 @@ test("stock transfer and wastage use searchable compact lines with one setup dis
   assert.doesNotMatch(source, /Field label="UOM"/);
   assert.match(wastagePage, /<WorkspaceGrid documentMode tabletRailMode="split"/);
   assert.equal((actions.match(/enabled\.has\(line\.item_id\)/g) ?? []).length, 2);
+});
+
+test("stock count responsive audit covers workflow orientation and medium-width stacking", () => {
+  const source = read("tests/e2e/stock-count-create-responsive.spec.js");
+
+  assert.match(source, /mobile-390/);
+  assert.match(source, /tablet-820/);
+  assert.match(source, /laptop-1180/);
+  assert.match(source, /View workflow, step 1 of 2/);
+  assert.match(source, /geometry\.countTop/);
+  assert.match(source, /boxShadow/);
 });
 
 test("production ingredient snapshots replace the phone table with a scannable list", () => {

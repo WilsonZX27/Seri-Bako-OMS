@@ -100,7 +100,7 @@ test("Dashboard survives partial-data and long-label visual stress states", asyn
 
     const summary = document.querySelector("[data-dashboard-attention-summary]");
     if (!(summary instanceof HTMLElement)) throw new Error("Attention summary stress target is missing.");
-    const value = summary.children.item(1);
+    const value = summary.querySelector("[data-dashboard-attention-value]");
     if (!(value instanceof HTMLElement)) throw new Error("Attention value stress target is missing.");
     value.textContent = "Partial data";
     value.setAttribute("aria-label", "Attention summary unavailable because payables and wastage data could not be loaded");

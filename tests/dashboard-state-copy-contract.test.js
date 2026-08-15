@@ -10,7 +10,7 @@ test("Dashboard distinguishes a clear queue from unavailable domain data", () =>
   assert.match(workspace, /You’re clear—no approvals or workflow actions are waiting/);
   assert.match(workspace, /Payables attention is temporarily unavailable/);
   assert.match(workspace, /All current supplier invoices are up to date/);
-  assert.match(workspace, /Partial data/);
+  assert.match(workspace, /Some queues are unavailable/);
   assert.match(workspace, /Unavailable:/);
 });
 
@@ -32,6 +32,8 @@ test("Dashboard separates actionable exceptions from operational activity", () =
 
 test("Dashboard visual evidence includes forced partial-data and long-label stress states", () => {
   assert.match(workspace, /data-dashboard-attention-summary/);
+  assert.match(workspace, /data-dashboard-attention-value/);
+  assert.match(workspace, /No urgent exceptions/);
   assert.match(workspace, /data-dashboard-user-name/);
   assert.match(workspace, /data-dashboard-role-label/);
   assert.match(workspace, /data-dashboard-scope-label/);

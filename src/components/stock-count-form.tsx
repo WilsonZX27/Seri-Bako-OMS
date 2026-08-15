@@ -395,6 +395,11 @@ export function StockCountForm({
             </button>
           </div>
 
+          <div className="flex min-w-0 items-center justify-between gap-3 border-b border-[var(--sb-border-soft)] bg-[var(--sb-surface)] px-4 py-2 text-xs" role="status" aria-live="polite">
+            <p className="min-w-0 text-muted-foreground"><strong className="font-semibold text-foreground">{visibleLines.length}</strong> visible of {lines.length}</p>
+            <p className="shrink-0 tabular-nums text-muted-foreground"><strong className="font-semibold text-foreground">{adjustedCount}</strong> adjusted</p>
+          </div>
+
           <div className="hidden" aria-hidden="true">
             {lines.filter((line) => !visibleLines.some((visible) => visible.item_id === line.item_id)).map((line) => (
               <div key={`hidden-${line.item_id}`}>
@@ -409,13 +414,13 @@ export function StockCountForm({
           </div>
 
           <div data-stock-count-line-list>
-            <div className="hidden border-b bg-secondary/40 px-4 py-2 md:grid md:grid-cols-[minmax(12rem,1fr)_5rem_minmax(14rem,17rem)] md:items-center md:gap-4 lg:grid-cols-[minmax(16rem,1fr)_5rem_minmax(16rem,18rem)]">
+            <div className="hidden border-b bg-secondary/40 px-4 py-2 lg:grid lg:grid-cols-[minmax(12rem,1fr)_5rem_minmax(14rem,17rem)] lg:items-center lg:gap-4 xl:grid-cols-[minmax(16rem,1fr)_5rem_minmax(16rem,18rem)]">
               <p className="text-xs font-semibold">Item</p>
               <p className="text-xs text-right font-semibold">Variance</p>
               <p className="text-xs font-semibold">Count</p>
             </div>
             <div className="divide-y">
-              {visibleLines.map((line) => {
+              {visibleLines.map((line, lineIndex) => {
                 const hasPhysical = line.physicalQty.trim() !== "";
                 const physical = hasPhysical ? toNumber(line.physicalQty) : 0;
                 const variance = physical - line.theoretical_qty;
@@ -423,20 +428,21 @@ export function StockCountForm({
                 return (
                   <div
                     key={line.item_id}
-                    className="grid min-h-12 grid-cols-[minmax(0,1fr)_auto] items-center gap-x-2 gap-y-1.5 border-b border-slate-100 px-4 py-2 md:min-h-14 md:grid-cols-[minmax(12rem,1fr)_5rem_minmax(14rem,17rem)] md:gap-4 lg:grid-cols-[minmax(16rem,1fr)_5rem_minmax(16rem,18rem)]"
+                    data-stock-count-line
+                    className={`grid min-h-12 grid-cols-[minmax(0,1fr)_auto] items-center gap-x-2 gap-y-1.5 border-b border-slate-100 px-4 py-2 md:min-h-14 ${line.adjusted ? "bg-[var(--sb-green-100)]" : lineIndex % 2 ? "bg-[var(--sb-surface)]" : "bg-white"} lg:grid-cols-[minmax(12rem,1fr)_5rem_minmax(14rem,17rem)] lg:gap-4 xl:grid-cols-[minmax(16rem,1fr)_5rem_minmax(16rem,18rem)]`}
                   >
                     <div className="order-1 min-w-0">
                       <p className="break-words text-sm font-medium leading-tight text-slate-800">{line.item_name}</p>
-                      <p className="break-all text-[10px] leading-3 tracking-[0.01em] text-slate-400">{line.item_code}</p>
+                      <p className="flex min-w-0 items-center justify-between gap-2 text-[10px] leading-3 tracking-[0.01em] text-slate-400"><span className="min-w-0 break-all">{line.item_code}</span><span className="shrink-0 tabular-nums lg:hidden">{lineIndex + 1} of {visibleLines.length}</span></p>
                     </div>
 
                     <div className={`order-2 min-w-0 text-right text-xs font-medium ${variance < 0 ? "text-red-600" : variance > 0 ? "text-emerald-700" : "text-muted-foreground"}`}>
                       {hasPhysical ? <><span className="block whitespace-nowrap">{variance > 0 ? "+" : ""}{formatQuantity(variance)}</span><span className="block text-[10px] font-normal">{formatVariancePercent(percent)}</span></> : <span className="font-normal">—</span>}
                     </div>
 
-                    <div className="order-3 col-span-2 flex min-w-0 items-center justify-end gap-2 md:col-span-1 md:justify-self-stretch">
+                    <div className="order-3 col-span-2 flex min-w-0 items-center justify-end gap-2 lg:col-span-1 lg:justify-self-stretch">
                         <div className="flex min-w-0 flex-1 overflow-hidden rounded-sm border border-[var(--sb-border)] bg-white">
-                          <button type="button" className="flex h-9 w-9 shrink-0 items-center justify-center border-r border-[var(--sb-border)] text-[var(--sb-green-900)] hover:bg-[var(--sb-surface-muted)] active:bg-[var(--sb-green-100)] md:h-10 md:w-10" onClick={() => adjustPhysicalQty(line.item_id, -1)} aria-label={`Decrease physical quantity for ${line.item_name}`}><Minus className="h-4 w-4" /></button>
+                          <button type="button" className="flex h-9 w-9 shrink-0 items-center justify-center border-r border-[var(--sb-border)] text-[var(--sb-green-900)] hover:bg-[var(--sb-surface-muted)] active:bg-[var(--sb-green-100)] lg:h-10 lg:w-10" onClick={() => adjustPhysicalQty(line.item_id, -1)} aria-label={`Decrease physical quantity for ${line.item_name}`}><Minus className="h-4 w-4" /></button>
                         <Input
                           id={`physical-${line.item_id}`}
                           name="line_physical_qty"
@@ -449,9 +455,9 @@ export function StockCountForm({
                           required
                            aria-label={`Counted quantity for ${line.item_name}`}
                           placeholder="0.00"
-                           className="h-9 w-full min-w-0 flex-1 rounded-none border-0 px-2 text-center text-[13px] font-semibold tabular-nums shadow-none focus-visible:ring-inset [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none md:h-10"
+                           className="h-9 w-full min-w-0 flex-1 rounded-none border-0 px-2 text-center text-[13px] font-semibold tabular-nums shadow-none focus-visible:ring-inset [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none lg:h-10"
                         />
-                          <button type="button" className="flex h-9 w-9 shrink-0 items-center justify-center border-l border-[var(--sb-border)] text-[var(--sb-green-900)] hover:bg-[var(--sb-surface-muted)] active:bg-[var(--sb-green-100)] md:h-10 md:w-10" onClick={() => adjustPhysicalQty(line.item_id, 1)} aria-label={`Increase physical quantity for ${line.item_name}`}><Plus className="h-4 w-4" /></button>
+                          <button type="button" className="flex h-9 w-9 shrink-0 items-center justify-center border-l border-[var(--sb-border)] text-[var(--sb-green-900)] hover:bg-[var(--sb-surface-muted)] active:bg-[var(--sb-green-100)] lg:h-10 lg:w-10" onClick={() => adjustPhysicalQty(line.item_id, 1)} aria-label={`Increase physical quantity for ${line.item_name}`}><Plus className="h-4 w-4" /></button>
                         </div>
                       <span className="shrink-0 text-[11px] text-muted-foreground">{line.uom}</span>
                     </div>

@@ -286,22 +286,18 @@ export function DashboardWorkspace({ summary }: { summary: DashboardSummary }) {
         <div data-dashboard-layout className="grid gap-4 lg:grid-cols-12 lg:items-start">
           <div className="space-y-4 lg:col-span-6">
         <section data-dashboard-command className="sb-command-surface overflow-hidden rounded-[var(--sb-panel-radius)]">
-          <div className="flex items-end justify-between gap-4 p-4 sm:p-5">
+          <div className="flex items-start justify-between gap-4 p-4 sm:p-5" data-dashboard-attention-summary>
             <div className="min-w-0">
               <p className="text-xs font-medium text-white/85">Operational pulse</p>
-              <h2 className="mt-1 max-w-xl text-lg font-semibold tracking-[-0.02em] sm:text-xl">What needs your attention today</h2>
-            </div>
-            <div className="flex shrink-0 items-end justify-between gap-6 sm:justify-end">
-              <div data-dashboard-attention-summary>
-                <p className="text-[11px] font-medium tracking-[0.04em] text-white/85">Needs attention</p>
-                <p
-                  className="mt-1 text-3xl font-semibold tabular-nums"
-                  aria-label={summary.attentionSummary.state === "unavailable" ? `Attention summary unavailable because ${unavailableAttentionLabels.join(", ")} data could not be loaded` : `${summary.attentionSummary.total} items need attention`}
-                >
-                  {summary.attentionSummary.state === "unavailable" ? <span className="text-sm font-semibold text-white">Partial data</span> : summary.attentionSummary.total}
-                </p>
-                {summary.attentionSummary.state === "unavailable" ? <p className="mt-1 max-w-40 text-[11px] leading-4 text-white/85">Unavailable: {unavailableAttentionLabels.join(", ")}</p> : null}
-              </div>
+              <h2
+                data-dashboard-attention-value
+                className="mt-1 max-w-xl text-xl font-semibold tracking-[-0.025em] sm:text-2xl"
+                aria-label={summary.attentionSummary.state === "unavailable" ? `Attention summary unavailable because ${unavailableAttentionLabels.join(", ")} data could not be loaded` : `${summary.attentionSummary.total} items need attention`}
+              >
+                {summary.attentionSummary.state === "unavailable" ? "Some queues are unavailable" : (summary.attentionSummary.total ?? 0) > 0 ? <><span className="tabular-nums">{summary.attentionSummary.total ?? 0}</span> items need attention</> : "No urgent exceptions"}
+              </h2>
+              <p className="mt-1 text-[11px] leading-4 text-white/80">Open a queue below to review the records behind each signal.</p>
+              {summary.attentionSummary.state === "unavailable" ? <p className="mt-1 text-[11px] leading-4 text-white/85">Unavailable: {unavailableAttentionLabels.join(", ")}</p> : null}
             </div>
           </div>
           <div className="grid grid-cols-2 divide-x divide-y divide-white/15 border-t border-white/15" data-dashboard-pulse-metrics>
@@ -310,14 +306,14 @@ export function DashboardWorkspace({ summary }: { summary: DashboardSummary }) {
               <strong className={summary.inventoryUnavailable ? "text-[10px] font-semibold uppercase tracking-[0.08em] text-white/85" : "text-xl font-semibold tabular-nums"} aria-label={summary.inventoryUnavailable ? "Low stock data is temporarily unavailable" : `${summary.lowStockCount} low stock items`}>
                 {summary.inventoryUnavailable ? "Unavailable" : summary.lowStockCount}
               </strong>
-              {!summary.inventoryUnavailable ? <span className="text-[11px] leading-4 text-white/80">{summary.lowStockCount > 0 ? "Needs replenishment" : "No exception"}</span> : null}
+              {!summary.inventoryUnavailable ? <span className="hidden text-[11px] leading-4 text-white/80 sm:block">{summary.lowStockCount > 0 ? "Needs replenishment" : "No exception"}</span> : null}
             </Link>
             <Link prefetch={false} href="/goods-receivings" className="group flex min-w-0 flex-col items-start gap-1 px-3 py-3 transition-colors hover:bg-white/10 sm:px-4">
               <span className="min-w-0"><span className="flex items-center gap-1.5 text-white/85"><PackageCheck className="h-3.5 w-3.5 shrink-0" aria-hidden="true" /><span className="text-[11px] font-medium leading-4 tracking-[0.04em]">Receiving</span></span></span>
               <strong className={summary.todayReceivingUnavailable ? "text-[10px] font-semibold uppercase tracking-[0.08em] text-white/85" : "text-xl font-semibold tabular-nums"} aria-label={summary.todayReceivingUnavailable ? "Receiving data is temporarily unavailable" : `${summary.today.goodsReceiving} receiving records today`}>
                 {summary.todayReceivingUnavailable ? "Unavailable" : summary.today.goodsReceiving}
               </strong>
-              {!summary.todayReceivingUnavailable ? <span className="text-[11px] leading-4 text-white/80">Today’s activity</span> : null}
+              {!summary.todayReceivingUnavailable ? <span className="hidden text-[11px] leading-4 text-white/80 sm:block">Today’s activity</span> : null}
             </Link>
             <Link prefetch={false} href="/purchase-requests" className="group flex min-w-0 flex-col items-start gap-1 px-3 py-3 transition-colors hover:bg-white/10 sm:px-4">
               <span className="min-w-0"><span className="flex items-center gap-1.5 text-white/85"><FileText className="h-3.5 w-3.5 shrink-0" aria-hidden="true" /><span className="text-[11px] font-medium leading-4 tracking-[0.04em]">Recent requests</span></span></span>
@@ -327,14 +323,14 @@ export function DashboardWorkspace({ summary }: { summary: DashboardSummary }) {
               >
                 {summary.coreSnapshotUnavailable ? "Unavailable" : summary.purchaseRequests.length}
               </strong>
-              {!summary.coreSnapshotUnavailable ? <span className="text-[11px] leading-4 text-white/80">Current snapshot</span> : null}
+              {!summary.coreSnapshotUnavailable ? <span className="hidden text-[11px] leading-4 text-white/80 sm:block">Current snapshot</span> : null}
             </Link>
             <Link prefetch={false} href="/stock-counts" className={`group flex min-w-0 flex-col items-start gap-1 px-3 py-3 transition-colors hover:bg-white/10 sm:px-4 ${!summary.stockCountDueUnavailable && summary.today.stockCountDue > 0 ? "bg-white/[0.08]" : ""}`}>
-              <span className="min-w-0"><span className="flex items-center gap-1.5 text-white/85"><CheckCircle2 className="h-3.5 w-3.5 shrink-0" aria-hidden="true" /><span className="text-[11px] font-medium leading-4 tracking-[0.04em]">Stock count due</span></span><span className="mt-0.5 block max-w-40 truncate text-[11px] text-white/80">Last: {summary.lastStockCount?.count_no ?? "No posted count"}{summary.lastStockCount ? ` · ${formatDateOnly(summary.lastStockCount.count_date)}` : ""}</span></span>
+              <span className="min-w-0"><span className="flex items-center gap-1.5 text-white/85"><CheckCircle2 className="h-3.5 w-3.5 shrink-0" aria-hidden="true" /><span className="text-[11px] font-medium leading-4 tracking-[0.04em]">Stock count due</span></span><span className="mt-0.5 hidden max-w-40 truncate text-[11px] text-white/80 sm:block">Last: {summary.lastStockCount?.count_no ?? "No posted count"}{summary.lastStockCount ? ` · ${formatDateOnly(summary.lastStockCount.count_date)}` : ""}</span></span>
               <strong className={summary.stockCountDueUnavailable ? "text-[10px] font-semibold uppercase tracking-[0.08em] text-white/85" : "text-xl font-semibold tabular-nums"} aria-label={summary.stockCountDueUnavailable ? "Stock count due data is temporarily unavailable" : `${summary.today.stockCountDue} stock counts due`}>
                 {summary.stockCountDueUnavailable ? "Unavailable" : summary.today.stockCountDue}
               </strong>
-              {!summary.stockCountDueUnavailable ? <span className="text-[11px] leading-4 text-white/80">{summary.today.stockCountDue > 0 ? "Due for follow-up" : "No count due"}</span> : null}
+              {!summary.stockCountDueUnavailable ? <span className="hidden text-[11px] leading-4 text-white/80 sm:block">{summary.today.stockCountDue > 0 ? "Due for follow-up" : "No count due"}</span> : null}
             </Link>
           </div>
         </section>

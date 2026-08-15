@@ -26,7 +26,6 @@ export default async function NewStockCountPage({ searchParams }: { searchParams
         mobileStatusOnly
         workflowSteps={steps}
         currentStatus="draft"
-        hideMobileWorkflow
         compactMobileSpacing
         sidePanel={<div className="space-y-4">
           <DocumentSideSection title="Primary action">

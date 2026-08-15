@@ -1,6 +1,6 @@
 # Seri Bako OMS responsive design standard
 
-> **Release authority:** the currently released application is `v8.36.32`, as
+> **Release authority:** the currently released application is `v8.36.33`, as
 > defined by `src/lib/app-version.ts`. A versioned section above that number is
 > an accepted forward design contract or unreleased implementation note—not
 > evidence that the application itself has been released at that version.
@@ -10,6 +10,14 @@
 > **Precedence:** `docs/DESIGN_SYSTEM.md` is the living visual and interaction contract. When a historical release note or an older rule in this file conflicts with that contract, the living contract wins. Update both documents when a new pattern is accepted; do not preserve a visibly weaker rule for compatibility.
 
 This document is the implementation contract for every customer-facing route, form, record workspace, table, panel, dialog, and mobile action bar. It applies to new work and to refactoring of existing UI.
+
+## v8.36.33 — Oriented Stock Count
+
+- A new Stock Count keeps Draft status and workflow position visible on phones. Compactness must not remove the operator's current state or next-stage context.
+- Dense count rows stack below item identity until the viewport is wide enough for the full Item / Variance / Count ledger; breakpoint choice must account for the side rail's effect on usable content width.
+- Long count sessions expose visible and adjusted totals plus row position. Subtle alternating surfaces and a semantic adjusted state improve scanning without turning each line into a card.
+- Document workspace headers use one shared, restrained elevation so sticky context remains visibly separate from scrolling content.
+- Dashboard attention leads with a single plain-language exception total, then uses the queue cells as its breakdown. Supporting descriptions collapse on phones to preserve first-screen action density.
 
 ## v8.36.32 — Branch-Scoped PR Basket
 

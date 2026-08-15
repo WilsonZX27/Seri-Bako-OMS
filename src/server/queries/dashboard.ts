@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { todayInKualaLumpur } from "@/lib/business-date";
 import { looseSupabase, type LooseSupabase } from "@/lib/supabase/loose";
 import { getCurrentUserScope, getVisibleNotificationsForCurrentUser } from "@/server/queries/notifications";
 import { getCurrentUserPendingActionSnapshot } from "@/server/queries/pending-actions";
@@ -316,7 +317,7 @@ export async function getDashboardSummary() {
   const needsInventory = isOwner || isFinance || isManager || isPurchasing || isKitchen;
   const needsOperations = isOwner || isFinance || isManager;
   const needsProduction = isOwner || isFinance || isManager || isPurchasing || isKitchen;
-  const today = new Date().toISOString().slice(0, 10);
+  const today = todayInKualaLumpur();
   const supabase = await createClient();
   const db = looseSupabase(supabase);
   const empty = { data: [], error: null, count: 0 };

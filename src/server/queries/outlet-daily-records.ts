@@ -1,4 +1,5 @@
 import { isMockMode, mockBranches, mockProducts } from "@/lib/mock-mode";
+import { todayInKualaLumpur } from "@/lib/business-date";
 import { createClient } from "@/lib/supabase/server";
 import { paginateRows } from "@/lib/table-state";
 import { hasPermission } from "@/server/auth/permissions";
@@ -34,10 +35,6 @@ export type OutletDailyCompletionCell = {
   record_id: string | null;
   status: OutletDailyCompletionStatus;
 };
-
-const todayInKualaLumpur = () => new Intl.DateTimeFormat("en-CA", {
-  timeZone: "Asia/Kuala_Lumpur", year: "numeric", month: "2-digit", day: "2-digit",
-}).format(new Date());
 
 const totals = (lines: LineRow[]) => {
   const totalSent = lines.reduce((sum, line) => sum + Number(line.qty_sent), 0);

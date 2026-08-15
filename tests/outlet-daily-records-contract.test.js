@@ -10,6 +10,16 @@ const actions = read("src/server/actions/outlet-daily-records.ts");
 const query = read("src/server/queries/outlet-daily-records.ts");
 const form = read("src/components/outlet-daily-record-form.tsx");
 
+test("operational date reads use the Kuala Lumpur business day", () => {
+  const date = read("src/lib/business-date.ts");
+  const dashboard = read("src/server/queries/dashboard.ts");
+  const outlet = read("src/server/queries/outlet-daily-records.ts");
+  assert.match(date, /timeZone: "Asia\/Kuala_Lumpur"/);
+  assert.match(dashboard, /const today = todayInKualaLumpur\(\)/);
+  assert.doesNotMatch(dashboard, /new Date\(\)\.toISOString\(\)\.slice\(0, 10\)/);
+  assert.match(outlet, /import \{ todayInKualaLumpur \} from "@\/lib\/business-date"/);
+});
+
 test("migration 064 creates the daily header and product lines", () => {
   assert.match(sql, /create table if not exists public\.outlet_daily_records/);
   assert.match(sql, /create table if not exists public\.outlet_daily_record_lines/);

@@ -227,6 +227,23 @@ test("low-stock PR creation uses selectable phone rows instead of a five-column 
   assert.doesNotMatch(source, /var\(--sb-green\)/);
 });
 
+test("posted production and stock count details keep reconciliation authority off narrow tables", () => {
+  const production = read("src/app/(app)/production/jobs/[id]/page.tsx");
+  const stockCount = read("src/app/(app)/stock-counts/[id]/page.tsx");
+
+  assert.match(production, /<Table mobileHidden aria-label="Ingredient consumption">/);
+  assert.match(production, /data-production-job-ingredient-list/);
+  assert.match(production, />Required<\/dt>/);
+  assert.match(production, />Available<\/dt>/);
+  assert.match(production, />Variance<\/dt>/);
+  assert.match(production, /<Table mobileHidden aria-label="Production outputs">/);
+  assert.match(production, /data-production-job-output-list/);
+  assert.match(stockCount, /<Table mobileHidden aria-label="Posted stock count lines">/);
+  assert.match(stockCount, /data-posted-stock-count-lines/);
+  assert.match(stockCount, /Math\.abs\(line\.variance_percent\) > count\.tolerance_percent/);
+  assert.match(stockCount, /Variance exceeds tolerance; remarks were not recorded/);
+});
+
 test("supplier invoice responsive audit verifies flat selected-line disclosure", () => {
   const source = read("tests/e2e/supplier-invoice-create-responsive.spec.js");
 

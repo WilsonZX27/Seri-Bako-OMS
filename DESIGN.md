@@ -1,6 +1,6 @@
 # Seri Bako OMS responsive design standard
 
-> **Release authority:** the currently released application is `v8.36.36`, as
+> **Release authority:** the currently released application is `v8.36.37`, as
 > defined by `src/lib/app-version.ts`. A versioned section above that number is
 > an accepted forward design contract or unreleased implementation note—not
 > evidence that the application itself has been released at that version.
@@ -10,6 +10,13 @@
 > **Precedence:** `docs/DESIGN_SYSTEM.md` is the living visual and interaction contract. When a historical release note or an older rule in this file conflicts with that contract, the living contract wins. Update both documents when a new pattern is accepted; do not preserve a visibly weaker rule for compatibility.
 
 This document is the implementation contract for every customer-facing route, form, record workspace, table, panel, dialog, and mobile action bar. It applies to new work and to refactoring of existing UI.
+
+## v8.36.37 — Responsive Posted Operations
+
+- Posted Production Job and Stock Count details retain their wide audit tables at desktop widths and use complete reconciliation summaries below 1280px.
+- Ingredient consumption leads with actual quantity and line cost, then retains required quantity, available stock, variance, and unit cost. Unknown availability and unrecorded actuals remain explicit trust states rather than zero.
+- Production output leads with actual output and line cost while preserving planned quantity and unit cost.
+- Posted count lines lead with physical quantity and variance. High variance is compared against the count's saved tolerance and remains visibly exceptional; a missing remark is disclosed instead of implied to be complete.
 
 ## v8.36.36 — Responsive Payables Reports
 

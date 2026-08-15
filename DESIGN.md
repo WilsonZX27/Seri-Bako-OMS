@@ -1,6 +1,6 @@
 # Seri Bako OMS responsive design standard
 
-> **Release authority:** the currently released application is `v8.36.56`, as
+> **Release authority:** the currently released application is `v8.36.57`, as
 > defined by `src/lib/app-version.ts`. A versioned section above that number is
 > an accepted forward design contract or unreleased implementation note—not
 > evidence that the application itself has been released at that version.
@@ -10,6 +10,12 @@
 > **Precedence:** `docs/DESIGN_SYSTEM.md` is the living visual and interaction contract. When a historical release note or an older rule in this file conflicts with that contract, the living contract wins. Update both documents when a new pattern is accepted; do not preserve a visibly weaker rule for compatibility.
 
 This document is the implementation contract for every customer-facing route, form, record workspace, table, panel, dialog, and mobile action bar. It applies to new work and to refactoring of existing UI.
+
+## v8.36.57 — Readable Mobile Date Filter
+
+- Date-first mobile list filters now receive their date-control layout inside the phone breakpoint where the shared mobile header actually renders.
+- An empty date filter shows the complete `Any date` affordance with its calendar icon instead of collapsing to an unexplained icon-only field.
+- The date control, filter trigger, and result count retain a clear toolbar hierarchy without changing tablet or desktop list layouts.
 
 ## v8.36.56 — Truthful Secondary Reads
 

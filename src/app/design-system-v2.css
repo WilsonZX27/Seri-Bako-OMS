@@ -1198,14 +1198,7 @@ html[data-design-layer="v2"] .sb-mobile-action-bar {
   box-shadow: 0 -8px 24px rgba(17, 30, 22, 0.16);
 }
 
-@media (min-width: 768px) and (max-width: 1279px) {
-  html[data-design-layer="v2"] [data-tablet-document-split] > aside {
-    position: sticky;
-    top: 5rem;
-    max-height: calc(100dvh - 5.75rem);
-    overflow: hidden;
-  }
-
+@media (max-width: 639px) {
   html[data-design-layer="v2"] form.unified-list-header .unified-list-date-control {
     min-width: 0;
   }
@@ -1242,6 +1235,15 @@ html[data-design-layer="v2"] .sb-mobile-action-bar {
     color: var(--sb-text-muted);
     font-size: .8125rem;
     font-weight: 600;
+  }
+}
+
+@media (min-width: 768px) and (max-width: 1279px) {
+  html[data-design-layer="v2"] [data-tablet-document-split] > aside {
+    position: sticky;
+    top: 5rem;
+    max-height: calc(100dvh - 5.75rem);
+    overflow: hidden;
   }
 }
 

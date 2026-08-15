@@ -1,6 +1,6 @@
-import { BarChart3, ClipboardCheck, FileText, PackageCheck, PackageSearch, ShoppingCart, TriangleAlert } from "lucide-react";
+import Link from "next/link";
+import { BarChart3, ChevronRight, ClipboardCheck, FileText, PackageCheck, PackageSearch, ShoppingCart, TriangleAlert } from "lucide-react";
 import { PageHeader } from "@/components/ui/page-header";
-import { Button } from "@/components/ui/button";
 import { ConsoleSection } from "@/components/layout/right-console";
 import { WorkspaceGrid } from "@/components/layout/workspace-layout";
 import type { LucideIcon } from "lucide-react";
@@ -109,18 +109,16 @@ export default async function ReportsPage() {
                 {category.reports.map((report) => {
                   const Icon = report.icon;
                   return (
-                    <div key={report.title} className="grid grid-cols-[24px_minmax(0,1fr)_auto] items-center gap-2 px-3 py-2">
-                      <div className="flex h-6 w-6 items-center justify-center rounded-[2px] bg-primary/10 text-primary">
-                        <Icon className="h-3.5 w-3.5" />
+                    <Link key={report.title} href={report.href} aria-label={`Open ${report.title}: ${report.description}`} className="group grid min-h-14 grid-cols-[32px_minmax(0,1fr)_24px] items-center gap-3 px-3 py-2.5 transition-colors hover:bg-[var(--sb-surface-muted)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[var(--sb-green-700)]">
+                      <div className="flex h-8 w-8 items-center justify-center rounded-[2px] bg-primary/10 text-primary" aria-hidden="true">
+                        <Icon className="h-4 w-4" />
                       </div>
                       <div className="min-w-0">
-                        <p className="truncate text-xs font-medium">{report.title}</p>
-                        <p className="truncate text-[11px] text-muted-foreground">{report.description}</p>
+                        <p className="text-sm font-medium text-[var(--sb-text)]">{report.title}</p>
+                        <p className="mt-0.5 text-[11px] leading-4 text-muted-foreground">{report.description}</p>
                       </div>
-                      <Button asChild variant="outline" size="sm" className="px-2 text-xs">
-                        <a href={report.href}>Open</a>
-                      </Button>
-                    </div>
+                      <ChevronRight className="h-4 w-4 justify-self-end text-muted-foreground transition-transform group-hover:translate-x-0.5 group-hover:text-primary" aria-hidden="true" />
+                    </Link>
                   );
                 })}
               </div>

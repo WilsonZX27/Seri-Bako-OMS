@@ -157,16 +157,16 @@ export function DashboardWorkspace({ summary }: { summary: DashboardSummary }) {
           { key: "receiving", label: "Receiving today", value: summary.todayReceivingUnavailable ? null : summary.today.goodsReceiving, href: "/goods-receivings?date=today", definition: "Goods receiving records created today in the current scope.", tone: "active" },
           { key: "production_pending", label: "Production pending", value: summary.productionSummary ? summary.productionSummary.pendingApproval + summary.productionSummary.readyToPost : null, href: "/production/jobs", definition: "Production jobs awaiting approval or ready to post.", tone: "warning" },
           { key: "ingredient_shortage", label: "Ingredient shortages", value: summary.productionSummary?.ingredientShortages ?? null, href: "/production/jobs", definition: "Production jobs carrying a bounded ingredient-shortage exception.", tone: "critical" },
-          { key: "low_stock", label: "Low-stock items", value: summary.inventoryUnavailable ? null : summary.lowStockCount, href: "/low-stock", definition: "Active items at or below their safety-stock threshold.", tone: "critical" },
+          // Low stock is already the primary red signal in Operational pulse and
+          // the Exceptions panel. Keep this role chart about the next distinct
+          // queues instead of repeating the same exception a third time.
         ]
       : isPurchasing
         ? [
-            { key: "low_stock", label: "Items needing sourcing", value: summary.inventoryUnavailable ? null : summary.lowStockCount, href: "/low-stock", definition: "Active items at or below their safety-stock threshold.", tone: "critical" },
             { key: "receiving_followup", label: "Receiving follow-up", value: summary.receivingFollowupUnavailable ? null : summary.financeForecast.receivingNotInvoiced, href: "/goods-receivings", definition: "Bounded receiving records that still require downstream follow-up.", tone: "warning" },
             { key: "production_exception", label: "Production exceptions", value: summary.productionSummary ? summary.productionSummary.pendingApproval + summary.productionSummary.ingredientShortages : null, href: "/production/jobs", definition: "Production jobs pending approval plus ingredient-shortage exceptions.", tone: "warning" },
           ]
         : [
-            { key: "low_stock", label: "Low-stock items", value: summary.inventoryUnavailable ? null : summary.lowStockCount, href: "/low-stock", definition: "Active items at or below their safety-stock threshold.", tone: "critical" },
             { key: "stock_count", label: "Stock counts due", value: summary.stockCountDueUnavailable ? null : summary.today.stockCountDue, href: "/stock-counts", definition: "Stock counts currently due in the permitted scope.", tone: "warning" },
             { key: "wastage", label: "Wastage attention", value: summary.wastageUnavailable ? null : summary.wastageAttention, href: "/stock-wastage?status=submitted", definition: "Draft or submitted wastage records requiring attention.", tone: "warning" },
             { key: "outlet", label: "Outlet completion issues", value: summary.operationsControl ? outletExceptionCount : null, href: "/outlet-daily-records", definition: "Outlet records missing an evening completion or awaiting review.", tone: "critical" },
@@ -299,7 +299,7 @@ export function DashboardWorkspace({ summary }: { summary: DashboardSummary }) {
               <p className="text-xs font-medium text-white/85">Operational pulse</p>
               <h2
                 data-dashboard-attention-value
-                className="mt-1 max-w-xl text-xl font-semibold tracking-[-0.025em] sm:text-2xl"
+                className="mt-1 max-w-xl text-lg font-semibold leading-6 tracking-[-0.02em] sm:text-xl sm:leading-7"
                 aria-label={summary.attentionSummary.state === "unavailable" ? `Attention summary unavailable because ${unavailableAttentionLabels.join(", ")} data could not be loaded` : `${summary.attentionSummary.total} items need attention`}
               >
                 {summary.attentionSummary.state === "unavailable" ? "Some queues are unavailable" : (summary.attentionSummary.total ?? 0) > 0 ? <><span className="tabular-nums">{summary.attentionSummary.total ?? 0}</span> items need attention</> : "No urgent exceptions"}

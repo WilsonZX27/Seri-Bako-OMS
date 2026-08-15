@@ -277,23 +277,26 @@ export function StockBalanceWorkspace({
                                 {supplierLines.map((line) => {
                               const key = rowKey(line);
                               return (
-                                <div key={key} className="space-y-1.5 border-b border-[var(--sb-border-soft)] py-2 last:border-0">
-                                  <p className="text-sm font-semibold leading-5">{line.item_name}</p>
-                                  <p className="text-[10px] text-[var(--sb-text-muted)]">{line.item_code}</p>
+                                <div key={key} className="space-y-1 border-b border-[var(--sb-border-soft)] py-1.5 last:border-0">
+                                  <p className="truncate text-[13px] font-semibold leading-4">{line.item_name}</p>
+                                  <p className="truncate text-[10px] leading-4 text-[var(--sb-text-muted)]">{line.item_code} · {line.supplier_name ?? "Supplier mapping missing"}</p>
                                   {isCreateBranch ? (
                                     <>
                                       <div className="flex items-center justify-between gap-2">
                                         <QuantityStepper
                                           value={line.qty}
-                                          uom={line.uom}
+                                          uom={null}
                                           step={0.01}
                                           label={`Quantity for ${line.item_name}`}
                                           onChange={(value) => updateQty(key, value)}
-                                          className="min-h-10 [&_button]:h-10 [&_button]:w-10 [&_input]:h-10 [&_input]:w-16"
+                                          className="min-h-9 min-w-0 flex-1 [&_button]:h-9 [&_button]:min-h-9 [&_button]:w-8 [&_input]:h-9 [&_input]:w-12"
                                         />
+                                        <SelectNative aria-label={`UOM for ${line.item_name}`} value={line.uom} onChange={(event) => updateUom(key, event.target.value)} className="h-9 w-16 shrink-0 px-1.5 text-[11px]">
+                                          {uomOptionsWithCurrent(line.uom).map((uom) => <option key={uom} value={uom}>{uom}</option>)}
+                                        </SelectNative>
                                         <button
                                           type="button"
-                                          className="inline-flex h-11 w-11 shrink-0 items-center justify-center text-[var(--sb-danger)] hover:bg-[var(--sb-danger-soft)]"
+                                          className="inline-flex h-9 w-8 shrink-0 items-center justify-center text-[var(--sb-danger)] hover:bg-[var(--sb-danger-soft)]"
                                           onClick={() => toggleBasket(line)}
                                           aria-label={`Remove ${line.item_name} from PR basket`}
                                         >
@@ -338,6 +341,7 @@ export function StockBalanceWorkspace({
         }
         tabletRailMode="split"
         tabletRailBreakpoint="md"
+        tabletRailWidth="half"
       >
         <div className="space-y-3">
           <FilterBar resultCount={totalRows} resetHref="/stock-balance" filtered={Boolean(filters.search || filters.branch_id || filters.status)}>

@@ -8,6 +8,7 @@ import { Field } from "@/components/ui/field";
 import { SelectNative } from "@/components/ui/select-native";
 import { QuantityStepper } from "@/components/ui/quantity-stepper";
 import { getToday } from "@/lib/utils";
+import { uomOptionsWithCurrent } from "@/lib/uom";
 import { createPurchaseRequestsFromBasket } from "@/server/actions/procurement";
 
 type LowStockItem = {
@@ -62,6 +63,7 @@ export function LowStockPrForm({ items, branches, defaultBranchId, disabled }: {
   }, [items, selectedBranchId]);
   const [selected, setSelected] = useState<Record<string, boolean>>({});
   const [quantities, setQuantities] = useState<Record<string, string>>({});
+  const [uoms, setUoms] = useState<Record<string, string>>({});
   const [basketOpen, setBasketOpen] = useState(false);
   const [idempotencyKey] = useState(() => crypto.randomUUID());
 
@@ -86,11 +88,11 @@ export function LowStockPrForm({ items, branches, defaultBranchId, disabled }: {
         return {
           item_id: item.item_id,
           qty: quantities[key] ?? String(item.suggested_reorder_qty),
-          uom: item.purchase_unit || item.base_unit || "pcs",
+          uom: uoms[key] ?? item.purchase_unit ?? item.base_unit ?? "pcs",
           estimated_unit_cost: item.cost ?? 0,
         };
       }),
-    })), [quantities, supplierGroups]);
+    })), [quantities, supplierGroups, uoms]);
   const hasMissingSupplier = selectedItems.some((item) => !item.supplier_id);
   const canCreatePr = selectedCount > 0 && selectedBranchId !== "all" && !hasMissingSupplier;
 
@@ -110,10 +112,15 @@ export function LowStockPrForm({ items, branches, defaultBranchId, disabled }: {
     setQuantities((current) => ({ ...current, [key]: value }));
   }
 
+  function setItemUom(key: string, value: string) {
+    setUoms((current) => ({ ...current, [key]: value }));
+  }
+
   function selectBranch(branchId: string) {
     setSelectedBranchId(branchId);
     setSelected({});
     setQuantities({});
+    setUoms({});
   }
 
   const branchSelected = selectedBranchId !== "all";
@@ -215,16 +222,22 @@ export function LowStockPrForm({ items, branches, defaultBranchId, disabled }: {
                         <td className="px-3 py-2 text-xs text-muted-foreground">{item.current_stock}</td>
                         <td className="px-3 py-2 text-xs text-muted-foreground">{item.suggested_reorder_qty} {item.purchase_unit || item.base_unit}</td>
                         <td className="px-3 py-2">
-                          {branchSelected ? <QuantityStepper
-                            value={requestedQty}
-                            uom={item.purchase_unit || item.base_unit}
-                            step={0.0001}
-                            label={`Quantity for ${item.item_name}`}
-                            onChange={(value) => {
-                              setItemQty(key, value);
-                              if (!isSelected) setSelected((current) => ({ ...current, [key]: true }));
-                            }}
-                          /> : <span className="text-xs text-muted-foreground">Choose branch</span>}
+                          {branchSelected ? <div className="flex items-center justify-end gap-1.5">
+                            <QuantityStepper
+                              value={requestedQty}
+                              uom={null}
+                              step={0.0001}
+                              label={`Quantity for ${item.item_name}`}
+                              onChange={(value) => {
+                                setItemQty(key, value);
+                                if (!isSelected) setSelected((current) => ({ ...current, [key]: true }));
+                              }}
+                              className="min-h-10 [&_button]:min-h-10 [&_button]:w-8 [&_input]:min-h-10 [&_input]:w-14"
+                            />
+                            <SelectNative aria-label={`Purchase UOM for ${item.item_name}`} value={uoms[key] ?? item.purchase_unit ?? item.base_unit ?? "PCS"} onChange={(event) => setItemUom(key, event.target.value)} className="h-10 w-20 px-1.5 text-xs">
+                              {uomOptionsWithCurrent(item.purchase_unit || item.base_unit).map((uom) => <option key={uom} value={uom}>{uom}</option>)}
+                            </SelectNative>
+                          </div> : <span className="text-xs text-muted-foreground">Choose branch</span>}
                         </td>
                       </tr>
                     );
@@ -263,11 +276,7 @@ export function LowStockPrForm({ items, branches, defaultBranchId, disabled }: {
                     <span className="mt-3 grid grid-cols-2 gap-3">
                       <span className="text-xs text-muted-foreground">Current <strong className="block text-sm text-foreground">{item.current_stock} {item.base_unit}</strong></span>
                       <span className="text-xs text-muted-foreground">Suggested <strong className="block text-sm text-foreground">{item.suggested_reorder_qty} {item.purchase_unit || item.base_unit}</strong></span>
-                      {isSelected ? <span className="col-span-2" data-low-stock-pr-quantity><Field label="Qty for PR">
-                        <QuantityStepper value={requestedQty} uom={item.purchase_unit || item.base_unit} step={0.0001} label={`Quantity for ${item.item_name}`} onChange={(value) => {
-                          setItemQty(key, value);
-                        }} />
-                      </Field></span> : null}
+                      {isSelected ? <span className="col-span-2" data-low-stock-pr-quantity><Field label="Qty for PR"><div className="flex items-center gap-1.5"><QuantityStepper value={requestedQty} uom={null} step={0.0001} label={`Quantity for ${item.item_name}`} onChange={(value) => setItemQty(key, value)} className="min-w-0 flex-1 [&_button]:w-9 [&_input]:w-14" /><SelectNative aria-label={`Purchase UOM for ${item.item_name}`} value={uoms[key] ?? item.purchase_unit ?? item.base_unit ?? "PCS"} onChange={(event) => setItemUom(key, event.target.value)} className="h-11 w-20 px-1.5 text-xs">{uomOptionsWithCurrent(item.purchase_unit || item.base_unit).map((uom) => <option key={uom} value={uom}>{uom}</option>)}</SelectNative></div></Field></span> : null}
                     </span>
                   </div>
                 );

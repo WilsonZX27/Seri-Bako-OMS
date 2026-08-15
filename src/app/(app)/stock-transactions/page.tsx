@@ -119,10 +119,7 @@ export default async function StockTransactionsPage({ searchParams }: { searchPa
           </>
         }
       >
-        <div className="rounded-[2px] border border-[var(--sb-border-soft)] bg-card">
-          {activeFilterChips.length ? <div className="sb-filter-summary flex-wrap px-3 py-2" aria-label="Active filters">
-            {activeFilterChips.map((chip) => <span key={chip} className="max-w-full truncate">{chip}</span>)}
-          </div> : null}
+        <div className="space-y-2">
           <FilterBar resultCount={ledger.totalRows} resetHref="/stock-transactions" filtered={filtered}>
             <Input name="search" defaultValue={filters.search ?? ""} placeholder="Item or transaction" />
             <SelectControl name="branch_id" defaultValue={filters.branch_id ?? "all"} ariaLabel="Branch" options={[{ value: "all", label: "All branches" }, ...branches.map((branch) => ({ value: branch.id, label: branch.branch_name }))]} />
@@ -135,6 +132,10 @@ export default async function StockTransactionsPage({ searchParams }: { searchPa
             </FilterBarMore>
             <Button type="submit" variant="secondary">Search</Button>
           </FilterBar>
+          {activeFilterChips.length ? <div className="sb-filter-summary flex-wrap px-3 py-2" aria-label="Active filters">
+            {activeFilterChips.map((chip) => <span key={chip} className="max-w-full truncate">{chip}</span>)}
+          </div> : null}
+          <div className="sb-list-content-card overflow-hidden">
             <Table mobileHidden aria-label="Stock movement ledger" stickyColumn="second">
               <TableHeader>
                 <TableRow>
@@ -198,6 +199,7 @@ export default async function StockTransactionsPage({ searchParams }: { searchPa
               {!ledger.rows.length ? <EmptyState title={filtered ? "No movements match these filters" : "No ledger movements yet"} description={filtered ? "Reset the filters or widen the date range." : "Posted inventory movements will appear here."} action={filtered ? { href: "/stock-transactions", label: "Reset filters" } : undefined} /> : null}
             </OperationalList>
           <PaginationControls page={ledger.page} totalPages={ledger.totalPages} totalRows={ledger.totalRows} searchParams={filters} />
+          </div>
         </div>
       </WorkspaceGrid>
     </>

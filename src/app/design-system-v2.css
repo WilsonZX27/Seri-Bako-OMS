@@ -1506,6 +1506,33 @@ html[data-design-layer="v2"] .sb-list-content-card {
   }
 }
 
+/* Master-data filters are a small command row, not a search-first form. Keep
+   Search, status/filter, and More filters on one deliberate control rhythm so
+   their hit areas do not look like unrelated components. Phone keeps the
+   canonical elastic search + filter trigger layout. */
+@media (min-width: 640px) {
+  html[data-design-layer="v2"] form.sb-list-filters--equal-controls {
+    --sb-equal-query-control: 10rem;
+  }
+
+  html[data-design-layer="v2"] form.sb-list-filters--equal-controls > :where(input[type="search"], input[name="search"], input[placeholder*="Search"], input[placeholder*="Find"]) {
+    flex: 0 0 var(--sb-equal-query-control) !important;
+    width: var(--sb-equal-query-control) !important;
+    max-width: var(--sb-equal-query-control) !important;
+  }
+
+  html[data-design-layer="v2"] form.sb-list-filters--equal-controls > :where(.sb-status-filter, select, [data-select-control], .sb-filter-more),
+  html[data-design-layer="v2"] form.sb-list-filters--equal-controls > .unified-list-desktop-actions > :where(button, a) {
+    flex: 0 0 var(--sb-equal-query-control) !important;
+    width: var(--sb-equal-query-control) !important;
+    min-width: var(--sb-equal-query-control) !important;
+  }
+
+  html[data-design-layer="v2"] form.sb-list-filters--equal-controls > .sb-status-filter {
+    display: block;
+  }
+}
+
 /* A landscape tablet with a visible context rail has less usable width than
    the browser viewport. Keep search readable and let complete control groups
    move together instead of crushing the first input to icon width. */

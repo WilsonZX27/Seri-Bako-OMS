@@ -46,8 +46,8 @@ export default async function LowStockPage({ searchParams }: { searchParams: Pro
           </ConsoleSection>
         }
       >
-        <div className="overflow-hidden border-y border-[var(--sb-border-soft)] bg-card md:rounded-[2px] md:border">
-          <div className="contents md:block md:border-b md:p-4">
+        <div className="space-y-3">
+          <div>
             <LowStockPrForm
               items={items}
               branches={branches}
@@ -56,7 +56,7 @@ export default async function LowStockPage({ searchParams }: { searchParams: Pro
             />
           </div>
 
-          <div className="border-b p-3 md:p-4">
+          <div>
             <UnifiedListHeader resultCount={items.length} resetHref="/low-stock" filtered={filtered}>
               <Input name="search" defaultValue={filters.search ?? ""} placeholder="Search item, branch, supplier" className="md:max-w-sm" />
               <SelectControl
@@ -76,6 +76,7 @@ export default async function LowStockPage({ searchParams }: { searchParams: Pro
             </UnifiedListHeader>
           </div>
 
+          <div className="sb-list-content-card overflow-hidden">
           <Table mobileHidden aria-label="Low stock items" stickyColumn="first">
             <TableHeader>
               <TableRow>
@@ -133,6 +134,7 @@ export default async function LowStockPage({ searchParams }: { searchParams: Pro
             })}
             {!items.length ? <EmptyState title={filtered ? "No items match these filters" : "Stock levels are healthy"} description={filtered ? "Reset the filters or search for another item." : "Items that need replenishment will appear here."} action={filtered ? { href: "/low-stock", label: "Reset filters" } : undefined} /> : null}
           </OperationalList>
+          </div>
         </div>
       </WorkspaceGrid>
     </>

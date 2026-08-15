@@ -1,6 +1,6 @@
 # Seri Bako OMS responsive design standard
 
-> **Release authority:** the currently released application is `v8.36.96`, as
+> **Release authority:** the currently released application is `v8.36.97`, as
 > defined by `src/lib/app-version.ts`. A versioned section above that number is
 > an accepted forward design contract or unreleased implementation note—not
 > evidence that the application itself has been released at that version.
@@ -1172,3 +1172,10 @@ the route matrix in `docs/qa/FULL_SYSTEM_AUDIT_MATRIX.md`.
 - Repeating mobile item editors use explicit named grid regions. Item search owns the first row; quantity, UOM, and the comment action share the second row. A broad selector may not replace a component's grid template or reset its child placement.
 - Screenshot evidence must come from a clean `.next-playwright` cache and a clean evidence directory. Old screenshots or a reused build cannot be accepted as current verification.
 - New features must pass the existing responsive route matrix before they are considered complete. A feature change does not authorize weakening, hiding, or removing an established responsive contract.
+## v8.36.97 — Operational UI Density and Shared Surface Convergence
+
+- Dashboard attention copy uses a compact product type scale and role charts no longer repeat the same low-stock exception already present in Operational Pulse and Exceptions.
+- Outlet Daily completion previews are interaction-first: the matrix is compact at rest and exact record detail appears on hover, focus, click, or touch. Coverage remains available as a concise disclosure.
+- Master-data action rails use one icon vocabulary, query controls share a deliberate desktop width, Stock Transactions places active filters directly below the query surface, and Low Stock no longer wraps the procurement queue in a duplicate outer card.
+- PR basket controls are denser on tablet/desktop, tablet rails may claim a wider task column, and purchase UOM is selectable in both Stock Balance and Low Stock procurement flows.
+- Unavailable Stock Count variance reads as unavailable rather than resembling a zero result.

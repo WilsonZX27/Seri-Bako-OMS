@@ -93,7 +93,7 @@ export function MasterDataFilters({
       resetHref={resetHref}
       filtered={filtered}
       activeCount={activeFilterCount}
-      className={compactMobile ? "sb-list-filters--compact-mobile" : undefined}
+      className={`sb-list-filters--equal-controls${compactMobile ? " sb-list-filters--compact-mobile" : ""}`}
     >
       {controls}
       {action}

@@ -21,7 +21,7 @@ import { getOutletDailyCompletionMatrix, getOutletDailyDemandTrend, getOutletDai
 import { logServerError } from "@/server/observability/logger";
 
 const statuses = ["draft", "morning_recorded", "evening_completed", "reviewed", "void"];
-const statusGuidance = (status: string) => status === "evening_completed" ? "Posted · editable" : status === "reviewed" ? "Legacy reviewed record" : ["draft", "morning_recorded"].includes(status) ? "In progress" : "Locked";
+const statusGuidance = (status: string) => status === "evening_completed" ? "Posted · editable" : status === "reviewed" ? "Legacy reviewed · locked" : ["draft", "morning_recorded"].includes(status) ? "In progress" : "Locked";
 
 export default async function OutletDailyRecordsPage({ searchParams }: { searchParams: Promise<Record<string, string | undefined>> }) {
   const filters = await searchParams;

@@ -5,6 +5,7 @@ import { cn } from "@/lib/utils";
 type TabletCanvas = "contained" | "wide" | "full";
 type TabletRailMode = "context" | "split";
 type TabletRailBreakpoint = "md" | "lg";
+type TabletRailWidth = "compact" | "half";
 
 export function WorkspaceGrid({
   children,
@@ -16,6 +17,7 @@ export function WorkspaceGrid({
   tabletCanvas,
   tabletRailMode = rightRail ? "split" : "context",
   tabletRailBreakpoint = "md",
+  tabletRailWidth = "compact",
 }: {
   children: ReactNode;
   rightRail?: ReactNode;
@@ -29,13 +31,19 @@ export function WorkspaceGrid({
   tabletRailMode?: TabletRailMode;
   /** Lists may keep portrait tablets stacked and split only on wider tablet canvases. */
   tabletRailBreakpoint?: TabletRailBreakpoint;
+  /** Dense task rails such as the PR basket can claim a wider tablet column. */
+  tabletRailWidth?: TabletRailWidth;
 }) {
   const contextualRail = rightRailClassName ? <div className={rightRailClassName}>{rightRail}</div> : rightRail;
   const effectiveTabletCanvas = tabletCanvas ?? (documentMode ? "contained" : "wide");
   const usesTabletSplit = Boolean(rightRail && tabletRailMode === "split");
   const splitGridClass = tabletRailBreakpoint === "lg"
-    ? "lg:grid lg:grid-cols-[minmax(0,1fr)_16rem] lg:items-start lg:gap-3 xl:block"
-    : "md:grid md:grid-cols-[minmax(0,1fr)_16rem] md:items-start md:gap-3 xl:block";
+    ? tabletRailWidth === "half"
+      ? "lg:grid lg:grid-cols-[minmax(0,1fr)_minmax(18rem,42%)] lg:items-start lg:gap-3 xl:block"
+      : "lg:grid lg:grid-cols-[minmax(0,1fr)_16rem] lg:items-start lg:gap-3 xl:block"
+    : tabletRailWidth === "half"
+      ? "md:grid md:grid-cols-[minmax(0,1fr)_minmax(18rem,42%)] md:items-start md:gap-3 xl:block"
+      : "md:grid md:grid-cols-[minmax(0,1fr)_16rem] md:items-start md:gap-3 xl:block";
   const splitRailClass = tabletRailBreakpoint === "lg"
     ? "hidden min-w-0 space-y-3 lg:block xl:hidden"
     : "hidden min-w-0 space-y-3 md:block xl:hidden";

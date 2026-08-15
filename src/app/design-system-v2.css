@@ -1205,6 +1205,44 @@ html[data-design-layer="v2"] .sb-mobile-action-bar {
     max-height: calc(100dvh - 5.75rem);
     overflow: hidden;
   }
+
+  html[data-design-layer="v2"] form.unified-list-header .unified-list-date-control {
+    min-width: 0;
+  }
+
+  html[data-design-layer="v2"] form.unified-list-header .unified-list-date-control input[type="date"] {
+    width: 100% !important;
+    min-width: 0 !important;
+    padding-inline: 2.25rem .625rem !important;
+    color: var(--sb-text) !important;
+    background: var(--sb-surface-raised) !important;
+  }
+
+  html[data-design-layer="v2"] form.unified-list-header .unified-list-date-control[data-empty] input[type="date"] {
+    color: transparent !important;
+  }
+
+  html[data-design-layer="v2"] form.unified-list-header :where(.unified-list-date-icon, .unified-list-date-placeholder) {
+    position: absolute;
+    z-index: 1;
+    top: 50%;
+    pointer-events: none;
+    transform: translateY(-50%);
+  }
+
+  html[data-design-layer="v2"] form.unified-list-header .unified-list-date-icon {
+    left: .75rem;
+    width: 1rem;
+    height: 1rem;
+    color: var(--sb-muted);
+  }
+
+  html[data-design-layer="v2"] form.unified-list-header .unified-list-date-placeholder {
+    left: 2.25rem;
+    color: var(--sb-text-muted);
+    font-size: .8125rem;
+    font-weight: 600;
+  }
 }
 
 html[data-design-layer="v2"] :where([data-mobile-action-bar], .sb-mobile-action-bar) {

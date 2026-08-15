@@ -15,7 +15,7 @@ import {
   type ReactNode,
 } from "react";
 import { createPortal } from "react-dom";
-import { Search, SlidersHorizontal, X } from "lucide-react";
+import { CalendarDays, Search, SlidersHorizontal, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
@@ -104,7 +104,22 @@ function SearchControl({ child, value, onChange }: { child: ReactElement; value:
   const props = propsOf(child);
 
   if (props.type === "date") {
-    return <div className="unified-list-primary-control unified-list-date-control">{cloneElement(child as ReactElement<Record<string, unknown>>, { className: cn("unified-list-primary-input", props.className as string) })}</div>;
+    const control = cloneElement(child as ReactElement<Record<string, unknown>>, {
+      ...props,
+      defaultValue: undefined,
+      value,
+      onChange: (event: React.ChangeEvent<HTMLInputElement>) => {
+        if (typeof props.onChange === "function") props.onChange(event);
+        onChange(event.target.value);
+      },
+      className: cn("unified-list-primary-input", props.className as string),
+    });
+
+    return <div className="unified-list-primary-control unified-list-date-control" data-empty={!value || undefined}>
+      <CalendarDays aria-hidden="true" className="unified-list-date-icon" />
+      {!value ? <span className="unified-list-date-placeholder">Any date</span> : null}
+      {control}
+    </div>;
   }
 
   const control = cloneElement(child as ReactElement<Record<string, unknown>>, {

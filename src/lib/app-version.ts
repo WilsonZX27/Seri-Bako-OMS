@@ -1,6 +1,6 @@
-export const APP_VERSION = "8.47.0";
+export const APP_VERSION = "8.48.0";
 export const APP_SPRINT = `v${APP_VERSION}`;
-export const APP_RELEASE_TITLE = "Unavailable Counters Stay Explicit";
+export const APP_RELEASE_TITLE = "Receipt Anomalies Stay Visible";
 // Keep the shell footer concise; the detailed release title belongs in release
 // notes, not in a narrow navigation rail where it is clipped on small screens.
 export const APP_RELEASE_NOTE = APP_SPRINT;

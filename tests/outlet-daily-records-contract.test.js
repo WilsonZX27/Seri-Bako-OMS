@@ -9,6 +9,8 @@ const hotfix = read("supabase/migrations/074_daily_record_recipe_access_product_
 const actions = read("src/server/actions/outlet-daily-records.ts");
 const query = read("src/server/queries/outlet-daily-records.ts");
 const form = read("src/components/outlet-daily-record-form.tsx");
+const page = read("src/app/(app)/outlet-daily-records/page.tsx");
+const detail = read("src/app/(app)/outlet-daily-records/[id]/page.tsx");
 
 test("operational date reads use the Kuala Lumpur business day", () => {
   const date = read("src/lib/business-date.ts");
@@ -125,4 +127,13 @@ test("received totals never turn an unverified default zero into a business fact
   assert.match(query, /received_state: "verified" \| "unavailable"/);
   assert.match(query, /total_received: number \| null/);
   assert.match(query, /today_received_unavailable/);
+});
+
+test("outlet records flag a confirmed zero when stock was sent", () => {
+  assert.match(query, /received_zero_with_sent: boolean/);
+  assert.match(query, /totalReceived === 0 && totalSent > 0/);
+  assert.match(page, /0 · verify/);
+  assert.match(page, /no confirmed receipt/);
+  assert.match(detail, /Receipt check needed/);
+  assert.match(detail, /record\.received_zero_with_sent/);
 });

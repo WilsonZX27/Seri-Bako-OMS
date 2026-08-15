@@ -20,6 +20,7 @@ export type OutletDailyRecordRow = RecordRow & {
   total_sent: number;
   total_received: number | null;
   received_state: "verified" | "unavailable";
+  received_zero_with_sent: boolean;
   total_leftover: number;
   total_wastage: number;
   wastage_percent: number | null;
@@ -52,12 +53,18 @@ const totals = (lines: LineRow[]) => {
   const totalReceived = receivedState === "verified"
     ? receivedValues.reduce<number>((sum, value) => sum + (value ?? 0), 0)
     : null;
+  // A confirmed zero can be valid (for example, an outlet received nothing),
+  // but it is operationally suspicious when the same record says the kitchen
+  // sent stock. Keep the value authoritative and surface the reconciliation
+  // cue instead of silently presenting a healthy-looking zero.
+  const receivedZeroWithSent = totalReceived === 0 && totalSent > 0;
   const totalLeftover = lines.reduce((sum, line) => sum + Number(line.evening_leftover_qty), 0);
   const totalWastage = lines.reduce((sum, line) => sum + Number(line.wastage_qty), 0);
   return {
     total_sent: totalSent,
     total_received: totalReceived,
     received_state: receivedState,
+    received_zero_with_sent: receivedZeroWithSent,
     total_leftover: totalLeftover,
     total_wastage: totalWastage,
     wastage_percent: totalReceived !== null && totalReceived > 0 ? (totalWastage / totalReceived) * 100 : null,
@@ -229,6 +236,7 @@ export async function getOutletDailyRecords(filters: Filters = {}) {
         ? todayRows.reduce((sum, row) => sum + (row.total_received ?? 0), 0)
         : null,
       today_received_unavailable: todayRows.filter((row) => row.total_received === null).length,
+      today_received_zero_with_sent: todayRows.filter((row) => row.received_zero_with_sent).length,
       missing_evening: todayRows.filter((row) => ["draft", "morning_recorded"].includes(row.status)).length,
       // Outlet staff post the evening record directly. Keep the completed
       // count visible for operational context, but do not turn it into a

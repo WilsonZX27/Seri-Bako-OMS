@@ -13,13 +13,19 @@ const stockScopeMigration = fs.readFileSync(path.join(root, "supabase", "migrati
 
 test("outlet daily workspace renders a lightweight 30-day completed-record wastage trend", () => {
   assert.match(page, /getOutletDailyDemandTrend\(\{ period: "30", branch: filters\.branch \}\)/);
-  assert.match(page, /<OutletDailyWastageChart points=\{trend\.daily\} \/>/);
+  assert.match(page, /<OutletDailyWastageChart points=\{trend\.daily\} branch=\{filters\.branch\} \/>/);
   assert.match(chart, /Completed outlet records only/);
   assert.match(chart, /wastage ÷ received/);
   assert.match(chart, /InteractiveLineChart/);
   assert.match(chart, /maximumFractionDigits: 1/);
   assert.match(chart, /left: 54/);
   assert.match(chart, /Daily wastage rate data/);
+  assert.match(chart, /data-outlet-wastage-daily-list/);
+  assert.match(chart, /role="list" aria-label="Daily wastage rate data"/);
+  assert.match(chart, /className="hidden w-full text-left sm:table"/);
+  assert.match(chart, /new URLSearchParams\(\{ date \}\)/);
+  assert.match(chart, /query\.set\("branch", branch\)/);
+  assert.doesNotMatch(chart, /<table className="sr-only">|overflow-x-auto/);
   assert.match(interactiveChart, /"use client"/);
   assert.match(interactiveChart, /<svg/);
   assert.match(interactiveChart, /data-chart-preview/);

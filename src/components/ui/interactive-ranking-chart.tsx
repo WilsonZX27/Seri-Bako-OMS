@@ -58,7 +58,7 @@ export function InteractiveRankingChart({
               "aria-label": `${index + 1}. ${item.label}, ${item.formattedValue}`,
               "data-ranking-row": true,
               className: cn(
-                "group grid w-full grid-cols-[minmax(5.5rem,0.9fr)_minmax(7rem,1.6fr)_auto] items-center gap-2 rounded-[var(--sb-radius-control)] px-1.5 py-1.5 text-left outline-none transition-colors",
+                "group grid min-h-11 w-full grid-cols-[minmax(5.5rem,0.9fr)_minmax(7rem,1.6fr)_auto] items-center gap-2 rounded-[var(--sb-radius-control)] px-1.5 py-1.5 text-left outline-none transition-colors xl:min-h-9",
                 "hover:bg-[var(--sb-surface-muted)] focus-visible:bg-[var(--sb-green-100)] focus-visible:ring-2 focus-visible:ring-[var(--sb-green-700)] focus-visible:ring-offset-1",
                 active && "bg-[var(--sb-surface-muted)]",
               ),

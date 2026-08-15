@@ -41,7 +41,7 @@ export default async function OutletDailyRecordsPage({ searchParams }: { searchP
     </>}>
       <div className="space-y-3">
         <OutletDailyCompletionMatrix dates={completion.dates} rows={completion.rows} summary={completion.summary} />
-        <OutletDailyWastageChart points={trend.daily} />
+        <OutletDailyWastageChart points={trend.daily} branch={filters.branch} />
         <FilterBar resultCount={data.totalRows} resetHref="/outlet-daily-records" filtered={filtered} className="sb-list-filters--date-first">
             <Input name="date" type="date" defaultValue={filters.date ?? ""} aria-label="Record date" className="sb-filter-date" />
             <SelectControl name="branch" value={filters.branch ?? "all"} ariaLabel="Branch" options={[{ value: "all", label: "All branches" }, ...options.branches.map((branch) => ({ value: branch.id, label: branch.branch_name }))]} />

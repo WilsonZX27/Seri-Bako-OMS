@@ -1,6 +1,6 @@
 # Seri Bako OMS responsive design standard
 
-> **Release authority:** the currently released application is `v8.36.49`, as
+> **Release authority:** the currently released application is `v8.36.50`, as
 > defined by `src/lib/app-version.ts`. A versioned section above that number is
 > an accepted forward design contract or unreleased implementation note—not
 > evidence that the application itself has been released at that version.
@@ -10,6 +10,13 @@
 > **Precedence:** `docs/DESIGN_SYSTEM.md` is the living visual and interaction contract. When a historical release note or an older rule in this file conflicts with that contract, the living contract wins. Update both documents when a new pattern is accepted; do not preserve a visibly weaker rule for compatibility.
 
 This document is the implementation contract for every customer-facing route, form, record workspace, table, panel, dialog, and mobile action bar. It applies to new work and to refactoring of existing UI.
+
+## v8.36.50 — Touch-ready Chart Inspection
+
+- A chart dataset must not be available only through a pointer tooltip or a permanently hidden table. If the surrounding page does not already expose the same complete rows, provide a keyboard-operable Daily data disclosure with a phone list and a wide table.
+- Outlet wastage now exposes date, received quantity, wastage quantity, and wastage rate to sighted and assistive-technology users. Date links filter Outlet Daily Records to the selected date while retaining the active branch scope.
+- Shared interactive ranking rows and Dashboard role-comparison rows use a 44px minimum target on phone and tablet input surfaces, then return to a compact 36px minimum at wide desktop. Hover, touch, focus, preview, and drill-through behavior remain identical.
+- Touch target corrections belong in the shared interactive primitive when the same row pattern serves multiple reports. Do not compensate with page-specific padding that lets sibling reports drift.
 
 ## v8.36.49 — Responsive Chart Data
 

@@ -23,6 +23,7 @@ test("Dashboard role comparison preserves unavailable state and exact interactio
   assert.match(chart, /onFocus/);
   assert.match(chart, /onClick/);
   assert.match(chart, /data-dashboard-role-chart-preview aria-live="polite"/);
+  assert.match(chart, /grid min-h-11 w-full[\s\S]*xl:min-h-9/);
   assert.match(chart, /href=\{active\.href\}/);
 });
 

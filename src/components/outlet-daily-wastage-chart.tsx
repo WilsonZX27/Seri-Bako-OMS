@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { InteractiveLineChart } from "@/components/ui/interactive-line-chart";
 import { formatDateOnly, formatNumber } from "@/lib/utils";
 
@@ -9,7 +10,7 @@ type WastagePoint = {
   wastage_percent: number;
 };
 
-export function OutletDailyWastageChart({ points }: { points: WastagePoint[] }) {
+export function OutletDailyWastageChart({ points, branch }: { points: WastagePoint[]; branch?: string }) {
   const width = 640;
   const height = 184;
   const inset = { top: 18, right: 18, bottom: 30, left: 54 };
@@ -24,6 +25,11 @@ export function OutletDailyWastageChart({ points }: { points: WastagePoint[] }) 
     previewValue: `${formatPercent(point.wastage_percent)}% wastage rate`,
     previewDetails: [`${formatNumber(point.wastage)} wastage`, `${formatNumber(point.received)} received`],
   }));
+  const recordHref = (date: string) => {
+    const query = new URLSearchParams({ date });
+    if (branch && branch !== "all") query.set("branch", branch);
+    return `/outlet-daily-records?${query.toString()}`;
+  };
 
   return (
     <section className="erp-surface overflow-hidden" aria-labelledby="outlet-wastage-trend-title">
@@ -50,11 +56,26 @@ export function OutletDailyWastageChart({ points }: { points: WastagePoint[] }) 
             <span className="hidden sm:inline">Hover or focus the chart, then use arrow keys for exact values.</span>
             <span className="sm:hidden">Tap or drag across the chart for exact values.</span>
           </p>
-          <table className="sr-only">
-            <caption>Daily wastage rate data</caption>
-            <thead><tr><th>Date</th><th>Received</th><th>Wastage</th><th>Wastage rate</th></tr></thead>
-            <tbody>{points.map((point) => <tr key={point.id}><td>{formatDateOnly(point.name)}</td><td>{formatNumber(point.received)}</td><td>{formatNumber(point.wastage)}</td><td>{formatPercent(point.wastage_percent)}%</td></tr>)}</tbody>
-          </table>
+          <details className="mt-2 border-t border-[var(--sb-border-soft)] px-1 pt-2 text-xs">
+            <summary className="cursor-pointer font-medium text-primary">Daily data · {points.length} recorded day{points.length === 1 ? "" : "s"}</summary>
+            <div className="mt-2 max-h-64 overflow-y-auto">
+              <div className="divide-y divide-[var(--sb-border-soft)] sm:hidden" role="list" aria-label="Daily wastage rate data" data-outlet-wastage-daily-list>
+                {points.map((point) => <div key={point.id} className="grid gap-2 py-2.5 first:pt-0" role="listitem">
+                  <Link className="inline-flex min-h-11 items-center font-semibold text-primary underline-offset-4 hover:underline" href={recordHref(point.name)}>{formatDateOnly(point.name)}</Link>
+                  <dl className="grid grid-cols-3 gap-2 text-[11px]">
+                    <div><dt className="text-muted-foreground">Received</dt><dd className="mt-0.5 font-semibold tabular-nums">{formatNumber(point.received)}</dd></div>
+                    <div><dt className="text-muted-foreground">Wastage</dt><dd className="mt-0.5 font-semibold tabular-nums">{formatNumber(point.wastage)}</dd></div>
+                    <div><dt className="text-muted-foreground">Rate</dt><dd className="mt-0.5 font-semibold tabular-nums">{formatPercent(point.wastage_percent)}%</dd></div>
+                  </dl>
+                </div>)}
+              </div>
+              <table className="hidden w-full text-left sm:table">
+                <caption className="sr-only">Daily wastage rate data</caption>
+                <thead><tr className="border-b text-muted-foreground"><th className="py-1.5 pr-3 font-medium">Date</th><th className="px-3 py-1.5 text-right font-medium">Received</th><th className="px-3 py-1.5 text-right font-medium">Wastage</th><th className="py-1.5 pl-3 text-right font-medium">Rate</th></tr></thead>
+                <tbody>{points.map((point) => <tr key={point.id} className="border-b border-[var(--sb-border-soft)]"><td className="py-1.5 pr-3"><Link className="text-primary underline-offset-4 hover:underline" href={recordHref(point.name)}>{formatDateOnly(point.name)}</Link></td><td className="px-3 py-1.5 text-right tabular-nums">{formatNumber(point.received)}</td><td className="px-3 py-1.5 text-right tabular-nums">{formatNumber(point.wastage)}</td><td className="py-1.5 pl-3 text-right tabular-nums">{formatPercent(point.wastage_percent)}%</td></tr>)}</tbody>
+              </table>
+            </div>
+          </details>
         </div>
       ) : <div className="px-4 py-8 text-center"><p className="text-sm font-medium">No completed records in the last 30 days</p><p className="mt-1 text-xs text-muted-foreground">The trend will appear after evening records are completed.</p></div>}
     </section>

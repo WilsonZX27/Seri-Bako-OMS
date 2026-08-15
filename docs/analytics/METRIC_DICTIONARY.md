@@ -1,6 +1,6 @@
 # Seri Bako OMS Metric Dictionary
 
-**Current application:** `v8.36.49`
+**Current application:** `v8.36.50`
 **Repository migration ceiling:** `149`
 **Last reviewed:** 2026-08-15
 
@@ -13,6 +13,7 @@ This is the authority for user-visible KPI and chart meaning. It documents prese
 - Missing, incomplete, unavailable, and not applicable remain distinct states.
 - Charts keep a numeric table/list alternative and use direct labels where practical.
 - Exact chart data uses a complete phone list and a wide table where columns fit; a disclosure must not require phone-width horizontal table navigation.
+- Interactive chart and ranking rows keep at least a 44px touch target below wide desktop; exact inspection cannot depend on precision tapping.
 - A chart filter/drill-through must use the same documented dimensions as its detail authority.
 - Request-time reads show the state returned by the source query. Do not claim last-synced or real-time freshness without a source-owned timestamp.
 

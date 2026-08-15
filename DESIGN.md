@@ -1,6 +1,6 @@
 # Seri Bako OMS responsive design standard
 
-> **Release authority:** the currently released application is `v8.37.5`, as
+> **Release authority:** the currently released application is `v8.37.7`, as
 > defined by `src/lib/app-version.ts`. A versioned section above that number is
 > an accepted forward design contract or unreleased implementation note—not
 > evidence that the application itself has been released at that version.
@@ -10,6 +10,12 @@
 > **Precedence:** `docs/DESIGN_SYSTEM.md` is the living visual and interaction contract. When a historical release note or an older rule in this file conflicts with that contract, the living contract wins. Update both documents when a new pattern is accepted; do not preserve a visibly weaker rule for compatibility.
 
 This document is the implementation contract for every customer-facing route, form, record workspace, table, panel, dialog, and mobile action bar. It applies to new work and to refactoring of existing UI.
+
+## v8.37.7 — Trusted Receiving and Stock Count Source Guard
+
+- Outlet Daily receiving totals distinguish verified quantities from database-default zeros. Missing lines or unproven legacy zeros render as unavailable, and demand trends exclude those records from reliable totals.
+- Stock Count seed balances fail closed when the source query is unavailable; form submissions reject incomplete quantity fields instead of silently defaulting them to zero.
+- User-provided stock-take workbooks are treated as import evidence only after item-code and quantity completeness checks. Blank inventory columns cannot become physical counts.
 
 ## v8.37.5 — Report Surface and Empty-State Refinement
 
@@ -1112,6 +1118,11 @@ the route matrix in `docs/qa/FULL_SYSTEM_AUDIT_MATRIX.md`.
 - Autosaved or manually saved Stock Counts that have not posted inventory expose an explicit, confirmation-protected `Cancel stock count` action in the shared More options area.
 - Cancellation removes the count from active work while preserving its audit history; it does not create a ledger movement and does not replace the separate `Delete draft` control.
 - Posted counts remain immutable. The primary action pair stays limited to `Save draft` and `Confirm & Post Count`; destructive actions remain secondary to reduce accidental taps.
+# v8.37.6 — Completion Matrix and Filter Geometry Refinement
+
+- Outlet Daily's seven-day matrix keeps a fixed identity column while the date cells scroll in a bounded work surface; tablet users receive an explicit horizontal-scroll cue and the document itself never widens.
+- Report and date-first operational filter toolbars may opt into balanced tracks so query, filters, More filters, and the terminal action share one deliberate geometry without changing legacy compact list behavior.
+
 # v8.38.0 — Phone Search Surface Evolution
 
 - Phone list routes (`max-width: 639px`) use the shared `UnifiedListHeader`: one 44px search control, one icon filter trigger, and the result total. Search submits from its own form after the short debounce; it must never submit an unrelated form on the page.

@@ -73,3 +73,14 @@ test("variance context stays optional without reintroducing the legacy review an
   assert.doesNotMatch(detail, />Approve</);
   assert.doesNotMatch(detail, /Count Evidence Required/);
 });
+
+test("stock count refuses incomplete source values instead of defaulting them to zero", () => {
+  const action = read("src", "server", "actions", "stock-counts.ts");
+  const query = read("src", "server", "queries", "stock-counts.ts");
+
+  assert.match(action, /Stock Count lines are still loading/);
+  assert.match(action, /physical\.some\(\(value\) => value\.trim\(\) === ""\)/);
+  assert.match(query, /Stock Count starting balances are unavailable/);
+  assert.doesNotMatch(action, /theoretical_qty: theoretical\[index\] \?\? 0/);
+  assert.doesNotMatch(action, /physical_qty: physical\[index\] \?\? 0/);
+});

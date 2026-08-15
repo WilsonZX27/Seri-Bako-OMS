@@ -40,7 +40,7 @@ test("aging and production previews use the shared persistent touch and focus co
 
 test("Demand Trend uses the shared filter surface without an extra wrapper card", () => {
   const page = read("src/app/(app)/reports/demand-trends/page.tsx");
-  assert.match(page, /<FilterBar resetHref="\/reports\/demand-trends">/);
+  assert.match(page, /<FilterBar resetHref="\/reports\/demand-trends"(?: className="sb-list-filters--balanced")?>/);
   assert.doesNotMatch(page, /<div className="overflow-hidden border bg-card"><FilterBar/);
 });
 

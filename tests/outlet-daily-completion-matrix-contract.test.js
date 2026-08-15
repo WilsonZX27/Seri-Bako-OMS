@@ -35,7 +35,7 @@ test("outlet completion matrix previews before an explicit record open", () => {
   assert.match(component, /h-9 w-full min-w-0[\s\S]*sm:min-w-9/);
   assert.match(component, /inline-flex min-h-11 items-center[\s\S]*xl:min-h-8/);
   assert.match(component, /not a lateness estimate/);
-  assert.match(component, /sm:overflow-x-auto/);
+  assert.match(component, /overflow-x-auto overscroll-x-contain/);
   assert.match(page, /<OutletDailyCompletionMatrix/);
   assert.match(page, /canCreate={canCreate}/);
   assert.match(newPage, /requestedDate = filters\.date/);
@@ -49,8 +49,9 @@ test("phone matrix fits all seven days while wider workspaces retain pinned hori
   assert.match(component, /aria-describedby="outlet-completion-scroll-hint"/);
   assert.match(component, /sm:sticky sm:left-0 sm:z-30/);
   assert.match(component, /sm:sticky sm:left-0 sm:z-20/);
-  assert.match(component, /overflow-hidden[\s\S]*sm:overflow-x-auto sm:overscroll-x-contain/);
-  assert.match(component, /table-fixed[\s\S]*sm:min-w-\[34rem\] sm:table-auto/);
+  assert.match(component, /relative block w-full max-w-full overflow-x-auto overscroll-x-contain/);
+  assert.match(component, /min-w-\[40rem\] table-fixed/);
+  assert.match(component, /Scroll horizontally to view all days/);
 });
 
 test("phone completion insight keeps the summary and seven-day matrix directly scannable", () => {

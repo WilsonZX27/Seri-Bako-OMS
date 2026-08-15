@@ -251,6 +251,11 @@ export async function getStockCountSeedLines(branchId?: string) {
     view: "branch",
     branch_id: branchId,
   });
+  if (balances.error) {
+    // A failed balance read must stop the count from opening with an empty
+    // or zero-filled sheet. The operator can retry once the source is back.
+    throw new Error(`Stock Count starting balances are unavailable: ${balances.error}`);
+  }
   const lastPostedPhysicalByItem = new Map<string, number>();
 
   // A repeated count starts from the last verified physical result, not from an

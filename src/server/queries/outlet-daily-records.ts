@@ -17,10 +17,11 @@ export type OutletDailyRecordRow = RecordRow & {
   branch_name: string;
   submitted_by_name: string | null;
   total_sent: number;
-  total_received: number;
+  total_received: number | null;
+  received_state: "verified" | "unavailable";
   total_leftover: number;
   total_wastage: number;
-  wastage_percent: number;
+  wastage_percent: number | null;
 };
 
 export type OutletDailyDefaultLine = Pick<LineRow, "morning_received_qty" | "wastage_qty" | "wastage_reason" | "notes">;
@@ -40,16 +41,35 @@ const todayInKualaLumpur = () => new Intl.DateTimeFormat("en-CA", {
 
 const totals = (lines: LineRow[]) => {
   const totalSent = lines.reduce((sum, line) => sum + Number(line.qty_sent), 0);
-  const totalReceived = lines.reduce((sum, line) => sum + Number(line.morning_received_qty), 0);
+  // `morning_received_qty` has a database default of 0. A zero is only
+  // trustworthy when the outlet explicitly supplied it (145 records that
+  // provenance in `qty_sent_estimated`) or when the value is non-zero. An
+  // empty line set, or an unproven default zero, must never be rendered as a
+  // real operational total.
+  const receivedValues = lines.map((line) => {
+    const received = Number(line.morning_received_qty);
+    const explicitlyProvided = line.qty_sent_estimated !== null || received !== 0;
+    return explicitlyProvided && Number.isFinite(received) ? received : null;
+  });
+  const receivedState = lines.length > 0 && receivedValues.every((value) => value !== null) ? "verified" as const : "unavailable" as const;
+  const totalReceived = receivedState === "verified"
+    ? receivedValues.reduce<number>((sum, value) => sum + (value ?? 0), 0)
+    : null;
   const totalLeftover = lines.reduce((sum, line) => sum + Number(line.evening_leftover_qty), 0);
   const totalWastage = lines.reduce((sum, line) => sum + Number(line.wastage_qty), 0);
   return {
     total_sent: totalSent,
     total_received: totalReceived,
+    received_state: receivedState,
     total_leftover: totalLeftover,
     total_wastage: totalWastage,
-    wastage_percent: totalReceived > 0 ? (totalWastage / totalReceived) * 100 : 0,
+    wastage_percent: totalReceived !== null && totalReceived > 0 ? (totalWastage / totalReceived) * 100 : null,
   };
+};
+
+const receivedValueIsTrusted = (line: LineRow) => {
+  const received = Number(line.morning_received_qty);
+  return Number.isFinite(received) && (line.qty_sent_estimated !== null || received !== 0);
 };
 
 const shiftDate = (date: string, days: number) => {
@@ -208,7 +228,10 @@ export async function getOutletDailyRecords(filters: Filters = {}) {
       today,
       today_records: todayRows.length,
       today_sent: todayRows.reduce((sum, row) => sum + row.total_sent, 0),
-      today_received: todayRows.reduce((sum, row) => sum + row.total_received, 0),
+      today_received: todayRows.every((row) => row.total_received !== null)
+        ? todayRows.reduce((sum, row) => sum + (row.total_received ?? 0), 0)
+        : null,
+      today_received_unavailable: todayRows.filter((row) => row.total_received === null).length,
       missing_evening: todayRows.filter((row) => ["draft", "morning_recorded"].includes(row.status)).length,
       needs_review: allRows.filter((row) => row.status === "evening_completed").length,
     },
@@ -431,7 +454,17 @@ function buildDemandTrend({ records, lines, branches, products, start, end, peri
   branchId?: string;
   productId?: string;
 }) {
-  const reliable = records.filter((record) => ["evening_completed", "reviewed"].includes(record.status) && (status === "all" || record.status === status));
+  const candidateReliable = records.filter((record) => ["evening_completed", "reviewed"].includes(record.status) && (status === "all" || record.status === status));
+  const linesByRecord = new Map<string, LineRow[]>();
+  for (const line of lines) {
+    const recordLines = linesByRecord.get(line.record_id) ?? [];
+    recordLines.push(line);
+    linesByRecord.set(line.record_id, recordLines);
+  }
+  const reliable = candidateReliable.filter((record) => {
+    const recordLines = linesByRecord.get(record.id) ?? [];
+    return recordLines.length > 0 && recordLines.every(receivedValueIsTrusted);
+  });
   const reliableIds = new Set(reliable.map((record) => record.id));
   const trendLines = lines.filter((line) => reliableIds.has(line.record_id) && (!productId || line.product_id === productId));
   const branchNames = new Map(branches.map((branch) => [branch.id, branch.branch_name]));
@@ -467,6 +500,7 @@ function buildDemandTrend({ records, lines, branches, products, start, end, peri
   const expectedDays = Math.round((Date.parse(`${end}T00:00:00Z`) - Date.parse(`${start}T00:00:00Z`)) / 86_400_000 + 1) * (branchId ? 1 : branches.length);
   const completedOutletDays = new Set(reliable.map((record) => `${record.branch_id}:${record.record_date}`)).size;
   const incompleteRecords = records.filter((record) => ["draft", "morning_recorded"].includes(record.status)).length;
+  const unavailableRecords = candidateReliable.length - reliable.length;
   const coveragePercent = expectedDays ? (completedOutletDays / expectedDays) * 100 : 0;
   const confidence = coveragePercent >= 80 ? "High" : coveragePercent >= 50 ? "Medium" : "Low";
   const toRows = (source: Map<string, TrendTotals>, nameFor: (id: string) => string) => [...source].map(([id, totals]) => ({ id, name: nameFor(id), ...totals, wastage_percent: wastagePercent(totals) }));
@@ -493,7 +527,7 @@ function buildDemandTrend({ records, lines, branches, products, start, end, peri
     branches,
     products,
     summary: { ...summary, wastage_percent: wastagePercent(summary) },
-    coverage: { completed: completedOutletDays, expected: expectedDays, incomplete: incompleteRecords, missing: Math.max(expectedDays - completedOutletDays, 0), percent: coveragePercent, confidence },
+    coverage: { completed: completedOutletDays, expected: expectedDays, incomplete: incompleteRecords, unavailable: unavailableRecords, missing: Math.max(expectedDays - completedOutletDays, 0), percent: coveragePercent, confidence },
     top_moving_products: [...productRows].sort((left, right) => right.movement - left.movement).slice(0, 10),
     top_wastage_products: [...productRows].sort((left, right) => right.wastage - left.wastage).slice(0, 10),
     outlets: outletRows.sort((left, right) => right.movement - left.movement),

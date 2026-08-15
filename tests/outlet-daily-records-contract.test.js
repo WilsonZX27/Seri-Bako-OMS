@@ -96,3 +96,10 @@ test("release footer matches Sprint 7.13", () => {
   assert.match(version, /APP_VERSION = "\d+\.\d+\.\d+"/);
   assert.match(version, /APP_SPRINT = `v\$\{APP_VERSION\}`/);
 });
+
+test("received totals never turn an unverified default zero into a business fact", () => {
+  assert.match(query, /qty_sent_estimated !== null \|\| received !== 0/);
+  assert.match(query, /received_state: "verified" \| "unavailable"/);
+  assert.match(query, /total_received: number \| null/);
+  assert.match(query, /today_received_unavailable/);
+});

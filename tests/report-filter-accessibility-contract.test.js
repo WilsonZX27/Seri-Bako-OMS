@@ -14,6 +14,14 @@ const reportPages = [
   "src/app/(app)/reports/costing-readiness/page.tsx",
 ];
 
+test("balanced report filters keep query, disclosure and action controls in one geometry", () => {
+  const styles = read("src/app/globals.css");
+  const demand = read("src/app/(app)/reports/demand-trends/page.tsx");
+  assert.match(styles, /\.sb-list-filters--balanced > :is\(input, select, \[data-select-control\], \.sb-filter-more/);
+  assert.match(styles, /\.sb-list-filters--balanced > \.sb-filter-more > summary/);
+  assert.match(demand, /className="sb-list-filters--balanced"/);
+});
+
 test("report filter controls expose stable accessible names", () => {
   for (const file of reportPages) {
     const source = read(file);

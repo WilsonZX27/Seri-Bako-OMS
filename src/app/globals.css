@@ -410,6 +410,21 @@ input[type="date"]::-webkit-date-and-time-value {
   color: var(--sb-text-inverse);
 }
 
+/* Balanced toolbars are used where the query, select filters, disclosure and
+   submit action form one decision row. Equal tracks make the row scannable on
+   desktop/tablet without changing the compact grammar of legacy lists. */
+.sb-list-filters--balanced > :is(input, select, [data-select-control], .sb-filter-more, button:not(.sb-filter-summary)) {
+  flex: 1 1 0;
+  width: auto;
+  max-width: none;
+  min-width: 0;
+}
+
+.sb-list-filters--balanced > .sb-filter-more > summary {
+  width: 100%;
+  justify-content: center;
+}
+
 .sb-list-filters input,
 .sb-list-filters select,
 .sb-list-filters button,

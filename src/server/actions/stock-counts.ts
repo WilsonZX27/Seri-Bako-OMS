@@ -42,6 +42,12 @@ function extractStockCount(formData: FormData) {
   const physical = formData.getAll("line_physical_qty").map(String);
   const uoms = formData.getAll("line_uom").map(String);
   const remarks = formData.getAll("line_remarks").map(String);
+  if (!itemIds.length || theoretical.length !== itemIds.length || physical.length !== itemIds.length || uoms.length !== itemIds.length) {
+    throw new Error("Stock Count lines are still loading. Wait for all quantities to appear, then try again.");
+  }
+  if (physical.some((value) => value.trim() === "") || theoretical.some((value) => value.trim() === "")) {
+    throw new Error("Stock Count quantities are incomplete. Wait for the source values to load, then enter or confirm every line.");
+  }
   return stockCountSchema.parse({
     count_no: formData.get("count_no"),
     count_date: formData.get("count_date"),
@@ -51,8 +57,8 @@ function extractStockCount(formData: FormData) {
     lines: itemIds
       .map((itemId, index) => ({
         item_id: itemId,
-        theoretical_qty: theoretical[index] ?? 0,
-        physical_qty: physical[index] ?? 0,
+        theoretical_qty: theoretical[index],
+        physical_qty: physical[index],
         uom: uoms[index],
         remarks: remarks[index],
       }))

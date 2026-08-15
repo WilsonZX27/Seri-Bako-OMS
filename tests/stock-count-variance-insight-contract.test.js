@@ -36,6 +36,10 @@ test("Stock Count insight provides compact views, exact previews, drill-through 
   assert.match(component, /Variance insight unavailable/);
   assert.match(component, /no unavailable result is shown as zero/);
   assert.match(component, /stock-counts\?status=posted&from=/);
+  assert.match(component, /data-stock-count-variance-daily-list/);
+  assert.match(component, /role="list" aria-label="Daily above-tolerance Stock Count variance"/);
+  assert.match(component, /className="hidden w-full text-left sm:table"/);
+  assert.doesNotMatch(component, /min-w-\[25rem\]|overflow-x-auto/);
   assert.match(ranking, /activeItem\.href \?/);
   assert.match(page, /<StockCountVarianceInsights insight=\{varianceInsight\}/);
 });

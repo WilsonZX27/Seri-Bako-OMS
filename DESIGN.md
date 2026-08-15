@@ -1,6 +1,6 @@
 # Seri Bako OMS responsive design standard
 
-> **Release authority:** the currently released application is `v8.36.48`, as
+> **Release authority:** the currently released application is `v8.36.49`, as
 > defined by `src/lib/app-version.ts`. A versioned section above that number is
 > an accepted forward design contract or unreleased implementation note—not
 > evidence that the application itself has been released at that version.
@@ -10,6 +10,13 @@
 > **Precedence:** `docs/DESIGN_SYSTEM.md` is the living visual and interaction contract. When a historical release note or an older rule in this file conflicts with that contract, the living contract wins. Update both documents when a new pattern is accepted; do not preserve a visibly weaker rule for compatibility.
 
 This document is the implementation contract for every customer-facing route, form, record workspace, table, panel, dialog, and mobile action bar. It applies to new work and to refactoring of existing UI.
+
+## v8.36.49 — Responsive Chart Data
+
+- A chart's exact-data disclosure must be responsive independently of the chart. Phone users receive a complete vertical list or definition list; a wide comparison table may remain at `sm` or above when its columns fit without horizontal navigation.
+- Inventory daily movement and Stock Count variance no longer force 24–25rem technical tables into phone disclosures. Each daily phone row preserves the date and all three exact measures from the corresponding wide table.
+- A date that has an authoritative filtered detail destination is a touch-sized link in both responsive modes. Visual compaction must not remove drill-through, and the phone list and wide table must map from the same source collection.
+- Avoid `overflow-x-auto` as the default response to a narrow chart dataset. Horizontal scrolling remains valid only where the horizontal relationship itself is the task, such as an outlet-by-date matrix with a pinned identity column.
 
 ## v8.36.48 — Semantic Operational Surfaces
 

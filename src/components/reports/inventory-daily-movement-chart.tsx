@@ -118,10 +118,20 @@ export function InventoryDailyMovementChart({ points }: { points: InventoryDaily
 
       <details className="mt-2 border-t border-[var(--sb-border-soft)] pt-2 text-xs">
         <summary className="cursor-pointer font-medium text-primary">Daily data · {formatNumber(totals.all)} posted entries</summary>
-        <div className="mt-2 max-h-64 overflow-auto">
-          <table className="w-full min-w-[24rem] text-left">
+        <div className="mt-2 max-h-64 overflow-y-auto">
+          <div className="divide-y divide-[var(--sb-border-soft)] sm:hidden" role="list" aria-label="Daily posted inventory movement entries" data-inventory-movement-daily-list>
+            {points.map((point) => <div key={point.transaction_date} className="grid gap-2 py-2.5 first:pt-0" role="listitem">
+              <Link className="inline-flex min-h-11 items-center font-semibold text-primary underline-offset-4 hover:underline" href={`/stock-transactions?from=${point.transaction_date}&to=${point.transaction_date}`}>{formatDateOnly(point.transaction_date)}</Link>
+              <dl className="grid grid-cols-3 gap-2 text-[11px]">
+                <div><dt className="text-muted-foreground">Inbound</dt><dd className="mt-0.5 font-semibold tabular-nums">{formatNumber(point.inbound_entries)}</dd></div>
+                <div><dt className="text-muted-foreground">Outbound</dt><dd className="mt-0.5 font-semibold tabular-nums">{formatNumber(point.outbound_entries)}</dd></div>
+                <div><dt className="text-muted-foreground">All entries</dt><dd className="mt-0.5 font-semibold tabular-nums">{formatNumber(point.movement_entries)}</dd></div>
+              </dl>
+            </div>)}
+          </div>
+          <table className="hidden w-full text-left sm:table">
             <thead><tr className="border-b text-muted-foreground"><th className="py-1.5 pr-3 font-medium">Date</th><th className="px-3 py-1.5 text-right font-medium">Inbound</th><th className="px-3 py-1.5 text-right font-medium">Outbound</th><th className="py-1.5 pl-3 text-right font-medium">All entries</th></tr></thead>
-            <tbody>{points.map((point) => <tr key={point.transaction_date} className="border-b border-[var(--sb-border-soft)]"><td className="py-1.5 pr-3">{formatDateOnly(point.transaction_date)}</td><td className="px-3 py-1.5 text-right tabular-nums">{formatNumber(point.inbound_entries)}</td><td className="px-3 py-1.5 text-right tabular-nums">{formatNumber(point.outbound_entries)}</td><td className="py-1.5 pl-3 text-right tabular-nums">{formatNumber(point.movement_entries)}</td></tr>)}</tbody>
+            <tbody>{points.map((point) => <tr key={point.transaction_date} className="border-b border-[var(--sb-border-soft)]"><td className="py-1.5 pr-3"><Link className="text-primary underline-offset-4 hover:underline" href={`/stock-transactions?from=${point.transaction_date}&to=${point.transaction_date}`}>{formatDateOnly(point.transaction_date)}</Link></td><td className="px-3 py-1.5 text-right tabular-nums">{formatNumber(point.inbound_entries)}</td><td className="px-3 py-1.5 text-right tabular-nums">{formatNumber(point.outbound_entries)}</td><td className="py-1.5 pl-3 text-right tabular-nums">{formatNumber(point.movement_entries)}</td></tr>)}</tbody>
           </table>
         </div>
       </details>

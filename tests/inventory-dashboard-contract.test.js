@@ -40,6 +40,10 @@ test("inventory daily movement insight is bounded, unit-safe, and based on the d
   assert.match(chart, /Open inbound/);
   assert.match(chart, /Open outbound/);
   assert.match(chart, /Daily data/);
+  assert.match(chart, /data-inventory-movement-daily-list/);
+  assert.match(chart, /role="list" aria-label="Daily posted inventory movement entries"/);
+  assert.match(chart, /className="hidden w-full text-left sm:table"/);
+  assert.doesNotMatch(chart, /min-w-\[24rem\]|overflow-x-auto/);
 });
 
 test("inventory dashboard fallback keeps balance hydration bounded and fails closed when truncated", () => {

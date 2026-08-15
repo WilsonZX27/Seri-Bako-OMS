@@ -1,6 +1,6 @@
 # Seri Bako OMS Metric Dictionary
 
-**Current application:** `v8.36.68`
+**Current application:** `v8.36.69`
 **Repository migration ceiling:** `149`
 **Last reviewed:** 2026-08-15
 

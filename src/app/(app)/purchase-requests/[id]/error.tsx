@@ -1,7 +1,7 @@
 "use client";
 
-import { ErrorState } from "@/components/ui/system-states";
+import { RecordDetailError } from "@/components/ui/record-detail-error";
 
-export default function PurchaseRequestDetailError() {
-  return <ErrorState title="Purchase request not available" description="This request may not exist, or you may not have access to it." action={{ href: "/purchase-requests", label: "Back to purchase requests" }} />;
+export default function PurchaseRequestDetailError({ error, reset }: { error: Error & { digest?: string }; reset: () => void }) {
+  return <RecordDetailError error={error} reset={reset} recordLabel="Purchase request" collectionLabel="purchase requests" collectionHref="/purchase-requests" />;
 }

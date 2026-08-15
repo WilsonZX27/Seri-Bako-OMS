@@ -1,7 +1,7 @@
 "use client";
 
-import { ErrorState } from "@/components/ui/system-states";
+import { RecordDetailError } from "@/components/ui/record-detail-error";
 
-export default function DocumentDetailError() {
-  return <ErrorState title="Document not available" description="This document may not exist, or you may not have access to it." action={{ href: "/documents", label: "Back to documents" }} />;
+export default function DocumentDetailError({ error, reset }: { error: Error & { digest?: string }; reset: () => void }) {
+  return <RecordDetailError error={error} reset={reset} recordLabel="Document" collectionLabel="documents" collectionHref="/documents" />;
 }

@@ -22,6 +22,7 @@ import { hasActiveFilters } from "@/lib/table-state";
 import { getPurchaseRequestSummary, getPurchaseRequests } from "@/server/queries/procurement";
 import { getPermissionMap } from "@/server/auth/permissions";
 import { PurchaseRequestExportDialog } from "@/components/purchase-request-export-dialog";
+import { logServerError } from "@/server/observability/logger";
 
 const statuses = [
   { value: "draft", label: "Draft" },
@@ -36,7 +37,9 @@ const statuses = [
 
 export default async function PurchaseRequestsPage({ searchParams }: { searchParams: Promise<Record<string, string | undefined>> }) {
   const filters = await searchParams;
-  const [requests, summary, permissions] = await Promise.all([getPurchaseRequests(filters), getPurchaseRequestSummary(), getPermissionMap(["pr.create", "pr.view_branch"])]);
+  const [requests, permissions, [summaryResult]] = await Promise.all([getPurchaseRequests(filters), getPermissionMap(["pr.create", "pr.view_branch"]), Promise.allSettled([getPurchaseRequestSummary()])]);
+  if (summaryResult.status === "rejected") logServerError(summaryResult.reason, { source: "page.purchaseRequests.summary" });
+  const summary = summaryResult.status === "fulfilled" ? summaryResult.value : null;
   const filtered = hasActiveFilters(filters);
   return (
     <>
@@ -58,12 +61,12 @@ export default async function PurchaseRequestsPage({ searchParams }: { searchPar
               {permissions["pr.view_branch"] ? <PurchaseRequestExportDialog /> : null}
             </div></ConsoleSection> : null}
             <ConsoleSection title="PR Summary">
-              <div className="grid gap-2 text-xs">
+              {summary ? <div className="grid gap-2 text-xs">
                 <div className="flex justify-between"><span className="text-muted-foreground">Total PRs</span><strong>{summary.total}</strong></div>
                 <div className="flex justify-between"><span className="text-muted-foreground">Manager Review</span><strong>{summary.managerReview}</strong></div>
                 <div className="flex justify-between"><span className="text-muted-foreground">Purchasing Review</span><strong>{summary.adminReview}</strong></div>
                 <div className="flex justify-between"><span className="text-muted-foreground">Finance Review</span><strong>{summary.financeReview}</strong></div>
-              </div>
+              </div> : <div role="status"><p className="text-xs font-semibold text-[var(--sb-warning)]">Unavailable</p><p className="mt-1 text-xs text-muted-foreground">The request queue remains current. Retry to load PR totals.</p></div>}
             </ConsoleSection>
           </div>
         }

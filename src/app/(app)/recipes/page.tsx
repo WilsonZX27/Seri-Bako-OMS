@@ -14,10 +14,13 @@ import { hasActiveFilters } from "@/lib/table-state";
 import { formatCurrency, formatDateOnly, formatNumber } from "@/lib/utils";
 import { getRecipes, getRecipeSummary } from "@/server/queries/recipes";
 import { hasPermission } from "@/server/auth/permissions";
+import { logServerError } from "@/server/observability/logger";
 
 export default async function RecipesPage({ searchParams }: { searchParams: Promise<Record<string, string | undefined>> }) {
   const filters = await searchParams;
-  const [page, summary, canCreate] = await Promise.all([getRecipes(filters), getRecipeSummary(), hasPermission("recipes.create")]);
+  const [page, canCreate, [summaryResult]] = await Promise.all([getRecipes(filters), hasPermission("recipes.create"), Promise.allSettled([getRecipeSummary()])]);
+  if (summaryResult.status === "rejected") logServerError(summaryResult.reason, { source: "page.recipes.summary" });
+  const summary = summaryResult.status === "fulfilled" ? summaryResult.value : null;
   const filtered = hasActiveFilters(filters);
   const emptyAction = filtered ? { href: "/recipes", label: "Reset filters" } : canCreate ? { href: "/recipes/new", label: "New recipe" } : undefined;
 
@@ -27,7 +30,7 @@ export default async function RecipesPage({ searchParams }: { searchParams: Prom
         title="Recipe / BOM"
         description="Finished product recipes linked to Item Master ingredients."
       />
-      <WorkspaceGrid tabletRailMode="split" tabletRailBreakpoint="md" hideMobileConsole={!canCreate} rightRail={<><ConsoleSection title="Actions">{canCreate ? <Button asChild className="w-full" data-mobile-primary-action><PendingLink href="/recipes/new" pendingLabel="Opening recipe form...">New recipe</PendingLink></Button> : <p className="text-xs text-muted-foreground">Recipe master data is read-only for Finance.</p>}</ConsoleSection><ConsoleSection title="Recipe Summary"><dl className="grid gap-2 text-xs"><div className="flex justify-between"><dt className="text-muted-foreground">Total</dt><dd className="font-semibold">{summary.total}</dd></div><div className="flex justify-between"><dt className="text-muted-foreground">Active</dt><dd className="font-semibold">{summary.active}</dd></div><div className="flex justify-between"><dt className="text-muted-foreground">Pending approval</dt><dd className="font-semibold">{summary.pendingApproval}</dd></div></dl></ConsoleSection></>}> 
+      <WorkspaceGrid tabletRailMode="split" tabletRailBreakpoint="md" hideMobileConsole={!canCreate} rightRail={<><ConsoleSection title="Actions">{canCreate ? <Button asChild className="w-full" data-mobile-primary-action><PendingLink href="/recipes/new" pendingLabel="Opening recipe form...">New recipe</PendingLink></Button> : <p className="text-xs text-muted-foreground">Recipe master data is read-only for Finance.</p>}</ConsoleSection><ConsoleSection title="Recipe Summary">{summary ? <dl className="grid gap-2 text-xs"><div className="flex justify-between"><dt className="text-muted-foreground">Total</dt><dd className="font-semibold">{summary.total}</dd></div><div className="flex justify-between"><dt className="text-muted-foreground">Active</dt><dd className="font-semibold">{summary.active}</dd></div><div className="flex justify-between"><dt className="text-muted-foreground">Pending approval</dt><dd className="font-semibold">{summary.pendingApproval}</dd></div></dl> : <div role="status"><p className="text-xs font-semibold text-[var(--sb-warning)]">Unavailable</p><p className="mt-1 text-xs text-muted-foreground">The recipe list remains current. Retry to load recipe totals.</p></div>}</ConsoleSection></>}>
         <div className="space-y-3">
           <MasterDataFilters search={filters.search} status={filters.status} leadingFilter={<StatusTabs statuses={[{ value: "active", label: "Active" }, { value: "draft", label: "Draft" }, { value: "pending_approval", label: "Pending Approval" }, { value: "archived", label: "Archived" }]} activeStatus={filters.status} />} placeholder="Search recipe number, product code, or product" showStatus={false} resultCount={page.totalRows} filtered={filtered} resetHref="/recipes" />
           <div className="sb-list-content-card overflow-hidden">

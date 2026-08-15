@@ -18,12 +18,15 @@ import { formatDateOnly, formatNumber } from "@/lib/utils";
 import { hasActiveFilters } from "@/lib/table-state";
 import { getGoodsReceivingSummary, getGoodsReceivings } from "@/server/queries/goods-receivings";
 import { hasPermission } from "@/server/auth/permissions";
+import { logServerError } from "@/server/observability/logger";
 
 const statuses = ["draft", "posted", "cancelled"];
 
 export default async function GoodsReceivingsPage({ searchParams }: { searchParams: Promise<Record<string, string | undefined>> }) {
   const filters = await searchParams;
-  const [receivings, summary, canCreate] = await Promise.all([getGoodsReceivings(filters), getGoodsReceivingSummary(), hasPermission("grn.create")]);
+  const [receivings, canCreate, [summaryResult]] = await Promise.all([getGoodsReceivings(filters), hasPermission("grn.create"), Promise.allSettled([getGoodsReceivingSummary()])]);
+  if (summaryResult.status === "rejected") logServerError(summaryResult.reason, { source: "page.goodsReceivings.summary" });
+  const summary = summaryResult.status === "fulfilled" ? summaryResult.value : null;
   const filtered = hasActiveFilters(filters);
   const emptyStateAction = filtered
     ? { href: "/goods-receivings", label: "Reset filters" }
@@ -46,7 +49,7 @@ export default async function GoodsReceivingsPage({ searchParams }: { searchPara
           <div className="space-y-3 [&>section]:overflow-hidden [&>section]:rounded-[var(--sb-panel-radius)] [&>section]:border [&>section]:border-[var(--sb-border-soft)] [&>section]:bg-card" data-tablet-split-actions data-goods-receiving-tablet-rail>
             {canCreate ? <ConsoleSection title="Actions"><Button asChild size="sm" className="w-full" data-mobile-primary-action><Link href="/goods-receivings/new"><Plus className="h-4 w-4" />New GRN</Link></Button></ConsoleSection> : null}
             <ConsoleSection title="GRN Summary">
-              <div className="grid gap-2 text-xs">
+              {summary ? <><div className="grid gap-2 text-xs">
                 <div className="flex justify-between"><span className="text-muted-foreground">Total GRNs</span><strong>{summary.total}</strong></div>
                 <div className="flex justify-between"><span className="text-muted-foreground">Draft</span><strong>{summary.draft}</strong></div>
                 <div className="flex justify-between"><span className="text-muted-foreground">Posted</span><strong>{summary.posted}</strong></div>
@@ -56,7 +59,7 @@ export default async function GoodsReceivingsPage({ searchParams }: { searchPara
               <div className="grid gap-2 text-xs">
                 <div className="flex justify-between"><span className="text-muted-foreground">Received Qty</span><strong>{formatNumber(summary.receivedTotal)}</strong></div>
                 <div className="flex justify-between"><span className="text-muted-foreground">Rejected Qty</span><strong>{formatNumber(summary.rejectedTotal)}</strong></div>
-              </div>
+              </div></> : <div role="status"><p className="text-xs font-semibold text-[var(--sb-warning)]">Unavailable</p><p className="mt-1 text-xs text-muted-foreground">The receiving queue remains current. Retry to load GRN totals.</p></div>}
             </ConsoleSection>
           </div>
         }

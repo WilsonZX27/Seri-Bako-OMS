@@ -20,6 +20,7 @@ import { getPurchaseOrderSummary, getPurchaseOrders } from "@/server/queries/pro
 import { getPermissionMap } from "@/server/auth/permissions";
 import { PurchaseOrderExportDialog } from "@/components/purchase-order-export-dialog";
 import { getBranchesForSelect } from "@/server/queries/common";
+import { logServerError } from "@/server/observability/logger";
 
 const statuses = [
   { value: "approved", label: "Ready to Send" },
@@ -32,7 +33,9 @@ const statuses = [
 
 export default async function PurchaseOrdersPage({ searchParams }: { searchParams: Promise<Record<string, string | undefined>> }) {
   const filters = await searchParams;
-  const [orders, summary, permissions] = await Promise.all([getPurchaseOrders(filters), getPurchaseOrderSummary(), getPermissionMap(["po.create"])]);
+  const [orders, permissions, [summaryResult]] = await Promise.all([getPurchaseOrders(filters), getPermissionMap(["po.create"]), Promise.allSettled([getPurchaseOrderSummary()])]);
+  if (summaryResult.status === "rejected") logServerError(summaryResult.reason, { source: "page.purchaseOrders.summary" });
+  const summary = summaryResult.status === "fulfilled" ? summaryResult.value : null;
   const exportBranches = permissions["po.create"] ? await getBranchesForSelect({ restrictToActorScope: true }) : [];
   const filtered = hasActiveFilters(filters);
   const emptyStateAction = filtered
@@ -60,7 +63,7 @@ export default async function PurchaseOrdersPage({ searchParams }: { searchParam
               <PurchaseOrderExportDialog branches={exportBranches} />
             </div></ConsoleSection> : null}
             <ConsoleSection title="PO Summary">
-              <div className="grid gap-2 text-xs">
+              {summary ? <div className="grid gap-2 text-xs">
                 <div className="flex justify-between"><span className="text-muted-foreground">Total POs</span><strong>{summary.total}</strong></div>
                 <div className="flex justify-between"><span className="text-muted-foreground">Ready to Send</span><strong>{summary.approved}</strong></div>
                 <div className="flex justify-between"><span className="text-muted-foreground">Sent to Supplier</span><strong>{summary.sent}</strong></div>
@@ -68,7 +71,7 @@ export default async function PurchaseOrdersPage({ searchParams }: { searchParam
                 <div className="flex justify-between"><span className="text-muted-foreground">Received</span><strong>{summary.received}</strong></div>
                 <div className="flex justify-between"><span className="text-muted-foreground">Closed</span><strong>{summary.closed}</strong></div>
                 <div className="flex justify-between"><span className="text-muted-foreground">Cancelled</span><strong>{summary.cancelled}</strong></div>
-              </div>
+              </div> : <div role="status"><p className="text-xs font-semibold text-[var(--sb-warning)]">Unavailable</p><p className="mt-1 text-xs text-muted-foreground">The order queue remains current. Retry to load PO totals.</p></div>}
             </ConsoleSection>
           </div>
         }

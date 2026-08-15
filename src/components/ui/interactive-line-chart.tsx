@@ -106,7 +106,7 @@ export function InteractiveLineChart({
     <div className="relative" data-interactive-line-chart>
       <svg
         ref={chartRef}
-        className="h-auto w-full touch-pan-y rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--sb-green-700)] focus-visible:ring-offset-2"
+        className="h-auto w-full touch-pan-y rounded-[var(--sb-radius-control)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--sb-green-700)] focus-visible:ring-offset-2"
         viewBox={`0 0 ${width} ${height}`}
         role="img"
         tabIndex={0}
@@ -177,7 +177,7 @@ export function InteractiveLineChart({
           id={previewId}
           role="tooltip"
           data-chart-preview
-          className="pointer-events-none absolute w-48 max-w-[calc(100%-0.75rem)] rounded-md border border-[var(--sb-border)] bg-[var(--sb-surface-raised)] px-3 py-2 text-left shadow-sm"
+          className="pointer-events-none absolute w-48 max-w-[calc(100%-0.75rem)] rounded-[var(--sb-radius-control)] border border-[var(--sb-border)] bg-[var(--sb-surface-raised)] px-3 py-2 text-left shadow-sm"
           style={{
             left: `${(activeX / width) * 100}%`,
             top: `${(activeY / height) * 100}%`,

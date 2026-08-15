@@ -1,6 +1,6 @@
-export const APP_VERSION = "8.36.50";
+export const APP_VERSION = "8.36.51";
 export const APP_SPRINT = `v${APP_VERSION}`;
-export const APP_RELEASE_TITLE = "Touch-ready Chart Inspection";
+export const APP_RELEASE_TITLE = "Consistent Chart Touch Targets";
 // Keep the shell footer concise; the detailed release title belongs in release
 // notes, not in a narrow navigation rail where it is clipped on small screens.
 export const APP_RELEASE_NOTE = APP_SPRINT;

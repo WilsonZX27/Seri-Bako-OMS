@@ -50,7 +50,7 @@ export function DashboardRoleMicroChart({ title, items }: { title: string; items
       })}</div>
       {active ? <div className="flex min-h-14 items-start justify-between gap-3 rounded-[var(--sb-radius-control)] bg-[var(--sb-surface-muted)] px-3 py-2" data-dashboard-role-chart-preview aria-live="polite">
         <p className="text-[11px] leading-4 text-[var(--sb-text-muted)]"><span data-dashboard-signal-priority className="font-semibold text-[var(--sb-text)]">{activeState}</span><br /><strong className="text-[var(--sb-text)]">{active.label}: {active.value === null ? "Unavailable" : active.value}</strong><br />{active.definition}</p>
-        <Link prefetch={false} href={active.href} className="shrink-0 rounded-[var(--sb-radius-control)] px-2 py-1 text-[11px] font-semibold text-[var(--sb-green-800)] hover:bg-[var(--sb-green-050)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--sb-green-700)]">Open</Link>
+        <Link prefetch={false} href={active.href} className="inline-flex min-h-11 shrink-0 items-center rounded-[var(--sb-radius-control)] px-2 text-[11px] font-semibold text-[var(--sb-green-800)] hover:bg-[var(--sb-green-050)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--sb-green-700)] xl:min-h-8">Open</Link>
       </div> : null}
     </div>
   </section>;

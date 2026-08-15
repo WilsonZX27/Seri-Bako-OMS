@@ -25,6 +25,7 @@ test("Dashboard role comparison preserves unavailable state and exact interactio
   assert.match(chart, /data-dashboard-role-chart-preview aria-live="polite"/);
   assert.match(chart, /grid min-h-11 w-full[\s\S]*xl:min-h-9/);
   assert.match(chart, /href=\{active\.href\}/);
+  assert.match(chart, /inline-flex min-h-11 shrink-0 items-center[\s\S]*xl:min-h-8/);
 });
 
 test("Dashboard role comparison uses stable severity order and explicit trust states", () => {

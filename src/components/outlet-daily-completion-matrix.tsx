@@ -45,7 +45,7 @@ export function OutletDailyCompletionMatrix({ dates, rows, summary }: { dates: s
           <tbody>{rows.map((row) => <tr key={row.branch_id}><th scope="row" className="sticky left-0 z-10 w-32 max-w-32 truncate border-r border-[var(--sb-border-soft)] bg-[var(--sb-surface)] pr-3 text-left font-medium sm:w-40 sm:max-w-40" title={row.branch_name}>{row.branch_name}</th>{row.cells.map((cell) => {
             const meta = stateMeta[cell.status];
             const key = `${cell.branch_id}:${cell.record_date}`;
-            const common = `grid h-9 w-full min-w-9 place-items-center border text-[11px] font-bold transition-shadow hover:ring-2 hover:ring-[var(--sb-green-700)] hover:ring-offset-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--sb-green-700)] focus-visible:ring-offset-1 ${meta.className} ${activeKey === key ? "ring-2 ring-[var(--sb-green-700)] ring-offset-1" : ""}`;
+            const common = `grid h-11 w-full min-w-11 place-items-center border text-[11px] font-bold transition-shadow hover:ring-2 hover:ring-[var(--sb-green-700)] hover:ring-offset-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--sb-green-700)] focus-visible:ring-offset-1 sm:h-9 sm:min-w-9 ${meta.className} ${activeKey === key ? "ring-2 ring-[var(--sb-green-700)] ring-offset-1" : ""}`;
             const label = `${cell.branch_name}, ${formatDateOnly(cell.record_date)}: ${meta.label}`;
             return <td key={cell.record_date} className="p-0.5 text-center">{cell.record_id
               ? <Link href={`/outlet-daily-records/${cell.record_id}`} className={common} aria-label={`${label}. Open record.`} onMouseEnter={() => setActiveKey(key)} onFocus={() => setActiveKey(key)} onPointerDown={() => setActiveKey(key)}>{meta.short}</Link>
@@ -56,7 +56,7 @@ export function OutletDailyCompletionMatrix({ dates, rows, summary }: { dates: s
       <div className="border-t border-[var(--sb-border-soft)] px-3 py-2" aria-live="polite" data-outlet-completion-preview>
         {active ? <div className="grid gap-1 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center">
           <div><p className="text-xs font-semibold">{active.branch_name} · {formatDateOnly(active.record_date)}</p><p className="text-[11px] text-muted-foreground">{stateMeta[active.status].label}{active.status === "missing" ? " · no record exists for this outlet-day" : " · recorded system status"}</p></div>
-          {active.record_id ? <Link href={`/outlet-daily-records/${active.record_id}`} className="text-xs font-semibold text-primary underline-offset-4 hover:underline">Open daily record</Link> : null}
+          {active.record_id ? <Link href={`/outlet-daily-records/${active.record_id}`} className="inline-flex min-h-11 items-center text-xs font-semibold text-primary underline-offset-4 hover:underline xl:min-h-8">Open daily record</Link> : null}
         </div> : null}
       </div>
       <details className="border-t border-[var(--sb-border-soft)] px-3 py-2 text-xs"><summary className="cursor-pointer font-medium text-primary">Coverage details · {summary.completed} of {summary.expected} complete</summary><p className="mt-2 text-muted-foreground">{summary.incomplete} in progress · {summary.missing} missing · {summary.voided} void. Missing and void outlet-days are not counted as complete.</p></details>

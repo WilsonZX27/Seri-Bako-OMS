@@ -39,6 +39,7 @@ test("inventory daily movement insight is bounded, unit-safe, and based on the d
   assert.match(chart, /ArrowLeft/);
   assert.match(chart, /Open inbound/);
   assert.match(chart, /Open outbound/);
+  assert.equal((chart.match(/inline-flex min-h-11 items-center text-primary/g) ?? []).length, 2);
   assert.match(chart, /Daily data/);
   assert.match(chart, /data-inventory-movement-daily-list/);
   assert.match(chart, /role="list" aria-label="Daily posted inventory movement entries"/);

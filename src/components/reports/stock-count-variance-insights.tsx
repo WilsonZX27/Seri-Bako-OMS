@@ -51,7 +51,7 @@ export function StockCountVarianceInsights({ insight }: { insight: Insight }) {
     </div>
     {!insight.available ? <div className="px-4 py-7 text-center"><p className="text-sm font-medium">Variance insight unavailable</p><p className="mt-1 text-xs text-muted-foreground">The Stock Count list remains available; no unavailable result is shown as zero.</p></div> : <>
       <div className="flex gap-1 border-b border-[var(--sb-border-soft)] px-3 py-2" role="tablist" aria-label="Stock count variance view">
-        {(["trend", "items", "branches"] as const).map((option) => <button key={option} type="button" role="tab" aria-selected={view === option} onClick={() => setView(option)} className={`min-h-9 rounded-[var(--sb-radius-control)] px-3 text-xs font-medium ${view === option ? "bg-[var(--sb-green-900)] text-[var(--sb-text-inverse)]" : "text-muted-foreground hover:bg-[var(--sb-surface-muted)]"}`}>{option === "trend" ? "Daily trend" : option === "items" ? "Repeat items" : "Branches"}</button>)}
+        {(["trend", "items", "branches"] as const).map((option) => <button key={option} type="button" role="tab" aria-selected={view === option} onClick={() => setView(option)} className={`min-h-11 rounded-[var(--sb-radius-control)] px-3 text-xs font-medium xl:min-h-9 ${view === option ? "bg-[var(--sb-green-900)] text-[var(--sb-text-inverse)]" : "text-muted-foreground hover:bg-[var(--sb-surface-muted)]"}`}>{option === "trend" ? "Daily trend" : option === "items" ? "Repeat items" : "Branches"}</button>)}
       </div>
       <div className="px-3 py-3">
         {view === "trend" ? total ? <>

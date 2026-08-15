@@ -1,6 +1,6 @@
 # Seri Bako OMS Metric Dictionary
 
-**Current application:** `v8.36.50`
+**Current application:** `v8.36.51`
 **Repository migration ceiling:** `149`
 **Last reviewed:** 2026-08-15
 
@@ -14,6 +14,7 @@ This is the authority for user-visible KPI and chart meaning. It documents prese
 - Charts keep a numeric table/list alternative and use direct labels where practical.
 - Exact chart data uses a complete phone list and a wide table where columns fit; a disclosure must not require phone-width horizontal table navigation.
 - Interactive chart and ranking rows keep at least a 44px touch target below wide desktop; exact inspection cannot depend on precision tapping.
+- Chart preview actions and compact signal selectors follow the same target rule; semantic danger and warning colors identify documented states rather than creating new severity meaning.
 - A chart filter/drill-through must use the same documented dimensions as its detail authority.
 - Request-time reads show the state returned by the source query. Do not claim last-synced or real-time freshness without a source-owned timestamp.
 

@@ -25,6 +25,8 @@ test("outlet completion matrix provides hover, touch, keyboard and direct-record
   assert.match(component, /onPointerDown=\{\(\) => setActiveKey\(key\)\}/);
   assert.match(component, /data-outlet-completion-preview/);
   assert.match(component, /Open daily record/);
+  assert.match(component, /h-11 w-full min-w-11[\s\S]*sm:h-9 sm:min-w-9/);
+  assert.match(component, /inline-flex min-h-11 items-center[\s\S]*xl:min-h-8/);
   assert.match(component, /not a lateness estimate/);
   assert.match(component, /overflow-x-auto/);
   assert.match(page, /<OutletDailyCompletionMatrix/);

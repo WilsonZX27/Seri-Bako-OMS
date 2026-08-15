@@ -1,6 +1,6 @@
 # Seri Bako OMS responsive design standard
 
-> **Release authority:** the currently released application is `v8.36.50`, as
+> **Release authority:** the currently released application is `v8.36.51`, as
 > defined by `src/lib/app-version.ts`. A versioned section above that number is
 > an accepted forward design contract or unreleased implementation note—not
 > evidence that the application itself has been released at that version.
@@ -10,6 +10,13 @@
 > **Precedence:** `docs/DESIGN_SYSTEM.md` is the living visual and interaction contract. When a historical release note or an older rule in this file conflicts with that contract, the living contract wins. Update both documents when a new pattern is accepted; do not preserve a visibly weaker rule for compatibility.
 
 This document is the implementation contract for every customer-facing route, form, record workspace, table, panel, dialog, and mobile action bar. It applies to new work and to refactoring of existing UI.
+
+## v8.36.51 — Consistent Chart Touch Targets
+
+- Every chart selector, compact tab, status cell, and preview action that changes or opens exact chart context has a 44px minimum target below wide desktop. Wide desktop may use a compact 32–36px target where pointer precision and surrounding density justify it.
+- Stock Count variance tabs, Outlet completion cells, Production variance secondary signals, Dashboard comparison Open, Outlet completion Open, and Inventory movement drill-through now follow this shared contract.
+- An intentionally horizontal matrix may keep compact 36px cells at `sm` and above, but phone cells remain 44px in both axes. Increasing the target must not remove the pinned identity column or the explicit swipe instruction.
+- Production supply signals use semantic danger and warning tokens instead of framework-specific rose and amber utilities. Signal meaning remains driven by the documented thresholds, not by a decorative palette.
 
 ## v8.36.50 — Touch-ready Chart Inspection
 

@@ -47,5 +47,6 @@ test("Stock Count insight provides compact views, exact previews, drill-through 
 test("Stock Count insight tabs preserve semantic inverse contrast", () => {
   const component = read("src/components/reports/stock-count-variance-insights.tsx");
   assert.match(component, /bg-\[var\(--sb-green-900\)\] text-\[var\(--sb-text-inverse\)\]/);
+  assert.match(component, /min-h-11[\s\S]*xl:min-h-9/);
   assert.doesNotMatch(component, /bg-white|text-white|border-white/);
 });

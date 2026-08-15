@@ -110,8 +110,8 @@ export function InventoryDailyMovementChart({ points }: { points: InventoryDaily
             <p className="mt-0.5 text-[11px] tabular-nums text-muted-foreground">Inbound {formatNumber(activePoint.inbound_entries)} · Outbound {formatNumber(activePoint.outbound_entries)} · All posted entries {formatNumber(activePoint.movement_entries)}</p>
           </div>
           <div className="flex flex-wrap gap-x-3 gap-y-1 text-[11px] font-semibold">
-            <Link className="text-primary underline-offset-4 hover:underline" href={`/stock-transactions?from=${activePoint.transaction_date}&to=${activePoint.transaction_date}&direction=inbound`}>Open inbound</Link>
-            <Link className="text-primary underline-offset-4 hover:underline" href={`/stock-transactions?from=${activePoint.transaction_date}&to=${activePoint.transaction_date}&direction=outbound`}>Open outbound</Link>
+            <Link className="inline-flex min-h-11 items-center text-primary underline-offset-4 hover:underline xl:min-h-8" href={`/stock-transactions?from=${activePoint.transaction_date}&to=${activePoint.transaction_date}&direction=inbound`}>Open inbound</Link>
+            <Link className="inline-flex min-h-11 items-center text-primary underline-offset-4 hover:underline xl:min-h-8" href={`/stock-transactions?from=${activePoint.transaction_date}&to=${activePoint.transaction_date}&direction=outbound`}>Open outbound</Link>
           </div>
         </div> : <p className="text-xs text-muted-foreground">No posted movement entries in this period.</p>}
       </div>

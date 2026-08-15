@@ -44,3 +44,14 @@ test("AP aging UI and CSV share URL filters and server report", () => {
   assert.match(csv, /ap-aging-\$\{report\.report_date\}\.csv/);
   assert.doesNotMatch(sql, /(insert|update|delete)\s+(into\s+)?public\.(stock_transactions|stock_transaction_lines|stock_balances)/i);
 });
+
+test("AP aging replaces narrow financial tables with complete decision lists", () => {
+  const page = read("src/app/(app)/supplier-invoices/aging/page.tsx");
+  assert.match(page, /<Table mobileHidden aria-label="Supplier payable exposure">/);
+  assert.match(page, /data-ap-aging-supplier-list/);
+  assert.match(page, /<Table mobileHidden aria-label="AP aging invoice detail">/);
+  assert.match(page, /data-ap-aging-invoice-list/);
+  for (const authority of ["total_outstanding", "overdue_outstanding", "oldest_due_date", "maximum_days_overdue", "original_total", "amount_paid", "outstanding", "aging_bucket", "alert_severity", "due_date"]) {
+    assert.match(page, new RegExp(`row\\.${authority}`));
+  }
+});

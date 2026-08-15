@@ -242,6 +242,10 @@ test.describe("outlet wastage chart preview", () => {
 
     test("AP Aging distribution stays directly labeled and bounded on phone", async ({ page }) => {
       await page.goto("/supplier-invoices/aging", { waitUntil: "domcontentloaded" });
+      await expect(page.getByRole("table", { name: "Supplier payable exposure" })).toBeHidden();
+      await expect(page.getByRole("table", { name: "AP aging invoice detail" })).toBeHidden();
+      await expect(page.locator("[data-ap-aging-supplier-list]")).toBeVisible();
+      await expect(page.locator("[data-ap-aging-invoice-list]")).toBeVisible();
       const chart = page.locator("[data-aging-distribution]");
       await expect(chart).toBeVisible();
       await expect(chart.getByRole("listitem")).toHaveCount(7);
@@ -257,10 +261,15 @@ test.describe("outlet wastage chart preview", () => {
         return bounds.left >= 0 && bounds.right <= document.documentElement.clientWidth;
       });
       expect(fitsViewport).toBe(true);
+      expect(await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)).toBeLessThanOrEqual(1);
     });
 
     test("Cash Flow keeps missing dates separate and due windows bounded on phone", async ({ page }) => {
       await page.goto("/supplier-invoices/cash-flow?period=30", { waitUntil: "domcontentloaded" });
+      await expect(page.getByRole("table", { name: "Top suppliers by upcoming payable" })).toBeHidden();
+      await expect(page.getByRole("table", { name: "Cash flow invoice forecast detail" })).toBeHidden();
+      await expect(page.locator("[data-cash-flow-supplier-list]")).toBeVisible();
+      await expect(page.locator("[data-cash-flow-invoice-list]")).toBeVisible();
       const chart = page.locator("[data-aging-distribution]");
       await expect(chart).toBeVisible();
       await expect(chart.getByRole("listitem").filter({ hasText: "Missing due date" })).toBeVisible();
@@ -273,6 +282,7 @@ test.describe("outlet wastage chart preview", () => {
         return bounds.left >= 0 && bounds.right <= document.documentElement.clientWidth;
       });
       expect(fitsViewport).toBe(true);
+      expect(await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)).toBeLessThanOrEqual(1);
     });
   });
 });

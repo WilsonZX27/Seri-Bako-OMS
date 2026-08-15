@@ -1,6 +1,6 @@
 # Seri Bako OMS responsive design standard
 
-> **Release authority:** the currently released application is `v8.36.35`, as
+> **Release authority:** the currently released application is `v8.36.36`, as
 > defined by `src/lib/app-version.ts`. A versioned section above that number is
 > an accepted forward design contract or unreleased implementation note—not
 > evidence that the application itself has been released at that version.
@@ -10,6 +10,13 @@
 > **Precedence:** `docs/DESIGN_SYSTEM.md` is the living visual and interaction contract. When a historical release note or an older rule in this file conflicts with that contract, the living contract wins. Update both documents when a new pattern is accepted; do not preserve a visibly weaker rule for compatibility.
 
 This document is the implementation contract for every customer-facing route, form, record workspace, table, panel, dialog, and mobile action bar. It applies to new work and to refactoring of existing UI.
+
+## v8.36.36 — Responsive Payables Reports
+
+- AP Aging and Cash Flow Forecast retain full financial audit tables only where all columns fit. Phone, tablet, and narrow-laptop layouts use flat decision lists without horizontal table navigation.
+- Payable rows lead with outstanding exposure and risk state, then retain supplier reference, due date, original total, amount paid, workflow status, bucket, and alert authority.
+- Supplier exposure summaries lead with total outstanding and retain invoice count, overdue exposure, oldest due date, and maximum days overdue. Selecting a row applies the same supplier filter.
+- Missing due dates and overdue balances remain explicit exceptions; compact presentation must never turn missing authority into a neutral zero or omit the report's MYR-only limitation.
 
 ## v8.36.35 — Responsive Procurement Detail
 

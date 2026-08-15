@@ -70,6 +70,16 @@ test("cash flow route has operational entry points, pagination and isolated stat
   assert.match(loadingPage, /aria-busy="true"/);
 });
 
+test("cash flow keeps payable authority readable without narrow horizontal tables", () => {
+  assert.match(page, /<Table mobileHidden aria-label="Top suppliers by upcoming payable">/);
+  assert.match(page, /data-cash-flow-supplier-list/);
+  assert.match(page, /<Table mobileHidden aria-label="Cash flow invoice forecast detail">/);
+  assert.match(page, /data-cash-flow-invoice-list/);
+  for (const authority of ["supplier_invoice_no", "supplier_name", "due_date", "forecast_state", "status", "original_total", "amount_paid", "outstanding"]) {
+    assert.match(page, new RegExp(`row\\.${authority}`));
+  }
+});
+
 test("release footer follows the current sprint baseline", () => {
   const version = read("src/lib/app-version.ts");
   assert.match(version, /APP_VERSION = "\d+\.\d+\.\d+"/);

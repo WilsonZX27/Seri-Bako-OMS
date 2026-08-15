@@ -17,8 +17,6 @@ type DemandTrendChartRow = {
 };
 
 export function DemandTrendChart({ rows }: { rows: DemandTrendChartRow[] }) {
-  if (!rows.length) return null;
-
   const maximum = Math.max(...rows.map((row) => row.movement), 1);
   const points = rows.map((row) => ({
     id: row.id,
@@ -49,7 +47,7 @@ export function DemandTrendChart({ rows }: { rows: DemandTrendChartRow[] }) {
           Estimated movement
         </div>
       </div>
-      <div className="px-2 pb-2 pt-3 sm:px-4 sm:pb-3">
+      {rows.length ? <div className="px-2 pb-2 pt-3 sm:px-4 sm:pb-3">
         <InteractiveLineChart
           points={points}
           width={760}
@@ -59,7 +57,7 @@ export function DemandTrendChart({ rows }: { rows: DemandTrendChartRow[] }) {
           ariaLabel="Daily estimated movement trend"
         />
         <p className="mt-1 px-1 text-[11px] leading-4 text-muted-foreground">Hover or drag across the chart to preview a date. Use arrow keys when the chart is focused.</p>
-      </div>
+      </div> : <div className="px-3 py-4 text-xs text-muted-foreground" data-demand-trend-empty>No reliable daily trend data is available for the current filters. Incomplete or missing outlet-days are not shown as zero.</div>}
     </section>
   );
 }

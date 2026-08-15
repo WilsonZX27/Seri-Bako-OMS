@@ -37,3 +37,18 @@ test("aging and production previews use the shared persistent touch and focus co
     assert.match(source, /aria-live="polite"/);
   }
 });
+
+test("Demand Trend uses the shared filter surface without an extra wrapper card", () => {
+  const page = read("src/app/(app)/reports/demand-trends/page.tsx");
+  assert.match(page, /<FilterBar resetHref="\/reports\/demand-trends">/);
+  assert.doesNotMatch(page, /<div className="overflow-hidden border bg-card"><FilterBar/);
+});
+
+test("Demand Trend keeps unavailable charts explicit instead of implying zero", () => {
+  const trend = read("src/components/reports/demand-trend-chart.tsx");
+  const ranking = read("src/components/reports/demand-ranking-chart.tsx");
+  assert.match(trend, /data-demand-trend-empty/);
+  assert.match(trend, /not shown as zero/);
+  assert.match(ranking, /data-demand-ranking-empty/);
+  assert.match(ranking, /not shown as zero/);
+});

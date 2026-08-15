@@ -1,7 +1,7 @@
 "use client";
 
 import { useId, useRef, useState } from "react";
-import type { KeyboardEvent, PointerEvent } from "react";
+import type { KeyboardEvent, MouseEvent, PointerEvent } from "react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 
@@ -67,10 +67,10 @@ export function InteractiveRankingChart({
                 touchSelectionRef.current = false;
                 setActiveId(item.id);
               },
-              onMouseLeave: () => {
+              onMouseLeave: (event: MouseEvent<HTMLButtonElement>) => {
                 // Hover is a transient preview. A click/touch or keyboard focus
                 // may keep the selected row open for drill-through.
-                if (!touchSelectionRef.current) setActiveId(null);
+                if (!touchSelectionRef.current && !event.currentTarget.matches(":focus")) setActiveId(null);
               },
               onPointerDown: (event: PointerEvent<HTMLElement>) => {
                 touchSelectionRef.current = event.pointerType !== "mouse";

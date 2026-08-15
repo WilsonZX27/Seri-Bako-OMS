@@ -29,8 +29,6 @@ export function DemandRankingChart({
   metric: "movement" | "wastage";
   searchParams: Record<string, string | undefined>;
 }) {
-  if (!rows.length) return null;
-
   const items = rows.slice(0, 6).map((row) => {
     const params = new URLSearchParams();
     for (const [key, value] of Object.entries(searchParams)) if (value) params.set(key, value);
@@ -61,9 +59,9 @@ export function DemandRankingChart({
         <h2 className="text-sm font-semibold">{title}</h2>
         <p className="mt-0.5 text-xs text-muted-foreground">{description}</p>
       </div>
-      <div className="p-2.5 sm:p-3">
+      {items.length ? <div className="p-2.5 sm:p-3">
         <InteractiveRankingChart items={items} ariaLabel={title} idlePrompt="Hover, tap, or focus a product to preview its complete values. Open applies that product to the report detail." />
-      </div>
+      </div> : <div className="px-3 py-4 text-xs text-muted-foreground" data-demand-ranking-empty>No reliable ranking data is available for the current filters. Incomplete or missing outlet-days are not shown as zero.</div>}
     </section>
   );
 }

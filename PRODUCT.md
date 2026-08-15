@@ -4,7 +4,7 @@
 
 ### Current audit baseline
 
-The current released application baseline is `v8.37.4 — Report Preview Interaction Refinement`.
+The current released application baseline is `v8.37.5 — Report Surface and Empty-State Refinement`.
 The repository migration history currently runs through migration `149`. Release
 version authority lives in `src/lib/app-version.ts`; migration authority lives in
 the immutable, forward-only `supabase/migrations/` directory. Documentation must

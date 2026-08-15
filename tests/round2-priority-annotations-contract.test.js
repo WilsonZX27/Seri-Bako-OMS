@@ -7,6 +7,7 @@ const root = path.join(__dirname, "..");
 const dashboard = fs.readFileSync(path.join(root, "src", "components", "dashboard-workspace.tsx"), "utf8");
 const purchaseRequests = fs.readFileSync(path.join(root, "src", "app", "(app)", "purchase-requests", "page.tsx"), "utf8");
 const stockCounts = fs.readFileSync(path.join(root, "src", "app", "(app)", "stock-counts", "page.tsx"), "utf8");
+const planning = fs.readFileSync(path.join(root, "src", "app", "(app)", "production", "planning", "page.tsx"), "utf8");
 const css = `${fs.readFileSync(path.join(root, "src", "app", "globals.css"), "utf8")}\n${fs.readFileSync(path.join(root, "src", "app", "design-system-v2.css"), "utf8")}`;
 
 test("dashboard uses one non-duplicated operational hierarchy", () => {
@@ -40,6 +41,14 @@ test("dashboard secondary column keeps exceptions ahead of routine activity", ()
   assert.match(dashboard, /className="order-2 space-y-4" data-dashboard-activity-group/);
   assert.match(dashboard, /className="order-3" data-dashboard-priority-group="payables"/);
   assert.match(dashboard, /className="order-4"/);
+});
+
+test("production planning keeps the query surface flat and balanced", () => {
+  assert.match(planning, /<FilterBar resetHref="\/production\/planning" className="sb-list-filters--balanced">/);
+  assert.doesNotMatch(planning, /<div className="overflow-hidden border bg-card"><FilterBar/);
+  assert.match(planning, /aria-label="Planning period"/);
+  assert.match(planning, /aria-label="Planning outlet"/);
+  assert.match(planning, /aria-label="Target days"/);
 });
 
 test("stock count tablet rail has an explicit card contract", () => {

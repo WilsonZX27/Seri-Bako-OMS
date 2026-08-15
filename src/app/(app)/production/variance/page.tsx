@@ -13,13 +13,23 @@ import { formatNumber } from "@/lib/utils";
 import { hasActiveFilters } from "@/lib/table-state";
 import { getProductionDemandVariance } from "@/server/queries/outlet-daily-records";
 import { ProductionVarianceSignalChart } from "@/components/reports/production-variance-signal-chart";
+import { logServerError } from "@/server/observability/logger";
 
 const metric = (label: string, value: number) => <div><p className="text-xs text-muted-foreground">{label}</p><strong>{formatNumber(value)}</strong></div>;
 const signalBadge = (signal: string) => <Badge variant={signal === "over_supplied" ? "warning" : signal === "under_supplied" ? "danger" : signal === "review_manual" ? "secondary" : "success"}>{signal === "over_supplied" ? "Over-supplied" : signal === "under_supplied" ? "Under-supplied" : signal === "review_manual" ? "Review manually" : "Balanced"}</Badge>;
 
 export default async function ProductionVariancePage({ searchParams }: { searchParams: Promise<Record<string, string | undefined>> }) {
   const filters = await searchParams;
-  const report = await getProductionDemandVariance(filters);
+  const report = await getProductionDemandVariance(filters).catch((error) => {
+    logServerError(error, { source: "page.productionVariance.report" });
+    return null;
+  });
+  if (!report) return <>
+    <PageHeader title="Production vs Outlet Demand Variance" description="Outlet demand signals only; production job output is not compared because no reliable posted-output join is used." />
+    <WorkspaceGrid hideMobileConsole rightRail={<ConsoleSection title="Report status"><p className="text-xs text-muted-foreground">The outlet-demand source could not be verified. No failed read is classified as balanced or zero.</p></ConsoleSection>}>
+      <Card><CardContent className="p-5"><EmptyState title="Production variance is unavailable" description="Try again shortly. No variance classification is shown from incomplete data, and no production or inventory record was changed." action={{ href: "/production/variance", label: "Retry report" }} /></CardContent></Card>
+    </WorkspaceGrid>
+  </>;
   const filtered = hasActiveFilters(filters);
   return <>
     <PageHeader title="Production vs Outlet Demand Variance" description="Outlet demand signals only; production job output is not compared because no reliable posted-output join is used." />

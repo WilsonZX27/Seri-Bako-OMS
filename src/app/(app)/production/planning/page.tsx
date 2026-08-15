@@ -3,6 +3,7 @@ import { ConsoleSection } from "@/components/layout/right-console";
 import { WorkspaceGrid } from "@/components/layout/workspace-layout";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Card, CardContent } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/empty-state";
 import { FilterBar, FilterBarMore } from "@/components/ui/filter-bar";
 import { Input } from "@/components/ui/input";
@@ -12,13 +13,24 @@ import { SelectNative } from "@/components/ui/select-native";
 import { OperationalList, OperationalListRow, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { formatDateOnly, formatNumber } from "@/lib/utils";
 import { getProductionPlanning } from "@/server/queries/outlet-daily-records";
+import { logServerError } from "@/server/observability/logger";
 
 const confidenceBadge = (confidence: string, lowSample: boolean) => lowSample
   ? <Badge variant="warning">Low sample · Review manually</Badge>
   : <Badge variant={confidence === "High" ? "success" : confidence === "Medium" ? "warning" : "danger"}>{confidence === "Medium" ? "Medium · Caution" : confidence === "Low" ? "Low · Review manually" : "High"}</Badge>;
 
 export default async function ProductionPlanningPage({ searchParams }: { searchParams: Promise<Record<string, string | undefined>> }) {
-  const report = await getProductionPlanning(await searchParams);
+  const filters = await searchParams;
+  const report = await getProductionPlanning(filters).catch((error) => {
+    logServerError(error, { source: "page.productionPlanning.report" });
+    return null;
+  });
+  if (!report) return <>
+    <PageHeader title="Production Planning Lite" description="Planning reference only. HQ/kitchen must check incomplete outlet data before producing." />
+    <WorkspaceGrid hideMobileConsole rightRail={<ConsoleSection title="Report status"><p className="text-xs text-muted-foreground">The demand source could not be verified. No suggestion is calculated from incomplete data.</p></ConsoleSection>} tabletRailMode="split">
+      <Card><CardContent className="p-5"><EmptyState title="Production Planning Lite is unavailable" description="Try again shortly. No planning suggestion is shown as zero, and no production or inventory record was changed." action={{ href: "/production/planning", label: "Retry report" }} /></CardContent></Card>
+    </WorkspaceGrid>
+  </>;
   return <>
     <PageHeader title="Production Planning Lite" description="Planning reference only. HQ/kitchen must check incomplete outlet data before producing." />
     <WorkspaceGrid hideMobileConsole rightRail={<>

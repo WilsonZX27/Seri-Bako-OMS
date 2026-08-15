@@ -4,7 +4,7 @@
 
 ### Current audit baseline
 
-The current released application baseline is `v8.36.98 — Report Preview and Mobile Density Refinement`.
+The current released application baseline is `v8.36.99 — AP Aging Mobile Empty-State Hardening`.
 The repository migration history currently runs through migration `149`. Release
 version authority lives in `src/lib/app-version.ts`; migration authority lives in
 the immutable, forward-only `supabase/migrations/` directory. Documentation must

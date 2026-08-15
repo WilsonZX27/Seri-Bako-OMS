@@ -1,6 +1,6 @@
 # Seri Bako OMS responsive design standard
 
-> **Release authority:** the currently released application is `v8.36.98`, as
+> **Release authority:** the currently released application is `v8.36.99`, as
 > defined by `src/lib/app-version.ts`. A versioned section above that number is
 > an accepted forward design contract or unreleased implementation note—not
 > evidence that the application itself has been released at that version.
@@ -1172,6 +1172,10 @@ the route matrix in `docs/qa/FULL_SYSTEM_AUDIT_MATRIX.md`.
 - Repeating mobile item editors use explicit named grid regions. Item search owns the first row; quantity, UOM, and the comment action share the second row. A broad selector may not replace a component's grid template or reset its child placement.
 - Screenshot evidence must come from a clean `.next-playwright` cache and a clean evidence directory. Old screenshots or a reused build cannot be accepted as current verification.
 - New features must pass the existing responsive route matrix before they are considered complete. A feature change does not authorize weakening, hiding, or removing an established responsive contract.
+## v8.36.99 — AP Aging Mobile Empty-State Hardening
+
+- AP Aging Supplier Exposure now renders an explicit mobile empty state when no supplier has an open positive payable balance; an empty mobile list is no longer mistaken for a hidden or unavailable report.
+
 ## v8.36.98 — Report Preview and Mobile Density Refinement
 
 - Ranking previews now show an explicit ordinal, keep their progressive preview closed until a row is hovered, focused, or tapped, and retain the same keyboard and touch drill-through behavior.

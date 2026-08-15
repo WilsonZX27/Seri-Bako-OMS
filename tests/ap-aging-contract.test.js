@@ -49,6 +49,7 @@ test("AP aging replaces narrow financial tables with complete decision lists", (
   const page = read("src/app/(app)/supplier-invoices/aging/page.tsx");
   assert.match(page, /<Table mobileHidden aria-label="Supplier payable exposure">/);
   assert.match(page, /data-ap-aging-supplier-list/);
+  assert.match(page, /!report\.suppliers\.length \? <EmptyState title="No supplier exposure"/);
   assert.match(page, /<Table mobileHidden aria-label="AP aging invoice detail">/);
   assert.match(page, /data-ap-aging-invoice-list/);
   for (const authority of ["total_outstanding", "overdue_outstanding", "oldest_due_date", "maximum_days_overdue", "original_total", "amount_paid", "outstanding", "aging_bucket", "alert_severity", "due_date"]) {

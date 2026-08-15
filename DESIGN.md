@@ -1,6 +1,6 @@
 # Seri Bako OMS responsive design standard
 
-> **Release authority:** the currently released application is `v8.36.42`, as
+> **Release authority:** the currently released application is `v8.36.43`, as
 > defined by `src/lib/app-version.ts`. A versioned section above that number is
 > an accepted forward design contract or unreleased implementation note—not
 > evidence that the application itself has been released at that version.
@@ -10,6 +10,13 @@
 > **Precedence:** `docs/DESIGN_SYSTEM.md` is the living visual and interaction contract. When a historical release note or an older rule in this file conflicts with that contract, the living contract wins. Update both documents when a new pattern is accepted; do not preserve a visibly weaker rule for compatibility.
 
 This document is the implementation contract for every customer-facing route, form, record workspace, table, panel, dialog, and mobile action bar. It applies to new work and to refactoring of existing UI.
+
+## v8.36.43 — Responsive Branch Selection
+
+- Branches retains the complete technical table at wide desktop and uses a continuous OperationalList below 1280px. The compact row preserves code, name, type, lifecycle status, phone, email, and address.
+- Bulk archive/restore remains available in the compact directory. Phone users can select individual branches or all visible branches without opening the record; the existing confirmation and history-preserving server actions remain authoritative.
+- Selection is shown only to users with update permission. Create permission alone must not expose a selection control that cannot perform an action.
+- Phone selection controls use a 44px label hit target while retaining a compact 16px checkbox mark. Every row checkbox has a branch-specific accessible name and sits outside the row link, avoiding nested interactive controls.
 
 ## v8.36.42 — Trusted Operational Pulse
 

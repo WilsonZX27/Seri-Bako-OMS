@@ -125,12 +125,11 @@ export function BulkSelectionProvider(props: {
   );
 }
 
-export function BulkSelectAllCheckbox() {
+export function BulkSelectAllCheckbox({ touchTarget = false }: { touchTarget?: boolean } = {}) {
   const { selectedIds, visibleIds, toggleAll } = useBulkSelection();
   const checked = visibleIds.length > 0 && visibleIds.every((id) => selectedIds.has(id));
   const indeterminate = !checked && visibleIds.some((id) => selectedIds.has(id));
-  return (
-    <input
+  const checkbox = <input
       type="checkbox"
       checked={checked}
       ref={(node) => {
@@ -139,19 +138,18 @@ export function BulkSelectAllCheckbox() {
       onChange={toggleAll}
       aria-label="Select all visible rows"
       className="h-4 w-4 rounded border-slate-300"
-    />
-  );
+    />;
+  return touchTarget ? <label className="flex h-11 w-11 shrink-0 cursor-pointer items-center justify-center">{checkbox}</label> : checkbox;
 }
 
-export function BulkSelectRowCheckbox({ id }: { id: string }) {
+export function BulkSelectRowCheckbox({ id, label = "Select row", touchTarget = false }: { id: string; label?: string; touchTarget?: boolean }) {
   const { selectedIds, toggleOne } = useBulkSelection();
-  return (
-    <input
+  const checkbox = <input
       type="checkbox"
       checked={selectedIds.has(id)}
       onChange={() => toggleOne(id)}
-      aria-label="Select row"
+      aria-label={label}
       className="h-4 w-4 rounded border-slate-300"
-    />
-  );
+    />;
+  return touchTarget ? <label className="flex h-11 w-11 shrink-0 cursor-pointer items-center justify-center">{checkbox}</label> : checkbox;
 }

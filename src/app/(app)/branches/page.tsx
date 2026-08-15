@@ -10,7 +10,7 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { MasterDataFilters } from "@/components/master-data-filters";
 import { PageHeader } from "@/components/ui/page-header";
 import { StatusTabs } from "@/components/status-tabs";
-import { Table, TableActionLink, TableBody, TableCell, TableHead, TableHeader, TableRow, TableSelectionCell, TableSelectionHead } from "@/components/ui/table";
+import { OperationalList, OperationalListRow, Table, TableActionLink, TableBody, TableCell, TableHead, TableHeader, TableRow, TableSelectionCell, TableSelectionHead } from "@/components/ui/table";
 import { formatPageError } from "@/server/actions/error-handling";
 import { getBranches } from "@/server/queries/foundation";
 import { hasActiveFilters } from "@/lib/table-state";
@@ -25,7 +25,6 @@ export default async function BranchesPage({ searchParams }: { searchParams: Pro
   try {
     const filters = await searchParams;
     const [branches, summaryBranches, canCreate, canUpdate] = await Promise.all([getBranches(filters), getBranches({ ...filters, status: "all" }), hasPermission("branches.create"), hasPermission("branches.update")]);
-    const canManage = canCreate || canUpdate;
     const isArchivedView = filters.status === "archived";
     const filtered = hasActiveFilters(filters);
 
@@ -45,10 +44,12 @@ export default async function BranchesPage({ searchParams }: { searchParams: Pro
             <BulkSelectionProvider ids={branches.map((branch) => branch.id)} action={isArchivedView ? restoreBranches : archiveBranches} fieldName="branch_id" canAct={canUpdate} actionLabel={isArchivedView ? "Restore selected" : "Archive selected"} actionVariant={isArchivedView ? "default" : "destructive"} confirmMessage={isArchivedView ? "Restore the selected branches to active operations?" : "Archive the selected branches? They will be removed from active lists while preserving their history."} actionHint={isArchivedView ? "Restore archived branches only when they are ready for daily operations." : "Archive branches only after confirming they are no longer used by daily operations."}>
               {/* Active view keeps the canonical action={archiveBranches} contract; archived view swaps in restoreBranches. */}
             <DataGridHint text="Pro-tip: Double-click any row to open the branch." />
-              <Table aria-label="Branches" stickyColumn={canManage && canUpdate ? "third" : canManage || canUpdate ? "second" : "first"}>
+              <div>
+              {canUpdate && branches.length ? <div className="flex min-h-11 items-center gap-1 border-b border-[var(--sb-border-soft)] bg-[var(--sb-surface-muted)] px-1 xl:hidden"><BulkSelectAllCheckbox touchTarget /><span className="text-xs font-medium text-muted-foreground">Select all visible branches</span></div> : null}
+              <Table mobileHidden compactUntil="xl" aria-label="Branches" stickyColumn={canUpdate ? "third" : "first"}>
                 <TableHeader>
                   <TableRow>
-                    {canManage ? <TableSelectionHead><BulkSelectAllCheckbox /></TableSelectionHead> : null}
+                    {canUpdate ? <TableSelectionHead><BulkSelectAllCheckbox /></TableSelectionHead> : null}
                     {canUpdate ? <TableHead className="w-12 text-center">Action</TableHead> : null}
                     <TableHead>Code</TableHead>
                     <TableHead>Branch Name</TableHead>
@@ -62,7 +63,7 @@ export default async function BranchesPage({ searchParams }: { searchParams: Pro
                 <TableBody>
                   {branches.map((branch) => (
                     <DataGridRow key={branch.id} href={canUpdate ? `/branches/${branch.id}` : "/branches"}>
-                        {canManage ? <TableSelectionCell>
+                        {canUpdate ? <TableSelectionCell>
                          <BulkSelectRowCheckbox id={branch.id} />
                         </TableSelectionCell> : null}
                       {canUpdate ? <TableCell className="text-center"><TableActionLink href={`/branches/${branch.id}`} label={`Open ${branch.branch_name}`}><Pencil className="h-4 w-4" /></TableActionLink></TableCell> : null}
@@ -75,9 +76,24 @@ export default async function BranchesPage({ searchParams }: { searchParams: Pro
                       <TableCell><Badge variant={branch.status === "active" ? "success" : "secondary"}>{branch.status}</Badge></TableCell>
                     </DataGridRow>
                   ))}
-                  {!branches.length ? <TableRow><TableCell colSpan={canManage ? 9 : 7}><EmptyState title={filtered ? "No records match these filters" : "No branches yet"} description={filtered ? "Clear filters or widen the search to see more branches." : "Branches will appear here after operating units are created."} action={filtered ? { href: "/branches", label: "Clear filters" } : canCreate ? { href: "/branches/new", label: "New branch" } : undefined} /></TableCell></TableRow> : null}
+                  {!branches.length ? <TableRow><TableCell colSpan={canUpdate ? 9 : 7}><EmptyState title={filtered ? "No records match these filters" : "No branches yet"} description={filtered ? "Clear filters or widen the search to see more branches." : "Branches will appear here after operating units are created."} action={filtered ? { href: "/branches", label: "Clear filters" } : canCreate ? { href: "/branches/new", label: "New branch" } : undefined} /></TableCell></TableRow> : null}
                 </TableBody>
               </Table>
+              <OperationalList ariaLabel="Branches" showUntil="xl">
+                {branches.map((branch) => <OperationalListRow
+                  key={branch.id}
+                  href={canUpdate ? `/branches/${branch.id}` : undefined}
+                  label={canUpdate ? `Open ${branch.branch_name}` : branch.branch_name}
+                  primary={branch.branch_name}
+                  status={<Badge variant={branch.status === "active" ? "success" : "secondary"}>{branch.status}</Badge>}
+                  secondary={`${branch.branch_code} · ${branch.branch_type.replaceAll("_", " ")}`}
+                  detail={<><span className="block">{branch.phone ?? "No phone"} · {branch.email ?? "No email"}</span><span className="block break-words">{branch.address ?? "No address"}</span></>}
+                  meta={canUpdate ? "Open" : undefined}
+                  trailing={canUpdate ? <BulkSelectRowCheckbox id={branch.id} label={`Select ${branch.branch_name}`} touchTarget /> : undefined}
+                />)}
+                {!branches.length ? <EmptyState title={filtered ? "No records match these filters" : "No branches yet"} description={filtered ? "Clear filters or widen the search to see more branches." : "Branches will appear here after operating units are created."} action={filtered ? { href: "/branches", label: "Clear filters" } : canCreate ? { href: "/branches/new", label: "New branch" } : undefined} /> : null}
+              </OperationalList>
+              </div>
             </BulkSelectionProvider>
           </div>
         </WorkspaceGrid>

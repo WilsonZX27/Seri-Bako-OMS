@@ -1,6 +1,6 @@
 # Seri Bako OMS responsive design standard
 
-> **Release authority:** the currently released application is `v8.37.0`, as
+> **Release authority:** the currently released application is `v8.37.1`, as
 > defined by `src/lib/app-version.ts`. A versioned section above that number is
 > an accepted forward design contract or unreleased implementation note—not
 > evidence that the application itself has been released at that version.
@@ -1175,6 +1175,10 @@ the route matrix in `docs/qa/FULL_SYSTEM_AUDIT_MATRIX.md`.
 ## v8.37.0 — Progressive Report Preview Surfaces
 
 - AP Aging and Production Variance now use the same progressive preview behavior as the other report charts: the exact-value surface is announced accessibly but does not reserve visual height until a bucket or signal is selected.
+
+## v8.37.1 — Progressive Inventory Movement Preview
+
+- Inventory Daily Movement now keeps its exact-date detail collapsed until a date is hovered, focused, or tapped. The chart remains compact at rest, while keyboard, pointer, touch, and same-date ledger drill-through behavior stay available after selection.
 
 ## v8.36.99 — AP Aging Mobile Empty-State Hardening
 

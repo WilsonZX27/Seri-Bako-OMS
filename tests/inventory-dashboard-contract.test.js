@@ -36,6 +36,9 @@ test("inventory daily movement insight is bounded, unit-safe, and based on the d
   assert.match(page, /collapseToolsOnPhone/);
   assert.match(read("src/components/operational-hub.tsx"), /Inventory tools|collapseToolsOnPhone/);
   assert.match(chart, /onPointerMove/);
+  assert.match(chart, /useState<number \| null>\(null\)/);
+  assert.match(chart, /const activePoint = activeIndex === null \? null : points\[activeIndex\] \?\? null/);
+  assert.match(chart, /activePoint \? "mt-2 border-t border-\[var\(--sb-border-soft\)\] pt-2" : "sr-only"/);
   assert.match(chart, /ArrowLeft/);
   assert.match(chart, /Open inbound/);
   assert.match(chart, /Open outbound/);

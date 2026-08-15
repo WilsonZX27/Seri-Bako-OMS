@@ -44,8 +44,10 @@ test.describe("bounded Inventory daily movement insight", () => {
       const chart = page.locator("[data-inventory-daily-movement-chart]");
       await expect(chart).toBeVisible();
       const svg = chart.locator("svg");
+      await chart.scrollIntoViewIfNeeded();
       const bounds = await svg.boundingBox();
       expect(bounds).not.toBeNull();
+      await expect(chart.locator("[data-inventory-movement-preview]")).toHaveClass(/sr-only/);
       await page.touchscreen.tap(bounds.x + bounds.width * 0.72, bounds.y + bounds.height * 0.5);
       await expect(chart.locator("[data-inventory-movement-preview]")).toContainText(/All posted entries/);
       const geometry = await chart.evaluate((node) => {

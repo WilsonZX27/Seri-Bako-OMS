@@ -1,7 +1,7 @@
 "use client";
 
 import { useId, useMemo, useRef, useState } from "react";
-import type { KeyboardEvent, PointerEvent } from "react";
+import type { KeyboardEvent, PointerEvent, TouchEvent } from "react";
 import Link from "next/link";
 import { formatDateOnly, formatNumber } from "@/lib/utils";
 
@@ -19,14 +19,17 @@ const inset = { top: 18, right: 16, bottom: 30, left: 42 };
 export function InventoryDailyMovementChart({ points }: { points: InventoryDailyMovementPoint[] }) {
   const descriptionId = useId();
   const chartRef = useRef<SVGSVGElement>(null);
-  const [activeIndex, setActiveIndex] = useState(Math.max(points.length - 1, 0));
+  // Keep the chart compact until an operator selects a date. This matches the
+  // progressive preview behavior used by the other report charts and avoids
+  // presenting an arbitrary last-day detail as if it were selected.
+  const [activeIndex, setActiveIndex] = useState<number | null>(null);
   const innerWidth = width - inset.left - inset.right;
   const innerHeight = height - inset.top - inset.bottom;
   const maximum = Math.max(1, ...points.flatMap((point) => [point.inbound_entries, point.outbound_entries]));
   const axisMaximum = maximum === 1 ? 1 : Math.ceil(maximum / 2) * 2;
   const groupWidth = innerWidth / Math.max(points.length, 1);
   const barWidth = Math.max(2, Math.min(10, groupWidth * 0.34));
-  const activePoint = points[activeIndex] ?? points.at(-1) ?? null;
+  const activePoint = activeIndex === null ? null : points[activeIndex] ?? null;
 
   const totals = useMemo(() => points.reduce((sum, point) => ({
     inbound: sum.inbound + point.inbound_entries,
@@ -34,10 +37,14 @@ export function InventoryDailyMovementChart({ points }: { points: InventoryDaily
     all: sum.all + point.movement_entries,
   }), { inbound: 0, outbound: 0, all: 0 }), [points]);
 
-  function indexFromPointer(event: PointerEvent<SVGSVGElement>) {
-    const bounds = event.currentTarget.getBoundingClientRect();
-    const viewBoxX = ((event.clientX - bounds.left) / Math.max(bounds.width, 1)) * width;
+  function indexFromClientX(clientX: number, element: SVGSVGElement) {
+    const bounds = element.getBoundingClientRect();
+    const viewBoxX = ((clientX - bounds.left) / Math.max(bounds.width, 1)) * width;
     return Math.max(0, Math.min(points.length - 1, Math.floor((viewBoxX - inset.left) / groupWidth)));
+  }
+
+  function indexFromPointer(event: PointerEvent<SVGSVGElement>) {
+    return indexFromClientX(event.clientX, event.currentTarget);
   }
 
   function selectPointer(event: PointerEvent<SVGSVGElement>) {
@@ -50,7 +57,7 @@ export function InventoryDailyMovementChart({ points }: { points: InventoryDaily
     event.preventDefault();
     if (event.key === "Home") return setActiveIndex(0);
     if (event.key === "End") return setActiveIndex(points.length - 1);
-    setActiveIndex((current) => Math.max(0, Math.min(points.length - 1, current + (event.key === "ArrowLeft" ? -1 : 1))));
+    setActiveIndex((current) => Math.max(0, Math.min(points.length - 1, (current ?? 0) + (event.key === "ArrowLeft" ? -1 : 1))));
   }
 
   return (
@@ -66,12 +73,19 @@ export function InventoryDailyMovementChart({ points }: { points: InventoryDaily
         role="img"
         tabIndex={0}
         aria-label="Posted inventory movement entries by date. Inbound bars are first and outbound bars are second for each date."
-        aria-describedby={descriptionId}
-        onFocus={() => setActiveIndex((current) => Math.max(0, Math.min(points.length - 1, current)))}
+        aria-describedby={activePoint ? descriptionId : undefined}
+        onFocus={() => setActiveIndex((current) => current ?? 0)}
         onKeyDown={handleKeyDown}
         onPointerDown={(event) => {
           selectPointer(event);
           if (event.pointerType !== "mouse") event.currentTarget.focus();
+        }}
+        onTouchStart={(event: TouchEvent<SVGSVGElement>) => {
+          const touch = event.touches[0];
+          if (touch && points.length) setActiveIndex(indexFromClientX(touch.clientX, event.currentTarget));
+        }}
+        onClick={(event) => {
+          if (points.length) setActiveIndex(indexFromClientX(event.clientX, event.currentTarget));
         }}
         onPointerMove={(event) => {
           if (event.pointerType === "mouse") selectPointer(event);
@@ -103,7 +117,7 @@ export function InventoryDailyMovementChart({ points }: { points: InventoryDaily
         </> : null}
       </svg>
 
-      <div id={descriptionId} className="mt-2 border-t border-[var(--sb-border-soft)] pt-2" data-inventory-movement-preview aria-live="polite">
+      <div id={descriptionId} role="region" aria-label="Selected inventory movement preview" className={activePoint ? "mt-2 border-t border-[var(--sb-border-soft)] pt-2" : "sr-only"} data-inventory-movement-preview aria-live="polite">
         {activePoint ? <div className="grid gap-2 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center">
           <div>
             <p className="text-xs font-semibold">{formatDateOnly(activePoint.transaction_date)}</p>
@@ -113,7 +127,7 @@ export function InventoryDailyMovementChart({ points }: { points: InventoryDaily
             <Link className="inline-flex min-h-11 items-center text-primary underline-offset-4 hover:underline xl:min-h-8" href={`/stock-transactions?from=${activePoint.transaction_date}&to=${activePoint.transaction_date}&direction=inbound`}>Open inbound</Link>
             <Link className="inline-flex min-h-11 items-center text-primary underline-offset-4 hover:underline xl:min-h-8" href={`/stock-transactions?from=${activePoint.transaction_date}&to=${activePoint.transaction_date}&direction=outbound`}>Open outbound</Link>
           </div>
-        </div> : <p className="text-xs text-muted-foreground">No posted movement entries in this period.</p>}
+        </div> : <p>Hover, tap, or focus a date to preview its movement entries.</p>}
       </div>
 
       <details className="mt-2 border-t border-[var(--sb-border-soft)] pt-2 text-xs">

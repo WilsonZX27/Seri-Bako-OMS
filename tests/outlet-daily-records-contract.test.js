@@ -64,6 +64,13 @@ test("completed outlet records use the operator-facing Posted label", () => {
   assert.match(read("src/app/(app)/outlet-daily-records/page.tsx"), /status === "evening_completed" \? "Posted · editable"/);
 });
 
+test("outlet completion does not create a fictitious review queue", () => {
+  const page = read("src/app/(app)/outlet-daily-records/page.tsx");
+  assert.match(query, /posted_today: todayRows\.filter\(\(row\) => \["evening_completed", "reviewed"\]\.includes\(row\.status\)\)\.length/);
+  assert.match(page, /Posted today/);
+  assert.doesNotMatch(page, /Ready to post/);
+});
+
 test("new outlet daily saves route existing outlet-days back to their authoritative record", () => {
   const action = read("src/server/actions/outlet-daily-records.ts");
   assert.match(action, /\.from\("outlet_daily_records"\)[\s\S]*\.eq\("branch_id", payload\.branch_id\)[\s\S]*\.eq\("record_date", payload\.record_date\)/);

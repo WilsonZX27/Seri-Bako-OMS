@@ -11,6 +11,7 @@ test("dashboard does not compute operational trends or production queues on the 
   assert.doesNotMatch(source, /getProductionHubSummary/);
   assert.match(source, /get_dashboard_core_snapshot/);
   assert.match(source, /coreSnapshot\?\.outlet_missing_evening/);
+  assert.doesNotMatch(read("src/components/dashboard-workspace.tsx"), /outlet\.needs_review/);
   assert.match(source, /coreSnapshot\?\.production_pending_approval/);
 });
 

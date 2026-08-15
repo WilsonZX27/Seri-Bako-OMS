@@ -142,7 +142,7 @@ export function DashboardWorkspace({ summary }: { summary: DashboardSummary }) {
     { key: "wastage", label: "Wastage review", value: summary.attentionSummary.sources.wastage, href: "/stock-wastage?status=submitted", icon: AlertTriangle },
     ...(showFinance ? [{ key: "overdue_payables", label: "Overdue payables", value: summary.attentionSummary.sources.overdue_payables, href: "/supplier-invoices/aging?overdue=1", icon: ReceiptText }] : []),
   ];
-  const outletExceptionCount = summary.operationsControl?.outlet ? summary.operationsControl.outlet.missing_evening + summary.operationsControl.outlet.needs_review : 0;
+  const outletExceptionCount = summary.operationsControl?.outlet ? summary.operationsControl.outlet.missing_evening : 0;
   const operationalExceptionCount = (summary.inventoryUnavailable ? 0 : summary.lowStockCount) + (summary.wastageUnavailable ? 0 : summary.wastageAttention) + outletExceptionCount;
   const latestPurchaseOrder = summary.purchaseOrders[0];
   const roleChartItems: DashboardRoleMicroChartItem[] = isFinance
@@ -169,7 +169,7 @@ export function DashboardWorkspace({ summary }: { summary: DashboardSummary }) {
         : [
             { key: "stock_count", label: "Stock counts due", value: summary.stockCountDueUnavailable ? null : summary.today.stockCountDue, href: "/stock-counts", definition: "Stock counts currently due in the permitted scope.", tone: "warning" },
             { key: "wastage", label: "Wastage attention", value: summary.wastageUnavailable ? null : summary.wastageAttention, href: "/stock-wastage?status=submitted", definition: "Draft or submitted wastage records requiring attention.", tone: "warning" },
-            { key: "outlet", label: "Outlet completion issues", value: summary.operationsControl ? outletExceptionCount : null, href: "/outlet-daily-records", definition: "Outlet records missing an evening completion or awaiting review.", tone: "critical" },
+            { key: "outlet", label: "Outlet completion issues", value: summary.operationsControl ? outletExceptionCount : null, href: "/outlet-daily-records", definition: "Outlet records missing an evening completion.", tone: "critical" },
             ...(isOwner ? [{ key: "overdue", label: "Overdue invoices", value: summary.payablesAttentionUnavailable ? null : summary.payablesAttention?.overdue_count ?? 0, href: "/supplier-invoices/aging?overdue=1", definition: "Outstanding supplier invoices past their due date.", tone: "critical" as const }] : []),
           ];
 
@@ -404,7 +404,7 @@ export function DashboardWorkspace({ summary }: { summary: DashboardSummary }) {
                 <Metric
                   href="/outlet-daily-records?status=draft"
                   label="Outlet completion issues"
-                  value={summary.operationsControl.outlet.missing_evening + summary.operationsControl.outlet.needs_review}
+                  value={summary.operationsControl.outlet.missing_evening}
                   icon={ClipboardCheck}
                   alert
                   variant="tile"

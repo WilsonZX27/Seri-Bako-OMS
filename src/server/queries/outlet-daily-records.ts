@@ -233,7 +233,10 @@ export async function getOutletDailyRecords(filters: Filters = {}) {
         : null,
       today_received_unavailable: todayRows.filter((row) => row.total_received === null).length,
       missing_evening: todayRows.filter((row) => ["draft", "morning_recorded"].includes(row.status)).length,
-      needs_review: allRows.filter((row) => row.status === "evening_completed").length,
+      // Outlet staff post the evening record directly. Keep the completed
+      // count visible for operational context, but do not turn it into a
+      // fictitious review queue.
+      posted_today: todayRows.filter((row) => ["evening_completed", "reviewed"].includes(row.status)).length,
     },
   };
 }

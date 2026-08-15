@@ -4,7 +4,7 @@
 
 ### Current audit baseline
 
-The current released application baseline is `v8.40.0 — Outlet Daily Status Clarity`.
+The current released application baseline is `v8.41.0 — Outlet Daily Completion Clarity`.
 The repository migration history currently runs through migration `149`. Release
 version authority lives in `src/lib/app-version.ts`; migration authority lives in
 the immutable, forward-only `supabase/migrations/` directory. Documentation must

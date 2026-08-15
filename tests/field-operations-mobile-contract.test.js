@@ -143,13 +143,14 @@ test("procurement read-only details preserve reconciliation fields without narro
   assert.match(supplierInvoice, /data-supplier-invoice-payment-list/);
 });
 
-test("stock count responsive audit covers workflow orientation and medium-width stacking", () => {
+test("stock count responsive audit keeps one status and medium-width stacking", () => {
   const source = read("tests/e2e/stock-count-create-responsive.spec.js");
 
   assert.match(source, /mobile-390/);
   assert.match(source, /tablet-820/);
   assert.match(source, /laptop-1180/);
-  assert.match(source, /View workflow, step 1 of 2/);
+  assert.match(source, /data-document-status-only/);
+  assert.doesNotMatch(source, /View workflow, step 1 of 2/);
   assert.match(source, /geometry\.countTop/);
   assert.match(source, /boxShadow/);
 });

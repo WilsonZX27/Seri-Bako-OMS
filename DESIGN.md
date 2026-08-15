@@ -1,6 +1,6 @@
 # Seri Bako OMS responsive design standard
 
-> **Release authority:** the currently released application is `v8.48.0`, as
+> **Release authority:** the currently released application is `v8.49.0`, as
 > defined by `src/lib/app-version.ts`. A versioned section above that number is
 > an accepted forward design contract or unreleased implementation note—not
 > evidence that the application itself has been released at that version.
@@ -15,6 +15,11 @@ This document is the implementation contract for every customer-facing route, fo
 
 - Outlet Daily Records preserve a confirmed `Received = 0` as zero, but flag it as `0 · verify` whenever Qty Sent is positive. The list, detail page, and Today rail expose the same reconciliation cue without substituting sent quantities or inventing a receipt.
 - The detail workspace explains that the operator must confirm whether nothing was received or the receipt entry is incomplete. Unverified receiving values remain `Unavailable`, so missing reads never collapse into a misleading zero.
+
+## v8.49.0 — Stock Count Status Without Invented Steps
+
+- Stock Count creation uses the canonical Draft/Posted status directly. The shared document shell supports a status-only variant for workflows where an extra `Step 1 of 2` label adds no business meaning.
+- The compact two-column phone count cards, ordinal markers, full item names, and desktop/tablet scan layout remain unchanged; only the redundant progress affordance is removed.
 
 ## v8.47.0 — Unavailable Counters Stay Explicit
 

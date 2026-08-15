@@ -121,10 +121,13 @@ test("administration decision directories replace narrow tables with shared oper
 test("stock count sessions preserve workflow orientation throughout long entry lists", () => {
   const stockCountForm = read("src/components/stock-count-form.tsx");
   const documentWorkspace = read("src/components/documents/document-workspace.tsx");
+  const createPage = read("src/app/(app)/stock-counts/new/page.tsx");
 
   assert.doesNotMatch(stockCountForm, /data-stock-count-mobile-progress|Step 1 of 2/);
   assert.match(stockCountForm, /data-stock-count-setup/);
   assert.match(documentWorkspace, /workflowSteps/);
+  assert.match(createPage, /hideWorkflow/);
+  assert.doesNotMatch(createPage, /Step 1 of 2|workflowSteps=/);
   assert.match(stockCountForm, /sticky top-\[7\.25rem\][\s\S]*Item[\s\S]*Variance[\s\S]*Count/);
   assert.match(stockCountForm, /border-b border-\[var\(--sb-border-soft\)\]/);
   assert.match(documentWorkspace, /shadow-\[0_8px_22px_rgb\(6_44_31_\/_0\.16\)\]/);

@@ -9,7 +9,8 @@ function read(file) {
 test("new document headers center one status and workflow summary without repeating the document title", () => {
   const workspace = read("src/components/documents/document-workspace.tsx");
 
-  assert.match(workspace, /isNewDocument && !hideMobileWorkflow/);
+  assert.match(workspace, /isNewDocument && !hideWorkflow/);
+  assert.match(workspace, /!hideWorkflow && !hideMobileWorkflow/);
   assert.match(workspace, /justify-center gap-2 md:hidden/);
   assert.match(workspace, /<StatusBadge status=\{status\}/);
   assert.match(workspace, /isNewDocument && "hidden md:flex"/);

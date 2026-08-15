@@ -12,10 +12,6 @@ export default async function NewStockCountPage({ searchParams }: { searchParams
   const selectedBranchId = filters.branch_id ?? branches[0]?.id;
   const seedLines = await getStockCountSeedLines(selectedBranchId);
   const formId = "stock-count-create-form";
-  const steps = [
-    { key: "draft", label: "Draft", description: "Physical quantities can be entered." },
-    { key: "posted", label: "Posted", description: "Stock variance is recorded and locked." },
-  ];
   return (
       <DocumentWorkspace
         breadcrumbs={[{ label: "Stock Counts", href: "/stock-counts" }, { label: "New" }]}
@@ -24,8 +20,7 @@ export default async function NewStockCountPage({ searchParams }: { searchParams
         status="draft"
         branch={branches.find((branch) => branch.id === selectedBranchId)?.branch_name}
         mobileStatusOnly
-        workflowSteps={steps}
-        currentStatus="draft"
+        hideWorkflow
         compactMobileSpacing
         sidePanel={<div className="space-y-4">
           <DocumentSideSection title="Primary action">

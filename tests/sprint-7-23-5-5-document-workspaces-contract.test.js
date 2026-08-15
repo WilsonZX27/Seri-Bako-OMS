@@ -20,8 +20,13 @@ test("document details and creation forms use one responsive operational shell",
   for (const route of [...detailRoutes, ...createRoutes]) {
     const source = app(route);
     assert.match(source, /DocumentWorkspace/, `${route}: document shell`);
-    assert.match(source, /workflowSteps=/, `${route}: workflow`);
-    assert.match(source, /currentStatus=/, `${route}: current step`);
+    if (route === "stock-counts/new") {
+      assert.match(source, /hideWorkflow/, `${route}: simple status-only shell`);
+      assert.doesNotMatch(source, /workflowSteps=|currentStatus=/, `${route}: no invented workflow step`);
+    } else {
+      assert.match(source, /workflowSteps=/, `${route}: workflow`);
+      assert.match(source, /currentStatus=/, `${route}: current step`);
+    }
     assert.doesNotMatch(source, /Page actions|overflow-x-auto/, `${route}: legacy action or scroll wrapper`);
   }
 });

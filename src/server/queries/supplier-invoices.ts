@@ -149,10 +149,12 @@ export async function getSupplierInvoiceSummary() {
 
 export async function getSupplierInvoiceFilterSuppliers() {
   const supabase = await createClient();
-  const { data: invoices } = await supabase.from("supplier_invoices").select("supplier_id").is("deleted_at", null);
+  const { data: invoices, error: invoicesError } = await supabase.from("supplier_invoices").select("supplier_id").is("deleted_at", null);
+  if (invoicesError) throw new Error(invoicesError.message);
   const ids = [...new Set((invoices ?? []).map((row) => row.supplier_id))];
   if (!ids.length) return [];
-  const { data } = await supabase.from("suppliers").select("id, name").in("id", ids).order("name");
+  const { data, error } = await supabase.from("suppliers").select("id, name").in("id", ids).order("name");
+  if (error) throw new Error(error.message);
   return data ?? [];
 }
 

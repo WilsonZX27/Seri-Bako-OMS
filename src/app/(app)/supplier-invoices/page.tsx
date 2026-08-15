@@ -19,17 +19,22 @@ import { formatCurrency, formatDateOnly } from "@/lib/utils";
 import { hasActiveFilters } from "@/lib/table-state";
 import { getPermissionMap } from "@/server/auth/permissions";
 import { getSupplierInvoiceFilterSuppliers, getSupplierInvoiceSummary, getSupplierInvoices } from "@/server/queries/supplier-invoices";
+import { logServerError } from "@/server/observability/logger";
 
 const statuses = ["draft", "open", "partially_paid", "paid", "void"];
 
 export default async function SupplierInvoicesPage({ searchParams }: { searchParams: Promise<Record<string, string | undefined>> }) {
   const filters = await searchParams;
-  const [invoices, summary, suppliers, permissions] = await Promise.all([
+  const [invoices, permissions, auxiliary] = await Promise.all([
     getSupplierInvoices(filters),
-    getSupplierInvoiceSummary(),
-    getSupplierInvoiceFilterSuppliers(),
     getPermissionMap(["supplier_invoice.create", "supplier_invoice.pay"]),
+    Promise.allSettled([getSupplierInvoiceSummary(), getSupplierInvoiceFilterSuppliers()]),
   ]);
+  const [summaryResult, suppliersResult] = auxiliary;
+  if (summaryResult.status === "rejected") logServerError(summaryResult.reason, { source: "page.supplierInvoices.summary" });
+  if (suppliersResult.status === "rejected") logServerError(suppliersResult.reason, { source: "page.supplierInvoices.supplierFilter" });
+  const summary = summaryResult.status === "fulfilled" ? summaryResult.value : null;
+  const suppliers = suppliersResult.status === "fulfilled" ? suppliersResult.value : null;
   const filtered = hasActiveFilters(filters);
   const hasMobileAction = permissions["supplier_invoice.create"] || permissions["supplier_invoice.pay"];
   return (
@@ -47,11 +52,11 @@ export default async function SupplierInvoicesPage({ searchParams }: { searchPar
               </div>
             </ConsoleSection> : null}
             {permissions["supplier_invoice.pay"] ? <ConsoleSection title="AP Summary">
-              <div className="grid gap-2 text-xs">
+              {summary ? <div className="grid gap-2 text-xs">
                 <div className="flex justify-between"><span className="text-muted-foreground">Open</span><strong>{summary.open}</strong></div>
                 <div className="flex justify-between"><span className="text-muted-foreground">Paid</span><strong>{summary.paid}</strong></div>
                 <div className="flex justify-between"><span className="text-muted-foreground">Balance</span><strong>{formatCurrency(summary.balance)}</strong></div>
-              </div>
+              </div> : <div role="status"><p className="text-xs font-semibold text-[var(--sb-warning)]">Unavailable</p><p className="mt-1 text-xs text-muted-foreground">The invoice queue remains current. Retry to load AP totals.</p></div>}
             </ConsoleSection> : null}
           </>
         }
@@ -61,7 +66,8 @@ export default async function SupplierInvoicesPage({ searchParams }: { searchPar
             <Input name="search" defaultValue={filters.search ?? ""} placeholder="Search invoice or supplier" className="md:max-w-sm" />
             <StatusTabs statuses={statuses} activeStatus={filters.status} />
             <FilterBarMore activeCount={[filters.supplier && filters.supplier !== "all", filters.due && filters.due !== "all"].filter(Boolean).length} resetHref="/supplier-invoices">
-              <SelectControl name="supplier" defaultValue={filters.supplier ?? "all"} ariaLabel="Supplier" options={[{ value: "all", label: "All suppliers" }, ...suppliers.map((supplier) => ({ value: supplier.id, label: supplier.name }))]} />
+              <SelectControl name={suppliers ? "supplier" : undefined} defaultValue={suppliers ? filters.supplier ?? "all" : "unavailable"} ariaLabel="Supplier" disabled={!suppliers} options={suppliers ? [{ value: "all", label: "All suppliers" }, ...suppliers.map((supplier) => ({ value: supplier.id, label: supplier.name }))] : [{ value: "unavailable", label: "Supplier filter unavailable" }]} />
+              {!suppliers && filters.supplier ? <input type="hidden" name="supplier" value={filters.supplier} /> : null}
               <SelectControl name="due" defaultValue={filters.due ?? "all"} ariaLabel="Due state" options={[{ value: "all", label: "All due states" }, { value: "overdue", label: "Overdue" }, { value: "due_7", label: "Due in 7 days" }, { value: "no_due", label: "No due date" }]} />
             </FilterBarMore>
             {filters.status ? <input type="hidden" name="status" value={filters.status} /> : null}

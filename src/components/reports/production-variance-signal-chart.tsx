@@ -1,8 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
-import type { KeyboardEvent } from "react";
+import { useId, useRef, useState } from "react";
+import type { KeyboardEvent, MouseEvent, PointerEvent } from "react";
 import { cn } from "@/lib/utils";
 
 type Signal = "under_supplied" | "over_supplied" | "balanced" | "review_manual";
@@ -42,17 +42,38 @@ export function ProductionVarianceSignalChart({ rows, searchParams }: { rows: Ro
     review_manual: rows.filter((row) => row.variance_signal === "review_manual").length,
   } satisfies Record<Signal, number>;
   const [active, setActive] = useState<Signal | null>(null);
+  const touchSelectionRef = useRef(false);
+  const previewId = useId();
   const maximum = Math.max(counts.under_supplied, counts.over_supplied, 1);
   const preview = active ? `${labels[active]} · ${counts[active]} product-outlet ${counts[active] === 1 ? "row" : "rows"}. ${definitions[active]}` : "Hover, tap, or focus a signal to preview its exact count and definition.";
   const selectSignal = (signal: Signal) => ({
     type: "button" as const,
     "aria-pressed": active === signal,
+    "aria-controls": previewId,
+    "aria-describedby": active === signal ? previewId : undefined,
     "data-production-signal-option": signal,
-    onMouseEnter: () => setActive(signal),
+    onMouseEnter: () => {
+      touchSelectionRef.current = false;
+      setActive(signal);
+    },
+    onMouseLeave: (event: MouseEvent<HTMLButtonElement>) => {
+      if (!touchSelectionRef.current && !event.currentTarget.matches(":focus")) setActive(null);
+    },
+    onPointerDown: (event: PointerEvent<HTMLButtonElement>) => {
+      touchSelectionRef.current = event.pointerType !== "mouse";
+      setActive(signal);
+    },
     onFocus: () => setActive(signal),
-    onClick: () => setActive(signal),
+    onBlur: () => {
+      if (!touchSelectionRef.current) setActive(null);
+    },
+    onClick: () => {
+      touchSelectionRef.current = true;
+      setActive(signal);
+    },
     onKeyDown: (event: KeyboardEvent<HTMLButtonElement>) => {
       if (event.key === "Escape") {
+        touchSelectionRef.current = false;
         setActive(null);
         event.currentTarget.blur();
       }
@@ -79,7 +100,7 @@ export function ProductionVarianceSignalChart({ rows, searchParams }: { rows: Ro
       <div className="grid grid-cols-2 gap-2">
         {(["balanced", "review_manual"] as const).map((signal) => <button key={signal} {...selectSignal(signal)} className={cn("min-h-11 rounded-[var(--sb-radius-control)] border px-3 py-2 text-xs transition-colors hover:bg-[var(--sb-surface-muted)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--sb-green-700)] xl:min-h-9", active === signal && "bg-[var(--sb-surface-muted)]")}><span className="text-muted-foreground">{labels[signal]}</span><strong className="ml-2">{counts[signal]}</strong></button>)}
       </div>
-      <div className={cn("rounded-[var(--sb-radius-control)] px-3 py-2 text-xs text-muted-foreground", active ? "border border-[var(--sb-border-soft)] bg-[var(--sb-surface-muted)]" : "sr-only")} role="region" aria-label="Selected production signal preview" aria-live="polite" data-production-signal-preview><p>{preview}</p>{active ? <Link href={filterHref(searchParams, active)} data-production-signal-open className="mt-2 inline-flex min-h-11 items-center rounded-[var(--sb-radius-control)] border border-[var(--sb-border)] bg-[var(--sb-surface-raised)] px-3 font-semibold text-[var(--sb-green-800)] hover:bg-[var(--sb-green-100)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--sb-green-700)] focus-visible:ring-offset-1 xl:min-h-8">Open filtered rows</Link> : null}</div>
+      <div id={previewId} className={cn("rounded-[var(--sb-radius-control)] px-3 py-2 text-xs text-muted-foreground", active ? "border border-[var(--sb-border-soft)] bg-[var(--sb-surface-muted)]" : "sr-only")} role="region" aria-label="Selected production signal preview" aria-live="polite" data-production-signal-preview><p>{preview}</p>{active ? <Link href={filterHref(searchParams, active)} data-production-signal-open className="mt-2 inline-flex min-h-11 items-center rounded-[var(--sb-radius-control)] border border-[var(--sb-border)] bg-[var(--sb-surface-raised)] px-3 font-semibold text-[var(--sb-green-800)] hover:bg-[var(--sb-green-100)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--sb-green-700)] focus-visible:ring-offset-1 xl:min-h-8">Open filtered rows</Link> : null}</div>
     </div>
   </section>;
 }

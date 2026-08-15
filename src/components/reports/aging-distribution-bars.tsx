@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useId, useState } from "react";
+import { useId, useRef, useState } from "react";
 import type { KeyboardEvent } from "react";
 import { cn, formatCurrency } from "@/lib/utils";
 
@@ -27,6 +27,7 @@ export function AgingDistributionBars({
   ariaLabel?: string;
 }) {
   const previewId = useId();
+  const touchSelectionRef = useRef(false);
   const [activeKey, setActiveKey] = useState<string | null>(null);
   const maximum = Math.max(...items.map((item) => item.outstanding), 1);
   const activeItem = items.find((item) => item.key === activeKey) ?? null;
@@ -49,11 +50,28 @@ export function AgingDistributionBars({
             aria-describedby={activeKey === item.key ? previewId : undefined}
             aria-label={`${item.label}: ${formatCurrency(item.outstanding)}, ${item.invoiceCount} invoices. Preview bucket.`}
             className="group grid min-h-11 w-full grid-cols-[minmax(7rem,1fr)_minmax(5rem,1.4fr)_auto] items-center gap-2 rounded-[var(--sb-radius-control)] px-1.5 py-1.5 text-left outline-none hover:bg-[var(--sb-surface-muted)] focus-visible:bg-[var(--sb-green-100)] focus-visible:ring-2 focus-visible:ring-[var(--sb-green-700)] focus-visible:ring-offset-1"
-            onMouseEnter={() => setActiveKey(item.key)}
+            onMouseEnter={() => {
+              touchSelectionRef.current = false;
+              setActiveKey(item.key);
+            }}
+            onMouseLeave={(event) => {
+              if (!touchSelectionRef.current && !event.currentTarget.matches(":focus")) setActiveKey(null);
+            }}
+            onPointerDown={(event) => {
+              touchSelectionRef.current = event.pointerType !== "mouse";
+              setActiveKey(item.key);
+            }}
             onFocus={() => setActiveKey(item.key)}
-            onClick={() => setActiveKey(item.key)}
+            onBlur={() => {
+              if (!touchSelectionRef.current) setActiveKey(null);
+            }}
+            onClick={() => {
+              touchSelectionRef.current = true;
+              setActiveKey(item.key);
+            }}
             onKeyDown={(event: KeyboardEvent<HTMLButtonElement>) => {
               if (event.key === "Escape") {
+                touchSelectionRef.current = false;
                 setActiveKey(null);
                 event.currentTarget.blur();
               }

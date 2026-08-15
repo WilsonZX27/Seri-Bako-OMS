@@ -68,7 +68,9 @@ export function InteractiveRankingChart({
                 setActiveId(item.id);
               },
               onMouseLeave: () => {
-                if (!touchSelectionRef.current && !item.href) setActiveId(null);
+                // Hover is a transient preview. A click/touch or keyboard focus
+                // may keep the selected row open for drill-through.
+                if (!touchSelectionRef.current) setActiveId(null);
               },
               onPointerDown: (event: PointerEvent<HTMLElement>) => {
                 touchSelectionRef.current = event.pointerType !== "mouse";
@@ -80,7 +82,7 @@ export function InteractiveRankingChart({
               },
               onFocus: () => setActiveId(item.id),
               onBlur: () => {
-                if (!touchSelectionRef.current && !item.href) setActiveId(null);
+                if (!touchSelectionRef.current) setActiveId(null);
               },
               onKeyDown: (event: KeyboardEvent<HTMLButtonElement>) => {
                 if (event.key === "Escape") {

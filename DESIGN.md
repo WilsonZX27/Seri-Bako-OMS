@@ -1,6 +1,6 @@
 # Seri Bako OMS responsive design standard
 
-> **Release authority:** the currently released application is `v8.37.3`, as
+> **Release authority:** the currently released application is `v8.37.4`, as
 > defined by `src/lib/app-version.ts`. A versioned section above that number is
 > an accepted forward design contract or unreleased implementation note—not
 > evidence that the application itself has been released at that version.
@@ -10,6 +10,12 @@
 > **Precedence:** `docs/DESIGN_SYSTEM.md` is the living visual and interaction contract. When a historical release note or an older rule in this file conflicts with that contract, the living contract wins. Update both documents when a new pattern is accepted; do not preserve a visibly weaker rule for compatibility.
 
 This document is the implementation contract for every customer-facing route, form, record workspace, table, panel, dialog, and mobile action bar. It applies to new work and to refactoring of existing UI.
+
+## v8.37.4 — Report Preview Interaction Refinement
+
+- Shared report previews now distinguish transient mouse hover from committed touch/click or keyboard selection. Moving away from a ranked row or signal no longer leaves a stale preview open, while drill-through remains available after an intentional selection.
+- Line-chart previews expose the active point index and announce updates through the live region, preserving the same hover, drag, touch, keyboard, and drill-through contract across report families.
+- AP Aging and Production Variance now use the same focus, pointer, Escape, and preview relationship as ranking charts, so the report hierarchy remains compact at rest and predictable on phones.
 
 ## v8.37.3 — Operational UI Closure Round 2
 

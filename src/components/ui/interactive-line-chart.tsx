@@ -110,6 +110,7 @@ export function InteractiveLineChart({
         viewBox={`0 0 ${width} ${height}`}
         role="img"
         tabIndex={0}
+        data-chart-active-index={activeIndex ?? undefined}
         aria-label={`${ariaLabel}. Hover, tap, or use the left and right arrow keys to preview each recorded point.`}
         aria-describedby={activePoint ? previewId : undefined}
         onFocus={() => setActiveIndex((current) => current ?? 0)}
@@ -118,7 +119,7 @@ export function InteractiveLineChart({
         onPointerDown={handlePointerDown}
         onPointerMove={handlePointerMove}
         onPointerLeave={(event) => {
-          if (event.pointerType === "mouse") setActiveIndex(null);
+          if (event.pointerType === "mouse" && !event.currentTarget.matches(":focus")) setActiveIndex(null);
         }}
       >
         {[0, 0.5, 1].map((ratio) => {
@@ -176,6 +177,7 @@ export function InteractiveLineChart({
         <div
           id={previewId}
           role="tooltip"
+          aria-live="polite"
           data-chart-preview
           className="pointer-events-none absolute w-48 max-w-[calc(100%-0.75rem)] rounded-[var(--sb-radius-control)] border border-[var(--sb-border)] bg-[var(--sb-surface-raised)] px-3 py-2 text-left shadow-sm"
           style={{

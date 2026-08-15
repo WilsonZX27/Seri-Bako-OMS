@@ -125,6 +125,22 @@ test("goods receiving detail replaces the ten-column phone table with a complete
   assert.match(browser, /await expect\(table\)\.toBeHidden\(\)/);
 });
 
+test("procurement read-only details preserve reconciliation fields without narrow tables", () => {
+  const purchaseReturn = read("src/app/(app)/purchase-returns/[id]/page.tsx");
+  const supplierInvoice = read("src/app/(app)/supplier-invoices/[id]/page.tsx");
+
+  assert.match(purchaseReturn, /<Table mobileHidden aria-label="Returned items">/);
+  assert.match(purchaseReturn, /data-purchase-return-detail-lines/);
+  assert.match(purchaseReturn, />Returnable before this<\/dt>/);
+  assert.match(purchaseReturn, /Number\(line\.received_qty\) - Number\(line\.previously_returned_qty\)/);
+  assert.match(supplierInvoice, /<Table mobileHidden aria-label="Invoice matching lines">/);
+  assert.match(supplierInvoice, /data-supplier-invoice-detail-lines/);
+  assert.match(supplierInvoice, />Available before invoice<\/dt>/);
+  assert.match(supplierInvoice, /Qty variance \{formatNumber\(qtyVariance\)\}/);
+  assert.match(supplierInvoice, /<Table mobileHidden aria-label="Payment history">/);
+  assert.match(supplierInvoice, /data-supplier-invoice-payment-list/);
+});
+
 test("stock count responsive audit covers workflow orientation and medium-width stacking", () => {
   const source = read("tests/e2e/stock-count-create-responsive.spec.js");
 

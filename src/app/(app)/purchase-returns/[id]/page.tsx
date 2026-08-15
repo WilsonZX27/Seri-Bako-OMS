@@ -90,7 +90,7 @@ export default async function PurchaseReturnDetailPage({ params, searchParams }:
             <h2 className="text-sm font-semibold">Returned Items</h2>
             <p className="text-sm font-semibold">{formatCurrency(totalValue)}</p>
           </div>
-          <Table>
+          <Table mobileHidden aria-label="Returned items">
               <TableHeader>
                 <TableRow>
                   <TableHead>Item</TableHead>
@@ -116,6 +116,31 @@ export default async function PurchaseReturnDetailPage({ params, searchParams }:
                 ))}
               </TableBody>
           </Table>
+          <div className="divide-y xl:hidden" role="list" aria-label="Returned items" data-purchase-return-detail-lines>
+            {lines.map((line) => {
+              const returnableQty = Number(line.received_qty) - Number(line.previously_returned_qty);
+              return (
+                <article key={line.id} className="space-y-3 py-4 first:pt-1 last:pb-1" role="listitem">
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="min-w-0">
+                      <h3 className="font-medium leading-snug">{line.item?.item_name ?? line.item_id}</h3>
+                      <p className="mt-0.5 text-xs text-muted-foreground">{line.item?.item_code ?? "No item code"}</p>
+                    </div>
+                    <div className="shrink-0 text-right">
+                      <p className="font-semibold">{formatNumber(line.return_qty)} {line.uom}</p>
+                      <p className="text-xs text-muted-foreground">{formatCurrency(Number(line.return_qty) * Number(line.unit_cost))}</p>
+                    </div>
+                  </div>
+                  <dl className="grid grid-cols-3 gap-3 rounded-lg bg-secondary/35 p-3 text-xs">
+                    <div><dt className="text-muted-foreground">Received</dt><dd className="mt-1 font-medium">{formatNumber(line.received_qty)}</dd></div>
+                    <div><dt className="text-muted-foreground">Previously returned</dt><dd className="mt-1 font-medium">{formatNumber(line.previously_returned_qty)}</dd></div>
+                    <div><dt className="text-muted-foreground">Returnable before this</dt><dd className="mt-1 font-medium">{formatNumber(returnableQty)}</dd></div>
+                  </dl>
+                  <p className="text-xs text-muted-foreground">Unit cost {formatCurrency(line.unit_cost)}</p>
+                </article>
+              );
+            })}
+          </div>
         </CardContent>
       </Card>
     </DocumentWorkspace>

@@ -1,6 +1,6 @@
 # Seri Bako OMS responsive design standard
 
-> **Release authority:** the currently released application is `v8.36.34`, as
+> **Release authority:** the currently released application is `v8.36.35`, as
 > defined by `src/lib/app-version.ts`. A versioned section above that number is
 > an accepted forward design contract or unreleased implementation note—not
 > evidence that the application itself has been released at that version.
@@ -10,6 +10,13 @@
 > **Precedence:** `docs/DESIGN_SYSTEM.md` is the living visual and interaction contract. When a historical release note or an older rule in this file conflicts with that contract, the living contract wins. Update both documents when a new pattern is accepted; do not preserve a visibly weaker rule for compatibility.
 
 This document is the implementation contract for every customer-facing route, form, record workspace, table, panel, dialog, and mobile action bar. It applies to new work and to refactoring of existing UI.
+
+## v8.36.35 — Responsive Procurement Detail
+
+- Purchase Return and read-only Supplier Invoice details use full audit tables only at widths where every reconciliation column fits. Narrow workspaces use flat line summaries rather than horizontal table navigation or cards nested inside cards.
+- Return summaries lead with the quantity and value being returned, then retain received, previously returned, returnable, and unit-cost authority in one scan path.
+- Invoice matching summaries lead with this invoice quantity and line total, retain PO/GRN provenance and ordered/received/previously invoiced quantities, and expose quantity or price variance as an exception instead of hiding it.
+- Payment history follows the same responsive contract: wide audit table, narrow chronological list, and an explicit empty state.
 
 ## v8.36.34 — Responsive Receiving Detail
 

@@ -136,7 +136,7 @@ export default async function SupplierInvoiceDetailPage({ params, searchParams }
         </CardContent></Card>
         <Card><CardContent className="p-5">
           <div className="mb-3 flex items-center justify-between"><h2 className="text-sm font-semibold">Invoice Matching</h2><strong>{formatCurrency(invoice.total_amount)}</strong></div>
-          <Table>
+          <Table mobileHidden aria-label="Invoice matching lines">
             <TableHeader><TableRow><TableHead>PO / GRN</TableHead><TableHead>Item</TableHead><TableHead className="text-right">PO Ordered</TableHead><TableHead className="text-right">Received</TableHead><TableHead className="text-right">Previously Invoiced</TableHead><TableHead className="text-right">Invoice Qty</TableHead><TableHead className="text-right">PO Price</TableHead><TableHead className="text-right">Invoice Price</TableHead><TableHead className="text-right">Qty / Price Variance</TableHead><TableHead className="text-right">Line Total</TableHead></TableRow></TableHeader>
             <TableBody>{lines.map((line) => <TableRow key={line.id}>
               <TableCell>{line.po_no}<br /><span className="text-xs text-muted-foreground">{line.grn_no}</span></TableCell>
@@ -145,16 +145,64 @@ export default async function SupplierInvoiceDetailPage({ params, searchParams }
               <TableCell className="text-right">{formatCurrency(line.po_unit_price)}</TableCell><TableCell className="text-right">{formatCurrency(line.invoice_unit_price)}</TableCell><TableCell className="text-right text-xs">{formatNumber(Number(line.invoice_qty) - (Number(line.received_qty) - Number(line.previously_invoiced_qty)))} / {formatCurrency(Number(line.invoice_unit_price) - Number(line.po_unit_price))}</TableCell><TableCell className="text-right">{formatCurrency(line.line_total)}</TableCell>
             </TableRow>)}</TableBody>
           </Table>
-          <div className="mt-3 flex justify-end gap-6 text-sm"><span>Subtotal <strong>{formatCurrency(invoice.subtotal)}</strong></span><span>Tax <strong>{formatCurrency(invoice.tax_amount)}</strong></span><span>Total <strong>{formatCurrency(invoice.total_amount)}</strong></span></div>
+          <div className="divide-y xl:hidden" role="list" aria-label="Invoice matching lines" data-supplier-invoice-detail-lines>
+            {lines.map((line) => {
+              const availableQty = Number(line.received_qty) - Number(line.previously_invoiced_qty);
+              const qtyVariance = Number(line.invoice_qty) - availableQty;
+              const priceVariance = Number(line.invoice_unit_price) - Number(line.po_unit_price);
+              const hasVariance = qtyVariance !== 0 || priceVariance !== 0;
+              return (
+                <article key={line.id} className="space-y-3 py-4 first:pt-1 last:pb-1" role="listitem">
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="min-w-0">
+                      <h3 className="font-medium leading-snug">{line.item_name}</h3>
+                      <p className="mt-0.5 text-xs text-muted-foreground">{line.item_code ?? "No item code"} · {line.po_no} / {line.grn_no}</p>
+                    </div>
+                    <div className="shrink-0 text-right">
+                      <p className="font-semibold">{formatNumber(line.invoice_qty)} {line.uom}</p>
+                      <p className="text-xs text-muted-foreground">{formatCurrency(line.line_total)}</p>
+                    </div>
+                  </div>
+                  <dl className="grid grid-cols-2 gap-x-4 gap-y-3 rounded-lg bg-secondary/35 p-3 text-xs sm:grid-cols-4">
+                    <div><dt className="text-muted-foreground">PO ordered</dt><dd className="mt-1 font-medium">{formatNumber(line.ordered_qty)}</dd></div>
+                    <div><dt className="text-muted-foreground">Received</dt><dd className="mt-1 font-medium">{formatNumber(line.received_qty)}</dd></div>
+                    <div><dt className="text-muted-foreground">Previously invoiced</dt><dd className="mt-1 font-medium">{formatNumber(line.previously_invoiced_qty)}</dd></div>
+                    <div><dt className="text-muted-foreground">Available before invoice</dt><dd className="mt-1 font-medium">{formatNumber(availableQty)}</dd></div>
+                  </dl>
+                  <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-muted-foreground">
+                    <span>PO price {formatCurrency(line.po_unit_price)} · Invoice price {formatCurrency(line.invoice_unit_price)}</span>
+                    {hasVariance ? <span className="font-medium text-[var(--sb-warning)]">Qty variance {formatNumber(qtyVariance)} · Price variance {formatCurrency(priceVariance)}</span> : <span>Matched</span>}
+                  </div>
+                </article>
+              );
+            })}
+          </div>
+          <div className="mt-3 grid gap-2 border-t pt-3 text-sm sm:flex sm:justify-end sm:gap-6"><span className="flex justify-between gap-4 sm:block">Subtotal <strong>{formatCurrency(invoice.subtotal)}</strong></span><span className="flex justify-between gap-4 sm:block">Tax <strong>{formatCurrency(invoice.tax_amount)}</strong></span><span className="flex justify-between gap-4 sm:block">Total <strong>{formatCurrency(invoice.total_amount)}</strong></span></div>
         </CardContent></Card>
       </>}
       <Card><CardContent className="p-5">
         <div className="mb-3 flex items-center justify-between"><h2 className="text-sm font-semibold">Payment History</h2><span className="text-xs text-muted-foreground">{payments.length} payment(s)</span></div>
-        <Table>
+        <Table mobileHidden aria-label="Payment history">
           <TableHeader><TableRow><TableHead>Payment No</TableHead><TableHead>Date</TableHead><TableHead>Method</TableHead><TableHead>Reference</TableHead><TableHead>Notes</TableHead><TableHead className="text-right">Amount</TableHead></TableRow></TableHeader>
           <TableBody>{payments.map((payment) => <TableRow key={payment.id}><TableCell>{payment.payment_no}</TableCell><TableCell>{formatDateOnly(payment.payment_date)}</TableCell><TableCell>{payment.payment_method ?? "-"}</TableCell><TableCell>{payment.reference_no ?? "-"}</TableCell><TableCell>{payment.notes ?? "-"}</TableCell><TableCell className="text-right">{formatCurrency(payment.amount)}</TableCell></TableRow>)}
           {!payments.length ? <TableRow><TableCell colSpan={6} className="text-sm text-muted-foreground">No payments recorded.</TableCell></TableRow> : null}</TableBody>
         </Table>
+        <div className="divide-y xl:hidden" role="list" aria-label="Payment history" data-supplier-invoice-payment-list>
+          {payments.map((payment) => (
+            <article key={payment.id} className="space-y-2 py-4 first:pt-1 last:pb-1" role="listitem">
+              <div className="flex items-start justify-between gap-4">
+                <div><h3 className="font-medium">{payment.payment_no}</h3><p className="text-xs text-muted-foreground">{formatDateOnly(payment.payment_date)}</p></div>
+                <strong>{formatCurrency(payment.amount)}</strong>
+              </div>
+              <dl className="grid grid-cols-2 gap-3 text-xs">
+                <div><dt className="text-muted-foreground">Method</dt><dd className="mt-1 font-medium">{payment.payment_method ?? "Not recorded"}</dd></div>
+                <div><dt className="text-muted-foreground">Reference</dt><dd className="mt-1 font-medium">{payment.reference_no ?? "Not recorded"}</dd></div>
+              </dl>
+              {payment.notes ? <p className="rounded-md bg-secondary/35 p-2 text-xs">{payment.notes}</p> : null}
+            </article>
+          ))}
+          {!payments.length ? <p className="py-4 text-sm text-muted-foreground">No payments recorded.</p> : null}
+        </div>
       </CardContent></Card></DocumentWorkspace>
   );
 }

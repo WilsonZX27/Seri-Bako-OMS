@@ -15,6 +15,12 @@ export type PendingAction = {
   age_label: string;
 };
 
+export type PendingActionSnapshot = {
+  items: PendingAction[];
+  total: number | null;
+  unavailable: boolean;
+};
+
 function ageLabel(updatedAt?: string | null) {
   if (!updatedAt) return "Age unknown";
   const days = Math.max(0, Math.floor((Date.now() - new Date(updatedAt).getTime()) / 86_400_000));
@@ -23,9 +29,9 @@ function ageLabel(updatedAt?: string | null) {
   return `${days} days`;
 }
 
-export const getCurrentUserPendingActions = cache(async function getCurrentUserPendingActions(limit = 5): Promise<PendingAction[]> {
+export const getCurrentUserPendingActionSnapshot = cache(async function getCurrentUserPendingActionSnapshot(limit = 5): Promise<PendingActionSnapshot> {
   const scope = await getCurrentUserScope();
-  if (!scope) return [];
+  if (!scope) return { items: [], total: null, unavailable: true };
 
   const [canAdminReview, canPurchasingReview, canManagerApprove, canFinanceReview, canConvertPo, canViewAll] = await Promise.all([
     hasPermission("pr.admin_review"),
@@ -44,7 +50,7 @@ export const getCurrentUserPendingActions = cache(async function getCurrentUserP
   ];
 
   const filters = prStatusFilters.filter((filter) => filter.allowed);
-  if (!filters.length) return [];
+  if (!filters.length) return { items: [], total: 0, unavailable: false };
 
   const supabase = await createClient();
   const canSeeAllBranches = canViewAll || scope.companyWideAccess || scope.roleCode === "super_admin";
@@ -53,24 +59,24 @@ export const getCurrentUserPendingActions = cache(async function getCurrentUserP
     filters.map(async (filter) => {
       let query = supabase
         .from("purchase_requests")
-        .select("id, request_no, branch_id, status, updated_at, branches(branch_name)")
+        .select("id, request_no, branch_id, status, updated_at, branches(branch_name)", { count: "exact" })
         .eq("status", filter.status)
         .is("deleted_at", null)
         .order("updated_at", { ascending: true })
         .limit(limit);
 
       if (!canSeeAllBranches) {
-        if (!scope.branchIds.length) return [] as PendingAction[];
+        if (!scope.branchIds.length) return { items: [] as PendingAction[], count: 0, unavailable: false };
         query = query.in("branch_id", scope.branchIds);
       }
 
-      const { data, error } = await query;
+      const { data, error, count } = await query;
       if (error) {
         logServerWarning(error, { source: "pending-actions.getCurrentUserPendingActions", });
-        return [] as PendingAction[];
+        return { items: [] as PendingAction[], count: 0, unavailable: true };
       }
 
-      return (data ?? []).map((row) => {
+      const items = (data ?? []).map((row) => {
         const branch = row.branches as { branch_name?: string | null } | { branch_name?: string | null }[] | null;
         const branchName = Array.isArray(branch) ? branch[0]?.branch_name : branch?.branch_name;
         return {
@@ -83,15 +89,26 @@ export const getCurrentUserPendingActions = cache(async function getCurrentUserP
           age_label: ageLabel(row.updated_at),
         };
       });
+      return { items, count: Number(count ?? 0), unavailable: false };
     }),
   );
 
-  return results
-    .flat()
+  const unavailable = results.some((result) => result.unavailable);
+  const items = results
+    .flatMap((result) => result.items)
     .sort((a, b) => {
       const aDays = Number.parseInt(a.age_label, 10) || 0;
       const bDays = Number.parseInt(b.age_label, 10) || 0;
       return bDays - aDays;
     })
     .slice(0, limit);
+  return {
+    items,
+    total: unavailable ? null : results.reduce((sum, result) => sum + result.count, 0),
+    unavailable,
+  };
+});
+
+export const getCurrentUserPendingActions = cache(async function getCurrentUserPendingActions(limit = 5): Promise<PendingAction[]> {
+  return (await getCurrentUserPendingActionSnapshot(limit)).items;
 });

@@ -20,14 +20,15 @@ test("Dashboard keeps ordinary navigation labels in sentence case at readable co
   assert.doesNotMatch(workspace, /Quick actions-title" className="[^"]*uppercase/);
 });
 
-test("Dashboard separates actionable exceptions from operational activity", () => {
-  assert.match(workspace, /Needs replenishment/);
-  assert.match(workspace, /Due for follow-up/);
-  assert.match(workspace, /No exception/);
-  assert.match(workspace, /No count due/);
-  assert.match(workspace, /Today’s activity/);
-  assert.match(workspace, />Recent requests</);
-  assert.match(workspace, /Current snapshot/);
+test("Dashboard keeps attention composition separate from operational activity", () => {
+  const pulse = workspace.match(/<section data-dashboard-command[\s\S]*?<\/section>/)?.[0] ?? "";
+  assert.match(workspace, /label: "Pending approvals"/);
+  assert.match(workspace, /label: "Low stock"/);
+  assert.match(workspace, /label: "Stock count due"/);
+  assert.match(workspace, /label: "Wastage review"/);
+  assert.match(workspace, /label: "Overdue payables"/);
+  assert.doesNotMatch(pulse, />Receiving</);
+  assert.doesNotMatch(pulse, />Recent requests</);
 });
 
 test("Dashboard visual evidence includes forced partial-data and long-label stress states", () => {

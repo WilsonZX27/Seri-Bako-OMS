@@ -1,6 +1,6 @@
 # Seri Bako OMS Metric Dictionary
 
-**Current application:** `v8.36.41`
+**Current application:** `v8.36.42`
 **Repository migration ceiling:** `149`
 **Last reviewed:** 2026-08-15
 
@@ -22,7 +22,7 @@ This is the authority for user-visible KPI and chart meaning. It documents prese
 | Decision | How many currently actionable exceptions require attention? |
 | Formula | Pending approvals + low-stock items + stock counts due + draft/submitted wastage + overdue payables for roles allowed to see payables. Receiving is context, not part of this total. |
 | Grain | Current permitted workspace and role scope. |
-| Source | `getDashboardSummary`; bounded Dashboard snapshot/read models plus pending-actions and payables attention queries. |
+| Source | `getDashboardSummary`; bounded Dashboard snapshot/read models plus an exact RLS-scoped pending-action count and payables attention queries. Only the five oldest pending-action records are retained for the visible work list; that display bound never limits the total. |
 | Permission | Role/permission composition already enforced by each source. Finance exposure is Owner/Finance only. |
 | Freshness | Request-time result; no source-owned refresh timestamp is currently exposed. |
 | Unavailable | If any contributing source is unavailable, total is `null` and UI shows Partial data plus missing sources. |
@@ -33,7 +33,7 @@ This is the authority for user-visible KPI and chart meaning. It documents prese
 | Field | Contract |
 |---|---|
 | Decision | Within this role's permitted scope, which current work or exception category is most concentrated? |
-| Formula | Role-specific counts already returned by the bounded Dashboard snapshot and AP attention summary. Finance compares invoice counts by due-date state; Owner/Manager compare operational exception counts; Purchasing compares sourcing, receiving-follow-up, and production-exception counts; Kitchen compares receiving, production, shortage, and low-stock counts. |
+| Formula | Role-specific counts already returned by the bounded Dashboard snapshot and AP attention summary. Finance compares invoice counts by due-date state; Purchasing compares sourcing, receiving-follow-up, and production-exception counts; Kitchen compares receiving, production, shortage, and low-stock counts. Owner and Manager use the authoritative Operational Pulse instead of a duplicate comparison. |
 | Grain | Current permitted workspace and role scope; one bar per documented category. |
 | Exclusions | No currency, raw quantity, percentage, forecast, or length of a truncated recent-record collection is used as bar magnitude. Outlet Staff receives no comparison chart. |
 | Source | Existing `getDashboardSummary` fields only; no additional Dashboard query or raw-ledger scan. |

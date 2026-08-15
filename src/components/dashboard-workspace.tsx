@@ -3,7 +3,7 @@ import { AlertTriangle, ArrowUpRight, Boxes, CheckCircle2, ClipboardCheck, Clipb
 import { Button } from "@/components/ui/button";
 import { ConsoleSection } from "@/components/layout/right-console";
 import { WorkspaceGrid } from "@/components/layout/workspace-layout";
-import { formatCurrency, formatDateOnly, formatNumber } from "@/lib/utils";
+import { formatCurrency, formatNumber } from "@/lib/utils";
 import type { LucideIcon } from "lucide-react";
 import { DashboardRoleMicroChart, type DashboardRoleMicroChartItem } from "@/components/dashboard-role-micro-chart";
 
@@ -134,6 +134,14 @@ export function DashboardWorkspace({ summary }: { summary: DashboardSummary }) {
     overdue_payables: "payables",
   } as const;
   const unavailableAttentionLabels = summary.attentionSummary.unavailableSources.map((source) => attentionSourceLabels[source]);
+  const pendingApprovalsHref = isFinance ? "/purchase-requests?status=finance_review" : isManager ? "/purchase-requests?status=manager_review" : isPurchasing ? "/purchase-requests?status=admin_review" : "/purchase-requests";
+  const attentionSignals = [
+    { key: "pending_approvals", label: "Pending approvals", value: summary.attentionSummary.sources.pending_approvals, href: pendingApprovalsHref, icon: ClipboardCheck },
+    { key: "low_stock", label: "Low stock", value: summary.attentionSummary.sources.low_stock, href: "/low-stock", icon: AlertTriangle },
+    { key: "stock_count_due", label: "Stock count due", value: summary.attentionSummary.sources.stock_count_due, href: "/stock-counts", icon: CheckCircle2 },
+    { key: "wastage", label: "Wastage review", value: summary.attentionSummary.sources.wastage, href: "/stock-wastage?status=submitted", icon: AlertTriangle },
+    ...(showFinance ? [{ key: "overdue_payables", label: "Overdue payables", value: summary.attentionSummary.sources.overdue_payables, href: "/supplier-invoices/aging?overdue=1", icon: ReceiptText }] : []),
+  ];
   const outletExceptionCount = summary.operationsControl?.outlet ? summary.operationsControl.outlet.missing_evening + summary.operationsControl.outlet.needs_review : 0;
   const operationalExceptionCount = (summary.inventoryUnavailable ? 0 : summary.lowStockCount) + (summary.wastageUnavailable ? 0 : summary.wastageAttention) + outletExceptionCount;
   const latestPurchaseOrder = summary.purchaseOrders[0];
@@ -300,42 +308,21 @@ export function DashboardWorkspace({ summary }: { summary: DashboardSummary }) {
               {summary.attentionSummary.state === "unavailable" ? <p className="mt-1 text-[11px] leading-4 text-white/85">Unavailable: {unavailableAttentionLabels.join(", ")}</p> : null}
             </div>
           </div>
-          <div className="grid grid-cols-2 divide-x divide-y divide-white/15 border-t border-white/15" data-dashboard-pulse-metrics>
-            <Link prefetch={false} href="/low-stock" className={`group flex min-w-0 flex-col items-start gap-1 px-3 py-3 transition-colors hover:bg-white/10 sm:px-4 ${!summary.inventoryUnavailable && summary.lowStockCount > 0 ? "bg-white/[0.08]" : ""}`}>
-              <span className="min-w-0"><span className="flex items-center gap-1.5 text-white/85"><AlertTriangle className="h-3.5 w-3.5 shrink-0" aria-hidden="true" /><span className="text-[11px] font-medium leading-4 tracking-[0.04em]">Low stock</span></span></span>
-              <strong className={summary.inventoryUnavailable ? "text-[10px] font-semibold uppercase tracking-[0.08em] text-white/85" : "text-xl font-semibold tabular-nums"} aria-label={summary.inventoryUnavailable ? "Low stock data is temporarily unavailable" : `${summary.lowStockCount} low stock items`}>
-                {summary.inventoryUnavailable ? "Unavailable" : summary.lowStockCount}
-              </strong>
-              {!summary.inventoryUnavailable ? <span className="hidden text-[11px] leading-4 text-white/80 sm:block">{summary.lowStockCount > 0 ? "Needs replenishment" : "No exception"}</span> : null}
-            </Link>
-            <Link prefetch={false} href="/goods-receivings" className="group flex min-w-0 flex-col items-start gap-1 px-3 py-3 transition-colors hover:bg-white/10 sm:px-4">
-              <span className="min-w-0"><span className="flex items-center gap-1.5 text-white/85"><PackageCheck className="h-3.5 w-3.5 shrink-0" aria-hidden="true" /><span className="text-[11px] font-medium leading-4 tracking-[0.04em]">Receiving</span></span></span>
-              <strong className={summary.todayReceivingUnavailable ? "text-[10px] font-semibold uppercase tracking-[0.08em] text-white/85" : "text-xl font-semibold tabular-nums"} aria-label={summary.todayReceivingUnavailable ? "Receiving data is temporarily unavailable" : `${summary.today.goodsReceiving} receiving records today`}>
-                {summary.todayReceivingUnavailable ? "Unavailable" : summary.today.goodsReceiving}
-              </strong>
-              {!summary.todayReceivingUnavailable ? <span className="hidden text-[11px] leading-4 text-white/80 sm:block">Today’s activity</span> : null}
-            </Link>
-            <Link prefetch={false} href="/purchase-requests" className="group flex min-w-0 flex-col items-start gap-1 px-3 py-3 transition-colors hover:bg-white/10 sm:px-4">
-              <span className="min-w-0"><span className="flex items-center gap-1.5 text-white/85"><FileText className="h-3.5 w-3.5 shrink-0" aria-hidden="true" /><span className="text-[11px] font-medium leading-4 tracking-[0.04em]">Recent requests</span></span></span>
-              <strong
-                className={summary.coreSnapshotUnavailable ? "text-[10px] font-semibold uppercase tracking-[0.08em] text-white/85" : "text-xl font-semibold tabular-nums"}
-                aria-label={summary.coreSnapshotUnavailable ? "Purchase request data is temporarily unavailable" : `${summary.purchaseRequests.length} purchase requests`}
-              >
-                {summary.coreSnapshotUnavailable ? "Unavailable" : summary.purchaseRequests.length}
-              </strong>
-              {!summary.coreSnapshotUnavailable ? <span className="hidden text-[11px] leading-4 text-white/80 sm:block">Current snapshot</span> : null}
-            </Link>
-            <Link prefetch={false} href="/stock-counts" className={`group flex min-w-0 flex-col items-start gap-1 px-3 py-3 transition-colors hover:bg-white/10 sm:px-4 ${!summary.stockCountDueUnavailable && summary.today.stockCountDue > 0 ? "bg-white/[0.08]" : ""}`}>
-              <span className="min-w-0"><span className="flex items-center gap-1.5 text-white/85"><CheckCircle2 className="h-3.5 w-3.5 shrink-0" aria-hidden="true" /><span className="text-[11px] font-medium leading-4 tracking-[0.04em]">Stock count due</span></span><span className="mt-0.5 hidden max-w-40 truncate text-[11px] text-white/80 sm:block">Last: {summary.lastStockCount?.count_no ?? "No posted count"}{summary.lastStockCount ? ` · ${formatDateOnly(summary.lastStockCount.count_date)}` : ""}</span></span>
-              <strong className={summary.stockCountDueUnavailable ? "text-[10px] font-semibold uppercase tracking-[0.08em] text-white/85" : "text-xl font-semibold tabular-nums"} aria-label={summary.stockCountDueUnavailable ? "Stock count due data is temporarily unavailable" : `${summary.today.stockCountDue} stock counts due`}>
-                {summary.stockCountDueUnavailable ? "Unavailable" : summary.today.stockCountDue}
-              </strong>
-              {!summary.stockCountDueUnavailable ? <span className="hidden text-[11px] leading-4 text-white/80 sm:block">{summary.today.stockCountDue > 0 ? "Due for follow-up" : "No count due"}</span> : null}
-            </Link>
+          <div className={`grid grid-cols-2 divide-x divide-y divide-white/15 border-t border-white/15 ${showFinance ? "sm:grid-cols-5" : "sm:grid-cols-4"}`} data-dashboard-pulse-metrics aria-label="Attention total breakdown">
+            {attentionSignals.map((signal, index) => {
+              const Icon = signal.icon;
+              const unavailable = signal.value === null;
+              const isLastOddPhoneSignal = attentionSignals.length % 2 === 1 && index === attentionSignals.length - 1;
+              return <Link key={signal.key} prefetch={false} href={signal.href} className={`group flex min-h-12 min-w-0 items-center gap-2 px-3 py-2 transition-colors hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-white ${isLastOddPhoneSignal ? "col-span-2 sm:col-span-1" : ""} ${signal.value !== null && signal.value > 0 ? "bg-white/[0.08]" : ""}`}>
+                <Icon className="h-3.5 w-3.5 shrink-0 text-white/80" aria-hidden="true" />
+                <span className="min-w-0 flex-1 truncate text-[11px] font-medium leading-4 text-white/85">{signal.label}</span>
+                <strong className={unavailable ? "shrink-0 text-[9px] font-semibold uppercase tracking-[0.06em] text-white/80" : "shrink-0 text-lg font-semibold tabular-nums"}>{unavailable ? "Unavailable" : signal.value}</strong>
+              </Link>;
+            })}
           </div>
         </section>
 
-        <DashboardRoleMicroChart title={isFinance ? "Payables due-date mix" : isKitchen ? "Kitchen work signals" : isPurchasing ? "Purchasing follow-up mix" : isManager ? "Manager exception mix" : "Cross-functional exception mix"} items={roleChartItems} />
+        {!isOwner && !isManager ? <DashboardRoleMicroChart title={isFinance ? "Payables due-date mix" : isKitchen ? "Kitchen work signals" : "Purchasing follow-up mix"} items={roleChartItems} /> : null}
 
         <QuickActionsCluster actions={quickActions} className="hidden lg:block xl:hidden" />
 

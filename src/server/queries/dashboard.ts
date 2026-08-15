@@ -1,7 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { looseSupabase, type LooseSupabase } from "@/lib/supabase/loose";
 import { getCurrentUserScope, getVisibleNotificationsForCurrentUser } from "@/server/queries/notifications";
-import { getCurrentUserPendingActions } from "@/server/queries/pending-actions";
+import { getCurrentUserPendingActionSnapshot } from "@/server/queries/pending-actions";
 import { getPayablesAttention } from "@/server/queries/ap-aging";
 import { getRoleDisplayLabel } from "@/lib/roles";
 import { logServerWarning } from "@/server/observability/logger";
@@ -178,6 +178,7 @@ export type DashboardAttentionSummary = {
   state: "complete" | "unavailable";
   total: number | null;
   unavailableSources: DashboardAttentionSource[];
+  sources: Record<DashboardAttentionSource, number | null>;
 };
 
 function createDashboardAttentionSummary(input: {
@@ -190,21 +191,32 @@ function createDashboardAttentionSummary(input: {
   stockCountDueUnavailable: boolean;
   wastageUnavailable: boolean;
   payablesAttentionUnavailable: boolean;
+  pendingApprovalsUnavailable: boolean;
 }): DashboardAttentionSummary {
   const unavailableSources: DashboardAttentionSource[] = [];
+  if (input.pendingApprovalsUnavailable) unavailableSources.push("pending_approvals");
   if (input.inventoryUnavailable) unavailableSources.push("low_stock");
   if (input.stockCountDueUnavailable) unavailableSources.push("stock_count_due");
   if (input.wastageUnavailable) unavailableSources.push("wastage");
   if (input.payablesAttentionUnavailable) unavailableSources.push("overdue_payables");
 
+  const sources: DashboardAttentionSummary["sources"] = {
+    pending_approvals: input.pendingApprovalsUnavailable ? null : input.pendingApprovals,
+    low_stock: input.inventoryUnavailable ? null : input.lowStock,
+    stock_count_due: input.stockCountDueUnavailable ? null : input.stockCountDue,
+    wastage: input.wastageUnavailable ? null : input.wastage,
+    overdue_payables: input.payablesAttentionUnavailable ? null : input.overduePayables,
+  };
+
   if (unavailableSources.length > 0) {
-    return { state: "unavailable", total: null, unavailableSources };
+    return { state: "unavailable", total: null, unavailableSources, sources };
   }
 
   return {
     state: "complete",
     total: input.pendingApprovals + input.lowStock + input.stockCountDue + input.wastage + input.overduePayables,
     unavailableSources,
+    sources,
   };
 }
 
@@ -273,6 +285,7 @@ export async function getDashboardSummary() {
         stockCountDueUnavailable: false,
         wastageUnavailable: false,
         payablesAttentionUnavailable: false,
+        pendingApprovalsUnavailable: false,
       }),
       coreSnapshotUnavailable: false,
       inventoryUnavailable: false,
@@ -309,7 +322,7 @@ export async function getDashboardSummary() {
   const empty = { data: [], error: null, count: 0 };
   const [coreSnapshotRpcResult, pendingApprovals, notifications, recentActivities, outletToday, currentStaff, assignedBranches, payablesAttention, lowStockViewResult] = await Promise.all([
     (needsProcurement || needsInventory) ? supabase.rpc("get_dashboard_core_snapshot", { p_today: today }) : Promise.resolve({ data: null, error: null }),
-    getCurrentUserPendingActions(5),
+    getCurrentUserPendingActionSnapshot(5),
     getVisibleNotificationsForCurrentUser(),
     // Actor resolution is intentionally reserved for Activity Log and the
     // notification workspace. It is not part of the dashboard's critical path.
@@ -390,7 +403,7 @@ export async function getDashboardSummary() {
   const productionUnavailable = needsProduction && (coreUnavailable || fallbackUnavailable.production);
   const operationsUnavailable = needsOperations && (coreUnavailable || fallbackUnavailable.operations);
   const attentionSummary = createDashboardAttentionSummary({
-    pendingApprovals: pendingApprovals.length,
+    pendingApprovals: pendingApprovals.total ?? 0,
     lowStock: inventoryUnavailable ? 0 : (lowStockViewCount ?? Number(coreSnapshot?.low_stock_items_count ?? 0)),
     stockCountDue: Number(coreSnapshot?.stock_count_due ?? 0),
     wastage: Number(coreSnapshot?.wastage_attention ?? 0),
@@ -399,6 +412,7 @@ export async function getDashboardSummary() {
     stockCountDueUnavailable,
     wastageUnavailable,
     payablesAttentionUnavailable,
+    pendingApprovalsUnavailable: pendingApprovals.unavailable,
   });
 
   const result = {
@@ -418,7 +432,7 @@ export async function getDashboardSummary() {
     // Transaction history is intentionally loaded only from Inventory drill-down
     // routes. The owner workdesk must remain a summary read, not a ledger scan.
     recentTransactions: [],
-    pendingApprovals,
+    pendingApprovals: pendingApprovals.items,
     purchaseRequests: coreSnapshot?.purchase_requests ?? [],
     purchaseOrders: coreSnapshot?.purchase_orders ?? [],
     recentDocuments: coreSnapshot?.recent_documents ?? [],

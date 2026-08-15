@@ -10,7 +10,7 @@ type WastagePoint = {
   wastage_percent: number;
 };
 
-export function OutletDailyWastageChart({ points, branch }: { points: WastagePoint[]; branch?: string }) {
+export function OutletDailyWastageChart({ points, branch, unavailable = false }: { points: WastagePoint[]; branch?: string; unavailable?: boolean }) {
   const width = 640;
   const height = 184;
   const inset = { top: 18, right: 18, bottom: 30, left: 54 };
@@ -38,9 +38,9 @@ export function OutletDailyWastageChart({ points, branch }: { points: WastagePoi
           <h2 id="outlet-wastage-trend-title" className="text-sm font-semibold">30-day wastage rate</h2>
           <p className="text-xs text-muted-foreground">Completed outlet records only · wastage ÷ received</p>
         </div>
-        <p className="text-xs text-muted-foreground">Daily average <strong className="text-foreground">{formatPercent(average)}%</strong></p>
+        <p className="text-xs text-muted-foreground">Daily average <strong className={unavailable ? "text-[var(--sb-warning)]" : "text-foreground"}>{unavailable ? "Unavailable" : `${formatPercent(average)}%`}</strong></p>
       </div>
-      {points.length ? (
+      {unavailable ? <div className="px-4 py-8 text-center" role="status"><p className="text-sm font-medium">Wastage trend unavailable</p><p className="mt-1 text-xs text-muted-foreground">The daily record list remains current. Retry this page to load the 30-day insight.</p></div> : points.length ? (
         <div className="px-2 pb-2 pt-3">
           <InteractiveLineChart
             points={chartPoints}

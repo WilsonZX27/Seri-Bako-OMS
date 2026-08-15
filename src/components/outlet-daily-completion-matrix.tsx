@@ -17,14 +17,14 @@ const stateMeta = {
   void: { label: "Void", short: "V", className: "border-[var(--sb-danger)] bg-[var(--sb-danger-bg)] text-[var(--sb-danger)]" },
 } as const;
 
-export function OutletDailyCompletionMatrix({ dates, rows, summary }: { dates: string[]; rows: MatrixRow[]; summary: MatrixSummary }) {
+export function OutletDailyCompletionMatrix({ dates, rows, summary, unavailable = false }: { dates: string[]; rows: MatrixRow[]; summary: MatrixSummary | null; unavailable?: boolean }) {
   const cells = useMemo(() => rows.flatMap((row) => row.cells), [rows]);
   const [activeKey, setActiveKey] = useState(() => {
     const preferred = [...cells].reverse().find((cell) => cell.status !== "missing") ?? cells.at(-1);
     return preferred ? `${preferred.branch_id}:${preferred.record_date}` : "";
   });
   const active = cells.find((cell) => `${cell.branch_id}:${cell.record_date}` === activeKey) ?? cells.at(-1) ?? null;
-  const completionPercent = summary.expected ? (summary.completed / summary.expected) * 100 : 0;
+  const completionPercent = summary?.expected ? (summary.completed / summary.expected) * 100 : 0;
 
   return <section className="erp-surface overflow-hidden" aria-labelledby="outlet-completion-title" data-outlet-completion-matrix>
     <div className="flex flex-wrap items-end justify-between gap-2 border-b border-[var(--sb-border-soft)] px-3 py-2.5">
@@ -32,9 +32,9 @@ export function OutletDailyCompletionMatrix({ dates, rows, summary }: { dates: s
         <h2 id="outlet-completion-title" className="text-sm font-semibold">7-day outlet completion</h2>
         <p className="text-xs text-muted-foreground">Expected outlet-days · explicit record status, not a lateness estimate</p>
       </div>
-      <p className="text-xs text-muted-foreground"><strong className="text-foreground">{formatNumber(completionPercent)}%</strong> completed or reviewed</p>
+      <p className="text-xs text-muted-foreground"><strong className={unavailable ? "text-[var(--sb-warning)]" : "text-foreground"}>{unavailable ? "Unavailable" : `${formatNumber(completionPercent)}%`}</strong>{unavailable ? "" : " completed or reviewed"}</p>
     </div>
-    {rows.length ? <>
+    {unavailable ? <div className="px-4 py-8 text-center" role="status"><p className="text-sm font-medium">Completion insight unavailable</p><p className="mt-1 text-xs text-muted-foreground">The daily record list remains current. Retry this page to load outlet-day coverage.</p></div> : rows.length && summary ? <>
       <div className="flex flex-wrap gap-x-3 gap-y-1 px-3 pt-2 text-[11px] text-muted-foreground" aria-hidden="true">
         {(["missing", "draft", "evening_completed", "reviewed", "void"] as const).map((status) => <span key={status} className="inline-flex items-center gap-1"><span className={`grid h-4 w-4 place-items-center border text-[9px] font-bold ${stateMeta[status].className}`}>{stateMeta[status].short}</span>{status === "draft" ? "In progress" : stateMeta[status].label}</span>)}
       </div>

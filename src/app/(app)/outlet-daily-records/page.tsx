@@ -18,19 +18,27 @@ import { formatDateOnly, formatDateTime, formatNumber } from "@/lib/utils";
 import { hasActiveFilters } from "@/lib/table-state";
 import { hasPermission } from "@/server/auth/permissions";
 import { getOutletDailyCompletionMatrix, getOutletDailyDemandTrend, getOutletDailyFormOptions, getOutletDailyRecords } from "@/server/queries/outlet-daily-records";
+import { logServerError } from "@/server/observability/logger";
 
 const statuses = ["draft", "morning_recorded", "evening_completed", "reviewed", "void"];
 const statusGuidance = (status: string) => status === "evening_completed" ? "Posted · editable" : status === "reviewed" ? "Legacy reviewed record" : ["draft", "morning_recorded"].includes(status) ? "In progress" : "Locked";
 
 export default async function OutletDailyRecordsPage({ searchParams }: { searchParams: Promise<Record<string, string | undefined>> }) {
   const filters = await searchParams;
-  const [data, options, canCreate, trend, completion] = await Promise.all([
+  const [data, options, canCreate, insights] = await Promise.all([
     getOutletDailyRecords(filters),
     getOutletDailyFormOptions(),
     hasPermission("outlet_daily_record.create"),
-    getOutletDailyDemandTrend({ period: "30", branch: filters.branch }),
-    getOutletDailyCompletionMatrix({ branch: filters.branch }),
+    Promise.allSettled([
+      getOutletDailyDemandTrend({ period: "30", branch: filters.branch }),
+      getOutletDailyCompletionMatrix({ branch: filters.branch }),
+    ]),
   ]);
+  const [trendResult, completionResult] = insights;
+  if (trendResult.status === "rejected") logServerError(trendResult.reason, { source: "page.outletDailyRecords.wastageTrend" });
+  if (completionResult.status === "rejected") logServerError(completionResult.reason, { source: "page.outletDailyRecords.completionMatrix" });
+  const trend = trendResult.status === "fulfilled" ? trendResult.value : null;
+  const completion = completionResult.status === "fulfilled" ? completionResult.value : null;
   const filtered = hasActiveFilters(filters);
   return <>
     <PageHeader title="Outlet Daily Records" description="Morning receiving and evening wastage capture by outlet." />
@@ -40,8 +48,8 @@ export default async function OutletDailyRecordsPage({ searchParams }: { searchP
       <ConsoleSection title="Completion"><p className="text-xs"><span className="text-muted-foreground">Ready to post</span><br /><strong>{data.summary.needs_review}</strong></p></ConsoleSection>
     </>}>
       <div className="space-y-3">
-        <OutletDailyCompletionMatrix dates={completion.dates} rows={completion.rows} summary={completion.summary} />
-        <OutletDailyWastageChart points={trend.daily} branch={filters.branch} />
+        <OutletDailyCompletionMatrix dates={completion?.dates ?? []} rows={completion?.rows ?? []} summary={completion?.summary ?? null} unavailable={!completion} />
+        <OutletDailyWastageChart points={trend?.daily ?? []} branch={filters.branch} unavailable={!trend} />
         <FilterBar resultCount={data.totalRows} resetHref="/outlet-daily-records" filtered={filtered} className="sb-list-filters--date-first">
             <Input name="date" type="date" defaultValue={filters.date ?? ""} aria-label="Record date" className="sb-filter-date" />
             <SelectControl name="branch" value={filters.branch ?? "all"} ariaLabel="Branch" options={[{ value: "all", label: "All branches" }, ...options.branches.map((branch) => ({ value: branch.id, label: branch.branch_name }))]} />

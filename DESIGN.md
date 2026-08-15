@@ -1,6 +1,6 @@
 # Seri Bako OMS responsive design standard
 
-> **Release authority:** the currently released application is `v8.36.52`, as
+> **Release authority:** the currently released application is `v8.36.53`, as
 > defined by `src/lib/app-version.ts`. A versioned section above that number is
 > an accepted forward design contract or unreleased implementation note—not
 > evidence that the application itself has been released at that version.
@@ -10,6 +10,12 @@
 > **Precedence:** `docs/DESIGN_SYSTEM.md` is the living visual and interaction contract. When a historical release note or an older rule in this file conflicts with that contract, the living contract wins. Update both documents when a new pattern is accepted; do not preserve a visibly weaker rule for compatibility.
 
 This document is the implementation contract for every customer-facing route, form, record workspace, table, panel, dialog, and mobile action bar. It applies to new work and to refactoring of existing UI.
+
+## v8.36.53 — Resilient Outlet Insights
+
+- Outlet Daily Records now treats its operational record list as the primary authority and isolates the optional 7-day completion and 30-day wastage reads with settled promises.
+- A failed insight is rendered as `Unavailable` with a retry explanation and a redacted server log; it is never converted into 0%, an empty chart, or a false no-record state.
+- Successful empty reads retain their precise empty messages, preserving the Clear, Empty, and Unavailable distinction without removing operational actions.
 
 ## v8.36.52 — Readable Mobile Date Filters
 

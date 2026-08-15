@@ -1,6 +1,6 @@
-export const APP_VERSION = "8.37.9";
+export const APP_VERSION = "8.38.0";
 export const APP_SPRINT = `v${APP_VERSION}`;
-export const APP_RELEASE_TITLE = "Operational Filter Surface Consistency";
+export const APP_RELEASE_TITLE = "AP Aging Query Surface Refinement";
 // Keep the shell footer concise; the detailed release title belongs in release
 // notes, not in a narrow navigation rail where it is clipped on small screens.
 export const APP_RELEASE_NOTE = APP_SPRINT;

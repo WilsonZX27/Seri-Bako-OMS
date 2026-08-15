@@ -56,3 +56,14 @@ test("AP aging replaces narrow financial tables with complete decision lists", (
     assert.match(page, new RegExp(`row\\.${authority}`));
   }
 });
+
+test("AP aging uses the shared balanced query surface", () => {
+  const page = read("src/app/(app)/supplier-invoices/aging/page.tsx");
+  assert.match(page, /<FilterBar resultCount=\{report\.total_rows\} resetHref="\/supplier-invoices\/aging"/);
+  assert.match(page, /className="sb-list-filters--balanced"/);
+  assert.match(page, /<FilterBarMore activeCount=\{activeFilterCount\}/);
+  assert.doesNotMatch(page, /<form className="sb-list-filters sb-list-query-card sb-list-filters--dense">/);
+  for (const label of ["Search invoices", "Supplier", "Aging bucket", "Invoice status", "Due date from", "Due date to"]) {
+    assert.match(page, new RegExp(`aria-label="${label}"`));
+  }
+});

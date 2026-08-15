@@ -59,9 +59,7 @@ export function OutletDailyCompletionMatrix({ dates, rows, summary, unavailable 
             const key = `${cell.branch_id}:${cell.record_date}`;
             const common = `grid h-9 w-full min-w-0 place-items-center border text-[10px] font-bold transition-shadow hover:ring-2 hover:ring-[var(--sb-green-700)] hover:ring-offset-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--sb-green-700)] focus-visible:ring-offset-1 sm:min-w-9 sm:text-[11px] ${meta.className} ${activeKey === key ? "ring-2 ring-[var(--sb-green-700)] ring-offset-1" : ""}`;
             const label = `${cell.branch_name}, ${formatDateOnly(cell.record_date)}: ${meta.label}`;
-            return <td key={cell.record_date} className="p-0.5 text-center">{cell.record_id
-              ? <Link href={`/outlet-daily-records/${cell.record_id}`} className={common} aria-label={`${label}. Open record.`} onMouseEnter={() => setActiveKey(key)} onFocus={() => setActiveKey(key)} onPointerDown={() => setActiveKey(key)}>{meta.short}</Link>
-              : <button type="button" className={common} aria-label={label} onMouseEnter={() => setActiveKey(key)} onFocus={() => setActiveKey(key)} onClick={() => setActiveKey(key)}>{meta.short}</button>}</td>;
+            return <td key={cell.record_date} className="p-0.5 text-center"><button type="button" className={common} aria-label={`${label}. Preview details.`} aria-pressed={activeKey === key} onMouseEnter={() => setActiveKey(key)} onFocus={() => setActiveKey(key)} onPointerDown={() => setActiveKey(key)} onClick={() => setActiveKey(key)}>{meta.short}</button></td>;
           })}</tr>)}</tbody>
         </table>
       </div>

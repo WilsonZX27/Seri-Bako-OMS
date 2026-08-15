@@ -1,6 +1,6 @@
 # Seri Bako OMS responsive design standard
 
-> **Release authority:** the currently released application is `v8.36.82`, as
+> **Release authority:** the currently released application is `v8.36.83`, as
 > defined by `src/lib/app-version.ts`. A versioned section above that number is
 > an accepted forward design contract or unreleased implementation note—not
 > evidence that the application itself has been released at that version.
@@ -10,6 +10,12 @@
 > **Precedence:** `docs/DESIGN_SYSTEM.md` is the living visual and interaction contract. When a historical release note or an older rule in this file conflicts with that contract, the living contract wins. Update both documents when a new pattern is accepted; do not preserve a visibly weaker rule for compatibility.
 
 This document is the implementation contract for every customer-facing route, form, record workspace, table, panel, dialog, and mobile action bar. It applies to new work and to refactoring of existing UI.
+
+## v8.36.83 — Preview-first Outlet Completion
+
+- Every Outlet Daily completion cell is a selection control. Hover, touch, click, and keyboard focus reveal the same authoritative outlet-day status without navigating away.
+- Existing records open only through the persistent `Open daily record` action in the preview region, matching the system-wide preview-before-open contract and preventing accidental phone navigation.
+- Missing outlet-days remain previewable but expose no false record action. The seven-day matrix, compact phone summary, and complete record authority remain unchanged.
 
 ## v8.36.82 — Drillable Costing Distributions
 
@@ -437,7 +443,7 @@ This document is the implementation contract for every customer-facing route, fo
 
 - Outlet Daily Records shows a bounded seven-day outlet-by-day completion matrix using record headers only. It reuses the existing Outlet Daily permission and branch scope and does not read product lines for completion state.
 - Missing, Draft, Morning Recorded, Evening Completed, Reviewed, and Void remain authoritative distinct states. The UI may group Draft and Morning Recorded as “In progress,” but it must not infer lateness without an approved deadline source.
-- Hover, touch, and keyboard focus expose the same outlet-day preview. Existing records drill directly to their record workspace; the compact matrix may scroll internally on narrow screens but must not cause document-level horizontal overflow.
+- Hover, touch, and keyboard focus expose the same outlet-day preview. Existing records open through the persistent preview action; the compact matrix may scroll internally on narrow screens but must not cause document-level horizontal overflow.
 
 ## v8.36.17 — Inventory Daily Movement Insight
 

@@ -18,7 +18,7 @@ test("outlet completion matrix previews exact outlet-days without document overf
     await expect(matrix).toBeVisible();
     await expect(matrix.getByRole("columnheader")).toHaveCount(8);
 
-    const firstCell = matrix.locator("tbody td a, tbody td button").first();
+    const firstCell = matrix.locator("tbody td button").first();
     await firstCell.hover();
     const preview = matrix.locator("[data-outlet-completion-preview]");
     await expect(preview).toBeVisible();
@@ -27,6 +27,11 @@ test("outlet completion matrix previews exact outlet-days without document overf
     await expect(preview).toContainText(cellLabel.split(",")[0]);
     await firstCell.focus();
     await expect(firstCell).toBeFocused();
+    await firstCell.click();
+    await expect(firstCell).toHaveAttribute("aria-pressed", "true");
+    await expect(page).toHaveURL(/\/outlet-daily-records(?:\?|$)/);
+    const openRecord = preview.getByRole("link", { name: "Open daily record" });
+    if (await openRecord.count()) await expect(openRecord).toHaveAttribute("href", /\/outlet-daily-records\//);
 
     const geometry = await page.evaluate(() => ({
       documentOverflow: document.documentElement.scrollWidth - document.documentElement.clientWidth,

@@ -17,14 +17,17 @@ test("outlet completion matrix uses a bounded seven-day header query and preserv
   assert.doesNotMatch(query, /getOutletDailyCompletionMatrix[\s\S]*outlet_daily_record_lines/);
 });
 
-test("outlet completion matrix provides hover, touch, keyboard and direct-record preview", () => {
+test("outlet completion matrix previews before an explicit record open", () => {
   const component = read("src/components/outlet-daily-completion-matrix.tsx");
   const page = read("src/app/(app)/outlet-daily-records/page.tsx");
   assert.match(component, /onMouseEnter=\{\(\) => setActiveKey\(key\)\}/);
   assert.match(component, /onFocus=\{\(\) => setActiveKey\(key\)\}/);
   assert.match(component, /onPointerDown=\{\(\) => setActiveKey\(key\)\}/);
+  assert.match(component, /aria-pressed=\{activeKey === key\}/);
+  assert.match(component, /Preview details\./);
   assert.match(component, /data-outlet-completion-preview/);
   assert.match(component, /Open daily record/);
+  assert.doesNotMatch(component, /<Link href=\{`\/outlet-daily-records\/\$\{cell\.record_id\}`\}/);
   assert.match(component, /h-9 w-full min-w-0[\s\S]*sm:min-w-9/);
   assert.match(component, /inline-flex min-h-11 items-center[\s\S]*xl:min-h-8/);
   assert.match(component, /not a lateness estimate/);

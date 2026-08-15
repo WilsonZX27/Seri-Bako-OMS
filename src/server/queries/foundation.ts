@@ -139,13 +139,21 @@ export async function getStaffs(filters: Filters = {}) {
   if (staffsError) throw new Error(staffsError.message);
   const staffIds = (staffs ?? []).map((staff) => staff.id);
   if (!staffIds.length) return [];
-  const [{ data: branches, error: branchesError }, { data: roles }, { data: staffRoles }, { data: staffBranches }] = await Promise.all([
+  const [
+    { data: branches, error: branchesError },
+    { data: roles, error: rolesError },
+    { data: staffRoles, error: staffRolesError },
+    { data: staffBranches, error: staffBranchesError },
+  ] = await Promise.all([
     supabase.from("branches").select("id, branch_name").eq("company_id", profile.company_id).is("deleted_at", null),
     supabase.from("roles").select("id, role_name, role_code").eq("company_id", profile.company_id).is("deleted_at", null),
     supabase.from("staff_roles").select("staff_id, role_id").in("staff_id", staffIds),
     supabase.from("staff_branches").select("staff_id, branch_id, access_level, is_default").in("staff_id", staffIds),
   ]);
   if (branchesError) throw new Error(branchesError.message);
+  if (rolesError) throw new Error(rolesError.message);
+  if (staffRolesError) throw new Error(staffRolesError.message);
+  if (staffBranchesError) throw new Error(staffBranchesError.message);
   // Directory reads are RLS-scoped and remain useful when a local preview does
   // not have the privileged Auth Admin credential. Only auth-link health drops.
   const authUsers = process.env.SUPABASE_SERVICE_ROLE_KEY?.trim() ? await listAuthUserSummaries() : [];

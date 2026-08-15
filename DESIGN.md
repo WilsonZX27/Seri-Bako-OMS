@@ -1,6 +1,6 @@
 # Seri Bako OMS responsive design standard
 
-> **Release authority:** the currently released application is `v8.36.74`, as
+> **Release authority:** the currently released application is `v8.36.75`, as
 > defined by `src/lib/app-version.ts`. A versioned section above that number is
 > an accepted forward design contract or unreleased implementation note—not
 > evidence that the application itself has been released at that version.
@@ -10,6 +10,12 @@
 > **Precedence:** `docs/DESIGN_SYSTEM.md` is the living visual and interaction contract. When a historical release note or an older rule in this file conflicts with that contract, the living contract wins. Update both documents when a new pattern is accepted; do not preserve a visibly weaker rule for compatibility.
 
 This document is the implementation contract for every customer-facing route, form, record workspace, table, panel, dialog, and mobile action bar. It applies to new work and to refactoring of existing UI.
+
+## v8.36.75 — Complete Staff Directory Reads
+
+- The Staff directory treats roles, role assignments, branch assignments, and branch names as one identity-read boundary rather than optional decoration.
+- Any failed relationship read now enters the existing page error boundary instead of presenting a real staff member with a misleading blank role or default branch.
+- A source contract guards all four auxiliary query errors so future directory changes cannot silently regress to incomplete-success rendering.
 
 ## v8.36.74 — Trustworthy Global Navigation
 

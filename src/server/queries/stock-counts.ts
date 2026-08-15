@@ -1,6 +1,7 @@
 import { isMockMode, mockBranches, mockItems, mockProfile, mockStockCountLines, mockStockCounts } from "@/lib/mock-mode";
 import { createClient } from "@/lib/supabase/server";
 import { compareTableValues, paginateRows } from "@/lib/table-state";
+import { logServerError } from "@/server/observability/logger";
 import { getStockBalanceDetails } from "@/server/queries/inventory";
 import type { Database } from "@/types/database";
 
@@ -104,12 +105,12 @@ export async function getStockCounts(filters: Filters = {}) {
     // Keep the workspace usable when the denormalized list view is unavailable
     // during a migration or a partial deployment. The base tables remain the
     // authoritative fallback and preserve the same filters/pagination.
-    const [{ data: rawCounts, error: rawCountsError }, { data: branches }, { data: lines }] = await Promise.all([
+    const [{ data: rawCounts, error: rawCountsError }, { data: branches, error: branchesError }, { data: lines, error: linesError }] = await Promise.all([
       supabase.from("stock_counts").select("*").is("deleted_at", null),
       supabase.from("branches").select("id, branch_name"),
       supabase.from("stock_count_lines").select("stock_count_id, variance_percent"),
     ]);
-    if (rawCountsError) throw new Error(error.message);
+    if (rawCountsError || branchesError || linesError) throw new Error(error.message);
     const branchById = new Map((branches ?? []).map((branch) => [branch.id, branch.branch_name]));
     const toleranceByCount = new Map((rawCounts ?? []).map((row) => [row.id, Number(row.tolerance_percent)]));
     const linesByCount = new Map<string, { line_count: number; high_variance_count: number }>();
@@ -146,10 +147,14 @@ export async function getStockCountVarianceInsight(branchId?: string) {
   const supabase = await createClient();
   if (branchId) {
     const { data: branch, error: branchError } = await supabase.from("branches").select("id").eq("id", branchId).maybeSingle();
+    if (branchError) logServerError(branchError, { source: "stockCounts.varianceInsight.branch" });
     if (branchError || !branch) return { available: false as const, ...empty };
   }
   const { data, error } = await supabase.rpc("get_stock_count_variance_insight", { p_branch_id: branchId || null });
-  if (error) return { available: false as const, ...empty };
+  if (error) {
+    logServerError(error, { source: "stockCounts.varianceInsight.rpc" });
+    return { available: false as const, ...empty };
+  }
   const rows = data ?? [];
   return {
     available: true as const,

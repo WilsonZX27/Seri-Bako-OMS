@@ -4,7 +4,7 @@
 
 ### Current audit baseline
 
-The current released application baseline is `v8.36.57 — Readable Mobile Date Filter`.
+The current released application baseline is `v8.36.58 — Truthful Stock Count Reads`.
 The repository migration history currently runs through migration `149`. Release
 version authority lives in `src/lib/app-version.ts`; migration authority lives in
 the immutable, forward-only `supabase/migrations/` directory. Documentation must
@@ -165,7 +165,7 @@ The system currently covers or is actively implementing the following operationa
 
 Module maturity must be understood separately from visual completion.
 
-Current integration baseline: `v8.36.57 — Readable Mobile Date Filter`, with repository migrations reviewed through `149`. Migrations `111` and `112` remain immutable history because they were applied to the linked database accidentally. Migration `113` removes their callable Central Kitchen PR RPC, prevents further access to the stock-holds table, and preserves that table temporarily for a non-destructive data audit. Later forward-only migrations add bounded inventory and Dashboard read models, repair grants and scoped access, and introduce branch supply-route provenance; they do not restore the retired Central Kitchen PR workflow.
+Current integration baseline: `v8.36.58 — Truthful Stock Count Reads`, with repository migrations reviewed through `149`. Migrations `111` and `112` remain immutable history because they were applied to the linked database accidentally. Migration `113` removes their callable Central Kitchen PR RPC, prevents further access to the stock-holds table, and preserves that table temporarily for a non-destructive data audit. Later forward-only migrations add bounded inventory and Dashboard read models, repair grants and scoped access, and introduce branch supply-route provenance; they do not restore the retired Central Kitchen PR workflow.
 
 A page may exist visually without its full workflow, validation, database integration, permissions, and downstream effects being complete.
 

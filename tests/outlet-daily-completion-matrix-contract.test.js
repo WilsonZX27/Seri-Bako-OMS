@@ -29,3 +29,12 @@ test("outlet completion matrix provides hover, touch, keyboard and direct-record
   assert.match(component, /overflow-x-auto/);
   assert.match(page, /<OutletDailyCompletionMatrix/);
 });
+
+test("horizontal matrix scrolling preserves outlet identity on narrow workspaces", () => {
+  const component = read("src/components/outlet-daily-completion-matrix.tsx");
+  assert.match(component, /Swipe across dates; outlet names remain pinned\./);
+  assert.match(component, /aria-describedby="outlet-completion-scroll-hint"/);
+  assert.match(component, /<th scope="col" className="sticky left-0 z-20/);
+  assert.match(component, /<th scope="row" className="sticky left-0 z-10/);
+  assert.match(component, /overflow-x-auto overscroll-x-contain/);
+});

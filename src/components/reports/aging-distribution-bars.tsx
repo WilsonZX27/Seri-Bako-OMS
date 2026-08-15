@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useId, useState } from "react";
 import type { KeyboardEvent } from "react";
-import { formatCurrency } from "@/lib/utils";
+import { cn, formatCurrency } from "@/lib/utils";
 
 export type AgingDistributionItem = {
   key: string;
@@ -70,7 +70,7 @@ export function AgingDistributionBars({
           </button></li>;
         })}
         </ol>
-        <div id={previewId} role="region" aria-label="Selected aging bucket preview" aria-live="polite" data-aging-preview className="min-h-10 rounded-[var(--sb-radius-control)] border border-[var(--sb-border-soft)] bg-[var(--sb-surface-muted)] px-3 py-2 text-[11px] text-muted-foreground">
+        <div id={previewId} role="region" aria-label="Selected aging bucket preview" aria-live="polite" data-aging-preview className={cn("rounded-[var(--sb-radius-control)] px-3 py-2 text-[11px] text-muted-foreground", activeItem ? "border border-[var(--sb-border-soft)] bg-[var(--sb-surface-muted)]" : "sr-only")}>
           {activeItem ? <><strong className="text-[var(--sb-text)]">{activeItem.label}</strong> · {formatCurrency(activeItem.outstanding)} across {activeItem.invoiceCount} invoice{activeItem.invoiceCount === 1 ? "" : "s"}.<br /><Link href={activeItem.href} data-aging-open className="mt-2 inline-flex min-h-11 items-center rounded-[var(--sb-radius-control)] border border-[var(--sb-border)] bg-[var(--sb-surface-raised)] px-3 font-semibold text-[var(--sb-green-800)] hover:bg-[var(--sb-green-100)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--sb-green-700)] focus-visible:ring-offset-1 xl:min-h-8">Open filtered invoices</Link></> : "Hover, tap, or focus a bucket to preview it. Use Open to filter the invoice table."}
         </div>
       </div>

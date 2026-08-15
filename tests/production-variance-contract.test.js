@@ -33,6 +33,7 @@ test("Production variance visual compares signal counts without inventing a cros
   assert.match(chart, /onMouseEnter/);
   assert.match(chart, /onFocus/);
   assert.match(chart, /aria-live="polite"/);
+  assert.match(chart, /active \? "bg-muted\/60" : "sr-only"/);
   assert.match(chart, /data-production-signal-option/);
   assert.match(chart, /data-production-signal-open/);
   assert.match(chart, /aria-pressed/);

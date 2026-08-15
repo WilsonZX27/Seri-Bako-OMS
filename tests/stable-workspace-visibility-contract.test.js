@@ -23,3 +23,19 @@ test("outlet daily create stays in the phone toolbar instead of covering records
   assert.match(filterBar, /phoneEndAction\?: ReactNode/);
   assert.match(header, /unified-list-end-action/);
 });
+
+test("the route matrix treats client runtime errors as release failures", () => {
+  const audit = read("tests/e2e/static-workspace-layout-audit.spec.js");
+
+  assert.match(audit, /page\.on\("pageerror"/);
+  assert.match(audit, /message\.type\(\) === "error"/);
+  assert.match(audit, /must not emit browser runtime errors/);
+});
+
+test("recipe costing empty states never claim that absent results are ready", () => {
+  const page = read("src/app/(app)/reports/recipe-costing/page.tsx");
+
+  assert.match(page, /No recipe costs match these filters/);
+  assert.match(page, /No active recipes to cost/);
+  assert.doesNotMatch(page, /Recipe costs are ready for review/);
+});

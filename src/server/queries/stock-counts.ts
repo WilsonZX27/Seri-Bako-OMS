@@ -1,7 +1,7 @@
 import { isMockMode, mockBranches, mockItems, mockProfile, mockStockCountLines, mockStockCounts } from "@/lib/mock-mode";
 import { createClient } from "@/lib/supabase/server";
 import { compareTableValues, paginateRows } from "@/lib/table-state";
-import { logServerError } from "@/server/observability/logger";
+import { logServerError, logServerWarning } from "@/server/observability/logger";
 import { getStockBalanceDetails } from "@/server/queries/inventory";
 import type { Database } from "@/types/database";
 
@@ -152,7 +152,10 @@ export async function getStockCountVarianceInsight(branchId?: string) {
   }
   const { data, error } = await supabase.rpc("get_stock_count_variance_insight", { p_branch_id: branchId || null });
   if (error) {
-    logServerError(error, { source: "stockCounts.varianceInsight.rpc" });
+    // This report is an optional enhancement. A missing migration or a stale
+    // PostgREST schema cache must degrade to the explicit unavailable state
+    // without turning an otherwise healthy Stock Count page into a red error.
+    logServerWarning(error, { source: "stockCounts.varianceInsight.rpc" });
     return { available: false as const, ...empty };
   }
   const rows = data ?? [];

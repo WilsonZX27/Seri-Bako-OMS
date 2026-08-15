@@ -28,5 +28,5 @@ test("stock count fallback rejects incomplete branch or line hydration", () => {
   assert.match(query, /lines, error: linesError/);
   assert.match(query, /rawCountsError \|\| branchesError \|\| linesError/);
   assert.match(query, /stockCounts\.varianceInsight\.branch/);
-  assert.match(query, /stockCounts\.varianceInsight\.rpc/);
+  assert.match(query, /logServerWarning\(error, \{ source: "stockCounts\.varianceInsight\.rpc" \}\)/);
 });

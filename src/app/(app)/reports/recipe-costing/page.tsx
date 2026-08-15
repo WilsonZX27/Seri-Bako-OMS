@@ -35,6 +35,11 @@ export default async function RecipeCostingPage({ searchParams }: { searchParams
     logServerError(error, { source: "page.recipeCosting.report" });
     return null;
   });
+  const filtered = hasActiveFilters(filters);
+  const emptyTitle = filtered ? "No recipe costs match these filters" : "No active recipes to cost";
+  const emptyDescription = filtered
+    ? "Clear or widen the filters to review another recipe."
+    : "Create or activate a recipe before reviewing ingredient-cost estimates.";
 
   const rightRail = <>
     <ConsoleSection title="Cost source">
@@ -61,7 +66,7 @@ export default async function RecipeCostingPage({ searchParams }: { searchParams
         </Card>
       ) : (
         <div className="space-y-3" data-recipe-costing-workspace>
-          <FilterBar resultCount={rows.length} resetHref="/reports/recipe-costing" filtered={hasActiveFilters(filters)}>
+          <FilterBar resultCount={rows.length} resetHref="/reports/recipe-costing" filtered={filtered}>
             <Input name="search" defaultValue={filters.search} placeholder="Search recipe" aria-label="Search recipes" />
             <SelectNative name="status" defaultValue={filters.status ?? "active"} aria-label="Recipe status">
               <option value="all">All statuses</option>
@@ -129,7 +134,7 @@ export default async function RecipeCostingPage({ searchParams }: { searchParams
                   </TableRow>
                 ))}
                 {!rows.length ? (
-                  <TableRow><TableCell colSpan={10}><EmptyState title="Recipe costs are ready for review" description="No recipes match these filters. This does not mean product margins are calculated." /></TableCell></TableRow>
+                  <TableRow><TableCell colSpan={10}><EmptyState title={emptyTitle} description={emptyDescription} /></TableCell></TableRow>
                 ) : null}
               </TableBody>
             </Table>
@@ -153,7 +158,7 @@ export default async function RecipeCostingPage({ searchParams }: { searchParams
                   </>}
                 />
               ))}
-              {!rows.length ? <EmptyState title="Recipe costs are ready for review" description="No recipes match these filters." /> : null}
+              {!rows.length ? <EmptyState title={emptyTitle} description={emptyDescription} /> : null}
             </OperationalList>
           </section>
         </div>

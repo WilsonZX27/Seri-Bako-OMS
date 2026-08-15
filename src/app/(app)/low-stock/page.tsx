@@ -117,10 +117,11 @@ export default async function LowStockPage({ searchParams }: { searchParams: Pro
           </Table>
           <OperationalList ariaLabel="Low stock items">
             {items.map((item) => {
-              const trailing = <span className="text-[11px] font-medium text-[var(--sb-green-700)]">{canCreatePr ? "Add to request" : "View only"}</span>;
+              const rowKey = `${item.branch_id ?? "no-branch"}-${item.item_id}`;
+              const trailing = <span key={`${rowKey}-action`} className="text-[11px] font-medium text-[var(--sb-green-700)]">{canCreatePr ? "Add to request" : "View only"}</span>;
               return (
                 <OperationalListRow
-                  key={`${item.branch_id ?? "no-branch"}-${item.item_id}`}
+                  key={rowKey}
                   label={item.item_name}
                   primary={item.item_name}
                   status={<Badge variant={item.stock_status === "out_of_stock" ? "danger" : "warning"}>{item.stock_status.replaceAll("_", " ")}</Badge>}

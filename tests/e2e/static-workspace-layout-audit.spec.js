@@ -195,22 +195,32 @@ test.describe("static workspace layout audit", () => {
       test.setTimeout(10 * 60_000);
       test.skip(!hasAccount("superAdmin"), "Missing local-only Super Admin credentials.");
       await login(page, "superAdmin");
-    await page.setViewportSize(viewport);
-    for (const route of auditedWorkspaces) {
-      await navigateToWorkspace(page, route);
-      await expect.poll(() => hasGlobalStyles(page), { timeout: 15_000 }).toBe(true);
-      await assertNoApplicationError(page, route);
-      const overflow = await pageOverflow(page);
-      expect(overflow, `${viewport.label} ${route} must not cause page-level horizontal overflow`).toBeLessThanOrEqual(5);
-      await assertInteractiveBounds(page, route, viewport);
-      await assertNoAccidentalVerticalText(page, route, viewport);
-      await assertTerminalFilterActions(page, route, viewport);
-      if (captureScreenshots || viewport.label === "mobile-390") {
-        const safeName = route === "/" ? "root" : route.slice(1).replaceAll("/", "--");
-        await page.screenshot({ path: path.join(evidence, `${viewport.label}--${safeName}.png`), fullPage: true });
+      const runtimeFailures = [];
+      page.on("pageerror", (error) => runtimeFailures.push(`pageerror: ${error.message}`));
+      page.on("console", (message) => {
+        if (message.type() === "error") runtimeFailures.push(`console: ${message.text()}`);
+      });
+      await page.setViewportSize(viewport);
+      for (const route of auditedWorkspaces) {
+        runtimeFailures.length = 0;
+        await navigateToWorkspace(page, route);
+        await expect.poll(() => hasGlobalStyles(page), { timeout: 15_000 }).toBe(true);
+        await assertNoApplicationError(page, route);
+        const overflow = await pageOverflow(page);
+        expect(overflow, `${viewport.label} ${route} must not cause page-level horizontal overflow`).toBeLessThanOrEqual(5);
+        await assertInteractiveBounds(page, route, viewport);
+        await assertNoAccidentalVerticalText(page, route, viewport);
+        await assertTerminalFilterActions(page, route, viewport);
+        // Let effects and streamed client boundaries settle before attributing
+        // a late runtime failure to the route that produced it.
+        await page.waitForTimeout(100);
+        expect(runtimeFailures, `${viewport.label} ${route} must not emit browser runtime errors`).toEqual([]);
+        if (captureScreenshots || viewport.label === "mobile-390") {
+          const safeName = route === "/" ? "root" : route.slice(1).replaceAll("/", "--");
+          await page.screenshot({ path: path.join(evidence, `${viewport.label}--${safeName}.png`), fullPage: true });
+        }
+        console.log(`[${viewport.label}] ${route}`);
       }
-      console.log(`[${viewport.label}] ${route}`);
-    }
     });
   }
 });

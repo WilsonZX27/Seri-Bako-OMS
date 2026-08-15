@@ -102,6 +102,7 @@ test.describe("outlet wastage chart preview", () => {
   });
 
   test("Product Margin keeps the technical table on desktop", async ({ page }) => {
+    await page.setViewportSize({ width: 1600, height: 900 });
     await page.goto("/reports/product-margin", { waitUntil: "domcontentloaded" });
     await expect(page.locator("[data-product-margin-workspace]")).toBeVisible();
     await expect(page.getByRole("region", { name: "Product cost and margin estimates" })).toBeVisible();
@@ -109,6 +110,7 @@ test.describe("outlet wastage chart preview", () => {
   });
 
   test("Procurement Variance keeps its technical comparison table on desktop", async ({ page }) => {
+    await page.setViewportSize({ width: 1600, height: 900 });
     await page.goto("/reports/procurement-variance", { waitUntil: "domcontentloaded" });
     await expect(page.locator("[data-procurement-variance-workspace]")).toBeVisible();
     await expect(page.getByRole("region", { name: "Procurement cost variance" })).toBeVisible();
@@ -121,6 +123,11 @@ test.describe("outlet wastage chart preview", () => {
       await expect(statusRanking.locator("[data-ranking-preview]")).toContainText(/comparable line/i);
       await firstStatus.focus();
       await expect(statusRanking.locator("[data-ranking-preview]")).toBeVisible();
+      const priceRanking = insights.locator("[data-interactive-ranking-chart]").nth(1);
+      if (await priceRanking.count() && await priceRanking.locator("[data-ranking-row]").count()) {
+        await priceRanking.locator("[data-ranking-row]").first().focus();
+        await expect(priceRanking.locator("[data-ranking-open]")).toHaveAttribute("href", /reports\/procurement-variance\?.*search=/);
+      }
     }
   });
 

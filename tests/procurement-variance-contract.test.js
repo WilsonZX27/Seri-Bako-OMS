@@ -53,6 +53,8 @@ test("procurement variance exposes filtered concentration and absolute price ran
   assert.match(charts, /Math\.abs\(row\.price_variance_amount\) > 0\.01 \|\| Math\.abs\(row\.price_variance_percent \?\? 0\) > 0\.02/);
   assert.match(charts, /params\.set\("status", item\.status\.toLowerCase\(\)\.replaceAll\(" ", "_"\)\)/);
   assert.match(charts, /href: `\/reports\/procurement-variance\?\$\{params\.toString\(\)\}`/);
+  assert.match(charts, /params\.set\("search", row\.item_code\)/);
+  assert.match(charts, /Open filters the detail list to that item/);
   assert.match(charts, /InteractiveRankingChart/);
   assert.match(ranking, /idlePrompt/);
   assert.doesNotMatch(charts, /\.insert\(|\.update\(|\.delete\(|\.rpc\(/);

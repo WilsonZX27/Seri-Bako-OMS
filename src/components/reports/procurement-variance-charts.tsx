@@ -51,19 +51,25 @@ export function ProcurementVarianceCharts({ rows, searchParams }: { rows: Procur
     .filter((row) => row.price_variance_amount != null && (Math.abs(row.price_variance_amount) > 0.01 || Math.abs(row.price_variance_percent ?? 0) > 0.02))
     .sort((left, right) => Math.abs(right.price_variance_amount ?? 0) - Math.abs(left.price_variance_amount ?? 0))
     .slice(0, 6)
-    .map((row) => ({
-      id: row.id,
-      label: row.item_name,
-      value: Math.abs(row.price_variance_amount ?? 0),
-      formattedValue: formatCurrency(row.price_variance_amount ?? 0),
-      details: [
-        `${row.item_code} · ${row.supplier}`,
-        `PO ${row.po_no}`,
-        `${((row.price_variance_percent ?? 0) * 100).toFixed(1)}% price variance`,
-        `Qty ${formatNumber(row.ordered_qty)} ordered / ${row.received_qty == null ? "—" : formatNumber(row.received_qty)} received / ${row.invoiced_qty == null ? "—" : formatNumber(row.invoiced_qty)} invoiced`,
-      ],
-      caution: "Absolute size determines rank; the displayed amount keeps its direction",
-    }));
+    .map((row) => {
+      const params = new URLSearchParams();
+      for (const [key, value] of Object.entries(searchParams)) if (value) params.set(key, value);
+      params.set("search", row.item_code);
+      return {
+        id: row.id,
+        label: row.item_name,
+        value: Math.abs(row.price_variance_amount ?? 0),
+        formattedValue: formatCurrency(row.price_variance_amount ?? 0),
+        details: [
+          `${row.item_code} · ${row.supplier}`,
+          `PO ${row.po_no}`,
+          `${((row.price_variance_percent ?? 0) * 100).toFixed(1)}% price variance`,
+          `Qty ${formatNumber(row.ordered_qty)} ordered / ${row.received_qty == null ? "—" : formatNumber(row.received_qty)} received / ${row.invoiced_qty == null ? "—" : formatNumber(row.invoiced_qty)} invoiced`,
+        ],
+        caution: "Absolute size determines rank; the displayed amount keeps its direction",
+        href: `/reports/procurement-variance?${params.toString()}`,
+      };
+    });
 
   return (
     <section className="grid gap-4 lg:grid-cols-2" aria-label="Procurement variance insights" data-procurement-variance-insights>
@@ -91,7 +97,7 @@ export function ProcurementVarianceCharts({ rows, searchParams }: { rows: Procur
             <InteractiveRankingChart
               items={priceItems}
               ariaLabel="Largest procurement price variances"
-              idlePrompt="Hover, tap, or focus an item to preview its linked document values."
+              idlePrompt="Hover, tap, or focus an item to preview its linked document values. Open filters the detail list to that item."
             />
           ) : (
             <p className="px-1 py-3 text-xs text-muted-foreground">No PO-to-GRN price variance above RM 0.01 or 2% exists in this filtered scope.</p>

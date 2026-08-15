@@ -20,7 +20,7 @@ import { getProductionJobs } from "@/server/queries/production-jobs";
 import { hasPermission } from "@/server/auth/permissions";
 import { formatDateOnly, formatDateTime, formatNumber } from "@/lib/utils";
 import { formatStatusLabel } from "@/lib/status-label";
-import { hasActiveFilters, paginateRows } from "@/lib/table-state";
+import { hasActiveFilters } from "@/lib/table-state";
 import { logServerError } from "@/server/observability/logger";
 
 const jobStatuses = [
@@ -33,27 +33,30 @@ const jobStatuses = [
 
 async function loadProductionJobs(filters: Record<string, string | undefined>) {
   try {
-    return await getProductionJobs(filters);
+    return { data: await getProductionJobs(filters), unavailable: false };
   } catch (error) {
     logServerError(error, { source: "page.productionJobs.list" });
-    return paginateRows([], filters.page, 15);
+    return { data: null, unavailable: true };
   }
 }
 
 async function loadBranches() {
   try {
-    return await getBranchesForSelect();
+    return { data: await getBranchesForSelect(), unavailable: false };
   } catch (error) {
     logServerError(error, { source: "page.productionJobs.branchFilter" });
-    return [];
+    return { data: null, unavailable: true };
   }
 }
 
 export default async function ProductionJobsPage({ searchParams }: { searchParams: Promise<Record<string, string | undefined>> }) {
   const filters = await searchParams;
-  const [jobs, allJobs, branches, canCreate] = await Promise.all([loadProductionJobs(filters), loadProductionJobs({ page: "all" }), loadBranches(), hasPermission("production.create")]);
+  const [jobsResult, allJobsResult, branchesResult, canCreate] = await Promise.all([loadProductionJobs(filters), loadProductionJobs({ page: "all" }), loadBranches(), hasPermission("production.create")]);
+  const jobs = jobsResult.data;
+  const allJobs = allJobsResult.data;
+  const branches = branchesResult.data;
   const selectedStatus = filters.status ?? "all";
-  const rows = allJobs.rows;
+  const rows = allJobs?.rows ?? [];
   const countByStatus = (...values: string[]) => rows.filter((row) => values.includes(row.status)).length;
   const insights = [
     { label: "Total", value: rows.length, href: "/production/jobs", active: selectedStatus === "all", icon: FileText },
@@ -81,14 +84,14 @@ export default async function ProductionJobsPage({ searchParams }: { searchParam
           </Button>
         </ConsoleSection> : null}
         <ConsoleSection title="Production Summary">
-          <div className="grid gap-1.5 text-xs">
+          {allJobsResult.unavailable ? <div role="status"><p className="text-xs font-semibold text-[var(--sb-warning)]">Unavailable</p><p className="mt-1 text-xs text-muted-foreground">The current job queue remains independent. Retry to load production totals.</p></div> : <div className="grid gap-1.5 text-xs">
             {insights.map((item) => (
               <div key={item.label} className="flex justify-between px-1 py-0.5">
                 <span className={item.active ? "font-semibold text-foreground" : "text-muted-foreground"}>{item.label}</span>
                 <strong>{item.value}</strong>
               </div>
             ))}
-          </div>
+          </div>}
           </ConsoleSection>
         <ConsoleSection title="Production Tools">
           <div className="grid gap-2">
@@ -103,10 +106,11 @@ export default async function ProductionJobsPage({ searchParams }: { searchParam
         </>}
       >
         <div className="space-y-3">
-            <FilterBar resultCount={jobs.totalRows} resetHref="/production/jobs" filtered={filtered}>
+            <FilterBar resultCount={jobs?.totalRows} resetHref="/production/jobs" filtered={filtered}>
               <Input name="search" defaultValue={filters.search ?? ""} placeholder="Search job no, recipe, output" />
               <StatusTabs statuses={jobStatuses.map(([value, label]) => ({ value, label }))} activeStatus={filters.status} />
-              <SelectControl name="branch_id" defaultValue={filters.branch_id ?? "all"} ariaLabel="Branch" options={[{ value: "all", label: "All branches" }, ...branches.map((branch) => ({ value: branch.id, label: branch.branch_name }))]} />
+              <SelectControl name={branches ? "branch_id" : undefined} defaultValue={branches ? filters.branch_id ?? "all" : "unavailable"} ariaLabel="Branch" disabled={!branches} options={branches ? [{ value: "all", label: "All branches" }, ...branches.map((branch) => ({ value: branch.id, label: branch.branch_name }))] : [{ value: "unavailable", label: "Branch filter unavailable" }]} />
+              {!branches && filters.branch_id ? <input type="hidden" name="branch_id" value={filters.branch_id} /> : null}
               <FilterBarMore activeCount={Number(Boolean(filters.from)) + Number(Boolean(filters.to))} resetHref="/production/jobs"><Input name="from" type="date" defaultValue={filters.from ?? ""} /><Input name="to" type="date" defaultValue={filters.to ?? ""} /></FilterBarMore>
               <Button type="submit">Search</Button>
               {selectedStatus !== "all" ? <input type="hidden" name="status" value={selectedStatus} /> : null}
@@ -130,7 +134,7 @@ export default async function ProductionJobsPage({ searchParams }: { searchParam
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {jobs.rows.map((job) => (
+                  {(jobs?.rows ?? []).map((job) => (
                     <DataGridRow key={job.id} href={`/production/jobs/${job.id}`}>
                       <TableCell className="text-center"><TableActionLink href={`/production/jobs/${job.id}`} label={`Open ${job.production_job_no}`}><Pencil className="h-4 w-4" /></TableActionLink></TableCell>
                       <TableCell><DocumentNumber value={job.production_job_no} size="sm" /></TableCell>
@@ -145,7 +149,7 @@ export default async function ProductionJobsPage({ searchParams }: { searchParam
                       <TableCell>{job.posted_at ? formatDateTime(job.posted_at) : "-"}</TableCell>
                     </DataGridRow>
                   ))}
-                  {!jobs.rows.length ? (
+                  {jobsResult.unavailable ? <TableRow><TableCell colSpan={11}><EmptyState title="Production jobs are unavailable" description="The production service did not respond. Retry this page; no job data was changed." /></TableCell></TableRow> : !jobs?.rows.length ? (
                     <TableRow>
                       <TableCell colSpan={11}>
                         <EmptyState title={filtered ? "No jobs match these filters" : "No production jobs yet"} description={filtered ? `No production jobs match ${formatStatusLabel(selectedStatus)} and the current filters.` : "Production jobs appear after they are created."} action={filtered ? { href: "/production/jobs", label: "Reset filters" } : undefined} />
@@ -155,10 +159,10 @@ export default async function ProductionJobsPage({ searchParams }: { searchParam
                 </TableBody>
               </Table>
               <OperationalList ariaLabel="Production jobs">
-                {jobs.rows.map((job) => <OperationalListRow key={job.id} href={`/production/jobs/${job.id}`} label={`Open ${job.production_job_no}`} primary={<DocumentNumber value={job.production_job_no} size="sm" />} status={<StatusBadge status={job.status} />} secondary={`${job.product_name ?? job.recipe_no ?? "No output"} · ${formatDateOnly(job.production_date)}`} meta={`${formatNumber(job.planned_output_qty)} ${job.output_uom}`} />)}
-                {!jobs.rows.length ? <EmptyState title={filtered ? "No jobs match these filters" : "No production jobs yet"} description={filtered ? "Reset the filters or widen the date range." : "Production jobs appear after they are created."} action={filtered ? { href: "/production/jobs", label: "Reset filters" } : undefined} /> : null}
+                {(jobs?.rows ?? []).map((job) => <OperationalListRow key={job.id} href={`/production/jobs/${job.id}`} label={`Open ${job.production_job_no}`} primary={<DocumentNumber value={job.production_job_no} size="sm" />} status={<StatusBadge status={job.status} />} secondary={`${job.product_name ?? job.recipe_no ?? "No output"} · ${formatDateOnly(job.production_date)}`} meta={`${formatNumber(job.planned_output_qty)} ${job.output_uom}`} />)}
+                {jobsResult.unavailable ? <EmptyState title="Production jobs are unavailable" description="The production service did not respond. Retry this page; no job data was changed." /> : !jobs?.rows.length ? <EmptyState title={filtered ? "No jobs match these filters" : "No production jobs yet"} description={filtered ? "Reset the filters or widen the date range." : "Production jobs appear after they are created."} action={filtered ? { href: "/production/jobs", label: "Reset filters" } : undefined} /> : null}
               </OperationalList>
-            <PaginationControls page={jobs.page} totalPages={jobs.totalPages} totalRows={jobs.totalRows} searchParams={filters} />
+            {jobs ? <PaginationControls page={jobs.page} totalPages={jobs.totalPages} totalRows={jobs.totalRows} searchParams={filters} /> : null}
           </div>
         </div>
       </WorkspaceGrid>

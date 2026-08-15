@@ -17,14 +17,16 @@ import { hasActiveFilters } from "@/lib/table-state";
 import { formatDateOnly } from "@/lib/utils";
 import { hasPermission } from "@/server/auth/permissions";
 import { getStockTransfers } from "@/server/queries/stock-operations";
+import { logServerError } from "@/server/observability/logger";
 
 const statuses = ["draft", "in_transit", "completed", "rejected", "cancelled"];
 
 export default async function StockTransfersPage({ searchParams }: { searchParams: Promise<Record<string, string | undefined>> }) {
   const filters = await searchParams;
-  const [data, allData, canCreate] = await Promise.all([getStockTransfers(filters), getStockTransfers({ page: "all" }), hasPermission("stock_transfer.create")]);
-  const rows = allData.rows;
-  const count = (...values: string[]) => rows.filter((row) => values.includes(row.status)).length;
+  const [data, canCreate, [allDataResult]] = await Promise.all([getStockTransfers(filters), hasPermission("stock_transfer.create"), Promise.allSettled([getStockTransfers({ page: "all" })])]);
+  if (allDataResult.status === "rejected") logServerError(allDataResult.reason, { source: "page.stockTransfers.summary" });
+  const rows = allDataResult.status === "fulfilled" ? allDataResult.value.rows : null;
+  const count = (...values: string[]) => (rows ?? []).filter((row) => values.includes(row.status)).length;
   const filtered = hasActiveFilters(filters);
   const emptyAction = filtered ? { href: "/stock-transfers", label: "Reset filters" } : canCreate ? { href: "/stock-transfers/new", label: "New Transfer" } : undefined;
 
@@ -32,7 +34,7 @@ export default async function StockTransfersPage({ searchParams }: { searchParam
     <PageHeader title="Stock Transfers" description="Send stock into transit, then record the quantity the destination actually receives." />
     <WorkspaceGrid hideMobileConsole={!canCreate} tabletRailMode="split" rightRail={<>
       <ConsoleSection title="Actions">{canCreate ? <Button asChild className="w-full" data-mobile-primary-action><Link href="/stock-transfers/new">New Transfer</Link></Button> : <p className="text-xs text-muted-foreground">Your role has read-only access.</p>}</ConsoleSection>
-      <ConsoleSection title="Transfer Summary"><dl className="grid gap-2 text-xs"><div className="flex justify-between"><dt className="text-muted-foreground">Total</dt><dd className="font-semibold">{rows.length}</dd></div><div className="flex justify-between"><dt className="text-muted-foreground">Draft</dt><dd className="font-semibold">{count("draft")}</dd></div><div className="flex justify-between"><dt className="text-muted-foreground">In transit</dt><dd className="font-semibold">{count("in_transit")}</dd></div><div className="flex justify-between"><dt className="text-muted-foreground">Completed</dt><dd className="font-semibold">{count("completed")}</dd></div></dl></ConsoleSection>
+      <ConsoleSection title="Transfer Summary">{rows ? <dl className="grid gap-2 text-xs"><div className="flex justify-between"><dt className="text-muted-foreground">Total</dt><dd className="font-semibold">{rows.length}</dd></div><div className="flex justify-between"><dt className="text-muted-foreground">Draft</dt><dd className="font-semibold">{count("draft")}</dd></div><div className="flex justify-between"><dt className="text-muted-foreground">In transit</dt><dd className="font-semibold">{count("in_transit")}</dd></div><div className="flex justify-between"><dt className="text-muted-foreground">Completed</dt><dd className="font-semibold">{count("completed")}</dd></div></dl> : <div role="status"><p className="text-xs font-semibold text-[var(--sb-warning)]">Unavailable</p><p className="mt-1 text-xs text-muted-foreground">The transfer queue remains current. Retry to load transfer totals.</p></div>}</ConsoleSection>
     </>}>
       <div className="overflow-hidden rounded-[2px] border bg-card">
         <FilterBar resultCount={data.totalRows} resetHref="/stock-transfers" filtered={filtered}><Input name="search" defaultValue={filters.search ?? ""} placeholder="Search transfer no, branch, remarks" /><StatusTabs statuses={statuses} activeStatus={filters.status} />{filters.status ? <input type="hidden" name="status" value={filters.status} /> : null}<Button type="submit">Search</Button></FilterBar>

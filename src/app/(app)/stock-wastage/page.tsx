@@ -19,14 +19,16 @@ import { hasActiveFilters } from "@/lib/table-state";
 import { wastageReasons } from "@/lib/validations/stock-operations";
 import { hasPermission } from "@/server/auth/permissions";
 import { getStockWastage } from "@/server/queries/stock-operations";
+import { logServerError } from "@/server/observability/logger";
 
 const statuses = ["draft", "submitted", "approved", "posted", "rejected", "cancelled"];
 
 export default async function StockWastagePage({ searchParams }: { searchParams: Promise<Record<string, string | undefined>> }) {
   const filters = await searchParams;
-  const [data, allData, canCreate] = await Promise.all([getStockWastage(filters), getStockWastage({ page: "all" }), hasPermission("stock_wastage.create")]);
-  const rows = allData.rows;
-  const count = (...values: string[]) => rows.filter((row) => values.includes(row.status)).length;
+  const [data, canCreate, [allDataResult]] = await Promise.all([getStockWastage(filters), hasPermission("stock_wastage.create"), Promise.allSettled([getStockWastage({ page: "all" })])]);
+  if (allDataResult.status === "rejected") logServerError(allDataResult.reason, { source: "page.stockWastage.summary" });
+  const rows = allDataResult.status === "fulfilled" ? allDataResult.value.rows : null;
+  const count = (...values: string[]) => (rows ?? []).filter((row) => values.includes(row.status)).length;
   const filtered = hasActiveFilters(filters);
   const emptyAction = filtered ? { href: "/stock-wastage", label: "Reset filters" } : canCreate ? { href: "/stock-wastage/new", label: "New Wastage" } : undefined;
 
@@ -34,7 +36,7 @@ export default async function StockWastagePage({ searchParams }: { searchParams:
     <PageHeader title="Stock Wastage" description="Record expired, damaged, missing, or abnormal stock loss." action={canCreate ? { href: "/stock-wastage/new", label: "New wastage" } : undefined} />
     <WorkspaceGrid hideMobileConsole={!canCreate} tabletRailMode="split" rightRail={<>
       <ConsoleSection title="Actions">{canCreate ? <Button asChild className="w-full" data-mobile-primary-action><Link href="/stock-wastage/new">New Wastage</Link></Button> : <p className="text-xs text-muted-foreground">Your role has read-only access.</p>}</ConsoleSection>
-      <ConsoleSection title="Wastage Summary"><dl className="grid gap-2 text-xs"><div className="flex justify-between"><dt className="text-muted-foreground">Total</dt><dd className="font-semibold">{rows.length}</dd></div><div className="flex justify-between"><dt className="text-muted-foreground">In review</dt><dd className="font-semibold">{count("submitted", "approved")}</dd></div><div className="flex justify-between"><dt className="text-muted-foreground">Posted</dt><dd className="font-semibold">{count("posted")}</dd></div></dl></ConsoleSection>
+      <ConsoleSection title="Wastage Summary">{rows ? <dl className="grid gap-2 text-xs"><div className="flex justify-between"><dt className="text-muted-foreground">Total</dt><dd className="font-semibold">{rows.length}</dd></div><div className="flex justify-between"><dt className="text-muted-foreground">In review</dt><dd className="font-semibold">{count("submitted", "approved")}</dd></div><div className="flex justify-between"><dt className="text-muted-foreground">Posted</dt><dd className="font-semibold">{count("posted")}</dd></div></dl> : <div role="status"><p className="text-xs font-semibold text-[var(--sb-warning)]">Unavailable</p><p className="mt-1 text-xs text-muted-foreground">The wastage queue remains current. Retry to load wastage totals.</p></div>}</ConsoleSection>
     </>}>
       <div className="space-y-3">
         <FilterBar resultCount={data.totalRows} resetHref="/stock-wastage" filtered={filtered}><Input name="search" defaultValue={filters.search ?? ""} placeholder="Search wastage no, reason, branch" /><StatusTabs statuses={statuses} activeStatus={filters.status} /><SelectControl name="reason" defaultValue={filters.reason ?? "all"} ariaLabel="Reason" options={[{ value: "all", label: "All reasons" }, ...wastageReasons.map((reason) => ({ value: reason, label: reason.replaceAll("_", " ") }))]} /><FilterBarMore activeCount={Number(Boolean(filters.from)) + Number(Boolean(filters.to))} resetHref="/stock-wastage"><Input name="from" type="date" defaultValue={filters.from ?? ""} aria-label="From date" /><Input name="to" type="date" defaultValue={filters.to ?? ""} aria-label="To date" /></FilterBarMore>{filters.status ? <input type="hidden" name="status" value={filters.status} /> : null}<Button type="submit">Search</Button></FilterBar>

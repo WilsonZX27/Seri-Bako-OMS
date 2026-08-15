@@ -100,6 +100,24 @@ test("shared operational feedback uses semantic state tokens instead of one-off 
   assert.match(authSetPassword, /<Notice tone="warning"/);
 });
 
+test("administration decision directories replace narrow tables with shared operational lists", () => {
+  const cleanup = read("src/app/(app)/administration/master-data-cleanup/page.tsx");
+  const sequences = read("src/app/(app)/document-sequences/page.tsx");
+  const staffs = read("src/app/(app)/staffs/page.tsx");
+
+  assert.match(cleanup, /<Table mobileHidden stickyColumn="second" aria-label="Master data cleanup issues">/);
+  assert.match(cleanup, /<OperationalList ariaLabel="Master data cleanup issues">/);
+  assert.match(cleanup, /Next: \{issue\.action\}/);
+  assert.match(sequences, /<Table mobileHidden aria-label="Document sequences"/);
+  assert.match(sequences, /<OperationalList ariaLabel="Document sequences">/);
+  assert.match(sequences, /Current period \$\{sequence\.preview_number/);
+  assert.match(sequences, /Next \$\{sequence\.next_number\}/);
+  assert.match(staffs, /<Table mobileHidden aria-label="Staff members"/);
+  assert.match(staffs, /<OperationalList ariaLabel="Staff members">/);
+  assert.match(staffs, /staffAuthStateLabels\[getStaffAuthState\(staff\)\]/);
+  assert.match(staffs, /staff\.default_branch_name \?\? "No default branch"/);
+});
+
 test("administration and import directories use the shared flat operational tool list", () => {
   assert.equal(fs.existsSync("src/components/category-card-grid.tsx"), false);
   assert.match(administration, /<WorkspaceGrid tabletCanvas="contained">/);

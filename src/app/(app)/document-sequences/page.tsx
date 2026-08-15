@@ -3,7 +3,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { MasterDataFilters } from "@/components/master-data-filters";
 import { PageHeader } from "@/components/ui/page-header";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { OperationalList, OperationalListRow, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { TableActionLink } from "@/components/ui/table";
 import { hasPermission } from "@/server/auth/permissions";
 import { getDocumentSequences } from "@/server/queries/foundation";
@@ -33,7 +33,7 @@ export default async function DocumentSequencesPage({ searchParams }: { searchPa
         <div className="space-y-3">
           <MasterDataFilters search={filters.search} status={filters.status} placeholder="Search document type, prefix, or preview number" resultCount={sequences.length} filtered={filtered} resetHref="/document-sequences" />
           <div className="sb-list-content-card overflow-hidden">
-            <Table aria-label="Document sequences" stickyColumn={canUpdate ? "second" : "first"}>
+            <Table mobileHidden aria-label="Document sequences" stickyColumn={canUpdate ? "second" : "first"}>
               <TableHeader>
                 <TableRow>
                   {canUpdate ? <TableHead className="w-12 text-center">Action</TableHead> : null}
@@ -62,6 +62,7 @@ export default async function DocumentSequencesPage({ searchParams }: { searchPa
                 {!sequences.length ? <TableRow><TableCell colSpan={canUpdate ? 8 : 7} className="text-center text-muted-foreground">No document sequences found.</TableCell></TableRow> : null}
               </TableBody>
             </Table>
+            <OperationalList ariaLabel="Document sequences">{sequences.map((sequence) => <OperationalListRow key={sequence.id} href={canUpdate ? `/document-sequences/${sequence.id}` : undefined} label={`Open ${documentTypeLabel(sequence.document_type)}`} primary={documentTypeLabel(sequence.document_type)} status={<Badge variant={sequence.status === "active" ? "success" : "secondary"}>{sequence.status}</Badge>} secondary={`${sequence.prefix} · ${sequence.preview_number}`} detail={`Reset ${sequence.reset_frequency === "never" ? "never" : sequence.reset_frequency} · Current period ${sequence.preview_number.split("/")[1] ?? "Not applicable"}`} meta={`Next ${sequence.next_number}`} />)}{!sequences.length ? <div className="px-3 py-8 text-center text-sm text-muted-foreground">No document sequences found.</div> : null}</OperationalList>
           </div>
         </div>
       </WorkspaceGrid>

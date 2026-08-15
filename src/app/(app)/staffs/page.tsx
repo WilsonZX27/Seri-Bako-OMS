@@ -8,7 +8,7 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { MasterDataFilters } from "@/components/master-data-filters";
 import { PageHeader } from "@/components/ui/page-header";
 import { StatusTabs } from "@/components/status-tabs";
-import { Table, TableActionLink, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { OperationalList, OperationalListRow, Table, TableActionLink, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { getStaffs } from "@/server/queries/foundation";
 import { ConsoleSection } from "@/components/layout/right-console";
@@ -48,7 +48,7 @@ export default async function StaffsPage({ searchParams }: { searchParams: Promi
           ]}
         />
         <DataGridHint text="Pro-tip: Double-click any row to open the staff profile." />
-          <Table aria-label="Staff members" stickyColumn="second"><TableHeader><TableRow>
+          <Table mobileHidden aria-label="Staff members" stickyColumn="second"><TableHeader><TableRow>
           <TableHead className="w-16 text-center">Action</TableHead><TableHead>Staff Code</TableHead><TableHead>Name</TableHead><TableHead className="hidden lg:table-cell">Email</TableHead><TableHead className="hidden lg:table-cell">Default Branch</TableHead><TableHead>Role</TableHead><TableHead>Staff Status</TableHead><TableHead className="hidden md:table-cell">Account Status</TableHead>
         </TableRow></TableHeader><TableBody>
           {staffs.map((staff) => (
@@ -65,6 +65,7 @@ export default async function StaffsPage({ searchParams }: { searchParams: Promi
           ))}
           {!staffs.length ? <TableRow><TableCell colSpan={8}><EmptyState title="No staff found" description="Staff accounts will appear here after they are invited or created." action={{ href: "/staffs/new", label: "New staff" }} /></TableCell></TableRow> : null}
         </TableBody></Table>
+        <OperationalList ariaLabel="Staff members">{staffs.map((staff) => <OperationalListRow key={staff.id} href={`/staffs/${staff.id}`} label={`Open ${staff.full_name}`} primary={staff.full_name} status={<StatusBadge status={staff.status} />} statusMeta={staffAuthStateLabels[getStaffAuthState(staff)]} secondary={`${staff.staff_code?.toUpperCase() ?? "No staff code"} · ${staff.role_name ?? "No role"}`} detail={`${staff.email ?? "No email"} · ${staff.default_branch_name ?? "No default branch"}`} meta="Open profile" />)}{!staffs.length ? <EmptyState title="No staff found" description="Staff accounts will appear here after they are invited or created." action={{ href: "/staffs/new", label: "New staff" }} /> : null}</OperationalList>
       </div></WorkspaceGrid>
     </>
   );

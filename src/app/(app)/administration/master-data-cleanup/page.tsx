@@ -9,7 +9,7 @@ import { MetricStrip } from "@/components/ui/metric-strip";
 import { PageHeader } from "@/components/ui/page-header";
 import { SelectControl } from "@/components/ui/select-control";
 import { FilterBar } from "@/components/ui/filter-bar";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { OperationalList, OperationalListRow, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { getMasterDataCleanup } from "@/server/queries/master-data-cleanup";
 import { hasActiveFilters } from "@/lib/table-state";
 
@@ -41,10 +41,11 @@ export default async function MasterDataCleanupPage({ searchParams }: { searchPa
             <SelectControl name="module" defaultValue={filters.module ?? "all"} ariaLabel="Module" options={[{ value: "all", label: "All modules" }, { value: "item", label: "Items" }, { value: "product", label: "Products" }, { value: "supplier", label: "Suppliers" }]} />
             <Button type="submit">Filter</Button>
           </FilterBar>
-          <Table stickyColumn="second" aria-label="Master data cleanup issues">
+          <Table mobileHidden stickyColumn="second" aria-label="Master data cleanup issues">
             <TableHeader><TableRow><TableHead className="w-20 text-center">Open</TableHead><TableHead>Severity</TableHead><TableHead>Module</TableHead><TableHead>Issue</TableHead><TableHead>Record</TableHead><TableHead>Suggested manual action</TableHead></TableRow></TableHeader>
             <TableBody>{report.issues.map((issue) => <TableRow key={issue.id}><TableCell className="text-center"><Button asChild variant="outline" size="sm"><Link href={issue.href}>Open</Link></Button></TableCell><TableCell><Badge variant={severityVariant[issue.severity]}>{issue.severity}</Badge></TableCell><TableCell className="capitalize">{issue.module}</TableCell><TableCell className="font-medium">{issue.issueType}</TableCell><TableCell>{issue.record}</TableCell><TableCell className="text-muted-foreground">{issue.action}</TableCell></TableRow>)}{!report.issues.length ? <TableRow><TableCell colSpan={6}><EmptyState title="No matching cleanup issues" description="Try another filter, or the visible master data is complete for these checks." /></TableCell></TableRow> : null}</TableBody>
           </Table>
+          <OperationalList ariaLabel="Master data cleanup issues">{report.issues.map((issue) => <OperationalListRow key={issue.id} href={issue.href} label={`Open ${issue.record}`} primary={issue.record} status={<Badge variant={severityVariant[issue.severity]}>{issue.severity}</Badge>} statusMeta={<span className="capitalize">{issue.module}</span>} secondary={issue.issueType} detail={<>Next: {issue.action}</>} meta="Open record" />)}{!report.issues.length ? <EmptyState title="No matching cleanup issues" description="Try another filter, or the visible master data is complete for these checks." /> : null}</OperationalList>
         </section>
       </div>}
     </WorkspaceGrid>

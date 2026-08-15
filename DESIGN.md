@@ -1,6 +1,6 @@
 # Seri Bako OMS responsive design standard
 
-> **Release authority:** the currently released application is `v8.36.77`, as
+> **Release authority:** the currently released application is `v8.36.78`, as
 > defined by `src/lib/app-version.ts`. A versioned section above that number is
 > an accepted forward design contract or unreleased implementation note—not
 > evidence that the application itself has been released at that version.
@@ -10,6 +10,12 @@
 > **Precedence:** `docs/DESIGN_SYSTEM.md` is the living visual and interaction contract. When a historical release note or an older rule in this file conflicts with that contract, the living contract wins. Update both documents when a new pattern is accepted; do not preserve a visibly weaker rule for compatibility.
 
 This document is the implementation contract for every customer-facing route, form, record workspace, table, panel, dialog, and mobile action bar. It applies to new work and to refactoring of existing UI.
+
+## v8.36.78 — Filter-first Recipe Costing Insights
+
+- Recipe Costing now follows one report hierarchy: scope filters, preview-first confidence and cost rankings, then the complete desktop table and phone list.
+- Rankings live inside the same workspace and contextual-rail boundary as their defining filters, so a filtered cost view no longer appears visually detached from its scope.
+- The page source is decompressed into maintainable semantic sections without changing cost authority, confidence rules, empty states, recipe links, or read-only behavior.
 
 ## v8.36.77 — Filter-first Product Margin Insights
 

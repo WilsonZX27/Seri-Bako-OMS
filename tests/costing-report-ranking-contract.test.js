@@ -43,4 +43,11 @@ test("recipe costing ranks only usable cost authority and preserves Low as incom
   assert.match(ranking, /onFocus/);
   assert.match(ranking, /aria-pressed/);
   assert.match(ranking, /data-ranking-open/);
+
+  const workspace = page.indexOf("data-recipe-costing-workspace");
+  const filters = page.indexOf("<FilterBar", workspace);
+  const charts = page.indexOf("<RecipeCostingInsights", workspace);
+  const detail = page.indexOf("<section className=\"sb-list-content-card", workspace);
+  assert.ok(workspace >= 0 && filters > workspace && charts > filters && detail > charts, "Recipe Costing must keep filters, insights, and detail in one ordered workspace");
+  assert.doesNotMatch(page, /px-3 pt-3 sm:px-4[^>]*><RecipeCostingInsights/);
 });

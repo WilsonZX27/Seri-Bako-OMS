@@ -58,6 +58,12 @@ test("active staff, permissions, company and assigned branch are checked inside 
   assert.equal((sql.match(/set search_path = public/g) ?? []).length, 3);
 });
 
+test("completed outlet records use the operator-facing Posted label", () => {
+  const statusLabels = read("src/lib/status-label.ts");
+  assert.match(statusLabels, /evening_completed: "Posted"/);
+  assert.match(read("src/app/(app)/outlet-daily-records/page.tsx"), /status === "evening_completed" \? "Posted · editable"/);
+});
+
 test("new outlet daily saves route existing outlet-days back to their authoritative record", () => {
   const action = read("src/server/actions/outlet-daily-records.ts");
   assert.match(action, /\.from\("outlet_daily_records"\)[\s\S]*\.eq\("branch_id", payload\.branch_id\)[\s\S]*\.eq\("record_date", payload\.record_date\)/);

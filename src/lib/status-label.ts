@@ -29,6 +29,7 @@ const statusLabels: Record<string, string> = {
   disabled: "Disabled",
   short: "Short",
   available: "Available",
+  evening_completed: "Posted",
   critical: "Critical",
   need_repair: "Need Repair",
   active: "Active",

@@ -4,10 +4,9 @@
 
 ### Current audit baseline
 
-The current released application baseline is `v8.46.0 — Supplier Mapping UOM Validation`.
+The current released application baseline is `v8.47.0 — Unavailable Counters Stay Explicit`.
 
-The current released application baseline is `v8.45.0 — Unverified Stock Counts Stay Blank`.
-The line below is retained as historical release context; the current authority is the v8.46.0 line above.
+The lines below are retained as historical release context; the current authority is the v8.47.0 line above.
 The repository migration history currently runs through migration `149`. Release
 version authority lives in `src/lib/app-version.ts`; migration authority lives in
 the immutable, forward-only `supabase/migrations/` directory. Documentation must

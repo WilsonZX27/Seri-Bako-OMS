@@ -7,6 +7,10 @@ const source = fs.readFileSync(
   path.join(__dirname, "..", "src", "app", "(app)", "procurement", "page.tsx"),
   "utf8",
 );
+const query = fs.readFileSync(
+  path.join(__dirname, "..", "src", "server", "queries", "procurement.ts"),
+  "utf8",
+);
 
 test("procurement mobile hub preserves role and permission isolation", () => {
   assert.match(source, /module\.roles\.includes\(insights\.role as never\)/);
@@ -27,4 +31,11 @@ test("procurement redesign is phone-only and keeps the desktop workspace", () =>
   assert.match(source, /aria-labelledby="procurement-queue"[\s\S]*className="[^\"]*hidden[^\"]*md:block/);
   assert.match(source, /<WorkspaceGrid[\s\S]*?rightRail=/);
   assert.match(source, /pb-24 md:pb-0/);
+});
+
+test("procurement insight query never converts a failed counter into zero", () => {
+  assert.match(query, /result\.error \? null : result\.count \?\? 0/);
+  assert.match(query, /unavailable: results\.some/);
+  assert.match(source, /Some procurement counters are temporarily unavailable/);
+  assert.match(source, /displayCounterValue/);
 });

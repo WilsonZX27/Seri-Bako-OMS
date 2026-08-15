@@ -22,6 +22,7 @@ export default async function ProcurementPage() {
     getPermissionMap([...modules.map((module) => module.permission), "purchase_request.create"]),
   ]);
   const visibleModules = modules.filter((module) => module.roles.includes(insights.role as never) && permissions[module.permission]);
+  const displayCounterValue = (value: number | null) => value === null ? "Unavailable" : value;
   const countersByRole = {
     super_admin: [
       { label: "Manager review", value: insights.managerReview, href: "/purchase-requests?status=manager_review" },
@@ -85,8 +86,8 @@ export default async function ProcurementPage() {
                 : { href: primaryModule?.href ?? "/dashboard", label: `Open ${primaryModule?.label ?? "workspace"}` }}
               metrics={counters.map((counter) => ({
                 label: counter.label,
-                value: counter.value,
-                tone: counter.value > 0 && counter.label !== "Receiving today" && counter.label !== "Sent purchase orders" ? "warning" : "default",
+                value: displayCounterValue(counter.value),
+                tone: counter.value !== null && counter.value > 0 && counter.label !== "Receiving today" && counter.label !== "Sent purchase orders" ? "warning" : "default",
               }))}
               queueTitle="My work queue"
               queueDescription="Role-specific document states that may need action today."
@@ -96,9 +97,9 @@ export default async function ProcurementPage() {
                   href: counter.href,
                   title: counter.label,
                   description: presentation.description,
-                  value: counter.value,
+                  value: displayCounterValue(counter.value),
                   icon: presentation.icon,
-                  tone: counter.value > 0 && counter.label !== "Receiving today" && counter.label !== "Sent purchase orders" ? "warning" : "default",
+                  tone: counter.value !== null && counter.value > 0 && counter.label !== "Receiving today" && counter.label !== "Sent purchase orders" ? "warning" : "default",
                 };
               })}
               toolsTitle="Procurement tools"
@@ -110,10 +111,11 @@ export default async function ProcurementPage() {
               }))}
             />
           </div>
+          {insights.unavailable ? <p role="status" className="border border-warning/35 bg-warning/10 px-3 py-2 text-xs text-warning">Some procurement counters are temporarily unavailable. The linked queues remain the source of truth; retry to refresh the summary.</p> : null}
           <section aria-labelledby="procurement-overview" className="sb-work-surface hidden overflow-hidden shadow-[var(--sb-shadow-card)] md:block">
             <div className="border-b px-4 py-3"><h2 id="procurement-overview" className="text-sm font-semibold">Purchasing pipeline</h2></div>
             <div className="grid divide-y sm:grid-cols-2 sm:divide-x sm:divide-y-0 xl:grid-cols-4">
-              {counters.map((counter) => { const presentation = counterPresentation[counter.label]; const Icon = presentation.icon; return <Link key={counter.label} href={counter.href} className="group flex min-h-20 flex-col justify-between gap-2 px-3 py-3 transition-colors hover:bg-secondary/40 sm:px-4"><span className="flex items-center gap-2 text-xs text-muted-foreground"><span className="grid h-7 w-7 place-items-center rounded-[var(--sb-radius-control)] bg-[var(--sb-surface-muted)] text-[var(--sb-green-900)]"><Icon className="h-4 w-4" /></span><span className="leading-4">{counter.label}</span></span><strong className="font-mono text-lg tabular-nums sm:text-xl">{counter.value}</strong></Link>; })}
+              {counters.map((counter) => { const presentation = counterPresentation[counter.label]; const Icon = presentation.icon; return <Link key={counter.label} href={counter.href} className="group flex min-h-20 flex-col justify-between gap-2 px-3 py-3 transition-colors hover:bg-secondary/40 sm:px-4"><span className="flex items-center gap-2 text-xs text-muted-foreground"><span className="grid h-7 w-7 place-items-center rounded-[var(--sb-radius-control)] bg-[var(--sb-surface-muted)] text-[var(--sb-green-900)]"><Icon className="h-4 w-4" /></span><span className="leading-4">{counter.label}</span></span><strong className={`font-mono text-lg tabular-nums sm:text-xl ${counter.value === null ? "text-warning" : ""}`}>{displayCounterValue(counter.value)}</strong></Link>; })}
             </div>
           </section>
           <section aria-labelledby="procurement-queue" className="sb-work-surface hidden overflow-hidden shadow-[var(--sb-shadow-card)] md:block">

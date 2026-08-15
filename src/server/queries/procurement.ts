@@ -47,6 +47,22 @@ export type PurchaseOrderRow = PurchaseOrder & {
   order_total: number;
 };
 
+export type ProcurementWorkspaceInsights = {
+  role: string;
+  draftPr: number | null;
+  submittedPr: number | null;
+  managerReview: number | null;
+  purchasingReview: number | null;
+  financeReview: number | null;
+  readyToConvert: number | null;
+  draftPo: number | null;
+  pendingPoApproval: number | null;
+  sentPo: number | null;
+  receivingToday: number | null;
+  invoiceFollowup: number | null;
+  unavailable: boolean;
+};
+
 function filterRows<T extends Record<string, unknown>>(rows: T[], filters: Filters, keys: (keyof T)[], defaultSort: keyof T) {
   const search = filters.search?.trim().toLowerCase();
   const status = filters.status && filters.status !== "all" ? filters.status : null;
@@ -319,7 +335,7 @@ export async function getPurchaseRequestForOrder(purchaseRequestId: string | nul
   return data as PurchaseRequest | null;
 }
 
-export async function getProcurementWorkspaceInsights() {
+export async function getProcurementWorkspaceInsights(): Promise<ProcurementWorkspaceInsights> {
   if (isMockMode()) {
     return {
       role: "super_admin",
@@ -334,6 +350,7 @@ export async function getProcurementWorkspaceInsights() {
       sentPo: mockPurchaseOrders.filter((order) => order.status === "sent").length,
       receivingToday: 0,
       invoiceFollowup: 0,
+      unavailable: false,
     };
   }
 
@@ -357,7 +374,8 @@ export async function getProcurementWorkspaceInsights() {
     canSeeFinance ? supabase.from("supplier_invoices").select("id", { count: "exact", head: true }).in("status", ["open", "partially_paid"]).is("deleted_at", null) : Promise.resolve({ count: 0, error: null }),
   ]);
 
-  const value = (result: { count: number | null; error: unknown }) => result.error ? 0 : result.count ?? 0;
+  const value = (result: { count: number | null; error: unknown }) => result.error ? null : result.count ?? 0;
+  const results = [draftPr, submittedPr, managerReview, purchasingReview, financeReview, readyToConvert, draftPo, pendingPoApproval, sentPo, receivingToday, invoiceFollowup];
   return {
     role: scope?.roleCode ?? "outlet_staff",
     draftPr: value(draftPr),
@@ -371,5 +389,6 @@ export async function getProcurementWorkspaceInsights() {
     sentPo: value(sentPo),
     receivingToday: value(receivingToday),
     invoiceFollowup: value(invoiceFollowup),
+    unavailable: results.some((result) => Boolean(result.error)),
   };
 }

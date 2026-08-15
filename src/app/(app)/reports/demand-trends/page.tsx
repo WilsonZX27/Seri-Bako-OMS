@@ -42,8 +42,8 @@ export default async function DemandTrendsPage({ searchParams }: { searchParams:
       <MetricStrip items={[{ label: "Received", value: formatNumber(report.summary.received) }, { label: "Leftover", value: formatNumber(report.summary.leftover) }, { label: "Wastage", value: formatNumber(report.summary.wastage) }, { label: "Estimated movement", value: formatNumber(report.summary.movement) }, { label: "Wastage %", value: `${formatNumber(report.summary.wastage_percent)}%` }, { label: "Coverage", value: `${formatNumber(report.coverage.percent)}%` }]} className="grid-cols-3 lg:grid-cols-6" />
       <DemandTrendChart rows={report.daily} />
       <div className="grid gap-4 lg:grid-cols-2">
-        <DemandRankingChart title="Top moving products" description="Six highest estimated movements in the current scope." rows={report.top_moving_products} metric="movement" />
-        <DemandRankingChart title="Top wastage products" description="Six highest wastage quantities in the current scope." rows={report.top_wastage_products} metric="wastage" />
+        <DemandRankingChart title="Top moving products" description="Six highest estimated movements in the current scope." rows={report.top_moving_products} metric="movement" searchParams={{ period: report.filters.period, branch: report.filters.branch, status: report.filters.status }} />
+        <DemandRankingChart title="Top wastage products" description="Six highest wastage quantities in the current scope." rows={report.top_wastage_products} metric="wastage" searchParams={{ period: report.filters.period, branch: report.filters.branch, status: report.filters.status }} />
       </div>
       <TrendTable title="Top Moving Products" rows={report.top_moving_products} empty="No completed or reviewed product lines match the current filters." collapsible />
       <TrendTable title="Top Wastage Products" rows={report.top_wastage_products} empty="No wastage data is available for the current filters." collapsible />

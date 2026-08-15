@@ -31,6 +31,7 @@ test("Top movement and wastage use touch-friendly ranking previews with progress
 
   assert.match(page, /metric="movement"/);
   assert.match(page, /metric="wastage"/);
+  assert.match(page, /searchParams=\{\{ period: report\.filters\.period, branch: report\.filters\.branch, status: report\.filters\.status \}\}/);
   assert.match(page, /collapsible \/>/);
   assert.match(ranking, /onMouseEnter/);
   assert.match(ranking, /onMouseLeave/);
@@ -44,4 +45,9 @@ test("Top movement and wastage use touch-friendly ranking previews with progress
   assert.match(ranking, /item\.value <= 0 \? 0 : Math\.max\(3,/);
   assert.doesNotMatch(ranking, /<Link key=\{item\.id\} href=\{item\.href\}/);
   assert.match(ranking, /truncate/);
+
+  const chart = read("src/components/reports/demand-ranking-chart.tsx");
+  assert.match(chart, /params\.set\("product", row\.id\)/);
+  assert.match(chart, /href: `\/reports\/demand-trends\?\$\{params\.toString\(\)\}`/);
+  assert.match(chart, /Open applies that product to the report detail/);
 });

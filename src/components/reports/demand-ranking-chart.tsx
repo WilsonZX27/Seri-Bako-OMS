@@ -21,15 +21,21 @@ export function DemandRankingChart({
   description,
   rows,
   metric,
+  searchParams,
 }: {
   title: string;
   description: string;
   rows: DemandRankingRow[];
   metric: "movement" | "wastage";
+  searchParams: Record<string, string | undefined>;
 }) {
   if (!rows.length) return null;
 
-  const items = rows.slice(0, 6).map((row) => ({
+  const items = rows.slice(0, 6).map((row) => {
+    const params = new URLSearchParams();
+    for (const [key, value] of Object.entries(searchParams)) if (value) params.set(key, value);
+    params.set("product", row.id);
+    return {
     id: row.id,
     label: row.name,
     value: row[metric],
@@ -45,7 +51,9 @@ export function DemandRankingChart({
       : row.low_sample
         ? `Low sample · ${row.completed_records ?? 0} completed record(s)`
         : undefined,
-  }));
+    href: `/reports/demand-trends?${params.toString()}`,
+  };
+  });
 
   return (
     <section className="overflow-hidden border bg-card" data-demand-ranking-chart={metric}>
@@ -54,7 +62,7 @@ export function DemandRankingChart({
         <p className="mt-0.5 text-xs text-muted-foreground">{description}</p>
       </div>
       <div className="p-2.5 sm:p-3">
-        <InteractiveRankingChart items={items} ariaLabel={title} idlePrompt="Hover, tap, or focus a product to preview its complete values." />
+        <InteractiveRankingChart items={items} ariaLabel={title} idlePrompt="Hover, tap, or focus a product to preview its complete values. Open applies that product to the report detail." />
       </div>
     </section>
   );

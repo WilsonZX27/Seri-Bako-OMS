@@ -395,9 +395,16 @@ export function PurchaseOrderForm({
   const [selectedItemIds, setSelectedItemIds] = useState<string[]>([""]);
   const [selectedItemUoms, setSelectedItemUoms] = useState<string[]>([""]);
   const [supplierId, setSupplierId] = useState("");
-  const selectedItems = selectedItemIds.filter(Boolean);
-  const eligibleSupplierIds = [...new Set(supplierMappings.filter((mapping) => mapping.branch_id === branchId && selectedItems.every((itemId) => supplierMappings.some((candidate) => candidate.branch_id === branchId && candidate.item_id === itemId && candidate.supplier_id === mapping.supplier_id))).map((mapping) => mapping.supplier_id))];
+  const selectedItemPairs = selectedItemIds.map((itemId, index) => ({ itemId, index })).filter((row) => Boolean(row.itemId));
+  const selectedItems = selectedItemPairs.map((row) => row.itemId);
+  const mappingCoversItem = (itemId: string, index: number, candidateSupplierId: string) => {
+    const requestedUom = normalizeUom(selectedItemUoms[index] || preferredUom(itemId));
+    return supplierMappings.some((mapping) => mapping.branch_id === branchId && mapping.item_id === itemId && mapping.supplier_id === candidateSupplierId && normalizeUom(mapping.purchase_uom) === requestedUom);
+  };
+  const eligibleSupplierIds = [...new Set(supplierMappings.filter((mapping) => mapping.branch_id === branchId && selectedItemPairs.every(({ itemId, index }) => mappingCoversItem(itemId, index, mapping.supplier_id))).map((mapping) => mapping.supplier_id))];
   const eligibleSuppliers = eligibleSupplierIds.map((id) => supplierMappings.find((mapping) => mapping.branch_id === branchId && mapping.supplier_id === id)).filter((mapping): mapping is BranchSupplierMappingOption => Boolean(mapping));
+  const uncoveredItems = selectedItemPairs.filter(({ itemId, index }) => !supplierMappings.some((mapping) => mapping.branch_id === branchId && mapping.item_id === itemId && normalizeUom(mapping.purchase_uom) === normalizeUom(selectedItemUoms[index] || preferredUom(itemId))));
+  const selectedItemLabels = (rows: typeof uncoveredItems) => rows.map(({ itemId }) => items.find((item) => item.id === itemId)?.item_name ?? "Selected item");
   function uomOptions(itemId: string) {
     const item = items.find((candidate) => candidate.id === itemId);
     return [...new Set([
@@ -478,6 +485,7 @@ export function PurchaseOrderForm({
                         </SelectNative>
                       </Field>
                       {itemId ? <div className="mt-1 flex justify-end"><SelectNative name="line_uom" value={lineUom} onChange={(event) => { const next = [...selectedItemUoms]; next[index] = normalizeUom(event.target.value); setSelectedItemUoms(next); }} aria-label={`Unit of measure for ${selectedItem?.item_name ?? "order line"}`} className="h-9 w-full text-xs sm:w-32" disabled={!options.length}><option value="">Choose UOM</option>{options.map((uom) => <option key={uom} value={uom}>{uom.toUpperCase()}</option>)}</SelectNative></div> : null}
+                      {itemId && !supplierMappings.some((mapping) => mapping.branch_id === branchId && mapping.item_id === itemId && normalizeUom(mapping.purchase_uom) === lineUom) && supplierMappings.some((mapping) => mapping.branch_id === branchId && mapping.item_id === itemId) ? <p className="mt-1 text-[11px] leading-relaxed text-amber-700">No active supplier mapping uses {lineUom.toUpperCase()} for this item.</p> : null}
                     </div>
                     <Button type="button" variant="ghost" size="icon" className="h-10 w-9 self-end text-muted-foreground md:col-start-4 md:row-start-1" aria-label="Remove order line" disabled={selectedItemIds.length === 1} onClick={() => { setSelectedItemIds((current) => current.filter((_, rowIndex) => rowIndex !== index)); setSelectedItemUoms((current) => current.filter((_, rowIndex) => rowIndex !== index)); }}><X className="h-4 w-4" /></Button>
                     <Field label="Ordered Qty" required={index === 0} labelClassName="md:sr-only" className="col-span-1 md:col-start-2 md:row-start-1">
@@ -495,7 +503,7 @@ export function PurchaseOrderForm({
             </div>
           </section>
 
-          {selectedItems.length > 0 && eligibleSuppliers.length === 0 ? <p className="text-sm font-medium text-destructive">No single supplier is mapped to every selected item for this branch. Adjust the lines or create the required branch mappings.</p> : null}
+          {selectedItems.length > 0 && eligibleSuppliers.length === 0 ? <div role="alert" className="border border-destructive/25 bg-destructive/5 px-3 py-2.5 text-xs leading-relaxed text-destructive"><p className="font-semibold">This order cannot be sourced yet.</p>{uncoveredItems.length ? <p className="mt-1">Missing active supplier/UOM mapping for: {selectedItemLabels(uncoveredItems).join(", ")}.</p> : <p className="mt-1">No single supplier covers every selected item in the requested UOM. Split the order by supplier or add the required branch mappings.</p>}<Link href="/imports/branch-supplier-items" className="mt-1 inline-flex font-semibold underline underline-offset-2">Open supplier mapping import</Link></div> : null}
           </section>
         </form>
     </div>

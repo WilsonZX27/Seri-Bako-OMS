@@ -14,6 +14,7 @@ import { logServerError } from "@/server/observability/logger";
 import { z } from "zod";
 import type { ApprovalStatus, PurchaseOrderStatus } from "@/types/database";
 import { getCurrentUserScope } from "@/server/queries/notifications";
+import { normalizeUom } from "@/lib/uom";
 
 function cleanText(value: FormDataEntryValue | null) {
   const text = String(value ?? "").trim();
@@ -169,12 +170,12 @@ function extractPurchaseOrder(formData: FormData) {
 
 async function ensureBranchSupplierSelections(
   branchId: string,
-  lines: Array<{ item_id: string; suggested_supplier_id?: string | null }>,
+  lines: Array<{ item_id: string; suggested_supplier_id?: string | null; uom?: string | null }>,
   requireAll: boolean,
 ) {
   const missing = lines.filter((line) => !line.suggested_supplier_id);
   if (requireAll && missing.length) throw new Error("Every item needs a supplier mapped to this branch before the request can continue.");
-  const selected = lines.filter((line): line is { item_id: string; suggested_supplier_id: string } => Boolean(line.suggested_supplier_id));
+  const selected = lines.filter((line): line is { item_id: string; suggested_supplier_id: string; uom?: string | null } => Boolean(line.suggested_supplier_id));
   if (!selected.length) return;
   const supabase = await createClient();
   const itemIds = [...new Set(selected.map((line) => line.item_id))];
@@ -188,12 +189,12 @@ async function ensureBranchSupplierSelections(
   if (mappingsError) throw new Error(mappingsError.message);
   const relationshipIds = [...new Set((mappings ?? []).map((row) => row.supplier_item_id))];
   const { data: relationships, error: relationshipsError } = relationshipIds.length
-    ? await supabase.from("supplier_items").select("id, item_id, supplier_id").in("id", relationshipIds).eq("status", "active").is("deleted_at", null)
+    ? await supabase.from("supplier_items").select("id, item_id, supplier_id, purchase_uom").in("id", relationshipIds).eq("status", "active").is("deleted_at", null)
     : { data: [], error: null };
   if (relationshipsError) throw new Error(relationshipsError.message);
-  const valid = new Set((relationships ?? []).map((row) => `${row.item_id}|${row.supplier_id}`));
-  if (selected.some((line) => !valid.has(`${line.item_id}|${line.suggested_supplier_id}`))) {
-    throw new Error("A selected supplier is not mapped to this branch and item.");
+  const valid = new Set((relationships ?? []).map((row) => `${row.item_id}|${row.supplier_id}|${normalizeUom(row.purchase_uom)}`));
+  if (selected.some((line) => !valid.has(`${line.item_id}|${line.suggested_supplier_id}|${normalizeUom(String(line.uom ?? ""))}`))) {
+    throw new Error("A selected supplier is not mapped to this branch, item, and unit of measure.");
   }
 }
 
@@ -559,7 +560,7 @@ export async function createPurchaseOrder(formData: FormData) {
     const payload = extractPurchaseOrder(formData);
     if (isMockMode()) redirect("/purchase-orders");
     await ensureActiveItems(payload.lines.map((line) => line.item_id));
-    await ensureBranchSupplierSelections(payload.branch_id, payload.lines.map((line) => ({ item_id: line.item_id, suggested_supplier_id: payload.supplier_id })), true);
+    await ensureBranchSupplierSelections(payload.branch_id, payload.lines.map((line) => ({ item_id: line.item_id, uom: line.uom, suggested_supplier_id: payload.supplier_id })), true);
     const profile = await identity();
     const poNo = await resolveDocumentNumber({
       companyId: profile?.company_id,

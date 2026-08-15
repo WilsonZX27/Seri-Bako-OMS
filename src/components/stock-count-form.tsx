@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { AlertTriangle, CalendarDays, ChevronDown, ListFilter, MapPin, Minus, Plus, Search } from "lucide-react";
+import { AlertTriangle, CalendarDays, CheckCircle2, ChevronDown, ListFilter, MapPin, Minus, Plus, Search } from "lucide-react";
 import { Field } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { SelectNative } from "@/components/ui/select-native";
@@ -336,6 +336,19 @@ export function StockCountForm({
       <div>
         <form ref={formRef} id={formId} action={action} className={showSubmit ? "space-y-3 pb-28 xl:pb-0" : "space-y-3"}>
           <input type="hidden" name="idempotency_key" value={idempotencyKey} />
+          <section data-stock-count-mobile-progress className="border-y border-[var(--sb-border-soft)] bg-[var(--sb-surface)] px-3 py-2.5 md:hidden" aria-label="Stock count progress">
+            <div className="flex items-center justify-between gap-3">
+              <div className="min-w-0">
+                <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">Step 1 of 2</p>
+                <p className="mt-0.5 text-sm font-semibold text-foreground">Enter physical quantities</p>
+              </div>
+              <span className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-[var(--sb-warning-bg)] px-2.5 py-1 text-xs font-semibold text-[var(--sb-warning)]">
+                <CheckCircle2 className="h-3.5 w-3.5" aria-hidden="true" />Draft
+              </span>
+            </div>
+            <div className="mt-2 h-1 overflow-hidden rounded-full bg-[var(--sb-border-soft)]" aria-hidden="true"><div className="h-full w-1/2 rounded-full bg-[var(--sb-green-700)]" /></div>
+            <p className="mt-1.5 text-[11px] leading-4 text-muted-foreground">Saving a draft does not change stock. Posting is the final step.</p>
+          </section>
           <section data-stock-count-setup className="erp-surface overflow-hidden rounded-[var(--sb-panel-radius)] border bg-white p-3 md:p-4">
             <input type="hidden" name="branch_id" value={resolvedBranchId} />
             <button type="button" className="flex w-full min-w-0 items-start justify-between gap-3 text-left" aria-expanded={settingsOpen} onClick={() => setSettingsOpen((current) => !current)}>
@@ -373,7 +386,7 @@ export function StockCountForm({
 
           <section data-stock-count-workspace className="erp-surface overflow-hidden rounded-[var(--sb-panel-radius)] border bg-white">
 
-          <div className="flex items-center gap-2 border-b border-slate-100 bg-white p-3 md:bg-transparent md:px-3 md:pt-3">
+          <div className="flex items-center gap-2 border-b border-slate-200 bg-white p-3 md:bg-transparent md:px-3 md:pt-3">
             <label className="relative min-w-0 flex-1">
               <span className="sr-only">Find an item</span>
               <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" aria-hidden="true" />
@@ -414,7 +427,7 @@ export function StockCountForm({
           </div>
 
           <div data-stock-count-line-list>
-            <div className="hidden border-b bg-secondary/40 px-4 py-2 lg:grid lg:grid-cols-[minmax(12rem,1fr)_5rem_minmax(14rem,17rem)] lg:items-center lg:gap-4 xl:grid-cols-[minmax(16rem,1fr)_5rem_minmax(16rem,18rem)]">
+            <div className="sticky top-[7.25rem] z-10 hidden border-y border-[var(--sb-border)] bg-[var(--sb-surface)] px-4 py-2 shadow-[0_4px_10px_rgb(6_44_31_/_0.08)] lg:grid lg:grid-cols-[minmax(12rem,1fr)_5rem_minmax(14rem,17rem)] lg:items-center lg:gap-4 xl:top-[7.75rem] xl:grid-cols-[minmax(16rem,1fr)_5rem_minmax(16rem,18rem)]">
               <p className="text-xs font-semibold">Item</p>
               <p className="text-xs text-right font-semibold">Variance</p>
               <p className="text-xs font-semibold">Count</p>
@@ -429,7 +442,7 @@ export function StockCountForm({
                   <div
                     key={line.item_id}
                     data-stock-count-line
-                    className={`grid min-h-12 grid-cols-[minmax(0,1fr)_auto] items-center gap-x-2 gap-y-1.5 border-b border-slate-100 px-4 py-2 md:min-h-14 ${line.adjusted ? "bg-[var(--sb-green-100)]" : lineIndex % 2 ? "bg-[var(--sb-surface)]" : "bg-white"} lg:grid-cols-[minmax(12rem,1fr)_5rem_minmax(14rem,17rem)] lg:gap-4 xl:grid-cols-[minmax(16rem,1fr)_5rem_minmax(16rem,18rem)]`}
+                    className={`grid min-h-12 grid-cols-[minmax(0,1fr)_auto] items-center gap-x-2 gap-y-1.5 border-b border-slate-200 px-4 py-2 md:min-h-14 ${line.adjusted ? "bg-[var(--sb-green-100)]" : lineIndex % 2 ? "bg-slate-50/70" : "bg-white"} lg:grid-cols-[minmax(12rem,1fr)_5rem_minmax(14rem,17rem)] lg:gap-4 xl:grid-cols-[minmax(16rem,1fr)_5rem_minmax(16rem,18rem)]`}
                   >
                     <div className="order-1 min-w-0">
                       <p className="break-words text-sm font-medium leading-tight text-slate-800">{line.item_name}</p>

@@ -1,6 +1,6 @@
 # Seri Bako OMS responsive design standard
 
-> **Release authority:** the currently released application is `v8.36.39`, as
+> **Release authority:** the currently released application is `v8.36.40`, as
 > defined by `src/lib/app-version.ts`. A versioned section above that number is
 > an accepted forward design contract or unreleased implementation note—not
 > evidence that the application itself has been released at that version.
@@ -10,6 +10,12 @@
 > **Precedence:** `docs/DESIGN_SYSTEM.md` is the living visual and interaction contract. When a historical release note or an older rule in this file conflicts with that contract, the living contract wins. Update both documents when a new pattern is accepted; do not preserve a visibly weaker rule for compatibility.
 
 This document is the implementation contract for every customer-facing route, form, record workspace, table, panel, dialog, and mobile action bar. It applies to new work and to refactoring of existing UI.
+
+## v8.36.40 — Guided Stock Count Workspace
+
+- The phone Stock Count editor opens with an explicit `Step 1 of 2` orientation band, current Draft status, and the consequence boundary that draft saves do not change stock while posting is final.
+- Long desktop count sessions retain a sticky semantic column header beneath the document workflow header. Stronger row separators and restrained zebra striping preserve the relationship between item, variance, and physical quantity without creating nested cards.
+- Sticky document headers use a stronger elevation token so workflow status remains visually anchored above scrolling operational content.
 
 ## v8.36.39 — Responsive Administration Lists
 

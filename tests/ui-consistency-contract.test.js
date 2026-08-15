@@ -118,6 +118,18 @@ test("administration decision directories replace narrow tables with shared oper
   assert.match(staffs, /staff\.default_branch_name \?\? "No default branch"/);
 });
 
+test("stock count sessions preserve workflow orientation throughout long entry lists", () => {
+  const stockCountForm = read("src/components/stock-count-form.tsx");
+  const documentWorkspace = read("src/components/documents/document-workspace.tsx");
+
+  assert.match(stockCountForm, /data-stock-count-mobile-progress/);
+  assert.match(stockCountForm, /Step 1 of 2/);
+  assert.match(stockCountForm, /Saving a draft does not change stock\. Posting is the final step\./);
+  assert.match(stockCountForm, /sticky top-\[7\.25rem\][\s\S]*Item[\s\S]*Variance[\s\S]*Count/);
+  assert.match(stockCountForm, /border-b border-slate-200/);
+  assert.match(documentWorkspace, /shadow-\[0_8px_22px_rgb\(6_44_31_\/_0\.16\)\]/);
+});
+
 test("administration and import directories use the shared flat operational tool list", () => {
   assert.equal(fs.existsSync("src/components/category-card-grid.tsx"), false);
   assert.match(administration, /<WorkspaceGrid tabletCanvas="contained">/);

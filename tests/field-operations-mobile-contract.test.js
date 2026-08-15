@@ -36,7 +36,7 @@ test("stock count keeps setup separate from one continuous phone work surface", 
   assert.match(source, /\{lineIndex \+ 1\} of \{visibleLines\.length\}/);
   assert.match(source, /line\.adjusted \? "bg-\[var\(--sb-green-100\)\]"/);
   assert.match(source, /lg:grid-cols-\[minmax\(12rem,1fr\)_5rem_minmax\(14rem,17rem\)\]/);
-  assert.match(source, /border-b border-slate-100/);
+  assert.match(source, /border-b border-slate-200/);
   assert.match(source, /data-mobile-document-action/);
   assert.match(source, /aria-live="polite"/);
   assert.match(design, /A phone workflow uses one boundary per operational unit/);

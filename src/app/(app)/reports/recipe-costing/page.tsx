@@ -89,7 +89,7 @@ export default async function RecipeCostingPage({ searchParams }: { searchParams
             <Button type="submit" variant="secondary">Filter</Button>
           </FilterBar>
 
-          <RecipeCostingInsights rows={rows} />
+          <RecipeCostingInsights rows={rows} searchParams={{ ...filters, status: filters.status ?? "active" }} />
 
           <section className="sb-list-content-card overflow-hidden">
             <Table mobileHidden aria-label="Recipe costing estimates">

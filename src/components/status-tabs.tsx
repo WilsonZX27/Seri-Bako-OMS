@@ -12,7 +12,7 @@ export function StatusTabs({ statuses, activeStatus, name }: { statuses: StatusT
   const searchParams = useSearchParams();
   const router = useRouter();
   const tabsRef = useRef<HTMLElement>(null);
-  const tabs = [{ value: "all", label: "All" }, ...statuses.map((status) => typeof status === "string"
+  const tabs = [{ value: "all", label: "All statuses" }, ...statuses.map((status) => typeof status === "string"
     ? { value: status, label: status.replaceAll("_", " ") }
     : status)];
   const selected = activeStatus || "all";

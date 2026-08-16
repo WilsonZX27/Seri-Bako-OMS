@@ -118,6 +118,14 @@ test("administration decision directories replace narrow tables with shared oper
   assert.match(staffs, /staff\.default_branch_name \?\? "No default branch"/);
 });
 
+test("status filters identify the field when showing the unfiltered view", () => {
+  const statusTabs = read("src/components/status-tabs.tsx");
+  const masterFilters = read("src/components/master-data-filters.tsx");
+  assert.match(statusTabs, /value: "all", label: "All statuses"/);
+  assert.match(masterFilters, /value: "all", label: "All statuses"/);
+  assert.doesNotMatch(statusTabs, /value: "all", label: "All"/);
+});
+
 test("stock count sessions preserve workflow orientation throughout long entry lists", () => {
   const stockCountForm = read("src/components/stock-count-form.tsx");
   const documentWorkspace = read("src/components/documents/document-workspace.tsx");

@@ -42,6 +42,20 @@ test("aging and production previews use the shared persistent touch and focus co
   }
 });
 
+test("report preview slots stay stable before selection", () => {
+  const ranking = read("src/components/ui/interactive-ranking-chart.tsx");
+  const aging = read("src/components/reports/aging-distribution-bars.tsx");
+  const production = read("src/components/reports/production-variance-signal-chart.tsx");
+  const inventory = read("src/components/reports/inventory-daily-movement-chart.tsx");
+  assert.match(ranking, /data-ranking-preview[\s\S]*min-h-\[4\.5rem\][\s\S]*border/);
+  assert.match(aging, /data-aging-preview[\s\S]*min-h-\[4\.5rem\][\s\S]*border/);
+  assert.match(production, /data-production-signal-preview/);
+  assert.match(production, /min-h-\[3\.75rem\][\s\S]*border/);
+  assert.match(inventory, /data-inventory-movement-preview/);
+  assert.match(inventory, /min-h-\[4\.5rem\][\s\S]*border/);
+  for (const source of [ranking, aging, production, inventory]) assert.doesNotMatch(source, /(?:!active(?:Item)?|activePoint \?)[\s\S]{0,80}"sr-only"/);
+});
+
 test("Demand Trend uses the shared filter surface without an extra wrapper card", () => {
   const page = read("src/app/(app)/reports/demand-trends/page.tsx");
   assert.match(page, /<FilterBar resetHref="\/reports\/demand-trends"(?: className="sb-list-filters--balanced")?>/);

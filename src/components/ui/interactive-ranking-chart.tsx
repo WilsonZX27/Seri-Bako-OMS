@@ -105,9 +105,8 @@ export function InteractiveRankingChart({
         aria-live="polite"
         data-ranking-preview
         className={cn(
-          "mt-2 rounded-[var(--sb-radius-control)] px-3 py-2",
-          activeItem && "border border-[var(--sb-border-soft)] bg-[var(--sb-surface-muted)]",
-          !activeItem && "sr-only",
+          "mt-2 min-h-[4.5rem] rounded-[var(--sb-radius-control)] border border-[var(--sb-border-soft)] bg-[var(--sb-surface-muted)] px-3 py-2",
+          !activeItem && "flex items-center",
         )}
       >
         {activeItem ? (

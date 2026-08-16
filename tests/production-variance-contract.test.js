@@ -33,7 +33,8 @@ test("Production variance visual compares signal counts without inventing a cros
   assert.match(chart, /onMouseEnter/);
   assert.match(chart, /onFocus/);
   assert.match(chart, /aria-live="polite"/);
-  assert.match(chart, /active \? "border border-\[var\(--sb-border-soft\)\] bg-\[var\(--sb-surface-muted\)\]" : "sr-only"/);
+  assert.match(chart, /data-production-signal-preview/);
+  assert.match(chart, /min-h-\[3\.75rem\][\s\S]*border/);
   assert.match(chart, /rounded-\[var\(--sb-radius-control\)\]/);
   assert.match(chart, /data-production-signal-option/);
   assert.match(chart, /data-production-signal-open/);

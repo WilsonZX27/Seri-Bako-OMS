@@ -29,7 +29,8 @@ test("Every aging bar preserves current filters and drills into the same invoice
   assert.match(chart, /onFocus/);
   assert.match(chart, /role="region"/);
   assert.match(chart, /aria-pressed/);
-  assert.match(chart, /activeItem \? "border border-\[var\(--sb-border-soft\)\] bg-\[var\(--sb-surface-muted\)\]" : "sr-only"/);
+  assert.match(chart, /data-aging-preview/);
+  assert.match(chart, /min-h-\[4\.5rem\][\s\S]*border/);
   assert.doesNotMatch(chart, /return <Link[\s\S]*?href=\{item\.href\}/);
   assert.match(chart, /Select a bucket to filter invoice detail/);
 });

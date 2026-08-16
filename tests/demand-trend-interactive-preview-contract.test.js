@@ -52,7 +52,7 @@ test("Top movement and wastage use touch-friendly ranking previews with progress
   assert.match(ranking, /col-start-2 col-span-2 row-start-2[\s\S]*xl:col-start-3 xl:col-span-1/);
   assert.match(ranking, /col-start-2[\s\S]*row-start-2[\s\S]*xl:col-start-3[\s\S]*xl:row-start-1/);
   assert.match(ranking, /index \+ 1/);
-  assert.match(ranking, /!activeItem && "sr-only"/);
+  assert.match(ranking, /data-ranking-preview[\s\S]*min-h-\[4\.5rem\]/);
   assert.match(ranking, /item\.value <= 0 \? 0 : Math\.max\(3,/);
   assert.doesNotMatch(ranking, /<Link key=\{item\.id\} href=\{item\.href\}/);
   assert.match(ranking, /truncate/);

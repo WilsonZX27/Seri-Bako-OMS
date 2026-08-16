@@ -133,7 +133,7 @@ export function InventoryDailyMovementChart({ points }: { points: InventoryDaily
         </> : null}
       </svg>
 
-      <div id={descriptionId} role="region" aria-label="Selected inventory movement preview" className={activePoint ? "mt-2 rounded-[var(--sb-radius-control)] border border-[var(--sb-border-soft)] bg-[var(--sb-surface-muted)] px-3 py-2" : "sr-only"} data-inventory-movement-preview aria-live="polite">
+      <div id={descriptionId} role="region" aria-label="Selected inventory movement preview" className={`mt-2 min-h-[4.5rem] rounded-[var(--sb-radius-control)] border border-[var(--sb-border-soft)] bg-[var(--sb-surface-muted)] px-3 py-2 text-[11px] text-muted-foreground${activePoint ? "" : " flex items-center"}`} data-inventory-movement-preview aria-live="polite">
         {activePoint ? <div className="grid gap-2 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center">
           <div>
             <p className="text-xs font-semibold">{formatDateOnly(activePoint.transaction_date)}</p>

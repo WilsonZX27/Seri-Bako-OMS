@@ -10,7 +10,8 @@ const input = fs.readFileSync("src/components/ui/input.tsx", "utf8");
 
 test("FilterBar geometry has one authoritative stylesheet", () => {
   assert.doesNotMatch(designV2, /^\s*\.sb-list-filters\s*\{/m);
-  assert.match(globals, /\.sb-list-filters\s*\{/);
+  assert.match(globals, /\.sb-list-filters:not\(\.sb-list-query-card\)\s*\{/);
+  assert.doesNotMatch(globals, /(^|\n)\s*\.sb-list-filters\s*(?:>|\{)/);
   assert.doesNotMatch(globals, /\[data-tablet-main-list\] \.sb-list-filters\s*\{[\s\S]*?display:\s*grid/);
   assert.doesNotMatch(`${globals}\n${designV2}`, /\.sb-tablet-split-filter/);
   assert.match(designV2, /One tablet grammar for every list/);

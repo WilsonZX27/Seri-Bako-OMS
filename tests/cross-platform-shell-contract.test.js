@@ -52,6 +52,36 @@ test("desktop and tablet shared geometry remains token based", () => {
   assert.doesNotMatch(`${dashboard}\n${operationalHub}`, /--sb-radius-panel/);
 });
 
+test("modern list query geometry has one responsive CSS owner", () => {
+  const globals = read("src", "app", "globals.css");
+  const designLayer = read("src", "app", "design-system-v2.css");
+
+  // globals.css is a legacy compatibility layer. Modern query cards must be
+  // explicitly excluded there or their flex widths and orders compete with
+  // the canonical grid/flex contract later in the cascade.
+  assert.match(globals, /\.sb-list-filters:not\(\.sb-list-query-card\)/);
+  assert.doesNotMatch(globals, /(^|\n)\s*\.sb-list-filters\s*>/);
+  assert.doesNotMatch(globals, /(^|\n)\s*\.sb-list-filters\s*\{/);
+
+  assert.match(designLayer, /Canonical list workspace contract — single responsive authority/);
+  assert.match(designLayer, /form\.sb-list-query-card :where\(input, select, button/);
+  assert.match(designLayer, /@media \(min-width: 640px\) and \(max-width: 1279px\)[\s\S]*grid-template-columns: repeat\(4, minmax\(8rem, 1fr\)\)/);
+  assert.match(designLayer, /@media \(min-width: 1280px\)[\s\S]*form\.sb-list-query-card[\s\S]*flex-wrap: nowrap !important/);
+});
+
+test("contained canvas and touch-tablet shell are shared defaults", () => {
+  const workspaceGrid = read("src", "components", "layout", "workspace-layout.tsx");
+  const mobileNavigation = read("src", "components", "layout", "mobile-app-navigation.tsx");
+  const designLayer = read("src", "app", "design-system-v2.css");
+
+  assert.match(workspaceGrid, /const effectiveTabletCanvas = tabletCanvas \?\? "contained"/);
+  assert.match(designLayer, /--sb-canvas-contained:\s*64rem/);
+  assert.match(designLayer, /\[data-tablet-canvas="contained"\][\s\S]*width: min\(calc\(100% - 2rem\), 64rem\)/);
+  assert.match(mobileNavigation, /desktopIpadUserAgent = \/macintosh\/i\.test\(navigator\.userAgent\) && touchPoints > 1/);
+  assert.match(designLayer, /html\[data-touch-tablet="true"\] aside\[data-app-sidebar\][\s\S]*display: none !important/);
+  assert.match(designLayer, /html\[data-touch-tablet="true"\] \[data-mobile-app-nav\][\s\S]*display: block !important/);
+});
+
 test("shared activity and identity surfaces use OMS semantic tokens", () => {
   const activityMenu = read("src", "components", "layout", "top-bar-activity-menu.tsx");
   const account = read("src", "app", "(app)", "account", "page.tsx");

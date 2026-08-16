@@ -251,7 +251,7 @@ input[type="date"]::-webkit-date-and-time-value {
   scrollbar-gutter: auto;
 }
 
-.sb-list-filters {
+.sb-list-filters:not(.sb-list-query-card) {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
@@ -272,7 +272,7 @@ input[type="date"]::-webkit-date-and-time-value {
 
 /* The filter row is a single aligned control group: search first, then only
    the filters that are useful on the page, then submit and the result total. */
-.sb-list-filters > :is(input, button, [data-select-control], .sb-status-filter, .sb-filter-more) {
+.sb-list-filters:not(.sb-list-query-card) > :is(input, button, [data-select-control], .sb-status-filter, .sb-filter-more) {
   align-self: center;
 }
 
@@ -367,44 +367,44 @@ input[type="date"]::-webkit-date-and-time-value {
 .sb-filter-more-actions { border-top: 1px solid var(--sb-border-soft); }
 .sb-filter-more-actions > * { flex: 1; justify-content: center; }
 
-.sb-list-filters > :first-child {
+.sb-list-filters:not(.sb-list-query-card) > :first-child {
   flex: 1 1 14rem;
   min-width: 0;
   width: auto;
 }
 
 /* Hidden persisted filters must not steal the leading query slot. */
-.sb-list-filters > input[type="hidden"]:first-child + * {
+.sb-list-filters:not(.sb-list-query-card) > input[type="hidden"]:first-child + * {
   flex: 1 1 14rem;
   min-width: 0;
   width: auto;
   order: 1;
 }
 
-.sb-list-filters > :not(:first-child) {
+.sb-list-filters:not(.sb-list-query-card) > :not(:first-child) {
   flex: 1 1 8rem;
   min-width: 0;
   width: auto;
 }
 
-.sb-list-filters > button:not([data-select-control]),
-.sb-list-filters > a {
+.sb-list-filters:not(.sb-list-query-card) > button:not([data-select-control]),
+.sb-list-filters:not(.sb-list-query-card) > a {
   flex: 0 0 auto;
 }
 
 /* Operational filter grammar: query first, filters second, disclosure third,
    then the result count and the final Search/Reset action. */
-.sb-list-filters > button:is([type="submit"], :not([type])) {
+.sb-list-filters:not(.sb-list-query-card) > button:is([type="submit"], :not([type])) {
   order: 6;
 }
-.sb-list-filters > :not(:first-child):not(button):not(.sb-filter-summary) {
+.sb-list-filters:not(.sb-list-query-card) > :not(:first-child):not(button):not(.sb-filter-summary) {
   order: 2;
 }
 
-.sb-list-filters > .sb-filter-more { order: 3; }
-.sb-list-filters > .sb-filter-summary { order: 5; }
+.sb-list-filters:not(.sb-list-query-card) > .sb-filter-more { order: 3; }
+.sb-list-filters:not(.sb-list-query-card) > .sb-filter-summary { order: 5; }
 
-.sb-list-filters > button:not([data-select-control]):is([type="submit"], :not([type])) {
+.sb-list-filters:not(.sb-list-query-card) > button:not([data-select-control]):is([type="submit"], :not([type])) {
   border-color: var(--sb-green-900);
   background: var(--sb-green-900);
   color: var(--sb-text-inverse);
@@ -413,22 +413,22 @@ input[type="date"]::-webkit-date-and-time-value {
 /* Balanced toolbars are used where the query, select filters, disclosure and
    submit action form one decision row. Equal tracks make the row scannable on
    desktop/tablet without changing the compact grammar of legacy lists. */
-.sb-list-filters--balanced > :is(input, select, [data-select-control], .sb-filter-more, button:not(.sb-filter-summary)) {
+.sb-list-filters--balanced:not(.sb-list-query-card) > :is(input, select, [data-select-control], .sb-filter-more, button:not(.sb-filter-summary)) {
   flex: 1 1 0;
   width: auto;
   max-width: none;
   min-width: 0;
 }
 
-.sb-list-filters--balanced > .sb-filter-more > summary {
+.sb-list-filters--balanced:not(.sb-list-query-card) > .sb-filter-more > summary {
   width: 100%;
   justify-content: center;
 }
 
-.sb-list-filters input,
-.sb-list-filters select,
-.sb-list-filters button,
-.sb-list-filters a {
+.sb-list-filters:not(.sb-list-query-card) input,
+.sb-list-filters:not(.sb-list-query-card) select,
+.sb-list-filters:not(.sb-list-query-card) button,
+.sb-list-filters:not(.sb-list-query-card) a {
   height: 2.125rem;
   min-height: 2.125rem;
   padding-block: 0.25rem;
@@ -452,7 +452,7 @@ input[type="date"]::-webkit-date-and-time-value {
     bottom: calc(var(--sb-mobile-nav-height) + env(safe-area-inset-bottom) + 1rem);
   }
 
-  .sb-list-filters {
+  .sb-list-filters:not(.sb-list-query-card) {
     display: flex;
     flex-wrap: wrap;
     gap: 0.5rem;
@@ -460,43 +460,43 @@ input[type="date"]::-webkit-date-and-time-value {
     padding: 0.625rem;
   }
 
-  .sb-list-filters input,
-  .sb-list-filters select,
-  .sb-list-filters button,
-  .sb-list-filters a {
+  .sb-list-filters:not(.sb-list-query-card) input,
+  .sb-list-filters:not(.sb-list-query-card) select,
+  .sb-list-filters:not(.sb-list-query-card) button,
+  .sb-list-filters:not(.sb-list-query-card) a {
     height: 2.125rem;
     min-height: 2.125rem;
   }
 
-  .sb-list-filters > :first-child {
+  .sb-list-filters:not(.sb-list-query-card) > :first-child {
     order: 1;
     flex: 1 1 100%;
     width: auto;
   }
 
-  .sb-list-filters > input[type="hidden"]:first-child + * {
+  .sb-list-filters:not(.sb-list-query-card) > input[type="hidden"]:first-child + * {
     order: 1;
     flex: 1 1 100%;
   }
 
-  .sb-list-filters > :not(:first-child) {
+  .sb-list-filters:not(.sb-list-query-card) > :not(:first-child) {
     order: 3;
     flex: 1 1 7rem;
     width: auto;
   }
 
-  .sb-list-filters > button:is([type="submit"], :not([type])) {
+  .sb-list-filters:not(.sb-list-query-card) > button:is([type="submit"], :not([type])) {
     order: 4;
     flex: 1 1 12rem;
   }
 
-  .sb-list-filters button:is([type="submit"], :not([type])) {
+  .sb-list-filters:not(.sb-list-query-card) button:is([type="submit"], :not([type])) {
     border-color: var(--sb-green-900);
     background: var(--sb-green-900);
     color: var(--sb-text-inverse);
   }
 
-  .sb-list-filters > input[type="hidden"] {
+  .sb-list-filters:not(.sb-list-query-card) > input[type="hidden"] {
     display: none;
   }
 
@@ -510,7 +510,7 @@ input[type="date"]::-webkit-date-and-time-value {
 
   /* Dropdown-first rows stay compact on phones; only search-first rows get
      the flexible full-width search slot. */
-  .sb-list-filters > :is(select, [data-select-control]):first-child {
+  .sb-list-filters:not(.sb-list-query-card) > :is(select, [data-select-control]):first-child {
     order: 1;
     flex: 0 1 10rem;
     max-width: 14rem;
@@ -520,17 +520,17 @@ input[type="date"]::-webkit-date-and-time-value {
    * A simple search + one status control belongs on one phone row.
    * More complex filter sets keep the wrapping layout and overflow into More filters.
    */
-  .sb-list-filters--compact-mobile {
+  .sb-list-filters--compact-mobile:not(.sb-list-query-card) {
     flex-wrap: nowrap;
   }
 
-  .sb-list-filters--compact-mobile > :first-child {
+  .sb-list-filters--compact-mobile:not(.sb-list-query-card) > :first-child {
     order: 1;
     flex: 1 1 0;
     min-width: 0;
   }
 
-  .sb-list-filters--compact-mobile > :not(:first-child) {
+  .sb-list-filters--compact-mobile:not(.sb-list-query-card) > :not(:first-child) {
     order: 3;
     flex: 0 0 6.5rem;
   }
@@ -538,31 +538,31 @@ input[type="date"]::-webkit-date-and-time-value {
   /* Legacy date-first rows may constrain their first control. The unified
      phone header's first child is the entire three-column row, so applying
      this width there collapses the visible date to a sliver. */
-  form.sb-list-filters.sb-list-filters--date-first > :first-child {
+  form.sb-list-filters.sb-list-filters--date-first:not(.sb-list-query-card) > :first-child {
     flex: 0 1 10.5rem;
     width: min(10.5rem, 100%);
   }
 
-  .sb-list-filters--date-first > button:is([type="submit"], :not([type])),
-  .sb-list-filters--date-first > a {
+  .sb-list-filters--date-first:not(.sb-list-query-card) > button:is([type="submit"], :not([type])),
+  .sb-list-filters--date-first:not(.sb-list-query-card) > a {
     flex: 1 1 100%;
   }
 
-  .sb-list-filters--stock-card .sb-list-filters > :first-child {
+  .sb-list-filters--stock-card .sb-list-filters:not(.sb-list-query-card) > :first-child {
     flex-basis: 100%;
   }
 
-  .sb-list-filters--stock-card .sb-list-filters > [data-select-control] {
+  .sb-list-filters--stock-card .sb-list-filters:not(.sb-list-query-card) > [data-select-control] {
     flex: 1 1 calc(50% - 0.25rem);
   }
 
-  .sb-list-filters--compact-mobile > button:is([type="submit"], :not([type])) {
+  .sb-list-filters--compact-mobile:not(.sb-list-query-card) > button:is([type="submit"], :not([type])) {
     order: 3;
     flex: 0 0 auto;
     padding-inline: 0.75rem;
   }
 
-  .sb-list-filters--compact-mobile > .sb-filter-summary {
+  .sb-list-filters--compact-mobile:not(.sb-list-query-card) > .sb-filter-summary {
     order: 4;
     flex: 0 0 auto !important;
     margin-left: 0;
@@ -833,12 +833,12 @@ input[type="date"]::-webkit-date-and-time-value {
     --sb-control-height: 2.75rem;
   }
 
-  .sb-list-filters > :first-child {
+  .sb-list-filters:not(.sb-list-query-card) > :first-child {
     flex: 1 1 14rem;
     max-width: 22rem;
   }
 
-  .sb-list-filters > :not(:first-child) {
+  .sb-list-filters:not(.sb-list-query-card) > :not(:first-child) {
     flex: 0 1 9rem;
   }
 
@@ -846,7 +846,7 @@ input[type="date"]::-webkit-date-and-time-value {
      Search-first rows keep their flexible search field; dropdown-first rows
      must leave intentional breathing room instead of stretching a single
      status control across the whole canvas. */
-  .sb-list-filters > :is(select, [data-select-control]):first-child {
+  .sb-list-filters:not(.sb-list-query-card) > :is(select, [data-select-control]):first-child {
     flex: 0 1 14rem;
     max-width: 14rem;
   }
@@ -855,33 +855,33 @@ input[type="date"]::-webkit-date-and-time-value {
 /* Tablet keeps the dedicated bottom navigation and page action row; the
    desktop inspection rail must not leak its mobile More/FAB controls into it. */
 @media (min-width: 768px) and (max-width: 1279px) {
-  .sb-list-filters {
+  .sb-list-filters:not(.sb-list-query-card) {
     flex-wrap: wrap;
   }
 
-  .sb-list-filters > :first-child {
+  .sb-list-filters:not(.sb-list-query-card) > :first-child {
     flex: 1 1 10rem;
     max-width: none;
   }
 
-  .sb-list-filters > :is(select, [data-select-control]):first-child {
+  .sb-list-filters:not(.sb-list-query-card) > :is(select, [data-select-control]):first-child {
     flex: 0 1 14rem;
     max-width: 14rem;
   }
 
-  .sb-list-filters > :not(:first-child) {
+  .sb-list-filters:not(.sb-list-query-card) > :not(:first-child) {
     flex: 0 1 8rem;
   }
 
-  .sb-list-filters > .sb-filter-summary {
+  .sb-list-filters:not(.sb-list-query-card) > .sb-filter-summary {
     flex: 0 0 auto;
   }
 
-  .sb-list-filters--stock-card .sb-list-filters {
+  .sb-list-filters--stock-card .sb-list-filters:not(.sb-list-query-card) {
     flex-wrap: wrap;
   }
 
-  .sb-list-filters--stock-card .sb-list-filters > :first-child {
+  .sb-list-filters--stock-card .sb-list-filters:not(.sb-list-query-card) > :first-child {
     flex: 1 1 18rem;
   }
 

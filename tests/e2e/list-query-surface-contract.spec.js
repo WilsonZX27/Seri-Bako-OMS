@@ -19,6 +19,7 @@ const routes = [
 const viewports = [
   { name: "phone", width: 430, height: 932 },
   { name: "tablet", width: 820, height: 1180 },
+  { name: "tablet-landscape", width: 1180, height: 820 },
   { name: "desktop", width: 1440, height: 900 },
 ];
 

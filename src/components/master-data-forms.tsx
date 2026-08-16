@@ -58,12 +58,10 @@ export function SupplierItemForm({
               ))}
             </SelectNative>
           </Field>
-          <Field label="Supplier Item Code">
-            <Input name="supplier_item_code" defaultValue={supplierItem?.supplier_item_code ?? ""} required />
-          </Field>
-          <Field label="Supplier Item Name">
-            <Input name="supplier_item_name" defaultValue={supplierItem?.supplier_item_name ?? ""} required />
-          </Field>
+          <div className="rounded-[var(--sb-radius-control)] border bg-[var(--sb-surface-muted)] px-3 py-2 text-sm text-muted-foreground md:col-span-1">
+            <p className="font-medium text-foreground">Item identity</p>
+            <p className="mt-1 text-xs">Supplier records use the selected Item Master&apos;s AutoCount code and name automatically.</p>
+          </div>
           <Field label="Purchase UOM">
             <SelectNative name="purchase_uom" defaultValue={normalizeUom(supplierItem?.purchase_uom) || "KG"} required>
               {uomOptionsWithCurrent(supplierItem?.purchase_uom).map((uom) => (

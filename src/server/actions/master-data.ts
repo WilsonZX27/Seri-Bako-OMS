@@ -20,12 +20,12 @@ function parseRecordId(id: string) {
   return z.uuid().parse(id);
 }
 
-function supplierItemPayload(formData: FormData) {
-  const parsed = supplierItemSchema.parse({
+const supplierItemInputSchema = supplierItemSchema.omit({ supplier_item_code: true, supplier_item_name: true });
+
+function supplierItemInput(formData: FormData) {
+  const parsed = supplierItemInputSchema.parse({
     supplier_id: formData.get("supplier_id"),
     item_id: formData.get("item_id"),
-    supplier_item_code: formData.get("supplier_item_code"),
-    supplier_item_name: formData.get("supplier_item_name"),
     purchase_uom: formData.get("purchase_uom"),
     conversion_to_base_uom: formData.get("conversion_to_base_uom") ?? 1,
     unit_cost: formData.get("unit_cost") ?? 0,
@@ -44,9 +44,13 @@ function supplierItemPayload(formData: FormData) {
 
 export async function createSupplierItem(formData: FormData) {
   await requirePermission("supplier_items.create");
-  const payload = supplierItemPayload(formData);
+  const input = supplierItemInput(formData);
   if (!isMockMode()) {
     const [supabase, actor] = [await createClient(), await requireActiveTenantActor()];
+    const { data: item, error: itemError } = await supabase.from("items").select("item_code,item_name").eq("id", input.item_id).eq("company_id", actor.companyId).eq("status", "active").is("deleted_at", null).maybeSingle();
+    if (itemError) throw new Error(itemError.message);
+    if (!item) throw new Error("The selected Item Master record is not active in your workspace.");
+    const payload = { ...input, supplier_item_code: item.item_code, supplier_item_name: item.item_name };
     const { data, error } = await supabase.from("supplier_items").insert({ ...payload, company_id: actor.companyId }).select("id").single();
     if (error) throw new Error(error.message);
     const branchIds = [...new Set(formData.getAll("branch_ids").map(String).filter(Boolean))];
@@ -78,9 +82,13 @@ export async function createSupplierItem(formData: FormData) {
 export async function updateSupplierItem(id: string, formData: FormData) {
   await requirePermission("supplier_items.update");
   const supplierItemId = parseRecordId(id);
-  const payload = supplierItemPayload(formData);
+  const input = supplierItemInput(formData);
   if (!isMockMode()) {
     const [supabase, actor] = [await createClient(), await requireActiveTenantActor()];
+    const { data: item, error: itemError } = await supabase.from("items").select("item_code,item_name").eq("id", input.item_id).eq("company_id", actor.companyId).eq("status", "active").is("deleted_at", null).maybeSingle();
+    if (itemError) throw new Error(itemError.message);
+    if (!item) throw new Error("The selected Item Master record is not active in your workspace.");
+    const payload = { ...input, supplier_item_code: item.item_code, supplier_item_name: item.item_name };
     const { data, error } = await supabase.from("supplier_items").update(payload).eq("id", supplierItemId).eq("company_id", actor.companyId).select("id").maybeSingle();
     if (error) throw new Error(error.message);
     if (!data) throw new Error("Supplier item was not found or is outside your workspace.");

@@ -425,6 +425,14 @@ type PrTransitionResult = {
   branch_id: string | null;
   status: PurchaseRequestStatus;
   already_applied: boolean;
+  split_requests?: Array<{
+    id: string;
+    request_no: string;
+    company_id: string | null;
+    branch_id: string | null;
+    supplier_id: string;
+    status: PurchaseRequestStatus;
+  }>;
 };
 
 async function transitionPurchaseRequest(id: string, action: PrTransitionAction, remarks?: string | null) {
@@ -448,7 +456,10 @@ async function transitionPurchaseRequest(id: string, action: PrTransitionAction,
   if (error) throw new Error(error.message);
   const result = data as unknown as PrTransitionResult;
   if (!result?.id || !result.request_no || !result.status) throw new Error("Purchase request transition returned an invalid result.");
-  if (!result.already_applied) await notifyNextPrRole({ pr: result, nextStatus: result.status });
+  if (!result.already_applied) {
+    const nextRequests = result.split_requests?.length ? result.split_requests : [result];
+    await Promise.all(nextRequests.map((pr) => notifyNextPrRole({ pr, nextStatus: pr.status })));
+  }
   revalidateWorkspaceState(["/purchase-requests", `/purchase-requests/${requestId}`]);
   return result;
 }
@@ -479,7 +490,11 @@ export async function adminApprovePurchaseRequest(id: string) {
   try {
     if (isMockMode()) return;
     const pr = await transitionPurchaseRequest(id, "admin_approve");
-    safeRedirectWithMessage(`/purchase-requests/${id}`, "success", `${pr.request_no} Purchasing Review completed. Finance has been notified.`);
+    const splitCount = pr.split_requests?.length ?? 1;
+    const message = splitCount > 1
+      ? `${pr.request_no} split into ${splitCount} supplier-specific PRs. Finance has been notified for each request.`
+      : `${pr.request_no} Purchasing Review completed. Finance has been notified.`;
+    safeRedirectWithMessage(`/purchase-requests/${id}`, "success", message);
   } catch (error) {
     rethrowRedirect(error);
     safeRedirectWithMessage(`/purchase-requests/${id}`, "error", formatActionError(error, "Could not complete Purchasing Review."));

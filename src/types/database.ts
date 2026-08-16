@@ -1097,6 +1097,8 @@ export type Database = {
           updated_by: string | null;
           deleted_at: string | null;
           idempotency_key: string | null;
+          split_root_purchase_request_id: string | null;
+          assigned_supplier_id: string | null;
         };
         Insert: {
           id?: string;
@@ -1119,6 +1121,8 @@ export type Database = {
           updated_by?: string | null;
           deleted_at?: string | null;
           idempotency_key?: string | null;
+          split_root_purchase_request_id?: string | null;
+          assigned_supplier_id?: string | null;
         };
         Update: Partial<Database["public"]["Tables"]["purchase_requests"]["Insert"]>;
         Relationships: [];

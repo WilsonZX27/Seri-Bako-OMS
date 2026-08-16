@@ -45,6 +45,15 @@ test("purchase request item lookup uses an explicit token-matching combobox", ()
   assert.doesNotMatch(form, /<datalist id="purchase-request-items">/);
 });
 
+test("purchase request item suggestions escape clipped cards and follow the visual keyboard viewport", () => {
+  const combobox = read("src/components/item-combobox.tsx");
+  assert.match(combobox, /createPortal/);
+  assert.match(combobox, /window\.visualViewport/);
+  assert.match(combobox, /document\.body/);
+  assert.match(combobox, /openAbove = below < 160 && above > below/);
+  assert.doesNotMatch(combobox, /className="absolute inset-x-0 top-/);
+});
+
 test("unmatched descriptions remain submittable and are stored atomically", () => {
   const form = read("src/components/procurement-forms.tsx");
   const action = read("src/server/actions/procurement.ts");

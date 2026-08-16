@@ -30,7 +30,8 @@ test("Purchasing conversion is state and database-permission driven", () => {
 });
 
 test("empty PRs receive an actionable validation message and release is updated", () => {
-  assert.match(read("src/server/actions/procurement.ts"), /Add at least one item before creating this purchase request\./);
+  assert.match(read("src/server/actions/procurement.ts"), /extractPurchaseRequestLineInputs/);
+  assert.match(read("src/lib/procurement/purchase-request-lines.ts"), /Add at least one item before creating this purchase request\./);
   const version = read("src/lib/app-version.ts");
   assert.match(version, /APP_VERSION = "\d+\.\d+\.\d+"/);
   assert.match(version, /APP_SPRINT = `v\$\{APP_VERSION\}`/);

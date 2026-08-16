@@ -30,15 +30,16 @@ test("UI consistency keeps imports upload-only and technical permission details 
 });
 
 test("shared filter rows use compact operational-green submits without adding duplicate link icons", () => {
-  assert.match(styles, /\.sb-list-filters > button:not\(\[data-select-control\]\):is\(\[type="submit"\], :not\(\[type\]\)\)/);
+  assert.match(styles, /\.sb-list-filters:not\(\.sb-list-query-card\) > button:not\(\[data-select-control\]\):is\(\[type="submit"\], :not\(\[type\]\)\)/);
+  assert.doesNotMatch(styles, /\.sb-list-filters > button:not\(\[data-select-control\]\)/);
   assert.match(styles, /background: var\(--sb-green-900\)/);
   assert.doesNotMatch(styles, /\.sb-list-filters > a::before/);
   assert.match(styles, /max-width: 22rem/);
   assert.match(masterDataFilters, /compactMobile[\s\S]*leadingFilter[\s\S]*!showStatus/);
   assert.match(masterDataFilters, /sb-list-filters--compact-mobile/);
-  assert.match(styles, /\.sb-list-filters--compact-mobile \{[\s\S]*flex-wrap: nowrap/);
-  assert.match(styles, /\.sb-list-filters--compact-mobile > button:is\([\s\S]*order: 3/);
-  assert.match(styles, /\.sb-list-filters--compact-mobile > \.sb-filter-summary \{[\s\S]*order: 4/);
+  assert.match(styles, /\.sb-list-filters--compact-mobile:not\(\.sb-list-query-card\) \{[\s\S]*flex-wrap: nowrap/);
+  assert.match(styles, /\.sb-list-filters--compact-mobile:not\(\.sb-list-query-card\) > button:is\([\s\S]*order: 3/);
+  assert.match(styles, /\.sb-list-filters--compact-mobile:not\(\.sb-list-query-card\) > \.sb-filter-summary \{[\s\S]*order: 4/);
 });
 
 test("a visible status tab strip remains the only primary status filter", () => {

@@ -2,7 +2,16 @@
 
 ## Product Overview
 
-Current release authority: v8.64.32 - Reachable Inventory Chart Actions.
+Current release authority: v8.64.34 - Stable Report Ranking Previews.
+
+### v8.64.34 — Stable Report Ranking Previews
+
+- Report ranking previews use one persistent master-detail region instead of
+  inserting detail beneath the active row and moving the remaining ranking.
+- Hover, touch, and keyboard selection update the same reserved preview surface,
+  preserving row positions and accessible drill-through actions.
+- The idle instruction occupies the same preview geometry as selected content,
+  preventing report layout shift while users compare ranked records.
 
 ### v8.64.32 — Reachable Inventory Chart Actions
 
@@ -31,7 +40,7 @@ Current release authority: v8.64.32 - Reachable Inventory Chart Actions.
 
 ### Current audit baseline
 
-The current released application baseline is `v8.64.32 — Reachable Inventory Chart Actions`.
+The current released application baseline is `v8.64.34 — Stable Report Ranking Previews`.
 
 Item Master lookup now has one authoritative token-matching combobox shared by
 Kitchen PR entry and Purchasing Review. Users may search using partial words
@@ -245,7 +254,7 @@ Module maturity must be understood separately from visual completion.
 Repository migrations reviewed through `154`; release authority is
 `v8.64.32 — Reachable Inventory Chart Actions`.
 
-Current integration baseline: `v8.64.32 — Reachable Inventory Chart Actions`, with repository migrations reviewed through `154`. Migrations `111` and `112` remain immutable history because they were applied to the linked database accidentally. Migration `113` removes their callable Central Kitchen PR RPC, prevents further access to the stock-holds table, and preserves that table temporarily for a non-destructive data audit. Later forward-only migrations add bounded inventory and Dashboard read models, repair grants and scoped access, introduce branch supply-route and received-quantity provenance, preserve unmatched PR entry as auditable non-catalog lines, split approved purchase requests atomically by supplier, and make Item Master the authority for supplier-item identity; they do not restore the retired Central Kitchen PR workflow.
+Current integration baseline: `v8.64.34 — Stable Report Ranking Previews`, with repository migrations reviewed through `154`. Migrations `111` and `112` remain immutable history because they were applied to the linked database accidentally. Migration `113` removes their callable Central Kitchen PR RPC, prevents further access to the stock-holds table, and preserves that table temporarily for a non-destructive data audit. Later forward-only migrations add bounded inventory and Dashboard read models, repair grants and scoped access, introduce branch supply-route and received-quantity provenance, preserve unmatched PR entry as auditable non-catalog lines, split approved purchase requests atomically by supplier, and make Item Master the authority for supplier-item identity; they do not restore the retired Central Kitchen PR workflow.
 
 A page may exist visually without its full workflow, validation, database integration, permissions, and downstream effects being complete.
 

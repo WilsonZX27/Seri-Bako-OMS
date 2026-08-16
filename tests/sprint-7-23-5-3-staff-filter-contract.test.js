@@ -52,8 +52,9 @@ test("canonical select and FilterBar preserve keyboard behavior without nested r
   assert.match(filters, /summaryRef\.current\?\.focus\(\)/);
   assert.match(filters, /Close filters/);
   assert.match(filters, /Changes take effect after you select Apply/);
-  assert.match(styles, /\.sb-list-filters \{[\s\S]*overflow: visible/);
-  assert.doesNotMatch(styles, /\.sb-list-filters \{[\s\S]{0,220}overflow-x: auto/);
+  assert.match(styles, /\.sb-list-filters:not\(\.sb-list-query-card\) \{[\s\S]*overflow: visible/);
+  assert.doesNotMatch(styles, /\.sb-list-filters \{/);
+  assert.doesNotMatch(styles, /\.sb-list-filters:not\(\.sb-list-query-card\) \{[\s\S]{0,220}overflow-x: auto/);
   assert.match(styles, /\.sb-filter-more-fields \{[\s\S]*overflow-y: auto/);
   for (const source of [items, prs, invoices]) assert.match(source, /SelectControl/);
   assert.match(invoices, /FilterBarMore/);

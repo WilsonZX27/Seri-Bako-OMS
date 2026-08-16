@@ -16,8 +16,9 @@ const reportPages = [
 
 test("balanced report filters keep query, disclosure and action controls in one geometry", () => {
   const styles = read("src/app/globals.css");
-  assert.match(styles, /\.sb-list-filters--balanced > :is\(input, select, \[data-select-control\], \.sb-filter-more/);
-  assert.match(styles, /\.sb-list-filters--balanced > \.sb-filter-more > summary/);
+  assert.match(styles, /\.sb-list-filters--balanced:not\(\.sb-list-query-card\) > :is\(input, select, \[data-select-control\], \.sb-filter-more/);
+  assert.match(styles, /\.sb-list-filters--balanced:not\(\.sb-list-query-card\) > \.sb-filter-more > summary/);
+  assert.doesNotMatch(styles, /\.sb-list-filters--balanced > :is\(/);
   for (const file of reportPages) {
     const source = read(file);
     assert.match(source, /className="[^"]*sb-list-filters--balanced/, `${file} must use the shared balanced filter geometry`);

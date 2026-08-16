@@ -48,9 +48,9 @@ test("recipe costing ranks only usable cost authority and preserves Low as incom
   assert.match(insights, /params\.set\("confidence", item\.confidence\.toLowerCase\(\)\)/);
   assert.match(insights, /href: `\/reports\/recipe-costing\?\$\{params\.toString\(\)\}`/);
   assert.match(insights, /Open applies that confidence to the detail list/);
-  assert.match(ranking, /onMouseEnter/);
-  assert.match(ranking, /onPointerDown/);
-  assert.match(ranking, /onFocus/);
+  assert.match(ranking, /usePreviewSelection<string>\(\)/);
+  assert.match(ranking, /\.\.\.optionProps\(item\.id\)/);
+  assert.match(ranking, /\.\.\.boundaryProps/);
   assert.match(ranking, /aria-pressed/);
   assert.match(ranking, /data-ranking-open/);
   assert.match(page, /<Table mobileHidden compactUntil="2xl" aria-label="Recipe costing estimates"/);

@@ -7,8 +7,8 @@ test("phone filter controls stay compact while task controls retain the larger t
 
   const phoneRules = css.match(/@media \(max-width: 767px\)[\s\S]*?--sb-control-height: 3rem;/g) ?? [];
   assert.ok(phoneRules.length >= 2, "the phone rule must override both default and compact control heights");
-  assert.match(css, /@media \(max-width: 767px\)[\s\S]*?\.sb-list-filters input,[\s\S]*?height: 2\.125rem;[\s\S]*?min-height: 2\.125rem;/);
-  assert.match(css, /\.sb-list-filters > button:is\(\[type="submit"\], :not\(\[type\]\)\) \{[\s\S]*?order: 4;/);
+  assert.match(css, /@media \(max-width: 767px\)[\s\S]*?\.sb-list-filters:not\(\.sb-list-query-card\) input,[\s\S]*?height: 2\.125rem;[\s\S]*?min-height: 2\.125rem;/);
+  assert.match(css, /\.sb-list-filters:not\(\.sb-list-query-card\) > button:is\(\[type="submit"\], :not\(\[type\]\)\) \{[\s\S]*?order: 4;/);
   assert.match(css, /\.sb-filter-summary \{[\s\S]*?order: 5;/);
   assert.doesNotMatch(css, /data-sticky-column="last"/);
   assert.match(css, /@media \(min-width: 768px\)[\s\S]*?--sb-control-height: 2\.75rem/);

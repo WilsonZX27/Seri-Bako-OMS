@@ -1,11 +1,20 @@
 # Seri Bako OMS responsive design standard
 
-> **Release authority:** the currently released application is `v8.64.26`, as
+> **Release authority:** the currently released application is `v8.64.34`, as
 > defined by `src/lib/app-version.ts`. A versioned section above that number is
 > an accepted forward design contract or unreleased implementation note—not
 > evidence that the application itself has been released at that version.
 > `docs/DESIGN_SYSTEM.md` owns the current visual principles; this file retains
 > versioned implementation history and workspace rules.
+
+## v8.64.34 - Stable Report Ranking Previews
+
+- Ranking lists retain fixed row positions while hover, touch, or keyboard
+  selection updates a single reserved detail surface below the list.
+- Idle and selected states share the same minimum preview height so comparison
+  does not cause layout shift or move the next report section.
+- The preview is a labelled live region and keeps its drill-through action
+  keyboard reachable without maintaining a second interaction model.
 
 ## v8.64.26 - Shared Item Search Authority
 

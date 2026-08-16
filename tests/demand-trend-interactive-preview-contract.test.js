@@ -39,11 +39,9 @@ test("Top movement and wastage use touch-friendly ranking previews with progress
   assert.equal((page.match(/<TrendTable[^>]*collapsible/g) ?? []).length, 4);
   assert.match(page, /data-demand-detail-disclosure/);
   assert.match(page, /summary className="flex min-h-11/);
-  assert.match(ranking, /onMouseEnter/);
-  assert.match(ranking, /onMouseLeave/);
-  assert.match(ranking, /onPointerDown/);
-  assert.match(ranking, /onClick/);
-  assert.match(ranking, /onFocus/);
+  assert.match(ranking, /usePreviewSelection<string>\(\)/);
+  assert.match(ranking, /\.\.\.optionProps\(item\.id\)/);
+  assert.match(ranking, /\.\.\.boundaryProps/);
   assert.match(ranking, /role="region"/);
   assert.match(ranking, /data-ranking-row/);
   assert.match(ranking, /data-ranking-open/);
@@ -53,6 +51,8 @@ test("Top movement and wastage use touch-friendly ranking previews with progress
   assert.match(ranking, /col-start-2[\s\S]*row-start-2[\s\S]*xl:col-start-3[\s\S]*xl:row-start-1/);
   assert.match(ranking, /index \+ 1/);
   assert.match(ranking, /data-ranking-preview[\s\S]*min-h-\[4\.5rem\]/);
+  assert.match(ranking, /id=\{previewId\}/);
+  assert.doesNotMatch(ranking, /rowPreviewId/);
   assert.match(ranking, /item\.value <= 0 \? 0 : Math\.max\(3,/);
   assert.doesNotMatch(ranking, /<Link key=\{item\.id\} href=\{item\.href\}/);
   assert.match(ranking, /truncate/);

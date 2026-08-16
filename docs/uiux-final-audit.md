@@ -36,6 +36,12 @@ This is the working ledger for the final close-out. Every browser comment must h
 - Outlet Daily list aggregation now indexes lines by record before calculating totals, removing repeated full-line scans without changing the fail-closed trust rule.
 - The local release is `v8.64.6`; focused contract coverage and typecheck pass. Remote/browser verification remains open until the preview footer shows this release.
 
+## Keyboard-safe mobile action pass — 2026-08-16
+
+- Mobile keyboard detection now keeps the last stable pre-keyboard viewport height so Android Chrome layouts that resize both `innerHeight` and `visualViewport` still hide fixed navigation and action chrome while an editable field is focused.
+- Mobile create FABs join the same keyboard-safe rule; they cannot cover the focused quantity or remarks input above the keyboard.
+- Contract coverage verifies stable-height detection and the shared keyboard-hide selector. The local release is `v8.64.7`; remote/browser verification remains open until the preview footer and a real Android/iOS keyboard flow confirm the behavior.
+
 ## Report preview continuity pass — 2026-08-16
 
 The report annotations that called out hover/focus preview flicker are now fixed in the shared chart surfaces, not by route-specific CSS:

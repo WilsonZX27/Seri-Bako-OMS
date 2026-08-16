@@ -1,6 +1,6 @@
 # Seri Bako OMS responsive design standard
 
-> **Release authority:** the currently released application is `v8.64.6`, as
+> **Release authority:** the currently released application is `v8.64.7`, as
 > defined by `src/lib/app-version.ts`. A versioned section above that number is
 > an accepted forward design contract or unreleased implementation note—not
 > evidence that the application itself has been released at that version.
@@ -10,6 +10,10 @@
 ## v8.64.3 - Mobile Keyboard Chrome Hardening
 
 - Mobile fixed navigation and document action rails hide while an editable field has opened the on-screen keyboard, preventing the action chrome from floating over the focused input. The rails return when the keyboard closes.
+
+## v8.64.7 - Keyboard-safe Mobile Actions
+
+- Mobile keyboard detection keeps the last stable pre-keyboard viewport height, covering Android Chrome configurations that resize `innerHeight` and `visualViewport` together. Fixed navigation, document actions, and create FABs stay out of the keyboard corridor while editing.
 
 ## v8.64.5 - Verified Receiving Provenance
 

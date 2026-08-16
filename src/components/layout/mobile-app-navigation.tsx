@@ -189,6 +189,11 @@ export function MobileAppNavigation({
     const root = document.documentElement;
     const viewport = window.visualViewport;
     const mobileQuery = window.matchMedia("(max-width: 767px)");
+    let stableViewportHeight = Math.max(
+      window.innerHeight,
+      document.documentElement.clientHeight,
+      viewport?.height ?? 0,
+    );
     let frame = 0;
 
     const isEditable = () => {
@@ -202,10 +207,19 @@ export function MobileAppNavigation({
     const updateKeyboardState = () => {
       cancelAnimationFrame(frame);
       frame = requestAnimationFrame(() => {
-        const layoutHeight = window.innerHeight;
+        const editable = isEditable();
+        const layoutHeight = Math.max(window.innerHeight, document.documentElement.clientHeight);
         const visualHeight = viewport?.height ?? layoutHeight;
-        const viewportDelta = layoutHeight - visualHeight;
-        const keyboardOpen = mobileQuery.matches && isEditable() && (viewportDelta > 120 || visualHeight < layoutHeight * 0.75);
+
+        // Android Chrome may resize both innerHeight and the visual viewport
+        // when the keyboard opens. Keep the last non-keyboard height so the
+        // reduced viewport can still be identified reliably.
+        if (!editable || visualHeight >= stableViewportHeight - 32) {
+          stableViewportHeight = Math.max(layoutHeight, visualHeight);
+        }
+
+        const viewportDelta = stableViewportHeight - visualHeight;
+        const keyboardOpen = mobileQuery.matches && editable && (viewportDelta > 120 || visualHeight < stableViewportHeight * 0.75);
         if (keyboardOpen) root.dataset.mobileKeyboardOpen = "true";
         else delete root.dataset.mobileKeyboardOpen;
       });

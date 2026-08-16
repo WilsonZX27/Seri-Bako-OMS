@@ -15,12 +15,13 @@ type Line = {
   product_id: string;
   qty_sent: number;
   qty_sent_source?: "unavailable" | "legacy_unverified" | "outlet_received_estimate" | "authorized_draft" | "authorized_confirmed";
-  morning_received_qty: number;
+  morning_received_qty: number | null;
+  morning_received_provided?: boolean;
   wastage_qty: number;
   wastage_reason: OutletDailyWastageReason | null;
   notes: string | null;
 };
-type DefaultLine = { morning_received_qty: number; wastage_qty: number; wastage_reason: OutletDailyWastageReason | null; notes: string | null };
+type DefaultLine = { morning_received_qty: number | null; wastage_qty: number; wastage_reason: OutletDailyWastageReason | null; notes: string | null };
 const reasons: OutletDailyWastageReason[] = ["unsold", "damaged", "expired", "quality_issue", "staff_meal", "other"];
 const EMPTY_LINES: Line[] = [];
 const EMPTY_DEFAULTS_BY_BRANCH: Record<string, Record<string, DefaultLine>> = {};
@@ -102,7 +103,7 @@ function DailyProductLine({ product, line, defaultLine, hiddenClass, locked, can
   const source = line ?? defaultLine;
   const qtySentIsKnown = line && !["unavailable", "outlet_received_estimate"].includes(line.qty_sent_source ?? "legacy_unverified");
   const [qtySent, setQtySent] = useState(qtySentIsKnown ? String(line.qty_sent) : "");
-  const [received, setReceived] = useState(source ? String(source.morning_received_qty) : "");
+  const [received, setReceived] = useState(source?.morning_received_qty == null ? "" : String(source.morning_received_qty));
   const [wastage, setWastage] = useState(source ? String(source.wastage_qty) : "");
   const [reason, setReason] = useState(source?.wastage_reason ?? "");
   const [remark, setRemark] = useState(source?.notes ?? "");

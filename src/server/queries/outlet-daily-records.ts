@@ -26,7 +26,12 @@ export type OutletDailyRecordRow = RecordRow & {
   wastage_percent: number | null;
 };
 
-export type OutletDailyDefaultLine = Pick<LineRow, "morning_received_qty" | "wastage_qty" | "wastage_reason" | "notes">;
+export type OutletDailyDefaultLine = {
+  morning_received_qty: number | null;
+  wastage_qty: LineRow["wastage_qty"];
+  wastage_reason: LineRow["wastage_reason"];
+  notes: LineRow["notes"];
+};
 
 export type OutletDailyCompletionStatus = RecordRow["status"] | "missing";
 export type OutletDailyCompletionCell = {
@@ -71,7 +76,7 @@ const totals = (lines: LineRow[]) => {
   };
 };
 
-const receivedValueIsTrusted = (line: LineRow) => {
+const receivedValueIsTrusted = (line: Pick<LineRow, "morning_received_qty" | "qty_sent_estimated">) => {
   const received = Number(line.morning_received_qty);
   return Number.isFinite(received) && (line.qty_sent_estimated !== null || received !== 0);
 };
@@ -127,15 +132,17 @@ async function getOutletDailyDefaults(db: Awaited<ReturnType<typeof createClient
   if (!recordIds.length) return {} as Record<string, Record<string, OutletDailyDefaultLine>>;
   const { data: lines, error: lineError } = await db
     .from("outlet_daily_record_lines")
-    .select("record_id,product_id,morning_received_qty,wastage_qty,wastage_reason,notes")
+    .select("record_id,product_id,morning_received_qty,qty_sent_estimated,wastage_qty,wastage_reason,notes")
     .in("record_id", recordIds);
   if (lineError) throw new Error(lineError.message);
   const branchByRecord = new Map([...chosen.entries()].map(([branchId, recordId]) => [recordId, branchId]));
-  return ((lines ?? []) as Pick<LineRow, "record_id" | "product_id" | "morning_received_qty" | "wastage_qty" | "wastage_reason" | "notes">[]).reduce<Record<string, Record<string, OutletDailyDefaultLine>>>((result, line) => {
+  return ((lines ?? []) as Pick<LineRow, "record_id" | "product_id" | "morning_received_qty" | "qty_sent_estimated" | "wastage_qty" | "wastage_reason" | "notes">[]).reduce<Record<string, Record<string, OutletDailyDefaultLine>>>((result, line) => {
     const branchId = branchByRecord.get(line.record_id);
     if (!branchId) return result;
     (result[branchId] ??= {})[line.product_id] = {
-      morning_received_qty: line.morning_received_qty,
+      // Legacy rows used the database default 0 without recording that the
+      // outlet actually entered zero. Never carry that zero into a new form.
+      morning_received_qty: receivedValueIsTrusted(line) ? line.morning_received_qty : null,
       wastage_qty: line.wastage_qty,
       wastage_reason: line.wastage_reason,
       notes: line.notes,
@@ -270,7 +277,7 @@ export async function getOutletDailyRecord(id: string) {
       ...totals(typedLines),
     },
     lines: typedLines
-      .map((line) => ({ ...line, product: productMap.get(line.product_id) }))
+      .map((line) => ({ ...line, morning_received_provided: receivedValueIsTrusted(line), product: productMap.get(line.product_id) }))
       .sort((a, b) => {
         if (!a.product) return 1;
         if (!b.product) return -1;

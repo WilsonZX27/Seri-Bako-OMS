@@ -2,7 +2,12 @@
 
 ## Product Overview
 
-The current released application baseline is `v8.64.43` — Close Query Card Style Authority.
+The current released application baseline is `v8.64.44` — Centralize Tablet Rail Geometry.
+
+### v8.64.44 — Centralize Tablet Rail Geometry
+
+- WorkspaceGrid now exposes semantic tablet rail attributes; responsive rail geometry is owned by the canonical design-system CSS instead of competing runtime utility classes.
+- Compact and half-width tablet rails are explicit contracts, so the same breakpoint behaves consistently across document routes.
 
 ### v8.64.43 — Close Query Card Style Authority
 
@@ -98,7 +103,7 @@ The current released application baseline is `v8.64.43` — Close Query Card Sty
 
 ### Current audit baseline
 
-The current released application baseline is `v8.64.43 — Close Query Card Style Authority`.
+The current released application baseline is `v8.64.44 — Centralize Tablet Rail Geometry`.
 
 Item Master lookup now has one authoritative token-matching combobox shared by
 Kitchen PR entry and Purchasing Review. Users may search using partial words
@@ -309,9 +314,9 @@ The system currently covers or is actively implementing the following operationa
 Module maturity must be understood separately from visual completion.
 
 Repository migrations reviewed through `154`; release authority is
-`v8.64.43 — Close Query Card Style Authority`.
+`v8.64.44 — Centralize Tablet Rail Geometry`.
 
-Current integration baseline: `v8.64.43 — Close Query Card Style Authority`, with repository migrations reviewed through `154`. Migrations `111` and `112` remain immutable history because they were applied to the linked database accidentally. Migration `113` removes their callable Central Kitchen PR RPC, prevents further access to the stock-holds table, and preserves that table temporarily for a non-destructive data audit. Later forward-only migrations add bounded inventory and Dashboard read models, repair grants and scoped access, introduce branch supply-route and received-quantity provenance, preserve unmatched PR entry as auditable non-catalog lines, split approved purchase requests atomically by supplier, and make Item Master the authority for supplier-item identity; they do not restore the retired Central Kitchen PR workflow.
+Current integration baseline: `v8.64.44 — Centralize Tablet Rail Geometry`, with repository migrations reviewed through `154`. Migrations `111` and `112` remain immutable history because they were applied to the linked database accidentally. Migration `113` removes their callable Central Kitchen PR RPC, prevents further access to the stock-holds table, and preserves that table temporarily for a non-destructive data audit. Later forward-only migrations add bounded inventory and Dashboard read models, repair grants and scoped access, introduce branch supply-route and received-quantity provenance, preserve unmatched PR entry as auditable non-catalog lines, split approved purchase requests atomically by supplier, and make Item Master the authority for supplier-item identity; they do not restore the retired Central Kitchen PR workflow.
 
 A page may exist visually without its full workflow, validation, database integration, permissions, and downstream effects being complete.
 

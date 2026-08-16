@@ -1,11 +1,16 @@
 # Seri Bako OMS responsive design standard
 
-> **Release authority:** the currently released application is `v8.64.43`, as
+> **Release authority:** the currently released application is `v8.64.44`, as
 > defined by `src/lib/app-version.ts`. A versioned section above that number is
 > an accepted forward design contract or unreleased implementation note—not
 > evidence that the application itself has been released at that version.
 > `docs/DESIGN_SYSTEM.md` owns the current visual principles; this file retains
 > versioned implementation history and workspace rules.
+
+## v8.64.44 - Centralize Tablet Rail Geometry
+
+- WorkspaceGrid exposes semantic tablet rail attributes; canonical CSS owns responsive rail geometry instead of competing runtime utility classes.
+- Compact and half-width tablet rails are explicit contracts and are verified at representative tablet widths.
 
 ## v8.64.43 - Close Query Card Style Authority
 

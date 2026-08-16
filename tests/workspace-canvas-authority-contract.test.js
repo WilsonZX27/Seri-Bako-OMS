@@ -21,6 +21,12 @@ describe("workspace canvas regression", () => {
     assert.doesNotMatch(css, /\[data-workspace-grid\]/);
   });
 
+  test("tablet rail width has one CSS authority instead of competing runtime grid utilities", () => {
+    assert.match(workspace, /data-tablet-rail-width=\{tabletRailWidth\}/);
+    assert.doesNotMatch(workspace, /grid-cols-\[|splitGridClass|splitRailClass/);
+    assert.match(css, /data-tablet-rail-width="half"[\s\S]*grid-template-columns: minmax\(0, 1fr\) minmax\(18rem, 42%\)/);
+  });
+
   test("coarse-pointer CSS does not compete with the runtime tablet shell", () => {
     assert.doesNotMatch(css, /\(max-width: 1366px\) and \(hover: none\) and \(pointer: coarse\)/);
   });

@@ -1191,9 +1191,8 @@ html[data-design-layer="v2"] form:has([data-mobile-document-action]) {
   }
 }
 
-/* WorkspaceGrid builds the split class at runtime, so keep the responsive
-   document canvas contract in the canonical layer instead of relying on a
-   dynamically assembled Tailwind utility being emitted. */
+/* WorkspaceGrid exposes semantic rail attributes; keep the responsive document
+   canvas contract in this canonical layer instead of competing utilities. */
 [data-tablet-document-split] {
   display: block;
 }
@@ -1210,6 +1209,10 @@ html[data-design-layer="v2"] form:has([data-mobile-document-action]) {
     gap: 0.75rem;
   }
 
+  [data-tablet-document-split][data-tablet-rail-breakpoint="md"][data-tablet-rail-width="half"] {
+    grid-template-columns: minmax(0, 1fr) minmax(18rem, 42%);
+  }
+
   [data-tablet-document-split][data-tablet-rail-breakpoint="md"] > aside {
     display: block;
     min-width: 0;
@@ -1222,6 +1225,10 @@ html[data-design-layer="v2"] form:has([data-mobile-document-action]) {
     grid-template-columns: minmax(0, 1fr) 16rem;
     align-items: start;
     gap: 0.75rem;
+  }
+
+  [data-tablet-document-split][data-tablet-rail-breakpoint="lg"][data-tablet-rail-width="half"] {
+    grid-template-columns: minmax(0, 1fr) minmax(18rem, 42%);
   }
 
   [data-tablet-document-split][data-tablet-rail-breakpoint="lg"] > aside {

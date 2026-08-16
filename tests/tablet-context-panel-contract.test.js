@@ -4,12 +4,13 @@ const test = require("node:test");
 
 test("tablet workspace context never overlaps the primary data canvas", () => {
   const source = fs.readFileSync("src/components/layout/workspace-layout.tsx", "utf8");
+  const css = fs.readFileSync("src/app/design-system-v2.css", "utf8");
   assert.doesNotMatch(source, /data-tablet-context/);
   assert.doesNotMatch(source, /absolute right-0 z-\[var\(--sb-z-dropdown\)\]/);
   assert.match(source, /RightConsoleMount/);
   assert.match(source, /data-tablet-document-split/);
-  assert.match(source, /md:grid-cols-\[minmax\(0,1fr\)_16rem\]/);
-  assert.match(source, /md:block xl:hidden/);
+  assert.match(source, /data-tablet-rail-width=\{tabletRailWidth\}/);
+  assert.match(css, /data-tablet-rail-breakpoint="md"[\s\S]*grid-template-columns: minmax\(0, 1fr\) minmax\(14rem, 30%\)/);
 });
 
 test("the items master keeps its actions and summary visible beside the tablet list", () => {

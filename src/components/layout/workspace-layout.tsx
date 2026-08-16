@@ -37,23 +37,19 @@ export function WorkspaceGrid({
   const contextualRail = rightRailClassName ? <div className={rightRailClassName}>{rightRail}</div> : rightRail;
   const effectiveTabletCanvas = tabletCanvas ?? (documentMode ? "contained" : "wide");
   const usesTabletSplit = Boolean(rightRail && tabletRailMode === "split");
-  const splitGridClass = tabletRailBreakpoint === "lg"
-    ? tabletRailWidth === "half"
-      ? "lg:grid lg:grid-cols-[minmax(0,1fr)_minmax(18rem,42%)] lg:items-start lg:gap-3 xl:block"
-      : "lg:grid lg:grid-cols-[minmax(0,1fr)_16rem] lg:items-start lg:gap-3 xl:block"
-    : tabletRailWidth === "half"
-      ? "md:grid md:grid-cols-[minmax(0,1fr)_minmax(18rem,42%)] md:items-start md:gap-3 xl:block"
-      : "md:grid md:grid-cols-[minmax(0,1fr)_16rem] md:items-start md:gap-3 xl:block";
-  const splitRailClass = tabletRailBreakpoint === "lg"
-    ? "hidden min-w-0 space-y-3 lg:block xl:hidden"
-    : "hidden min-w-0 space-y-3 md:block xl:hidden";
 
   return (
     <div data-tablet-canvas={effectiveTabletCanvas} className={cn("min-h-0 p-3 pb-3", rightRail && !hideMobileConsole && "pb-32 xl:pb-3", className)}>
       {usesTabletSplit ? (
-        <div data-tablet-document-split data-tablet-split-actions data-tablet-rail-breakpoint={tabletRailBreakpoint} className={cn("min-w-0", splitGridClass)}>
+        <div
+          data-tablet-document-split
+          data-tablet-split-actions
+          data-tablet-rail-breakpoint={tabletRailBreakpoint}
+          data-tablet-rail-width={tabletRailWidth}
+          className="min-w-0"
+        >
           <div className="min-w-0 space-y-3">{children}</div>
-          <aside className={splitRailClass}>{contextualRail}</aside>
+          <aside className="min-w-0 space-y-3">{contextualRail}</aside>
         </div>
       ) : documentMode && rightRail ? (
         <div className="min-w-0">

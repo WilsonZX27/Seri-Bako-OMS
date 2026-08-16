@@ -19,6 +19,7 @@ export function SupplierItemForm({
   branches = [],
   initialSupplierId,
   initialItemId,
+  initialBranchId,
   action,
   formId,
   showSubmit = true,
@@ -29,6 +30,7 @@ export function SupplierItemForm({
   branches?: Branch[];
   initialSupplierId?: string;
   initialItemId?: string;
+  initialBranchId?: string;
   action: (formData: FormData) => Promise<void>;
   formId?: string;
   showSubmit?: boolean;
@@ -92,7 +94,7 @@ export function SupplierItemForm({
             <p className="text-xs text-muted-foreground">Choose every branch that may purchase this item from this supplier. This creates the operational branch mapping together with the supplier item.</p>
             <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
               {branches.map((branch) => <label key={branch.id} className="flex min-h-11 items-center gap-2 rounded-[var(--sb-radius-control)] border px-3 py-2 text-sm">
-                <input type="checkbox" name="branch_ids" value={branch.id} className="h-4 w-4 accent-[var(--sb-brand)]" />
+                <input type="checkbox" name="branch_ids" value={branch.id} defaultChecked={branch.id === initialBranchId} className="h-4 w-4 accent-[var(--sb-brand)]" />
                 <span className="min-w-0 truncate">{branch.branch_name}</span>
               </label>)}
             </div>

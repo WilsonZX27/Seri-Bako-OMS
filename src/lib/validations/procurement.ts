@@ -18,6 +18,13 @@ export const purchaseRequestLineSchema = z.object({
   remarks: optionalLongText,
 });
 
+export const unresolvedPurchaseRequestLineSchema = z.object({
+  requested_description: z.string().trim().min(1, "Item description is required").max(240, "Item description is too long."),
+  requested_qty: z.coerce.number().positive("Quantity must be more than 0").max(maxOperationalQuantity, "Quantity is too large."),
+  requested_uom: z.string().trim().min(1, "UOM is required").max(32, "UOM is too long."),
+  remarks: optionalLongText,
+});
+
 export const purchaseRequestSchema = z.object({
   request_no: z.string().trim().max(64, "Request number is too long.").optional().nullable().or(z.literal("")),
   request_date: requiredIsoDate,
@@ -29,7 +36,15 @@ export const purchaseRequestSchema = z.object({
   branch_id: z.string().uuid("Branch is required"),
   status: z.literal("draft").optional(),
   remarks: optionalLongText,
-  lines: z.array(purchaseRequestLineSchema).min(1, "Purchase request must have at least one line").max(500, "A purchase request is limited to 500 lines."),
+  lines: z.array(purchaseRequestLineSchema).max(500, "A purchase request is limited to 500 lines."),
+  unresolved_lines: z.array(unresolvedPurchaseRequestLineSchema).max(500, "A purchase request is limited to 500 unresolved lines.").default([]),
+}).superRefine((request, context) => {
+  if (request.lines.length + request.unresolved_lines.length < 1) {
+    context.addIssue({ code: "custom", path: ["lines"], message: "Purchase request must have at least one line" });
+  }
+  if (request.lines.length + request.unresolved_lines.length > 500) {
+    context.addIssue({ code: "custom", path: ["lines"], message: "A purchase request is limited to 500 lines." });
+  }
 });
 
 export const purchaseOrderLineSchema = z.object({

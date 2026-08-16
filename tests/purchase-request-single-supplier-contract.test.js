@@ -6,14 +6,13 @@ import path from "node:path";
 const root = process.cwd();
 const read = (file) => fs.readFileSync(path.join(root, file), "utf8");
 
-test("purchase request submission is single-supplier at both action and database boundaries", () => {
+test("supplier resolution is deferred to Purchasing Review and supports later supplier splitting", () => {
   const action = read("src/server/actions/procurement.ts");
-  const migration = read("supabase/migrations/105_purchase_request_single_supplier.sql");
-  assert.match(action, /ensureSinglePurchaseRequestSupplier/);
-  assert.match(action, /A purchase request can contain items from only one supplier/);
-  assert.match(migration, /count\(distinct suggested_supplier_id\)/);
-  assert.match(migration, /validate_purchase_request_supplier_mappings\(new\.id, true\)/);
-  assert.match(migration, /validate_purchase_request_single_supplier\(new\.id\)/);
+  const migration = read("supabase/migrations/152_lossless_non_catalog_purchase_request_lines.sql");
+  assert.doesNotMatch(action, /ensureSinglePurchaseRequestSupplier/);
+  assert.match(migration, /old\.status::text='admin_review' and new\.status::text='finance_review'/);
+  assert.match(migration, /validate_purchase_request_supplier_mappings\(new\.id,true\)/);
+  assert.doesNotMatch(migration, /validate_purchase_request_single_supplier\(new\.id\)/);
 });
 
 test("stock basket groups selected rows by supplier before creating PRs", () => {

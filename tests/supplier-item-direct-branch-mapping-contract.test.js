@@ -10,6 +10,7 @@ test("supplier item form exposes direct branch mapping instead of import-only se
   const newPage = read("src/app/(app)/supplier-items/new/page.tsx");
 
   assert.match(form, /name="branch_ids"/);
+  assert.match(form, /defaultChecked=\{branch\.id === initialBranchId\}/);
   assert.match(form, /name="is_preferred"/);
   assert.match(action, /save_branch_supplier_item_mappings/);
   assert.match(newPage, /getBranchesForSelect/);
@@ -21,4 +22,11 @@ test("item and supplier records expose contextual mapping entry points", () => {
 
   assert.match(itemPage, /supplier-items\/new\?itemId=/);
   assert.match(supplierPage, /supplier-items\/new\?supplierId=/);
+});
+
+test("purchase request sourcing warning opens contextual mapping setup", () => {
+  const requestForm = read("src/components/procurement-forms.tsx");
+  const newPage = read("src/app/(app)/supplier-items/new/page.tsx");
+  assert.match(requestForm, /supplier-items\/new\?itemId=\$\{line\.itemId\}&branchId=\$\{branchId\}/);
+  assert.match(newPage, /initialBranchId=\{query\.branchId\}/);
 });

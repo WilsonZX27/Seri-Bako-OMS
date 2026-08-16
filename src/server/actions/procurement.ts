@@ -116,7 +116,7 @@ function extractPurchaseRequest(formData: FormData) {
     .map((_, index) => index)
     .filter((index) => Boolean(descriptions[index] || itemIds[index] || String(qtys[index] ?? "").trim() || String(uoms[index] ?? "").trim()));
   if (!enteredLineIndexes.length) throw new Error("Add at least one item before creating this purchase request.");
-  const incompleteLineIndexes = enteredLineIndexes.filter((index) => !itemIds[index] || !String(qtys[index] ?? "").trim() || !String(uoms[index] ?? "").trim());
+  const incompleteLineIndexes = enteredLineIndexes.filter((index) => !descriptions[index] || !String(qtys[index] ?? "").trim() || !String(uoms[index] ?? "").trim());
   if (incompleteLineIndexes.length) {
     throw new Error(`Nothing was saved. Complete purchase request line${incompleteLineIndexes.length === 1 ? "" : "s"} ${incompleteLineIndexes.map((index) => index + 1).join(", ")}; entered text is never discarded.`);
   }
@@ -130,7 +130,13 @@ function extractPurchaseRequest(formData: FormData) {
       reason: reasons[index],
       remarks: remarks[index],
       branch_id: submittedBranches[index],
-    }));
+    })).filter((line) => Boolean(line.item_id));
+  const unresolvedLines = enteredLineIndexes.filter((index) => !itemIds[index]).map((index) => ({
+    requested_description: descriptions[index],
+    requested_qty: qtys[index],
+    requested_uom: uoms[index],
+    remarks: remarks[index],
+  }));
   const duplicateItemIds = lines.filter((line, index) => lines.findIndex((candidate) => candidate.item_id === line.item_id) !== index);
   if (duplicateItemIds.length) throw new Error("Each item can appear only once in a purchase request.");
   const parsed = purchaseRequestSchema.parse({
@@ -144,6 +150,7 @@ function extractPurchaseRequest(formData: FormData) {
     branch_id: formData.get("branch_id"),
     remarks: formData.get("remarks"),
     lines,
+    unresolved_lines: unresolvedLines,
   });
   return { ...parsed, lineBranchIds: lines.map((line) => line.branch_id) };
 }
@@ -202,15 +209,6 @@ async function ensureBranchSupplierSelections(
   const valid = new Set((relationships ?? []).map((row) => `${row.item_id}|${row.supplier_id}|${normalizeUom(row.purchase_uom)}`));
   if (selected.some((line) => !valid.has(`${line.item_id}|${line.suggested_supplier_id}|${normalizeUom(String(line.uom ?? ""))}`))) {
     throw new Error("A selected supplier is not mapped to this branch, item, and unit of measure.");
-  }
-}
-
-function ensureSinglePurchaseRequestSupplier(
-  lines: Array<{ suggested_supplier_id?: string | null }>,
-) {
-  const supplierIds = new Set(lines.map((line) => line.suggested_supplier_id).filter(Boolean));
-  if (supplierIds.size > 1) {
-    throw new Error("A purchase request can contain items from only one supplier. Split the request into separate PRs.");
   }
 }
 
@@ -310,8 +308,7 @@ export async function createPurchaseRequest(formData: FormData) {
       ensureActiveItems(payload.lines.map((line) => line.item_id), payload.branch_id, payload.lineBranchIds),
       identity(),
     ]);
-    await ensureBranchSupplierSelections(payload.branch_id, payload.lines, intent === "submit");
-    if (intent === "submit") ensureSinglePurchaseRequestSupplier(payload.lines);
+    await ensureBranchSupplierSelections(payload.branch_id, payload.lines, false);
     mark("validation_and_references");
     const data = await createPurchaseRequestAggregate(payload, profile, idempotencyKey, intent);
     mark("header_insert");
@@ -435,7 +432,10 @@ export async function updateDraftPurchaseRequest(id: string, formData: FormData)
       urgency_reason_value: payload.urgency_reason ?? null,
       production_risk_value: Boolean(payload.production_risk),
       remarks_value: payload.remarks ?? null,
-      lines_value: payload.lines.map((line, index) => ({ ...line, branch_id: payload.lineBranchIds[index] })),
+      lines_value: {
+        resolved: payload.lines.map((line, index) => ({ ...line, branch_id: payload.lineBranchIds[index] })),
+        unresolved: payload.unresolved_lines,
+      },
     });
     if (updateError) throw new Error(updateError.message);
 
@@ -517,6 +517,28 @@ export async function adminApprovePurchaseRequest(id: string) {
   } catch (error) {
     rethrowRedirect(error);
     safeRedirectWithMessage(`/purchase-requests/${id}`, "error", formatActionError(error, "Could not complete Purchasing Review."));
+  }
+}
+
+export async function resolvePurchaseRequestUnresolvedLine(id: string, formData: FormData) {
+  try {
+    if (isMockMode()) return;
+    await requirePermission("pr.admin_review");
+    const requestId = parsePurchaseRequestId(id);
+    const unresolvedLineId = z.string().uuid("Unresolved line is required.").parse(formData.get("unresolved_line_id"));
+    const itemId = z.string().uuid("Select an Item Master match.").parse(formData.get("item_id"));
+    const supabase = await createClient();
+    const { error } = await supabase.rpc("resolve_purchase_request_unresolved_line", {
+      target_purchase_request_id: requestId,
+      target_unresolved_line_id: unresolvedLineId,
+      target_item_id: itemId,
+    });
+    if (error) throw new Error(error.message);
+    revalidateWorkspaceState([`/purchase-requests/${requestId}`]);
+    safeRedirectWithMessage(`/purchase-requests/${requestId}`, "success", "Non-catalog line matched to Item Master. Supplier readiness has been recalculated.");
+  } catch (error) {
+    rethrowRedirect(error);
+    safeRedirectWithMessage(`/purchase-requests/${id}`, "error", formatActionError(error, "Could not match this purchase request line."));
   }
 }
 

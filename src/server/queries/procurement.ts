@@ -18,6 +18,7 @@ import { getCurrentUserScope } from "@/server/queries/notifications";
 type Filters = Record<string, string | undefined>;
 type PurchaseRequest = Database["public"]["Tables"]["purchase_requests"]["Row"];
 type PurchaseRequestLine = Database["public"]["Tables"]["purchase_request_lines"]["Row"];
+type PurchaseRequestUnresolvedLine = Database["public"]["Tables"]["purchase_request_unresolved_lines"]["Row"];
 type PurchaseOrder = Database["public"]["Tables"]["purchase_orders"]["Row"];
 type PurchaseOrderLine = Database["public"]["Tables"]["purchase_order_lines"]["Row"];
 const PAGE_SIZE = 12;
@@ -195,17 +196,19 @@ export async function getPurchaseRequest(id: string) {
       const supplier = mockSuppliers.find((supplierRow) => supplierRow.id === line.suggested_supplier_id);
       return { ...line, item, supplier_name: supplier?.name ?? null };
     });
-    return { request: hydratePr(row, mockPurchaseRequestLines), lines };
+    return { request: hydratePr(row, mockPurchaseRequestLines), lines, unresolvedLines: [] as PurchaseRequestUnresolvedLine[] };
   }
   const supabase = await createClient();
-  const [{ data, error }, { data: lines, error: linesError }] = await Promise.all([
+  const [{ data, error }, { data: lines, error: linesError }, { data: unresolvedLines, error: unresolvedLinesError }] = await Promise.all([
     supabase.from("purchase_requests").select("*").eq("id", id).maybeSingle(),
     supabase.from("purchase_request_lines").select("*").eq("purchase_request_id", id),
+    supabase.from("purchase_request_unresolved_lines").select("*").eq("purchase_request_id", id).eq("resolution_status", "unresolved").order("line_no"),
   ]);
   if (error) throw new Error(error.message);
   if (linesError) throw new Error(linesError.message);
+  if (unresolvedLinesError) throw new Error(unresolvedLinesError.message);
   if (!data) return null;
-  return { request: data as PurchaseRequest, lines: (lines ?? []) as PurchaseRequestLine[] };
+  return { request: data as PurchaseRequest, lines: (lines ?? []) as PurchaseRequestLine[], unresolvedLines: (unresolvedLines ?? []) as PurchaseRequestUnresolvedLine[] };
 }
 
 export async function getPurchaseOrdersForRequest(id: string) {

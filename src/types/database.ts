@@ -1153,6 +1153,40 @@ export type Database = {
         Update: Partial<Database["public"]["Tables"]["purchase_request_lines"]["Insert"]>;
         Relationships: [];
       };
+      purchase_request_unresolved_lines: {
+        Row: {
+          id: string;
+          purchase_request_id: string;
+          line_no: number;
+          requested_description: string;
+          requested_qty: number;
+          requested_uom: string;
+          remarks: string | null;
+          resolution_status: "unresolved" | "matched" | "dismissed";
+          resolved_item_id: string | null;
+          resolved_by: string | null;
+          resolved_at: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          purchase_request_id: string;
+          line_no: number;
+          requested_description: string;
+          requested_qty: number;
+          requested_uom: string;
+          remarks?: string | null;
+          resolution_status?: "unresolved" | "matched" | "dismissed";
+          resolved_item_id?: string | null;
+          resolved_by?: string | null;
+          resolved_at?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["purchase_request_unresolved_lines"]["Insert"]>;
+        Relationships: [];
+      };
       purchase_orders: {
         Row: {
           id: string;
@@ -2332,6 +2366,10 @@ export type Database = {
           outbound_entries: number;
           movement_entries: number;
         }[];
+      };
+      resolve_purchase_request_unresolved_line: {
+        Args: { target_purchase_request_id: string; target_unresolved_line_id: string; target_item_id: string };
+        Returns: Json;
       };
       get_stock_count_variance_insight: {
         Args: { p_branch_id?: string | null };

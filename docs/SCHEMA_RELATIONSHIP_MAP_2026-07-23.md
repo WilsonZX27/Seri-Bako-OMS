@@ -1,14 +1,18 @@
 # Seri Bako OMS — Schema 与 Table 关系地图
 
+> 2026-08-16 release authority：仓库 forward-only migration 历史已到 `152`；migration `152` 新增 lossless non-catalog Purchase Request lines，并把 Item/Supplier matching 延后到 Purchasing Review。此记录只证明 repository authority，不证明已部署到 Production。
+
 > 读取时间：2026-07-23。来源为本机运行中的 Supabase/PostgreSQL `public` schema，**不是 Production 线上库**。
 >
 > 2026-07-23 原始读取结果：61 张基础表、5 个只读库存视图，当时仓库迁移到 089。本文件仍是历史实库快照，不是当前 Production schema 证明。
 >
 > 2026-08-16 仓库核对：forward-only migration 历史已到 `151`。权威顺序为：目标数据库的 `schema_migrations` 与实际 catalog → 仓库 `supabase/migrations/` → 本历史关系图。不要仅凭本文件执行删除、重命名或 Production 变更。
 
-## 2026-08-16 repository 增量（migrations 128–151）
+## 2026-08-16 repository 增量（migrations 128–152）
 
 以下只记录从 migration 文件直接验证到的结构/读模型变化，不声称这些 migration 已部署到任何特定 Production 项目：
+
+- `152` 新增 `purchase_request_unresolved_lines`，使 non-catalog/free-text PR 行在尚未匹配 Item Master 或 supplier mapping 时仍可原样保存；Purchasing Review 可审计地完成匹配，提交阶段不再静默丢弃未解析行。
 
 - `150` 为 inventory read reliability hardening：为 posted ledger 的日期范围查询、stock transaction lines、posted stock counts 与 variance lines 增加选择性索引，针对 `57014` statement timeout；不改变 RLS、租户边界或 running-balance 语义。
 

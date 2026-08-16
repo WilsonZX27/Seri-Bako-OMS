@@ -129,12 +129,12 @@ export function PurchaseRequestForm({
   const firstItemInputRef = useRef<HTMLInputElement>(null);
   const nextKey = lines.reduce((max, line) => Math.max(max, line.key), 0) + 1;
 
-  const hasRequestItem = lines.some((line) => Boolean(line.itemId));
+  const hasRequestItem = lines.some((line) => Boolean(line.itemSearch.trim()));
   const selectedBranchName = branches.find((branch) => branch.id === branchId)?.branch_name ?? "Select branch";
   const detailsComplete = Boolean(branchId);
   const incompleteEnteredLines = lines.filter((line) => {
     const touched = Boolean(line.itemSearch.trim() || line.qty.trim() || line.uom.trim());
-    return touched && (!line.itemId || !line.qty.trim() || !line.uom.trim());
+    return touched && (!line.itemSearch.trim() || !line.qty.trim() || !line.uom.trim());
   });
 
   function mappingsForLine(line: RequestLine) {
@@ -143,11 +143,15 @@ export function PurchaseRequestForm({
 
   function allowedUomsForLine(line: RequestLine) {
     const item = items.find((candidate) => candidate.id === line.itemId);
+    const knownSystemUoms = line.itemId
+      ? []
+      : items.flatMap((candidate) => [candidate.purchase_unit, candidate.base_unit]);
     return [...new Set([
       line.uom,
       item?.purchase_unit,
       item?.base_unit,
       ...mappingsForLine(line).map((mapping) => mapping.purchase_uom),
+      ...knownSystemUoms,
     ].filter(Boolean).map((value) => normalizeUom(String(value))))];
   }
 
@@ -159,7 +163,7 @@ export function PurchaseRequestForm({
   function validateSubmission(event: FormEvent<HTMLFormElement>) {
     if (incompleteEnteredLines.length) {
       event.preventDefault();
-      setValidationError(`Nothing was saved because ${incompleteEnteredLines.length} entered line${incompleteEnteredLines.length === 1 ? " is" : "s are"} incomplete. Select each item suggestion and enter its quantity and unit.`);
+      setValidationError(`Nothing was saved because ${incompleteEnteredLines.length} entered line${incompleteEnteredLines.length === 1 ? " is" : "s are"} incomplete. Enter a description, quantity, and unit for every started line.`);
       return;
     }
     if (hasRequestItem) return;
@@ -174,7 +178,7 @@ export function PurchaseRequestForm({
       event.preventDefault();
       event.stopImmediatePropagation();
       if (incompleteEnteredLines.length) {
-        setValidationError(`Nothing was saved because ${incompleteEnteredLines.length} entered line${incompleteEnteredLines.length === 1 ? " is" : "s are"} incomplete. Select each item suggestion and enter its quantity and unit.`);
+        setValidationError(`Nothing was saved because ${incompleteEnteredLines.length} entered line${incompleteEnteredLines.length === 1 ? " is" : "s are"} incomplete. Enter a description, quantity, and unit for every started line.`);
       } else {
         rejectEmptyRequest();
       }
@@ -200,7 +204,7 @@ export function PurchaseRequestForm({
       items.find((item) => [item.item_code, item.item_name].filter(Boolean).some((candidate) => String(candidate).toLowerCase() === query));
 
     if (!selected) {
-      updateLine(key, { itemSearch: value, itemId: "", uom: "", supplierId: "", cost: "0" });
+      updateLine(key, { itemSearch: value, itemId: "", supplierId: "", cost: "0" });
       setSuggestionLineKey(key);
       return;
     }
@@ -401,7 +405,7 @@ export function PurchaseRequestForm({
                       </div>
                     </Field>
                     <Field label="UOM" labelClassName="sr-only" className="pr-line-uom col-start-3 row-start-2 lg:row-start-1">
-                      <SelectNative name="line_uom" value={line.uom} onChange={(event) => selectLineUom(line.key, event.target.value)} disabled={!line.itemId} aria-label={`Unit of measure for ${line.itemSearch || "request line"}`}>
+                      <SelectNative name="line_uom" value={line.uom} onChange={(event) => selectLineUom(line.key, event.target.value)} aria-label={`Unit of measure for ${line.itemSearch || "request line"}`}>
                         <option value="">Choose unit</option>
                         {allowedUomsForLine(line).map((uom) => <option key={uom} value={uom}>{uom.toUpperCase()}</option>)}
                       </SelectNative>
@@ -414,8 +418,8 @@ export function PurchaseRequestForm({
                     <Button type="button" variant="outline" size="icon" className="order-2 h-[var(--sb-control-height)] w-[var(--sb-control-height)] text-muted-foreground lg:order-1" aria-label={`Add comment for ${line.itemSearch || "request line"}`} onClick={() => setCommentLineKey((current) => current === line.key ? null : line.key)}><MessageSquare className="h-4 w-4" /></Button>
                   </div>
                   {commentLineKey === line.key ? <Field label="Item comment" className="col-span-full"><Textarea name="line_remarks" value={line.remarks} onChange={(event) => updateLine(line.key, { remarks: event.target.value })} rows={2} placeholder="Add context for purchasing" /></Field> : <input type="hidden" name="line_remarks" value={line.remarks} />}
-                  {line.itemId && mappingsForLine(line).length === 0 ? <div className="col-span-full grid min-w-0 gap-2 rounded-[var(--sb-radius-control)] border border-destructive/25 bg-destructive/8 px-3 py-2.5 text-xs text-destructive sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center"><div className="min-w-0"><p className="font-semibold">Supplier setup required</p><p className="mt-0.5 leading-relaxed">This item has no supplier assigned for the selected branch.</p></div><Button asChild type="button" variant="outline" size="sm" className="h-9 w-full border-destructive/30 text-xs text-destructive sm:w-auto"><Link href="/imports/branch-supplier-items">Add supplier mapping</Link></Button></div> : null}
-                  {line.itemId && line.uom && mappingsForLine(line).length > 0 && !mappingsForLine(line).some((mapping) => normalizeUom(mapping.purchase_uom) === line.uom) ? <div className="col-span-full rounded-[var(--sb-radius-control)] border border-amber-300/60 bg-amber-50 px-3 py-2 text-xs font-medium leading-relaxed text-amber-800"><p>No supplier mapping uses {line.uom.toUpperCase()} for this branch.</p><Link href="/imports/branch-supplier-items" className="mt-1 inline-flex font-semibold underline underline-offset-2">Update branch mapping</Link></div> : null}
+                  {line.itemId && mappingsForLine(line).length === 0 ? <div className="col-span-full grid min-w-0 gap-2 rounded-[var(--sb-radius-control)] border border-amber-300/60 bg-amber-50 px-3 py-2.5 text-xs text-amber-900 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center"><div className="min-w-0"><p className="font-semibold">Supplier match pending</p><p className="mt-0.5 leading-relaxed">The request line is safe to submit. Purchasing must assign a supplier before completing its review.</p></div><Button asChild type="button" variant="outline" size="sm" className="h-9 w-full border-amber-400/60 text-xs text-amber-900 sm:w-auto"><Link href={`/supplier-items/new?itemId=${line.itemId}&branchId=${branchId}`}>Add supplier mapping</Link></Button></div> : null}
+                  {line.itemId && line.uom && mappingsForLine(line).length > 0 && !mappingsForLine(line).some((mapping) => normalizeUom(mapping.purchase_uom) === line.uom) ? <div className="col-span-full rounded-[var(--sb-radius-control)] border border-amber-300/60 bg-amber-50 px-3 py-2 text-xs font-medium leading-relaxed text-amber-800"><p>No supplier mapping uses {line.uom.toUpperCase()} for this branch. The request remains safe to submit.</p><Link href={`/supplier-items/new?itemId=${line.itemId}&branchId=${branchId}`} className="mt-1 inline-flex font-semibold underline underline-offset-2">Update branch mapping</Link></div> : null}
                   {line.itemId && mappingsForLine(line).filter((mapping) => !line.uom || normalizeUom(mapping.purchase_uom) === line.uom).length > 1 && !line.supplierId ? <p className="col-span-full rounded-[var(--sb-radius-control)] border border-amber-300/60 bg-amber-50 px-3 py-2 text-xs font-medium leading-relaxed text-amber-800">Multiple supplier mappings found for this unit. Select the supplier to continue; the preferred mapping is used automatically when one is marked.</p> : null}
                   <input type="hidden" name="line_reason" value={line.reason} />
                 </div>

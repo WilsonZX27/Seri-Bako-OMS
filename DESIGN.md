@@ -1,11 +1,22 @@
 # Seri Bako OMS responsive design standard
 
-> **Release authority:** the currently released application is `v8.64.24`, as
+> **Release authority:** the currently released application is `v8.64.25`, as
 > defined by `src/lib/app-version.ts`. A versioned section above that number is
 > an accepted forward design contract or unreleased implementation note—not
 > evidence that the application itself has been released at that version.
 > `docs/DESIGN_SYSTEM.md` owns the current visual principles; this file retains
 > versioned implementation history and workspace rules.
+
+## v8.64.25 - Lossless Non-Catalog Purchase Requests
+
+- Description, quantity, and UOM form the minimum durable requisition line;
+  catalogue and supplier resolution are not prerequisites for saving intent.
+- Token-matched catalogue suggestions remain optional. Unmatched descriptions
+  persist as auditable non-catalog lines instead of disappearing.
+- Purchasing Review owns Item Master matching and supplier readiness. The
+  workflow cannot advance to Finance until those sourcing tasks are complete.
+- Direct contextual supplier mapping remains available from Item, Supplier,
+  and Purchase Request sourcing states; bulk import is not the only setup path.
 
 ## v8.64.24 - Direct Branch Supplier Mapping
 

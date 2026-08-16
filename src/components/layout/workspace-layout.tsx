@@ -35,7 +35,10 @@ export function WorkspaceGrid({
   tabletRailWidth?: TabletRailWidth;
 }) {
   const contextualRail = rightRailClassName ? <div className={rightRailClassName}>{rightRail}</div> : rightRail;
-  const effectiveTabletCanvas = tabletCanvas ?? (documentMode ? "contained" : "wide");
+  // Contained is the system default for both lists and documents. Routes that
+  // genuinely need a technical wide canvas (for example import mapping) must
+  // opt in explicitly, so ordinary pages cannot drift to different gutters.
+  const effectiveTabletCanvas = tabletCanvas ?? "contained";
   const usesTabletSplit = Boolean(rightRail && tabletRailMode === "split");
   const splitGridClass = tabletRailBreakpoint === "lg"
     ? tabletRailWidth === "half"
@@ -49,7 +52,7 @@ export function WorkspaceGrid({
     : "hidden min-w-0 space-y-3 md:block xl:hidden";
 
   return (
-    <div data-tablet-canvas={effectiveTabletCanvas} className={cn("min-h-0 p-3 pb-3", rightRail && !hideMobileConsole && "pb-32 xl:pb-3", className)}>
+    <div data-workspace-grid data-tablet-canvas={effectiveTabletCanvas} className={cn("min-h-0 p-3 pb-3", rightRail && !hideMobileConsole && "pb-32 xl:pb-3", className)}>
       {usesTabletSplit ? (
         <div data-tablet-document-split data-tablet-split-actions data-tablet-rail-breakpoint={tabletRailBreakpoint} className={cn("min-w-0", splitGridClass)}>
           <div className="min-w-0 space-y-3">{children}</div>

@@ -2,11 +2,17 @@
 
 ## Product Overview
 
-Current release authority: v8.64.17 - Canonical List Command Rows.
+Current release authority: v8.64.18 - Canonical Workspace Canvas.
 
 ### Current audit baseline
 
-The current released application baseline is `v8.64.17 — Canonical List Command Rows`.
+The current released application baseline is `v8.64.18 — Canonical Workspace Canvas`.
+
+Workspace pages now default to the same contained 64rem canvas; a route must
+explicitly opt into the 76rem technical canvas or the full canvas. Touch-first
+iPad widths also receive the tablet shell before React hydration through a
+capability media-query fallback, while runtime touch detection remains the
+mixed-pointer fallback.
 
 Historical release context: `v8.64.6 — Reliable Outlet Daily Reads`; earlier context: `v8.64.5 — Verified Receiving Provenance`, `v8.64.4 — Stable Report Preview Surfaces`, and `v8.63.0 — Fail-Closed Goods Receiving Joins`.
 

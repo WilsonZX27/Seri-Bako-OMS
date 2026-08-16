@@ -1,11 +1,22 @@
 # Seri Bako OMS responsive design standard
 
-> **Release authority:** the currently released application is `v8.64.17`, as
+> **Release authority:** the currently released application is `v8.64.18`, as
 > defined by `src/lib/app-version.ts`. A versioned section above that number is
 > an accepted forward design contract or unreleased implementation note—not
 > evidence that the application itself has been released at that version.
 > `docs/DESIGN_SYSTEM.md` owns the current visual principles; this file retains
 > versioned implementation history and workspace rules.
+
+## v8.64.18 - Canonical Workspace Canvas
+
+- `WorkspaceGrid` is the only workspace-width owner. Lists and documents both
+  default to the contained 64rem canvas; technical data workspaces must opt in
+  to the 76rem wide canvas, and full width is an explicit exception.
+- The content canvas is centered with one gutter contract, so routes cannot
+  acquire different left and right whitespace from their immediate children.
+- Touch-first tablets from 768px through 1366px receive the tablet shell from
+  input capabilities before hydration. Runtime `maxTouchPoints` detection
+  remains the fallback for iPadOS desktop mode and mixed pointer reporting.
 
 ## v8.64.17 - Canonical List Command Rows
 

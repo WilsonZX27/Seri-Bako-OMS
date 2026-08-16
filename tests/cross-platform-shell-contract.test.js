@@ -69,14 +69,14 @@ test("modern list query geometry has one responsive CSS owner", () => {
   assert.match(designLayer, /@media \(min-width: 1280px\)[\s\S]*form\.sb-list-query-card[\s\S]*flex-wrap: nowrap !important/);
 });
 
-test("contained canvas and touch-tablet shell are shared defaults", () => {
+test("workspace width intent and touch-tablet shell retain separate authorities", () => {
   const workspaceGrid = read("src", "components", "layout", "workspace-layout.tsx");
   const mobileNavigation = read("src", "components", "layout", "mobile-app-navigation.tsx");
   const designLayer = read("src", "app", "design-system-v2.css");
 
-  assert.match(workspaceGrid, /const effectiveTabletCanvas = tabletCanvas \?\? "contained"/);
-  assert.match(designLayer, /--sb-canvas-contained:\s*64rem/);
-  assert.match(designLayer, /\[data-tablet-canvas="contained"\][\s\S]*width: min\(calc\(100% - 2rem\), 64rem\)/);
+  assert.match(workspaceGrid, /const effectiveTabletCanvas = tabletCanvas \?\? \(documentMode \? "contained" : "wide"\)/);
+  assert.doesNotMatch(designLayer, /--sb-canvas-contained:/);
+  assert.doesNotMatch(designLayer, /\[data-workspace-grid\][\s\S]*max-width:/);
   assert.match(mobileNavigation, /desktopIpadUserAgent = \/macintosh\/i\.test\(navigator\.userAgent\) && touchPoints > 1/);
   assert.match(designLayer, /html\[data-touch-tablet="true"\] aside\[data-app-sidebar\][\s\S]*display: none !important/);
   assert.match(designLayer, /html\[data-touch-tablet="true"\] \[data-mobile-app-nav\][\s\S]*display: block !important/);

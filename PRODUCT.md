@@ -2,7 +2,15 @@
 
 ## Product Overview
 
-Current release authority: v8.64.37 - Canonical List Action Order.
+The current released application baseline is `v8.64.38` — Restore Established Workspace Geometry.
+
+### v8.64.38 — Restore Established Workspace Geometry
+
+- Desktop workspaces retain their established list/document width intent; a
+  shared wrapper does not globally shrink unrelated routes.
+- iPad shell selection returns to the existing runtime authority instead of a
+  competing coarse-pointer CSS override that also rewrites overflow and
+  navigation behavior.
 
 ### v8.64.37 — Canonical List Action Order
 
@@ -103,15 +111,14 @@ and landscape widths; the dense single-row editor begins only at laptop width.
 Laptop quantity controls receive a stable 10rem track so four-digit values do
 not collapse behind the stepper buttons, while item and UOM tracks stay bounded.
 
-Workspace pages now default to the same contained 64rem canvas; a route must
-explicitly opt into the 76rem technical canvas or the full canvas. Touch-first
-iPad widths also receive the tablet shell before React hydration through a
-capability media-query fallback, while runtime touch detection remains the
-mixed-pointer fallback.
+Workspace pages preserve the established document/list width intents rather
+than accepting a global desktop maximum width. Tablet shell selection remains
+owned by the existing runtime marker; no coarse-pointer CSS fallback may also
+rewrite navigation and overflow behavior.
 
 Historical release context: `v8.64.6 — Reliable Outlet Daily Reads`; earlier context: `v8.64.5 — Verified Receiving Provenance`, `v8.64.4 — Stable Report Preview Surfaces`, and `v8.63.0 — Fail-Closed Goods Receiving Joins`.
 
-The lines below are retained as historical release context; the current authority is the v8.64.37 release declaration above.
+The lines below are retained as historical release context; the current authority is the v8.64.38 release declaration above.
 The repository migration history currently runs through migration `154`. Release
 version authority lives in `src/lib/app-version.ts`; migration authority lives in
 the immutable, forward-only `supabase/migrations/` directory. Documentation must

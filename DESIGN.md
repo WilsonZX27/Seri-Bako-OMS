@@ -1,11 +1,21 @@
 # Seri Bako OMS responsive design standard
 
-> **Release authority:** the currently released application is `v8.64.37`, as
+> **Release authority:** the currently released application is `v8.64.38`, as
 > defined by `src/lib/app-version.ts`. A versioned section above that number is
 > an accepted forward design contract or unreleased implementation note—not
 > evidence that the application itself has been released at that version.
 > `docs/DESIGN_SYSTEM.md` owns the current visual principles; this file retains
 > versioned implementation history and workspace rules.
+
+## v8.64.38 - Restore Established Workspace Geometry
+
+- Desktop list and document canvases retain their established route geometry;
+  the shared workspace wrapper no longer imposes a global 64rem maximum width.
+- The experimental coarse-pointer iPad shell override is removed because it
+  competed with the existing runtime tablet shell and changed overflow,
+  navigation, and safe-area behavior as one indivisible CSS block.
+- A regression contract protects both boundaries: desktop geometry cannot be
+  globally capped, and input-capability CSS cannot replace the runtime shell.
 
 ## v8.64.37 - Canonical List Action Order
 
@@ -158,16 +168,14 @@ This release turns the repeated annotation failures into one acceptance template
 The rule is applied at the shared owner first; a route may only supply content,
 data, and semantic variants.
 
-- **Canvas:** `WorkspaceGrid` is the only width owner for workspace content. At
-  640px and above, `contained` uses a 64rem reading width, `wide` uses 76rem,
-  and `full` is an explicit exception. The same gutter contract applies to
-  document headers. No route may add a competing max-width or edge-to-edge
-  tablet rule.
+- **Canvas:** preserve the established route geometry: document workspaces use
+  the contained intent and list workspaces use the wide intent unless the route
+  explicitly opts into another existing mode. The shared wrapper must not add
+  a global desktop `max-width` cap.
 - **Shell:** phone uses the mobile top context and bottom navigation; normal
-  desktop uses the left navigation and right action rail; touch tablets keep
-  the tablet navigation shell even when iPadOS reports a desktop-sized Safari
-  viewport. The tablet mode is detected from touch capability, not a fragile
-  user-agent width guess.
+  desktop uses the left navigation and right action rail. Tablet mode remains
+  owned by the existing runtime shell marker; broad input-capability CSS must
+  not independently replace navigation, overflow, and safe-area behavior.
 - **Toolbar:** every list query surface uses one owner and one 44px control
   geometry. Desktop command controls share a 10rem track; landscape tablets
   use a full-width query row followed by one equal-track filter/action row;

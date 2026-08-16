@@ -219,11 +219,17 @@ async function loadRows() {
   if (staffsError) throw new Error(staffsError.message);
   const branchNames = new Map((branches ?? []).map((row) => [row.id, row.branch_name]));
   const staffNames = new Map((staffs ?? []).map((row) => [row.id, row.full_name]));
+  const linesByRecord = new Map<string, LineRow[]>();
+  for (const line of (lines ?? []) as LineRow[]) {
+    const recordLines = linesByRecord.get(line.record_id) ?? [];
+    recordLines.push(line);
+    linesByRecord.set(line.record_id, recordLines);
+  }
   return ((data ?? []) as RecordRow[]).map((record) => ({
     ...record,
     branch_name: branchNames.get(record.branch_id) ?? "Unknown outlet",
     submitted_by_name: record.submitted_by ? staffNames.get(record.submitted_by) ?? null : null,
-    ...totals(((lines ?? []) as LineRow[]).filter((line) => line.record_id === record.id)),
+    ...totals(linesByRecord.get(record.id) ?? []),
   }));
 }
 

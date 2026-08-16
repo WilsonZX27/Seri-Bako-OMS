@@ -2,15 +2,15 @@
 
 ## Product Overview
 
-Current release authority: v8.64.5 - Verified Receiving Provenance.
+Current release authority: v8.64.6 - Reliable Outlet Daily Reads.
 
 ### Current audit baseline
 
-The current released application baseline is `v8.64.5 — Verified Receiving Provenance`.
+The current released application baseline is `v8.64.6 — Reliable Outlet Daily Reads`.
 
-Historical release context: `v8.64.4 — Stable Report Preview Surfaces`; earlier context: `v8.63.0 — Fail-Closed Goods Receiving Joins`.
+Historical release context: `v8.64.5 — Verified Receiving Provenance`; earlier context: `v8.64.4 — Stable Report Preview Surfaces` and `v8.63.0 — Fail-Closed Goods Receiving Joins`.
 
-The lines below are retained as historical release context; the current authority is the v8.64.5 line above.
+The lines below are retained as historical release context; the current authority is the v8.64.6 line above.
 The repository migration history currently runs through migration `150`. Release
 version authority lives in `src/lib/app-version.ts`; migration authority lives in
 the immutable, forward-only `supabase/migrations/` directory. Documentation must

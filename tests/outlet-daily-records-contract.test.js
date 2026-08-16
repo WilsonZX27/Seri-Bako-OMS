@@ -142,6 +142,13 @@ test("outlet daily source failures never render an empty zero dashboard", () => 
   assert.match(page, /href=\"\/outlet-daily-records\"/);
 });
 
+test("outlet daily list aggregates line rows by record before rendering", () => {
+  assert.match(query, /const linesByRecord = new Map<string, LineRow\[\]>\(\)/);
+  assert.match(query, /linesByRecord\.get\(line\.record_id\)/);
+  assert.match(query, /totals\(linesByRecord\.get\(record\.id\) \?\? \[\]\)/);
+  assert.doesNotMatch(query, /totals\(\(lines \?\? \[\]\) as LineRow\[\]\)\.filter\(\(line\) => line\.record_id === record\.id\)/);
+});
+
 test("outlet daily detail fails closed when its record source cannot be verified", () => {
   assert.match(query, /if \(branchesError\) throw new Error/);
   assert.match(query, /if \(productsError\) throw new Error/);

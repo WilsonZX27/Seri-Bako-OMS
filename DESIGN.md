@@ -1,6 +1,6 @@
 # Seri Bako OMS responsive design standard
 
-> **Release authority:** the currently released application is `v8.64.5`, as
+> **Release authority:** the currently released application is `v8.64.6`, as
 > defined by `src/lib/app-version.ts`. A versioned section above that number is
 > an accepted forward design contract or unreleased implementation note—not
 > evidence that the application itself has been released at that version.
@@ -1398,3 +1398,7 @@ the route matrix in `docs/qa/FULL_SYSTEM_AUDIT_MATRIX.md`.
 - Ranking cards now own their descending metric order with deterministic tie-breaks, so filtered or streamed data cannot render a misleading rank sequence.
 - Ranking rows use a compact two-line mobile pattern (label/value above, bar below) and return to a single-line desktop layout at wide breakpoints.
 - Hover, touch, and keyboard selection continue to expose the same progressive preview and drill-through action.
+## v8.64.6 - Reliable Outlet Daily Reads
+
+- Outlet Daily list aggregation indexes line rows by record before calculating totals. This removes repeated full-line scans as the record history grows, while preserving the fail-closed rule for unverified receiving values.
+- The read path continues to distinguish verified zero, suspicious zero with sent stock, and unavailable receiving data; performance work must not weaken those states.

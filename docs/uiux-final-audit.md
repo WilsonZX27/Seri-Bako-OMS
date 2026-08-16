@@ -29,11 +29,12 @@ This is the working ledger for the final close-out. Every browser comment must h
 | 13 | Purchase Returns / new | Portrait tablet was not checked | Responsive verification | Verified in production browser at 820x1180 |
 | 14 | Stock Balance | Tablet should use a true two-column workspace | WorkspaceGrid / page | Verified in production browser at 1180x820; right summary rail visible |
 
-## Verified receiving provenance and Stock Count density pass — 2026-08-16
+## Reliable Outlet Daily reads and Stock Count density pass — 2026-08-16
 
 - Outlet Daily receiving totals now reject both `unavailable` and `legacy_unverified` line provenance, including stale estimates that must not be presented as confirmed receipt. The list, detail, trend, defaults, and today summary therefore share one fail-closed rule.
 - Stock Count mobile entry is covered as a deliberate two-column card: identity and variance remain visible together, with the compact +/- quantity control below. This preserves the user-proposed near-square scanning pattern without inventing an image dependency.
-- The local release is `v8.64.5`; focused contract coverage and typecheck pass. Remote/browser verification remains open until the preview footer shows this release.
+- Outlet Daily list aggregation now indexes lines by record before calculating totals, removing repeated full-line scans without changing the fail-closed trust rule.
+- The local release is `v8.64.6`; focused contract coverage and typecheck pass. Remote/browser verification remains open until the preview footer shows this release.
 
 ## Report preview continuity pass — 2026-08-16
 

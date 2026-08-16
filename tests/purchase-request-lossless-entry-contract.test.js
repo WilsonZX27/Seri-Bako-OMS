@@ -16,10 +16,14 @@ test("purchase request entry never silently filters incomplete user-entered line
 
 test("purchase request item lookup uses an explicit token-matching combobox", () => {
   const form = read("src/components/procurement-forms.tsx");
-  assert.match(form, /function normalizedSearchTokens/);
-  assert.match(form, /tokens\.every\(\(token\) => searchable\.includes\(token\)\)/);
-  assert.match(form, /role="combobox"/);
-  assert.match(form, /role="listbox"/);
+  const combobox = read("src/components/item-combobox.tsx");
+  const resolution = read("src/components/purchase-request-line-resolution-form.tsx");
+  assert.match(combobox, /function searchTokens/);
+  assert.match(combobox, /tokens\.every\(\(token\) => searchable\.includes\(token\)\)/);
+  assert.match(combobox, /role="combobox"/);
+  assert.match(combobox, /role="listbox"/);
+  assert.match(form, /<ItemCombobox/);
+  assert.match(resolution, /<ItemCombobox/);
   assert.match(form, /name="line_description"/);
   assert.doesNotMatch(form, /<datalist id="purchase-request-items">/);
 });
@@ -42,7 +46,7 @@ test("unmatched descriptions remain submittable and are stored atomically", () =
   assert.match(migration, /Resolve every non-catalog request line before completing Purchasing Review/);
   assert.match(migration, /resolve_purchase_request_unresolved_line/);
   assert.match(detail, /resolvePurchaseRequestUnresolvedLine/);
-  assert.match(detail, /Select Item Master match/);
+  assert.match(detail, /PurchaseRequestLineResolutionForm/);
 });
 
 test("typing an unmatched description does not erase quantity or UOM", () => {

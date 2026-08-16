@@ -1,7 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { SelectNative } from "@/components/ui/select-native";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { DocumentActionBar, DocumentActionForm } from "@/components/document-action-bar";
 import { ConfirmActionForm } from "@/components/ui/confirm-action-form";
@@ -35,6 +34,7 @@ import { getPurchaseOrdersForRequest, getPurchaseRequest } from "@/server/querie
 import { getPhaseOneDeletePreview } from "@/server/queries/hard-delete";
 import { hardDeletePhaseOne } from "@/server/actions/hard-delete";
 import { PurchaseRequestForm } from "@/components/procurement-forms";
+import { PurchaseRequestLineResolutionForm } from "@/components/purchase-request-line-resolution-form";
 import { logServerError } from "@/server/observability/logger";
 
 const prSteps = PURCHASE_REQUEST_WORKFLOW_STEPS.map((step) => ({
@@ -306,7 +306,7 @@ export default async function PurchaseRequestDetailPage({
                         })}
                         {unresolvedLines.map((line) => <TableRow key={line.id}>
                           <TableCell><p className="font-medium">{line.requested_description}</p><p className="text-xs font-medium text-[var(--sb-warning)]">Non-catalog item · Purchasing match required</p></TableCell>
-                          <TableCell>{canAdminReview && items ? <form action={resolvePurchaseRequestUnresolvedLine.bind(null, request.id)} className="flex min-w-[16rem] items-center gap-2"><input type="hidden" name="unresolved_line_id" value={line.id} /><SelectNative name="item_id" required aria-label={`Match ${line.requested_description} to Item Master`}><option value="">Select Item Master match</option>{items.map((item) => <option key={item.id} value={item.id}>{item.item_code} — {item.item_name}</option>)}</SelectNative><SubmitButton type="submit" size="sm" pendingLabel="Matching...">Match</SubmitButton></form> : <span className="text-muted-foreground">Not sourced yet</span>}</TableCell>
+                          <TableCell>{canAdminReview && items ? <PurchaseRequestLineResolutionForm action={resolvePurchaseRequestUnresolvedLine.bind(null, request.id)} items={items} unresolvedLineId={line.id} description={line.requested_description} compact /> : <span className="text-muted-foreground">Not sourced yet</span>}</TableCell>
                           <TableCell className="text-right">{formatNumber(line.requested_qty)}</TableCell>
                           <TableCell>{line.requested_uom}</TableCell>
                           {canViewCommercial ? <TableCell className="text-right">—</TableCell> : null}
@@ -320,7 +320,7 @@ export default async function PurchaseRequestDetailPage({
                       const supplier = line.suggested_supplier_id ? supplierById.get(line.suggested_supplier_id) : null;
                       return <div key={line.id} role="listitem" className="min-w-0 py-3 text-[13px]"><div className="flex min-w-0 items-start justify-between gap-3"><div className="min-w-0"><p className="break-words font-semibold">{!items ? "Item details unavailable" : item?.item_name ?? line.item_id}</p><p className="text-[12px] text-muted-foreground">{!items ? `Reference ${line.item_id}` : item?.item_code ?? "No item code"}</p></div><p className="shrink-0 font-semibold">{formatNumber(line.qty)} {line.uom}</p></div>{line.suggested_supplier_id && !suppliers ? <p className="mt-1 break-words text-[12px] text-[var(--sb-warning)]">Supplier details unavailable</p> : supplier ? <p className="mt-1 break-words text-[12px] text-muted-foreground">Supplier: {supplier.name}</p> : null}{line.reason ? <p className="mt-1 break-words text-[12px] text-muted-foreground">{line.reason}</p> : null}{canViewCommercial ? <p className="mt-1 text-right text-[12px] font-medium">{formatCurrency(line.estimated_unit_cost)} / {line.uom}</p> : null}</div>;
                     })}
-                    {unresolvedLines.map((line) => <div key={line.id} role="listitem" className="min-w-0 py-3 text-[13px]"><div className="flex min-w-0 items-start justify-between gap-3"><div className="min-w-0"><p className="break-words font-semibold">{line.requested_description}</p><p className="text-[12px] font-medium text-[var(--sb-warning)]">Non-catalog item · Purchasing match required</p></div><p className="shrink-0 font-semibold">{formatNumber(line.requested_qty)} {line.requested_uom}</p></div>{line.remarks ? <p className="mt-1 text-[12px] text-muted-foreground">{line.remarks}</p> : null}{canAdminReview && items ? <form action={resolvePurchaseRequestUnresolvedLine.bind(null, request.id)} className="mt-2 grid gap-2"><input type="hidden" name="unresolved_line_id" value={line.id} /><SelectNative name="item_id" required aria-label={`Match ${line.requested_description} to Item Master`}><option value="">Select Item Master match</option>{items.map((item) => <option key={item.id} value={item.id}>{item.item_code} — {item.item_name}</option>)}</SelectNative><SubmitButton type="submit" size="sm" pendingLabel="Matching..." className="w-full">Match to Item Master</SubmitButton></form> : null}</div>)}
+                    {unresolvedLines.map((line) => <div key={line.id} role="listitem" className="min-w-0 py-3 text-[13px]"><div className="flex min-w-0 items-start justify-between gap-3"><div className="min-w-0"><p className="break-words font-semibold">{line.requested_description}</p><p className="text-[12px] font-medium text-[var(--sb-warning)]">Non-catalog item · Purchasing match required</p></div><p className="shrink-0 font-semibold">{formatNumber(line.requested_qty)} {line.requested_uom}</p></div>{line.remarks ? <p className="mt-1 text-[12px] text-muted-foreground">{line.remarks}</p> : null}{canAdminReview && items ? <div className="mt-2"><PurchaseRequestLineResolutionForm action={resolvePurchaseRequestUnresolvedLine.bind(null, request.id)} items={items} unresolvedLineId={line.id} description={line.requested_description} /></div> : null}</div>)}
                   </div>
                 </>
               )}

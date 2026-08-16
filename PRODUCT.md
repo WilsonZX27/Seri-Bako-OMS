@@ -2,11 +2,16 @@
 
 ## Product Overview
 
-Current release authority: v8.64.25 - Lossless Non-Catalog Purchase Requests.
+Current release authority: v8.64.26 - Shared Item Search Authority.
 
 ### Current audit baseline
 
-The current released application baseline is `v8.64.25 — Lossless Non-Catalog Purchase Requests`.
+The current released application baseline is `v8.64.26 — Shared Item Search Authority`.
+
+Item Master lookup now has one authoritative token-matching combobox shared by
+Kitchen PR entry and Purchasing Review. Users may search using partial words
+they remember; Purchasing does not have to scan a long native select to match a
+preserved non-catalog line.
 
 Purchase Request lines now preserve business intent before catalogue and
 supplier resolution. A line with description, quantity, and UOM is saved
@@ -213,9 +218,9 @@ The system currently covers or is actively implementing the following operationa
 Module maturity must be understood separately from visual completion.
 
 Repository migrations reviewed through `152`; release authority is
-`v8.64.25 — Lossless Non-Catalog Purchase Requests`.
+`v8.64.26 — Shared Item Search Authority`.
 
-Current integration baseline: `v8.64.25 — Lossless Non-Catalog Purchase Requests`, with repository migrations reviewed through `152`. Migrations `111` and `112` remain immutable history because they were applied to the linked database accidentally. Migration `113` removes their callable Central Kitchen PR RPC, prevents further access to the stock-holds table, and preserves that table temporarily for a non-destructive data audit. Later forward-only migrations add bounded inventory and Dashboard read models, repair grants and scoped access, introduce branch supply-route and received-quantity provenance, and preserve unmatched PR entry as auditable non-catalog lines; they do not restore the retired Central Kitchen PR workflow.
+Current integration baseline: `v8.64.26 — Shared Item Search Authority`, with repository migrations reviewed through `152`. Migrations `111` and `112` remain immutable history because they were applied to the linked database accidentally. Migration `113` removes their callable Central Kitchen PR RPC, prevents further access to the stock-holds table, and preserves that table temporarily for a non-destructive data audit. Later forward-only migrations add bounded inventory and Dashboard read models, repair grants and scoped access, introduce branch supply-route and received-quantity provenance, and preserve unmatched PR entry as auditable non-catalog lines; they do not restore the retired Central Kitchen PR workflow.
 
 A page may exist visually without its full workflow, validation, database integration, permissions, and downstream effects being complete.
 

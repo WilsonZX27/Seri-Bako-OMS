@@ -5,6 +5,7 @@ import { isMockMode, mockCompany, mockProfile } from "@/lib/mock-mode";
 import type { PurchaseRequestStatus } from "@/lib/status-contracts";
 import { createClient } from "@/lib/supabase/server";
 import { purchaseOrderSchema, purchaseRequestSchema } from "@/lib/validations/procurement";
+import { extractPurchaseRequestLineInputs } from "@/lib/procurement/purchase-request-lines";
 import { requirePermission } from "@/server/auth/permissions";
 import { formatActionError, requirePermissionOrRedirect, rethrowRedirect, safeRedirectWithMessage } from "@/server/actions/error-handling";
 import { revalidateWorkspaceState } from "@/server/actions/revalidate";
@@ -103,42 +104,7 @@ async function ensureActorCanUsePurchaseRequestBranch(branchId: string | null) {
 }
 
 function extractPurchaseRequest(formData: FormData) {
-  const itemIds = formData.getAll("line_item_id").map(String);
-  const descriptions = formData.getAll("line_description").map((value) => String(value).trim());
-  const qtys = formData.getAll("line_qty").map(String);
-  const uoms = formData.getAll("line_uom").map(String);
-  const costs = formData.getAll("line_estimated_unit_cost").map(String);
-  const suppliers = formData.getAll("line_suggested_supplier_id").map(String);
-  const reasons = formData.getAll("line_reason").map(String);
-  const remarks = formData.getAll("line_remarks").map(String);
-  const submittedBranches = formData.getAll("line_branch_id").map(String);
-  const enteredLineIndexes = itemIds
-    .map((_, index) => index)
-    .filter((index) => Boolean(descriptions[index] || itemIds[index] || String(qtys[index] ?? "").trim() || String(uoms[index] ?? "").trim()));
-  if (!enteredLineIndexes.length) throw new Error("Add at least one item before creating this purchase request.");
-  const incompleteLineIndexes = enteredLineIndexes.filter((index) => !descriptions[index] || !String(qtys[index] ?? "").trim() || !String(uoms[index] ?? "").trim());
-  if (incompleteLineIndexes.length) {
-    throw new Error(`Nothing was saved. Complete purchase request line${incompleteLineIndexes.length === 1 ? "" : "s"} ${incompleteLineIndexes.map((index) => index + 1).join(", ")}; entered text is never discarded.`);
-  }
-  const lines = itemIds
-    .map((itemId, index) => ({
-      item_id: itemId,
-      qty: qtys[index],
-      uom: uoms[index],
-      estimated_unit_cost: costs[index] ?? 0,
-      suggested_supplier_id: suppliers[index] || null,
-      reason: reasons[index],
-      remarks: remarks[index],
-      branch_id: submittedBranches[index],
-    })).filter((line) => Boolean(line.item_id));
-  const unresolvedLines = enteredLineIndexes.filter((index) => !itemIds[index]).map((index) => ({
-    requested_description: descriptions[index],
-    requested_qty: qtys[index],
-    requested_uom: uoms[index],
-    remarks: remarks[index],
-  }));
-  const duplicateItemIds = lines.filter((line, index) => lines.findIndex((candidate) => candidate.item_id === line.item_id) !== index);
-  if (duplicateItemIds.length) throw new Error("Each item can appear only once in a purchase request.");
+  const { lines, unresolvedLines, lineBranchIds } = extractPurchaseRequestLineInputs(formData);
   const parsed = purchaseRequestSchema.parse({
     request_no: formData.get("request_no"),
     request_date: formData.get("request_date"),
@@ -152,7 +118,7 @@ function extractPurchaseRequest(formData: FormData) {
     lines,
     unresolved_lines: unresolvedLines,
   });
-  return { ...parsed, lineBranchIds: lines.map((line) => line.branch_id) };
+  return { ...parsed, lineBranchIds };
 }
 
 function extractPurchaseOrder(formData: FormData) {

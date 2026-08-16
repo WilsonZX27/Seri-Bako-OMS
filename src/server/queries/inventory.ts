@@ -76,6 +76,7 @@ export type InventoryDailyMovementRow = {
 };
 
 const MAX_INVENTORY_DASHBOARD_FALLBACK_BALANCES = 2_000;
+const MAX_INVENTORY_DAILY_MOVEMENT_FALLBACK_ROWS = 10_000;
 
 // The summary RPC is already bounded server-side. Keep this named boundary
 // for the dashboard contract without introducing client-side timeout fallbacks.
@@ -108,6 +109,65 @@ function mockInventoryDailyMovement(period: "7d" | "30d" | "month"): InventoryDa
   return dates;
 }
 
+async function getInventoryDailyMovementFromBaseTables(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  period: "7d" | "30d" | "month",
+): Promise<InventoryDailyMovementRow[]> {
+  const { start, end } = inventoryPeriodRange(period);
+  const { data: transactions, error: transactionError } = await supabase
+    .from("stock_transactions")
+    .select("id,transaction_date,quantity_in,quantity_out")
+    .eq("status", "posted")
+    .gte("transaction_date", start)
+    .lte("transaction_date", end)
+    .order("transaction_date", { ascending: true })
+    .limit(MAX_INVENTORY_DAILY_MOVEMENT_FALLBACK_ROWS + 1);
+  if (transactionError) throw transactionError;
+  if ((transactions ?? []).length > MAX_INVENTORY_DAILY_MOVEMENT_FALLBACK_ROWS) {
+    throw new Error(`Inventory daily movement fallback exceeded ${MAX_INVENTORY_DAILY_MOVEMENT_FALLBACK_ROWS} rows.`);
+  }
+
+  const transactionIds = (transactions ?? []).map((row) => row.id);
+  const { data: lines, error: lineError } = transactionIds.length
+    ? await supabase
+      .from("stock_transaction_lines")
+      .select("stock_transaction_id,quantity_in,quantity_out")
+      .in("stock_transaction_id", transactionIds)
+    : { data: [], error: null };
+  if (lineError) throw lineError;
+
+  const parentById = new Map((transactions ?? []).map((row) => [row.id, row]));
+  const lineCountByTransaction = new Map<string, number>();
+  const activity = new Map<string, Omit<InventoryDailyMovementRow, "transaction_date">>();
+  const add = (transactionDate: string, quantityIn: number, quantityOut: number) => {
+    const current = activity.get(transactionDate) ?? { inbound_entries: 0, outbound_entries: 0, movement_entries: 0 };
+    current.inbound_entries += quantityIn > 0 ? 1 : 0;
+    current.outbound_entries += quantityOut > 0 ? 1 : 0;
+    current.movement_entries += 1;
+    activity.set(transactionDate, current);
+  };
+
+  for (const line of lines ?? []) {
+    const parent = parentById.get(line.stock_transaction_id);
+    if (!parent) continue;
+    lineCountByTransaction.set(line.stock_transaction_id, (lineCountByTransaction.get(line.stock_transaction_id) ?? 0) + 1);
+    add(parent.transaction_date, Number(line.quantity_in ?? 0), Number(line.quantity_out ?? 0));
+  }
+  for (const transaction of transactions ?? []) {
+    // A transaction with detail lines is represented by those lines, not by
+    // the parent header. This prevents double-counting movement activity.
+    if (lineCountByTransaction.has(transaction.id)) continue;
+    add(transaction.transaction_date, Number(transaction.quantity_in ?? 0), Number(transaction.quantity_out ?? 0));
+  }
+
+  const rows: InventoryDailyMovementRow[] = [];
+  for (let cursor = new Date(`${start}T00:00:00Z`); cursor <= new Date(`${end}T00:00:00Z`); cursor = new Date(cursor.getTime() + 86_400_000)) {
+    const transactionDate = cursor.toISOString().slice(0, 10);
+    rows.push({ transaction_date: transactionDate, ...(activity.get(transactionDate) ?? { inbound_entries: 0, outbound_entries: 0, movement_entries: 0 }) });
+  }
+  return rows;
+}
+
 export async function getInventoryDailyMovement(period: "7d" | "30d" | "month" = "30d") {
   if (isMockMode()) return { rows: mockInventoryDailyMovement(period), unavailable: false };
 
@@ -115,7 +175,12 @@ export async function getInventoryDailyMovement(period: "7d" | "30d" | "month" =
   const { data, error } = await boundedInventoryInsight(supabase.rpc("get_inventory_daily_movement_summary", { p_period: period }));
   if (error) {
     warnOptionalInventoryQuery("daily movement summary", error);
-    return { rows: [] as InventoryDailyMovementRow[], unavailable: true };
+    try {
+      return { rows: await getInventoryDailyMovementFromBaseTables(supabase, period), unavailable: false };
+    } catch (fallbackError) {
+      warnOptionalInventoryQuery("daily movement summary table fallback", fallbackError instanceof Error ? fallbackError : new Error(String(fallbackError)));
+      return { rows: [] as InventoryDailyMovementRow[], unavailable: true };
+    }
   }
   return {
     rows: (data ?? []).map((row) => ({
@@ -648,7 +713,7 @@ export async function getStockBalanceDetails(filters: Filters = {}): Promise<Pag
   if (error) {
     const message = `Stock Balance could not be loaded: ${error.message}`;
     warnOptionalInventoryQuery("Stock Balance details", error);
-    return databasePaginationOrError<StockBalanceRow>([], 0, filters.page, message);
+    return { ...databasePaginationOrError<StockBalanceRow>([], 0, filters.page, message), unavailable: true };
   }
   const balanceRows = data ?? [];
   const itemIds = Array.from(new Set(balanceRows.map((row) => row.item_id))).slice(0, 500);

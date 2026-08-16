@@ -1,11 +1,17 @@
 # Seri Bako OMS responsive design standard
 
-> **Release authority:** the currently released application is `v8.64.1`, as
+> **Release authority:** the currently released application is `v8.64.2`, as
 > defined by `src/lib/app-version.ts`. A versioned section above that number is
 > an accepted forward design contract or unreleased implementation note—not
 > evidence that the application itself has been released at that version.
 > `docs/DESIGN_SYSTEM.md` owns the current visual principles; this file retains
 > versioned implementation history and workspace rules.
+
+## v8.64.2 - Inventory Read Reliability Hardening
+
+- Optional inventory insight reads now use bounded base-table fallbacks when their RPC migration is absent, and any incomplete source remains explicitly unavailable.
+- Stock Balance failures propagate into Movement Ledger valuation instead of appearing as zero rows or `RM 0.00`.
+- Date-first posted-ledger and Stock Count indexes target the timeout pattern recorded by Supabase (`57014`) without changing tenant or running-balance semantics.
 
 ## v8.64.1 - Inventory Read Compatibility Fallbacks
 

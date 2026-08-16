@@ -80,7 +80,8 @@ export default async function StockTransactionsPage({ searchParams }: { searchPa
     hasPermission("stock_ledger.export"),
     hasPermission("stock_transactions.create"),
   ]);
-  const value = balances.rows.reduce((sum, item) => sum + Number(item.inventory_value), 0);
+  const balanceUnavailable = Boolean(balances.unavailable || balances.error);
+  const value = balanceUnavailable ? 0 : balances.rows.reduce((sum, item) => sum + Number(item.inventory_value), 0);
   const inbound = ledger.rows.reduce((sum, row) => sum + Number(row.quantity_in), 0);
   const outbound = ledger.rows.reduce((sum, row) => sum + Number(row.quantity_out), 0);
   const ledgerUnavailable = "unavailable" in ledger && Boolean(ledger.unavailable);
@@ -115,8 +116,8 @@ export default async function StockTransactionsPage({ searchParams }: { searchPa
                 <div className="flex justify-between"><span className="text-muted-foreground">Ledger rows</span><strong>{ledgerUnavailable ? "Unavailable" : ledger.totalRows}</strong></div>
                 <div className="flex justify-between"><span className="text-muted-foreground">Quantity in</span><strong>{ledgerUnavailable ? "Unavailable" : formatNumber(inbound)}</strong></div>
                 <div className="flex justify-between"><span className="text-muted-foreground">Quantity out</span><strong>{ledgerUnavailable ? "Unavailable" : formatNumber(outbound)}</strong></div>
-                <div className="flex justify-between"><span className="text-muted-foreground">Stock rows</span><strong>{balances.totalRows}</strong></div>
-                <div className="flex justify-between"><span className="text-muted-foreground">Stock value</span><strong>{formatCurrency(value)}</strong></div>
+                <div className="flex justify-between"><span className="text-muted-foreground">Stock rows</span><strong>{balanceUnavailable ? "Unavailable" : balances.totalRows}</strong></div>
+                <div className="flex justify-between"><span className="text-muted-foreground">Stock value</span><strong>{balanceUnavailable ? "Unavailable" : formatCurrency(value)}</strong></div>
               </div>
             </ConsoleSection>
           </>
@@ -136,6 +137,7 @@ export default async function StockTransactionsPage({ searchParams }: { searchPa
             <Button type="submit" variant="secondary">Search</Button>
           </FilterBar>
           {ledgerUnavailable ? <Notice tone="error" title="Movement Ledger data is temporarily unavailable">The inventory read service did not return a complete result. No row count, empty state, or zero totals are shown. Retry this page shortly.</Notice> : null}
+          {balanceUnavailable ? <Notice tone="error" title="Stock Balance data is temporarily unavailable">The balance read service did not return a complete result. No stock rows or value are shown as zero. Retry this page shortly.</Notice> : null}
           {activeFilterChips.length ? <div className="sb-filter-summary flex-wrap px-3 py-2" aria-label="Active filters">
             {activeFilterChips.map((chip) => <span key={chip} className="max-w-full truncate">{chip}</span>)}
           </div> : null}

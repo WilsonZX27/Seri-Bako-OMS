@@ -7,6 +7,7 @@ const root = path.resolve(__dirname, "..");
 const querySource = fs.readFileSync(path.join(root, "src/server/queries/inventory.ts"), "utf8");
 const pageSource = fs.readFileSync(path.join(root, "src/app/(app)/stock-transactions/page.tsx"), "utf8");
 const migrationSource = fs.readFileSync(path.join(root, "supabase/migrations/133_bounded_stock_ledger_page.sql"), "utf8");
+const reliabilityMigration = fs.readFileSync(path.join(root, "supabase/migrations/150_inventory_read_reliability_indexes.sql"), "utf8");
 
 test("Movement Ledger uses a bounded paginated RPC instead of stock_ledger_view", () => {
   const ledgerQuery = querySource.slice(querySource.indexOf("export async function getStockLedger"), querySource.indexOf("export async function getStockBalanceDetails"));
@@ -44,4 +45,12 @@ test("inventory reads fail closed instead of replacing a failed source with zero
   assert.match(pageSource, /Movement Ledger data is temporarily unavailable/);
   assert.match(pageSource, /ledgerUnavailable/);
   assert.match(pageSource, /!ledgerUnavailable/);
+});
+
+test("inventory read reliability migration narrows the timeout-prone date path", () => {
+  assert.match(reliabilityMigration, /stock_transactions_posted_date_branch_item_created_idx/);
+  assert.match(reliabilityMigration, /status, transaction_date, branch_id, item_id, created_at, id/);
+  assert.match(reliabilityMigration, /stock_transaction_lines_transaction_item_branch_idx/);
+  assert.match(reliabilityMigration, /stock_counts_posted_date_branch_idx/);
+  assert.match(reliabilityMigration, /stock_count_lines_count_variance_idx/);
 });

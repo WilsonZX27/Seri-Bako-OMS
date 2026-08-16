@@ -25,7 +25,7 @@ Therefore “detail visible, list unavailable” is consistent with a failed lis
 read model, not proof that the records do not exist. Rendering the failed list
 as an empty array or zero count would be misleading.
 
-## Code response in v8.64.1
+## Code response in v8.64.2 (in progress)
 
 - Stock Count variance insight has a strict base-table fallback when migration
   149's RPC is absent or stale. Any incomplete fallback source remains
@@ -33,8 +33,18 @@ as an empty array or zero count would be misleading.
 - Stock Card and Movement Ledger use a bounded direct-table fallback after RPC
   failure. It never uses the unbounded `stock_ledger_view` and refuses to
   return a success result when the safe read bound or hydration is incomplete.
+- Inventory daily movement now has the same bounded direct-table fallback when
+  migration 148's optional RPC is absent. The fallback expands transaction
+  lines exactly once, fills calendar dates only after a successful source read,
+  and keeps `unavailable: true` on any source or bound failure.
+- Stock Balance failures now propagate an explicit unavailable state into
+  Movement Ledger valuation. A failed balance query cannot appear as `0` stock
+  rows or `RM 0.00` stock value.
 - Movement Ledger shows `Unavailable`, suppresses result counts/empty states,
   and does not display zero totals during an incomplete read.
+- Migration `150_inventory_read_reliability_indexes.sql` adds date-first
+  partial indexes for posted ledger reads and supporting count/line indexes to
+  address the timeout pattern in the supplied logs.
 - Contract tests cover the fail-closed behavior.
 
 ## Required database follow-up

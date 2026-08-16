@@ -68,7 +68,7 @@ test("stock balance error mode uses an explicit error component", () => {
 
 test("stock balance query failure preserves error state instead of success values", () => {
   assert.match(inventoryQuery, /Stock Balance could not be loaded/);
-  assert.match(inventoryQuery, /return databasePaginationOrError<StockBalanceRow>\(\[\], 0, filters\.page, message\)/);
+  assert.match(inventoryQuery, /databasePaginationOrError<StockBalanceRow>\(\[\], 0, filters\.page, message\)/);
   assert.match(source, /queryError \? "—" : totalRows/);
   assert.match(source, /queryError \? "—" : lowStock/);
   assert.match(source, /queryError \? "—" : negative/);

@@ -1688,7 +1688,7 @@ html[data-design-layer="v2"] .sb-list-content-card {
 @media (min-width: 640px) and (max-width: 1279px) {
   html[data-design-layer="v2"] form.sb-list-query-card:has(> :is(input[type="search"], input[name="search"], input[name="date"], input[placeholder*="Search"], input[placeholder*="Find"], .unified-list-date-control)) {
     display: grid !important;
-    grid-template-columns: repeat(var(--sb-list-tablet-columns, 4), minmax(0, 1fr));
+    grid-template-columns: repeat(var(--sb-list-tablet-columns, 4), minmax(0, 1fr)) auto;
     align-items: center;
   }
 
@@ -1708,15 +1708,23 @@ html[data-design-layer="v2"] .sb-list-content-card {
   }
 
   html[data-design-layer="v2"] form.sb-list-query-card:has(> :is(input[type="search"], input[name="search"], input[name="date"], input[placeholder*="Search"], input[placeholder*="Find"], .unified-list-date-control)) > .unified-list-desktop-actions {
-    display: grid !important;
-    grid-template-columns: minmax(0, 1fr) auto;
-    justify-content: stretch;
+    display: contents !important;
   }
 
   html[data-design-layer="v2"] form.sb-list-query-card:has(> :is(input[type="search"], input[name="search"], input[name="date"], input[placeholder*="Search"], input[placeholder*="Find"], .unified-list-date-control)) > .unified-list-desktop-actions > .unified-list-action {
     width: 100% !important;
     min-width: 0 !important;
     max-width: none !important;
+  }
+
+  html[data-design-layer="v2"] form.sb-list-query-card:has(> :is(input[type="search"], input[name="search"], input[name="date"], input[placeholder*="Search"], input[placeholder*="Find"], .unified-list-date-control)) > .unified-list-desktop-actions > .sb-filter-summary {
+    grid-column: -2 / -1;
+    grid-row: 2;
+    align-self: center;
+    margin: 0 !important;
+    min-width: 0;
+    width: max-content;
+    white-space: nowrap;
   }
 
   html[data-design-layer="v2"] [data-tablet-document-split] form.sb-list-query-card {

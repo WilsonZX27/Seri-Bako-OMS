@@ -1,11 +1,17 @@
 # Seri Bako OMS responsive design standard
 
-> **Release authority:** the currently released application is `v8.64.39`, as
+> **Release authority:** the currently released application is `v8.64.40`, as
 > defined by `src/lib/app-version.ts`. A versioned section above that number is
 > an accepted forward design contract or unreleased implementation note—not
 > evidence that the application itself has been released at that version.
 > `docs/DESIGN_SYSTEM.md` owns the current visual principles; this file retains
 > versioned implementation history and workspace rules.
+
+## v8.64.40 - Lock Two-Row Tablet Query Layout
+
+- Tablet list query cards now have one canonical two-row grammar: the query occupies row one; equal-width filters, Search, and the record count occupy row two.
+- The desktop action wrapper becomes layout-transparent at tablet widths so it cannot force a third row or make Search narrower than its sibling controls.
+- The record count has an explicit final grid track, preventing the recurring third-row regression on Items and other four-control lists.
 
 ## v8.64.39 - Converge Tablet Query Tracks
 

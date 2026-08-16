@@ -2,7 +2,12 @@
 
 ## Product Overview
 
-The current released application baseline is `v8.64.39` — Converge Tablet Query Tracks.
+The current released application baseline is `v8.64.40` — Lock Two-Row Tablet Query Layout.
+
+### v8.64.40 — Lock Two-Row Tablet Query Layout
+
+- Tablet list query cards use one stable two-row layout across Items, Purchase Requests, Stock Balance, Suppliers, and other shared-list routes.
+- Search and sibling filters share equal tracks; the record count stays on the same second row instead of creating an accidental third row.
 
 ### v8.64.39 — Converge Tablet Query Tracks
 

@@ -28,7 +28,9 @@ describe("workspace canvas regression", () => {
   test("tablet query tracks follow their actual controls instead of reserving empty columns", () => {
     assert.match(listHeader, /--sb-list-tablet-columns/);
     assert.match(listHeader, /Math\.min\(Math\.max\(desktopControls\.length, 1\), 4\)/);
-    assert.match(css, /repeat\(var\(--sb-list-tablet-columns, 4\), minmax\(0, 1fr\)\)/);
+    assert.match(css, /repeat\(var\(--sb-list-tablet-columns, 4\), minmax\(0, 1fr\)\) auto/);
+    assert.match(css, /unified-list-desktop-actions[\s\S]*display: contents !important/);
+    assert.match(css, /\.sb-filter-summary[\s\S]*grid-column: -2 \/ -1[\s\S]*grid-row: 2/);
     assert.match(css, /width: 100% !important;[\s\S]*min-width: 0 !important;[\s\S]*max-width: none !important;/);
     assert.doesNotMatch(css, /repeat\(4, minmax\(8rem, 1fr\)\)/);
   });

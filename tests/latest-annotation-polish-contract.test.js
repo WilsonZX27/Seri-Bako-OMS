@@ -10,9 +10,10 @@ test("purchase request lines use one responsive control geometry and no duplicat
   const form = read("src", "components", "procurement-forms.tsx");
   const detail = read("src", "app", "(app)", "purchase-requests", "[id]", "page.tsx");
   assert.match(form, /reserveMobileActionSpace = true/);
-  assert.match(form, /space-y-2 md:col-span-1/);
+  assert.match(form, /space-y-2 lg:col-span-1/);
   assert.match(form, /grid-cols-\[1\.75rem_minmax\(7rem,1\.15fr\)_minmax\(7rem,1fr\)_2\.75rem\]/);
-  assert.match(form, /grid-cols-\[minmax\(12rem,1fr\)_8rem_8rem_6\.5rem\]/);
+  assert.match(form, /grid-cols-\[minmax\(14rem,1fr\)_10rem_8\.5rem_6\.5rem\]/);
+  assert.doesNotMatch(form, /data-purchase-request-line[^\n]+md:grid-cols/);
   assert.match(form, /h-\[var\(--sb-control-height\)\][\s\S]*w-10/);
   const design = read("src", "app", "design-system-v2.css");
   assert.match(design, /#purchase-request-form \[data-purchase-request-line\] :where\(input, select, button\)[\s\S]*height: var\(--sb-control-height\) !important/);

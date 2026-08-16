@@ -2,11 +2,16 @@
 
 ## Product Overview
 
-Current release authority: v8.64.18 - Canonical Workspace Canvas.
+Current release authority: v8.64.19 - Responsive Procurement Lines.
 
 ### Current audit baseline
 
-The current released application baseline is `v8.64.18 — Canonical Workspace Canvas`.
+The current released application baseline is `v8.64.19 — Responsive Procurement Lines`.
+
+Purchase request lines keep the stacked touch layout through tablet portrait
+and landscape widths; the dense single-row editor begins only at laptop width.
+Laptop quantity controls receive a stable 10rem track so four-digit values do
+not collapse behind the stepper buttons, while item and UOM tracks stay bounded.
 
 Workspace pages now default to the same contained 64rem canvas; a route must
 explicitly opt into the 76rem technical canvas or the full canvas. Touch-first

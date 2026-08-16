@@ -1,11 +1,20 @@
 # Seri Bako OMS responsive design standard
 
-> **Release authority:** the currently released application is `v8.64.18`, as
+> **Release authority:** the currently released application is `v8.64.19`, as
 > defined by `src/lib/app-version.ts`. A versioned section above that number is
 > an accepted forward design contract or unreleased implementation note—not
 > evidence that the application itself has been released at that version.
 > `docs/DESIGN_SYSTEM.md` owns the current visual principles; this file retains
 > versioned implementation history and workspace rules.
+
+## v8.64.19 - Responsive Procurement Lines
+
+- Purchase-request line editors use the stacked touch grammar through 1023px;
+  the dense one-row table grammar begins at 1024px rather than forcing an iPad
+  portrait or narrow split canvas into laptop columns.
+- The laptop row owns one explicit track template: flexible bounded item,
+  10rem quantity stepper, 8.5rem UOM, and 6.5rem actions. All controls continue
+  to inherit the single shared control-height authority.
 
 ## v8.64.18 - Canonical Workspace Canvas
 

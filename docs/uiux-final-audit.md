@@ -55,9 +55,9 @@ This is the working ledger for the final close-out. Every browser comment must h
 
 ## Transient inventory read retry pass — 2026-08-16
 
-- Movement Ledger, Stock Card, Inventory Dashboard, and daily movement summary RPC reads now retry only recognized transient failures (`57014`, temporary PostgREST/service errors, and connection/fetch timeouts) with a capped 350ms/900ms backoff.
+- Movement Ledger, Stock Card, Inventory Dashboard, and daily movement summary RPC reads now retry only recognized transient failures (`500`, `57014`, temporary PostgREST/service errors, and connection/fetch timeouts) with a capped 350ms/900ms backoff. A missing RPC (`404`) is not retried.
 - The retry is read-only and bounded. If the source remains unavailable, existing fail-closed behavior is preserved: the UI shows `Unavailable` or an explicit service notice and never renders synthetic zero rows, totals, or balances.
-- Contract coverage and TypeScript verification pass locally. Live Supabase recovery and deployed preview verification remain separate environment checks; this change does not claim remote RPC health.
+- Contract coverage and TypeScript verification pass locally. The supplied logs show both retryable HTTP 500 responses and non-retryable 404 RPC absence; live Supabase recovery and deployed preview verification remain separate environment checks. This change does not claim remote RPC health. The local release is `v8.64.11`.
 
 ## Report preview continuity pass — 2026-08-16
 

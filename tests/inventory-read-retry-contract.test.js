@@ -6,6 +6,7 @@ const source = fs.readFileSync("src/server/queries/inventory.ts", "utf8");
 
 test("inventory read retries are bounded to transient failures", () => {
   assert.match(source, /INVENTORY_READ_RETRY_DELAYS_MS = \[350, 900\]/);
+  assert.match(source, /\["500", "57014", "PGRST002"/);
   assert.match(source, /57014/);
   assert.match(source, /PGRST002/);
   assert.match(source, /PGRST003/);

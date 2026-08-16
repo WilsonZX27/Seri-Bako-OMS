@@ -1,6 +1,6 @@
 # Seri Bako OMS responsive design standard
 
-> **Release authority:** the currently released application is `v8.64.10`, as
+> **Release authority:** the currently released application is `v8.64.11`, as
 > defined by `src/lib/app-version.ts`. A versioned section above that number is
 > an accepted forward design contract or unreleased implementation note—not
 > evidence that the application itself has been released at that version.
@@ -23,9 +23,9 @@
 
 - Low Stock procurement now exposes one branch-scoped select-all checkbox on desktop and mobile. It reports an indeterminate state for partial selection and never selects rows while the branch scope is unchosen.
 
-## v8.64.10 - Transient Inventory Read Retry
+## v8.64.11 - Retry Inventory Service Errors
 
-- Bounded, read-only inventory RPCs retry only transient timeout, connection, and temporary-service failures with a short capped backoff. A final failure still reaches the existing explicit unavailable state; no retry path substitutes zero rows or zero totals.
+- Bounded, read-only inventory RPCs retry only transient timeout, connection, HTTP 500, and temporary-service failures with a short capped backoff. A final failure still reaches the existing explicit unavailable state; no retry path substitutes zero rows or zero totals.
 
 ## v8.64.5 - Verified Receiving Provenance
 

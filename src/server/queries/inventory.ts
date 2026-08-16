@@ -86,8 +86,8 @@ type InventoryReadResponse = {
 function isRetryableInventoryReadError(error: InventoryReadResponse["error"]) {
   if (!error) return false;
   const code = String(error.code ?? "").toUpperCase();
-  if (["57014", "PGRST002", "PGRST003", "502", "503", "504"].includes(code)) return true;
-  return /(?:timeout|timed out|temporarily unavailable|network|fetch failed|connection reset)/i.test(error.message ?? "");
+  if (["500", "57014", "PGRST002", "PGRST003", "502", "503", "504"].includes(code)) return true;
+  return /(?:internal server error|timeout|timed out|temporarily unavailable|network|fetch failed|connection reset)/i.test(error.message ?? "");
 }
 
 // The summary RPC is already bounded server-side. Keep this named boundary

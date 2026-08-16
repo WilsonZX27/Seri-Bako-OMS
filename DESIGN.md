@@ -1,11 +1,18 @@
 # Seri Bako OMS responsive design standard
 
-> **Release authority:** the currently released application is `v8.64.22`, as
+> **Release authority:** the currently released application is `v8.64.23`, as
 > defined by `src/lib/app-version.ts`. A versioned section above that number is
 > an accepted forward design contract or unreleased implementation note—not
 > evidence that the application itself has been released at that version.
 > `docs/DESIGN_SYSTEM.md` owns the current visual principles; this file retains
 > versioned implementation history and workspace rules.
+
+## v8.64.23 - Lossless Purchase Request Entry
+
+Purchase Request catalogue entry uses an explicit token-matching combobox rather
+than browser-dependent datalist prefix matching. Non-empty incomplete rows are a
+hard save boundary: the UI and server identify them and preserve the current
+screen instead of filtering those rows from the submitted aggregate.
 
 ## v8.64.22 - Canonical CSS Authority
 

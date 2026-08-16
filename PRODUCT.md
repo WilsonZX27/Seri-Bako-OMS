@@ -2,11 +2,17 @@
 
 ## Product Overview
 
-Current release authority: v8.64.22 - Canonical CSS Authority.
+Current release authority: v8.64.23 - Lossless Purchase Request Entry.
 
 ### Current audit baseline
 
-The current released application baseline is `v8.64.22 — Canonical CSS Authority`.
+The current released application baseline is `v8.64.23 — Lossless Purchase Request Entry`.
+
+Purchase Request entry must never interpret incomplete catalogue resolution as
+permission to discard a line. Item lookup uses token matching across item code
+and name; any entered line that lacks a selected item, positive quantity, or
+UOM rejects the whole save with its line number instead of partially creating a
+misleading document.
 
 The canonical design layer permits one owner for a selector inside each media
 scope. A source-level AST contract rejects repeated same-scope selectors before

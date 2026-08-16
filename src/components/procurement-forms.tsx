@@ -48,6 +48,23 @@ function itemLabel(item: ItemOption) {
   return `${item.item_code} - ${item.item_name}`;
 }
 
+function normalizedSearchTokens(value: string) {
+  return value
+    .normalize("NFKC")
+    .toLocaleLowerCase()
+    .replace(/[^\p{L}\p{N}]+/gu, " ")
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean);
+}
+
+function itemMatchesQuery(item: ItemOption, query: string) {
+  const tokens = normalizedSearchTokens(query);
+  if (!tokens.length) return false;
+  const searchable = normalizedSearchTokens(`${item.item_code} ${item.item_name}`).join(" ");
+  return tokens.every((token) => searchable.includes(token));
+}
+
 function requestQuantityStep(uom: string) {
   return ["kg", "g", "l", "ml", "ltr", "liter", "litre"].includes(uom.trim().toLowerCase()) ? 0.01 : 1;
 }
@@ -106,6 +123,7 @@ export function PurchaseRequestForm({
   const [branchId, setBranchId] = useState(resolvedInitialBranchId);
   const [validationError, setValidationError] = useState("");
   const [commentLineKey, setCommentLineKey] = useState<number | null>(null);
+  const [suggestionLineKey, setSuggestionLineKey] = useState<number | null>(null);
   const [neededByDate, setNeededByDate] = useState(initialNeededByDate ?? "");
   const [detailsOpen, setDetailsOpen] = useState(!(resolvedInitialBranchId && initialNeededByDate));
   const firstItemInputRef = useRef<HTMLInputElement>(null);
@@ -114,6 +132,10 @@ export function PurchaseRequestForm({
   const hasRequestItem = lines.some((line) => Boolean(line.itemId));
   const selectedBranchName = branches.find((branch) => branch.id === branchId)?.branch_name ?? "Select branch";
   const detailsComplete = Boolean(branchId);
+  const incompleteEnteredLines = lines.filter((line) => {
+    const touched = Boolean(line.itemSearch.trim() || line.qty.trim() || line.uom.trim());
+    return touched && (!line.itemId || !line.qty.trim() || !line.uom.trim());
+  });
 
   function mappingsForLine(line: RequestLine) {
     return supplierMappings.filter((mapping) => mapping.branch_id === branchId && mapping.item_id === line.itemId);
@@ -135,6 +157,11 @@ export function PurchaseRequestForm({
   }
 
   function validateSubmission(event: FormEvent<HTMLFormElement>) {
+    if (incompleteEnteredLines.length) {
+      event.preventDefault();
+      setValidationError(`Nothing was saved because ${incompleteEnteredLines.length} entered line${incompleteEnteredLines.length === 1 ? " is" : "s are"} incomplete. Select each item suggestion and enter its quantity and unit.`);
+      return;
+    }
     if (hasRequestItem) return;
     event.preventDefault();
     rejectEmptyRequest();
@@ -143,15 +170,19 @@ export function PurchaseRequestForm({
   useEffect(() => {
     function guardExternalSubmit(event: MouseEvent) {
       const target = event.target instanceof Element ? event.target.closest<HTMLButtonElement>('button[form="purchase-request-form"]') : null;
-      if (!target || hasRequestItem) return;
+      if (!target || (hasRequestItem && !incompleteEnteredLines.length)) return;
       event.preventDefault();
       event.stopImmediatePropagation();
-      rejectEmptyRequest();
+      if (incompleteEnteredLines.length) {
+        setValidationError(`Nothing was saved because ${incompleteEnteredLines.length} entered line${incompleteEnteredLines.length === 1 ? " is" : "s are"} incomplete. Select each item suggestion and enter its quantity and unit.`);
+      } else {
+        rejectEmptyRequest();
+      }
     }
 
     document.addEventListener("click", guardExternalSubmit, true);
     return () => document.removeEventListener("click", guardExternalSubmit, true);
-  }, [hasRequestItem]);
+  }, [hasRequestItem, incompleteEnteredLines.length]);
 
   useEffect(() => {
     if (validationError) setDetailsOpen(true);
@@ -170,6 +201,7 @@ export function PurchaseRequestForm({
 
     if (!selected) {
       updateLine(key, { itemSearch: value, itemId: "", uom: "", supplierId: "", cost: "0" });
+      setSuggestionLineKey(key);
       return;
     }
 
@@ -184,6 +216,7 @@ export function PurchaseRequestForm({
       supplierId: automaticMapping?.supplier_id ?? "",
       cost: String(automaticMapping?.unit_cost ?? selected.cost ?? 0),
     });
+    setSuggestionLineKey(null);
   }
 
   function changeBranch(nextBranchId: string) {
@@ -319,14 +352,32 @@ export function PurchaseRequestForm({
                   <span data-pr-line-number className="grid h-10 place-items-center self-start lg:hidden"><span className="grid h-6 w-6 place-items-center rounded-[var(--sb-radius-control)] bg-[var(--sb-surface-muted)] text-[11px] font-semibold tabular-nums text-[var(--sb-text-muted)]">{index + 1}</span></span>
                   <div data-pr-line-item className="col-span-2 col-start-2 min-w-0 space-y-2 lg:col-span-1 lg:col-start-1">
                     <Field label="Item" required labelClassName="sr-only">
-                      <Input
-                        ref={line.key === lines[0]?.key ? firstItemInputRef : undefined}
-                        list="purchase-request-items"
-                        value={line.itemSearch}
-                        onChange={(event) => selectItem(line.key, event.target.value)}
-                        placeholder="Search by item code or item name"
-                        className="overflow-hidden text-ellipsis whitespace-nowrap"
-                      />
+                      <div className="relative">
+                        <Input
+                          ref={line.key === lines[0]?.key ? firstItemInputRef : undefined}
+                          value={line.itemSearch}
+                          role="combobox"
+                          aria-autocomplete="list"
+                          aria-expanded={suggestionLineKey === line.key}
+                          aria-controls={`purchase-request-item-suggestions-${line.key}`}
+                          onFocus={() => { if (!line.itemId && line.itemSearch.trim()) setSuggestionLineKey(line.key); }}
+                          onChange={(event) => selectItem(line.key, event.target.value)}
+                          placeholder="Search any words in item name or code"
+                          autoComplete="off"
+                          className="overflow-hidden text-ellipsis whitespace-nowrap"
+                        />
+                        {suggestionLineKey === line.key && !line.itemId && line.itemSearch.trim() ? (
+                          <div id={`purchase-request-item-suggestions-${line.key}`} role="listbox" className="absolute inset-x-0 top-[calc(100%+0.25rem)] z-[var(--sb-z-dropdown)] max-h-64 overflow-y-auto rounded-[var(--sb-radius-control)] border border-[var(--sb-border)] bg-white p-1 shadow-md">
+                            {items.filter((item) => itemMatchesQuery(item, line.itemSearch)).slice(0, 8).map((item) => (
+                              <button key={item.id} type="button" role="option" aria-selected="false" className="flex w-full min-w-0 flex-col rounded-[calc(var(--sb-radius-control)-2px)] px-3 py-2 text-left hover:bg-[var(--sb-surface-muted)] focus-visible:bg-[var(--sb-surface-muted)] focus-visible:outline-none" onMouseDown={(event) => event.preventDefault()} onClick={() => selectItem(line.key, item.id)}>
+                                <span className="truncate text-sm font-medium text-[var(--sb-text)]">{item.item_name}</span>
+                                <span className="truncate text-xs text-[var(--sb-text-muted)]">{item.item_code} · {(item.purchase_unit || item.base_unit).toUpperCase()}</span>
+                              </button>
+                            ))}
+                            {!items.some((item) => itemMatchesQuery(item, line.itemSearch)) ? <p className="px-3 py-2 text-xs text-[var(--sb-text-muted)]">No catalog match. Keep this text; it will not be silently discarded.</p> : null}
+                          </div>
+                        ) : null}
+                      </div>
                     </Field>
                     {line.itemId && mappingsForLine(line).some((mapping) => !line.uom || normalizeUom(mapping.purchase_uom) === line.uom) ? (
                     <Field label="Supplier" required labelClassName="sr-only">
@@ -339,6 +390,7 @@ export function PurchaseRequestForm({
                       </Field>
                     ) : null}
                     <input type="hidden" name="line_item_id" value={line.itemId} />
+                    <input type="hidden" name="line_description" value={line.itemSearch} />
                     <input type="hidden" name="line_branch_id" value={branchId} />
                   </div>
                     <Field label="Quantity" required labelClassName="sr-only" className="pr-line-quantity col-start-2 row-start-2 lg:col-start-2 lg:row-start-1">
@@ -371,11 +423,6 @@ export function PurchaseRequestForm({
             </div>
           </section>
 
-          <datalist id="purchase-request-items">
-            {items.map((item) => (
-              <option key={item.id} value={itemLabel(item)} />
-            ))}
-          </datalist>
         </form>
     </div>
   );

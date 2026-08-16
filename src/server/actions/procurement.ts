@@ -104,7 +104,7 @@ async function ensureActorCanUsePurchaseRequestBranch(branchId: string | null) {
 
 function extractPurchaseRequest(formData: FormData) {
   const itemIds = formData.getAll("line_item_id").map(String);
-  if (!itemIds.some(Boolean)) throw new Error("Add at least one item before creating this purchase request.");
+  const descriptions = formData.getAll("line_description").map((value) => String(value).trim());
   const qtys = formData.getAll("line_qty").map(String);
   const uoms = formData.getAll("line_uom").map(String);
   const costs = formData.getAll("line_estimated_unit_cost").map(String);
@@ -112,6 +112,14 @@ function extractPurchaseRequest(formData: FormData) {
   const reasons = formData.getAll("line_reason").map(String);
   const remarks = formData.getAll("line_remarks").map(String);
   const submittedBranches = formData.getAll("line_branch_id").map(String);
+  const enteredLineIndexes = itemIds
+    .map((_, index) => index)
+    .filter((index) => Boolean(descriptions[index] || itemIds[index] || String(qtys[index] ?? "").trim() || String(uoms[index] ?? "").trim()));
+  if (!enteredLineIndexes.length) throw new Error("Add at least one item before creating this purchase request.");
+  const incompleteLineIndexes = enteredLineIndexes.filter((index) => !itemIds[index] || !String(qtys[index] ?? "").trim() || !String(uoms[index] ?? "").trim());
+  if (incompleteLineIndexes.length) {
+    throw new Error(`Nothing was saved. Complete purchase request line${incompleteLineIndexes.length === 1 ? "" : "s"} ${incompleteLineIndexes.map((index) => index + 1).join(", ")}; entered text is never discarded.`);
+  }
   const lines = itemIds
     .map((itemId, index) => ({
       item_id: itemId,
@@ -122,8 +130,7 @@ function extractPurchaseRequest(formData: FormData) {
       reason: reasons[index],
       remarks: remarks[index],
       branch_id: submittedBranches[index],
-    }))
-    .filter((line) => line.item_id && String(line.qty ?? "").trim().length > 0);
+    }));
   const duplicateItemIds = lines.filter((line, index) => lines.findIndex((candidate) => candidate.item_id === line.item_id) !== index);
   if (duplicateItemIds.length) throw new Error("Each item can appear only once in a purchase request.");
   const parsed = purchaseRequestSchema.parse({

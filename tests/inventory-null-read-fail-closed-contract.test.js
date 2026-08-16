@@ -29,3 +29,9 @@ test("inventory fallbacks do not treat missing base-table payloads as empty veri
   assert.match(source, /const balancesUnavailable = Boolean\(balancesResult\.error \|\| !balancesResult\.data/);
   assert.match(source, /throw new Error\("Low stock data is temporarily unavailable\."\)/);
 });
+
+test("stock balance base reads do not return a null payload as a verified list", () => {
+  const balances = functionBody("getStockBalances");
+  assert.match(balances, /if \(!data\) \{/);
+  assert.match(balances, /Stock Balance data is temporarily unavailable/);
+});

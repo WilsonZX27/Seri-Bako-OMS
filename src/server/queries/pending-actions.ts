@@ -76,7 +76,11 @@ export const getCurrentUserPendingActionSnapshot = cache(async function getCurre
         return { items: [] as PendingAction[], count: 0, unavailable: true };
       }
 
-      const items = (data ?? []).map((row) => {
+      if (!data || count === null) {
+        return { items: [] as PendingAction[], count: null, unavailable: true };
+      }
+
+      const items = data.map((row) => {
         const branch = row.branches as { branch_name?: string | null } | { branch_name?: string | null }[] | null;
         const branchName = Array.isArray(branch) ? branch[0]?.branch_name : branch?.branch_name;
         return {
@@ -89,7 +93,7 @@ export const getCurrentUserPendingActionSnapshot = cache(async function getCurre
           age_label: ageLabel(row.updated_at),
         };
       });
-      return { items, count: Number(count ?? 0), unavailable: false };
+      return { items, count, unavailable: false };
     }),
   );
 
@@ -104,7 +108,7 @@ export const getCurrentUserPendingActionSnapshot = cache(async function getCurre
     .slice(0, limit);
   return {
     items,
-    total: unavailable ? null : results.reduce((sum, result) => sum + result.count, 0),
+    total: unavailable ? null : results.reduce((sum, result) => sum + (result.count ?? 0), 0),
     unavailable,
   };
 });

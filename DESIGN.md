@@ -1,11 +1,18 @@
 # Seri Bako OMS responsive design standard
 
-> **Release authority:** the currently released application is `v8.64.50`, as
+> **Release authority:** the currently released application is `v8.64.51`, as
 > defined by `src/lib/app-version.ts`. A versioned section above that number is
 > an accepted forward design contract or unreleased implementation note—not
 > evidence that the application itself has been released at that version.
 > `docs/DESIGN_SYSTEM.md` owns the current visual principles; this file retains
 > versioned implementation history and workspace rules.
+
+## v8.64.51 - Fail-closed Operational Reads
+
+- Operational list, detail, summary, and select-option reads must distinguish a valid empty result from a missing/incomplete Supabase payload.
+- Procurement and goods-receiving pages must surface retry/unavailable state when their data contract cannot be verified; they must not display a trusted `0` or empty result.
+- Inventory stock-balance base reads follow the same fail-closed boundary.
+- Valid empty datasets retain the existing empty-state copy and actions.
 
 ## v8.64.50 - Fail-closed Dashboard Fallbacks
 

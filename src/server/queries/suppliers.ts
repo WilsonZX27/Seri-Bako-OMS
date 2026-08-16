@@ -72,9 +72,10 @@ export async function getSuppliers(filters: SupplierFilters = {}) {
     .order(sort, { ascending: filters.dir !== "desc" })
     .range((requestedPage - 1) * PAGE_SIZE, requestedPage * PAGE_SIZE - 1);
   if (error) throw new Error(error.message);
-  const totalRows = count ?? 0;
+  if (!data || count === null) throw new Error("Supplier list returned no data.");
+  const totalRows = count;
   return {
-    rows: data ?? [],
+    rows: data,
     page: requestedPage,
     pageSize: PAGE_SIZE,
     totalRows,
@@ -92,5 +93,6 @@ export async function getSupplier(id: string) {
   const supabase = await createClient();
   const { data, error } = await supabase.from("suppliers").select("*").eq("id", id).single();
   if (error) throw new Error(error.message);
+  if (!data) throw new Error("Supplier detail returned no data.");
   return data;
 }

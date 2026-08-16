@@ -563,6 +563,9 @@ export async function getStockBalances() {
   if (error) {
     throw new Error(`Stock Balance could not be loaded: ${error.message}`);
   }
+  if (!data) {
+    throw new Error("Stock Balance data is temporarily unavailable.");
+  }
   return data;
 }
 

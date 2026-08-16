@@ -110,10 +110,11 @@ export async function getGoodsReceivings(filters: Filters = {}) {
   }
   const { data, error, count } = await query.order(filters.sort === "received_date" ? "received_date" : "updated_at", { ascending: filters.dir === "asc" }).order("id", { ascending: false }).range((page - 1) * pageSize, page * pageSize - 1);
   if (error) throw new Error(error.message);
-  const ids = (data ?? []).map((row) => row.id);
-  const branchIds = [...new Set((data ?? []).map((row) => row.branch_id).filter((id): id is string => Boolean(id)))];
-  const poIds = [...new Set((data ?? []).map((row) => row.purchase_order_id).filter((id): id is string => Boolean(id)))];
-  const supplierIds = [...new Set((data ?? []).map((row) => row.supplier_id).filter((id): id is string => Boolean(id)))];
+  if (!data || count === null) throw new Error("Goods receiving list returned no data.");
+  const ids = data.map((row) => row.id);
+  const branchIds = [...new Set(data.map((row) => row.branch_id).filter((id): id is string => Boolean(id)))];
+  const poIds = [...new Set(data.map((row) => row.purchase_order_id).filter((id): id is string => Boolean(id)))];
+  const supplierIds = [...new Set(data.map((row) => row.supplier_id).filter((id): id is string => Boolean(id)))];
   const [{ data: lines, error: linesError }, { data: pos, error: posError }, { data: suppliers, error: suppliersError }, { data: branches, error: branchesError }] = await Promise.all([
     ids.length ? supabase.from("goods_receiving_lines").select("goods_receiving_id, received_qty, rejected_qty").in("goods_receiving_id", ids) : Promise.resolve({ data: [], error: null }),
     poIds.length ? supabase.from("purchase_orders").select("id, po_no").in("id", poIds) : Promise.resolve({ data: [], error: null }),
@@ -123,11 +124,14 @@ export async function getGoodsReceivings(filters: Filters = {}) {
   if (linesError || posError || suppliersError || branchesError) {
     throw new Error((linesError ?? posError ?? suppliersError ?? branchesError)!.message);
   }
+  if (!lines || (poIds.length > 0 && !pos) || (supplierIds.length > 0 && !suppliers) || (branchIds.length > 0 && !branches)) {
+    throw new Error("Goods receiving related data returned no data.");
+  }
   const poById = new Map((pos ?? []).map((row) => [row.id, row.po_no]));
   const supplierById = new Map((suppliers ?? []).map((row) => [row.id, row.name]));
   const branchById = new Map((branches ?? []).map((row) => [row.id, row.branch_name]));
-  const rows = ((data ?? []) as GoodsReceiving[]).map((row) => {
-    const ownLines = ((lines ?? []) as GoodsReceivingLine[]).filter((line) => line.goods_receiving_id === row.id);
+  const rows = (data as GoodsReceiving[]).map((row) => {
+    const ownLines = (lines as GoodsReceivingLine[]).filter((line) => line.goods_receiving_id === row.id);
     return {
       ...row,
       po_no: poById.get(row.purchase_order_id) ?? null,
@@ -140,7 +144,7 @@ export async function getGoodsReceivings(filters: Filters = {}) {
     };
   });
   const filteredRows = filterRows(rows, filters, ["grn_no", "status", "po_no", "supplier_name", "remarks"], "updated_at");
-  return { rows: filteredRows, page, pageSize, totalRows: count ?? filteredRows.length, totalPages: Math.max(Math.ceil((count ?? filteredRows.length) / pageSize), 1) };
+  return { rows: filteredRows, page, pageSize, totalRows: count, totalPages: Math.max(Math.ceil(count / pageSize), 1) };
 }
 
 export async function getGoodsReceivingSummary() {
@@ -158,14 +162,19 @@ export async function getGoodsReceivingSummary() {
   const supabase = await createClient();
   const { data, error } = await supabase.rpc("get_goods_receiving_summary");
   if (error) throw new Error(error.message);
-  const summary = data && typeof data === "object" && !Array.isArray(data) ? data as Record<string, unknown> : {};
+  if (!data || typeof data !== "object" || Array.isArray(data)) throw new Error("Goods receiving summary returned no data.");
+  const summary = data as Record<string, unknown>;
+  const requiredFields = ["total", "draft", "posted", "cancelled", "received_total", "rejected_total"];
+  if (requiredFields.some((field) => typeof summary[field] !== "number" || !Number.isFinite(summary[field] as number))) {
+    throw new Error("Goods receiving summary returned an incomplete result.");
+  }
   return {
-    total: Number(summary.total ?? 0),
-    draft: Number(summary.draft ?? 0),
-    posted: Number(summary.posted ?? 0),
-    cancelled: Number(summary.cancelled ?? 0),
-    receivedTotal: Number(summary.received_total ?? 0),
-    rejectedTotal: Number(summary.rejected_total ?? 0),
+    total: summary.total as number,
+    draft: summary.draft as number,
+    posted: summary.posted as number,
+    cancelled: summary.cancelled as number,
+    receivedTotal: summary.received_total as number,
+    rejectedTotal: summary.rejected_total as number,
   };
 }
 
@@ -185,8 +194,9 @@ export async function getGoodsReceiving(id: string) {
   ]);
   if (error) throw new Error(error.message);
   if (linesError) throw new Error(linesError.message);
+  if (!data || !lines) throw new Error("Goods receiving detail returned no data.");
   const receiving = data as GoodsReceiving;
-  const itemIds = [...new Set((lines ?? []).map((line) => line.item_id))];
+  const itemIds = [...new Set(lines.map((line) => line.item_id))];
   const [
     { data: items, error: itemsError },
     { data: pos, error: posError },
@@ -205,6 +215,9 @@ export async function getGoodsReceiving(id: string) {
   for (const relatedError of [itemsError, posError, suppliersError, branchesError]) {
     if (relatedError) throw new Error(relatedError.message);
   }
+  if ((itemIds.length > 0 && !items) || !pos || !suppliers || (receiving.branch_id && !branches)) {
+    throw new Error("Goods receiving detail related data returned no data.");
+  }
   const itemById = new Map((items ?? []).map((row) => [row.id, row]));
   const poById = new Map((pos ?? []).map((row) => [row.id, row.po_no]));
   const supplierById = new Map((suppliers ?? []).map((row) => [row.id, row.name]));
@@ -216,11 +229,11 @@ export async function getGoodsReceiving(id: string) {
       supplier_name: supplierById.get(receiving.supplier_id) ?? null,
       branch_name: receiving.branch_id ? branchById.get(receiving.branch_id) ?? null : null,
       received_by_name: receiving.received_by,
-      received_total: ((lines ?? []) as GoodsReceivingLine[]).reduce((sum, line) => sum + line.received_qty, 0),
-      rejected_total: ((lines ?? []) as GoodsReceivingLine[]).reduce((sum, line) => sum + line.rejected_qty, 0),
-      line_count: (lines ?? []).length,
+      received_total: (lines as GoodsReceivingLine[]).reduce((sum, line) => sum + line.received_qty, 0),
+      rejected_total: (lines as GoodsReceivingLine[]).reduce((sum, line) => sum + line.rejected_qty, 0),
+      line_count: lines.length,
     },
-    lines: ((lines ?? []) as GoodsReceivingLine[]).map((line) => ({ ...line, item: itemById.get(line.item_id) })),
+    lines: (lines as GoodsReceivingLine[]).map((line) => ({ ...line, item: itemById.get(line.item_id) })),
   };
 }
 
@@ -247,7 +260,8 @@ export async function getEligiblePurchaseOrders() {
     .in("status", ["approved", "sent", "partial_received"])
     .is("deleted_at", null);
   if (error) throw new Error(error.message);
-  if (!data?.length) return [];
+  if (!data) throw new Error("Eligible purchase orders returned no data.");
+  if (!data.length) return [];
   const purchaseOrderIds = data.map((order) => order.id);
   const supplierIds = [...new Set(data.map((order) => order.supplier_id))];
   const [{ data: lines, error: linesError }, { data: suppliers, error: suppliersError }] = await Promise.all([
@@ -256,9 +270,10 @@ export async function getEligiblePurchaseOrders() {
   ]);
   if (linesError) throw new Error(linesError.message);
   if (suppliersError) throw new Error(suppliersError.message);
-  const supplierById = new Map((suppliers ?? []).map((row) => [row.id, row.name]));
-  return ((data ?? []) as PurchaseOrder[]).map((order) => {
-    const ownLines = ((lines ?? []) as PurchaseOrderLine[]).filter((line) => line.purchase_order_id === order.id);
+  if (!lines || !suppliers) throw new Error("Eligible purchase order related data returned no data.");
+  const supplierById = new Map(suppliers.map((row) => [row.id, row.name]));
+  return (data as PurchaseOrder[]).map((order) => {
+    const ownLines = (lines as PurchaseOrderLine[]).filter((line) => line.purchase_order_id === order.id);
     const pendingLines = ownLines.filter((line) => line.qty_ordered - line.qty_received - line.qty_cancelled > 0);
     return {
       ...order,
@@ -284,7 +299,8 @@ export async function getPurchaseOrderForReceiving(id: string) {
   ]);
   if (error) throw new Error(error.message);
   if (linesError) throw new Error(linesError.message);
-  const itemIds = [...new Set((lines ?? []).map((line) => line.item_id))];
+  if (!order || !lines) throw new Error("Purchase order for receiving returned no data.");
+  const itemIds = [...new Set(lines.map((line) => line.item_id))];
   const [{ data: items, error: itemsError }, { data: supplier, error: supplierError }] = await Promise.all([
     itemIds.length
       ? supabase.from("items").select("id, item_code, item_name, base_unit, item_image_url").in("id", itemIds)
@@ -293,10 +309,11 @@ export async function getPurchaseOrderForReceiving(id: string) {
   ]);
   if (itemsError) throw new Error(itemsError.message);
   if (supplierError) throw new Error(supplierError.message);
-  const itemById = new Map((items ?? []).map((row) => [row.id, row]));
+  if ((itemIds.length > 0 && !items) || !supplier) throw new Error("Purchase order receiving related data returned no data.");
+  const itemById = new Map(items.map((row) => [row.id, row]));
   return {
     order: { ...(order as PurchaseOrder), supplier_name: supplier?.name ?? null },
-    lines: ((lines ?? []) as PurchaseOrderLine[]).map((line) => ({
+    lines: (lines as PurchaseOrderLine[]).map((line) => ({
       ...line,
       item: itemById.get(line.item_id),
       previously_received_qty: line.qty_received,

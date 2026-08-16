@@ -81,9 +81,10 @@ export async function getItems(filters: ItemFilters = {}) {
 
   if (itemsError) throw new Error(itemsError.message);
   if (suppliersError) throw new Error(suppliersError.message);
+  if (!items || !suppliers) throw new Error("Item master data returned no data.");
 
-  const supplierById = new Map((suppliers ?? []).map((supplier) => [supplier.id, supplier]));
-  return filterItems((items ?? []).map((item) => ({
+  const supplierById = new Map(suppliers.map((supplier) => [supplier.id, supplier]));
+  return filterItems(items.map((item) => ({
     ...item,
     supplier_name: item.supplier_id ? supplierById.get(item.supplier_id)?.name ?? null : null,
   })), filters);
@@ -135,16 +136,20 @@ export async function getItemsWithStockPage(filters: ItemFilters = {}) {
         summary: { total: number; active: number; inactive: number; archived: number; low_stock: number };
         categories: string[];
       };
+      if (!data || typeof data !== "object" || Array.isArray(data)) throw new Error("Items workspace returned no data.");
       const payload = data as unknown as WorkspacePayload;
-      const totalRows = Number(payload.total_rows ?? 0);
+      if (!Array.isArray(payload.rows) || payload.total_rows === null || payload.total_rows === undefined || !payload.summary || !Array.isArray(payload.categories)) {
+        throw new Error("Items workspace returned an incomplete result.");
+      }
+      const totalRows = Number(payload.total_rows);
       const pageSize = Number(payload.page_size ?? 15);
       return {
-        rows: payload.rows ?? [],
+        rows: payload.rows,
         totalRows,
         page: Number(payload.page ?? page),
         totalPages: Math.max(Math.ceil(totalRows / pageSize), 1),
         summary: payload.summary,
-        categories: payload.categories ?? [],
+        categories: payload.categories,
       };
     }
   }
@@ -174,5 +179,6 @@ export async function getItem(id: string) {
   const supabase = await createClient();
   const { data, error } = await supabase.from("items").select("*").eq("id", id).single();
   if (error) throw new Error(error.message);
+  if (!data) throw new Error("Item detail returned no data.");
   return data;
 }

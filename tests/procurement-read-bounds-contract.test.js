@@ -11,7 +11,8 @@ const requestOrders = source.slice(
 );
 
 test("purchase-request details bound downstream reads to their own purchase orders", () => {
-  assert.match(requestOrders, /if \(!data\?\.length\) return \[\]/);
+  assert.match(requestOrders, /if \(!data\) throw new Error\("Purchase request purchase orders returned no data\."\)/);
+  assert.match(requestOrders, /if \(!data\.length\) return \[\]/);
   assert.match(requestOrders, /\.in\("purchase_order_id", purchaseOrderIds\)/);
   assert.match(requestOrders, /\.in\("id", supplierIds\)/);
   assert.doesNotMatch(requestOrders, /from\("purchase_order_lines"\)\.select\("\*"\)\s*[,)]/);
@@ -20,6 +21,7 @@ test("purchase-request details bound downstream reads to their own purchase orde
 test("purchase-request detail joins fail closed", () => {
   assert.match(requestOrders, /if \(linesError\) throw new Error\(linesError\.message\)/);
   assert.match(requestOrders, /if \(suppliersError\) throw new Error\(suppliersError\.message\)/);
+  assert.match(requestOrders, /if \(!lines \|\| !suppliers\) throw new Error/);
 });
 
 test("procurement list joins fail closed and preserve an explicit unavailable state", () => {
@@ -37,4 +39,11 @@ test("procurement list joins fail closed and preserve an explicit unavailable st
   assert.match(orderList, /Purchase order data unavailable/);
   assert.match(orderList, /No record count or order total is shown as zero/);
   assert.match(orderList, /resultCount=\{orders\?\.totalRows\}/);
+  assert.match(requests, /if \(!data \|\| count === null\) throw new Error\("Purchase request list returned no data\."\)/);
+  assert.match(orders, /if \(!data \|\| count === null\) throw new Error\("Purchase order list returned no data\."\)/);
+});
+
+test("procurement summaries do not convert missing counts to zero", () => {
+  assert.match(source, /Purchase request summary returned no data/);
+  assert.match(source, /Purchase order summary returned no data/);
 });

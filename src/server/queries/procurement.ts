@@ -145,15 +145,18 @@ export async function getPurchaseRequests(filters: Filters = {}) {
     .order(sort, { ascending: filters.dir !== "asc" })
     .range((page - 1) * PAGE_SIZE, page * PAGE_SIZE - 1);
   if (error) throw new Error(error.message);
-  const ids = (data ?? []).map((row) => row.id);
+  if (!data || count === null) throw new Error("Purchase request list returned no data.");
+  const ids = data.map((row) => row.id);
+  const branchIds = [...new Set(data.flatMap((row) => (row.branch_id ? [row.branch_id] : [])))];
   const [{ data: lines, error: linesError }, { data: branches, error: branchesError }] = await Promise.all([
     ids.length ? supabase.from("purchase_request_lines").select("purchase_request_id, qty, estimated_unit_cost").in("purchase_request_id", ids) : Promise.resolve({ data: [], error: null }),
-    supabase.from("branches").select("id, branch_name").in("id", (data ?? []).flatMap((row) => (row.branch_id ? [row.branch_id] : []))),
+    branchIds.length ? supabase.from("branches").select("id, branch_name").in("id", branchIds) : Promise.resolve({ data: [], error: null }),
   ]);
   if (linesError || branchesError) throw new Error((linesError ?? branchesError)!.message);
+  if (!lines || (branchIds.length > 0 && !branches)) throw new Error("Purchase request related data returned no data.");
   const branchById = new Map((branches ?? []).map((row) => [row.id, row.branch_name]));
-  const rows = (data ?? []).map((row) => {
-    const ownLines = (lines ?? []).filter((line) => line.purchase_request_id === row.id);
+  const rows = data.map((row) => {
+    const ownLines = lines.filter((line) => line.purchase_request_id === row.id);
     return {
       ...row,
       requested_by_name: row.requested_by,
@@ -162,7 +165,7 @@ export async function getPurchaseRequests(filters: Filters = {}) {
       estimated_total: ownLines.reduce((sum, line) => sum + line.qty * line.estimated_unit_cost, 0),
     };
   });
-  const totalRows = count ?? 0;
+  const totalRows = count;
   return { rows, page, pageSize: PAGE_SIZE, totalRows, totalPages: Math.max(Math.ceil(totalRows / PAGE_SIZE), 1) };
 }
 
@@ -184,6 +187,7 @@ export async function getPurchaseRequestSummary() {
   };
   const [total, managerReview, adminReview, financeReview] = await Promise.all([count(), count("manager_review"), count("admin_review"), count("finance_review")]);
   for (const result of [total, managerReview, adminReview, financeReview]) if (result.error) throw new Error(result.error.message);
+  if ([total, managerReview, adminReview, financeReview].some((result) => result.count === null)) throw new Error("Purchase request summary returned no data.");
   return { total: total.count ?? 0, managerReview: managerReview.count ?? 0, adminReview: adminReview.count ?? 0, financeReview: financeReview.count ?? 0 };
 }
 
@@ -208,7 +212,8 @@ export async function getPurchaseRequest(id: string) {
   if (linesError) throw new Error(linesError.message);
   if (unresolvedLinesError) throw new Error(unresolvedLinesError.message);
   if (!data) return null;
-  return { request: data as PurchaseRequest, lines: (lines ?? []) as PurchaseRequestLine[], unresolvedLines: (unresolvedLines ?? []) as PurchaseRequestUnresolvedLine[] };
+  if (!lines || !unresolvedLines) throw new Error("Purchase request detail returned incomplete data.");
+  return { request: data as PurchaseRequest, lines: lines as PurchaseRequestLine[], unresolvedLines: unresolvedLines as PurchaseRequestUnresolvedLine[] };
 }
 
 export async function getPurchaseOrdersForRequest(id: string) {
@@ -224,7 +229,8 @@ export async function getPurchaseOrdersForRequest(id: string) {
     .is("deleted_at", null)
     .order("created_at", { ascending: true });
   if (error) throw new Error(error.message);
-  if (!data?.length) return [];
+  if (!data) throw new Error("Purchase request purchase orders returned no data.");
+  if (!data.length) return [];
 
   const purchaseOrderIds = data.map((row) => row.id);
   const supplierIds = [...new Set(data.map((row) => row.supplier_id))];
@@ -234,9 +240,10 @@ export async function getPurchaseOrdersForRequest(id: string) {
   ]);
   if (linesError) throw new Error(linesError.message);
   if (suppliersError) throw new Error(suppliersError.message);
-  const supplierById = new Map((suppliers ?? []).map((row) => [row.id, row.name]));
-  return ((data ?? []) as PurchaseOrder[]).map((row) => {
-    const ownLines = ((lines ?? []) as PurchaseOrderLine[]).filter((line) => line.purchase_order_id === row.id);
+  if (!lines || !suppliers) throw new Error("Purchase request related purchase orders returned incomplete data.");
+  const supplierById = new Map(suppliers.map((row) => [row.id, row.name]));
+  return (data as PurchaseOrder[]).map((row) => {
+    const ownLines = (lines as PurchaseOrderLine[]).filter((line) => line.purchase_order_id === row.id);
     return {
       ...row,
       supplier_name: supplierById.get(row.supplier_id) ?? null,
@@ -265,15 +272,17 @@ export async function getPurchaseOrders(filters: Filters = {}) {
   if (search) query = query.or(`po_no.ilike.%${search}%,remarks.ilike.%${search}%`);
   const { data, error, count } = await query.order(sort, { ascending: filters.dir !== "asc" }).range((page - 1) * PAGE_SIZE, page * PAGE_SIZE - 1);
   if (error) throw new Error(error.message);
-  const ids = (data ?? []).map((row) => row.id);
+  if (!data || count === null) throw new Error("Purchase order list returned no data.");
+  const ids = data.map((row) => row.id);
   const [{ data: lines, error: linesError }, { data: suppliers, error: suppliersError }] = await Promise.all([
     ids.length ? supabase.from("purchase_order_lines").select("purchase_order_id, qty_ordered, unit_price").in("purchase_order_id", ids) : Promise.resolve({ data: [], error: null }),
-    (data ?? []).length ? supabase.from("suppliers").select("id, name").in("id", (data ?? []).map((row) => row.supplier_id)) : Promise.resolve({ data: [], error: null }),
+    data.length ? supabase.from("suppliers").select("id, name").in("id", data.map((row) => row.supplier_id)) : Promise.resolve({ data: [], error: null }),
   ]);
   if (linesError || suppliersError) throw new Error((linesError ?? suppliersError)!.message);
+  if (!lines || (data.length > 0 && !suppliers)) throw new Error("Purchase order related data returned no data.");
   const supplierById = new Map((suppliers ?? []).map((row) => [row.id, row.name]));
-  const rows = (data ?? []).map((row) => {
-    const ownLines = (lines ?? []).filter((line) => line.purchase_order_id === row.id);
+  const rows = data.map((row) => {
+    const ownLines = lines.filter((line) => line.purchase_order_id === row.id);
     return {
       ...row,
       supplier_name: supplierById.get(row.supplier_id) ?? null,
@@ -281,7 +290,7 @@ export async function getPurchaseOrders(filters: Filters = {}) {
       order_total: ownLines.reduce((sum, line) => sum + line.qty_ordered * line.unit_price, 0),
     };
   });
-  const totalRows = count ?? 0;
+  const totalRows = count;
   return { rows, page, pageSize: PAGE_SIZE, totalRows, totalPages: Math.max(Math.ceil(totalRows / PAGE_SIZE), 1) };
 }
 
@@ -299,6 +308,7 @@ export async function getPurchaseOrderSummary() {
   };
   const [total, approved, sent, receiving, received, closed, cancelled] = await Promise.all([count(), count("approved"), count("sent"), count("partial_received"), count("received"), count("closed"), count("cancelled")]);
   for (const result of [total, approved, sent, receiving, received, closed, cancelled]) if (result.error) throw new Error(result.error.message);
+  if ([total, approved, sent, receiving, received, closed, cancelled].some((result) => result.count === null)) throw new Error("Purchase order summary returned no data.");
   return { total: total.count ?? 0, approved: approved.count ?? 0, sent: sent.count ?? 0, receiving: receiving.count ?? 0, received: received.count ?? 0, closed: closed.count ?? 0, cancelled: cancelled.count ?? 0 };
 }
 
@@ -319,9 +329,10 @@ export async function getPurchaseOrder(id: string) {
   ]);
   if (error) throw new Error(error.message);
   if (linesError) throw new Error(linesError.message);
+  if (!data || !lines) throw new Error("Purchase order detail returned no data.");
   return {
     order: data as PurchaseOrder,
-    lines: ((lines ?? []) as PurchaseOrderLine[]).map((line) => ({ ...line, qty_pending: line.qty_ordered - line.qty_received - line.qty_cancelled })),
+    lines: (lines as PurchaseOrderLine[]).map((line) => ({ ...line, qty_pending: line.qty_ordered - line.qty_received - line.qty_cancelled })),
   };
 }
 

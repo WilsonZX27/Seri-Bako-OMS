@@ -2,7 +2,14 @@
 
 ## Product Overview
 
-The current released application baseline is `v8.64.50` — Fail-closed Dashboard Fallbacks.
+The current released application baseline is `v8.64.51` — Fail-closed Operational Reads.
+
+### v8.64.51 — Fail-closed Operational Reads
+
+- Procurement and goods-receiving list/detail/summary reads now reject missing or incomplete payloads instead of converting them into empty rows or verified zero totals.
+- Supplier, item, branch, and shared mapping option reads now fail closed when Supabase returns no payload, preserving an explicit retry/unavailable state.
+- Inventory stock-balance base reads now reject null payloads so downstream screens cannot render a false empty balance.
+- Added contract coverage for the operational read boundaries and kept the established empty-state behavior for valid empty datasets.
 
 ### v8.64.50 — Fail-closed Dashboard Fallbacks
 

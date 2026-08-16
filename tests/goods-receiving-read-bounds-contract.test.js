@@ -23,6 +23,8 @@ test("goods-receiving detail bounds every master-data join", () => {
 });
 
 test("goods-receiving list fails closed when a related label source cannot be verified", () => {
+  assert.match(source, /if \(!data \|\| count === null\) throw new Error\("Goods receiving list returned no data\."\)/);
+  assert.match(source, /if \(!lines \|\| \(poIds\.length > 0 && !pos\) \|\| \(supplierIds\.length > 0 && !suppliers\)/);
   assert.match(source, /data: pos, error: posError/);
   assert.match(source, /data: suppliers, error: suppliersError/);
   assert.match(source, /data: branches, error: branchesError/);
@@ -33,11 +35,20 @@ test("goods-receiving list fails closed when a related label source cannot be ve
   assert.match(listPage, /resultCount=\{receivings\?\.totalRows\}/);
 });
 
+test("goods-receiving summary and detail never coerce null payloads into zero", () => {
+  assert.match(source, /Goods receiving summary returned no data/);
+  assert.match(source, /Goods receiving summary returned an incomplete result/);
+  assert.match(detail, /if \(!data \|\| !lines\) throw new Error\("Goods receiving detail returned no data\."\)/);
+  assert.match(detail, /Goods receiving detail related data returned no data/);
+});
+
 test("eligible receiving orders only hydrate their own lines and suppliers", () => {
-  assert.match(eligible, /if \(!data\?\.length\) return \[\]/);
+  assert.match(eligible, /if \(!data\) throw new Error\("Eligible purchase orders returned no data\."\)/);
+  assert.match(eligible, /if \(!data\.length\) return \[\]/);
   assert.match(eligible, /\.in\("purchase_order_id", purchaseOrderIds\)/);
   assert.match(eligible, /\.in\("id", supplierIds\)/);
   assert.match(eligible, /if \(suppliersError\) throw new Error\(suppliersError\.message\)/);
+  assert.match(eligible, /if \(!lines \|\| !suppliers\) throw new Error/);
 });
 
 test("single purchase-order receiving only loads items referenced by its lines", () => {
@@ -45,4 +56,6 @@ test("single purchase-order receiving only loads items referenced by its lines",
   assert.match(receivingOrder, /\.in\("id", itemIds\)/);
   assert.match(receivingOrder, /if \(itemsError\) throw new Error\(itemsError\.message\)/);
   assert.match(receivingOrder, /if \(supplierError\) throw new Error\(supplierError\.message\)/);
+  assert.match(receivingOrder, /if \(!order \|\| !lines\) throw new Error/);
+  assert.match(receivingOrder, /if \(\(itemIds\.length > 0 && !items\) \|\| !supplier\) throw new Error/);
 });

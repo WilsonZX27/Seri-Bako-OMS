@@ -108,6 +108,7 @@ export const getSuppliersForSelect = cache(async function getSuppliersForSelect(
     .limit(200);
 
   if (error) throw new Error(error.message);
+  if (!data) throw new Error("Supplier options returned no data.");
   return data;
 });
 
@@ -120,19 +121,22 @@ export const getBranchSupplierMappingsForSelect = cache(async function getBranch
     .eq("status", "active")
     .is("deleted_at", null);
   if (mappingsError) throw new Error(mappingsError.message);
+  if (!mappings) throw new Error("Branch supplier mappings returned no data.");
   const relationshipIds = [...new Set((mappings ?? []).map((row) => row.supplier_item_id))];
   const { data: relationships, error: relationshipsError } = relationshipIds.length
     ? await supabase.from("supplier_items").select("id, supplier_id, item_id, unit_cost, purchase_uom, status").in("id", relationshipIds).eq("status", "active").is("deleted_at", null)
     : { data: [], error: null };
   if (relationshipsError) throw new Error(relationshipsError.message);
+  if (!relationships) throw new Error("Supplier item relationships returned no data.");
   const supplierIds = [...new Set((relationships ?? []).map((row) => row.supplier_id))];
   const { data: suppliers, error: suppliersError } = supplierIds.length
     ? await supabase.from("suppliers").select("id, supplier_code, name, status").in("id", supplierIds).eq("status", "active").is("deleted_at", null)
     : { data: [], error: null };
   if (suppliersError) throw new Error(suppliersError.message);
+  if (!suppliers) throw new Error("Supplier mapping options returned no data.");
   const relationshipById = new Map((relationships ?? []).map((row) => [row.id, row]));
   const supplierById = new Map((suppliers ?? []).map((row) => [row.id, row]));
-  return (mappings ?? []).flatMap((mapping) => {
+  return mappings.flatMap((mapping) => {
     const relationship = relationshipById.get(mapping.supplier_item_id);
     const supplier = relationship ? supplierById.get(relationship.supplier_id) : null;
     if (!relationship || !supplier || relationship.item_id !== mapping.item_id) return [];
@@ -166,6 +170,7 @@ export const getItemsForSelect = cache(async function getItemsForSelect() {
     .order("item_name", { ascending: true });
 
   if (error) throw new Error(error.message);
+  if (!data) throw new Error("Item options returned no data.");
   return data;
 });
 
@@ -199,5 +204,6 @@ export const getBranchesForSelect = cache(async function getBranchesForSelect(op
   }
   const { data, error } = await query.order("branch_name", { ascending: true });
   if (error) throw new Error(error.message);
+  if (!data) throw new Error("Branch options returned no data.");
   return data;
 });

@@ -1,11 +1,22 @@
 # Seri Bako OMS responsive design standard
 
-> **Release authority:** the currently released application is `v8.64.20`, as
+> **Release authority:** the currently released application is `v8.64.21`, as
 > defined by `src/lib/app-version.ts`. A versioned section above that number is
 > an accepted forward design contract or unreleased implementation note—not
 > evidence that the application itself has been released at that version.
 > `docs/DESIGN_SYSTEM.md` owns the current visual principles; this file retains
 > versioned implementation history and workspace rules.
+
+## v8.64.21 - Stable Stock Count Workspace
+
+- Stock Count line headings remain in normal document flow. They do not use a
+  guessed page-level sticky offset, because shell and browser chrome heights
+  differ across laptop, iPad, and installed/mobile contexts.
+- Phone count cards reserve their limited vertical space for item identity,
+  index, variance, UOM, and the physical-count control. Starting balance stays
+  available from the wider list layout rather than repeating inside the card.
+- The existing two-column phone grid, leading numeric index, full item name,
+  and direct-entry stepper remain the single mobile counting template.
 
 ## v8.64.20 - Stable Outlet Completion Matrix
 

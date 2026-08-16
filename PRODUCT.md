@@ -2,11 +2,16 @@
 
 ## Product Overview
 
-Current release authority: v8.64.20 - Stable Outlet Completion Matrix.
+Current release authority: v8.64.21 - Stable Stock Count Workspace.
 
 ### Current audit baseline
 
-The current released application baseline is `v8.64.20 — Stable Outlet Completion Matrix`.
+The current released application baseline is `v8.64.21 — Stable Stock Count Workspace`.
+
+Stock Count uses one responsive line-entry authority. Phone cards foreground
+the index, full item identity, variance, UOM, and count control without a
+repeated starting-balance sentence. Wider list headers remain in normal flow;
+they never rely on a guessed shell offset that can cover the first item.
 
 The seven-day outlet completion matrix fills its containing canvas, preserves a
 fully opaque frozen outlet column during horizontal scroll, and adds no empty

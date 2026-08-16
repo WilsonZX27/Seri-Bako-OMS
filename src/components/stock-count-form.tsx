@@ -421,7 +421,7 @@ export function StockCountForm({
           </div>
 
           <div data-stock-count-line-list>
-            <div className="sticky top-[7.25rem] z-10 hidden border-y border-[var(--sb-border)] bg-[var(--sb-surface)] px-4 py-2 shadow-[0_4px_10px_rgb(6_44_31_/_0.08)] lg:grid lg:grid-cols-[minmax(12rem,1fr)_5rem_minmax(14rem,17rem)] lg:items-center lg:gap-4 xl:top-[7.75rem] xl:grid-cols-[minmax(16rem,1fr)_5rem_minmax(16rem,18rem)]">
+            <div className="hidden border-y border-[var(--sb-border)] bg-[var(--sb-surface-muted)] px-4 py-2 lg:grid lg:grid-cols-[minmax(12rem,1fr)_5rem_minmax(14rem,17rem)] lg:items-center lg:gap-4 xl:grid-cols-[minmax(16rem,1fr)_5rem_minmax(16rem,18rem)]">
               <p className="text-xs font-semibold">Item</p>
               <p className="text-xs text-right font-semibold">Variance</p>
               <p className="text-xs font-semibold">Count</p>
@@ -444,7 +444,7 @@ export function StockCountForm({
                       <div className="min-w-0">
                         <p className="break-words text-[13px] font-medium leading-tight text-slate-800">{line.item_name}</p>
                         <p className="min-w-0 break-all text-[10px] leading-3 tracking-[0.01em] text-slate-400">{line.item_code}</p>
-                        <p className="mt-1 text-[10px] leading-3 text-muted-foreground">{line.prefill_source === "unavailable" ? "No prior ledger balance · enter count" : `Starting balance · ${formatQuantity(line.theoretical_qty)} ${line.uom}`}</p>
+                        <p className="mt-1 hidden text-[10px] leading-3 text-muted-foreground sm:block">{line.prefill_source === "unavailable" ? "No prior ledger balance · enter count" : `Starting balance · ${formatQuantity(line.theoretical_qty)} ${line.uom}`}</p>
                       </div>
                     </div>
 

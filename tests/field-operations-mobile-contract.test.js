@@ -46,6 +46,18 @@ test("stock count keeps setup separate from one continuous phone work surface", 
   assert.match(design, /Do not use a horizontally scrolling table as a substitute for a phone line-entry layout/);
 });
 
+test("stock count list header never relies on a guessed shell offset", () => {
+  const source = read("src/components/stock-count-form.tsx");
+  assert.doesNotMatch(source, /sticky top-\[7\.25rem\]/);
+  assert.doesNotMatch(source, /xl:top-\[7\.75rem\]/);
+  assert.match(source, /hidden border-y[^\n]+lg:grid/);
+});
+
+test("stock count phone cards reserve vertical space for counting", () => {
+  const source = read("src/components/stock-count-form.tsx");
+  assert.match(source, /mt-1 hidden text-\[10px\][^\n]+sm:block[^\n]+Starting balance/);
+});
+
 test("goods receiving prioritizes physical receipt before reference quantities on phones", () => {
   const source = read("src/components/goods-receiving-form.tsx");
 

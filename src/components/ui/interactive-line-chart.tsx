@@ -133,7 +133,7 @@ export function InteractiveLineChart({
             </g>
           );
         })}
-        <path d={path} fill="none" stroke="var(--sb-green-700)" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" pointerEvents="none" />
+        <path d={path} fill="none" stroke="var(--sb-green-700)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" pointerEvents="none" />
         {points.length <= 14 ? points.map((point, index) => (
           <circle
             key={point.id}
@@ -142,7 +142,7 @@ export function InteractiveLineChart({
             r="4"
             fill="var(--sb-surface-raised)"
             stroke="var(--sb-green-700)"
-            strokeWidth="3"
+            strokeWidth="2"
             pointerEvents="none"
           />
         )) : null}
@@ -176,7 +176,7 @@ export function InteractiveLineChart({
               opacity="0.55"
             />
             <circle cx={activeX} cy={activeY} r="8" fill="var(--sb-green-100)" opacity="0.9" />
-            <circle cx={activeX} cy={activeY} r="4.5" fill="var(--sb-surface-raised)" stroke="var(--sb-green-800)" strokeWidth="3" />
+            <circle cx={activeX} cy={activeY} r="4.5" fill="var(--sb-surface-raised)" stroke="var(--sb-green-800)" strokeWidth="2" />
           </g>
         ) : null}
       </svg>

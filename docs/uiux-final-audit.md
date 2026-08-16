@@ -10,6 +10,15 @@ This is the working ledger for the final close-out. Every browser comment must h
 - Every submit/action must show pending state and must not create duplicate action rails at tablet widths.
 - A data-empty state is only valid after checking the query, permissions, and read-model freshness.
 
+## Canonical responsive control and analytics pass — 2026-08-16
+
+- Shared PR line controls now have one source of truth for responsive columns and one source of truth for control height; breakpoint rules only change placement.
+- Purchase Request bulk deletion review is rendered inside the selected-items action cluster next to `Deselect all`.
+- Master-data filter rows keep Search, status, More filters, and the submit action on one equal-width desktop rhythm, including the More filters trigger surface.
+- Outlet Daily's chart stroke is reduced to a restrained two-pixel treatment and its daily data remains visible in a second column on desktop/tablet, stacking below on mobile.
+- The keyboard-safe mobile chrome rule is ordered after canonical nav visibility so the bottom nav cannot reappear above the soft keyboard.
+- Source contracts pass; authenticated browser layout audit passes at 390, 820, and 1440px in the current local fixture. Production/preview confirmation remains required after deployment.
+
 ## Current comment matrix
 
 | ID | Route / surface | Finding | Owner | Status |

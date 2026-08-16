@@ -1,11 +1,19 @@
 # Seri Bako OMS responsive design standard
 
-> **Release authority:** the currently released application is `v8.64.13`, as
+> **Release authority:** the currently released application is `v8.64.14`, as
 > defined by `src/lib/app-version.ts`. A versioned section above that number is
 > an accepted forward design contract or unreleased implementation note—not
 > evidence that the application itself has been released at that version.
 > `docs/DESIGN_SYSTEM.md` owns the current visual principles; this file retains
 > versioned implementation history and workspace rules.
+
+## v8.64.14 - Canonical Responsive Controls And Outlet Analytics
+
+- Purchase Request line geometry is owned by the form component and control height by one shared CSS rule; mobile rules only place the controls and no longer redefine their dimensions.
+- Bulk deletion review now lives in the selected-items action cluster beside `Deselect all`, so selection actions have one predictable owner and placement.
+- Master-data search, status, More filters, and Search controls use one equal-width desktop contract, including the More filters summary trigger.
+- Outlet Daily wastage analytics use a thinner two-pixel line and keep the daily data list visible beside the chart on wide layouts, while stacking it below the chart on phones.
+- Mobile bottom navigation is hidden while the on-screen keyboard owns the reduced visual viewport, preventing it from floating over Outlet Daily inputs.
 
 ## v8.64.3 - Mobile Keyboard Chrome Hardening
 

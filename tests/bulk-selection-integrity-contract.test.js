@@ -30,7 +30,7 @@ test("row selection is exposed only where a real bulk operation exists", () => {
   const requests = providers.find(({ file }) => file.endsWith(path.join("purchase-requests", "page.tsx"))).source;
 
   assert.match(branches, /<BulkSelectionProvider[\s\S]*action=\{archiveBranches\}/);
-  assert.match(requests, /<BulkSelectionProvider[\s\S]*<BulkPhaseOneDelete \/>/);
+  assert.match(requests, /<BulkSelectionProvider[\s\S]*selectionActions=\{<BulkPhaseOneDelete \/>\}/);
   assert.doesNotMatch(branches, /canAct=\{false\}/);
   assert.doesNotMatch(requests, /canAct=\{false\}/);
 });

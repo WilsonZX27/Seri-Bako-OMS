@@ -17,6 +17,7 @@ test("mobile keyboard state is derived from visual viewport and editable focus",
 test("mobile keyboard state hides fixed app chrome without changing desktop layout", () => {
   assert.match(design, /html\[data-mobile-keyboard-open="true"\][\s\S]*data-mobile-document-action/);
   assert.match(design, /data-mobile-keyboard-open="true"\][\s\S]*data-mobile-create-fab/);
+  assert.match(design, /data-mobile-keyboard-open="true"\][\s\S]*data-mobile-bottom-nav[\s\S]*visibility: hidden !important/);
   assert.match(design, /visibility: hidden !important/);
   assert.match(design, /scroll-padding-bottom: 1rem/);
   assert.match(design, /@media \(max-width: 767px\)/);

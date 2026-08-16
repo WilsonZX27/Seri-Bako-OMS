@@ -41,7 +41,8 @@ export function OutletDailyWastageChart({ points, branch, unavailable = false }:
         <p className="text-xs text-muted-foreground">Daily average <strong className={unavailable ? "text-[var(--sb-warning)]" : "text-foreground"}>{unavailable ? "Unavailable" : `${formatPercent(average)}%`}</strong></p>
       </div>
       {unavailable ? <div className="px-4 py-8 text-center" role="status"><p className="text-sm font-medium">Wastage trend unavailable</p><p className="mt-1 text-xs text-muted-foreground">The daily record list remains current. Retry this page to load the 30-day insight.</p></div> : points.length ? (
-        <div className="px-2 pb-2 pt-3">
+        <div className="grid gap-3 p-2 pt-3 lg:grid-cols-[minmax(0,1.55fr)_minmax(16rem,0.85fr)] lg:p-3">
+          <div className="min-w-0">
           <InteractiveLineChart
             points={chartPoints}
             width={width}
@@ -56,8 +57,9 @@ export function OutletDailyWastageChart({ points, branch, unavailable = false }:
             <span className="hidden sm:inline">Hover or focus the chart, then use arrow keys for exact values.</span>
             <span className="sm:hidden">Tap or drag across the chart for exact values.</span>
           </p>
-          <details className="mt-2 border-t border-[var(--sb-border-soft)] px-1 pt-2 text-xs">
-            <summary className="cursor-pointer font-medium text-primary">Daily data · {points.length} recorded day{points.length === 1 ? "" : "s"}</summary>
+          </div>
+          <div className="min-w-0 border-t border-[var(--sb-border-soft)] pt-2 text-xs lg:border-l lg:border-t-0 lg:pl-3 lg:pt-0">
+            <p className="font-medium text-primary">Daily data · {points.length} recorded day{points.length === 1 ? "" : "s"}</p>
             <div className="mt-2 max-h-64 overflow-y-auto">
               <div className="divide-y divide-[var(--sb-border-soft)] sm:hidden" role="list" aria-label="Daily wastage rate data" data-outlet-wastage-daily-list>
                 {points.map((point) => <div key={point.id} className="grid gap-2 py-2.5 first:pt-0" role="listitem">
@@ -75,7 +77,7 @@ export function OutletDailyWastageChart({ points, branch, unavailable = false }:
                 <tbody>{points.map((point) => <tr key={point.id} className="border-b border-[var(--sb-border-soft)]"><td className="py-1.5 pr-3"><Link className="text-primary underline-offset-4 hover:underline" href={recordHref(point.name)}>{formatDateOnly(point.name)}</Link></td><td className="px-3 py-1.5 text-right tabular-nums">{formatNumber(point.received)}</td><td className="px-3 py-1.5 text-right tabular-nums">{formatNumber(point.wastage)}</td><td className="py-1.5 pl-3 text-right tabular-nums">{formatPercent(point.wastage_percent)}%</td></tr>)}</tbody>
               </table>
             </div>
-          </details>
+          </div>
         </div>
       ) : <div className="px-4 py-8 text-center"><p className="text-sm font-medium">No completed records in the last 30 days</p><p className="mt-1 text-xs text-muted-foreground">The trend will appear after evening records are completed.</p></div>}
     </section>

@@ -315,7 +315,7 @@ export function PurchaseRequestForm({
             <div className="divide-y">
               {/* Legacy contract token: grid-cols-[minmax(0,1fr)_7.5rem_2.25rem]. The current four-column line keeps UOM, quantity, comments, and removal aligned. */}
               {lines.map((line, index) => (
-                <div data-purchase-request-line key={line.key} className="grid grid-cols-[1.75rem_minmax(0,1.15fr)_minmax(0,1fr)_2.75rem] gap-2 p-3 md:grid-cols-[minmax(12rem,1fr)_8rem_8rem_6.5rem] md:gap-3 md:p-3">
+                <div data-purchase-request-line key={line.key} className="grid grid-cols-[1.75rem_minmax(7rem,1.15fr)_minmax(7rem,1fr)_2.75rem] gap-2 p-3 md:grid-cols-[minmax(12rem,1fr)_8rem_8rem_6.5rem] md:gap-3 md:p-3">
                   <span data-pr-line-number className="grid h-10 place-items-center self-start md:hidden"><span className="grid h-6 w-6 place-items-center rounded-[var(--sb-radius-control)] bg-[var(--sb-surface-muted)] text-[11px] font-semibold tabular-nums text-[var(--sb-text-muted)]">{index + 1}</span></span>
                   <div data-pr-line-item className="col-span-2 col-start-2 min-w-0 space-y-2 md:col-span-1 md:col-start-1">
                     <Field label="Item" required labelClassName="sr-only">

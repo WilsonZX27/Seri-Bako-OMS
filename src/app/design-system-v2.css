@@ -447,6 +447,13 @@ tbody tr:hover {
   min-width: 0;
 }
 
+/* One authority for every PR line control. Responsive rules below only move
+   the columns; the controls themselves retain one canonical height. */
+html[data-design-layer="v2"] #purchase-request-form [data-purchase-request-line] :where(input, select, button) {
+  height: var(--sb-control-height) !important;
+  min-height: var(--sb-control-height) !important;
+}
+
 html[data-design-layer="v2"] .sb-command-surface {
   position: relative;
   overflow: hidden;
@@ -945,6 +952,17 @@ html[data-design-layer="v2"] [data-mobile-bottom-nav] {
   z-index: var(--sb-z-mobile-nav) !important;
   pointer-events: auto !important;
   visibility: visible !important;
+}
+
+/* The keyboard rule above intentionally hides fixed chrome while an editable
+   field owns the reduced visual viewport. Keep this override after the
+   canonical nav visibility rule so the bottom nav cannot float over the
+   on-screen keyboard on mobile browsers. */
+@media (max-width: 767px) {
+  html[data-design-layer="v2"][data-mobile-keyboard-open="true"] [data-mobile-bottom-nav] {
+    pointer-events: none !important;
+    visibility: hidden !important;
+  }
 }
 
 @media (max-width: 639px) {
@@ -1544,6 +1562,11 @@ html[data-design-layer="v2"] .sb-list-content-card {
     min-width: var(--sb-equal-query-control) !important;
   }
 
+  html[data-design-layer="v2"] form.sb-list-filters--equal-controls > .sb-filter-more > summary {
+    width: 100% !important;
+    min-width: 100% !important;
+  }
+
   html[data-design-layer="v2"] form.sb-list-filters--equal-controls > .sb-status-filter {
     display: block;
   }
@@ -1686,10 +1709,6 @@ html[data-design-layer="v2"] :where([class~="bg-card"], [class~="overflow-hidden
 }
 
 @media (max-width: 639px) {
-  html[data-design-layer="v2"] [data-purchase-request-line] {
-    grid-template-columns: 1.75rem minmax(0, 1fr) minmax(0, 1fr) 2.5rem;
-  }
-
   html[data-design-layer="v2"] [data-purchase-request-line] [data-pr-line-number] {
     grid-column: 1;
     grid-row: 1;
@@ -1720,7 +1739,4 @@ html[data-design-layer="v2"] :where([class~="bg-card"], [class~="overflow-hidden
     align-self: start;
   }
 
-  html[data-design-layer="v2"] [data-purchase-request-line] :where(input, select, button) {
-    min-height: 40px;
-  }
 }

@@ -31,6 +31,7 @@ export function BulkSelectionProvider(props: {
   canAct?: boolean;
   action?: (formData: FormData) => void | Promise<void>;
   fieldName?: string;
+  selectionActions?: ReactNode;
 }) {
   const {
     ids,
@@ -42,6 +43,7 @@ export function BulkSelectionProvider(props: {
     canAct = false,
     action,
     fieldName = "selected_id",
+    selectionActions,
   } = props;
   const [selected, setSelected] = useState<Set<string>>(() => new Set());
   const [confirmOpen, setConfirmOpen] = useState(false);
@@ -93,6 +95,7 @@ export function BulkSelectionProvider(props: {
                   <SubmitButton type="submit" variant={actionVariant} size="sm" pendingLabel="Processing...">{actionLabel}</SubmitButton>
                 </form>
               ) : null}
+              {selectionActions}
               <Button type="button" variant="ghost" size="sm" onClick={value.clear}>Deselect all</Button>
             </div>
           </div>

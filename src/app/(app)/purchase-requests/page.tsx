@@ -89,8 +89,7 @@ export default async function PurchaseRequestsPage({ searchParams }: { searchPar
               {filtered ? <Button asChild variant="secondary" className="sb-filter-submit shrink-0"><Link href="/purchase-requests">Reset</Link></Button> : <Button type="submit" variant="secondary" className="sb-filter-submit shrink-0">Search</Button>}
             </FilterBar>
           <div className="sb-list-content-card overflow-hidden">
-          <BulkSelectionProvider ids={requests?.rows.map((request) => request.id) ?? []} actionLabel="Delete selected" actionHint="Review selected requests before permanent deletion.">
-          <BulkPhaseOneDelete />
+            <BulkSelectionProvider ids={requests?.rows.map((request) => request.id) ?? []} actionLabel="Delete selected" actionHint="Review selected requests before permanent deletion." selectionActions={<BulkPhaseOneDelete />}>
           <DataGridHint text="Pro-tip: Double-click any row to open the purchase request." />
           <Table mobileHidden compactUntil="xl" aria-label="Purchase requests" stickyColumn="third">
               <TableHeader>

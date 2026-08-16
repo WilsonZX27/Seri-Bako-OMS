@@ -7,27 +7,32 @@ export function usePreviewSelection<Value>() {
   const [activeValue, setActiveValue] = useState<Value | null>(null);
   const committedSelectionRef = useRef(false);
 
+  const previewValue = (value: Value) => {
+    committedSelectionRef.current = false;
+    setActiveValue(value);
+  };
+
+  const commitValue = (value: Value) => {
+    committedSelectionRef.current = true;
+    setActiveValue(value);
+  };
+
+  const clearSelection = () => {
+    committedSelectionRef.current = false;
+    setActiveValue(null);
+  };
+
   const optionProps = (value: Value) => ({
-    onMouseEnter: () => {
-      committedSelectionRef.current = false;
-      setActiveValue(value);
-    },
+    onMouseEnter: () => previewValue(value),
     onPointerDown: (event: PointerEvent<HTMLElement>) => {
-      committedSelectionRef.current = event.pointerType !== "mouse";
-      setActiveValue(value);
+      if (event.pointerType === "mouse") previewValue(value);
+      else commitValue(value);
     },
-    onFocus: () => {
-      committedSelectionRef.current = true;
-      setActiveValue(value);
-    },
-    onClick: () => {
-      committedSelectionRef.current = true;
-      setActiveValue(value);
-    },
+    onFocus: () => commitValue(value),
+    onClick: () => commitValue(value),
     onKeyDown: (event: KeyboardEvent<HTMLElement>) => {
       if (event.key === "Escape") {
-        committedSelectionRef.current = false;
-        setActiveValue(null);
+        clearSelection();
         event.currentTarget.blur();
       }
     },
@@ -42,5 +47,5 @@ export function usePreviewSelection<Value>() {
     },
   };
 
-  return { activeValue, optionProps, boundaryProps };
+  return { activeValue, previewValue, commitValue, clearSelection, optionProps, boundaryProps };
 }

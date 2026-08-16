@@ -12,12 +12,13 @@ test("one shared authority owns report preview pointer, touch, and keyboard sema
     read("src/components/ui/interactive-ranking-chart.tsx"),
     read("src/components/reports/aging-distribution-bars.tsx"),
     read("src/components/reports/production-variance-signal-chart.tsx"),
+    read("src/components/reports/inventory-daily-movement-chart.tsx"),
   ];
 
   assert.match(selection, /onMouseEnter/);
   assert.match(selection, /onPointerDown/);
-  assert.match(selection, /event\.pointerType !== "mouse"/);
-  assert.match(selection, /onFocus[\s\S]*committedSelectionRef\.current = true;[\s\S]*setActiveValue\(value\)/);
+  assert.match(selection, /event\.pointerType === "mouse"[\s\S]*previewValue\(value\)[\s\S]*commitValue\(value\)/);
+  assert.match(selection, /const commitValue[\s\S]*committedSelectionRef\.current = true;[\s\S]*setActiveValue\(value\)/);
   assert.match(selection, /onClick/);
   assert.match(selection, /event\.key === "Escape"/);
   assert.match(selection, /onMouseLeave/);
@@ -27,9 +28,9 @@ test("one shared authority owns report preview pointer, touch, and keyboard sema
 
   for (const source of consumers) {
     assert.match(source, /usePreviewSelection/);
-    assert.doesNotMatch(source, /useRef\(/);
+    assert.doesNotMatch(source, /useState\(/);
     assert.doesNotMatch(source, /onMouseEnter\s*:/);
-    assert.doesNotMatch(source, /onPointerDown\s*:/);
+    assert.doesNotMatch(source, /touchSelectionRef/);
     assert.doesNotMatch(source, /onBlurCapture\s*:/);
   }
 });

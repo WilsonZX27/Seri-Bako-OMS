@@ -29,6 +29,9 @@ test.describe("bounded Inventory daily movement insight", () => {
     await expect(preview.getByRole("link", { name: "Open inbound" })).toHaveAttribute("href", /from=\d{4}-\d{2}-\d{2}&to=\d{4}-\d{2}-\d{2}&direction=inbound/);
     await page.keyboard.press("ArrowRight");
     await expect(preview.getByRole("link", { name: "Open outbound" })).toHaveAttribute("href", /direction=outbound/);
+    await page.keyboard.press("Tab");
+    await expect(preview.getByRole("link", { name: "Open inbound" })).toBeFocused();
+    await expect(preview.getByRole("link", { name: "Open outbound" })).toBeVisible();
     await expect(chart.getByText("Daily data")).toBeVisible();
     await page.screenshot({ path: path.join(evidence, "desktop-1440.png"), fullPage: true });
   });
@@ -47,7 +50,7 @@ test.describe("bounded Inventory daily movement insight", () => {
       await chart.scrollIntoViewIfNeeded();
       const bounds = await svg.boundingBox();
       expect(bounds).not.toBeNull();
-      await expect(chart.locator("[data-inventory-movement-preview]")).toHaveClass(/sr-only/);
+      await expect(chart.locator("[data-inventory-movement-preview]")).toContainText(/Hover, tap, or focus/);
       await page.touchscreen.tap(bounds.x + bounds.width * 0.72, bounds.y + bounds.height * 0.5);
       await expect(chart.locator("[data-inventory-movement-preview]")).toContainText(/All posted entries/);
       const geometry = await chart.evaluate((node) => {

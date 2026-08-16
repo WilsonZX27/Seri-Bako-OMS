@@ -36,12 +36,13 @@ test("inventory daily movement insight is bounded, unit-safe, and based on the d
   assert.match(page, /collapseToolsOnPhone/);
   assert.match(read("src/components/operational-hub.tsx"), /Inventory tools|collapseToolsOnPhone/);
   assert.match(chart, /onPointerMove/);
-  assert.match(chart, /onPointerLeave/);
-  assert.match(chart, /onBlur=\{\(\) => \{[\s\S]*touchSelectionRef\.current[\s\S]*setActiveIndex\(null\)/);
+  assert.match(chart, /usePreviewSelection<number>\(\)/);
+  assert.match(chart, /\.\.\.boundaryProps/);
+  assert.doesNotMatch(chart, /touchSelectionRef|onBlur=/);
   assert.match(chart, /rounded-\[var\(--sb-radius-control\)\]/);
   assert.match(chart, /data-inventory-movement-empty/);
   assert.match(chart, /No unavailable result is shown as zero/);
-  assert.match(chart, /useState<number \| null>\(null\)/);
+  assert.match(chart, /activeValue: activeIndex/);
   assert.match(chart, /const activePoint = activeIndex === null \? null : points\[activeIndex\] \?\? null/);
   assert.match(chart, /data-inventory-movement-preview/);
   assert.match(chart, /min-h-\[4\.5rem\][\s\S]*border/);

@@ -1,9 +1,10 @@
 "use client";
 
-import { useId, useRef, useState } from "react";
+import { useId, useRef } from "react";
 import type { KeyboardEvent, PointerEvent, TouchEvent } from "react";
 import Link from "next/link";
 import { formatDateOnly, formatNumber } from "@/lib/utils";
+import { usePreviewSelection } from "@/components/ui/use-preview-selection";
 
 export type InventoryDailyMovementPoint = {
   transaction_date: string;
@@ -19,11 +20,7 @@ const inset = { top: 18, right: 16, bottom: 30, left: 42 };
 export function InventoryDailyMovementChart({ points }: { points: InventoryDailyMovementPoint[] }) {
   const descriptionId = useId();
   const chartRef = useRef<SVGSVGElement>(null);
-  const touchSelectionRef = useRef(false);
-  // Keep the chart compact until an operator selects a date. This matches the
-  // progressive preview behavior used by the other report charts and avoids
-  // presenting an arbitrary last-day detail as if it were selected.
-  const [activeIndex, setActiveIndex] = useState<number | null>(null);
+  const { activeValue: activeIndex, previewValue, commitValue, clearSelection, boundaryProps } = usePreviewSelection<number>();
   const innerWidth = width - inset.left - inset.right;
   const innerHeight = height - inset.top - inset.bottom;
   const maximum = Math.max(1, ...points.flatMap((point) => [point.inbound_entries, point.outbound_entries]));
@@ -53,19 +50,19 @@ export function InventoryDailyMovementChart({ points }: { points: InventoryDaily
 
   function selectPointer(event: PointerEvent<SVGSVGElement>) {
     if (!points.length) return;
-    setActiveIndex(indexFromPointer(event));
+    previewValue(indexFromPointer(event));
   }
 
   function handleKeyDown(event: KeyboardEvent<SVGSVGElement>) {
     if (!points.length || !["ArrowLeft", "ArrowRight", "Home", "End"].includes(event.key)) return;
     event.preventDefault();
-    if (event.key === "Home") return setActiveIndex(0);
-    if (event.key === "End") return setActiveIndex(points.length - 1);
-    setActiveIndex((current) => Math.max(0, Math.min(points.length - 1, (current ?? 0) + (event.key === "ArrowLeft" ? -1 : 1))));
+    if (event.key === "Home") return commitValue(0);
+    if (event.key === "End") return commitValue(points.length - 1);
+    commitValue(Math.max(0, Math.min(points.length - 1, (activeIndex ?? 0) + (event.key === "ArrowLeft" ? -1 : 1))));
   }
 
   return (
-    <div data-inventory-daily-movement-chart>
+    <div data-inventory-daily-movement-chart {...boundaryProps}>
       <div className="mb-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px] text-muted-foreground" aria-hidden="true">
         <span className="inline-flex items-center gap-1.5"><span className="h-2.5 w-2.5 bg-[var(--sb-green-700)]" />Inbound entries</span>
         <span className="inline-flex items-center gap-1.5"><span className="h-2.5 w-2.5 bg-[var(--sb-warning)]" />Outbound entries</span>
@@ -78,32 +75,29 @@ export function InventoryDailyMovementChart({ points }: { points: InventoryDaily
         tabIndex={0}
         aria-label="Posted inventory movement entries by date. Inbound bars are first and outbound bars are second for each date."
         aria-describedby={activePoint ? descriptionId : undefined}
-        onFocus={() => setActiveIndex((current) => current ?? 0)}
-        onBlur={() => {
-          if (!touchSelectionRef.current) setActiveIndex(null);
-        }}
+        onFocus={() => commitValue(activeIndex ?? 0)}
         onPointerDown={(event) => {
-          touchSelectionRef.current = event.pointerType !== "mouse";
-          selectPointer(event);
+          const index = indexFromPointer(event);
+          if (event.pointerType === "mouse") previewValue(index);
+          else commitValue(index);
           if (event.pointerType !== "mouse") event.currentTarget.focus();
         }}
         onTouchStart={(event: TouchEvent<SVGSVGElement>) => {
-          touchSelectionRef.current = true;
           const touch = event.touches[0];
-          if (touch && points.length) setActiveIndex(indexFromClientX(touch.clientX, event.currentTarget));
+          if (touch && points.length) commitValue(indexFromClientX(touch.clientX, event.currentTarget));
         }}
         onClick={(event) => {
-          touchSelectionRef.current = true;
-          if (points.length) setActiveIndex(indexFromClientX(event.clientX, event.currentTarget));
+          if (points.length) commitValue(indexFromClientX(event.clientX, event.currentTarget));
         }}
         onPointerMove={(event) => {
           if (event.pointerType === "mouse") selectPointer(event);
         }}
-        onPointerLeave={(event) => {
-          if (event.pointerType === "mouse" && !event.currentTarget.matches(":focus")) setActiveIndex(null);
-        }}
         onKeyDown={(event) => {
-          touchSelectionRef.current = false;
+          if (event.key === "Escape") {
+            clearSelection();
+            event.currentTarget.blur();
+            return;
+          }
           handleKeyDown(event);
         }}
       >

@@ -1,6 +1,6 @@
 # Seri Bako OMS responsive design standard
 
-> **Release authority:** the currently released application is `v8.54.0`, as
+> **Release authority:** the currently released application is `v8.55.0`, as
 > defined by `src/lib/app-version.ts`. A versioned section above that number is
 > an accepted forward design contract or unreleased implementation note—not
 > evidence that the application itself has been released at that version.
@@ -10,6 +10,11 @@
 > **Precedence:** `docs/DESIGN_SYSTEM.md` is the living visual and interaction contract. When a historical release note or an older rule in this file conflicts with that contract, the living contract wins. Update both documents when a new pattern is accepted; do not preserve a visibly weaker rule for compatibility.
 
 This document is the implementation contract for every customer-facing route, form, record workspace, table, panel, dialog, and mobile action bar. It applies to new work and to refactoring of existing UI.
+
+## v8.55.0 — Responsive AP Aging Distribution Preview
+
+- AP Aging and Cash Flow distribution rows use a two-line mobile pattern: the label and amount stay together, while the bar receives the full second line for readable long bucket names.
+- At wide desktop widths the same rows return to the compact three-column label, bar, and value layout; hover, touch, keyboard preview, and drill-through links remain unchanged.
 
 ## v8.54.0 — Source-Aware Loading for Outlet and Stock Count
 

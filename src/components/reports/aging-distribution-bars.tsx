@@ -49,7 +49,7 @@ export function AgingDistributionBars({
             aria-pressed={activeKey === item.key}
             aria-describedby={activeKey === item.key ? previewId : undefined}
             aria-label={`${item.label}: ${formatCurrency(item.outstanding)}, ${item.invoiceCount} invoices. Preview bucket.`}
-            className="group grid min-h-11 w-full grid-cols-[minmax(7rem,1fr)_minmax(5rem,1.4fr)_auto] items-center gap-2 rounded-[var(--sb-radius-control)] px-1.5 py-1.5 text-left outline-none hover:bg-[var(--sb-surface-muted)] focus-visible:bg-[var(--sb-green-100)] focus-visible:ring-2 focus-visible:ring-[var(--sb-green-700)] focus-visible:ring-offset-1"
+            className="group grid min-h-11 w-full grid-cols-[minmax(0,1fr)_auto] grid-rows-[auto_auto] items-center gap-x-2 gap-y-1 rounded-[var(--sb-radius-control)] px-1.5 py-1.5 text-left outline-none hover:bg-[var(--sb-surface-muted)] focus-visible:bg-[var(--sb-green-100)] focus-visible:ring-2 focus-visible:ring-[var(--sb-green-700)] focus-visible:ring-offset-1 xl:grid-cols-[minmax(7rem,1fr)_minmax(5rem,1.4fr)_auto] xl:grid-rows-1 xl:gap-2"
             onMouseEnter={() => {
               touchSelectionRef.current = false;
               setActiveKey(item.key);
@@ -77,8 +77,8 @@ export function AgingDistributionBars({
               }
             }}
           >
-            <span className="min-w-0 text-xs font-medium leading-4">{item.label}</span>
-            <span className="h-2.5 overflow-hidden rounded-sm bg-[var(--sb-surface-muted)] ring-1 ring-inset ring-[var(--sb-border-soft)]" aria-hidden="true">
+            <span className="min-w-0 truncate text-xs font-medium leading-4" title={item.label}>{item.label}</span>
+            <span className="col-span-2 row-start-2 h-2.5 w-full overflow-hidden rounded-sm bg-[var(--sb-surface-muted)] ring-1 ring-inset ring-[var(--sb-border-soft)] xl:col-span-1 xl:row-start-1" aria-hidden="true">
               <span className="block h-full rounded-sm bg-[var(--sb-green-700)] transition-[width] duration-150 group-hover:bg-[var(--sb-green-800)]" style={{ width: `${width}%` }} />
             </span>
             <span className="text-right">

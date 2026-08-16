@@ -14,6 +14,9 @@ test("AP Aging renders ordered direct-label distribution bars from the report bu
   assert.match(chart, /Outstanding by aging bucket/);
   assert.match(chart, /formatCurrency\(item\.outstanding\)/);
   assert.match(chart, /item\.invoiceCount/);
+  assert.match(chart, /grid-cols-\[minmax\(0,1fr\)_auto\] grid-rows-\[auto_auto\]/);
+  assert.match(chart, /xl:grid-cols-\[minmax\(7rem,1fr\)_minmax\(5rem,1\.4fr\)_auto\]/);
+  assert.match(chart, /title=\{item\.label\}/);
 });
 
 test("Every aging bar preserves current filters and drills into the same invoice table", () => {

@@ -24,11 +24,20 @@ const statuses = ["draft", "posted", "cancelled"];
 
 export default async function GoodsReceivingsPage({ searchParams }: { searchParams: Promise<Record<string, string | undefined>> }) {
   const filters = await searchParams;
-  const [receivings, canCreate, [summaryResult]] = await Promise.all([getGoodsReceivings(filters), hasPermission("grn.create"), Promise.allSettled([getGoodsReceivingSummary()])]);
+  const [receivingsResult, canCreate, [summaryResult]] = await Promise.all([
+    getGoodsReceivings(filters)
+      .then((value) => ({ status: "fulfilled" as const, value }))
+      .catch((reason) => ({ status: "rejected" as const, reason })),
+    hasPermission("grn.create"),
+    Promise.allSettled([getGoodsReceivingSummary()]),
+  ]);
+  if (receivingsResult.status === "rejected") logServerError(receivingsResult.reason, { source: "page.goodsReceivings.list" });
+  const receivings = receivingsResult.status === "fulfilled" ? receivingsResult.value : null;
   if (summaryResult.status === "rejected") logServerError(summaryResult.reason, { source: "page.goodsReceivings.summary" });
   const summary = summaryResult.status === "fulfilled" ? summaryResult.value : null;
   const filtered = hasActiveFilters(filters);
-  const emptyStateAction = filtered
+  const emptyStateAction = !receivings ? { href: "/goods-receivings", label: "Retry receiving" }
+    : filtered
     ? { href: "/goods-receivings", label: "Reset filters" }
     : canCreate
       ? { href: "/goods-receivings/new", label: "New GRN" }
@@ -65,7 +74,7 @@ export default async function GoodsReceivingsPage({ searchParams }: { searchPara
         }
       >
         <div className="space-y-3" data-tablet-main-list>
-            <UnifiedListHeader resultCount={receivings.totalRows} resetHref="/goods-receivings" filtered={filtered} activeCount={filters.status ? 1 : 0} className="sb-list-filters--compact-mobile">
+            <UnifiedListHeader resultCount={receivings?.totalRows} resetHref="/goods-receivings" filtered={filtered} activeCount={filters.status ? 1 : 0} className="sb-list-filters--compact-mobile">
               <Input name="search" defaultValue={filters.search ?? ""} placeholder="Search GRN, PO or supplier" className="min-w-0 flex-1 md:max-w-sm" />
               <StatusTabs statuses={statuses} activeStatus={filters.status} />
               {filtered ? <Button asChild variant="secondary" className="shrink-0"><Link href="/goods-receivings">Reset</Link></Button> : <Button type="submit" variant="secondary" className="shrink-0">Search</Button>}
@@ -88,7 +97,7 @@ export default async function GoodsReceivingsPage({ searchParams }: { searchPara
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {receivings.rows.map((receiving) => (
+                {receivings?.rows.map((receiving) => (
                   <DataGridRow key={receiving.id} href={`/goods-receivings/${receiving.id}`}>
                     <TableCell className="w-10 p-0 text-center"><TableActionLink href={`/goods-receivings/${receiving.id}`} label={`Open ${receiving.grn_no}`}><Pencil className="h-4 w-4" /></TableActionLink></TableCell>
                     <TableCell><DocumentNumber value={receiving.grn_no} size="sm" /></TableCell>
@@ -101,11 +110,11 @@ export default async function GoodsReceivingsPage({ searchParams }: { searchPara
                     <TableCell className="text-right">{formatNumber(receiving.rejected_total)}</TableCell>
                   </DataGridRow>
                 ))}
-                {!receivings.rows.length ? <TableRow><TableCell colSpan={9}><EmptyState title={filtered ? "No receivings match these filters" : "No goods receivings yet"} description={filtered ? "Reset the filters or widen the search." : "Supplier deliveries will appear after they are recorded."} action={emptyStateAction} /></TableCell></TableRow> : null}
+                {!receivings?.rows.length ? <TableRow><TableCell colSpan={9}><EmptyState title={!receivings ? "Goods receiving data unavailable" : filtered ? "No receivings match these filters" : "No goods receivings yet"} description={!receivings ? "The receiving source could not be verified. No quantities or record count are shown as zero." : filtered ? "Reset the filters or widen the search." : "Supplier deliveries will appear after they are recorded."} action={emptyStateAction} /></TableCell></TableRow> : null}
               </TableBody>
             </Table>
             <OperationalList ariaLabel="Goods receiving records">
-              {receivings.rows.map((receiving) => <OperationalListRow
+              {receivings?.rows.map((receiving) => <OperationalListRow
                 key={receiving.id}
                 href={`/goods-receivings/${receiving.id}`}
                 label={`Open ${receiving.grn_no}`}
@@ -114,9 +123,9 @@ export default async function GoodsReceivingsPage({ searchParams }: { searchPara
                 secondary={`${receiving.supplier_name ?? "No supplier"} · ${receiving.branch_name ?? "No branch"}`}
                 meta={`${formatNumber(receiving.received_total)} in · ${formatNumber(receiving.rejected_total)} rejected`}
               />)}
-              {!receivings.rows.length ? <EmptyState title={filtered ? "No receivings match these filters" : "No goods receivings yet"} description={filtered ? "Reset the filters or widen the search." : "Supplier deliveries will appear after they are recorded."} action={emptyStateAction} /> : null}
+              {!receivings?.rows.length ? <EmptyState title={!receivings ? "Goods receiving data unavailable" : filtered ? "No receivings match these filters" : "No goods receivings yet"} description={!receivings ? "The receiving source could not be verified. No quantities or record count are shown as zero." : filtered ? "Reset the filters or widen the search." : "Supplier deliveries will appear after they are recorded."} action={emptyStateAction} /> : null}
             </OperationalList>
-          <PaginationControls page={receivings.page} totalPages={receivings.totalPages} totalRows={receivings.totalRows} searchParams={filters} />
+          {receivings ? <PaginationControls page={receivings.page} totalPages={receivings.totalPages} totalRows={receivings.totalRows} searchParams={filters} /> : null}
           </div>
         </div>
       </WorkspaceGrid>

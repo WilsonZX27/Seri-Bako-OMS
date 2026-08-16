@@ -1,11 +1,16 @@
 # Seri Bako OMS responsive design standard
 
-> **Release authority:** the currently released application is `v8.62.0`, as
+> **Release authority:** the currently released application is `v8.63.0`, as
 > defined by `src/lib/app-version.ts`. A versioned section above that number is
 > an accepted forward design contract or unreleased implementation note—not
 > evidence that the application itself has been released at that version.
 > `docs/DESIGN_SYSTEM.md` owns the current visual principles; this file retains
 > versioned implementation history and workspace rules.
+
+## v8.63.0 - Fail-Closed Goods Receiving Joins
+
+- Goods Receiving list reads validate line totals and the related PO, supplier, and branch labels together; a failed join returns a retryable unavailable state instead of a partial row with fabricated `-` labels or zero totals.
+- The list keeps the current receiving data hidden while unavailable, including the result count and pagination, so operators cannot mistake a read failure for an empty queue.
 
 ## v8.62.0 - Fail-Closed Outlet Daily Detail
 

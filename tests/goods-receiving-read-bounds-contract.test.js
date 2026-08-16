@@ -12,6 +12,7 @@ const eligible = source.slice(
   source.indexOf("export async function getPurchaseOrderForReceiving"),
 );
 const receivingOrder = source.slice(source.indexOf("export async function getPurchaseOrderForReceiving"));
+const listPage = readFileSync("src/app/(app)/goods-receivings/page.tsx", "utf8");
 
 test("goods-receiving detail bounds every master-data join", () => {
   assert.match(detail, /\.in\("id", itemIds\)/);
@@ -19,6 +20,17 @@ test("goods-receiving detail bounds every master-data join", () => {
   assert.match(detail, /\.eq\("id", receiving\.supplier_id\)/);
   assert.match(detail, /\.eq\("id", receiving\.branch_id\)/);
   assert.doesNotMatch(detail, /from\("items"\)\.select\([^\n]+\)\s*[,)]/);
+});
+
+test("goods-receiving list fails closed when a related label source cannot be verified", () => {
+  assert.match(source, /data: pos, error: posError/);
+  assert.match(source, /data: suppliers, error: suppliersError/);
+  assert.match(source, /data: branches, error: branchesError/);
+  assert.match(source, /linesError \|\| posError \|\| suppliersError \|\| branchesError/);
+  assert.match(listPage, /page\.goodsReceivings\.list/);
+  assert.match(listPage, /Goods receiving data unavailable/);
+  assert.match(listPage, /No quantities or record count are shown as zero/);
+  assert.match(listPage, /resultCount=\{receivings\?\.totalRows\}/);
 });
 
 test("eligible receiving orders only hydrate their own lines and suppliers", () => {

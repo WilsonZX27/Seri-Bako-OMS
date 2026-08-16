@@ -2,15 +2,15 @@
 
 ## Product Overview
 
-Current release authority: v8.62.0 - Fail-Closed Outlet Daily Detail.
+Current release authority: v8.63.0 - Fail-Closed Goods Receiving Joins.
 
 ### Current audit baseline
 
-The current released application baseline is `v8.62.0 — Fail-Closed Outlet Daily Detail`.
+The current released application baseline is `v8.63.0 — Fail-Closed Goods Receiving Joins`.
 
-Historical release context: `v8.59.0 — No-Record Trend State Clarity`.
+Historical release context: `v8.62.0 — Fail-Closed Outlet Daily Detail`.
 
-The lines below are retained as historical release context; the current authority is the v8.62.0 line above.
+The lines below are retained as historical release context; the current authority is the v8.63.0 line above.
 The repository migration history currently runs through migration `149`. Release
 version authority lives in `src/lib/app-version.ts`; migration authority lives in
 the immutable, forward-only `supabase/migrations/` directory. Documentation must

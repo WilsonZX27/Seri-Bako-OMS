@@ -114,13 +114,15 @@ export async function getGoodsReceivings(filters: Filters = {}) {
   const branchIds = [...new Set((data ?? []).map((row) => row.branch_id).filter((id): id is string => Boolean(id)))];
   const poIds = [...new Set((data ?? []).map((row) => row.purchase_order_id).filter((id): id is string => Boolean(id)))];
   const supplierIds = [...new Set((data ?? []).map((row) => row.supplier_id).filter((id): id is string => Boolean(id)))];
-  const [{ data: lines, error: linesError }, { data: pos }, { data: suppliers }, { data: branches }] = await Promise.all([
+  const [{ data: lines, error: linesError }, { data: pos, error: posError }, { data: suppliers, error: suppliersError }, { data: branches, error: branchesError }] = await Promise.all([
     ids.length ? supabase.from("goods_receiving_lines").select("goods_receiving_id, received_qty, rejected_qty").in("goods_receiving_id", ids) : Promise.resolve({ data: [], error: null }),
-    poIds.length ? supabase.from("purchase_orders").select("id, po_no").in("id", poIds) : Promise.resolve({ data: [] }),
-    supplierIds.length ? supabase.from("suppliers").select("id, name").in("id", supplierIds) : Promise.resolve({ data: [] }),
-    branchIds.length ? supabase.from("branches").select("id, branch_name").in("id", branchIds) : Promise.resolve({ data: [] }),
+    poIds.length ? supabase.from("purchase_orders").select("id, po_no").in("id", poIds) : Promise.resolve({ data: [], error: null }),
+    supplierIds.length ? supabase.from("suppliers").select("id, name").in("id", supplierIds) : Promise.resolve({ data: [], error: null }),
+    branchIds.length ? supabase.from("branches").select("id, branch_name").in("id", branchIds) : Promise.resolve({ data: [], error: null }),
   ]);
-  if (linesError) throw new Error(linesError.message);
+  if (linesError || posError || suppliersError || branchesError) {
+    throw new Error((linesError ?? posError ?? suppliersError ?? branchesError)!.message);
+  }
   const poById = new Map((pos ?? []).map((row) => [row.id, row.po_no]));
   const supplierById = new Map((suppliers ?? []).map((row) => [row.id, row.name]));
   const branchById = new Map((branches ?? []).map((row) => [row.id, row.branch_name]));

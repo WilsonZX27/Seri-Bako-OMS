@@ -48,7 +48,9 @@ test("Top movement and wastage use touch-friendly ranking previews with progress
   assert.match(ranking, /data-ranking-row/);
   assert.match(ranking, /data-ranking-open/);
   assert.match(ranking, /grid min-h-11 w-full[\s\S]*xl:min-h-9/);
-  assert.match(ranking, /col-start-2 row-start-2[\s\S]*xl:col-start-3 xl:row-start-1/);
+  assert.match(ranking, /grid-cols-\[1\.25rem_minmax\(0,1fr\)_auto\] grid-rows-\[auto_auto\]/);
+  assert.match(ranking, /col-start-2 col-span-2 row-start-2[\s\S]*xl:col-start-3 xl:col-span-1/);
+  assert.match(ranking, /col-start-2[\s\S]*row-start-2[\s\S]*xl:col-start-3[\s\S]*xl:row-start-1/);
   assert.match(ranking, /index \+ 1/);
   assert.match(ranking, /!activeItem && "sr-only"/);
   assert.match(ranking, /item\.value <= 0 \? 0 : Math\.max\(3,/);

@@ -30,7 +30,7 @@ export function InteractiveRankingChart({
   const activeItem = items.find((item) => item.id === activeId) ?? null;
 
   return (
-    <div data-interactive-ranking-chart>
+    <div data-interactive-ranking-chart {...boundaryProps}>
       <ol
         role="list"
         aria-label={`${ariaLabel}. Hover, tap, or focus a bar to preview its values.`}
@@ -65,11 +65,7 @@ export function InteractiveRankingChart({
               ...optionProps(item.id),
             };
           return (
-            <li
-              key={item.id}
-              role="listitem"
-              {...boundaryProps}
-            >
+            <li key={item.id} role="listitem">
               <button {...rowProps}>{content}</button>
             </li>
           );

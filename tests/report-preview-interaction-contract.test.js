@@ -13,6 +13,8 @@ test("shared ranking previews distinguish transient hover from committed drill-t
   assert.match(source, /\.\.\.boundaryProps/);
   assert.match(source, /data-ranking-preview/);
   assert.match(source, /data-ranking-open/);
+  assert.match(source, /<div data-interactive-ranking-chart \{\.\.\.boundaryProps\}>/);
+  assert.doesNotMatch(source, /<li[\s\S]{0,120}\{\.\.\.boundaryProps\}/);
   assert.match(source, /aria-live="polite"/);
 });
 
@@ -27,6 +29,7 @@ test("shared line previews remain discoverable to assistive technology after poi
   assert.match(source, /onKeyDown/);
   assert.match(source, /points\.length === 1/);
   assert.match(source, /textAnchor="middle"/);
+  assert.match(source, /vectorEffect="non-scaling-stroke"/);
 });
 
 test("aging and production previews use the shared persistent touch and focus contract", () => {

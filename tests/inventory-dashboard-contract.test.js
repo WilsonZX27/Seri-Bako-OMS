@@ -36,6 +36,7 @@ test("inventory daily movement insight is bounded, unit-safe, and based on the d
   assert.match(page, /collapseToolsOnPhone/);
   assert.match(read("src/components/operational-hub.tsx"), /Inventory tools|collapseToolsOnPhone/);
   assert.match(chart, /onPointerMove/);
+  assert.match(chart, /onMouseMove/);
   assert.match(chart, /usePreviewSelection<number>\(\)/);
   assert.match(chart, /\.\.\.boundaryProps/);
   assert.doesNotMatch(chart, /touchSelectionRef|onBlur=/);

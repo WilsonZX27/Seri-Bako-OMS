@@ -1,11 +1,16 @@
 # Seri Bako OMS responsive design standard
 
-> **Release authority:** the currently released application is `v8.64.41`, as
+> **Release authority:** the currently released application is `v8.64.42`, as
 > defined by `src/lib/app-version.ts`. A versioned section above that number is
 > an accepted forward design contract or unreleased implementation note—not
 > evidence that the application itself has been released at that version.
 > `docs/DESIGN_SYSTEM.md` owns the current visual principles; this file retains
 > versioned implementation history and workspace rules.
+
+## v8.64.42 - Converge Report Interaction Scaling
+
+- Shared ranking previews keep the pointer boundary on the chart surface so drill-through controls remain reachable after hover selection.
+- Shared line charts use non-scaling SVG strokes so their visual weight remains stable across responsive containers.
 
 ## v8.64.41 - Stabilize Touch Tablet First Paint
 

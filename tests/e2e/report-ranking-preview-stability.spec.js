@@ -34,6 +34,10 @@ test("ranking preview changes content without moving the ranked rows", async ({ 
     await rows.nth(0).hover();
     await expect(rows.nth(0)).toHaveAttribute("aria-pressed", "true");
     const firstLabel = await preview.locator("p").first().textContent();
+    const previewTarget = await preview.boundingBox();
+    expect(previewTarget).not.toBeNull();
+    await page.mouse.move(previewTarget.x + Math.min(24, previewTarget.width / 2), previewTarget.y + Math.min(24, previewTarget.height / 2));
+    await expect(preview).toBeVisible();
     const afterFirst = await rows.nth(1).boundingBox();
 
     await rows.nth(1).focus();

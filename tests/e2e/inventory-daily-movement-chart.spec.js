@@ -19,6 +19,9 @@ test.describe("bounded Inventory daily movement insight", () => {
     const bounds = await svg.boundingBox();
     expect(bounds).not.toBeNull();
 
+    // Reset the pointer outside the chart so the hover contract is deterministic
+    // even when a worker reuses the browser pointer position across navigations.
+    await page.mouse.move(0, 0);
     await page.mouse.move(bounds.x + bounds.width * 0.35, bounds.y + bounds.height * 0.45);
     const preview = chart.locator("[data-inventory-movement-preview]");
     await expect(preview).toContainText(/Inbound/);

@@ -128,12 +128,12 @@ export function InteractiveLineChart({
           const lineY = inset.top + innerHeight * ratio;
           return (
             <g key={ratio}>
-              <line x1={inset.left} x2={width - inset.right} y1={lineY} y2={lineY} stroke="var(--sb-border-soft)" />
+              <line x1={inset.left} x2={width - inset.right} y1={lineY} y2={lineY} stroke="var(--sb-border-soft)" vectorEffect="non-scaling-stroke" />
               <text x={inset.left - 7} y={lineY + 4} textAnchor="end" fontSize="10" fill="var(--sb-text-muted)">{formatAxisValue(value)}</text>
             </g>
           );
         })}
-        <path d={path} fill="none" stroke="var(--sb-green-700)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" pointerEvents="none" />
+        <path d={path} fill="none" stroke="var(--sb-green-700)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" vectorEffect="non-scaling-stroke" pointerEvents="none" />
         {points.length <= 14 ? points.map((point, index) => (
           <circle
             key={point.id}
@@ -143,6 +143,7 @@ export function InteractiveLineChart({
             fill="var(--sb-surface-raised)"
             stroke="var(--sb-green-700)"
             strokeWidth="2"
+            vectorEffect="non-scaling-stroke"
             pointerEvents="none"
           />
         )) : null}
@@ -173,10 +174,11 @@ export function InteractiveLineChart({
               stroke="var(--sb-green-700)"
               strokeWidth="1"
               strokeDasharray="3 4"
+              vectorEffect="non-scaling-stroke"
               opacity="0.55"
             />
             <circle cx={activeX} cy={activeY} r="8" fill="var(--sb-green-100)" opacity="0.9" />
-            <circle cx={activeX} cy={activeY} r="4.5" fill="var(--sb-surface-raised)" stroke="var(--sb-green-800)" strokeWidth="2" />
+            <circle cx={activeX} cy={activeY} r="4.5" fill="var(--sb-surface-raised)" stroke="var(--sb-green-800)" strokeWidth="2" vectorEffect="non-scaling-stroke" />
           </g>
         ) : null}
       </svg>

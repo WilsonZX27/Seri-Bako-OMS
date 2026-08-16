@@ -1,7 +1,7 @@
 "use client";
 
 import { useId, useRef } from "react";
-import type { KeyboardEvent, PointerEvent, TouchEvent } from "react";
+import type { KeyboardEvent, MouseEvent, PointerEvent, TouchEvent } from "react";
 import Link from "next/link";
 import { formatDateOnly, formatNumber } from "@/lib/utils";
 import { usePreviewSelection } from "@/components/ui/use-preview-selection";
@@ -90,7 +90,13 @@ export function InventoryDailyMovementChart({ points }: { points: InventoryDaily
           if (points.length) commitValue(indexFromClientX(event.clientX, event.currentTarget));
         }}
         onPointerMove={(event) => {
-          if (event.pointerType === "mouse") selectPointer(event);
+          if (event.pointerType !== "touch") selectPointer(event);
+        }}
+        onMouseMove={(event: MouseEvent<SVGSVGElement>) => {
+          previewValue(indexFromClientX(event.clientX, event.currentTarget));
+        }}
+        onMouseEnter={(event: MouseEvent<SVGSVGElement>) => {
+          previewValue(indexFromClientX(event.clientX, event.currentTarget));
         }}
         onKeyDown={(event) => {
           if (event.key === "Escape") {

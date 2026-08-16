@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from "next";
+import Script from "next/script";
 import "./globals.css";
 import "./design-system-v2.css";
 
@@ -32,6 +33,12 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
   return (
     <html lang="en" data-design-layer="v2">
       <head>
+        {/* iPadOS Safari/Chrome can report a desktop-sized Macintosh viewport.
+            Mark the touch-tablet shell before first paint so the sidebar does
+            not flash in, or remain selected until, client hydration. */}
+        <Script id="touch-tablet-bootstrap" strategy="beforeInteractive">
+          {`(()=>{const n=navigator,s=window.screen,t=n.maxTouchPoints||0,u=n.userAgent||"",e=Math.min(s.width,s.height),c=window.matchMedia("(pointer: coarse)").matches;const i=t>1&&e>=600&&(/macintosh/i.test(u)||/ipad/i.test(u));if(t>1&&e>=600&&(i||c))document.documentElement.dataset.touchTablet="true";})();`}
+        </Script>
         {enableFigmaCapture ? <script src="https://mcp.figma.com/mcp/html-to-design/capture.js" async /> : null}
       </head>
       <body>{children}</body>

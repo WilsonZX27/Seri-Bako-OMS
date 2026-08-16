@@ -61,6 +61,10 @@ test("mobile shell respects safe areas, action stacking, and standalone web inst
   assert.match(workspace, /rightRail && !hideMobileConsole && "pb-32 xl:pb-3"/);
   assert.match(rootLayout, /viewportFit: "cover"/);
   assert.match(rootLayout, /appleWebApp/);
+  assert.match(rootLayout, /id="touch-tablet-bootstrap"/);
+  assert.match(rootLayout, /strategy="beforeInteractive"/);
+  assert.match(rootLayout, /maxTouchPoints/);
+  assert.match(rootLayout, /dataset\.touchTablet/);
   assert.match(manifest, /display: "standalone"/);
   assert.match(manifest, /start_url: "\/dashboard"/);
   assert.match(contextHeader, /Back to/);

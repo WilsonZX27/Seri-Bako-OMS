@@ -1,11 +1,20 @@
 # Seri Bako OMS responsive design standard
 
-> **Release authority:** the currently released application is `v8.64.40`, as
+> **Release authority:** the currently released application is `v8.64.41`, as
 > defined by `src/lib/app-version.ts`. A versioned section above that number is
 > an accepted forward design contract or unreleased implementation note—not
 > evidence that the application itself has been released at that version.
 > `docs/DESIGN_SYSTEM.md` owns the current visual principles; this file retains
 > versioned implementation history and workspace rules.
+
+## v8.64.41 - Stabilize Touch Tablet First Paint
+
+- iPadOS Safari and Chrome can expose a desktop-sized Macintosh user agent;
+  the root layout now marks the touch-tablet shell before first paint so the
+  mobile/tablet navigation does not flash in late or leave the desktop shell
+  selected after hydration.
+- The change is limited to shell selection timing. Established desktop
+  workspace geometry and the shared tablet query grammar remain unchanged.
 
 ## v8.64.40 - Lock Two-Row Tablet Query Layout
 

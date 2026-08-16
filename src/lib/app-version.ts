@@ -1,6 +1,6 @@
-export const APP_VERSION = "8.64.40";
+export const APP_VERSION = "8.64.41";
 export const APP_SPRINT = `v${APP_VERSION}`;
-export const APP_RELEASE_TITLE = "Lock Two-Row Tablet Query Layout";
+export const APP_RELEASE_TITLE = "Stabilize Touch Tablet First Paint";
 // Keep the shell footer concise; the detailed release title belongs in release
 // notes, not in a narrow navigation rail where it is clipped on small screens.
 export const APP_RELEASE_NOTE = APP_SPRINT;

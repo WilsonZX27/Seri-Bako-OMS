@@ -782,13 +782,13 @@ nav[aria-label="Pagination"] > span,
    viewport and cover the focused field. It returns as soon as focus leaves
    the editable control or the keyboard closes. */
 @media (max-width: 767px) {
-  html[data-mobile-keyboard-open="true"] :where([data-mobile-app-nav], [data-mobile-bottom-nav], [data-mobile-document-action], [data-mobile-action-bar], [data-mobile-create-fab], .sb-mobile-action-bar) {
+  html:is([data-mobile-keyboard-open="true"], [data-mobile-editable-focus="true"]) :where([data-mobile-app-nav], [data-mobile-bottom-nav], [data-mobile-document-action], [data-mobile-action-bar], [data-mobile-create-fab], .sb-mobile-action-bar) {
     visibility: hidden !important;
     pointer-events: none !important;
     transform: translateY(100%);
   }
 
-  html[data-mobile-keyboard-open="true"] [data-center-workspace] main {
+  html:is([data-mobile-keyboard-open="true"], [data-mobile-editable-focus="true"]) [data-center-workspace] main {
     scroll-padding-bottom: 1rem;
   }
 }

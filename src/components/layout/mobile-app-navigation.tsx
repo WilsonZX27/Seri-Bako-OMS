@@ -237,6 +237,13 @@ export function MobileAppNavigation({
         const layoutHeight = Math.max(window.innerHeight, document.documentElement.clientHeight);
         const visualHeight = viewport?.height ?? layoutHeight;
 
+        // Hide fixed app chrome immediately when an editable control receives
+        // focus. Some Android/iOS browser modes overlay the keyboard without
+        // resizing visualViewport, so waiting for a viewport delta leaves the
+        // bottom nav/action rail floating over the focused field.
+        if (mobileQuery.matches && editable) root.dataset.mobileEditableFocus = "true";
+        else delete root.dataset.mobileEditableFocus;
+
         // Android Chrome may resize both innerHeight and the visual viewport
         // when the keyboard opens. Keep the last non-keyboard height so the
         // reduced viewport can still be identified reliably.
@@ -266,6 +273,7 @@ export function MobileAppNavigation({
       viewport?.removeEventListener("scroll", updateKeyboardState);
       mobileQuery.removeEventListener("change", updateKeyboardState);
       delete root.dataset.mobileKeyboardOpen;
+      delete root.dataset.mobileEditableFocus;
     };
   }, []);
 

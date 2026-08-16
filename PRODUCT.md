@@ -2,7 +2,11 @@
 
 ## Product Overview
 
-The current released application baseline is `v8.64.45` — Standardize Quantity Stepper Density.
+The current released application baseline is `v8.64.46` — Hide Mobile Chrome on Editable Focus.
+
+### v8.64.46 — Hide Mobile Chrome on Editable Focus
+
+- Mobile navigation and fixed action chrome now hide as soon as an editable control receives focus, covering browser modes where the on-screen keyboard overlays without resizing `visualViewport`.
 
 ### v8.64.45 — Standardize Quantity Stepper Density
 
@@ -107,7 +111,7 @@ The current released application baseline is `v8.64.45` — Standardize Quantity
 
 ### Current audit baseline
 
-The current released application baseline is `v8.64.45 — Standardize Quantity Stepper Density`.
+The current released application baseline is `v8.64.46 — Hide Mobile Chrome on Editable Focus`.
 
 Item Master lookup now has one authoritative token-matching combobox shared by
 Kitchen PR entry and Purchasing Review. Users may search using partial words

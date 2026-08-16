@@ -100,7 +100,7 @@ export default async function ReportsPage() {
       >
         <div className="space-y-4">
           {visibleCategories.map((category) => (
-            <section key={category.title} className="overflow-hidden rounded-[2px] border bg-card">
+            <section key={category.title} className="overflow-hidden rounded-[var(--sb-radius-panel)] border bg-card">
               <div className="border-b bg-secondary/30 px-3 py-2">
                 <h2 className="text-sm font-semibold">{category.title}</h2>
                 <p className="text-xs text-muted-foreground">{category.description}</p>
@@ -110,7 +110,7 @@ export default async function ReportsPage() {
                   const Icon = report.icon;
                   return (
                     <Link key={report.title} href={report.href} aria-label={`Open ${report.title}: ${report.description}`} className="group grid min-h-14 grid-cols-[32px_minmax(0,1fr)_24px] items-center gap-3 px-3 py-2.5 transition-colors hover:bg-[var(--sb-surface-muted)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[var(--sb-green-700)]">
-                      <div className="flex h-8 w-8 items-center justify-center rounded-[2px] bg-primary/10 text-primary" aria-hidden="true">
+                      <div className="flex h-8 w-8 items-center justify-center rounded-[var(--sb-radius-control)] bg-primary/10 text-primary" aria-hidden="true">
                         <Icon className="h-4 w-4" />
                       </div>
                       <div className="min-w-0">

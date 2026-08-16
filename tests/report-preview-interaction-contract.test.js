@@ -10,7 +10,8 @@ test("shared ranking previews distinguish transient hover from committed drill-t
   const source = read("src/components/ui/interactive-ranking-chart.tsx");
   assert.match(source, /onMouseEnter/);
   assert.match(source, /onMouseLeave/);
-  assert.match(source, /if \(!touchSelectionRef\.current\) setActiveId\(null\)/);
+  assert.match(source, /!touchSelectionRef\.current && !event\.currentTarget\.matches\(":focus-within"\)/);
+  assert.match(source, /event\.currentTarget\.contains\(event\.relatedTarget\)/);
   assert.doesNotMatch(source, /!touchSelectionRef\.current && !item\.href/);
   assert.match(source, /onPointerDown/);
   assert.match(source, /data-ranking-preview/);
@@ -47,13 +48,16 @@ test("report preview slots stay stable before selection", () => {
   const aging = read("src/components/reports/aging-distribution-bars.tsx");
   const production = read("src/components/reports/production-variance-signal-chart.tsx");
   const inventory = read("src/components/reports/inventory-daily-movement-chart.tsx");
-  assert.match(ranking, /data-ranking-preview[\s\S]*min-h-\[4\.5rem\][\s\S]*border/);
+  assert.match(ranking, /data-ranking-preview/);
+  assert.match(ranking, /data-ranking-idle/);
+  assert.match(ranking, /id=\{rowPreviewId\}/);
+  assert.doesNotMatch(ranking, /data-ranking-preview[\s\S]{0,180}min-h-\[4\.5rem\]/);
   assert.match(aging, /data-aging-preview[\s\S]*min-h-\[4\.5rem\][\s\S]*border/);
   assert.match(production, /data-production-signal-preview/);
   assert.match(production, /min-h-\[3\.75rem\][\s\S]*border/);
   assert.match(inventory, /data-inventory-movement-preview/);
   assert.match(inventory, /min-h-\[4\.5rem\][\s\S]*border/);
-  for (const source of [ranking, aging, production, inventory]) assert.doesNotMatch(source, /(?:!active(?:Item)?|activePoint \?)[\s\S]{0,80}"sr-only"/);
+  for (const source of [aging, production, inventory]) assert.doesNotMatch(source, /(?:!active(?:Item)?|activePoint \?)[\s\S]{0,80}"sr-only"/);
 });
 
 test("Demand Trend uses the shared filter surface without an extra wrapper card", () => {

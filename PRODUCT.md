@@ -2,11 +2,18 @@
 
 ## Product Overview
 
-Current release authority: v8.64.26 - Shared Item Search Authority.
+Current release authority: v8.64.29 - Inline Report Ranking Previews.
+
+### v8.64.29 — Inline Report Ranking Previews
+
+- Shared ranking charts reveal exact values directly beneath the selected row. Hover, touch, and keyboard users no longer have to look at the bottom of a six-row ranking for the associated detail.
+- An idle ranking keeps a short discovery prompt but reserves no empty preview panel, reducing repeated vertical waste on phone report pages.
+- Report directory category and icon surfaces use the canonical panel and control radius tokens; page-specific 2px corner exceptions are not allowed.
+- Application version authority remains synchronized across `package.json`, the root `package-lock.json` entry, and `src/lib/app-version.ts`.
 
 ### Current audit baseline
 
-The current released application baseline is `v8.64.26 — Shared Item Search Authority`.
+The current released application baseline is `v8.64.29 — Inline Report Ranking Previews`.
 
 Item Master lookup now has one authoritative token-matching combobox shared by
 Kitchen PR entry and Purchasing Review. Users may search using partial words
@@ -56,8 +63,8 @@ mixed-pointer fallback.
 
 Historical release context: `v8.64.6 — Reliable Outlet Daily Reads`; earlier context: `v8.64.5 — Verified Receiving Provenance`, `v8.64.4 — Stable Report Preview Surfaces`, and `v8.63.0 — Fail-Closed Goods Receiving Joins`.
 
-The lines below are retained as historical release context; the current authority is the v8.64.6 line above.
-The repository migration history currently runs through migration `152`. Release
+The lines below are retained as historical release context; the current authority is the v8.64.29 release declaration above.
+The repository migration history currently runs through migration `154`. Release
 version authority lives in `src/lib/app-version.ts`; migration authority lives in
 the immutable, forward-only `supabase/migrations/` directory. Documentation must
 not claim a later release or database ceiling unless both authorities support it.
@@ -217,10 +224,10 @@ The system currently covers or is actively implementing the following operationa
 
 Module maturity must be understood separately from visual completion.
 
-Repository migrations reviewed through `152`; release authority is
-`v8.64.26 — Shared Item Search Authority`.
+Repository migrations reviewed through `154`; release authority is
+`v8.64.29 — Inline Report Ranking Previews`.
 
-Current integration baseline: `v8.64.26 — Shared Item Search Authority`, with repository migrations reviewed through `152`. Migrations `111` and `112` remain immutable history because they were applied to the linked database accidentally. Migration `113` removes their callable Central Kitchen PR RPC, prevents further access to the stock-holds table, and preserves that table temporarily for a non-destructive data audit. Later forward-only migrations add bounded inventory and Dashboard read models, repair grants and scoped access, introduce branch supply-route and received-quantity provenance, and preserve unmatched PR entry as auditable non-catalog lines; they do not restore the retired Central Kitchen PR workflow.
+Current integration baseline: `v8.64.29 — Inline Report Ranking Previews`, with repository migrations reviewed through `154`. Migrations `111` and `112` remain immutable history because they were applied to the linked database accidentally. Migration `113` removes their callable Central Kitchen PR RPC, prevents further access to the stock-holds table, and preserves that table temporarily for a non-destructive data audit. Later forward-only migrations add bounded inventory and Dashboard read models, repair grants and scoped access, introduce branch supply-route and received-quantity provenance, preserve unmatched PR entry as auditable non-catalog lines, split approved purchase requests atomically by supplier, and make Item Master the authority for supplier-item identity; they do not restore the retired Central Kitchen PR workflow.
 
 A page may exist visually without its full workflow, validation, database integration, permissions, and downstream effects being complete.
 

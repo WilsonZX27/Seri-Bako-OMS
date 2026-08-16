@@ -754,6 +754,22 @@ nav[aria-label="Pagination"] > span,
   }
 }
 
+/* The on-screen keyboard owns the lower viewport while a user is entering
+   values. Hide app chrome that would otherwise follow the resized visual
+   viewport and cover the focused field. It returns as soon as focus leaves
+   the editable control or the keyboard closes. */
+@media (max-width: 767px) {
+  html[data-mobile-keyboard-open="true"] :where([data-mobile-app-nav], [data-mobile-bottom-nav], [data-mobile-document-action], [data-mobile-action-bar], .sb-mobile-action-bar) {
+    visibility: hidden !important;
+    pointer-events: none !important;
+    transform: translateY(100%);
+  }
+
+  html[data-mobile-keyboard-open="true"] [data-center-workspace] main {
+    scroll-padding-bottom: 1rem;
+  }
+}
+
 @media (max-width: 639px) {
   [data-dashboard-quick-actions] a {
     min-height: 4rem;

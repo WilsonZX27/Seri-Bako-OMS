@@ -186,6 +186,50 @@ export function MobileAppNavigation({
   }, [pathname]);
 
   useEffect(() => {
+    const root = document.documentElement;
+    const viewport = window.visualViewport;
+    const mobileQuery = window.matchMedia("(max-width: 767px)");
+    let frame = 0;
+
+    const isEditable = () => {
+      const active = document.activeElement;
+      if (!(active instanceof HTMLElement)) return false;
+      if (active instanceof HTMLTextAreaElement) return !active.disabled && !active.readOnly;
+      if (active instanceof HTMLInputElement) return !active.disabled && !active.readOnly;
+      return active.isContentEditable;
+    };
+
+    const updateKeyboardState = () => {
+      cancelAnimationFrame(frame);
+      frame = requestAnimationFrame(() => {
+        const layoutHeight = window.innerHeight;
+        const visualHeight = viewport?.height ?? layoutHeight;
+        const viewportDelta = layoutHeight - visualHeight;
+        const keyboardOpen = mobileQuery.matches && isEditable() && (viewportDelta > 120 || visualHeight < layoutHeight * 0.75);
+        if (keyboardOpen) root.dataset.mobileKeyboardOpen = "true";
+        else delete root.dataset.mobileKeyboardOpen;
+      });
+    };
+
+    document.addEventListener("focusin", updateKeyboardState);
+    document.addEventListener("focusout", updateKeyboardState);
+    viewport?.addEventListener("resize", updateKeyboardState);
+    viewport?.addEventListener("scroll", updateKeyboardState);
+    mobileQuery.addEventListener("change", updateKeyboardState);
+    updateKeyboardState();
+
+    return () => {
+      cancelAnimationFrame(frame);
+      document.removeEventListener("focusin", updateKeyboardState);
+      document.removeEventListener("focusout", updateKeyboardState);
+      viewport?.removeEventListener("resize", updateKeyboardState);
+      viewport?.removeEventListener("scroll", updateKeyboardState);
+      mobileQuery.removeEventListener("change", updateKeyboardState);
+      delete root.dataset.mobileKeyboardOpen;
+    };
+  }, []);
+
+  useEffect(() => {
     if (!moreOpen) return;
     const previousOverflow = document.body.style.overflow;
     const trigger = triggerRef.current;

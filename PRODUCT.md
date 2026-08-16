@@ -2,11 +2,11 @@
 
 ## Product Overview
 
-Current release authority: v8.64.2 - Inventory Read Reliability Hardening.
+Current release authority: v8.64.3 - Mobile Keyboard Chrome Hardening.
 
 ### Current audit baseline
 
-The current released application baseline is `v8.64.2 — Inventory Read Reliability Hardening`.
+The current released application baseline is `v8.64.3 — Mobile Keyboard Chrome Hardening`.
 
 Historical release context: `v8.63.0 — Fail-Closed Goods Receiving Joins`.
 

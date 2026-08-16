@@ -1,11 +1,15 @@
 # Seri Bako OMS responsive design standard
 
-> **Release authority:** the currently released application is `v8.64.2`, as
+> **Release authority:** the currently released application is `v8.64.3`, as
 > defined by `src/lib/app-version.ts`. A versioned section above that number is
 > an accepted forward design contract or unreleased implementation note—not
 > evidence that the application itself has been released at that version.
 > `docs/DESIGN_SYSTEM.md` owns the current visual principles; this file retains
 > versioned implementation history and workspace rules.
+
+## v8.64.3 - Mobile Keyboard Chrome Hardening
+
+- Mobile fixed navigation and document action rails hide while an editable field has opened the on-screen keyboard, preventing the action chrome from floating over the focused input. The rails return when the keyboard closes.
 
 ## v8.64.2 - Inventory Read Reliability Hardening
 

@@ -22,7 +22,10 @@ test("FilterBar geometry has one authoritative stylesheet", () => {
   assert.equal((designV2.match(/form\[data-unified-list-desktop="true"\]/g) ?? []).length, 1);
   assert.doesNotMatch(beforeCanonical, /Canonical desktop\/tablet filter rail|Compact desktop filter contract|flex:\s*0 0 9rem/);
   assert.equal((designV2.match(/Canonical list workspace contract/g) ?? []).length, 1);
+  assert.equal((designV2.match(/:where\(\[class~="bg-card"\], \[class~="overflow-hidden"\]\):has\(> form\.sb-list-query-card\) \{/g) ?? []).length, 1);
+  assert.equal((designV2.match(/form\.sb-list-query-card \{\s*\r?\n\s*margin: 0;/g) ?? []).length, 1);
   assert.match(designV2.slice(canonicalStart), /form\.sb-list-query-card[\s\S]*?white-space:\s*nowrap;[\s\S]*?text-overflow:\s*ellipsis;/);
+  assert.match(designV2.slice(canonicalStart), /@media \(min-width: 1280px\)[\s\S]*?form\.sb-list-query-card \{[\s\S]*?flex-wrap:\s*nowrap !important;/);
   assert.match(designV2.slice(canonicalStart), /unified-list-date-control/);
   assert.match(input, /unified-list-date-control/);
 });

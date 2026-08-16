@@ -1,11 +1,17 @@
 # Seri Bako OMS responsive design standard
 
-> **Release authority:** the currently released application is `v8.64.16`, as
+> **Release authority:** the currently released application is `v8.64.17`, as
 > defined by `src/lib/app-version.ts`. A versioned section above that number is
 > an accepted forward design contract or unreleased implementation note—not
 > evidence that the application itself has been released at that version.
 > `docs/DESIGN_SYSTEM.md` owns the current visual principles; this file retains
 > versioned implementation history and workspace rules.
+
+## v8.64.17 - Canonical List Command Rows
+
+- `design-system-v2.css` owns one canonical list-workspace block. Duplicate wrapper and phone query-card declarations are prohibited by contract tests rather than left for cascade order to resolve.
+- Desktop query cards stay on one intentional command row: the query absorbs remaining width, secondary filters share one compact measure, and the terminal action uses the established action width. A narrowed centre workspace must not strand Search on an empty second row.
+- Tablet retains its independent four-track, two-row grammar and phone retains `UnifiedListHeader`; desktop convergence must not overwrite either viewport contract.
 
 ## v8.64.16 - Authoritative Outlet Daily Reads
 

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useId, useRef, useState } from "react";
-import type { KeyboardEvent } from "react";
+import type { FocusEvent, KeyboardEvent } from "react";
 import { cn, formatCurrency } from "@/lib/utils";
 
 export type AgingDistributionItem = {
@@ -38,7 +38,12 @@ export function AgingDistributionBars({
         <h2 className="text-sm font-semibold">{title}</h2>
         <p className="mt-0.5 text-xs text-muted-foreground">{description ?? `Open MYR balances as of ${reportDate}. Select a bucket to filter invoice detail.`}</p>
       </div>
-      <div className="space-y-1.5 p-2.5 sm:p-3">
+      <div
+        className="space-y-1.5 p-2.5 sm:p-3"
+        onBlurCapture={(event: FocusEvent<HTMLDivElement>) => {
+          if (!event.currentTarget.contains(event.relatedTarget) && !touchSelectionRef.current) setActiveKey(null);
+        }}
+      >
         <ol className="space-y-1.5" role="list" aria-label={ariaLabel}>
         {items.map((item) => {
           const width = item.outstanding <= 0 ? 0 : Math.max(2, (item.outstanding / maximum) * 100);
@@ -62,9 +67,6 @@ export function AgingDistributionBars({
               setActiveKey(item.key);
             }}
             onFocus={() => setActiveKey(item.key)}
-            onBlur={() => {
-              if (!touchSelectionRef.current) setActiveKey(null);
-            }}
             onClick={() => {
               touchSelectionRef.current = true;
               setActiveKey(item.key);

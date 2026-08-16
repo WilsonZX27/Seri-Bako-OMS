@@ -2,7 +2,13 @@
 
 ## Product Overview
 
-Current release authority: v8.64.29 - Inline Report Ranking Previews.
+Current release authority: v8.64.30 - Keyboard-Safe Aging Preview.
+
+### v8.64.30 — Keyboard-Safe Aging Preview
+
+- AP Aging keeps the selected bucket preview mounted while keyboard focus moves from a bucket into its `Open filtered invoices` action.
+- Focus leaving the complete distribution workspace dismisses transient keyboard previews; pointer, touch, click, and Escape behavior remain unchanged.
+- The interaction boundary is owned once by the preview workspace instead of competing button-level blur rules.
 
 ### v8.64.29 — Inline Report Ranking Previews
 
@@ -13,7 +19,7 @@ Current release authority: v8.64.29 - Inline Report Ranking Previews.
 
 ### Current audit baseline
 
-The current released application baseline is `v8.64.29 — Inline Report Ranking Previews`.
+The current released application baseline is `v8.64.30 — Keyboard-Safe Aging Preview`.
 
 Item Master lookup now has one authoritative token-matching combobox shared by
 Kitchen PR entry and Purchasing Review. Users may search using partial words
@@ -63,7 +69,7 @@ mixed-pointer fallback.
 
 Historical release context: `v8.64.6 — Reliable Outlet Daily Reads`; earlier context: `v8.64.5 — Verified Receiving Provenance`, `v8.64.4 — Stable Report Preview Surfaces`, and `v8.63.0 — Fail-Closed Goods Receiving Joins`.
 
-The lines below are retained as historical release context; the current authority is the v8.64.29 release declaration above.
+The lines below are retained as historical release context; the current authority is the v8.64.30 release declaration above.
 The repository migration history currently runs through migration `154`. Release
 version authority lives in `src/lib/app-version.ts`; migration authority lives in
 the immutable, forward-only `supabase/migrations/` directory. Documentation must
@@ -225,9 +231,9 @@ The system currently covers or is actively implementing the following operationa
 Module maturity must be understood separately from visual completion.
 
 Repository migrations reviewed through `154`; release authority is
-`v8.64.29 — Inline Report Ranking Previews`.
+`v8.64.30 — Keyboard-Safe Aging Preview`.
 
-Current integration baseline: `v8.64.29 — Inline Report Ranking Previews`, with repository migrations reviewed through `154`. Migrations `111` and `112` remain immutable history because they were applied to the linked database accidentally. Migration `113` removes their callable Central Kitchen PR RPC, prevents further access to the stock-holds table, and preserves that table temporarily for a non-destructive data audit. Later forward-only migrations add bounded inventory and Dashboard read models, repair grants and scoped access, introduce branch supply-route and received-quantity provenance, preserve unmatched PR entry as auditable non-catalog lines, split approved purchase requests atomically by supplier, and make Item Master the authority for supplier-item identity; they do not restore the retired Central Kitchen PR workflow.
+Current integration baseline: `v8.64.30 — Keyboard-Safe Aging Preview`, with repository migrations reviewed through `154`. Migrations `111` and `112` remain immutable history because they were applied to the linked database accidentally. Migration `113` removes their callable Central Kitchen PR RPC, prevents further access to the stock-holds table, and preserves that table temporarily for a non-destructive data audit. Later forward-only migrations add bounded inventory and Dashboard read models, repair grants and scoped access, introduce branch supply-route and received-quantity provenance, preserve unmatched PR entry as auditable non-catalog lines, split approved purchase requests atomically by supplier, and make Item Master the authority for supplier-item identity; they do not restore the retired Central Kitchen PR workflow.
 
 A page may exist visually without its full workflow, validation, database integration, permissions, and downstream effects being complete.
 

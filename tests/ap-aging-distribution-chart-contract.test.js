@@ -27,6 +27,9 @@ test("Every aging bar preserves current filters and drills into the same invoice
   assert.match(chart, /data-aging-open/);
   assert.match(chart, /onMouseEnter/);
   assert.match(chart, /onFocus/);
+  assert.match(chart, /onBlurCapture/);
+  assert.match(chart, /event\.currentTarget\.contains\(event\.relatedTarget\)/);
+  assert.doesNotMatch(chart, /onBlur=\{\(\) =>/);
   assert.match(chart, /role="region"/);
   assert.match(chart, /aria-pressed/);
   assert.match(chart, /data-aging-preview/);

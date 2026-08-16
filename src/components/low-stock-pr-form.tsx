@@ -253,12 +253,13 @@ export function LowStockPrForm({ items, branches, defaultBranchId, disabled }: {
                               value={requestedQty}
                               uom={null}
                               step={0.0001}
+                              density="compact"
                               label={`Quantity for ${item.item_name}`}
                               onChange={(value) => {
                                 setItemQty(key, value);
                                 if (!isSelected) setSelected((current) => ({ ...current, [key]: true }));
                               }}
-                              className="min-h-10 [&_button]:min-h-10 [&_button]:w-8 [&_input]:min-h-10 [&_input]:w-14"
+                              className="min-w-0"
                             />
                             <SelectNative aria-label={`Purchase UOM for ${item.item_name}`} value={uoms[key] ?? item.purchase_unit ?? item.base_unit ?? "PCS"} onChange={(event) => setItemUom(key, event.target.value)} className="h-10 w-20 px-1.5 text-xs">
                               {uomOptionsWithCurrent(item.purchase_unit || item.base_unit).map((uom) => <option key={uom} value={uom}>{uom}</option>)}
@@ -306,7 +307,7 @@ export function LowStockPrForm({ items, branches, defaultBranchId, disabled }: {
                     <span className="mt-3 grid grid-cols-2 gap-3">
                       <span className="text-xs text-muted-foreground">Current <strong className="block text-sm text-foreground">{item.current_stock} {item.base_unit}</strong></span>
                       <span className="text-xs text-muted-foreground">Suggested <strong className="block text-sm text-foreground">{item.suggested_reorder_qty} {item.purchase_unit || item.base_unit}</strong></span>
-                      {isSelected ? <span className="col-span-2" data-low-stock-pr-quantity><Field label="Qty for PR"><div className="flex items-center gap-1.5"><QuantityStepper value={requestedQty} uom={null} step={0.0001} label={`Quantity for ${item.item_name}`} onChange={(value) => setItemQty(key, value)} className="min-w-0 flex-1 [&_button]:w-9 [&_input]:w-14" /><SelectNative aria-label={`Purchase UOM for ${item.item_name}`} value={uoms[key] ?? item.purchase_unit ?? item.base_unit ?? "PCS"} onChange={(event) => setItemUom(key, event.target.value)} className="h-11 w-20 px-1.5 text-xs">{uomOptionsWithCurrent(item.purchase_unit || item.base_unit).map((uom) => <option key={uom} value={uom}>{uom}</option>)}</SelectNative></div></Field></span> : null}
+                      {isSelected ? <span className="col-span-2" data-low-stock-pr-quantity><Field label="Qty for PR"><div className="flex items-center gap-1.5"><QuantityStepper value={requestedQty} uom={null} step={0.0001} density="touch" label={`Quantity for ${item.item_name}`} onChange={(value) => setItemQty(key, value)} className="min-w-0 flex-1" /><SelectNative aria-label={`Purchase UOM for ${item.item_name}`} value={uoms[key] ?? item.purchase_unit ?? item.base_unit ?? "PCS"} onChange={(event) => setItemUom(key, event.target.value)} className="h-11 w-20 px-1.5 text-xs">{uomOptionsWithCurrent(item.purchase_unit || item.base_unit).map((uom) => <option key={uom} value={uom}>{uom}</option>)}</SelectNative></div></Field></span> : null}
                     </span>
                   </div>
                 );

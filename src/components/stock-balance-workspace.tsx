@@ -288,9 +288,10 @@ export function StockBalanceWorkspace({
                                           value={line.qty}
                                           uom={null}
                                           step={0.01}
+                                          density="dense"
                                           label={`Quantity for ${line.item_name}`}
                                           onChange={(value) => updateQty(key, value)}
-                                          className="min-h-8 min-w-0 flex-1 [&_button]:h-8 [&_button]:min-h-8 [&_button]:w-7 [&_input]:h-8 [&_input]:w-10"
+                                          className="min-w-0 flex-1"
                                         />
                                         <SelectNative aria-label={`UOM for ${line.item_name}`} value={line.uom} onChange={(event) => updateUom(key, event.target.value)} className="h-8 w-14 shrink-0 px-1 text-[10px]">
                                           {uomOptionsWithCurrent(line.uom).map((uom) => <option key={uom} value={uom}>{uom}</option>)}
@@ -457,7 +458,7 @@ export function StockBalanceWorkspace({
                       <button type="button" className="inline-flex h-8 w-8 shrink-0 items-center justify-center text-[var(--sb-danger)] active:bg-[var(--sb-danger-soft)]" onClick={() => toggleBasket(line)} aria-label={`Remove ${line.item_name} from PR basket`}><Trash2 className="h-3.5 w-3.5" aria-hidden="true" /></button>
                     </div>
                     {activeBranch ? <div className="flex min-w-0 items-stretch gap-1.5">
-                      <QuantityStepper value={line.qty} uom={null} step={0.01} label={`Quantity for ${line.item_name}`} onChange={(value) => updateQty(key, value)} className="min-h-10 min-w-0 flex-1 [&_button]:min-h-10 [&_button]:w-9 [&_input]:min-h-10 [&_input]:w-16" />
+                      <QuantityStepper value={line.qty} uom={null} step={0.01} density="compact" label={`Quantity for ${line.item_name}`} onChange={(value) => updateQty(key, value)} className="min-w-0 flex-1" />
                       <SelectNative aria-label={`UOM for ${line.item_name}`} value={line.uom} onChange={(event) => updateUom(key, event.target.value)} className="h-10 w-20 shrink-0 px-2 text-xs">
                         {uomOptionsWithCurrent(line.uom).map((uom) => <option key={uom} value={uom}>{uom}</option>)}
                       </SelectNative>

@@ -25,7 +25,8 @@ test("stock balance keeps query controls balanced and the desktop basket compact
   assert.match(source, /<FilterBar resultCount=\{totalRows\} resetHref="\/stock-balance"[\s\S]*className="sb-list-filters--balanced">/);
   assert.doesNotMatch(source, /md:max-w-sm|md:max-w-xs|md:max-w-44/);
   assert.match(source, /Saved on this device/);
-  assert.match(source, /\[&_button\]:h-8[\s\S]*\[&_input\]:h-8/);
+  assert.match(source, /density="dense"/);
+  assert.doesNotMatch(source, /\[&_button\]|\[&_input\]/);
   assert.match(source, /className="h-8 w-14 shrink-0/);
 });
 

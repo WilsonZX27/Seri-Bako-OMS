@@ -2,7 +2,11 @@
 
 ## Product Overview
 
-The current released application baseline is `v8.64.44` — Centralize Tablet Rail Geometry.
+The current released application baseline is `v8.64.45` — Standardize Quantity Stepper Density.
+
+### v8.64.45 — Standardize Quantity Stepper Density
+
+- Quantity steppers now expose one semantic density contract (`touch`, `compact`, or `dense`) from the shared component. Low Stock and Stock Balance no longer override descendant button/input geometry at individual call sites.
 
 ### v8.64.44 — Centralize Tablet Rail Geometry
 
@@ -103,7 +107,7 @@ The current released application baseline is `v8.64.44` — Centralize Tablet Ra
 
 ### Current audit baseline
 
-The current released application baseline is `v8.64.44 — Centralize Tablet Rail Geometry`.
+The current released application baseline is `v8.64.45 — Standardize Quantity Stepper Density`.
 
 Item Master lookup now has one authoritative token-matching combobox shared by
 Kitchen PR entry and Purchasing Review. Users may search using partial words

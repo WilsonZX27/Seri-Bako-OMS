@@ -1,11 +1,15 @@
 # Seri Bako OMS responsive design standard
 
-> **Release authority:** the currently released application is `v8.64.44`, as
+> **Release authority:** the currently released application is `v8.64.45`, as
 > defined by `src/lib/app-version.ts`. A versioned section above that number is
 > an accepted forward design contract or unreleased implementation note—not
 > evidence that the application itself has been released at that version.
 > `docs/DESIGN_SYSTEM.md` owns the current visual principles; this file retains
 > versioned implementation history and workspace rules.
+
+## v8.64.45 - Standardize Quantity Stepper Density
+
+- Quantity stepper geometry is owned by one component-level density contract. Call sites select `touch`, `compact`, or `dense` and do not override descendant button/input dimensions.
 
 ## v8.64.44 - Centralize Tablet Rail Geometry
 

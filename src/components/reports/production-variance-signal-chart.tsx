@@ -1,9 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { useId, useRef, useState } from "react";
-import type { KeyboardEvent, MouseEvent, PointerEvent } from "react";
+import { useId } from "react";
 import { cn } from "@/lib/utils";
+import { usePreviewSelection } from "@/components/ui/use-preview-selection";
 
 type Signal = "under_supplied" | "over_supplied" | "balanced" | "review_manual";
 
@@ -41,8 +41,7 @@ export function ProductionVarianceSignalChart({ rows, searchParams }: { rows: Ro
     balanced: rows.filter((row) => row.variance_signal === "balanced").length,
     review_manual: rows.filter((row) => row.variance_signal === "review_manual").length,
   } satisfies Record<Signal, number>;
-  const [active, setActive] = useState<Signal | null>(null);
-  const touchSelectionRef = useRef(false);
+  const { activeValue: active, optionProps, boundaryProps } = usePreviewSelection<Signal>();
   const previewId = useId();
   const maximum = Math.max(counts.under_supplied, counts.over_supplied, 1);
   const preview = active ? `${labels[active]} · ${counts[active]} product-outlet ${counts[active] === 1 ? "row" : "rows"}. ${definitions[active]}` : "Hover, tap, or focus a signal to preview its exact count and definition.";
@@ -52,32 +51,7 @@ export function ProductionVarianceSignalChart({ rows, searchParams }: { rows: Ro
     "aria-controls": previewId,
     "aria-describedby": active === signal ? previewId : undefined,
     "data-production-signal-option": signal,
-    onMouseEnter: () => {
-      touchSelectionRef.current = false;
-      setActive(signal);
-    },
-    onMouseLeave: (event: MouseEvent<HTMLButtonElement>) => {
-      if (!touchSelectionRef.current && !event.currentTarget.matches(":focus")) setActive(null);
-    },
-    onPointerDown: (event: PointerEvent<HTMLButtonElement>) => {
-      touchSelectionRef.current = event.pointerType !== "mouse";
-      setActive(signal);
-    },
-    onFocus: () => setActive(signal),
-    onBlur: () => {
-      if (!touchSelectionRef.current) setActive(null);
-    },
-    onClick: () => {
-      touchSelectionRef.current = true;
-      setActive(signal);
-    },
-    onKeyDown: (event: KeyboardEvent<HTMLButtonElement>) => {
-      if (event.key === "Escape") {
-        touchSelectionRef.current = false;
-        setActive(null);
-        event.currentTarget.blur();
-      }
-    },
+    ...optionProps(signal),
   });
 
   return <section className="overflow-hidden border bg-card" aria-labelledby="production-signal-title">
@@ -85,7 +59,7 @@ export function ProductionVarianceSignalChart({ rows, searchParams }: { rows: Ro
       <h2 id="production-signal-title" className="text-sm font-semibold">Supply signal distribution</h2>
       <p className="text-xs text-muted-foreground">Reliable product-outlet rows in the selected period. Bar length compares row counts, never quantities across unlike UOMs.</p>
     </div>
-    <div className="space-y-4 p-3">
+    <div className="space-y-4 p-3" {...boundaryProps}>
       <div className="grid grid-cols-[minmax(0,1fr)_1px_minmax(0,1fr)] items-end gap-x-2" aria-label="Under- and over-supply signal count comparison">
         <button {...selectSignal("under_supplied")} className="group flex min-w-0 flex-col items-end gap-1 rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
           <span className="flex w-full items-baseline justify-between gap-2 text-xs"><strong>{counts.under_supplied}</strong><span className="truncate text-muted-foreground">Under-supplied</span></span>

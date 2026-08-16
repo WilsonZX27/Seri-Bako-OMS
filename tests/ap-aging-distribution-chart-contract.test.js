@@ -6,6 +6,7 @@ const path = require("node:path");
 const root = path.resolve(__dirname, "..");
 const page = fs.readFileSync(path.join(root, "src/app/(app)/supplier-invoices/aging/page.tsx"), "utf8");
 const chart = fs.readFileSync(path.join(root, "src/components/reports/aging-distribution-bars.tsx"), "utf8");
+const selection = fs.readFileSync(path.join(root, "src/components/ui/use-preview-selection.ts"), "utf8");
 
 test("AP Aging renders ordered direct-label distribution bars from the report buckets", () => {
   assert.match(page, /<AgingDistributionBars items=\{agingDistribution\}/);
@@ -25,11 +26,12 @@ test("Every aging bar preserves current filters and drills into the same invoice
   assert.match(chart, /data-aging-bucket/);
   assert.match(chart, /href=\{activeItem\.href\}/);
   assert.match(chart, /data-aging-open/);
-  assert.match(chart, /onMouseEnter/);
-  assert.match(chart, /onFocus/);
-  assert.match(chart, /onBlurCapture/);
-  assert.match(chart, /event\.currentTarget\.contains\(event\.relatedTarget\)/);
-  assert.doesNotMatch(chart, /onBlur=\{\(\) =>/);
+  assert.match(chart, /usePreviewSelection<string>\(\)/);
+  assert.match(chart, /\.\.\.optionProps\(item\.key\)/);
+  assert.match(chart, /\.\.\.boundaryProps/);
+  assert.match(selection, /onFocus/);
+  assert.match(selection, /onBlurCapture/);
+  assert.match(selection, /event\.currentTarget\.contains\(event\.relatedTarget\)/);
   assert.match(chart, /role="region"/);
   assert.match(chart, /aria-pressed/);
   assert.match(chart, /data-aging-preview/);

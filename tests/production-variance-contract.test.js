@@ -30,8 +30,9 @@ test("Production variance visual compares signal counts without inventing a cros
   assert.match(page, /className="divide-y xl:hidden" data-production-variance-list/);
   assert.match(chart, /Bar length compares row counts, never quantities across unlike UOMs/);
   assert.match(chart, /Under- and over-supply signal count comparison/);
-  assert.match(chart, /onMouseEnter/);
-  assert.match(chart, /onFocus/);
+  assert.match(chart, /usePreviewSelection<Signal>\(\)/);
+  assert.match(chart, /\.\.\.optionProps\(signal\)/);
+  assert.match(chart, /\.\.\.boundaryProps/);
   assert.match(chart, /aria-live="polite"/);
   assert.match(chart, /data-production-signal-preview/);
   assert.match(chart, /min-h-\[3\.75rem\][\s\S]*border/);

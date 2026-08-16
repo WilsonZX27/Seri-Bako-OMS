@@ -8,13 +8,11 @@ const read = (file) => fs.readFileSync(path.join(root, file), "utf8");
 
 test("shared ranking previews distinguish transient hover from committed drill-through selection", () => {
   const source = read("src/components/ui/interactive-ranking-chart.tsx");
-  assert.match(source, /onMouseEnter/);
-  assert.match(source, /onMouseLeave/);
-  assert.match(source, /!touchSelectionRef\.current && !event\.currentTarget\.matches\(":focus-within"\)/);
-  assert.match(source, /event\.currentTarget\.contains\(event\.relatedTarget\)/);
-  assert.doesNotMatch(source, /!touchSelectionRef\.current && !item\.href/);
-  assert.match(source, /onPointerDown/);
+  assert.match(source, /usePreviewSelection<string>\(\)/);
+  assert.match(source, /\.\.\.optionProps\(item\.id\)/);
+  assert.match(source, /\.\.\.boundaryProps/);
   assert.match(source, /data-ranking-preview/);
+  assert.match(source, /data-ranking-open/);
   assert.match(source, /aria-live="polite"/);
 });
 
@@ -35,9 +33,9 @@ test("aging and production previews use the shared persistent touch and focus co
   const aging = read("src/components/reports/aging-distribution-bars.tsx");
   const production = read("src/components/reports/production-variance-signal-chart.tsx");
   for (const source of [aging, production]) {
-    assert.match(source, /onPointerDown/);
-    assert.match(source, /onMouseLeave/);
-    assert.match(source, /onBlur/);
+    assert.match(source, /usePreviewSelection/);
+    assert.match(source, /\.\.\.optionProps/);
+    assert.match(source, /\.\.\.boundaryProps/);
     assert.match(source, /aria-controls(?:=\{previewId\}|["']?: previewId)/);
     assert.match(source, /aria-live="polite"/);
   }

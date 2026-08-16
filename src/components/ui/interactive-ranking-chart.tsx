@@ -1,9 +1,9 @@
 "use client";
 
-import { useId, useRef, useState } from "react";
-import type { FocusEvent, KeyboardEvent, MouseEvent, PointerEvent } from "react";
+import { useId } from "react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
+import { usePreviewSelection } from "@/components/ui/use-preview-selection";
 
 export type InteractiveRankingChartItem = {
   id: string;
@@ -25,8 +25,7 @@ export function InteractiveRankingChart({
   idlePrompt?: string;
 }) {
   const previewId = useId();
-  const touchSelectionRef = useRef(false);
-  const [activeId, setActiveId] = useState<string | null>(null);
+  const { activeValue: activeId, optionProps, boundaryProps } = usePreviewSelection<string>();
   const maximum = Math.max(...items.map((item) => item.value), 1);
   const activeItem = items.find((item) => item.id === activeId) ?? null;
 
@@ -64,36 +63,13 @@ export function InteractiveRankingChart({
                 "hover:bg-[var(--sb-surface-muted)] focus-visible:bg-[var(--sb-green-100)] focus-visible:ring-2 focus-visible:ring-[var(--sb-green-700)] focus-visible:ring-offset-1",
                 active && "bg-[var(--sb-surface-muted)]",
               ),
-              onPointerDown: (event: PointerEvent<HTMLElement>) => {
-                touchSelectionRef.current = event.pointerType !== "mouse";
-                setActiveId(item.id);
-              },
-              onClick: () => {
-                touchSelectionRef.current = true;
-                setActiveId(item.id);
-              },
-              onKeyDown: (event: KeyboardEvent<HTMLButtonElement>) => {
-                if (event.key === "Escape") {
-                  setActiveId(null);
-                  event.currentTarget.blur();
-                }
-              },
+              ...optionProps(item.id),
             };
           return (
             <li
               key={item.id}
               role="listitem"
-              onMouseEnter={() => {
-                touchSelectionRef.current = false;
-                setActiveId(item.id);
-              }}
-              onMouseLeave={(event: MouseEvent<HTMLLIElement>) => {
-                if (!touchSelectionRef.current && !event.currentTarget.matches(":focus-within")) setActiveId(null);
-              }}
-              onFocusCapture={() => setActiveId(item.id)}
-              onBlurCapture={(event: FocusEvent<HTMLLIElement>) => {
-                if (!event.currentTarget.contains(event.relatedTarget) && !touchSelectionRef.current) setActiveId(null);
-              }}
+              {...boundaryProps}
             >
               <button {...rowProps}>{content}</button>
               {active ? (

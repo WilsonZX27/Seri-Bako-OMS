@@ -1,9 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { useId, useRef, useState } from "react";
-import type { FocusEvent, KeyboardEvent } from "react";
+import { useId } from "react";
 import { cn, formatCurrency } from "@/lib/utils";
+import { usePreviewSelection } from "@/components/ui/use-preview-selection";
 
 export type AgingDistributionItem = {
   key: string;
@@ -27,8 +27,7 @@ export function AgingDistributionBars({
   ariaLabel?: string;
 }) {
   const previewId = useId();
-  const touchSelectionRef = useRef(false);
-  const [activeKey, setActiveKey] = useState<string | null>(null);
+  const { activeValue: activeKey, optionProps, boundaryProps } = usePreviewSelection<string>();
   const maximum = Math.max(...items.map((item) => item.outstanding), 1);
   const activeItem = items.find((item) => item.key === activeKey) ?? null;
 
@@ -40,9 +39,7 @@ export function AgingDistributionBars({
       </div>
       <div
         className="space-y-1.5 p-2.5 sm:p-3"
-        onBlurCapture={(event: FocusEvent<HTMLDivElement>) => {
-          if (!event.currentTarget.contains(event.relatedTarget) && !touchSelectionRef.current) setActiveKey(null);
-        }}
+        {...boundaryProps}
       >
         <ol className="space-y-1.5" role="list" aria-label={ariaLabel}>
         {items.map((item) => {
@@ -55,29 +52,7 @@ export function AgingDistributionBars({
             aria-describedby={activeKey === item.key ? previewId : undefined}
             aria-label={`${item.label}: ${formatCurrency(item.outstanding)}, ${item.invoiceCount} invoices. Preview bucket.`}
             className="group grid min-h-11 w-full grid-cols-[minmax(0,1fr)_auto] grid-rows-[auto_auto] items-center gap-x-2 gap-y-1 rounded-[var(--sb-radius-control)] px-1.5 py-1.5 text-left outline-none hover:bg-[var(--sb-surface-muted)] focus-visible:bg-[var(--sb-green-100)] focus-visible:ring-2 focus-visible:ring-[var(--sb-green-700)] focus-visible:ring-offset-1 xl:grid-cols-[minmax(7rem,1fr)_minmax(5rem,1.4fr)_auto] xl:grid-rows-1 xl:gap-2"
-            onMouseEnter={() => {
-              touchSelectionRef.current = false;
-              setActiveKey(item.key);
-            }}
-            onMouseLeave={(event) => {
-              if (!touchSelectionRef.current && !event.currentTarget.matches(":focus")) setActiveKey(null);
-            }}
-            onPointerDown={(event) => {
-              touchSelectionRef.current = event.pointerType !== "mouse";
-              setActiveKey(item.key);
-            }}
-            onFocus={() => setActiveKey(item.key)}
-            onClick={() => {
-              touchSelectionRef.current = true;
-              setActiveKey(item.key);
-            }}
-            onKeyDown={(event: KeyboardEvent<HTMLButtonElement>) => {
-              if (event.key === "Escape") {
-                touchSelectionRef.current = false;
-                setActiveKey(null);
-                event.currentTarget.blur();
-              }
-            }}
+            {...optionProps(item.key)}
           >
             <span className="min-w-0 truncate text-xs font-medium leading-4" title={item.label}>{item.label}</span>
             <span className="col-span-2 row-start-2 h-2.5 w-full overflow-hidden rounded-sm bg-[var(--sb-surface-muted)] ring-1 ring-inset ring-[var(--sb-border-soft)] xl:col-span-1 xl:row-start-1" aria-hidden="true">

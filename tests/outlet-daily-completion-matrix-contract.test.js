@@ -43,14 +43,15 @@ test("outlet completion matrix previews before an explicit record open", () => {
   assert.match(newPage, /selectedBranchId/);
 });
 
-test("phone matrix fits all seven days while wider workspaces retain pinned horizontal navigation", () => {
+test("matrix keeps a readable frozen outlet column while dates scroll horizontally", () => {
   const component = read("src/components/outlet-daily-completion-matrix.tsx");
-  assert.match(component, /All seven days fit this view\./);
+  assert.match(component, /Swipe horizontally to view all days\./);
   assert.match(component, /aria-describedby="outlet-completion-scroll-hint"/);
-  assert.match(component, /className="sticky left-0 z-30[\s\S]*sm:w-48/);
-  assert.match(component, /className="sticky left-0 z-20[\s\S]*sm:w-48/);
+  assert.match(component, /className="sticky left-0 z-30[\s\S]*min-w-\[9rem\][\s\S]*sm:min-w-48/);
+  assert.match(component, /className="sticky left-0 z-20[\s\S]*min-w-\[9rem\][\s\S]*sm:min-w-48/);
+  assert.match(component, /<colgroup>[\s\S]*w-\[3\.5rem\][\s\S]*sm:w-14/);
   assert.match(component, /relative block w-full max-w-full overflow-x-auto overscroll-x-contain/);
-  assert.match(component, /min-w-\[40rem\] table-fixed/);
+  assert.match(component, /w-max min-w-\[40rem\] table-fixed/);
   assert.match(component, /Scroll horizontally to view all days/);
 });
 

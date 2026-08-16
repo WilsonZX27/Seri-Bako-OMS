@@ -42,6 +42,12 @@ This is the working ledger for the final close-out. Every browser comment must h
 - Mobile create FABs join the same keyboard-safe rule; they cannot cover the focused quantity or remarks input above the keyboard.
 - Contract coverage verifies stable-height detection and the shared keyboard-hide selector. The local release is `v8.64.7`; remote/browser verification remains open until the preview footer and a real Android/iOS keyboard flow confirm the behavior.
 
+## Completion matrix scroll pass — 2026-08-16
+
+- Outlet Daily's seven-day completion matrix now uses an explicit frozen outlet column and fixed date-column widths inside a bounded horizontal scrollport. This prevents the outlet labels from drifting or collapsing when the operator swipes across dates.
+- Mobile guidance now says “Swipe horizontally to view all days,” matching the actual interaction. The source-level contract covers the pinned column, fixed date columns, and scroll affordance.
+- The local release is `v8.64.8`; remote/browser verification remains open until the preview footer and a real 390px/820px matrix scroll check confirm the behavior.
+
 ## Report preview continuity pass — 2026-08-16
 
 The report annotations that called out hover/focus preview flicker are now fixed in the shared chart surfaces, not by route-specific CSS:

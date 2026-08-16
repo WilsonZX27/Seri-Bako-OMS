@@ -47,11 +47,12 @@ const totals = (lines: LineRow[]) => {
   // `morning_received_qty` has a database default of 0. A zero is only
   // trustworthy when the outlet explicitly supplied it (145 records that
   // provenance in `qty_sent_estimated`) or when the value is non-zero. An
-  // empty line set, or an unproven default zero, must never be rendered as a
-  // real operational total.
+  // explicitly marked legacy/unavailable source is never trusted, even if a
+  // stale estimate happens to be present. An empty line set, or an unproven
+  // default zero, must never be rendered as a real operational total.
   const receivedValues = lines.map((line) => {
     const received = Number(line.morning_received_qty);
-    const explicitlyProvided = line.qty_sent_estimated !== null || received !== 0;
+    const explicitlyProvided = receivedValueIsTrusted(line);
     return explicitlyProvided && Number.isFinite(received) ? received : null;
   });
   const receivedState = lines.length > 0 && receivedValues.every((value) => value !== null) ? "verified" as const : "unavailable" as const;
@@ -76,9 +77,10 @@ const totals = (lines: LineRow[]) => {
   };
 };
 
-const receivedValueIsTrusted = (line: Pick<LineRow, "morning_received_qty" | "qty_sent_estimated">) => {
+const receivedValueIsTrusted = (line: Pick<LineRow, "morning_received_qty" | "qty_sent_estimated" | "qty_sent_source">) => {
   const received = Number(line.morning_received_qty);
-  return Number.isFinite(received) && (line.qty_sent_estimated !== null || received !== 0);
+  const sourceIsUnverified = line.qty_sent_source === "legacy_unverified" || line.qty_sent_source === "unavailable";
+  return Number.isFinite(received) && !sourceIsUnverified && (line.qty_sent_estimated !== null || received !== 0);
 };
 
 const shiftDate = (date: string, days: number) => {
@@ -132,11 +134,11 @@ async function getOutletDailyDefaults(db: Awaited<ReturnType<typeof createClient
   if (!recordIds.length) return {} as Record<string, Record<string, OutletDailyDefaultLine>>;
   const { data: lines, error: lineError } = await db
     .from("outlet_daily_record_lines")
-    .select("record_id,product_id,morning_received_qty,qty_sent_estimated,wastage_qty,wastage_reason,notes")
+    .select("record_id,product_id,morning_received_qty,qty_sent_estimated,qty_sent_source,wastage_qty,wastage_reason,notes")
     .in("record_id", recordIds);
   if (lineError) throw new Error(lineError.message);
   const branchByRecord = new Map([...chosen.entries()].map(([branchId, recordId]) => [recordId, branchId]));
-  return ((lines ?? []) as Pick<LineRow, "record_id" | "product_id" | "morning_received_qty" | "qty_sent_estimated" | "wastage_qty" | "wastage_reason" | "notes">[]).reduce<Record<string, Record<string, OutletDailyDefaultLine>>>((result, line) => {
+  return ((lines ?? []) as Pick<LineRow, "record_id" | "product_id" | "morning_received_qty" | "qty_sent_estimated" | "qty_sent_source" | "wastage_qty" | "wastage_reason" | "notes">[]).reduce<Record<string, Record<string, OutletDailyDefaultLine>>>((result, line) => {
     const branchId = branchByRecord.get(line.record_id);
     if (!branchId) return result;
     (result[branchId] ??= {})[line.product_id] = {

@@ -1,6 +1,6 @@
 # Seri Bako OMS responsive design standard
 
-> **Release authority:** the currently released application is `v8.64.4`, as
+> **Release authority:** the currently released application is `v8.64.5`, as
 > defined by `src/lib/app-version.ts`. A versioned section above that number is
 > an accepted forward design contract or unreleased implementation note—not
 > evidence that the application itself has been released at that version.
@@ -10,6 +10,11 @@
 ## v8.64.3 - Mobile Keyboard Chrome Hardening
 
 - Mobile fixed navigation and document action rails hide while an editable field has opened the on-screen keyboard, preventing the action chrome from floating over the focused input. The rails return when the keyboard closes.
+
+## v8.64.5 - Verified Receiving Provenance
+
+- Outlet Daily totals treat receiving as verified only when the line carries an explicit, non-legacy provenance source. Unavailable and legacy-unverified rows remain visibly unavailable instead of being folded into a misleading zero or wastage percentage.
+- Stock Count phone entry keeps the compact two-column card pattern: item context and variance share the top row, while the quantity control occupies the lower row with stable touch targets. Desktop and tablet keep the aligned technical-table geometry.
 
 ## v8.64.4 - Stable Report Preview Surfaces
 

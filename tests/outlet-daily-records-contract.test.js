@@ -123,7 +123,9 @@ test("release footer matches Sprint 7.13", () => {
 });
 
 test("received totals never turn an unverified default zero into a business fact", () => {
-  assert.match(query, /qty_sent_estimated !== null \|\| received !== 0/);
+  assert.match(query, /qty_sent_source/);
+  assert.match(query, /sourceIsUnverified = line\.qty_sent_source === "legacy_unverified" \|\| line\.qty_sent_source === "unavailable"/);
+  assert.match(query, /!sourceIsUnverified && \(line\.qty_sent_estimated !== null \|\| received !== 0\)/);
   assert.match(query, /received_state: "verified" \| "unavailable"/);
   assert.match(query, /total_received: number \| null/);
   assert.match(query, /today_received_unavailable/);

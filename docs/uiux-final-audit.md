@@ -29,13 +29,19 @@ This is the working ledger for the final close-out. Every browser comment must h
 | 13 | Purchase Returns / new | Portrait tablet was not checked | Responsive verification | Verified in production browser at 820x1180 |
 | 14 | Stock Balance | Tablet should use a true two-column workspace | WorkspaceGrid / page | Verified in production browser at 1180x820; right summary rail visible |
 
+## Verified receiving provenance and Stock Count density pass — 2026-08-16
+
+- Outlet Daily receiving totals now reject both `unavailable` and `legacy_unverified` line provenance, including stale estimates that must not be presented as confirmed receipt. The list, detail, trend, defaults, and today summary therefore share one fail-closed rule.
+- Stock Count mobile entry is covered as a deliberate two-column card: identity and variance remain visible together, with the compact +/- quantity control below. This preserves the user-proposed near-square scanning pattern without inventing an image dependency.
+- The local release is `v8.64.5`; focused contract coverage and typecheck pass. Remote/browser verification remains open until the preview footer shows this release.
+
 ## Report preview continuity pass — 2026-08-16
 
 The report annotations that called out hover/focus preview flicker are now fixed in the shared chart surfaces, not by route-specific CSS:
 
 - Interactive ranking, AP Aging bucket, Production variance signal, and Inventory daily movement previews reserve a compact muted slot before selection.
 - Hover, touch, and keyboard focus replace the instruction inside that same slot; the chart/card geometry no longer changes when exact values or a drill-through action appears.
-- Contract coverage now asserts the stable slot and rejects the old `sr-only` idle-preview pattern. The local release is `v8.64.4` (`b1e8400`), with 686/686 tests, lint, typecheck, and a 75/75-page production build passing.
+- Contract coverage now asserts the stable slot and rejects the old `sr-only` idle-preview pattern. The local release was `v8.64.4` (`b1e8400`), with 686/686 tests, lint, typecheck, and a 75/75-page production build passing.
 - Remote preview/browser verification remains open: the last supplied browser evidence still showed an older footer and therefore is not proof of this release.
 
 This closes the specific report-preview layout-shift annotations; the remaining annotation backlog is not implicitly closed by this pass.

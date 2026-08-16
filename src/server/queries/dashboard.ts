@@ -104,42 +104,57 @@ async function getDashboardCoreSnapshotFallback(db: LooseSupabase, today: string
   if (error) warnOptionalQuery("core snapshot fallback", error);
 
   const unavailable = {
-    inventory: Boolean(balances.error || lowStockBalances.error || negativeBalances.error),
-    procurement: Boolean(urgentRequests.error || purchaseRequests.error || purchaseOrders.error),
-    receiving: Boolean(todayReceiving.error),
-    stockCount: Boolean(stockCountDue.error || lastStockCount.error),
-    wastage: Boolean(wastageAttention.error),
-    receivingFollowup: Boolean(receivingFollowup.error),
-    production: Boolean(productionTodayPosted.error || productionPendingApproval.error || productionReadyToPost.error || productionIngredientShortages.error),
-    operations: Boolean(outletMissingEvening.error || outletNeedsReview.error),
+    inventory: Boolean(
+      balances.error || balances.count === null || lowStockBalances.error || lowStockBalances.count === null ||
+      negativeBalances.error || negativeBalances.count === null,
+    ),
+    procurement: Boolean(
+      urgentRequests.error || urgentRequests.data === null || purchaseRequests.error || purchaseRequests.data === null ||
+      purchaseOrders.error || purchaseOrders.data === null,
+    ),
+    receiving: Boolean(todayReceiving.error || todayReceiving.count === null),
+    stockCount: Boolean(stockCountDue.error || stockCountDue.count === null || lastStockCount.error || lastStockCount.data === null),
+    wastage: Boolean(wastageAttention.error || wastageAttention.count === null),
+    receivingFollowup: Boolean(receivingFollowup.error || receivingFollowup.count === null),
+    production: Boolean(
+      productionTodayPosted.error || productionTodayPosted.count === null || productionPendingApproval.error ||
+      productionPendingApproval.count === null || productionReadyToPost.error || productionReadyToPost.count === null ||
+      productionIngredientShortages.error || productionIngredientShortages.count === null,
+    ),
+    operations: Boolean(
+      outletMissingEvening.error || outletMissingEvening.count === null || outletNeedsReview.error || outletNeedsReview.count === null,
+    ),
   };
 
-  const count = (result: { count?: number | null; data?: unknown[] | null }) => Number(result.count ?? result.data?.length ?? 0);
-  const rows = <T,>(result: { data?: unknown[] | null }) => (result.data ?? []) as T[];
-  const balanceRows = rows<{ inventory_value?: number | string | null; is_low_stock?: boolean | null }>(balances);
+  // Head-count reads legitimately return data=null, so count null is the
+  // unavailable signal there. Row reads use data=null as their signal.
+  const count = (result: { count?: number | null; data?: unknown[] | null }) =>
+    result.count === null ? null : Number(result.count ?? result.data?.length ?? 0);
+  const rows = <T,>(result: { data?: unknown[] | null }) => (result.data === null ? null : (result.data ?? []) as T[]);
+  const balanceRows = rows<{ inventory_value?: number | string | null; is_low_stock?: boolean | null }>(balances) ?? [];
 
   return {
     snapshot: {
-      total_items: count(items),
-      total_suppliers: count(suppliers),
+      total_items: count(items) ?? 0,
+      total_suppliers: count(suppliers) ?? 0,
       inventory_value: balanceRows.reduce((total, row) => total + Number(row.inventory_value ?? 0), 0),
-      low_stock_items_count: count(lowStockBalances),
-      negative_stock: count(negativeBalances),
-      urgent_requests: rows(urgentRequests),
-      purchase_requests: rows(purchaseRequests),
-      purchase_orders: rows(purchaseOrders),
-      recent_documents: rows(recentDocuments),
-      today_receiving: count(todayReceiving),
-      stock_count_due: count(stockCountDue),
-      wastage_attention: count(wastageAttention),
-      receiving_followup: count(receivingFollowup),
-      production_today_posted: count(productionTodayPosted),
-      production_pending_approval: count(productionPendingApproval),
-      production_ready_to_post: count(productionReadyToPost),
-      production_ingredient_shortages: count(productionIngredientShortages),
-      outlet_missing_evening: count(outletMissingEvening),
-      outlet_needs_review: count(outletNeedsReview),
-      last_stock_count: rows(lastStockCount)[0] ?? null,
+      low_stock_items_count: count(lowStockBalances) ?? 0,
+      negative_stock: count(negativeBalances) ?? 0,
+      urgent_requests: rows(urgentRequests) ?? [],
+      purchase_requests: rows(purchaseRequests) ?? [],
+      purchase_orders: rows(purchaseOrders) ?? [],
+      recent_documents: rows(recentDocuments) ?? [],
+      today_receiving: count(todayReceiving) ?? 0,
+      stock_count_due: count(stockCountDue) ?? 0,
+      wastage_attention: count(wastageAttention) ?? 0,
+      receiving_followup: count(receivingFollowup) ?? 0,
+      production_today_posted: count(productionTodayPosted) ?? 0,
+      production_pending_approval: count(productionPendingApproval) ?? 0,
+      production_ready_to_post: count(productionReadyToPost) ?? 0,
+      production_ingredient_shortages: count(productionIngredientShortages) ?? 0,
+      outlet_missing_evening: count(outletMissingEvening) ?? 0,
+      outlet_needs_review: count(outletNeedsReview) ?? 0,
+      last_stock_count: rows(lastStockCount)?.[0] ?? null,
     } as DashboardCoreSnapshot,
     unavailable,
   };
@@ -373,13 +388,14 @@ export async function getDashboardSummary() {
   warnOptionalQueryResult("assigned branches", assignedBranches);
 
   const coreUnavailable = (needsProcurement || needsInventory) && coreSnapshotUnavailable;
+  const lowStockViewUnavailable = Boolean(needsInventory && (lowStockViewResult.error || !lowStockViewResult.data));
   const lowStockViewRows = (lowStockViewResult.data ?? []) as Array<{
     item_id: string | null;
     current_qty: number | string | null;
     safety_stock: number | string | null;
     status: string | null;
   }>;
-  const lowStockViewCount = lowStockViewResult.error
+  const lowStockViewCount = lowStockViewUnavailable
     ? null
     : new Set(
         lowStockViewRows

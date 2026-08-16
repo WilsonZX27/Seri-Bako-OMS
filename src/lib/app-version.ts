@@ -1,4 +1,4 @@
-export const APP_VERSION = "8.64.49";
+export const APP_VERSION = "8.64.50";
 export const APP_SPRINT = `v${APP_VERSION}`;
 export const APP_RELEASE_TITLE = "Fail-closed Inventory And Outlet Reads";
 // Keep the shell footer concise; the detailed release title belongs in release

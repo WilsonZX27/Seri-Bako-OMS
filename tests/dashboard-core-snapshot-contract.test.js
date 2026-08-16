@@ -20,3 +20,10 @@ test("dashboard snapshot preserves RLS and returns bounded recent collections", 
   assert.match(migration, /grant execute[\s\S]*to authenticated/);
   assert.doesNotMatch(migration, /security definer/i);
 });
+
+test("dashboard fallback never treats incomplete counts or rows as verified zero", () => {
+  assert.match(dashboard, /result\.count === null \? null/);
+  assert.match(dashboard, /balances\.count === null/);
+  assert.match(dashboard, /urgentRequests\.data === null/);
+  assert.match(dashboard, /lowStockViewUnavailable = Boolean/);
+});

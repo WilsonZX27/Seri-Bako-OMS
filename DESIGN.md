@@ -1,11 +1,16 @@
 # Seri Bako OMS responsive design standard
 
-> **Release authority:** the currently released application is `v8.64.49`, as
+> **Release authority:** the currently released application is `v8.64.50`, as
 > defined by `src/lib/app-version.ts`. A versioned section above that number is
 > an accepted forward design contract or unreleased implementation note—not
 > evidence that the application itself has been released at that version.
 > `docs/DESIGN_SYSTEM.md` owns the current visual principles; this file retains
 > versioned implementation history and workspace rules.
+
+## v8.64.50 - Fail-closed Dashboard Fallbacks
+
+- Dashboard fallback head counts treat `count = null` as unavailable, while row reads treat `data = null` as unavailable. Neither boundary silently renders a verified zero or empty queue.
+- Low-stock attention uses a verified core snapshot when the bounded view is incomplete and keeps the explicit unavailable state when both sources are incomplete.
 
 ## v8.64.49 - Fail-closed Stock Count Reads
 

@@ -2,7 +2,12 @@
 
 ## Product Overview
 
-The current released application baseline is `v8.64.49` — Fail-closed Stock Count Reads.
+The current released application baseline is `v8.64.50` — Fail-closed Dashboard Fallbacks.
+
+### v8.64.50 — Fail-closed Dashboard Fallbacks
+
+- Dashboard fallback counts now distinguish a valid zero from a missing head-count or row payload. Incomplete reads preserve an explicit unavailable domain state instead of producing a trusted zero or empty queue.
+- The bounded low-stock attention read no longer treats a null payload as zero; it falls back only to a verified core snapshot.
 
 ### v8.64.49 — Fail-closed Stock Count Reads
 

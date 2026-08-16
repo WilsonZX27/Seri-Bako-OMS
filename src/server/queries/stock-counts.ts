@@ -1,6 +1,7 @@
 import { isMockMode, mockBranches, mockItems, mockProfile, mockStockCountLines, mockStockCounts } from "@/lib/mock-mode";
 import { createClient } from "@/lib/supabase/server";
 import { compareTableValues, paginateRows } from "@/lib/table-state";
+import { shiftBusinessDate, todayInKualaLumpur } from "@/lib/business-date";
 import { logServerError, logServerWarning } from "@/server/observability/logger";
 import { getStockBalanceDetails } from "@/server/queries/inventory";
 import type { Database } from "@/types/database";
@@ -162,11 +163,134 @@ export async function getStockCountVarianceInsight(branchId?: string) {
   }
   const { data, error } = await supabase.rpc("get_stock_count_variance_insight", { p_branch_id: branchId || null });
   if (error) {
-    // This report is an optional enhancement. A missing migration or a stale
-    // PostgREST schema cache must degrade to the explicit unavailable state
-    // without turning an otherwise healthy Stock Count page into a red error.
+    // Older linked projects may not have migration 149 yet. Use the same
+    // tenant-scoped base tables as a compatibility path so a missing RPC does
+    // not hide an otherwise readable Stock Count list. The fallback is strict:
+    // any source failure remains unavailable rather than becoming zero.
     logServerWarning(error, { source: "stockCounts.varianceInsight.rpc" });
-    return { available: false as const, ...empty };
+    try {
+      const reportDate = todayInKualaLumpur();
+      const startDate = shiftBusinessDate(reportDate, -29);
+      let countsQuery = supabase
+        .from("stock_counts")
+        .select("id,count_no,count_date,posted_at,branch_id,tolerance_percent")
+        .eq("status", "posted")
+        .is("deleted_at", null)
+        .gte("count_date", startDate)
+        .lte("count_date", reportDate);
+      if (branchId) countsQuery = countsQuery.eq("branch_id", branchId);
+      const { data: counts, error: countsError } = await countsQuery;
+      if (countsError) throw countsError;
+
+      const countRows = counts ?? [];
+      const countIds = countRows.map((row) => row.id);
+      const [{ data: lines, error: linesError }, { data: branches, error: branchesError }] = await Promise.all([
+        countIds.length
+          ? supabase.from("stock_count_lines").select("stock_count_id,item_id,variance_percent,variance_qty,uom").in("stock_count_id", countIds)
+          : Promise.resolve({ data: [], error: null }),
+        countRows.length
+          ? supabase.from("branches").select("id,branch_name").in("id", [...new Set(countRows.map((row) => row.branch_id).filter((id): id is string => Boolean(id)))])
+          : Promise.resolve({ data: [], error: null }),
+      ]);
+      if (linesError) throw linesError;
+      if (branchesError) throw branchesError;
+
+      const lineRows = lines ?? [];
+      const itemIds = [...new Set(lineRows.map((line) => line.item_id).filter(Boolean))];
+      const { data: items, error: itemsError } = itemIds.length
+        ? await supabase.from("items").select("id,item_name").in("id", itemIds)
+        : { data: [], error: null };
+      if (itemsError) throw itemsError;
+
+      const countById = new Map(countRows.map((row) => [row.id, row]));
+      const branchById = new Map((branches ?? []).map((row) => [row.id, row.branch_name]));
+      const itemById = new Map((items ?? []).map((row) => [row.id, row.item_name]));
+      const highLines = lineRows
+        .map((line) => {
+          const count = countById.get(line.stock_count_id);
+          if (!count || Math.abs(Number(line.variance_percent ?? 0)) <= Number(count.tolerance_percent ?? 0)) return null;
+          return {
+            count_id: count.id,
+            count_no: count.count_no,
+            count_date: count.count_date,
+            posted_at: count.posted_at,
+            branch_id: count.branch_id,
+            branch_name: branchById.get(count.branch_id ?? "") ?? "Archived branch",
+            item_id: line.item_id,
+            item_name: itemById.get(line.item_id ?? "") ?? "Archived item",
+            variance_percent: Number(line.variance_percent ?? 0),
+            variance_qty: Number(line.variance_qty ?? 0),
+            uom: line.uom,
+          };
+        })
+        .filter((line): line is NonNullable<typeof line> => Boolean(line));
+
+      const emptyRow = (recordDate: string): StockCountVarianceInsightRow => ({
+        row_kind: "day",
+        row_key: recordDate,
+        row_label: recordDate.split("-").reverse().join("/"),
+        record_date: recordDate,
+        entity_id: null,
+        high_variance_count: 0,
+        shortage_count: 0,
+        overage_count: 0,
+        latest_count_id: null,
+        latest_count_no: null,
+        latest_count_date: null,
+        latest_variance_percent: null,
+        latest_variance_qty: null,
+        latest_uom: null,
+        rank_order: 0,
+      });
+      const daily = Array.from({ length: 30 }, (_, index) => {
+        const recordDate = shiftBusinessDate(startDate, index);
+        const matching = highLines.filter((line) => line.count_date === recordDate);
+        return {
+          ...emptyRow(recordDate),
+          high_variance_count: matching.length,
+          shortage_count: matching.filter((line) => line.variance_qty < 0).length,
+          overage_count: matching.filter((line) => line.variance_qty > 0).length,
+          rank_order: index + 1,
+        };
+      });
+
+      const rankGroups = (key: "item_id" | "branch_id") => {
+        const groups = new Map<string, typeof highLines>();
+        for (const line of highLines) {
+          const groupKey = line[key] ?? "unknown";
+          groups.set(groupKey, [...(groups.get(groupKey) ?? []), line]);
+        }
+        return [...groups.entries()]
+          .map(([groupKey, rows]) => {
+            const latest = [...rows].sort((left, right) => `${right.count_date}|${right.posted_at ?? ""}|${right.count_id}`.localeCompare(`${left.count_date}|${left.posted_at ?? ""}|${left.count_id}`))[0];
+            return { groupKey, rows, latest, maxAbsolutePercent: Math.max(...rows.map((row) => Math.abs(row.variance_percent))) };
+          })
+          .sort((left, right) => right.rows.length - left.rows.length || right.maxAbsolutePercent - left.maxAbsolutePercent || left.latest.item_name.localeCompare(right.latest.item_name) || left.groupKey.localeCompare(right.groupKey))
+          .slice(0, 8);
+      };
+      const makeGroupRows = (key: "item_id" | "branch_id") => rankGroups(key).map(({ groupKey, rows, latest }, index) => ({
+        row_kind: key === "item_id" ? "item" : "branch",
+        row_key: groupKey,
+        row_label: key === "item_id" ? latest.item_name : latest.branch_name,
+        record_date: null,
+        entity_id: groupKey === "unknown" ? null : groupKey,
+        high_variance_count: rows.length,
+        shortage_count: rows.filter((row) => row.variance_qty < 0).length,
+        overage_count: rows.filter((row) => row.variance_qty > 0).length,
+        latest_count_id: latest.count_id,
+        latest_count_no: latest.count_no,
+        latest_count_date: latest.count_date,
+        latest_variance_percent: latest.variance_percent,
+        latest_variance_qty: latest.variance_qty,
+        latest_uom: latest.uom,
+        rank_order: index + 1,
+      } satisfies StockCountVarianceInsightRow));
+
+      return { available: true as const, daily, items: makeGroupRows("item_id"), branches: makeGroupRows("branch_id") };
+    } catch (fallbackError) {
+      logServerError(fallbackError, { source: "stockCounts.varianceInsight.fallback" });
+      return { available: false as const, ...empty };
+    }
   }
   const rows = data ?? [];
   return {

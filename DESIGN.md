@@ -1,11 +1,16 @@
 # Seri Bako OMS responsive design standard
 
-> **Release authority:** the currently released application is `v8.64.0`, as
+> **Release authority:** the currently released application is `v8.64.1`, as
 > defined by `src/lib/app-version.ts`. A versioned section above that number is
 > an accepted forward design contract or unreleased implementation note—not
 > evidence that the application itself has been released at that version.
 > `docs/DESIGN_SYSTEM.md` owns the current visual principles; this file retains
 > versioned implementation history and workspace rules.
+
+## v8.64.1 - Inventory Read Compatibility Fallbacks
+
+- Stock Count variance insight falls back to the same tenant-scoped base tables when migration 149's RPC is missing or stale, while preserving an explicit unavailable state if any source fails.
+- Stock Card and Movement Ledger table fallbacks avoid the unbounded `stock_ledger_view` window that caused statement timeouts and never expose a zero count when the read is incomplete.
 
 ## v8.64.0 - Fail-Closed Procurement Joins
 

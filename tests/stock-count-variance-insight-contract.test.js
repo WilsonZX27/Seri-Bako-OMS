@@ -20,6 +20,10 @@ test("Stock Count fallback uses each count's saved tolerance", () => {
   const query = read("src/server/queries/stock-counts.ts");
   assert.match(query, /toleranceByCount/);
   assert.match(query, /Math\.abs\(Number\(line\.variance_percent \?\? 0\)\) > \(toleranceByCount\.get\(stockCountId\) \?\? 0\)/);
+  assert.match(query, /from\("stock_counts"\)/);
+  assert.match(query, /from\("stock_count_lines"\)/);
+  assert.match(query, /posted.*deleted_at/s);
+  assert.match(query, /available: false/);
 });
 
 test("Stock Count insight provides compact views, exact previews, drill-through and unavailable state", () => {

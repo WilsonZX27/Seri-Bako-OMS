@@ -222,6 +222,7 @@ type PaginatedRows<T> = {
   pageSize: number;
   totalPages: number;
   error: string | null;
+  unavailable?: boolean;
 };
 
 function databasePaginationOrError<T>(rows: T[], totalRows: number | null, pageValue: string | undefined, error: string | null, pageSize = INVENTORY_PAGE_SIZE): PaginatedRows<T> {
@@ -230,6 +231,7 @@ function databasePaginationOrError<T>(rows: T[], totalRows: number | null, pageV
 const LEDGER_SORT_COLUMNS = new Set(["transaction_no", "transaction_date", "transaction_type", "item_code", "item_name", "branch_name", "quantity_in", "quantity_out", "running_balance"]);
 const TRANSACTION_SORT_COLUMNS = new Set(["transaction_no", "transaction_date", "transaction_type", "status", "created_at", "posted_at"]);
 const BALANCE_SORT_COLUMNS = new Set(["item_code", "item_name", "branch_name", "current_qty", "average_cost", "inventory_value", "last_movement"]);
+const STOCK_CARD_FALLBACK_LIMIT = 5_000;
 
 function warnOptionalInventoryQuery(name: string, error: { message?: string } | null | undefined) {
   if (error) logServerWarning(error, { source: `inventory.optional.${name}` });
@@ -251,6 +253,106 @@ function pageRange(pageValue: string | undefined, pageSize = INVENTORY_PAGE_SIZE
   if (pageValue === "all") return null;
   const page = requestedPage(pageValue);
   return { from: (page - 1) * pageSize, to: page * pageSize - 1 };
+}
+
+async function getStockCardFromBaseTables(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  filters: Filters,
+  from: string,
+  to: string,
+): Promise<StockCardResult> {
+  let transactionQuery = supabase
+    .from("stock_transactions")
+    .select("id,transaction_no,document_id,branch_id,item_id,transaction_type,transaction_date,quantity_in,quantity_out,unit_cost,total_cost,status,posted_at,reference_type,reference_id,created_by,created_at")
+    .eq("status", "posted")
+    .lte("transaction_date", to)
+    .order("transaction_date", { ascending: true })
+    .order("created_at", { ascending: true })
+    .limit(STOCK_CARD_FALLBACK_LIMIT + 1);
+  const itemId = filters.item_id && filters.item_id !== "all" ? filters.item_id : null;
+  const branchId = filters.branch_id && filters.branch_id !== "all" ? filters.branch_id : null;
+  if (itemId) transactionQuery = transactionQuery.eq("item_id", itemId);
+  if (branchId) transactionQuery = transactionQuery.eq("branch_id", branchId);
+  const { data: transactionData, error: transactionError } = await transactionQuery;
+  if (transactionError) throw transactionError;
+  const transactions = transactionData ?? [];
+  if (transactions.length > STOCK_CARD_FALLBACK_LIMIT) {
+    throw new Error(`Stock Card fallback exceeded ${STOCK_CARD_FALLBACK_LIMIT} rows.`);
+  }
+
+  const transactionIds = transactions.map((row) => row.id);
+  const { data: lineData, error: lineError } = transactionIds.length
+    ? await supabase
+      .from("stock_transaction_lines")
+      .select("id,stock_transaction_id,item_id,branch_id,quantity_in,quantity_out,unit_cost,total_cost,reference_type,reference_id,created_at")
+      .in("stock_transaction_id", transactionIds)
+    : { data: [], error: null };
+  if (lineError) throw lineError;
+  const lines = lineData ?? [];
+  const itemIds = [...new Set([...transactions.map((row) => row.item_id), ...lines.map((row) => row.item_id).filter((id): id is string => Boolean(id))])];
+  const branchIds = [...new Set([...transactions.map((row) => row.branch_id).filter((id): id is string => Boolean(id)), ...lines.map((row) => row.branch_id).filter((id): id is string => Boolean(id))])];
+  const [{ data: items, error: itemsError }, { data: branches, error: branchesError }] = await Promise.all([
+    itemIds.length ? supabase.from("items").select("id,item_code,item_name,base_unit").in("id", itemIds) : Promise.resolve({ data: [], error: null }),
+    branchIds.length ? supabase.from("branches").select("id,branch_name").in("id", branchIds) : Promise.resolve({ data: [], error: null }),
+  ]);
+  if (itemsError) throw itemsError;
+  if (branchesError) throw branchesError;
+  const itemById = new Map((items ?? []).map((item) => [item.id, item]));
+  const branchById = new Map((branches ?? []).map((branch) => [branch.id, branch.branch_name]));
+  const linesByTransaction = new Map<string, typeof lines>();
+  for (const line of lines) linesByTransaction.set(line.stock_transaction_id, [...(linesByTransaction.get(line.stock_transaction_id) ?? []), line]);
+
+  const expanded = transactions.flatMap((transaction) => {
+    const transactionLines = linesByTransaction.get(transaction.id) ?? [];
+    const sourceLines = transactionLines.length ? transactionLines : [null];
+    return sourceLines.map((line) => {
+      const resolvedItemId = line?.item_id ?? transaction.item_id;
+      const resolvedBranchId = line?.branch_id ?? transaction.branch_id;
+      const item = itemById.get(resolvedItemId);
+      return {
+        stock_transaction_id: transaction.id,
+        transaction_no: transaction.transaction_no,
+        transaction_date: transaction.transaction_date,
+        transaction_type: transaction.transaction_type,
+        status: transaction.status,
+        document_id: transaction.document_id,
+        reference_type: line?.reference_type ?? transaction.reference_type,
+        reference_id: line?.reference_id ?? transaction.reference_id,
+        created_by: transaction.created_by,
+        posted_at: transaction.posted_at,
+        stock_transaction_line_id: line?.id ?? null,
+        item_id: resolvedItemId,
+        item_code: item?.item_code ?? "",
+        item_name: item?.item_name ?? "Unavailable item",
+        base_unit: item?.base_unit ?? "",
+        branch_id: resolvedBranchId,
+        branch_name: resolvedBranchId ? branchById.get(resolvedBranchId) ?? null : null,
+        quantity_in: Number(line?.quantity_in ?? transaction.quantity_in ?? 0),
+        quantity_out: Number(line?.quantity_out ?? transaction.quantity_out ?? 0),
+        unit_cost: Number(line?.unit_cost ?? transaction.unit_cost ?? 0),
+        total_cost: Number(line?.total_cost ?? transaction.total_cost ?? (Number(line?.unit_cost ?? transaction.unit_cost ?? 0) * Math.max(Number(line?.quantity_in ?? transaction.quantity_in ?? 0), Number(line?.quantity_out ?? transaction.quantity_out ?? 0)))),
+        created_at: line?.created_at ?? transaction.created_at,
+      };
+    });
+  }).sort((left, right) => `${left.transaction_date}|${left.created_at}|${left.stock_transaction_id}|${left.stock_transaction_line_id ?? ""}`.localeCompare(`${right.transaction_date}|${right.created_at}|${right.stock_transaction_id}|${right.stock_transaction_line_id ?? ""}`));
+
+  const runningByKey = new Map<string, number>();
+  const rows = expanded.map((row) => {
+    const key = `${row.item_id}:${row.branch_id ?? ""}`;
+    const runningBalance = (runningByKey.get(key) ?? 0) + row.quantity_in - row.quantity_out;
+    runningByKey.set(key, runningBalance);
+    return { ...row, running_balance: runningBalance } as StockLedgerViewRow;
+  }).filter((row) => row.transaction_date >= from);
+  const search = filters.search?.trim().toLowerCase();
+  const source = filters.source?.trim().toLowerCase();
+  const type = filters.type && filters.type !== "all" ? filters.type : null;
+  const direction = filters.direction && filters.direction !== "all" ? filters.direction : null;
+  const filtered = rows
+    .filter((row) => search ? [row.transaction_no, row.transaction_type, row.item_code, row.item_name, row.branch_name].some((value) => String(value ?? "").toLowerCase().includes(search)) : true)
+    .filter((row) => source ? [row.reference_type, row.reference_id, row.transaction_no].some((value) => String(value ?? "").toLowerCase().includes(source)) : true)
+    .filter((row) => type ? row.transaction_type === type : true)
+    .filter((row) => direction === "inbound" ? row.quantity_in > 0 : direction === "outbound" ? row.quantity_out > 0 : true);
+  return { rows: filtered, unavailable: false };
 }
 
 function searchExpression(columns: string[], value: string | undefined) {
@@ -465,7 +567,14 @@ export async function getStockLedger(filters: Filters = {}) {
   });
   if (error) {
     warnOptionalInventoryQuery("Movement Ledger", error);
-    return databasePagination([] as StockLedgerViewRow[], 0, filters.page);
+    try {
+      const fallback = await getStockCardFromBaseTables(supabase, filters, from, to);
+      const filtered = filterLedgerRows(fallback.rows, filters);
+      return { ...databasePagination(filtered, filtered.length, filters.page), error: null, unavailable: false };
+    } catch (fallbackError) {
+      warnOptionalInventoryQuery("Movement Ledger table fallback", fallbackError instanceof Error ? fallbackError : new Error(String(fallbackError)));
+      return { ...databasePagination([] as StockLedgerViewRow[], 0, filters.page), error: "Movement Ledger data is temporarily unavailable.", unavailable: true };
+    }
   }
   const result = data ?? [];
   const totalRows = Number(result[0]?.total_count ?? 0);
@@ -665,33 +774,17 @@ export async function getStockCardResult(filters: Filters = {}): Promise<StockCa
     });
     if (error) {
       warnOptionalInventoryQuery("Stock Card", error);
-      // Keep the operator-facing Stock Card available while an older linked
-      // database catches up with the bounded RPC migrations. The canonical
-      // view is still tenant-scoped by RLS and this fallback is strictly
-      // bounded to the requested date range.
-      let fallbackQuery = supabase
-        .from("stock_ledger_view")
-        .select("*")
-        .gte("transaction_date", from)
-        .lte("transaction_date", to)
-        .order("transaction_date", { ascending: true })
-        .limit(5_000);
-      if (filters.item_id && filters.item_id !== "all") fallbackQuery = fallbackQuery.eq("item_id", filters.item_id);
-      if (filters.branch_id && filters.branch_id !== "all") fallbackQuery = fallbackQuery.eq("branch_id", filters.branch_id);
-      if (filters.type && filters.type !== "all") fallbackQuery = fallbackQuery.eq("transaction_type", filters.type as StockTransaction["transaction_type"]);
-      const fallback = await fallbackQuery;
-      if (fallback.error) {
-        warnOptionalInventoryQuery("Stock Card canonical fallback", fallback.error);
+      try {
+        // Do not fall back to stock_ledger_view: it computes an unbounded
+        // running window before PostgREST filters and is the source of the
+        // repeated statement timeouts in the supplied Supabase logs. The
+        // table fallback keeps the same RLS boundary and computes balances
+        // only after a strictly bounded date/read set is materialized.
+        return await getStockCardFromBaseTables(supabase, filters, from, to);
+      } catch (fallbackError) {
+        warnOptionalInventoryQuery("Stock Card table fallback", fallbackError instanceof Error ? fallbackError : new Error(String(fallbackError)));
         return { rows: [], unavailable: true };
       }
-      const search = filters.search?.trim().toLowerCase();
-      const source = filters.source?.trim().toLowerCase();
-      const direction = filters.direction && filters.direction !== "all" ? filters.direction : null;
-      const rows = ((fallback.data ?? []) as StockLedgerViewRow[])
-        .filter((row) => search ? [row.item_code, row.item_name, row.transaction_no, row.branch_name, row.reference_type].some((value) => String(value ?? "").toLowerCase().includes(search)) : true)
-        .filter((row) => source ? String(row.reference_type ?? "").toLowerCase().includes(source) : true)
-        .filter((row) => direction === "in" ? Number(row.quantity_in) > 0 : direction === "out" ? Number(row.quantity_out) > 0 : true);
-      return { rows, unavailable: false };
     }
     return { rows: data ?? [], unavailable: false };
   }

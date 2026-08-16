@@ -13,6 +13,7 @@ import { PaginationControls, SortableHead } from "@/components/sortable-table";
 import { OperationalList, OperationalListRow, Table, TableActionLink, TableBody } from "@/components/ui/table";
 import { ConsoleSection } from "@/components/layout/right-console";
 import { WorkspaceGrid } from "@/components/layout/workspace-layout";
+import { Notice } from "@/components/ui/system-states";
 import { formatCurrency, formatDateOnly, formatNumber } from "@/lib/utils";
 import { shiftBusinessDate, todayInKualaLumpur } from "@/lib/business-date";
 import { hasActiveFilters } from "@/lib/table-state";
@@ -82,6 +83,7 @@ export default async function StockTransactionsPage({ searchParams }: { searchPa
   const value = balances.rows.reduce((sum, item) => sum + Number(item.inventory_value), 0);
   const inbound = ledger.rows.reduce((sum, row) => sum + Number(row.quantity_in), 0);
   const outbound = ledger.rows.reduce((sum, row) => sum + Number(row.quantity_out), 0);
+  const ledgerUnavailable = "unavailable" in ledger && Boolean(ledger.unavailable);
   const filtered = hasActiveFilters(filters);
   const itemNameById = new Map(items.map((item) => [item.id, item.item_code]));
   const activeFilterChips = filterLabelForStatus(filters, itemNameById);
@@ -110,9 +112,9 @@ export default async function StockTransactionsPage({ searchParams }: { searchPa
             </ConsoleSection> : null}
             <ConsoleSection title="Valuation">
               <div className="grid gap-2 text-xs">
-                <div className="flex justify-between"><span className="text-muted-foreground">Ledger rows</span><strong>{ledger.totalRows}</strong></div>
-                <div className="flex justify-between"><span className="text-muted-foreground">Quantity in</span><strong>{formatNumber(inbound)}</strong></div>
-                <div className="flex justify-between"><span className="text-muted-foreground">Quantity out</span><strong>{formatNumber(outbound)}</strong></div>
+                <div className="flex justify-between"><span className="text-muted-foreground">Ledger rows</span><strong>{ledgerUnavailable ? "Unavailable" : ledger.totalRows}</strong></div>
+                <div className="flex justify-between"><span className="text-muted-foreground">Quantity in</span><strong>{ledgerUnavailable ? "Unavailable" : formatNumber(inbound)}</strong></div>
+                <div className="flex justify-between"><span className="text-muted-foreground">Quantity out</span><strong>{ledgerUnavailable ? "Unavailable" : formatNumber(outbound)}</strong></div>
                 <div className="flex justify-between"><span className="text-muted-foreground">Stock rows</span><strong>{balances.totalRows}</strong></div>
                 <div className="flex justify-between"><span className="text-muted-foreground">Stock value</span><strong>{formatCurrency(value)}</strong></div>
               </div>
@@ -121,7 +123,7 @@ export default async function StockTransactionsPage({ searchParams }: { searchPa
         }
       >
         <div className="space-y-2">
-          <FilterBar resultCount={ledger.totalRows} resetHref="/stock-transactions" filtered={filtered}>
+          <FilterBar resultCount={ledgerUnavailable ? undefined : ledger.totalRows} resetHref="/stock-transactions" filtered={filtered}>
             <Input name="search" defaultValue={filters.search ?? ""} placeholder="Item or transaction" />
             <SelectControl name="branch_id" defaultValue={filters.branch_id ?? "all"} ariaLabel="Branch" options={[{ value: "all", label: "All branches" }, ...branches.map((branch) => ({ value: branch.id, label: branch.branch_name }))]} />
             <FilterBarMore activeCount={[filters.item_id && filters.item_id !== "all", filters.type && filters.type !== "all", filters.direction && filters.direction !== "all", filters.source, filters.from, filters.to].filter(Boolean).length} resetHref="/stock-transactions"><SelectControl name="item_id" defaultValue={filters.item_id ?? "all"} ariaLabel="Item" options={[{ value: "all", label: "All items" }, ...items.map((item) => ({ value: item.id, label: item.item_code }))]} />
@@ -133,6 +135,7 @@ export default async function StockTransactionsPage({ searchParams }: { searchPa
             </FilterBarMore>
             <Button type="submit" variant="secondary">Search</Button>
           </FilterBar>
+          {ledgerUnavailable ? <Notice tone="error" title="Movement Ledger data is temporarily unavailable">The inventory read service did not return a complete result. No row count, empty state, or zero totals are shown. Retry this page shortly.</Notice> : null}
           {activeFilterChips.length ? <div className="sb-filter-summary flex-wrap px-3 py-2" aria-label="Active filters">
             {activeFilterChips.map((chip) => <span key={chip} className="max-w-full truncate">{chip}</span>)}
           </div> : null}
@@ -173,7 +176,7 @@ export default async function StockTransactionsPage({ searchParams }: { searchPa
                     <TableCell className="text-right">{formatCurrency(row.total_cost)}</TableCell>
                   </DataGridRow>
                 ))}
-                {!ledger.rows.length ? (
+                {!ledger.rows.length && !ledgerUnavailable ? (
                   <TableRow>
                       <TableCell colSpan={12}>
                       <EmptyState title={filtered ? "No movements match these filters" : "No ledger movements yet"} description={filtered ? "Reset the filters or widen the date range." : "Posted inventory movements will appear here."} action={filtered ? { href: "/stock-transactions", label: "Reset filters" } : undefined} />
@@ -197,9 +200,9 @@ export default async function StockTransactionsPage({ searchParams }: { searchPa
                   meta={<span className={direction === "in" ? "font-semibold text-[var(--sb-success)]" : direction === "out" ? "font-semibold text-[var(--sb-danger)]" : undefined}>{direction === "in" ? "+" : direction === "out" ? "−" : ""}{formatNumber(quantityIn || quantityOut)} {row.base_unit}</span>}
                 />;
               })}
-              {!ledger.rows.length ? <EmptyState title={filtered ? "No movements match these filters" : "No ledger movements yet"} description={filtered ? "Reset the filters or widen the date range." : "Posted inventory movements will appear here."} action={filtered ? { href: "/stock-transactions", label: "Reset filters" } : undefined} /> : null}
-            </OperationalList>
-          <PaginationControls page={ledger.page} totalPages={ledger.totalPages} totalRows={ledger.totalRows} searchParams={filters} />
+              {!ledger.rows.length && !ledgerUnavailable ? <EmptyState title={filtered ? "No movements match these filters" : "No ledger movements yet"} description={filtered ? "Reset the filters or widen the date range." : "Posted inventory movements will appear here."} action={filtered ? { href: "/stock-transactions", label: "Reset filters" } : undefined} /> : null}
+              </OperationalList>
+          {!ledgerUnavailable ? <PaginationControls page={ledger.page} totalPages={ledger.totalPages} totalRows={ledger.totalRows} searchParams={filters} /> : null}
           </div>
         </div>
       </WorkspaceGrid>

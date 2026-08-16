@@ -29,3 +29,19 @@ test("bounded ledger page preserves running balances and paginates after filteri
   assert.match(migrationSource, /grant execute[\s\S]*to authenticated/);
   assert.match(migrationSource, /least\(p_limit, 50000\)/);
 });
+
+test("inventory reads fail closed instead of replacing a failed source with zero rows", () => {
+  assert.match(querySource, /const STOCK_CARD_FALLBACK_LIMIT = 5_000/);
+  assert.match(querySource, /from\("stock_transactions"\)/);
+  assert.match(querySource, /from\("stock_transaction_lines"\)/);
+  assert.match(querySource, /STOCK_CARD_FALLBACK_LIMIT \+ 1/);
+  assert.match(querySource, /Stock Card fallback exceeded \$\{STOCK_CARD_FALLBACK_LIMIT\}/);
+  assert.match(querySource, /unavailable: true/);
+  assert.doesNotMatch(
+    querySource.slice(querySource.indexOf("async function getStockCardFromBaseTables"), querySource.indexOf("export async function getStockCardResult")),
+    /from\("stock_ledger_view"\)/,
+  );
+  assert.match(pageSource, /Movement Ledger data is temporarily unavailable/);
+  assert.match(pageSource, /ledgerUnavailable/);
+  assert.match(pageSource, /!ledgerUnavailable/);
+});

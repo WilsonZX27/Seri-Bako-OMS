@@ -1,11 +1,21 @@
 # Seri Bako OMS responsive design standard
 
-> **Release authority:** the currently released application is `v8.64.21`, as
+> **Release authority:** the currently released application is `v8.64.22`, as
 > defined by `src/lib/app-version.ts`. A versioned section above that number is
 > an accepted forward design contract or unreleased implementation note—not
 > evidence that the application itself has been released at that version.
 > `docs/DESIGN_SYSTEM.md` owns the current visual principles; this file retains
 > versioned implementation history and workspace rules.
+
+## v8.64.22 - Canonical CSS Authority
+
+- A selector has one rule owner inside a given media-query scope. Related
+  declarations must be edited together rather than appended later in the file.
+- The v2 root tokens, phone filter-sheet grid, and mobile action-button geometry
+  each have one canonical definition.
+- The CSS authority contract parses the real stylesheet AST and fails when a
+  future change repeats an exact selector in the same scope. Viewport-specific
+  overrides remain valid because each media condition is a distinct scope.
 
 ## v8.64.21 - Stable Stock Count Workspace
 

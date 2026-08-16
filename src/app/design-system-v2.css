@@ -75,11 +75,14 @@ html[data-design-layer="v2"] [data-outlet-completion-scrollport] th.sticky::befo
  */
 html[data-design-layer="v2"] {
   --sb-design-layer-active: v2;
-}
-
-html[data-design-layer="v2"] {
   /* One radius source for Tailwind's `rounded-lg` and shared panel primitives. */
   --radius: var(--sb-panel-radius);
+  --sb-panel-radius: 12px;
+  --sb-control-radius: 8px;
+  --sb-radius-control: var(--sb-control-radius);
+  --sb-z-mobile-nav: 50;
+  --sb-z-sheet-backdrop: 100;
+  --sb-z-sheet: 101;
 }
 
 html[data-design-layer="v2"] .sb-list-filters:not(.unified-list-header) {
@@ -939,15 +942,6 @@ nav[aria-label="Pagination"] > span,
    must have one authority, rather than page-level overrides competing.
    -------------------------------------------------------------------------- */
 
-html[data-design-layer="v2"] {
-  --sb-panel-radius: 12px;
-  --sb-control-radius: 8px;
-  --sb-radius-control: var(--sb-control-radius);
-  --sb-z-mobile-nav: 50;
-  --sb-z-sheet-backdrop: 100;
-  --sb-z-sheet: 101;
-}
-
 html[data-design-layer="v2"] :where(input, select, textarea, button, .inline-flex, .unified-list-filter-trigger) {
   border-radius: var(--sb-control-radius);
 }
@@ -1171,7 +1165,8 @@ html[data-design-layer="v2"] [data-mobile-bottom-nav] {
 
   /* Mobile filter sheets are a compact control surface, not a second form page. */
   html[data-design-layer="v2"] .unified-list-sheet-fields {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    align-items: start;
     align-content: start;
     gap: 10px 8px;
     padding: 12px 0 16px;
@@ -1393,13 +1388,10 @@ html[data-design-layer="v2"] :where([data-mobile-action-bar], .sb-mobile-action-
 html[data-design-layer="v2"] :where([data-mobile-action-bar], .sb-mobile-action-bar) > * :where(button, a) {
   width: 100% !important;
   min-width: 0;
-}
-
-html[data-design-layer="v2"] :where([data-mobile-action-bar], .sb-mobile-action-bar) > button {
   justify-content: space-evenly;
 }
 
-html[data-design-layer="v2"] :where([data-mobile-action-bar], .sb-mobile-action-bar) > * :where(button, a) {
+html[data-design-layer="v2"] :where([data-mobile-action-bar], .sb-mobile-action-bar) > button {
   justify-content: space-evenly;
 }
 
@@ -1439,11 +1431,6 @@ html[data-design-layer="v2"] :where(.erp-surface[class~="rounded-[2px]"], .sb-wo
    rhythm, while legacy nested disclosures still span the sheet. Radix portals
    must sit above the sheet itself so an opened option list is never obscured. */
 @media (max-width: 639px) {
-  html[data-design-layer="v2"] .unified-list-sheet-fields {
-    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
-    align-items: start;
-  }
-
   html[data-design-layer="v2"] .unified-list-sheet-fields > [data-filter-more-wrapper] {
     grid-column: 1 / -1;
   }

@@ -2,11 +2,15 @@
 
 ## Product Overview
 
-Current release authority: v8.64.21 - Stable Stock Count Workspace.
+Current release authority: v8.64.22 - Canonical CSS Authority.
 
 ### Current audit baseline
 
-The current released application baseline is `v8.64.21 — Stable Stock Count Workspace`.
+The current released application baseline is `v8.64.22 — Canonical CSS Authority`.
+
+The canonical design layer permits one owner for a selector inside each media
+scope. A source-level AST contract rejects repeated same-scope selectors before
+they can reintroduce order-dependent list, filter, action, or radius behavior.
 
 Stock Count uses one responsive line-entry authority. Phone cards foreground
 the index, full item identity, variance, UOM, and count control without a

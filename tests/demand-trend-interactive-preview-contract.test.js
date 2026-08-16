@@ -48,6 +48,7 @@ test("Top movement and wastage use touch-friendly ranking previews with progress
   assert.match(ranking, /data-ranking-row/);
   assert.match(ranking, /data-ranking-open/);
   assert.match(ranking, /grid min-h-11 w-full[\s\S]*xl:min-h-9/);
+  assert.match(ranking, /col-start-2 row-start-2[\s\S]*xl:col-start-3 xl:row-start-1/);
   assert.match(ranking, /index \+ 1/);
   assert.match(ranking, /!activeItem && "sr-only"/);
   assert.match(ranking, /item\.value <= 0 \? 0 : Math\.max\(3,/);
@@ -55,6 +56,8 @@ test("Top movement and wastage use touch-friendly ranking previews with progress
   assert.match(ranking, /truncate/);
 
   const chart = read("src/components/reports/demand-ranking-chart.tsx");
+  assert.match(chart, /\.sort\(\(left, right\) =>/);
+  assert.match(chart, /right\[metric\] - left\[metric\]/);
   assert.match(chart, /params\.set\("product", row\.id\)/);
   assert.match(chart, /href: `\/reports\/demand-trends\?\$\{params\.toString\(\)\}`/);
   assert.match(chart, /Open applies that product to the report detail/);

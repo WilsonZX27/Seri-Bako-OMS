@@ -42,14 +42,14 @@ export function InteractiveRankingChart({
           const width = item.value <= 0 ? 0 : Math.max(3, (item.value / maximum) * 100);
           const content = <>
               <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[var(--sb-surface-muted)] text-[10px] font-semibold tabular-nums text-[var(--sb-text-muted)]" aria-hidden="true">{index + 1}</span>
-              <span className="min-w-0 truncate text-xs font-medium" title={item.label}>{item.label}</span>
-              <span className="h-2.5 overflow-hidden rounded-sm bg-[var(--sb-surface-muted)]" aria-hidden="true">
+              <span className="min-w-0 truncate text-xs font-medium xl:col-start-2 xl:row-start-1" title={item.label}>{item.label}</span>
+              <span className="col-start-2 row-start-2 h-2.5 w-full overflow-hidden rounded-sm bg-[var(--sb-surface-muted)] xl:col-start-3 xl:row-start-1" aria-hidden="true">
                 <span
                   className="block h-full rounded-sm bg-[var(--sb-green-700)] transition-[width,opacity] duration-150 group-hover:bg-[var(--sb-green-800)]"
                   style={{ width: `${width}%` }}
                 />
               </span>
-              <span className="text-right text-xs font-semibold tabular-nums">{item.formattedValue}</span>
+              <span className="row-span-2 self-center text-right text-xs font-semibold tabular-nums xl:row-span-1">{item.formattedValue}</span>
             </>;
           const rowProps = {
               type: "button" as const,

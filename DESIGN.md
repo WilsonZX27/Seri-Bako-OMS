@@ -1,6 +1,6 @@
 # Seri Bako OMS responsive design standard
 
-> **Release authority:** the currently released application is `v8.51.0`, as
+> **Release authority:** the currently released application is `v8.52.0`, as
 > defined by `src/lib/app-version.ts`. A versioned section above that number is
 > an accepted forward design contract or unreleased implementation note—not
 > evidence that the application itself has been released at that version.
@@ -10,6 +10,12 @@
 > **Precedence:** `docs/DESIGN_SYSTEM.md` is the living visual and interaction contract. When a historical release note or an older rule in this file conflicts with that contract, the living contract wins. Update both documents when a new pattern is accepted; do not preserve a visibly weaker rule for compatibility.
 
 This document is the implementation contract for every customer-facing route, form, record workspace, table, panel, dialog, and mobile action bar. It applies to new work and to refactoring of existing UI.
+
+## v8.52.0 — Responsive Report Rankings
+
+- Ranking cards now own their descending metric order with deterministic tie-breaks, so filtered or streamed data cannot render a misleading rank sequence.
+- Ranking rows use a compact two-line mobile pattern (label/value above, bar below) and return to a single-line desktop layout at wide breakpoints.
+- Hover, touch, and keyboard selection continue to expose the same progressive preview and drill-through action.
 
 ## v8.51.0 — Trusted Stock Count Positions
 
@@ -1301,3 +1307,8 @@ the route matrix in `docs/qa/FULL_SYSTEM_AUDIT_MATRIX.md`.
 - Master-data action rails use one icon vocabulary, query controls share a deliberate desktop width, Stock Transactions places active filters directly below the query surface, and Low Stock no longer wraps the procurement queue in a duplicate outer card.
 - PR basket controls are denser on tablet/desktop, tablet rails may claim a wider task column, and purchase UOM is selectable in both Stock Balance and Low Stock procurement flows.
 - Unavailable Stock Count variance reads as unavailable rather than resembling a zero result.
+## v8.52.0 — Responsive Report Rankings
+
+- Ranking cards now own their descending metric order with deterministic tie-breaks, so filtered or streamed data cannot render a misleading rank sequence.
+- Ranking rows use a compact two-line mobile pattern (label/value above, bar below) and return to a single-line desktop layout at wide breakpoints.
+- Hover, touch, and keyboard selection continue to expose the same progressive preview and drill-through action.

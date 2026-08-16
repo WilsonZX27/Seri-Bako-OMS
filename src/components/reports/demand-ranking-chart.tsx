@@ -29,7 +29,18 @@ export function DemandRankingChart({
   metric: "movement" | "wastage";
   searchParams: Record<string, string | undefined>;
 }) {
-  const items = rows.slice(0, 6).map((row) => {
+  // Keep the visual contract local to the component. The query currently
+  // returns sorted rows, but this chart can also be reused with filtered or
+  // streamed data; rendering order must never depend on an upstream caller.
+  const items = [...rows]
+    .sort((left, right) => {
+      const valueDelta = right[metric] - left[metric];
+      if (valueDelta !== 0) return valueDelta;
+      const nameDelta = left.name.localeCompare(right.name);
+      return nameDelta !== 0 ? nameDelta : left.id.localeCompare(right.id);
+    })
+    .slice(0, 6)
+    .map((row) => {
     const params = new URLSearchParams();
     for (const [key, value] of Object.entries(searchParams)) if (value) params.set(key, value);
     params.set("product", row.id);

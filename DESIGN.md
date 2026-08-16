@@ -1,6 +1,6 @@
 # Seri Bako OMS responsive design standard
 
-> **Release authority:** the currently released application is `v8.50.0`, as
+> **Release authority:** the currently released application is `v8.51.0`, as
 > defined by `src/lib/app-version.ts`. A versioned section above that number is
 > an accepted forward design contract or unreleased implementation note—not
 > evidence that the application itself has been released at that version.
@@ -10,6 +10,12 @@
 > **Precedence:** `docs/DESIGN_SYSTEM.md` is the living visual and interaction contract. When a historical release note or an older rule in this file conflicts with that contract, the living contract wins. Update both documents when a new pattern is accepted; do not preserve a visibly weaker rule for compatibility.
 
 This document is the implementation contract for every customer-facing route, form, record workspace, table, panel, dialog, and mobile action bar. It applies to new work and to refactoring of existing UI.
+
+## v8.51.0 — Trusted Stock Count Positions
+
+- Stock Count item numbers are anchored to the authoritative seed order. Searching, filtering, or changing the Name/Code sort no longer makes an item appear to change position.
+- The Stock Count starting-balance contract remains fail-closed: query failures stop the workspace, verified posted counts and ledger balances may prefill, and an unverified zero stays blank.
+- Import guidance distinguishes item-master rows with a blank Main Supplier from a usable purchasing mapping; blank supplier cells are never promoted into invented relationships.
 
 ## v8.48.0 — Receipt Anomalies Stay Visible
 

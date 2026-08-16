@@ -52,6 +52,10 @@ function extractOutletDailyPayload(formData: FormData) {
     lines: productIds.map((productId, index) => ({
       product_id: productId,
       qty_sent: nullableText(sent[index]),
+      // Restricted users submit no received field because that input is
+      // disabled. Keep the RPC payload numeric, but leave provenance false so
+      // the database preserves an existing value (or exposes the new value as
+      // unavailable) instead of treating this transport default as a receipt.
       morning_received_qty: received[index] ?? "0",
       morning_received_provided: received[index] != null && received[index].trim() !== "",
       evening_leftover_qty: leftover[index] ?? "0",

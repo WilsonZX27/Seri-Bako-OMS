@@ -90,3 +90,10 @@ test("stock count does not render an undefined zero-denominator variance as 0%",
   assert.match(form, /percent === null \|\| Number\.isNaN\(percent\)\) return "—"/);
   assert.doesNotMatch(form, /percent === null \|\| Number\.isNaN\(percent\)\) return "0%"/);
 });
+
+test("stock count item positions stay stable while searching or sorting", () => {
+  const form = read("src", "components", "stock-count-form.tsx");
+  assert.match(form, /Keep the operator's position anchored to the authoritative seed order/);
+  assert.match(form, /const displayIndex = displayIndexByItemId\.get\(line\.item_id\) \?\? 0/);
+  assert.match(form, /aria-label=\{`Item \$\{displayIndex\}`\}/);
+});

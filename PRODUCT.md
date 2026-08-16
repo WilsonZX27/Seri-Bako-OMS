@@ -4,9 +4,9 @@
 
 ### Current audit baseline
 
-The current released application baseline is `v8.50.0 — Unverified Outlet Receipt Values Stay Blank`.
+The current released application baseline is `v8.51.0 — Stable Stock Count Positions and Trusted Receipt Inputs`.
 
-The lines below are retained as historical release context; the current authority is the v8.50.0 line above.
+The lines below are retained as historical release context; the current authority is the v8.51.0 line above.
 The repository migration history currently runs through migration `149`. Release
 version authority lives in `src/lib/app-version.ts`; migration authority lives in
 the immutable, forward-only `supabase/migrations/` directory. Documentation must

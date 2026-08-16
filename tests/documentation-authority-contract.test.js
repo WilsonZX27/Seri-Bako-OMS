@@ -19,11 +19,11 @@ test("product and design baselines identify the actual released application auth
 });
 
 test("schema documentation distinguishes its historical snapshot from repository migration authority", () => {
-  assert.ok(migrationCeiling >= 154);
+  assert.ok(migrationCeiling >= 156);
   assert.match(product, new RegExp(`migrations reviewed through \`${migrationCeiling}\``));
   assert.match(schema, new RegExp(`forward-only migration 历史已到 \`${migrationCeiling}\``));
   assert.match(schema, /历史实库快照，不是当前 Production schema 证明/);
-  for (const migration of [128, 138, 145, 146, 147, 148, 149, 150, 151, 152, 153, 154]) assert.match(schema, new RegExp(`\`${migration}\``));
+  for (const migration of [128, 138, 145, 146, 147, 148, 149, 150, 151, 152, 153, 154, 155, 156]) assert.match(schema, new RegExp(`\`${migration}\``));
 });
 
 test("metric dictionary records trust, freshness, unavailable, accessibility and drill-through contracts", () => {

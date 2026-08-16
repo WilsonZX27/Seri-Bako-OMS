@@ -409,6 +409,7 @@ export type Database = {
           record_id: string;
           product_id: string;
           morning_received_qty?: number;
+          morning_received_provided?: boolean;
           qty_sent?: number;
           qty_sent_estimated?: number | null;
           qty_sent_confirmed?: boolean;
@@ -2043,6 +2044,32 @@ export type Database = {
           updated_at?: string;
         };
         Update: Partial<Database["public"]["Tables"]["stock_balances_summary"]["Insert"]>;
+        Relationships: [];
+      };
+      inventory_daily_summary: {
+        Row: {
+          company_id: string;
+          branch_id: string;
+          item_id: string;
+          transaction_date: string;
+          transaction_type: string;
+          quantity_in: number;
+          quantity_out: number;
+          movement_count: number;
+          updated_at: string;
+        };
+        Insert: {
+          company_id: string;
+          branch_id: string;
+          item_id: string;
+          transaction_date: string;
+          transaction_type: string;
+          quantity_in?: number;
+          quantity_out?: number;
+          movement_count?: number;
+          updated_at?: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["inventory_daily_summary"]["Insert"]>;
         Relationships: [];
       };
     };

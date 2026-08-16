@@ -1,11 +1,17 @@
 # Seri Bako OMS responsive design standard
 
-> **Release authority:** the currently released application is `v8.64.54`, as
+> **Release authority:** the currently released application is `v8.64.55`, as
 > defined by `src/lib/app-version.ts`. A versioned section above that number is
 > an accepted forward design contract or unreleased implementation note—not
 > evidence that the application itself has been released at that version.
 > `docs/DESIGN_SYSTEM.md` owns the current visual principles; this file retains
 > versioned implementation history and workspace rules.
+
+## v8.64.55 - Bounded Reads And Explicit Receipt Provenance
+
+- Inventory opening balances now use the maintained daily summary and keep both the RPC and fallback path bounded to the requested period; a read failure remains an explicit unavailable state instead of a false zero.
+- Outlet Daily receipt provenance is stored as an explicit operator fact, so an entered zero is verified while legacy or missing receipt data remains unavailable.
+- Shared list controls retain one responsive authority: a full-width tablet query row, equal controls, and a stable action/count cluster without route-specific overrides.
 
 ## v8.64.54 - Fail-Closed Reads And Shared UI Closure
 

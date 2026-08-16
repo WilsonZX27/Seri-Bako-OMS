@@ -74,7 +74,18 @@ test("report read boundaries reject incomplete payloads instead of rendering emp
 test("list filters have a single final responsive authority", () => {
   const css = readFileSync("src/app/design-system-v2.css", "utf8");
   assert.match(css, /Final shared list-control authority/);
-  assert.match(css, /grid-column: auto !important/);
+  assert.match(css, /grid-column: 1 \/ -1/);
   assert.match(css, /grid-template-columns: repeat\(var\(--sb-list-tablet-columns, 4\)/);
   assert.match(css, /flex: 0 0 10rem !important/);
+});
+
+test("bounded inventory opening balances use the daily summary instead of an unbounded history scan", () => {
+  const migration = readFileSync("supabase/migrations/155_bounded_inventory_opening_from_daily_summary.sql", "utf8");
+  assert.match(migration, /inventory_daily_summary/);
+  assert.match(migration, /inventory_daily_summary_date_branch_item_idx/);
+  assert.match(migration, /d\.transaction_date < p_from/);
+  assert.match(migration, /st\.transaction_date between p_from and p_to/);
+  assert.match(migration, /period_rows/);
+  assert.match(migration, /sum\(p\.quantity_in - p\.quantity_out\) over/);
+  assert.doesNotMatch(migration, /with expanded as[\s\S]*scoped as[\s\S]*where transaction_date < p_from/);
 });

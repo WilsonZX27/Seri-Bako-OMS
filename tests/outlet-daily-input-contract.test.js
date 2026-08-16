@@ -4,6 +4,7 @@ const path = require("node:path");
 const test = require("node:test");
 
 const source = fs.readFileSync(path.join(process.cwd(), "src/server/actions/outlet-daily-records.ts"), "utf8");
+const provenanceMigration = fs.readFileSync(path.join(process.cwd(), "supabase/migrations/156_explicit_outlet_received_provenance.sql"), "utf8");
 
 test("outlet daily records validate header, status, line cardinality, and quantity bounds before RPC use", () => {
   assert.match(source, /const outletDailyPayloadSchema = z\.object/);
@@ -14,4 +15,8 @@ test("outlet daily records validate header, status, line cardinality, and quanti
   assert.match(source, /p_lines: payload\.lines/);
   assert.match(source, /Restricted users submit no received field/);
   assert.match(source, /morning_received_provided: received\[index\] != null/);
+  assert.match(provenanceMigration, /alter column morning_received_provided drop expression/);
+  assert.match(provenanceMigration, /morning_received_provided, evening_leftover_qty/);
+  assert.match(provenanceMigration, /received_provided := can_edit_outlet/);
+  assert.match(provenanceMigration, /morning_received_provided = case when can_edit_outlet/);
 });

@@ -347,6 +347,7 @@ const LEDGER_SORT_COLUMNS = new Set(["transaction_no", "transaction_date", "tran
 const TRANSACTION_SORT_COLUMNS = new Set(["transaction_no", "transaction_date", "transaction_type", "status", "created_at", "posted_at"]);
 const BALANCE_SORT_COLUMNS = new Set(["item_code", "item_name", "branch_name", "current_qty", "average_cost", "inventory_value", "last_movement"]);
 const STOCK_CARD_FALLBACK_LIMIT = 5_000;
+const STOCK_CARD_OPENING_FALLBACK_LIMIT = 20_000;
 
 function warnOptionalInventoryQuery(name: string, error: { message?: string } | null | undefined) {
   if (error) logServerWarning(error, { source: `inventory.optional.${name}` });
@@ -380,6 +381,7 @@ async function getStockCardFromBaseTables(
     .from("stock_transactions")
     .select("id,transaction_no,document_id,branch_id,item_id,transaction_type,transaction_date,quantity_in,quantity_out,unit_cost,total_cost,status,posted_at,reference_type,reference_id,created_by,created_at")
     .eq("status", "posted")
+    .gte("transaction_date", from)
     .lte("transaction_date", to)
     .order("transaction_date", { ascending: true })
     .order("created_at", { ascending: true })
@@ -394,6 +396,27 @@ async function getStockCardFromBaseTables(
   const transactions = transactionData;
   if (transactions.length > STOCK_CARD_FALLBACK_LIMIT) {
     throw new Error(`Stock Card fallback exceeded ${STOCK_CARD_FALLBACK_LIMIT} rows.`);
+  }
+
+  // The fallback must remain bounded too. Historical opening quantities come
+  // from the maintained daily read model; querying the raw transaction stream
+  // here would simply recreate the 57014 timeout that caused this fallback.
+  let openingQuery = supabase
+    .from("inventory_daily_summary")
+    .select("item_id,branch_id,quantity_in,quantity_out", { count: "exact" })
+    .lt("transaction_date", from)
+    .limit(STOCK_CARD_OPENING_FALLBACK_LIMIT + 1);
+  if (itemId) openingQuery = openingQuery.eq("item_id", itemId);
+  if (branchId) openingQuery = openingQuery.eq("branch_id", branchId);
+  const { data: openingData, error: openingError, count: openingCount } = await openingQuery;
+  if (openingError) throw openingError;
+  if (!openingData || openingCount === null || openingCount > STOCK_CARD_OPENING_FALLBACK_LIMIT) {
+    throw new Error(`Stock Card opening fallback exceeded ${STOCK_CARD_OPENING_FALLBACK_LIMIT} summary rows.`);
+  }
+  const openingByKey = new Map<string, number>();
+  for (const row of openingData) {
+    const key = `${row.item_id}:${row.branch_id}`;
+    openingByKey.set(key, (openingByKey.get(key) ?? 0) + Number(row.quantity_in ?? 0) - Number(row.quantity_out ?? 0));
   }
 
   const transactionIds = transactions.map((row) => row.id);
@@ -454,7 +477,7 @@ async function getStockCardFromBaseTables(
     });
   }).sort((left, right) => `${left.transaction_date}|${left.created_at}|${left.stock_transaction_id}|${left.stock_transaction_line_id ?? ""}`.localeCompare(`${right.transaction_date}|${right.created_at}|${right.stock_transaction_id}|${right.stock_transaction_line_id ?? ""}`));
 
-  const runningByKey = new Map<string, number>();
+  const runningByKey = new Map<string, number>(openingByKey);
   const rows = expanded.map((row) => {
     const key = `${row.item_id}:${row.branch_id ?? ""}`;
     const runningBalance = (runningByKey.get(key) ?? 0) + row.quantity_in - row.quantity_out;

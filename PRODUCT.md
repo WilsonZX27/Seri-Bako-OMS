@@ -2,7 +2,13 @@
 
 ## Product Overview
 
-The current released application baseline is `v8.64.54` — Fail-Closed Reads And Shared UI Closure.
+The current released application baseline is `v8.64.55` — Bounded Reads And Explicit Receipt Provenance.
+
+### v8.64.55 — Bounded Reads And Explicit Receipt Provenance
+
+- Stock Card and Movement Ledger opening balances use the bounded daily inventory summary instead of an unbounded historical transaction scan. Both the RPC and base-table fallback fail closed when the bounded read cannot be proven complete.
+- Outlet Daily stores receipt provenance explicitly, preserving a deliberate operator-entered `0` while keeping legacy or missing receipt data visibly unavailable.
+- Shared list controls keep one responsive geometry authority across desktop and touch-tablet layouts.
 
 ### v8.64.54 — Fail-Closed Reads And Shared UI Closure
 
@@ -204,7 +210,7 @@ rewrite navigation and overflow behavior.
 Historical release context: `v8.64.6 — Reliable Outlet Daily Reads`; earlier context: `v8.64.5 — Verified Receiving Provenance`, `v8.64.4 — Stable Report Preview Surfaces`, and `v8.63.0 — Fail-Closed Goods Receiving Joins`.
 
 The lines below are retained as historical release context; the current authority is the v8.64.39 release declaration above.
-The repository migration history currently runs through migration `154`. Release
+The repository migration history currently runs through migration `156`. Release
 version authority lives in `src/lib/app-version.ts`; migration authority lives in
 the immutable, forward-only `supabase/migrations/` directory. Documentation must
 not claim a later release or database ceiling unless both authorities support it.
@@ -364,10 +370,10 @@ The system currently covers or is actively implementing the following operationa
 
 Module maturity must be understood separately from visual completion.
 
-Repository migrations reviewed through `154`; release authority is
+Repository migrations reviewed through `156`; release authority is
 `v8.64.44 — Centralize Tablet Rail Geometry`.
 
-Current integration baseline: `v8.64.44 — Centralize Tablet Rail Geometry`, with repository migrations reviewed through `154`. Migrations `111` and `112` remain immutable history because they were applied to the linked database accidentally. Migration `113` removes their callable Central Kitchen PR RPC, prevents further access to the stock-holds table, and preserves that table temporarily for a non-destructive data audit. Later forward-only migrations add bounded inventory and Dashboard read models, repair grants and scoped access, introduce branch supply-route and received-quantity provenance, preserve unmatched PR entry as auditable non-catalog lines, split approved purchase requests atomically by supplier, and make Item Master the authority for supplier-item identity; they do not restore the retired Central Kitchen PR workflow.
+Current integration baseline: `v8.64.44 — Centralize Tablet Rail Geometry`, with repository migrations reviewed through `156`. Migrations `111` and `112` remain immutable history because they were applied to the linked database accidentally. Migration `113` removes their callable Central Kitchen PR RPC, prevents further access to the stock-holds table, and preserves that table temporarily for a non-destructive data audit. Later forward-only migrations add bounded inventory and Dashboard read models, repair grants and scoped access, introduce branch supply-route and received-quantity provenance, preserve unmatched PR entry as auditable non-catalog lines, split approved purchase requests atomically by supplier, make Item Master the authority for supplier-item identity, bound historical inventory opening reads, and preserve explicit outlet receipt zeros; they do not restore the retired Central Kitchen PR workflow.
 
 A page may exist visually without its full workflow, validation, database integration, permissions, and downstream effects being complete.
 

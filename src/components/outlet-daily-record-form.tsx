@@ -103,7 +103,13 @@ function DailyProductLine({ product, line, defaultLine, hiddenClass, locked, can
   const source = line ?? defaultLine;
   const qtySentIsKnown = line && !["unavailable", "outlet_received_estimate"].includes(line.qty_sent_source ?? "legacy_unverified");
   const [qtySent, setQtySent] = useState(qtySentIsKnown ? String(line.qty_sent) : "");
-  const [received, setReceived] = useState(source?.morning_received_qty == null ? "" : String(source.morning_received_qty));
+  // A persisted zero is not evidence that the outlet entered zero. The
+  // detail query supplies this explicit provenance bit for existing lines;
+  // defaults are already normalised to null when their provenance is absent.
+  // Keep unverified values blank so the form cannot visually manufacture a
+  // receipt while still allowing an authorised user to enter an explicit 0.
+  const receivedIsKnown = line ? line.morning_received_provided === true : source?.morning_received_qty != null;
+  const [received, setReceived] = useState(receivedIsKnown && source?.morning_received_qty != null ? String(source.morning_received_qty) : "");
   const [wastage, setWastage] = useState(source ? String(source.wastage_qty) : "");
   const [reason, setReason] = useState(source?.wastage_reason ?? "");
   const [remark, setRemark] = useState(source?.notes ?? "");
@@ -113,7 +119,7 @@ function DailyProductLine({ product, line, defaultLine, hiddenClass, locked, can
   return <div className={`${hiddenClass} grid grid-cols-3 items-end gap-2 p-3 md:grid-cols-[minmax(12rem,1fr)_repeat(3,minmax(4.5rem,6rem))] xl:grid-cols-[minmax(12rem,1fr)_repeat(3,minmax(4.5rem,6rem))_minmax(14rem,18rem)]`}>
     <div className="col-span-3 min-w-0 md:col-span-1"><input type="hidden" name="line_product_id" value={product.id} /><p className="break-words font-medium leading-5">{product.product_name}</p><p className="text-xs text-muted-foreground">{product.product_code} · {product.selling_unit}</p></div>
     <label className="min-w-0"><span className="sr-only">Qty Sent</span><Input className="h-10 min-w-0 px-2 text-center tabular-nums" aria-label={`${product.product_name} qty sent`} name="qty_sent" type="number" min="0" step="0.01" value={qtySent} onChange={(event) => { setQtySent(event.target.value); onTouched(); }} disabled={locked || !canEditQtySent} /></label>
-    <label className="min-w-0"><span className="sr-only">Received</span><Input className="h-10 min-w-0 px-2 text-center tabular-nums" aria-label={`${product.product_name} received`} name="morning_received_qty" type="number" min="0" step="0.01" value={received} onChange={(event) => { setReceived(event.target.value); onTouched(); }} disabled={locked || !canEditOutletValues} /></label>
+    <label className="min-w-0"><span className="sr-only">Received</span><Input className="h-10 min-w-0 px-2 text-center tabular-nums" aria-label={`${product.product_name} received`} name="morning_received_qty" type="number" min="0" step="0.01" value={received} placeholder={receivedIsKnown ? undefined : "Not verified"} title={receivedIsKnown ? undefined : "Received quantity has not been verified"} data-received-unverified={!receivedIsKnown ? "true" : undefined} onChange={(event) => { setReceived(event.target.value); onTouched(); }} disabled={locked || !canEditOutletValues} /></label>
     <label className="min-w-0"><span className="sr-only">Wastage</span><Input className="h-10 min-w-0 px-2 text-center tabular-nums" aria-label={`${product.product_name} wastage`} name="wastage_qty" type="number" min="0" step="0.01" value={wastage} onChange={(event) => { const next = event.target.value; setWastage(next); if (Number(next || 0) > 0 && !reason) setReason("unsold"); onTouched(); }} disabled={locked || !canEditOutletValues} /></label>
     {showWastageDetails ? <>
       <div className="col-span-full grid grid-cols-[minmax(0,1fr)_2.75rem] items-end gap-2 md:col-start-2 md:col-end-[-1] md:grid-cols-2 xl:col-start-5 xl:grid-cols-[minmax(0,1fr)_auto]">

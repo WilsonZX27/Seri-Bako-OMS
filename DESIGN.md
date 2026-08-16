@@ -1,11 +1,15 @@
 # Seri Bako OMS responsive design standard
 
-> **Release authority:** the currently released application is `v8.64.46`, as
+> **Release authority:** the currently released application is `v8.64.47`, as
 > defined by `src/lib/app-version.ts`. A versioned section above that number is
 > an accepted forward design contract or unreleased implementation note—not
 > evidence that the application itself has been released at that version.
 > `docs/DESIGN_SYSTEM.md` owns the current visual principles; this file retains
 > versioned implementation history and workspace rules.
+
+## v8.64.47 - Fail-closed Unverified Receipt Inputs
+
+- Outlet daily detail inputs show `Not verified` rather than a persisted default `0` until receipt provenance is confirmed. Explicit user-entered zero remains valid.
 
 ## v8.64.46 - Hide Mobile Chrome on Editable Focus
 

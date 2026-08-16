@@ -2,7 +2,11 @@
 
 ## Product Overview
 
-The current released application baseline is `v8.64.46` — Hide Mobile Chrome on Editable Focus.
+The current released application baseline is `v8.64.47` — Fail-closed Unverified Receipt Inputs.
+
+### v8.64.47 — Fail-closed Unverified Receipt Inputs
+
+- Outlet daily detail forms no longer render a persisted database-default receipt `0` when receipt provenance is unverified. The field stays blank with a `Not verified` placeholder until an authorised user confirms a value, including an intentional zero.
 
 ### v8.64.46 — Hide Mobile Chrome on Editable Focus
 
@@ -111,7 +115,7 @@ The current released application baseline is `v8.64.46` — Hide Mobile Chrome o
 
 ### Current audit baseline
 
-The current released application baseline is `v8.64.46 — Hide Mobile Chrome on Editable Focus`.
+The current released application baseline is `v8.64.47 — Fail-closed Unverified Receipt Inputs`.
 
 Item Master lookup now has one authoritative token-matching combobox shared by
 Kitchen PR entry and Purchasing Review. Users may search using partial words

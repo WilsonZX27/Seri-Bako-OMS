@@ -39,6 +39,19 @@ html[data-design-layer="v2"] [data-workspace-grid][data-tablet-canvas="full"] {
   max-width: none;
 }
 
+/* The completion matrix uses separated cells, so a horizontally scrolled date
+   can otherwise glint through the spacing immediately before the sticky outlet
+   column. Extend the sticky surface into that seam instead of widening the
+   column or hiding useful horizontal scroll. */
+html[data-design-layer="v2"] [data-outlet-completion-scrollport] th.sticky::before {
+  position: absolute;
+  inset-block: -0.25rem;
+  right: 100%;
+  width: 0.75rem;
+  content: "";
+  background: var(--sb-surface);
+}
+
 /* Tablet split authority: list tools must reflow before they collide with the context rail. */
 @media (min-width: 768px) and (max-width: 1279px) {
   [data-tablet-document-split] [data-tablet-main-list],

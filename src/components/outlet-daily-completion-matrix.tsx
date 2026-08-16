@@ -46,8 +46,8 @@ export function OutletDailyCompletionMatrix({ dates, rows, summary, unavailable 
       </div>
       <p id="outlet-completion-scroll-hint" className="px-3 pt-2 text-[11px] text-muted-foreground sm:hidden">Swipe horizontally to view all days. Select a status for exact details.</p>
       <p className="hidden px-3 pt-2 text-[11px] text-muted-foreground sm:block">Scroll horizontally to view all days. Select a status for exact details.</p>
-      <div className="relative block w-full max-w-full overflow-x-auto overscroll-x-contain px-2 py-2 sm:px-0" tabIndex={0} aria-label="Outlet completion matrix" aria-describedby="outlet-completion-scroll-hint" data-outlet-completion-scrollport>
-        <table className="w-max min-w-[40rem] table-fixed border-separate border-spacing-1 text-xs">
+      <div className="relative isolate block w-full max-w-full overflow-x-auto overscroll-x-contain bg-[var(--sb-surface)] px-2 py-2 sm:px-0" tabIndex={0} aria-label="Outlet completion matrix" aria-describedby="outlet-completion-scroll-hint" data-outlet-completion-scrollport>
+        <table className="w-full min-w-[40rem] table-fixed border-separate border-spacing-1 text-xs">
           <colgroup><col className="w-[9rem] sm:w-48" />{dates.map((date) => <col key={date} className="w-[3.5rem] sm:w-14" />)}</colgroup>
           <thead><tr><th scope="col" className="sticky left-0 z-30 min-w-[9rem] w-[9rem] max-w-[9rem] border-r border-[var(--sb-border-soft)] bg-[var(--sb-surface)] pb-1 pr-2 text-left font-medium text-muted-foreground shadow-[4px_0_8px_rgb(6_44_31_/_0.08)] sm:min-w-48 sm:w-48 sm:max-w-48 sm:pr-3">Outlet</th>{dates.map((date) => <th key={date} scope="col" className="min-w-[3.5rem] pb-1 text-center text-[9px] font-medium text-muted-foreground sm:min-w-14 sm:text-xs"><span className="block">{new Intl.DateTimeFormat("en-MY", { weekday: "short", timeZone: "UTC" }).format(new Date(`${date}T00:00:00Z`))}</span><span className="text-[9px] font-normal sm:text-[10px]">{date.slice(8)}</span></th>)}</tr></thead>
           <tbody>{rows.map((row) => <tr key={row.branch_id}><th scope="row" className="sticky left-0 z-20 min-w-[9rem] w-[9rem] max-w-[9rem] border-r border-[var(--sb-border-soft)] bg-[var(--sb-surface)] pr-2 text-left text-[10px] font-medium shadow-[4px_0_8px_rgb(6_44_31_/_0.08)] sm:min-w-48 sm:w-48 sm:max-w-48 sm:pr-3 sm:text-xs" title={row.branch_name}><span className="block truncate">{row.branch_name}</span></th>{row.cells.map((cell) => {
@@ -59,12 +59,12 @@ export function OutletDailyCompletionMatrix({ dates, rows, summary, unavailable 
           })}</tr>)}</tbody>
         </table>
       </div>
-      <div className="border-t border-[var(--sb-border-soft)] px-3 py-2" aria-live="polite" data-outlet-completion-preview>
-        {active ? <div className="grid gap-1 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center">
+      {active ? <div className="border-t border-[var(--sb-border-soft)] px-3 py-2" aria-live="polite" data-outlet-completion-preview>
+        <div className="grid gap-1 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center">
           <div><p className="text-xs font-semibold">{active.branch_name} · {formatDateOnly(active.record_date)}</p><p className="text-[11px] text-muted-foreground">{stateMeta[active.status].label}{active.status === "missing" ? " · no record exists for this outlet-day" : " · recorded system status"}</p></div>
           {active.record_id ? <Link href={`/outlet-daily-records/${active.record_id}`} className="inline-flex min-h-11 items-center text-xs font-semibold text-primary underline-offset-4 hover:underline xl:min-h-8">Open daily record</Link> : active.status === "missing" && canCreate ? <Link href={`/outlet-daily-records/new?branch_id=${encodeURIComponent(active.branch_id)}&date=${encodeURIComponent(active.record_date)}`} className="inline-flex min-h-11 items-center text-xs font-semibold text-primary underline-offset-4 hover:underline xl:min-h-8">Create daily record</Link> : null}
-        </div> : null}
-      </div>
+        </div>
+      </div> : null}
       </div>
       {showCoverageDetails ? <details className="border-t border-[var(--sb-border-soft)] px-3 py-2 text-xs"><summary className="cursor-pointer font-medium text-primary">Coverage · {summary.completed}/{summary.expected} complete</summary><dl className="mt-2 grid grid-cols-3 gap-2 text-[11px] text-muted-foreground"><div><dt>In progress</dt><dd className="font-semibold text-[var(--sb-text)]">{summary.incomplete}</dd></div><div><dt>Missing</dt><dd className="font-semibold text-[var(--sb-text)]">{summary.missing}</dd></div><div><dt>Void</dt><dd className="font-semibold text-[var(--sb-text)]">{summary.voided}</dd></div></dl></details> : null}
     </> : <div className="px-4 py-8 text-center"><p className="text-sm font-medium">No outlets in your current scope</p><p className="mt-1 text-xs text-muted-foreground">Completion appears after an outlet is assigned and active.</p></div>}

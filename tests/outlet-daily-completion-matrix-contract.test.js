@@ -45,14 +45,23 @@ test("outlet completion matrix previews before an explicit record open", () => {
 
 test("matrix keeps a readable frozen outlet column while dates scroll horizontally", () => {
   const component = read("src/components/outlet-daily-completion-matrix.tsx");
+  const design = read("src/app/design-system-v2.css");
   assert.match(component, /Swipe horizontally to view all days\./);
   assert.match(component, /aria-describedby="outlet-completion-scroll-hint"/);
   assert.match(component, /className="sticky left-0 z-30[\s\S]*min-w-\[9rem\][\s\S]*sm:min-w-48/);
   assert.match(component, /className="sticky left-0 z-20[\s\S]*min-w-\[9rem\][\s\S]*sm:min-w-48/);
   assert.match(component, /<colgroup>[\s\S]*w-\[3\.5rem\][\s\S]*sm:w-14/);
-  assert.match(component, /relative block w-full max-w-full overflow-x-auto overscroll-x-contain/);
-  assert.match(component, /w-max min-w-\[40rem\] table-fixed/);
+  assert.match(component, /relative isolate block w-full max-w-full overflow-x-auto overscroll-x-contain/);
+  assert.match(component, /w-full min-w-\[40rem\] table-fixed/);
+  assert.doesNotMatch(component, /w-max min-w-\[40rem\]/);
+  assert.match(design, /\[data-outlet-completion-scrollport\] th\.sticky::before/);
   assert.match(component, /Scroll horizontally to view all days/);
+});
+
+test("matrix detail consumes no permanent row until a status is previewed", () => {
+  const component = read("src/components/outlet-daily-completion-matrix.tsx");
+  assert.match(component, /\{active \? <div[^>]+data-outlet-completion-preview>/);
+  assert.doesNotMatch(component, /<div[^>]+data-outlet-completion-preview>[\s\S]*\{active \?/);
 });
 
 test("phone completion insight keeps the summary and seven-day matrix directly scannable", () => {

@@ -1,11 +1,21 @@
 # Seri Bako OMS responsive design standard
 
-> **Release authority:** the currently released application is `v8.64.19`, as
+> **Release authority:** the currently released application is `v8.64.20`, as
 > defined by `src/lib/app-version.ts`. A versioned section above that number is
 > an accepted forward design contract or unreleased implementation note—not
 > evidence that the application itself has been released at that version.
 > `docs/DESIGN_SYSTEM.md` owns the current visual principles; this file retains
 > versioned implementation history and workspace rules.
+
+## v8.64.20 - Stable Outlet Completion Matrix
+
+- The seven-day completion matrix fills the shared canvas rather than leaving
+  a large blank desktop remainder, while retaining horizontal scroll on narrow
+  screens.
+- The frozen outlet column owns an opaque seam over separated cells so date
+  controls cannot leak through its left edge while scrolling.
+- Exact status detail remains hover, focus, and tap driven. No preview strip or
+  blank row is reserved before the operator selects an outlet-day.
 
 ## v8.64.19 - Responsive Procurement Lines
 

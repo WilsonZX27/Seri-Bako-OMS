@@ -2,11 +2,15 @@
 
 ## Product Overview
 
-Current release authority: v8.64.19 - Responsive Procurement Lines.
+Current release authority: v8.64.20 - Stable Outlet Completion Matrix.
 
 ### Current audit baseline
 
-The current released application baseline is `v8.64.19 — Responsive Procurement Lines`.
+The current released application baseline is `v8.64.20 — Stable Outlet Completion Matrix`.
+
+The seven-day outlet completion matrix fills its containing canvas, preserves a
+fully opaque frozen outlet column during horizontal scroll, and adds no empty
+preview row until an operator hovers, focuses, or taps a specific outlet-day.
 
 Purchase request lines keep the stacked touch layout through tablet portrait
 and landscape widths; the dense single-row editor begins only at laptop width.

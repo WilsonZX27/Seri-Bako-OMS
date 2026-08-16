@@ -239,7 +239,7 @@ export async function getOutletDailyRecords(filters: Filters = {}) {
       today,
       today_records: todayRows.length,
       today_sent: todayRows.reduce((sum, row) => sum + row.total_sent, 0),
-      today_received: todayRows.every((row) => row.total_received !== null)
+      today_received: todayRows.length > 0 && todayRows.every((row) => row.total_received !== null)
         ? todayRows.reduce((sum, row) => sum + (row.total_received ?? 0), 0)
         : null,
       today_received_unavailable: todayRows.filter((row) => row.total_received === null).length,

@@ -47,8 +47,8 @@ test("phone matrix fits all seven days while wider workspaces retain pinned hori
   const component = read("src/components/outlet-daily-completion-matrix.tsx");
   assert.match(component, /All seven days fit this view\./);
   assert.match(component, /aria-describedby="outlet-completion-scroll-hint"/);
-  assert.match(component, /sm:sticky sm:left-0 sm:z-30/);
-  assert.match(component, /sm:sticky sm:left-0 sm:z-20/);
+  assert.match(component, /className="sticky left-0 z-30[\s\S]*sm:w-48/);
+  assert.match(component, /className="sticky left-0 z-20[\s\S]*sm:w-48/);
   assert.match(component, /relative block w-full max-w-full overflow-x-auto overscroll-x-contain/);
   assert.match(component, /min-w-\[40rem\] table-fixed/);
   assert.match(component, /Scroll horizontally to view all days/);

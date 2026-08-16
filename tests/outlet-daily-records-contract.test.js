@@ -127,6 +127,7 @@ test("received totals never turn an unverified default zero into a business fact
   assert.match(query, /received_state: "verified" \| "unavailable"/);
   assert.match(query, /total_received: number \| null/);
   assert.match(query, /today_received_unavailable/);
+  assert.match(query, /todayRows\.length > 0 && todayRows\.every/);
   assert.match(query, /morning_received_provided: receivedValueIsTrusted\(line\)/);
   assert.match(query, /morning_received_qty: receivedValueIsTrusted\(line\) \? line\.morning_received_qty : null/);
   assert.match(form, /source\?\.morning_received_qty == null \? "" : String\(source\.morning_received_qty\)/);

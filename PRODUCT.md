@@ -4,9 +4,9 @@
 
 ### Current audit baseline
 
-The current released application baseline is `v8.52.0 — Responsive Reports Rankings and Trusted Receipt Inputs`.
+The current released application baseline is `v8.53.0 — Pinned Outlet Coverage and Trusted Daily Totals`.
 
-The lines below are retained as historical release context; the current authority is the v8.52.0 line above.
+The lines below are retained as historical release context; the current authority is the v8.53.0 line above.
 The repository migration history currently runs through migration `149`. Release
 version authority lives in `src/lib/app-version.ts`; migration authority lives in
 the immutable, forward-only `supabase/migrations/` directory. Documentation must

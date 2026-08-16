@@ -51,6 +51,9 @@ test("Top movement and wastage use touch-friendly ranking previews with progress
   assert.match(ranking, /col-start-2[\s\S]*row-start-2[\s\S]*xl:col-start-3[\s\S]*xl:row-start-1/);
   assert.match(ranking, /index \+ 1/);
   assert.match(ranking, /data-ranking-preview[\s\S]*min-h-\[4\.5rem\]/);
+  assert.match(ranking, /grid-cols-\[minmax\(0,1fr\)_auto\]/);
+  assert.match(ranking, /data-ranking-open[\s\S]*col-start-2 row-span-2 row-start-1/);
+  assert.match(ranking, /<span className="tabular-nums">\{activeItem\.formattedValue\}<\/span>/);
   assert.match(ranking, /id=\{previewId\}/);
   assert.doesNotMatch(ranking, /rowPreviewId/);
   assert.match(ranking, /item\.value <= 0 \? 0 : Math\.max\(3,/);

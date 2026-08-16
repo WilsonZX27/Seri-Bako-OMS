@@ -50,6 +50,7 @@ test("report preview slots stay stable before selection", () => {
   assert.match(ranking, /data-ranking-idle/);
   assert.match(ranking, /id=\{previewId\}/);
   assert.match(ranking, /data-ranking-preview[\s\S]{0,240}min-h-\[4\.5rem\]/);
+  assert.match(ranking, /data-ranking-open[\s\S]*row-span-2/);
   assert.doesNotMatch(ranking, /id=\{rowPreviewId\}/);
   assert.match(aging, /data-aging-preview[\s\S]*min-h-\[4\.5rem\][\s\S]*border/);
   assert.match(production, /data-production-signal-preview/);

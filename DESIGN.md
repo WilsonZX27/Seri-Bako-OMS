@@ -1,11 +1,20 @@
 # Seri Bako OMS responsive design standard
 
-> **Release authority:** the currently released application is `v8.64.34`, as
+> **Release authority:** the currently released application is `v8.64.35`, as
 > defined by `src/lib/app-version.ts`. A versioned section above that number is
 > an accepted forward design contract or unreleased implementation note—not
 > evidence that the application itself has been released at that version.
 > `docs/DESIGN_SYSTEM.md` owns the current visual principles; this file retains
 > versioned implementation history and workspace rules.
+
+## v8.64.35 - Compact Report Ranking Previews
+
+- Shared report rankings keep the selected value and drill-through action in a
+  fixed right-hand preview affordance rather than adding a third mobile row.
+- The complete label and supporting values remain visible in the reserved
+  preview region while the 44px action target stays reachable by touch.
+- Product margin, recipe costing, demand trends, procurement variance, costing
+  readiness, and Stock Count variance inherit the same responsive contract.
 
 ## v8.64.34 - Stable Report Ranking Previews
 

@@ -223,6 +223,9 @@ test("low-stock PR creation uses selectable phone rows instead of a five-column 
   assert.match(source, /Choose one branch before selecting items for a purchase request\./);
   assert.match(source, /disabled=\{!branchSelected\}/);
   assert.match(source, /data-low-stock-pr-line data-selected=/);
+  assert.match(source, /Select all visible low-stock items/);
+  assert.match(source, /input\.indeterminate = someVisibleSelected && !allVisibleSelected/);
+  assert.match(source, /Select all visible/);
   assert.match(source, /data-low-stock-pr-quantity/);
   assert.match(source, /\{isSelected \? <span className="col-span-2"/);
   assert.match(source, /label="Qty for PR"/);

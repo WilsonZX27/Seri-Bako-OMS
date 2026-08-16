@@ -1,6 +1,6 @@
 # Seri Bako OMS responsive design standard
 
-> **Release authority:** the currently released application is `v8.64.8`, as
+> **Release authority:** the currently released application is `v8.64.9`, as
 > defined by `src/lib/app-version.ts`. A versioned section above that number is
 > an accepted forward design contract or unreleased implementation note—not
 > evidence that the application itself has been released at that version.
@@ -18,6 +18,10 @@
 ## v8.64.8 - Pinned Completion Matrix
 
 - Outlet Daily completion keeps the outlet column readable and frozen while the seven date columns use fixed widths inside a bounded horizontal scrollport. Mobile copy now describes the actual swipe interaction instead of claiming that every date fits without scrolling.
+
+## v8.64.9 - Low Stock Select All
+
+- Low Stock procurement now exposes one branch-scoped select-all checkbox on desktop and mobile. It reports an indeterminate state for partial selection and never selects rows while the branch scope is unchosen.
 
 ## v8.64.5 - Verified Receiving Provenance
 

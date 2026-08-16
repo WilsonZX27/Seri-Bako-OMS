@@ -1,6 +1,6 @@
 "use client";
 
-import { Fragment, useMemo, useState } from "react";
+import { Fragment, useEffect, useMemo, useRef, useState } from "react";
 import { PackageOpen, ShoppingBasket, X } from "lucide-react";
 import { SubmitButton } from "@/components/ui/submit-button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -66,6 +66,7 @@ export function LowStockPrForm({ items, branches, defaultBranchId, disabled }: {
   const [uoms, setUoms] = useState<Record<string, string>>({});
   const [basketOpen, setBasketOpen] = useState(false);
   const [idempotencyKey] = useState(() => crypto.randomUUID());
+  const branchSelected = selectedBranchId !== "all";
 
   const selectedCount = visibleItems.filter((item) => selected[rowKey(item)]).length;
   const selectedTotal = selectedCount === 0
@@ -78,6 +79,10 @@ export function LowStockPrForm({ items, branches, defaultBranchId, disabled }: {
       }, 0)
       .toFixed(2);
   const selectedItems = useMemo(() => visibleItems.filter((item) => selected[rowKey(item)]), [selected, visibleItems]);
+  const allVisibleSelected = branchSelected && visibleItems.length > 0 && visibleItems.every((item) => selected[rowKey(item)]);
+  const someVisibleSelected = branchSelected && visibleItems.some((item) => selected[rowKey(item)]);
+  const selectAllDesktopRef = useRef<HTMLInputElement>(null);
+  const selectAllMobileRef = useRef<HTMLInputElement>(null);
   const supplierGroups = useMemo(() => groupBySupplier(selectedItems), [selectedItems]);
   const basketPayload = useMemo(() => supplierGroups
     .filter(([supplierId]) => supplierId !== "unassigned")
@@ -123,7 +128,28 @@ export function LowStockPrForm({ items, branches, defaultBranchId, disabled }: {
     setUoms({});
   }
 
-  const branchSelected = selectedBranchId !== "all";
+  useEffect(() => {
+    for (const input of [selectAllDesktopRef.current, selectAllMobileRef.current]) {
+      if (input) input.indeterminate = someVisibleSelected && !allVisibleSelected;
+    }
+  }, [allVisibleSelected, someVisibleSelected]);
+
+  function toggleAllVisible() {
+    if (!branchSelected) return;
+    const nextValue = !allVisibleSelected;
+    setSelected((current) => {
+      const next = { ...current };
+      for (const item of visibleItems) next[rowKey(item)] = nextValue;
+      return next;
+    });
+    if (!nextValue) {
+      setQuantities((current) => {
+        const next = { ...current };
+        for (const item of visibleItems) delete next[rowKey(item)];
+        return next;
+      });
+    }
+  }
 
   return (
     <>
@@ -185,7 +211,7 @@ export function LowStockPrForm({ items, branches, defaultBranchId, disabled }: {
               <table className="w-full">
                 <thead>
                   <tr className="bg-secondary/40 text-left text-xs">
-                    <th className="px-3 py-2 font-medium w-10" />
+                    <th className="w-10 px-3 py-2 font-medium"><input ref={selectAllDesktopRef} type="checkbox" aria-label="Select all visible low-stock items" checked={allVisibleSelected} onChange={toggleAllVisible} disabled={!branchSelected || !visibleItems.length} /></th>
                     <th className="px-3 py-2 font-medium">Item</th>
                     <th className="px-3 py-2 font-medium">Current</th>
                     <th className="px-3 py-2 font-medium">Suggested</th>
@@ -256,6 +282,10 @@ export function LowStockPrForm({ items, branches, defaultBranchId, disabled }: {
             </div>
 
             <div className="divide-y divide-[var(--sb-border-soft)] border-y border-[var(--sb-border-soft)] md:hidden" data-low-stock-pr-lines>
+              <div className="flex items-center justify-between gap-3 border-b border-[var(--sb-border-soft)] bg-secondary/20 px-3 py-2 text-xs">
+                <label className="inline-flex min-h-11 items-center gap-2 font-medium"><input ref={selectAllMobileRef} type="checkbox" aria-label="Select all visible low-stock items" checked={allVisibleSelected} onChange={toggleAllVisible} disabled={!branchSelected || !visibleItems.length} /> Select all visible</label>
+                <span className="text-muted-foreground">{selectedCount} selected</span>
+              </div>
               {groupBySupplier(visibleItems).map(([supplierId, supplierItems]) => <div key={`mobile-supplier-group-${supplierId}`}>
                 <div className="bg-secondary/30 px-3 py-2 text-[11px] font-semibold uppercase tracking-[0.08em] text-[var(--sb-text-muted)]">
                   {supplierItems[0]?.supplier_name ?? "Supplier mapping missing"}

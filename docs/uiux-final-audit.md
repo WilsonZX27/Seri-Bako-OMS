@@ -48,6 +48,11 @@ This is the working ledger for the final close-out. Every browser comment must h
 - Mobile guidance now says “Swipe horizontally to view all days,” matching the actual interaction. The source-level contract covers the pinned column, fixed date columns, and scroll affordance.
 - The local release is `v8.64.8`; remote/browser verification remains open until the preview footer and a real 390px/820px matrix scroll check confirm the behavior.
 
+## Low Stock selection pass — 2026-08-16
+
+- Low Stock procurement now has a branch-scoped select-all control in both desktop and mobile presentations. Partial selections use the native indeterminate checkbox state, while unselected branch scope keeps the control disabled to prevent accidental cross-branch requests.
+- Existing UOM selection, supplier validation, and quantity controls remain unchanged. The local release is `v8.64.9`; browser verification remains open until the preview footer and a real branch-selection flow confirm the control at 390px and 1440px.
+
 ## Report preview continuity pass — 2026-08-16
 
 The report annotations that called out hover/focus preview flicker are now fixed in the shared chart surfaces, not by route-specific CSS:

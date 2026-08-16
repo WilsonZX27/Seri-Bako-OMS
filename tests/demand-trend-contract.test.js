@@ -20,6 +20,8 @@ test("Demand Trend Lite exposes coverage confidence and reliability cues", () =>
   assert.match(query, /no_completed_records: completed_records === 0/);
   assert.match(page, /Low sample/);
   assert.match(page, /No completed records in this range/);
+  assert.match(page, /const trendMetric = \(row: TrendRow, value: number\) => row\.no_completed_records \? "Unavailable"/);
+  assert.match(page, /const trendRate = \(row: TrendRow\) => row\.no_completed_records \? "Unavailable"/);
 });
 
 test("Demand Trend Lite calculates movement and wastage from outlet lines only", () => {
@@ -45,8 +47,8 @@ test("Demand Trend Lite uses dense phone summaries and compact trend rows", () =
   assert.doesNotMatch(page, /className="grid-cols-3 lg:grid-cols-6"/);
   assert.match(page, /<Table mobileHidden aria-label=\{title\}/);
   assert.match(page, /<OperationalList ariaLabel=\{title\}/);
-  assert.match(page, /Movement \{formatNumber\(row\.movement\)\}/);
-  assert.match(page, /Received \{formatNumber\(row\.received\)\} · Leftover/);
+  assert.match(page, /Movement \{trendMetric\(row, row\.movement\)\}/);
+  assert.match(page, /Received \{trendMetric\(row, row\.received\)\} · Leftover/);
 });
 
 test("Demand Trend Lite has one report route and inherits outlet-record access", () => {

@@ -1,11 +1,20 @@
 # Seri Bako OMS responsive design standard
 
-> **Release authority:** the currently released application is `v8.64.38`, as
+> **Release authority:** the currently released application is `v8.64.39`, as
 > defined by `src/lib/app-version.ts`. A versioned section above that number is
 > an accepted forward design contract or unreleased implementation note—not
 > evidence that the application itself has been released at that version.
 > `docs/DESIGN_SYSTEM.md` owns the current visual principles; this file retains
 > versioned implementation history and workspace rules.
+
+## v8.64.39 - Converge Tablet Query Tracks
+
+- Tablet list query cards use the number of visible control groups as their
+  grid authority. They no longer reserve a hard-coded fourth column when only
+  two filters and the Search/count action are present.
+- The action group owns one equal grid track; its record count remains an
+  intrinsic suffix rather than forcing the Search button outside that track.
+- Workspace canvas and tablet shell geometry remain unchanged.
 
 ## v8.64.38 - Restore Established Workspace Geometry
 

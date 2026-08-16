@@ -2,7 +2,15 @@
 
 ## Product Overview
 
-The current released application baseline is `v8.64.38` — Restore Established Workspace Geometry.
+The current released application baseline is `v8.64.39` — Converge Tablet Query Tracks.
+
+### v8.64.39 — Converge Tablet Query Tracks
+
+- Shared list query cards derive their tablet track count from the controls
+  they actually render, so filters and Search fill the row without overlap or
+  a phantom empty column.
+- The change is scoped to query-card layout and does not alter workspace canvas
+  width or tablet shell selection.
 
 ### v8.64.38 — Restore Established Workspace Geometry
 
@@ -118,7 +126,7 @@ rewrite navigation and overflow behavior.
 
 Historical release context: `v8.64.6 — Reliable Outlet Daily Reads`; earlier context: `v8.64.5 — Verified Receiving Provenance`, `v8.64.4 — Stable Report Preview Surfaces`, and `v8.63.0 — Fail-Closed Goods Receiving Joins`.
 
-The lines below are retained as historical release context; the current authority is the v8.64.38 release declaration above.
+The lines below are retained as historical release context; the current authority is the v8.64.39 release declaration above.
 The repository migration history currently runs through migration `154`. Release
 version authority lives in `src/lib/app-version.ts`; migration authority lives in
 the immutable, forward-only `supabase/migrations/` directory. Documentation must

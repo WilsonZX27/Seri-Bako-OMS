@@ -10,6 +10,7 @@ import {
   useMemo,
   useRef,
   useState,
+  type CSSProperties,
   type FormEvent,
   type ReactElement,
   type ReactNode,
@@ -245,6 +246,7 @@ export function UnifiedListHeader({ children, resultCount, resetHref, filtered =
   if (!mobile) {
     const desktopActions = all.filter(isAction);
     const desktopControls = all.filter((child) => !isAction(child));
+    const tabletColumns = Math.min(Math.max(desktopControls.length, 1), 4);
     const actionNodes = desktopActions.map((child) => {
       if (!isValidElement(child)) return child;
       const props = propsOf(child);
@@ -253,7 +255,13 @@ export function UnifiedListHeader({ children, resultCount, resetHref, filtered =
         "data-list-primary-action": true,
       });
     });
-    return <form className={cn("sb-list-filters sb-list-query-card", className)} data-unified-list-desktop="true" data-filtered={filtered || undefined} data-reset-href={resetHref}>
+    return <form
+      className={cn("sb-list-filters sb-list-query-card", className)}
+      data-unified-list-desktop="true"
+      data-filtered={filtered || undefined}
+      data-reset-href={resetHref}
+      style={{ "--sb-list-tablet-columns": tabletColumns } as CSSProperties}
+    >
       {desktopControls}
       <div className="unified-list-desktop-actions">
         {actionNodes}

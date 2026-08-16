@@ -77,11 +77,30 @@ export type InventoryDailyMovementRow = {
 
 const MAX_INVENTORY_DASHBOARD_FALLBACK_BALANCES = 2_000;
 const MAX_INVENTORY_DAILY_MOVEMENT_FALLBACK_ROWS = 10_000;
+const INVENTORY_READ_RETRY_DELAYS_MS = [350, 900] as const;
+
+type InventoryReadResponse = {
+  error: { code?: string | null; message?: string | null } | null;
+};
+
+function isRetryableInventoryReadError(error: InventoryReadResponse["error"]) {
+  if (!error) return false;
+  const code = String(error.code ?? "").toUpperCase();
+  if (["57014", "PGRST002", "PGRST003", "502", "503", "504"].includes(code)) return true;
+  return /(?:timeout|timed out|temporarily unavailable|network|fetch failed|connection reset)/i.test(error.message ?? "");
+}
 
 // The summary RPC is already bounded server-side. Keep this named boundary
-// for the dashboard contract without introducing client-side timeout fallbacks.
-async function boundedInventoryInsight<T>(query: PromiseLike<T>): Promise<T> {
-  return await query;
+// for the dashboard contract. Retry only transient read failures; a final
+// failure still reaches the existing explicit unavailable/fallback path.
+async function boundedInventoryInsight<T extends InventoryReadResponse>(operation: () => PromiseLike<T>): Promise<T> {
+  let result = await operation();
+  for (const delayMs of INVENTORY_READ_RETRY_DELAYS_MS) {
+    if (!isRetryableInventoryReadError(result.error)) return result;
+    await new Promise((resolve) => setTimeout(resolve, delayMs));
+    result = await operation();
+  }
+  return result;
 }
 
 function inventoryPeriodRange(period: "7d" | "30d" | "month") {
@@ -172,7 +191,7 @@ export async function getInventoryDailyMovement(period: "7d" | "30d" | "month" =
   if (isMockMode()) return { rows: mockInventoryDailyMovement(period), unavailable: false };
 
   const supabase = await createClient();
-  const { data, error } = await boundedInventoryInsight(supabase.rpc("get_inventory_daily_movement_summary", { p_period: period }));
+  const { data, error } = await boundedInventoryInsight(() => supabase.rpc("get_inventory_daily_movement_summary", { p_period: period }));
   if (error) {
     warnOptionalInventoryQuery("daily movement summary", error);
     try {
@@ -616,7 +635,7 @@ export async function getStockLedger(filters: Filters = {}) {
   const direction = filters.direction && filters.direction !== "all" ? filters.direction : null;
   const page = requestedPage(filters.page);
   const exportAll = filters.page === "all";
-  const { data, error } = await supabase.rpc("get_stock_ledger_bounded_page", {
+  const { data, error } = await boundedInventoryInsight(() => supabase.rpc("get_stock_ledger_bounded_page", {
     p_from: from,
     p_to: to,
     p_item_id: itemId,
@@ -629,7 +648,7 @@ export async function getStockLedger(filters: Filters = {}) {
     p_dir: filters.dir === "asc" ? "asc" : "desc",
     p_offset: exportAll ? 0 : (page - 1) * INVENTORY_PAGE_SIZE,
     p_limit: exportAll ? 50000 : INVENTORY_PAGE_SIZE,
-  });
+  }));
   if (error) {
     warnOptionalInventoryQuery("Movement Ledger", error);
     try {
@@ -782,7 +801,7 @@ export async function getInventoryDashboard(period: "7d" | "30d" | "month" = "30
   }
 
   const supabase = await createClient();
-  const { data, error } = await boundedInventoryInsight(supabase.rpc("get_inventory_dashboard_summary", { p_period: period }));
+  const { data, error } = await boundedInventoryInsight(() => supabase.rpc("get_inventory_dashboard_summary", { p_period: period }));
   if (error || !data) {
     warnOptionalInventoryQuery("dashboard summary", error);
     return await getInventoryDashboardFallback(supabase, period);
@@ -827,7 +846,7 @@ export async function getStockCardResult(filters: Filters = {}): Promise<StockCa
     const from = filters.from || today;
     const to = filters.to || from;
     const supabase = await createClient();
-    const { data, error } = await supabase.rpc("get_stock_card_bounded", {
+    const { data, error } = await boundedInventoryInsight(() => supabase.rpc("get_stock_card_bounded", {
       p_from: from,
       p_to: to,
       p_item_id: filters.item_id && filters.item_id !== "all" ? filters.item_id : null,
@@ -836,7 +855,7 @@ export async function getStockCardResult(filters: Filters = {}): Promise<StockCa
       p_direction: filters.direction && filters.direction !== "all" ? filters.direction : null,
       p_search: filters.search?.trim() || null,
       p_source: filters.source?.trim() || null,
-    });
+    }));
     if (error) {
       warnOptionalInventoryQuery("Stock Card", error);
       try {

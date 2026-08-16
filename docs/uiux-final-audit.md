@@ -53,6 +53,12 @@ This is the working ledger for the final close-out. Every browser comment must h
 - Low Stock procurement now has a branch-scoped select-all control in both desktop and mobile presentations. Partial selections use the native indeterminate checkbox state, while unselected branch scope keeps the control disabled to prevent accidental cross-branch requests.
 - Existing UOM selection, supplier validation, and quantity controls remain unchanged. The local release is `v8.64.9`; browser verification remains open until the preview footer and a real branch-selection flow confirm the control at 390px and 1440px.
 
+## Transient inventory read retry pass — 2026-08-16
+
+- Movement Ledger, Stock Card, Inventory Dashboard, and daily movement summary RPC reads now retry only recognized transient failures (`57014`, temporary PostgREST/service errors, and connection/fetch timeouts) with a capped 350ms/900ms backoff.
+- The retry is read-only and bounded. If the source remains unavailable, existing fail-closed behavior is preserved: the UI shows `Unavailable` or an explicit service notice and never renders synthetic zero rows, totals, or balances.
+- Contract coverage and TypeScript verification pass locally. Live Supabase recovery and deployed preview verification remain separate environment checks; this change does not claim remote RPC health.
+
 ## Report preview continuity pass — 2026-08-16
 
 The report annotations that called out hover/focus preview flicker are now fixed in the shared chart surfaces, not by route-specific CSS:

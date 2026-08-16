@@ -1,11 +1,16 @@
 # Seri Bako OMS responsive design standard
 
-> **Release authority:** the currently released application is `v8.64.42`, as
+> **Release authority:** the currently released application is `v8.64.43`, as
 > defined by `src/lib/app-version.ts`. A versioned section above that number is
 > an accepted forward design contract or unreleased implementation note—not
 > evidence that the application itself has been released at that version.
 > `docs/DESIGN_SYSTEM.md` owns the current visual principles; this file retains
 > versioned implementation history and workspace rules.
+
+## v8.64.43 - Close Query Card Style Authority
+
+- Canonical query cards now have one geometry owner; legacy compatibility rules explicitly exclude them.
+- Added a CSS authority contract so a future broad `.sb-list-filters` rule cannot reintroduce duplicate sizing, radius, or spacing.
 
 ## v8.64.42 - Converge Report Interaction Scaling
 

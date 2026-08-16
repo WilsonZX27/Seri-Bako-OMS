@@ -21,6 +21,11 @@ test("FilterBar geometry has one authoritative stylesheet", () => {
   const canonicalStart = designV2.indexOf("Canonical list workspace contract");
   assert.notEqual(canonicalStart, -1);
   const beforeCanonical = designV2.slice(0, canonicalStart);
+  assert.doesNotMatch(
+    beforeCanonical,
+    /\.sb-list-filters:not\(\.unified-list-header\)(?!:not\(\.sb-list-query-card\))/,
+    "legacy v2 filter compatibility rules must not also own query-card geometry",
+  );
   assert.equal((designV2.match(/form\[data-unified-list-desktop="true"\]/g) ?? []).length, 1);
   assert.doesNotMatch(beforeCanonical, /Canonical desktop\/tablet filter rail|Compact desktop filter contract|flex:\s*0 0 9rem/);
   assert.equal((designV2.match(/Canonical list workspace contract/g) ?? []).length, 1);

@@ -7,6 +7,7 @@ const designV2 = fs.readFileSync("src/app/design-system-v2.css", "utf8");
 const filterBar = fs.readFileSync("src/components/ui/filter-bar.tsx", "utf8");
 const selectControl = fs.readFileSync("src/components/ui/select-control.tsx", "utf8");
 const input = fs.readFileSync("src/components/ui/input.tsx", "utf8");
+const unifiedListHeader = fs.readFileSync("src/components/common/UnifiedListHeader.tsx", "utf8");
 
 test("FilterBar geometry has one authoritative stylesheet", () => {
   assert.doesNotMatch(designV2, /^\s*\.sb-list-filters\s*\{/m);
@@ -43,4 +44,12 @@ test("desktop filter overlays are mutually exclusive", () => {
   assert.match(selectControl, /sb:close-select-controls/g);
   assert.match(filterBar, /close\(false\)/);
   assert.match(selectControl, /setOpen\(false\)/);
+});
+
+test("desktop list actions keep the established Search then record-count order", () => {
+  const actionsStart = unifiedListHeader.indexOf('<div className="unified-list-desktop-actions">');
+  assert.notEqual(actionsStart, -1);
+  const actionsEnd = unifiedListHeader.indexOf("</div>", actionsStart);
+  const actions = unifiedListHeader.slice(actionsStart, actionsEnd);
+  assert.ok(actions.indexOf("{actionNodes}") < actions.indexOf('className="sb-filter-summary"'));
 });

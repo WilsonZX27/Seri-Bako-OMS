@@ -256,8 +256,8 @@ export function UnifiedListHeader({ children, resultCount, resetHref, filtered =
     return <form className={cn("sb-list-filters sb-list-query-card", className)} data-unified-list-desktop="true" data-filtered={filtered || undefined} data-reset-href={resetHref}>
       {desktopControls}
       <div className="unified-list-desktop-actions">
-        {typeof resultCount === "number" ? <div className="sb-filter-summary" aria-live="polite"><span>{resultCount} {resultCount === 1 ? "record" : "records"}</span></div> : null}
         {actionNodes}
+        {typeof resultCount === "number" ? <div className="sb-filter-summary" aria-live="polite"><span>{resultCount} {resultCount === 1 ? "record" : "records"}</span></div> : null}
       </div>
     </form>;
   }

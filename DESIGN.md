@@ -1,11 +1,22 @@
 # Seri Bako OMS responsive design standard
 
-> **Release authority:** the currently released application is `v8.64.36`, as
+> **Release authority:** the currently released application is `v8.64.37`, as
 > defined by `src/lib/app-version.ts`. A versioned section above that number is
 > an accepted forward design contract or unreleased implementation note—not
 > evidence that the application itself has been released at that version.
 > `docs/DESIGN_SYSTEM.md` owns the current visual principles; this file retains
 > versioned implementation history and workspace rules.
+
+## v8.64.37 - Canonical List Action Order
+
+- Every desktop and tablet list query surface now uses the established
+  `Search/Reset → record count` reading order from the shared
+  `UnifiedListHeader`; routes cannot independently reverse those controls.
+- Phone query surfaces retain their compact search/filter/count grammar, while
+  desktop controls continue to share the canonical 44px height and single-row
+  desktop authority.
+- The cross-route browser contract verifies 13 operational lists at phone,
+  tablet portrait, tablet landscape, and desktop viewports.
 
 ## v8.64.36 - Unified Console Actions
 

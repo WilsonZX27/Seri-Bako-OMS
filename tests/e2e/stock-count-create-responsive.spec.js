@@ -24,9 +24,10 @@ for (const viewport of viewports) {
     if (viewport.width < 768) {
       await expect(page.locator("[data-document-status-only]")).toBeVisible();
       await expect(page.getByRole("button", { name: /View workflow/i })).toHaveCount(0);
-      // The compact two-column mobile cards keep only the row index; repeating
-      // "of N" on every card adds noise without helping navigation.
-      await expect(page.locator("[data-stock-count-line]").first()).toContainText(/^1/);
+      // The compact two-column mobile cards keep only an accessible row index;
+      // sorting may move the first visible item, so do not assume it is item 1.
+      await expect(page.locator('[data-stock-count-line]').first().locator('[aria-label^="Item "]')).toBeVisible();
+      await expect(page.locator('[aria-label="Item 1"]')).toBeVisible();
     }
 
     const geometry = await page.locator("[data-stock-count-line]").first().evaluate((row) => {

@@ -1,11 +1,16 @@
 # Seri Bako OMS responsive design standard
 
-> **Release authority:** the currently released application is `v8.60.0`, as
+> **Release authority:** the currently released application is `v8.61.0`, as
 > defined by `src/lib/app-version.ts`. A versioned section above that number is
 > an accepted forward design contract or unreleased implementation note—not
 > evidence that the application itself has been released at that version.
 > `docs/DESIGN_SYSTEM.md` owns the current visual principles; this file retains
 > versioned implementation history and workspace rules.
+
+## v8.61.0 - Stock Count Card Alignment and Status Semantics
+
+- Stock Count mobile cards keep item identity and variance in one compact top row, with the quantity control spanning the card below it; tablet and desktop retain the dense list/table geometry.
+- Mobile-only document status markers are not reused on the desktop/tablet status node, preventing duplicate status semantics while preserving the same visual status at each breakpoint.
 
 ## v8.60.0 - Source-Aware Daily and Stock Count States
 

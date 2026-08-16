@@ -1,7 +1,5 @@
-import Link from "next/link";
-import { Download, Pencil, Plus, Upload } from "lucide-react";
+import { Pencil } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { DataGridHint } from "@/components/ui/data-grid-hint";
 import { DataGridRow } from "@/components/ui/data-grid-row";
 import { EmptyState } from "@/components/ui/empty-state";
@@ -16,6 +14,7 @@ import { getItemsWithStockPage } from "@/server/queries/items";
 import { getSuppliersForSelect } from "@/server/queries/common";
 import { ConsoleSection } from "@/components/layout/right-console";
 import { WorkspaceGrid } from "@/components/layout/workspace-layout";
+import { ConsoleActionLink } from "@/components/layout/console-action-link";
 import { getPermissionMap } from "@/server/auth/permissions";
 
 export default async function ItemsPage({
@@ -32,7 +31,7 @@ export default async function ItemsPage({
   return (
     <>
       <PageHeader title="Items" description="Ingredient and packaging master data. Stock balance is calculated separately." />
-      <WorkspaceGrid tabletRailMode="split" tabletRailBreakpoint="md" hideMobileConsole={!permissions["items.create"]} rightRail={<>{permissions["items.create"] || permissions["items.manage"] ? <ConsoleSection title="Actions"><div className="grid gap-2">{permissions["items.create"] ? <><Button asChild size="sm" className="w-full" data-mobile-primary-action><Link href="/items/new"><Plus className="h-4 w-4" aria-hidden="true" />New item</Link></Button><Button asChild variant="outline" size="sm" className="w-full"><Link href="/imports/items"><Upload className="h-4 w-4" aria-hidden="true" />Import items</Link></Button></> : null}{permissions["items.manage"] ? <Button asChild variant="outline" size="sm" className="w-full" data-mobile-primary-action={!permissions["items.create"] || undefined}><Link href="/api/export/items"><Download className="h-4 w-4" aria-hidden="true" />Export CSV</Link></Button> : null}</div></ConsoleSection> : null}<ConsoleSection title="Item Summary"><dl className="grid gap-2 text-xs"><div className="flex justify-between"><dt className="text-muted-foreground">Active</dt><dd className="font-semibold">{itemsPage.summary.active}</dd></div><div className="flex justify-between"><dt className="text-muted-foreground">Inactive</dt><dd className="font-semibold">{itemsPage.summary.inactive}</dd></div><div className="flex justify-between"><dt className="text-muted-foreground">Low stock</dt><dd className="font-semibold">{lowStockCount}</dd></div></dl></ConsoleSection></>}>
+      <WorkspaceGrid tabletRailMode="split" tabletRailBreakpoint="md" hideMobileConsole={!permissions["items.create"]} rightRail={<>{permissions["items.create"] || permissions["items.manage"] ? <ConsoleSection title="Actions"><div className="grid gap-2">{permissions["items.create"] ? <><ConsoleActionLink href="/items/new" kind="create" primary>New item</ConsoleActionLink><ConsoleActionLink href="/imports/items" kind="import">Import items</ConsoleActionLink></> : null}{permissions["items.manage"] ? <ConsoleActionLink href="/api/export/items" kind="export" primary={!permissions["items.create"]}>Export CSV</ConsoleActionLink> : null}</div></ConsoleSection> : null}<ConsoleSection title="Item Summary"><dl className="grid gap-2 text-xs"><div className="flex justify-between"><dt className="text-muted-foreground">Active</dt><dd className="font-semibold">{itemsPage.summary.active}</dd></div><div className="flex justify-between"><dt className="text-muted-foreground">Inactive</dt><dd className="font-semibold">{itemsPage.summary.inactive}</dd></div><div className="flex justify-between"><dt className="text-muted-foreground">Low stock</dt><dd className="font-semibold">{lowStockCount}</dd></div></dl></ConsoleSection></>}>
         {filters.success ? <div className="border border-[var(--sb-success)] bg-[var(--sb-success-bg)] p-3 text-sm text-[var(--sb-success)]">{filters.success}</div> : null}
         <div className="space-y-3">
           <MasterDataFilters

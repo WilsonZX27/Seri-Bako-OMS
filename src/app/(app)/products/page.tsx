@@ -1,14 +1,13 @@
-import Link from "next/link";
-import { Pencil, Plus, Upload } from "lucide-react";
+import { Pencil } from "lucide-react";
 import { DataGridRow } from "@/components/ui/data-grid-row";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { MasterDataFilters } from "@/components/master-data-filters";
 import { PageHeader } from "@/components/ui/page-header";
 import { EmptyState } from "@/components/ui/empty-state";
 import { PaginationControls, SortableHead } from "@/components/sortable-table";
 import { ConsoleSection } from "@/components/layout/right-console";
 import { WorkspaceGrid } from "@/components/layout/workspace-layout";
+import { ConsoleActionLink } from "@/components/layout/console-action-link";
 import { OperationalList, OperationalListRow, Table, TableActionLink, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { hasActiveFilters, paginateRows } from "@/lib/table-state";
 import { getProducts } from "@/server/queries/products";
@@ -33,7 +32,7 @@ export default async function ProductsPage({
         title="Products"
         description="Finished goods master data for future recipe and production modules."
       />
-      <WorkspaceGrid hideMobileConsole={!canCreate} rightRail={<>{canCreate || permissions["imports.run"] ? <ConsoleSection title="Actions"><div className="grid gap-2">{canCreate ? <Button asChild size="sm" className="w-full" data-mobile-primary-action><Link href="/products/new"><Plus className="h-4 w-4" />New product</Link></Button> : null}{permissions["imports.run"] ? <Button asChild size="sm" variant="outline" className="w-full"><Link href="/imports/products"><Upload className="h-4 w-4" />Import products</Link></Button> : null}</div></ConsoleSection> : null}<ConsoleSection title="Product Summary"><dl className="grid gap-2 text-xs"><div className="flex justify-between"><dt className="text-muted-foreground">Matching</dt><dd className="font-semibold">{productsPage.totalRows}</dd></div><div className="flex justify-between"><dt className="text-muted-foreground">Active</dt><dd className="font-semibold">{allProducts.filter((product) => product.status === "active").length}</dd></div></dl></ConsoleSection></>}> 
+      <WorkspaceGrid hideMobileConsole={!canCreate} rightRail={<>{canCreate || permissions["imports.run"] ? <ConsoleSection title="Actions"><div className="grid gap-2">{canCreate ? <ConsoleActionLink href="/products/new" kind="create" primary>New product</ConsoleActionLink> : null}{permissions["imports.run"] ? <ConsoleActionLink href="/imports/products" kind="import">Import products</ConsoleActionLink> : null}</div></ConsoleSection> : null}<ConsoleSection title="Product Summary"><dl className="grid gap-2 text-xs"><div className="flex justify-between"><dt className="text-muted-foreground">Matching</dt><dd className="font-semibold">{productsPage.totalRows}</dd></div><div className="flex justify-between"><dt className="text-muted-foreground">Active</dt><dd className="font-semibold">{allProducts.filter((product) => product.status === "active").length}</dd></div></dl></ConsoleSection></>}>
         <div className="space-y-3">
           <MasterDataFilters
             search={filters.search}

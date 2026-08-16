@@ -1,11 +1,21 @@
 # Seri Bako OMS responsive design standard
 
-> **Release authority:** the currently released application is `v8.64.35`, as
+> **Release authority:** the currently released application is `v8.64.36`, as
 > defined by `src/lib/app-version.ts`. A versioned section above that number is
 > an accepted forward design contract or unreleased implementation note—not
 > evidence that the application itself has been released at that version.
 > `docs/DESIGN_SYSTEM.md` owns the current visual principles; this file retains
 > versioned implementation history and workspace rules.
+
+## v8.64.36 - Unified Console Actions
+
+- Master-data actions use one shared icon, size, hierarchy, and mobile-primary
+  metadata contract instead of repeating page-local Button and Link markup.
+- The right console recognises both resolved DOM action markers and shared
+  component metadata, so a create action remains the phone FAB at either React
+  rendering boundary.
+- Items, Products, and Suppliers now inherit the same action implementation
+  while retaining permission-aware create, import, and export visibility.
 
 ## v8.64.35 - Compact Report Ranking Previews
 

@@ -1,7 +1,5 @@
-import Link from "next/link";
-import { Download, Pencil, Plus, Upload } from "lucide-react";
+import { Pencil } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { DataGridHint } from "@/components/ui/data-grid-hint";
 import { DataGridRow } from "@/components/ui/data-grid-row";
 import { EmptyState } from "@/components/ui/empty-state";
@@ -12,6 +10,7 @@ import { StatusTabs } from "@/components/status-tabs";
 import { OperationalList, OperationalListRow, Table, TableActionLink, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { ConsoleSection } from "@/components/layout/right-console";
 import { WorkspaceGrid } from "@/components/layout/workspace-layout";
+import { ConsoleActionLink } from "@/components/layout/console-action-link";
 import { hasActiveFilters } from "@/lib/table-state";
 import { getSuppliers } from "@/server/queries/suppliers";
 import { getPermissionMap } from "@/server/auth/permissions";
@@ -36,9 +35,9 @@ export default async function SuppliersPage({
           <>
             {canCreate || permissions["suppliers.manage"] || permissions["imports.run"] ? <ConsoleSection title="Actions">
               <div className="grid gap-2">
-                {canCreate ? <Button asChild size="sm" className="w-full" data-mobile-primary-action><Link href="/suppliers/new"><Plus className="h-4 w-4" />New supplier</Link></Button> : null}
-                {permissions["suppliers.manage"] ? <Button asChild variant="outline" size="sm" className="w-full"><Link href="/api/export/suppliers"><Download className="h-4 w-4" />Export CSV</Link></Button> : null}
-                {permissions["imports.run"] ? <Button asChild variant="outline" size="sm" className="w-full"><Link href="/imports/suppliers"><Upload className="h-4 w-4" />Import suppliers</Link></Button> : null}
+                {canCreate ? <ConsoleActionLink href="/suppliers/new" kind="create" primary>New supplier</ConsoleActionLink> : null}
+                {permissions["suppliers.manage"] ? <ConsoleActionLink href="/api/export/suppliers" kind="export">Export CSV</ConsoleActionLink> : null}
+                {permissions["imports.run"] ? <ConsoleActionLink href="/imports/suppliers" kind="import">Import suppliers</ConsoleActionLink> : null}
               </div>
             </ConsoleSection> : null}
             <ConsoleSection title="Supplier Summary">

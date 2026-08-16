@@ -14,11 +14,24 @@ type RightConsoleContextValue = {
 
 const RightConsoleContext = createContext<RightConsoleContextValue | null>(null);
 
+type MobileActionProps = {
+  children?: ReactNode;
+  href?: string;
+  primary?: boolean;
+  "data-mobile-primary-action"?: boolean;
+};
+
+function isMobilePrimaryAction(child: ReactNode): boolean {
+  if (!isValidElement<MobileActionProps>(child)) return false;
+  return child.props["data-mobile-primary-action"] === true
+    || (child.props.primary === true && typeof child.props.href === "string");
+}
+
 function findMobilePrimaryAction(node: ReactNode): ReactNode {
   let match: ReactNode = null;
   Children.forEach(node, (child) => {
-    if (match || !isValidElement<{ children?: ReactNode; "data-mobile-primary-action"?: boolean }>(child)) return;
-    if (child.props["data-mobile-primary-action"]) match = child;
+    if (match || !isValidElement<MobileActionProps>(child)) return;
+    if (isMobilePrimaryAction(child)) match = child;
     else match = findMobilePrimaryAction(child.props.children);
   });
   return match;
@@ -26,8 +39,8 @@ function findMobilePrimaryAction(node: ReactNode): ReactNode {
 
 function withoutMobilePrimaryAction(node: ReactNode): ReactNode {
   return Children.map(node, (child) => {
-    if (!isValidElement<{ children?: ReactNode; "data-mobile-primary-action"?: boolean }>(child)) return child;
-    if (child.props["data-mobile-primary-action"]) return null;
+    if (!isValidElement<MobileActionProps>(child)) return child;
+    if (isMobilePrimaryAction(child)) return null;
     return cloneElement(child, {}, withoutMobilePrimaryAction(child.props.children));
   });
 }

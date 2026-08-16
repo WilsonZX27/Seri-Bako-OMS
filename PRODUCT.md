@@ -2,7 +2,18 @@
 
 ## Product Overview
 
-The current released application baseline is `v8.64.47` — Fail-closed Unverified Receipt Inputs.
+The current released application baseline is `v8.64.49` — Fail-closed Stock Count Reads.
+
+### v8.64.49 — Fail-closed Stock Count Reads
+
+- Stock Count list, summary, detail, seed-line, and variance reads now distinguish a valid empty result from an incomplete payload. Missing payloads fail closed instead of becoming zero counts, empty lines, or a verified empty insight.
+- The previous inventory/outlet fail-closed boundaries remain in force; this release closes the same trust boundary for Stock Count workflows.
+
+### v8.64.48 — Fail-closed Inventory And Outlet Reads
+
+- Inventory RPCs and bounded fallbacks now distinguish a valid empty result from a missing payload. Null reads fail closed instead of becoming verified zero totals, empty lists, or misleading record counts.
+- Outlet Daily Records applies the same boundary to list, summary, trend, completion-matrix, and detail hydration reads.
+- Tablet list query geometry is restored to the established shared control grid; no route-specific three-row override is retained.
 
 ### v8.64.47 — Fail-closed Unverified Receipt Inputs
 

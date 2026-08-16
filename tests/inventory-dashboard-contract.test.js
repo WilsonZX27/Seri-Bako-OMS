@@ -64,7 +64,7 @@ test("inventory dashboard fallback keeps balance hydration bounded and fails clo
   assert.match(query, /MAX_INVENTORY_DASHBOARD_FALLBACK_BALANCES/);
   assert.match(query, /\.limit\(MAX_INVENTORY_DASHBOARD_FALLBACK_BALANCES \+ 1\)/);
   assert.match(query, /fallbackBalancesTruncated/);
-  assert.match(query, /inventory: Boolean\(balancesResult\.error \|\| fallbackBalancesTruncated\)/);
+  assert.match(query, /balancesUnavailable = Boolean\(balancesResult\.error \|\| !balancesResult\.data \|\| fallbackBalancesTruncated\)/);
   assert.doesNotMatch(query, /from\("stock_balances_summary"\)\.select\("\*"\)\.order\("item_name"/);
 });
 

@@ -30,3 +30,15 @@ test("stock count fallback rejects incomplete branch or line hydration", () => {
   assert.match(query, /stockCounts\.varianceInsight\.branch/);
   assert.match(query, /logServerWarning\(error, \{ source: "stockCounts\.varianceInsight\.rpc" \}\)/);
 });
+
+test("stock count reads never coerce incomplete payloads into zero or empty verified data", () => {
+  const query = read("src", "server", "queries", "stock-counts.ts");
+
+  assert.match(query, /!data \|\| count === null/);
+  assert.match(query, /Stock count summary returned incomplete data/);
+  assert.match(query, /Stock Count detail returned incomplete line data/);
+  assert.match(query, /Stock Count variance counts returned no data/);
+  assert.match(query, /Stock Count variance lines returned no data/);
+  assert.match(query, /Stock Count variance items returned no data/);
+  assert.doesNotMatch(query, /return databasePagination\(\(data \?\? \[\]\)/);
+});

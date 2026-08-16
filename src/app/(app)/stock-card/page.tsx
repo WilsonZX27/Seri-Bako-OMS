@@ -18,6 +18,7 @@ export default async function StockCardPage({ searchParams }: { searchParams: Pr
   const effectiveFilters = { ...filters, from: filters.from ?? today, to: filters.to ?? today };
   const [items, branches, stockCard] = await Promise.all([getItemsForSelect(), getBranchesForSelect({ restrictToActorScope: true }), getStockCardResult(effectiveFilters)]);
   const { rows, unavailable } = stockCard;
+  const resultCount = unavailable ? undefined : rows.length;
   const selectedItem = filters.item_id ? items.find((item) => item.id === filters.item_id) : null;
   const opening = rows.filter((row) => row.transaction_type === "opening_balance").reduce((sum, row) => sum + row.quantity_in - row.quantity_out, 0);
   const purchase = rows.filter((row) => row.transaction_type === "purchase").reduce((sum, row) => sum + row.quantity_in, 0);
@@ -46,7 +47,7 @@ export default async function StockCardPage({ searchParams }: { searchParams: Pr
       <WorkspaceGrid className="p-3 sm:p-4">
         <div className="space-y-3">
           <section className="sb-list-filters--stock-card" aria-label="Stock card filters">
-              <FilterBar resultCount={rows.length} resetHref="/stock-card" filtered={filtered}>
+              <FilterBar resultCount={resultCount} resetHref="/stock-card" filtered={filtered}>
                 <Input name="search" defaultValue={filters.search ?? ""} placeholder="Search item, transaction, or branch" aria-label="Search stock movements" />
                 <SelectControl name="item_id" defaultValue={filters.item_id ?? "all"} ariaLabel="Item" options={[{ value: "all", label: "All items" }, ...items.map((item) => ({ value: item.id, label: `${item.item_code} — ${item.item_name}` }))]} />
                 <SelectControl name="branch_id" defaultValue={filters.branch_id ?? "all"} ariaLabel="Branch" options={[{ value: "all", label: "All branches" }, ...branches.map((branch) => ({ value: branch.id, label: branch.branch_name }))]} />
@@ -65,7 +66,7 @@ export default async function StockCardPage({ searchParams }: { searchParams: Pr
               {movementSummary.map(([label, value]) => (
                 <div key={label} className="min-w-0 border-b border-r px-2 py-2 sm:px-3">
                   <p className="line-clamp-2 min-h-7 text-[10px] leading-3.5 text-muted-foreground sm:min-h-0 sm:truncate sm:text-[11px]">{label}</p>
-                  <p className="mt-0.5 truncate font-mono text-xs font-semibold tabular-nums sm:text-sm">{formatNumber(value)}</p>
+                  <p className="mt-0.5 truncate font-mono text-xs font-semibold tabular-nums sm:text-sm">{unavailable ? "Unavailable" : formatNumber(value)}</p>
                 </div>
               ))}
             </div>
@@ -74,7 +75,7 @@ export default async function StockCardPage({ searchParams }: { searchParams: Pr
           <section className="erp-surface overflow-hidden">
             <div className="border-b px-3 py-2.5">
               <h2 className="text-sm font-semibold">{selectedItem ? `${selectedItem.item_code} — ${selectedItem.item_name}` : "Stock Movement History"}</h2>
-              <p className="mt-0.5 text-xs text-muted-foreground">Current balance: {formatNumber(current)} {selectedItem?.base_unit ?? ""}</p>
+              <p className="mt-0.5 text-xs text-muted-foreground">Current balance: {unavailable ? "Unavailable" : `${formatNumber(current)} ${selectedItem?.base_unit ?? ""}`}</p>
             </div>
               {unavailable ? <div className="p-3"><Notice tone="error" title="Stock Card data is temporarily unavailable">The inventory movement service did not respond. Retry this page shortly; no data was changed.</Notice></div> : null}
               <Table mobileHidden stickyColumn="first" aria-label="Stock movement history">

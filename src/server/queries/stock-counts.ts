@@ -121,7 +121,7 @@ export async function getStockCounts(filters: Filters = {}) {
       supabase.from("branches").select("id, branch_name"),
       supabase.from("stock_count_lines").select("stock_count_id, variance_percent"),
     ]);
-    if (rawCountsError || branchesError || linesError) throw new Error(error.message);
+    if (rawCountsError || branchesError || linesError || !rawCounts || !branches || !lines) throw new Error(error.message);
     const branchById = new Map((branches ?? []).map((branch) => [branch.id, branch.branch_name]));
     const toleranceByCount = new Map((rawCounts ?? []).map((row) => [row.id, Number(row.tolerance_percent)]));
     const linesByCount = new Map<string, { line_count: number; high_variance_count: number }>();
@@ -147,7 +147,8 @@ export async function getStockCounts(filters: Filters = {}) {
     }) as StockCountRow[];
     return databasePagination(filterRows(fallbackRows, filters, ["count_no", "status", "branch_name", "remarks"], "updated_at"), fallbackRows.length, filters.page);
   }
-  return databasePagination((data ?? []) as StockCountRow[], count, filters.page);
+  if (!data || count === null) throw new Error("Stock count list returned incomplete data.");
+  return databasePagination(data as StockCountRow[], count, filters.page);
 }
 
 export type StockCountVarianceInsightRow = Database["public"]["Functions"]["get_stock_count_variance_insight"]["Returns"][number];
@@ -182,7 +183,8 @@ export async function getStockCountVarianceInsight(branchId?: string) {
       const { data: counts, error: countsError } = await countsQuery;
       if (countsError) throw countsError;
 
-      const countRows = counts ?? [];
+      if (!counts) throw new Error("Stock Count variance counts returned no data.");
+      const countRows = counts;
       const countIds = countRows.map((row) => row.id);
       const [{ data: lines, error: linesError }, { data: branches, error: branchesError }] = await Promise.all([
         countIds.length
@@ -195,12 +197,14 @@ export async function getStockCountVarianceInsight(branchId?: string) {
       if (linesError) throw linesError;
       if (branchesError) throw branchesError;
 
-      const lineRows = lines ?? [];
+      if (countIds.length && !lines) throw new Error("Stock Count variance lines returned no data.");
+      const lineRows = lines;
       const itemIds = [...new Set(lineRows.map((line) => line.item_id).filter(Boolean))];
       const { data: items, error: itemsError } = itemIds.length
         ? await supabase.from("items").select("id,item_name").in("id", itemIds)
         : { data: [], error: null };
       if (itemsError) throw itemsError;
+      if (itemIds.length && !items) throw new Error("Stock Count variance items returned no data.");
 
       const countById = new Map(countRows.map((row) => [row.id, row]));
       const branchById = new Map((branches ?? []).map((row) => [row.id, row.branch_name]));
@@ -292,7 +296,11 @@ export async function getStockCountVarianceInsight(branchId?: string) {
       return { available: false as const, ...empty };
     }
   }
-  const rows = data ?? [];
+  if (error || !data) {
+    if (error) logServerWarning(error, { source: "stockCounts.varianceInsight.rpc" });
+    return { available: false as const, ...empty };
+  }
+  const rows = data;
   return {
     available: true as const,
     daily: rows.filter((row) => row.row_kind === "day").sort((left, right) => left.rank_order - right.rank_order),
@@ -319,8 +327,8 @@ export async function getStockCountSummary() {
       .from("stock_counts_list_view")
       .select("id", { count: "exact", head: true })
       .eq("status", status);
-    if (error) throw new Error(error.message);
-    return { status, count: count ?? 0 };
+    if (error || count === null) throw new Error(error?.message ?? "Stock count summary returned incomplete data.");
+    return { status, count };
   }));
   const byStatus = new Map(results.map((result) => [result.status, result.count]));
   const draft = ["draft", "submitted", "reviewed", "approved"].reduce((sum, status) => sum + (byStatus.get(status as typeof statuses[number]) ?? 0), 0);
@@ -353,8 +361,9 @@ export async function getStockCount(id: string) {
   }
   if (linesError) throw new Error(linesError.message);
   if (!data) throw new StockCountNotFoundError();
+  if (!lines) throw new Error("Stock Count detail returned incomplete line data.");
   const count = data as StockCount;
-  const ownLines = (lines ?? []) as StockCountLine[];
+  const ownLines = lines as StockCountLine[];
   const itemIds = [...new Set(ownLines.map((line) => line.item_id).filter(Boolean))];
   const [{ data: items, error: itemsError }, { data: branch, error: branchError }] = await Promise.all([
     itemIds.length
@@ -365,7 +374,9 @@ export async function getStockCount(id: string) {
       : Promise.resolve({ data: null, error: null }),
   ]);
   if (itemsError) throw new Error(itemsError.message);
+  if (itemIds.length && !items) throw new Error("Stock Count detail returned incomplete item data.");
   if (branchError) throw new Error(branchError.message);
+  if (count.branch_id && !branch) throw new Error("Stock Count detail returned incomplete branch data.");
   const itemById = new Map((items ?? []).map((row) => [row.id, row]));
   return {
     count: {
@@ -410,16 +421,18 @@ export async function getStockCountSeedLines(branchId?: string) {
       .limit(1);
     if (postedCountsError) throw new Error(postedCountsError.message);
 
-    const countIds = (postedCounts ?? []).map((count) => count.id);
+    if (!postedCounts) throw new Error("Posted stock count history returned no data.");
+    const countIds = postedCounts.map((count) => count.id);
     if (countIds.length) {
       const { data: postedLines, error: postedLinesError } = await supabase
         .from("stock_count_lines")
         .select("stock_count_id,item_id,physical_qty")
         .in("stock_count_id", countIds);
       if (postedLinesError) throw new Error(postedLinesError.message);
+      if (!postedLines) throw new Error("Posted stock count lines returned no data.");
 
-      const linesByCount = new Map((postedLines ?? []).map((line) => [`${line.stock_count_id}:${line.item_id}`, line.physical_qty]));
-      for (const count of postedCounts ?? []) {
+      const linesByCount = new Map(postedLines.map((line) => [`${line.stock_count_id}:${line.item_id}`, line.physical_qty]));
+      for (const count of postedCounts) {
         for (const balance of balances.rows) {
           if (branchId !== balance.branch_id || lastPostedPhysicalByItem.has(balance.item_id)) continue;
           const physicalQty = linesByCount.get(`${count.id}:${balance.item_id}`);

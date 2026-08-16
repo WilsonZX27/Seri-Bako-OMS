@@ -142,7 +142,8 @@ async function getInventoryDailyMovementFromBaseTables(
     .order("transaction_date", { ascending: true })
     .limit(MAX_INVENTORY_DAILY_MOVEMENT_FALLBACK_ROWS + 1);
   if (transactionError) throw transactionError;
-  if ((transactions ?? []).length > MAX_INVENTORY_DAILY_MOVEMENT_FALLBACK_ROWS) {
+  if (!transactions) throw new Error("Inventory daily movement fallback returned no data.");
+  if (transactions.length > MAX_INVENTORY_DAILY_MOVEMENT_FALLBACK_ROWS) {
     throw new Error(`Inventory daily movement fallback exceeded ${MAX_INVENTORY_DAILY_MOVEMENT_FALLBACK_ROWS} rows.`);
   }
 
@@ -154,6 +155,7 @@ async function getInventoryDailyMovementFromBaseTables(
       .in("stock_transaction_id", transactionIds)
     : { data: [], error: null };
   if (lineError) throw lineError;
+  if (transactionIds.length && !lines) throw new Error("Inventory daily movement lines fallback returned no data.");
 
   const parentById = new Map((transactions ?? []).map((row) => [row.id, row]));
   const lineCountByTransaction = new Map<string, number>();
@@ -192,8 +194,9 @@ export async function getInventoryDailyMovement(period: "7d" | "30d" | "month" =
 
   const supabase = await createClient();
   const { data, error } = await boundedInventoryInsight(() => supabase.rpc("get_inventory_daily_movement_summary", { p_period: period }));
-  if (error) {
-    warnOptionalInventoryQuery("daily movement summary", error);
+  if (error || !data) {
+    const readError = error ?? new Error("Inventory daily movement summary returned no data.");
+    warnOptionalInventoryQuery("daily movement summary", readError);
     try {
       return { rows: await getInventoryDailyMovementFromBaseTables(supabase, period), unavailable: false };
     } catch (fallbackError) {
@@ -237,12 +240,14 @@ async function getInventoryDashboardFallback(supabase: Awaited<ReturnType<typeof
     supabase.from("stock_counts").select("id", { count: "exact", head: true }).in("status", ["draft", "submitted", "reviewed", "approved"]).is("deleted_at", null),
   ]);
   const fallbackBalancesTruncated = (balancesResult.data?.length ?? 0) > MAX_INVENTORY_DASHBOARD_FALLBACK_BALANCES;
-  const balances = balancesResult.error || fallbackBalancesTruncated ? [] : (balancesResult.data ?? []);
+  const balancesUnavailable = Boolean(balancesResult.error || !balancesResult.data || fallbackBalancesTruncated);
+  const balances = balancesUnavailable ? [] : (balancesResult.data ?? []);
   const activeBalances = balances.filter((row) => row.status === "active");
   const lowStockRows = activeBalances
     .filter((row) => row.is_low_stock)
     .sort((left, right) => Number(right.shortage_quantity ?? 0) - Number(left.shortage_quantity ?? 0))
     .slice(0, 5);
+  const transactionsUnavailable = Boolean(transactionsResult.error || !transactionsResult.data);
   const itemIds = [...new Set((transactionsResult.data ?? []).map((row) => row.item_id))];
   const { data: items, error: itemsError } = itemIds.length
     ? await supabase.from("items").select("id, item_name, base_unit").in("id", itemIds)
@@ -257,13 +262,13 @@ async function getInventoryDashboardFallback(supabase: Awaited<ReturnType<typeof
     },
   }));
   const unavailable = {
-    inventory: Boolean(balancesResult.error || fallbackBalancesTruncated),
-    movement: Boolean(transactionsResult.error || movementsTodayResult.error || itemsError),
+    inventory: balancesUnavailable,
+    movement: Boolean(transactionsUnavailable || movementsTodayResult.error || movementsTodayResult.count === null || itemsError || (itemIds.length > 0 && !items)),
     lowStock: Boolean(balancesResult.error || fallbackBalancesTruncated),
-    stockCountDue: Boolean(stockCountResult.error),
-    todaysTransfers: Boolean(transfersResult.error),
-    todaysReceiving: Boolean(receivingResult.error),
-    pendingAdjustments: Boolean(stockCountResult.error),
+    stockCountDue: Boolean(stockCountResult.error || stockCountResult.count === null),
+    todaysTransfers: Boolean(transfersResult.error || transfersResult.count === null),
+    todaysReceiving: Boolean(receivingResult.error || receivingResult.count === null),
+    pendingAdjustments: Boolean(stockCountResult.error || stockCountResult.count === null),
   };
   if (fallbackBalancesTruncated) {
     logServerWarning(
@@ -359,7 +364,8 @@ async function getStockCardFromBaseTables(
   if (branchId) transactionQuery = transactionQuery.eq("branch_id", branchId);
   const { data: transactionData, error: transactionError } = await transactionQuery;
   if (transactionError) throw transactionError;
-  const transactions = transactionData ?? [];
+  if (!transactionData) throw new Error("Stock Card transaction fallback returned no data.");
+  const transactions = transactionData;
   if (transactions.length > STOCK_CARD_FALLBACK_LIMIT) {
     throw new Error(`Stock Card fallback exceeded ${STOCK_CARD_FALLBACK_LIMIT} rows.`);
   }
@@ -372,6 +378,7 @@ async function getStockCardFromBaseTables(
       .in("stock_transaction_id", transactionIds)
     : { data: [], error: null };
   if (lineError) throw lineError;
+  if (transactionIds.length && !lineData) throw new Error("Stock Card line fallback returned no data.");
   const lines = lineData ?? [];
   const itemIds = [...new Set([...transactions.map((row) => row.item_id), ...lines.map((row) => row.item_id).filter((id): id is string => Boolean(id))])];
   const branchIds = [...new Set([...transactions.map((row) => row.branch_id).filter((id): id is string => Boolean(id)), ...lines.map((row) => row.branch_id).filter((id): id is string => Boolean(id))])];
@@ -381,6 +388,7 @@ async function getStockCardFromBaseTables(
   ]);
   if (itemsError) throw itemsError;
   if (branchesError) throw branchesError;
+  if ((itemIds.length && !items) || (branchIds.length && !branches)) throw new Error("Stock Card reference fallback returned no data.");
   const itemById = new Map((items ?? []).map((item) => [item.id, item]));
   const branchById = new Map((branches ?? []).map((branch) => [branch.id, branch.branch_name]));
   const linesByTransaction = new Map<string, typeof lines>();
@@ -649,8 +657,9 @@ export async function getStockLedger(filters: Filters = {}) {
     p_offset: exportAll ? 0 : (page - 1) * INVENTORY_PAGE_SIZE,
     p_limit: exportAll ? 50000 : INVENTORY_PAGE_SIZE,
   }));
-  if (error) {
-    warnOptionalInventoryQuery("Movement Ledger", error);
+  if (error || !data) {
+    const readError = error ?? new Error("Movement Ledger returned no data.");
+    warnOptionalInventoryQuery("Movement Ledger", readError);
     try {
       const fallback = await getStockCardFromBaseTables(supabase, filters, from, to);
       const filtered = filterLedgerRows(fallback.rows, filters);
@@ -660,7 +669,7 @@ export async function getStockLedger(filters: Filters = {}) {
       return { ...databasePagination([] as StockLedgerViewRow[], 0, filters.page), error: "Movement Ledger data is temporarily unavailable.", unavailable: true };
     }
   }
-  const result = data ?? [];
+  const result = data;
   const totalRows = Number(result[0]?.total_count ?? 0);
   const rows = result.map((entry) => {
     const { total_count, ...row } = entry;
@@ -734,7 +743,12 @@ export async function getStockBalanceDetails(filters: Filters = {}): Promise<Pag
     warnOptionalInventoryQuery("Stock Balance details", error);
     return { ...databasePaginationOrError<StockBalanceRow>([], 0, filters.page, message), unavailable: true };
   }
-  const balanceRows = data ?? [];
+  if (!data || count === null) {
+    const message = "Stock Balance data is temporarily unavailable.";
+    warnOptionalInventoryQuery("Stock Balance details", new Error(message));
+    return { ...databasePaginationOrError<StockBalanceRow>([], 0, filters.page, message), unavailable: true };
+  }
+  const balanceRows = data;
   const itemIds = Array.from(new Set(balanceRows.map((row) => row.item_id))).slice(0, 500);
   const imageByItemId = new Map<string, string | null>();
   if (itemIds.length) {
@@ -856,8 +870,9 @@ export async function getStockCardResult(filters: Filters = {}): Promise<StockCa
       p_search: filters.search?.trim() || null,
       p_source: filters.source?.trim() || null,
     }));
-    if (error) {
-      warnOptionalInventoryQuery("Stock Card", error);
+    if (error || !data) {
+      const readError = error ?? new Error("Stock Card returned no data.");
+      warnOptionalInventoryQuery("Stock Card", readError);
       try {
         // Do not fall back to stock_ledger_view: it computes an unbounded
         // running window before PostgREST filters and is the source of the
@@ -870,7 +885,7 @@ export async function getStockCardResult(filters: Filters = {}): Promise<StockCa
         return { rows: [], unavailable: true };
       }
     }
-    return { rows: data ?? [], unavailable: false };
+    return { rows: data, unavailable: false };
   }
 
   const ledger = await getStockLedger({ ...filters, page: "all" });
@@ -940,8 +955,10 @@ export async function getLowStockItems(filters: Filters = {}) {
     if (viewResult.data?.length) {
       fallbackData = viewResult.data;
       error = null;
-    } else if (error && viewResult.error) {
+    } else if (viewResult.error) {
       warnOptionalInventoryQuery("low stock canonical fallback", viewResult.error);
+    } else {
+      throw new Error("Low stock data is temporarily unavailable.");
     }
   }
   if (error) {
@@ -950,7 +967,7 @@ export async function getLowStockItems(filters: Filters = {}) {
   }
   const search = filters.search?.trim().toLowerCase();
   const status = filters.status && filters.status !== "all" ? filters.status : null;
-  const rows = ((fallbackData ?? data ?? []) as unknown as LowStockRow[])
+  const rows = ((fallbackData ?? data) as unknown as LowStockRow[])
     .filter((row) => search ? [row.item_code, row.item_name, row.branch_name, row.supplier_name].some((value) => String(value ?? "").toLowerCase().includes(search)) : true)
     .map((row) => {
       const current = Number(row.current_qty ?? row.current_stock ?? 0);

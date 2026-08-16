@@ -1,11 +1,21 @@
 # Seri Bako OMS responsive design standard
 
-> **Release authority:** the currently released application is `v8.64.47`, as
+> **Release authority:** the currently released application is `v8.64.49`, as
 > defined by `src/lib/app-version.ts`. A versioned section above that number is
 > an accepted forward design contract or unreleased implementation note—not
 > evidence that the application itself has been released at that version.
 > `docs/DESIGN_SYSTEM.md` owns the current visual principles; this file retains
 > versioned implementation history and workspace rules.
+
+## v8.64.49 - Fail-closed Stock Count Reads
+
+- Stock Count list, summary, detail, seed-line, and variance boundaries fail closed on missing payloads. They never coerce incomplete reads into zero counts, empty lines, or an apparently valid empty insight.
+- This extends the existing fail-closed contract for Inventory and Outlet Daily Records to the Stock Count workflow.
+
+## v8.64.48 - Fail-closed Inventory And Outlet Reads
+
+- Shared inventory and outlet read boundaries treat a null payload as an unavailable source, never as an authoritative empty result. Valid empty arrays remain valid empty states.
+- Tablet list query cards use the established shared control grid; route-specific rules may not add an extra count track or flatten the action group into a third row.
 
 ## v8.64.47 - Fail-closed Unverified Receipt Inputs
 

@@ -227,6 +227,7 @@ async function hydrateRows(db: Awaited<ReturnType<typeof createClient>>, records
   if (linesError) throw new Error(linesError.message);
   if (branchesError) throw new Error(branchesError.message);
   if (staffResult.error) throw new Error(staffResult.error.message);
+  if (!lines || !branches || !staffResult.data) throw new Error("Outlet daily record details returned no data.");
   const branchNames = new Map((branches ?? []).map((row) => [row.id, row.branch_name]));
   const staffNames = new Map((staffResult.data ?? []).map((row) => [row.id, row.full_name]));
   const linesByRecord = new Map<string, LineRow[]>();
@@ -257,7 +258,8 @@ async function loadRows(filters: Filters = {}) {
     .order("updated_at", { ascending: false })
     .range(start, start + pageSize - 1);
   if (error) throw new Error(error.message);
-  const totalRows = count ?? 0;
+  if (!data || count === null) throw new Error("Outlet daily record list returned no data.");
+  const totalRows = count;
   const totalPages = Math.max(Math.ceil(totalRows / pageSize), 1);
   const page = Math.min(requestedPage, totalPages);
   // If a stale URL points past the last page, repeat the bounded query at the
@@ -279,6 +281,7 @@ export async function getOutletDailyRecords(filters: Filters = {}) {
     .eq("record_date", today)
     .neq("status", "void");
   if (todayError) throw new Error(todayError.message);
+  if (!todayRecords) throw new Error("Outlet daily record summary returned no data.");
   const todayRows = await hydrateRows(db, (todayRecords ?? []) as RecordRow[]);
   return {
     ...pageResult,
@@ -353,13 +356,15 @@ export async function getOutletDailyDemandTrend(filters: Filters = {}) {
   if (branchId) recordsQuery = recordsQuery.eq("branch_id", branchId);
   const { data: records, error } = await recordsQuery;
   if (error) throw new Error(error.message);
-  const typedRecords = (records ?? []) as RecordRow[];
+  if (!records) throw new Error("Outlet daily demand records returned no data.");
+  const typedRecords = records as RecordRow[];
   const recordIds = typedRecords.map((record) => record.id);
   const { data: lines, error: linesError } = recordIds.length
     ? await db.from("outlet_daily_record_lines").select("*").in("record_id", recordIds)
     : { data: [], error: null };
   if (linesError) throw new Error(linesError.message);
-  return buildDemandTrend({ records: typedRecords, lines: (lines ?? []) as LineRow[], branches: options.branches, products: options.products, start, end, period, status, branchId, productId });
+  if (!lines) throw new Error("Outlet daily demand lines returned no data.");
+  return buildDemandTrend({ records: typedRecords, lines: lines as LineRow[], branches: options.branches, products: options.products, start, end, period, status, branchId, productId });
 }
 
 export async function getOutletDailyCompletionMatrix(filters: Filters = {}) {
@@ -383,7 +388,8 @@ export async function getOutletDailyCompletionMatrix(filters: Filters = {}) {
   if (selectedBranchId) query = query.eq("branch_id", selectedBranchId);
   const { data, error } = await query;
   if (error) throw new Error(error.message);
-  return buildOutletDailyCompletionMatrix({ branches, dates, records: (data ?? []) as Pick<RecordRow, "id" | "branch_id" | "record_date" | "status" | "updated_at">[] });
+  if (!data) throw new Error("Outlet daily completion matrix returned no data.");
+  return buildOutletDailyCompletionMatrix({ branches, dates, records: data as Pick<RecordRow, "id" | "branch_id" | "record_date" | "status" | "updated_at">[] });
 }
 
 function buildOutletDailyCompletionMatrix({ branches, dates, records }: {

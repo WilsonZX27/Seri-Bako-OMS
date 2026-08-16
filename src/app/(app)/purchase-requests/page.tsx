@@ -35,9 +35,19 @@ const statuses = [
   { value: "returned", label: "Returned" },
 ];
 
+async function loadRequests(filters: Record<string, string | undefined>) {
+  try {
+    return { data: await getPurchaseRequests(filters), unavailable: false };
+  } catch (error) {
+    logServerError(error, { source: "page.purchaseRequests.list" });
+    return { data: null, unavailable: true };
+  }
+}
+
 export default async function PurchaseRequestsPage({ searchParams }: { searchParams: Promise<Record<string, string | undefined>> }) {
   const filters = await searchParams;
-  const [requests, permissions, [summaryResult]] = await Promise.all([getPurchaseRequests(filters), getPermissionMap(["pr.create", "pr.view_branch"]), Promise.allSettled([getPurchaseRequestSummary()])]);
+  const [requestsResult, permissions, [summaryResult]] = await Promise.all([loadRequests(filters), getPermissionMap(["pr.create", "pr.view_branch"]), Promise.allSettled([getPurchaseRequestSummary()])]);
+  const requests = requestsResult.data;
   if (summaryResult.status === "rejected") logServerError(summaryResult.reason, { source: "page.purchaseRequests.summary" });
   const summary = summaryResult.status === "fulfilled" ? summaryResult.value : null;
   const filtered = hasActiveFilters(filters);
@@ -72,14 +82,14 @@ export default async function PurchaseRequestsPage({ searchParams }: { searchPar
         }
       >
         <div className="space-y-3" data-tablet-main-list>
-            <FilterBar resetHref="/purchase-requests" filtered={filtered} resultCount={requests.totalRows}>
+            <FilterBar resetHref="/purchase-requests" filtered={filtered} resultCount={requests?.totalRows}>
               <Input name="search" defaultValue={filters.search ?? ""} placeholder="Search PR no, branch, remarks" className="md:max-w-sm" />
               <SelectControl name="status" defaultValue={filters.status ?? "all"} ariaLabel="Status" options={[{ value: "all", label: "All statuses" }, ...statuses.map((status) => ({ value: status.value, label: status.label }))]} />
               <SelectControl name="priority" defaultValue={filters.priority ?? "all"} ariaLabel="Priority" options={[{ value: "all", label: "All priorities" }, { value: "critical", label: "Critical" }, { value: "urgent", label: "Urgent" }, { value: "normal", label: "Normal" }, { value: "low", label: "Low" }]} />
               {filtered ? <Button asChild variant="secondary" className="sb-filter-submit shrink-0"><Link href="/purchase-requests">Reset</Link></Button> : <Button type="submit" variant="secondary" className="sb-filter-submit shrink-0">Search</Button>}
             </FilterBar>
           <div className="sb-list-content-card overflow-hidden">
-          <BulkSelectionProvider ids={requests.rows.map((request) => request.id)} actionLabel="Delete selected" actionHint="Review selected requests before permanent deletion.">
+          <BulkSelectionProvider ids={requests?.rows.map((request) => request.id) ?? []} actionLabel="Delete selected" actionHint="Review selected requests before permanent deletion.">
           <BulkPhaseOneDelete />
           <DataGridHint text="Pro-tip: Double-click any row to open the purchase request." />
           <Table mobileHidden compactUntil="xl" aria-label="Purchase requests" stickyColumn="third">
@@ -98,7 +108,7 @@ export default async function PurchaseRequestsPage({ searchParams }: { searchPar
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {requests.rows.map((request) => (
+                {requests?.rows.map((request) => (
                   <DataGridRow key={request.id} href={`/purchase-requests/${request.id}`}>
                       <TableSelectionCell className="hidden md:table-cell">
                        <BulkSelectRowCheckbox id={request.id} />
@@ -116,15 +126,15 @@ export default async function PurchaseRequestsPage({ searchParams }: { searchPar
                     <TableCell className="hidden text-right md:table-cell">{formatCurrency(request.estimated_total)}</TableCell>
                   </DataGridRow>
                 ))}
-                {!requests.rows.length ? <TableRow><TableCell colSpan={11}><EmptyState title={filtered ? "No requests match these filters" : "No purchase requests yet"} description={filtered ? "Reset the filters or widen the search." : "Purchase requests appear here after branch needs are created."} action={filtered ? { href: "/purchase-requests", label: "Reset filters" } : undefined} /></TableCell></TableRow> : null}
+                {!requests?.rows.length ? <TableRow><TableCell colSpan={11}><EmptyState title={requestsResult.unavailable ? "Purchase request data unavailable" : filtered ? "No requests match these filters" : "No purchase requests yet"} description={requestsResult.unavailable ? "The request source could not be verified. No record count or estimated total is shown as zero." : filtered ? "Reset the filters or widen the search." : "Purchase requests appear here after branch needs are created."} action={requestsResult.unavailable ? { href: "/purchase-requests", label: "Retry requests" } : filtered ? { href: "/purchase-requests", label: "Reset filters" } : undefined} /></TableCell></TableRow> : null}
               </TableBody>
             </Table>
             <OperationalList ariaLabel="Purchase requests" showUntil="xl">
-              {requests.rows.map((request) => <OperationalListRow key={request.id} href={`/purchase-requests/${request.id}`} label={`Open ${request.request_no}`} primary={<DocumentNumber value={request.request_no} size="sm" />} status={<StatusBadge status={request.status} />} secondary={`${request.branch_name ?? "Unassigned branch"} · ${formatDateOnly(request.request_date)}`} meta={`${request.line_count} items · Needed ${formatDateOnly(request.needed_by_date, "—")}`} />)}
-              {!requests.rows.length ? <EmptyState title={filtered ? "No requests match these filters" : "No purchase requests yet"} description={filtered ? "Reset the filters or widen the search." : "Purchase requests appear here after branch needs are created."} action={filtered ? { href: "/purchase-requests", label: "Reset filters" } : undefined} /> : null}
+              {requests?.rows.map((request) => <OperationalListRow key={request.id} href={`/purchase-requests/${request.id}`} label={`Open ${request.request_no}`} primary={<DocumentNumber value={request.request_no} size="sm" />} status={<StatusBadge status={request.status} />} secondary={`${request.branch_name ?? "Unassigned branch"} · ${formatDateOnly(request.request_date)}`} meta={`${request.line_count} items · Needed ${formatDateOnly(request.needed_by_date, "—")}`} />)}
+              {!requests?.rows.length ? <EmptyState title={requestsResult.unavailable ? "Purchase request data unavailable" : filtered ? "No requests match these filters" : "No purchase requests yet"} description={requestsResult.unavailable ? "The request source could not be verified. No record count or estimated total is shown as zero." : filtered ? "Reset the filters or widen the search." : "Purchase requests appear here after branch needs are created."} action={requestsResult.unavailable ? { href: "/purchase-requests", label: "Retry requests" } : filtered ? { href: "/purchase-requests", label: "Reset filters" } : undefined} /> : null}
             </OperationalList>
           </BulkSelectionProvider>
-          <PaginationControls page={requests.page} totalPages={requests.totalPages} totalRows={requests.totalRows} searchParams={filters} />
+          {requests ? <PaginationControls page={requests.page} totalPages={requests.totalPages} totalRows={requests.totalRows} searchParams={filters} /> : null}
           </div>
         </div>
       </WorkspaceGrid>

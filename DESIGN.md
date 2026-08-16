@@ -1,11 +1,16 @@
 # Seri Bako OMS responsive design standard
 
-> **Release authority:** the currently released application is `v8.63.0`, as
+> **Release authority:** the currently released application is `v8.64.0`, as
 > defined by `src/lib/app-version.ts`. A versioned section above that number is
 > an accepted forward design contract or unreleased implementation note—not
 > evidence that the application itself has been released at that version.
 > `docs/DESIGN_SYSTEM.md` owns the current visual principles; this file retains
 > versioned implementation history and workspace rules.
+
+## v8.64.0 - Fail-Closed Procurement Joins
+
+- Purchase Request and Purchase Order list reads validate their branch, supplier, and line joins together; a failed join returns a retryable unavailable state instead of a row with missing scope context or fabricated totals.
+- Procurement lists hide result counts and pagination while unavailable, preserving the distinction between an empty queue and an unverified queue.
 
 ## v8.63.0 - Fail-Closed Goods Receiving Joins
 

@@ -40,9 +40,19 @@ async function loadExportBranches() {
   }
 }
 
+async function loadOrders(filters: Record<string, string | undefined>) {
+  try {
+    return { data: await getPurchaseOrders(filters), unavailable: false };
+  } catch (error) {
+    logServerError(error, { source: "page.purchaseOrders.list" });
+    return { data: null, unavailable: true };
+  }
+}
+
 export default async function PurchaseOrdersPage({ searchParams }: { searchParams: Promise<Record<string, string | undefined>> }) {
   const filters = await searchParams;
-  const [orders, permissions, [summaryResult]] = await Promise.all([getPurchaseOrders(filters), getPermissionMap(["po.create"]), Promise.allSettled([getPurchaseOrderSummary()])]);
+  const [ordersResult, permissions, [summaryResult]] = await Promise.all([loadOrders(filters), getPermissionMap(["po.create"]), Promise.allSettled([getPurchaseOrderSummary()])]);
+  const orders = ordersResult.data;
   if (summaryResult.status === "rejected") logServerError(summaryResult.reason, { source: "page.purchaseOrders.summary" });
   const summary = summaryResult.status === "fulfilled" ? summaryResult.value : null;
   const exportBranches = permissions["po.create"] ? await loadExportBranches() : [];
@@ -86,7 +96,7 @@ export default async function PurchaseOrdersPage({ searchParams }: { searchParam
         }
       >
         <div className="space-y-3" data-tablet-main-list>
-            <UnifiedListHeader resultCount={orders.totalRows} resetHref="/purchase-orders" filtered={filtered} activeCount={Number(Boolean(filters.status))}>
+            <UnifiedListHeader resultCount={orders?.totalRows} resetHref="/purchase-orders" filtered={filtered} activeCount={Number(Boolean(filters.status))}>
               <Input name="search" defaultValue={filters.search ?? ""} placeholder="Search PO no, supplier, remarks" className="min-w-0 flex-1 md:max-w-sm" />
               <StatusTabs statuses={statuses} activeStatus={filters.status} />
               {filtered ? <Button asChild variant="secondary" className="shrink-0"><Link href="/purchase-orders">Reset</Link></Button> : <Button type="submit" variant="secondary" className="shrink-0">Search</Button>}
@@ -108,7 +118,7 @@ export default async function PurchaseOrdersPage({ searchParams }: { searchParam
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {orders.rows.map((order) => (
+                {orders?.rows.map((order) => (
                   <DataGridRow key={order.id} href={`/purchase-orders/${order.id}`}>
                     <TableCell className="w-10 p-0 text-center"><TableActionLink href={`/purchase-orders/${order.id}`} label={`Open ${order.po_no}`}><Pencil className="h-4 w-4" /></TableActionLink></TableCell>
                     <TableCell><DocumentNumber value={order.po_no} size="sm" /></TableCell>
@@ -120,11 +130,11 @@ export default async function PurchaseOrdersPage({ searchParams }: { searchParam
                     <TableCell className="hidden text-right md:table-cell">{formatCurrency(order.order_total)}</TableCell>
                   </DataGridRow>
                 ))}
-                {!orders.rows.length ? <TableRow><TableCell colSpan={8}><EmptyState title={filtered ? "No orders match these filters" : "No purchase orders yet"} description={filtered ? "Reset the filters or widen the search." : "Approved requests and new orders will appear here."} action={emptyStateAction} /></TableCell></TableRow> : null}
+                {!orders?.rows.length ? <TableRow><TableCell colSpan={8}><EmptyState title={ordersResult.unavailable ? "Purchase order data unavailable" : filtered ? "No orders match these filters" : "No purchase orders yet"} description={ordersResult.unavailable ? "The order source could not be verified. No record count or order total is shown as zero." : filtered ? "Reset the filters or widen the search." : "Approved requests and new orders will appear here."} action={ordersResult.unavailable ? { href: "/purchase-orders", label: "Retry orders" } : emptyStateAction} /></TableCell></TableRow> : null}
               </TableBody>
             </Table>
             <OperationalList ariaLabel="Purchase orders">
-              {orders.rows.map((order) => <OperationalListRow
+              {orders?.rows.map((order) => <OperationalListRow
                 key={order.id}
                 href={`/purchase-orders/${order.id}`}
                 label={`Open ${order.po_no}`}
@@ -133,9 +143,9 @@ export default async function PurchaseOrdersPage({ searchParams }: { searchParam
                 secondary={`${order.supplier_name ?? "No supplier"} · ${formatDateOnly(order.order_date)}`}
                 meta={`${order.line_count} items · ${formatCurrency(order.order_total)}`}
               />)}
-              {!orders.rows.length ? <EmptyState title={filtered ? "No orders match these filters" : "No purchase orders yet"} description={filtered ? "Reset the filters or widen the search." : "Approved requests and new orders will appear here."} action={emptyStateAction} /> : null}
+              {!orders?.rows.length ? <EmptyState title={ordersResult.unavailable ? "Purchase order data unavailable" : filtered ? "No orders match these filters" : "No purchase orders yet"} description={ordersResult.unavailable ? "The order source could not be verified. No record count or order total is shown as zero." : filtered ? "Reset the filters or widen the search." : "Approved requests and new orders will appear here."} action={ordersResult.unavailable ? { href: "/purchase-orders", label: "Retry orders" } : emptyStateAction} /> : null}
             </OperationalList>
-          <PaginationControls page={orders.page} totalPages={orders.totalPages} totalRows={orders.totalRows} searchParams={filters} />
+          {orders ? <PaginationControls page={orders.page} totalPages={orders.totalPages} totalRows={orders.totalRows} searchParams={filters} /> : null}
           </div>
         </div>
       </WorkspaceGrid>

@@ -9,7 +9,7 @@ const read = (file) => fs.readFileSync(path.join(root, file), "utf8");
 test("purchase order mobile search and rows expose delivery context", () => {
   const source = read("src/app/(app)/purchase-orders/page.tsx");
 
-  assert.match(source, /<UnifiedListHeader resultCount=\{orders\.totalRows\} resetHref="\/purchase-orders"/);
+  assert.match(source, /<UnifiedListHeader resultCount=\{orders\?\.totalRows\} resetHref="\/purchase-orders"/);
   assert.match(source, /sb-list-content-card/);
   assert.match(source, /placeholder="Search PO no, supplier, remarks"/);
   assert.match(source, /Delivery \{formatDateOnly\(order\.expected_delivery_date, "not set"\)\}/);

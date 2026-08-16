@@ -145,11 +145,11 @@ export async function getPurchaseRequests(filters: Filters = {}) {
     .range((page - 1) * PAGE_SIZE, page * PAGE_SIZE - 1);
   if (error) throw new Error(error.message);
   const ids = (data ?? []).map((row) => row.id);
-  const [{ data: lines, error: linesError }, { data: branches }] = await Promise.all([
+  const [{ data: lines, error: linesError }, { data: branches, error: branchesError }] = await Promise.all([
     ids.length ? supabase.from("purchase_request_lines").select("purchase_request_id, qty, estimated_unit_cost").in("purchase_request_id", ids) : Promise.resolve({ data: [], error: null }),
     supabase.from("branches").select("id, branch_name").in("id", (data ?? []).flatMap((row) => (row.branch_id ? [row.branch_id] : []))),
   ]);
-  if (linesError) throw new Error(linesError.message);
+  if (linesError || branchesError) throw new Error((linesError ?? branchesError)!.message);
   const branchById = new Map((branches ?? []).map((row) => [row.id, row.branch_name]));
   const rows = (data ?? []).map((row) => {
     const ownLines = (lines ?? []).filter((line) => line.purchase_request_id === row.id);
@@ -263,11 +263,11 @@ export async function getPurchaseOrders(filters: Filters = {}) {
   const { data, error, count } = await query.order(sort, { ascending: filters.dir !== "asc" }).range((page - 1) * PAGE_SIZE, page * PAGE_SIZE - 1);
   if (error) throw new Error(error.message);
   const ids = (data ?? []).map((row) => row.id);
-  const [{ data: lines, error: linesError }, { data: suppliers }] = await Promise.all([
+  const [{ data: lines, error: linesError }, { data: suppliers, error: suppliersError }] = await Promise.all([
     ids.length ? supabase.from("purchase_order_lines").select("purchase_order_id, qty_ordered, unit_price").in("purchase_order_id", ids) : Promise.resolve({ data: [], error: null }),
-    supabase.from("suppliers").select("id, name").in("id", (data ?? []).map((row) => row.supplier_id)),
+    (data ?? []).length ? supabase.from("suppliers").select("id, name").in("id", (data ?? []).map((row) => row.supplier_id)) : Promise.resolve({ data: [], error: null }),
   ]);
-  if (linesError) throw new Error(linesError.message);
+  if (linesError || suppliersError) throw new Error((linesError ?? suppliersError)!.message);
   const supplierById = new Map((suppliers ?? []).map((row) => [row.id, row.name]));
   const rows = (data ?? []).map((row) => {
     const ownLines = (lines ?? []).filter((line) => line.purchase_order_id === row.id);

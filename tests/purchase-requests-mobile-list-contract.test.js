@@ -13,7 +13,7 @@ test("purchase-request list uses device-appropriate list surfaces and anchors th
   assert.match(page, /<OperationalList ariaLabel="Purchase requests" showUntil="xl">/);
   assert.match(page, /tabletRailBreakpoint="md"/);
   assert.match(page, /<FilterBar resetHref="\/purchase-requests"/);
-  assert.match(page, /resultCount=\{requests\.totalRows\}/);
+  assert.match(page, /resultCount=\{requests\?\.totalRows\}/);
 });
 
 test("purchase-request creation remains permission guarded", () => {

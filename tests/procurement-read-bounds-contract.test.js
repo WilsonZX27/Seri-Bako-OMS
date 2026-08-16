@@ -3,6 +3,8 @@ import { readFileSync } from "node:fs";
 import test from "node:test";
 
 const source = readFileSync("src/server/queries/procurement.ts", "utf8");
+const requestList = readFileSync("src/app/(app)/purchase-requests/page.tsx", "utf8");
+const orderList = readFileSync("src/app/(app)/purchase-orders/page.tsx", "utf8");
 const requestOrders = source.slice(
   source.indexOf("export async function getPurchaseOrdersForRequest"),
   source.indexOf("export async function getPurchaseOrders(", source.indexOf("export async function getPurchaseOrdersForRequest")),
@@ -18,4 +20,21 @@ test("purchase-request details bound downstream reads to their own purchase orde
 test("purchase-request detail joins fail closed", () => {
   assert.match(requestOrders, /if \(linesError\) throw new Error\(linesError\.message\)/);
   assert.match(requestOrders, /if \(suppliersError\) throw new Error\(suppliersError\.message\)/);
+});
+
+test("procurement list joins fail closed and preserve an explicit unavailable state", () => {
+  const requests = source.slice(source.indexOf("export async function getPurchaseRequests"), source.indexOf("export async function getPurchaseRequestSummary"));
+  const orders = source.slice(source.indexOf("export async function getPurchaseOrders("), source.indexOf("export async function getPurchaseOrderSummary"));
+  assert.match(requests, /data: branches, error: branchesError/);
+  assert.match(requests, /linesError \|\| branchesError/);
+  assert.match(orders, /data: suppliers, error: suppliersError/);
+  assert.match(orders, /linesError \|\| suppliersError/);
+  assert.match(requestList, /page\.purchaseRequests\.list/);
+  assert.match(requestList, /Purchase request data unavailable/);
+  assert.match(requestList, /No record count or estimated total is shown as zero/);
+  assert.match(requestList, /resultCount=\{requests\?\.totalRows\}/);
+  assert.match(orderList, /page\.purchaseOrders\.list/);
+  assert.match(orderList, /Purchase order data unavailable/);
+  assert.match(orderList, /No record count or order total is shown as zero/);
+  assert.match(orderList, /resultCount=\{orders\?\.totalRows\}/);
 });

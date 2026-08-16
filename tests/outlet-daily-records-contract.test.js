@@ -140,6 +140,16 @@ test("outlet daily source failures never render an empty zero dashboard", () => 
   assert.match(page, /href=\"\/outlet-daily-records\"/);
 });
 
+test("outlet daily detail fails closed when its record source cannot be verified", () => {
+  assert.match(query, /if \(branchesError\) throw new Error/);
+  assert.match(query, /if \(productsError\) throw new Error/);
+  assert.match(query, /if \(staffsError\) throw new Error/);
+  assert.match(detail, /page\.outletDailyRecords\.detail/);
+  assert.match(detail, /Outlet daily record unavailable/);
+  assert.match(detail, /No receipt or wastage totals are shown as zero/);
+  assert.match(detail, /Retry record/);
+});
+
 test("outlet records flag a confirmed zero when stock was sent", () => {
   assert.match(query, /received_zero_with_sent: boolean/);
   assert.match(query, /totalReceived === 0 && totalSent > 0/);

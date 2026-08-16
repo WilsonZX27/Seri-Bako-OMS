@@ -2,14 +2,19 @@ import { DocumentMoreOptions } from "@/components/documents/mobile-document-surf
 import { DocumentActionSection, DocumentSideSection, DocumentWorkspace } from "@/components/documents/document-workspace";
 import { OutletDailyRecordForm } from "@/components/outlet-daily-record-form";
 import { Card, CardContent } from "@/components/ui/card";
+import { EmptyState } from "@/components/ui/empty-state";
 import { Field } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
+import { PageHeader } from "@/components/ui/page-header";
 import { SubmitButton } from "@/components/ui/submit-button";
+import { ConsoleSection } from "@/components/layout/right-console";
+import { WorkspaceGrid } from "@/components/layout/workspace-layout";
 import { sortProductsForDisplay } from "@/lib/product-order";
 import { formatDateOnly, formatNumber } from "@/lib/utils";
 import { saveOutletDailyRecord, voidOutletDailyRecord } from "@/server/actions/outlet-daily-records";
 import { getPermissionMap } from "@/server/auth/permissions";
 import { getOutletDailyFormOptions, getOutletDailyRecord } from "@/server/queries/outlet-daily-records";
+import { logServerError } from "@/server/observability/logger";
 import { CheckCircle2, Save } from "lucide-react";
 
 const dailySteps = [
@@ -20,11 +25,21 @@ const dailySteps = [
 
 export default async function OutletDailyRecordDetailPage({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<Record<string, string | undefined>> }) {
   const [{ id }, messages] = await Promise.all([params, searchParams]);
-  const [{ record, lines }, options, permissions] = await Promise.all([
+  const source = await Promise.all([
     getOutletDailyRecord(id),
     getOutletDailyFormOptions(),
     getPermissionMap(["outlet_daily_record.update", "outlet_daily_record.qty_sent", "outlet_daily_record.void"]),
-  ]);
+  ]).catch((error) => {
+    logServerError(error, { source: "page.outletDailyRecords.detail" });
+    return null;
+  });
+  if (!source) return <>
+    <PageHeader title="Outlet Daily Record" description="Morning receiving and evening wastage capture by outlet." />
+    <WorkspaceGrid hideMobileConsole rightRail={<ConsoleSection title="Record status"><p className="text-xs text-muted-foreground">The record source could not be verified. No receipt or wastage totals are shown as zero.</p></ConsoleSection>}>
+      <Card role="status"><CardContent className="p-5"><EmptyState title="Outlet daily record unavailable" description="The record could not be verified right now. Retry before editing or interpreting any quantity." action={{ href: `/outlet-daily-records/${encodeURIComponent(id)}`, label: "Retry record" }} /></CardContent></Card>
+    </WorkspaceGrid>
+  </>;
+  const [{ record, lines }, options, permissions] = source;
   const productMap = new Map(options.products.map((product) => [product.id, product]));
   for (const line of lines) if (line.product) productMap.set(line.product.id, line.product);
   const products = sortProductsForDisplay([...productMap.values()]);

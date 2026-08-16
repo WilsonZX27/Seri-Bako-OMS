@@ -256,7 +256,7 @@ export async function getOutletDailyRecords(filters: Filters = {}) {
 export async function getOutletDailyRecord(id: string) {
   if (isMockMode()) throw new Error("Outlet daily records require migration 064.");
   const db = await createClient();
-  const [{ data: record, error }, { data: lines, error: linesError }, { data: branches }, { data: products }, { data: staffs }] = await Promise.all([
+  const [{ data: record, error }, { data: lines, error: linesError }, { data: branches, error: branchesError }, { data: products, error: productsError }, { data: staffs, error: staffsError }] = await Promise.all([
     db.from("outlet_daily_records").select("*").eq("id", id).single(),
     db.from("outlet_daily_record_lines").select("*").eq("record_id", id),
     db.from("branches").select("id,branch_name"),
@@ -265,6 +265,9 @@ export async function getOutletDailyRecord(id: string) {
   ]);
   if (error) throw new Error(error.message);
   if (linesError) throw new Error(linesError.message);
+  if (branchesError) throw new Error(branchesError.message);
+  if (productsError) throw new Error(productsError.message);
+  if (staffsError) throw new Error(staffsError.message);
   const typedRecord = record as RecordRow;
   const typedLines = (lines ?? []) as LineRow[];
   const productMap = new Map((products ?? []).map((product) => [product.id, product]));

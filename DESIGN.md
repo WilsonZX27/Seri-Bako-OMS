@@ -1,11 +1,16 @@
 # Seri Bako OMS responsive design standard
 
-> **Release authority:** the currently released application is `v8.61.0`, as
+> **Release authority:** the currently released application is `v8.62.0`, as
 > defined by `src/lib/app-version.ts`. A versioned section above that number is
 > an accepted forward design contract or unreleased implementation note—not
 > evidence that the application itself has been released at that version.
 > `docs/DESIGN_SYSTEM.md` owns the current visual principles; this file retains
 > versioned implementation history and workspace rules.
+
+## v8.62.0 - Fail-Closed Outlet Daily Detail
+
+- Outlet Daily detail reads validate record, line, branch, product, and staff sources together; any failed source returns a retryable unavailable state instead of a partial record with misleading totals.
+- The detail page keeps the same source-trust language as the list and trend surfaces: verified zero remains a fact, while unavailable data remains visibly unavailable.
 
 ## v8.61.0 - Stock Count Card Alignment and Status Semantics
 

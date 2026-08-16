@@ -1555,12 +1555,6 @@ html[data-design-layer="v2"] form.sb-list-query-card :where(input, select, butto
   border-radius: var(--sb-control-radius) !important;
 }
 
-html[data-design-layer="v2"] form.sb-list-query-card :where(select, button, [role="combobox"], [data-select-control], .sb-status-filter-control, .sb-filter-more > summary) {
-  overflow: hidden;
-  white-space: nowrap;
-  text-overflow: ellipsis;
-}
-
 html[data-design-layer="v2"] form.sb-list-query-card :where(input, select, [role="combobox"], [data-select-control], .sb-status-filter-control, .sb-filter-more > summary) {
   background-color: var(--sb-surface-raised) !important;
   border-color: var(--sb-border) !important;
@@ -1604,13 +1598,24 @@ html[data-design-layer="v2"] .sb-list-content-card {
   }
 }
 
+/* Final shared list-control authority — layout. Every list route uses this one grammar:
+   equal secondary controls, a flexible query, and the result/action cluster at
+   the end. One tablet grammar for every list keeps the full-width query on row one
+   only where the viewport cannot safely keep the controls beside it. */
 @media (min-width: 640px) {
   html[data-design-layer="v2"] form.sb-list-query-card {
-    display: flex;
-    align-items: center;
-    gap: .5rem;
+    display: flex !important;
+    flex-wrap: nowrap !important;
+    align-items: center !important;
+    gap: .5rem !important;
     min-width: 0;
     padding: .5rem;
+  }
+
+  html[data-design-layer="v2"] form.sb-list-query-card :where(select, button, [role="combobox"], [data-select-control], .sb-status-filter-control, .sb-filter-more > summary) {
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
   }
 
   html[data-design-layer="v2"] form.sb-list-query-card > .unified-list-desktop-actions {
@@ -1622,16 +1627,8 @@ html[data-design-layer="v2"] .sb-list-content-card {
     margin-left: auto;
   }
 
-  html[data-design-layer="v2"] form.sb-list-query-card > .unified-list-desktop-actions > .sb-filter-summary {
-    margin: 0 !important;
-  }
-
-  /* Desktop command rows share one measurable width. Search is not allowed to
-     grow until it visually dominates the filters or action button. */
-  html[data-design-layer="v2"] form.sb-list-query-card > :where(input[name="date"], .unified-list-date-control, select, [data-select-control], .sb-status-filter, .sb-filter-more),
-  html[data-design-layer="v2"] form.sb-list-query-card > .unified-list-desktop-actions > :where(button, a),
-  html[data-design-layer="v2"] form.sb-list-filters--equal-controls > :where(input[type="search"], input[name="search"], input[name="date"], input[placeholder*="Search"], input[placeholder*="Find"], .unified-list-date-control, select, [data-select-control], .sb-status-filter, .sb-filter-more),
-  html[data-design-layer="v2"] form.sb-list-filters--equal-controls > .unified-list-desktop-actions > :where(button, a) {
+  html[data-design-layer="v2"] form.sb-list-query-card > :where(select, [data-select-control], .sb-status-filter, .sb-filter-more),
+  html[data-design-layer="v2"] form.sb-list-query-card > .unified-list-desktop-actions > :where(button, a) {
     flex: 0 0 10rem !important;
     width: 10rem !important;
     min-width: 10rem !important;
@@ -1639,10 +1636,10 @@ html[data-design-layer="v2"] .sb-list-content-card {
   }
 
   html[data-design-layer="v2"] form.sb-list-query-card > :where(input[type="search"], input[name="search"], input[name="date"], input[placeholder*="Search"], input[placeholder*="Find"], .unified-list-date-control) {
-    flex: 0 1 10rem !important;
-    width: 10rem !important;
-    min-width: 10rem !important;
-    max-width: 10rem !important;
+    flex: 1 1 14rem !important;
+    width: auto !important;
+    min-width: 12rem !important;
+    max-width: none !important;
   }
 
   html[data-design-layer="v2"] form.sb-list-query-card [data-list-primary-action="true"] {
@@ -1653,81 +1650,48 @@ html[data-design-layer="v2"] .sb-list-content-card {
 
   html[data-design-layer="v2"] form.sb-list-filters--equal-controls > .sb-filter-more > summary {
     width: 100% !important;
-    min-width: 100% !important;
   }
 }
 
-/* Desktop lists stay on one deliberate command row. The primary query absorbs
-   remaining space; secondary controls share one compact measure and the final
-   action uses the established button measure. This prevents an inherited
-   flex-wrap from dropping Search onto an otherwise empty second row when a
-   right console narrows the centre workspace. */
-@media (min-width: 1280px) {
+@media (min-width: 640px) and (max-width: 1279px) {
   html[data-design-layer="v2"] form.sb-list-query-card {
-    flex-wrap: nowrap !important;
+    display: grid !important;
+    grid-template-columns: repeat(var(--sb-list-tablet-columns, 4), minmax(0, 1fr)) !important;
+    flex-wrap: unset !important;
   }
 
   html[data-design-layer="v2"] form.sb-list-query-card > :where(input[type="search"], input[name="search"], input[name="date"], input[placeholder*="Search"], input[placeholder*="Find"], .unified-list-date-control) {
-    flex: 1 1 12rem !important;
-    width: auto !important;
-    min-width: 10rem !important;
+    grid-column: auto !important;
+    width: 100% !important;
+    min-width: 0 !important;
     max-width: none !important;
   }
 
-  html[data-design-layer="v2"] form.sb-list-query-card > :where(select, [data-select-control], .sb-status-filter, .sb-filter-more) {
-    flex: 0 1 9rem !important;
-    width: 9rem !important;
-    min-width: 7.5rem !important;
-    max-width: 9rem !important;
+  html[data-design-layer="v2"] form.sb-list-query-card > :where(select, [data-select-control], .sb-status-filter, .sb-filter-more),
+  html[data-design-layer="v2"] form.sb-list-query-card > .unified-list-desktop-actions {
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: none !important;
+    margin-left: 0 !important;
+  }
+
+  html[data-design-layer="v2"] form.sb-list-query-card > .unified-list-desktop-actions {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) auto !important;
+    gap: .5rem !important;
+    margin-left: 0 !important;
   }
 
   html[data-design-layer="v2"] form.sb-list-query-card > .unified-list-desktop-actions > .unified-list-action {
-    flex: 0 0 7.5rem !important;
-    width: 7.5rem !important;
-    min-width: 7.5rem !important;
-    max-width: 7.5rem !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: none !important;
   }
 }
 
-/* One tablet grammar for every list: full-width query on row one; date/status,
-   More filters, and Search/count share row two without arbitrary special
-   widths. This is the only tablet override for list controls. */
-@media (min-width: 640px) and (max-width: 1279px) {
-  html[data-design-layer="v2"] form.sb-list-query-card:has(> :is(input[type="search"], input[name="search"], input[name="date"], input[placeholder*="Search"], input[placeholder*="Find"], .unified-list-date-control)) {
-    display: grid !important;
-    grid-template-columns: repeat(var(--sb-list-tablet-columns, 4), minmax(0, 1fr));
-    align-items: center;
-  }
-
-  html[data-design-layer="v2"] form.sb-list-query-card:has(> :is(input[type="search"], input[name="search"], input[name="date"], input[placeholder*="Search"], input[placeholder*="Find"], .unified-list-date-control)) > :where(input[type="search"], input[name="search"], input[name="date"], input[placeholder*="Search"], input[placeholder*="Find"], .unified-list-date-control) {
-    grid-column: 1 / -1;
-    width: 100% !important;
-    min-width: 0 !important;
-    max-width: none !important;
-  }
-
-  html[data-design-layer="v2"] form.sb-list-query-card:has(> :is(input[type="search"], input[name="search"], input[name="date"], input[placeholder*="Search"], input[placeholder*="Find"], .unified-list-date-control)) > :where(select, [data-select-control], .sb-status-filter, .sb-filter-more),
-  html[data-design-layer="v2"] form.sb-list-query-card:has(> :is(input[type="search"], input[name="search"], input[name="date"], input[placeholder*="Search"], input[placeholder*="Find"], .unified-list-date-control)) > .unified-list-desktop-actions {
-    width: 100% !important;
-    min-width: 0 !important;
-    max-width: none !important;
-    margin-left: 0;
-  }
-
-  html[data-design-layer="v2"] form.sb-list-query-card:has(> :is(input[type="search"], input[name="search"], input[name="date"], input[placeholder*="Search"], input[placeholder*="Find"], .unified-list-date-control)) > .unified-list-desktop-actions {
-    display: grid !important;
-    grid-template-columns: minmax(0, 1fr) auto;
-    justify-content: stretch;
-  }
-
-  html[data-design-layer="v2"] form.sb-list-query-card:has(> :is(input[type="search"], input[name="search"], input[name="date"], input[placeholder*="Search"], input[placeholder*="Find"], .unified-list-date-control)) > .unified-list-desktop-actions > .unified-list-action {
-    width: 100% !important;
-    min-width: 0 !important;
-    max-width: none !important;
-  }
-
-  html[data-design-layer="v2"] [data-tablet-document-split] form.sb-list-query-card {
-    width: 100%;
+@media (min-width: 1280px) {
+  html[data-design-layer="v2"] form.sb-list-query-card {
+    flex-wrap: nowrap !important;
   }
 }
 

@@ -77,3 +77,10 @@ test("Demand Trend keeps unavailable charts explicit instead of implying zero", 
   assert.match(ranking, /data-demand-ranking-empty/);
   assert.match(ranking, /not shown as zero/);
 });
+
+test("Demand Trend keeps daily data persistently available beside the chart", () => {
+  const trend = read("src/components/reports/demand-trend-chart.tsx");
+  assert.match(trend, /data-demand-trend-daily-data/);
+  assert.match(trend, /lg:grid-cols-\[minmax\(0,1\.65fr\)_minmax\(15rem,\.85fr\)\]/);
+  assert.match(trend, /aria-label="Daily trend data"/);
+});

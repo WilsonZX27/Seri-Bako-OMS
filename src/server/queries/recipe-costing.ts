@@ -1,6 +1,7 @@
 import { isMockMode, mockItems, mockProducts, mockRecipeLines, mockRecipes } from "@/lib/mock-mode";
 import { createClient } from "@/lib/supabase/server";
 import { requirePermission } from "@/server/auth/permissions";
+import { requireReadRows } from "@/server/queries/common";
 
 export type RecipeCostingRow = {
   id: string;
@@ -87,5 +88,10 @@ export async function getRecipeCosting(filters: Filters = {}) {
     supabase.from("recipe_lines").select("*"),
   ]);
   for (const result of [items, products, recipes, recipeLines]) if (result.error) throw new Error(result.error.message);
-  return buildRecipeCosting({ items: items.data ?? [], products: products.data ?? [], recipes: recipes.data ?? [], recipeLines: recipeLines.data ?? [] }, filters);
+  return buildRecipeCosting({
+    items: requireReadRows(items.data, "Recipe costing items"),
+    products: requireReadRows(products.data, "Recipe costing products"),
+    recipes: requireReadRows(recipes.data, "Recipe costing recipes"),
+    recipeLines: requireReadRows(recipeLines.data, "Recipe costing recipe lines"),
+  }, filters);
 }

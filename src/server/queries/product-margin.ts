@@ -1,6 +1,7 @@
 import { isMockMode, mockItems, mockProductPackaging, mockProducts, mockRecipeLines, mockRecipes } from "@/lib/mock-mode";
 import { createClient } from "@/lib/supabase/server";
 import { requirePermission } from "@/server/auth/permissions";
+import { requireReadRows } from "@/server/queries/common";
 import { buildRecipeCosting, type RecipeCostingRow } from "@/server/queries/recipe-costing";
 
 export type ProductMarginRow = {
@@ -73,5 +74,11 @@ export async function getProductMargin(filters: Filters = {}) {
     supabase.from("recipe_lines").select("*"),
   ]);
   for (const result of [items, products, packaging, recipes, recipeLines]) if (result.error) throw new Error(result.error.message);
-  return buildProductMargin({ items: items.data ?? [], products: products.data ?? [], packaging: packaging.data ?? [], recipes: recipes.data ?? [], recipeLines: recipeLines.data ?? [] }, filters);
+  return buildProductMargin({
+    items: requireReadRows(items.data, "Product margin items"),
+    products: requireReadRows(products.data, "Product margin products"),
+    packaging: requireReadRows(packaging.data, "Product margin packaging"),
+    recipes: requireReadRows(recipes.data, "Product margin recipes"),
+    recipeLines: requireReadRows(recipeLines.data, "Product margin recipe lines"),
+  }, filters);
 }

@@ -1,11 +1,22 @@
 # Seri Bako OMS responsive design standard
 
-> **Release authority:** the currently released application is `v8.64.52`, as
+> **Release authority:** the currently released application is `v8.64.54`, as
 > defined by `src/lib/app-version.ts`. A versioned section above that number is
 > an accepted forward design contract or unreleased implementation note—not
 > evidence that the application itself has been released at that version.
 > `docs/DESIGN_SYSTEM.md` owns the current visual principles; this file retains
 > versioned implementation history and workspace rules.
+
+## v8.64.54 - Fail-Closed Reads And Shared UI Closure
+
+- Shared list filters now have one responsive geometry authority: equal secondary controls, a flexible query, and a stable result/action cluster across desktop and touch-tablet widths.
+- Dashboard, Outlet Daily, inventory movement, AP aging, product margin, costing, procurement variance, and recipe-costing reads fail closed on missing or incomplete payloads; only verified empty datasets may render zero or an empty state.
+- Demand Trend keeps daily data persistently visible beside the chart, and no-line or incomplete coverage is explicitly unavailable instead of a misleading zero.
+
+## v8.64.53 - Dashboard Trust And Report Preview Closure
+
+- Dashboard secondary inventory failures stay explicit and cannot become a trusted zero.
+- Demand Trend uses a persistent daily-data companion panel and the shared line chart has reduced stroke/point weight.
 
 ## v8.64.52 - Centralized Fail-closed Query Boundaries
 

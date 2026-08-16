@@ -1,6 +1,7 @@
 import { isMockMode, mockGoodsReceivingLines, mockGoodsReceivings, mockItems, mockPurchaseOrderLines, mockPurchaseOrders, mockSupplierInvoiceLines, mockSupplierInvoices, mockSupplierItems, mockSuppliers } from "@/lib/mock-mode";
 import { createClient } from "@/lib/supabase/server";
 import { requirePermission } from "@/server/auth/permissions";
+import { requireReadRows } from "@/server/queries/common";
 
 type Filters = { search?: string; supplier?: string; item?: string; status?: string; date_from?: string; date_to?: string };
 type Data = { orders: typeof mockPurchaseOrders; orderLines: typeof mockPurchaseOrderLines; receivings: typeof mockGoodsReceivings; receivingLines: typeof mockGoodsReceivingLines; invoices: typeof mockSupplierInvoices; invoiceLines: typeof mockSupplierInvoiceLines; suppliers: typeof mockSuppliers; items: typeof mockItems; supplierItems: typeof mockSupplierItems };
@@ -43,5 +44,15 @@ export async function getProcurementVariance(filters: Filters = {}) {
   const supabase = await createClient();
   const [orders, orderLines, receivings, receivingLines, invoices, invoiceLines, suppliers, items, supplierItems] = await Promise.all([supabase.from("purchase_orders").select("*").is("deleted_at", null), supabase.from("purchase_order_lines").select("*"), supabase.from("goods_receivings").select("*").is("deleted_at", null), supabase.from("goods_receiving_lines").select("*"), supabase.from("supplier_invoices").select("*").is("deleted_at", null), supabase.from("supplier_invoice_lines").select("*"), supabase.from("suppliers").select("*").is("deleted_at", null), supabase.from("items").select("*").is("deleted_at", null), supabase.from("supplier_items").select("*").is("deleted_at", null)]);
   for (const result of [orders, orderLines, receivings, receivingLines, invoices, invoiceLines, suppliers, items, supplierItems]) if (result.error) throw new Error(result.error.message);
-  return buildProcurementVariance({ orders: orders.data ?? [], orderLines: orderLines.data ?? [], receivings: receivings.data ?? [], receivingLines: receivingLines.data ?? [], invoices: invoices.data ?? [], invoiceLines: invoiceLines.data ?? [], suppliers: suppliers.data ?? [], items: items.data ?? [], supplierItems: supplierItems.data ?? [] }, filters);
+  return buildProcurementVariance({
+    orders: requireReadRows(orders.data, "Procurement variance purchase orders"),
+    orderLines: requireReadRows(orderLines.data, "Procurement variance purchase order lines"),
+    receivings: requireReadRows(receivings.data, "Procurement variance goods receivings"),
+    receivingLines: requireReadRows(receivingLines.data, "Procurement variance receiving lines"),
+    invoices: requireReadRows(invoices.data, "Procurement variance invoices"),
+    invoiceLines: requireReadRows(invoiceLines.data, "Procurement variance invoice lines"),
+    suppliers: requireReadRows(suppliers.data, "Procurement variance suppliers"),
+    items: requireReadRows(items.data, "Procurement variance items"),
+    supplierItems: requireReadRows(supplierItems.data, "Procurement variance supplier items"),
+  }, filters);
 }

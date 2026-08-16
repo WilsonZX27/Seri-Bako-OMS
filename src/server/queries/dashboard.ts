@@ -135,25 +135,25 @@ async function getDashboardCoreSnapshotFallback(db: LooseSupabase, today: string
 
   return {
     snapshot: {
-      total_items: count(items) ?? 0,
-      total_suppliers: count(suppliers) ?? 0,
-      inventory_value: balanceRows.reduce((total, row) => total + Number(row.inventory_value ?? 0), 0),
-      low_stock_items_count: count(lowStockBalances) ?? 0,
-      negative_stock: count(negativeBalances) ?? 0,
+      total_items: count(items),
+      total_suppliers: count(suppliers),
+      inventory_value: balances.data === null ? null : balanceRows.reduce((total, row) => total + Number(row.inventory_value ?? 0), 0),
+      low_stock_items_count: count(lowStockBalances),
+      negative_stock: count(negativeBalances),
       urgent_requests: rows(urgentRequests) ?? [],
       purchase_requests: rows(purchaseRequests) ?? [],
       purchase_orders: rows(purchaseOrders) ?? [],
       recent_documents: rows(recentDocuments) ?? [],
-      today_receiving: count(todayReceiving) ?? 0,
-      stock_count_due: count(stockCountDue) ?? 0,
-      wastage_attention: count(wastageAttention) ?? 0,
-      receiving_followup: count(receivingFollowup) ?? 0,
-      production_today_posted: count(productionTodayPosted) ?? 0,
-      production_pending_approval: count(productionPendingApproval) ?? 0,
-      production_ready_to_post: count(productionReadyToPost) ?? 0,
-      production_ingredient_shortages: count(productionIngredientShortages) ?? 0,
-      outlet_missing_evening: count(outletMissingEvening) ?? 0,
-      outlet_needs_review: count(outletNeedsReview) ?? 0,
+      today_receiving: count(todayReceiving),
+      stock_count_due: count(stockCountDue),
+      wastage_attention: count(wastageAttention),
+      receiving_followup: count(receivingFollowup),
+      production_today_posted: count(productionTodayPosted),
+      production_pending_approval: count(productionPendingApproval),
+      production_ready_to_post: count(productionReadyToPost),
+      production_ingredient_shortages: count(productionIngredientShortages),
+      outlet_missing_evening: count(outletMissingEvening),
+      outlet_needs_review: count(outletNeedsReview),
       last_stock_count: rows(lastStockCount)?.[0] ?? null,
     } as DashboardCoreSnapshot,
     unavailable,
@@ -161,25 +161,25 @@ async function getDashboardCoreSnapshotFallback(db: LooseSupabase, today: string
 }
 
 type DashboardCoreSnapshot = {
-  total_items: number;
-  total_suppliers: number;
-  inventory_value: number;
-  low_stock_items_count: number;
-  negative_stock: number;
+  total_items: number | null;
+  total_suppliers: number | null;
+  inventory_value: number | null;
+  low_stock_items_count: number | null;
+  negative_stock: number | null;
   urgent_requests: Array<{ id: string; request_no: string; status: string; priority: string; needed_by_date: string | null }>;
   purchase_requests: Array<{ id: string; request_no: string; status: string; priority: string }>;
   purchase_orders: Array<{ id: string; po_no: string; status: string; priority: string }>;
   recent_documents: Array<{ id: string; document_no: string; document_type: string }>;
-  today_receiving: number;
-  stock_count_due: number;
-  wastage_attention: number;
-  receiving_followup: number;
-  production_today_posted: number;
-  production_pending_approval: number;
-  production_ready_to_post: number;
-  production_ingredient_shortages: number;
-  outlet_missing_evening: number;
-  outlet_needs_review: number;
+  today_receiving: number | null;
+  stock_count_due: number | null;
+  wastage_attention: number | null;
+  receiving_followup: number | null;
+  production_today_posted: number | null;
+  production_pending_approval: number | null;
+  production_ready_to_post: number | null;
+  production_ingredient_shortages: number | null;
+  outlet_missing_evening: number | null;
+  outlet_needs_review: number | null;
   last_stock_count: { count_no: string; count_date: string; status: string } | null;
 };
 
@@ -412,7 +412,10 @@ export async function getDashboardSummary() {
   const branchLabel = scope.companyWideAccess
     ? "Company-wide"
     : assignedBranches.data?.map((branch: { branch_name: string | null }) => branch.branch_name).filter(Boolean).join(", ") || "Assigned workspace";
-  const inventoryUnavailable = needsInventory && (coreUnavailable || fallbackUnavailable.inventory);
+  // A successful core snapshot does not make the secondary low-stock read
+  // trustworthy. If that read failed, its old `?? 0` path used to turn a
+  // transport failure into a healthy-looking zero on the dashboard.
+  const inventoryUnavailable = needsInventory && (coreUnavailable || fallbackUnavailable.inventory || lowStockViewUnavailable);
   const todayReceivingUnavailable = (needsProcurement || needsInventory) && (coreUnavailable || fallbackUnavailable.receiving);
   const stockCountDueUnavailable = (needsProcurement || needsInventory) && (coreUnavailable || fallbackUnavailable.stockCount);
   const wastageUnavailable = (needsProcurement || needsInventory) && (coreUnavailable || fallbackUnavailable.wastage);
@@ -438,11 +441,11 @@ export async function getDashboardSummary() {
     scopeLabel: branchLabel,
     userName: currentStaff.data?.full_name?.trim() || "Team member",
     branchLabel,
-    totalItems: Number(coreSnapshot?.total_items ?? 0),
-    totalSuppliers: Number(coreSnapshot?.total_suppliers ?? 0),
-    lowStockCount: inventoryUnavailable ? 0 : (lowStockViewCount ?? Number(coreSnapshot?.low_stock_items_count ?? 0)),
+    totalItems: coreSnapshot?.total_items == null ? null : Number(coreSnapshot.total_items),
+    totalSuppliers: coreSnapshot?.total_suppliers == null ? null : Number(coreSnapshot.total_suppliers),
+    lowStockCount: inventoryUnavailable ? null : (lowStockViewCount ?? (coreSnapshot?.low_stock_items_count == null ? null : Number(coreSnapshot.low_stock_items_count))),
     lastStockCount: coreSnapshot?.last_stock_count ?? null,
-    totalStockValue: inventoryUnavailable ? 0 : Number(coreSnapshot?.inventory_value ?? 0),
+    totalStockValue: inventoryUnavailable ? null : (coreSnapshot?.inventory_value == null ? null : Number(coreSnapshot.inventory_value)),
     lowStockItems: [],
     inventoryUnavailable,
     urgentRequests: coreSnapshot?.urgent_requests ?? [],
@@ -457,19 +460,19 @@ export async function getDashboardSummary() {
     notifications: notifications.slice(0, 6),
     coreSnapshotUnavailable: coreUnavailable,
     today: {
-      goodsReceiving: Number(coreSnapshot?.today_receiving ?? 0),
-      stockCountDue: Number(coreSnapshot?.stock_count_due ?? 0),
-      production: needsProduction && !productionUnavailable ? Number(coreSnapshot?.production_today_posted ?? 0) : 0,
-      deliveries: 0,
+      goodsReceiving: todayReceivingUnavailable || coreSnapshot?.today_receiving == null ? null : Number(coreSnapshot.today_receiving),
+      stockCountDue: stockCountDueUnavailable || coreSnapshot?.stock_count_due == null ? null : Number(coreSnapshot.stock_count_due),
+      production: !needsProduction || productionUnavailable || coreSnapshot?.production_today_posted == null ? null : Number(coreSnapshot.production_today_posted),
+      deliveries: null,
     },
     todayReceivingUnavailable,
     stockCountDueUnavailable,
-    wastageAttention: Number(coreSnapshot?.wastage_attention ?? 0),
+    wastageAttention: wastageUnavailable || coreSnapshot?.wastage_attention == null ? null : Number(coreSnapshot.wastage_attention),
     wastageUnavailable,
     financeForecast: {
       upcomingPayables: 0,
       pendingPoValue: 0,
-      receivingNotInvoiced: Number(coreSnapshot?.receiving_followup ?? 0),
+      receivingNotInvoiced: receivingFollowupUnavailable || coreSnapshot?.receiving_followup == null ? null : Number(coreSnapshot.receiving_followup),
     },
     receivingFollowupUnavailable,
     payablesAttention,

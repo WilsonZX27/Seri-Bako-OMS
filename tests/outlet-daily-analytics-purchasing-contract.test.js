@@ -10,6 +10,9 @@ const interactiveChart = fs.readFileSync(path.join(root, "src", "components", "u
 const permissions = fs.readFileSync(path.join(root, "src", "server", "auth", "permissions.ts"), "utf8");
 const migration = fs.readFileSync(path.join(root, "supabase", "migrations", "147_purchasing_manage_outlet_daily_records.sql"), "utf8");
 const stockScopeMigration = fs.readFileSync(path.join(root, "supabase", "migrations", "144_reconcile_pjs10_12_aug_stock_scope.sql"), "utf8");
+const outletQuery = fs.readFileSync(path.join(root, "src", "server", "queries", "outlet-daily-records.ts"), "utf8");
+const demandPage = fs.readFileSync(path.join(root, "src", "app", "(app)", "reports", "demand-trends", "page.tsx"), "utf8");
+const planningPage = fs.readFileSync(path.join(root, "src", "app", "(app)", "production", "planning", "page.tsx"), "utf8");
 
 test("outlet daily workspace renders a lightweight 30-day completed-record wastage trend", () => {
   assert.match(page, /getOutletDailyDemandTrend\(\{ period: "30", branch: filters\.branch \}\)/);
@@ -25,7 +28,7 @@ test("outlet daily workspace renders a lightweight 30-day completed-record wasta
   assert.match(chart, /className="hidden w-full text-left sm:table"/);
   assert.match(chart, /lg:grid-cols-\[minmax\(0,1\.55fr\)_minmax\(16rem,0\.85fr\)\]/);
   assert.doesNotMatch(chart, /<details className="mt-2/);
-  assert.match(interactiveChart, /strokeWidth="2"/);
+  assert.match(interactiveChart, /strokeWidth="1\.5"/);
   assert.match(chart, /new URLSearchParams\(\{ date \}\)/);
   assert.match(chart, /query\.set\("branch", branch\)/);
   assert.doesNotMatch(chart, /<table className="sr-only">|overflow-x-auto/);
@@ -58,4 +61,12 @@ test("optional CK-PJS10 reconciliation cannot block later release migrations", (
   assert.match(stockScopeMigration, /raise notice/);
   assert.match(stockScopeMigration, /return;/);
   assert.doesNotMatch(stockScopeMigration, /raise exception 'CK-PJS10 branch was not found/);
+});
+
+test("outlet analytics never presents unverified or no-line records as zero", () => {
+  assert.match(outletQuery, /reliable_lines: trendLines\.length/);
+  assert.match(outletQuery, /no_completed_records/);
+  assert.match(demandPage, /report\.coverage\.reliable_lines === 0/);
+  assert.match(demandPage, /report\.coverage\.reliable_lines \? formatNumber\(report\.summary\.received\) : "Unavailable"/);
+  assert.match(planningPage, /movement unavailable/);
 });

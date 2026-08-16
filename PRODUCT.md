@@ -2,7 +2,18 @@
 
 ## Product Overview
 
-The current released application baseline is `v8.64.52` — Centralized Fail-closed Query Boundaries.
+The current released application baseline is `v8.64.54` — Fail-Closed Reads And Shared UI Closure.
+
+### v8.64.54 — Fail-Closed Reads And Shared UI Closure
+
+- All primary report and operational read paths now distinguish verified empty data from missing or incomplete payloads; unverified reads show an explicit unavailable/retry state and never a trusted `0`.
+- Shared list filters use one responsive geometry authority across desktop and touch-tablet layouts, preventing recurring three-row, mismatched-width, and overlay conflicts.
+- Demand Trend keeps daily data visible beside the chart and marks no-line/incomplete coverage unavailable rather than presenting false metrics.
+
+### v8.64.53 — Dashboard Trust And Report Preview Closure
+
+- Dashboard metrics keep unavailable secondary reads unavailable instead of presenting a false zero.
+- Demand Trend keeps its daily data visible beside the chart, while the shared line chart uses a calmer visual weight.
 
 ### v8.64.52 — Centralized Fail-closed Query Boundaries
 

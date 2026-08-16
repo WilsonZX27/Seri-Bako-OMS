@@ -1,6 +1,22 @@
 import { createClient } from "@/lib/supabase/server";
 import { logServerError } from "@/server/observability/logger";
 
+function isApAgingReport(value: unknown): value is ApAgingReport {
+  if (!value || typeof value !== "object") return false;
+  const report = value as Partial<ApAgingReport>;
+  return typeof report.report_date === "string"
+    && typeof report.timezone === "string"
+    && typeof report.currency === "string"
+    && Number.isFinite(report.page)
+    && Number.isFinite(report.page_size)
+    && Number.isFinite(report.total_rows)
+    && Array.isArray(report.rows)
+    && Array.isArray(report.suppliers)
+    && Boolean(report.buckets && typeof report.buckets === "object")
+    && Boolean(report.summary && typeof report.summary === "object")
+    && Boolean(report.attention && typeof report.attention === "object");
+}
+
 export type ApAgingRow = {
   id: string;
   invoice_no: string;
@@ -116,7 +132,11 @@ export async function getApAgingReport(filters: Record<string, string | undefine
     logServerError(error, { source: "ap-aging.getApAgingReport" });
     throw new Error("AP Aging report is unavailable.");
   }
-  return data as unknown as ApAgingReport;
+  if (!isApAgingReport(data)) {
+    logServerError(new Error("AP Aging RPC returned an incomplete payload."), { source: "ap-aging.getApAgingReport" });
+    throw new Error("AP Aging report is unavailable.");
+  }
+  return data;
 }
 
 export async function getCompleteApAgingReport(filters: Record<string, string | undefined> = {}, options: { maxRows?: number } = {}) {

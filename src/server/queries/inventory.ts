@@ -68,6 +68,32 @@ type InventoryDashboardRpc = {
   low_stock_rows: Array<Database["public"]["Tables"]["stock_balances_summary"]["Row"]>;
 };
 
+const INVENTORY_DASHBOARD_NUMERIC_FIELDS = [
+  "inventory_value",
+  "total_active_items",
+  "low_stock_items_count",
+  "negative_stock",
+  "todays_movements",
+  "todays_receiving",
+  "todays_transfers",
+  "pending_adjustments",
+  "stock_count_due",
+] as const;
+
+function isCompleteInventoryDashboardRpc(value: unknown): value is InventoryDashboardRpc {
+  if (!value || typeof value !== "object") return false;
+  const summary = value as Record<string, unknown>;
+  const hasFiniteNumber = (field: string) => {
+    const fieldValue = summary[field];
+    return fieldValue !== null && fieldValue !== undefined && Number.isFinite(Number(fieldValue));
+  };
+  return INVENTORY_DASHBOARD_NUMERIC_FIELDS.every(hasFiniteNumber)
+    && Array.isArray(summary.recent_transactions)
+    && Array.isArray(summary.top_purchased_items)
+    && Array.isArray(summary.top_consumed_items)
+    && Array.isArray(summary.low_stock_rows);
+}
+
 export type InventoryDailyMovementRow = {
   transaction_date: string;
   inbound_entries: number;
@@ -824,7 +850,15 @@ export async function getInventoryDashboard(period: "7d" | "30d" | "month" = "30
     return await getInventoryDashboardFallback(supabase, period);
   }
 
-  const summary = data as unknown as InventoryDashboardRpc;
+  if (!isCompleteInventoryDashboardRpc(data)) {
+    logServerWarning(
+      new Error("Inventory dashboard summary returned an incomplete payload."),
+      { source: "inventory.optional.dashboard summary incomplete payload" },
+    );
+    return await getInventoryDashboardFallback(supabase, period);
+  }
+
+  const summary = data;
   return {
     inventoryValue: Number(summary.inventory_value ?? 0),
     totalActiveItems: Number(summary.total_active_items ?? 0),

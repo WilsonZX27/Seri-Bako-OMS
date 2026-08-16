@@ -133,16 +133,16 @@ export function InteractiveLineChart({
             </g>
           );
         })}
-        <path d={path} fill="none" stroke="var(--sb-green-700)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" vectorEffect="non-scaling-stroke" pointerEvents="none" />
+        <path d={path} fill="none" stroke="var(--sb-green-700)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" vectorEffect="non-scaling-stroke" pointerEvents="none" />
         {points.length <= 14 ? points.map((point, index) => (
           <circle
             key={point.id}
             cx={x(index)}
             cy={y(point.value)}
-            r="4"
+            r="3.25"
             fill="var(--sb-surface-raised)"
             stroke="var(--sb-green-700)"
-            strokeWidth="2"
+            strokeWidth="1.5"
             vectorEffect="non-scaling-stroke"
             pointerEvents="none"
           />
@@ -177,8 +177,8 @@ export function InteractiveLineChart({
               vectorEffect="non-scaling-stroke"
               opacity="0.55"
             />
-            <circle cx={activeX} cy={activeY} r="8" fill="var(--sb-green-100)" opacity="0.9" />
-            <circle cx={activeX} cy={activeY} r="4.5" fill="var(--sb-surface-raised)" stroke="var(--sb-green-800)" strokeWidth="2" vectorEffect="non-scaling-stroke" />
+              <circle cx={activeX} cy={activeY} r="7" fill="var(--sb-green-100)" opacity="0.9" />
+              <circle cx={activeX} cy={activeY} r="3.75" fill="var(--sb-surface-raised)" stroke="var(--sb-green-800)" strokeWidth="1.5" vectorEffect="non-scaling-stroke" />
           </g>
         ) : null}
       </svg>

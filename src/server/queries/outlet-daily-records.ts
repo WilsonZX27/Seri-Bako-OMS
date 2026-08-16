@@ -606,7 +606,7 @@ function buildDemandTrend({ records, lines, branches, products, start, end, peri
     branches,
     products,
     summary: { ...summary, wastage_percent: wastagePercent(summary) },
-    coverage: { completed: completedOutletDays, expected: expectedDays, incomplete: incompleteRecords, unavailable: unavailableRecords, missing: Math.max(expectedDays - completedOutletDays, 0), percent: coveragePercent, confidence },
+    coverage: { completed: completedOutletDays, expected: expectedDays, reliable_lines: trendLines.length, incomplete: incompleteRecords, unavailable: unavailableRecords, missing: Math.max(expectedDays - completedOutletDays, 0), percent: coveragePercent, confidence },
     top_moving_products: [...productRows].sort((left, right) => right.movement - left.movement).slice(0, 10),
     top_wastage_products: [...productRows].sort((left, right) => right.wastage - left.wastage).slice(0, 10),
     outlets: outletRows.sort((left, right) => right.movement - left.movement),

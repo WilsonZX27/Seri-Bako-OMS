@@ -81,7 +81,7 @@ export default async function StockTransactionsPage({ searchParams }: { searchPa
     hasPermission("stock_transactions.create"),
   ]);
   const balanceUnavailable = Boolean(balances.unavailable || balances.error);
-  const value = balanceUnavailable ? 0 : balances.rows.reduce((sum, item) => sum + Number(item.inventory_value), 0);
+  const value = balanceUnavailable ? null : balances.rows.reduce((sum, item) => sum + Number(item.inventory_value), 0);
   const inbound = ledger.rows.reduce((sum, row) => sum + Number(row.quantity_in), 0);
   const outbound = ledger.rows.reduce((sum, row) => sum + Number(row.quantity_out), 0);
   const ledgerUnavailable = "unavailable" in ledger && Boolean(ledger.unavailable);
@@ -117,7 +117,7 @@ export default async function StockTransactionsPage({ searchParams }: { searchPa
                 <div className="flex justify-between"><span className="text-muted-foreground">Quantity in</span><strong>{ledgerUnavailable ? "Unavailable" : formatNumber(inbound)}</strong></div>
                 <div className="flex justify-between"><span className="text-muted-foreground">Quantity out</span><strong>{ledgerUnavailable ? "Unavailable" : formatNumber(outbound)}</strong></div>
                 <div className="flex justify-between"><span className="text-muted-foreground">Stock rows</span><strong>{balanceUnavailable ? "Unavailable" : balances.totalRows}</strong></div>
-                <div className="flex justify-between"><span className="text-muted-foreground">Stock value</span><strong>{balanceUnavailable ? "Unavailable" : formatCurrency(value)}</strong></div>
+                <div className="flex justify-between"><span className="text-muted-foreground">Stock value</span><strong>{value === null ? "Unavailable" : formatCurrency(value)}</strong></div>
               </div>
             </ConsoleSection>
           </>

@@ -23,7 +23,7 @@ function Metric({
 }: {
   href: string;
   label: string;
-  value: string | number;
+  value: string | number | null;
   icon: LucideIcon;
   alert?: boolean;
   unavailable?: boolean;
@@ -142,8 +142,9 @@ export function DashboardWorkspace({ summary }: { summary: DashboardSummary }) {
     { key: "wastage", label: "Wastage review", value: summary.attentionSummary.sources.wastage, href: "/stock-wastage?status=submitted", icon: AlertTriangle },
     ...(showFinance ? [{ key: "overdue_payables", label: "Overdue payables", value: summary.attentionSummary.sources.overdue_payables, href: "/supplier-invoices/aging?overdue=1", icon: ReceiptText }] : []),
   ];
-  const outletExceptionCount = summary.operationsControl?.outlet ? summary.operationsControl.outlet.missing_evening : 0;
-  const operationalExceptionCount = (summary.inventoryUnavailable ? 0 : summary.lowStockCount) + (summary.wastageUnavailable ? 0 : summary.wastageAttention) + outletExceptionCount;
+  const outletExceptionCount = summary.operationsControl?.outlet?.missing_evening ?? 0;
+  const operationalExceptionCount = (summary.inventoryUnavailable ? 0 : summary.lowStockCount ?? 0) + (summary.wastageUnavailable ? 0 : summary.wastageAttention ?? 0) + outletExceptionCount;
+  const operationalExceptionUnavailable = summary.inventoryUnavailable || summary.wastageUnavailable;
   const latestPurchaseOrder = summary.purchaseOrders[0];
   const roleChartItems: DashboardRoleMicroChartItem[] = isFinance
     ? [
@@ -372,7 +373,7 @@ export function DashboardWorkspace({ summary }: { summary: DashboardSummary }) {
                   label={isKitchen ? "Receiving today" : "Receiving follow-up"}
                   value={isKitchen ? summary.today.goodsReceiving : summary.financeForecast.receivingNotInvoiced}
                   icon={PackageCheck}
-                  alert={isKitchen ? summary.today.goodsReceiving > 0 : summary.financeForecast.receivingNotInvoiced > 0}
+                  alert={isKitchen ? (summary.today.goodsReceiving ?? 0) > 0 : (summary.financeForecast.receivingNotInvoiced ?? 0) > 0}
                   unavailable={isKitchen ? summary.todayReceivingUnavailable : summary.receivingFollowupUnavailable}
                   variant="tile"
                   density="compact"
@@ -393,13 +394,13 @@ export function DashboardWorkspace({ summary }: { summary: DashboardSummary }) {
           </div>
         ) : null}
 
-        {(showOperations || isKitchen || isPurchasing) && operationalExceptionCount > 0 ? <div className="order-1" data-dashboard-priority-group="exceptions">
+        {(showOperations || isKitchen || isPurchasing) && (operationalExceptionCount > 0 || operationalExceptionUnavailable) ? <div className="order-1" data-dashboard-priority-group="exceptions">
           <Panel
             title={isKitchen ? "Raw-material exceptions" : "Exceptions requiring follow-up"}
             empty="No urgent operational exceptions are visible in your scope."
           >
             <div className="grid grid-cols-3 gap-1.5 sm:gap-2" data-dashboard-exceptions>
-              <Metric href="/low-stock" label="Low stock" value={summary.lowStockCount} icon={AlertTriangle} alert={summary.lowStockCount > 0} unavailable={summary.inventoryUnavailable} variant="tile" density="compact" />
+              <Metric href="/low-stock" label="Low stock" value={summary.lowStockCount} icon={AlertTriangle} alert={(summary.lowStockCount ?? 0) > 0} unavailable={summary.inventoryUnavailable || summary.lowStockCount === null} variant="tile" density="compact" />
               {showOperations && summary.operationsControl?.outlet ? (
                 <Metric
                   href="/outlet-daily-records?status=draft"
@@ -417,8 +418,8 @@ export function DashboardWorkspace({ summary }: { summary: DashboardSummary }) {
                   label="Wastage attention"
                   value={summary.wastageAttention}
                   icon={AlertTriangle}
-                  alert={summary.wastageAttention > 0}
-                  unavailable={summary.wastageUnavailable}
+                  alert={(summary.wastageAttention ?? 0) > 0}
+                  unavailable={summary.wastageUnavailable || summary.wastageAttention === null}
                   variant="tile"
                   density="compact"
                 />

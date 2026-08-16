@@ -26,6 +26,8 @@ test("shared line previews remain discoverable to assistive technology after poi
   assert.match(source, /data-chart-data-list/);
   assert.match(source, /onPointerMove/);
   assert.match(source, /onKeyDown/);
+  assert.match(source, /points\.length === 1/);
+  assert.match(source, /textAnchor="middle"/);
 });
 
 test("aging and production previews use the shared persistent touch and focus contract", () => {

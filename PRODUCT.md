@@ -4,9 +4,9 @@
 
 ### Current audit baseline
 
-The current released application baseline is `v8.57.0 — Explicit Inventory Movement Empty State`.
+The current released application baseline is `v8.58.0 — Single-Point Chart Label Clarity`.
 
-The lines below are retained as historical release context; the current authority is the v8.57.0 line above.
+The lines below are retained as historical release context; the current authority is the v8.58.0 line above.
 The repository migration history currently runs through migration `149`. Release
 version authority lives in `src/lib/app-version.ts`; migration authority lives in
 the immutable, forward-only `supabase/migrations/` directory. Documentation must

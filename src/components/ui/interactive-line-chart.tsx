@@ -146,8 +146,14 @@ export function InteractiveLineChart({
             pointerEvents="none"
           />
         )) : null}
-        <text x={inset.left} y={height - 7} fontSize="10" fill="var(--sb-text-muted)">{points[0]?.label}</text>
-        <text x={width - inset.right} y={height - 7} textAnchor="end" fontSize="10" fill="var(--sb-text-muted)">{points[points.length - 1]?.label}</text>
+        {points.length === 1 ? (
+          <text x={inset.left + innerWidth / 2} y={height - 7} textAnchor="middle" fontSize="10" fill="var(--sb-text-muted)">{points[0].label}</text>
+        ) : (
+          <>
+            <text x={inset.left} y={height - 7} fontSize="10" fill="var(--sb-text-muted)">{points[0]?.label}</text>
+            <text x={width - inset.right} y={height - 7} textAnchor="end" fontSize="10" fill="var(--sb-text-muted)">{points[points.length - 1]?.label}</text>
+          </>
+        )}
         <rect
           x={inset.left}
           y={inset.top}

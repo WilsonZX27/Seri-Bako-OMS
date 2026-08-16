@@ -2,6 +2,7 @@ import { isMockMode, mockProductPackaging, mockProducts } from "@/lib/mock-mode"
 import { createClient } from "@/lib/supabase/server";
 import type { ItemStatus } from "@/types/database";
 import { sortProductsForDisplay } from "@/lib/product-order";
+import { requireReadRows } from "@/server/queries/common";
 
 type ProductFilters = {
   search?: string;
@@ -63,7 +64,7 @@ export async function getProducts(filters: ProductFilters = {}) {
 
   const { data, error } = await query;
   if (error) throw new Error(error.message);
-  return filterProducts(data ?? [], filters);
+  return filterProducts(requireReadRows(data, "Products"), filters);
 }
 
 export async function getProductPackaging(productId: string) {
@@ -79,7 +80,7 @@ export async function getProductPackaging(productId: string) {
     .is("deleted_at", null)
     .order("created_at", { ascending: true });
   if (error) throw new Error(error.message);
-  return data ?? [];
+  return requireReadRows(data, "Product packaging");
 }
 
 export async function getProduct(id: string) {

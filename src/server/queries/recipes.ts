@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { requirePermission } from "@/server/auth/permissions";
 import { sortProductsForDisplay } from "@/lib/product-order";
 import type { Database } from "@/types/database";
+import { requireReadCount, requireReadRows } from "@/server/queries/common";
 
 type RecipeRow = Database["public"]["Tables"]["recipes"]["Row"];
 type RecipeLineRow = Database["public"]["Tables"]["recipe_lines"]["Row"];
@@ -174,7 +175,7 @@ export async function getRecipes(filters: RecipeListFilters = {}) {
       .or(`product_code.ilike.%${term}%,product_name.ilike.%${term}%`)
       .limit(200);
     if (error) throw new Error(error.message);
-    matchingProductIds = (data ?? []).map((row) => row.id);
+    matchingProductIds = requireReadRows(data, "Recipe product search").map((row) => row.id);
   }
 
   let query = supabase.from("recipes").select("*", { count: "exact" }).is("deleted_at", null);
@@ -191,8 +192,11 @@ export async function getRecipes(filters: RecipeListFilters = {}) {
     .range((page - 1) * RECIPE_PAGE_SIZE, page * RECIPE_PAGE_SIZE - 1);
   if (error) throw new Error(error.message);
 
-  const productIds = [...new Set((recipeRows ?? []).map((recipe) => recipe.product_id))];
-  const recipeIds = (recipeRows ?? []).map((recipe) => recipe.id);
+  const trustedRecipeRows = requireReadRows(recipeRows, "Recipes");
+  const trustedCount = requireReadCount(count, "Recipes");
+
+  const productIds = [...new Set(trustedRecipeRows.map((recipe) => recipe.product_id))];
+  const recipeIds = trustedRecipeRows.map((recipe) => recipe.id);
   const [{ data: products, error: productsError }, { data: snapshots, error: snapshotsError }] = await Promise.all([
     productIds.length
       ? supabase.from("products").select("id,product_code,product_name,display_order,product_image_url,selling_unit").in("id", productIds)
@@ -203,11 +207,13 @@ export async function getRecipes(filters: RecipeListFilters = {}) {
   ]);
   if (productsError) throw new Error(productsError.message);
   if (snapshotsError) throw new Error(snapshotsError.message);
+  const trustedProducts = requireReadRows(products as Array<{ id: string; product_code: string; product_name: string; display_order: number; product_image_url: string | null; selling_unit: string }> | null, "Recipe products");
+  const trustedSnapshots = requireReadRows(snapshots as Array<{ recipe_id: string; snapshot_no: number; wastage_adjusted_cost: number; cost_per_finished_unit: number }> | null, "Recipe cost snapshots");
 
-  const productById = new Map((products ?? []).map((product) => [product.id, product]));
-  const snapshotByRecipe = new Map<string, (typeof snapshots)[number]>();
-  for (const snapshot of snapshots ?? []) if (!snapshotByRecipe.has(snapshot.recipe_id)) snapshotByRecipe.set(snapshot.recipe_id, snapshot);
-  const rows: RecipeListRow[] = (recipeRows ?? []).map((recipe) => {
+  const productById = new Map(trustedProducts.map((product) => [product.id, product]));
+  const snapshotByRecipe = new Map<string, (typeof trustedSnapshots)[number]>();
+  for (const snapshot of trustedSnapshots) if (!snapshotByRecipe.has(snapshot.recipe_id)) snapshotByRecipe.set(snapshot.recipe_id, snapshot);
+  const rows: RecipeListRow[] = trustedRecipeRows.map((recipe) => {
     const product = productById.get(recipe.product_id);
     const snapshot = snapshotByRecipe.get(recipe.id);
     return {
@@ -221,7 +227,7 @@ export async function getRecipes(filters: RecipeListFilters = {}) {
       cost_per_finished_unit: Number(snapshot?.cost_per_finished_unit ?? 0),
     };
   });
-  const totalRows = count ?? 0;
+  const totalRows = trustedCount;
   return {
     rows: sortProductsForDisplay(rows),
     page,
@@ -248,7 +254,11 @@ export async function getRecipeSummary() {
   };
   const [total, active, pendingApproval] = await Promise.all([count(), count("active"), count("pending_approval")]);
   for (const result of [total, active, pendingApproval]) if (result.error) throw new Error(result.error.message);
-  return { total: total.count ?? 0, active: active.count ?? 0, pendingApproval: pendingApproval.count ?? 0 };
+  return {
+    total: requireReadCount(total.count, "Recipe total"),
+    active: requireReadCount(active.count, "Active recipe total"),
+    pendingApproval: requireReadCount(pendingApproval.count, "Pending recipe total"),
+  };
 }
 
 export async function getRecipe(id: string) {
@@ -275,7 +285,15 @@ export async function getRecipe(id: string) {
     if (result.error) throw new Error(result.error.message);
   }
 
-  return buildRecipeDetail(recipe.data, products.data ?? [], lines.data ?? [], items.data ?? [], packaging.data ?? [], snapshots.data ?? [], stockBalances.data ?? []);
+  return buildRecipeDetail(
+    recipe.data,
+    requireReadRows(products.data, "Recipe products"),
+    requireReadRows(lines.data, "Recipe lines"),
+    requireReadRows(items.data, "Recipe ingredients"),
+    requireReadRows(packaging.data, "Recipe packaging"),
+    requireReadRows(snapshots.data, "Recipe cost snapshots"),
+    requireReadRows(stockBalances.data, "Recipe stock balances"),
+  );
 }
 
 export async function getRecipeIngredientOptions(): Promise<RecipeIngredientOption[]> {
@@ -301,5 +319,5 @@ export async function getRecipeIngredientOptions(): Promise<RecipeIngredientOpti
     .is("deleted_at", null)
     .order("item_code", { ascending: true });
   if (error) throw new Error(error.message);
-  return (data ?? []) as RecipeIngredientOption[];
+  return requireReadRows(data, "Recipe ingredient options") as RecipeIngredientOption[];
 }

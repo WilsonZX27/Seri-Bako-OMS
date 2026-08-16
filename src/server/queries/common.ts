@@ -4,6 +4,21 @@ import { isMockMode, mockBranches, mockCompany, mockItems, mockProfile, mockSupp
 import { getCurrentUserScope } from "@/server/queries/notifications";
 import { cache } from "react";
 
+/**
+ * Read boundaries must distinguish a real empty result from a failed or
+ * incomplete Supabase payload.  Callers should use these helpers immediately
+ * after checking the query error, before mapping or rendering the result.
+ */
+export function requireReadRows<T>(data: T[] | null | undefined, source: string): T[] {
+  if (data == null) throw new Error(`${source} data is temporarily unavailable.`);
+  return data;
+}
+
+export function requireReadCount(count: number | null | undefined, source: string): number {
+  if (count == null) throw new Error(`${source} count is temporarily unavailable.`);
+  return count;
+}
+
 export const getCurrentProfile = cache(async function getCurrentProfile() {
   if (isMockMode()) {
     return mockProfile;

@@ -1,11 +1,17 @@
 # Seri Bako OMS responsive design standard
 
-> **Release authority:** the currently released application is `v8.64.51`, as
+> **Release authority:** the currently released application is `v8.64.52`, as
 > defined by `src/lib/app-version.ts`. A versioned section above that number is
 > an accepted forward design contract or unreleased implementation note—not
 > evidence that the application itself has been released at that version.
 > `docs/DESIGN_SYSTEM.md` owns the current visual principles; this file retains
 > versioned implementation history and workspace rules.
+
+## v8.64.52 - Centralized Fail-closed Query Boundaries
+
+- `requireReadRows` and `requireReadCount` in `src/server/queries/common.ts` are the single authority for distinguishing a valid empty result from a missing/incomplete read payload.
+- Primary operational modules must call the shared boundary immediately after checking Supabase errors; they must not use `data ?? []` or `count ?? 0` for authoritative list/count reads.
+- Real empty results remain valid and render as empty states; missing payloads render retry/unavailable states and never a trusted zero.
 
 ## v8.64.51 - Fail-closed Operational Reads
 

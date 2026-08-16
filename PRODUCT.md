@@ -2,7 +2,12 @@
 
 ## Product Overview
 
-The current released application baseline is `v8.64.51` — Fail-closed Operational Reads.
+The current released application baseline is `v8.64.52` — Centralized Fail-closed Query Boundaries.
+
+### v8.64.52 — Centralized Fail-closed Query Boundaries
+
+- Primary operational reads now share one row/count boundary policy: a valid empty array remains empty, while a missing Supabase payload is unavailable and retryable.
+- Outlet Daily, production, recipe, stock-operation, product, and purchase-return reads no longer silently turn missing payloads into empty data.
 
 ### v8.64.51 — Fail-closed Operational Reads
 

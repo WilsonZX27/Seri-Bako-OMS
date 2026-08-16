@@ -5,6 +5,7 @@ import { compareTableValues, paginateRows } from "@/lib/table-state";
 import { actorDisplayName, resolveActorDisplayMap } from "@/server/actors/display";
 import { getStockBalanceDetails } from "@/server/queries/inventory";
 import type { Database } from "@/types/database";
+import { requireReadCount, requireReadRows } from "@/server/queries/common";
 
 type Filters = Record<string, string | undefined>;
 type Transfer = Database["public"]["Tables"]["stock_transfers"]["Row"];
@@ -91,8 +92,10 @@ export async function getStockTransfers(filters: Filters = {}) {
   if (range) query = query.range(range.from, range.to);
   const { data, error, count } = await query;
   if (error) throw new Error(error.message);
-  const transferIds = (data ?? []).map((row) => row.id);
-  const branchIds = [...new Set((data ?? []).flatMap((row) => [row.from_branch_id, row.to_branch_id]).filter((id): id is string => Boolean(id)))];
+  const trustedData = requireReadRows(data, "Stock transfers");
+  const trustedCount = requireReadCount(count, "Stock transfer count");
+  const transferIds = trustedData.map((row) => row.id);
+  const branchIds = [...new Set(trustedData.flatMap((row) => [row.from_branch_id, row.to_branch_id]).filter((id): id is string => Boolean(id)))];
   const [{ data: lines, error: linesError }, { data: branches, error: branchesError }] = await Promise.all([
     transferIds.length ? supabase.from("stock_transfer_lines").select("stock_transfer_id").in("stock_transfer_id", transferIds) : Promise.resolve({ data: [], error: null }),
     branchIds.length ? supabase.from("branches").select("id, branch_name").in("id", branchIds) : Promise.resolve({ data: [], error: null }),
@@ -100,9 +103,10 @@ export async function getStockTransfers(filters: Filters = {}) {
   if (linesError) throw new Error(`Stock transfer lines could not be loaded: ${linesError.message}`);
   if (branchesError) throw new Error(`Branches could not be loaded: ${branchesError.message}`);
   const branch = new Map((branches ?? []).map((row) => [row.id, row.branch_name]));
-  const displayMap = await resolveActorDisplayMap((data ?? []).map((row) => row.created_by));
-  const rows = ((data ?? []) as Transfer[]).map((row) => ({ ...row, from_branch_name: row.from_branch_id ? branch.get(row.from_branch_id) ?? null : null, to_branch_name: row.to_branch_id ? branch.get(row.to_branch_id) ?? null : null, created_by_name: actorDisplayName(displayMap, row.created_by), line_count: (lines ?? []).filter((line) => line.stock_transfer_id === row.id).length }));
-  return databasePagination(rows, count, filters.page);
+  const trustedLines = requireReadRows(lines as Array<{ stock_transfer_id: string }>, "Stock transfer lines");
+  const displayMap = await resolveActorDisplayMap(trustedData.map((row) => row.created_by));
+  const rows = (trustedData as Transfer[]).map((row) => ({ ...row, from_branch_name: row.from_branch_id ? branch.get(row.from_branch_id) ?? null : null, to_branch_name: row.to_branch_id ? branch.get(row.to_branch_id) ?? null : null, created_by_name: actorDisplayName(displayMap, row.created_by), line_count: trustedLines.filter((line) => line.stock_transfer_id === row.id).length }));
+  return databasePagination(rows, trustedCount, filters.page);
 }
 
 export async function getStockTransfer(id: string) {
@@ -119,8 +123,9 @@ export async function getStockTransfer(id: string) {
   ]);
   if (error) throw new Error(error.message);
   if (linesError) throw new Error(`Stock transfer lines could not be loaded: ${linesError.message}`);
+  const trustedLines = requireReadRows(lines, "Stock transfer detail lines");
   const transfer = data as Transfer;
-  const itemIds = [...new Set((lines ?? []).map((line) => line.item_id))];
+  const itemIds = [...new Set(trustedLines.map((line) => line.item_id))];
   const branchIds = [...new Set([transfer.from_branch_id, transfer.to_branch_id].filter((branchId): branchId is string => Boolean(branchId)))];
   const [{ data: items, error: itemsError }, { data: branches, error: branchesError }] = await Promise.all([
     itemIds.length
@@ -134,7 +139,7 @@ export async function getStockTransfer(id: string) {
   if (branchesError) throw new Error(`Branches could not be loaded: ${branchesError.message}`);
   const itemMap = new Map((items ?? []).map((row) => [row.id, row]));
   const branch = new Map((branches ?? []).map((row) => [row.id, row.branch_name]));
-  return { transfer: { ...transfer, from_branch_name: transfer.from_branch_id ? branch.get(transfer.from_branch_id) ?? null : null, to_branch_name: transfer.to_branch_id ? branch.get(transfer.to_branch_id) ?? null : null, line_count: (lines ?? []).length }, lines: ((lines ?? []) as TransferLine[]).map((line) => ({ ...line, item: itemMap.get(line.item_id) })) };
+  return { transfer: { ...transfer, from_branch_name: transfer.from_branch_id ? branch.get(transfer.from_branch_id) ?? null : null, to_branch_name: transfer.to_branch_id ? branch.get(transfer.to_branch_id) ?? null : null, line_count: trustedLines.length }, lines: (trustedLines as TransferLine[]).map((line) => ({ ...line, item: itemMap.get(line.item_id) })) };
 }
 
 export async function getStockWastage(filters: Filters = {}) {
@@ -165,8 +170,10 @@ export async function getStockWastage(filters: Filters = {}) {
   if (range) query = query.range(range.from, range.to);
   const { data, error, count } = await query;
   if (error) throw new Error(error.message);
-  const wastageIds = (data ?? []).map((row) => row.id);
-  const branchIds = [...new Set((data ?? []).map((row) => row.branch_id).filter((id): id is string => Boolean(id)))];
+  const trustedData = requireReadRows(data, "Stock wastage");
+  const trustedCount = requireReadCount(count, "Stock wastage count");
+  const wastageIds = trustedData.map((row) => row.id);
+  const branchIds = [...new Set(trustedData.map((row) => row.branch_id).filter((id): id is string => Boolean(id)))];
   const [{ data: lines, error: linesError }, { data: branches, error: branchesError }] = await Promise.all([
     wastageIds.length ? supabase.from("stock_wastage_lines").select("stock_wastage_id").in("stock_wastage_id", wastageIds) : Promise.resolve({ data: [], error: null }),
     branchIds.length ? supabase.from("branches").select("id, branch_name").in("id", branchIds) : Promise.resolve({ data: [], error: null }),
@@ -174,9 +181,10 @@ export async function getStockWastage(filters: Filters = {}) {
   if (linesError) throw new Error(`Wastage lines could not be loaded: ${linesError.message}`);
   if (branchesError) throw new Error(`Branches could not be loaded: ${branchesError.message}`);
   const branch = new Map((branches ?? []).map((row) => [row.id, row.branch_name]));
-  const displayMap = await resolveActorDisplayMap((data ?? []).map((row) => row.created_by));
-  const rows = ((data ?? []) as Wastage[]).map((row) => ({ ...row, branch_name: row.branch_id ? branch.get(row.branch_id) ?? null : null, created_by_name: actorDisplayName(displayMap, row.created_by), line_count: (lines ?? []).filter((line) => line.stock_wastage_id === row.id).length }));
-  return databasePagination(rows, count, filters.page);
+  const trustedLines = requireReadRows(lines as Array<{ stock_wastage_id: string }>, "Stock wastage lines");
+  const displayMap = await resolveActorDisplayMap(trustedData.map((row) => row.created_by));
+  const rows = (trustedData as Wastage[]).map((row) => ({ ...row, branch_name: row.branch_id ? branch.get(row.branch_id) ?? null : null, created_by_name: actorDisplayName(displayMap, row.created_by), line_count: trustedLines.filter((line) => line.stock_wastage_id === row.id).length }));
+  return databasePagination(rows, trustedCount, filters.page);
 }
 
 export async function getStockWastageDetail(id: string) {
@@ -193,8 +201,9 @@ export async function getStockWastageDetail(id: string) {
   ]);
   if (error) throw new Error(error.message);
   if (linesError) throw new Error(`Wastage lines could not be loaded: ${linesError.message}`);
+  const trustedLines = requireReadRows(lines, "Stock wastage detail lines");
   const wastage = data as Wastage;
-  const itemIds = [...new Set((lines ?? []).map((line) => line.item_id))];
+  const itemIds = [...new Set(trustedLines.map((line) => line.item_id))];
   const [{ data: items, error: itemsError }, { data: branches, error: branchesError }] = await Promise.all([
     itemIds.length
       ? supabase.from("items").select("id,item_code,item_name,base_unit,item_image_url").in("id", itemIds)
@@ -207,7 +216,7 @@ export async function getStockWastageDetail(id: string) {
   if (branchesError) throw new Error(`Branches could not be loaded: ${branchesError.message}`);
   const itemMap = new Map((items ?? []).map((row) => [row.id, row]));
   const branch = new Map((branches ?? []).map((row) => [row.id, row.branch_name]));
-  return { wastage: { ...wastage, branch_name: wastage.branch_id ? branch.get(wastage.branch_id) ?? null : null, line_count: (lines ?? []).length }, lines: ((lines ?? []) as WastageLine[]).map((line) => ({ ...line, item: itemMap.get(line.item_id) })) };
+  return { wastage: { ...wastage, branch_name: wastage.branch_id ? branch.get(wastage.branch_id) ?? null : null, line_count: trustedLines.length }, lines: (trustedLines as WastageLine[]).map((line) => ({ ...line, item: itemMap.get(line.item_id) })) };
 }
 
 export async function getOperationSeedLines(branchId?: string) {

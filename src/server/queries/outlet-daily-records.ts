@@ -2,7 +2,7 @@ import { isMockMode, mockBranches, mockProducts } from "@/lib/mock-mode";
 import { todayInKualaLumpur } from "@/lib/business-date";
 import { createClient } from "@/lib/supabase/server";
 import { hasPermission } from "@/server/auth/permissions";
-import { getCurrentProfile } from "@/server/queries/common";
+import { getCurrentProfile, requireReadRows } from "@/server/queries/common";
 import type { Database } from "@/types/database";
 import { compareProductDisplayOrder, sortProductsForDisplay } from "@/lib/product-order";
 
@@ -131,11 +131,12 @@ async function getOutletDailyDefaults(db: Awaited<ReturnType<typeof createClient
     .neq("status", "void")
     .order("record_date", { ascending: false });
   if (recordError) throw new Error(recordError.message);
+  const trustedRecords = requireReadRows(records, "Outlet daily defaults records");
   const chosen = new Map<string, string>();
-  for (const record of records ?? []) {
+  for (const record of trustedRecords) {
     if (!chosen.has(record.branch_id) && new Date(`${record.record_date}T00:00:00Z`).getUTCDay() === weekday) chosen.set(record.branch_id, record.id);
   }
-  for (const record of records ?? []) {
+  for (const record of trustedRecords) {
     if (!chosen.has(record.branch_id)) chosen.set(record.branch_id, record.id);
   }
   const recordIds = [...chosen.values()];
@@ -145,8 +146,9 @@ async function getOutletDailyDefaults(db: Awaited<ReturnType<typeof createClient
     .select("record_id,product_id,morning_received_qty,qty_sent_estimated,wastage_qty,wastage_reason,notes")
     .in("record_id", recordIds);
   if (lineError) throw new Error(lineError.message);
+  const trustedLines = requireReadRows(lines, "Outlet daily defaults lines");
   const branchByRecord = new Map([...chosen.entries()].map(([branchId, recordId]) => [recordId, branchId]));
-  return ((lines ?? []) as Pick<LineRow, "record_id" | "product_id" | "morning_received_qty" | "qty_sent_estimated" | "wastage_qty" | "wastage_reason" | "notes">[]).reduce<Record<string, Record<string, OutletDailyDefaultLine>>>((result, line) => {
+  return (trustedLines as Pick<LineRow, "record_id" | "product_id" | "morning_received_qty" | "qty_sent_estimated" | "wastage_qty" | "wastage_reason" | "notes">[]).reduce<Record<string, Record<string, OutletDailyDefaultLine>>>((result, line) => {
     const branchId = branchByRecord.get(line.record_id);
     if (!branchId) return result;
     (result[branchId] ??= {})[line.product_id] = {
@@ -180,13 +182,14 @@ export async function getOutletDailyFormOptions(recordDate?: string) {
   ]);
   if (branchError) throw new Error(branchError.message);
   if (productError) throw new Error(productError.message);
-  const activeBranches = branches ?? [];
+  const activeBranches = requireReadRows(branches, "Outlet daily branch options");
+  const activeProducts = requireReadRows(products, "Outlet daily product options");
   const profileDefaultBranchId = profile && "default_branch_id" in profile ? profile.default_branch_id : null;
   if (canViewAll) {
     const branchesForForm = activeBranches;
     return {
       branches: branchesForForm,
-      products: sortProductsForDisplay(products ?? []),
+      products: sortProductsForDisplay(activeProducts),
       defaultBranchId: branchesForForm.some((row) => row.id === profileDefaultBranchId)
         ? profileDefaultBranchId ?? undefined
         : branchesForForm.length === 1 ? branchesForForm[0].id : undefined,
@@ -195,16 +198,18 @@ export async function getOutletDailyFormOptions(recordDate?: string) {
   }
   const { data: assignments, error } = await db.from("staff_branches").select("branch_id").eq("staff_id", profile?.id ?? "");
   if (error) throw new Error(error.message);
-  const assignedBranchIds = [profileDefaultBranchId, ...(assignments ?? []).map((row) => row.branch_id)].filter((value): value is string => Boolean(value));
+  const trustedAssignments = requireReadRows(assignments, "Outlet daily staff assignments");
+  const assignedBranchIds = [profileDefaultBranchId, ...trustedAssignments.map((row) => row.branch_id)].filter((value): value is string => Boolean(value));
   const { data: suppliedDestinations, error: routeError } = assignedBranchIds.length
     ? await db.from("branch_supply_routes").select("destination_branch_id").in("source_branch_id", assignedBranchIds).eq("status", "active")
     : { data: [], error: null };
   if (routeError) throw new Error(routeError.message);
-  const allowed = new Set([...assignedBranchIds, ...(suppliedDestinations ?? []).map((row) => row.destination_branch_id)]);
+  const trustedDestinations = requireReadRows(suppliedDestinations as Array<{ destination_branch_id: string }> | null, "Outlet daily supply routes");
+  const allowed = new Set([...assignedBranchIds, ...trustedDestinations.map((row) => row.destination_branch_id)]);
   const allowedBranches = activeBranches.filter((row) => allowed.has(row.id));
   return {
     branches: allowedBranches,
-    products: sortProductsForDisplay(products ?? []),
+    products: sortProductsForDisplay(activeProducts),
     defaultBranchId: allowedBranches.some((row) => row.id === profileDefaultBranchId)
       ? profileDefaultBranchId ?? undefined
       : allowedBranches.length === 1 ? allowedBranches[0].id : undefined,
@@ -265,7 +270,7 @@ async function loadRows(filters: Filters = {}) {
   // If a stale URL points past the last page, repeat the bounded query at the
   // actual final page instead of reading every record and slicing in memory.
   if (page !== requestedPage) return loadRows({ ...filters, page: String(page) });
-  return { rows: await hydrateRows(db, (data ?? []) as RecordRow[]), totalRows, page, pageSize, totalPages };
+  return { rows: await hydrateRows(db, data as RecordRow[]), totalRows, page, pageSize, totalPages };
 }
 
 export async function getOutletDailyRecords(filters: Filters = {}) {
@@ -282,7 +287,7 @@ export async function getOutletDailyRecords(filters: Filters = {}) {
     .neq("status", "void");
   if (todayError) throw new Error(todayError.message);
   if (!todayRecords) throw new Error("Outlet daily record summary returned no data.");
-  const todayRows = await hydrateRows(db, (todayRecords ?? []) as RecordRow[]);
+  const todayRows = await hydrateRows(db, todayRecords as RecordRow[]);
   return {
     ...pageResult,
     summary: {
@@ -319,14 +324,17 @@ export async function getOutletDailyRecord(id: string) {
   if (productsError) throw new Error(productsError.message);
   if (staffsError) throw new Error(staffsError.message);
   const typedRecord = record as RecordRow;
-  const typedLines = (lines ?? []) as LineRow[];
-  const productMap = new Map((products ?? []).map((product) => [product.id, product]));
+  const typedLines = requireReadRows(lines, "Outlet daily record lines") as LineRow[];
+  const trustedBranches = requireReadRows(branches, "Outlet daily record branches");
+  const trustedProducts = requireReadRows(products, "Outlet daily record products");
+  const trustedStaffs = requireReadRows(staffs, "Outlet daily record staff");
+  const productMap = new Map(trustedProducts.map((product) => [product.id, product]));
   return {
     record: {
       ...typedRecord,
-      branch_name: branches?.find((branch) => branch.id === typedRecord.branch_id)?.branch_name ?? "Unknown outlet",
-      submitted_by_name: staffs?.find((staff) => staff.id === typedRecord.submitted_by)?.full_name ?? null,
-      reviewed_by_name: staffs?.find((staff) => staff.id === typedRecord.reviewed_by)?.full_name ?? null,
+      branch_name: trustedBranches.find((branch) => branch.id === typedRecord.branch_id)?.branch_name ?? "Unknown outlet",
+      submitted_by_name: trustedStaffs.find((staff) => staff.id === typedRecord.submitted_by)?.full_name ?? null,
+      reviewed_by_name: trustedStaffs.find((staff) => staff.id === typedRecord.reviewed_by)?.full_name ?? null,
       ...totals(typedLines),
     },
     lines: typedLines

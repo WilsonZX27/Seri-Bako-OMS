@@ -11,7 +11,7 @@ const responsiveSpec = fs.readFileSync(path.join(root, "tests", "e2e", "producti
 
 test("ready-to-post always has an explicit approved-job counter", () => {
   assert.match(query, /\.eq\("status", "approved"\)/);
-  assert.match(query, /readyToPost:\s*readyToPost\.count\s*\?\?\s*0/);
+  assert.match(query, /readyToPost:\s*requireReadCount\(readyToPost\.count/);
   assert.match(page, /title:\s*"Ready to post"[\s\S]*?value:\s*summary\.readyToPost/);
 });
 

@@ -5,6 +5,7 @@ import { createClient } from "@/lib/supabase/server";
 import { compareTableValues, paginateRows, type PaginationResult } from "@/lib/table-state";
 import { actorDisplayName, resolveActorDisplayMap } from "@/server/actors/display";
 import { getStockBalanceDetails } from "@/server/queries/inventory";
+import { requireReadCount, requireReadRows } from "@/server/queries/common";
 
 type Filters = Record<string, string | undefined>;
 
@@ -132,7 +133,7 @@ export async function getProductionJobs(filters: Filters = {}): Promise<Paginati
   const db = looseSupabase(supabase);
   const { data, error } = await db.from("production_jobs").select("*").is("deleted_at", null);
   if (error) throw new Error(error.message);
-  const productionRows = (data ?? []) as Array<Record<string, unknown>>;
+  const productionRows = requireReadRows(data, "Production jobs") as Array<Record<string, unknown>>;
   if (productionRows.length === 0) return paginateRows([], filters.page, 15);
   const jobs = productionRows.map(asProductionJob);
   const branchIds = [...new Set(jobs.map((job) => job.branch_id))];
@@ -142,8 +143,8 @@ export async function getProductionJobs(filters: Filters = {}): Promise<Paginati
     productIds.length > 0 ? supabase.from("products").select("id, product_code, product_name").in("id", productIds) : Promise.resolve({ data: [], error: null }),
   ]);
   if (branchesResult.error || productsResult.error) throw new Error((branchesResult.error ?? productsResult.error)!.message);
-  const branchRows = (branchesResult.data ?? []) as Array<{ id: string; branch_name: string }>;
-  const productRows = (productsResult.data ?? []) as Array<{ id: string; product_name: string }>;
+  const branchRows = requireReadRows(branchesResult.data, "Production job branches") as Array<{ id: string; branch_name: string }>;
+  const productRows = requireReadRows(productsResult.data as Array<{ id: string; product_code: string; product_name: string }> | null, "Production job products");
   const branchById = new Map(branchRows.map((row) => [row.id, row.branch_name]));
   const productById = new Map(productRows.map((row) => [row.id, row]));
   const displayMap = await resolveActorDisplayMap(productionRows.map((row) => String(row.created_by ?? "")));
@@ -175,6 +176,8 @@ export async function getProductionJob(id: string): Promise<{ job: ProductionJob
   if (error) throw new Error(error.message);
   if (ingredientError || outputError) throw new Error((ingredientError ?? outputError)!.message);
   if (!data) throw new ProductionJobNotFoundError("Production job not found");
+  const trustedIngredientLines = requireReadRows(ingredientLines, "Production ingredient lines");
+  const trustedOutputLines = requireReadRows(outputLines, "Production output lines");
 
   const job = asProductionJob(data);
   const [branchResult, productResult] = await Promise.all([
@@ -194,7 +197,7 @@ export async function getProductionJob(id: string): Promise<{ job: ProductionJob
       product_name: product?.product_name ?? null,
       created_by_name: actorDisplayName(displayMap, job.created_by),
     },
-    ingredientLines: (ingredientLines ?? []).map((line: Record<string, unknown>) => ({
+    ingredientLines: trustedIngredientLines.map((line: Record<string, unknown>) => ({
       ...(line as unknown as ProductionIngredientLine),
       required_qty: Number(line.required_qty ?? 0),
       actual_qty: line.actual_qty == null ? null : Number(line.actual_qty),
@@ -203,7 +206,7 @@ export async function getProductionJob(id: string): Promise<{ job: ProductionJob
       stock_available_qty: line.stock_available_qty == null ? null : Number(line.stock_available_qty),
       variance_qty: line.variance_qty == null ? null : Number(line.variance_qty),
     })),
-    outputLines: (outputLines ?? []).map((line: Record<string, unknown>) => ({
+    outputLines: trustedOutputLines.map((line: Record<string, unknown>) => ({
       ...(line as unknown as ProductionOutputLine),
       planned_qty: Number(line.planned_qty ?? 0),
       actual_qty: line.actual_qty == null ? null : Number(line.actual_qty),
@@ -224,7 +227,7 @@ export async function getProductionJobFormOptions() {
   if (error) throw new Error(error.message);
   const balances = await getStockBalanceDetails({ page: "all", view: "branch" });
   return {
-    branches: branches ?? [],
+    branches: requireReadRows(branches, "Production branch options"),
     recipes,
     balances: balances.rows.map((row) => ({
       branch_id: row.branch_id,
@@ -240,7 +243,8 @@ export async function getActiveProductionRecipes(): Promise<ProductionRecipeOpti
   const rpcClient = supabase as unknown as { rpc: (name: "get_production_recipe_options") => PromiseLike<{ data: unknown; error: { message: string } | null }> };
   const { data, error } = await rpcClient.rpc("get_production_recipe_options");
   if (error) throw new Error(error.message);
-  return ((data ?? []) as Array<Record<string, unknown>>).map((recipe) => ({
+  if (!Array.isArray(data)) throw new Error("Production recipe options data is temporarily unavailable.");
+  return (data as Array<Record<string, unknown>>).map((recipe) => ({
     id: String(recipe.id), recipe_no: String(recipe.recipe_no), product_id: String(recipe.product_id),
     product_code: String(recipe.product_code), product_name: String(recipe.product_name),
     yield_qty: Number(recipe.yield_qty), yield_unit: String(recipe.yield_unit),
@@ -270,10 +274,10 @@ export async function getProductionHubSummary() {
     if (result.error) throw new Error(result.error.message);
   }
   return {
-    todayPosted: posted.count ?? 0,
-    pendingApproval: pending.count ?? 0,
-    readyToPost: readyToPost.count ?? 0,
+    todayPosted: requireReadCount(posted.count, "Posted production jobs"),
+    pendingApproval: requireReadCount(pending.count, "Pending production jobs"),
+    readyToPost: requireReadCount(readyToPost.count, "Ready production jobs"),
     activeRecipes: recipes.length,
-    ingredientShortages: shortageLines.count ?? 0,
+    ingredientShortages: requireReadCount(shortageLines.count, "Production ingredient shortages"),
   };
 }

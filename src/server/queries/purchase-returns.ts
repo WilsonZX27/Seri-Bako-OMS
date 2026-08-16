@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { compareTableValues, paginateRows } from "@/lib/table-state";
 import type { Database } from "@/types/database";
+import { requireReadRows } from "@/server/queries/common";
 
 type Filters = Record<string, string | undefined>;
 type PurchaseReturn = Database["public"]["Tables"]["purchase_returns"]["Row"];
@@ -52,7 +53,7 @@ export async function getPurchaseReturns(filters: Filters = {}) {
   const supabase = await createClient();
   const { data, error } = await supabase.from("purchase_returns").select("*").is("deleted_at", null).order("updated_at", { ascending: false });
   if (error) throw new Error(error.message);
-  const returns = (data ?? []) as PurchaseReturn[];
+  const returns = requireReadRows(data, "Purchase returns") as PurchaseReturn[];
   if (returns.length === 0) return paginateRows([], filters.page, 12);
   const returnIds = returns.map((row) => row.id);
   const grnIds = [...new Set(returns.map((row) => row.goods_receiving_id))];
@@ -92,7 +93,7 @@ export async function getPostedGoodsReceivingsForReturn() {
   const supabase = await createClient();
   const { data: grns, error } = await supabase.from("goods_receivings").select("*").eq("status", "posted").is("deleted_at", null);
   if (error) throw new Error(error.message);
-  const receivings = (grns ?? []) as GoodsReceiving[];
+  const receivings = requireReadRows(grns, "Posted goods receivings") as GoodsReceiving[];
   if (receivings.length === 0) return [];
   const receivingIds = receivings.map((grn) => grn.id);
   const poIds = [...new Set(receivings.map((grn) => grn.purchase_order_id))];
@@ -124,7 +125,7 @@ export async function getGoodsReceivingForReturn(id: string) {
   if (error) throw new Error(error.message);
   if (linesError) throw new Error(linesError.message);
   if (grn.status !== "posted") throw new Error("Only posted GRNs can be returned.");
-  const receivingLines = (lines ?? []) as GoodsReceivingLine[];
+  const receivingLines = requireReadRows(lines, "Goods receiving lines for return") as GoodsReceivingLine[];
   const itemIds = [...new Set(receivingLines.map((line) => line.item_id))];
   const [itemsResult, poResult, supplierResult, branchResult] = await Promise.all([
     itemIds.length > 0 ? supabase.from("items").select("id, item_code, item_name, base_unit").in("id", itemIds) : Promise.resolve({ data: [], error: null }),
@@ -158,7 +159,7 @@ export async function getPurchaseReturn(id: string) {
   if (error) throw new Error(error.message);
   if (linesError) throw new Error(linesError.message);
   const returnRow = row as PurchaseReturn;
-  const returnLines = (lines ?? []) as PurchaseReturnLine[];
+  const returnLines = requireReadRows(lines, "Purchase return detail lines") as PurchaseReturnLine[];
   const itemIds = [...new Set(returnLines.map((line) => line.item_id))];
   const [itemsResult, grnResult, poResult, supplierResult, branchResult, stocksResult] = await Promise.all([
     itemIds.length > 0 ? supabase.from("items").select("id, item_code, item_name, base_unit").in("id", itemIds) : Promise.resolve({ data: [], error: null }),

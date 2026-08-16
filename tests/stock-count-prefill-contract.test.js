@@ -85,6 +85,15 @@ test("stock count refuses incomplete source values instead of defaulting them to
   assert.doesNotMatch(action, /physical_qty: physical\[index\] \?\? 0/);
 });
 
+test("stock count creation fails visibly when starting balances are unavailable", () => {
+  const page = read("src", "app", "(app)", "stock-counts", "new", "page.tsx");
+  assert.match(page, /sourceUnavailable/);
+  assert.match(page, /Starting balances unavailable/);
+  assert.match(page, /no zero values have been substituted/);
+  assert.match(page, /sourceUnavailable \? null/);
+  assert.match(page, /No active branch is available/);
+});
+
 test("stock count does not render an undefined zero-denominator variance as 0%", () => {
   const form = read("src", "components", "stock-count-form.tsx");
   assert.match(form, /percent === null \|\| Number\.isNaN\(percent\)\) return "—"/);

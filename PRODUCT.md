@@ -2,11 +2,15 @@
 
 ## Product Overview
 
+Current release authority: v8.60.0 - Source-Aware Daily and Stock Count States.
+
 ### Current audit baseline
 
-The current released application baseline is `v8.59.0 — No-Record Trend State Clarity`.
+The current released application baseline is `v8.60.0 — Source-Aware Daily and Stock Count States`.
 
-The lines below are retained as historical release context; the current authority is the v8.59.0 line above.
+Historical release context: `v8.59.0 — No-Record Trend State Clarity`.
+
+The lines below are retained as historical release context; the current authority is the v8.60.0 line above.
 The repository migration history currently runs through migration `149`. Release
 version authority lives in `src/lib/app-version.ts`; migration authority lives in
 the immutable, forward-only `supabase/migrations/` directory. Documentation must

@@ -1,11 +1,16 @@
 # Seri Bako OMS responsive design standard
 
-> **Release authority:** the currently released application is `v8.59.0`, as
+> **Release authority:** the currently released application is `v8.60.0`, as
 > defined by `src/lib/app-version.ts`. A versioned section above that number is
 > an accepted forward design contract or unreleased implementation note—not
 > evidence that the application itself has been released at that version.
 > `docs/DESIGN_SYSTEM.md` owns the current visual principles; this file retains
 > versioned implementation history and workspace rules.
+
+## v8.60.0 - Source-Aware Daily and Stock Count States
+
+- Outlet Daily Records fails visibly with a retry state when authoritative receiving data cannot be verified; it does not render an empty summary as zero.
+- New Stock Count refuses to open an editable sheet when the branch or starting balance source is unavailable; the operator must retry instead of confirming substituted zero quantities.
 
 > **Precedence:** `docs/DESIGN_SYSTEM.md` is the living visual and interaction contract. When a historical release note or an older rule in this file conflicts with that contract, the living contract wins. Update both documents when a new pattern is accepted; do not preserve a visibly weaker rule for compatibility.
 

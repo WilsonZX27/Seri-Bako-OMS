@@ -133,6 +133,13 @@ test("received totals never turn an unverified default zero into a business fact
   assert.match(form, /source\?\.morning_received_qty == null \? "" : String\(source\.morning_received_qty\)/);
 });
 
+test("outlet daily source failures never render an empty zero dashboard", () => {
+  assert.match(page, /page\.outletDailyRecords\.source/);
+  assert.match(page, /Outlet daily data unavailable/);
+  assert.match(page, /no zero totals are shown/);
+  assert.match(page, /href=\"\/outlet-daily-records\"/);
+});
+
 test("outlet records flag a confirmed zero when stock was sent", () => {
   assert.match(query, /received_zero_with_sent: boolean/);
   assert.match(query, /totalReceived === 0 && totalSent > 0/);

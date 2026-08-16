@@ -13,6 +13,7 @@ import { Input } from "@/components/ui/input";
 import { PageHeader } from "@/components/ui/page-header";
 import { SelectControl } from "@/components/ui/select-control";
 import { StatusBadge } from "@/components/ui/status-badge";
+import { Notice } from "@/components/ui/system-states";
 import { OperationalList, OperationalListRow, Table, TableActionLink, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { formatDateOnly, formatDateTime, formatNumber } from "@/lib/utils";
 import { hasActiveFilters } from "@/lib/table-state";
@@ -25,15 +26,35 @@ const statusGuidance = (status: string) => status === "evening_completed" ? "Pos
 
 export default async function OutletDailyRecordsPage({ searchParams }: { searchParams: Promise<Record<string, string | undefined>> }) {
   const filters = await searchParams;
-  const [data, options, canCreate, insights] = await Promise.all([
-    getOutletDailyRecords(filters),
-    getOutletDailyFormOptions(),
-    hasPermission("outlet_daily_record.create"),
-    Promise.allSettled([
-      getOutletDailyDemandTrend({ period: "30", branch: filters.branch }),
-      getOutletDailyCompletionMatrix({ branch: filters.branch }),
-    ]),
-  ]);
+  let data: Awaited<ReturnType<typeof getOutletDailyRecords>>;
+  let options: Awaited<ReturnType<typeof getOutletDailyFormOptions>>;
+  let canCreate = false;
+  let insights: [
+    PromiseSettledResult<Awaited<ReturnType<typeof getOutletDailyDemandTrend>>>,
+    PromiseSettledResult<Awaited<ReturnType<typeof getOutletDailyCompletionMatrix>>>,
+  ];
+  try {
+    [data, options, canCreate, insights] = await Promise.all([
+      getOutletDailyRecords(filters),
+      getOutletDailyFormOptions(),
+      hasPermission("outlet_daily_record.create"),
+      Promise.allSettled([
+        getOutletDailyDemandTrend({ period: "30", branch: filters.branch }),
+        getOutletDailyCompletionMatrix({ branch: filters.branch }),
+      ]),
+    ]);
+  } catch (error) {
+    logServerError(error, { source: "page.outletDailyRecords.source" });
+    return <>
+      <PageHeader title="Outlet Daily Records" description="Morning receiving and evening wastage capture by outlet." />
+      <WorkspaceGrid tabletCanvas="contained">
+        <Notice tone="warning" title="Outlet daily data unavailable">
+          Receiving data could not be verified, so no zero totals are shown. Reload to retry once the source is available.
+          <span className="mt-2 block"><Link className="font-semibold underline underline-offset-2" href="/outlet-daily-records">Retry</Link></span>
+        </Notice>
+      </WorkspaceGrid>
+    </>;
+  }
   const [trendResult, completionResult] = insights;
   if (trendResult.status === "rejected") logServerError(trendResult.reason, { source: "page.outletDailyRecords.wastageTrend" });
   if (completionResult.status === "rejected") logServerError(completionResult.reason, { source: "page.outletDailyRecords.completionMatrix" });

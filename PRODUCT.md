@@ -2,11 +2,11 @@
 
 ## Product Overview
 
-Current release authority: v8.64.14 - Canonical Responsive Controls And Outlet Analytics.
+Current release authority: v8.64.15 - Annotation Close-out And Touch Tablet Shell.
 
 ### Current audit baseline
 
-The current released application baseline is `v8.64.14 — Canonical Responsive Controls And Outlet Analytics`.
+The current released application baseline is `v8.64.15 — Annotation Close-out And Touch Tablet Shell`.
 
 Historical release context: `v8.64.6 — Reliable Outlet Daily Reads`; earlier context: `v8.64.5 — Verified Receiving Provenance`, `v8.64.4 — Stable Report Preview Surfaces`, and `v8.63.0 — Fail-Closed Goods Receiving Joins`.
 

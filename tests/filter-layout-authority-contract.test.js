@@ -6,6 +6,7 @@ const globals = fs.readFileSync("src/app/globals.css", "utf8");
 const designV2 = fs.readFileSync("src/app/design-system-v2.css", "utf8");
 const filterBar = fs.readFileSync("src/components/ui/filter-bar.tsx", "utf8");
 const selectControl = fs.readFileSync("src/components/ui/select-control.tsx", "utf8");
+const input = fs.readFileSync("src/components/ui/input.tsx", "utf8");
 
 test("FilterBar geometry has one authoritative stylesheet", () => {
   assert.doesNotMatch(designV2, /^\s*\.sb-list-filters\s*\{/m);
@@ -22,6 +23,8 @@ test("FilterBar geometry has one authoritative stylesheet", () => {
   assert.doesNotMatch(beforeCanonical, /Canonical desktop\/tablet filter rail|Compact desktop filter contract|flex:\s*0 0 9rem/);
   assert.equal((designV2.match(/Canonical list workspace contract/g) ?? []).length, 1);
   assert.match(designV2.slice(canonicalStart), /form\.sb-list-query-card[\s\S]*?white-space:\s*nowrap;[\s\S]*?text-overflow:\s*ellipsis;/);
+  assert.match(designV2.slice(canonicalStart), /unified-list-date-control/);
+  assert.match(input, /unified-list-date-control/);
 });
 
 test("hidden persisted filters do not steal the leading query slot", () => {

@@ -1,6 +1,6 @@
 # Seri Bako OMS responsive design standard
 
-> **Release authority:** the currently released application is `v8.64.14`, as
+> **Release authority:** the currently released application is `v8.64.15`, as
 > defined by `src/lib/app-version.ts`. A versioned section above that number is
 > an accepted forward design contract or unreleased implementation note—not
 > evidence that the application itself has been released at that version.
@@ -8,6 +8,44 @@
 > versioned implementation history and workspace rules.
 
 ## v8.64.14 - Canonical Responsive Controls And Outlet Analytics
+
+## v8.64.15 - Annotation Close-out And Touch Tablet Shell
+
+This release turns the repeated annotation failures into one acceptance template.
+The rule is applied at the shared owner first; a route may only supply content,
+data, and semantic variants.
+
+- **Canvas:** `WorkspaceGrid` is the only width owner for workspace content. At
+  640px and above, `contained` uses a 64rem reading width, `wide` uses 76rem,
+  and `full` is an explicit exception. The same gutter contract applies to
+  document headers. No route may add a competing max-width or edge-to-edge
+  tablet rule.
+- **Shell:** phone uses the mobile top context and bottom navigation; normal
+  desktop uses the left navigation and right action rail; touch tablets keep
+  the tablet navigation shell even when iPadOS reports a desktop-sized Safari
+  viewport. The tablet mode is detected from touch capability, not a fragile
+  user-agent width guess.
+- **Toolbar:** every list query surface uses one owner and one 44px control
+  geometry. Desktop command controls share a 10rem track; landscape tablets
+  use a full-width query row followed by one equal-track filter/action row;
+  phones use the dedicated search/filter sheet. Search and record count remain
+  separate from the result surface.
+- **Surface:** query and content are sibling surfaces. A route wrapper around a
+  query card is flattened rather than rendered as card-inside-card. Panel and
+  control radii come only from the shared tokens.
+- **Action:** desktop/tablet primary actions stay in the right rail; phone
+  actions stay in the safe bottom rail. Duplicate in-flow Save/Submit/Review
+  actions are defects, not alternate design variants.
+- **Truth and loading:** a failed or unverified read is `Unavailable` with a
+  recovery path, never `0`, empty-success, or fabricated totals. Loading uses a
+  real spinner or final-shape skeleton; blank preloaded-looking boxes are not a
+  valid state. Stock Count mobile rows therefore keep the compact two-column
+  card without an artificial minimum height.
+- **Annotation acceptance:** each new screenshot is classified as Canvas,
+  Shell, Toolbar, Surface, Action, Data state, Loading, or Density. The fix is
+  accepted only after the shared source, a contract test, and representative
+  390/820/1180/1440 checks agree. Reports are regression coverage, not the
+  primary queue until this annotation backlog is closed.
 
 - Purchase Request line geometry is owned by the form component and control height by one shared CSS rule; mobile rules only place the controls and no longer redefine their dimensions.
 - Bulk deletion review now lives in the selected-items action cluster beside `Deselect all`, so selection actions have one predictable owner and placement.

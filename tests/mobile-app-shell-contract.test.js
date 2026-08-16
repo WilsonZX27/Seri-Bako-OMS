@@ -21,8 +21,10 @@ test("mobile web uses a permission-aware app shell without replacing desktop nav
   assert.match(navigation, /role === "finance"/);
   assert.match(navigation, /href: "\/stock-counts"/);
   assert.match(navigation, /isFocusedTask/);
+  assert.match(navigation, /touchTablet/);
   assert.match(navigation, /\/\(\?:new\|edit\)\$/);
   assert.doesNotMatch(navigation, /if \(isFocusedTask\) return null/);
+  assert.match(sidebar, /data-app-sidebar/);
   assert.match(sidebar, /xl:block/);
 });
 
@@ -48,6 +50,9 @@ test("mobile shell respects safe areas, action stacking, and standalone web inst
   assert.match(css, /--sb-mobile-nav-height/);
   assert.match(css, /env\(safe-area-inset-bottom\)/);
   assert.match(css, /\[data-mobile-document-action\]/);
+  assert.match(css, /data-touch-tablet/);
+  assert.match(css, /data-tablet-canvas="contained"/);
+  assert.match(css, /data-tablet-canvas="wide"/);
   assert.match(css, /data-mobile-task-page="true"/);
   assert.match(css, /html:is\(\[data-mobile-task-page="true"\], \[data-mobile-action-page="true"\]\)[\s\S]*?bottom: 0 !important/);
   assert.doesNotMatch(css, /\.sb-mobile-action-bar\s*\{\s*bottom: env\(safe-area-inset-bottom\)/);

@@ -28,7 +28,7 @@ const DateInput = React.forwardRef<HTMLInputElement, DateInputProps>(
     return (
       <div
         className={cn(
-          "relative flex h-[var(--sb-control-height)] w-full min-w-0 max-w-full items-center rounded-[var(--sb-radius-control)] border border-[var(--sb-border)] bg-white px-2.5 py-1.5 text-sm text-[var(--sb-text)] transition-colors focus-within:ring-2 focus-within:ring-[var(--sb-green-700)] focus-within:ring-offset-1 has-[:disabled]:cursor-not-allowed has-[:disabled]:bg-[var(--sb-surface-muted)] has-[:disabled]:opacity-70",
+          "relative flex h-[var(--sb-control-height)] w-full min-w-0 max-w-full items-center rounded-[var(--sb-radius-control)] border border-[var(--sb-border)] bg-white px-2.5 py-1.5 text-sm text-[var(--sb-text)] transition-colors focus-within:ring-2 focus-within:ring-[var(--sb-green-700)] focus-within:ring-offset-1 has-[:disabled]:cursor-not-allowed has-[:disabled]:bg-[var(--sb-surface-muted)] has-[:disabled]:opacity-70 unified-list-date-control",
           className,
         )}
       >

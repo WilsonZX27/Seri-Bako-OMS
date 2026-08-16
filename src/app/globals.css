@@ -950,23 +950,6 @@ input[type="date"]::-webkit-date-and-time-value {
     box-shadow: var(--sb-shadow-card);
   }
 
-  [data-tablet-canvas="contained"],
-  [data-tablet-document-header] {
-    width: calc(100% - 2rem);
-    max-width: 64rem;
-    margin-inline: auto;
-  }
-
-  [data-tablet-canvas="wide"] {
-    width: calc(100% - 2rem);
-    max-width: 76rem;
-    margin-inline: auto;
-  }
-
-  [data-tablet-canvas="full"] {
-    width: 100%;
-  }
-
   [data-tablet-context] {
     border-radius: var(--sb-panel-radius);
   }

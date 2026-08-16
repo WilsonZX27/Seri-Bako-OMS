@@ -14,6 +14,6 @@ test("stock count steppers use a compact mobile control and stable labels", () =
 
 test("stock count mobile lines use a two-column card instead of a tall single-column sheet", () => {
   assert.match(source, /grid grid-cols-2 gap-2 p-2 sm:block sm:divide-y/);
-  assert.match(source, /grid min-h-\[13rem\] grid-cols-\[minmax\(0,1fr\)_auto\] content-between/);
+  assert.match(source, /grid min-h-0 grid-cols-\[minmax\(0,1fr\)_auto\] items-start/);
   assert.match(source, /rounded-\[var\(--sb-control-radius\)\]/);
 });

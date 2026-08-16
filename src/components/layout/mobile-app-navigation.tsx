@@ -138,6 +138,32 @@ export function MobileAppNavigation({
 
   useEffect(() => setMoreOpen(false), [pathname]);
 
+  // iPadOS Safari can expose a desktop-sized viewport and a Macintosh user
+  // agent even when the device is still touch-first. Keep the shell in the
+  // tablet navigation mode on those devices instead of making the user
+  // manually request the mobile site.
+  useEffect(() => {
+    const root = document.documentElement;
+    const updateTouchTablet = () => {
+      const coarsePointer = window.matchMedia("(pointer: coarse)").matches;
+      const touchPoints = navigator.maxTouchPoints ?? 0;
+      const shortestScreenEdge = Math.min(window.screen.width, window.screen.height);
+      const desktopIpadUserAgent = /macintosh/i.test(navigator.userAgent) && touchPoints > 1;
+      const touchTablet = touchPoints > 1 && shortestScreenEdge >= 600 && (desktopIpadUserAgent || coarsePointer);
+      if (touchTablet) root.dataset.touchTablet = "true";
+      else delete root.dataset.touchTablet;
+    };
+
+    updateTouchTablet();
+    window.addEventListener("resize", updateTouchTablet);
+    window.addEventListener("orientationchange", updateTouchTablet);
+    return () => {
+      window.removeEventListener("resize", updateTouchTablet);
+      window.removeEventListener("orientationchange", updateTouchTablet);
+      delete root.dataset.touchTablet;
+    };
+  }, []);
+
   useEffect(() => {
     const standalone = window.matchMedia("(display-mode: standalone)");
     const navigatorWithStandalone = navigator as Navigator & { standalone?: boolean };

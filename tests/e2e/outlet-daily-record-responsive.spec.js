@@ -117,12 +117,11 @@ test("outlet daily list keeps fixed controls left and count/action right", async
     };
   });
 
-  const selectWidths = geometry.controls.slice(1).map((control) => control.width);
-  // The date owns the flexible search corridor; the two categorical selects
-  // retain the same compact width and Search remains a content-sized command.
-  expect(geometry.controls[0].width).toBeGreaterThan(selectWidths[0] * 2);
-  expect(Math.max(...selectWidths) - Math.min(...selectWidths)).toBeLessThanOrEqual(2);
-  expect(geometry.action.width).toBeGreaterThanOrEqual(60);
+  const controlWidths = geometry.controls.map((control) => control.width);
+  // Date, branch, status, and Search use one deliberate command track. This
+  // prevents the same filter surface from changing shape between routes.
+  expect(Math.max(...controlWidths) - Math.min(...controlWidths)).toBeLessThanOrEqual(2);
+  expect(Math.abs(geometry.action.width - controlWidths.at(-1))).toBeLessThanOrEqual(2);
   expect(geometry.controls.every((control) => Math.abs(control.height - geometry.action.height) <= 1)).toBe(true);
   expect(geometry.controls[0].left - geometry.form.left).toBeLessThanOrEqual(12);
   expect(geometry.actionGroup.right).toBeGreaterThan(geometry.controls.at(-1).right + 8);

@@ -2,6 +2,32 @@
 
 This is an evolving product contract, not a frozen visual specification. `DESIGN.md` defines the workspace architecture; this document defines how that architecture adapts as the product matures. When research, usability evidence, and product-owner approval support a better pattern, update this contract instead of preserving a weaker legacy rule.
 
+## v8.64.15 annotation close-out contract
+
+Repeated visual feedback is treated as a shared-system defect when the same
+pattern appears on more than one route. The owner is fixed before any route
+exception is considered:
+
+1. **Canvas** — one `WorkspaceGrid` width contract (`contained`, `wide`, or
+   explicit `full`) and one centered gutter rule for tablet and desktop.
+2. **Shell** — one device matrix for phone, touch tablet, and desktop; iPadOS
+   desktop-mode reporting cannot select the desktop shell merely because the
+   CSS viewport crosses `xl`.
+3. **Toolbar** — one `UnifiedListHeader` geometry and one control height/track
+   rule. Route filters provide fields only.
+4. **Surface** — query and content are sibling surfaces; nested cards are
+   flattened at the shared layer.
+5. **Action** — one primary action location per viewport, with no duplicate
+   Save/Submit/Review button in the content stream.
+6. **State** — verified zero, unavailable, empty-success, and loading are
+   distinct semantic states and copy.
+7. **Density** — repeated rows use compact scan patterns; artificial minimum
+   heights and decorative empty boxes are prohibited.
+
+Every annotation fix must name its category, change the shared owner, add or
+update a contract test, and be checked at 390, 820, 1180, and 1440px. A route
+specific CSS override is allowed only when it is a documented semantic variant.
+
 ## Product character
 
 - Premium utilitarian, calm, direct, and operationally dense.

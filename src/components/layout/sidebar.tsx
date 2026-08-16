@@ -13,7 +13,7 @@ export async function Sidebar({ permissionMap }: { permissionMap: Record<string,
   const role = profileRole?.role_code ?? profileRole?.role ?? "outlet_staff";
 
   return (
-    <aside className="hidden h-dvh shrink-0 xl:block">
+    <aside data-app-sidebar className="hidden h-dvh shrink-0 xl:block">
       <WorkspaceSidebar
         role={role}
         companyName={branding.company_name}

@@ -29,6 +29,17 @@ This is the working ledger for the final close-out. Every browser comment must h
 | 13 | Purchase Returns / new | Portrait tablet was not checked | Responsive verification | Verified in production browser at 820x1180 |
 | 14 | Stock Balance | Tablet should use a true two-column workspace | WorkspaceGrid / page | Verified in production browser at 1180x820; right summary rail visible |
 
+## Report preview continuity pass — 2026-08-16
+
+The report annotations that called out hover/focus preview flicker are now fixed in the shared chart surfaces, not by route-specific CSS:
+
+- Interactive ranking, AP Aging bucket, Production variance signal, and Inventory daily movement previews reserve a compact muted slot before selection.
+- Hover, touch, and keyboard focus replace the instruction inside that same slot; the chart/card geometry no longer changes when exact values or a drill-through action appears.
+- Contract coverage now asserts the stable slot and rejects the old `sr-only` idle-preview pattern. The local release is `v8.64.4` (`b1e8400`), with 686/686 tests, lint, typecheck, and a 75/75-page production build passing.
+- Remote preview/browser verification remains open: the last supplied browser evidence still showed an older footer and therefore is not proof of this release.
+
+This closes the specific report-preview layout-shift annotations; the remaining annotation backlog is not implicitly closed by this pass.
+
 ## Earlier comment matrix
 
 The previous 19 browser comments remain part of this ledger and must not be regressed: Dashboard data/identity/density, shared mobile filters, Stock Count action rail and cards, Outlet Daily setup/action rail, Purchase Returns filter width, UOM menus, and global logo/scrollbar rules.

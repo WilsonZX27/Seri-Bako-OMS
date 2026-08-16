@@ -1,6 +1,6 @@
 # Seri Bako OMS responsive design standard
 
-> **Release authority:** the currently released application is `v8.64.12`, as
+> **Release authority:** the currently released application is `v8.64.13`, as
 > defined by `src/lib/app-version.ts`. A versioned section above that number is
 > an accepted forward design contract or unreleased implementation note—not
 > evidence that the application itself has been released at that version.
@@ -27,6 +27,14 @@
 
 - Bounded, read-only inventory RPCs retry only transient timeout, connection, HTTP 500, and temporary-service failures with a short capped backoff. A final failure still reaches the existing explicit unavailable state; no retry path substitutes zero rows or zero totals.
 - Outlet Daily's updated timestamp keeps the date and time on separate readable lines in the desktop table instead of concatenating the two values.
+
+## v8.64.13 - Responsive Form And Loading Polish
+
+- Purchase Request line controls now share one canonical responsive geometry: item search truncates instead of stealing quantity width, the quantity stepper uses the shared control height, and item-to-supplier spacing remains explicit across phone, tablet, and desktop.
+- Purchase Request detail keeps the draft save action in the document action rail, removing the duplicate in-flow button and its reserved blank space on mobile.
+- Outlet Daily keeps the operator-facing `Posted` badge without the redundant `Posted · editable` helper line and aligns status content to the trailing edge of the record row.
+- Outlet Daily and Stock Count route loading now use a compact source-aware spinner instead of large empty skeleton boxes. The UI never implies that unverified values are zero while data is still loading.
+- Mobile app chrome uses a white safe-area/top-bar surface with a light shadow while scrolling underneath; the shell background tokens no longer introduce a warm beige band between cards.
 
 ## v8.64.5 - Verified Receiving Provenance
 

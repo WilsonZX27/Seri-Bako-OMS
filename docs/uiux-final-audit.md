@@ -29,6 +29,15 @@ This is the working ledger for the final close-out. Every browser comment must h
 | 13 | Purchase Returns / new | Portrait tablet was not checked | Responsive verification | Verified in production browser at 820x1180 |
 | 14 | Stock Balance | Tablet should use a true two-column workspace | WorkspaceGrid / page | Verified in production browser at 1180x820; right summary rail visible |
 
+## Responsive form and loading polish — 2026-08-16
+
+- Purchase Request line controls now share canonical dimensions across phone, tablet, and desktop. The item field truncates long labels, quantity keeps a stable eight-rem allocation on desktop, the stepper uses the shared control height, and the item/supplier stack has an explicit gap.
+- Purchase Request detail no longer renders a duplicate in-flow Save draft changes action or reserves an empty mobile action corridor; the save action is owned by the document More/action rail.
+- Outlet Daily removes the redundant `Posted · editable` helper copy and keeps the status cluster trailing-aligned in compact list rows.
+- Outlet Daily and Stock Count loading routes use a compact spinner with source-aware screen-reader copy. Large skeleton rectangles were removed because they looked like blank data and encouraged false interpretation while reads were pending.
+- The mobile top bar is sticky with a safe-area-aware white surface and shadow. Global background/border tokens were neutralized to prevent beige bands appearing during scroll.
+- Source contracts cover the responsive geometry, no-duplicate action rail, loading semantics, and shell surface choices. Browser verification remains required for the authenticated 390x852, 820x1180, 1180x820, and 1440x900 routes.
+
 ## Reliable Outlet Daily reads and Stock Count density pass — 2026-08-16
 
 - Outlet Daily receiving totals now reject both `unavailable` and `legacy_unverified` line provenance, including stale estimates that must not be presented as confirmed receipt. The list, detail, trend, defaults, and today summary therefore share one fail-closed rule.

@@ -104,22 +104,22 @@
   --text-main: var(--sb-text);
   --text-muted: var(--sb-text-muted);
 
-  --background: 43 33% 95%;
+  --background: 150 12% 94%;
   --foreground: 147 33% 9%;
   --card: 0 0% 100%;
   --card-foreground: 222 47% 11%;
   --primary: 147 48% 13%;
   --primary-foreground: 0 0% 100%;
-  --secondary: 45 22% 93%;
+  --secondary: 150 10% 94%;
   --secondary-foreground: 147 33% 9%;
-  --muted: 45 22% 93%;
+  --muted: 150 10% 94%;
   --muted-foreground: 148 7% 43%;
   --accent: 147 48% 13%;
   --accent-foreground: 147 48% 13%;
   --destructive: 0 74% 42%;
   --destructive-foreground: 0 0% 100%;
-  --border: 45 13% 81%;
-  --input: 45 13% 81%;
+  --border: 150 10% 82%;
+  --input: 150 10% 82%;
   --ring: 155 63% 20%;
   --radius: 0.5rem;
 }

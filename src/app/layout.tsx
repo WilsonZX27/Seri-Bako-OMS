@@ -23,7 +23,7 @@ export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   viewportFit: "cover",
-  themeColor: "#083B2A",
+  themeColor: "#ffffff",
 };
 
 const enableFigmaCapture = process.env.NEXT_PUBLIC_ENABLE_FIGMA_CAPTURE === "1";

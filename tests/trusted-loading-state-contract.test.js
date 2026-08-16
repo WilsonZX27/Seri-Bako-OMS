@@ -13,7 +13,9 @@ test("outlet daily and stock count routes show source-aware loading states", () 
   for (const source of [outlet, list, create]) {
     assert.match(source, /role="status"/);
     assert.match(source, /aria-busy="true"/);
-    assert.match(source, /animate-pulse/);
+    assert.match(source, /LoaderCircle/);
+    assert.match(source, /animate-spin/);
+    assert.doesNotMatch(source, /animate-pulse/);
     assert.doesNotMatch(source, /Loading .*0/);
   }
   assert.match(outlet, /Verified quantities will appear/);

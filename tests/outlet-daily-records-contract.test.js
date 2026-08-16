@@ -73,7 +73,7 @@ test("active staff, permissions, company and assigned branch are checked inside 
 test("completed outlet records use the operator-facing Posted label", () => {
   const statusLabels = read("src/lib/status-label.ts");
   assert.match(statusLabels, /evening_completed: "Posted"/);
-  assert.match(read("src/app/(app)/outlet-daily-records/page.tsx"), /status === "evening_completed" \? "Posted · editable"/);
+  assert.doesNotMatch(read("src/app/(app)/outlet-daily-records/page.tsx"), /Posted · editable/);
 });
 
 test("outlet completion does not create a fictitious review queue", () => {

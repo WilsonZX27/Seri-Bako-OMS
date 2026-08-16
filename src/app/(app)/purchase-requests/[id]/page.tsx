@@ -135,7 +135,9 @@ export default async function PurchaseRequestDetailPage({
     (request.status === "finance_review" && (permissions["pr.finance_review"] || permissions["pr.reject"]));
   const hasPrimaryAction = canSubmit || canManagerReview || canAdminReview || canFinanceReview || canConvert;
   const deleteControl = canManageDeletion && !canCancel ? (deletePreview?.eligible ? <DangerConfirmForm action={hardDeletePhaseOne.bind(null, "purchase_request", request.id)} title={`Permanently delete ${request.request_no}?`} description="This cannot be undone. Purchase request lines will be removed; the document number will remain consumed." warning="Type the exact request number to continue." checkboxLabel="I understand this permanently deletes the eligible request." confirmWord={deletePreview.confirmation} buttonLabel="Delete purchase request" pendingLabel="Deleting..." /> : <BlockedDestructiveAction buttonLabel="Delete purchase request" title={`Cannot delete ${request.request_no}`} description="Permanent deletion is blocked by the current status or linked records." recommendation={deletePreview ? Object.entries(deletePreview.dependencies).filter(([, count]) => count > 0).map(([key, count]) => `${key}: ${count}`).join("; ") : "Dependency preview unavailable."} />) : null;
-  const secondaryActions = canCancel || canReject || deleteControl ? <div className="space-y-2">
+  const saveDraftAction = canEditDraft ? <SubmitButton form="purchase-request-form" type="submit" pendingLabel="Saving..." className="w-full justify-center">Save draft changes</SubmitButton> : null;
+  const secondaryActions = saveDraftAction || canCancel || canReject || deleteControl ? <div className="space-y-2">
+              {saveDraftAction}
               {canCancel ? <DocumentActionForm action={cancelPurchaseRequest.bind(null, request.id)} pendingLabel="Removing..." variant="destructive">Delete unposted request</DocumentActionForm> : null}
     {canReject ? <form action={rejectPurchaseRequest.bind(null, request.id)} className="space-y-2"><Input name="remarks" placeholder="Rejection remarks required" required /><SubmitButton type="submit" pendingLabel="Rejecting..." variant="destructive" className="w-full justify-center">Reject request</SubmitButton></form> : null}
     {deleteControl}
@@ -258,12 +260,8 @@ export default async function PurchaseRequestDetailPage({
                       reason: line.reason ?? "",
                     }))}
                     canViewCommercial={canViewCommercial}
+                    reserveMobileActionSpace={false}
                   />
-                  <div className="mt-4">
-                    <SubmitButton form="purchase-request-form" type="submit" className="w-full">
-                      Save draft changes
-                    </SubmitButton>
-                  </div>
                 </>
               ) : (
                 <>

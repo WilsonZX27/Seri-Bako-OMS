@@ -2,16 +2,16 @@
 
 ## Product Overview
 
-Current release authority: v8.64.15 - Annotation Close-out And Touch Tablet Shell.
+Current release authority: v8.64.16 - Authoritative Outlet Daily Reads.
 
 ### Current audit baseline
 
-The current released application baseline is `v8.64.15 — Annotation Close-out And Touch Tablet Shell`.
+The current released application baseline is `v8.64.16 — Authoritative Outlet Daily Reads`.
 
 Historical release context: `v8.64.6 — Reliable Outlet Daily Reads`; earlier context: `v8.64.5 — Verified Receiving Provenance`, `v8.64.4 — Stable Report Preview Surfaces`, and `v8.63.0 — Fail-Closed Goods Receiving Joins`.
 
 The lines below are retained as historical release context; the current authority is the v8.64.6 line above.
-The repository migration history currently runs through migration `150`. Release
+The repository migration history currently runs through migration `151`. Release
 version authority lives in `src/lib/app-version.ts`; migration authority lives in
 the immutable, forward-only `supabase/migrations/` directory. Documentation must
 not claim a later release or database ceiling unless both authorities support it.
@@ -171,7 +171,7 @@ The system currently covers or is actively implementing the following operationa
 
 Module maturity must be understood separately from visual completion.
 
-Current integration baseline: `v8.50.0 — Unverified Outlet Receipt Values Stay Blank`, with repository migrations reviewed through `150`. Migrations `111` and `112` remain immutable history because they were applied to the linked database accidentally. Migration `113` removes their callable Central Kitchen PR RPC, prevents further access to the stock-holds table, and preserves that table temporarily for a non-destructive data audit. Later forward-only migrations add bounded inventory and Dashboard read models, repair grants and scoped access, and introduce branch supply-route provenance; they do not restore the retired Central Kitchen PR workflow.
+Current integration baseline: `v8.64.16 — Authoritative Outlet Daily Reads`, with repository migrations reviewed through `151`. Migrations `111` and `112` remain immutable history because they were applied to the linked database accidentally. Migration `113` removes their callable Central Kitchen PR RPC, prevents further access to the stock-holds table, and preserves that table temporarily for a non-destructive data audit. Later forward-only migrations add bounded inventory and Dashboard read models, repair grants and scoped access, and introduce branch supply-route and received-quantity provenance; they do not restore the retired Central Kitchen PR workflow.
 
 A page may exist visually without its full workflow, validation, database integration, permissions, and downstream effects being complete.
 

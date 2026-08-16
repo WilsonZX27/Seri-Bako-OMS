@@ -1,7 +1,6 @@
 import { isMockMode, mockBranches, mockProducts } from "@/lib/mock-mode";
 import { todayInKualaLumpur } from "@/lib/business-date";
 import { createClient } from "@/lib/supabase/server";
-import { paginateRows } from "@/lib/table-state";
 import { hasPermission } from "@/server/auth/permissions";
 import { getCurrentProfile } from "@/server/queries/common";
 import type { Database } from "@/types/database";
@@ -44,12 +43,10 @@ export type OutletDailyCompletionCell = {
 
 const totals = (lines: LineRow[]) => {
   const totalSent = lines.reduce((sum, line) => sum + Number(line.qty_sent), 0);
-  // `morning_received_qty` has a database default of 0. A zero is only
-  // trustworthy when the outlet explicitly supplied it (145 records that
-  // provenance in `qty_sent_estimated`) or when the value is non-zero. An
-  // explicitly marked legacy/unavailable source is never trusted, even if a
-  // stale estimate happens to be present. An empty line set, or an unproven
-  // default zero, must never be rendered as a real operational total.
+  // `morning_received_qty` has a database default of 0. Its dedicated
+  // provenance flag distinguishes an explicit zero from that transport
+  // default. An empty line set, or an unproven default zero, must never be
+  // rendered as a real operational total.
   const receivedValues = lines.map((line) => {
     const received = Number(line.morning_received_qty);
     const explicitlyProvided = receivedValueIsTrusted(line);
@@ -77,10 +74,21 @@ const totals = (lines: LineRow[]) => {
   };
 };
 
-const receivedValueIsTrusted = (line: Pick<LineRow, "morning_received_qty" | "qty_sent_estimated" | "qty_sent_source">) => {
+type ReceivedProvenance = Pick<LineRow, "morning_received_qty" | "qty_sent_estimated"> & {
+  morning_received_provided?: boolean;
+};
+
+const receivedValueIsTrusted = (line: ReceivedProvenance) => {
   const received = Number(line.morning_received_qty);
-  const sourceIsUnverified = line.qty_sent_source === "legacy_unverified" || line.qty_sent_source === "unavailable";
-  return Number.isFinite(received) && !sourceIsUnverified && (line.qty_sent_estimated !== null || received !== 0);
+  // Migration 151 gives this fact an explicit name. During a rolling deploy,
+  // migration 145's `qty_sent_estimated` remains the backwards-compatible
+  // provenance source: that column is populated only when the outlet supplied
+  // a received value, including an explicit zero. Never fall back to
+  // `qty_sent_source`, which describes the sent quantity rather than receipt.
+  const provided = typeof line.morning_received_provided === "boolean"
+    ? line.morning_received_provided
+    : line.qty_sent_estimated !== null || received !== 0;
+  return Number.isFinite(received) && provided;
 };
 
 const shiftDate = (date: string, days: number) => {
@@ -134,11 +142,11 @@ async function getOutletDailyDefaults(db: Awaited<ReturnType<typeof createClient
   if (!recordIds.length) return {} as Record<string, Record<string, OutletDailyDefaultLine>>;
   const { data: lines, error: lineError } = await db
     .from("outlet_daily_record_lines")
-    .select("record_id,product_id,morning_received_qty,qty_sent_estimated,qty_sent_source,wastage_qty,wastage_reason,notes")
+    .select("record_id,product_id,morning_received_qty,qty_sent_estimated,wastage_qty,wastage_reason,notes")
     .in("record_id", recordIds);
   if (lineError) throw new Error(lineError.message);
   const branchByRecord = new Map([...chosen.entries()].map(([branchId, recordId]) => [recordId, branchId]));
-  return ((lines ?? []) as Pick<LineRow, "record_id" | "product_id" | "morning_received_qty" | "qty_sent_estimated" | "qty_sent_source" | "wastage_qty" | "wastage_reason" | "notes">[]).reduce<Record<string, Record<string, OutletDailyDefaultLine>>>((result, line) => {
+  return ((lines ?? []) as Pick<LineRow, "record_id" | "product_id" | "morning_received_qty" | "qty_sent_estimated" | "wastage_qty" | "wastage_reason" | "notes">[]).reduce<Record<string, Record<string, OutletDailyDefaultLine>>>((result, line) => {
     const branchId = branchByRecord.get(line.record_id);
     if (!branchId) return result;
     (result[branchId] ??= {})[line.product_id] = {
@@ -204,28 +212,30 @@ export async function getOutletDailyFormOptions(recordDate?: string) {
   };
 }
 
-async function loadRows() {
-  if (isMockMode()) return [] as OutletDailyRecordRow[];
-  const db = await createClient();
-  const [{ data, error }, { data: lines, error: linesError }, { data: branches, error: branchesError }, { data: staffs, error: staffsError }] = await Promise.all([
-    db.from("outlet_daily_records").select("*").order("record_date", { ascending: false }).order("updated_at", { ascending: false }),
-    db.from("outlet_daily_record_lines").select("*"),
-    db.from("branches").select("id,branch_name"),
-    db.from("staffs").select("id,full_name"),
+async function hydrateRows(db: Awaited<ReturnType<typeof createClient>>, records: RecordRow[]) {
+  if (!records.length) return [] as OutletDailyRecordRow[];
+  const recordIds = records.map((record) => record.id);
+  const branchIds = [...new Set(records.map((record) => record.branch_id))];
+  const staffIds = [...new Set(records.flatMap((record) => record.submitted_by ? [record.submitted_by] : []))];
+  const [{ data: lines, error: linesError }, { data: branches, error: branchesError }, staffResult] = await Promise.all([
+    db.from("outlet_daily_record_lines").select("*").in("record_id", recordIds),
+    db.from("branches").select("id,branch_name").in("id", branchIds),
+    staffIds.length
+      ? db.from("staffs").select("id,full_name").in("id", staffIds)
+      : Promise.resolve({ data: [], error: null }),
   ]);
-  if (error) throw new Error(error.message);
   if (linesError) throw new Error(linesError.message);
   if (branchesError) throw new Error(branchesError.message);
-  if (staffsError) throw new Error(staffsError.message);
+  if (staffResult.error) throw new Error(staffResult.error.message);
   const branchNames = new Map((branches ?? []).map((row) => [row.id, row.branch_name]));
-  const staffNames = new Map((staffs ?? []).map((row) => [row.id, row.full_name]));
+  const staffNames = new Map((staffResult.data ?? []).map((row) => [row.id, row.full_name]));
   const linesByRecord = new Map<string, LineRow[]>();
   for (const line of (lines ?? []) as LineRow[]) {
     const recordLines = linesByRecord.get(line.record_id) ?? [];
     recordLines.push(line);
     linesByRecord.set(line.record_id, recordLines);
   }
-  return ((data ?? []) as RecordRow[]).map((record) => ({
+  return records.map((record) => ({
     ...record,
     branch_name: branchNames.get(record.branch_id) ?? "Unknown outlet",
     submitted_by_name: record.submitted_by ? staffNames.get(record.submitted_by) ?? null : null,
@@ -233,16 +243,45 @@ async function loadRows() {
   }));
 }
 
+async function loadRows(filters: Filters = {}) {
+  const db = await createClient();
+  const pageSize = 15;
+  const requestedPage = Math.max(Number.parseInt(filters.page ?? "1", 10) || 1, 1);
+  let query = db.from("outlet_daily_records").select("*", { count: "exact" });
+  if (filters.date) query = query.eq("record_date", filters.date);
+  if (filters.branch && filters.branch !== "all") query = query.eq("branch_id", filters.branch);
+  if (filters.status && filters.status !== "all") query = query.eq("status", filters.status as RecordRow["status"]);
+  const start = (requestedPage - 1) * pageSize;
+  const { data, error, count } = await query
+    .order("record_date", { ascending: false })
+    .order("updated_at", { ascending: false })
+    .range(start, start + pageSize - 1);
+  if (error) throw new Error(error.message);
+  const totalRows = count ?? 0;
+  const totalPages = Math.max(Math.ceil(totalRows / pageSize), 1);
+  const page = Math.min(requestedPage, totalPages);
+  // If a stale URL points past the last page, repeat the bounded query at the
+  // actual final page instead of reading every record and slicing in memory.
+  if (page !== requestedPage) return loadRows({ ...filters, page: String(page) });
+  return { rows: await hydrateRows(db, (data ?? []) as RecordRow[]), totalRows, page, pageSize, totalPages };
+}
+
 export async function getOutletDailyRecords(filters: Filters = {}) {
-  const allRows = await loadRows();
-  const rows = allRows.filter((row) =>
-    (!filters.date || row.record_date === filters.date)
-    && (!filters.branch || filters.branch === "all" || row.branch_id === filters.branch)
-    && (!filters.status || filters.status === "all" || row.status === filters.status));
+  if (isMockMode()) {
+    return { rows: [], totalRows: 0, page: 1, pageSize: 15, totalPages: 1, summary: { today: todayInKualaLumpur(), today_records: 0, today_sent: 0, today_received: 0, today_received_unavailable: 0, today_received_zero_with_sent: 0, missing_evening: 0, posted_today: 0 } };
+  }
+  const db = await createClient();
+  const pageResult = await loadRows(filters);
   const today = todayInKualaLumpur();
-  const todayRows = allRows.filter((row) => row.record_date === today && row.status !== "void");
+  const { data: todayRecords, error: todayError } = await db
+    .from("outlet_daily_records")
+    .select("*")
+    .eq("record_date", today)
+    .neq("status", "void");
+  if (todayError) throw new Error(todayError.message);
+  const todayRows = await hydrateRows(db, (todayRecords ?? []) as RecordRow[]);
   return {
-    ...paginateRows(rows, filters.page, 15),
+    ...pageResult,
     summary: {
       today,
       today_records: todayRows.length,

@@ -392,6 +392,7 @@ export type Database = {
           record_id: string;
           product_id: string;
           morning_received_qty: number;
+          morning_received_provided: boolean;
           qty_sent: number;
           qty_sent_estimated: number | null;
           qty_sent_confirmed: boolean;

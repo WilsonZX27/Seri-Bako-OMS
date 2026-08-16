@@ -101,6 +101,21 @@ export async function saveOutletDailyRecord(formData: FormData) {
       p_target_status: payload.target_status,
       p_lines: payload.lines,
     });
+    if (error?.code === "23505" && !recordId) {
+      // The unique active outlet-day index is the final authority. Two taps or
+      // concurrent sessions can both pass the friendly preflight check; when
+      // that happens, continue from the winner instead of exposing a database
+      // constraint error to the operator.
+      const { data: existing, error: existingError } = await db
+        .from("outlet_daily_records")
+        .select("id")
+        .eq("branch_id", payload.branch_id)
+        .eq("record_date", payload.record_date)
+        .neq("status", "void")
+        .maybeSingle();
+      if (existingError) throw new Error(existingError.message);
+      if (existing?.id) safeRedirectWithMessage(`/outlet-daily-records/${existing.id}`, "error", "This outlet-day already exists. Continue from the existing record.");
+    }
     if (error) throw new Error(error.message);
     if (!data) throw new Error("Outlet daily record was not saved.");
     revalidateWorkspaceState(["/outlet-daily-records", `/outlet-daily-records/${data}`]);

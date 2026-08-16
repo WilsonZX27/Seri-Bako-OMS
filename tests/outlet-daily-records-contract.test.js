@@ -90,6 +90,11 @@ test("new outlet daily saves route existing outlet-days back to their authoritat
   assert.match(action, /A record already exists for this outlet and date/);
 });
 
+test("concurrent outlet-day creation converges on the unique existing record", () => {
+  assert.match(actions, /error\?\.code === "23505" && !recordId/);
+  assert.match(actions, /This outlet-day already exists\. Continue from the existing record\./);
+});
+
 test("daily capture never writes stock, production, AP or cash-flow records", () => {
   const implementation = `${sql}\n${actions}\n${query}`;
   assert.doesNotMatch(implementation, /(insert into|update|delete from) public\.(stock_transactions|stock_transaction_lines|stock_balances|production_jobs|supplier_invoices|supplier_invoice_payments)/i);
@@ -123,9 +128,12 @@ test("release footer matches Sprint 7.13", () => {
 });
 
 test("received totals never turn an unverified default zero into a business fact", () => {
-  assert.match(query, /qty_sent_source/);
-  assert.match(query, /sourceIsUnverified = line\.qty_sent_source === "legacy_unverified" \|\| line\.qty_sent_source === "unavailable"/);
-  assert.match(query, /!sourceIsUnverified && \(line\.qty_sent_estimated !== null \|\| received !== 0\)/);
+  assert.match(query, /type ReceivedProvenance = Pick<LineRow, "morning_received_qty" \| "qty_sent_estimated">/);
+  assert.match(query, /typeof line\.morning_received_provided === "boolean"/);
+  assert.match(query, /line\.qty_sent_estimated !== null \|\| received !== 0/);
+  assert.doesNotMatch(query, /provided = .*qty_sent_source/);
+  assert.match(query, /\.range\(start, start \+ pageSize - 1\)/);
+  assert.match(query, /\.in\("record_id", recordIds\)/);
   assert.match(query, /received_state: "verified" \| "unavailable"/);
   assert.match(query, /total_received: number \| null/);
   assert.match(query, /today_received_unavailable/);

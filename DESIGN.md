@@ -1,11 +1,20 @@
 # Seri Bako OMS responsive design standard
 
-> **Release authority:** the currently released application is `v8.64.15`, as
+> **Release authority:** the currently released application is `v8.64.16`, as
 > defined by `src/lib/app-version.ts`. A versioned section above that number is
 > an accepted forward design contract or unreleased implementation note—not
 > evidence that the application itself has been released at that version.
 > `docs/DESIGN_SYSTEM.md` owns the current visual principles; this file retains
 > versioned implementation history and workspace rules.
+
+## v8.64.16 - Authoritative Outlet Daily Reads
+
+- Received quantity uses its own database provenance. Sent-source metadata can
+  no longer make a valid outlet receipt appear unavailable.
+- List reads are filtered and paginated before line hydration. Pages never scan
+  every historical line, branch, and staff row to render 15 records.
+- Concurrent creation converges on the existing outlet-day record instead of
+  exposing the unique-index race to the operator.
 
 ## v8.64.14 - Canonical Responsive Controls And Outlet Analytics
 

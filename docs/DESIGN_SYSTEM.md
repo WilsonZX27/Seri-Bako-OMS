@@ -2,6 +2,15 @@
 
 This is an evolving product contract, not a frozen visual specification. `DESIGN.md` defines the workspace architecture; this document defines how that architecture adapts as the product matures. When research, usability evidence, and product-owner approval support a better pattern, update this contract instead of preserving a weaker legacy rule.
 
+## v8.64.16 authoritative data-state contract
+
+Operational totals must carry provenance for the exact value being displayed.
+Metadata from a neighbouring field is never accepted as a proxy. Collection
+pages apply database filters and pagination before hydrating child rows; an OMS
+list must not scan full history to render one page. Unique database constraints
+remain the final concurrency authority and duplicate user actions converge on
+the winning record.
+
 ## v8.64.15 annotation close-out contract
 
 Repeated visual feedback is treated as a shared-system defect when the same

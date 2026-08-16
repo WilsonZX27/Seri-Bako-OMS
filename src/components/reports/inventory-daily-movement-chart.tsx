@@ -1,6 +1,6 @@
 "use client";
 
-import { useId, useMemo, useRef, useState } from "react";
+import { useId, useRef, useState } from "react";
 import type { KeyboardEvent, PointerEvent, TouchEvent } from "react";
 import Link from "next/link";
 import { formatDateOnly, formatNumber } from "@/lib/utils";
@@ -19,6 +19,7 @@ const inset = { top: 18, right: 16, bottom: 30, left: 42 };
 export function InventoryDailyMovementChart({ points }: { points: InventoryDailyMovementPoint[] }) {
   const descriptionId = useId();
   const chartRef = useRef<SVGSVGElement>(null);
+  const touchSelectionRef = useRef(false);
   // Keep the chart compact until an operator selects a date. This matches the
   // progressive preview behavior used by the other report charts and avoids
   // presenting an arbitrary last-day detail as if it were selected.
@@ -30,12 +31,15 @@ export function InventoryDailyMovementChart({ points }: { points: InventoryDaily
   const groupWidth = innerWidth / Math.max(points.length, 1);
   const barWidth = Math.max(2, Math.min(10, groupWidth * 0.34));
   const activePoint = activeIndex === null ? null : points[activeIndex] ?? null;
-
-  const totals = useMemo(() => points.reduce((sum, point) => ({
+  const totals = points.reduce((sum, point) => ({
     inbound: sum.inbound + point.inbound_entries,
     outbound: sum.outbound + point.outbound_entries,
     all: sum.all + point.movement_entries,
-  }), { inbound: 0, outbound: 0, all: 0 }), [points]);
+  }), { inbound: 0, outbound: 0, all: 0 });
+
+  if (!points.length) {
+    return <div data-inventory-daily-movement-chart><p className="border border-dashed px-4 py-5 text-sm text-muted-foreground" role="status" data-inventory-movement-empty>No posted movement entries are available for this period. No unavailable result is shown as zero.</p></div>;
+  }
 
   function indexFromClientX(clientX: number, element: SVGSVGElement) {
     const bounds = element.getBoundingClientRect();
@@ -68,27 +72,39 @@ export function InventoryDailyMovementChart({ points }: { points: InventoryDaily
       </div>
       <svg
         ref={chartRef}
-        className="h-auto w-full touch-pan-y rounded-[var(--sb-control-radius)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--sb-green-700)] focus-visible:ring-offset-2"
+        className="h-auto w-full touch-pan-y rounded-[var(--sb-radius-control)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--sb-green-700)] focus-visible:ring-offset-2"
         viewBox={`0 0 ${width} ${height}`}
         role="img"
         tabIndex={0}
         aria-label="Posted inventory movement entries by date. Inbound bars are first and outbound bars are second for each date."
         aria-describedby={activePoint ? descriptionId : undefined}
         onFocus={() => setActiveIndex((current) => current ?? 0)}
-        onKeyDown={handleKeyDown}
+        onBlur={() => {
+          if (!touchSelectionRef.current) setActiveIndex(null);
+        }}
         onPointerDown={(event) => {
+          touchSelectionRef.current = event.pointerType !== "mouse";
           selectPointer(event);
           if (event.pointerType !== "mouse") event.currentTarget.focus();
         }}
         onTouchStart={(event: TouchEvent<SVGSVGElement>) => {
+          touchSelectionRef.current = true;
           const touch = event.touches[0];
           if (touch && points.length) setActiveIndex(indexFromClientX(touch.clientX, event.currentTarget));
         }}
         onClick={(event) => {
+          touchSelectionRef.current = true;
           if (points.length) setActiveIndex(indexFromClientX(event.clientX, event.currentTarget));
         }}
         onPointerMove={(event) => {
           if (event.pointerType === "mouse") selectPointer(event);
+        }}
+        onPointerLeave={(event) => {
+          if (event.pointerType === "mouse" && !event.currentTarget.matches(":focus")) setActiveIndex(null);
+        }}
+        onKeyDown={(event) => {
+          touchSelectionRef.current = false;
+          handleKeyDown(event);
         }}
       >
         {[0, 0.5, 1].map((ratio) => {

@@ -2,11 +2,16 @@
 
 ## Product Overview
 
-Current release authority: v8.64.23 - Lossless Purchase Request Entry.
+Current release authority: v8.64.24 - Direct Branch Supplier Mapping.
 
 ### Current audit baseline
 
-The current released application baseline is `v8.64.23 — Lossless Purchase Request Entry`.
+The current released application baseline is `v8.64.24 — Direct Branch Supplier Mapping`.
+
+Supplier purchasing setup has two explicit layers: the supplier catalogue item
+and the branches allowed to buy it. An authorised user can create both from one
+form, launched contextually from either the Item or Supplier record. Spreadsheet
+import remains a bulk-maintenance option, never the only operational path.
 
 Purchase Request entry must never interpret incomplete catalogue resolution as
 permission to discard a line. Item lookup uses token matching across item code

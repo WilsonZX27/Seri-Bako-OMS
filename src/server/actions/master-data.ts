@@ -49,9 +49,29 @@ export async function createSupplierItem(formData: FormData) {
     const [supabase, actor] = [await createClient(), await requireActiveTenantActor()];
     const { data, error } = await supabase.from("supplier_items").insert({ ...payload, company_id: actor.companyId }).select("id").single();
     if (error) throw new Error(error.message);
+    const branchIds = [...new Set(formData.getAll("branch_ids").map(String).filter(Boolean))];
+    if (branchIds.length) {
+      const { error: mappingError } = await supabase.rpc("save_branch_supplier_item_mappings", {
+        p_rows: branchIds.map((branchId) => ({
+          branch_id: branchId,
+          supplier_item_id: data.id,
+          item_id: payload.item_id,
+          is_preferred: formData.get("is_preferred") === "true",
+          status: "active",
+        })),
+        p_mode: "upsert",
+      });
+      if (mappingError) {
+        const { error: rollbackError } = await supabase.from("supplier_items").update({ status: "archived", deleted_at: new Date().toISOString() }).eq("id", data.id).eq("company_id", actor.companyId);
+        if (rollbackError) throw new Error(`The branch mapping failed (${mappingError.message}) and the incomplete supplier item could not be archived (${rollbackError.message}). Contact an administrator with supplier item ID ${data.id}.`);
+        throw new Error(`The supplier item was not saved because its branch mapping failed: ${mappingError.message}`);
+      }
+    }
     await writeActivityLog({ entityType: "supplier_item", entityId: data.id, activityType: "created", message: `Supplier item ${payload.supplier_item_code} created` });
   }
   revalidatePath("/supplier-items");
+  revalidatePath("/items");
+  revalidatePath("/suppliers");
   redirect("/supplier-items");
 }
 

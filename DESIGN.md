@@ -1,11 +1,20 @@
 # Seri Bako OMS responsive design standard
 
-> **Release authority:** the currently released application is `v8.64.23`, as
+> **Release authority:** the currently released application is `v8.64.24`, as
 > defined by `src/lib/app-version.ts`. A versioned section above that number is
 > an accepted forward design contract or unreleased implementation note—not
 > evidence that the application itself has been released at that version.
 > `docs/DESIGN_SYSTEM.md` owns the current visual principles; this file retains
 > versioned implementation history and workspace rules.
+
+## v8.64.24 - Direct Branch Supplier Mapping
+
+- Item and Supplier record action rails expose contextual `Add supplier mapping`
+  actions; users do not need to leave the record and hunt for an import tool.
+- The supplier-item form includes branch availability and preferred-supplier
+  assignment as one coherent purchasing setup workflow.
+- Excel/CSV remains the proven bulk path, while the direct form is the normal
+  maintenance path for one-off corrections.
 
 ## v8.64.23 - Lossless Purchase Request Entry
 

@@ -10,11 +10,15 @@ type SupplierItem = Database["public"]["Tables"]["supplier_items"]["Row"];
 type UomConversion = Database["public"]["Tables"]["uom_conversions"]["Row"];
 type Supplier = Pick<Database["public"]["Tables"]["suppliers"]["Row"], "id" | "name" | "supplier_code">;
 type Item = Pick<Database["public"]["Tables"]["items"]["Row"], "id" | "item_code" | "item_name" | "base_unit">;
+type Branch = Pick<Database["public"]["Tables"]["branches"]["Row"], "id" | "branch_code" | "branch_name">;
 
 export function SupplierItemForm({
   supplierItem,
   suppliers,
   items,
+  branches = [],
+  initialSupplierId,
+  initialItemId,
   action,
   formId,
   showSubmit = true,
@@ -22,6 +26,9 @@ export function SupplierItemForm({
   supplierItem?: SupplierItem;
   suppliers: Supplier[];
   items: Item[];
+  branches?: Branch[];
+  initialSupplierId?: string;
+  initialItemId?: string;
   action: (formData: FormData) => Promise<void>;
   formId?: string;
   showSubmit?: boolean;
@@ -32,7 +39,7 @@ export function SupplierItemForm({
         <form id={formId} action={action} className="grid gap-4 pb-20 md:grid-cols-3 md:pb-0">
           <input type="hidden" name="status" value={supplierItem?.status ?? "active"} />
           <Field label="Supplier">
-            <SelectNative name="supplier_id" defaultValue={supplierItem?.supplier_id ?? suppliers[0]?.id ?? ""} required>
+            <SelectNative name="supplier_id" defaultValue={supplierItem?.supplier_id ?? initialSupplierId ?? suppliers[0]?.id ?? ""} required>
               {suppliers.map((supplier) => (
                 <option key={supplier.id} value={supplier.id}>
                   {supplier.name}
@@ -41,7 +48,7 @@ export function SupplierItemForm({
             </SelectNative>
           </Field>
           <Field label="Item">
-            <SelectNative name="item_id" defaultValue={supplierItem?.item_id ?? items[0]?.id ?? ""} required>
+            <SelectNative name="item_id" defaultValue={supplierItem?.item_id ?? initialItemId ?? items[0]?.id ?? ""} required>
               {items.map((item) => (
                 <option key={item.id} value={item.id}>
                   {item.item_code} - {item.item_name}
@@ -80,6 +87,17 @@ export function SupplierItemForm({
           <Field label="Valid To">
             <Input name="valid_to" type="date" defaultValue={supplierItem?.valid_to ?? ""} />
           </Field>
+          {!supplierItem && branches.length ? <fieldset className="grid gap-3 rounded-[var(--sb-radius-card)] border bg-card p-4 md:col-span-3">
+            <legend className="px-1 text-sm font-semibold">Available at branches</legend>
+            <p className="text-xs text-muted-foreground">Choose every branch that may purchase this item from this supplier. This creates the operational branch mapping together with the supplier item.</p>
+            <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+              {branches.map((branch) => <label key={branch.id} className="flex min-h-11 items-center gap-2 rounded-[var(--sb-radius-control)] border px-3 py-2 text-sm">
+                <input type="checkbox" name="branch_ids" value={branch.id} className="h-4 w-4 accent-[var(--sb-brand)]" />
+                <span className="min-w-0 truncate">{branch.branch_name}</span>
+              </label>)}
+            </div>
+            <label className="flex items-center gap-2 text-xs text-muted-foreground"><input type="checkbox" name="is_preferred" value="true" className="h-4 w-4 accent-[var(--sb-brand)]" />Use as the preferred supplier for this item at the selected branches</label>
+          </fieldset> : null}
           {showSubmit ? <div className="sb-mobile-action-bar fixed inset-x-3 bottom-[calc(env(safe-area-inset-bottom)+0.5rem)] z-[var(--sb-z-sticky)] p-2 md:static md:flex md:justify-end md:bg-transparent md:p-0 md:shadow-none md:col-span-3">
             <SubmitButton type="submit" className="w-full md:w-auto" pendingLabel={supplierItem ? "Saving..." : "Creating..."}>{supplierItem ? "Save supplier item" : "Create supplier item"}</SubmitButton>
           </div> : null}

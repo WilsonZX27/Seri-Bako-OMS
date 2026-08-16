@@ -167,3 +167,8 @@ test("outlet records flag a confirmed zero when stock was sent", () => {
   assert.match(detail, /Receipt check needed/);
   assert.match(detail, /record\.received_zero_with_sent/);
 });
+
+test("outlet list keeps updated date and time readable instead of concatenating them", () => {
+  assert.match(page, /formatDateTime\(row\.updated_at\)\.split\(" "\)\.map\(\(part, index\)/);
+  assert.match(page, /className=\{index === 0 \? "block" : "block text-xs text-muted-foreground"\}/);
+});

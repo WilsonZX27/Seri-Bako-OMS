@@ -2,11 +2,11 @@
 
 ## Product Overview
 
-Current release authority: v8.64.11 - Retry Inventory Service Errors.
+Current release authority: v8.64.12 - Readable Outlet Timestamps.
 
 ### Current audit baseline
 
-The current released application baseline is `v8.64.11 — Retry Inventory Service Errors`.
+The current released application baseline is `v8.64.12 — Readable Outlet Timestamps`.
 
 Historical release context: `v8.64.6 — Reliable Outlet Daily Reads`; earlier context: `v8.64.5 — Verified Receiving Provenance`, `v8.64.4 — Stable Report Preview Surfaces`, and `v8.63.0 — Fail-Closed Goods Receiving Joins`.
 

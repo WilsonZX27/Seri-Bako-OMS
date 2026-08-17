@@ -16,7 +16,7 @@ Scope: item-code/name identity and stock-take readiness. UOM differences are rep
 
 ## P0 execution decision
 
-The owner authorised the stock-take as canonical, including the duplicate identities. Migration `155_reconcile_alma_stocktake_item_master.sql` therefore updates all stock-take names/categories, reactivates canonical stock-take codes, renames the exact-match legacy rows where the canonical code is new, archives legacy duplicates where both rows already exist, and inserts genuinely new stock-take codes. It does not hard-delete item rows, and it intentionally leaves existing UOM values unchanged.
+The owner authorised the stock-take as canonical, including the duplicate identities. Migration `158_reconcile_alma_stocktake_item_master.sql` therefore updates all stock-take names/categories, reactivates canonical stock-take codes, renames the exact-match legacy rows where the canonical code is new, archives legacy duplicates where both rows already exist, and inserts genuinely new stock-take codes. It does not hard-delete item rows, and it intentionally leaves existing UOM values unchanged.
 
 The audit helper remains read-only:
 

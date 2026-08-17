@@ -224,7 +224,7 @@ begin
   -- identity and archive only the legacy duplicate. Historical movements stay
   -- readable through the archived item row.
   update public.items legacy
-  set status = 'archived',
+  set status = 'inactive',
       deleted_at = coalesce(legacy.deleted_at, now()),
       updated_at = now()
   from alma_identity_map identity_map

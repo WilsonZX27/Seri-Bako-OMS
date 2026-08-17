@@ -223,16 +223,6 @@ async function ensureActiveItems(itemIds: string[], branchId?: string | null, li
   if (!lineBranchIds || lineBranchIds.length !== itemIds.length || lineBranchIds.some((lineBranchId) => lineBranchId !== branchId)) {
     throw new Error("All purchase request lines must belong to the selected branch.");
   }
-  const { data: branchItems, error: branchItemsError } = await supabase
-    .from("stock_balances_summary")
-    .select("item_id")
-    .eq("branch_id", branchId)
-    .in("item_id", itemIds);
-  if (branchItemsError) throw new Error(branchItemsError.message);
-  const permitted = new Set((branchItems ?? []).map((row) => row.item_id));
-  if (itemIds.some((itemId) => !permitted.has(itemId))) {
-    throw new Error("All selected items must be available to the purchase request branch.");
-  }
 }
 
 async function createPurchaseOrderCreatedNotification(input: { poId: string; poNo: string; prNo: string; companyId: string | null; staffId: string | null }) {

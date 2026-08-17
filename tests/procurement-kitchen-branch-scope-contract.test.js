@@ -16,6 +16,17 @@ test("Kitchen branch selector should query only actor-assigned branches on PR cr
   assert.match(queries, /if \(options\.restrictToActorScope\) \{/);
 });
 
+test("Purchase request item validation must not require an existing stock balance", () => {
+  const source = read("src/server/actions/procurement.ts");
+  const validator = source.slice(source.indexOf("async function ensureActiveItems"), source.indexOf("async function createPurchaseOrderCreatedNotification"));
+
+  assert.match(validator, /from\("items"\)/);
+  assert.match(validator, /All selected items must be active/);
+  assert.match(validator, /All purchase request lines must belong to the selected branch/);
+  assert.doesNotMatch(validator, /stock_balances_summary/);
+  assert.doesNotMatch(validator, /All selected items must be available to the purchase request branch/);
+});
+
 test("Kitchen branch scope is enforced in creation and submit transition action paths", () => {
   const source = read("src/server/actions/procurement.ts");
 

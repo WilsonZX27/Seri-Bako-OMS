@@ -90,6 +90,13 @@ test("new outlet daily saves route existing outlet-days back to their authoritat
   assert.match(action, /A record already exists for this outlet and date/);
 });
 
+test("new outlet defaults cannot carry an invalid unremarked wastage forward", () => {
+  assert.match(query, /const received = receivedValueIsTrusted\(line\) \? Number\(line\.morning_received_qty\) : null/);
+  assert.match(query, /const safeWastage = wastage > 0 && \(received === null \|\| wastage > received\) && !hasRemark \? 0/);
+  assert.match(query, /wastage_reason: safeWastage === 0 \? null/);
+  assert.match(read("src/server/actions/error-handling.ts"), /Wastage cannot exceed Received without a line remark/);
+});
+
 test("concurrent outlet-day creation converges on the unique existing record", () => {
   assert.match(actions, /error\?\.code === "23505" && !recordId/);
   assert.match(actions, /This outlet-day already exists\. Continue from the existing record\./);

@@ -83,8 +83,9 @@ test("UI smoke keeps the requested routes, console order, current footer, and on
   for (const route of ["dashboard/page.tsx", "outlet-daily-records/page.tsx", "reports/demand-trends/page.tsx", "production/planning/page.tsx", "production/variance/page.tsx", "administration/master-data-cleanup/page.tsx", "imports/page.tsx", "imports/[entity]/page.tsx", "staffs/[id]/page.tsx"]) {
     assert.equal(fs.existsSync(`src/app/(app)/${route}`), true);
   }
-  assert.match(dashboard, /hideDesktopConsole/);
-  assert.doesNotMatch(dashboard, /ConsoleSection title="Actions"|ConsoleSection title="Workspace context"|Panel title="Alerts"/);
+  assert.match(dashboard, /rightRail=\{isOutlet \? undefined/);
+  assert.match(dashboard, /ConsoleSection title="Actions"/);
+  assert.doesNotMatch(dashboard, /ConsoleSection title="Workspace context"|Panel title="Alerts"/);
   assert.doesNotMatch(dashboard, /<header[\s\S]*primaryAction\.href/);
   assert.doesNotMatch(dashboard, /ConsoleSection title="Recent Activity"/);
   assert.match(read("src/lib/app-version.ts"), /APP_SPRINT = `v\$\{APP_VERSION\}`/);

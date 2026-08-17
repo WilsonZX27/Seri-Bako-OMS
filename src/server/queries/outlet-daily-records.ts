@@ -151,13 +151,22 @@ async function getOutletDailyDefaults(db: Awaited<ReturnType<typeof createClient
   return (trustedLines as Pick<LineRow, "record_id" | "product_id" | "morning_received_qty" | "qty_sent_estimated" | "wastage_qty" | "wastage_reason" | "notes">[]).reduce<Record<string, Record<string, OutletDailyDefaultLine>>>((result, line) => {
     const branchId = branchByRecord.get(line.record_id);
     if (!branchId) return result;
+    const received = receivedValueIsTrusted(line) ? Number(line.morning_received_qty) : null;
+    const wastage = Number(line.wastage_qty);
+    const hasRemark = Boolean(line.notes?.trim());
+    // Defaults are suggestions for a new day, not a second source of truth.
+    // Never carry an already-invalid wastage value into a new record: the
+    // save RPC correctly rejects wastage above an unverified/zero receipt
+    // unless the operator supplies a line remark, but a copied default should
+    // not make a fresh record impossible to complete.
+    const safeWastage = wastage > 0 && (received === null || wastage > received) && !hasRemark ? 0 : line.wastage_qty;
     (result[branchId] ??= {})[line.product_id] = {
       // Legacy rows used the database default 0 without recording that the
       // outlet actually entered zero. Never carry that zero into a new form.
       morning_received_qty: receivedValueIsTrusted(line) ? line.morning_received_qty : null,
-      wastage_qty: line.wastage_qty,
-      wastage_reason: line.wastage_reason,
-      notes: line.notes,
+      wastage_qty: safeWastage,
+      wastage_reason: safeWastage === 0 ? null : line.wastage_reason,
+      notes: safeWastage === 0 ? null : line.notes,
     };
     return result;
   }, {});

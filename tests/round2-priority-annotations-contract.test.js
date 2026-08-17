@@ -41,7 +41,7 @@ test("dashboard secondary column keeps exceptions ahead of routine activity", ()
   assert.match(dashboard, /className="order-2 space-y-4" data-dashboard-activity-group/);
   assert.match(dashboard, /className="order-3" data-dashboard-priority-group="payables"/);
   assert.doesNotMatch(dashboard, /className="order-4"/);
-  assert.match(dashboard, /hideDesktopConsole/);
+  assert.match(dashboard, /rightRail=\{isOutlet \? undefined/);
 });
 
 test("production planning keeps the query surface flat and balanced", () => {

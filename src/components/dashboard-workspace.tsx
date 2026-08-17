@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { AlertTriangle, ArrowUpRight, Boxes, CheckCircle2, ClipboardCheck, ClipboardList, Clock3, Factory, FileText, LockKeyhole, PackageCheck, ReceiptText, ShoppingCart, UserRound } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { ConsoleSection } from "@/components/layout/right-console";
 import { WorkspaceGrid } from "@/components/layout/workspace-layout";
 import { formatCurrency, formatNumber } from "@/lib/utils";
 import type { LucideIcon } from "lucide-react";
@@ -235,7 +236,20 @@ export function DashboardWorkspace({ summary }: { summary: DashboardSummary }) {
   return (
     <WorkspaceGrid
       hideMobileConsole
-      hideDesktopConsole
+      rightRail={isOutlet ? undefined : (
+        <ConsoleSection title="Actions">
+          <div className="grid gap-2" data-dashboard-actions>
+            {quickActions.map((action, index) => {
+              const Icon = action.icon;
+              return (
+                <Button key={action.href} asChild size="sm" variant={index === 0 ? "default" : "outline"} className="w-full justify-center">
+                  <Link prefetch={false} href={action.href}><Icon className="h-4 w-4" aria-hidden="true" />{action.label}</Link>
+                </Button>
+              );
+            })}
+          </div>
+        </ConsoleSection>
+      )}
       className="gap-4 p-3 pb-32 sm:p-4 sm:pb-24 xl:pb-4"
     >
       <div className="space-y-4">

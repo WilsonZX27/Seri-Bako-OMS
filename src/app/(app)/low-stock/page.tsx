@@ -7,6 +7,7 @@ import { WorkspaceGrid } from "@/components/layout/workspace-layout";
 import { SelectControl } from "@/components/ui/select-control";
 import { formatCurrency, formatNumber } from "@/lib/utils";
 import { hasActiveFilters } from "@/lib/table-state";
+import { getReplenishmentDecision } from "@/lib/replenishment-decision";
 import { hasPermission } from "@/server/auth/permissions";
 import { getBranchesForSelect } from "@/server/queries/common";
 import { getLowStockItems } from "@/server/queries/inventory";
@@ -23,6 +24,17 @@ export default async function LowStockPage({ searchParams }: { searchParams: Pro
   ]);
   const out = items.filter((item) => item.stock_status === "out_of_stock").length;
   const low = items.filter((item) => item.stock_status === "low_stock").length;
+  const decisions = items.map((item) => getReplenishmentDecision({
+    currentStock: Number(item.current_qty ?? item.current_stock ?? 0),
+    safetyStock: Number(item.safety_stock ?? 0),
+    suggestedReorderQty: Number(item.suggested_reorder_qty ?? 0),
+    stockStatus: item.stock_status,
+    supplierId: item.supplier_id,
+    supplierName: item.supplier_name,
+    baseUnit: item.base_unit,
+  }));
+  const buyNow = decisions.filter((decision) => decision.decision === "buy_now").length;
+  const supplierFixes = decisions.filter((decision) => decision.decision === "fix_supplier").length;
   const filtered = hasActiveFilters(filters);
 
   return (
@@ -37,10 +49,12 @@ export default async function LowStockPage({ searchParams }: { searchParams: Pro
         hideMobileConsole
         rightRail={
           <ConsoleSection title="Low Stock Summary">
-            <div className="grid gap-2 text-xs">
+            <div className="grid gap-2 text-xs" data-low-stock-decision-summary>
               <div className="flex justify-between"><span className="text-muted-foreground">Rows</span><strong>{items.length}</strong></div>
               <div className="flex justify-between"><span className="text-muted-foreground">Out of Stock</span><strong>{out}</strong></div>
               <div className="flex justify-between"><span className="text-muted-foreground">Low Stock</span><strong>{low}</strong></div>
+              <div className="flex justify-between"><span className="text-muted-foreground">Buy now</span><strong>{buyNow}</strong></div>
+              <div className="flex justify-between"><span className="text-muted-foreground">Supplier fixes</span><strong>{supplierFixes}</strong></div>
               <div className="flex justify-between"><span className="text-muted-foreground">Create PR</span><strong>{canCreatePr ? "Allowed" : "Read-only"}</strong></div>
             </div>
           </ConsoleSection>
@@ -85,6 +99,7 @@ export default async function LowStockPage({ searchParams }: { searchParams: Pro
                 <TableHead>Branch</TableHead>
                 <TableHead>Supplier</TableHead>
                 <TableHead>Status</TableHead>
+                <TableHead>Decision</TableHead>
                 <TableHead className="text-right">Current</TableHead>
                 <TableHead className="text-right">Safety</TableHead>
                 <TableHead className="text-right">Suggested</TableHead>
@@ -93,25 +108,37 @@ export default async function LowStockPage({ searchParams }: { searchParams: Pro
               </TableRow>
             </TableHeader>
             <TableBody>
-              {items.map((item) => (
-                <TableRow key={`${item.branch_id ?? "no-branch"}-${item.item_id}`}>
-                  <TableCell>{item.item_code}</TableCell>
-                  <TableCell className="font-medium">{item.item_name}</TableCell>
-                  <TableCell>{item.branch_name ?? "-"}</TableCell>
-                  <TableCell>{item.supplier_name ?? "-"}</TableCell>
-                  <TableCell><Badge variant={item.stock_status === "out_of_stock" ? "danger" : "warning"}>{item.stock_status.replaceAll("_", " ")}</Badge></TableCell>
-                  <TableCell className="text-right">{formatNumber(item.current_stock)} {item.base_unit}</TableCell>
-                  <TableCell className="text-right">{formatNumber(item.safety_stock)} {item.base_unit}</TableCell>
-                  <TableCell className="text-right">
-                    <Badge variant="warning">{formatNumber(item.suggested_reorder_qty)} {item.purchase_unit || item.base_unit}</Badge>
-                  </TableCell>
-                  <TableCell className="text-right">{formatNumber(item.moq)} {item.base_unit}</TableCell>
-                  <TableCell className="text-right">{formatCurrency(item.cost)}</TableCell>
-                </TableRow>
-              ))}
+              {items.map((item) => {
+                const decision = getReplenishmentDecision({
+                  currentStock: Number(item.current_qty ?? item.current_stock ?? 0),
+                  safetyStock: Number(item.safety_stock ?? 0),
+                  suggestedReorderQty: Number(item.suggested_reorder_qty ?? 0),
+                  stockStatus: item.stock_status,
+                  supplierId: item.supplier_id,
+                  supplierName: item.supplier_name,
+                  baseUnit: item.base_unit,
+                });
+                return (
+                  <TableRow key={`${item.branch_id ?? "no-branch"}-${item.item_id}`}>
+                    <TableCell>{item.item_code}</TableCell>
+                    <TableCell className="font-medium">{item.item_name}</TableCell>
+                    <TableCell>{item.branch_name ?? "-"}</TableCell>
+                    <TableCell>{item.supplier_name ?? "-"}</TableCell>
+                    <TableCell><Badge variant={item.stock_status === "out_of_stock" ? "danger" : "warning"}>{item.stock_status.replaceAll("_", " ")}</Badge></TableCell>
+                    <TableCell><Badge variant={decision.decision === "buy_now" ? "warning" : decision.blocked ? "danger" : "secondary"} title={decision.reason} aria-label={`${decision.label}: ${decision.reason}`} data-low-stock-decision={decision.decision}>{decision.label}</Badge></TableCell>
+                    <TableCell className="text-right">{formatNumber(item.current_stock)} {item.base_unit}</TableCell>
+                    <TableCell className="text-right">{formatNumber(item.safety_stock)} {item.base_unit}</TableCell>
+                    <TableCell className="text-right">
+                      <Badge variant="warning">{formatNumber(item.suggested_reorder_qty)} {item.purchase_unit || item.base_unit}</Badge>
+                    </TableCell>
+                    <TableCell className="text-right">{formatNumber(item.moq)} {item.base_unit}</TableCell>
+                    <TableCell className="text-right">{formatCurrency(item.cost)}</TableCell>
+                  </TableRow>
+                );
+              })}
               {!items.length ? (
                 <TableRow>
-                  <TableCell colSpan={10}><EmptyState title={filtered ? "No items match these filters" : "Stock levels are healthy"} description={filtered ? "Reset the filters or search for another item." : "Items that need replenishment will appear here."} action={filtered ? { href: "/low-stock", label: "Reset filters" } : undefined} /></TableCell>
+                  <TableCell colSpan={11}><EmptyState title={filtered ? "No items match these filters" : "Stock levels are healthy"} description={filtered ? "Reset the filters or search for another item." : "Items that need replenishment will appear here."} action={filtered ? { href: "/low-stock", label: "Reset filters" } : undefined} /></TableCell>
                 </TableRow>
               ) : null}
             </TableBody>
@@ -119,7 +146,16 @@ export default async function LowStockPage({ searchParams }: { searchParams: Pro
           <OperationalList ariaLabel="Low stock items">
             {items.map((item) => {
               const rowKey = `${item.branch_id ?? "no-branch"}-${item.item_id}`;
-              const trailing = <span key={`${rowKey}-action`} className="text-[11px] font-medium text-[var(--sb-green-700)]">{canCreatePr ? "Add to request" : "View only"}</span>;
+              const decision = getReplenishmentDecision({
+                currentStock: Number(item.current_qty ?? item.current_stock ?? 0),
+                safetyStock: Number(item.safety_stock ?? 0),
+                suggestedReorderQty: Number(item.suggested_reorder_qty ?? 0),
+                stockStatus: item.stock_status,
+                supplierId: item.supplier_id,
+                supplierName: item.supplier_name,
+                baseUnit: item.base_unit,
+              });
+              const trailing = <span key={`${rowKey}-action`} className="text-[11px] font-medium text-[var(--sb-green-700)]">{decision.label}</span>;
               return (
                 <OperationalListRow
                   key={rowKey}
@@ -127,7 +163,7 @@ export default async function LowStockPage({ searchParams }: { searchParams: Pro
                   primary={item.item_name}
                   status={<Badge variant={item.stock_status === "out_of_stock" ? "danger" : "warning"}>{item.stock_status.replaceAll("_", " ")}</Badge>}
                   secondary={`${item.item_code} ${item.branch_name ?? "-"} ${item.supplier_name ?? ""}`}
-                  meta={`${formatNumber(item.current_stock)} ${item.base_unit} | ${formatNumber(item.suggested_reorder_qty)} ${item.purchase_unit || item.base_unit}`}
+                  meta={`${decision.label} · ${formatNumber(item.current_stock)} ${item.base_unit} | ${formatNumber(item.suggested_reorder_qty)} ${item.purchase_unit || item.base_unit}`}
                   trailing={trailing}
                 />
               );

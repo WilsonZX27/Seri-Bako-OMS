@@ -62,9 +62,9 @@ export function OutletDailyWastageChart({ points, branch, unavailable = false }:
             <p className="font-medium text-primary">Daily data · {points.length} recorded day{points.length === 1 ? "" : "s"}</p>
             <div className="mt-2 max-h-64 overflow-y-auto">
               <div className="divide-y divide-[var(--sb-border-soft)] sm:hidden" role="list" aria-label="Daily wastage rate data" data-outlet-wastage-daily-list>
-                {points.map((point) => <div key={point.id} className="grid gap-2 py-2.5 first:pt-0" role="listitem">
-                  <Link className="inline-flex min-h-11 items-center font-semibold text-primary underline-offset-4 hover:underline" href={recordHref(point.name)}>{formatDateOnly(point.name)}</Link>
-                  <dl className="grid grid-cols-3 gap-2 text-[11px]">
+                {points.map((point) => <div key={point.id} className="grid grid-cols-[5.75rem_minmax(0,1fr)] items-center gap-2 py-2 first:pt-0" role="listitem">
+                  <Link className="inline-flex min-h-9 items-center font-semibold text-primary underline-offset-4 hover:underline" href={recordHref(point.name)}>{formatDateOnly(point.name)}</Link>
+                  <dl className="grid grid-cols-3 gap-1.5 text-[11px]">
                     <div><dt className="text-muted-foreground">Received</dt><dd className="mt-0.5 font-semibold tabular-nums">{formatNumber(point.received)}</dd></div>
                     <div><dt className="text-muted-foreground">Wastage</dt><dd className="mt-0.5 font-semibold tabular-nums">{formatNumber(point.wastage)}</dd></div>
                     <div><dt className="text-muted-foreground">Rate</dt><dd className="mt-0.5 font-semibold tabular-nums">{formatPercent(point.wastage_percent)}%</dd></div>

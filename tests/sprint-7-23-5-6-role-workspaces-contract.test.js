@@ -33,7 +33,8 @@ test("role workdesks and workspace links use permitted real queues", () => {
   assert.match(dashboard, /data-dashboard-quick-actions/);
   assert.doesNotMatch(dashboard, /Owner Workdesk|Finance Workdesk|Manager Workdesk|Purchasing Workdesk|Kitchen Workdesk|Outlet Today/);
   assert.doesNotMatch(dashboard, /Protected controls/);
-  assert.match(dashboard, /WorkspaceGrid[\s\S]*rightRail=/);
+  assert.match(dashboard, /WorkspaceGrid[\s\S]*hideDesktopConsole/);
+  assert.doesNotMatch(dashboard, /rightRail=/);
   assert.doesNotMatch(procurement, /status=(?:in_review|awaiting_delivery|unpaid)/);
   assert.match(procurement, /status=manager_review/);
   assert.match(procurement, /status=admin_review/);

@@ -4,19 +4,19 @@ const { test, expect } = require("@playwright/test");
 const { hasAccount, login } = require("./helpers");
 
 const roles = {
-  superAdmin: "Owner Workdesk",
-  finance: "Finance Workdesk",
-  manager: "Manager Workdesk",
-  purchasing: "Purchasing Workdesk",
-  kitchen: "Kitchen Workdesk",
-  outlet: "Outlet Today",
+  superAdmin: "Super Admin / Owner",
+  finance: "Finance",
+  manager: "Manager",
+  purchasing: "Purchasing",
+  kitchen: "Kitchen",
+  outlet: "Outlet Staff",
 };
 const widths = [1440, 1024, 768, 430, 390, 360];
 const evidence = path.join(process.cwd(), "test-results", "sprint-7-23-5-7");
 
 test.beforeAll(() => fs.mkdirSync(evidence, { recursive: true }));
 
-for (const [role, heading] of Object.entries(roles)) {
+for (const [role, roleLabel] of Object.entries(roles)) {
   test(`${role} has one scoped responsive workdesk and safe destinations`, async ({ page }) => {
     test.setTimeout(240_000);
     test.skip(!hasAccount(role), `Missing local-only credentials for ${role}.`);
@@ -28,7 +28,10 @@ for (const [role, heading] of Object.entries(roles)) {
     for (const width of widths) {
       await page.setViewportSize({ width, height: 900 });
       await page.goto("/dashboard", { waitUntil: "domcontentloaded" });
-      await expect(page.getByRole("heading", { name: heading })).toBeVisible();
+      await expect(page.locator("[data-dashboard-layout]")).toBeVisible();
+      await expect(page.locator("[data-dashboard-user-name]:visible")).not.toBeEmpty();
+      await expect(page.locator("[data-dashboard-role-label]:visible")).toHaveText(roleLabel);
+      await expect(page.locator("[data-dashboard-scope-label]:visible")).not.toBeEmpty();
       await expect(page.locator("body")).not.toContainText(/Application error|Internal Server Error|Page actions/i);
       expect(await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)).toBeLessThanOrEqual(5);
       if (width >= 1280) await expect(page.locator("[data-right-console]")).toBeVisible();

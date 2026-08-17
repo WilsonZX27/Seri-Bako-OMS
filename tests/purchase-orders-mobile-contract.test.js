@@ -13,8 +13,8 @@ test("purchase order mobile pages keep the list quiet and the creation action re
   assert.match(listPage, /hideMobileConsole/);
   assert.match(listPage, /ConsoleSection title="Actions"/);
   assert.match(listPage, /href="\/purchase-orders\/new"/);
-  assert.match(newPage, /<WorkspaceGrid\s+documentMode\s+tabletRailMode="split"\s+rightRail=/);
-  assert.match(newPage, /<SubmitButton[^>]*form="purchase-order-form"[^>]*data-mobile-primary-action><ShoppingCart[^>]*\/>Create PO/);
+  assert.match(newPage, /<DocumentWorkspace[\s\S]*tabletRailMode="split"[\s\S]*sidePanel=/);
+  assert.match(newPage, /<SubmitButton[^>]*form="purchase-order-form"[^>]*data-mobile-primary-action><ShoppingCart[^>]*\/>Create Draft PO/);
   assert.match(newPage, /form="purchase-order-form"[^>]*pendingLabel="Creating\.\.\."/);
 });
 

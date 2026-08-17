@@ -5,9 +5,9 @@ const test = require("node:test");
 
 const source = fs.readFileSync(path.join(__dirname, "..", "src", "components", "stock-count-form.tsx"), "utf8");
 
-test("stock count steppers use a compact mobile control and stable labels", () => {
-  assert.match(source, /className="flex h-9 w-9 shrink-0 items-center justify-center[^\"]*lg:h-10 lg:w-10[^\"]*"[^>]*onClick=\{\(\) => adjustPhysicalQty\(line\.item_id, -1\)\}/);
-  assert.match(source, /className="flex h-9 w-9 shrink-0 items-center justify-center[^\"]*lg:h-10 lg:w-10[^\"]*"[^>]*onClick=\{\(\) => adjustPhysicalQty\(line\.item_id, 1\)\}/);
+test("stock count steppers use phone-safe touch targets and stable labels", () => {
+  assert.match(source, /className="flex h-12 w-12 shrink-0 items-center justify-center[^\"]*sm:h-10 sm:w-10[^\"]*"[^>]*onClick=\{\(\) => adjustPhysicalQty\(line\.item_id, -1\)\}/);
+  assert.match(source, /className="flex h-12 w-12 shrink-0 items-center justify-center[^\"]*sm:h-10 sm:w-10[^\"]*"[^>]*onClick=\{\(\) => adjustPhysicalQty\(line\.item_id, 1\)\}/);
   assert.match(source, /aria-label=\{`Decrease physical quantity for \$\{line\.item_name\}`\}/);
   assert.match(source, /aria-label=\{`Increase physical quantity for \$\{line\.item_name\}`\}/);
 });

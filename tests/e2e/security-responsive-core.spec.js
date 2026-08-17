@@ -76,15 +76,22 @@ for (const viewport of [
     expect(await login(page, "kitchen")).toBe(true);
     await page.goto("/stock-counts/new", { waitUntil: "domcontentloaded" });
     await expect(page.getByRole("heading", { name: /stock count/i })).toBeAttached();
-    await expect(page.locator('input[name="count_date"]')).toBeVisible();
-    await expect(page.locator('select[name="branch_id"]')).toBeVisible();
-    const primaryAction = viewport.width < 1280
-      ? page.getByRole("button", { name: "Create draft", exact: true })
-      : page.getByRole("button", { name: "Create draft count", exact: true });
+    await expect(page.locator('input[type="hidden"][name="branch_id"]')).toHaveValue(/.+/);
+    const detailsToggle = page.locator("[data-stock-count-details-toggle]");
+    if (viewport.width < 1024) {
+      await expect(detailsToggle).toHaveAttribute("aria-expanded", "false");
+      await expect(page.locator("[data-stock-count-branch-summary]")).toBeVisible();
+      await expect(page.locator("[data-stock-count-branch-lock]")).toBeAttached();
+    } else {
+      await expect(detailsToggle).toHaveAttribute("aria-expanded", "true");
+      await expect(page.locator('input[name="count_date"]')).toBeVisible();
+      await expect(page.locator("[data-stock-count-branch-lock]")).toBeVisible();
+    }
+    const primaryAction = page.locator('button:visible').filter({ hasText: /^Save draft$/ });
     await expect(primaryAction).toBeVisible();
     await expectNoPageOverflow(page);
     if (viewport.width < 768) {
-      const targetMetrics = await page.locator('main input[name="count_date"], main select[name="branch_id"], main button').evaluateAll((nodes) => nodes
+      const targetMetrics = await page.locator('main input[name="count_date"], main button').evaluateAll((nodes) => nodes
         .filter((node) => node.getBoundingClientRect().height > 0)
         .map((node) => ({ label: node.getAttribute("aria-label") || node.textContent?.trim() || node.tagName, height: Math.round(node.getBoundingClientRect().height) })));
       expect(Math.min(...targetMetrics.map((target) => target.height)), `${viewport.name} stock-count controls must be at least 48px high: ${JSON.stringify(targetMetrics)}`).toBeGreaterThanOrEqual(48);

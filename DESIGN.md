@@ -7,6 +7,14 @@
 > `docs/DESIGN_SYSTEM.md` owns the current visual principles; this file retains
 > versioned implementation history and workspace rules.
 
+## v8.64.56 (unreleased) - P0 Workflow And Responsive Closure
+
+- The exact workflow owner now controls each PR approval action; UI visibility is only a convenience layer over server and database authorization.
+- Dashboard no longer repeats Actions, Workspace Context, or Alerts in a second console. Document routes retain one primary action owner and one workflow grammar across phone, tablet, and desktop.
+- Canonical list filters retain the accepted two-row tablet geometry; production canvases may expand at wide desktop widths without introducing route-specific caps.
+- Operational density follows the decision hierarchy: exception first, compact supporting metrics second, and the complete accessible list/table remains available beneath the visual summary.
+- This is a forward design contract for the local P0 patch. The released visual authority remains v8.64.55 until deployment and post-deployment evidence are recorded.
+
 ## v8.64.55 - Bounded Reads And Explicit Receipt Provenance
 
 - Inventory opening balances now use the maintained daily summary and keep both the RPC and fallback path bounded to the requested period; a read failure remains an explicit unavailable state instead of a false zero.

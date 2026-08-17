@@ -16,7 +16,7 @@ test("FilterBar geometry has one authoritative stylesheet", () => {
   assert.doesNotMatch(globals, /\[data-tablet-main-list\] \.sb-list-filters\s*\{[\s\S]*?display:\s*grid/);
   assert.doesNotMatch(`${globals}\n${designV2}`, /\.sb-tablet-split-filter/);
   assert.match(designV2, /One tablet grammar for every list/);
-  assert.match(designV2, /full-width query on row one/);
+  assert.match(designV2, /filter-dense forms without a query still use the same bounded grid/);
   assert.doesNotMatch(globals, /\[data-tablet-split-actions\] > section,\s*\[data-tablet-main-list\]/);
   const canonicalStart = designV2.indexOf("Canonical list workspace contract");
   assert.notEqual(canonicalStart, -1);
@@ -35,6 +35,9 @@ test("FilterBar geometry has one authoritative stylesheet", () => {
   assert.match(designV2.slice(canonicalStart), /@media \(min-width: 1280px\)[\s\S]*?form\.sb-list-query-card \{[\s\S]*?flex-wrap:\s*nowrap !important;/);
   assert.match(designV2.slice(canonicalStart), /unified-list-date-control/);
   assert.match(input, /unified-list-date-control/);
+  assert.match(unifiedListHeader, /data-tablet-query-layout=\{tabletLayout\}/);
+  assert.match(unifiedListHeader, /desktopControls\.length > 2[\s\S]*?"controls"/);
+  assert.match(designV2.slice(canonicalStart), /data-tablet-query-layout="controls"[\s\S]*?grid-column:\s*1 \/ -1/);
 });
 
 test("hidden persisted filters do not steal the leading query slot", () => {

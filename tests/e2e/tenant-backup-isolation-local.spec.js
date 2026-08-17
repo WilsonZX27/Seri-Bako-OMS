@@ -1,5 +1,6 @@
 const { test, expect } = require("@playwright/test");
 const { createClient } = require("@supabase/supabase-js");
+const { version: appVersion } = require("../../package.json");
 
 const ids = {
   companyA: "a8100000-0000-4000-8000-000000000001",
@@ -137,7 +138,7 @@ test("Owner backup ignores a forged company override and contains no Company B c
   expect(files.size).toBeGreaterThan(1);
   const manifest = JSON.parse(files.get("manifest.json"));
   expect(manifest.company_id).toBe(ids.companyA);
-  expect(manifest.sprint).toBe("v7.23.7.2");
+  expect(manifest.sprint).toBe(`v${appVersion}`);
   expect(manifest.datasets.some((entry) => entry.classification === "excluded")).toBe(true);
   expect(manifest.datasets.filter((entry) => entry.included).every((entry) => !entry.warning)).toBe(true);
   expect(files.get("csv/companies.csv")).toContain(ids.companyA);

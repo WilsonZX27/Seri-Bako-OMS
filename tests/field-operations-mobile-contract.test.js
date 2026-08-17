@@ -77,7 +77,7 @@ test("purchase requests use a flat phone setup and line-entry hierarchy", () => 
 
   assert.match(source, /data-purchase-request-setup/);
   assert.match(source, /data-purchase-request-workspace/);
-  assert.match(source, /border-y border-\[var\(--sb-border\)\] bg-white/);
+  assert.match(source, /data-purchase-request-workspace className="sb-work-surface overflow-hidden"/);
   assert.match(source, /adjustLineQuantity/);
   assert.match(source, /Add request line/);
   assert.match(source, /grid-cols-\[minmax\(0,1\.35fr\)_minmax\(0,0\.8fr\)_minmax\(4\.75rem,0\.7fr\)_2\.75rem\]/);

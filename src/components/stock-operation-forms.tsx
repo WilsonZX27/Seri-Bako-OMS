@@ -82,6 +82,7 @@ export function StockWastageForm({ branches, selectedBranchId, seedLines, action
   return (
       <form id={formId} action={action} className="space-y-3">
         <input type="hidden" name="idempotency_key" value={idempotencyKey} />
+        <input type="hidden" name="wastage_no" value="WST-AUTO" />
         <details open data-stock-wastage-setup className="erp-surface group overflow-hidden">
           <summary className="flex cursor-pointer list-none items-center justify-between border-b px-3 py-2.5 text-sm font-semibold [&::-webkit-details-marker]:hidden">
             Wastage setup <ChevronDown className="h-4 w-4 transition-transform group-open:rotate-180" />
@@ -102,7 +103,10 @@ export function StockWastageForm({ branches, selectedBranchId, seedLines, action
 function LineGrid({ seedLines, mode }: { seedLines: SeedLine[]; mode: "transfer" | "wastage" }) {
   const [search, setSearch] = useState("");
   const [openNotes, setOpenNotes] = useState<Set<number>>(() => new Set());
-  const [selectedItems, setSelectedItems] = useState<Set<string>>(() => new Set(seedLines[0] ? [seedLines[0].item_id] : []));
+  const [selectedItems, setSelectedItems] = useState<Set<string>>(() => {
+    const firstAvailable = seedLines.find((line) => line.available_qty > 0);
+    return new Set(firstAvailable ? [firstAvailable.item_id] : []);
+  });
   const normalizedSearch = search.trim().toLowerCase();
   const visibleCount = seedLines.filter((line) => !normalizedSearch || `${line.item_code} ${line.item_name}`.toLowerCase().includes(normalizedSearch)).length;
   function toggleNote(index: number) {
@@ -143,11 +147,11 @@ function LineGrid({ seedLines, mode }: { seedLines: SeedLine[]; mode: "transfer"
           <div key={line.item_id} hidden={!matches} data-stock-operation-line data-selected={selected || undefined} className="grid grid-cols-2 gap-2 p-3 xl:grid-cols-[2fr_120px_120px_130px_1fr]">
             <div className="col-span-2 xl:col-span-1">
               <div className="flex min-w-0 items-start justify-between gap-2">
-                <div className="min-w-0"><label className="flex items-start gap-2 font-medium"><input className="mt-0.5" name="line_enabled" type="checkbox" value={line.item_id} checked={selected} onChange={(event) => toggleItem(line.item_id, event.target.checked, index)} /><span className="break-words">{line.item_name}</span></label><p className="pl-6 text-xs text-muted-foreground">{line.item_code} · {line.uom}</p></div>
+                <div className="min-w-0"><label className="flex items-start gap-2 font-medium"><input className="mt-0.5" name="line_enabled" type="checkbox" value={line.item_id} checked={selected} disabled={line.available_qty <= 0} onChange={(event) => toggleItem(line.item_id, event.target.checked, index)} /><span className="break-words">{line.item_name}</span></label><p className="pl-6 text-xs text-muted-foreground">{line.item_code} · {line.uom}{line.available_qty <= 0 ? " · No stock available" : ""}</p></div>
               </div>
             </div>
             <div className={selected ? "contents" : "hidden"} data-stock-operation-line-details>
-              <Field label="Quantity" labelClassName="xl:sr-only"><Input name="line_quantity" type="number" inputMode="decimal" min="0.0001" max={line.available_qty} step="0.0001" defaultValue={Math.min(line.quantity, line.available_qty)} /></Field>
+              <Field label="Quantity" labelClassName="xl:sr-only"><Input name="line_quantity" type="number" inputMode="decimal" min={line.available_qty > 0 ? "0.0001" : "0"} max={Math.max(0, line.available_qty)} step="0.0001" defaultValue={line.available_qty > 0 ? Math.min(line.quantity, line.available_qty) : 0} /></Field>
               <div className="flex items-center justify-between gap-2 rounded-[var(--sb-radius-control)] bg-[var(--sb-surface-muted)] p-2 text-sm"><div><p className="text-xs text-muted-foreground xl:sr-only">Available</p><p className="font-semibold">{formatNumber(line.available_qty)} {line.uom}</p></div>{selected ? <Button type="button" variant="ghost" size="icon" className="h-9 w-9 shrink-0" aria-label={`Notes for ${line.item_name}`} aria-expanded={openNotes.has(index)} onClick={() => toggleNote(index)}><MessageSquare className="h-4 w-4" /></Button> : null}</div>
               <input type="hidden" name="line_uom" value={line.uom} />
               {mode === "wastage" ? <Field label="Reason" labelClassName="xl:sr-only" className="col-span-2 xl:col-span-1"><SelectNative name="line_reason" defaultValue="damaged">{wastageReasons.map((r) => <option key={r} value={r}>{r.replaceAll("_", " ")}</option>)}</SelectNative></Field> : <input type="hidden" name="line_reason" value="other" />}

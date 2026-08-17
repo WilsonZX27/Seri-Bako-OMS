@@ -1,8 +1,8 @@
 # Seri Bako OMS Metric Dictionary
 
-**Current application:** `v8.37.2`
-**Repository migration ceiling:** `149`
-**Last reviewed:** 2026-08-15
+**Current released application:** `v8.64.55`
+**Repository forward migration ceiling:** `157` (unreleased until separately promoted)
+**Last reviewed:** 2026-08-17
 
 This is the authority for user-visible KPI and chart meaning. It documents presentation contracts; database migrations, RLS, and server queries remain the calculation and permission authority. A render timestamp is never a data-freshness timestamp.
 

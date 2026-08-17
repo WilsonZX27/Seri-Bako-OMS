@@ -1687,18 +1687,19 @@ html[data-design-layer="v2"] .sb-list-content-card {
   }
 }
 
-/* One tablet grammar for every list: tablet lists have one full-width query on row one,
-   followed by one controls row.
-   The selector is scoped to forms that actually contain a query control so
-   status-only forms retain their compact single row. */
+/* One tablet grammar for every list. Query-led forms place the query on row
+   one; filter-dense forms without a query still use the same bounded grid.
+   One- and two-control status forms retain their compact single row. */
 @media (min-width: 640px) and (max-width: 1279px) {
-  html[data-design-layer="v2"] form.sb-list-query-card:has(> :is(input[type="search"], input[name="search"], input[name="date"], input[placeholder*="Search"], input[placeholder*="Find"], .unified-list-date-control)) {
+  html[data-design-layer="v2"] form.sb-list-query-card:is([data-tablet-query-layout="query"], [data-tablet-query-layout="controls"]) {
     display: grid !important;
     grid-template-columns: repeat(var(--sb-list-tablet-columns, 4), minmax(0, 1fr));
     align-items: center;
+    gap: .75rem;
+    padding: .75rem;
   }
 
-  html[data-design-layer="v2"] form.sb-list-query-card:has(> :is(input[type="search"], input[name="search"], input[name="date"], input[placeholder*="Search"], input[placeholder*="Find"], .unified-list-date-control)) > :where(input[type="search"], input[name="search"], input[name="date"], input[placeholder*="Search"], input[placeholder*="Find"], .unified-list-date-control) {
+  html[data-design-layer="v2"] form.sb-list-query-card[data-tablet-query-layout="query"] > :where(input[type="search"], input[name="search"], input[name="date"], input[placeholder*="Search"], input[placeholder*="Find"], .unified-list-date-control) {
     grid-column: 1 / -1;
     overflow: hidden;
     width: 100% !important;
@@ -1706,24 +1707,28 @@ html[data-design-layer="v2"] .sb-list-content-card {
     max-width: none !important;
   }
 
-  html[data-design-layer="v2"] form.sb-list-query-card:has(> :is(input[type="search"], input[name="search"], input[name="date"], input[placeholder*="Search"], input[placeholder*="Find"], .unified-list-date-control)) > :where(select, [data-select-control], .sb-status-filter, .sb-filter-more),
-  html[data-design-layer="v2"] form.sb-list-query-card:has(> :is(input[type="search"], input[name="search"], input[name="date"], input[placeholder*="Search"], input[placeholder*="Find"], .unified-list-date-control)) > .unified-list-desktop-actions {
+  html[data-design-layer="v2"] form.sb-list-query-card:is([data-tablet-query-layout="query"], [data-tablet-query-layout="controls"]) > :where(select, [data-select-control], .sb-status-filter, .sb-filter-more),
+  html[data-design-layer="v2"] form.sb-list-query-card:is([data-tablet-query-layout="query"], [data-tablet-query-layout="controls"]) > .unified-list-desktop-actions {
     width: 100% !important;
     min-width: 0;
     max-width: none !important;
     margin-left: 0;
   }
 
-  html[data-design-layer="v2"] form.sb-list-query-card:has(> :is(input[type="search"], input[name="search"], input[name="date"], input[placeholder*="Search"], input[placeholder*="Find"], .unified-list-date-control)) > .unified-list-desktop-actions {
+  html[data-design-layer="v2"] form.sb-list-query-card:is([data-tablet-query-layout="query"], [data-tablet-query-layout="controls"]) > .unified-list-desktop-actions {
     display: grid !important;
     grid-template-columns: minmax(0, 1fr) auto;
     justify-content: stretch;
   }
 
-  html[data-design-layer="v2"] form.sb-list-query-card:has(> :is(input[type="search"], input[name="search"], input[name="date"], input[placeholder*="Search"], input[placeholder*="Find"], .unified-list-date-control)) > .unified-list-desktop-actions > .unified-list-action {
+  html[data-design-layer="v2"] form.sb-list-query-card:is([data-tablet-query-layout="query"], [data-tablet-query-layout="controls"]) > .unified-list-desktop-actions > .unified-list-action {
     width: 100% !important;
     min-width: 0 !important;
     max-width: none !important;
+  }
+
+  html[data-design-layer="v2"] form.sb-list-query-card[data-tablet-query-layout="controls"] > .unified-list-desktop-actions {
+    grid-column: 1 / -1;
   }
 
   html[data-design-layer="v2"] [data-tablet-document-split] form.sb-list-query-card {

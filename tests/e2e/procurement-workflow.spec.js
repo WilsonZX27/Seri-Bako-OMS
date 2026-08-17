@@ -32,13 +32,13 @@ test("manager reject action refreshes workflow state when mutation smoke is enab
   test.skip(process.env.TEST_MUTATE_WORKFLOW !== "true", "Set TEST_MUTATE_WORKFLOW=true to run destructive workflow mutation smoke.");
   test.skip(!process.env.TEST_MANAGER_EMAIL || !process.env.TEST_MANAGER_PASSWORD, "Missing manager test credentials.");
   expect(await login(page, "manager")).toBe(true);
-  await page.goto("/purchase-requests?status=manager_review");
-  const firstPr = page.locator("tbody tr").first();
+  await page.goto("/purchase-requests?status=manager_review&search=E2E-PR-MANAGER-REJECT");
+  const firstPr = page.locator("tbody tr").filter({ hasText: "E2E-PR-MANAGER-REJECT" });
   await expect(firstPr).toBeVisible();
   await firstPr.dblclick();
   await expect(page).toHaveURL(/\/purchase-requests\//);
-  await page.getByPlaceholder(/rejection remarks/i).fill("E2E workflow reject smoke");
-  await page.getByRole("button", { name: /^reject$/i }).click();
+  await page.locator('input:visible[name="remarks"][placeholder*="Rejection remarks"]').fill("E2E workflow reject smoke");
+  await page.getByRole("button", { name: "Reject request", exact: true }).filter({ visible: true }).click();
   await expect(page.locator("body")).toContainText(/rejected/i);
   await expect(page.getByRole("button", { name: /manager approve/i })).toHaveCount(0);
   await expect(page.locator("body")).toContainText(/rejected/i);

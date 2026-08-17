@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
 type RightConsoleContextValue = {
-  setContent: (content: ReactNode, hideMobileBar?: boolean) => void;
+  setContent: (content: ReactNode, hideMobileBar?: boolean, hideDesktopConsole?: boolean) => void;
   clearContent: () => void;
 };
 
@@ -68,19 +68,22 @@ function actionText(node: ReactNode): string {
 export function RightConsoleProvider({ children }: { children: ReactNode }) {
   const [content, setContentState] = useState<ReactNode>(null);
   const [mobileBarHidden, setMobileBarHidden] = useState(false);
+  const [desktopConsoleHidden, setDesktopConsoleHidden] = useState(false);
   const [open, setOpen] = useState(false);
   const dialogRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
   const titleId = useId();
   const value = useMemo(
     () => ({
-      setContent: (nextContent: ReactNode, hideMobileBar = false) => {
+      setContent: (nextContent: ReactNode, hideMobileBar = false, hideDesktopConsole = false) => {
         setContentState(nextContent);
         setMobileBarHidden(hideMobileBar);
+        setDesktopConsoleHidden(hideDesktopConsole);
       },
       clearContent: () => {
         setContentState(null);
         setMobileBarHidden(false);
+        setDesktopConsoleHidden(false);
       },
     }),
     [],
@@ -124,7 +127,7 @@ export function RightConsoleProvider({ children }: { children: ReactNode }) {
     requestAnimationFrame(() => triggerRef.current?.focus());
   }
 
-  const consoleContent = content ?? (
+  const consoleContent = desktopConsoleHidden ? null : content ?? (
     <ConsoleSection title="Workspace Context">
       <p className="text-sm text-[var(--sb-text-muted)] sm:text-xs">Open a record to see actions, timeline, and metadata here.</p>
     </ConsoleSection>
@@ -157,7 +160,7 @@ export function RightConsoleProvider({ children }: { children: ReactNode }) {
   return (
     <RightConsoleContext.Provider value={value}>
       {children}
-      <aside data-right-console className="hidden h-full min-h-0 w-[var(--sb-console-width)] shrink-0 overflow-hidden border-l bg-[var(--rail-bg)] xl:block">
+      <aside data-right-console className={cn("hidden h-full min-h-0 w-[var(--sb-console-width)] shrink-0 overflow-hidden border-l bg-[var(--rail-bg)]", !desktopConsoleHidden && "xl:block")}>
         <div data-right-console-scroll className="sb-scrollbar-none h-full space-y-3 overflow-y-auto overflow-x-hidden bg-[var(--rail-bg)] px-2 py-3">
           {consoleContent}
         </div>
@@ -196,13 +199,13 @@ export function RightConsoleProvider({ children }: { children: ReactNode }) {
   );
 }
 
-export function RightConsoleMount({ children, hideMobileBar = false }: { children: ReactNode; hideMobileBar?: boolean }) {
+export function RightConsoleMount({ children, hideMobileBar = false, hideDesktopConsole = false }: { children: ReactNode; hideMobileBar?: boolean; hideDesktopConsole?: boolean }) {
   const context = useContext(RightConsoleContext);
 
   useEffect(() => {
-    context?.setContent(children, hideMobileBar);
+    context?.setContent(children, hideMobileBar, hideDesktopConsole);
     return () => context?.clearContent();
-  }, [children, context, hideMobileBar]);
+  }, [children, context, hideMobileBar, hideDesktopConsole]);
 
   return null;
 }

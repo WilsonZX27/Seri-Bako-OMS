@@ -44,9 +44,8 @@ test("stock transfer dispatches and receives exactly once", async ({ page }) => 
     await page.locator('input[name="line_enabled"]:checked').uncheck();
     await itemRow.locator('input[name="line_enabled"]').check();
     await itemRow.locator('input[name="line_quantity"]').fill("1");
-    await page.getByText("Add transfer remarks", { exact: true }).click();
     await page.locator('textarea[name="remarks"]').fill(testRemark);
-    await page.getByRole("button", { name: "Create transfer" }).click();
+    await page.getByRole("button", { name: "Save Transfer Draft" }).click();
     // Number allocation and the atomic create RPC can take a few seconds on a cold local stack.
     // Wait for the server-action redirect instead of treating the pending state as a failure.
     await expect(page).toHaveURL(/\/stock-transfers\/[0-9a-f-]+$/, { timeout: 30000 });

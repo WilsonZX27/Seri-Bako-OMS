@@ -24,8 +24,9 @@ if (!["127.0.0.1", "localhost"].includes(localHostname) || process.env.RUN_TENAN
 }
 const admin = createClient(localUrl, serviceRoleKey, { auth: { persistSession: false } });
 const authCheck = createClient(localUrl, publishableKey, { auth: { persistSession: false } });
-const includeStockCountFixture = process.argv.includes("--stock-count-fixture") || process.env.E2E_STOCK_COUNT_FIXTURE === "1";
-const includeSupplierInvoiceFixture = process.argv.includes("--supplier-invoice-fixture") || process.env.E2E_SUPPLIER_INVOICE_FIXTURE === "1";
+const includeMutationWorkflowFixture = process.env.TEST_MUTATE_WORKFLOW === "true";
+const includeStockCountFixture = process.argv.includes("--stock-count-fixture") || process.env.E2E_STOCK_COUNT_FIXTURE === "1" || includeMutationWorkflowFixture;
+const includeSupplierInvoiceFixture = process.argv.includes("--supplier-invoice-fixture") || process.env.E2E_SUPPLIER_INVOICE_FIXTURE === "1" || includeMutationWorkflowFixture;
 const accounts = [
   ["super_admin", "TEST_SUPER_ADMIN_EMAIL", "TEST_SUPER_ADMIN_PASSWORD"],
   ["finance", "TEST_FINANCE_EMAIL", "TEST_FINANCE_PASSWORD"],
@@ -34,6 +35,7 @@ const accounts = [
   ["kitchen", "TEST_KITCHEN_EMAIL", "TEST_KITCHEN_PASSWORD"],
   ["outlet_staff", "TEST_OUTLET_EMAIL", "TEST_OUTLET_PASSWORD"],
 ];
+const staffByRole = new Map();
 
 const { data: company, error: companyError } = await admin.from("companies").select("id").limit(1).single();
 if (companyError || !company) {
@@ -54,6 +56,12 @@ if (transferSequenceError) throw transferSequenceError;
 if (!transferSequence) {
   const { error: createTransferSequenceError } = await admin.from("document_sequences").insert({ company_id: company.id, document_type: "stock_transfer", prefix: "ST", next_number: 1, padding: 5, reset_frequency: "yearly", status: "active" });
   if (createTransferSequenceError && createTransferSequenceError.code !== "23505") throw createTransferSequenceError;
+}
+const { data: wastageSequence, error: wastageSequenceError } = await admin.from("document_sequences").select("id").eq("company_id", company.id).eq("document_type", "stock_wastage").maybeSingle();
+if (wastageSequenceError) throw wastageSequenceError;
+if (!wastageSequence) {
+  const { error: createWastageSequenceError } = await admin.from("document_sequences").insert({ company_id: company.id, document_type: "stock_wastage", prefix: "WST", next_number: 1, padding: 5, reset_frequency: "yearly", status: "active" });
+  if (createWastageSequenceError && createWastageSequenceError.code !== "23505") throw createWastageSequenceError;
 }
 const { data: roles } = await admin.from("roles").select("id, role_code").eq("company_id", company.id).is("deleted_at", null);
 const { data: authUsers, error: authUsersError } = await admin.auth.admin.listUsers({ page: 1, perPage: 1000 });
@@ -85,10 +93,49 @@ for (const [roleCode, emailKey, passwordKey] of accounts) {
     : await admin.from("staffs").insert({ company_id: company.id, auth_user_id: authUser.id, staff_code: staffCode, full_name: `Local ${roleCode}`, email: env[emailKey], default_branch_id: branch.id, status: "active", invitation_status: "completed", must_change_password: false }).select("id").single();
   if (staffWrite.error) throw staffWrite.error;
   const staff = staffWrite.data;
+  staffByRole.set(roleCode, staff.id);
   await admin.from("staff_roles").delete().eq("staff_id", staff.id);
   await admin.from("staff_branches").delete().eq("staff_id", staff.id);
   await admin.from("staff_roles").insert({ staff_id: staff.id, role_id: role.id, branch_id: ["super_admin", "finance", "purchasing"].includes(roleCode) ? null : branch.id, is_primary: true, effective_from: new Date().toISOString().slice(0, 10) });
   await admin.from("staff_branches").insert({ staff_id: staff.id, branch_id: branch.id, access_level: "full", is_default: true });
+}
+
+if (includeMutationWorkflowFixture) {
+  const purchaseRequestId = "e1000000-0000-4000-8000-000000000001";
+  const documentId = "e1000000-0000-4000-8000-000000000002";
+  const requesterId = staffByRole.get("kitchen");
+  if (!requesterId) throw new Error("Mutation fixture requires the Kitchen staff identity.");
+  const documentWrite = await admin.from("documents").upsert({
+    id: documentId,
+    company_id: company.id,
+    document_no: "E2E-PR-MANAGER-REJECT",
+    document_type: "purchase_request",
+    title: "Disposable manager rejection fixture",
+    status: "pending_approval",
+    approval_status: "pending",
+    current_step: "Manager Review",
+    related_entity_type: "purchase_request",
+    related_entity_id: purchaseRequestId,
+    created_by: requesterId,
+    updated_by: requesterId,
+  });
+  if (documentWrite.error) throw documentWrite.error;
+  const requestWrite = await admin.from("purchase_requests").upsert({
+    id: purchaseRequestId,
+    company_id: company.id,
+    document_id: documentId,
+    request_no: "E2E-PR-MANAGER-REJECT",
+    requested_by: requesterId,
+    request_date: new Date().toISOString().slice(0, 10),
+    priority: "normal",
+    branch_id: branch.id,
+    status: "manager_review",
+    remarks: "Disposable local Manager rejection mutation fixture.",
+    deleted_at: null,
+    created_by: requesterId,
+    updated_by: requesterId,
+  });
+  if (requestWrite.error) throw requestWrite.error;
 }
 
 if (includeStockCountFixture) {
@@ -199,15 +246,60 @@ if (includeSupplierInvoiceFixture) {
     invoiceGrn = result.data;
   }
 
+  const { data: staleReturns, error: staleReturnsError } = await admin.from("purchase_returns").select("id, document_id").eq("goods_receiving_id", invoiceGrn.id);
+  if (staleReturnsError) throw staleReturnsError;
+  const staleReturnIds = (staleReturns ?? []).map((row) => row.id);
+  const staleDocumentIds = (staleReturns ?? []).map((row) => row.document_id).filter(Boolean);
+  if (staleReturnIds.length) {
+    const staleMovements = await admin.from("stock_transactions").select("id").eq("reference_type", "purchase_return").in("reference_id", staleReturnIds);
+    if (staleMovements.error) throw staleMovements.error;
+    const staleMovementIds = (staleMovements.data ?? []).map((row) => row.id);
+    const lineCleanup = await admin.from("purchase_return_lines").delete().in("purchase_return_id", staleReturnIds);
+    if (lineCleanup.error) throw lineCleanup.error;
+    if (staleMovementIds.length) {
+      const movementLineCleanup = await admin.from("stock_transaction_lines").delete().in("stock_transaction_id", staleMovementIds);
+      if (movementLineCleanup.error) throw movementLineCleanup.error;
+      const movementCleanup = await admin.from("stock_transactions").delete().in("id", staleMovementIds);
+      if (movementCleanup.error) throw movementCleanup.error;
+    }
+    const returnCleanup = await admin.from("purchase_returns").delete().in("id", staleReturnIds);
+    if (returnCleanup.error) throw returnCleanup.error;
+    if (staleDocumentIds.length) {
+      const documentCleanup = await admin.from("documents").delete().in("id", staleDocumentIds);
+      if (documentCleanup.error) throw documentCleanup.error;
+    }
+  }
+
   const { data: currentGrnLine, error: currentGrnLineError } = await admin.from("goods_receiving_lines").select("id").eq("goods_receiving_id", invoiceGrn.id).eq("item_id", invoiceItem.id).maybeSingle();
   if (currentGrnLineError) throw currentGrnLineError;
   if (!currentGrnLine) {
     const result = await admin.from("goods_receiving_lines").insert({ goods_receiving_id: invoiceGrn.id, purchase_order_line_id: invoicePoLine.id, item_id: invoiceItem.id, ordered_qty: 10, pending_qty: 0, received_qty: 10, rejected_qty: 0, returned_qty: 0, uom: "KG", unit_cost: 4.25, remarks: "Disposable local Supplier Invoice UI fixture." });
     if (result.error) throw result.error;
+  } else {
+    const result = await admin.from("goods_receiving_lines").update({ received_qty: 10, rejected_qty: 0, returned_qty: 0 }).eq("id", currentGrnLine.id);
+    if (result.error) throw result.error;
   }
+  const stockCleanup = await admin.from("stock_transactions").delete().eq("transaction_no", "E2E-GRN-INVOICE-STOCK");
+  if (stockCleanup.error) throw stockCleanup.error;
+  const stockWrite = await admin.from("stock_transactions").insert({
+    transaction_no: "E2E-GRN-INVOICE-STOCK",
+    branch_id: branch.id,
+    item_id: invoiceItem.id,
+    transaction_type: "purchase",
+    quantity_in: 10,
+    quantity_out: 0,
+    unit_cost: 4.25,
+    total_cost: 42.5,
+    status: "posted",
+    posted_at: new Date().toISOString(),
+    remarks: "Disposable stock backing for the returnable GRN fixture.",
+    reference_type: "e2e_fixture",
+    reference_id: invoiceGrn.id,
+  });
+  if (stockWrite.error) throw stockWrite.error;
 }
 
-const fixtureLabels = [includeStockCountFixture ? "stock-count" : null, includeSupplierInvoiceFixture ? "supplier-invoice" : null].filter(Boolean);
+const fixtureLabels = [includeStockCountFixture ? "stock-count" : null, includeSupplierInvoiceFixture ? "supplier-invoice" : null, includeMutationWorkflowFixture ? "workflow-mutation" : null].filter(Boolean);
 console.log(fixtureLabels.length
   ? `Created six disposable local dashboard identities and local-only ${fixtureLabels.join(" + ")} fixtures.`
   : "Created six disposable local dashboard identities without business records.");

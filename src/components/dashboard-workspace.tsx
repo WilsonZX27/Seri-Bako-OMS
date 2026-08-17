@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { AlertTriangle, ArrowUpRight, Boxes, CheckCircle2, ClipboardCheck, ClipboardList, Clock3, Factory, FileText, LockKeyhole, PackageCheck, ReceiptText, ShoppingCart, UserRound } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { ConsoleSection } from "@/components/layout/right-console";
 import { WorkspaceGrid } from "@/components/layout/workspace-layout";
 import { formatCurrency, formatNumber } from "@/lib/utils";
 import type { LucideIcon } from "lucide-react";
@@ -236,25 +235,7 @@ export function DashboardWorkspace({ summary }: { summary: DashboardSummary }) {
   return (
     <WorkspaceGrid
       hideMobileConsole
-      rightRail={isOutlet ? undefined : (
-        <>
-          <ConsoleSection title="Actions">
-            <div className="grid gap-2" data-dashboard-actions>
-              {quickActions.map((action, index) => {
-                const Icon = action.icon;
-                return (
-                  <Button key={action.href} asChild size="sm" variant={index === 0 ? "default" : "outline"} className="w-full justify-center">
-                    <Link prefetch={false} href={action.href}><Icon className="h-4 w-4" aria-hidden="true" />{action.label}</Link>
-                  </Button>
-                );
-              })}
-            </div>
-          </ConsoleSection>
-          <ConsoleSection title="Workspace context">
-            <p className="text-xs text-[var(--sb-text-muted)]">Open a record to see actions, timeline, and metadata here.</p>
-          </ConsoleSection>
-        </>
-      )}
+      hideDesktopConsole
       className="gap-4 p-3 pb-32 sm:p-4 sm:pb-24 xl:pb-4"
     >
       <div className="space-y-4">
@@ -455,18 +436,6 @@ export function DashboardWorkspace({ summary }: { summary: DashboardSummary }) {
             ) : null}
           </Panel></div> : null}
 
-        {summary.notifications.length ? <div className="order-4">
-          <Panel title="Alerts">
-            <div className="space-y-2 px-1 py-1">
-              {summary.notifications.slice(0, 3).map((note: DashboardSummary["notifications"][number]) => (
-                <Link prefetch={false} key={note.id} href={note.action_url ?? "/activity"} className="block rounded-[var(--sb-radius-control)] px-2 py-1.5 text-xs hover:bg-[var(--sb-surface-muted)]">
-                  <strong className="block">{note.title}</strong>
-                  <span className="text-muted-foreground">{note.message}</span>
-                </Link>
-              ))}
-            </div>
-          </Panel>
-        </div> : null}
           </div>
         </div>
         )}

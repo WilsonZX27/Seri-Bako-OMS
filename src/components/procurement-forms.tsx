@@ -10,7 +10,7 @@ import { SelectNative } from "@/components/ui/select-native";
 import { Textarea } from "@/components/ui/textarea";
 import { UrgencySelect } from "@/components/urgency-select";
 import type { ProcurementPriority } from "@/components/priority-badge";
-import { normalizeUom } from "@/lib/uom";
+import { defaultUoms, normalizeUom } from "@/lib/uom";
 import { getToday } from "@/lib/utils";
 import { ItemCombobox, type ItemComboboxOption } from "@/components/item-combobox";
 
@@ -134,6 +134,7 @@ export function PurchaseRequestForm({
       item?.base_unit,
       ...mappingsForLine(line).map((mapping) => mapping.purchase_uom),
       ...knownSystemUoms,
+      ...defaultUoms,
     ].filter(Boolean).map((value) => normalizeUom(String(value))))];
   }
 
@@ -437,36 +438,41 @@ export function PurchaseOrderForm({
           <input type="hidden" name="status" value="draft" />
           <input type="hidden" name="approval_status" value="draft" />
           <section data-purchase-order-form-surface className="sb-work-surface p-3 md:p-4">
-          <div data-purchase-order-setup className="grid grid-cols-2 gap-3 border-b border-[var(--sb-border-soft)] pb-3">
+          <div className="mb-3 border-b border-[var(--sb-border-soft)] pb-2">
+            <h2 className="text-sm font-semibold text-[var(--sb-text)]">Order details</h2>
+            <p className="text-xs text-muted-foreground">Choose the receiving branch, supplier, and delivery context.</p>
+          </div>
+          <div data-purchase-order-setup className="grid grid-cols-2 gap-3 md:grid-cols-3">
             <Field label="Branch" required>
               <SelectNative name="branch_id" value={branchId} onChange={(event) => { setBranchId(event.target.value); setSupplierId(""); }} required>
                 {branches.map((branch) => <option key={branch.id} value={branch.id}>{branch.branch_name}</option>)}
               </SelectNative>
             </Field>
-            <Field label="Supplier" required>
+            <Field label="Supplier" required className="col-span-1 md:col-span-2">
               <SelectNative name="supplier_id" value={supplierId} onChange={(event) => setSupplierId(event.target.value)} required>
                 <option value="">{selectedItems.length ? "Select supplier valid for all items" : "Select items first"}</option>
                 {eligibleSuppliers.map((supplier) => <option key={supplier.supplier_id} value={supplier.supplier_id}>{supplier.supplier_name}</option>)}
               </SelectNative>
             </Field>
-            <details className="col-span-2 border-t border-[var(--sb-border-soft)] pt-2">
+            <details className="col-span-2 border-t border-[var(--sb-border-soft)] pt-2 md:col-span-3">
               <summary className="cursor-pointer text-xs font-medium text-muted-foreground">More order details</summary>
-              <div className="mt-2 grid grid-cols-2 gap-2">
+              <div className="mt-2 grid grid-cols-2 gap-3 md:grid-cols-3">
                 <Field label="Order Date" required>
                   <Input name="order_date" type="date" defaultValue={getToday()} required />
                 </Field>
                 <Field label="Expected Delivery">
                   <Input name="expected_delivery_date" type="date" />
                 </Field>
-                <Field label="Remarks" className="col-span-2">
+                <Field label="Remarks" className="col-span-2 md:col-span-3">
                   <Textarea name="remarks" placeholder="Supplier ordering remarks" />
                 </Field>
               </div>
             </details>
           </div>
+          </section>
 
-          <section data-purchase-order-lines className="overflow-hidden border-y border-[var(--sb-border)] bg-white md:rounded-[var(--sb-panel-radius)] md:border">
-            <div className="flex items-center justify-between gap-3 border-b bg-secondary/40 px-3 py-2">
+          <section data-purchase-order-lines className="sb-work-surface overflow-hidden">
+            <div className="flex items-center justify-between gap-3 border-b bg-white px-3 py-2">
               <div>
                 <p className="text-xs font-semibold">Ordered Items</p>
                 <p className="text-xs text-muted-foreground">Add only the items included in this order.</p>
@@ -513,7 +519,6 @@ export function PurchaseOrderForm({
           </section>
 
           {selectedItems.length > 0 && eligibleSuppliers.length === 0 ? <div role="alert" className="border border-destructive/25 bg-destructive/5 px-3 py-2.5 text-xs leading-relaxed text-destructive"><p className="font-semibold">This order cannot be sourced yet.</p>{uncoveredItems.length ? <p className="mt-1">Missing active supplier/UOM mapping for: {selectedItemLabels(uncoveredItems).join(", ")}.</p> : <p className="mt-1">No single supplier covers every selected item in the requested UOM. Split the order by supplier or add the required branch mappings.</p>}<Link href="/imports/branch-supplier-items" className="mt-1 inline-flex font-semibold underline underline-offset-2">Open supplier mapping import</Link></div> : null}
-          </section>
         </form>
     </div>
   );

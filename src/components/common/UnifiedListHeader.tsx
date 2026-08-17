@@ -87,6 +87,15 @@ function isSearchControl(child: ReactNode) {
   return searchable.includes("search") || searchable.includes("find");
 }
 
+function isHiddenControl(child: ReactNode) {
+  return propsOf(child).type === "hidden";
+}
+
+function isQueryControl(child: ReactNode) {
+  const props = propsOf(child);
+  return isSearchControl(child) || props.type === "date" || props.name === "date";
+}
+
 function hiddenFilterValue(child: ReactNode) {
   if (!isValidElement(child)) return null;
   const props = propsOf(child);
@@ -217,7 +226,7 @@ export function UnifiedListHeader({ children, resultCount, resetHref, filtered =
   }, [mobile, open]);
 
   const all = flattenChildren(children);
-  const candidates = all.filter((child) => !isAction(child) && !isFilterMore(child));
+  const candidates = all.filter((child) => !isAction(child) && !isFilterMore(child) && !isHiddenControl(child));
   const primary = candidates.find(isSearchControl) ?? candidates.find(isPrimaryControl);
   const more = all.find(isFilterMore);
   const filters = useMemo(() => all.filter((child) => child !== primary && !isAction(child) && !isFilterMore(child)), [all, primary]);
@@ -245,8 +254,14 @@ export function UnifiedListHeader({ children, resultCount, resetHref, filtered =
 
   if (!mobile) {
     const desktopActions = all.filter(isAction);
-    const desktopControls = all.filter((child) => !isAction(child));
+    const desktopHidden = all.filter(isHiddenControl);
+    const desktopControls = all.filter((child) => !isAction(child) && !isHiddenControl(child));
     const tabletColumns = Math.min(Math.max(desktopControls.length, 1), 4);
+    const tabletLayout = desktopControls.some(isQueryControl)
+      ? "query"
+      : desktopControls.length > 2
+        ? "controls"
+        : "compact";
     const actionNodes = desktopActions.map((child) => {
       if (!isValidElement(child)) return child;
       const props = propsOf(child);
@@ -258,11 +273,13 @@ export function UnifiedListHeader({ children, resultCount, resetHref, filtered =
     return <form
       className={cn("sb-list-filters sb-list-query-card", className)}
       data-unified-list-desktop="true"
+      data-tablet-query-layout={tabletLayout}
       data-filtered={filtered || undefined}
       data-reset-href={resetHref}
       style={{ "--sb-list-tablet-columns": tabletColumns } as CSSProperties}
     >
       {desktopControls}
+      {desktopHidden}
       <div className="unified-list-desktop-actions">
         {actionNodes}
         {typeof resultCount === "number" ? <div className="sb-filter-summary" aria-live="polite"><span>{resultCount} {resultCount === 1 ? "record" : "records"}</span></div> : null}

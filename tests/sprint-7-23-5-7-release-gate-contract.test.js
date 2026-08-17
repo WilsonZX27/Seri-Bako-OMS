@@ -33,7 +33,8 @@ test("annotated actions and compact tables are implemented through shared struct
   const table = read("src/components/ui/table.tsx");
 
   assert.doesNotMatch(dashboard, /Protected controls/);
-  assert.match(dashboard, /<ConsoleSection title="Actions">/);
+  assert.match(dashboard, /data-dashboard-quick-actions/);
+  assert.doesNotMatch(dashboard, /<ConsoleSection title="Actions">/);
   assert.match(documentWorkspace, /function DocumentActionSection/);
   assert.match(documentWorkspace, /<DocumentMoreOptions/);
   assert.match(mobileDocumentSurfaces, /disabled=\{!hydrated\}/);

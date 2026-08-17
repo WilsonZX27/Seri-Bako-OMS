@@ -1,14 +1,14 @@
 # Seri Bako OMS — Schema 与 Table 关系地图
 
-> 2026-08-17 release authority：仓库 forward-only migration 历史已到 `156`；migrations `152–154` 依次新增 lossless non-catalog Purchase Request lines、按 supplier 原子拆分 PR，以及由 Item Master 统一 supplier-item identity；migrations `155–156` 分别收紧库存 opening 读取边界与 Outlet Daily receipt provenance。此记录只证明 repository authority，不证明已部署到 Production。
+> 2026-08-17 release authority：仓库 forward-only migration 历史已到 `157`；migrations `152–154` 依次新增 lossless non-catalog Purchase Request lines、按 supplier 原子拆分 PR，以及由 Item Master 统一 supplier-item identity；migrations `155–156` 分别收紧库存 opening 读取边界与 Outlet Daily receipt provenance；migration `157` 收紧 PR 三段审批的角色职责分离。此记录只证明 repository authority，不证明已部署到 Production。
 
 > 读取时间：2026-07-23。来源为本机运行中的 Supabase/PostgreSQL `public` schema，**不是 Production 线上库**。
 >
 > 2026-07-23 原始读取结果：61 张基础表、5 个只读库存视图，当时仓库迁移到 089。本文件仍是历史实库快照，不是当前 Production schema 证明。
 >
-> 2026-08-17 仓库核对：forward-only migration 历史已到 `156`。权威顺序为：目标数据库的 `schema_migrations` 与实际 catalog → 仓库 `supabase/migrations/` → 本历史关系图。不要仅凭本文件执行删除、重命名或 Production 变更。
+> 2026-08-17 仓库核对：forward-only migration 历史已到 `157`。权威顺序为：目标数据库的 `schema_migrations` 与实际 catalog → 仓库 `supabase/migrations/` → 本历史关系图。不要仅凭本文件执行删除、重命名或 Production 变更。
 
-## 2026-08-17 repository 增量（migrations 128–156）
+## 2026-08-17 repository 增量（migrations 128–157）
 
 以下只记录从 migration 文件直接验证到的结构/读模型变化，不声称这些 migration 已部署到任何特定 Production 项目：
 
@@ -25,6 +25,7 @@
 - `155` 将 Stock Card 的历史 opening balance 改为由 `inventory_daily_summary` 有界聚合，并让 Movement Ledger 复用同一 bounded RPC，避免全历史 raw transaction 扫描触发 statement timeout。
 
 - `156` 将 Outlet Daily 的 `morning_received_provided` 从推导列改为显式存储事实；授权用户输入的 `0` 可验证显示，缺失/旧数据继续 fail closed。
+- `157` 删除非职责角色遗留的 PR Manager、Purchasing 与 Finance 审批授权，保留 `super_admin` 的受控 break-glass 能力。
 
 - `128` 新增 RLS 保护的 `stock_balances_summary` 预聚合表及刷新函数，并提供 bounded Inventory Dashboard summary。
 - `129–137` 增加或迭代 Goods Receiving、Items workspace、Stock Card、Stock Ledger、Dashboard、Payables attention 等有界 RPC/read models。

@@ -13,11 +13,11 @@ test("dashboard composition is all-role, task-first, and finance-gated", () => {
   assert.match(query, /getPayablesAttention\(\)/);
   assert.match(query, /isOutlet \? db\.from\("outlet_daily_records"\)/);
   assert.match(view, /data-dashboard-payables/);
-  assert.match(view, /isOutlet \? undefined/);
   assert.match(view, /data-dashboard-identity/);
   assert.match(view, /data-dashboard-quick-actions/);
   assert.doesNotMatch(view, /Protected controls/);
-  assert.match(view, /WorkspaceGrid[\s\S]*rightRail=/);
+  assert.doesNotMatch(view, /rightRail=/);
+  assert.doesNotMatch(view, /title="Workspace context"|title="Alerts"/);
 });
 
 test("migration 072 grants Finance read union without Manager Review or purchasing mutations", () => {

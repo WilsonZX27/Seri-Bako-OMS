@@ -20,5 +20,8 @@ test("transfer and wastage drafts are database-owned aggregate transactions", ()
   assert.match(migration, /has_permission\('stock_transfer\.create'\)/);
   assert.match(migration, /has_permission\('stock_wastage\.create'\)/);
   assert.match(form, /name="idempotency_key"/);
+  assert.match(form, /name="wastage_no" value="WST-AUTO"/);
+  assert.match(form, /seedLines\.find\(\(line\) => line\.available_qty > 0\)/);
+  assert.match(form, /disabled=\{line\.available_qty <= 0\}/);
   assert.doesNotMatch(actions, /function createDoc/);
 });

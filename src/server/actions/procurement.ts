@@ -35,6 +35,14 @@ async function identity() {
   return getCurrentProfile();
 }
 
+async function requirePurchaseRequestWorkflowRole(expectedRole: "manager" | "purchasing" | "finance") {
+  const profile = await getCurrentProfile();
+  const roleCode = String(profile?.role_code ?? "").toLowerCase();
+  if (roleCode !== expectedRole && roleCode !== "super_admin") {
+    throw new Error(`Only the ${expectedRole} role may complete this workflow step.`);
+  }
+}
+
 async function notifyNextPrRole(input: {
   pr: { id: string; request_no: string; branch_id: string | null; company_id: string | null };
   nextStatus: PurchaseRequestStatus;
@@ -447,6 +455,14 @@ async function transitionPurchaseRequest(id: string, action: PrTransitionAction,
   if (requestError) throw new Error(requestError.message);
   if (!request) throw new Error("Purchase request not found.");
   await ensureActorCanUsePurchaseRequestBranch(request.branch_id);
+  const workflowRole = action === "manager_approve" || (action === "reject" && request.status === "manager_review")
+    ? "manager"
+    : action === "admin_approve" || (action === "reject" && request.status === "admin_review")
+      ? "purchasing"
+      : action === "finance_approve" || (action === "reject" && request.status === "finance_review")
+        ? "finance"
+        : null;
+  if (workflowRole) await requirePurchaseRequestWorkflowRole(workflowRole);
 
   const { data, error } = await supabase.rpc("transition_purchase_request", {
     target_purchase_request_id: requestId,

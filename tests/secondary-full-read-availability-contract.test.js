@@ -10,7 +10,7 @@ test("secondary full reads cannot replace paginated queues with false zero summa
   for (const [route, query, source, continuity] of [
     ["purchase-returns", "getPurchaseReturns", "page.purchaseReturns.summary", "return queue remains current"],
     ["stock-transfers", "getStockTransfers", "page.stockTransfers.summary", "transfer queue remains current"],
-    ["stock-wastage", "getStockWastage", "page.stockWastage.summary", "wastage queue remains current"],
+    ["stock-wastage", "getStockWastage", "page.stockWastage.summary", "current queue remains available"],
   ]) {
     const page = read("src", "app", "(app)", route, "page.tsx");
     assert.match(page, new RegExp(`Promise\\.allSettled\\(\\[${query}\\(\\{ page: "all" \\}\\)\\]\\)`), route);

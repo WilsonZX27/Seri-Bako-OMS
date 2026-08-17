@@ -21,12 +21,19 @@ immutable event → normalized, complete read model → decision signal → owne
 
 | Area | Verified in current worktree | Not yet proven | Release meaning |
 | --- | --- | --- | --- |
-| P0 annotated UI issues | 23 comments grouped and fixed in source | Production rendering after deployment | Local P0 closure is complete; live closure is pending |
-| Role separation | UI + server action + migration 157 contract | Migration 157 applied to production | Do not claim production authorization closure yet |
+| P0 annotated UI issues | 23 comments grouped and fixed in source; branch preview deployment succeeded | Custom production-domain rendering after promotion | Branch preview is ready; live custom-domain closure is pending |
+| Role separation | UI + server action + migration 157 contract; remote ledger verified at 157 | Post-deploy role matrix on the promoted custom domain | Supabase target is updated; application promotion is still separate |
 | Responsive behavior | 751/751 contracts; P0 browser 5/5; Dashboard six roles × 3 viewports 7/7 | Production browser matrix | Strong local evidence, not production proof |
 | Build/runtime | ESLint, typecheck through production build, Next build pass | CI/host resource behavior and remote backend health | Release candidate is buildable |
 | Data honesty | Fail-closed query boundaries, explicit unavailable states, metric dictionary | Source-owned freshness timestamps in most read models | Trust foundation is strong; observability still needs work |
-| Decision layer | AP Aging, cash flow, demand, variance, costing readiness, low-stock signals exist | Closed-loop replenishment, supplier SLA, target/comparison context | Valuable insight primitives, not yet a full decision product |
+| Decision layer | AP Aging, cash flow, demand, variance, costing readiness, and auditable low-stock next actions exist | Accepted/rejected/fulfilled replenishment outcomes, supplier SLA, target/comparison context | First decision loop is visible; outcome measurement is not yet proven |
+
+## Deployment receipt (2026-08-17)
+
+- Reviewed application commits pushed to `origin/codex/uiux-round2`: `fd1695f`, then `ac1319d` for the auditable replenishment decision loop.
+- Supabase project `nnvdsaftiwpqkekjfrgc` was confirmed before execution; migration `157_purchase_request_workflow_role_separation.sql` was applied and a final dry-run returned `Remote database is up to date`.
+- GitHub Vercel check for `ac1319d` completed successfully. The protected branch preview is `https://seri-bako-oms-official-git-codex-uiux-round2-seribako.vercel.app`.
+- The public custom domain `https://system.seribako.com.my` still reports `v8.64.55`; it has not been promoted to the forward closure revision. Do not test the P0 patch there yet.
 
 ## Version generations and what each achieved
 
@@ -52,7 +59,7 @@ The append-only `DESIGN.md` history contains hundreds of patch contracts. Groupi
 | Branch-scoped inventory, stock counts, transfers, wastage | **Verified in source** | RLS/RPC/read-boundary contracts and viewport evidence exist |
 | Outlet Daily provenance and completion | **Verified in source** | Explicit receipt provenance, bounded coverage, accessible matrix/list |
 | AP aging, cash-flow pressure, costing readiness, demand/variance insight | **Verified as reports** | Metric dictionary documents formulas and drill-throughs; comparison/owner/due-date context is still uneven |
-| Automated replenishment / demand planning | **No production evidence** | Low-stock suggestions exist, but no proven closed loop from policy → recommendation → approved PO → outcome |
+| Automated replenishment / demand planning | **Branch-preview evidence only** | Low Stock now exposes policy-based Buy now / Fix supplier first / Monitor decisions, but no proven closed loop from recommendation → approved PO → outcome |
 | RFQ/tender, blanket/contract purchasing, vendor portal | **No evidence** | Mature-system benchmark capabilities, not current Seri Bako release claims |
 | Lot/serial/barcode/expiry execution | **No evidence** | Do not imply warehouse traceability beyond current stock transaction/count scope |
 | Landed cost, integrated GL/budget, multi-currency | **No evidence** | Supplier invoices/payments exist; full enterprise finance integration is not proven |
@@ -103,7 +110,7 @@ Priority decision products:
 
 ### Phase 0 — Release truth (1–2 days)
 
-- Apply migration 157 only after explicit approval; deploy the exact reviewed application revision.
+- Migration 157 is applied to the confirmed Supabase project; promote the exact reviewed application revision only after confirming the Vercel project/domain owner.
 - Update the released app version to `v8.64.56` only after deployment, not before.
 - Run the six-role × six-width production matrix, direct-route denial checks, and the 23 annotated P0 pages.
 - Record commit, migration ceiling, Supabase project identity, timestamp, approver, rollback owner, and sanitized evidence.
@@ -150,10 +157,10 @@ The goal remains active until all of these are true:
 
 | Priority | Item | Current state | Next evidence |
 | --- | --- | --- | --- |
-| P1 | Production promotion of migration 157 and P0 patch | Pending authorization | Migration receipt + post-deploy matrix |
+| P1 | Production promotion of migration 157 and P0 patch | Migration applied; branch preview ready; custom domain remains `v8.64.55` | Domain promotion receipt + post-deploy matrix |
 | P1 | Full backend-backed E2E run on a resource-sufficient runner | Local focused suites pass; expanded historical runs include backend fetch failures | CI run with captured environment health |
 | P1 | Dashboard command-surface contrast/anti-pattern cleanup | Still requires targeted contrast audit after the current structural cleanup | Measured contrast + fresh screenshots |
-| P1 | Decision recommendation loop | No closed-loop recommendation/outcome evidence yet | Buy-now pilot with accepted/rejected/fulfilled outcome |
+| P1 | Decision recommendation loop | Low Stock now exposes Buy now / Fix supplier first / Monitor with reasons; outcome measurement is still missing | Buy-now pilot with accepted/rejected/fulfilled outcome |
 | P2 | Source-owned freshness/comparison context | Metric dictionary defines the need; most screens are request-time only | Read-model metadata and UI proof |
 | P2 | Supplier performance and UOM conversion ledger | Master data exists; decision model incomplete | Formula, data quality, and drill-through contract |
 | P2 | Version/report consolidation | This document is the new cross-cutting index; older reports remain historical | Link each prior report to a current status |
@@ -163,4 +170,4 @@ The goal remains active until all of these are true:
 - Local tests do not prove Production deployment, remote migration state, or live Supabase health.
 - Screenshot evidence cannot prove full WCAG compliance, database authorization, or business correctness by itself.
 - A mature-system feature listed in the benchmark is not a Seri Bako feature claim; absent source/runtime evidence remains **no evidence**.
-- No commit, push, deploy, staff-data change, or destructive migration was performed in this closure pass.
+- Commits, push, and migration 157 were performed and recorded above. No custom-domain promotion, staff-data change, or destructive migration was performed in this closure pass.

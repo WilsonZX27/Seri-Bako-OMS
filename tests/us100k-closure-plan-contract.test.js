@@ -15,7 +15,8 @@ test("the US$100k closure ledger keeps the release boundary explicit", () => {
   assert.match(design, /v8\.64\.56 \(unreleased\)/);
   assert.match(plan, /Current released baseline:\*\* `v8\.64\.55`/);
   assert.match(plan, /Local forward contract:\*\* `v8\.64\.56`/);
-  assert.match(plan, /Migration 157 applied to production/);
+  assert.match(plan, /migration `157_purchase_request_workflow_role_separation\.sql` was applied/);
+  assert.match(plan, /custom domain `https:\/\/system\.seribako\.com\.my` still reports `v8\.64\.55`/);
   assert.match(plan, /Production deployment evidence is also separate/);
 });
 

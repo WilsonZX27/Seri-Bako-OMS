@@ -31,15 +31,15 @@ describe("workspace canvas regression", () => {
     assert.doesNotMatch(css, /\(max-width: 1366px\) and \(hover: none\) and \(pointer: coarse\)/);
   });
 
-  test("tablet query tracks follow their actual controls instead of reserving empty columns", () => {
+  test("tablet query controls stay bounded while the grid preserves breathing room", () => {
     assert.match(listHeader, /--sb-list-tablet-columns/);
     assert.match(listHeader, /Math\.min\(Math\.max\(desktopControls\.length, 1\), 4\)/);
     assert.match(listHeader, /data-tablet-query-layout=\{tabletLayout\}/);
     assert.match(css, /repeat\(var\(--sb-list-tablet-columns, 4\), minmax\(0, 1fr\)\)/);
     assert.match(css, /data-tablet-query-layout="controls"/);
-    assert.match(css, /unified-list-desktop-actions[\s\S]*display: grid !important/);
-    assert.match(css, /unified-list-desktop-actions[\s\S]*grid-template-columns: minmax\(0, 1fr\) auto/);
-    assert.match(css, /width: 100% !important;[\s\S]*min-width: 0 !important;[\s\S]*max-width: none !important;/);
+    assert.match(css, /\.sb-list-query-card:is\(\[data-tablet-query-layout="query"\], \[data-tablet-query-layout="controls"\]\) > :where\(select[\s\S]*?width: 9rem !important;/);
+    assert.match(css, /unified-list-desktop-actions[\s\S]*display: flex !important/);
+    assert.match(css, /unified-list-desktop-actions > \.unified-list-action[\s\S]*width: 7\.5rem !important/);
     assert.doesNotMatch(css, /repeat\(4, minmax\(8rem, 1fr\)\)/);
   });
 });

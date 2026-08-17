@@ -1553,6 +1553,7 @@ html[data-design-layer="v2"] form.sb-list-query-card :where(input, select, butto
   min-height: 2.75rem !important;
   max-height: 2.75rem !important;
   border-radius: var(--sb-control-radius) !important;
+  font-size: 0.75rem !important;
 }
 
 html[data-design-layer="v2"] form.sb-list-query-card :where(input, select, [role="combobox"], [data-select-control], .sb-status-filter-control, .sb-filter-more > summary) {
@@ -1707,24 +1708,32 @@ html[data-design-layer="v2"] .sb-list-content-card {
     max-width: none !important;
   }
 
-  html[data-design-layer="v2"] form.sb-list-query-card:is([data-tablet-query-layout="query"], [data-tablet-query-layout="controls"]) > :where(select, [data-select-control], .sb-status-filter, .sb-filter-more),
+  html[data-design-layer="v2"] form.sb-list-query-card:is([data-tablet-query-layout="query"], [data-tablet-query-layout="controls"]) > :where(select, [data-select-control], .sb-status-filter, .sb-filter-more) {
+    /* Keep secondary controls content-sized on tablet. The grid provides
+       alignment; controls must not consume the entire track and erase the
+       intentional breathing room shown by the desktop reference. */
+    width: 9rem !important;
+    min-width: 9rem;
+    max-width: 9rem !important;
+    margin-left: 0;
+    justify-self: start;
+  }
+
   html[data-design-layer="v2"] form.sb-list-query-card:is([data-tablet-query-layout="query"], [data-tablet-query-layout="controls"]) > .unified-list-desktop-actions {
-    width: 100% !important;
+    width: auto !important;
     min-width: 0;
     max-width: none !important;
     margin-left: 0;
-  }
-
-  html[data-design-layer="v2"] form.sb-list-query-card:is([data-tablet-query-layout="query"], [data-tablet-query-layout="controls"]) > .unified-list-desktop-actions {
-    display: grid !important;
-    grid-template-columns: minmax(0, 1fr) auto;
-    justify-content: stretch;
+    justify-self: start;
+    display: flex !important;
+    align-items: center;
+    gap: .5rem;
   }
 
   html[data-design-layer="v2"] form.sb-list-query-card:is([data-tablet-query-layout="query"], [data-tablet-query-layout="controls"]) > .unified-list-desktop-actions > .unified-list-action {
-    width: 100% !important;
-    min-width: 0 !important;
-    max-width: none !important;
+    width: 7.5rem !important;
+    min-width: 7.5rem !important;
+    max-width: 7.5rem !important;
   }
 
   html[data-design-layer="v2"] form.sb-list-query-card[data-tablet-query-layout="controls"] > .unified-list-desktop-actions {

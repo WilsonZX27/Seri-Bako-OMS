@@ -61,3 +61,10 @@ test("desktop list actions keep the established Search then record-count order",
   const actions = unifiedListHeader.slice(actionsStart, actionsEnd);
   assert.ok(actions.indexOf("{actionNodes}") < actions.indexOf('className="sb-filter-summary"'));
 });
+
+test("shared query controls keep compact text and bounded tablet measures", () => {
+  const canonical = designV2.slice(designV2.indexOf("Canonical list workspace contract"));
+  assert.match(canonical, /form\.sb-list-query-card :where\(input, select, button[\s\S]*?font-size: 0\.75rem !important;/);
+  assert.match(canonical, /@media \(min-width: 640px\) and \(max-width: 1279px\)[\s\S]*?\.sb-list-query-card:is\(\[data-tablet-query-layout="query"\], \[data-tablet-query-layout="controls"\]\) > :where\(select[\s\S]*?width: 9rem !important;/);
+  assert.match(canonical, /\.unified-list-desktop-actions > \.unified-list-action \{[\s\S]*?width: 7\.5rem !important;/);
+});

@@ -211,8 +211,8 @@ begin
   from alma_stocktake stocktake
   join alma_identity_map identity_map
     on identity_map.canonical_code = stocktake.item_code
-   and identity_map.old_code = legacy.item_code
   where legacy.company_id = target_company_id
+    and identity_map.old_code = legacy.item_code
     and not exists (
       select 1 from public.items occupied
       where occupied.company_id = target_company_id

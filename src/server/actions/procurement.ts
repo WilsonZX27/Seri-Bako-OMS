@@ -180,8 +180,25 @@ async function ensureBranchSupplierSelections(
     ? await supabase.from("supplier_items").select("id, item_id, supplier_id, purchase_uom").in("id", relationshipIds).eq("status", "active").is("deleted_at", null)
     : { data: [], error: null };
   if (relationshipsError) throw new Error(relationshipsError.message);
+  const { data: itemDefaults, error: itemDefaultsError } = await supabase
+    .from("items")
+    .select("id, supplier_id, purchase_unit, base_unit")
+    .in("id", itemIds)
+    .eq("status", "active")
+    .is("deleted_at", null);
+  if (itemDefaultsError) throw new Error(itemDefaultsError.message);
   const valid = new Set((relationships ?? []).map((row) => `${row.item_id}|${row.supplier_id}|${normalizeUom(row.purchase_uom)}`));
-  if (selected.some((line) => !valid.has(`${line.item_id}|${line.suggested_supplier_id}|${normalizeUom(String(line.uom ?? ""))}`))) {
+  const mappedItemIds = new Set((mappings ?? []).map((row) => row.item_id));
+  const itemDefaultById = new Map((itemDefaults ?? []).map((row) => [row.id, row]));
+  const isValid = (line: { item_id: string; suggested_supplier_id: string; uom?: string | null }) => {
+    const requested = `${line.item_id}|${line.suggested_supplier_id}|${normalizeUom(String(line.uom ?? ""))}`;
+    if (valid.has(requested)) return true;
+    if (mappedItemIds.has(line.item_id)) return false;
+    const item = itemDefaultById.get(line.item_id);
+    if (!item || item.supplier_id !== line.suggested_supplier_id) return false;
+    return normalizeUom(String(item.purchase_unit ?? item.base_unit ?? "")) === normalizeUom(String(line.uom ?? ""));
+  };
+  if (selected.some((line) => !isValid(line))) {
     throw new Error("A selected supplier is not mapped to this branch, item, and unit of measure.");
   }
 }

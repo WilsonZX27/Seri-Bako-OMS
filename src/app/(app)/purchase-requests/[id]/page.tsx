@@ -292,7 +292,11 @@ export default async function PurchaseRequestDetailPage({
                       <TableBody>
                         {lines.map((line) => {
                           const item = itemById.get(line.item_id);
-                          const supplier = line.suggested_supplier_id ? supplierById.get(line.suggested_supplier_id) : null;
+                          const supplier = line.suggested_supplier_id
+                            ? supplierById.get(line.suggested_supplier_id)
+                            : item?.supplier_id
+                              ? supplierById.get(item.supplier_id)
+                              : null;
                           return (
                             <TableRow key={line.id}>
                               <TableCell><p className="font-medium">{!items ? "Item details unavailable" : item?.item_name ?? line.item_id}</p><p className="text-xs text-muted-foreground">{!items ? `Reference ${line.item_id}` : item?.item_code ?? "No item code"}</p></TableCell>
@@ -317,7 +321,11 @@ export default async function PurchaseRequestDetailPage({
                   <div className="divide-y divide-[var(--sb-border-soft)] xl:hidden" role="list" aria-label="Requested items">
                     {lines.map((line) => {
                       const item = itemById.get(line.item_id);
-                      const supplier = line.suggested_supplier_id ? supplierById.get(line.suggested_supplier_id) : null;
+                      const supplier = line.suggested_supplier_id
+                        ? supplierById.get(line.suggested_supplier_id)
+                        : item?.supplier_id
+                          ? supplierById.get(item.supplier_id)
+                          : null;
                       return <div key={line.id} role="listitem" className="min-w-0 py-3 text-[13px]"><div className="flex min-w-0 items-start justify-between gap-3"><div className="min-w-0"><p className="break-words font-semibold">{!items ? "Item details unavailable" : item?.item_name ?? line.item_id}</p><p className="text-[12px] text-muted-foreground">{!items ? `Reference ${line.item_id}` : item?.item_code ?? "No item code"}</p></div><p className="shrink-0 font-semibold">{formatNumber(line.qty)} {line.uom}</p></div>{line.suggested_supplier_id && !suppliers ? <p className="mt-1 break-words text-[12px] text-[var(--sb-warning)]">Supplier details unavailable</p> : supplier ? <p className="mt-1 break-words text-[12px] text-muted-foreground">Supplier: {supplier.name}</p> : null}{line.reason ? <p className="mt-1 break-words text-[12px] text-muted-foreground">{line.reason}</p> : null}{canViewCommercial ? <p className="mt-1 text-right text-[12px] font-medium">{formatCurrency(line.estimated_unit_cost)} / {line.uom}</p> : null}</div>;
                     })}
                     {unresolvedLines.map((line) => <div key={line.id} role="listitem" className="min-w-0 py-3 text-[13px]"><div className="flex min-w-0 items-start justify-between gap-3"><div className="min-w-0"><p className="break-words font-semibold">{line.requested_description}</p><p className="text-[12px] font-medium text-[var(--sb-warning)]">Non-catalog item · Purchasing match required</p></div><p className="shrink-0 font-semibold">{formatNumber(line.requested_qty)} {line.requested_uom}</p></div>{line.remarks ? <p className="mt-1 text-[12px] text-muted-foreground">{line.remarks}</p> : null}{canAdminReview && items ? <div className="mt-2"><PurchaseRequestLineResolutionForm action={resolvePurchaseRequestUnresolvedLine.bind(null, request.id)} items={items} unresolvedLineId={line.id} description={line.requested_description} /></div> : null}</div>)}

@@ -144,14 +144,30 @@ export const getBranchSupplierMappingsForSelect = cache(async function getBranch
   if (relationshipsError) throw new Error(relationshipsError.message);
   if (!relationships) throw new Error("Supplier item relationships returned no data.");
   const supplierIds = [...new Set((relationships ?? []).map((row) => row.supplier_id))];
-  const { data: suppliers, error: suppliersError } = supplierIds.length
-    ? await supabase.from("suppliers").select("id, supplier_code, name, status").in("id", supplierIds).eq("status", "active").is("deleted_at", null)
+  const { data: items, error: itemsError } = await supabase
+    .from("items")
+    .select("id, company_id, purchase_unit, base_unit, supplier_id, cost, status")
+    .eq("status", "active")
+    .is("deleted_at", null);
+  if (itemsError) throw new Error(itemsError.message);
+  if (!items) throw new Error("Item supplier defaults returned no data.");
+  const { data: branches, error: branchesError } = await supabase
+    .from("branches")
+    .select("id, company_id, status")
+    .eq("status", "active")
+    .is("deleted_at", null);
+  if (branchesError) throw new Error(branchesError.message);
+  if (!branches) throw new Error("Branch supplier scopes returned no data.");
+  const masterSupplierIds = items.map((item) => item.supplier_id).filter((id): id is string => Boolean(id));
+  const allSupplierIds = [...new Set([...supplierIds, ...masterSupplierIds])];
+  const { data: suppliers, error: suppliersError } = allSupplierIds.length
+    ? await supabase.from("suppliers").select("id, supplier_code, name, status").in("id", allSupplierIds).eq("status", "active").is("deleted_at", null)
     : { data: [], error: null };
   if (suppliersError) throw new Error(suppliersError.message);
   if (!suppliers) throw new Error("Supplier mapping options returned no data.");
   const relationshipById = new Map((relationships ?? []).map((row) => [row.id, row]));
   const supplierById = new Map((suppliers ?? []).map((row) => [row.id, row]));
-  return mappings.flatMap((mapping) => {
+  const resolvedMappings = mappings.flatMap((mapping) => {
     const relationship = relationshipById.get(mapping.supplier_item_id);
     const supplier = relationship ? supplierById.get(relationship.supplier_id) : null;
     if (!relationship || !supplier || relationship.item_id !== mapping.item_id) return [];
@@ -168,6 +184,27 @@ export const getBranchSupplierMappingsForSelect = cache(async function getBranch
       is_preferred: mapping.is_preferred,
     }];
   });
+  const mappedBranchItems = new Set(resolvedMappings.map((mapping) => `${mapping.branch_id}|${mapping.item_id}`));
+  const masterFallbacks = items.flatMap((item) => {
+    if (!item.supplier_id) return [];
+    const supplier = supplierById.get(item.supplier_id);
+    if (!supplier) return [];
+    return branches
+      .filter((branch) => branch.company_id === item.company_id && !mappedBranchItems.has(`${branch.id}|${item.id}`))
+      .map((branch) => ({
+        id: `master-default:${branch.id}:${item.id}`,
+        branch_id: branch.id,
+        item_id: item.id,
+        supplier_item_id: `master-default:${item.id}`,
+        supplier_id: supplier.id,
+        supplier_code: supplier.supplier_code,
+        supplier_name: supplier.name,
+        unit_cost: item.cost ?? 0,
+        purchase_uom: item.purchase_unit ?? item.base_unit,
+        is_preferred: true,
+      }));
+  });
+  return [...resolvedMappings, ...masterFallbacks];
 });
 
 export const getItemsForSelect = cache(async function getItemsForSelect() {

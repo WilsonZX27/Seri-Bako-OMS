@@ -276,6 +276,7 @@ begin
   from public.items item
   where supplier_item.company_id = target_company_id
     and item.company_id = target_company_id
+    and item.deleted_at is null
     and item.id = supplier_item.item_id;
 end;
 $$;

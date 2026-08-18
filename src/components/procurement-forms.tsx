@@ -288,7 +288,7 @@ export function PurchaseRequestForm({
             </div>
             <div className={`${detailsOpen ? "grid" : "hidden"} grid-cols-2 gap-3 md:grid-cols-3`}>
             <Field label="Request branch" required>
-                <SelectNative name="branch_id" value={branchId} onChange={(event) => changeBranch(event.target.value)} required disabled={lockBranch}>
+                <SelectNative name="branch_id" aria-label="Request branch" value={branchId} onChange={(event) => changeBranch(event.target.value)} required disabled={lockBranch}>
                   {branches.map((branch) => <option key={branch.id} value={branch.id}>{branch.branch_name}</option>)}
                 </SelectNative>
                 {lockBranch ? <input type="hidden" name="branch_id" value={branchId} /> : null}
@@ -337,7 +337,7 @@ export function PurchaseRequestForm({
                   <span data-pr-line-number className="grid h-10 place-items-center self-start lg:hidden"><span className="grid h-6 w-6 place-items-center rounded-[var(--sb-radius-control)] bg-[var(--sb-surface-muted)] text-[11px] font-semibold tabular-nums text-[var(--sb-text-muted)]">{index + 1}</span></span>
                   <div data-pr-line-item className="col-span-2 col-start-2 min-w-0 space-y-2 lg:col-span-1 lg:col-start-1">
                     <Field label="Item" required labelClassName="sr-only">
-                      <ItemCombobox items={items} value={line.itemSearch} selectedItemId={line.itemId} inputRef={line.key === lines[0]?.key ? firstItemInputRef : undefined} onValueChange={(value) => selectItem(line.key, value)} onSelect={(item) => selectItem(line.key, item.id)} />
+                      <ItemCombobox items={items} value={line.itemSearch} selectedItemId={line.itemId} ariaLabel={`Item for request line ${index + 1}`} inputRef={line.key === lines[0]?.key ? firstItemInputRef : undefined} onValueChange={(value) => selectItem(line.key, value)} onSelect={(item) => selectItem(line.key, item.id)} />
                     </Field>
                     {line.itemId && mappingsForLine(line).some((mapping) => !line.uom || normalizeUom(mapping.purchase_uom) === line.uom) ? (
                     <Field label="Supplier" required labelClassName="sr-only">
@@ -356,7 +356,7 @@ export function PurchaseRequestForm({
                     <Field label="Quantity" required labelClassName="sr-only" className="pr-line-quantity col-start-2 row-start-2 lg:col-start-2 lg:row-start-1">
                       <div className="flex h-[var(--sb-control-height)] overflow-hidden rounded-[var(--sb-radius-control)] border border-[var(--sb-border)] bg-white">
                         <button type="button" className="flex h-full w-10 shrink-0 items-center justify-center border-r border-[var(--sb-border)] text-[var(--sb-green-900)] hover:bg-[var(--sb-surface-muted)] active:bg-[var(--sb-green-100)]" onClick={() => adjustLineQuantity(line, -1)} aria-label={`Decrease quantity for ${line.itemSearch || "request line"}`}><Minus className="h-3.5 w-3.5" /></button>
-                        <Input name="line_qty" type="number" min="0" step={requestQuantityStep(line.uom)} value={line.qty} onChange={(event) => updateLine(line.key, { qty: event.target.value })} placeholder="Qty" className="h-full min-w-0 rounded-none border-0 px-1 text-center text-xs font-semibold tabular-nums shadow-none focus-visible:ring-inset" />
+                        <Input name="line_qty" aria-label={`Quantity for ${line.itemSearch || `request line ${index + 1}`}`} type="number" min="0" step={requestQuantityStep(line.uom)} value={line.qty} onChange={(event) => updateLine(line.key, { qty: event.target.value })} placeholder="Qty" className="h-full min-w-0 rounded-none border-0 px-1 text-center text-xs font-semibold tabular-nums shadow-none focus-visible:ring-inset" />
                         <button type="button" className="flex h-full w-10 shrink-0 items-center justify-center border-l border-[var(--sb-border)] text-[var(--sb-green-900)] hover:bg-[var(--sb-surface-muted)] active:bg-[var(--sb-green-100)]" onClick={() => adjustLineQuantity(line, 1)} aria-label={`Increase quantity for ${line.itemSearch || "request line"}`}><Plus className="h-3.5 w-3.5" /></button>
                       </div>
                     </Field>

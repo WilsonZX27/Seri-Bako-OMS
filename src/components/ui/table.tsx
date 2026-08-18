@@ -102,8 +102,19 @@ export function TableRow({ className, ...props }: React.HTMLAttributes<HTMLTable
 }
 
 export function TableHead({ className, children, "aria-label": ariaLabel, ...props }: React.ThHTMLAttributes<HTMLTableCellElement>) {
+  const isActionColumn = typeof children === "string" && children.trim().toLowerCase() === "action";
   return (
-    <th aria-label={ariaLabel} className={cn("h-9 min-w-24 overflow-hidden px-3 text-left align-middle text-xs font-semibold text-[var(--sb-text-muted)]", className)} {...props}>{children}</th>
+    <th
+      aria-label={ariaLabel}
+      data-table-action-head={isActionColumn ? "true" : undefined}
+      className={cn(
+        isActionColumn
+          ? "h-9 !w-10 !min-w-10 !max-w-10 overflow-hidden !px-0 text-center align-middle text-xs font-semibold text-[var(--sb-text-muted)]"
+          : "h-9 min-w-24 overflow-hidden px-3 text-left align-middle text-xs font-semibold text-[var(--sb-text-muted)]",
+        className,
+      )}
+      {...props}
+    >{children}</th>
   );
 }
 
@@ -111,8 +122,13 @@ export function TableSelectionHead({ className, ...props }: React.ThHTMLAttribut
   return <th className={cn("h-9 w-10 min-w-10 max-w-10 overflow-hidden px-2 text-center align-middle", className)} {...props} />;
 }
 
-export function TableCell({ className, ...props }: React.TdHTMLAttributes<HTMLTableCellElement>) {
-  return <td className={cn("px-3 py-2.5 align-middle", className)} {...props} />;
+export function TableCell({ className, children, ...props }: React.TdHTMLAttributes<HTMLTableCellElement>) {
+  const isActionCell = React.Children.toArray(children).some((child) => {
+    if (!React.isValidElement(child) || !child.props || typeof child.props !== "object") return false;
+    const childProps = child.props as { href?: unknown; label?: unknown };
+    return typeof childProps.href === "string" && typeof childProps.label === "string";
+  });
+  return <td className={cn("px-3 py-2.5 align-middle", className, isActionCell && "w-10 min-w-10 max-w-10 p-0 text-center")} {...props}>{children}</td>;
 }
 
 export function TableSelectionCell({ className, ...props }: React.TdHTMLAttributes<HTMLTableCellElement>) {

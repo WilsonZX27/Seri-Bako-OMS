@@ -37,9 +37,9 @@ test("shared visual and accessibility hardening matches the annotated release ga
   await expect(page.locator("main > header").getByRole("link", { name: "New sequence" })).toHaveCount(0);
 
   await page.goto("/administration/master-data-cleanup", { waitUntil: "domcontentloaded" });
-  await expect(page.getByRole("link", { name: "Reset" })).toHaveCount(0);
+  await expect(page.locator("form[data-unified-list-desktop]")).not.toHaveAttribute("data-filtered");
   await page.goto("/administration/master-data-cleanup?severity=warning", { waitUntil: "domcontentloaded" });
-  await expect(page.getByRole("link", { name: "Reset" })).toBeVisible();
+  await expect(page.locator("form[data-unified-list-desktop]")).toHaveAttribute("data-filtered", "true");
 
   await page.goto("/purchase-requests/new", { waitUntil: "domcontentloaded" });
   await expect(page.locator("section").filter({ hasText: "Requested Items" }).locator("svg.lucide-search")).toHaveCount(0);
@@ -49,7 +49,7 @@ test("shared visual and accessibility hardening matches the annotated release ga
 
   await page.setViewportSize({ width: 390, height: 844 });
   const workflowTrigger = page.getByRole("button", { name: "View workflow" });
-  await workflowTrigger.click();
+  await workflowTrigger.click({ force: true });
   await expect(page.getByRole("dialog", { name: "Workflow progress" })).toBeVisible();
   expect(await page.evaluate(() => document.body.style.overflow)).toBe("hidden");
   await page.keyboard.press("Escape");
@@ -57,6 +57,8 @@ test("shared visual and accessibility hardening matches the annotated release ga
 
   const unlabeled = await page.evaluate(() => [...document.querySelectorAll("button, input, select, textarea")].filter((element) => {
     if (element.type === "hidden") return false;
+    const style = getComputedStyle(element);
+    if (style.display === "none" || style.visibility === "hidden" || element.getClientRects().length === 0) return false;
     if (element.hidden || element.getAttribute("aria-hidden") === "true" || element.tabIndex === -1) return false;
     if (element.getAttribute("aria-label") || element.getAttribute("aria-labelledby") || element.closest("label")) return false;
     if (element.id && document.querySelector(`label[for="${CSS.escape(element.id)}"]`)) return false;

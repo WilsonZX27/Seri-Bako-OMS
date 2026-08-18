@@ -698,6 +698,12 @@ input[type="date"]::-webkit-date-and-time-value {
   min-width: 100%;
 }
 
+/* Action-led data grids keep the first control column compact instead of
+   letting the auto table algorithm distribute it across the full canvas. */
+.sb-table-region > table:has(> thead > tr > th[data-table-action-head="true"]) {
+  table-layout: fixed;
+}
+
 /*
  * Lead-band contract for horizontally scrollable operational tables.
  *

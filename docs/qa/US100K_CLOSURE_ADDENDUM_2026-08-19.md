@@ -84,7 +84,8 @@ failed item). The safe product direction is a single progressive-disclosure scre
 backed by one transactional RPC/action, with optional sourcing defaults and an
 explicit branch scope. That design is queued as P1; it is not represented as closed
 until the atomic write, rollback behavior, permissions, and real-role E2E fixture
-are implemented and verified.
+are implemented and verified. The dependency graph and proof gates are recorded in
+`docs/operations/ITEM_CREATION_REFACTOR_PLAN.md`.
 
 ## Final closure direction
 

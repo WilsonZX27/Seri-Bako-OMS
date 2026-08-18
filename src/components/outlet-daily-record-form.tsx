@@ -26,7 +26,7 @@ const reasons: OutletDailyWastageReason[] = ["unsold", "damaged", "expired", "qu
 const EMPTY_LINES: Line[] = [];
 const EMPTY_DEFAULTS_BY_BRANCH: Record<string, Record<string, DefaultLine>> = {};
 
-export function OutletDailyRecordForm({ formId, action, branches, products, lines = EMPTY_LINES, branchId, recordDate, notes, defaultsByBranch = EMPTY_DEFAULTS_BY_BRANCH, locked = false, canEditHeader = true, canEditQtySent = false, canEditOutletValues = true }: {
+  export function OutletDailyRecordForm({ formId, action, branches, products, lines = EMPTY_LINES, branchId, recordDate, notes, defaultsByBranch = EMPTY_DEFAULTS_BY_BRANCH, validationError, locked = false, canEditHeader = true, canEditQtySent = false, canEditOutletValues = true }: {
   formId: string;
   action: (formData: FormData) => Promise<void>;
   branches: Branch[];
@@ -36,6 +36,7 @@ export function OutletDailyRecordForm({ formId, action, branches, products, line
   recordDate: string;
   notes?: string | null;
   defaultsByBranch?: Record<string, Record<string, DefaultLine>>;
+  validationError?: string;
   locked?: boolean;
   canEditHeader?: boolean;
   canEditQtySent?: boolean;
@@ -57,6 +58,24 @@ export function OutletDailyRecordForm({ formId, action, branches, products, line
   const normalizedSearch = productSearch.trim().toLowerCase();
   const matchingProductIds = new Set(products.filter((product) => `${product.product_code} ${product.product_name} ${product.category}`.toLowerCase().includes(normalizedSearch)).map((product) => product.id));
   const selectedBranch = branches.find((branch) => branch.id === selectedBranchId);
+  const wastageValidation = validationError?.toLowerCase().includes("wastage") === true;
+  const validationProductId = wastageValidation
+    ? products.find((product) => {
+        const source = lineByProduct.get(product.id) ?? selectedDefaults[product.id];
+        return Number(source?.wastage_qty ?? 0) > Number(source?.morning_received_qty ?? 0);
+      })?.id ?? products[0]?.id
+    : null;
+
+  useEffect(() => {
+    if (!validationProductId) return;
+    const frame = window.requestAnimationFrame(() => {
+      const target = document.querySelector<HTMLElement>(`[data-validation-anchor="${validationProductId}"]`) ?? document.querySelector<HTMLElement>('input[name="wastage_qty"]');
+      if (!target) return;
+      target.scrollIntoView({ behavior: "smooth", block: "center" });
+      target.focus({ preventScroll: true });
+    });
+    return () => window.cancelAnimationFrame(frame);
+  }, [validationProductId]);
 
   useEffect(() => {
     window.dispatchEvent(new CustomEvent("sb:document-context", { detail: { branch: selectedBranch?.branch_name ?? null, date: selectedRecordDate } }));
@@ -81,7 +100,7 @@ export function OutletDailyRecordForm({ formId, action, branches, products, line
       <div className="divide-y">
         {products.map((product) => {
           const matches = !normalizedSearch || matchingProductIds.has(product.id);
-          return <DailyProductLine key={product.id} product={product} line={lineByProduct.get(product.id)} defaultLine={selectedDefaults[product.id]} hiddenClass={matches ? "" : "hidden"} locked={locked} canEditQtySent={canEditQtySent} canEditOutletValues={canEditOutletValues} onTouched={() => setTouchedProducts((current) => new Set(current).add(product.id))} />;
+          return <DailyProductLine key={product.id} product={product} line={lineByProduct.get(product.id)} defaultLine={selectedDefaults[product.id]} validationHint={validationProductId === product.id ? "Add a line remark or reduce wastage below Received." : undefined} hiddenClass={matches ? "" : "hidden"} locked={locked} canEditQtySent={canEditQtySent} canEditOutletValues={canEditOutletValues} onTouched={() => setTouchedProducts((current) => new Set(current).add(product.id))} />;
         })}
         {products.length > 0 && matchingProductIds.size === 0 ? <p className="py-6 text-center text-sm text-muted-foreground">No products match “{productSearch}”.</p> : null}
         {!products.length ? <EmptyState title="No active products available" description="Create or activate sellable products before recording outlet quantities." /> : null}
@@ -90,10 +109,11 @@ export function OutletDailyRecordForm({ formId, action, branches, products, line
   </form>;
 }
 
-function DailyProductLine({ product, line, defaultLine, hiddenClass, locked, canEditQtySent, canEditOutletValues, onTouched }: {
+function DailyProductLine({ product, line, defaultLine, validationHint, hiddenClass, locked, canEditQtySent, canEditOutletValues, onTouched }: {
   product: Product;
   line?: Line;
   defaultLine?: DefaultLine;
+  validationHint?: string;
   hiddenClass: string;
   locked: boolean;
   canEditQtySent: boolean;
@@ -113,7 +133,7 @@ function DailyProductLine({ product, line, defaultLine, hiddenClass, locked, can
   const [wastage, setWastage] = useState(source ? String(source.wastage_qty) : "");
   const [reason, setReason] = useState(source?.wastage_reason ?? "");
   const [remark, setRemark] = useState(source?.notes ?? "");
-  const [remarkOpen, setRemarkOpen] = useState(Boolean(source?.notes));
+  const [remarkOpen, setRemarkOpen] = useState(Boolean(source?.notes) || Boolean(validationHint));
   const showWastageDetails = Number(wastage || 0) > 0 || Boolean(reason) || Boolean(source?.notes);
 
   return <div className={`${hiddenClass} grid grid-cols-3 items-end gap-2 p-3 md:grid-cols-[minmax(12rem,1fr)_repeat(3,minmax(4.5rem,6rem))] xl:grid-cols-[minmax(12rem,1fr)_repeat(3,minmax(4.5rem,6rem))_minmax(14rem,18rem)]`}>
@@ -124,7 +144,7 @@ function DailyProductLine({ product, line, defaultLine, hiddenClass, locked, can
     {showWastageDetails ? <>
       <div className="col-span-full grid grid-cols-[minmax(0,1fr)_2.75rem] items-end gap-2 md:col-start-2 md:col-end-[-1] md:grid-cols-2 xl:col-start-5 xl:grid-cols-[minmax(0,1fr)_auto]">
         <label className="grid min-w-0 gap-1 text-xs"><span>Wastage Reason</span><SelectNative className="h-10" aria-label={`${product.product_name} wastage reason`} name="wastage_reason" value={reason || "unsold"} onChange={(event) => { setReason(event.target.value as OutletDailyWastageReason); onTouched(); }} required={Number(wastage || 0) > 0} disabled={locked || !canEditOutletValues}>{reasons.map((option) => <option key={option} value={option}>{option.replaceAll("_", " ")}</option>)}</SelectNative></label>
-        <div className="min-w-0">{remarkOpen ? <Input autoFocus className="h-10 w-full" aria-label={`${product.product_name} remarks`} name="line_notes" value={remark} placeholder="Remark" onChange={(event) => { setRemark(event.target.value); onTouched(); }} disabled={locked || !canEditOutletValues} /> : <><input type="hidden" name="line_notes" value={remark} /><button type="button" className="inline-flex h-10 w-11 items-center justify-center rounded-[var(--sb-control-radius)] border border-[var(--sb-border-soft)] bg-white text-muted-foreground hover:text-foreground" onClick={() => setRemarkOpen(true)} aria-label={`Add remarks for ${product.product_name}`} aria-expanded="false" disabled={locked || !canEditOutletValues}><MessageSquare className="h-4 w-4" aria-hidden="true" /></button></>}</div>
+        <div className="min-w-0">{remarkOpen ? <><Input autoFocus={Boolean(validationHint)} data-validation-anchor={validationHint ? product.id : undefined} aria-invalid={validationHint ? "true" : undefined} className={`h-10 w-full ${validationHint ? "border-rose-500 ring-2 ring-rose-200" : ""}`} aria-label={`${product.product_name} remarks`} name="line_notes" value={remark} placeholder="Remark" onChange={(event) => { setRemark(event.target.value); onTouched(); }} disabled={locked || !canEditOutletValues} />{validationHint ? <p className="mt-1 text-[11px] font-medium text-rose-700">{validationHint}</p> : null}</> : <><input type="hidden" name="line_notes" value={remark} /><button type="button" className="inline-flex h-10 w-11 items-center justify-center rounded-[var(--sb-control-radius)] border border-[var(--sb-border-soft)] bg-white text-muted-foreground hover:text-foreground" onClick={() => setRemarkOpen(true)} aria-label={`Add remarks for ${product.product_name}`} aria-expanded="false" disabled={locked || !canEditOutletValues}><MessageSquare className="h-4 w-4" aria-hidden="true" /></button></>}</div>
       </div>
     </> : <><input type="hidden" name="wastage_reason" value="" /><input type="hidden" name="line_notes" value="" /></>}
   </div>;

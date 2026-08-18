@@ -52,7 +52,10 @@ test("dynamic workflow forms remain usable across phone, tablet, and desktop", a
 
       if (viewport.label === "mobile-390" && ["/stock-transfers/new", "/stock-wastage/new"].includes(workflow.route)) {
         const lines = page.locator("[data-stock-operation-line]");
-        await expect(lines).toHaveCount(6);
+        // The local stock fixture is allowed to grow with reconciled stock-take
+        // items; keep the interaction contract strict without coupling it to a
+        // historical row count.
+        expect(await lines.count()).toBeGreaterThanOrEqual(6);
         await expect(page.locator("[data-stock-operation-line-details]:visible")).toHaveCount(1);
         await expect(lines.filter({ has: page.locator('input[name="line_enabled"]:not(:checked)') }).locator('[data-stock-operation-line-details]:visible')).toHaveCount(0);
         await lines.nth(1).locator('input[name="line_enabled"]').check();

@@ -210,6 +210,19 @@ export function DashboardWorkspace({ summary }: { summary: DashboardSummary }) {
                 { href: "/stock-counts", label: "Stock count", icon: CheckCircle2 },
               ];
 
+  const desktopActionRail = (
+    <ConsoleSection title="Actions">
+      <div className="grid gap-2" data-dashboard-actions>
+        {quickActions.map((action) => {
+          const Icon = action.icon;
+          return <Button key={action.href} asChild size="sm" className="w-full justify-start gap-2">
+            <Link prefetch={false} href={action.href}><Icon className="h-4 w-4" aria-hidden="true" />{action.label}</Link>
+          </Button>;
+        })}
+      </div>
+    </ConsoleSection>
+  );
+
   const workspaceContext = (
     <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-4" data-dashboard-identity>
       <span className="sr-only">Welcome, {summary.userName} <span>|</span> {summary.roleLabel} <span>|</span> {summary.branchLabel}</span>
@@ -236,20 +249,8 @@ export function DashboardWorkspace({ summary }: { summary: DashboardSummary }) {
   return (
     <WorkspaceGrid
       hideMobileConsole
-      rightRail={isOutlet ? undefined : (
-        <ConsoleSection title="Actions">
-          <div className="grid gap-2" data-dashboard-actions>
-            {quickActions.map((action, index) => {
-              const Icon = action.icon;
-              return (
-                <Button key={action.href} asChild size="sm" variant={index === 0 ? "default" : "outline"} className="w-full justify-center">
-                  <Link prefetch={false} href={action.href}><Icon className="h-4 w-4" aria-hidden="true" />{action.label}</Link>
-                </Button>
-              );
-            })}
-          </div>
-        </ConsoleSection>
-      )}
+      tabletRailMode="context"
+      rightRail={desktopActionRail}
       className="gap-4 p-3 pb-32 sm:p-4 sm:pb-24 xl:pb-4"
     >
       <div className="space-y-4">

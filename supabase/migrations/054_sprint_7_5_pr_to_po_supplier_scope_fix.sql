@@ -115,7 +115,7 @@ begin
   insert into public.purchase_orders (
     id, company_id, document_id, purchase_request_id, branch_id, po_no, supplier_id,
     order_date, expected_delivery_date, priority, needed_by_date, urgency_reason,
-    production_risk, status, approval_status, remarks, created_by, updated_by
+    production_risk, status, approval_status, remarks, created_by, updated_by, idempotency_key
   ) values (
     new_order_id, request_row.company_id, new_document_id, request_row.id, request_row.branch_id,
     normalized_po_no, selected_supplier_id, request_row.request_date,
@@ -124,7 +124,7 @@ begin
     request_row.production_risk, 'approved', 'approved',
     case when request_row.remarks is null then 'Created from ' || request_row.request_no || '.'
          else 'Created from ' || request_row.request_no || '. ' || request_row.remarks end,
-    actor.id, actor.id
+    actor.id, actor.id, gen_random_uuid()
   );
 
   insert into public.purchase_order_lines (

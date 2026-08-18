@@ -1730,6 +1730,16 @@ html[data-design-layer="v2"] .sb-list-content-card {
     gap: .5rem;
   }
 
+  /* Tablet has enough room for a deliberate two-sided command row: filters
+     stay grouped at the left, while Search and the result count stay together
+     at the right. The grid tracks preserve breathing room between them and
+     avoid making every control fill the full card width. */
+  html[data-design-layer="v2"] form.sb-list-query-card[data-tablet-query-layout="query"] > .unified-list-desktop-actions {
+    grid-column: -2 / -1;
+    justify-self: end;
+    margin-left: auto;
+   }
+
   html[data-design-layer="v2"] form.sb-list-query-card:is([data-tablet-query-layout="query"], [data-tablet-query-layout="controls"]) > .unified-list-desktop-actions > .unified-list-action {
     width: 7.5rem !important;
     min-width: 7.5rem !important;

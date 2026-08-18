@@ -173,7 +173,7 @@ begin
     from public.purchase_request_lines line
     join public.suppliers supplier on supplier.id = line.suggested_supplier_id
     where line.purchase_request_id = request_row.id
-    order by supplier.code nulls last, supplier.name, line.created_at, line.id
+    order by supplier.supplier_code nulls last, supplier.name, line.created_at, line.id
     limit 1;
     if primary_supplier_id is null then
       raise exception 'Choose a supplier for every PR line before completing Purchasing Review.';

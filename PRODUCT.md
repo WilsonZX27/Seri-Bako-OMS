@@ -4,12 +4,15 @@
 
 The current released application baseline is `v8.64.55` — Bounded Reads And Explicit Receipt Provenance.
 
-### v8.64.56 (unreleased) — P0 Workflow, Responsive Closure, And Release Evidence
+### v8.64.56 (unreleased) — P0 Workflow, Supplier Resolution, And Release Evidence
 
 - Purchase Request Manager, Purchasing, and Finance transitions now require the exact owning workflow role in the server action and are backed by migration 157; `super_admin` remains the documented break-glass role.
 - The annotated P0 responsive issues are closed in the shared layout authority: duplicate Dashboard rails are removed, tablet filters retain the two-row grammar, wide production lists expand, document forms use one workflow surface, and high-density outlet/AP/wastage panels are compact without losing the accessible data alternative.
 - Common procurement UOM choices are available at request-line entry while supplier/item conversion remains a receiving/master-data responsibility.
 - Local release evidence for this forward contract: 751/751 contract tests, lint, production build, 7/7 six-role Dashboard viewport tests, and 5/5 focused P0 browser tests. This section is not production-release evidence until migration 157 and the application are separately promoted and reverified.
+- Purchase Request detail resolves supplier presentation from the historical line snapshot first, then item-master and branch supplier mappings, so legacy lines no longer appear falsely unassigned while preserving the original audit record.
+- Purchase Request to Purchase Order conversion now generates the required purchase-order idempotency key and keeps supplier-split ordering aligned with the supplier master schema (migrations 164–165).
+- Legacy PR lines are resolved only when branch + item + UOM identify one supplier (or one preferred mapping); ambiguous lines remain explicitly blocked for Purchasing review (migration 166).
 
 ### v8.64.55 — Bounded Reads And Explicit Receipt Provenance
 
@@ -217,7 +220,7 @@ rewrite navigation and overflow behavior.
 Historical release context: `v8.64.6 — Reliable Outlet Daily Reads`; earlier context: `v8.64.5 — Verified Receiving Provenance`, `v8.64.4 — Stable Report Preview Surfaces`, and `v8.63.0 — Fail-Closed Goods Receiving Joins`.
 
 The lines below are retained as historical release context; the current authority is the v8.64.39 release declaration above.
-The repository migration history currently runs through migration `157`. Release
+The repository migration history currently runs through migration `166`. Release
 version authority lives in `src/lib/app-version.ts`; migration authority lives in
 the immutable, forward-only `supabase/migrations/` directory. Documentation must
 not claim a later release or database ceiling unless both authorities support it.
@@ -377,10 +380,10 @@ The system currently covers or is actively implementing the following operationa
 
 Module maturity must be understood separately from visual completion.
 
-Repository migrations reviewed through `157`; release authority is
+Repository migrations reviewed through `166`; release authority is
 `v8.64.55 — Bounded Reads And Explicit Receipt Provenance`.
 
-Current integration baseline: `v8.64.55 — Bounded Reads And Explicit Receipt Provenance`, with repository migrations reviewed through `157`. The local P0 patch is the unreleased `v8.64.56` forward contract and must not be treated as Production evidence. Migrations `111` and `112` remain immutable history because they were applied to the linked database accidentally. Migration `113` removes their callable Central Kitchen PR RPC, prevents further access to the stock-holds table, and preserves that table temporarily for a non-destructive data audit. Later forward-only migrations add bounded inventory and Dashboard read models, repair grants and scoped access, introduce branch supply-route and received-quantity provenance, preserve unmatched PR entry as auditable non-catalog lines, split approved purchase requests atomically by supplier, make Item Master the authority for supplier-item identity, bound historical inventory opening reads, preserve explicit outlet receipt zeros, and remove leaked PR approval grants from non-owning workflow roles; they do not restore the retired Central Kitchen PR workflow.
+Current integration baseline: `v8.64.55 — Bounded Reads And Explicit Receipt Provenance`, with repository migrations reviewed through `166`. The local P0 patch is the unreleased `v8.64.56` forward contract and must not be treated as Production application evidence. Migrations `111` and `112` remain immutable history because they were applied to the linked database accidentally. Migration `113` removes their callable Central Kitchen PR RPC, prevents further access to the stock-holds table, and preserves that table temporarily for a non-destructive data audit. Later forward-only migrations add bounded inventory and Dashboard read models, repair grants and scoped access, introduce branch supply-route and received-quantity provenance, preserve unmatched PR entry as auditable non-catalog lines, split approved purchase requests atomically by supplier, make Item Master the authority for supplier-item identity, bound historical inventory opening reads, preserve explicit outlet receipt zeros, remove leaked PR approval grants from non-owning workflow roles, allow item-master suppliers as a controlled PR fallback, deterministically backfill supplier identities from unique stock-take category matches, repair supplier split ordering, satisfy purchase-order idempotency invariants, and resolve deterministic legacy PR supplier snapshots; they do not restore the retired Central Kitchen PR workflow.
 
 A page may exist visually without its full workflow, validation, database integration, permissions, and downstream effects being complete.
 

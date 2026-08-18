@@ -53,6 +53,6 @@ export default async function NewOutletDailyRecordPage({ searchParams }: { searc
     tabletRailMode="split"
   >
     {filters.error ? <Card><CardContent className="p-3 text-sm text-destructive">{filters.error}</CardContent></Card> : null}
-    <OutletDailyRecordForm formId={formId} action={saveOutletDailyRecord} branches={options.branches} products={options.products} branchId={selectedBranchId} recordDate={recordDate} defaultsByBranch={options.defaultsByBranch} canEditQtySent={permissions["outlet_daily_record.qty_sent"]} canEditOutletValues={permissions["outlet_daily_record.update"]} />
+    <OutletDailyRecordForm formId={formId} action={saveOutletDailyRecord} branches={options.branches} products={options.products} branchId={selectedBranchId} recordDate={recordDate} defaultsByBranch={options.defaultsByBranch} validationError={filters.error} canEditQtySent={permissions["outlet_daily_record.qty_sent"]} canEditOutletValues={permissions["outlet_daily_record.update"]} />
   </DocumentWorkspace>;
 }

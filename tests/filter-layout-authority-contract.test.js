@@ -67,4 +67,6 @@ test("shared query controls keep compact text and bounded tablet measures", () =
   assert.match(canonical, /form\.sb-list-query-card :where\(input, select, button[\s\S]*?font-size: 0\.75rem !important;/);
   assert.match(canonical, /@media \(min-width: 640px\) and \(max-width: 1279px\)[\s\S]*?\.sb-list-query-card:is\(\[data-tablet-query-layout="query"\], \[data-tablet-query-layout="controls"\]\) > :where\(select[\s\S]*?width: 9rem !important;/);
   assert.match(canonical, /\.unified-list-desktop-actions > \.unified-list-action \{[\s\S]*?width: 7\.5rem !important;/);
+  assert.match(canonical, /Tablet has enough room for a deliberate two-sided command row/);
+  assert.match(canonical, /form\.sb-list-query-card\[data-tablet-query-layout="query"\] > \.unified-list-desktop-actions[\s\S]*?grid-column: -2 \/ -1[\s\S]*?justify-self: end/);
 });

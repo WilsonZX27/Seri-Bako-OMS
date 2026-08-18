@@ -1,14 +1,14 @@
 # Seri Bako OMS — Schema 与 Table 关系地图
 
-> 2026-08-17 release authority：仓库 forward-only migration 历史已到 `157`；migrations `152–154` 依次新增 lossless non-catalog Purchase Request lines、按 supplier 原子拆分 PR，以及由 Item Master 统一 supplier-item identity；migrations `155–156` 分别收紧库存 opening 读取边界与 Outlet Daily receipt provenance；migration `157` 收紧 PR 三段审批的角色职责分离。此记录只证明 repository authority，不证明已部署到 Production。
+> 2026-08-19 release authority：仓库 forward-only migration 历史已到 `166`；migrations `152–154` 依次新增 lossless non-catalog Purchase Request lines、按 supplier 原子拆分 PR，以及由 Item Master 统一 supplier-item identity；migrations `155–156` 分别收紧库存 opening 读取边界与 Outlet Daily receipt provenance；migration `157` 收紧 PR 三段审批的角色职责分离；migration `162` 允许无 branch override 时回退 Item Master supplier；migration `163` 只补全唯一、确定性的 stock-take supplier category 匹配；migrations `164–165` 修复 supplier split ordering 与 PO conversion idempotency；migration `166` 只对 branch + item + UOM 能确定唯一 supplier 的旧 PR line 回写 supplier snapshot，歧义项保持待 Purchasing 处理。此记录只证明 repository authority，不证明应用版本已部署到 Production。
 
 > 读取时间：2026-07-23。来源为本机运行中的 Supabase/PostgreSQL `public` schema，**不是 Production 线上库**。
 >
 > 2026-07-23 原始读取结果：61 张基础表、5 个只读库存视图，当时仓库迁移到 089。本文件仍是历史实库快照，不是当前 Production schema 证明。
 >
-> 2026-08-17 仓库核对：forward-only migration 历史已到 `157`。权威顺序为：目标数据库的 `schema_migrations` 与实际 catalog → 仓库 `supabase/migrations/` → 本历史关系图。不要仅凭本文件执行删除、重命名或 Production 变更。
+> 2026-08-19 仓库核对：forward-only migration 历史已到 `166`。权威顺序为：目标数据库的 `schema_migrations` 与实际 catalog → 仓库 `supabase/migrations/` → 本历史关系图。不要仅凭本文件执行删除、重命名或 Production 变更。
 
-## 2026-08-17 repository 增量（migrations 128–157）
+## 2026-08-19 repository 增量（migrations 128–166）
 
 以下只记录从 migration 文件直接验证到的结构/读模型变化，不声称这些 migration 已部署到任何特定 Production 项目：
 
@@ -26,6 +26,11 @@
 
 - `156` 将 Outlet Daily 的 `morning_received_provided` 从推导列改为显式存储事实；授权用户输入的 `0` 可验证显示，缺失/旧数据继续 fail closed。
 - `157` 删除非职责角色遗留的 PR Manager、Purchasing 与 Finance 审批授权，保留 `super_admin` 的受控 break-glass 能力。
+- `162` 统一 Purchase Request supplier 解析：branch supplier mapping 仍优先，没有 branch override 时允许使用 Item Master 的 active supplier；数据库 guard 与 transition validation 保持同一规则。
+- `163` 对 supplier 为空且 category 能唯一规范化匹配 active supplier code/name 的 Item Master 项目补回 supplier；多候选或无候选项目保持未配置，避免猜错供应商。
+- `164` 修复 supplier split transition 使用不存在的 `supplier.code` 字段，改为真实的 `supplier.supplier_code`。
+- `165` 让 PR → PO conversion 写入 `purchase_orders.idempotency_key`，满足已存在的 authenticated insert trigger，避免供应商资料正确却仍无法转换 PO。
+- `166` 在 PR 进入审批前解析旧 line 的 supplier snapshot；仅在 branch + item + UOM 唯一（或唯一 preferred）时自动回写，多个候选不猜测并保留为 Purchasing 的明确待办。
 
 - `128` 新增 RLS 保护的 `stock_balances_summary` 预聚合表及刷新函数，并提供 bounded Inventory Dashboard summary。
 - `129–137` 增加或迭代 Goods Receiving、Items workspace、Stock Card、Stock Ledger、Dashboard、Payables attention 等有界 RPC/read models。

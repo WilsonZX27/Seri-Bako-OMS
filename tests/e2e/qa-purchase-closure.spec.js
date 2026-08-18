@@ -142,15 +142,21 @@ test.describe("QA- procurement payment closure", () => {
     await page.setViewportSize({ width: 375, height: 812 });
     await login(page, "kitchen");
     await page.goto("/purchase-requests/new", { waitUntil: "domcontentloaded" });
-    const itemInput = page.locator('input[list="purchase-request-items"]').first();
-    console.log("QA item options", await page.locator("datalist#purchase-request-items option").evaluateAll((options) => options.map((option) => option.getAttribute("value"))));
+    const itemInput = page.locator('input[role="combobox"][placeholder*="Search any words in item name or code"]').first();
+    await expect(itemInput).toBeVisible();
     await itemInput.fill(fixture.itemCode);
-    await itemInput.press("Tab");
+    // Exact code entry is intentionally accepted immediately by the combobox;
+    // the dropdown is only needed for fuzzy matches and closes after selection.
     await expect(page.locator('input[name="line_item_id"]').first()).toHaveValue(fixture.item);
     await page.locator('input[name="line_qty"]').first().fill("2");
     await page.locator('select[name="line_uom"]').first().selectOption("KG");
-    await expect(page.getByRole("button", { name: "Submit PR" }).first()).toBeEnabled();
-    await page.getByRole("button", { name: "Submit PR" }).first().click();
+    const submitPr = page.locator('[data-mobile-document-action] button[type="submit"][name="intent"][value="submit"]');
+    // The mobile action rail intentionally yields while an editable control
+    // owns focus; blur the UOM control before asserting the rail is visible.
+    await page.evaluate(() => (document.activeElement instanceof HTMLElement ? document.activeElement.blur() : undefined));
+    await expect(submitPr).toBeVisible();
+    await expect(submitPr).toBeEnabled();
+    await submitPr.click();
     await page.waitForURL(/\/purchase-requests\/[0-9a-f-]+/i, { timeout: 30_000 });
     await expect(page.locator("body")).toContainText(/Manager Review/i);
     created.prUrl = page.url();
@@ -194,10 +200,10 @@ test.describe("QA- procurement payment closure", () => {
     await logout(page);
     await login(page, "superAdmin");
     await page.goto(created.prUrl, { waitUntil: "domcontentloaded" });
-    const convert = page.getByRole("button", { name: /Convert to Purchase Order/i }).first();
-    await expect(convert).toBeVisible();
-    await page.locator('input[name="autocount_po_no"]:visible').first().fill(`QA-AUTOCOUNT-${fixture.suffix}-超长编号-中文`);
-    await convert.click();
+    const convertForm = page.locator('form:visible').filter({ has: page.locator('input[name="autocount_po_no"]') }).first();
+    await expect(convertForm).toBeVisible();
+    await convertForm.locator('input[name="autocount_po_no"]').fill(`QA-AUTOCOUNT-${fixture.suffix}-超长编号-中文`);
+    await convertForm.getByRole("button", { name: /Convert to Purchase Order/i }).click();
     await page.waitForURL(/\/purchase-orders\/[0-9a-f-]+/i, { timeout: 30_000 });
     created.poUrl = page.url();
     created.poId = new URL(page.url()).pathname.split("/").pop();
@@ -227,9 +233,14 @@ test.describe("QA- procurement payment closure", () => {
     await logout(page);
     await login(page, "kitchen");
     await page.goto(`/goods-receivings/new?po_id=${created.poId}`, { waitUntil: "domcontentloaded" });
-    await page.locator('input[name="delivery_order_no"]').fill(`QA-DO-${fixture.suffix}-中文`);
+    const receivingSetupToggle = page.locator('button[aria-controls="goods-receiving-setup-fields"]');
+    const deliveryOrderInput = page.locator('input[name="delivery_order_no"]:not([type="hidden"])');
+    await expect(receivingSetupToggle).toBeVisible();
+    if (await page.locator('input[name="delivery_order_no"]:not([type="hidden"])').count() === 0) await receivingSetupToggle.click();
+    await expect(deliveryOrderInput).toBeVisible();
+    await deliveryOrderInput.fill(`QA-DO-${fixture.suffix}-中文`);
     await page.locator('input[name="line_received_qty"]').first().fill("2");
-    await page.getByRole("button", { name: /Record Receiving & Attach DO/i }).first().click();
+    await page.getByRole("button", { name: /Save receiving draft/i }).first().click();
     await page.waitForURL(/\/goods-receivings\/[0-9a-f-]+/i, { timeout: 30_000 });
     created.grnUrl = page.url();
     created.grnId = new URL(page.url()).pathname.split("/").pop();
@@ -246,7 +257,7 @@ test.describe("QA- procurement payment closure", () => {
     await logout(page);
     await login(page, "finance");
     await page.goto(`/supplier-invoices/new?supplier_id=${fixture.supplier}`, { waitUntil: "domcontentloaded" });
-    await page.getByLabel(/Select QA-采购测试项目/i).check();
+    await page.locator('input[type="checkbox"][aria-label^="Select QA-采购测试项目"]:visible').first().check();
     await expect.poll(() => page.locator('input[name="lines"]').first().inputValue(), { timeout: 10_000 }).not.toBe("[]");
     await page.locator('input[name="supplier_invoice_no"]').fill(`QA-INVOICE-${fixture.suffix}-中文`);
     await page.getByRole("button", { name: /Save Invoice Details/i }).first().click();

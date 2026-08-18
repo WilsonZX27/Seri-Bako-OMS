@@ -32,3 +32,12 @@ test("linked orders and document activity distinguish unavailable from empty", (
   assert.match(page, /documentBundleUnavailable[\s\S]*Document Activity/);
   assert.match(page, /documentBundleUnavailable[\s\S]*md:hidden[\s\S]*Document activity unavailable/);
 });
+
+test("request detail resolves current branch supplier mappings for legacy lines", () => {
+  assert.match(page, /function resolveSupplierPresentation/);
+  assert.match(page, /const branchMappings = supplierMappings\?\.filter/);
+  assert.match(page, /currentMapping = compatibleMappings\.find\(\(mapping\) => mapping\.is_preferred\)/);
+  assert.match(page, /Supplier assignment required/);
+  assert.match(page, /state:[\s\S]*assignment_required/);
+  assert.doesNotMatch(page, /No supplier suggested/);
+});

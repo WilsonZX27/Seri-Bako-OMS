@@ -197,7 +197,11 @@ begin
   order by created_at asc
   limit 1;
   if target_company_id is null then
-    raise exception 'Cannot reconcile Alma stock take: active CK @ ALMA branch was not found.';
+    -- This is an optional data reconciliation, not a schema prerequisite.
+    -- Fresh/local tenants may use a different central-kitchen label; do not
+    -- make the entire migration chain fail when the Alma branch is absent.
+    raise notice 'Skipping Alma stock-take reconciliation: active CK @ ALMA branch was not found.';
+    return;
   end if;
 
   -- When a stock-take code is new but the same item is already present under

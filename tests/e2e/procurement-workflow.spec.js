@@ -16,9 +16,11 @@ test("manager opens a manager approval PR", async ({ page }) => {
   test.skip(await page.getByText(/No (purchase requests found|requests match these filters)/i).first().isVisible(), "No live Manager Review PR fixture is available.");
   const firstPr = page.locator("tbody tr").first();
   await expect(firstPr).toBeVisible();
-  await firstPr.getByRole("link", { name: /^PR-/ }).click();
+  // Purchase request rows are keyboard/double-click navigable grid rows; the
+  // document number is deliberately rendered as a non-link badge.
+  await firstPr.dblclick();
   await expect(page).toHaveURL(/\/purchase-requests\//);
-  await expect(page.getByRole("button", { name: /manager approve/i })).toBeVisible();
+  await expect(page.getByRole("button", { name: /approve as manager/i })).toBeVisible();
 });
 
 test("Purchasing can open purchasing review filter", async ({ page }) => {

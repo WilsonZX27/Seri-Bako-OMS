@@ -16,6 +16,7 @@ import { BlockedDestructiveAction } from "@/components/ui/danger-confirm-form";
 import { DangerConfirmForm } from "@/components/ui/danger-confirm-form";
 import { getPrWorkflowLabel, getPrWorkflowStep, PR_WORKFLOW_STEP_LABELS, PURCHASE_REQUEST_WORKFLOW_STEPS } from "@/lib/purchase-request-status";
 import { formatCurrency, formatDateOnly, formatNumber } from "@/lib/utils";
+import { normalizeUom } from "@/lib/uom";
 import {
   adminApprovePurchaseRequest,
   cancelPurchaseRequest,
@@ -56,6 +57,56 @@ const prSteps = PURCHASE_REQUEST_WORKFLOW_STEPS.map((step) => ({
 
 function isStatus(status: string, ...matches: string[]) {
   return matches.includes(status);
+}
+
+type SupplierPresentation = {
+  name: string | null;
+  state: "resolved" | "assignment_required" | "details_unavailable";
+};
+
+function resolveSupplierPresentation({
+  line,
+  item,
+  branchId,
+  supplierById,
+  suppliersAvailable,
+  supplierMappings,
+}: {
+  line: { item_id: string; suggested_supplier_id: string | null; uom: string };
+  item: { supplier_id: string | null } | undefined;
+  branchId: string | null;
+  supplierById: Map<string, { name: string }>;
+  suppliersAvailable: boolean;
+  supplierMappings: Array<{
+    branch_id: string;
+    item_id: string;
+    supplier_id: string;
+    supplier_name: string;
+    purchase_uom: string;
+    is_preferred: boolean;
+  }> | null;
+}): SupplierPresentation {
+  const branchMappings = supplierMappings?.filter((mapping) => mapping.branch_id === branchId && mapping.item_id === line.item_id) ?? [];
+  const compatibleMappings = branchMappings.filter((mapping) => normalizeUom(mapping.purchase_uom) === normalizeUom(line.uom));
+  const explicitSupplierId = line.suggested_supplier_id ?? item?.supplier_id ?? null;
+  const explicitMapping = explicitSupplierId
+    ? compatibleMappings.find((mapping) => mapping.supplier_id === explicitSupplierId) ?? branchMappings.find((mapping) => mapping.supplier_id === explicitSupplierId)
+    : null;
+
+  if (explicitSupplierId) {
+    const name = supplierById.get(explicitSupplierId)?.name ?? explicitMapping?.supplier_name ?? null;
+    return {
+      name,
+      state: name ? "resolved" : "details_unavailable",
+    };
+  }
+
+  const currentMapping = compatibleMappings.find((mapping) => mapping.is_preferred) ?? (compatibleMappings.length === 1 ? compatibleMappings[0] : null);
+  if (currentMapping?.supplier_name) return { name: currentMapping.supplier_name, state: "resolved" };
+  return {
+    name: null,
+    state: suppliersAvailable && supplierMappings !== null ? "assignment_required" : "details_unavailable",
+  };
 }
 
 export default async function PurchaseRequestDetailPage({
@@ -282,7 +333,7 @@ export default async function PurchaseRequestDetailPage({
                       <TableHeader>
                         <TableRow>
                           <TableHead>Item</TableHead>
-                          <TableHead>Supplier Suggestion</TableHead>
+                           <TableHead>Supplier</TableHead>
                           <TableHead className="text-right">Qty</TableHead>
                           <TableHead>UOM</TableHead>
                           {canViewCommercial ? <TableHead className="text-right">Est. Cost</TableHead> : null}
@@ -292,15 +343,18 @@ export default async function PurchaseRequestDetailPage({
                       <TableBody>
                         {lines.map((line) => {
                           const item = itemById.get(line.item_id);
-                          const supplier = line.suggested_supplier_id
-                            ? supplierById.get(line.suggested_supplier_id)
-                            : item?.supplier_id
-                              ? supplierById.get(item.supplier_id)
-                              : null;
+                          const supplier = resolveSupplierPresentation({
+                            line,
+                            item,
+                            branchId: request.branch_id,
+                            supplierById,
+                            suppliersAvailable: suppliers !== null,
+                            supplierMappings,
+                          });
                           return (
                             <TableRow key={line.id}>
                               <TableCell><p className="font-medium">{!items ? "Item details unavailable" : item?.item_name ?? line.item_id}</p><p className="text-xs text-muted-foreground">{!items ? `Reference ${line.item_id}` : item?.item_code ?? "No item code"}</p></TableCell>
-                              <TableCell><span className="text-muted-foreground">{line.suggested_supplier_id && !suppliers ? "Supplier details unavailable" : supplier?.name ?? "No supplier suggested"}</span></TableCell>
+                              <TableCell><span className={supplier.state === "details_unavailable" ? "text-[var(--sb-warning)]" : supplier.state === "assignment_required" ? "font-medium text-[var(--sb-warning)]" : "text-muted-foreground"}>{supplier.state === "details_unavailable" ? "Supplier details unavailable" : supplier.state === "assignment_required" ? "Supplier assignment required" : supplier.name}</span></TableCell>
                               <TableCell className="text-right">{formatNumber(line.qty)}</TableCell>
                               <TableCell>{line.uom}</TableCell>
                               {canViewCommercial ? <TableCell className="text-right">{formatCurrency(line.estimated_unit_cost)}</TableCell> : null}
@@ -321,12 +375,15 @@ export default async function PurchaseRequestDetailPage({
                   <div className="divide-y divide-[var(--sb-border-soft)] xl:hidden" role="list" aria-label="Requested items">
                     {lines.map((line) => {
                       const item = itemById.get(line.item_id);
-                      const supplier = line.suggested_supplier_id
-                        ? supplierById.get(line.suggested_supplier_id)
-                        : item?.supplier_id
-                          ? supplierById.get(item.supplier_id)
-                          : null;
-                      return <div key={line.id} role="listitem" className="min-w-0 py-3 text-[13px]"><div className="flex min-w-0 items-start justify-between gap-3"><div className="min-w-0"><p className="break-words font-semibold">{!items ? "Item details unavailable" : item?.item_name ?? line.item_id}</p><p className="text-[12px] text-muted-foreground">{!items ? `Reference ${line.item_id}` : item?.item_code ?? "No item code"}</p></div><p className="shrink-0 font-semibold">{formatNumber(line.qty)} {line.uom}</p></div>{line.suggested_supplier_id && !suppliers ? <p className="mt-1 break-words text-[12px] text-[var(--sb-warning)]">Supplier details unavailable</p> : supplier ? <p className="mt-1 break-words text-[12px] text-muted-foreground">Supplier: {supplier.name}</p> : null}{line.reason ? <p className="mt-1 break-words text-[12px] text-muted-foreground">{line.reason}</p> : null}{canViewCommercial ? <p className="mt-1 text-right text-[12px] font-medium">{formatCurrency(line.estimated_unit_cost)} / {line.uom}</p> : null}</div>;
+                      const supplier = resolveSupplierPresentation({
+                        line,
+                        item,
+                        branchId: request.branch_id,
+                        supplierById,
+                        suppliersAvailable: suppliers !== null,
+                        supplierMappings,
+                      });
+                      return <div key={line.id} role="listitem" className="min-w-0 py-3 text-[13px]"><div className="flex min-w-0 items-start justify-between gap-3"><div className="min-w-0"><p className="break-words font-semibold">{!items ? "Item details unavailable" : item?.item_name ?? line.item_id}</p><p className="text-[12px] text-muted-foreground">{!items ? `Reference ${line.item_id}` : item?.item_code ?? "No item code"}</p></div><p className="shrink-0 font-semibold">{formatNumber(line.qty)} {line.uom}</p></div>{supplier.state === "details_unavailable" ? <p className="mt-1 break-words text-[12px] text-[var(--sb-warning)]">Supplier details unavailable</p> : <p className={supplier.state === "assignment_required" ? "mt-1 break-words text-[12px] font-medium text-[var(--sb-warning)]" : "mt-1 break-words text-[12px] text-muted-foreground"}>Supplier: {supplier.name ?? "Supplier assignment required"}</p>}{line.reason ? <p className="mt-1 break-words text-[12px] text-muted-foreground">{line.reason}</p> : null}{canViewCommercial ? <p className="mt-1 text-right text-[12px] font-medium">{formatCurrency(line.estimated_unit_cost)} / {line.uom}</p> : null}</div>;
                     })}
                     {unresolvedLines.map((line) => <div key={line.id} role="listitem" className="min-w-0 py-3 text-[13px]"><div className="flex min-w-0 items-start justify-between gap-3"><div className="min-w-0"><p className="break-words font-semibold">{line.requested_description}</p><p className="text-[12px] font-medium text-[var(--sb-warning)]">Non-catalog item · Purchasing match required</p></div><p className="shrink-0 font-semibold">{formatNumber(line.requested_qty)} {line.requested_uom}</p></div>{line.remarks ? <p className="mt-1 text-[12px] text-muted-foreground">{line.remarks}</p> : null}{canAdminReview && items ? <div className="mt-2"><PurchaseRequestLineResolutionForm action={resolvePurchaseRequestUnresolvedLine.bind(null, request.id)} items={items} unresolvedLineId={line.id} description={line.requested_description} /></div> : null}</div>)}
                   </div>

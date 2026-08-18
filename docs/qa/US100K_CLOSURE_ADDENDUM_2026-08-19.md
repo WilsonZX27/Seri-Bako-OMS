@@ -2,8 +2,8 @@
 
 **Date:** 2026-08-19 (Asia/Kuala_Lumpur)  
 **Branch:** `codex/uiux-round2`  
-**Commit:** `0de7aed` (`docs: refresh closure revision receipt`)
-**Latest code revision under review:** `0de7aed`; the preceding `35bfdf5` commit includes the shared tablet fix follow-up, item sourcing readiness read model, and local E2E env parser hardening.
+**Commit:** `35c41dc` (`test: classify responsive document workflows`)
+**Latest code revision under review:** `35c41dc`; the preceding `8aa6877` and `35bfdf5` commits include the closure receipt, shared tablet fix follow-up, item sourcing readiness read model, and local E2E env parser hardening.
 
 ## What was actually fixed
 
@@ -94,7 +94,7 @@ CSS-hidden controls rather than treating them as visible accessibility failures.
 | `npm run test:contract` | PASS | 765 passed, 0 failed |
 | `node --test tests/item-creation-atomic-contract.test.js` | PASS | 2 passed, 0 failed |
 | `node --test tests/filter-layout-authority-contract.test.js tests/workspace-canvas-authority-contract.test.js tests/cross-platform-shell-contract.test.js` | PASS | 21 passed, 0 failed; shared tablet filter geometry |
-| `release-mobile-ux-7-5.spec.js` targeted mobile shell | PASS | 1/1 after aligning local fixture env parsing; full viewport/role run was not claimed because the dev-server chain exceeded the bounded run window |
+| `release-mobile-ux-7-5.spec.js` | PASS | 8 passed, 1 skipped on the isolated local fixture server; skip is the intentionally absent Manager Review fixture |
 | `npm run build` | PASS | 75/75 static pages |
 | Preview runtime reachability | PASS | Latest preview `/login` returned HTTP 200; unauthenticated `/items/new` returned HTTP 302 to Vercel SSO, so the protected form was not exposed |
 | Supabase migration 167 | PASS | Applied to local and linked databases; CLI emitted a non-blocking pg-delta certificate-cache warning after applying |
@@ -102,9 +102,10 @@ CSS-hidden controls rather than treating them as visible accessibility failures.
 | `administration-master-data-ux.spec.js` | PASS | 2/2; cross-route right-rail content stayed present after the ownership fix |
 | `release-gate-7-23-5-7.spec.js` | PASS | shared visual/accessibility gate 1/1 plus logout 1/1; Action column measured at 40px |
 | `release-mobile-ux-7-5.spec.js` | PASS | 7/7; phone FAB/document action, unified filter drawer, empty states, desktop rail and 768–1023 split-rail contract |
-| `role-workspaces-7-23-5-6.spec.js` | PASS | 6 role workspaces plus release-gate suite: 8/8 passed in the same local fixture run |
+| `role-workspaces-7-23-5-6.spec.js` | PASS | 6/6 role workspaces passed on the isolated local fixture server |
+| `document-workspaces-7-23-5-5.spec.js` | PASS | 8/8 passed against an isolated production-mode local server; stock-count/create routes are correctly excluded from approval-workflow-only assertions |
 | `p0-browser-comments.spec.js` | PASS | 6/6 local tests passed after giving the two intentionally long cross-route viewport chains an explicit 120-second budget; no assertion failure remained |
-| Git push | PASS | `origin/codex/uiux-round2` at `0de7aed` |
+| Git push | PASS | `origin/codex/uiux-round2` at `35c41dc` |
 
 ## Deployment receipt
 
@@ -128,7 +129,7 @@ endpoint is reachable and reports `v8.64.55`, but that is availability evidence,
 not proof that the current branch revision is live. Promotion remains an explicit
 owner decision after the post-deploy matrix below passes.
 
-The unrelated working-tree changes were intentionally not staged: `next-env.d.ts`, `supabase/.temp/cli-latest`, and `tests/e2e/helpers.js`. The local Playwright server parser is part of the current stability change.
+The unrelated working-tree changes were intentionally not staged: `supabase/.temp/cli-latest` and `tests/e2e/helpers.js`. The local Playwright server parser is part of the current stability change.
 
 ## What is not proven yet
 

@@ -8,8 +8,8 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
 type RightConsoleContextValue = {
-  setContent: (content: ReactNode, hideMobileBar?: boolean, hideDesktopConsole?: boolean) => void;
-  clearContent: () => void;
+  setContent: (owner: symbol, content: ReactNode, hideMobileBar?: boolean, hideDesktopConsole?: boolean) => void;
+  clearContent: (owner: symbol) => void;
 };
 
 const RightConsoleContext = createContext<RightConsoleContextValue | null>(null);
@@ -69,18 +69,22 @@ export function RightConsoleProvider({ children }: { children: ReactNode }) {
   const [content, setContentState] = useState<ReactNode>(null);
   const [mobileBarHidden, setMobileBarHidden] = useState(false);
   const [desktopConsoleHidden, setDesktopConsoleHidden] = useState(false);
+  const activeOwnerRef = useRef<symbol | null>(null);
   const [open, setOpen] = useState(false);
   const dialogRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
   const titleId = useId();
   const value = useMemo(
     () => ({
-      setContent: (nextContent: ReactNode, hideMobileBar = false, hideDesktopConsole = false) => {
+      setContent: (owner: symbol, nextContent: ReactNode, hideMobileBar = false, hideDesktopConsole = false) => {
+        activeOwnerRef.current = owner;
         setContentState(nextContent);
         setMobileBarHidden(hideMobileBar);
         setDesktopConsoleHidden(hideDesktopConsole);
       },
-      clearContent: () => {
+      clearContent: (owner: symbol) => {
+        if (activeOwnerRef.current !== owner) return;
+        activeOwnerRef.current = null;
         setContentState(null);
         setMobileBarHidden(false);
         setDesktopConsoleHidden(false);
@@ -203,8 +207,9 @@ export function RightConsoleMount({ children, hideMobileBar = false, hideDesktop
   const context = useContext(RightConsoleContext);
 
   useEffect(() => {
-    context?.setContent(children, hideMobileBar, hideDesktopConsole);
-    return () => context?.clearContent();
+    const owner = Symbol("right-console-mount");
+    context?.setContent(owner, children, hideMobileBar, hideDesktopConsole);
+    return () => context?.clearContent(owner);
   }, [children, context, hideMobileBar, hideDesktopConsole]);
 
   return null;

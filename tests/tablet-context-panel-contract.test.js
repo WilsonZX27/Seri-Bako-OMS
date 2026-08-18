@@ -29,3 +29,12 @@ test("the shared mobile actions sheet locks background scroll and keeps focus in
   assert.match(source, /role="dialog" aria-modal="true"/);
   assert.match(source, /event\.key !== "Tab"/);
 });
+
+test("stale route cleanups cannot clear a newer right-console mount", () => {
+  const source = fs.readFileSync("src/components/layout/right-console.tsx", "utf8");
+  assert.match(source, /activeOwnerRef = useRef<symbol \| null>\(null\)/);
+  assert.match(source, /setContent: \(owner: symbol, nextContent/);
+  assert.match(source, /if \(activeOwnerRef\.current !== owner\) return;/);
+  assert.match(source, /const owner = Symbol\("right-console-mount"\)/);
+  assert.match(source, /context\?\.clearContent\(owner\)/);
+});

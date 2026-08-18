@@ -68,7 +68,13 @@ export async function getBranches(filters: Filters = {}) {
   if (wantsArchived(filters.status)) query = query.not("deleted_at", "is", null);
   else if (!wantsAllStatuses(filters.status)) query = query.is("deleted_at", null);
   const search = filters.search?.trim().replace(/[,%()]/g, " ");
-  if (search) query = query.or(`branch_code.ilike.%${search}%,branch_name.ilike.%${search}%,branch_type.ilike.%${search}%`);
+  if (search) {
+    const normalizedType = search.toLowerCase().replace(/\s+/g, "_");
+    const branchTypes = ["central_kitchen", "outlet", "event_booth", "office", "other"];
+    const clauses = [`branch_code.ilike.%${search}%`, `branch_name.ilike.%${search}%`];
+    if (branchTypes.includes(normalizedType)) clauses.push(`branch_type.eq.${normalizedType}`);
+    query = query.or(clauses.join(","));
+  }
   if (filters.status && filters.status !== "all") query = query.eq("status", filters.status as "active" | "inactive" | "archived");
   const { data, error } = await query;
   if (error) throw new Error(error.message);

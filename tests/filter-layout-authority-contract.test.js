@@ -37,6 +37,7 @@ test("FilterBar geometry has one authoritative stylesheet", () => {
   assert.match(input, /unified-list-date-control/);
   assert.match(unifiedListHeader, /data-tablet-query-layout=\{tabletLayout\}/);
   assert.match(unifiedListHeader, /desktopControls\.length > 2[\s\S]*?"controls"/);
+  assert.match(unifiedListHeader, /desktopControls\.length \+ \(desktopActions\.length \? 2 : 0\)/);
   assert.match(designV2.slice(canonicalStart), /data-tablet-query-layout="controls"[\s\S]*?grid-column:\s*1 \/ -1/);
 });
 

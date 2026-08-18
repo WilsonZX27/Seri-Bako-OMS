@@ -2,9 +2,17 @@ import fs from "node:fs";
 import { createClient } from "@supabase/supabase-js";
 
 const envFile = process.env.TEST_ENV_FILE || ".env.test.local";
+function parseEnvValue(rawValue) {
+  const value = rawValue.trim();
+  if ((value.startsWith("\"") && value.endsWith("\"")) || (value.startsWith("'") && value.endsWith("'"))) {
+    return value.slice(1, -1);
+  }
+  const commentIndex = value.indexOf("#");
+  return (commentIndex >= 0 ? value.slice(0, commentIndex) : value).trim();
+}
 const env = Object.fromEntries(fs.readFileSync(envFile, "utf8").split(/\r?\n/).filter((line) => line && !line.startsWith("#") && line.includes("=")).map((line) => {
   const index = line.indexOf("=");
-  return [line.slice(0, index).trim(), line.slice(index + 1).trim().replace(/^['"]|['"]$/g, "")];
+  return [line.slice(0, index).trim(), parseEnvValue(line.slice(index + 1))];
 }));
 // This fixture deliberately avoids `supabase status`: recent Windows CLI builds
 // may try to write a global telemetry file, making a deterministic local test

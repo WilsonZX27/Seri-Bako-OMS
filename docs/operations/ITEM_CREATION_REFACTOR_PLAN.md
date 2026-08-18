@@ -1,6 +1,6 @@
 # Item creation refactor boundary
 
-**Status:** P1 design baseline — not yet implemented
+**Status:** P1 implementation baseline — local transaction and unified form implemented; linked/role/viewport proof pending
 
 ## Why the current flow feels fragmented
 
@@ -63,14 +63,18 @@ next action is visible without a generic toast.
 
 ## Implementation and proof gates
 
-1. Add the transactional RPC and migration with tenant/permission/RLS contract
-   tests, including rollback after a child insert failure.
-2. Add a progressive-disclosure form that reuses the existing supplier and branch
-   controls instead of creating a second set of selector semantics.
-3. Add readiness badges and a direct “Complete sourcing” action to item detail.
-4. Verify owner, purchasing and kitchen roles with a disposable fixture, then run
-   390/820/1440 viewport checks. Only after these pass should the old three-route
-   workflow be visually de-emphasised.
+1. **Implemented locally:** migration 168 adds the transactional RPC with
+   tenant/permission/RLS checks and a readiness response; the contract suite
+   covers the source boundary. Rollback remains a required linked-database proof.
+2. **Implemented locally:** the progressive-disclosure form reuses the existing
+   supplier and branch controls rather than introducing a second selector model.
+3. **Pending product proof:** add or verify the readiness badge and direct
+   “Complete sourcing” action on item detail; do not claim this gate complete from
+   the create-page transaction alone.
+4. **Pending release proof:** verify owner, purchasing and kitchen roles with a
+   disposable fixture, then capture 390/820/1440 viewport evidence. Keep the old
+   supplier-item and branch-mapping routes available for correction and bulk
+   maintenance until this proof is complete.
 
 This boundary keeps the user-facing flow simple while preserving the database
 truth needed for reliable PR validation, supplier attribution and future inventory

@@ -11,6 +11,14 @@
 
 The blank tablet filter controls were a shared `SelectControl` defect, not a page-by-page CSS defect. Radix Select was receiving a server `defaultValue` while its open state was controlled; after hydration, the trigger could remain visually empty. The component now keeps the uncontrolled/default path in internal state and passes a stable selected value to the shared root. This fixes every consumer through one authority.
 
+The follow-up tablet regression was also shared, not page-specific: the query
+header calculated grid tracks from filters alone while the Search/result group
+was placed into the final two tracks. On three- and four-control forms this
+could overlap the last filter or remove the intended breathing space. The
+shared header now reserves those two action tracks and keeps filters left,
+Search plus count right. Contract coverage was updated so a route cannot
+silently reintroduce the overlap.
+
 ### Low Stock healthy-empty state
 
 `getLowStockItems` treated a successful zero-row summary as an unavailable read and threw a blocking page error. The query now distinguishes:
@@ -79,6 +87,7 @@ CSS-hidden controls rather than treating them as visible accessibility failures.
 | `npm run lint` | PASS | `src` lint |
 | `npm run test:contract` | PASS | 765 passed, 0 failed |
 | `node --test tests/item-creation-atomic-contract.test.js` | PASS | 2 passed, 0 failed |
+| `node --test tests/filter-layout-authority-contract.test.js tests/workspace-canvas-authority-contract.test.js tests/cross-platform-shell-contract.test.js` | PASS | 21 passed, 0 failed; shared tablet filter geometry |
 | `npm run build` | PASS | 75/75 static pages |
 | Preview runtime reachability | PASS | Latest preview `/login` returned HTTP 200; unauthenticated `/items/new` returned HTTP 302 to Vercel SSO, so the protected form was not exposed |
 | Supabase migration 167 | PASS | Applied to local and linked databases; CLI emitted a non-blocking pg-delta certificate-cache warning after applying |

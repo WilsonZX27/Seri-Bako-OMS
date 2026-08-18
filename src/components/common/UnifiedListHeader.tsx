@@ -256,7 +256,10 @@ export function UnifiedListHeader({ children, resultCount, resetHref, filtered =
     const desktopActions = all.filter(isAction);
     const desktopHidden = all.filter(isHiddenControl);
     const desktopControls = all.filter((child) => !isAction(child) && !isHiddenControl(child));
-    const tabletColumns = Math.min(Math.max(desktopControls.length, 1), 4);
+    // Tablet keeps filters on the left and the command group on the right.
+    // Reserve two grid tracks for actions/count so the last filter cannot sit
+    // underneath Search when the query row is split into two rows.
+    const tabletColumns = Math.min(Math.max(desktopControls.length + (desktopActions.length ? 2 : 0), 3), 8);
     const tabletLayout = desktopControls.some(isQueryControl)
       ? "query"
       : desktopControls.length > 2

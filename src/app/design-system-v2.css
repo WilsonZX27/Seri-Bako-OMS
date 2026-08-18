@@ -1735,6 +1735,7 @@ html[data-design-layer="v2"] .sb-list-content-card {
      at the right. The grid tracks preserve breathing room between them and
      avoid making every control fill the full card width. */
   html[data-design-layer="v2"] form.sb-list-query-card[data-tablet-query-layout="query"] > .unified-list-desktop-actions {
+    /* The header component reserves the final two tracks for this group. */
     grid-column: -2 / -1;
     justify-self: end;
     margin-left: auto;

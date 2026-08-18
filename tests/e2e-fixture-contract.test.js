@@ -15,6 +15,8 @@ test("local Playwright role fixtures are explicit, disposable, and never enabled
   assert.match(config, /globalSetup:\s*usesLocalRoleFixture/);
   assert.match(config, /baseURL\s*=\s*startsLocalServer\s*\?\s*localBaseUrl\s*:/);
   assert.match(setup, /RUN_TENANT_BOUNDARY_E2E\s*!==\s*["']1["']/);
+  assert.match(seed, /function parseEnvValue/);
+  assert.match(seed, /commentIndex/);
   assert.match(seed, /auth\.admin\.updateUserById/);
   assert.match(seed, /auth\.admin\.createUser/);
   assert.match(seed, /NEXT_PUBLIC_SUPABASE_URL/);

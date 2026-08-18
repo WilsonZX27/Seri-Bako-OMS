@@ -33,8 +33,15 @@ async function assertStableDocument(page, route, width, navigate = true) {
   }
   await expect(documentBreadcrumb, `${route} at ${width}px`).toBeAttached();
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth + 1), `${route} at ${width}px overflows`).toBe(true);
-  if (width <= 767) {
+  const workflowDocument = route === "/purchase-requests/new" || ["purchase-orders", "goods-receivings", "supplier-invoices", "outlet-daily-records"]
+    .some((prefix) => route.startsWith(`/${prefix}/`) && !route.endsWith("/new"));
+  if (width <= 767 && workflowDocument) {
     await expect(page.getByRole("button", { name: "View workflow" })).toBeVisible();
+    await expect(page.locator("[data-tablet-document-inspector]")).toBeHidden();
+  } else if (width <= 767) {
+    // Stock counts and create forms share the record breadcrumb but do not
+    // require an approval workflow. Do not assert hidden implementation nodes;
+    // verify only the user-visible responsive surface.
     await expect(page.locator("[data-tablet-document-inspector]")).toBeHidden();
   } else if (width < 1280) {
     // Tablet workspaces stay full-width; the document inspector is desktop-only.

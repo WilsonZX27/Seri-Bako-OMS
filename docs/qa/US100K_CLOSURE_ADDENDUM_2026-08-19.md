@@ -54,6 +54,7 @@ remain available for later correction and bulk maintenance.
 | `npm run test:contract` | PASS | 762 passed, 0 failed |
 | `node --test tests/item-creation-atomic-contract.test.js` | PASS | 2 passed, 0 failed |
 | `npm run build` | PASS | 75/75 static pages |
+| Preview runtime reachability | PASS | `/login` returned HTTP 200; unauthenticated `/items/new` returned HTTP 302 to Vercel SSO, so the protected form was not exposed |
 | Supabase migration 167 | PASS | Applied to local and linked databases; CLI emitted a non-blocking pg-delta certificate-cache warning after applying |
 | Supabase migration 168 | LOCAL PASS / LINKED UNVERIFIED | Local schema is applied; linked status checks hit a Supabase login-role transport error and a full `--include-all` push was blocked because pending migration scope could not be proven |
 | `p0-browser-comments.spec.js` | 5 passed, 1 skipped | 820/1180 tablet filters, dashboard, UOM/PO, AP/outlet/production, Low Stock passed; Manager Review skipped because local fixture has 0 records |

@@ -8,6 +8,8 @@ const action = read("src/server/actions/items.ts");
 const form = read("src/components/item-form.tsx");
 const page = read("src/app/(app)/items/new/page.tsx");
 const types = read("src/types/database.ts");
+const detailPage = read("src/app/(app)/items/[id]/page.tsx");
+const masterDataQueries = read("src/server/queries/master-data.ts");
 
 test("operational item creation is one protected transaction boundary", () => {
   assert.match(migration, /create or replace function public\.create_operational_item/);
@@ -33,4 +35,14 @@ test("item creation form exposes optional sourcing without duplicating item iden
   assert.match(action, /readiness/);
   assert.match(types, /create_operational_item:/);
   assert.match(page, /getBranchesForSelect\(\{ restrictToActorScope: true \}\)/);
+});
+
+test("item detail explains sourcing readiness without replacing the mapping write authority", () => {
+  assert.match(masterDataQueries, /getItemSourcingReadiness/);
+  assert.match(masterDataQueries, /\.from\("supplier_items"\)/);
+  assert.match(masterDataQueries, /\.from\("branch_supplier_items"\)/);
+  assert.match(detailPage, /Sourcing readiness/);
+  assert.match(detailPage, /sourcing\.status/);
+  assert.match(detailPage, /supplier-items\/new\?itemId=/);
+  assert.match(detailPage, /supplier-items\?search=/);
 });

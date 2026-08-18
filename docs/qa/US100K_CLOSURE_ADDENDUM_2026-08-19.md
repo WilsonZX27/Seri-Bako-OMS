@@ -3,7 +3,7 @@
 **Date:** 2026-08-19 (Asia/Kuala_Lumpur)  
 **Branch:** `codex/uiux-round2`  
 **Commit:** `bb110f0` (`fix: close shared tablet filter geometry`)
-**Latest code revision under review:** `bb110f0` (`fix: close shared tablet filter geometry`)
+**Latest code revision under review:** working tree includes the shared tablet fix, item sourcing readiness read model, and local E2E env parser hardening; a new commit is required before release evidence is refreshed.
 
 ## What was actually fixed
 
@@ -52,6 +52,12 @@ become `supplier_ready`, or become `branch_ready` in one transaction. Supplier
 item code/name are not duplicated as user-owned identity; migration 154 keeps the
 Item Master authoritative. The existing supplier-item and branch-mapping screens
 remain available for later correction and bulk maintenance.
+
+The item detail workspace now also reads a bounded sourcing summary and exposes
+one readiness state plus one next action. This is intentionally read-only: it
+does not pretend that editing the item master also edits supplier terms or branch
+relationships. The existing mapping form remains the write authority until a
+transactional update contract is proven.
 
 ### Shared action-rail navigation race
 
@@ -122,7 +128,7 @@ endpoint is reachable and reports `v8.64.55`, but that is availability evidence,
 not proof that the current branch revision is live. Promotion remains an explicit
 owner decision after the post-deploy matrix below passes.
 
-The three pre-existing unrelated working-tree changes were intentionally not staged: `next-env.d.ts`, `scripts/playwright-local-server.mjs`, and `supabase/.temp/cli-latest`.
+The unrelated working-tree changes were intentionally not staged: `next-env.d.ts`, `supabase/.temp/cli-latest`, and `tests/e2e/helpers.js`. The local Playwright server parser is part of the current stability change.
 
 ## What is not proven yet
 

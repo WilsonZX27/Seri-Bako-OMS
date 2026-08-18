@@ -68,9 +68,9 @@ next action is visible without a generic toast.
    covers the source boundary. Rollback remains a required linked-database proof.
 2. **Implemented locally:** the progressive-disclosure form reuses the existing
    supplier and branch controls rather than introducing a second selector model.
-3. **Pending product proof:** add or verify the readiness badge and direct
-   “Complete sourcing” action on item detail; do not claim this gate complete from
-   the create-page transaction alone.
+3. **Implemented locally:** item detail now shows a bounded readiness badge and
+   direct sourcing action; the summary is read-only and does not replace the
+   existing mapping write authority.
 4. **Pending release proof:** verify owner, purchasing and kitchen roles with a
    disposable fixture, then capture 390/820/1440 viewport evidence. Keep the old
    supplier-item and branch-mapping routes available for correction and bulk

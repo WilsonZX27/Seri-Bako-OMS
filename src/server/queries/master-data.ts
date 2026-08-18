@@ -97,3 +97,49 @@ export async function getUomConversion(id: string) {
   if (error) throw new Error(error.message);
   return data;
 }
+
+export type ItemSourcingReadiness = {
+  status: "master_only" | "supplier_ready" | "branch_ready";
+  supplierItems: Array<Pick<Database["public"]["Tables"]["supplier_items"]["Row"], "id" | "supplier_id" | "supplier_item_code" | "purchase_uom" | "unit_cost"> & { supplier_name: string }>;
+  branchMappings: Array<Pick<Database["public"]["Tables"]["branch_supplier_items"]["Row"], "id" | "branch_id" | "supplier_item_id" | "is_preferred"> & { branch_name: string; branch_code: string }>;
+};
+
+/** Read-only sourcing summary for the item workspace. */
+export async function getItemSourcingReadiness(itemId: string): Promise<ItemSourcingReadiness> {
+  if (isMockMode()) return { status: "master_only", supplierItems: [], branchMappings: [] };
+
+  const supabase = await createClient();
+  const [{ data: supplierItems, error: supplierItemsError }, { data: branchMappings, error: branchMappingsError }] = await Promise.all([
+    supabase.from("supplier_items").select("id, supplier_id, supplier_item_code, purchase_uom, unit_cost").eq("item_id", itemId).eq("status", "active").is("deleted_at", null).order("created_at", { ascending: false }).limit(50),
+    supabase.from("branch_supplier_items").select("id, branch_id, supplier_item_id, is_preferred").eq("item_id", itemId).eq("status", "active").is("deleted_at", null).limit(200),
+  ]);
+  if (supplierItemsError) throw new Error(supplierItemsError.message);
+  if (branchMappingsError) throw new Error(branchMappingsError.message);
+
+  const supplierRows = supplierItems ?? [];
+  const mappingRows = branchMappings ?? [];
+  const supplierIds = [...new Set(supplierRows.map((row) => row.supplier_id))];
+  const branchIds = [...new Set(mappingRows.map((row) => row.branch_id))];
+  const [{ data: suppliers, error: suppliersError }, { data: branches, error: branchesError }] = await Promise.all([
+    supplierIds.length ? supabase.from("suppliers").select("id, name").in("id", supplierIds) : Promise.resolve({ data: [], error: null }),
+    branchIds.length ? supabase.from("branches").select("id, branch_code, branch_name").in("id", branchIds) : Promise.resolve({ data: [], error: null }),
+  ]);
+  if (suppliersError) throw new Error(suppliersError.message);
+  if (branchesError) throw new Error(branchesError.message);
+
+  const supplierById = new Map((suppliers ?? []).map((row) => [row.id, row.name]));
+  const branchById = new Map((branches ?? []).map((row) => [row.id, row]));
+  const supplierItemById = new Map(supplierRows.map((row) => [row.id, row]));
+  const resolvedSupplierItems = supplierRows.filter((row) => supplierById.has(row.supplier_id)).map((row) => ({ ...row, supplier_name: supplierById.get(row.supplier_id) ?? "Unknown supplier" }));
+  const resolvedBranchMappings = mappingRows.map((row) => {
+    const branch = branchById.get(row.branch_id);
+    const supplierItem = supplierItemById.get(row.supplier_item_id);
+    return branch && supplierItem ? { ...row, branch_name: branch.branch_name, branch_code: branch.branch_code } : null;
+  }).filter((row): row is NonNullable<typeof row> => Boolean(row));
+
+  return {
+    status: resolvedBranchMappings.length ? "branch_ready" : resolvedSupplierItems.length ? "supplier_ready" : "master_only",
+    supplierItems: resolvedSupplierItems,
+    branchMappings: resolvedBranchMappings,
+  };
+}

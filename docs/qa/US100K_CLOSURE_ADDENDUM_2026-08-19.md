@@ -2,8 +2,8 @@
 
 **Date:** 2026-08-19 (Asia/Kuala_Lumpur)  
 **Branch:** `codex/uiux-round2`  
-**Commit:** `e266959` (`docs: record responsive release contract closure`)
-**Latest code revision under review:** `e266959` (`docs: record responsive release contract closure`)
+**Commit:** `bb110f0` (`fix: close shared tablet filter geometry`)
+**Latest code revision under review:** `bb110f0` (`fix: close shared tablet filter geometry`)
 
 ## What was actually fixed
 
@@ -88,6 +88,7 @@ CSS-hidden controls rather than treating them as visible accessibility failures.
 | `npm run test:contract` | PASS | 765 passed, 0 failed |
 | `node --test tests/item-creation-atomic-contract.test.js` | PASS | 2 passed, 0 failed |
 | `node --test tests/filter-layout-authority-contract.test.js tests/workspace-canvas-authority-contract.test.js tests/cross-platform-shell-contract.test.js` | PASS | 21 passed, 0 failed; shared tablet filter geometry |
+| `release-mobile-ux-7-5.spec.js` targeted mobile shell | PASS | 1/1 after aligning local fixture env parsing; full viewport/role run was not claimed because the dev-server chain exceeded the bounded run window |
 | `npm run build` | PASS | 75/75 static pages |
 | Preview runtime reachability | PASS | Latest preview `/login` returned HTTP 200; unauthenticated `/items/new` returned HTTP 302 to Vercel SSO, so the protected form was not exposed |
 | Supabase migration 167 | PASS | Applied to local and linked databases; CLI emitted a non-blocking pg-delta certificate-cache warning after applying |
@@ -108,7 +109,7 @@ The verified functional revision has a successful Vercel Preview deployment:
 - Preview status: `success`
 - Commit: `2e67cae`
 
-The later documentation-only revisions `e266959` and its descendants are pushed
+The later revisions after the functional preview receipt are pushed
 after the functional revision. The receipt above is therefore historical evidence
 for the functional code path, not proof that the current branch revision is live.
 Production promotion remains blocked until a current deployment receipt, linked

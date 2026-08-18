@@ -2,8 +2,8 @@
 
 **Date:** 2026-08-19 (Asia/Kuala_Lumpur)  
 **Branch:** `codex/uiux-round2`  
-**Commit:** `2e67cae` (`test: make long P0 browser chains fail closed`)
-**Latest code revision under review:** `2e67cae` (`test: make long P0 browser chains fail closed`)
+**Commit:** `1206e52` (`fix: close shared table density and form accessibility`)
+**Latest code revision under review:** `1206e52` (`fix: close shared table density and form accessibility`)
 
 ## What was actually fixed
 
@@ -60,19 +60,31 @@ name remain fuzzy text searches; recognized branch types use an exact enum compa
 This removes the `operator does not exist: branch_type ~~* unknown` failure that made
 the branch directory render a false unavailable state.
 
+### Shared table density and form accessibility
+
+Action-led tables now use one shared density contract: the Action header and its
+action cell stay at a 40px column, while only those tables opt into fixed layout.
+This prevents the table algorithm from expanding a compact action column to 64px
+and avoids page-specific width overrides. The shared Field primitive now preserves
+generated label associations, and the PR request branch, item combobox, and quantity
+controls expose explicit accessible names as a defensive fallback for custom controls.
+The release-gate assertions now verify the real filtered-state contract and ignore
+CSS-hidden controls rather than treating them as visible accessibility failures.
+
 ## Verification receipt
 
 | Gate | Result | Notes |
 | --- | --- | --- |
 | `npm run typecheck:strict` | PASS | strict no-unused checks |
 | `npm run lint` | PASS | `src` lint |
-| `npm run test:contract` | PASS | 764 passed, 0 failed |
+| `npm run test:contract` | PASS | 765 passed, 0 failed |
 | `node --test tests/item-creation-atomic-contract.test.js` | PASS | 2 passed, 0 failed |
 | `npm run build` | PASS | 75/75 static pages |
 | Preview runtime reachability | PASS | Latest preview `/login` returned HTTP 200; unauthenticated `/items/new` returned HTTP 302 to Vercel SSO, so the protected form was not exposed |
 | Supabase migration 167 | PASS | Applied to local and linked databases; CLI emitted a non-blocking pg-delta certificate-cache warning after applying |
 | Supabase migration 168 | LOCAL PASS / LINKED UNVERIFIED | Local schema is applied; linked status checks hit a Supabase login-role transport error and a full `--include-all` push was blocked because pending migration scope could not be proven |
 | `administration-master-data-ux.spec.js` | PASS | 2/2; cross-route right-rail content stayed present after the ownership fix |
+| `release-gate-7-23-5-7.spec.js` | PASS | shared visual/accessibility gate 1/1 plus logout 1/1; Action column measured at 40px |
 | `p0-browser-comments.spec.js` | PASS | 6/6 local tests passed after giving the two intentionally long cross-route viewport chains an explicit 120-second budget; no assertion failure remained |
 | Git push | PASS | `origin/codex/uiux-round2` at `2e67cae` |
 

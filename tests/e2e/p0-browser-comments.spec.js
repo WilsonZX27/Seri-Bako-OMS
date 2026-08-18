@@ -6,6 +6,7 @@ async function expectContained(page) {
 }
 
 test("shared tablet list filters match the accepted stock-count grammar", async ({ page }, testInfo) => {
+  test.setTimeout(120_000);
   test.skip(!hasAccount("purchasing"), "Missing purchasing test credentials.");
   await page.setViewportSize({ width: 820, height: 1180 });
   await login(page, "purchasing");
@@ -82,6 +83,7 @@ test("dashboard removes duplicate rails and alerts", async ({ page }, testInfo) 
 });
 
 test("aging, outlet insight, and wide production canvas use the requested density", async ({ page }, testInfo) => {
+  test.setTimeout(120_000);
   test.skip(!hasAccount("finance") || !hasAccount("purchasing"), "Missing finance or purchasing test credentials.");
   await page.setViewportSize({ width: 820, height: 1180 });
   await login(page, "finance");

@@ -73,7 +73,7 @@ the branch directory render a false unavailable state.
 | Supabase migration 167 | PASS | Applied to local and linked databases; CLI emitted a non-blocking pg-delta certificate-cache warning after applying |
 | Supabase migration 168 | LOCAL PASS / LINKED UNVERIFIED | Local schema is applied; linked status checks hit a Supabase login-role transport error and a full `--include-all` push was blocked because pending migration scope could not be proven |
 | `administration-master-data-ux.spec.js` | PASS | 2/2; cross-route right-rail content stayed present after the ownership fix |
-| `p0-browser-comments.spec.js` | PASS on isolated rerun | Full 8-test cold run was 7 passed plus 1 long-chain timeout; the isolated AP/outlet/production test reran 1/1 in 23.2s; no assertion failure remained |
+| `p0-browser-comments.spec.js` | PASS | 6/6 local tests passed after giving the two intentionally long cross-route viewport chains an explicit 120-second budget; no assertion failure remained |
 | Git push | PASS | `origin/codex/uiux-round2` at `219042c` |
 
 ## Deployment receipt

@@ -2,8 +2,8 @@
 
 **Date:** 2026-08-19 (Asia/Kuala_Lumpur)  
 **Branch:** `codex/uiux-round2`  
-**Commit:** `75359d7` (`test: align responsive release contract with shared shell`)
-**Latest code revision under review:** `75359d7` (`test: align responsive release contract with shared shell`)
+**Commit:** `e266959` (`docs: record responsive release contract closure`)
+**Latest code revision under review:** `e266959` (`docs: record responsive release contract closure`)
 
 ## What was actually fixed
 
@@ -88,7 +88,7 @@ CSS-hidden controls rather than treating them as visible accessibility failures.
 | `release-mobile-ux-7-5.spec.js` | PASS | 7/7; phone FAB/document action, unified filter drawer, empty states, desktop rail and 768–1023 split-rail contract |
 | `role-workspaces-7-23-5-6.spec.js` | PASS | 6 role workspaces plus release-gate suite: 8/8 passed in the same local fixture run |
 | `p0-browser-comments.spec.js` | PASS | 6/6 local tests passed after giving the two intentionally long cross-route viewport chains an explicit 120-second budget; no assertion failure remained |
-| Git push | PASS | `origin/codex/uiux-round2` at `2e67cae` |
+| Git push | PASS | `origin/codex/uiux-round2` at `e266959` |
 
 ## Deployment receipt
 
@@ -99,10 +99,11 @@ The verified functional revision has a successful Vercel Preview deployment:
 - Preview status: `success`
 - Commit: `2e67cae`
 
-The documentation-only follow-up `e78151c` is pushed after the functional revision;
-the preview above contains the complete functional code under review. Production
-promotion remains blocked until linked migration status is verified and the owner
-approves the production promotion.
+The later documentation-only revisions `e266959` and its descendants are pushed
+after the functional revision. The receipt above is therefore historical evidence
+for the functional code path, not proof that the current branch revision is live.
+Production promotion remains blocked until a current deployment receipt, linked
+migration status, and the owner-approved production promotion are captured.
 
 The custom production domain has **not** been promoted to this revision. The latest
 production deployment receipt still points to commit `b49a601` (`fix: backfill
@@ -136,10 +137,13 @@ viewport evidence; the dependency graph remains in
 
 ## Final closure direction
 
-1. Promote the reviewed application revision and verify the linked Supabase migration ceiling on the same receipt.
-2. Run six roles × 390/430/820/1024/1440/2560 with disposable, known fixtures and capture screenshots plus authorization outcomes.
-3. Keep the design system central: query geometry belongs to `UnifiedListHeader`/`FilterBar`/`design-system-v2.css`; controls belong to shared UI components; pages only provide data and semantics.
-4. Make the first monetizable decision loop measurable: low-stock signal → buyer action → approved PO → receipt → accepted/rejected/fulfilled outcome, with MYR exposure, owner, due time, UOM and freshness visible.
-5. Add supplier performance and UOM conversion ledgers only after their source grain, effective date, confidence and drill-through are defined.
+1. Read the canonical productisation plan in
+   [`US100K_PRODUCTIZATION_PLAN_2026-08-19.md`](./US100K_PRODUCTIZATION_PLAN_2026-08-19.md)
+   before adding more UI scope.
+2. Promote the reviewed application revision and verify the linked Supabase migration ceiling on the same receipt.
+3. Run six roles × 390/430/820/1024/1440/2560 with disposable, known fixtures and capture screenshots plus authorization outcomes.
+4. Keep the design system central: query geometry belongs to `UnifiedListHeader`/`FilterBar`/`design-system-v2.css`; controls belong to shared UI components; pages only provide data and semantics.
+5. Make the first monetizable decision loop measurable: low-stock signal → buyer action → approved PO → receipt → accepted/rejected/fulfilled outcome, with MYR exposure, owner, due time, UOM and freshness visible.
+6. Add supplier performance and UOM conversion ledgers only after their source grain, effective date, confidence and drill-through are defined.
 
 The product's US$100k case is therefore not “more pages.” It is a trusted branch-operations decision system: every number has a source and confidence, every exception has an owner and next action, and every recommendation can be measured against its outcome.

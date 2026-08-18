@@ -2504,6 +2504,10 @@ export type Database = {
         Args: { p_rows: Json; p_mode?: "create" | "update" | "upsert" };
         Returns: Json;
       };
+      create_operational_item: {
+        Args: { p_item: Json; p_supplier?: Json | null; p_branch_ids?: string[]; p_preferred?: boolean };
+        Returns: Json;
+      };
       convert_purchase_request_to_purchase_order: {
         Args: { target_purchase_request_id: string; target_po_no: string };
         Returns: Array<{

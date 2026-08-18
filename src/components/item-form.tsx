@@ -12,6 +12,7 @@ import type { Database } from "@/types/database";
 
 type Item = Database["public"]["Tables"]["items"]["Row"];
 type Supplier = Pick<Database["public"]["Tables"]["suppliers"]["Row"], "id" | "name" | "supplier_code" | "status">;
+type Branch = Pick<Database["public"]["Tables"]["branches"]["Row"], "id" | "branch_code" | "branch_name" | "status">;
 
 type ItemFormProps = {
   item?: Item;
@@ -20,9 +21,11 @@ type ItemFormProps = {
   formId?: string;
   showSubmit?: boolean;
   canCreateSupplier?: boolean;
+  canCreateSourcing?: boolean;
+  branches?: Branch[];
 };
 
-export function ItemForm({ item, suppliers, action, formId, showSubmit = true, canCreateSupplier = false }: ItemFormProps) {
+export function ItemForm({ item, suppliers, action, formId, showSubmit = true, canCreateSupplier = false, canCreateSourcing = false, branches = [] }: ItemFormProps) {
   return (
     <form id={formId} action={action} className="space-y-4">
       <RecordSection title="Identity" description="Item code, name, category, and operational status.">
@@ -71,7 +74,7 @@ export function ItemForm({ item, suppliers, action, formId, showSubmit = true, c
         </div>
       </RecordSection>
 
-      <RecordSection title="Supplier & Usage" description="Optional default supplier used by purchasing workflows.">
+      <RecordSection title="Default sourcing" description="Optional supplier terms used by purchasing.">
         <div className="grid gap-3 md:grid-cols-[minmax(0,1fr)_auto] md:items-start">
           <Field label="Supplier">
             <SupplierCombobox suppliers={suppliers} initialSupplierId={item?.supplier_id} />
@@ -82,6 +85,23 @@ export function ItemForm({ item, suppliers, action, formId, showSubmit = true, c
             </Button>
           </div> : null}
         </div>
+        {!item && canCreateSourcing ? <details className="group mt-4 rounded-[var(--sb-radius-control)] border border-[var(--sb-border-soft)] bg-[var(--sb-surface-muted)]">
+          <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between gap-3 px-3 py-2 text-sm font-medium [&::-webkit-details-marker]:hidden">
+            <span>Supplier terms & branch availability</span><span className="text-xs font-normal text-muted-foreground group-open:hidden">Optional</span>
+          </summary>
+          <div className="grid gap-4 border-t p-3 md:grid-cols-2">
+            <Field label="Supplier purchase UOM"><SelectNative name="supplier_purchase_uom" defaultValue="KG">{uomOptionsWithCurrent("KG").map((uom) => <option key={uom} value={uom}>{uom}</option>)}</SelectNative></Field>
+            <Field label="Conversion to base UOM"><Input name="supplier_conversion_to_base_uom" type="number" step="0.000001" min="0.000001" defaultValue={1} /></Field>
+            <Field label="Supplier unit cost"><Input name="supplier_unit_cost" type="number" step="0.0001" min="0" defaultValue={0} /></Field>
+            <Field label="Supplier MOQ"><Input name="supplier_moq" type="number" step="0.0001" min="0" defaultValue={0} /></Field>
+            <Field label="Supplier lead time (days)"><Input name="supplier_lead_time_days" type="number" min="0" defaultValue={0} /></Field>
+            {branches.length ? <fieldset className="grid gap-2 md:col-span-2">
+              <legend className="text-sm font-medium">Available branches</legend>
+              <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">{branches.map((branch) => <label key={branch.id} className="flex min-h-10 items-center gap-2 rounded-[var(--sb-radius-control)] border bg-white px-3 py-2 text-sm"><input type="checkbox" name="branch_ids" value={branch.id} className="h-4 w-4 accent-[var(--sb-brand)]" /><span className="min-w-0 truncate">{branch.branch_name}</span></label>)}</div>
+              <label className="flex items-center gap-2 text-xs text-muted-foreground"><input type="checkbox" name="supplier_preferred" value="true" className="h-4 w-4 accent-[var(--sb-brand)]" />Preferred supplier for selected branches</label>
+            </fieldset> : null}
+          </div>
+        </details> : null}
       </RecordSection>
 
       <input type="hidden" name="conversion_to_base_unit" value={item?.conversion_to_base_unit ?? 1} />

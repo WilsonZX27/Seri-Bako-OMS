@@ -2,8 +2,8 @@
 
 **Date:** 2026-08-19 (Asia/Kuala_Lumpur)  
 **Branch:** `codex/uiux-round2`  
-**Commit:** `35bfdf5` (`feat: clarify item sourcing readiness`)
-**Latest code revision under review:** `35bfdf5`; this commit includes the shared tablet fix follow-up, item sourcing readiness read model, and local E2E env parser hardening.
+**Commit:** `0de7aed` (`docs: refresh closure revision receipt`)
+**Latest code revision under review:** `0de7aed`; the preceding `35bfdf5` commit includes the shared tablet fix follow-up, item sourcing readiness read model, and local E2E env parser hardening.
 
 ## What was actually fixed
 
@@ -104,7 +104,7 @@ CSS-hidden controls rather than treating them as visible accessibility failures.
 | `release-mobile-ux-7-5.spec.js` | PASS | 7/7; phone FAB/document action, unified filter drawer, empty states, desktop rail and 768–1023 split-rail contract |
 | `role-workspaces-7-23-5-6.spec.js` | PASS | 6 role workspaces plus release-gate suite: 8/8 passed in the same local fixture run |
 | `p0-browser-comments.spec.js` | PASS | 6/6 local tests passed after giving the two intentionally long cross-route viewport chains an explicit 120-second budget; no assertion failure remained |
-| Git push | PASS | `origin/codex/uiux-round2` at `35bfdf5` |
+| Git push | PASS | `origin/codex/uiux-round2` at `0de7aed` |
 
 ## Deployment receipt
 

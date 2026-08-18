@@ -2,8 +2,8 @@
 
 **Date:** 2026-08-19 (Asia/Kuala_Lumpur)  
 **Branch:** `codex/uiux-round2`  
-**Commit:** `1206e52` (`fix: close shared table density and form accessibility`)
-**Latest code revision under review:** `1206e52` (`fix: close shared table density and form accessibility`)
+**Commit:** `75359d7` (`test: align responsive release contract with shared shell`)
+**Latest code revision under review:** `75359d7` (`test: align responsive release contract with shared shell`)
 
 ## What was actually fixed
 
@@ -85,6 +85,8 @@ CSS-hidden controls rather than treating them as visible accessibility failures.
 | Supabase migration 168 | LOCAL PASS / LINKED UNVERIFIED | Local schema is applied; linked status checks hit a Supabase login-role transport error and a full `--include-all` push was blocked because pending migration scope could not be proven |
 | `administration-master-data-ux.spec.js` | PASS | 2/2; cross-route right-rail content stayed present after the ownership fix |
 | `release-gate-7-23-5-7.spec.js` | PASS | shared visual/accessibility gate 1/1 plus logout 1/1; Action column measured at 40px |
+| `release-mobile-ux-7-5.spec.js` | PASS | 7/7; phone FAB/document action, unified filter drawer, empty states, desktop rail and 768–1023 split-rail contract |
+| `role-workspaces-7-23-5-6.spec.js` | PASS | 6 role workspaces plus release-gate suite: 8/8 passed in the same local fixture run |
 | `p0-browser-comments.spec.js` | PASS | 6/6 local tests passed after giving the two intentionally long cross-route viewport chains an explicit 120-second budget; no assertion failure remained |
 | Git push | PASS | `origin/codex/uiux-round2` at `2e67cae` |
 
@@ -116,6 +118,7 @@ The three pre-existing unrelated working-tree changes were intentionally not sta
 - The custom production domain has not been promoted to this commit; local and branch evidence are not production evidence.
 - The Manager Review authorization path still needs a resource-sufficient run with a seeded Manager Review PR. The test is intentionally skipped when that fixture is absent.
 - No claim is made that every historical annotation or every browser viewport is closed solely from this run. The shared CSS/component ownership is improved, but a post-deploy 390/820/1440 matrix remains a release gate.
+- The responsive release suite now encodes the current architecture instead of the retired “mobile bar/table everywhere” contract: phone create FAB or document action, phone operational lists/empty states, tablet split rails, and desktop-only right console. This is test-contract closure, not production deployment proof.
 
 ## Remaining P1 design boundary: item creation
 

@@ -11,6 +11,7 @@ const query = read("src/server/queries/outlet-daily-records.ts");
 const form = read("src/components/outlet-daily-record-form.tsx");
 const page = read("src/app/(app)/outlet-daily-records/page.tsx");
 const detail = read("src/app/(app)/outlet-daily-records/[id]/page.tsx");
+const inlineValidation = read("supabase/migrations/167_inline_outlet_daily_validation_context.sql");
 
 test("operational date reads use the Kuala Lumpur business day", () => {
   const date = read("src/lib/business-date.ts");
@@ -95,6 +96,13 @@ test("new outlet defaults cannot carry an invalid unremarked wastage forward", (
   assert.match(query, /const safeWastage = wastage > 0 && \(received === null \|\| wastage > received\) && !hasRemark \? 0/);
   assert.match(query, /wastage_reason: safeWastage === 0 \? null/);
   assert.match(read("src/server/actions/error-handling.ts"), /Wastage cannot exceed Received without a line remark/);
+});
+
+test("wastage validation preserves a safe product anchor for inline correction", () => {
+  assert.match(inlineValidation, /select p\.product_name, p\.product_code into product_name, product_code/);
+  assert.match(inlineValidation, /Wastage for "%" \(%\) cannot exceed received without a line remark/);
+  assert.match(form, /const validationProductCode/);
+  assert.match(form, /Boolean\(validationHint\)/);
 });
 
 test("concurrent outlet-day creation converges on the unique existing record", () => {

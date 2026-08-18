@@ -50,6 +50,11 @@ export function formatActionError(error: unknown, fallback = "Something went wro
     return "This outlet already has a record for that date. Open it from the Outlet Daily Records list instead.";
   }
   if (normalized.includes("wastage") && normalized.includes("exceed")) {
+    // The save RPC may include a safe product label/code so the form can take
+    // the operator directly to the offending line. Preserve that context when
+    // it is short and contains no database/provider internals; otherwise keep
+    // the generic, non-leaky message.
+    if (message.length <= 220 && !/(supabase|postgres|constraint|sqlstate|violates)/i.test(message)) return message;
     return "Wastage cannot exceed Received without a line remark. Review the affected product line and add a remark.";
   }
   if (isPendingMigrationError(error)) return "Database migration is pending. Please contact the Super Admin / Owner.";

@@ -59,8 +59,10 @@ const EMPTY_DEFAULTS_BY_BRANCH: Record<string, Record<string, DefaultLine>> = {}
   const matchingProductIds = new Set(products.filter((product) => `${product.product_code} ${product.product_name} ${product.category}`.toLowerCase().includes(normalizedSearch)).map((product) => product.id));
   const selectedBranch = branches.find((branch) => branch.id === selectedBranchId);
   const wastageValidation = validationError?.toLowerCase().includes("wastage") === true;
+  const validationProductCode = validationError?.match(/\(([A-Z0-9_-]+)\)/i)?.[1]?.toLowerCase();
   const validationProductId = wastageValidation
-    ? products.find((product) => {
+    ? products.find((product) => validationProductCode && product.product_code.toLowerCase() === validationProductCode)?.id
+      ?? products.find((product) => {
         const source = lineByProduct.get(product.id) ?? selectedDefaults[product.id];
         return Number(source?.wastage_qty ?? 0) > Number(source?.morning_received_qty ?? 0);
       })?.id ?? products[0]?.id
@@ -134,7 +136,7 @@ function DailyProductLine({ product, line, defaultLine, validationHint, hiddenCl
   const [reason, setReason] = useState(source?.wastage_reason ?? "");
   const [remark, setRemark] = useState(source?.notes ?? "");
   const [remarkOpen, setRemarkOpen] = useState(Boolean(source?.notes) || Boolean(validationHint));
-  const showWastageDetails = Number(wastage || 0) > 0 || Boolean(reason) || Boolean(source?.notes);
+  const showWastageDetails = Number(wastage || 0) > 0 || Boolean(reason) || Boolean(source?.notes) || Boolean(validationHint);
 
   return <div className={`${hiddenClass} grid grid-cols-3 items-end gap-2 p-3 md:grid-cols-[minmax(12rem,1fr)_repeat(3,minmax(4.5rem,6rem))] xl:grid-cols-[minmax(12rem,1fr)_repeat(3,minmax(4.5rem,6rem))_minmax(14rem,18rem)]`}>
     <div className="col-span-3 min-w-0 md:col-span-1"><input type="hidden" name="line_product_id" value={product.id} /><p className="break-words font-medium leading-5">{product.product_name}</p><p className="text-xs text-muted-foreground">{product.product_code} · {product.selling_unit}</p></div>

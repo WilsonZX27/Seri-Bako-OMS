@@ -2,8 +2,8 @@
 
 **Date:** 2026-08-19 (Asia/Kuala_Lumpur)  
 **Branch:** `codex/uiux-round2`  
-**Commit:** `bad60cd` (`docs: define item creation refactor boundary`)
-**Latest code revision under review:** `a2cf29c` (`fix: anchor outlet validation errors to product lines`)
+**Commit:** `994a66c` (`feat: atomically create operational items with sourcing`)
+**Latest code revision under review:** `994a66c` (`feat: atomically create operational items with sourcing`)
 
 ## What was actually fixed
 
@@ -34,26 +34,39 @@ focuses the remark input, and renders the correction hint inline. This closes th
 specific “error but no way forward” path shown in the audit screenshot without
 depending on a floating toast alone.
 
+### Item creation boundary
+
+Item creation now uses one progressive-disclosure form for the item master plus
+optional default supplier terms and branch availability. The server action calls
+`create_operational_item` (`168_atomic_operational_item_creation.sql`), which is
+tenant-scoped, permission-gated, and atomic: an item can remain `master_only`,
+become `supplier_ready`, or become `branch_ready` in one transaction. Supplier
+item code/name are not duplicated as user-owned identity; migration 154 keeps the
+Item Master authoritative. The existing supplier-item and branch-mapping screens
+remain available for later correction and bulk maintenance.
+
 ## Verification receipt
 
 | Gate | Result | Notes |
 | --- | --- | --- |
 | `npm run typecheck:strict` | PASS | strict no-unused checks |
 | `npm run lint` | PASS | `src` lint |
-| `npm run test:contract` | PASS | 759 passed, 0 failed |
+| `npm run test:contract` | PASS | 762 passed, 0 failed |
+| `node --test tests/item-creation-atomic-contract.test.js` | PASS | 2 passed, 0 failed |
 | `npm run build` | PASS | 75/75 static pages |
 | Supabase migration 167 | PASS | Applied to local and linked databases; CLI emitted a non-blocking pg-delta certificate-cache warning after applying |
+| Supabase migration 168 | LOCAL PASS / LINKED UNVERIFIED | Local schema is applied; linked status checks hit a Supabase login-role transport error and a full `--include-all` push was blocked because pending migration scope could not be proven |
 | `p0-browser-comments.spec.js` | 5 passed, 1 skipped | 820/1180 tablet filters, dashboard, UOM/PO, AP/outlet/production, Low Stock passed; Manager Review skipped because local fixture has 0 records |
-| Git push | PASS | `origin/codex/uiux-round2` at `bad60cd` |
+| Git push | PASS | `origin/codex/uiux-round2` at `994a66c` |
 
 ## Deployment receipt
 
 The exact code revision has a successful Vercel Preview deployment:
 
-- GitHub deployment: `5969014737`
-- Preview URL: `https://seri-bako-oms-official-he3wtqgq0-seribako.vercel.app`
+- GitHub deployment: `5969508656`
+- Preview URL: `https://seri-bako-oms-official-jiagztysw-seribako.vercel.app`
 - Preview status: `success`
-- Commit check: `Vercel Preview Comments` = `success`
+- Commit: `994a66c`
 
 The custom production domain has **not** been promoted to this revision. The latest
 production deployment receipt still points to commit `b49a601` (`fix: backfill
@@ -72,20 +85,16 @@ The three pre-existing unrelated working-tree changes were intentionally not sta
 
 ## Remaining P1 design boundary: item creation
 
-The current item workflow is intentionally not “fixed” by a page-local shortcut.
-The data dependency is real:
+The current item workflow is no longer split for new item creation. The data
+dependency remains real for existing records and corrections:
 
 `item master → supplier item → branch supplier-item mapping`
 
-`SupplierItemForm` already owns purchase UOM, conversion, cost, MOQ, lead time,
-preferred supplier, and branch mappings. `createItem` currently owns only the item
-master row. Combining these writes without an atomic server contract would create
-partial records (an item with no usable branch mapping, or a mapping pointing at a
-failed item). The safe product direction is a single progressive-disclosure screen
-backed by one transactional RPC/action, with optional sourcing defaults and an
-explicit branch scope. That design is queued as P1; it is not represented as closed
-until the atomic write, rollback behavior, permissions, and real-role E2E fixture
-are implemented and verified. The dependency graph and proof gates are recorded in
+`SupplierItemForm` still owns correction and bulk-maintenance fields. The new
+`createItem` path now delegates the first creation to one transactional RPC with
+optional sourcing defaults and explicit branch scope. The remaining proof gate is
+real-role E2E coverage for owner/purchasing/kitchen plus rollback and 390/820/1440
+viewport evidence; the dependency graph remains in
 `docs/operations/ITEM_CREATION_REFACTOR_PLAN.md`.
 
 ## Final closure direction

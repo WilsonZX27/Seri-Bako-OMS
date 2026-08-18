@@ -1000,10 +1000,11 @@ export async function getLowStockItems(filters: Filters = {}) {
   let fallbackData: unknown[] | null = null;
   // The pre-aggregated summary can briefly be empty while its refresh trigger
   // catches up, and older linked deployments may not have the summary grant
-  // yet. Keep the canonical view as a read-only fallback so a transient read
-  // model gap never presents an empty low-stock workspace to the operator.
-  if (error || !data?.length) {
-    warnOptionalInventoryQuery("low stock summary fallback", error);
+  // yet. Keep the canonical view as a read-only fallback, while preserving a
+  // successful empty result as the valid healthy state it represents.
+  const summaryError = error ?? (data == null ? new Error("Low stock summary returned no data.") : null);
+  if (summaryError || !data?.length) {
+    warnOptionalInventoryQuery("low stock summary fallback", summaryError);
     let viewQuery = supabase
       .from("stock_balances_view")
       .select("*")
@@ -1017,8 +1018,16 @@ export async function getLowStockItems(filters: Filters = {}) {
       error = null;
     } else if (viewResult.error) {
       warnOptionalInventoryQuery("low stock canonical fallback", viewResult.error);
+      // An empty, successful summary is a valid healthy state. Do not turn a
+      // secondary fallback read failure into a blocking error when there are
+      // no rows that need replenishment to display.
+      if (!summaryError) {
+        fallbackData = [];
+        error = null;
+      }
     } else {
-      throw new Error("Low stock data is temporarily unavailable.");
+      fallbackData = viewResult.data ?? [];
+      error = null;
     }
   }
   if (error) {

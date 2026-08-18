@@ -37,7 +37,14 @@ export function SelectControl({
   className?: string;
 }) {
   const [open, setOpen] = useState(false);
-  const selection = value === undefined ? { defaultValue } : { value };
+  // Keep the trigger value controlled after hydration. Radix can otherwise
+  // render an empty trigger when a server-provided default value is only
+  // available during the first render (most visible in the shared tablet
+  // filter bar). Preserve the public controlled `value` contract while using
+  // local state for the uncontrolled/defaultValue variant.
+  const isControlled = value !== undefined;
+  const [internalValue, setInternalValue] = useState(defaultValue);
+  const selectedValue = isControlled ? value : internalValue;
 
   useEffect(() => {
     const closeForMore = () => setOpen(false);
@@ -50,13 +57,18 @@ export function SelectControl({
     if (nextOpen) document.dispatchEvent(new CustomEvent("sb:close-filter-more"));
   };
 
+  const handleValueChange = (nextValue: string) => {
+    if (!isControlled) setInternalValue(nextValue);
+    onValueChange?.(nextValue);
+  };
+
   return (
     <Select.Root
-      {...selection}
+      value={selectedValue}
       open={open}
       onOpenChange={handleOpenChange}
       name={name}
-      onValueChange={onValueChange}
+      onValueChange={handleValueChange}
       required={required}
       disabled={disabled}
     >

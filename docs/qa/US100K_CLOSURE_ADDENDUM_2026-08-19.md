@@ -2,7 +2,8 @@
 
 **Date:** 2026-08-19 (Asia/Kuala_Lumpur)  
 **Branch:** `codex/uiux-round2`  
-**Commit:** `29b6766` (`docs: record closure verification addendum`)
+**Commit:** `bad60cd` (`docs: define item creation refactor boundary`)
+**Latest code revision under review:** `a2cf29c` (`fix: anchor outlet validation errors to product lines`)
 
 ## What was actually fixed
 
@@ -41,16 +42,16 @@ depending on a floating toast alone.
 | `npm run lint` | PASS | `src` lint |
 | `npm run test:contract` | PASS | 759 passed, 0 failed |
 | `npm run build` | PASS | 75/75 static pages |
-| local Supabase migration 167 | PASS | RPC replacement applied to local database |
+| Supabase migration 167 | PASS | Applied to local and linked databases; CLI emitted a non-blocking pg-delta certificate-cache warning after applying |
 | `p0-browser-comments.spec.js` | 5 passed, 1 skipped | 820/1180 tablet filters, dashboard, UOM/PO, AP/outlet/production, Low Stock passed; Manager Review skipped because local fixture has 0 records |
-| Git push | PASS | `origin/codex/uiux-round2` at `29b6766` |
+| Git push | PASS | `origin/codex/uiux-round2` at `bad60cd` |
 
 ## Deployment receipt
 
-The exact commit has a successful Vercel Preview deployment:
+The exact code revision has a successful Vercel Preview deployment:
 
-- GitHub deployment: `5968639090`
-- Preview URL: `https://seri-bako-oms-official-lma097ni0-seribako.vercel.app`
+- GitHub deployment: `5969014737`
+- Preview URL: `https://seri-bako-oms-official-he3wtqgq0-seribako.vercel.app`
 - Preview status: `success`
 - Commit check: `Vercel Preview Comments` = `success`
 

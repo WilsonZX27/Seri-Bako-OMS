@@ -2,8 +2,8 @@
 
 **Date:** 2026-08-19 (Asia/Kuala_Lumpur)  
 **Branch:** `codex/uiux-round2`  
-**Commit:** `219042c` (`fix: guard shared console ownership and enum branch search`)
-**Latest code revision under review:** `219042c` (`fix: guard shared console ownership and enum branch search`)
+**Commit:** `2e67cae` (`test: make long P0 browser chains fail closed`)
+**Latest code revision under review:** `2e67cae` (`test: make long P0 browser chains fail closed`)
 
 ## What was actually fixed
 
@@ -74,7 +74,7 @@ the branch directory render a false unavailable state.
 | Supabase migration 168 | LOCAL PASS / LINKED UNVERIFIED | Local schema is applied; linked status checks hit a Supabase login-role transport error and a full `--include-all` push was blocked because pending migration scope could not be proven |
 | `administration-master-data-ux.spec.js` | PASS | 2/2; cross-route right-rail content stayed present after the ownership fix |
 | `p0-browser-comments.spec.js` | PASS | 6/6 local tests passed after giving the two intentionally long cross-route viewport chains an explicit 120-second budget; no assertion failure remained |
-| Git push | PASS | `origin/codex/uiux-round2` at `219042c` |
+| Git push | PASS | `origin/codex/uiux-round2` at `2e67cae` |
 
 ## Deployment receipt
 
@@ -85,7 +85,7 @@ The previous application revision has a successful Vercel Preview deployment:
 - Preview status: `success`
 - Commit: `994a66c`
 
-The latest verified fix commit `219042c` is pushed, but its new Vercel deployment
+The latest verified revision `2e67cae` is pushed, but its new Vercel deployment
 receipt has not yet been captured. Production promotion remains blocked until that
 preview is built and the post-deploy matrix passes.
 

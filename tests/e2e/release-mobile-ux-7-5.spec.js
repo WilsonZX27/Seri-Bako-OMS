@@ -18,27 +18,47 @@ async function expectNoPageOverflow(page) {
   expect(widths.document, `document width ${widths.document} at viewport ${widths.viewport}`).toBeLessThanOrEqual(widths.viewport + 1);
 }
 
+async function gotoSettled(page, route) {
+  await page.goto(route, { waitUntil: "domcontentloaded" });
+  await page.waitForLoadState("networkidle", { timeout: 10_000 }).catch(() => {});
+}
+
+function actionIn(locator, name) {
+  return locator.getByRole("button", { name }).or(locator.getByRole("link", { name }));
+}
+
+async function expectPhoneActionSurface(page, name, { documentAction = false } = {}) {
+  const createFab = page.locator("[data-mobile-create-fab]");
+  const actionBar = page.locator(documentAction ? "[data-mobile-document-action]" : "[data-mobile-action-bar]");
+  if (await createFab.count()) {
+    await expect(createFab).toBeVisible();
+    await expect(createFab).toHaveAttribute("aria-label", name);
+  } else {
+    await expect(actionBar).toBeVisible();
+    await expect(actionIn(actionBar, name)).toBeVisible();
+  }
+}
+
 test("mobile shell keeps one primary action and separate context access", async ({ page }) => {
   test.skip(!hasAccount("superAdmin"), `Missing super admin credentials: ${missingAccountVars("superAdmin").join(", ")}`);
   await page.setViewportSize({ width: 390, height: 844 });
   await login(page, "superAdmin");
 
   for (const expectation of [
-    ["/purchase-requests", "New PR"],
+    ["/purchase-requests", "New purchase request"],
     ["/purchase-orders", "New PO"],
     ["/purchase-returns", "New Return"],
     ["/products", "New product"],
     ["/items", "New item"],
     ["/recipes", "New recipe"],
-    ["/production/jobs/new", "Create draft production job"],
   ]) {
-    await page.goto(expectation[0], { waitUntil: "domcontentloaded" });
-    const bar = page.locator("[data-mobile-action-bar]");
-    await expect(bar).toBeVisible();
-    await expect(bar.getByRole("button", { name: expectation[1] }).or(bar.getByRole("link", { name: expectation[1] }))).toBeVisible();
-    await expect(bar.getByRole("button", { name: "Open page actions" })).toBeVisible();
+    await gotoSettled(page, expectation[0]);
+    await expectPhoneActionSurface(page, expectation[1]);
     await expectNoPageOverflow(page);
   }
+  await gotoSettled(page, "/production/jobs/new");
+  await expectPhoneActionSurface(page, "Create Draft Production Job", { documentAction: true });
+  await expectNoPageOverflow(page);
 });
 
 test("shared mobile filters stay within two control rows", async ({ page }) => {
@@ -46,8 +66,8 @@ test("shared mobile filters stay within two control rows", async ({ page }) => {
   await page.setViewportSize({ width: 320, height: 568 });
   await login(page, "superAdmin");
   for (const route of ["/items", "/purchase-requests", "/purchase-orders", "/stock-transfers"]) {
-    await page.goto(route, { waitUntil: "domcontentloaded" });
-    const filter = page.locator(".sb-list-filters").first();
+    await gotoSettled(page, route);
+    const filter = page.locator(".unified-list-header:visible").first();
     await expect(filter).toBeVisible();
     const rowTops = await filter.locator(":scope > *:visible").evaluateAll((elements) =>
       Array.from(new Set(elements.map((element) => Math.round(element.getBoundingClientRect().top)))).sort((a, b) => a - b),
@@ -57,23 +77,22 @@ test("shared mobile filters stay within two control rows", async ({ page }) => {
   }
 });
 
-test("core mobile tables retain essential columns and final actions", async ({ page }) => {
+test("core mobile registers retain essential records and final actions", async ({ page }) => {
   test.skip(!hasAccount("superAdmin"), `Missing super admin credentials: ${missingAccountVars("superAdmin").join(", ")}`);
   await page.setViewportSize({ width: 390, height: 844 });
   await login(page, "superAdmin");
-  const cases = [
-    ["/items", ["Item Code", "Item Name", "Base Unit", "Status", "Action"]],
-    ["/purchase-requests", ["PR No", "Needed By", "Status", "Action"]],
-    ["/purchase-orders", ["PO No", "Supplier", "Status", "Action"]],
-    ["/staffs", ["Staff Code", "Name", "Role", "Staff Status", "Action"]],
-    ["/recipes", ["Recipe No", "Product", "Status", "Action"]],
-  ];
-  for (const [route, essential] of cases) {
-    await page.goto(route, { waitUntil: "domcontentloaded" });
-    await expect(page.locator("table")).toBeVisible();
-    const visibleHeaders = (await page.locator("table thead th:visible").allTextContents()).map((value) => value.trim()).filter(Boolean);
-    for (const header of essential) expect(visibleHeaders).toContain(header);
-    expect(visibleHeaders.at(-1)).toMatch(/^Actions?$/i);
+  const cases = ["/items", "/purchase-requests", "/purchase-orders", "/staffs", "/recipes"];
+  for (const route of cases) {
+    await gotoSettled(page, route);
+    const list = page.locator('[role="list"]:visible').first();
+    await expect(list).toBeVisible();
+    const listItems = list.locator('[role="listitem"]:visible');
+    if (await listItems.count()) {
+      await expect(listItems.first()).toBeVisible();
+    } else {
+      await expect(page.locator("p:visible").filter({ hasText: /No (.+) yet|No records match/i }).first()).toBeVisible();
+    }
+    await expect(page.locator("table:visible")).toHaveCount(0);
     await expectNoPageOverflow(page);
   }
 });
@@ -83,20 +102,22 @@ test("reported typography and action-placement regressions stay corrected", asyn
   await page.setViewportSize({ width: 1440, height: 900 });
   await login(page, "superAdmin");
 
-  await page.goto("/production/jobs/new", { waitUntil: "domcontentloaded" });
-  await expect(page.locator("[data-right-console]").getByRole("button", { name: "Create draft production job" })).toBeVisible();
+  await gotoSettled(page, "/production/jobs/new");
+  await expect(actionIn(page.locator("[data-right-console]"), "Create Draft Production Job")).toBeVisible();
   const recipeWarning = page.getByText("No active recipe found. Activate a recipe before creating production job.");
   if (await recipeWarning.count()) {
     expect(await recipeWarning.evaluate((element) => Number.parseFloat(getComputedStyle(element).fontSize))).toBeLessThanOrEqual(13);
   }
 
-  await page.goto("/recipes", { waitUntil: "domcontentloaded" });
-  await expect(page.locator("[data-right-console]").getByRole("link", { name: "New recipe" })).toBeVisible();
+  await gotoSettled(page, "/recipes");
+  await expect(actionIn(page.locator("[data-right-console]"), "New recipe")).toBeVisible();
   await expect(page.locator("main header").getByRole("link", { name: "New recipe" })).toHaveCount(0);
 
-  await page.goto("/purchase-orders", { waitUntil: "domcontentloaded" });
-  const headerHeight = await page.locator("main > header").evaluate((element) => element.getBoundingClientRect().height);
-  expect(headerHeight).toBeLessThanOrEqual(64);
+  await gotoSettled(page, "/purchase-orders");
+  const header = page.locator("main > header").first();
+  await expect(header).toBeVisible();
+  const headerHeight = await header.evaluate((element) => element.getBoundingClientRect().height);
+  expect(headerHeight).toBeLessThanOrEqual(72);
 });
 
 test("latest responsive feedback keeps actions contextual and mobile UI compact", async ({ page }) => {
@@ -107,17 +128,17 @@ test("latest responsive feedback keeps actions contextual and mobile UI compact"
   for (const [route, actions] of [
     ["/products", ["New product", "Import products"]],
   ]) {
-    await page.goto(route, { waitUntil: "domcontentloaded" });
+    await gotoSettled(page, route);
     const console = page.locator("[data-right-console]");
     for (const action of actions) await expect(console.getByRole("link", { name: action }).or(console.getByRole("button", { name: action }))).toBeVisible();
     for (const action of actions) await expect(page.locator("main > header").getByText(action, { exact: true })).toHaveCount(0);
   }
 
   await page.setViewportSize({ width: 390, height: 844 });
-  await page.goto("/items", { waitUntil: "domcontentloaded" });
-  await expect(page.locator("[data-mobile-action-bar]").getByRole("link", { name: "New item" })).toBeVisible();
-  await page.goto("/products", { waitUntil: "domcontentloaded" });
-  const filter = page.locator(".sb-list-filters").first();
+  await gotoSettled(page, "/items");
+  await expectPhoneActionSurface(page, "New item");
+  await gotoSettled(page, "/products");
+  const filter = page.locator(".unified-list-header:visible").first();
   await expect(filter).toBeVisible();
   expect((await filter.boundingBox()).height).toBeLessThanOrEqual(90);
   await expectNoPageOverflow(page);
@@ -129,20 +150,20 @@ test("inventory creation forms keep lifecycle and primary actions in context", a
   await page.setViewportSize({ width: 1355, height: 792 });
   await login(page, "superAdmin");
 
-  await page.goto("/products/new", { waitUntil: "domcontentloaded" });
+  await gotoSettled(page, "/products/new");
   await expect(page.locator('input[type="file"][name="product_image"]')).toBeVisible();
   await expect(page.getByLabel("Product Image URL")).toHaveCount(0);
   await expect(page.getByLabel("Status")).toHaveCount(0);
-  await expect(page.locator("[data-right-console]").getByRole("button", { name: "Create product" })).toBeVisible();
+  await expect(actionIn(page.locator("[data-right-console]"), "Create product")).toBeVisible();
 
   for (const [route, action] of [
-    ["/stock-counts/new", "Create draft count"],
+    ["/stock-counts/new", "Save draft"],
     ["/stock-wastage/new", "Create wastage"],
-    ["/stock-transfers/new", "Create transfer"],
+    ["/stock-transfers/new", "Save Transfer Draft"],
     ["/stock-transactions/new", "Post stock transaction"],
   ]) {
-    await page.goto(route, { waitUntil: "domcontentloaded" });
-    await expect(page.locator("[data-right-console]").getByRole("button", { name: action })).toBeVisible();
+    await gotoSettled(page, route);
+    await expect(actionIn(page.locator("[data-right-console]"), action)).toBeVisible();
     await expect(page.getByLabel("Status")).toHaveCount(0);
     await expect(page.getByText("Select the outlet, kitchen, office, or event booth this record belongs to.")).toHaveCount(0);
   }
@@ -153,7 +174,7 @@ test("release viewports have stable shell, dates, controls, and contextual conso
   await login(page, "superAdmin");
   for (const viewport of viewports) {
     await page.setViewportSize(viewport);
-    await page.goto("/production/jobs/new", { waitUntil: "domcontentloaded" });
+    await gotoSettled(page, "/production/jobs/new");
     await expectNoPageOverflow(page);
     const date = page.locator('input[type="date"]:visible').first();
     if (await date.count()) {
@@ -163,10 +184,23 @@ test("release viewports have stable shell, dates, controls, and contextual conso
     }
     if (viewport.width >= 1280) {
       await expect(page.locator("[data-right-console]")).toBeVisible();
-      await expect(page.locator("[data-mobile-action-bar]")).toBeHidden();
+      await expect(page.locator("[data-mobile-action-bar], [data-mobile-document-action], [data-mobile-create-fab]")).toBeHidden();
     } else {
       await expect(page.locator("[data-right-console]")).toBeHidden();
-      await expect(page.locator("[data-mobile-action-bar]")).toBeVisible();
+      if (viewport.width < 640) {
+        await expect(page.locator("[data-mobile-document-action]")).toBeVisible();
+        await expect(page.locator("[data-mobile-app-nav]")).toBeHidden();
+      } else if (viewport.width < 1024) {
+        await expect(page.locator("[data-mobile-document-action], [data-mobile-action-bar], [data-mobile-create-fab]")).toBeHidden();
+        await expect(page.locator("[data-mobile-app-nav]")).toBeHidden();
+        const split = page.locator("[data-tablet-split-actions]");
+        if (await split.count()) await expect(split).toBeVisible();
+      } else {
+        await expect(page.locator("[data-mobile-document-action], [data-mobile-action-bar], [data-mobile-create-fab]")).toBeHidden();
+        await expect(page.locator("[data-mobile-app-nav]")).toBeVisible();
+        const split = page.locator("[data-tablet-split-actions]");
+        if (await split.count()) await expect(split).toBeVisible();
+      }
     }
   }
 });

@@ -69,7 +69,7 @@ the branch directory render a false unavailable state.
 | `npm run test:contract` | PASS | 764 passed, 0 failed |
 | `node --test tests/item-creation-atomic-contract.test.js` | PASS | 2 passed, 0 failed |
 | `npm run build` | PASS | 75/75 static pages |
-| Preview runtime reachability | PASS | `/login` returned HTTP 200; unauthenticated `/items/new` returned HTTP 302 to Vercel SSO, so the protected form was not exposed |
+| Preview runtime reachability | PASS | Latest preview `/login` returned HTTP 200; unauthenticated `/items/new` returned HTTP 302 to Vercel SSO, so the protected form was not exposed |
 | Supabase migration 167 | PASS | Applied to local and linked databases; CLI emitted a non-blocking pg-delta certificate-cache warning after applying |
 | Supabase migration 168 | LOCAL PASS / LINKED UNVERIFIED | Local schema is applied; linked status checks hit a Supabase login-role transport error and a full `--include-all` push was blocked because pending migration scope could not be proven |
 | `administration-master-data-ux.spec.js` | PASS | 2/2; cross-route right-rail content stayed present after the ownership fix |
@@ -78,16 +78,17 @@ the branch directory render a false unavailable state.
 
 ## Deployment receipt
 
-The previous application revision has a successful Vercel Preview deployment:
+The verified functional revision has a successful Vercel Preview deployment:
 
-- GitHub deployment: `5969508656`
-- Preview URL: `https://seri-bako-oms-official-jiagztysw-seribako.vercel.app`
+- GitHub deployment: `5970396704`
+- Preview URL: `https://seri-bako-oms-official-3rt339isu-seribako.vercel.app`
 - Preview status: `success`
-- Commit: `994a66c`
+- Commit: `2e67cae`
 
-The latest verified revision `2e67cae` is pushed, but its new Vercel deployment
-receipt has not yet been captured. Production promotion remains blocked until that
-preview is built and the post-deploy matrix passes.
+The documentation-only follow-up `e78151c` is pushed after the functional revision;
+the preview above contains the complete functional code under review. Production
+promotion remains blocked until linked migration status is verified and the owner
+approves the production promotion.
 
 The custom production domain has **not** been promoted to this revision. The latest
 production deployment receipt still points to commit `b49a601` (`fix: backfill

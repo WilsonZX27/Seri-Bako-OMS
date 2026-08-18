@@ -2,8 +2,8 @@
 
 **Date:** 2026-08-19 (Asia/Kuala_Lumpur)  
 **Branch:** `codex/uiux-round2`  
-**Commit:** `994a66c` (`feat: atomically create operational items with sourcing`)
-**Latest code revision under review:** `994a66c` (`feat: atomically create operational items with sourcing`)
+**Commit:** `219042c` (`fix: guard shared console ownership and enum branch search`)
+**Latest code revision under review:** `219042c` (`fix: guard shared console ownership and enum branch search`)
 
 ## What was actually fixed
 
@@ -45,29 +45,49 @@ item code/name are not duplicated as user-owned identity; migration 154 keeps th
 Item Master authoritative. The existing supplier-item and branch-mapping screens
 remain available for later correction and bulk maintenance.
 
+### Shared action-rail navigation race
+
+The shared `RightConsoleMount` now assigns each mounted route a unique symbol owner.
+An outgoing route cleanup can only clear the content it owns, so a late cleanup from
+the previous page cannot erase the next page's desktop/tablet action rail and leave
+the user with the generic `Workspace Context` panel. The administration master-data
+E2E now passes 2/2 after repeated cross-route navigation.
+
+### Branch enum search
+
+Branch search no longer applies `ilike` to the PostgreSQL `branch_type` enum. Code and
+name remain fuzzy text searches; recognized branch types use an exact enum comparison.
+This removes the `operator does not exist: branch_type ~~* unknown` failure that made
+the branch directory render a false unavailable state.
+
 ## Verification receipt
 
 | Gate | Result | Notes |
 | --- | --- | --- |
 | `npm run typecheck:strict` | PASS | strict no-unused checks |
 | `npm run lint` | PASS | `src` lint |
-| `npm run test:contract` | PASS | 762 passed, 0 failed |
+| `npm run test:contract` | PASS | 764 passed, 0 failed |
 | `node --test tests/item-creation-atomic-contract.test.js` | PASS | 2 passed, 0 failed |
 | `npm run build` | PASS | 75/75 static pages |
 | Preview runtime reachability | PASS | `/login` returned HTTP 200; unauthenticated `/items/new` returned HTTP 302 to Vercel SSO, so the protected form was not exposed |
 | Supabase migration 167 | PASS | Applied to local and linked databases; CLI emitted a non-blocking pg-delta certificate-cache warning after applying |
 | Supabase migration 168 | LOCAL PASS / LINKED UNVERIFIED | Local schema is applied; linked status checks hit a Supabase login-role transport error and a full `--include-all` push was blocked because pending migration scope could not be proven |
-| `p0-browser-comments.spec.js` | 5 passed, 1 skipped | 820/1180 tablet filters, dashboard, UOM/PO, AP/outlet/production, Low Stock passed; Manager Review skipped because local fixture has 0 records |
-| Git push | PASS | `origin/codex/uiux-round2` at `994a66c` |
+| `administration-master-data-ux.spec.js` | PASS | 2/2; cross-route right-rail content stayed present after the ownership fix |
+| `p0-browser-comments.spec.js` | PASS on isolated rerun | Full 8-test cold run was 7 passed plus 1 long-chain timeout; the isolated AP/outlet/production test reran 1/1 in 23.2s; no assertion failure remained |
+| Git push | PASS | `origin/codex/uiux-round2` at `219042c` |
 
 ## Deployment receipt
 
-The exact code revision has a successful Vercel Preview deployment:
+The previous application revision has a successful Vercel Preview deployment:
 
 - GitHub deployment: `5969508656`
 - Preview URL: `https://seri-bako-oms-official-jiagztysw-seribako.vercel.app`
 - Preview status: `success`
 - Commit: `994a66c`
+
+The latest verified fix commit `219042c` is pushed, but its new Vercel deployment
+receipt has not yet been captured. Production promotion remains blocked until that
+preview is built and the post-deploy matrix passes.
 
 The custom production domain has **not** been promoted to this revision. The latest
 production deployment receipt still points to commit `b49a601` (`fix: backfill

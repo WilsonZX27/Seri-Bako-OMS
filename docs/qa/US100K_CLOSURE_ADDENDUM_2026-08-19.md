@@ -178,6 +178,12 @@ On 2026-08-19, a read-only Vercel connector check using the repository's
 That is a deployment-provider state mismatch, not evidence that the branch is
 live; the current deployment receipt therefore remains unverified.
 
+A subsequent read-only `supabase migration list --linked` attempt also did not
+reach the remote database: the local CLI failed while writing its telemetry temp
+file under `C:\Users\WilsonZX\.supabase`. This is an environment/CLI permission
+failure, so it provides no new migration-state evidence and does not authorize a
+remote push.
+
 The custom production domain has **not** been promoted to this revision. The latest
 production deployment receipt still points to commit `b49a601` (`fix: backfill
 deterministic item suppliers`), deployment `5966903953`. The production login

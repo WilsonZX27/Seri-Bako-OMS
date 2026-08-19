@@ -2,8 +2,8 @@
 
 **Date:** 2026-08-19 (Asia/Kuala_Lumpur)  
 **Branch:** `codex/uiux-round2`  
-**Commit:** `b869480` (`fix: cover unquoted database diagnostics`).
-**Latest committed code revision under review:** `b869480`; the preceding `a4ab5a8`, `5f08b8f`, `2b113e5`, `7046838`, `16009f6`, `e48aa2d`, `35c41dc`, `8aa6877` and `35bfdf5` commits include the actionable error boundary, stale-basket guard, truthful branch search, sourcing ownership, responsive closure evidence, workflow E2E classification, closure receipt, shared tablet fix follow-up, item sourcing readiness read model, and local E2E env parser hardening.
+**Commit:** `6de2e8f` (`fix: preserve safe validation field context`).
+**Latest committed code revision under review:** `6de2e8f`; the preceding `b869480`, `a4ab5a8`, `5f08b8f`, `2b113e5`, `7046838`, `16009f6`, `e48aa2d`, `35c41dc`, `8aa6877` and `35bfdf5` commits include the actionable error boundary, stale-basket guard, truthful branch search, sourcing ownership, responsive closure evidence, workflow E2E classification, closure receipt, shared tablet fix follow-up, item sourcing readiness read model, local E2E env parser hardening, and shared safe validation context.
 
 ## What was actually fixed
 
@@ -35,6 +35,14 @@ The New Purchase Request page also renders a visible recovery action back to the
 request list. This is a presentation and recovery safeguard; the linked
 Supabase migration ceiling still must be verified before claiming the underlying
 remote RPC is fixed.
+
+The same boundary now preserves safe field context for Zod validation failures:
+the first invalid field is labelled with an operator-facing name such as
+`Request branch`, `Requested items`, `Quantity`, or `UOM`, while messages are
+newline-free and length-bounded before they are returned through a redirect.
+This removes the generic “review required fields” dead end without exposing
+provider or database diagnostics. The existing wastage form remains the richer
+field-level recovery path with scroll, focus, red highlight, and inline guidance.
 
 ### Low Stock healthy-empty state
 
@@ -132,7 +140,8 @@ CSS-hidden controls rather than treating them as visible accessibility failures.
 | --- | --- | --- |
 | `npm run typecheck:strict` | PASS | strict no-unused checks |
 | `npm run lint` | PASS | `src` lint |
-| `npm run test:contract` | PASS | 771 passed, 0 failed |
+| `npm run test:contract` | PASS | 772 passed, 0 failed |
+| `node --test tests/action-error-safety-contract.test.js` | PASS | 4 passed, 0 failed; database diagnostics stay redacted and validation errors retain safe field context |
 | `node --test tests/metric-dictionary-contract.test.js` | PASS | 2 passed, 0 failed; Phase 1 decision metrics are definition-only and not yet rendered as KPIs |
 | `node --test tests/item-creation-atomic-contract.test.js` | PASS | 2 passed, 0 failed |
 | `node --test tests/filter-layout-authority-contract.test.js tests/workspace-canvas-authority-contract.test.js tests/cross-platform-shell-contract.test.js` | PASS | 21 passed, 0 failed; shared tablet filter geometry |

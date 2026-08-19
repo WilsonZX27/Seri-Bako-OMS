@@ -1204,7 +1204,9 @@ html[data-design-layer="v2"] form:has([data-mobile-document-action]) {
 @media (min-width: 768px) and (max-width: 1279px) {
   [data-tablet-document-split][data-tablet-rail-breakpoint="md"] {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) minmax(14rem, 30%);
+    /* Compact rails stay useful on portrait tablets without stealing the
+       working canvas. Landscape tablets receive a fixed cap below. */
+    grid-template-columns: minmax(0, 1fr) minmax(14rem, 24%);
     align-items: start;
     gap: 0.75rem;
   }
@@ -1220,6 +1222,12 @@ html[data-design-layer="v2"] form:has([data-mobile-document-action]) {
 }
 
 @media (min-width: 1024px) and (max-width: 1279px) {
+  [data-tablet-document-split][data-tablet-rail-breakpoint="md"][data-tablet-rail-width="compact"] {
+    /* At landscape-tablet widths, preserve the user's data canvas and keep
+       the secondary action rail from becoming a second content column. */
+    grid-template-columns: minmax(0, 1fr) minmax(14rem, 18rem);
+  }
+
   [data-tablet-document-split][data-tablet-rail-breakpoint="lg"] {
     display: grid;
     grid-template-columns: minmax(0, 1fr) 16rem;

@@ -10,7 +10,8 @@ test("tablet workspace context never overlaps the primary data canvas", () => {
   assert.match(source, /RightConsoleMount/);
   assert.match(source, /data-tablet-document-split/);
   assert.match(source, /data-tablet-rail-width=\{tabletRailWidth\}/);
-  assert.match(css, /data-tablet-rail-breakpoint="md"[\s\S]*grid-template-columns: minmax\(0, 1fr\) minmax\(14rem, 30%\)/);
+  assert.match(css, /data-tablet-rail-breakpoint="md"[\s\S]*grid-template-columns: minmax\(0, 1fr\) minmax\(14rem, 24%\)/);
+  assert.match(css, /data-tablet-rail-breakpoint="md"\]\[data-tablet-rail-width="compact"\][\s\S]*grid-template-columns: minmax\(0, 1fr\) minmax\(14rem, 18rem\)/);
 });
 
 test("the items master keeps its actions and summary visible beside the tablet list", () => {

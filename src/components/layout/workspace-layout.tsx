@@ -41,7 +41,11 @@ export function WorkspaceGrid({
   const usesTabletSplit = Boolean(rightRail && tabletRailMode === "split");
 
   return (
-    <div data-tablet-canvas={effectiveTabletCanvas} className={cn("min-h-0 p-3 pb-3", rightRail && !hideMobileConsole && "pb-32 xl:pb-3", className)}>
+    <div
+      data-tablet-canvas={effectiveTabletCanvas}
+      data-tablet-content={rightRail && effectiveTabletCanvas !== "full" ? "contained" : undefined}
+      className={cn("min-h-0 p-3 pb-3", rightRail && !hideMobileConsole && "pb-32 xl:pb-3", className)}
+    >
       {usesTabletSplit ? (
         <div
           data-tablet-document-split

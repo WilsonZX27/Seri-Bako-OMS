@@ -12,6 +12,7 @@ describe("workspace canvas regression", () => {
   test("WorkspaceGrid preserves the established document and list width intents", () => {
     assert.doesNotMatch(workspace, /data-workspace-grid/);
     assert.match(workspace, /data-tablet-canvas=\{effectiveTabletCanvas\}/);
+    assert.match(workspace, /data-tablet-content=\{rightRail && effectiveTabletCanvas !== "full" \? "contained" : undefined\}/);
     assert.match(workspace, /tabletCanvas \?\? \(documentMode \? "contained" : "wide"\)/);
   });
 
@@ -41,6 +42,8 @@ describe("workspace canvas regression", () => {
     assert.match(css, /\.sb-list-query-card:is\(\[data-tablet-query-layout="query"\], \[data-tablet-query-layout="controls"\]\) > :where\(select[\s\S]*?width: 9rem !important;/);
     assert.match(css, /unified-list-desktop-actions[\s\S]*display: flex !important/);
     assert.match(css, /unified-list-desktop-actions > \.unified-list-action[\s\S]*width: 7\.5rem !important/);
+    assert.match(css, /\[data-tablet-content="contained"\][\s\S]*width: min\(calc\(100% - 3rem\), 64rem\)/);
+    assert.match(css, /form\.sb-list-query-card > \.unified-list-desktop-actions[\s\S]*min-width: max-content[\s\S]*white-space: nowrap/);
     assert.doesNotMatch(css, /repeat\(4, minmax\(8rem, 1fr\)\)/);
   });
 });

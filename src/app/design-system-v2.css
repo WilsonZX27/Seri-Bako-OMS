@@ -1607,6 +1607,18 @@ html[data-design-layer="v2"] .sb-list-content-card {
   }
 }
 
+/* Tablet workspaces with a contextual rail need an inward reading frame. The
+   rail remains visible, but the combined canvas is capped and centered so the
+   query surface, list and action rail do not stretch edge-to-edge. Desktop
+   geometry is intentionally unchanged. */
+@media (min-width: 640px) and (max-width: 1279px) {
+  html[data-design-layer="v2"] [data-tablet-content="contained"] {
+    width: min(calc(100% - 3rem), 64rem);
+    max-width: 64rem;
+    margin-inline: auto;
+  }
+}
+
 /* Final shared list-control authority — layout. Every list route uses this one
    grammar. Desktop keeps one deliberate command row; tablet uses two predictable
    rows (query, then controls) instead of allowing route-specific wrapping. */
@@ -1626,6 +1638,9 @@ html[data-design-layer="v2"] .sb-list-content-card {
     gap: .5rem;
     min-width: 0;
     margin-left: auto;
+    min-width: max-content;
+    justify-content: flex-end;
+    white-space: nowrap;
   }
 
   html[data-design-layer="v2"] form.sb-list-query-card > .unified-list-desktop-actions > .sb-filter-summary {

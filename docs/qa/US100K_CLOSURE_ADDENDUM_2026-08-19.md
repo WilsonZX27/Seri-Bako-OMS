@@ -2,8 +2,8 @@
 
 **Date:** 2026-08-19 (Asia/Kuala_Lumpur)  
 **Branch:** `codex/uiux-round2`  
-**Commit:** `2b113e5` (`fix: make purchase request branch search truthful`)
-**Latest code revision under review:** `2b113e5`; the preceding `7046838`, `16009f6`, `e48aa2d`, `35c41dc`, `8aa6877` and `35bfdf5` commits include the sourcing ownership, responsive closure evidence, workflow E2E classification, closure receipt, shared tablet fix follow-up, item sourcing readiness read model, and local E2E env parser hardening.
+**Commit:** `5f08b8f` (`fix: block stale stock basket items`)
+**Latest code revision under review:** `5f08b8f`; the preceding `2b113e5`, `7046838`, `16009f6`, `e48aa2d`, `35c41dc`, `8aa6877` and `35bfdf5` commits include the stale-basket guard, truthful branch search, sourcing ownership, responsive closure evidence, workflow E2E classification, closure receipt, shared tablet fix follow-up, item sourcing readiness read model, and local E2E env parser hardening.
 
 ## What was actually fixed
 
@@ -73,6 +73,15 @@ the authoritative mapping workflow.
 The same bounded list query now also searches branch names when the search field
 claims `PR no, branch, remarks`; branch matching is performed before the paged
 request read and is included in the same fail-closed contract.
+
+### Stock Balance basket safety
+
+Stock Balance now carries the item-master status into the basket boundary. Inactive
+rows cannot be added, and restored legacy/local-storage lines are marked unknown
+until they are re-added from the current list. PR creation is disabled while an
+inactive or unknown line remains, with an inline remove-and-readd instruction;
+this prevents stale browser state from reaching the server as an opaque
+`All selected items must be active` error.
 
 ### Shared action-rail navigation race
 

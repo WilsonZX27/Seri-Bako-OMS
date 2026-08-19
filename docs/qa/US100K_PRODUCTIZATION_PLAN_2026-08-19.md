@@ -2,7 +2,7 @@
 
 **Status:** decision baseline, not a claim of production completion  
 **Date:** 2026-08-19 (Asia/Kuala_Lumpur)  
-**Reviewed branch:** `codex/uiux-round2` at `2b113e5`
+**Reviewed branch:** `codex/uiux-round2` at `5f08b8f`
 
 ## Executive decision
 
@@ -28,7 +28,7 @@ future multi-branch product.
 | Admin navigation ownership | 2/2 | Verified locally | Shared right-rail cleanup race is covered |
 | Inline daily validation | migration 167 + form contract | Local/linked evidence recorded | Error-to-field recovery path exists |
 | Atomic item creation | migration 168 local PASS | Local only | Unified creation path exists; linked ceiling still unverified |
-| Current Vercel revision | no current receipt for `2b113e5` | Unverified | Do not call branch state production-ready |
+| Current Vercel revision | no current receipt for `5f08b8f` | Unverified | Do not call branch state production-ready |
 | Linked migration ceiling | CLI login-role transport error | Unverified | Do not use `--include-all` to bypass the ceiling check |
 | Full production matrix | 6 roles × 6 viewports | Not yet captured | Required before production promotion |
 

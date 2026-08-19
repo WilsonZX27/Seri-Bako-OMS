@@ -2,8 +2,8 @@
 
 **Date:** 2026-08-19 (Asia/Kuala_Lumpur)  
 **Branch:** `codex/uiux-round2`  
-**Commit:** `2841eef` (`fix: route create-form errors to fields`).
-**Latest committed code revision under review:** `2841eef`; the preceding `3b34c94`, `4752c07`, `6de2e8f`, `b869480`, `a4ab5a8`, `5f08b8f`, `2b113e5`, `7046838`, `16009f6`, `e48aa2d`, `35c41dc`, `8aa6877` and `35bfdf5` commits include the actionable error boundary, stale-basket guard, truthful branch search, sourcing ownership, responsive closure evidence, workflow E2E classification, closure receipt, shared tablet fix follow-up, item sourcing readiness read model, local E2E env parser hardening, and shared safe validation context.
+**Commit:** `4c01731` (`fix: route outlet record errors to fields`).
+**Latest committed code revision under review:** `4c01731`; the preceding `2841eef`, `3b34c94`, `4752c07`, `6de2e8f`, `b869480`, `a4ab5a8`, `5f08b8f`, `2b113e5`, `7046838`, `16009f6`, `e48aa2d`, `35c41dc`, `8aa6877` and `35bfdf5` commits include the actionable error boundary, stale-basket guard, truthful branch search, sourcing ownership, responsive closure evidence, workflow E2E classification, closure receipt, shared tablet fix follow-up, item sourcing readiness read model, local E2E env parser hardening, and shared safe validation context.
 
 ## What was actually fixed
 
@@ -44,13 +44,14 @@ This removes the generic “review required fields” dead end without exposing
 provider or database diagnostics. The existing wastage form remains the richer
 field-level recovery path with scroll, focus, red highlight, and inline guidance.
 
-High-impact create forms now consume one shared client notice rather than
-repeating page-specific error cards. It identifies the matching named control,
-opens a closed disclosure when needed, smooth-scrolls to the control, focuses it,
-and applies the same restrained red ring. Purchase Request keeps its explicit
-return-to-list action through the shared component. The contract covers Stock
-Count, Goods Receiving, Stock Wastage, Stock Transfer, Purchase Return, Supplier
-Invoice, Production Job, and Purchase Request creation.
+High-impact create and detail forms now consume one shared client notice rather
+than repeating page-specific error cards. It identifies the matching named
+control, opens a closed disclosure when needed, smooth-scrolls to the control,
+focuses it, and applies the same restrained red ring. Purchase Request keeps its
+explicit return-to-list action through the shared component. The contract covers
+Stock Count, Goods Receiving, Stock Wastage, Stock Transfer, Purchase Return,
+Supplier Invoice, Production Job, Purchase Request, and both Outlet Daily Record
+create/detail entry points.
 
 ### Low Stock healthy-empty state
 

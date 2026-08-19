@@ -5,6 +5,7 @@ const test = require("node:test");
 
 const root = path.join(__dirname, "..");
 const source = fs.readFileSync(path.join(root, "src", "components", "stock-balance-workspace.tsx"), "utf8");
+const stockRows = fs.readFileSync(path.join(root, "src", "components", "stock-balance-table.tsx"), "utf8");
 const procurementAction = fs.readFileSync(path.join(root, "src", "server", "actions", "procurement.ts"), "utf8");
 const page = fs.readFileSync(path.join(root, "src", "app", "(app)", "stock-balance", "page.tsx"), "utf8");
 const inventoryQuery = fs.readFileSync(path.join(root, "src", "server", "queries", "inventory.ts"), "utf8");
@@ -40,6 +41,10 @@ test("stock balance persists the PR basket across filter refreshes without trust
   assert.match(source, /Saved on this device/);
   assert.match(source, /createPurchaseRequestsFromBasket/);
   assert.match(procurementAction, /ensureActorCanUsePurchaseRequestBranch/);
+  assert.match(source, /item_status: line\.item_status === "active" \? "active" : "unknown"/);
+  assert.match(source, /inactiveRows/);
+  assert.match(source, /inactiveRows\.length === 0/);
+  assert.match(stockRows, /disabled=\{!itemActive\}/);
 });
 
 test("stock balance hydrates item images into compact rows and keeps common PR UOM choices", () => {

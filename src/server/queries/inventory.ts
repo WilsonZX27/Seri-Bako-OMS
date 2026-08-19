@@ -40,6 +40,7 @@ type StockBalanceRow = {
   average_cost: number;
   inventory_value: number;
   last_movement: string | null;
+  item_status: string;
   status: string;
 };
 
@@ -765,6 +766,7 @@ export async function getStockBalanceDetails(filters: Filters = {}): Promise<Pag
         average_cost: avgCost,
         inventory_value: currentQty * avgCost,
         last_movement: latest.transaction_date,
+        item_status: item?.status ?? "unknown",
         status: currentQty < 0 ? "negative" : currentQty <= (item?.safety_stock ?? 0) ? "low_stock" : "ok",
       };
     });
@@ -810,6 +812,7 @@ export async function getStockBalanceDetails(filters: Filters = {}): Promise<Pag
   }
   const rows = balanceRows.map((row) => ({
     ...row,
+    item_status: row.status ?? "unknown",
     image_url: imageByItemId.get(row.item_id) ?? null,
     available_qty: row.current_qty,
     reserved_qty: 0,

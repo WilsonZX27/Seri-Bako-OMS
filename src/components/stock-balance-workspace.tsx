@@ -102,7 +102,7 @@ export function StockBalanceWorkspace({
         const restored = Object.fromEntries(Object.entries(parsed).filter(([key, line]) => (
           Boolean(key) && Boolean(line) && typeof line.item_id === "string" && typeof line.item_name === "string"
           && typeof line.qty === "string" && typeof line.uom === "string"
-        )).slice(0, 500));
+        )).map(([key, line]) => [key, { ...line, item_status: line.item_status === "active" ? "active" : "unknown" }]).slice(0, 500));
         setBasket(restored);
       }
     } catch {
@@ -135,7 +135,8 @@ export function StockBalanceWorkspace({
     supplier_id: supplierId,
     lines: lines.map((line) => ({ item_id: line.item_id, qty: line.qty, uom: line.uom, estimated_unit_cost: line.average_cost })),
   })), [supplierGroups]);
-  const canCreatePr = hasCreatePr && createRows.length > 0 && createRows.every((line) => Boolean(line.supplier_id));
+  const inactiveRows = useMemo(() => createRows.filter((line) => line.item_status !== "active"), [createRows]);
+  const canCreatePr = hasCreatePr && createRows.length > 0 && inactiveRows.length === 0 && createRows.every((line) => Boolean(line.supplier_id));
 
   const inBasket = useMemo(() => new Set(Object.keys(basket)), [basket]);
   const selectableBranchSet = useMemo(() => new Set(selectableBranchIds), [selectableBranchIds]);
@@ -182,6 +183,7 @@ export function StockBalanceWorkspace({
   }
 
   function toggleBasket(row: StockBalanceRow) {
+    if (row.item_status !== "active") return;
     const key = rowKey(row);
     setBasket((current) => {
       if (current[key]) {
@@ -241,6 +243,7 @@ export function StockBalanceWorkspace({
                       {createRows.length > 0 && createRows.some((line) => !line.supplier_id) ? (
                         <p className="mt-1 text-xs text-destructive">Some selected items have no supplier mapping. Map them before creating PRs.</p>
                       ) : null}
+                      {inactiveRows.length ? <p className="mt-1 text-xs text-destructive">Some selected items are no longer active. Remove them and add the current active item from Stock Balance before creating a PR.</p> : null}
                       {supplierGroups.length > 1 ? <p className="mt-1 text-xs text-muted-foreground">Different suppliers will be split into {supplierGroups.length} separate PRs.</p> : null}
                     </div>
                     {selectableBranchIds.length > 1 ? (
@@ -469,6 +472,7 @@ export function StockBalanceWorkspace({
             </div>
             <footer className="border-t border-[var(--sb-border-soft)] bg-[var(--sb-surface)] px-4 pb-[calc(0.75rem+env(safe-area-inset-bottom))] pt-3 shadow-[0_-3px_8px_rgb(6_44_31_/_0.10)]">
               {createRows.some((line) => !line.supplier_id) ? <p className="mb-2 text-xs text-[var(--sb-danger)]">Supplier mapping is required before these items can become a PR.</p> : null}
+              {inactiveRows.length ? <p className="mb-2 text-xs text-[var(--sb-danger)]">Some selected items are no longer active. Remove and re-add them from the current Stock Balance list.</p> : null}
               <SubmitButton type="submit" disabled={!canCreatePr} className="min-h-12 w-full" pendingLabel="Creating PR...">Create PR</SubmitButton>
             </footer>
           </form>

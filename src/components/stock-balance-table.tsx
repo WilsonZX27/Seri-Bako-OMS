@@ -25,6 +25,7 @@ export type StockBalanceRow = {
   average_cost: number;
   inventory_value: number;
   last_movement: string | null;
+  item_status: string;
   status: string;
   image_url?: string | null;
 };
@@ -67,6 +68,7 @@ export function StockBalanceTableRows({
         const href = formatLedgerHref(item.item_id, item.branch_id);
         const key = rowKey(item);
         const selected = inBasket.has(key);
+        const itemActive = item.item_status === "active";
         return (
           <TableRow
             key={key}
@@ -87,13 +89,15 @@ export function StockBalanceTableRows({
             <TableCell className="w-12 p-0 text-center">
               <Button
                 type="button"
+                disabled={!itemActive}
                 variant="ghost"
                 size="sm"
                 onClick={(event) => {
                   event.stopPropagation();
                   onToggleBasket(item);
                 }}
-                aria-label={selected ? `Remove ${item.item_code} from PR preparation` : `Add ${item.item_code} to PR preparation`}
+                aria-label={!itemActive ? `${item.item_code} is inactive and cannot be added to PR preparation` : selected ? `Remove ${item.item_code} from PR preparation` : `Add ${item.item_code} to PR preparation`}
+                title={!itemActive ? "Inactive item: refresh the master record before preparing a PR." : undefined}
                 aria-pressed={selected}
                 className={cn("h-9 w-9 rounded-[var(--sb-radius-control)]", selected && "bg-[var(--sb-green-100)] text-[var(--sb-green-950)]")}
               >
@@ -131,6 +135,7 @@ export function StockBalanceOperationalRows({
       {rows.map((item) => {
         const key = rowKey(item);
         const selected = inBasket.has(key);
+        const itemActive = item.item_status === "active";
         return (
           <OperationalListRow
             key={key}
@@ -143,13 +148,15 @@ export function StockBalanceOperationalRows({
             trailing={
               <button
                 type="button"
+                disabled={!itemActive}
                 className={cn("inline-flex h-10 w-10 items-center justify-center rounded-[var(--sb-radius-control)] border border-[var(--sb-border)] active:bg-[var(--sb-surface-muted)]", selected && "border-[var(--sb-green-700)] bg-[var(--sb-green-100)] text-[var(--sb-green-950)]")}
                 onClick={(event) => {
                   event.preventDefault();
                   event.stopPropagation();
                   onToggleBasket(item);
                 }}
-                aria-label={selected ? `Remove ${item.item_code} from PR preparation` : `Add ${item.item_code} to PR preparation`}
+                aria-label={!itemActive ? `${item.item_code} is inactive and cannot be added to PR preparation` : selected ? `Remove ${item.item_code} from PR preparation` : `Add ${item.item_code} to PR preparation`}
+                title={!itemActive ? "Inactive item: refresh the master record before preparing a PR." : undefined}
                 aria-pressed={selected}
               >
                 {selected ? <Trash2 className="h-4 w-4" /> : <ShoppingCart className="h-4 w-4" />}

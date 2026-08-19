@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Calculator } from "lucide-react";
+import { ActionErrorNotice } from "@/components/action-error-notice";
 import { Card, CardContent } from "@/components/ui/card";
 import { DocumentSideSection, DocumentWorkspace } from "@/components/documents/document-workspace";
 import { SubmitButton } from "@/components/ui/submit-button";
@@ -31,7 +32,7 @@ export default async function NewProductionJobPage({ searchParams }: { searchPar
         mobilePrimaryAction={primaryAction}
         sidePanel={<>{primaryAction ? <DocumentSideSection title="Primary Action">{primaryAction}</DocumentSideSection> : null}<DocumentSideSection title="Validation / Next Step"><p className="text-xs text-muted-foreground">Select an active recipe and branch, then check planned output and ingredient availability.</p></DocumentSideSection></>}
       >
-        {params.error ? <Card><CardContent className="p-4 text-sm text-destructive">{params.error}</CardContent></Card> : null}
+        <ActionErrorNotice message={params.error} />
         {!allowed ? (
           <Card>
             <CardContent className="space-y-3 p-5">

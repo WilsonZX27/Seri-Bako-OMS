@@ -1,5 +1,5 @@
 import { SubmitButton } from "@/components/ui/submit-button";
-import { Card, CardContent } from "@/components/ui/card";
+import { ActionErrorNotice } from "@/components/action-error-notice";
 import { DocumentSideSection, DocumentWorkspace } from "@/components/documents/document-workspace";
 import { SupplierInvoiceForm } from "@/components/supplier-invoice-form";
 import { createSupplierInvoice } from "@/server/actions/supplier-invoices";
@@ -26,7 +26,7 @@ export default async function NewSupplierInvoicePage({ searchParams }: { searchP
         mobilePrimaryAction={primaryAction}
         sidePanel={<><DocumentSideSection title="Primary Action">{primaryAction}</DocumentSideSection><DocumentSideSection title="Validation / Next Step"><p className="text-xs text-muted-foreground">Choose a supplier and at least one posted receiving. Attach the supplier invoice on the saved draft before Finance approval.</p></DocumentSideSection></>}
       >
-        {filters.error ? <Card><CardContent className="p-4 text-sm text-destructive">{filters.error}</CardContent></Card> : null}
+        <ActionErrorNotice message={filters.error} />
         <SupplierInvoiceForm suppliers={suppliers} grns={grns} selectedSupplierId={filters.supplier_id} action={createSupplierInvoice} />
       </DocumentWorkspace>
   );

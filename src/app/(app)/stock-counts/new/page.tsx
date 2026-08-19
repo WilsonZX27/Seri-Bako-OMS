@@ -1,4 +1,5 @@
 import { StockCountForm } from "@/components/stock-count-form";
+import { ActionErrorNotice } from "@/components/action-error-notice";
 import { Card, CardContent } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/empty-state";
 import { DocumentSideSection, DocumentWorkspace } from "@/components/documents/document-workspace";
@@ -41,7 +42,7 @@ export default async function NewStockCountPage({ searchParams }: { searchParams
           <DocumentSideSection title="Count guidance"><p className="text-xs text-muted-foreground">Start from the latest posted physical count where available, then use ± or direct entry to record what changed. Variance notes are optional in draft and remain visible for review.</p></DocumentSideSection>
         </div>}
       >
-        {filters.error ? <Card><CardContent className="p-4 text-sm text-destructive">{filters.error}</CardContent></Card> : null}
+        <ActionErrorNotice message={filters.error} />
         {sourceUnavailable ? <Card role="status"><CardContent className="p-5"><EmptyState title="Starting balances unavailable" description="Verified branch balances could not be loaded. Retry before entering a count; no zero values have been substituted." action={{ href: filters.branch_id ? `/stock-counts/new?branch_id=${encodeURIComponent(filters.branch_id)}` : "/stock-counts/new", label: "Retry" }} /></CardContent></Card> : <StockCountForm formId={formId} branches={branches} selectedBranchId={selectedBranchId} seedLines={seedLines} action={createStockCount} autosaveAction={autosaveNewStockCount} />}
       </DocumentWorkspace>
   );

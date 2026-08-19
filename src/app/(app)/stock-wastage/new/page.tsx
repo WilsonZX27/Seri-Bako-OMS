@@ -1,5 +1,5 @@
 import { StockWastageForm } from "@/components/stock-operation-forms";
-import { Card, CardContent } from "@/components/ui/card";
+import { ActionErrorNotice } from "@/components/action-error-notice";
 import { DocumentSideSection, DocumentWorkspace } from "@/components/documents/document-workspace";
 import { SubmitButton } from "@/components/ui/submit-button";
 import { createStockWastage } from "@/server/actions/stock-operations";
@@ -34,7 +34,7 @@ export default async function NewStockWastagePage({ searchParams }: { searchPara
           <DocumentSideSection title="Validation / Next Step"><p className="text-xs text-muted-foreground">Select at least one item and enter a positive quantity. Create the draft first, then upload photos or documents from its Attachments panel.</p></DocumentSideSection>
         </>}
       >
-        {filters.error ? <Card><CardContent className="p-4 text-sm text-destructive">{filters.error}</CardContent></Card> : null}
+        <ActionErrorNotice message={filters.error} />
         <StockWastageForm formId={formId} showSubmit={false} branches={branches} selectedBranchId={selectedBranchId} seedLines={seedLines} action={createStockWastage} />
       </DocumentWorkspace>
     </>

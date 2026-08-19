@@ -1,6 +1,6 @@
 import { ArrowLeftRight } from "lucide-react";
 import { StockTransferForm } from "@/components/stock-operation-forms";
-import { Card, CardContent } from "@/components/ui/card";
+import { ActionErrorNotice } from "@/components/action-error-notice";
 import { DocumentSideSection, DocumentWorkspace } from "@/components/documents/document-workspace";
 import { SubmitButton } from "@/components/ui/submit-button";
 import { createStockTransfer } from "@/server/actions/stock-operations";
@@ -31,7 +31,7 @@ export default async function NewStockTransferPage({ searchParams }: { searchPar
         mobilePrimaryAction={primaryAction}
         sidePanel={<><DocumentSideSection title="Primary Action">{primaryAction}</DocumentSideSection><DocumentSideSection title="Validation / Next Step"><p className="text-xs text-muted-foreground">Choose different source and destination branches and enter at least one positive quantity.</p></DocumentSideSection></>}
       >
-        {filters.error ? <Card><CardContent className="p-4 text-sm text-destructive">{filters.error}</CardContent></Card> : null}
+        <ActionErrorNotice message={filters.error} />
         <StockTransferForm formId={formId} showSubmit={false} branches={branches} selectedFromBranchId={selectedFromBranchId} seedLines={seedLines} action={createStockTransfer} />
       </DocumentWorkspace>
   );

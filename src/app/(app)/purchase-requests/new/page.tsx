@@ -1,7 +1,7 @@
 import Link from "next/link";
-import { AlertTriangle, ArrowLeft, Save, Send } from "lucide-react";
+import { ArrowLeft, Save, Send } from "lucide-react";
+import { ActionErrorNotice } from "@/components/action-error-notice";
 import { PurchaseRequestForm } from "@/components/procurement-forms";
-import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { SubmitButton } from "@/components/ui/submit-button";
 import { DocumentMoreOptions } from "@/components/documents/mobile-document-surfaces";
@@ -68,19 +68,12 @@ export default async function NewPurchaseRequestPage({ searchParams }: { searchP
             </DocumentSideSection>
           </>}
       >
-        {params.error ? (
-          <Card data-action-error>
-            <CardContent className="flex flex-wrap items-center justify-between gap-3 p-4">
-              <div className="flex min-w-0 items-start gap-2 text-sm text-destructive" role="alert">
-                <AlertTriangle className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
-                <p>{params.error}</p>
-              </div>
-              <Button asChild type="button" variant="outline" size="sm" className="shrink-0">
-                <Link href="/purchase-requests">Back to purchase requests</Link>
-              </Button>
-            </CardContent>
-          </Card>
-        ) : null}
+        <ActionErrorNotice
+          message={params.error}
+          action={<Button asChild type="button" variant="outline" size="sm" className="shrink-0 text-destructive">
+            <Link href="/purchase-requests">Back to purchase requests</Link>
+          </Button>}
+        />
         <PurchaseRequestForm
           items={items}
           supplierMappings={supplierMappings}

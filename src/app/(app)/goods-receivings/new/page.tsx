@@ -1,5 +1,5 @@
 import { GoodsReceivingForm } from "@/components/goods-receiving-form";
-import { Card, CardContent } from "@/components/ui/card";
+import { ActionErrorNotice } from "@/components/action-error-notice";
 import { SubmitButton } from "@/components/ui/submit-button";
 import { DocumentSideSection, DocumentWorkspace } from "@/components/documents/document-workspace";
 import { createGoodsReceiving } from "@/server/actions/goods-receivings";
@@ -41,7 +41,7 @@ export default async function NewGoodsReceivingPage({ searchParams }: { searchPa
             </DocumentSideSection>
           </>}
       >
-        {filters.error ? <Card><CardContent className="p-4 text-sm text-destructive">{filters.error}</CardContent></Card> : null}
+        <ActionErrorNotice message={filters.error} />
         <GoodsReceivingForm
           purchaseOrders={purchaseOrders}
           selectedOrder={selectedOrder}

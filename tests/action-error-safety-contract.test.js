@@ -4,6 +4,7 @@ import test from "node:test";
 
 const source = fs.readFileSync("src/server/actions/error-handling.ts", "utf8");
 const page = fs.readFileSync("src/app/(app)/purchase-requests/new/page.tsx", "utf8");
+const notice = fs.readFileSync("src/components/action-error-notice.tsx", "utf8");
 
 test("technical database diagnostics never leak through action redirects", () => {
   assert.match(source, /isTechnicalDatabaseError/);
@@ -19,8 +20,9 @@ test("technical database diagnostics are classified as unavailable", () => {
 });
 
 test("purchase request action errors retain a visible recovery path", () => {
-  assert.match(page, /data-action-error/);
-  assert.match(page, /role="alert"/);
+  assert.match(page, /ActionErrorNotice/);
+  assert.match(notice, /data-action-error/);
+  assert.match(notice, /role="alert"/);
   assert.match(page, /Back to purchase requests/);
 });
 

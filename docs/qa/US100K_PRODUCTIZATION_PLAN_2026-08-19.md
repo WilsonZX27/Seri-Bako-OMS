@@ -2,7 +2,7 @@
 
 **Status:** decision baseline, not a claim of production completion  
 **Date:** 2026-08-19 (Asia/Kuala_Lumpur)  
-**Reviewed branch:** `codex/uiux-round2` at `a4ab5a8`
+**Reviewed branch:** `codex/uiux-round2` at `b869480`
 
 ## Executive decision
 

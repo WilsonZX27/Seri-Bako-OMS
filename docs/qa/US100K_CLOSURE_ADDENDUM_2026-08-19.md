@@ -2,8 +2,8 @@
 
 **Date:** 2026-08-19 (Asia/Kuala_Lumpur)  
 **Branch:** `codex/uiux-round2`  
-**Commit:** `a4ab5a8` (`fix: keep database diagnostics actionable`).
-**Latest committed code revision under review:** `a4ab5a8`; the preceding `5f08b8f`, `2b113e5`, `7046838`, `16009f6`, `e48aa2d`, `35c41dc`, `8aa6877` and `35bfdf5` commits include the stale-basket guard, truthful branch search, sourcing ownership, responsive closure evidence, workflow E2E classification, closure receipt, shared tablet fix follow-up, item sourcing readiness read model, and local E2E env parser hardening.
+**Commit:** `b869480` (`fix: cover unquoted database diagnostics`).
+**Latest committed code revision under review:** `b869480`; the preceding `a4ab5a8`, `5f08b8f`, `2b113e5`, `7046838`, `16009f6`, `e48aa2d`, `35c41dc`, `8aa6877` and `35bfdf5` commits include the actionable error boundary, stale-basket guard, truthful branch search, sourcing ownership, responsive closure evidence, workflow E2E classification, closure receipt, shared tablet fix follow-up, item sourcing readiness read model, and local E2E env parser hardening.
 
 ## What was actually fixed
 
@@ -146,7 +146,7 @@ CSS-hidden controls rather than treating them as visible accessibility failures.
 | `role-workspaces-7-23-5-6.spec.js` | PASS | 6/6 role workspaces passed on the isolated local fixture server |
 | `document-workspaces-7-23-5-5.spec.js` | PASS | 8/8 passed against an isolated production-mode local server; stock-count/create routes are correctly excluded from approval-workflow-only assertions |
 | `p0-browser-comments.spec.js` | PASS | 6/6 local tests passed after giving the two intentionally long cross-route viewport chains an explicit 120-second budget; no assertion failure remained |
-| Git push | PASS | `origin/codex/uiux-round2` at `a4ab5a8` |
+| Git push | PASS | `origin/codex/uiux-round2` at `b869480` |
 
 ## Deployment receipt
 

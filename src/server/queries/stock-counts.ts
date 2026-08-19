@@ -345,7 +345,7 @@ export async function getStockCount(id: string) {
       .filter((line) => line.stock_count_id === id)
       .sort((left, right) => Number((left as StockCountLine & { line_position?: number }).line_position ?? 0) - Number((right as StockCountLine & { line_position?: number }).line_position ?? 0))
       .map((line) => ({ ...line, item: mockItems.find((item) => item.id === line.item_id) }));
-    return { count: hydrateCount(count as StockCount, mockStockCountLines as StockCountLine[]), lines, revisions: [] };
+    return { count: hydrateCount(count as StockCount, mockStockCountLines as StockCountLine[]), lines, revisions: [], revisionsAvailable: false };
   }
   const supabase = await createClient();
   const [{ data, error }, { data: lines, error: linesError }, { data: revisions, error: revisionsError }] = await Promise.all([
@@ -361,7 +361,6 @@ export async function getStockCount(id: string) {
     throw new Error(error.message);
   }
   if (linesError) throw new Error(linesError.message);
-  if (revisionsError) throw new Error(revisionsError.message);
   if (!data) throw new StockCountNotFoundError();
   if (!lines) throw new Error("Stock Count detail returned incomplete line data.");
   const count = data as StockCount;
@@ -389,7 +388,8 @@ export async function getStockCount(id: string) {
       high_variance_count: ownLines.filter((line) => Math.abs(line.variance_percent) > count.tolerance_percent).length,
     },
     lines: ownLines.map((line) => ({ ...line, item: itemById.get(line.item_id) })),
-    revisions: revisions ?? [],
+    revisions: revisionsError ? [] : revisions ?? [],
+    revisionsAvailable: !revisionsError,
   };
 }
 

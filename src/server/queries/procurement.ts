@@ -310,6 +310,14 @@ export async function getPurchaseRequestBranchStock(branchId: string | null, ite
   }));
 }
 
+export async function getRecoverableDocumentWorkflowAvailable() {
+  if (isMockMode()) return false;
+  const supabase = await createClient();
+  const { error } = await supabase.from("document_line_revisions").select("id").limit(1);
+  if (error) throw new Error(error.message);
+  return true;
+}
+
 export async function getPurchaseOrdersForRequest(id: string) {
   if (isMockMode()) {
     return mockPurchaseOrders.filter((order) => order.purchase_request_id === id).map((order) => hydratePo(order, mockPurchaseOrderLines));

@@ -33,7 +33,7 @@ import {
 import { getPermissionMap } from "@/server/auth/permissions";
 import { getBranchesForSelect, getBranchSupplierMappingsForSelect, getCurrentProfile, getItemsForSelect, getSuppliersForSelect } from "@/server/queries/common";
 import { getDocumentBundle } from "@/server/queries/documents";
-import { getPurchaseOrdersForRequest, getPurchaseRequest, getPurchaseRequestBranchStock } from "@/server/queries/procurement";
+import { getPurchaseOrdersForRequest, getPurchaseRequest, getPurchaseRequestBranchStock, getRecoverableDocumentWorkflowAvailable } from "@/server/queries/procurement";
 import { getPhaseOneDeletePreview } from "@/server/queries/hard-delete";
 import { hardDeletePhaseOne } from "@/server/actions/hard-delete";
 import { PurchaseRequestForm } from "@/components/procurement-forms";
@@ -86,6 +86,7 @@ export default async function PurchaseRequestDetailPage({
       request.document_id ? getDocumentBundle(request.document_id) : Promise.resolve(null),
       getPhaseOneDeletePreview("purchase_request", request.id),
       getPurchaseRequestBranchStock(request.branch_id, lines.map((line) => line.item_id)),
+      getRecoverableDocumentWorkflowAvailable(),
     ]),
     getPermissionMap([
       "purchase_request.create",
@@ -102,7 +103,7 @@ export default async function PurchaseRequestDetailPage({
     ]),
     getCurrentProfile(),
   ]);
-  const [linkedOrdersResult, itemsResult, suppliersResult, supplierMappingsResult, branchesResult, documentBundleResult, deletePreviewResult, branchStockResult] = auxiliaryResults;
+  const [linkedOrdersResult, itemsResult, suppliersResult, supplierMappingsResult, branchesResult, documentBundleResult, deletePreviewResult, branchStockResult, recoveryCapabilityResult] = auxiliaryResults;
   for (const [result, source] of [
     [linkedOrdersResult, "page.purchaseRequestDetail.linkedOrders"],
     [itemsResult, "page.purchaseRequestDetail.itemDirectory"],
@@ -112,6 +113,7 @@ export default async function PurchaseRequestDetailPage({
     [documentBundleResult, "page.purchaseRequestDetail.documentBundle"],
     [deletePreviewResult, "page.purchaseRequestDetail.deletePreview"],
     [branchStockResult, "page.purchaseRequestDetail.branchStock"],
+    [recoveryCapabilityResult, "page.purchaseRequestDetail.recoveryCapability"],
   ] as const) {
     if (result.status === "rejected") logServerError(result.reason, { source });
   }
@@ -125,6 +127,7 @@ export default async function PurchaseRequestDetailPage({
   const deletePreview = deletePreviewResult.status === "fulfilled" ? deletePreviewResult.value : null;
   const branchStock = branchStockResult.status === "fulfilled" ? branchStockResult.value : null;
   const stockByItemId = new Map((branchStock ?? []).map((stock) => [stock.itemId, stock]));
+  const recoveryAvailable = recoveryCapabilityResult.status === "fulfilled" && recoveryCapabilityResult.value;
   const itemById = new Map((items ?? []).map((item) => [item.id, item]));
   const supplierById = new Map((suppliers ?? []).map((supplier) => [supplier.id, supplier]));
   const supplierIds = suppliers ? new Set(suppliers.map((supplier) => supplier.id)) : null;
@@ -140,7 +143,7 @@ export default async function PurchaseRequestDetailPage({
   const canManagerReview = request.status === "manager_review" && permissions["pr.manager_approve"] && (roleCode === "manager" || isOwner);
   const canAdminReview = request.status === "admin_review" && permissions["pr.admin_review"] && (roleCode === "purchasing" || isOwner);
   const canFinanceReview = request.status === "finance_review" && permissions["pr.finance_review"] && (roleCode === "finance" || isOwner);
-  const canRepairReviewLines = canManagerReview || canAdminReview;
+  const canRepairReviewLines = (canManagerReview || canAdminReview) && recoveryAvailable;
   const readinessByLine = new Map(lines.map((line) => [line.id, diagnosePurchaseRequestSupplier({
     line,
     item: itemById.get(line.item_id),
@@ -240,7 +243,7 @@ export default async function PurchaseRequestDetailPage({
       {documentBundleUnavailable ? <Card className="document-surface shadow-none md:hidden"><CardContent className="p-3" role="status"><p className="text-sm font-semibold text-[var(--sb-warning)]">Document activity unavailable</p><p className="mt-1 text-xs text-muted-foreground">Attachments, comments, and timeline could not be loaded. Retry this page.</p></CardContent></Card> : null}
 
       {blockingLineIssues.length ? <section id="pr-guided-issues" className="scroll-mt-32 rounded-[var(--sb-panel-radius)] bg-[var(--sb-warning-bg)] p-4" role="status">
-        <div className="flex items-start gap-3"><AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-[var(--sb-warning)]" /><div><h2 className="text-sm font-semibold">{blockingLineIssues.length} item{blockingLineIssues.length === 1 ? " needs" : "s need"} attention before this review can continue</h2><p className="mt-1 text-xs text-muted-foreground">The PR remains saved in {getPrWorkflowLabel(request.status)}. Open the warning icon on an affected row to use a mapped supplier, change UOM, select another supplier, replace the item, or remove that line. Other lines remain available.</p></div></div>
+        <div className="flex items-start gap-3"><AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-[var(--sb-warning)]" /><div><h2 className="text-sm font-semibold">{blockingLineIssues.length} item{blockingLineIssues.length === 1 ? " needs" : "s need"} attention before this review can continue</h2><p className="mt-1 text-xs text-muted-foreground">{recoveryAvailable ? `The PR remains saved in ${getPrWorkflowLabel(request.status)}. Open the warning icon on an affected row to use a mapped supplier, change UOM, select another supplier, replace the item, or remove that line. Other lines remain available.` : "The PR remains saved and readable. Guided repair setup is unavailable in this environment; ask an Owner to apply migration 170, then Retry this page. No line will be changed until setup is available."}</p></div></div>
       </section> : null}
 
       <Card className="document-surface shadow-none">

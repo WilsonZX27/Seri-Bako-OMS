@@ -2,8 +2,8 @@
 
 **Date:** 2026-08-19 (Asia/Kuala_Lumpur)  
 **Branch:** `codex/uiux-round2`  
-**Commit:** `35c41dc` (`test: classify responsive document workflows`)
-**Latest code revision under review:** `35c41dc`; the preceding `8aa6877` and `35bfdf5` commits include the closure receipt, shared tablet fix follow-up, item sourcing readiness read model, and local E2E env parser hardening.
+**Commit:** `16009f6` (`feat: surface purchase request sourcing ownership`)
+**Latest code revision under review:** `16009f6`; the preceding `e48aa2d`, `35c41dc`, `8aa6877` and `35bfdf5` commits include the responsive closure evidence, workflow E2E classification, closure receipt, shared tablet fix follow-up, item sourcing readiness read model, and local E2E env parser hardening.
 
 ## What was actually fixed
 
@@ -58,6 +58,17 @@ one readiness state plus one next action. This is intentionally read-only: it
 does not pretend that editing the item master also edits supplier terms or branch
 relationships. The existing mapping form remains the write authority until a
 transactional update contract is proven.
+
+### Purchase-request sourcing ownership
+
+The purchase-request list no longer presents every unresolved line as the vague
+`No supplier suggested`. The shared procurement query now resolves requester names,
+item-master supplier defaults, explicit line suppliers, and branch/UOM-compatible
+preferred supplier mappings within the bounded page. The list and mobile operational
+rows expose `Submitted by` plus either the resolved supplier name or an explicit
+`Supplier assignment required` / `Supplier details unavailable` state. This keeps
+unknown data actionable without inventing a supplier, while the detail page remains
+the authoritative mapping workflow.
 
 ### Shared action-rail navigation race
 

@@ -2,7 +2,7 @@
 
 **Status:** decision baseline, not a claim of production completion  
 **Date:** 2026-08-19 (Asia/Kuala_Lumpur)  
-**Reviewed branch:** `codex/uiux-round2` at `e266959`
+**Reviewed branch:** `codex/uiux-round2` at `16009f6`
 
 ## Executive decision
 
@@ -21,14 +21,14 @@ future multi-branch product.
 
 | Area | Evidence | State | Release meaning |
 | --- | --- | --- | --- |
-| TypeScript, lint, contract tests | strict typecheck PASS; lint PASS; contract 765/765 | Verified locally | Static quality gate is green |
+| TypeScript, lint, contract tests | strict typecheck PASS; lint PASS; contract 766/766 | Verified locally | Static quality gate is green |
 | Build | 75/75 static pages | Verified locally | Build is healthy, not production proof |
 | Responsive contract | `release-mobile-ux-7-5.spec.js` 7/7 | Verified locally | Shared phone/tablet/desktop contract is encoded |
 | Role workspaces | role + release gate 8/8 | Verified in fixture | Authorization shell works for available fixtures |
 | Admin navigation ownership | 2/2 | Verified locally | Shared right-rail cleanup race is covered |
 | Inline daily validation | migration 167 + form contract | Local/linked evidence recorded | Error-to-field recovery path exists |
 | Atomic item creation | migration 168 local PASS | Local only | Unified creation path exists; linked ceiling still unverified |
-| Current Vercel revision | no current receipt for `e266959` | Unverified | Do not call branch state production-ready |
+| Current Vercel revision | no current receipt for `16009f6` | Unverified | Do not call branch state production-ready |
 | Linked migration ceiling | CLI login-role transport error | Unverified | Do not use `--include-all` to bypass the ceiling check |
 | Full production matrix | 6 roles × 6 viewports | Not yet captured | Required before production promotion |
 

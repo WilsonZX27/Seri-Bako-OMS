@@ -2,7 +2,7 @@
 
 **Status:** decision baseline, not a claim of production completion  
 **Date:** 2026-08-19 (Asia/Kuala_Lumpur)  
-**Reviewed branch:** `codex/uiux-round2` at `5f08b8f`
+**Reviewed branch:** `codex/uiux-round2` at `2deb2cf`
 
 ## Executive decision
 
@@ -28,7 +28,7 @@ future multi-branch product.
 | Admin navigation ownership | 2/2 | Verified locally | Shared right-rail cleanup race is covered |
 | Inline daily validation | migration 167 + form contract | Local/linked evidence recorded | Error-to-field recovery path exists |
 | Atomic item creation | migration 168 local PASS | Local only | Unified creation path exists; linked ceiling still unverified |
-| Current Vercel revision | no current receipt for `5f08b8f` | Unverified | Do not call branch state production-ready |
+| Current Vercel revision | no current receipt for `2deb2cf` | Unverified | Do not call branch state production-ready |
 | Linked migration ceiling | CLI login-role transport error | Unverified | Do not use `--include-all` to bypass the ceiling check |
 | Full production matrix | 6 roles × 6 viewports | Not yet captured | Required before production promotion |
 
@@ -57,6 +57,9 @@ Keep geometry in shared primitives. Pages provide semantics and data only.
 - `UnifiedListHeader` owns search/filter/count geometry and tablet alignment.
 - `RightConsole` owns desktop action ownership; tablet uses the bounded split rail;
   phone uses a single create/document action surface.
+- Compact tablet rails use one shared responsive authority: a 24% ceiling in the
+  768–1023px range and an 18rem cap in the 1024–1279px landscape range. The
+  desktop right rail is unchanged.
 - Shared controls own height, typography, focus, error and label association.
 - Do not repair one page with a one-off width or breakpoint override.
 - Remove duplicate status, hero, alert, action and helper copy at the component

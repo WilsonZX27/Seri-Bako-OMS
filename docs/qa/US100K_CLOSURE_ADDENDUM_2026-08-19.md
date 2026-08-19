@@ -2,8 +2,8 @@
 
 **Date:** 2026-08-19 (Asia/Kuala_Lumpur)  
 **Branch:** `codex/uiux-round2`  
-**Commit:** `5f08b8f` (`fix: block stale stock basket items`)
-**Latest code revision under review:** `5f08b8f`; the preceding `2b113e5`, `7046838`, `16009f6`, `e48aa2d`, `35c41dc`, `8aa6877` and `35bfdf5` commits include the stale-basket guard, truthful branch search, sourcing ownership, responsive closure evidence, workflow E2E classification, closure receipt, shared tablet fix follow-up, item sourcing readiness read model, and local E2E env parser hardening.
+**Commit:** `2deb2cf` (`fix: cap compact tablet action rail`)
+**Latest code revision under review:** `2deb2cf`; the preceding `5f08b8f`, `2b113e5`, `7046838`, `16009f6`, `e48aa2d`, `35c41dc`, `8aa6877` and `35bfdf5` commits include the stale-basket guard, truthful branch search, sourcing ownership, responsive closure evidence, workflow E2E classification, closure receipt, shared tablet fix follow-up, item sourcing readiness read model, and local E2E env parser hardening.
 
 ## What was actually fixed
 
@@ -18,6 +18,12 @@ could overlap the last filter or remove the intended breathing space. The
 shared header now reserves those two action tracks and keeps filters left,
 Search plus count right. Contract coverage was updated so a route cannot
 silently reintroduce the overlap.
+
+The compact tablet action rail is now bounded in the same shared CSS authority.
+At 768–1023px it uses a 24% track ceiling; at 1024–1279px it is capped at
+18rem. This preserves the primary data canvas on landscape tablets without
+changing the desktop right-panel geometry. The regression contracts cover both
+breakpoints so pages do not need local width overrides.
 
 ### Low Stock healthy-empty state
 
@@ -115,7 +121,7 @@ CSS-hidden controls rather than treating them as visible accessibility failures.
 | --- | --- | --- |
 | `npm run typecheck:strict` | PASS | strict no-unused checks |
 | `npm run lint` | PASS | `src` lint |
-| `npm run test:contract` | PASS | 765 passed, 0 failed |
+| `npm run test:contract` | PASS | 766 passed, 0 failed |
 | `node --test tests/item-creation-atomic-contract.test.js` | PASS | 2 passed, 0 failed |
 | `node --test tests/filter-layout-authority-contract.test.js tests/workspace-canvas-authority-contract.test.js tests/cross-platform-shell-contract.test.js` | PASS | 21 passed, 0 failed; shared tablet filter geometry |
 | `release-mobile-ux-7-5.spec.js` | PASS | 8 passed, 1 skipped on the isolated local fixture server; skip is the intentionally absent Manager Review fixture |
@@ -129,7 +135,7 @@ CSS-hidden controls rather than treating them as visible accessibility failures.
 | `role-workspaces-7-23-5-6.spec.js` | PASS | 6/6 role workspaces passed on the isolated local fixture server |
 | `document-workspaces-7-23-5-5.spec.js` | PASS | 8/8 passed against an isolated production-mode local server; stock-count/create routes are correctly excluded from approval-workflow-only assertions |
 | `p0-browser-comments.spec.js` | PASS | 6/6 local tests passed after giving the two intentionally long cross-route viewport chains an explicit 120-second budget; no assertion failure remained |
-| Git push | PASS | `origin/codex/uiux-round2` at `35c41dc` |
+| Git push | PASS | `origin/codex/uiux-round2` at `2deb2cf` |
 
 ## Deployment receipt
 
@@ -153,13 +159,13 @@ endpoint is reachable and reports `v8.64.55`, but that is availability evidence,
 not proof that the current branch revision is live. Promotion remains an explicit
 owner decision after the post-deploy matrix below passes.
 
-The unrelated working-tree changes were intentionally not staged: `supabase/.temp/cli-latest` and `tests/e2e/helpers.js`. The local Playwright server parser is part of the current stability change.
+The unrelated working-tree changes were intentionally not staged: `next-env.d.ts`, `supabase/.temp/cli-latest` and `tests/e2e/helpers.js`.
 
 ## What is not proven yet
 
 - The custom production domain has not been promoted to this commit; local and branch evidence are not production evidence.
 - The Manager Review authorization path still needs a resource-sufficient run with a seeded Manager Review PR. The test is intentionally skipped when that fixture is absent.
-- No claim is made that every historical annotation or every browser viewport is closed solely from this run. The shared CSS/component ownership is improved, but a post-deploy 390/820/1440 matrix remains a release gate.
+- No claim is made that every historical annotation or every browser viewport is closed solely from this run. The shared CSS/component ownership is improved, including the compact tablet rail cap, but a post-deploy 390/820/1440 matrix remains a release gate.
 - The responsive release suite now encodes the current architecture instead of the retired “mobile bar/table everywhere” contract: phone create FAB or document action, phone operational lists/empty states, tablet split rails, and desktop-only right console. This is test-contract closure, not production deployment proof.
 
 ## Remaining P1 design boundary: item creation

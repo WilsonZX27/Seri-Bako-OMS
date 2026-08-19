@@ -1,13 +1,14 @@
 "use client";
 
 import { useId, useRef, useState } from "react";
+import type { ReactNode } from "react";
 import { Button } from "@/components/ui/button";
 import { ModalShell } from "@/components/ui/modal-shell";
 import { SubmitButton } from "@/components/ui/submit-button";
 
 export function ConfirmActionForm({ action, label, title, description, pendingLabel, mobilePrimary = false, formId }: {
   action: (formData: FormData) => void | Promise<void>;
-  label: string;
+  label: ReactNode;
   title: string;
   description: string;
   pendingLabel: string;

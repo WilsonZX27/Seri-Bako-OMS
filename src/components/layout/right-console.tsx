@@ -215,11 +215,11 @@ export function RightConsoleMount({ children, hideMobileBar = false, hideDesktop
   return null;
 }
 
-export function ConsoleSection({ title, children }: { title: string; children: ReactNode }) {
+export function ConsoleSection({ title, children, titleClassName }: { title: string; children: ReactNode; titleClassName?: string }) {
   return (
     <section data-console-section className="rounded-[var(--sb-panel-radius)] border border-[var(--sb-border-soft)] bg-[var(--sb-surface-raised)] px-3 py-3 shadow-[var(--sb-shadow-card)]">
       <div className="mb-3 flex items-center gap-2">
-        <h2 className="shrink-0 text-xs font-semibold uppercase tracking-[0.12em] text-[var(--sb-text-muted)]">{title}</h2>
+        <h2 className={cn("shrink-0 text-xs font-semibold uppercase tracking-[0.12em] text-[var(--sb-text-muted)]", titleClassName)}>{title}</h2>
         <span aria-hidden="true" className="h-px min-w-0 flex-1 bg-[var(--sb-border-soft)]" />
       </div>
       <div className="space-y-2 text-xs [&_.inline-flex]:text-xs">{children}</div>

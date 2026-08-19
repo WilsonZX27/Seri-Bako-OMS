@@ -1792,7 +1792,7 @@ html[data-design-layer="v2"] .sb-list-content-card {
      avoid making every control fill the full card width. */
   html[data-design-layer="v2"] form.sb-list-query-card[data-tablet-query-layout="query"] > .unified-list-desktop-actions {
     /* The header component reserves the final two tracks for this group. */
-    grid-column: -2 / -1;
+    grid-column: -3 / -1;
     justify-self: end;
     margin-left: auto;
    }
@@ -1806,7 +1806,7 @@ html[data-design-layer="v2"] .sb-list-content-card {
 
   html[data-design-layer="v2"] form.sb-list-query-card:is([data-tablet-query-layout="controls"], [data-tablet-query-layout="compact"]) > .unified-list-desktop-actions {
     /* The final two tracks are always reserved for Search + count. */
-    grid-column: -2 / -1;
+    grid-column: -3 / -1;
     margin-left: auto;
   }
 

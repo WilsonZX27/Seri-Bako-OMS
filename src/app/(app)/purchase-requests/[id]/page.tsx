@@ -1,3 +1,4 @@
+import { BadgeCheck, CircleCheck, FileCheck2, Send, ShoppingCart, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -11,6 +12,7 @@ import { DocumentMoreOptions, MobileTaskSheet } from "@/components/documents/mob
 import { StaleWorkflowRefresh } from "@/components/documents/stale-workflow-refresh";
 import { PriorityBadge } from "@/components/priority-badge";
 import { SubmitButton } from "@/components/ui/submit-button";
+import { RejectActionForm } from "@/components/ui/reject-action-form";
 import { NotFoundState } from "@/components/ui/system-states";
 import { BlockedDestructiveAction } from "@/components/ui/danger-confirm-form";
 import { DangerConfirmForm } from "@/components/ui/danger-confirm-form";
@@ -190,22 +192,27 @@ export default async function PurchaseRequestDetailPage({
   const deleteControl = canManageDeletion && !canCancel ? (deletePreview?.eligible ? <DangerConfirmForm action={hardDeletePhaseOne.bind(null, "purchase_request", request.id)} title={`Permanently delete ${request.request_no}?`} description="This cannot be undone. Purchase request lines will be removed; the document number will remain consumed." warning="Type the exact request number to continue." checkboxLabel="I understand this permanently deletes the eligible request." confirmWord={deletePreview.confirmation} buttonLabel="Delete purchase request" pendingLabel="Deleting..." /> : <BlockedDestructiveAction buttonLabel="Delete purchase request" title={`Cannot delete ${request.request_no}`} description="Permanent deletion is blocked by the current status or linked records." recommendation={deletePreview ? Object.entries(deletePreview.dependencies).filter(([, count]) => count > 0).map(([key, count]) => `${key}: ${count}`).join("; ") : "Dependency preview unavailable."} />) : null;
   const saveDraftAction = canEditDraft ? <SubmitButton form="purchase-request-form" type="submit" pendingLabel="Saving..." className="w-full justify-center">Save draft changes</SubmitButton> : null;
   const secondaryActions = saveDraftAction || canCancel || canReject || deleteControl ? <div className="space-y-2">
-              {saveDraftAction}
-              {canCancel ? <DocumentActionForm action={cancelPurchaseRequest.bind(null, request.id)} pendingLabel="Removing..." variant="destructive">Delete unposted request</DocumentActionForm> : null}
-    {canReject ? <form action={rejectPurchaseRequest.bind(null, request.id)} className="space-y-2"><Input name="remarks" placeholder="Rejection remarks required" required /><SubmitButton type="submit" pendingLabel="Rejecting..." variant="destructive" className="w-full justify-center">Reject request</SubmitButton></form> : null}
+    {saveDraftAction}
+    {canCancel ? (
+      <DocumentActionForm action={cancelPurchaseRequest.bind(null, request.id)} pendingLabel="Removing..." variant="secondary">
+        <Trash2 className="h-4 w-4" aria-hidden="true" />
+        Delete unposted request
+      </DocumentActionForm>
+    ) : null}
+    {canReject ? <RejectActionForm action={rejectPurchaseRequest.bind(null, request.id)} /> : null}
     {deleteControl}
   </div> : null;
   const nextStep = prSteps.find((step) => step.key === getPrWorkflowStep(request.status))?.description;
   const mobilePrimaryAction = canSubmit
-    ? <DocumentActionForm action={submitPurchaseRequest.bind(null, request.id)} pendingLabel="Submitting...">Submit PR</DocumentActionForm>
+    ? <DocumentActionForm action={submitPurchaseRequest.bind(null, request.id)} pendingLabel="Submitting..."><Send className="h-4 w-4" aria-hidden="true" />Submit PR</DocumentActionForm>
     : canManagerReview
-      ? <ConfirmActionForm action={managerApprovePurchaseRequest.bind(null, request.id)} label="Approve as Manager" title="Approve this PR as Manager?" description="This moves the request to Purchasing Review." pendingLabel="Approving..." mobilePrimary />
+      ? <ConfirmActionForm action={managerApprovePurchaseRequest.bind(null, request.id)} label={<><CircleCheck className="h-4 w-4" aria-hidden="true" />Approve as Manager</>} title="Approve this PR as Manager?" description="This moves the request to Purchasing Review." pendingLabel="Approving..." mobilePrimary />
       : canAdminReview
-        ? <ConfirmActionForm action={adminApprovePurchaseRequest.bind(null, request.id)} label="Approve as Purchasing" title="Approve this PR as Purchasing?" description="This moves the request to Finance Review." pendingLabel="Approving..." mobilePrimary />
-        : canFinanceReview
-          ? <ConfirmActionForm action={financeApprovePurchaseRequest.bind(null, request.id)} label="Approve as Finance" title="Approve this PR as Finance?" description="This marks the request ready for PO conversion." pendingLabel="Approving..." mobilePrimary />
+        ? <ConfirmActionForm action={adminApprovePurchaseRequest.bind(null, request.id)} label={<><ShoppingCart className="h-4 w-4" aria-hidden="true" />Approve as Purchasing</>} title="Approve this PR as Purchasing?" description="This moves the request to Finance Review." pendingLabel="Approving..." mobilePrimary />
+      : canFinanceReview
+          ? <ConfirmActionForm action={financeApprovePurchaseRequest.bind(null, request.id)} label={<><BadgeCheck className="h-4 w-4" aria-hidden="true" />Approve as Finance</>} title="Approve this PR as Finance?" description="This marks the request ready for PO conversion." pendingLabel="Approving..." mobilePrimary />
           : canConvert
-            ? <MobileTaskSheet label="Prepare Purchase Order"><form action={convertPurchaseRequestToPurchaseOrder.bind(null, request.id)} className="space-y-2"><Input name="autocount_po_no" placeholder="AutoCount PO Number" required /><SubmitButton type="submit" pendingLabel="Converting..." className="w-full justify-center">Prepare Purchase Order</SubmitButton></form></MobileTaskSheet>
+            ? <MobileTaskSheet label="Prepare Purchase Order"><form action={convertPurchaseRequestToPurchaseOrder.bind(null, request.id)} className="space-y-2"><Input name="autocount_po_no" placeholder="AutoCount PO Number" required /><SubmitButton type="submit" pendingLabel="Converting..." className="w-full justify-center"><FileCheck2 className="h-4 w-4" aria-hidden="true" />Prepare Purchase Order</SubmitButton></form></MobileTaskSheet>
             : null;
 
   return (
@@ -225,18 +232,18 @@ export default async function PurchaseRequestDetailPage({
         <>
           <DocumentActionSection description="Only the next valid workflow action is shown." moreOptions={secondaryActions}>
             <DocumentActionBar>
-              {canSubmit ? <DocumentActionForm action={submitPurchaseRequest.bind(null, request.id)} pendingLabel="Submitting..." mobilePrimary>Submit to Manager Review</DocumentActionForm> : null}
-              {canManagerReview ? <ConfirmActionForm action={managerApprovePurchaseRequest.bind(null, request.id)} label="Approve as Manager" title="Approve this PR as Manager?" description="This moves the request to Purchasing Review." pendingLabel="Approving..." mobilePrimary /> : null}
-              {canAdminReview ? <ConfirmActionForm action={adminApprovePurchaseRequest.bind(null, request.id)} label="Approve as Purchasing" title="Approve this PR as Purchasing?" description="This moves the request to Finance Review." pendingLabel="Approving..." mobilePrimary /> : null}
-              {canFinanceReview ? <ConfirmActionForm action={financeApprovePurchaseRequest.bind(null, request.id)} label="Approve as Finance" title="Approve this PR as Finance?" description="This marks the request ready for PO conversion." pendingLabel="Approving..." mobilePrimary /> : null}
+              {canSubmit ? <DocumentActionForm action={submitPurchaseRequest.bind(null, request.id)} pendingLabel="Submitting..." mobilePrimary><Send className="h-4 w-4" aria-hidden="true" />Submit to Manager Review</DocumentActionForm> : null}
+              {canManagerReview ? <ConfirmActionForm action={managerApprovePurchaseRequest.bind(null, request.id)} label={<><CircleCheck className="h-4 w-4" aria-hidden="true" />Approve as Manager</>} title="Approve this PR as Manager?" description="This moves the request to Purchasing Review." pendingLabel="Approving..." mobilePrimary /> : null}
+              {canAdminReview ? <ConfirmActionForm action={adminApprovePurchaseRequest.bind(null, request.id)} label={<><ShoppingCart className="h-4 w-4" aria-hidden="true" />Approve as Purchasing</>} title="Approve this PR as Purchasing?" description="This moves the request to Finance Review." pendingLabel="Approving..." mobilePrimary /> : null}
+              {canFinanceReview ? <ConfirmActionForm action={financeApprovePurchaseRequest.bind(null, request.id)} label={<><BadgeCheck className="h-4 w-4" aria-hidden="true" />Approve as Finance</>} title="Approve this PR as Finance?" description="This marks the request ready for PO conversion." pendingLabel="Approving..." mobilePrimary /> : null}
               {request.status === "converted_to_po" && linkedPurchaseOrders?.[0] ? (
-                <Button asChild className="w-full justify-center"><a href={`/purchase-orders/${linkedPurchaseOrders[0].id}`}>Open PO</a></Button>
+                <Button asChild className="w-full justify-center"><a href={`/purchase-orders/${linkedPurchaseOrders[0].id}`}><FileCheck2 className="h-4 w-4" aria-hidden="true" />Open PO</a></Button>
               ) : null}
             </DocumentActionBar>
             {canConvert ? (
               <form action={convertPurchaseRequestToPurchaseOrder.bind(null, request.id)} className="mt-3 space-y-2" data-mobile-primary-action>
                 <Input name="autocount_po_no" placeholder="AutoCount PO Number" required />
-                <SubmitButton type="submit" pendingLabel="Converting..." className="w-full justify-center">Convert to Purchase Order</SubmitButton>
+                <SubmitButton type="submit" pendingLabel="Converting..." className="w-full justify-center"><FileCheck2 className="h-4 w-4" aria-hidden="true" />Convert to Purchase Order</SubmitButton>
               </form>
             ) : null}
             {!hasPrimaryAction ? <p className="text-xs text-muted-foreground">You can view this document, but there is no workflow action available for your role or this status.</p> : null}

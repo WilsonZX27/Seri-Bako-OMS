@@ -114,14 +114,16 @@ export function DocumentSideSection({
   description,
   children,
   className,
+  titleClassName,
 }: {
   title: string;
   description?: string;
   children: ReactNode;
   className?: string;
+  titleClassName?: string;
 }) {
   return (
-    <ConsoleSection title={title}>
+    <ConsoleSection title={title} titleClassName={titleClassName}>
       <div className={cn("space-y-2", className)}>
         {description ? <p className="text-xs text-muted-foreground">{description}</p> : null}
         {children}
@@ -132,7 +134,7 @@ export function DocumentSideSection({
 
 export function DocumentActionSection({ description, children, moreOptions, collapseMoreOptions = false }: { description?: string; children: ReactNode; moreOptions?: ReactNode; collapseMoreOptions?: boolean }) {
   return (
-    <DocumentSideSection title="Primary Action" description={description}>
+    <DocumentSideSection title="Next action" titleClassName="text-[11px] font-medium tracking-[0.1em]" description={description}>
       <div className="[&_button]:w-full">{children}</div>
       {moreOptions ? <>
         {collapseMoreOptions ? <DocumentMoreOptions defaultOpen={false}>{moreOptions}</DocumentMoreOptions> : <>

@@ -143,7 +143,7 @@ test("stock count sessions preserve workflow orientation throughout long entry l
   assert.match(stockCountForm, /hidden border-y[\s\S]*Item[\s\S]*Variance[\s\S]*Count/);
   assert.doesNotMatch(stockCountForm, /sticky top-\[7\.25rem\]|xl:top-\[7\.75rem\]/);
   assert.match(stockCountForm, /border-b border-\[var\(--sb-border-soft\)\]/);
-  assert.match(documentWorkspace, /shadow-\[0_8px_22px_rgb\(6_44_31_\/_0\.16\)\]/);
+  assert.doesNotMatch(documentWorkspace, /shadow-\[0_8px_22px_rgb\(6_44_31_\/_0\.16\)\]/);
   assert.doesNotMatch(stockCountForm, /bg-white|text-white|border-white/);
 });
 

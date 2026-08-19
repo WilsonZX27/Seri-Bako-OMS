@@ -1,0 +1,35 @@
+[
+  {
+    "name": "SUPPLIER.xlsx",
+    "hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "type": "supplier_list",
+    "headers": ["Code", "Currency Code", "Company Name"],
+    "rows": [
+      { "Code": "406-T009", "Currency Code": "MYR", "Company Name": "TEOW JOO ENTERPRISE" },
+      { "Code": "400-P001", "Currency Code": "MYR", "Company Name": "PASAR" },
+      { "Code": "400-U001", "Currency Code": "MYR", "Company Name": "MARKET VENDOR" }
+    ]
+  },
+  {
+    "name": "New Item Listing.xlsx",
+    "hash": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+    "type": "item_list",
+    "headers": ["Item Code", "Base UOM", "Description", "Main Supplier", "Item Group", "Is Active"],
+    "rows": [
+      { "Item Code": "TEOWJOO00001", "Base UOM": "KG", "Description": "FLOUR", "Main Supplier": "406-T009", "Item Group": "TEOWJOO", "Is Active": "Checked" },
+      { "Item Code": "PASAR00001", "Base UOM": "KG", "Description": "VEGETABLE A", "Main Supplier": "400-P001", "Item Group": "PASAR", "Is Active": "Checked" },
+      { "Item Code": "PASAR00002", "Base UOM": "KG", "Description": "VEGETABLE B", "Main Supplier": "400-U001", "Item Group": "PASAR", "Is Active": "Checked" }
+    ]
+  },
+  {
+    "name": "ALMA Location.xlsx",
+    "hash": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+    "type": "location_snapshot",
+    "headers": ["Item Code", "Location", "UOM", "UOM Rate", "Item Group", "Description", "Qty", "Total Cost", "Average Cost Per Qty", "Standard Cost"],
+    "rows": [
+      { "Item Code": "TEOWJOO00001", "Location": "CK-PNG", "UOM": "KG", "UOM Rate": "1", "Item Group": "TEOWJOO", "Description": "FLOUR", "Qty": "10", "Total Cost": "40", "Average Cost Per Qty": "4", "Standard Cost": "4.20" },
+      { "Item Code": "PASAR00001", "Location": "CK-PNG", "UOM": "KG", "UOM Rate": "1", "Item Group": "PASAR", "Description": "VEGETABLE A", "Qty": "5", "Total Cost": "20", "Average Cost Per Qty": "4", "Standard Cost": "4" },
+      { "Item Code": "PASAR00002", "Location": "CK-PNG", "UOM": "KG", "UOM Rate": "1", "Item Group": "PASAR", "Description": "VEGETABLE B", "Qty": "6", "Total Cost": "30", "Average Cost Per Qty": "5", "Standard Cost": "5" }
+    ]
+  }
+]

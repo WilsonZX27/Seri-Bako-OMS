@@ -1,4 +1,4 @@
-import { BadgeCheck, CircleCheck, FileCheck2, Send, ShoppingCart, Trash2 } from "lucide-react";
+import { AlertTriangle, BadgeCheck, CircleCheck, FileCheck2, Send, ShoppingCart, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -18,7 +18,6 @@ import { BlockedDestructiveAction } from "@/components/ui/danger-confirm-form";
 import { DangerConfirmForm } from "@/components/ui/danger-confirm-form";
 import { getPrWorkflowLabel, getPrWorkflowStep, PR_WORKFLOW_STEP_LABELS, PURCHASE_REQUEST_WORKFLOW_STEPS } from "@/lib/purchase-request-status";
 import { formatCurrency, formatDateOnly, formatNumber } from "@/lib/utils";
-import { normalizeUom } from "@/lib/uom";
 import {
   adminApprovePurchaseRequest,
   cancelPurchaseRequest,
@@ -27,18 +26,21 @@ import {
   financeApprovePurchaseRequest,
   managerApprovePurchaseRequest,
   rejectPurchaseRequest,
+  revisePurchaseRequestLine,
   resolvePurchaseRequestUnresolvedLine,
   submitPurchaseRequest,
 } from "@/server/actions/procurement";
 import { getPermissionMap } from "@/server/auth/permissions";
 import { getBranchesForSelect, getBranchSupplierMappingsForSelect, getCurrentProfile, getItemsForSelect, getSuppliersForSelect } from "@/server/queries/common";
 import { getDocumentBundle } from "@/server/queries/documents";
-import { getPurchaseOrdersForRequest, getPurchaseRequest } from "@/server/queries/procurement";
+import { getPurchaseOrdersForRequest, getPurchaseRequest, getPurchaseRequestBranchStock, getRecoverableDocumentWorkflowAvailable } from "@/server/queries/procurement";
 import { getPhaseOneDeletePreview } from "@/server/queries/hard-delete";
 import { hardDeletePhaseOne } from "@/server/actions/hard-delete";
 import { PurchaseRequestForm } from "@/components/procurement-forms";
 import { PurchaseRequestLineResolutionForm } from "@/components/purchase-request-line-resolution-form";
 import { logServerError } from "@/server/observability/logger";
+import { PurchaseRequestLineRecovery } from "@/components/purchase-request-line-recovery";
+import { diagnosePurchaseRequestSupplier } from "@/lib/purchase-request-readiness";
 
 const prSteps = PURCHASE_REQUEST_WORKFLOW_STEPS.map((step) => ({
   key: step,
@@ -59,56 +61,6 @@ const prSteps = PURCHASE_REQUEST_WORKFLOW_STEPS.map((step) => ({
 
 function isStatus(status: string, ...matches: string[]) {
   return matches.includes(status);
-}
-
-type SupplierPresentation = {
-  name: string | null;
-  state: "resolved" | "assignment_required" | "details_unavailable";
-};
-
-function resolveSupplierPresentation({
-  line,
-  item,
-  branchId,
-  supplierById,
-  suppliersAvailable,
-  supplierMappings,
-}: {
-  line: { item_id: string; suggested_supplier_id: string | null; uom: string };
-  item: { supplier_id: string | null } | undefined;
-  branchId: string | null;
-  supplierById: Map<string, { name: string }>;
-  suppliersAvailable: boolean;
-  supplierMappings: Array<{
-    branch_id: string;
-    item_id: string;
-    supplier_id: string;
-    supplier_name: string;
-    purchase_uom: string;
-    is_preferred: boolean;
-  }> | null;
-}): SupplierPresentation {
-  const branchMappings = supplierMappings?.filter((mapping) => mapping.branch_id === branchId && mapping.item_id === line.item_id) ?? [];
-  const compatibleMappings = branchMappings.filter((mapping) => normalizeUom(mapping.purchase_uom) === normalizeUom(line.uom));
-  const explicitSupplierId = line.suggested_supplier_id ?? item?.supplier_id ?? null;
-  const explicitMapping = explicitSupplierId
-    ? compatibleMappings.find((mapping) => mapping.supplier_id === explicitSupplierId) ?? branchMappings.find((mapping) => mapping.supplier_id === explicitSupplierId)
-    : null;
-
-  if (explicitSupplierId) {
-    const name = supplierById.get(explicitSupplierId)?.name ?? explicitMapping?.supplier_name ?? null;
-    return {
-      name,
-      state: name ? "resolved" : "details_unavailable",
-    };
-  }
-
-  const currentMapping = compatibleMappings.find((mapping) => mapping.is_preferred) ?? (compatibleMappings.length === 1 ? compatibleMappings[0] : null);
-  if (currentMapping?.supplier_name) return { name: currentMapping.supplier_name, state: "resolved" };
-  return {
-    name: null,
-    state: suppliersAvailable && supplierMappings !== null ? "assignment_required" : "details_unavailable",
-  };
 }
 
 export default async function PurchaseRequestDetailPage({
@@ -133,6 +85,8 @@ export default async function PurchaseRequestDetailPage({
       getBranchesForSelect(),
       request.document_id ? getDocumentBundle(request.document_id) : Promise.resolve(null),
       getPhaseOneDeletePreview("purchase_request", request.id),
+      getPurchaseRequestBranchStock(request.branch_id, lines.map((line) => line.item_id)),
+      getRecoverableDocumentWorkflowAvailable(),
     ]),
     getPermissionMap([
       "purchase_request.create",
@@ -149,7 +103,7 @@ export default async function PurchaseRequestDetailPage({
     ]),
     getCurrentProfile(),
   ]);
-  const [linkedOrdersResult, itemsResult, suppliersResult, supplierMappingsResult, branchesResult, documentBundleResult, deletePreviewResult] = auxiliaryResults;
+  const [linkedOrdersResult, itemsResult, suppliersResult, supplierMappingsResult, branchesResult, documentBundleResult, deletePreviewResult, branchStockResult, recoveryCapabilityResult] = auxiliaryResults;
   for (const [result, source] of [
     [linkedOrdersResult, "page.purchaseRequestDetail.linkedOrders"],
     [itemsResult, "page.purchaseRequestDetail.itemDirectory"],
@@ -158,6 +112,8 @@ export default async function PurchaseRequestDetailPage({
     [branchesResult, "page.purchaseRequestDetail.branchDirectory"],
     [documentBundleResult, "page.purchaseRequestDetail.documentBundle"],
     [deletePreviewResult, "page.purchaseRequestDetail.deletePreview"],
+    [branchStockResult, "page.purchaseRequestDetail.branchStock"],
+    [recoveryCapabilityResult, "page.purchaseRequestDetail.recoveryCapability"],
   ] as const) {
     if (result.status === "rejected") logServerError(result.reason, { source });
   }
@@ -169,8 +125,12 @@ export default async function PurchaseRequestDetailPage({
   const documentBundle = documentBundleResult.status === "fulfilled" ? documentBundleResult.value : null;
   const documentBundleUnavailable = Boolean(request.document_id && documentBundleResult.status === "rejected");
   const deletePreview = deletePreviewResult.status === "fulfilled" ? deletePreviewResult.value : null;
+  const branchStock = branchStockResult.status === "fulfilled" ? branchStockResult.value : null;
+  const stockByItemId = new Map((branchStock ?? []).map((stock) => [stock.itemId, stock]));
+  const recoveryAvailable = recoveryCapabilityResult.status === "fulfilled" && recoveryCapabilityResult.value;
   const itemById = new Map((items ?? []).map((item) => [item.id, item]));
   const supplierById = new Map((suppliers ?? []).map((supplier) => [supplier.id, supplier]));
+  const supplierIds = suppliers ? new Set(suppliers.map((supplier) => supplier.id)) : null;
   const branch = branches?.find((row) => row.id === request.branch_id);
   const total = lines.reduce((sum, line) => sum + line.qty * line.estimated_unit_cost, 0);
   const canViewCommercial = permissions["pr.view_all"] && !["kitchen", "kitchen_staff"].includes(String(profile?.role_code ?? "").toLowerCase());
@@ -183,6 +143,18 @@ export default async function PurchaseRequestDetailPage({
   const canManagerReview = request.status === "manager_review" && permissions["pr.manager_approve"] && (roleCode === "manager" || isOwner);
   const canAdminReview = request.status === "admin_review" && permissions["pr.admin_review"] && (roleCode === "purchasing" || isOwner);
   const canFinanceReview = request.status === "finance_review" && permissions["pr.finance_review"] && (roleCode === "finance" || isOwner);
+  const canRepairReviewLines = (canManagerReview || canAdminReview) && recoveryAvailable;
+  const readinessByLine = new Map(lines.map((line) => [line.id, diagnosePurchaseRequestSupplier({
+    line,
+    item: itemById.get(line.item_id),
+    branchId: request.branch_id,
+    supplierIds,
+    supplierMappings,
+  })] as const));
+  const blockingLineIssues = lines.flatMap((line) => {
+    const diagnosis = readinessByLine.get(line.id);
+    return diagnosis?.issue ? [{ line, diagnosis }] : [];
+  });
   const canConvert = request.status === "ready_to_convert" && permissions["pr.convert_to_po"];
   const canReject =
     (request.status === "manager_review" && (roleCode === "manager" || isOwner) && (permissions["pr.manager_approve"] || permissions["pr.reject"])) ||
@@ -206,9 +178,9 @@ export default async function PurchaseRequestDetailPage({
   const mobilePrimaryAction = canSubmit
     ? <DocumentActionForm action={submitPurchaseRequest.bind(null, request.id)} pendingLabel="Submitting..."><Send className="h-4 w-4" aria-hidden="true" />Submit PR</DocumentActionForm>
     : canManagerReview
-      ? <ConfirmActionForm action={managerApprovePurchaseRequest.bind(null, request.id)} label={<><CircleCheck className="h-4 w-4" aria-hidden="true" />Approve as Manager</>} title="Approve this PR as Manager?" description="This moves the request to Purchasing Review." pendingLabel="Approving..." mobilePrimary />
+      ? blockingLineIssues.length ? <Button asChild><a href="#pr-guided-issues"><AlertTriangle className="h-4 w-4" />Review {blockingLineIssues.length} item issue{blockingLineIssues.length === 1 ? "" : "s"}</a></Button> : <ConfirmActionForm action={managerApprovePurchaseRequest.bind(null, request.id)} label={<><CircleCheck className="h-4 w-4" aria-hidden="true" />Approve as Manager</>} title="Approve this PR as Manager?" description="This moves the request to Purchasing Review." pendingLabel="Approving..." mobilePrimary />
       : canAdminReview
-        ? <ConfirmActionForm action={adminApprovePurchaseRequest.bind(null, request.id)} label={<><ShoppingCart className="h-4 w-4" aria-hidden="true" />Approve as Purchasing</>} title="Approve this PR as Purchasing?" description="This moves the request to Finance Review." pendingLabel="Approving..." mobilePrimary />
+        ? blockingLineIssues.length ? <Button asChild><a href="#pr-guided-issues"><AlertTriangle className="h-4 w-4" />Review {blockingLineIssues.length} item issue{blockingLineIssues.length === 1 ? "" : "s"}</a></Button> : <ConfirmActionForm action={adminApprovePurchaseRequest.bind(null, request.id)} label={<><ShoppingCart className="h-4 w-4" aria-hidden="true" />Approve as Purchasing</>} title="Approve this PR as Purchasing?" description="This moves the request to Finance Review." pendingLabel="Approving..." mobilePrimary />
       : canFinanceReview
           ? <ConfirmActionForm action={financeApprovePurchaseRequest.bind(null, request.id)} label={<><BadgeCheck className="h-4 w-4" aria-hidden="true" />Approve as Finance</>} title="Approve this PR as Finance?" description="This marks the request ready for PO conversion." pendingLabel="Approving..." mobilePrimary />
           : canConvert
@@ -233,8 +205,8 @@ export default async function PurchaseRequestDetailPage({
           <DocumentActionSection description="Only the next valid workflow action is shown." moreOptions={secondaryActions}>
             <DocumentActionBar>
               {canSubmit ? <DocumentActionForm action={submitPurchaseRequest.bind(null, request.id)} pendingLabel="Submitting..." mobilePrimary><Send className="h-4 w-4" aria-hidden="true" />Submit to Manager Review</DocumentActionForm> : null}
-              {canManagerReview ? <ConfirmActionForm action={managerApprovePurchaseRequest.bind(null, request.id)} label={<><CircleCheck className="h-4 w-4" aria-hidden="true" />Approve as Manager</>} title="Approve this PR as Manager?" description="This moves the request to Purchasing Review." pendingLabel="Approving..." mobilePrimary /> : null}
-              {canAdminReview ? <ConfirmActionForm action={adminApprovePurchaseRequest.bind(null, request.id)} label={<><ShoppingCart className="h-4 w-4" aria-hidden="true" />Approve as Purchasing</>} title="Approve this PR as Purchasing?" description="This moves the request to Finance Review." pendingLabel="Approving..." mobilePrimary /> : null}
+              {canManagerReview ? blockingLineIssues.length ? <Button asChild className="w-full"><a href="#pr-guided-issues"><AlertTriangle className="h-4 w-4" />Review {blockingLineIssues.length} item issue{blockingLineIssues.length === 1 ? "" : "s"}</a></Button> : <ConfirmActionForm action={managerApprovePurchaseRequest.bind(null, request.id)} label={<><CircleCheck className="h-4 w-4" aria-hidden="true" />Approve as Manager</>} title="Approve this PR as Manager?" description="This moves the request to Purchasing Review." pendingLabel="Approving..." mobilePrimary /> : null}
+              {canAdminReview ? blockingLineIssues.length ? <Button asChild className="w-full"><a href="#pr-guided-issues"><AlertTriangle className="h-4 w-4" />Review {blockingLineIssues.length} item issue{blockingLineIssues.length === 1 ? "" : "s"}</a></Button> : <ConfirmActionForm action={adminApprovePurchaseRequest.bind(null, request.id)} label={<><ShoppingCart className="h-4 w-4" aria-hidden="true" />Approve as Purchasing</>} title="Approve this PR as Purchasing?" description="This moves the request to Finance Review." pendingLabel="Approving..." mobilePrimary /> : null}
               {canFinanceReview ? <ConfirmActionForm action={financeApprovePurchaseRequest.bind(null, request.id)} label={<><BadgeCheck className="h-4 w-4" aria-hidden="true" />Approve as Finance</>} title="Approve this PR as Finance?" description="This marks the request ready for PO conversion." pendingLabel="Approving..." mobilePrimary /> : null}
               {request.status === "converted_to_po" && linkedPurchaseOrders?.[0] ? (
                 <Button asChild className="w-full justify-center"><a href={`/purchase-orders/${linkedPurchaseOrders[0].id}`}><FileCheck2 className="h-4 w-4" aria-hidden="true" />Open PO</a></Button>
@@ -269,6 +241,10 @@ export default async function PurchaseRequestDetailPage({
             </Card>
           ) : null}
       {documentBundleUnavailable ? <Card className="document-surface shadow-none md:hidden"><CardContent className="p-3" role="status"><p className="text-sm font-semibold text-[var(--sb-warning)]">Document activity unavailable</p><p className="mt-1 text-xs text-muted-foreground">Attachments, comments, and timeline could not be loaded. Retry this page.</p></CardContent></Card> : null}
+
+      {blockingLineIssues.length ? <section id="pr-guided-issues" className="scroll-mt-32 rounded-[var(--sb-panel-radius)] bg-[var(--sb-warning-bg)] p-4" role="status">
+        <div className="flex items-start gap-3"><AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-[var(--sb-warning)]" /><div><h2 className="text-sm font-semibold">{blockingLineIssues.length} item{blockingLineIssues.length === 1 ? " needs" : "s need"} attention before this review can continue</h2><p className="mt-1 text-xs text-muted-foreground">{recoveryAvailable ? `The PR remains saved in ${getPrWorkflowLabel(request.status)}. Open the warning icon on an affected row to use a mapped supplier, change UOM, select another supplier, replace the item, or remove that line. Other lines remain available.` : "The PR remains saved and readable. Guided repair setup is unavailable in this environment; ask an Owner to apply migration 170, then Retry this page. No line will be changed until setup is available."}</p></div></div>
+      </section> : null}
 
       <Card className="document-surface shadow-none">
             <CardContent className="space-y-3 p-4">
@@ -341,31 +317,30 @@ export default async function PurchaseRequestDetailPage({
                         <TableRow>
                           <TableHead>Item</TableHead>
                            <TableHead>Supplier</TableHead>
-                          <TableHead className="text-right">Qty</TableHead>
-                          <TableHead>UOM</TableHead>
-                          {canViewCommercial ? <TableHead className="text-right">Est. Cost</TableHead> : null}
-                          <TableHead>Reason</TableHead>
+                           <TableHead className="text-right">Qty</TableHead>
+                           <TableHead>UOM</TableHead>
+                           <TableHead>Current branch stock</TableHead>
+                           {canViewCommercial ? <TableHead className="text-right">Est. Cost</TableHead> : null}
+                           <TableHead>Reason</TableHead>
+                           {canRepairReviewLines ? <TableHead className="w-12"><span className="sr-only">Repair</span></TableHead> : null}
                         </TableRow>
                       </TableHeader>
                       <TableBody>
                         {lines.map((line) => {
                           const item = itemById.get(line.item_id);
-                          const supplier = resolveSupplierPresentation({
-                            line,
-                            item,
-                            branchId: request.branch_id,
-                            supplierById,
-                            suppliersAvailable: suppliers !== null,
-                            supplierMappings,
-                          });
+                          const readiness = readinessByLine.get(line.id)!;
+                          const supplierName = readiness.supplierName ?? (line.suggested_supplier_id ? supplierById.get(line.suggested_supplier_id)?.name ?? null : null);
+                          const stock = stockByItemId.get(line.item_id);
                           return (
-                            <TableRow key={line.id}>
+                            <TableRow key={line.id} data-guided-issue={readiness.issue?.code}>
                               <TableCell><p className="font-medium">{!items ? "Item details unavailable" : item?.item_name ?? line.item_id}</p><p className="text-xs text-muted-foreground">{!items ? `Reference ${line.item_id}` : item?.item_code ?? "No item code"}</p></TableCell>
-                              <TableCell><span className={supplier.state === "details_unavailable" ? "text-[var(--sb-warning)]" : supplier.state === "assignment_required" ? "font-medium text-[var(--sb-warning)]" : "text-muted-foreground"}>{supplier.state === "details_unavailable" ? "Supplier details unavailable" : supplier.state === "assignment_required" ? "Supplier assignment required" : supplier.name}</span></TableCell>
+                              <TableCell>{readiness.issue ? <div><p className="font-medium text-[var(--sb-warning)]">{supplierName ?? readiness.issue.message}</p><p className="mt-0.5 max-w-[28ch] text-[11px] text-muted-foreground">Next: {readiness.issue.recommendedAction}</p></div> : <span className="text-muted-foreground">{supplierName ?? "Mapped supplier"}</span>}</TableCell>
                               <TableCell className="text-right">{formatNumber(line.qty)}</TableCell>
                               <TableCell>{line.uom}</TableCell>
+                              <TableCell>{stock ? <div><p className="font-medium">{formatNumber(stock.quantity)} {stock.uom}</p><p className="text-[11px] text-muted-foreground">As of {formatDateOnly(stock.asOf)} · {stock.source}</p></div> : <div><p className="font-medium text-[var(--sb-warning)]">Stock unavailable</p><Button asChild variant="ghost" size="sm" className="h-auto p-0 text-xs"><a href={`/purchase-requests/${request.id}`}>Retry</a></Button></div>}</TableCell>
                               {canViewCommercial ? <TableCell className="text-right">{formatCurrency(line.estimated_unit_cost)}</TableCell> : null}
                               <TableCell>{line.reason ?? "-"}</TableCell>
+                              {canRepairReviewLines && items && supplierMappings && request.branch_id ? <TableCell><PurchaseRequestLineRecovery action={revisePurchaseRequestLine.bind(null, request.id)} line={line} itemLabel={`${item?.item_code ?? ""} - ${item?.item_name ?? line.item_id}`} items={items} mappings={supplierMappings} branchId={request.branch_id} issue={readiness.issue} suggestedSupplierId={readiness.suggestedSupplierId} /></TableCell> : canRepairReviewLines ? <TableCell><Button asChild variant="outline" size="sm"><a href={`/purchase-requests/${request.id}`}>Retry</a></Button></TableCell> : null}
                             </TableRow>
                           );
                         })}
@@ -374,6 +349,7 @@ export default async function PurchaseRequestDetailPage({
                           <TableCell>{canAdminReview && items ? <PurchaseRequestLineResolutionForm action={resolvePurchaseRequestUnresolvedLine.bind(null, request.id)} items={items} unresolvedLineId={line.id} description={line.requested_description} compact /> : <span className="text-muted-foreground">Not sourced yet</span>}</TableCell>
                           <TableCell className="text-right">{formatNumber(line.requested_qty)}</TableCell>
                           <TableCell>{line.requested_uom}</TableCell>
+                          <TableCell><span className="text-muted-foreground">Available after item match</span></TableCell>
                           {canViewCommercial ? <TableCell className="text-right">—</TableCell> : null}
                           <TableCell>{line.remarks ?? "-"}</TableCell>
                         </TableRow>)}
@@ -382,15 +358,15 @@ export default async function PurchaseRequestDetailPage({
                   <div className="divide-y divide-[var(--sb-border-soft)] xl:hidden" role="list" aria-label="Requested items">
                     {lines.map((line) => {
                       const item = itemById.get(line.item_id);
-                      const supplier = resolveSupplierPresentation({
-                        line,
-                        item,
-                        branchId: request.branch_id,
-                        supplierById,
-                        suppliersAvailable: suppliers !== null,
-                        supplierMappings,
-                      });
-                      return <div key={line.id} role="listitem" className="min-w-0 py-3 text-[13px]"><div className="flex min-w-0 items-start justify-between gap-3"><div className="min-w-0"><p className="break-words font-semibold">{!items ? "Item details unavailable" : item?.item_name ?? line.item_id}</p><p className="text-[12px] text-muted-foreground">{!items ? `Reference ${line.item_id}` : item?.item_code ?? "No item code"}</p></div><p className="shrink-0 font-semibold">{formatNumber(line.qty)} {line.uom}</p></div>{supplier.state === "details_unavailable" ? <p className="mt-1 break-words text-[12px] text-[var(--sb-warning)]">Supplier details unavailable</p> : <p className={supplier.state === "assignment_required" ? "mt-1 break-words text-[12px] font-medium text-[var(--sb-warning)]" : "mt-1 break-words text-[12px] text-muted-foreground"}>Supplier: {supplier.name ?? "Supplier assignment required"}</p>}{line.reason ? <p className="mt-1 break-words text-[12px] text-muted-foreground">{line.reason}</p> : null}{canViewCommercial ? <p className="mt-1 text-right text-[12px] font-medium">{formatCurrency(line.estimated_unit_cost)} / {line.uom}</p> : null}</div>;
+                      const readiness = readinessByLine.get(line.id)!;
+                      const supplierName = readiness.supplierName ?? (line.suggested_supplier_id ? supplierById.get(line.suggested_supplier_id)?.name ?? null : null);
+                      const stock = stockByItemId.get(line.item_id);
+                      return <div key={line.id} role="listitem" data-guided-issue={readiness.issue?.code} className="min-w-0 py-3 text-[13px]">
+                        <div className="flex min-w-0 items-start justify-between gap-3"><div className="min-w-0"><p className="break-words font-semibold">{!items ? "Item details unavailable" : item?.item_name ?? line.item_id}</p><p className="text-[12px] text-muted-foreground">{!items ? `Reference ${line.item_id}` : item?.item_code ?? "No item code"}</p></div><div className="flex shrink-0 items-center gap-2"><p className="font-semibold">{formatNumber(line.qty)} {line.uom}</p>{canRepairReviewLines && items && supplierMappings && request.branch_id ? <PurchaseRequestLineRecovery action={revisePurchaseRequestLine.bind(null, request.id)} line={line} itemLabel={`${item?.item_code ?? ""} - ${item?.item_name ?? line.item_id}`} items={items} mappings={supplierMappings} branchId={request.branch_id} issue={readiness.issue} suggestedSupplierId={readiness.suggestedSupplierId} /> : null}</div></div>
+                        {readiness.issue ? <div className="mt-1"><p className="break-words text-[12px] font-medium text-[var(--sb-warning)]">{supplierName ?? readiness.issue.message}</p><p className="text-[11px] text-muted-foreground">Next: {readiness.issue.recommendedAction}</p></div> : <p className="mt-1 break-words text-[12px] text-muted-foreground">Supplier: {supplierName ?? "Mapped supplier"}</p>}
+                        {stock ? <p className="mt-1 text-[12px] text-muted-foreground">Current branch stock: <span className="font-medium text-foreground">{formatNumber(stock.quantity)} {stock.uom}</span> · As of {formatDateOnly(stock.asOf)}</p> : <p className="mt-1 text-[12px] font-medium text-[var(--sb-warning)]">Current branch stock unavailable · <a className="underline" href={`/purchase-requests/${request.id}`}>Retry</a></p>}
+                        {line.reason ? <p className="mt-1 break-words text-[12px] text-muted-foreground">{line.reason}</p> : null}{canViewCommercial ? <p className="mt-1 text-right text-[12px] font-medium">{formatCurrency(line.estimated_unit_cost)} / {line.uom}</p> : null}
+                      </div>;
                     })}
                     {unresolvedLines.map((line) => <div key={line.id} role="listitem" className="min-w-0 py-3 text-[13px]"><div className="flex min-w-0 items-start justify-between gap-3"><div className="min-w-0"><p className="break-words font-semibold">{line.requested_description}</p><p className="text-[12px] font-medium text-[var(--sb-warning)]">Non-catalog item · Purchasing match required</p></div><p className="shrink-0 font-semibold">{formatNumber(line.requested_qty)} {line.requested_uom}</p></div>{line.remarks ? <p className="mt-1 text-[12px] text-muted-foreground">{line.remarks}</p> : null}{canAdminReview && items ? <div className="mt-2"><PurchaseRequestLineResolutionForm action={resolvePurchaseRequestUnresolvedLine.bind(null, request.id)} items={items} unresolvedLineId={line.id} description={line.requested_description} /></div> : null}</div>)}
                   </div>

@@ -814,6 +814,24 @@ export type Database = {
         Update: Partial<Database["public"]["Tables"]["profiles"]["Insert"]>;
         Relationships: [];
       };
+      autocount_import_jobs: {
+        Row: { id: string; company_id: string; status: string; content_hash: string; file_count: number; summary: Json; blocking_issues: Json; created_by: string; created_at: string; confirmed_at: string | null; completed_at: string | null };
+        Insert: { id?: string; company_id: string; status?: string; content_hash: string; file_count?: number; summary?: Json; blocking_issues?: Json; created_by: string; created_at?: string; confirmed_at?: string | null; completed_at?: string | null };
+        Update: Partial<Database["public"]["Tables"]["autocount_import_jobs"]["Insert"]>;
+        Relationships: [];
+      };
+      autocount_import_files: {
+        Row: { id: string; job_id: string; company_id: string; file_name: string; file_type: string; content_hash: string; row_count: number; headers: Json; created_at: string };
+        Insert: { id?: string; job_id: string; company_id: string; file_name: string; file_type: string; content_hash: string; row_count: number; headers?: Json; created_at?: string };
+        Update: Partial<Database["public"]["Tables"]["autocount_import_files"]["Insert"]>;
+        Relationships: [];
+      };
+      autocount_import_rows: {
+        Row: { id: string; job_id: string; company_id: string; entity_type: string; business_key: string; source_file: string; source_row: number; normalized: Json; warnings: Json; created_at: string };
+        Insert: { id?: string; job_id: string; company_id: string; entity_type: string; business_key: string; source_file: string; source_row: number; normalized: Json; warnings?: Json; created_at?: string };
+        Update: Partial<Database["public"]["Tables"]["autocount_import_rows"]["Insert"]>;
+        Relationships: [];
+      };
       suppliers: {
         Row: {
           id: string;
@@ -846,6 +864,12 @@ export type Database = {
           deleted_at?: string | null;
         };
         Update: Partial<Database["public"]["Tables"]["suppliers"]["Insert"]>;
+        Relationships: [];
+      };
+      supplier_external_references: {
+        Row: { id: string; company_id: string; supplier_id: string; source_system: string; external_code: string; source_name: string | null; created_at: string; updated_at: string };
+        Insert: { id?: string; company_id: string; supplier_id: string; source_system?: string; external_code: string; source_name?: string | null; created_at?: string; updated_at?: string };
+        Update: Partial<Database["public"]["Tables"]["supplier_external_references"]["Insert"]>;
         Relationships: [];
       };
       items: {
@@ -1918,6 +1942,24 @@ export type Database = {
         Update: Partial<Database["public"]["Tables"]["stock_count_lines"]["Insert"]>;
         Relationships: [];
       };
+      document_line_revisions: {
+        Row: {
+          id: string; company_id: string; document_type: "purchase_request" | "stock_count" | "purchase_order";
+          document_id: string; line_id: string | null; action: "update" | "replace" | "remove";
+          before_snapshot: Json; after_snapshot: Json | null; reason: string;
+          status: "pending" | "applied" | "rejected"; idempotency_key: string;
+          requested_by: string; reviewed_by: string | null; resolved_at: string | null; created_at: string;
+        };
+        Insert: {
+          id?: string; company_id: string; document_type: "purchase_request" | "stock_count" | "purchase_order";
+          document_id: string; line_id?: string | null; action: "update" | "replace" | "remove";
+          before_snapshot?: Json; after_snapshot?: Json | null; reason: string;
+          status?: "pending" | "applied" | "rejected"; idempotency_key: string;
+          requested_by: string; reviewed_by?: string | null; resolved_at?: string | null; created_at?: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["document_line_revisions"]["Insert"]>;
+        Relationships: [];
+      };
       stock_transfers: {
         Row: {
           id: string; company_id: string | null; document_id: string | null; transfer_no: string; transfer_date: string;
@@ -2210,6 +2252,39 @@ export type Database = {
       };
     };
     Functions: {
+      revise_purchase_request_line: {
+        Args: {
+          target_purchase_request_id: string;
+          target_line_id: string;
+          revision_action: "update" | "replace" | "remove";
+          replacement_item_id?: string | null;
+          replacement_qty?: number | null;
+          replacement_uom?: string | null;
+          replacement_supplier_id?: string | null;
+          replacement_unit_cost?: number | null;
+          revision_reason: string;
+          request_idempotency_key: string;
+          expected_line_updated_at: string;
+        };
+        Returns: Json;
+      };
+      revise_stock_count_line: {
+        Args: {
+          target_stock_count_id: string;
+          target_line_id: string;
+          revision_action: "update" | "replace" | "remove";
+          replacement_item_id?: string | null;
+          replacement_physical_qty?: number | null;
+          replacement_uom?: string | null;
+          revision_reason: string;
+          request_idempotency_key: string;
+        };
+        Returns: Json;
+      };
+      review_stock_count_line_revision: {
+        Args: { target_revision_id: string; decision: "approve" | "reject" };
+        Returns: Json;
+      };
       get_dashboard_core_snapshot: {
         Args: { p_today?: string };
         Returns: Json;
@@ -2506,6 +2581,10 @@ export type Database = {
       };
       create_operational_item: {
         Args: { p_item: Json; p_supplier?: Json | null; p_branch_ids?: string[]; p_preferred?: boolean };
+        Returns: Json;
+      };
+      apply_autocount_import_job: {
+        Args: { p_job_id: string };
         Returns: Json;
       };
       convert_purchase_request_to_purchase_order: {

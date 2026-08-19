@@ -345,15 +345,16 @@ export async function getStockCount(id: string) {
       .filter((line) => line.stock_count_id === id)
       .sort((left, right) => Number((left as StockCountLine & { line_position?: number }).line_position ?? 0) - Number((right as StockCountLine & { line_position?: number }).line_position ?? 0))
       .map((line) => ({ ...line, item: mockItems.find((item) => item.id === line.item_id) }));
-    return { count: hydrateCount(count as StockCount, mockStockCountLines as StockCountLine[]), lines };
+    return { count: hydrateCount(count as StockCount, mockStockCountLines as StockCountLine[]), lines, revisions: [], revisionsAvailable: false };
   }
   const supabase = await createClient();
-  const [{ data, error }, { data: lines, error: linesError }] = await Promise.all([
+  const [{ data, error }, { data: lines, error: linesError }, { data: revisions, error: revisionsError }] = await Promise.all([
     // Removed unposted counts must not remain addressable through a stale detail URL.
     // Their activity/audit rows remain available through the activity log, while the
     // operational document itself is no longer treated as active work.
     supabase.from("stock_counts").select("*").eq("id", id).is("deleted_at", null).single(),
     supabase.from("stock_count_lines").select("*").eq("stock_count_id", id).order("line_position", { ascending: true }).order("id", { ascending: true }),
+    supabase.from("document_line_revisions").select("*").eq("document_type", "stock_count").eq("document_id", id).order("created_at", { ascending: true }),
   ]);
   if (error) {
     if (error.code === "PGRST116") throw new StockCountNotFoundError();
@@ -387,6 +388,8 @@ export async function getStockCount(id: string) {
       high_variance_count: ownLines.filter((line) => Math.abs(line.variance_percent) > count.tolerance_percent).length,
     },
     lines: ownLines.map((line) => ({ ...line, item: itemById.get(line.item_id) })),
+    revisions: revisionsError ? [] : revisions ?? [],
+    revisionsAvailable: !revisionsError,
   };
 }
 

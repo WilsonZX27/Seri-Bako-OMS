@@ -551,6 +551,56 @@ export async function resolvePurchaseRequestUnresolvedLine(id: string, formData:
   }
 }
 
+export async function revisePurchaseRequestLine(id: string, formData: FormData) {
+  try {
+    if (isMockMode()) return;
+    const requestId = parsePurchaseRequestId(id);
+    const payload = z.object({
+      lineId: z.string().uuid(),
+      action: z.enum(["update", "replace", "remove"]),
+      itemId: z.string().uuid().nullable(),
+      qty: z.coerce.number().positive().max(1_000_000).nullable(),
+      uom: z.string().trim().max(32).nullable(),
+      supplierId: z.string().uuid().nullable(),
+      unitCost: z.coerce.number().min(0).max(1_000_000_000).nullable(),
+      reason: z.string().trim().min(3, "Explain why this line is changing.").max(1_000),
+      idempotencyKey: z.string().uuid(),
+      expectedUpdatedAt: z.string().datetime(),
+    }).parse({
+      lineId: formData.get("line_id"),
+      action: formData.get("revision_action"),
+      itemId: cleanText(formData.get("item_id")),
+      qty: cleanText(formData.get("qty")),
+      uom: cleanText(formData.get("uom")),
+      supplierId: cleanText(formData.get("supplier_id")),
+      unitCost: cleanText(formData.get("unit_cost")) ?? "0",
+      reason: formData.get("reason"),
+      idempotencyKey: formData.get("idempotency_key"),
+      expectedUpdatedAt: formData.get("expected_updated_at"),
+    });
+    const supabase = await createClient();
+    const { error } = await supabase.rpc("revise_purchase_request_line", {
+      target_purchase_request_id: requestId,
+      target_line_id: payload.lineId,
+      revision_action: payload.action,
+      replacement_item_id: payload.itemId,
+      replacement_qty: payload.qty,
+      replacement_uom: payload.uom,
+      replacement_supplier_id: payload.supplierId,
+      replacement_unit_cost: payload.unitCost,
+      revision_reason: payload.reason,
+      request_idempotency_key: payload.idempotencyKey,
+      expected_line_updated_at: payload.expectedUpdatedAt,
+    });
+    if (error) throw new Error(error.message);
+    revalidateWorkspaceState([`/purchase-requests/${requestId}`, "/purchase-requests"]);
+    safeRedirectWithMessage(`/purchase-requests/${requestId}`, "success", "Request line updated and supplier readiness recalculated. The original values remain in revision history.");
+  } catch (error) {
+    rethrowRedirect(error);
+    safeRedirectWithMessage(`/purchase-requests/${id}`, "error", formatActionError(error, "Could not update this request line. Use the guided action shown for this item or keep the PR in review."));
+  }
+}
+
 export async function financeApprovePurchaseRequest(id: string) {
   try {
     if (isMockMode()) return;

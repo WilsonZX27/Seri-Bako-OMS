@@ -59,7 +59,7 @@ test("tablet portrait keeps the count control below item context until the conte
   assert.doesNotMatch(form, /md:col-span-4 md:order-5 lg:col-span-1/);
 });
 
-test("variance context stays optional without reintroducing the legacy review and approval chain", () => {
+test("variance context stays optional while line changes use bounded guided approval", () => {
   const form = read("src", "components", "stock-count-form.tsx");
   const validation = read("src", "lib", "validations", "stock-count.ts");
   const detail = read("src", "app", "(app)", "stock-counts", "[id]", "page.tsx");
@@ -69,8 +69,8 @@ test("variance context stays optional without reintroducing the legacy review an
   assert.doesNotMatch(validation, /Remarks required for variance above tolerance/);
   assert.match(detail, /Confirm & Post Count/);
   assert.match(detail, /stock_count\.post/);
-  assert.doesNotMatch(detail, />Review</);
-  assert.doesNotMatch(detail, />Approve</);
+  assert.match(detail, /pendingRevisions/);
+  assert.match(detail, /resolveStockCountLineRevision/);
   assert.doesNotMatch(detail, /Count Evidence Required/);
 });
 

@@ -1,8 +1,9 @@
 # Seri Bako OMS Metric Dictionary
 
-**Current released application:** `v8.64.55`
+**Current reviewed application:** `v8.64.55` (production promotion is not
+claimed by this document)
 **Repository forward migration ceiling:** `168` (local schema applied; linked/production promotion remains separately verified)
-**Last reviewed:** 2026-08-17
+**Last reviewed:** 2026-08-19
 
 This is the authority for user-visible KPI and chart meaning. It documents presentation contracts; database migrations, RLS, and server queries remain the calculation and permission authority. A render timestamp is never a data-freshness timestamp.
 
@@ -181,3 +182,34 @@ Daily trend uses request-time report data. The line preview exposes date, moveme
 ## Adding a metric
 
 Before shipping a new KPI or chart, add its decision, formula, grain, population, filters, permission, source, freshness, zero/unavailable/incomplete behavior, accessible alternative, and drill-through here. Forecasts, targets, supplier scores, days-of-stock, and margin trends require an approved data definition before implementation.
+
+## Phase 1 decision-loop metrics (definition-only release)
+
+These metrics are the first productisation layer for the `exception → owner →
+action → outcome` loop. This section deliberately defines the calculation and
+the evidence gap before any new dashboard card or trend is shipped. A metric
+with a missing source field is **not ready** and must render Unavailable rather
+than zero.
+
+| Metric ID | Decision and formula | Grain / population | Source and permission boundary | Freshness / unavailable rule | Drill-through and implementation gap |
+|---|---|---|---|---|---|
+| `action_resolution_time` | How long did an actionable exception remain open? `terminal_event_at − first_actionable_event_at`. Report median and p90; never average unlike workflows together. | One exception instance, grouped by exception type, branch, owner and period. Terminal means an explicit resolved/posted/approved/fulfilled/rejected/cancelled event, not disappearance from a list. | `documents` lifecycle timestamps plus `activity_logs`/workflow events. Scope must be the intersection of the source document permission and branch/company RLS. | Request-time or explicit as-of time. If either endpoint or event type is missing, return Unavailable and expose the missing event type. | Open the source document and its audit timeline. **Gap:** standardize event names and terminal semantics before implementation; current timestamps alone cannot prove every workflow endpoint. |
+| `pr_to_po_conversion` | `approved PRs with ≥1 non-deleted linked PO ÷ approved PRs in scope × 100`. A split supplier PR counts as converted only when every resulting supplier request has a linked PO. | Purchase-request approval cohort by approval date, branch and supplier state; exclude deleted/cancelled requests from the denominator. | `purchase_requests.status`, `purchase_orders.purchase_request_id`, and linked document status through the bounded procurement query. Require both `purchase_request.read` and `purchase_order.read`. | Request-time cohort; show cohort end date. If the link or approval timestamp is absent, Unavailable—not 0%. | PR detail → linked PO(s). **Gap:** expose a source-owned `approved_at`/conversion timestamp for cohort timing; `created_at` is not approval time. |
+| `receiving_fulfilment` | `accepted posted received quantity ÷ ordered quantity × 100`, calculated per item and UOM, with rejected quantity shown separately. Never combine unlike UOMs or silently convert. | PO line × branch × reporting period; only posted GRNs and non-cancelled, non-deleted lines. | `purchase_order_lines.qty_ordered` and `goods_receiving_lines.received_qty/rejected_qty/uom`, joined through posted `goods_receivings`. Require purchase-order and goods-receiving read permissions. | Request-time as-of posted GRN date. If UOMs differ and no effective conversion is available, the line is Unavailable and excluded from the ratio with an explicit excluded count. | PO/GRN line comparison. **Gap:** UOM conversion must carry effective date and confidence before cross-UOM fulfilment is allowed. |
+| `daily_record_coverage` | `completed or reviewed outlet-days ÷ expected permitted outlet-days × 100`; missing, void and in-progress remain separate counts. | Active permitted outlet × calendar date in the selected period, using the Asia/Kuala_Lumpur report date. | Bounded Outlet Daily record header query and existing Outlet Daily RLS. | Request-time; a valid empty period is `0%` with expected count shown. Query failure is Unavailable. | Outlet completion matrix and exact missing outlet-day. Existing matrix is the reference implementation. |
+| `wastage_rate` | `wastage quantity ÷ received quantity × 100` for complete/reviewed records only. A zero received quantity is not a percentage; label it Not Applicable. | Product × outlet-day × UOM, then period roll-up only over comparable UOMs. | Posted/completed Outlet Daily product lines through the bounded Outlet Daily query and its explicit received provenance. | Request-time; incomplete records are excluded and coverage is shown beside the rate. Missing provenance is Unavailable, not zero received. | Outlet-day/product detail with reason and record status. Existing Outlet Daily trend is the reference implementation. |
+| `count_recurrence` | Count of posted stock-count lines where `abs(variance_percent) > saved tolerance_percent`, grouped by item and branch. Keep signed shortage/overage as detail, not a combined quantity. | Item × branch × reporting period; posted, non-deleted counts only. | `stock_counts`, `stock_count_lines`, and the existing `get_stock_count_variance_insight` authority. Require `stock_count.read` plus branch scope. | Request-time through report date; a quiet period is zero with the date range shown. Failed insight query is Unavailable. | Posted count detail filtered to item/branch/date. Existing Stock Count variance insight is the reference implementation. |
+| `supplier_mapping_coverage` | `PR lines with an authoritative supplier mapping ÷ PR lines requiring sourcing × 100`. “No supplier suggested” is not counted as mapped. | Purchase-request line × branch × UOM; cohort by request date/status. | Explicit branch supplier-item mapping, valid supplier-item relationship, and approved Item Master supplier fallback as resolved by the bounded procurement query. Require purchase-request read and sourcing visibility. | Request-time; show mapped, pending, invalid and not-applicable counts. Missing relationship reads are Unavailable, never treated as unmapped zero. | PR line mapping action and supplier-item correction route. **Gap:** persist the resolution source and confidence so future reads do not infer from display text. |
+| `ux_escape_rate` | `validation failures without a target field + focus/scroll recovery ÷ all captured validation failures × 100`. Lower is better. Database/provider failures are separate from user validation failures. | Validation event × route × role × viewport bucket, with no user-entered values or sensitive payloads. | A typed client recovery event plus server action error classification; no current persistent event store is claimed. | Only report when event capture is enabled for the full denominator. Missing telemetry is Unavailable, never a healthy 0%. | Event sample links to route/component and anonymized correlation ID. **Gap:** add a privacy-safe telemetry sink and retention policy before showing this KPI. |
+
+### Metric implementation guardrails
+
+- Every implementation must include the metric ID, source query name, scope,
+  `as_of`/freshness value, and an explicit `unavailable_reason` when the result
+  is not calculable.
+- A denominator must be returned with every percentage. A percentage without its
+  population, excluded count, and UOM rule is not a decision metric.
+- Drill-through must preserve the same branch, period, status, item/supplier and
+  UOM filters used by the calculation; a generic list link is insufficient.
+- Do not use browser render time as data freshness, list truncation as a count,
+  or `0` as a substitute for an unavailable source.

@@ -2,7 +2,7 @@
 
 **Status:** decision baseline, not a claim of production completion  
 **Date:** 2026-08-19 (Asia/Kuala_Lumpur)  
-**Reviewed branch:** `codex/uiux-round2` at source baseline `3b34c94` plus the metric-definition commit `055f486`; the latest QA receipt is `75cc6f2`
+**Reviewed branch:** `codex/uiux-round2` at source baseline `2841eef` plus the metric-definition commit `055f486`; the latest QA receipt is `2841eef`
 
 ## Executive decision
 
@@ -21,20 +21,20 @@ future multi-branch product.
 
 | Area | Evidence | State | Release meaning |
 | --- | --- | --- | --- |
-| TypeScript, lint, contract tests | strict typecheck PASS; lint PASS; contract 772/772 | Verified locally | Static quality gate is green |
+| TypeScript, lint, contract tests | strict typecheck PASS; lint PASS; contract 774/774 | Verified locally | Static quality gate is green |
 | Build | 75/75 static pages | Verified locally | Build is healthy, not production proof |
 | Responsive contract | `release-mobile-ux-7-5.spec.js` 7/7 | Verified locally | Shared phone/tablet/desktop contract is encoded |
 | Role workspaces | role + release gate 8/8 | Verified in fixture | Authorization shell works for available fixtures |
 | Admin navigation ownership | 2/2 | Verified locally | Shared right-rail cleanup race is covered |
 | Inline daily validation | migration 167 + form contract | Local/linked evidence recorded | Error-to-field recovery path exists |
 | Atomic item creation | migration 168 local PASS | Local only | Unified creation path exists; linked ceiling still unverified |
-| Current Vercel revision | no current receipt for `3b34c94` | Unverified | Do not call branch state production-ready |
+| Current Vercel revision | no current receipt for `2841eef` | Unverified | Do not call branch state production-ready |
 | Linked migration ceiling | CLI login-role transport error | Unverified | Do not use `--include-all` to bypass the ceiling check |
 | Full production matrix | 6 roles × 6 viewports | Not yet captured | Required before production promotion |
 
 The older preview receipt in the closure addendum remains historical evidence for
 the functional revision it names. It is intentionally not reused as proof that
-`3b34c94` is deployed.
+`2841eef` is deployed.
 
 ## Release gates before more feature scope
 

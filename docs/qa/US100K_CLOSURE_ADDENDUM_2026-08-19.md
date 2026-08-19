@@ -2,8 +2,8 @@
 
 **Date:** 2026-08-19 (Asia/Kuala_Lumpur)  
 **Branch:** `codex/uiux-round2`  
-**Commit:** `3b34c94` (`fix: cover stock count validation labels`).
-**Latest committed code revision under review:** `3b34c94`; the preceding `4752c07`, `6de2e8f`, `b869480`, `a4ab5a8`, `5f08b8f`, `2b113e5`, `7046838`, `16009f6`, `e48aa2d`, `35c41dc`, `8aa6877` and `35bfdf5` commits include the actionable error boundary, stale-basket guard, truthful branch search, sourcing ownership, responsive closure evidence, workflow E2E classification, closure receipt, shared tablet fix follow-up, item sourcing readiness read model, local E2E env parser hardening, and shared safe validation context.
+**Commit:** `2841eef` (`fix: route create-form errors to fields`).
+**Latest committed code revision under review:** `2841eef`; the preceding `3b34c94`, `4752c07`, `6de2e8f`, `b869480`, `a4ab5a8`, `5f08b8f`, `2b113e5`, `7046838`, `16009f6`, `e48aa2d`, `35c41dc`, `8aa6877` and `35bfdf5` commits include the actionable error boundary, stale-basket guard, truthful branch search, sourcing ownership, responsive closure evidence, workflow E2E classification, closure receipt, shared tablet fix follow-up, item sourcing readiness read model, local E2E env parser hardening, and shared safe validation context.
 
 ## What was actually fixed
 
@@ -43,6 +43,14 @@ newline-free and length-bounded before they are returned through a redirect.
 This removes the generic “review required fields” dead end without exposing
 provider or database diagnostics. The existing wastage form remains the richer
 field-level recovery path with scroll, focus, red highlight, and inline guidance.
+
+High-impact create forms now consume one shared client notice rather than
+repeating page-specific error cards. It identifies the matching named control,
+opens a closed disclosure when needed, smooth-scrolls to the control, focuses it,
+and applies the same restrained red ring. Purchase Request keeps its explicit
+return-to-list action through the shared component. The contract covers Stock
+Count, Goods Receiving, Stock Wastage, Stock Transfer, Purchase Return, Supplier
+Invoice, Production Job, and Purchase Request creation.
 
 ### Low Stock healthy-empty state
 
@@ -140,8 +148,9 @@ CSS-hidden controls rather than treating them as visible accessibility failures.
 | --- | --- | --- |
 | `npm run typecheck:strict` | PASS | strict no-unused checks |
 | `npm run lint` | PASS | `src` lint |
-| `npm run test:contract` | PASS | 772 passed, 0 failed |
+| `npm run test:contract` | PASS | 774 passed, 0 failed |
 | `node --test tests/action-error-safety-contract.test.js` | PASS | 4 passed, 0 failed; database diagnostics stay redacted and validation errors retain safe field context |
+| `node --test tests/action-error-notice-contract.test.js` | PASS | 2 passed, 0 failed; shared create-form error recovery targets controls and opens disclosures |
 | `node --test tests/metric-dictionary-contract.test.js` | PASS | 2 passed, 0 failed; Phase 1 decision metrics are definition-only and not yet rendered as KPIs |
 | `node --test tests/item-creation-atomic-contract.test.js` | PASS | 2 passed, 0 failed |
 | `node --test tests/filter-layout-authority-contract.test.js tests/workspace-canvas-authority-contract.test.js tests/cross-platform-shell-contract.test.js` | PASS | 21 passed, 0 failed; shared tablet filter geometry |

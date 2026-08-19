@@ -93,3 +93,14 @@ test("AutoCount blocking UI explains the impact, source row, and recovery action
   assert.match(workflow, /What is wrong/);
   assert.match(workflow, /How to fix/);
 });
+
+test("AutoCount setup failures are actionable and do not expose PostgREST schema details", () => {
+  const helper = read("src/lib/imports/autocount.ts");
+  const preview = read("src/app/api/imports/autocount/preview/route.ts");
+  const confirm = read("src/app/api/imports/autocount/confirm/route.ts");
+  assert.match(helper, /apply migrations 169 and refresh the Supabase schema/);
+  assert.match(helper, /No OMS records were changed/);
+  assert.match(preview, /formatAutoCountInfrastructureError/);
+  assert.match(confirm, /setupRequired/);
+  assert.doesNotMatch(confirm, /message: error\.message/);
+});

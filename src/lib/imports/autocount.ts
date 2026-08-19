@@ -43,6 +43,22 @@ export type AutoCountAnalysis = {
   };
 };
 
+export function formatAutoCountInfrastructureError(error: unknown) {
+  const raw = error instanceof Error ? error.message : String(error ?? "");
+  const normalized = raw.toLowerCase();
+  const migrationMissing = normalized.includes("autocount_import_") || normalized.includes("apply_autocount_import_job") || normalized.includes("pgrst205") || normalized.includes("schema cache");
+  if (migrationMissing) {
+    return {
+      message: "AutoCount setup is not available in this environment yet. Ask an Owner to apply migrations 169 and refresh the Supabase schema, then retry. No OMS records were changed.",
+      setupRequired: true,
+    } as const;
+  }
+  return {
+    message: "AutoCount staging is temporarily unavailable. Retry this import; no OMS records were changed. If it persists, ask an Owner to check the import setup.",
+    setupRequired: false,
+  } as const;
+}
+
 const normalizeHeader = (value: string) => value.trim().replace(/\s+/g, " ").toLowerCase();
 const text = (value: unknown) => String(value ?? "").trim();
 const numberOrNull = (value: unknown) => {

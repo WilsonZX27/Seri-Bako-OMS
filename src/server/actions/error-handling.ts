@@ -110,12 +110,19 @@ function formatValidationError(error: unknown) {
   const fieldKey = path.length ? String(path[path.length - 1]) : "";
   const fieldLabels: Record<string, string> = {
     branch_id: "Request branch",
+    count_date: "Count date",
     item_id: "Item",
+    supplier_id: "Supplier",
     lines: "Requested items",
     qty: "Quantity",
+    physical_qty: "Counted quantity",
+    received: "Received quantity",
+    wastage: "Wastage quantity",
     uom: "UOM",
     needed_by_date: "Needed by date",
     remarks: "Remarks",
+    reason: "Reason",
+    tolerance: "Tolerance",
   };
   const field = fieldLabels[fieldKey];
   return field ? `${field}: ${message}` : message;

@@ -22,6 +22,7 @@ export function classifyActionError(error: unknown): ActionErrorKind {
   const normalized = message.toLowerCase();
 
   if (error instanceof Error && error.name === "ZodError") return "validation_failed";
+  if (isTechnicalDatabaseError(error)) return "database_unavailable";
   if (normalized.includes("missing permission") || normalized.includes("permission denied") || normalized.includes("row-level security")) return "permission_denied";
   if (normalized.includes("duplicate key") || normalized.includes("already exists") || normalized.includes("unique constraint")) return "duplicate_record";
   if (normalized.includes("not found") || normalized.includes("no rows") || normalized.includes("does not exist")) return "record_not_found";
@@ -58,6 +59,9 @@ export function formatActionError(error: unknown, fallback = "Something went wro
     return "Wastage cannot exceed Received without a line remark. Review the affected product line and add a remark.";
   }
   if (isPendingMigrationError(error)) return "Database migration is pending. Please contact the Super Admin / Owner.";
+  if (isTechnicalDatabaseError(error)) {
+    return "This action is temporarily unavailable because the system database is not ready. Please retry or contact the Super Admin / Owner.";
+  }
   if (normalized.includes("service role key")) return "Supabase service role key is not configured.";
   if (
     normalized.includes("rate limit")
@@ -85,6 +89,24 @@ export function formatActionError(error: unknown, fallback = "Something went wro
   }
   if (message.length <= 160 && !/(supabase|postgres|constraint|sqlstate|violates)/i.test(message)) return message;
   return fallback;
+}
+
+/**
+ * Provider/database diagnostics are useful in server logs but never actionable
+ * for an operator. Keep them out of redirect query strings and inline alerts.
+ */
+export function isTechnicalDatabaseError(error: unknown) {
+  const message = error instanceof Error ? error.message : String(error ?? "");
+  const normalized = message.toLowerCase();
+
+  return (
+    normalized.includes("column reference")
+    || normalized.includes("operator does not exist")
+    || normalized.includes("syntax error at or near")
+    || normalized.includes("could not identify an equality operator")
+    || /relation\s+\"[^\"]+\"\s+does not exist/.test(normalized)
+    || /function\s+[^\s]+\s+does not exist/.test(normalized)
+  );
 }
 
 export function isPendingMigrationError(error: unknown) {

@@ -58,6 +58,8 @@ export function formatActionError(error: unknown, fallback = "Something went wro
     if (message.length <= 220 && !/(supabase|postgres|constraint|sqlstate|violates)/i.test(message)) return message;
     return "Wastage cannot exceed Received without a line remark. Review the affected product line and add a remark.";
   }
+  const validationMessage = formatValidationError(error);
+  if (validationMessage) return validationMessage;
   if (isPendingMigrationError(error)) return "Database migration is pending. Please contact the Super Admin / Owner.";
   if (isTechnicalDatabaseError(error)) {
     return "This action is temporarily unavailable because the system database is not ready. Please retry or contact the Super Admin / Owner.";
@@ -89,6 +91,34 @@ export function formatActionError(error: unknown, fallback = "Something went wro
   }
   if (message.length <= 160 && !/(supabase|postgres|constraint|sqlstate|violates)/i.test(message)) return message;
   return fallback;
+}
+
+/**
+ * Zod already knows which field is invalid. Preserve that safe, operator-facing
+ * context instead of collapsing every form mistake into the same generic toast.
+ * The message is bounded and newline-free so it remains safe for redirect URLs.
+ */
+function formatValidationError(error: unknown) {
+  if (!(error instanceof Error) || error.name !== "ZodError") return null;
+  const issues = (error as Error & { issues?: unknown }).issues;
+  if (!Array.isArray(issues)) return null;
+  const issue = issues.find((candidate): candidate is { message?: unknown; path?: unknown } => Boolean(candidate && typeof candidate === "object"));
+  if (!issue || typeof issue.message !== "string") return null;
+  const message = issue.message.replace(/[\r\n]+/g, " ").trim();
+  if (!message || message.length > 160) return null;
+  const path = Array.isArray(issue.path) ? issue.path.filter((part): part is string | number => typeof part === "string" || typeof part === "number") : [];
+  const fieldKey = path.length ? String(path[path.length - 1]) : "";
+  const fieldLabels: Record<string, string> = {
+    branch_id: "Request branch",
+    item_id: "Item",
+    lines: "Requested items",
+    qty: "Quantity",
+    uom: "UOM",
+    needed_by_date: "Needed by date",
+    remarks: "Remarks",
+  };
+  const field = fieldLabels[fieldKey];
+  return field ? `${field}: ${message}` : message;
 }
 
 /**

@@ -23,3 +23,11 @@ test("purchase request action errors retain a visible recovery path", () => {
   assert.match(page, /role="alert"/);
   assert.match(page, /Back to purchase requests/);
 });
+
+test("validation errors retain safe field context", () => {
+  assert.match(source, /formatValidationError\(error\)/);
+  assert.match(source, /Request branch/);
+  assert.match(source, /Requested items/);
+  assert.match(source, /issue\.message\.replace/);
+  assert.match(source, /message\.length > 160/);
+});

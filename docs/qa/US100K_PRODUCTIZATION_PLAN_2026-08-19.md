@@ -2,7 +2,7 @@
 
 **Status:** decision baseline, not a claim of production completion  
 **Date:** 2026-08-19 (Asia/Kuala_Lumpur)  
-**Reviewed branch:** `codex/uiux-round2` at `b869480`
+**Reviewed branch:** `codex/uiux-round2` at source baseline `b869480` plus metric-definition commit `055f486`
 
 ## Executive decision
 
@@ -117,9 +117,11 @@ comparable.
 
 ## Decision metrics to instrument (after source authority exists)
 
-These are product metrics, not decorative dashboard numbers. They must be added
-to `docs/analytics/METRIC_DICTIONARY.md` with formula, grain, permission,
-freshness, unavailable behavior and drill-through before implementation.
+These are product metrics, not decorative dashboard numbers. Their definition-only
+contracts are now recorded in `docs/analytics/METRIC_DICTIONARY.md` and covered by
+`tests/metric-dictionary-contract.test.js`; they must not be rendered as KPIs until
+the source query, freshness, permission, unavailable behavior and drill-through
+are implemented and verified.
 
 | Metric | Definition | Why it matters |
 | --- | --- | --- |
@@ -153,7 +155,7 @@ have an owner, evidence and due decision.
 - add source-owned timestamps/age to approval and receiving work;
 - expose submitter, supplier state, owner and next action in list/detail views;
 - add complete numeric alternatives and drill-through for charts;
-- measure the seven decision metrics only where data is authoritative;
+- measure the eight decision metrics only where data is authoritative;
 - add a small event/telemetry contract for inline validation recovery.
 
 **Exit:** a manager can explain every exception and trace it to a terminal outcome.

@@ -147,7 +147,16 @@ export async function getPurchaseRequests(filters: Filters = {}) {
   if (statusGroup.length === 1) query = query.eq("status", statusGroup[0] as PurchaseRequest["status"]);
   if (statusGroup.length > 1) query = query.in("status", statusGroup as PurchaseRequest["status"][]);
   if (priority) query = query.eq("priority", priority as PurchaseRequest["priority"]);
-  if (search) query = query.or(`request_no.ilike.%${search}%,remarks.ilike.%${search}%`);
+  if (search) {
+    const { data: matchingBranches, error: matchingBranchesError } = await supabase
+      .from("branches")
+      .select("id")
+      .ilike("branch_name", `%${search}%`)
+      .limit(100);
+    if (matchingBranchesError) throw new Error(matchingBranchesError.message);
+    const branchClause = matchingBranches?.length ? `,branch_id.in.(${matchingBranches.map((branch) => branch.id).join(",")})` : "";
+    query = query.or(`request_no.ilike.%${search}%,remarks.ilike.%${search}%${branchClause}`);
+  }
   const { data, error, count } = await query
     .order(sort, { ascending: filters.dir !== "asc" })
     .range((page - 1) * PAGE_SIZE, page * PAGE_SIZE - 1);

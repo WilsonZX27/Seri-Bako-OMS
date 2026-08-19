@@ -32,6 +32,7 @@ test("procurement list joins fail closed and preserve an explicit unavailable st
   assert.match(requests, /data: itemDefaults, error: itemDefaultsError/);
   assert.match(requests, /data: branchMappings, error: branchMappingsError/);
   assert.match(requests, /data: supplierItems, error: supplierItemsError/);
+  assert.match(requests, /from\("branches"\)\s*\.select\("id"\)\s*\.ilike\("branch_name"/);
   assert.match(requests, /supplier_names: supplierNames/);
   assert.match(requests, /linesError \|\| branchesError/);
   assert.match(orders, /data: suppliers, error: suppliersError/);

@@ -1,4 +1,5 @@
 import { StaffForm } from "@/components/foundation-forms";
+import { ActionErrorNotice } from "@/components/action-error-notice";
 import { RecordActionPanel, RecordWorkspace } from "@/components/record-workspace";
 import { Card, CardContent } from "@/components/ui/card";
 import { SubmitButton } from "@/components/ui/submit-button";
@@ -74,11 +75,7 @@ export default async function NewStaffPage({
           </RecordActionPanel>
         }
       >
-        {params.error ? (
-          <Card>
-            <CardContent className="p-4 text-sm text-destructive">{params.error}</CardContent>
-          </Card>
-        ) : null}
+        <ActionErrorNotice message={params.error} />
         <StaffForm formId={formId} companies={tenantCompanies} branches={tenantBranches} roles={roles} action={createStaff} showSubmit={false} includeAuthSetup />
       </RecordWorkspace>
     </>

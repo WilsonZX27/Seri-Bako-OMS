@@ -1,6 +1,7 @@
 import { AlertTriangle } from "lucide-react";
 import { notFound } from "next/navigation";
 import { DocumentActionBar, DocumentActionForm, DocumentActionLink } from "@/components/document-action-bar";
+import { ActionErrorNotice } from "@/components/action-error-notice";
 import { AttachmentPanel, CommentsPanel, DocumentTimeline, RevisionPanel } from "@/components/documents/document-panels";
 import { DocumentActionSection, DocumentSideSection, DocumentWorkspace } from "@/components/documents/document-workspace";
 import { DocumentMoreOptions } from "@/components/documents/mobile-document-surfaces";
@@ -105,10 +106,11 @@ export default async function ProductionJobDetailPage({
         </>
       }
     >
-      {messages.error || messages.success ? (
+      <ActionErrorNotice message={messages.error} />
+      {messages.success ? (
         <Card>
-          <CardContent className={`p-4 text-sm ${messages.error ? "text-destructive" : "text-[var(--sb-success)]"}`}>
-            {messages.error ?? messages.success}
+          <CardContent className="p-4 text-sm text-[var(--sb-success)]">
+            {messages.success}
           </CardContent>
         </Card>
       ) : null}

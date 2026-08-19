@@ -1,4 +1,5 @@
 import { DocumentActionBar, DocumentActionForm, DocumentActionLink } from "@/components/document-action-bar";
+import { ActionErrorNotice } from "@/components/action-error-notice";
 import { AttachmentPanel, CommentsPanel, DocumentTimeline, RevisionPanel } from "@/components/documents/document-panels";
 import { DocumentActionSection, DocumentSideSection, DocumentWorkspace } from "@/components/documents/document-workspace";
 import { DocumentMoreOptions } from "@/components/documents/mobile-document-surfaces";
@@ -47,7 +48,6 @@ export default async function PurchaseReturnDetailPage({ params, searchParams }:
             <DocumentActionBar>
               {canPost ? <DocumentActionForm action={postPurchaseReturn.bind(null, purchaseReturn.id)} pendingLabel="Posting...">Post return</DocumentActionForm> : null}
             </DocumentActionBar>
-            {filters.error ? <p className="mt-3 text-sm text-destructive">{filters.error}</p> : null}
           </DocumentActionSection>
           <DocumentSideSection title="Validation / Next Step"><DocumentActionLink href={`/goods-receivings/${purchaseReturn.goods_receiving_id}`} variant="outline">View Goods Receiving</DocumentActionLink><p className="text-xs text-muted-foreground">{purchaseReturn.status === "draft" ? "Check supplier, item, and return quantities before posting." : "Posted returns remain in the stock audit trail."}</p></DocumentSideSection>
           <DocumentSideSection title="Movement Ledger">
@@ -72,6 +72,7 @@ export default async function PurchaseReturnDetailPage({ params, searchParams }:
         </>
       }
     >
+      <ActionErrorNotice message={filters.error} />
       <Card>
         <CardContent className="space-y-4 p-5">
           <h2 className="text-sm font-semibold">Return Summary</h2>

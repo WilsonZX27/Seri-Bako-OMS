@@ -26,6 +26,9 @@ test("high-impact create forms use the shared action error notice", () => {
     "src/app/(app)/production/jobs/new/page.tsx",
     "src/app/(app)/outlet-daily-records/new/page.tsx",
     "src/app/(app)/outlet-daily-records/[id]/page.tsx",
+    "src/app/(app)/production/jobs/[id]/page.tsx",
+    "src/app/(app)/purchase-returns/[id]/page.tsx",
+    "src/app/(app)/staffs/new/page.tsx",
   ]) {
     const pageSource = fs.readFileSync(page, "utf8");
     assert.match(pageSource, /ActionErrorNotice/);

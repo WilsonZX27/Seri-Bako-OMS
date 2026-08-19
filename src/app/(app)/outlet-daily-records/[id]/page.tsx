@@ -1,5 +1,6 @@
 import { DocumentMoreOptions } from "@/components/documents/mobile-document-surfaces";
 import { DocumentActionSection, DocumentSideSection, DocumentWorkspace } from "@/components/documents/document-workspace";
+import { ActionErrorNotice } from "@/components/action-error-notice";
 import { OutletDailyRecordForm } from "@/components/outlet-daily-record-form";
 import { Card, CardContent } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/empty-state";
@@ -95,7 +96,7 @@ export default async function OutletDailyRecordDetailPage({ params, searchParams
     mobileMoreOptions={hasSecondaryActions ? <DocumentMoreOptions>{secondaryActions}</DocumentMoreOptions> : undefined}
   >
     {messages.success ? <Card><CardContent className="p-3 text-sm text-success">{messages.success}</CardContent></Card> : null}
-    {messages.error ? <Card><CardContent className="p-3 text-sm text-destructive">{messages.error}</CardContent></Card> : null}
+    <ActionErrorNotice message={messages.error} />
     {record.received_state === "unavailable" ? <Card className="border-warning/40 bg-warning/10"><CardContent className="p-3 text-sm"><p className="font-medium text-warning">Received quantity unavailable</p><p className="mt-1 text-muted-foreground">The record loaded, but one or more receiving values are not verified. No zero has been substituted.</p></CardContent></Card> : null}
     {record.received_zero_with_sent ? <Card className="border-warning/40 bg-warning/10"><CardContent className="p-3 text-sm"><p className="font-medium text-warning">Receipt check needed</p><p className="mt-1 text-muted-foreground">Qty Sent is recorded, but Received is 0. Confirm whether the outlet received nothing or the receipt entry is incomplete.</p></CardContent></Card> : null}
     {statusLocked ? <Card className="border-warning/40 bg-warning/10"><CardContent className="p-3 text-sm font-medium">{record.status === "reviewed" ? "Reviewed and locked" : "Void and locked"} — normal editing is unavailable.</CardContent></Card> : null}

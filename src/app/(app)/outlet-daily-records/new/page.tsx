@@ -1,7 +1,7 @@
 import { DocumentMoreOptions } from "@/components/documents/mobile-document-surfaces";
 import { DocumentActionSection, DocumentSideSection, DocumentWorkspace } from "@/components/documents/document-workspace";
+import { ActionErrorNotice } from "@/components/action-error-notice";
 import { OutletDailyRecordForm } from "@/components/outlet-daily-record-form";
-import { Card, CardContent } from "@/components/ui/card";
 import { SubmitButton } from "@/components/ui/submit-button";
 import { saveOutletDailyRecord } from "@/server/actions/outlet-daily-records";
 import { getPermissionMap } from "@/server/auth/permissions";
@@ -52,7 +52,7 @@ export default async function NewOutletDailyRecordPage({ searchParams }: { searc
     mobileMoreOptions={<DocumentMoreOptions><div className="grid gap-3">{secondaryActions}</div></DocumentMoreOptions>}
     tabletRailMode="split"
   >
-    {filters.error ? <Card><CardContent className="p-3 text-sm text-destructive">{filters.error}</CardContent></Card> : null}
+    <ActionErrorNotice message={filters.error} />
     <OutletDailyRecordForm formId={formId} action={saveOutletDailyRecord} branches={options.branches} products={options.products} branchId={selectedBranchId} recordDate={recordDate} defaultsByBranch={options.defaultsByBranch} validationError={filters.error} canEditQtySent={permissions["outlet_daily_record.qty_sent"]} canEditOutletValues={permissions["outlet_daily_record.update"]} />
   </DocumentWorkspace>;
 }

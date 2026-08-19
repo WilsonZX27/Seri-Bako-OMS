@@ -2,8 +2,8 @@
 
 **Date:** 2026-08-19 (Asia/Kuala_Lumpur)  
 **Branch:** `codex/uiux-round2`  
-**Commit:** `daab461` (`fix: extend field recovery across detail actions`).
-**Latest committed code revision under review:** `daab461`; the preceding `4c01731`, `2841eef`, `3b34c94`, `4752c07`, `6de2e8f`, `b869480`, `a4ab5a8`, `5f08b8f`, `2b113e5`, `7046838`, `16009f6`, `e48aa2d`, `35c41dc`, `8aa6877` and `35bfdf5` commits include the actionable error boundary, stale-basket guard, truthful branch search, sourcing ownership, responsive closure evidence, workflow E2E classification, closure receipt, shared tablet fix follow-up, item sourcing readiness read model, local E2E env parser hardening, and shared safe validation context.
+**Commit:** `013b660` (`fix: contain tablet workspaces with rails`).
+**Latest committed code revision under review:** `013b660`; the preceding `daab461`, `4c01731`, `2841eef`, `3b34c94`, `4752c07`, `6de2e8f`, `b869480`, `a4ab5a8`, `5f08b8f`, `2b113e5`, `7046838`, `16009f6`, `e48aa2d`, `35c41dc`, `8aa6877` and `35bfdf5` commits include the tablet inward canvas, actionable error boundary, stale-basket guard, truthful branch search, sourcing ownership, responsive closure evidence, workflow E2E classification, closure receipt, shared tablet fix follow-up, item sourcing readiness read model, local E2E env parser hardening, and shared safe validation context.
 
 ## What was actually fixed
 
@@ -156,6 +156,7 @@ CSS-hidden controls rather than treating them as visible accessibility failures.
 | `node --test tests/metric-dictionary-contract.test.js` | PASS | 2 passed, 0 failed; Phase 1 decision metrics are definition-only and not yet rendered as KPIs |
 | `node --test tests/item-creation-atomic-contract.test.js` | PASS | 2 passed, 0 failed |
 | `node --test tests/filter-layout-authority-contract.test.js tests/workspace-canvas-authority-contract.test.js tests/cross-platform-shell-contract.test.js` | PASS | 21 passed, 0 failed; shared tablet filter geometry |
+| `node --test tests/workspace-canvas-authority-contract.test.js tests/filter-layout-authority-contract.test.js tests/purchase-requests-mobile-list-contract.test.js tests/master-data-mobile-shell-contract.test.js tests/outlet-daily-completion-matrix-contract.test.js` | PASS | 22 passed, 0 failed; tablet canvas is centered and capped when a contextual rail is present |
 | `release-mobile-ux-7-5.spec.js` | PASS | 8 passed, 1 skipped on the isolated local fixture server; skip is the intentionally absent Manager Review fixture |
 | `npm run build` | PASS | 75/75 static pages |
 | Preview runtime reachability | PASS | Latest preview `/login` returned HTTP 200; unauthenticated `/items/new` returned HTTP 302 to Vercel SSO, so the protected form was not exposed |

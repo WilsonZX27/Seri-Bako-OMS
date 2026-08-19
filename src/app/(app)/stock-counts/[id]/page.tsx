@@ -6,12 +6,14 @@ import { ConfirmActionForm } from "@/components/ui/confirm-action-form";
 import { SubmitButton } from "@/components/ui/submit-button";
 import { Card, CardContent } from "@/components/ui/card";
 import { StockCountForm } from "@/components/stock-count-form";
+import { StockCountLineRecovery } from "@/components/stock-count-line-recovery";
+import { Button } from "@/components/ui/button";
 import { BlockedDestructiveAction, DangerConfirmForm } from "@/components/ui/danger-confirm-form";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { formatDateOnly, formatQuantity } from "@/lib/utils";
-import { autosaveStockCountDraft, cancelStockCount, deleteStockCount, postStockCount, saveAndPostStockCount, updateStockCountDraft } from "@/server/actions/stock-counts";
+import { autosaveStockCountDraft, cancelStockCount, deleteStockCount, postStockCount, resolveStockCountLineRevision, reviseStockCountLine, saveAndPostStockCount, updateStockCountDraft } from "@/server/actions/stock-counts";
 import { getPermissionMap } from "@/server/auth/permissions";
-import { getBranchesForSelect } from "@/server/queries/common";
+import { getBranchesForSelect, getItemsForSelect } from "@/server/queries/common";
 import { getDocumentBundle } from "@/server/queries/documents";
 import { getStockCount } from "@/server/queries/stock-counts";
 import { StockCountNotFoundError } from "@/server/queries/stock-counts";
@@ -29,15 +31,17 @@ export default async function StockCountDetailPage({ params }: { params: Promise
     if (error instanceof StockCountNotFoundError) notFound();
     throw error;
   });
-  const [{ count, lines }, permissions, branches] = await Promise.all([
+  const [{ count, lines, revisions }, permissions, branches, items] = await Promise.all([
     stockCountPromise,
     getPermissionMap(["stock_count.update", "stock_count.cancel", "stock_count.post"]),
     getBranchesForSelect(),
+    getItemsForSelect(),
   ]);
+  const pendingRevisions = revisions.filter((revision) => revision.status === "pending");
   const documentBundle = count.document_id ? await getDocumentBundle(count.document_id) : null;
   const highVarianceLines = lines.filter((line) => Math.abs(line.variance_percent) > count.tolerance_percent);
   const isLegacyPending = legacyPendingStatuses.has(count.status);
-  const canPost = (count.status === "draft" || isLegacyPending) && permissions["stock_count.post"];
+  const canPost = (count.status === "draft" || isLegacyPending) && permissions["stock_count.post"] && pendingRevisions.length === 0;
   const canEdit = count.status === "draft" && permissions["stock_count.update"];
   // Any count that has not posted inventory can still be safely removed from
   // active work. Posted counts are the immutable audit boundary.
@@ -139,6 +143,8 @@ export default async function StockCountDetailPage({ params }: { params: Promise
         </CardContent>
       </Card> : null}
 
+      {pendingRevisions.length ? <Card id="stock-count-guided-issues" className="border-[var(--sb-warning)] shadow-none"><CardContent className="space-y-3 p-4"><div><p className="text-sm font-semibold">{pendingRevisions.length} line change{pendingRevisions.length === 1 ? "" : "s"} need review</p><p className="text-xs text-muted-foreground">Progress is saved. Review each proposal below; only final posting is paused.</p></div>{pendingRevisions.map((revision, index) => <div key={revision.id} className="flex flex-col gap-2 border-t pt-3 sm:flex-row sm:items-center sm:justify-between"><div><p className="text-sm font-medium">{index === 0 ? "Next issue" : `Issue ${index + 1}`}: {revision.action}</p><p className="text-xs text-muted-foreground">{revision.reason}</p></div><div className="flex gap-2"><form action={resolveStockCountLineRevision.bind(null, count.id, revision.id)}><input type="hidden" name="review_action" value="reject"/><Button variant="outline" size="sm">Reject</Button></form><form action={resolveStockCountLineRevision.bind(null, count.id, revision.id)}><input type="hidden" name="review_action" value="approve"/><Button size="sm">Approve</Button></form></div></div>)}</CardContent></Card> : null}
+
       {!canEdit ? <Card>
         <CardContent className="p-5">
           <h2 className="mb-3 text-sm font-semibold">Count Lines</h2>
@@ -152,6 +158,7 @@ export default async function StockCountDetailPage({ params }: { params: Promise
                   <TableHead className="text-right">Variance %</TableHead>
                   <TableHead>UOM</TableHead>
                   <TableHead>Remarks</TableHead>
+                  {isLegacyPending && permissions["stock_count.post"] ? <TableHead className="w-12"><span className="sr-only">Edit</span></TableHead> : null}
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -166,6 +173,7 @@ export default async function StockCountDetailPage({ params }: { params: Promise
                       <TableCell className={`text-right ${high ? "font-semibold text-warning" : ""}`}>{formatQuantity(line.variance_percent)}%</TableCell>
                       <TableCell>{line.uom}</TableCell>
                       <TableCell>{line.remarks ?? (high ? "Remarks required" : "-")}</TableCell>
+                      {isLegacyPending && permissions["stock_count.post"] ? <TableCell><StockCountLineRecovery action={reviseStockCountLine.bind(null, count.id)} line={line} items={items} reviewMode /></TableCell> : null}
                     </TableRow>
                   );
                 })}
@@ -176,7 +184,7 @@ export default async function StockCountDetailPage({ params }: { params: Promise
               const high = Math.abs(line.variance_percent) > count.tolerance_percent;
               return (
                 <article key={line.id} className={`space-y-3 py-4 first:pt-1 last:pb-1 ${high ? "bg-[var(--sb-warning-bg)] px-3" : ""}`} role="listitem">
-                  <div className="flex items-start justify-between gap-4"><div className="min-w-0"><h3 className="font-medium leading-snug">{line.item?.item_name ?? line.item_id}</h3><p className="mt-0.5 text-xs text-muted-foreground">{line.item?.item_code}</p></div><div className="shrink-0 text-right"><strong>{formatQuantity(line.physical_qty)} {line.uom}</strong><p className={`text-xs ${high ? "font-semibold text-[var(--sb-warning)]" : "text-muted-foreground"}`}>{formatQuantity(line.variance_qty)} · {formatQuantity(line.variance_percent)}%</p></div></div>
+                  <div className="flex items-start justify-between gap-4"><div className="min-w-0"><h3 className="font-medium leading-snug">{line.item?.item_name ?? line.item_id}</h3><p className="mt-0.5 text-xs text-muted-foreground">{line.item?.item_code}</p></div><div className="flex shrink-0 items-start gap-2 text-right"><div><strong>{formatQuantity(line.physical_qty)} {line.uom}</strong><p className={`text-xs ${high ? "font-semibold text-[var(--sb-warning)]" : "text-muted-foreground"}`}>{formatQuantity(line.variance_qty)} · {formatQuantity(line.variance_percent)}%</p></div>{isLegacyPending && permissions["stock_count.post"] ? <StockCountLineRecovery action={reviseStockCountLine.bind(null, count.id)} line={line} items={items} reviewMode /> : null}</div></div>
                   <dl className="grid grid-cols-2 gap-4 rounded-md bg-secondary/35 p-3 text-xs"><div><dt className="text-muted-foreground">Theoretical</dt><dd className="mt-1 font-medium">{formatQuantity(line.theoretical_qty)} {line.uom}</dd></div><div><dt className="text-muted-foreground">Tolerance</dt><dd className="mt-1 font-medium">{formatQuantity(count.tolerance_percent)}%</dd></div></dl>
                   {line.remarks ? <p className="text-xs"><span className="text-muted-foreground">Remarks:</span> {line.remarks}</p> : high ? <p className="text-xs font-medium text-[var(--sb-warning)]">Variance exceeds tolerance; remarks were not recorded.</p> : null}
                 </article>

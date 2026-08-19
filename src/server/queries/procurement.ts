@@ -278,6 +278,38 @@ export async function getPurchaseRequest(id: string) {
   return { request: data as PurchaseRequest, lines: lines as PurchaseRequestLine[], unresolvedLines: unresolvedLines as PurchaseRequestUnresolvedLine[] };
 }
 
+export type PurchaseRequestBranchStock = {
+  itemId: string;
+  quantity: number;
+  uom: string;
+  asOf: string;
+  source: "OMS stock ledger";
+};
+
+export async function getPurchaseRequestBranchStock(branchId: string | null, itemIds: string[]) {
+  const uniqueItemIds = [...new Set(itemIds)].slice(0, 500);
+  if (!branchId || uniqueItemIds.length === 0) return [] as PurchaseRequestBranchStock[];
+  if (isMockMode()) {
+    return [] as PurchaseRequestBranchStock[];
+  }
+
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("stock_balances_summary")
+    .select("item_id, current_qty, base_unit, updated_at")
+    .eq("branch_id", branchId)
+    .in("item_id", uniqueItemIds);
+  if (error) throw new Error(error.message);
+  if (!data) throw new Error("Current branch stock returned no data.");
+  return data.map((row) => ({
+    itemId: row.item_id,
+    quantity: row.current_qty,
+    uom: row.base_unit,
+    asOf: row.updated_at,
+    source: "OMS stock ledger" as const,
+  }));
+}
+
 export async function getPurchaseOrdersForRequest(id: string) {
   if (isMockMode()) {
     return mockPurchaseOrders.filter((order) => order.purchase_request_id === id).map((order) => hydratePo(order, mockPurchaseOrderLines));

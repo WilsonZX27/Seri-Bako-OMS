@@ -22,7 +22,7 @@ test("incomplete reference directories cannot expose a writable draft form", () 
   assert.match(page, /Draft editing unavailable/);
   assert.match(page, /Existing request lines remain read-only until you retry/);
   assert.match(page, /Item details unavailable/);
-  assert.match(page, /Supplier details unavailable/);
+  assert.match(page, /diagnosePurchaseRequestSupplier/);
   assert.match(page, /Branch unavailable/);
 });
 
@@ -34,10 +34,9 @@ test("linked orders and document activity distinguish unavailable from empty", (
 });
 
 test("request detail resolves current branch supplier mappings for legacy lines", () => {
-  assert.match(page, /function resolveSupplierPresentation/);
-  assert.match(page, /const branchMappings = supplierMappings\?\.filter/);
-  assert.match(page, /currentMapping = compatibleMappings\.find\(\(mapping\) => mapping\.is_preferred\)/);
-  assert.match(page, /Supplier assignment required/);
-  assert.match(page, /state:[\s\S]*assignment_required/);
+  assert.match(page, /diagnosePurchaseRequestSupplier/);
+  assert.match(page, /readinessByLine/);
+  assert.match(page, /suggestedSupplierId/);
+  assert.match(page, /PurchaseRequestLineRecovery/);
   assert.doesNotMatch(page, /No supplier suggested/);
 });

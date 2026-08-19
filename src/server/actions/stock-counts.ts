@@ -162,6 +162,55 @@ export async function autosaveStockCountDraft(id: string, formData: FormData): P
   }
 }
 
+export async function reviseStockCountLine(id: string, formData: FormData) {
+  await requireAnyPermissionOrRedirect(["stock_count.update", "stock_count.post"], `/stock-counts/${id}`);
+  try {
+    const countId = stockCountIdSchema.parse(id);
+    const payload = z.object({
+      lineId: z.string().uuid(), action: z.enum(["update", "replace", "remove"]),
+      itemId: z.string().uuid().nullable(), quantity: z.coerce.number().min(0).max(1_000_000).nullable(),
+      uom: z.string().trim().max(32).nullable(), reason: z.string().trim().min(3).max(1_000), idempotencyKey: z.string().uuid(),
+    }).parse({
+      lineId: formData.get("line_id"), action: formData.get("revision_action"),
+      itemId: String(formData.get("item_id") ?? "").trim() || null,
+      quantity: String(formData.get("quantity") ?? "").trim() || null,
+      uom: String(formData.get("uom") ?? "").trim() || null,
+      reason: formData.get("reason"), idempotencyKey: formData.get("idempotency_key"),
+    });
+    if (isMockMode()) return;
+    const supabase = await createClient();
+    const { error } = await supabase.rpc("revise_stock_count_line", {
+      target_stock_count_id: countId, target_line_id: payload.lineId, revision_action: payload.action,
+      replacement_item_id: payload.itemId, replacement_physical_qty: payload.quantity,
+      replacement_uom: payload.uom, revision_reason: payload.reason, request_idempotency_key: payload.idempotencyKey,
+    });
+    if (error) throw new Error(error.message);
+    revalidateWorkspaceState([`/stock-counts/${countId}`, "/stock-counts"]);
+    safeRedirectWithMessage(`/stock-counts/${countId}`, "success", "Line change saved. Review readiness was recalculated and the original evidence remains in history.");
+  } catch (error) {
+    rethrowRedirect(error);
+    safeRedirectWithMessage(`/stock-counts/${id}`, "error", formatActionError(error, "Could not save this line change. Keep the count open, correct the highlighted fields, or assign it for review."));
+  }
+}
+
+export async function resolveStockCountLineRevision(id: string, revisionId: string, formData: FormData) {
+  await requirePermissionOrRedirect("stock_count.post", `/stock-counts/${id}`);
+  try {
+    const countId = stockCountIdSchema.parse(id);
+    const parsedRevisionId = z.string().uuid().parse(revisionId);
+    const action = z.enum(["approve", "reject"]).parse(formData.get("review_action"));
+    if (isMockMode()) return;
+    const supabase = await createClient();
+    const { error } = await supabase.rpc("review_stock_count_line_revision", { target_revision_id: parsedRevisionId, decision: action });
+    if (error) throw new Error(error.message);
+    revalidateWorkspaceState([`/stock-counts/${countId}`, "/stock-counts"]);
+    safeRedirectWithMessage(`/stock-counts/${countId}`, "success", action === "approve" ? "Replacement approved and applied." : "Replacement rejected; the original count line remains active.");
+  } catch (error) {
+    rethrowRedirect(error);
+    safeRedirectWithMessage(`/stock-counts/${id}`, "error", formatActionError(error, "Could not review this proposed line change. Retry or leave it pending without losing progress."));
+  }
+}
+
 export async function saveAndPostStockCount(id: string, formData: FormData) {
   await requirePermissionOrRedirect("stock_count.update", `/stock-counts/${id}`);
   try {

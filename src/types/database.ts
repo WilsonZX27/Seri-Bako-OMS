@@ -1942,6 +1942,24 @@ export type Database = {
         Update: Partial<Database["public"]["Tables"]["stock_count_lines"]["Insert"]>;
         Relationships: [];
       };
+      document_line_revisions: {
+        Row: {
+          id: string; company_id: string; document_type: "purchase_request" | "stock_count" | "purchase_order";
+          document_id: string; line_id: string | null; action: "update" | "replace" | "remove";
+          before_snapshot: Json; after_snapshot: Json | null; reason: string;
+          status: "pending" | "applied" | "rejected"; idempotency_key: string;
+          requested_by: string; reviewed_by: string | null; resolved_at: string | null; created_at: string;
+        };
+        Insert: {
+          id?: string; company_id: string; document_type: "purchase_request" | "stock_count" | "purchase_order";
+          document_id: string; line_id?: string | null; action: "update" | "replace" | "remove";
+          before_snapshot?: Json; after_snapshot?: Json | null; reason: string;
+          status?: "pending" | "applied" | "rejected"; idempotency_key: string;
+          requested_by: string; reviewed_by?: string | null; resolved_at?: string | null; created_at?: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["document_line_revisions"]["Insert"]>;
+        Relationships: [];
+      };
       stock_transfers: {
         Row: {
           id: string; company_id: string | null; document_id: string | null; transfer_no: string; transfer_date: string;
@@ -2234,6 +2252,39 @@ export type Database = {
       };
     };
     Functions: {
+      revise_purchase_request_line: {
+        Args: {
+          target_purchase_request_id: string;
+          target_line_id: string;
+          revision_action: "update" | "replace" | "remove";
+          replacement_item_id?: string | null;
+          replacement_qty?: number | null;
+          replacement_uom?: string | null;
+          replacement_supplier_id?: string | null;
+          replacement_unit_cost?: number | null;
+          revision_reason: string;
+          request_idempotency_key: string;
+          expected_line_updated_at: string;
+        };
+        Returns: Json;
+      };
+      revise_stock_count_line: {
+        Args: {
+          target_stock_count_id: string;
+          target_line_id: string;
+          revision_action: "update" | "replace" | "remove";
+          replacement_item_id?: string | null;
+          replacement_physical_qty?: number | null;
+          replacement_uom?: string | null;
+          revision_reason: string;
+          request_idempotency_key: string;
+        };
+        Returns: Json;
+      };
+      review_stock_count_line_revision: {
+        Args: { target_revision_id: string; decision: "approve" | "reject" };
+        Returns: Json;
+      };
       get_dashboard_core_snapshot: {
         Args: { p_today?: string };
         Returns: Json;

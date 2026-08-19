@@ -116,6 +116,7 @@ function formatValidationError(error: unknown) {
     lines: "Requested items",
     qty: "Quantity",
     physical_qty: "Counted quantity",
+    theoretical_qty: "Expected quantity",
     received: "Received quantity",
     wastage: "Wastage quantity",
     uom: "UOM",
@@ -123,6 +124,8 @@ function formatValidationError(error: unknown) {
     remarks: "Remarks",
     reason: "Reason",
     tolerance: "Tolerance",
+    tolerance_percent: "Tolerance",
+    count_no: "Count number",
   };
   const field = fieldLabels[fieldKey];
   return field ? `${field}: ${message}` : message;

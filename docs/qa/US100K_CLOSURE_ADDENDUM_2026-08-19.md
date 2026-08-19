@@ -164,6 +164,11 @@ for the functional code path, not proof that the current branch revision is live
 Production promotion remains blocked until a current deployment receipt, linked
 migration status, and the owner-approved production promotion are captured.
 
+On 2026-08-19, a read-only Vercel connector check using the repository's
+`.vercel/project.json` project/team identifiers returned `404 Project not found`.
+That is a deployment-provider state mismatch, not evidence that the branch is
+live; the current deployment receipt therefore remains unverified.
+
 The custom production domain has **not** been promoted to this revision. The latest
 production deployment receipt still points to commit `b49a601` (`fix: backfill
 deterministic item suppliers`), deployment `5966903953`. The production login

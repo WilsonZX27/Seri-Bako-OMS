@@ -2,8 +2,8 @@
 
 **Date:** 2026-08-19 (Asia/Kuala_Lumpur)  
 **Branch:** `codex/uiux-round2`  
-**Commit:** `16009f6` (`feat: surface purchase request sourcing ownership`)
-**Latest code revision under review:** `16009f6`; the preceding `e48aa2d`, `35c41dc`, `8aa6877` and `35bfdf5` commits include the responsive closure evidence, workflow E2E classification, closure receipt, shared tablet fix follow-up, item sourcing readiness read model, and local E2E env parser hardening.
+**Commit:** `2b113e5` (`fix: make purchase request branch search truthful`)
+**Latest code revision under review:** `2b113e5`; the preceding `7046838`, `16009f6`, `e48aa2d`, `35c41dc`, `8aa6877` and `35bfdf5` commits include the sourcing ownership, responsive closure evidence, workflow E2E classification, closure receipt, shared tablet fix follow-up, item sourcing readiness read model, and local E2E env parser hardening.
 
 ## What was actually fixed
 
@@ -69,6 +69,10 @@ rows expose `Submitted by` plus either the resolved supplier name or an explicit
 `Supplier assignment required` / `Supplier details unavailable` state. This keeps
 unknown data actionable without inventing a supplier, while the detail page remains
 the authoritative mapping workflow.
+
+The same bounded list query now also searches branch names when the search field
+claims `PR no, branch, remarks`; branch matching is performed before the paged
+request read and is included in the same fail-closed contract.
 
 ### Shared action-rail navigation race
 

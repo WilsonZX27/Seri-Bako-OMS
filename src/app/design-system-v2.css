@@ -1612,10 +1612,33 @@ html[data-design-layer="v2"] .sb-list-content-card {
    query surface, list and action rail do not stretch edge-to-edge. Desktop
    geometry is intentionally unchanged. */
 @media (min-width: 640px) and (max-width: 1279px) {
+  /* Every tablet list uses the same inward reading frame. Route-specific
+     right rails may split this frame, but they must not make one page wider
+     than another at the same viewport. */
+  html[data-design-layer="v2"] [data-tablet-canvas="contained"],
+  html[data-design-layer="v2"] [data-tablet-canvas="wide"] {
+    width: min(calc(100% - 3rem), 64rem);
+    max-width: 64rem;
+    margin-inline: auto;
+  }
+
   html[data-design-layer="v2"] [data-tablet-content="contained"] {
     width: min(calc(100% - 3rem), 64rem);
     max-width: 64rem;
     margin-inline: auto;
+  }
+}
+
+/* Portrait tablets need the full working canvas. Contextual rails return at
+   landscape-tablet width; keeping them beside a narrow list is what caused
+   the search/filter controls and record count to clip. */
+@media (min-width: 768px) and (max-width: 1023px) {
+  html[data-design-layer="v2"] [data-tablet-document-split][data-tablet-rail-breakpoint="md"] {
+    display: block;
+  }
+
+  html[data-design-layer="v2"] [data-tablet-document-split][data-tablet-rail-breakpoint="md"] > aside {
+    display: none;
   }
 }
 
@@ -1628,6 +1651,9 @@ html[data-design-layer="v2"] .sb-list-content-card {
     align-items: center;
     gap: .5rem;
     min-width: 0;
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
     padding: .5rem;
   }
 
@@ -1641,6 +1667,11 @@ html[data-design-layer="v2"] .sb-list-content-card {
     min-width: max-content;
     justify-content: flex-end;
     white-space: nowrap;
+  }
+
+  html[data-design-layer="v2"] form.sb-list-query-card > .sb-filter-more > summary {
+    width: 100%;
+    justify-content: center;
   }
 
   html[data-design-layer="v2"] form.sb-list-query-card > .unified-list-desktop-actions > .sb-filter-summary {
@@ -1713,9 +1744,9 @@ html[data-design-layer="v2"] .sb-list-content-card {
 
 /* One tablet grammar for every list. Query-led forms place the query on row
    one; filter-dense forms without a query still use the same bounded grid.
-   One- and two-control status forms retain their compact single row. */
+   Compact forms use the same two-sided command row as query-led forms. */
 @media (min-width: 640px) and (max-width: 1279px) {
-  html[data-design-layer="v2"] form.sb-list-query-card:is([data-tablet-query-layout="query"], [data-tablet-query-layout="controls"]) {
+  html[data-design-layer="v2"] form.sb-list-query-card:is([data-tablet-query-layout="query"], [data-tablet-query-layout="controls"], [data-tablet-query-layout="compact"]) {
     display: grid !important;
     grid-template-columns: repeat(var(--sb-list-tablet-columns, 4), minmax(0, 1fr));
     align-items: center;
@@ -1731,26 +1762,28 @@ html[data-design-layer="v2"] .sb-list-content-card {
     max-width: none !important;
   }
 
-  html[data-design-layer="v2"] form.sb-list-query-card:is([data-tablet-query-layout="query"], [data-tablet-query-layout="controls"]) > :where(select, [data-select-control], .sb-status-filter, .sb-filter-more) {
-    /* Keep secondary controls content-sized on tablet. The grid provides
-       alignment; controls must not consume the entire track and erase the
-       intentional breathing room shown by the desktop reference. */
-    width: 9rem !important;
-    min-width: 9rem;
+  html[data-design-layer="v2"] form.sb-list-query-card:is([data-tablet-query-layout="query"], [data-tablet-query-layout="controls"], [data-tablet-query-layout="compact"]) > :where(select, [data-select-control], .sb-status-filter, .sb-filter-more) {
+    /* Controls fill their grid slot without overflowing it. The slot is
+       allowed to shrink on portrait/landscape tablet so long labels never
+       push Search or the record count outside the card. */
+    width: 100% !important;
+    min-width: 0 !important;
     max-width: 9rem !important;
     margin-left: 0;
-    justify-self: start;
+    justify-self: stretch;
   }
 
-  html[data-design-layer="v2"] form.sb-list-query-card:is([data-tablet-query-layout="query"], [data-tablet-query-layout="controls"]) > .unified-list-desktop-actions {
-    width: auto !important;
-    min-width: 0;
+  html[data-design-layer="v2"] form.sb-list-query-card:is([data-tablet-query-layout="query"], [data-tablet-query-layout="controls"], [data-tablet-query-layout="compact"]) > .unified-list-desktop-actions {
+    min-width: 0 !important;
     max-width: none !important;
+    box-sizing: border-box;
     margin-left: 0;
-    justify-self: start;
+    justify-self: end;
     display: flex !important;
     align-items: center;
     gap: .5rem;
+    width: 100% !important;
+    justify-content: flex-end;
   }
 
   /* Tablet has enough room for a deliberate two-sided command row: filters
@@ -1764,14 +1797,17 @@ html[data-design-layer="v2"] .sb-list-content-card {
     margin-left: auto;
    }
 
-  html[data-design-layer="v2"] form.sb-list-query-card:is([data-tablet-query-layout="query"], [data-tablet-query-layout="controls"]) > .unified-list-desktop-actions > .unified-list-action {
-    width: 7.5rem !important;
-    min-width: 7.5rem !important;
+  html[data-design-layer="v2"] form.sb-list-query-card:is([data-tablet-query-layout="query"], [data-tablet-query-layout="controls"], [data-tablet-query-layout="compact"]) > .unified-list-desktop-actions > .unified-list-action {
+    flex: 0 1 7.5rem !important;
+    width: 100% !important;
+    min-width: 0 !important;
     max-width: 7.5rem !important;
   }
 
-  html[data-design-layer="v2"] form.sb-list-query-card[data-tablet-query-layout="controls"] > .unified-list-desktop-actions {
-    grid-column: 1 / -1;
+  html[data-design-layer="v2"] form.sb-list-query-card:is([data-tablet-query-layout="controls"], [data-tablet-query-layout="compact"]) > .unified-list-desktop-actions {
+    /* The final two tracks are always reserved for Search + count. */
+    grid-column: -2 / -1;
+    margin-left: auto;
   }
 
   html[data-design-layer="v2"] [data-tablet-document-split] form.sb-list-query-card {

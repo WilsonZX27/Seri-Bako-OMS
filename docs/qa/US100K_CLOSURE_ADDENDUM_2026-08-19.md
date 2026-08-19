@@ -2,8 +2,8 @@
 
 **Date:** 2026-08-19 (Asia/Kuala_Lumpur)  
 **Branch:** `codex/uiux-round2`  
-**Commit:** `4c01731` (`fix: route outlet record errors to fields`).
-**Latest committed code revision under review:** `4c01731`; the preceding `2841eef`, `3b34c94`, `4752c07`, `6de2e8f`, `b869480`, `a4ab5a8`, `5f08b8f`, `2b113e5`, `7046838`, `16009f6`, `e48aa2d`, `35c41dc`, `8aa6877` and `35bfdf5` commits include the actionable error boundary, stale-basket guard, truthful branch search, sourcing ownership, responsive closure evidence, workflow E2E classification, closure receipt, shared tablet fix follow-up, item sourcing readiness read model, local E2E env parser hardening, and shared safe validation context.
+**Commit:** `daab461` (`fix: extend field recovery across detail actions`).
+**Latest committed code revision under review:** `daab461`; the preceding `4c01731`, `2841eef`, `3b34c94`, `4752c07`, `6de2e8f`, `b869480`, `a4ab5a8`, `5f08b8f`, `2b113e5`, `7046838`, `16009f6`, `e48aa2d`, `35c41dc`, `8aa6877` and `35bfdf5` commits include the actionable error boundary, stale-basket guard, truthful branch search, sourcing ownership, responsive closure evidence, workflow E2E classification, closure receipt, shared tablet fix follow-up, item sourcing readiness read model, local E2E env parser hardening, and shared safe validation context.
 
 ## What was actually fixed
 
@@ -50,8 +50,9 @@ control, opens a closed disclosure when needed, smooth-scrolls to the control,
 focuses it, and applies the same restrained red ring. Purchase Request keeps its
 explicit return-to-list action through the shared component. The contract covers
 Stock Count, Goods Receiving, Stock Wastage, Stock Transfer, Purchase Return,
-Supplier Invoice, Production Job, Purchase Request, and both Outlet Daily Record
-create/detail entry points.
+Supplier Invoice, Production Job, Purchase Request, Purchase Return detail,
+Production Job detail, Staff creation, and both Outlet Daily Record create/detail
+entry points (13 high-impact create/detail entry points in total).
 
 ### Low Stock healthy-empty state
 

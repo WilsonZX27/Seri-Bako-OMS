@@ -14,6 +14,8 @@ test("purchase-request list uses device-appropriate list surfaces and anchors th
   assert.match(page, /tabletRailBreakpoint="md"/);
   assert.match(page, /<FilterBar resetHref="\/purchase-requests"/);
   assert.match(page, /resultCount=\{requests\?\.totalRows\}/);
+  assert.match(page, /Submitted by \{request\.requested_by_name/);
+  assert.match(page, /request\.supplier_state/);
 });
 
 test("purchase-request creation remains permission guarded", () => {

@@ -10,6 +10,7 @@ import {
   mockSuppliers,
 } from "@/lib/mock-mode";
 import { todayInKualaLumpur } from "@/lib/business-date";
+import { normalizeUom } from "@/lib/uom";
 import { createClient } from "@/lib/supabase/server";
 import { compareTableValues, paginateRows } from "@/lib/table-state";
 import type { Database } from "@/types/database";
@@ -40,6 +41,8 @@ export type PurchaseRequestRow = PurchaseRequest & {
   branch_name: string | null;
   line_count: number;
   estimated_total: number;
+  supplier_names: string[];
+  supplier_state: "assigned" | "assignment_required" | "details_unavailable" | "no_lines";
 };
 
 export type PurchaseOrderRow = PurchaseOrder & {
@@ -96,12 +99,16 @@ function filterRows<T extends Record<string, unknown>>(rows: T[], filters: Filte
 function hydratePr(row: PurchaseRequest, lines: PurchaseRequestLine[]): PurchaseRequestRow {
   const branch = mockBranches.find((item) => item.id === row.branch_id);
   const ownLines = lines.filter((line) => line.purchase_request_id === row.id);
+  const supplierIds = ownLines.map((line) => line.suggested_supplier_id ?? mockItems.find((item) => item.id === line.item_id)?.supplier_id ?? null).filter((id): id is string => Boolean(id));
+  const supplierNames = [...new Set(supplierIds.map((id) => mockSuppliers.find((supplier) => supplier.id === id)?.name).filter((name): name is string => Boolean(name)))];
   return {
     ...row,
     requested_by_name: row.requested_by ? mockProfile.full_name : null,
     branch_name: branch?.branch_name ?? null,
     line_count: ownLines.length,
     estimated_total: ownLines.reduce((sum, line) => sum + line.qty * line.estimated_unit_cost, 0),
+    supplier_names: supplierNames,
+    supplier_state: ownLines.length === 0 ? "no_lines" : supplierNames.length > 0 ? "assigned" : supplierIds.length > 0 ? "details_unavailable" : "assignment_required",
   };
 }
 
@@ -148,21 +155,67 @@ export async function getPurchaseRequests(filters: Filters = {}) {
   if (!data || count === null) throw new Error("Purchase request list returned no data.");
   const ids = data.map((row) => row.id);
   const branchIds = [...new Set(data.flatMap((row) => (row.branch_id ? [row.branch_id] : [])))];
-  const [{ data: lines, error: linesError }, { data: branches, error: branchesError }] = await Promise.all([
-    ids.length ? supabase.from("purchase_request_lines").select("purchase_request_id, qty, estimated_unit_cost").in("purchase_request_id", ids) : Promise.resolve({ data: [], error: null }),
+  const [{ data: lines, error: linesError }, { data: branches, error: branchesError }, { data: requesters, error: requestersError }] = await Promise.all([
+    ids.length ? supabase.from("purchase_request_lines").select("purchase_request_id, qty, estimated_unit_cost, suggested_supplier_id, item_id, uom").in("purchase_request_id", ids) : Promise.resolve({ data: [], error: null }),
     branchIds.length ? supabase.from("branches").select("id, branch_name").in("id", branchIds) : Promise.resolve({ data: [], error: null }),
+    [...new Set(data.map((row) => row.requested_by).filter((id): id is string => Boolean(id)))].length
+      ? supabase.from("staffs").select("id, full_name").in("id", [...new Set(data.map((row) => row.requested_by).filter((id): id is string => Boolean(id)))])
+      : Promise.resolve({ data: [], error: null }),
   ]);
-  if (linesError || branchesError) throw new Error((linesError ?? branchesError)!.message);
+  if (linesError || branchesError || requestersError) throw new Error((linesError ?? branchesError ?? requestersError)!.message);
   if (!lines || (branchIds.length > 0 && !branches)) throw new Error("Purchase request related data returned no data.");
+  const itemIds = [...new Set(lines.map((line) => line.item_id).filter((id): id is string => Boolean(id)))];
+  const explicitSupplierIds = [...new Set(lines.map((line) => line.suggested_supplier_id).filter((id): id is string => Boolean(id)))];
+  const { data: itemDefaults, error: itemDefaultsError } = itemIds.length
+    ? await supabase.from("items").select("id, supplier_id").in("id", itemIds)
+    : { data: [], error: null };
+  if (itemDefaultsError) throw new Error(itemDefaultsError.message);
+  if (!itemDefaults || !requesters) throw new Error("Purchase request sourcing details returned no data.");
+  const { data: branchMappings, error: branchMappingsError } = branchIds.length && itemIds.length
+    ? await supabase.from("branch_supplier_items").select("branch_id, item_id, supplier_item_id, is_preferred").in("branch_id", branchIds).in("item_id", itemIds).eq("status", "active").is("deleted_at", null)
+    : { data: [], error: null };
+  if (branchMappingsError) throw new Error(branchMappingsError.message);
+  if (!branchMappings) throw new Error("Purchase request branch sourcing details returned no data.");
+  const supplierItemIds = [...new Set(branchMappings.map((mapping) => mapping.supplier_item_id))];
+  const { data: supplierItems, error: supplierItemsError } = supplierItemIds.length
+    ? await supabase.from("supplier_items").select("id, supplier_id, item_id, purchase_uom").in("id", supplierItemIds).eq("status", "active").is("deleted_at", null)
+    : { data: [], error: null };
+  if (supplierItemsError) throw new Error(supplierItemsError.message);
+  if (!supplierItems) throw new Error("Purchase request supplier item details returned no data.");
+  const itemSupplierIds = itemDefaults.map((item) => item.supplier_id).filter((id): id is string => Boolean(id));
+  const mappingSupplierIds = supplierItems.map((item) => item.supplier_id).filter((id): id is string => Boolean(id));
+  const allSupplierIds = [...new Set([...explicitSupplierIds, ...itemSupplierIds, ...mappingSupplierIds])];
+  const { data: suppliers, error: suppliersError } = allSupplierIds.length
+    ? await supabase.from("suppliers").select("id, name").in("id", allSupplierIds).eq("status", "active").is("deleted_at", null)
+    : { data: [], error: null };
+  if (suppliersError) throw new Error(suppliersError.message);
+  if (!suppliers) throw new Error("Purchase request supplier details returned no data.");
   const branchById = new Map((branches ?? []).map((row) => [row.id, row.branch_name]));
+  const requesterById = new Map((requesters ?? []).map((row) => [row.id, row.full_name]));
+  const itemSupplierById = new Map((itemDefaults ?? []).map((row) => [row.id, row.supplier_id]));
+  const supplierItemById = new Map((supplierItems ?? []).map((row) => [row.id, row]));
+  const supplierById = new Map((suppliers ?? []).map((row) => [row.id, row.name]));
   const rows = data.map((row) => {
     const ownLines = lines.filter((line) => line.purchase_request_id === row.id);
+    const supplierIds = ownLines.map((line) => {
+      const explicitSupplierId = line.suggested_supplier_id ?? itemSupplierById.get(line.item_id) ?? null;
+      if (explicitSupplierId) return explicitSupplierId;
+      const compatibleMappings = branchMappings
+        .filter((mapping) => mapping.branch_id === row.branch_id && mapping.item_id === line.item_id)
+        .map((mapping) => ({ mapping, supplierItem: supplierItemById.get(mapping.supplier_item_id) }))
+        .filter(({ supplierItem }) => supplierItem && normalizeUom(supplierItem.purchase_uom) === normalizeUom(line.uom));
+      const currentMapping = compatibleMappings.find(({ mapping }) => mapping.is_preferred) ?? (compatibleMappings.length === 1 ? compatibleMappings[0] : null);
+      return currentMapping?.supplierItem?.supplier_id ?? null;
+    }).filter((id): id is string => Boolean(id));
+    const supplierNames = [...new Set(supplierIds.map((id) => supplierById.get(id)).filter((name): name is string => Boolean(name)))];
     return {
       ...row,
-      requested_by_name: row.requested_by,
+      requested_by_name: row.requested_by ? requesterById.get(row.requested_by) ?? null : null,
       branch_name: row.branch_id ? branchById.get(row.branch_id) ?? null : null,
       line_count: ownLines.length,
       estimated_total: ownLines.reduce((sum, line) => sum + line.qty * line.estimated_unit_cost, 0),
+      supplier_names: supplierNames,
+      supplier_state: ownLines.length === 0 ? "no_lines" : supplierNames.length > 0 ? "assigned" : supplierIds.length > 0 ? "details_unavailable" : "assignment_required",
     };
   });
   const totalRows = count;

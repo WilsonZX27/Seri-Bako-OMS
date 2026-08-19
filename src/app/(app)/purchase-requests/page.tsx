@@ -92,7 +92,7 @@ export default async function PurchaseRequestsPage({ searchParams }: { searchPar
             <BulkSelectionProvider ids={requests?.rows.map((request) => request.id) ?? []} actionLabel="Delete selected" actionHint="Review selected requests before permanent deletion." selectionActions={<BulkPhaseOneDelete />}>
           <DataGridHint text="Pro-tip: Double-click any row to open the purchase request." />
           <Table mobileHidden compactUntil="xl" aria-label="Purchase requests" stickyColumn="third">
-              <TableHeader>
+            <TableHeader>
                 <TableRow>
                   <TableSelectionHead className="hidden md:table-cell"><BulkSelectAllCheckbox /></TableSelectionHead>
                   <TableHead className="w-10 text-center">Action</TableHead>
@@ -101,6 +101,7 @@ export default async function PurchaseRequestsPage({ searchParams }: { searchPar
                   <SortableHead label="Needed By" column="needed_by_date" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
                   <TableHead className="hidden md:table-cell">Priority</TableHead>
                   <TableHead className="hidden lg:table-cell">Branch</TableHead>
+                  <TableHead className="hidden xl:table-cell">Supplier</TableHead>
                   <SortableHead label="Status" column="status" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
                   <TableHead className="hidden text-right lg:table-cell">Lines</TableHead>
                   <TableHead className="hidden text-right md:table-cell">Estimated Total</TableHead>
@@ -115,11 +116,12 @@ export default async function PurchaseRequestsPage({ searchParams }: { searchPar
                     <TableCell className="w-10 p-0 text-center">
                       <TableActionLink href={`/purchase-requests/${request.id}`} label={`Open ${request.request_no}`}><Pencil className="h-4 w-4" /></TableActionLink>
                     </TableCell>
-                    <TableCell><DocumentNumber value={request.request_no} size="sm" /></TableCell>
+                    <TableCell><DocumentNumber value={request.request_no} size="sm" /><p className="mt-0.5 text-[11px] text-muted-foreground">Submitted by {request.requested_by_name ?? "—"}</p></TableCell>
                     <TableCell className="hidden md:table-cell">{formatDateOnly(request.request_date)}</TableCell>
                     <TableCell>{formatDateOnly(request.needed_by_date, "-")}</TableCell>
                     <TableCell className="hidden md:table-cell"><PriorityBadge priority={request.priority} /></TableCell>
                     <TableCell className="hidden lg:table-cell">{request.branch_name ?? "-"}</TableCell>
+                    <TableCell className="hidden max-w-52 xl:table-cell"><span className={request.supplier_state === "assigned" ? "text-[var(--sb-text)]" : "font-medium text-[var(--sb-warning)]"}>{request.supplier_state === "assigned" ? request.supplier_names.join(", ") : request.supplier_state === "assignment_required" ? "Supplier assignment required" : request.supplier_state === "details_unavailable" ? "Supplier details unavailable" : "—"}</span></TableCell>
                     <TableCell><StatusBadge status={request.status} /></TableCell>
                     <TableCell className="hidden text-right lg:table-cell">{request.line_count}</TableCell>
                     <TableCell className="hidden text-right md:table-cell">{formatCurrency(request.estimated_total)}</TableCell>
@@ -129,7 +131,7 @@ export default async function PurchaseRequestsPage({ searchParams }: { searchPar
               </TableBody>
             </Table>
             <OperationalList ariaLabel="Purchase requests" showUntil="xl">
-              {requests?.rows.map((request) => <OperationalListRow key={request.id} href={`/purchase-requests/${request.id}`} label={`Open ${request.request_no}`} primary={<DocumentNumber value={request.request_no} size="sm" />} status={<StatusBadge status={request.status} />} secondary={`${request.branch_name ?? "Unassigned branch"} · ${formatDateOnly(request.request_date)}`} meta={`${request.line_count} items · Needed ${formatDateOnly(request.needed_by_date, "—")}`} />)}
+              {requests?.rows.map((request) => <OperationalListRow key={request.id} href={`/purchase-requests/${request.id}`} label={`Open ${request.request_no}`} primary={<DocumentNumber value={request.request_no} size="sm" />} status={<StatusBadge status={request.status} />} secondary={`${request.branch_name ?? "Unassigned branch"} · ${formatDateOnly(request.request_date)}`} meta={`${request.line_count} items · Needed ${formatDateOnly(request.needed_by_date, "—")}`} detail={<><span>Submitted by {request.requested_by_name ?? "—"}</span><span className="ml-2">Supplier: {request.supplier_state === "assigned" ? request.supplier_names.join(", ") : request.supplier_state === "assignment_required" ? "assignment required" : request.supplier_state === "details_unavailable" ? "details unavailable" : "—"}</span></>} />)}
               {!requests?.rows.length ? <EmptyState title={requestsResult.unavailable ? "Purchase request data unavailable" : filtered ? "No requests match these filters" : "No purchase requests yet"} description={requestsResult.unavailable ? "The request source could not be verified. No record count or estimated total is shown as zero." : filtered ? "Reset the filters or widen the search." : "Purchase requests appear here after branch needs are created."} action={requestsResult.unavailable ? { href: "/purchase-requests", label: "Retry requests" } : filtered ? { href: "/purchase-requests", label: "Reset filters" } : undefined} /> : null}
             </OperationalList>
           </BulkSelectionProvider>

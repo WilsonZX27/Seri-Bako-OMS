@@ -28,6 +28,11 @@ test("procurement list joins fail closed and preserve an explicit unavailable st
   const requests = source.slice(source.indexOf("export async function getPurchaseRequests"), source.indexOf("export async function getPurchaseRequestSummary"));
   const orders = source.slice(source.indexOf("export async function getPurchaseOrders("), source.indexOf("export async function getPurchaseOrderSummary"));
   assert.match(requests, /data: branches, error: branchesError/);
+  assert.match(requests, /data: requesters, error: requestersError/);
+  assert.match(requests, /data: itemDefaults, error: itemDefaultsError/);
+  assert.match(requests, /data: branchMappings, error: branchMappingsError/);
+  assert.match(requests, /data: supplierItems, error: supplierItemsError/);
+  assert.match(requests, /supplier_names: supplierNames/);
   assert.match(requests, /linesError \|\| branchesError/);
   assert.match(orders, /data: suppliers, error: suppliersError/);
   assert.match(orders, /linesError \|\| suppliersError/);

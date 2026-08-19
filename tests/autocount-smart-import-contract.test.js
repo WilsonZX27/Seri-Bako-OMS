@@ -81,4 +81,15 @@ test("unknown branch and location item missing from Item List fail closed", () =
   files[2].rows.push({ "Item Code": "MISSING00001", "Location": "UNKNOWN", "UOM": "KG", "Qty": "1", "Total Cost": "1" });
   const analysis = analyzeAutoCountFiles(files, ["CK-PNG"]);
   assert.ok(analysis.blockingIssues.some((issue) => issue.includes("missing from the Item List")));
+  assert.ok(analysis.issueDetails.some((issue) => issue.code === "missing_item_list_record" && issue.itemCode === "MISSING00001" && issue.sourceRow));
+  assert.ok(analysis.issueDetails.some((issue) => issue.resolution.includes("newer Item List")));
+});
+
+test("AutoCount blocking UI explains the impact, source row, and recovery action", () => {
+  const workflow = read("src/components/imports/autocount-import-workflow.tsx");
+  assert.match(workflow, /Confirm is locked until the source records are corrected/);
+  assert.match(workflow, /No OMS records have been changed/);
+  assert.match(workflow, /Item List may be older than the Location export/);
+  assert.match(workflow, /What is wrong/);
+  assert.match(workflow, /How to fix/);
 });

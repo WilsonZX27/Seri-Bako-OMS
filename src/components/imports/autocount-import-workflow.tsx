@@ -1,14 +1,14 @@
 "use client";
 
 import { useState } from "react";
-import { CheckCircle2, FileSpreadsheet, LoaderCircle, ShieldCheck, Upload } from "lucide-react";
+import { AlertTriangle, CheckCircle2, Clock3, FileSpreadsheet, LoaderCircle, ShieldCheck, Upload } from "lucide-react";
 import { WorkspaceGrid } from "@/components/layout/workspace-layout";
 import { ConsoleSection } from "@/components/layout/right-console";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Notice } from "@/components/ui/system-states";
 import { parseAutoCountWorkbook } from "@/lib/imports/autocount-xlsx";
-import type { AutoCountParsedFile } from "@/lib/imports/autocount";
+import type { AutoCountIssue, AutoCountParsedFile } from "@/lib/imports/autocount";
 
 type Summary = {
   files: number;
@@ -21,7 +21,7 @@ type Summary = {
   uomConversions: number;
   inventoryMovements: number;
 };
-type PreviewResponse = { ok: boolean; message?: string; jobId?: string; status?: string; summary?: Summary; blockingIssues?: string[]; warnings?: string[]; reused?: boolean };
+type PreviewResponse = { ok: boolean; message?: string; jobId?: string; status?: string; summary?: Summary; blockingIssues?: string[]; issueDetails?: AutoCountIssue[]; warnings?: string[]; reused?: boolean };
 type ConfirmResult = Record<string, number>;
 
 const typeLabels = { supplier_list: "Supplier List", item_list: "Item List", location_snapshot: "Location Snapshot" } as const;
@@ -71,6 +71,8 @@ export function AutoCountImportWorkflow() {
   }
 
   const blockers = preview?.blockingIssues ?? [];
+  const issueDetails = preview?.issueDetails ?? [];
+  const missingItemRecords = issueDetails.filter((issue) => issue.code === "missing_item_list_record");
   const rail = (
     <>
       <ConsoleSection title="Import status">
@@ -132,9 +134,24 @@ export function AutoCountImportWorkflow() {
         </CardContent>
       </Card> : null}
 
-      {blockers.length ? <Notice tone="error" title={`${blockers.length} blocking issue${blockers.length === 1 ? "" : "s"}`}>
-        <ul className="max-h-72 list-disc space-y-1 overflow-y-auto pl-4">{blockers.slice(0, 100).map((issue) => <li key={issue}>{issue}</li>)}</ul>
-        {blockers.length > 100 ? <p className="mt-2 font-medium">Showing the first 100 issues.</p> : null}
+      {blockers.length ? <Notice tone="error" title="Confirm is locked until the source records are corrected">
+        <p>{blockers.length} blocking issue{blockers.length === 1 ? "" : "s"} found. No OMS records have been changed.</p>
+        {missingItemRecords.length ? <div className="mt-3 rounded-[var(--sb-control-radius)] bg-[var(--sb-surface-raised)] p-3">
+          <p className="flex items-start gap-2 font-semibold"><Clock3 className="mt-0.5 h-4 w-4 shrink-0" />{missingItemRecords.length} Item Code{missingItemRecords.length === 1 ? " is" : "s are"} in Location data but missing from the selected Item List.</p>
+          <p className="mt-1 text-sm">The Item List may be older than the Location export. Export a new Item List at the same time as, or after, the Location Snapshot, then start over and review again.</p>
+        </div> : null}
+        {issueDetails.length ? <div className="mt-4 overflow-x-auto rounded-[var(--sb-control-radius)] border border-[var(--sb-border-soft)]">
+          <table className="w-full min-w-[42rem] text-left text-sm">
+            <thead className="bg-[var(--sb-surface-muted)] text-xs text-[var(--sb-text-muted)]"><tr><th className="px-3 py-2 font-semibold">Record</th><th className="px-3 py-2 font-semibold">Where</th><th className="px-3 py-2 font-semibold">What is wrong</th><th className="px-3 py-2 font-semibold">How to fix</th></tr></thead>
+            <tbody className="divide-y divide-[var(--sb-border-soft)]">{issueDetails.slice(0, 100).map((issue, index) => <tr key={`${issue.code}-${issue.sourceFile ?? "job"}-${issue.sourceRow ?? index}`}>
+              <td className="whitespace-nowrap px-3 py-2.5 font-medium">{issue.itemCode ?? "File set"}</td>
+              <td className="px-3 py-2.5 text-[var(--sb-text-muted)]">{issue.sourceFile ? <>{issue.sourceFile}{issue.sourceRow ? <><br />Row {issue.sourceRow}</> : null}</> : "Selected files"}</td>
+              <td className="px-3 py-2.5">{issue.message}</td>
+              <td className="px-3 py-2.5">{issue.resolution}</td>
+            </tr>)}</tbody>
+          </table>
+        </div> : <ul className="mt-3 max-h-72 list-disc space-y-1 overflow-y-auto pl-4">{blockers.slice(0, 100).map((issue) => <li key={issue}>{issue}</li>)}</ul>}
+        {(issueDetails.length || blockers.length) > 100 ? <p className="mt-2 flex items-center gap-1.5 font-medium"><AlertTriangle className="h-4 w-4" />Showing the first 100 issues.</p> : null}
       </Notice> : null}
       {preview?.warnings?.length ? <Notice tone="warning" title="Non-blocking review notes"><ul className="max-h-52 list-disc space-y-1 overflow-y-auto pl-4">{preview.warnings.slice(0, 50).map((warning) => <li key={warning}>{warning}</li>)}</ul></Notice> : null}
       {result ? <Notice tone="success" title="AutoCount import completed">

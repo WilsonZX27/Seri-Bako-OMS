@@ -65,5 +65,5 @@ export async function POST(request: Request) {
     if (error) return NextResponse.json({ ok: false, jobId: job.id, message: error.message }, { status: 500 });
   }
 
-  return NextResponse.json({ ok: true, reused: false, jobId: job.id, status, summary: analysis.summary, blockingIssues: analysis.blockingIssues, warnings: analysis.warnings });
+  return NextResponse.json({ ok: true, reused: false, jobId: job.id, status, summary: analysis.summary, blockingIssues: analysis.blockingIssues, issueDetails: analysis.issueDetails, warnings: analysis.warnings });
 }

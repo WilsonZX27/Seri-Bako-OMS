@@ -16,9 +16,19 @@ export type AutoCountStageRow = {
   warnings: string[];
 };
 
+export type AutoCountIssue = {
+  code: "missing_required_file" | "missing_item_code" | "duplicate_item_code" | "missing_item_list_record" | "unknown_branch" | "incomplete_item" | "supplier_conflict";
+  message: string;
+  sourceFile?: string;
+  sourceRow?: number;
+  itemCode?: string;
+  resolution: string;
+};
+
 export type AutoCountAnalysis = {
   rows: AutoCountStageRow[];
   blockingIssues: string[];
+  issueDetails: AutoCountIssue[];
   warnings: string[];
   summary: {
     files: number;
@@ -57,6 +67,7 @@ function get(row: Record<string, string>, header: string) {
 
 export function analyzeAutoCountFiles(files: AutoCountParsedFile[], knownBranchCodes: string[]): AutoCountAnalysis {
   const blockingIssues: string[] = [];
+  const issueDetails: AutoCountIssue[] = [];
   const warnings: string[] = [];
   const staged = new Map<string, AutoCountStageRow>();
   const supplierNames = new Map<string, string>();
@@ -73,8 +84,13 @@ export function analyzeAutoCountFiles(files: AutoCountParsedFile[], knownBranchC
         if (code && name) supplierNames.set(code.toLowerCase(), name);
       } else if (file.type === "item_list") {
         const itemCode = get(row, "Item Code");
-        if (!itemCode) blockingIssues.push(`${file.name} row ${sourceRow}: Item Code is required.`);
-        else if (itemRows.has(itemCode.toLowerCase())) blockingIssues.push(`${file.name} row ${sourceRow}: duplicate Item Code ${itemCode}.`);
+        if (!itemCode) {
+          blockingIssues.push(`${file.name} row ${sourceRow}: Item Code is required.`);
+          issueDetails.push({ code: "missing_item_code", message: "Item Code is blank.", sourceFile: file.name, sourceRow, resolution: "Enter an Item Code in AutoCount, then export the Item List again." });
+        } else if (itemRows.has(itemCode.toLowerCase())) {
+          blockingIssues.push(`${file.name} row ${sourceRow}: duplicate Item Code ${itemCode}.`);
+          issueDetails.push({ code: "duplicate_item_code", message: `Item Code ${itemCode} appears more than once.`, sourceFile: file.name, sourceRow, itemCode, resolution: "Keep one authoritative Item record in AutoCount, then export the Item List again." });
+        }
         else itemRows.set(itemCode.toLowerCase(), { row, file: file.name, rowNumber: sourceRow });
       } else {
         // AutoCount appends valuation totals with no Item Code or Location.
@@ -84,9 +100,18 @@ export function analyzeAutoCountFiles(files: AutoCountParsedFile[], knownBranchC
     });
   }
 
-  if (!files.some((file) => file.type === "supplier_list")) blockingIssues.push("Add one AutoCount Supplier List file.");
-  if (!files.some((file) => file.type === "item_list")) blockingIssues.push("Add one AutoCount Item List file.");
-  if (!files.some((file) => file.type === "location_snapshot")) blockingIssues.push("Add at least one AutoCount Location Snapshot file.");
+  if (!files.some((file) => file.type === "supplier_list")) {
+    blockingIssues.push("Add one AutoCount Supplier List file.");
+    issueDetails.push({ code: "missing_required_file", message: "Supplier List was not selected.", resolution: "Export and select the latest AutoCount Supplier List." });
+  }
+  if (!files.some((file) => file.type === "item_list")) {
+    blockingIssues.push("Add one AutoCount Item List file.");
+    issueDetails.push({ code: "missing_required_file", message: "Item List was not selected.", resolution: "Export and select the latest AutoCount Item List." });
+  }
+  if (!files.some((file) => file.type === "location_snapshot")) {
+    blockingIssues.push("Add at least one AutoCount Location Snapshot file.");
+    issueDetails.push({ code: "missing_required_file", message: "Location Snapshot was not selected.", resolution: "Export and select at least one AutoCount Location Snapshot." });
+  }
 
   const locationsByItem = new Map<string, typeof locations>();
   for (const location of locations) {
@@ -94,14 +119,17 @@ export function analyzeAutoCountFiles(files: AutoCountParsedFile[], knownBranchC
     const branchCode = get(location.row, "Location");
     if (!itemCode) {
       blockingIssues.push(`${location.file} row ${location.rowNumber}: Item Code is required.`);
+      issueDetails.push({ code: "missing_item_code", message: "Item Code is blank in the Location Snapshot.", sourceFile: location.file, sourceRow: location.rowNumber, resolution: "Correct the source record in AutoCount, then export the Location Snapshot again." });
       continue;
     }
     if (!itemRows.has(itemCode.toLowerCase())) {
       blockingIssues.push(`${location.file} row ${location.rowNumber}: ${itemCode} is missing from the Item List.`);
+      issueDetails.push({ code: "missing_item_list_record", message: `${itemCode} exists in Location data but not in the selected Item List.`, sourceFile: location.file, sourceRow: location.rowNumber, itemCode, resolution: "Export a newer Item List from the same time as, or after, this Location Snapshot and review again." });
       continue;
     }
     if (!branchCodes.has(branchCode.toLowerCase())) {
       blockingIssues.push(`${location.file} row ${location.rowNumber}: Location ${branchCode || "(blank)"} does not match an active OMS branch code.`);
+      issueDetails.push({ code: "unknown_branch", message: `Location ${branchCode || "(blank)"} does not match an active OMS branch.`, sourceFile: location.file, sourceRow: location.rowNumber, itemCode, resolution: "Correct the AutoCount Location code or add the matching active branch in OMS, then review again." });
       continue;
     }
     const list = locationsByItem.get(itemCode.toLowerCase()) ?? [];
@@ -119,13 +147,17 @@ export function analyzeAutoCountFiles(files: AutoCountParsedFile[], knownBranchC
     const creditorCode = get(row, "Main Supplier");
     if (!group || !baseUom || !itemName) {
       blockingIssues.push(`${file} row ${rowNumber}: ${itemCode} requires Description, Base UOM, and Item Group.`);
+      issueDetails.push({ code: "incomplete_item", message: `${itemCode} is missing Description, Base UOM, or Item Group.`, sourceFile: file, sourceRow: rowNumber, itemCode, resolution: "Complete the Item master record in AutoCount, then export the Item List again." });
       continue;
     }
     const groupKey = group.toLowerCase();
     const groupEntry = supplierGroups.get(groupKey) ?? { refs: new Map<string, string>(), sourceFile: file, sourceRow: rowNumber };
     if (creditorCode) {
       const priorGroup = creditorGroups.get(creditorCode.toLowerCase());
-      if (priorGroup && priorGroup !== groupKey) blockingIssues.push(`${file} row ${rowNumber}: Main Supplier ${creditorCode} is assigned to both ${priorGroup.toUpperCase()} and ${group}.`);
+      if (priorGroup && priorGroup !== groupKey) {
+        blockingIssues.push(`${file} row ${rowNumber}: Main Supplier ${creditorCode} is assigned to both ${priorGroup.toUpperCase()} and ${group}.`);
+        issueDetails.push({ code: "supplier_conflict", message: `Main Supplier ${creditorCode} is assigned to both ${priorGroup.toUpperCase()} and ${group}.`, sourceFile: file, sourceRow: rowNumber, itemCode, resolution: "Correct the Item Group or Main Supplier assignment in AutoCount, then export the Item List again." });
+      }
       creditorGroups.set(creditorCode.toLowerCase(), groupKey);
       groupEntry.refs.set(creditorCode, supplierNames.get(creditorCode.toLowerCase()) ?? "");
     }
@@ -198,7 +230,7 @@ export function analyzeAutoCountFiles(files: AutoCountParsedFile[], knownBranchC
 
   const rows = [...staged.values()];
   return {
-    rows, blockingIssues: [...new Set(blockingIssues)], warnings: [...new Set(warnings)],
+    rows, blockingIssues: [...new Set(blockingIssues)], issueDetails, warnings: [...new Set(warnings)],
     summary: {
       files: files.length,
       supplierSources: files.filter((file) => file.type === "supplier_list").length,

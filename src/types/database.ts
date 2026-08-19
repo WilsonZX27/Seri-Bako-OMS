@@ -814,6 +814,24 @@ export type Database = {
         Update: Partial<Database["public"]["Tables"]["profiles"]["Insert"]>;
         Relationships: [];
       };
+      autocount_import_jobs: {
+        Row: { id: string; company_id: string; status: string; content_hash: string; file_count: number; summary: Json; blocking_issues: Json; created_by: string; created_at: string; confirmed_at: string | null; completed_at: string | null };
+        Insert: { id?: string; company_id: string; status?: string; content_hash: string; file_count?: number; summary?: Json; blocking_issues?: Json; created_by: string; created_at?: string; confirmed_at?: string | null; completed_at?: string | null };
+        Update: Partial<Database["public"]["Tables"]["autocount_import_jobs"]["Insert"]>;
+        Relationships: [];
+      };
+      autocount_import_files: {
+        Row: { id: string; job_id: string; company_id: string; file_name: string; file_type: string; content_hash: string; row_count: number; headers: Json; created_at: string };
+        Insert: { id?: string; job_id: string; company_id: string; file_name: string; file_type: string; content_hash: string; row_count: number; headers?: Json; created_at?: string };
+        Update: Partial<Database["public"]["Tables"]["autocount_import_files"]["Insert"]>;
+        Relationships: [];
+      };
+      autocount_import_rows: {
+        Row: { id: string; job_id: string; company_id: string; entity_type: string; business_key: string; source_file: string; source_row: number; normalized: Json; warnings: Json; created_at: string };
+        Insert: { id?: string; job_id: string; company_id: string; entity_type: string; business_key: string; source_file: string; source_row: number; normalized: Json; warnings?: Json; created_at?: string };
+        Update: Partial<Database["public"]["Tables"]["autocount_import_rows"]["Insert"]>;
+        Relationships: [];
+      };
       suppliers: {
         Row: {
           id: string;
@@ -846,6 +864,12 @@ export type Database = {
           deleted_at?: string | null;
         };
         Update: Partial<Database["public"]["Tables"]["suppliers"]["Insert"]>;
+        Relationships: [];
+      };
+      supplier_external_references: {
+        Row: { id: string; company_id: string; supplier_id: string; source_system: string; external_code: string; source_name: string | null; created_at: string; updated_at: string };
+        Insert: { id?: string; company_id: string; supplier_id: string; source_system?: string; external_code: string; source_name?: string | null; created_at?: string; updated_at?: string };
+        Update: Partial<Database["public"]["Tables"]["supplier_external_references"]["Insert"]>;
         Relationships: [];
       };
       items: {
@@ -2506,6 +2530,10 @@ export type Database = {
       };
       create_operational_item: {
         Args: { p_item: Json; p_supplier?: Json | null; p_branch_ids?: string[]; p_preferred?: boolean };
+        Returns: Json;
+      };
+      apply_autocount_import_job: {
+        Args: { p_job_id: string };
         Returns: Json;
       };
       convert_purchase_request_to_purchase_order: {

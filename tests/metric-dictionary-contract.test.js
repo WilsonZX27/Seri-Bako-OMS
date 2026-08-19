@@ -18,7 +18,7 @@ const metricIds = [
 test("phase 1 decision metrics have an explicit contract", () => {
   for (const metricId of metricIds) assert.ok(dictionary.includes(`| \`${metricId}\` |`), `missing ${metricId}`);
   assert.match(dictionary, /definition-only release/);
-  assert.ok(dictionary.includes("Unavailable") && dictionary.includes("rather\nthan zero"));
+  assert.ok(dictionary.includes("Unavailable") && /rather\r?\nthan zero/.test(dictionary));
   assert.match(dictionary, /UOM/);
   assert.match(dictionary, /unavailable_reason/);
   assert.match(dictionary, /denominator/);

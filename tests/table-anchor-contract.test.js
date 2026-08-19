@@ -22,8 +22,8 @@ test("technical tables use the shared pinned lead band without overlap", () => {
   assert.match(styles, /data-sticky-column="first"/);
   assert.match(styles, /data-sticky-column="second"/);
   assert.match(styles, /data-sticky-column="third"/);
-  assert.match(styles, /width: 4rem;/);
-  assert.match(styles, /left: 6\.5rem;/);
+  assert.match(styles, /width: 2\.5rem;/);
+  assert.match(styles, /left: 5rem;/);
   assert.match(table, /data-scrolled=\{scrolled \? "true" : "false"\}/);
   assert.match(styles, /data-scrolled="true"/);
   assert.match(styles, /18px 0 24px -10px/);
@@ -36,7 +36,6 @@ test("technical tables use the shared pinned lead band without overlap", () => {
     "src/app/(app)/documents/page.tsx",
     "src/app/(app)/goods-receivings/page.tsx",
     "src/app/(app)/items/page.tsx",
-    "src/app/(app)/outlet-daily-records/page.tsx",
     "src/app/(app)/production/jobs/page.tsx",
     "src/app/(app)/purchase-orders/page.tsx",
     "src/app/(app)/staffs/page.tsx",
@@ -48,12 +47,17 @@ test("technical tables use the shared pinned lead band without overlap", () => {
   ]) {
     assert.match(read(page), /stickyColumn="second"/, `${page}: action and identity remain pinned`);
   }
-  for (const page of [
-    "src/app/(app)/purchase-requests/page.tsx",
-  ]) {
-    assert.match(read(page), /stickyColumn="third"/, `${page}: checkbox, action, and identity remain pinned`);
-  }
-  assert.match(design, /The shared Action column is 4rem wide/);
+  assert.match(
+    read("src/app/(app)/outlet-daily-records/page.tsx"),
+    /stickyColumn="first"/,
+    "outlet daily records: the icon-only first column is the sole pinned lead column",
+  );
+  assert.match(
+    read("src/app/(app)/purchase-requests/page.tsx"),
+    /stickyColumn="third"/,
+    "purchase requests: checkbox, action, and request identity share one seamless pinned lead band",
+  );
+  assert.match(design, /The shared Action column is a compact 2\.5rem icon track/);
 });
 
 test("mobile operational rows require a deliberate double tap while keyboard access stays available", () => {

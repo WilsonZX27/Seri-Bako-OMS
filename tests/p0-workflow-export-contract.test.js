@@ -30,13 +30,18 @@ test("document actions keep delete neutral and primary workflow actions icon-led
 test("outlet daily export is permission-checked and preserves list filters", () => {
   const page = read("src/app/(app)/outlet-daily-records/page.tsx");
   const route = read("src/app/api/export/outlet-daily-records/route.ts");
+  const dialog = read("src/components/outlet-daily-export-dialog.tsx");
 
-  assert.match(page, /\/api\/export\/outlet-daily-records/);
-  assert.match(page, /kind="export"/);
+  assert.match(page, /OutletDailyExportDialog/);
+  assert.match(dialog, /date range/);
+  assert.match(dialog, /selectedBranches/);
   assert.match(route, /hasPermission\("outlet_daily_record\.view"\)/);
   assert.match(route, /rowsToCsv\(exportRows\)/);
   assert.match(route, /content-disposition.*outlet-daily-records\.csv/);
   assert.match(route, /searchParams\.get\("date"\)/);
   assert.match(route, /searchParams\.get\("branch"\)/);
   assert.match(route, /searchParams\.get\("status"\)/);
+  assert.match(route, /searchParams\.get\("from"\)/);
+  assert.match(route, /searchParams\.get\("to"\)/);
+  assert.match(route, /searchParams\.get\("branches"\)/);
 });

@@ -12,7 +12,9 @@ test("purchase request lines use one responsive control geometry and no duplicat
   assert.match(form, /reserveMobileActionSpace = true/);
   assert.match(form, /space-y-2 lg:col-span-1/);
   assert.match(form, /grid-cols-\[1\.75rem_minmax\(7rem,1\.15fr\)_minmax\(7rem,1fr\)_2\.75rem\]/);
-  assert.match(form, /grid-cols-\[minmax\(14rem,1fr\)_10rem_8\.5rem_6\.5rem\]/);
+  assert.match(form, /grid-cols-\[minmax\(14rem,1fr\)_10rem_8\.5rem_2\.75rem_2\.75rem\]/);
+  assert.match(form, /data-pr-line-supplier/);
+  assert.match(form, /className="flex justify-end border-t/);
   assert.doesNotMatch(form, /data-purchase-request-line[^\n]+md:grid-cols/);
   assert.match(form, /h-\[var\(--sb-control-height\)\][\s\S]*w-10/);
   const design = read("src", "app", "design-system-v2.css");
@@ -39,4 +41,42 @@ test("mobile shell and loading states avoid warm bands, layout shifts, and dupli
   assert.match(stockLoading, /LoaderCircle/);
   assert.match(stockLoading, /animate-spin/);
   assert.doesNotMatch(stockLoading, /animate-pulse/);
+});
+
+test("supplier item results keep a raised table surface, ten-pixel headers, and semantic column widths", () => {
+  const page = read("src", "app", "(app)", "supplier-items", "page.tsx");
+  const design = read("src", "app", "design-system-v2.css");
+  assert.match(page, /className="sb-list-content-card overflow-hidden"/);
+  assert.match(page, /className="sb-supplier-items-table"/);
+  assert.match(design, /thead th \{[\s\S]*font-size: 0\.625rem/);
+  assert.match(design, /\.sb-supplier-items-table \{[\s\S]*table-layout: fixed/);
+  assert.match(design, /\.sb-supplier-items-table :is\(th, td\):nth-child\(3\) \{ width: 18rem; \}/);
+  assert.match(page, />Purchasing Terms</);
+  assert.doesNotMatch(page, /<SortableHead label="Supplier Code"/);
+  assert.match(design, /> \.sb-table-region \{[\s\S]*background: var\(--sb-surface-raised\)/);
+});
+
+test("August 19 annotation closure groups PR data, simplifies loading, and standardizes outlet analytics", () => {
+  const requests = read("src", "app", "(app)", "purchase-requests", "page.tsx");
+  const pagination = read("src", "components", "sortable-table.tsx");
+  const loading = read("src", "components", "ui", "system-states.tsx");
+  const matrix = read("src", "components", "outlet-daily-completion-matrix.tsx");
+  const chart = read("src", "components", "outlet-daily-wastage-chart.tsx");
+  const production = read("src", "app", "(app)", "production", "jobs", "page.tsx");
+  const design = read("src", "app", "design-system-v2.css");
+
+  assert.match(requests, /label="Schedule" column="request_date"/);
+  assert.match(requests, />Request context</);
+  assert.match(requests, />Request value</);
+  assert.match(requests, /BulkSelectRowCheckbox[\s\S]*TableActionLink[\s\S]*DocumentNumber/);
+  assert.match(pagination, /aria-label="Go to page"/);
+  assert.match(pagination, /type="number"[\s\S]*max=\{totalPages\}/);
+  assert.match(loading, /data-page-loading-state/);
+  assert.doesNotMatch(loading, /\[0, 1, 2, 3\]\.map/);
+  assert.doesNotMatch(matrix, /Scroll horizontally to view all days/);
+  assert.doesNotMatch(chart, /Hover or focus the chart/);
+  assert.match(chart, /xl:grid-cols-\[minmax\(0,3fr\)_minmax\(18rem,2fr\)\]/);
+  assert.match(production, /className="sb-portrait-tablet-rail"/);
+  assert.match(design, /\.sb-portrait-tablet-rail \[data-tablet-document-split\]/);
+  assert.match(design, /\.sb-purchase-request-table :is\(th, td\):nth-child\(7\) \{ width: 10rem; \}/);
 });

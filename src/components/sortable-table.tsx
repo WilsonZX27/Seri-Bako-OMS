@@ -55,6 +55,22 @@ export function PaginationControls({
       : page >= totalPages - 3
         ? [1, -1, totalPages - 4, totalPages - 3, totalPages - 2, totalPages - 1, totalPages]
         : [1, -1, page - 1, page, page + 1, -1, totalPages];
+  const preservedParams = Object.entries(searchParams).filter(([key, value]) => key !== "page" && value && value !== "all");
+  const pageJump = (
+    <form method="get" className="inline-flex h-[var(--sb-control-height)] items-center rounded-[var(--sb-radius-control)] border bg-card px-1.5" aria-label="Go to page">
+      {preservedParams.map(([key, value]) => <input key={key} type="hidden" name={key} value={value} />)}
+      <input
+        type="number"
+        name="page"
+        min={1}
+        max={totalPages}
+        defaultValue={page}
+        aria-label={`Page number, 1 to ${totalPages}`}
+        className="h-7 w-8 border-0 bg-transparent p-0 text-center text-xs font-semibold tabular-nums outline-none"
+      />
+      <span className="px-0.5 text-xs text-muted-foreground">/ {totalPages}</span>
+    </form>
+  );
   return (
     <div className="flex min-w-0 flex-wrap items-center justify-between gap-2 border-t px-3 py-1.5 text-[11px] text-muted-foreground">
       <span className="min-w-0 flex-1 truncate leading-6">
@@ -70,9 +86,7 @@ export function PaginationControls({
             <Link href={buildHref(searchParams, { page: String(page - 1) })}>Previous</Link>
           </Button>
         )}
-        <span className="inline-flex h-[var(--sb-control-height)] min-w-[var(--sb-control-height)] items-center justify-center rounded-[var(--sb-radius-control)] border bg-[var(--sb-green-900)] px-2 text-xs font-semibold text-white" aria-current="page">
-          {page}/{totalPages}
-        </span>
+        {pageJump}
         {page >= totalPages ? (
           <Button type="button" variant="outline" size="sm" className="h-[var(--sb-control-height)] px-2 text-xs" disabled>
             Next
@@ -109,6 +123,7 @@ export function PaginationControls({
             <Link href={buildHref(searchParams, { page: String(page + 1) })}>Next</Link>
           </Button>
         )}
+        {totalPages > 7 ? pageJump : null}
       </nav>
     </div>
   );

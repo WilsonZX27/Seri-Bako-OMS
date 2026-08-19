@@ -18,7 +18,7 @@ export function itemMatchesSearch(item: ItemComboboxOption, query: string) {
   return tokens.every((token) => searchable.includes(token));
 }
 
-export function ItemCombobox({ items, value, selectedItemId = "", onValueChange, onSelect, name, inputRef, placeholder = "Search any words in item name or code", ariaLabel, emptyMessage = "No catalog match. Keep the entered description for Purchasing Review." }: {
+export function ItemCombobox({ items, value, selectedItemId = "", onValueChange, onSelect, name, inputRef, placeholder = "Search any words in item name or code", ariaLabel, ariaInvalid = false, className = "", emptyMessage = "No catalog match. Keep the entered description for Purchasing Review." }: {
   items: ItemComboboxOption[];
   value: string;
   selectedItemId?: string;
@@ -28,6 +28,8 @@ export function ItemCombobox({ items, value, selectedItemId = "", onValueChange,
   inputRef?: Ref<HTMLInputElement>;
   placeholder?: string;
   ariaLabel?: string;
+  ariaInvalid?: boolean;
+  className?: string;
   emptyMessage?: string;
 }) {
   const generatedId = useId();
@@ -84,9 +86,10 @@ export function ItemCombobox({ items, value, selectedItemId = "", onValueChange,
       aria-autocomplete="list"
       aria-expanded={showSuggestions}
       aria-controls={listboxId}
+      aria-invalid={ariaInvalid || undefined}
       autoComplete="off"
       placeholder={placeholder}
-      className="overflow-hidden text-ellipsis whitespace-nowrap"
+      className={`overflow-hidden text-ellipsis whitespace-nowrap ${className}`}
       onFocus={() => setOpen(true)}
       onBlur={() => setOpen(false)}
       onChange={(event) => { setOpen(true); onValueChange(event.target.value); }}

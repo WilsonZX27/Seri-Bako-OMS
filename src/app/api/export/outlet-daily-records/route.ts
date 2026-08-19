@@ -18,8 +18,15 @@ export async function GET(request: Request) {
       .order("record_date", { ascending: false })
       .order("updated_at", { ascending: false })
       .limit(10000);
-    if (url.searchParams.get("date")) query = query.eq("record_date", url.searchParams.get("date")!);
-    if (url.searchParams.get("branch") && url.searchParams.get("branch") !== "all") query = query.eq("branch_id", url.searchParams.get("branch")!);
+    const from = url.searchParams.get("from");
+    const to = url.searchParams.get("to");
+    const date = url.searchParams.get("date");
+    const filterBranchIds = (url.searchParams.get("branches") ?? "").split(",").map((value) => value.trim()).filter(Boolean);
+    if (from) query = query.gte("record_date", from);
+    if (to) query = query.lte("record_date", to);
+    if (!from && !to && date) query = query.eq("record_date", date);
+    if (filterBranchIds.length) query = query.in("branch_id", filterBranchIds);
+    else if (url.searchParams.get("branch") && url.searchParams.get("branch") !== "all") query = query.eq("branch_id", url.searchParams.get("branch")!);
     if (url.searchParams.get("status") && url.searchParams.get("status") !== "all") query = query.eq("status", url.searchParams.get("status")! as never);
     const { data: records, error: recordsError } = await query;
     if (recordsError) throw recordsError;

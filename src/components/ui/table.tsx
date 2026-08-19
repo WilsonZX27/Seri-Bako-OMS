@@ -39,7 +39,7 @@ export function OperationalList({ children, ariaLabel, className, showUntil = "x
   return <div className={cn("divide-y divide-[var(--sb-border-soft)]", showUntil === "2xl" ? "2xl:hidden" : showUntil === "xl" ? "xl:hidden" : "md:hidden", className)} role="list" aria-label={ariaLabel}>{children}</div>;
 }
 
-export function OperationalListRow({ href, label, primary, status, statusMeta, secondary, detail, meta, trailing }: {
+export function OperationalListRow({ href, label, primary, status, statusMeta, secondary, detail, meta, leading, trailing }: {
   href?: string;
   label?: string;
   primary: React.ReactNode;
@@ -48,6 +48,7 @@ export function OperationalListRow({ href, label, primary, status, statusMeta, s
   secondary?: React.ReactNode;
   detail?: React.ReactNode;
   meta?: React.ReactNode;
+  leading?: React.ReactNode;
   trailing?: React.ReactNode;
 }) {
   const lastTapAt = React.useRef(0);
@@ -77,13 +78,17 @@ export function OperationalListRow({ href, label, primary, status, statusMeta, s
       {meta ? <div className="whitespace-nowrap text-right text-[11px] text-[var(--sb-text-muted)]">{meta}</div> : null}
       {detail ? <div className="col-span-2 min-w-0 text-[11px] leading-4 text-[var(--sb-text-muted)]">{detail}</div> : null}
     </>;
-  if (!href) return <div aria-label={label} role="listitem" className={className}>{renderContent(true)}</div>;
+  if (!href) return <div aria-label={label} role="listitem" className={cn(className, leading && "relative pl-14")}>
+    {leading ? <div className="absolute left-3 top-2.5">{leading}</div> : null}
+    {renderContent(true)}
+  </div>;
   // Do not nest a button/select inside an anchor. Besides being invalid HTML,
   // that makes a basket/action control navigate to the row destination on tap.
-  if (trailing) {
-    return <div aria-label={label} role="listitem" className={cn(className, "relative pr-14")}>
+  if (trailing || leading) {
+    return <div aria-label={label} role="listitem" className={cn(className, "relative", trailing && "pr-14", leading && "pl-14")}>
       <Link href={href} aria-label={label} className="contents" data-open-gesture="double-tap" onClick={handlePointerOpen}>{renderContent(false)}</Link>
-      <div className="absolute right-3 top-2.5">{trailing}</div>
+      {leading ? <div className="absolute left-3 top-2.5">{leading}</div> : null}
+      {trailing ? <div className="absolute right-3 top-2.5">{trailing}</div> : null}
     </div>;
   }
   return <Link href={href} aria-label={label} role="listitem" className={className} data-open-gesture="double-tap" onClick={handlePointerOpen}>{renderContent(true)}</Link>;
@@ -105,16 +110,16 @@ export function TableHead({ className, children, "aria-label": ariaLabel, ...pro
   const isActionColumn = typeof children === "string" && children.trim().toLowerCase() === "action";
   return (
     <th
-      aria-label={ariaLabel}
+      aria-label={ariaLabel ?? (isActionColumn ? "Actions" : undefined)}
       data-table-action-head={isActionColumn ? "true" : undefined}
       className={cn(
-        isActionColumn
-          ? "h-9 !w-10 !min-w-10 !max-w-10 overflow-hidden !px-0 text-center align-middle text-xs font-semibold text-[var(--sb-text-muted)]"
-          : "h-9 min-w-24 overflow-hidden px-3 text-left align-middle text-xs font-semibold text-[var(--sb-text-muted)]",
+        "h-9 overflow-hidden align-middle text-[10px] font-semibold text-[var(--sb-text-muted)]",
+        !isActionColumn && "min-w-24 whitespace-nowrap px-3 text-left",
         className,
+        isActionColumn && "!w-10 !min-w-10 !max-w-10 !px-0 text-center",
       )}
       {...props}
-    >{children}</th>
+    >{isActionColumn ? <span className="sr-only">{children}</span> : children}</th>
   );
 }
 

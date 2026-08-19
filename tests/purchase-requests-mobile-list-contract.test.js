@@ -9,7 +9,10 @@ const tabs = fs.readFileSync(path.join(root, "src", "components", "status-tabs.t
 const workspace = fs.readFileSync(path.join(root, "src", "components", "layout", "workspace-layout.tsx"), "utf8");
 
 test("purchase-request list uses device-appropriate list surfaces and anchors the request identity", () => {
-  assert.match(page, /<Table mobileHidden compactUntil="xl" aria-label="Purchase requests" stickyColumn="third">/);
+  assert.match(page, /<Table className="sb-purchase-request-table" mobileHidden compactUntil="xl" aria-label="Purchase requests" stickyColumn="third">/);
+  assert.match(page, /<TableSelectionHead><BulkSelectAllCheckbox \/><\/TableSelectionHead>/);
+  assert.match(page, /<SortableHead label="Request" column="request_no"/);
+  assert.match(page, /<TableSelectionCell><BulkSelectRowCheckbox id=\{request\.id\} \/><\/TableSelectionCell>[\s\S]*<TableActionLink[\s\S]*<DocumentNumber/);
   assert.match(page, /<OperationalList ariaLabel="Purchase requests" showUntil="xl">/);
   assert.match(page, /tabletRailBreakpoint="md"/);
   assert.match(page, /<FilterBar resetHref="\/purchase-requests"/);

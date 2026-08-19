@@ -6,7 +6,7 @@ import { useMemo, useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { SubmitButton } from "@/components/ui/submit-button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Field } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { SelectNative } from "@/components/ui/select-native";
@@ -169,8 +169,7 @@ export function RecipeForm({ recipe, products, items, action, formId, showSubmit
 
       <Card className="erp-surface shadow-none" data-recipe-setup>
         <CardHeader className="px-3 py-3 md:px-5">
-          <CardTitle>Recipe Header</CardTitle>
-        <CardDescription>Select the finished product, effective date, and controlled yield unit.</CardDescription>
+          <CardTitle>Recipe details</CardTitle>
         </CardHeader>
         <CardContent className="grid grid-cols-2 gap-3 px-3 pb-3 sm:gap-4 md:grid-cols-4 md:px-5 md:pb-5">
           <Field label="Product" className="col-span-2 md:col-span-1">
@@ -214,7 +213,6 @@ export function RecipeForm({ recipe, products, items, action, formId, showSubmit
         <CardHeader className="flex-row items-start justify-between gap-3 px-3 py-3 md:px-5">
           <div>
             <CardTitle>Ingredient Lines</CardTitle>
-            <CardDescription>Search by item code or name. Costs are calculated in base stock UOM.</CardDescription>
           </div>
           <Button type="button" variant="outline" onClick={() => setLines((current) => [...current, createEmptyLine()])}>
             <Plus className="h-4 w-4" />
@@ -359,6 +357,13 @@ export function RecipeForm({ recipe, products, items, action, formId, showSubmit
               <p className="text-base font-semibold">{costPerPack ? formatCurrency(costPerPack) : "-"}</p>
               {firstPack ? <Badge variant="secondary">{firstPack.packaging_name}</Badge> : null}
             </div>
+          </div>
+
+          <div className="flex justify-end border-t pt-3" data-recipe-add-row-footer>
+            <Button type="button" variant="outline" onClick={() => setLines((current) => [...current, createEmptyLine()])}>
+              <Plus className="h-4 w-4" />
+              Add row
+            </Button>
           </div>
 
           {showSubmit ? <div className="flex justify-end">

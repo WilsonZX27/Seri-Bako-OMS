@@ -39,6 +39,7 @@ type RequestLine = {
   remarks: string;
   reason: string;
 };
+type RequestValidationTarget = { field: "branch" | "supplier" | "item" | "quantity" | "uom"; lineKey?: number } | null;
 
 function createBlankLine(key: number): RequestLine {
   return { key, itemId: "", itemSearch: "", qty: "", uom: "", supplierId: "", cost: "0", remarks: "", reason: "" };
@@ -104,7 +105,9 @@ export function PurchaseRequestForm({
   const [lines, setLines] = useState<RequestLine[]>(initialRows.length ? initialRows : [{ ...createBlankLine(0) }]);
   const [priority, setPriority] = useState<ProcurementPriority>(initialPriority ?? "normal");
   const [branchId, setBranchId] = useState(resolvedInitialBranchId);
+  const [requestSupplierId, setRequestSupplierId] = useState(initialRows.find((line) => line.supplierId)?.supplierId ?? "");
   const [validationError, setValidationError] = useState("");
+  const [validationTarget, setValidationTarget] = useState<RequestValidationTarget>(null);
   const [commentLineKey, setCommentLineKey] = useState<number | null>(null);
   const [neededByDate, setNeededByDate] = useState(initialNeededByDate ?? "");
   const [detailsOpen, setDetailsOpen] = useState(!(resolvedInitialBranchId && initialNeededByDate));
@@ -113,14 +116,18 @@ export function PurchaseRequestForm({
 
   const hasRequestItem = lines.some((line) => Boolean(line.itemSearch.trim()));
   const selectedBranchName = branches.find((branch) => branch.id === branchId)?.branch_name ?? "Select branch";
-  const detailsComplete = Boolean(branchId);
+  const detailsComplete = Boolean(branchId && requestSupplierId);
+  const supplierOptions = [...new Map(supplierMappings.filter((mapping) => mapping.branch_id === branchId).map((mapping) => [mapping.supplier_id, mapping])).values()].sort((a, b) => a.supplier_name.localeCompare(b.supplier_name));
+  const eligibleItemIds = new Set(supplierMappings.filter((mapping) => mapping.branch_id === branchId && mapping.supplier_id === requestSupplierId).map((mapping) => mapping.item_id));
+  const selectableItems = items.filter((item) => eligibleItemIds.has(item.id));
   const incompleteEnteredLines = lines.filter((line) => {
     const touched = Boolean(line.itemSearch.trim() || line.qty.trim() || line.uom.trim());
     return touched && (!line.itemSearch.trim() || !line.qty.trim() || !line.uom.trim());
   });
+  const invalidQuantityLine = lines.find((line) => line.itemSearch.trim() && line.qty.trim() && (!Number.isFinite(Number(line.qty)) || Number(line.qty) <= 0));
 
   function mappingsForLine(line: RequestLine) {
-    return supplierMappings.filter((mapping) => mapping.branch_id === branchId && mapping.item_id === line.itemId);
+    return supplierMappings.filter((mapping) => mapping.branch_id === branchId && mapping.item_id === line.itemId && mapping.supplier_id === requestSupplierId);
   }
 
   function allowedUomsForLine(line: RequestLine) {
@@ -138,42 +145,89 @@ export function PurchaseRequestForm({
     ].filter(Boolean).map((value) => normalizeUom(String(value))))];
   }
 
-  function rejectEmptyRequest() {
-    setValidationError("Could not create this purchase request. Add at least one item before continuing.");
-    requestAnimationFrame(() => firstItemInputRef.current?.focus());
+  function showValidationError(message: string, target: Exclude<RequestValidationTarget, null>) {
+    setValidationError(message);
+    setValidationTarget(target);
   }
 
   function validateSubmission(event: FormEvent<HTMLFormElement>) {
-    if (incompleteEnteredLines.length) {
+    if (!branchId) {
       event.preventDefault();
-      setValidationError(`Nothing was saved because ${incompleteEnteredLines.length} entered line${incompleteEnteredLines.length === 1 ? " is" : "s are"} incomplete. Enter a description, quantity, and unit for every started line.`);
+      showValidationError("Choose the request branch.", { field: "branch" });
       return;
     }
-    if (hasRequestItem) return;
+    if (!requestSupplierId) {
+      event.preventDefault();
+      setDetailsOpen(true);
+      showValidationError("Choose one supplier for this purchase request.", { field: "supplier" });
+      return;
+    }
+    if (incompleteEnteredLines.length) {
+      event.preventDefault();
+      const firstIncomplete = incompleteEnteredLines[0];
+      const field = !firstIncomplete.itemSearch.trim() ? "item" : !firstIncomplete.qty.trim() ? "quantity" : "uom";
+      showValidationError(`Complete line ${lines.findIndex((line) => line.key === firstIncomplete.key) + 1}: enter its ${field === "item" ? "item description" : field}.`, { field, lineKey: firstIncomplete.key });
+      return;
+    }
+    if (invalidQuantityLine) {
+      event.preventDefault();
+      showValidationError(`Enter a quantity greater than zero for line ${lines.findIndex((line) => line.key === invalidQuantityLine.key) + 1}.`, { field: "quantity", lineKey: invalidQuantityLine.key });
+      return;
+    }
+    if (hasRequestItem) {
+      setValidationError("");
+      setValidationTarget(null);
+      return;
+    }
     event.preventDefault();
-    rejectEmptyRequest();
+    showValidationError("Add at least one item before continuing.", { field: "item", lineKey: lines[0]?.key });
   }
 
   useEffect(() => {
     function guardExternalSubmit(event: MouseEvent) {
       const target = event.target instanceof Element ? event.target.closest<HTMLButtonElement>('button[form="purchase-request-form"]') : null;
-      if (!target || (hasRequestItem && !incompleteEnteredLines.length)) return;
+      if (!target || (branchId && requestSupplierId && hasRequestItem && !incompleteEnteredLines.length && !invalidQuantityLine)) return;
       event.preventDefault();
       event.stopImmediatePropagation();
-      if (incompleteEnteredLines.length) {
-        setValidationError(`Nothing was saved because ${incompleteEnteredLines.length} entered line${incompleteEnteredLines.length === 1 ? " is" : "s are"} incomplete. Enter a description, quantity, and unit for every started line.`);
+      if (!branchId) {
+        setDetailsOpen(true);
+        showValidationError("Choose the request branch.", { field: "branch" });
+      } else if (!requestSupplierId) {
+        setDetailsOpen(true);
+        showValidationError("Choose one supplier for this purchase request.", { field: "supplier" });
+      } else if (incompleteEnteredLines.length) {
+        const firstIncomplete = incompleteEnteredLines[0];
+        const field = !firstIncomplete.itemSearch.trim() ? "item" : !firstIncomplete.qty.trim() ? "quantity" : "uom";
+        showValidationError(`Complete line ${lines.findIndex((line) => line.key === firstIncomplete.key) + 1}: enter its ${field === "item" ? "item description" : field}.`, { field, lineKey: firstIncomplete.key });
+      } else if (invalidQuantityLine) {
+        showValidationError(`Enter a quantity greater than zero for line ${lines.findIndex((line) => line.key === invalidQuantityLine.key) + 1}.`, { field: "quantity", lineKey: invalidQuantityLine.key });
       } else {
-        rejectEmptyRequest();
+        showValidationError("Add at least one item before continuing.", { field: "item", lineKey: lines[0]?.key });
       }
     }
 
     document.addEventListener("click", guardExternalSubmit, true);
     return () => document.removeEventListener("click", guardExternalSubmit, true);
-  }, [hasRequestItem, incompleteEnteredLines.length]);
+  }, [branchId, requestSupplierId, hasRequestItem, incompleteEnteredLines, invalidQuantityLine, lines]);
 
   useEffect(() => {
     if (validationError) setDetailsOpen(true);
   }, [validationError]);
+
+  useEffect(() => {
+    if (!validationTarget) return;
+    const frame = window.requestAnimationFrame(() => {
+      const selector = validationTarget.lineKey == null
+        ? `[data-pr-field="${validationTarget.field}"]`
+        : `[data-purchase-request-line-key="${validationTarget.lineKey}"] [data-pr-field="${validationTarget.field}"]`;
+      const anchor = document.querySelector<HTMLElement>(selector);
+      const target = anchor?.matches("input, select, textarea, button") ? anchor : anchor?.querySelector<HTMLElement>("input, select, textarea, button");
+      if (!target) return;
+      target.scrollIntoView({ behavior: "smooth", block: "center" });
+      target.focus({ preventScroll: true });
+    });
+    return () => window.cancelAnimationFrame(frame);
+  }, [validationTarget]);
 
   function updateLine(key: number, updates: Partial<RequestLine>) {
     setLines((current) => current.map((line) => (line.key === key ? { ...line, ...updates } : line)));
@@ -193,8 +247,8 @@ export function PurchaseRequestForm({
 
     setValidationError("");
 
-    const validMappings = supplierMappings.filter((mapping) => mapping.branch_id === branchId && mapping.item_id === selected.id);
-    const automaticMapping = validMappings.find((mapping) => mapping.is_preferred) ?? (validMappings.length === 1 ? validMappings[0] : null);
+    const validMappings = supplierMappings.filter((mapping) => mapping.branch_id === branchId && mapping.item_id === selected.id && mapping.supplier_id === requestSupplierId);
+    const automaticMapping = validMappings.find((mapping) => mapping.is_preferred) ?? validMappings[0] ?? null;
     updateLine(key, {
       itemId: selected.id,
       itemSearch: itemLabel(selected),
@@ -206,16 +260,22 @@ export function PurchaseRequestForm({
 
   function changeBranch(nextBranchId: string) {
     setBranchId(nextBranchId);
+    setRequestSupplierId("");
     if (nextBranchId && neededByDate) setDetailsOpen(false);
     setLines((current) => current.map((line) => {
-      const validMappings = supplierMappings.filter((mapping) => mapping.branch_id === nextBranchId && mapping.item_id === line.itemId);
-      const automaticMapping = validMappings.find((mapping) => mapping.is_preferred) ?? (validMappings.length === 1 ? validMappings[0] : null);
       return {
         ...line,
-        supplierId: automaticMapping?.supplier_id ?? "",
-        cost: String(automaticMapping?.unit_cost ?? line.cost),
-        uom: normalizeUom(automaticMapping?.purchase_uom || line.uom),
+        itemId: "", itemSearch: "", supplierId: "", cost: "0", uom: "",
       };
+    }));
+  }
+
+  function changeRequestSupplier(nextSupplierId: string) {
+    setRequestSupplierId(nextSupplierId);
+    setLines((current) => current.map((line) => {
+      const mapping = supplierMappings.find((candidate) => candidate.branch_id === branchId && candidate.supplier_id === nextSupplierId && candidate.item_id === line.itemId);
+      if (!mapping) return { ...line, itemId: "", itemSearch: "", supplierId: "", cost: "0", uom: "" };
+      return { ...line, supplierId: nextSupplierId, cost: String(mapping.unit_cost), uom: normalizeUom(mapping.purchase_uom || line.uom) };
     }));
   }
 
@@ -234,24 +294,13 @@ export function PurchaseRequestForm({
     updateLine(line.key, { qty: formatRequestQuantity(base + (requestQuantityStep(line.uom) * direction), line.uom) });
   }
 
-  function selectSupplier(key: number, supplierId: string) {
-    const line = lines.find((row) => row.key === key);
-    if (!line) return;
-    const mapping = supplierMappings.find((candidate) => candidate.branch_id === branchId && candidate.item_id === line.itemId && candidate.supplier_id === supplierId && (!line.uom || normalizeUom(candidate.purchase_uom) === line.uom));
-    updateLine(key, {
-      supplierId,
-      cost: String(mapping?.unit_cost ?? line.cost),
-      uom: normalizeUom(mapping?.purchase_uom || line.uom),
-    });
-  }
-
   function selectLineUom(key: number, value: string) {
     const line = lines.find((row) => row.key === key);
     if (!line) return;
     const uom = normalizeUom(value);
     const compatibleMappings = mappingsForLine(line).filter((mapping) => normalizeUom(mapping.purchase_uom) === uom);
     const currentMapping = compatibleMappings.find((mapping) => mapping.supplier_id === line.supplierId);
-    const automaticMapping = currentMapping ?? compatibleMappings.find((mapping) => mapping.is_preferred) ?? (compatibleMappings.length === 1 ? compatibleMappings[0] : null);
+    const automaticMapping = currentMapping ?? compatibleMappings.find((mapping) => mapping.is_preferred) ?? compatibleMappings[0] ?? null;
     updateLine(key, {
       uom,
       supplierId: automaticMapping?.supplier_id ?? "",
@@ -261,7 +310,7 @@ export function PurchaseRequestForm({
 
   return (
     <div>
-        <form id="purchase-request-form" action={action} onSubmit={validateSubmission} className={`space-y-3 ${reserveMobileActionSpace ? "pb-36" : ""} md:pb-0`}>
+        <form id="purchase-request-form" action={action} onSubmit={validateSubmission} noValidate className={`space-y-3 ${reserveMobileActionSpace ? "pb-36" : ""} md:pb-0`}>
           <input type="hidden" name="request_no" value="" />
           <input type="hidden" name="idempotency_key" value={idempotencyKey} />
           <input type="hidden" name="request_date" value={initialRequestDate ?? getToday()} />
@@ -286,18 +335,25 @@ export function PurchaseRequestForm({
                 <ChevronDown className={`h-4 w-4 transition-transform ${detailsOpen ? "rotate-180" : ""}`} />
               </Button>
             </div>
-            <div className={`${detailsOpen ? "grid" : "hidden"} grid-cols-2 gap-3 md:grid-cols-3`}>
+            <div className={`${detailsOpen ? "grid" : "hidden"} grid-cols-2 gap-3 md:grid-cols-4`}>
             <Field label="Request branch" required>
-                <SelectNative name="branch_id" aria-label="Request branch" value={branchId} onChange={(event) => changeBranch(event.target.value)} required disabled={lockBranch}>
+                <SelectNative data-pr-field="branch" name="branch_id" aria-label="Request branch" aria-invalid={validationTarget?.field === "branch" || undefined} className={validationTarget?.field === "branch" ? "border-rose-500 ring-2 ring-rose-200" : ""} value={branchId} onChange={(event) => { setValidationError(""); setValidationTarget(null); changeBranch(event.target.value); }} required disabled={lockBranch}>
                   {branches.map((branch) => <option key={branch.id} value={branch.id}>{branch.branch_name}</option>)}
                 </SelectNative>
                 {lockBranch ? <input type="hidden" name="branch_id" value={branchId} /> : null}
+            </Field>
+            <Field label="Supplier" required>
+              <SelectNative data-pr-field="supplier" name="request_supplier_id" aria-label="Request supplier" aria-invalid={validationTarget?.field === "supplier" || undefined} className={validationTarget?.field === "supplier" ? "border-rose-500 ring-2 ring-rose-200" : ""} value={requestSupplierId} onChange={(event) => { setValidationError(""); setValidationTarget(null); changeRequestSupplier(event.target.value); }} required>
+                <option value="">Choose supplier</option>
+                {supplierOptions.map((supplier) => <option key={supplier.supplier_id} value={supplier.supplier_id}>{supplier.supplier_name}</option>)}
+              </SelectNative>
+              {validationTarget?.field === "supplier" ? <p className="text-[11px] font-medium text-rose-700">Select the supplier before choosing items.</p> : null}
             </Field>
             <Field label="Needed By">
               <Input name="needed_by_date" type="date" value={neededByDate} onChange={(event) => changeNeededByDate(event.target.value)} />
             </Field>
             <Field label="Urgency" className="col-span-2 md:col-span-1"><UrgencySelect value={priority} onValueChange={setPriority} /></Field>
-            <Field label="Remarks" className="col-span-2 md:col-span-3">
+            <Field label="Remarks" className="col-span-2 md:col-span-4">
               <Textarea className="min-h-[3.75rem] resize-y" rows={2} name="remarks" defaultValue={initialRemarks ?? ""} placeholder="Reason or instructions for this request" />
             </Field>
             </div>
@@ -314,16 +370,11 @@ export function PurchaseRequestForm({
               <div>
                 <p className="text-xs font-semibold">Requested Items</p>
               </div>
-              <div className="flex items-center gap-2">
-                <Button type="button" variant="outline" size="sm" className="h-8 px-2.5" onClick={addLine} aria-label="Add request line">
-                  <Plus className="h-4 w-4" />
-                  Add line
-                </Button>
-              </div>
+              <span />
             </div>
             <div
               data-purchase-request-line-header
-              className="hidden grid-cols-[minmax(14rem,1fr)_10rem_8.5rem_6.5rem] gap-3 border-b border-[var(--sb-border-soft)] bg-[#fafafa] px-3 py-1.5 text-[10px] font-semibold uppercase tracking-[0.08em] text-[var(--sb-text-muted)] lg:grid"
+              className="hidden grid-cols-[minmax(14rem,1fr)_10rem_8.5rem_2.75rem_2.75rem] gap-3 border-b border-[var(--sb-border-soft)] bg-[#fafafa] px-3 py-1.5 text-[10px] font-semibold uppercase tracking-[0.08em] text-[var(--sb-text-muted)] lg:grid"
             >
               <span>Item</span>
               <span>Quantity</span>
@@ -333,22 +384,19 @@ export function PurchaseRequestForm({
             <div className="divide-y">
               {/* Legacy contract token: grid-cols-[minmax(0,1fr)_7.5rem_2.25rem]. The current four-column line keeps UOM, quantity, comments, and removal aligned. */}
               {lines.map((line, index) => (
-                <div data-purchase-request-line key={line.key} className="grid grid-cols-[1.75rem_minmax(7rem,1.15fr)_minmax(7rem,1fr)_2.75rem] gap-2 p-3 lg:grid-cols-[minmax(14rem,1fr)_10rem_8.5rem_6.5rem] lg:gap-3">
+                <div data-purchase-request-line data-purchase-request-line-key={line.key} key={line.key} className="grid grid-cols-[1.75rem_minmax(7rem,1.15fr)_minmax(7rem,1fr)_2.75rem] gap-2 p-3 lg:grid-cols-[minmax(14rem,1fr)_10rem_8.5rem_2.75rem_2.75rem] lg:gap-3">
                   <span data-pr-line-number className="grid h-10 place-items-center self-start lg:hidden"><span className="grid h-6 w-6 place-items-center rounded-[var(--sb-radius-control)] bg-[var(--sb-surface-muted)] text-[11px] font-semibold tabular-nums text-[var(--sb-text-muted)]">{index + 1}</span></span>
                   <div data-pr-line-item className="col-span-2 col-start-2 min-w-0 space-y-2 lg:col-span-1 lg:col-start-1">
                     <Field label="Item" required labelClassName="sr-only">
-                      <ItemCombobox items={items} value={line.itemSearch} selectedItemId={line.itemId} ariaLabel={`Item for request line ${index + 1}`} inputRef={line.key === lines[0]?.key ? firstItemInputRef : undefined} onValueChange={(value) => selectItem(line.key, value)} onSelect={(item) => selectItem(line.key, item.id)} />
+                      <div data-pr-field="item"><ItemCombobox items={selectableItems} value={line.itemSearch} selectedItemId={line.itemId} ariaLabel={`Item for request line ${index + 1}`} ariaInvalid={validationTarget?.field === "item" && validationTarget.lineKey === line.key} className={validationTarget?.field === "item" && validationTarget.lineKey === line.key ? "border-rose-500 ring-2 ring-rose-200" : ""} inputRef={line.key === lines[0]?.key ? firstItemInputRef : undefined} onValueChange={(value) => { setValidationError(""); setValidationTarget(null); selectItem(line.key, value); }} onSelect={(item) => { setValidationError(""); setValidationTarget(null); selectItem(line.key, item.id); }} /></div>
                     </Field>
-                    {line.itemId && mappingsForLine(line).some((mapping) => !line.uom || normalizeUom(mapping.purchase_uom) === line.uom) ? (
-                    <Field label="Supplier" required labelClassName="sr-only">
-                        <SelectNative value={line.supplierId} onChange={(event) => selectSupplier(line.key, event.target.value)} aria-label={`Supplier for ${line.itemSearch}`}>
-                          <option value="">Select mapped supplier</option>
-                          {mappingsForLine(line).filter((mapping) => !line.uom || normalizeUom(mapping.purchase_uom) === line.uom).map((mapping) => (
-                            <option key={mapping.id} value={mapping.supplier_id}>{mapping.supplier_name}{mapping.is_preferred ? " · Preferred" : ""}</option>
-                          ))}
-                        </SelectNative>
-                      </Field>
-                    ) : null}
+                    {line.itemId && mappingsForLine(line).some((mapping) => !line.uom || normalizeUom(mapping.purchase_uom) === line.uom) ? (() => {
+                      const compatibleMappings = mappingsForLine(line).filter((mapping) => !line.uom || normalizeUom(mapping.purchase_uom) === line.uom);
+                      const selectedMapping = compatibleMappings.find((mapping) => mapping.supplier_id === line.supplierId)
+                        ?? compatibleMappings.find((mapping) => mapping.is_preferred)
+                        ?? compatibleMappings[0];
+                      return <p data-pr-line-supplier className="text-[11px] leading-4 text-muted-foreground">{selectedMapping?.supplier_name ?? "Supplier pending"}{selectedMapping?.is_preferred ? " · Preferred" : ""}</p>;
+                    })() : null}
                     <input type="hidden" name="line_item_id" value={line.itemId} />
                     <input type="hidden" name="line_description" value={line.itemSearch} />
                     <input type="hidden" name="line_branch_id" value={branchId} />
@@ -356,30 +404,36 @@ export function PurchaseRequestForm({
                     <Field label="Quantity" required labelClassName="sr-only" className="pr-line-quantity col-start-2 row-start-2 lg:col-start-2 lg:row-start-1">
                       <div className="flex h-[var(--sb-control-height)] overflow-hidden rounded-[var(--sb-radius-control)] border border-[var(--sb-border)] bg-white">
                         <button type="button" className="flex h-full w-10 shrink-0 items-center justify-center border-r border-[var(--sb-border)] text-[var(--sb-green-900)] hover:bg-[var(--sb-surface-muted)] active:bg-[var(--sb-green-100)]" onClick={() => adjustLineQuantity(line, -1)} aria-label={`Decrease quantity for ${line.itemSearch || "request line"}`}><Minus className="h-3.5 w-3.5" /></button>
-                        <Input name="line_qty" aria-label={`Quantity for ${line.itemSearch || `request line ${index + 1}`}`} type="number" min="0" step={requestQuantityStep(line.uom)} value={line.qty} onChange={(event) => updateLine(line.key, { qty: event.target.value })} placeholder="Qty" className="h-full min-w-0 rounded-none border-0 px-1 text-center text-xs font-semibold tabular-nums shadow-none focus-visible:ring-inset" />
+                        <Input data-pr-field="quantity" name="line_qty" aria-label={`Quantity for ${line.itemSearch || `request line ${index + 1}`}`} aria-invalid={validationTarget?.field === "quantity" && validationTarget.lineKey === line.key || undefined} type="number" min="0" step={requestQuantityStep(line.uom)} value={line.qty} onChange={(event) => { setValidationError(""); setValidationTarget(null); updateLine(line.key, { qty: event.target.value }); }} placeholder="Qty" className={`h-full min-w-0 rounded-none border-0 px-1 text-center text-xs font-semibold tabular-nums shadow-none focus-visible:ring-inset ${validationTarget?.field === "quantity" && validationTarget.lineKey === line.key ? "ring-2 ring-inset ring-rose-300" : ""}`} />
                         <button type="button" className="flex h-full w-10 shrink-0 items-center justify-center border-l border-[var(--sb-border)] text-[var(--sb-green-900)] hover:bg-[var(--sb-surface-muted)] active:bg-[var(--sb-green-100)]" onClick={() => adjustLineQuantity(line, 1)} aria-label={`Increase quantity for ${line.itemSearch || "request line"}`}><Plus className="h-3.5 w-3.5" /></button>
                       </div>
                     </Field>
                     <Field label="UOM" labelClassName="sr-only" className="pr-line-uom col-start-3 row-start-2 lg:row-start-1">
-                      <SelectNative name="line_uom" value={line.uom} onChange={(event) => selectLineUom(line.key, event.target.value)} aria-label={`Unit of measure for ${line.itemSearch || "request line"}`}>
+                      <SelectNative data-pr-field="uom" name="line_uom" value={line.uom} aria-invalid={validationTarget?.field === "uom" && validationTarget.lineKey === line.key || undefined} className={validationTarget?.field === "uom" && validationTarget.lineKey === line.key ? "border-rose-500 ring-2 ring-rose-200" : ""} onChange={(event) => { setValidationError(""); setValidationTarget(null); selectLineUom(line.key, event.target.value); }} aria-label={`Unit of measure for ${line.itemSearch || "request line"}`}>
                         <option value="">Choose unit</option>
                         {allowedUomsForLine(line).map((uom) => <option key={uom} value={uom}>{uom.toUpperCase()}</option>)}
                       </SelectNative>
                     </Field>
+                  {validationTarget?.lineKey === line.key && ["item", "quantity", "uom"].includes(validationTarget.field) ? <p className="col-span-full text-[11px] font-medium text-rose-700">Complete this line before continuing.</p> : null}
                   <input type="hidden" name="line_suggested_supplier_id" value={line.supplierId} />
                   <input type="hidden" name="line_estimated_unit_cost" value={line.cost} />
                   <details className="hidden" aria-hidden="true"><summary>Sourcing details <span>(automatic)</span></summary><div className="grid grid-cols-[minmax(0,1.35fr)_minmax(0,0.8fr)_minmax(4.75rem,0.7fr)_2.75rem]" /><span>Line note <span className="font-normal">(optional)</span></span></details>
-                  <div data-pr-line-actions className="col-start-4 row-span-2 row-start-1 grid content-start gap-1.5 lg:col-span-1 lg:col-start-4 lg:row-span-1 lg:row-start-1 lg:grid-cols-2 lg:grid-rows-1 lg:gap-0.5">
-                    {lines.length > 1 ? <Button type="button" variant="outline" size="icon" className="order-1 h-[var(--sb-control-height)] w-[var(--sb-control-height)] text-muted-foreground lg:order-2" aria-label="Remove line" onClick={() => setLines((current) => current.filter((row) => row.key !== line.key))}><X className="h-4 w-4" /></Button> : <span className="h-[var(--sb-control-height)] w-[var(--sb-control-height)]" aria-hidden="true" />}
-                    <Button type="button" variant="outline" size="icon" className="order-2 h-[var(--sb-control-height)] w-[var(--sb-control-height)] text-muted-foreground lg:order-1" aria-label={`Add comment for ${line.itemSearch || "request line"}`} onClick={() => setCommentLineKey((current) => current === line.key ? null : line.key)}><MessageSquare className="h-4 w-4" /></Button>
+                  <div data-pr-line-actions className="col-start-4 row-span-2 row-start-1 grid content-start gap-1.5 lg:contents">
+                    {lines.length > 1 ? <Button type="button" variant="outline" size="icon" className="order-1 h-[var(--sb-control-height)] w-[var(--sb-control-height)] text-muted-foreground lg:col-start-5 lg:row-start-1" aria-label="Remove line" onClick={() => setLines((current) => current.filter((row) => row.key !== line.key))}><X className="h-4 w-4" /></Button> : <span className="h-[var(--sb-control-height)] w-[var(--sb-control-height)] lg:col-start-5 lg:row-start-1" aria-hidden="true" />}
+                    <Button type="button" variant="outline" size="icon" className="order-2 h-[var(--sb-control-height)] w-[var(--sb-control-height)] text-muted-foreground lg:col-start-4 lg:row-start-1" aria-label={`Add comment for ${line.itemSearch || "request line"}`} onClick={() => setCommentLineKey((current) => current === line.key ? null : line.key)}><MessageSquare className="h-4 w-4" /></Button>
                   </div>
                   {commentLineKey === line.key ? <Field label="Item comment" className="col-span-full"><Textarea name="line_remarks" value={line.remarks} onChange={(event) => updateLine(line.key, { remarks: event.target.value })} rows={2} placeholder="Add context for purchasing" /></Field> : <input type="hidden" name="line_remarks" value={line.remarks} />}
                   {line.itemId && mappingsForLine(line).length === 0 ? <div className="col-span-full grid min-w-0 gap-2 rounded-[var(--sb-radius-control)] border border-amber-300/60 bg-amber-50 px-3 py-2.5 text-xs text-amber-900 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center"><div className="min-w-0"><p className="font-semibold">Supplier match pending</p><p className="mt-0.5 leading-relaxed">The request line is safe to submit. Purchasing must assign a supplier before completing its review.</p></div><Button asChild type="button" variant="outline" size="sm" className="h-9 w-full border-amber-400/60 text-xs text-amber-900 sm:w-auto"><Link href={`/supplier-items/new?itemId=${line.itemId}&branchId=${branchId}`}>Add supplier mapping</Link></Button></div> : null}
                   {line.itemId && line.uom && mappingsForLine(line).length > 0 && !mappingsForLine(line).some((mapping) => normalizeUom(mapping.purchase_uom) === line.uom) ? <div className="col-span-full rounded-[var(--sb-radius-control)] border border-amber-300/60 bg-amber-50 px-3 py-2 text-xs font-medium leading-relaxed text-amber-800"><p>No supplier mapping uses {line.uom.toUpperCase()} for this branch. The request remains safe to submit.</p><Link href={`/supplier-items/new?itemId=${line.itemId}&branchId=${branchId}`} className="mt-1 inline-flex font-semibold underline underline-offset-2">Update branch mapping</Link></div> : null}
-                  {line.itemId && mappingsForLine(line).filter((mapping) => !line.uom || normalizeUom(mapping.purchase_uom) === line.uom).length > 1 && !line.supplierId ? <p className="col-span-full rounded-[var(--sb-radius-control)] border border-amber-300/60 bg-amber-50 px-3 py-2 text-xs font-medium leading-relaxed text-amber-800">Multiple supplier mappings found for this unit. Select the supplier to continue; the preferred mapping is used automatically when one is marked.</p> : null}
                   <input type="hidden" name="line_reason" value={line.reason} />
                 </div>
               ))}
+            </div>
+            <div className="flex justify-end border-t border-[var(--sb-border-soft)] px-3 py-2">
+              <Button type="button" variant="outline" size="sm" className="h-8 px-2.5" onClick={addLine} aria-label="Add request line">
+                <Plus className="h-4 w-4" />
+                Add line
+              </Button>
             </div>
           </section>
 
@@ -437,11 +491,13 @@ export function PurchaseOrderForm({
           <input type="hidden" name="idempotency_key" value={idempotencyKey} />
           <input type="hidden" name="status" value="draft" />
           <input type="hidden" name="approval_status" value="draft" />
-          <section data-purchase-order-form-surface className="sb-work-surface p-3 md:p-4">
+          <details open data-purchase-order-form-surface className="sb-work-surface group p-3 md:p-4">
+          <summary className="cursor-pointer list-none [&::-webkit-details-marker]:hidden">
           <div className="mb-3 border-b border-[var(--sb-border-soft)] pb-2">
-            <h2 className="text-sm font-semibold text-[var(--sb-text)]">Order details</h2>
+            <h2 className="flex items-center justify-between gap-3 text-sm font-semibold text-[var(--sb-text)]">Order details <span aria-hidden="true" className="text-muted-foreground transition-transform group-open:rotate-180">⌄</span></h2>
             <p className="text-xs text-muted-foreground">Choose the receiving branch, supplier, and delivery context.</p>
           </div>
+          </summary>
           <div data-purchase-order-setup className="grid grid-cols-2 gap-3 md:grid-cols-3">
             <Field label="Branch" required>
               <SelectNative name="branch_id" value={branchId} onChange={(event) => { setBranchId(event.target.value); setSupplierId(""); }} required>
@@ -454,9 +510,7 @@ export function PurchaseOrderForm({
                 {eligibleSuppliers.map((supplier) => <option key={supplier.supplier_id} value={supplier.supplier_id}>{supplier.supplier_name}</option>)}
               </SelectNative>
             </Field>
-            <details className="col-span-2 border-t border-[var(--sb-border-soft)] pt-2 md:col-span-3">
-              <summary className="cursor-pointer text-xs font-medium text-muted-foreground">More order details</summary>
-              <div className="mt-2 grid grid-cols-2 gap-3 md:grid-cols-3">
+              <div className="col-span-2 grid grid-cols-2 gap-3 border-t border-[var(--sb-border-soft)] pt-3 md:col-span-3 md:grid-cols-3">
                 <Field label="Order Date" required>
                   <Input name="order_date" type="date" defaultValue={getToday()} required />
                 </Field>
@@ -467,9 +521,8 @@ export function PurchaseOrderForm({
                   <Textarea name="remarks" placeholder="Supplier ordering remarks" />
                 </Field>
               </div>
-            </details>
           </div>
-          </section>
+          </details>
 
           <section data-purchase-order-lines className="sb-work-surface overflow-hidden">
             <div className="flex items-center justify-between gap-3 border-b bg-white px-3 py-2">
@@ -515,6 +568,11 @@ export function PurchaseOrderForm({
                   </div>
                 );
               })}
+            </div>
+            <div className="flex justify-end border-t bg-white px-3 py-2">
+              <Button type="button" variant="outline" size="sm" onClick={() => { setSelectedItemIds((current) => [...current, ""]); setSelectedItemUoms((current) => [...current, ""]); }} aria-label="Add order line at end">
+                <Plus className="h-4 w-4" /> Add line
+              </Button>
             </div>
           </section>
 

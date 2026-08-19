@@ -43,8 +43,14 @@ export function SelectControl({
   // filter bar). Preserve the public controlled `value` contract while using
   // local state for the uncontrolled/defaultValue variant.
   const isControlled = value !== undefined;
-  const [internalValue, setInternalValue] = useState(defaultValue);
+  const fallbackValue = defaultValue ?? options[0]?.value;
+  const [internalValue, setInternalValue] = useState(fallbackValue);
   const selectedValue = isControlled ? value : internalValue;
+  const selectedLabel = options.find((option) => option.value === selectedValue)?.label;
+
+  useEffect(() => {
+    if (!isControlled) setInternalValue(fallbackValue);
+  }, [fallbackValue, isControlled]);
 
   useEffect(() => {
     const closeForMore = () => setOpen(false);
@@ -81,7 +87,7 @@ export function SelectControl({
           className,
         )}
       >
-        <Select.Value placeholder={placeholder} />
+        <Select.Value placeholder={placeholder}>{selectedLabel}</Select.Value>
         <Select.Icon aria-hidden="true"><ChevronDown className="h-3.5 w-3.5 shrink-0 text-muted-foreground" /></Select.Icon>
       </Select.Trigger>
       <Select.Portal>

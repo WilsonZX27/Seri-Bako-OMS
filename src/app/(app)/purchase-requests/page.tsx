@@ -60,7 +60,7 @@ export default async function PurchaseRequestsPage({ searchParams }: { searchPar
         hideTabletCreateFab
       />
       <WorkspaceGrid
-        className="pt-4"
+        className="pt-4 sb-portrait-tablet-rail"
         hideMobileConsole
         tabletRailMode="split"
         tabletRailBreakpoint="md"
@@ -91,43 +91,33 @@ export default async function PurchaseRequestsPage({ searchParams }: { searchPar
           <div className="sb-list-content-card overflow-hidden">
             <BulkSelectionProvider ids={requests?.rows.map((request) => request.id) ?? []} actionLabel="Delete selected" actionHint="Review selected requests before permanent deletion." selectionActions={<BulkPhaseOneDelete />}>
           <DataGridHint text="Pro-tip: Double-click any row to open the purchase request." />
-          <Table mobileHidden compactUntil="xl" aria-label="Purchase requests" stickyColumn="third">
+              <Table className="sb-purchase-request-table" mobileHidden compactUntil="xl" aria-label="Purchase requests" stickyColumn="third">
             <TableHeader>
                 <TableRow>
-                  <TableSelectionHead className="hidden md:table-cell"><BulkSelectAllCheckbox /></TableSelectionHead>
-                  <TableHead className="w-10 text-center">Action</TableHead>
-                  <SortableHead label="PR No" column="request_no" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
-                  <SortableHead className="hidden md:table-cell" label="Date" column="request_date" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
-                  <SortableHead label="Needed By" column="needed_by_date" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
-                  <TableHead className="hidden md:table-cell">Priority</TableHead>
-                  <TableHead className="hidden lg:table-cell">Branch</TableHead>
-                  <TableHead className="hidden xl:table-cell">Supplier</TableHead>
+                  <TableSelectionHead><BulkSelectAllCheckbox /></TableSelectionHead>
+                  <TableHead>Action</TableHead>
+                  <SortableHead label="Request" column="request_no" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
+                  <SortableHead label="Schedule" column="request_date" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
+                  <TableHead>Request context</TableHead>
+                  <TableHead>Supplier</TableHead>
                   <SortableHead label="Status" column="status" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
-                  <TableHead className="hidden text-right lg:table-cell">Lines</TableHead>
-                  <TableHead className="hidden text-right md:table-cell">Estimated Total</TableHead>
+                  <TableHead className="text-right">Request value</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {requests?.rows.map((request) => (
                   <DataGridRow key={request.id} href={`/purchase-requests/${request.id}`}>
-                      <TableSelectionCell className="hidden md:table-cell">
-                       <BulkSelectRowCheckbox id={request.id} />
-                      </TableSelectionCell>
-                    <TableCell className="w-10 p-0 text-center">
-                      <TableActionLink href={`/purchase-requests/${request.id}`} label={`Open ${request.request_no}`}><Pencil className="h-4 w-4" /></TableActionLink>
-                    </TableCell>
-                    <TableCell><DocumentNumber value={request.request_no} size="sm" /><p className="mt-0.5 text-[11px] text-muted-foreground">Submitted by {request.requested_by_name ?? "—"}</p></TableCell>
-                    <TableCell className="hidden md:table-cell">{formatDateOnly(request.request_date)}</TableCell>
-                    <TableCell>{formatDateOnly(request.needed_by_date, "-")}</TableCell>
-                    <TableCell className="hidden md:table-cell"><PriorityBadge priority={request.priority} /></TableCell>
-                    <TableCell className="hidden lg:table-cell">{request.branch_name ?? "-"}</TableCell>
-                    <TableCell className="hidden max-w-52 xl:table-cell"><span className={request.supplier_state === "assigned" ? "text-[var(--sb-text)]" : "font-medium text-[var(--sb-warning)]"}>{request.supplier_state === "assigned" ? request.supplier_names.join(", ") : request.supplier_state === "assignment_required" ? "Supplier assignment required" : request.supplier_state === "details_unavailable" ? "Supplier details unavailable" : "—"}</span></TableCell>
-                    <TableCell><StatusBadge status={request.status} /></TableCell>
-                    <TableCell className="hidden text-right lg:table-cell">{request.line_count}</TableCell>
-                    <TableCell className="hidden text-right md:table-cell">{formatCurrency(request.estimated_total)}</TableCell>
+                    <TableSelectionCell><BulkSelectRowCheckbox id={request.id} /></TableSelectionCell>
+                    <TableCell><TableActionLink className="mx-0" href={`/purchase-requests/${request.id}`} label={`Open ${request.request_no}`}><Pencil className="h-4 w-4" /></TableActionLink></TableCell>
+                    <TableCell><div className="min-w-0"><DocumentNumber value={request.request_no} size="sm" /><p className="mt-0.5 text-[11px] text-muted-foreground">Submitted by {request.requested_by_name ?? "—"}</p></div></TableCell>
+                    <TableCell><p>{formatDateOnly(request.request_date)}</p><p className="mt-1 text-[11px] text-muted-foreground">Needed {formatDateOnly(request.needed_by_date, "—")}</p></TableCell>
+                    <TableCell><p>{request.branch_name ?? "—"}</p><div className="mt-1"><PriorityBadge priority={request.priority} /></div></TableCell>
+                    <TableCell className="whitespace-normal break-words align-top"><span className={request.supplier_state === "assigned" ? "text-[var(--sb-text)]" : "font-medium text-[var(--sb-warning)]"}>{request.supplier_state === "assigned" ? request.supplier_names.join(", ") : request.supplier_state === "assignment_required" ? "Supplier assignment required" : request.supplier_state === "details_unavailable" ? "Supplier details unavailable" : "—"}</span></TableCell>
+                    <TableCell className="whitespace-normal"><StatusBadge status={request.status} /></TableCell>
+                    <TableCell className="text-right"><p>{request.line_count} lines</p><p className="mt-1 text-[11px] text-muted-foreground">{formatCurrency(request.estimated_total)}</p></TableCell>
                   </DataGridRow>
                 ))}
-                {!requests?.rows.length ? <TableRow><TableCell colSpan={11}><EmptyState title={requestsResult.unavailable ? "Purchase request data unavailable" : filtered ? "No requests match these filters" : "No purchase requests yet"} description={requestsResult.unavailable ? "The request source could not be verified. No record count or estimated total is shown as zero." : filtered ? "Reset the filters or widen the search." : "Purchase requests appear here after branch needs are created."} action={requestsResult.unavailable ? { href: "/purchase-requests", label: "Retry requests" } : filtered ? { href: "/purchase-requests", label: "Reset filters" } : undefined} /></TableCell></TableRow> : null}
+                {!requests?.rows.length ? <TableRow><TableCell colSpan={8}><EmptyState title={requestsResult.unavailable ? "Purchase request data unavailable" : filtered ? "No requests match these filters" : "No purchase requests yet"} description={requestsResult.unavailable ? "The request source could not be verified. No record count or estimated total is shown as zero." : filtered ? "Reset the filters or widen the search." : "Purchase requests appear here after branch needs are created."} action={requestsResult.unavailable ? { href: "/purchase-requests", label: "Retry requests" } : filtered ? { href: "/purchase-requests", label: "Reset filters" } : undefined} /></TableCell></TableRow> : null}
               </TableBody>
             </Table>
             <OperationalList ariaLabel="Purchase requests" showUntil="xl">

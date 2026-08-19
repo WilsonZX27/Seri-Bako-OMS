@@ -379,7 +379,7 @@ thead {
 thead th {
   height: 2.5rem;
   color: #506159;
-  font-size: 0.6875rem;
+  font-size: 0.625rem;
   font-weight: 650;
   letter-spacing: 0.035em;
   text-transform: uppercase;
@@ -1337,7 +1337,9 @@ html[data-design-layer="v2"] .sb-mobile-action-bar {
   html[data-design-layer="v2"] form.unified-list-header .unified-list-date-placeholder {
     left: 2.25rem;
     right: .625rem;
-    overflow: hidden;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding-bottom: 1rem;
     color: var(--sb-text-muted);
     font-size: .8125rem;
     font-weight: 600;
@@ -1640,6 +1642,17 @@ html[data-design-layer="v2"] .sb-list-content-card {
   html[data-design-layer="v2"] [data-tablet-document-split][data-tablet-rail-breakpoint="md"] > aside {
     display: none;
   }
+
+  html[data-design-layer="v2"] .sb-portrait-tablet-rail [data-tablet-document-split][data-tablet-rail-breakpoint="md"] {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(13rem, 28%);
+    align-items: start;
+    gap: .75rem;
+  }
+
+  html[data-design-layer="v2"] .sb-portrait-tablet-rail [data-tablet-document-split][data-tablet-rail-breakpoint="md"] > aside {
+    display: block;
+  }
 }
 
 /* Final shared list-control authority — layout. Every list route uses this one
@@ -1721,10 +1734,12 @@ html[data-design-layer="v2"] .sb-list-content-card {
   }
 
   html[data-design-layer="v2"] form.sb-list-query-card > :where(input[type="search"], input[name="search"], input[name="date"], input[placeholder*="Search"], input[placeholder*="Find"], .unified-list-date-control) {
-    flex: 1 1 12rem !important;
-    width: auto !important;
+    /* Search is deliberately two filter widths; it should not absorb the
+       whole card and make each route invent a different visual proportion. */
+    flex: 0 1 18rem !important;
+    width: 18rem !important;
     min-width: 10rem !important;
-    max-width: none !important;
+    max-width: 18rem !important;
   }
 
   html[data-design-layer="v2"] form.sb-list-query-card > :where(select, [data-select-control], .sb-status-filter, .sb-filter-more) {
@@ -1735,10 +1750,21 @@ html[data-design-layer="v2"] .sb-list-content-card {
   }
 
   html[data-design-layer="v2"] form.sb-list-query-card > .unified-list-desktop-actions > .unified-list-action {
-    flex: 0 0 7.5rem !important;
-    width: 7.5rem !important;
-    min-width: 7.5rem !important;
-    max-width: 7.5rem !important;
+    /* Search and filters share one command measure on desktop. */
+    flex: 0 0 9rem !important;
+    width: 9rem !important;
+    min-width: 9rem !important;
+    max-width: 9rem !important;
+  }
+
+  html[data-design-layer="v2"] form.sb-list-query-card.sb-list-filters--date-first > .unified-list-date-control {
+    /* A date-first list has no free-text query. Keep its date field the same
+       measure as branch/status filters instead of stretching it across the
+       working canvas. */
+    flex: 0 0 9rem !important;
+    width: 9rem !important;
+    min-width: 9rem !important;
+    max-width: 9rem !important;
   }
 }
 
@@ -1750,16 +1776,23 @@ html[data-design-layer="v2"] .sb-list-content-card {
     display: grid !important;
     grid-template-columns: repeat(var(--sb-list-tablet-columns, 4), minmax(0, 1fr));
     align-items: center;
-    gap: .75rem;
+    column-gap: .75rem;
+    row-gap: .5rem;
     padding: .75rem;
   }
 
   html[data-design-layer="v2"] form.sb-list-query-card[data-tablet-query-layout="query"] > :where(input[type="search"], input[name="search"], input[name="date"], input[placeholder*="Search"], input[placeholder*="Find"], .unified-list-date-control) {
-    grid-column: 1 / -1;
+    /* A query is intentionally two filter widths, not a full-width banner. */
+    grid-column: 1 / span 2;
     overflow: hidden;
     width: 100% !important;
     min-width: 0 !important;
     max-width: none !important;
+  }
+
+  html[data-design-layer="v2"] form.sb-list-query-card.sb-list-filters--date-first[data-tablet-query-layout="query"] > .unified-list-date-control {
+    /* Date-first filters use one control slot, matching the two dropdowns. */
+    grid-column: 1 / span 1;
   }
 
   html[data-design-layer="v2"] form.sb-list-query-card:is([data-tablet-query-layout="query"], [data-tablet-query-layout="controls"], [data-tablet-query-layout="compact"]) > :where(select, [data-select-control], .sb-status-filter, .sb-filter-more) {
@@ -1768,9 +1801,16 @@ html[data-design-layer="v2"] .sb-list-content-card {
        push Search or the record count outside the card. */
     width: 100% !important;
     min-width: 0 !important;
-    max-width: 9rem !important;
+    max-width: 10rem !important;
     margin-left: 0;
     justify-self: stretch;
+  }
+
+  html[data-design-layer="v2"] form.sb-list-query-card:is([data-tablet-query-layout="query"], [data-tablet-query-layout="controls"], [data-tablet-query-layout="compact"]) > :where(input[type="search"], input[name="search"], input[name="date"], input[placeholder*="Search"], input[placeholder*="Find"], .unified-list-date-control),
+  html[data-design-layer="v2"] form.sb-list-query-card:is([data-tablet-query-layout="query"], [data-tablet-query-layout="controls"], [data-tablet-query-layout="compact"]) > :where(select, [data-select-control], .sb-status-filter, .sb-filter-more),
+  html[data-design-layer="v2"] form.sb-list-query-card:is([data-tablet-query-layout="query"], [data-tablet-query-layout="controls"], [data-tablet-query-layout="compact"]) > .unified-list-desktop-actions > .unified-list-action {
+    height: var(--sb-control-height) !important;
+    min-height: var(--sb-control-height) !important;
   }
 
   html[data-design-layer="v2"] form.sb-list-query-card:is([data-tablet-query-layout="query"], [data-tablet-query-layout="controls"], [data-tablet-query-layout="compact"]) > .unified-list-desktop-actions {
@@ -1798,10 +1838,10 @@ html[data-design-layer="v2"] .sb-list-content-card {
    }
 
   html[data-design-layer="v2"] form.sb-list-query-card:is([data-tablet-query-layout="query"], [data-tablet-query-layout="controls"], [data-tablet-query-layout="compact"]) > .unified-list-desktop-actions > .unified-list-action {
-    flex: 0 1 7.5rem !important;
+    flex: 0 1 10rem !important;
     width: 100% !important;
     min-width: 0 !important;
-    max-width: 7.5rem !important;
+    max-width: 10rem !important;
   }
 
   html[data-design-layer="v2"] form.sb-list-query-card:is([data-tablet-query-layout="controls"], [data-tablet-query-layout="compact"]) > .unified-list-desktop-actions {
@@ -1812,6 +1852,86 @@ html[data-design-layer="v2"] .sb-list-content-card {
 
   html[data-design-layer="v2"] [data-tablet-document-split] form.sb-list-query-card {
     width: 100%;
+  }
+}
+
+/* Dense operational tables need a stable reading grid. These semantic
+   variants keep long supplier/outlet names from stealing width from dates,
+   status and numeric columns while retaining horizontal scroll as the safe
+   overflow behavior. */
+@media (min-width: 1280px) {
+  html[data-design-layer="v2"] .sb-supplier-items-table {
+    min-width: 68rem;
+    table-layout: fixed;
+  }
+
+  html[data-design-layer="v2"] .sb-supplier-items-table :is(th, td):nth-child(1) { width: 2.5rem; padding-left: 0; }
+  html[data-design-layer="v2"] .sb-supplier-items-table :is(th, td):nth-child(2) { width: 12rem; }
+  html[data-design-layer="v2"] .sb-supplier-items-table :is(th, td):nth-child(3) { width: 18rem; }
+  html[data-design-layer="v2"] .sb-supplier-items-table :is(th, td):nth-child(4) { width: 12rem; }
+  html[data-design-layer="v2"] .sb-supplier-items-table :is(th, td):nth-child(5) { width: 8rem; }
+  html[data-design-layer="v2"] .sb-supplier-items-table :is(th, td):nth-child(6) { width: 6rem; }
+  html[data-design-layer="v2"] .sb-supplier-items-table :is(th, td):nth-child(7) { width: 7rem; }
+  html[data-design-layer="v2"] .sb-supplier-items-table :is(th, td):nth-child(8) { width: 7rem; }
+  html[data-design-layer="v2"] .sb-supplier-items-table td:nth-child(2),
+  html[data-design-layer="v2"] .sb-supplier-items-table td:nth-child(3),
+  html[data-design-layer="v2"] .sb-supplier-items-table td:nth-child(4) {
+    white-space: normal;
+    overflow-wrap: anywhere;
+    vertical-align: top;
+  }
+
+  html[data-design-layer="v2"] .sb-purchase-request-table {
+    min-width: 61rem;
+    table-layout: fixed;
+  }
+
+  html[data-design-layer="v2"] .sb-purchase-request-table :is(th, td):nth-child(1) { width: 2.5rem; }
+  html[data-design-layer="v2"] .sb-purchase-request-table :is(th, td):nth-child(2) { width: 2.5rem; }
+  html[data-design-layer="v2"] .sb-purchase-request-table :is(th, td):nth-child(3) { width: 10rem; }
+  html[data-design-layer="v2"] .sb-purchase-request-table :is(th, td):nth-child(4) { width: 7.5rem; }
+  html[data-design-layer="v2"] .sb-purchase-request-table :is(th, td):nth-child(5) { width: 8rem; }
+  html[data-design-layer="v2"] .sb-purchase-request-table :is(th, td):nth-child(6) { width: 13rem; }
+  html[data-design-layer="v2"] .sb-purchase-request-table :is(th, td):nth-child(7) { width: 10rem; }
+  html[data-design-layer="v2"] .sb-purchase-request-table :is(th, td):nth-child(8) { width: 7.5rem; }
+  html[data-design-layer="v2"] .sb-purchase-request-table td:nth-child(6) {
+    white-space: normal;
+    overflow-wrap: anywhere;
+    vertical-align: top;
+  }
+
+  html[data-design-layer="v2"] .sb-outlet-daily-table {
+    min-width: 50rem;
+    table-layout: fixed;
+  }
+
+  html[data-design-layer="v2"] .sb-outlet-daily-table :is(th, td):nth-child(1) { width: 2.5rem; }
+  html[data-design-layer="v2"] .sb-outlet-daily-table :is(th, td):nth-child(2) { width: 5.5rem; }
+  html[data-design-layer="v2"] .sb-outlet-daily-table :is(th, td):nth-child(3) { width: 12rem; }
+  html[data-design-layer="v2"] .sb-outlet-daily-table :is(th, td):nth-child(4) { width: 8.5rem; }
+  html[data-design-layer="v2"] .sb-outlet-daily-table :is(th, td):nth-child(5) { width: 5.5rem; }
+  html[data-design-layer="v2"] .sb-outlet-daily-table :is(th, td):nth-child(6) { width: 6.5rem; }
+  html[data-design-layer="v2"] .sb-outlet-daily-table :is(th, td):nth-child(7) { width: 7rem; }
+  html[data-design-layer="v2"] .sb-outlet-daily-table :is(th, td):nth-child(8) { width: 6.5rem; }
+  html[data-design-layer="v2"] .sb-outlet-daily-table td:nth-child(3),
+  html[data-design-layer="v2"] .sb-outlet-daily-table td:nth-child(7) {
+    white-space: normal;
+    overflow-wrap: anywhere;
+    vertical-align: top;
+  }
+
+  html[data-design-layer="v2"] .sb-staff-table {
+    min-width: 42rem;
+    table-layout: fixed;
+  }
+
+  html[data-design-layer="v2"] .sb-staff-table :is(th, td):nth-child(1) { width: 2.5rem; }
+  html[data-design-layer="v2"] .sb-staff-table :is(th, td):nth-child(2) { width: 45%; }
+  html[data-design-layer="v2"] .sb-staff-table :is(th, td):nth-child(3) { width: 32%; }
+  html[data-design-layer="v2"] .sb-staff-table :is(th, td):nth-child(4) { width: 23%; }
+  html[data-design-layer="v2"] .sb-staff-table td {
+    overflow-wrap: anywhere;
+    vertical-align: top;
   }
 }
 
@@ -1829,6 +1949,12 @@ html[data-design-layer="v2"] :where([class~="bg-card"], [class~="overflow-hidden
 }
 
 html[data-design-layer="v2"] :where([class~="bg-card"], [class~="overflow-hidden"]):has(> form.sb-list-query-card) > :where(.sb-table-shell, table, [role="table"], [data-operational-list]) {
+  border-radius: var(--sb-panel-radius);
+  background: var(--sb-surface-raised);
+  box-shadow: var(--sb-shadow-card);
+}
+
+html[data-design-layer="v2"] :where([class~="bg-card"], [class~="overflow-hidden"]):has(> form.sb-list-query-card) > .sb-table-region {
   border-radius: var(--sb-panel-radius);
   background: var(--sb-surface-raised);
   box-shadow: var(--sb-shadow-card);

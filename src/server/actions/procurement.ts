@@ -126,6 +126,11 @@ function extractPurchaseRequest(formData: FormData) {
     lines,
     unresolved_lines: unresolvedLines,
   });
+  const requestSupplierId = cleanText(formData.get("request_supplier_id"));
+  if (!requestSupplierId) throw new Error("Select a supplier before adding request items.");
+  if (parsed.lines.some((line) => line.suggested_supplier_id !== requestSupplierId)) {
+    throw new Error("All request items must belong to the selected supplier.");
+  }
   return { ...parsed, lineBranchIds };
 }
 

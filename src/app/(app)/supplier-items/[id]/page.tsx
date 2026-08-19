@@ -4,12 +4,14 @@ import { SubmitButton } from "@/components/ui/submit-button";
 import { DangerConfirmForm } from "@/components/ui/danger-confirm-form";
 import { PageHeader } from "@/components/ui/page-header";
 import { StatusBadge } from "@/components/ui/status-badge";
+import { ActionErrorNotice } from "@/components/action-error-notice";
 import { deleteSupplierItem, restoreSupplierItem, updateSupplierItem } from "@/server/actions/master-data";
 import { getItemsForSelect, getSuppliersForSelect } from "@/server/queries/common";
 import { getSupplierItem } from "@/server/queries/master-data";
 
-export default async function EditSupplierItemPage({ params }: { params: Promise<{ id: string }> }) {
+export default async function EditSupplierItemPage({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<Record<string, string | undefined>> }) {
   const { id } = await params;
+  const notices = await searchParams;
   const [supplierItem, suppliers, items] = await Promise.all([getSupplierItem(id), getSuppliersForSelect(), getItemsForSelect()]);
   const formId = "supplier-item-edit-form";
   const lifecycleAction = supplierItem.deleted_at ? (
@@ -21,6 +23,8 @@ export default async function EditSupplierItemPage({ params }: { params: Promise
     <>
       <PageHeader title="Edit Supplier Item" description={supplierItem.supplier_item_name} />
       <RecordWorkspace actionPanel={<><RecordActionPanel title="Supplier Item Actions" description="Save approved purchasing terms for this supplier item."><div className="flex items-center justify-between text-xs"><span className="text-muted-foreground">Status</span><StatusBadge status={supplierItem.status} /></div><SubmitButton type="submit" form={formId} className="w-full" pendingLabel="Saving..." data-mobile-primary-action>Save supplier item</SubmitButton></RecordActionPanel><RecordActionPanel title="Lifecycle">{lifecycleAction}</RecordActionPanel></>}>
+        <ActionErrorNotice message={notices.error} />
+        {notices.success ? <div className="border border-[var(--sb-success)] bg-[var(--sb-success-bg)] p-3 text-sm text-[var(--sb-success)]">{notices.success}</div> : null}
         <SupplierItemForm formId={formId} showSubmit={false} supplierItem={supplierItem} suppliers={suppliers} items={items} action={updateSupplierItem.bind(null, id)} />
       </RecordWorkspace>
     </>

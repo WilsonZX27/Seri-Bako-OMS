@@ -16,5 +16,7 @@ test("mobile date-first filters keep an explicit readable date affordance", () =
   assert.match(styles, /@media \(max-width: 639px\) \{[\s\S]*\.unified-list-date-control input\[type="date"\]/);
   assert.match(styles, /\.unified-list-date-control input\[type="date"\][\s\S]*width: 100% !important/);
   assert.match(styles, /\.unified-list-date-placeholder[\s\S]*pointer-events: none/);
+  assert.match(styles, /sb-list-filters--date-first > \.unified-list-date-control[\s\S]*width: 9rem !important/);
+  assert.match(styles, /sb-list-filters--date-first\[data-tablet-query-layout="query"\] > \.unified-list-date-control[\s\S]*grid-column: 1 \/ span 1/);
   assert.match(outletPage, /className="sb-list-filters--date-first(?: sb-list-filters--balanced)?"/);
 });

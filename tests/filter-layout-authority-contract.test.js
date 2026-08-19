@@ -37,7 +37,7 @@ test("FilterBar geometry has one authoritative stylesheet", () => {
   assert.match(input, /unified-list-date-control/);
   assert.match(unifiedListHeader, /data-tablet-query-layout=\{tabletLayout\}/);
   assert.match(unifiedListHeader, /desktopControls\.length > 2[\s\S]*?"controls"/);
-  assert.match(unifiedListHeader, /desktopControls\.length \+ \(desktopActions\.length \|\| typeof resultCount === "number" \? 2 : 0\)/);
+  assert.match(unifiedListHeader, /desktopControls\.length \+ \(desktopActions\.length \|\| typeof resultCount === "number" \? 3 : 2\)/);
   assert.match(designV2.slice(canonicalStart), /data-tablet-query-layout="controls"[\s\S]*?grid-column:\s*-3 \/ -1/);
 });
 
@@ -53,6 +53,7 @@ test("desktop filter overlays are mutually exclusive", () => {
   assert.match(selectControl, /sb:close-select-controls/g);
   assert.match(filterBar, /close\(false\)/);
   assert.match(selectControl, /setOpen\(false\)/);
+  assert.match(selectControl, /<Select\.Value placeholder=\{placeholder\}>\{selectedLabel\}<\/Select\.Value>/);
 });
 
 test("desktop list actions keep the established Search then record-count order", () => {
@@ -67,10 +68,11 @@ test("shared query controls keep compact text and bounded tablet measures", () =
   const canonical = designV2.slice(designV2.indexOf("Canonical list workspace contract"));
   assert.match(canonical, /form\.sb-list-query-card :where\(input, select, button[\s\S]*?font-size: 0\.75rem !important;/);
   assert.match(canonical, /@media \(min-width: 640px\) and \(max-width: 1279px\)[\s\S]*?\.sb-list-query-card:is\(\[data-tablet-query-layout="query"\], \[data-tablet-query-layout="controls"\], \[data-tablet-query-layout="compact"\]\) > :where\(select[\s\S]*?width: 100% !important;/);
-  assert.match(canonical, /\.unified-list-desktop-actions > \.unified-list-action \{[\s\S]*?width: 7\.5rem !important;/);
+  assert.match(canonical, /\.unified-list-desktop-actions > \.unified-list-action \{[\s\S]*?width: 9rem !important;/);
+  assert.match(canonical, /sb-list-filters--date-first > \.unified-list-date-control[\s\S]*?width: 9rem !important/);
   assert.match(canonical, /Tablet has enough room for a deliberate two-sided command row/);
   assert.match(canonical, /form\.sb-list-query-card\[data-tablet-query-layout="query"\] > \.unified-list-desktop-actions[\s\S]*?grid-column: -3 \/ -1[\s\S]*?justify-self: end/);
   assert.match(canonical, /form\.sb-list-query-card > \.sb-filter-more > summary[\s\S]*?width: 100%/);
   assert.match(canonical, /data-tablet-query-layout="compact"/);
-  assert.match(canonical, /min-width: 0 !important;[\s\S]*?max-width: 9rem !important/);
+  assert.match(canonical, /min-width: 0 !important;[\s\S]*?max-width: 10rem !important/);
 });

@@ -31,7 +31,7 @@ export default async function BranchesPage({ searchParams }: { searchParams: Pro
     return (
       <>
         <PageHeader title="Branches" description="Central kitchen, outlets, event booths, offices, and operating units." action={canCreate ? { href: "/branches/new", label: "New branch" } : undefined} />
-        <WorkspaceGrid hideMobileConsole rightRail={<>{canCreate ? <ConsoleSection title="Actions"><Button asChild size="sm" className="w-full" data-mobile-primary-action><Link href="/branches/new">New branch</Link></Button></ConsoleSection> : null}<ConsoleSection title="Branch Summary"><dl className="grid gap-2 text-xs"><div className="flex justify-between"><dt className="text-muted-foreground">Total</dt><dd className="font-semibold">{summaryBranches.length}</dd></div><div className="flex justify-between"><dt className="text-muted-foreground">Active</dt><dd className="font-semibold">{summaryBranches.filter((branch) => branch.status === "active").length}</dd></div><div className="flex justify-between"><dt className="text-muted-foreground">Archived</dt><dd className="font-semibold">{summaryBranches.filter((branch) => branch.status === "archived").length}</dd></div></dl></ConsoleSection></>}> 
+        <WorkspaceGrid hideMobileConsole tabletRailMode="split" tabletRailBreakpoint="md" rightRail={<>{canCreate ? <ConsoleSection title="Actions"><Button asChild size="sm" className="w-full" data-mobile-primary-action><Link href="/branches/new">New branch</Link></Button></ConsoleSection> : null}<ConsoleSection title="Branch Summary"><dl className="grid gap-2 text-xs"><div className="flex justify-between"><dt className="text-muted-foreground">Total</dt><dd className="font-semibold">{summaryBranches.length}</dd></div><div className="flex justify-between"><dt className="text-muted-foreground">Active</dt><dd className="font-semibold">{summaryBranches.filter((branch) => branch.status === "active").length}</dd></div><div className="flex justify-between"><dt className="text-muted-foreground">Archived</dt><dd className="font-semibold">{summaryBranches.filter((branch) => branch.status === "archived").length}</dd></div></dl></ConsoleSection></>}>
           {filters.error || filters.success ? (
             <Card>
               <CardContent className={`p-4 text-sm ${filters.error ? "text-destructive" : "text-[var(--sb-success)]"}`}>
@@ -89,7 +89,7 @@ export default async function BranchesPage({ searchParams }: { searchParams: Pro
                   secondary={`${branch.branch_code} · ${branch.branch_type.replaceAll("_", " ")}`}
                   detail={<><span className="block">{branch.phone ?? "No phone"} · {branch.email ?? "No email"}</span><span className="block break-words">{branch.address ?? "No address"}</span></>}
                   meta={canUpdate ? "Open" : undefined}
-                  trailing={canUpdate ? <BulkSelectRowCheckbox id={branch.id} label={`Select ${branch.branch_name}`} touchTarget /> : undefined}
+                  leading={canUpdate ? <BulkSelectRowCheckbox id={branch.id} label={`Select ${branch.branch_name}`} touchTarget /> : undefined}
                 />)}
                 {!branches.length ? <EmptyState title={filtered ? "No records match these filters" : "No branches yet"} description={filtered ? "Clear filters or widen the search to see more branches." : "Branches will appear here after operating units are created."} action={filtered ? { href: "/branches", label: "Clear filters" } : canCreate ? { href: "/branches/new", label: "New branch" } : undefined} /> : null}
               </OperationalList>

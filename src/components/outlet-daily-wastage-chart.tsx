@@ -11,8 +11,8 @@ type WastagePoint = {
 };
 
 export function OutletDailyWastageChart({ points, branch, unavailable = false }: { points: WastagePoint[]; branch?: string; unavailable?: boolean }) {
-  const width = 640;
-  const height = 184;
+  const width = 720;
+  const height = 280;
   const inset = { top: 18, right: 18, bottom: 30, left: 54 };
   const maximum = Math.max(10, ...points.map((point) => point.wastage_percent));
   const average = points.length ? points.reduce((sum, point) => sum + point.wastage_percent, 0) / points.length : 0;
@@ -41,8 +41,8 @@ export function OutletDailyWastageChart({ points, branch, unavailable = false }:
         <p className="text-xs text-muted-foreground">Daily average <strong className={unavailable ? "text-[var(--sb-warning)]" : "text-foreground"}>{unavailable ? "Unavailable" : `${formatPercent(average)}%`}</strong></p>
       </div>
       {unavailable ? <div className="px-4 py-8 text-center" role="status"><p className="text-sm font-medium">Wastage trend unavailable</p><p className="mt-1 text-xs text-muted-foreground">The daily record list remains current. Retry this page to load the 30-day insight.</p></div> : points.length ? (
-        <div className="grid gap-3 p-2 pt-3 lg:grid-cols-[minmax(0,1.55fr)_minmax(16rem,0.85fr)] lg:p-3">
-          <div className="min-w-0">
+      <div className="grid items-start gap-3 p-2 pt-3 xl:grid-cols-[minmax(0,3fr)_minmax(18rem,2fr)] xl:p-3" data-outlet-wastage-layout>
+        <div className="flex min-w-0 w-full items-start" data-outlet-wastage-chart-panel>
           <InteractiveLineChart
             points={chartPoints}
             width={width}
@@ -53,10 +53,6 @@ export function OutletDailyWastageChart({ points, branch, unavailable = false }:
             maximumFractionDigits={1}
             ariaLabel={`Daily wastage percentage over ${points.length} recorded days`}
           />
-          <p className="mt-1 text-center text-[11px] text-muted-foreground">
-            <span className="hidden sm:inline">Hover or focus the chart, then use arrow keys for exact values.</span>
-            <span className="sm:hidden">Tap or drag across the chart for exact values.</span>
-          </p>
           </div>
           <div className="min-w-0 border-t border-[var(--sb-border-soft)] pt-2 text-xs lg:border-l lg:border-t-0 lg:pl-3 lg:pt-0">
             <p className="font-medium text-primary">Daily data · {points.length} recorded day{points.length === 1 ? "" : "s"}</p>

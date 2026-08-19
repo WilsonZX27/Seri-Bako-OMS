@@ -68,7 +68,7 @@ test("modern list query geometry has one responsive CSS owner", () => {
   assert.match(designLayer, /@media \(min-width: 640px\) and \(max-width: 1279px\)[\s\S]*grid-template-columns: repeat\(var\(--sb-list-tablet-columns, 4\), minmax\(0, 1fr\)\)/);
   assert.match(designLayer, /data-tablet-query-layout="controls"/);
   assert.match(designLayer, /unified-list-desktop-actions[\s\S]*display: flex !important/);
-  assert.match(designLayer, /unified-list-desktop-actions[\s\S]*width: 7\.5rem !important/);
+  assert.match(designLayer, /unified-list-desktop-actions[\s\S]*width: 9rem !important/);
   assert.match(designLayer, /@media \(min-width: 1280px\)[\s\S]*form\.sb-list-query-card[\s\S]*flex-wrap: nowrap !important/);
 });
 

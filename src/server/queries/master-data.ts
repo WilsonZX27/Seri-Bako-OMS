@@ -12,13 +12,15 @@ function statusFilter(value?: string) {
 function filterAndSort<T extends Record<string, unknown>>(rows: T[], filters: Filters, keys: (keyof T)[]) {
   const search = filters.search?.trim().toLowerCase();
   const status = statusFilter(filters.status);
+  const supplier = filters.supplier && filters.supplier !== "all" ? filters.supplier : null;
   const sort = filters.sort ?? String(keys[0] ?? "created_at");
   const dir = filters.dir === "desc" ? "desc" : "asc";
   return rows
     .filter((row) => {
       const matchesSearch = search ? keys.some((key) => String(row[key] ?? "").toLowerCase().includes(search)) : true;
       const matchesStatus = status ? row.status === status : true;
-      return matchesSearch && matchesStatus;
+      const matchesSupplier = supplier ? row.supplier_id === supplier : true;
+      return matchesSearch && matchesStatus && matchesSupplier;
     })
     .sort((a, b) => compareTableValues(a[sort], b[sort], dir));
 }

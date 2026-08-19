@@ -149,6 +149,17 @@ export async function getTopBarActivity() {
   const pendingApprovals = [...workflowPendingActions, ...productionPendingActions, ...scopedDocumentPendingActions]
     .filter((item, index, rows) => rows.findIndex((row) => row.href === item.href) === index)
     .slice(0, 5);
+  const pendingActionHrefs = new Set(pendingApprovals.map((item) => item.href));
+  const actionableNotifications = notifications
+    .filter((row) => !row.is_company_wide && !row.read_at)
+    .map((row) => ({
+      ...row,
+      action_url: getCanonicalEntityHref(row.entity_type, row.entity_id, row.action_url ?? "#"),
+    }))
+    // A workflow item is already represented in "My Pending Actions". Keep
+    // the notification feed for events that do not duplicate an actionable
+    // queue entry.
+    .filter((row) => !pendingActionHrefs.has(row.action_url ?? ""));
 
   const result = {
     availability: {
@@ -157,13 +168,7 @@ export async function getTopBarActivity() {
     },
     pendingApprovals,
     assignedActivities: assignedActivities as AssignedActivity[],
-    notifications: notifications
-      .filter((row) => !row.is_company_wide && !row.read_at)
-      .map((row) => ({
-        ...row,
-        action_url: getCanonicalEntityHref(row.entity_type, row.entity_id, row.action_url ?? "#"),
-      }))
-      .slice(0, 5),
+    notifications: actionableNotifications.slice(0, 5),
     announcements: notifications.filter((row) => row.is_company_wide && !row.read_at).slice(0, 5),
   };
   return result;

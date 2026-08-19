@@ -10,6 +10,7 @@ import { writeActivityLog } from "@/server/activity/log";
 import { requirePermission } from "@/server/auth/permissions";
 import { formatActionError, requirePermissionOrRedirect, rethrowRedirect, safeRedirectWithMessage } from "@/server/actions/error-handling";
 import { requireActiveTenantActor } from "@/server/auth/tenant-actor";
+import type { Database } from "@/types/database";
 
 function cleanText(value: FormDataEntryValue | null) {
   const text = String(value ?? "").trim();
@@ -80,22 +81,40 @@ export async function createSupplierItem(formData: FormData) {
 }
 
 export async function updateSupplierItem(id: string, formData: FormData) {
-  await requirePermission("supplier_items.update");
+  await requirePermissionOrRedirect("supplier_items.update", `/supplier-items/${id}`);
   const supplierItemId = parseRecordId(id);
   const input = supplierItemInput(formData);
-  if (!isMockMode()) {
-    const [supabase, actor] = [await createClient(), await requireActiveTenantActor()];
-    const { data: item, error: itemError } = await supabase.from("items").select("item_code,item_name").eq("id", input.item_id).eq("company_id", actor.companyId).eq("status", "active").is("deleted_at", null).maybeSingle();
-    if (itemError) throw new Error(itemError.message);
-    if (!item) throw new Error("The selected Item Master record is not active in your workspace.");
-    const payload = { ...input, supplier_item_code: item.item_code, supplier_item_name: item.item_name };
-    const { data, error } = await supabase.from("supplier_items").update(payload).eq("id", supplierItemId).eq("company_id", actor.companyId).select("id").maybeSingle();
-    if (error) throw new Error(error.message);
-    if (!data) throw new Error("Supplier item was not found or is outside your workspace.");
-    await writeActivityLog({ entityType: "supplier_item", entityId: id, activityType: "updated", message: `Supplier item ${payload.supplier_item_code} updated` });
+  try {
+    if (!isMockMode()) {
+      const [supabase, actor] = [await createClient(), await requireActiveTenantActor()];
+      const { data: current, error: currentError } = await supabase.from("supplier_items").select("supplier_id,item_id,supplier_item_code").eq("id", supplierItemId).eq("company_id", actor.companyId).maybeSingle();
+      if (currentError) throw new Error(currentError.message);
+      if (!current) throw new Error("Supplier item was not found or is outside your workspace.");
+      const identityChanged = current.supplier_id !== input.supplier_id || current.item_id !== input.item_id;
+      let payload: Database["public"]["Tables"]["supplier_items"]["Update"] = { purchase_uom: input.purchase_uom, conversion_to_base_uom: input.conversion_to_base_uom, unit_cost: input.unit_cost, moq: input.moq, lead_time_days: input.lead_time_days, valid_from: input.valid_from, valid_to: input.valid_to, status: input.status };
+      let activityCode = current.supplier_item_code;
+      if (identityChanged) {
+        const { data: item, error: itemError } = await supabase.from("items").select("item_code,item_name").eq("id", input.item_id).eq("company_id", actor.companyId).eq("status", "active").is("deleted_at", null).maybeSingle();
+        if (itemError) throw new Error(itemError.message);
+        if (!item) throw new Error("The selected Item Master record is not active in your workspace.");
+        const { data: duplicate, error: duplicateError } = await supabase.from("supplier_items").select("id").eq("company_id", actor.companyId).eq("supplier_id", input.supplier_id).eq("item_id", input.item_id).is("deleted_at", null).neq("id", supplierItemId).maybeSingle();
+        if (duplicateError) throw new Error(duplicateError.message);
+        if (duplicate) throw new Error("This supplier is already linked to the selected item. Open the existing supplier item and update its purchasing terms instead.");
+        activityCode = item.item_code;
+        payload = { ...payload, supplier_id: input.supplier_id, item_id: input.item_id, supplier_item_code: item.item_code, supplier_item_name: item.item_name };
+      }
+      const { data, error } = await supabase.from("supplier_items").update(payload).eq("id", supplierItemId).eq("company_id", actor.companyId).select("id").maybeSingle();
+      if (error) throw new Error(error.message);
+      if (!data) throw new Error("Supplier item was not found or is outside your workspace.");
+      await writeActivityLog({ entityType: "supplier_item", entityId: id, activityType: "updated", message: `Supplier item ${activityCode} updated` });
+    }
+  } catch (error) {
+    rethrowRedirect(error);
+    safeRedirectWithMessage(`/supplier-items/${id}`, "error", formatActionError(error, "Could not update this supplier item."));
   }
   revalidatePath("/supplier-items");
-  redirect("/supplier-items");
+  revalidatePath(`/supplier-items/${id}`);
+  safeRedirectWithMessage(`/supplier-items/${id}`, "success", "Supplier item purchasing terms updated.");
 }
 
 export async function deleteSupplierItem(id: string) {

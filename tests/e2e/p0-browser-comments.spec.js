@@ -18,7 +18,10 @@ test("shared tablet list filters match the accepted stock-count grammar", async 
     await expect(form).toBeVisible();
     await expect(query).toBeVisible();
     const [formBox, queryBox] = await Promise.all([form.boundingBox(), query.boundingBox()]);
-    expect(queryBox.width / formBox.width).toBeGreaterThan(0.9);
+    expect(queryBox.width / formBox.width).toBeGreaterThan(0.24);
+    expect(queryBox.width / formBox.width).toBeLessThan(0.55);
+    const filterWidths = await form.locator("button.flex.w-full").evaluateAll((nodes) => nodes.slice(0, 2).map((node) => node.getBoundingClientRect().width));
+    if (filterWidths.length === 2) expect(Math.abs(filterWidths[0] - filterWidths[1])).toBeLessThanOrEqual(2);
     await expectContained(page);
   }
   await page.screenshot({ path: testInfo.outputPath("tablet-filter-standard.png"), fullPage: true });
@@ -56,7 +59,7 @@ test("procurement create surfaces expose complete UOM and one workflow grammar",
 
   await page.goto("/purchase-orders/new", { waitUntil: "domcontentloaded" });
   await expect(page.locator("[data-document-workspace-header]")).toContainText(/Draft/);
-  await expect(page.getByText("Order details", { exact: true })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Order details", exact: true })).toBeVisible({ timeout: 15_000 });
   await expect(page.getByText("Ordered Items", { exact: true })).toBeVisible();
   await expect(page.locator("body")).not.toContainText("Receiving is intentionally not part of Sprint");
   await page.screenshot({ path: testInfo.outputPath("purchase-order-unified.png"), fullPage: true });
@@ -88,7 +91,9 @@ test("aging, outlet insight, and wide production canvas use the requested densit
   await page.setViewportSize({ width: 820, height: 1180 });
   await login(page, "finance");
   await page.goto("/supplier-invoices/aging", { waitUntil: "domcontentloaded" });
-  await expect(page.locator("h2:visible").filter({ hasText: "Payables Snapshot" }).first()).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Outstanding by aging bucket", exact: true })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Supplier Exposure", exact: true })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Payables Snapshot", exact: true })).toHaveCount(0);
   const insightPanels = page.locator("main#main-content div.grid.items-start.gap-3.md\\:grid-cols-2 > section");
   if (await insightPanels.count() >= 2) {
     const [first, second] = await Promise.all([insightPanels.nth(0).boundingBox(), insightPanels.nth(1).boundingBox()]);

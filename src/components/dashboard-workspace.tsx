@@ -6,6 +6,7 @@ import { WorkspaceGrid } from "@/components/layout/workspace-layout";
 import { formatCurrency, formatNumber } from "@/lib/utils";
 import type { LucideIcon } from "lucide-react";
 import { DashboardRoleMicroChart, type DashboardRoleMicroChartItem } from "@/components/dashboard-role-micro-chart";
+import { StatusBadge } from "@/components/ui/status-badge";
 
 type DashboardSummary = Awaited<ReturnType<typeof import("@/server/queries/dashboard").getDashboardSummary>>;
 
@@ -213,9 +214,9 @@ export function DashboardWorkspace({ summary }: { summary: DashboardSummary }) {
   const desktopActionRail = (
     <ConsoleSection title="Actions">
       <div className="grid gap-2" data-dashboard-actions>
-        {quickActions.map((action) => {
+        {quickActions.map((action, index) => {
           const Icon = action.icon;
-          return <Button key={action.href} asChild size="sm" className="w-full justify-start gap-2">
+          return <Button key={action.href} asChild size="sm" variant={index === 0 ? "default" : "outline"} className="w-full justify-start gap-2">
             <Link prefetch={false} href={action.href}><Icon className="h-4 w-4" aria-hidden="true" />{action.label}</Link>
           </Button>;
         })}
@@ -301,7 +302,6 @@ export function DashboardWorkspace({ summary }: { summary: DashboardSummary }) {
               >
                 {summary.attentionSummary.state === "unavailable" ? "Some queues are unavailable" : (summary.attentionSummary.total ?? 0) > 0 ? <><span className="tabular-nums">{summary.attentionSummary.total ?? 0}</span> items need attention</> : "No urgent exceptions"}
               </h2>
-              <p className="mt-1 text-[11px] leading-4 text-white/80">Open a queue below to review the records behind each signal.</p>
               {summary.attentionSummary.state === "unavailable" ? <p className="mt-1 text-[11px] leading-4 text-white/85">Unavailable: {unavailableAttentionLabels.join(", ")}</p> : null}
             </div>
           </div>
@@ -334,9 +334,9 @@ export function DashboardWorkspace({ summary }: { summary: DashboardSummary }) {
                 >
                   <span className="min-w-0">
                     <strong className="block truncate font-mono">{row.document_no}</strong>
-                    <span className="text-muted-foreground">
-                      {row.step}
-                      {row.branch_name ? ` · ${row.branch_name}` : ""}
+                    <span className="mt-1 flex min-w-0 items-center gap-1.5">
+                      <StatusBadge status={row.step.toLowerCase().replaceAll(" ", "_")} className="shrink-0" />
+                      {row.branch_name ? <span className="truncate text-muted-foreground">{row.branch_name}</span> : null}
                     </span>
                   </span>
                   <span className="shrink-0 text-[11px] text-muted-foreground">{row.age_label}</span>

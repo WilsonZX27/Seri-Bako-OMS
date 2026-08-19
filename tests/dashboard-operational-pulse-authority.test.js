@@ -47,3 +47,10 @@ test("Operational Pulse stays compact and avoids duplicate owner-manager charts"
   assert.match(dashboard, /!isOwner && !isManager \? <DashboardRoleMicroChart/);
   assert.match(dashboard, /focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-white/);
 });
+
+test("pending actions expose their workflow state as a semantic status badge", () => {
+  const dashboard = read("src/components/dashboard-workspace.tsx");
+
+  assert.match(dashboard, /<StatusBadge status=\{row\.step\.toLowerCase\(\)\.replaceAll\(" ", "_"\)\}/);
+  assert.doesNotMatch(dashboard, /\{row\.step\}\s*\{row\.branch_name/);
+});

@@ -48,22 +48,18 @@ export default async function StaffsPage({ searchParams }: { searchParams: Promi
           ]}
         />
         <DataGridHint text="Pro-tip: Double-click any row to open the staff profile." />
-          <Table mobileHidden aria-label="Staff members" stickyColumn="second"><TableHeader><TableRow>
-          <TableHead className="w-16 text-center">Action</TableHead><TableHead>Staff Code</TableHead><TableHead>Name</TableHead><TableHead className="hidden lg:table-cell">Email</TableHead><TableHead className="hidden lg:table-cell">Default Branch</TableHead><TableHead>Role</TableHead><TableHead>Staff Status</TableHead><TableHead className="hidden md:table-cell">Account Status</TableHead>
+          <Table className="sb-staff-table" mobileHidden aria-label="Staff members" stickyColumn="second"><TableHeader><TableRow>
+          <TableHead className="w-16 text-center">Action</TableHead><TableHead>Staff</TableHead><TableHead>Assignment</TableHead><TableHead>Status</TableHead>
         </TableRow></TableHeader><TableBody>
           {staffs.map((staff) => (
             <DataGridRow key={staff.id} href={`/staffs/${staff.id}`}>
               <TableCell className="w-16 p-0 text-center"><TableActionLink href={`/staffs/${staff.id}`} label={`Open ${staff.full_name}`}><Pencil className="h-4 w-4" /></TableActionLink></TableCell>
-              <TableCell>{staff.staff_code?.toUpperCase() ?? "-"}</TableCell>
-              <TableCell className="font-medium">{staff.full_name}</TableCell>
-              <TableCell className="hidden lg:table-cell">{staff.email ?? "-"}</TableCell>
-              <TableCell className="hidden lg:table-cell">{staff.default_branch_name ?? "-"}</TableCell>
-              <TableCell>{staff.role_name ?? "-"}</TableCell>
-              <TableCell><StatusBadge status={staff.status} /></TableCell>
-              <TableCell className="hidden md:table-cell text-xs font-medium">{staffAuthStateLabels[getStaffAuthState(staff)]}</TableCell>
+              <TableCell><p className="font-medium">{staff.full_name}</p><p className="mt-0.5 text-[11px] text-muted-foreground">{staff.staff_code?.toUpperCase() ?? "No staff code"} · {staff.email ?? "No email"}</p></TableCell>
+              <TableCell><p>{staff.role_name ?? "No role"}</p><p className="mt-0.5 text-[11px] text-muted-foreground">{staff.default_branch_name ?? "No default branch"}</p></TableCell>
+              <TableCell><StatusBadge status={staff.status} /><p className="mt-1 text-[11px] font-medium text-muted-foreground">{staffAuthStateLabels[getStaffAuthState(staff)]}</p></TableCell>
             </DataGridRow>
           ))}
-          {!staffs.length ? <TableRow><TableCell colSpan={8}><EmptyState title="No staff found" description="Staff accounts will appear here after they are invited or created." action={{ href: "/staffs/new", label: "New staff" }} /></TableCell></TableRow> : null}
+          {!staffs.length ? <TableRow><TableCell colSpan={4}><EmptyState title="No staff found" description="Staff accounts will appear here after they are invited or created." action={{ href: "/staffs/new", label: "New staff" }} /></TableCell></TableRow> : null}
         </TableBody></Table>
         <OperationalList ariaLabel="Staff members">{staffs.map((staff) => <OperationalListRow key={staff.id} href={`/staffs/${staff.id}`} label={`Open ${staff.full_name}`} primary={staff.full_name} status={<StatusBadge status={staff.status} />} statusMeta={staffAuthStateLabels[getStaffAuthState(staff)]} secondary={`${staff.staff_code?.toUpperCase() ?? "No staff code"} · ${staff.role_name ?? "No role"}`} detail={`${staff.email ?? "No email"} · ${staff.default_branch_name ?? "No default branch"}`} meta="Open profile" />)}{!staffs.length ? <EmptyState title="No staff found" description="Staff accounts will appear here after they are invited or created." action={{ href: "/staffs/new", label: "New staff" }} /> : null}</OperationalList>
       </div></WorkspaceGrid>

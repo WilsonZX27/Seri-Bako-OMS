@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { Bell, ListTodo, Megaphone, ShieldAlert, TriangleAlert } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
+import { usePathname } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { formatDateTime } from "@/lib/utils";
 
@@ -10,18 +11,20 @@ type TopBarActivity = Awaited<ReturnType<typeof import("@/server/queries/topbar"
 const seenKey = "seri-bako-workspace-updates-seen-v1";
 
 export function TopBarActivityMenu({ data }: { data: TopBarActivity }) {
+  const pathname = usePathname();
   const [open, setOpen] = useState(false);
   const [seen, setSeen] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
   const pendingApprovals = data.pendingApprovals ?? [];
+  const showPendingActions = pathname !== "/dashboard";
   const notifications = data.notifications ?? [];
   const announcements = data.announcements ?? [];
   const assignedActivities = data.assignedActivities ?? [];
   const pendingActionsAvailable = data.availability?.pendingActions !== false;
   const notificationsAvailable = data.availability?.notifications !== false;
-  const pendingCount = pendingApprovals.length;
+  const pendingCount = showPendingActions ? pendingApprovals.length : 0;
   const notificationCount = notifications.length + announcements.length;
   const recentCount = assignedActivities.length;
   const unreadCount = seen ? 0 : notificationCount + recentCount;
@@ -83,7 +86,7 @@ export function TopBarActivityMenu({ data }: { data: TopBarActivity }) {
             <div className="flex items-start justify-between gap-3">
               <div>
                 <p className="text-sm font-semibold">Workspace Updates</p>
-                <p className="text-xs text-muted-foreground">Notifications, recent activity, assigned actions, and pending actions.</p>
+                <p className="text-xs text-muted-foreground">Notifications and recent activity.</p>
               </div>
               {unreadCount > 0 ? (
                 <Button type="button" variant="outline" size="sm" onClick={markVisibleUpdatesSeen}>Mark as read</Button>
@@ -91,7 +94,7 @@ export function TopBarActivityMenu({ data }: { data: TopBarActivity }) {
             </div>
           </div>
           <div className="max-h-[calc(100dvh-3.5rem)] divide-y overflow-y-auto">
-            <section className="space-y-1 p-3">
+            {showPendingActions ? <section className="space-y-1 p-3">
               <div className="flex items-center justify-between gap-3">
                 <p className="text-xs font-semibold uppercase text-muted-foreground">My Pending Actions</p>
                 {pendingCount ? <span className="rounded-full bg-[var(--sb-warning-bg)] px-2 py-0.5 text-xs font-medium text-[var(--sb-warning)]">{pendingCount}</span> : null}
@@ -104,7 +107,7 @@ export function TopBarActivityMenu({ data }: { data: TopBarActivity }) {
               ))}
               {!pendingActionsAvailable ? <p className="flex gap-2 rounded-md bg-[var(--sb-warning-bg)] p-2 text-sm text-[var(--sb-warning-text)]"><TriangleAlert className="mt-0.5 h-4 w-4 shrink-0" /><span>Pending actions are temporarily unavailable. Open the relevant workspace before assuming the queue is clear.</span></p> : null}
               {pendingActionsAvailable && !pendingApprovals.length ? <p className="rounded-md p-2 text-sm text-muted-foreground">No pending actions.</p> : null}
-            </section>
+            </section> : null}
             <section className="space-y-1 p-3">
               <div className="flex items-center justify-between gap-3">
                 <p className="text-xs font-semibold uppercase text-muted-foreground">My Notifications</p>

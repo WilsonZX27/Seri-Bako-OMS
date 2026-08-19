@@ -27,14 +27,13 @@ export default async function NewOutletDailyRecordPage({ searchParams }: { searc
   const formId = "outlet-daily-record-form";
   const disabled = !options.products.length || !options.branches.length;
   const canEnterOutlet = permissions["outlet_daily_record.update"];
-  const canSetSent = permissions["outlet_daily_record.qty_sent"];
   const primaryAction = canEnterOutlet
-    ? <SubmitButton form={formId} name="target_status" value="evening_completed" className="w-full gap-2" disabled={disabled}><CheckCircle2 className="h-4 w-4" aria-hidden="true" />Complete Daily Record</SubmitButton>
+    ? <SubmitButton form={formId} name="target_status" value="evening_completed" className="w-full gap-2" disabled={disabled}><CheckCircle2 className="h-4 w-4" aria-hidden="true" />Complete Record</SubmitButton>
     : <SubmitButton form={formId} name="target_status" value="morning_recorded" className="w-full gap-2" disabled={disabled}><Send className="h-4 w-4" aria-hidden="true" />Confirm Qty Sent</SubmitButton>;
-  const secondaryActions = <><SubmitButton form={formId} name="target_status" value="draft" variant="outline" className="w-full gap-2" disabled={disabled}><Save className="h-4 w-4" aria-hidden="true" />Save Draft</SubmitButton>{canEnterOutlet && canSetSent ? <SubmitButton form={formId} name="target_status" value="morning_recorded" variant="outline" className="w-full gap-2" disabled={disabled}><Send className="h-4 w-4" aria-hidden="true" />Confirm Qty Sent Only</SubmitButton> : null}</>;
+  const secondaryActions = <SubmitButton form={formId} name="target_status" value="draft" variant="outline" className="w-full gap-2" disabled={disabled}><Save className="h-4 w-4" aria-hidden="true" />Save Draft</SubmitButton>;
   const sidePanel = <>
-    <DocumentActionSection description={canEnterOutlet ? "Complete received and wastage values, then finish this record." : "Confirm the quantities sent to the outlet."} moreOptions={<div className="grid gap-3">{secondaryActions}</div>}>{primaryAction}</DocumentActionSection>
-    <DocumentSideSection title="Validation / Next Step"><p className="text-xs text-muted-foreground">The next action follows your role. Missing Qty Sent does not hide the outlet entry fields.</p><p className="text-xs text-muted-foreground">Wastage needs a reason. Add a remark only when context is needed.</p></DocumentSideSection>
+    <DocumentActionSection description={canEnterOutlet ? "Complete the outlet record when today’s values are ready." : "Confirm the quantities sent to the outlet."} moreOptions={<div className="grid gap-3">{secondaryActions}</div>}>{primaryAction}</DocumentActionSection>
+    <DocumentSideSection title="Validation / Next Step"><p className="text-xs text-muted-foreground">Any invalid line will be highlighted before completion.</p></DocumentSideSection>
   </>;
 
   return <DocumentWorkspace

@@ -7,7 +7,10 @@ const widths = [1440, 1024, 768, 430, 390, 360];
 function collectCriticalErrors(page) {
   const errors = [];
   page.on("console", (message) => {
-    if (message.type() === "error" && !/favicon|Failed to load resource.*404/i.test(message.text())) errors.push(`${page.url()} :: ${message.text()}`);
+    if (
+      message.type() === "error"
+      && !/favicon|Failed to load resource.*404|net::ERR_NETWORK_ACCESS_DENIED/i.test(message.text())
+    ) errors.push(`${page.url()} :: ${message.text()}`);
   });
   page.on("pageerror", (error) => errors.push(`${page.url()} :: ${error.message}`));
   return errors;

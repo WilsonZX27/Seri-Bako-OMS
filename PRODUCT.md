@@ -4,6 +4,30 @@
 
 The current released application baseline is `v8.64.55` — Bounded Reads And Explicit Receipt Provenance.
 
+### v8.64.61 (unreleased) — UI Annotation Closure
+
+- The authenticated route matrix now covers the core operational workspaces at 390px phone, 820px portrait tablet, 1180px landscape tablet, and 1440px desktop without page overflow, clipped controls, vertical text collapse, or filter-action drift.
+- Recipe and purchase-order line entry share the same top-and-bottom add-row affordance, while workflow dashboards use semantic status badges instead of repeated plain-text state labels.
+- Browser verification distinguishes the sandbox-blocked company-logo CDN from application runtime failures; the shell keeps its local brand fallback.
+
+### v8.64.60 (unreleased) — Responsive Workspace And Form Closure
+
+- Outlet wastage trends now use the available canvas at tablet widths and retain a legible chart height before splitting into the desktop chart/table composition.
+- Portrait tablet master-data workspaces keep their action and summary rail visible; branch selection remains a leading control instead of a detached trailing checkbox.
+- Purchase-order setup is one collapsible surface with all order context visible, and long line-entry workflows provide the same add-line action at the bottom.
+- The application top bar remains sticky across tablet and desktop workspaces, and Daily Record actions present one role-appropriate completion action plus Save Draft.
+
+### v8.64.59 (unreleased) — PR Register Interaction Closure
+
+- Purchase Request selection, action, and request identity are separate semantic columns inside one seamless pinned lead band, keeping checkboxes and edit links operable while aligning the Request heading with its document number.
+- Request, Schedule, and Status use the existing server-backed sorting contract, and shared select filters always render their selected/default label after hydration.
+
+### v8.64.58 (unreleased) — Compact Operational Table Geometry
+
+- Shared technical tables use a compact, accessible icon-only Action column and matching sticky offsets, removing the empty gutter between actions and business identity.
+- Outlet Daily Records uses content-proportional widths for date, outlet, status, quantities, submitter, and update time instead of a 74rem fixed canvas.
+- This remains local implementation evidence until authenticated viewport review and deployment are completed.
+
 ### v8.64.56 (unreleased) — P0 Workflow, Supplier Resolution, And Release Evidence
 
 - Purchase Request Manager, Purchasing, and Finance transitions now require the exact owning workflow role in the server action and are backed by migration 157; `super_admin` remains the documented break-glass role.

@@ -7,6 +7,31 @@
 > `docs/DESIGN_SYSTEM.md` owns the current visual principles; this file retains
 > versioned implementation history and workspace rules.
 
+## v8.64.61 (unreleased) - UI Annotation Closure
+
+- Release acceptance requires authenticated geometry checks at 390px, 820px portrait tablet, 1180px landscape tablet, and 1440px desktop; source inspection alone is not visual evidence.
+- Workflow state uses the shared semantic badge grammar, and long line-entry forms repeat their add-row action at the end without creating a competing primary action.
+- Runtime audits may exclude only a precisely identified sandbox-denied public brand asset when an accessible local fallback remains; all application errors still fail the gate.
+
+## v8.64.60 (unreleased) - Responsive Workspace And Form Closure
+
+- Tablet charts remain full-width until a true desktop canvas is available; their internal aspect ratio preserves readable plotting height instead of producing a thin strip.
+- Operational right rails align to the first content surface and remain visible on portrait tablets when the workflow depends on their actions or summary context.
+- Expandable form sections use one card boundary and progressive disclosure at the section title; line-entry sections repeat Add line at the end for long forms.
+- The top navigation owns a single sticky position across viewport classes, while workflow actions avoid competing completion controls.
+
+## v8.64.59 (unreleased) - PR Register Interaction Closure
+
+- Bulk selection, the icon-only action track, and Request identity remain separate semantic columns but form one continuous three-column sticky anchor with no dead gutter or overlapping hit target.
+- Sort affordances appear only for fields supported by the server query (`request_no`, `request_date`, and `status`); active filters survive sort navigation.
+- Shared Select triggers render the current option label deterministically so server defaults remain visible after hydration.
+
+## v8.64.58 (unreleased) - Compact Operational Table Geometry
+
+- Action columns are icon-only 2.5rem utility tracks with screen-reader labels; visible column labels begin with the first business field.
+- Sticky offsets equal the exact accumulated lead-band widths, preventing blank seams or overlap between Action, selection, and identity columns.
+- Route-specific tables allocate narrow date, status, and numeric tracks by content while reserving flexible width for business names and descriptions.
+
 ## v8.64.56 (unreleased) - P0 Workflow And Responsive Closure
 
 - The exact workflow owner now controls each PR approval action; UI visibility is only a convenience layer over server and database authorization.
@@ -1224,7 +1249,7 @@ Do not introduce a page-specific breakpoint. These thresholds serve distinct ope
 - Use grid fractions, `minmax(0, 1fr)`, flex growth, percentages, or viewport-constrained `min()`/`max()` values for page structure. Do not give a page, panel, or content column a fixed pixel width.
 - A dense desktop grid must collapse to one column by default; add the second/third column only at the semantic breakpoints.
 - Tables must sit inside `.sb-table-region` or a local `overflow-x-auto` container. The document itself must never become horizontally scrollable.
-- Technical tables pin their first semantic identity column by default (item, product, document title, record name, or document number) so horizontal scrolling never loses the current record. When selection and row action are present, the full left lead band is pinned in this order: checkbox, action, semantic identity/title. Header and body must use the same band; checkbox and action may never scroll away independently. The shared Action column is 4rem wide: its header says `Action`, while its row pen is small, optically centered in the full Action cell, and retains a 44px tablet touch target. Each pinned lead cell has an explicit shared width, and every following sticky offset equals the total width before it—sticky columns may never overlap or crop one another after horizontal scrolling. Internal lead-band cells have no divider or shadow. The trailing edge of the full fixed band gains one visible directional shadow only after horizontal scrolling begins; at scroll origin it stays flat. This stateful cue makes the fixed/scrollable boundary obvious without permanently elevating the table. Tables without selection/action still pin their semantic identity.
+- Technical tables pin their first semantic identity column by default (item, product, document title, record name, or document number) so horizontal scrolling never loses the current record. When selection and row action are present, the full left lead band is pinned in this order: checkbox, action, semantic identity/title. Header and body must use the same band; checkbox and action may never scroll away independently. The shared Action column is a compact 2.5rem icon track with a screen-reader label instead of visible heading text; its row control stays optically centered and retains a 44px tablet touch target. Each pinned lead cell has an explicit shared width, and every following sticky offset equals the total width before it—sticky columns may never overlap or crop one another after horizontal scrolling. Internal lead-band cells have no divider or shadow. The trailing edge of the full fixed band gains one visible directional shadow only after horizontal scrolling begins; at scroll origin it stays flat. This stateful cue makes the fixed/scrollable boundary obvious without permanently elevating the table. Tables without selection/action still pin their semantic identity.
 - Status is one compact dropdown in the shared filter bar, never a floating or standalone row. On tablet and desktop, keep the practical order `[search] [relevant dropdowns] [More filters when needed] [Search] … [result total]`; only render dropdowns that represent a real independent filter. The 768–1279px filter row stays on one line by allowing the search field to shrink before wrapping controls. On phone the search and Search button form the first row; relevant dropdowns/More filters form the compact second row, and the result total remains last. A page must not duplicate the same status choice.
 - A list page with a permitted creation action must expose that action at every responsive breakpoint. On phone and tablet (including 768–1279px), use the shared bottom-safe circular plus action when the desktop action rail is not visible. The circle contains only the plus icon; its accessible name and tooltip carry labels such as `New PR`, `New GRN`, or `New branch`. It must be `fixed` above `--sb-mobile-nav-height` plus the safe area and must never be hidden between phone and desktop layouts.
 - An icon-only create action must not leave an empty page-action strip behind. At `>=1280px`, render the labelled action once in the desktop action rail; below that breakpoint render only the shared circular plus FAB. A create-capable list must provide that desktop rail rather than duplicating the create action in the page header. Never combine a circular outline with visible `New …` microcopy. The shared app shell must reserve the FAB's lower scroll corridor so list tails and pagination remain reachable and are never covered by the fixed circle.

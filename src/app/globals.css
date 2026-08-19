@@ -711,16 +711,16 @@ input[type="date"]::-webkit-date-and-time-value {
  * second: action + identity
  * third: checkbox + action + identity
  *
- * These widths must be explicit: sticky offsets based on an assumed 2.5rem
- * action column allow the identity cell to overlap a wider table header. The
- * A 4rem action column keeps the visible Action label intact; its row pen stays
- * left-aligned beside the selection checkbox while retaining a 44px touch target.
+ * These widths must be explicit. Action is an icon-only utility column with an
+ * accessible header, so it occupies the same compact 2.5rem track everywhere.
+ * The interactive control can retain its 44px touch target without reserving a
+ * second, empty visual gutter between Action and the business identity column.
  */
 .sb-table-region[data-sticky-column="second"] th:first-child,
 .sb-table-region[data-sticky-column="second"] td:first-child {
-  width: 4rem;
-  min-width: 4rem;
-  max-width: 4rem;
+  width: 2.5rem;
+  min-width: 2.5rem;
+  max-width: 2.5rem;
 }
 
 .sb-table-region[data-sticky-column="third"] th:first-child,
@@ -732,9 +732,9 @@ input[type="date"]::-webkit-date-and-time-value {
 
 .sb-table-region[data-sticky-column="third"] th:nth-child(2),
 .sb-table-region[data-sticky-column="third"] td:nth-child(2) {
-  width: 4rem;
-  min-width: 4rem;
-  max-width: 4rem;
+  width: 2.5rem;
+  min-width: 2.5rem;
+  max-width: 2.5rem;
 }
 
 .sb-table-region[data-sticky-column="first"] th:first-child,
@@ -759,7 +759,7 @@ input[type="date"]::-webkit-date-and-time-value {
 .sb-table-region[data-sticky-column="second"] th:nth-child(2),
 .sb-table-region[data-sticky-column="second"] td:nth-child(2) {
   position: sticky;
-  left: 4rem;
+  left: 2.5rem;
   z-index: 1;
   background: var(--sb-surface);
 }
@@ -786,7 +786,7 @@ input[type="date"]::-webkit-date-and-time-value {
 .sb-table-region[data-sticky-column="third"] th:nth-child(3),
 .sb-table-region[data-sticky-column="third"] td:nth-child(3) {
   position: sticky;
-  left: 6.5rem;
+  left: 5rem;
   z-index: 1;
   background: var(--sb-surface);
 }

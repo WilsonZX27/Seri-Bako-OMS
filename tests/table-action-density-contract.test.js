@@ -9,6 +9,7 @@ test("shared action-led tables keep action columns compact", () => {
   assert.match(table, /data-table-action-head=\{isActionColumn \? "true" : undefined\}/);
   assert.match(table, /isActionCell = React\.Children\.toArray\(children\)/);
   assert.match(table, /!w-10 !min-w-10 !max-w-10/);
+  assert.match(table, /isActionColumn \? <span className="sr-only">\{children\}<\/span> : children/);
   assert.match(css, /table:has\(> thead > tr > th\[data-table-action-head="true"\]\)/);
   assert.match(css, /table-layout: fixed/);
 });

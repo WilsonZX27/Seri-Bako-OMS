@@ -26,7 +26,8 @@ test("outlet daily workspace renders a lightweight 30-day completed-record wasta
   assert.match(chart, /data-outlet-wastage-daily-list/);
   assert.match(chart, /role="list" aria-label="Daily wastage rate data"/);
   assert.match(chart, /className="hidden w-full text-left sm:table"/);
-  assert.match(chart, /lg:grid-cols-\[minmax\(0,1\.55fr\)_minmax\(16rem,0\.85fr\)\]/);
+  assert.match(chart, /xl:grid-cols-\[minmax\(0,3fr\)_minmax\(18rem,2fr\)\]/);
+  assert.doesNotMatch(chart, /Hover or focus the chart/);
   assert.doesNotMatch(chart, /<details className="mt-2/);
   assert.match(interactiveChart, /strokeWidth="1\.5"/);
   assert.match(chart, /new URLSearchParams\(\{ date \}\)/);

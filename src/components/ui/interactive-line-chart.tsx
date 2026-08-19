@@ -103,7 +103,7 @@ export function InteractiveLineChart({
   }
 
   return (
-    <div className="relative" data-interactive-line-chart>
+    <div className="relative min-w-0 w-full" data-interactive-line-chart>
       <svg
         ref={chartRef}
         className="h-auto w-full touch-pan-y rounded-[var(--sb-radius-control)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--sb-green-700)] focus-visible:ring-offset-2"

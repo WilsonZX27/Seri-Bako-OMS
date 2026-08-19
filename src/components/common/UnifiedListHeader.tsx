@@ -261,7 +261,11 @@ export function UnifiedListHeader({ children, resultCount, resetHref, filtered =
     // underneath Search when the query row is split into two rows. A result
     // count is part of that command group even when a route has no submit
     // action of its own.
-    const tabletColumns = Math.min(Math.max(desktopControls.length + (desktopActions.length || typeof resultCount === "number" ? 2 : 0), 3), 8);
+    // Keep the tablet grammar predictable: the query owns two control tracks,
+    // each filter owns one, and the command group (submit + count) owns two.
+    // This gives a search field the visual weight of two filters without
+    // letting the action/count group collide with the last filter.
+    const tabletColumns = Math.min(Math.max(desktopControls.length + (desktopActions.length || typeof resultCount === "number" ? 3 : 2), 5), 8);
     const tabletLayout = desktopControls.some(isQueryControl)
       ? "query"
       : desktopControls.length > 2

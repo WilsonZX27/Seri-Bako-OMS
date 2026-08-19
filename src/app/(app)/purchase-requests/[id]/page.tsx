@@ -193,13 +193,13 @@ export default async function PurchaseRequestDetailPage({
   const saveDraftAction = canEditDraft ? <SubmitButton form="purchase-request-form" type="submit" pendingLabel="Saving..." className="w-full justify-center">Save draft changes</SubmitButton> : null;
   const secondaryActions = saveDraftAction || canCancel || canReject || deleteControl ? <div className="space-y-2">
     {saveDraftAction}
+    {canReject ? <RejectActionForm action={rejectPurchaseRequest.bind(null, request.id)} /> : null}
     {canCancel ? (
       <DocumentActionForm action={cancelPurchaseRequest.bind(null, request.id)} pendingLabel="Removing..." variant="secondary">
         <Trash2 className="h-4 w-4" aria-hidden="true" />
         Delete unposted request
       </DocumentActionForm>
     ) : null}
-    {canReject ? <RejectActionForm action={rejectPurchaseRequest.bind(null, request.id)} /> : null}
     {deleteControl}
   </div> : null;
   const nextStep = prSteps.find((step) => step.key === getPrWorkflowStep(request.status))?.description;

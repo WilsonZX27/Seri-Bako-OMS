@@ -9,10 +9,12 @@ const metrics = fs.readFileSync("docs/analytics/METRIC_DICTIONARY.md", "utf8");
 const version = fs.readFileSync("src/lib/app-version.ts", "utf8").match(/APP_VERSION = "([^"]+)"/)?.[1];
 const migrationCeiling = Math.max(...fs.readdirSync("supabase/migrations").map((name) => Number(name.match(/^(\d+)_/)?.[1] ?? 0)));
 
-test("product and design baselines identify the actual released application authority", () => {
+test("product and design baselines identify released authority and the current forward patch", () => {
   assert.ok(version);
-  assert.match(product, new RegExp(`current released application baseline is \`v${version.replaceAll(".", "\\.")}`));
-  assert.match(design, new RegExp(`currently released application is \`v${version.replaceAll(".", "\\.")}`));
+  assert.match(product, new RegExp(`v${version.replaceAll(".", "\\.")} \\(unreleased\\)`));
+  assert.match(design, new RegExp(`v${version.replaceAll(".", "\\.")} \\(unreleased\\)`));
+  assert.match(product, /current released application baseline is `v\d+\.\d+\.\d+`/);
+  assert.match(design, /currently released application is `v\d+\.\d+\.\d+`/);
   assert.match(design, /versioned section above that number is[\s\S]*unreleased implementation note/);
   assert.doesNotMatch(product, /current application baseline is `v7\.87\.0/);
   assert.doesNotMatch(product, /Current integration baseline: `v7\.63\.0/);

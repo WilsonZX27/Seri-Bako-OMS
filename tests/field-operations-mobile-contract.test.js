@@ -222,6 +222,8 @@ test("recipe BOM editing replaces the phone table with input-first continuous in
   assert.match(source, /label="Base UOM"/);
   assert.match(source, /label="Cost \/ base"/);
   assert.match(source, /grid grid-cols-2 gap-x-4 gap-y-2 bg-secondary\/30 p-3 text-xs/);
+  assert.match(source, /data-recipe-add-row-footer/);
+  assert.equal((source.match(/Add row/g) ?? []).length, 2);
 });
 
 test("low-stock PR creation uses selectable phone rows instead of a five-column table", () => {

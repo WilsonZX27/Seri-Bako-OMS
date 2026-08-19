@@ -78,6 +78,7 @@ export default async function ProductionJobsPage({ searchParams }: { searchParam
         tabletCanvas="full"
         hideMobileConsole={!canCreate}
         tabletRailMode="split"
+        className="sb-portrait-tablet-rail"
         rightRail={<>
           {canCreate ? <ConsoleSection title="Actions">
           <Button asChild size="sm" className="w-full" data-mobile-primary-action>

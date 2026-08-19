@@ -1,4 +1,4 @@
-export const APP_VERSION = "8.64.64";
+export const APP_VERSION = "8.64.65";
 export const APP_SPRINT = `v${APP_VERSION}`;
 export const APP_RELEASE_TITLE = "UI Annotation Closure";
 // Keep the shell footer concise; the detailed release title belongs in release

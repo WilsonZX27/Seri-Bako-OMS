@@ -16,7 +16,7 @@ test("operational workspaces never fade readable content during route streaming"
 test("outlet daily create uses the shared page-header phone FAB", () => {
   const page = read("src/app/(app)/outlet-daily-records/page.tsx");
 
-  assert.match(page, /<WorkspaceGrid hideMobileConsole rightRail=/);
+  assert.match(page, /<WorkspaceGrid(?:\s+className="[^"]*")?\s+hideMobileConsole\s+rightRail=/);
   assert.match(page, /action=\{canCreate \? \{ href: "\/outlet-daily-records\/new", label: "New Daily Record" \} : undefined\}/);
   assert.match(page, /hideTabletCreateFab/);
   assert.doesNotMatch(page, /phoneEndAction=/);

@@ -9,8 +9,13 @@ test("Outlet Staff reaches a stable dashboard route without a redirect loop", as
   await page.getByRole("button", { name: /sign in/i }).click();
 
   await page.waitForURL(/\/dashboard/, { timeout: 20_000 });
-  await expect(page.getByRole("heading", { name: "Outlet Today" })).toBeVisible();
+  // The scoped outlet dashboard now uses the shared identity header and
+  // role-specific completion card instead of the retired "Outlet Today"
+  // heading. Assert the durable contract so this test catches auth redirects
+  // without coupling it to an obsolete presentation label.
+  await expect(page.locator("[data-dashboard-identity]").first()).toContainText(/Outlet Staff/i);
+  await expect(page.getByRole("heading", { name: "Today's completion" })).toBeVisible();
   await page.waitForTimeout(1_000);
   await expect(page).toHaveURL(/\/dashboard/);
-  await expect(page.getByRole("link", { name: "Start daily record" })).toBeVisible();
+  await expect(page.getByRole("link", { name: /today('|’)s record|daily records/i }).first()).toBeVisible();
 });

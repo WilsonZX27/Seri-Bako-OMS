@@ -7,6 +7,13 @@
 > `docs/DESIGN_SYSTEM.md` owns the current visual principles; this file retains
 > versioned implementation history and workspace rules.
 
+## v8.64.65 (unreleased) - Shared Responsive Closure
+
+- Tablet list queries calculate columns from real controls: the query owns two tracks, each secondary filter owns one, and the command/result group owns two. This removes the blank track that previously pushed Search and result counts away from their filters.
+- Medium tablet split workspaces retain their right action/context rail in portrait orientation. The shared rail contract remains the authority; routes do not add page-specific grid utilities.
+- Tables marked with `data-ui-table="true"` use the shared 10px header scale, while route column contracts continue to own business-content widths.
+- Local implementation evidence must be followed by authenticated viewport and production regression evidence before this contract is considered released.
+
 ## v8.64.61 (unreleased) - UI Annotation Closure
 
 - Release acceptance requires authenticated geometry checks at 390px, 820px portrait tablet, 1180px landscape tablet, and 1440px desktop; source inspection alone is not visual evidence.

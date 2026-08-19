@@ -256,16 +256,14 @@ export function UnifiedListHeader({ children, resultCount, resetHref, filtered =
     const desktopActions = all.filter(isAction);
     const desktopHidden = all.filter(isHiddenControl);
     const desktopControls = all.filter((child) => !isAction(child) && !isHiddenControl(child));
-    // Tablet keeps filters on the left and the command group on the right.
-    // Reserve two grid tracks for actions/count so the last filter cannot sit
-    // underneath Search when the query row is split into two rows. A result
-    // count is part of that command group even when a route has no submit
-    // action of its own.
-    // Keep the tablet grammar predictable: the query owns two control tracks,
-    // each filter owns one, and the command group (submit + count) owns two.
-    // This gives a search field the visual weight of two filters without
-    // letting the action/count group collide with the last filter.
-    const tabletColumns = Math.min(Math.max(desktopControls.length + (desktopActions.length || typeof resultCount === "number" ? 3 : 2), 5), 8);
+    // Tablet has one shared grammar: a query owns two filter tracks, each
+    // secondary filter owns one, and the right-aligned command group (submit
+    // plus count) owns two. Counting only secondary filters is important here;
+    // counting every child made routes with a search field reserve an empty
+    // track and pushed the command group away from the filters.
+    const filterCount = desktopControls.filter((child) => !isQueryControl(child)).length;
+    const hasCommandGroup = desktopActions.length > 0 || typeof resultCount === "number";
+    const tabletColumns = Math.min(Math.max(2 + filterCount + (hasCommandGroup ? 2 : 0), 4), 8);
     const tabletLayout = desktopControls.some(isQueryControl)
       ? "query"
       : desktopControls.length > 2

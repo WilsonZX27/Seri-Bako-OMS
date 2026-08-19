@@ -9,6 +9,20 @@ Status vocabulary:
 - `not verified`: no current evidence sufficient for acceptance.
 - `blocked`: a named dependency prevents verification.
 
+## Shared closure pass — v8.64.65
+
+This pass addresses the repeated cross-page root causes identified across the annotation history; it is deliberately narrower than a claim that every authenticated workflow is complete.
+
+| Root cause | Implementation evidence | Verification |
+|---|---|---|
+| Tablet filter bars created blank tracks or inconsistent control widths | `UnifiedListHeader` now derives tablet tracks from query controls and command groups, rather than child-count arithmetic that included the search control twice. | 793/793 contract tests, strict typecheck, lint, and production build passed. |
+| Portrait tablet split workspaces hid the action/context rail | Shared `[data-tablet-document-split]` rule keeps the medium-tablet rail visible with a compact `minmax(13rem, 28%)` rail. | Contract suite passed; real authenticated four-viewport UAT remains required for each affected route. |
+| Table header typography drifted between registers | Shared `Table` emits `data-ui-table="true"`; v2 table authority sets the first header row to 10px with a shared line-height. | Contract suite and build passed; visual sampling remains required for tables that bypass the shared component. |
+| Production Jobs used a route-specific filter variant | Production Jobs now uses the shared query grammar. | Contract suite and build passed. |
+| Release evidence/version drift | Footer/package/docs version updated to `8.64.65`; this ledger records the distinction between implementation evidence and UAT evidence. | `npm test`, `npm run typecheck:strict`, `npm run lint`, and `npm run build` passed locally. |
+
+The remaining rows below are intentionally retained as open gates. They require authenticated role transitions, real Supabase data, mutation fixtures, or viewport screenshots; they cannot be closed by static CSS or a successful build alone.
+
 ## Reopened defects from user UAT
 
 | ID | Acceptance criterion | Status |
@@ -36,9 +50,9 @@ Status vocabulary:
 
 ## Release gates for this repair batch
 
-1. TypeScript: passed on v8.64.64 after the PR validation and verification-infrastructure changes.
+1. Historical TypeScript gate: passed on v8.64.64 after the PR validation and verification-infrastructure changes; the current v8.64.65 strict gate is recorded in the shared closure pass above.
 2. Targeted contracts: 15/15 PR sourcing/lossless-entry/role contracts passed; the authenticated PR field-guidance browser contract passed against the cloud-connected localhost without creating a record. The reopened-annotation suite is now 4/4, and the safe read-only role workspace matrix is 6/6 for Super Admin, Finance, Manager, Purchasing, Kitchen, and Outlet. Earlier evidence remains 30/30 unit contracts and 5/6 P0 browser contracts; one fixture-dependent case was skipped and remains unverified.
 3. Authenticated register browser UAT: 20 routes × 390×844, 820×1180, 1180×820, and 1440×900 passed (80 route/viewport checks).
 4. Cloud migration/data verification: intentionally not claimed by this UI-only repair.
-5. Production build: v8.64.64 passed across all 76 routes after the latest field-guidance and verification-infrastructure changes.
+5. Historical production build: v8.64.64 passed across all 76 routes after the latest field-guidance and verification-infrastructure changes; the current v8.64.65 build passed locally and is recorded above.
 6. Localhost:3001: restarted outside the restricted runtime and authenticated Dashboard verification passed against the configured cloud Supabase environment.

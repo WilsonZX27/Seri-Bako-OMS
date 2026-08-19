@@ -46,8 +46,11 @@ test("mobile shell and loading states avoid warm bands, layout shifts, and dupli
 test("supplier item results keep a raised table surface, ten-pixel headers, and semantic column widths", () => {
   const page = read("src", "app", "(app)", "supplier-items", "page.tsx");
   const design = read("src", "app", "design-system-v2.css");
+  const table = read("src", "components", "ui", "table.tsx");
   assert.match(page, /className="sb-list-content-card overflow-hidden"/);
   assert.match(page, /className="sb-supplier-items-table"/);
+  assert.match(table, /data-ui-table="true"/);
+  assert.match(design, /table\[data-ui-table\] > thead > tr > th[\s\S]*font-size: \.625rem/);
   assert.match(design, /thead th \{[\s\S]*font-size: 0\.625rem/);
   assert.match(design, /\.sb-supplier-items-table \{[\s\S]*table-layout: fixed/);
   assert.match(design, /\.sb-supplier-items-table :is\(th, td\):nth-child\(3\) \{ width: 18rem; \}/);
@@ -77,6 +80,6 @@ test("August 19 annotation closure groups PR data, simplifies loading, and stand
   assert.doesNotMatch(chart, /Hover or focus the chart/);
   assert.match(chart, /xl:grid-cols-\[minmax\(0,3fr\)_minmax\(18rem,2fr\)\]/);
   assert.match(production, /className="sb-portrait-tablet-rail"/);
-  assert.match(design, /\.sb-portrait-tablet-rail \[data-tablet-document-split\]/);
+  assert.match(design, /\[data-tablet-document-split\]\[data-tablet-rail-breakpoint="md"\][\s\S]*> aside[\s\S]*display: block/);
   assert.match(design, /\.sb-purchase-request-table :is\(th, td\):nth-child\(7\) \{ width: 10rem; \}/);
 });

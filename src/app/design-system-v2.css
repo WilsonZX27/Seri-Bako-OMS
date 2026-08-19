@@ -1631,27 +1631,12 @@ html[data-design-layer="v2"] .sb-list-content-card {
   }
 }
 
-/* Portrait tablets need the full working canvas. Contextual rails return at
-   landscape-tablet width; keeping them beside a narrow list is what caused
-   the search/filter controls and record count to clip. */
+/* Split workspaces keep their action/context rail on portrait tablets too.
+   The shared query grammar below gives the main canvas a predictable compact
+   grid, so hiding the rail is no longer needed to avoid collisions. */
 @media (min-width: 768px) and (max-width: 1023px) {
   html[data-design-layer="v2"] [data-tablet-document-split][data-tablet-rail-breakpoint="md"] {
-    display: block;
-  }
-
-  html[data-design-layer="v2"] [data-tablet-document-split][data-tablet-rail-breakpoint="md"] > aside {
-    display: none;
-  }
-
-  html[data-design-layer="v2"] .sb-portrait-tablet-rail [data-tablet-document-split][data-tablet-rail-breakpoint="md"] {
-    display: grid;
     grid-template-columns: minmax(0, 1fr) minmax(13rem, 28%);
-    align-items: start;
-    gap: .75rem;
-  }
-
-  html[data-design-layer="v2"] .sb-portrait-tablet-rail [data-tablet-document-split][data-tablet-rail-breakpoint="md"] > aside {
-    display: block;
   }
 }
 
@@ -1853,6 +1838,16 @@ html[data-design-layer="v2"] .sb-list-content-card {
   html[data-design-layer="v2"] [data-tablet-document-split] form.sb-list-query-card {
     width: 100%;
   }
+}
+
+/* Every shared table speaks the same compact header language. This also
+   covers sortable/native headers that do not go through TableHead, while the
+   table-specific column contracts below continue to own data density. */
+html[data-design-layer="v2"] table[data-ui-table] > thead > tr > th {
+  font-size: .625rem !important;
+  line-height: 1.15 !important;
+  letter-spacing: .02em;
+  vertical-align: middle;
 }
 
 /* Dense operational tables need a stable reading grid. These semantic

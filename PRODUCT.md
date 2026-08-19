@@ -4,6 +4,13 @@
 
 The current released application baseline is `v8.64.55` — Bounded Reads And Explicit Receipt Provenance.
 
+### v8.64.65 (unreleased) — Shared Responsive Closure
+
+- Shared list query geometry now derives tablet tracks from the actual secondary filters and command group, preventing blank tracks and inconsistent search/filter widths across list pages.
+- Split workspaces keep the action/context rail visible on portrait tablets when the route declares the medium tablet rail contract; Production Jobs now uses the same shared filter contract as the other registers.
+- Shared data tables expose a stable UI marker and use a 10px compact header token so sortable and native table headers follow one density rule.
+- Local typecheck, strict typecheck, lint, contract tests, and build evidence are required before promotion; this section is not production-release evidence.
+
 ### v8.64.61 (unreleased) — UI Annotation Closure
 
 - The authenticated route matrix now covers the core operational workspaces at 390px phone, 820px portrait tablet, 1180px landscape tablet, and 1440px desktop without page overflow, clipped controls, vertical text collapse, or filter-action drift.

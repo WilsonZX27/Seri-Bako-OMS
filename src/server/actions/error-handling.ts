@@ -104,7 +104,7 @@ export function isTechnicalDatabaseError(error: unknown) {
     || normalized.includes("operator does not exist")
     || normalized.includes("syntax error at or near")
     || normalized.includes("could not identify an equality operator")
-    || /relation\s+\"[^\"]+\"\s+does not exist/.test(normalized)
+    || /(?:column|table|schema|relation)\s+(?:\"[^\"]+\"|[^\s]+)\s+does not exist/.test(normalized)
     || /function\s+[^\s]+\s+does not exist/.test(normalized)
   );
 }

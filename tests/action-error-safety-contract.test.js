@@ -9,6 +9,7 @@ test("technical database diagnostics never leak through action redirects", () =>
   assert.match(source, /isTechnicalDatabaseError/);
   assert.match(source, /column reference/);
   assert.match(source, /operator does not exist/);
+  assert.match(source, /(?:column\|table\|schema\|relation)/);
   assert.match(source, /system database is not ready/);
   assert.match(source, /Please retry or contact the Super Admin \/ Owner/);
 });

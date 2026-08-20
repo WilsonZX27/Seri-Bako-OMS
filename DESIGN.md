@@ -13,6 +13,11 @@
 - PR review preserves supplier reading width by grouping Quantity/UOM and caps the desktop editor at a task-focused 60rem while retaining viewport-safe tablet behavior.
 - Duplicate supplier identities are resolved in the data authority and audit trail, never hidden only in a selector.
 
+## v8.64.73 (unreleased) - Supplier UOM Base Posting Closure
+
+- Supplier purchase UOM remains the document-facing quantity on PR/PO/GRN, while the new posting authority converts received and returned quantities into the item base unit and divides unit cost by the same factor.
+- Posting fails closed when a non-identity supplier conversion is missing; no silent KG/count assumption is made.
+
 ## v8.64.72 (unreleased) - PR Index And Exception Semantic Closure
 
 - PR Requested Items now exposes a stable visual row index on desktop and phone, including unresolved lines, while retaining the aggregate item count.

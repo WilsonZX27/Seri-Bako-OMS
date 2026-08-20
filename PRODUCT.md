@@ -18,6 +18,10 @@ Local authenticated browser fixtures now preserve literal hash characters in tes
 
 The observed Production login page still serves footer `v8.64.68`, while `codex/uiux-round2` is pushed through `v8.64.79`. Deployment and post-deploy authenticated regression remain blocked by the unavailable deployment project access.
 
+### v8.64.81 (unreleased) — Supplier Mapping Data Audit
+
+The local mirror audit found 38 active items without supplier-item identity and 233 active supplier-item records without a Central Kitchen branch mapping. Because the source does not prove the intended supplier/branch for those rows, the system keeps them as explicit data blockers rather than fabricating mappings.
+
 ### v8.64.76 (unreleased) — Cross-Viewport Control Rhythm
 
 The shared control authority now keeps tablet and desktop filters, textboxes, selects, and right-rail actions at a 36px visual height. Phone controls retain the touch-safe height, and the ledger distinguishes visual geometry from authenticated viewport acceptance.

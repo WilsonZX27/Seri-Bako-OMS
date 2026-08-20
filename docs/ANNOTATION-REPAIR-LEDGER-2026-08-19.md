@@ -48,6 +48,12 @@ Status vocabulary:
 |---|---|---|
 | Observed Production artifact | blocked / not deployed to observed host | Read-only `https://system.seribako.com.my/login` HTML includes footer `v8.64.68`, while the authorized branch remote is `4e924244` (v8.64.79). Vercel connector access returns project `404` and an empty project list for the configured team, so no deployment or post-deploy authenticated UAT is claimed. |
 
+### v8.64.81 supplier mapping data audit
+
+| Gate | Status | Evidence |
+|---|---|---|
+| All item and supplier mappings | data blocked / Production read pending | Read-only local mirror audit: 323 active items, 38 without an active supplier-item record; 425 active supplier-item records, 233 without an active branch mapping; 193 are mapped across CK-ALMA and CK-PJS10. Live normalized supplier-name duplicates are 0 after the recoverable merge contract. No mapping was fabricated because the intended supplier/branch cannot be proven from the source mirror. |
+
 ### v8.64.76 current control rhythm batch
 
 | ID | Acceptance | Status | Evidence |

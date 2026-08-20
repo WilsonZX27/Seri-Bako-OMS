@@ -25,6 +25,11 @@
 - Public Production login-page evidence currently reports footer `v8.64.68`; the pushed `v8.64.79` branch is therefore not deployed to the observed Production host.
 - Deployment remains an external gate until the authorized deployment project is reachable and a post-deploy authenticated regression is run.
 
+## v8.64.81 (unreleased) - Supplier Mapping Data Audit
+
+- The local cloud-data mirror contains 323 active items; 38 have no active supplier-item record.
+- It contains 425 active supplier-item records; 193 are mapped to CK-ALMA/CK-PJS10 and 233 have no active branch mapping. These are data gaps, not safe candidates for guessed mappings.
+
 ## v8.64.76 (unreleased) - Cross-Viewport Control Rhythm
 
 - Shared query controls and right-rail actions use a 36px visual height from tablet through desktop.

@@ -16,7 +16,7 @@ export type OperationalToolItem = {
 /** A compact, permission-aware directory of operational workspaces. */
 export function OperationalToolList({ items, className }: { items: OperationalToolItem[]; className?: string }) {
   return (
-    <div className={cn("divide-y divide-[var(--sb-border-soft)] border border-[var(--sb-border-soft)] bg-white", className)}>
+    <div className={cn("overflow-hidden rounded-[var(--sb-panel-radius)] divide-y divide-[var(--sb-border-soft)] border border-[var(--sb-border-soft)] bg-white", className)}>
       {items.map((item) => {
         const Icon = item.icon;
         const content = (

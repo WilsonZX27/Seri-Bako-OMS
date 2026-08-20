@@ -107,11 +107,9 @@ export function StockBalanceTableRows({
             <TableCell>{item.item_code}</TableCell>
             <TableCell className="font-medium">{item.item_name}</TableCell>
             <TableCell>{item.branch_name ?? "-"}</TableCell>
-            <TableCell className="text-right">{formatQuantity(item.available_qty)} {item.base_unit}</TableCell>
-            <TableCell className="text-right">{formatQuantity(item.reserved_qty)} {item.base_unit}</TableCell>
+            <TableCell className="text-right"><span className="block font-medium">{formatQuantity(item.available_qty)} {item.base_unit}</span><span className="block text-[10px] text-muted-foreground">{formatQuantity(item.reserved_qty)} reserved</span></TableCell>
             <TableCell className="text-right font-medium">{formatQuantity(item.current_qty)} {item.base_unit}</TableCell>
-            <TableCell className="text-right">{formatCurrency(item.average_cost)}</TableCell>
-            <TableCell className="text-right">{formatCurrency(item.inventory_value)}</TableCell>
+            <TableCell className="text-right"><span className="block font-medium">{formatCurrency(item.average_cost)}</span><span className="block text-[10px] text-muted-foreground">{formatCurrency(item.inventory_value)} value</span></TableCell>
             <TableCell>{item.last_movement ?? "-"}</TableCell>
             <TableCell><Badge variant={statusVariant(item.status)}>{getStockBalanceStatusLabel(item.status)}</Badge></TableCell>
           </TableRow>
@@ -144,7 +142,7 @@ export function StockBalanceOperationalRows({
             primary={<span className="flex min-w-0 items-start gap-2.5"><ItemThumbnail src={item.image_url} alt={item.item_name} /><span className="min-w-0 break-words pt-0.5">{item.item_name}</span></span>}
             status={<Badge variant={statusVariant(item.status)}>{getStockBalanceStatusLabel(item.status)}</Badge>}
             statusMeta={`${formatQuantity(item.current_qty)} ${item.base_unit}`}
-            secondary={<span className="block pl-[3.125rem]"><span className="block">{item.item_code}</span><span className="block">{item.branch_name ?? "All permitted branches"}</span></span>}
+            secondary={<span className="block pl-[3.125rem]"><span className="block">{item.item_code} · {item.branch_name ?? "All permitted branches"}</span><span className="block">{formatQuantity(item.available_qty)} available · {formatQuantity(item.reserved_qty)} reserved · {formatCurrency(item.average_cost)} avg</span></span>}
             trailing={
               <button
                 type="button"

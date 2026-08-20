@@ -20,15 +20,17 @@ type Mapping = {
   supplier_name: string;
   purchase_uom: string;
 };
+type SupplierOption = { id: string; name: string };
 
 export function PurchaseRequestLineRecovery({
-  action, line, itemLabel, items, mappings, branchId, issue, suggestedSupplierId,
+  action, line, itemLabel, items, mappings, suppliers, branchId, issue, suggestedSupplierId,
 }: {
   action: (formData: FormData) => Promise<void>;
   line: { id: string; item_id: string; qty: number; uom: string; suggested_supplier_id: string | null; estimated_unit_cost: number; updated_at: string };
   itemLabel: string;
   items: ItemComboboxOption[];
   mappings: Mapping[];
+  suppliers: SupplierOption[];
   branchId: string;
   issue: PurchaseRequestGuidedIssue | null;
   suggestedSupplierId: string | null;
@@ -42,13 +44,22 @@ export function PurchaseRequestLineRecovery({
   const [supplierId, setSupplierId] = useState(line.suggested_supplier_id ?? suggestedSupplierId ?? "");
   const [mode, setMode] = useState<"update" | "replace" | "remove">("update");
   const compatibleMappings = mappings.filter((mapping) => mapping.branch_id === branchId && mapping.item_id === itemId && normalizeUom(mapping.purchase_uom) === normalizeUom(uom));
+  const itemMappings = mappings.filter((mapping) => mapping.branch_id === branchId && mapping.item_id === itemId);
+  const supplierDirectory = new Map(suppliers.map((supplier) => [supplier.id, supplier]));
+  for (const mapping of itemMappings) {
+    if (!supplierDirectory.has(mapping.supplier_id)) supplierDirectory.set(mapping.supplier_id, { id: mapping.supplier_id, name: mapping.supplier_name });
+  }
+  const supplierOptions = [...supplierDirectory.values()].map((supplier) => ({
+    ...supplier,
+    mapping: itemMappings.find((mapping) => mapping.supplier_id === supplier.id) ?? null,
+  }));
 
   return <>
     <Button type="button" variant={issue ? "outline" : "ghost"} size="icon" className="h-9 w-9 shrink-0" onClick={() => dialogRef.current?.showModal()} aria-label={`Review ${itemLabel}`}>
       {issue ? <AlertTriangle className="h-4 w-4 text-[var(--sb-warning)]" /> : <PencilLine className="h-4 w-4" />}
     </Button>
-    <dialog ref={dialogRef} className="m-0 ml-auto h-dvh w-full max-w-lg border-0 bg-transparent p-0 shadow-2xl backdrop:bg-slate-950/35 open:flex" onClose={() => setMode("update")}>
-      <div className="ml-auto flex h-full w-full max-w-lg flex-col bg-[var(--sb-surface)]">
+    <dialog ref={dialogRef} data-supplier-catalogue-count={suppliers.length} data-supplier-option-count={supplierOptions.length} className="m-auto h-[min(92dvh,56rem)] w-[min(72rem,calc(100vw-2rem))] max-w-none overflow-hidden rounded-[var(--sb-panel-radius)] border-0 bg-transparent p-0 shadow-2xl backdrop:bg-black/60 open:flex" onClose={() => setMode("update")}>
+      <div className="flex h-full w-full flex-col bg-[var(--sb-surface)]">
         <header className="flex items-start justify-between gap-3 border-b border-[var(--sb-border-soft)] px-4 py-3">
           <div className="min-w-0"><h3 className="text-base font-semibold">Review request line</h3><p className="truncate text-xs text-muted-foreground">{itemLabel}</p></div>
           <Button type="button" variant="ghost" size="icon" className="h-9 w-9" onClick={() => dialogRef.current?.close()} aria-label="Close line editor"><X className="h-4 w-4" /></Button>
@@ -66,9 +77,8 @@ export function PurchaseRequestLineRecovery({
             <Field label="Change type"><SelectNative value={mode} onChange={(event) => setMode(event.target.value as typeof mode)}><option value="update">Update this line</option><option value="replace">Replace item</option><option value="remove">Remove from this PR</option></SelectNative></Field>
             {mode !== "remove" ? <>
               <Field label="Item"><ItemCombobox items={items} value={query} selectedItemId={itemId} ariaLabel="Replacement Item" onValueChange={(value) => { setQuery(value); setItemId(""); setSupplierId(""); }} onSelect={(item) => { setQuery(`${item.item_code} - ${item.item_name}`); setItemId(item.id); setUom(item.purchase_unit || item.base_unit); setSupplierId(""); }} /></Field>
-              <div className="grid grid-cols-2 gap-3"><Field label="Quantity"><Input name="qty" type="number" min="0.0001" step="0.0001" defaultValue={line.qty} required /></Field><Field label="UOM"><Input name="uom" value={uom} onChange={(event) => { setUom(event.target.value); setSupplierId(""); }} required /></Field></div>
-              <Field label="Supplier"><SelectNative name="supplier_id" value={supplierId} onChange={(event) => setSupplierId(event.target.value)}><option value="">Needs supplier setup</option>{compatibleMappings.map((mapping) => <option key={`${mapping.item_id}-${mapping.supplier_id}-${mapping.purchase_uom}`} value={mapping.supplier_id}>{mapping.supplier_name} · {mapping.purchase_uom}</option>)}</SelectNative>{!compatibleMappings.length ? <p className="text-xs text-[var(--sb-warning)]">No supplier mapping matches this branch, item, and UOM. Save the PR in review, then create the mapping or choose another item/UOM.</p> : null}</Field>
-              {!compatibleMappings.length ? <Button asChild type="button" variant="outline" className="w-full justify-start"><Link href={`/supplier-items/new?item_id=${encodeURIComponent(itemId)}&branch_id=${encodeURIComponent(branchId)}&purchase_uom=${encodeURIComponent(uom)}`}>Create supplier mapping</Link></Button> : null}
+              <Field label="Quantity / UOM"><div className="grid grid-cols-[minmax(0,1fr)_minmax(7rem,.55fr)] gap-2"><Input name="qty" type="number" min="0.0001" step="0.0001" defaultValue={line.qty} aria-label="Quantity" required /><Input name="uom" value={uom} aria-label="Unit of measure" onChange={(event) => { setUom(event.target.value); setSupplierId(""); }} required /></div></Field>
+              <Field label="Supplier"><SelectNative name="supplier_id" value={supplierId} onChange={(event) => { const next = supplierOptions.find((supplier) => supplier.id === event.target.value); setSupplierId(event.target.value); if (next?.mapping) setUom(next.mapping.purchase_uom); }}><option value="">Needs supplier setup</option>{supplierOptions.map((supplier) => <option key={supplier.id} value={supplier.id}>{supplier.name}{supplier.mapping ? ` · ${supplier.mapping.purchase_uom}` : " · Needs mapping"}</option>)}</SelectNative><div className="flex flex-wrap items-center justify-between gap-2">{!compatibleMappings.length ? <p className="min-w-0 flex-1 text-xs text-[var(--sb-warning)]">No supplier mapping matches this branch, item, and UOM.</p> : <span />}{itemId ? <Link className="text-xs font-semibold text-primary underline underline-offset-2" href={`/supplier-items/new?item_id=${encodeURIComponent(itemId)}&branch_id=${encodeURIComponent(branchId)}&purchase_uom=${encodeURIComponent(uom)}`}>Create supplier mapping</Link> : null}</div></Field>
               <Field label="Estimated unit cost"><Input name="unit_cost" type="number" min="0" step="0.0001" defaultValue={line.estimated_unit_cost} /></Field>
               {selectedItem ? <p className="text-xs text-muted-foreground">Selected: {selectedItem.item_code} · {selectedItem.item_name}</p> : null}
               {!selectedItem ? <Button asChild type="button" variant="outline" className="w-full justify-start"><Link href="/items/new">Create new Item Master record</Link></Button> : null}

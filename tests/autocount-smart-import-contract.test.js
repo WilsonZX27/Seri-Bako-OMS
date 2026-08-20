@@ -42,6 +42,18 @@ test("AutoCount application is atomic, tenant-scoped, permission checked, and in
   assert.doesNotMatch(migration, /insert into public\.stock_transaction_lines/i);
 });
 
+test("AutoCount Confirm creates supplier-item sourcing before validating branch mappings", () => {
+  const repair = read("supabase/migrations/171_fix_autocount_import_confirm.sql");
+  const itemLoop = repair.slice(repair.indexOf("entity_type = 'item'"), repair.indexOf("entity_type = 'branch_mapping'"));
+  const branchLoop = repair.slice(repair.indexOf("entity_type = 'branch_mapping'"), repair.indexOf("entity_type = 'uom_conversion'"));
+  assert.match(itemLoop, /if target_supplier_item\.id is null then[\s\S]*insert into public\.supplier_items/);
+  assert.doesNotMatch(itemLoop, /target_branch\.id/);
+  assert.match(branchLoop, /if target_branch\.id is null then raise exception 'Staged branch/);
+  assert.match(branchLoop, /if target_supplier_item\.id is null then raise exception 'Supplier item relationship/);
+  assert.match(repair, /'inventoryMovementsCreated', 0/);
+  assert.doesNotMatch(repair, /insert into public\.stock_transactions/i);
+});
+
 test("Supplier operational codes retain one-to-many AutoCount creditor references", () => {
   const migration = read("supabase/migrations/169_autocount_smart_import.sql");
   const analyzer = read("src/lib/imports/autocount.ts");

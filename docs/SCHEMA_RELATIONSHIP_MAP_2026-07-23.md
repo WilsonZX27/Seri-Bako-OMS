@@ -1,6 +1,6 @@
 # Seri Bako OMS — Schema 与 Table 关系地图
 
-> Current repository authority: forward-only migration 历史已到 `170`; migration `170` adds recoverable PR and Stock Count line revisions plus committed PO line locking. This is repository evidence only, not Production deployment evidence.
+> Current repository authority: forward-only migration 历史已到 `171`; migration `170` adds recoverable PR and Stock Count line revisions plus committed PO line locking, while migration `171` repairs AutoCount atomic Confirm ordering. This is repository evidence only, not Production deployment evidence.
 
 > 2026-08-19 release authority：仓库 forward-only migration 历史已到 `169`；migrations `152–154` 依次新增 lossless non-catalog Purchase Request lines、按 supplier 原子拆分 PR，以及由 Item Master 统一 supplier-item identity；migrations `155–156` 分别收紧库存 opening 读取边界与 Outlet Daily receipt provenance；migration `157` 收紧 PR 三段审批的角色职责分离；migration `162` 允许无 branch override 时回退 Item Master supplier；migration `163` 只补全唯一、确定性的 stock-take supplier category 匹配；migrations `164–165` 修复 supplier split ordering 与 PO conversion idempotency；migration `166` 只对 branch + item + UOM 能确定唯一 supplier 的旧 PR line 回写 supplier snapshot，歧义项保持待 Purchasing 处理；migration `167` 将 Outlet Daily 超量损耗校验锚定到具体产品行；migration `168` 以单一安全 RPC 原子创建 Item Master 及可选 supplier/branch sourcing；migration `169` 新增 tenant-scoped AutoCount import jobs、staging rows、supplier external references 与单次原子确认，而且不从 AutoCount snapshot 写入库存 movement。此记录只证明 repository authority，不证明应用版本已部署到 Production。
 

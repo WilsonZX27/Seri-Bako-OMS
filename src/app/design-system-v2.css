@@ -1353,7 +1353,7 @@ html[data-design-layer="v2"] .sb-mobile-action-bar {
     position: sticky;
     top: 5rem;
     max-height: calc(100dvh - 5.75rem);
-    overflow: hidden;
+    overflow: visible;
   }
 }
 

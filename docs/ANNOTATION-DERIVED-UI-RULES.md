@@ -12,7 +12,7 @@ This is the review contract extracted from Wilson's repeated browser annotations
 
 ## 2. One component vocabulary
 
-- At desktop/tablet widths, list controls are 44px high. Search is the only elastic control; filters, More filters, date controls, and the terminal action use the shared 8rem track unless a documented field label requires more.
+- At desktop/tablet widths, buttons, filters, and text inputs have one 36px visual height. Touch layouts preserve reachable, separated targets through shared spacing and phone keeps its larger touch-first contract. Search is the only elastic control; filters, More filters, date controls, and the terminal action use the shared 8rem track unless a documented field label requires more.
 - Phone lists use one shared search surface: one search field, one icon-led Filter trigger, and one result count. The result/content surface is a sibling, never a nested card.
 - A query card and its result card are two sibling surfaces. Nested cards are allowed only when the inner surface is a genuinely different task boundary, such as a right action rail or progressive detail.
 - Primary actions use the same icon vocabulary, icon-to-label spacing, height, radius, and semantic color across modules. A plus action is not redesigned per page.

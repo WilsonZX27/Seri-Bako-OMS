@@ -76,13 +76,6 @@ export function AutoCountImportWorkflow() {
   const retryConfirm = Boolean(preview?.jobId && message);
   const rail = (
     <>
-      <ConsoleSection title="Import status">
-        <div className="space-y-1.5">
-          <p className="flex items-center justify-between gap-2"><span>Files</span><strong>{files.length}</strong></p>
-          <p className="flex items-center justify-between gap-2"><span>Blocking issues</span><strong>{blockers.length}</strong></p>
-          <p className="flex items-center justify-between gap-2"><span>Inventory movements</span><strong>0</strong></p>
-        </div>
-      </ConsoleSection>
       <ConsoleSection title="Actions">
         {!preview ? (
           <Button type="button" onClick={createPreview} disabled={!files.length || Boolean(busy)} data-mobile-primary-action>
@@ -95,11 +88,19 @@ export function AutoCountImportWorkflow() {
         )}
         <Button type="button" variant="outline" onClick={() => { setFiles([]); setPreview(null); setResult(null); setMessage(null); }} disabled={Boolean(busy)}>Start over</Button>
       </ConsoleSection>
+      {message ? <ConsoleSection title="Import error"><Notice tone="error" title="Import could not continue">{message}</Notice></ConsoleSection> : null}
+      <ConsoleSection title="Import status">
+        <div className="space-y-1.5">
+          <p className="flex items-center justify-between gap-2"><span>Files</span><strong>{files.length}</strong></p>
+          <p className="flex items-center justify-between gap-2"><span>Blocking issues</span><strong>{blockers.length}</strong></p>
+          <p className="flex items-center justify-between gap-2"><span>Inventory movements</span><strong>0</strong></p>
+        </div>
+      </ConsoleSection>
     </>
   );
 
   return (
-    <WorkspaceGrid rightRail={rail} tabletCanvas="contained" tabletRailBreakpoint="lg">
+    <WorkspaceGrid rightRail={rail} tabletCanvas="contained" tabletRailBreakpoint="md">
       <Card>
         <CardHeader>
           <CardTitle>Select the original AutoCount exports</CardTitle>
@@ -121,7 +122,6 @@ export function AutoCountImportWorkflow() {
         </CardContent>
       </Card>
 
-      {message ? <Notice tone="error" title="Import could not continue">{message}</Notice> : null}
       {preview?.summary ? <Card>
         <CardHeader><CardTitle>One-job impact preview</CardTitle><CardDescription>{preview.reused ? "This exact file set was already staged; the existing job was reused." : "These changes will be applied together after one confirmation."}</CardDescription></CardHeader>
         <CardContent>

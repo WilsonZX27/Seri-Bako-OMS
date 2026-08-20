@@ -7,6 +7,25 @@
 > `docs/DESIGN_SYSTEM.md` owns the current visual principles; this file retains
 > versioned implementation history and workspace rules.
 
+## v8.64.68 (unreleased) - Remote Annotation UAT Recovery
+
+- Authenticated remote visual evidence must use the complete credential value; verification tooling must not silently truncate valid password characters.
+- A migration-history match proves schema deployment, not the related browser workflow or Production UI release.
+
+## v8.64.67 (unreleased) - Historical Annotation Closure
+
+- Related quantitative values share one compact table field with a clear primary value and subdued secondary context; duplicated narrow columns are avoided.
+- Conditional form details must disappear and clear stale values as soon as their triggering business condition no longer applies.
+- Destructive lifecycle controls are not rendered for roles that cannot execute them.
+
+## v8.64.66 (unreleased) - Annotation Workflow Closure
+
+- Operational buttons, filters, and text inputs share a 36px visual height on tablet and desktop; phone remains touch-first.
+- Notification badges use semantic danger red, while procurement workflow states keep their role-specific Manager, Purchasing, and Finance colors.
+- Dialog backdrops use one black translucent authority. Guided review dialogs use the available work area instead of a narrow side drawer, and portrait-tablet task rails remain visible where declared.
+- This is an unreleased implementation note, not production evidence.
+- AutoCount right-rail errors retain exact recovery guidance; successful local Preview/Confirm evidence is recorded separately from linked-migration and Production proof.
+
 ## v8.64.65 (unreleased) - Shared Responsive Closure
 
 - Tablet list queries calculate columns from real controls: the query owns two tracks, each secondary filter owns one, and the command/result group owns two. This removes the blank track that previously pushed Search and result counts away from their filters.

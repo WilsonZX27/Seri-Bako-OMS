@@ -11,7 +11,7 @@ test("phone filter controls stay compact while task controls retain the larger t
   assert.match(css, /\.sb-list-filters:not\(\.sb-list-query-card\) > button:is\(\[type="submit"\], :not\(\[type\]\)\) \{[\s\S]*?order: 4;/);
   assert.match(css, /\.sb-filter-summary \{[\s\S]*?order: 5;/);
   assert.doesNotMatch(css, /data-sticky-column="last"/);
-  assert.match(css, /@media \(min-width: 768px\)[\s\S]*?--sb-control-height: 2\.75rem/);
+  assert.match(css, /@media \(min-width: 768px\)[\s\S]*?--sb-control-height: 2\.25rem/);
   assert.match(css, /@media \(min-width: 1280px\)[\s\S]*?--sb-control-height: 2\.25rem/);
 });
 

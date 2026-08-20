@@ -2,6 +2,11 @@
 
 ## Product Overview
 
+### v8.64.72 (unreleased) — PR Index And Exception Semantic Closure
+
+- Purchase Request Requested Items shows a stable row index and total count across desktop and compact layouts.
+- Supplier/UOM and non-catalog issues use danger semantics consistently; retryable stock-unavailable reads remain warning states.
+
 ### v8.64.71 (unreleased) — Supplier Display Identity And Shared Filter Closure
 
 - Supplier master data separates the internal AutoCount creditor code from the Item Group shown to operators; duplicate-name merges remain soft-retirable and auditable.

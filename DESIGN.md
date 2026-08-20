@@ -13,6 +13,11 @@
 - PR review preserves supplier reading width by grouping Quantity/UOM and caps the desktop editor at a task-focused 60rem while retaining viewport-safe tablet behavior.
 - Duplicate supplier identities are resolved in the data authority and audit trail, never hidden only in a selector.
 
+## v8.64.72 (unreleased) - PR Index And Exception Semantic Closure
+
+- PR Requested Items now exposes a stable visual row index on desktop and phone, including unresolved lines, while retaining the aggregate item count.
+- Supplier/UOM and non-catalog exceptions use the danger semantic consistently in compact/mobile review surfaces; stock-unavailable states remain warning-colored because they are retryable read failures.
+
 ## v8.64.71 (unreleased) - Supplier Display Identity And Shared Filter Closure
 
 - AutoCount creditor code is the internal supplier identity; Item Group is the operator-facing display label, with the migration retaining recoverable history.

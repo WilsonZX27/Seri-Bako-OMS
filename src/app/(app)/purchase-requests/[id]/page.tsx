@@ -316,6 +316,7 @@ export default async function PurchaseRequestDetailPage({
                   <Table mobileHidden aria-label="Requested items">
                       <TableHeader>
                         <TableRow>
+                          <TableHead className="w-12 text-center">#</TableHead>
                           <TableHead>Item</TableHead>
                            <TableHead>Supplier</TableHead>
                            <TableHead className="whitespace-nowrap text-right">Qty / UOM</TableHead>
@@ -326,13 +327,14 @@ export default async function PurchaseRequestDetailPage({
                         </TableRow>
                       </TableHeader>
                       <TableBody>
-                        {lines.map((line) => {
+                        {lines.map((line, index) => {
                           const item = itemById.get(line.item_id);
                           const readiness = readinessByLine.get(line.id)!;
                           const supplierName = readiness.supplierName ?? (line.suggested_supplier_id ? supplierById.get(line.suggested_supplier_id)?.name ?? null : null);
                           const stock = stockByItemId.get(line.item_id);
                           return (
                             <TableRow key={line.id} data-guided-issue={readiness.issue?.code}>
+                              <TableCell className="text-center text-xs tabular-nums text-muted-foreground">{index + 1}</TableCell>
                               <TableCell><p className="font-medium">{!items ? "Item details unavailable" : item?.item_name ?? line.item_id}</p><p className="text-xs text-muted-foreground">{!items ? `Reference ${line.item_id}` : item?.item_code ?? "No item code"}</p></TableCell>
                               <TableCell>{readiness.issue ? <div><p className="font-medium text-[var(--sb-danger)]">{supplierName ?? readiness.issue.message}</p><p className="mt-0.5 max-w-[28ch] text-[11px] text-muted-foreground">Next: {readiness.issue.recommendedAction}</p></div> : <span className="text-muted-foreground">{supplierName ?? "Mapped supplier"}</span>}</TableCell>
                               <TableCell className="whitespace-nowrap text-right">{formatNumber(line.qty)} {line.uom}</TableCell>
@@ -343,7 +345,8 @@ export default async function PurchaseRequestDetailPage({
                             </TableRow>
                           );
                         })}
-                        {unresolvedLines.map((line) => <TableRow key={line.id}>
+                        {unresolvedLines.map((line, index) => <TableRow key={line.id}>
+                          <TableCell className="text-center text-xs tabular-nums text-muted-foreground">{lines.length + index + 1}</TableCell>
                           <TableCell><p className="font-medium">{line.requested_description}</p><p className="text-xs font-medium text-[var(--sb-danger)]">Non-catalog item · Purchasing match required</p></TableCell>
                           <TableCell>{canAdminReview && items ? <PurchaseRequestLineResolutionForm action={resolvePurchaseRequestUnresolvedLine.bind(null, request.id)} items={items} unresolvedLineId={line.id} description={line.requested_description} compact /> : <span className="text-muted-foreground">Not sourced yet</span>}</TableCell>
                           <TableCell className="whitespace-nowrap text-right">{formatNumber(line.requested_qty)} {line.requested_uom}</TableCell>
@@ -354,19 +357,19 @@ export default async function PurchaseRequestDetailPage({
                       </TableBody>
                   </Table>
                   <div className="divide-y divide-[var(--sb-border-soft)] xl:hidden" role="list" aria-label="Requested items">
-                    {lines.map((line) => {
+                    {lines.map((line, index) => {
                       const item = itemById.get(line.item_id);
                       const readiness = readinessByLine.get(line.id)!;
                       const supplierName = readiness.supplierName ?? (line.suggested_supplier_id ? supplierById.get(line.suggested_supplier_id)?.name ?? null : null);
                       const stock = stockByItemId.get(line.item_id);
                       return <div key={line.id} role="listitem" data-guided-issue={readiness.issue?.code} className="min-w-0 py-3 text-[13px]">
-                        <div className="flex min-w-0 items-start justify-between gap-3"><div className="min-w-0"><p className="break-words font-semibold">{!items ? "Item details unavailable" : item?.item_name ?? line.item_id}</p><p className="text-[12px] text-muted-foreground">{!items ? `Reference ${line.item_id}` : item?.item_code ?? "No item code"}</p></div><div className="flex shrink-0 items-center gap-2"><p className="font-semibold">{formatNumber(line.qty)} {line.uom}</p>{canRepairReviewLines && items && suppliers && supplierMappings && request.branch_id ? <PurchaseRequestLineRecovery action={revisePurchaseRequestLine.bind(null, request.id)} line={line} itemLabel={`${item?.item_code ?? ""} - ${item?.item_name ?? line.item_id}`} items={items} mappings={supplierMappings} suppliers={suppliers} branchId={request.branch_id} issue={readiness.issue} suggestedSupplierId={readiness.suggestedSupplierId} /> : null}</div></div>
-                        {readiness.issue ? <div className="mt-1"><p className="break-words text-[12px] font-medium text-[var(--sb-warning)]">{supplierName ?? readiness.issue.message}</p><p className="text-[11px] text-muted-foreground">Next: {readiness.issue.recommendedAction}</p></div> : <p className="mt-1 break-words text-[12px] text-muted-foreground">Supplier: {supplierName ?? "Mapped supplier"}</p>}
+                        <div className="flex min-w-0 items-start justify-between gap-3"><div className="min-w-0"><p className="text-[11px] font-semibold tabular-nums text-muted-foreground">Item {index + 1}</p><p className="break-words font-semibold">{!items ? "Item details unavailable" : item?.item_name ?? line.item_id}</p><p className="text-[12px] text-muted-foreground">{!items ? `Reference ${line.item_id}` : item?.item_code ?? "No item code"}</p></div><div className="flex shrink-0 items-center gap-2"><p className="font-semibold">{formatNumber(line.qty)} {line.uom}</p>{canRepairReviewLines && items && suppliers && supplierMappings && request.branch_id ? <PurchaseRequestLineRecovery action={revisePurchaseRequestLine.bind(null, request.id)} line={line} itemLabel={`${item?.item_code ?? ""} - ${item?.item_name ?? line.item_id}`} items={items} mappings={supplierMappings} suppliers={suppliers} branchId={request.branch_id} issue={readiness.issue} suggestedSupplierId={readiness.suggestedSupplierId} /> : null}</div></div>
+                        {readiness.issue ? <div className="mt-1"><p className="break-words text-[12px] font-medium text-[var(--sb-danger)]">{supplierName ?? readiness.issue.message}</p><p className="text-[11px] text-muted-foreground">Next: {readiness.issue.recommendedAction}</p></div> : <p className="mt-1 break-words text-[12px] text-muted-foreground">Supplier: {supplierName ?? "Mapped supplier"}</p>}
                         {stock ? <p className="mt-1 text-[12px] text-muted-foreground">Current branch stock: <span className="font-medium text-foreground">{formatNumber(stock.quantity)} {stock.uom}</span> · As of {formatDateOnly(stock.asOf)}</p> : <p className="mt-1 text-[12px] font-medium text-[var(--sb-warning)]">Current branch stock unavailable · <a className="underline" href={`/purchase-requests/${request.id}`}>Retry</a></p>}
                         {line.reason ? <p className="mt-1 break-words text-[12px] text-muted-foreground">{line.reason}</p> : null}{canViewCommercial ? <p className="mt-1 text-right text-[12px] font-medium">{formatCurrency(line.estimated_unit_cost)} / {line.uom}</p> : null}
                       </div>;
                     })}
-                    {unresolvedLines.map((line) => <div key={line.id} role="listitem" className="min-w-0 py-3 text-[13px]"><div className="flex min-w-0 items-start justify-between gap-3"><div className="min-w-0"><p className="break-words font-semibold">{line.requested_description}</p><p className="text-[12px] font-medium text-[var(--sb-warning)]">Non-catalog item · Purchasing match required</p></div><p className="shrink-0 font-semibold">{formatNumber(line.requested_qty)} {line.requested_uom}</p></div>{line.remarks ? <p className="mt-1 text-[12px] text-muted-foreground">{line.remarks}</p> : null}{canAdminReview && items ? <div className="mt-2"><PurchaseRequestLineResolutionForm action={resolvePurchaseRequestUnresolvedLine.bind(null, request.id)} items={items} unresolvedLineId={line.id} description={line.requested_description} /></div> : null}</div>)}
+                    {unresolvedLines.map((line, index) => <div key={line.id} role="listitem" className="min-w-0 py-3 text-[13px]"><div className="flex min-w-0 items-start justify-between gap-3"><div className="min-w-0"><p className="text-[11px] font-semibold tabular-nums text-muted-foreground">Item {lines.length + index + 1}</p><p className="break-words font-semibold">{line.requested_description}</p><p className="text-[12px] font-medium text-[var(--sb-danger)]">Non-catalog item · Purchasing match required</p></div><p className="shrink-0 font-semibold">{formatNumber(line.requested_qty)} {line.requested_uom}</p></div>{line.remarks ? <p className="mt-1 text-[12px] text-muted-foreground">{line.remarks}</p> : null}{canAdminReview && items ? <div className="mt-2"><PurchaseRequestLineResolutionForm action={resolvePurchaseRequestUnresolvedLine.bind(null, request.id)} items={items} unresolvedLineId={line.id} description={line.requested_description} /></div> : null}</div>)}
                   </div>
                 </>
               )}

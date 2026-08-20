@@ -11,6 +11,13 @@ Status vocabulary:
 
 ## Historical screenshot groups reconciled — v8.64.67
 
+### v8.64.72 current annotation closure batch
+
+| ID | Acceptance | Status | Evidence |
+|---|---|---|---|
+| UI-0821-10 | PR Requested Items has a visible row index plus total requested-item count, including unresolved lines. | implemented / awaiting Production viewport UAT | Desktop table adds a `#` column; compact layout labels each line as `Item N`; unresolved lines continue numbering after catalog lines. Source/test gates remain pending in this batch. |
+| UI-0821-11 | Supplier/UOM and non-catalog mapping exceptions use the red danger semantic; retryable stock reads remain warning. | implemented / awaiting Production viewport UAT | Compact PR review mapping and non-catalog messages now use `--sb-danger`; the retryable stock-unavailable message remains `--sb-warning` by intent. |
+
 ### v8.64.71 current annotation closure batch
 
 | ID | Acceptance | Status | Evidence |

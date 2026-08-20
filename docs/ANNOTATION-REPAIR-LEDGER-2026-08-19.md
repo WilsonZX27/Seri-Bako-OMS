@@ -42,6 +42,12 @@ Status vocabulary:
 |---|---|---|
 | Local authenticated annotation browser suites | verified locally / Production UAT pending | The disposable super-admin password contains a literal trailing `#`; the previous parser truncated it as a comment and caused `Invalid login credentials`. The parser now treats only whitespace-prefixed `#` as a comment marker, matching the other test parsers. After the fix, the 9 v8.64.66/67 annotation scenarios and 9 historical/reopened annotation scenarios each completed with exit code 0. This restores trustworthy local UAT setup but is not Production authentication evidence. |
 
+### v8.64.80 Production deployment audit
+
+| Gate | Status | Evidence |
+|---|---|---|
+| Observed Production artifact | blocked / not deployed to observed host | Read-only `https://system.seribako.com.my/login` HTML includes footer `v8.64.68`, while the authorized branch remote is `4e924244` (v8.64.79). Vercel connector access returns project `404` and an empty project list for the configured team, so no deployment or post-deploy authenticated UAT is claimed. |
+
 ### v8.64.76 current control rhythm batch
 
 | ID | Acceptance | Status | Evidence |

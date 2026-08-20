@@ -36,6 +36,12 @@ Status vocabulary:
 | UI-0821-09 | PR/PO/GRN keeps supplier purchase UOM visible while inventory posting uses the item base/KG unit. | implemented / awaiting linked migration and authenticated workflow UAT | Corrected migration 175 declares the purchase-order line row used by return conversion. A rollback-only local PO → GRN fixture posted 2 CTN × 12 = 24 KG at RM10 per KG (RM240 total) and rolled back all rows. Linked migration application, authenticated PR/PO/GRN/return workflow, and Production verification remain pending. |
 | UI-0821-12 | Supplier UOM and internal base-unit cost semantics are explicit and fail closed when conversion is missing. | implemented / awaiting linked migration and authenticated workflow UAT | Local contract test plus the same rollback-only posting fixture prove conversion and cost normalization; no data was changed. Production migration/UAT are not claimed. |
 
+### v8.64.79 authenticated UAT fixture reconciliation
+
+| Gate | Status | Evidence |
+|---|---|---|
+| Local authenticated annotation browser suites | verified locally / Production UAT pending | The disposable super-admin password contains a literal trailing `#`; the previous parser truncated it as a comment and caused `Invalid login credentials`. The parser now treats only whitespace-prefixed `#` as a comment marker, matching the other test parsers. After the fix, the 9 v8.64.66/67 annotation scenarios and 9 historical/reopened annotation scenarios each completed with exit code 0. This restores trustworthy local UAT setup but is not Production authentication evidence. |
+
 ### v8.64.76 current control rhythm batch
 
 | ID | Acceptance | Status | Evidence |

@@ -7,8 +7,11 @@ function parseEnvValue(rawValue) {
   if ((value.startsWith("\"") && value.endsWith("\"")) || (value.startsWith("'") && value.endsWith("'"))) {
     return value.slice(1, -1);
   }
-  const commentIndex = value.indexOf("#");
-  return (commentIndex >= 0 ? value.slice(0, commentIndex) : value).trim();
+  // A literal `#` is valid in passwords and other opaque values. Treat it as
+  // a comment marker only when it follows whitespace, matching the browser
+  // server and Playwright config parsers.
+  const commentMatch = value.match(/\s+#/);
+  return (commentMatch?.index !== undefined ? value.slice(0, commentMatch.index) : value).trim();
 }
 const env = Object.fromEntries(fs.readFileSync(envFile, "utf8").split(/\r?\n/).filter((line) => line && !line.startsWith("#") && line.includes("=")).map((line) => {
   const index = line.indexOf("=");

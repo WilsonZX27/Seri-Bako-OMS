@@ -10,6 +10,10 @@ The local disposable Supabase database now executes migration 176 successfully. 
 
 The local posting path now has a rollback-only PO → GRN proof that supplier purchase UOM is converted to the item base unit and unit cost is divided by the same factor (2 CTN × 12 = 24 KG; RM120 ÷ 12 = RM10). Linked migration application and authenticated Production workflow UAT remain separate release gates.
 
+### v8.64.79 (unreleased) — Authenticated Fixture Password Parsing
+
+Local authenticated browser fixtures now preserve literal hash characters in test credentials, preventing false login failures during disposable UI/UAT runs. This changes test reliability only and does not claim Production authentication evidence.
+
 ### v8.64.76 (unreleased) — Cross-Viewport Control Rhythm
 
 The shared control authority now keeps tablet and desktop filters, textboxes, selects, and right-rail actions at a 36px visual height. Phone controls retain the touch-safe height, and the ledger distinguishes visual geometry from authenticated viewport acceptance.

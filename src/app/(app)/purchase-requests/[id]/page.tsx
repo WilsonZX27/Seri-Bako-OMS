@@ -317,8 +317,7 @@ export default async function PurchaseRequestDetailPage({
                         <TableRow>
                           <TableHead>Item</TableHead>
                            <TableHead>Supplier</TableHead>
-                           <TableHead className="text-right">Qty</TableHead>
-                           <TableHead>UOM</TableHead>
+                           <TableHead className="whitespace-nowrap text-right">Qty / UOM</TableHead>
                            <TableHead>Current branch stock</TableHead>
                            {canViewCommercial ? <TableHead className="text-right">Est. Cost</TableHead> : null}
                            <TableHead>Reason</TableHead>
@@ -335,8 +334,7 @@ export default async function PurchaseRequestDetailPage({
                             <TableRow key={line.id} data-guided-issue={readiness.issue?.code}>
                               <TableCell><p className="font-medium">{!items ? "Item details unavailable" : item?.item_name ?? line.item_id}</p><p className="text-xs text-muted-foreground">{!items ? `Reference ${line.item_id}` : item?.item_code ?? "No item code"}</p></TableCell>
                               <TableCell>{readiness.issue ? <div><p className="font-medium text-[var(--sb-warning)]">{supplierName ?? readiness.issue.message}</p><p className="mt-0.5 max-w-[28ch] text-[11px] text-muted-foreground">Next: {readiness.issue.recommendedAction}</p></div> : <span className="text-muted-foreground">{supplierName ?? "Mapped supplier"}</span>}</TableCell>
-                              <TableCell className="text-right">{formatNumber(line.qty)}</TableCell>
-                              <TableCell>{line.uom}</TableCell>
+                              <TableCell className="whitespace-nowrap text-right">{formatNumber(line.qty)} {line.uom}</TableCell>
                               <TableCell>{stock ? <div><p className="font-medium">{formatNumber(stock.quantity)} {stock.uom}</p><p className="text-[11px] text-muted-foreground">As of {formatDateOnly(stock.asOf)} · {stock.source}</p></div> : <div><p className="font-medium text-[var(--sb-warning)]">Stock unavailable</p><Button asChild variant="ghost" size="sm" className="h-auto p-0 text-xs"><a href={`/purchase-requests/${request.id}`}>Retry</a></Button></div>}</TableCell>
                               {canViewCommercial ? <TableCell className="text-right">{formatCurrency(line.estimated_unit_cost)}</TableCell> : null}
                               <TableCell>{line.reason ?? "-"}</TableCell>
@@ -347,8 +345,7 @@ export default async function PurchaseRequestDetailPage({
                         {unresolvedLines.map((line) => <TableRow key={line.id}>
                           <TableCell><p className="font-medium">{line.requested_description}</p><p className="text-xs font-medium text-[var(--sb-warning)]">Non-catalog item · Purchasing match required</p></TableCell>
                           <TableCell>{canAdminReview && items ? <PurchaseRequestLineResolutionForm action={resolvePurchaseRequestUnresolvedLine.bind(null, request.id)} items={items} unresolvedLineId={line.id} description={line.requested_description} compact /> : <span className="text-muted-foreground">Not sourced yet</span>}</TableCell>
-                          <TableCell className="text-right">{formatNumber(line.requested_qty)}</TableCell>
-                          <TableCell>{line.requested_uom}</TableCell>
+                          <TableCell className="whitespace-nowrap text-right">{formatNumber(line.requested_qty)} {line.requested_uom}</TableCell>
                           <TableCell><span className="text-muted-foreground">Available after item match</span></TableCell>
                           {canViewCommercial ? <TableCell className="text-right">—</TableCell> : null}
                           <TableCell>{line.remarks ?? "-"}</TableCell>

@@ -67,6 +67,18 @@ test("AutoCount identity recovery is exact, staged, and preserves the original i
   assert.doesNotMatch(recovery, /insert into public\.items/);
 });
 
+test("duplicate suppliers merge recoverably and receive a live normalized-name guard", () => {
+  const migration = read("supabase/migrations/173_merge_duplicate_supplier_identities.sql");
+  assert.match(migration, /create table if not exists public\.supplier_merge_audit/);
+  assert.match(migration, /canonical_before jsonb not null/);
+  assert.match(migration, /merged_before jsonb not null/);
+  assert.match(migration, /update public\.purchase_request_lines set suggested_supplier_id = canonical_supplier\.id/);
+  assert.match(migration, /update public\.purchase_orders set supplier_id = canonical_supplier\.id/);
+  assert.match(migration, /update public\.supplier_items[\s\S]*set status = 'inactive', deleted_at = now\(\)/);
+  assert.match(migration, /suppliers_company_normalized_name_active_idx/);
+  assert.doesNotMatch(migration, /delete from public\.suppliers/);
+});
+
 test("Supplier operational codes retain one-to-many AutoCount creditor references", () => {
   const migration = read("supabase/migrations/169_autocount_smart_import.sql");
   const analyzer = read("src/lib/imports/autocount.ts");

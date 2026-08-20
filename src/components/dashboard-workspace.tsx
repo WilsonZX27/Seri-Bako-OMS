@@ -16,6 +16,7 @@ function Metric({
   value,
   icon: Icon,
   alert = false,
+  alertTone = "warning",
   unavailable = false,
   detail,
   variant = "row",
@@ -27,6 +28,7 @@ function Metric({
   value: string | number | null;
   icon: LucideIcon;
   alert?: boolean;
+  alertTone?: "warning" | "critical";
   unavailable?: boolean;
   detail?: string;
   variant?: "row" | "tile";
@@ -40,7 +42,7 @@ function Metric({
     >
       <span className={variant === "tile" ? `flex min-w-0 flex-col items-start ${density === "compact" ? "gap-1.5 text-[10px] leading-3.5 sm:text-xs sm:leading-4" : "gap-2 text-xs"} font-medium text-[var(--sb-text-muted)]` : "flex min-w-0 items-center gap-2 text-xs font-medium text-[var(--sb-text-muted)]"}>
         <span
-        className={`grid ${variant === "tile" ? density === "compact" ? "h-6 w-6 sm:h-7 sm:w-7" : "h-7 w-7 sm:h-8 sm:w-8" : "h-6 w-6"} shrink-0 place-items-center rounded-[var(--sb-radius-control)] ${unavailable || alert ? "bg-[var(--sb-warning-bg)] text-[var(--sb-warning)]" : "bg-[var(--sb-neutral-bg)] text-[var(--sb-neutral-text)]"}`}
+        className={`grid ${variant === "tile" ? density === "compact" ? "h-6 w-6 sm:h-7 sm:w-7" : "h-7 w-7 sm:h-8 sm:w-8" : "h-6 w-6"} shrink-0 place-items-center rounded-[var(--sb-radius-control)] ${unavailable ? "bg-[var(--sb-warning-bg)] text-[var(--sb-warning)]" : alert && alertTone === "critical" ? "bg-[var(--sb-danger-bg)] text-[var(--sb-danger)]" : alert ? "bg-[var(--sb-warning-bg)] text-[var(--sb-warning)]" : "bg-[var(--sb-neutral-bg)] text-[var(--sb-neutral-text)]"}`}
         >
           <Icon className="h-3.5 w-3.5 group-hover:scale-105" />
         </span>
@@ -396,7 +398,7 @@ export function DashboardWorkspace({ summary }: { summary: DashboardSummary }) {
             empty="No urgent operational exceptions are visible in your scope."
           >
             <div className="grid grid-cols-3 gap-1.5 sm:gap-2" data-dashboard-exceptions>
-              <Metric href="/low-stock" label="Low stock" value={summary.lowStockCount} icon={AlertTriangle} alert={(summary.lowStockCount ?? 0) > 0} unavailable={summary.inventoryUnavailable || summary.lowStockCount === null} variant="tile" density="compact" />
+              <Metric href="/low-stock" label="Low stock" value={summary.lowStockCount} icon={AlertTriangle} alert={(summary.lowStockCount ?? 0) > 0} alertTone="critical" unavailable={summary.inventoryUnavailable || summary.lowStockCount === null} variant="tile" density="compact" />
               {showOperations && summary.operationsControl?.outlet ? (
                 <Metric
                   href="/outlet-daily-records?status=draft"

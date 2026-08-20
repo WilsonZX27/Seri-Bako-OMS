@@ -1,5 +1,9 @@
 # Annotation Repair Ledger — 2026-08-19
 
+## v8.64.92 annotation rerun evidence refresh
+
+All 18 current, historical, and reopened local authenticated browser scenarios reran after migration 179 with zero failures. This confirms local regression only; linked migration and Production deployment remain separate.
+
 ## v8.64.91 bounded inventory read repair
 
 The local Purchasing mutation workflow posted a supplier return, but its Movement Ledger verification initially hit the fail-closed unavailable state because the bounded read RPC spent roughly 56 seconds in repeated authenticated RLS checks. Migration 179 changes only the bounded read function execution mode to `SECURITY DEFINER`; explicit `can_access_inventory_branch()` authorization remains inside the function. After local application, the same authenticated read returned the exact `ST-PRT/AUG26/004-4798` row in 58ms; this is local evidence only, not Production evidence.
@@ -7,6 +11,8 @@ The local Purchasing mutation workflow posted a supplier return, but its Movemen
 | Gate | Status | Evidence |
 |---|---|---|
 | Purchasing Movement Ledger after supplier return | verified locally / linked migration and Production UAT pending | Local migration 179 applied; authenticated Purchasing RPC returned one exact return row in 58ms and the mutation suite passed. The linked project still cannot be read through the Management API, so no remote or Production claim is made. |
+
+The post-179 local authenticated annotation rerun completed all 18 current/historical/reopened browser scenarios with zero failures. This refreshes local evidence only; the observed Production artifact and linked migration state remain separate gates.
 
 ## v8.64.90 workflow mutation gate repair
 

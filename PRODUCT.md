@@ -1,5 +1,9 @@
 # Seri Bako Operations Management System
 
+### v8.64.92 (unreleased) — Annotation Rerun Evidence Refresh
+
+The full local authenticated current/historical/reopened annotation browser suite reran after the bounded inventory read repair: 18 of 18 scenarios passed. This is local evidence and does not change the linked Production deployment boundary.
+
 ### v8.64.91 (unreleased) — Bounded Inventory Read RLS Repair
 
 The bounded Stock Card / Movement Ledger RPC keeps explicit branch authorization while avoiding duplicate per-row RLS evaluation under authenticated reads. This repairs the timeout path observed during the local Purchasing return workflow; linked Production evidence remains separate.

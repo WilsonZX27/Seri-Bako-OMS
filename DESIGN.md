@@ -1,5 +1,9 @@
 # Seri Bako OMS responsive design standard
 
+## v8.64.92 (unreleased) - Annotation Rerun Evidence Refresh
+
+The shared annotation surfaces retain the v8.64.91 interaction/read-path fixes after a complete local authenticated rerun; no per-page CSS exceptions were introduced.
+
 ## v8.64.91 (unreleased) - Bounded Inventory Read RLS Repair
 
 Movement Ledger retains its explicit tenant/branch authorization contract while the bounded read avoids duplicate policy evaluation that made valid role reads appear unavailable.

@@ -55,6 +55,7 @@ declare
   ret public.purchase_returns%rowtype;
   line public.purchase_return_lines%rowtype;
   grn_line public.goods_receiving_lines%rowtype;
+  po_line public.purchase_order_lines%rowtype;
   movement_id uuid;
   balance numeric;
   conversion numeric;

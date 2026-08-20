@@ -29,6 +29,13 @@ Status vocabulary:
 |---|---|---|---|
 | UI-0821-16 | The prior tablet 44px choice is superseded by the later global 36px visual-height requirement. | superseded by UI-0821-15 | v8.64.76 applies the shared 36px visual rhythm to tablet/desktop query controls and right-rail actions; phone touch-safe controls remain larger. The stale v8.64.71 wording is retained only as history. |
 
+### v8.64.78 supplier UOM runtime reconciliation
+
+| ID | Acceptance | Status | Evidence |
+|---|---|---|---|
+| UI-0821-09 | PR/PO/GRN keeps supplier purchase UOM visible while inventory posting uses the item base/KG unit. | implemented / awaiting linked migration and authenticated workflow UAT | Corrected migration 175 declares the purchase-order line row used by return conversion. A rollback-only local PO → GRN fixture posted 2 CTN × 12 = 24 KG at RM10 per KG (RM240 total) and rolled back all rows. Linked migration application, authenticated PR/PO/GRN/return workflow, and Production verification remain pending. |
+| UI-0821-12 | Supplier UOM and internal base-unit cost semantics are explicit and fail closed when conversion is missing. | implemented / awaiting linked migration and authenticated workflow UAT | Local contract test plus the same rollback-only posting fixture prove conversion and cost normalization; no data was changed. Production migration/UAT are not claimed. |
+
 ### v8.64.76 current control rhythm batch
 
 | ID | Acceptance | Status | Evidence |

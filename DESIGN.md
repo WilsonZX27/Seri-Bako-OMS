@@ -11,6 +11,11 @@
 
 - Migration 176's dynamic patches are newline-safe and preserve explicit brand values through both Item creation and AutoCount Confirm.
 
+## v8.64.78 (unreleased) - Supplier UOM Runtime Contract
+
+- Supplier purchase UOM remains visible on procurement documents while GRN posting converts quantity and unit cost through the supplier-item conversion into the item base unit.
+- A rollback-only local PO → GRN fixture proves 2 CTN × 12 = 24 KG and RM120 ÷ 12 = RM10 (RM240 total); the fixture is not Production evidence.
+
 ## v8.64.76 (unreleased) - Cross-Viewport Control Rhythm
 
 - Shared query controls and right-rail actions use a 36px visual height from tablet through desktop.

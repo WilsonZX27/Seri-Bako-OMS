@@ -18,7 +18,8 @@ export async function POST(request: Request) {
   const { data, error } = await supabase.rpc("apply_autocount_import_job", { p_job_id: parsed.data.jobId });
   if (error) {
     const failure = formatAutoCountInfrastructureError(error);
-    await supabase.from("autocount_import_jobs").update({ status: "failed", summary: { error: failure.message } }).eq("id", parsed.data.jobId).eq("status", "ready");
+    // Keep the staged job ready after a failed RPC. Setup/transient failures are
+    // retryable and must not force the user to re-upload the same workbooks.
     return NextResponse.json({ ok: false, message: failure.message, setupRequired: failure.setupRequired }, { status: failure.setupRequired ? 503 : 409 });
   }
   ["/imports", "/imports/autocount", "/items", "/suppliers", "/supplier-items", "/uom-conversions"].forEach((path) => revalidatePath(path));

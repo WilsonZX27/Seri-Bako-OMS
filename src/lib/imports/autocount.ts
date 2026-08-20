@@ -47,9 +47,11 @@ export function formatAutoCountInfrastructureError(error: unknown) {
   const raw = error instanceof Error ? error.message : String(error ?? "");
   const normalized = raw.toLowerCase();
   const migrationMissing = normalized.includes("autocount_import_") || normalized.includes("apply_autocount_import_job") || normalized.includes("pgrst205") || normalized.includes("schema cache");
-  if (migrationMissing) {
+  const staleConfirmRpc = (normalized.includes("staged branch") && normalized.includes("missing or inactive"))
+    || normalized.includes("supplier item relationship");
+  if (migrationMissing || staleConfirmRpc) {
     return {
-      message: "AutoCount setup is not available in this environment yet. Ask an Owner to apply migrations 169 and refresh the Supabase schema, then retry. No OMS records were changed.",
+      message: "AutoCount setup is not ready in this environment yet. Ask an Owner to apply migrations 169 and 171, refresh the Supabase schema, then click Retry confirm. No OMS records were changed.",
       setupRequired: true,
     } as const;
   }

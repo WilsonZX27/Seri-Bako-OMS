@@ -98,11 +98,22 @@ test("AutoCount setup failures are actionable and do not expose PostgREST schema
   const helper = read("src/lib/imports/autocount.ts");
   const preview = read("src/app/api/imports/autocount/preview/route.ts");
   const confirm = read("src/app/api/imports/autocount/confirm/route.ts");
-  assert.match(helper, /apply migrations 169 and refresh the Supabase schema/);
+  assert.match(helper, /apply migrations 169 and 171, refresh the Supabase schema/);
   assert.match(helper, /No OMS records were changed/);
   assert.match(preview, /formatAutoCountInfrastructureError/);
   assert.match(confirm, /setupRequired/);
   assert.doesNotMatch(confirm, /message: error\.message/);
+});
+
+test("AutoCount confirmation errors remain retryable and identify stale RPC setup", () => {
+  const helper = read("src/lib/imports/autocount.ts");
+  const confirm = read("src/app/api/imports/autocount/confirm/route.ts");
+  const workflow = read("src/components/imports/autocount-import-workflow.tsx");
+  assert.match(helper, /staleConfirmRpc/);
+  assert.match(helper, /click Retry confirm/);
+  assert.doesNotMatch(confirm, /status: "failed"/);
+  assert.match(confirm, /must not force the user to re-upload/);
+  assert.match(workflow, /Retry confirm/);
 });
 
 test("AutoCount confirm repair validates mappings only after creating supplier items", () => {

@@ -2,6 +2,11 @@
 
 ## Product Overview
 
+### v8.64.74 (unreleased) — Stock Take Evidence Reconciliation
+
+- Central Kitchen stock-take evidence distinguishes local seed-code coverage from linked Production tally verification; missing local mirror codes are reported without changing master data.
+- Product descriptions retain source brand tokens until an authoritative structured brand mapping is available.
+
 ### v8.64.73 (unreleased) — Supplier UOM Base Posting Closure
 
 - Purchase documents retain supplier UOM; GRN and purchase-return inventory movements post converted base-unit quantity and base-unit cost, with missing conversions rejected explicitly.

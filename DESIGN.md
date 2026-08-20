@@ -13,6 +13,11 @@
 - PR review preserves supplier reading width by grouping Quantity/UOM and caps the desktop editor at a task-focused 60rem while retaining viewport-safe tablet behavior.
 - Duplicate supplier identities are resolved in the data authority and audit trail, never hidden only in a selector.
 
+## v8.64.74 (unreleased) - Stock Take Evidence Reconciliation
+
+- Stock-take PDF evidence is reconciled by known AutoCount/item-code prefixes against the local seed mirror; missing local codes are listed explicitly and are not treated as Production discrepancies.
+- Brand tokens remain visible in source item descriptions, but no structured brand field is invented without an authoritative master-data mapping.
+
 ## v8.64.73 (unreleased) - Supplier UOM Base Posting Closure
 
 - Supplier purchase UOM remains the document-facing quantity on PR/PO/GRN, while the new posting authority converts received and returned quantities into the item base unit and divides unit cost by the same factor.

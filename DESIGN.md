@@ -30,6 +30,11 @@
 - The local cloud-data mirror contains 323 active items; 38 have no active supplier-item record.
 - It contains 425 active supplier-item records; 193 are mapped to CK-ALMA/CK-PJS10 and 233 have no active branch mapping. These are data gaps, not safe candidates for guessed mappings.
 
+## v8.64.82 (unreleased) - Central Kitchen Tally Evidence
+
+- The local mirror has no Stock Count dated 2026-08-19 for either Central Kitchen; the latest posted records are CK-ALMA on 2026-08-17 and CK-PJS10 on 2026-08-06.
+- PDF-to-OMS tally equality therefore remains blocked until the linked Production read is available.
+
 ## v8.64.76 (unreleased) - Cross-Viewport Control Rhythm
 
 - Shared query controls and right-rail actions use a 36px visual height from tablet through desktop.

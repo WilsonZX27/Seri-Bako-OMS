@@ -22,6 +22,10 @@ The observed Production login page still serves footer `v8.64.68`, while `codex/
 
 The local mirror audit found 38 active items without supplier-item identity and 233 active supplier-item records without a Central Kitchen branch mapping. Because the source does not prove the intended supplier/branch for those rows, the system keeps them as explicit data blockers rather than fabricating mappings.
 
+### v8.64.82 (unreleased) — Central Kitchen Tally Evidence
+
+The local mirror has no 19 Aug Stock Count for CK-ALMA or CK-PJS10; its latest posted counts are 17 Aug and 6 Aug respectively. The supplied PDFs cannot be declared tally-matched without the linked Production records.
+
 ### v8.64.76 (unreleased) — Cross-Viewport Control Rhythm
 
 The shared control authority now keeps tablet and desktop filters, textboxes, selects, and right-rail actions at a 36px visual height. Phone controls retain the touch-safe height, and the ledger distinguishes visual geometry from authenticated viewport acceptance.

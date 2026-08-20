@@ -54,6 +54,12 @@ Status vocabulary:
 |---|---|---|
 | All item and supplier mappings | data blocked / Production read pending | Read-only local mirror audit: 323 active items, 38 without an active supplier-item record; 425 active supplier-item records, 233 without an active branch mapping; 193 are mapped across CK-ALMA and CK-PJS10. Live normalized supplier-name duplicates are 0 after the recoverable merge contract. No mapping was fabricated because the intended supplier/branch cannot be proven from the source mirror. |
 
+### v8.64.82 Central Kitchen tally evidence
+
+| Gate | Status | Evidence |
+|---|---|---|
+| Latest two Central Kitchen stock takes reconcile to OMS | data/Production read blocked | Read-only local mirror query found no 2026-08-19 Stock Count for CK-ALMA or CK-PJS10. Latest posted rows are `SC/AUG26/012` CK-ALMA on 2026-08-17 (147 lines) and `SC/AUG26/007` CK-PJS10 on 2026-08-06 (116 lines); inventory movements likewise stop at 2026-08-16 and 2026-08-06. The PDF values and names remain evidence inputs, not proof of OMS tally. |
+
 ### v8.64.76 current control rhythm batch
 
 | ID | Acceptance | Status | Evidence |

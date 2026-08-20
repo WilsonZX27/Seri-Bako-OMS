@@ -129,7 +129,7 @@ function extractPurchaseRequest(formData: FormData) {
   const requestSupplierId = cleanText(formData.get("request_supplier_id"));
   if (!requestSupplierId) throw new Error("Select a supplier before adding request items.");
   if (parsed.lines.some((line) => line.suggested_supplier_id !== requestSupplierId)) {
-    throw new Error("All request items must belong to the selected supplier.");
+    throw new Error("Supplier selection is inconsistent: every requested item must use the selected PR supplier. Return to the form, choose one supplier, then select items offered by that supplier.");
   }
   return { ...parsed, lineBranchIds };
 }

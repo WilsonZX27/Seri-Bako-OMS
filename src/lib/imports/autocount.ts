@@ -191,6 +191,7 @@ export function analyzeAutoCountFiles(files: AutoCountParsedFile[], knownBranchC
         item_code: itemCode,
         item_name: itemName,
         supplier_code: group,
+        supplier_group: group,
         creditor_code: creditorCode || null,
         base_uom: baseUom,
         standard_cost: standardCost && standardCost > 0 ? standardCost : null,
@@ -204,11 +205,12 @@ export function analyzeAutoCountFiles(files: AutoCountParsedFile[], knownBranchC
     const group = [...itemRows.values()].map(({ row }) => get(row, "Item Group")).find((value) => value.toLowerCase() === groupKey) ?? groupKey.toUpperCase();
     const namedRefs = [...entry.refs].filter(([, name]) => name);
     const supplierName = namedRefs.length === 1 && entry.refs.size === 1 ? namedRefs[0][1] : group;
+    const internalCode = [...entry.refs.keys()].sort((a, b) => a.localeCompare(b))[0] ?? group;
     const rowWarnings = entry.refs.size === 0 ? ["No AutoCount creditor reference; supplier name uses Item Group."]
       : namedRefs.length !== entry.refs.size ? ["One or more Main Supplier codes were not found in the Supplier List."] : [];
     staged.set(`supplier|${groupKey}`, {
       entityType: "supplier", businessKey: group, sourceFile: entry.sourceFile, sourceRow: entry.sourceRow,
-      normalized: { supplier_code: group, supplier_name: supplierName, external_refs: [...entry.refs].map(([code, name]) => ({ code, name })) },
+      normalized: { supplier_code: internalCode, supplier_group: group, supplier_name: supplierName, external_refs: [...entry.refs].map(([code, name]) => ({ code, name })) },
       warnings: rowWarnings,
     });
     warnings.push(...rowWarnings.map((warning) => `${group}: ${warning}`));
@@ -223,7 +225,7 @@ export function analyzeAutoCountFiles(files: AutoCountParsedFile[], knownBranchC
     staged.set(`mapping|${branchCode.toLowerCase()}|${itemCode.toLowerCase()}`, {
       entityType: "branch_mapping", businessKey: `${branchCode}|${itemCode}`, sourceFile: location.file, sourceRow: location.rowNumber,
       normalized: {
-        branch_code: branchCode, item_code: itemCode, supplier_code: supplierCode,
+        branch_code: branchCode, item_code: itemCode, supplier_code: supplierCode, supplier_group: supplierCode,
         source_qty: numberOrNull(get(location.row, "Qty")), source_total_cost: numberOrNull(get(location.row, "Total Cost")),
         source_average_cost: numberOrNull(get(location.row, "Average Cost Per Qty")),
       },

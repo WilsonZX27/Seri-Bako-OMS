@@ -57,7 +57,7 @@ export default async function SuppliersPage({
             <TableHeader>
               <TableRow>
                 <TableHead className="w-16 text-center">Action</TableHead>
-                <SortableHead label="Supplier Code" column="supplier_code" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
+                <SortableHead label="Item Group" column="supplier_group" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
                 <SortableHead label="Supplier Name" column="name" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
                 <SortableHead className="hidden lg:table-cell" label="Contact Person" column="contact_person" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
                 <SortableHead className="hidden md:table-cell" label="Phone" column="phone" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
@@ -70,7 +70,7 @@ export default async function SuppliersPage({
               {page.rows.map((supplier) => (
                 <DataGridRow key={supplier.id} href={`/suppliers/${supplier.id}`}>
                   <TableCell className="w-16 p-0 text-center"><TableActionLink href={`/suppliers/${supplier.id}`} label={`Open ${supplier.name}`}><Pencil className="h-4 w-4" /></TableActionLink></TableCell>
-                  <TableCell>{supplier.supplier_code ?? "-"}</TableCell>
+                  <TableCell><div className="font-medium">{supplier.supplier_group ?? supplier.supplier_code ?? "-"}</div>{supplier.supplier_code && supplier.supplier_code !== supplier.supplier_group ? <div className="text-[11px] text-muted-foreground" title="Internal AutoCount code">AutoCount {supplier.supplier_code}</div> : null}</TableCell>
                   <TableCell className="font-medium">{supplier.name}</TableCell>
                   <TableCell className="hidden lg:table-cell">{supplier.contact_person ?? "-"}</TableCell>
                   <TableCell className="hidden md:table-cell">{supplier.phone ?? "-"}</TableCell>
@@ -95,7 +95,7 @@ export default async function SuppliersPage({
             </TableBody>
           </Table>
           <OperationalList ariaLabel="Suppliers">
-            {page.rows.map((supplier) => <OperationalListRow key={supplier.id} href={`/suppliers/${supplier.id}`} label={`Open ${supplier.name}`} primary={supplier.name} status={<Badge variant={supplier.status === "active" ? "success" : "secondary"}>{supplier.status}</Badge>} secondary={`${supplier.supplier_code ?? "No code"} · ${supplier.contact_person ?? "No contact"}`} meta={supplier.payment_terms_days ? `${supplier.payment_terms_days} days` : undefined} />)}
+            {page.rows.map((supplier) => <OperationalListRow key={supplier.id} href={`/suppliers/${supplier.id}`} label={`Open ${supplier.name}`} primary={supplier.name} status={<Badge variant={supplier.status === "active" ? "success" : "secondary"}>{supplier.status}</Badge>} secondary={`${supplier.supplier_group ?? supplier.supplier_code ?? "No item group"}${supplier.supplier_code && supplier.supplier_code !== supplier.supplier_group ? ` · AutoCount ${supplier.supplier_code}` : ""} · ${supplier.contact_person ?? "No contact"}`} meta={supplier.payment_terms_days ? `${supplier.payment_terms_days} days` : undefined} />)}
             {!page.rows.length ? <EmptyState title={filtered ? "No suppliers match these filters" : "No suppliers yet"} description={filtered ? "Reset the filters or widen the search." : "Suppliers appear after they are created or imported."} action={filtered ? emptyAction : undefined} /> : null}
           </OperationalList>
           <PaginationControls page={page.page} totalPages={page.totalPages} totalRows={page.totalRows} searchParams={filters} />

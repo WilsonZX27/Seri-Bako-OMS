@@ -96,3 +96,19 @@ test("production follow-up keeps PR review compact and low stock semantically cr
   assert.match(actions, /expectedUpdatedAt: z\.string\(\)\.datetime\(\{ offset: true \}\)/);
   assert.match(dashboard, /label="Low stock"[\s\S]*alertTone="critical"/);
 });
+
+test("current annotation batch keeps shared explanation and responsive filter ownership", () => {
+  const detail = read("src", "app", "(app)", "purchase-requests", "[id]", "page.tsx");
+  const form = read("src", "components", "procurement-forms.tsx");
+  const production = read("src", "app", "(app)", "production", "jobs", "page.tsx");
+  const stockCounts = read("src", "app", "(app)", "stock-counts", "page.tsx");
+  const design = read("src", "app", "design-system-v2.css");
+  assert.match(detail, /requestedItemCount/);
+  assert.match(detail, /text-\[var\(--sb-danger\)\]/);
+  assert.match(form, /Supplier mapping required/);
+  assert.match(form, /No active supplier route uses/);
+  assert.match(production, /tabletCanvas="contained"/);
+  assert.match(stockCounts, /sb-list-filters--portrait-query/);
+  assert.match(design, /sb-list-filters--portrait-query\[data-tablet-query-layout="query"\]/);
+  assert.match(design, /--sb-control-height: 2\.25rem/);
+});

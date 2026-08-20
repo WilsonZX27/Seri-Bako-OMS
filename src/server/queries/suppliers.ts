@@ -54,6 +54,8 @@ export async function getSuppliers(filters: SupplierFilters = {}) {
 
   const supabase = await createClient();
   const requestedPage = Math.max(Number(filters.page) || 1, 1);
+  // supplier_group is a display-only projection during the migration window;
+  // keep server ordering on columns present before migration 174 as well.
   const allowedSorts = ["supplier_code", "name", "contact_person", "phone", "email", "payment_terms_days", "status"];
   const sort = filters.sort && allowedSorts.includes(filters.sort) ? filters.sort : "name";
   let query = supabase.from("suppliers").select("*", { count: "exact" });

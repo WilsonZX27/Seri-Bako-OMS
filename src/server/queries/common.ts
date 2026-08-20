@@ -111,20 +111,20 @@ export const getCompanyBranding = cache(async function getCompanyBranding() {
 
 export const getSuppliersForSelect = cache(async function getSuppliersForSelect() {
   if (isMockMode()) {
-    return mockSuppliers.map(({ id, supplier_code, name, status }) => ({ id, supplier_code, name, status }));
+    return mockSuppliers.map(({ id, supplier_code, supplier_group, name, status }) => ({ id, supplier_code, supplier_group, name, status }));
   }
 
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("suppliers")
-    .select("id, supplier_code, name, status")
+    .select("*")
     .eq("status", "active")
     .order("name", { ascending: true })
     .limit(200);
 
   if (error) throw new Error(error.message);
   if (!data) throw new Error("Supplier options returned no data.");
-  return data;
+  return data.map((supplier) => ({ ...supplier, supplier_group: supplier.supplier_group ?? supplier.supplier_code }));
 });
 
 export const getBranchSupplierMappingsForSelect = cache(async function getBranchSupplierMappingsForSelect() {
@@ -161,12 +161,12 @@ export const getBranchSupplierMappingsForSelect = cache(async function getBranch
   const masterSupplierIds = items.map((item) => item.supplier_id).filter((id): id is string => Boolean(id));
   const allSupplierIds = [...new Set([...supplierIds, ...masterSupplierIds])];
   const { data: suppliers, error: suppliersError } = allSupplierIds.length
-    ? await supabase.from("suppliers").select("id, supplier_code, name, status").in("id", allSupplierIds).eq("status", "active").is("deleted_at", null)
+    ? await supabase.from("suppliers").select("*").in("id", allSupplierIds).eq("status", "active").is("deleted_at", null)
     : { data: [], error: null };
   if (suppliersError) throw new Error(suppliersError.message);
   if (!suppliers) throw new Error("Supplier mapping options returned no data.");
   const relationshipById = new Map((relationships ?? []).map((row) => [row.id, row]));
-  const supplierById = new Map((suppliers ?? []).map((row) => [row.id, row]));
+  const supplierById = new Map((suppliers ?? []).map((row) => [row.id, { ...row, supplier_group: row.supplier_group ?? row.supplier_code }]));
   const resolvedMappings = mappings.flatMap((mapping) => {
     const relationship = relationshipById.get(mapping.supplier_item_id);
     const supplier = relationship ? supplierById.get(relationship.supplier_id) : null;

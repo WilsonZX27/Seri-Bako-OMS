@@ -11,6 +11,16 @@ Status vocabulary:
 
 ## Historical screenshot groups reconciled — v8.64.67
 
+### v8.64.70 Production follow-up annotations and supplier consolidation
+
+| Acceptance | Status | Evidence |
+|---|---|---|
+| Exact duplicate live supplier names are merged without deleting commercial history. | data-or-migration blocked | Migration 173 selects one company-scoped canonical supplier, moves document/item/external-reference ownership, reconciles overlapping supplier-item and branch mappings by soft retirement, stores both pre-merge supplier snapshots in `supplier_merge_audit`, and adds a live normalized-name uniqueness guard. Local migrations 171–173 applied and a transaction-created duplicate fixture passed the merge/audit assertions before `ROLLBACK`. Linked Production remains unchanged: compatible CLI 2.115 currently fails at the Supabase Management API `login-role` call with `LegacyDbConfigLoginRoleNetworkError / TransportError`, and the saved pooler URL requires a database password that is not available in this session. |
+| PR Review and apply no longer rejects a valid Supabase `updated_at` offset as `Invalid input`. | implemented / awaiting authenticated mutation UAT | The action now accepts ISO datetime offsets before invoking the recoverable migration-170 RPC. A real line mutation must pass after deployment before this becomes verified. |
+| Requested Items combines Qty and UOM so Supplier retains usable width. | implemented / awaiting Production viewport UAT | Desktop table uses one `Qty / UOM` header and one compact value cell; phone presentation was already combined. |
+| Guided review dialog is narrower without losing the complete workflow. | implemented / awaiting Production viewport UAT | Desktop cap changes from 72rem to 60rem while retaining the viewport-bound `calc(100vw - 2rem)` rule and scrollable body/footer. |
+| Dashboard Low stock uses the critical exception color rather than yellow warning. | implemented / awaiting Production viewport UAT | Low stock explicitly requests the shared critical/danger semantic token; unavailable data remains warning-colored. |
+
 ### v8.64.69 AutoCount Production identity recovery
 
 | Acceptance | Status | Evidence |

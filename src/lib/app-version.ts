@@ -1,6 +1,6 @@
-export const APP_VERSION = "8.64.69";
+export const APP_VERSION = "8.64.70";
 export const APP_SPRINT = `v${APP_VERSION}`;
-export const APP_RELEASE_TITLE = "AutoCount Identity Recovery";
+export const APP_RELEASE_TITLE = "Supplier Identity And PR Review Repair";
 // Keep the shell footer concise; the detailed release title belongs in release
 // notes, not in a narrow navigation rail where it is clipped on small screens.
 export const APP_RELEASE_NOTE = APP_SPRINT;

@@ -83,3 +83,16 @@ test("August 19 annotation closure groups PR data, simplifies loading, and stand
   assert.match(design, /\[data-tablet-document-split\]\[data-tablet-rail-breakpoint="md"\][\s\S]*> aside[\s\S]*display: block/);
   assert.match(design, /\.sb-purchase-request-table :is\(th, td\):nth-child\(7\) \{ width: 10rem; \}/);
 });
+
+test("production follow-up keeps PR review compact and low stock semantically critical", () => {
+  const detail = read("src", "app", "(app)", "purchase-requests", "[id]", "page.tsx");
+  const recovery = read("src", "components", "purchase-request-line-recovery.tsx");
+  const actions = read("src", "server", "actions", "procurement.ts");
+  const dashboard = read("src", "components", "dashboard-workspace.tsx");
+  assert.match(detail, />Qty \/ UOM</);
+  assert.match(detail, /formatNumber\(line\.qty\)\} \{line\.uom\}/);
+  assert.doesNotMatch(detail, /<TableHead className="text-right">Qty<\/TableHead>/);
+  assert.match(recovery, /w-\[min\(60rem,calc\(100vw-2rem\)\)\]/);
+  assert.match(actions, /expectedUpdatedAt: z\.string\(\)\.datetime\(\{ offset: true \}\)/);
+  assert.match(dashboard, /label="Low stock"[\s\S]*alertTone="critical"/);
+});

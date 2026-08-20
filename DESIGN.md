@@ -7,6 +7,12 @@
 > `docs/DESIGN_SYSTEM.md` owns the current visual principles; this file retains
 > versioned implementation history and workspace rules.
 
+## v8.64.70 (unreleased) - Supplier Identity And PR Review Repair
+
+- Critical stock exceptions use the shared danger semantic treatment; yellow remains reserved for warning or unavailable states.
+- PR review preserves supplier reading width by grouping Quantity/UOM and caps the desktop editor at a task-focused 60rem while retaining viewport-safe tablet behavior.
+- Duplicate supplier identities are resolved in the data authority and audit trail, never hidden only in a selector.
+
 ## v8.64.69 (unreleased) - AutoCount Identity Recovery
 
 - Master-data recovery preserves a proven existing identity instead of presenting duplicate records as a successful import.

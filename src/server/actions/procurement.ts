@@ -565,7 +565,7 @@ export async function revisePurchaseRequestLine(id: string, formData: FormData) 
       unitCost: z.coerce.number().min(0).max(1_000_000_000).nullable(),
       reason: z.string().trim().min(3, "Explain why this line is changing.").max(1_000),
       idempotencyKey: z.string().uuid(),
-      expectedUpdatedAt: z.string().datetime(),
+      expectedUpdatedAt: z.string().datetime({ offset: true }),
     }).parse({
       lineId: formData.get("line_id"),
       action: formData.get("revision_action"),

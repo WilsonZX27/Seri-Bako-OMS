@@ -45,6 +45,10 @@
 - AutoCount Preview blocks rows whose Item Group has no authoritative Main Supplier creditor code and identifies the exact source row and repair action.
 - Item Group remains the operator-facing label; the internal supplier identity must come from an AutoCount creditor code.
 
+## v8.64.85 (unreleased) - AutoCount Confirm Identity Guard
+
+- The database Confirm boundary repeats the creditor-reference guard, so older staged jobs cannot promote a display Item Group into an internal supplier identity.
+
 ## v8.64.76 (unreleased) - Cross-Viewport Control Rhythm
 
 - Shared query controls and right-rail actions use a 36px visual height from tablet through desktop.

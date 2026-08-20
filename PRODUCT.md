@@ -34,6 +34,10 @@ All prior annotation groups remain in the single repair ledger: the 17-comment g
 
 AutoCount Preview now blocks Item Groups with no authoritative Main Supplier creditor code, reports each affected item/file/row, and tells the operator to repair the source export. Item Group remains a display label; it is never silently promoted into an internal supplier identity.
 
+### v8.64.85 (unreleased) — AutoCount Confirm Identity Guard
+
+The atomic Confirm RPC now rejects staged supplier groups that contain no authoritative AutoCount creditor reference, protecting direct or older ready jobs from bypassing the Preview validation.
+
 ### v8.64.76 (unreleased) — Cross-Viewport Control Rhythm
 
 The shared control authority now keeps tablet and desktop filters, textboxes, selects, and right-rail actions at a 36px visual height. Phone controls retain the touch-safe height, and the ledger distinguishes visual geometry from authenticated viewport acceptance.
@@ -63,7 +67,7 @@ The shared control authority now keeps tablet and desktop filters, textboxes, se
 - Purchase Request review reports the number of requested items and gives supplier/UOM mapping errors a direct explanation and repair action.
 - Shared list surfaces keep desktop controls at 36px while preserving the tablet touch-first decision until the explicit 36px-versus-44px recommendation is accepted.
 
-Repository migration authority: migrations reviewed through `176`; this is not evidence that migration 176 is applied to the linked Production project.
+Repository migration authority: migrations reviewed through `177`; this is not evidence that migration 177 is applied to the linked Production project.
 
 ### v8.64.70 (unreleased) — Supplier Identity And PR Review Repair
 

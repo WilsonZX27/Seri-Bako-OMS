@@ -143,6 +143,13 @@ test("item groups without an authoritative creditor reference fail closed", () =
   assert.ok(analysis.issueDetails.some((issue) => issue.resolution.includes("Do not use Item Group as a supplier identity")));
 });
 
+test("AutoCount Confirm keeps the same creditor-reference guard at the database boundary", () => {
+  const migration = read("supabase/migrations/177_autocount_supplier_reference_guard.sql");
+  assert.match(migration, /jsonb_array_length\(coalesce\(row_record\.normalized->.*external_refs/);
+  assert.match(migration, /has no authoritative creditor reference/);
+  assert.match(migration, /errcode = ''23514''/);
+});
+
 test("AutoCount blocking UI explains the impact, source row, and recovery action", () => {
   const workflow = read("src/components/imports/autocount-import-workflow.tsx");
   assert.match(workflow, /Confirm is locked until the source records are corrected/);

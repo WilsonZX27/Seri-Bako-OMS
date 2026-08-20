@@ -28,6 +28,12 @@ The v8.64.79 local authenticated run completed all 18 historical/current browser
 |---|---|---|
 | AutoCount source rows without creditor identity | implemented / awaiting authenticated Preview UAT | Read-only analysis of the supplied 729-row Item List found 101 blank `Main Supplier` cells; six groups (`CHINA`, `FINISHED`, `FROMPNG`, `KWANKEE`, `OLDSUPP`, `PAHANG`) have no creditor reference anywhere, covering 86 rows. Of the 403 unique item codes present in the two Central Kitchen workbooks, 19 have a blank Main Supplier in the Item List. The analyzer now blocks each affected item row with a `missing_supplier_reference` issue and an exact repair action; it no longer treats Item Group as an internal supplier code. Existing groups with an authoritative creditor reference continue through staging. |
 
+## v8.64.85 AutoCount Confirm identity guard
+
+| Gate | Status | Evidence |
+|---|---|---|
+| Direct/older ready jobs cannot bypass supplier identity validation | implemented / awaiting linked migration application and authenticated Confirm UAT | Migration 177 patches the atomic `apply_autocount_import_job` boundary to reject staged supplier rows whose `external_refs` array is empty, using a recoverable validation error. The source contract passes locally; linked migration application and a real authenticated Confirm remain unverified. |
+
 ## Historical screenshot groups reconciled — v8.64.67
 
 ### v8.64.74 current evidence reconciliation batch

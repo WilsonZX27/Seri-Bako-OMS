@@ -34,6 +34,13 @@ The v8.64.79 local authenticated run completed all 18 historical/current browser
 |---|---|---|
 | Direct/older ready jobs cannot bypass supplier identity validation | implemented / awaiting linked migration application and authenticated Confirm UAT | Migration 177 patches the atomic `apply_autocount_import_job` boundary to reject staged supplier rows whose `external_refs` array is empty, using a recoverable validation error. The source contract passes locally; linked migration application and a real authenticated Confirm remain unverified. |
 
+## v8.64.86 role workflow evidence batch
+
+| Gate | Status | Evidence |
+|---|---|---|
+| Six scoped role workspaces | verified locally / Production UAT pending | Disposable authenticated Playwright checks passed for Super Admin, Finance, Manager, Purchasing, Kitchen, and Outlet (8 non-destructive scenarios). Each role retained one responsive workdesk and safe destinations. Production role UAT is not claimed. |
+| Manager approval mutation, manager reject mutation, and purchase-return posting mutation | awaiting named disposable fixture | The workflow suite intentionally skipped the approval fixture when no live Manager Review PR was available, and skipped reject/return mutation because `TEST_MUTATE_WORKFLOW=true` was not enabled. No destructive mutation was performed or inferred. |
+
 ## Historical screenshot groups reconciled — v8.64.67
 
 ### v8.64.74 current evidence reconciliation batch

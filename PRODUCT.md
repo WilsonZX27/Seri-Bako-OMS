@@ -1,5 +1,9 @@
 # Seri Bako Operations Management System
 
+### v8.64.86 (unreleased) — Role Workflow Evidence Closure
+
+The disposable local browser gate now covers the six scoped identities (Super Admin, Finance, Manager, Purchasing, Kitchen, and Outlet). Eight non-destructive workspace/filter scenarios passed; mutation scenarios remain explicitly skipped unless a named disposable fixture and mutation flag are supplied. This is local evidence only and does not prove Production role UAT.
+
 ## Product Overview
 
 ### v8.64.77 (unreleased) — Migration 176 Local SQL Validation

@@ -7,6 +7,10 @@
 > `docs/DESIGN_SYSTEM.md` owns the current visual principles; this file retains
 > versioned implementation history and workspace rules.
 
+## v8.64.86 (unreleased) - Role Workflow Evidence Closure
+
+The local role workspace gate exercised the six scoped identities with one responsive workdesk and safe destinations. Non-destructive checks passed; destructive workflow checks remain opt-in and are not represented as completed evidence without a named disposable fixture.
+
 ## v8.64.77 (unreleased) - Migration 176 Local SQL Validation
 
 - Migration 176's dynamic patches are newline-safe and preserve explicit brand values through both Item creation and AutoCount Confirm.

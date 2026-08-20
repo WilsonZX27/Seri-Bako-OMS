@@ -35,6 +35,11 @@
 - The local mirror has no Stock Count dated 2026-08-19 for either Central Kitchen; the latest posted records are CK-ALMA on 2026-08-17 and CK-PJS10 on 2026-08-06.
 - PDF-to-OMS tally equality therefore remains blocked until the linked Production read is available.
 
+## v8.64.83 (unreleased) - Historical Annotation Scope Reconciliation
+
+- The 17-comment, 34-comment, and 13-comment annotation groups plus reopened defects remain cumulative design scope in the single repair ledger.
+- Local geometry/authenticated checks and source contracts are not substituted for linked migration, Production data, or Production UAT evidence.
+
 ## v8.64.76 (unreleased) - Cross-Viewport Control Rhythm
 
 - Shared query controls and right-rail actions use a 36px visual height from tablet through desktop.

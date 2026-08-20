@@ -9,6 +9,19 @@ Status vocabulary:
 - `not verified`: no current evidence sufficient for acceptance.
 - `blocked`: a named dependency prevents verification.
 
+## v8.64.83 historical scope reconciliation
+
+The historical annotation scope is intentionally cumulative. No earlier screenshot batch is dropped when a newer batch is added:
+
+| Historical scope | Coverage retained | Current evidence boundary |
+|---|---|---|
+| 17-comment group | Shared list/filter/table density, Dashboard hierarchy and colors, PR creation/sourcing/actions, reject-dialog ordering, Outlet export/layout/table. Covered by `latest-annotation-polish-contract.test.js`, `round2-priority-annotations-contract.test.js`, the four-viewport register audit, and the reopened browser suite. | Local source/viewport evidence is retained; valid PR submission, full Outlet export mutation, role transitions, and Production UAT are not claimed. |
+| 34-comment group | Outlet chart/top bar/actions, Branch/table, AP Aging/PO/Recipe alignment, PR/Stock Balance/Supplier Items tables, role/login/right-rail issues. Covered by `historical-annotation-closure-contract.test.js`, `latest-annotation-polish-contract.test.js`, and the four-viewport register matrix. | Local geometry and contracts are retained; end-to-end maintenance, role workflow, and Production data evidence remain awaiting or blocked. |
+| 13-comment group (2026-08-20) | Dashboard unread badge, Imports rounding, AutoCount right rail, PR comments/dialog/Qty-UOM/supplier mapping, backdrop, 36px controls, PO chevron, PR section language. Covered by `annotation-v8-64-66-uat.spec.js`, `reopened-annotation-uat.spec.js`, and rows `UI-0820-01` through `UI-0820-13`. | Local authenticated evidence is retained for the exercised cases; Production deployment is still observed at v8.64.68 and cannot be called verified. |
+| Reopened defects | Dashboard duplicate queue, Outlet chart/rail, Staff register, PR inline validation. Covered by `reopened-annotation-uat.spec.js` and rows `UI-0819-R1` through `UI-0819-R4`. | Local authenticated checks are retained; Production recheck remains pending. |
+
+The v8.64.79 local authenticated run completed all 18 historical/current browser scenarios before this reconciliation. This updates stale wording below from “browser proof pending” to “verified locally / Production UAT pending” where the same evidence applies; it does not convert any local result into Production proof.
+
 ## Historical screenshot groups reconciled — v8.64.67
 
 ### v8.64.74 current evidence reconciliation batch
@@ -64,7 +77,7 @@ Status vocabulary:
 
 | ID | Acceptance | Status | Evidence |
 |---|---|---|---|
-| UI-0821-15 | Button, filter, textbox, and right-rail action visuals use one 36px height across tablet and desktop while phone touch controls remain accessible. | implemented / awaiting four-viewport UAT | Shared design-system authority now applies 36px to tablet/desktop query controls and right-rail actions after the prior 44px tablet default; phone controls retain 44px/48px touch-safe rules. Contract tests cover both branches. Browser viewport proof remains pending. |
+| UI-0821-15 | Button, filter, textbox, and right-rail action visuals use one 36px height across tablet and desktop while phone touch controls remain accessible. | verified locally / Production UAT pending | Shared design-system authority applies 36px to tablet/desktop query controls and right-rail actions; phone controls retain 44px/48px touch-safe rules. The 18-scenario authenticated local annotation run exercised the four required viewports for the relevant surfaces. Production route-wide UAT remains pending. |
 
 ### v8.64.73 current workflow closure batch
 
@@ -151,7 +164,7 @@ These rows reconcile the 13 comments captured from `system.seribako.com.my` on 2
 | UI-0820-08 | Guided PR review offers real supplier choices, not only `Needs supplier setup`. | verified locally / production awaiting UAT | Authenticated cloud-data mirror check confirmed the real supplier catalogue is non-empty and the selector contains options beyond `Needs supplier setup`. Production data recheck pending. |
 | UI-0820-09 | Guided PR review dialog uses a complete large working area. | verified locally at desktop and portrait tablet / phone and landscape tablet awaiting UAT | Authenticated checks confirmed width >900px at 1440×900 and >700px at 820×1180, bounded inside the viewport with the final Apply action visible. |
 | UI-0820-10 | All dialog/filter backdrops use a black translucent overlay, not green. | verified for guided PR and Filter More samples / production awaiting UAT | Native guided dialog computed backdrop is `rgba(0, 0, 0, 0.6)` at 820×1180 and 1440×900; shared Filter More overlay sampling also passed. Remaining uncommon dialogs are not claimed page-by-page. |
-| UI-0820-11 | Buttons, filters, and textboxes use a shared 36px visual height on tablet/desktop while phone stays touch-first. | verified for PR/PO sample / wider route UAT incomplete | Authenticated PR/PO checks passed at 390×844 (48px) and 820×1180, 1180×820, 1440×900 (36px), without page overflow. Full route sampling remains open. |
+| UI-0820-11 | Buttons, filters, and textboxes use a shared 36px visual height on tablet/desktop while phone stays touch-first. | verified locally for exercised routes / Production UAT pending | Authenticated PR/PO and historical register checks passed at 390×844 (48px) and 820×1180, 1180×820, 1440×900 (36px), without page overflow. Unexercised routes and Production remain open. |
 | UI-0820-12 | PO new has no unexplained 44px chevron/disclosure control. | verified locally / production awaiting UAT | Authenticated PO-new checks at all four required viewports found no disclosure/chevron control and no page overflow. |
 | UI-0820-13 | PR new Request details and Requested Items use one section/header language. | verified locally / production awaiting UAT | Authenticated PR-new checks at all four required viewports confirmed matching computed header backgrounds and stable control geometry. |
 

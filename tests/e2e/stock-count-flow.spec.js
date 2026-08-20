@@ -34,5 +34,6 @@ test("stock count posts one variance adjustment exactly once", async ({ page }) 
   await expect(page.getByRole("button", { name: "Confirm & Post Count" })).toHaveCount(0);
 
   await page.goto(`/stock-transactions?search=${encodeURIComponent(countNo)}`);
-  await expect(page.locator("tbody tr").filter({ hasText: "stock count adjustment" })).toHaveCount(1);
+  const targetAdjustment = page.locator("tbody tr").filter({ hasText: /stock count adjustment/i }).filter({ hasText: "E2E-SC-001" });
+  await expect(targetAdjustment).toHaveCount(1);
 });

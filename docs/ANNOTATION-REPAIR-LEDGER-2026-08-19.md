@@ -1,5 +1,17 @@
 # Annotation Repair Ledger — 2026-08-19
 
+## v8.64.91 bounded inventory read repair
+
+The local Purchasing mutation workflow posted a supplier return, but its Movement Ledger verification initially hit the fail-closed unavailable state because the bounded read RPC spent roughly 56 seconds in repeated authenticated RLS checks. Migration 179 changes only the bounded read function execution mode to `SECURITY DEFINER`; explicit `can_access_inventory_branch()` authorization remains inside the function. After local application, the same authenticated read returned the exact `ST-PRT/AUG26/004-4798` row in 58ms; this is local evidence only, not Production evidence.
+
+| Gate | Status | Evidence |
+|---|---|---|
+| Purchasing Movement Ledger after supplier return | verified locally / linked migration and Production UAT pending | Local migration 179 applied; authenticated Purchasing RPC returned one exact return row in 58ms and the mutation suite passed. The linked project still cannot be read through the Management API, so no remote or Production claim is made. |
+
+## v8.64.90 workflow mutation gate repair
+
+The local authenticated mutation gate was corrected to exercise the visible reject trigger before filling its modal reason, to match the rendered return movement label case-insensitively, and to assert the exact changed stock-count item rather than unrelated variance lines in the same disposable count. This is test-evidence repair only; linked migration and Production UAT remain separate gates.
+
 This is an evidence ledger, not a completion claim. A build, source inspection, or unauthenticated route load does not prove a responsive or role workflow is accepted.
 
 Status vocabulary:
@@ -39,7 +51,7 @@ The v8.64.79 local authenticated run completed all 18 historical/current browser
 | Gate | Status | Evidence |
 |---|---|---|
 | Six scoped role workspaces | verified locally / Production UAT pending | Disposable authenticated Playwright checks passed for Super Admin, Finance, Manager, Purchasing, Kitchen, and Outlet (8 non-destructive scenarios). Each role retained one responsive workdesk and safe destinations. Production role UAT is not claimed. |
-| Manager approval mutation, manager reject mutation, and purchase-return posting mutation | awaiting named disposable fixture | The workflow suite intentionally skipped the approval fixture when no live Manager Review PR was available, and skipped reject/return mutation because `TEST_MUTATE_WORKFLOW=true` was not enabled. No destructive mutation was performed or inferred. |
+| Manager approval mutation, manager reject mutation, and purchase-return/stock-count posting mutations | mixed: approval fixture awaiting; reject/return/count verified locally / Production UAT pending | With the explicitly enabled disposable local fixture, Manager reject, Purchasing purchase return, and Kitchen stock-count posting each passed after the visible modal/read-path repairs. Manager approval still lacks a named disposable fixture. No Production mutation is claimed. |
 
 ## v8.64.87 Stock Balance reliability batch
 
@@ -52,6 +64,12 @@ The v8.64.79 local authenticated run completed all 18 historical/current browser
 | Gate | Status | Evidence |
 |---|---|---|
 | Branch mappings retain internal creditor code and display Item Group separately | implemented / awaiting linked migration and authenticated Preview UAT | The parser previously copied Item Group into `branch_mapping.normalized.supplier_code`; it now uses each item row's authoritative Main Supplier code and stores Item Group only in `supplier_group`. Missing per-item Main Supplier values create blocking, row-specific repair issues even when a sibling item in the same group has a creditor reference. Contract coverage passes 16/16. Linked Production migration/data and real Preview remain unverified. |
+
+## v8.64.89 supplier-UOM return mutation batch
+
+| Gate | Status | Evidence |
+|---|---|---|
+| Purchase Return supplier-UOM posting reaches the conversion path | verified locally / linked migration and Production workflow UAT pending | The local mutation gate reproduced PostgreSQL `column reference "po_line.id" is ambiguous` in `post_purchase_return_atomic`. Migration 178 adds an idempotent forward patch that renames only the SQL JOIN alias to `pol`; local migration 178 applied and the authenticated Purchasing return mutation passed. No linked Production claim is made. |
 
 ## Historical screenshot groups reconciled — v8.64.67
 

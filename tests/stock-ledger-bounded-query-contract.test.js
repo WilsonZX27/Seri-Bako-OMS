@@ -31,6 +31,12 @@ test("bounded ledger page preserves running balances and paginates after filteri
   assert.match(migrationSource, /least\(p_limit, 50000\)/);
 });
 
+test("ledger wrapper delegates to the tenant-scoped bounded read repair", () => {
+  const repair = fs.readFileSync(path.join(root, "supabase/migrations/179_bound_inventory_read_rls_cost.sql"), "utf8");
+  assert.match(repair, /get_stock_card_bounded/);
+  assert.match(repair, /security definer/);
+});
+
 test("inventory reads fail closed instead of replacing a failed source with zero rows", () => {
   assert.match(querySource, /const STOCK_CARD_FALLBACK_LIMIT = 5_000/);
   assert.match(querySource, /from\("stock_transactions"\)/);

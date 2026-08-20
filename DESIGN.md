@@ -1,5 +1,17 @@
 # Seri Bako OMS responsive design standard
 
+## v8.64.91 (unreleased) - Bounded Inventory Read RLS Repair
+
+Movement Ledger retains its explicit tenant/branch authorization contract while the bounded read avoids duplicate policy evaluation that made valid role reads appear unavailable.
+
+## v8.64.90 (unreleased) - Workflow Mutation Gate Repair
+
+Mutation evidence selectors follow the established dialog interaction pattern and target the exact inventory row, avoiding false failures from pre-existing fixture variances.
+
+## v8.64.89 (unreleased) - Supplier UOM Return Alias Repair
+
+Supplier-UOM return posting retains the existing supplier-facing quantity and base-unit accounting semantics; migration 178 only disambiguates the SQL alias used by the conversion lookup.
+
 ## v8.64.88 (unreleased) - AutoCount Mapping Identity Guard
 
 AutoCount sourcing surfaces keep the internal creditor code and operator-facing Item Group as separate fields; branch mapping rows never promote a display label into an internal supplier identity.

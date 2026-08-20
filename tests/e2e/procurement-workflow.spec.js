@@ -39,8 +39,13 @@ test("manager reject action refreshes workflow state when mutation smoke is enab
   await expect(firstPr).toBeVisible();
   await firstPr.dblclick();
   await expect(page).toHaveURL(/\/purchase-requests\//);
-  await page.locator('input:visible[name="remarks"][placeholder*="Rejection remarks"]').fill("E2E workflow reject smoke");
-  await page.getByRole("button", { name: "Reject request", exact: true }).filter({ visible: true }).click();
+  const rejectTrigger = page.getByRole("button", { name: "Reject request", exact: true }).first();
+  await expect(rejectTrigger).toBeVisible();
+  await rejectTrigger.click();
+  const rejectDialog = page.getByRole("dialog");
+  await expect(rejectDialog).toBeVisible();
+  await rejectDialog.locator('textarea[name="remarks"]').fill("E2E workflow reject smoke");
+  await rejectDialog.getByRole("button", { name: "Reject request", exact: true }).click();
   await expect(page.locator("body")).toContainText(/rejected/i);
   await expect(page.getByRole("button", { name: /manager approve/i })).toHaveCount(0);
   await expect(page.locator("body")).toContainText(/rejected/i);

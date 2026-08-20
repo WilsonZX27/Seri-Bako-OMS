@@ -15,6 +15,12 @@ test("supplier UOM stays document-facing while GRN and returns post base quantit
   assert.match(migration, /base_unit_cost := case when conversion = 0 then line\.unit_cost else line\.unit_cost \/ conversion end/);
   assert.match(migration, /insert_inventory_movement\('ST-'\|\|grn\.grn_no/);
   assert.match(migration, /base_return_qty := line\.return_qty \* conversion/);
+  assert.match(migration, /join public\.purchase_order_lines pol on pol\.id=grn_line\.purchase_order_line_id/);
+  assert.doesNotMatch(migration, /join public\.purchase_order_lines po_line on/);
   assert.match(migration, /Supplier UOM conversion is missing/);
   assert.match(migration, /grant execute on function public\.post_goods_receiving_atomic\(uuid,text\), public\.post_purchase_return_atomic\(uuid\) to authenticated/);
+  const aliasFix = read("supabase", "migrations", "178_fix_supplier_uom_return_alias.sql");
+  assert.match(aliasFix, /post_purchase_return_atomic\(uuid\)/);
+  assert.match(aliasFix, /join public\.purchase_order_lines pol on/);
+  assert.match(aliasFix, /column reference|unambiguous conversion lookup/i);
 });

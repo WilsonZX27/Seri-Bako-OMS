@@ -1,5 +1,17 @@
 # Seri Bako Operations Management System
 
+### v8.64.91 (unreleased) — Bounded Inventory Read RLS Repair
+
+The bounded Stock Card / Movement Ledger RPC keeps explicit branch authorization while avoiding duplicate per-row RLS evaluation under authenticated reads. This repairs the timeout path observed during the local Purchasing return workflow; linked Production evidence remains separate.
+
+### v8.64.90 (unreleased) — Workflow Mutation Gate Repair
+
+The disposable authenticated mutation gate now opens the rejection dialog before entering its required reason and asserts return/count movements by their exact target row. This repairs evidence collection only; it does not claim linked Production workflow verification.
+
+### v8.64.89 (unreleased) — Supplier UOM Return Alias Repair
+
+Forward migration 178 repairs the supplier-UOM purchase-return RPC where a PL/pgSQL `po_line` variable collided with a SQL JOIN alias. The patch is idempotent and changes no business arithmetic; it only makes the existing conversion lookup executable.
+
 ### v8.64.88 (unreleased) — AutoCount Mapping Identity Guard
 
 AutoCount branch mappings now carry the per-item Main Supplier creditor code internally and retain Item Group only as the operator-facing display group. Items without an authoritative Main Supplier are blocked rather than inferred from a sibling row or group label.
@@ -79,7 +91,7 @@ The shared control authority now keeps tablet and desktop filters, textboxes, se
 - Purchase Request review reports the number of requested items and gives supplier/UOM mapping errors a direct explanation and repair action.
 - Shared list surfaces keep desktop controls at 36px while preserving the tablet touch-first decision until the explicit 36px-versus-44px recommendation is accepted.
 
-Repository migration authority: migrations reviewed through `177`; this is not evidence that migration 177 is applied to the linked Production project.
+Repository migration authority: migrations reviewed through `179`; this is not evidence that migration 179 is applied to the linked Production project.
 
 ### v8.64.70 (unreleased) — Supplier Identity And PR Review Repair
 

@@ -104,3 +104,12 @@ test("AutoCount setup failures are actionable and do not expose PostgREST schema
   assert.match(confirm, /setupRequired/);
   assert.doesNotMatch(confirm, /message: error\.message/);
 });
+
+test("AutoCount confirm repair validates mappings only after creating supplier items", () => {
+  const repair = read("supabase/migrations/171_fix_autocount_confirm_rpc.sql");
+  assert.match(repair, /pg_get_functiondef\('public\.apply_autocount_import_job\(uuid\)'::regprocedure\)/);
+  assert.match(repair, /Item rows do not carry a branch/);
+  assert.match(repair, /supplier-item relationship is created here/);
+  assert.match(repair, /target_supplier_item\.id is null then raise exception/);
+  assert.match(repair, /notify pgrst, 'reload schema'/);
+});

@@ -1,6 +1,6 @@
 # Seri Bako OMS — Schema 与 Table 关系地图
 
-> Current repository authority: forward-only migration 历史已到 `173`; migration `170` adds recoverable PR and Stock Count line revisions plus committed PO line locking, migration `171` repairs AutoCount atomic Confirm ordering, job-scoped migration `172` preserves an exact soft-deleted item identity required by the authorized Production import, and migration `173` recoverably consolidates exact duplicate live supplier identities. Remote application and workflow evidence remain separately recorded in the repair ledger.
+> Current repository authority: forward-only migration 历史已到 `174`; migration `170` adds recoverable PR and Stock Count line revisions plus committed PO line locking, migration `171` repairs AutoCount atomic Confirm ordering, job-scoped migration `172` preserves an exact soft-deleted item identity required by the authorized Production import, migration `173` recoverably consolidates exact duplicate live supplier identities, and migration `174` separates the internal AutoCount creditor code from the operator-facing Item Group. Remote application and workflow evidence remain separately recorded in the repair ledger.
 
 > 2026-08-19 release authority：仓库 forward-only migration 历史已到 `169`；migrations `152–154` 依次新增 lossless non-catalog Purchase Request lines、按 supplier 原子拆分 PR，以及由 Item Master 统一 supplier-item identity；migrations `155–156` 分别收紧库存 opening 读取边界与 Outlet Daily receipt provenance；migration `157` 收紧 PR 三段审批的角色职责分离；migration `162` 允许无 branch override 时回退 Item Master supplier；migration `163` 只补全唯一、确定性的 stock-take supplier category 匹配；migrations `164–165` 修复 supplier split ordering 与 PO conversion idempotency；migration `166` 只对 branch + item + UOM 能确定唯一 supplier 的旧 PR line 回写 supplier snapshot，歧义项保持待 Purchasing 处理；migration `167` 将 Outlet Daily 超量损耗校验锚定到具体产品行；migration `168` 以单一安全 RPC 原子创建 Item Master 及可选 supplier/branch sourcing；migration `169` 新增 tenant-scoped AutoCount import jobs、staging rows、supplier external references 与单次原子确认，而且不从 AutoCount snapshot 写入库存 movement。此记录只证明 repository authority，不证明应用版本已部署到 Production。
 
@@ -23,6 +23,8 @@
 - `167` 将 Outlet Daily 超量损耗校验绑定到具体产品行，错误可定位到需要补充 remark 的输入。
 
 - `168` 通过带权限和租户边界的事务 RPC 原子创建 Item Master，并可在同一次操作中建立 supplier item 与 branch availability；返回 master-only、supplier-ready 或 branch-ready readiness。
+
+- `174` 为 supplier master 增加 `supplier_group` 显示字段，将 AutoCount creditor reference 作为内部 `supplier_code`，并更新原子导入确认以按 Item Group 解析 item 与 branch mapping。该文件只证明 repository authority，不证明 linked Production 已应用。
 
 - `150` 为 inventory read reliability hardening：为 posted ledger 的日期范围查询、stock transaction lines、posted stock counts 与 variance lines 增加选择性索引，针对 `57014` statement timeout；不改变 RLS、租户边界或 running-balance 语义。
 

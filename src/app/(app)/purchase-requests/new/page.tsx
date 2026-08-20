@@ -70,7 +70,7 @@ export default async function NewPurchaseRequestPage({ searchParams }: { searchP
       >
         <ActionErrorNotice
           message={params.error}
-          action={<Button asChild type="button" variant="outline" size="sm" className="shrink-0 text-destructive">
+          action={<Button asChild type="button" variant="outline" size="sm" className="shrink-0 self-start text-destructive">
             <Link href="/purchase-requests">Back to purchase requests</Link>
           </Button>}
         />

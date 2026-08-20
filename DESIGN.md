@@ -13,6 +13,13 @@
 - PR review preserves supplier reading width by grouping Quantity/UOM and caps the desktop editor at a task-focused 60rem while retaining viewport-safe tablet behavior.
 - Duplicate supplier identities are resolved in the data authority and audit trail, never hidden only in a selector.
 
+## v8.64.71 (unreleased) - Supplier Display Identity And Shared Filter Closure
+
+- AutoCount creditor code is the internal supplier identity; Item Group is the operator-facing display label, with the migration retaining recoverable history.
+- PR detail exposes a requested-item count, mapping exceptions explain the exact branch/UOM consequence in the shared danger treatment, and mapping actions stay right-aligned.
+- Production Jobs uses the contained tablet canvas; Stock Count portrait queries give the search field a full first row before the filter/action row.
+- Desktop controls use a 36px visual rhythm. Tablet remains 44px touch-first pending explicit acceptance of the recommended 36px visual / 44px hit-area pattern.
+
 ## v8.64.69 (unreleased) - AutoCount Identity Recovery
 
 - Master-data recovery preserves a proven existing identity instead of presenting duplicate records as a successful import.

@@ -837,6 +837,7 @@ export type Database = {
           id: string;
           company_id: string;
           supplier_code: string | null;
+          supplier_group: string | null;
           name: string;
           contact_person: string | null;
           phone: string | null;
@@ -852,6 +853,7 @@ export type Database = {
           id?: string;
           company_id: string;
           supplier_code?: string | null;
+          supplier_group?: string | null;
           name: string;
           contact_person?: string | null;
           phone?: string | null;

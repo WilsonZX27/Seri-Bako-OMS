@@ -1566,6 +1566,27 @@ html[data-design-layer="v2"] form.sb-list-query-card :where(input, select, butto
   font-size: 0.75rem !important;
 }
 
+/* Established desktop ERP pattern: a 36px visual control rhythm. Tablet
+   remains touch-first at 44px until the explicit 36-vs-44 recommendation is
+   accepted; the outer hit area remains unchanged in either case. */
+@media (min-width: 1280px) {
+  html[data-design-layer="v2"] {
+    --sb-control-height: 2.25rem;
+  }
+  html[data-design-layer="v2"] form.sb-list-query-card :where(input, select, button, [role="combobox"], [data-select-control], .sb-status-filter, .sb-status-filter-control, .sb-filter-more, .sb-filter-more > summary),
+  html[data-design-layer="v2"] [data-right-console] [data-console-section] :where(a.inline-flex, button.inline-flex) {
+    height: 2.25rem !important;
+    min-height: 2.25rem !important;
+    max-height: 2.25rem !important;
+  }
+}
+
+@media (min-width: 768px) and (max-width: 1023px) {
+  html[data-design-layer="v2"] form.sb-list-filters--portrait-query[data-tablet-query-layout="query"] > :where(input[type="search"], input[name="search"], input[placeholder*="Search"], input[placeholder*="Find"]) {
+    grid-column: 1 / -1;
+  }
+}
+
 html[data-design-layer="v2"] form.sb-list-query-card :where(input, select, [role="combobox"], [data-select-control], .sb-status-filter-control, .sb-filter-more > summary) {
   background-color: var(--sb-surface-raised) !important;
   border-color: var(--sb-border) !important;

@@ -2,6 +2,14 @@
 
 ## Product Overview
 
+### v8.64.71 (unreleased) — Supplier Display Identity And Shared Filter Closure
+
+- Supplier master data separates the internal AutoCount creditor code from the Item Group shown to operators; duplicate-name merges remain soft-retirable and auditable.
+- Purchase Request review reports the number of requested items and gives supplier/UOM mapping errors a direct explanation and repair action.
+- Shared list surfaces keep desktop controls at 36px while preserving the tablet touch-first decision until the explicit 36px-versus-44px recommendation is accepted.
+
+Repository migration authority: migrations reviewed through `174`; this is not evidence that migration 174 is applied to the linked Production project.
+
 ### v8.64.70 (unreleased) — Supplier Identity And PR Review Repair
 
 - Exact duplicate live supplier names are consolidated through recoverable migration 173: commercial references move to one canonical supplier, overlapping supplier-item/branch mappings are retired rather than hard-deleted, and every merge stores both pre-merge records in an audit table.

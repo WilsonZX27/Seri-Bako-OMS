@@ -7,10 +7,12 @@ type SupplierOption = {
   id: string;
   name: string;
   supplier_code: string | null;
+  supplier_group?: string | null;
 };
 
 function optionLabel(supplier: SupplierOption) {
-  return supplier.supplier_code ? `${supplier.supplier_code} - ${supplier.name}` : supplier.name;
+  const displayGroup = supplier.supplier_group ?? supplier.supplier_code;
+  return displayGroup ? `${displayGroup} - ${supplier.name}` : supplier.name;
 }
 
 export function SupplierCombobox({ suppliers, initialSupplierId }: { suppliers: SupplierOption[]; initialSupplierId?: string | null }) {

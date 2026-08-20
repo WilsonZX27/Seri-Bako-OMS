@@ -11,6 +11,20 @@ Status vocabulary:
 
 ## Historical screenshot groups reconciled — v8.64.67
 
+### v8.64.71 current annotation closure batch
+
+| ID | Acceptance | Status | Evidence |
+|---|---|---|---|
+| UI-0821-01 | PR detail shows an index/count for all requested items. | implemented / awaiting Production viewport UAT | Header now shows `Requested Items · N items` using catalog plus unresolved lines; source and local gates pending. |
+| UI-0821-02 | Supplier-mapping CTN/UOM exceptions use the danger treatment and explain branch/UOM impact. | implemented / awaiting Production viewport UAT | New PR and guided recovery surfaces use shared danger tokens, direct cause, and a right-aligned mapping action. |
+| UI-0821-03 | PR new supplier-selection error explains the mismatch and repair action. | implemented / awaiting authenticated mutation UAT | Server action now states the one-supplier rule and tells the operator to reselect a compatible supplier/item set; existing inline focus remains. |
+| UI-0821-04 | Supplier duplicates use one canonical identity; AutoCount code is internal and Item Group is the visible label. | data-or-migration blocked | Import staging now separates `supplier_code` (AutoCount code) and `supplier_group` (Item Group). Migration 174 adds/backfills the column and keeps merge 173 recoverable. Linked migration application and Production row verification remain blocked by Supabase Management API login-role transport failure. |
+| UI-0821-05 | PR list filter grammar is shared and balanced; Production Jobs has inward tablet gutters. | implemented / awaiting Production viewport UAT | PR list adopts the shared balanced filter authority; Production Jobs changes from full to contained tablet canvas. |
+| UI-0821-06 | Stock Count portrait tablet search occupies its own row before filters/actions. | implemented / awaiting 820×1180 authenticated UAT | Shared filter class adds a portrait-query rule; no route-specific control markup was added. |
+| UI-0821-07 | Desktop controls are 36px; tablet choice remains explicit. | implemented / awaiting Production viewport UAT; tablet decision awaiting user | Desktop (>=1280px) shared token is 36px. Tablet remains 44px touch-first for now. Recommendation: 36px visual control with a separate >=44px hit area is the mature ERP/accessibility compromise; apply after user accepts. |
+| UI-0821-08 | Latest two Central Kitchen stock-take PDFs reconcile to OMS and naming includes kitchen brand visibility. | blocked by linked read-only Production data | Read-only extraction found 5 pages / 154 lines in `AUGUST - Copy of 1608.pdf` and 5 pages / 128 lines in `STOCK TAKE PJS10 CK - 19 Aug（副本）.pdf`; the first exposes 119 distinct item codes (5 absent from the local seed mirror), the second exposes 9 reliably parseable codes. Names visibly carry brand tokens such as CAP SAUH, BABAS, CHEK HUP, PENANG ANCHOR, and BRUGGEMAN, but the current Item Master has no structured brand field. This session lacks a valid authenticated Production tally query after the Supabase login-role transport failure, so no count, rename, or brand mapping was fabricated. |
+| UI-0821-09 | PR supplier UOM follows supplier purchase UOM while internal calculations remain base/KG. | implemented in data contract / awaiting workflow UAT | Existing `supplier_items.purchase_uom` and `conversion_to_base_uom` remain the purchase-facing route; Stock Count/inventory ledger stays base-unit authoritative. UI now explains incompatible supplier UOM instead of silently treating it as a mapping. Controlled PO/GRN conversion workflow still needs authenticated fixture verification. |
+
 ### v8.64.70 Production follow-up annotations and supplier consolidation
 
 | Acceptance | Status | Evidence |

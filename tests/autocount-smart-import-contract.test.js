@@ -84,8 +84,19 @@ test("Supplier operational codes retain one-to-many AutoCount creditor reference
   const analyzer = read("src/lib/imports/autocount.ts");
   assert.match(migration, /create table public\.supplier_external_references/);
   assert.match(migration, /unique \(company_id, source_system, external_code\)/);
-  assert.match(analyzer, /supplier_code: group/);
+  assert.match(analyzer, /supplier_code: internalCode/);
+  assert.match(analyzer, /supplier_group: group/);
   assert.match(analyzer, /external_refs/);
+});
+
+test("Supplier display identity separates Item Group from internal AutoCount code", () => {
+  const migration = read("supabase/migrations/174_supplier_code_display_group.sql");
+  const suppliers = read("src/app/(app)/suppliers/page.tsx");
+  assert.match(migration, /add column if not exists supplier_group/);
+  assert.match(migration, /set supplier_code = preferred_ref\.external_code/);
+  assert.match(migration, /supplier_group = coalesce/);
+  assert.match(suppliers, /label="Item Group"/);
+  assert.match(suppliers, /AutoCount \{supplier\.supplier_code\}/);
 });
 
 test("Preview stages normalized rows and confirmation trusts only the job id", () => {

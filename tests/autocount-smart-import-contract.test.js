@@ -54,6 +54,19 @@ test("AutoCount Confirm creates supplier-item sourcing before validating branch 
   assert.doesNotMatch(repair, /insert into public\.stock_transactions/i);
 });
 
+test("AutoCount identity recovery is exact, staged, and preserves the original item id", () => {
+  const recovery = read("supabase/migrations/172_recover_staged_autocount_item_identity.sql");
+  assert.match(recovery, /job\.status = 'ready'/);
+  assert.match(recovery, /job\.id = '620fbc6a-0ad1-4f26-aa43-d38987251d8b'::uuid/);
+  assert.match(recovery, /staged\.entity_type = 'item'/);
+  assert.match(recovery, /item\.deleted_at is not null/);
+  assert.match(recovery, /supplier_item\.status = 'active'/);
+  assert.match(recovery, /item_name[\s\S]*base_uom[\s\S]*base_unit/);
+  assert.match(recovery, /not exists \([\s\S]*live_item\.deleted_at is null/);
+  assert.match(recovery, /update public\.items item[\s\S]*set deleted_at = null/);
+  assert.doesNotMatch(recovery, /insert into public\.items/);
+});
+
 test("Supplier operational codes retain one-to-many AutoCount creditor references", () => {
   const migration = read("supabase/migrations/169_autocount_smart_import.sql");
   const analyzer = read("src/lib/imports/autocount.ts");

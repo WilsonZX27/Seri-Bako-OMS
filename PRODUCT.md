@@ -2,6 +2,12 @@
 
 ## Product Overview
 
+### v8.64.69 (unreleased) — AutoCount Identity Recovery
+
+- A ready AutoCount job may restore an exact soft-deleted item identity when its code, name, and UOM match and an active supplier mapping still references that item.
+- Ambiguous identities and non-exact matches remain blocked; the recovery never creates a second item ID or inventory movement.
+- Production Confirm failures retain their exact PostgreSQL evidence in the repair ledger rather than being treated as successful staging.
+
 ### v8.64.68 (unreleased) — Remote Annotation UAT Recovery
 
 - Playwright environment parsing preserves `#` inside unquoted credentials while still accepting whitespace-delimited inline comments.
@@ -432,7 +438,7 @@ The system currently covers or is actively implementing the following operationa
 
 Module maturity must be understood separately from visual completion.
 
-Repository migrations reviewed through `171`; release authority is
+Repository migrations reviewed through `172`; release authority is
 `v8.64.55 — Bounded Reads And Explicit Receipt Provenance`.
 
 Current integration baseline: `v8.64.55 — Bounded Reads And Explicit Receipt Provenance`, with repository migrations reviewed through `169`. The local P0 patch is the unreleased `v8.64.56` forward contract and must not be treated as Production application evidence. Migrations `111` and `112` remain immutable history because they were applied to the linked database accidentally. Migration `113` removes their callable Central Kitchen PR RPC, prevents further access to the stock-holds table, and preserves that table temporarily for a non-destructive data audit. Later forward-only migrations add bounded inventory and Dashboard read models, repair grants and scoped access, introduce branch supply-route and received-quantity provenance, preserve unmatched PR entry as auditable non-catalog lines, split approved purchase requests atomically by supplier, make Item Master the authority for supplier-item identity, bound historical inventory opening reads, preserve explicit outlet receipt zeros, remove leaked PR approval grants from non-owning workflow roles, allow item-master suppliers as a controlled PR fallback, deterministically backfill supplier identities from unique stock-take category matches, repair supplier split ordering, satisfy purchase-order idempotency invariants, resolve deterministic legacy PR supplier snapshots, anchor outlet daily validation to the affected product line, create an item master with optional supplier/branch sourcing atomically, and stage one tenant-scoped AutoCount multi-file job before a single atomic master-data confirmation; they do not restore the retired Central Kitchen PR workflow or make AutoCount quantity authoritative over OMS stock.

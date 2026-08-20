@@ -11,6 +11,12 @@ Status vocabulary:
 
 ## Historical screenshot groups reconciled — v8.64.67
 
+### v8.64.69 AutoCount Production identity recovery
+
+| Acceptance | Status | Evidence |
+|---|---|---|
+| Production Confirm for job `620fbc6a-0ad1-4f26-aa43-d38987251d8b` exposes and resolves its real blocker without duplicate master data. | verified complete | First authorized Confirm failed atomically with PostgreSQL `23505`: supplier `5e868b4f-afa7-42bf-8563-daabb090df86` and supplier item code `FROMPNG00011` already existed. Read-only evidence showed the active mapping referenced soft-deleted item `f6a84f5f-85aa-45d0-9312-a3d8488c20e9`; staged row 520 matched code, name `Anchor unsalted Butter`, and UOM `KG` exactly. Job-specific migration 172 restored that proven identity and remote history reports `172/172`. The authorized retry persisted `completed` at `2026-08-21T01:22:47.776199+08:00`: 424 items created, 305 updated, 28 suppliers created, 26 updated, 507 supplier items created, 418 branch mappings created, 0 UOM conversions, and **0 inventory movements**. Blocking issues remained empty. |
+
 The user re-supplied three annotation galleries containing 17, 34, and 13 comments. The original task record was reread to recover comment text, route, viewport, selector, and screenshot context. A thumbnail, source file, or previous passing test is not treated as current Production verification.
 
 | Recovered group | Reconciliation status | Remaining or current evidence |

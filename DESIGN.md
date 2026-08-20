@@ -7,6 +7,11 @@
 > `docs/DESIGN_SYSTEM.md` owns the current visual principles; this file retains
 > versioned implementation history and workspace rules.
 
+## v8.64.69 (unreleased) - AutoCount Identity Recovery
+
+- Master-data recovery preserves a proven existing identity instead of presenting duplicate records as a successful import.
+- A generic import error is not closure evidence; operators need the exact conflicting record and a safe recovery path.
+
 ## v8.64.68 (unreleased) - Remote Annotation UAT Recovery
 
 - Authenticated remote visual evidence must use the complete credential value; verification tooling must not silently truncate valid password characters.

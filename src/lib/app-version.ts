@@ -1,6 +1,6 @@
-export const APP_VERSION = "8.64.68";
+export const APP_VERSION = "8.64.69";
 export const APP_SPRINT = `v${APP_VERSION}`;
-export const APP_RELEASE_TITLE = "Remote Annotation UAT Recovery";
+export const APP_RELEASE_TITLE = "AutoCount Identity Recovery";
 // Keep the shell footer concise; the detailed release title belongs in release
 // notes, not in a narrow navigation rail where it is clipped on small screens.
 export const APP_RELEASE_NOTE = APP_SPRINT;

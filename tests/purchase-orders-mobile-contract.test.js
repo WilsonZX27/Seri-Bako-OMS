@@ -18,10 +18,11 @@ test("purchase order mobile pages keep the list quiet and the creation action re
   assert.match(newPage, /form="purchase-order-form"[^>]*pendingLabel="Creating\.\.\."/);
 });
 
-test("purchase order creation uses one collapsible setup and dynamic compact lines", () => {
+test("purchase order creation uses one stable setup surface and dynamic compact lines", () => {
   assert.match(form, /data-purchase-order-setup/);
   assert.match(form, /data-purchase-order-lines/);
-  assert.match(form, /<details open data-purchase-order-form-surface/);
+  assert.match(form, /<section data-purchase-order-form-surface/);
+  assert.doesNotMatch(form, /<details open data-purchase-order-form-surface/);
   assert.doesNotMatch(form, /More order details/);
   assert.match(form, /aria-label="Add order line"/);
   assert.match(form, /aria-label="Add order line at end"/);

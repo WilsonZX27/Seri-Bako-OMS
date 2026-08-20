@@ -75,7 +75,7 @@ export function TopBarActivityMenu({ data }: { data: TopBarActivity }) {
       <Button ref={triggerRef} type="button" variant="ghost" size="icon" onClick={toggleOpen} aria-label={count ? `Open workspace updates, ${count} unread or pending` : "Open workspace updates"} aria-haspopup="dialog" aria-expanded={open}>
         <Bell className="h-5 w-5" />
         {count ? (
-          <span className="absolute right-0.5 top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-[var(--sb-warning)] px-1 text-[9px] font-semibold leading-none text-white">
+          <span className="absolute right-0.5 top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-[var(--sb-danger)] px-1 text-[9px] font-semibold leading-none text-white">
             {badgeLabel}
           </span>
         ) : null}

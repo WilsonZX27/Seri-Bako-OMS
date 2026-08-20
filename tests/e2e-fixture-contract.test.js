@@ -12,6 +12,8 @@ test("local Playwright role fixtures are explicit, disposable, and never enabled
   const seed = read("scripts/setup-local-dashboard-e2e.mjs");
 
   assert.match(config, /usesLocalRoleFixture\s*=\s*process\.env\.RUN_TENANT_BOUNDARY_E2E\s*===\s*["']1["']/);
+  assert.match(config, /value\.match\(\/\\s\+#\/\)/);
+  assert.doesNotMatch(config, /value\.indexOf\(["']#["']\)/);
   assert.match(config, /globalSetup:\s*usesLocalRoleFixture/);
   assert.match(config, /baseURL\s*=\s*startsLocalServer\s*\?\s*localBaseUrl\s*:/);
   assert.match(setup, /RUN_TENANT_BOUNDARY_E2E\s*!==\s*["']1["']/);

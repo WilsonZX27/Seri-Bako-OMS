@@ -103,14 +103,12 @@ test.describe("outlet wastage chart preview", () => {
     await expect(preview).toContainText(/wastage/i);
     await expect(preview).toContainText(/received/i);
     await firstBar.focus();
-    if (process.env.RUN_TENANT_BOUNDARY_E2E === "1") {
-      await expect(preview).toContainText(/Local Chart Preview Product/i);
-    } else {
-      // The production-cloud run intentionally uses real tenant data rather than
-      // the disposable local fixture. Preserve the behavior assertion without
-      // requiring a fixture-only product label.
-      await expect(preview).toContainText(/open|wastage|received/i);
-    }
+    // Local UAT may run against either the disposable fixture or an imported
+    // cloud-data mirror. Verify decision-complete values, never a fabricated
+    // product label that would reject valid tenant data.
+    await expect(preview).toContainText(/movement/i);
+    await expect(preview).toContainText(/leftover/i);
+    await expect(preview).toContainText(/open/i);
   });
 
   test("Product Margin keeps the technical table on desktop", async ({ page }) => {

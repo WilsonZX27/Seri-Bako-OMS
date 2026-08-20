@@ -319,23 +319,23 @@ export function PurchaseRequestForm({
           <input type="hidden" name="urgency_reason" value={initialUrgencyReason ?? ""} />
           <input type="hidden" name="production_risk" value={initialProductionRisk ? "on" : ""} />
           <input type="hidden" name="expected_updated_at" value={initialUpdatedAt ?? ""} />
-          <section data-purchase-request-setup className="sb-work-surface p-3 md:p-4">
-            <div className={`${detailsOpen ? "mb-3" : ""} flex items-start justify-between gap-3 border-b border-[var(--sb-border-soft)] pb-2`}>
+          <section data-purchase-request-setup className="sb-work-surface overflow-hidden">
+            <div data-document-section-header className="flex items-center justify-between gap-3 border-b bg-white px-3 py-2">
               <div className="min-w-0">
                 <h2 className="text-sm font-semibold text-[var(--sb-text)]">Request details</h2>
-                {detailsOpen ? <p className="text-xs text-muted-foreground">Where and when this purchase is needed.</p> : (
+                {!detailsOpen ? (
                   <div className="mt-1 flex flex-wrap gap-x-3 gap-y-1 text-xs text-muted-foreground">
                     <span className="inline-flex min-w-0 items-center gap-1"><MapPin className="h-3.5 w-3.5 shrink-0" /><span className="break-words">{selectedBranchName}</span></span>
                     <span className="inline-flex items-center gap-1"><CalendarDays className="h-3.5 w-3.5 shrink-0" />{neededByDate || "Date not set"}</span>
                     <span className="font-medium capitalize text-[var(--sb-text)]">{priority}</span>
                   </div>
-                )}
+                ) : null}
               </div>
               <Button type="button" variant="ghost" size="icon" className="h-8 w-8 shrink-0" aria-expanded={detailsOpen} aria-label={detailsOpen ? "Collapse request details" : "Expand request details"} onClick={() => setDetailsOpen((open) => !open)}>
                 <ChevronDown className={`h-4 w-4 transition-transform ${detailsOpen ? "rotate-180" : ""}`} />
               </Button>
             </div>
-            <div className={`${detailsOpen ? "grid" : "hidden"} grid-cols-2 gap-3 md:grid-cols-4`}>
+            <div className={`${detailsOpen ? "grid" : "hidden"} grid-cols-2 gap-3 p-3 md:grid-cols-4`}>
             <Field label="Request branch" required>
                 <SelectNative data-pr-field="branch" name="branch_id" aria-label="Request branch" aria-invalid={validationTarget?.field === "branch" || undefined} className={validationTarget?.field === "branch" ? "border-rose-500 ring-2 ring-rose-200" : ""} value={branchId} onChange={(event) => { setValidationError(""); setValidationTarget(null); changeBranch(event.target.value); }} required disabled={lockBranch}>
                   {branches.map((branch) => <option key={branch.id} value={branch.id}>{branch.branch_name}</option>)}
@@ -366,7 +366,7 @@ export function PurchaseRequestForm({
           ) : null}
 
           <section data-purchase-request-workspace className="sb-work-surface overflow-hidden" onFocusCapture={() => { if (detailsComplete && !validationError) setDetailsOpen(false); }}>
-            <div className="flex items-center justify-between border-b bg-white px-3 py-2">
+            <div data-document-section-header className="flex items-center justify-between border-b bg-white px-3 py-2">
               <div>
                 <p className="text-xs font-semibold">Requested Items</p>
               </div>
@@ -491,13 +491,10 @@ export function PurchaseOrderForm({
           <input type="hidden" name="idempotency_key" value={idempotencyKey} />
           <input type="hidden" name="status" value="draft" />
           <input type="hidden" name="approval_status" value="draft" />
-          <details open data-purchase-order-form-surface className="sb-work-surface group p-3 md:p-4">
-          <summary className="cursor-pointer list-none [&::-webkit-details-marker]:hidden">
+          <section data-purchase-order-form-surface className="sb-work-surface p-3 md:p-4">
           <div className="mb-3 border-b border-[var(--sb-border-soft)] pb-2">
-            <h2 className="flex items-center justify-between gap-3 text-sm font-semibold text-[var(--sb-text)]">Order details <span aria-hidden="true" className="text-muted-foreground transition-transform group-open:rotate-180">⌄</span></h2>
-            <p className="text-xs text-muted-foreground">Choose the receiving branch, supplier, and delivery context.</p>
+            <h2 className="text-sm font-semibold text-[var(--sb-text)]">Order details</h2>
           </div>
-          </summary>
           <div data-purchase-order-setup className="grid grid-cols-2 gap-3 md:grid-cols-3">
             <Field label="Branch" required>
               <SelectNative name="branch_id" value={branchId} onChange={(event) => { setBranchId(event.target.value); setSupplierId(""); }} required>
@@ -522,7 +519,7 @@ export function PurchaseOrderForm({
                 </Field>
               </div>
           </div>
-          </details>
+          </section>
 
           <section data-purchase-order-lines className="sb-work-surface overflow-hidden">
             <div className="flex items-center justify-between gap-3 border-b bg-white px-3 py-2">

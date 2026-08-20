@@ -96,8 +96,16 @@ for (const [roleCode, emailKey, passwordKey] of accounts) {
     .eq("staff_code", staffCode)
     .maybeSingle();
   if (existingStaffError) throw existingStaffError;
-  const staffWrite = existingStaff
-    ? await admin.from("staffs").update({ auth_user_id: authUser.id, full_name: `Local ${roleCode}`, email: env[emailKey], default_branch_id: branch.id, status: "active", invitation_status: "completed", must_change_password: false }).eq("id", existingStaff.id).select("id").single()
+  const { data: authLinkedStaff, error: authLinkedStaffError } = await admin
+    .from("staffs")
+    .select("id")
+    .eq("company_id", company.id)
+    .eq("auth_user_id", authUser.id)
+    .maybeSingle();
+  if (authLinkedStaffError) throw authLinkedStaffError;
+  const reusableStaff = existingStaff ?? authLinkedStaff;
+  const staffWrite = reusableStaff
+    ? await admin.from("staffs").update({ auth_user_id: authUser.id, staff_code: staffCode, full_name: `Local ${roleCode}`, email: env[emailKey], default_branch_id: branch.id, status: "active", invitation_status: "completed", must_change_password: false }).eq("id", reusableStaff.id).select("id").single()
     : await admin.from("staffs").insert({ company_id: company.id, auth_user_id: authUser.id, staff_code: staffCode, full_name: `Local ${roleCode}`, email: env[emailKey], default_branch_id: branch.id, status: "active", invitation_status: "completed", must_change_password: false }).select("id").single();
   if (staffWrite.error) throw staffWrite.error;
   const staff = staffWrite.data;

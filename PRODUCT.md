@@ -2,6 +2,27 @@
 
 ## Product Overview
 
+### v8.64.68 (unreleased) — Remote Annotation UAT Recovery
+
+- Playwright environment parsing preserves `#` inside unquoted credentials while still accepting whitespace-delimited inline comments.
+- Linked Supabase migration evidence is collected with a compatible CLI and remains separate from authenticated workflow evidence.
+- Migration 171 is applied only after a linked-project check and dry-run prove it is the sole pending migration.
+
+### v8.64.67 (unreleased) — Historical Annotation Closure
+
+- Historical annotation groups are reconciled against the single repair ledger instead of being treated as screenshot-only completion claims.
+- Stock Balance groups Available/Reserved and Average Cost/Value into compact decision fields; Stock Count keeps SC number and submitter together.
+- Outlet Daily clears obsolete wastage reason and remarks when wastage returns to zero, and Supplier lifecycle actions are hidden when update permission is absent.
+- Local implementation and test evidence remains distinct from linked-migration and Production verification.
+
+### v8.64.66 (unreleased) — Annotation Workflow Closure
+
+- Workspace notification counts return to the red unread badge; workflow-state colors remain owned by Manager, Purchasing, and Finance status presentation.
+- AutoCount actions, errors, and status share the right rail at portrait tablet and wider layouts, while the import directory and guided PR repair use the canonical panel/dialog geometry.
+- Desktop and tablet controls use the 36px visual-density token; phone retains its touch-first control contract. PR and PO setup sections use one stable header language without an unexplained disclosure affordance.
+- Source and local test evidence is not production verification. Authenticated four-viewport, role workflow, linked migration, AutoCount confirmation, and production regression gates remain separately recorded in the annotation ledger.
+- AutoCount Confirm now creates a missing supplier-item relationship before branch mapping and validates the branch only in the branch-mapping phase (migration 171); the authenticated disposable local mirror passed actionable validation, Preview, and one atomic Confirm with zero inventory movements.
+
 The current released application baseline is `v8.64.55` — Bounded Reads And Explicit Receipt Provenance.
 
 ### v8.64.65 (unreleased) — Shared Responsive Closure
@@ -411,7 +432,7 @@ The system currently covers or is actively implementing the following operationa
 
 Module maturity must be understood separately from visual completion.
 
-Repository migrations reviewed through `170`; release authority is
+Repository migrations reviewed through `171`; release authority is
 `v8.64.55 — Bounded Reads And Explicit Receipt Provenance`.
 
 Current integration baseline: `v8.64.55 — Bounded Reads And Explicit Receipt Provenance`, with repository migrations reviewed through `169`. The local P0 patch is the unreleased `v8.64.56` forward contract and must not be treated as Production application evidence. Migrations `111` and `112` remain immutable history because they were applied to the linked database accidentally. Migration `113` removes their callable Central Kitchen PR RPC, prevents further access to the stock-holds table, and preserves that table temporarily for a non-destructive data audit. Later forward-only migrations add bounded inventory and Dashboard read models, repair grants and scoped access, introduce branch supply-route and received-quantity provenance, preserve unmatched PR entry as auditable non-catalog lines, split approved purchase requests atomically by supplier, make Item Master the authority for supplier-item identity, bound historical inventory opening reads, preserve explicit outlet receipt zeros, remove leaked PR approval grants from non-owning workflow roles, allow item-master suppliers as a controlled PR fallback, deterministically backfill supplier identities from unique stock-take category matches, repair supplier split ordering, satisfy purchase-order idempotency invariants, resolve deterministic legacy PR supplier snapshots, anchor outlet daily validation to the affected product line, create an item master with optional supplier/branch sourcing atomically, and stage one tenant-scoped AutoCount multi-file job before a single atomic master-data confirmation; they do not restore the retired Central Kitchen PR workflow or make AutoCount quantity authoritative over OMS stock.

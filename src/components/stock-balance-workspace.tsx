@@ -374,11 +374,9 @@ export function StockBalanceWorkspace({
                 <SortableHead label="Item Code" column="item_code" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
                 <SortableHead label="Item Name" column="item_name" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
                 <TableHead>Branch</TableHead>
-                <TableHead className="text-right">Available</TableHead>
-                <TableHead className="text-right">Reserved</TableHead>
+                <TableHead className="text-right">Available / Reserved</TableHead>
                 <TableHead className="text-right">Current</TableHead>
-                <TableHead className="text-right">Avg Cost</TableHead>
-                <TableHead className="text-right">Value</TableHead>
+                <TableHead className="text-right">Avg Cost / Value</TableHead>
                 <TableHead>Last Movement</TableHead>
                 <TableHead>Status</TableHead>
               </TableRow>
@@ -386,7 +384,7 @@ export function StockBalanceWorkspace({
             {queryError ? (
               <TableBody>
                 <TableRow>
-                  <TableCell colSpan={11}>
+                  <TableCell colSpan={9}>
                     <ErrorState title="库存暂时无法加载" description={queryError} />
                   </TableCell>
                 </TableRow>
@@ -396,7 +394,7 @@ export function StockBalanceWorkspace({
             ) : (
               <TableBody>
                 <TableRow>
-                  <TableCell colSpan={11}>
+                  <TableCell colSpan={9}>
                     <EmptyState title="No stock balances yet" description="Balances appear after posted stock movements." />
                   </TableCell>
                 </TableRow>

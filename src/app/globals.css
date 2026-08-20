@@ -345,7 +345,7 @@ input[type="date"]::-webkit-date-and-time-value {
 
 .sb-dialog-backdrop {
   border: 0;
-  background: rgb(6 44 31 / 0.55);
+  background: rgb(0 0 0 / 0.60);
   backdrop-filter: blur(3px);
 }
 
@@ -609,7 +609,7 @@ input[type="date"]::-webkit-date-and-time-value {
     width: 100%;
     height: 100%;
     border: 0;
-    background: rgb(6 44 31 / 0.55);
+    background: rgb(0 0 0 / 0.60);
     backdrop-filter: blur(3px);
   }
 
@@ -835,8 +835,8 @@ input[type="date"]::-webkit-date-and-time-value {
 
 @media (min-width: 768px) {
   :root {
-    /* Tablet remains a touch-first operational surface, not a scaled desktop. */
-    --sb-control-height: 2.75rem;
+    /* Compact visible controls; shared eight-pixel gaps keep touch targets separated. */
+    --sb-control-height: 2.25rem;
   }
 
   .sb-list-filters:not(.sb-list-query-card) > :first-child {

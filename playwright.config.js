@@ -13,6 +13,9 @@ function loadEnvFile(filePath) {
     let value = trimmed.slice(index + 1).trim();
     if ((value.startsWith('"') && value.endsWith('"')) || (value.startsWith("'") && value.endsWith("'"))) {
       value = value.slice(1, -1);
+    } else {
+      const commentMatch = value.match(/\s+#/);
+      if (commentMatch?.index !== undefined) value = value.slice(0, commentMatch.index).trim();
     }
     if (!process.env[key]) process.env[key] = value;
   }

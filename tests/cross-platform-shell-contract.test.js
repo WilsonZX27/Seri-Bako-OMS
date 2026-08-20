@@ -89,7 +89,7 @@ test("shared activity and identity surfaces use OMS semantic tokens", () => {
   const activityMenu = read("src", "components", "layout", "top-bar-activity-menu.tsx");
   const account = read("src", "app", "(app)", "account", "page.tsx");
 
-  assert.match(activityMenu, /bg-\[var\(--sb-warning\)\]/);
+  assert.match(activityMenu, /bg-\[var\(--sb-danger\)\]/);
   assert.match(activityMenu, /bg-\[var\(--sb-warning-bg\)\]/);
   assert.match(activityMenu, /bg-\[var\(--sb-neutral-bg\)\]/);
   assert.doesNotMatch(activityMenu, /(?:bg|text)-red-|(?:bg|text)-slate-/);

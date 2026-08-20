@@ -1,5 +1,9 @@
 # Seri Bako OMS responsive design standard
 
+## v8.64.87 (unreleased) - Bounded Stock Balance Image Hydration
+
+Stock Balance image hydration is bounded in the server query rather than allowing one oversized request; this preserves the compact row presentation without changing inventory authority.
+
 > **Release authority:** the currently released application is `v8.64.55`, as
 > defined by `src/lib/app-version.ts`. A versioned section above that number is
 > an accepted forward design contract or unreleased implementation note—not

@@ -805,10 +805,16 @@ export async function getStockBalanceDetails(filters: Filters = {}): Promise<Pag
   const balanceRows = data;
   const itemIds = Array.from(new Set(balanceRows.map((row) => row.item_id))).slice(0, 500);
   const imageByItemId = new Map<string, string | null>();
-  if (itemIds.length) {
-    const images = await supabase.from("items").select("id, item_image_url").in("id", itemIds);
-    if (images.error) warnOptionalInventoryQuery("Stock Balance item images", images.error);
-    else images.data?.forEach((item) => imageByItemId.set(item.id, item.item_image_url));
+  for (let offset = 0; offset < itemIds.length; offset += 100) {
+    const images = await supabase
+      .from("items")
+      .select("id, item_image_url")
+      .in("id", itemIds.slice(offset, offset + 100));
+    if (images.error) {
+      warnOptionalInventoryQuery("Stock Balance item images", images.error);
+      break;
+    }
+    images.data?.forEach((item) => imageByItemId.set(item.id, item.item_image_url));
   }
   const rows = balanceRows.map((row) => ({
     ...row,

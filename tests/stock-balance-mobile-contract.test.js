@@ -50,7 +50,8 @@ test("stock balance persists the PR basket across filter refreshes without trust
 test("stock balance hydrates item images into compact rows and keeps common PR UOM choices", () => {
   const rows = fs.readFileSync(path.join(root, "src", "components", "stock-balance-table.tsx"), "utf8");
 
-  assert.match(inventoryQuery, /from\("items"\)\.select\("id, item_image_url"\)\.in\("id", itemIds\)/);
+  assert.match(inventoryQuery, /for \(let offset = 0; offset < itemIds\.length; offset \+= 100\)/);
+  assert.match(inventoryQuery, /itemIds\.slice\(offset, offset \+ 100\)/);
   assert.match(rows, /ItemThumbnail src=\{item\.image_url\}/);
   assert.match(source, /ItemThumbnail src=\{line\.image_url\}/);
   assert.match(source, /uomOptionsWithCurrent\(line\.uom\)/);

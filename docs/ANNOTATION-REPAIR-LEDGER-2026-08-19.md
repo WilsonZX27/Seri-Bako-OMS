@@ -41,6 +41,12 @@ The v8.64.79 local authenticated run completed all 18 historical/current browser
 | Six scoped role workspaces | verified locally / Production UAT pending | Disposable authenticated Playwright checks passed for Super Admin, Finance, Manager, Purchasing, Kitchen, and Outlet (8 non-destructive scenarios). Each role retained one responsive workdesk and safe destinations. Production role UAT is not claimed. |
 | Manager approval mutation, manager reject mutation, and purchase-return posting mutation | awaiting named disposable fixture | The workflow suite intentionally skipped the approval fixture when no live Manager Review PR was available, and skipped reject/return mutation because `TEST_MUTATE_WORKFLOW=true` was not enabled. No destructive mutation was performed or inferred. |
 
+## v8.64.87 Stock Balance reliability batch
+
+| Gate | Status | Evidence |
+|---|---|---|
+| Stock Balance item-image hydration stays usable with many rows | verified locally / Production UAT pending | A local authenticated dynamic workflow surfaced an optional `URI too long` image query warning. The shared inventory query now reads image IDs in bounded batches of 100 and keeps the image read optional; the targeted contract passes. The dynamic workflow layout still passed at phone/tablet/desktop, while Production regression remains pending. |
+
 ## Historical screenshot groups reconciled — v8.64.67
 
 ### v8.64.74 current evidence reconciliation batch

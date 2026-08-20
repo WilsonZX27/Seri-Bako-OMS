@@ -1,6 +1,6 @@
-export const APP_VERSION = "8.64.86";
+export const APP_VERSION = "8.64.87";
 export const APP_SPRINT = `v${APP_VERSION}`;
-export const APP_RELEASE_TITLE = "Role Workflow Evidence Closure";
+export const APP_RELEASE_TITLE = "Bounded Stock Balance Image Hydration";
 // Keep the shell footer concise; the detailed release title belongs in release
 // notes, not in a narrow navigation rail where it is clipped on small screens.
 export const APP_RELEASE_NOTE = APP_SPRINT;

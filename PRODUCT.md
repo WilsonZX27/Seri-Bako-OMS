@@ -1,5 +1,9 @@
 # Seri Bako Operations Management System
 
+### v8.64.87 (unreleased) — Bounded Stock Balance Image Hydration
+
+Stock Balance now hydrates item images in bounded batches of 100 IDs, avoiding URI-too-long failures when a real page contains many distinct items. The image read remains optional and fail-closed; no balance value is synthesized from an image-read failure.
+
 ### v8.64.86 (unreleased) — Role Workflow Evidence Closure
 
 The disposable local browser gate now covers the six scoped identities (Super Admin, Finance, Manager, Purchasing, Kitchen, and Outlet). Eight non-destructive workspace/filter scenarios passed; mutation scenarios remain explicitly skipped unless a named disposable fixture and mutation flag are supplied. This is local evidence only and does not prove Production role UAT.

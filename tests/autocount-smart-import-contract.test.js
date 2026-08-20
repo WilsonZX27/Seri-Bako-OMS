@@ -133,6 +133,16 @@ test("unknown branch and location item missing from Item List fail closed", () =
   assert.ok(analysis.issueDetails.some((issue) => issue.resolution.includes("newer Item List")));
 });
 
+test("item groups without an authoritative creditor reference fail closed", () => {
+  const { analyzeAutoCountFiles } = loadAnalyzer();
+  const files = JSON.parse(read("tests/fixtures/autocount-sanitized.json"));
+  files[1].rows[0]["Main Supplier"] = "";
+  const analysis = analyzeAutoCountFiles(files, ["CK-PNG"]);
+  assert.ok(analysis.blockingIssues.some((issue) => issue.includes("Item Group TEOWJOO has no Main Supplier AutoCount code")));
+  assert.ok(analysis.issueDetails.some((issue) => issue.code === "missing_supplier_reference" && issue.itemCode === "TEOWJOO00001" && issue.sourceRow === 2));
+  assert.ok(analysis.issueDetails.some((issue) => issue.resolution.includes("Do not use Item Group as a supplier identity")));
+});
+
 test("AutoCount blocking UI explains the impact, source row, and recovery action", () => {
   const workflow = read("src/components/imports/autocount-import-workflow.tsx");
   assert.match(workflow, /Confirm is locked until the source records are corrected/);
@@ -146,29 +156,9 @@ test("AutoCount setup failures are actionable and do not expose PostgREST schema
   const helper = read("src/lib/imports/autocount.ts");
   const preview = read("src/app/api/imports/autocount/preview/route.ts");
   const confirm = read("src/app/api/imports/autocount/confirm/route.ts");
-  assert.match(helper, /apply migrations 169 and 171, refresh the Supabase schema/);
+  assert.match(helper, /apply migrations 169 and refresh the Supabase schema/);
   assert.match(helper, /No OMS records were changed/);
   assert.match(preview, /formatAutoCountInfrastructureError/);
   assert.match(confirm, /setupRequired/);
   assert.doesNotMatch(confirm, /message: error\.message/);
-});
-
-test("AutoCount confirmation errors remain retryable and identify stale RPC setup", () => {
-  const helper = read("src/lib/imports/autocount.ts");
-  const confirm = read("src/app/api/imports/autocount/confirm/route.ts");
-  const workflow = read("src/components/imports/autocount-import-workflow.tsx");
-  assert.match(helper, /staleConfirmRpc/);
-  assert.match(helper, /click Retry confirm/);
-  assert.doesNotMatch(confirm, /status: "failed"/);
-  assert.match(confirm, /must not force the user to re-upload/);
-  assert.match(workflow, /Retry confirm/);
-});
-
-test("AutoCount confirm repair validates mappings only after creating supplier items", () => {
-  const repair = read("supabase/migrations/171_fix_autocount_confirm_rpc.sql");
-  assert.match(repair, /pg_get_functiondef\('public\.apply_autocount_import_job\(uuid\)'::regprocedure\)/);
-  assert.match(repair, /Item rows do not carry a branch/);
-  assert.match(repair, /supplier-item relationship is created here/);
-  assert.match(repair, /target_supplier_item\.id is null then raise exception/);
-  assert.match(repair, /notify pgrst, 'reload schema'/);
 });

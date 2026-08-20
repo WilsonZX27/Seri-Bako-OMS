@@ -40,6 +40,11 @@
 - The 17-comment, 34-comment, and 13-comment annotation groups plus reopened defects remain cumulative design scope in the single repair ledger.
 - Local geometry/authenticated checks and source contracts are not substituted for linked migration, Production data, or Production UAT evidence.
 
+## v8.64.84 (unreleased) - Supplier Mapping Fail-Closed Validation
+
+- AutoCount Preview blocks rows whose Item Group has no authoritative Main Supplier creditor code and identifies the exact source row and repair action.
+- Item Group remains the operator-facing label; the internal supplier identity must come from an AutoCount creditor code.
+
 ## v8.64.76 (unreleased) - Cross-Viewport Control Rhythm
 
 - Shared query controls and right-rail actions use a 36px visual height from tablet through desktop.

@@ -22,6 +22,12 @@ The historical annotation scope is intentionally cumulative. No earlier screensh
 
 The v8.64.79 local authenticated run completed all 18 historical/current browser scenarios before this reconciliation. This updates stale wording below from “browser proof pending” to “verified locally / Production UAT pending” where the same evidence applies; it does not convert any local result into Production proof.
 
+## v8.64.84 supplier mapping fail-closed batch
+
+| Gate | Status | Evidence |
+|---|---|---|
+| AutoCount source rows without creditor identity | implemented / awaiting authenticated Preview UAT | Read-only analysis of the supplied 729-row Item List found 101 blank `Main Supplier` cells; six groups (`CHINA`, `FINISHED`, `FROMPNG`, `KWANKEE`, `OLDSUPP`, `PAHANG`) have no creditor reference anywhere, covering 86 rows. Of the 403 unique item codes present in the two Central Kitchen workbooks, 19 have a blank Main Supplier in the Item List. The analyzer now blocks each affected item row with a `missing_supplier_reference` issue and an exact repair action; it no longer treats Item Group as an internal supplier code. Existing groups with an authoritative creditor reference continue through staging. |
+
 ## Historical screenshot groups reconciled — v8.64.67
 
 ### v8.64.74 current evidence reconciliation batch

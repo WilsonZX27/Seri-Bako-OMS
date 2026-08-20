@@ -30,6 +30,10 @@ The local mirror has no 19 Aug Stock Count for CK-ALMA or CK-PJS10; its latest p
 
 All prior annotation groups remain in the single repair ledger: the 17-comment group, 34-comment group, 13-comment group, and reopened defects. Local contract/authenticated evidence is recorded separately from linked migration, Production data, and Production UAT; no historical item is treated as complete merely because a screenshot or local build passed.
 
+### v8.64.84 (unreleased) — Supplier Mapping Fail-Closed Validation
+
+AutoCount Preview now blocks Item Groups with no authoritative Main Supplier creditor code, reports each affected item/file/row, and tells the operator to repair the source export. Item Group remains a display label; it is never silently promoted into an internal supplier identity.
+
 ### v8.64.76 (unreleased) — Cross-Viewport Control Rhythm
 
 The shared control authority now keeps tablet and desktop filters, textboxes, selects, and right-rail actions at a 36px visual height. Phone controls retain the touch-safe height, and the ledger distinguishes visual geometry from authenticated viewport acceptance.

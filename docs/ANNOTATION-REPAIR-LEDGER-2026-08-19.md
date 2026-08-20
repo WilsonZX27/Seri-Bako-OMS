@@ -11,6 +11,12 @@ Status vocabulary:
 
 ## Historical screenshot groups reconciled — v8.64.67
 
+### v8.64.74 current evidence reconciliation batch
+
+| ID | Acceptance | Status | Evidence |
+|---|---|---|---|
+| UI-0821-13 | Stock-take PDF item-code coverage and brand/name evidence are recorded without treating local seed data as Production tally. | data reconciliation prepared / Production read blocked | Known-prefix extraction records 133 codes in the August PDF (128 local-seed matches, 5 local-seed gaps) and 127 codes in the PJS10 PDF (127 local-seed matches). Brand-like tokens remain in source descriptions; no structured brand mutation was performed. |
+
 ### v8.64.73 current workflow closure batch
 
 | ID | Acceptance | Status | Evidence |
@@ -35,7 +41,7 @@ Status vocabulary:
 | UI-0821-05 | PR list filter grammar is shared and balanced; Production Jobs has inward tablet gutters. | implemented / awaiting Production viewport UAT | PR list adopts the shared balanced filter authority; Production Jobs changes from full to contained tablet canvas. |
 | UI-0821-06 | Stock Count portrait tablet search occupies its own row before filters/actions. | implemented / awaiting 820×1180 authenticated UAT | Shared filter class adds a portrait-query rule; no route-specific control markup was added. |
 | UI-0821-07 | Desktop controls are 36px; tablet choice remains explicit. | implemented / awaiting Production viewport UAT; tablet decision awaiting user | Desktop (>=1280px) shared token is 36px. Tablet remains 44px touch-first for now. Recommendation: 36px visual control with a separate >=44px hit area is the mature ERP/accessibility compromise; apply after user accepts. |
-| UI-0821-08 | Latest two Central Kitchen stock-take PDFs reconcile to OMS and naming includes kitchen brand visibility. | blocked by linked read-only Production data | Read-only extraction found 5 pages / 154 lines in `AUGUST - Copy of 1608.pdf` and 5 pages / 128 lines in `STOCK TAKE PJS10 CK - 19 Aug（副本）.pdf`; the first exposes 119 distinct item codes (5 absent from the local seed mirror), the second exposes 9 reliably parseable codes. Names visibly carry brand tokens such as CAP SAUH, BABAS, CHEK HUP, PENANG ANCHOR, and BRUGGEMAN, but the current Item Master has no structured brand field. This session lacks a valid authenticated Production tally query after the Supabase login-role transport failure, so no count, rename, or brand mapping was fabricated. |
+| UI-0821-08 | Latest two Central Kitchen stock-take PDFs reconcile to OMS and naming includes kitchen brand visibility. | blocked by linked read-only Production data | Read-only extraction found 5 pages / 158 extracted lines in `AUGUST - Copy of 1608.pdf` and 5 pages / 132 extracted lines in `STOCK TAKE PJS10 CK - 19 Aug（副本）.pdf`. A known-prefix parser found 133 item codes in the first (128 present in the local seed mirror; missing `CHYINING00045`, `CHYINING00048`, `CHYINING00056`, `CHYINING00057`, `CHYINING00061`) and 127 in the second (127 present in the local seed mirror). Names visibly carry brand tokens such as CAP SAUH, BABAS, CHEK HUP, PENANG ANCHOR, and BRUGGEMAN, but the current Item Master has no structured brand field. This session lacks a valid authenticated Production tally query after the Supabase login-role transport failure, so no count, rename, or brand mapping was fabricated. |
 | UI-0821-09 | PR supplier UOM follows supplier purchase UOM while internal calculations remain base/KG. | implemented in data contract / awaiting workflow UAT | Existing `supplier_items.purchase_uom` and `conversion_to_base_uom` remain the purchase-facing route; Stock Count/inventory ledger stays base-unit authoritative. UI now explains incompatible supplier UOM instead of silently treating it as a mapping. Controlled PO/GRN conversion workflow still needs authenticated fixture verification. |
 
 ### v8.64.70 Production follow-up annotations and supplier consolidation

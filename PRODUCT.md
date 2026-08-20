@@ -2,6 +2,10 @@
 
 ## Product Overview
 
+### v8.64.77 (unreleased) — Migration 176 Local SQL Validation
+
+The local disposable Supabase database now executes migration 176 successfully. Rollback-only RPC fixtures confirm explicit Brand values survive Item creation and AutoCount Confirm; this remains local evidence and does not prove linked Production application.
+
 ### v8.64.76 (unreleased) — Cross-Viewport Control Rhythm
 
 The shared control authority now keeps tablet and desktop filters, textboxes, selects, and right-rail actions at a 36px visual height. Phone controls retain the touch-safe height, and the ledger distinguishes visual geometry from authenticated viewport acceptance.

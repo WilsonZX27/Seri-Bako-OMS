@@ -7,6 +7,10 @@
 > `docs/DESIGN_SYSTEM.md` owns the current visual principles; this file retains
 > versioned implementation history and workspace rules.
 
+## v8.64.77 (unreleased) - Migration 176 Local SQL Validation
+
+- Migration 176's dynamic patches are newline-safe and preserve explicit brand values through both Item creation and AutoCount Confirm.
+
 ## v8.64.76 (unreleased) - Cross-Viewport Control Rhythm
 
 - Shared query controls and right-rail actions use a 36px visual height from tablet through desktop.

@@ -19,7 +19,7 @@ begin
     'item_code, autocount_code, item_name, category, purchase_unit,',
     'item_code, autocount_code, item_name, brand_name, category, purchase_unit,');
   definition := replace(definition,
-    'actor.company_id, item_code, autocount_code, item_name, category, purchase_unit,',
+    'actor.company_id, item_code, autocount_code, item_name, brand_name, category, purchase_unit,',
     'actor.company_id, item_code, autocount_code, item_name, nullif(trim(coalesce(p_item->>''brand_name'', '''')), ''''), category, purchase_unit,');
   if position('brand_name' in definition) = 0 then
     raise exception 'create_operational_item brand patch did not apply';
@@ -60,10 +60,10 @@ begin
     or position('row.item_name ilike' in definition) = 0 then
     raise exception 'get_items_workspace definition shape changed; brand migration is unsafe';
   end if;
-  definition := replace(definition, E'i.item_name,\n    i.category,', E'i.item_name,\n    i.brand_name,\n    i.category,');
+  definition := replace(definition, E'i.item_name,\r\n    i.category,', E'i.item_name,\r\n    i.brand_name,\r\n    i.category,');
   definition := replace(definition,
-    E'row.item_name ilike ''%'' || trim(p_search) || ''%'' or\n      row.category ilike ''%'' || trim(p_search) || ''%''',
-    E'row.item_name ilike ''%'' || trim(p_search) || ''%'' or\n      coalesce(row.brand_name, '''') ilike ''%'' || trim(p_search) || ''%'' or\n      row.category ilike ''%'' || trim(p_search) || ''%''');
+    E'row.item_name ilike ''%'' || trim(p_search) || ''%'' or\r\n      row.category ilike ''%'' || trim(p_search) || ''%'' or\r\n      coalesce(row.supplier_name, '''') ilike ''%'' || trim(p_search) || ''%''',
+    E'row.item_name ilike ''%'' || trim(p_search) || ''%'' or\r\n      coalesce(row.brand_name, '''') ilike ''%'' || trim(p_search) || ''%'' or\r\n      row.category ilike ''%'' || trim(p_search) || ''%'' or\r\n      coalesce(row.supplier_name, '''') ilike ''%'' || trim(p_search) || ''%''');
   if position('i.brand_name' in definition) = 0 or position('row.brand_name' in definition) = 0 then
     raise exception 'get_items_workspace brand patch did not apply';
   end if;

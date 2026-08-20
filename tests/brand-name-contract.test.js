@@ -11,6 +11,8 @@ const itemPicker = read("src/components/item-combobox.tsx");
 
 if (!migration.includes("add column if not exists brand_name text")) throw new Error("brand migration must add the nullable field");
 if (!migration.includes("create_operational_item") || !migration.includes("apply_autocount_import_job") || !migration.includes("get_items_workspace")) throw new Error("brand migration must preserve all write/read paths");
+if (!migration.includes("p_item->>''brand_name''") || !migration.includes("row_record.normalized->>''brand_name''")) throw new Error("brand migration must source the explicit JSON field in both write paths");
+if (!migration.includes("E'i.item_name,\\r\\n")) throw new Error("workspace patch must tolerate the function definition newline format");
 for (const header of ["Brand", "Brand Name", "品牌"]) {
   if (!parser.includes(`get(row, \"${header}\")`)) throw new Error(`parser must accept explicit ${header} source header`);
 }

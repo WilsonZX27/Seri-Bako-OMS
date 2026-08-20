@@ -11,6 +11,12 @@ Status vocabulary:
 
 ## Historical screenshot groups reconciled — v8.64.67
 
+### v8.64.73 current workflow closure batch
+
+| ID | Acceptance | Status | Evidence |
+|---|---|---|---|
+| UI-0821-12 | Supplier purchase UOM remains visible on procurement documents while internal inventory posting uses base/KG units. | implemented / awaiting migration and authenticated workflow UAT | Migration 175 replaces GRN and purchase-return posting with tenant-scoped supplier-item conversion, converts quantity and unit cost, and fails closed when a non-identity conversion is absent. Local contract passes; linked application and a disposable PO→GRN→return fixture remain pending. |
+
 ### v8.64.72 current annotation closure batch
 
 | ID | Acceptance | Status | Evidence |

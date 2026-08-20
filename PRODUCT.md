@@ -2,6 +2,10 @@
 
 ## Product Overview
 
+### v8.64.73 (unreleased) — Supplier UOM Base Posting Closure
+
+- Purchase documents retain supplier UOM; GRN and purchase-return inventory movements post converted base-unit quantity and base-unit cost, with missing conversions rejected explicitly.
+
 ### v8.64.72 (unreleased) — PR Index And Exception Semantic Closure
 
 - Purchase Request Requested Items shows a stable row index and total count across desktop and compact layouts.
@@ -13,7 +17,7 @@
 - Purchase Request review reports the number of requested items and gives supplier/UOM mapping errors a direct explanation and repair action.
 - Shared list surfaces keep desktop controls at 36px while preserving the tablet touch-first decision until the explicit 36px-versus-44px recommendation is accepted.
 
-Repository migration authority: migrations reviewed through `174`; this is not evidence that migration 174 is applied to the linked Production project.
+Repository migration authority: migrations reviewed through `175`; this is not evidence that migration 175 is applied to the linked Production project.
 
 ### v8.64.70 (unreleased) — Supplier Identity And PR Review Repair
 

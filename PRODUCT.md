@@ -2,6 +2,11 @@
 
 ## Product Overview
 
+### v8.64.75 (unreleased) — Structured Brand Visibility
+
+- Item brand is optional and source-backed. Migration 176 adds `brand_name` and carries it through Item Master, the workspace picker, and AutoCount Confirm.
+- Existing rows stay blank until an authoritative Brand column or authorized edit supplies a value; linked Production application and authenticated UAT remain separate gates.
+
 ### v8.64.74 (unreleased) — Stock Take Evidence Reconciliation
 
 - Central Kitchen stock-take evidence distinguishes local seed-code coverage from linked Production tally verification; missing local mirror codes are reported without changing master data.
@@ -22,7 +27,7 @@
 - Purchase Request review reports the number of requested items and gives supplier/UOM mapping errors a direct explanation and repair action.
 - Shared list surfaces keep desktop controls at 36px while preserving the tablet touch-first decision until the explicit 36px-versus-44px recommendation is accepted.
 
-Repository migration authority: migrations reviewed through `175`; this is not evidence that migration 175 is applied to the linked Production project.
+Repository migration authority: migrations reviewed through `176`; this is not evidence that migration 176 is applied to the linked Production project.
 
 ### v8.64.70 (unreleased) — Supplier Identity And PR Review Repair
 

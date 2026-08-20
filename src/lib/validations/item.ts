@@ -4,6 +4,7 @@ export const itemSchema = z.object({
   item_code: z.string().trim().min(1, "Item code is required"),
   autocount_code: z.string().trim().optional().nullable(),
   item_name: z.string().trim().min(1, "Item name is required"),
+  brand_name: z.string().trim().max(120).optional().nullable().or(z.literal("")),
   category: z.string().trim().min(1, "Category is required"),
   purchase_unit: z.string().trim().min(1, "Purchase unit is required"),
   base_unit: z.string().trim().min(1, "Base unit is required"),

@@ -28,6 +28,7 @@ function payload(formData: FormData) {
     item_code: formData.get("item_code"),
     autocount_code: cleanText(formData.get("autocount_code")),
     item_name: formData.get("item_name"),
+    brand_name: cleanText(formData.get("brand_name")),
     category: formData.get("category"),
     purchase_unit: formData.get("purchase_unit") || baseUnit,
     base_unit: baseUnit,
@@ -43,6 +44,7 @@ function payload(formData: FormData) {
     ...parsed,
     supplier_id: parsed.supplier_id || null,
     autocount_code: parsed.autocount_code || null,
+    brand_name: parsed.brand_name || null,
   };
 }
 

@@ -162,6 +162,9 @@ export function analyzeAutoCountFiles(files: AutoCountParsedFile[], knownBranchC
     const group = get(row, "Item Group");
     const baseUom = get(row, "Base UOM");
     const itemName = get(row, "Description");
+    // Brand is accepted only when the source export supplies an explicit
+    // Brand/Brand Name/品牌 column. Never infer it from the description.
+    const brandName = get(row, "Brand") || get(row, "Brand Name") || get(row, "品牌");
     const creditorCode = get(row, "Main Supplier");
     if (!group || !baseUom || !itemName) {
       blockingIssues.push(`${file} row ${rowNumber}: ${itemCode} requires Description, Base UOM, and Item Group.`);
@@ -192,6 +195,7 @@ export function analyzeAutoCountFiles(files: AutoCountParsedFile[], knownBranchC
       normalized: {
         item_code: itemCode,
         item_name: itemName,
+        brand_name: brandName || null,
         supplier_code: group,
         supplier_group: group,
         creditor_code: creditorCode || null,

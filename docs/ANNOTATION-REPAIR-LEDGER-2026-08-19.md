@@ -17,6 +17,12 @@ Status vocabulary:
 |---|---|---|---|
 | UI-0821-13 | Stock-take PDF item-code coverage and brand/name evidence are recorded without treating local seed data as Production tally. | data reconciliation prepared / Production read blocked | Known-prefix extraction records 133 codes in the August PDF (128 local-seed matches, 5 local-seed gaps) and 127 codes in the PJS10 PDF (127 local-seed matches). Brand-like tokens remain in source descriptions; no structured brand mutation was performed. |
 
+### v8.64.75 current brand visibility batch
+
+| ID | Acceptance | Status | Evidence |
+|---|---|---|---|
+| UI-0821-14 | Kitchen users can see an item brand without relying on ambiguous AutoCount codes, and imports never guess a brand from a description. | implemented / awaiting migration and authenticated UAT | Migration 176 adds nullable `items.brand_name`, updates Item Master/detail/list/picker/search, and carries the field through operational item creation and AutoCount Confirm. The parser accepts only explicit `Brand`, `Brand Name`, or `品牌` headers; no description heuristic is present. Existing rows remain blank until authoritative source data or an authorized edit supplies a value. Linked migration application, real import preview/confirm with a Brand column, and four-viewport kitchen UAT remain pending. |
+
 ### v8.64.73 current workflow closure batch
 
 | ID | Acceptance | Status | Evidence |

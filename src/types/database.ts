@@ -881,6 +881,7 @@ export type Database = {
           item_code: string;
           autocount_code: string | null;
           item_name: string;
+          brand_name: string | null;
           category: string;
           purchase_unit: string;
           base_unit: string;
@@ -902,6 +903,7 @@ export type Database = {
           item_code: string;
           autocount_code?: string | null;
           item_name: string;
+          brand_name?: string | null;
           category: string;
           purchase_unit: string;
           base_unit: string;

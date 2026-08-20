@@ -14,7 +14,8 @@ function searchTokens(value: string) {
 export function itemMatchesSearch(item: ItemComboboxOption, query: string) {
   const tokens = searchTokens(query);
   if (!tokens.length) return false;
-  const searchable = searchTokens(`${item.item_code} ${item.item_name}`).join(" ");
+  const brandName = (item as ItemComboboxOption & { brand_name?: string | null }).brand_name ?? "";
+  const searchable = searchTokens(`${item.item_code} ${item.item_name} ${brandName}`).join(" ");
   return tokens.every((token) => searchable.includes(token));
 }
 
@@ -96,7 +97,8 @@ export function ItemCombobox({ items, value, selectedItemId = "", onValueChange,
     />
     {showSuggestions && listboxStyle ? createPortal(<div id={listboxId} role="listbox" className="fixed z-[var(--sb-z-dropdown)] overflow-y-auto rounded-[var(--sb-radius-control)] border border-[var(--sb-border)] bg-white p-1 shadow-lg" style={{ left: listboxStyle.left, top: listboxStyle.top, width: listboxStyle.width, maxHeight: listboxStyle.maxHeight }}>
       {matches.map((item) => <button key={item.id} type="button" role="option" aria-selected="false" className="flex w-full min-w-0 flex-col rounded-[calc(var(--sb-radius-control)-2px)] px-3 py-2 text-left hover:bg-[var(--sb-surface-muted)] focus-visible:bg-[var(--sb-surface-muted)] focus-visible:outline-none" onMouseDown={(event) => event.preventDefault()} onClick={() => { onSelect(item); setOpen(false); }}>
-        <span className="truncate text-sm font-medium text-[var(--sb-text)]">{item.item_name}</span>
+         <span className="truncate text-sm font-medium text-[var(--sb-text)]">{item.item_name}</span>
+         {(item as ItemComboboxOption & { brand_name?: string | null }).brand_name ? <span className="truncate text-xs text-[var(--sb-text-muted)]">{(item as ItemComboboxOption & { brand_name?: string | null }).brand_name}</span> : null}
         <span className="truncate text-xs text-[var(--sb-text-muted)]">{item.item_code} · {(item.purchase_unit || item.base_unit).toUpperCase()}</span>
       </button>)}
       {!matches.length ? <p className="px-3 py-2 text-xs text-[var(--sb-text-muted)]">{emptyMessage}</p> : null}

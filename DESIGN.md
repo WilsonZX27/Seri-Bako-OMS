@@ -7,6 +7,11 @@
 > `docs/DESIGN_SYSTEM.md` owns the current visual principles; this file retains
 > versioned implementation history and workspace rules.
 
+## v8.64.75 (unreleased) - Structured Brand Visibility
+
+- Item Master and item pickers show an optional authoritative `Brand` value.
+- AutoCount accepts Brand only from explicit `Brand`, `Brand Name`, or `品牌` columns; descriptions are never heuristically parsed.
+
 ## v8.64.70 (unreleased) - Supplier Identity And PR Review Repair
 
 - Critical stock exceptions use the shared danger semantic treatment; yellow remains reserved for warning or unavailable states.

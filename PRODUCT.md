@@ -1,5 +1,9 @@
 # Seri Bako Operations Management System
 
+### v8.64.88 (unreleased) — AutoCount Mapping Identity Guard
+
+AutoCount branch mappings now carry the per-item Main Supplier creditor code internally and retain Item Group only as the operator-facing display group. Items without an authoritative Main Supplier are blocked rather than inferred from a sibling row or group label.
+
 ### v8.64.87 (unreleased) — Bounded Stock Balance Image Hydration
 
 Stock Balance now hydrates item images in bounded batches of 100 IDs, avoiding URI-too-long failures when a real page contains many distinct items. The image read remains optional and fail-closed; no balance value is synthesized from an image-read failure.

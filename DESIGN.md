@@ -1,5 +1,9 @@
 # Seri Bako OMS responsive design standard
 
+## v8.64.88 (unreleased) - AutoCount Mapping Identity Guard
+
+AutoCount sourcing surfaces keep the internal creditor code and operator-facing Item Group as separate fields; branch mapping rows never promote a display label into an internal supplier identity.
+
 ## v8.64.87 (unreleased) - Bounded Stock Balance Image Hydration
 
 Stock Balance image hydration is bounded in the server query rather than allowing one oversized request; this preserves the compact row presentation without changing inventory authority.

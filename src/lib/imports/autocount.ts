@@ -198,7 +198,10 @@ export function analyzeAutoCountFiles(files: AutoCountParsedFile[], knownBranchC
         item_code: itemCode,
         item_name: itemName,
         brand_name: brandName || null,
-        supplier_code: creditorCode || group,
+        // Never promote the operator-facing Item Group into an internal
+        // supplier identity. A blank creditor code remains a blocking source
+        // issue and is intentionally staged as blank for diagnostics only.
+        supplier_code: creditorCode,
         supplier_group: group,
         creditor_code: creditorCode || null,
         base_uom: baseUom,
@@ -212,18 +215,19 @@ export function analyzeAutoCountFiles(files: AutoCountParsedFile[], knownBranchC
   for (const [groupKey, entry] of supplierGroups) {
     const group = [...itemRows.values()].map(({ row }) => get(row, "Item Group")).find((value) => value.toLowerCase() === groupKey) ?? groupKey.toUpperCase();
     const groupRows = supplierGroupRows.get(groupKey) ?? [];
-    if (entry.refs.size === 0) {
-      for (const groupRow of groupRows) {
-        blockingIssues.push(`${groupRow.sourceFile} row ${groupRow.sourceRow}: Item Group ${group} has no Main Supplier AutoCount code.`);
-        issueDetails.push({
-          code: "missing_supplier_reference",
-          message: `${groupRow.itemCode} uses Item Group ${group}, but no authoritative Main Supplier creditor code was supplied.`,
-          sourceFile: groupRow.sourceFile,
-          sourceRow: groupRow.sourceRow,
-          itemCode: groupRow.itemCode,
-          resolution: "Add the authoritative AutoCount creditor code to Main Supplier and include that creditor in the Supplier List, then re-export both files. Do not use Item Group as a supplier identity.",
-        });
-      }
+    for (const groupRow of groupRows) {
+      const item = itemRows.get(groupRow.itemCode.toLowerCase());
+      const creditorCode = item ? get(item.row, "Main Supplier") : "";
+      if (creditorCode) continue;
+      blockingIssues.push(`${groupRow.sourceFile} row ${groupRow.sourceRow}: ${groupRow.itemCode} has no authoritative Main Supplier AutoCount code.`);
+      issueDetails.push({
+        code: "missing_supplier_reference",
+        message: `${groupRow.itemCode} uses Item Group ${group}, but no authoritative Main Supplier creditor code was supplied for this item.`,
+        sourceFile: groupRow.sourceFile,
+        sourceRow: groupRow.sourceRow,
+        itemCode: groupRow.itemCode,
+        resolution: "Add the authoritative AutoCount creditor code to Main Supplier and include that creditor in the Supplier List, then re-export both files. Do not use Item Group as a supplier identity.",
+      });
     }
     const namedRefs = [...entry.refs].filter(([, name]) => name);
     const supplierName = namedRefs.length === 1 && entry.refs.size === 1 ? namedRefs[0][1] : group;
@@ -243,11 +247,13 @@ export function analyzeAutoCountFiles(files: AutoCountParsedFile[], knownBranchC
     const branchCode = get(location.row, "Location");
     const item = itemRows.get(itemCode.toLowerCase());
     if (!item || !branchCodes.has(branchCode.toLowerCase())) continue;
-    const supplierCode = get(item.row, "Item Group");
+    const supplierCode = get(item.row, "Main Supplier");
+    const supplierGroup = get(item.row, "Item Group");
+    if (!supplierCode) continue;
     staged.set(`mapping|${branchCode.toLowerCase()}|${itemCode.toLowerCase()}`, {
       entityType: "branch_mapping", businessKey: `${branchCode}|${itemCode}`, sourceFile: location.file, sourceRow: location.rowNumber,
       normalized: {
-        branch_code: branchCode, item_code: itemCode, supplier_code: supplierCode, supplier_group: supplierCode,
+        branch_code: branchCode, item_code: itemCode, supplier_code: supplierCode, supplier_group: supplierGroup,
         source_qty: numberOrNull(get(location.row, "Qty")), source_total_cost: numberOrNull(get(location.row, "Total Cost")),
         source_average_cost: numberOrNull(get(location.row, "Average Cost Per Qty")),
       },

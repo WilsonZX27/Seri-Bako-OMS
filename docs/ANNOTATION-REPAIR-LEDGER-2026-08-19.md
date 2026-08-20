@@ -47,6 +47,12 @@ The v8.64.79 local authenticated run completed all 18 historical/current browser
 |---|---|---|
 | Stock Balance item-image hydration stays usable with many rows | verified locally / Production UAT pending | A local authenticated dynamic workflow surfaced an optional `URI too long` image query warning. The shared inventory query now reads image IDs in bounded batches of 100 and keeps the image read optional; the targeted contract passes. The dynamic workflow layout still passed at phone/tablet/desktop, while Production regression remains pending. |
 
+## v8.64.88 AutoCount mapping identity batch
+
+| Gate | Status | Evidence |
+|---|---|---|
+| Branch mappings retain internal creditor code and display Item Group separately | implemented / awaiting linked migration and authenticated Preview UAT | The parser previously copied Item Group into `branch_mapping.normalized.supplier_code`; it now uses each item row's authoritative Main Supplier code and stores Item Group only in `supplier_group`. Missing per-item Main Supplier values create blocking, row-specific repair issues even when a sibling item in the same group has a creditor reference. Contract coverage passes 16/16. Linked Production migration/data and real Preview remain unverified. |
+
 ## Historical screenshot groups reconciled — v8.64.67
 
 ### v8.64.74 current evidence reconciliation batch

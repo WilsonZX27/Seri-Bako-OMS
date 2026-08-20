@@ -1566,9 +1566,9 @@ html[data-design-layer="v2"] form.sb-list-query-card :where(input, select, butto
   font-size: 0.75rem !important;
 }
 
-/* Established desktop ERP pattern: a 36px visual control rhythm. Tablet
-   remains touch-first at 44px until the explicit 36-vs-44 recommendation is
-   accepted; the outer hit area remains unchanged in either case. */
+/* Established ERP pattern: a 36px visual control rhythm on tablet and
+   desktop. Phones retain the larger touch-safe rhythm; tablet/desktop action
+   spacing remains generous so controls never collapse into one another. */
 @media (min-width: 1280px) {
   html[data-design-layer="v2"] {
     --sb-control-height: 2.25rem;
@@ -1597,6 +1597,18 @@ html[data-design-layer="v2"] [data-right-console] [data-console-section] :where(
   min-height: 2.75rem !important;
   max-height: 2.75rem !important;
   justify-content: center;
+}
+
+/* The user-facing visual height is shared across every non-phone viewport.
+   Keep this after the rail defaults above so route-level action sections cannot
+   drift back to 44px while the shared token is already 36px. */
+@media (min-width: 768px) {
+  html[data-design-layer="v2"] form.sb-list-query-card :where(input, select, button, [role="combobox"], [data-select-control], .sb-status-filter, .sb-status-filter-control, .sb-filter-more, .sb-filter-more > summary),
+  html[data-design-layer="v2"] [data-right-console] [data-console-section] :where(a.inline-flex, button.inline-flex) {
+    height: 2.25rem !important;
+    min-height: 2.25rem !important;
+    max-height: 2.25rem !important;
+  }
 }
 
 html[data-design-layer="v2"] .sb-list-content-card {

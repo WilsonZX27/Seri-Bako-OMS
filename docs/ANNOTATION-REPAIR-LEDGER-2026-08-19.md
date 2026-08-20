@@ -23,6 +23,12 @@ Status vocabulary:
 |---|---|---|---|
 | UI-0821-14 | Kitchen users can see an item brand without relying on ambiguous AutoCount codes, and imports never guess a brand from a description. | implemented / awaiting migration and authenticated UAT | Migration 176 adds nullable `items.brand_name`, updates Item Master/detail/list/picker/search, and carries the field through operational item creation and AutoCount Confirm. The parser accepts only explicit `Brand`, `Brand Name`, or `品牌` headers; no description heuristic is present. Existing rows remain blank until authoritative source data or an authorized edit supplies a value. Linked migration application, real import preview/confirm with a Brand column, and four-viewport kitchen UAT remain pending. |
 
+### v8.64.76 current control rhythm batch
+
+| ID | Acceptance | Status | Evidence |
+|---|---|---|---|
+| UI-0821-15 | Button, filter, textbox, and right-rail action visuals use one 36px height across tablet and desktop while phone touch controls remain accessible. | implemented / awaiting four-viewport UAT | Shared design-system authority now applies 36px to tablet/desktop query controls and right-rail actions after the prior 44px tablet default; phone controls retain 44px/48px touch-safe rules. Contract tests cover both branches. Browser viewport proof remains pending. |
+
 ### v8.64.73 current workflow closure batch
 
 | ID | Acceptance | Status | Evidence |

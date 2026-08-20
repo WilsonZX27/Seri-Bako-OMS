@@ -2,6 +2,10 @@
 
 ## Product Overview
 
+### v8.64.76 (unreleased) — Cross-Viewport Control Rhythm
+
+The shared control authority now keeps tablet and desktop filters, textboxes, selects, and right-rail actions at a 36px visual height. Phone controls retain the touch-safe height, and the ledger distinguishes visual geometry from authenticated viewport acceptance.
+
 ### v8.64.75 (unreleased) — Structured Brand Visibility
 
 - Item brand is optional and source-backed. Migration 176 adds `brand_name` and carries it through Item Master, the workspace picker, and AutoCount Confirm.

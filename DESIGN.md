@@ -7,6 +7,11 @@
 > `docs/DESIGN_SYSTEM.md` owns the current visual principles; this file retains
 > versioned implementation history and workspace rules.
 
+## v8.64.76 (unreleased) - Cross-Viewport Control Rhythm
+
+- Shared query controls and right-rail actions use a 36px visual height from tablet through desktop.
+- Phone controls retain the larger touch-safe rhythm; no route-level tablet override may restore a 44px visual control.
+
 ## v8.64.75 (unreleased) - Structured Brand Visibility
 
 - Item Master and item pickers show an optional authoritative `Brand` value.

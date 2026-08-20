@@ -13,6 +13,9 @@ test("phone filter controls stay compact while task controls retain the larger t
   assert.doesNotMatch(css, /data-sticky-column="last"/);
   assert.match(css, /@media \(min-width: 768px\)[\s\S]*?--sb-control-height: 2\.25rem/);
   assert.match(css, /@media \(min-width: 1280px\)[\s\S]*?--sb-control-height: 2\.25rem/);
+  const design = fs.readFileSync("src/app/design-system-v2.css", "utf8");
+  assert.match(design, /@media \(min-width: 768px\)[\s\S]*?form\.sb-list-query-card[\s\S]*?height: 2\.25rem !important[\s\S]*?data-right-console/);
+  assert.match(design, /@media \(max-width: 639px\)[\s\S]*?height: 44px !important/);
 });
 
 test("phone account actions keep touch targets large and search degrades without unhandled requests", () => {

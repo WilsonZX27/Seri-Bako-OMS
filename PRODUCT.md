@@ -1,5 +1,9 @@
 # Seri Bako Operations Management System
 
+### v8.64.133 (unreleased) — Outlet Daily closure audit
+
+Fresh local Supabase browser evidence now covers the Outlet Daily workflow end to end: date history and completion matrix, conditional wastage details, direct posting at four viewports, company-wide Qty Sent correction, dated product-line export, and the wastage/AP/cash-flow report surfaces all passed 19/19. The first stale-server attempt is excluded; this is local evidence only and does not promote linked migrations or Production regression.
+
 ### v8.64.132 (unreleased) — PR to PO error feedback closure
 
 The local procurement closure now verifies the browser duplicate path as well as successful PR-to-PO conversion: a second disposable Ready to Convert request using the same AutoCount PO number receives a clear duplicate message, keeps the typed value, and does not create a second active PO. This is local evidence only; linked migrations and Production regression remain separate.

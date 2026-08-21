@@ -1,5 +1,15 @@
 # Annotation Repair Ledger — 2026-08-19
 
+## v8.64.133 Outlet Daily closure audit
+
+| Acceptance | Status | Evidence / remaining gate |
+|---|---|---|
+| Outlet Daily history, entry, completion status, Qty Sent correction and detailed export work together across the required responsive surfaces. | verified locally / Production awaiting UAT | Fresh local Supabase browser audit passed `19/19` after restarting the current v8.64.132 service: completion matrix, entry conditional details, direct-post flow at four viewports, fixed filter/action geometry, mobile ordering, Purchasing cross-outlet correction, and dated product-line CSV. |
+| Wastage cost and operational reports remain readable and bounded. | verified locally / Production awaiting UAT | The same `19/19` run covered wastage chart point previews, ranking values, Product Margin, Procurement Variance, AP Aging and Cash Flow drill-throughs on desktop and touch/phone surfaces. |
+| Footer and release records remain synchronized. | implemented | `PRODUCT.md`, `DESIGN.md`, `package.json`, `package-lock.json`, `src/lib/app-version.ts`, and this ledger now carry v8.64.133. |
+
+The first attempt against a stale local server returned raw unstyled HTML and is excluded from evidence; the clean rerun used the current app and passed all 19 tests. This remains local-only evidence; linked migrations and Production regression are separate gates.
+
 ## v8.64.132 PR-to-PO error feedback closure
 
 | Acceptance | Status | Evidence / remaining gate |

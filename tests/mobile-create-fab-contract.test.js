@@ -44,13 +44,13 @@ test("page-header create actions are icon-only below desktop without an empty ac
   assert.doesNotMatch(source, /xl:not-sr-only/);
 });
 
-test("warning semantics resolve to red rather than orange or amber", () => {
+test("warning semantics remain distinct from blocking danger", () => {
   const css = read("src/app/globals.css");
   const badge = read("src/components/ui/badge.tsx");
   const states = read("src/components/ui/system-states.tsx");
 
-  assert.match(css, /--sb-warning: var\(--sb-danger\)/);
-  assert.match(css, /--sb-warning-bg: var\(--sb-danger-bg\)/);
+  assert.match(css, /--sb-warning: #9A6700/);
+  assert.match(css, /--sb-warning-bg: #FFF4CC/);
   assert.match(badge, /warning: "border-\[var\(--sb-warning-bg\)\]/);
   assert.match(states, /warning: "border-\[var\(--sb-warning\)\]/);
 });

@@ -4,11 +4,11 @@
 
 | Acceptance | Status | Evidence / remaining gate |
 |---|---|---|
-| A valid AutoCount PO number converts a Ready to Convert PR without the idempotency constraint failure. | implemented / awaiting local migration and authenticated UAT | Migration 186 explicitly recreates the conversion RPC and writes `purchase_orders.idempotency_key`; PR/AUG26/013 still requires local migration application and authenticated conversion evidence. |
+| A valid AutoCount PO number converts a Ready to Convert PR without the idempotency constraint failure. | implemented / local transactional RPC test passed / awaiting authenticated UAT | Migration 186 explicitly recreates the conversion RPC and writes `purchase_orders.idempotency_key`; a disposable local ready-to-convert PR converted successfully and a repeated call returned the existing PO. PR/AUG26/013 and Production remain unverified. |
 | Conversion failures identify the exact condition, focus the PO number field, and preserve the entered value. | implemented / awaiting authenticated UAT | Server action maps stable conversion codes, redirects with a bounded `po_no`, and the detail form restores it through `ActionErrorNotice`. |
-| A PR cannot create two active POs and conversion audit records include source and idempotency metadata. | implemented / awaiting local migration and workflow UAT | The RPC locks the PR, checks existing links, uses the active-PO and idempotency indexes, and writes structured activity metadata. |
+| A PR cannot create two active POs and conversion audit records include source and idempotency metadata. | implemented / local transactional RPC test passed / awaiting workflow UAT | The RPC locks the PR, checks existing links, uses the active-PO and idempotency indexes, and writes structured activity metadata. |
 
-Migration 186 is not remote or Production verified until the user applies it and provides successful linked migration evidence. Current dirty migration 185, Supabase `.temp`, seed, and local configuration files remain outside this repair batch.
+Migrations 185 and 186 are applied only to the local Supabase database for this audit. They are not remote or Production verified until the user provides successful linked migration evidence. Current Supabase `.temp`, seed, and local configuration files remain outside this repair batch.
 
 ## v8.64.108 portrait-tablet alignment follow-up
 
@@ -427,3 +427,12 @@ The remaining rows below are intentionally retained as open gates. They require 
 4. Cloud migration/data verification: intentionally not claimed by this UI-only repair.
 5. Historical production build: v8.64.64 passed across all 76 routes after the latest field-guidance and verification-infrastructure changes; the current v8.64.65 build passed locally and is recorded above.
 6. Localhost:3001: restarted outside the restricted runtime and authenticated Dashboard verification passed against the configured cloud Supabase environment.
+## v8.64.110 progressive receiving UOM learning and local migration closure
+
+| Acceptance | Status | Evidence / remaining gate |
+|---|---|---|
+| Goods Receiving accepts Purchase UOM first and learns unknown conversions at the point of receipt. | implemented / local transaction and focused UI contract passed | The form now accepts actual Purchase UOM and Base UOM quantities, calculates known conversions, derives an immutable snapshot for unknown conversions, and offers an opt-in Remember choice. Migration 185 was applied locally after correcting its invalid backfill join; functions and constraints compile. Authenticated rendered UAT and Production remain open. |
+| PR to PO conversion returns a stable result and never duplicates an active PO. | implemented / local transactional RPC test passed | Migration 186 is applied locally. A disposable ready-to-convert PR converted successfully, a second call returned the same PO with `already_existed=true`, and blank/not-ready assertions returned stable business codes. Linked/Production migration evidence remains open. |
+| GRN and return posting retain immutable Purchase/Base UOM snapshots. | implemented / awaiting authenticated mutation UAT | Local function definitions, snapshot columns, audit table, and grants are present; no Production mutation was performed. |
+
+The local Supabase migration ledger reports 184, 185, and 186. This is local-only evidence; it must not be promoted to `remote verified` or `production verified` without linked migration output and read-only Production regression.

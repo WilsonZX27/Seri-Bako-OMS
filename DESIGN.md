@@ -1,5 +1,9 @@
 # Seri Bako OMS responsive design standard
 
+## v8.64.110 (unreleased) - Progressive receiving UOM learning
+
+Goods Receiving leads with the physical supplier quantity. A known Purchase-UOM conversion renders Base-UOM as a calculated companion value; an unknown conversion keeps both quantities editable and offers an explicit Remember choice. The UI explains that the current delivery can proceed without pre-configuring every supplier item, while the immutable snapshot remains the inventory posting authority.
+
 ## v8.64.109 (unreleased) - PR to PO conversion error recovery
 
 Conversion forms keep the operator's AutoCount PO number after a failed submission and place one actionable error notice above the document content. The notice names the business condition, targets the PO number field when relevant, and never exposes database diagnostics. Successful and already-linked conversion outcomes remain explicit in the same right-rail action surface.

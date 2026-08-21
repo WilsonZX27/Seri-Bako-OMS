@@ -1,5 +1,9 @@
 # Seri Bako Operations Management System
 
+### v8.64.110 (unreleased) — Progressive receiving UOM learning
+
+Goods Receiving now accepts the supplier's actual Purchase UOM first, calculates Base UOM when a conversion is known, and lets the operator confirm both quantities when it is not. A confirmed conversion can be remembered for future deliveries without making master-data setup a prerequisite. Local Supabase migration 185 and the PR-to-PO repair migration 186 are applied and transaction-tested locally; linked/Production verification remains separate.
+
 ### v8.64.109 (unreleased) — PR to PO conversion repair
 
 Purchase Request conversion now recreates its database RPC explicitly, writes the required purchase-order idempotency key, keeps one active PO per PR, and records conversion source metadata. AutoCount PO number failures now identify the exact business issue, focus the field, and preserve the typed number after a failed attempt. Repository migrations reviewed through `186`; this is local source evidence only, and linked/Production verification remains separate.

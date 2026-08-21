@@ -37,6 +37,10 @@ function extractGoodsReceiving(formData: FormData) {
   const pending = formData.getAll("line_pending_qty").map(String);
   const received = formData.getAll("line_received_qty").map(String);
   const rejected = formData.getAll("line_rejected_qty").map(String);
+  const receivedBase = formData.getAll("line_received_base_qty").map(String);
+  const rejectedBase = formData.getAll("line_rejected_base_qty").map(String);
+  const conversionSnapshots = formData.getAll("line_conversion_snapshot").map(String);
+  const rememberConversions = formData.getAll("line_remember_conversion").map(String);
   const uoms = formData.getAll("line_uom").map(String);
   const costs = formData.getAll("line_unit_cost").map(String);
   const batches = formData.getAll("line_batch_no").map(String);
@@ -60,6 +64,10 @@ function extractGoodsReceiving(formData: FormData) {
         pending_qty: pending[index] ?? 0,
         received_qty: received[index] ?? 0,
         rejected_qty: rejected[index] ?? 0,
+        received_base_qty: receivedBase[index] || null,
+        rejected_base_qty: rejectedBase[index] || null,
+        conversion_to_base_uom_snapshot: conversionSnapshots[index] || null,
+        remember_conversion: rememberConversions[index] === "on",
         uom: uoms[index],
         unit_cost: costs[index] ?? 0,
         batch_no: batches[index],

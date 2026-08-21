@@ -63,8 +63,10 @@ test("goods receiving prioritizes physical receipt before reference quantities o
 
   assert.match(source, /data-goods-receiving-setup/);
   assert.match(source, /data-goods-receiving-workspace/);
-  assert.match(source, /label="Received" required className="order-2/);
-  assert.match(source, /label="Rejected" className="order-2/);
+  assert.match(source, /label=\{`Received \(\$\{line\.uom\}\)`\} required className="order-2/);
+  assert.match(source, /label=\{`Rejected \(\$\{line\.uom\}\)`\} className="order-2/);
+  assert.match(source, /name="line_received_base_qty"/);
+  assert.match(source, /line_conversion_snapshot/);
   assert.match(source, /label="Ordered" className="order-3/);
   assert.match(source, /label="Prev\. Received" className="order-3/);
   assert.match(source, /label="Pending" className="order-4/);

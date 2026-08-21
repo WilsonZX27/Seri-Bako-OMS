@@ -1,5 +1,9 @@
 # Seri Bako Operations Management System
 
+### v8.64.125 (unreleased) — Progressive receiving UOM closure
+
+Authenticated local Supabase E2E now proves the receiving learning loop: unknown 2 CTN → 24 KG with an immutable snapshot and optional Remember, a later 1 CTN receipt auto-calculates 12 KG, and a floating 2 BAG → 17.4 KG receipt remains one-time without changing the supplier default. Base-unit stock quantities and normalized costs are asserted from the posted ledger. This is local evidence only; linked migrations and Production regression remain separate.
+
 ### v8.64.124 (unreleased) — Fresh local workflow audit closure
 
 The local production-like browser audit now includes the corrected field-level PR validation expectation and passed the remaining workspace, goods-receiving, Outlet Daily entry, administration, and responsive checks 12/12. This release record is local evidence only; linked migrations and Production regression remain separate.

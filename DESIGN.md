@@ -1,5 +1,9 @@
 # Seri Bako OMS responsive design standard
 
+## v8.64.125 (unreleased) - Progressive receiving UOM closure
+
+Goods Receiving is purchase-UOM first and base-UOM explicit: known factors calculate the stock quantity, unknown packaging accepts the actual base quantity, and Remember is opt-in per line. Local authenticated coverage proves fixed and floating pack behavior without turning master-data setup into a pre-use blocker. Footer remains the concise `v8.64.125` token.
+
 ## v8.64.124 (unreleased) - Fresh local workflow audit closure
 
 The closure suite now asserts the specific supplier validation message surfaced by the PR form and the remaining local workspace, receiving, Outlet Daily, administration, and responsive checks pass 12/12. Footer remains the concise `v8.64.124` token.

@@ -1,5 +1,16 @@
 # Annotation Repair Ledger — 2026-08-19
 
+## v8.64.125 progressive receiving UOM local closure
+
+| Acceptance | Status | Evidence / remaining gate |
+|---|---|---|
+| Unknown supplier packaging can be received with actual Purchase and Base UOM quantities. | verified locally / Production awaiting UAT | `progressive-receiving-uom-local.spec.js` passed 3/3 against the fresh local production-like server and local Supabase: 2 CTN → 24 KG, optional Remember, and a floating 2 BAG → 17.4 KG snapshot. |
+| Remembered conversions become future defaults without changing the immutable GRN snapshot. | verified locally / Production awaiting UAT | The next 1 CTN receipt auto-calculated 12 KG, posted 12 base units at normalized cost, and the first GRN retained its own conversion/audit record. |
+| Remember-off floating conversions do not contaminate supplier master data. | verified locally / Production awaiting UAT | The 2 BAG → 17.4 KG receipt posted the correct base quantity and cost while its supplier conversion remained null and no conversion audit was created. |
+| Footer and release records remain synchronized. | implemented | `PRODUCT.md`, `DESIGN.md`, `package.json`, `package-lock.json`, `src/lib/app-version.ts`, and this ledger now carry v8.64.125. |
+
+This batch is local evidence only. Migration 185 remains an intentionally preserved untracked boundary; linked migration alignment and Production regression are separate gates.
+
 ## v8.64.124 fresh local workflow audit closure
 
 | Acceptance | Status | Evidence / remaining gate |
